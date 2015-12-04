@@ -458,6 +458,11 @@ and then start the server with::
     
     $ twistd web --wsgi=ase.db.app.app --port=8000
     
+.. note::
+    
+    Please review the code carefully before exposing the ``ase.db.app`` to
+    the internet or `bad things <https://xkcd.com/327/>`__ could happen.
+    
 .. _Flask: http://flask.pocoo.org/
 .. _WSGI: https://www.python.org/dev/peps/pep-3333/
 .. _Twisted: https://twistedmatrix.com/
