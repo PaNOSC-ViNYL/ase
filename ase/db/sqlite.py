@@ -370,8 +370,9 @@ class SQLite3Database(Database):
         if self.version < 5:
             pass  # should be ok for reading by convert.py script
         if self.version < 6:
-            if values[23] is not None:
-                magmom = float(deblob(values[23], shape=()))
+            m = values[23]
+            if m is not None and not isinstance(m, float):
+                magmom = float(deblob(m, shape=()))
                 values = values[:23] + (magmom,) + values[24:]
         return values
         
