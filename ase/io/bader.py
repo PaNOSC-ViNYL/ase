@@ -39,9 +39,12 @@ def attach_charges(atoms, fileobj='ACF.dat', displacement=1e-4):
                                   'Check that Bader program version >= 0.25')
                 
             atom = atoms[int(words[0]) - 1]
-            atom.charge = atom.number - float(words[j])
+            atom.charge = float(words[j])
             if displacement is not None: # check if the atom positions match
-                xyz = np.array([float(w) for w in words[1:4]]) * Bohr
-                assert np.linalg.norm(atom.position - xyz) < displacement
+                xyz = np.array([float(w) for w in words[1:4]])
+                # ACF.dat units could be Bohr or Angstrom
+                norm1 = np.linalg.norm(atom.position - xyz)
+                norm2 = np.linalg.norm(atom.position - xyz*Bohr)
+                assert norm1 < displacement or norm2 < displacement
         i += 1
 

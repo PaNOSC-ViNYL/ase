@@ -59,8 +59,8 @@ class NEB:
         for i, image in enumerate(self.images):
             old.append(image.calc)
             image.calc = IDPP(d1 + i * d, mic=mic)
-        opt = BFGS(self, trajectory=traj, logfile=log)
-        opt.run(fmax=0.1)
+        opt = optimizer(self, trajectory=traj, logfile=log)
+        opt.run(fmax=fmax)
         for image, calc in zip(self.images, old):
             image.calc = calc
 

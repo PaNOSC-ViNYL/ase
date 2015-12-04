@@ -45,13 +45,16 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  exkwargs={},      # kwargs to be passed to Excitations
-                 txt='-'):
+                 exext='.ex.gz',    # extension for Excitation names
+                 txt='-',
+                 verbose=False):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
         if exname is None:
             exname = gsname
         self.exname = exname + '-d%.3f' % delta
+        self.exext = exext
 
         if directions is None:
             self.directions = np.array([0, 1, 2])
@@ -64,6 +67,13 @@ class ResonantRaman(Vibrations):
         self.timer = Timer()
         self.txt = get_txt(txt, rank)
 
+        self.verbose = verbose
+
+    def log(self, message, pre='# ', end='\n'):
+        if self.verbose:
+            self.txt.write(pre + message + end)
+            self.txt.flush()
+
     def calculate(self, filename, fd):
         """Call ground and excited state calculation"""
         self.timer.start('Ground state')
@@ -75,7 +85,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('Excitations')
         basename, _ = os.path.splitext(filename)
         excitations = self.exobj(self.atoms.get_calculator())
-        excitations.write(basename + '.excitations')
+        excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
     def get_intensity_tensor(self, omega, gamma=0.1):
@@ -89,6 +99,7 @@ class ResonantRaman(Vibrations):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
+                self.log('reading ' + exname)
                 ex_p = self.exobj(exname, **self.exkwargs)
                 if len(ex_p) != n:
                     raise RuntimeError(
@@ -101,7 +112,8 @@ class ResonantRaman(Vibrations):
                 return m_ccp
 
             self.timer.start('reading excitations')
-            ex_p = self.exobj(self.exname + '.eq.excitations',
+            self.log('reading ' + self.exname + '.eq' + self.exext)
+            ex_p = self.exobj(self.exname + '.eq' + self.exext,
                               **self.exkwargs)
             n = len(ex_p)
             self.ex0 = np.array([ex.energy * eu for ex in ex_p])
@@ -111,9 +123,9 @@ class ResonantRaman(Vibrations):
                 for i in 'xyz':
                     name = '%s.%d%s' % (self.exname, a, i)
                     self.exminus.append(get_me_tensor(
-                        name + '-.excitations', n))
+                        name + '-' + self.exext, n))
                     self.explus.append(get_me_tensor(
-                        name + '+.excitations', n))
+                        name + '+' + self.exext, n))
             self.timer.stop('reading excitations')
 
         self.timer.start('amplitudes')
@@ -194,12 +206,12 @@ class ResonantRaman(Vibrations):
                                        2. / sigma**2)).sum()
         return [energies, prefactor * spectrum]
 
-    def write_spectra(self, omega, gamma,
-                      out='resonant-raman-spectra.dat',
-                      start=200, end=4000,
-                      npts=None, width=10,
-                      type='Gaussian', method='standard',
-                      direction='central'):
+    def write_spectrum(self, omega, gamma,
+                       out='resonant-raman-spectra.dat',
+                       start=200, end=4000,
+                       npts=None, width=10,
+                       type='Gaussian', method='standard',
+                       direction='central'):
         """Write out spectrum to file.
 
         First column is the wavenumber in cm^-1, the second column the
@@ -217,7 +229,7 @@ class ResonantRaman(Vibrations):
         outdata.T[0] = energies
         outdata.T[1] = spectrum
         fd = open(out, 'w')
-        fd.write('# Resonat Raman spectrum\n')
+        fd.write('# Resonant Raman spectrum\n')
         fd.write('# omega={0:g} eV, gamma={1:g} eV\n'.format(omega, gamma))
         fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
         fd.write('# [cm^-1]  [a.u.]\n')

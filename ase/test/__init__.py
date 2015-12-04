@@ -57,7 +57,7 @@ class ScriptTestCase(unittest.TestCase):
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'cmr', 'Scientific', 'lxml']:
-                sys.__stdout__.write('(skipped) ')
+                sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
         except NotAvailable:
@@ -67,13 +67,7 @@ class ScriptTestCase(unittest.TestCase):
         return self.filename
 
     def __str__(self):
-        f = self.filename
-        dir = os.path.basename(os.path.dirname(f))
-        file = os.path.basename(f)
-        if f.find('test') + len('test') + 1 == f.find(file):
-            return '%s (ScriptTestCase)' % file
-        else:
-            return '%s (ScriptTestCase)' % os.path.join(dir, file)
+        return self.filename.split('test/')[-1]
 
     def __repr__(self):
         return "ScriptTestCase(filename='%s')" % self.filename

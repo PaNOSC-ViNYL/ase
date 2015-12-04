@@ -94,7 +94,7 @@ All options can be accessed via ``calc.param.<TAB>`` or ``calc.cell.<TAB>``
 and documentation is printed with ``calc.param.<keyword> ?`` or
 ``calc.cell.<keyword> ?``. All options can also be set directly
 using ``calc.keyword = ...`` or ``calc.KEYWORD = ...`` or even
-``calc.KeYwOrD`` or directly as named arguments in the call to the constructor
+``ialc.KeYwOrD`` or directly as named arguments in the call to the constructor
 (*e.g.* ``Castep(task='GeometryOptimization')``).
 
 All options that go into the ``.param`` file are held in an ``CastepParam``
@@ -304,7 +304,7 @@ End CASTEP Interface Documentation
         'nbands',
         'positions',
         'stress']
-    
+
     internal_keys = [
         '_castep_command',
         '_check_checkfile',
@@ -321,7 +321,7 @@ End CASTEP Interface Documentation
         '_track_output',
         '_try_reuse',
         '_pedantic']
-    
+
     def __init__(self, directory='CASTEP', label='castep',
                  castep_command=None, check_castep_version=False,
                  castep_pp_path=None,
@@ -332,8 +332,8 @@ End CASTEP Interface Documentation
         # initialize the ase.calculators.general calculator
         Calculator.__init__(self)
 
-        from ase.io.castep import write_castep_cell
-        self._write_cell = write_castep_cell
+        from ase.io.castep import write_cell
+        self._write_cell = write_cell
 
         castep_keywords = import_castep_keywords()
         self.param = CastepParam()
@@ -509,11 +509,22 @@ End CASTEP Interface Documentation
         if castep_file is None:
             if self._castep_file:
                 castep_file = self._castep_file
+                out = paropen(castep_file, 'r')
             else:
                 print('No CASTEP file specified')
                 return
             if not os.path.exists(castep_file):
                 print('No CASTEP file found')
+
+        elif isinstance(castep_file, str):
+            out = paropen(castep_file, 'r')
+
+        elif isinstance(castep_file, file):
+            # now we expect a fielobj
+            out = castep_file
+            castep_file = out.name
+        else:
+            raise ValueError('"castep_file" is neither str nor file instance')
 
         if self._seed is None:
             self._seed = os.path.splitext(os.path.basename(castep_file))[0]
@@ -527,7 +538,6 @@ End CASTEP Interface Documentation
             # just be here from a previous run
         # look for last result, if several CASTEP
         # run are appended
-        out = paropen(castep_file, 'r')
 
         record_start, record_end, end_found, _\
             = self._castep_find_last_record(out)
@@ -563,6 +573,8 @@ End CASTEP Interface Documentation
 
         out.seek(record_start)
         while True:
+            # TODO: add a switch if we have a geometry optimization: record
+            # atoms objects for intermediate steps.
             try:
                 line = out.readline()
                 if not line or out.tell() > record_end:
@@ -805,10 +817,13 @@ End CASTEP Interface Documentation
             # compensate for internal reordering of atoms by CASTEP
             # using the fact that the order is kept within each species
 
+            positions_frac_ase = self.atoms.get_scaled_positions(wrap=False)
             atoms_assigned = [False] * len(self.atoms)
 
+            positions_frac_castep_init = np.array(positions_frac_list[0])
             positions_frac_castep = np.array(positions_frac_list[-1])
 
+            species_castep = list(species)
             forces_castep = np.array(forces)
             hirsh_castep = np.array(hirsh_volrat)
             spins_castep = np.array(spins)
@@ -816,8 +831,8 @@ End CASTEP Interface Documentation
             # go through the atoms position list and replace
             # with the corresponding one from the
             # castep file corresponding atomic number
-            for iase in xrange(n_atoms):
-                for icastep in xrange(n_atoms):
+            for iase in range(n_atoms):
+                for icastep in range(n_atoms):
                     if (species[icastep] == self.atoms[iase].symbol and
                         not atoms_assigned[icastep]):
                         positions_frac_atoms[iase] = positions_frac_castep[icastep]
@@ -900,8 +915,8 @@ End CASTEP Interface Documentation
         elif isinstance(castep_castep, file):
             f = castep_castep
         else:
-            raise TypeError('read_castep_castep_symops: castep_castep is'
-                            'not  of type file or str!')
+            raise TypeError('read_castep_castep_symops: castep_castep is '
+                            'not of type file or str!')
 
         if self.param.iprint is None or self.param.iprint < 2:
             self._interface_warnings.append(
@@ -1074,7 +1089,11 @@ End CASTEP Interface Documentation
         """Checks wether anything changed in the atoms object or CASTEP
         settings since the last calculation using this instance.
         """
-        if not self.atoms == self._old_atoms:
+        #SPR: what happens with the atoms parameter here? Why don't we use it?
+        # from all that I can tell we need to compare against atoms instead of
+        # self.atoms
+        #if not self.atoms == self._old_atoms:
+        if not atoms == self._old_atoms:
             return True
         if self._old_param is None or self._old_cell is None:
             return True
@@ -1090,6 +1109,11 @@ End CASTEP Interface Documentation
         if not self._prepare_input_only:
             self.run()
             self.read()
+
+            # we need to push the old state here!
+            # although run() pushes it, read() may change the atoms object again.
+            # yet, the old state is supposed to be the one AFTER read()
+            self.push_oldstate()
 
     def push_oldstate(self):
         """This function pushes the current state of the (CASTEP) Atoms object
@@ -1155,9 +1179,11 @@ End CASTEP Interface Documentation
 
         # create work directory
         if not os.path.isdir(self._directory):
-            os.mkdir(self._directory, 0o775)
-        if self._calls == 0:
-            self._fetch_pspots()
+            os.makedirs(self._directory, 0o775)
+
+        # we do this every time, not only upon first call
+        #if self._calls == 0:
+        self._fetch_pspots()
 
         cwd = os.getcwd()
         os.chdir(self._directory)
@@ -1216,7 +1242,9 @@ End CASTEP Interface Documentation
             print('castep call stdout:\n%s' % stdout)
         if stderr:
             print('castep call stderr:\n%s' % stderr)
-        self.push_oldstate()
+
+        # shouldn't it be called after read()???
+        # self.push_oldstate()
 
         # check for non-empty error files
         err_file = '%s.0001.err' % self._seed
@@ -1226,7 +1254,7 @@ End CASTEP Interface Documentation
             err_file.close()
         os.chdir(cwd)
         if self._error:
-            print(self._error)
+            raise RuntimeError(self._error)
 
     def __repr__(self):
         """Returns generic, fast to capture representation of
@@ -1283,15 +1311,17 @@ End CASTEP Interface Documentation
                 if attr == '_track_output':
                     if value:
                         self._try_reuse = True
-                        print('You switched _track_output on. This will')
-                        print('consume a lot of disk-space. The interface')
-                        print('also switched _try_reuse on, which will')
-                        print('try to find the last check file. Set')
-                        print('_try_reuse = False, if you need')
-                        print('really separate calculations')
+                        if self._pedantic:
+                            print('You switched _track_output on. This will')
+                            print('consume a lot of disk-space. The interface')
+                            print('also switched _try_reuse on, which will')
+                            print('try to find the last check file. Set')
+                            print('_try_reuse = False, if you need')
+                            print('really separate calculations')
                     elif '_try_reuse' in self._opt and self._try_reuse:
                         self._try_reuse = False
-                        print('_try_reuse is set to False, too')
+                        if self._pedantic:
+                            print('_try_reuse is set to False, too')
             else:
                 self.__dict__[attr] = value
             return
@@ -1420,7 +1450,9 @@ End CASTEP Interface Documentation
         seed = 'dryrun'
 
         cell_written = self._write_cell('%s.cell' % seed, self.atoms)
-        if not cell_written:
+        # This part needs to be modified now that we rely on the new formats.py
+        # interface
+        if not os.path.isfile('%s.cell'%seed):
             print('%s.cell not written - aborting dryrun' % seed)
             return
         write_param('%s.param' % seed, self.param, )
@@ -1489,18 +1521,20 @@ End CASTEP Interface Documentation
     def _fetch_pspots(self, directory=None):
         """Put all specified pseudo-potentials into the working directory.
         """
+        # should be a '==' right? Otherwise setting _castep_pp_path is not
+        # honored.
         if not os.environ.get('PSPOT_DIR', None) \
-           and self._castep_pp_path != os.path.abspath('.'):
-            # By default CASTEP consults the environment variable
-            # PSPOT_DIR. If this contains a list of colon separated
-            # directories it will check those directories for pseudo-
-            # potential files if not in the current directory.
-            # Thus if PSPOT_DIR is set there is nothing left to do.
-            # If however PSPOT_DIR was been accidentally set
-            # (e.g. with regards to a different program)
-            # setting CASTEP_PP_PATH to an explicit value will
-            # still be honored.
-            return
+           and self._castep_pp_path == os.path.abspath('.'):
+           # By default CASTEP consults the environment variable
+           # PSPOT_DIR. If this contains a list of colon separated
+           # directories it will check those directories for pseudo-
+           # potential files if not in the current directory.
+           # Thus if PSPOT_DIR is set there is nothing left to do.
+           # If however PSPOT_DIR was been accidentally set
+           # (e.g. with regards to a different program)
+           # setting CASTEP_PP_PATH to an explicit value will
+           # still be honored.
+           return
 
         if directory is None:
             directory = self._directory
@@ -1528,8 +1562,7 @@ End CASTEP Interface Documentation
                     if self._copy_pspots:
                         shutil.copy(orig_pspot_file, directory)
                     elif self._link_pspots:
-                        os.symlink(os.path.join(self._castep_pp_path, pspot),
-                                   cp_pspot_file)
+                        os.symlink(orig_pspot_file, cp_pspot_file)
                     else:
                         if self._pedantic:
                             print('Warning: PP files have neither been linked nor copied')
@@ -1537,7 +1570,7 @@ End CASTEP Interface Documentation
                             print('variable PSPOT_DIR accordingly!')
                         pass
 
-                        
+
 def get_castep_version(castep_command):
     """This returns the version number as printed in the CASTEP banner.
     """

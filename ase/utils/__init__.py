@@ -107,22 +107,21 @@ def opencew(filename, world=None):
         try:
             fd = os.open(filename, CEW_FLAGS)
         except OSError as ex:
-            if ex.errno == errno.EEXIST:
-                ok = 0
-            else:
-                raise
+            error = ex.errno
         else:
-            ok = 1
+            error = 0
             fd = os.fdopen(fd, 'wb')
     else:
-        ok = 0
+        error = 0
         fd = devnull
 
     # Syncronize:
-    if world.sum(ok) == 0:
+    error = world.sum(error)
+    if error == errno.EEXIST:
         return None
-    else:
-        return fd
+    if error:
+        raise OSError(error, 'Error', filename)
+    return fd
 
 
 class Lock:

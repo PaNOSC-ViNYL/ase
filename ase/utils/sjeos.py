@@ -83,7 +83,7 @@ class EquationOfStateSJEOS:
         if filename is None and show is None:
             show = True
 
-        x = 3.95
+        x = 4.95
         f = plt.figure(figsize=(x * 2.5**0.5, x))
         f.subplots_adjust(left=0.12, right=0.9, top=0.9, bottom=0.15)
         plt.plot(self.v, self.e, 'o')

@@ -68,6 +68,7 @@ op = MoveLeftMutation(cations, 2, .5)
 a3, desc = op.get_new_individual([a2])
 syms = a3.get_chemical_symbols()
 
+from ase.ga import set_raw_score, get_raw_score
 assert len(set(syms)) == 3
-a3.set_raw_score(5.0)
-assert a3.get_raw_score() == 5.0
+set_raw_score(a3, 5.0)
+assert get_raw_score(a3) == 5.0

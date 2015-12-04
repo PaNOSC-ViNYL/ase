@@ -422,3 +422,42 @@ Here is a description of the database object:
     .. automethod:: write(atoms, key_value_pairs={}, data={}, **kwargs)
     .. automethod:: reserve(**key_value_pairs)
     .. automethod:: update(ids, delete_keys=[], block_size=1000, **add_key_value_pairs)
+
+    
+Running a PostgreSQL server
+===========================
+
+.. highlight:: bash
+
+With your PostgreSQL server up and running, you should run the following
+command as the ``postgres`` user::
+    
+    $ python -m ase.db.postgresql password
+    
+This will initialize some tables, create an ``ase`` user and set a password
+(see :git:`ase/db/postgresql.py` for details).  You should now be able to
+query the database using an address like
+``pg://user:password@host:port``::
+ 
+    $ ase-db pg://ase:password@localhost:5432
+
+If you have some data in a ``data.db`` SQLite file, then you can insert that
+into the PostgreSQL database like this::
+    
+    $ ase-db data.db --insert-into pg://ase:password@localhost:5432
+    
+Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
+web-server or use any WSGI_ compatible server.  We will use
+Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
+to point to a configuration file containing two lines similar to these::
+    
+    ASE_DB_NAME = 'pg://ase:password@localhost:5432'
+    ASE_DB_HOMEPAGE = '<a href="https://home.page.org">HOME</a> ::'
+
+and then start the server with::
+    
+    $ twistd web --wsgi=ase.db.app.app --port=8000
+    
+.. _Flask: http://flask.pocoo.org/
+.. _WSGI: https://www.python.org/dev/peps/pep-3333/
+.. _Twisted: https://twistedmatrix.com/

@@ -6,6 +6,7 @@ from operator import itemgetter
 import numpy as np
 
 from ase.db.core import now
+from ase.ga import get_raw_score
 
 
 def count_looks_like(a, all_cand, comp):
@@ -70,7 +71,8 @@ class Population(object):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
-        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        all_cand.sort(key=lambda x: x.info['key_value_pairs']['raw_score'],
+                      reverse=True)
         # all_cand.sort(key=lambda x: x.get_potential_energy())
 
         # Fill up the population with the self.pop_size most stable
@@ -160,7 +162,9 @@ class Population(object):
         """ Adds a single candidate to the population. """
 
         # check if the structure is too low in raw score
-        if a.get_raw_score() < self.pop[-1].get_raw_score() \
+        raw_score_a = get_raw_score(a)
+        raw_score_worst = get_raw_score(self.pop[-1])
+        if raw_score_a < raw_score_worst \
                 and len(self.pop) == self.pop_size:
             return
 
@@ -168,13 +172,13 @@ class Population(object):
         # replace a similar structure in the population
         for (i, b) in enumerate(self.pop):
             if self.comparator.looks_like(a, b):
-                if b.get_raw_score() < a.get_raw_score():
+                if get_raw_score(b) < raw_score_a:
                     del self.pop[i]
                     a.info['looks_like'] = count_looks_like(a,
                                                             self.all_cand,
                                                             self.comparator)
                     self.pop.append(a)
-                    self.pop.sort(key=lambda x: x.get_raw_score(),
+                    self.pop.sort(key=lambda x: get_raw_score(x),
                                   reverse=True)
                 return
 
@@ -188,7 +192,7 @@ class Population(object):
                                                 self.all_cand,
                                                 self.comparator)
         self.pop.append(a)
-        self.pop.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        self.pop.sort(key=lambda x: get_raw_score(x), reverse=True)
 
     def __get_fitness__(self, indecies, with_history=True):
         """Calculates the fitness using the formula from
@@ -199,7 +203,7 @@ class Population(object):
         minimizing energy. (Set raw_score=-energy to optimize the energy)
         """
 
-        scores = [x.get_raw_score() for x in self.pop]
+        scores = [get_raw_score(x) for x in self.pop]
         min_s = min(scores)
         max_s = max(scores)
         T = min_s - max_s
@@ -357,14 +361,14 @@ class RandomPopulation(Population):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
-        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        all_cand.sort(key=lambda x: get_raw_score(x), reverse=True)
         # all_cand.sort(key=lambda x: x.get_potential_energy())
 
         if len(all_cand) > 0:
             # Fill up the population with the self.pop_size most stable
             # unique candidates.
             ratings = []
-            best_raw = all_cand[0].get_raw_score()
+            best_raw = get_raw_score(all_cand[0])
             i = 0
             while i < len(all_cand):
                 c = all_cand[i]
@@ -378,7 +382,7 @@ class RandomPopulation(Population):
                     if len(self.pop) < self.pop_size - self.bad_candidates:
                         self.pop.append(c)
                     else:
-                        exp_fact = exp(c.get_raw_score() / best_raw)
+                        exp_fact = exp(get_raw_score(c) / best_raw)
                         ratings.append([c, (exp_fact - 1) * random()])
             ratings.sort(key=itemgetter(1), reverse=True)
 

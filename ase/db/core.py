@@ -63,6 +63,24 @@ def check(key_value_pairs):
             raise ValueError('Bad key: {0}'.format(key))
         if not isinstance(value, (int, float, basestring)):
             raise ValueError('Bad value: {0}'.format(value))
+        if isinstance(value, basestring):
+            for t in [int, float]:
+                if str_represents(value, t):
+                    raise ValueError('Value ' + value + ' is put in as string ' +
+                                     'but can be interpreted as ' +
+                                     '{0}! Please convert '.format(t.__name__) +
+                                     'to {0} using '.format(t.__name__) +
+                                     '{0}(value) before '.format(t.__name__) +
+                                     'writing to the database OR change ' +
+                                     'to a different string.')
+            
+            
+def str_represents(value, t=int):
+    try:
+        t(value)
+    except ValueError:
+        return False
+    return True
 
             
 def connect(name, type='extract_from_name', create_indices=True,
