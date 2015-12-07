@@ -120,7 +120,10 @@ your code (or use a text editor that does it automatically)::
     
 or equivalently::
 
-  $ python -m ase.utils.stylecheck filename.py
+    $ alias check="python -m ase.utils.stylecheck"
+    $ check filename.py
+
+Install ``pep8`` and ``pyflakes`` like this: ``pip install pep8 pyflakes``.
 
 .. _pyflakes: https://github.com/pyflakes/pyflakes
     

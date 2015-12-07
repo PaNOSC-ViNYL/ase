@@ -17,14 +17,50 @@ ASE has the following command line tools:
 * ase-info
 
 
+Python -m tricks
+================
+
+Some ASE modules can be invoked directly form the command line using ``python
+-m``.
+    
+:ref:`stylecheck`::
+    
+    $ python -m ase.utils.stylecheck source.py
+
+Equation of state::
+    
+    $ python -m ase.utils.eos [-p] traj-file, ...
+    
+:ref:`iso surface`::
+
+    $ python -m ase.visulaize.mlab [options] filename
+    
+Determine file type(s)::
+    
+    $ python -m ase.io.formats file ...
+
+Convert old db-files to new::
+    
+    $ python -m ase.db.convert db-file
+    
+Show content of aff-file::
+    
+    $ python -m ase.io.aff [options] aff-file [item number]
+    
+:ref:`convert`::
+    
+    $ python -m ase.io.pickletrajectory a1.traj [a2.traj ...]
+
+
 Help
 ====
 
 For all command-line tools, you can do::
     
-    ase-xxx --help
+    $ ase-gui --help
+    $ python -m ase.utils.eos --help
     
-or ``ase-xxx -h`` to get help.
+to get help (or ``-h`` for short).
 
 
 .. _bash completion:

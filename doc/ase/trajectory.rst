@@ -132,7 +132,7 @@ Converting old PickleTrajectory files to new Trajectory files
 
 Please convert you old PickleTrajectory files before it is too late::
 
-  python -m ase.io.trajectory file1.traj [file2.traj ...]
+    $ python -m ase.io.trajectory file1.traj [file2.traj ...]
 
 this will convert one or more files.  The original files are kept with
 extension ``.traj.old``

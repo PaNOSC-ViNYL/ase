@@ -134,7 +134,7 @@ def build_atoms(positions, method, cell, alat):
     atoms = Atoms()
     for el, (x, y, z) in positions:
         atoms.append(Atom(el, (x, y, z)))
-    cell *= f2f(alat) * units.Bohr
+    cell *= alat * units.Bohr
     atoms.set_cell(cell, scale_atoms=True)
     return atoms
 
@@ -151,7 +151,7 @@ def get_atomic_positions(lines, n_atoms):
     line_no = line[0]
     for line in lines[line_no + 1:line_no + n_atoms + 1]:
         el, x, y, z = line.split()
-        atomic_positions.append([el[:-1], (f2f(x), f2f(y), f2f(z))])
+        atomic_positions.append([el, (f2f(x), f2f(y), f2f(z))])
     line = lines[line_no]
     if '{' in line:
         method = line[line.find('{') + 1:line.find('}')]
