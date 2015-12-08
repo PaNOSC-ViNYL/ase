@@ -190,11 +190,8 @@ class DataConnection(object):
         frequency = dict()
         pairs = []
         for e in entries:
-            txt = e.description
-            tsplit = txt.split(' ')
-            c1 = int(tsplit[1])
-            c2 = int(tsplit[2])
-            pairs.append((min(c1, c2), max(c1, c2)))
+            c1, c2 = e.data['parents']
+            pairs.append(tuple(sorted([c1, c2]))
             if c1 not in frequency.keys():
                 frequency[c1] = 0
             frequency[c1] += 1
