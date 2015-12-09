@@ -82,14 +82,17 @@ class ResonantRaman(Vibrations):
             pickle.dump(forces, fd)
             fd.close()
         self.timer.stop('Ground state')
+
         self.timer.start('Excitations')
         basename, _ = os.path.splitext(filename)
-        excitations = self.exobj(self.atoms.get_calculator())
+        excitations = self.exobj(
+            self.atoms.get_calculator(), **self.exkwargs)
         excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
     def get_intensity_tensor(self, omega, gamma=0.1):
         if not hasattr(self, 'modes'):
+            # read vibrational modes
             self.read()
 
         if not hasattr(self, 'ex0'):
@@ -99,8 +102,9 @@ class ResonantRaman(Vibrations):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
-                self.log('reading ' + exname)
+                self.log('reading ' + exname, end=' ')
                 ex_p = self.exobj(exname, **self.exkwargs)
+                self.log('len={0}'.format(len(ex_p)), pre='')
                 if len(ex_p) != n:
                     raise RuntimeError(
                         ('excitations {0} of wrong length: {1} != {2}' +
