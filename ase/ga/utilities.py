@@ -6,7 +6,7 @@ from ase.io import write, read
 import os
 import time
 import math
-from ase.ga.atoms_attach import enable_parametrization_methods
+from ase.ga import get_neighbor_list
 
 
 def closest_distances_generator(atom_numbers, ratio_of_covalent_radii):
@@ -236,8 +236,7 @@ def get_atoms_connections(atoms, max_conn=5):
     neighbor list and hence inherit the restrictions for
     neighbors.
     """
-    enable_parametrization_methods(atoms)
-    conn = atoms.get_neighbor_list()
+    conn = get_neighbor_list(atoms)
 
     if conn is None:
         conn = get_neighborlist(atoms)
@@ -256,8 +255,7 @@ def get_angles_distribution(atoms, ang_grid=9):
     the get_neighbor_list().
     """
     from math import pi
-    enable_parametrization_methods(atoms)
-    conn = atoms.get_neighbor_list()
+    conn = get_neighbor_list(atoms)
 
     if conn is None:
         conn = get_neighborlist(atoms)
@@ -343,8 +341,7 @@ def get_rings(atoms, rings=[5, 6, 7]):
     in rings in the structures. It uses the neighbor
     list hence inherit the restriction used for neighbors.
     """
-    enable_parametrization_methods(atoms)
-    conn = atoms.get_neighbor_list()
+    conn = get_neighbor_list(atoms)
 
     if conn is None:
         conn = get_neighborlist(atoms)

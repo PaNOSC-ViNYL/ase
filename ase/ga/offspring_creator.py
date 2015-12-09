@@ -3,7 +3,6 @@ import numpy as np
 from random import random
 
 from ase import Atoms
-from ase.ga.atoms_attach import enable_raw_score_methods
 
 
 class OffspringCreator(object):
@@ -34,8 +33,6 @@ class OffspringCreator(object):
     def finalize_individual(self, indi):
         """Call this function just before returning the new individual"""
         indi.info['key_value_pairs']['origin'] = self.descriptor
-
-        enable_raw_score_methods(indi)
 
         return indi
 
