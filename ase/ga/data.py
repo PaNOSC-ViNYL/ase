@@ -191,7 +191,7 @@ class DataConnection(object):
         pairs = []
         for e in entries:
             c1, c2 = e.data['parents']
-            pairs.append(tuple(sorted([c1, c2]))
+            pairs.append(tuple(sorted([c1, c2])))
             if c1 not in frequency.keys():
                 frequency[c1] = 0
             frequency[c1] += 1
