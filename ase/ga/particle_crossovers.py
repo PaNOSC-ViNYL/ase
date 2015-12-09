@@ -143,9 +143,10 @@ class CutSpliceCrossover(Crossover):
         for atom in chain(tmpf, tmpm):
             indi.append(atom)
 
+        parent_message = ':Parents {0} {1}'.format(f.info['confid'],
+                                                   m.info['confid'])
         return (self.finalize_individual(indi),
-                self.descriptor + ': {0} {1}'.format(f.info['confid'],
-                                                     m.info['confid']))
+                self.descriptor + parent_message)
 
     def get_numbers(self, atoms):
         """Returns the atomic numbers of the atoms object using only
