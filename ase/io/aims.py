@@ -190,11 +190,11 @@ def read_aims_output(filename, index=-1):
         line = fd.readline()
         if not line:
             break
-        if "List of parameters used to initialize the calculator:" in line:
-            fd.readline()
-            calc = read_aims_calculator(fd)
-            calc.out = filename
-            found_aims_calculator = True
+        # if "List of parameters used to initialize the calculator:" in line:
+        #     fd.readline()
+        #     calc = read_aims_calculator(fd)
+        #     calc.out = filename
+        #     found_aims_calculator = True
         if "| Number of atoms                   :" in line:
             inp = line.split()
             n_atoms = int(inp[5])
