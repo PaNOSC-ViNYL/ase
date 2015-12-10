@@ -477,13 +477,13 @@ class FitnessSharingPopulation(Population):
         
     def __get_fitness__(self, candidates):
         """Input should be sorted according to raw_score."""
-        max_s = candidates[0].get_raw_score()
-        min_s = candidates[-1].get_raw_score()
+        max_s = get_raw_score(candidates[0])
+        min_s = get_raw_score(candidates[-1])
         T = min_s - max_s
 
         shared_fit = []
         for c in candidates:
-            sc = c.get_raw_score()
+            sc = get_raw_score(c)
             obj_fit = 0.5 * (1. - tanh(2. * (sc - max_s) / T - 1.))
             m = 1.
             ck = c.info['key_value_pairs'][self.comp_key]
@@ -520,7 +520,7 @@ class FitnessSharingPopulation(Population):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
-        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        all_cand.sort(key=lambda x: get_raw_score(x), reverse=True)
 
         if len(all_cand) > 0:
             shared_fit = self.__get_fitness__(all_cand)
@@ -641,7 +641,7 @@ class RankFitnessPopulation(Population):
                 # Each niche is sorted according to raw_score and
                 # assigned a fitness according to the ranking of
                 # the candidates
-                ntr.sort(key=lambda x: x[1].get_raw_score(), reverse=True)
+                ntr.sort(key=lambda x: get_raw_score(x[1]), reverse=True)
                 start_rank = -1
                 cor = 0
                 for on, cn in ntr:
@@ -682,7 +682,7 @@ class RankFitnessPopulation(Population):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
-        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        all_cand.sort(key=lambda x: get_raw_score(x), reverse=True)
 
         if len(all_cand) > 0:
             fitf = self.__get_fitness__(all_cand)
@@ -755,17 +755,18 @@ class MultiVarPopulation(RankFitnessPopulation):
         such that fitness is ranked according to a Pareto-front of
         non-dominated candidates.
 
-        Parameters:
-
-        raw_score_1: float
+    Parameters
+    ----------
+    raw_score_1 : float
             Numeric descriptor for variable 1, set with the same
             method as set_raw_score().
 
-        raw_score_2: float
+    raw_score_2: float
             Numeric descriptor for variable 2, set with the same
             method as set_raw_score().
+    (should these be here)
 
-        rank_data1: boolean
+    rank_data1 : boolean
             If True use rank_fitness on variable 1.
             If False use standard fitness descriptor.
 
@@ -791,11 +792,16 @@ class MultiVarPopulation(RankFitnessPopulation):
     def __init__(self, data_connection, population_size,
                  variable_function=None, comparator=None, logfile=None,
                  use_extinct=False, rank_data1=False, rank_data2=False,
+                 rank_data=None,
                  exp_function=True, exp_prefactor=0.5):
         self.rank_data1 = rank_data1
         self.rank_data2 = rank_data2
         # The current fitness is set at each update of the population
         self.current_fitness = None
+        
+        if rank_data is None:
+            rank_data = ['raw_score']
+        self.rank_data = rank_data
 
         RankFitnessPopulation.__init__(self, data_connection, population_size,
                                        variable_function, comparator, logfile,
@@ -838,7 +844,7 @@ class MultiVarPopulation(RankFitnessPopulation):
                     # Each niche is sorted according to raw_score_1 and
                     # assigned a fitness according to the ranking of
                     # the candidates
-                    ntr.sort(key=lambda x: x[1].get_raw_score_1(),
+                    ntr.sort(key=lambda x: get_raw_score_1(x[1]),
                              reverse=True)
                     start_rank = -1
                     cor = 0
@@ -853,7 +859,7 @@ class MultiVarPopulation(RankFitnessPopulation):
         if not rd1:
             for cgrs1 in candidates:
                 # If variable 1 not ranked just use raw_score.
-                craw1 = cgrs1.get_raw_score_1()
+                craw1 = get_raw_score_1(cgrs1)
                 fc1.append(craw1)
 
         # Check if variable two is ranked.
@@ -882,7 +888,7 @@ class MultiVarPopulation(RankFitnessPopulation):
                     # Each niche is sorted according to raw_score_2 and
                     # assigned a fitness according to the ranking of
                     # the candidates
-                    ntr.sort(key=lambda x: x[1].get_raw_score_2(),
+                    ntr.sort(key=lambda x: get_raw_score_2(x[1]),
                              reverse=True)
                     start_rank = -1
                     cor = 0
@@ -897,7 +903,7 @@ class MultiVarPopulation(RankFitnessPopulation):
         if not rd2:
             for cgrs2 in candidates:
                 # If variable 1 not ranked just use raw_score.
-                craw2 = cgrs2.get_raw_score_2()
+                craw2 = get_raw_score_2(cgrs2)
                 fc2.append(craw2)
 
         # Set the initial order of the ranks, will need to
@@ -965,7 +971,7 @@ class MultiVarPopulation(RankFitnessPopulation):
         rd1 = self.rank_data1
         rd2 = self.rank_data2
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
-        all_cand.sort(key=lambda x: x.get_raw_score(), reverse=True)
+        all_cand.sort(key=lambda x: get_raw_score(x), reverse=True)
 
         if len(all_cand) > 0:
             fitf = self.__get_fitness__(all_cand)
