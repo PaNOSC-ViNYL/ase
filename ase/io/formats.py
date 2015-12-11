@@ -41,7 +41,7 @@ ioformats = {}  # will be filled at run-time
 all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
-    'aims-output': ('FHI-aims output', '1S'),
+    'aims-output': ('FHI-aims output', '+S'),
     'bundletrajectory': ('ASE bundle trajectory', '1S'),
     'castep-castep': ('CASTEP output file', '+F'),
     'castep-cell': ('CASTEP geom file', '1F'),
