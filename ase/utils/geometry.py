@@ -2,8 +2,11 @@ from __future__ import print_function
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
-"""Utility tools for convenient creation of slabs and interfaces of
-different orientations."""
+"""Utility tools for atoms/geometry manipulations.
+   - convenient creation of slabs and interfaces of
+different orientations.
+   - detection of duplicate atoms / atoms within cutoff radius
+"""
 
 import numpy as np
 
@@ -875,9 +878,9 @@ def _row_col_from_pdist(dim, i):
     x = (np.floor((-b - np.sqrt(b**2 - 8*i))/2)).astype(int)
     y = (i + x*(b + x + 2)/2 + 1).astype(int)
     if i.shape:
-        return zip(x, y)
+        return list(zip(x, y))
     else:
-        return (x, y)
+        return [(x, y)]
 
 
 # Self test
