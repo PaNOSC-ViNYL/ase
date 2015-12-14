@@ -764,22 +764,9 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
     Parameters
     ----------
-    raw_score_1 : float
-            Numeric descriptor for variable 1, set with the same
-            method as set_raw_score().
-
-    raw_score_2: float
-            Numeric descriptor for variable 2, set with the same
-            method as set_raw_score().
-    (should these be here)
-
-    rank_data1 : boolean
-            If True use rank_fitness on variable 1.
-            If False use standard fitness descriptor.
-
-        rank_data2: boolean
-            If True use rank_fitness on variable 2.
-            If False use standard fitness descriptor.
+        rank_data: boolean
+            If True use rank_fitness function for given raw_score varible.
+            If False use standard energy fitness descriptor.
 
         variable_function: function
             A function that takes as input an Atoms object and returns
