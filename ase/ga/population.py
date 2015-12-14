@@ -601,12 +601,16 @@ class RankFitnessPopulation(Population):
             The prefactor used in the exponential fitness scaling function.
             Default 0.5
 
+         rank_variable: int
+            Variable in raw_score array to base fitness. Default 1.
+
     """
     def __init__(self, data_connection, population_size, variable_function,
                  comparator=None, logfile=None, use_extinct=False,
-                 exp_function=True, exp_prefactor=0.5):
+                 exp_function=True, exp_prefactor=0.5, rank_variable=1):
         self.exp_function = exp_function
         self.exp_prefactor = exp_prefactor
+        self.rank_variable = rank_variable
         self.vf = variable_function
         # The current fitness is set at each update of the population
         self.current_fitness = None
@@ -639,7 +643,7 @@ class RankFitnessPopulation(Population):
                 # Each niche is sorted according to raw_score and
                 # assigned a fitness according to the ranking of
                 # the candidates
-                ntr.sort(key=lambda x: get_raw_score(x[1]), reverse=True)
+                ntr.sort(key=lambda x: get_raw_score(x[self.rank_variable]), reverse=True)
                 start_rank = -1
                 cor = 0
                 for on, cn in ntr:
@@ -665,9 +669,9 @@ class RankFitnessPopulation(Population):
             msg += "population! Fitness scaling is impossible! "
             msg += "Try with a larger population."
             assert T != 0., msg
-            return 0.5 * (1. - np.tanh(2. * (ff - rmax) / T - 1.))
+            return 0.5 * (1. - np.tanh(2. * (rfit - rmax) / T - 1.))
         else:
-            return self.exp_prefactor ** (-ff - 1)
+            return self.exp_prefactor ** (-rfit - 1)
     
     def update(self):
         """ The update method in Population will add to the end of
