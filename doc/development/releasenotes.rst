@@ -32,6 +32,9 @@ Development version in trunk
 
 * New :func:`ase.dft.kpoints.get_special_points` function.
 
+* New :func:`ase.utils.geometry.get_duplicate_atoms` function for finding and
+  removing atoms on top of each other.
+  
 
 Version 3.9.1
 =============

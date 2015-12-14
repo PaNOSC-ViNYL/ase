@@ -748,8 +748,8 @@ def niggli_reduce(atoms):
     # been fully reduced.
     for count in range(10000):
         if (G.a > G.b + G.epsilon or
-                (not np.abs(G.a - G.b) > G.epsilon
-                    and np.abs(G.x) > np.abs(G.y) + G.epsilon)):
+            (not np.abs(G.a - G.b) > G.epsilon and
+             np.abs(G.x) > np.abs(G.y) + G.epsilon)):
             # Procedure A1
             A = np.array([[0, -1, 0],
                           [-1, 0, 0],
@@ -758,8 +758,8 @@ def niggli_reduce(atoms):
             C = np.dot(C, A)
 
         if (G.b > G.c + G.epsilon or
-                (not np.abs(G.b - G.c) > G.epsilon
-                    and np.abs(G.y) > np.abs(G.z) + G.epsilon)):
+            (not np.abs(G.b - G.c) > G.epsilon and
+             np.abs(G.y) > np.abs(G.z) + G.epsilon)):
             # Procedure A2
             A = np.array([[-1, 0, 0],
                           [0, 0, -1],
@@ -797,42 +797,42 @@ def niggli_reduce(atoms):
             G.update(A)
             C = np.dot(C, A)
 
-        if (np.abs(G.x) > G.b + G.epsilon
-                or (not np.abs(G.b - G.x) > G.epsilon
-                    and 2 * G.y < G.z - G.epsilon)
-                or (not np.abs(G.b + G.x) > G.epsilon
-                    and G.z < -G.epsilon)):
+        if (np.abs(G.x) > G.b + G.epsilon or
+            (not np.abs(G.b - G.x) > G.epsilon and
+             2 * G.y < G.z - G.epsilon) or
+            (not np.abs(G.b + G.x) > G.epsilon and
+             G.z < -G.epsilon)):
             # Procedure A5
             A = np.array([[1, 0, 0],
                           [0, 1, -np.sign(G.x)],
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (np.abs(G.y) > G.a + G.epsilon
-                or (not np.abs(G.a - G.y) > G.epsilon
-                    and 2 * G.x < G.z - G.epsilon)
-                or (not np.abs(G.a + G.y) > G.epsilon
-                    and G.z < -G.epsilon)):
+        elif (np.abs(G.y) > G.a + G.epsilon or
+              (not np.abs(G.a - G.y) > G.epsilon and
+               2 * G.x < G.z - G.epsilon) or
+              (not np.abs(G.a + G.y) > G.epsilon and
+               G.z < -G.epsilon)):
             # Procedure A6
             A = np.array([[1, 0, -np.sign(G.y)],
                           [0, 1, 0],
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (np.abs(G.z) > G.a + G.epsilon
-                or (not np.abs(G.a - G.z) > G.epsilon
-                    and 2 * G.x < G.y - G.epsilon)
-                or (not np.abs(G.a + G.z) > G.epsilon
-                    and G.y < -G.epsilon)):
+        elif (np.abs(G.z) > G.a + G.epsilon or
+              (not np.abs(G.a - G.z) > G.epsilon and
+               2 * G.x < G.y - G.epsilon) or
+              (not np.abs(G.a + G.z) > G.epsilon and
+               G.y < -G.epsilon)):
             # Procedure A7
             A = np.array([[1, -np.sign(G.z), 0],
                           [0, 1, 0],
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (G.x + G.y + G.z + G.a + G.b < -G.epsilon
-                or (not np.abs(G.x + G.y + G.z + G.a + G.b) > G.epsilon
-                    and 2 * (G.a + G.y) + G.z > G.epsilon)):
+        elif (G.x + G.y + G.z + G.a + G.b < -G.epsilon or
+              (not np.abs(G.x + G.y + G.z + G.a + G.b) > G.epsilon and
+               2 * (G.a + G.y) + G.z > G.epsilon)):
             # Procedure A8
             A = np.array([[1, 0, 1],
                           [0, 1, 1],
@@ -875,8 +875,8 @@ def _row_col_from_pdist(dim, i):
     """
     i = np.array(i)
     b = 1 - 2 * dim
-    x = (np.floor((-b - np.sqrt(b**2 - 8*i))/2)).astype(int)
-    y = (i + x*(b + x + 2)/2 + 1).astype(int)
+    x = (np.floor((-b - np.sqrt(b**2 - 8 * i)) / 2)).astype(int)
+    y = (i + x * (b + x + 2) / 2 + 1).astype(int)
     if i.shape:
         return list(zip(x, y))
     else:
