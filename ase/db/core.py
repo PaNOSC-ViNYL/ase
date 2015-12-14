@@ -90,9 +90,9 @@ def connect(name, type='extract_from_name', create_indices=True,
     name: str
         Filename or address of database.
     type: str
-        One of 'json', 'db', 'postgresql', 'mysql'
-        (JSON, SQLite, PostgreSQL, MySQL/MariaDB).
-        Default is 'extract_from_name', which will ... guess the type
+        One of 'json', 'db', 'postgresql',
+        (JSON, SQLite, PostgreSQL).
+        Default is 'extract_from_name', which will guess the type
         from the name.
     use_lock_file: bool
         You can turn this off if you know what you are doing ...

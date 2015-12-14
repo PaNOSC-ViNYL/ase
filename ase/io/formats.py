@@ -134,7 +134,7 @@ format2modulename = {
 
 extension2format = {
     'ascii': 'v-sim',
-    'castep' : 'castep-castep',
+    'castep': 'castep-castep',
     'cell': 'castep-cell',
     'com': 'gaussian',
     'con': 'eon',
@@ -149,7 +149,7 @@ extension2format = {
     'shelx': 'res',
     'in': 'aims',
     'poscar': 'vasp',
-    'phonon' : 'castep-phonon'}
+    'phonon': 'castep-phonon'}
 
 
 def initialize(format):

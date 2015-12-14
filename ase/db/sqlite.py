@@ -370,8 +370,9 @@ class SQLite3Database(Database):
         if self.version < 5:
             pass  # should be ok for reading by convert.py script
         if self.version < 6:
-            if values[23] is not None:
-                magmom = float(deblob(values[23], shape=()))
+            m = values[23]
+            if m is not None and not isinstance(m, float):
+                magmom = float(deblob(m, shape=()))
                 values = values[:23] + (magmom,) + values[24:]
         return values
         
@@ -596,7 +597,11 @@ def deblob(buf, dtype=float, shape=None):
     if len(buf) == 0:
         array = np.zeros(0, dtype)
     else:
-        array = np.frombuffer(buf, dtype)
+        if len(buf) % 2 == 1:
+            # old psycopg2:
+            array = np.fromstring(str(buf)[1:].decode('hex'), dtype)
+        else:
+            array = np.frombuffer(buf, dtype)
     if shape is not None:
         array.shape = shape
     return array
