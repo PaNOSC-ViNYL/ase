@@ -791,33 +791,51 @@ class MultiVarPopulation(RankFitnessPopulation):
 
     def __init__(self, data_connection, population_size,
                  variable_function=None, comparator=None, logfile=None,
-                 use_extinct=False, rank_data1=False, rank_data2=False,
-                 rank_data=None,
+                 use_extinct=False, 
+                 data=None, rank_data=None,
                  exp_function=True, exp_prefactor=0.5):
-        self.rank_data1 = rank_data1
-        self.rank_data2 = rank_data2
         # The current fitness is set at each update of the population
         self.current_fitness = None
         
         if rank_data is None:
-            rank_data = ['raw_score']
+            rank_data = []
         self.rank_data = rank_data
+        
+        if data is None:
+            data = ['raw_score']
+        self.data = data
 
         RankFitnessPopulation.__init__(self, data_connection, population_size,
                                        variable_function, comparator, logfile,
                                        use_extinct, exp_function,
                                        exp_prefactor)
-        if rank_data1 or rank_data2:
-            self.vf = variable_function
 
+    def get_ranked_fitness(self, key):
+        pass
+        
+    def get_nonranked_fitness(self, key):
+        pass
+        
     def __get_fitness__(self, candidates):
-        rd1 = self.rank_data1
-        rd2 = self.rank_data2
         expf = self.exp_function
 
         fc1 = []  # List var 1 fitness.
         fc2 = []  # List var 2 fitness.
-
+        
+        all_fitnesses = []
+        used = set()
+        for rd in self.rank_data:
+            used.add(rd)
+            # Build ranked fitness based on rd
+            all_fitnesses.append(self.get_ranked_fitness(rd))
+            
+        for d in self.data:
+            if d not in used:
+                used.add(d)
+                # Build fitness based on d
+                all_fitnesses.append(self.get_nonranked_fitness(d))
+                
+                
         # Check if variable one is ranked.
         if rd1:
             # Set the initial order of the candidates, will need to
@@ -910,6 +928,8 @@ class MultiVarPopulation(RankFitnessPopulation):
         # be returned in this order at the end.
         forder = 1
         fordered = []
+        for f in zip(all_fitnesses):
+            [forder]
         for cr1, cr2 in zip(fc1, fc2):
             fordered.append([forder, cr1, cr2])
             forder += 1
