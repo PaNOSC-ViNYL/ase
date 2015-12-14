@@ -613,13 +613,11 @@ class RankFitnessPopulation(Population):
         
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
-    
-    def __get_fitness__(self, candidates):
-        expf = self.exp_function
 
+    def __get_rank_candidates__(self, rcand):
         # Set the initial order of the candidates, will need to
         # be returned in this order at the end of ranking.
-        ordered = zip(range(len(candidates)), candidates)
+        ordered = zip(range(len(rcand)), rcand)
 
         # Niche and rank candidates.
         rec_nic = []
@@ -650,7 +648,12 @@ class RankFitnessPopulation(Population):
                     cor += 1
         # The original order is reformed
         rank_fit.sort(key=itemgetter(0), reverse=False)
-        ff = np.array(zip(*rank_fit)[2])
+        return np.array(zip(*rank_fit)[2])
+    
+    def __get_fitness__(self, candidates):
+        expf = self.exp_function
+        ff = self.__get_rank_candidates__(candidates)
+
         if not expf:
             rmax = max(ff)
             rmin = min(ff)
