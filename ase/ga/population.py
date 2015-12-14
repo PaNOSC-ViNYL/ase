@@ -601,16 +601,16 @@ class RankFitnessPopulation(Population):
             The prefactor used in the exponential fitness scaling function.
             Default 0.5
 
-         rank_variable: int
+         raw_variable: int
             Variable in raw_score array to base fitness. Default 1.
 
     """
     def __init__(self, data_connection, population_size, variable_function,
                  comparator=None, logfile=None, use_extinct=False,
-                 exp_function=True, exp_prefactor=0.5, rank_variable=1):
+                 exp_function=True, exp_prefactor=0.5, raw_variable=1):
         self.exp_function = exp_function
         self.exp_prefactor = exp_prefactor
-        self.rank_variable = rank_variable
+        self.raw_variable = raw_variable
         self.vf = variable_function
         # The current fitness is set at each update of the population
         self.current_fitness = None
@@ -643,7 +643,7 @@ class RankFitnessPopulation(Population):
                 # Each niche is sorted according to raw_score and
                 # assigned a fitness according to the ranking of
                 # the candidates
-                ntr.sort(key=lambda x: get_raw_score(x[self.rank_variable]), reverse=True)
+                ntr.sort(key=lambda x: get_raw_score(x[self.raw_variable]), reverse=True)
                 start_rank = -1
                 cor = 0
                 for on, cn in ntr:
@@ -798,9 +798,8 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
     def __init__(self, data_connection, population_size,
                  variable_function=None, comparator=None, logfile=None,
-                 use_extinct=False, 
-                 data=None, rank_data=None,
-                 exp_function=True, exp_prefactor=0.5):
+                 use_extinct=False, data=None, rank_data=None,
+                 exp_function=True, exp_prefactor=0.5, raw_variable=1):
         # The current fitness is set at each update of the population
         self.current_fitness = None
         
@@ -815,7 +814,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         RankFitnessPopulation.__init__(self, data_connection, population_size,
                                        variable_function, comparator, logfile,
                                        use_extinct, exp_function,
-                                       exp_prefactor)
+                                       exp_prefactor, raw_variable)
 
     def get_ranked_fitness(self, key):
         pass
