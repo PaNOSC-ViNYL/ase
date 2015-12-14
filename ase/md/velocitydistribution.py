@@ -7,7 +7,6 @@ which sets the momenta of a list of atoms according to a
 Maxwell-Boltzmann distribution at a given temperature.
 """
 
-import sys
 import numpy as np
 from ase.parallel import world
 
@@ -38,7 +37,6 @@ def MaxwellBoltzmannDistribution(atoms, temp, communicator=world,
         atoms.set_momenta(atoms.get_momenta() * np.sqrt(gamma))
 
 
-
 def Stationary(atoms):
     "Sets the center-of-mass momentum to zero."
     p = atoms.get_momenta()
@@ -53,7 +51,7 @@ def Stationary(atoms):
 
 def ZeroRotation(atoms):
     "Sets the total angular momentum to zero by counteracting rigid rotations."
-    # Find the principal moments of inertia and principal axes basis vectors   
+    # Find the principal moments of inertia and principal axes basis vectors
     Ip, basis = atoms.get_moments_of_inertia(vectors=True)
     # Calculate the total angular momentum and transform to principal basis
     Lp = np.dot(basis, atoms.get_angular_momentum())

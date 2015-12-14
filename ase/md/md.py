@@ -4,7 +4,6 @@ import warnings
 import numpy as np
 
 from ase.optimize.optimize import Dynamics
-from ase.data import atomic_masses
 from ase.md.logger import MDLogger
 
 
