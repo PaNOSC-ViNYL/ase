@@ -652,11 +652,11 @@ class RankFitnessPopulation(Population):
     
     def __get_fitness__(self, candidates):
         expf = self.exp_function
-        ff = self.__get_rank_candidates__(candidates)
+        rfit = self.__get_rank_candidates__(candidates)
 
         if not expf:
-            rmax = max(ff)
-            rmin = min(ff)
+            rmax = max(rfit)
+            rmin = min(rfit)
             T = rmin - rmax
             # If using obj_rank probability, must have non-zero T val.
             # pop_size must be greater than number of permutations.
@@ -753,7 +753,7 @@ class RankFitnessPopulation(Population):
         return (c1.copy(), c2.copy())
 
 
-class MultiVarPopulation(RankFitnessPopulation):
+class MultiObjectivePopulation(RankFitnessPopulation):
     """ Allows for assignment of fitness based on a set of two variables
         such that fitness is ranked according to a Pareto-front of
         non-dominated candidates.
