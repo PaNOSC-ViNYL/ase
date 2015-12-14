@@ -19,7 +19,7 @@ class LineSearch:
                      stpmax=50., stpmin=1e-8, args=()):
         self.stpmin = stpmin
         self.pk = pk
-        p_size = np.sqrt((pk **2).sum())
+        # ??? p_size = np.sqrt((pk **2).sum())
         self.stpmax = stpmax
         self.xtrapl = xtrapl
         self.xtrapu = xtrapu
@@ -33,9 +33,9 @@ class LineSearch:
         self.no_update = False
 
         if isinstance(myfprime,type(())):
-            eps = myfprime[1]
+            # eps = myfprime[1]
             fprime = myfprime[0]
-            newargs = (f,eps) + args
+            # ??? newargs = (f,eps) + args
             gradient = False
         else:
             fprime = myfprime

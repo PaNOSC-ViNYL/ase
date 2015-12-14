@@ -76,7 +76,7 @@ class XrDebye:
                 fb = atomic(b.symbol)
 
                 if a == b:
-                    twopis = 0.
+                    twopisr = 0.
                 else:
                     vrij = a.position - b.position
                     rij = np.sqrt(np.dot(vrij, vrij))

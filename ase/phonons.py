@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import sys
 import pickle
-from math import sin, pi, sqrt
+from math import pi, sqrt
 from os import remove
 from os.path import isfile
 
@@ -11,15 +11,8 @@ import numpy as np
 import numpy.linalg as la
 import numpy.fft as fft
 
-has_spglib = False
-try:
-    from pyspglib import spglib
-    has_spglib = True
-except ImportError:
-    pass
-
 import ase.units as units
-from ase.parallel import rank, barrier
+from ase.parallel import rank
 from ase.dft import monkhorst_pack
 from ase.io.trajectory import Trajectory
 from ase.utils import opencew

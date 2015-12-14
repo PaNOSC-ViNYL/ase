@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 from ase import Atom, Atoms
 from ase.calculators.calculator import Calculator
-from ase.optimize import FIRE, BFGS
+from ase.optimize import FIRE
 from ase.data import atomic_numbers
 from ase.data.vdw import vdw_radii
 
