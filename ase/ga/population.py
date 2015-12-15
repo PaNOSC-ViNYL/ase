@@ -794,7 +794,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         self.rank_data = rank_data
         
         if data is None:
-            data = ['raw_score']
+            data = []
         self.data = data
 
         RankFitnessPopulation.__init__(self, data_connection, population_size,
@@ -803,23 +803,24 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                                        exp_prefactor)
 
     def get_nonrank(self, nrcand, key=None):
+        # Return a list of fitness values.
         nrc_list = []
         for nrc in nrcand:
-            nrc_list.append(nrc[1].info['key_value_pairs'][key])
+            ncrv = nrc.info['key_value_pairs'][key]
+            nrc_list.append(ncrv)
         return nrc_list
 
-    def get_ranked_fitness(self, key):
-        pass
-        
-    def get_nonranked_fitness(self, key):
-        pass
-        
     def __get_fitness__(self, candidates):
+        # There are no defaults set for the datasets to be
+        # used in this function, as such we test that the 
+        # user has specified at least two here.
+        msg = "This is a multi-objective fitness function"
+        msg += " so there must be at least two datasets"
+        msg += " stated in the rank_data and data variables"
+        assert len(self.rank_data)+len(self.data) >= 2, msg
+
         expf = self.exp_function
 
-        fc1 = []  # List var 1 fitness.
-        fc2 = []  # List var 2 fitness.
-        
         all_fitnesses = []
         used = set()
         for rd in self.rank_data:
@@ -832,16 +833,10 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                 used.add(d)
                 # Build fitness based on d
                 all_fitnesses.append(self.get_nonrank(candidates, key=d))
-                
+
         # Set the initial order of the ranks, will need to
         # be returned in this order at the end.
-        forder = 1
-        fordered = []
-        for f in zip(all_fitnesses):
-            [forder]
-        for cr1, cr2 in zip(fc1, fc2):
-            fordered.append([forder, cr1, cr2])
-            forder += 1
+        fordered = zip(range(len(all_fitnesses[0])), *all_fitnesses)
         mvf_rank = -1  # Start multi variable rank at -1.
         rec_vrc = []  # A record of already ranked candidates.
         mvf_list = []  # A list for all candidate ranks.
@@ -851,34 +846,40 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         fordered.sort(key=itemgetter(1), reverse=True)
         # Niche candidates with equal or better raw_score to
         # current candidate.
-        for forder, cr1, cr2 in fordered:
-            if forder not in rec_vrc:
+        for a in zip(range(len(fordered[0])), *fordered):
+            order, rest = a[0], a[1:]
+            if order not in rec_vrc:
                 pff = []
                 pff2 = []
-                rec_vrc.append(forder)
-                pff.append([forder, cr1, cr2])
-                for oforder, ocr1, ocr2 in fordered:
-                    if oforder not in rec_vrc:
-                        if ocr1 >= cr1 or ocr2 >= cr2:
-                            pff.append([oforder, ocr1, ocr2])
-                # Remove any candidate from list that is dominated
+                rec_vrc.append(order)
+                pff.append((order, rest))
+                for b in zip(range(len(fordered[0])), *fordered):
+                    border, brest = b[0], b[1:]
+                    if border not in rec_vrc:
+                        if any(np.array(brest) >= np.array(rest)):
+                            pff.append((border, brest))
+                # Remove any candidate from pff list that is dominated
                 # by another in the list.
-                for nforder, ncr1, ncr2 in pff:
+                for na in zip(range(len(pff[0])), *pff):
+                    norder, nrest = na[0], na[1:]
                     dom = False
-                    for onforder, oncr1, oncr2 in pff:
-                        if onforder != nforder:
-                            if oncr2 > ncr2 and oncr1 > ncr1:
+                    for nb in zip(range(len(pff[0])), *pff):
+                        nborder, nbrest = nb[0], nb[1:]
+                        if norder != nborder:
+                            if all(np.array(brest) > np.array(rest)):
                                 dom = True
                     if not dom:
-                        pff2.append([nforder, ncr1, ncr2])
+                        pff2.append((norder, nrest))
                 # Assign pareto rank from -1 to -N niches.
-                for fforder, fcr1, fcr2 in pff2:
+                for ffa in zip(range(len(pff2[0])), *pff2):
+                    fforder, ffrest = ffa[0], ffa[1:]
                     rec_vrc.append(fforder)
-                    mvf_list.append([fforder, fcr1, fcr2, mvf_rank])
+                    mvf_list.append((fforder, mvf_rank, ffrest))
                 mvf_rank = mvf_rank - 1
         # The original order is reformed
         mvf_list.sort(key=itemgetter(0), reverse=False)
-        rfro = np.array(zip(*mvf_list)[3])
+        rfro = np.array(zip(*mvf_list)[1])
+
         if not expf:
             rmax = max(rfro)
             rmin = min(rfro)
@@ -897,8 +898,6 @@ class MultiObjectivePopulation(RankFitnessPopulation):
     def __initialize_pop__(self):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
-        rd1 = self.rank_data1
-        rd2 = self.rank_data2
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
         all_cand.sort(key=lambda x: get_raw_score(x), reverse=True)
 
@@ -917,12 +916,12 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
                 # variable_function defined for ranked candidates.
-                if rd1 or rd2:
+                if self.rank_data != None:
                     c_vf = self.vf(c)
                 i += 1
                 eq = False
                 for a in self.pop:
-                    if rd1 or rd2:
+                    if self.rank_data != None:
                         a_vf = self.vf(a)
                         # Only run comparator if the variable_function
                         # (self.vf) returns the same. If it returns something
