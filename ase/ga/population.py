@@ -600,17 +600,12 @@ class RankFitnessPopulation(Population):
         exp_prefactor: float
             The prefactor used in the exponential fitness scaling function.
             Default 0.5
-
-         raw_variable: int
-            Variable in raw_score array to base fitness. Default 1.
-
     """
     def __init__(self, data_connection, population_size, variable_function,
                  comparator=None, logfile=None, use_extinct=False,
-                 exp_function=True, exp_prefactor=0.5, raw_variable=1):
+                 exp_function=True, exp_prefactor=0.5):
         self.exp_function = exp_function
         self.exp_prefactor = exp_prefactor
-        self.raw_variable = raw_variable
         self.vf = variable_function
         # The current fitness is set at each update of the population
         self.current_fitness = None
@@ -618,7 +613,7 @@ class RankFitnessPopulation(Population):
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
 
-    def __get_rank_candidates__(self, rcand):
+    def __get_rank_candidates__(self, rcand, key='raw_score'):
         # Set the initial order of the candidates, will need to
         # be returned in this order at the end of ranking.
         ordered = zip(range(len(rcand)), rcand)
@@ -643,7 +638,7 @@ class RankFitnessPopulation(Population):
                 # Each niche is sorted according to raw_score and
                 # assigned a fitness according to the ranking of
                 # the candidates
-                ntr.sort(key=lambda x: get_raw_score(x[self.raw_variable]), reverse=True)
+                ntr.sort(key=lambda x: x[1].info['key_value_pairs'][key], reverse=True)
                 start_rank = -1
                 cor = 0
                 for on, cn in ntr:
@@ -764,9 +759,13 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
     Parameters
     ----------
+        data: boolean
+            Set of key_value_pairs in atoms object for which fitness should
+            should be assigned based on absolute value.
+
         rank_data: boolean
-            If True use rank_fitness function for given raw_score varible.
-            If False use standard energy fitness descriptor.
+            Set of key_value_pairs in atoms object for which data should
+            be ranked in order to ascribe fitness.
 
         variable_function: function
             A function that takes as input an Atoms object and returns
@@ -786,7 +785,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
     def __init__(self, data_connection, population_size,
                  variable_function=None, comparator=None, logfile=None,
                  use_extinct=False, data=None, rank_data=None,
-                 exp_function=True, exp_prefactor=0.5, raw_variable=1):
+                 exp_function=True, exp_prefactor=0.5):
         # The current fitness is set at each update of the population
         self.current_fitness = None
         
@@ -801,7 +800,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         RankFitnessPopulation.__init__(self, data_connection, population_size,
                                        variable_function, comparator, logfile,
                                        use_extinct, exp_function,
-                                       exp_prefactor, raw_variable)
+                                       exp_prefactor)
 
     def get_ranked_fitness(self, key):
         pass
