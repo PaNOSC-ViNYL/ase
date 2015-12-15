@@ -807,7 +807,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         nrc_list = []
         for nrc in nrcand:
             ncrv = nrc.info['key_value_pairs'][key]
-            nrc_list.append(ncrv)
+            nrc_list.append(nrc.info['key_value_pairs'][key])
         return nrc_list
 
     def __get_fitness__(self, candidates):
@@ -846,24 +846,24 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         fordered.sort(key=itemgetter(1), reverse=True)
         # Niche candidates with equal or better raw_score to
         # current candidate.
-        for a in zip(range(len(fordered[0])), *fordered):
+        for a in fordered:
             order, rest = a[0], a[1:]
             if order not in rec_vrc:
                 pff = []
                 pff2 = []
                 rec_vrc.append(order)
                 pff.append((order, rest))
-                for b in zip(range(len(fordered[0])), *fordered):
+                for b in fordered:
                     border, brest = b[0], b[1:]
                     if border not in rec_vrc:
                         if any(np.array(brest) >= np.array(rest)):
                             pff.append((border, brest))
                 # Remove any candidate from pff list that is dominated
                 # by another in the list.
-                for na in zip(range(len(pff[0])), *pff):
+                for na in pff:
                     norder, nrest = na[0], na[1:]
                     dom = False
-                    for nb in zip(range(len(pff[0])), *pff):
+                    for nb in pff:
                         nborder, nbrest = nb[0], nb[1:]
                         if norder != nborder:
                             if all(np.array(brest) > np.array(rest)):
@@ -871,7 +871,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                     if not dom:
                         pff2.append((norder, nrest))
                 # Assign pareto rank from -1 to -N niches.
-                for ffa in zip(range(len(pff2[0])), *pff2):
+                for ffa in pff2:
                     fforder, ffrest = ffa[0], ffa[1:]
                     rec_vrc.append(fforder)
                     mvf_list.append((fforder, mvf_rank, ffrest))
