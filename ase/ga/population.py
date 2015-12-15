@@ -613,7 +613,7 @@ class RankFitnessPopulation(Population):
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
 
-    def __get_rank_candidates__(self, rcand, key='raw_score'):
+    def get_rank(self, rcand, key=None):
         # Set the initial order of the candidates, will need to
         # be returned in this order at the end of ranking.
         ordered = zip(range(len(rcand)), rcand)
@@ -651,7 +651,7 @@ class RankFitnessPopulation(Population):
     
     def __get_fitness__(self, candidates):
         expf = self.exp_function
-        rfit = self.__get_rank_candidates__(candidates)
+        rfit = self.get_rank(candidates, key='raw_score')
 
         if not expf:
             rmax = max(rfit)
@@ -802,6 +802,12 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                                        use_extinct, exp_function,
                                        exp_prefactor)
 
+    def get_nonrank(self, nrcand, key=None):
+        nrc_list = []
+        for nrc in nrcand:
+            nrc_list.append(nrc[1].info['key_value_pairs'][key])
+        return nrc_list
+
     def get_ranked_fitness(self, key):
         pass
         
@@ -819,103 +825,14 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         for rd in self.rank_data:
             used.add(rd)
             # Build ranked fitness based on rd
-            all_fitnesses.append(self.get_ranked_fitness(rd))
+            all_fitnesses.append(self.get_rank(candidates, key=rd))
             
         for d in self.data:
             if d not in used:
                 used.add(d)
                 # Build fitness based on d
-                all_fitnesses.append(self.get_nonranked_fitness(d))
+                all_fitnesses.append(self.get_nonrank(candidates, key=d))
                 
-                
-        # Check if variable one is ranked.
-        if rd1:
-            # Set the initial order of the candidates, will need to
-            # be returned in this order at the end of ranking.
-            ordered = zip(range(len(candidates)), candidates)
-
-            # Niche and rank candidates.
-            rec_nic = []
-            rank_fit = []
-            for o, c in ordered:
-                if o not in rec_nic:
-                    ntr = []
-                    ce1 = self.vf(c)
-                    rec_nic.append(o)
-                    ntr.append([o, c])
-                    for oother, cother in ordered:
-                        if oother not in rec_nic:
-                            ce2 = self.vf(cother)
-                            if ce1 == ce2:
-                                # put the now processed in oother
-                                # in rec_nic as well
-                                rec_nic.append(oother)
-                                ntr.append([oother, cother])
-                    # Each niche is sorted according to raw_score_1 and
-                    # assigned a fitness according to the ranking of
-                    # the candidates
-                    ntr.sort(key=lambda x: get_raw_score_1(x[1]),
-                             reverse=True)
-                    start_rank = -1
-                    cor = 0
-                    for on, cn in ntr:
-                        rank = start_rank - cor
-                        rank_fit.append([on, cn, rank])
-                        cor += 1
-            # The original order is reformed
-            rank_fit.sort(key=itemgetter(0), reverse=False)
-            fc1 = np.array(zip(*rank_fit)[2])
-        # If variable one not ranked.
-        if not rd1:
-            for cgrs1 in candidates:
-                # If variable 1 not ranked just use raw_score.
-                craw1 = get_raw_score_1(cgrs1)
-                fc1.append(craw1)
-
-        # Check if variable two is ranked.
-        if rd2:
-            # Set the initial order of the candidates, will need to
-            # be returned in this order at the end of ranking.
-            ordered = zip(range(len(candidates)), candidates)
-
-            # Niche and rank candidates.
-            rec_nic = []
-            rank_fit = []
-            for o, c in ordered:
-                if o not in rec_nic:
-                    ntr = []
-                    ce1 = self.vf(c)
-                    rec_nic.append(o)
-                    ntr.append([o, c])
-                    for oother, cother in ordered:
-                        if oother not in rec_nic:
-                            ce2 = self.vf(cother)
-                            if ce1 == ce2:
-                                # put the now processed in oother
-                                # in rec_nic as well
-                                rec_nic.append(oother)
-                                ntr.append([oother, cother])
-                    # Each niche is sorted according to raw_score_2 and
-                    # assigned a fitness according to the ranking of
-                    # the candidates
-                    ntr.sort(key=lambda x: get_raw_score_2(x[1]),
-                             reverse=True)
-                    start_rank = -1
-                    cor = 0
-                    for on, cn in ntr:
-                        rank = start_rank - cor
-                        rank_fit.append([on, cn, rank])
-                        cor += 1
-            # The original order is reformed
-            rank_fit.sort(key=itemgetter(0), reverse=False)
-            fc2 = np.array(zip(*rank_fit)[2])
-        # If varible two not ranked.
-        if not rd2:
-            for cgrs2 in candidates:
-                # If variable 1 not ranked just use raw_score.
-                craw2 = get_raw_score_2(cgrs2)
-                fc2.append(craw2)
-
         # Set the initial order of the ranks, will need to
         # be returned in this order at the end.
         forder = 1
