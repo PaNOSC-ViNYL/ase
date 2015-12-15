@@ -672,7 +672,7 @@ class CombinedAxis:
         self.ax2 = ax2
         self.tempax = tempax
         self.ediffax = ediffax
-        self._ymax = None
+        self._ymax = -np.inf
 
     def set_ax1_range(self, ylim):
         self._ax1_ylim = ylim

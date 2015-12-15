@@ -9,7 +9,7 @@ initial = molecule('C2H6')
 initial.set_calculator(EMT())
 relax = QuasiNewton(initial)
 relax.run(fmax=0.05)
-view(initial)
+#view(initial)
 
 #Create final state
 final = initial.copy()
