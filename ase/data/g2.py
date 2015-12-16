@@ -32,8 +32,8 @@ from ase.data.g2_1 import atom_names as atom_names_g2_1
 from ase.data.g2_1 import molecule_names as molecule_names_g2_1
 from ase.data.g2_2 import atom_names as atom_names_g2_2
 from ase.data.g2_2 import molecule_names as molecule_names_g2_2
-from ase.data.g2_2 import get_ionization_energy
-from ase.data.g2_2 import get_atomization_energy
+from ase.data.g2_1 import get_ionization_energy
+from ase.data.g2_1 import get_atomization_energy
 
 __all__ = ['data', 'molecule_names', 'atom_names', 'get_ionization_energy',
            'get_atomization_energy']
