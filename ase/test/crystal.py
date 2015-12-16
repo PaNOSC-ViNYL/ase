@@ -1,8 +1,11 @@
+import doctest
+
 import numpy as np
 
-from ase.lattice.spacegroup import crystal
+from ase.lattice.spacegroup import crystal, spacegroup
 from ase.io import write
 
+doctest.testmod(spacegroup, raise_on_error=True)
 
 # A diamond unit cell
 diamond = crystal('C', [(0, 0, 0)], spacegroup=227,
