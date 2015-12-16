@@ -638,7 +638,8 @@ class RankFitnessPopulation(Population):
                 # Each niche is sorted according to raw_score and
                 # assigned a fitness according to the ranking of
                 # the candidates
-                ntr.sort(key=lambda x: x[1].info['key_value_pairs'][key], reverse=True)
+                ntr.sort(key=lambda x: x[1].info['key_value_pairs'][key],
+                         reverse=True)
                 start_rank = -1
                 cor = 0
                 for on, cn in ntr:
@@ -806,7 +807,6 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         # Return a list of fitness values.
         nrc_list = []
         for nrc in nrcand:
-            ncrv = nrc.info['key_value_pairs'][key]
             nrc_list.append(nrc.info['key_value_pairs'][key])
         return nrc_list
 
@@ -916,12 +916,12 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
                 # variable_function defined for ranked candidates.
-                if self.rank_data != None:
+                if self.rank_data is not None:
                     c_vf = self.vf(c)
                 i += 1
                 eq = False
                 for a in self.pop:
-                    if self.rank_data != None:
+                    if self.rank_data is not None:
                         a_vf = self.vf(a)
                         # Only run comparator if the variable_function
                         # (self.vf) returns the same. If it returns something
