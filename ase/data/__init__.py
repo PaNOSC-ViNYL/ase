@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-import os.path
 from ase.data.vdw import vdw_radii
+
+__all__ = ['vdw_radii', 'chemical_symbols', 'ground_state_magnetic_moments',
+           'reference_states', 'atomic_names', 'atomic_masses',
+           'atomic_numbers']
 
 chemical_symbols = ['X',  'H',  'He', 'Li', 'Be',
                     'B',  'C',  'N',  'O',  'F',
@@ -164,7 +167,7 @@ atomic_masses = np.array([
 #  Covalent radii revisited,
 #  Beatriz Cordero, Verónica Gómez, Ana E. Platero-Prats, Marc Revés,
 #  Jorge Echeverría, Eduard Cremades, Flavia Barragán and Santiago Alvarez,
-#  Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J 
+#  Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J
 missing = 0.2
 covalent_radii = np.array([
     missing,  # X

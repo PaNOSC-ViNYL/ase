@@ -27,7 +27,7 @@ Information presented on these pages is considered public information
 and may be distributed or copied http://www.nist.gov/public_affairs/disclaimer.cfm
 """
 
-from ase.atoms import Atoms, string2symbols
+from ase.atoms import Atoms
 
 atom_names = ['H','B','C','N','O','F','Al','Si','S','Cl']
 
@@ -1674,13 +1674,8 @@ for f in data.keys():
 atoms_g22 = list(set(atoms_g22))
 
 # add remaining atoms from G2_1
-from ase.structure import molecule
-
 from ase.data.g2_1 import data as data1
 
 for a in atoms_g22:
     if not a in data.keys():
         data[a] = data1[a]
-
-from ase.data.g2_1 import get_ionization_energy
-from ase.data.g2_1 import get_atomization_energy

@@ -3,7 +3,6 @@ import os
 import pprint
 import re
 from urllib.request import urlretrieve
-import zipfile
 
 import datetime
 
@@ -14,7 +13,7 @@ from ase.utils import popen3
 import ase.io
 from ase.atom import Atom
 from ase.atoms import Atoms
-from ase.data import atomic_numbers, chemical_symbols
+from ase.data import atomic_numbers
 from ase.data import ground_state_magnetic_moments
 
 # Transition Metals First-row (TM1R): 10.1021/ct6001187 # 32 compounds
@@ -216,7 +215,6 @@ def main():
         fh.write('from numpy import array\n')
         fh.write('data = ')
         data = {} # specification of molecules
-        info = {} # reference/calculation info
         # download structures
         file = database_files[database]['pdf']
         f = os.path.abspath(download_file(url_root, file, dir='TMXR200X'))
