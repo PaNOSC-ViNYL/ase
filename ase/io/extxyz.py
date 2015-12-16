@@ -215,7 +215,7 @@ def read_xyz(fileobj, index=-1):
             break
         natoms = int(line)
         frames.append((frame_pos, natoms))
-        comment = fileobj.readline()
+        fileobj.readline()  # read comment
         for i in range(natoms):
             fileobj.readline()
 

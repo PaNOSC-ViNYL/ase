@@ -24,19 +24,19 @@ def read_elk(filename):
         if line.split() == []:
             continue
         if line.strip() == 'scale':
-            scale[0] = float(lines[n+1])
+            scale[0] = float(lines[n + 1])
         elif line.startswith('scale'):
-            scale[int(line.strip()[-1])] = float(lines[n+1])
+            scale[int(line.strip()[-1])] = float(lines[n + 1])
     for n, line in enumerate(lines):
         if line.split() == []:
             continue
         if line.startswith('avec'):
-            cell = np.array([[float(v)*scale[1] for v in lines[n+1].split()],
-                             [float(v)*scale[2] for v in lines[n+2].split()],
-                             [float(v)*scale[3] for v in lines[n+3].split()]])
+            cell = np.array(
+                [[float(v) * scale[1] for v in lines[n + 1].split()],
+                 [float(v) * scale[2] for v in lines[n + 2].split()],
+                 [float(v) * scale[3] for v in lines[n + 3].split()]])
         if line.startswith('atoms'):
-            lines1 = lines[n+1:]  # start subsearch
-            nspecies = int(lines1[0].split()[0])
+            lines1 = lines[n + 1:]  # start subsearch
             spfname = []
             natoms = []
             atpos = []
@@ -47,11 +47,11 @@ def read_elk(filename):
                 if 'spfname' in line1:
                     spfnamenow = lines1[n1].split()[0]
                     spfname.append(spfnamenow)
-                    natomsnow = int(lines1[n1+1].split()[0])
+                    natomsnow = int(lines1[n1 + 1].split()[0])
                     natoms.append(natomsnow)
                     atposnow = []
                     bfcmtnow = []
-                    for l in lines1[n1+2:n1+2+natomsnow]:
+                    for l in lines1[n1 + 2:n1 + 2 + natomsnow]:
                         atposnow.append([float(v) for v in l.split()[0:3]])
                         if len(l.split()) == 6:  # bfcmt present
                             bfcmtnow.append([float(v) for v in l.split()[3:]])

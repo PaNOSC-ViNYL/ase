@@ -1,6 +1,5 @@
 import os
 from ase.calculators.octopus import parse_input_file, kwargs2atoms
-from ase.parallel import paropen
 
 
 def read_octopus(fileobj, get_kwargs=False):
