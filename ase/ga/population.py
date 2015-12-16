@@ -600,7 +600,6 @@ class RankFitnessPopulation(Population):
         exp_prefactor: float
             The prefactor used in the exponential fitness scaling function.
             Default 0.5
-
     """
     def __init__(self, data_connection, population_size, variable_function,
                  comparator=None, logfile=None, use_extinct=False,
@@ -613,13 +612,11 @@ class RankFitnessPopulation(Population):
         
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
-    
-    def __get_fitness__(self, candidates):
-        expf = self.exp_function
 
+    def get_rank(self, rcand, key=None):
         # Set the initial order of the candidates, will need to
         # be returned in this order at the end of ranking.
-        ordered = zip(range(len(candidates)), candidates)
+        ordered = zip(range(len(rcand)), rcand)
 
         # Niche and rank candidates.
         rec_nic = []
@@ -641,7 +638,8 @@ class RankFitnessPopulation(Population):
                 # Each niche is sorted according to raw_score and
                 # assigned a fitness according to the ranking of
                 # the candidates
-                ntr.sort(key=lambda x: get_raw_score(x[1]), reverse=True)
+                ntr.sort(key=lambda x: x[1].info['key_value_pairs'][key],
+                         reverse=True)
                 start_rank = -1
                 cor = 0
                 for on, cn in ntr:
@@ -650,10 +648,15 @@ class RankFitnessPopulation(Population):
                     cor += 1
         # The original order is reformed
         rank_fit.sort(key=itemgetter(0), reverse=False)
-        ff = np.array(zip(*rank_fit)[2])
+        return np.array(zip(*rank_fit)[2])
+    
+    def __get_fitness__(self, candidates):
+        expf = self.exp_function
+        rfit = self.get_rank(candidates, key='raw_score')
+
         if not expf:
-            rmax = max(ff)
-            rmin = min(ff)
+            rmax = max(rfit)
+            rmin = min(rfit)
             T = rmin - rmax
             # If using obj_rank probability, must have non-zero T val.
             # pop_size must be greater than number of permutations.
@@ -662,9 +665,9 @@ class RankFitnessPopulation(Population):
             msg += "population! Fitness scaling is impossible! "
             msg += "Try with a larger population."
             assert T != 0., msg
-            return 0.5 * (1. - np.tanh(2. * (ff - rmax) / T - 1.))
+            return 0.5 * (1. - np.tanh(2. * (rfit - rmax) / T - 1.))
         else:
-            return self.exp_prefactor ** (-ff - 1)
+            return self.exp_prefactor ** (-rfit - 1)
     
     def update(self):
         """ The update method in Population will add to the end of
@@ -750,29 +753,20 @@ class RankFitnessPopulation(Population):
         return (c1.copy(), c2.copy())
 
 
-class MultiVarPopulation(RankFitnessPopulation):
+class MultiObjectivePopulation(RankFitnessPopulation):
     """ Allows for assignment of fitness based on a set of two variables
         such that fitness is ranked according to a Pareto-front of
         non-dominated candidates.
 
     Parameters
     ----------
-    raw_score_1 : float
-            Numeric descriptor for variable 1, set with the same
-            method as set_raw_score().
+        abs_data: list
+            Set of key_value_pairs in atoms object for which fitness should
+            be assigned based on absolute value.
 
-    raw_score_2: float
-            Numeric descriptor for variable 2, set with the same
-            method as set_raw_score().
-    (should these be here)
-
-    rank_data1 : boolean
-            If True use rank_fitness on variable 1.
-            If False use standard fitness descriptor.
-
-        rank_data2: boolean
-            If True use rank_fitness on variable 2.
-            If False use standard fitness descriptor.
+        rank_data: list
+            Set of key_value_pairs in atoms object for which data should
+            be ranked in order to ascribe fitness.
 
         variable_function: function
             A function that takes as input an Atoms object and returns
@@ -791,8 +785,7 @@ class MultiVarPopulation(RankFitnessPopulation):
 
     def __init__(self, data_connection, population_size,
                  variable_function=None, comparator=None, logfile=None,
-                 use_extinct=False, 
-                 data=None, rank_data=None,
+                 use_extinct=False, abs_data=None, rank_data=None,
                  exp_function=True, exp_prefactor=0.5):
         # The current fitness is set at each update of the population
         self.current_fitness = None
@@ -801,138 +794,49 @@ class MultiVarPopulation(RankFitnessPopulation):
             rank_data = []
         self.rank_data = rank_data
         
-        if data is None:
-            data = ['raw_score']
-        self.data = data
+        if abs_data is None:
+            abs_data = []
+        self.abs_data = abs_data
 
         RankFitnessPopulation.__init__(self, data_connection, population_size,
                                        variable_function, comparator, logfile,
                                        use_extinct, exp_function,
                                        exp_prefactor)
 
-    def get_ranked_fitness(self, key):
-        pass
-        
-    def get_nonranked_fitness(self, key):
-        pass
-        
+    def get_nonrank(self, nrcand, key=None):
+        # Return a list of fitness values.
+        nrc_list = []
+        for nrc in nrcand:
+            nrc_list.append(nrc.info['key_value_pairs'][key])
+        return nrc_list
+
     def __get_fitness__(self, candidates):
+        # There are no defaults set for the datasets to be
+        # used in this function, as such we test that the 
+        # user has specified at least two here.
+        msg = "This is a multi-objective fitness function"
+        msg += " so there must be at least two datasets"
+        msg += " stated in the rank_data and abs_data variables"
+        assert len(self.rank_data)+len(self.abs_data) >= 2, msg
+
         expf = self.exp_function
 
-        fc1 = []  # List var 1 fitness.
-        fc2 = []  # List var 2 fitness.
-        
         all_fitnesses = []
         used = set()
         for rd in self.rank_data:
             used.add(rd)
             # Build ranked fitness based on rd
-            all_fitnesses.append(self.get_ranked_fitness(rd))
+            all_fitnesses.append(self.get_rank(candidates, key=rd))
             
-        for d in self.data:
+        for d in self.abs_data:
             if d not in used:
                 used.add(d)
                 # Build fitness based on d
-                all_fitnesses.append(self.get_nonranked_fitness(d))
-                
-                
-        # Check if variable one is ranked.
-        if rd1:
-            # Set the initial order of the candidates, will need to
-            # be returned in this order at the end of ranking.
-            ordered = zip(range(len(candidates)), candidates)
-
-            # Niche and rank candidates.
-            rec_nic = []
-            rank_fit = []
-            for o, c in ordered:
-                if o not in rec_nic:
-                    ntr = []
-                    ce1 = self.vf(c)
-                    rec_nic.append(o)
-                    ntr.append([o, c])
-                    for oother, cother in ordered:
-                        if oother not in rec_nic:
-                            ce2 = self.vf(cother)
-                            if ce1 == ce2:
-                                # put the now processed in oother
-                                # in rec_nic as well
-                                rec_nic.append(oother)
-                                ntr.append([oother, cother])
-                    # Each niche is sorted according to raw_score_1 and
-                    # assigned a fitness according to the ranking of
-                    # the candidates
-                    ntr.sort(key=lambda x: get_raw_score_1(x[1]),
-                             reverse=True)
-                    start_rank = -1
-                    cor = 0
-                    for on, cn in ntr:
-                        rank = start_rank - cor
-                        rank_fit.append([on, cn, rank])
-                        cor += 1
-            # The original order is reformed
-            rank_fit.sort(key=itemgetter(0), reverse=False)
-            fc1 = np.array(zip(*rank_fit)[2])
-        # If variable one not ranked.
-        if not rd1:
-            for cgrs1 in candidates:
-                # If variable 1 not ranked just use raw_score.
-                craw1 = get_raw_score_1(cgrs1)
-                fc1.append(craw1)
-
-        # Check if variable two is ranked.
-        if rd2:
-            # Set the initial order of the candidates, will need to
-            # be returned in this order at the end of ranking.
-            ordered = zip(range(len(candidates)), candidates)
-
-            # Niche and rank candidates.
-            rec_nic = []
-            rank_fit = []
-            for o, c in ordered:
-                if o not in rec_nic:
-                    ntr = []
-                    ce1 = self.vf(c)
-                    rec_nic.append(o)
-                    ntr.append([o, c])
-                    for oother, cother in ordered:
-                        if oother not in rec_nic:
-                            ce2 = self.vf(cother)
-                            if ce1 == ce2:
-                                # put the now processed in oother
-                                # in rec_nic as well
-                                rec_nic.append(oother)
-                                ntr.append([oother, cother])
-                    # Each niche is sorted according to raw_score_2 and
-                    # assigned a fitness according to the ranking of
-                    # the candidates
-                    ntr.sort(key=lambda x: get_raw_score_2(x[1]),
-                             reverse=True)
-                    start_rank = -1
-                    cor = 0
-                    for on, cn in ntr:
-                        rank = start_rank - cor
-                        rank_fit.append([on, cn, rank])
-                        cor += 1
-            # The original order is reformed
-            rank_fit.sort(key=itemgetter(0), reverse=False)
-            fc2 = np.array(zip(*rank_fit)[2])
-        # If varible two not ranked.
-        if not rd2:
-            for cgrs2 in candidates:
-                # If variable 1 not ranked just use raw_score.
-                craw2 = get_raw_score_2(cgrs2)
-                fc2.append(craw2)
+                all_fitnesses.append(self.get_nonrank(candidates, key=d))
 
         # Set the initial order of the ranks, will need to
         # be returned in this order at the end.
-        forder = 1
-        fordered = []
-        for f in zip(all_fitnesses):
-            [forder]
-        for cr1, cr2 in zip(fc1, fc2):
-            fordered.append([forder, cr1, cr2])
-            forder += 1
+        fordered = zip(range(len(all_fitnesses[0])), *all_fitnesses)
         mvf_rank = -1  # Start multi variable rank at -1.
         rec_vrc = []  # A record of already ranked candidates.
         mvf_list = []  # A list for all candidate ranks.
@@ -942,34 +846,40 @@ class MultiVarPopulation(RankFitnessPopulation):
         fordered.sort(key=itemgetter(1), reverse=True)
         # Niche candidates with equal or better raw_score to
         # current candidate.
-        for forder, cr1, cr2 in fordered:
-            if forder not in rec_vrc:
+        for a in fordered:
+            order, rest = a[0], a[1:]
+            if order not in rec_vrc:
                 pff = []
                 pff2 = []
-                rec_vrc.append(forder)
-                pff.append([forder, cr1, cr2])
-                for oforder, ocr1, ocr2 in fordered:
-                    if oforder not in rec_vrc:
-                        if ocr1 >= cr1 or ocr2 >= cr2:
-                            pff.append([oforder, ocr1, ocr2])
-                # Remove any candidate from list that is dominated
+                rec_vrc.append(order)
+                pff.append((order, rest))
+                for b in fordered:
+                    border, brest = b[0], b[1:]
+                    if border not in rec_vrc:
+                        if any(np.array(brest) >= np.array(rest)):
+                            pff.append((border, brest))
+                # Remove any candidate from pff list that is dominated
                 # by another in the list.
-                for nforder, ncr1, ncr2 in pff:
+                for na in pff:
+                    norder, nrest = na[0], na[1:]
                     dom = False
-                    for onforder, oncr1, oncr2 in pff:
-                        if onforder != nforder:
-                            if oncr2 > ncr2 and oncr1 > ncr1:
+                    for nb in pff:
+                        nborder, nbrest = nb[0], nb[1:]
+                        if norder != nborder:
+                            if all(np.array(brest) > np.array(rest)):
                                 dom = True
                     if not dom:
-                        pff2.append([nforder, ncr1, ncr2])
+                        pff2.append((norder, nrest))
                 # Assign pareto rank from -1 to -N niches.
-                for fforder, fcr1, fcr2 in pff2:
+                for ffa in pff2:
+                    fforder, ffrest = ffa[0], ffa[1:]
                     rec_vrc.append(fforder)
-                    mvf_list.append([fforder, fcr1, fcr2, mvf_rank])
+                    mvf_list.append((fforder, mvf_rank, ffrest))
                 mvf_rank = mvf_rank - 1
         # The original order is reformed
         mvf_list.sort(key=itemgetter(0), reverse=False)
-        rfro = np.array(zip(*mvf_list)[3])
+        rfro = np.array(zip(*mvf_list)[1])
+
         if not expf:
             rmax = max(rfro)
             rmin = min(rfro)
@@ -988,8 +898,6 @@ class MultiVarPopulation(RankFitnessPopulation):
     def __initialize_pop__(self):
         # Get all relaxed candidates from the database
         ue = self.use_extinct
-        rd1 = self.rank_data1
-        rd2 = self.rank_data2
         all_cand = self.dc.get_all_relaxed_candidates(use_extinct=ue)
         all_cand.sort(key=lambda x: get_raw_score(x), reverse=True)
 
@@ -1007,13 +915,15 @@ class MultiVarPopulation(RankFitnessPopulation):
             i = 0
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
-                # variable_function defined for ranked candidates.
-                if rd1 or rd2:
+                # Use variable_function to decide whether to run comparator
+                # if the function has been defined by the user. This does not
+                # need to be dependent on using the rank_data function.
+                if self.vf is not None:
                     c_vf = self.vf(c)
                 i += 1
                 eq = False
                 for a in self.pop:
-                    if rd1 or rd2:
+                    if self.vf is not None:
                         a_vf = self.vf(a)
                         # Only run comparator if the variable_function
                         # (self.vf) returns the same. If it returns something
