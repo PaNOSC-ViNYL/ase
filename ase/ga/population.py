@@ -915,7 +915,9 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             i = 0
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
-                # variable_function defined for ranked candidates.
+                # Use variable_function to decide whether to run comparator
+                # if the function has been defined by the user. This does not
+                # need to be dependent on using the rank_data function.
                 if self.vf is not None:
                     c_vf = self.vf(c)
                 i += 1
