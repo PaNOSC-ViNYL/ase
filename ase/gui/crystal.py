@@ -11,7 +11,7 @@ from ase.gui.status import formula
 from ase.lattice.spacegroup import crystal, Spacegroup
 
 import ase
-import numpy as np
+
 
 introtext = _("""\
   Use this dialog to create crystal lattices. First select the structure,
@@ -23,7 +23,7 @@ introtext = _("""\
   yourself.  """)
 
 py_template = """
-from ase.lattice.spacegroup.crystal import crystal
+from ase.lattice.spacegroup import crystal
 
 atoms = crystal(spacegroup=%(spacegroup)d,
                 symbols=%(symbols)s,
@@ -323,14 +323,14 @@ class SetupBulkCrystal(SetupWindow):
                         'basis'   : basis_str,
                         'size'    : size_str,
                         'spacegroup' : spg,
-                        'cellpar' : cellpar_str} 
+                        'cellpar' : cellpar_str}
             self.pybut.python = py_template % args_str
-            try: 
+            try:
                 self.atoms = crystal(**args)
                 label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
                                           'symbols' : formula(self.atoms.get_atomic_numbers()),
                                           'volume'  : self.atoms.get_volume()}
-                self.status.set_label(label)                
+                self.status.set_label(label)
             except:
                 self.atoms = None
                 self.status.set_markup(_("Please specify a consistent set of atoms."))
@@ -361,7 +361,7 @@ class SetupBulkCrystal(SetupWindow):
                            gtk.Label('\t\t\t'),gtk.Label('\tx: '),gtk.Label('  y: '),
                            gtk.Label('  z: '),gtk.Label(' '),
                            gtk.Button(stock=gtk.STOCK_DELETE),True]]
-        self.elements[n][-2].connect("clicked",self.delete_basis_atom,{'n':n}) 
+        self.elements[n][-2].connect("clicked",self.delete_basis_atom,{'n':n})
         pack(self.vbox_basis,[self.elements[n][4],self.elements[n][0],self.elements[n][5],
                               self.elements[n][1],self.elements[n][6],self.elements[n][2],
                               self.elements[n][7],self.elements[n][3],self.elements[n][8],
@@ -385,7 +385,7 @@ class SetupBulkCrystal(SetupWindow):
         return n
 
     def clear(self, *args):
-        """ reset to original state """ 
+        """ reset to original state """
         self.clearing_in_process = True
         self.clear_lattice()
         self.structinfo.set_active(0)
@@ -417,7 +417,7 @@ class SetupBulkCrystal(SetupWindow):
             s.set_value(1)
 
     def set_lattice_type(self, *args):
-        """ set defaults from original """ 
+        """ set defaults from original """
         self.clearing_in_process = True
         self.clear_lattice()
         lattice = crystal_definitions[self.structinfo.get_active()]
@@ -455,7 +455,7 @@ class SetupBulkCrystal(SetupWindow):
 
     def get_from_database(self, *args):
         element = self.elements[0][0].get_text()
-        z = ase.data.atomic_numbers[self.legal_element]        
+        z = ase.data.atomic_numbers[self.legal_element]
         ref = ase.data.reference_states[z]
         lattice = ref['symmetry']
         index = 0

@@ -7,8 +7,6 @@ from numpy import pi, sin, cos, tan, arcsin, arccos, arctan, sqrt
 from numpy import dot
 from numpy.linalg import norm
 
-import ase
-
 
 __all__ = ['cell_to_cellpar', 'cellpar_to_cell', 'metric_from_cell']
 
@@ -108,9 +106,6 @@ def metric_from_cell(cell):
     return np.dot(cell, cell.T)
 
 
-
-
 if __name__ == '__main__':
     import doctest
     print('doctest: ', doctest.testmod())
-
