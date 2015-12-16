@@ -760,11 +760,11 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
     Parameters
     ----------
-        data: boolean
+        abs_data: list
             Set of key_value_pairs in atoms object for which fitness should
-            should be assigned based on absolute value.
+            be assigned based on absolute value.
 
-        rank_data: boolean
+        rank_data: list
             Set of key_value_pairs in atoms object for which data should
             be ranked in order to ascribe fitness.
 
@@ -785,7 +785,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
     def __init__(self, data_connection, population_size,
                  variable_function=None, comparator=None, logfile=None,
-                 use_extinct=False, data=None, rank_data=None,
+                 use_extinct=False, abs_data=None, rank_data=None,
                  exp_function=True, exp_prefactor=0.5):
         # The current fitness is set at each update of the population
         self.current_fitness = None
@@ -794,9 +794,9 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             rank_data = []
         self.rank_data = rank_data
         
-        if data is None:
-            data = []
-        self.data = data
+        if abs_data is None:
+            abs_data = []
+        self.abs_data = abs_data
 
         RankFitnessPopulation.__init__(self, data_connection, population_size,
                                        variable_function, comparator, logfile,
@@ -816,8 +816,8 @@ class MultiObjectivePopulation(RankFitnessPopulation):
         # user has specified at least two here.
         msg = "This is a multi-objective fitness function"
         msg += " so there must be at least two datasets"
-        msg += " stated in the rank_data and data variables"
-        assert len(self.rank_data)+len(self.data) >= 2, msg
+        msg += " stated in the rank_data and abs_data variables"
+        assert len(self.rank_data)+len(self.abs_data) >= 2, msg
 
         expf = self.exp_function
 
@@ -828,7 +828,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             # Build ranked fitness based on rd
             all_fitnesses.append(self.get_rank(candidates, key=rd))
             
-        for d in self.data:
+        for d in self.abs_data:
             if d not in used:
                 used.add(d)
                 # Build fitness based on d
@@ -916,12 +916,12 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
                 c = all_sorted[i]
                 # variable_function defined for ranked candidates.
-                if self.rank_data is not None:
+                if self.vf is not None:
                     c_vf = self.vf(c)
                 i += 1
                 eq = False
                 for a in self.pop:
-                    if self.rank_data is not None:
+                    if self.vf is not None:
                         a_vf = self.vf(a)
                         # Only run comparator if the variable_function
                         # (self.vf) returns the same. If it returns something
