@@ -21,14 +21,6 @@ def get_raw_score(self):
     return self.info['key_value_pairs']['raw_score']
 
 
-def get_raw_score_1(self):
-    return self.info['key_value_pairs']['raw_score_1']
-
-
-def get_raw_score_2(self):
-    return self.info['key_value_pairs']['raw_score_2']
-
-
 def set_raw_score(self, score):
     warnings.warn(raw_score_message, FutureWarning)
     self.info['key_value_pairs']['raw_score'] = score
