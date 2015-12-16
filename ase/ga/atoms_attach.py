@@ -16,6 +16,7 @@ m += "set_raw_score(atoms, raw_score)  # to set and \n"
 m += "get_raw_score(atoms)  # to get."
 raw_score_message = (m)
 
+
 def get_raw_score(self):
     warnings.warn(raw_score_message, FutureWarning)
     return self.info['key_value_pairs']['raw_score']
@@ -32,12 +33,10 @@ def enable_raw_score_methods(a):
         a.info['key_value_pairs'] = {}
     a.set_raw_score = types.MethodType(set_raw_score, a)
     a.get_raw_score = types.MethodType(get_raw_score, a)
-    a.get_raw_score_1 = types.MethodType(get_raw_score_1, a)
-    a.get_raw_score_2 = types.MethodType(get_raw_score_2, a)
 
 
-m = "enable_parametrization_methods, atoms.get_ and atoms.set_neighbor_list and "
-m += "atoms.get_ and atoms.set_parametrization are deprecated and will "
+m = "enable_parametrization_methods, atoms.get_ and atoms.set_neighbor_list "
+m += "and atoms.get_ and atoms.set_parametrization are deprecated and will "
 m += "be removed soon, use instead:\n"
 m += "atoms.info['data']['parametrization'] and "
 m += "atoms.info['data']['neighborlist'] to set and get directly\n"
@@ -47,7 +46,8 @@ m += "from ase.ga import get_parametrization, get_neighbor_list\n"
 m += "set_parametrization(atoms, parametrization)  # to set\n"
 m += "get_parametrization(atoms)  # to get"
 message = (m)
-    
+
+
 def get_neighbor_list(self):
     warnings.warn(message, FutureWarning)
     keys = self.info.keys()

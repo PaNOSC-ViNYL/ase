@@ -2,6 +2,7 @@
 based on population stagnation or max raw score reached"""
 from ase.ga import get_raw_score
 
+
 class Convergence(object):
     """
     Base class for all convergence object to be based on.

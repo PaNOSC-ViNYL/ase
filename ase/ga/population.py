@@ -804,7 +804,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                                        exp_prefactor)
 
     def get_nonrank(self, nrcand, key=None):
-        # Return a list of fitness values.
+        """"Returns a list of fitness values."""
         nrc_list = []
         for nrc in nrcand:
             nrc_list.append(nrc.info['key_value_pairs'][key])
@@ -812,12 +812,12 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
     def __get_fitness__(self, candidates):
         # There are no defaults set for the datasets to be
-        # used in this function, as such we test that the 
+        # used in this function, as such we test that the
         # user has specified at least two here.
         msg = "This is a multi-objective fitness function"
         msg += " so there must be at least two datasets"
         msg += " stated in the rank_data and abs_data variables"
-        assert len(self.rank_data)+len(self.abs_data) >= 2, msg
+        assert len(self.rank_data) + len(self.abs_data) >= 2, msg
 
         expf = self.exp_function
 
@@ -866,7 +866,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                     for nb in pff:
                         nborder, nbrest = nb[0], nb[1:]
                         if norder != nborder:
-                            if all(np.array(brest) > np.array(rest)):
+                            if all(np.array(nbrest) > np.array(nrest)):
                                 dom = True
                     if not dom:
                         pff2.append((norder, nrest))
