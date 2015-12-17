@@ -883,6 +883,7 @@ def read_md(filename, index=None, return_scalars=False, units=units_CODATA2002):
     else:
         full_output = False
 
+    from ase.io import read
     return read(filename, index=index, format='castep-md',
                     full_output=full_output, return_scalars=return_scalars,
                     units=units)
