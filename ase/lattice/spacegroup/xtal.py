@@ -12,17 +12,16 @@ import numpy as np
 
 import ase
 from ase.atoms import string2symbols
-from .spacegroup import Spacegroup
-from .cell import cellpar_to_cell
+from ase.lattice.spacegroup import Spacegroup
+from ase.lattice.spacegroup.cell import cellpar_to_cell
 
 __all__ = ['crystal']
 
 
-
-def crystal(symbols=None, basis=None, spacegroup=1, setting=1, 
-            cell=None, cellpar=None, 
-            ab_normal=(0,0,1), a_direction=None, size=(1,1,1),
-            ondublicates='warn', symprec=0.001, 
+def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
+            cell=None, cellpar=None,
+            ab_normal=(0, 0, 1), a_direction=None, size=(1, 1, 1),
+            ondublicates='warn', symprec=0.001,
             pbc=True, primitive_cell=False, **kwargs):
     """Create an Atoms instance for a conventional unit cell of a
     space group.
@@ -34,7 +33,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         formula or a sequence of element symbols. E.g. ('Na', 'Cl')
         and 'NaCl' are equivalent.  Can also be given as a sequence of
         Atom objects or an Atoms object.
-    basis : list of scaled coordinates 
+    basis : list of scaled coordinates
         Positions of the unique sites corresponding to symbols given
         either as scaled positions or through an atoms instance.  Not
         needed if *symbols* is a sequence of Atom objects or an Atoms
@@ -48,13 +47,13 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         Unit cell vectors.
     cellpar : [a, b, c, alpha, beta, gamma]
         Cell parameters with angles in degree. Is not used when `cell`
-        is given. 
+        is given.
     ab_normal : vector
         Is used to define the orientation of the unit cell relative
         to the Cartesian system when `cell` is not given. It is the
         normal vector of the plane spanned by a and b.
     a_direction : vector
-        Defines the orientation of the unit cell a vector. a will be 
+        Defines the orientation of the unit cell a vector. a will be
         parallel to the projection of `a_direction` onto the a-b plane.
     size : 3 positive integers
         How many times the conventional unit cell should be repeated
@@ -86,22 +85,22 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
 
     Two diamond unit cells (space group number 227)
 
-    >>> diamond = crystal('C', [(0,0,0)], spacegroup=227, 
+    >>> diamond = crystal('C', [(0,0,0)], spacegroup=227,
     ...     cellpar=[3.57, 3.57, 3.57, 90, 90, 90], size=(2,1,1))
     >>> ase.view(diamond)  # doctest: +SKIP
 
     A CoSb3 skutterudite unit cell containing 32 atoms
 
-    >>> skutterudite = crystal(('Co', 'Sb'), 
-    ...     basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)], 
+    >>> skutterudite = crystal(('Co', 'Sb'),
+    ...     basis=[(0.25,0.25,0.25), (0.0, 0.335, 0.158)],
     ...     spacegroup=204, cellpar=[9.04, 9.04, 9.04, 90, 90, 90])
     >>> len(skutterudite)
     32
     """
     sg = Spacegroup(spacegroup, setting)
-    if (not isinstance(symbols, str) and 
+    if (not isinstance(symbols, str) and
         hasattr(symbols, '__getitem__') and
-        len(symbols) > 0 and 
+        len(symbols) > 0 and
         isinstance(symbols[0], ase.Atom)):
         symbols = ase.Atoms(symbols)
     if isinstance(symbols, ase.Atoms):
@@ -115,8 +114,8 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
             symbols = basis.get_chemical_symbols()
     else:
         basis_coords = np.array(basis, dtype=float, copy=False, ndmin=2)
-    sites, kinds = sg.equivalent_sites(basis_coords, 
-                                       ondublicates=ondublicates, 
+    sites, kinds = sg.equivalent_sites(basis_coords,
+                                       ondublicates=ondublicates,
                                        symprec=symprec)
     symbols = parse_symbols(symbols)
     symbols = [symbols[i] for i in kinds]
@@ -133,8 +132,8 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         info.update(kwargs['info'])
     kwargs['info'] = info
 
-    atoms = ase.Atoms(symbols, 
-                      scaled_positions=sites, 
+    atoms = ase.Atoms(symbols,
+                      scaled_positions=sites,
                       cell=cell,
                       pbc=pbc,
                       **kwargs)
@@ -143,7 +142,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         for name in basis.arrays:
             if not atoms.has(name):
                 array = basis.get_array(name)
-                atoms.new_array(name, [array[i] for i in kinds], 
+                atoms.new_array(name, [array[i] for i in kinds],
                                 dtype=array.dtype, shape=array.shape[1:])
 
     if primitive_cell:
@@ -155,20 +154,15 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         atoms = atoms.repeat(size)
     return atoms
 
+    
 def parse_symbols(symbols):
     """Return `sumbols` as a sequence of element symbols."""
     if isinstance(symbols, str):
         symbols = string2symbols(symbols)
     return symbols
 
-
-
-
-
-
-#-----------------------------------------------------------------
+    
 # Self test
 if __name__ == '__main__':
     import doctest
     print('doctest: ', doctest.testmod())
-    

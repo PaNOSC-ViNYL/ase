@@ -817,13 +817,13 @@ End CASTEP Interface Documentation
             # compensate for internal reordering of atoms by CASTEP
             # using the fact that the order is kept within each species
 
-            positions_frac_ase = self.atoms.get_scaled_positions(wrap=False)
+            # positions_frac_ase = self.atoms.get_scaled_positions(wrap=False)
             atoms_assigned = [False] * len(self.atoms)
 
-            positions_frac_castep_init = np.array(positions_frac_list[0])
+            # positions_frac_castep_init = np.array(positions_frac_list[0])
             positions_frac_castep = np.array(positions_frac_list[-1])
 
-            species_castep = list(species)
+            # species_castep = list(species)
             forces_castep = np.array(forces)
             hirsh_castep = np.array(hirsh_volrat)
             spins_castep = np.array(spins)
@@ -1449,7 +1449,7 @@ End CASTEP Interface Documentation
         self._fetch_pspots(temp_dir)
         seed = 'dryrun'
 
-        cell_written = self._write_cell('%s.cell' % seed, self.atoms)
+        self._write_cell('%s.cell' % seed, self.atoms)
         # This part needs to be modified now that we rely on the new formats.py
         # interface
         if not os.path.isfile('%s.cell'%seed):

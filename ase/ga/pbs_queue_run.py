@@ -111,5 +111,5 @@ class PBSQueueRun(object):
                         a,
                         find_neighbors=self.find_neighbors,
                         perform_parametrization=self.perform_parametrization)
-                except IOError, e:
+                except IOError as e:
                     print(e)

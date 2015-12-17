@@ -49,6 +49,8 @@ def plural(n, word):
 
     
 class DevNull:
+    encoding = 'UTF-8'
+    
     def write(self, string):
         pass
 

@@ -25,7 +25,6 @@ from __future__ import print_function
 import os
 import shutil
 import shlex
-import time
 from subprocess import Popen, PIPE
 from threading import Thread
 from re import compile as re_compile, IGNORECASE
@@ -552,7 +551,7 @@ class LAMMPS:
 
             type_atoms = self.atoms.get_atomic_numbers()
             positions_atoms = np.array( [np.dot(np.array(r), rotation_lammps2ase) for r in positions] )
-            velocities_atoms = np.array( [np.dot(np.array(v), rotation_lammps2ase) for v in velocities] )
+            # velocities_atoms = np.array( [np.dot(np.array(v), rotation_lammps2ase) for v in velocities] )
             forces_atoms = np.array( [np.dot(np.array(f), rotation_lammps2ase) for f in forces] )
 
         if (set_atoms):
@@ -560,7 +559,6 @@ class LAMMPS:
             self.atoms = Atoms(type_atoms, positions=positions_atoms, cell=cell_atoms)
 
         self.forces = forces_atoms
-
 
 
 class special_tee:
@@ -767,14 +765,12 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
 
 
 if __name__ == '__main__':
-
     pair_style = 'eam'
     Pd_eam_file = 'Pd_u3.eam'
     pair_coeff = [ '* * ' + Pd_eam_file ]
     parameters = { 'pair_style' : pair_style, 'pair_coeff' : pair_coeff }
     files = [ Pd_eam_file ]
     calc = LAMMPS(parameters=parameters, files=files)
-    from ase import Atoms
     a0 = 3.93
     b0 = a0 / 2.0
     if True:

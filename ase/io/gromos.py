@@ -16,7 +16,6 @@ def read_gromos(fileobj, index=-1):
     tries to set atom types
     """
 
-    from ase import units
     from ase import Atoms
     from ase.data import chemical_symbols
     import sys

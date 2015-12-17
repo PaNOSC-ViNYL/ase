@@ -6,7 +6,6 @@ from ase.utils.sjeos import EquationOfStateSJEOS
 
 try:
     # ase.utils.eosase2 requires scipy
-    import scipy
     from ase.utils.eosase2 import EquationOfStateASE2
 
     class EquationOfState:

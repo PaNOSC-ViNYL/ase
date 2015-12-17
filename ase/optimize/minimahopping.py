@@ -30,20 +30,20 @@ class MinimaHopping:
         'timestep': 1.0,  # fs, timestep for MD simulations
         'optimizer': QuasiNewton,  # local optimizer to use
         'minima_traj': 'minima.traj',  # storage file for minima list
-        'fmax': 0.05,  # eV/A, max force for optimizations
-                          }
+        'fmax': 0.05}  # eV/A, max force for optimizations
 
     def __init__(self, atoms, **kwargs):
         """Initialize with an ASE atoms object and keyword arguments."""
         self._atoms = atoms
         for key in kwargs:
-            if not key in self._default_settings:
+            if key not in self._default_settings:
                 raise RuntimeError('Unknown keyword: %s' % key)
         for k, v in self._default_settings.items():
             setattr(self, '_%s' % k, kwargs.pop(k, v))
 
-        self._passedminimum = PassedMinimum()  # when a MD sim. has passed
-                                               # a local minimum
+        # when a MD sim. has passed a local minimum:
+        self._passedminimum = PassedMinimum()
+        
         # Misc storage.
         self._previous_optimum = None
         self._previous_energy = None
@@ -313,7 +313,7 @@ class MinimaHopping:
                                          temp=self._temperature * units.kB,
                                          force_temp=True)
         traj = io.Trajectory('md%05i.traj' % self._counter, 'a',
-                                   self._atoms)
+                             self._atoms)
         dyn = VelocityVerlet(self._atoms, dt=self._timestep * units.fs)
         log = MDLogger(dyn, self._atoms, 'md%05i.log' % self._counter,
                        header=True, stress=False, peratom=False)
@@ -385,7 +385,7 @@ class ComparePositions:
         comparisons = []
         repeat = []
         for bc in atoms2.pbc:
-            if bc == True:
+            if bc:
                 repeat.append(3)
             else:
                 repeat.append(1)
@@ -415,8 +415,8 @@ class ComparePositions:
         least = ['', np.inf]
         for element in set(symbols):
             count = symbols.count(element)
-            if symbols.count(element) < least[1]:
-                least = [element, symbols.count(element)]
+            if count < least[1]:
+                least = [element, count]
         return least
 
     def _indistinguishable_compare(self, atoms1, atoms2):
@@ -672,7 +672,7 @@ class CombinedAxis:
         self.ax2 = ax2
         self.tempax = tempax
         self.ediffax = ediffax
-        self._ymax = None
+        self._ymax = -np.inf
 
     def set_ax1_range(self, ylim):
         self._ax1_ylim = ylim
