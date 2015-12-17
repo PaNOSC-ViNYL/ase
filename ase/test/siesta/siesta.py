@@ -72,8 +72,7 @@ specie = Specie(symbol='C', basis_set=basis_set)
 # Test that the fdf_arguments come first.
 siesta = Siesta(
     label='test_label',
-    fdf_arguments={'DM.Tolerance': 1e-3},
-)
+    fdf_arguments={'DM.Tolerance': 1e-3})
 atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
 atoms = h.copy()
@@ -87,9 +86,8 @@ siesta = Siesta(
     label='test_label',
     fdf_arguments={
         'DM.Tolerance': 1e-3,
-        'ON.eta': 5 * Ry,
-    },
-)
+        'ON.eta': 5 * Ry})
+
 atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
 

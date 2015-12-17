@@ -17,8 +17,7 @@ except:
         [-0.682793, -0.682793, 0.68279],
         [-0.682793, 0.682793, -0.682793],
         [0.682793, -0.682793, -0.682793]]),
-        cell=[10, 10, 10],
-    )
+        cell=[10, 10, 10])
 
 c_basis = """2 nodes 1.00
 0 1 S 0.20 P 1 0.20 6.00
@@ -43,10 +42,7 @@ calc = Siesta(
                    'DM.NumberPulay': 3,
                    'MaxSCFIterations': 200,
                    'ElectronicTemperature': 0.02585 * eV,  # 300 K
-                   'SaveElectrostaticPotential': True
-                   },
-)
-
+                   'SaveElectrostaticPotential': True})
 
 bud.set_calculator(calc)
 dyn = QuasiNewton(bud, trajectory=traj)

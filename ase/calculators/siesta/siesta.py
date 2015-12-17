@@ -11,8 +11,8 @@ class Siesta3_2(BaseSiesta):
     allowed_xc = {
         'LDA': ['PZ', 'CA', 'PW92'],
         'GGA': ['PBE', 'revPBE', 'RPBE',
-                'WC', 'PBEsol', 'LYP'],
-    }
+                'WC', 'PBEsol', 'LYP']}
+    
     unit_fdf_keywords = {
         'BasisPressure': 'eV/Ang**3',
         'LatticeConstant': 'Ang',
@@ -51,8 +51,8 @@ class Siesta3_2(BaseSiesta):
         'MD.ParrinelloRahmanMass': 'Kg*m**2',   # Not in ASE unit
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
-        'MD.FCDispl': 'Ang'
-    }
+        'MD.FCDispl': 'Ang'}
+    
     allowed_fdf_keywords = [
         'LongOutput',
         'SystemName',
@@ -301,8 +301,7 @@ class Siesta3_2(BaseSiesta):
         'MD.FCfirst',
         'MD.FClast',
         'PhononLabels',
-        'MD.ATforPhonon',
-    ]
+        'MD.ATforPhonon']
 
 
 # Trunk version, snapshot 462
@@ -311,10 +310,8 @@ class SiestaTrunk462(BaseSiesta):
         'LDA': ['PZ', 'CA', 'PW92'],
         'GGA': ['PW91', 'PBE', 'revPBE', 'RPBE',
                 'WC', 'AM05', 'PBEsol', 'PBEJsJrLO',
-                'PBEGcGxLO', 'PBEGcGxHEG', 'BLYP',
-                ],
-        'VDW': ['DRSLL', 'LMKLL', 'KBM', 'C09', 'BH', 'VV'],
-    }
+                'PBEGcGxLO', 'PBEGcGxHEG', 'BLYP'],
+        'VDW': ['DRSLL', 'LMKLL', 'KBM', 'C09', 'BH', 'VV']}
     unit_fdf_keywords = {
         'BasisPressure': 'eV/Ang**3',
         'LatticeConstant': 'Ang',
@@ -352,8 +349,8 @@ class SiestaTrunk462(BaseSiesta):
         'MD.ParrinelloRahmanMass': 'Kg*m**2',   # Not in ASE unit
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
-        'MD.FCDispl': 'Ang'
-    }
+        'MD.FCDispl': 'Ang'}
+    
     allowed_fdf_keywords = [
         'LongOutput',
         'SystemName',
@@ -607,8 +604,7 @@ class SiestaTrunk462(BaseSiesta):
         'MD.FCfirst',
         'MD.FClast',
         'PhononLabels',
-        'MD.ATforPhonon',
-    ]
+        'MD.ATforPhonon']
 
 
 # Define the default siesta version.

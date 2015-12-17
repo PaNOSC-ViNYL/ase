@@ -56,15 +56,14 @@ class BaseSiesta(FileIOCalculator):
     allowed_fdf_keywords = {}
     unit_fdf_keywords = {}
 
-    implemented_properties = tuple([
+    implemented_properties = (
         'energy',
         'forces',
         'stress',
         'dipole',
         'eigenvalues',
         'density',
-        'fermi_energy',
-    ])
+        'fermi_energy')
 
     # Dictionary of valid input vaiables.
     default_parameters = SiestaParameters()
@@ -144,8 +143,7 @@ class BaseSiesta(FileIOCalculator):
         FileIOCalculator.__init__(
             self,
             command=command,
-            **parameters
-        )
+            **parameters)
 
     def __getitem__(self, key):
         """Convenience method to retrieve a parameter as
@@ -170,16 +168,14 @@ class BaseSiesta(FileIOCalculator):
         species = list(self['species'])
         default_species = [
             s for s in species
-            if (s['tag'] is None) and s['symbol'] in symbols
-        ]
+            if (s['tag'] is None) and s['symbol'] in symbols]
         default_symbols = [s['symbol'] for s in default_species]
         for symbol in symbols:
-            if not symbol in default_symbols:
+            if symbol not in default_symbols:
                 specie = Specie(
                     symbol=symbol,
                     basis_set=self['basis_set'],
-                    tag=None,
-                )
+                    tag=None)
                 default_species.append(specie)
                 default_symbols.append(symbol)
         assert len(default_species) == len(np.unique(symbols))
@@ -232,7 +228,7 @@ class BaseSiesta(FileIOCalculator):
 
         # Check the spin input.
         spin = kwargs.get('spin')
-        if not spin is None and (not spin in self.allowed_spins):
+        if spin is not None and (spin not in self.allowed_spins):
             mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
             raise Exception(mess)
 
@@ -256,7 +252,7 @@ class BaseSiesta(FileIOCalculator):
 
         # Check fdf_arguments.
         fdf_arguments = kwargs['fdf_arguments']
-        if not fdf_arguments is None:
+        if fdf_arguments is not None:
             # Type checking.
             if not isinstance(fdf_arguments, dict):
                 raise TypeError("fdf_arguments must be a dictionary.")
@@ -272,11 +268,10 @@ class BaseSiesta(FileIOCalculator):
 
         FileIOCalculator.set(self, **kwargs)
 
-    def calculate(
-            self,
-            atoms=None,
-            properties=['energy'],
-            system_changes=all_changes):
+    def calculate(self,
+                  atoms=None,
+                  properties=['energy'],
+                  system_changes=all_changes):
         """Capture the RuntimeError from FileIOCalculator.calculate
         and add a little debug information from the Siesta output.
 
@@ -288,10 +283,10 @@ class BaseSiesta(FileIOCalculator):
                 self,
                 atoms=atoms,
                 properties=properties,
-                system_changes=system_changes,
-            )
-#Here a test to check if the potential are in the right place!!!
-        except RuntimeError, e:
+                system_changes=system_changes)
+
+        # Here a test to check if the potential are in the right place!!!
+        except RuntimeError as e:
             try:
                 with open(self.label + '.out', 'r') as f:
                     lines = f.readlines()
@@ -318,15 +313,15 @@ class BaseSiesta(FileIOCalculator):
             self,
             atoms=atoms,
             properties=properties,
-            system_changes=system_changes,
-        )
+            system_changes=system_changes)
+
         if system_changes is None and properties is None:
             return
 
         filename = self.label + '.fdf'
 
         # On any changes, remove all analysis files.
-        if not system_changes is None:
+        if system_changes is not None:
             self.remove_analysis()
 
         # Start writing the file.
@@ -337,10 +332,10 @@ class BaseSiesta(FileIOCalculator):
 
             # Use the saved density matrix if only 'cell' and 'positions'
             # haved changes.
-            if system_changes is None or \
-                (not 'numbers' in system_changes and
-                 not 'initial_magmoms' in system_changes and
-                 not 'initial_charges' in system_changes):
+            if (system_changes is None or
+                ('numbers' not in system_changes and
+                 'initial_magmoms' not in system_changes and
+                 'initial_charges' not in system_changes)):
                 f.write(format_fdf('DM.UseSaveDM', True))
 
             # Save density.
@@ -509,7 +504,7 @@ class BaseSiesta(FileIOCalculator):
         functional, authors = self.parameters['xc']
         f.write('\n')
         f.write(format_fdf('XC_functional', functional))
-        if not authors is None:
+        if authors is not None:
             f.write(format_fdf('XC_authors', authors))
         f.write('\n')
 

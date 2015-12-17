@@ -1,23 +1,15 @@
-import string
+"""Helper functions for read_fdf."""
 from os import fstat
-from os import path
 from re import compile
-import numpy as np
-from numpy import zeros
 
-from ase.atoms import Atoms
-from ase.units import Bohr
-
-from ase.io.fortranfile import FortranFile
-
-#
-# Helper functions for read_fdf
-#
 _label_strip_re = compile(r'[\s._-]')
+
+
 def _labelize(raw_label):
     # Labels are case insensitive and -_. should be ignored, lower and strip it
     return _label_strip_re.sub('', raw_label).lower()
 
+    
 def _is_block(val):
     # Tell whether value is a block-value or an ordinary value.
     # A block is represented as a list of lists of strings,
@@ -28,10 +20,12 @@ def _is_block(val):
         return True
     return False
 
+    
 def _get_stripped_lines(fd):
     # Remove comments, leading blanks, and empty lines
     return [_f for _f in [L.split('#')[0].strip() for L in fd] if _f]
 
+    
 def _read_fdf_lines(file, inodes=[]):
     # Read lines and resolve includes
 
@@ -60,15 +54,18 @@ def _read_fdf_lines(file, inodes=[]):
             fname = fname.strip()
 
             if w0 == '%block':
-                # "%block label < filename" means that the block contents should be read from filename
+                # "%block label < filename" means that the block contents
+                # should be read from filename
                 if len(w) != 2:
-                    raise IOError('Bad %%block-statement "%s < %s"' % (L, fname))
+                    raise IOError('Bad %%block-statement "%s < %s"' %
+                                  (L, fname))
                 label = lbz(w[1])
                 lines.append('%%block %s' % label)
                 lines += _get_stripped_lines(open(fname))
                 lines.append('%%endblock %s' % label)
             else:
-                # "label < filename.fdf" means that the label (_only_ that label) is to be resolved from filename.fdf
+                # "label < filename.fdf" means that the label
+                # (_only_ that label) is to be resolved from filename.fdf
                 label = lbz(w[0])
                 fdf = _read_fdf(fname, inodes)
                 if label in fdf:
@@ -78,15 +75,17 @@ def _read_fdf_lines(file, inodes=[]):
                         lines.append('%%endblock %s' % label)
                     else:
                         lines.append('%s %s' % (label, ' '.join(fdf[label])))
-                #else: label unresolved! One should possibly issue a warning about this!
+                # else:
+                #    label unresolved!
+                #    One should possibly issue a warning about this!
         else:
             # Simple include line L
             lines.append(L)
     return lines
 
-#
-# The reason for creating a separate _read_fdf is simply to hide the inodes-argument
-#
+    
+# The reason for creating a separate _read_fdf is simply to hide the
+# inodes-argument
 def _read_fdf(fname, inodes=[]):
     # inodes is used to detect cyclic includes
     fdf = {}
@@ -108,11 +107,11 @@ def _read_fdf(fname, inodes=[]):
                         break
                     content.append(w)
 
-                if not label in fdf:
+                if label not in fdf:
                     # Only first appearance of label is to be used
                     fdf[label] = content
             else:
-                raise IOError('%%block statement without label' )
+                raise IOError('%%block statement without label')
         else:
             # Ordinary value
             label = lbz(w[0])
@@ -205,4 +204,3 @@ def read_struct_out(fname):
     atoms.set_cell(cell, scale_atoms=True)
 
     return atoms
-
