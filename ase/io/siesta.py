@@ -1,59 +1,15 @@
-from numpy import zeros
+"""Helper functions for read_fdf."""
 from os import fstat
 from re import compile
 
-from ase.io.fortranfile import FortranFile
-
-
-def read_rho(fname):
-    "Read unformatted Siesta charge density file"
-
-    # TODO:
-    #
-    # Handle formatted and NetCDF files.
-    #
-    # Siesta source code (at least 2.0.2) can possibly also
-    # save RHO as a _formatted_ file (the source code seems
-    # prepared, but there seems to be no fdf-options for it though).
-    # Siesta >= 3 has support for saving RHO as a NetCDF file
-    # (according to manual)
-
-    fh = FortranFile(fname)
-    
-    # Read (but ignore) unit cell vectors
-    x = fh.readReals('d')
-    if len(x) != 3 * 3:
-        raise IOError('Failed to read cell vectors')
-        
-    # Read number of grid points and spin components
-    x = fh.readInts()
-    if len(x) != 4:
-        raise IOError('Failed to read grid size')
-    gpts = x  # number of 'X', 'Y', 'Z', 'spin' gridpoints
-    
-    rho = zeros(gpts)
-    for ispin in range(gpts[3]):
-        for n3 in range(gpts[2]):
-            for n2 in range(gpts[1]):
-                x = fh.readReals('f')
-                if len(x) != gpts[0]:
-                    raise IOError('Failed to read RHO[:,%i,%i,%i]' %
-                                  (n2, n3, ispin))
-                rho[:, n2, n3, ispin] = x
-    
-    fh.close()
-    return rho
-
-
-
-#
-# Helper functions for read_fdf
-#
 _label_strip_re = compile(r'[\s._-]')
+
+
 def _labelize(raw_label):
     # Labels are case insensitive and -_. should be ignored, lower and strip it
     return _label_strip_re.sub('', raw_label).lower()
 
+    
 def _is_block(val):
     # Tell whether value is a block-value or an ordinary value.
     # A block is represented as a list of lists of strings,
@@ -63,11 +19,13 @@ def _is_block(val):
        isinstance(val[0], list):
         return True
     return False
+
     
 def _get_stripped_lines(fd):
     # Remove comments, leading blanks, and empty lines
     return [_f for _f in [L.split('#')[0].strip() for L in fd] if _f]
 
+    
 def _read_fdf_lines(file, inodes=[]):
     # Read lines and resolve includes
 
@@ -80,7 +38,7 @@ def _read_fdf_lines(file, inodes=[]):
     inodes = inodes + [inode]
 
     lbz = _labelize
-    
+
     lines = []
     for L in _get_stripped_lines(file):
         w0 = lbz(L.split(None, 1)[0])
@@ -96,15 +54,18 @@ def _read_fdf_lines(file, inodes=[]):
             fname = fname.strip()
 
             if w0 == '%block':
-                # "%block label < filename" means that the block contents should be read from filename
+                # "%block label < filename" means that the block contents
+                # should be read from filename
                 if len(w) != 2:
-                    raise IOError('Bad %%block-statement "%s < %s"' % (L, fname))
+                    raise IOError('Bad %%block-statement "%s < %s"' %
+                                  (L, fname))
                 label = lbz(w[1])
                 lines.append('%%block %s' % label)
                 lines += _get_stripped_lines(open(fname))
                 lines.append('%%endblock %s' % label)
             else:
-                # "label < filename.fdf" means that the label (_only_ that label) is to be resolved from filename.fdf
+                # "label < filename.fdf" means that the label
+                # (_only_ that label) is to be resolved from filename.fdf
                 label = lbz(w[0])
                 fdf = _read_fdf(fname, inodes)
                 if label in fdf:
@@ -114,15 +75,17 @@ def _read_fdf_lines(file, inodes=[]):
                         lines.append('%%endblock %s' % label)
                     else:
                         lines.append('%s %s' % (label, ' '.join(fdf[label])))
-                #else: label unresolved! One should possibly issue a warning about this!
+                # else:
+                #    label unresolved!
+                #    One should possibly issue a warning about this!
         else:
             # Simple include line L
             lines.append(L)
     return lines
 
-#
-# The reason for creating a separate _read_fdf is simply to hide the inodes-argument
-#
+    
+# The reason for creating a separate _read_fdf is simply to hide the
+# inodes-argument
 def _read_fdf(fname, inodes=[]):
     # inodes is used to detect cyclic includes
     fdf = {}
@@ -143,12 +106,12 @@ def _read_fdf(fname, inodes=[]):
                     if lbz(w[0]) == '%endblock' and lbz(w[1]) == label:
                         break
                     content.append(w)
-                        
-                if not label in fdf:
+
+                if label not in fdf:
                     # Only first appearance of label is to be used
                     fdf[label] = content
             else:
-                raise IOError('%%block statement without label' )
+                raise IOError('%%block statement without label')
         else:
             # Ordinary value
             label = lbz(w[0])
@@ -165,10 +128,10 @@ def read_fdf(fname):
 
     The data is returned as a dictionary
     ( label:value ).
-    
+
     All labels are converted to lower case characters and
     are stripped of any '-', '_', or '.'.
-    
+
     Ordinary values are stored as a list of strings (splitted on WS),
     and block values are stored as list of lists of strings
     (splitted per line, and on WS).
@@ -179,7 +142,7 @@ def read_fdf(fname):
     "understand" the data or the concept of units etc.
     Values are never parsed in any way, just stored as
     split strings.
-    
+
     The implementation tries to comply with the fdf-format
     specification as presented in the siesta 2.0.2 manual.
 
@@ -237,8 +200,7 @@ def read_struct_out(fname):
 
     if len(atoms) != natoms:
         raise IOError('Badly structured input file')
-    
+
     atoms.set_cell(cell, scale_atoms=True)
 
     return atoms
-    
