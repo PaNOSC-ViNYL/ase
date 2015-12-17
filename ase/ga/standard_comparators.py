@@ -190,3 +190,9 @@ class AtomsComparator(object):
     """Compares the Atoms objects directly."""
     def looks_like(self, a1, a2):
         return a1 == a2
+
+
+class CompositionComparator(object):
+    """Compares the composition of the Atoms objects."""
+    def looks_like(self, a1, a2):
+        return a1.get_chemical_formula() == a2.get_chemical_formula()

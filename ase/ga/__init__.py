@@ -21,6 +21,7 @@ def set_raw_score(atoms, raw_score):
     if 'key_value_pairs' not in atoms.info:
         atoms.info['key_value_pairs'] = {}
     atoms.info['key_value_pairs']['raw_score'] = raw_score
+
     
     
 def get_raw_score(atoms):
