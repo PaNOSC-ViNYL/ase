@@ -41,3 +41,19 @@ class Calculator:
         """Prepare the input files required to
         start the program (calculator).  """
         raise NotImplementedError
+
+    def read(self, atoms):
+        self.positions = atoms.get_positions()
+        self.energy_free, self.energy_zero = self.read_energy()
+        self.forces = self.read_forces(atoms)
+        self.dipole = self.read_dipole()
+        self.fermi = self.read_fermi()
+        self.atoms = atoms.copy()
+        try:
+            self.nbands = self.read_nbands()
+        except (NotImplementedError, AttributeError):
+            pass
+        try:
+            self.stress = self.read_stress()
+        except NotImplementedError:
+            self.stress = None
