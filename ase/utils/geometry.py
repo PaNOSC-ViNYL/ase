@@ -453,20 +453,15 @@ def sort(atoms, tags=None):
 
     Example:
 
-    >>> import ase
-    >>> from ase.lattice.spacegroup import crystal
-    >>>
-    # Two unit cells of NaCl
+    >>> from ase.lattice import bulk
+    >>> # Two unit cells of NaCl:
     >>> a = 5.64
-    >>> nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)],
-    ... spacegroup=225, cellpar=[a, a, a, 90, 90, 90]).repeat((2, 1, 1))
+    >>> nacl = bulk('NaCl', 'rocksalt', a=a) * (2, 1, 1)
     >>> nacl.get_chemical_symbols()
-    ['Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na',
-            'Na', 'Cl', 'Cl', 'Cl', 'Cl']
+    ['Na', 'Cl', 'Na', 'Cl']
     >>> nacl_sorted = sort(nacl)
     >>> nacl_sorted.get_chemical_symbols()
-    ['Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na',
-            'Na', 'Na', 'Na', 'Na', 'Na']
+    ['Cl', 'Cl', 'Na', 'Na']
     >>> np.all(nacl_sorted.cell == nacl.cell)
     True
     """
