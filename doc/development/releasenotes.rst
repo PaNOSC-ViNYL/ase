@@ -35,6 +35,10 @@ Development version in trunk
 * New :func:`ase.utils.geometry.get_duplicate_atoms` function for finding and
   removing atoms on top of each other.
   
+* New: A replacement Siesta calculator was implemented. It closely follows the
+  ase FileIOCalculator class which should ease further development. Handling
+  pseudopotentials, basis sets and ghost atoms have been made much more 
+  flexible in the new version.
 
 Version 3.9.1
 =============

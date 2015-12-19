@@ -30,13 +30,13 @@ class SiestaParameters(Parameters):
             mesh_cutoff=200 * Ry,
             energy_shift=100 * meV,
             kpts=(1, 1, 1),
-            atoms=None,
             xc='LDA',
-            species=tuple(),
             basis_set='DZP',
             spin='COLLINEAR',
+            species=tuple(),
             pseudo_qualifier=None,
             pseudo_path=None,
+            atoms=None,
             n_nodes=1,
             restart=None,
             ignore_bad_restart_file=False,
@@ -76,21 +76,22 @@ class BaseSiesta(FileIOCalculator):
             -mesh_cutoff  : tuple of (value, energy_unit)
                             The mesh cutoff energy for determining number of
                             grid points.
-            -xc
             -energy_shift : tuple of (value, energy_unit)
                             The confining energy of the basis sets.
             -kpts         : Tuple of 3 integers, the k-points in different
                             directions.
-            -atoms        : The Atoms object.
+            -xc           : The exchange-correlation potential. Can be set to
+                            any allowed value for either the Siesta
+                            XC.funtional or XC.authors keyword. Default "LDA"
+            -basis_set    : "SZ"|"SZP"|"DZ"|"DZP", strings which specify the
+                            type of functions basis set.
+            -spin         : "UNPOLARIZED"|"COLLINEAR"|"FULL". The level of spin
+                            description to be used.
             -species      : None|list of Specie objects. The species objects
                             can be used to to specify the basis set,
                             pseudopotential and whether the species is ghost.
                             The tag on the atoms object and the element is used
                             together to identify the species.
-            -basis_set    : "SZ"|"SZP"|"DZ"|"DZP", strings which specify the
-                            type of functions basis set.
-            -spin         : "UNPOLARIZED"|"COLLINEAR"|"FULL". The level of spin
-                            description to be used.
             -pseudo_path  : None|path. This path is where
                             pseudopotentials are taken from.
                             If None is given, then then the path given
@@ -99,6 +100,7 @@ class BaseSiesta(FileIOCalculator):
                             pseudopotential path that will be retrieved.
                             For hydrogen with qualifier "abc" the
                             pseudopotential "H.abc.psf" will be retrieved.
+            -atoms        : The Atoms object.
             -n_nodes      : The number of nodes to use.
             -restart      : str.  Prefix for restart file.
                             May contain a directory.
@@ -365,6 +367,11 @@ class BaseSiesta(FileIOCalculator):
         """Write directly given fdf-arguments.
         """
         fdf_arguments = self.parameters['fdf_arguments']
+
+        # Early return
+        if fdf_arguments is None:
+            return
+
         for key, value in fdf_arguments.iteritems():
             if key in self.unit_fdf_keywords.keys():
                 value = ('%.8f ' % value, self.unit_fdf_keywords[key])
