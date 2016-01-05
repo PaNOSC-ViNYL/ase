@@ -1,4 +1,3 @@
-import os
 import ase
 
 tests = [
@@ -7,11 +6,10 @@ tests = [
     'CO_Au111.py',
     'H2.py',
     'C5H12.py',
-    'nanoparticle.py', # SLOW
-#    'C2_Cu100.py', # Extremely slow
+    'nanoparticle.py',  # SLOW
+    # 'C2_Cu100.py',  # Extremely slow
 ]
 
 for test in tests:
     filename = ase.__path__[0] + '/optimize/test/' + test
     exec(compile(open(filename).read(), filename, 'exec'), {})
-
