@@ -7,3 +7,4 @@ master:
     - echo $PWD
     - echo $PYTHONPATH
     - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python setup.py test
+    - PYTHONPATH=$PYTHONPATH:$PWD python ase/utils/geometry.py
