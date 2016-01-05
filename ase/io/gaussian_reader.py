@@ -43,12 +43,9 @@ class GaussianReader:
         """filename is optional; if not set, use parse to set the content"""
         if isinstance(filename, str):
             fileobj = open(filename, 'r')
-        elif isinstance(filename, file):
+        else:
             fileobj = filename
             fileobj.seek(0)  # Re-wind fileobj
-        else:
-            err = 'filename needs to be either a str or file obj.'
-            raise RuntimeError(err)
 
         content = fileobj.read()
 
