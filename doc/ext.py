@@ -1,5 +1,5 @@
 from ase.utils.sphinx import mol_role
-from ase.utils.sphinx import svn_role_tmpl, trac_role_tmpl, epydoc_role_tmpl
+from ase.utils.sphinx import svn_role_tmpl, epydoc_role_tmpl
 from ase.utils.sphinx import create_png_files
 
 
