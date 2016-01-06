@@ -136,7 +136,6 @@ ui_info = """\
       <menuitem action='MoveAtoms'/>
       <menuitem action='RotateAtoms'/>
       <menuitem action='OrientAtoms'/>
-      <menuitem action='DFT'/>
       <menuitem action='NEB'/>
       <menuitem action='BulkModulus'/>
     </menu>
@@ -276,7 +275,6 @@ class GUI(View, Status):
              self.constraints_window),
             ('RenderScene', None, _('Render scene ...'), None, '',
              self.render_window),
-            ('DFT', None, _('DFT ...'), None, '', self.dft_window),
             ('NEB', None, _('NE_B'), None, '', self.NEB),
             ('BulkModulus', None, _('B_ulk Modulus'), None, '',
              self.bulk_modulus),
@@ -956,10 +954,6 @@ class GUI(View, Status):
     def constraints_window(self, widget=None):
         from ase.gui.constraints import Constraints
         Constraints(self)
-
-    def dft_window(self, widget=None):
-        from ase.gui.dft import DFT
-        DFT(self)
 
     def select_all(self, widget):
         self.images.selected[:] = True

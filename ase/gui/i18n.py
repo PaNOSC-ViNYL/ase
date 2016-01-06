@@ -1,6 +1,5 @@
 import os
 import sys
-import locale
 import gettext
 
 # This module enables localization using gettext.  If this module has

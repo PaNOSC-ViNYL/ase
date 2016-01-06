@@ -5,13 +5,16 @@
 import gtk
 from gettext import gettext as _
 from ase.gui.simulation import Simulation
-from ase.gui.widgets import oops, pack, AseGuiCancelException
+from ase.gui.widgets import pack, AseGuiCancelException
 import ase
 import ase.optimize
 import numpy as np
 
+
 class MinimizeMixin:
-    minimizers = ('BFGS', 'BFGSLineSearch', 'LBFGS', 'LBFGSLineSearch', 'MDMin', 'FIRE')
+    minimizers = ('BFGS', 'BFGSLineSearch', 'LBFGS', 'LBFGSLineSearch',
+                  'MDMin', 'FIRE')
+
     def make_minimize_gui(self, box):
         self.algo = gtk.combo_box_new_text()
         for m in self.minimizers:
@@ -47,6 +50,7 @@ class MinimizeMixin:
             else:
                 w.hide()
         
+                
 class Minimize(Simulation, MinimizeMixin):
     "Window for performing energy minimization."
     
@@ -134,10 +138,9 @@ class Minimize(Simulation, MinimizeMixin):
             self.gui.movie()
             assert not np.isnan(self.gui.images.E[0])
             if not self.gui.plot_graphs_newatoms():
-                expr = 'i, e - E[-1]'            
+                expr = 'i, e - E[-1]'
                 self.gui.plot_graphs(expr=expr)
 
     def notify_atoms_changed(self):
         "When atoms have changed, check for the number of images."
         self.setupimageselection()
-        

@@ -5,10 +5,11 @@
 import gtk
 from gettext import gettext as _
 from ase.gui.simulation import Simulation
-from ase.gui.widgets import oops, pack
+from ase.gui.widgets import pack
+
 
 class OutputFieldMixin:
-    def makeoutputfield(self, box, label=_("Output:"), heading = None):
+    def makeoutputfield(self, box, label=_("Output:"), heading=None):
         frame = gtk.Frame(label)
         if box is not None:
             box.pack_start(frame, True, True, 0)
@@ -16,7 +17,6 @@ class OutputFieldMixin:
         frame.add(box2)
         if heading is not None:
             pack(box2, [gtk.Label(heading)])
-        #pack(box, [gtk.Label("Output:")])
         scrwin = gtk.ScrolledWindow()
         scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
         self.output = gtk.TextBuffer()
@@ -51,6 +51,7 @@ class OutputFieldMixin:
             f.close()
         chooser.destroy()
         
+        
 class EnergyForces(Simulation, OutputFieldMixin):
     def __init__(self, gui):
         Simulation.__init__(self, gui)
@@ -81,7 +82,7 @@ class EnergyForces(Simulation, OutputFieldMixin):
         e = self.atoms.get_potential_energy()
         txt = _("Potential Energy:\n")
         txt += _("  %8.2f eV\n") % (e,)
-        txt += _("  %8.4f eV/atom\n\n") % (e/len(self.atoms),)
+        txt += _("  %8.4f eV/atom\n\n") % (e / len(self.atoms),)
         if self.forces.get_active():
             txt += _("Forces:\n")
             forces = self.atoms.get_forces()

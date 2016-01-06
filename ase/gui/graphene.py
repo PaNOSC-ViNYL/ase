@@ -7,7 +7,6 @@ import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
-from ase.gui.pybutton import PyButton
 from ase.gui.status import formula
 from ase.structure import graphene_nanoribbon
 import ase
@@ -39,7 +38,7 @@ class SetupGraphene(SetupWindow):
         # Choose structure
         label = gtk.Label(_("Structure: "))
         self.struct = gtk.combo_box_new_text()
-        for s in (_("Infinite sheet"), _("Unsaturated ribbon"), 
+        for s in (_("Infinite sheet"), _("Unsaturated ribbon"),
                   _("Saturated ribbon")):
             self.struct.append_text(s)
         self.struct.set_active(0)
@@ -243,7 +242,7 @@ class SetupGraphene(SetupWindow):
         label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
                                   'symbols' : formula(self.atoms.get_atomic_numbers()),
                                   'volume'  : self.atoms.get_volume()}
-        self.status.set_markup(label)                
+        self.status.set_markup(label)
 
     def apply(self, *args):
         self.makeatoms()

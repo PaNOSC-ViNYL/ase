@@ -172,14 +172,13 @@ class Render(gtk.Window):
 
     def get_selection(self):
         selection = np.zeros(self.natoms, bool)
-        text = self.texture_selection.get_text()
-        if len(self.texture_selection.get_text()) == 0:
-            text = 'False'
-        code = compile(text,'render.py', 'eval')
+        text = self.texture_selection.get_text() or 'False'
+        code = compile(text, 'render.py', 'eval')
         for n in range(self.natoms):
             Z = self.gui.images.Z[n]
             x, y, z = self.gui.images.P[self.iframe][n]
-            selection[n] = eval(code)
+            dct = {'n': n, 'Z': Z, 'x': x, 'y': y, 'z': z}
+            selection[n] = eval(code, dct)
         return selection
 
     def select_texture(self,*args):
@@ -206,7 +205,6 @@ class Render(gtk.Window):
             transparency_spin = gtk.SpinButton(transparency, 0, 0)
             transparency_spin.set_digits(2)
             delete_button = gtk.Button(stock=gtk.STOCK_DELETE)
-            alignment = delete_button.get_children()[0]
             index = len(self.materials)
             delete_button.connect("clicked",self.delete_material,{"n":index})
             self.materials += [[True,selection,texture_button,
