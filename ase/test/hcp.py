@@ -26,7 +26,7 @@ for i in range(3):
     configs = read('Ni.traj@:')
     energies = [config.get_potential_energy() for config in configs]
     ac = [(config.cell[0, 0], config.cell[2, 2]) for config in configs]
-    from ase.optimize import polyfit
+    from ase.optimize.optimize import polyfit
     p = polyfit(ac, energies, 2)
     from scipy.optimize import fmin_bfgs
     a0, c0 = fmin_bfgs(p, (a0, c0))

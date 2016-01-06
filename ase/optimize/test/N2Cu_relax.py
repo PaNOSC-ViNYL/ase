@@ -61,7 +61,6 @@ def get_atoms_adsorbate():
     mask = [a.position[2] < -1 for a in slab]
     slab.set_constraint(FixAtoms(mask=mask))
 
-    a = 2.70
     h = 1.85
     d = 1.10
 
