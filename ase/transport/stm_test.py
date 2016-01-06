@@ -5,9 +5,9 @@ import ase.transport.stm as stm
 
 #           Parameters for a simple model.
 #
-#                           
+#
 #                         * eps_a
-#                 v_ts /   \ v_a2 
+#                 v_ts /   \ v_a2
 #  ... *  *  *  *            *  *  *  *  * ...
 #       \/                          \/
 #       t1                          t2
@@ -35,7 +35,7 @@ s10 = np.identity(2)
 
 #Surface with "molecule" a.
 h2 = np.zeros([2,2])
-h2[0, 1] = v_a2 
+h2[0, 1] = v_a2
 h2[1, 0] = v_a2
 h1[0, 0] = eps_a
 s2 = np.identity(2)
@@ -53,7 +53,6 @@ V_ts[1, 0] = v_ts
 eta1 = 0.0001
 eta2 = 0.0001
 
-stm = reload(stm)
 stm_calc = stm.STM(h1, s1, h2, s2, h10, s10, h20, s20, eta1, eta2)
 energies = np.arange(-3.0, 3.0, 0.01)
 stm_calc.initialize(energies)

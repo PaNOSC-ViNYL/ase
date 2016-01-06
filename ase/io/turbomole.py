@@ -11,7 +11,7 @@ def read_turbomole(f='coord'):
     $end
     Above 'f' means a fixed atom.
     """
-    from ase import Atoms, Atom
+    from ase import Atoms
     from ase.constraints import FixAtoms
 
     lines = f.readlines()
@@ -89,9 +89,9 @@ def read_turbomole_gradient(f='gradient', index=-1):
         # cycle =      1    SCF energy =     -267.6666811409   |dE/dxyz| =  0.157112
         fields = lines[0].split('=')
         try:
-            cycle = int(fields[1].split()[0])
+            # cycle = int(fields[1].split()[0])
             energy = float(fields[2].split()[0])
-            gradient = float(fields[3].split()[0])
+            # gradient = float(fields[3].split()[0])
         except (IndexError, ValueError):
             formatError()
         
@@ -104,7 +104,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
                 # 0.00000000000000      0.00000000000000      0.00000000000000      c
                 try:
                     symbol = fields[3].lower().capitalize()
-                    position = tuple([bohr2angstrom(float(x)) for x in fields[0:3] ])
+                    position = tuple([Bohr * float(x) for x in fields[0:3] ])
                 except ValueError:
                     formatError()
                 atoms.append(Atom(symbol, position))
