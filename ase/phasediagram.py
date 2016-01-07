@@ -418,11 +418,11 @@ class PhaseDiagram:
             
     def plot2d(self):
         import matplotlib.pyplot as plt
-        x, y = self.points[:, 1:].T
         xsymbol = [symbol for symbol, id in self.species.items() if id == 1][0]
-        plt.plot(x, y, 'or')
+        plt.plot(self.points[:, 1], self.points[:, 2], 'or')
+        x, e = self.points[self.vertices, 1:].T
         for i, j in self.tri.simplices:
-            plt.plot([x[i], x[j]], [y[i], y[j]], '-g')
+            plt.plot([x[i], x[j]], [e[i], e[j]], '-g')
         for count, energy, name, natoms in self.references:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             plt.text(count.get(xsymbol, 0) / natoms, energy / natoms, name,
@@ -431,6 +431,20 @@ class PhaseDiagram:
         plt.ylabel('energy')
         plt.show()
         
+    def plot3d(self):
+        import matplotlib.pyplot as plt
+        x, y, e = self.points[self.vertices, 1:].T
+        x += y / 2
+        y *= 3**0.5 / 2
+        plt.plot(x, y, 'or')
+        for a, b, i in zip(x, y, self.vertices):
+            name = re.sub('(\d+)', r'$_{\1}$', self.references[i][2])
+            plt.text(a, b, name,
+                     horizontalalignment='center', verticalalignment='bottom')
+        for i, j, k in self.tri.simplices:
+            plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-g')
+        plt.show()
+
         
 class Delaunay1D:
     """Simple 1-d implementation."""
