@@ -347,6 +347,7 @@ class PhaseDiagram:
         
         # Find relevant vertices:
         ok = hull.equations[:, -2] < 0
+        self.simplices = hull.simplices[ok]
         vertices = set()
         for simplex in hull.simplices[ok]:
             vertices.update(simplex)
@@ -433,15 +434,15 @@ class PhaseDiagram:
         
     def plot3d(self):
         import matplotlib.pyplot as plt
-        x, y, e = self.points[self.vertices, 1:].T
+        x, y, e = self.points[:, 1:].T
         x += y / 2
         y *= 3**0.5 / 2
         plt.plot(x, y, 'or')
-        for a, b, i in zip(x, y, self.vertices):
-            name = re.sub('(\d+)', r'$_{\1}$', self.references[i][2])
+        for a, b, ref in zip(x, y, self.references):
+            name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             plt.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
-        for i, j, k in self.tri.simplices:
+        for i, j, k in self.simplices:
             plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-g')
         plt.show()
 
