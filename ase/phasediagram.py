@@ -384,7 +384,7 @@ class PhaseDiagram:
         # Find coordinates within each simplex:
         X = self.points[self.simplices, 1:-1] - point[1:] / N
         D = X[:, 1:] - X[:, :1]
-        C = np.linalg.solve(D.transpose((0, 2, 1)), -X[:, 0])
+        C = solve(D.transpose((0, 2, 1)), -X[:, 0])
         
         # Find the simplex whith positive coordinates that sum to
         # less than one:
