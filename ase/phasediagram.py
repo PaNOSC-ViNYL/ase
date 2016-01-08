@@ -4,7 +4,7 @@ import functools
 import re
 
 import numpy as np
-from scipy.spatial import ConvexHull, Delaunay
+from scipy.spatial import ConvexHull
 
 import ase.units as units
 from ase.atoms import string2symbols
@@ -345,23 +345,12 @@ class PhaseDiagram:
         
         hull = ConvexHull(self.points[:, 1:])
         
-        # Find relevant vertices:
+        # Find relevant simplices:
         ok = hull.equations[:, -2] < 0
         self.simplices = hull.simplices[ok]
-        vertices = set()
-        for simplex in hull.simplices[ok]:
-            vertices.update(simplex)
-        self.vertices = np.array(list(vertices))
         
         if verbose:
-            print('Simplices:', ok.sum())
-        
-        # Create triangulation:
-        if len(self.species) == 2:
-            D = Delaunay1D  # scipy's Delaunay doesn't like 1-d!
-        else:
-            D = Delaunay
-        self.tri = D(self.points[self.vertices, 1:-1])
+            print('Simplices:', len(self.simplices))
         
     def decompose(self, formula=None, **kwargs):
         """Find the combination of the references with the lowest energy.
@@ -382,21 +371,34 @@ class PhaseDiagram:
             kwargs = parse_formula(formula)[0]
 
         point = np.zeros(len(self.species))
-        natoms = 0
+        N = 0
         for symbol, n in kwargs.items():
             point[self.species[symbol]] = n
-            natoms += n
-        i = self.tri.find_simplex(point[1:] / natoms)
-        indices = self.vertices[self.tri.simplices[i]]
+            N += n
+            
+        # Find coordinates within each simplex:
+        X = self.points[self.simplices, 1:-1] - point[1:] / N
+        D = X[:, 1:] - X[:, :1]
+        C = np.linalg.solve(D.transpose((0, 2, 1)), -X[:, 0])
+        
+        # Find the simplex whith positive coordinates that sum to
+        # less than one:
+        ok = np.logical_and.reduce(C >= 0, axis=1) & (C.sum(axis=1) <= 1)
+        i = np.argmax(ok)
+        
+        indices = self.simplices[i]
         points = self.points[indices]
-        scaledcoefs = np.linalg.solve(points[:, :-1].T, point)
-        energy = np.dot(scaledcoefs, points[:, -1])
+        
+        scaledcoefs = [1 - C[i].sum()]
+        scaledcoefs.extend(C[i])
+        
+        energy = N * np.dot(scaledcoefs, points[:, -1])
         
         coefs = []
         results = []
         for coef, s in zip(scaledcoefs, indices):
             count, e, name, natoms = self.references[s]
-            coef /= natoms
+            coef *= N / natoms
             coefs.append(coef)
             results.append((name, coef, e))
 
@@ -419,17 +421,22 @@ class PhaseDiagram:
             
     def plot2d(self):
         import matplotlib.pyplot as plt
-        xsymbol = [symbol for symbol, id in self.species.items() if id == 1][0]
-        plt.plot(self.points[:, 1], self.points[:, 2], 'or')
-        x, e = self.points[self.vertices, 1:].T
-        for i, j in self.tri.simplices:
-            plt.plot([x[i], x[j]], [e[i], e[j]], '-g')
-        for count, energy, name, natoms in self.references:
-            name = re.sub('(\d+)', r'$_{\1}$', name)
-            plt.text(count.get(xsymbol, 0) / natoms, energy / natoms, name,
+        x, e = self.points[:, 1:].T
+        plt.plot(x, e, 'or')
+        for a, b, ref in zip(x, e, self.references):
+            name = re.sub('(\d+)', r'$_{\1}$', ref[2])
+            plt.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
-        plt.xlabel(xsymbol)
-        plt.ylabel('energy')
+        for i, j in self.simplices:
+            plt.plot(x[[i, j]], e[[i, j]], '-g')
+
+        # Find xlabel:
+        for symbol, id in self.species.items():
+            if id == 1:
+                break
+                
+        plt.xlabel(symbol)
+        plt.ylabel('energy [eV/atom]')
         plt.show()
         
     def plot3d(self):
@@ -447,21 +454,6 @@ class PhaseDiagram:
         plt.show()
 
         
-class Delaunay1D:
-    """Simple 1-d implementation."""
-    def __init__(self, points):
-        self.points = points[:, 0]
-        a = self.points.argsort()
-        self.simplices = np.array([a[:-1], a[1:]]).T
-
-    def find_simplex(self, point):
-        p = point[0]
-        for i, s in enumerate(self.simplices[:, 1]):
-            if p < self.points[s]:
-                return i
-        return i + 1
-
-
 _aqueous = """\
 -525700,SiF6--
 -514100,Rh(SO4)3----
