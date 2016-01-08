@@ -1,7 +1,7 @@
 import itertools
 import numpy as np
 
-from ase import Atoms, Atom, visualize
+from ase import Atoms, Atom
 from ase.utils.distance import distance
 
 # artificial structure
@@ -11,7 +11,6 @@ org = Atoms('COPNS',
              [-5.18268, 1.36522, 0.00000],
              [-1.86663, -0.77867, 2.18917],
              [-1.80586, 0.20783, -2.79331]])
-#visualize.view(org)
 
 maxdist = 3.0e-13
 
