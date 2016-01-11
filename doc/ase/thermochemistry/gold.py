@@ -6,15 +6,15 @@ from ase.thermochemistry import CrystalThermo
 
 # Set up gold bulk and attach EMT calculator
 a = 4.078
-atoms = crystal('Au', (0.,0.,0.),
-                spacegroup = 225,
-                cellpar = [a, a, a, 90, 90, 90],
-                pbc = (1, 1, 1))
+atoms = crystal('Au', (0., 0., 0.),
+                spacegroup=225,
+                cellpar=[a, a, a, 90, 90, 90],
+                pbc=(1, 1, 1))
 calc = EMT()
 atoms.set_calculator(calc)
 qn = QuasiNewton(atoms)
-qn.run(fmax = 0.05)
-electronicenergy = atoms.get_potential_energy()
+qn.run(fmax=0.05)
+potentialenergy = atoms.get_potential_energy()
 
 # Phonon analysis
 N = 5
@@ -26,7 +26,7 @@ phonon_energies, phonon_DOS = ph.dos(kpts=(40, 40, 40), npts=3000,
 
 # Calculate the Helmholtz free energy
 thermo = CrystalThermo(phonon_energies=phonon_energies,
-                       phonon_DOS = phonon_DOS,
-                       electronicenergy = electronicenergy,
-                       formula_units = 4)
+                       phonon_DOS=phonon_DOS,
+                       potentialenergy=potentialenergy,
+                       formula_units=4)
 F = thermo.get_helmholtz_energy(temperature=298.15)

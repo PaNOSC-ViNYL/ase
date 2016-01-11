@@ -8,14 +8,14 @@ atoms = molecule('N2')
 atoms.set_calculator(EMT())
 dyn = QuasiNewton(atoms)
 dyn.run(fmax=0.01)
-electronicenergy = atoms.get_potential_energy()
+potentialenergy = atoms.get_potential_energy()
 
 vib = Vibrations(atoms)
 vib.run()
 vib_energies = vib.get_energies()
 
 thermo = IdealGasThermo(vib_energies=vib_energies,
-                        electronicenergy=electronicenergy,
+                        potentialenergy=potentialenergy,
                         atoms=atoms,
                         geometry='linear',
                         symmetrynumber=2, spin=0)
