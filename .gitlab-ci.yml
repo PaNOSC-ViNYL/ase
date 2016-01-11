@@ -1,11 +1,9 @@
 master:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy
+    - apt-get install -qy python-numpy python-scipy
     - pwd
     - echo $HOME
     - echo $PWD
     - echo $PYTHONPATH
-    - PYTHONPATH=$PYTHONPATH:$PWD python ase/utils/geometry.py
     - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python setup.py test
-    
