@@ -415,14 +415,10 @@ class PhaseDiagram:
     def plot(self):
         """Plot datapoints and convex hull.
         
-        Works only for 2 and 3 components systems.
+        Works only for 2, 3 and 4 components systems.
         """
-        if len(self.species) == 2:
-            self.plot2d()
-        elif len(self.species) == 3:
-            self.plot3d()
-        else:
-            raise ValueError('...')
+        plot = [self.plot2d, self.plot3d, self.plot4d][len(self.species) - 2]
+        plot()
             
     def plot2d(self):
         import matplotlib.pyplot as plt
@@ -446,7 +442,7 @@ class PhaseDiagram:
         
     def plot3d(self):
         import matplotlib.pyplot as plt
-        x, y, e = self.points[:, 1:].T
+        x, y = self.points[:, 1:-1].T
         x += y / 2
         y *= 3**0.5 / 2
         plt.plot(x, y, 'or')
@@ -458,6 +454,34 @@ class PhaseDiagram:
             plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-g')
         plt.show()
 
+    def plot4d(self):
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+
+        x, y, z = self.points[:, 1:-1].T
+        a = x / 2 + y + z / 2
+        b = 3**0.5 * (x / 2 + y / 6)
+        c = (2 / 3)**0.5 * z
+ 
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.scatter(a, b, c)
+
+        for x, y, z, ref in zip(a, b, c, self.references):
+            name = re.sub('(\d+)', r'$_{\1}$', ref[2])
+            ax.text(x, y, z, name, ha='center', va='bottom')
+
+        for i, j, k, w in self.simplices:
+            ax.plot(a[[i, j, k, i, w, k, j, w]],
+                    b[[i, j, k, i, w, k, j, w]],
+                    zs=c[[i, j, k, i, w, k, j, w]], c='g')
+        
+        ax.set_xlim3d(0, 1)
+        ax.set_ylim3d(0, 1)
+        ax.set_zlim3d(0, 1)
+        ax.view_init(azim=115, elev=30)
+        plt.show()
+        
         
 _aqueous = """\
 -525700,SiF6--
