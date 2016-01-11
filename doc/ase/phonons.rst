@@ -21,7 +21,7 @@ Example
 Simple example showing how to calculate the phonon dispersion for bulk aluminum
 using a 7x7x7 supercell within effective medium theory::
 
-  from ase.structure import bulk
+  from ase.lattice import bulk
   from ase.calculators.emt import EMT
   from ase.dft.kpoints import ibz_points, get_bandpath
   from ase.phonons import Phonons

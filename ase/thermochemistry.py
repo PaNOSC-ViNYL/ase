@@ -38,9 +38,9 @@ def rotationalinertia(atoms):
         Ixz += m * x * z
         Iyz += m * y * z
     # Create the inertia tensor in the current frame of reference.
-    I_ = np.matrix([[ Ixx, -Ixy, -Ixz],
-                    [-Ixy,  Iyy, -Iyz],
-                    [-Ixz, -Iyz,  Izz]])
+    I_ = np.matrix([[Ixx, -Ixy, -Ixz],
+                    [-Ixy, Iyy, -Iyz],
+                    [-Ixz, -Iyz, Izz]])
     # Find the eigenvalues, which are the principle moments of inertia.
     I = np.linalg.eigvals(I_)
     return I
@@ -100,13 +100,13 @@ class HarmonicThermo(ThermoChem):
         adsorbate; i.e., 3*n, where n is the number of atoms. Note that
         this class does not check that the user has supplied the correct
         number of energies. Units of energies are eV.
-    electronicenergy : float
-        the electronic energy in eV
-        (if electronicenergy is unspecified, then the methods of this
+    potentialenergy : float
+        the potential energy in eV (e.g., from atoms.get_potential_energy)
+        (if potentialenergy is unspecified, then the methods of this
         class can be interpreted as the energy corrections)
     """
 
-    def __init__(self, vib_energies, electronicenergy=None):
+    def __init__(self, vib_energies, potentialenergy=0.):
         self.vib_energies = vib_energies
         # Check for imaginary frequencies.
         if sum(np.iscomplex(self.vib_energies)):
@@ -114,10 +114,7 @@ class HarmonicThermo(ThermoChem):
         else:
             self.vib_energies = np.real(self.vib_energies)  # clear +0.j
 
-        if electronicenergy:
-            self.electronicenergy = electronicenergy
-        else:
-            self.electronicenergy = 0.
+        self.potentialenergy = potentialenergy
 
     def get_internal_energy(self, temperature, verbose=True):
         """Returns the internal energy, in eV, in the harmonic approximation
@@ -131,8 +128,8 @@ class HarmonicThermo(ThermoChem):
 
         U = 0.
 
-        write(fmt % ('E_elec', self.electronicenergy))
-        U += self.electronicenergy
+        write(fmt % ('E_pot', self.potentialenergy))
+        U += self.potentialenergy
 
         zpe = self.get_ZPE_correction()
         write(fmt % ('E_ZPE', zpe))
@@ -169,8 +166,8 @@ class HarmonicThermo(ThermoChem):
         write('=' * 49)
         return S
 
-    def get_gibbs_energy(self, temperature, verbose=True):
-        """Returns the Gibbs free energy, in eV, in the harmonic
+    def get_helmholtz_energy(self, temperature, verbose=True):
+        """Returns the Helmholtz free energy, in eV, in the harmonic
         approximation at a specified temperature (K)."""
 
         self.verbose = True
@@ -179,7 +176,7 @@ class HarmonicThermo(ThermoChem):
         U = self.get_internal_energy(temperature, verbose=verbose)
         write('')
         S = self.get_entropy(temperature, verbose=verbose)
-        G = U - temperature * S
+        F = U - temperature * S
 
         write('')
         write('Free energy components at T = %.2f K:' % temperature)
@@ -188,9 +185,10 @@ class HarmonicThermo(ThermoChem):
         write(fmt % ('U', U))
         write(fmt % ('-T*S', -temperature * S))
         write('-' * 23)
-        write(fmt % ('G', G))
+        write(fmt % ('F', F))
         write('=' * 23)
-        return G
+        return F
+
 
 class IdealGasThermo(ThermoChem):
     """Class for calculating thermodynamic properties of a molecule
@@ -208,11 +206,10 @@ class IdealGasThermo(ThermoChem):
         unspecified, then uses the entire list. Units are eV.
     geometry : 'monatomic', 'linear', or 'nonlinear'
         geometry of the molecule
-    electronicenergy : float
-        the electronic energy in eV
-        (if electronicenergy is unspecified, then the methods of this
-        class can be interpreted as the enthalpy and free energy
-        corrections)
+    potentialenergy : float
+        the potential energy in eV (e.g., from atoms.get_potential_energy)
+        (if potentialenergy is unspecified, then the methods of this
+        class can be interpreted as the energy corrections)
     natoms : integer
         the number of atoms, used along with 'geometry' to determine how
         many vibrations to use. (Not needed if an atoms object is supplied
@@ -233,17 +230,14 @@ class IdealGasThermo(ThermoChem):
         1.0 for a triplet with two unpaired electrons, such as O_2.)
     """
 
-    def __init__(self, vib_energies, geometry, electronicenergy=None,
+    def __init__(self, vib_energies, geometry, potentialenergy=0.,
                  atoms=None, symmetrynumber=None, spin=None, natoms=None):
-        if electronicenergy == None:
-            self.electronicenergy = 0.
-        else:
-            self.electronicenergy = electronicenergy
+        self.potentialenergy = potentialenergy
         self.geometry = geometry
         self.atoms = atoms
         self.sigma = symmetrynumber
         self.spin = spin
-        if natoms == None:
+        if natoms is None:
             if atoms:
                 natoms = len(atoms)
         # Cut the vibrations to those needed from the geometry.
@@ -275,8 +269,8 @@ class IdealGasThermo(ThermoChem):
 
         H = 0.
 
-        write(fmt % ('E_elec', self.electronicenergy))
-        H += self.electronicenergy
+        write(fmt % ('E_pot', self.potentialenergy))
+        H += self.potentialenergy
 
         zpe = self.get_ZPE_correction()
         write(fmt % ('E_ZPE', zpe))
@@ -312,7 +306,7 @@ class IdealGasThermo(ThermoChem):
         """Returns the entropy, in eV/K, in the ideal gas approximation
         at a specified temperature (K) and pressure (Pa)."""
 
-        if self.atoms == None or self.sigma == None or self.spin == None:
+        if self.atoms is None or self.sigma is None or self.spin is None:
             raise RuntimeError('atoms, symmetrynumber, and spin must be '
                                'specified for entropy and free energy '
                                'calculations.')
@@ -320,7 +314,7 @@ class IdealGasThermo(ThermoChem):
         write = self._vprint
         fmt = '%-15s%13.7f eV/K%13.3f eV'
         write('Entropy components at T = %.2f K and P = %.1f Pa:' %
-               (temperature, pressure))
+              (temperature, pressure))
         write('=' * 49)
         write('%15s%13s     %13s' % ('', 'S', 'T*S'))
 
@@ -389,7 +383,7 @@ class IdealGasThermo(ThermoChem):
 
         write('')
         write('Free energy components at T = %.2f K and P = %.1f Pa:' %
-               (temperature, pressure))
+              (temperature, pressure))
         write('=' * 23)
         fmt = '%5s%15.3f eV'
         write(fmt % ('H', H))
@@ -398,6 +392,7 @@ class IdealGasThermo(ThermoChem):
         write(fmt % ('G', G))
         write('=' * 23)
         return G
+
 
 class CrystalThermo(ThermoChem):
     """Class for calculating thermodynamic properties of a crystalline
@@ -420,10 +415,10 @@ class CrystalThermo(ThermoChem):
         zero-valued it will be deleted along with the first element of
         phonon_DOS. Units of vibrational energies are eV.
 
-    electronicenergy : float
-        the electronic energy in eV
-        (if electronicenergy is unspecified, then the methods of this
-        class can be interpreted as the phonon energy corrections.)
+    potentialenergy : float
+        the potential energy in eV (e.g., from atoms.get_potential_energy)
+        (if potentialenergy is unspecified, then the methods of this
+        class can be interpreted as the energy corrections)
 
     formula_units : int
         the number of formula units per unit cell. If unspecified, the
@@ -432,22 +427,16 @@ class CrystalThermo(ThermoChem):
     """
 
     def __init__(self, phonon_DOS, phonon_energies,
-                 formula_units=None, electronicenergy=None):
+                 formula_units=None, potentialenergy=0.):
         self.phonon_energies = phonon_energies
         self.phonon_DOS = phonon_DOS
 
         if formula_units:
             self.formula_units = formula_units
-            if electronicenergy:
-                self.electronicenergy = electronicenergy / formula_units
-            else:
-                self. electronicenergy = electronicenergy
+            self.potentialenergy = potentialenergy / formula_units
         else:
             self.formula_units = 0
-            if electronicenergy:
-                self.electronicenergy = electronicenergy
-            else:
-                self.electronicenergy = 0
+            self.potentialenergy = potentialenergy
 
     def get_internal_energy(self, temperature, verbose=True):
         """Returns the internal energy, in eV, of crystalline solid
@@ -472,8 +461,8 @@ class CrystalThermo(ThermoChem):
             omega_e = np.delete(omega_e, 0)
             dos_e = np.delete(dos_e, 0)
 
-        write(fmt % ('E_elec', self.electronicenergy))
-        U += self.electronicenergy
+        write(fmt % ('E_pot', self.potentialenergy))
+        U += self.potentialenergy
 
         zpe_list = omega_e / 2.
         if self.formula_units == 0:
@@ -520,8 +509,8 @@ class CrystalThermo(ThermoChem):
             dos_e = np.delete(dos_e, 0)
 
         B = 1. / (units.kB * temperature)
-        S_vib = (omega_e / (temperature * (np.exp(omega_e * B) - 1.))
-                 - units.kB * np.log(1. - np.exp(-omega_e * B)))
+        S_vib = (omega_e / (temperature * (np.exp(omega_e * B) - 1.)) -
+                 units.kB * np.log(1. - np.exp(-omega_e * B)))
         if self.formula_units == 0:
             S = np.trapz(S_vib * dos_e, omega_e)
         else:

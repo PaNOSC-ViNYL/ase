@@ -54,11 +54,14 @@ Harmonic limit
 
 In the harmonic limit, all degrees of freedom are treated harmonically. The
 :class:`HarmonicThermo` class supports the calculation of internal energy,
-entropy, and Gibbs free energy. This class uses all of the energies given to
-it in the vib_energies list; this is a list as can be generated with the
-.get_energies() method of :class:`ase.vibrations.Vibrations`, but the user
-should take care that all of these energies are real (non-imaginary). The
-class :class:`HarmonicThermo` has the interface described below.
+entropy, and free energy. This class returns the Helmholtz free energy; if
+the user assumes the pV term (in H = U + pV) is zero this can also be
+interpreted as the Gibbs free energy. This class uses all of the energies
+given to it in the vib_energies list; this is a list as can be generated
+with the .get_energies() method of :class:`ase.vibrations.Vibrations`, but
+the user should take care that all of these energies are real
+(non-imaginary). The class :class:`HarmonicThermo` has the interface
+described below.
 
 .. autoclass:: HarmonicThermo
    :members:
@@ -188,14 +191,16 @@ the internal energy and entropy of the adsorbate are calculated as
    S = k_\text{B} \sum_i^\text{harm DOF}
    \left[ \frac{\epsilon_i}{k_\text{B}T\left(e^{\epsilon_i/k_\text{B}T}-1\right)} - \ln \left( 1 - e^{-\epsilon_i/k_\text{B}T} \right)\right]
 
-and the Gibbs free energy is calculated as
+and the Helmholtz free energy is calculated as
 
 .. math ::
-   G(T) = U(T) - T\, S(T)
+   F(T) = U(T) - T\, S(T)
 
 In this case, the number of harmonic energies (:math:`\epsilon_i`) used in
 the summation is generally :math:`3N`, where :math:`N` is the number of atoms
-in the adsorbate.
+in the adsorbate. If the user assumes that the :math:`pV` term in
+:math:`H = U + pV` is negligible, then the Helmholtz free energy can be used
+to approximate the Gibbs free energy, as :math:`G = F + pV`.
 
 **Crystalline solid**
 
@@ -211,30 +216,30 @@ in the lattice as an independent harmonic oscillator. This yields the
 partition function
 
 .. math ::
-   Z = \prod_{j=1}^\text{3N} \left( \frac{e^{-\frac{1}{2}\hbar\omega_j\beta}}{1 - e^{-\hbar\omega_j\beta}} \right) e^{-E_\text{elec} \beta}
+   Z = \prod_{j=1}^\text{3N} \left( \frac{e^{-\frac{1}{2}\epsilon_j/k_\text{B}T}}{1 - e^{-\epsilon_j/k_\text{B}T}} \right) e^{-E_\text{elec} / k_\mathrm{B}T}
 
-where :math:`\omega_j` are the :math:`3N` vibrational frequencies,
-:math:`E_\text{elec}` is the electronic energy of the crystalline solid, and
-:math:`\beta = \frac{1}{k_\text{B} T}`. Now, taking the logarithm of the
-partition function and replacing the resulting sum with an integral (assuming
-that the energy level spacing is essentially continuous) gives
+where :math:`\epsilon_j` are the :math:`3N` vibrational energy levels and
+:math:`E_\text{elec}` is the electronic energy of the crystalline solid.
+Now, taking the logarithm of the partition function and replacing the
+resulting sum with an integral (assuming that the energy level spacing
+is essentially continuous) gives
 
 .. math ::
-   -\ln Z = E_\text{elec}\beta + \int_0^\infty \left[ \ln \left( 1 - e^{-\hbar\omega\beta} \right) + \frac{\hbar\omega\beta}{2} \right]\sigma (\omega) \text{d}\omega
+   -\ln Z = E_\text{elec}/k_\text{B}T + \int_0^\infty \left[ \ln \left( 1 - e^{-\epsilon/k_\text{B}T} \right) + \frac{\epsilon}{2 k_\text{B} T} \right]\sigma (\epsilon) \text{d}\epsilon
 
-Here :math:`\sigma (\omega)` represents the degeneracy or phonon density of
-states as a function of vibrational frequency. Once this function has been
+Here :math:`\sigma (\epsilon)` represents the degeneracy or phonon density of
+states as a function of vibrational energy. Once this function has been
 determined (i.e. using the :mod:`ase.phonons` module), it is a simple matter to
 calculate the canonical ensemble thermodynamic quantities; namely the
 internal energy, the entropy and the Helmholtz free energy.
 
 .. math ::
-   U(T) &= -\left( \frac{\partial \ln Z}{\partial \beta} \right)_\text{N,V} \\
-        &= E_\text{elec} + \int_0^\infty \left[ \frac{\hbar \omega}{e^{\hbar \omega \beta} - 1} + \frac{\hbar \omega}{2} \right]\sigma (\omega) \text{d}\omega
+   U(T) &= -\left( \frac{\partial \ln Z}{\partial \frac{1}{k_\text{B}T} } \right)_\text{N,V} \\
+        &= E_\text{elec} + \int_0^\infty \left[ \frac{\epsilon}{e^{\epsilon/k_\text{B}T} - 1} + \frac{\epsilon}{2} \right]\sigma (\epsilon) \text{d}\epsilon
 
 .. math ::
    S(T) &= \frac{U}{T} + k_\text{B} \ln Z \\
-        &= \int_0^\infty \left[ \frac{\hbar \omega}{T} \frac{1}{e^{\hbar \omega \beta} - 1} - k_\text{B} \ln \left(1 - e^{-\hbar \omega \beta} \right) \right]\sigma (\omega) \text{d}\omega
+        &= \int_0^\infty \left[ \frac{\epsilon}{T} \frac{1}{e^{\epsilon/k_\text{B}T} - 1} - k_\text{B} \ln \left(1 - e^{-\epsilon/k_\text{B}T} \right) \right]\sigma (\epsilon) \text{d}\epsilon
 
 .. math ::
    F(T) = U(T) - T\, S(T,P)
