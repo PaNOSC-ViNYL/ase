@@ -38,9 +38,9 @@ def rotationalinertia(atoms):
         Ixz += m * x * z
         Iyz += m * y * z
     # Create the inertia tensor in the current frame of reference.
-    I_ = np.matrix([[ Ixx, -Ixy, -Ixz],
-                    [-Ixy,  Iyy, -Iyz],
-                    [-Ixz, -Iyz,  Izz]])
+    I_ = np.matrix([[Ixx, -Ixy, -Ixz],
+                    [-Ixy, Iyy, -Iyz],
+                    [-Ixz, -Iyz, Izz]])
     # Find the eigenvalues, which are the principle moments of inertia.
     I = np.linalg.eigvals(I_)
     return I
