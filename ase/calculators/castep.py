@@ -1241,7 +1241,8 @@ End CASTEP Interface Documentation
 
         # write out the input file
         self._write_cell('%s.cell' % self._seed,
-                         self.atoms, force_write=force_write)
+                         self.atoms, castep_cell=self.cell,
+                         force_write=force_write)
 
         if self._export_settings:
             interface_options = self._opt
@@ -1504,7 +1505,8 @@ End CASTEP Interface Documentation
         self._fetch_pspots(temp_dir)
         seed = 'dryrun'
 
-        self._write_cell('%s.cell' % seed, self.atoms)
+        self._write_cell('%s.cell' % seed, self.atoms,
+                         castep_cell=self.cell)
         # This part needs to be modified now that we rely on the new formats.py
         # interface
         if not os.path.isfile('%s.cell'%seed):
