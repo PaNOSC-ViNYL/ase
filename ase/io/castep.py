@@ -92,7 +92,7 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     from ase.io import write
 
     write(filename, atoms, positions_frac=positions_frac,
-                castep_cell=None, force_write=force_write)
+                castep_cell=castep_cell, force_write=force_write)
 
 
 def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
