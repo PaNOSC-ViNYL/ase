@@ -52,7 +52,6 @@ def read_dacapo(filename):
     from ase.io.pupynere import NetCDFFile
 
     nc = NetCDFFile(filename)
-    dims = nc.dimensions
     vars = nc.variables
 
     cell = vars['UnitCell'][-1]
@@ -65,7 +64,7 @@ def read_dacapo(filename):
     except KeyError:
         tags = None
     atoms = Atoms(scaled_positions=vars['DynamicAtomPositions'][-1],
-                  symbols=[(a + b).strip() 
+                  symbols=[(a + b).strip()
                            for a, b in vars['DynamicAtomSpecies'][:]],
                   cell=cell,
                   magmoms=magmoms,
@@ -73,11 +72,11 @@ def read_dacapo(filename):
                   pbc=True)
 
     try:
-        energy = vars['TotalEnergy'][-1] 
-        force = vars['DynamicAtomForces'][-1] 
-    except KeyError: 
-        energy = None 
-        force = None 
+        energy = vars['TotalEnergy'][-1]
+        force = vars['DynamicAtomForces'][-1]
+    except KeyError:
+        energy = None
+        force = None
     calc = SinglePointCalculator(atoms, energy=energy, forces=force)  ### Fixme magmoms
     atoms.set_calculator(calc)
         

@@ -43,7 +43,7 @@ class PyButton(gtk.Button):
         "The method called when the button is clicked."
         if self.python:
             now = time.ctime()
-            win = PyWindow(self.title, now, self.python)
+            PyWindow(self.title, now, self.python)
         else:
             oops(_("No Python code"),
                  _("You have not (yet) specified a "

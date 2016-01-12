@@ -5,7 +5,6 @@ from ase.calculators.emt import EMT
 from ase.neb import NEB
 from ase.visualize import view
 from ase.optimize.fire import FIRE as QuasiNewton
-from ase.lattice.surface import surface
 from ase.lattice.cubic import FaceCenteredCubic
 
 #set the number of images you want

@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-
 import os
 
-from ase import Atoms
 from ase.calculators.dftb import Dftb
-from ase.optimize import QuasiNewton
-from ase.io import write
 from ase.structure import molecule
 from ase.md.verlet import VelocityVerlet
 from ase.md import MDLogger
-from ase.units import *
-from ase.md.velocitydistribution import MaxwellBoltzmannDistribution
+from ase.units import fs
 from ase.io.dftb import read_dftb_velocities, write_dftb_velocities
 from ase.io import read, write
 
@@ -38,9 +33,9 @@ Driver_ = 'VelocityVerlet',
 Driver_MDRestartFrequency = 10,
 Driver_Velocities_ = '',
 Driver_Velocities_empty = '<<+ "velocities.txt"',
-Driver_Steps = 1000, 
-Driver_KeepStationary = 'Yes', 
-Driver_TimeStep = 4.13, 
+Driver_Steps = 1000,
+Driver_KeepStationary = 'Yes',
+Driver_TimeStep = 4.13,
 Driver_Thermostat_ = 'None',
 Driver_Thermostat_empty = '',
 )
@@ -56,9 +51,9 @@ Driver_ = 'VelocityVerlet',
 Driver_MDRestartFrequency = 5,
 Driver_Velocities_ = '',
 Driver_Velocities_empty = '<<+ "velocities.txt"',
-Driver_Steps = 500, 
-Driver_KeepStationary = 'Yes', 
-Driver_TimeStep = 8.26, 
+Driver_Steps = 500,
+Driver_KeepStationary = 'Yes',
+Driver_TimeStep = 8.26,
 Driver_Thermostat_ = 'Berendsen',
 #Driver_Thermostat_Temperature = 0.00339845142, # 800 deg Celcius
 Driver_Thermostat_Temperature = 0.0, # 0 deg Kelvin

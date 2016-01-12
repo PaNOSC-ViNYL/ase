@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 # creates:  ener.png distance.png angle.png
-import os
-import matplotlib
-#matplotlib.use('Agg')
 import pylab as plt
 
 

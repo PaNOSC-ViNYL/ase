@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import gtk
 from gettext import gettext as _
-from ase.gui.widgets import pack, cancel_apply_ok, oops, help
+from ase.gui.widgets import pack, cancel_apply_ok, oops
 import ase
 from ase.data.colors import jmol_colors
 import numpy as np
@@ -63,7 +63,7 @@ class ColorWindow(gtk.Window):
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
                        self.radio_force, self.force_box, self.radio_velocity,
                        self.radio_charge, self.charge_box,
-                       self.radio_magnetic_moment, 
+                       self.radio_magnetic_moment,
                        self.magnetic_moment_box,
                        self.radio_coordination,
                        self.velocity_box, self.radio_manual, self.radio_same):
@@ -345,7 +345,6 @@ class ColorWindow(gtk.Window):
         if not hasattr(self.gui, 'coordination'):
             self.gui.toggle_show_bonds(None)
         coords = self.gui.coordination
-        existing = range(0, coords.max() + 1)
         if not hasattr(self, 'colordata_coordination'):
             colors = self.get_named_colors(len(named_colors))
             self.colordata_coordination = [[x, y] for x, y in
@@ -429,7 +428,7 @@ class ColorWindow(gtk.Window):
         txt = 'Max {0}: {1:.2f}'.format(mode, vmax)
         if nimages > 1:
             txt += '(all frames), {0:.2f} (this frame)'.format(max_frame)
-        self.max.value = vmax 
+        self.max.value = vmax
         if vmin is None:
             self.min.value = 0.
         else:
@@ -443,10 +442,10 @@ class ColorWindow(gtk.Window):
         "Show and update widgets needed for selecting the force scale."
         self.force_box.show()
         # XXX is this projected on some axis ? XXX
-        F = np.sqrt(((self.gui.images.F * 
+        F = np.sqrt(((self.gui.images.F *
                       self.gui.images.dynamic[:,np.newaxis])**2).sum(axis=-1))
         txt = self.get_min_max_text(
-            'force', None, F.max(), 
+            'force', None, F.max(),
             None, self.gui.images.F[self.gui.frame].max())
         self.force_label.set_text(_(txt))
 

@@ -1,4 +1,3 @@
-import numpy as np
 import gtk
 from gettext import gettext as _
 

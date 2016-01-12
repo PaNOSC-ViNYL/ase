@@ -1,7 +1,7 @@
 from math import sqrt
 from ase import Atoms, Atom
 from ase.constraints import FixAtoms
-from ase.optimize import FIRE, QuasiNewton, BFGS
+from ase.optimize import BFGS
 from ase.neb import SingleCalculatorNEB
 from ase.calculators.emt import EMT
 
@@ -39,7 +39,7 @@ initial += Atom('O', (d / 2, +b / 2, h))
 s = initial.copy()
 dyn = Optimizer(initial)
 dyn.run(fmax=0.05)
-#view(initial)
+# view(initial)
 
 print('Relax final image')
 final = initial.copy()
@@ -50,7 +50,7 @@ final[-1].x = d
 final[-1].y = d / sqrt(3)
 dyn = Optimizer(final)
 dyn.run(fmax=0.1)
-#view(final)
+# view(final)
 
 print('Create neb with 2 intermediate steps')
 neb = SingleCalculatorNEB([initial, final])
@@ -59,10 +59,10 @@ assert neb.n() == 4
 
 print('Optimize neb using a single calculator')
 neb.set_calculators(EMT())
-##print('0001', id(neb.images[0]), id(neb.images[0].get_calculator().atoms))
+# print('0001', id(neb.images[0]), id(neb.images[0].get_calculator().atoms))
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2coarse.traj')
 dyn.run(fmax=0.1)
-#dyn.run(fmax=39.1)
+# dyn.run(fmax=39.1)
 
 print('Optimize neb using a many calculators')
 neb = SingleCalculatorNEB([initial, final])
@@ -70,7 +70,7 @@ neb.refine(2)
 neb.set_calculators([EMT() for i in range(neb.n())])
 dyn = Optimizer(neb, maxstep=0.04, trajectory='mep_2coarse.traj')
 dyn.run(fmax=0.1)
-#dyn.run(fmax=39.1)
+# dyn.run(fmax=39.1)
 
 # read from the trajectory
 neb = SingleCalculatorNEB('mep_2coarse.traj@-4:')
