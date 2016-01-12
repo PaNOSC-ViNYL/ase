@@ -1925,7 +1925,8 @@ class CastepParam(object):
             except:
                 raise ConversionError('float', attr, value)
             self._options[attr].value = value
-        # So far there is no block type in .param
+        elif opt.type in ['Block']:
+            self._options[attr].value = value
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))

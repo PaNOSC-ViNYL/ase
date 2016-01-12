@@ -1132,7 +1132,7 @@ def write_param(filename, param, check_checkfile=False,
     for keyword, opt in sorted(param._options.items()):
         if opt.type == 'Defined':
             if opt.value is not None:
-                out.write('%s\n' % (option))
+                out.write('%s\n' % (opt))
         elif opt.value is not None:
             if keyword in ['continuation', 'reuse'] and check_checkfile:
                 if opt.value == 'default':
@@ -1147,8 +1147,13 @@ def write_param(filename, param, check_checkfile=False,
                                                 opt.value))
                           ):
                     continue
-            out.write('%s : %s\n'
-                % (keyword, opt.value))
+            if opt.type == 'Block':
+                out.write('%%BLOCK %s\n' % keyword.upper())
+                out.write(opt.value)
+                out.write('\n%%ENDBLOCK %s\n' % keyword.upper())
+            else:
+                out.write('%s : %s\n'
+                    % (keyword, opt.value))
     out.close()
 
 
