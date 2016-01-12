@@ -1,14 +1,10 @@
 """This module defines an ASE interface to MOPAC."""
 import os
+
 import numpy as np
 
+from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.units import kcal, mol
-
-from ase.atoms import Atoms
-from ase.units import Hartree, Bohr
-from ase.io.nwchem import write_nwchem
-from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
-
 
 
 class MOPAC(FileIOCalculator):
