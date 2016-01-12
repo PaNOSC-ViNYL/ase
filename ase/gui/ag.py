@@ -72,12 +72,6 @@ def main():
     parser = build_parser()
     opt, args = parser.parse_args()
 
-    try:
-        import ase
-    except ImportError:
-        from os.path import dirname, join, pardir
-        sys.path.append(join(dirname(__file__), pardir))
-
     from ase.gui.images import Images
     from ase.atoms import Atoms
 

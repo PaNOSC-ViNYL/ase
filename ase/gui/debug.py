@@ -3,7 +3,7 @@ import sys
 
 import gtk
 from gettext import gettext as _
-import numpy as np
+
 
 class Debug(gtk.Window):
     def __init__(self, gui):
@@ -17,6 +17,8 @@ class Debug(gtk.Window):
         self.show()
 
     def enter(self, widget, entry):
-        g = self.gui
-        print(eval(entry.get_text()), file=sys.stderr)
-    
+        import numpy as np
+        print(eval(entry.get_text(),
+                   {'g': self.gui,
+                    'np': np}),
+              file=sys.stderr)

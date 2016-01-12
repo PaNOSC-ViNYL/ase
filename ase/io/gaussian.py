@@ -68,14 +68,10 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
     try:
         if isinstance(filename, str):
             fileobj = open(filename, 'r')
-        elif isinstance(filename, file):
-            fileobj = filename
-
-# Re-wind the file in case it was previously read.
-            fileobj.seek(0)
         else:
-            err = 'filename needs to be either a str or file obj.'
-            raise RuntimeError(err)
+            fileobj = filename
+            # Re-wind the file in case it was previously read.
+            fileobj.seek(0)
 
         lines = fileobj.readlines()
         iforces = list()

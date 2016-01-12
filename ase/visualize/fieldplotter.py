@@ -1,10 +1,10 @@
 from __future__ import print_function
 """plotting fields defined on atoms during a simulation."""
 
-from ase.visualize.primiplotter import PostScriptFile, PnmFile, GifFile, JpegFile, X11Window
 from ase.visualize.primiplotter import PrimiPlotter as _PrimiPlotter
 import numpy
 import time
+
 
 class FieldPlotter(_PrimiPlotter):
     def __init__(self, atoms, datasource=None, verbose=0, timing=0,

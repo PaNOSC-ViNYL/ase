@@ -506,6 +506,9 @@ End CASTEP Interface Documentation
 
     def read(self, castep_file=None):
         """Read a castep file into the current instance."""
+
+        _close = True
+
         if castep_file is None:
             if self._castep_file:
                 castep_file = self._castep_file
@@ -519,12 +522,24 @@ End CASTEP Interface Documentation
         elif isinstance(castep_file, str):
             out = paropen(castep_file, 'r')
 
-        elif isinstance(castep_file, file):
-            # now we expect a fielobj
-            out = castep_file
-            castep_file = out.name
         else:
-            raise ValueError('"castep_file" is neither str nor file instance')
+            # in this case we assume that we have a fileobj already, but check
+            # for attributes in order to avoid extended EAFP blocks.
+            out = castep_file
+
+            # look before you leap...
+            attributes = ['name',
+                          'seek',
+                          'close',
+                          'readline',
+                          'tell']
+
+            for attr in attributes:
+                if not hasattr(out, attr):
+                    raise TypeError('"castep_file" is neither str nor valid fileobj')
+
+            castep_file = out.name
+            _close=False
 
         if self._seed is None:
             self._seed = os.path.splitext(os.path.basename(castep_file))[0]
@@ -544,7 +559,8 @@ End CASTEP Interface Documentation
         if not end_found:
             print('No regular end found in %s file' % castep_file)
             print(self._error)
-            out.close()
+            if _close:
+                out.close()
             return
             # we return here, because the file has no a regular end
 
@@ -802,7 +818,8 @@ End CASTEP Interface Documentation
             # set to zero spin if non-spin polarized calculation
             spins = np.zeros(len(positions_frac))
 
-        out.close()
+        if _close:
+            out.close()
 
         positions_frac_atoms = np.array(positions_frac)
         forces_atoms = np.array(forces)
@@ -817,13 +834,13 @@ End CASTEP Interface Documentation
             # compensate for internal reordering of atoms by CASTEP
             # using the fact that the order is kept within each species
 
-            positions_frac_ase = self.atoms.get_scaled_positions(wrap=False)
+            # positions_frac_ase = self.atoms.get_scaled_positions(wrap=False)
             atoms_assigned = [False] * len(self.atoms)
 
-            positions_frac_castep_init = np.array(positions_frac_list[0])
+            # positions_frac_castep_init = np.array(positions_frac_list[0])
             positions_frac_castep = np.array(positions_frac_list[-1])
 
-            species_castep = list(species)
+            # species_castep = list(species)
             forces_castep = np.array(forces)
             hirsh_castep = np.array(hirsh_volrat)
             spins_castep = np.array(spins)
@@ -895,28 +912,45 @@ End CASTEP Interface Documentation
         # TODO: check that this is really backwards compatible
         # with previous routine with this name...
         """Read all symmetry operations used from a .castep file."""
+
+
         if castep_castep is None:
             castep_castep = self._seed + '.castep'
+
         if isinstance(castep_castep, str):
             if not os.path.isfile(castep_castep):
                 print('Warning: CASTEP file %s not found!' % castep_castep)
             f = paropen(castep_castep, 'a')
-            while True:
-                line = f.readline()
-                if not line:
-                    return
-                if 'output verbosity' in line:
-                    iprint = line.split()[-1][1]
-                    # filter out the default
-                    if int(iprint) != 1:
-                        self.param.iprint = iprint
-                if 'Symmetry and Constraints' in line:
-                    break
-        elif isinstance(castep_castep, file):
-            f = castep_castep
+            _close=True
         else:
-            raise TypeError('read_castep_castep_symops: castep_castep is '
-                            'not of type file or str!')
+            # in this case we assume that we have a fileobj already, but check
+            # for attributes in order to avoid extended EAFP blocks.
+            f = castep_castep
+
+            # look before you leap...
+            attributes = ['name',
+                          'readline',
+                          'close']
+
+            for attr in attributes:
+                if not hasattr(f, attr):
+                    raise TypeError('read_castep_castep_symops: castep_castep is '
+                                    'not of type str nor valid fileobj!')
+
+            castep_castep = f.name
+            _close = False
+
+        while True:
+            line = f.readline()
+            if not line:
+                return
+            if 'output verbosity' in line:
+                iprint = line.split()[-1][1]
+                # filter out the default
+                if int(iprint) != 1:
+                    self.param.iprint = iprint
+            if 'Symmetry and Constraints' in line:
+                break
 
         if self.param.iprint is None or self.param.iprint < 2:
             self._interface_warnings.append(
@@ -954,7 +988,9 @@ End CASTEP Interface Documentation
                 print('Symmetry operations successfully read from %s' % f.name)
                 print(self.cell.symmetry_ops)
                 break
-        if isinstance(castep_castep, str):
+
+        # only close if we opened the file in this routine
+        if _close:
             f.close()
 
     def get_hirsh_volrat(self):
@@ -1388,11 +1424,26 @@ End CASTEP Interface Documentation
             return
         elif isinstance(param, str):
             param_file = open(param, 'r')
-        elif isinstance(param, file):
-            param_file = param
+            _close = True
+
         else:
-            print('The param filename is neither a string nor a filehandler')
-            return
+            # in this case we assume that we have a fileobj already, but check
+            # for attributes in order to avoid extended EAFP blocks.
+            param_file = param
+
+            # look before you leap...
+            attributes = ['name',
+                          'close'
+                          'readlines']
+
+            for attr in attributes:
+                if not hasattr(param_file, attr):
+                    raise TypeError('"param" is neither CastepParam nor str nor'
+                                    + ' valid fileobj')
+
+            param = param_file.name
+            _close = False
+
 
         for i, line in enumerate(param_file.readlines()):
             line = line.strip()
@@ -1435,6 +1486,10 @@ End CASTEP Interface Documentation
                 continue
             self.__setattr__(key, value)
 
+        if _close:
+            param.close()
+
+
     def dryrun_ok(self, dryrun_flag='-dryrun'):
         """Starts a CASTEP run with the -dryrun flag [default]
         in a temporary and check wether all variables are initialized
@@ -1449,7 +1504,7 @@ End CASTEP Interface Documentation
         self._fetch_pspots(temp_dir)
         seed = 'dryrun'
 
-        cell_written = self._write_cell('%s.cell' % seed, self.atoms)
+        self._write_cell('%s.cell' % seed, self.atoms)
         # This part needs to be modified now that we rely on the new formats.py
         # interface
         if not os.path.isfile('%s.cell'%seed):

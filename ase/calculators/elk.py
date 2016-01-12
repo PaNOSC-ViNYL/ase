@@ -7,9 +7,7 @@ from ase.io.elk import read_elk
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
     ReadError
 
-elk_parameters = {
-    'swidth': Hartree,
-    }
+elk_parameters = {'swidth': Hartree}
 
 class ELK(FileIOCalculator):
     command = 'elk > elk.out'
@@ -41,7 +39,7 @@ class ELK(FileIOCalculator):
         return system_changes
 
     def set(self, **kwargs):
-        changed_parameters = FileIOCalculator.set(self, **kwargs)        
+        changed_parameters = FileIOCalculator.set(self, **kwargs)
         if changed_parameters:
             self.reset()
 
@@ -267,13 +265,10 @@ class ELK(FileIOCalculator):
 
     def read_forces(self):
         lines = open(self.out, 'r').readlines()
-        forces = np.zeros([len(self.atoms), 3])
         forces = []
-        atomnum = 0
         for line in lines:
             if line.rfind('total force') > -1:
                 forces.append(np.array([float(f) for f in line.split(':')[1].split()]))
-                atomnum =+ 1
         self.results['forces'] = np.array(forces) * Hartree / Bohr
 
     def read_convergence(self):

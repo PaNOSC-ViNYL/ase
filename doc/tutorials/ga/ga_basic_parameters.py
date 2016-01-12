@@ -11,7 +11,7 @@ from ase.ga.standardmutations import PermutationMutation
 from ase.ga.utilities import closest_distances_generator
 from ase.ga.utilities import get_all_atom_types
 from ase.ga.pbs_queue_run import PBSQueueRun
-from ase.ga.atoms_attach import enable_parametrization_methods
+from ase.ga import get_parametrization
 import numpy as np
 from ase.ga.utilities import get_atoms_connections, get_atoms_distribution
 from ase.ga.utilities import get_angles_distribution
@@ -105,8 +105,7 @@ all_trajs = da.get_all_relaxed_candidates()
 sampled_points = []
 sampled_energies = []
 for conf in all_trajs:
-    enable_parametrization_methods(conf)
-    no_of_conn = list(conf.get_parametrization())
+    no_of_conn = list(get_parametrization(conf))
     if no_of_conn not in sampled_points:
         sampled_points.append(no_of_conn)
         sampled_energies.append(conf.get_potential_energy())

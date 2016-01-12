@@ -1,5 +1,5 @@
 from ase.data.colors import jmol_colors
-from ase.data import covalent_radii, atomic_numbers
+from ase.data import covalent_radii
 
 
 def view_sage_jmol(atoms):

@@ -8,11 +8,12 @@ Quasi-Newton algorithm
 
 __docformat__ = 'reStructuredText'
 
+import time
 import numpy as np
-import weakref,time,sys
+from ase.parallel import paropen
 
 
-def f(lamda,Gbar,b,radius): 
+def f(lamda,Gbar,b,radius):
         b1 = b - lamda
         g = radius**2 - np.dot(Gbar/b1, Gbar/b1)
         return g
@@ -29,8 +30,8 @@ def scale_radius_energy(f,r):
         if f<0.10: scale*=1.4
         if f<0.40: scale*=1.4
 
-        if f>0.5: scale *= 1./1.4               
-        if f>0.7: scale *= 1./1.4               
+        if f>0.5: scale *= 1./1.4
+        if f>0.7: scale *= 1./1.4
         if f>1.0: scale *= 1./1.4
 
         return scale
@@ -45,35 +46,33 @@ def scale_radius_force(f,r):
         if g<0.10: scale*=1.4
         if g<0.40: scale*=1.4
 
-        if g>0.5: scale *= 1./1.4               
-        if g>0.7: scale *= 1./1.4               
+        if g>0.5: scale *= 1./1.4
+        if g>0.7: scale *= 1./1.4
         if g>1.0: scale *= 1./1.4
 
         return scale
 
 def find_lamda(upperlimit,Gbar,b,radius):
         lowerlimit = upperlimit
-        eps = 1e-12
         step = 0.1
         while  f(lowerlimit,Gbar,b,radius) < 0:
                 lowerlimit -= step
                 
         converged = False
 
-        while not converged: 
+        while not converged:
 
                 midt = (upperlimit+lowerlimit)/2.
                 lamda = midt
                 fmidt = f(midt,Gbar,b,radius)
                 fupper = f(upperlimit,Gbar,b,radius)
-                flower = f(lowerlimit,Gbar,b,radius)
         
-                if fupper*fmidt<0: 
-                        lowerlimit = midt 
-                else: 
+                if fupper*fmidt<0:
+                        lowerlimit = midt
+                else:
                         upperlimit = midt
 
-                if abs(upperlimit-lowerlimit)<1e-6: 
+                if abs(upperlimit-lowerlimit)<1e-6:
                         converged = True
 
         return lamda
@@ -84,10 +83,10 @@ def get_hessian_inertia(eigenvalues):
         print('eigenvalues ',eigenvalues[0],eigenvalues[1],eigenvalues[2])
         while eigenvalues[n]<0:
                 n+=1
-        return n 
+        return n
 
 
-from numpy.linalg import eigh, solve
+from numpy.linalg import eigh
 
 from ase.optimize.optimize import Optimizer
 
@@ -139,12 +138,12 @@ class GoodOldQuasiNewton(Optimizer):
         self.atoms = atoms
 
         n = len(self.atoms) * 3
-        if radius is None: 
+        if radius is None:
                 self.radius = 0.05*np.sqrt(n)/10.0
         else:
                 self.radius = radius
 
-        if maxradius is None: 
+        if maxradius is None:
                 self.maxradius = 0.5*np.sqrt(n)
         else:
                 self.maxradius = maxradius
@@ -155,10 +154,10 @@ class GoodOldQuasiNewton(Optimizer):
         self.transitionstate = transitionstate
 
         # check if this is a nudged elastic band calculation
-        if hasattr(atoms,'springconstant'): 
+        if hasattr(atoms,'springconstant'):
                 self.forcemin=False
 
-        self.t0 = time.time() 
+        self.t0 = time.time()
 
     def initialize(self):pass
 
@@ -175,25 +174,25 @@ class GoodOldQuasiNewton(Optimizer):
         self.hessian = hessian
 
     def get_hessian(self):
-        if not hasattr(self,'hessian'): 
-                self.set_default_hessian() 
+        if not hasattr(self,'hessian'):
+                self.set_default_hessian()
         return self.hessian
 
-    def set_default_hessian(self): 
+    def set_default_hessian(self):
         # set unit matrix
         n = len(self.atoms) * 3
-        hessian = np.zeros((n,n)) 
-        for i in range(n): 
+        hessian = np.zeros((n,n))
+        for i in range(n):
                         hessian[i][i] = self.diagonal
-        self.set_hessian(hessian) 
+        self.set_hessian(hessian)
 
-    def read_hessian(self,filename): 
+    def read_hessian(self,filename):
         import pickle
         f = open(filename,'r')
         self.set_hessian(pickle.load(f))
         f.close()
 
-    def write_hessian(self,filename): 
+    def write_hessian(self,filename):
         import pickle
         f = paropen(filename,'w')
         pickle.dump(self.get_hessian(),f)
@@ -214,89 +213,86 @@ class GoodOldQuasiNewton(Optimizer):
 
     def update_hessian(self,pos,G):
         import copy
-        if hasattr(self,'oldG'): 
-                if self.hessianupdate=='BFGS': 
-                        self.update_hessian_bfgs(pos,G) 
-                elif self.hessianupdate== 'Powell': 
-                        self.update_hessian_powell(pos,G) 
-                else:           
-                        self.update_hessian_bofill(pos,G) 
-        else: 
-                if not hasattr(self,'hessian'): 
+        if hasattr(self,'oldG'):
+                if self.hessianupdate=='BFGS':
+                        self.update_hessian_bfgs(pos,G)
+                elif self.hessianupdate== 'Powell':
+                        self.update_hessian_powell(pos,G)
+                else:
+                        self.update_hessian_bofill(pos,G)
+        else:
+                if not hasattr(self,'hessian'):
                         self.set_default_hessian()
 
         self.oldpos = copy.copy(pos)
         self.oldG = copy.copy(G)
 
-        if self.verbosity: 
+        if self.verbosity:
                 print('hessian ',self.hessian)
 
 
         
-    def update_hessian_bfgs(self,pos,G): 
+    def update_hessian_bfgs(self,pos,G):
         n = len(self.hessian)
         dgrad = G - self.oldG
         dpos  = pos - self.oldpos
-        absdpos = np.sqrt(np.dot(dpos, dpos))
-        dotg  = np.dot(dgrad,dpos) 
+        dotg  = np.dot(dgrad,dpos)
         tvec  = np.dot(dpos,self.hessian)
         dott  = np.dot(dpos,tvec)
-        if (abs(dott)>self.eps) and (abs(dotg)>self.eps): 
-                for i in range(n): 
-                        for j in range(n): 
+        if (abs(dott)>self.eps) and (abs(dotg)>self.eps):
+                for i in range(n):
+                        for j in range(n):
                                 h = dgrad[i]*dgrad[j]/dotg - tvec[i]*tvec[j]/dott
                                 self.hessian[i][j] += h
 
 
 
-    def update_hessian_powell(self,pos,G):          
+    def update_hessian_powell(self,pos,G):
         n = len(self.hessian)
         dgrad = G - self.oldG
         dpos  = pos - self.oldpos
         absdpos = np.dot(dpos, dpos)
-        if absdpos<self.eps: 
+        if absdpos<self.eps:
                 return
 
-        dotg  = np.dot(dgrad,dpos) 
+        dotg  = np.dot(dgrad,dpos)
         tvec  = dgrad-np.dot(dpos,self.hessian)
-        tvecdot = np.dot(tvec,tvec)
-        tvecdpos = np.dot(tvec,dpos) 
+        tvecdpos = np.dot(tvec,dpos)
         ddot = tvecdpos/absdpos
 
         dott  = np.dot(dpos,tvec)
-        if (abs(dott)>self.eps) and (abs(dotg)>self.eps): 
-                for i in range(n): 
-                        for j in range(n): 
+        if (abs(dott)>self.eps) and (abs(dotg)>self.eps):
+                for i in range(n):
+                        for j in range(n):
                                 h = tvec[i]*dpos[j] + dpos[i]*tvec[j]-ddot*dpos[i]*dpos[j]
                                 h *= 1./absdpos
                                 self.hessian[i][j] += h
 
 
-    def update_hessian_bofill(self,pos,G):                                                                     
+    def update_hessian_bofill(self,pos,G):
         print('update Bofill')
-        n = len(self.hessian)                                                                               
-        dgrad = G - self.oldG                                                                               
-        dpos  = pos - self.oldpos                                                                           
-        absdpos = np.dot(dpos, dpos)                                                                          
-        if absdpos<self.eps: 
+        n = len(self.hessian)
+        dgrad = G - self.oldG
+        dpos  = pos - self.oldpos
+        absdpos = np.dot(dpos, dpos)
+        if absdpos<self.eps:
                 return
-        dotg  = np.dot(dgrad,dpos)                                                                         
-        tvec  = dgrad-np.dot(dpos,self.hessian)                                                 
-        tvecdot = np.dot(tvec,tvec)                                                                        
-        tvecdpos = np.dot(tvec,dpos)                                                                       
-        ddot = tvecdpos/absdpos                                                                             
+        dotg  = np.dot(dgrad,dpos)
+        tvec  = dgrad-np.dot(dpos,self.hessian)
+        tvecdot = np.dot(tvec,tvec)
+        tvecdpos = np.dot(tvec,dpos)
 
         coef1 = 1. - tvecdpos*tvecdpos/(absdpos*tvecdot)
         coef2 = (1. - coef1)*absdpos/tvecdpos
         coef3 = coef1*tvecdpos/absdpos
 
-        dott  = np.dot(dpos,tvec)                                                                          
-        if (abs(dott)>self.eps) and (abs(dotg)>self.eps):                                                   
-                for i in range(n):                                                                          
-                        for j in range(n):                                                                  
+        dott  = np.dot(dpos,tvec)
+        if (abs(dott)>self.eps) and (abs(dotg)>self.eps):
+                for i in range(n):
+                        for j in range(n):
                                 h = coef1*(tvec[i]*dpos[j] + dpos[i]*tvec[j])-dpos[i]*dpos[j]*coef3 + coef2*tvec[i]*tvec[j]
                                 h *= 1./absdpos
-                                self.hessian[i][j] += h                                                     
+                                self.hessian[i][j] += h
 
 
 
@@ -329,17 +325,17 @@ class GoodOldQuasiNewton(Optimizer):
                         G = self.oldG
                         energy = self.oldenergy
                         self.radius *= 0.5
-                else: 
+                else:
                         self.update_hessian(pos,G)
                         de = energy - self.oldenergy
                         f = 1.0
-                        if self.forcemin: 
+                        if self.forcemin:
                                 self.write_log("energy change; actual: %f estimated: %f "%(de,self.energy_estimate))
-                                if abs(self.energy_estimate)>self.eps: 
+                                if abs(self.energy_estimate)>self.eps:
                                         f = abs((de/self.energy_estimate)-1)
                                         self.write_log('Energy prediction factor ' + str(f))
                                         # fg = self.get_force_prediction(G)
-                                        self.radius *= scale_radius_energy(f,self.radius) 
+                                        self.radius *= scale_radius_energy(f,self.radius)
 
                         else:
                                 self.write_log("energy change; actual: %f "%(de))
@@ -351,10 +347,10 @@ class GoodOldQuasiNewton(Optimizer):
                         
                                    
                 self.radius = max(min(self.radius,self.maxradius), 0.0001)
-        else: 
+        else:
                 self.update_hessian(pos,G)
 
-        self.write_log("new radius %f "%(self.radius))          
+        self.write_log("new radius %f "%(self.radius))
         self.oldenergy = energy
 
         b,V = eigh(self.hessian)
@@ -366,16 +362,16 @@ class GoodOldQuasiNewton(Optimizer):
         
         lamdas = self.get_lambdas(b,Gbar)
 
-        D = -Gbar/(b-lamdas) 
+        D = -Gbar/(b-lamdas)
         n = len(D)
         step = np.zeros((n))
-        for i in range(n): 
+        for i in range(n):
                 step += D[i]*V[i]
 
         pos = self.atoms.get_positions().ravel()
         pos += step
 
-        energy_estimate = self.get_energy_estimate(D,Gbar,b) 
+        energy_estimate = self.get_energy_estimate(D,Gbar,b)
         self.energy_estimate = energy_estimate
         self.gbar_estimate = self.get_gbar_estimate(D,Gbar,b)
         self.old_gbar = Gbar
@@ -385,10 +381,10 @@ class GoodOldQuasiNewton(Optimizer):
 
 
 
-    def get_energy_estimate(self,D,Gbar,b): 
+    def get_energy_estimate(self,D,Gbar,b):
 
         de = 0.0
-        for n in range(len(D)): 
+        for n in range(len(D)):
                 de += D[n]*Gbar[n] + 0.5*D[n]*b[n]*D[n]
         return de
 
@@ -409,7 +405,7 @@ class GoodOldQuasiNewton(Optimizer):
 
         if absD < self.radius:
                 if not self.transitionstate:
-                        self.write_log('Newton step') 
+                        self.write_log('Newton step')
                         return lamdas
                 else:
                         if nminus==1:
@@ -421,10 +417,9 @@ class GoodOldQuasiNewton(Optimizer):
         else:
                 self.write_log("Corrected Newton step: abs(D) = %2.2f "%(absD))
 
-        if not self.transitionstate: 
+        if not self.transitionstate:
                 # upper limit
                 upperlimit = min(0,b[0])-eps
-                lowerlimit = upperlimit
                 lamda = find_lamda(upperlimit,Gbar,b,self.radius)
                 lamdas += lamda
         else:
@@ -438,11 +433,11 @@ class GoodOldQuasiNewton(Optimizer):
 
 
 
-    def print_hessian(self): 
+    def print_hessian(self):
         hessian = self.get_hessian()
         n = len(hessian)
-        for i in range(n): 
-            for j in range(n): 
+        for i in range(n):
+            for j in range(n):
                 print("%2.4f " %(hessian[i][j]), end=' ')
             print(" ")
 

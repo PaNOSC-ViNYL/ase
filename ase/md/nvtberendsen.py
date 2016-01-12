@@ -1,6 +1,5 @@
 """Berendsen NVT dynamics class."""
 
-import sys
 import numpy as np
 from ase.md.md import MolecularDynamics
 from ase.parallel import world
@@ -33,7 +32,7 @@ class NVTBerendsen(MolecularDynamics):
                  trajectory=None, logfile=None, loginterval=1,
                  communicator=world):
 
-        MolecularDynamics.__init__(self, atoms, timestep, trajectory, 
+        MolecularDynamics.__init__(self, atoms, timestep, trajectory,
                                    logfile, loginterval)
         self.taut = taut
         self.temperature = temperature
@@ -63,26 +62,25 @@ class NVTBerendsen(MolecularDynamics):
         tautscl = self.dt / self.taut
         old_temperature = self.atoms.get_temperature()
 
-        scl_temperature = np.sqrt(1.0+ (self.temperature/ old_temperature- 1.0)
-                                  *tautscl)
-        #limit the velocity scaling to reasonable values
+        scl_temperature = np.sqrt(1.0 +
+                                  (self.temperature / old_temperature - 1.0) *
+                                  tautscl)
+        # Limit the velocity scaling to reasonable values
         if scl_temperature > 1.1:
             scl_temperature = 1.1
         if scl_temperature < 0.9:
             scl_temperature = 0.9
         
-        atoms = self.atoms
         p = self.atoms.get_momenta()
-        p = scl_temperature * p 
+        p = scl_temperature * p
         self.atoms.set_momenta(p)
-        return 
-
+        return
 
     def step(self, f):
-        """ move one timestep forward using Berenden NVT molecular dynamics."""
+        """Move one timestep forward using Berenden NVT molecular dynamics."""
         self.scale_velocities()
 
-        #one step velocity verlet
+        # one step velocity verlet
         atoms = self.atoms
         p = self.atoms.get_momenta()
         p += 0.5 * self.dt * f
@@ -93,8 +91,9 @@ class NVTBerendsen(MolecularDynamics):
             psum = p.sum(axis=0) / float(len(p))
             p = p - psum
 
-        self.atoms.set_positions(self.atoms.get_positions() +
-             self.dt * p / self.atoms.get_masses()[:,np.newaxis])
+        self.atoms.set_positions(
+            self.atoms.get_positions() +
+            self.dt * p / self.atoms.get_masses()[:, np.newaxis])
 
         # We need to store the momenta on the atoms before calculating
         # the forces, as in a parallel Asap calculation atoms may
@@ -107,4 +106,3 @@ class NVTBerendsen(MolecularDynamics):
         atoms.set_momenta(self.atoms.get_momenta() + 0.5 * self.dt * f)
 
         return f
-

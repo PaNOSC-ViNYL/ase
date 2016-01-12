@@ -149,7 +149,7 @@ class Dacapo:
         return np.array(self.get_pseudo_wave_function(0, 0, 0).shape)
 
     def get_pseudo_density(self, spin=0):
-        return np.array(self.calc.GetDensityArray(s))
+        return np.array(self.calc.GetDensityArray(spin))
     
     def get_pseudo_wave_function(self, band=0, kpt=0, spin=0, pad=True):
         kpt_c = self.get_bz_k_points()[kpt]
@@ -189,7 +189,7 @@ class Dacapo:
         states = self.calc.GetElectronicStates()
         waves = [[state.GetWaveFunction()
                   for state in states.GetStatesKPoint(k, spin)]
-                 for k in self.calc.GetIBZKPoints()] 
+                 for k in self.calc.GetIBZKPoints()]
 
         init.SetupMMatrix(waves, self.calc.GetBZKPoints())
         c, U = init.GetListOfCoefficientsAndRotationMatrices(

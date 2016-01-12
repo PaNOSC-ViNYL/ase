@@ -1,5 +1,6 @@
 """Classes that determine convergence of an algorithm run
 based on population stagnation or max raw score reached"""
+from ase.ga import get_raw_score
 
 
 class Convergence(object):
@@ -88,7 +89,7 @@ class RawScoreConvergence(Convergence):
 
     def converged(self):
         cur_pop = self.pop.get_current_population()
-        if abs(cur_pop[0].get_raw_score() - self.max_raw_score) <= self.eps:
+        if abs(get_raw_score(cur_pop[0]) - self.max_raw_score) <= self.eps:
             return True
         return False
 

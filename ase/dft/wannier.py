@@ -3,7 +3,7 @@ from __future__ import print_function
 
     Find the set of maximally localized Wannier functions
     using the spread functional of Marzari and Vanderbilt
-    (PRB 56, 1997 page 12847). 
+    (PRB 56, 1997 page 12847).
 """
 from time import time
 from math import sqrt, pi
@@ -70,14 +70,14 @@ def calculate_weights(cell_cc):
                            [1, 1, 0], [1, 0, 1], [0, 1, 1]], dtype=int)
     g = np.dot(cell_cc, cell_cc.T)
     # NOTE: Only first 3 of following 6 weights are presently used:
-    w = np.zeros(6)              
+    w = np.zeros(6)
     w[0] = g[0, 0] - g[0, 1] - g[0, 2]
     w[1] = g[1, 1] - g[0, 1] - g[1, 2]
     w[2] = g[2, 2] - g[0, 2] - g[1, 2]
     w[3] = g[0, 1]
     w[4] = g[0, 2]
     w[5] = g[1, 2]
-    # Make sure that first 3 Gdir vectors are included - 
+    # Make sure that first 3 Gdir vectors are included -
     # these are used to calculate Wanniercenters.
     Gdir_dc = alldirs_dc[:3]
     weight_d = w[:3]
@@ -101,7 +101,7 @@ def random_orthogonal_matrix(dim, seed=None, real=False):
     if real:
         gram_schmidt(H)
         return H
-    else: 
+    else:
         val, vec = np.linalg.eig(H)
         return np.dot(vec * np.exp(1.j * val), dag(vec))
 
@@ -150,7 +150,7 @@ def rotation_from_projection2(proj_nw, fixed):
     Nb, Nw = proj_nw.shape
     M = fixed
     L = Nw - M
-    print('M=%i, L=%i, Nb=%i, Nw=%i' % (M, L, Nb, Nw)) 
+    print('M=%i, L=%i, Nb=%i, Nw=%i' % (M, L, Nb, Nw))
     U_ww = np.zeros((Nw, Nw), dtype=proj_nw.dtype)
     c_ul = np.zeros((Nb-M, L), dtype=proj_nw.dtype)
     for V_n in V_ni.T:
@@ -341,7 +341,7 @@ class Wannier:
                 slist = np.argsort(self.kpt_kc[:, c], kind='mergesort')
                 skpoints_kc = np.take(self.kpt_kc, slist, axis=0)
                 kdist_c[c] = max([skpoints_kc[n + 1, c] - skpoints_kc[n, c]
-                                  for n in range(self.Nk - 1)])               
+                                  for n in range(self.Nk - 1)])
 
             for d, Gdir_c in enumerate(self.Gdir_dc):
                 for k, k_c in enumerate(self.kpt_kc):
@@ -406,7 +406,7 @@ class Wannier:
                     self.C_kul.append(random_orthogonal_matrix(
                         Nb - M, seed=seed, real=False)[:, :L])
                 else:
-                    self.C_kul.append(np.array([]))        
+                    self.C_kul.append(np.array([]))
         else:
             # Use initial guess to determine U and C
             self.C_kul, self.U_kww = self.calc.initial_wannier(
@@ -455,7 +455,7 @@ class Wannier:
         ::
           
                         --  /  L  \ 2       2
-          radius**2 = - >   | --- |   ln |Z| 
+          radius**2 = - >   | --- |   ln |Z|
                         --d \ 2pi /
         """
         r2 = -np.dot(self.largeunitcell_cc.diagonal()**2 / (2 * pi)**2,
@@ -476,10 +476,10 @@ class Wannier:
         spec_kn = self.get_spectral_weight(w)
         dos = np.zeros(len(energies))
         for k, spec_n in enumerate(spec_kn):
-            eig_n = self.calc.get_eigenvalues(k=kpt, s=self.spin)
-            for weight, eig in zip(spec_n, eig):
+            eig_n = self.calc.get_eigenvalues(k=k, s=self.spin)
+            for weight, eig in zip(spec_n, eig_n):
                 # Add gaussian centered at the eigenvalue
-                x = ((energies - center) / width)**2
+                x = ((energies - eig) / width)**2
                 dos += weight * np.exp(-x.clip(0., 40.)) / (sqrt(pi) * width)
         return dos
 
@@ -491,7 +491,7 @@ class Wannier:
             d[dir] = np.abs(self.Z_dww[dir].diagonal())**2 *self.weight_d[dir]
         index = np.argsort(d)[0]
         print('Index:', index)
-        print('Spread:', d[index])           
+        print('Spread:', d[index])
 
     def translate(self, w, R):
         """Translate the w'th Wannier function
@@ -549,9 +549,9 @@ class Wannier:
 
         ::
         
-                                1   _   -ik.R 
+                                1   _   -ik.R
           H(R) = <0,n|H|R,m> = --- >_  e      H(k)
-                                Nk  k         
+                                Nk  k
 
         where R is the cell-distance (in units of the basis vectors of
         the small cell) and n,m are indices of the Wannier functions.
@@ -579,9 +579,9 @@ class Wannier:
 
         ::
         
-                  _   ik.R 
+                  _   ik.R
           H(k) = >_  e     H(R)
-                  R         
+                  R
 
         Warning: This method moves all Wannier functions to cell (0, 0, 0)
         """
@@ -632,7 +632,7 @@ class Wannier:
             # The coordinate vector of wannier functions
             if isinstance(index, int):
                 vec_n = self.V_knw[k, :, index]
-            else:   
+            else:
                 vec_n = np.dot(self.V_knw[k], index)
 
             wan_G = np.zeros(dim, complex)
@@ -686,7 +686,7 @@ class Wannier:
         md_min(self, step, tolerance, verbose=self.verbose,
                updaterot=updaterot, updatecoeff=updatecoeff)
 
-    def get_functional_value(self): 
+    def get_functional_value(self):
         """Calculate the value of the spread functional.
 
         ::
@@ -699,27 +699,27 @@ class Wannier:
 
     def get_gradients(self):
         # Determine gradient of the spread functional.
-        # 
+        #
         # The gradient for a rotation A_kij is::
-        # 
+        #
         #    dU = dRho/dA_{k,i,j} = sum(I) sum(k')
         #            + Z_jj Z_kk',ij^* - Z_ii Z_k'k,ij^*
         #            - Z_ii^* Z_kk',ji + Z_jj^* Z_k'k,ji
-        # 
+        #
         # The gradient for a change of coefficients is::
-        # 
+        #
         #   dRho/da^*_{k,i,j} = sum(I) [[(Z_0)_{k} V_{k'} diag(Z^*) +
         #                                (Z_0_{k''})^d V_{k''} diag(Z)] *
         #                                U_k^d]_{N+i,N+j}
-        # 
-        # where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal, 
+        #
+        # where diag(Z) is a square,diagonal matrix with Z_nn in the diagonal,
         # k' = k + dk and k = k'' + dk.
-        # 
+        #
         # The extra degrees of freedom chould be kept orthonormal to the fixed
         # space, thus we introduce lagrange multipliers, and minimize instead::
-        # 
+        #
         #     Rho_L=Rho- sum_{k,n,m} lambda_{k,nm} <c_{kn}|c_{km}>
-        # 
+        #
         # for this reason the coefficient gradients should be multiplied
         # by (1 - c c^d).
         

@@ -3,6 +3,8 @@ import numpy as np
 from ase.io import read, write
 from ase.lattice.surface import fcc111
 
+exec(compile(open('WL.py').read(), 'WL.py', 'exec'))
+
 # Use ase.io.read to load atoms object
 W = read('WL.traj')
 # View the water unit or print the unit cell size.

@@ -3,7 +3,7 @@
 See https://en.wikipedia.org/wiki/Chemical_table_file#SDF
 """
 from ase.atoms import Atoms
-from ase.parallel import paropen
+
 
 def read_sdf(fileobj):
     if isinstance(fileobj, str):
@@ -13,7 +13,6 @@ def read_sdf(fileobj):
     # first three lines header
     del lines[:3]
 
-    # 
     L1 = lines.pop(0).split()
     natoms = int(L1[0])
     positions = []

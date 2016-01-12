@@ -47,7 +47,7 @@ while da.get_number_of_unrelaxed_candidates() > 0:
     print('Relaxing starting candidate {0}'.format(a.info['confid']))
     dyn = BFGS(a, trajectory=None, logfile=None)
     dyn.run(fmax=0.05, steps=100)
-    a.set_raw_score(-a.get_potential_energy())
+    a.info['key_value_pairs']['raw_score'] = -a.get_potential_energy()
     da.add_relaxed_step(a)
 
 # create the population
@@ -75,7 +75,7 @@ for i in range(n_to_test):
     a3.set_calculator(EMT())
     dyn = BFGS(a3, trajectory=None, logfile=None)
     dyn.run(fmax=0.05, steps=100)
-    a3.set_raw_score(-a3.get_potential_energy())
+    a3.info['key_value_pairs']['raw_score'] = -a3.get_potential_energy()
     da.add_relaxed_step(a3)
     population.update()
 

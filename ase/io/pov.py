@@ -8,8 +8,8 @@ import os
 import numpy as np
 
 from ase.io.eps import EPS
-from ase.data import chemical_symbols
 from ase.constraints import FixAtoms
+
 
 def pa(array):
     """Povray array syntax"""
@@ -68,7 +68,7 @@ class POVRAY(EPS):
         'pause'          : True, # Pause when done rendering (only if display)
         'transparent'    : True, # Transparent background
         'canvas_width'   : None, # Width of canvas in pixels
-        'canvas_height'  : None, # Height of canvas in pixels 
+        'canvas_height'  : None, # Height of canvas in pixels
         'camera_dist'    : 50.,  # Distance from camera to front atom
         'image_plane'    : None, # Distance from front atom to image plane
         'camera_type'    : 'orthographic', # perspective, ultra_wide_angle
@@ -161,7 +161,7 @@ class POVRAY(EPS):
         w('#declare simple = finish {phong 0.7}\n')
         w('#declare pale = finish {'
           'ambient .5 '
-          'diffuse .85 '   
+          'diffuse .85 '
           'roughness .001 '
           'specular 0.200 }\n')
         w('#declare intermediate = finish {'
@@ -279,5 +279,5 @@ def write_pov(filename, atoms, run_povray=False, **parameters):
         cmd = 'povray %s.ini 2> /dev/null' % filename[:-4]
         errcode = os.system(cmd)
         if errcode != 0:
-            raise OSError('Povray command ' + cmd + 
+            raise OSError('Povray command ' + cmd +
                           ' failed with error code %d' % errcode)

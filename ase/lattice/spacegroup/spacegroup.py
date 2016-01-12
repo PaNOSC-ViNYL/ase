@@ -39,7 +39,7 @@ class Spacegroup(object):
     >>> from ase.lattice.spacegroup import Spacegroup
     >>>
     >>> sg = Spacegroup(225)
-    >>> print 'Space group', sg.no, sg.symbol
+    >>> print('Space group', sg.no, sg.symbol)
     Space group 225 F m -3 m
     >>> sg.scaled_primitive_cell
     array([[ 0. ,  0.5,  0.5],
@@ -266,7 +266,7 @@ class Spacegroup(object):
         refl = refl[ind]
         diff = np.diff(refl, axis=0)
         mask = np.any(diff, axis=1)
-        return np.vstack((refl[mask], refl[-1,:]))
+        return np.vstack((refl[:-1][mask], refl[-1, :]))
 
     def symmetry_normalised_reflections(self, hkl):
         """Returns an array of same size as *hkl*, containing the
@@ -727,15 +727,7 @@ def spacegroup_from_data(no=None, symbol=None, setting=1,
     return spg
 
 
- 
-
-#-----------------------------------------------------------------
 # Self test
 if __name__ == '__main__':
-
-    # Import spacegroup in order to ensure that __file__ is defined
-    # such that the data base can be found.
-    from . import spacegroup
-
     import doctest
     print('doctest: ', doctest.testmod())

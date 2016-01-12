@@ -4,7 +4,7 @@ from __future__ import print_function
 import gtk
 from gettext import gettext as _
 import numpy as np
-from ase.gui.widgets import pack, oops, AseGuiCancelException
+from ase.gui.widgets import pack, AseGuiCancelException
 import sys
 import re
 import time
@@ -17,10 +17,12 @@ class DummyProgressIndicator:
     def end(self):
         pass
 
+        
 class DefaultProgressIndicator(gtk.Window):
     "Window for reporting progress."
     waittime = 3  # Time (in sec) after which a progress bar appears.
     updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.
+    
     def __init__(self):
         gtk.Window.__init__(self)
         self.set_title(_("Progress"))
@@ -118,7 +120,7 @@ class DefaultProgressIndicator(gtk.Window):
             self.active = True
         # Allow GTK to update display
         if self.active:
-            while gtk.events_pending(): 
+            while gtk.events_pending():
                 gtk.main_iteration()
         if self.raisecancelexception:
             self.cancelbut.set_sensitive(True)
@@ -309,7 +311,6 @@ class GpawProgressIndicator(DefaultProgressIndicator):
     def get_gpaw_stream(self):
         return GpawStream(self)
 
-        
 
 class LoggerStream:
     "A file-like object feeding minimizer logs to GpawProgressWindow."
@@ -346,8 +347,9 @@ class GpawStream:
     def flush(self):
         pass
 
+        
 def fraction(value, maximum):
-    p = value/maximum
+    p = value / maximum
     if p < 0.0:
         return 0.0
     elif p > 1.0:

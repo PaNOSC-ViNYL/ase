@@ -25,8 +25,6 @@ Example for using Graphene to create atoms object gra::
 """
 
 from ase.lattice.triclinic import TriclinicFactory
-import numpy as np
-from ase.data import reference_states as _refstate
 
 
 class HexagonalFactory(TriclinicFactory):

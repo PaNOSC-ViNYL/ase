@@ -3,13 +3,6 @@ from __future__ import print_function
 
 import numpy as np
 
-from ase.test import NotAvailable
-
-try:
-    import scipy
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
-
 try:
     from scipy.optimize import curve_fit
 except ImportError:
@@ -33,12 +26,14 @@ except ImportError:
         # end of this part
         return popt, pcov
 
+        
 def taylor(V, E0, beta, alpha, V0):
     'Taylor Expansion up to 3rd order about V0'
 
     E = E0 + beta/2.*(V-V0)**2/V0 + alpha/6.*(V-V0)**3/V0
     return E
 
+    
 def murnaghan(V, E0, B0, BP, V0):
     'From PRB 28,5480 (1983'
 

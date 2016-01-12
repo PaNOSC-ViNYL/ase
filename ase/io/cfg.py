@@ -165,7 +165,7 @@ def read_cfg(f):
                         if naux > 0:
                             aux = np.zeros([nat, naux])
                     elif key == 'A':
-                        unit = float(value[0])
+                        pass  # unit = float(value[0])
                     elif key == 'entry_count':
                         naux = int(value[0]) - 3
                         auxstrs = [''] * naux

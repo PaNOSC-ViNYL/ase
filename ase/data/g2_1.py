@@ -28,7 +28,7 @@ and may be distributed or copied http://www.nist.gov/public_affairs/disclaimer.c
 
 """
 
-from ase.atoms import Atoms, string2symbols
+from ase.atoms import string2symbols
 
 atom_names = ['H','Li','Be','C','N','O','F','Na','Si','P','S','Cl']
 

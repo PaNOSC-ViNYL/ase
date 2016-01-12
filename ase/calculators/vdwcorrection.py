@@ -6,7 +6,7 @@ from ase.utils import prnt
 from ase.calculators.calculator import Calculator
 from ase.parallel import rank, get_txt
 
-# dipole polarizabilities and C6 values from 
+# dipole polarizabilities and C6 values from
 # X. Chu and A. Dalgarno, J. Chem. Phys. 121 (2004) 4083
 # atomic units, a_0^3
 vdWDB_Chu04jcp = {
@@ -52,7 +52,7 @@ vdWDB_alphaC6 = vdWDB_Chu04jcp
 # Au from J. Luder et al. Phys. Rev. B 89 (2014) 045416
 vdWDB_alphaC6['Au'] = [5.6, 197]
 
-# C6 values and vdW radii from 
+# C6 values and vdW radii from
 # S. Grimme, J Comput Chem 27 (2006) 1787-1799
 vdWDB_Grimme06jcc = {
     # Element: [C6, R0]; units [J nm^6 mol^{-1}, Angstrom]
@@ -106,7 +106,7 @@ vdWDB_Grimme06jcc = {
 class vdWTkatchenko09prl(Calculator):
     """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
     implemented_properties = ['energy', 'forces']
-    def __init__(self,                  
+    def __init__(self,
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax = 10, # maximal radius for periodic calculations
                  vdWDB_alphaC6 = vdWDB_alphaC6,
@@ -147,7 +147,7 @@ class vdWTkatchenko09prl(Calculator):
                 return True
         return False
 
-    def calculate(self, atoms=None, properties=['energy'], 
+    def calculate(self, atoms=None, properties=['energy'],
                   system_changes=[]):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.update(atoms, properties)
@@ -223,10 +223,10 @@ class vdWTkatchenko09prl(Calculator):
                             r6 = r2**3
                             r = np.sqrt(r2)
                             if r > 1.e-10 and r < self.Rmax:
-                                Edamp, Fdamp = self.damping(r, 
+                                Edamp, Fdamp = self.damping(r,
                                                             R0eff_a[ia],
                                                             R0eff_a[ib],
-                                                            d=self.d, 
+                                                            d=self.d,
                                                             sR=self.sR)
                                 EvdW -= (Edamp *
                                          C6eff_aa[ia, ib] / r6 )
@@ -241,14 +241,13 @@ class vdWTkatchenko09prl(Calculator):
         if self.txt:
             prnt(('\n' + self.__class__.__name__), file=self.txt)
             prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
-            prnt('Energy:         %g' % self.results['energy'], 
+            prnt('Energy:         %g' % self.results['energy'],
                  file=self.txt)
             prnt('\nForces in eV/Ang:', file=self.txt)
-            c = Hartree / Bohr
             symbols = self.atoms.get_chemical_symbols()
             for ia, symbol in enumerate(symbols):
                 prnt('%3d %-2s %10.5f %10.5f %10.5f' %
-                     ((ia, symbol) + tuple(self.results['forces'][ia])), 
+                     ((ia, symbol) + tuple(self.results['forces'][ia])),
                      file=self.txt)
         
     def damping(self, RAB, R0A, R0B,
@@ -257,7 +256,7 @@ class vdWTkatchenko09prl(Calculator):
                 ):
         """Damping factor.
 
-        Standard values for d and sR as given in 
+        Standard values for d and sR as given in
         Tkatchenko and Scheffler PRL 102 (2009) 073005."""
         scale = 1.0 / (sR * (R0A + R0B))
         x = RAB * scale

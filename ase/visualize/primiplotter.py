@@ -4,11 +4,18 @@ from __future__ import print_function
 A PrimiPlotter can plot a list of atoms on one or more output devices.
 """
 
-from numpy import *
+import collections
+import os
+import sys
+import time
+import weakref
+from math import pi
+
+import numpy as np
+
 from ase.visualize.colortable import color_table
 import ase.data
-import sys, os, time, weakref
-import collections
+
 
 class PrimiPlotterBase:
     "Base class for PrimiPlotter and Povrayplotter."
@@ -18,7 +25,7 @@ class PrimiPlotterBase:
         
     def set_rotation(self, rotation):
         "Set the rotation angles (in degrees)."
-        self.angles[:] = array(rotation) * (pi/180)
+        self.angles[:] = np.array(rotation) * (pi/180)
         
     def set_radii(self, radii):
         """Set the atomic radii.  Give an array or a single number."""
@@ -54,7 +61,7 @@ class PrimiPlotterBase:
             raise TypeError("The invisibility function is not callable.")
 
     def set_cut(self, xmin=None, xmax=None, ymin=None, ymax=None,
-               zmin=None, zmax=None):
+                zmin=None, zmax=None):
         self.cut = {"xmin":xmin, "xmax":xmax, "ymin":ymin, "ymax":ymax,
                     "zmin":zmin, "zmax":zmax}
     
@@ -114,7 +121,7 @@ class PrimiPlotterBase:
             if hasattr(self.radius, "shape"):
                 return self.radius   # User has specified an array
             else:
-                return self.radius * ones(len(self.atoms), float)
+                return self.radius * np.ones(len(self.atoms), float)
         # No radii specified.  Try getting them from the atoms.
         try:
             return self.atoms.get_atomic_radii()
@@ -126,7 +133,7 @@ class PrimiPlotterBase:
             else:
                 return ase.data.covalent_radii[z]
         # No radius available.  Defaulting to 1.0
-        return ones(len(self.atoms), float)
+        return np.ones(len(self.atoms), float)
 
     def _getatomicnumbers(self):
         return self.atoms.get_atomic_numbers()
@@ -137,7 +144,7 @@ class PrimiPlotterBase:
             if isinstance(self.colors, type({})):
                 self.log("Explicit colors dictionary")
                 return _colorsfromdict(self.colors,
-                                       asarray(self.atoms.get_tags(),int))
+                                       np.asarray(self.atoms.get_tags(),int))
             else:
                 self.log("Explicit colors")
                 return self.colors
@@ -153,42 +160,42 @@ class PrimiPlotterBase:
         if c is not None:
             if isinstance(c, type({})):
                 self.log("Color dictionary from atoms.get_colors()")
-                return _colorsfromdict(c, asarray(self.atoms.get_tags(),int))
+                return _colorsfromdict(c, np.asarray(self.atoms.get_tags(),int))
             else:
                 self.log("Colors from atoms.get_colors()")
                 return c
         # Default to white atoms
         self.log("No colors: using white")
-        return ones(len(self.atoms), float)
+        return np.ones(len(self.atoms), float)
 
     def _getinvisible(self):
         if self.invisible is not None:
             inv = self.invisible
         else:
-            inv = zeros(len(self.atoms))
+            inv = np.zeros(len(self.atoms))
         if self.invisibilityfunction:
-            inv = logical_or(inv, self.invisibilityfunction(self.atoms))
+            inv = np.logical_or(inv, self.invisibilityfunction(self.atoms))
         r = self._getpositions()
         if len(r) > len(inv):
             # This will happen in parallel simulations due to ghost atoms.
             # They are invisible.  Hmm, this may cause trouble.
-            i2 = ones(len(r))
+            i2 = np.ones(len(r))
             i2[:len(inv)] = inv
             inv = i2
             del i2
         if self.cut["xmin"] is not None:
-            inv = logical_or(inv, less(r[:,0], self.cut["xmin"]))
+            inv = np.logical_or(inv, np.less(r[:,0], self.cut["xmin"]))
         if self.cut["xmax"] is not None:
-            inv = logical_or(inv, greater(r[:,0], self.cut["xmax"]))
+            inv = np.logical_or(inv, np.greater(r[:,0], self.cut["xmax"]))
         if self.cut["ymin"] is not None:
-            inv = logical_or(inv, less(r[:,1], self.cut["ymin"]))
+            inv = np.logical_or(inv, np.less(r[:,1], self.cut["ymin"]))
         if self.cut["ymax"] is not None:
-            inv = logical_or(inv, greater(r[:,1], self.cut["ymax"]))
+            inv = np.logical_or(inv, np.greater(r[:,1], self.cut["ymax"]))
         if self.cut["zmin"] is not None:
-            inv = logical_or(inv, less(r[:,2], self.cut["zmin"]))
+            inv = np.logical_or(inv, np.less(r[:,2], self.cut["zmin"]))
         if self.cut["zmax"] is not None:
-            inv = logical_or(inv, greater(r[:,2], self.cut["zmax"]))
-        return inv        
+            inv = np.logical_or(inv, np.greater(r[:,2], self.cut["zmax"]))
+        return inv
 
     def __del__(self):
         if self.ownlogfile:
@@ -316,7 +323,7 @@ class PrimiPlotter(PrimiPlotterBase):
     used.  In that case the filename is expected to expand to a real
     filename when used with the Python string formatting operator (%)
     with the frame number as argument.  Avoid generating spaces in the
-    file names: use e.g. %03d instead of %3d.  
+    file names: use e.g. %03d instead of %3d.
     """
     def __init__(self, atoms, verbose=0, timing=0, interval=1, initframe=0):
         """
@@ -340,7 +347,7 @@ class PrimiPlotter(PrimiPlotterBase):
         """
         self.atoms = atoms
         self.outputdevice = []
-        self.angles = zeros(3, float)
+        self.angles = np.zeros(3, float)
         self.dims = (512, 512)
         self.verbose = verbose
         self.timing = timing
@@ -415,7 +422,7 @@ class PrimiPlotter(PrimiPlotterBase):
         scale = self.scale * self.relativescale
         coords = scale * coords
         center = self._getcenter(coords)
-        offset = array(self.dims + (0.0,))/2.0 - center
+        offset = np.array(self.dims + (0.0,))/2.0 - center
         coords = coords + offset
         self.log("Scale is %f and size is (%d, %d)"
                  % (scale, self.dims[0], self.dims[1]))
@@ -423,21 +430,21 @@ class PrimiPlotter(PrimiPlotterBase):
                  % (self.dims[0] / scale, self.dims[1] / scale))
 
         self._verb("Sorting.")
-        order = argsort(coords[:,2])
+        order = np.argsort(coords[:,2])
         coords = coords[order]  ### take(coords, order)
         radii = radii[order]    ### take(radii, order)
         colors = colors[order]  ### take(colors, order)
         invisible = invisible[order]  ### take(invisible, order)
         if self.isparallel:
-            id = arange(len(coords))[order] ### take(arange(len(coords)), order)
+            id = np.arange(len(coords))[order] ### take(arange(len(coords)), order)
         else:
             id = None
             
         radii = radii * scale
         selector = self._computevisibility(coords, radii, invisible, id)
-        coords = compress(selector, coords, 0)
-        radii = compress(selector, radii)
-        colors = compress(selector, colors, 0)
+        coords = np.compress(selector, coords, 0)
+        radii = np.compress(selector, radii)
+        colors = np.compress(selector, colors, 0)
         self._makeoutput(scale, coords, radii, colors)
         self.log("PrimiPlotter: Finished plotting at "
                  + time.strftime("%a, %d %b %Y %H:%M:%S"))
@@ -455,16 +462,16 @@ class PrimiPlotter(PrimiPlotterBase):
             return self._computevisibility(xy*2, rad*2, invisible, id, zoom*2)
         else:
             self.log("Visibility(r_typ = %.1f pixels)" % (typradius,))
-        dims = array(self.dims) * zoom
-        maxr = int(ceil(max(rad))) + 2
-        canvas = zeros((dims[0] + 4*maxr, dims[1] + 4*maxr), int8)
+        dims = np.array(self.dims) * zoom
+        maxr = int(np.ceil(max(rad))) + 2
+        canvas = np.zeros((dims[0] + 4*maxr, dims[1] + 4*maxr), np.int8)
         # Atoms are only invisible if they are within the canvas, or closer
         # to its edge than their radius
-        visible = (greater(xy[:,0], -rad) * less(xy[:,0], dims[0]+rad)
-                   * greater(xy[:,1], -rad) * less(xy[:,1], dims[1]+rad)
-                   * logical_not(invisible))
+        visible = (np.greater(xy[:,0], -rad) * np.less(xy[:,0], dims[0]+rad)
+                   * np.greater(xy[:,1], -rad) * np.less(xy[:,1], dims[1]+rad)
+                   * np.logical_not(invisible))
         # Atoms are visible if not hidden behind other atoms
-        xy = floor(xy + 2*maxr + 0.5).astype(int)
+        xy = np.floor(xy + 2*maxr + 0.5).astype(int)
         masks = {}
         for i in range(len(rad)-1, -1, -1):
             if (i % 100000) == 0 and i:
@@ -476,31 +483,31 @@ class PrimiPlotter(PrimiPlotterBase):
             try:
                 mask, invmask, rn = masks[r]
             except KeyError:
-                rn = int(ceil(r))
+                rn = int(np.ceil(r))
                 nmask = 2*rn+1
-                mask = (arange(nmask) - rn)**2
-                mask = less(mask[:,newaxis]+mask[newaxis,:], r*r).astype(int8)
-                invmask = equal(mask, 0).astype(int8)
+                mask = (np.arange(nmask) - rn)**2
+                mask = np.less(mask[:,np.newaxis]+mask[np.newaxis,:], r*r).astype(np.int8)
+                invmask = np.equal(mask, 0).astype(np.int8)
                 masks[r] = (mask, invmask, rn)
-            window = logical_or(canvas[x-rn:x+rn+1, y-rn:y+rn+1], invmask)
-            hidden = alltrue(window.flat)
+            window = np.logical_or(canvas[x-rn:x+rn+1, y-rn:y+rn+1], invmask)
+            hidden = np.alltrue(window.flat)
             if hidden:
                 visible[i] = 0
             else:
-                canvas[x-rn:x+rn+1, y-rn:y+rn+1] = logical_or(canvas[x-rn:x+rn+1, y-rn:y+rn+1], mask)
+                canvas[x-rn:x+rn+1, y-rn:y+rn+1] = np.logical_or(canvas[x-rn:x+rn+1, y-rn:y+rn+1], mask)
         self.log("%d visible, %d hidden out of %d" %
                    (sum(visible), len(visible) - sum(visible), len(visible)))
         return visible
         
     def _rotate(self, positions):
         self.log("Rotation angles: %f %f %f" % tuple(self.angles))
-        mat = dot(dot(_rot(self.angles[2], 2),
-                      _rot(self.angles[1], 1)),
-                  _rot(self.angles[0]+pi, 0))
-        return dot(positions, mat)
+        mat = np.dot(np.dot(_rot(self.angles[2], 2),
+                            _rot(self.angles[1], 1)),
+                     _rot(self.angles[0]+pi, 0))
+        return np.dot(positions, mat)
 
     def _getcenter(self, coords):
-        return array((max(coords[:,0]) + min(coords[:,0]),
+        return np.array((max(coords[:,0]) + min(coords[:,0]),
                       max(coords[:,1]) + min(coords[:,1]), 0.0)) / 2.0
 
     def _autoscale(self, coords, radii):
@@ -552,12 +559,12 @@ class ParallelPrimiPlotter(PrimiPlotter):
         ghostpos = self.atoms.get_ghost_positions()
         self.numberofrealatoms = len(realpos)
         self.numberofghostatoms = len(ghostpos)
-        return concatenate((realpos, ghostpos))
+        return np.concatenate((realpos, ghostpos))
 
     def _getatomicnumbers(self):
         realz = self.atoms.get_atomic_numbers()
         ghostz = self.atoms.get_ghost_atomic_numbers()
-        return concatenate((realz, ghostz))
+        return np.concatenate((realz, ghostz))
 
     def _getradius(self):
         r = PrimiPlotter._getradius(self)
@@ -567,24 +574,24 @@ class ParallelPrimiPlotter(PrimiPlotter):
         else:
             assert len(r) == self.numberofrealatoms
             # Heuristic: use minimum r for the ghosts
-            ghostr = min(r) * ones(self.numberofghostatoms, float)
-            return concatenate((r, ghostr))
+            ghostr = min(r) * np.ones(self.numberofghostatoms, float)
+            return np.concatenate((r, ghostr))
 
     def _getcenter(self, coords):
         # max(x) and min(x) only works for rank-1 arrays in Numeric version 17.
-        maximal = maximum.reduce(coords[:,0:2])
-        minimal = minimum.reduce(coords[:,0:2])
+        maximal = np.maximum.reduce(coords[:,0:2])
+        minimal = np.minimum.reduce(coords[:,0:2])
         self.mpi.max(maximal)
         self.mpi.min(minimal)
         maxx, maxy = maximal
         minx, miny = minimal
-        return array([maxx + minx, maxy + miny, 0.0]) / 2.0
+        return np.array([maxx + minx, maxy + miny, 0.0]) / 2.0
 
     def _computevisibility(self, xy, rad, invisible, id, zoom = 1):
         # Find visible atoms, allowing ghost atoms to hide real atoms.
         v = PrimiPlotter._computevisibility(self, xy, rad, invisible, id, zoom)
         # Then remove ghost atoms
-        return v * less(id, self.numberofrealatoms)
+        return v * np.less(id, self.numberofrealatoms)
 
     def _autoscale(self, coords, radii):
         self._verb("Autoscale")
@@ -592,8 +599,8 @@ class ParallelPrimiPlotter(PrimiPlotter):
         x = coords[:n,0]
         y = coords[:n,1]
         assert len(x) == len(self.atoms)
-        maximal = array([max(x), max(y), max(radii[:n])])
-        minimal = array([min(x), min(y)])
+        maximal = np.array([max(x), max(y), max(radii[:n])])
+        minimal = np.array([min(x), min(y)])
         self.mpi.max(maximal)
         self.mpi.min(minimal)
         maxx, maxy, maxradius = maximal
@@ -609,7 +616,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
         col = PrimiPlotter._getcolors(self)
         nghost = len(self.atoms.get_ghost_positions())
         newcolshape = (nghost + col.shape[0],) + col.shape[1:]
-        newcol = zeros(newcolshape, col.dtype)
+        newcol = np.zeros(newcolshape, col.dtype)
         newcol[:len(col)] = col
         return newcol
     
@@ -624,11 +631,11 @@ class ParallelPrimiPlotter(PrimiPlotter):
         ncolmax = self.mpi.max(ncol)
         if ncolmax > ncol:
             assert ncol == 1
-            colors = colors[:,newaxis] + zeros(ncolmax)[newaxis,:]
+            colors = colors[:,np.newaxis] + np.zeros(ncolmax)[np.newaxis,:]
             ncol = ncolmax
             assert colors.shape == (len(coords), ncol)
         # Now send data from slaves to master
-        data = zeros((len(coords), 4+ncol), float)
+        data = np.zeros((len(coords), 4+ncol), float)
         data[:,:3] = coords
         data[:,3] = radii
         if ncol == 1:
@@ -636,19 +643,19 @@ class ParallelPrimiPlotter(PrimiPlotter):
         else:
             data[:,4:] = colors
         if not self.master:
-            datashape = array(data.shape)
+            datashape = np.array(data.shape)
             assert datashape.shape == (2,)
             self.mpi.send(datashape, 0, self.mpitag)
             self.mpi.send(data, 0, self.mpitag)
         else:
-            total = [data]  
+            total = [data]
             n = len(coords)
             colsmin = colsmax = 4+ncol
             for proc in range(1, self.mpi.size):
                 self._verb("Receiving from processor "+str(proc))
-                datashape = zeros(2, int)
+                datashape = np.zeros(2, int)
                 self.mpi.receive(datashape, proc, self.mpitag)
-                fdat = zeros(tuple(datashape))
+                fdat = np.zeros(tuple(datashape))
                 self.mpi.receive(fdat, proc, self.mpitag)
                 total.append(fdat)
                 n = n + len(fdat)
@@ -660,7 +667,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
             # Some processors may have only greyscales whereas others
             # may have RGB.  That will cause difficulties.
             trouble = colsmax != colsmin
-            data = zeros((n, colsmax), float)
+            data = np.zeros((n, colsmax), float)
             if trouble:
                 assert data.shape[1] == 7
             else:
@@ -678,7 +685,7 @@ class ParallelPrimiPlotter(PrimiPlotter):
             assert i == len(data)
             # Now all data is on the master
             self._verb("Sorting merged data")
-            order = argsort(data[:,2])
+            order = np.argsort(data[:,2])
             data = data[order]   ### take(data, order)
             coords = data[:,:3]
             radii = data[:,3]
@@ -725,7 +732,7 @@ class _PostScriptDevice:
             assert(colors.shape[1] == 3)
         file.write("%!PS-Adobe-2.0\n")
         file.write("%%Creator: Primiplot\n")
-        file.write("%%Pages: 1\n")        
+        file.write("%%Pages: 1\n")
         file.write("%%%%BoundingBox: %d %d %d %d\n" %
                    (self.offset + (self.offset[0] + self.dims[0],
                                    self.offset[1] + self.dims[1])))
@@ -753,14 +760,14 @@ class _PostScriptDevice:
                    (self.linewidth * self.scale,))
         
         if gray:
-            data = zeros((len(xy), 4), float)
+            data = np.zeros((len(xy), 4), float)
             data[:,0] = colors
             data[:,1:3] = (self.scale * xy)
             data[:,3] = (self.scale * r)
             for point in data:
                 file.write("%.3f %.2f %.2f %.2f circ\n" % tuple(point))
         else:
-            data = zeros((len(xy), 6), float)
+            data = np.zeros((len(xy), 6), float)
             data[:,0:3] = colors
             data[:,3:5] = (self.scale * xy)
             data[:,5] = (self.scale * r)
@@ -772,10 +779,10 @@ class _PostScriptDevice:
     def PSplotArray(self, file, n, data, noshowpage=0):
         assert(len(data.shape) == 3)
         assert(data.shape[0] == self.dims[1] and data.shape[1] == self.dims[0])
-        data = clip((256*data).astype(int), 0, 255)
+        data = np.clip((256*data).astype(int), 0, 255)
         file.write("%!PS-Adobe-2.0\n")
         file.write("%%Creator: Fieldplotter\n")
-        file.write("%%Pages: 1\n")        
+        file.write("%%Pages: 1\n")
         file.write("%%%%BoundingBox: %d %d %d %d\n" %
                    (self.offset + (self.offset[0] + self.dims[0],
                                    self.offset[1] + self.dims[1])))
@@ -887,8 +894,8 @@ class X11Window(_PostScriptDevice):
 # Helper functions
 def _rot(v, axis):
     ax1, ax2 = ((1, 2), (0, 2), (0, 1))[axis]
-    c, s = cos(v), sin(v)
-    m = zeros((3,3), float)
+    c, s = np.cos(v), np.sin(v)
+    m = np.zeros((3,3), float)
     m[axis,axis] = 1.0
     m[ax1,ax1] = c
     m[ax2,ax2] = c
@@ -900,7 +907,7 @@ def _colorsfromdict(dict, cls):
     """Extract colors from dictionary using cls as key."""
     assert(isinstance(dict, type({})))
     # Allow local modifications, to replace strings with rgb values.
-    dict = dict.copy()  
+    dict = dict.copy()
     isgray, isrgb = 0, 0
     for k in dict.keys():
         v = dict[k]
@@ -911,7 +918,7 @@ def _colorsfromdict(dict, cls):
             if len(v) == 3:
                 isrgb = 1 # Assume it is an RGB value
                 if not hasattr(v, "shape"):
-                    dict[k] = array(v)   # Convert to array
+                    dict[k] = np.array(v)   # Convert to array
             else:
                 raise RuntimeError("Unrecognized color object "+repr(v))
         except TypeError:
@@ -921,13 +928,12 @@ def _colorsfromdict(dict, cls):
         for k in dict.keys():
             v = dict[k]
             if not hasattr(v, "shape"):
-                dict[k] = v * ones(3, float)
+                dict[k] = v * np.ones(3, float)
     # Now the dictionary is ready
     if isrgb:
-        colors = zeros((len(cls),3), float)
+        colors = np.zeros((len(cls),3), float)
     else:
-        colors = zeros((len(cls),), float)
+        colors = np.zeros((len(cls),), float)
     for i in range(len(cls)):
         colors[i] = dict[cls[i]]
     return colors
-

@@ -2,7 +2,6 @@ from ase.optimize import BFGS
 from ase.io import read, write
 from ase.calculators.emt import EMT
 from ase.ga.relax_attaches import VariansBreak
-from ase.ga.atoms_attach import enable_raw_score_methods
 import sys
 
 
@@ -17,8 +16,7 @@ vb = VariansBreak(a, dyn)
 dyn.attach(vb.write)
 dyn.run(fmax=0.05)
 
-enable_raw_score_methods(a)
-a.set_raw_score(-a.get_potential_energy())
+a.info['key_value_pairs']['raw_score'] = -a.get_potential_energy()
 
 write(fname[:-5] + '_done.traj', a)
 

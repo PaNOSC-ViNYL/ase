@@ -1,7 +1,7 @@
 master:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy
+    - apt-get install -qy python-numpy python-scipy
     - pwd
     - echo $HOME
     - echo $PWD

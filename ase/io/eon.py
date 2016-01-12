@@ -75,7 +75,7 @@ def read_states(states_dir):
               for subdir in subdirs]
     return images
 
-
+    
 def write_eon(fileobj, images):
     """Writes structure to EON reactant.con file
     Multiple snapshots are not allowed."""

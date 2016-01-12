@@ -1,7 +1,6 @@
 """Langevin dynamics class."""
 
 
-import sys
 import numpy as np
 from numpy.random import standard_normal
 from ase.md.md import MolecularDynamics
@@ -34,7 +33,9 @@ class Langevin(MolecularDynamics):
 
     This dynamics accesses the atoms using Cartesian coordinates."""
     
-    _lgv_version = 2  # Helps Asap doing the right thing.  Increment when changing stuff.
+    # Helps Asap doing the right thing.  Increment when changing stuff:
+    _lgv_version = 2
+    
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1,
                  communicator=world):
@@ -64,16 +65,17 @@ class Langevin(MolecularDynamics):
         self._localfrict = hasattr(self.frict, 'shape')
         lt = self.frict * dt
         masses = self.masses
-        sdpos = dt * np.sqrt(self.temp / masses.reshape(-1) * (2.0/3.0 - 0.5 * lt) * lt)
+        sdpos = dt * np.sqrt(self.temp / masses.reshape(-1) *
+                             (2.0 / 3.0 - 0.5 * lt) * lt)
         sdpos.shape = (-1, 1)
         sdmom = np.sqrt(self.temp * masses.reshape(-1) * 2.0 * (1.0 - lt) * lt)
         sdmom.shape = (-1, 1)
-        pmcor = np.sqrt(3.0)/2.0 * (1.0 - 0.125 * lt)
+        pmcor = np.sqrt(3.0) / 2.0 * (1.0 - 0.125 * lt)
         cnst = np.sqrt((1.0 - pmcor) * (1.0 + pmcor))
 
         act0 = 1.0 - lt + 0.5 * lt * lt
-        act1 = (1.0 - 0.5 * lt + (1.0/6.0) * lt * lt)
-        act2 = 0.5 - (1.0/6.0) * lt + (1.0/24.0) * lt * lt
+        act1 = (1.0 - 0.5 * lt + (1.0 / 6.0) * lt * lt)
+        act2 = 0.5 - (1.0 / 6.0) * lt + (1.0 / 24.0) * lt * lt
         c1 = act1 * dt / masses.reshape(-1)
         c1.shape = (-1, 1)
         c2 = act2 * dt * dt / masses.reshape(-1)
@@ -97,7 +99,8 @@ class Langevin(MolecularDynamics):
         self.c4 = c4
         self.pmcor = pmcor
         self.cnst = cnst
-        self.natoms = self.atoms.get_number_of_atoms() # Also works in parallel Asap.
+        # Also works in parallel Asap:
+        self.natoms = self.atoms.get_number_of_atoms()
 
     def step(self, f):
         atoms = self.atoms

@@ -251,9 +251,8 @@ class Bravais:
         self.nput = 0
         self.atoms = np.zeros((self.natoms,3), np.float)
         self.elements = np.zeros(self.natoms, np.int)
-        self.farpoint = farpoint = sum(self.directions)
-        #printprogress = self.debug and (len(self.atoms) > 250)
-        percent = 0
+        self.farpoint = sum(self.directions)
+        # printprogress = self.debug and (len(self.atoms) > 250)
         # Find the radius of the sphere containing the whole system
         sqrad = 0
         for i in (0,1):

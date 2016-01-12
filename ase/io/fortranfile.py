@@ -151,7 +151,7 @@ class FortranFile(file):
 
     def _write_check(self, number_of_bytes):
         """Write the header for the given number of bytes"""
-        self.write(numpy.array(number_of_bytes, 
+        self.write(numpy.array(number_of_bytes,
                                dtype=self.ENDIAN+self.HEADER_PREC,).tostring()
                   )
 
@@ -204,10 +204,6 @@ class FortranFile(file):
             
         """
         
-        _numpy_precisions = {'d': numpy.float64,
-                             'f': numpy.float32
-                            }
-
         if prec not in self._real_precisions:
             raise ValueError('Not an appropriate precision')
             
@@ -238,7 +234,7 @@ class FortranFile(file):
         Parameters
         ----------
         prec : character, optional
-            Specify the precision of the data to be read using 
+            Specify the precision of the data to be read using
             character codes from Python's struct module.  Possible
             values are 'h', 'i', 'l' and 'q'
             
