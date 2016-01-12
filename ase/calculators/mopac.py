@@ -1,99 +1,57 @@
-"""
-Version 2012/08/20, Torsten Kerber
-
-Contributors:
-  Torsten Kerber, Ecole normale superieure de Lyon:
-  Paul Fleurat-Lessard, Ecole normale superieure de Lyon
-  based on a script by Rosa Bulo, Ecole normale superieure de Lyon
-
-This work is supported by Award No. UK-C0017, made by King Abdullah
-University of Science and Technology (KAUST), Saudi Arabia
-
-See accompanying license files for details.
-"""
+"""This module defines an ASE interface to MOPAC."""
 import os
 import numpy as np
 
 from ase.units import kcal, mol
 from ase.calculators.general import Calculator
 
-str_keys = ['functional', 'job_type', 'command']
-int_keys = ['restart', 'spin']
-bool_keys = ['OPT']
-float_keys = ['RELSCF']
+from warnings import warn
+from ase.atoms import Atoms
+from ase.units import Hartree, Bohr
+from ase.io.nwchem import write_nwchem
+from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
 
-class Mopac(Calculator):
-    name = 'MOPAC'
-    def __init__(self, label='ase', **kwargs):
-        # define parameter fields
-        self.str_params = {}
-        self.int_params = {}
-        self.bool_params = {}
-        self.float_params = {}
-        
-        # initials parameter fields
-        for key in str_keys:
-            self.str_params[key] = None
-        for key in int_keys:
-            self.int_params[key] = None
-        for key in bool_keys:
-            self.bool_params[key] = None
-        for key in float_keys:
-            self.float_params[key] = None
-                        
-        # set initial values
-        self.set(restart=0,
-                 spin=0,
-                 OPT=False,
-                 functional='PM6',
-                 job_type='NOANCI 1SCF GRADIENTS AUX(0,PRECISION=9)',
-                 RELSCF=0.0001)
-        # set user values
-        self.set(**kwargs)
 
-        # save label
-        self.label = label
-        
-        #set atoms
-        self.atoms = None
-        # initialize the results
-        self.version = None
-        self.energy_zero = None
-        self.energy_free = None
-        self.forces = None
-        self.stress = None
-        
-        # initialize the results
-        self.occupations = None
-        
+class MOPAC(FileIOCalculator):
+    implemented_properties = ['energy', 'forces', 'dipole', 'magmom']
+    command = 'mopac PREFIX.mop'
+
+    default_parameters = dict(
+        method='PM6',
+        task='gradient',
+        raw='')  # additional outside of dft block control string
+    str_keys = ['functional', 'job_type', 'command']
+    int_keys = ['restart', 'spin']
+    bool_keys = ['OPT']
+    float_keys = ['RELSCF']
+    self.set(restart=0,
+             spin=0,
+             OPT=False,
+             functional='PM6',
+             job_type='NOANCI 1SCF GRADIENTS AUX(0,PRECISION=9)',
+             RELSCF=0.0001)
+
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label='mopac', atoms=None, **kwargs):
+        """Construct MOPAC-calculator object."""
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
+                                  label, atoms, **kwargs)
+
     def set(self, **kwargs):
-        """
-        Sets the parameters on the according keywords
-        Raises RuntimeError when wrong keyword is provided
-        """
-        for key in kwargs:
-            if key in self.bool_params:
-                self.bool_params[key] = kwargs[key]
-            elif key in self.int_params:
-                self.int_params[key] = kwargs[key]
-            elif key in self.str_params:
-                self.str_params[key] = kwargs[key]
-            elif key in self.float_params:
-                self.float_params[key] = kwargs[key]
-            else:
-                raise RuntimeError('MOPAC calculator: unknown keyword: ' + key)
+        changed_parameters = FileIOCalculator.set(self, **kwargs)
+        if changed_parameters:
+            self.reset()
 
-    def get_version(self):
-        return self.version
-
-    def initialize(self, atoms):
-        pass
-
-    def write_input(self, fname, atoms):
-        """
-        Writes the files that have to be written each timestep
-        """
+    def write_input(self, atoms, properties=None, system_changes=None):
+        FileIOCalculator.write_input(self, atoms, properties, system_changes)
+        p = self.parameters
+        p.initial_magmoms = atoms.get_initial_magnetic_moments().tolist()
+        p.write(self.label + '.ase')
+        del p['initial_magmoms']
+        f = open(self.label + '.nw', 'w')
+        if p.charge is not None:
+            f.write('charge %s\n' % p.charge)
         
         # start the input
         mopac_input = ''
@@ -141,56 +99,30 @@ class Mopac(Calculator):
         myfile = open(fname, 'w')
         myfile.write(mopac_input)
         myfile.close()
+        f.close()
 
-    def get_command(self):
-        """Return command string if program installed, otherwise None.  """
-        command = None
-        if self.str_params['command'] is not None:
-            command = self.str_params['command']
-        elif ('MOPAC_COMMAND' in os.environ):
-            command = os.environ['MOPAC_COMMAND']
-        return command
+    def read(self, label):
+        FileIOCalculator.read(self, label)
+        if not os.path.isfile(self.label + '.out'):
+            raise ReadError
 
-    def run(self):
-        """
-        Writes input in label.mop
-        Runs MOPAC
-        Reads Version, Energy and Forces
-        """
-        # set the input file name
-        finput = self.label + '.mop'
-        foutput = self.label + '.out'
-        
-        self.write_input(finput, self.atoms)
-
-        command = self.get_command()
-        if command is None:
-            raise RuntimeError('MOPAC command not specified')
-        
-        exitcode = os.system('%s %s' % (command, finput))
-        
-        if exitcode != 0:
-            raise RuntimeError('MOPAC exited with error code')
-
-        self.version = self.read_version(foutput)
-
-        energy = self.read_energy(foutput)
-        self.energy_zero = energy
-        self.energy_free = energy
-        
-        self.forces = self.read_forces(foutput)
-
-    def read_version(self, fname):
-        """
-        Reads the MOPAC version string from the second line
-        """
-        version = 'unknown'
-        lines = open(fname).readlines()
-        for line in lines:
-            if "  Version" in line:
-                version = line.split()[-2]
+        f = open(self.label + '.nw')
+        for line in f:
+            if line.startswith('geometry'):
                 break
-        return version
+        symbols = []
+        positions = []
+        for line in f:
+            if line.startswith('end'):
+                break
+            words = line.split()
+            symbols.append(words[0])
+            positions.append([float(word) for word in words[1:]])
+
+        self.parameters = Parameters.read(self.label + '.ase')
+        self.atoms = Atoms(symbols, positions,
+                           magmoms=self.parameters.pop('initial_magmoms'))
+        self.read_results()
 
     def read_energy(self, fname):
         """
@@ -238,37 +170,3 @@ class Mopac(Calculator):
         
         forces *= - (kcal / mol)
         return forces
-        
-    def atoms_are_equal(self, atoms_new):
-        ''' (adopted from jacapo.py)
-        comparison of atoms to self.atoms using tolerances to account
-        for float/double differences and float math.
-        '''
-    
-        TOL = 1.0e-6  # angstroms
-
-        # check for change in cell parameters
-        test = len(atoms_new) == len(self.atoms)
-        if test is not True:
-            return False
-        
-        # check for change in cell parameters
-        test = (abs(self.atoms.get_cell() - atoms_new.get_cell()) <= TOL).all()
-        if test is not True:
-            return False
-        
-        old = self.atoms.arrays
-        new = atoms_new.arrays
-        
-        # check for change in atom position
-        test = (abs(new['positions'] - old['positions']) <= TOL).all()
-        if test is not True:
-            return False
-        
-        # passed all tests
-        return True
-
-    def update(self, atoms_new):
-        if not self.atoms_are_equal(atoms_new):
-            self.atoms = atoms_new.copy()
-            self.run()
