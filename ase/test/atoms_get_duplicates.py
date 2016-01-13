@@ -1,11 +1,5 @@
 from ase import Atoms
 from ase.utils.geometry import get_duplicate_atoms
-from ase.test import NotAvailable
-
-try:
-    import scipy
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
 
 at = Atoms('H5', positions=[[0., 0., 0.],
                             [1., 0., 0.],
