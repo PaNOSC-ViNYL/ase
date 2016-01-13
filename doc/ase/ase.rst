@@ -65,7 +65,6 @@ List of all modules:
    optimize
    parallel
    visualize/visualize
-   visualize/vtk
    calculators/calculators
    constraints
    neb
