@@ -209,6 +209,7 @@ def write(filename, images, format=None, **kwargs):
     The use of additional keywords is format specific."""
 
     if isinstance(filename, str):
+        filename = os.path.expanduser(filename)
         fd = None
         if filename == '-':
             fd = sys.stdout
@@ -315,6 +316,7 @@ def iread(filename, index=None, format=None, **kwargs):
 def _iread(filename, index, format, full_output=False, **kwargs):
     compression = None
     if isinstance(filename, str):
+        filename = os.path.expanduser(filename)
         if filename.endswith('.gz'):
             compression = 'gz'
             filename = filename[:-3]
