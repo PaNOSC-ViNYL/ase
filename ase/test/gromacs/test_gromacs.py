@@ -2,7 +2,6 @@
 
 from ase.test import NotAvailable
 from ase.calculators.gromacs import Gromacs
-import os, glob
 
 if Gromacs().get_command() is None:
     raise NotAvailable(
@@ -10,7 +9,7 @@ if Gromacs().get_command() is None:
 
 GRO_INIT_FILE = 'hise_box.gro'
 
-#write structure file
+# write structure file
 outfile = open('hise_box.gro', 'w')
 outfile.write('HISE for testing  \n')
 outfile.write('   20 \n')
@@ -38,23 +37,24 @@ outfile.write('   4.00000   4.00000   4.00000 \n')
 outfile.close()
 
 
-CALC_MM_RELAX = Gromacs(force_field='charmm27',
-    define = '-DFLEXIBLE',
-    integrator = 'cg',
-    nsteps = '10000',
-    nstfout = '10',
-    nstlog = '10',
-    nstenergy = '10',
-    nstlist = '10',
-    ns_type = 'grid',
-    pbc = 'xyz',
-    rlist = '0.7',
-    coulombtype = 'PME-Switch',
-    rcoulomb = '0.6',
-    vdwtype = 'shift',
-    rvdw = '0.6',
-    rvdw_switch = '0.55',
-    DispCorr = 'Ener')
+CALC_MM_RELAX = Gromacs(
+    force_field='charmm27',
+    define='-DFLEXIBLE',
+    integrator='cg',
+    nsteps='10000',
+    nstfout='10',
+    nstlog='10',
+    nstenergy='10',
+    nstlist='10',
+    ns_type='grid',
+    pbc='xyz',
+    rlist='0.7',
+    coulombtype='PME-Switch',
+    rcoulomb='0.6',
+    vdwtype='shift',
+    rvdw='0.6',
+    rvdw_switch='0.55',
+    DispCorr='Ener')
 CALC_MM_RELAX.set_own_params_runs(
     'init_structure', 'hise_box.gro')
 CALC_MM_RELAX.generate_topology_and_g96file()
