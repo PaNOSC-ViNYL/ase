@@ -95,8 +95,6 @@ def test(verbosity=1, calculators=[],
     tests.extend(sdirtests)  # run test subdirectories at the end
     lasttest = None  # is COCu111.py in the current set
     for test in tests:
-        if test.endswith('vtk_data.py'):
-            continue
         if test.endswith('__init__.py'):
             continue
         if test.endswith('COCu111.py'):
