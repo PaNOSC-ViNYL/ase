@@ -457,7 +457,8 @@ class PhaseDiagram:
     def plot4d(self):
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
-
+        Axes3D  # silence pyflakes
+        
         x, y, z = self.points[:, 1:-1].T
         a = x / 2 + y + z / 2
         b = 3**0.5 * (x / 2 + y / 6)

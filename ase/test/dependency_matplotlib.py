@@ -24,6 +24,7 @@ msg += "following http://matplotlib.sourceforge.net/users/installing.html."
 if locals().get('display'):
     try:
         import matplotlib
+        matplotlib  # silence pyflakes
     except ImportError:
         print(msg, file=sys.stderr)
         raise

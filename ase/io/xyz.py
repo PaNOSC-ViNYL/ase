@@ -1,4 +1,11 @@
 from ase.atoms import Atoms
+from ase.io.extxyz import read_extxyz
+
+# The simple_read_xyz() function below is for reference only.
+# We use the implementation from extxyz module, which is backwards
+# compatible with standard XYZ format
+
+read_xyz = read_extxyz
 
 
 def read_xyz(fileobj, index):
@@ -15,13 +22,6 @@ def read_xyz(fileobj, index):
             symbols.append(symbol)
             positions.append([float(x), float(y), float(z)])
         yield Atoms(symbols=symbols, positions=positions)
-
-
-# read_xyz() function above is for reference only.
-# We use the implementation from extxyz module, which is backwards
-# compatible with standard XYZ format
-from ase.io.extxyz import read_extxyz
-read_xyz = read_extxyz
 
 
 def write_xyz(fileobj, images, comment=''):

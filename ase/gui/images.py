@@ -282,8 +282,9 @@ class Images:
         ndynamic = 0
         for dyn in self.dynamic:
             if dyn: ndynamic += 1
-        S = self.selected
-        D = self.dynamic[:, np.newaxis]
+            
+        # Namespace for eval:
+        ns = {'D': self.dynamic[:, np.newaxis],}
         E = self.E
         s = 0.0
         data = []
@@ -300,7 +301,7 @@ class Images:
             ekin = self.K[i]
             e = epot + ekin
             T = 2.0 * ekin / (3.0 * ndynamic * units.kB)
-            data = eval(code)
+            data = eval(code, ns)
             if i == 0:
                 m = len(data)
                 xy = np.empty((m, n))
