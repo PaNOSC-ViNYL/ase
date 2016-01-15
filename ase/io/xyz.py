@@ -8,7 +8,7 @@ from ase.io.extxyz import read_extxyz
 read_xyz = read_extxyz
 
 
-def read_xyz(fileobj, index):
+def simple_read_xyz(fileobj, index):
     lines = fileobj.readlines()
     natoms = int(lines[0])
     nimages = len(lines) // (natoms + 2)
