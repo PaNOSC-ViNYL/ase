@@ -236,7 +236,14 @@ class BaseSiesta(FileIOCalculator):
 
         # Check the functional input.
         xc = kwargs.get('xc')
-        if xc in self.allowed_xc:
+        if isinstance(xc, (tuple, list)) and len(xc) == 2:
+            functional, authors = xc
+            if not functional in self.allowed_xc:
+                raise ValueError("Unrecognized functional keyword: '%s'" % functional)
+            if not authors in self.allowed_xc[functional]:
+                raise ValueError("Unrecognized authors keyword for %s: '%s'" % (functional, authors))
+
+        elif xc in self.allowed_xc:
             functional = xc
             authors = self.allowed_xc[xc][0]
         else:
