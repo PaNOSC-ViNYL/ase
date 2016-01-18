@@ -9,7 +9,7 @@ from ase.units import kcal, mol
 
 class MOPAC(FileIOCalculator):
     implemented_properties = ['energy', 'forces']
-    command = 'mopac PREFIX.mop'
+    command = 'mopac PREFIX.mop > /dev/null'
 
     default_parameters = dict(
         method='PM7',
@@ -43,6 +43,11 @@ class MOPAC(FileIOCalculator):
         if charge != 0:
             s += 'CHARGE={0} '.format(int(round(charge)))
         
+        magmom = int(round(abs(atoms.get_initial_magnetic_moments.sum())))
+        if magmom:
+            s += (['DOUBLET', 'TRIPLET', 'QUARTET', 'QUINTET'][magmom - 1] +
+                  ' UHF ')
+            
         s += '\nTitle: ASE calculation\n\n'
 
         # Write coordinates:
