@@ -8,7 +8,7 @@ from os.path import join, isfile, islink
 import string
 import numpy as np
 
-from ase.units import Ry, eV
+from ase.units import Ry, eV, Bohr
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
@@ -654,11 +654,16 @@ class BaseSiesta(FileIOCalculator):
             [stress[0, 0], stress[1, 1], stress[2, 2],
              stress[1, 2], stress[0, 2], stress[0, 1]])
 
+        self.results['stress'] *= Ry/Bohr**3
+
         start = 5
         self.results['forces'] = np.zeros((len(lines) - start, 3), float)
         for i in range(start, len(lines)):
             line = [s for s in lines[i].strip().split(' ') if len(s) > 0]
             self.results['forces'][i - start] = map(float, line[2:5])
+
+        self.results['forces'] *= Ry/Bohr
+
 
     def read_eigenvalues(self):
         """Read eigenvalues from the '.EIG' file.
