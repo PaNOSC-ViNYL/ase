@@ -43,7 +43,7 @@ class MOPAC(FileIOCalculator):
         if charge != 0:
             s += 'CHARGE={0} '.format(int(round(charge)))
         
-        magmom = int(round(abs(atoms.get_initial_magnetic_moments.sum())))
+        magmom = int(round(abs(atoms.get_initial_magnetic_moments().sum())))
         if magmom:
             s += (['DOUBLET', 'TRIPLET', 'QUARTET', 'QUINTET'][magmom - 1] +
                   ' UHF ')
