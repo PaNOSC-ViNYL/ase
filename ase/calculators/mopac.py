@@ -1,4 +1,12 @@
-"""This module defines an ASE interface to MOPAC."""
+"""This module defines an ASE interface to MOPAC.
+
+Set $ASE_MOPAC_COMMAND to something like::
+    
+    LD_LIBRARY_PATH=/path/to/lib/ \
+    MOPAC_LICENSE=/path/to/license \
+    /path/to/MOPAC2012.exe PREFIX.mop 2> /dev/null
+
+"""
 import os
 
 import numpy as np
@@ -9,13 +17,12 @@ from ase.units import kcal, mol
 
 class MOPAC(FileIOCalculator):
     implemented_properties = ['energy', 'forces']
-    command = 'mopac PREFIX.mop > /dev/null'
+    command = 'mopac PREFIX.mop 2> /dev/null'
 
     default_parameters = dict(
         method='PM7',
         task='1SCF GRADIENTS',
-        relscf=0.0001,
-        raw='')  # additional raw input
+        relscf=0.0001)
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='mopac', atoms=None, **kwargs):
