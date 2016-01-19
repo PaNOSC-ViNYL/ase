@@ -1,5 +1,4 @@
 from __future__ import print_function
-from ase.units import Ry, Bohr
 """This module defines an ASE interface to SIESTA.
 
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
@@ -8,8 +7,7 @@ import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
-
-from ase.units import Ry, eV
+from ase.units import Ry, eV, Bohr
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
@@ -18,6 +16,7 @@ from ase.calculators.siesta.parameters import PAOBasisBlock, Specie
 from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
+
 
 class SiestaParameters(Parameters):
     """Parameters class for the calculator.
@@ -119,7 +118,8 @@ class BaseSiesta(FileIOCalculator):
         # Setup the siesta command based on number of nodes.
         command = os.environ.get('SIESTA_COMMAND')
         if command is None:
-            raise ValueError("The 'SIESTA_COMMAND' environment is not defined.")
+            mess = "The 'SIESTA_COMMAND' environment is not defined."
+            raise ValueError(mess)
 
         label = parameters['label']
         self.label = label
@@ -129,16 +129,18 @@ class BaseSiesta(FileIOCalculator):
         try:
             command = command % (runfile, outfile)
         except TypeError:
-            raise ValueError("The 'SIESTA_COMMAND' environment must be a format string" + \
-                    " with two string arguments. \nExample : 'siesta < ./%s > ./%s'.\n" + \
-                    "Got '%s'" % command)
+            raise ValueError(
+                "The 'SIESTA_COMMAND' environment must " +
+                "be a format string" +
+                " with two string arguments.\n" +
+                "Example : 'siesta < ./%s > ./%s'.\n" +
+                "Got '%s'" % command)
 
         # Call the base class.
         FileIOCalculator.__init__(
             self,
             command=command,
             **parameters)
-
 
     def __getitem__(self, key):
         """Convenience method to retrieve a parameter as
@@ -232,9 +234,11 @@ class BaseSiesta(FileIOCalculator):
         if isinstance(xc, (tuple, list)) and len(xc) == 2:
             functional, authors = xc
             if not functional in self.allowed_xc:
-                raise ValueError("Unrecognized functional keyword: '%s'" % functional)
+                mess = "Unrecognized functional keyword: '%s'" % functional
+                raise ValueError(mess)
             if not authors in self.allowed_xc[functional]:
-                raise ValueError("Unrecognized authors keyword for %s: '%s'" % (functional, authors))
+                mess = "Unrecognized authors keyword for %s: '%s'"
+                raise ValueError(mess % (functional, authors))
 
         elif xc in self.allowed_xc:
             functional = xc
@@ -647,7 +651,7 @@ class BaseSiesta(FileIOCalculator):
             [stress[0, 0], stress[1, 1], stress[2, 2],
              stress[1, 2], stress[0, 2], stress[0, 1]])
 
-        self.results['stress'] *= Ry/Bohr**3
+        self.results['stress'] *= Ry / Bohr**3
 
         start = 5
         self.results['forces'] = np.zeros((len(lines) - start, 3), float)
@@ -655,8 +659,7 @@ class BaseSiesta(FileIOCalculator):
             line = [s for s in lines[i].strip().split(' ') if len(s) > 0]
             self.results['forces'][i - start] = map(float, line[2:5])
 
-        self.results['forces'] *= Ry/Bohr
-
+        self.results['forces'] *= Ry / Bohr
 
     def read_eigenvalues(self):
         """Read eigenvalues from the '.EIG' file.
