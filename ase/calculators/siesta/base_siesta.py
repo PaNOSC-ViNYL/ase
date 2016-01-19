@@ -1,4 +1,5 @@
 from __future__ import print_function
+from ase.units import Ry, Bohr
 """This module defines an ASE interface to SIESTA.
 
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
@@ -8,7 +9,7 @@ from os.path import join, isfile, islink
 import string
 import numpy as np
 
-from ase.units import Ry, eV, Bohr
+from ase.units import Ry, eV
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
@@ -17,7 +18,6 @@ from ase.calculators.siesta.parameters import PAOBasisBlock, Specie
 from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
-
 
 class SiestaParameters(Parameters):
     """Parameters class for the calculator.
@@ -37,10 +37,8 @@ class SiestaParameters(Parameters):
             pseudo_qualifier=None,
             pseudo_path=None,
             atoms=None,
-            n_nodes=1,
             restart=None,
             ignore_bad_restart_file=False,
-            siesta_executable=None,
             fdf_arguments=None):
         kwargs = locals()
         kwargs.pop('self')
@@ -101,7 +99,6 @@ class BaseSiesta(FileIOCalculator):
                             For hydrogen with qualifier "abc" the
                             pseudopotential "H.abc.psf" will be retrieved.
             -atoms        : The Atoms object.
-            -n_nodes      : The number of nodes to use.
             -restart      : str.  Prefix for restart file.
                             May contain a directory.
                             Default is  None, don't restart.
@@ -109,8 +106,6 @@ class BaseSiesta(FileIOCalculator):
                             Ignore broken or missing restart file.
                             By default, it is an error if the restart
                             file is missing or broken.
-            -siesta_executable : path to the siesta executable, if None the
-                            environment variable 'SIESTA' will be used.
             -fdf_arguments: Explicitly given fdf arguments. Dictonary using
                             Siesta keywords as given in the manual. List values
                             are written as fdf blocks with each element on a
@@ -122,30 +117,28 @@ class BaseSiesta(FileIOCalculator):
         parameters = self.default_parameters.__class__(**kwargs)
 
         # Setup the siesta command based on number of nodes.
-        if parameters['siesta_executable'] is None:
-            siesta = os.environ.get('SIESTA')
-            if siesta is None:
-                raise ValueError("Either define the 'SIESTA' environment " +
-                                 "variable give the 'command' keyword on " +
-                                 "initialization.")
-        else:
-            siesta = parameters['siesta_executable']
+        command = os.environ.get('SIESTA_COMMAND')
+        if command is None:
+            raise ValueError("The 'SIESTA_COMMAND' environment is not defined.")
 
         label = parameters['label']
         self.label = label
-        n_nodes = parameters['n_nodes']
 
-        if n_nodes > 1:
-            command = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'
-            command = command % (n_nodes, siesta, label, label)
-        else:
-            command = '%s < ./%s.fdf > ./%s.out' % (siesta, label, label)
+        runfile = label + '.fdf'
+        outfile = label + '.out'
+        try:
+            command = command % (runfile, outfile)
+        except TypeError:
+            raise ValueError("The 'SIESTA_COMMAND' environment must be a format string" + \
+                    " with two string arguments. \nExample : 'siesta < ./%s > ./%s'.\n" + \
+                    "Got '%s'" % command)
 
         # Call the base class.
         FileIOCalculator.__init__(
             self,
             command=command,
             **parameters)
+
 
     def __getitem__(self, key):
         """Convenience method to retrieve a parameter as
