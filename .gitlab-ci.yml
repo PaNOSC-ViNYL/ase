@@ -7,5 +7,5 @@ master:
     - echo $PWD
     - echo $PYTHONPATH
     - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python setup.py test
-    - pyflakes3 ase doc | grep -v -E "jacapo|tasks|execute.py|list comprehension redefines"
-    - test $? != 0
+    - pyflakes3 ase doc | grep -v -E "jacapo|tasks|execute.py|list comprehension redefines" | tee warnings
+    - test "$(cat warnings)" == ""
