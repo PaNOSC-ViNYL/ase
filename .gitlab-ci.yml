@@ -8,4 +8,4 @@ master:
     - echo $PYTHONPATH
     - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python setup.py test
     - pyflakes3 ase doc | grep -v -E "jacapo|tasks|execute.py|list comprehension redefines"
-    - [ $? != 0 ]
+    - test $? != 0
