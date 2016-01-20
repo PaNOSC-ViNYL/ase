@@ -101,7 +101,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
         # Probably the cluster is very flat
         if debug:
             print('First try made an empty cluster, trying again.')
-        factor = 1 / energies_sum.min()
+        factor = 1 / energies.min()
         atoms, layers = make_atoms(symbol, surfaces, energies, factor,
                                    structure, latticeconstant)
         if len(atoms) == 0:
