@@ -1,13 +1,8 @@
-from ase.data import atomic_numbers, chemical_symbols, reference_states
-from ase.units import *
-
-from . import fcc
-from . import hcp
-from . import au
+import ase.cluster.data.fcc as fcc
+import ase.cluster.data.hcp as hcp
+import ase.cluster.data.au as au
 
 lattice = {'fcc': fcc.data,
-           'hcp': hcp.data,
-          }
+           'hcp': hcp.data}
 
-element = {79: au.data, #Au
-          }
+element = {79: au.data}  # Au
