@@ -18,8 +18,10 @@ based on atomic orbital (LCAO) basis sets.
 Environment variables
 =====================
 
-The environment variable :envvar:`SIESTA` must point to the siesta
-executable to use.
+The environment variable :envvar:`SIESTA_COMMAND` must hold the command
+to invoke the siesta calculation. The variable must be a python format 
+string with exactly two string fields for the input and output files.
+Examples: "siesta < %s > %s", "mpirun -np 4 /bin/siesta3.2 < %s > %s".
 
 A default directory holding pseudopotential files :file:`.vps/.psf` can be
 defined to avoid defining this every time the calculator is used.
@@ -32,7 +34,7 @@ Set both environment variables in your shell configuration file:
 
 ::
 
-  $ export SIESTA=$SOFTWARE/siesta/siesta_2.0
+  $ export SIESTA_COMMAND="siesta < ./%s > ./%s
   $ export SIESTA_PP_PATH=$HOME/mypps
 
 .. highlight:: python

@@ -7,8 +7,7 @@ import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
-
-from ase.units import Ry, eV
+from ase.units import Ry, eV, Bohr
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
@@ -37,10 +36,8 @@ class SiestaParameters(Parameters):
             pseudo_qualifier=None,
             pseudo_path=None,
             atoms=None,
-            n_nodes=1,
             restart=None,
             ignore_bad_restart_file=False,
-            siesta_executable=None,
             fdf_arguments=None):
         kwargs = locals()
         kwargs.pop('self')
@@ -101,7 +98,6 @@ class BaseSiesta(FileIOCalculator):
                             For hydrogen with qualifier "abc" the
                             pseudopotential "H.abc.psf" will be retrieved.
             -atoms        : The Atoms object.
-            -n_nodes      : The number of nodes to use.
             -restart      : str.  Prefix for restart file.
                             May contain a directory.
                             Default is  None, don't restart.
@@ -109,8 +105,6 @@ class BaseSiesta(FileIOCalculator):
                             Ignore broken or missing restart file.
                             By default, it is an error if the restart
                             file is missing or broken.
-            -siesta_executable : path to the siesta executable, if None the
-                            environment variable 'SIESTA' will be used.
             -fdf_arguments: Explicitly given fdf arguments. Dictonary using
                             Siesta keywords as given in the manual. List values
                             are written as fdf blocks with each element on a
@@ -122,24 +116,25 @@ class BaseSiesta(FileIOCalculator):
         parameters = self.default_parameters.__class__(**kwargs)
 
         # Setup the siesta command based on number of nodes.
-        if parameters['siesta_executable'] is None:
-            siesta = os.environ.get('SIESTA')
-            if siesta is None:
-                raise ValueError("Either define the 'SIESTA' environment " +
-                                 "variable give the 'command' keyword on " +
-                                 "initialization.")
-        else:
-            siesta = parameters['siesta_executable']
+        command = os.environ.get('SIESTA_COMMAND')
+        if command is None:
+            mess = "The 'SIESTA_COMMAND' environment is not defined."
+            raise ValueError(mess)
 
         label = parameters['label']
         self.label = label
-        n_nodes = parameters['n_nodes']
 
-        if n_nodes > 1:
-            command = 'mpirun -np %d %s < ./%s.fdf > ./%s.out'
-            command = command % (n_nodes, siesta, label, label)
-        else:
-            command = '%s < ./%s.fdf > ./%s.out' % (siesta, label, label)
+        runfile = label + '.fdf'
+        outfile = label + '.out'
+        try:
+            command = command % (runfile, outfile)
+        except TypeError:
+            raise ValueError(
+                "The 'SIESTA_COMMAND' environment must " +
+                "be a format string" +
+                " with two string arguments.\n" +
+                "Example : 'siesta < ./%s > ./%s'.\n" +
+                "Got '%s'" % command)
 
         # Call the base class.
         FileIOCalculator.__init__(
@@ -236,7 +231,16 @@ class BaseSiesta(FileIOCalculator):
 
         # Check the functional input.
         xc = kwargs.get('xc')
-        if xc in self.allowed_xc:
+        if isinstance(xc, (tuple, list)) and len(xc) == 2:
+            functional, authors = xc
+            if not functional in self.allowed_xc:
+                mess = "Unrecognized functional keyword: '%s'" % functional
+                raise ValueError(mess)
+            if not authors in self.allowed_xc[functional]:
+                mess = "Unrecognized authors keyword for %s: '%s'"
+                raise ValueError(mess % (functional, authors))
+
+        elif xc in self.allowed_xc:
             functional = xc
             authors = self.allowed_xc[xc][0]
         else:
@@ -647,11 +651,15 @@ class BaseSiesta(FileIOCalculator):
             [stress[0, 0], stress[1, 1], stress[2, 2],
              stress[1, 2], stress[0, 2], stress[0, 1]])
 
+        self.results['stress'] *= Ry / Bohr**3
+
         start = 5
         self.results['forces'] = np.zeros((len(lines) - start, 3), float)
         for i in range(start, len(lines)):
             line = [s for s in lines[i].strip().split(' ') if len(s) > 0]
             self.results['forces'][i - start] = map(float, line[2:5])
+
+        self.results['forces'] *= Ry / Bohr
 
     def read_eigenvalues(self):
         """Read eigenvalues from the '.EIG' file.
