@@ -1,4 +1,3 @@
-from ase.cluster.data.fcc import *
 import numpy as np
 
 
@@ -21,7 +20,7 @@ def get_all_symmetries(symmetries=None, max=99):
                     break
 
             if not exist:
-                #print 'New added: %i x %i' % (i, j)
+                # print 'New added: %i x %i' % (i, j)
                 symmetries_all.append(v)
 
     for i, l in enumerate(symmetries):
@@ -38,10 +37,10 @@ def get_all_symmetries(symmetries=None, max=99):
                         break
 
                 if not exist:
-                    #print 'New added: %i x %i x %i' % (i, j, k)
+                    # print 'New added: %i x %i x %i' % (i, j, k)
                     symmetries_all.append(v)
 
-    #print 'There are %i symmetry operations.' % len(symmetries_all)
+    # print 'There are %i symmetry operations.' % len(symmetries_all)
     return symmetries_all
 
     

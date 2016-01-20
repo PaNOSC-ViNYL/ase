@@ -344,7 +344,6 @@ class ColorWindow(gtk.Window):
         "Use coordination as basis for the colors."
         if not hasattr(self.gui, 'coordination'):
             self.gui.toggle_show_bonds(None)
-        coords = self.gui.coordination
         if not hasattr(self, 'colordata_coordination'):
             colors = self.get_named_colors(len(named_colors))
             self.colordata_coordination = [[x, y] for x, y in

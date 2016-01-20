@@ -75,8 +75,8 @@ def atomtypes_outpot(posfname, numsyms):
             if len(at) == numsyms:
                 return at
 
-    raise IOError('Could not determine chemical symbols. Tried files '
-                  + str(tried))
+    raise IOError('Could not determine chemical symbols. Tried files ' +
+                  str(tried))
 
 
 def get_atomtypes_from_formula(formula):
@@ -423,8 +423,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                 for entry in elem.find("array[@name='atoms']/set"):
                     species.append(entry[0].text.strip())
                 natoms = len(species)
-            elif (elem.tag == 'structure'
-                    and elem.attrib.get('name') == 'initialpos'):
+            elif (elem.tag == 'structure' and
+                  elem.attrib.get('name') == 'initialpos'):
                 cell_init = np.zeros((3, 3), dtype=float)
 
                 for i, v in enumerate(elem.find(
@@ -443,12 +443,12 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
                 for i, entry in enumerate(elem.findall(
                         "varray[@name='selective']/v")):
-                    flags = (np.array(entry.text.split()
-                                == np.array(['F', 'F', 'F'])))
+                    flags = (np.array(entry.text.split() ==
+                                      np.array(['F', 'F', 'F'])))
                     if flags.all():
                         fixed_indices.append(i)
                     elif flags.any():
-                        constraints.append(FixScaled(cell, i, flags))
+                        constraints.append(FixScaled(cell_init, i, flags))
 
                 if fixed_indices:
                     constraints.append(FixAtoms(fixed_indices))
@@ -482,8 +482,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         # apply that correction to e_fr_energy from calculation/energy.
         lastscf = step.findall('scstep/energy')[-1]
 
-        de = (float(lastscf.find('i[@name="e_0_energy"]').text)
-                - float(lastscf.find('i[@name="e_fr_energy"]').text))
+        de = (float(lastscf.find('i[@name="e_0_energy"]').text) -
+              float(lastscf.find('i[@name="e_fr_energy"]').text))
 
         energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
 
@@ -502,14 +502,16 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if fblocks is not None:
             forces = np.zeros((natoms, 3), dtype=float)
             for i, vector in enumerate(fblocks):
-                forces[i] = np.array([float(val) for val in vector.text.split()])
+                forces[i] = np.array([float(val)
+                                      for val in vector.text.split()])
 
         stress = None
         sblocks = step.find('varray[@name="stress"]')
         if sblocks is not None:
             stress = np.zeros((3, 3), dtype=float)
             for i, vector in enumerate(sblocks):
-                stress[i] = np.array([float(val) for val in vector.text.split()])
+                stress[i] = np.array([float(val)
+                                      for val in vector.text.split()])
             stress *= -0.1 * GPa
             stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
@@ -518,7 +520,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointCalculator(atoms, energy=energy, forces=forces,
-                        stress=stress))
+                                  stress=stress))
         yield atoms
 
 

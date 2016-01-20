@@ -6,8 +6,6 @@ import time
 from math import sqrt
 from os.path import isfile
 
-import numpy as np
-
 from ase.parallel import rank, barrier
 from ase.io.trajectory import Trajectory
 import collections

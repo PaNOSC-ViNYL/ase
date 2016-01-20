@@ -2,7 +2,7 @@ from ase.ga.data import PrepareDB
 from ase.ga.data import DataConnection
 from ase.ga.startgenerator import StartGenerator
 from ase.ga.utilities import closest_distances_generator
-from ase.ga import get_raw_score, set_raw_score
+from ase.ga import set_raw_score
 import os
 import numpy as np
 from ase.lattice.surface import fcc111
