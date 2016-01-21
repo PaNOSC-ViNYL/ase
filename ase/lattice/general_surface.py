@@ -5,7 +5,7 @@ from ase.utils import gcd
 from ase.lattice.bulk import bulk
 
 
-def surface(lattice, indices, layers, vacuum=0.0, tol=1e-10):
+def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
     """Create surface from a given lattice and Miller indices.
     
     lattice: Atoms object or str
@@ -60,7 +60,8 @@ def surface(lattice, indices, layers, vacuum=0.0, tol=1e-10):
         c3 = (b, a * p, a * q)
 
     surf = build(lattice, np.array([c1, c2, c3]), layers, tol)
-    surf.center(vacuum=vacuum, axis=2)
+    if vacuum is not None:
+        surf.center(vacuum=vacuum, axis=2)
     return surf
 
 
