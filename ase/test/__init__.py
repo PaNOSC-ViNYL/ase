@@ -227,3 +227,24 @@ class CPU:
                     self.send(x, rank)
         else:
             self.receive(x, root)
+
+            
+if __name__ == '__main__':
+    # Run pyflakes3 on all code in ASE:
+    try:
+        output = subprocess.check_output(['pyflakes3', 'ase', 'doc'])
+    except subprocess.CalledProcessError as ex:
+        output = ex.output.decode()
+
+    lines = []
+    for line in output.splitlines():
+        # Ignore these:
+        for txt in ['jacapo', 'tasks', 'execute.py',
+                    'list comprehension redefines']:
+            if txt in line:
+                break
+        else:
+            lines.append(line)
+    if lines:
+        print('\n'.join(lines))
+        sys.exit(1)
