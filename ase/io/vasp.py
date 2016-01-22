@@ -266,7 +266,7 @@ def read_vasp_out(filename='OUTCAR', index=-1):
                     temp = temp[0:temp.find(c)]
             species += [temp]
         if 'ions per type' in line:
-            species = species[:len(species) / 2]
+            species = species[:len(species) // 2]
             temp = line.split()
             for ispecies in range(len(species)):
                 species_num += [int(temp[ispecies + 4])]

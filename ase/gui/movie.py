@@ -47,7 +47,7 @@ class Movie(gtk.Window):
         pack(vbox, [play, stop, gtk.Label('  '), self.rock])
 
         if gui.images.nimages > 150:
-            skipdefault = gui.images.nimages / 150
+            skipdefault = gui.images.nimages // 150
             tdefault = min(max(gui.images.nimages / (skipdefault * 5.0),
                                1.0), 30)
         else:

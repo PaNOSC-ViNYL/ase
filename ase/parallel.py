@@ -223,4 +223,4 @@ def distribute_cpus(size, comm):
     ranks = np.arange(r0, r0 + size)
     mycomm = comm.new_communicator(ranks)
 
-    return mycomm, comm.size / size, tasks_rank
+    return mycomm, comm.size // size, tasks_rank
