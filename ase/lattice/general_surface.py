@@ -104,4 +104,4 @@ def ext_gcd(a, b):
         return 0, 1
     else:
         x, y = ext_gcd(b, a % b)
-        return y, x - y * (a / b)
+        return y, x - y * (a // b)

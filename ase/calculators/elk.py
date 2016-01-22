@@ -356,7 +356,7 @@ class ELK(FileIOCalculator):
                 nbands = int(line.split(':')[0].strip())
                 break
         if self.get_spin_polarized():
-            nbands = nbands / 2
+            nbands = nbands // 2
         return nbands
 
     def read_number_of_electrons(self):
@@ -413,7 +413,7 @@ class ELK(FileIOCalculator):
                 kpts = int(line.split(':')[0].strip())
                 break
         assert not kpts is None
-        text = lines[3:] # remove first 3 lines
+        text = lines[3:]  # remove first 3 lines
         # find the requested k-point
         beg = 2 + (nstsv + 4) * kpt
         end = beg + nstsv
@@ -421,16 +421,16 @@ class ELK(FileIOCalculator):
             # elk prints spin-up and spin-down together
             if spin == 0:
                 beg = beg
-                end = beg + nstsv / 2
+                end = beg + nstsv // 2
             else:
-                beg = beg + nstsv / 2
+                beg = beg + nstsv // 2
                 end = end
         values = []
         for line in text[beg:end]:
             b = [float(c.strip()) for c in line.split()[1:]]
             values.append(b)
         if mode == 'eigenvalues':
-            values = [Hartree*v[0] for v in values]
+            values = [Hartree * v[0] for v in values]
         else:
             values = [v[1] for v in values]
         if len(values) == 0:
@@ -440,10 +440,10 @@ class ELK(FileIOCalculator):
     def read_fermi(self):
         """Method that reads Fermi energy in Hartree from the output file
         and returns it in eV"""
-        E_f=None
+        E_f = None
         text = open(self.out).read().lower()
         for line in iter(text.split('\n')):
             if line.rfind('fermi                       :') > -1:
                 E_f = float(line.split(':')[1].strip())
-        E_f = E_f*Hartree
+        E_f = E_f * Hartree
         return E_f

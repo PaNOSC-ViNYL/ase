@@ -33,9 +33,9 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     else:
         ndr = nd
 
-    nr = (2 * m + n) / ndr
-    ns = -(2 * n + m) / ndr
-    nn = 2 * l2 / ndr
+    nr = (2 * m + n) // ndr
+    ns = -(2 * n + m) // ndr
+    nn = 2 * l2 // ndr
 
     ichk = 0
     if nr == 0:

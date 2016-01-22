@@ -1606,7 +1606,7 @@ class VaspChargeDensity(object):
         # CHG format - 10 columns
         if format.lower() == 'chg':
             # Write all but the last row
-            for ii in range((len(chgtmp) - 1) / 10):
+            for ii in range((len(chgtmp) - 1) // 10):
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
  %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii * 10:(ii + 1) * 10]
                            )
@@ -1623,7 +1623,7 @@ class VaspChargeDensity(object):
         # Other formats - 5 columns
         else:
             # Write all but the last row
-            for ii in range((len(chgtmp) - 1) / 5):
+            for ii in range((len(chgtmp) - 1) // 5):
                 fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n'
                            % chgtmp[ii * 5:(ii + 1) * 5])
             # If the last row contains 5 values then write them without a

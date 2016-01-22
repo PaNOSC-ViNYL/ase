@@ -103,8 +103,8 @@ class TransportCalculator:
                                  'logfile': None,
                                  'eigenchannels': 0,
                                  'dos': False,
-                                 'pdos': [],
-                                 }
+                                 'pdos': []}
+
         self.initialized = False  # Changed Hamiltonians?
         self.uptodate = False  # Changed energy grid?
         self.set(**kwargs)
@@ -128,8 +128,10 @@ class TransportCalculator:
             class Trash:
                 def write(self, s):
                     pass
+                    
                 def flush(self):
                     pass
+                    
             self.log = Trash()
         elif log == '-':
             from sys import stdout
@@ -149,22 +151,21 @@ class TransportCalculator:
         
         identical_leads = False
         if p['h2'] == None:
-            p['h2'] = p['h1'] # Lead2 is idendical to lead1
+            p['h2'] = p['h1']  # Lead2 is idendical to lead1
             identical_leads = True
  
         if p['s1'] == None:
             p['s1'] = np.identity(len(p['h1']))
        
         if p['s2'] == None and not identical_leads:
-            p['s2'] = np.identity(len(p['h2'])) # Orthonormal basis for lead 2
-        else: # Lead2 is idendical to lead1
+            p['s2'] = np.identity(len(p['h2']))  # Orthonormal basis for lead 2
+        else:  # Lead2 is idendical to lead1
             p['s2'] = p['s1']
-
            
         h_mm = p['h']
         s_mm = p['s']
-        pl1 = len(p['h1']) / 2
-        pl2 = len(p['h2']) / 2
+        pl1 = len(p['h1']) // 2
+        pl2 = len(p['h2']) // 2
         h1_ii = p['h1'][:pl1, :pl1]
         h1_ij = p['h1'][:pl1, pl1:2 * pl1]
         s1_ii = p['s1'][:pl1, :pl1]
@@ -206,10 +207,11 @@ class TransportCalculator:
                 p['sc2'] = s2_im
 
         align_bf = p['align_bf']
-        if align_bf != None:
-            diff = (h_mm[align_bf, align_bf] - h1_ii[align_bf, align_bf]) \
-                   / s_mm[align_bf, align_bf]
-            print('# Aligning scat. H to left lead H. diff=', diff, file=self.log)
+        if align_bf is not None:
+            diff = ((h_mm[align_bf, align_bf] - h1_ii[align_bf, align_bf]) /
+                    s_mm[align_bf, align_bf])
+            print('# Aligning scat. H to left lead H. diff=', diff,
+                  file=self.log)
             h_mm -= diff * s_mm
 
         # Setup lead self-energies
@@ -230,7 +232,7 @@ class TransportCalculator:
                 BoxProbe(eta=box[0], a=box[1], b=box[2], energies=box[3],
                          S=s_mm, T=0.3))
         
-        #setup scattering green function
+        # setup scattering green function
         self.greenfunction = GreenFunction(selfenergies=self.selfenergies,
                                            H=h_mm,
                                            S=s_mm,
@@ -283,7 +285,7 @@ class TransportCalculator:
 
     def print_pl_convergence(self):
         self.initialize()
-        pl1 = len(self.input_parameters['h1']) / 2
+        pl1 = len(self.input_parameters['h1']) // 2
         
         h_ii = self.selfenergies[0].h_ii
         s_ii = self.selfenergies[0].s_ii
@@ -295,7 +297,7 @@ class TransportCalculator:
 
     def plot_pl_convergence(self):
         self.initialize()
-        pl1 = len(self.input_parameters['h1']) / 2
+        pl1 = len(self.input_parameters['h1']) // 2
         hlead = self.selfenergies[0].h_ii.real.diagonal()
         hprincipal = self.greenfunction.H.real.diagonal[:pl1]
 
@@ -374,10 +376,10 @@ class TransportCalculator:
         rot_mm = np.dot(rot_mm / np.sqrt(eig), dagger(rot_mm))
         if apply:
             self.uptodate = False
-            h_mm[:] = rotate_matrix(h_mm, rot_mm) # rotate C region
+            h_mm[:] = rotate_matrix(h_mm, rot_mm)  # rotate C region
             s_mm[:] = rotate_matrix(s_mm, rot_mm)
             for alpha, sigma in enumerate(self.selfenergies):
-                sigma.h_im[:] = np.dot(sigma.h_im, rot_mm) # rotate L-C coupl.
+                sigma.h_im[:] = np.dot(sigma.h_im, rot_mm)  # rotate L-C coupl.
                 sigma.s_im[:] = np.dot(sigma.s_im, rot_mm)
 
         return rot_mm
@@ -392,17 +394,17 @@ class TransportCalculator:
             s_mm = self.greenfunction.S
             s_s_i, s_s_ii = linalg.eig(s_mm)
             s_s_i = np.abs(s_s_i)
-            s_s_sqrt_i = np.sqrt(s_s_i) # sqrt of eigenvalues
+            s_s_sqrt_i = np.sqrt(s_s_i)  # sqrt of eigenvalues
             s_s_sqrt_ii = np.dot(s_s_ii * s_s_sqrt_i, dagger(s_s_ii))
             s_s_isqrt_ii = np.dot(s_s_ii / s_s_sqrt_i, dagger(s_s_ii))
 
-        lambdab_r_ii = np.dot(np.dot(s_s_isqrt_ii, lambda_r_ii),s_s_isqrt_ii)
+        lambdab_r_ii = np.dot(np.dot(s_s_isqrt_ii, lambda_r_ii), s_s_isqrt_ii)
         a_l_ii = np.dot(np.dot(g_s_ii, lambda_l_ii), dagger(g_s_ii))
         ab_l_ii = np.dot(np.dot(s_s_sqrt_ii, a_l_ii), s_s_sqrt_ii)
         lambda_i, u_ii = linalg.eig(ab_l_ii)
         ut_ii = np.sqrt(lambda_i / (2.0 * np.pi)) * u_ii
-        m_ii = 2 * np.pi * np.dot(np.dot(dagger(ut_ii), lambdab_r_ii),ut_ii)
-        T_i,c_in = linalg.eig(m_ii)
+        m_ii = 2 * np.pi * np.dot(np.dot(dagger(ut_ii), lambdab_r_ii), ut_ii)
+        T_i, c_in = linalg.eig(m_ii)
         T_i = np.abs(T_i)
         
         channels = np.argsort(-T_i)[:nchan]

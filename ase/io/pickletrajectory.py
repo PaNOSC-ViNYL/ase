@@ -396,7 +396,7 @@ class PickleTrajectory:
                         try:
                             pickle.load(self.fd)
                         except:
-                            m = m / 2
+                            m = m // 2
                         else:
                             for i in range(m):
                                 self.offsets.append(self.offsets[-1] + step1)
