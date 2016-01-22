@@ -2,7 +2,7 @@
 
 """Resonant Raman intensities"""
 
-from __future__ import print_function
+from __future__ import print_function, division
 import pickle
 import os
 import sys
@@ -161,7 +161,7 @@ class ResonantRaman(Vibrations):
         return self.get_intensity_tensor(omega, gamma).sum(axis=1).sum(axis=1)
 
     def get_spectrum(self, omega, gamma=0.1,
-                     start=200, end=4000, npts=None, width=4,
+                     start=200.0, end=4000.0, npts=None, width=4.0,
                      type='Gaussian', method='standard', direction='central',
                      intensity_unit='????', normalize=False):
         """Get resonant Raman spectrum.
@@ -178,7 +178,7 @@ class ResonantRaman(Vibrations):
         assert self.type in ['gaussian', 'lorentzian']
 
         if not npts:
-            npts = (end - start) / width * 10 + 1
+            npts = int((end - start) / width * 10 + 1)
         frequencies = self.get_frequencies(method, direction).real
         intensities = self.get_intensities(omega, gamma)
         prefactor = 1
@@ -190,20 +190,19 @@ class ResonantRaman(Vibrations):
             sigma = width / 2. / np.sqrt(2. * np.log(2.))
             if normalize:
                 prefactor = 1. / sigma / np.sqrt(2 * np.pi)
-        #Make array with spectrum data
-        spectrum = np.empty(npts, np.float)
-        energies = np.empty(npts, np.float)
-        ediff = (end - start) / float(npts - 1)
-        energies = np.arange(start, end + ediff / 2, ediff)
+        # Make array with spectrum data
+        spectrum = np.empty(npts)
+        energies = np.linspace(start, end, npts)
         for i, energy in enumerate(energies):
             energies[i] = energy
             if type == 'lorentzian':
-                spectrum[i] = (intensities * 0.5 * width / np.pi / (
-                        (frequencies - energy)**2 + 0.25 * width**2)).sum()
+                spectrum[i] = (intensities * 0.5 * width / np.pi /
+                               ((frequencies - energy)**2 +
+                                0.25 * width**2)).sum()
             else:
                 spectrum[i] = (intensities *
                                np.exp(-(frequencies - energy)**2 /
-                                       2. / sigma**2)).sum()
+                                      2. / sigma**2)).sum()
         return [energies, prefactor * spectrum]
 
     def write_spectrum(self, omega, gamma,
@@ -224,7 +223,7 @@ class ResonantRaman(Vibrations):
                                                start, end, npts, width,
                                                type, method, direction)
 
-        #Write out spectrum in file. First column is absolute intensities.
+        # Write out spectrum in file. First column is absolute intensities.
         outdata = np.empty([len(energies), 3])
         outdata.T[0] = energies
         outdata.T[1] = spectrum

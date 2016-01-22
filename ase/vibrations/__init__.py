@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-
 """Vibrational modes."""
+from __future__ import division
 
 import pickle
 from math import sin, pi, sqrt, log
@@ -129,8 +129,8 @@ class Vibrations:
                         filename = ('%s.%d%s%s.pckl' %
                                     (self.name, a, 'xyz'[i],
                                      ndis * ' +-'[sign]))
-                        if (isfile(filename) and getsize(filename) == 0
-                            and rank == 0):
+                        if (isfile(filename) and getsize(filename) == 0 and
+                            rank == 0):
                             remove(filename)
                         fd = opencew(filename)
                         if fd is not None:
@@ -269,7 +269,7 @@ class Vibrations:
         write = log.write
 
         s = 0.01 * units._e / units._c / units._hplanck
-        if freq != None:
+        if freq is not None:
             hnu = freq / s
         else:
             hnu = self.get_energies(method, direction)
@@ -304,7 +304,7 @@ class Vibrations:
     def write_mode(self, n=None, kT=units.kB * 300, nimages=30):
         """Write mode number n to trajectory file. If n is not specified,
         writes all non-zero modes."""
-        if n == None:
+        if n is None:
             for index, energy in enumerate(self.get_energies()):
                 if abs(energy) > 1e-5:
                     self.write_mode(n=index, kT=kT, nimages=nimages)
@@ -348,7 +348,7 @@ class Vibrations:
         fd.close()
 
     def fold(self, frequencies, intensities,
-             start=800, end=4000, npts=None, width=4,
+             start=800.0, end=4000.0, npts=None, width=4.0,
              type='Gaussian', normalize=False):
         """Fold frequencies and intensities within the given range
         and folding method (Gaussian/Lorentzian).
@@ -360,7 +360,7 @@ class Vibrations:
         self.type = type.lower()
         assert self.type in ['gaussian', 'lorentzian']
         if not npts:
-            npts = (end - start) / width * 10 + 1
+            npts = int((end - start) / width * 10 + 1)
         prefactor = 1
         if type == 'lorentzian':
             intensities = intensities * width * pi / 2.
@@ -372,19 +372,18 @@ class Vibrations:
                 prefactor = 1. / sigma / sqrt(2 * pi)
 
         # Make array with spectrum data
-        spectrum = np.empty(npts,np.float)
-        energies = np.empty(npts,np.float)
-        ediff = (end - start) / float(npts - 1)
-        energies = np.arange(start, end + ediff / 2, ediff)
+        spectrum = np.empty(npts)
+        energies = np.linspace(start, end, npts)
         for i, energy in enumerate(energies):
             energies[i] = energy
             if type == 'lorentzian':
-                spectrum[i] = (intensities * 0.5 * width / pi / (
-                        (frequencies - energy)**2 + 0.25 * width**2)).sum()
+                spectrum[i] = (intensities * 0.5 * width / pi /
+                               ((frequencies - energy)**2 +
+                                0.25 * width**2)).sum()
             else:
                 spectrum[i] = (intensities *
                                np.exp(-(frequencies - energy)**2 /
-                                       2. / sigma**2)).sum()
+                                      2. / sigma**2)).sum()
         return [energies, prefactor * spectrum]
 
     def write_dos(self, out='vib-dos.dat', start=800, end=4000,
@@ -399,7 +398,7 @@ class Vibrations:
         frequencies = self.get_frequencies(method, direction).real
         intensities = np.ones(len(frequencies))
         energies, spectrum = self.fold(frequencies, intensities,
-                         start, end, npts, width, type)
+                                       start, end, npts, width, type)
 
         # Write out spectrum in file.
         outdata = np.empty([len(energies), 2])
@@ -412,4 +411,3 @@ class Vibrations:
             fd.write('%.3f  %15.5e\n' %
                      (row[0], row[1]))
         fd.close()
-
