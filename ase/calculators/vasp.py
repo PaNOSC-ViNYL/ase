@@ -1458,6 +1458,20 @@ class Vasp(Calculator):
 
         self.input_params['xc'] = xc_dict[xc_flag]
 
+    def read_vib_freq(self):
+        freq=[]
+        i_freq=[]
+        file = open('OUTCAR', 'r')
+        lines = file.readlines()
+        file.close()
+        for line in lines:
+            data = line.split()
+            if 'THz' in data and 'f/i=' not in data:
+                freq.append(float(data[-2]))
+            elif 'THz' in data and 'f/i=' in data:
+                i_freq.append(float(data[-2]))
+        return freq, i_freq
+
     def get_nonselfconsistent_energies(self, bee_type):
         """ Method that reads and returns BEE energy contributions
             written in OUTCAR file.
