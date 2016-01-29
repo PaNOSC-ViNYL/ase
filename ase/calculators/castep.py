@@ -1759,6 +1759,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
             pattern = r'((?<=^ )[A-Z_]{2,}|(?<=^)[A-Z_]{2,})'
         else:
             pattern = r'((?<=^ )[A-Z_\d]{2,}|(?<=^)[A-Z_\d]{2,})'
+
         raw_options = re.findall(pattern, help_all, re.MULTILINE)
     except:
         print('Problem parsing: %s' % help_all)
@@ -2174,6 +2175,7 @@ def shell_stdouterr(raw_command):
     stdout, stderr = subprocess.Popen(raw_command,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
+                                      universal_newlines=True,
                                       shell=True).communicate()
     return stdout.strip(), stderr.strip()
 
