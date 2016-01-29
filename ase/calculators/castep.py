@@ -1496,7 +1496,7 @@ End CASTEP Interface Documentation
             self.__setattr__(key, value)
 
         if _close:
-            param.close()
+            param_file.close()
 
 
     def dryrun_ok(self, dryrun_flag='-dryrun'):
