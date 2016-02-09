@@ -1867,18 +1867,16 @@ class xdat2traj:
             self.poscar = 'POSCAR'
         else:
             self.poscar = poscar
+
         if not atoms:
+            # This reads the atoms sorted the way VASP wants
             self.atoms = ase.io.read(self.poscar, format='vasp')
+            resort_reqd = True
         else:
+            # Assume if we pass atoms that it is sorted the way we want
             self.atoms = atoms
-        if not xdatcar:
-            self.xdatcar = 'XDATCAR'
-        else:
-            self.xdatcar = xdatcar
-        if not trajectory:
-            self.trajectory = 'out.traj'
-        else:
-            self.trajectory = trajectory
+            resort_reqd = False
+
         if not calc:
             self.calc = Vasp()
         else:
@@ -1891,9 +1889,24 @@ class xdat2traj:
         self.calc.resort = list(range(len(self.calc.sort)))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
+
+        if not xdatcar:
+            self.xdatcar = 'XDATCAR'
+        else:
+            self.xdatcar = xdatcar
+
+        if not trajectory:
+            self.trajectory = 'out.traj'
+        else:
+            self.trajectory = trajectory
+
         self.out = ase.io.trajectory.Trajectory(self.trajectory,
                                                 mode='w')
+
+        if resort_reqd:
+            self.atoms = self.atoms[self.calc.resort]
         self.energies = self.calc.read_energy(all=True)[1]
+        # Forces are read with the atoms sorted using resort
         self.forces = self.calc.read_forces(self.atoms, all=True)
 
     def convert(self):
@@ -1914,7 +1927,9 @@ class xdat2traj:
                 if step == 0:
                     self.out.write_header(self.atoms[self.calc.resort])
                 scaled_pos = np.array(scaled_pos)
-                self.atoms.set_scaled_positions(scaled_pos)
+                # Now resort the positions to match self.atoms
+                self.atoms.set_scaled_positions(scaled_pos[self.calc.resort])
+
                 calc = SinglePointCalculator(self.atoms,
                                              energy=self.energies[step],
                                              forces=self.forces[step])
@@ -1933,7 +1948,7 @@ class xdat2traj:
         # I'm sure there is also more clever fix...
         if step == 0:
             self.out.write_header(self.atoms[self.calc.resort])
-        scaled_pos = np.array(scaled_pos)
+        scaled_pos = np.array(scaled_pos)[self.calc.resort]
         self.atoms.set_scaled_positions(scaled_pos)
         calc = SinglePointCalculator(self.atoms,
                                      energy=self.energies[step],
