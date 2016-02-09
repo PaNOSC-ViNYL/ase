@@ -1,4 +1,3 @@
-import sys
 import psycopg2
 
 from ase.db.sqlite import init_statements, index_statements, VERSION
@@ -86,7 +85,7 @@ class PostgreSQLDatabase(SQLite3Database):
         return int(id)
 
 
-def reset():
+def reset(pw='ase'):
     con = psycopg2.connect(database='postgres', user='postgres')
     cur = con.cursor()
 
@@ -95,10 +94,6 @@ def reset():
         cur.execute('DROP TABLE %s CASCADE' % ', '.join(all_tables))
         cur.execute('DROP TABLE information CASCADE')
         cur.execute('DROP ROLE ase')
-    if len(sys.argv) == 2:
-        pw = sys.argv[1]
-    else:
-        pw = 'ase'
     cur.execute("CREATE ROLE ase LOGIN PASSWORD %s", (pw,))
     con.commit()
 
@@ -129,4 +124,8 @@ if __name__ == '__main__':
     # su - postgres
     # psql -d postgres -U postgres -c "create role ase login password 'ase';"
     # PYTHONPATH=/path/to/ase python -m ase.db.postgresql
-    reset()
+    from sys import argv
+    if len(argv) == 2:
+        reset(argv[1])
+    else:
+        reset()
