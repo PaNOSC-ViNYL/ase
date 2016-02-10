@@ -29,6 +29,13 @@ class TIP3P(Calculator):
     pcpot = None
     
     def __init__(self, rc=5.0, width=1.0):
+        """TIP3P potential.
+        
+        rc: float
+            Cutoff radius for Coulomb part.
+        width: float
+            Width for cutoff function for Coulomb part.
+        """
         self.rc = rc
         self.width = width
         Calculator.__init__(self)
