@@ -33,6 +33,7 @@ special = {'cp2k': 'CP2K',
            'lammps': 'LAMMPS',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
+           'mopac': 'MOPAC',
            'morse': 'MorsePotential',
            'nwchem': 'NWChem',
            'tip3p': 'TIP3P'}

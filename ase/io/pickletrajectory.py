@@ -19,8 +19,11 @@ except NameError:
     class WindowsError(OSError):
         pass
 
-from ase.calculators.singlepoint import SinglePointCalculator, all_properties
+import numpy as np
+
 from ase.atoms import Atoms
+from ase.calculators.singlepoint import SinglePointCalculator, all_properties
+from ase.constraints import FixAtoms
 from ase.parallel import rank, barrier
 from ase.utils import devnull, basestring
 
@@ -85,8 +88,9 @@ class PickleTrajectory:
         self.sanitycheck = True
         self.pre_observers = []  # Callback functions before write
         self.post_observers = []  # Callback functions after write
-        self.write_counter = 0  # Counter used to determine when callbacks
-                                # are called
+
+        # Counter used to determine when callbacks are called:
+        self.write_counter = 0
 
         self.offsets = []
         if master is None:
@@ -392,7 +396,7 @@ class PickleTrajectory:
                         try:
                             pickle.load(self.fd)
                         except:
-                            m = m / 2
+                            m = m // 2
                         else:
                             for i in range(m):
                                 self.offsets.append(self.offsets[-1] + step1)
@@ -555,7 +559,12 @@ def dict2constraints(d):
         return d['constraints']
     elif version in (2, 3):
         try:
-            return pickle.loads(d['constraints_string'])
+            constraints = pickle.loads(d['constraints_string'])
+            for c in constraints:
+                if isinstance(c, FixAtoms) and c.index.dtype == bool:
+                    # Special handling of old pickles:
+                    c.index = np.arange(len(c.index))[c.index]
+            return constraints
         except (AttributeError, KeyError, EOFError, ImportError):
             warnings.warn('Could not unpickle constraints!')
             return []
@@ -641,6 +650,6 @@ def print_trajectory_info(filename):
         else:
             print(('Trajectory appears to contain approximately %d frames,' %
                   nframes))
-            print(('but the file size differs by %d bytes from the expected' %
-                  -offset))
+            print('but the file size differs by %d bytes from the expected' %
+                  (-offset))
             print('value.')

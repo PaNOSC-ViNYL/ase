@@ -28,22 +28,22 @@ class InfraRed(Vibrations):
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
 
-    The calculator object (calc) linked to the Atoms object (atoms) must 
+    The calculator object (calc) linked to the Atoms object (atoms) must
     have the attribute:
     
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in the ``Vibrations`` class
     the ``InfraRed`` class introduces two new methods;
-    *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*, 
+    *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*,
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
     method='Frederiksen' to use the method described in:
 
       T. Frederiksen, M. Paulsson, M. Brandbyge, A. P. Jauho:
       "Inelastic transport theory from first-principles: methodology
-      and applications for nanoscale devices", 
-      Phys. Rev. B 75, 205413 (2007) 
+      and applications for nanoscale devices",
+      Phys. Rev. B 75, 205413 (2007)
 
     atoms: Atoms object
         The atoms to work on.
@@ -59,8 +59,8 @@ class InfraRed(Vibrations):
         supported. Default is 2 which will displace each atom +delta
         and -delta in each cartesian direction.
     directions: list of int
-        Cartesian coordinates to calculate the gradient 
-        of the dipole moment in. 
+        Cartesian coordinates to calculate the gradient
+        of the dipole moment in.
         For example directions = 2 only dipole moment in the z-direction will
         be considered, whereas for directions = [0, 1] only the dipole
         moment in the xy-plane will be considered. Default behavior is to
@@ -102,7 +102,7 @@ class InfraRed(Vibrations):
 
 
 
-    This interface now also works for calculator 'siesta', 
+    This interface now also works for calculator 'siesta',
     (added get_dipole_moment for siesta).
 
     Example:
@@ -142,7 +142,7 @@ class InfraRed(Vibrations):
 
 
     """
-    def __init__(self, atoms, indices=None, name='ir', delta=0.01, 
+    def __init__(self, atoms, indices=None, name='ir', delta=0.01,
                  nfree=2, directions=None):
         assert nfree in [2, 4]
         self.atoms = atoms
@@ -175,7 +175,7 @@ class InfraRed(Vibrations):
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero] = pickle.load(open(name))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
-        self.force_zero = max([sum((forces_zero[j])**2)**0.5 
+        self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
 
         ndof = 3 * len(self.indices)
@@ -204,7 +204,7 @@ class InfraRed(Vibrations):
                 if self.nfree == 4:
                     H[r] = (-fminusminus + 8 * fminus - 8 * fplus +
                             fplusplus)[self.indices].ravel() / 12.0
-                    dpdx[r] = (-dplusplus + 8 * dplus - 8 * dminus + 
+                    dpdx[r] = (-dplusplus + 8 * dplus - 8 * dminus +
                                dminusminus) / 6.0
                 H[r] /= 2 * self.delta
                 dpdx[r] /= 2 * self.delta
@@ -223,8 +223,8 @@ class InfraRed(Vibrations):
         self.modes = modes.T.copy()
 
         # Calculate intensities
-        dpdq = np.array([dpdx[j] / sqrt(m[self.indices[j / 3]] * 
-                                        units._amu / units._me) 
+        dpdq = np.array([dpdx[j] / sqrt(m[self.indices[j // 3]] *
+                                        units._amu / units._me)
                          for j in range(ndof)])
         dpdQ = np.dot(dpdq.T, modes)
         dpdQ = dpdQ.T
@@ -246,7 +246,7 @@ class InfraRed(Vibrations):
             raise RuntimeError('Intensity unit >' + intensity_unit +
                                '< unknown.')
 
-    def summary(self, method='standard', direction='central', 
+    def summary(self, method='standard', direction='central',
                 intensity_unit='(D/A)2/amu', log=stdout):
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
@@ -270,27 +270,27 @@ class InfraRed(Vibrations):
             else:
                 c = ' '
                 e = e.real
-            parprint(('%3d %6.1f%s  %7.1f%s  ' + iu_format) % 
+            parprint(('%3d %6.1f%s  %7.1f%s  ' + iu_format) %
                      (n, 1000 * e, c, s * e, c, iu * self.intensities[n]),
                      file=log)
         parprint('-------------------------------------', file=log)
-        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(), 
+        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
                 file=log)
         parprint('Static dipole moment: %.3f D' % self.dipole_zero, file=log)
-        parprint('Maximum force on atom in `equilibrium`: %.4f eV/Å' % 
+        parprint('Maximum force on atom in `equilibrium`: %.4f eV/Å' %
                   self.force_zero, file=log)
         parprint(file=log)
 
-    def get_spectrum(self, start=800, end=4000, npts=None, width=4, 
-                     type='Gaussian', method='standard', direction='central', 
+    def get_spectrum(self, start=800, end=4000, npts=None, width=4,
+                     type='Gaussian', method='standard', direction='central',
                      intensity_unit='(D/A)2/amu', normalize=False):
         """Get infrared spectrum.
 
-        The method returns wavenumbers in cm^-1 with corresponding 
+        The method returns wavenumbers in cm^-1 with corresponding
         absolute infrared intensity.
-        Start and end point, and width of the Gaussian/Lorentzian should 
+        Start and end point, and width of the Gaussian/Lorentzian should
         be given in cm^-1.
-        normalize=True ensures the integral over the peaks to give the 
+        normalize=True ensures the integral over the peaks to give the
         intensity.
         """
         frequencies = self.get_frequencies(method, direction).real
@@ -298,23 +298,23 @@ class InfraRed(Vibrations):
         return self.fold(frequencies, intensities,
                          start, end, npts, width, type, normalize)
 
-    def write_spectra(self, out='ir-spectra.dat', start=800, end=4000, 
-                      npts=None, width=10, 
-                      type='Gaussian', method='standard', direction='central', 
+    def write_spectra(self, out='ir-spectra.dat', start=800, end=4000,
+                      npts=None, width=10,
+                      type='Gaussian', method='standard', direction='central',
                       intensity_unit='(D/A)2/amu', normalize=False):
         """Write out infrared spectrum to file.
 
-        First column is the wavenumber in cm^-1, the second column the 
+        First column is the wavenumber in cm^-1, the second column the
         absolute infrared intensities, and
-        the third column the absorbance scaled so that data runs 
-        from 1 to 0. Start and end 
-        point, and width of the Gaussian/Lorentzian should be given 
+        the third column the absorbance scaled so that data runs
+        from 1 to 0. Start and end
+        point, and width of the Gaussian/Lorentzian should be given
         in cm^-1."""
-        energies, spectrum = self.get_spectrum(start, end, npts, width, 
-                                               type, method, direction, 
+        energies, spectrum = self.get_spectrum(start, end, npts, width,
+                                               type, method, direction,
                                                normalize)
 
-        #Write out spectrum in file. First column is absolute intensities. 
+        #Write out spectrum in file. First column is absolute intensities.
         #Second column is absorbance scaled so that data runs from 1 to 0
         spectrum2 = 1. - spectrum / spectrum.max()
         outdata = np.empty([len(energies), 3])
@@ -328,7 +328,7 @@ class InfraRed(Vibrations):
             iu_string = 'cm ' + iu_string
         fd.write('# [cm^-1] %14s\n' % ('[' + iu_string + ']'))
         for row in outdata:
-            fd.write('%.3f  %15.5e  %15.5e \n' % 
+            fd.write('%.3f  %15.5e  %15.5e \n' %
                      (row[0], iu * row[1], row[2]))
         fd.close()
         #np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')

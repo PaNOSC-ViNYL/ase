@@ -264,7 +264,7 @@ bool_keys = [
     'lwannier90',  # Switches on the interface between VASP and WANNIER90
     'lsorbit',    # Enable spin-orbit coupling
     'lsol',       # turn on solvation for Vaspsol
-    'lautoscale', # automatically calculate inverse curvature for VTST LBFGS
+    'lautoscale',  # automatically calculate inverse curvature for VTST LBFGS
 ]
 
 list_keys = [
@@ -360,16 +360,16 @@ class Vasp(Calculator):
             self.input_params = {'xc': 'PW91'}
 
         self.input_params.update({
-            'setups': None,    # Special setups (e.g pv, sv, ...)
-            'txt': '-',     # Where to send information
+            'setups': None,  # Special setups (e.g pv, sv, ...)
+            'txt': '-',  # Where to send information
             'kpts': (1, 1, 1),  # k-points
-            'gamma': False,   # Option to use gamma-sampling instead
-                              # of Monkhorst-Pack
-            'kpts_nintersections': None,  # number of points between points in
-                                          # band structures
-            'reciprocal': False,   # Option to write explicit k-points in units
-                                   # of reciprocal lattice vectors
-            })
+            # Option to use gamma-sampling instead of Monkhorst-Pack:
+            'gamma': False,
+            # number of points between points in band structures:
+            'kpts_nintersections': None,
+            # Option to write explicit k-points in units
+            # of reciprocal lattice vectors:
+            'reciprocal': False})
 
         self.restart = restart
         self.track_output = track_output
@@ -378,10 +378,10 @@ class Vasp(Calculator):
             self.restart_load()
             return
 
-        if (('ldauu' in kwargs)
-            and ('ldaul' in kwargs)
-            and ('ldauj' in kwargs)
-            and ('ldau_luj' in kwargs)):
+        if (('ldauu' in kwargs) and
+            ('ldaul' in kwargs) and
+            ('ldauj' in kwargs) and
+            ('ldau_luj' in kwargs)):
             raise NotImplementedError(
                 'You can either specify ldaul, ldauu, and ldauj OR ldau_luj.'
                 'ldau_luj is not a VASP keyword. It is a dictionary that'
@@ -534,7 +534,7 @@ class Vasp(Calculator):
 
         for symbol in symbols:
             try:
-                name = 'potpaw' + xc.upper()+symbol + p['setups'][symbol]
+                name = 'potpaw' + xc.upper() + symbol + p['setups'][symbol]
             except (TypeError, KeyError):
                 name = 'potpaw' + xc.upper() + symbol
             name += '/POTCAR'
@@ -597,9 +597,9 @@ class Vasp(Calculator):
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if (self.int_params['lorbit'] >= 10
-                or (self.int_params['lorbit'] is not None
-                    and self.list_params['rwigs'])):
+            if (self.int_params['lorbit'] >= 10 or
+                (self.int_params['lorbit'] is not None and
+                 self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
                 self.magnetic_moments = None
@@ -789,9 +789,8 @@ class Vasp(Calculator):
         stress = None
         for line in open('OUTCAR'):
             if line.find(' in kB  ') != -1:
-                stress = (-np.array([float(a) for a
-                                     in line.split()[2:]])[[0, 1, 2, 4, 5, 3]]
-                          * 1e-1 * ase.units.GPa)
+                stress = -np.array([float(a) for a in line.split()[2:]])
+                stress = stress[[0, 1, 2, 4, 5, 3]] * 1e-1 * ase.units.GPa
         return stress
 
     def read_ldau(self):
@@ -833,8 +832,8 @@ class Vasp(Calculator):
             (self.bool_params != self.old_bool_params) or
             (self.list_params != self.old_list_params) or
             (self.input_params != self.old_input_params) or
-            (self.dict_params != self.old_dict_params)
-            or not self.converged):
+            (self.dict_params != self.old_dict_params) or
+            not self.converged):
             return True
         if 'magmom' in quantities:
             return not hasattr(self, 'magnetic_moment')
@@ -947,12 +946,12 @@ class Vasp(Calculator):
                 # data. It is not a vasp keyword. An alternative to
                 # the dictionary is to to use 'ldauu', 'ldauj',
                 # 'ldaul', which are vasp keywords.
-                elif key in ('ldauu', 'ldauj') and \
-                    self.dict_params['ldau_luj'] is None:
+                elif (key in ('ldauu', 'ldauj') and
+                      self.dict_params['ldau_luj'] is None):
                     incar.write(' %s = ' % key.upper())
                     [incar.write('%.4f ' % x) for x in val]
-                elif key in ('ldaul') and \
-                    self.dict_params['ldau_luj'] is None:
+                elif (key in ('ldaul') and
+                      self.dict_params['ldau_luj'] is None):
                     incar.write(' %s = ' % key.upper())
                     [incar.write('%d ' % x) for x in val]
                 elif key in ('ferwe', 'ferdo'):
@@ -1209,8 +1208,8 @@ class Vasp(Calculator):
                     continue
         # Then if ibrion in [1,2,3] check whether ionic relaxation
         # condition been fulfilled
-        if (self.int_params['ibrion'] in [1, 2, 3]
-            and self.int_params['nsw'] not in [0]):
+        if (self.int_params['ibrion'] in [1, 2, 3] and
+            self.int_params['nsw'] not in [0]):
             if not self.read_relaxed():
                 converged = False
             else:
@@ -1268,7 +1267,7 @@ class Vasp(Calculator):
         start = 0
         if nspins == 1:
             for n, line in enumerate(lines):  # find it in the last iteration
-                m = re.search(' k-point *' + str(kpt + 1)+' *:', line)
+                m = re.search(' k-point *' + str(kpt + 1) + ' *:', line)
                 if m is not None:
                     start = n
         else:
@@ -1458,6 +1457,23 @@ class Vasp(Calculator):
 
         self.input_params['xc'] = xc_dict[xc_flag]
 
+    def read_vib_freq(self):
+        """Read vibrational frequencies.
+        
+        Returns list of real and list of imaginary frequencies."""
+        freq = []
+        i_freq = []
+        with open('OUTCAR', 'r') as fd:
+            lines = fd.readlines()
+        for line in lines:
+            data = line.split()
+            if 'THz' in data:
+                if 'f/i=' not in data:
+                    freq.append(float(data[-2]))
+                else:
+                    i_freq.append(float(data[-2]))
+        return freq, i_freq
+
     def get_nonselfconsistent_energies(self, bee_type):
         """ Method that reads and returns BEE energy contributions
             written in OUTCAR file.
@@ -1606,15 +1622,16 @@ class VaspChargeDensity(object):
         # CHG format - 10 columns
         if format.lower() == 'chg':
             # Write all but the last row
-            for ii in range((len(chgtmp) - 1) / 10):
+            for ii in range((len(chgtmp) - 1) // 10):
                 fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
  %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\n' % chgtmp[ii * 10:(ii + 1) * 10]
                            )
             # If the last row contains 10 values then write them without a
             # newline
             if len(chgtmp) % 10 == 0:
-                fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G\
- %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' % chgtmp[len(chgtmp) - 10:len(chgtmp)])
+                fobj.write(' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G'
+                           ' %#11.5G %#11.5G %#11.5G %#11.5G %#11.5G' %
+                           chgtmp[len(chgtmp) - 10:len(chgtmp)])
             # Otherwise write fewer columns without a newline
             else:
                 for ii in range(len(chgtmp) % 10):
@@ -1623,7 +1640,7 @@ class VaspChargeDensity(object):
         # Other formats - 5 columns
         else:
             # Write all but the last row
-            for ii in range((len(chgtmp) - 1) / 5):
+            for ii in range((len(chgtmp) - 1) // 5):
                 fobj.write(' %17.10E %17.10E %17.10E %17.10E %17.10E\n'
                            % chgtmp[ii * 5:(ii + 1) * 5])
             # If the last row contains 5 values then write them without a
@@ -1850,18 +1867,16 @@ class xdat2traj:
             self.poscar = 'POSCAR'
         else:
             self.poscar = poscar
+
         if not atoms:
+            # This reads the atoms sorted the way VASP wants
             self.atoms = ase.io.read(self.poscar, format='vasp')
+            resort_reqd = True
         else:
+            # Assume if we pass atoms that it is sorted the way we want
             self.atoms = atoms
-        if not xdatcar:
-            self.xdatcar = 'XDATCAR'
-        else:
-            self.xdatcar = xdatcar
-        if not trajectory:
-            self.trajectory = 'out.traj'
-        else:
-            self.trajectory = trajectory
+            resort_reqd = False
+
         if not calc:
             self.calc = Vasp()
         else:
@@ -1874,9 +1889,24 @@ class xdat2traj:
         self.calc.resort = list(range(len(self.calc.sort)))
         for n in range(len(self.calc.resort)):
             self.calc.resort[self.calc.sort[n]] = n
+
+        if not xdatcar:
+            self.xdatcar = 'XDATCAR'
+        else:
+            self.xdatcar = xdatcar
+
+        if not trajectory:
+            self.trajectory = 'out.traj'
+        else:
+            self.trajectory = trajectory
+
         self.out = ase.io.trajectory.Trajectory(self.trajectory,
                                                 mode='w')
+
+        if resort_reqd:
+            self.atoms = self.atoms[self.calc.resort]
         self.energies = self.calc.read_energy(all=True)[1]
+        # Forces are read with the atoms sorted using resort
         self.forces = self.calc.read_forces(self.atoms, all=True)
 
     def convert(self):
@@ -1897,7 +1927,9 @@ class xdat2traj:
                 if step == 0:
                     self.out.write_header(self.atoms[self.calc.resort])
                 scaled_pos = np.array(scaled_pos)
-                self.atoms.set_scaled_positions(scaled_pos)
+                # Now resort the positions to match self.atoms
+                self.atoms.set_scaled_positions(scaled_pos[self.calc.resort])
+
                 calc = SinglePointCalculator(self.atoms,
                                              energy=self.energies[step],
                                              forces=self.forces[step])
@@ -1916,7 +1948,7 @@ class xdat2traj:
         # I'm sure there is also more clever fix...
         if step == 0:
             self.out.write_header(self.atoms[self.calc.resort])
-        scaled_pos = np.array(scaled_pos)
+        scaled_pos = np.array(scaled_pos)[self.calc.resort]
         self.atoms.set_scaled_positions(scaled_pos)
         calc = SinglePointCalculator(self.atoms,
                                      energy=self.energies[step],

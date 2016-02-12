@@ -588,7 +588,7 @@ class Wannier:
         if self.verbose:
             print('Translating all Wannier functions to cell (0, 0, 0)')
         self.translate_all_to_cell()
-        max = (self.kptgrid - 1) / 2
+        max = (self.kptgrid - 1) // 2
         N1, N2, N3 = max
         Hk = np.zeros([self.nwannier, self.nwannier], complex)
         for n1 in range(-N1, N1 + 1):

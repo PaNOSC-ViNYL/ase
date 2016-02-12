@@ -1133,7 +1133,7 @@ def read_eigenmode(mlog, index = -1):
     while lines[k].split()[1].lower() not in ['optimization', 'order']:
         k += 1
     n = k - 2
-    n_itr = (len(lines) / (n + 1)) - 2
+    n_itr = (len(lines) // (n + 1)) - 2
 
     # Locate the correct image.
     if isinstance(index, str):

@@ -58,7 +58,7 @@ class InterfaceChecker:
             value = meth(*args, **kwargs)
         except NotImplementedError as err:
             return Error('not implemented', err, methname)
-        except StandardError as err:
+        except Exception as err:
             return Error(err.__class__.__name__, err, methname)
         else:
             self.returnvalues[methname] = value
@@ -144,10 +144,10 @@ def check_interface(calc):
     c('get_eigenvalues', args(kpt=0, spin=0), rtype=np.ndarray)
     c('get_occupation_numbers', args(kpt=0, spin=0), rtype=np.ndarray)
     c('get_fermi_level', rtype=float)
-    #c('initial_wanner', ........) what the heck?
-    #c('get_wannier_localization_matrix', ...)  No.
+    # c('initial_wanner', ........) what the heck?
+    # c('get_wannier_localization_matrix', ...)  No.
     c('get_magnetic_moment', args(atoms=system), rtype=float)
-    #c('get_number_of_grid_points', rtype=tuple) # Hmmmm.  Not for now...
+    # c('get_number_of_grid_points', rtype=tuple) # Hmmmm.  Not for now...
 
     # Optional methods sometimes invoked by ase.atoms.Atoms
     c('get_magnetic_moments', rtype=np.ndarray)

@@ -114,7 +114,7 @@ class Simulation(gtk.Window):
             oops(_("No atoms present"))
             return None
         n = self.getimagenumber()
-        natoms = len(images.P[n]) / images.repeat.prod()
+        natoms = len(images.P[n]) // images.repeat.prod()
         constraint = None
         if not images.dynamic.all():
             constraint = FixAtoms(mask=1-images.dynamic)
