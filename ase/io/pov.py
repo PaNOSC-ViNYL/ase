@@ -79,12 +79,15 @@ class POVRAY(EPS):
         'background'     : 'White',        # color
         'textures'       : None, # Length of atoms list of texture names
         'transmittances' : None, # Transmittance of the atoms
+        # use with care -- in particular adjust the camera_distance to be closer
+        'depth_cueing'   : False, # Fog a.k.a. depth cueing
+        'cue_density'    : 5e-3, # Fog a.k.a. depth cueing
         'celllinewidth'  : 0.05, # Radius of the cylinders representing the cell
         'bondlinewidth'  : 0.10, # Radius of the cylinders representing the bonds
         'bondatoms'      : [],   # [[atom1, atom2], ... ] pairs of bonding atoms
         'exportconstraints' : False}  # honour FixAtom requests and mark relevant atoms?
 
-    def __init__(self, atoms, scale=1.0, transmittances=None, **parameters):
+    def __init__(self, atoms, scale=1.0, **parameters):
         for k, v in self.default_settings.items():
             setattr(self, k, parameters.pop(k, v))
         EPS.__init__(self, atoms, scale=scale, **parameters)
@@ -94,8 +97,6 @@ class POVRAY(EPS):
             if isinstance(c,FixAtoms):
                 for n,i in enumerate(c.index):
                     if i: self.constrainatoms += [n]
-
-        self.transmittances = transmittances
 
     def cell_to_lines(self, A):
         return np.empty((0, 3)), None, None
@@ -159,6 +160,17 @@ class POVRAY(EPS):
             w('  area_light <%.2f, 0, 0>, <0, %.2f, 0>, %i, %i\n' % (
                 width, height, nx, ny))
             w('  adaptive 1 jitter}\n')
+
+        # the depth cueing
+        if self.depth_cueing and (self.cue_density >= 1e-4):
+            # same way vmd does it
+            if self.cue_density > 1e4:
+                # larger does not make any sense
+                dist = 1e-4
+            else:
+                dist = 1./self.cue_density
+            w('fog {fog_type 1 distance %.4f color %s}'%(dist,
+                                        pc(self.background)))
 
         w('\n')
         w('#declare simple = finish {phong 0.7}\n')
