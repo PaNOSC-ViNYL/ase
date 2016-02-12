@@ -377,7 +377,7 @@ def read_xyz(fileobj, index=-1):
 
 
 def output_column_format(atoms, columns, arrays,
-                         write_info=True, results=None, comment=''):
+                         write_info=True, results=None):
     """
     Helper function to build extended XYZ comment line
     """
@@ -429,15 +429,13 @@ def output_column_format(atoms, columns, arrays,
                               [str(nc) for nc in property_ncols])])
 
     comment_str = lattice_str + ' Properties=' + props_str
-    if comment != '':
-        comment_str = comment_str + ' ' + comment
     info = {}
     if write_info:
         info.update(atoms.info)
     if results is not None:
         info.update(results)
     info['pbc'] = atoms.get_pbc()  # always save periodic boundary conditions
-    comment += ' ' + key_val_dict_to_str(info)
+    comment_str += ' ' + key_val_dict_to_str(info)
 
     dtype = np.dtype(dtypes)
     fmt = ''.join(formats) + '\n'
@@ -541,8 +539,10 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                                                        fr_cols,
                                                        arrays,
                                                        write_info,
-                                                       per_frame_results,
-                                                       comment)
+                                                       per_frame_results)
+        if comment != '':
+            # override key/value pairs with user-speficied comment string
+            comm = comment
 
         # Pack fr_cols into record array
         data = np.zeros(natoms, dtype)
