@@ -196,8 +196,8 @@ def read_html(filename, dir='.'):
             # the number of compounds
             # (exclude reference value and reaction number and divide by 2)
             if ncompounds:
-                assert ncompounds == (len(litem)-2)/2, 'Error: number of compounds incorrect for reaction: ' + str(litem[0]) + ' in file: ' + filename
-            ncompounds = (len(litem)-2)/2
+                assert ncompounds == (len(litem) - 2) // 2, 'Error: number of compounds incorrect for reaction: ' + str(litem[0]) + ' in file: ' + filename
+            ncompounds = (len(litem) - 2) // 2
             # set names of unused compounds to empty string
             for i in range(ncompounds):
                 if litem[1+i] == 0: litem[1+i] = ''

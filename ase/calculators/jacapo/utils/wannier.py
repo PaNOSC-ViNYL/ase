@@ -68,8 +68,8 @@ class Translation_Operator:
 
         length = self.get_dimensions()[dim_index]
         coordinates = self.get_coordinates()[dim_index]
-        basis_neg = np.arange(0,-length/2,-1)
-        basis_pos = np.arange(length/2,0,-1)
+        basis_neg = np.arange(0, -length // 2, -1)
+        basis_pos = np.arange(length // 2, 0, -1)
         basis = np.concatenate((basis_neg,basis_pos),-1)
         prefactor=np.exp(-complex(0,1)*2*np.pi*coordinates/length)
         translation=list(map(lambda x,prefactor=prefactor:prefactor**x,basis))

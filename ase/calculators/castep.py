@@ -592,6 +592,10 @@ End CASTEP Interface Documentation
             # TODO: add a switch if we have a geometry optimization: record
             # atoms objects for intermediate steps.
             try:
+                # in case we need to rewind back one line, we memorize the bit
+                # position of this line in the file.
+                # --> see symops problem below
+                _line_start = out.tell()
                 line = out.readline()
                 if not line or out.tell() > record_end:
                     break
@@ -671,6 +675,11 @@ End CASTEP Interface Documentation
                             # recalculation
                             break
                 elif 'Symmetry and Constraints' in line:
+                    # this is a bit of a hack, but otherwise the read_symops
+                    # would need to re-read the entire file. --> just rewind
+                    # back by one line, so the read_symops routine can find the
+                    # start of this block.
+                    out.seek(_line_start)
                     self.read_symops(castep_castep=out)
                 elif 'Number of cell constraints' in line:
                     n_cell_const = int(line.split()[4])
@@ -1488,7 +1497,7 @@ End CASTEP Interface Documentation
             self.__setattr__(key, value)
 
         if _close:
-            param.close()
+            param_file.close()
 
 
     def dryrun_ok(self, dryrun_flag='-dryrun'):
@@ -1752,6 +1761,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
             pattern = r'((?<=^ )[A-Z_]{2,}|(?<=^)[A-Z_]{2,})'
         else:
             pattern = r'((?<=^ )[A-Z_\d]{2,}|(?<=^)[A-Z_\d]{2,})'
+
         raw_options = re.findall(pattern, help_all, re.MULTILINE)
     except:
         print('Problem parsing: %s' % help_all)
@@ -2168,6 +2178,7 @@ def shell_stdouterr(raw_command):
     stdout, stderr = subprocess.Popen(raw_command,
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
+                                      universal_newlines=True,
                                       shell=True).communicate()
     return stdout.strip(), stderr.strip()
 

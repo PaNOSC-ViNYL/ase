@@ -1,9 +1,10 @@
 master:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy python-scipy
+    - apt-get install -qy python-numpy python-scipy pyflakes
     - pwd
     - echo $HOME
     - echo $PWD
     - echo $PYTHONPATH
     - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python setup.py test
+    - PYTHONPATH=$PYTHONPATH:$PWD python ase/test/__init__.py

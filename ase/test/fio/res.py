@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
-import os
-
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
-from ase.io.res import *
+from ase.io.res import Res, read_res, write_res
 
 test_res = """
 TITL 23221-ZDsSsJoEW14-3 -2.7839600000000004 1 -31005.480500000001 0 0 254 (P1) n - 1
@@ -276,7 +274,6 @@ f.close()
 
 res = Res.from_file(filepath)
 assert res.atoms.get_chemical_formula() == 'C194H60'
-#print res
 
 atoms = read_res(filepath)
 assert res.atoms == atoms
@@ -302,14 +299,12 @@ F 2 0.750000 0.500000 0.750000 1.0"""
 res = Res.from_string(res_string)
 assert res.atoms.get_chemical_formula() == 'FSi'
 assert len(res.atoms) == 2
-#print res
 
-struct = Atoms(cell=[2.5, 3.5, 7.0], symbols=['Na', 'Cl'], positions=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
+struct = Atoms(cell=[2.5, 3.5, 7.0],
+               symbols=['Na', 'Cl'],
+               positions=[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
 res = Res(struct)
 res_string = str(res)
 lines = res_string.splitlines()
-assert lines[1] == 'CELL 1.0 2.500000 3.500000 7.000000 90.000000 90.000000 90.000000'
-
-os.unlink('test.res')
-os.unlink('test2.res')
-os.unlink('test3.res')
+assert lines[1] == ('CELL 1.0 2.500000 3.500000 7.000000 '
+                    '90.000000 90.000000 90.000000')

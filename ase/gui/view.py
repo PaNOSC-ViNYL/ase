@@ -715,8 +715,8 @@ class View:
     def draw_frame_number(self):
         n = str(self.frame)
         layout = self.drawing_area.create_pango_layout("Frame: " + n)
-        x = self.width - 3 - layout.get_size()[0] / pango.SCALE
-        y = self.height - 5 - layout.get_size()[1] / pango.SCALE
+        x = self.width - 3 - layout.get_size()[0] // pango.SCALE
+        y = self.height - 5 - layout.get_size()[1] // pango.SCALE
         self.pixmap.draw_layout(self.foreground_gc, x, y, layout)
  
 

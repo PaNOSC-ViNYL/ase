@@ -71,7 +71,7 @@ def read_states(states_dir):
     """Read structures stored by EON in the states directory *states_dir*."""
     subdirs = glob(os.path.join(states_dir, '[0123456789]*'))
     subdirs.sort(key=lambda d: int(os.path.basename(d)))
-    images = [read_reactant_con(os.path.join(subdir, 'reactant.con'))
+    images = [read_eon(os.path.join(subdir, 'reactant.con'))
               for subdir in subdirs]
     return images
 

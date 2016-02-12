@@ -7,10 +7,6 @@ A database for atoms
 ASE has its own database that can be used for storing and retrieving atoms and
 associated data in a compact and convenient way.
     
-.. note::
-
-    This is work in progress.  Use at your own risk!
-    
 There are currently three back-ends:
 
 JSON_:
@@ -22,7 +18,7 @@ PostgreSQL_:
     Server based database.
 
 The JSON and SQLite3 back-ends work "out of the box", whereas PostgreSQL
-requires a server.
+requires a :ref:`server`.
 
 There is a command-line tool called :ref:`ase-db` that can be
 used to query and manipulate databases and also a `Python interface`_.
@@ -402,7 +398,39 @@ Similarly, the :meth:`~Database.update` method will do up to
     ids = [row.id for row in con.select(...)]
     con.update(ids, foo='bar')  # list of id's
 
+
+Writing rows in parallel
+------------------------
+
+Say you want to run a series of jobs and store the calculations in one
+database::
     
+    for name in many_molecules:
+        mol = read(name)
+        calculate_something(mol)
+        con.write(mol, name=name)
+
+With four extra lines (see the :meth:`~Database.reserve` method)::
+
+    for name in many_molecules:
+        id = con.reserve(name=name)
+        if id is None:
+            continue
+        mol = read(name)
+        calculate_something(mol)
+        con.write(mol, name=name)
+        del con[id]
+        
+you will be able to run several jobs in parallel without worrying about two
+jobs trying to do the same calculation.  The :meth:`~Database.reserve` method
+will write an empty row with the ``name`` key and return the ID of that row.
+Other jobs trying to make the same reservation will fail.  While the jobs are
+running, you can keep an eye on the ongoing (reserved) calculations by
+identifying empty rows::
+    
+    $ ase-db many_results.db natoms=0
+
+
 More details
 ------------
 
@@ -423,6 +451,8 @@ Here is a description of the database object:
     .. automethod:: reserve(**key_value_pairs)
     .. automethod:: update(ids, delete_keys=[], block_size=1000, **add_key_value_pairs)
 
+    
+.. _server:
     
 Running a PostgreSQL server
 ===========================

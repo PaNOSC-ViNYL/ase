@@ -3,17 +3,8 @@
 
 import numpy as np
 
-from ase.test import NotAvailable
-
-try:
-    import scipy
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
-
 from ase.lattice import bulk
-
 from ase.io.trajectory import Trajectory
-
 from ase.calculators.emt import EMT
 
 # old ASE2 conversion factor

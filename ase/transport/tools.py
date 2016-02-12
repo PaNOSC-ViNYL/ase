@@ -398,7 +398,7 @@ def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, calcutype,
     
 def mytextread0(filename):
     num = 0
-    df = file(filename)
+    df = open(filename)
     df.seek(0)
     for line in df:
         if num == 0:
@@ -419,7 +419,7 @@ def mytextread0(filename):
     
 def mytextread1(filename):
     num = 0
-    df = file(filename)
+    df = open(filename)
     df.seek(0)
     data = []
     for line in df:
