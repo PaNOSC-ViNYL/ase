@@ -13,6 +13,11 @@ except ImportError:
     matplotlib = 0
 
 try:
+    from lxml import etree
+except ImportError:
+    etree = 0
+
+try:
     import Scientific
 except ImportError:
     Scientific = 0
