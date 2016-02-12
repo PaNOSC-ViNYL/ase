@@ -288,18 +288,7 @@ def read(filename, index=None, format=None, **kwargs):
     if isinstance(index, (slice, str)):
         return list(_iread(filename, index, format, **kwargs))
     else:
-        # index is an integer, referring to a single frame.
-        # choose slice stop and step to return exactly one frame
-        # (necessary for IO readers that are more efficient if they
-        #  know how many frames they need to read from start of file
-        #  e.g. read_extxyz)
-        if index >= 0:
-            stop = index + 1
-            step = +1
-        else:
-            stop = -2
-            step = -1
-        return next(_iread(filename, slice(index, stop, step), format, **kwargs))
+        return next(_iread(filename, slice(index, None), format, **kwargs))
 
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
