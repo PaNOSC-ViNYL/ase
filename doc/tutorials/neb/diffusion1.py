@@ -14,7 +14,7 @@ slab.center(axis=2, vacuum=4.0)
 
 # Fix second and third layers:
 mask = [atom.tag > 1 for atom in slab]
-#print mask
+#print(mask)
 slab.set_constraint(FixAtoms(mask=mask))
 
 # Use EMT potential:
