@@ -53,5 +53,5 @@ compile: */LC_MESSAGES/ag.po
 	  msgfmt -cv --output-file=$$DIR/ag.mo $$DIR/ag.po ;\
 	done
 
-svnrevert:
-	svn revert ag.pot */LC_MESSAGES/ag.po
+gitrevert:
+	git checkout -- ag.pot */LC_MESSAGES/ag.po
