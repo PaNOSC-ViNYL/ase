@@ -49,7 +49,7 @@ The atoms in the slab will have tags set to the layer number: First layer
 atoms will have tag=1, second layer atoms will have tag=2, and so on.
 Adsorbates get tag=0:
 
->>> print atoms.get_tags()
+>>> print(atoms.get_tags())
 [3 3 3 3 2 2 2 2 1 1 1 1 0]
 
 This can be useful for setting up :mod:`ase.constraints` (see

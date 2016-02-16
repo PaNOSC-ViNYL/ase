@@ -196,5 +196,5 @@ take::
   for i in range(10):
      pot = molecule.get_potential_energy()
      kin = molecule.get_kinetic_energy()
-     print '%2d: %.5f eV, %.5f eV, %.5f eV' % (i, pot + kin, pot, kin)
+     print('%2d: %.5f eV, %.5f eV, %.5f eV' % (i, pot + kin, pot, kin))
      dyn.run(steps=20)

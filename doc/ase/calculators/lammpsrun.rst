@@ -92,8 +92,9 @@ A simple example.
   calc = LAMMPS()
   NaCl.set_calculator(calc)
   
-  print NaCl.get_stress()
+  print(NaCl.get_stress())
 
+  
 Setting up an OPLS calculation
 ==============================
 

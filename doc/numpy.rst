@@ -52,8 +52,8 @@ The conventions of numpy's linear algebra package:
 >>> np.set_printoptions(precision=3, suppress=True)
 >>>
 >>> # Check that U diagonalizes H:
->>> print np.dot(np.dot(U.T.conj(), H), U) - np.diag(eps)
->>> print np.allclose(np.dot(np.dot(U.T.conj(), H), U), np.diag(eps))
+>>> print(np.dot(np.dot(U.T.conj(), H), U) - np.diag(eps))
+>>> print(np.allclose(np.dot(np.dot(U.T.conj(), H), U), np.diag(eps)))
 >>>
 >>> # The eigenvectors of H are the *coloumns* of U:
 >>> np.allclose(np.dot(H, U[:, 3]), eps[3] * U[:, 3])
