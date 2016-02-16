@@ -11,7 +11,7 @@ extensions = ['ext',
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx']
 source_suffix = '.rst'
-#master_doc = 'contents'
+master_doc = 'index'#contents'
 project = 'ASE'
 copyright = '2016, ASE-developers'
 #templates_path = ['templates']
