@@ -38,10 +38,7 @@ def build(force_build, name='ase', env=''):
 
     # Clean up:
     shutil.rmtree('doc')
-    if name == 'ase':
-        subprocess.check_call('git checkout .', shell=True)
-    else:
-        subprocess.check_call('svn update', shell=True)
+    subprocess.check_call('git checkout .', shell=True)
 
     # Create development snapshot tar-file and install:
     try:
