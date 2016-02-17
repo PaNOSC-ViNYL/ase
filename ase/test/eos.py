@@ -2,6 +2,7 @@
 # test ASE3 eos vs ASE2' on EMT Al bulk
 
 import numpy as np
+import scipy  # skip test early if no scipy
 
 from ase.lattice import bulk
 from ase.io.trajectory import Trajectory
