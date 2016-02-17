@@ -7,6 +7,7 @@ import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
+import shutil
 from ase.units import Ry, eV, Bohr
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
@@ -17,6 +18,26 @@ from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
 
+def get_valence_charge(filename):
+    with open(filename, 'r') as f:
+        f.readline()
+        f.readline()
+        f.readline()
+        valence = -float(f.readline().split()[-1])
+
+    return valence
+
+def read_vca_synth_block(filename, species_number=None):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    lines = lines[1:-1]
+
+    if not species_number is None:
+        lines[0] = '%d\n' % species_number
+
+    block = ''.join(lines).strip()
+
+    return block
 
 class SiestaParameters(Parameters):
     """Parameters class for the calculator.
@@ -532,6 +553,7 @@ class BaseSiesta(FileIOCalculator):
         pao_basis = []
         chemical_labels = []
         basis_sizes = []
+        synth_blocks = []
         for species_number, specie in enumerate(species):
             species_number += 1
             symbol = specie['symbol']
@@ -569,6 +591,32 @@ class BaseSiesta(FileIOCalculator):
                     os.remove(name)
                 os.symlink(pseudopotential, name)
 
+            if not specie['excess_charge'] is None:
+                atomic_number += 200
+                #print(species_number)
+                n_atoms = sum(np.array(species_numbers) == species_number)
+                excess_charge_pr_atom = float(specie['excess_charge'])/n_atoms
+                compensation_charge_pr_atom = -excess_charge_pr_atom
+                valence_charge = get_valence_charge(pseudopotential)
+                fraction = (valence_charge + compensation_charge_pr_atom)/valence_charge
+                pseudo_head = name[:-4]
+                fractional_command = os.environ['SIESTA_UTIL_FRACTIONAL']
+                cmd = '%s %s %.7f' % (fractional_command, pseudo_head, fraction)
+                os.system(cmd)
+
+                synth_pseudo = pseudo_head + '-Fraction-%.5f.psf' % fraction
+                synth_block_filename = pseudo_head + '-Fraction-%.5f.synth' % fraction
+                os.remove(name)
+                shutil.copyfile(synth_pseudo, name)
+                synth_block = read_vca_synth_block(
+                        synth_block_filename,
+                        species_number=species_number,
+                        )
+                synth_blocks.append(synth_block)
+
+            if len(synth_blocks) > 0:
+                f.write(format_fdf('SyntheticAtoms', list(synth_blocks)))
+
             label = '.'.join(np.array(name.split('.'))[:-1])
             string = '    %d %d %s' % (species_number, atomic_number, label)
             chemical_labels.append(string)
@@ -581,6 +629,8 @@ class BaseSiesta(FileIOCalculator):
         f.write((format_fdf('PAO.Basis', pao_basis)))
         f.write((format_fdf('PAO.BasisSizes', basis_sizes)))
         f.write('\n')
+        #if len(synth_blocks) > 0:
+        #    eeeeeeeeee
 
     def pseudo_qualifier(self):
         """Get the extra string used in the middle of the pseudopotential.

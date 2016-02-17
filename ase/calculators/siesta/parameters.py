@@ -51,7 +51,9 @@ class Specie(Parameters):
                  basis_set='DZP',
                  pseudopotential=None,
                  tag=None,
-                 ghost=False):
+                 ghost=False,
+                 excess_charge=None,
+                 ):
         kwargs = locals()
         kwargs.pop('self')
         Parameters.__init__(self, **kwargs)
