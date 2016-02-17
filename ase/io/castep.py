@@ -77,12 +77,12 @@ __all__ = [
     'read_seed',
     # write that is already wrapped
     'write_castep_cell',
-    # param write -- in principle only necessary in junction with the calculator
+    # param write - in principle only necessary in junction with the calculator
     'write_param']
 
 
 def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
-                      force_write=False):
+               force_write=False):
     """
     Wrapper function for the more generic write() functionality.
 
@@ -92,7 +92,7 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     from ase.io import write
 
     write(filename, atoms, positions_frac=positions_frac,
-                castep_cell=castep_cell, force_write=force_write)
+          castep_cell=castep_cell, force_write=force_write)
 
 
 def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
@@ -191,10 +191,10 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
         fd.write('%BLOCK IONIC_CONSTRAINTS \n')
         count = 0
         for constr in constraints:
-            if not isinstance(constr, FixAtoms)\
-                and not isinstance(constr, FixCartesian)\
-                and not isinstance(constr, FixedLine)\
-                and not suppress_constraints:
+            if (not isinstance(constr, FixAtoms) and
+                not isinstance(constr, FixCartesian) and
+                not isinstance(constr, FixedLine) and
+                not suppress_constraints):
                 print('Warning: you have constraints in your atoms, that are')
                 print('         not supported by the CASTEP ase interface')
                 break
@@ -213,8 +213,8 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
                         symbol = atoms.get_chemical_symbols()[val]
                         nis = atoms.calc._get_number_in_species(val)
                     else:
-                        raise UserWarning('Unrecognized index in' + \
-                                           ' constraint %s' % constr)
+                        raise UserWarning('Unrecognized index in' +
+                                          ' constraint %s' % constr)
                     fd.write('%6d %3s %3d   1 0 0 \n' % (count + 1,
                                                          symbol,
                                                          nis))
@@ -245,18 +245,18 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
                 nis = atoms.calc._get_number_in_species(n)
                 direction = constr.dir
                 # print(direction)
-                ((i1,v1),(i2,v2)) = sorted(enumerate(direction),
-                                           key = lambda x:abs(x[1]),
-                                           reverse = True)[:2]
+                ((i1, v1), (i2, v2)) = sorted(enumerate(direction),
+                                              key=lambda x: abs(x[1]),
+                                              reverse=True)[:2]
                 # print(sorted(enumerate(direction), key = lambda x:x[1])[:2])
                 # print(sorted(enumerate(direction), key = lambda x:x[1]))
 
                 # print(v1)
                 # print(v2)
-                n1 = np.array([v2,v1,0])
+                n1 = np.array([v2, v1, 0])
                 n1 = n1 / np.linalg.norm(n1)
 
-                n2 = np.cross(direction,n1)
+                n2 = np.cross(direction, n1)
                 count += 1
                 fd.write('%6d %3s %3d   %f %f %f \n' % (count, symbol, nis,
                                                         n1[0], n1[1], n1[2]))
@@ -270,7 +270,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
         if hasattr(atoms, 'calc') and hasattr(atoms.calc, 'cell'):
             castep_cell = atoms.calc.cell
         else:
-#            fd.close()
+            # fd.close()
             return True
 
     for option in castep_cell._options.values():
@@ -320,7 +320,7 @@ def read_castep_cell(fd, index=None):
         print('           file or a non-existing CASTEP installation.')
         print('           Original error message appears below:')
         print('')
-        print(' '*11+exception.__str__().replace('\n','\n'+' '*11))
+        print(' ' * 11 + exception.__str__().replace('\n', '\n' + ' ' * 11))
         print('')
         print('           Fallback-mode will be applied to provide at least the')
         print('           geometric information contained in the *.cell file.')
@@ -414,8 +414,8 @@ def read_castep_cell(fd, index=None):
                 lat_a = [a, 0, 0]
                 lat_b = [b * np.cos(gamma), b * np.sin(gamma), 0]
                 lat_c1 = c * np.cos(beta)
-                lat_c2 = c * ((np.cos(alpha) - np.cos(beta) * np.cos(gamma))
-                                 / np.sin(gamma))
+                lat_c2 = c * ((np.cos(alpha) - np.cos(beta) * np.cos(gamma)) /
+                              np.sin(gamma))
                 lat_c3 = np.sqrt(c * c - lat_c1 * lat_c1 - lat_c2 * lat_c2)
                 lat_c = [lat_c1, lat_c2, lat_c3]
                 lat = [lat_a, lat_b, lat_c]
@@ -434,7 +434,7 @@ def read_castep_cell(fd, index=None):
                     # read initial spins
                     try:
                         spin = ''.join(tokens[4::]).lower()
-                        if not 'spin' in spin:
+                        if 'spin' not in spin:
                             magmom.append(0.)
                         else:
                             magmom.append(float(re.split(r'[:=]+', spin)[-1]))
@@ -456,7 +456,7 @@ def read_castep_cell(fd, index=None):
                     # read initial spins
                     try:
                         spin = ''.join(tokens[4::]).lower()
-                        if not 'spin' in spin:
+                        if 'spin' not in spin:
                             magmom.append(0.)
                         else:
                             magmom.append(float(re.split(r'[:=]+', spin)[-1]))
@@ -499,7 +499,7 @@ def read_castep_cell(fd, index=None):
                 print('         interpreted in cell files')
                 while not tokens[0].upper() == '%ENDBLOCK':
                     tokens, l = get_tokens(lines, l)
-                #raise UserWarning
+                # raise UserWarning
         else:
             key = tokens[0]
             value = ' '.join(tokens[1:])
@@ -517,8 +517,7 @@ def read_castep_cell(fd, index=None):
             pbc=True,
             scaled_positions=pos,
             symbols=spec,
-            magmoms = magmom
-            )
+            magmoms=magmom)
     else:
         atoms = ase.Atoms(
             calculator=calc,
@@ -526,8 +525,7 @@ def read_castep_cell(fd, index=None):
             pbc=True,
             positions=pos,
             symbols=spec,
-            magmoms = magmom
-            )
+            magmoms=magmom)
 
     fixed_atoms = []
     for (species, nic), value in raw_constraints.items():
@@ -535,7 +533,8 @@ def read_castep_cell(fd, index=None):
         if len(value) == 3:
             fixed_atoms.append(absolute_nr)
         elif len(value) == 2:
-            constraint = ase.constraints.FixedLine(a=absolute_nr,
+            constraint = ase.constraints.FixedLine(
+                a=absolute_nr,
                 direction=np.cross(value[0], value[1]))
             constraints.append(constraint)
         elif len(value) == 1:
@@ -553,7 +552,8 @@ def read_castep_cell(fd, index=None):
 
             # I do not think you can have a fixed position of a fixed
             # line with only one constraint -- JML
-            constraint = ase.constraints.FixedPlane(a=absolute_nr,
+            constraint = ase.constraints.FixedPlane(
+                a=absolute_nr,
                 direction=np.array(value[0], dtype=np.float32))
             constraints.append(constraint)
         else:
@@ -562,7 +562,8 @@ def read_castep_cell(fd, index=None):
     # we need to sort the fixed atoms list in order not to raise an assertion
     # error in FixAtoms
     if fixed_atoms:
-        constraints.append(ase.constraints.FixAtoms(indices=sorted(fixed_atoms)))
+        constraints.append(
+            ase.constraints.FixAtoms(indices=sorted(fixed_atoms)))
     if constraints:
         atoms.set_constraint(constraints)
 
@@ -709,14 +710,14 @@ def read_castep_geom(fd, index=None, units=units_CODATA2002):
     Bohr = units['a0']
 
     # Yeah, we know that...
-    #print('N.B.: Energy in .geom file is not 0K extrapolated.')
+    # print('N.B.: Energy in .geom file is not 0K extrapolated.')
     for i, line in enumerate(txt):
         if line.find('<-- E') > 0:
             start_found = True
             energy = float(line.split()[0]) * Hartree
             cell = [x.split()[0:3] for x in txt[i + 1:i + 4]]
             cell = np.array([[float(col) * Bohr for col in row] for row in
-                cell])
+                             cell])
         if line.find('<-- R') > 0 and start_found:
             start_found = False
             geom_start = i
@@ -725,15 +726,17 @@ def read_castep_geom(fd, index=None, units=units_CODATA2002):
                     geom_stop = i + geom_start
                     break
             species = [line.split()[0] for line in
-                txt[geom_start:geom_stop]]
+                       txt[geom_start:geom_stop]]
             geom = np.array([[float(col) * Bohr for col in
-                line.split()[2:5]] for line in txt[geom_start:geom_stop]])
+                              line.split()[2:5]] for line in
+                             txt[geom_start:geom_stop]])
             forces = np.array([[float(col) * Hartree / Bohr for col in
-                line.split()[2:5]] for line in
-                    txt[geom_stop:geom_stop + (geom_stop - geom_start)]])
+                                line.split()[2:5]] for line in
+                               txt[geom_stop:geom_stop +
+                                   (geom_stop - geom_start)]])
             image = ase.Atoms(species, geom, cell=cell, pbc=True)
-            image.set_calculator(SinglePointCalculator(energy, forces, None,
-                None, image))
+            image.set_calculator(
+                SinglePointCalculator(energy, forces, None, None, image))
             traj.append(image)
 
     if index is None:
@@ -759,14 +762,14 @@ def read_phonon(filename, index=None, read_vib_data=False,
         full_output = False
 
     return read(filename, index=index, format='castep-phonon',
-                    full_output=full_output, read_vib_data=read_vib_data,
-                    gamma_only=gamma_only, frequency_factor=frequency_factor,
-                    units=units)
+                full_output=full_output, read_vib_data=read_vib_data,
+                gamma_only=gamma_only, frequency_factor=frequency_factor,
+                units=units)
 
 
 def read_castep_phonon(fd, index=None, read_vib_data=False,
-                gamma_only=True, frequency_factor=None,
-                units=units_CODATA2002):
+                       gamma_only=True, frequency_factor=None,
+                       units=units_CODATA2002):
     """
     Reads a .phonon file written by a CASTEP Phonon task and returns an atoms
     object, as well as the calculated vibrational data if requested.
@@ -870,10 +873,9 @@ def read_castep_phonon(fd, index=None, read_vib_data=False,
         return atoms
 
 
-
-def read_md(filename, index=None, return_scalars=False, units=units_CODATA2002):
-    """
-    Wrapper function for the more generic read() functionality.
+def read_md(filename, index=None, return_scalars=False,
+            units=units_CODATA2002):
+    """Wrapper function for the more generic read() functionality.
 
     Note that this function is intended to maintain backwards-compatibility
     only. For documentation see read_castep_md()
@@ -885,12 +887,12 @@ def read_md(filename, index=None, return_scalars=False, units=units_CODATA2002):
 
     from ase.io import read
     return read(filename, index=index, format='castep-md',
-                    full_output=full_output, return_scalars=return_scalars,
-                    units=units)
+                full_output=full_output, return_scalars=return_scalars,
+                units=units)
 
 
-
-def read_castep_md(fd, index=None, return_scalars=False, units=units_CODATA2002):
+def read_castep_md(fd, index=None, return_scalars=False,
+                   units=units_CODATA2002):
     """Reads a .md file written by a CASTEP MolecularDynamics task
     and returns the trajectory stored therein as a list of atoms object.
 
@@ -899,17 +901,16 @@ def read_castep_md(fd, index=None, return_scalars=False, units=units_CODATA2002)
     from ase.calculators.singlepoint import SinglePointCalculator
 
     factors = {
-               't': units['t0'] * 1E15,     # fs
-               'E': units['Eh'],            # eV
-               'T': units['Eh'] / units['kB'],
-               'P': units['Eh'] / units['a0']**3 * units['Pascal'],
-               'h': units['a0'],
-               'hv':units['a0'] / units['t0'],
-               'S': units['Eh'] / units['a0']**3,
-               'R': units['a0'],
-               'V': np.sqrt(units['Eh'] / units['me']),
-               'F': units['Eh'] / units['a0']
-               }
+        't': units['t0'] * 1E15,     # fs
+        'E': units['Eh'],            # eV
+        'T': units['Eh'] / units['kB'],
+        'P': units['Eh'] / units['a0']**3 * units['Pascal'],
+        'h': units['a0'],
+        'hv': units['a0'] / units['t0'],
+        'S': units['Eh'] / units['a0']**3,
+        'R': units['a0'],
+        'V': np.sqrt(units['Eh'] / units['me']),
+        'F': units['Eh'] / units['a0']}
 
     # fd is closed by embracing read() routine
     lines = fd.readlines()
@@ -957,11 +958,12 @@ def read_castep_md(fd, index=None, return_scalars=False, units=units_CODATA2002)
                                   cell=cell)
                 atoms.set_velocities(velocities)
                 if len(stress) == 0:
-                    atoms.set_calculator(SinglePointCalculator(Epot,
-                                                forces, None, None, atoms))
+                    atoms.set_calculator(
+                        SinglePointCalculator(Epot, forces, None, None, atoms))
                 else:
-                    atoms.set_calculator(SinglePointCalculator(Epot,
-                                                forces, stress, None, atoms))
+                    atoms.set_calculator(
+                        SinglePointCalculator(Epot, forces, stress, None,
+                                              atoms))
                 traj.append(atoms)
             symbols = []
             positions = []
@@ -1031,12 +1033,9 @@ def read_castep_md(fd, index=None, return_scalars=False, units=units_CODATA2002)
         return traj
 
 
-
-#
 # not yet failsafe new read_castep routine
-#
 
-def read_castep_new(filename, index = None):
+def read_castep_new(filename, index=None):
     """
     This routine is supposed to replace the former read_castep() routine at
     some point. Basically it does the same job, but it uses the read()
@@ -1075,10 +1074,7 @@ def read_castep_new(filename, index = None):
     return calc.atoms
 
 
-
-# #
 # Routines that only the calculator requires
-# #
 
 def read_param(filename, calc=None):
     """Reads a param file. If an Castep object is passed as the
@@ -1098,8 +1094,8 @@ def read_param(filename, calc=None):
 
 
 def write_param(filename, param, check_checkfile=False,
-                                 force_write=False,
-                                 interface_options=None):
+                force_write=False,
+                interface_options=None):
     """Writes a CastepParam object to a CASTEP .param file
 
     Parameters:
@@ -1136,29 +1132,24 @@ def write_param(filename, param, check_checkfile=False,
         elif opt.value is not None:
             if keyword in ['continuation', 'reuse'] and check_checkfile:
                 if opt.value == 'default':
-                    if not os.path.exists('%s.%s'\
-                        % (os.path.splitext(filename)[0], 'check')):
+                    if not os.path.exists('%s.%s' %
+                                          (os.path.splitext(filename)[0],
+                                           'check')):
                         continue
-                elif not (os.path.exists(opt.value)
+                elif not (os.path.exists(opt.value) or
                           # CASTEP also understands relative path names, hence
                           # also check relative to the param file directory
-                          or os.path.exists(os.path.join(
-                                                os.path.dirname(filename),
-                                                opt.value))
-                          ):
+                          os.path.exists(
+                              os.path.join(os.path.dirname(filename),
+                                           opt.value))):
                     continue
             if opt.type == 'Block':
                 out.write('%%BLOCK %s\n' % keyword.upper())
                 out.write(opt.value)
                 out.write('\n%%ENDBLOCK %s\n' % keyword.upper())
             else:
-                out.write('%s : %s\n'
-                    % (keyword, opt.value))
+                out.write('%s : %s\n' % (keyword, opt.value))
     out.close()
-
-
-
-
 
 
 def read_seed(seed, new_seed=None, ignore_internal_keys=False):
@@ -1195,10 +1186,10 @@ def read_seed(seed, new_seed=None, ignore_internal_keys=False):
     if os.path.isfile(castepfile):
         # _set_atoms needs to be True here
         # but we set it right back to False
-        #atoms.calc._set_atoms = False
+        # atoms.calc._set_atoms = False
         # BUGFIX: I do not see a reason to do that!
         atoms.calc.read(castepfile)
-        #atoms.calc._set_atoms = False
+        # atoms.calc._set_atoms = False
 
         # if here is a check file, we also want to re-use this information
         if os.path.isfile(checkfile):
