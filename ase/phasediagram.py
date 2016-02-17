@@ -2,6 +2,7 @@ from __future__ import division, print_function
 import fractions
 import functools
 import re
+from distutils.version import LooseVersion
 
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -10,7 +11,7 @@ import ase.units as units
 from ase.atoms import string2symbols
 from ase.utils import hill
 
-if np.__version__ < '1.8':
+if LooseVersion(np.__version__) < '1.8':
     def solve(A, B):
         return np.array([np.linalg.solve(a, b) for a, b in zip(A, B)])
 else:
