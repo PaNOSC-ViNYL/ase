@@ -26,7 +26,7 @@ if sys.version_info < (2, 6, 0, 'final', 0):
 class sdist(_sdist):
     """Fix distutils.
     
-    Distutils insists that the should be a README or README.txt,
+    Distutils insists that there should be a README or README.txt,
     but GitLab.com needs README.rst in order to parse it as reStructureText."""
     
     def warn(self, msg):
