@@ -8,6 +8,8 @@ from ase.lattice import bulk
 from ase.io.trajectory import Trajectory
 from ase.calculators.emt import EMT
 
+scipy  # silence pyflakes
+
 # old ASE2 conversion factor
 eVA3ToGPA = 160.21773
 
