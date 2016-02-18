@@ -1,8 +1,7 @@
 """van der Waals correction schemes for DFT"""
-
+from __future__ import print_function
 import numpy as np
 from ase.units import Bohr, Hartree
-from ase.utils import prnt
 from ase.calculators.calculator import Calculator
 from ase.parallel import rank, get_txt
 
@@ -11,43 +10,43 @@ from ase.parallel import rank, get_txt
 # atomic units, a_0^3
 vdWDB_Chu04jcp = {
     # Element: [alpha, C6]; units [Bohr^3, Hartree * Bohr^6]
-    'H'  : [4.5, 6.5], # [exact, Tkatchenko PRL]
-    'He' : [1.38, 1.42],
-    'Li' : [164, 1392],
-    'Be' : [38, 227],
-    'B'  : [21, 99.5],
-    'C'  : [12, 46.6],
-    'N'  : [7.4, 24.2],
-    'O'  : [5.4, 15.6],
-    'F'  : [3.8, 9.52],
-    'Ne' : [2.67, 6.20],
-    'Na' : [163, 1518],
-    'Mg' : [71, 626],
-    'Al' : [60, 528],
-    'Si' : [37, 305],
-    'P'  : [25, 185],
-    'S'  : [19.6, 134],
-    'Cl' : [15, 94.6],
-    'Ar' : [11.1, 64.2],
-    'Ca' : [160, 2163],
-    'Sc' : [120, 1383],
-    'Ti' : [98, 1044],
-    'V'  : [84, 832],
-    'Cr' : [78, 602],
-    'Mn' : [63, 552],
-    'Fe' : [56, 482],
-    'Co' : [50, 408],
-    'Ni' : [48, 373],
-    'Cu' : [42, 253],
-    'Zn' : [40, 284],
-    'As' : [29, 246],
-    'Se' : [25, 210],
-    'Br' : [20, 162],
-    'Kr' : [16.7, 130],
-    'Sr' : [199, 3175],
-    'Te' : [40, 445],
-    'I'  : [35, 385],
-}
+    'H': [4.5, 6.5],  # [exact, Tkatchenko PRL]
+    'He': [1.38, 1.42],
+    'Li': [164, 1392],
+    'Be': [38, 227],
+    'B': [21, 99.5],
+    'C': [12, 46.6],
+    'N': [7.4, 24.2],
+    'O': [5.4, 15.6],
+    'F': [3.8, 9.52],
+    'Ne': [2.67, 6.20],
+    'Na': [163, 1518],
+    'Mg': [71, 626],
+    'Al': [60, 528],
+    'Si': [37, 305],
+    'P': [25, 185],
+    'S': [19.6, 134],
+    'Cl': [15, 94.6],
+    'Ar': [11.1, 64.2],
+    'Ca': [160, 2163],
+    'Sc': [120, 1383],
+    'Ti': [98, 1044],
+    'V': [84, 832],
+    'Cr': [78, 602],
+    'Mn': [63, 552],
+    'Fe': [56, 482],
+    'Co': [50, 408],
+    'Ni': [48, 373],
+    'Cu': [42, 253],
+    'Zn': [40, 284],
+    'As': [29, 246],
+    'Se': [25, 210],
+    'Br': [20, 162],
+    'Kr': [16.7, 130],
+    'Sr': [199, 3175],
+    'Te': [40, 445],
+    'I': [35, 385]}
+
 vdWDB_alphaC6 = vdWDB_Chu04jcp
 # Au from J. Luder et al. Phys. Rev. B 89 (2014) 045416
 vdWDB_alphaC6['Au'] = [5.6, 197]
@@ -56,62 +55,62 @@ vdWDB_alphaC6['Au'] = [5.6, 197]
 # S. Grimme, J Comput Chem 27 (2006) 1787-1799
 vdWDB_Grimme06jcc = {
     # Element: [C6, R0]; units [J nm^6 mol^{-1}, Angstrom]
-    'H'  : [0.14, 1.001],
-    'He' : [0.08, 1.012],
-    'Li' : [1.61, 0.825],
-    'Be' : [1.61, 1.408],
-    'B'  : [3.13, 1.485],
-    'C'  : [1.75, 1.452],
-    'N'  : [1.23, 1.397],
-    'O'  : [0.70, 1.342],
-    'F'  : [0.75, 1.287],
-    'Ne' : [0.63, 1.243],
-    'Na' : [5.71, 1.144],
-    'Mg' : [5.71, 1.364],
-    'Al' : [10.79, 1.639],
-    'Si' : [9.23, 1.716],
-    'P'  : [7.84, 1.705],
-    'S'  : [5.57, 1.683],
-    'Cl' : [5.07, 1.639],
-    'Ar' : [4.61, 1.595],
-    'K'  : [10.80, 1.485],
-    'Ca' : [10.80, 1.474],
-    'Sc' : [10.80, 1.562],
-    'Ti' : [10.80, 1.562],
-    'V'  : [10.80, 1.562],
-    'Cr'  : [10.80, 1.562],
-    'Mn'  : [10.80, 1.562],
-    'Fe'  : [10.80, 1.562],
-    'Co'  : [10.80, 1.562],
-    'Ni'  : [10.80, 1.562],
-    'Cu'  : [10.80, 1.562],
-    'Zn' : [10.80, 1.562],
-    'Ga' : [16.99, 1.650],
-    'Ge' : [17.10, 1.727],
-    'As' : [16.37, 1.760],
-    'Se' : [12.64, 1.771],
-    'Br' : [12.47, 1.749],
-    'Kr' : [12.01, 1.727],
-    'Rb' : [24.67, 1.628],
-    'Sr' : [24.67, 1.606],
-    'Y-Cd' : [24.67, 1.639],
-    'In' : [37.32, 1.672],
-    'Sn' : [38.71, 1.804],
-    'Sb' : [38.44, 1.881],
-    'Te' : [31.74, 1.892],
-    'I'  : [31.50, 1.892],
-    'Xe' : [29.99, 1.881],
-    }
+    'H': [0.14, 1.001],
+    'He': [0.08, 1.012],
+    'Li': [1.61, 0.825],
+    'Be': [1.61, 1.408],
+    'B': [3.13, 1.485],
+    'C': [1.75, 1.452],
+    'N': [1.23, 1.397],
+    'O': [0.70, 1.342],
+    'F': [0.75, 1.287],
+    'Ne': [0.63, 1.243],
+    'Na': [5.71, 1.144],
+    'Mg': [5.71, 1.364],
+    'Al': [10.79, 1.639],
+    'Si': [9.23, 1.716],
+    'P': [7.84, 1.705],
+    'S': [5.57, 1.683],
+    'Cl': [5.07, 1.639],
+    'Ar': [4.61, 1.595],
+    'K': [10.80, 1.485],
+    'Ca': [10.80, 1.474],
+    'Sc': [10.80, 1.562],
+    'Ti': [10.80, 1.562],
+    'V': [10.80, 1.562],
+    'Cr': [10.80, 1.562],
+    'Mn': [10.80, 1.562],
+    'Fe': [10.80, 1.562],
+    'Co': [10.80, 1.562],
+    'Ni': [10.80, 1.562],
+    'Cu': [10.80, 1.562],
+    'Zn': [10.80, 1.562],
+    'Ga': [16.99, 1.650],
+    'Ge': [17.10, 1.727],
+    'As': [16.37, 1.760],
+    'Se': [12.64, 1.771],
+    'Br': [12.47, 1.749],
+    'Kr': [12.01, 1.727],
+    'Rb': [24.67, 1.628],
+    'Sr': [24.67, 1.606],
+    'Y-Cd': [24.67, 1.639],
+    'In': [37.32, 1.672],
+    'Sn': [38.71, 1.804],
+    'Sb': [38.44, 1.881],
+    'Te': [31.74, 1.892],
+    'I': [31.50, 1.892],
+    'Xe': [29.99, 1.881]}
+
 
 class vdWTkatchenko09prl(Calculator):
     """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
     implemented_properties = ['energy', 'forces']
+    
     def __init__(self,
                  hirshfeld=None, vdwradii=None, calculator=None,
-                 Rmax = 10, # maximal radius for periodic calculations
-                 vdWDB_alphaC6 = vdWDB_alphaC6,
-                 txt=None,
-                 ):
+                 Rmax=10,  # maximal radius for periodic calculations
+                 vdWDB_alphaC6=vdWDB_alphaC6,
+                 txt=None):
         """Constructor
 
         Parameters
@@ -139,8 +138,7 @@ class vdWTkatchenko09prl(Calculator):
         Calculator.__init__(self)
 
     def calculation_required(self, atoms, quantities):
-        if self.calculator.calculation_required(
-            atoms, quantities):
+        if self.calculator.calculation_required(atoms, quantities):
             return True
         for quantity in quantities:
             if quantity not in self.results:
@@ -171,12 +169,12 @@ class vdWTkatchenko09prl(Calculator):
             for atom in atoms:
                 self.vdwradii.append(vdWDB_Grimme06jcc[atom.symbol][1])
  
-        if self.hirshfeld == None:
+        if self.hirshfeld is None:
             volume_ratios = [1.] * len(atoms)
-        elif hasattr(self.hirshfeld,'__len__'): # a list
+        elif hasattr(self.hirshfeld, '__len__'):  # a list
             assert(len(atoms) == len(self.hirshfeld))
             volume_ratios = self.hirshfeld
-        else: # should be an object
+        else:  # should be an object
             self.hirshfeld.initialize()
             volume_ratios = self.hirshfeld.get_effective_volume_ratios()
 
@@ -190,13 +188,13 @@ class vdWTkatchenko09prl(Calculator):
             alpha_a[a], C6eff_a[a] = self.vdWDB_alphaC6[atom.symbol]
             # correction for effective C6
             C6eff_a[a] *= Hartree * volume_ratios[a]**2 * Bohr**6
-            R0eff_a[a] = vdwradii[a] * volume_ratios[a]**(1./3.)
+            R0eff_a[a] = vdwradii[a] * volume_ratios[a]**(1 / 3.)
         C6eff_aa = np.empty((na, na))
         for a in range(na):
             for b in range(a, na):
                 C6eff_aa[a, b] = (2 * C6eff_a[a] * C6eff_a[b] /
                                   (alpha_a[b] / alpha_a[a] * C6eff_a[a] +
-                                   alpha_a[a] / alpha_a[b] * C6eff_a[b]   ))
+                                   alpha_a[a] / alpha_a[b] * C6eff_a[b]))
                 C6eff_aa[b, a] = C6eff_aa[a, b]
 
         # PBC
@@ -229,31 +227,30 @@ class vdWTkatchenko09prl(Calculator):
                                                             d=self.d,
                                                             sR=self.sR)
                                 EvdW -= (Edamp *
-                                         C6eff_aa[ia, ib] / r6 )
+                                         C6eff_aa[ia, ib] / r6)
                                 # we neglect the C6eff contribution to the
                                 # forces
                                 forces[ia] -= ((Fdamp - 6 * Edamp / r) *
                                                C6eff_aa[ia, ib] / r6 *
-                                               diff / r                 )
-        self.results['energy'] += EvdW / 2. # double counting
-        self.results['forces'] += forces / 2. # double counting
+                                               diff / r)
+        self.results['energy'] += EvdW / 2.  # double counting
+        self.results['forces'] += forces / 2.  # double counting
 
         if self.txt:
-            prnt(('\n' + self.__class__.__name__), file=self.txt)
-            prnt('vdW correction: %g' % (EvdW / 2.), file=self.txt)
-            prnt('Energy:         %g' % self.results['energy'],
-                 file=self.txt)
-            prnt('\nForces in eV/Ang:', file=self.txt)
+            print(('\n' + self.__class__.__name__), file=self.txt)
+            print('vdW correction: %g' % (EvdW / 2.), file=self.txt)
+            print('Energy:         %g' % self.results['energy'],
+                  file=self.txt)
+            print('\nForces in eV/Ang:', file=self.txt)
             symbols = self.atoms.get_chemical_symbols()
             for ia, symbol in enumerate(symbols):
-                prnt('%3d %-2s %10.5f %10.5f %10.5f' %
-                     ((ia, symbol) + tuple(self.results['forces'][ia])),
-                     file=self.txt)
+                print('%3d %-2s %10.5f %10.5f %10.5f' %
+                      ((ia, symbol) + tuple(self.results['forces'][ia])),
+                      file=self.txt)
         
     def damping(self, RAB, R0A, R0B,
-                d = 20,   # steepness of the step function
-                sR = 0.94 # for PBE
-                ):
+                d=20,   # steepness of the step function for PBE
+                sR=0.94):
         """Damping factor.
 
         Standard values for d and sR as given in
@@ -262,4 +259,3 @@ class vdWTkatchenko09prl(Calculator):
         x = RAB * scale
         chi = np.exp(-d * (x - 1.0))
         return 1.0 / (1.0 + chi), d * scale * chi / (1.0 + chi)**2
- 

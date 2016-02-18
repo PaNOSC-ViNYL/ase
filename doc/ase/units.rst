@@ -29,7 +29,8 @@ Examples:
 0.025852157076770025
 >>> 0.1 * fs
 0.009822693531550318
->>> print '1 Hartree = '+str(Hartree*mol/kcal)+' kcal/mol'
+>>> print('1 Hartree =', Hartree * mol / kcal, 'kcal/mol')
+1 Hartree = 627.50954059388 kcal/mol
 
 
 =======================

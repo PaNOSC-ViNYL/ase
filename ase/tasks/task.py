@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sys
 import optparse
@@ -12,7 +13,7 @@ from ase.io import read, write
 from ase.io import string2index
 from ase.constraints import FixAtoms
 import ase.optimize
-from ase.utils import Lock, devnull, prnt
+from ase.utils import Lock, devnull
 from ase.tasks.io import read_json, write_json
 from ase.data import chemical_symbols, atomic_numbers
 from ase.tasks.calcfactory import calculator_factory
@@ -86,7 +87,7 @@ class Task:
         self.calcfactory = calcfactory
 
     def log(self, *args, **kwargs):
-        prnt(file=self.logfile, *args, **kwargs)
+        print(file=self.logfile, *args, **kwargs)
 
     def get_filename(self, name=None, ext=None):
         filename = self.taskname

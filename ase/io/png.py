@@ -1,3 +1,4 @@
+from distutils.version import LooseVersion
 from ase.io.eps import EPS
 import numpy as np
 
@@ -28,7 +29,7 @@ class PNG(EPS):
             # buffer_rgba does not accept arguments from version 1.2.0
             # https://github.com/matplotlib/matplotlib/commit/f4fee350f9fbc639853bee76472d8089a10b40bd
             import matplotlib
-            if matplotlib.__version__ < '1.2.0':
+            if LooseVersion(matplotlib.__version__) < '1.2.0':
                 _png.write_png(renderer.buffer_rgba(0, 0),
                                renderer.width, renderer.height,
                                self.filename, 72)
@@ -40,7 +41,7 @@ class PNG(EPS):
                     buf = np.reshape(x, (int(self.h), int(self.w), 4))
                     _png.write_png(buf, self.filename, 72)
 
-                
+
 def write_png(filename, atoms, **parameters):
     if isinstance(atoms, list):
         if len(atoms) > 1:

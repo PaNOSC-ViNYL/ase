@@ -23,7 +23,7 @@ RuntimeError: Atoms object has no calculator.
 >>> calc = Abinit(...)
 >>> a.set_calculator(calc)
 >>> e = a.get_potential_energy()
->>> print e
+>>> print(e)
 -42.0
 
 Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
@@ -191,6 +191,7 @@ the :meth:`set` method:
    turbomole
    vasp
    qmmm
+   others
    ase_qmmm_manyqm
 
 

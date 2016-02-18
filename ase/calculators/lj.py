@@ -54,17 +54,11 @@ class LennardJones(Calculator):
             c12 = c6**2
             energy += 4 * epsilon * (c12 - c6).sum()
             f = (24 * epsilon * (2 * c12 - c6) / r2)[:, np.newaxis] * d
-            #print d
-            #print r2**.5
-            #print offsets
-            #print f
-            #print neighbors
             forces[a1] -= f.sum(axis=0)
             for a2, f2 in zip(neighbors, f):
                 forces[a2] += f2
             stress += np.dot(f.T, d)
         
-        #stress = np.dot(stress, cell)
         stress += stress.T.copy()
         stress *= -0.5 / self.atoms.get_volume()
         

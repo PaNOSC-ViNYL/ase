@@ -2,6 +2,7 @@ import errno
 import os
 import sys
 import time
+import warnings
 from math import sin, cos, radians, atan2, degrees
 from contextlib import contextmanager
 
@@ -187,6 +188,7 @@ def hill(numbers):
 
 def prnt(*args, **kwargs):
     """Python 3 style print function."""
+    warnings.warn('Use from __future__ import print_function')
     fd = kwargs.pop('file', sys.stdout)
     fd.write(
         kwargs.pop('sep', ' ').join(str(arg) for arg in args) +

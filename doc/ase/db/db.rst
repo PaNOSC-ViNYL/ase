@@ -218,7 +218,7 @@ BFGS:   3  12:49:25        1.070541       0.0001
 Loop over selected rows using the :meth:`~Database.select` method:
     
 >>> for row in con.select(relaxed=True):
-...     print row.forces[0, 2], row.relaxed
+...     print(row.forces[0, 2], row.relaxed)
 ...
 -9.8029057329 False
 -9.2526347333e-05 True
