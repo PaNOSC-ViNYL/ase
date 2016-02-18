@@ -49,6 +49,7 @@ Alphabetical list of all modules:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
+:mod:`~ase.calculators.tip3p`
 
 
 .. |abinit| image:: static/abinit.png

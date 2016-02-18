@@ -21,7 +21,9 @@ Development version in trunk
 
 * Source code moved to https://gitlab.com/ase/ase.
 
-* QMMM, TIP3P ...
+* Preliminary :mod:`ase.calculators.qmmm` module.
+
+* Improved :mod:`~ase.calculators.tip3p.TIP3P` potential.
 
 * Velocity Verlet will now work correctly with constraints.
 

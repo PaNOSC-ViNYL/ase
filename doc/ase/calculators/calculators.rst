@@ -191,6 +191,7 @@ the :meth:`set` method:
    turbomole
    vasp
    qmmm
+   others
    ase_qmmm_manyqm
 
 
