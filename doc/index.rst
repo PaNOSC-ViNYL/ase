@@ -71,16 +71,21 @@ News
   electronic structure course at CAMd_.  (10 Jan 2008)
 
   
+Contents
+========
+  
 .. toctree::
 
    overview
    download
    tutorials/tutorials
    ase/ase
-   faq
+   cmdline
+   releasenotes
    mailinglists
-   licenseinfo
    development/development
+   faq
+   licenseinfo
    bugs
 
 

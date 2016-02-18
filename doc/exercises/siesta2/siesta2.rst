@@ -10,7 +10,8 @@ reconstruction with asymmetric dimers. The simulation cell contains
 two dimers. An H2 molecule approaches the surface, above one of the
 dimers, and dissociates, ending up with a H atom bonded to each of the
 Si atoms in the dimer (and thus leading to a symmetric dimer). You can
-get the ``xyz`` file with the initial geometry :git:`doc/exercises/siesta2/geom.xyz`.
+get the ``xyz`` file with the initial geometry
+:git:`doc/exercises/siesta2/geom.xyz`.
 
 .. literalinclude:: siesta2.py
 
@@ -29,7 +30,7 @@ energies during the dynamics by doing::
 
   $ ase-gui -b si001+h2.traj -g i,e,e+ekin
 
-The :option:`-b` option turns on plotting of bonds between the atoms.
+The ``-b`` option turns on plotting of bonds between the atoms.
 Check that the total energy is a conserved quantity in this
 microcanonical simulation.
 
@@ -50,9 +51,3 @@ You can also try to repeat the simulation with a different
 with the Langevin dynamics, which couples the system to a heat bath::
 
   dyn = Langevin(atoms, 1 * fs, kB * 300, 0.002, trajectory=traj)
-
-
-
-
-
-

@@ -165,7 +165,7 @@ therefore be used as dictionary keys, lists cannot.
 
 .. note::
 
-   Another very important type is the :term:`ndarray` type described
+   Another very important type is the ``ndarray`` type described
    here: :ref:`numpy`.  It is an array type for efficient numerics,
    and is heavily used in ASE.
 
@@ -215,7 +215,7 @@ A function is defined like this:
 
 Here ``f`` is a function, ``x`` is an argument, ``m`` and ``n`` are keywords with default values ``2`` and ``1`` and ``y`` is a variable.
 
-A :term:`class` is defined like this:
+A *class* is defined like this:
 
 >>> class A:
 ...     def __init__(self, b):
@@ -226,7 +226,7 @@ A :term:`class` is defined like this:
 ...         return self.c
 
 You can think of a class as a template for creating user defined
-objects.  The ``__init__()`` function is called a :term:`constructor`,
+objects.  The ``__init__()`` function is called a *constructor*,
 it is being called when objects of this type are being created.
 
 In the class ``A`` ``__init__`` is a constructor, ``c`` is an
@@ -240,7 +240,7 @@ attribute and ``m`` and ``get_c`` are methods.
 >>> a.m(3)
 21
 
-Here we make an :term:`instance`/object ``a`` of type ``A``.
+Here we make an instance (or object) ``a`` of type ``A``.
 
 
 Importing modules

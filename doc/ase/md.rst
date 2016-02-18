@@ -361,7 +361,7 @@ Physical Review A 41, p. 4552 (1990).
 
 .. seealso::
 
-   The :term:`API` documentation: :epydoc:`ase.md`
+   The API documentation: :epydoc:`ase.md`
 
 
 Berendsen NPT dynamics
