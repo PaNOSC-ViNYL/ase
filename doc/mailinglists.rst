@@ -1,6 +1,9 @@
 .. _mailing_lists:
 
-=============
+=======
+Contact
+=======
+
 Mailing Lists
 =============
 
@@ -29,3 +32,10 @@ We have the IRC channel ``#ase`` on FreeNode.  Please join us if you
 have any questions. For easy access, you can use this webclient_.
 
 .. _webclient: http://webchat.freenode.net/?randomnick=0&channels=ase
+
+
+GitLab
+======
+
+Feel free to create Merge Requests and Issues on our GitLab page:
+https://gitlab.com/ase/ase

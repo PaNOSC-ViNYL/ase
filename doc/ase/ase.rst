@@ -3,9 +3,9 @@
 
 .. _ase:
 
-================================
-Documentation for modules in ASE
-================================
+=============
+Documentation
+=============
 
 Quick links:
 

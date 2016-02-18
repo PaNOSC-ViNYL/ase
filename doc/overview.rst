@@ -1,10 +1,10 @@
 .. _overview:
 
-========
-Overview
-========
+=====
+About
+=====
 
-ASE is an Atomistic Simulation Environment written in the
+ASE is an Atomic Simulation Environment written in the
 Python_ programming language with the aim of setting up, steering, and
 analyzing atomistic simulations. The ASE has been constructed with a
 number of "design goals" that make it:
