@@ -22,7 +22,7 @@ class MorsePotential(Calculator):
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=['positions', 'numbers', 'cell',
-                                  'pbc', 'charges','magmoms']):
+                                  'pbc', 'charges', 'magmoms']):
         Calculator.calculate(self, atoms, properties, system_changes)
         epsilon = self.parameters.epsilon
         rho0 = self.parameters.rho0
