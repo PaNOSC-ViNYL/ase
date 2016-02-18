@@ -596,9 +596,8 @@ class BaseSiesta(FileIOCalculator):
                 #print(species_number)
                 n_atoms = sum(np.array(species_numbers) == species_number)
                 excess_charge_pr_atom = float(specie['excess_charge'])/n_atoms
-                compensation_charge_pr_atom = -excess_charge_pr_atom
                 valence_charge = get_valence_charge(pseudopotential)
-                fraction = (valence_charge + compensation_charge_pr_atom)/valence_charge
+                fraction = (valence_charge + excess_charge_pr_atom)/valence_charge
                 pseudo_head = name[:-4]
                 fractional_command = os.environ['SIESTA_UTIL_FRACTIONAL']
                 cmd = '%s %s %.7f' % (fractional_command, pseudo_head, fraction)
