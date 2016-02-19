@@ -10,8 +10,8 @@ Introduction
 ============
 
 ``exciting`` is a full-potential *all-electron*
-density-functional-theory (:term:`DFT`) package based on the
-linearized augmented planewave (:term:`LAPW`) method. It can be
+density-functional-theory (DFT) package based on the
+linearized augmented planewave (LAPW) method. It can be
 applied to all kinds of materials, irrespective of the atomic species
 involved, and also allows for the investigation of the core
 region. The website is http://exciting-code.org/

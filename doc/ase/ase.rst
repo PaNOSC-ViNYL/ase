@@ -3,9 +3,9 @@
 
 .. _ase:
 
-================================
-Documentation for modules in ASE
-================================
+=============
+Documentation
+=============
 
 Quick links:
 
@@ -45,7 +45,7 @@ Quick links:
 
    * :ref:`tutorials`
    * :ref:`cli`
-   * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
+   * :epydoc:`Automatically generated documentation <ase>` (API)
    * :git:`Source code <>`
    * Presentation about ASE: :download:`ase-talk.pdf`
 
@@ -60,7 +60,6 @@ List of all modules:
    units
    io
    gui/gui
-   cmdline
    setup-overview
    optimize
    parallel

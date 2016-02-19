@@ -1,8 +1,8 @@
 .. _devel:
 
-===============
-ASE development
-===============
+===========
+development
+===========
 
 As a developer, you should subscribe to all ASE related
 :ref:`mailing_lists`.
@@ -13,7 +13,6 @@ Development topics
 
 .. toctree::
 
-   releasenotes
    contribute
    versioncontrol
    python_codingstandard

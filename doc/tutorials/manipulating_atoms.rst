@@ -27,7 +27,7 @@ Let us assume we forgot how many atoms we set up:
 
 >>> atoms[4]
 Traceback (most recent call last):
-File "<stdin>", line 1, in ?
+  File "<stdin>", line 1, in ?
 IndexError: list index out of range
 
 Wrong because we only have four atoms
