@@ -4,9 +4,9 @@
 
 .. _cli:
 
-=========================
-Command line tools in ASE
-=========================
+==================
+Command line tools
+==================
 
 ASE has the following command line tools:
     

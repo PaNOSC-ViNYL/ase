@@ -1,8 +1,8 @@
 .. _download_and_install:
 
-==================
-Installation guide
-==================
+============
+Installation
+============
 
 In order to choose the right method for installing ASE
 identify your computer system and your goals related to ASE.

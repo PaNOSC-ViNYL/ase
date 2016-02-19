@@ -33,7 +33,7 @@ latex_elements = {
 latex_show_urls = 'inline'
 latex_show_pagerefs = True
 latex_documents = [
-    ('index', 'ASE.tex', 'ASE', 'ASE-developers', 'howto', True)]
+    ('index', 'ASE.tex', 'ASE', 'ASE-developers', 'howto', not True)]
 
 intersphinx_mapping = {'gpaw': ('http://wiki.fysik.dtu.dk/gpaw', None),
                        'python': ('http://docs.python.org/2.7', None)}

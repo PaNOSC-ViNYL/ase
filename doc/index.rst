@@ -10,6 +10,26 @@ license`_.
 .. _Python: http://www.python.org
 .. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
 
+Example:
+    
+>>> from ase import Atoms
+>>> from ase.optimize import BFGS
+>>> from ase.calculators.nwchem import NWChem
+>>> from ase.io import write
+>>> h2 = Atoms('H2',
+               positions=[[0, 0, 0],
+                          [0, 0, 0.7]])
+>>> h2.calc = NWChem(xc='PBE')
+>>> opt = BFGS(h2)
+>>> opt.run(fmax=0.02)
+BFGS:   0  19:10:49    -31.435229     2.2691
+BFGS:   1  19:10:50    -31.490773     0.3740
+BFGS:   2  19:10:50    -31.492791     0.0630
+BFGS:   3  19:10:51    -31.492848     0.0023
+>>> write('H2.xyz', h2)
+>>> h2.get_potential_energy()
+-31.492847800329216
+
 
 Supported :mod:`Calculators <ase.calculators>`:
 
@@ -78,8 +98,8 @@ Contents
 
    overview
    download
-   tutorials/tutorials
    ase/ase
+   tutorials/tutorials
    cmdline
    releasenotes
    mailinglists
