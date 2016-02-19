@@ -184,7 +184,7 @@ def read_struct_out(fname):
     """Read a siesta struct file"""
     from ase.atoms import Atoms, Atom
 
-    f = open(fname, 'r')
+    f = fname
 
     cell = []
     for i in range(3):
