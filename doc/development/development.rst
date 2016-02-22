@@ -1,7 +1,7 @@
 .. _devel:
 
 ===========
-development
+Development
 ===========
 
 As a developer, you should subscribe to all ASE related

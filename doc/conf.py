@@ -19,6 +19,7 @@ exclude_patterns = ['build']
 default_role = 'math'
 pygments_style = 'sphinx'
 autoclass_content = 'both'
+modindex_common_prefix = ['ase.']
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
