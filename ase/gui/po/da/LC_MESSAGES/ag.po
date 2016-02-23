@@ -2105,7 +2105,7 @@ msgstr "Minimering AFBRUDT efter %i trin."
 msgid "Out of memory, consider using LBFGS instead"
 msgstr "Løbet tør for hukommelse; overvej at bruge LBFGS i stedet"
 
-#. Update display to reflect succesful end of simulation.
+#. Update display to reflect successful end of simulation.
 #: ../minimize.py:121
 #, python-format
 msgid "Minimization completed in %i steps."
@@ -2911,7 +2911,7 @@ msgstr "Orden for fit: "
 msgid "Calculation CANCELLED."
 msgstr "Beregning AFBRUDT."
 
-#. Update display to reflect succesful end of simulation.
+#. Update display to reflect successful end of simulation.
 #: ../scaling.py:359
 msgid "Calculation completed."
 msgstr "Beregning fuldført."

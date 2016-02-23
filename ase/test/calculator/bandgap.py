@@ -34,7 +34,7 @@ def run(name):
                       # kpts={'size': kpts, 'gamma': True}, **par)
                       kpts=kpts, **par)
     si.set_initial_magnetic_moments([-0.1, 0.1])
-    # this should not be neccesary in the new ase interface standard ...
+    # this should not be necessary in the new ase interface standard ...
     if si.get_initial_magnetic_moments().any():  # spin-polarization
         if name == 'aims':
             calc.set(spin='collinear')

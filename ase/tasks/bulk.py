@@ -41,7 +41,7 @@ class BulkTask(OptimizeTask):
         """Expand fcc, bcc, hcp and diamond.
 
         The name fcc will be expanded to all the elements with the fcc
-        stucture and so on."""
+        structure and so on."""
 
         names = OptimizeTask.expand(self, names)
 

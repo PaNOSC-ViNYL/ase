@@ -691,7 +691,7 @@ def spacegroup_from_data(no=None, symbol=None, setting=1,
                          reciprocal_cell=None, subtrans=None, sitesym=None,
                          rotations=None, translations=None, datafile=None):
     """Manually create a new space group instance.  This might be
-    usefull when reading crystal data with its own spacegroup
+    useful when reading crystal data with its own spacegroup
     definitions."""
     if no is not None:
         spg = Spacegroup(no, setting, datafile)

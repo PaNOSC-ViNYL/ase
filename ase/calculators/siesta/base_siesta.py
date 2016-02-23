@@ -108,7 +108,7 @@ class BaseSiesta(FileIOCalculator):
             -fdf_arguments: Explicitly given fdf arguments. Dictonary using
                             Siesta keywords as given in the manual. List values
                             are written as fdf blocks with each element on a
-                            seperate line, while tuples will write each element
+                            separate line, while tuples will write each element
                             in a single line.  ASE units are assumed in the
                             input.
         """

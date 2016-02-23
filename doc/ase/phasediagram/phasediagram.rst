@@ -66,7 +66,7 @@ containing molecules (plus water and a proton):
     
 .. autofunction:: solvated
 
-We add two solids and one more disolved molecule to the references and create
+We add two solids and one more dissolved molecule to the references and create
 a :class:`Pourbaix` object:
     
 >>> refs += [('Zn', 0.0), ('ZnO', -3.323), ('ZnO2(aq)', -2.921)]

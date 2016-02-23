@@ -233,8 +233,8 @@ bool_keys = [
     'lplane',     # parallelisation over the FFT grid
     'lscalapack',  # switch off scaLAPACK
     'lscalu',     # switch of LU decomposition
-    'lsepb',      # write out partial charge of each band seperately?
-    'lsepk',      # write out partial charge of each k-point seperately?
+    'lsepb',      # write out partial charge of each band separately?
+    'lsepk',      # write out partial charge of each k-point separately?
     'lthomas',    #
     'luse_vdw',   # Invoke vdW-DF implementation by Klimes et. al
     'lvdw',   # Invoke DFT-D2 method of Grimme
@@ -713,7 +713,7 @@ class Vasp(Calculator):
     def read_version(self):
         version = None
         for line in open('OUTCAR'):
-            if line.find(' vasp.') != -1:  # find the first occurence
+            if line.find(' vasp.') != -1:  # find the first occurrence
                 version = line[len(' vasp.'):].split()[0]
                 break
         return version
@@ -1196,7 +1196,7 @@ class Vasp(Calculator):
                 # we are checking still the first number so
                 # let's "fix" the format for the second one
                 if 'e' not in b.lower():
-                    # replace last occurence of - (assumed exponent) with -e
+                    # replace last occurrence of - (assumed exponent) with -e
                     bsplit = b.split('-')
                     bsplit[-1] = 'e' + bsplit[-1]
                     b = '-'.join(bsplit).replace('-e', 'e-')

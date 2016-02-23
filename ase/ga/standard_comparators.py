@@ -181,7 +181,7 @@ class RawScoreComparator(object):
 
             
 class NoComparator(object):
-    """Returns False allways. If you don't want any comparator."""
+    """Returns False always. If you don't want any comparator."""
     def looks_like(self, *args):
         return False
         

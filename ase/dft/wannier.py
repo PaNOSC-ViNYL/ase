@@ -520,7 +520,7 @@ class Wannier:
         **k**-point calculation the periodicity of the orbitals are
         given by the large unit cell defined by repeating the original
         unitcell by the number of **k**-points in each direction.  In
-        this case it is usefull to move the orbitals away from the
+        this case it is useful to move the orbitals away from the
         boundaries of the large cell before plotting them. For a bulk
         calculation with, say 10x10x10 **k** points, one could move
         the orbitals to the cell [2,2,2].  In this way the pbc

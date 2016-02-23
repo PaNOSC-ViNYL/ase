@@ -64,7 +64,7 @@ GPAW_                              Real-space/plane-wave/LCAO PAW code
 Hotbit_                            DFT based tight binding
 :mod:`~ase.calculators.abinit`     Plane-wave pseudopotential code
 :mod:`~ase.calculators.castep`     Plane-wave pseudopotential code
-:mod:`~ase.calculators.cp2k`       DFT and clasical potentials
+:mod:`~ase.calculators.cp2k`       DFT and classical potentials
 :mod:`~ase.calculators.dftb`       DFT based tight binding
 :mod:`~ase.calculators.eam`        Embedded Atom Method
 elk                                Full Potential LAPW code

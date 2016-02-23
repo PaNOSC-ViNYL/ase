@@ -355,7 +355,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                                         gtk.gdk.color_parse('#AA4000'))
             
         else:
-            # Update display to reflect succesful end of simulation.
+            # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Calculation completed."))
             self.status_label.modify_fg(gtk.STATE_NORMAL,
                                         gtk.gdk.color_parse('#007700'))

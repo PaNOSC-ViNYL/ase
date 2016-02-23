@@ -74,7 +74,7 @@ class BEEFEnsemble:
         return self.e + self.de
 
     def get_beefvdw_ensemble_coefs(self, size=2000, seed=0):
-        """Pertubation coefficients of the BEEF-vdW ensemble"""
+        """Perturbation coefficients of the BEEF-vdW ensemble"""
         from ase.dft.pars_beefvdw import uiOmega as omega
         assert np.shape(omega) == (31, 31)
 
@@ -92,7 +92,7 @@ class BEEFEnsemble:
         return (np.vstack((ensemble_coefs.T, PBEc_ens))).T
 
     def get_mbeef_ensemble_coefs(self, size=2000, seed=0):
-        """Pertubation coefficients of the mBEEF ensemble"""
+        """Perturbation coefficients of the mBEEF ensemble"""
         from ase.dft.pars_mbeef import uiOmega as omega
         assert np.shape(omega) == (64, 64)
 
@@ -103,7 +103,7 @@ class BEEFEnsemble:
                                     rand)[:]).T
 
     def get_mbeefvdw_ensemble_coefs(self, size=2000, seed=0):
-        """Pertubation coefficients of the mBEEF-vdW ensemble"""
+        """Perturbation coefficients of the mBEEF-vdW ensemble"""
         from ase.dft.pars_mbeefvdw import uiOmega as omega
         assert np.shape(omega) == (28, 28)
 

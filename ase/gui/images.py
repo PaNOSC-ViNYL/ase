@@ -107,7 +107,7 @@ class Images:
                 self.T[i] = 0
 
         if warning:
-            print('WARNING: Not all images have the same bondary conditions!')
+            print('WARNING: Not all images have the same boundary conditions!')
             
         self.selected = np.zeros(self.natoms, bool)
         self.selected_ordered = []

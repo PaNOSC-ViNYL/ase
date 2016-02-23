@@ -115,13 +115,13 @@ Making changes
 
 Changes and/or additions can be made both directly in GitLab for small
 changes (see the :ref:`small changes section<making-small-changes>`) and on a
-local branch in your fork.  The prefered way using command line on a local 
+local branch in your fork.  The preferred way using command line on a local 
 machine is:
 
 1) Ensure that your master branch is in sync with upstream master (since you
    should not work in master it's ok).
 
-  * Fetch information about heads and references from "upsteam" and store it in
+  * Fetch information about heads and references from "upstream" and store it in
     local git used in later merges and checkouts::
         
         $ git fetch upstream

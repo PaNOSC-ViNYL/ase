@@ -670,7 +670,7 @@ End CASTEP Interface Documentation
                             # self.kpoints_mp_offset = '0. 0. 0.'
                             # not set here anymore because otherwise
                             # two calculator objects go out of sync
-                            # after each calculation triggering unecessary
+                            # after each calculation triggering unnecessary
                             # recalculation
                             break
                 elif 'Symmetry and Constraints' in line:
@@ -1073,7 +1073,7 @@ End CASTEP Interface Documentation
         return self._energy_0K
 
     def get_potential_energy(self, atoms, force_consistent=False):
-        # here for compatability with ase/calculators/general.py
+        # here for compatibility with ase/calculators/general.py
         # but accessing only _name variables
         """Return the total potential energy."""
         self.update(atoms)

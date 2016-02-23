@@ -40,7 +40,7 @@ cube        Gaussian cube file
 py          Python script
 vnl         VNL file
 png         Portable Network Graphics
-pov         Persistance of Vision
+pov         Persistence of Vision
 eps         Encapsulated PostScript
 in          FHI-aims geometry input
 POSCAR      VASP geometry input

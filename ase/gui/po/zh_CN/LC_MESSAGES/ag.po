@@ -2037,7 +2037,7 @@ msgstr "%i步后优化被取消。"
 msgid "Out of memory, consider using LBFGS instead"
 msgstr "内存不足，请改用LBFGS方法"
 
-#. Update display to reflect succesful end of simulation.
+#. Update display to reflect successful end of simulation.
 #: ../minimize.py:121
 #, python-format
 msgid "Minimization completed in %i steps."
@@ -2805,7 +2805,7 @@ msgstr "拟合级数："
 msgid "Calculation CANCELLED."
 msgstr "计算被取消(!!!)。"
 
-#. Update display to reflect succesful end of simulation.
+#. Update display to reflect successful end of simulation.
 #: ../scaling.py:357
 msgid "Calculation completed."
 msgstr "计算结束。"

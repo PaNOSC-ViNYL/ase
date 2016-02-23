@@ -953,7 +953,7 @@ class AseQmmmManyqm:
 
             # correct the total charge to be equal the original one
             # in the topology file by
-            # adding/ substracting missing/extra charge on
+            # adding/ subtracting missing/extra charge on
             # non-edge and non-single neighbor next neib QM atoms
             change_charge = \
                 ( self.classical_target_charge_sums[iqm] - \

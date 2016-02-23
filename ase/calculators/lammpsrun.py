@@ -63,11 +63,11 @@ class LAMMPS:
         no_data_file: bool
             Controls whether an explicit data file will be used for feeding
             atom coordinates into lammps. Enable it to lessen the pressure on
-            the (tmp) file system. THIS OPTION MIGHT BE UNRELIABLE FOR CERTIAN
+            the (tmp) file system. THIS OPTION MIGHT BE UNRELIABLE FOR CERTAIN
             CORNER CASES (however, if it fails, you will notice...).
         keep_alive: bool
             When using LAMMPS as a spawned subprocess, keep the subprocess
-            alive (but idling whn unused) along with the calculator object.
+            alive (but idling when unused) along with the calculator object.
         always_triclinic: bool
             Force use of a triclinic cell in LAMMPS, even if the cell is
             a perfect parallelepiped.
@@ -89,7 +89,7 @@ class LAMMPS:
         self._lmp_handle = None        # To handle the lmp process
 
         # read_log depends on that the first (three) thermo_style custom args
-        # can be capitilized and matched aginst the log output. I.e.
+        # can be capitilized and matched against the log output. I.e.
         # don't use e.g. 'ke' or 'cpu' which are labeled KinEng and CPU.
         self._custom_thermo_args = ['step', 'temp', 'press', 'cpu',
                                     'pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz',
@@ -104,7 +104,7 @@ class LAMMPS:
         # Create a re matching exactly N white space separated floatish things
         self._custom_thermo_re = re_compile(r'^\s*' + r'\s+'.join([f_re]*n) + r'\s*$',
                                             flags=IGNORECASE)
-        # thermo_content contains data "writen by" thermo_style.
+        # thermo_content contains data "written by" thermo_style.
         # It is a list of dictionaries, each dict (one for each line
         # printed by thermo_style) contains a mapping between each
         # custom_thermo_args-argument and the corresponding
@@ -271,7 +271,7 @@ class LAMMPS:
 
         # A few sanity checks
         if len(self.thermo_content) == 0:
-            raise RuntimeError('Failed to retreive any thermo_style-output')
+            raise RuntimeError('Failed to retrieve any thermo_style-output')
         if int(self.thermo_content[-1]['atoms']) != len(self.atoms):
             # This obviously shouldn't happen, but if prism.fold_...() fails, it could
             raise RuntimeError('Atoms have gone missing')
@@ -688,11 +688,11 @@ class prism:
         return tuple([self.f2s(x) for x in p])
 
     def pos_to_lammps_str(self, position):
-        "Rotate an ase-cell postion to the lammps cell orientation, return tuple of strs"
+        "Rotate an ase-cell position to the lammps cell orientation, return tuple of strs"
         return tuple([self.f2s(x) for x in np.dot(position, self.R)])
 
     def pos_to_lammps_fold_str(self, position):
-        "Rotate and fold an ase-cell postion into the lammps cell, return tuple of strs"
+        "Rotate and fold an ase-cell position into the lammps cell, return tuple of strs"
         return self.fold_to_str(np.dot(position, self.R))
 
     def is_skewed(self):

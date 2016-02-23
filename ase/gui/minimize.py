@@ -121,7 +121,7 @@ class Minimize(Simulation, MinimizeMixin):
                                         gtk.gdk.color_parse('#AA4000'))
             
         else:
-            # Update display to reflect succesful end of simulation.
+            # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Minimization completed in %i steps.")
                                        % (self.count_steps,))
             self.status_label.modify_fg(gtk.STATE_NORMAL,

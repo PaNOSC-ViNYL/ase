@@ -94,7 +94,7 @@ def coordinate_array_from_unit_vectors(shape, gridunitvectors,
         'indexfunction' -- is a lambda expression that defines the indices
         with which each of the specified gridunitvectors are to be multiplied.
         'indexfunction' must take two arguments, 'i' and 'length' - default
-        is 'lambda i,length:i'. During exection the input index 'i' will run
+        is 'lambda i,length:i'. During execution the input index 'i' will run
         over the interval 0,1,..., 'length' -1.
 
         **An Example**

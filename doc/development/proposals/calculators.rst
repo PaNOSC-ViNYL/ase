@@ -162,7 +162,7 @@ atoms will be updated form the file.  If you add
 ``ignore_bad_restart=True``, you will be able to use the same
 script to do the initial calculation where :file:`si.abc` does not
 exist and following calculations where atoms may have been moved
-arround by an optimization algorithm.
+around by an optimization algorithm.
 
 The command used to start the ABC code can be given in an environment
 variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``

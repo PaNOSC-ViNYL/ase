@@ -28,7 +28,7 @@ uc = slab.get_cell()
 print(uc)
 uc[2] += [0,0,10]  #there are ten layers of vacuum
 uc = slab.set_cell(uc,scale_atoms=False)
-#view the slab to amke sure it is how you expect
+#view the slab to make sure it is how you expect
 view(slab)
 
 #some positions needed to place the atom in the correct place

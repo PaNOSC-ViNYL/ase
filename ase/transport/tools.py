@@ -279,7 +279,7 @@ def quadlstep(f, Za, Zb, fa, fb, tol, trace, fcnt, hmin, calcutype,
     #                          another one, change it
     #     Za, Zb  ----------   the start and end point of the integral
     #     fa, fb  ----------   the function value on Za and Zb
-    #     fcnt    ----------   the number of the funtion recalled till now
+    #     fcnt    ----------   the number of the function recalled till now
     # output parameters:
     #      Q      ----------   integral
     #     Xp      ----------   selected points

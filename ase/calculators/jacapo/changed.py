@@ -140,7 +140,7 @@ def dipole_changed(calc, x):
     if (isinstance(pars, type(dict)) and
         isinstance(pars, type(x))):
         for key in x:
-            if key == 'position':    # dipole layer position is never writen to the nc file
+            if key == 'position':    # dipole layer position is never written to the nc file
                 print('need to do something special')
                 continue
             if x[key] != pars[key]:

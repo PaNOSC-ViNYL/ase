@@ -38,7 +38,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
       args : tuple
           Extra arguments passed to f and fprime.
       gtol : float
-          Gradient norm must be less than gtol before succesful termination.
+          Gradient norm must be less than gtol before successful termination.
       norm : float
           Order of norm (Inf is max, -Inf is min)
       epsilon : int or ndarray

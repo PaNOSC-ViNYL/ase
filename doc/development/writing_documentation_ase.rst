@@ -181,7 +181,7 @@ Setting up development environment with Vagrant
 ===============================================
 
 If you contribue documentation together with the
-code and tests (and you should) here is how you create a development enviroment
+code and tests (and you should) here is how you create a development environment
 on a virtual CentOS7 guest machine using Vagrant_. It takes about 10 minutes.
 
 1. install Vagrant_ on a host:

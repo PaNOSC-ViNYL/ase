@@ -40,7 +40,7 @@ class Specie(Parameters):
     """
     Parameters for specifying the behaviour for a single species in the
     calculation. If the tag argument is set to an integer then atoms with
-    the specified element and tag will be a seperate species.
+    the specified element and tag will be a separate species.
 
     Pseudopotential and basis set can be specified. Additionally the species
     can be set be a ghost species, meaning that they will not be considered

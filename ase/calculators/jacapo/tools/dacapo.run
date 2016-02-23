@@ -2,7 +2,7 @@
 
 '''
 This script runs dacapo in either serial or parallel
-depending on the existance of an environment variable
+depending on the existence of an environment variable
 from a queue system. Three queue systems are currently 
 supported:
 PBS               PBS_NODEFILE

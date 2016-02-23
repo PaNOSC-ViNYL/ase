@@ -31,7 +31,7 @@ def get_atomtypes(fname):
 
 
 def atomtypes_outpot(posfname, numsyms):
-    """Try to retreive chemical symbols from OUTCAR or POTCAR
+    """Try to retrieve chemical symbols from OUTCAR or POTCAR
     
     If getting atomtypes from the first line in POSCAR/CONTCAR fails, it might
     be possible to find the data in OUTCAR or POTCAR, if these files exist.

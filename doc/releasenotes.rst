@@ -114,7 +114,7 @@ Version 3.8.0
 * Python 2.6 is now a requirement.
 * The old :func:`ase.structure.bulk` function is now deprecated.
   Use the new one instead (:func:`ase.lattice.bulk`).
-* We're now using BuildBot for continous integration:
+* We're now using BuildBot for continuous integration:
   https://ase-buildbot.fysik.dtu.dk/waterfall
 * New interface to the JDFTx code.
 

@@ -126,7 +126,7 @@ Relaxations in Parallel on the Same Computer
 --------------------------------------------
 
 In order to relax several structures simultaneously on the same
-computer a seperate script relaxing one structure needs to be
+computer a separate script relaxing one structure needs to be
 created. Continuing the example from above we therefore create a
 script taking as input the filename of the structure to relax and
 which as output saves a trajectory file with the locally optimized

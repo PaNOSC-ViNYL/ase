@@ -35,7 +35,7 @@ class EquationOfStateSJEOS:
     def fit(self):
         """Calculate volume, energy, and bulk modulus.
 
-        Returns the optimal volume, the minumum energy, and the bulk
+        Returns the optimal volume, the minimum energy, and the bulk
         modulus.  Notice that the ASE units for the bulk modulus is
         eV/Angstrom^3 - to get the value in GPa, do this::
 

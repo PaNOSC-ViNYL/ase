@@ -105,7 +105,7 @@ The following functions are provided
 .. function:: hcp10m10(symbol, size, a=None, c=None, vacuum=0.0)
 .. function:: diamond100(symbol, size, a=None, vacuum=0.0)
 
-These allways give orthorhombic cells:
+These always give orthorhombic cells:
 
 ==========  ============
 fcc100      |fcc100|

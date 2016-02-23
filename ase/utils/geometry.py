@@ -32,7 +32,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
         The positons in fractional coordinates that the new positions
         will be nearest possible to.
     eps: float
-        Small number to prevent slightly negative coordinates from beeing
+        Small number to prevent slightly negative coordinates from being
         wrapped.
 
     Example:
@@ -170,7 +170,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
         float scaling all 3 directions.  By setting to a value just
         above one, e.g. 1.05, it is possible to all the corner and
         edge atoms in the returned cell.  This will of cause make the
-        returned cell non-repeatable, but is very usefull for
+        returned cell non-repeatable, but is very useful for
         visualisation.
     tolerance: float
         Determines what is defined as a plane.  All atoms within
@@ -248,7 +248,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
 
     if nlayers:
         # Recursive increase the length of c until we have at least
-        # *nlayers* atomic layers parallell to the a-b plane
+        # *nlayers* atomic layers parallel to the a-b plane
         while True:
             at = cut(atoms, a, b, c, origo=origo, extend=extend,
                      tolerance=tolerance)

@@ -387,7 +387,7 @@ class PhaseDiagram:
         D = X[:, 1:] - X[:, :1]
         C = solve(D.transpose((0, 2, 1)), -X[:, 0])
         
-        # Find the simplex whith positive coordinates that sum to
+        # Find the simplex with positive coordinates that sum to
         # less than one:
         ok = np.logical_and.reduce(C >= 0, axis=1) & (C.sum(axis=1) <= 1)
         i = np.argmax(ok)
