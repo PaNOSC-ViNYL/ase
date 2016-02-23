@@ -5,10 +5,12 @@ Release notes
 =============
 
 
-Development version in trunk
-============================
+Git master branch
+=================
 
 :git:`master <>`.
+
+* :ref:`old trajectory` files can no longer be used.  See :ref:`convert`.
 
 * New iterator function :func:`ase.io.iread` for iteratively reading Atoms
   objects from a file.

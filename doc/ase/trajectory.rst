@@ -21,7 +21,7 @@ Trajectory files, the PickleTrajectory and the BundleTrajectory.
 
 PickleTrajectory is the old (pre 2015) Trajectory format, its use is no
 longer recommended as compatibility between Python versions (and to a
-lesser degree between ASE vesions) cannot be guaranteed.  You *must* 
+lesser degree between ASE vesions) cannot be guaranteed.  You *must*
 :ref:`convert your old PickleTrajectory files <convert>` as soon
 as possible.
 
@@ -96,6 +96,8 @@ last :class:`~ase.atoms.Atoms` object in the trajectory.
 .. autoclass:: ase.io.trajectory.TrajectoryWriter
    :members:
 
+
+.. _old trajectory:
       
 PickleTrajectory
 ================
