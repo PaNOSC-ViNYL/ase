@@ -21,8 +21,8 @@ Trajectory files, the PickleTrajectory and the BundleTrajectory.
 
 PickleTrajectory is the old (pre 2015) Trajectory format, its use is no
 longer recommended as compatibility between Python versions (and to a
-lesser degree between ASE vesions) cannot be guaranteed.  We strongly
-recommend to :ref:`convert your old PickleTrajectory files <convert>` as soon
+lesser degree between ASE vesions) cannot be guaranteed.  You *must*
+:ref:`convert your old PickleTrajectory files <convert>` as soon
 as possible.
 
 BundleTrajectory is only intended for large molecular dynamics
@@ -59,19 +59,19 @@ Examples
 Reading a configuration::
 
     from ase.io.trajectory import Trajectory
-    traj = PickleTrajectory("example.traj")
+    traj = Trajectory('example.traj')
     atoms = traj[-1]
 
 Reading all configurations::
 
-    traj = Trajectory("example.traj")
+    traj = Trajectory('example.traj')
     for atoms in traj:
         # Analyze atoms
 
 Writing every 100th time step in a molecular dynamics simulation::
 
     # dyn is the dynamics (e.g. VelocityVerlet, Langevin or similar)
-    traj = Trajectory("example.traj", "w", atoms)
+    traj = Trajectory('example.traj', 'w', atoms)
     dyn.attach(traj.write, interval=100)
     dyn.run(10000)
     traj.close()
@@ -96,6 +96,8 @@ last :class:`~ase.atoms.Atoms` object in the trajectory.
 .. autoclass:: ase.io.trajectory.TrajectoryWriter
    :members:
 
+
+.. _old trajectory:
       
 PickleTrajectory
 ================
@@ -113,16 +115,9 @@ implementation-independent format.
 thus a malicious PickleTrajectory) that executes arbitrary code when
 reading the file.  The new Trajectory format cannot contain code.
 
-For the reasons above, we recommend not to use the PickleTrajectory
-format, and to :ref:`convert existing files <convert>` to the new format.
-
-.. autoclass:: ase.io.trajectory.PickleTrajectory
-   :members:
-
-Note that there is apparently no methods for reading the trajectory.
-Reading is instead done by indexing the trajectory, or by iterating
-over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
-last :class:`~ase.atoms.Atoms` object in the trajectory.
+For the reasons above, version 3.10 of ASE will not be able to read and write
+PickleTrajectory files, and you need to :ref:`convert existing files <convert>`
+to the new format.
 
       
 .. _convert:
@@ -130,7 +125,7 @@ last :class:`~ase.atoms.Atoms` object in the trajectory.
 Converting old PickleTrajectory files to new Trajectory files
 -------------------------------------------------------------
 
-Please convert you old PickleTrajectory files before it is too late::
+Please convert your old PickleTrajectory files before it is too late::
 
     $ python -m ase.io.trajectory file1.traj [file2.traj ...]
 

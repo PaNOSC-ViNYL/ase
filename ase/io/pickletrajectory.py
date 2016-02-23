@@ -81,7 +81,7 @@ class PickleTrajectory:
                 msg += ('\nConvert to the new future-proof format like this:\n'
                         '\n    $ python -m ase.io.trajectory ' +
                         filename + '\n')
-            warnings.warn(msg)
+            raise DeprecationWarning(msg)
         
         self.numbers = None
         self.pbc = None
