@@ -1,7 +1,380 @@
+"""This module provides I/O functions for the MAGRES file format, introduced 
+by CASTEP as an output format to store structural data and ab-initio
+calculared NMR parameters.
+Authors: Simone Sturniolo (ase implementation), Tim Green (original magres
+    parser code)
+"""
+
+import re
+import numpy as np
+
+import ase.units
 from ase.atoms import Atoms
 
-def read_magres(filename):
-    pass
+def read_magres(filename, include_unrecognised=False):
+
+    """
+        Reader function for magres files.
+    """
+    
+    blocks_re = re.compile(r"[\[<](?P<block_name>.*?)[>\]](.*?)[<\[]/" +
+                            "(?P=block_name)[\]>]", re.M | re.S)
+
+    """
+    Here are defined the various functions required to parse
+    different blocks.
+    """
+
+    def tensor33(x):
+        return np.squeeze(np.reshape(x, (3,3))).tolist()
+    def tensor31(x):
+        return np.squeeze(np.reshape(x, (3,1))).tolist()
+
+    def get_version(file_contents):
+
+        """
+            Look for and parse the magres file format version line
+        """
+
+        lines = file_contents.split('\n')
+        match = re.match("\#\$magres-abinitio-v([0-9]+).([0-9]+)", lines[0])
+
+        if match:
+            version = match.groups()
+            version = tuple(map(int, version))
+        else:
+            version = None
+
+        return version
+
+    def parse_blocks(file_contents):
+        """
+            Parse series of XML-like deliminated blocks into a list of 
+            (block_name, contents) tuples
+        """
+
+        blocks = blocks_re.findall(file_contents)
+
+        return blocks
+
+    def parse_block(block):
+        """
+            Parse block contents into a series of (tag, data) records
+        """
+
+        def clean_line(line):
+            # Remove comments and whitespace at start and ends of line
+            line = re.sub('#(.*?)\n', '', line)
+            line = line.strip()
+
+            return line
+
+        name, data = block
+
+        lines = [clean_line(line) for line in data.split('\n')]
+
+        records = []
+
+        for line in lines:
+            xs = line.split()
+
+            if not xs:
+                continue
+
+            tag = xs[0]
+            data = xs[1:]
+
+            records.append((tag, data))
+
+        return (name, records)
+
+    def check_units(d):
+      """
+        Verify that given units for a particular tag are correct.
+      """
+
+      allowed_units = {'lattice': 'Angstrom',
+                       'atom': 'Angstrom',
+                       'ms': 'ppm',
+                       'efg': 'au',
+                       'efg_local': 'au',
+                       'efg_nonlocal': 'au',
+                       'isc': '10^19.T^2.J^-1',
+                       'isc_fc': '10^19.T^2.J^-1',
+                       'isc_orbital_p': '10^19.T^2.J^-1',
+                       'isc_orbital_d': '10^19.T^2.J^-1',
+                       'isc_spin': '10^19.T^2.J^-1',
+                       'isc': '10^19.T^2.J^-1',
+                       'sus': '10^-6.cm^3.mol^-1',
+                       'calc_cutoffenergy': 'Hartree',}
+
+      if d[0] in d and d[1] == allowed_units[d[0]]:
+        pass
+      else:
+        raise RuntimeError("Unrecognized units: %s %s" % (d[0], d[1]))
+      
+      return d
+
+    def write_units(data, out):
+      if 'units' in data:
+        for tag, units in data['units']:
+          out.append("  units %s %s" % (tag, units))
+
+    def tensor_string(tensor):
+        return " ".join([" ".join(map(str, xs)) for xs in tensor])
+
+    def parse_magres_block(block):
+      """
+        Parse magres block into data dictionary given list of record tuples.
+      """
+
+      name, records = block
+
+      # Atom label, atom index and 3x3 tensor
+      def sitensor33(name):
+         return lambda d: {'atom': {'label': data[0], 
+                                    'index': int(data[1])}, 
+                            name: tensor33(map(float, data[2:]))}
+      
+      # 2x(Atom label, atom index) and 3x3 tensor
+      def sisitensor33(name):
+         return lambda d: {'atom1': {'label': data[0],
+                                     'index': int(data[1])},
+                                     'atom2': {'label': data[2],
+                                     'index': int(data[3])},
+                            name: tensor33(map(float, data[4:]))}
+        
+      tags = {'ms': sitensor33('sigma'),
+              'efg': sitensor33('V'),
+              'efg_local': sitensor33('V'),
+              'efg_nonlocal': sitensor33('V'),
+              'isc': sisitensor33('K'),
+              'isc_fc': sisitensor33('K'),
+              'isc_spin': sisitensor33('K'),
+              'isc_orbital_p': sisitensor33('K'),
+              'isc_orbital_d': sisitensor33('K'),
+              'units': check_units}
+
+      data_dict = {}
+
+      for record in records:
+        tag, data = record
+
+        if tag not in data_dict:
+          data_dict[tag] = []
+
+        data_dict[tag].append(tags[tag](data))
+
+      return data_dict
+
+    def parse_atoms_block(block):
+      """
+        Parse atoms block into data dictionary given list of record tuples.
+      """
+
+      name, records = block
+
+      # Lattice record: a1, a2 a3, b1, b2, b3, c1, c2 c3
+      def lattice(d):
+        return tensor33(map(float, data))
+
+      # Atom record: label, index, x, y, z
+      def atom(d):
+        return {'species': data[0],
+                'label': data[1],
+                'index': int(data[2]),
+                'position': tensor31(map(float, data[3:]))}
+
+      def symmetry(d):
+        return " ".join(data)
+
+      tags = {'lattice': lattice,
+              'atom': atom,
+              'units': check_units,
+              'symmetry': symmetry}
+      
+      data_dict = {}
+
+      for record in records:
+        tag, data = record
+
+        if tag not in data_dict:
+          data_dict[tag] = []
+
+        data_dict[tag].append(tags[tag](data))
+
+      return data_dict
+
+    def parse_generic_block(block):
+      """
+        Parse any other block into data dictionary given list of record tuples.
+      """
+
+      name, records = block
+      
+      data_dict = {}
+
+      for record in records:
+        tag, data = record
+
+        if tag not in data_dict:
+          data_dict[tag] = []
+
+        data_dict[tag].append(data)
+
+      return data_dict
+
+    """
+        Actual parser code.
+    """
+
+    block_parsers = {'magres': parse_magres_block,
+                     'atoms': parse_atoms_block,
+                     'calculation': parse_generic_block,}
+
+    file_contents = open(filename).read()
+
+    version = get_version(file_contents)
+    blocks = parse_blocks(file_contents)
+
+    data_dict = {}
+
+    for block_data in blocks:
+      block = parse_block(block_data)
+
+      if block[0] in block_parsers:
+        block_dict = block_parsers[block[0]](block)
+        data_dict[block[0]] = block_dict
+      else:
+        # Throw in the text content of blocks we don't recognise
+        if include_unrecognised:
+          data_dict[block[0]] = block_data[1]
+
+    # Now the loaded data must be turned into an ASE Atoms object
+
+    # First check if the file is even viable
+    if 'atoms' not in data_dict:
+        raise RuntimeError("Magres file does not contain structure data")
+
+    # Allowed units handling. This is redundant for now but
+    # could turn out useful in the future
+
+    magres_units = {
+        'Angstrom': ase.units.Ang
+    }
+
+    # Lattice parameters?
+    if 'lattice' in data_dict['atoms']:
+        try:
+            u = dict(data_dict['atoms']['units'])['lattice']
+        except KeyError:
+            raise RuntimeError("No units detected in file for lattice")
+        u = magres_units[u]
+        cell = np.array(data_dict['atoms']['lattice'][0])*u
+        pbc = True
+    else:
+        cell = None
+        pbc = False
+
+    # Now the atoms
+    symbols = []
+    positions = []
+    indices = []
+    labels = []
+
+    if 'atom' in data_dict['atoms']:
+        try:
+            u = dict(data_dict['atoms']['units'])['atom']
+        except KeyError:
+            raise RuntimeError("No units detected in file for atom positions")
+        u = magres_units[u]
+        for a in data_dict['atoms']['atom']:
+            symbols.append(a['species'])
+            positions.append(a['position'])
+            indices.append(a['index'])
+            labels.append(a['label'])
+
+    atoms = Atoms(cell=cell,
+                  pbc=pbc,
+                  symbols=symbols,
+                  positions=positions)
+
+    # Set up the rest of the properties as arrays
+    atoms.new_array('indices', np.array(indices))
+    atoms.new_array('labels', np.array(labels))
+
+    return atoms
 
 def write_magres(filename):
-    pass
+
+    def write_magres_block(data):
+      """
+        Write out a <magres> block from its dictionary representation
+      """
+
+      out = []
+
+      def siout(tag, tensor_name):
+        if tag in data:
+          for atom_si in data[tag]:
+            out.append("  %s %s %d %s"%(tag,
+                                        atom_si['atom']['label'],
+                                        atom_si['atom']['index'],
+                                        tensor_string(atom_si[tensor_name])))
+
+      write_units(data, out)
+
+      siout('ms', 'sigma')
+
+      siout('efg_local', 'V')
+      siout('efg_nonlocal', 'V')
+      siout('efg', 'V')
+
+      def sisiout(tag, tensor_name):
+        if tag in data:
+          for isc in data[tag]:
+            out.append("  %s %s %d %s %d %s"%(tag,
+                                              isc['atom1']['label'],
+                                              isc['atom1']['index'],
+                                              isc['atom2']['label'],
+                                              isc['atom2']['index'],
+                                              tensor_string(isc[tensor_name])))
+
+      sisiout("isc_fc", 'K')
+      sisiout("isc_orbital_p", 'K')
+      sisiout("isc_orbital_d", 'K')
+      sisiout("isc_spin", 'K')
+      sisiout("isc", 'K')
+
+      return "\n".join(out)
+
+    def write_atoms_block(data):
+      out = []
+
+      write_units(data, out)
+
+      if 'lattice' in data:
+        for lat in data['lattice']:
+          out.append("  lattice %s" % tensor_string(lat))
+      
+      if 'symmetry' in data:
+        for sym in data['symmetry']:
+          out.append("  symmetry %s" % sym)
+
+      if 'atom' in data:
+        for a in data['atom']:
+          out.append("  atom %s %s %s %s" % (a['species'],
+                                             a['label'],
+                                             a['index'],
+                                             " ".join(map(str, a['position']))))
+
+      return "\n".join(out)
+
+    def write_generic_block(data):
+      out = []
+
+      for tag, data in data.items():
+        for value in data:
+          out.append("%s %s" % (tag, " ".join(map(str, value))))
+
+      return "\n".join(out)
