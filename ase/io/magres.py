@@ -303,6 +303,58 @@ def read_magres(filename, include_unrecognised=False):
     atoms.new_array('indices', np.array(indices))
     atoms.new_array('labels', np.array(labels))
 
+    # Now for the magres specific stuff
+    li_list = zip(labels, indices)
+    mprops = {
+        'ms': ('sigma', False),
+        'efg': ('V', False),
+        'isc': ('K', True)
+    }  # (matrix name, is pair interaction) for various magres quantities
+
+    def create_magres_array(u, block):
+
+        # This bit to keep track of tags
+        u0 = u.split('_')[0]
+        if u0 not in mprops:
+            raise RuntimeError("Invalid data in magres block")
+
+        mn = mprops[u0][0]
+        is_pair = mprops[u0][1]
+
+        if not is_pair:
+            u_arr = [None]*len(li_list)
+        else:
+            u_arr = [[None]*(i+1) for i in range(len(li_list))]
+
+        for s in block:
+            # Find the atom index/indices
+            if not is_pair:
+                # First find out which atom this is
+                at = (s['atom']['label'], s['atom']['index'])
+                try:
+                    ai = li_list.index(at)
+                except ValueError:
+                    raise RuntimeError("Invalid data in magres block")
+                # Then add the relevant quantity
+                u_arr[ai] = s[mn]                    
+            else:
+                at1 = (s['atom1']['label'], s['atom1']['index'])
+                at2 = (s['atom2']['label'], s['atom2']['index'])
+                ai1 = li_list.index(at1)
+                ai2 = li_list.index(at2)
+                # Sort them
+                ai1, ai2 = sorted((ai1, ai2), reverse=True)
+                u_arr[ai1][ai2] = s[mn]
+
+        return np.array(u_arr)
+
+    if 'magres' in data_dict:
+        if 'units' in data_dict['magres']:
+            atoms.info['magres_units'] = dict(data_dict['magres']['units'])
+            for u in atoms.info['magres_units']:
+                u_arr = create_magres_array(u, data_dict['magres'][u])
+                atoms.new_array(u, u_arr)
+
     return atoms
 
 def write_magres(filename):
