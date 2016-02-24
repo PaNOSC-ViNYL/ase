@@ -55,8 +55,8 @@ List of all modules:
 .. toctree::
    :maxdepth: 2
 
-   atoms
    atom
+   atoms
    units
    io
    gui/gui
@@ -66,7 +66,6 @@ List of all modules:
    visualize/visualize
    calculators/calculators
    constraints
-   neb
    vibrations
    phonons
    phasediagram/phasediagram
@@ -82,4 +81,5 @@ List of all modules:
    io/opls
    db/db
    ga
+   neb
    dimermethod
