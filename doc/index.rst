@@ -96,7 +96,7 @@ Contents
   
 .. toctree::
 
-   overview
+   about
    download
    ase/ase
    tutorials/tutorials
