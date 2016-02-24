@@ -1,7 +1,8 @@
 .. module:: ase.phonons
 
+===================
 Phonon calculations
--------------------
+===================
 
 Module for calculating vibrational normal modes for periodic systems using the
 so-called small displacement method (see e.g. [Alfe]_). So far, space-group
@@ -16,7 +17,7 @@ displacement method is described in [Wang]_.
 
 
 Example
--------
+=======
 
 Simple example showing how to calculate the phonon dispersion for bulk aluminum
 using a 7x7x7 supercell within effective medium theory::
@@ -94,3 +95,13 @@ Mode inspection using ase-gui::
 .. [Wang] Y. Wang *et al.*, A mixed-space approach to first-principles
           calculations of phonon frequencies for polar materials, J. Phys.:
           Cond. Matter 22, 202201 (2010)
+
+
+List of all Methods
+===================
+
+.. autoclass:: Phonons
+   :members:
+
+
+

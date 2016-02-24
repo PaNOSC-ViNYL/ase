@@ -1,5 +1,3 @@
-.. module:: basics
-
 =======================================
 ase-gui basics and command line options
 =======================================
