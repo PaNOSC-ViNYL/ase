@@ -4,11 +4,61 @@
 Installation
 ============
 
-In order to choose the right method for installing ASE
-identify your computer system and your goals related to ASE.
-Is it a personal laptop or maybe an HPC cluster?
-Are you just trying out ASE or need a full development environment
-in order to participate in developing ASE?
+.. contents::
+    
+Requirements
+============
+
+* Python_ 2.6-3.5
+* NumPy_ (base N-dimensional array package)
+
+Optional:
+
+* For extra functionality: SciPy_ (library for scientific computing)
+* For :mod:`ase.gui`: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
+
+Installation using ``pip``
+==========================
+
+.. highlight:: bash
+
+The simplest way to install ASE is::
+    
+    $ pip install ase
+    
+This will install ASE in your ``~/.local`` folder where Python can
+automatically find it.  Make sure you have ``~/.local/bin`` in your
+``$PATH`` environment variable.
+
+
+.. _running_tests:
+
+Testing
+=======
+
+Please run the tests::
+    
+    $ python -m ase.test  # takes 1 min.
+
+and send us the output if there are failing tests.
+
+
+Installation
+------------
+
+Add ``~/ase`` to your $PYTHONPATH environment variable and add
+``~/ase/tools`` to $PATH (assuming ``~/ase`` is where your ASE folder is).
+    
+    
+
+
+    
+    
+
+
+
+
+
 
 For the installation on personal laptops we recommend
 the binary packages provided for popular Linux distributions
@@ -83,6 +133,166 @@ instructions at the `Homebrew ASE installation page
 After performing the installation do not forget to :ref:`running_tests`!
 
 
+
+
+.. _installationguide_manual:
+
+Installation from source
+========================
+
+ASE binaries are available only for the :ref:`latest_stable_release`,
+and all available ASE releases are listed at the :ref:`download` page.
+
+If you need a development version (or a historic version) of ASE
+perform a manual installation according to instructions below.
+Follow the same instructions if you are configuring ASE on an HPC cluster.
+
+This is the **preferred** way of manually installing ASE.
+It offers the following advantages:
+
+- installation is limited to standard user's account:
+  it does not pollute the root filesystem,
+
+- user gains access to version control updates, if necessary.
+
+
+
+Installation process
+--------------------
+
+After the :ref:`download` of ASE source create the link
+to the requested version, e.g.:
+
+- if retrieved from SVN::
+
+   $ cd ~
+   $ ln -s ase-3.9.1 ase
+    
+- if retrieved as tar-file::
+
+   $ cd ~
+   $ tar -xf python-ase-3.9.1.4567.tar.gz
+   $ ln -s python-ase-3.9.1.4567 ase
+
+It is sufficient to
+put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
+environment variable, and the directory :file:`$HOME/ase/tools` in
+your :envvar:`PATH` environment variable.  Do this permanently in
+your :file:`~/.bashrc` file::
+
+  export PYTHONPATH=$HOME/ase:$PYTHONPATH
+  export PATH=$HOME/ase/tools:$PATH
+
+or your :file:`~/.cshrc` file::
+
+  setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
+  setenv PATH ${HOME}/ase/tools:${PATH}
+
+Instead of :envvar:`HOME`, you may use any other directory.
+
+Alternatively, you can install ASE to the user-specific site-packages
+directory with::
+
+  $ cd ase
+  $ python setup.py install --user
+
+This way, the ASE modules are found on the python path without any
+explicit configuration, though you still need to ensure that
+:file:`$HOME/.local/bin` (or on Windows,
+:file:`%APPDATA%/Python/Scripts`) is on your :envvar:`PATH`.
+
+.. index:: test
+
+
+.. _download:
+
+Download
+--------
+
+.. highlight:: bash
+
+.. _latest_stable_release:
+
+Latest stable release
++++++++++++++++++++++
+
+The latest stable release can be obtained from SVN or as a
+`tar-file <http://xkcd.com/1168/>`__.
+
+.. note::
+
+   The recommended installation path is :envvar:`$HOME`.
+
+When using svn please set the following variable:
+
+- bash::
+
+   export ASE_TAGS=https://svn.fysik.dtu.dk/projects/ase/tags/
+
+- csh/tcsh::
+
+   setenv ASE_TAGS https://svn.fysik.dtu.dk/projects/ase/tags/
+
+=======  ===========
+Release  Date       
+=======  ===========
+  3.9.1  Jul 21 2015
+  3.9.0  May 28 2015
+  3.8.1  Nov 22 2013
+  3.8.0  Oct 22 2013
+  3.7.1  May 16 2013
+  3.7.0  May 13 2013
+  3.6.0  Feb 24 2012
+  3.5.1  May 24 2011
+  3.4.1  Aug 11 2010
+  3.4.0  Apr 23 2010
+  3.3.1  Jan 20 2010
+  3.2.0  Sep  4 2009
+  3.1.0  Mar 27 2009
+  3.0.0  Nov 13 2008
+=======  ===========
+
+
+
+.. _latest_development_release:
+
+Latest development release
+++++++++++++++++++++++++++
+
+The latest revision can be obtained like this::
+
+  $ git clone https://gitlab.com/ase/ase.git
+
+or from the daily snapshot: `<snapshot.tar.gz>`_.
+
+
+Video tutorial
+==============
+
+In the video: :ref:`overview` of the features of ASE,
+followed by a :ref:`installationguide_manual` of ASE on a Linux system.
+
+.. note::
+
+   Use "Right Click -> Play" to play.
+
+.. raw:: html
+
+        <p></p>
+        <object width="800" height="600">
+        <embed src="https://wiki.fysik.dtu.dk/ase-files/oi_en_800x600.swf"
+        type="application/x-shockwave-flash"
+        allowFullScreen="false"
+        allowscriptaccess="never"
+        loop="false"
+        play="false"
+        width="800" height="600">
+        <p></p>
+        Video not playing? Download avi <a href="https://wiki.fysik.dtu.dk/ase-files/oi_en.avi">file</a> instead.
+        </embed></object>
+        <p></p>
+
+        
 .. _installationguide_windows:
 
 Installation on Windows
@@ -145,307 +355,37 @@ Continue with:
 After performing the installation do not forget to :ref:`running_tests`!
 
 
-.. _installationguide_manual:
-
-Manual installation
-===================
-
-ASE binaries are available only for the :ref:`latest_stable_release`,
-and all available ASE releases are listed at the :ref:`download` page.
-
-If you need a development version (or a historic version) of ASE
-perform a manual installation according to instructions below.
-Follow the same instructions if you are configuring ASE on an HPC cluster.
-
-This is the **preferred** way of manually installing ASE.
-It offers the following advantages:
-
-- installation is limited to standard user's account:
-  it does not pollute the root filesystem,
-
-- user gains access to version control updates, if necessary.
-
-Requirements
-------------
-
-The following packages are required for basic ASE functionality:
-
-1) Python2_ version 2.6 or newer. Python3 is not supported yet.
-2) NumPy_.
-
-.. _Python2: http://www.python.org
-.. _NumPy: http://www.numpy.org/
-
-It is highly recommended (but not required) to install also these:
-
-3) matplotlib_.
-4) libpng_.
-5) pygtk_.
-6) SciPy_.
-
-Matplotlib and libpng are needed for :mod:`writing png files <ase.io>`, and
-together with pygtk are needed for ASE's simple GUI
-(called **ase-gui**, see :mod:`ase.gui`).
-Some of these packages may already be installed on your system.
-
-.. _matplotlib: http://matplotlib.org/
-.. _libpng: http://www.libpng.org/pub/png/libpng.html
-.. _pygtk: http://www.pygtk.org
-.. _SciPy: http://www.scipy.org/
-
-
-Installation process
---------------------
-
-After the :ref:`download` of ASE source create the link
-to the requested version, e.g.:
-
-- if retrieved from SVN::
-
-   $ cd ~
-   $ ln -s ase-3.9.1 ase
-    
-- if retrieved as tar-file::
-
-   $ cd ~
-   $ tar -xf python-ase-3.9.1.4567.tar.gz
-   $ ln -s python-ase-3.9.1.4567 ase
-
-It is sufficient to
-put the directory :file:`$HOME/ase` in your :envvar:`PYTHONPATH`
-environment variable, and the directory :file:`$HOME/ase/tools` in
-your :envvar:`PATH` environment variable.  Do this permanently in
-your :file:`~/.bashrc` file::
-
-  export PYTHONPATH=$HOME/ase:$PYTHONPATH
-  export PATH=$HOME/ase/tools:$PATH
-
-or your :file:`~/.cshrc` file::
-
-  setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
-  setenv PATH ${HOME}/ase/tools:${PATH}
-
-Instead of :envvar:`HOME`, you may use any other directory.
-
-Alternatively, you can install ASE to the user-specific site-packages
-directory with::
-
-  $ cd ase
-  $ python setup.py install --user
-
-This way, the ASE modules are found on the python path without any
-explicit configuration, though you still need to ensure that
-:file:`$HOME/.local/bin` (or on Windows,
-:file:`%APPDATA%/Python/Scripts`) is on your :envvar:`PATH`.
-
-.. index:: test
-
-Optional, **NOT** recommended way of installing ASE system-wide is::
-
-  $ cd ase
-  $ sudo python setup.py install
-
-This is one of the best ways to ruin a Linux system.
-
-
-.. _download:
-
-Download
---------
-
-.. highlight:: bash
-
-.. _latest_stable_release:
-
-Latest stable release
-+++++++++++++++++++++
-
-The latest stable release can be obtained from SVN or as a
-`tar-file <http://xkcd.com/1168/>`__.
-
-.. note::
-
-   The recommended installation path is :envvar:`$HOME`.
-
-When using svn please set the following variable:
-
-- bash::
-
-   export ASE_TAGS=https://svn.fysik.dtu.dk/projects/ase/tags/
-
-- csh/tcsh::
-
-   setenv ASE_TAGS https://svn.fysik.dtu.dk/projects/ase/tags/
-
-======= =========== ============================================ =============================
-Release Date        Retrieve as svn checkout                     Retrieve as tar-file
-======= =========== ============================================ =============================
- 3.9.1_ Jul 21 2015 ``svn co -r 4567 $ASE_TAGS/3.9.1 ase-3.9.1`` python-ase-3.9.1.4567.tar.gz_
- 3.9.0_ May 28 2015 ``svn co -r 4465 $ASE_TAGS/3.9.0 ase-3.9.0`` python-ase-3.9.0.4465.tar.gz_
- 3.8.1_ Nov 22 2013 ``svn co -r 3440 $ASE_TAGS/3.8.1 ase-3.8.1`` python-ase-3.8.1.3440.tar.gz_
- 3.8.0_ Oct 22 2013 ``svn co -r 3420 $ASE_TAGS/3.8.0 ase-3.8.0`` python-ase-3.8.0.3420.tar.gz_
- 3.7.1_ May 16 2013 ``svn co -r 3184 $ASE_TAGS/3.7.1 ase-3.7.1`` python-ase-3.7.1.3184.tar.gz_
- 3.7.0_ May 13 2013 ``svn co -r 3168 $ASE_TAGS/3.7.0 ase-3.7.0`` python-ase-3.7.0.3168.tar.gz_
- 3.6.0_ Feb 24 2012 ``svn co -r 2515 $ASE_TAGS/3.6.0 ase-3.6.0`` python-ase-3.6.0.2515.tar.gz_
- 3.5.1_ May 24 2011 ``svn co -r 2175 $ASE_TAGS/3.5.1 ase-3.5.1`` python-ase-3.5.1.2175.tar.gz_
- 3.4.1_ Aug 11 2010 ``svn co -r 1765 $ASE_TAGS/3.4.1 ase-3.4.1`` python-ase-3.4.1.1765.tar.gz_
- 3.4.0_ Apr 23 2010 ``svn co -r 1574 $ASE_TAGS/3.4.0 ase-3.4.0`` python-ase-3.4.0.1574.tar.gz_
- 3.3.1_ Jan 20 2010 ``svn co -r 1390 $ASE_TAGS/3.3.1 ase-3.3.1`` python-ase-3.3.1.1390.tar.gz_
- 3.2.0_ Sep 4 2009  ``svn co -r 1121 $ASE_TAGS/3.2.0 ase-3.2.0`` python-ase-3.2.0.1121.tar.gz_
- 3.1.0_ Mar 27 2009 ``svn co -r 846 $ASE_TAGS/3.1.0 ase-3.1.0``  python-ase-3.1.0.846.tar.gz_
- 3.0.0_ Nov 13 2008 ``svn co -r 657 $ASE_TAGS/3.0.0 ase-3.0.0``  python-ase-3.0.0.657.tar.gz_
-======= =========== ============================================ =============================
-
-.. _3.9.1:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.9.1
+.. _Python: http://www.python.org/
+.. _NumPy: http://docs.scipy.org/doc/numpy/reference/
+.. _SciPy: http://docs.scipy.org/doc/scipy/reference/
+.. _Matplotlib: http://matplotlib.org/
+.. _pygtk: http://www.pygtk.org/
 
 .. _python-ase-3.9.1.4567.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.9.1.4567.tar.gz
-
-.. _3.9.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.9.0
-
 .. _python-ase-3.9.0.4465.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.9.0.4465.tar.gz
-
-.. _3.8.1:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.8.1
-
 .. _python-ase-3.8.1.3440.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.8.1.3440.tar.gz
-
-.. _3.8.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.8.0
-
 .. _python-ase-3.8.0.3420.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.8.0.3420.tar.gz
-
-.. _3.7.1:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.1
-
 .. _python-ase-3.7.1.3184.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.7.1.3184.tar.gz
-
-.. _3.7.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.7.0
-
 .. _python-ase-3.7.0.3168.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.7.0.3168.tar.gz
-
-.. _3.6.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.6.0
-
 .. _python-ase-3.6.0.2515.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.6.0.2515.tar.gz
-
-.. _3.5.1:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.5.1
-
 .. _python-ase-3.5.1.2175.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.5.1.2175.tar.gz
-
-.. _3.4.1:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.4.1
-
 .. _python-ase-3.4.1.1765.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.4.1.1765.tar.gz
-
-.. _3.4.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.4.0
-
 .. _python-ase-3.4.0.1574.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.4.0.1574.tar.gz
-
-.. _3.3.1:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.3.1
-
 .. _python-ase-3.3.1.1390.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.3.1.1390.tar.gz
-
-.. _3.2.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.2.0
-
 .. _python-ase-3.2.0.1121.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.2.0.1121.tar.gz
-
-.. _3.1.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.1.0
-
 .. _python-ase-3.1.0.846.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.1.0.846.tar.gz
-
-.. _3.0.0:
-    https://trac.fysik.dtu.dk/projects/ase/browser/tags/3.0.0
-
 .. _python-ase-3.0.0.657.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.0.0.657.tar.gz
-
-
-.. _latest_development_release:
-
-Latest development release
-++++++++++++++++++++++++++
-
-The latest revision can be obtained like this::
-
-  $ git clone https://gitlab.com/ase/ase.git
-
-or from the daily snapshot: `<snapshot.tar.gz>`_.
-
-.. note::
-
-   The recommended checkout path is :envvar:`$HOME`.
-
-
-.. _running_tests:
-
-Run the tests
-=============
-
-Make sure that everything works by running the test
-suite.  This will create many files, so run the tests in a new
-directory (preferably using bash)::
-
-  $ bash
-  $ mkdir /tmp/testase.$$; cd /tmp/testase.*
-  $ python -c "from ase.test import test; test(verbosity=2, display=True)" 2>&1 | tee testase.log
-
-.. note::
-
-   The last test :git:`ase/test/COCu111.py` requires closing
-   the graphics windows to terminate the whole test-suite.
-
-.. note::
-
-   If matplotlib_ or pygtk_ is not installed, this test will
-   fail - avoid this with ``display=False``.
-
-If any of the tests fail,
-then please send us :file:`testase.log` (see :ref:`bugs`).
-
-
-Video tutorial
-==============
-
-In the video: :ref:`overview` of the features of ASE,
-followed by a :ref:`installationguide_manual` of ASE on a Linux system.
-
-.. note::
-
-   Use "Right Click -> Play" to play.
-
-.. raw:: html
-
-        <p></p>
-        <object width="800" height="600">
-        <embed src="https://wiki.fysik.dtu.dk/ase-files/oi_en_800x600.swf"
-        type="application/x-shockwave-flash"
-        allowFullScreen="false"
-        allowscriptaccess="never"
-        loop="false"
-        play="false"
-        width="800" height="600">
-        <p></p>
-        Video not playing? Download avi <a href="https://wiki.fysik.dtu.dk/ase-files/oi_en.avi">file</a> instead.
-        </embed></object>
-        <p></p>
