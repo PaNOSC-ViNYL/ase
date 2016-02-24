@@ -31,28 +31,3 @@ Examples:
 0.009822693531550318
 >>> print('1 Hartree =', Hartree * mol / kcal, 'kcal/mol')
 1 Hartree = 627.50954059388 kcal/mol
-
-
-=======================
-The ``ase.data`` module
-=======================
-
-This module defines the following variables: ``atomic_masses``,
-``atomic_names``, ``chemical_symbols``, ``covalent_radii``,
-``cpk_colors`` and ``reference_states``.  All of these are lists that
-should be indexed with an atomic number:
-
->>> from ase.data import atomic_names, atomic_masses
->>> atomic_names[92]
-'Uranium'
->>> atomic_masses[2]
-4.0026000000000002
-
-If you don't know the atomic number of some element, then you can look
-it up in the ``atomic_numbers`` dictionary:
-
->>> from ase.data import atomic_numbers, covalent_radii
->>> atomic_numbers['Cu']
-29
->>> covalent_radii[29]
-1.1699999999999999

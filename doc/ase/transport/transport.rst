@@ -52,28 +52,32 @@ Green Function (NEGF) method.  This is achieved by the class:
 ase.transport.calculators) which makes no requirement on the origin of
 these five matrices.
 
-.. class:: ase.transport.calculators.TransportCalculator(energies, h, h1, h2, s=None, s1=None, s2=None, align_bf=False)
+.. autoclass:: TransportCalculator
 
-  Determine transport properties of device sandwiched between
-  semi-infinite leads using non-equillibrium Green function methods.
 
-  energies is the energy grid on which the transport properties should
-  be determined.
 
-  h1 (h2) is a matrix representation of the Hamiltonian of two
-  principal layers of the left (right) lead, and the coupling between
-  such layers.
+..    .. class:: ase.transport.calculators.TransportCalculator(energies, h, h1, h2, s=None, s1=None, s2=None, align_bf=False)
 
-  h is a matrix representation of the Hamiltonian of the scattering
-  region. This must include at least on lead principal layer on each
-  side. The coupling in (out) of the scattering region is assumed to
-  be identical to the coupling between left (right) principal layers.
+      Determine transport properties of device sandwiched between
+      semi-infinite leads using non-equillibrium Green function methods.
 
-  s, s1, and s2 are the overlap matrices corresponding to h, h1, and
-  h2. Default is the identity operator.
+      energies is the energy grid on which the transport properties should
+      be determined.
 
-  If align_bf is True, the onsite elements of the Hamiltonians will be
-  shifted to a common fermi level.
+      h1 (h2) is a matrix representation of the Hamiltonian of two
+      principal layers of the left (right) lead, and the coupling between
+      such layers.
+
+      h is a matrix representation of the Hamiltonian of the scattering
+      region. This must include at least on lead principal layer on each
+      side. The coupling in (out) of the scattering region is assumed to
+      be identical to the coupling between left (right) principal layers.
+
+      s, s1, and s2 are the overlap matrices corresponding to h, h1, and
+      h2. Default is the identity operator.
+
+      If align_bf is True, the onsite elements of the Hamiltonians will be
+      shifted to a common fermi level.
 
 
 This module is stand-alone in the sense that it makes no requirement
