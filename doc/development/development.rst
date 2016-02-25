@@ -13,19 +13,18 @@ Development topics
 
 .. toctree::
 
-   contribute
-   versioncontrol
-   python_codingstandard
-   writing_documentation_ase
-   calculators
-   making_movies
-   newrelease
-   tests
-   buildbot
-   translate
-   todo
-   py3k
-   proposals/proposals
+    contribute
+    python_codingstandard
+    writing_documentation_ase
+    calculators
+    making_movies
+    newrelease
+    tests
+    buildbot
+    translate
+    todo
+    py3k
+    proposals/proposals
 
 
 .. _devel_passwd_create:

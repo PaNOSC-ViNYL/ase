@@ -37,8 +37,8 @@ class Displacement:
                  delta=0.01, refcell=None):
         """Init with an instance of class ``Atoms`` and a calculator.
 
-        Parameters
-        ----------
+        Parameters:
+
         atoms: Atoms object
             The atoms to work on.
         calc: Calculator
@@ -86,8 +86,8 @@ class Displacement:
     def set_atoms(self, atoms):
         """Set the atoms to vibrate.
 
-        Parameters
-        ----------
+        Parameters:
+
         atoms: list
             Can be either a list of strings, ints or ...
             
@@ -316,8 +316,8 @@ class Phonons(Displacement):
                    /__  ij
                     a
                               
-        Parameters
-        ----------
+        Parameters:
+
         neutrality: bool
             Restore charge neutrality condition on calculated Born effective
             charges.
@@ -348,8 +348,8 @@ class Phonons(Displacement):
 
         Extra keyword arguments will be passed to ``read_born_charges``.
         
-        Parameters
-        ----------
+        Parameters:
+
         method: str
             Specify method for evaluating the atomic forces.
         symmetrize: int
@@ -485,8 +485,8 @@ class Phonons(Displacement):
     def apply_cutoff(self, D_N, r_c):
         """Zero elements for interatomic distances larger than the cutoff.
 
-        Parameters
-        ----------
+        Parameters:
+
         D_N: ndarray
             Dynamical/force constant matrix.
         r_c: float
@@ -541,8 +541,8 @@ class Phonons(Displacement):
         Eigenvalues and modes are in units of eV and Ang/sqrt(amu),
         respectively.
 
-        Parameters
-        ----------
+        Parameters:
+
         path_kc: ndarray
             List of k-point coordinates (in units of the reciprocal lattice
             vectors) specifying the path in the Brillouin zone for which the
@@ -647,8 +647,8 @@ class Phonons(Displacement):
     def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
         """Calculate phonon dos as a function of energy.
 
-        Parameters
-        ----------
+        Parameters:
+
         qpts: tuple
             Shape of Monkhorst-Pack grid for sampling the Brillouin zone.
         npts: int
@@ -684,8 +684,8 @@ class Phonons(Displacement):
                     repeat=(1, 1, 1), nimages=30, center=False):
         """Write modes to trajectory file.
 
-        Parameters
-        ----------
+        Parameters:
+
         q_c: ndarray
             q-vector of the modes.
         branches: int or list

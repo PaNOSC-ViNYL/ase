@@ -15,6 +15,14 @@ Optional:
 * For extra functionality: SciPy_ (library for scientific computing)
 * For :mod:`ase.gui`: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
 
+
+.. _Python: http://www.python.org/
+.. _NumPy: http://docs.scipy.org/doc/numpy/reference/
+.. _SciPy: http://docs.scipy.org/doc/scipy/reference/
+.. _Matplotlib: http://matplotlib.org/
+.. _pygtk: http://www.pygtk.org/
+
+
 Installation using ``pip``
 ==========================
 
@@ -22,7 +30,7 @@ Installation using ``pip``
 
 The simplest way to install ASE is::
     
-    $ pip install ase
+    $ pip install --upgrade ase
     
 This will install ASE in your ``~/.local`` folder where Python can
 automatically find it.  Make sure you have ``~/.local/bin`` (or on
@@ -182,11 +190,11 @@ Continue with:
 After performing the installation do not forget to :ref:`running_tests`!
 
 
-Video tutorial
-==============
+Old video tutorial
+==================
 
-In the video: :ref:`overview` of the features of ASE,
-followed by a :ref:`installationguide_manual` of ASE on a Linux system.
+In the video: Introduction to ASE, followed by a guide to installing ASE on a
+Linux system.
 
 .. note::
 
@@ -207,10 +215,3 @@ followed by a :ref:`installationguide_manual` of ASE on a Linux system.
         Video not playing? Download avi <a href="https://wiki.fysik.dtu.dk/ase-files/oi_en.avi">file</a> instead.
         </embed></object>
         <p></p>
-
-        
-.. _Python: http://www.python.org/
-.. _NumPy: http://docs.scipy.org/doc/numpy/reference/
-.. _SciPy: http://docs.scipy.org/doc/scipy/reference/
-.. _Matplotlib: http://matplotlib.org/
-.. _pygtk: http://www.pygtk.org/
