@@ -304,7 +304,7 @@ Create the ``buildslave`` with::
 
 ASE_BB_PORT is the port ASE buildbot uses for communication with the ``buildslave``.
 You will have to tell us the name and password of your ``buildslave``.
-Please contact ase-developers list :ref:`mailing_lists`, but
+Please contact ase-developers list, but
 don't send the name and password there!
 
 Edit the ``python-ase-redhat+6+x86_64+gcc+2.6/info/{admin,info}`` files:

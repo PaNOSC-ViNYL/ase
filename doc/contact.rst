@@ -1,4 +1,4 @@
-.. _mailing_lists:
+.. _contact:
 
 =======
 Contact

@@ -44,6 +44,9 @@ Supported :mod:`Calculators <ase.calculators>`:
 News
 ====
 
+* Web-page now use the `Read the Docs Sphinx Theme
+  <https://github.com/snide/sphinx_rtd_theme>`_ (20 February 2016).
+
 * The source code is now on https://gitlab.com/ase/ase (18 September 2015).
 
 * :ref:`ASE version 3.9.1 <releasenotes>` released (21 Juli 2015).
@@ -96,17 +99,17 @@ Contents
   
 .. toctree::
 
-   about
-   download
-   ase/ase
-   tutorials/tutorials
-   cmdline
-   releasenotes
-   mailinglists
-   development/development
-   faq
-   licenseinfo
-   bugs
+    about
+    install
+    tutorials/tutorials
+    ase/ase
+    cmdline
+    releasenotes
+    contact
+    development/development
+    faq
+    licenseinfo
+    bugs
 
 
 .. |abinit| image:: static/abinit.png

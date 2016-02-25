@@ -68,7 +68,7 @@ Installation from source
 
 You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
 latest stable release (python-ase-3.9.1.4567.tar.gz_) or the latest
-development snapshot (snapshot.tar.gz_).
+development snapshot (`<snapshot.tar.gz>`_).
 
 Unpack and make a soft link::
     
