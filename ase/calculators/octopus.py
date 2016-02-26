@@ -7,6 +7,7 @@ Carlos de Armas
 http://tddft.org/programs/octopus/
 """
 import os
+from subprocess import Popen, PIPE
 
 import numpy as np
 
@@ -68,6 +69,9 @@ from ase.units import Bohr, Angstrom, Hartree
 #    least the known ones will cause a suppressable
 #    OctopusKeywordError.  (This third rule has not been implemented
 #    as of this moment.)
+#
+# 4) OctopusKeywordError is raised from Python for keywords that are
+#    not valid according to oct-help.
 
 class OctopusKeywordError(ValueError):
     pass  # Unhandled keywords
@@ -95,7 +99,7 @@ def unpad(pbc, arr):
         arr = arr[:, :, 0:-1]
     return np.ascontiguousarray(arr)
 
-    
+
 def unpad_smarter(pbc, arr):
     # 'Smarter' but less easy to understand version of the above.
     # (untested I think)
@@ -118,7 +122,7 @@ def repair_brokenness_of_octopus_xsf(path):
     def replace(old, new):
         # XXX Ouch... need to get rid of this
         os.system('sed -i s/%s/%s/ %s' % (old, new, path))
-        
+
     replace('BEGIN_BLOCK_DATAGRID3D', 'BEGIN_BLOCK_DATAGRID_3D')
     replace('^DATAGRID_3D', 'BEGIN_DATAGRID_3D')
 
@@ -146,11 +150,7 @@ def list2block(name, rows):
     """Construct 'block' of Octopus input.
 
     convert a list of rows to a string with the format x | x | ....
-    for the octopus input file
-    :rtype : string
-    :param name: name of the block
-    :param rows: list of data to put in the string
-    :return: the format string"""
+    for the octopus input file"""
     lines = []
     lines.append('%' + name)
     for row in rows:
@@ -159,20 +159,20 @@ def list2block(name, rows):
     return lines
 
 
-def purify(kwargs):
-    """Reduce keywords to unambiguous form (lowercase).
-
-    Also convert to string all numbers.
-    :param kwargs: parameter pass to Calculator class"""
+def normalize_keywords(kwargs):
+    """Reduce keywords to unambiguous form (lowercase)."""
     newkwargs = {}
     for arg, value in kwargs.items():
         lkey = arg.lower()
         newkwargs[lkey] = value
-        if isinstance(value, int):
-            newkwargs[lkey] = str(value)
-        elif isinstance(value, float):
-            newkwargs[lkey] = str(value)
     return newkwargs
+
+
+def get_octopus_keywords():
+    """Get dict mapping all normalized keywords to pretty keywords."""
+    proc = Popen(['oct-help', '--search', ''], stdout=PIPE)
+    keywords = proc.stdout.read().split()
+    return normalize_keywords(dict(zip(keywords, keywords)))
 
 
 def input_line_iter(lines):
@@ -228,7 +228,7 @@ def parse_input_file(fd):
 def kwargs2cell(kwargs):
     # kwargs -> cell + remaining kwargs
     # cell will be None if not ASE-compatible.
-    kwargs = purify(kwargs)
+    kwargs = normalize_keywords(kwargs)
 
     if boxshape_is_ase_compatible(kwargs):
         kwargs.pop('boxshape', None)
@@ -259,12 +259,13 @@ def kwargs2atoms(kwargs, directory=None):
     Some keyword arguments may refer to files.  The directory keyword
     may be necessary to resolve the paths correctly, and is used for
     example when running 'ase-gui somedir/inp'."""
-    kwargs = purify(kwargs)
+    kwargs = normalize_keywords(kwargs)
 
     # XXX the other 'units' keywords: input, output.
     units = kwargs.pop('units', 'atomic').lower()
     if units not in ['ev_angstrom', 'atomic']:
-        raise OctopusKeywordError('Unsupported units: %s' % units)
+        raise OctopusKeywordError('Units not supported by ASE-Octopus '
+                                  'interface: %s' % units)
     atomic_units = (units == 'atomic')
     if atomic_units:
         length_unit = Bohr
@@ -277,7 +278,7 @@ def kwargs2atoms(kwargs, directory=None):
                       'reducedcoordinates',
                       'xsfcoordinates',
                       'xsfcoordinatesanimstep']
-    
+
     nkeywords = 0
     for keyword in coord_keywords:
         if keyword in kwargs:
@@ -451,14 +452,14 @@ def atoms2kwargs(atoms):
 
     # TODO InitialSpins
     #
-    # TODO can use maximumiterations + output/outputhow to extract
+    # TODO can use maximumiterations + output/outputformat to extract
     # things from restart file into output files without trouble.
     #
     # Velocities etc.?
     return kwargs
 
 
-def generate_input(atoms, kwargs):
+def generate_input(atoms, kwargs, normalized2pretty):
     """Convert atoms and keyword arguments to Octopus input file."""
     _lines = []
 
@@ -470,15 +471,16 @@ def generate_input(atoms, kwargs):
         append('')
 
     def setvar(key, var):
-        append('%s = %s' % (key, var))
+        prettykey = normalized2pretty[key]
+        append('%s = %s' % (prettykey, var))
 
     if 'units' in kwargs:
         if kwargs['units'] != 'ev_angstrom':
             raise ValueError('Sorry, but we decide the units in the ASE '
                              'interface for now.')
     else:
-        setvar('units', 'eV_Angstrom')
-    
+        setvar('units', 'ev_angstrom')
+
     atomskwargs = atoms2kwargs(atoms)
 
     # Use cell from Atoms object unless user specified BoxShape
@@ -488,7 +490,7 @@ def generate_input(atoms, kwargs):
     #    setvar('boxshape', atomskwargs['boxshape'])
     # Use Lsize no matter what.
     assert 'lsize' not in kwargs
-    lsizeblock = list2block('lsize', atomskwargs['lsize'])
+    lsizeblock = list2block('LSize', atomskwargs['lsize'])
     extend(lsizeblock)
 
     # Allow override or issue errors?
@@ -510,18 +512,25 @@ def generate_input(atoms, kwargs):
     if 'forces' not in output_tokens:
         output_tokens.append('forces')
     setvar('output', ' + '.join(output_tokens))
-    # It is illegal to have output forces without any OutputHow.
+    # It is illegal to have output forces without any OutputFormat.
     # Even though the forces are written in the same format no matter
-    # OutputHow.  Thus we have to make one up:
-    if 'outputhow' not in kwargs:
-        kwargs['outputhow'] = 'xcrysden'
+    # OutputFormat.  Thus we have to make one up:
 
-    for key in kwargs:
-        val = kwargs[key]
+    # Old Octopus has 'OutputHow' but new Octopus has 'OutputFormat'.
+    # We have to write the right one.
+    outputkw = 'outputformat'
+    if not outputkw in normalized2pretty:
+        outputkw = 'outputhow'
+    assert outputkw in normalized2pretty
+
+    if outputkw not in kwargs:
+        setvar(outputkw, 'xcrysden')
+
+    for key, val in kwargs.items():
         # Most datatypes are straightforward but blocks require some attention.
         if isinstance(val, list):
             append('')
-            dict_data = list2block(key, val)
+            dict_data = list2block(normalized2pretty[key], val)
             extend(dict_data)
         else:
             setvar(key, str(val))
@@ -529,7 +538,6 @@ def generate_input(atoms, kwargs):
 
     coord_block = list2block('Coordinates', atomskwargs['coordinates'])
     extend(coord_block)
-    
     return '\n'.join(_lines)
 
 
@@ -541,7 +549,6 @@ class Octopus(FileIOCalculator):
     implemented_properties = ['energy', 'forces',
                               'dipole',
                               'magmom', 'magmoms']
-    # valores propios en las opciones output y outputhow
 
     troublesome_keywords = set(['subsystemcoordinates',
                                 'subsystems',
@@ -559,6 +566,7 @@ class Octopus(FileIOCalculator):
                  atoms=None,
                  command='octopus',
                  ignore_troublesome_keywords=None,
+                 _autofix_outputformats=False,
                  **kwargs):
         """Create Octopus calculator.
 
@@ -567,6 +575,20 @@ class Octopus(FileIOCalculator):
 
         # XXX support the specially defined ASE parameters,
         # "smear" etc.
+
+        # We run oct-help to get a list of all keywords.
+        # This makes us able to robustly construct the input file
+        # in the face of changing octopus versions, and also of
+        # early partial verification of user input.
+        try:
+            octopus_keywords = get_octopus_keywords()
+        except OSError as err:
+            msg = ('Could not obtain Octopus keyword list from '
+                   'command oct-help: %s.  Octopus not installed in '
+                   'accordance with expectations.' % err)
+            raise OSError(msg)
+        self.octopus_keywords = octopus_keywords
+        self._autofix_outputformats = _autofix_outputformats
 
         if restart is not None:
             if label is not None and restart != label:
@@ -600,11 +622,10 @@ class Octopus(FileIOCalculator):
         FileIOCalculator.set_label(self, label)
 
     def set(self, **kwargs):
-        """Set octopus input file parameters.
+        """Set octopus input file parameters."""
+        kwargs = normalize_keywords(kwargs)
+        self.check_keywords_exist(kwargs)
 
-        :param kwargs:
-        """
-        kwargs = purify(kwargs)
         for keyword in kwargs:
             if keyword in self.troublesome_keywords:
                 msg = ('ASE-Octopus interface will probably misbehave with '
@@ -616,6 +637,23 @@ class Octopus(FileIOCalculator):
         FileIOCalculator.set(self, **kwargs)
         self.kwargs.update(kwargs)
         # XXX should use 'Parameters' but don't know how
+
+    def check_keywords_exist(self, kwargs):
+        keywords = list(kwargs.keys())
+        for keyword in keywords:
+            if keyword not in self.octopus_keywords:
+                if self._autofix_outputformats:
+                    if (keyword == 'outputhow' and 'outputformat'
+                        in self.octopus_keywords):
+                        kwargs['outputformat'] = kwargs.pop('outputhow')
+                    if (keyword == 'outputformat' and 'outputhow'
+                        in self.octopus_keywords):
+                        kwargs['outputhow'] = kwargs.pop('outputformat')
+                    continue
+
+                msg = ('Unknown Octopus keyword %s.  Use oct-help to list '
+                       'available keywords.') % keyword
+                raise OctopusKeywordError(msg)
 
     def get_xc_functional(self):
         """Return the XC-functional identifier.
@@ -1004,7 +1042,7 @@ class Octopus(FileIOCalculator):
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
                                      system_changes=system_changes)
-        txt = generate_input(atoms, self.kwargs)
+        txt = generate_input(atoms, self.kwargs, self.octopus_keywords)
         fd = open(self._getpath('inp'), 'w')
         fd.write(txt)
         fd.close()
@@ -1020,7 +1058,8 @@ class Octopus(FileIOCalculator):
         inp_path = self._getpath('inp')
         fd = open(inp_path)
         names, values = parse_input_file(fd)
-        kwargs = purify(dict(zip(names, values)))
+        kwargs = normalize_keywords(dict(zip(names, values)))
+        self.check_keywords_exist(kwargs)
 
         self.atoms, kwargs = kwargs2atoms(kwargs)
         self.kwargs.update(kwargs)
@@ -1056,7 +1095,7 @@ def main():
                    stdout='"stdout.log"',
                    stderr='"stderr.log"',
                    Output='density + potential + wfs',
-                   OutputHow='xcrysden')
+                   OutputFormat='xcrysden')
     system.set_calculator(calc)
     system.get_potential_energy()
 
