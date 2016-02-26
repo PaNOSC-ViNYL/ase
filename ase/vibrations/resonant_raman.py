@@ -47,7 +47,9 @@ class ResonantRaman(Vibrations):
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',    # extension for Excitation names
                  txt='-',
-                 verbose=False):
+                 verbose=False,
+                 cmp = None,       # function for comparing excitations
+    ):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
@@ -55,6 +57,7 @@ class ResonantRaman(Vibrations):
             exname = gsname
         self.exname = exname + '-d%.3f' % delta
         self.exext = exext
+        self.cmp = cmp
 
         if directions is None:
             self.directions = np.array([0, 1, 2])
@@ -98,7 +101,7 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'ex0'):
             eu = units.Hartree
 
-            def get_me_tensor(exname, n, form='v'):
+            def get_me_tensor(exname, n, ex_eq, form='v'):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
@@ -106,6 +109,8 @@ class ResonantRaman(Vibrations):
                 ex_p = self.exobj(exname, **self.exkwargs)
                 self.log('len={0}'.format(len(ex_p)), pre='')
                 if len(ex_p) != n:
+                    if self.cmp is not None:
+                        self.cmp(ex_p, ex_eq)
                     raise RuntimeError(
                         ('excitations {0} of wrong length: {1} != {2}' +
                          ' exkwargs={3}').format(
@@ -127,9 +132,9 @@ class ResonantRaman(Vibrations):
                 for i in 'xyz':
                     name = '%s.%d%s' % (self.exname, a, i)
                     self.exminus.append(get_me_tensor(
-                        name + '-' + self.exext, n))
+                        name + '-' + self.exext, n, ex_p))
                     self.explus.append(get_me_tensor(
-                        name + '+' + self.exext, n))
+                        name + '+' + self.exext, n, ex_p))
             self.timer.stop('reading excitations')
 
         self.timer.start('amplitudes')
