@@ -365,7 +365,7 @@ def kwargs2atoms(kwargs, directory=None):
         pbc = atoms.pbc
         adjust_positions_by_half_cell = True
         # Due to an error in ASE pdb, we can only test the nonperiodic case.
-        #atoms.cell *= length_unit # XXX cell?  Not in nonperiodic case...
+        # atoms.cell *= length_unit # XXX cell?  Not in nonperiodic case...
         atoms.positions *= length_unit
         if sum(atoms.pbc) != 0:
             raise NotImplementedError('Periodic pdb not supported by ASE.')
@@ -424,7 +424,7 @@ def atoms2kwargs(atoms):
     # XXXX will always extract cell.  But probably we should leave that
     # to the user, i.e., the user should probably specify BoxShape before
     # anything is done.  We can set Lsize either way....
-    #kwargs['boxshape'] = 'parallelepiped'
+    # kwargs['boxshape'] = 'parallelepiped'
 
     # TODO LatticeVectors parameter for non-orthogonal cells
     Lsize = 0.5 * np.diag(atoms.cell).copy()
@@ -484,9 +484,9 @@ def generate_input(atoms, kwargs, normalized2pretty):
     atomskwargs = atoms2kwargs(atoms)
 
     # Use cell from Atoms object unless user specified BoxShape
-    #use_ase_box = 'boxshape' not in kwargs
-    #if 'boxshape' in kwargs:
-    #if use_ase_box:
+    # use_ase_box = 'boxshape' not in kwargs
+    # if 'boxshape' in kwargs:
+    # if use_ase_box:
     #    setvar('boxshape', atomskwargs['boxshape'])
     # Use Lsize no matter what.
     assert 'lsize' not in kwargs
@@ -519,7 +519,7 @@ def generate_input(atoms, kwargs, normalized2pretty):
     # Old Octopus has 'OutputHow' but new Octopus has 'OutputFormat'.
     # We have to write the right one.
     outputkw = 'outputformat'
-    if not outputkw in normalized2pretty:
+    if outputkw not in normalized2pretty:
         outputkw = 'outputhow'
     assert outputkw in normalized2pretty
 
@@ -644,10 +644,10 @@ class Octopus(FileIOCalculator):
             if keyword not in self.octopus_keywords:
                 if self._autofix_outputformats:
                     if (keyword == 'outputhow' and 'outputformat'
-                        in self.octopus_keywords):
+                            in self.octopus_keywords):
                         kwargs['outputformat'] = kwargs.pop('outputhow')
                     if (keyword == 'outputformat' and 'outputhow'
-                        in self.octopus_keywords):
+                            in self.octopus_keywords):
                         kwargs['outputhow'] = kwargs.pop('outputformat')
                     continue
 
@@ -677,7 +677,7 @@ class Octopus(FileIOCalculator):
         raise NotImplementedError
 
     def get_dipole_moment(self, atoms=None):
-        if not 'dipole' in self.results:
+        if 'dipole' not in self.results:
             msg = ('Dipole moment not calculated.\n'
                    'You may wish to use SCFCalculateDipole=True')
             raise OctopusIOError(msg)
