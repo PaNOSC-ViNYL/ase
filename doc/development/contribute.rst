@@ -1,3 +1,5 @@
+.. _contribute:
+    
 =================
 How to contribute
 =================

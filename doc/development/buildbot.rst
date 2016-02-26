@@ -294,7 +294,7 @@ For a very special system you can use a name like
 Note that ASE buildbot will perform verification of python version based on
 the ``buildslave`` name so stay consistent!
 
-Generate a strong ``buildslave`` password with :ref:`devel_passwd_create`.
+Generate a strong ``buildslave`` password.
 Don't reuse any valuable passwords. You don't need to remember it,
 buildbot stores it plain text!
 
@@ -323,4 +323,4 @@ previous sections.
 
 By default all slaves run the continuous integration for the trunk.
 If you prefer your ``buildslave`` works also on one of the branches, write
-this in the email to ase-developers :ref:`mailing_lists`.
+this in the email to ase-developers :ref:`mail lists`.

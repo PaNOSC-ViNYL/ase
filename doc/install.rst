@@ -45,8 +45,8 @@ environment variable.
     users.
 
     
-.. _running_tests:
 .. index:: test
+.. _running tests:
 
 Testing
 =======
@@ -127,7 +127,7 @@ For installation with http://brew.sh please follow
 instructions at the `Homebrew ASE installation page
 <https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
 
-After performing the installation do not forget to :ref:`running_tests`!
+After performing the installation do not forget to :ref:`running tests`!
 
 
 Installation on Windows
@@ -187,7 +187,7 @@ Continue with:
 .. _python-ase-win32.msi:
     https://wiki.fysik.dtu.dk/ase-files/python-ase.win32.msi
 
-After performing the installation do not forget to :ref:`running_tests`!
+After performing the installation do not forget to :ref:`running tests`!
 
 
 Old video tutorial
