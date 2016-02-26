@@ -115,14 +115,6 @@ def read_magres(filename, include_unrecognised=False):
       
       return d
 
-    def write_units(data, out):
-      if 'units' in data:
-        for tag, units in data['units']:
-          out.append("  units %s %s" % (tag, units))
-
-    def tensor_string(tensor):
-        return " ".join([" ".join(map(str, xs)) for xs in tensor])
-
     def parse_magres_block(block):
       """
         Parse magres block into data dictionary given list of record tuples.
@@ -282,6 +274,8 @@ def read_magres(filename, include_unrecognised=False):
     indices = []
     labels = []
 
+    print data_dict['atoms']
+
     if 'atom' in data_dict['atoms']:
         try:
             u = dict(data_dict['atoms']['units'])['atom']
@@ -355,9 +349,60 @@ def read_magres(filename, include_unrecognised=False):
                 u_arr = create_magres_array(u, data_dict['magres'][u])
                 atoms.new_array(u, u_arr)
 
+    if include_unrecognised:
+      for b in data_dict:
+        if b not in block_parsers:
+          atoms.info["magresblock_" + b] = data_dict[b]
+
     return atoms
 
-def write_magres(filename):
+def tensor_string(tensor):
+    return " ".join([" ".join(map(str, xs)) for xs in tensor])
+
+def write_magres(filename, image):
+
+    """
+    A writing function for magres files. Two steps: first data are arranged
+    into structures, then dumped to the actual file
+    """
+
+    atoms_data = {'units': []}
+    # Contains units, lattice and each individual atom
+    if np.all(image.get_pbc()):
+        # Has lattice!
+        atoms_data['units'].append(['lattice', 'Angstrom'])
+        atoms_data['lattice'] = [image.get_cell()]
+    
+    # Now for the atoms
+    if image.has('labels'):
+        labels = image.get_array('labels')
+    else:
+        labels = image.get_chemical_symbols()
+
+    if image.has('indices'):
+        indices = image.get_array('indices')
+    else:
+        indices = [labels[:i+1].count(labels[i]) for i in range(len(labels))]
+
+    # Iterate over atoms
+    atom_info = zip(image.get_chemical_symbols(),
+                    image.get_positions())
+    if len(atom_info) > 0:
+        atoms_data['units'].append(['atom', 'Angstrom'])
+        atoms_data['atom'] = []
+
+    for i, a in enumerate(atom_info):
+        atoms_data['atom'].append({
+                'index': indices[i],
+                'position': a[1],
+                'species': a[0],
+                'label': labels[i],
+            })
+
+    def write_units(data, out):
+      if 'units' in data:
+        for tag, units in data['units']:
+          out.append("  units %s %s" % (tag, units))
 
     def write_magres_block(data):
       """
@@ -430,3 +475,7 @@ def write_magres(filename):
           out.append("%s %s" % (tag, " ".join(map(str, value))))
 
       return "\n".join(out)
+
+
+    print write_atoms_block(atoms_data)
+
