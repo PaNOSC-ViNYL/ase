@@ -99,32 +99,70 @@ class ResonantRaman(Vibrations):
             self.read()
 
         if not hasattr(self, 'ex0'):
+            # read all the excitations in
+            self.timer.start('read first')
+            self.timer.start('really read')
+            ex0_object = self.exobj(self.exname + '.eq' + self.exext,
+                              **self.exkwargs)
+            self.timer.stop('really read')
+            self.timer.start('index')
+            matching = frozenset(ex0_object)
+            self.timer.stop('index')
+
+            def append(lst, exname, matching):
+                self.timer.start('really read')
+                self.log('reading ' + exname, end=' ')
+                exo = self.exobj(exname, **self.exkwargs)
+                lst.append(exo)
+                self.timer.stop('really read')
+                self.timer.start('index')
+                matching = matching.intersection(exo)
+                self.log('len={0}, matching={1}'.format(len(exo),
+                                                        len(matching)), pre='')
+                self.timer.stop('index')
+                return matching
+
+            exp_object_list = []
+            exm_object_list = []
+            for a in self.indices[:4]:
+                for i in 'xyz':
+                    name = '%s.%d%s' % (self.exname, a, i)
+                    matching = append(exm_object_list,
+                                      name + '-' + self.exext, matching)
+                    matching = append(exp_object_list,
+                                      name + '+' + self.exext, matching)
+            self.timer.stop('read first')
+
             eu = units.Hartree
 
-            def get_me_tensor(exname, n, ex_eq, form='v'):
+            def get_me_tensor(exname, n, ijk, form='v'):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
                 self.log('reading ' + exname, end=' ')
                 ex_p = self.exobj(exname, **self.exkwargs)
-                self.log('len={0}'.format(len(ex_p)), pre='')
-                if len(ex_p) != n:
-                    if self.cmp is not None:
-                        self.cmp(ex_p, ex_eq)
-                    raise RuntimeError(
-                        ('excitations {0} of wrong length: {1} != {2}' +
-                         ' exkwargs={3}').format(
-                             exname, len(ex_p), n, self.exkwargs))
+##                self.log('len={0}'.format(len(ex_p)), pre='')
+                old_ijk = ijk[:]
+                while len(ijk):
+                    del ijk[-1]
+                for ex in ex_p:
+                    entry = (ex.i, ex.j, ex.k)
+                    if entry in old_ijk:
+                        ijk.append(entry)
+                self.log('len={0},matching={1}'.format(len(ex_p),
+                                                       len(ijk)), pre='')
+
                 m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
                 for p, ex in enumerate(ex_p):
                     m_ccp[:, :, p] = outer(ex)
                 return m_ccp
 
-            self.timer.start('reading excitations')
+            self.timer.start('create tensor')
             self.log('reading ' + self.exname + '.eq' + self.exext)
             ex_p = self.exobj(self.exname + '.eq' + self.exext,
                               **self.exkwargs)
             n = len(ex_p)
+            ijk = [(ex.i, ex.j, ex.k) for ex in ex_p]
             self.ex0 = np.array([ex.energy * eu for ex in ex_p])
             self.exminus = []
             self.explus = []
@@ -132,10 +170,14 @@ class ResonantRaman(Vibrations):
                 for i in 'xyz':
                     name = '%s.%d%s' % (self.exname, a, i)
                     self.exminus.append(get_me_tensor(
-                        name + '-' + self.exext, n, ex_p))
+                        name + '-' + self.exext, n, ijk))
                     self.explus.append(get_me_tensor(
-                        name + '+' + self.exext, n, ex_p))
+                        name + '+' + self.exext, n, ijk))
             self.timer.stop('reading excitations')
+
+        self.timer.start('select')
+        
+        self.timer.stop('select')
 
         self.timer.start('amplitudes')
 
