@@ -102,6 +102,7 @@ class ResonantRaman(Vibrations):
             # read all the excitations in
             self.timer.start('read first')
             self.timer.start('really read')
+            self.log('reading ' + self.exname + '.eq' + self.exext)
             ex0_object = self.exobj(self.exname + '.eq' + self.exext,
                               **self.exkwargs)
             self.timer.stop('really read')
@@ -122,9 +123,9 @@ class ResonantRaman(Vibrations):
                 self.timer.stop('index')
                 return matching
 
-            exp_object_list = []
             exm_object_list = []
-            for a in self.indices[:4]:
+            exp_object_list = []
+            for a in self.indices:
                 for i in 'xyz':
                     name = '%s.%d%s' % (self.exname, a, i)
                     matching = append(exm_object_list,
@@ -135,49 +136,33 @@ class ResonantRaman(Vibrations):
 
             eu = units.Hartree
 
-            def get_me_tensor(exname, n, ijk, form='v'):
+            def get_me_tensor(ex_p, matching, form='v'):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
-                self.log('reading ' + exname, end=' ')
-                ex_p = self.exobj(exname, **self.exkwargs)
-##                self.log('len={0}'.format(len(ex_p)), pre='')
-                old_ijk = ijk[:]
-                while len(ijk):
-                    del ijk[-1]
+                m_ccp = np.empty((3, 3, len(matching)), dtype=complex)
+                p = 0
                 for ex in ex_p:
-                    entry = (ex.i, ex.j, ex.k)
-                    if entry in old_ijk:
-                        ijk.append(entry)
-                self.log('len={0},matching={1}'.format(len(ex_p),
-                                                       len(ijk)), pre='')
-
-                m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
-                for p, ex in enumerate(ex_p):
-                    m_ccp[:, :, p] = outer(ex)
+                    if ex in matching:
+                        m_ccp[:, :, p] = outer(ex)
+                        p += 1
+                assert(p == len(matching))
                 return m_ccp
 
             self.timer.start('create tensor')
-            self.log('reading ' + self.exname + '.eq' + self.exext)
-            ex_p = self.exobj(self.exname + '.eq' + self.exext,
-                              **self.exkwargs)
-            n = len(ex_p)
-            ijk = [(ex.i, ex.j, ex.k) for ex in ex_p]
-            self.ex0 = np.array([ex.energy * eu for ex in ex_p])
+            self.ex0 = np.array([
+                ex.energy * eu for ex in ex0_object if ex in matching])
             self.exminus = []
             self.explus = []
+            r = 0
             for a in self.indices:
                 for i in 'xyz':
                     name = '%s.%d%s' % (self.exname, a, i)
                     self.exminus.append(get_me_tensor(
-                        name + '-' + self.exext, n, ijk))
+                        exm_object_list[r], matching))
                     self.explus.append(get_me_tensor(
-                        name + '+' + self.exext, n, ijk))
-            self.timer.stop('reading excitations')
-
-        self.timer.start('select')
-        
-        self.timer.stop('select')
+                        exp_object_list[r], matching))
+            self.timer.stop('create tensor')
 
         self.timer.start('amplitudes')
 
