@@ -99,7 +99,6 @@ class ResonantRaman(Vibrations):
             self.read()
 
         if not hasattr(self, 'ex0'):
-            # read all the excitations in
             self.timer.start('read first')
             self.timer.start('really read')
             self.log('reading ' + self.exname + '.eq' + self.exext)
@@ -162,6 +161,7 @@ class ResonantRaman(Vibrations):
                         exm_object_list[r], matching))
                     self.explus.append(get_me_tensor(
                         exp_object_list[r], matching))
+                    r += 1
             self.timer.stop('create tensor')
 
         self.timer.start('amplitudes')
