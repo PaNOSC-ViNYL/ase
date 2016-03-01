@@ -212,7 +212,7 @@ def read_xyz(fileobj, index=-1):
     if isinstance(index, int) and index >= 0:
         last_frame = index
     elif isinstance(index, slice):
-        if index.stop >= 0:
+        if index.stop is not None and index.stop >= 0:
             last_frame = index.stop
     #print('read_xyz: index={0}, last_frame={1}'.format(index, last_frame))
 
