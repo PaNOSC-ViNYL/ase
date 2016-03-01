@@ -4,6 +4,23 @@ import numpy as np
 
 def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
                  return_valid=False, eps=1e-8):
+    """This script allows a surface to be maniupulated to repeat with a 
+    special root cut cell.  The general use of this is to make cells with 
+    a specific cell geometry, but a nonstandard number of repetitions in
+    the cell.  Without using a tool like this, it would be impossible to
+    trivially make a fcc111 cell with 13 atoms on each layer, while still
+    preserving the geometry of the primitive cell.
+
+    *primitive cell* should be a primitive 2d cell of your slab, repeated 
+    as needed in the z direction
+    *root* should be determined using an analysis tool such as the 
+    root_surface_analysis function.
+    *cell_vectors* is a manual override for the detected cell
+    *swap_alpha* swaps the alpha angle of the cell
+    *eps* is a precision value as this relies on floating point precision, 
+    adjust when more accurate cells are needed but the default seems to 
+    work with all tested cells"""
+
     atoms = primitive_slab.copy()
     # If cell_vectors is not given, try to guess from the atoms
     # Normalize the x axis to a distance of 1, and use the cell
@@ -108,3 +125,37 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     ind = np.lexsort(
         (atoms.positions[:, 0], atoms.positions[:, 1], atoms.positions[:, 2],))
     return atoms[ind]
+
+def root_surface_analysis(primitive_slab, root, cell_vectors=None):
+    """This is a tool to analyze a slab and look for valid roots that exist,
+       without using this, nontrivial cells may be difficult to find."""
+    atoms = primitive_slab
+    # If cell_vectors is not given, try to guess from the atoms
+    # Normalize the x axis to a distance of 1, and use the cell
+    # We ignore the z axis because this code cannot handle it
+    if cell_vectors is None:
+        xscale = np.linalg.norm(atoms._cell[0][0:2])
+        xx, xy = atoms._cell[0][0:2] / xscale
+        yx, yy = atoms._cell[1][0:2] / xscale
+        cell_vectors = [[xx, xy], [yx, yy]]
+
+    # Manipulate the cell vectors to find the best search zone and
+    # cast to numpy array.
+    cell_vectors = np.array(cell_vectors)
+    cell_vectors_mag = map(np.linalg.norm, cell_vectors)
+    cell_search = map(lambda x: int(ceil(float(root) / float(x))),
+                      cell_vectors_mag)
+
+    # Returns valid roots that are found in the given search
+    # space.  To find more, use a higher root.
+    if return_valid:
+        valid = set()
+        for x in range(cell_search[0]):
+            for y in range(cell_search[1]):
+                if x == y == 0:
+                    continue
+                vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
+                dist = (vect ** 2).sum()
+                valid.add(dist)
+        return sorted(list(valid))
+
