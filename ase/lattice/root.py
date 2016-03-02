@@ -20,7 +20,7 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     *eps* is a precision value as this relies on floating point precision, 
     adjust when more accurate cells are needed but the default seems to 
     work with all tested cells"""
-
+    logeps = int(-log10(eps)) 
     atoms = primitive_slab.copy()
     # If cell_vectors is not given, try to guess from the atoms
     # Normalize the x axis to a distance of 1, and use the cell
@@ -54,8 +54,8 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
             if x == y == 0:
                 continue
             vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
-            dist = (vect ** 2).sum()
-            if abs(dist - root) <= eps:
+            dist = round((vect ** 2).sum(), logeps)
+            if dist == root:
                 tx, ty = vect
                 break
         else:
@@ -108,14 +108,15 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
         atom.position[0:2] = rot(atom.position[0:2], angle)
     atoms.center()
 
-    atoms.positions = np.around(atoms.positions, decimals=int(-log10(eps)))
+    atoms.positions = np.around(atoms.positions, decimals=logeps)
     ind = np.lexsort(
         (atoms.positions[:, 0], atoms.positions[:, 1], atoms.positions[:, 2],))
     return atoms[ind]
 
-def root_surface_analysis(primitive_slab, root, cell_vectors=None):
+def root_surface_analysis(primitive_slab, root, cell_vectors=None, eps=1e-8):
     """This is a tool to analyze a slab and look for valid roots that exist,
        without using this, nontrivial cells may be difficult to find."""
+    logeps = int(-log10(eps))
     atoms = primitive_slab
     # If cell_vectors is not given, try to guess from the atoms
     # Normalize the x axis to a distance of 1, and use the cell
@@ -135,14 +136,13 @@ def root_surface_analysis(primitive_slab, root, cell_vectors=None):
 
     # Returns valid roots that are found in the given search
     # space.  To find more, use a higher root.
-    if return_valid:
-        valid = set()
-        for x in range(cell_search[0]):
-            for y in range(cell_search[1]):
-                if x == y == 0:
-                    continue
-                vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
-                dist = (vect ** 2).sum()
-                valid.add(dist)
-        return sorted(list(valid))
+    valid = set()
+    for x in range(cell_search[0]):
+        for y in range(cell_search[1]):
+            if x == y == 0:
+                continue
+            vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
+            dist = round((vect ** 2).sum(), logeps)
+            valid.add(dist)
+    return sorted(list(valid))
 
