@@ -74,8 +74,9 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     cell = map(lambda x: np.dot(x, root_rotation) * cell_scale, cell_vectors)
 
     def remove_doubles(atoms, shift=True):
+        shift_vector = np.array([eps*100, eps*200, eps*300])
         if shift:
-            atoms.translate((0.0007, 0.0008, 0.0009))
+            atoms.translate(shift_vector)
         atoms.set_scaled_positions(atoms.get_scaled_positions())
         valid = [0]
         for x in range(len(atoms)):
@@ -88,7 +89,7 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
                 valid.append(x)
         del atoms[[i for i in range(len(atoms)) if i not in valid]]
         if shift:
-            atoms.translate((-0.0007, -0.0008, -0.0009))
+            atoms.translate(shift_vector * -1)
 
     atoms_cell_mag = map(np.linalg.norm, np.array(atoms._cell[0:2, 0:2]))
     cell_vect_mag = map(np.linalg.norm, np.array(cell_vectors))
