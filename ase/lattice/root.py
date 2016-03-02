@@ -3,7 +3,7 @@ import numpy as np
 
 
 def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
-                 return_valid=False, eps=1e-8):
+                 eps=1e-8):
     """This script allows a surface to be maniupulated to repeat with a 
     special root cut cell.  The general use of this is to make cells with 
     a specific cell geometry, but a nonstandard number of repetitions in
@@ -47,19 +47,6 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     # x,  y  = Raw grid point
     # tx, ty = Transformed grid point
     x, y, tx, ty = 0, 0, 0, 0
-
-    # Returns valid roots that are found in the given search
-    # space.  To find more, use a higher root.
-    if return_valid:
-        valid = set()
-        for x in range(cell_search[0]):
-            for y in range(cell_search[1]):
-                if x == y == 0:
-                    continue
-                vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
-                dist = (vect ** 2).sum()
-                valid.add(dist)
-        return sorted(list(valid))
 
     # Calculate square distances and break when appropriate
     for x in range(cell_search[0]):
