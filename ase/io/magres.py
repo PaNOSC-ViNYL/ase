@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 import ase.units
 from ase.atoms import Atoms
+from ase.lattice.spacegroup import Spacegroup
 
 def read_magres(filename, include_unrecognised=False):
 
@@ -292,6 +293,15 @@ def read_magres(filename, include_unrecognised=False):
                   symbols=symbols,
                   positions=positions)
 
+    # Add the spacegroup, if present and recognizable
+    if 'symmetry' in data_dict['atoms']:
+      try:
+        spg = Spacegroup(data_dict['atoms']['symmetry'][0])
+      except:
+        # Not found
+        spg = Spacegroup(1) # Most generic one
+      atoms.info['spacegroup'] = spg
+
     # Set up the rest of the properties as arrays
     atoms.new_array('indices', np.array(indices))
     atoms.new_array('labels', np.array(labels))
@@ -401,6 +411,11 @@ def write_magres(filename, image):
                 'species': a[0],
                 'label': labels[i],
             })
+
+    # Spacegroup, if present
+    if 'spacegroup' in image.info:
+      image_data['atoms']['symmetry'] = [image.info['spacegroup']
+                                         .symbol.replace(' ', '')]
 
     # Now go on to do the same for magres information
     if 'magres_units' in image.info:
@@ -540,6 +555,7 @@ def write_magres(filename, image):
 
     # Now on to check for any non-standard blocks...
     for i in image.info:
+      if '_' in i:
         ismag, b = i.split('_', 1)
         if ismag != "magresblock":
             continue
