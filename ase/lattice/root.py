@@ -4,23 +4,23 @@ import numpy as np
 
 def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
                  eps=1e-8):
-    """This script allows a surface to be maniupulated to repeat with a 
-    special root cut cell.  The general use of this is to make cells with 
+    """This script allows a surface to be maniupulated to repeat with a
+    special root cut cell.  The general use of this is to make cells with
     a specific cell geometry, but a nonstandard number of repetitions in
     the cell.  Without using a tool like this, it would be impossible to
     trivially make a fcc111 cell with 13 atoms on each layer, while still
     preserving the geometry of the primitive cell.
 
-    *primitive cell* should be a primitive 2d cell of your slab, repeated 
+    *primitive cell* should be a primitive 2d cell of your slab, repeated
     as needed in the z direction
-    *root* should be determined using an analysis tool such as the 
+    *root* should be determined using an analysis tool such as the
     root_surface_analysis function.
     *cell_vectors* is a manual override for the detected cell
     *swap_alpha* swaps the alpha angle of the cell
-    *eps* is a precision value as this relies on floating point precision, 
-    adjust when more accurate cells are needed but the default seems to 
+    *eps* is a precision value as this relies on floating point precision,
+    adjust when more accurate cells are needed but the default seems to
     work with all tested cells"""
-    logeps = int(-log10(eps)) 
+    logeps = int(-log10(eps))
     atoms = primitive_slab.copy()
     # If cell_vectors is not given, try to guess from the atoms
     # Normalize the x axis to a distance of 1, and use the cell
@@ -113,6 +113,7 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
         (atoms.positions[:, 0], atoms.positions[:, 1], atoms.positions[:, 2],))
     return atoms[ind]
 
+
 def root_surface_analysis(primitive_slab, root, cell_vectors=None, eps=1e-8):
     """This is a tool to analyze a slab and look for valid roots that exist,
        without using this, nontrivial cells may be difficult to find."""
@@ -145,4 +146,3 @@ def root_surface_analysis(primitive_slab, root, cell_vectors=None, eps=1e-8):
             dist = round((vect ** 2).sum(), logeps)
             valid.add(dist)
     return sorted(list(valid))
-
