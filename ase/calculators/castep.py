@@ -5,7 +5,7 @@ from __future__ import print_function
 
 Authors:
     Max Hoffmann, max.hoffmann@ch.tum.de
-    Jörg Meyer, joerg.meyer@ch.tum.de
+    Joerg Meyer, joerg.meyer@ch.tum.de
 
 Contributors:
     Juan M. Lorenzi, juan.lorenzi@tum.de
