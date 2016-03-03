@@ -239,6 +239,8 @@ class ColorWindow(gtk.Window):
                 self.force_box.hide()
             if widget is self.radio_velocity:
                 self.velocity_box.hide()
+            if widget is self.radio_charge:
+                self.charge_box.hide()
             return
         if widget is self.radio_jmol:
             self.set_jmol_colors()
