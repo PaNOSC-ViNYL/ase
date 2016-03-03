@@ -1640,8 +1640,6 @@ def get_castep_version(castep_command):
     """This returns the version number as printed in the CASTEP banner.
     """
     temp_dir = tempfile.mkdtemp()
-    curdir = os.getcwd()
-    os.chdir(temp_dir)
     jname = 'dummy_jobname'
     stdout, stderr = '', ''
     try:
@@ -1660,10 +1658,9 @@ def get_castep_version(castep_command):
         msg += stdout
         msg += stderr
         raise Exception(msg)
-    output = open('%s.castep' % jname)
+    output = open(os.path.join(temp_dir, '%s.castep' % jname))
     output_txt = output.readlines()
     output.close()
-    os.chdir(curdir)
     shutil.rmtree(temp_dir)
     for line in output_txt:
         if 'CASTEP version' in line:
@@ -2182,7 +2179,7 @@ def shell_stdouterr(raw_command):
     return stdout.strip(), stderr.strip()
 
 
-def import_castep_keywords():
+def import_castep_keywords(castep_command=''):
     try:
         # Adapt import path to give local versions of castep_keywords
         # a higher priority, assuming that personal folder will be
@@ -2192,7 +2189,7 @@ def import_castep_keywords():
                         os.path.join(ase.__path__[0], 'calculators')]
         import castep_keywords
     except ImportError:
-        create_castep_keywords(get_castep_command())
+        create_castep_keywords(get_castep_command(castep_command))
         print('Stored castep_keywords.py in %s'
               % os.path.abspath(os.path.curdir))
         print('Copy castep_keywords.py to your ase installation')
@@ -2207,7 +2204,7 @@ def import_castep_keywords():
     distributed commercially by accelrys), we consider it wise not to
     provide castep_keywords.py in the first place.
 """)
-        create_castep_keywords(get_castep_command())
+        create_castep_keywords(get_castep_command(castep_command))
         print("""\n\n    Stored castep_keywords.py in %s.
                  Copy castep_keywords.py to your
     ASE installation under ase/calculators for system-wide installation
