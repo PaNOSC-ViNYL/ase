@@ -61,12 +61,13 @@ class ColorWindow(gtk.Window):
         self.charge_box = gtk.VBox()
         self.magnetic_moment_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
-                       self.radio_force, self.force_box, self.radio_velocity,
+                       self.radio_force, self.force_box, 
+                       self.radio_velocity, self.velocity_box, 
                        self.radio_charge, self.charge_box,
                        self.radio_magnetic_moment,
                        self.magnetic_moment_box,
                        self.radio_coordination,
-                       self.velocity_box, self.radio_manual, self.radio_same):
+                       self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
             if isinstance(widget, gtk.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
