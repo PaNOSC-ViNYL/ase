@@ -2196,11 +2196,6 @@ def import_castep_keywords(castep_command=''):
                         os.path.join(ase.__path__[0], 'calculators')]
         import castep_keywords
     except ImportError:
-        create_castep_keywords(get_castep_command(castep_command))
-        print('Stored castep_keywords.py in %s'
-              % os.path.abspath(os.path.curdir))
-        print('Copy castep_keywords.py to your ase installation')
-        print('under ase/calculators for system-wide installation')
         print("""    Generating castep_keywords.py ... hang on.
     The castep_keywords.py contains abstractions for CASTEP input
     parameters (for both .cell and .param input files), including some
