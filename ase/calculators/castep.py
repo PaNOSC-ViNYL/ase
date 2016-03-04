@@ -333,9 +333,9 @@ End CASTEP Interface Documentation
         from ase.io.castep import write_cell
         self._write_cell = write_cell
 
-        castep_keywords = import_castep_keywords()
-        self.param = CastepParam()
-        self.cell = CastepCell()
+        castep_keywords = import_castep_keywords(castep_command)
+        self.param = CastepParam(castep_keywords)
+        self.cell = CastepCell(castep_keywords)
 
         ###################################
         # Calculator state variables      #
@@ -1855,9 +1855,8 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
 class CastepParam(object):
     """CastepParam abstracts the settings that go into the .param file"""
 
-    def __init__(self):
+    def __init__(self, castep_keywords):
         object.__init__(self)
-        castep_keywords = import_castep_keywords()
         castep_param_dict = castep_keywords.CastepParamDict()
         self._options = castep_param_dict._options
         self.__dict__.update(self._options)
@@ -1952,9 +1951,8 @@ class CastepParam(object):
 class CastepCell(object):
     """CastepCell abstracts all setting that go into the .cell file"""
 
-    def __init__(self):
+    def __init__(self, castep_keywords):
         object.__init__(self)
-        castep_keywords = import_castep_keywords()
         castep_cell_dict = castep_keywords.CastepCellDict()
         self._options = castep_cell_dict._options
         self.__dict__.update(self._options)
