@@ -40,6 +40,7 @@ contact_email = 'simon.rittmeyer@tum.de'
 
 
 class Castep(Calculator):
+
     r"""
 
     CASTEP Interface Documentation
@@ -859,7 +860,7 @@ End CASTEP Interface Documentation
             for iase in range(n_atoms):
                 for icastep in range(n_atoms):
                     if (species[icastep] == self.atoms[iase].symbol and
-                        not atoms_assigned[icastep]):
+                            not atoms_assigned[icastep]):
                         positions_frac_atoms[iase] = \
                             positions_frac_castep[icastep]
                         forces_atoms[iase] = np.array(forces_castep[icastep])
@@ -1191,8 +1192,10 @@ End CASTEP Interface Documentation
             if self._pedantic:
                 print('You have not set e.g. calc.param.reuse = True')
                 print('Reusing a previous calculation may save CPU time!\n')
-                print('The interface will make sure by default, a .check exists')
-                print('file before adding this statement to the .param file.\n')
+                print(
+                    'The interface will make sure by default, a .check exists')
+                print(
+                    'file before adding this statement to the .param file.\n')
         if self.param.num_dump_cycles.value is None:
             if self._pedantic:
                 print('You have not set e.g. calc.param.num_dump_cycles = 0.')
@@ -1211,8 +1214,8 @@ End CASTEP Interface Documentation
         # if we have new instance of the calculator,
         # move existing results out of the way, first
         if (os.path.isdir(self._directory) and
-            self._calls == 0 and
-            self._rename_existing_dir):
+                self._calls == 0 and
+                self._rename_existing_dir):
             if os.listdir(self._directory) == []:
                 os.rmdir(self._directory)
             else:
@@ -1464,7 +1467,7 @@ End CASTEP Interface Documentation
                         # a *param file
                         iline = line[line.index(INT_TOKEN) + len(INT_TOKEN):]
                         if (iline.split()[0] in self.internal_keys and
-                            not ignore_internal_keys):
+                                not ignore_internal_keys):
                             value = ' '.join(iline.split()[2:])
                             if value in ['True', 'False']:
                                 self._opt[iline.split()[0]] = eval(value)
@@ -1588,7 +1591,7 @@ End CASTEP Interface Documentation
         # should be a '==' right? Otherwise setting _castep_pp_path is not
         # honored.
         if (not os.environ.get('PSPOT_DIR', None) and
-            self._castep_pp_path == os.path.abspath('.')):
+                self._castep_pp_path == os.path.abspath('.')):
             # By default CASTEP consults the environment variable
             # PSPOT_DIR. If this contains a list of colon separated
             # directories it will check those directories for pseudo-
@@ -1623,7 +1626,7 @@ End CASTEP Interface Documentation
                 orig_pspot_file = os.path.join(self._castep_pp_path, pspot)
                 cp_pspot_file = os.path.join(directory, pspot)
                 if (os.path.exists(orig_pspot_file) and
-                    not os.path.exists(cp_pspot_file)):
+                        not os.path.exists(cp_pspot_file)):
                     if self._copy_pspots:
                         shutil.copy(orig_pspot_file, directory)
                     elif self._link_pspots:
@@ -1638,15 +1641,22 @@ variable PSPOT_DIR accordingly!""")
 
 def get_castep_version(castep_command):
     """This returns the version number as printed in the CASTEP banner.
+       For newer CASTEP versions ( > 6.1) the --version command line option
+       has been added; this will be attempted first.
     """
     temp_dir = tempfile.mkdtemp()
     jname = 'dummy_jobname'
     stdout, stderr = '', ''
     try:
         stdout, stderr = subprocess.Popen(
-            castep_command.split() + [jname],
+            castep_command.split() + ['--version'],
             stderr=subprocess.PIPE,
             stdout=subprocess.PIPE, cwd=temp_dir).communicate()
+        if 'CASTEP version' not in stdout:
+            stdout, stderr = subprocess.Popen(
+                castep_command.split() + [jname],
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE, cwd=temp_dir).communicate()
     except:
         msg = ''
         msg += 'Could not determine the version of your CASTEP binary \n'
@@ -1658,13 +1668,18 @@ def get_castep_version(castep_command):
         msg += stdout
         msg += stderr
         raise Exception(msg)
-    output = open(os.path.join(temp_dir, '%s.castep' % jname))
-    output_txt = output.readlines()
-    output.close()
+    if 'CASTEP version' in stdout:
+        output_txt = stdout.split('\n')
+        version_re = re.compile(r'CASTEP version:\s*([0-9\.]*)')
+    else:
+        output = open(os.path.join(temp_dir, '%s.castep' % jname))
+        output_txt = output.readlines()
+        output.close()
+        version_re = re.compile(r'(?<=CASTEP version )[0-9.]*')
     shutil.rmtree(temp_dir)
     for line in output_txt:
         if 'CASTEP version' in line:
-            return float(re.findall(r'(?<=CASTEP version )[0-9.]*', line)[0])
+            return float(version_re.findall(line)[0])
 
 
 def create_castep_keywords(castep_command, filename='castep_keywords.py',
@@ -1675,7 +1690,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
     type checking of input. All information is stored in two 'data-store'
     objects that are not distributed by default to avoid breaking the license
     of CASTEP.
-    """    
+    """
     # Takes a while ...
     # Fetch all allowed parameters
     # fetch_only : only fetch that many parameters (for testsuite only)
@@ -1853,6 +1868,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
 
 
 class CastepParam(object):
+
     """CastepParam abstracts the settings that go into the .param file"""
 
     def __init__(self, castep_keywords):
@@ -1949,6 +1965,7 @@ class CastepParam(object):
 
 
 class CastepCell(object):
+
     """CastepCell abstracts all setting that go into the .cell file"""
 
     def __init__(self, castep_keywords):
@@ -2083,10 +2100,10 @@ class CastepCell(object):
 
             elif attr == 'symmetry_ops':
                 if (not isinstance(value, dict) or
-                    'rotation' not in value or
-                    len(value['rotation']) != 3 or
-                    len(value['displacement']) != 3 or
-                    'displacement' not in value):
+                        'rotation' not in value or
+                        len(value['rotation']) != 3 or
+                        len(value['displacement']) != 3 or
+                        'displacement' not in value):
                     print('Cannot process your symmetry_op %s' % value)
                     print('It has statet like {"rotation":[a, b, c], ')
                     print('                    "displacement": [x, y, z]}')
@@ -2136,6 +2153,7 @@ class CastepCell(object):
 
 
 class ConversionError(Exception):
+
     """Print customized error for options that are not converted correctly
     and point out that they are maybe not implemented, yet"""
 
