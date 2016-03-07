@@ -51,8 +51,8 @@ Using Sphinx
 First, you should take a look at the documentation for Sphinx_ and
 reStructuredText_.
 
-If you don't already have your own copy of the ASE package, then get
-the :ref:`latest_development_release` and install it.
+If you don't already have your own copy of the ASE package, then read
+:ref:`here <contribute>` how to get everthing set up.
 
 Then :command:`cd` to the :file:`doc` directory and build the html-pages::
 

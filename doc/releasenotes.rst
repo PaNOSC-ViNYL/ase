@@ -168,7 +168,7 @@ Version 3.6.0
 
 * New values for ase.data.covalent_radii from Cordeo *et al.*.
 
-* New command line tool: :ref:`command line tool` and tests based on it:
+* New command line tool: :ref:`cli` and tests based on it:
   abinit, elk, fleur, nwchem.
 
 * New crystal builder for ase-gui

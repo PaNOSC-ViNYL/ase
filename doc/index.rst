@@ -10,8 +10,7 @@ license`_.
 .. _Python: http://www.python.org
 .. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
 
-Example:
-    
+>>> # Example: structure optimization of hydrogen molecule
 >>> from ase import Atoms
 >>> from ase.optimize import BFGS
 >>> from ase.calculators.nwchem import NWChem

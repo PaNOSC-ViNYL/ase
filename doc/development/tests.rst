@@ -8,7 +8,7 @@ All additions and modifications to ASE should be tested.
 
 .. index:: testase
 
-Test scripts should be put in the :git:`ase/test` directory.  
+Test scripts should be put in the :git:`ase/test` directory.
 Run all tests with::
 
   python -c "from ase.test import test; test(2)"
@@ -43,7 +43,7 @@ scripts in the :git:`ase/test` directory and summarizes the results.
 If a test script causes an exception to be thrown, or otherwise terminates
 in an unexpected way, it will show up in this summary. This is the most
 effective way of raising awareness about emerging conflicts and bugs during
-the development cycle of the :ref:`latest revision <Latest_development_release>`.
+the development cycle of the latest revision.
 
 
 Remember, great tests should serve a dual purpose:
@@ -55,7 +55,7 @@ Remember, great tests should serve a dual purpose:
 
 **Replicable results**
     Even if a calculation makes it to the end without crashing, you can never
-    be too sure that the numerical results are consistent. Don't just assume 
+    be too sure that the numerical results are consistent. Don't just assume
     they are, :func:`assert` it!
 
 .. function:: assert(expression)

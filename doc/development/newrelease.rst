@@ -8,9 +8,9 @@ When it is time for a new release of the code, here is what you have to do:
 
 ** **Warning:** use only three digits release numbers, e.g. *3.9.0*,
 
-* Checkout the :ref:`latest_development_release`.
+* Checkout the latest development release.
 
-* :ref:`running_tests`.
+* :ref:`running tests`.
 
 * Make sure version.py has the correct version number.
 

@@ -4,8 +4,10 @@
 Contact
 =======
 
-Mailing Lists
-=============
+.. _mail lists:
+    
+Mail Lists
+==========
 
 There is a mailing list for discussing ASE:
 
