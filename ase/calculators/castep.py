@@ -1788,7 +1788,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
         doc, _ = shell_stdouterr('%s -help %s' % (castep_command, option))
 
         # Stand Back! I know regular expressions (http://xkcd.com/208/) :-)
-        match = re.match(r'(?P<before_type>.*)Type: (?P<type>[^ ]+).*' +
+        match = re.match(r'(?P<before_type>.*)Type: (?P<type>.+?)\s+' +
                          r'Level: (?P<level>[^ ]+)\n\s*\n' +
                          r'(?P<doc>.*?)(\n\s*\n|$)', doc, re.DOTALL)
 
@@ -1902,7 +1902,7 @@ class CastepParam(object):
         opt = self._options[attr]
         if not opt.type == 'Block' and isinstance(value, str):
             value = value.replace(':', ' ')
-        if opt.type in ['Boolean', 'Defined']:
+        if opt.type in ['Boolean (Logical)', 'Defined']:
             if False:
                 pass
             else:
@@ -1953,6 +1953,31 @@ class CastepParam(object):
             except:
                 raise ConversionError('float', attr, value)
             self._options[attr].value = value
+        # Newly added "Vector" options
+        elif opt.type == 'Integer Vector':
+            if ',' in value:
+                value = value.replace(',', ' ')
+            if isinstance(value, str) and len(value.split()) == 3:
+                try:
+                    [int(x) for x in value.split()]
+                except:
+                    raise ConversionError('int vector', attr, value)
+                opt.value = value
+            else:
+                print('Wrong format for Integer Vector: expected I I I')
+                print('and you said %s' % value)
+        elif opt.type == 'Real Vector':
+            if ',' in value:
+                value = value.replace(',', ' ')
+            if isinstance(value, str) and len(value.split()) == 3:
+                try:
+                    [float(x) for x in value.split()]
+                except:
+                    raise ConversionError('float vector', attr, value)
+                opt.value = value
+            else:
+                print('Wrong format for Real Vector: expected R R R')
+                print('and you said %s' % value)
         elif opt.type == 'Physical':
             # Usage of the CASTEP unit system is not fully implemented
             # for now.
@@ -2012,10 +2037,15 @@ class CastepCell(object):
                 raise UserWarning('Option "%s" is not known!' % attr)
             return
         attr = attr.lower()
+        # Handling the many cases where kpoint_ and kpoints_ are treated
+        # equivalently
+        if 'kpoint_' in attr:
+            if attr.replace('kpoint_', 'kpoints_') in self._options:
+                attr = attr.replace('kpoint_', 'kpoints_')
         opt = self._options[attr]
         if not opt.type == 'Block' and isinstance(value, str):
             value = value.replace(':', ' ')
-        if opt.type in ['Boolean', 'Defined']:
+        if opt.type in ['Boolean (Logical)', 'Defined']:
             try:
                 value = bool(eval(str(value).title()))
             except:
@@ -2031,42 +2061,42 @@ class CastepCell(object):
                     raise ConversionError('str', attr, value)
             self._options[attr].value = value
         elif opt.type == 'Integer':
-            if attr == 'kpoint_mp_grid':
-                opt = self._options['kpoints_mp_grid']
-            if attr in ['kpoints_mp_grid', 'kpoint_mp_grid']:
-                if ',' in value:
-                    value = value.replace(',', ' ')
-                if isinstance(value, str) and len(value.split()) == 3:
-                    try:
-                        [int(x) for x in value.split()]
-                    except:
-                        raise ConversionError('int', attr, value)
-                    opt.value = value
-                else:
-                    print('Wrong format for kpoints_mp_grid: expected R R R')
-                    print('and you said %s' % value)
-            else:
-                try:
-                    value = int(value)
-                except:
-                    raise ConversionError('int', attr, value)
-                self._options[attr].value = value
-        elif opt.type == 'Real':
-            if attr == 'kpoint_mp_offset':
-                opt = self._options['kpoints_mp_offset']
-            if attr in ['kpoints_mp_offset', 'kpoint_mp_offset']:
-                if isinstance(value, str) and len(value.split()) == 3:
-                    try:
-                        [float(x) for x in value.split()]
-                    except:
-                        raise ConversionError('float', attr, value)
-                    opt.value = value
-            else:
-                try:
-                    value = float(value)
-                except:
-                    raise ConversionError('float', attr, value)
+            try:
+                value = int(value)
+            except:
+                raise ConversionError('int', attr, value)
             self._options[attr].value = value
+        elif opt.type == 'Real':
+            try:
+                value = float(value)
+            except:
+                raise ConversionError('float', attr, value)
+            self._options[attr].value = value
+        # Newly added "Vector" options
+        elif opt.type == 'Integer Vector':
+            if ',' in value:
+                value = value.replace(',', ' ')
+            if isinstance(value, str) and len(value.split()) == 3:
+                try:
+                    [int(x) for x in value.split()]
+                except:
+                    raise ConversionError('int vector', attr, value)
+                opt.value = value
+            else:
+                print('Wrong format for Integer Vector: expected I I I')
+                print('and you said %s' % value)
+        elif opt.type == 'Real Vector':
+            if ',' in value:
+                value = value.replace(',', ' ')
+            if isinstance(value, str) and len(value.split()) == 3:
+                try:
+                    [float(x) for x in value.split()]
+                except:
+                    raise ConversionError('float vector', attr, value)
+                opt.value = value
+            else:
+                print('Wrong format for Real Vector: expected R R R')
+                print('and you said %s' % value)
         elif opt.type == 'Physical':
             # Usage of the CASTEP unit system is not fully implemented
             # for now.
