@@ -37,6 +37,8 @@ automatically find it.  Make sure you have ``~/.local/bin`` (or on
 Windows, :file:`%APPDATA%/Python/Scripts`) in your :envvar:`PATH`
 environment variable.
 
+Now you should be ready to use ASE, but before you start, please run the
+tests as described below.
 
 .. note::
 
@@ -48,10 +50,10 @@ environment variable.
 .. _running_tests:
 .. index:: test
 
-Testing
-=======
+Test your installation
+======================
 
-Please run the tests::
+Run the tests like this::
     
     $ cd /tmp
     $ mkdir ase-test
@@ -66,6 +68,13 @@ and send us the output if there are failing tests.
 Installation from source
 ========================
 
+As an alternative to ``pip``, you can also get the source from a tar-file or
+from Git.
+
+
+Tar-file
+--------
+
 You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
 latest stable release (python-ase-3.9.1.4567.tar.gz_) or the latest
 development snapshot (`<snapshot.tar.gz>`_).
@@ -77,6 +86,10 @@ Unpack and make a soft link::
 
 .. _python-ase-3.9.1.4567.tar.gz:
     https://wiki.fysik.dtu.dk/ase-files/python-ase-3.9.1.4567.tar.gz
+
+    
+Git clone
+---------
 
 Alternatively, you can get the source for the latest stable release from
 https://gitlab.com/ase/ase like this::
@@ -111,13 +124,13 @@ Environment variables
 
 Set these permanently in your :file:`~/.bashrc` file::
 
-  export PYTHONPATH=~/ase:$PYTHONPATH
-  export PATH=~ase/tools:$PATH
+    $ export PYTHONPATH=~/ase:$PYTHONPATH
+    $ export PATH=~ase/tools:$PATH
 
 or your :file:`~/.cshrc` file::
 
-  setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
-  setenv PATH ${HOME}/ase/tools:${PATH}
+    $ setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
+    $ setenv PATH ${HOME}/ase/tools:${PATH}
 
         
 Installation on OS X
