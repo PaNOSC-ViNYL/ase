@@ -48,8 +48,18 @@ vdWDB_Chu04jcp = {
     'I': [35, 385]}
 
 vdWDB_alphaC6 = vdWDB_Chu04jcp
-# Au from J. Luder et al. Phys. Rev. B 89 (2014) 045416
-vdWDB_alphaC6['Au'] = [5.6, 197]
+
+# dipole polarizabilities and C6 values from
+# V. G. Ruiz et al. Phys. Rev. Lett 108 (2012) 146103
+# atomic units, a_0^3
+vdWDB_Ruiz12prl = {
+    'Ag' : [50.6, 339],
+    'Au' : [36.5, 298],
+    'Pd' : [23.7, 158],
+    'Pt' : [39.7, 347],
+}
+
+vdWDB_alphaC6.update(vdWDB_Ruiz12prl)
 
 # C6 values and vdW radii from
 # S. Grimme, J Comput Chem 27 (2006) 1787-1799
