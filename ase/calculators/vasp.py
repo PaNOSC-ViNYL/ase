@@ -1052,7 +1052,7 @@ class Vasp(Calculator):
     def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR' + suffix, 'w')
+        potfile = open('POTCAR' + suffix, 'wb')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):
