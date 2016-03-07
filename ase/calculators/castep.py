@@ -1947,16 +1947,29 @@ class CastepParam(object):
                 except:
                     raise ConversionError('int', attr, value)
                 self._options[attr].value = value
-        elif opt.type in ['Real', 'Physical']:
-            # Usage of the CASTEP unit system is not implemented for now.
-            # We assume, that the user is happy with setting/getting the
-            # CASTEP default units refer to http://goo.gl/bqYf2
-            # page 13, accessed Apr 6, 2011
+        elif opt.type == 'Real':
             try:
                 value = float(value)
             except:
                 raise ConversionError('float', attr, value)
             self._options[attr].value = value
+        elif opt.type == 'Physical':
+            # Usage of the CASTEP unit system is not fully implemented
+            # for now.
+            # We assume, that the user is happy with setting/getting the
+            # CASTEP default units refer to http://goo.gl/bqYf2
+            # page 13, accessed Apr 6, 2011
+
+            # However if a unit is present it will be dealt with
+
+            if len(value.split()) > 1:
+                value = value.split(' ', 1)[0]
+            try:
+                value = float(value)
+            except:                
+                raise ConversionError('float', attr, value)
+            self._options[attr].value = value
+
         elif opt.type in ['Block']:
             self._options[attr].value = value
         else:
@@ -2038,7 +2051,7 @@ class CastepCell(object):
                 except:
                     raise ConversionError('int', attr, value)
                 self._options[attr].value = value
-        elif opt.type in ['Real', 'Physical']:
+        elif opt.type == 'Real':
             if attr == 'kpoint_mp_offset':
                 opt = self._options['kpoints_mp_offset']
             if attr in ['kpoints_mp_offset', 'kpoint_mp_offset']:
@@ -2053,6 +2066,22 @@ class CastepCell(object):
                     value = float(value)
                 except:
                     raise ConversionError('float', attr, value)
+            self._options[attr].value = value
+        elif opt.type == 'Physical':
+            # Usage of the CASTEP unit system is not fully implemented
+            # for now.
+            # We assume, that the user is happy with setting/getting the
+            # CASTEP default units refer to http://goo.gl/bqYf2
+            # page 13, accessed Apr 6, 2011
+
+            # However if a unit is present it will be dealt with
+
+            if len(value.split()) > 1:
+                value = value.split(' ', 1)[0]
+            try:
+                value = float(value)
+            except:                
+                raise ConversionError('float', attr, value)
             self._options[attr].value = value
         elif opt.type == 'Block':
             if attr == 'species_pot':
