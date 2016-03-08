@@ -15,7 +15,8 @@ calc0 = Octopus(label=label,
                 stderr="'stderr.txt'",
                 Spacing=0.15,
                 Output='density + wfs + potential',
-                OutputHow='cube + xcrysden')
+                OutputHow='cube + xcrysden',
+                _autofix_outputformats=True)
 
 system.set_calculator(calc0)
 system.get_potential_energy()
