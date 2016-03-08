@@ -32,6 +32,7 @@ help:
 	@echo "  latexpdf   to make LaTeX files and run them through pdflatex"
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  clean      to clean up"
+	@echo "  browse     to open browser"
 
 latex:
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) $(BUILDDIR)/latex
