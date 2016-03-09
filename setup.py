@@ -80,7 +80,7 @@ with open('ase/__init__.py') as fd:
 name = 'python-ase'
 
 # PyPI:
-if 0:
+if 'upload' in sys.argv:
     # python(3) setup.py sdist upload
     name = 'ase'
     
