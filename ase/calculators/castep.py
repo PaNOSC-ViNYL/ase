@@ -2147,13 +2147,15 @@ class CastepCell(object):
             # probably we will support this at some point...
 #            elif attr == 'nonlinear_constraints':
 #                if type(value) is not str:
-#                    print("Please specify nonlinear constraint in python as a string")
+#                    print("Please specify nonlinear constraint in python as "
+#                          "a string")
 #                    print("Anything else will be ignored")
 #                else:
 #                    if self.__dict__['nonlinear_constraints'].value is None:
 #                        self._options['nonlinear_constraints'].value = ''
-#                    self.__dict__['nonlinear_constraints'].value = \
-#                         str(self.__dict__['nonlinear_constraints'].value)+' \n'
+#                    self.__dict__['nonlinear_constraints'].value = (
+#                        str(self.__dict__['nonlinear_constraints'].value) +
+#                        ' \n')
 #                    self._options[attr].value += value
 #                    return
 

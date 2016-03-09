@@ -315,10 +315,10 @@ def read_castep_cell(fd, index=None):
     try:
         calc = Castep()
     except Exception as exception:
-        print(
-            'read_cell: Warning - Was not able to initialize CASTEP calculator.')
-        print(
-            '           This may be due to a non-existing "castep.keywords.py"')
+        print('read_cell: Warning - Was not able to initialize CASTEP '
+              'calculator.')
+        print('           This may be due to a non-existing '
+              '"castep.keywords.py"')
         print('           file or a non-existing CASTEP installation.')
         print('           Original error message appears below:')
         print('')
