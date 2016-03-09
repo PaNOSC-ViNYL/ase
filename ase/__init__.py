@@ -9,7 +9,7 @@ from ase.atom import Atom
 from ase.atoms import Atoms
 
 __all__ = ['Atoms', 'Atom']
-__version__ = '3.10.0'
+__version__ = '3.11.0b1'
 
 from distutils.version import LooseVersion
 if LooseVersion(np.__version__) < '1.9':
