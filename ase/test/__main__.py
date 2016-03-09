@@ -1,2 +1,2 @@
 from ase.test import test
-test()
+test(display=False)
