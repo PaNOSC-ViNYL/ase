@@ -77,12 +77,11 @@ class build_py(_build_py):
 with open('ase/__init__.py') as fd:
     version = re.search("__version__ = '(.*)'", fd.read()).group(1)
     
-name = 'python-ase'
+name = 'ase'  # PyPI name
 
-# PyPI:
-if 'upload' in sys.argv:
-    # python(3) setup.py sdist upload
-    name = 'ase'
+# Linux-distributions may want to change the name:
+if 0:
+    name = 'python-ase'
     
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
            'tools/ase-build', 'tools/ase-run']

@@ -3,15 +3,16 @@
 
 """Atomic Simulation Environment."""
 
+from distutils.version import LooseVersion
+
 import numpy as np
 
 from ase.atom import Atom
 from ase.atoms import Atoms
 
 __all__ = ['Atoms', 'Atom']
-__version__ = '3.11.0b1'
+__version__ = '3.11.0b3'
 
-from distutils.version import LooseVersion
 if LooseVersion(np.__version__) < '1.9':
     # Make isinstance(x, numbers.Integral) work also for np.intxx:
     import numbers
