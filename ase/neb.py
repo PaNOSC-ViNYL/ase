@@ -14,7 +14,7 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 world=None):
+                 world=None,remove_translation=False, remove_rotation=False):
         """Nudged elastic band.
 
         images: list of Atoms objects
@@ -25,6 +25,10 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
+        remove_translation: bool
+            removes overall translation
+        remove_rotation: bool
+            removes overall rotation
         """
         self.images = images
         self.climb = climb
@@ -32,7 +36,9 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
-
+        self.remove_com = remove_translation
+        self.remove_rotation = remove_rotation
+        
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
         self.k = list(k)
@@ -45,9 +51,25 @@ class NEB:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
     def interpolate(self, method='linear', mic=False):
-        interpolate(self.images, mic)
-
-        if method == 'idpp':
+        
+        if not (self.remove_com or
+        self.remove_rotation) and method == 'linear':
+            interpolate(self.images, mic)
+ 
+        elif (self.remove_com or self.remove_rotation) and method == 'linear':
+            #liner interpolation with translation and rotation removal
+            minimize_rotation_and_translation(self.images[-1], self.images[0])
+            d = (self.images[-1].get_positions() -
+                self.images[0].get_positions()) / (self.nimages - 1.0)
+            
+            for i in range(1, self.nimages - 1):
+                coords = self.images[i].get_positions()
+                interpolated_coordinates = coords + i * d
+                self.images[i].set_positions(interpolated_coordinates)
+                minimize_rotation_and_translation(self.images[i],
+                 self.images[0]) 
+ 
+        elif method == 'idpp':
             self.idpp_interpolate(traj=None, log=None, mic=mic)
 
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
@@ -91,6 +113,12 @@ class NEB:
         images = self.images
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages - 2)
+
+        if (self.remove_com or self.remove_rotation):
+            #remove translation and rotation between
+            #images before computing forces
+            for i in range(1, self.nimages):
+                minimize_rotation_and_translation(images[i], images[i - 1])
 
         if not self.parallel:
             # Do all images - one at a time:
@@ -491,3 +519,123 @@ def interpolate(images, mic=False):
             images[i].get_calculator().set_atoms(images[i])
         except AttributeError:
             pass
+
+def com_translation(target, initial):
+
+    ''' translates initial coordinates so that the center
+    of masses of target and initial are the same
+    
+    returns the best matching coordinates'''
+
+    center1 = target.get_center_of_mass()
+    pos2 = initial.get_positions()
+
+    center2 = initial.get_center_of_mass()
+    d_COM = center2 - center1
+
+    return pos2 - d_COM
+
+
+def rotation_matrix_from_points(m0, m1):
+    ''' Returns a rigid transformation/rotation
+    matrix that minimizes the RMSD between two set of
+    points, m0 and m1. m1 is the target.
+
+    m0 and m1 should be (3, npoints) numpy arrays with
+    coordinates as columns
+
+    (x1  x2   x3   ... xN
+     y1  y2   y3   ... yN
+    z1  z2   z3   ... zN)
+
+    The centeroids should be set to origin prior to
+    computing the rotation matrix
+
+    The rotation matrix is computed using quaternion
+    algebra as detailed in
+    Melander et al. J. Chem. Theory Comput., 2015, 11,1055
+    '''
+
+    v0 = np.copy(m0)
+    v1 = np.copy(m1)
+
+    # compute the rotation quaternion
+
+    R11, R22, R33 = np.sum(v0 * v1, axis=1)
+    R12, R23, R31 = np.sum(v0 * np.roll(v1, -1, axis=0), axis=1)
+    R13, R21, R32 = np.sum(v0 * np.roll(v1, -2, axis=0), axis=1)
+
+    f = [[R11 + R22 + R33, R23 - R32, R31 - R13, R12 - R21],
+        [R23 - R32, R11 - R22 - R33, R12 + R21, R13 + R31],
+        [R31 - R13, R12 + R21, -R11 + R22 - R33, R23 + R32],
+        [R12 - R21, R13 + R31, R23 + R32, -R11 - R22 + R33]]
+
+    F = np.array(f)
+
+    w, V = np.linalg.eigh(F)
+    # eigenvector corresponding to the most
+    # positive eigenvalue
+    q = V[:, np.argmax(w)]
+
+    # Rotation matrix from the quaternion q
+
+    R = quaternion_to_matrix(q)
+
+    return R
+
+def quaternion_to_matrix(q):
+
+    ''' Returns a rotation matrix computed 
+    from a unit quaternion
+    Input as (4,) numpy array'''
+
+    q0 = q[0]
+    q1 = q[1]
+    q2 = q[2]
+    q3 = q[3]
+
+    R_q = [[q0**2+q1**2-q2**2-q3**2, 2*(q1* q2-q0*q3), 2*(q1*q3+q0*q2)],
+          [2*(q1*q2+q0*q3), q0**2-q1**2+q2**2-q3**2, 2*(q2*q3-q0*q1)],
+          [2*(q1*q3-q0*q2), 2*(q2*q3+q0*q1), q0**2-q1**2-q2**2+q3**2]]
+
+    return np.array(R_q)
+
+
+def minimize_rotation_and_translation(m0, m1):
+    ''' Returns a rigid transformation/rotation
+    matrix that minimizes the RMSD between two Atoms
+    objects, m0 and m1. m1 is the target.
+    see Melander et al. J. Chem. Theory Comput., 2015, 11,1055
+    '''
+
+    v0 = m0.get_positions()
+    v1 = m1.get_positions()
+
+    v0 = np.swapaxes(v0, 0, 1)
+    v1 = np.swapaxes(v1, 0, 1)
+
+    # centeroids to origin
+
+    c0 = np.mean(v0, axis=1)
+    v0 -= c0.reshape(3, 1)
+
+    c1 = np.mean(v1, axis=1)
+    v1 -= c1.reshape(3, 1)
+
+    # Compute rotation matrix
+
+    R = rotation_matrix_from_points(v0, v1)
+
+    # Rotate the v0 vectors
+
+    v0_rot = np.dot(R, v0)
+
+    # Move the centroid back to it original place
+
+    v0_rot = np.swapaxes(v0_rot, 0, 1)
+    m0.set_positions(v0_rot)
+
+    # match centers of mass
+
+    v0_trans = com_translation(m1, m0)
+    m0.set_positions(v0_trans)
