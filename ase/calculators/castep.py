@@ -1991,7 +1991,7 @@ class CastepParam(object):
                 value = value.split(' ', 1)[0]
             try:
                 value = float(value)
-            except:                
+            except:
                 raise ConversionError('float', attr, value)
             self._options[attr].value = value
 
@@ -2110,7 +2110,7 @@ class CastepCell(object):
                 value = value.split(' ', 1)[0]
             try:
                 value = float(value)
-            except:                
+            except:
                 raise ConversionError('float', attr, value)
             self._options[attr].value = value
         elif opt.type == 'Block':

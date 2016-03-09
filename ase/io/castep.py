@@ -141,8 +141,8 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
         positions = atoms.get_positions()
 
     if (hasattr(atoms, 'calc') and
-        hasattr(atoms.calc, 'param') and
-        hasattr(atoms.calc.param, 'task')):
+            hasattr(atoms.calc, 'param') and
+            hasattr(atoms.calc.param, 'task')):
         _spin_pol = any([getattr(atoms.calc.param, i).value
                          for i in ['spin_polarized', 'spin_polarised']])
     else:
@@ -150,7 +150,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     if atoms.get_initial_magnetic_moments().any() and _spin_pol:
         pos_block = [('%s %8.6f %8.6f %8.6f SPIN=%4.2f' %
-                     (x, y[0], y[1], y[2], m)) for (x, y, m)
+                      (x, y[0], y[1], y[2], m)) for (x, y, m)
                      in zip(atoms.get_chemical_symbols(),
                             positions,
                             atoms.get_initial_magnetic_moments())]
@@ -168,18 +168,18 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     # if atoms, has a CASTEP calculator attached, then only
     # write constraints if really necessary
     if (hasattr(atoms, 'calc') and
-        hasattr(atoms.calc, 'param') and
-        hasattr(atoms.calc.param, 'task')):
+            hasattr(atoms.calc, 'param') and
+            hasattr(atoms.calc.param, 'task')):
         task = atoms.calc.param.task
         if atoms.calc.param.task.value is None:
             suppress_constraints = True
         elif task.value.lower() not in [
-            'geometryoptimization',
-            # well, CASTEP understands US and UK english...
-            'geometryoptimisation',
-            'moleculardynamics',
-            'transitionstatesearch',
-            'phonon']:
+                'geometryoptimization',
+                # well, CASTEP understands US and UK english...
+                'geometryoptimisation',
+                'moleculardynamics',
+                'transitionstatesearch',
+                'phonon']:
             suppress_constraints = True
         else:
             suppress_constraints = False
@@ -192,9 +192,9 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
         count = 0
         for constr in constraints:
             if (not isinstance(constr, FixAtoms) and
-                not isinstance(constr, FixCartesian) and
-                not isinstance(constr, FixedLine) and
-                not suppress_constraints):
+                    not isinstance(constr, FixCartesian) and
+                    not isinstance(constr, FixedLine) and
+                    not suppress_constraints):
                 print('Warning: you have constraints in your atoms, that are')
                 print('         not supported by the CASTEP ase interface')
                 break
@@ -315,14 +315,17 @@ def read_castep_cell(fd, index=None):
     try:
         calc = Castep()
     except Exception as exception:
-        print('read_cell: Warning - Was not able to initialize CASTEP calculator.')
-        print('           This may be due to a non-existing "castep.keywords.py"')
+        print(
+            'read_cell: Warning - Was not able to initialize CASTEP calculator.')
+        print(
+            '           This may be due to a non-existing "castep.keywords.py"')
         print('           file or a non-existing CASTEP installation.')
         print('           Original error message appears below:')
         print('')
         print(' ' * 11 + exception.__str__().replace('\n', '\n' + ' ' * 11))
         print('')
-        print('           Fallback-mode will be applied to provide at least the')
+        print(
+            '           Fallback-mode will be applied to provide at least the')
         print('           geometric information contained in the *.cell file.')
         calc = None
         _fallback = True
