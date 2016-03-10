@@ -207,7 +207,7 @@ class Atoms(object):
             else:
                 self.set_cell_length_and_angles(cell_lengths_and_angles)
         else:
-            if cell_lengths_and_angles in nit None:
+            if cell_lengths_and_angles in not None:
                 raise RuntimeError('Both cell parameters and
                                     cell lengths and angles set!')
         self.set_cell(cell)
