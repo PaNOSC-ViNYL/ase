@@ -52,10 +52,15 @@ class NEB:
 
     def interpolate(self, method='linear', mic=False):
         
-        if not (self.remove_com or
-        self.remove_rotation) and method == 'linear':
-            interpolate(self.images, mic)
- 
+        #if not (self.remove_com or
+        #  self.remove_rotation) and method == 'linear':
+        
+        if not (self.remove_com or self.remove_rotation):
+           interpolate(self.images, mic)
+        
+        elif method == 'idpp':
+            self.idpp_interpolate(traj=None, log=None, mic=mic)
+        
         elif (self.remove_com or self.remove_rotation) and method == 'linear':
             #liner interpolation with translation and rotation removal
             minimize_rotation_and_translation(self.images[-1], self.images[0])
@@ -68,9 +73,6 @@ class NEB:
                 self.images[i].set_positions(interpolated_coordinates)
                 minimize_rotation_and_translation(self.images[i],
                  self.images[0]) 
- 
-        elif method == 'idpp':
-            self.idpp_interpolate(traj=None, log=None, mic=mic)
 
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
                          optimizer=BFGS, mic=False):
