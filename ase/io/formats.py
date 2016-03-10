@@ -290,7 +290,7 @@ def read(filename, index=None, format=None, **kwargs):
     else:
         return next(_iread(filename, slice(index, None), format, **kwargs))
 
-
+        
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
 
