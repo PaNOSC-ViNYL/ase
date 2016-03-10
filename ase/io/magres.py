@@ -43,7 +43,7 @@ def read_magres(filename, include_unrecognised=False):
 
         if match:
             version = match.groups()
-            version = tuple(map(int, version))
+            version = tuple(vnum for vnum in version)
         else:
             version = None
 
@@ -127,7 +127,7 @@ def read_magres(filename, include_unrecognised=False):
         def sitensor33(name):
             return lambda d: {'atom': {'label': data[0],
                                        'index': int(data[1])},
-                              name: tensor33(list(map(float, data[2:])))}
+                              name: tensor33([float(x) for x in data[2:]])}
 
         # 2x(Atom label, atom index) and 3x3 tensor
         def sisitensor33(name):
@@ -135,7 +135,7 @@ def read_magres(filename, include_unrecognised=False):
                                         'index': int(data[1])},
                               'atom2': {'label': data[2],
                                         'index': int(data[3])},
-                              name: tensor33(list(map(float, data[4:])))}
+                              name: tensor33([float(x) for x in data[4:]])}
 
         tags = {'ms': sitensor33('sigma'),
                 'efg': sitensor33('V'),
@@ -169,14 +169,14 @@ def read_magres(filename, include_unrecognised=False):
 
         # Lattice record: a1, a2 a3, b1, b2, b3, c1, c2 c3
         def lattice(d):
-            return tensor33(list(map(float, data)))
+            return tensor33([float(x) for x in data])
 
         # Atom record: label, index, x, y, z
         def atom(d):
             return {'species': data[0],
                     'label': data[1],
                     'index': int(data[2]),
-                    'position': tensor31(list(map(float, data[3:])))}
+                    'position': tensor31([float(x) for x in data[3:]])}
 
         def symmetry(d):
             return ' '.join(data)
@@ -372,7 +372,7 @@ def read_magres(filename, include_unrecognised=False):
 
 
 def tensor_string(tensor):
-    return ' '.join([' '.join(list(map(str, xs))) for xs in tensor])
+    return ' '.join(' '.join(str(x) for x in xs) for xs in tensor)
 
 
 def write_magres(filename, image):
@@ -527,7 +527,7 @@ def write_magres(filename, image):
                             '%s') % (a['species'],
                                      a['label'],
                                      a['index'],
-                                     ' '.join(list(map(str, a['position'])))))
+                                     ' '.join(str(x) for x in a['position'])))
 
         return '\n'.join(out)
 
@@ -536,7 +536,7 @@ def write_magres(filename, image):
 
         for tag, data in data.items():
             for value in data:
-                out.append('%s %s' % (tag, ' '.join(list(map(str, value)))))
+                out.append('%s %s' % (tag, ' '.join(str(x) for x in value)))
 
         return '\n'.join(out)
 
