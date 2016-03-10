@@ -58,10 +58,9 @@ def check(a, format):
         assert abs(a.get_forces() - atoms.get_forces()).max() < 1e-12
 
 for format in all_formats:
-    if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian', 'etsf']:
+    if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
         # Someone should do something ...
         continue
-
 
     if format in ['v-sim']:
         # Standalone test used as not compatible with 1D periodicity

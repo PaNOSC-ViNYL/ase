@@ -214,7 +214,6 @@ def read_xyz(fileobj, index=-1):
     elif isinstance(index, slice):
         if index.stop is not None and index.stop >= 0:
             last_frame = index.stop
-    #print('read_xyz: index={0}, last_frame={1}'.format(index, last_frame))
 
     # scan through file to find where the frames start
     fileobj.seek(0)
@@ -228,11 +227,9 @@ def read_xyz(fileobj, index=-1):
         frames.append((frame_pos, natoms))
         if last_frame is not None and len(frames) > last_frame:
             break
-        comment = fileobj.readline()
+        fileobj.readline()  # read comment line
         for i in range(natoms):
             fileobj.readline()
-
-    #print('read_xyz: frames={0}'.format(frames))
 
     if isinstance(index, int):
         if index < 0:
@@ -355,7 +352,7 @@ def read_xyz(fileobj, index=-1):
             if key in all_properties:
                 results[key] = atoms.info[key]
                 # special case for stress- convert to Voigt 6-element form
-                if key.startswith('stress') and results[key].shape == (3,3):
+                if key.startswith('stress') and results[key].shape == (3, 3):
                     stress = results[key]
                     stress = np.array([stress[0, 0],
                                        stress[1, 1],
