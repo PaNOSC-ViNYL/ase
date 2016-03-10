@@ -66,7 +66,7 @@ class Atoms(object):
     cell: 3x3 matrix
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells.  Default value: [1, 1, 1].
-    cell_vectors_and_angles:
+    cell_lengths_and_angles:
         6 numbers containing 3 lengths of unit cell vectors and
         3 angles between them, in following order:
         [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
@@ -207,10 +207,11 @@ class Atoms(object):
             else:
                 self.set_cell_length_and_angles(cell_lengths_and_angles)
         else:
-            if cell_lengths_and_angles in not None:
-                raise RuntimeError('Both cell parameters and
-                                    cell lengths and angles set!')
-        self.set_cell(cell)
+            if cell_lengths_and_angles is not None:
+                raise RuntimeError('Both cell parameters and ' +
+                                   'cell lengths and angles set!')
+            else:
+                self.set_cell(cell)
 
         if celldisp is None:
             celldisp = np.zeros(shape=(3, 1))
@@ -365,8 +366,8 @@ class Atoms(object):
         >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
         """
 
-        a, b, c, alpha, beta, gamma = abs(lengths_and_angles)
-        cell = zeros((3, 3))
+        a, b, c, alpha, beta, gamma = abs(np.array(lengths_and_angles))
+        cell = np.zeros((3, 3))
         
         cell[0][0] = a
         cell[1][0] = b*cos(alpha)
@@ -693,7 +694,7 @@ class Atoms(object):
         Ask the attached calculator to calculate the potential energy and
         apply constraints.  Use *apply_constraint=False* to get the raw
         forces.
-
+        
         When supported by the calculator, either the energy extrapolated
         to zero Kelvin or the energy consistent with the forces (the free
         energy) can be returned.
