@@ -324,6 +324,46 @@ class Atoms(object):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         return self._cell.copy()
 
+    def set_cell_length_and_angles(self, lengths_and_angles,
+                                   scale_atoms=False):
+        """Set lengths of unit cell vectors and angles between them,
+        
+        Parameters :
+
+        lengths_and_angles :
+            6 numbers, that describes unit cell. First three number are
+            lengths of unit cell vectors, rest are angles between them,
+            in following order:
+            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
+            First vector will lay in X - direction, second in XY - plane,
+            and the third one in Z - positive subspace.
+        scale_atoms : bool
+            Fix atomic positions or move atoms with the unit cell?
+            Default behavior is to *not* move the atoms (scale_atoms=False).
+
+        Examples:
+
+        Hexagonal unit cell:
+
+        >>> a.set_cell_length_and_angles([a, a, c, PI/3.0, PI/2.0, PI/2.0])
+
+        Rhombohedral unit cell:
+
+        >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
+        """
+
+        a, b, c, alpha, beta, gamma = lengths_and_angles
+        cell = zeros((3,3))
+        
+        cell[0][0] = a
+        cell[1][0] = b*cos(alpha)
+        cell[1][1] = b*sin(alpha)
+        cell[2][0] = c*cos(beta)
+        cell[2][1] = (b*c*cos(gamma) - cell[1][0]*cell[2][0])/cell[1][1]
+        cell[2][2] = np.sqrt(c**2 - cell[2][0]**2 - cell[2][1]**2)
+
+        self.set_cell(cell, scale_atoms)
+
     def get_cell_lengths_and_angles(self):
         """Get lengths of unit cell vectors and angles between them,
         in one vector as:
