@@ -348,7 +348,7 @@ class Atoms(object):
             lengths of unit cell vectors, rest are angles between them,
             in following order:
             [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
-            First vector will lay in X - direction, second in XY - plane,
+            First vector will lie in X - direction, second in XY - plane,
             and the third one in Z - positive subspace.
         scale_atoms : bool
             Fix atomic positions or move atoms with the unit cell?
