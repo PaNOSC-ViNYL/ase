@@ -203,7 +203,7 @@ class Atoms(object):
 
         if cell is None:
             if cell_lengths_and_angles is None:
-                cell = np.eye(3)
+                set_cell(np.eye(3))
             else:
                 self.set_cell_length_and_angles(cell_lengths_and_angles)
         else:
