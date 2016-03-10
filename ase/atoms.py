@@ -66,6 +66,11 @@ class Atoms(object):
     cell: 3x3 matrix
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells.  Default value: [1, 1, 1].
+    cell_vectors_and_angles:
+        6 numbers containing 3 lengths of unit cell vectors and 
+        3 angles between them, in following order:
+        [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+        Can not be set at the same time as cell.
     celldisp: Vector
         Unit cell displacement vector. To visualize a displaced cell
         around the center of mass of a Systems of atoms. Default value
@@ -126,6 +131,7 @@ class Atoms(object):
                  magmoms=None, charges=None,
                  scaled_positions=None,
                  cell=None, pbc=None, celldisp=None,
+                 cell_lengths_and_angles=None,
                  constraint=None,
                  calculator=None,
                  info=None):
@@ -196,7 +202,14 @@ class Atoms(object):
                 self.new_array('numbers', symbols2numbers(symbols), int)
 
         if cell is None:
-            cell = np.eye(3)
+            if cell_lengths_and_angles is None:
+                cell = np.eye(3)
+            else:
+                self.set_cell_length_and_angles(cell_lengths_and_angles)
+        else:        
+            if cell_lengths_and_angles in nit None:
+                raise RuntimeError('Both cell parameters and 
+                                    cell lengths and angles set!')
         self.set_cell(cell)
 
         if celldisp is None:
