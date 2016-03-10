@@ -229,7 +229,9 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
                 n = constr.a
                 symbol = atoms.get_chemical_symbols()[n]
                 nis = atoms.calc._get_number_in_species(n)
-                fix_cart = - constr.mask + 1
+                # fix_cart = - constr.mask + 1
+                # just use the logical opposite
+                fix_cart = np.logical_not(constr.mask)
                 if fix_cart[0]:
                     count += 1
                     fd.write('%6d %3s %3d   1 0 0 \n' % (count, symbol, nis))
