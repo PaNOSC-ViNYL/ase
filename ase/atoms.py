@@ -366,7 +366,7 @@ class Atoms(object):
 
     def get_cell_lengths_and_angles(self):
         """Get lengths of unit cell vectors and angles between them,
-        in one vector as:
+        in following order:
         [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]"""
 
         a = np.linalg.norm(self._cell[0])
