@@ -40,7 +40,7 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     # cast to numpy array.
     cell_vectors = np.array(cell_vectors)
     cell_vectors_mag = map(np.linalg.norm, cell_vectors)
-    cell_search = map(lambda x: int(ceil(float(root) / float(x))),
+    cell_search = map(lambda x: int(ceil(float(root * 1.2) / float(x))),
                       cell_vectors_mag)
 
     # Make these variables in function scope
@@ -51,7 +51,7 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     # Calculate square distances and break when appropriate
     for x in range(cell_search[0]):
         for y in range(cell_search[1]):
-            if x == y == 0:
+            if x == 0 or y == 0:
                 continue
             vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
             dist = round((vect ** 2).sum(), logeps)
@@ -115,9 +115,12 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     return atoms[ind]
 
 
-def root_surface_analysis(primitive_slab, root, cell_vectors=None, eps=1e-8):
+def root_surface_analysis(primitive_slab, root, cell_vectors=None, 
+                          allow_above=False, eps=1e-8):
     """This is a tool to analyze a slab and look for valid roots that exist,
-       without using this, nontrivial cells may be difficult to find."""
+       up to the given root. Without using this, nontrivial cells may be 
+       difficult to find.  This is also useful for generating all possible
+       cells without knowing them in advance."""
     logeps = int(-log10(eps))
     atoms = primitive_slab
     # If cell_vectors is not given, try to guess from the atoms
@@ -133,7 +136,7 @@ def root_surface_analysis(primitive_slab, root, cell_vectors=None, eps=1e-8):
     # cast to numpy array.
     cell_vectors = np.array(cell_vectors)
     cell_vectors_mag = map(np.linalg.norm, cell_vectors)
-    cell_search = map(lambda x: int(ceil(float(root) / float(x))),
+    cell_search = map(lambda x: int(ceil(float(root * 1.2) / float(x))),
                       cell_vectors_mag)
 
     # Returns valid roots that are found in the given search
@@ -145,5 +148,8 @@ def root_surface_analysis(primitive_slab, root, cell_vectors=None, eps=1e-8):
                 continue
             vect = (cell_vectors[0] * x) + (cell_vectors[1] * y)
             dist = round((vect ** 2).sum(), logeps)
-            valid.add(dist)
+            # Only integer roots make sense logically
+            if dist.is_integer():
+                if dist <= root or allow_above:
+                    valid.add(int(dist))
     return sorted(list(valid))

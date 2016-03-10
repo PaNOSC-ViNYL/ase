@@ -420,16 +420,64 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     return newatoms
 
 
-def fcc111_root(symbol, root, size, a=None, vacuum=None, orthogonal=False):
-    """FCC(111) surface maniupulated to repeat with *root*
-    number of atoms in each x/y plane.
+def hcp0001_root(symbol, root, size, a=None, c=None,
+                 vacuum=None, orthogonal=False):
+    """HCP(0001) surface maniupulated to have a x unit side length
+    of *root* before repeating.
 
-    *root* should be given as a positive whole number."""
-    atoms = fcc111(symbol=symbol, size=(
-        1, 1, size[2]), a=a, vacuum=vacuum, orthogonal=orthogonal)
+    The first 20 valid roots are ...
+    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
+    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    atoms = hcp0001(symbol=symbol, size=(1, 1, size[2]),
+                    a=a, c=c, vacuum=vacuum, orthogonal=orthogonal)
     atoms = root_surface(atoms, root)
     atoms *= (size[0], size[1], 1)
     return atoms
+
+
+def fcc111_root(symbol, root, size, a=None,
+                vacuum=None, orthogonal=False):
+    """FCC(111) surface maniupulated to have a x unit side length
+    of *root* before repeating.
+
+    The first 20 valid roots for nonorthogonal are ...
+    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
+    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    atoms = fcc111(symbol=symbol, size=(1, 1, size[2]),
+                   a=a, vacuum=vacuum, orthogonal=orthogonal)
+    atoms = root_surface(atoms, root)
+    atoms *= (size[0], size[1], 1)
+    return atoms
+
+
+def bcc111_root(symbol, root, size, a=None,
+                vacuum=None, orthogonal=False):
+    """BCC(111) surface maniupulated to have a x unit side length
+    of *root* before repeating.
+
+    The first 20 valid roots for nonorthogonal...
+    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
+    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    atoms = bcc111(symbol=symbol, size=(1, 1, size[2]),
+                   a=a, vacuum=vacuum, orthogonal=orthogonal)
+    atoms = root_surface(atoms, root)
+    atoms *= (size[0], size[1], 1)
+    return atoms
+
+def bcc110_root(symbol, root, size, a=None,
+                vacuum=None, orthogonal=False):
+    """BCC(111) surface maniupulated to have a x unit side length
+    of *root* before repeating.
+
+    The first 20 valid roots for nonorthogonal...
+    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
+    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    atoms = bcc111(symbol=symbol, size=(1, 1, size[2]),
+                   a=a, vacuum=vacuum, orthogonal=orthogonal)
+    atoms = root_surface(atoms, root)
+    atoms *= (size[0], size[1], 1)
+    return atoms
+
 
 
 def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
