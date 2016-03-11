@@ -1,4 +1,5 @@
 from math import atan2, ceil, cos, sin, log10
+from ase.visualize import view
 import numpy as np
 
 
@@ -60,12 +61,32 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
                            format(root, cell_vectors[0], cell_vectors[1]))
 
     tmag = np.linalg.norm((tx, ty))
-    root_angle = atan2(ty, tx)
+    root_angle = -atan2(ty, tx)
     cell_scale = tmag / cell_vectors_mag[0]
+    
     root_rotation = [[cos(root_angle), -sin(root_angle)],
                      [sin(root_angle), cos(root_angle)]]
     cell = map(lambda x: np.dot(x, root_rotation) * cell_scale, cell_vectors)
 
+    def pretrim(atoms):
+        cell = atoms._cell
+        pos = atoms.positions
+
+        vertices = np.array([[0, 0], 
+                             cell[0][0:2], 
+                             cell[1][0:2], 
+                             cell[0][0:2] + cell[1][0:2]]) 
+        
+        mins = vertices.min(axis=0) 
+        maxs = vertices.max(axis=0)        
+ 
+        out = np.where(np.logical_not((pos[:, 0]>=mins[0]-eps*10) &
+                                      (pos[:, 0]<=maxs[0]+eps*10) &
+                                      (pos[:, 1]>=mins[1]-eps*10) &
+                                      (pos[:, 1]<=maxs[1]+eps*10)))
+
+        del atoms[out]
+ 
     def remove_doubles(atoms, shift=True):
         shift_vector = np.array([eps*100, eps*200, eps*300])
         if shift:
@@ -89,6 +110,8 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
     cell_scale = np.divide(atoms_cell_mag, cell_vect_mag)
     atoms *= (cell_search[0], cell_search[1], 1)
     atoms._cell[0:2, 0:2] = cell * cell_scale
+    atoms.center()
+    pretrim(atoms)
     remove_doubles(atoms, shift=False)
     remove_doubles(atoms, shift=True)
 

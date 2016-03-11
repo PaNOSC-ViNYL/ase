@@ -6,9 +6,9 @@ from ase.lattice.root import root_surface
 from ase.lattice.root import root_surface_analysis
 
 # Make samples of primitive cell
-prim_fcc111 = fcc111("H", (1, 1, 3), a=1)
-prim_bcc111 = bcc111("H", (1, 1, 3), a=1)
-prim_hcp0001 = hcp0001("H", (1, 1, 3), a=1)
+prim_fcc111 = fcc111("H", (1, 1, 2), a=1)
+prim_bcc111 = bcc111("H", (1, 1, 2), a=1)
+prim_hcp0001 = hcp0001("H", (1, 1, 2), a=1)
 
 # Check valid roots up to root 21 (the 10th root cell)
 valid_fcc111 = root_surface_analysis(prim_fcc111, 21)
@@ -28,10 +28,10 @@ assert valid_fcc111 == [1.0, 3.0, 4.0, 7.0, 9.0,
                         12.0, 13.0, 16.0, 19.0, 21.0]
 
 # Remake easy sample using surface function
-atoms2 = fcc111_root("H", 7, (1, 1, 3), a=1)
+atoms2 = fcc111_root("H", 7, (1, 1, 2), a=1)
 
 # Right number of atoms
-assert len(atoms1) == len(atoms2)
+assert len(atoms1) == len(atoms2) == 14
 
 # Same positions
 assert (atoms1.positions == atoms2.positions).all()
