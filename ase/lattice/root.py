@@ -2,34 +2,27 @@ from math import atan2, ceil, cos, sin, log10
 import numpy as np
 
 
-def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
-                 eps=1e-8):
-    """This script allows a surface to be maniupulated to repeat with a
-    special root cut cell.  The general use of this is to make cells with
-    a specific cell geometry, but a nonstandard number of repetitions in
-    the cell.  Without using a tool like this, it would be impossible to
-    trivially make a fcc111 cell with 13 atoms on each layer, while still
-    preserving the geometry of the primitive cell.
+def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
+    """Creates a cell from a primitive cell that repeats along the x and y
+    axis in a way consisent with the primitive cell, that has been cut
+    to have a side length of *root*.
 
     *primitive cell* should be a primitive 2d cell of your slab, repeated
-    as needed in the z direction
+    as needed in the z direction.
+
     *root* should be determined using an analysis tool such as the
-    root_surface_analysis function.
-    *cell_vectors* is a manual override for the detected cell
-    *swap_alpha* swaps the alpha angle of the cell
-    *eps* is a precision value as this relies on floating point precision,
-    adjust when more accurate cells are needed but the default seems to
-    work with all tested cells"""
+    root_surface_analysis function, or prior knowledge. It should always
+    be a whole number as it represents the number of repetitions.
+
+    *swap_alpha* swaps the alpha angle of the cell."""
+
     logeps = int(-log10(eps))
     atoms = primitive_slab.copy()
-    # If cell_vectors is not given, try to guess from the atoms
-    # Normalize the x axis to a distance of 1, and use the cell
-    # We ignore the z axis because this code cannot handle it
-    if cell_vectors is None:
-        xscale = np.linalg.norm(atoms._cell[0][0:2])
-        xx, xy = atoms._cell[0][0:2] / xscale
-        yx, yy = atoms._cell[1][0:2] / xscale
-        cell_vectors = [[xx, xy], [yx, yy]]
+        
+    xscale = np.linalg.norm(atoms._cell[0][0:2])
+    xx, xy = atoms._cell[0][0:2] / xscale
+    yx, yy = atoms._cell[1][0:2] / xscale
+    cell_vectors = [[xx, xy], [yx, yy]]
 
     # Make (0, 0) corner's angle flip from acute to obtuse or
     # obtuse to acute with a small trick
@@ -115,22 +108,27 @@ def root_surface(primitive_slab, root, cell_vectors=None, swap_alpha=False,
     return atoms[ind]
 
 
-def root_surface_analysis(primitive_slab, root, cell_vectors=None, 
-                          allow_above=False, eps=1e-8):
-    """This is a tool to analyze a slab and look for valid roots that exist,
-       up to the given root. Without using this, nontrivial cells may be 
-       difficult to find.  This is also useful for generating all possible
-       cells without knowing them in advance."""
+def root_surface_analysis(primitive_slab, root, allow_above=False, eps=1e-8):
+    """A tool to analyze a slab and look for valid roots that exist, up to 
+       the given root. This is useful for generating all possible cells 
+       without prior knowledge.
+
+       *primitive slab* is the primitive cell to analyze.
+    
+       *root* is the desired root to find, and all below.
+
+       *allow_above* allows you to also include cells above
+       the given *root* if found in the process.  Otherwise these
+       are trimmed off."""
+
     logeps = int(-log10(eps))
     atoms = primitive_slab
-    # If cell_vectors is not given, try to guess from the atoms
     # Normalize the x axis to a distance of 1, and use the cell
     # We ignore the z axis because this code cannot handle it
-    if cell_vectors is None:
-        xscale = np.linalg.norm(atoms._cell[0][0:2])
-        xx, xy = atoms._cell[0][0:2] / xscale
-        yx, yy = atoms._cell[1][0:2] / xscale
-        cell_vectors = [[xx, xy], [yx, yy]]
+    xscale = np.linalg.norm(atoms._cell[0][0:2])
+    xx, xy = atoms._cell[0][0:2] / xscale
+    yx, yy = atoms._cell[1][0:2] / xscale
+    cell_vectors = [[xx, xy], [yx, yy]]
 
     # Manipulate the cell vectors to find the best search zone and
     # cast to numpy array.
