@@ -304,7 +304,8 @@ class PhaseDiagram:
         """Phase-diagram.
         
         references: list of (name, energy) tuples
-            List of references.  The names can also be dicts like
+            List of references.  The energy must be the total energy and not
+            energy per atom.  The names can also be dicts like
             ``{'Zn': 1, 'O': 2}`` which would be equivalent to ``'ZnO2'``.
         filter: str or list of str
             Use only those references that match the given filter.
