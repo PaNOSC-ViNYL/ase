@@ -384,9 +384,18 @@ class SQLite3Database(Database):
         args = []
         
         for n, key in enumerate(keys):
-            tables.append('keys AS keys{0}'.format(n))
-            where.append('systems.id=keys{0}.id AND keys{0}.key=?'.format(n))
-            args.append(key)
+            if key == 'forces':
+                where.append('systems.fmax IS NOT NULL')
+            elif key == 'strain':
+                where.append('systems.smax IS NOT NULL')
+            elif key in ['energy', 'fmax', 'smax',
+                         'constraints', 'calculator']:
+                where.append('systems.{0} IS NOT NULL'.format(key))
+            else:
+                tables.append('keys AS keys{0}'.format(n))
+                where.append('systems.id=keys{0}.id AND keys{0}.key=?'
+                             .format(n))
+                args.append(key)
 
         # Special handling of "H=0" and "H<2" type of selections:
         bad = {}
@@ -400,7 +409,8 @@ class SQLite3Database(Database):
         nnumber = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
-                       'calculator', 'natoms', 'pbc', 'unique_id']:
+                       'calculator', 'natoms', 'pbc', 'unique_id',
+                       'fmax', 'smax', 'volume', 'mass', 'charge']:
                 if key == 'user' and self.version >= 2:
                     key = 'username'
                 elif key == 'pbc':

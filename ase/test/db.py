@@ -17,20 +17,28 @@ ase-db y.json -v natoms=1,Cu=1 --delete --yes &&
 ase-db y.json -v "H>0" -k hydro=1,abc=42,foo=bar &&
 ase-db y.json -v "H>0" --delete-keys foo"""
 
+
+def count(n, *args, **kwargs):
+    m = len(list(con.select(*args, **kwargs)))
+    assert m == n, (m, n)
+    
 for name in ['y.json', 'y.db']:
     cli(cmd.replace('y.json', name))
     con = connect(name)
-    assert len(list(con.select())) == 5
-    assert len(list(con.select('hydro'))) == 3
     assert con.get_atoms(H=1)[0].magmom == 1
-    assert len(list(con.select('foo'))) == 0
-    assert len(list(con.select(abc=42))) == 3
-    assert len(list(con.select('abc'))) == 3
-    assert len(list(con.select('abc,foo'))) == 0
-    assert len(list(con.select('abc,hydro'))) == 3
-    assert len(list(con.select(foo='bar'))) == 0
-    assert len(list(con.select(formula='H2'))) == 1
-    assert len(list(con.select(formula='H2O'))) == 1
+    count(5)
+    count(3, 'hydro')
+    count(0, 'foo')
+    count(3, abc=42)
+    count(3, 'abc')
+    count(0, 'abc,foo')
+    count(3, 'abc,hydro')
+    count(0, foo='bar')
+    count(1, formula='H2')
+    count(1, formula='H2O')
+    count(3, 'fmax<0.1')
+    count(1, '0.5<mass<1.5')
+    count(5, 'energy')
 
     id = con.reserve(abc=7)
     assert con[id].abc == 7
