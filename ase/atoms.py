@@ -324,6 +324,13 @@ class Atoms(object):
             cell = np.diag(cell)
         elif cell.shape == (6,):
             a, b, c, alpha, beta, gamma = abs(cell)
+            """Check if angles aren't less then approx. 1 degree
+            If it is so, raise an ValueException
+            """
+            for angle in (alpha, beta, gamma):
+                if angle < 0.018: 
+                    raise ValueError('Angles must be larger than 1 degree')
+
             cell = np.zeros((3, 3))
             
             cell[0, 0] = a
@@ -331,7 +338,11 @@ class Atoms(object):
             cell[1, 1] = b*sin(alpha)
             cell[2, 0] = c*cos(beta)
             cell[2, 1] = (b*c*cos(gamma) - cell[1, 0]*cell[2, 0])/cell[1, 1]
-            cell[2, 2] = np.sqrt(c**2 - cell[2, 0]**2 - cell[2, 1]**2)
+            sq_z_vec = c**2 - cell[2, 0]**2 - cell[2, 1]**2
+            if sq_z_vec < 0:
+                raise ValueError('It is not possible to make cell with these'
+                                 ' parameters')
+            cell[2, 2] = np.sqrt()
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 or 6 sequence'
                              ' or 3x3 matrix!')
