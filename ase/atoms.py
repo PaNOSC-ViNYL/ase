@@ -324,8 +324,8 @@ class Atoms(object):
             cell = np.diag(cell)
         elif cell.shape == (6,):
             a, b, c, alpha, beta, gamma = abs(cell)
-            """Check if angles aren't less then approx. 1 degree
-            If it is so, raise an ValueException
+            """Check if angles aren't less then 0.018 rad (approx. 1 degree).
+            If it is so, raise an ValueException.
             """
             for angle in (alpha, beta, gamma):
                 if angle < 0.018: 
