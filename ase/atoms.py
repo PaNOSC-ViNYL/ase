@@ -342,7 +342,7 @@ class Atoms(object):
             if sq_z_vec < 0:
                 raise ValueError('It is not possible to make cell with these'
                                  ' parameters')
-            cell[2, 2] = np.sqrt()
+            cell[2, 2] = np.sqrt(sq_z_vec)
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 or 6 sequence'
                              ' or 3x3 matrix!')
