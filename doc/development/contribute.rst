@@ -328,7 +328,7 @@ Code review
 ===========
 
 Before you start working on a Merge Request, *please* read our
-:ref:`python_codingstandard`. Please also install a linter!
+:ref:`coding conventions`.  Please also install a linter!
 
 Hopefully someone will look at your changes and give you some
 feedback.  Maybe everything is fine and things can be merged to the official

@@ -1,4 +1,4 @@
-.. _python_codingstandard:
+.. _coding conventions:
 
 ==================
 Coding Conventions
@@ -155,8 +155,8 @@ should be retested after cleaning it. Try::
 Using pylint to check your code
 ===============================
 
-A pylintrc trying to follow ASE :ref:`python_codingstandard` can be found here:
-:git:`doc/development/pylintrc`
+A pylintrc trying to follow ASE :ref:`coding conventions` can be found here:
+:download:`pylintrc`.
 
 
 .. _epydoc:
