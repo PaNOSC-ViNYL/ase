@@ -36,13 +36,13 @@ used to make the figure you see above.
    For this reaction, the reaction coordinate is very simple: The
    *x*-coordinate of the Au atom.  In such cases, the NEB method is
    overkill, and a simple constraint method should be used like in this
-   tutorial: :ref:`constraints_diffusion_tutorial`.
+   tutorial: :ref:`constraints diffusion tutorial`.
 
 .. seealso::
 
    * :mod:`ase.neb`
    * :mod:`ase.constraints`
-   * :ref:`constraints_diffusion_tutorial`
+   * :ref:`constraints diffusion tutorial`
    * :func:`~ase.lattice.surface.fcc100`
    
 

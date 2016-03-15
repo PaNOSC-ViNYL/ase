@@ -1,4 +1,4 @@
-.. _python_info:
+.. _what is python:
 
 ---------------
 What is Python?

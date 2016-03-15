@@ -6,7 +6,7 @@ Tutorials
 Python
 ------
 
-If you are not familiar with Python please read :ref:`python_info`.
+If you are not familiar with Python please read :ref:`what is python`.
 
 .. toctree::
    :maxdepth: 3
