@@ -68,7 +68,7 @@ class Atoms(object):
         numbers for orthorhombic cells, or 6 numbers, where
         first three are lengths of unit cell vector, and the
         other three are angles between them. In following order:
-        [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
+        [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
         First vector will lie in X - direction, second in XY - plane,
         and the third one in Z - positive subspace.
         Default value: [1, 1, 1].
@@ -289,7 +289,7 @@ class Atoms(object):
             just three numbers for an orthorhombic cell. Another option is
             6 numbers, which describes unit cell with lengths of unit cell
             vectors and with angles between them, in following order:
-            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
+            [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
             First vector will lie in X - direction, second in XY - plane,
             and the third one in Z - positive subspace.
         scale_atoms : bool
@@ -309,7 +309,7 @@ class Atoms(object):
 
         Hexagonal unit cell:
 
-        >>> a.set_cell_length_and_angles([a, a, c, PI/3.0, PI/2.0, PI/2.0])
+        >>> a.set_cell_length_and_angles([a, a, c, PI/2.0, PI/2.0, PI/3.0])
 
         Rhombohedral unit cell:
 
@@ -334,10 +334,10 @@ class Atoms(object):
             cell = np.zeros((3, 3))
 
             cell[0, 0] = a
-            cell[1, 0] = b*cos(alpha)
-            cell[1, 1] = b*sin(alpha)
+            cell[1, 0] = b*cos(gamma)
+            cell[1, 1] = b*sin(gamma)
             cell[2, 0] = c*cos(beta)
-            cell[2, 1] = (b*c*cos(gamma) - cell[1, 0]*cell[2, 0])/cell[1, 1]
+            cell[2, 1] = (b*c*cos(alpha) - cell[1, 0]*cell[2, 0])/cell[1, 1]
             sq_z_vec = c**2 - cell[2, 0]**2 - cell[2, 1]**2
             if sq_z_vec < 0:
                 raise ValueError('It is not possible to make cell with these'
@@ -367,15 +367,15 @@ class Atoms(object):
         sequence of 6 number. First three are unit cell vector
         lengths and second three are angles between them:
 
-        [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+        [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)]
         """
         if lengths_angles:
             a = np.linalg.norm(self._cell[0])
             b = np.linalg.norm(self._cell[1])
             c = np.linalg.norm(self._cell[2])
-            alpha = abs(np.arccos(np.vdot(self._cell[0], self._cell[1])/a/b))
+            alpha = abs(np.arccos(np.vdot(self._cell[1], self._cell[2])/a/b))
             beta  = abs(np.arccos(np.vdot(self._cell[0], self._cell[2])/a/c))
-            gamma = abs(np.arccos(np.vdot(self._cell[1], self._cell[2])/b/c))
+            gamma = abs(np.arccos(np.vdot(self._cell[0], self._cell[1])/b/c))
             return np.array([a, b, c, alpha, beta, gamma])
         return self._cell.copy()
 
