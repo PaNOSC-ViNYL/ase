@@ -334,12 +334,12 @@ class Atoms(object):
             a, b, c, alpha, beta, gamma = abs(cell)
             cell = np.zeros((3, 3))
             
-            cell[0][0] = a
-            cell[1][0] = b*cos(alpha)
-            cell[1][1] = b*sin(alpha)
-            cell[2][0] = c*cos(beta)
-            cell[2][1] = (b*c*cos(gamma) - cell[1][0]*cell[2][0])/cell[1][1]
-            cell[2][2] = np.sqrt(c**2 - cell[2][0]**2 - cell[2][1]**2)
+            cell[0, 0] = a
+            cell[1, 0] = b*cos(alpha)
+            cell[1, 1] = b*sin(alpha)
+            cell[2, 0] = c*cos(beta)
+            cell[2, 1] = (b*c*cos(gamma) - cell[1, 0]*cell[2, 0])/cell[1, 1]
+            cell[2, 2] = np.sqrt(c**2 - cell[2, 0]**2 - cell[2, 1]**2)
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 or 6 sequence'
                              'or 3x3 matrix!')
