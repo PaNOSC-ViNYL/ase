@@ -65,7 +65,7 @@ class Atoms(object):
         Atomic charges.
     cell: 3x3 matrix
         Unit cell vectors.  Can also be given as just three
-        numbers for orthorhombic cells, or 6 numbers, where 
+        numbers for orthorhombic cells, or 6 numbers, where
         first three are lengths of unit cell vector, and the
         other three are angles between them. In following order:
         [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
@@ -328,11 +328,11 @@ class Atoms(object):
             If it is so, raise an ValueException.
             """
             for angle in (alpha, beta, gamma):
-                if angle < 0.018: 
+                if angle < 0.018:
                     raise ValueError('Angles must be larger than 1 degree')
 
             cell = np.zeros((3, 3))
-            
+
             cell[0, 0] = a
             cell[1, 0] = b*cos(alpha)
             cell[1, 1] = b*sin(alpha)
@@ -362,8 +362,8 @@ class Atoms(object):
 
     def get_cell(self, lengths_angles=False):
         """Get the three unit cell vectors as a 3x3 ndarray.
-        
-        If lengths_angles is set to True, it will return 
+
+        If lengths_angles is set to True, it will return
         sequence of 6 number. First three are unit cell vector
         lengths and second three are angles between them:
 
@@ -682,7 +682,7 @@ class Atoms(object):
         Ask the attached calculator to calculate the potential energy and
         apply constraints.  Use *apply_constraint=False* to get the raw
         forces.
-        
+
         When supported by the calculator, either the energy extrapolated
         to zero Kelvin or the energy consistent with the forces (the free
         energy) can be returned.
