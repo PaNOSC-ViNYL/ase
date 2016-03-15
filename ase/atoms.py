@@ -202,7 +202,7 @@ class Atoms(object):
                 self.new_array('numbers', symbols2numbers(symbols), int)
 
         if cell is None:
-            self.set_cell(np.eye(3))
+            cell = np.eye(3)
         self.set_cell(cell)
 
         if celldisp is None:
@@ -334,7 +334,7 @@ class Atoms(object):
             cell[2, 2] = np.sqrt(c**2 - cell[2, 0]**2 - cell[2, 1]**2)
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 or 6 sequence'
-                             'or 3x3 matrix!')
+                             ' or 3x3 matrix!')
         if scale_atoms:
             M = np.linalg.solve(self._cell, cell)
             self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
@@ -367,46 +367,6 @@ class Atoms(object):
             gamma = abs(np.arccos(np.vdot(self._cell[1], self._cell[2])/b/c))
             return np.array([a, b, c, alpha, beta, gamma])
         return self._cell.copy()
-
-    def set_cell_length_and_angles(self, lengths_and_angles,
-                                   scale_atoms=False):
-        """Set lengths of unit cell vectors and angles between them,
-        
-        Parameters :
-
-        lengths_and_angles :
-            6 numbers, that describes unit cell. First three number are
-            lengths of unit cell vectors, rest are angles between them,
-            in following order:
-            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
-            First vector will lie in X - direction, second in XY - plane,
-            and the third one in Z - positive subspace.
-        scale_atoms : bool
-            Fix atomic positions or move atoms with the unit cell?
-            Default behavior is to *not* move the atoms (scale_atoms=False).
-
-        Examples:
-
-        Hexagonal unit cell:
-
-        >>> a.set_cell_length_and_angles([a, a, c, PI/3.0, PI/2.0, PI/2.0])
-
-        Rhombohedral unit cell:
-
-        >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
-        """
-
-        a, b, c, alpha, beta, gamma = abs(np.array(lengths_and_angles))
-        cell = np.zeros((3, 3))
-        
-        cell[0][0] = a
-        cell[1][0] = b*cos(alpha)
-        cell[1][1] = b*sin(alpha)
-        cell[2][0] = c*cos(beta)
-        cell[2][1] = (b*c*cos(gamma) - cell[1][0]*cell[2][0])/cell[1][1]
-        cell[2][2] = np.sqrt(c**2 - cell[2][0]**2 - cell[2][1]**2)
-
-        self.set_cell(cell, scale_atoms)
 
     def get_cell_lengths_and_angles(self):
         """Get lengths of unit cell vectors and angles between them,
