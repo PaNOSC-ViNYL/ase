@@ -357,8 +357,23 @@ class Atoms(object):
         """Get the unit cell displacement vectors."""
         return self._celldisp.copy()
 
-    def get_cell(self):
-        """Get the three unit cell vectors as a 3x3 ndarray."""
+    def get_cell(self, lengths_angles=False):
+        """Get the three unit cell vectors as a 3x3 ndarray.
+        
+        If lengths_angles is set to True, it will return 
+        sequence of 6 number. First three are unit cell vector
+        lengths and second three are angles between them:
+
+        [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+        """
+        if lengths_angles:
+            a = np.linalg.norm(self._cell[0])
+            b = np.linalg.norm(self._cell[1])
+            c = np.linalg.norm(self._cell[2])
+            alpha = abs(np.arccos(np.vdot(self._cell[0], self._cell[1])/a/b))
+            beta  = abs(np.arccos(np.vdot(self._cell[0], self._cell[2])/a/c))
+            gamma = abs(np.arccos(np.vdot(self._cell[1], self._cell[2])/b/c))
+            return np.array([a, b, c, alpha, beta, gamma])
         return self._cell.copy()
 
     def set_cell_length_and_angles(self, lengths_and_angles,
