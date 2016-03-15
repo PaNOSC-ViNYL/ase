@@ -368,19 +368,6 @@ class Atoms(object):
             return np.array([a, b, c, alpha, beta, gamma])
         return self._cell.copy()
 
-    def get_cell_lengths_and_angles(self):
-        """Get lengths of unit cell vectors and angles between them,
-        in following order:
-        [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]"""
-
-        a = np.linalg.norm(self._cell[0])
-        b = np.linalg.norm(self._cell[1])
-        c = np.linalg.norm(self._cell[2])
-        alpha = abs(np.arccos(np.vdot(self._cell[0], self._cell[1])/a/b))
-        beta  = abs(np.arccos(np.vdot(self._cell[0], self._cell[2])/a/c))
-        gamma = abs(np.arccos(np.vdot(self._cell[1], self._cell[2])/b/c))
-        return np.array([a, b, c, alpha, beta, gamma])
-
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray.
 
