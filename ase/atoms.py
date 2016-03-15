@@ -294,7 +294,12 @@ class Atoms(object):
 
         cell :
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
-            just three numbers for an orthorhombic cell.
+            just three numbers for an orthorhombic cell. Another option is
+            6 numbers, which describes unit cell with lengths of unit cell
+            vectors and with angles between them, in following order:
+            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)].
+            First vector will lie in X - direction, second in XY - plane,
+            and the third one in Z - positive subspace.
         scale_atoms : bool
             Fix atomic positions or move atoms with the unit cell?
             Default behavior is to *not* move the atoms (scale_atoms=False).
@@ -309,6 +314,14 @@ class Atoms(object):
         FCC unit cell:
 
         >>> a.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+
+        Hexagonal unit cell:
+
+        >>> a.set_cell_length_and_angles([a, a, c, PI/3.0, PI/2.0, PI/2.0])
+
+        Rhombohedral unit cell:
+
+        >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
         """
 
         if fix is not None:
