@@ -1099,7 +1099,7 @@ class StrainFilter(Filter):
 
 class UnitCellFilter(Filter):
     """Modify the supercell and the atom positions. """
-    def __init__(self, atoms, mask=None):
+    def __init__(self, atoms, mask=None, weight=1.):
         """Create a filter that returns the atomic forces and unit cell
         stresses together, so they can simultaneously be minimized.
 
@@ -1151,6 +1151,14 @@ class UnitCellFilter(Filter):
         self.origcell = atoms.get_cell()
         self.copy = self.atoms.copy
         self.arrays = self.atoms.arrays
+        self.weight = weight
+
+        # These Jacobians make the generalized stress/strain scale with
+        # the system size the same was a the atomic positions/forces.
+        # See DOI 10.1063/1.3684549
+        self.strain_renorm = (self.atoms.get_volume()**(1. / 3.) *
+                              self.atoms.get_number_of_atoms()**(1. / 6.))
+        self.stress_renorm = self.atoms.get_volume() / self.strain_renorm
 
     def get_positions(self):
         '''
@@ -1166,7 +1174,7 @@ class UnitCellFilter(Filter):
         natoms = len(self.atoms)
         all_pos = np.zeros((natoms + 2, 3), np.float)
         all_pos[0:natoms, :] = atom_positions
-        all_pos[natoms:, :] = strains
+        all_pos[natoms:, :] = strains * self.strain_renorm
 
         return all_pos
 
@@ -1187,7 +1195,7 @@ class UnitCellFilter(Filter):
         self.atoms.set_positions(atom_positions)
 
         new = new[natoms:, :]  # this is only the strains
-        new = new.ravel() * self.mask
+        new = new.ravel() * self.mask / self.strain_renorm
         eps = np.array([[1.0 + new[0], 0.5 * new[5], 0.5 * new[4]],
                         [0.5 * new[5], 1.0 + new[1], 0.5 * new[3]],
                         [0.5 * new[4], 0.5 * new[3], 1.0 + new[2]]])
@@ -1217,9 +1225,9 @@ class UnitCellFilter(Filter):
         all_forces = np.zeros((natoms + 2, 3), np.float)
         all_forces[0:natoms, :] = atom_forces
 
-        vol = self.atoms.get_volume()
-        stress_forces = -vol * (stress * self.mask).reshape((2, 3))
-        all_forces[natoms:, :] = stress_forces
+        stress_forces = -((stress * self.mask).reshape((2, 3)) *
+                          self.stress_renorm)
+        all_forces[natoms:, :] = stress_forces * self.weight
         return all_forces
 
     def get_potential_energy(self):
