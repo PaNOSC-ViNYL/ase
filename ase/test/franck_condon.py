@@ -22,6 +22,8 @@ def equal(x, y, tolerance=0, fail=True, msg=''):
             sys.stderr.write('WARNING: %s\n' % msg)
 
 
+# -------------------
+# FCOverlap
 
 fco = FCOverlap()
 
@@ -42,3 +44,5 @@ S = 2
 n = 3
 assert(fco.direct(n, m, S) == fco.direct(m, n, S))
 
+# ---------------------------
+#

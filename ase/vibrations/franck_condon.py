@@ -1,3 +1,4 @@
+from __future__ import division
 from functools import reduce
 from itertools import combinations, chain
 from math import factorial
@@ -7,6 +8,37 @@ import numpy as np
 
 from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
+
+class FCOverlap:
+    """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
+    def factorial(self, n):
+        try:
+            return self._fac[n]
+        except AttributeError:
+            self._fac = [1]
+            return self.factorial(n)
+        except IndexError:
+            for i in range(len(self._fac), n + 1):
+                self._fac.append(i * self._fac[i - 1])
+            return self._fac[n]
+
+    def directT0(self, n, S):
+        """Direct squared Franck-Condon overlap for T=0."""
+        return np.exp(-S) * S**n / self.factorial(n)
+
+    def direct(self, n, m, S):
+        """Direct squared Franck-Condon overlap."""
+        if n > m:
+            # use symmetry
+            return self.direct(m, n, S)
+
+        s = 0
+        for k in range(n + 1):
+            s += (-1)**(n - k) * S**(-k) / (
+                self.factorial(k) * 
+                self.factorial(n - k) * self.factorial(m - k))
+        return np.exp(-S) * S**(n + m) * s**2 * (
+            self.factorial(n) * self.factorial(m))
 
 
 class FranckCondon:
@@ -53,15 +85,15 @@ class FranckCondon:
         d_V = np.dot(modes_VV, X_V)
         # Huang-Rhys factors S
         s = 1.e-20 / kg / C / _hbar**2 # SI units
-        S = s * d_V**2 * self.energies / 2
+        S_V = s * d_V**2 * self.energies / 2
 
         # reshape for minfreq
         indices = np.where(self.frequencies <= self.minfreq)
         np.append(indices, np.where(self.frequencies >= self.maxfreq))
-        S=np.delete(S, indices)
+        S_V = np.delete(S_V, indices)
         frequencies = np.delete(self.frequencies, indices)
         
-        return S, frequencies
+        return S_V, frequencies
 
     def get_Franck_Condon_factors(self, order, temp, forces):
         """Return FC factors and corresponding frequencies up to given order.
@@ -195,3 +227,4 @@ the 0-0 transition.
 quanta exitations. Third list are combinations of two normal modes
 (including combinations of higher quanta exitations). """
         return FC, frequencies
+
