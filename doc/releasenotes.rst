@@ -10,6 +10,12 @@ Git master branch
 
 :git:`master <>`.
 
+
+Version 3.10.0
+==============
+
+17 Mar 2016: :git:`3.10.0 <../3.10.0>`.
+
 * :ref:`old trajectory` files can no longer be used.  See :ref:`convert`.
 
 * New iterator function :func:`ase.io.iread` for iteratively reading Atoms
