@@ -1,3 +1,4 @@
+from __future__ import division
 from math import sqrt
 from ase.utils.geometry import find_mic
 
@@ -594,10 +595,10 @@ class FixInternals(FixConstraint):
             h21 = h1 - h2
             h23 = h3 - h2
             # Calculating new positions
-            deriv = (((np.dot(r21, h23) + np.dot(r23, h21))
-                      / (r21_len * r23_len))
-                     - (np.dot(r21, h21) / (r21_len * r21_len)
-                        + np.dot(r23, h23) / (r23_len * r23_len)) * angle)
+            deriv = (((np.dot(r21, h23) + np.dot(r23, h21)) /
+                      (r21_len * r23_len)) -
+                     (np.dot(r21, h21) / (r21_len * r21_len) +
+                      np.dot(r23, h23) / (r23_len * r23_len)) * angle)
             deriv *= 2 * angle
             lamda = -self.sigma / deriv
             newpositions[self.indices[0]] += lamda * h1
@@ -682,13 +683,13 @@ class FixInternals(FixConstraint):
             h12 = h2 - h1
             h23 = h3 - h2
             h34 = h4 - h3
-            deriv = ((np.dot(n1, np.cross(r34, h23) + np.cross(h34, r23))
-                      + np.dot(n2, np.cross(r23, h12) + np.cross(h23, r12)))
-                     / (n1_len * n2_len))
-            deriv -= (((np.dot(n1, np.cross(r23, h12) + np.cross(h23, r12))
-                        / n1_len**2)
-                       + (np.dot(n2, np.cross(r34, h23) + np.cross(h34, r23))
-                          / n2_len**2)) * angle)
+            deriv = ((np.dot(n1, np.cross(r34, h23) + np.cross(h34, r23)) +
+                      np.dot(n2, np.cross(r23, h12) + np.cross(h23, r12))) /
+                     (n1_len * n2_len))
+            deriv -= (((np.dot(n1, np.cross(r23, h12) + np.cross(h23, r12)) /
+                        n1_len**2) +
+                       (np.dot(n2, np.cross(r34, h23) + np.cross(h34, r23)) /
+                        n2_len**2)) * angle)
             deriv *= -2 * angle
             lamda = -self.sigma / deriv
             newpositions[self.indices[0]] += lamda * h1
@@ -1156,8 +1157,8 @@ class UnitCellFilter(Filter):
         # These Jacobians make the generalized stress/strain scale with
         # the system size the same was a the atomic positions/forces.
         # See DOI 10.1063/1.3684549
-        self.strain_renorm = (self.atoms.get_volume()**(1. / 3.) *
-                              self.atoms.get_number_of_atoms()**(1. / 6.))
+        self.strain_renorm = (self.atoms.get_volume()**(1 / 3) *
+                              len(self.atoms)**(1 / 6))
         self.stress_renorm = self.atoms.get_volume() / self.strain_renorm
 
     def get_positions(self):
