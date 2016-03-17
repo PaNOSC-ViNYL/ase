@@ -66,13 +66,9 @@ def build(force_build, name='ase', env=''):
     os.rename('../dist/' + tar, 'build/html/' + tar)
     
     # Set correct version of snapshot tar-file:
-    if name == 'ase':
-        download_page = 'install.html'
-    else:
-        download_page = 'download.html'
     subprocess.check_call(
-        'find build/html -name {} | '
-        'xargs sed -i s/snapshot.tar.gz/{}/g'.format(download_page, tar),
+        'find build/html -name install.html | '
+        'xargs sed -i s/snapshot.tar.gz/{}/g'.format(tar),
         shell=True)
     
     os.chdir('..')
