@@ -43,6 +43,8 @@ Supported :mod:`Calculators <ase.calculators>`:
 News
 ====
 
+* :ref:`ASE version 3.10.0 <releasenotes>` released (17 March 2016).
+
 * Web-page now use the `Read the Docs Sphinx Theme
   <https://github.com/snide/sphinx_rtd_theme>`_ (20 February 2016).
 

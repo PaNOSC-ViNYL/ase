@@ -22,7 +22,7 @@ Bug report
   users will tell you how to work around the bug (until it is solved).
 
 * If you think it is a bug, you can also report it directly on our
-  `bug tracking system`_.  The advantage of reporting bugs
+  `issue tracker`_.  The advantage of reporting bugs
   here is that it is not forgotten (which may be a risk on the mailing
   list).
 
@@ -32,9 +32,10 @@ We do not guarantee to fix all bugs, but we will do our best.
 Known bugs
 ----------
 
-* `A list of known bugs <bug tracking system>`_.
-* `Very old bugs <Trac>`_.
+* `A list of known bugs`_.
+* `Very old bugs`_.
 
 
-.. _bug tracking system: http://gitlab.com/ase/ase/issues
-.. _Trac: http://trac.fysik.dtu.dk/projects/ase/report/1
+.. _issue tracker:
+.. _A list of known bugs: https://gitlab.com/ase/ase/issues
+.. _Very old bugs: http://trac.fysik.dtu.dk/projects/ase/report/1
