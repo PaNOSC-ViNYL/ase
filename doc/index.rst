@@ -4,11 +4,10 @@ Atomic Simulation Environment
 
 The Atomic Simulation Environment (ASE) is a set of tools and Python_
 modules for setting up, manipulating, running, visualizing and analyzing
-atomistic simulations.  The code is freely available under the `GNU LGPL
-license`_.
+atomistic simulations.  The code is freely available under the :ref:`GNU LGPL
+license <license info>`.
 
 .. _Python: http://www.python.org
-.. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
 
 >>> # Example: structure optimization of hydrogen molecule
 >>> from ase import Atoms
@@ -109,8 +108,6 @@ Contents
     contact
     development/development
     faq
-    licenseinfo
-    bugs
 
 
 .. |abinit| image:: static/abinit.png

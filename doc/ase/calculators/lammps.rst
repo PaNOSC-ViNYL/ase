@@ -25,10 +25,10 @@ also be extracted. Note however, any mistakes in the code sent to the
 LAMMPS routine will cause python to terminate.
 
 ASE is licensed as LGPL and LAMMPS is GPL which 'prohibits' them from
-being linked together in a distribution such as ASE. As a result, LAMMPSlib is not
-distributed with the ASE project but is available separately at
-lammpslib_ . Further explanation of the licensing is constained in
-:ref:`license_info`.
+being linked together in a distribution such as ASE. As a result, LAMMPSlib is
+not distributed with the ASE project but is available separately at
+lammpslib_. Further explanation of the licensing is constained in
+:ref:`license info`.
 
 It should not matter which code you use, but if you want access to
 more of LAMMPS internal variables or to perform a more complicated
