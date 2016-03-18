@@ -21,6 +21,8 @@ Optional:
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
 .. _Matplotlib: http://matplotlib.org/
 .. _pygtk: http://www.pygtk.org/
+.. _PyPI: https://pypi.python.org/pypi/ase
+.. _PIP: https://pip.pypa.io/en/stable/
 
 
 Installation using ``pip``
@@ -28,14 +30,14 @@ Installation using ``pip``
 
 .. highlight:: bash
 
-The simplest way to install ASE is::
+The simplest way to install ASE is to use pip_ which will automatically get
+the source code from PyPI_::
     
     $ pip install --upgrade ase
     
 This will install ASE in your ``~/.local`` folder where Python can
-automatically find it.  Make sure you have ``~/.local/bin`` (or on
-Windows, :file:`%APPDATA%/Python/Scripts`) in your :envvar:`PATH`
-environment variable.
+automatically find it.  Make sure you have ``~/.local/bin`` in your
+:envvar:`PATH` environment variable.
 
 Now you should be ready to use ASE, but before you start, please run the
 tests as described below.
