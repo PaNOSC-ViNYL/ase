@@ -104,7 +104,7 @@ class AutoNEB(object):
                  neb_cornercutting=True, neb_improvedtangent=True,
                  neb_improvedparallelforce=True, optimizer='BFGS',
                  space_energy_ratio=0.5, world=None, parallel=True,
-                 smooth_curve=False):
+                 smooth_curve=False, interpolate_method='IDPP'):
         self.attach_calculators = attach_calculators
         self.prefix = prefix
         self.n_simul = n_simul
@@ -120,6 +120,12 @@ class AutoNEB(object):
         self.neb_improvedparallelforce = neb_improvedparallelforce
         self.neb_improvedtangent = neb_improvedtangent
         self.space_energy_ratio = space_energy_ratio
+        if interpolate_method not in ['IDPP', 'linear']:
+            self.interpolate_method = 'IDPP'
+            print('Interpolation method not implementet.',
+                  'Using the IDPP method.')
+        else:
+            self.interpolate_method = interpolate_method
         if world is None:
             world = mpi.world
         self.world = world
@@ -220,20 +226,25 @@ class AutoNEB(object):
             if self.world.rank == 0:
                 print('Max length between images is at ', jmax)
 
-            # The IDPP method used to make initial guesses
+            # The interpolation used to make initial guesses                                                                      
             # If only start and end images supplied make all img at ones
             if len(self.all_images) == 2:
                 n_between = self.n_simul
             else:
                 n_between = 1
-            new_a = idppInterpolate(self.all_images[jmax],
-                                    self.all_images[jmax + 1],
-                                    mic=False,
-                                    n_between=n_between)
+    
+            toInterpolate = [self.all_images[jmax]]
+            for i in range(n_between):
+                toInterpolate += [toInterpolate[0].copy()]
+            toInterpolate += [self.all_images[jmax + 1]]
+
+            neb = NEB(toInterpolate)
+            neb.interpolate(method=self.interpolate_method)
 
             tmp = self.all_images[:jmax + 1]
-            tmp += new_a
+            tmp += toInterpolate[1:-1]
             tmp.extend(self.all_images[jmax + 1:])
+
             self.all_images = tmp
 
             # Expect springs to be in equilibrium
@@ -310,13 +321,17 @@ class AutoNEB(object):
                       '{0}. New image point is selected'.format(jmax + 1),
                       'on the basis of the biggest ' + t)
 
-            new_a = idppInterpolate(self.all_images[jmax],
-                                    self.all_images[jmax + 1],
-                                    mic=False)
+            toInterpolate = [self.all_images[jmax]]
+            toInterpolate += [toInterpolate[0].copy()]
+            toInterpolate += [self.all_images[jmax + 1]]
+
+            neb = NEB(toInterpolate)
+            neb.interpolate(method=self.interpolate_method)
 
             tmp = self.all_images[:jmax + 1]
-            tmp += new_a
+            tmp += toInterpolate[1:-1]
             tmp.extend(self.all_images[jmax + 1:])
+
             self.all_images = tmp
 
             # Expect springs to be in equilibrium
@@ -529,30 +544,6 @@ class AutoNEB(object):
             to_use[-1] += 1
 
         return to_use, (highest_energy_index in to_use[1: -1])
-
-
-def idppInterpolate(mstart, mfinal, mic, n_between=1):
-    d1 = mstart.get_all_distances(mic=mic)
-    d2 = mfinal.get_all_distances(mic=mic)
-    p = n_between + 1
-    d = (d2 - d1) / p
-    tot = []
-    calc = mstart.calc
-    for i in range(p + 1):
-        calc = IDPP(d1 + i * d, mic=mic)
-        a = mstart.copy()
-        pos = mstart.positions + (mfinal.positions -
-                                  mstart.positions) * float(i) / p
-        a.set_positions(pos)
-        a.set_calculator(calc)
-        tot.append(a)
-
-    n = NEB(tot)
-    dyn = FIRE(n, logfile=None)
-    dyn.run(fmax=0.01)
-    for img in tot[1: -1]:
-        img.calc = None
-    return tot[1: -1]
 
 
 def store_E_and_F_in_spc(self):
