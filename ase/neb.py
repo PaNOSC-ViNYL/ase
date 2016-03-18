@@ -14,8 +14,12 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 world=None):
+                 world=None, cornercutting=False, improvedtangent=False,
+                 improvedparallelforce=False):
         """Nudged elastic band.
+        Paper I: G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
+        Paper II: G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
+                  113, 9901 (2000).
 
         images: list of Atoms objects
             Images defining path from initial to final state.
@@ -25,6 +29,19 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
+        cornercutting: bool
+            If True, springs are treated as real ones with forces in the
+            spring-directions (not the estimated tangent-directions).
+        improvedtangent: bool
+            If False (default), tangents are bisections of spring-directions
+            (formula 2 of paper I).
+            If True, tangents are according to formulas 8, 9,
+            10, and 11 of paper I (end points are bisections since the
+            energies of images 0 and N-1 are not availabe).
+        improvedparallelforce: bool
+            If False (default), original parallel spring force (formula 5 of
+            paper I).
+            If True, improved parallel spring force (formula 12 of paper I).
         """
         self.images = images
         self.climb = climb
@@ -32,11 +49,14 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
+        self.cornercutting = cornercutting
+        self.improvedtangent = improvedtangent
+        self.improvedparallelforce = improvedparallelforce
 
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
         self.k = list(k)
-
+        
         if world is None:
             world = mpi.world
         self.world = world
@@ -85,7 +105,7 @@ class NEB:
                 image.get_calculator().set_atoms(image)
             except AttributeError:
                 pass
-
+    
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
@@ -133,32 +153,96 @@ class NEB:
         imax = 1 + np.argsort(energies)[-1]
         self.emax = energies[imax - 1]
 
-        tangent1 = find_mic(images[1].get_positions() -
-                            images[0].get_positions(),
-                            images[0].get_cell(), images[0].pbc)[0]
+        # If possible make array with energies including first and
+        # last image (the static ones)
+        allenergies = np.empty(self.nimages)
+        allenergiesknown = True
+        try:
+            allenergies[0] = images[0].get_potential_energy()
+        except RuntimeError:
+            allenergies[0] = np.NaN
+            allenergiesknown = False
         for i in range(1, self.nimages - 1):
-            tangent2 = find_mic(images[i + 1].get_positions() -
-                                images[i].get_positions(),
-                                images[i].get_cell(),
-                                images[i].pbc)[0]
-            if i < imax:
-                tangent = tangent2
-            elif i > imax:
-                tangent = tangent1
-            else:
-                tangent = tangent1 + tangent2
+            allenergies[i] = energies[i - 1]
+        try:
+            allenergies[self.nimages - 1] = \
+                images[self.nimages - 1].get_potential_energy()
+        except RuntimeError:
+            allenergies[self.nimages - 1] = np.NaN
+            allenergiesknown = False
 
-            tt = np.vdot(tangent, tangent)
+        if self.cornercutting:
+            BeeLine = (images[self.nimages - 1].get_positions() -
+                       images[0].get_positions())
+            BeeLineLength = np.linalg.norm(BeeLine)
+            eqLength = BeeLineLength / (self.nimages - 1)
+
+        for i in range(1, self.nimages - 1):
+            j = i - 1
+            t1 = find_mic(images[i].get_positions() -
+                          images[i - 1].get_positions(),
+                          images[i].get_cell(), images[i].pbc)[0]
+
+            t2 = find_mic(images[i + 1].get_positions() -
+                          images[i].get_positions(),
+                          images[i].get_cell(), images[i].pbc)[0]
+            nt1 = np.linalg.norm(t1)
+            nt2 = np.linalg.norm(t2)
+
+            # Tangents are bisections of spring-directions
+            # (formula 2 of paper I)
+            tangent = t1 / nt1 + t2 / nt2
+            if self.improvedtangent and (0 < j < self.nimages -
+                                         3 or allenergiesknown):
+                # Tangents are improved according to formulas 8, 9, 10,
+                # and 11 of paper I.
+                # First and last image in NEB cannot be improved since
+                # the energy is not known for the static points
+                if allenergies[i + 1] > allenergies[i] > allenergies[i - 1]:
+                    tangent = t2
+                elif allenergies[i + 1] < allenergies[i] < \
+                        allenergies[i - 1]:
+                    tangent = t1
+                else:
+                    DeltaVmax = max(abs(allenergies[i + 1] - allenergies[i]),
+                                    abs(allenergies[i - 1] - allenergies[i]))
+                    DeltaVmin = min(abs(allenergies[i + 1] - allenergies[i]),
+                                    abs(allenergies[i - 1] - allenergies[i]))
+                    if allenergies[i + 1] > allenergies[i - 1]:
+                        tangent = t2 * DeltaVmax + t1 * DeltaVmin
+                    else:
+                        tangent = t2 * DeltaVmin + t1 * DeltaVmax
+            # Normalize the tangent vector
+            tangent /= np.linalg.norm(tangent)
             f = forces[i - 1]
             ft = np.vdot(f, tangent)
+            # Remove calculated force parallel to tangent
+            f -= ft * tangent
             if i == imax and self.climb:
-                f -= 2 * ft / tt * tangent
+                # imax not affected by the spring forces. The full force
+                # with component along the elestic band converted
+                # (formula 5 of Paper II)
+                f -= ft * tangent
+            elif self.cornercutting:
+                f1 = -(nt1 - eqLength) * t1 / nt1 * self.k[i - 1]
+                f2 = (nt2 - eqLength) * t2 / nt2 * self.k[i]
+                if self.climb and abs(i - imax) == 1 and \
+                        (0 < j < self.nimages - 3 or allenergiesknown):
+                    DeltaVmax = max(abs(allenergies[i + 1] - allenergies[i]),
+                                    abs(allenergies[i - 1] - allenergies[i]))
+                    DeltaVmin = min(abs(allenergies[i + 1] - allenergies[i]),
+                                    abs(allenergies[i - 1] - allenergies[i]))
+                    f += (f1 + f2) * DeltaVmin / DeltaVmax
+                else:
+                    f += f1 + f2
             else:
-                f -= ft / tt * tangent
-                f -= np.vdot(tangent1 * self.k[i - 1] -
-                             tangent2 * self.k[i], tangent) / tt * tangent
-
-            tangent1 = tangent2
+                if self.improvedparallelforce:
+                    # Improved parallel spring force (formula 12 of paper I)
+                    f += (nt2 * self.k[i] - nt1 * self.k[i - 1]) * tangent
+                else:
+                    # Original parallel spring force (formula 5 of paper I)
+                    f += np.vdot(t2 * self.k[i] - t1 * self.k[i - 1],
+                                 tangent) * tangent
 
         return forces.reshape((-1, 3))
 
@@ -173,11 +257,8 @@ class IDPP(Calculator):
     """Image dependent pair potential.
 
     See:
-
         Improved initial guess for minimum energy path calculations.
-
         Søren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jónsson
-
         Chem. Phys. 140, 214106 (2014)
     """
 
