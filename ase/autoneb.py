@@ -3,9 +3,7 @@
 
 from ase.io import Trajectory
 from ase.io import read
-from ase.io import write
 from ase.neb import NEB
-from ase.neb import IDPP
 from ase.optimize import BFGS
 from ase.optimize import FIRE
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -14,7 +12,6 @@ import numpy as np
 import shutil
 import time
 import os
-import sys
 import types
 from math import log
 from math import exp
@@ -454,7 +451,6 @@ class AutoNEB(object):
                     pass
         # Wait 10s so the file system on all nodes is syncronized
         time.sleep(10.)
-        last_read = 0
         # And now lets read in the configurations
         for i in range(n_cur):
             if i in index_exists:
@@ -465,8 +461,6 @@ class AutoNEB(object):
             else:
                 self.all_images.append(self.all_images[0].copy())
                 read_ok = False
-            if read_ok:
-                last_read = i
 
         self.iteration = 0
         return n_cur
