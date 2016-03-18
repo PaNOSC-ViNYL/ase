@@ -226,7 +226,7 @@ def read_magres(filename, include_unrecognised=False):
 
     file_contents = open(filename).read()
 
-    # This works as a validity check    
+    # This works as a validity check
     version = get_version(file_contents)
     if version is None:
         # This isn't even a .magres file!
@@ -255,9 +255,7 @@ def read_magres(filename, include_unrecognised=False):
     # Allowed units handling. This is redundant for now but
     # could turn out useful in the future
 
-    magres_units = {
-        'Angstrom': ase.units.Ang
-    }
+    magres_units = {'Angstrom': ase.units.Ang}
 
     # Lattice parameters?
     if 'lattice' in data_dict['atoms']:
@@ -266,7 +264,7 @@ def read_magres(filename, include_unrecognised=False):
         except KeyError:
             raise RuntimeError('No units detected in file for lattice')
         u = magres_units[u]
-        cell = np.array(data_dict['atoms']['lattice'][0])*u
+        cell = np.array(data_dict['atoms']['lattice'][0]) * u
         pbc = True
     else:
         cell = None
@@ -313,8 +311,8 @@ def read_magres(filename, include_unrecognised=False):
     mprops = {
         'ms': ('sigma', False),
         'efg': ('V', False),
-        'isc': ('K', True)
-    }  # (matrix name, is pair interaction) for various magres quantities
+        'isc': ('K', True)}
+    # (matrix name, is pair interaction) for various magres quantities
 
     def create_magres_array(u, block):
 
@@ -327,9 +325,9 @@ def read_magres(filename, include_unrecognised=False):
         is_pair = mprops[u0][1]
 
         if not is_pair:
-            u_arr = [None]*len(li_list)
+            u_arr = [None] * len(li_list)
         else:
-            u_arr = [[None]*(i+1) for i in range(len(li_list))]
+            u_arr = [[None] * (i + 1) for i in range(len(li_list))]
 
         for s in block:
             # Find the atom index/indices
@@ -398,7 +396,7 @@ def write_magres(filename, image):
     if image.has('indices'):
         indices = image.get_array('indices')
     else:
-        indices = [labels[:i+1].count(labels[i]) for i in range(len(labels))]
+        indices = [labels[:i + 1].count(labels[i]) for i in range(len(labels))]
 
     # Iterate over atoms
     atom_info = list(zip(image.get_chemical_symbols(),
@@ -412,8 +410,7 @@ def write_magres(filename, image):
             'index': indices[i],
             'position': a[1],
             'species': a[0],
-            'label': labels[i],
-        })
+            'label': labels[i]})
 
     # Spacegroup, if present
     if 'spacegroup' in image.info:
@@ -427,8 +424,8 @@ def write_magres(filename, image):
         mprops = {
             'ms': ('sigma', False),
             'efg': ('V', False),
-            'isc': ('K', True)
-        }
+            'isc': ('K', True)}
+        
         for u in image.info['magres_units']:
             # Get the type
             p = u.split('_')[0]
@@ -441,7 +438,7 @@ def write_magres(filename, image):
                 li_tab = zip(labels, indices)
                 for i, (lab, ind) in enumerate(li_tab):
                     if prop[1]:
-                        for j, (lab2, ind2) in enumerate(li_tab[:i+1]):
+                        for j, (lab2, ind2) in enumerate(li_tab[:i + 1]):
                             if arr[i][j] is not None:
                                 tens = {prop[0]: arr[i][j],
                                         'atom1': {'label': lab,
