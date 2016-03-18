@@ -21,7 +21,6 @@ Development topics:
     tests
     bugs
     licenseinfo
-    license
     buildbot
     translate
     todo
