@@ -457,10 +457,8 @@ class AutoNEB(object):
                 filename = '%s%03diter000.traj' % (self.prefix, i)
                 newim = read(filename)
                 self.all_images.append(newim)
-                read_ok = True
             else:
                 self.all_images.append(self.all_images[0].copy())
-                read_ok = False
 
         self.iteration = 0
         return n_cur
