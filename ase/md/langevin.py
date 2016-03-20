@@ -100,7 +100,7 @@ class Langevin(MolecularDynamics):
         self.pmcor = pmcor
         self.cnst = cnst
         # Also works in parallel Asap:
-        self.natoms = self.atoms.get_number_of_atoms()
+        self.natoms = self.atoms.get_number_of_atoms() #GLOBAL number of atoms
 
     def step(self, f):
         atoms = self.atoms

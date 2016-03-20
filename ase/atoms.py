@@ -767,9 +767,15 @@ class Atoms(object):
         return len(self.arrays['positions'])
 
     def get_number_of_atoms(self):
-        """Returns the number of atoms.
+        """Returns the global number of atoms in a distributed-atoms parallel simulation.
 
-        Equivalent to len(atoms) in the standard ASE Atoms class.
+        DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING!
+        
+        Equivalent to len(atoms) in the standard ASE Atoms class.  You should normally
+        use len(atoms) instead.  This function's only purpose is to make compatibility
+        between ASE and Asap easier to maintain by having a few places in ASE use this
+        function instead.  It is typically only when counting the global number of
+        degrees of freedom or in similar situations.
         """
         return len(self)
 

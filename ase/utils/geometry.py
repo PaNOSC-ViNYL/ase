@@ -856,7 +856,7 @@ def get_duplicate_atoms(atoms, cutoff=0.1, delete=False):
     from scipy.spatial.distance import pdist
     dists = pdist(atoms.get_positions(), 'sqeuclidean')
     dup = np.nonzero(dists < cutoff**2)
-    rem = np.array(_row_col_from_pdist(atoms.get_number_of_atoms(), dup[0]))
+    rem = np.array(_row_col_from_pdist(len(atoms), dup[0]))
     if delete:
         if rem.size != 0:
             del atoms[rem[:, 0]]
