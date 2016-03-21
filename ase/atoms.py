@@ -19,7 +19,7 @@ from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
 from ase.utils.geometry import wrap_positions, find_mic
-from ase.lattice.spacegroup.cell import cell_to_cellpar
+from ase.lattice.spacegroup.cell import cell_to_cellpar, cellpar_to_cell
 
 
 class Atoms(object):
@@ -320,33 +320,14 @@ class Atoms(object):
         if fix is not None:
             raise TypeError('Please use scale_atoms=%s' % (not fix))
 
-        cell = np.array(cell, float)
-        if cell.shape == (3,):
-            cell = np.diag(cell)
-        elif cell.shape == (6,):
-            a, b, c, alpha, beta, gamma = abs(cell)
-            """Check if angles aren't less then 0.018 rad (approx. 1 degree).
-            If it is so, raise an ValueException.
-            """
-            for angle in (alpha, beta, gamma):
-                if angle < 0.018:
-                    raise ValueError('Angles must be larger than 1 degree')
+        
+        if isinstance(cell,(int,float)):
+            cell = cellpar_to_cell(cell)
+        elif cell.shape in ((1, ), (3, ), (6, )):
+            cell = cellpar_to_cell(cell)
+        elif cell.shape is not (3, 3):
+            raise ValueError("")
 
-            cell = np.zeros((3, 3))
-
-            cell[0, 0] = a
-            cell[1, 0] = b*cos(gamma)
-            cell[1, 1] = b*sin(gamma)
-            cell[2, 0] = c*cos(beta)
-            cell[2, 1] = (b*c*cos(alpha) - cell[1, 0]*cell[2, 0])/cell[1, 1]
-            sq_z_vec = c**2 - cell[2, 0]**2 - cell[2, 1]**2
-            if sq_z_vec < 0:
-                raise ValueError('It is not possible to make cell with these'
-                                 ' parameters')
-            cell[2, 2] = np.sqrt(sq_z_vec)
-        elif cell.shape != (3, 3):
-            raise ValueError('Cell must be length 3 or 6 sequence'
-                             ' or 3x3 matrix!')
         if scale_atoms:
             M = np.linalg.solve(self._cell, cell)
             self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
