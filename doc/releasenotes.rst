@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* We can now :func:`~ase.io.read` and :func:`~ase.io.write` magres files.
+
 
 Version 3.10.0
 ==============
