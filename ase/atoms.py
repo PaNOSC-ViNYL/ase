@@ -19,6 +19,7 @@ from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
 from ase.utils.geometry import wrap_positions, find_mic
+from ase.lattice.spacegroup.cell import cell_to_cellpar
 
 
 class Atoms(object):
@@ -378,6 +379,9 @@ class Atoms(object):
             gamma = abs(np.arccos(np.vdot(self._cell[0], self._cell[1])/b/c))
             return np.array([a, b, c, alpha, beta, gamma])
         return self._cell.copy()
+        
+    def get_cell_lengths_and_angles(self):
+        return cell_to_cellpar(self._cell)
 
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray.
