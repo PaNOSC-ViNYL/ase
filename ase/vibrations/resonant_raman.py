@@ -48,7 +48,6 @@ class ResonantRaman(Vibrations):
                  exext='.ex.gz',    # extension for Excitation names
                  txt='-',
                  verbose=False,
-                 cmp = None,       # function for comparing excitations
     ):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
@@ -57,7 +56,6 @@ class ResonantRaman(Vibrations):
             exname = gsname
         self.exname = exname + '-d%.3f' % delta
         self.exext = exext
-        self.cmp = cmp
 
         if directions is None:
             self.directions = np.array([0, 1, 2])
@@ -93,45 +91,67 @@ class ResonantRaman(Vibrations):
         excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
+    def read_excitations(self):
+        self.timer.start('read excitations')
+        self.timer.start('really read')
+        self.log('reading ' + self.exname + '.eq' + self.exext)
+        ex0_object = self.exobj(self.exname + '.eq' + self.exext,
+                                **self.exkwargs)
+        self.timer.stop('really read')
+        self.timer.start('index')
+        matching = frozenset(ex0_object)
+        self.timer.stop('index')
+
+        def append(lst, exname, matching):
+            self.timer.start('really read')
+            self.log('reading ' + exname, end=' ')
+            exo = self.exobj(exname, **self.exkwargs)
+            lst.append(exo)
+            self.timer.stop('really read')
+            self.timer.start('index')
+            matching = matching.intersection(exo)
+            self.log('len={0}, matching={1}'.format(len(exo),
+                                                    len(matching)), pre='')
+            self.timer.stop('index')
+            return matching
+
+        exm_object_list = []
+        exp_object_list = []
+        for a in self.indices:
+            for i in 'xyz':
+                name = '%s.%d%s' % (self.exname, a, i)
+                matching = append(exm_object_list,
+                                  name + '-' + self.exext, matching)
+                matching = append(exp_object_list,
+                                  name + '+' + self.exext, matching)
+        self.timer.stop('read excitations')
+
+        self.timer.start('select')
+        def select(exl, matching):
+            mlst = [ex for ex in exl if ex in matching]
+            assert(len(mlst) == len(matching))
+            return mlst
+        self.ex0 = select(ex0_object, matching)
+        self.exm = []
+        self.exp = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                self.exm.append(select(exm_object_list[r], matching))        
+                self.exp.append(select(exp_object_list[r], matching))
+                r += 1
+        self.timer.stop('select')
+
+        return ex0_object, exm_object_list, exp_object_list, matching
+
     def get_intensity_tensor(self, omega, gamma=0.1):
         if not hasattr(self, 'modes'):
             # read vibrational modes
             self.read()
 
         if not hasattr(self, 'ex0'):
-            self.timer.start('read first')
-            self.timer.start('really read')
-            self.log('reading ' + self.exname + '.eq' + self.exext)
-            ex0_object = self.exobj(self.exname + '.eq' + self.exext,
-                              **self.exkwargs)
-            self.timer.stop('really read')
-            self.timer.start('index')
-            matching = frozenset(ex0_object)
-            self.timer.stop('index')
-
-            def append(lst, exname, matching):
-                self.timer.start('really read')
-                self.log('reading ' + exname, end=' ')
-                exo = self.exobj(exname, **self.exkwargs)
-                lst.append(exo)
-                self.timer.stop('really read')
-                self.timer.start('index')
-                matching = matching.intersection(exo)
-                self.log('len={0}, matching={1}'.format(len(exo),
-                                                        len(matching)), pre='')
-                self.timer.stop('index')
-                return matching
-
-            exm_object_list = []
-            exp_object_list = []
-            for a in self.indices:
-                for i in 'xyz':
-                    name = '%s.%d%s' % (self.exname, a, i)
-                    matching = append(exm_object_list,
-                                      name + '-' + self.exext, matching)
-                    matching = append(exp_object_list,
-                                      name + '+' + self.exext, matching)
-            self.timer.stop('read first')
+            ex0_object, exm_object_list, exp_object_list, matching = \
+                    self.read_excitations()
 
             eu = units.Hartree
 
@@ -156,7 +176,6 @@ class ResonantRaman(Vibrations):
             r = 0
             for a in self.indices:
                 for i in 'xyz':
-                    name = '%s.%d%s' % (self.exname, a, i)
                     self.exminus.append(get_me_tensor(
                         exm_object_list[r], matching))
                     self.explus.append(get_me_tensor(
