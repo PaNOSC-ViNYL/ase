@@ -142,44 +142,36 @@ class ResonantRaman(Vibrations):
                 r += 1
         self.timer.stop('select')
 
-        return ex0_object, exm_object_list, exp_object_list, matching
-
     def get_intensity_tensor(self, omega, gamma=0.1):
         if not hasattr(self, 'modes'):
             # read vibrational modes
             self.read()
 
         if not hasattr(self, 'ex0'):
-            ex0_object, exm_object_list, exp_object_list, matching = \
-                    self.read_excitations()
+            self.read_excitations()
 
             eu = units.Hartree
 
-            def get_me_tensor(ex_p, matching, form='v'):
+            def get_me_tensor(ex_p, form='v'):
                 def outer(ex):
                     me = ex.get_dipole_me(form=form)
                     return np.outer(me, me.conj())
-                m_ccp = np.empty((3, 3, len(matching)), dtype=complex)
-                p = 0
-                for ex in ex_p:
-                    if ex in matching:
-                        m_ccp[:, :, p] = outer(ex)
-                        p += 1
-                assert(p == len(matching))
+                m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
+                for p, ex in enumerate(ex_p):
+                    m_ccp[:, :, p] = outer(ex)
                 return m_ccp
 
             self.timer.start('create tensor')
+            # XXX do not overwrite self.ex0
             self.ex0 = np.array([
-                ex.energy * eu for ex in ex0_object if ex in matching])
+                ex.energy * eu for ex in self.ex0])
             self.exminus = []
             self.explus = []
             r = 0
             for a in self.indices:
                 for i in 'xyz':
-                    self.exminus.append(get_me_tensor(
-                        exm_object_list[r], matching))
-                    self.explus.append(get_me_tensor(
-                        exp_object_list[r], matching))
+                    self.exminus.append(get_me_tensor(self.exm[r]))
+                    self.explus.append(get_me_tensor(self.exp[r]))
                     r += 1
             self.timer.stop('create tensor')
 
