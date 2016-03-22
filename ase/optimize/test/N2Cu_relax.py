@@ -5,13 +5,12 @@ from ase.optimize.test import run_test
 
 name = 'N2Cu'
 
+
 def get_atoms_surf():
     a = 2.70
     c = 1.59 * a
-    h = 1.85
-    d = 1.10
 
-    slab = Atoms('2Cu', [(0., 0., 0.), (1/3., 1/3., -0.5*c)], 
+    slab = Atoms('2Cu', [(0., 0., 0.), (1/3., 1/3., -0.5*c)],
                  tags=(0, 1),
                  pbc=(1, 1, 0))
     slab.set_cell([(a, 0, 0),
@@ -22,8 +21,9 @@ def get_atoms_surf():
     slab.set_constraint(FixAtoms(mask=mask))
     return slab
 
+    
 def get_atoms_adsorbate():
-    # We need the relaxed slab here! 
+    # We need the relaxed slab here!
     slab = Atoms([
         Atom('Cu', [     -1.028468159509163,     -0.432387156877267,     -0.202086055768265]),
         Atom('Cu', [      0.333333333333333,      0.333333333333333,     -2.146500000000000]),
@@ -61,11 +61,8 @@ def get_atoms_adsorbate():
     mask = [a.position[2] < -1 for a in slab]
     slab.set_constraint(FixAtoms(mask=mask))
 
-    a = 2.70
-    c = 1.59 * a
     h = 1.85
     d = 1.10
-    x = slab.positions[0, 2] / (c / 2) * 100
 
     molecule = Atoms('2N', positions=[(0., 0., h),
                                       (0., 0., h + d)])
@@ -73,6 +70,7 @@ def get_atoms_adsorbate():
     slab.extend(molecule)
     return slab
 
+    
 def get_calculator():
     return EMT()
 

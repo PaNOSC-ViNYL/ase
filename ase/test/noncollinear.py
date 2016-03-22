@@ -1,4 +1,4 @@
-from ase import Atom, Atoms
+from ase import Atoms
 a = Atoms('H2')
 
 a[0].magmom = 1

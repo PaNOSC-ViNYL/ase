@@ -89,5 +89,5 @@ One can also use the stress tensor to optimize the unit cell. For this we cannot
 If you want the optimization path in a trajectory, add these lines
 before calling the ``run()`` method::
 
-    traj = PickleTrajectory('path.traj', 'w', ni)
+    traj = Trajectory('path.traj', 'w', ni)
     opt.attach(traj)

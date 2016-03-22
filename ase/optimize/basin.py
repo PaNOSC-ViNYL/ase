@@ -8,7 +8,7 @@ from ase.io.trajectory import Trajectory
 
 
 class BasinHopping(Dynamics):
-    """Basin hopping algorythm.
+    """Basin hopping algorithm.
 
     After Wales and Doye, J. Phys. Chem. A, vol 101 (1997) 5111-5116
 

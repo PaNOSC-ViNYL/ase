@@ -68,8 +68,8 @@ class Translation_Operator:
 
         length = self.get_dimensions()[dim_index]
         coordinates = self.get_coordinates()[dim_index]
-        basis_neg = np.arange(0,-length/2,-1)
-        basis_pos = np.arange(length/2,0,-1)
+        basis_neg = np.arange(0, -length // 2, -1)
+        basis_pos = np.arange(length // 2, 0, -1)
         basis = np.concatenate((basis_neg,basis_pos),-1)
         prefactor=np.exp(-complex(0,1)*2*np.pi*coordinates/length)
         translation=list(map(lambda x,prefactor=prefactor:prefactor**x,basis))
@@ -94,7 +94,7 @@ def coordinate_array_from_unit_vectors(shape, gridunitvectors,
         'indexfunction' -- is a lambda expression that defines the indices
         with which each of the specified gridunitvectors are to be multiplied.
         'indexfunction' must take two arguments, 'i' and 'length' - default
-        is 'lambda i,length:i'. During exection the input index 'i' will run
+        is 'lambda i,length:i'. During execution the input index 'i' will run
         over the interval 0,1,..., 'length' -1.
 
         **An Example**

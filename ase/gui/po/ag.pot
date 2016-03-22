@@ -1906,7 +1906,7 @@ msgstr ""
 msgid "Out of memory, consider using LBFGS instead"
 msgstr ""
 
-#. Update display to reflect succesful end of simulation.
+#. Update display to reflect successful end of simulation.
 #: ../minimize.py:121
 #, python-format
 msgid "Minimization completed in %i steps."
@@ -2624,7 +2624,7 @@ msgstr ""
 msgid "Calculation CANCELLED."
 msgstr ""
 
-#. Update display to reflect succesful end of simulation.
+#. Update display to reflect successful end of simulation.
 #: ../scaling.py:359
 msgid "Calculation completed."
 msgstr ""

@@ -11,7 +11,7 @@ How to translate
 ----------------
 
 If any of the below steps prove difficult, be sure to ask on the
-:ref:`developer mailing list <mailing_lists>`.  These steps should work on GNU/Linux.
+:ref:`developer mailing list <contact>`.  These steps should work on GNU/Linux.
 
 * :ref:`Download <download_and_install>` ASE.
 * Go to :file:`ase/gui/po`.  There is a directory of the form :file:`{ll}` or :file:`{ll}_{LL}` for each language, where :file:`{ll}` is the `language code`_ and :file:`{LL}` the `country code`_.  The latter is necessary only if variants of the same language are spoken in multiple countries.

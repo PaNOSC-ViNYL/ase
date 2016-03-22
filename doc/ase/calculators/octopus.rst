@@ -80,7 +80,7 @@ an Octopus input file by running ``ase-gui inp``.
 Bugs and misbehaviour
 ---------------------
 
-Please report misbehaviour to the ASE :ref:`mailing_lists`
+Please report misbehaviour to the :ref:`ASE-developers <contact>`
 unless you are certain that the behaviour is linked to Octopus and not
 the ASE interface.
 

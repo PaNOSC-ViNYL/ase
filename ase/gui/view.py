@@ -73,7 +73,6 @@ class View:
         
         if init or frame != self.frame:
             A = self.images.A
-            Disp = self.images.D
             nc = len(self.B1)
             nb = len(self.bonds)
             
@@ -221,7 +220,6 @@ class View:
         self.set_coordinates()
         
     def reset_tools_modes(self):
-        dummy = self.menu_change
         self.menu_change = 1
         self.atoms_to_rotate = None
         for c_mode in ['Rotate', 'Orient', 'Move']:
@@ -528,7 +526,6 @@ class View:
 
             if not circle:
                 Q = Quaternion(self.images.Q[self.frame][j])
-                X2d = np.array([X[j][0], X[j][1]])
                 Ellipsoid = np.array([[1. / (rx*rx), 0, 0],
                                       [0, 1. / (ry*ry), 0],
                                       [0, 0, 1. / (rz*rz)]
@@ -541,12 +538,11 @@ class View:
                 # Matrix X' =  R_axes X' R_axes
                 El_v = np.dot(np.transpose(self.axes), np.dot(El_r, self.axes))
                 # Projection of rotated ellipsoid on xy plane
-                El_p = Ell = np.array([
-                        [El_v[0][0] - El_v[0][2] * El_v[0][2] / El_v[2][2],
-                         El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2]],
-                        [El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2],
-                         El_v[1][1] - El_v[1][2] * El_v[1][2] / El_v[2][2]]
-                        ])
+                El_p = np.array(
+                    [[El_v[0][0] - El_v[0][2] * El_v[0][2] / El_v[2][2],
+                      El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2]],
+                     [El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2],
+                      El_v[1][1] - El_v[1][2] * El_v[1][2] / El_v[2][2]]])
                 # diagonal matrix der Ellipse gibt halbachsen
                 El_p_diag = np.linalg.eig(El_p)
                 # Winkel mit dem Ellipse in xy gedreht ist aus
@@ -718,11 +714,9 @@ class View:
     
     def draw_frame_number(self):
         n = str(self.frame)
-        color = self.foreground_gc
-        line = self.pixmap.draw_line
         layout = self.drawing_area.create_pango_layout("Frame: " + n)
-        x = self.width - 3 - layout.get_size()[0] / pango.SCALE
-        y = self.height - 5 - layout.get_size()[1] / pango.SCALE
+        x = self.width - 3 - layout.get_size()[0] // pango.SCALE
+        y = self.height - 5 - layout.get_size()[1] // pango.SCALE
         self.pixmap.draw_layout(self.foreground_gc, x, y, layout)
  
 

@@ -5,14 +5,10 @@ import re
 try:
     from urllib import urlretrieve
 except ImportError:
-    pass
-try:
     from urllib.request import urlretrieve
-except ImportError:
-    pass
+
 import zipfile
 import shutil
-
 import datetime
 
 import numpy as np
@@ -20,7 +16,7 @@ import numpy as np
 from ase.units import Bohr
 from ase.atom import Atom
 from ase.atoms import Atoms
-from ase.data import atomic_numbers, chemical_symbols
+from ase.data import chemical_symbols
 
 # databases from http://toc.uni-muenster.de/GMTKN/GMTKN30/GMTKN30main.html
 url_root = 'http://www.thch.uni-bonn.de/tc/downloads/GMTKN/GMTKN30/'
@@ -192,7 +188,7 @@ def read_html(filename, dir='.'):
                 try:
                     v = eval(fs)
                     if fs.isdigit() and str(v) != fs: # e.g. undesirable eval('001') = 1
-                        v = fs   
+                        v = fs
                 # string: NameError, .*[+-*], etc: SyntaxError
                 except (NameError, SyntaxError):
                     v = fs
@@ -200,8 +196,8 @@ def read_html(filename, dir='.'):
             # the number of compounds
             # (exclude reference value and reaction number and divide by 2)
             if ncompounds:
-                assert ncompounds == (len(litem)-2)/2, 'Error: number of compounds incorrect for reaction: ' + str(litem[0]) + ' in file: ' + filename
-            ncompounds = (len(litem)-2)/2
+                assert ncompounds == (len(litem) - 2) // 2, 'Error: number of compounds incorrect for reaction: ' + str(litem[0]) + ' in file: ' + filename
+            ncompounds = (len(litem) - 2) // 2
             # set names of unused compounds to empty string
             for i in range(ncompounds):
                 if litem[1+i] == 0: litem[1+i] = ''
@@ -256,9 +252,9 @@ def unzip_file(filename, dir='.'):
             outfile.close()
     fh.close()
 
+    
 def format_data(database, geometries, no_unpaired_electrons=[], charges=[]):
     "Return data in the custom format.  "
-    import numpy as np
     data = {}
     for geometry in geometries:
         system = geometry[0]

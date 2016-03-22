@@ -3,19 +3,21 @@ import gtk
 from gettext import gettext as _
 import os.path
 import numpy as np
-import sys
 
 from ase.gui.widgets import pack, Help
 from ase.data.colors import jmol_colors
 from ase.atoms import Atoms
 
+
 class Execute(gtk.Window):
-    """ The Execute class provides an expert-user window for modification
-    and evaluation of system properties with a simple one-line command structure.
-    There are two types of commands, one set only applies to the global image and
-    one set applies to all atoms. If the command line contains any of the atom
-    commands, then it is executed separately for all atoms and for all images.
-    Otherwise it is executed only once per image.
+    """The Execute class provides an expert-user window for modification
+    and evaluation of system properties with a simple one-line command
+    structure.
+    
+    There are two types of commands, one set only applies to the global image
+    and one set applies to all atoms. If the command line contains any of the
+    atom commands, then it is executed separately for all atoms and for all
+    images. Otherwise it is executed only once per image.
 
     Please do not mix global and atom commands."""
     

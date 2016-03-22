@@ -12,7 +12,7 @@ Links to NumPy's webpage:
 .. _Numpy and Scipy Documentation: http://docs.scipy.org/doc
 
 ASE makes heavy use of an extension to Python called NumPy.  The
-NumPy module defines an :term:`ndarray` type that can hold large arrays of
+NumPy module defines an ``ndarray`` type that can hold large arrays of
 uniform multidimensional numeric data.  An array is similar to a
 ``list`` or a ``tuple``, but it is a lot more powerful and efficient.
 
@@ -52,8 +52,8 @@ The conventions of numpy's linear algebra package:
 >>> np.set_printoptions(precision=3, suppress=True)
 >>>
 >>> # Check that U diagonalizes H:
->>> print np.dot(np.dot(U.T.conj(), H), U) - np.diag(eps)
->>> print np.allclose(np.dot(np.dot(U.T.conj(), H), U), np.diag(eps))
+>>> print(np.dot(np.dot(U.T.conj(), H), U) - np.diag(eps))
+>>> print(np.allclose(np.dot(np.dot(U.T.conj(), H), U), np.diag(eps)))
 >>>
 >>> # The eigenvectors of H are the *coloumns* of U:
 >>> np.allclose(np.dot(H, U[:, 3]), eps[3] * U[:, 3])

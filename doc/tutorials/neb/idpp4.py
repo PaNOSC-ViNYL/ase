@@ -5,7 +5,6 @@ from ase.calculators.emt import EMT
 from ase.neb import NEB
 from ase.visualize import view
 from ase.optimize.fire import FIRE as QuasiNewton
-from ase.lattice.surface import surface
 from ase.lattice.cubic import FaceCenteredCubic
 
 #set the number of images you want
@@ -26,10 +25,10 @@ slab  =FaceCenteredCubic(directions=[d1,d2,d3],
 
 #add some vacuum to your slab
 uc = slab.get_cell()
-print uc        
+print(uc)
 uc[2] += [0,0,10]  #there are ten layers of vacuum
 uc = slab.set_cell(uc,scale_atoms=False)
-#view the slab to amke sure it is how you expect
+#view the slab to make sure it is how you expect
 view(slab)
 
 #some positions needed to place the atom in the correct place
@@ -37,7 +36,7 @@ x1 = 1.379
 x2 = 4.137
 x3 = 2.759
 y1 = 0.0
-y2 = 2.238 
+y2 = 2.238
 z1 = 7.165
 z2 = 6.439
 
@@ -73,10 +72,10 @@ for image in images:
     image.set_calculator(EMT())
 
 images.append(final)
-view(images)    
+view(images)
 
 #carry out idpp interpolation
-neb = NEB(images)    
+neb = NEB(images)
 #neb.interpolate('idpp')
 neb.interpolate()
 

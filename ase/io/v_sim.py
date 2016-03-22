@@ -4,7 +4,6 @@ Atoms object in V_Sim 3.5+ ascii format.
 
 """
 
-import os
 import numpy as np
 
 
@@ -15,7 +14,7 @@ def read_v_sim(filename='demo.ascii'):
     """
 
     from ase import Atoms, units
-    from ase.lattice.spacegroup import cell
+    from ase.lattice.spacegroup.cell import cellpar_to_cell
     import re
 
     if isinstance(filename, str):
@@ -23,7 +22,8 @@ def read_v_sim(filename='demo.ascii'):
     else:  # Assume it's a file-like object
         f = filename
 
-    comment = f.readline()
+    # Read comment:
+    f.readline()
 
     line = f.readline() + ' ' + f.readline()
     box = line.split()

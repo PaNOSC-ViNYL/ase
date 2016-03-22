@@ -383,7 +383,7 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
 
     Currently only implemented for *orthogonal=True* with size specified
     as (i, j, k), where i, j, and k are number of atoms in each direction.
-    i must be divisible by 3 to accomodate the step width.
+    i must be divisible by 3 to accommodate the step width.
     """
     if not orthogonal:
         raise NotImplementedError('Only implemented for orthogonal '
@@ -524,7 +524,7 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
         size=(1, 1, 1), vacuum=7.5):
     """Create three-layer 2D materials with hexagonal structure.
     
-    For metal dichalcogenites, ect.
+    For metal dichalcogenites, etc.
     
     The kind argument accepts '2H', which gives a mirror plane symmetry
     and '1T', which gives an inversion symmetry."""

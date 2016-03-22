@@ -35,10 +35,10 @@ def Octahedron(symbol, length, cutoff=0, latticeconstant=None, alloy=False):
 
     # Check length and cutoff
     if length < 2:
-        raise ValueError("The lenght must be greater than one.")
+        raise ValueError("The length must be greater than one.")
 
     if cutoff < 0 or length < 2 * cutoff + 1:
-        raise ValueError("The cutoff must fullfill: > 0 and <= (length - 1) / 2.")
+        raise ValueError("The cutoff must fulfill: > 0 and <= (length - 1) / 2.")
 
     # Create cluster
     surfaces = [(1,1,1), (1,0,0)]

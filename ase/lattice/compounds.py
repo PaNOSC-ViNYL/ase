@@ -12,14 +12,10 @@ own.  The following crystal structures are defined:
     HEX_Fe2O3
     
 """
-from ase.lattice.cubic import FaceCenteredCubicFactory, \
-    BodyCenteredCubicFactory, DiamondFactory, SimpleCubicFactory
+from ase.lattice.cubic import DiamondFactory, SimpleCubicFactory
 from ase.lattice.tetragonal import SimpleTetragonalFactory
 from ase.lattice.triclinic import TriclinicFactory
 from ase.lattice.hexagonal import HexagonalFactory
-
-import numpy as np
-from ase.data import reference_states as _refstate
 
 
 # To prevent a layer of element one on one side, and a layer of
@@ -36,6 +32,7 @@ class NaClFactory(SimpleCubicFactory):
 
 B1 = NaCl = Rocksalt = NaClFactory()
 
+
 class CsClFactory(SimpleCubicFactory):
     "A factory for creating CsCl (B2) lattices."
     bravais_basis = [[0, 0, 0], [0.5, 0.5, 0.5]]
@@ -44,8 +41,8 @@ class CsClFactory(SimpleCubicFactory):
 B2 = CsCl = CsClFactory()
 
 
-#The zincblende structure is easily derived from Diamond, which
-#already has the right basis.
+# The zincblende structure is easily derived from Diamond, which
+# already has the right basis.
 class ZnSFactory(DiamondFactory):
     "A factory for creating ZnS (B3, Zincblende) lattices."
     element_basis = (0, 1)
@@ -68,6 +65,7 @@ class AuCuFactory(SimpleTetragonalFactory):
 
 AuCu = L1_0 = AuCuFactory()
 
+
 # The L1_2 structure is "based on FCC", but is really simple cubic
 # with a basis.
 class AuCu3Factory(SimpleCubicFactory):
@@ -76,6 +74,7 @@ class AuCu3Factory(SimpleCubicFactory):
     element_basis = (0, 1, 1, 1)
 
 AuCu3 = L1_2 = AuCu3Factory()
+
 
 class TriclinicFe2O3Factory(TriclinicFactory):
     """A factory for creating hematite (Fe2O3) lattices.
@@ -103,8 +102,8 @@ class TriclinicFe2O3Factory(TriclinicFactory):
          mybeta = 55.28
          mygamma = 55.28
          gra = TRI_Fe2O3(symbol = ('Fe', 'O'),
-                         latticeconstant={'a':mya,'b':myb, 'c':myc, 
-                                          'alpha':myalpha, 
+                         latticeconstant={'a':mya,'b':myb, 'c':myc,
+                                          'alpha':myalpha,
                                           'beta':mybeta,
                                           'gamma':mygamma},
                          size=(index1,index2,index3))
@@ -120,6 +119,7 @@ class TriclinicFe2O3Factory(TriclinicFactory):
     element_basis = (0, 0, 0, 0, 1, 1, 1, 1, 1, 1)
 
 TRI_Fe2O3 = TriclinicFe2O3Factory()
+
 
 class HexagonalFe2O3Factory(HexagonalFactory):
     """A factory for creating hematite (Fe2O3) lattices.
@@ -147,8 +147,8 @@ class HexagonalFe2O3Factory(HexagonalFactory):
      mybeta = 90
      mygamma = 120
      gra = HEX_Fe2O3(symbol = ('Fe', 'O'),
-     latticeconstant={'a':mya,'b':myb, 'c':myc, 
-     'alpha':myalpha, 
+     latticeconstant={'a':mya,'b':myb, 'c':myc,
+     'alpha':myalpha,
      'beta':mybeta,
      'gamma':mygamma},
      size=(index1,index2,index3))
@@ -156,40 +156,39 @@ class HexagonalFe2O3Factory(HexagonalFactory):
      
      """
 
-    bravais_basis =  [[0.000000, 0.000000, 0.355300],     
-                      [0.000000, 0.000000, 0.144700], 
-                      [0.000000, 0.000000, 0.644700], 
-                      [0.000000, 0.000000, 0.855300],     
-                      [0.666667, 0.333333, 0.688633], 
-                      [0.666667, 0.333333, 0.478033], 
-                      [0.666667, 0.333333, 0.978033],     
-                      [0.666667, 0.333333, 0.188633], 
-                      [0.333333, 0.666667, 0.021967],  
-                      [0.333333, 0.666667, 0.811367],     
-                      [0.333333, 0.666667, 0.311367], 
-                      [0.333333, 0.666667, 0.521967],
-                      #Fe to O here
-                      [0.305900, 0.000000, 0.250000],
-                      [0.000000, 0.305900, 0.250000],
-                      [0.694100, 0.694100, 0.250000],
-                      [0.694100, 0.000000, 0.750000],
-                      [0.000000, 0.694100, 0.750000],
-                      [0.305900, 0.305900, 0.750000],
-                      [0.972567, 0.333333, 0.583333],
-                      [0.666667, 0.639233, 0.583333],
-                      [0.360767, 0.027433, 0.583333],
-                      [0.360767, 0.333333, 0.083333],
-                      [0.666667, 0.027433, 0.083333],
-                      [0.972567, 0.639233, 0.083333],
-                      [0.639233, 0.666667, 0.916667],
-                      [0.333333, 0.972567, 0.916667],
-                      [0.027433, 0.360767, 0.916667],
-                      [0.027433, 0.666667, 0.416667],
-                      [0.333333, 0.360767, 0.416667],
-                      [0.639233, 0.972567, 0.416667]]
+    bravais_basis = [[0.000000, 0.000000, 0.355300],
+                     [0.000000, 0.000000, 0.144700],
+                     [0.000000, 0.000000, 0.644700],
+                     [0.000000, 0.000000, 0.855300],
+                     [0.666667, 0.333333, 0.688633],
+                     [0.666667, 0.333333, 0.478033],
+                     [0.666667, 0.333333, 0.978033],
+                     [0.666667, 0.333333, 0.188633],
+                     [0.333333, 0.666667, 0.021967],
+                     [0.333333, 0.666667, 0.811367],
+                     [0.333333, 0.666667, 0.311367],
+                     [0.333333, 0.666667, 0.521967],
+                     # Fe to O here
+                     [0.305900, 0.000000, 0.250000],
+                     [0.000000, 0.305900, 0.250000],
+                     [0.694100, 0.694100, 0.250000],
+                     [0.694100, 0.000000, 0.750000],
+                     [0.000000, 0.694100, 0.750000],
+                     [0.305900, 0.305900, 0.750000],
+                     [0.972567, 0.333333, 0.583333],
+                     [0.666667, 0.639233, 0.583333],
+                     [0.360767, 0.027433, 0.583333],
+                     [0.360767, 0.333333, 0.083333],
+                     [0.666667, 0.027433, 0.083333],
+                     [0.972567, 0.639233, 0.083333],
+                     [0.639233, 0.666667, 0.916667],
+                     [0.333333, 0.972567, 0.916667],
+                     [0.027433, 0.360767, 0.916667],
+                     [0.027433, 0.666667, 0.416667],
+                     [0.333333, 0.360767, 0.416667],
+                     [0.639233, 0.972567, 0.416667]]
     element_basis = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
                      1, 1, 1, 1, 1, 1, 1, 1, 1, 1)
 
 HEX_Fe2O3 = HexagonalFe2O3Factory()
-

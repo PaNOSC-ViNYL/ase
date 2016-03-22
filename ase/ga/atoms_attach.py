@@ -46,7 +46,7 @@ m += "from ase.ga import get_parametrization, get_neighbor_list\n"
 m += "set_parametrization(atoms, parametrization)  # to set\n"
 m += "get_parametrization(atoms)  # to get"
 message = (m)
-    
+
 
 def get_neighbor_list(self):
     warnings.warn(message, FutureWarning)

@@ -95,9 +95,7 @@ def test(verbosity=1, calculators=[],
     tests.extend(sdirtests)  # run test subdirectories at the end
     lasttest = None  # is COCu111.py in the current set
     for test in tests:
-        if test.endswith('vtk_data.py'):
-            continue
-        if test.endswith('__init__.py'):
+        if test.endswith('__.py'):
             continue
         if test.endswith('COCu111.py'):
             lasttest = test
@@ -229,3 +227,24 @@ class CPU:
                     self.send(x, rank)
         else:
             self.receive(x, root)
+
+            
+if __name__ == '__main__':
+    # Run pyflakes3 on all code in ASE:
+    try:
+        output = subprocess.check_output(['pyflakes3', 'ase', 'doc'])
+    except subprocess.CalledProcessError as ex:
+        output = ex.output.decode()
+
+    lines = []
+    for line in output.splitlines():
+        # Ignore these:
+        for txt in ['jacapo', 'tasks', 'execute.py',
+                    'list comprehension redefines']:
+            if txt in line:
+                break
+        else:
+            lines.append(line)
+    if lines:
+        print('\n'.join(lines))
+        sys.exit(1)

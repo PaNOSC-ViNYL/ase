@@ -2,7 +2,11 @@ from __future__ import print_function
 """Lattice data - Face Centered Cubic"""
 
 import numpy as np
-from ase.cluster.data.symmetry import *
+
+from ase.cluster.data.symmetry import (get_all_symmetries,
+                                       get_surface_symmetries,
+                                       get_neighbor_symmetries,
+                                       apply_neighbor_symmetry)
 
 # Definition of symmetries
 basesymmetries = [np.matrix([[-1, 0, 0],  # Mirror x-axis
@@ -23,35 +27,35 @@ basesymmetries = [np.matrix([[-1, 0, 0],  # Mirror x-axis
                   np.matrix([[0, 1, 0],   # Rotation z-axis (4-fold)
                              [-1, 0, 0],
                              [0, 0, 1]]),
-                  np.matrix([[0, 0, 1],   #Rotation (111)-axis (3-fold)
+                  np.matrix([[0, 0, 1],   # Rotation (111)-axis (3-fold)
                              [1, 0, 0],
                              [0, 1, 0]]),
-                  np.matrix([[0, 0, -1],  #Rotation (11-1)-axis (3-fold)
+                  np.matrix([[0, 0, -1],  # Rotation (11-1)-axis (3-fold)
                              [1, 0, 0],
                              [0, -1, 0]]),
-                  np.matrix([[0, 0, 1],   #Rotation (1-11)-axis (3-fold)
+                  np.matrix([[0, 0, 1],   # Rotation (1-11)-axis (3-fold)
                              [-1, 0, 0],
                              [0, -1, 0]]),
-                  np.matrix([[0, 0, -1],  #Rotation (-111)-axis (3-fold)
+                  np.matrix([[0, 0, -1],  # Rotation (-111)-axis (3-fold)
                              [-1, 0, 0],
                              [0, 1, 0]])]
 
 symmetries = get_all_symmetries(basesymmetries, 48)
 
-#Definition of used surfaces
-surface_names = [(1,0,0), (-1,0,0),
-                 (0,1,0), (0,-1,0),
-                 (0,0,1), (0,0,-1),
-                 (1,1,0), (-1,-1,0),
-                 (1,0,1), (-1,0,-1),
-                 (0,1,1), (0,-1,-1),
-                 (1,-1,0), (-1,1,0),
-                 (1,0,-1), (-1,0,1),
-                 (0,1,-1), (0,-1,1),
-                 (1,1,1), (-1,-1,-1),
-                 (-1,1,1), (1,-1,-1),
-                 (1,-1,1), (-1,1,-1),
-                 (1,1,-1), (-1,-1,1)]
+# Definition of used surfaces
+surface_names = [(1, 0, 0), (-1, 0, 0),
+                 (0, 1, 0), (0, -1, 0),
+                 (0, 0, 1), (0, 0, -1),
+                 (1, 1, 0), (-1, -1, 0),
+                 (1, 0, 1), (-1, 0, -1),
+                 (0, 1, 1), (0, -1, -1),
+                 (1, -1, 0), (-1, 1, 0),
+                 (1, 0, -1), (-1, 0, 1),
+                 (0, 1, -1), (0, -1, 1),
+                 (1, 1, 1), (-1, -1, -1),
+                 (-1, 1, 1), (1, -1, -1),
+                 (1, -1, 1), (-1, 1, -1),
+                 (1, 1, -1), (-1, -1, 1)]
 
 surface_numbers = {}
 for i, s in enumerate(surface_names):
@@ -69,7 +73,9 @@ surface_data = ([{'l': 1.0, 'd': 0.5}] * 6 +
                 [{'l': 1.5, 'd': 1.0 / 4.0}] * 12 +
                 [{'l': 1.0, 'd': 1.0 / 3.0}] * 8)
 
-surface_symmetries = get_surface_symmetries(symmetries, surface_names, surface_numbers)
+surface_symmetries = get_surface_symmetries(symmetries, surface_names,
+                                            surface_numbers)
+
 
 def surface_fitting(surfaces):
     for i, n1 in enumerate(np.array(surface_names)):
@@ -84,9 +90,10 @@ def surface_fitting(surfaces):
 
     return surfaces
 
+    
 def surface_centering(surfaces, basis='100', debug=0):
     if basis == '100':
-        #Centering within the basis {[1,0,0], [0,1,0], [0,0,1]}
+        # Centering within the basis {[1,0,0], [0,1,0], [0,0,1]}
         dx = (surfaces[0] - surfaces[1]) // 2
         dy = (surfaces[2] - surfaces[3]) // 2
         dz = (surfaces[4] - surfaces[5]) // 2
@@ -97,12 +104,12 @@ def surface_centering(surfaces, basis='100', debug=0):
         if debug:
             print('(%i, %i, %i)' % (dx, dy, dz))
     elif basis == '110':
-        #Centering within the basis {[1,1,0], [1,0,1], [0,1,1]}
+        # Centering within the basis {[1,1,0], [1,0,1], [0,1,1]}
         dl1 = ((surfaces[6] - surfaces[7]) // 4) * 2
         dl2 = ((surfaces[8] - surfaces[9]) // 4) * 2
         dl3 = ((surfaces[10] - surfaces[11]) // 4) * 2
 
-        #Correction for the none orthogonality of the basis
+        # Correction for the none orthogonality of the basis
         t1 = (dl1 != 0 and dl2 != 0 and dl3 == 0)
         t2 = (dl1 != 0 and dl2 == 0 and dl3 != 0)
         t3 = (dl1 != 0 and dl2 == 0 and dl3 != 0)
@@ -114,7 +121,7 @@ def surface_centering(surfaces, basis='100', debug=0):
         else:
             d1, d2, d3 = 0, 0, 0
 
-        #Converting to '100' basis
+        # Converting to '100' basis
         dx = (d1 + d2) // 2
         dy = (d1 + d3) // 2
         dz = (d2 + d3) // 2
@@ -145,7 +152,7 @@ def surface_centering(surfaces, basis='100', debug=0):
 
     return surfaces
 
-#Definition of the neighbor environment
+# Definition of the neighbor environment
 neighbor_names = [(0.5, 0.5, 0), (-0.5, -0.5, 0),
                   (0.5, 0, 0.5), (-0.5, 0, -0.5),
                   (0, 0.5, 0.5), (0, -0.5, -0.5),
@@ -169,7 +176,7 @@ neighbor_symmetries = get_neighbor_symmetries(symmetries,
                                               neighbor_positions,
                                               neighbor_numbers)
 
-#Definition of the atom types that is used based on the neighborlist
+# Definition of the atom types that is used based on the neighborlist
 basetype_names = [(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
                   (1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
                   (0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1),
@@ -249,7 +256,7 @@ for i, n in enumerate(basetype_names):
     for sym in neighbor_symmetries:
         new_type = apply_neighbor_symmetry(n, sym)
 
-        if not new_type in type_names:
+        if new_type not in type_names:
             type_names.append(new_type)
             type_data.append(basetype_data[i])
 
@@ -273,5 +280,4 @@ data = {'symmetries': symmetries,
         'type_names': type_names,
         'type_numbers': type_numbers,
         'type_data': type_data,
-        'type_count': type_count,
-       }
+        'type_count': type_count}

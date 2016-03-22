@@ -107,7 +107,7 @@ class Images:
                 self.T[i] = 0
 
         if warning:
-            print('WARNING: Not all images have the same bondary conditions!')
+            print('WARNING: Not all images have the same boundary conditions!')
             
         self.selected = np.zeros(self.natoms, bool)
         self.selected_ordered = []
@@ -243,64 +243,80 @@ class Images:
         self.nselected = 0
 
     def center(self):
-        """ center each image in the existing unit cell, keeping the cell constant. """
+        """Center each image in the existing unit cell, keeping the
+        cell constant."""
         c = self.A.sum(axis=1) / 2.0 - self.P.mean(axis=1)
         self.P += c[:, np.newaxis, :]
             
     def graph(self, expr):
-        """ routine to create the data in ase-gui graphs, defined by the string expr.  """
+        """Routine to create the data in ase-gui graphs, defined by the
+        string expr."""
         import ase.units as units
         code = compile(expr + ',', 'atoms.py', 'eval')
 
         n = self.nimages
+        
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
+            
         def a(n1, n2, n3):
-            v1 = R[n1]-R[n2]
-            v2 = R[n3]-R[n2]
-            arg = np.vdot(v1,v2)/(sqrt((v1**2).sum()*(v2**2).sum()))
-            if arg > 1.0: arg = 1.0
-            if arg < -1.0: arg = -1.0
-            return 180.0*np.arccos(arg)/np.pi
+            v1 = R[n1] - R[n2]
+            v2 = R[n3] - R[n2]
+            arg = np.vdot(v1, v2) / (sqrt((v1**2).sum() * (v2**2).sum()))
+            if arg > 1.0:
+                arg = 1.0
+            if arg < -1.0:
+                arg = -1.0
+            return 180.0 * np.arccos(arg) / np.pi
+            
         def dih(n1, n2, n3, n4):
             # vector 0->1, 1->2, 2->3 and their normalized cross products:
-            a    = R[n2]-R[n1]
-            b    = R[n3]-R[n2]
-            c    = R[n4]-R[n3]
-            bxa  = np.cross(b,a)
-            bxa /= np.sqrt(np.vdot(bxa,bxa))
-            cxb  = np.cross(c,b)
-            cxb /= np.sqrt(np.vdot(cxb,cxb))
-            angle = np.vdot(bxa,cxb)
+            a = R[n2] - R[n1]
+            b = R[n3] - R[n2]
+            c = R[n4] - R[n3]
+            bxa = np.cross(b, a)
+            bxa /= np.sqrt(np.vdot(bxa, bxa))
+            cxb = np.cross(c, b)
+            cxb /= np.sqrt(np.vdot(cxb, cxb))
+            angle = np.vdot(bxa, cxb)
             # check for numerical trouble due to finite precision:
-            if angle < -1: angle = -1
-            if angle >  1: angle =  1
+            if angle < -1:
+                angle = -1
+            if angle > 1:
+                angle = 1
             angle = np.arccos(angle)
-            if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
-            return angle*180.0/np.pi
+            if np.vdot(bxa, c) > 0:
+                angle = 2 * np.pi - angle
+            return angle * 180.0 / np.pi
+            
         # get number of mobile atoms for temperature calculation
-        ndynamic = 0
-        for dyn in self.dynamic:
-            if dyn: ndynamic += 1
-        S = self.selected
+        ndynamic = self.dynamic.sum()
+
         D = self.dynamic[:, np.newaxis]
         E = self.E
         s = 0.0
+        
+        # Namespace for eval:
+        ns = {'E': E,
+              'd': d, 'a': a, 'dih': dih}
+        
         data = []
         for i in range(n):
-            R = self.P[i]
-            V = self.V[i]
-            F = self.F[i]
-            A = self.A[i]
-            M = self.M[i]
-            f = ((F * D)**2).sum(1)**.5
-            fmax = max(f)
-            fave = f.mean()
-            epot = E[i]
-            ekin = self.K[i]
-            e = epot + ekin
-            T = 2.0 * ekin / (3.0 * ndynamic * units.kB)
-            data = eval(code)
+            ns['i'] = i
+            ns['s'] = s
+            ns['R'] = R = self.P[i]
+            ns['V'] = self.V[i]
+            ns['F'] = F = self.F[i]
+            ns['A'] = self.A[i]
+            ns['M'] = self.M[i]
+            ns['f'] = f = ((F * D)**2).sum(1)**.5
+            ns['fmax'] = max(f)
+            ns['fave'] = f.mean()
+            ns['epot'] = epot = E[i]
+            ns['ekin'] = ekin = self.K[i]
+            ns['e'] = epot + ekin
+            ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
+            data = eval(code, ns)
             if i == 0:
                 m = len(data)
                 xy = np.empty((m, n))

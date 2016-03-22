@@ -79,13 +79,13 @@ Interpolation
 
 .. method:: NEB.interpolate('idpp')
 
-   From a linear interpolation, create an improved path 
+   From a linear interpolation, create an improved path
    from initial to final state using the IDPP approach [4].
    
 .. method:: NEB.idpp_interpolate()
    
-   Generate an idpp pathway from a set of images. This differs 
-   from above in that an initial guess for the IDPP, other than 
+   Generate an idpp pathway from a set of images. This differs
+   from above in that an initial guess for the IDPP, other than
    linear interpolation can be provided.
 
 Only the internal images (not the endpoints) need have
@@ -105,7 +105,7 @@ calculators attached.
 
    :ref:`tutorials`:
 
-        * :ref:`diffusion_tutorial`
+        * :ref:`diffusion tutorial`
         * :ref:`neb2`
         * :ref:`idpp_tutorial`
 
@@ -136,7 +136,7 @@ For the example above, you can write the images to individual
 trajectory files like this::
 
   for i in range(1, 4):
-      qn.attach(io.PickleTrajectory('A2B-%d.traj' % i, 'w', images[i]))
+      qn.attach(io.Trajectory('A2B-%d.traj' % i, 'w', images[i]))
 
 The result of the latest iteration can be analysed like this:
 
@@ -144,7 +144,7 @@ The result of the latest iteration can be analysed like this:
 
 ::
 
-  $ ase-gui A.traj A2B-?.traj B.traj -n -1 
+  $ ase-gui A.traj A2B-?.traj B.traj -n -1
 
 .. highlight:: python
 
@@ -202,8 +202,8 @@ Create the NEB object with ``NEB(images, parallel=True)`` and let the
 master processes write the images::
 
   if rank % (size // n) == 0:
-      traj = io.PickleTrajectory('neb%d.traj' % j, 'w', images[1 + j],
-                                 master=True)
+      traj = io.Trajectory('neb%d.traj' % j, 'w', images[1 + j],
+                           master=True)
       optimizer.attach(traj)
 
 For a complete example using GPAW_, see here_.
@@ -217,8 +217,9 @@ For a complete example using GPAW_, see here_.
 
 Analysis of output
 ==================
-A class exists to help in automating the analysis of NEB jobs. See the :ref:`Diffusion Tutorial <diffusion_tutorial>` for some examples of its use.
+
+A class exists to help in automating the analysis of NEB jobs. See the
+:ref:`Diffusion Tutorial <diffusion tutorial>` for some examples of its use.
 
 .. autoclass:: NEBtools
    :members:
-

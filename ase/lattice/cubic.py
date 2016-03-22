@@ -8,9 +8,10 @@ The following lattice creators are defined:
     Diamond
 """
 
-from ase.lattice.bravais import Bravais
+from ase.lattice.bravais import Bravais, reduceindex
 import numpy as np
 from ase.data import reference_states as _refstate
+
 
 class SimpleCubicFactory(Bravais):
     "A factory for creating simple cubic lattices."
@@ -75,8 +76,8 @@ class SimpleCubicFactory(Bravais):
                                             idx[i].lower() == "orthogonal"):
                 if self.debug:
                     print("Calculating orthogonal direction", i)
-                    print(idx[i-2], "X", idx[i-1], end=' ')  
-                idx[i] = reduceindex(cross(idx[i-2], idx[i-1]))
+                    print(idx[i-2], "X", idx[i-1], end=' ')
+                idx[i] = reduceindex(np.cross(idx[i-2], idx[i-1]))
                 if self.debug:
                     print("=", idx[i])
                 

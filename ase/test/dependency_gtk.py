@@ -24,6 +24,7 @@ msg += "following http://www.pygtk.org/downloads.html.\n"
 if locals().get('display'):
     try:
         import gtk
+        gtk  # silence pyflakes
     except ImportError:
         print(msg, file=sys.stderr)
         raise

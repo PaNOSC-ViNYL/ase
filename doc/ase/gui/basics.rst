@@ -1,5 +1,3 @@
-.. module:: basics
-
 =======================================
 ase-gui basics and command line options
 =======================================
@@ -40,7 +38,7 @@ cube        Gaussian cube file
 py          Python script
 vnl         VNL file
 png         Portable Network Graphics
-pov         Persistance of Vision
+pov         Persistence of Vision
 eps         Encapsulated PostScript
 in          FHI-aims geometry input
 POSCAR      VASP geometry input
@@ -75,7 +73,7 @@ used.  Instead of the Python syntax ``list[start:stop:step]``, you use
   $ ase-gui x.traj@::2     # every second image
 
 If you want to select the same range from many files, the you can use
-the :option:`-n` or :option:`--image-number` option::
+the ``-n`` or ``--image-number`` option::
 
   $ ase-gui -n -1 *.traj   # last image from all files
   $ ase-gui -n 0 *.traj    # first image from all files

@@ -176,7 +176,7 @@ class COM2surfPermutation(Mutation):
     min_ratio: minimum ratio of each element in the core or surface region.
         If elements=[a, b] then ratio of a is Na / (Na + Nb) (N: Number of).
         If less than minimum ratio is present in the core, the region defining
-        the core will be extended untill the minimum ratio is met, and vice
+        the core will be extended until the minimum ratio is met, and vice
         versa for the surface region. It has the potential reach the
         recursive limit if an element has a smaller total ratio in the
         complete particle. In that case remember to decrease this min_ratio.

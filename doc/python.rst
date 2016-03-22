@@ -1,4 +1,4 @@
-.. _python_info:
+.. _what is python:
 
 ---------------
 What is Python?
@@ -26,27 +26,28 @@ Executing Python code
 You can execute Python code interactively by starting the interpreter
 like this::
 
-  $ python
-  Python 2.5.1 (r251:54863, Mar  7 2008, 04:10:12)
-  [GCC 4.1.3 20070929 (prerelease) (Ubuntu 4.1.2-16ubuntu2)] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> print 'hello'
+  $ python3
+  >>> print('hello')
   hello
 
-You can also put the ``print 'hello'`` line in a file (``hello.py``)
+.. note:: ASE works with both Python 2 and the latest Python 3 --- `the
+    differences are minor <https://wiki.python.org/moin/Python2orPython3>`__.
+    We use Python 3 for this web-page.
+
+You can also put the ``print('hello')`` line in a file (``hello.py``)
 and execute it as a Python script::
 
-  $ python hello.py
+  $ python3 hello.py
   hello
 
 Or like this::
 
-  $ python -i hello.py
+  $ python3 -i hello.py
   hello
-  >>> print 'hi!'
+  >>> print('hi!')
   hi!
 
-Finally, you can put ``#!/usr/bin/env python`` in the first line of
+Finally, you can put ``#!/usr/bin/env python3`` in the first line of
 the ``hello.py`` file, make it executable (``chmod +x hello.py``) and
 execute it like any other executable.
 
@@ -58,6 +59,7 @@ execute it like any other executable.
      import rlcompleter
      import readline
      readline.parse_and_bind("tab: complete")
+     import numpy as np
      from ase import *
 
    and point the :envvar:`PYTHONSTARTUP` environment variable at it (see
@@ -91,7 +93,6 @@ type         description            example
 ``tuple``    tuple                  ``(1, 'hmm', 2.0)``
 ``list``     list                   ``[1, 'hmm', 2.0]``
 ``dict``     dictionary             ``{'a': 7.0, 23: True}``
-``file``     file                   ``open('stuff.dat', 'w')``
 ===========  =====================  ==========================
 
 A ``dict`` object is mapping from keys to values:
@@ -113,7 +114,7 @@ A ``list`` object is an ordered collection of arbitrary objects:
 >>> l = [1, ('gg', 7), 'hmm']
 >>> l[1]
 ('gg', 7)
->>> 
+>>>
 >>> l
 [1, ('gg', 7), 'hmm', 1.2]
 >>> l[-2]
@@ -143,7 +144,7 @@ therefore be used as dictionary keys, lists cannot.
    ['q', 'w', 'e']
 
    The line b = a gives a new name to the array, and both names now
-   refer to the same list.  
+   refer to the same list.
 
    However, often a new object is created and
    named at the same time, in this example the number 42 is *not*
@@ -151,7 +152,7 @@ therefore be used as dictionary keys, lists cannot.
    later, ``e`` is a name for the number 47, but then a *new*
    number 48 is created, and ``e`` now refers to that number:
 
-   >>> c = 42 
+   >>> c = 42
    >>> d = c + 5
    >>> c
    42
@@ -164,7 +165,7 @@ therefore be used as dictionary keys, lists cannot.
 
 .. note::
 
-   Another very important type is the :term:`ndarray` type described
+   Another very important type is the ``ndarray`` type described
    here: :ref:`numpy`.  It is an array type for efficient numerics,
    and is heavily used in ASE.
 
@@ -177,7 +178,7 @@ A loop in Python can be done like this:
 
 >>> things = ['a', 7]
 >>> for x in things:
-...     print x
+...     print(x)
 ...
 a
 7
@@ -189,8 +190,8 @@ of these types.
 Often you need to loop over a range of numbers:
 
 >>> for i in range(5):
-...     print i, i*i
-... 
+...     print(i, i*i)
+...
 0 0
 1 1
 2 4
@@ -206,7 +207,7 @@ A function is defined like this:
 >>> def f(x, m=2, n=1):
 ...     y =  x + n
 ...     return y**m
-... 
+...
 >>> f(5)
 36
 >>> f(5, n=8)
@@ -214,7 +215,7 @@ A function is defined like this:
 
 Here ``f`` is a function, ``x`` is an argument, ``m`` and ``n`` are keywords with default values ``2`` and ``1`` and ``y`` is a variable.
 
-A :term:`class` is defined like this:
+A *class* is defined like this:
 
 >>> class A:
 ...     def __init__(self, b):
@@ -225,7 +226,7 @@ A :term:`class` is defined like this:
 ...         return self.c
 
 You can think of a class as a template for creating user defined
-objects.  The ``__init__()`` function is called a :term:`constructor`,
+objects.  The ``__init__()`` function is called a *constructor*,
 it is being called when objects of this type are being created.
 
 In the class ``A`` ``__init__`` is a constructor, ``c`` is an
@@ -239,7 +240,7 @@ attribute and ``m`` and ``get_c`` are methods.
 >>> a.m(3)
 21
 
-Here we make an :term:`instance`/object ``a`` of type ``A``.
+Here we make an instance (or object) ``a`` of type ``A``.
 
 
 Importing modules
@@ -250,26 +251,26 @@ in a file ``stuff.py``, then you can use that code from another piece
 of code::
 
   from stuff import f, C
-  print f(1, 2)
-  print C(1).m(2)
+  print(f(1, 2))
+  print(C(1).m(2))
 
 or::
 
   import stuff
-  print stuff.f(1, 2)
-  print stuff.C(1).m(2)
+  print(stuff.f(1, 2)(
+  print(stuff.C(1).m(2))
 
 or::
 
   import stuff as st
-  print st.f(1, 2)
-  print st.C(1).m(2)
+  print(st.f(1, 2))
+  print(st.C(1).m(2))
 
 
 Python will look for ``stuff.py`` in these directories:
 
 1) current working directory
 2) directories listed in your :envvar:`PYTHONPATH`
-3) Python's own system directory (typically :file:`/usr/lib/python2.5`)
+3) Python's own system directory (typically :file:`/usr/lib/pythonX.Y`)
 
 and import the first one found.

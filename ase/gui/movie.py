@@ -2,14 +2,16 @@ import gtk
 from gettext import gettext as _
 import gobject
 
+import numpy as np
+
 from ase.gui.widgets import pack
+
 
 class Movie(gtk.Window):
     def __init__(self, gui):
         gtk.Window.__init__(self)
         self.set_position(gtk.WIN_POS_NONE)
         self.connect('destroy', self.close)
-        #self.connect('delete_event', self.exit2)
         self.set_title(_('Movie'))
         vbox = gtk.VBox()
         pack(vbox, gtk.Label(_('Image number:')))
@@ -45,15 +47,16 @@ class Movie(gtk.Window):
         pack(vbox, [play, stop, gtk.Label('  '), self.rock])
 
         if gui.images.nimages > 150:
-            skipdefault = gui.images.nimages/150
-            tdefault = min(max(gui.images.nimages/(skipdefault*5.0), 1.0), 30)
+            skipdefault = gui.images.nimages // 150
+            tdefault = min(max(gui.images.nimages / (skipdefault * 5.0),
+                               1.0), 30)
         else:
             skipdefault = 0
-            tdefault = min(max(gui.images.nimages/5.0, 1.0), 30)
+            tdefault = min(max(gui.images.nimages / 5.0, 1.0), 30)
         self.time = gtk.Adjustment(tdefault, 1.0, 99, 0.1)
         self.time_spin = gtk.SpinButton(self.time, 0, 0)
         self.time_spin.set_digits(1)
-        self.time.connect("value-changed",self.frame_rate_changed)
+        self.time.connect('value-changed', self.frame_rate_changed)
         self.skip = gtk.Adjustment(skipdefault, 0, 99, 1)
         self.skip_spin = gtk.SpinButton(self.skip, 0, 0)
         pack(vbox, [gtk.Label(_(' Frame rate: ')), self.time_spin,
@@ -63,13 +66,12 @@ class Movie(gtk.Window):
         vbox.show()
         self.show()
         self.gui = gui
-        #gui.m=self
         self.direction = 1
         self.id = None
         gui.register_vulnerable(self)
 
     def notify_atoms_changed(self):
-        "Called by gui object when the atoms have changed."
+        """Called by gui object when the atoms have changed."""
         self.destroy()
         
     def close(self, event):
@@ -85,9 +87,9 @@ class Movie(gtk.Window):
         self.gui.set_frame(i)
         self.frame_number.value = i
         if firstlast:
-            self.direction = cmp(-step, 0)
+            self.direction = np.sign(-step)
         else:
-            self.direction = cmp(step, 0)
+            self.direction = np.sign(step)
             
     def new_frame(self, widget):
         self.gui.set_coordinates(int(self.frame_number.value))
@@ -103,7 +105,7 @@ class Movie(gtk.Window):
             gobject.source_remove(self.id)
             self.id = None
 
-    def frame_rate_changed(self,widget=None):
+    def frame_rate_changed(self, widget=None):
         if self.id is not None:
             self.play()
 
@@ -127,7 +129,3 @@ class Movie(gtk.Window):
     def new_time(self, widget):
         if self.id is not None:
             self.play()
-
-if __name__ == '__main__':
-    import os
-    os.system('python gui.py')

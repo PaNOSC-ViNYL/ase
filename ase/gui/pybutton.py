@@ -12,7 +12,7 @@ opens a PyWindow displaying some Python code, or an error message if
 no Python code is ready.
 
 The script is stored in the attribute .python, it is the
-responsability of the owning object to keep this attribute up to date:
+responsibility of the owning object to keep this attribute up to date:
 when pressing the Apply button would result in a sensible
 configuration being created, the python attribute must be set to a
 string creating this code.  When pressing Apply would cause an error,
@@ -43,7 +43,7 @@ class PyButton(gtk.Button):
         "The method called when the button is clicked."
         if self.python:
             now = time.ctime()
-            win = PyWindow(self.title, now, self.python)
+            PyWindow(self.title, now, self.python)
         else:
             oops(_("No Python code"),
                  _("You have not (yet) specified a "

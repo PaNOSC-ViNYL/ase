@@ -321,7 +321,7 @@ class AseQmmmManyqm:
 
         """
 
-        from ase.io import read, write
+        from ase.io import write
         import os, glob
 
         # clean
@@ -953,7 +953,7 @@ class AseQmmmManyqm:
 
             # correct the total charge to be equal the original one
             # in the topology file by
-            # adding/ substracting missing/extra charge on
+            # adding/ subtracting missing/extra charge on
             # non-edge and non-single neighbor next neib QM atoms
             change_charge = \
                 ( self.classical_target_charge_sums[iqm] - \
@@ -1392,8 +1392,6 @@ class AseQmmmManyqm:
             edge-qm-atom---link-h-atom distance in this qm_region are
             optimized simultaneously
             """
-
-            BIG_VALUE = 100000000.0
 
             for index_x, current_x in enumerate(x):
                 self.equilibrium_distances_xh\

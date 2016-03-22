@@ -434,7 +434,7 @@ class Gromacs(FileIOCalculator):
         and modify the 'self.base_filename'.mdp file to adopt for freeze group.
         The qm regions are read from the file index.ndx
 
-        This is usefull if one makes many moves in MM
+        This is useful if one makes many moves in MM
         and then only a few with both qm and mm moving.
 
         qse-qm/mm indexing starts from 0

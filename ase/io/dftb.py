@@ -56,7 +56,6 @@ def read_dftb(filename='dftb_in.hsd'):
                 atom_symbols.append(symbol)
                 atoms_pos.append([float(xxx), float(yyy), float(zzz)])
 
-            
     if isinstance(filename, str):
         myfile.close()
 
@@ -70,9 +69,8 @@ def read_dftb(filename='dftb_in.hsd'):
 def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     """Method to read velocities (AA/ps) from DFTB+ output file geo_end.xyz
     """
-    from ase import Atoms
     from ase.units import second
-    #AA/ps -> ase units
+    # AA/ps -> ase units
     AngdivPs2ASE = 1.0/(1e-12*second)
 
     myfile = open(filename)
@@ -100,9 +98,8 @@ def write_dftb_velocities(atoms, filename='velocities.txt'):
     """Method to write velocities (in atomic units) from ASE
        to a file to be read by dftb+
     """
-    from ase import Atoms
     from ase.units import AUT, Bohr
-    #ase units -> atomic units
+    # ase units -> atomic units
     ASE2au = Bohr / AUT
 
     if isinstance(filename, str):

@@ -6,8 +6,6 @@ import time
 from math import sqrt
 from os.path import isfile
 
-import numpy as np
-
 from ase.parallel import rank, barrier
 from ase.io.trajectory import Trajectory
 import collections
@@ -179,43 +177,3 @@ class Optimizer(Dynamics):
 
     def load(self):
         return pickle.load(open(self.restart))
-
-
-class NDPoly:
-    def __init__(self, ndims=1, order=3):
-        """Multivariate polynomium.
-
-        ndims: int
-            Number of dimensions.
-        order: int
-            Order of polynomium."""
-        
-        if ndims == 0:
-            exponents = [()]
-        else:
-            exponents = []
-            for i in range(order + 1):
-                E = NDPoly(ndims - 1, order - i).exponents
-                exponents += [(i,) + tuple(e) for e in E]
-        self.exponents = np.array(exponents)
-        self.c = None
-        
-    def __call__(self, *x):
-        """Evaluate polynomial at x."""
-        return np.dot(self.c, (x**self.exponents).prod(1))
-
-    def fit(self, x, y):
-        """Fit polynomium at points in x to values in y."""
-        A = (x**self.exponents[:, np.newaxis]).prod(2)
-        self.c = np.linalg.solve(np.inner(A, A), np.dot(A, y))
-
-
-def polyfit(x, y, order=3):
-    """Fit polynomium at points in x to values in y.
-
-    With D dimensions and N points, x must have shape (N, D) and y
-    must have length N."""
-    
-    p = NDPoly(len(x[0]), order)
-    p.fit(x, y)
-    return p

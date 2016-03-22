@@ -80,7 +80,7 @@ class LBFGS(Optimizer):
         self.force_calls = 0
 
     def initialize(self):
-        """Initalize everything so no checks have to be done in step"""
+        """Initialize everything so no checks have to be done in step"""
         self.iteration = 0
         self.s = []
         self.y = []

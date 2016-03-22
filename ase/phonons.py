@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import sys
 import pickle
-from math import sin, pi, sqrt
+from math import pi, sqrt
 from os import remove
 from os.path import isfile
 
@@ -11,15 +11,8 @@ import numpy as np
 import numpy.linalg as la
 import numpy.fft as fft
 
-has_spglib = False
-try:
-    from pyspglib import spglib
-    has_spglib = True
-except ImportError:
-    pass
-
 import ase.units as units
-from ase.parallel import rank, barrier
+from ase.parallel import rank
 from ase.dft import monkhorst_pack
 from ase.io.trajectory import Trajectory
 from ase.utils import opencew
@@ -44,8 +37,8 @@ class Displacement:
                  delta=0.01, refcell=None):
         """Init with an instance of class ``Atoms`` and a calculator.
 
-        Parameters
-        ----------
+        Parameters:
+
         atoms: Atoms object
             The atoms to work on.
         calc: Calculator
@@ -69,7 +62,7 @@ class Displacement:
         self.calc = calc
         
         # Displace all atoms in the unit cell by default
-        self.indices = range(len(atoms))
+        self.indices = np.arange(len(atoms))
         self.name = name
         self.delta = delta
         self.N_c = supercell
@@ -81,8 +74,9 @@ class Displacement:
         else:
             # Center cell
             N_c = self.N_c
-            self.offset = N_c[0] // 2 * (N_c[1] * N_c[2]) + N_c[1] // \
-                          2 * N_c[2] + N_c[2] // 2
+            self.offset = (N_c[0] // 2 * (N_c[1] * N_c[2]) +
+                           N_c[1] // 2 * N_c[2] +
+                           N_c[2] // 2)
 
     def __call__(self, *args, **kwargs):
         """Member function called in the ``run`` function."""
@@ -92,8 +86,8 @@ class Displacement:
     def set_atoms(self, atoms):
         """Set the atoms to vibrate.
 
-        Parameters
-        ----------
+        Parameters:
+
         atoms: list
             Can be either a list of strings, ints or ...
             
@@ -302,7 +296,7 @@ class Phonons(Displacement):
         """Check maximum size of forces in the equilibrium structure."""
 
         fname = '%s.eq.pckl' % self.name
-        feq_av = pickle.load(open(fname))
+        feq_av = pickle.load(open(fname, 'rb'))
 
         fmin = feq_av.max()
         fmax = feq_av.min()
@@ -322,8 +316,8 @@ class Phonons(Displacement):
                    /__  ij
                     a
                               
-        Parameters
-        ----------
+        Parameters:
+
         neutrality: bool
             Restore charge neutrality condition on calculated Born effective
             charges.
@@ -337,9 +331,8 @@ class Phonons(Displacement):
         else:
             filename = name
             
-        fd = open(filename)
-        Z_avv, eps_vv = pickle.load(fd)
-        fd.close()
+        with open(filename, 'rb') as fd:
+            Z_avv, eps_vv = pickle.load(fd)
 
         # Neutrality sum-rule
         if neutrality:
@@ -355,8 +348,8 @@ class Phonons(Displacement):
 
         Extra keyword arguments will be passed to ``read_born_charges``.
         
-        Parameters
-        ----------
+        Parameters:
+
         method: str
             Specify method for evaluating the atomic forces.
         symmetrize: int
@@ -398,12 +391,12 @@ class Phonons(Displacement):
             for j, v in enumerate('xyz'):
                 # Atomic forces for a displacement of atom a in direction v
                 basename = '%s.%d%s' % (self.name, a, v)
-                fminus_av = pickle.load(open(basename + '-.pckl'))
-                fplus_av = pickle.load(open(basename + '+.pckl'))
+                fminus_av = pickle.load(open(basename + '-.pckl', 'rb'))
+                fplus_av = pickle.load(open(basename + '+.pckl', 'rb'))
                 
                 if method == 'frederiksen':
                     fminus_av[a] -= fminus_av.sum(0)
-                    fplus_av[a]  -= fplus_av.sum(0)
+                    fplus_av[a] -= fplus_av.sum(0)
                     
                 # Finite difference derivative
                 C_av = fminus_av - fplus_av
@@ -411,11 +404,11 @@ class Phonons(Displacement):
 
                 # Slice out included atoms
                 C_Nav = C_av.reshape((N, len(self.atoms), 3))[:, self.indices]
-                index = 3*i + j
+                index = 3 * i + j
                 C_xNav[index] = C_Nav
 
         # Make unitcell index the first and reshape
-        C_N = C_xNav.swapaxes(0 ,1).reshape((N,) + (3 * natoms, 3 * natoms))
+        C_N = C_xNav.swapaxes(0, 1).reshape((N,) + (3 * natoms, 3 * natoms))
 
         # Cut off before symmetry and acoustic sum rule are imposed
         if cutoff is not None:
@@ -438,6 +431,7 @@ class Phonons(Displacement):
         
         # Add mass prefactor
         m_a = self.atoms.get_masses()
+        print(m_a.shape, self.indices)
         self.m_inv_x = np.repeat(m_a[self.indices]**-0.5, 3)
         M_inv = np.outer(self.m_inv_x, self.m_inv_x)
         for D in self.D_N:
@@ -462,7 +456,7 @@ class Phonons(Displacement):
         i, j, k = np.asarray(self.N_c) % 2 - 1
         C_lmn[i:, j:, k:] *= 0.5
         C_lmn[i:, j:, k:] += \
-                  C_lmn[i:, j:, k:][::-1, ::-1, ::-1].transpose(0, 1, 2, 4, 3).copy()
+            C_lmn[i:, j:, k:][::-1, ::-1, ::-1].transpose(0, 1, 2, 4, 3).copy()
         if self.offset == 0:
             C_lmn = fft.ifftshift(C_lmn, axes=(0, 1, 2)).copy()
 
@@ -483,14 +477,16 @@ class Phonons(Displacement):
         for C in C_N_temp:
             for a in range(natoms):
                 for a_ in range(natoms):
-                    C_N[self.offset, 3*a: 3*a + 3, 3*a: 3*a + 3] -= \
-                                     C[3*a: 3*a+3, 3*a_: 3*a_+3]
+                    C_N[self.offset,
+                        3 * a: 3 * a + 3,
+                        3 * a: 3 * a + 3] -= C[3 * a: 3 * a + 3,
+                                               3 * a_: 3 * a_ + 3]
                     
     def apply_cutoff(self, D_N, r_c):
         """Zero elements for interatomic distances larger than the cutoff.
 
-        Parameters
-        ----------
+        Parameters:
+
         D_N: ndarray
             Dynamical/force constant matrix.
         r_c: float
@@ -522,7 +518,7 @@ class Phonons(Displacement):
             for i, a in enumerate(self.indices):
                 dist_a = np.sqrt(np.sum((pos_av[a] - posn_av)**2, axis=-1))
                 # Atoms where the distance is larger than the cufoff
-                i_a = dist_a > r_c #np.where(dist_a > r_c)
+                i_a = dist_a > r_c  # np.where(dist_a > r_c)
                 # Zero elements
                 D_Navav[n, i, :, i_a, :] = 0.0
             # print ""
@@ -545,8 +541,8 @@ class Phonons(Displacement):
         Eigenvalues and modes are in units of eV and Ang/sqrt(amu),
         respectively.
 
-        Parameters
-        ----------
+        Parameters:
+
         path_kc: ndarray
             List of k-point coordinates (in units of the reciprocal lattice
             vectors) specifying the path in the Brillouin zone for which the
@@ -591,8 +587,8 @@ class Phonons(Displacement):
                 q_v = np.dot(reci_vc, q_c)
                 # Non-analytic contribution to force constants in atomic units
                 qdotZ_av = np.dot(q_v, self.Z_avv).ravel()
-                C_na = 4 * pi * np.outer(qdotZ_av, qdotZ_av) / \
-                       np.dot(q_v, np.dot(self.eps_vv, q_v)) / vol
+                C_na = (4 * pi * np.outer(qdotZ_av, qdotZ_av) /
+                        np.dot(q_v, np.dot(self.eps_vv, q_v)) / vol)
                 self.C_na = C_na / units.Bohr**2 * units.Hartree
                 # Add mass prefactor and convert to eV / (Ang^2 * amu)
                 M_inv = np.outer(self.m_inv_x, self.m_inv_x)
@@ -600,11 +596,11 @@ class Phonons(Displacement):
                 self.D_na = D_na
                 D_N = self.D_N + D_na / np.prod(self.N_c)
 
-            ## if np.prod(self.N_c) == 1:
-            ##
-            ##     q_av = np.tile(q_v, len(self.indices))
-            ##     q_xx = np.vstack([q_av]*len(self.indices)*3)
-            ##     D_m += q_xx
+            # if np.prod(self.N_c) == 1:
+            #
+            #     q_av = np.tile(q_v, len(self.indices))
+            #     q_xx = np.vstack([q_av]*len(self.indices)*3)
+            #     D_m += q_xx
 
             # Evaluate fourier sum
             phase_N = np.exp(-2.j * pi * np.dot(q_c, R_cN))
@@ -651,8 +647,8 @@ class Phonons(Displacement):
     def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
         """Calculate phonon dos as a function of energy.
 
-        Parameters
-        ----------
+        Parameters:
+
         qpts: tuple
             Shape of Monkhorst-Pack grid for sampling the Brillouin zone.
         npts: int
@@ -684,12 +680,12 @@ class Phonons(Displacement):
         
         return omega_e, dos_e
     
-    def write_modes(self, q_c, branches=0, kT=units.kB*300, born=False,
+    def write_modes(self, q_c, branches=0, kT=units.kB * 300, born=False,
                     repeat=(1, 1, 1), nimages=30, center=False):
         """Write modes to trajectory file.
 
-        Parameters
-        ----------
+        Parameters:
+
         q_c: ndarray
             q-vector of the modes.
         branches: int or list
@@ -750,8 +746,9 @@ class Phonons(Displacement):
             
             traj = Trajectory('%s.mode.%d.traj' % (self.name, l), 'w')
             
-            for x in np.linspace(0, 2*pi, nimages, endpoint=False):
-                atoms.set_positions((pos_Nav + np.exp(1.j * x) * mode_Nav).real)
+            for x in np.linspace(0, 2 * pi, nimages, endpoint=False):
+                atoms.set_positions((pos_Nav + np.exp(1.j * x) *
+                                     mode_Nav).real)
                 traj.write(atoms)
                 
             traj.close()

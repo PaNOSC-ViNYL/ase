@@ -76,7 +76,7 @@ class NetCDFTrajectory:
     _cell_spatial_var = 'cell_spatial'
     _cell_angular_var = 'cell_angular'
     _time_var = 'time'
-    _numbers_var = ['Z', 'atom_types', 'type']
+    _numbers_var = ['atom_types', 'type', 'Z']
     _positions_var = 'coordinates'
     _velocities_var = 'velocities'
     _cell_origin_var = 'cell_origin'
@@ -345,6 +345,8 @@ class NetCDFTrajectory:
             self._add_time()
             self._get_variable(self._time_var)[i] = time
 
+        self.sync()
+
         self._call_observers(self.post_observers)
         self.frame += 1
         self._close()
@@ -501,6 +503,9 @@ class NetCDFTrajectory:
             self.close()
             if self.mode == 'w':
                 self.mode = 'a'
+
+    def sync(self):
+        self.nc.sync()
 
     def __getitem__(self, i=-1):
         self._open()

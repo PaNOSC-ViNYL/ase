@@ -7,7 +7,6 @@ The following lattice creator is defined:
 
 from ase.lattice.triclinic import TriclinicFactory
 import numpy as np
-from ase.data import reference_states as _refstate
 
 
 class SimpleMonoclinicFactory(TriclinicFactory):

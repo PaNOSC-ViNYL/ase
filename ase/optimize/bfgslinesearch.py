@@ -9,8 +9,7 @@ from __future__ import print_function
 
 import time
 import numpy as np
-from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
-    squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
+from numpy import eye, absolute, sqrt, isinf
 from ase.utils.linesearch import LineSearch
 from ase.optimize.optimize import Optimizer
 
@@ -107,9 +106,6 @@ class BFGSLineSearch(Optimizer):
 
         self.p = -np.dot(self.H,g)
         p_size = np.sqrt((self.p **2).sum())
-        if self.nsteps != 0:
-            p0_size = np.sqrt((p0 **2).sum())
-            delta_p = self.p/p_size + p0/p0_size
         if p_size <= np.sqrt(len(atoms) * 1e-10):
             self.p /= (p_size / np.sqrt(len(atoms)*1e-10))
         ls = LineSearch()
@@ -154,7 +150,6 @@ class BFGSLineSearch(Optimizer):
                 print("Divide-by-zero encountered: rhok assumed large")
             A1 = self.I - dr[:, np.newaxis] * dg[np.newaxis, :] * rhok
             A2 = self.I - dg[:, np.newaxis] * dr[np.newaxis, :] * rhok
-            H0 = self.H
             self.H = np.dot(A1, np.dot(self.H, A2)) + rhok * dr[:, np.newaxis] \
                      * dr[np.newaxis, :]
             #self.B = np.linalg.inv(self.H)
@@ -181,7 +176,6 @@ class BFGSLineSearch(Optimizer):
         if isinstance(traj, str):
             from ase.io.trajectory import Trajectory
             traj = Trajectory(traj, 'r')
-        atoms = traj[0]
         r0 = None
         g0 = None
         for i in range(0, len(traj) - 1):

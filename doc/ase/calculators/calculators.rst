@@ -23,7 +23,7 @@ RuntimeError: Atoms object has no calculator.
 >>> calc = Abinit(...)
 >>> a.set_calculator(calc)
 >>> e = a.get_potential_energy()
->>> print e
+>>> print(e)
 -42.0
 
 Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
@@ -64,7 +64,7 @@ GPAW_                              Real-space/plane-wave/LCAO PAW code
 Hotbit_                            DFT based tight binding
 :mod:`~ase.calculators.abinit`     Plane-wave pseudopotential code
 :mod:`~ase.calculators.castep`     Plane-wave pseudopotential code
-:mod:`~ase.calculators.cp2k`       DFT and clasical potentials
+:mod:`~ase.calculators.cp2k`       DFT and classical potentials
 :mod:`~ase.calculators.dftb`       DFT based tight binding
 :mod:`~ase.calculators.eam`        Embedded Atom Method
 elk                                Full Potential LAPW code
@@ -191,9 +191,12 @@ the :meth:`set` method:
    turbomole
    vasp
    qmmm
+   others
    ase_qmmm_manyqm
 
 
+.. _calculator interface:
+    
 Calculator interface
 ====================
 

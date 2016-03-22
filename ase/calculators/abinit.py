@@ -309,14 +309,14 @@ class Abinit(FileIOCalculator):
         if 'PAW method is used'.lower() in text:  # read DC energy according to M. Torrent
             for line in iter(text.split('\n')):
                 if line.rfind('>>>>> internal e=') > -1:
-                    etotal = float(line.split('=')[-1])*Hartree  # second occurence!
+                    etotal = float(line.split('=')[-1])*Hartree  # second occurrence!
             for line in iter(text.split('\n')):
                 if line.rfind('>>>> etotal (dc)=') > -1:
                     efree = float(line.split('=')[-1])*Hartree
         else:
             for line in iter(text.split('\n')):
                 if line.rfind('>>>>> internal e=') > -1:
-                    etotal = float(line.split('=')[-1])*Hartree  # first occurence!
+                    etotal = float(line.split('=')[-1])*Hartree  # first occurrence!
                     break
             for line in iter(text.split('\n')):
                 if line.rfind('>>>>>>>>> etotal=') > -1:
@@ -567,7 +567,7 @@ class Abinit(FileIOCalculator):
         assert 'error' not in text
         lines = text.split('\n')
         text_list = []
-        # find the begining line of last eigenvalues
+        # find the beginning line of last eigenvalues
         contains_eigenvalues = 0
         for n, line in enumerate(lines):
             if spin == 0:

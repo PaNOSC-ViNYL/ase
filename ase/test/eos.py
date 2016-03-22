@@ -2,19 +2,13 @@
 # test ASE3 eos vs ASE2' on EMT Al bulk
 
 import numpy as np
-
-from ase.test import NotAvailable
-
-try:
-    import scipy
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
+import scipy  # skip test early if no scipy
 
 from ase.lattice import bulk
-
 from ase.io.trajectory import Trajectory
-
 from ase.calculators.emt import EMT
+
+scipy  # silence pyflakes
 
 # old ASE2 conversion factor
 eVA3ToGPA = 160.21773

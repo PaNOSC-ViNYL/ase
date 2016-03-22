@@ -63,7 +63,7 @@ class Turbomole(Calculator):
         # update atoms
         self.updated = self.e_total is None
         self.set_atoms(atoms)
-        # if update of energy is neccessary
+        # if update of energy is necessary
         if self.update_energy:
             # calculate energy
             self.execute(self.calculate_energy + ' > ASE.TM.energy.out')
@@ -85,7 +85,7 @@ class Turbomole(Calculator):
         # complete energy calculations
         if self.update_energy:
             self.get_potential_energy(atoms)
-        # if update of forces is neccessary
+        # if update of forces is necessary
         if self.update_forces:
             # calculate forces
             self.execute(self.calculate_forces + ' > ASE.TM.forces.out')

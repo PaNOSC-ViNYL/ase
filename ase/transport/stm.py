@@ -66,7 +66,7 @@ class STM:
         #periodic part of the tip
         hs1_dii = self.h10[:pl1, :pl1], self.s10[:pl1, :pl1]
         hs1_dij = self.h10[:pl1, pl1:2*pl1], self.s10[:pl1, pl1:2*pl1]
-        #coupling betwen per. and non. per part of the tip
+        #coupling between per. and non. per part of the tip
         h1_im = np.zeros((pl1, nbf1), complex) 
         s1_im = np.zeros((pl1, nbf1), complex)
         h1_im[:pl1, :pl1], s1_im[:pl1, :pl1] = hs1_dij
@@ -75,7 +75,7 @@ class STM:
         #periodic part the surface 
         hs2_dii = self.h20[:pl2, :pl2], self.s20[:pl2, :pl2]
         hs2_dij = self.h20[pl2:2*pl2, :pl2], self.s20[pl2:2*pl2, :pl2]
-        #coupling betwen per. and non. per part of the surface
+        #coupling between per. and non. per part of the surface
         h2_im = np.zeros((pl2, nbf2), complex)
         s2_im = np.zeros((pl2, nbf2), complex) 
         h2_im[-pl2:, -pl2:], s2_im[-pl2:, -pl2:] = hs2_dij

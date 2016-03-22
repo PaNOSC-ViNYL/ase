@@ -1,27 +1,25 @@
 import numpy as np
-from math import pi, sqrt
-from ase import Atoms, io, optimize
+from ase import Atoms, io
 from ase.calculators.lj import LennardJones
 from ase.optimize.basin import BasinHopping
-from ase.io import Trajectory, read
+from ase.io import read
 from ase.units import kB
 
 # Global minima from
 # Wales and Doye, J. Phys. Chem. A, vol 101 (1997) 5111-5116
 E_global = {
-    4: -6.000000, 
-    5: -9.103852, 
+    4: -6.000000,
+    5: -9.103852,
     6: -12.712062,
-    7: -16.505384, 
-}
+    7: -16.505384}
 N = 7
-R = N**(1./3.)
+R = N**(1. / 3.)
 np.random.seed(42)
 pos = np.random.uniform(-R, R, (N, 3))
 s = Atoms('He' + str(N),
-          positions = pos)
+          positions=pos)
 s.set_calculator(LennardJones())
-original_positions = 1. * s.get_positions() 
+original_positions = 1. * s.get_positions()
 
 ftraj = 'lowest.traj'
 
@@ -29,8 +27,7 @@ for GlobalOptimizer in [BasinHopping(s,
                                      temperature=100 * kB,
                                      dr=0.5,
                                      trajectory=ftraj,
-                                     optimizer_logfile=None),
-                        ]:
+                                     optimizer_logfile=None)]:
 
     if isinstance(GlobalOptimizer, BasinHopping):
         GlobalOptimizer.run(10)

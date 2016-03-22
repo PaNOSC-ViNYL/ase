@@ -80,7 +80,7 @@ class NPTBerendsen(NVTBerendsen):
 
     def scale_positions_and_cell(self):
         """ Do the Berendsen pressure coupling,
-        scale the atom positon and the simulation cell."""
+        scale the atom position and the simulation cell."""
 
         taupscl = self.dt / self.taup
         stress = self.atoms.get_stress(voigt=False)
@@ -166,7 +166,7 @@ class Inhomogeneous_NPTBerendsen(NPTBerendsen):
     """
     def scale_positions_and_cell(self):
         """ Do the Berendsen pressure coupling,
-        scale the atom positon and the simulation cell."""
+        scale the atom position and the simulation cell."""
 
         taupscl = self.dt * self.compressibility / self.taup / 3.0
         stress = - self.atoms.get_stress() * 1e-5 / units.Pascal

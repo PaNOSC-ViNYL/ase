@@ -32,7 +32,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
         The positons in fractional coordinates that the new positions
         will be nearest possible to.
     eps: float
-        Small number to prevent slightly negative coordinates from beeing
+        Small number to prevent slightly negative coordinates from being
         wrapped.
 
     Example:
@@ -170,7 +170,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
         float scaling all 3 directions.  By setting to a value just
         above one, e.g. 1.05, it is possible to all the corner and
         edge atoms in the returned cell.  This will of cause make the
-        returned cell non-repeatable, but is very usefull for
+        returned cell non-repeatable, but is very useful for
         visualisation.
     tolerance: float
         Determines what is defined as a plane.  All atoms within
@@ -248,7 +248,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
 
     if nlayers:
         # Recursive increase the length of c until we have at least
-        # *nlayers* atomic layers parallell to the a-b plane
+        # *nlayers* atomic layers parallel to the a-b plane
         while True:
             at = cut(atoms, a, b, c, origo=origo, extend=extend,
                      tolerance=tolerance)
@@ -453,20 +453,15 @@ def sort(atoms, tags=None):
 
     Example:
 
-    >>> import ase
-    >>> from ase.lattice.spacegroup import crystal
-    >>>
-    # Two unit cells of NaCl
+    >>> from ase.lattice import bulk
+    >>> # Two unit cells of NaCl:
     >>> a = 5.64
-    >>> nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)],
-    ... spacegroup=225, cellpar=[a, a, a, 90, 90, 90]).repeat((2, 1, 1))
+    >>> nacl = bulk('NaCl', 'rocksalt', a=a) * (2, 1, 1)
     >>> nacl.get_chemical_symbols()
-    ['Na', 'Na', 'Na', 'Na', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na',
-            'Na', 'Cl', 'Cl', 'Cl', 'Cl']
+    ['Na', 'Cl', 'Na', 'Cl']
     >>> nacl_sorted = sort(nacl)
     >>> nacl_sorted.get_chemical_symbols()
-    ['Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Cl', 'Na', 'Na', 'Na',
-            'Na', 'Na', 'Na', 'Na', 'Na']
+    ['Cl', 'Cl', 'Na', 'Na']
     >>> np.all(nacl_sorted.cell == nacl.cell)
     True
     """

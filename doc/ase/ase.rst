@@ -3,9 +3,9 @@
 
 .. _ase:
 
-================================
-Documentation for modules in ASE
-================================
+=======
+Modules
+=======
 
 Quick links:
 
@@ -45,7 +45,7 @@ Quick links:
 
    * :ref:`tutorials`
    * :ref:`cli`
-   * :epydoc:`Automatically generated documentation <ase>` (:term:`API`)
+   * :epydoc:`Automatically generated documentation <ase>` (API)
    * :git:`Source code <>`
    * Presentation about ASE: :download:`ase-talk.pdf`
 
@@ -55,20 +55,17 @@ List of all modules:
 .. toctree::
    :maxdepth: 2
 
-   atoms
    atom
+   atoms
    units
    io
    gui/gui
-   cmdline
    setup-overview
    optimize
    parallel
    visualize/visualize
-   visualize/vtk
    calculators/calculators
    constraints
-   neb
    vibrations
    phonons
    phasediagram/phasediagram
@@ -84,4 +81,5 @@ List of all modules:
    io/opls
    db/db
    ga
+   neb
    dimermethod

@@ -4,8 +4,9 @@
 
 import gtk
 from gettext import gettext as _
-from ase.gui.widgets import pack, cancel_apply_ok, oops
+from ase.gui.widgets import pack
 import ase
+
 
 class SetupWindow(gtk.Window):
     "Base class for ase.gui setup windows."

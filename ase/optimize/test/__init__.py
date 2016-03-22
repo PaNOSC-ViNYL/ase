@@ -15,9 +15,6 @@ run_test(get_atoms, get_calculator, 'Hydrogen')
 
 import time
 
-import matplotlib
-#matplotlib.rcParams['backend']="Agg"
-
 from ase.optimize.bfgs import BFGS
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.fire import FIRE
@@ -43,8 +40,8 @@ optimizers = [
     'SciPyFminCG',
     'SciPyFminBFGS',
     'BFGSLineSearch',
-    'GoodOldQuasiNewton'
-]
+    'GoodOldQuasiNewton']
+
 
 def get_optimizer(optimizer):
     if optimizer == 'BFGS': return BFGS
@@ -57,6 +54,7 @@ def get_optimizer(optimizer):
     elif optimizer == 'BFGSLineSearch': return BFGSLineSearch
     elif optimizer == 'GoodOldQuasiNewton': return GoodOldQuasiNewton
 
+    
 def run_test(get_atoms, get_calculator, name,
              fmax=0.05, steps=100, plot=True):
 
@@ -69,14 +67,11 @@ def run_test(get_atoms, get_calculator, name,
     csvwriter.write(row, format)
     for optimizer in optimizers:
         note = ''
-        logname = name + '-' + optimizer
 
         atoms = get_atoms()
         atoms.set_calculator(get_calculator())
         opt = get_optimizer(optimizer)
         relax = opt(atoms, logfile=None)
-                    #logfile = logname + '.log',
-                    #trajectory = logname + '.traj')
 
         obs = DataObserver(atoms)
         relax.attach(obs)
@@ -112,6 +107,7 @@ def run_test(get_atoms, get_calculator, name,
     plotter.save()
     csvwriter.finalize()
 
+    
 class Plotter:
     def __init__(self, name, fmax):
         self.name = name
@@ -131,7 +127,6 @@ class Plotter:
             self.axes0.legend()
             self.axes0.set_title(self.name)
             self.axes0.set_ylabel('E [eV]')
-            #self.axes0.set_yscale('log')
 
             self.axes1.set_xlabel('steps')
             self.axes1.set_ylabel('fmax [eV/A]')
@@ -139,6 +134,7 @@ class Plotter:
             self.axes1.axhline(self.fmax, color='k', linestyle='--')
             self.fig.savefig(self.name + '.' + format)
 
+            
 class CSVWriter:
     def __init__(self, name):
         self.f = paropen(name + '.csv', 'w')
@@ -149,6 +145,7 @@ class CSVWriter:
     def finalize(self):
         self.f.close()
 
+        
 class DataObserver:
     def __init__(self, atoms):
         self.atoms = atoms

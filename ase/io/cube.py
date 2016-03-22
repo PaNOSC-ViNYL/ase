@@ -121,7 +121,7 @@ def read_cube(fileobj, read_data=True, program=None, verbose=False):
     # the upcoming three lines contain the cell information
     for i in range(3):
         n, x, y, z = [float(s) for s in readline().split()]
-        shape.append(n)
+        shape.append(int(n))
 
         # different PBC treatment in castep, basically the last voxel row is
         # identical to the first one

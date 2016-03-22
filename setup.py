@@ -7,7 +7,7 @@ from __future__ import print_function
 import os
 import re
 import sys
-from distutils.core import setup, Command
+from distutils.core import setup
 from distutils.command.build_py import build_py as _build_py
 from distutils.command.sdist import sdist as _sdist
 from glob import glob
@@ -26,7 +26,7 @@ if sys.version_info < (2, 6, 0, 'final', 0):
 class sdist(_sdist):
     """Fix distutils.
     
-    Distutils insists that the should be a README or README.txt,
+    Distutils insists that there should be a README or README.txt,
     but GitLab.com needs README.rst in order to parse it as reStructureText."""
     
     def warn(self, msg):
@@ -44,40 +44,6 @@ for dirname, dirnames, filenames in os.walk('ase'):
 package_dir = {'ase': 'ase'}
 
 package_data = {'ase': ['lattice/spacegroup/spacegroup.dat']}
-
-
-class test(Command):
-    description = 'build and run test suite; exit code is number of failures'
-    user_options = [('calculators=', 'c',
-                     'Comma separated list of calculators to test')]
-    
-    def __init__(self, dist):
-        Command.__init__(self, dist)
-        self.sub_commands = ['build']
-
-    def initialize_options(self):
-        self.calculators = None
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        self.run_command('build')
-        buildcmd = self.get_finalized_command('build')
-        sys.path.insert(0, os.getcwd())
-
-        if self.calculators is not None:
-            calculators = self.calculators.split(',')
-        elif 'ASE_CALCULATORS' in os.environ:
-            calculators = os.environ['ASE_CALCULATORS'].split(',')
-        else:
-            calculators = []
-        from ase.test import test as _test
-        testdir = '%s/testase-tempfiles' % buildcmd.build_base
-        results = _test(2, calculators, display=False, testdir=testdir)
-        if results.failures or results.errors:
-            print('Test suite failed', file=sys.stderr)
-            raise SystemExit(len(results.failures) + len(results.errors))
 
 
 class build_py(_build_py):
@@ -111,12 +77,11 @@ class build_py(_build_py):
 with open('ase/__init__.py') as fd:
     version = re.search("__version__ = '(.*)'", fd.read()).group(1)
     
-name = 'python-ase'
+name = 'ase'  # PyPI name
 
-# PyPI:
+# Linux-distributions may want to change the name:
 if 0:
-    # python(3) setup.py sdist upload
-    name = 'ase'
+    name = 'python-ase'
     
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
            'tools/ase-build', 'tools/ase-run']
@@ -132,14 +97,13 @@ setup(name=name,
       maintainer='ASE-community',
       maintainer_email='ase-developers@listserv.fysik.dtu.dk',
       license='LGPLv2.1+',
-      platforms=['linux'],
+      platforms=['unix'],
       packages=packages,
       package_dir=package_dir,
       package_data=package_data,
       scripts=scripts,
       long_description=long_description,
       cmdclass={'build_py': build_py,
-                'test': test,
                 'sdist': sdist},
       classifiers=[
           'Development Status :: 6 - Mature',
@@ -151,4 +115,5 @@ setup(name=name,
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
+          'Programming Language :: Python :: 3.5',
           'Topic :: Scientific/Engineering :: Physics'])

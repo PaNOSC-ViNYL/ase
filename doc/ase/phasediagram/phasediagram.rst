@@ -50,7 +50,13 @@ Alternatively, one could have used ``pd.decompose(Cu=3, Au=1)``.
 
 .. automethod:: PhaseDiagram.decompose
 
+Here is an example (see :download:`ktao.py`) with three components using
+``plot(dims=2)`` and ``plot(dims=3)``:
 
+.. image:: ktao-2d.png
+.. image:: ktao-3d.png
+
+    
 Pourbaix diagrams
 =================
 
@@ -66,7 +72,7 @@ containing molecules (plus water and a proton):
     
 .. autofunction:: solvated
 
-We add two solids and one more disolved molecule to the references and create
+We add two solids and one more dissolved molecule to the references and create
 a :class:`Pourbaix` object:
     
 >>> refs += [('Zn', 0.0), ('ZnO', -3.323), ('ZnO2(aq)', -2.921)]

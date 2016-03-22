@@ -8,8 +8,7 @@ from __future__ import print_function
 # *****END NOTICE************
 
 import numpy
-from numpy import atleast_1d, eye, mgrid, argmin, zeros, shape, empty, \
-     squeeze, vectorize, asarray, absolute, sqrt, Inf, asfarray, isinf
+from numpy import empty, asarray, absolute, sqrt, Inf, isinf
 from ase.utils.linesearch import LineSearch
 
 # These have been copied from Numeric's MLab.py
@@ -39,7 +38,7 @@ def fmin_bfgs(f, x0, fprime=None, args=(), gtol=1e-5, norm=Inf,
       args : tuple
           Extra arguments passed to f and fprime.
       gtol : float
-          Gradient norm must be less than gtol before succesful termination.
+          Gradient norm must be less than gtol before successful termination.
       norm : float
           Order of norm (Inf is max, -Inf is min)
       epsilon : int or ndarray
@@ -222,7 +221,6 @@ def _cubicmin(a,fa,fpa,b,fb,c,fc):
     # f(x) = A *(x-a)^3 + B*(x-a)^2 + C*(x-a) + D
 
     C = fpa
-    D = fa
     db = b-a
     dc = c-a
     if (db == 0) or (dc == 0) or (b==c): return None

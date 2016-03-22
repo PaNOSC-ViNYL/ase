@@ -3,13 +3,6 @@ from __future__ import print_function
 
 import numpy as np
 
-from ase.test import NotAvailable
-
-try:
-    import scipy
-except ImportError:
-    raise NotAvailable('This needs scipy module.')
-
 try:
     from scipy.optimize import curve_fit
 except ImportError:
@@ -33,12 +26,14 @@ except ImportError:
         # end of this part
         return popt, pcov
 
+        
 def taylor(V, E0, beta, alpha, V0):
     'Taylor Expansion up to 3rd order about V0'
 
     E = E0 + beta/2.*(V-V0)**2/V0 + alpha/6.*(V-V0)**3/V0
     return E
 
+    
 def murnaghan(V, E0, B0, BP, V0):
     'From PRB 28,5480 (1983'
 
@@ -121,7 +116,7 @@ def parabola(x, a, b, c):
 
     a 4th order polynomial fit to get good guesses for
     was not a good idea because for noisy data the fit is too wiggly
-    2nd order seems to be sufficient, and guarentees a single minimum'''
+    2nd order seems to be sufficient, and guarantees a single minimum'''
 
     return a + b*x + c*x**2
 
@@ -172,7 +167,7 @@ class EquationOfStateASE2:
     def fit(self):
         """Calculate volume, energy, and bulk modulus.
 
-        Returns the optimal volume, the minumum energy, and the bulk
+        Returns the optimal volume, the minimum energy, and the bulk
         modulus.  Notice that the ASE units for the bulk modulus is
         eV/Angstrom^3 - to get the value in GPa, do this::
 

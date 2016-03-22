@@ -1,9 +1,7 @@
-from math import sqrt
-
 import gtk
 from gettext import gettext as _
 
-from ase.gui.widgets import pack, Help
+from ase.gui.widgets import pack
 
 
 class Constraints(gtk.Window):

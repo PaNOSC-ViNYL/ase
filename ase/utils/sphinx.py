@@ -8,11 +8,10 @@ from stat import ST_MTIME
 from docutils import nodes
 from docutils.parsers.rst.roles import set_classes
 
+from ase.utils import exec_
+
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-from ase.utils import exec_
 
 
 def mol_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -31,7 +30,7 @@ def mol_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
     return n, []
 
 
-def svn_role_tmpl(urlroot,
+def git_role_tmpl(urlroot,
                   role,
                   rawtext, text, lineno, inliner, options={}, content=[]):
     if text[-1] == '>':
@@ -50,6 +49,8 @@ def svn_role_tmpl(urlroot,
     node = nodes.reference(rawtext, name, refuri=ref,
                            **options)
     return [node], []
+
+svn_role_tmpl = git_role_tmpl
 
 
 def trac_role_tmpl(urlroot,
@@ -175,6 +176,7 @@ def create_png_files():
         if run:
             print('running:', path)
             os.chdir(dir)
+            import matplotlib.pyplot as plt
             plt.figure()
             try:
                 exec_(compile(open(pyname).read(), pyname, 'exec'), {})

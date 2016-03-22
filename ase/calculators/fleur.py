@@ -111,8 +111,8 @@ class FLEUR:
         self.mixer = mixer
 
         if convergence:
-            self.convergence = convergence 
-            self.convergence['energy'] /= Hartree 
+            self.convergence = convergence
+            self.convergence['energy'] /= Hartree
         else:
             self.convergence = {'energy' : 0.0001}
 
@@ -535,7 +535,7 @@ class FLEUR:
             if m:
                 itmax = int(m.group(2))
                 self.niter += itmax
-                itmax_new = itmax / 2
+                itmax_new = itmax // 2
                 itmax = max(self.itmax_step, itmax_new)
                 line = 'itmax=%2d' % itmax + line[8:]
             fh.write(line)

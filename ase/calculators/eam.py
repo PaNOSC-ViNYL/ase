@@ -396,14 +396,14 @@ End EAM Interface Documentation
         """read in the extra adp data from the potential file"""
 
         self.d_data = np.zeros([self.Nelements, self.Nelements, self.nr])
-        # should be non symetrical combinations of 2
+        # should be non symmetrical combinations of 2
         for i in range(self.Nelements):
             for j in range(i + 1):
                 self.d_data[j, i] = data[d:d + self.nr]
                 d += self.nr
 
         self.q_data = np.zeros([self.Nelements, self.Nelements, self.nr])
-        # should be non symetrical combinations of 2
+        # should be non symmetrical combinations of 2
         for i in range(self.Nelements):
             for j in range(i + 1):
                 self.q_data[j, i] = data[d:d + self.nr]

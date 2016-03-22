@@ -1,13 +1,16 @@
+.. _contribute:
+
 =================
 How to contribute
 =================
 
-Discussion of ASE development takes place on the :ref:`ase-developer
-<mailing_lists>` mailing list and on the #ase IRC channel on freenode.
+Discussion of ASE development takes place on the
+:ref:`ase-developer <contact>` mailing list and on the ``#ase``
+:ref:`IRC channel on freenode <contact>`.
 
 We welcome new developers who would like to help work on improving
 ASE.  If you would like to contribute, you should first tell us what
-you want to work on.  Use the mailing list for that.
+you want to work on.  Use the :ref:`mailing list <contact>` for that.
 
 
 GitLab repository
@@ -38,7 +41,7 @@ In general:
   repository to official master.
 * Do *not* ever merge the main master branch into yours.
 
-The above policy ensures that the master branch means the same thing in all 
+The above policy ensures that the master branch means the same thing in all
 repositories (official and forks).
 
 You can learn the basics of git in several places:
@@ -74,20 +77,20 @@ The first steps as a developer
   
 * Follow directions on https://gitlab.com/help/ssh/README for how to generate
   and add your own public ssh-key
-* Go to https://gitlab.com/ase/ase and fork the project.  The 'fork' button is 
-  to the right of the button with the star and to the left of the 'SSH' button.  
+* Go to https://gitlab.com/ase/ase and fork the project.  The 'fork' button is
+  to the right of the button with the star and to the left of the 'SSH' button.
   Forking the project give you your own personal copy of the project.
 
 You will now have a fork situated at https://gitlab.com/your-user-name/ase
 
 * From here on:
     
-  - ``upstream`` refers to git@gitlab.com:ase/ase and refers to the official 
+  - ``upstream`` refers to git@gitlab.com:ase/ase and refers to the official
     repository  of the ase project.
   - ``origin`` refers to your copy of the ase project located at
     git@gitlab.com:your-user-name/ase or https://gitlab.com/your-user-name/ase
   
-  For example, ``upstream/master`` refers to the master (i.e., trunk or 
+  For example, ``upstream/master`` refers to the master (i.e., trunk or
   development) branch of the official ase project.
 
 * Clone your fork to ``origin`` to your local machine::
@@ -100,12 +103,12 @@ You will now have a fork situated at https://gitlab.com/your-user-name/ase
 
       $ git remote add upstream git@gitlab.com:ase/ase
       
-  You can always check the list of remote repositories that you can obtain 
+  You can always check the list of remote repositories that you can obtain
   code from::
       
       $ git remote -v
   
-  And you can check all available branches from the remotes that you are 
+  And you can check all available branches from the remotes that you are
   tracking::
   
       $ git branch -a
@@ -115,26 +118,26 @@ Making changes
 
 Changes and/or additions can be made both directly in GitLab for small
 changes (see the :ref:`small changes section<making-small-changes>`) and on a
-local branch in your fork.  The prefered way using command line on a local 
+local branch in your fork.  The preferred way using command line on a local
 machine is:
 
 1) Ensure that your master branch is in sync with upstream master (since you
    should not work in master it's ok).
 
-  * Fetch information about heads and references from "upsteam" and store it in
+  * Fetch information about heads and references from "upstream" and store it in
     local git used in later merges and checkouts::
         
         $ git fetch upstream
         
-  * Switch to the local branch called 'master' that is (ideally) identical to 
-    the upstream master branch ::
+  * Switch to the local branch called 'master' that is (ideally) identical to
+    the upstream master branch::
         
         $ git checkout master
         $ git merge upstream/master --ff-only
     
-    If the previous command fails, then it is safe to simply reset your master 
+    If the previous command fails, then it is safe to simply reset your master
     branch to the upstream master branch with the ``--hard`` flag.  Use this
-    flag sparingly, as it is very powerful.
+    flag sparingly, as it is very powerful::
     
         $ git reset --hard upstream/master
         
@@ -158,15 +161,15 @@ machine is:
         
         $ git checkout -b add-contribute-rst
         
-  * If you already have this branch from some previous work, but want to do 
-    new work with the same branch name then you should start by resettting it 
+  * If you already have this branch from some previous work, but want to do
+    new work with the same branch name then you should start by resettting it
     to current upstream/master both locally and in your GitLab account::
         
         $ git reset --hard upstream/master
         $ git push origin add-contribute-rst
         
-  * Make your changes. During this stage, you should keep in mind the rule 
-    "Commit early and often." The next three bulleted points should be done 
+  * Make your changes. During this stage, you should keep in mind the rule
+    "Commit early and often." The next three bulleted points should be done
     many times during code editing.  Each commit should be one "unit" of work.
 
   * Stage the files to be committed using ``git add``::
@@ -177,7 +180,7 @@ machine is:
         
         $ git status
         
-  * Commit the staged changes and add commit message.  If you can summarize 
+  * Commit the staged changes and add commit message.  If you can summarize
     your changes succinctly, then you can use the command-line syntax::
         
         $ git commit -m "ENH: Add developer workflow guidelines"
@@ -188,9 +191,10 @@ machine is:
         $ git commit
     
     And a text editor will appear.  Please observe the following guidelines
-    for writing your commit message. (stolen from `here <http://chris.beams.io/posts/git-commit/>`_)
+    for writing your commit message. (stolen from
+    `here <http://chris.beams.io/posts/git-commit/>`_)
     
-    - The seven rules of a great git commit message
+    The seven rules of a great git commit message
     
       1. Separate subject from body with a blank line
       2. Limit the subject line to 50 characters
@@ -201,7 +205,7 @@ machine is:
       7. Use the body to explain what and why vs. how
         
     Read the :ref:`commit message
-    section<writing-the-commit-message>` guidelines for commit messages for 
+    section<writing-the-commit-message>` guidelines for commit messages for
     some additional ase-specific information.
 
   * Push commits to your GitLab repository::
@@ -325,7 +329,7 @@ Code review
 ===========
 
 Before you start working on a Merge Request, *please* read our
-:ref:`python_codingstandard`. Please also install a linter!
+:ref:`coding conventions`.  Please also install a linter!
 
 Hopefully someone will look at your changes and give you some
 feedback.  Maybe everything is fine and things can be merged to the official
@@ -340,5 +344,5 @@ repository right away, but there could also be some more work to do like:
 
 This code review loop is not something we have invented to prevent you from
 contributing.  Such code review is practiced by virtually all software projects
-that involve more than one person.  Code review should be viewed as an 
+that involve more than one person.  Code review should be viewed as an
 opportunity for you to learn how to write code that fits into the ASE codebase.

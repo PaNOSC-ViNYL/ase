@@ -93,7 +93,7 @@ with a basis):
 * ``lattice.compounds``
 
   Lattices with more than one element.  These are mainly intended as
-  examples allowing you to define new such lattices.  Currenly, the
+  examples allowing you to define new such lattices.  Currently, the
   following are defined
 
   - ``B1`` = ``NaCl`` = ``Rocksalt``

@@ -45,7 +45,7 @@ To see what's inside 'x.aff' do this::
 
 Versions:
     
-1) Intial version.
+1) Initial version.
 
 2) Added support for big endian machines.  Json data may now have
   _little_endian=False item.
@@ -153,7 +153,7 @@ class Writer:
         self.fd = fd
         self.data = data
         
-        # Shape and dtype of array beeing filled:
+        # Shape and dtype of array being filled:
         self.shape = (0,)
         self.dtype = None
         

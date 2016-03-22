@@ -38,7 +38,7 @@ class ClusterBase:
             # accepted if more than 50 % of the distances obeys it.
             pattern = None
             for i in range(len(d)):
-                for n in range(1, (len(d) - i) / 2 + 1):
+                for n in range(1, (len(d) - i) // 2 + 1):
                     if np.all(np.abs(d[i:i+n] - d[i+n:i+2*n]) < tol):
                         counts = 2
                         for j in range(i+2*n, len(d), n):

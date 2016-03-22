@@ -251,9 +251,8 @@ class Bravais:
         self.nput = 0
         self.atoms = np.zeros((self.natoms,3), np.float)
         self.elements = np.zeros(self.natoms, np.int)
-        self.farpoint = farpoint = sum(self.directions)
-        #printprogress = self.debug and (len(self.atoms) > 250)
-        percent = 0
+        self.farpoint = sum(self.directions)
+        # printprogress = self.debug and (len(self.atoms) > 250)
         # Find the radius of the sphere containing the whole system
         sqrad = 0
         for i in (0,1):
@@ -403,10 +402,10 @@ class Bravais:
     def print_directions_and_miller(self, txt=""):
         "Print direction vectors and Miller indices."
         print("Direction vectors of unit cell%s:" % (txt,))
-        for i in (0,1,2):
+        for i in (0, 1, 2):
             print("   ", self.directions[i])
         print("Miller indices of surfaces%s:" % (txt,))
-        for i in (0,1,2):
+        for i in (0, 1, 2):
             print("   ", self.miller[i])
 
 
@@ -430,18 +429,18 @@ class Lattice(Atoms, MillerInfo):
 # Helper functions
 def cross(a, b):
     """The cross product of two vectors."""
-    return np.array((a[1]*b[2] - b[1]*a[2],
-                     a[2]*b[0] - b[2]*a[0],
-                     a[0]*b[1] - b[0]*a[1]))
+    return np.array((a[1] * b[2] - b[1] * a[2],
+                     a[2] * b[0] - b[2] * a[0],
+                     a[0] * b[1] - b[0] * a[1]))
 
 
 def reduceindex(M):
-    "Reduce Miller index to the lowest equivalent integers."
+    """Reduce Miller index to the lowest equivalent integers."""
     oldM = M
     g = gcd(M[0], M[1])
     h = gcd(g, M[2])
     while h != 1:
-        M = M/h
+        M = M // h
         g = gcd(M[0], M[1])
         h = gcd(g, M[2])
     if np.dot(oldM, M) > 0:

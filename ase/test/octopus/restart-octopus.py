@@ -3,7 +3,6 @@ from __future__ import print_function
 from ase.calculators.octopus import Octopus
 from ase.calculators.interfacechecker import check_interface
 from ase.structure import molecule
-from ase.visualize import view
 
 system = molecule('H2O')
 system.center(vacuum=2.0)
@@ -11,12 +10,13 @@ system.center(vacuum=2.0)
 label = 'ink'
 
 calc0 = Octopus(label=label,
-               FromScratch=True,
-               stdout="'stdout.txt'",
-               stderr="'stderr.txt'",
-               Spacing=0.15,
-               Output='density + wfs + potential',
-               OutputHow='cube + xcrysden')
+                FromScratch=True,
+                stdout="'stdout.txt'",
+                stderr="'stderr.txt'",
+                Spacing=0.15,
+                Output='density + wfs + potential',
+                OutputHow='cube + xcrysden',
+                _autofix_outputformats=True)
 
 system.set_calculator(calc0)
 system.get_potential_energy()
@@ -30,7 +30,7 @@ E = system.get_potential_energy()
 print('energy', E)
 
 errs = check_interface(calc1)
-#view(system)
+# view(system)
 
 atoms = Octopus.read_atoms(label)
 errs = check_interface(atoms.calc)

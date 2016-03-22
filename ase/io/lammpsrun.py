@@ -25,7 +25,6 @@ def read_lammps_dump(fileobj, index=-1, order=True, atomsobj=Atoms):
         line = lines.pop(0)
 
         if 'ITEM: TIMESTEP' in line:
-            n_atoms = 0
             lo = []
             hi = []
             tilt = []

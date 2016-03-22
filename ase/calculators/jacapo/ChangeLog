@@ -4,7 +4,7 @@
 
 2010-06-16  John Tester  <jkitchin@andrew.cmu.edu>
 
-	* jacapo.py (Jacapo.set_nbands): added code to delete teh number_of)bands nc dimension. if you change the number of bands in a calculator, you need to delete this so that the new dimension can be fixed.
+	* jacapo.py (Jacapo.set_nbands): added code to delete the number_of)bands nc dimension. if you change the number of bands in a calculator, you need to delete this so that the new dimension can be fixed.
 	(valid_kpts): changed ot (str(x.dtype)[0:5] to make sure the string comparison works.
 	(valid_kpts): fixed to [0:7]
 

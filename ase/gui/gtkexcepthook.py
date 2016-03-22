@@ -214,15 +214,3 @@ def _info (exctyp, value, tb):
 original_excepthook = sys.excepthook
 sys.excepthook = _info
 exception_dialog_active = False
-
-if __name__ == '__main__':
-        class X (object):
-                pass
-        x = X()
-        x.y = 'Test'
-        x.z = x
-        w = ' e'
-        #feedback = 'developer@bigcorp.comp'
-        #smtphost = 'mx.bigcorp.comp'
-        1, x.z.y, f, w
-        raise Exception (x.z.y + w)

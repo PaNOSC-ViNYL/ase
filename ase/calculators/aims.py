@@ -548,7 +548,7 @@ class Aims(FileIOCalculator):
                 kpts = int(line.split(':')[-1].strip())
         for n, line in enumerate(lines):
             if line.rfind('K-points in task') > -1:
-                kptsstart = n  # last occurence of (
+                kptsstart = n  # last occurrence of (
         assert not kpts is None
         assert not kptsstart is None
         text = lines[kptsstart + 1:]

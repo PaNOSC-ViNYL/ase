@@ -770,7 +770,7 @@ class Jacapo:
         The function checks to make sure it is not less than the
         planewave cutoff.
 
-        Density_WaveCutoff describes the kinetic energy neccesary to
+        Density_WaveCutoff describes the kinetic energy necessary to
         represent a wavefunction associated with the total density,
         i.e. G-vectors for which $\vert G\vert^2$ $<$
         4*Density_WaveCutoff will be used to describe the total
@@ -1432,7 +1432,7 @@ than density cutoff %i' % (pw, dw))
         nc.close()
 
     def get_extracharge(self):
-        'Return the extra charge set in teh calculator'
+        'Return the extra charge set in the calculator'
 
         nc = netCDF(self.get_nc(), 'r')
         if 'ExtraCharge' in nc.variables:
@@ -1444,7 +1444,7 @@ than density cutoff %i' % (pw, dw))
         return exchg
 
     def get_extpot(self):
-        'return the external potential set in teh calculator'
+        'return the external potential set in the calculator'
 
         nc = netCDF(self.get_nc(), 'r')
         if 'ExternalPotential' in nc.variables:
@@ -2369,7 +2369,7 @@ than density cutoff %i' % (pw, dw))
             if self.atoms is None:
                 return None
             atoms = self.atoms.copy()
-            #it is not obvious the copy of atoms should have teh same
+            #it is not obvious the copy of atoms should have the same
             #calculator
             atoms.set_calculator(self)
         else:
@@ -2543,7 +2543,7 @@ than density cutoff %i' % (pw, dw))
 
     def get_psp_nuclear_charge(self, psp):
         '''
-        get the nuclear charge of the atom from teh psp-file.
+        get the nuclear charge of the atom from the psp-file.
 
         This is not the same as the atomic number, nor is it
         necessarily the negative of the number of valence electrons,
@@ -2951,7 +2951,7 @@ than density cutoff %i' % (pw, dw))
         import tempfile
 
         if hasattr(self, "_dacapo"):
-            msg = "Starting External Dynamics while Dacapo is runnning: %s"
+            msg = "Starting External Dynamics while Dacapo is running: %s"
             msg = msg % str(self._dacapo.poll())
             log.debug(msg)
         else:

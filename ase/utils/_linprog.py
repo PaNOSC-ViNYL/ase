@@ -347,7 +347,7 @@ def linprog(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
     solution = np.zeros(n + n_slack + n_artificial)
     solution[basis[:m]] = T[:m, -1]
     x = solution[:n]
-    slack = solution[n:n + n_slack]
+    # slack = solution[n:n + n_slack]
 
     # For those variables with finite negative lower bounds,
     # reverse the change of variables

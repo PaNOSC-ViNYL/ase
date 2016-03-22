@@ -1473,7 +1473,7 @@ class Atoms(object):
             will be moved along this axis.  By default, the boundary
             conditions of the Atoms object will be used.
         eps: float
-            Small number to prevent slightly negative coordinates from beeing
+            Small number to prevent slightly negative coordinates from being
             wrapped.
 
         See also the :func:`ase.utils.geometry.wrap_positions` function.

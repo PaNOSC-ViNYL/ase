@@ -1,18 +1,18 @@
-from operator import mul
-from itertools import combinations, product, chain
+from functools import reduce
+from itertools import combinations, chain
 from math import factorial
+from operator import mul
 
 import numpy as np
-from array import *
 
 from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
-from functools import reduce
+
 
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=None, maxfreq=None):
-        """Input is a atoms object and the corresponding vibrations. 
-        With minfreq and maxfreq frequencies can    
+        """Input is a atoms object and the corresponding vibrations.
+        With minfreq and maxfreq frequencies can
         be excluded from the calculation"""
      
         self.atoms = atoms
@@ -20,29 +20,29 @@ class FranckCondon:
         self.mm05_V = np.repeat(1. / np.sqrt(atoms.get_masses()), 3)
         self.minfreq = minfreq
         self.maxfreq = maxfreq
-        self.shape = (len(self.atoms), 3) 
+        self.shape = (len(self.atoms), 3)
 
         vib = Vibrations(atoms, name=vibname)
-        self.energies = np.real(vib.get_energies(method='frederiksen')) # [eV] 
+        self.energies = np.real(vib.get_energies(method='frederiksen')) # [eV]
         self.frequencies = np.real(
             vib.get_frequencies(method='frederiksen')) # [cm^-1]
         self.modes = vib.modes
         self.H = vib.H
   
     def get_Huang_Rhys_factors(self, forces):
-        """Evaluate Huang-Rhys factors and corresponding frequencies 
-        from forces on atoms in the exited electronic state.        
-        The double harmonic approximation is used. HR factors are 
-        the first approximation of FC factors, 
+        """Evaluate Huang-Rhys factors and corresponding frequencies
+        from forces on atoms in the exited electronic state.
+        The double harmonic approximation is used. HR factors are
+        the first approximation of FC factors,
         no combinations or higher quanta (>1) exitations are considered"""
 
-        assert(forces.shape == self.shape) 
+        assert(forces.shape == self.shape)
 
         # Hesse matrix
         H_VV = self.H
         # sqrt of inverse mass matrix
         mm05_V = self.mm05_V
-        # mass weighted Hesse matrix 
+        # mass weighted Hesse matrix
         Hm_VV = mm05_V[:, None] * H_VV * mm05_V
         # mass weighted displacements
         Fm_V = forces.flat * mm05_V
@@ -57,7 +57,7 @@ class FranckCondon:
 
         # reshape for minfreq
         indices = np.where(self.frequencies <= self.minfreq)
-        np.append(indices, np.where(self.frequencies >= self.maxfreq)) 
+        np.append(indices, np.where(self.frequencies >= self.maxfreq))
         S=np.delete(S, indices)
         frequencies = np.delete(self.frequencies, indices)
         
@@ -67,7 +67,7 @@ class FranckCondon:
         """Return FC factors and corresponding frequencies up to given order.
         
         order= number of quanta taken into account
-        T= temperature in K. Vibronic levels are occupied by a 
+        T= temperature in K. Vibronic levels are occupied by a
         Boltzman distribution.
         forces= forces on atoms in the exited electronic state"""
         
@@ -85,7 +85,7 @@ class FranckCondon:
             freq_neg[i-1]=freq*(-i)
             
         # combinations
-        freq_nn=[x for x in combinations(chain(*freq_n), 2)] 
+        freq_nn=[x for x in combinations(chain(*freq_n), 2)]
         for i in range(len(freq_nn)):
             freq_nn[i] = freq_nn[i][0] + freq_nn[i][1]
    
@@ -93,7 +93,7 @@ class FranckCondon:
         for i, y in enumerate(freq):
             ind = [j for j,x in enumerate(freq_nn) if x%y==0.]# or x/y==3.]
             indices2.append(ind)
-        indices2 = [x for x in chain(*indices2)]    
+        indices2 = [x for x in chain(*indices2)]
         freq_nn = np.delete(freq_nn, indices2)
 
         frequencies= [[] * x for x in range(3)]
@@ -107,7 +107,7 @@ class FranckCondon:
             frequencies[1].append(freq_n[i])
         frequencies[1]=[x for x in chain(*frequencies[1])]
 
-        frequencies[2]=freq_nn    
+        frequencies[2]=freq_nn
 
 
         ##Franck-Condon factors
@@ -137,12 +137,12 @@ class FranckCondon:
                 summe=[]
                 for k in range(a+1):
                     s = ((-1)**(q - k) * np.sqrt(S)**(o + q - 2 * k) *
-                         factorial(o) * factorial(q) / 
+                         factorial(o) * factorial(q) /
                          (factorial(k) * factorial(o - k) * factorial(q - k)))
                     summe.append(s)
                 summe = np.sum(summe, 0)
-                O_n[o][q-o] = (np.exp(-S / 2) / 
-                               (factorial(o) * factorial(q))**(0.5) * 
+                O_n[o][q-o] = (np.exp(-S / 2) /
+                               (factorial(o) * factorial(q))**(0.5) *
                                summe)**2 * w_n[o]
             for q in range(n - 1):
                 O_neg[o][q] = [0 * b for b in range(len(S))]
@@ -150,13 +150,13 @@ class FranckCondon:
                 a = np.minimum(o,q)
                 summe = []
                 for k in range(a+1):
-                    s=((-1)**(q - k) * np.sqrt(S)**(o + q - 2 * k) * 
-                       factorial(o) * factorial(q) / 
+                    s=((-1)**(q - k) * np.sqrt(S)**(o + q - 2 * k) *
+                       factorial(o) * factorial(q) /
                        (factorial(k) * factorial(o - k) * factorial(q - k)))
                     summe.append(s)
                 summe = np.sum(summe, 0)
-                O_neg[o][q] = (np.exp(-S / 2) / 
-                               (factorial(o) * factorial(q))**(0.5) * 
+                O_neg[o][q] = (np.exp(-S / 2) /
+                               (factorial(o) * factorial(q))**(0.5) *
                                summe)**2 * w_n[o]
         O_neg = np.delete(O_neg, 0, 0)
 
@@ -165,7 +165,7 @@ class FranckCondon:
         FC_n=np.sum(O_n,0)
         zero=reduce(mul,FC_n[0])
         FC_neg=[[]*i for i in range(n-2)]
-        FC_neg=np.sum(O_neg,0)    
+        FC_neg=np.sum(O_neg,0)
         FC_n=np.delete(FC_n,0,0)
 
         #combination FC factors
@@ -186,12 +186,12 @@ class FranckCondon:
             FC[1].append(FC_n[i])
         FC[1]=[x for x in chain(*FC[1])]
 
-        FC[2]=FC_nn    
+        FC[2]=FC_nn
  
-        """Returned are two 3-dimensional lists. First inner list contains 
-frequencies and FC-factors of vibrations exited with |1| quanta and 
+        """Returned are two 3-dimensional lists. First inner list contains
+frequencies and FC-factors of vibrations exited with |1| quanta and
 the 0-0 transition.
-        Second list contains frequencies and FC-factors from higher 
-quanta exitations. Third list are combinations of two normal modes 
-(including combinations of higher quanta exitations). """ 
+        Second list contains frequencies and FC-factors from higher
+quanta exitations. Third list are combinations of two normal modes
+(including combinations of higher quanta exitations). """
         return FC, frequencies

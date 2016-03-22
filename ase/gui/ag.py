@@ -5,8 +5,8 @@ from __future__ import print_function
 import sys
 from optparse import OptionParser
 
-import ase.gui.i18n
-from gettext import gettext as _
+from ase.gui.i18n import enable_localization
+
 
 # Grrr, older versions (pre-python2.7) of optparse have a bug
 # which prevents non-ascii descriptions.  How do we circumvent this?
@@ -69,14 +69,10 @@ def build_parser():
 
 
 def main():
+    enable_localization()
+    from gettext import gettext as _
     parser = build_parser()
     opt, args = parser.parse_args()
-
-    try:
-        import ase
-    except ImportError:
-        from os.path import dirname, join, pardir
-        sys.path.append(join(dirname(__file__), pardir))
 
     from ase.gui.images import Images
     from ase.atoms import Atoms
@@ -129,6 +125,7 @@ def main():
         else:
             from ase.gui.gui import GUI
             import ase.gui.gtkexcepthook
+            ase
             gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
             gui.run(opt.graph)
 

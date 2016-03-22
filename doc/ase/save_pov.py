@@ -33,7 +33,7 @@ kwargs = {
     'show_unit_cell': 2,   # 0, 1, or 2 to not show, show, and show all of cell
     }
 
-# Extra kwargs only avaliable for povray (All units in angstrom)
+# Extra kwargs only available for povray (All units in angstrom)
 kwargs.update({
     'run_povray'   : True, # Run povray or just write .pov + .ini files
     'display'      : False,# Display while rendering

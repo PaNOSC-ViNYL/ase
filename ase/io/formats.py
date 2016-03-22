@@ -77,6 +77,7 @@ all_formats = {
     'json': ('ASE JSON database file', '+F'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '1F'),
+    'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
@@ -88,7 +89,7 @@ all_formats = {
     'res': ('SHELX format', '1S'),
     'sdf': ('SDF format', '1F'),
     'struct': ('WIEN2k structure file', '1S'),
-    'struct-out': ('SIESTA STRUCT file', '1F'),
+    'struct_out': ('SIESTA STRUCT file', '1F'),
     'traj': ('ASE trajectory', '+S'),
     'trj': ('Old ASE pickle trajectory', '+S'),
     'turbomole': ('TURBOMOLE coord file', '1F'),
@@ -122,7 +123,7 @@ format2modulename = {
     'lammps-dump': 'lammpsrun',
     'postgresql': 'db',
     'struct': 'wien2k',
-    'struct-out': 'siesta',
+    'struct_out': 'siesta',
     'traj': 'trajectory',
     'trj': 'pickletrajectory',
     'turbomole-gradient': 'turbomole',
@@ -209,6 +210,7 @@ def write(filename, images, format=None, **kwargs):
     The use of additional keywords is format specific."""
 
     if isinstance(filename, str):
+        filename = os.path.expanduser(filename)
         fd = None
         if filename == '-':
             fd = sys.stdout
@@ -289,7 +291,7 @@ def read(filename, index=None, format=None, **kwargs):
     else:
         return next(_iread(filename, slice(index, None), format, **kwargs))
 
-
+        
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
 
@@ -315,6 +317,7 @@ def iread(filename, index=None, format=None, **kwargs):
 def _iread(filename, index, format, full_output=False, **kwargs):
     compression = None
     if isinstance(filename, str):
+        filename = os.path.expanduser(filename)
         if filename.endswith('.gz'):
             compression = 'gz'
             filename = filename[:-3]

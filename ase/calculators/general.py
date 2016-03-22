@@ -51,13 +51,9 @@ class Calculator:
         self.atoms = atoms.copy()
         try:
             self.nbands = self.read_nbands()
-        except NotImplementedError:
-            do_nothing = True
-        except AttributeError:
-            do_nothing = True
+        except (NotImplementedError, AttributeError):
+            pass
         try:
             self.stress = self.read_stress()
         except NotImplementedError:
             self.stress = None
-            do_nothing = True
-        return
