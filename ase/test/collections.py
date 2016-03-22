@@ -1,4 +1,4 @@
 from ase.collections import s22
-print(s22.names, s22.data)
+print(s22)
 for a in s22:
     print(a)
