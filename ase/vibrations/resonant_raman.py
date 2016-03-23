@@ -158,18 +158,18 @@ class ResonantRaman(Vibrations):
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
         self.ex0m_ccp = get_me_tensor(ex0)
-        self.exmE_Vp = []
-        self.expE_Vp = []
+        self.exF_Vp = []
         self.exmm_Vccp = []
         self.expm_Vccp = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                self.exmE_Vp.append([ex.energy * eu for ex in exm[r]])
-                self.expE_Vp.append([ex.energy * eu for ex in exp[r]])
+                self.exF_Vp.append(
+                    [(ep - em) for ep, em in zip(exp[r], exm[r])])
                 self.exmm_Vccp.append(get_me_tensor(exm[r]))
                 self.expm_Vccp.append(get_me_tensor(exp[r]))
                 r += 1
+        self.exF_Vp = np.array(self.exF_Vp) * eu / 2 / self.delta
         
         self.timer.stop('me and energy')
 
