@@ -461,7 +461,7 @@ def filetype(filename, read=True):
         if fd is sys.stdin:
             return 'json'
 
-    data = fd.read(2000)
+    data = fd.read(20000)
     if fd is not filename:
         fd.close()
     else:
