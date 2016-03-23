@@ -179,6 +179,10 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'modes'):
             self.timer.start('read vibrations')
             Vibrations.read(self, method, direction)
+            # we now have:
+            # self.H     : Hessian matrix
+            # self.im    : 1./sqrt(masses)
+            # self.modes : Eigenmodes of the mass weighted H
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0'):
             self.read_excitations()
