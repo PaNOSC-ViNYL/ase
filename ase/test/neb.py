@@ -15,7 +15,7 @@ images = [Trajectory('H.traj')[-1]]
 for i in range(nimages):
     images.append(images[0].copy())
 images[-1].positions[6, 1] = 2 - images[0].positions[6, 1]
-neb = NEB(images)
+neb = NEB(images,tr = False)
 neb.interpolate()
 if 0:  # verify that initial images make sense
     from ase.visualize import view
@@ -35,7 +35,6 @@ for a in neb.images:
     print(a.positions[-1], a.get_potential_energy())
 
 results = [images[2].get_potential_energy()]
-
 # Check NEB tools.
 nt_images = [read('mep.traj', index=_) for _ in range(-4, 0)]
 nebtools = NEBtools(nt_images)
@@ -49,7 +48,7 @@ def run_neb_calculation(cpu):
     for i in range(nimages):
         images.append(images[0].copy())
     images[-1].positions[6, 1] = 2 - images[0].positions[6, 1]
-    neb = NEB(images, parallel=True, world=cpu)
+    neb = NEB(images, parallel=True, world=cpu, tr = False)
     neb.interpolate()
 
     images[cpu.rank + 1].set_calculator(MorsePotential())

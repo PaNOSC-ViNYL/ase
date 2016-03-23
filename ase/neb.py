@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import threading
 from math import sqrt
 
@@ -14,7 +13,7 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 world=None,remove_translation=False, remove_rotation=False):
+                 world=None,tr=None):
         """Nudged elastic band.
 
         images: list of Atoms objects
@@ -25,10 +24,10 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
-        remove_translation: bool
-            removes overall translation
-        remove_rotation: bool
-            removes overall rotation
+        tr: bool
+            TRUE actives NEB-TR for removing translation and
+            rotation during NEB. By default applied non-periodic
+            systems
         """
         self.images = images
         self.climb = climb
@@ -36,8 +35,14 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
-        self.remove_com = remove_translation
-        self.remove_rotation = remove_rotation
+        
+        if tr is not None:
+            self.tr = tr
+        else:
+            if self.images[0].get_pbc().sum() == 0:
+                self.tr = True
+            else:
+                self.tr = False
         
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
@@ -52,16 +57,11 @@ class NEB:
 
     def interpolate(self, method='linear', mic=False):
         
-        #if not (self.remove_com or
-        #  self.remove_rotation) and method == 'linear':
-        
-        if not (self.remove_com or self.remove_rotation):
-           interpolate(self.images, mic)
-        
-        elif method == 'idpp':
-            self.idpp_interpolate(traj=None, log=None, mic=mic)
-        
-        elif (self.remove_com or self.remove_rotation) and method == 'linear':
+        if not self.tr:
+            interpolate(self.images, mic)    
+            print 'NOT'
+        elif self.tr:
+            print 'TR'
             #liner interpolation with translation and rotation removal
             minimize_rotation_and_translation(self.images[-1], self.images[0])
             d = (self.images[-1].get_positions() -
@@ -72,7 +72,11 @@ class NEB:
                 interpolated_coordinates = coords + i * d
                 self.images[i].set_positions(interpolated_coordinates)
                 minimize_rotation_and_translation(self.images[i],
-                 self.images[0]) 
+                 self.images[0])
+                 
+        if method == 'idpp':
+            print 'IDPP'
+            self.idpp_interpolate(traj=None, log=None, mic=mic)
 
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
                          optimizer=BFGS, mic=False):
@@ -116,7 +120,7 @@ class NEB:
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages - 2)
 
-        if (self.remove_com or self.remove_rotation):
+        if self.tr:
             #remove translation and rotation between
             #images before computing forces
             for i in range(1, self.nimages):
@@ -206,7 +210,7 @@ class IDPP(Calculator):
 
         Improved initial guess for minimum energy path calculations.
 
-        Søren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jónsson
+        Soren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jonsson
 
         Chem. Phys. 140, 214106 (2014)
     """
@@ -486,7 +490,7 @@ class NEBtools:
 
     def get_fmax(self):
         """Returns fmax, as used by optimizers with NEB."""
-        neb = NEB(self._images)
+        neb = NEB(self._images,tr = False)
         forces = neb.get_forces()
         return np.sqrt((forces**2).sum(axis=1).max())
 
