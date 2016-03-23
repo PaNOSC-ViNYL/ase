@@ -33,9 +33,9 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
     # Manipulate the cell vectors to find the best search zone and
     # cast to numpy array.
     cell_vectors = np.array(cell_vectors)
-    cell_vectors_mag = map(np.linalg.norm, cell_vectors)
-    cell_search = map(lambda x: int(ceil(float(root * 1.2) / float(x))),
-                      cell_vectors_mag)
+    cell_vectors_mag = [np.linalg.norm(x) for x in cell_vectors]
+    cell_search = [int(ceil(float(root * 1.2) / float(x)))
+                   for x in cell_vectors_mag]
 
     # Make these variables in function scope
     # x,  y  = Raw grid point
@@ -66,7 +66,7 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
 
     root_rotation = [[cos(root_angle), -sin(root_angle)],
                      [sin(root_angle), cos(root_angle)]]
-    cell = map(lambda x: np.dot(x, root_rotation) * cell_scale, cell_vectors)
+    cell = [np.dot(x, root_rotation) * cell_scale for x in cell_vectors]
 
     def pretrim(atoms):
         cell = atoms._cell
@@ -105,8 +105,9 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
         if shift:
             atoms.translate(shift_vector * -1)
 
-    atoms_cell_mag = map(np.linalg.norm, np.array(atoms._cell[0:2, 0:2]))
-    cell_vect_mag = map(np.linalg.norm, np.array(cell_vectors))
+    atoms_cell_mag = [np.linalg.norm(x)
+                      for x in np.array(atoms._cell[0:2, 0:2])]
+    cell_vect_mag = [np.linalg.norm(x) for x in np.array(cell_vectors)]
     cell_scale = np.divide(atoms_cell_mag, cell_vect_mag)
     atoms *= (cell_search[0], cell_search[1], 1)
     atoms._cell[0:2, 0:2] = cell * cell_scale
@@ -156,9 +157,9 @@ def root_surface_analysis(primitive_slab, root, allow_above=False, eps=1e-8):
     # Manipulate the cell vectors to find the best search zone and
     # cast to numpy array.
     cell_vectors = np.array(cell_vectors)
-    cell_vectors_mag = map(np.linalg.norm, cell_vectors)
-    cell_search = map(lambda x: int(ceil(float(root * 1.2) / float(x))),
-                      cell_vectors_mag)
+    cell_vectors_mag = [np.linalg.norm(x) for x in cell_vectors]
+    cell_search = [int(ceil(float(root * 1.2) / float(x)))
+                   for x in cell_vectors_mag]
 
     # Returns valid roots that are found in the given search
     # space.  To find more, use a higher root.
