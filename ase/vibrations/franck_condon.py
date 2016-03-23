@@ -23,7 +23,7 @@ class FCOverlap:
             return self._fac[n]
 
     def directT0(self, n, S):
-        """Direct squared Franck-Condon overlap for T=0."""
+        """Direct squared Franck-Condon overlap corresponding to T=0."""
         return np.exp(-S) * S**n / self.factorial(n)
 
     def direct(self, n, m, S):
