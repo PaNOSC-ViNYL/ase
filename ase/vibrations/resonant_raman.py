@@ -165,12 +165,13 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 self.exF_Vp.append(
-                    [(ep - em) for ep, em in zip(exp[r], exm[r])])
+                    [(ep.energy - em.energy)
+                     for ep, em in zip(exp[r], exm[r])])
                 self.exmm_Vccp.append(get_me_tensor(exm[r]))
                 self.expm_Vccp.append(get_me_tensor(exp[r]))
                 r += 1
         self.exF_Vp = np.array(self.exF_Vp) * eu / 2 / self.delta
-        
+
         self.timer.stop('me and energy')
 
     def get_intensity_tensor(self, omega, gamma=0.1):
