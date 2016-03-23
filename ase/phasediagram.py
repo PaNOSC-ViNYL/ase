@@ -277,7 +277,7 @@ class Pourbaix:
         if plot:
             import matplotlib.pyplot as plt
             import matplotlib.cm as cm
-            plt.pcolormesh(pH, U, a, cmap=cm.Accent)
+            plt.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
             for x, y, name in text:
                 plt.text(y, x, name, horizontalalignment='center')
             plt.xlabel('pH')
