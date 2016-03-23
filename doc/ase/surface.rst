@@ -163,11 +163,12 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 .. |diamond111| image:: diamond111.png
 
 
-This can be used for :mol:`MX2` 2D structures such as :mol:`MoS2`:
+This can be used for :mol:`MX_2` 2D structures such as :mol:`MoS_2`:
 
 .. autofunction:: mx2
 
 .. image:: mx2.png
+
 
 Create root cuts of surfaces
 ````````````````````````````
@@ -204,15 +205,8 @@ An example of using your own primitive cell::
   atoms = fcc111("Ag", (1, 1, 3))
   atoms = root_surface(atoms, 27)
 
-.. image:: fcc111_root.png 
+.. image:: fcc111_root.png
 
-Adding new utility functions
-````````````````````````````
-
-If you need other surfaces than the ones above, the easiest is to look
-in the source file surface.py, and adapt one of the existing
-functions.  *Please* contribute any such function that you make
-either by checking it into SVN or by mailing it to the developers.
 
 Adding adsorbates
 -----------------

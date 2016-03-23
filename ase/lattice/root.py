@@ -1,5 +1,4 @@
 from math import atan2, ceil, cos, sin, log10
-from ase.visualize import view
 import numpy as np
 
 
