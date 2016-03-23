@@ -174,13 +174,22 @@ class ResonantRaman(Vibrations):
 
         self.timer.stop('me and energy')
 
-    def get_intensity_tensor(self, omega, gamma=0.1):
+    def read(self, method='standard', direction='central'):
+        """Read data from a pre-performed calculation."""
         if not hasattr(self, 'modes'):
-            # read vibrational modes
-            self.read()
-
+            self.timer.start('read vibrations')
+            Vibrations.read(self, method, direction)
+            self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0'):
             self.read_excitations()
+
+    def get_Albrecht_A(self, omega, gamma=0.1):
+        """Evaluate Albrecht A term."""
+        self.read()
+
+    def get_intensity_tensor(self, omega, gamma=0.1):
+        """Evaluate Albrecht B+C term"""
+        self.read()
 
         self.timer.start('amplitudes')
 
