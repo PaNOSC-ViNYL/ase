@@ -124,6 +124,8 @@ class ResonantRaman(Vibrations):
                                   name + '-' + self.exext, matching)
                 matching = append(exp_object_list,
                                   name + '+' + self.exext, matching)
+        self.ndof = 3 * len(self.indices)
+        self.nex = len(matching)
         self.timer.stop('read excitations')
 
         self.timer.start('select')
@@ -131,16 +133,45 @@ class ResonantRaman(Vibrations):
             mlst = [ex for ex in exl if ex in matching]
             assert(len(mlst) == len(matching))
             return mlst
-        self.ex0 = select(ex0_object, matching)
-        self.exm = []
-        self.exp = []
+        ex0 = select(ex0_object, matching)
+        exm = []
+        exp = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                self.exm.append(select(exm_object_list[r], matching))        
-                self.exp.append(select(exp_object_list[r], matching))
+                exm.append(select(exm_object_list[r], matching))        
+                exp.append(select(exp_object_list[r], matching))
                 r += 1
         self.timer.stop('select')
+
+        self.timer.start('me and energy')
+
+        def get_me_tensor(ex_p, form='v'):
+            def outer(ex):
+                me = ex.get_dipole_me(form=form)
+                return np.outer(me, me.conj())
+            m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
+            for p, ex in enumerate(ex_p):
+                m_ccp[:, :, p] = outer(ex)
+            return m_ccp
+
+        eu = units.Hartree
+        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
+        self.ex0m_ccp = get_me_tensor(ex0)
+        self.exmE_Vp = []
+        self.expE_Vp = []
+        self.exmm_Vccp = []
+        self.expm_Vccp = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                self.exmE_Vp.append([ex.energy * eu for ex in exm[r]])
+                self.expE_Vp.append([ex.energy * eu for ex in exp[r]])
+                self.exmm_Vccp.append(get_me_tensor(exm[r]))
+                self.expm_Vccp.append(get_me_tensor(exp[r]))
+                r += 1
+        
+        self.timer.stop('me and energy')
 
     def get_intensity_tensor(self, omega, gamma=0.1):
         if not hasattr(self, 'modes'):
@@ -150,36 +181,10 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'ex0'):
             self.read_excitations()
 
-            eu = units.Hartree
-
-            def get_me_tensor(ex_p, form='v'):
-                def outer(ex):
-                    me = ex.get_dipole_me(form=form)
-                    return np.outer(me, me.conj())
-                m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
-                for p, ex in enumerate(ex_p):
-                    m_ccp[:, :, p] = outer(ex)
-                return m_ccp
-
-            self.timer.start('create tensor')
-            # XXX do not overwrite self.ex0
-            self.ex0 = np.array([
-                ex.energy * eu for ex in self.ex0])
-            self.exminus = []
-            self.explus = []
-            r = 0
-            for a in self.indices:
-                for i in 'xyz':
-                    self.exminus.append(get_me_tensor(self.exm[r]))
-                    self.explus.append(get_me_tensor(self.exp[r]))
-                    r += 1
-            self.timer.stop('create tensor')
-
         self.timer.start('amplitudes')
 
         self.timer.start('init')
-        ndof = 3 * len(self.indices)
-        amplitudes = np.zeros((ndof, 3, 3), dtype=complex)
+        amplitudes = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
         self.timer.stop('init')
         
@@ -194,8 +199,8 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 amplitudes[r] = pre * (
-                    kappa(self.explus[r], self.ex0, omega, gamma) -
-                    kappa(self.exminus[r], self.ex0, omega, gamma))
+                    kappa(self.expm_Vccp[r], self.ex0E_p, omega, gamma) -
+                    kappa(self.exmm_Vccp[r], self.ex0E_p, omega, gamma))
                 r += 1
 
         self.timer.stop('amplitudes')
