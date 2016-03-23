@@ -152,9 +152,14 @@ class Vibrations:
             fd.close()
         sys.stdout.flush()
 
-    def clean(self):
-        if op.isfile(self.name + '.eq.pckl'):
-            os.remove(self.name + '.eq.pckl')
+    def clean(self, empty_files=False):
+        """Use empty_files=True to remove only empty files."""
+        if rank != 0:
+            return
+        name = self.name + '.eq.pckl'
+        if (op.isfile(name)) and \
+           (not(empty_files) or (op.getsize(name) == 0)):
+            os.remove(name)
 
         for a in self.indices:
             for i in 'xyz':
@@ -162,7 +167,8 @@ class Vibrations:
                     for ndis in range(1, self.nfree // 2 + 1):
                         name = '%s.%d%s%s.pckl' % (self.name, a, i,
                                                    ndis * sign)
-                        if op.isfile(name):
+                        if (op.isfile(name)) and \
+                           (not(empty_files) or (op.getsize(name) == 0)):
                             os.remove(name)
 
     def read(self, method='standard', direction='central'):
