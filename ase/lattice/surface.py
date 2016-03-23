@@ -428,8 +428,8 @@ def hcp0001_root(symbol, root, size, a=None, c=None,
 
 
     The first 20 valid roots for nonorthogonal are...
-    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
-    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25,
+    27, 28, 31, 36, 37, 39, 43, 48, 49"""
     atoms = hcp0001(symbol=symbol, size=(1, 1, size[2]),
                     a=a, c=c, vacuum=vacuum, orthogonal=orthogonal)
     atoms = root_surface(atoms, root)
@@ -444,8 +444,8 @@ def fcc111_root(symbol, root, size, a=None,
     of repetitions of the cell.
 
     The first 20 valid roots for nonorthogonal are...
-    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
-    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25, 27,
+    28, 31, 36, 37, 39, 43, 48, 49"""
     atoms = fcc111(symbol=symbol, size=(1, 1, size[2]),
                    a=a, vacuum=vacuum, orthogonal=orthogonal)
     atoms = root_surface(atoms, root)
@@ -461,8 +461,8 @@ def bcc111_root(symbol, root, size, a=None,
 
 
     The first 20 valid roots for nonorthogonal are...
-    1.0, 3.0, 4.0, 7.0, 9.0, 12.0, 13.0, 16.0, 19.0, 21.0, 25.0,
-    27.0, 28.0, 31.0, 36.0, 37.0, 39.0, 43.0, 48.0, 49.0"""
+    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25,
+    27, 28, 31, 36, 37, 39, 43, 48, 49"""
     atoms = bcc111(symbol=symbol, size=(1, 1, size[2]),
                    a=a, vacuum=vacuum, orthogonal=orthogonal)
     atoms = root_surface(atoms, root)
