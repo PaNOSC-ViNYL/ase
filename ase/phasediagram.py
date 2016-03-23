@@ -304,7 +304,8 @@ class PhaseDiagram:
         """Phase-diagram.
         
         references: list of (name, energy) tuples
-            List of references.  The names can also be dicts like
+            List of references.  The energy must be the total energy and not
+            energy per atom.  The names can also be dicts like
             ``{'Zn': 1, 'O': 2}`` which would be equivalent to ``'ZnO2'``.
         filter: str or list of str
             Use only those references that match the given filter.
@@ -336,9 +337,13 @@ class PhaseDiagram:
                 if symbol not in self.species:
                     self.species[symbol] = len(self.species)
             self.references.append((count, energy, name, natoms))
+
+        self.symbols = [None] * len(self.species)
+        for symbol, id in self.species.items():
+            self.symbols[id] = symbol
         
         if verbose:
-            print('Species:', ', '.join(self.species))
+            print('Species:', ', '.join(self.symbols))
             print('References:', len(self.references))
             for i, (count, energy, name, natoms) in enumerate(self.references):
                 print('{0:<5}{1:10}{2:10.3f}'.format(i, name, energy))
@@ -355,9 +360,14 @@ class PhaseDiagram:
         ok = hull.equations[:, -2] < 0
         self.simplices = hull.simplices[ok]
         
+        # Create a mask for those points that are on the convex hull:
+        self.hull = np.zeros(len(self.points), bool)
+        for simplex in self.simplices:
+            self.hull[simplex] = True
+        
         if verbose:
             print('Simplices:', len(self.simplices))
-        
+            
     def decompose(self, formula=None, **kwargs):
         """Find the combination of the references with the lowest energy.
         
@@ -413,49 +423,102 @@ class PhaseDiagram:
             
         return energy, indices, np.array(coefs)
         
-    def plot(self):
-        """Plot datapoints and convex hull.
+    def plot(self, dims=None, show=True):
+        """Make 2-d or 3-d plot of datapoints and convex hull.
         
-        Works only for 2, 3 and 4 components systems.
+        Default is 2-d for 2- and 3-component diagrams and 3-d for a
+        4-component diagram.
         """
-        plot = [self.plot2d, self.plot3d, self.plot4d][len(self.species) - 2]
-        plot()
+        
+        N = len(self.species)
+        
+        if dims is None:
+            if N <= 3:
+                dims = 2
+            else:
+                dims = 3
+              
+        if dims == 2:
+            if N == 2:
+                self.plot2d2()
+            elif N == 3:
+                self.plot2d3()
+            else:
+                raise ValueError('Can only make 2-d plots for 2 and 3 '
+                                 'component systems!')
+        else:
+            if N == 3:
+                self.plot3d3()
+            elif N == 4:
+                self.plot3d4()
+            else:
+                raise ValueError('Can only make 3-d plots for 3 and 4 '
+                                 'component systems!')
+                
+        if show:
+            import matplotlib.pyplot as plt
+            plt.show()
             
-    def plot2d(self):
+    def plot2d2(self):
         import matplotlib.pyplot as plt
         x, e = self.points[:, 1:].T
-        plt.plot(x, e, 'or')
+        plt.plot(x[self.hull], e[self.hull], 'og')
+        plt.plot(x[~self.hull], e[~self.hull], 'sr')
         for a, b, ref in zip(x, e, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             plt.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j in self.simplices:
-            plt.plot(x[[i, j]], e[[i, j]], '-g')
+            plt.plot(x[[i, j]], e[[i, j]], '-b')
 
-        # Find xlabel:
-        for symbol, id in self.species.items():
-            if id == 1:
-                break
-                
-        plt.xlabel(symbol)
+        plt.xlabel(self.symbols[1])
         plt.ylabel('energy [eV/atom]')
-        plt.show()
-        
-    def plot3d(self):
+
+    def plot2d3(self):
         import matplotlib.pyplot as plt
-        x, y = self.points[:, 1:-1].T
+        x, y = self.points[:, 1:-1].T.copy()
         x += y / 2
         y *= 3**0.5 / 2
-        plt.plot(x, y, 'or')
+        plt.plot(x[self.hull], y[self.hull], 'og')
+        plt.plot(x[~self.hull], y[~self.hull], 'sr')
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             plt.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j, k in self.simplices:
-            plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-g')
-        plt.show()
+            plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
+        
+    def plot3d3(self):
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.mplot3d import Axes3D
+        Axes3D  # silence pyflakes
 
-    def plot4d(self):
+        x, y, e = self.points[:, 1:].T
+
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.scatter(x[self.hull], y[self.hull], e[self.hull],
+                   c='g', marker='o')
+        ax.scatter(x[~self.hull], y[~self.hull], e[~self.hull],
+                   c='r', marker='s')
+
+        for a, b, c, ref in zip(x, y, e, self.references):
+            name = re.sub('(\d+)', r'$_{\1}$', ref[2])
+            ax.text(a, b, c, name, ha='center', va='bottom')
+
+        for i, j, k in self.simplices:
+            ax.plot(x[[i, j, k, i]],
+                    y[[i, j, k, i]],
+                    zs=e[[i, j, k, i]], c='b')
+        
+        ax.set_xlim3d(0, 1)
+        ax.set_ylim3d(0, 1)
+        ax.view_init(azim=115, elev=30)
+        ax.set_xlabel(self.symbols[1])
+        ax.set_ylabel(self.symbols[2])
+        ax.set_zlabel('energy [eV/atom]')
+        
+    def plot3d4(self):
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
         Axes3D  # silence pyflakes
@@ -467,7 +530,10 @@ class PhaseDiagram:
  
         fig = plt.figure()
         ax = fig.gca(projection='3d')
-        ax.scatter(a, b, c)
+        ax.scatter(a[self.hull], b[self.hull], c[self.hull],
+                   c='g', marker='o')
+        ax.scatter(a[~self.hull], b[~self.hull], c[~self.hull],
+                   c='r', marker='s')
 
         for x, y, z, ref in zip(a, b, c, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
@@ -476,13 +542,12 @@ class PhaseDiagram:
         for i, j, k, w in self.simplices:
             ax.plot(a[[i, j, k, i, w, k, j, w]],
                     b[[i, j, k, i, w, k, j, w]],
-                    zs=c[[i, j, k, i, w, k, j, w]], c='g')
+                    zs=c[[i, j, k, i, w, k, j, w]], c='b')
         
         ax.set_xlim3d(0, 1)
         ax.set_ylim3d(0, 1)
         ax.set_zlim3d(0, 1)
         ax.view_init(azim=115, elev=30)
-        plt.show()
         
         
 _aqueous = """\

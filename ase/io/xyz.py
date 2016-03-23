@@ -1,11 +1,11 @@
+"""The functions below are for reference only.
+We use the implementation from extxyz module, which is backwards
+compatible with standard XYZ format."""
+
 from ase.atoms import Atoms
-from ase.io.extxyz import read_extxyz
+from ase.io.extxyz import read_extxyz as read_xyz, write_extxyz as write_xyz
 
-# The simple_read_xyz() function below is for reference only.
-# We use the implementation from extxyz module, which is backwards
-# compatible with standard XYZ format
-
-read_xyz = read_extxyz
+__all__ = ['read_xyz', 'write_xyz']
 
 
 def simple_read_xyz(fileobj, index):
@@ -24,7 +24,7 @@ def simple_read_xyz(fileobj, index):
         yield Atoms(symbols=symbols, positions=positions)
 
 
-def write_xyz(fileobj, images, comment=''):
+def simple_write_xyz(fileobj, images, comment=''):
     symbols = images[0].get_chemical_symbols()
     natoms = len(symbols)
     for atoms in images:

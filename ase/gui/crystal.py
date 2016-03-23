@@ -327,7 +327,7 @@ class SetupBulkCrystal(SetupWindow):
             self.pybut.python = py_template % args_str
             try:
                 self.atoms = crystal(**args)
-                label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
+                label = label_template % {'natoms'  : len(self.atoms),
                                           'symbols' : formula(self.atoms.get_atomic_numbers()),
                                           'volume'  : self.atoms.get_volume()}
                 self.status.set_label(label)

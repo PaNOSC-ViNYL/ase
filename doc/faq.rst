@@ -49,8 +49,10 @@ to see all possibilities or read more :func:`here <ase.io.write>`.
 General
 =======
 
-Citation: how should I cite ASE?
---------------------------------
+.. _cite:
+    
+How should I cite ASE?
+----------------------
 
 If you find ASE useful in your research please cite:
 

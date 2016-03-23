@@ -1,10 +1,10 @@
 from ase.utils.sphinx import mol_role
-from ase.utils.sphinx import svn_role_tmpl, epydoc_role_tmpl
+from ase.utils.sphinx import git_role_tmpl, epydoc_role_tmpl
 from ase.utils.sphinx import create_png_files
 
 
 def git_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
-    return svn_role_tmpl('http://gitlab.com/ase/ase/blob/master/',
+    return git_role_tmpl('https://gitlab.com/ase/ase/blob/master/',
                          role,
                          rawtext, text, lineno, inliner, options, content)
 

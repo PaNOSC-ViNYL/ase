@@ -53,7 +53,7 @@ Adsorbates get tag=0:
 [3 3 3 3 2 2 2 2 1 1 1 1 0]
 
 This can be useful for setting up :mod:`ase.constraints` (see
-:ref:`diffusion_tutorial`).
+:ref:`diffusion tutorial`).
 
 
 Utility functions for setting up surfaces
