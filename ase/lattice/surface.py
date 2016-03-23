@@ -440,7 +440,7 @@ def hcp0001_root(symbol, root, size, a=None, c=None,
 def fcc111_root(symbol, root, size, a=None,
                 vacuum=None, orthogonal=False):
     """FCC(111) surface maniupulated to have a x unit side length
-    of *root* before repeating. This also results in *root* number 
+    of *root* before repeating. This also results in *root* number
     of repetitions of the cell.
 
     The first 20 valid roots for nonorthogonal are...

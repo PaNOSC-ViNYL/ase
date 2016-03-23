@@ -19,7 +19,7 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
 
     logeps = int(-log10(eps))
     atoms = primitive_slab.copy()
-        
+
     xscale = np.linalg.norm(atoms._cell[0][0:2])
     xx, xy = atoms._cell[0][0:2] / xscale
     yx, yy = atoms._cell[1][0:2] / xscale
@@ -63,7 +63,7 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
     tmag = np.linalg.norm((tx, ty))
     root_angle = -atan2(ty, tx)
     cell_scale = tmag / cell_vectors_mag[0]
-    
+
     root_rotation = [[cos(root_angle), -sin(root_angle)],
                      [sin(root_angle), cos(root_angle)]]
     cell = map(lambda x: np.dot(x, root_rotation) * cell_scale, cell_vectors)
@@ -72,23 +72,23 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
         cell = atoms._cell
         pos = atoms.positions
 
-        vertices = np.array([[0, 0], 
-                             cell[0][0:2], 
-                             cell[1][0:2], 
-                             cell[0][0:2] + cell[1][0:2]]) 
-        
-        mins = vertices.min(axis=0) 
-        maxs = vertices.max(axis=0)        
- 
-        out = np.where(np.logical_not((pos[:, 0]>=mins[0]-eps*10) &
-                                      (pos[:, 0]<=maxs[0]+eps*10) &
-                                      (pos[:, 1]>=mins[1]-eps*10) &
-                                      (pos[:, 1]<=maxs[1]+eps*10)))
+        vertices = np.array([[0, 0],
+                             cell[0][0:2],
+                             cell[1][0:2],
+                             cell[0][0:2] + cell[1][0:2]])
+
+        mins = vertices.min(axis=0)
+        maxs = vertices.max(axis=0)
+
+        out = np.where(np.logical_not((pos[:, 0] >= mins[0] - eps * 10) &
+                                      (pos[:, 0] <= maxs[0] + eps * 10) &
+                                      (pos[:, 1] >= mins[1] - eps * 10) &
+                                      (pos[:, 1] <= maxs[1] + eps * 10)))
 
         del atoms[out]
- 
+
     def remove_doubles(atoms, shift=True):
-        shift_vector = np.array([eps*100, eps*200, eps*300])
+        shift_vector = np.array([eps * 100, eps * 200, eps * 300])
         if shift:
             atoms.translate(shift_vector)
         atoms.set_scaled_positions(atoms.get_scaled_positions())
@@ -132,12 +132,12 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
 
 
 def root_surface_analysis(primitive_slab, root, allow_above=False, eps=1e-8):
-    """A tool to analyze a slab and look for valid roots that exist, up to 
-       the given root. This is useful for generating all possible cells 
+    """A tool to analyze a slab and look for valid roots that exist, up to
+       the given root. This is useful for generating all possible cells
        without prior knowledge.
 
        *primitive slab* is the primitive cell to analyze.
-    
+
        *root* is the desired root to find, and all below.
 
        *allow_above* allows you to also include cells above
