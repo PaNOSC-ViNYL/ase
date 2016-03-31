@@ -20,14 +20,6 @@ def git_pull(name='ase'):
     return not lastline.startswith('Already up-to-date')
 
         
-def svn_update(name='ase'):
-    os.chdir(name)
-    output = subprocess.check_output('svn update', shell=True)
-    os.chdir('..')
-    lastline = output.splitlines()[-1]
-    return not lastline.startswith('At revision')
-
-        
 def build(force_build, name='ase', env=''):
     if not force_build:
         return
