@@ -2,11 +2,11 @@
 """Vibrational modes."""
 from __future__ import division
 
+import os
+import os.path as op
 import pickle
-from math import sin, pi, sqrt, log
-from os import remove
-from os.path import isfile, getsize
 import sys
+from math import sin, pi, sqrt, log
 
 import numpy as np
 
@@ -129,9 +129,6 @@ class Vibrations:
                         filename = ('%s.%d%s%s.pckl' %
                                     (self.name, a, 'xyz'[i],
                                      ndis * ' +-'[sign]))
-                        if (isfile(filename) and getsize(filename) == 0 and
-                            rank == 0):
-                            remove(filename)
                         fd = opencew(filename)
                         if fd is not None:
                             disp = ndis * sign * self.delta
@@ -156,8 +153,8 @@ class Vibrations:
         sys.stdout.flush()
 
     def clean(self):
-        if isfile(self.name + '.eq.pckl'):
-            remove(self.name + '.eq.pckl')
+        if op.isfile(self.name + '.eq.pckl'):
+            os.remove(self.name + '.eq.pckl')
 
         for a in self.indices:
             for i in 'xyz':
@@ -165,8 +162,8 @@ class Vibrations:
                     for ndis in range(1, self.nfree // 2 + 1):
                         name = '%s.%d%s%s.pckl' % (self.name, a, i,
                                                    ndis * sign)
-                        if isfile(name):
-                            remove(name)
+                        if op.isfile(name):
+                            os.remove(name)
 
     def read(self, method='standard', direction='central'):
         self.method = method.lower()

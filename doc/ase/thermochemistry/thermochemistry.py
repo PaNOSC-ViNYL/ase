@@ -1,13 +1,16 @@
-# creates:  nitrogen.txt
+# creates:  nitrogen.txt, gold.txt
+import io
 import os
 import sys
-from StringIO import StringIO
 
 
 def output_to_string(pythonfile):
     """Returns the stdout of executing the code in pythonfile
     as a string."""
-    buffer = StringIO()
+    if sys.version_info.major == 2:
+        buffer = io.BytesIO()
+    else:
+        buffer = io.StringIO()
     sys.stdout = buffer
     exec(open(pythonfile).read())
     sys.stdout = sys.__stdout__

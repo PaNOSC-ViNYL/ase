@@ -95,7 +95,7 @@ def test(verbosity=1, calculators=[],
     tests.extend(sdirtests)  # run test subdirectories at the end
     lasttest = None  # is COCu111.py in the current set
     for test in tests:
-        if test.endswith('__init__.py'):
+        if test.endswith('__.py'):
             continue
         if test.endswith('COCu111.py'):
             lasttest = test

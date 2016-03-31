@@ -1,7 +1,9 @@
-# creates: fcc100.png fcc110.png bcc100.png fcc111.png bcc110.png bcc111.png hcp0001.png fcc111o.png fcc211o.png bcc110o.png bcc111o.png hcp0001o.png ontop-site.png hollow-site.png fcc-site.png hcp-site.png bridge-site.png diamond100.png diamond111.png hcp10m10.png mx2.png
+# creates: fcc100.png fcc110.png bcc100.png fcc111.png bcc110.png bcc111.png hcp0001.png fcc111o.png fcc211o.png bcc110o.png bcc111o.png hcp0001o.png ontop-site.png hollow-site.png fcc-site.png hcp-site.png bridge-site.png diamond100.png diamond111.png hcp10m10.png mx2.png fcc111_root.png
 
 from ase import Atoms
 from ase.io import write
+from ase.lattice.surface import fcc111
+from ase.lattice.root import root_surface
 import ase.lattice.surface as surface
 
 
@@ -43,3 +45,7 @@ for name in surfaces:
 
 for site, symbol in adsorbates.items():
     write('%s-site.png' % site, Atoms(symbol), radii=1.08, scale=10)
+
+fcc111_primitive = fcc111("Ag", (1, 1, 3))
+fcc111_root = root_surface(fcc111_primitive, 27)
+save("fcc111_root", fcc111_root)

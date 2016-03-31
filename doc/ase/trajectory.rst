@@ -132,6 +132,15 @@ Please convert your old PickleTrajectory files before it is too late::
 this will convert one or more files.  The original files are kept with
 extension ``.traj.old``
 
+You can identify old trajectory files like this::
+
+    $ python -m ase.io.formats hmmm.traj
+    hmmm.traj: Old ASE pickle trajectory (trj+)
+    $ python -m ase.io.trajectory hmmm.traj  # convert
+    $ python -m ase.io.formats hmmm.traj hmmm.traj.old
+    hmmm.traj:     ASE trajectory (traj+)
+    hmmm.traj.old: Old ASE pickle trajectory (trj+)
+
 
 BundleTrajectory
 ================

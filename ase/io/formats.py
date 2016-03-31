@@ -77,6 +77,7 @@ all_formats = {
     'json': ('ASE JSON database file', '+F'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '1F'),
+    'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
@@ -290,7 +291,7 @@ def read(filename, index=None, format=None, **kwargs):
     else:
         return next(_iread(filename, slice(index, None), format, **kwargs))
 
-
+        
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
 
@@ -460,7 +461,7 @@ def filetype(filename, read=True):
         if fd is sys.stdin:
             return 'json'
 
-    data = fd.read(2000)
+    data = fd.read(50000)
     if fd is not filename:
         fd.close()
     else:

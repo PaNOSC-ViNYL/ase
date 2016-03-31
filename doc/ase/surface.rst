@@ -53,7 +53,7 @@ Adsorbates get tag=0:
 [3 3 3 3 2 2 2 2 1 1 1 1 0]
 
 This can be useful for setting up :mod:`ase.constraints` (see
-:ref:`diffusion_tutorial`).
+:ref:`diffusion tutorial`).
 
 
 Utility functions for setting up surfaces
@@ -117,7 +117,6 @@ diamond100  |diamond100|
 
 
 .. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: fcc111_root(symbol, root, size, a=None, vacuum=0.0, orthogonal=False, search_space=(20, 20))
 .. function:: fcc211(symbol, size, a=None, vacuum=0.0, orthogonal=True)
 .. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
 .. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
@@ -128,7 +127,6 @@ These can give both non-orthorhombic and orthorhombic cells:
 
 ===========  ===============  ===============
 fcc111       |fcc111|         |fcc111o|
-fcc111_root  varies on root   not_implemented
 fcc211       not implemented  |fcc211o|
 bcc110       |bcc110|         |bcc110o|
 bcc111       |bcc111|         |bcc111o|
@@ -165,20 +163,49 @@ ontop    hollow    fcc    hcp    bridge    shortbridge  longbridge
 .. |diamond111| image:: diamond111.png
 
 
-This can be used for :mol:`MX2` 2D structures such as :mol:`MoS2`:
+This can be used for :mol:`MX_2` 2D structures such as :mol:`MoS_2`:
 
 .. autofunction:: mx2
 
 .. image:: mx2.png
 
 
-Adding new utility functions
+Create root cuts of surfaces
 ````````````````````````````
 
-If you need other surfaces than the ones above, the easiest is to look
-in the source file surface.py, and adapt one of the existing
-functions.  *Please* contribute any such function that you make
-either by checking it into SVN or by mailing it to the developers.
+To create some more complicated cuts of a standard surface, a root cell
+generator has been created.  While it can be used for arbitrary cells,
+some more common functions have been provided.
+
+.. autofunction:: fcc111_root
+
+.. autofunction:: hcp0001_root
+
+.. autofunction:: bcc111_root
+
+If you need to make a root cell for a different cell type, you can simply
+supply a primitive cell of the correct height.  This primitive cell can be
+any 2D surface whose normal points along the Z axis.  The cell's contents
+can also vary, such as in the creation of an alloy or deformation.
+
+.. autofunction:: ase.lattice.root.root_surface
+
+The difficulty with using these functions is the requirement to know the
+valid roots in advance, but a function has also been supplied to help with
+this.  It is helpful to note that any primitive cell with the same cell
+shape, such as the case with the fcc111 and bcc111 functions, will have the
+same valid roots.
+
+.. autofunction:: ase.lattice.root.root_surface_analysis
+
+An example of using your own primitive cell::
+
+  from ase.lattice.root import root_surface
+  from ase.lattice.surface import fcc111
+  atoms = fcc111("Ag", (1, 1, 3))
+  atoms = root_surface(atoms, 27)
+
+.. image:: fcc111_root.png
 
 
 Adding adsorbates

@@ -16,7 +16,7 @@ number of "design goals" that make it:
   dynamics simulation with ASE is simple and straightforward.  ASE can
   be used via a :mod:`graphical user interface <ase.gui>`, :ref:`cli`
   and the Python language.  Python scripts are
-  easy to follow (see :ref:`python_info` for a short introduction).
+  easy to follow (see :ref:`what is python` for a short introduction).
   It is simple for new users to get access to all of the functionality
   of ASE.
 

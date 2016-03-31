@@ -1,5 +1,5 @@
 .. _contribute:
-    
+
 =================
 How to contribute
 =================
@@ -130,14 +130,14 @@ machine is:
         $ git fetch upstream
         
   * Switch to the local branch called 'master' that is (ideally) identical to
-    the upstream master branch ::
+    the upstream master branch::
         
         $ git checkout master
         $ git merge upstream/master --ff-only
     
     If the previous command fails, then it is safe to simply reset your master
     branch to the upstream master branch with the ``--hard`` flag.  Use this
-    flag sparingly, as it is very powerful.
+    flag sparingly, as it is very powerful::
     
         $ git reset --hard upstream/master
         
@@ -191,9 +191,10 @@ machine is:
         $ git commit
     
     And a text editor will appear.  Please observe the following guidelines
-    for writing your commit message. (stolen from `here <http://chris.beams.io/posts/git-commit/>`_)
+    for writing your commit message. (stolen from
+    `here <http://chris.beams.io/posts/git-commit/>`_)
     
-    - The seven rules of a great git commit message
+    The seven rules of a great git commit message
     
       1. Separate subject from body with a blank line
       2. Limit the subject line to 50 characters
@@ -328,7 +329,7 @@ Code review
 ===========
 
 Before you start working on a Merge Request, *please* read our
-:ref:`python_codingstandard`. Please also install a linter!
+:ref:`coding conventions`.  Please also install a linter!
 
 Hopefully someone will look at your changes and give you some
 feedback.  Maybe everything is fine and things can be merged to the official

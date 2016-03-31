@@ -91,7 +91,7 @@ def write_gromos(fileobj, images):
     if not isinstance(images, (list, tuple)):
         images = [images]
 
-    natoms = images[-1].get_number_of_atoms()
+    natoms = len(images[-1])
     try:
         gromos_residuenames = images[-1].get_array('residuenames')
     except:
