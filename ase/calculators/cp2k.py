@@ -253,14 +253,15 @@ class CP2K(Calculator):
         if 'cell' in system_changes:
             cell = self.atoms.get_cell()
             self._send('SET_CELL %d' % self._force_env_id)
-            self._send(' '.join(['%.20e' % (x) for x in cell.flat]))
+            for i in range(3):
+                self._send('%.18e %.18e %.18e' % tuple(cell[i, :]))
             assert self._recv() == '* READY'
 
         if 'positions' in system_changes:
             self._send('SET_POS %d' % self._force_env_id)
             self._send('%d' % (3 * n_atoms))
             for pos in self.atoms.get_positions():
-                self._send('%.20e   %.20e   %.20e' % tuple(pos))
+                self._send('%.18e %.18e %.18e' % tuple(pos))
             self._send('*END')
             assert float(self._recv()) >= 0  # max change -> ignore
             assert self._recv() == '* READY'
@@ -324,6 +325,8 @@ class CP2K(Calculator):
             f.close()
         else:
             lines = content.split('\n')
+            if self._shell_version < 2.1:
+                lines = [l.strip() for l in lines]  # save chars
             self._send('WRITE_FILE')
             self._send(fn)
             self._send('%d' % len(lines))
@@ -358,7 +361,7 @@ class CP2K(Calculator):
                              'POTENTIAL_FILE_NAME ' + p.potential_file)
         if p.cutoff:
             root.add_keyword('FORCE_EVAL/DFT/MGRID',
-                             'CUTOFF [eV] %.20e' % p.cutoff)
+                             'CUTOFF [eV] %.18e' % p.cutoff)
         if p.max_scf:
             root.add_keyword('FORCE_EVAL/DFT/SCF', 'MAX_SCF %d' % p.max_scf)
             root.add_keyword('FORCE_EVAL/DFT/LS_SCF', 'MAX_SCF %d' % p.max_scf)
@@ -386,7 +389,7 @@ class CP2K(Calculator):
         syms = self.atoms.get_chemical_symbols()
         atoms = self.atoms.get_positions()
         for elm, pos in zip(syms, atoms):
-            line = '%s  %.20e   %.20e   %.20e' % (elm, pos[0], pos[1], pos[2])
+            line = '%s %.18e %.18e %.18e' % (elm, pos[0], pos[1], pos[2])
             root.add_keyword('FORCE_EVAL/SUBSYS/COORD', line, unique=False)
 
         # write cell
@@ -396,7 +399,7 @@ class CP2K(Calculator):
         root.add_keyword('FORCE_EVAL/SUBSYS/CELL', 'PERIODIC ' + pbc)
         c = self.atoms.get_cell()
         for i, a in enumerate('ABC'):
-            line = '%s  %.20e  %.20e  %.20e' % (a, c[i, 0], c[i, 1], c[i, 2])
+            line = '%s %.18e %.18e %.18e' % (a, c[i, 0], c[i, 1], c[i, 2])
             root.add_keyword('FORCE_EVAL/SUBSYS/CELL', line)
 
         # determine pseudo-potential
@@ -430,6 +433,9 @@ class CP2K(Calculator):
         assert self._child.poll() is None  # child process still alive?
         if self._debug:
             print('Sending: ' + line)
+        if self._shell_version < 2.1 and len(line) >= 80:
+            raise Exception('Buffer overflow, upgrade CP2K to r16779 or later')
+        assert(len(line) < 800)  # new input buffer size
         self._child.stdin.write(line + '\n')
 
     def _recv(self):
