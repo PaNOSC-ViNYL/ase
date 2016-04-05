@@ -148,8 +148,7 @@ class CP2K(Calculator):
 
         self._debug = debug
         self._force_env_id = None
-        self._child = None
-        self._shell_version = None
+        self._shell = None
         self.label = None
         self.parameters = None
         self.results = None
@@ -165,29 +164,10 @@ class CP2K(Calculator):
         else:
             self.command = 'cp2k_shell'  # default
 
-        assert 'cp2k_shell' in self.command
-
         Calculator.__init__(self, restart, ignore_bad_restart_file,
                             label, atoms, **kwargs)
 
-        # launch cp2k_shell child process
-        if self._debug:
-            print(self.command)
-        self._child = Popen(self.command, shell=True, universal_newlines=True,
-                            stdin=PIPE, stdout=PIPE, bufsize=1)
-        assert self._recv() == '* READY'
-
-        # check version of shell
-        self._send('VERSION')
-        shell_version = self._recv().rsplit(":", 1)
-        assert self._recv() == '* READY'
-        assert shell_version[0] == "CP2K Shell Version"
-        self._shell_version = float(shell_version[1])
-        assert self._shell_version >= 1.0
-
-        # enable harsh mode, stops on any error
-        self._send('HARSH')
-        assert self._recv() == '* READY'
+        self._shell = Cp2kShell(self.command, self._debug)
 
         if restart is not None:
             try:
@@ -200,12 +180,9 @@ class CP2K(Calculator):
 
     def __del__(self):
         """Release force_env and terminate cp2k_shell child process"""
-        self._release_force_env()
-        if self._child:
-            self._send('EXIT')
-            assert self._child.wait() == 0  # child process exited properly?
-            self._child = None
-            self._shell_version = None
+        if self._shell:
+            self._release_force_env()
+            del(self._shell)
 
     def set(self, **kwargs):
         """Set parameters like set(key1=value1, key2=value2, ...)."""
@@ -246,46 +223,46 @@ class CP2K(Calculator):
             self._create_force_env()
 
         # enable eV and Angstrom as units
-        self._send('UNITS_EV_A')
-        assert self._recv() == '* READY'
+        self._shell.send('UNITS_EV_A')
+        assert self._shell.recv() == '* READY'
 
         n_atoms = len(self.atoms)
         if 'cell' in system_changes:
             cell = self.atoms.get_cell()
-            self._send('SET_CELL %d' % self._force_env_id)
+            self._shell.send('SET_CELL %d' % self._force_env_id)
             for i in range(3):
-                self._send('%.18e %.18e %.18e' % tuple(cell[i, :]))
-            assert self._recv() == '* READY'
+                self._shell.send('%.18e %.18e %.18e' % tuple(cell[i, :]))
+            assert self._shell.recv() == '* READY'
 
         if 'positions' in system_changes:
-            self._send('SET_POS %d' % self._force_env_id)
-            self._send('%d' % (3 * n_atoms))
+            self._shell.send('SET_POS %d' % self._force_env_id)
+            self._shell.send('%d' % (3 * n_atoms))
             for pos in self.atoms.get_positions():
-                self._send('%.18e %.18e %.18e' % tuple(pos))
-            self._send('*END')
-            assert float(self._recv()) >= 0  # max change -> ignore
-            assert self._recv() == '* READY'
+                self._shell.send('%.18e %.18e %.18e' % tuple(pos))
+            self._shell.send('*END')
+            assert float(self._shell.recv()) >= 0  # max change -> ignore
+            assert self._shell.recv() == '* READY'
 
-        self._send('EVAL_EF %d' % self._force_env_id)
-        assert self._recv() == '* READY'
+        self._shell.send('EVAL_EF %d' % self._force_env_id)
+        assert self._shell.recv() == '* READY'
 
-        self._send('GET_E %d' % self._force_env_id)
-        self.results['energy'] = float(self._recv())
-        assert self._recv() == '* READY'
+        self._shell.send('GET_E %d' % self._force_env_id)
+        self.results['energy'] = float(self._shell.recv())
+        assert self._shell.recv() == '* READY'
 
         forces = np.zeros(shape=(n_atoms, 3))
-        self._send('GET_F %d' % self._force_env_id)
-        assert int(self._recv()) == 3 * n_atoms
+        self._shell.send('GET_F %d' % self._force_env_id)
+        assert int(self._shell.recv()) == 3 * n_atoms
         for i in range(n_atoms):
-            line = self._recv()
+            line = self._shell.recv()
             forces[i, :] = [float(x) for x in line.split()]
-        assert self._recv() == '* END'
-        assert self._recv() == '* READY'
+        assert self._shell.recv() == '* END'
+        assert self._shell.recv() == '* READY'
         self.results['forces'] = forces
 
-        self._send('GET_STRESS %d' % self._force_env_id)
-        line = self._recv()
-        assert self._recv() == '* READY'
+        self._shell.send('GET_STRESS %d' % self._force_env_id)
+        line = self._shell.recv()
+        assert self._shell.recv() == '* READY'
 
         stress = np.array([float(x) for x in line.split()]).reshape(3, 3)
         assert np.all(stress == np.transpose(stress))   # should be symmetric
@@ -309,37 +286,41 @@ class CP2K(Calculator):
         inp_fn = self.label + '.inp'
         out_fn = self.label + '.out'
         self._write_file(inp_fn, inp)
-        self._send('LOAD %s %s' % (inp_fn, out_fn))
-        self._force_env_id = int(self._recv())
+        self._shell.send('LOAD %s %s' % (inp_fn, out_fn))
+        self._force_env_id = int(self._shell.recv())
         assert self._force_env_id > 0
-        assert self._recv() == '* READY'
+        assert self._shell.recv() == '* READY'
 
     def _write_file(self, fn, content):
         """Write content to a file"""
         if self._debug:
             print('Writting to file: ' + fn)
             print(content)
-        if self._shell_version < 2.0:
+        if self._shell.version < 2.0:
             f = open(fn, 'w')
             f.write(content)
             f.close()
         else:
             lines = content.split('\n')
-            if self._shell_version < 2.1:
+            if self._shell.version < 2.1:
                 lines = [l.strip() for l in lines]  # save chars
-            self._send('WRITE_FILE')
-            self._send(fn)
-            self._send('%d' % len(lines))
+            self._shell.send('WRITE_FILE')
+            self._shell.send(fn)
+            self._shell.send('%d' % len(lines))
             for line in lines:
-                self._send(line)
-            self._send('*END')
-            assert self._recv() == '* READY'
+                self._shell.send(line)
+            self._shell.send('*END')
+            assert self._shell.recv() == '* READY'
 
     def _release_force_env(self):
         """Destroys the current force-environment"""
         if self._force_env_id:
-            self._send('DESTROY %d' % self._force_env_id)
-            assert self._recv() == '* READY'
+            if self._shell.isready:
+                self._shell.send('DESTROY %d' % self._force_env_id)
+                assert self._shell.recv() == '* READY'
+            else:
+                msg = "CP2K-shell not ready, could not release force_env."
+                warn(msg, RuntimeWarning)
             self._force_env_id = None
 
     def _generate_input(self):
@@ -428,22 +409,68 @@ class CP2K(Calculator):
         output_lines = ['!!! Generated by ASE !!!'] + root.write()
         return '\n'.join(output_lines)
 
-    def _send(self, line):
+
+class Cp2kShell(object):
+    """Wrapper for CP2K-shell child-process"""
+
+    def __init__(self, command, debug):
+        """Construct CP2K-shell object"""
+
+        self.isready = False
+        self.version = None
+        self._child = None
+        self._debug = debug
+
+        # launch cp2k_shell child process
+        assert 'cp2k_shell' in command
+        if self._debug:
+            print(command)
+        self._child = Popen(command, shell=True, universal_newlines=True,
+                            stdin=PIPE, stdout=PIPE, bufsize=1)
+        assert self.recv() == '* READY'
+
+        # check version of shell
+        self.send('VERSION')
+        shell_version = self.recv().rsplit(":", 1)
+        assert self.recv() == '* READY'
+        assert shell_version[0] == "CP2K Shell Version"
+        self.version = float(shell_version[1])
+        assert self.version >= 1.0
+
+        # enable harsh mode, stops on any error
+        self.send('HARSH')
+        assert self.recv() == '* READY'
+
+    def __del__(self):
+        """Terminate cp2k_shell child process"""
+        if self.isready:
+            self.send('EXIT')
+            assert self._child.wait() == 0  # child process exited properly?
+        else:
+            warn("CP2K-shell not ready, sending SIGTERM.", RuntimeWarning)
+            self._child.terminate()
+        self._child = None
+        self.version = None
+        self.isready = False
+
+    def send(self, line):
         """Send a line to the cp2k_shell"""
         assert self._child.poll() is None  # child process still alive?
         if self._debug:
             print('Sending: ' + line)
-        if self._shell_version < 2.1 and len(line) >= 80:
+        if self.version < 2.1 and len(line) >= 80:
             raise Exception('Buffer overflow, upgrade CP2K to r16779 or later')
         assert(len(line) < 800)  # new input buffer size
+        self.isready = False
         self._child.stdin.write(line + '\n')
 
-    def _recv(self):
+    def recv(self):
         """Receive a line from the cp2k_shell"""
         assert self._child.poll() is None  # child process still alive?
         line = self._child.stdout.readline().strip()
         if self._debug:
             print('Received: ' + line)
+        self.isready = line == '* READY'
         return line
 
 
