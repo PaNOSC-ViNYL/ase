@@ -394,19 +394,24 @@ class PhaseDiagram:
             
         # Find coordinates within each simplex:
         X = self.points[self.simplices, 1:-1] - point[1:] / N
-        D = X[:, 1:] - X[:, :1]
-        C = solve(D.transpose((0, 2, 1)), -X[:, 0])
-        
+
         # Find the simplex with positive coordinates that sum to
         # less than one:
-        ok = np.logical_and.reduce(C >= 0, axis=1) & (C.sum(axis=1) <= 1)
-        i = np.argmax(ok)
-        
+        for i, Y in enumerate(X):
+            try:
+                x = solve((Y[1:] - Y[:1]).T, -Y[0])
+            except np.linalg.linalg.LinAlgError:
+                continue
+            if (x >= 0).all() and x.sum() <= 1:
+                break
+        else:
+            assert False, X
+                
         indices = self.simplices[i]
         points = self.points[indices]
         
-        scaledcoefs = [1 - C[i].sum()]
-        scaledcoefs.extend(C[i])
+        scaledcoefs = [1 - x.sum()]
+        scaledcoefs.extend(x)
         
         energy = N * np.dot(scaledcoefs, points[:, -1])
         
