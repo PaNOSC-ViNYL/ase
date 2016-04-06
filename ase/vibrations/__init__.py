@@ -122,6 +122,14 @@ class Vibrations:
             self.calculate(filename, fd)
 
         p = self.atoms.positions.copy()
+        for filename, a, i, disp in self.displacements():
+            fd = opencew(filename)
+            if fd is not None:
+                self.atoms.positions[a, i] = p[a, i] + disp
+                self.calculate(filename, fd)
+                self.atoms.positions[a, i] = p[a, i]
+
+    def displacements(self):
         for a in self.indices:
             for i in range(3):
                 for sign in [-1, 1]:
@@ -129,12 +137,8 @@ class Vibrations:
                         filename = ('%s.%d%s%s.pckl' %
                                     (self.name, a, 'xyz'[i],
                                      ndis * ' +-'[sign]))
-                        fd = opencew(filename)
-                        if fd is not None:
-                            disp = ndis * sign * self.delta
-                            self.atoms.positions[a, i] = p[a, i] + disp
-                            self.calculate(filename, fd)
-                            self.atoms.positions[a, i] = p[a, i]
+                        disp = ndis * sign * self.delta
+                        yield filename, a, i, disp
 
     def calculate(self, filename, fd):
         forces = self.atoms.get_forces()
@@ -152,19 +156,26 @@ class Vibrations:
             fd.close()
         sys.stdout.flush()
 
-    def clean(self):
-        if op.isfile(self.name + '.eq.pckl'):
-            os.remove(self.name + '.eq.pckl')
-
-        for a in self.indices:
-            for i in 'xyz':
-                for sign in '-+':
-                    for ndis in range(1, self.nfree // 2 + 1):
-                        name = '%s.%d%s%s.pckl' % (self.name, a, i,
-                                                   ndis * sign)
-                        if op.isfile(name):
-                            os.remove(name)
-
+    def clean(self, empty_files=False):
+        """Remove pickle-files.
+        
+        Use empty_files=True to remove only empty files."""
+        
+        if rank != 0:
+            return 0
+            
+        n = 0
+        filenames = [self.name + '.eq.pckl']
+        for filename, a, i, disp in self.displacements():
+            filenames.append(filename)
+        
+        for name in filenames:
+            if op.isfile(name):
+                if not empty_files or op.getsize(name) == 0:
+                    os.remove(name)
+                    n += 1
+        return n
+        
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
         self.direction = direction.lower()
