@@ -162,8 +162,9 @@ class Vibrations:
         Use empty_files=True to remove only empty files."""
         
         if rank != 0:
-            return
+            return 0
             
+        n = 0
         filenames = [self.name + '.eq.pckl']
         for filename, a, i, disp in self.displacements():
             filenames.append(filename)
@@ -172,7 +173,9 @@ class Vibrations:
             if op.isfile(name):
                 if not empty_files or op.getsize(name) == 0:
                     os.remove(name)
-
+                    n += 1
+        return n
+        
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
         self.direction = direction.lower()
