@@ -10,12 +10,6 @@ from scipy.spatial import ConvexHull
 import ase.units as units
 from ase.atoms import string2symbols
 from ase.utils import hill
-
-if LooseVersion(np.__version__) < '1.8':
-    def solve(A, B):
-        return np.array([np.linalg.solve(a, b) for a, b in zip(A, B)])
-else:
-    solve = np.linalg.solve
     
 _solvated = []
 
@@ -399,7 +393,7 @@ class PhaseDiagram:
         # less than one:
         for i, Y in enumerate(X):
             try:
-                x = solve((Y[1:] - Y[:1]).T, -Y[0])
+                x = np.linalg.solve((Y[1:] - Y[:1]).T, -Y[0])
             except np.linalg.linalg.LinAlgError:
                 continue
             if (x >= 0).all() and x.sum() <= 1:
