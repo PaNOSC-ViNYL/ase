@@ -187,9 +187,31 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'ex0'):
             self.read_excitations()
 
-    def get_Albrecht_A(self, omega, gamma=0.1):
+    def get_Albrecht_A(self, omega, gamma=0.1, ml=range(15)):
         """Evaluate Albrecht A term."""
         self.read()
+        
+        self.fco = FranckCondonOverlap()
+
+
+        F_pV = self.exF_Vp.T
+        m_Vcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        for each p:
+            # Huang-Rhys factors from forces
+            F_V = np.dot(F_pV[p], self.modes.T)
+            S_V = Huang_Rhys(F_V)
+
+            for m in ml:
+                fco_V = self.fco.direct0mm1(S_V, m)
+                m_Vcc += np.outer(
+                    fco_V / (e_p[p] + m * om_V - omega - 1j * gamma),
+                    me_ccp[p])
+                m_Vcc += np.outer(
+                    fco_V / (e_p[p] + (m - 1) * om_V + omega + 1j * gamma),
+                    me_ccp[p].conj())
+
+
+
 
     def get_intensity_tensor(self, omega, gamma=0.1):
         """Evaluate Albrecht B+C term"""
