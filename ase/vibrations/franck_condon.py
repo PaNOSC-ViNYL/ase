@@ -9,7 +9,7 @@ import numpy as np
 from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
 
-class FCOverlap:
+class FranckCondonOverlap:
     """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
     def factorial(self, n):
         try:
@@ -39,6 +39,12 @@ class FCOverlap:
                 self.factorial(n - k) * self.factorial(m - k))
         return np.exp(-S) * S**(n + m) * s**2 * (
             self.factorial(n) * self.factorial(m))
+
+    def direct0mm1(m, S):
+        sum = S**m
+        if m:
+            sum -= m * S**(m - 1)
+        return np.exp(-S) * np.sqrt(S) * sum / self.factorial(m)        
 
 
 class FranckCondon:
