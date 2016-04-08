@@ -186,6 +186,7 @@ class ResonantRaman(Vibrations):
             # self.H     : Hessian matrix
             # self.im    : 1./sqrt(masses)
             # self.modes : Eigenmodes of the mass weighted H
+            self.om_r = self.hnu.real
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0'):
             self.read_excitations()
@@ -206,7 +207,7 @@ class ResonantRaman(Vibrations):
 
         # Huang-Rhys factors S
         s = 1.e-20 / units.kg / units.C / units._hbar**2 # SI units
-        return s * d_r**2 * self.get_energies(self.method, self.direction) / 2.
+        return s * d_r**2 * self.om_r / 2.
 
     def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(15)):
         """Evaluate Albrecht A term."""
@@ -216,8 +217,6 @@ class ResonantRaman(Vibrations):
 
         # excited state forces
         F_pr = self.exF_rp.T
-        # vibrational energies
-        om_r = self.get_energies(self.method, self.direction)
         
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
@@ -226,12 +225,15 @@ class ResonantRaman(Vibrations):
 
             for m in ml:
                 fco_r = self.fco.direct0mm1(m, S_r)
-                m_rcc += np.outer(
-                    fco_r / (energy + m * om_r - omega - 1j * gamma),
-                    me_ccp[p])
-                m_rcc += np.outer(
-                    fco_r / (energy + (m - 1) * om_r + omega + 1j * gamma),
-                    me_ccp[p].conj())
+                # print('0 shapes=', fco_r.shape, om_r.shape, S_r.shape)
+                # print('1 shapes=', m_cc.shape)
+                # print('2 shapes=', np.einsum('a,bc->abc', om_r, m_cc).shape)
+                m_rcc += np.einsum('a,bc->abc',
+                    fco_r / (energy + m * self.om_r - omega - 1j * gamma),
+                    self.ex0m_ccp[:, :, p])
+                m_rcc += np.einsum('a,bc->abc',
+                    fco_r / (energy + (m - 1) * self.om_r + omega + 1j * gamma),
+                    self.ex0m_ccp[:, :, p].conj())
 
         return m_rcc
 
