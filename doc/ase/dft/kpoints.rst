@@ -43,41 +43,26 @@ array([[-0.375,  0.   ,  0.   ],
     Phys. Rev. B 13, 5188–5192 (1976)
 
 
-Chadi-Cohen
------------
-
-Predefined sets of **k**-points:
-
-.. data:: cc6_1x1
-.. data:: cc12_2x3
-.. data:: cc18_sq3xsq3
-.. data:: cc18_1x1
-.. data:: cc54_sq3xsq3
-.. data:: cc54_1x1
-.. data:: cc162_sq3xsq3
-.. data:: cc162_1x1
-
-
-Naming convention: ``cc18_sq3xsq3`` is 18 **k**-points for a
-sq(3)xsq(3) cell.
-
-Try this:
-
->>> import numpy as np
->>> import pylab as plt
->>> from ase.dft.kpoints import cc162_1x1
->>> B = [(1, 0, 0), (-0.5, 3**0.5 / 2, 0), (0, 0, 1)]
->>> k = np.dot(cc162_1x1, B)
->>> plt.plot(k[:, 0], k[:, 1], 'o')
-[<matplotlib.lines.Line2D object at 0x9b61dcc>]
->>> p.show()
-
-.. image:: cc.png
-
-
 Special points in the Brillouin zone
 ------------------------------------
 
+Special points from [Curtarolo]_.
+
+.. [Curtarolo]
+    Curtarolo et al.
+
+.. list-table::
+    :widths: 10 30 35
+    
+    * - Cubic
+      - path ...
+      - .. image:: cubic.svg
+            :width: 25 %
+    * - FCC
+      - path ...
+      - .. image:: fcc.svg
+            :width: 25 %
+ 
 You can find the special points in the Brillouin zone:
 
 >>> from ase.lattice import bulk
@@ -109,7 +94,39 @@ paths in the BZ.
 >>> path = high_symm_path['bcc']
 >>> path
 ['Gamma', 'H', 'N', 'Gamma', 'P', 'H', 'P', 'N']
->>> points = get_special_points(lattice, cell)
+>>> points = get_special_points(lattice)
 >>> kpts = [points[x] for x in path]
 >>> kpts
 [[0, 0, 0], [0.5, -0.5, 0.5], [0, 0, 0.5], [0, 0, 0], [0.25, 0.25, 0.25], [0.5, -0.5, 0.5], [0.25, 0.25, 0.25], [0, 0, 0.5]]
+
+
+Chadi-Cohen
+-----------
+
+Predefined sets of **k**-points:
+
+.. data:: cc6_1x1
+.. data:: cc12_2x3
+.. data:: cc18_sq3xsq3
+.. data:: cc18_1x1
+.. data:: cc54_sq3xsq3
+.. data:: cc54_1x1
+.. data:: cc162_sq3xsq3
+.. data:: cc162_1x1
+
+
+Naming convention: ``cc18_sq3xsq3`` is 18 **k**-points for a
+sq(3)xsq(3) cell.
+
+Try this:
+
+>>> import numpy as np
+>>> import pylab as plt
+>>> from ase.dft.kpoints import cc162_1x1
+>>> B = [(1, 0, 0), (-0.5, 3**0.5 / 2, 0), (0, 0, 1)]
+>>> k = np.dot(cc162_1x1, B)
+>>> plt.plot(k[:, 0], k[:, 1], 'o')
+[<matplotlib.lines.Line2D object at 0x9b61dcc>]
+>>> p.show()
+
+.. image:: cc.png

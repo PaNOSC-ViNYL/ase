@@ -1,3 +1,4 @@
+# creates: cubic.svg, fcc.svg
 from math import pi, sin, cos
 
 import numpy as np
@@ -25,6 +26,8 @@ def plot(cell, points, names):
     from mpl_toolkits.mplot3d import Axes3D
     Axes3D  # silence pyflakes
     
+    s = np.array(points)[:, 0].max() / 0.5 * 0.45
+
     bz1 = bz_vertices(cell)
 
     fig = plt.figure()
@@ -55,24 +58,22 @@ def plot(cell, points, names):
     
     ax.set_axis_off()
     ax.autoscale_view(tight=True)
-    # s = 0.6
-    # ax.set_xlim(-s, s)
-    # ax.set_ylim(-s, s)
-    # ax.set_zlim(-s, s)
+    ax.set_xlim(-s, s)
+    ax.set_ylim(-s, s)
+    ax.set_zlim(-s, s)
     ax.set_aspect('equal')
     
     ax.view_init(azim=azim / pi * 180, elev=elev / pi * 180)
 
     
-if __name__ == '__main__':
-    import matplotlib.pyplot as plt
-    
-    for X, cell in [('cubic', np.eye(3)),
-                    ('fcc', [[0, 1, 1], [1, 0, 1], [1, 1, 0]])]:
-        icell = np.linalg.inv(cell)
-        points = []
-        names = high_symm_path[X]
-        for name in names:
-            points.append(np.dot(icell, ibz_points[X][name]))
-        plot(cell, points, names)
-        plt.savefig(X + '.svg')
+import matplotlib.pyplot as plt
+
+for X, cell in [('cubic', np.eye(3)),
+                ('fcc', [[0, 1, 1], [1, 0, 1], [1, 1, 0]])]:
+    icell = np.linalg.inv(cell)
+    points = []
+    names = high_symm_path[X]
+    for name in names:
+        points.append(np.dot(icell, ibz_points[X][name]))
+    plot(cell, points, names)
+    plt.savefig(X + '.svg')
