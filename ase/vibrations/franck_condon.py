@@ -40,7 +40,7 @@ class FranckCondonOverlap:
         return np.exp(-S) * S**(n + m) * s**2 * (
             self.factorial(n) * self.factorial(m))
 
-    def direct0mm1(m, S):
+    def direct0mm1(self, m, S):
         sum = S**m
         if m:
             sum -= m * S**(m - 1)

@@ -12,6 +12,7 @@ import numpy as np
 import ase.units as units
 from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
+from ase.vibrations.franck_condon import FranckCondonOverlap
 from ase.utils.timing import Timer
 
 # XXX remove gpaw dependence
@@ -189,41 +190,53 @@ class ResonantRaman(Vibrations):
         if not hasattr(self, 'ex0'):
             self.read_excitations()
 
-    def get_Huang_Rhys_factors(self, forces):
+    def get_Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
-        assert(forces.shape == self.shape)
+        assert(len(forces_r.flat) == self.ndof)
 
+        # mass weighted quantities
+        Hm_rr = self.im[:, None] * self.H * self.im
+        Fm_r = forces_r.flat * self.im
         
+        # solve the matrix equation for the equilibrium displacements
+        # XXX why are the forces mass weighted ???
+        X_r = np.linalg.solve(self.im[:, None] * self.H * self.im,
+                              forces_r.flat * self.im)
+        d_r = np.dot(self.modes, X_r)
 
+        # Huang-Rhys factors S
+        s = 1.e-20 / units.kg / units.C / units._hbar**2 # SI units
+        return s * d_r**2 * self.get_energies(self.method, self.direction) / 2.
 
-    def get_Albrecht_A(self, omega, gamma=0.1, ml=range(15)):
+    def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(15)):
         """Evaluate Albrecht A term."""
         self.read()
         
         self.fco = FranckCondonOverlap()
 
-
-        F_pV = self.exF_Vp.T
-        m_Vcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        for p in range(2):
-            # Huang-Rhys factors from forces
-            F_V = np.dot(F_pV[p], self.modes.T)
-            S_V = Huang_Rhys(F_V)
+        # excited state forces
+        F_pr = self.exF_rp.T
+        # vibrational energies
+        om_r = self.get_energies(self.method, self.direction)
+        
+        m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        for p, energy in enumerate(self.ex0E_p):
+            S_r = self.get_Huang_Rhys_factors(F_pr[p])
+            print('S_r=', S_r)
 
             for m in ml:
-                fco_V = self.fco.direct0mm1(S_V, m)
-                m_Vcc += np.outer(
-                    fco_V / (e_p[p] + m * om_V - omega - 1j * gamma),
+                fco_r = self.fco.direct0mm1(m, S_r)
+                m_rcc += np.outer(
+                    fco_r / (energy + m * om_r - omega - 1j * gamma),
                     me_ccp[p])
-                m_Vcc += np.outer(
-                    fco_V / (e_p[p] + (m - 1) * om_V + omega + 1j * gamma),
+                m_rcc += np.outer(
+                    fco_r / (energy + (m - 1) * om_r + omega + 1j * gamma),
                     me_ccp[p].conj())
 
-
-
+        return m_rcc
 
     def get_matrix_element_Profeta(self, omega, gamma=0.1):
-        """Evaluate Albrecht B+C term"""
+        """Evaluate Albrecht B+C term in Profeta and Mauri approximation"""
         self.read()
 
         self.timer.start('amplitudes')
@@ -259,14 +272,19 @@ class ResonantRaman(Vibrations):
             V_rcc += self.get_matrix_element_Profeta(omega, gamma)
         elif self.approximation.lower() == 'albrecht a':
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
-        elif self.approximation.lower() == 'full':
-            V_rcc += self.get_matrix_element_Profeta(omega, gamma)
+        elif self.approximation.lower() == 'albrecht bc':
+            raise NotImplementedError('not yet')
+            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
+        elif self.approximation.lower() == 'albrecht':
+            raise NotImplementedError('not yet')
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         else:
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
                     self.approximation) +
-                'Please use "Profeta", "Albrecht A" or "full".')
+                'Please use "Profeta", "Albrecht A", ' +
+                '"Albrecht BC" or "Albrecht".')
 
         return omega**4 * (V_rcc * V_rcc.conj()).real
 
