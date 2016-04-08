@@ -48,6 +48,7 @@ class ResonantRaman(Vibrations):
                  exext='.ex.gz',    # extension for Excitation names
                  txt='-',
                  verbose=False,
+                 method='Profeta',
     ):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
@@ -213,7 +214,7 @@ class ResonantRaman(Vibrations):
 
 
 
-    def get_intensity_tensor(self, omega, gamma=0.1):
+    def get_matrix_element_Profeta(self, omega, gamma=0.1):
         """Evaluate Albrecht B+C term"""
         self.read()
 
@@ -242,8 +243,23 @@ class ResonantRaman(Vibrations):
         self.timer.stop('amplitudes')
         
         # map to modes
-        am = np.dot(amplitudes.T, self.modes.T).T
-        return omega**4 * (am * am.conj()).real
+        return np.dot(amplitudes.T, self.modes.T).T
+
+    def get_intensity_tensor(self, omega, gamma):
+        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        if self.method.lower() == 'profeta':
+            V_rcc += get_matrix_element_Profeta(omega, gamma)
+        elif self.method.lower() == 'albrecht a':
+            V_rcc += get_matrix_element_AlbrechtA(omega, gamma)
+        elif self.method.lower() == 'full':
+            V_rcc += get_matrix_element_Profeta(omega, gamma)
+            V_rcc += get_matrix_element_AlbrechtA(omega, gamma)
+        else:
+            raise NotImplementedError(
+                'Method {0} not implemented. '.format(method) +
+                'Please use "Profeta", "Albrecht A" or "full".')
+
+        return omega**4 * (V_rcc * V_rcc.conj()).real
 
     def get_intensities(self, omega, gamma=0.1):
         return self.get_intensity_tensor(omega, gamma).sum(axis=1).sum(axis=1)
@@ -359,3 +375,4 @@ class ResonantRaman(Vibrations):
 
     def __del__(self):
         self.timer.write(self.txt)
+
