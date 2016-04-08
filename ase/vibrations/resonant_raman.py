@@ -44,11 +44,11 @@ class ResonantRaman(Vibrations):
                  delta=0.01,
                  nfree=2,
                  directions=None,
+                 approximation='Profeta',
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',    # extension for Excitation names
                  txt='-',
                  verbose=False,
-                 method='Profeta',
     ):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
@@ -63,6 +63,7 @@ class ResonantRaman(Vibrations):
         else:
             self.directions = np.array(directions)
 
+        self.approximation = approximation
         self.exobj = Excitations
         self.exkwargs = exkwargs
 
@@ -197,7 +198,7 @@ class ResonantRaman(Vibrations):
 
         F_pV = self.exF_Vp.T
         m_Vcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        for each p:
+        for p in range(2):
             # Huang-Rhys factors from forces
             F_V = np.dot(F_pV[p], self.modes.T)
             S_V = Huang_Rhys(F_V)
@@ -247,16 +248,17 @@ class ResonantRaman(Vibrations):
 
     def get_intensity_tensor(self, omega, gamma):
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        if self.method.lower() == 'profeta':
-            V_rcc += get_matrix_element_Profeta(omega, gamma)
-        elif self.method.lower() == 'albrecht a':
-            V_rcc += get_matrix_element_AlbrechtA(omega, gamma)
-        elif self.method.lower() == 'full':
-            V_rcc += get_matrix_element_Profeta(omega, gamma)
-            V_rcc += get_matrix_element_AlbrechtA(omega, gamma)
+        if self.approximation.lower() == 'profeta':
+            V_rcc += self.get_matrix_element_Profeta(omega, gamma)
+        elif self.approximation.lower() == 'albrecht a':
+            V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+        elif self.approximation.lower() == 'full':
+            V_rcc += self.get_matrix_element_Profeta(omega, gamma)
+            V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
         else:
             raise NotImplementedError(
-                'Method {0} not implemented. '.format(method) +
+                'Approximation {0} not implemented. '.format(
+                    self.approximation) +
                 'Please use "Profeta", "Albrecht A" or "full".')
 
         return omega**4 * (V_rcc * V_rcc.conj()).real
