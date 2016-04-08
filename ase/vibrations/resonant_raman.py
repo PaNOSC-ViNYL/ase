@@ -160,19 +160,19 @@ class ResonantRaman(Vibrations):
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
         self.ex0m_ccp = get_me_tensor(ex0)
-        self.exF_Vp = []
-        self.exmm_Vccp = []
-        self.expm_Vccp = []
+        self.exF_rp = []
+        self.exmm_rccp = []
+        self.expm_rccp = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                self.exF_Vp.append(
+                self.exF_rp.append(
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
-                self.exmm_Vccp.append(get_me_tensor(exm[r]))
-                self.expm_Vccp.append(get_me_tensor(exp[r]))
+                self.exmm_rccp.append(get_me_tensor(exm[r]))
+                self.expm_rccp.append(get_me_tensor(exp[r]))
                 r += 1
-        self.exF_Vp = np.array(self.exF_Vp) * eu / 2 / self.delta
+        self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
 
         self.timer.stop('me and energy')
 
@@ -188,6 +188,13 @@ class ResonantRaman(Vibrations):
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0'):
             self.read_excitations()
+
+    def get_Huang_Rhys_factors(self, forces):
+        """Evaluate Huang-Rhys factors derived from forces."""
+        assert(forces.shape == self.shape)
+
+        
+
 
     def get_Albrecht_A(self, omega, gamma=0.1, ml=range(15)):
         """Evaluate Albrecht A term."""
@@ -237,8 +244,8 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 amplitudes[r] = pre * (
-                    kappa(self.expm_Vccp[r], self.ex0E_p, omega, gamma) -
-                    kappa(self.exmm_Vccp[r], self.ex0E_p, omega, gamma))
+                    kappa(self.expm_rccp[r], self.ex0E_p, omega, gamma) -
+                    kappa(self.exmm_rccp[r], self.ex0E_p, omega, gamma))
                 r += 1
 
         self.timer.stop('amplitudes')
