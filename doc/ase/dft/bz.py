@@ -3,7 +3,7 @@ from math import pi, sin, cos
 
 import numpy as np
 
-from ase.dft.kpoints import high_symm_path, ibz_points
+from ase.dft.kpoints import get_special_points, paths as all_paths
 
 
 def bz_vertices(cell):
@@ -21,33 +21,22 @@ def bz_vertices(cell):
     return bz1
     
             
-def plot(cell, points, names):
+def plot(cell, paths):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     Axes3D  # silence pyflakes
     
-    s = np.array(points)[:, 0].max() / 0.5 * 0.45
-
-    bz1 = bz_vertices(cell)
-
-    fig = plt.figure()
+    fig = plt.figure(figsize=(5, 5))
     ax = fig.gca(projection='3d')
-            
-    x, y, z = np.array(points).T
-    ax.plot(x, y, z, c='b', ls='-')
-
-    for name, point in zip(names, points):
-        x, y, z = point
-        if name == 'Gamma':
-            name = '\\Gamma'
-        ax.text(x, y, z, '$' + name + '$',
-                ha='center', va='bottom', color='r')
         
-    azim = pi / 6
+    azim = pi / 5
     elev = pi / 6
     x = sin(azim)
     y = cos(azim)
     view = [x * cos(elev), y * cos(elev), sin(elev)]
+
+    bz1 = bz_vertices(cell)
+
     for points, normal in bz1:
         if np.dot(normal, view) < 0:
             ls = ':'
@@ -56,8 +45,28 @@ def plot(cell, points, names):
         x, y, z = np.concatenate([points, points[:1]]).T
         ax.plot(x, y, z, c='k', ls=ls)
     
+    txt = ''
+    for names, points in paths:
+        x, y, z = np.array(points).T
+        ax.plot(x, y, z, c='b', ls='-')
+
+        for name, point in zip(names, points):
+            x, y, z = point
+            if name == 'G':
+                name = '\\Gamma'
+            elif len(name) > 1:
+                name = name[0] + '_' + name[1]
+            ax.text(x, y, z, '$' + name + '$',
+                    ha='center', va='bottom', color='r')
+            txt += '`' + name + '`-'
+        
+        txt = txt[:-1] + '|'
+        
+    print(txt[:-1])
+    
     ax.set_axis_off()
     ax.autoscale_view(tight=True)
+    s = np.array(paths[0][1])[:, 0].max() / 0.5 * 0.45
     ax.set_xlim(-s, s)
     ax.set_ylim(-s, s)
     ax.set_zlim(-s, s)
@@ -69,11 +78,15 @@ def plot(cell, points, names):
 import matplotlib.pyplot as plt
 
 for X, cell in [('cubic', np.eye(3)),
-                ('fcc', [[0, 1, 1], [1, 0, 1], [1, 1, 0]])]:
+                ('fcc', [[0, 1, 1], [1, 0, 1], [1, 1, 0]]),
+                ('bcc', [[-1, 1, 1], [1, -1, 1], [1, 1, -1]])]:
     icell = np.linalg.inv(cell)
-    points = []
-    names = high_symm_path[X]
-    for name in names:
-        points.append(np.dot(icell, ibz_points[X][name]))
-    plot(cell, points, names)
+    special_points = get_special_points(X, cell)
+    paths = []
+    for path in all_paths[X]:
+        points = []
+        for name in path:
+            points.append(np.dot(icell, special_points[name]))
+        paths.append((path, points))
+    plot(cell, paths)
     plt.savefig(X + '.svg')

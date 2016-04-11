@@ -148,7 +148,74 @@ ibz_points = {'cubic': {'Gamma': [0, 0, 0],
                                'Z': [0, 0, 1 / 2]}}
 
 
-def get_special_points(lattice, cell=None):
+special_points = {
+    'cubic': {'G': [0, 0, 0],
+              'M': [1 / 2, 1 / 2, 0],
+              'R': [1 / 2, 1 / 2, 1 / 2],
+              'X': [0, 1 / 2, 0]},
+    'fcc': {'G': [0, 0, 0],
+            'K': [3 / 8, 3 / 8, 3 / 4],
+            'L': [1 / 2, 1 / 2, 1 / 2],
+            'U': [5 / 8, 1 / 4, 5 / 8],
+            'W': [1 / 2, 1 / 4, 3 / 4],
+            'X': [1 / 2, 0, 1 / 2]},
+    'bcc': {'G': [0, 0, 0],
+            'H': [1 / 2, -1 / 2, 1 / 2],
+            'P': [1 / 4, 1 / 4, 1 / 4],
+            'N': [0, 0, 1 / 2]},
+    'tetragonal': {'G': [0, 0, 0],
+                   'A': [1 / 2, 1 / 2, 1 / 2],
+                   'M': [1 / 2, 1 / 2, 0],
+                   'R': [0, 1 / 2, 1 / 2],
+                   'X': [0, 1 / 2, 0],
+                   'Z': [0, 0, 1 / 2]}
+    'orthorhombic': {'G': [0, 0,  0],
+                     'R': [1 / 2, 1 / 2, 1 / 2],
+                     'S': [1 / 2, 1 / 2, 0],
+                     'T': [0, 1 / 2, 1 / 2],
+                     'U': [1 / 2, 0, 1 / 2],
+                     'X': [1 / 2, 0, 0],
+                     'Y': [0, 1 / 2, 0],
+                     'Z': [0, 0, 1 / 2]]}
+    'hexagonal': {'G': [0, 0, 0],
+                  'A': [0, 0, 1 / 2],
+                  'H': [1 / 3, 1 / 3, 1 / 2],
+                  'K': [1 / 3, 1 / 3, 0],
+                  'L': [1 / 2, 0, 1 / 2],
+                  'M': [1 / 2, 0, 0, M]}
+    'monoclinic': {'G': [0, 0, 0],
+                   'A': [1 / 2, 1 / 2, 0],
+                   'C': [0, 1 / 2, 1 / 2],
+                   'D': [1 / 2, 0, 1 / 2],
+                   'D1': [1 / 2, 0, -1 / 2],
+                   'E': [1 / 2, 1 / 2, 1 / 2],
+                   'H': [0, η, 1 - ν],
+                   'H1': [0, 1 - η, ν],
+                   'H2': [0, η, -ν],
+                   'M': [1 / 2, η, 1 - ν],
+                   'M1': [1 / 2, 1 - η, ν],
+                   'M2': [1 / 2, η, -ν],
+                   'X': [0, 1 / 2, 0],
+                   'Y': [0, 0, 1 / 2],
+                   'Y1': [0, 0, -1 / 2],
+                   'Z': [1 / 2, 0, 0]}}
+
+η = (1 − b cos α/c)/(2 sin2α)
+ν = 1/2 − ηc cos α/b
+
+        
+paths = {
+    'cubic': ['GXMGRX', 'MR'],
+    'fcc': ['GXWKGLUWLK', 'UX'],
+    'bcc': ['GHNGPH', 'PN'],
+    'tetragonal': ['GXMGZRAZ', 'XR', 'MA'],
+    'orthorhombic': ['GXSYGZURTZ', 'YT', 'UX', 'SR'],
+    'hexagonal': ['GMKGALHA', 'LM', 'KH'],
+    'monoclinic': [['G', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1'],
+                   'MDZ', 'YD']}
+
+
+def get_special_points(lattice, cell, eps=1e-4):
     """Return dict of special points.
     
     Parameters:
@@ -160,8 +227,20 @@ def get_special_points(lattice, cell=None):
         Unit cell - only used for the monoclinic case.
     """
     lattice = lattice.lower()
-    if lattice == 'monoclinic':
-        cellpar = cell_to_cellpar(cell=cell)
+    
+    cellpar = cell_to_cellpar(cell=cell)
+    abc = cellpar[:3]
+    angles = cellpar[3:]
+    print(lattice, cellpar)
+    a, b, c = abc
+    alpha, beta, gamma = angles
+    
+    if lattice == 'cubic':
+        assert abc.ptp() < eps and abs(angles - 90).max() < eps
+    elif lattice == 'fcc':
+        assert abc.ptp() < eps and abs(angles - 60).max() < eps
+
+    elif lattice == 'monoclinic':
         c = np.amax(cellpar[0:3])
         c_ind = np.argmax(cellpar[0:3])
         ab = []
@@ -191,26 +270,10 @@ def get_special_points(lattice, cell=None):
                 'Y': [0, 0, 1 / 2],
                 'Y1': [0, 0, -1 / 2],
                 'Z': [1 / 2, 0, 0]}
-    else:
-        return ibz_points[lattice]
 
-                                
-high_symm_path = {
-    'cubic': ['Gamma', 'X', 'M', 'Gamma', 'R', 'X', 'M', 'R'],
-    'fcc': ['Gamma', 'X', 'W', 'K', 'Gamma', 'L', 'U', 'W', 'L',
-            'K', 'U', 'X'],
-    'bcc': ['Gamma', 'H', 'N', 'Gamma', 'P', 'H', 'P', 'N'],
-    'tetragonal': ['Gamma', 'X', 'M', 'Gamma', 'Z', 'R', 'A',
-                   'Z', 'X', 'R', 'M', 'A'],
-    'orthorhombic': ['Gamma', 'X', 'S', 'Y', 'Gamma', 'Z', 'U',
-                     'R', 'T', 'Z', 'T', 'U', 'X', 'S', 'R'],
-    'hexagonal': ['Gamma', 'M', 'K', 'Gamma', 'A', 'L', 'H', 'A',
-                  'L', 'M', 'K', 'H'],
-    'triclinic': ['X', 'Gamma', 'Y', 'L', 'Gamma', 'Z', 'N', 'Gamma',
-                  'M', 'R', 'Gamma'],
-    'monoclinic': ['Gamma', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1',
-                   'M', 'D', 'Z', 'Y', 'D']}
+    return special_points[lattice]
 
+    
 # ChadiCohen k point grids. The k point grids are given in units of the
 # reciprocal unit cell. The variables are named after the following
 # convention: cc+'<Nkpoints>'+_+'shape'. For example an 18 k point

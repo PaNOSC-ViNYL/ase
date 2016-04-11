@@ -55,14 +55,19 @@ Special points from [Curtarolo]_.
     :widths: 10 30 35
     
     * - Cubic
-      - path ...
+      - `\Gamma`-`X`-`M`-`\Gamma`-`R`-`X`|`M`-`R`
       - .. image:: cubic.svg
             :width: 25 %
     * - FCC
-      - path ...
+      - `\Gamma`-`X`-`W`-`K`-`\Gamma`-`L`-`U`-`W`-`L`-`K`|`U`-`X`
       - .. image:: fcc.svg
             :width: 25 %
+    * - BCC
+      - `\Gamma`-`H`-`N`-`\Gamma`-`P`-`H`|`P`-`N`
+      - .. image:: bcc.svg
+            :width: 25 %
  
+
 You can find the special points in the Brillouin zone:
 
 >>> from ase.lattice import bulk
