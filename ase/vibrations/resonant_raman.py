@@ -246,21 +246,21 @@ class ResonantRaman(Vibrations):
         self.timer.start('amplitudes')
 
         self.timer.start('init')
-        amplitudes = np.zeros((self.ndof, 3, 3), dtype=complex)
+        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
         self.timer.stop('init')
         
         def kappa(me_ccp, e_p, omega, gamma, form='v'):
             """Kappa tensor after Profeta and Mauri
             PRB 63 (2001) 245415"""
-            result = (me_ccp / (e_p - omega - 1j * gamma) +
-                      me_ccp.conj() / (e_p + omega + 1j * gamma))
-            return result.sum(2)
+            kappa_ccp = (me_ccp / (e_p - omega - 1j * gamma) +
+                         me_ccp.conj() / (e_p + omega + 1j * gamma))
+            return kappa_ccp.sum(2)
 
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                amplitudes[r] = pre * (
+                V_rcc[r] = pre * self.im[r] * (
                     kappa(self.expm_rccp[r], self.ex0E_p, omega, gamma) -
                     kappa(self.exmm_rccp[r], self.ex0E_p, omega, gamma))
                 r += 1
@@ -268,7 +268,13 @@ class ResonantRaman(Vibrations):
         self.timer.stop('amplitudes')
         
         # map to modes
-        return np.dot(amplitudes.T, self.modes.T).T
+        pre = 1e10 * np.sqrt(units._hbar**2 / units.J / units._amu)
+        pre_r = np.where(self.om_r > 0,
+                         pre / np.sqrt(self.om_r), 0)
+        V_rcc = np.dot(V_rcc.T, self.modes.T).T
+        for r, p in enumerate(pre_r):
+            V_rcc[r] *= p
+        return V_rcc
 
     def get_intensity_tensor(self, omega, gamma):
         self.read()
