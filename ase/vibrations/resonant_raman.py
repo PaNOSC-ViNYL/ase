@@ -186,7 +186,7 @@ class ResonantRaman(Vibrations):
             # self.H     : Hessian matrix
             # self.im    : 1./sqrt(masses)
             # self.modes : Eigenmodes of the mass weighted H
-            self.om_r = self.hnu.real
+            self.om_r = self.hnu.real    # energies in eV
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0'):
             self.read_excitations()
@@ -221,7 +221,9 @@ class ResonantRaman(Vibrations):
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
-            print('S_r=', S_r)
+#            print('Excitation with energy', energy)
+#            for i, s in enumerate(S_r):
+#                print(i, self.om_r[i], '{0:5.3f}'.format(s))
 
             for m in ml:
                 fco_r = self.fco.direct0mm1(m, S_r)
@@ -269,6 +271,7 @@ class ResonantRaman(Vibrations):
         return np.dot(amplitudes.T, self.modes.T).T
 
     def get_intensity_tensor(self, omega, gamma):
+        self.read()
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         if self.approximation.lower() == 'profeta':
             V_rcc += self.get_matrix_element_Profeta(omega, gamma)
