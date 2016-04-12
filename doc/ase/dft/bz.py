@@ -1,9 +1,10 @@
-# creates: cubic.svg, fcc.svg
+# creates: cubic.svg, fcc.svg, tetragonal.svg, orthogonal.svg, hexagonal.svg, monoclinic.svg
 from math import pi, sin, cos
 
 import numpy as np
+import matplotlib.pyplot as plt
 
-from ase.dft.kpoints import get_special_points, paths as all_paths
+from ase.dft.kpoints import get_special_points, special_paths
 
 
 def bz_vertices(cell):
@@ -21,7 +22,7 @@ def bz_vertices(cell):
     return bz1
     
             
-def plot(cell, paths):
+def plot(cell, paths, elev=None, scale=1):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     Axes3D  # silence pyflakes
@@ -30,7 +31,7 @@ def plot(cell, paths):
     ax = fig.gca(projection='3d')
         
     azim = pi / 5
-    elev = pi / 6
+    elev = elev or pi / 6
     x = sin(azim)
     y = cos(azim)
     view = [x * cos(elev), y * cos(elev), sin(elev)]
@@ -66,7 +67,7 @@ def plot(cell, paths):
     
     ax.set_axis_off()
     ax.autoscale_view(tight=True)
-    s = np.array(paths[0][1])[:, 0].max() / 0.5 * 0.45
+    s = np.array(paths[0][1]).max() / 0.5 * 0.45 * scale
     ax.set_xlim(-s, s)
     ax.set_ylim(-s, s)
     ax.set_zlim(-s, s)
@@ -75,18 +76,30 @@ def plot(cell, paths):
     ax.view_init(azim=azim / pi * 180, elev=elev / pi * 180)
 
     
-import matplotlib.pyplot as plt
+for X, cell in [
+    ('cubic', np.eye(3)),
+    ('fcc', [[0, 1, 1], [1, 0, 1], [1, 1, 0]]),
+    ('bcc', [[-1, 1, 1], [1, -1, 1], [1, 1, -1]]),
+    ('tetragonal', [[1, 0, 0], [0, 1, 0], [0, 0, 1.3]]),
+    ('orthorhombic', [[1, 0, 0], [0, 1.2, 0], [0, 0, 1.4]]),
+    ('hexagonal', [[1, 0, 0], [-0.5, 3**0.5 / 2, 0], [0, 0, 1]]),
+    ('monoclinic', [[1, 0, 0], [0, 1, 0], [0, 0.2, 1]])]:
 
-for X, cell in [('cubic', np.eye(3)),
-                ('fcc', [[0, 1, 1], [1, 0, 1], [1, 1, 0]]),
-                ('bcc', [[-1, 1, 1], [1, -1, 1], [1, 1, -1]])]:
     icell = np.linalg.inv(cell)
     special_points = get_special_points(X, cell)
     paths = []
-    for path in all_paths[X]:
+    for path in special_paths[X]:
         points = []
         for name in path:
             points.append(np.dot(icell, special_points[name]))
         paths.append((path, points))
-    plot(cell, paths)
+        
+    if X == 'bcc':
+        scale = 0.6
+        elev = pi / 13
+    else:
+        scale = 1
+        elev = None
+        
+    plot(cell, paths, elev, scale)
     plt.savefig(X + '.svg')
