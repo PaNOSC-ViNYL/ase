@@ -188,7 +188,7 @@ class ResonantRaman(Vibrations):
             # self.modes : Eigenmodes of the mass weighted H
             self.om_r = self.hnu.real    # energies in eV
             self.timer.stop('read vibrations')
-        if not hasattr(self, 'ex0'):
+        if not hasattr(self, 'ex0E_p'):
             self.read_excitations()
 
     def get_Huang_Rhys_factors(self, forces_r):
@@ -227,9 +227,6 @@ class ResonantRaman(Vibrations):
 
             for m in ml:
                 fco_r = self.fco.direct0mm1(m, S_r)
-                # print('0 shapes=', fco_r.shape, om_r.shape, S_r.shape)
-                # print('1 shapes=', m_cc.shape)
-                # print('2 shapes=', np.einsum('a,bc->abc', om_r, m_cc).shape)
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + m * self.om_r - omega - 1j * gamma),
                     self.ex0m_ccp[:, :, p])
