@@ -193,6 +193,7 @@ class ResonantRaman(Vibrations):
 
     def get_Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
+        self.timer.start('Huang-Rhys')
         assert(len(forces_r.flat) == self.ndof)
 
         # mass weighted quantities
@@ -207,11 +208,14 @@ class ResonantRaman(Vibrations):
 
         # Huang-Rhys factors S
         s = 1.e-20 / units.kg / units.C / units._hbar**2 # SI units
+        self.timer.stop('Huang-Rhys')
         return s * d_r**2 * self.om_r / 2.
 
-    def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(15)):
+    def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(10)):
         """Evaluate Albrecht A term."""
         self.read()
+        
+        self.timer.start('AlbrechtA')
         
         self.fco = FranckCondonOverlap()
 
@@ -226,14 +230,19 @@ class ResonantRaman(Vibrations):
 #                print(i, self.om_r[i], '{0:5.3f}'.format(s))
 
             for m in ml:
+                self.timer.start('0mm1')
                 fco_r = self.fco.direct0mm1(m, S_r)
+                self.timer.stop('0mm1')
+                self.timer.start('einsum')
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + m * self.om_r - omega - 1j * gamma),
                     self.ex0m_ccp[:, :, p])
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + (m - 1) * self.om_r + omega + 1j * gamma),
                     self.ex0m_ccp[:, :, p].conj())
+                self.timer.stop('einsum')
 
+        self.timer.stop('AlbrechtA')
         return m_rcc
 
     def get_matrix_element_Profeta(self, omega, gamma=0.1):
