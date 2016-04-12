@@ -105,7 +105,7 @@ calculators attached.
 
    :ref:`tutorials`:
 
-        * :ref:`diffusion_tutorial`
+        * :ref:`diffusion tutorial`
         * :ref:`neb2`
         * :ref:`idpp_tutorial`
 
@@ -217,8 +217,9 @@ For a complete example using GPAW_, see here_.
 
 Analysis of output
 ==================
-A class exists to help in automating the analysis of NEB jobs. See the :ref:`Diffusion Tutorial <diffusion_tutorial>` for some examples of its use.
+
+A class exists to help in automating the analysis of NEB jobs. See the
+:ref:`Diffusion Tutorial <diffusion tutorial>` for some examples of its use.
 
 .. autoclass:: NEBtools
    :members:
-

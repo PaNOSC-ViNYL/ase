@@ -19,3 +19,6 @@ vib_energies = vib.get_energies()
 thermo = IdealGasThermo(vib_energies=vib_energies, geometry='linear',
                         atoms=n2, symmetrynumber=2, spin=0)
 thermo.get_gibbs_energy(temperature=298.15, pressure=2 * 101325.)
+
+assert vib.clean(empty_files=True) == 0
+assert vib.clean() == 13

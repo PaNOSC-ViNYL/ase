@@ -31,7 +31,7 @@ class MDLogger:
         else:
             self.dyn = None
         self.atoms = atoms
-        self.natoms = atoms.get_number_of_atoms()
+        self.natoms = atoms.get_number_of_atoms()  # GLOBAL number of atoms
         if logfile == "-":
             self.logfile = sys.stdout
             self.ownlogfile = False

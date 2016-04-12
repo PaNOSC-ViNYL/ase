@@ -535,7 +535,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     """
     
     import numpy as np
-    from ase.constraints import FixAtoms, FixScaled
+    from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
     if isinstance(filename, str):
         f = open(filename, 'w')
@@ -562,6 +562,22 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                 sflags[constr.a] = constr.mask
             elif isinstance(constr, FixAtoms):
                 sflags[constr.index] = [True, True, True]
+            elif isinstance(constr, FixedPlane):
+                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5, 
+                              axis=1)
+                if sum(mask) != 1:
+                    raise RuntimeError(
+                        'VASP requires that the direction of FixedPlane '
+                        'constraints is parallel with one of the cell axis')
+                sflags[constr.a] = mask
+            elif isinstance(constr, FixedLine):
+                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5, 
+                              axis=1)
+                if sum(mask) != 1:
+                    raise RuntimeError(
+                        'VASP requires that the direction of FixedLine '
+                        'constraints is parallel with one of the cell axis')
+                sflags[constr.a] = ~mask
 
     if sort:
         ind = np.argsort(atoms.get_chemical_symbols())

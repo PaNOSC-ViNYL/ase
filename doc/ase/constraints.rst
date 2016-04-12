@@ -105,7 +105,7 @@ The FixedPlane class
 
 .. autoclass:: FixedPlane
 
-Example of use: :ref:`constraints_diffusion_tutorial`.
+Example of use: :ref:`constraints diffusion tutorial`.
 
 
 The FixedMode class

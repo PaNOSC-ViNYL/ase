@@ -195,6 +195,8 @@ the :meth:`set` method:
    ase_qmmm_manyqm
 
 
+.. _calculator interface:
+    
 Calculator interface
 ====================
 

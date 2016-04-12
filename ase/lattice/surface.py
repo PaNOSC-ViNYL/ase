@@ -6,7 +6,7 @@ add vacuum layers and add adsorbates.
 """
 
 from __future__ import division
-from math import sqrt, hypot, acos
+from math import sqrt
 from operator import itemgetter
 
 import numpy as np
@@ -16,6 +16,7 @@ from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.lattice.general_surface import surface
+from ase.lattice.root import root_surface
 
 __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
            'bcc100', 'bcc110', 'bcc111',
@@ -26,14 +27,14 @@ __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
 
 def fcc100(symbol, size, a=None, vacuum=None):
     """FCC(100) surface.
- 
+
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     return _surface(symbol, 'fcc', '100', size, a, None, vacuum)
 
 
 def fcc110(symbol, size, a=None, vacuum=None):
     """FCC(110) surface.
- 
+
     Supported special adsorption sites: 'ontop', 'longbridge',
     'shortbridge','hollow'."""
     return _surface(symbol, 'fcc', '110', size, a, None, vacuum)
@@ -41,17 +42,17 @@ def fcc110(symbol, size, a=None, vacuum=None):
 
 def bcc100(symbol, size, a=None, vacuum=None):
     """BCC(100) surface.
- 
+
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     return _surface(symbol, 'bcc', '100', size, a, None, vacuum)
 
 
 def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(110) surface.
- 
+
     Supported special adsorption sites: 'ontop', 'longbridge',
     'shortbridge', 'hollow'.
- 
+
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'bcc', '110', size, a, None, vacuum, orthogonal)
@@ -59,9 +60,9 @@ def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
 
 def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """BCC(111) surface.
- 
+
     Supported special adsorption sites: 'ontop'.
- 
+
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'bcc', '111', size, a, None, vacuum, orthogonal)
@@ -69,9 +70,9 @@ def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
 
 def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """FCC(111) surface.
- 
+
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
- 
+
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'fcc', '111', size, a, None, vacuum, orthogonal)
@@ -79,19 +80,19 @@ def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
 
 def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False):
     """HCP(0001) surface.
- 
+
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
- 
+
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
     return _surface(symbol, 'hcp', '0001', size, a, c, vacuum, orthogonal)
 
-    
+
 def hcp10m10(symbol, size, a=None, c=None, vacuum=None):
     """HCP(10m10) surface.
-    
+
     Supported special adsorption sites: 'ontop'.
-    
+
     Works only for size=(i,j,k) with j even."""
     return _surface(symbol, 'hcp', '10m10', size, a, c, vacuum)
 
@@ -105,7 +106,7 @@ def diamond100(symbol, size, a=None, vacuum=None):
 
 def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
     """DIAMOND(111) surface.
- 
+
     Supported special adsorption sites: 'ontop'."""
 
     if orthogonal:
@@ -113,7 +114,7 @@ def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
     return _surface(symbol, 'diamond', '111', size, a, None, vacuum,
                     orthogonal)
 
-    
+
 def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
                   mol_index=0):
     """Add an adsorbate to a surface.
@@ -158,7 +159,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     a keyword), whereas offset is specified in unit cells.  This
     can be used to give the positions in units of the unit cell by
     using *offset* instead.
-    
+
     """
     info = slab.adsorbate_info
     if 'cell' not in info:
@@ -206,15 +207,15 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     # Attach the adsorbate
     slab.extend(ads)
 
-    
+
 def add_vacuum(atoms, vacuum):
     """Add vacuum layer to the atoms.
 
     Parameters:
- 
+
     atoms: An Atoms object most likely created by one of the
     ase.lattice modules.
- 
+
     vacuum: The thickness of the vacuum layer (in Angstrom).
     """
     uc = atoms.get_cell()
@@ -225,13 +226,13 @@ def add_vacuum(atoms, vacuum):
     newlength = length + vacuum / costheta
     uc[2] *= newlength / length
     atoms.set_cell(uc)
-    
-    
+
+
 def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     """Function to build often used surfaces.
 
     Don't call this function directly - use fcc100, fcc110, bcc111, ..."""
-    
+
     Z = atomic_numbers[symbol]
 
     if a is None:
@@ -349,7 +350,7 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
             sites.update({'hollow': (1.0 / 3, 1.0 / 3)})
         else:
             2 / 0
-            
+
         surface_cell = a * np.array([(cell[0], 0),
                                      (cell[0] / 2, cell[1])])
         if not orthogonal:
@@ -362,17 +363,17 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
 
     if isinstance(cell, tuple):
         cell = np.diag(cell)
-        
+
     slab.set_positions(positions.reshape((-1, 3)))
 
     slab.set_cell([a * v * n for v, n in zip(cell, size)], scale_atoms=True)
 
     if vacuum is not None:
         slab.center(vacuum=vacuum, axis=2)
-    
+
     slab.adsorbate_info['cell'] = surface_cell
     slab.adsorbate_info['sites'] = sites
-    
+
     return slab
 
 
@@ -419,116 +420,65 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     return newatoms
 
 
-def fcc111_root(symbol, root, size, a=None, vacuum=0.0,
-                orthogonal=False, search_zone=(20, 20)):
-    """FCC(111) surface maniupulated to repeat with *root*
-    number of atoms in each x/y plane.
+def hcp0001_root(symbol, root, size, a=None, c=None,
+                 vacuum=None, orthogonal=False):
+    """HCP(0001) surface maniupulated to have a x unit side length
+    of *root* before repeating.This also results in *root* number
+    of repetitions of the cell.
 
-    The cell is generated as a rotated 60-120-60-120
-    cell in the x/y plane.  The rotation and size is chosen
-    to allow for the length of the cell vectors to be equal
-    to the root of *root* with a lattice constant of 2**0.5.
 
-    *root* should be given as a positive whole number."""
-    atomic_number = atomic_numbers[symbol]
-    if orthogonal:
-        raise NotImplementedError('Only implemented for orthogonal '
-                                  'unit cells.')
-    if a is None:
-        if reference_states[atomic_number]['symmetry'] == 'fcc':
-            a = reference_states[atomic_number]['a']
-        else:
-            raise ValueError("Can't guess lattice constant for %s-%s!"
-                             % ('fcc', symbol))
+    The first 20 valid roots for nonorthogonal are...
+    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25,
+    27, 28, 31, 36, 37, 39, 43, 48, 49"""
+    atoms = hcp0001(symbol=symbol, size=(1, 1, size[2]),
+                    a=a, c=c, vacuum=vacuum, orthogonal=orthogonal)
+    atoms = root_surface(atoms, root)
+    atoms *= (size[0], size[1], 1)
+    return atoms
 
-    searchx, searchy = search_zone
 
-    c = 0.5
-    s = (3**0.5) / 2.
+def fcc111_root(symbol, root, size, a=None,
+                vacuum=None, orthogonal=False):
+    """FCC(111) surface maniupulated to have a x unit side length
+    of *root* before repeating. This also results in *root* number
+    of repetitions of the cell.
 
-    def rhomb(x, y):
-        return float(x + (c * y)), float(s * y)
+    The first 20 valid roots for nonorthogonal are...
+    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25, 27,
+    28, 31, 36, 37, 39, 43, 48, 49"""
+    atoms = fcc111(symbol=symbol, size=(1, 1, size[2]),
+                   a=a, vacuum=vacuum, orthogonal=orthogonal)
+    atoms = root_surface(atoms, root)
+    atoms *= (size[0], size[1], 1)
+    return atoms
 
-    desired = root**0.5
-    location = None
 
-    locations = []
-    for iy in range(searchy):
-        for ix in range(searchx):
-            x, y = rhomb(ix, iy)
-            locations.append([x, y])
-    distances = np.sqrt((np.array(locations)**2).sum(1))
-    for index, dist in enumerate(distances):
-        if abs(dist - desired) <= 1e-13:
-            location = locations[index]
+def bcc111_root(symbol, root, size, a=None,
+                vacuum=None, orthogonal=False):
+    """BCC(111) surface maniupulated to have a x unit side length
+    of *root* before repeating. This also results in *root* number
+    of repetitions of the cell.
 
-    if location is None:
-        raise ValueError(
-            "Can't find a root cell in the searched zone of size \
-             (%d, %d). A larger zone may be needed for large root values" %
-            search_zone)
 
-    angle = acos(location[0] / desired)
+    The first 20 valid roots for nonorthogonal are...
+    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25,
+    27, 28, 31, 36, 37, 39, 43, 48, 49"""
+    atoms = bcc111(symbol=symbol, size=(1, 1, size[2]),
+                   a=a, vacuum=vacuum, orthogonal=orthogonal)
+    atoms = root_surface(atoms, root)
+    atoms *= (size[0], size[1], 1)
+    return atoms
 
-    cutting_board = fcc111(symbol, (searchx, searchy, size[2]), a=2**0.5)
-    cutting_board.translate((-searchx, 0, 0))
-    cutting_board += fcc111(symbol, (searchx, searchy, size[2]), a=2**0.5)
 
-    cutting_board.rotate('z', -angle)
-
-    cutting_board.set_cell(((desired, 0, 0),
-                            (desired / 2, desired * ((3**0.5) / 2), 0),
-                            (0, 0, 2**0.5 * size[2])), scale_atoms=False)
-
-    cell = cutting_board.get_cell()
-
-    remove = []
-    for index, position in enumerate(cutting_board.positions):
-        if not (0 < position[0] < (cell[0][0] + cell[1][0])):
-            remove.append(index)
-        if not (0 < position[1] < cell[1][1]):
-            remove.append(index)
-    del cutting_board[remove]
-
-    def remove_doubles():
-        scaled = cutting_board.get_scaled_positions()
-
-        remove = []
-        for index, position in enumerate(scaled):
-            for inner_index in range(index):
-                inner_position = scaled[inner_index]
-                if hypot(position[0] - inner_position[0],
-                         position[1] - inner_position[1]) < 1e-10:
-                    remove.append(index)
-
-        del cutting_board[remove]
-
-        cutting_board.set_scaled_positions(
-            cutting_board.get_scaled_positions())
-
-    remove_doubles()
-    cutting_board.translate((0.1, 0.1, 0))
-    remove_doubles()
-
-    cell *= a / (2 ** (0.5))
-    cutting_board.set_cell(cell, scale_atoms=True)
-    cutting_board.adsorbate_info = {}
-
-    cutting_board *= (size[0], size[1], 1)
-    cutting_board.center(axis=2, vacuum=vacuum)
-
-    return cutting_board
-    
-    
 def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
         size=(1, 1, 1), vacuum=7.5):
     """Create three-layer 2D materials with hexagonal structure.
-    
+
     For metal dichalcogenites, etc.
-    
+
     The kind argument accepts '2H', which gives a mirror plane symmetry
     and '1T', which gives an inversion symmetry."""
-    
+
     if kind == '2H':
         basis = [(0, 0, 0),
                  (2 / 3, 1 / 3, 0.5 * thickness),
@@ -539,11 +489,11 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
                  (1 / 3, 2 / 3, -0.5 * thickness)]
     else:
         raise ValueError('Structure not recognized')
-    
+
     cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 1]]
-    
+
     atoms = Atoms(formula, cell=cell, scaled_positions=basis, pbc=(1, 1, 0))
     atoms = atoms.repeat(size)
     atoms.center(vacuum=vacuum, axis=2)
-    
+
     return atoms

@@ -15,6 +15,7 @@ MANIFEST
 *.txt
 *.log
 *.xyz
+*.svg
 *.db
 *.pckl
 

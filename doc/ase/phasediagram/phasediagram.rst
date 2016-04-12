@@ -50,7 +50,13 @@ Alternatively, one could have used ``pd.decompose(Cu=3, Au=1)``.
 
 .. automethod:: PhaseDiagram.decompose
 
+Here is an example (see :download:`ktao.py`) with three components using
+``plot(dims=2)`` and ``plot(dims=3)``:
 
+.. image:: ktao-2d.png
+.. image:: ktao-3d.png
+
+    
 Pourbaix diagrams
 =================
 
