@@ -4,6 +4,7 @@ from math import sqrt
 import numpy as np
 
 import ase.parallel as mpi
+from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
@@ -13,7 +14,7 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 world=None,tr=None):
+                 remove_rotation_and_translation=None, world=None):
         """Nudged elastic band.
 
         images: list of Atoms objects
@@ -24,7 +25,7 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
-        tr: bool
+        remove_rotation_and_translation: bool
             TRUE actives NEB-TR for removing translation and
             rotation during NEB. By default applied non-periodic
             systems
@@ -36,13 +37,10 @@ class NEB:
         self.nimages = len(images)
         self.emax = np.nan
         
-        if tr is not None:
-            self.tr = tr
-        else:
-            if self.images[0].get_pbc().sum() == 0:
-                self.tr = True
-            else:
-                self.tr = False
+        if 1:#remove_rotation_and_translation is None:
+            remove_rotation_and_translation = not self.images[0].pbc.any()
+            
+        self.remove_rotation_and_translation = remove_rotation_and_translation
         
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
@@ -56,23 +54,10 @@ class NEB:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
     def interpolate(self, method='linear', mic=False):
+        if self.remove_rotation_and_translation:
+            minimize_rotation_and_translation(self.images[0], self.images[-1])
         
-        if not self.tr:
-            interpolate(self.images, mic)    
-            print 'NOT'
-        elif self.tr:
-            print 'TR'
-            #liner interpolation with translation and rotation removal
-            minimize_rotation_and_translation(self.images[-1], self.images[0])
-            d = (self.images[-1].get_positions() -
-                self.images[0].get_positions()) / (self.nimages - 1.0)
-            
-            for i in range(1, self.nimages - 1):
-                coords = self.images[i].get_positions()
-                interpolated_coordinates = coords + i * d
-                self.images[i].set_positions(interpolated_coordinates)
-                minimize_rotation_and_translation(self.images[i],
-                 self.images[0])
+        interpolate(self.images, mic)
                  
         if method == 'idpp':
             print 'IDPP'
@@ -120,11 +105,11 @@ class NEB:
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages - 2)
 
-        if self.tr:
-            #remove translation and rotation between
-            #images before computing forces
+        if self.remove_rotation_and_translation:
+            # Remove translation and rotation between
+            # images before computing forces:
             for i in range(1, self.nimages):
-                minimize_rotation_and_translation(images[i], images[i - 1])
+                minimize_rotation_and_translation(images[i - 1], images[i])
 
         if not self.parallel:
             # Do all images - one at a time:
@@ -490,7 +475,7 @@ class NEBtools:
 
     def get_fmax(self):
         """Returns fmax, as used by optimizers with NEB."""
-        neb = NEB(self._images,tr = False)
+        neb = NEB(self._images, minimize_rotation_and_translation=False)
         forces = neb.get_forces()
         return np.sqrt((forces**2).sum(axis=1).max())
 
@@ -525,123 +510,3 @@ def interpolate(images, mic=False):
             images[i].get_calculator().set_atoms(images[i])
         except AttributeError:
             pass
-
-def com_translation(target, initial):
-
-    ''' translates initial coordinates so that the center
-    of masses of target and initial are the same
-    
-    returns the best matching coordinates'''
-
-    center1 = target.get_center_of_mass()
-    pos2 = initial.get_positions()
-
-    center2 = initial.get_center_of_mass()
-    d_COM = center2 - center1
-
-    return pos2 - d_COM
-
-
-def rotation_matrix_from_points(m0, m1):
-    ''' Returns a rigid transformation/rotation
-    matrix that minimizes the RMSD between two set of
-    points, m0 and m1. m1 is the target.
-
-    m0 and m1 should be (3, npoints) numpy arrays with
-    coordinates as columns
-
-    (x1  x2   x3   ... xN
-     y1  y2   y3   ... yN
-    z1  z2   z3   ... zN)
-
-    The centeroids should be set to origin prior to
-    computing the rotation matrix
-
-    The rotation matrix is computed using quaternion
-    algebra as detailed in
-    Melander et al. J. Chem. Theory Comput., 2015, 11,1055
-    '''
-
-    v0 = np.copy(m0)
-    v1 = np.copy(m1)
-
-    # compute the rotation quaternion
-
-    R11, R22, R33 = np.sum(v0 * v1, axis=1)
-    R12, R23, R31 = np.sum(v0 * np.roll(v1, -1, axis=0), axis=1)
-    R13, R21, R32 = np.sum(v0 * np.roll(v1, -2, axis=0), axis=1)
-
-    f = [[R11 + R22 + R33, R23 - R32, R31 - R13, R12 - R21],
-        [R23 - R32, R11 - R22 - R33, R12 + R21, R13 + R31],
-        [R31 - R13, R12 + R21, -R11 + R22 - R33, R23 + R32],
-        [R12 - R21, R13 + R31, R23 + R32, -R11 - R22 + R33]]
-
-    F = np.array(f)
-
-    w, V = np.linalg.eigh(F)
-    # eigenvector corresponding to the most
-    # positive eigenvalue
-    q = V[:, np.argmax(w)]
-
-    # Rotation matrix from the quaternion q
-
-    R = quaternion_to_matrix(q)
-
-    return R
-
-def quaternion_to_matrix(q):
-
-    ''' Returns a rotation matrix computed 
-    from a unit quaternion
-    Input as (4,) numpy array'''
-
-    q0 = q[0]
-    q1 = q[1]
-    q2 = q[2]
-    q3 = q[3]
-
-    R_q = [[q0**2+q1**2-q2**2-q3**2, 2*(q1* q2-q0*q3), 2*(q1*q3+q0*q2)],
-          [2*(q1*q2+q0*q3), q0**2-q1**2+q2**2-q3**2, 2*(q2*q3-q0*q1)],
-          [2*(q1*q3-q0*q2), 2*(q2*q3+q0*q1), q0**2-q1**2-q2**2+q3**2]]
-
-    return np.array(R_q)
-
-
-def minimize_rotation_and_translation(m0, m1):
-    ''' Returns a rigid transformation/rotation
-    matrix that minimizes the RMSD between two Atoms
-    objects, m0 and m1. m1 is the target.
-    see Melander et al. J. Chem. Theory Comput., 2015, 11,1055
-    '''
-
-    v0 = m0.get_positions()
-    v1 = m1.get_positions()
-
-    v0 = np.swapaxes(v0, 0, 1)
-    v1 = np.swapaxes(v1, 0, 1)
-
-    # centeroids to origin
-
-    c0 = np.mean(v0, axis=1)
-    v0 -= c0.reshape(3, 1)
-
-    c1 = np.mean(v1, axis=1)
-    v1 -= c1.reshape(3, 1)
-
-    # Compute rotation matrix
-
-    R = rotation_matrix_from_points(v0, v1)
-
-    # Rotate the v0 vectors
-
-    v0_rot = np.dot(R, v0)
-
-    # Move the centroid back to it original place
-
-    v0_rot = np.swapaxes(v0_rot, 0, 1)
-    m0.set_positions(v0_rot)
-
-    # match centers of mass
-
-    v0_trans = com_translation(m1, m0)
-    m0.set_positions(v0_trans)
