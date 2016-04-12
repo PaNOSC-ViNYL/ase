@@ -14,7 +14,7 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 remove_rotation_and_translation=None, world=None):
+                 remove_rotation_and_translation=False, world=None):
         """Nudged elastic band.
 
         images: list of Atoms objects
@@ -37,9 +37,6 @@ class NEB:
         self.nimages = len(images)
         self.emax = np.nan
         
-        if 1:#remove_rotation_and_translation is None:
-            remove_rotation_and_translation = not self.images[0].pbc.any()
-            
         self.remove_rotation_and_translation = remove_rotation_and_translation
         
         if isinstance(k, (float, int)):
@@ -60,7 +57,6 @@ class NEB:
         interpolate(self.images, mic)
                  
         if method == 'idpp':
-            print 'IDPP'
             self.idpp_interpolate(traj=None, log=None, mic=mic)
 
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
@@ -475,7 +471,7 @@ class NEBtools:
 
     def get_fmax(self):
         """Returns fmax, as used by optimizers with NEB."""
-        neb = NEB(self._images, minimize_rotation_and_translation=False)
+        neb = NEB(self._images)
         forces = neb.get_forces()
         return np.sqrt((forces**2).sum(axis=1).max())
 

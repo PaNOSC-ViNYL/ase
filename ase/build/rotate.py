@@ -56,8 +56,8 @@ def quaternion_to_matrix(q):
     """
 
     q0, q1, q2, q3 = q
-    R_q = [[q0**2 + q1**2 - q2**2 - q3**2
-            , 2 * (q1* q2 - q0*q3),
+    R_q = [[q0**2 + q1**2 - q2**2 - q3**2,
+            2 * (q1 * q2 - q0 * q3),
             2 * (q1 * q3 + q0 * q2)],
            [2 * (q1 * q2 + q0 * q3),
             q0**2 - q1**2 + q2**2 - q3**2,
@@ -88,4 +88,4 @@ def minimize_rotation_and_translation(target, atoms):
     # Compute rotation matrix
     R = rotation_matrix_from_points(p.T, p0.T)
 
-    atoms.set_positions(np.dot(p, R.T) + c0 - c)
+    atoms.set_positions(np.dot(p, R.T) + c0)

@@ -35,7 +35,7 @@ images = [initial.copy()]
 for i in range(3):
     images.append(initial.copy())
 images.append(final.copy())
-neb = NEB(images, climb=True, tr = False)
+neb = NEB(images, climb=True)
 
 # Set constraints and calculator:
 constraint = FixAtoms(indices=[1, 3])  # fix OO

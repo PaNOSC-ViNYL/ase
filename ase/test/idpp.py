@@ -10,7 +10,7 @@ for i in range(5):
     images.append(initial.copy())
 images.append(final)
 
-neb = NEB(images,tr = False)
+neb = NEB(images)
 d0 = images[3].get_distance(2, 3)
 neb.interpolate()
 d1 = images[3].get_distance(2, 3)
