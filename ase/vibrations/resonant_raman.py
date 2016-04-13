@@ -260,10 +260,13 @@ class ResonantRaman(Vibrations):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
 
             for m in ml:
-                self.timer.start('0mm1')
-                fco_r = self.fco.direct0mm1(m, S_r)
-
-                self.timer.stop('0mm1')
+                self.timer.start('Franck-Condon overlaps')
+                if 'B' in term:
+                    1mm1_r = self.fco.direct(1, m, S_r)
+                if 'C' in term:
+                    0mm0_r = self.fco.direct(0, m, S_r)
+                    0mm2_r = self.fco.direct0mm2(m, S_r)
+                self.timer.stop('Franck-Condon overlaps')
                 self.timer.start('einsum')
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + m * self.om_r - omega - 1j * gamma),
