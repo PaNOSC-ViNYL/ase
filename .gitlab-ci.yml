@@ -8,4 +8,5 @@ master:
     - echo $PYTHONPATH
     - cd ..
     - PATH=$PATH:$PWD/ase/tools PYTHONPATH=$PWD/ase python -m ase.test
-    - PYTHONPATH=$PWD/ase python ase/ase/test/__init__.py
+    - cd ase
+    - PYTHONPATH=$PWD python ase/test/__init__.py

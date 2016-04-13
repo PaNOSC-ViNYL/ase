@@ -2,7 +2,6 @@ from __future__ import division, print_function
 import fractions
 import functools
 import re
-from distutils.version import LooseVersion
 
 import numpy as np
 from scipy.spatial import ConvexHull
