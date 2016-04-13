@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from optparse import OptionParser
-from ase.io import filetype
+from ase.io.formats import filetype
 from ase.io.aff import print_aff_info
 from ase.io.pickletrajectory import print_trajectory_info
 from ase.io.bundletrajectory import print_bundletrajectory_info

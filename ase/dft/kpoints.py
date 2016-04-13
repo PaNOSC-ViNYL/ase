@@ -1,6 +1,6 @@
 from __future__ import division
 import warnings
-from math import sin, cos
+from math import sin, cos, pi
 
 import numpy as np
 
@@ -107,110 +107,126 @@ def get_bandpath(points, cell, npoints=50):
     return np.array(kpts), np.array(x), np.array(X)
 
 
-# The following is a list of the critical points in the 1. Brillouin zone
-# for some typical crystal structures.
-# (In units of the reciprocal basis vectors)
-# See http://en.wikipedia.org/wiki/Brillouin_zone
+special_points = {
+    'cubic': {'G': [0, 0, 0],
+              'M': [1 / 2, 1 / 2, 0],
+              'R': [1 / 2, 1 / 2, 1 / 2],
+              'X': [0, 1 / 2, 0]},
+    'fcc': {'G': [0, 0, 0],
+            'K': [3 / 8, 3 / 8, 3 / 4],
+            'L': [1 / 2, 1 / 2, 1 / 2],
+            'U': [5 / 8, 1 / 4, 5 / 8],
+            'W': [1 / 2, 1 / 4, 3 / 4],
+            'X': [1 / 2, 0, 1 / 2]},
+    'bcc': {'G': [0, 0, 0],
+            'H': [1 / 2, -1 / 2, 1 / 2],
+            'P': [1 / 4, 1 / 4, 1 / 4],
+            'N': [0, 0, 1 / 2]},
+    'tetragonal': {'G': [0, 0, 0],
+                   'A': [1 / 2, 1 / 2, 1 / 2],
+                   'M': [1 / 2, 1 / 2, 0],
+                   'R': [0, 1 / 2, 1 / 2],
+                   'X': [0, 1 / 2, 0],
+                   'Z': [0, 0, 1 / 2]},
+    'orthorhombic': {'G': [0, 0, 0],
+                     'R': [1 / 2, 1 / 2, 1 / 2],
+                     'S': [1 / 2, 1 / 2, 0],
+                     'T': [0, 1 / 2, 1 / 2],
+                     'U': [1 / 2, 0, 1 / 2],
+                     'X': [1 / 2, 0, 0],
+                     'Y': [0, 1 / 2, 0],
+                     'Z': [0, 0, 1 / 2]},
+    'hexagonal': {'G': [0, 0, 0],
+                  'A': [0, 0, 1 / 2],
+                  'H': [1 / 3, 1 / 3, 1 / 2],
+                  'K': [1 / 3, 1 / 3, 0],
+                  'L': [1 / 2, 0, 1 / 2],
+                  'M': [1 / 2, 0, 0]}}
 
-ibz_points = {'cubic': {'Gamma': [0, 0, 0],
-                        'X': [0, 0 / 2, 1 / 2],
-                        'R': [1 / 2, 1 / 2, 1 / 2],
-                        'M': [0 / 2, 1 / 2, 1 / 2]},
-              'fcc': {'Gamma': [0, 0, 0],
-                      'X': [1 / 2, 0, 1 / 2],
-                      'W': [1 / 2, 1 / 4, 3 / 4],
-                      'K': [3 / 8, 3 / 8, 3 / 4],
-                      'U': [5 / 8, 1 / 4, 5 / 8],
-                      'L': [1 / 2, 1 / 2, 1 / 2]},
-              'bcc': {'Gamma': [0, 0, 0],
-                      'H': [1 / 2, -1 / 2, 1 / 2],
-                      'N': [0, 0, 1 / 2],
-                      'P': [1 / 4, 1 / 4, 1 / 4]},
-              'hexagonal': {'Gamma': [0, 0, 0],
-                            'M': [0, 1 / 2, 0],
-                            'K': [-1 / 3, 1 / 3, 0],
-                            'A': [0, 0, 1 / 2],
-                            'L': [0, 1 / 2, 1 / 2],
-                            'H': [-1 / 3, 1 / 3, 1 / 2]},
-              'tetragonal': {'Gamma': [0, 0, 0],
-                             'X': [1 / 2, 0, 0],
-                             'M': [1 / 2, 1 / 2, 0],
-                             'Z': [0, 0, 1 / 2],
-                             'R': [1 / 2, 0, 1 / 2],
-                             'A': [1 / 2, 1 / 2, 1 / 2]},
-              'orthorhombic': {'Gamma': [0, 0, 0],
-                               'R': [1 / 2, 1 / 2, 1 / 2],
-                               'S': [1 / 2, 1 / 2, 0],
-                               'T': [0, 1 / 2, 1 / 2],
-                               'U': [1 / 2, 0, 1 / 2],
-                               'X': [1 / 2, 0, 0],
-                               'Y': [0, 1 / 2, 0],
-                               'Z': [0, 0, 1 / 2]}}
+        
+special_paths = {
+    'cubic': [['G', 'X', 'M', 'G', 'R', 'X'], ['M', 'R']],
+    'fcc': [['G', 'X', 'W', 'K', 'G', 'L', 'U', 'W', 'L', 'K'], ['U', 'X']],
+    'bcc': [['G', 'H', 'N', 'G', 'P', 'H'], ['P', 'N']],
+    'tetragonal': [['G', 'X', 'M', 'G', 'Z', 'R', 'A', 'Z'], ['X', 'R'],
+                   ['M', 'A']],
+    'orthorhombic': [['G', 'X', 'S', 'Y', 'G', 'Z', 'U', 'R', 'T', 'Z'],
+                     ['Y', 'T'], ['U', 'X'], ['S', 'R']],
+    'hexagonal': [['G', 'M', 'K', 'G', 'A', 'L', 'H', 'A'], ['L', 'M'],
+                  ['K', 'H']],
+    'monoclinic': [['G', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1'],
+                   ['M', 'D', 'Z'], ['Y', 'D']]}
 
 
-def get_special_points(lattice, cell=None):
+def get_special_points(lattice, cell, eps=1e-4):
     """Return dict of special points.
     
-    Parameters:
-
+    The definitions are from a paper by Wahyu Setyawana and Stefano
+    Curtarolo::
+        
+        http://dx.doi.org/10.1016/j.commatsci.2010.05.010
+    
     lattice: str
         One of the following: cubic, fcc, bcc, orthorhombic, tetragonal,
         hexagonal or monoclinic.
     cell: 3x3 ndarray
-        Unit cell - only used for the monoclinic case.
+        Unit cell.
+    eps: float
+        Tolerance for cell-check.
     """
+    
     lattice = lattice.lower()
-    if lattice == 'monoclinic':
-        cellpar = cell_to_cellpar(cell=cell)
-        c = np.amax(cellpar[0:3])
-        c_ind = np.argmax(cellpar[0:3])
-        ab = []
-        for i in range(3):
-            if i != c_ind:
-                ab.append(cellpar[i])
+    
+    cellpar = cell_to_cellpar(cell=cell)
+    abc = cellpar[:3]
+    angles = cellpar[3:] / 180 * pi
+    a, b, c = abc
+    alpha, beta, gamma = angles
+    
+    # Check that the unit-cells are as in the Setyawana-Curtarolo paper:
+    if lattice == 'cubic':
+        assert abc.ptp() < eps and abs(angles - pi / 2).max() < eps
+    elif lattice == 'fcc':
+        assert abc.ptp() < eps and abs(angles - pi / 3).max() < eps
+    elif lattice == 'bcc':
+        angle = np.arccos(-1 / 3)
+        assert abc.ptp() < eps and abs(angles - angle).max() < eps
+    elif lattice == 'tetragonal':
+        assert abs(a - b) < eps and abs(angles - pi / 2).max() < eps
+    elif lattice == 'orthorhombic':
+        assert abs(angles - pi / 2).max() < eps
+    elif lattice == 'hexagonal':
+        assert abs(a - b) < eps
+        assert abs(gamma - pi / 3 * 2) < eps
+        assert abs(angles[:2] - pi / 2).max() < eps
+    elif lattice == 'monoclinic':
+        assert c >= a and c >= b
+        assert alpha < pi / 2 and abs(angles[1:] - pi / 2).max() < eps
         
-        for i in cellpar[3:6]:
-            if i < 90.0:
-                alpha = i
-        ni = (1 - ab[1] * cos(alpha) / c) / (2 * sin(alpha)**2)
-        vi = 0.5 - ni * c * cos(alpha) / ab[1]
-
-        return {'Gamma': [0, 0, 0],
-                'A': [1 / 2, 1 / 2, 0],
-                'C': [0, 1 / 2, 1 / 2],
-                'D': [1 / 2, 0, 1 / 2],
-                'D1': [1 / 2, 0, -1 / 2],
-                'E': [1 / 2, 1 / 2, 1 / 2],
-                'H': [0, ni, 1 - vi],
-                'H1': [0, 1 - ni, vi],
-                'H2': [0, ni, -vi],
-                'M': [1 / 2, ni, 1 - vi],
-                'M1': [1 / 2, 1 - ni, vi],
-                'M2': [1 / 2, ni, -vi],
-                'X': [0, 1 / 2, 0],
-                'Y': [0, 0, 1 / 2],
-                'Y1': [0, 0, -1 / 2],
-                'Z': [1 / 2, 0, 0]}
-    else:
-        return ibz_points[lattice]
-
-                                
-high_symm_path = {
-    'cubic': ['Gamma', 'X', 'M', 'Gamma', 'R', 'X', 'M', 'R'],
-    'fcc': ['Gamma', 'X', 'W', 'K', 'Gamma', 'L', 'U', 'W', 'L',
-            'K', 'U', 'X'],
-    'bcc': ['Gamma', 'H', 'N', 'Gamma', 'P', 'H', 'P', 'N'],
-    'tetragonal': ['Gamma', 'X', 'M', 'Gamma', 'Z', 'R', 'A',
-                   'Z', 'X', 'R', 'M', 'A'],
-    'orthorhombic': ['Gamma', 'X', 'S', 'Y', 'Gamma', 'Z', 'U',
-                     'R', 'T', 'Z', 'T', 'U', 'X', 'S', 'R'],
-    'hexagonal': ['Gamma', 'M', 'K', 'Gamma', 'A', 'L', 'H', 'A',
-                  'L', 'M', 'K', 'H'],
-    'triclinic': ['X', 'Gamma', 'Y', 'L', 'Gamma', 'Z', 'N', 'Gamma',
-                  'M', 'R', 'Gamma'],
-    'monoclinic': ['Gamma', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1',
-                   'M', 'D', 'Z', 'Y', 'D']}
-
+    if lattice != 'monoclinic':
+        return special_points[lattice]
+    
+    # Here, we need the cell:
+    eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
+    nu = 1 / 2 - eta * c * cos(alpha) / b
+    return {'G': [0, 0, 0],
+            'A': [1 / 2, 1 / 2, 0],
+            'C': [0, 1 / 2, 1 / 2],
+            'D': [1 / 2, 0, 1 / 2],
+            'D1': [1 / 2, 0, -1 / 2],
+            'E': [1 / 2, 1 / 2, 1 / 2],
+            'H': [0, eta, 1 - nu],
+            'H1': [0, 1 - eta, nu],
+            'H2': [0, eta, -nu],
+            'M': [1 / 2, eta, 1 - nu],
+            'M1': [1 / 2, 1 - eta, nu],
+            'M2': [1 / 2, eta, -nu],
+            'X': [0, 1 / 2, 0],
+            'Y': [0, 0, 1 / 2],
+            'Y1': [0, 0, -1 / 2],
+            'Z': [1 / 2, 0, 0]}
+        
+    
 # ChadiCohen k point grids. The k point grids are given in units of the
 # reciprocal unit cell. The variables are named after the following
 # convention: cc+'<Nkpoints>'+_+'shape'. For example an 18 k point
@@ -316,3 +332,43 @@ cc162_1x1 = np.array([
     13, 0, 2, 13, 0, 5, 13, 0, 8, 13, 0, 11, 13, 0, 14, 13, 0, 1, 14,
     0, 4, 14, 0, 7, 14, 0, 10, 14, 0, 13, 14, 0, 5, 16, 0, 8, 16, 0,
     11, 16, 0, 7, 17, 0, 10, 17, 0]).reshape((162, 3)) / 27.0
+
+# The following is a list of the critical points in the 1. Brillouin zone
+# for some typical crystal structures.
+# (In units of the reciprocal basis vectors)
+# See http://en.wikipedia.org/wiki/Brillouin_zone
+
+ibz_points = {'cubic': {'Gamma': [0, 0, 0],
+                        'X': [0, 0 / 2, 1 / 2],
+                        'R': [1 / 2, 1 / 2, 1 / 2],
+                        'M': [0 / 2, 1 / 2, 1 / 2]},
+              'fcc': {'Gamma': [0, 0, 0],
+                      'X': [1 / 2, 0, 1 / 2],
+                      'W': [1 / 2, 1 / 4, 3 / 4],
+                      'K': [3 / 8, 3 / 8, 3 / 4],
+                      'U': [5 / 8, 1 / 4, 5 / 8],
+                      'L': [1 / 2, 1 / 2, 1 / 2]},
+              'bcc': {'Gamma': [0, 0, 0],
+                      'H': [1 / 2, -1 / 2, 1 / 2],
+                      'N': [0, 0, 1 / 2],
+                      'P': [1 / 4, 1 / 4, 1 / 4]},
+              'hexagonal': {'Gamma': [0, 0, 0],
+                            'M': [0, 1 / 2, 0],
+                            'K': [-1 / 3, 1 / 3, 0],
+                            'A': [0, 0, 1 / 2],
+                            'L': [0, 1 / 2, 1 / 2],
+                            'H': [-1 / 3, 1 / 3, 1 / 2]},
+              'tetragonal': {'Gamma': [0, 0, 0],
+                             'X': [1 / 2, 0, 0],
+                             'M': [1 / 2, 1 / 2, 0],
+                             'Z': [0, 0, 1 / 2],
+                             'R': [1 / 2, 0, 1 / 2],
+                             'A': [1 / 2, 1 / 2, 1 / 2]},
+              'orthorhombic': {'Gamma': [0, 0, 0],
+                               'R': [1 / 2, 1 / 2, 1 / 2],
+                               'S': [1 / 2, 1 / 2, 0],
+                               'T': [0, 1 / 2, 1 / 2],
+                               'U': [1 / 2, 0, 1 / 2],
+                               'X': [1 / 2, 0, 0],
+                               'Y': [0, 1 / 2, 0],
+                               'Z': [0, 0, 1 / 2]}}

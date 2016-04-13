@@ -2,7 +2,6 @@ from __future__ import division, print_function
 import fractions
 import functools
 import re
-from distutils.version import LooseVersion
 
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -10,12 +9,6 @@ from scipy.spatial import ConvexHull
 import ase.units as units
 from ase.atoms import string2symbols
 from ase.utils import hill
-
-if LooseVersion(np.__version__) < '1.8':
-    def solve(A, B):
-        return np.array([np.linalg.solve(a, b) for a, b in zip(A, B)])
-else:
-    solve = np.linalg.solve
     
 _solvated = []
 
@@ -394,19 +387,24 @@ class PhaseDiagram:
             
         # Find coordinates within each simplex:
         X = self.points[self.simplices, 1:-1] - point[1:] / N
-        D = X[:, 1:] - X[:, :1]
-        C = solve(D.transpose((0, 2, 1)), -X[:, 0])
-        
+
         # Find the simplex with positive coordinates that sum to
         # less than one:
-        ok = np.logical_and.reduce(C >= 0, axis=1) & (C.sum(axis=1) <= 1)
-        i = np.argmax(ok)
-        
+        for i, Y in enumerate(X):
+            try:
+                x = np.linalg.solve((Y[1:] - Y[:1]).T, -Y[0])
+            except np.linalg.linalg.LinAlgError:
+                continue
+            if (x >= 0).all() and x.sum() <= 1:
+                break
+        else:
+            assert False, X
+                
         indices = self.simplices[i]
         points = self.points[indices]
         
-        scaledcoefs = [1 - C[i].sum()]
-        scaledcoefs.extend(C[i])
+        scaledcoefs = [1 - x.sum()]
+        scaledcoefs.extend(x)
         
         energy = N * np.dot(scaledcoefs, points[:, -1])
         
