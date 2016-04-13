@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import threading
 from math import sqrt
 
@@ -191,7 +192,7 @@ class IDPP(Calculator):
 
         Improved initial guess for minimum energy path calculations.
 
-        Soren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jonsson
+        Søren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jónsson
 
         Chem. Phys. 140, 214106 (2014)
     """
