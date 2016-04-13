@@ -225,9 +225,6 @@ class ResonantRaman(Vibrations):
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
-#            print('Excitation with energy', energy)
-#            for i, s in enumerate(S_r):
-#                print(i, self.om_r[i], '{0:5.3f}'.format(s))
 
             for m in ml:
                 self.timer.start('0mm1')
@@ -243,6 +240,40 @@ class ResonantRaman(Vibrations):
                 self.timer.stop('einsum')
 
         self.timer.stop('AlbrechtA')
+        return m_rcc
+
+    def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml=range(10),
+                                      term='BC'
+    ):
+        """Evaluate Albrecht B and/or C term(s)."""
+        self.read()
+        
+        self.timer.start('AlbrechtBC')
+        
+        self.fco = FranckCondonOverlap()
+
+        # excited state forces
+        F_pr = self.exF_rp.T
+        
+        m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        for p, energy in enumerate(self.ex0E_p):
+            S_r = self.get_Huang_Rhys_factors(F_pr[p])
+
+            for m in ml:
+                self.timer.start('0mm1')
+                fco_r = self.fco.direct0mm1(m, S_r)
+
+                self.timer.stop('0mm1')
+                self.timer.start('einsum')
+                m_rcc += np.einsum('a,bc->abc',
+                    fco_r / (energy + m * self.om_r - omega - 1j * gamma),
+                    self.ex0m_ccp[:, :, p])
+                m_rcc += np.einsum('a,bc->abc',
+                    fco_r / (energy + (m - 1) * self.om_r + omega + 1j * gamma),
+                    self.ex0m_ccp[:, :, p].conj())
+                self.timer.stop('einsum')
+
+        self.timer.stop('AlbrechtBC')
         return m_rcc
 
     def get_matrix_element_Profeta(self, omega, gamma=0.1):
@@ -263,6 +294,7 @@ class ResonantRaman(Vibrations):
                          me_ccp.conj() / (e_p + omega + 1j * gamma))
             return kappa_ccp.sum(2)
 
+        self.timer.start('kappa')
         r = 0
         for a in self.indices:
             for i in 'xyz':
@@ -270,15 +302,18 @@ class ResonantRaman(Vibrations):
                     kappa(self.expm_rccp[r], self.ex0E_p, omega, gamma) -
                     kappa(self.exmm_rccp[r], self.ex0E_p, omega, gamma))
                 r += 1
+        self.timer.stop('kappa')
 
         self.timer.stop('amplitudes')
         
         # map to modes
+        self.timer.start('pre_r')
         pre_r = np.where(self.om_r > 0,
                          np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
         V_rcc = np.dot(V_rcc.T, self.modes.T).T
         for r, p in enumerate(pre_r):
             V_rcc[r] *= p
+        self.timer.stop('pre_r')
         return V_rcc
 
     def get_intensity_tensor(self, omega, gamma):
@@ -288,6 +323,12 @@ class ResonantRaman(Vibrations):
             V_rcc += self.get_matrix_element_Profeta(omega, gamma)
         elif self.approximation.lower() == 'albrecht a':
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+        elif self.approximation.lower() == 'albrecht b':
+            raise NotImplementedError('not yet')
+            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='B')
+        elif self.approximation.lower() == 'albrecht c':
+            raise NotImplementedError('not yet')
+            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='C')
         elif self.approximation.lower() == 'albrecht bc':
             raise NotImplementedError('not yet')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
@@ -299,8 +340,8 @@ class ResonantRaman(Vibrations):
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
                     self.approximation) +
-                'Please use "Profeta", "Albrecht A", ' +
-                '"Albrecht BC" or "Albrecht".')
+                'Please use "Profeta", "Albrecht A/B/C/BC", ' +
+                'or "Albrecht".')
 
         return omega**4 * (V_rcc * V_rcc.conj()).real
 
