@@ -103,7 +103,7 @@ class NEB:
         """Evaluate and return the forces."""
         images = self.images
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
-        energies = np.empty(self.nimages - 2)
+        energies = np.empty(self.nimages)
 
         if self.remove_rotation_and_translation:
             # Remove translation and rotation between
@@ -111,18 +111,28 @@ class NEB:
             for i in range(1, self.nimages):
                 minimize_rotation_and_translation(images[i - 1], images[i])
 
+        # Get initial and final energy:
+        for i in [0, -1]:
+            try:
+                energies[i] = images[i].get_potential_energy()
+            except RuntimeError:
+                energies[i] = np.nan
+
         if not self.parallel:
             # Do all images - one at a time:
             for i in range(1, self.nimages - 1):
-                energies[i - 1] = images[i].get_potential_energy()
+                energies[i] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
+            
         elif self.world.size == 1:
             def run(image, energies, forces):
+                """Target function for thread."""
                 energies[:] = image.get_potential_energy()
                 forces[:] = image.get_forces()
+                
             threads = [threading.Thread(target=run,
                                         args=(images[i],
-                                              energies[i - 1:i],
+                                              energies[i:i + 1],
                                               forces[i - 1:i]))
                        for i in range(1, self.nimages - 1)]
             for thread in threads:
@@ -133,7 +143,7 @@ class NEB:
             # Parallelize over images:
             i = self.world.rank * (self.nimages - 2) // self.world.size + 1
             try:
-                energies[i - 1] = images[i].get_potential_energy()
+                energies[i] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
             except:
                 # Make sure other images also fail:
@@ -146,38 +156,13 @@ class NEB:
 
             for i in range(1, self.nimages - 1):
                 root = (i - 1) * self.world.size // (self.nimages - 2)
-                self.world.broadcast(energies[i - 1:i], root)
+                self.world.broadcast(energies[i:i + 1], root)
                 self.world.broadcast(forces[i - 1], root)
 
-        imax = 1 + np.argsort(energies)[-1]
-        self.emax = energies[imax - 1]
-
-        # If possible make array with energies including first and
-        # last image (the static ones)
-        allenergies = np.empty(self.nimages)
-        allenergiesknown = True
-        try:
-            allenergies[0] = images[0].get_potential_energy()
-        except RuntimeError:
-            allenergies[0] = np.NaN
-            allenergiesknown = False
-        for i in range(1, self.nimages - 1):
-            allenergies[i] = energies[i - 1]
-        try:
-            allenergies[self.nimages - 1] = \
-                images[self.nimages - 1].get_potential_energy()
-        except RuntimeError:
-            allenergies[self.nimages - 1] = np.NaN
-            allenergiesknown = False
-
-        if self.cornercutting:
-            BeeLine = (images[self.nimages - 1].get_positions() -
-                       images[0].get_positions())
-            BeeLineLength = np.linalg.norm(BeeLine)
-            eqLength = BeeLineLength / (self.nimages - 1)
+        imax = 1 + np.argsort(energies[1:-1])[-1]
+        self.emax = energies[imax]
 
         for i in range(1, self.nimages - 1):
-            j = i - 1
             t1 = find_mic(images[i].get_positions() -
                           images[i - 1].get_positions(),
                           images[i].get_cell(), images[i].pbc)[0]
@@ -190,27 +175,27 @@ class NEB:
 
             # Tangents are bisections of spring-directions
             # (formula 2 of paper I)
-            tangent = t1 / nt1 + t2 / nt2
-            if self.improvedtangent and (0 < j < self.nimages -
-                                         3 or allenergiesknown):
+            if (i == 1 and np.isnan(energies[0]) or
+                i == self.nimages - 2 and np.isnan(energies[-1])):
+                tangent = t1 / nt1 + t2 / nt2
+            else:
                 # Tangents are improved according to formulas 8, 9, 10,
                 # and 11 of paper I.
                 # First and last image in NEB cannot be improved since
                 # the energy is not known for the static points
-                if allenergies[i + 1] > allenergies[i] > allenergies[i - 1]:
+                if energies[i + 1] > energies[i] > energies[i - 1]:
                     tangent = t2
-                elif allenergies[i + 1] < allenergies[i] < \
-                        allenergies[i - 1]:
+                elif energies[i + 1] < energies[i] < energies[i - 1]:
                     tangent = t1
                 else:
-                    DeltaVmax = max(abs(allenergies[i + 1] - allenergies[i]),
-                                    abs(allenergies[i - 1] - allenergies[i]))
-                    DeltaVmin = min(abs(allenergies[i + 1] - allenergies[i]),
-                                    abs(allenergies[i - 1] - allenergies[i]))
-                    if allenergies[i + 1] > allenergies[i - 1]:
-                        tangent = t2 * DeltaVmax + t1 * DeltaVmin
+                    demax = max(abs(energies[i + 1] - energies[i]),
+                                abs(energies[i - 1] - energies[i]))
+                    demin = min(abs(energies[i + 1] - energies[i]),
+                                abs(energies[i - 1] - energies[i]))
+                    if energies[i + 1] > energies[i - 1]:
+                        tangent = t2 * demax + t1 * demin
                     else:
-                        tangent = t2 * DeltaVmin + t1 * DeltaVmax
+                        tangent = t2 * demin + t1 * demax
             # Normalize the tangent vector
             tangent /= np.linalg.norm(tangent)
             f = forces[i - 1]
@@ -222,26 +207,9 @@ class NEB:
                 # with component along the elestic band converted
                 # (formula 5 of Paper II)
                 f -= ft * tangent
-            elif self.cornercutting:
-                f1 = -(nt1 - eqLength) * t1 / nt1 * self.k[i - 1]
-                f2 = (nt2 - eqLength) * t2 / nt2 * self.k[i]
-                if self.climb and abs(i - imax) == 1 and \
-                        (0 < j < self.nimages - 3 or allenergiesknown):
-                    DeltaVmax = max(abs(allenergies[i + 1] - allenergies[i]),
-                                    abs(allenergies[i - 1] - allenergies[i]))
-                    DeltaVmin = min(abs(allenergies[i + 1] - allenergies[i]),
-                                    abs(allenergies[i - 1] - allenergies[i]))
-                    f += (f1 + f2) * DeltaVmin / DeltaVmax
-                else:
-                    f += f1 + f2
             else:
-                if self.improvedparallelforce:
-                    # Improved parallel spring force (formula 12 of paper I)
-                    f += (nt2 * self.k[i] - nt1 * self.k[i - 1]) * tangent
-                else:
-                    # Original parallel spring force (formula 5 of paper I)
-                    f += np.vdot(t2 * self.k[i] - t1 * self.k[i - 1],
-                                 tangent) * tangent
+                # Improved parallel spring force (formula 12 of paper I)
+                f += (nt2 * self.k[i] - nt1 * self.k[i - 1]) * tangent
 
         return forces.reshape((-1, 3))
 

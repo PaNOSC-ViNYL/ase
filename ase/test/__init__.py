@@ -171,16 +171,6 @@ def cli(command, calculator_name=None):
     assert error == 0
     
 
-class World:
-    """Class for testing parallelization with MPI"""
-    def __init__(self, size):
-        self.size = size
-        self.data = {}
-
-    def get_rank(self, rank):
-        return CPU(self, rank)
-
-
 class must_raise:
     """Context manager for checking raising of exceptions."""
     def __init__(self, exception):
@@ -195,6 +185,16 @@ class must_raise:
         return issubclass(exc_type, self.exception)
         
         
+class World:
+    """Class for testing parallelization with MPI"""
+    def __init__(self, size):
+        self.size = size
+        self.data = {}
+
+    def get_rank(self, rank):
+        return CPU(self, rank)
+
+
 class CPU:
     def __init__(self, world, rank):
         self.world = world
