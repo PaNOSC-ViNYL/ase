@@ -10,6 +10,11 @@ Git master branch
 
 :git:`master <>`.
 
+* We can now :func:`~ase.io.read` and :func:`~ase.io.write` magres files.
+
+* :class:`~ase.neb.NEB` calculations for molecules can now be told to
+  minimize ratation and translation along the path.
+
 
 Version 3.10.0
 ==============

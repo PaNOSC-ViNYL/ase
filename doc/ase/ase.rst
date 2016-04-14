@@ -59,6 +59,7 @@ List of all modules:
    atoms
    units
    io
+   build
    gui/gui
    setup-overview
    optimize

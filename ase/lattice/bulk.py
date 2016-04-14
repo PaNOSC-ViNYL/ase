@@ -160,14 +160,14 @@ def _orthorhombic_bulk(name, crystalstructure, a, covera=None, u=None):
         u = u or 0.25 + 1 / 3 / covera**2
         atoms = Atoms(4 * name,
                       cell=(a, a * 3**0.5, covera * a),
-                      scaled_positions = [(0, 0, 0),
-                                          (0, 1 / 3, 0.5 - u),
-                                          (0, 1 / 3, 0.5),
-                                          (0, 0, 1 - u),
-                                          (0.5, 0.5, 0),
-                                          (0.5, 5 / 6, 0.5 - u),
-                                          (0.5, 5 / 6, 0.5),
-                                          (0.5, 0.5, 1 - u)],
+                      scaled_positions=[(0, 0, 0),
+                                        (0, 1 / 3, 0.5 - u),
+                                        (0, 1 / 3, 0.5),
+                                        (0, 0, 1 - u),
+                                        (0.5, 0.5, 0),
+                                        (0.5, 5 / 6, 0.5 - u),
+                                        (0.5, 5 / 6, 0.5),
+                                        (0.5, 0.5, 1 - u)],
                       pbc=True)
     else:
         raise RuntimeError

@@ -10,7 +10,7 @@ from ase.vibrations import Vibrations
 
 
 class FranckCondon:
-    def __init__(self, atoms, vibname, minfreq=None, maxfreq=None):
+    def __init__(self, atoms, vibname, minfreq=-np.inf, maxfreq=np.inf):
         """Input is a atoms object and the corresponding vibrations.
         With minfreq and maxfreq frequencies can
         be excluded from the calculation"""

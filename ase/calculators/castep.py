@@ -1955,8 +1955,10 @@ class CastepParam(object):
             self._options[attr].value = value
         # Newly added "Vector" options
         elif opt.type == 'Integer Vector':
-            if ',' in value:
-                value = value.replace(',', ' ')
+            # crashes if value is not a string
+            if isinstance(value, str):
+                if ',' in value:
+                    value = value.replace(',', ' ')
             if isinstance(value, str) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
@@ -1987,8 +1989,10 @@ class CastepParam(object):
 
             # However if a unit is present it will be dealt with
 
-            if len(value.split()) > 1:
-                value = value.split(' ', 1)[0]
+            # this crashes if non-string types are passed
+            if isinstance(value, str):
+                if len(value.split()) > 1:
+                    value = value.split(' ', 1)[0]
             try:
                 value = float(value)
             except:

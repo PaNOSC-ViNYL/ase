@@ -1,4 +1,5 @@
 import optparse
+import sys
 
 from ase.test import test
 
@@ -21,6 +22,7 @@ if opts.calculators:
 else:
     calculators = []
 
-test(display=opts.test_also_gui,
-     verbosity=opts.verbosity,
-     calculators=calculators)
+results = test(display=opts.test_also_gui,
+               verbosity=opts.verbosity,
+               calculators=calculators)
+sys.exit(len(results.errors + results.failures))

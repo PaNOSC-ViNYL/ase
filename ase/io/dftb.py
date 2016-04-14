@@ -83,7 +83,7 @@ def read_dftb_velocities(atoms, filename='geo_end.xyz'):
             lines_ok.append(line)
     
     velocities = []
-    natoms = atoms.get_number_of_atoms()
+    natoms = len(atoms)
     last_lines = lines_ok[-natoms:]
     for iline, line in enumerate(last_lines):
         inp = line.split()

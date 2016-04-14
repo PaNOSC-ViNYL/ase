@@ -594,6 +594,8 @@ def blob(array):
         return None
     if array.dtype == np.int64:
         array = array.astype(np.int32)
+    if not np.little_endian:
+        array.byteswap(True)
     return buffer(np.ascontiguousarray(array))
 
 
@@ -612,6 +614,8 @@ def deblob(buf, dtype=float, shape=None):
             array = np.fromstring(str(buf)[1:].decode('hex'), dtype)
         else:
             array = np.frombuffer(buf, dtype)
+        if not np.little_endian:
+            array.byteswap(True)
     if shape is not None:
         array.shape = shape
     return array

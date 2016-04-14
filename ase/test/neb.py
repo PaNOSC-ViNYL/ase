@@ -35,7 +35,6 @@ for a in neb.images:
     print(a.positions[-1], a.get_potential_energy())
 
 results = [images[2].get_potential_energy()]
-
 # Check NEB tools.
 nt_images = [read('mep.traj', index=_) for _ in range(-4, 0)]
 nebtools = NEBtools(nt_images)

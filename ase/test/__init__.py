@@ -12,6 +12,7 @@ import numpy as np
 
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
+from ase.utils import import_module, devnull
 
 
 class NotAvailable(Exception):
@@ -106,14 +107,20 @@ def test(verbosity=1, calculators=[],
         ts.addTest(ScriptTestCase(filename=os.path.abspath(lasttest),
                                   display=display))
 
-    operating_system = platform.system() + ' ' + platform.machine()
-    operating_system += ' ' + ' '.join(platform.dist())
-    python = platform.python_version() + ' ' + platform.python_compiler()
-    python += ' ' + ' '.join(platform.architecture())
-    print('python %s on %s' % (python, operating_system))
-    print('numpy-' + np.__version__)
-    
-    from ase.utils import devnull
+    versions = [('platform', platform.platform()),
+                ('python-' + sys.version.split()[0], sys.executable)]
+    for name in ['ase', 'numpy', 'scipy']:
+        try:
+            module = import_module(name)
+        except ImportError:
+            versions.append((name, 'no'))
+        else:
+            versions.append((name + '-' + module.__version__,
+                            module.__file__.rsplit('/', 1)[0] + '/'))
+
+    for a, b in versions:
+        print('{0:16}{1}'.format(a, b))
+        
     sys.stdout = devnull
 
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
@@ -127,7 +134,7 @@ def test(verbosity=1, calculators=[],
             shutil.rmtree(testdir)  # clean before running tests!
         os.mkdir(testdir)
     os.chdir(testdir)
-    print('running in', testdir, file=sys.__stdout__)
+    print('test-dir       ', testdir, '\n', file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:

@@ -8,8 +8,7 @@ As a developer, you should subscribe to all ASE related
 :ref:`mail lists`.
 
 
-Development topics
-==================
+Development topics:
 
 .. toctree::
 
@@ -20,6 +19,8 @@ Development topics
     making_movies
     newrelease
     tests
+    bugs
+    licenseinfo
     buildbot
     translate
     todo
