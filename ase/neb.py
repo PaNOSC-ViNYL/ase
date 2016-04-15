@@ -15,7 +15,7 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 cornercutting=True, remove_rotation_and_translation=False,
+                 cornercutting=False, remove_rotation_and_translation=False,
                  world=None):
         """Nudged elastic band.
         
@@ -174,6 +174,7 @@ class NEB:
         self.emax = energies[imax]
 
         def dist(i1, i2):
+            """Vector pointing from image i1 to i2."""
             return find_mic(images[i2].positions - images[i1].positions,
                             images[i1].cell, images[i1].pbc)[0]
 

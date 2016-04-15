@@ -12,8 +12,14 @@ Git master branch
 
 * We can now :func:`~ase.io.read` and :func:`~ase.io.write` magres files.
 
-* :class:`~ase.neb.NEB` calculations for molecules can now be told to
-  minimize ratation and translation along the path.
+* :class:`~ase.neb.NEB` improvements:
+    
+  * calculations for molecules can now be told to
+    minimize ratation and translation along the path.
+    
+  * Improved tangent and parallel force estimate.
+  
+  * New ``cornercutting`` option.
 
 
 Version 3.10.0
