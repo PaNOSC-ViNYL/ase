@@ -15,11 +15,18 @@ from ase.utils.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 remove_rotation_and_translation=False, world=None):
+                 cornercutting=True, remove_rotation_and_translation=False,
+                 world=None):
         """Nudged elastic band.
-        Paper I: G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
-        Paper II: G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
-                  113, 9901 (2000).
+        
+        Paper I:
+            
+            G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
+            
+        Paper II:
+            
+            G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
+            113, 9901 (2000).
 
         images: list of Atoms objects
             Images defining path from initial to final state.
@@ -29,9 +36,12 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
+        cornercutting: bool
+            If True, springs are treated as real ones with forces in the
+            spring-directions (not the estimated tangent-directions).
         remove_rotation_and_translation: bool
-            TRUE actives NEB-TR for removing translation and
-            rotation during NEB. By default applied non-periodic
+            If True, the rotation and translation along the path will be
+            minimized.  Only useful for molecules without any constraints.
             systems
         """
         self.images = images
@@ -42,6 +52,7 @@ class NEB:
         self.emax = np.nan
         
         self.remove_rotation_and_translation = remove_rotation_and_translation
+        self.cornercutting = cornercutting
         
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
@@ -162,14 +173,18 @@ class NEB:
         imax = 1 + np.argsort(energies[1:-1])[-1]
         self.emax = energies[imax]
 
-        for i in range(1, self.nimages - 1):
-            t1 = find_mic(images[i].get_positions() -
-                          images[i - 1].get_positions(),
-                          images[i].get_cell(), images[i].pbc)[0]
+        def dist(i1, i2):
+            return find_mic(images[i2].positions - images[i1].positions,
+                            images[i1].cell, images[i1].pbc)[0]
 
-            t2 = find_mic(images[i + 1].get_positions() -
-                          images[i].get_positions(),
-                          images[i].get_cell(), images[i].pbc)[0]
+        if self.cornercutting:
+            # Find length of springs:
+            t = dist(0, -1)
+            length = np.linalg.norm(t) / (self.nimages - 1)
+            
+        for i in range(1, self.nimages - 1):
+            t1 = -dist(i, i - 1)
+            t2 = dist(i, i + 1)
             nt1 = np.linalg.norm(t1)
             nt2 = np.linalg.norm(t2)
 
@@ -207,6 +222,19 @@ class NEB:
                 # with component along the elestic band converted
                 # (formula 5 of Paper II)
                 f -= ft * tangent
+            elif self.cornercutting:
+                f1 = -(nt1 - length) * t1 / nt1 * self.k[i - 1]
+                f2 = (nt2 - length) * t2 / nt2 * self.k[i]
+                if (self.climb and abs(i - imax) == 1 and
+                    not np.isnan(energies[i - 1]) and
+                    not np.isnan(energies[i + 1])):
+                    demax = max(abs(energies[i + 1] - energies[i]),
+                                abs(energies[i - 1] - energies[i]))
+                    demin = min(abs(energies[i + 1] - energies[i]),
+                                abs(energies[i - 1] - energies[i]))
+                    f += (f1 + f2) * demin / demax
+                else:
+                    f += f1 + f2
             else:
                 # Improved parallel spring force (formula 12 of paper I)
                 f += (nt2 * self.k[i] - nt1 * self.k[i - 1]) * tangent
@@ -502,9 +530,9 @@ class NEBtools:
                      % (Ef, Er, dE))
         return fig
 
-    def get_fmax(self):
+    def get_fmax(self, **kwargs):
         """Returns fmax, as used by optimizers with NEB."""
-        neb = NEB(self._images)
+        neb = NEB(self._images, **kwargs)
         forces = neb.get_forces()
         return np.sqrt((forces**2).sum(axis=1).max())
 

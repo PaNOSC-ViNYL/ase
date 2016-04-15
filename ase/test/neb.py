@@ -7,8 +7,8 @@ from ase.calculators.morse import MorsePotential
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.optimize import BFGS
 
-fmax = 0.05
 
+fmax = 0.05
 nimages = 3
 
 print([a.get_potential_energy() for a in Trajectory('H.traj')])
@@ -24,30 +24,31 @@ if 0:  # verify that initial images make sense
 
 for image in images:
     image.set_calculator(MorsePotential())
-#images[0].get_potential_energy()
-#images[-1].get_potential_energy()
 
-
-dyn = BFGS(neb, trajectory='mep.traj')#, logfile='mep.log')
+dyn = BFGS(neb, trajectory='mep.traj')  # , logfile='mep.log')
 
 dyn.run(fmax=fmax)
 
 for a in neb.images:
     print(a.positions[-1], a.get_potential_energy())
 
-results = [images[2].get_potential_energy()]
+results = [neb.emax]
 
 neb.climb = True
 dyn.run(fmax=fmax)
-asdflhj
+results.append(neb.emax)
+
 # Check NEB tools.
-nt_images = [read('mep.traj', index=_) for _ in range(-4, 0)]
+nt_images = read('mep.traj@-4:')
 nebtools = NEBtools(nt_images)
-nt_fmax = nebtools.get_fmax()
+nt_fmax = nebtools.get_fmax(climb=True)
 Ef, dE = nebtools.get_barrier()
+print(Ef, dE, fmax, nt_fmax)
 assert nt_fmax < fmax
+assert abs(Ef - 1.389) < 0.001
 
 
+# Test NEB in parallel using some tricks and two threads:
 def run_neb_calculation(cpu):
     images = [Trajectory('H.traj')[-1]]
     for i in range(nimages):
@@ -65,7 +66,12 @@ def run_neb_calculation(cpu):
     dyn.run(fmax=fmax)
 
     if cpu.rank == 1:
-        results.append(images[2].get_potential_energy())
+        results.append(neb.emax)
+    
+    neb.climb = True
+    dyn.run(fmax=fmax)
+    if cpu.rank == 1:
+        results.append(neb.emax)
     
 w = World(nimages - 1)
 ranks = [w.get_rank(r) for r in range(w.size)]
@@ -77,4 +83,5 @@ for t in threads:
     t.join()
 
 print(results)
-assert abs(results[0] - results[1]) < 1e-13
+assert abs(results[0] - results[2]) < 1e-5
+assert abs(results[1] - results[3]) < 1e-5
