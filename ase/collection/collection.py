@@ -74,16 +74,3 @@ class Collection:
             del kvp['name']
             self._data[name] = kvp
 
-            
-if 0:
-    from ase.data.s22 import s22, data
-    import ase.db
-    from ase import Atoms
-    import os
-    os.environ['USER'] = 'ase'
-    c = ase.db.connect('s22.json')
-    for n in s22:
-        d = data[n]
-        a = Atoms(d.pop('symbols'), d.pop('positions'),
-                  magmoms=d.pop('magmoms'))
-        c.write(a, name=n, cc_energy=d['interaction energy CC'])

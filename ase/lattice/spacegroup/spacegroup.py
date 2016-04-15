@@ -604,13 +604,13 @@ def _read_datafile(spg, spacegroup, setting, f):
         pass
     elif isinstance(spacegroup, str):
         #spacegroup = ' '.join(spacegroup.strip().split())
-        spacegroup = format_symbol(spacegroup)
+        spacegroup = ''.join(format_symbol(spacegroup).split())
     else:
         raise SpacegroupValueError('`spacegroup` must be of type int or str')
     while True:
         line1, line2 = _skip_to_nonblank(f, spacegroup, setting)
         _no,_symbol = line1.strip().split(None, 1)
-        _symbol = format_symbol(_symbol)
+        _symbol = ''.join(format_symbol(_symbol).split())
         _setting = int(line2.strip().split()[1])
         _no = int(_no)
         if ((isinstance(spacegroup, int) and _no == spacegroup) or
