@@ -1,5 +1,4 @@
 import os
-import os.path as op
 
 import ase.db
 from ase.io import read
@@ -15,8 +14,6 @@ def create_dcdft_database():
         symbol = words.pop(0)
         vol, B, Bp = (float(x) for x in words)
         filename = 'cif/' + symbol + '.cif'
-        if not op.isfile(filename):
-            continue
         atoms = read(filename)
         M = {'Fe': 2.3,
              'Co': 1.2,
@@ -29,6 +26,11 @@ def create_dcdft_database():
             if symbol in ['Cr', 'O', 'Mn']:
                 magmoms[len(atoms) // 2:] = [-M] * (len(atoms) // 2)
             atoms.set_initial_magnetic_moments(magmoms)
-        c.write(atoms, name=symbol, B=B, Bp=Bp)
+        # c.write(atoms, name=symbol, w2k_B=B, w2k_Bp=Bp, w2k_volume=vol)
         print(symbol, vol - atoms.get_volume() / len(atoms))
-    c.close()
+        filename = 'pcif/' + symbol + '.cif'
+        p = read(filename, primitive_cell=True)
+        print(len(atoms), len(p),
+              atoms.get_volume() / len(atoms) - p.get_volume() / len(p))
+
+create_dcdft_database()
