@@ -146,7 +146,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
                                 dtype=array.dtype, shape=array.shape[1:])
 
     if primitive_cell:
-        from ase.utils.geometry  import cut
+        from ase.utils.geometry import cut
         prim_cell = sg.scaled_primitive_cell
         atoms = cut(atoms, a=prim_cell[0], b=prim_cell[1], c=prim_cell[2])
 
