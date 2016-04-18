@@ -1,14 +1,10 @@
 from __future__ import print_function
-from ase import Atoms
-from ase.calculators.emt import EMT
-from ase.optimize import QuasiNewton
-from ase.vibrations import Vibrations
-from ase.thermochemistry import IdealGasThermo
-
+import sys
 import numpy as np
 
-from ase.vibrations.franck_condon import FCOverlap
+from ase.vibrations.franck_condon import FranckCondonOverlap
 from math import factorial
+
 
 def equal(x, y, tolerance=0, fail=True, msg=''):
     """Compare x and y."""
@@ -25,7 +21,7 @@ def equal(x, y, tolerance=0, fail=True, msg=''):
 # -------------------
 # FCOverlap
 
-fco = FCOverlap()
+fco = FranckCondonOverlap()
 
 # check factorial
 assert(fco.factorial(8) == factorial(8))
@@ -35,9 +31,9 @@ assert(fco.factorial(5) == factorial(5))
 # check T=0 and n=0 equality
 S = np.array([1, 2.1, 34])
 m = 5
-assert(((fco.directT0(m, S) - fco.direct(0, m, S)) / fco.directT0(m, S) 
+assert(((fco.directT0(m, S) - fco.direct(0, m, S)) / fco.directT0(m, S)
         < 1e-15).all())
-#assert((fco.directT0(m, S) == fco.direct(0, m, S)).all()) 
+#assert((fco.directT0(m, S) == fco.direct(0, m, S)).all())
 
 # check symmetry
 S = 2
@@ -45,4 +41,10 @@ n = 3
 assert(fco.direct(n, m, S) == fco.direct(m, n, S))
 
 # ---------------------------
-#
+# specials
+S = 1.5
+for m in [2, 7]:
+    equal(fco.direct0mm1(m, S)**2,
+          fco.direct(1, m, S) * fco.direct(m, 0, S), 1.e-17)
+    equal(fco.direct0mm2(m, S)**2,
+          fco.direct(2, m, S) * fco.direct(m, 0, S), 1.e-17)

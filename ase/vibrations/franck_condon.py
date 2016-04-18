@@ -9,6 +9,7 @@ import numpy as np
 from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
 
+
 class FranckCondonOverlap:
     """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
     def factorial(self, n):
@@ -35,16 +36,26 @@ class FranckCondonOverlap:
         s = 0
         for k in range(n + 1):
             s += (-1)**(n - k) * S**(-k) / (
-                self.factorial(k) * 
+                self.factorial(k) *
                 self.factorial(n - k) * self.factorial(m - k))
         return np.exp(-S) * S**(n + m) * s**2 * (
             self.factorial(n) * self.factorial(m))
 
     def direct0mm1(self, m, S):
+        """<0|m><m|1>"""
         sum = S**m
         if m:
             sum -= m * S**(m - 1)
-        return np.exp(-S) * np.sqrt(S) * sum / self.factorial(m)        
+        return np.exp(-S) * np.sqrt(S) * sum / self.factorial(m)
+
+    def direct0mm2(self, m, S):
+        """<0|m><m|2>"""
+        sum = S**(m + 1)
+        if m >= 1:
+            sum -= 2 * m * S**m
+        if m >= 2:
+            sum += m * (m - 1) * S**(m - 1)
+        return np.exp(-S) / np.sqrt(2) * sum / self.factorial(m)
 
 
 class FranckCondon:
@@ -233,4 +244,3 @@ the 0-0 transition.
 quanta exitations. Third list are combinations of two normal modes
 (including combinations of higher quanta exitations). """
         return FC, frequencies
-
