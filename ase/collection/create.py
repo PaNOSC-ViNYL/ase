@@ -6,7 +6,7 @@ from ase.io import read
 
 def create_dcdft_database():
     os.environ['USER'] = 'ase'
-    c = ase.db.connect('dcdft.json')
+    con = ase.db.connect('dcdft.json')
     with open('WIEN2k.txt') as fd:
         lines = fd.readlines()
     for line in lines[2:73]:
@@ -27,10 +27,15 @@ def create_dcdft_database():
                 magmoms[len(atoms) // 2:] = [-M] * (len(atoms) // 2)
             atoms.set_initial_magnetic_moments(magmoms)
         # c.write(atoms, name=symbol, w2k_B=B, w2k_Bp=Bp, w2k_volume=vol)
-        print(symbol, vol - atoms.get_volume() / len(atoms))
         filename = 'pcif/' + symbol + '.cif'
         p = read(filename, primitive_cell=True)
-        print(len(atoms), len(p),
-              atoms.get_volume() / len(atoms) - p.get_volume() / len(p))
-
+        v = atoms.get_volume() / len(atoms)
+        dv = v - p.get_volume() / len(p)
+        p2 = read(filename)
+        dv2 = v - p2.get_volume() / len(p2)
+        print(symbol, vol - atoms.get_volume() / len(atoms),
+              len(atoms), len(p), dv, dv2)
+        print(p.info)
+        #assert dv < 0.0001
+        
 create_dcdft_database()
