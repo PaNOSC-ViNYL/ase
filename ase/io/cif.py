@@ -37,7 +37,7 @@ def parse_multiline_string(lines, line):
     strings = [line[1:].lstrip()]
     while True:
         line = lines.pop().strip()
-        if line == ';':
+        if line[:1] == ';':
             break
         strings.append(line)
     return '\n'.join(strings).strip()
