@@ -47,10 +47,9 @@ class ResonantRaman(Vibrations):
                  directions=None,
                  approximation='Profeta',
                  exkwargs={},      # kwargs to be passed to Excitations
-                 exext='.ex.gz',    # extension for Excitation names
+                 exext='.ex.gz',   # extension for Excitation names
                  txt='-',
-                 verbose=False,
-    ):
+                 verbose=False,):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
@@ -132,6 +131,7 @@ class ResonantRaman(Vibrations):
         self.timer.stop('read excitations')
 
         self.timer.start('select')
+
         def select(exl, matching):
             mlst = [ex for ex in exl if ex in matching]
             assert(len(mlst) == len(matching))
@@ -142,7 +142,7 @@ class ResonantRaman(Vibrations):
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                exm.append(select(exm_object_list[r], matching))        
+                exm.append(select(exm_object_list[r], matching))
                 exp.append(select(exp_object_list[r], matching))
                 r += 1
         self.timer.stop('select')
@@ -207,7 +207,7 @@ class ResonantRaman(Vibrations):
         d_r = np.dot(self.modes, X_r)
 
         # Huang-Rhys factors S
-        s = 1.e-20 / units.kg / units.C / units._hbar**2 # SI units
+        s = 1.e-20 / units.kg / units.C / units._hbar**2  # SI units
         self.timer.stop('Huang-Rhys')
         return s * d_r**2 * self.om_r / 2.
 
@@ -243,8 +243,7 @@ class ResonantRaman(Vibrations):
         return m_rcc
 
     def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml=range(10),
-                                      term='BC'
-    ):
+                                      term='BC'):
         """Evaluate Albrecht B and/or C term(s)."""
         self.read()
         
@@ -254,19 +253,21 @@ class ResonantRaman(Vibrations):
 
         # excited state forces
         F_pr = self.exF_rp.T
-        
+
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        pre = 1. / (2 * self.delta)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
-
+            
             for m in ml:
                 self.timer.start('Franck-Condon overlaps')
                 if 'B' in term:
-                    1mm1_r = self.fco.direct(1, m, S_r)
+                    fc1mm1_r = self.fco.direct(1, m, S_r)
                 if 'C' in term:
-                    0mm0_r = self.fco.direct(0, m, S_r)
-                    0mm2_r = self.fco.direct0mm2(m, S_r)
+                    fc0mm0_r = self.fco.direct(0, m, S_r)
+                    fc0mm2_r = self.fco.direct0mm2(m, S_r)
                 self.timer.stop('Franck-Condon overlaps')
+
                 self.timer.start('einsum')
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + m * self.om_r - omega - 1j * gamma),
@@ -462,4 +463,3 @@ class ResonantRaman(Vibrations):
 
     def __del__(self):
         self.timer.write(self.txt)
-
