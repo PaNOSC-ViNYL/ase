@@ -8,8 +8,6 @@ import tempfile
 import unittest
 from glob import glob
 
-import numpy as np
-
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
 from ase.utils import import_module, devnull
