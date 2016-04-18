@@ -149,31 +149,27 @@ class ResonantRaman(Vibrations):
 
         self.timer.start('me and energy')
 
-        def get_me_tensor(ex_p, form='v'):
-            def outer(ex):
-                me = ex.get_dipole_me(form=form)
-                return np.outer(me, me.conj())
-            m_ccp = np.empty((3, 3, len(ex_p)), dtype=complex)
-            for p, ex in enumerate(ex_p):
-                m_ccp[:, :, p] = outer(ex)
-            return m_ccp
-
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
-        self.ex0m_ccp = get_me_tensor(ex0)
+        self.ex0m_pc = np.array(
+            [ex.get_dipole_me(form='v') for ex in ex0])
         self.exF_rp = []
-        self.exmm_rccp = []
-        self.expm_rccp = []
+        self.exmm_rpc = []
+        self.expm_rpc = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
                 self.exF_rp.append(
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
-                self.exmm_rccp.append(get_me_tensor(exm[r]))
-                self.expm_rccp.append(get_me_tensor(exp[r]))
+                self.exmm_rpc.append(
+                    [ex.get_dipole_me(form='v') for ex in exm[r]])
+                self.expm_rpc.append(
+                    [ex.get_dipole_me(form='v') for ex in exp[r]])
                 r += 1
         self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
+        self.exmm_rpc = np.array(self.exmm_rpc)
+        self.expm_rpc = np.array(self.expm_rpc)
 
         self.timer.stop('me and energy')
 
@@ -225,6 +221,7 @@ class ResonantRaman(Vibrations):
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
+            me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
             for m in ml:
                 self.timer.start('0mm1')
@@ -233,10 +230,10 @@ class ResonantRaman(Vibrations):
                 self.timer.start('einsum')
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + m * self.om_r - omega - 1j * gamma),
-                    self.ex0m_ccp[:, :, p])
+                                   me_cc)
                 m_rcc += np.einsum('a,bc->abc',
                     fco_r / (energy + (m - 1) * self.om_r + omega + 1j * gamma),
-                    self.ex0m_ccp[:, :, p].conj())
+                                   me_cc)
                 self.timer.stop('einsum')
 
         self.timer.stop('AlbrechtA')
@@ -291,9 +288,12 @@ class ResonantRaman(Vibrations):
         pre = 1. / (2 * self.delta)
         self.timer.stop('init')
         
-        def kappa(me_ccp, e_p, omega, gamma, form='v'):
+        def kappa(me_pc, e_p, omega, gamma, form='v'):
             """Kappa tensor after Profeta and Mauri
             PRB 63 (2001) 245415"""
+            me_ccp = np.empty((3, 3, len(e_p)), dtype=complex)
+            for p, me_c in enumerate(me_pc):
+                me_ccp[:, :, p] = np.outer(me_pc[p], me_pc[p].conj())
             kappa_ccp = (me_ccp / (e_p - omega - 1j * gamma) +
                          me_ccp.conj() / (e_p + omega + 1j * gamma))
             return kappa_ccp.sum(2)
@@ -303,8 +303,8 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 V_rcc[r] = pre * self.im[r] * (
-                    kappa(self.expm_rccp[r], self.ex0E_p, omega, gamma) -
-                    kappa(self.exmm_rccp[r], self.ex0E_p, omega, gamma))
+                    kappa(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
+                    kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
                 r += 1
         self.timer.stop('kappa')
 
