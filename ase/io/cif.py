@@ -204,11 +204,14 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False):
     elif '_symmetry_space_group_name_h-m' in tags:
         symbolHM = tags['_symmetry_space_group_name_h-m']
 
-    sitesym = None
-    if '_space_group_symop_operation_xyz' in tags:
-        sitesym = tags['_space_group_symop_operation_xyz']
-    elif '_symmetry_equiv_pos_as_xyz' in tags:
-        sitesym = tags['_symmetry_equiv_pos_as_xyz']
+    for name in ['_space_group_symop_operation_xyz',
+                 '_space_group_symop.operation_xyz',
+                 '_symmetry_equiv_pos_as_xyz']:
+        if name in tags:
+            sitesym = tags[name]
+            break
+    else:
+        sitesym = None
         
     spacegroup = 1
     if sitesym is not None:
@@ -222,7 +225,7 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False):
         spacegroup = 1
 
     if store_tags:
-        kwargs = {'info': info}
+        kwargs = {'info': tags.copy()}
     else:
         kwargs = {}
 
