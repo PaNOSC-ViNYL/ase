@@ -172,12 +172,12 @@ class Checkpoint(object):
             atomsi = -1
             try:
                 atoms = kwargs['atoms']
-            except:
+            except KeyError:
                 raise RuntimeError('No atoms object provided in arguments.')
 
         try:
             del kwargs['atoms']
-        except:
+        except KeyError:
             pass
 
         data['checkpoint_atoms_args_index'] = atomsi
