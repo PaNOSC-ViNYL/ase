@@ -10,6 +10,23 @@ Git master branch
 
 :git:`master <>`.
 
+* We can now :func:`~ase.io.read` and :func:`~ase.io.write` magres files.
+
+* :class:`~ase.neb.NEB` improvements:
+    
+  * calculations for molecules can now be told to
+    minimize ratation and translation along the path.
+    
+  * Improved tangent and parallel force estimate.
+  
+  * New ``cornercutting`` option.
+
+
+Version 3.10.0
+==============
+
+17 Mar 2016: :git:`3.10.0 <../3.10.0>`.
+
 * :ref:`old trajectory` files can no longer be used.  See :ref:`convert`.
 
 * New iterator function :func:`ase.io.iread` for iteratively reading Atoms

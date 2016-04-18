@@ -21,6 +21,8 @@ Optional:
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
 .. _Matplotlib: http://matplotlib.org/
 .. _pygtk: http://www.pygtk.org/
+.. _PyPI: https://pypi.python.org/pypi/ase
+.. _PIP: https://pip.pypa.io/en/stable/
 
 
 Installation using ``pip``
@@ -28,14 +30,14 @@ Installation using ``pip``
 
 .. highlight:: bash
 
-The simplest way to install ASE is::
+The simplest way to install ASE is to use pip_ which will automatically get
+the source code from PyPI_::
     
     $ pip install --upgrade ase
     
 This will install ASE in your ``~/.local`` folder where Python can
-automatically find it.  Make sure you have ``~/.local/bin`` (or on
-Windows, :file:`%APPDATA%/Python/Scripts`) in your :envvar:`PATH`
-environment variable.
+automatically find it.  Make sure you have ``~/.local/bin`` in your
+:envvar:`PATH` environment variable.
 
 Now you should be ready to use ASE, but before you start, please run the
 tests as described below.
@@ -55,10 +57,7 @@ Test your installation
 
 Run the tests like this::
     
-    $ cd /tmp
-    $ mkdir ase-test
-    $ cd ase-test
-    $ python -c "from ase.test import test; test()"  # takes 1 min.
+    $ python -m ase.test  # takes 1 min.
 
 and send us the output if there are failing tests.
 
@@ -71,34 +70,27 @@ Installation from source
 As an alternative to ``pip``, you can also get the source from a tar-file or
 from Git.
 
+:Tar-file:
 
-Tar-file
---------
+    You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
+    latest stable release (ase-3.10.0.tar.gz_) or the latest
+    development snapshot (`<snapshot.tar.gz>`_).
 
-You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-latest stable release (python-ase-3.9.1.4567.tar.gz_) or the latest
-development snapshot (`<snapshot.tar.gz>`_).
-
-Unpack and make a soft link::
+    Unpack and make a soft link::
     
-    $ tar -xf python-ase-3.9.1.4567.tar.gz
-    $ ln -s python-ase-3.9.1.4567 ase
+        $ tar -xf ase-3.10.0.tar.gz
+        $ ln -s ase-3.10.0 ase
 
-.. _python-ase-3.9.1.4567.tar.gz:
-    https://wiki.fysik.dtu.dk/ase-files/python-ase-3.9.1.4567.tar.gz
+:Git clone:
 
+    Alternatively, you can get the source for the latest stable release from
+    https://gitlab.com/ase/ase like this::
     
-Git clone
----------
+        $ git clone -b 3.10.0 https://gitlab.com/ase/ase.git
 
-Alternatively, you can get the source for the latest stable release from
-https://gitlab.com/ase/ase like this::
-    
-    $ git clone -b 3.9.1 https://gitlab.com/ase/ase.git
+    or if you want the development version::
 
-or if you want the development version::
-
-    $ git clone https://gitlab.com/ase/ase.git
+        $ git clone https://gitlab.com/ase/ase.git
     
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
 ``~/ase/tools`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
@@ -106,9 +98,12 @@ folder is).
     
 .. note::
     
-    We also have tar-file and Git tags for older stable versions of ASE.
+    We also have Git-tags for older stable versions of ASE.
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
+
+.. _ase-3.10.0.tar.gz:
+    https://pypi.python.org/packages/source/a/ase/ase-3.10.0.tar.gz
 
     
 Environment variables

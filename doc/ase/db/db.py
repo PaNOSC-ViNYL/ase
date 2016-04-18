@@ -26,11 +26,11 @@ import subprocess
 with open('ase-db.txt', 'w') as fd:
     fd.write('$ ase-db abc.db\n')
     output = subprocess.check_output(['ase-db', 'abc.db'])
-    fd.write(output)
+    fd.write(output.decode())
 with open('ase-db-long.txt', 'w') as fd:
     fd.write('$ ase-db abc.db relaxed=1 -l\n')
     output = subprocess.check_output(['ase-db', 'abc.db', 'relaxed=1', '-l'])
-    fd.write(output)
+    fd.write(output.decode())
 
 row = c.get(relaxed=1, calculator='emt')
 for key in row:

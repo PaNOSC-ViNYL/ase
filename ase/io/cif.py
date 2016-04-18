@@ -235,8 +235,8 @@ def tags2atoms(tags, store_tags=False, **kwargs):
         symbolHM = tags['_symmetry_space_group_name_h-m']
 
     sitesym = None
-    if '_space_group_symop.operation_xyz' in tags:
-        sitesym = tags['_space_group_symop.operation_xyz']
+    if '_space_group_symop_operation_xyz' in tags:
+        sitesym = tags['_space_group_symop_operation_xyz']
     elif '_symmetry_equiv_pos_as_xyz' in tags:
         sitesym = tags['_symmetry_equiv_pos_as_xyz']
         

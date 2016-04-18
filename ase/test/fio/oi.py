@@ -57,7 +57,7 @@ def check(a, format):
         assert (a.get_stress() == atoms.get_stress()).all()
         assert abs(a.get_forces() - atoms.get_forces()).max() < 1e-12
 
-for format in all_formats:
+for format in sorted(all_formats):
     if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
         # Someone should do something ...
         continue
