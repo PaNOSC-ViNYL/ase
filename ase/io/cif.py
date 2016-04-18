@@ -288,7 +288,7 @@ def read_cif(fileobj, index=-1, store_tags=False, **kwargs):
         images = []
         for name, tags in blocks:
             try:
-                atoms = tags2atoms(tags)
+                atoms = tags2atoms(tags, **kwargs)
                 images.append(atoms)
             except KeyError:
                 pass
@@ -297,10 +297,10 @@ def read_cif(fileobj, index=-1, store_tags=False, **kwargs):
             # Provide an useful error by try converting the first
             # block to atoms
             name, tags = blocks[0]
-            tags2atoms(tags)
+            tags2atoms(tags, **kwargs)
         return images
     else:
-        return [tags2atoms(tags) for name, tags in blocks[index]]
+        return [tags2atoms(tags, **kwargs) for name, tags in blocks[index]]
 
 
 def write_cif(fileobj, images):

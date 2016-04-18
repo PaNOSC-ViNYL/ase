@@ -21,7 +21,7 @@ __all__ = ['crystal']
 def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
             cell=None, cellpar=None,
             ab_normal=(0, 0, 1), a_direction=None, size=(1, 1, 1),
-            ondublicates='warn', symprec=0.001,
+            onduplicates='warn', symprec=0.001,
             pbc=True, primitive_cell=False, **kwargs):
     """Create an Atoms instance for a conventional unit cell of a
     space group.
@@ -58,7 +58,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
     size : 3 positive integers
         How many times the conventional unit cell should be repeated
         in each direction.
-    ondublicates : 'keep' | 'replace' | 'warn' | 'error'
+    onduplicates : 'keep' | 'replace' | 'warn' | 'error'
         Action if `basis` contain symmetry-equivalent positions:
             'keep'    - ignore additional symmetry-equivalent positions
             'replace' - replace
@@ -115,7 +115,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
     else:
         basis_coords = np.array(basis, dtype=float, copy=False, ndmin=2)
     sites, kinds = sg.equivalent_sites(basis_coords,
-                                       ondublicates=ondublicates,
+                                       onduplicates=onduplicates,
                                        symprec=symprec)
     symbols = parse_symbols(symbols)
     symbols = [symbols[i] for i in kinds]
@@ -146,7 +146,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
                                 dtype=array.dtype, shape=array.shape[1:])
 
     if primitive_cell:
-        from ase.utils.geometry  import cut
+        from ase.utils.geometry import cut
         prim_cell = sg.scaled_primitive_cell
         atoms = cut(atoms, a=prim_cell[0], b=prim_cell[1], c=prim_cell[2])
 
