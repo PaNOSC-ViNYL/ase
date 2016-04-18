@@ -314,7 +314,7 @@ class Spacegroup(object):
         imask = mask[iperm]
         return hkl[imask]
             
-    def equivalent_sites(self, scaled_positions, ondublicates='error',
+    def equivalent_sites(self, scaled_positions, onduplicates='error',
                          symprec=1e-3):
         """Returns the scaled positions and all their equivalent sites.
 
@@ -322,7 +322,7 @@ class Spacegroup(object):
 
         scaled_positions: list | array
             List of non-equivalent sites given in unit cell coordinates.
-        ondublicates : 'keep' | 'replace' | 'warn' | 'error'
+        onduplicates : 'keep' | 'replace' | 'warn' | 'error'
             Action if `scaled_positions` contain symmetry-equivalent
             positions:
             
@@ -381,20 +381,20 @@ class Spacegroup(object):
                     ind = np.argwhere(mask)[0][0]
                     if kinds[ind] == kind:
                         pass
-                    elif ondublicates == 'keep':
+                    elif onduplicates == 'keep':
                         pass
-                    elif ondublicates == 'replace':
+                    elif onduplicates == 'replace':
                         kinds[ind] = kind
-                    elif ondublicates == 'warn':
+                    elif onduplicates == 'warn':
                         warnings.warn('scaled_positions %d and %d '
                                       'are equivalent'%(kinds[ind], kind))
-                    elif ondublicates == 'error':
+                    elif onduplicates == 'error':
                         raise SpacegroupValueError(
                             'scaled_positions %d and %d are equivalent'%(
                                 kinds[ind], kind))
                     else:
                         raise SpacegroupValueError(
-                            'Argument "ondublicates" must be one of: '
+                            'Argument "onduplicates" must be one of: '
                             '"keep", "replace", "warn" or "error".')
                 else:
                     sites.append(site)
