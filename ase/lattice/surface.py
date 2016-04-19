@@ -1,1 +1,1 @@
-from ase.build.surface import *
+from ase.build import *

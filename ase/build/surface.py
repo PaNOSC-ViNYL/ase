@@ -13,16 +13,8 @@ import numpy as np
 
 from ase.atom import Atom
 from ase.atoms import Atoms
-from ase.build.general_surface import surface
-from ase.build.root import root_surface
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
-
-__all__ = ['surface', 'add_adsorbate', 'add_vacuum',
-           'bcc100', 'bcc110', 'bcc111',
-           'diamond100', 'diamond111',
-           'fcc100', 'fcc110', 'fcc111', 'fcc211',
-           'hcp0001', 'hcp10m10', 'mx2']
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -418,56 +410,6 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     for index, order in enumerate(orders):
         newatoms[index].position = atoms[order[0]].position.copy()
     return newatoms
-
-
-def hcp0001_root(symbol, root, size, a=None, c=None,
-                 vacuum=None, orthogonal=False):
-    """HCP(0001) surface maniupulated to have a x unit side length
-    of *root* before repeating.This also results in *root* number
-    of repetitions of the cell.
-
-
-    The first 20 valid roots for nonorthogonal are...
-    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25,
-    27, 28, 31, 36, 37, 39, 43, 48, 49"""
-    atoms = hcp0001(symbol=symbol, size=(1, 1, size[2]),
-                    a=a, c=c, vacuum=vacuum, orthogonal=orthogonal)
-    atoms = root_surface(atoms, root)
-    atoms *= (size[0], size[1], 1)
-    return atoms
-
-
-def fcc111_root(symbol, root, size, a=None,
-                vacuum=None, orthogonal=False):
-    """FCC(111) surface maniupulated to have a x unit side length
-    of *root* before repeating. This also results in *root* number
-    of repetitions of the cell.
-
-    The first 20 valid roots for nonorthogonal are...
-    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25, 27,
-    28, 31, 36, 37, 39, 43, 48, 49"""
-    atoms = fcc111(symbol=symbol, size=(1, 1, size[2]),
-                   a=a, vacuum=vacuum, orthogonal=orthogonal)
-    atoms = root_surface(atoms, root)
-    atoms *= (size[0], size[1], 1)
-    return atoms
-
-
-def bcc111_root(symbol, root, size, a=None,
-                vacuum=None, orthogonal=False):
-    """BCC(111) surface maniupulated to have a x unit side length
-    of *root* before repeating. This also results in *root* number
-    of repetitions of the cell.
-
-
-    The first 20 valid roots for nonorthogonal are...
-    1, 3, 4, 7, 9, 12, 13, 16, 19, 21, 25,
-    27, 28, 31, 36, 37, 39, 43, 48, 49"""
-    atoms = bcc111(symbol=symbol, size=(1, 1, size[2]),
-                   a=a, vacuum=vacuum, orthogonal=orthogonal)
-    atoms = root_surface(atoms, root)
-    atoms *= (size[0], size[1], 1)
-    return atoms
 
 
 def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
