@@ -6,8 +6,8 @@ except ImportError:
     scipy = None
     
 from ase.collection import collection
-from ase.lattice.spacegroup import spacegroup, cell, findsym, xtal
-from ase.utils import geometry
+from ase.spacegroup import spacegroup, findsym, xtal
+from ase.geometry import geometry, cell
 
 modules = [collection, xtal, spacegroup, cell, findsym]
 if scipy:
