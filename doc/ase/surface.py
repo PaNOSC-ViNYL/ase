@@ -3,7 +3,7 @@
 from ase import Atoms
 from ase.io import write
 from ase.lattice.surface import fcc111
-from ase.lattice.root import root_surface
+from ase.build import root_surface
 import ase.lattice.surface as surface
 
 
