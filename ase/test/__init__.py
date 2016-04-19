@@ -55,7 +55,7 @@ class ScriptTestCase(unittest.TestCase):
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
-            if module in ['scipy', 'cmr', 'Scientific', 'lxml']:
+            if module in ['scipy', 'Scientific', 'lxml']:
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
@@ -181,7 +181,7 @@ class must_raise:
         if exc_type is None:
             raise RuntimeError('Failed to fail: ' + str(self.exception))
         return issubclass(exc_type, self.exception)
-        
+
             
 if __name__ == '__main__':
     # Run pyflakes3 on all code in ASE:
