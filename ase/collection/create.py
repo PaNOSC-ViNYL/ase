@@ -26,7 +26,7 @@ def create_dcdft_database():
             if symbol in ['Cr', 'O', 'Mn']:
                 magmoms[len(atoms) // 2:] = [-M] * (len(atoms) // 2)
             atoms.set_initial_magnetic_moments(magmoms)
-        # c.write(atoms, name=symbol, w2k_B=B, w2k_Bp=Bp, w2k_volume=vol)
+        con.write(atoms, name=symbol, w2k_B=B, w2k_Bp=Bp, w2k_volume=vol)
         filename = 'pcif/' + symbol + '.cif'
         p = read(filename, primitive_cell=True)
         v = atoms.get_volume() / len(atoms)
@@ -36,6 +36,6 @@ def create_dcdft_database():
         print(symbol, vol - atoms.get_volume() / len(atoms),
               len(atoms), len(p), dv, dv2)
         print(p.info)
-        #assert dv < 0.0001
+        # assert dv < 0.0001
         
 create_dcdft_database()
