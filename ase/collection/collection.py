@@ -6,7 +6,9 @@ from ase.io.jsonio import read_json
 
 class Collection:
     """Collection of atomic configurations and associated data.
-    
+
+    Example of use:
+        
     >>> from ase.collection import s22
     >>> len(s22)
     22
@@ -17,18 +19,27 @@ class Collection:
     ['O', 'H', 'H', 'O', 'H', 'H']
     >>> s22.data['Ammonia_dimer']
     {'cc_energy': -0.1375}
+    >>> sum(len(atoms) for atoms in s22)
+    414
     """
     def __init__(self, name):
         """Create a collection lazily.
         
         Will read data from json file when needed.
         
+        A collection can be iterated over to get the Atoms objects and indexed
+        with names to get individual members.
+
         Attributes:
         
-        name:
-        data
-        filename
-        names
+        name: str
+            Name of collection.
+        data: dict
+            Data dictionary.
+        filename: str
+            Location of json file.
+        names: list
+            Names of configurations in the collection.
         """
         
         self.name = name
@@ -69,7 +80,6 @@ class Collection:
         if self._names:
             return
         bigdct = read_json(self.filename)
-        self._description = bigdct['description']
         for id in bigdct['ids']:
             dct = bigdct[id]
             kvp = dct['key_value_pairs']
