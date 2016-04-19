@@ -31,7 +31,7 @@ import os
 import sys
 
 from ase.atoms import Atoms
-from ase.utils import import_module
+from ase.utils import import_module, basestring
 from ase.parallel import parallel_function, parallel_generator
 
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
@@ -209,7 +209,7 @@ def write(filename, images, format=None, **kwargs):
 
     The use of additional keywords is format specific."""
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
         fd = None
         if filename == '-':
@@ -281,12 +281,12 @@ def read(filename, index=None, format=None, **kwargs):
     of ``filename``. In this case the format cannot be auto-decected,
     so the ``format`` argument should be explicitly given."""
 
-    if isinstance(index, str):
+    if isinstance(index, basestring):
         index = string2index(index)
     filename, index = parse_filename(filename, index)
     if index is None:
         index = -1
-    if isinstance(index, (slice, str)):
+    if isinstance(index, (slice, basestring)):
         return list(_iread(filename, index, format, **kwargs))
     else:
         return next(_iread(filename, slice(index, None), format, **kwargs))
@@ -298,7 +298,7 @@ def iread(filename, index=None, format=None, **kwargs):
     Works as the `read` function, but yields one Atoms object at a time
     instead of all at once."""
 
-    if isinstance(index, str):
+    if isinstance(index, basestring):
         index = string2index(index)
 
     filename, index = parse_filename(filename, index)
@@ -306,7 +306,7 @@ def iread(filename, index=None, format=None, **kwargs):
     if index is None or index == ':':
         index = slice(None, None, None)
 
-    if not isinstance(index, (slice, str)):
+    if not isinstance(index, (slice, basestring)):
         index = slice(index, (index + 1) or None)
 
     for atoms in _iread(filename, index, format, **kwargs):
@@ -316,7 +316,7 @@ def iread(filename, index=None, format=None, **kwargs):
 @parallel_generator
 def _iread(filename, index, format, full_output=False, **kwargs):
     compression = None
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
         if filename.endswith('.gz'):
             compression = 'gz'
@@ -341,7 +341,7 @@ def _iread(filename, index, format, full_output=False, **kwargs):
         args = (index,)
 
     must_close_fd = False
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         if io.acceptsfd:
             if compression == 'gz':
                 import gzip
@@ -373,7 +373,7 @@ def _iread(filename, index, format, full_output=False, **kwargs):
 
 
 def parse_filename(filename, index=None):
-    if not isinstance(filename, str) or '@' not in filename:
+    if not isinstance(filename, basestring) or '@' not in filename:
         return filename, index
     newindex = None
     if ('.json@' in filename or
@@ -415,7 +415,7 @@ def filetype(filename, read=True):
         $ python -m ase.io.formats filename ...
     """
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         if os.path.isdir(filename):
             if os.path.basename(os.path.normpath(filename)) == 'states':
                 return 'eon'
