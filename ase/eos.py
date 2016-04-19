@@ -279,12 +279,11 @@ class EquationOfState:
         f.subplots_adjust(left=0.12, right=0.9, top=0.9, bottom=0.15)
         plt.plot(self.v, self.e, 'o')
         x = np.linspace(min(self.v), max(self.v), 100)
-        y = eval(self.eos_string)(x,
-                                  self.eos_parameters[0],
-                                  self.eos_parameters[1],
-                                  self.eos_parameters[2],
-                                  self.eos_parameters[3],
-                                  )
+        if self.eos_string == 'sjeos':
+            y = self.fit0(x**-(1.0 / 3))
+        else:
+            y = eval(self.eos_string)(x, *self.eos_parameters)
+            
         plt.plot(x, y, '-r')
         try:
             plt.xlabel(u'volume [Å^3]')
