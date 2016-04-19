@@ -60,7 +60,7 @@ def make_input(atoms, tol=1e-3, centering='P', types=None):
     s.append('2    form of lattice parameters: to be entered as lengths '
              'and angles')
     s.append('%g %g %g %g %g %g    a,b,c,alpha,beta,gamma' %
-             tuple(ase.lattice.spacegroup.cell.cell_to_cellpar(atoms.cell)))
+             tuple(ase.geometry.cell_to_cellpar(atoms.cell)))
     s.append('2    form of vectors defining unit cell')  # ??
     s.append('%s    centering (P=unknown)' % centering)
     s.append('%d   number of atoms in primitive unit cell' % len(atoms))

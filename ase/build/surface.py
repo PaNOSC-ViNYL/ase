@@ -13,10 +13,10 @@ import numpy as np
 
 from ase.atom import Atom
 from ase.atoms import Atoms
+from ase.build.general_surface import surface
+from ase.build.root import root_surface
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
-from ase.lattice.general_surface import surface
-from ase.lattice.root import root_surface
 
 __all__ = ['surface', 'add_adsorbate', 'add_vacuum',
            'bcc100', 'bcc110', 'bcc111',

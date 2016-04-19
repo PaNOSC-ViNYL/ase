@@ -12,8 +12,8 @@ import numpy as np
 
 import ase
 from ase.atoms import string2symbols
-from ase.lattice.spacegroup import Spacegroup
-from ase.lattice.spacegroup.cell import cellpar_to_cell
+from ase.spacegroup import Spacegroup
+from ase.geometry import cellpar_to_cell
 
 __all__ = ['crystal']
 

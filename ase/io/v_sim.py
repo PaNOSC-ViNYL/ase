@@ -14,7 +14,7 @@ def read_v_sim(filename='demo.ascii'):
     """
 
     from ase import Atoms, units
-    from ase.lattice.spacegroup.cell import cellpar_to_cell
+    from ase.geometry import cellpar_to_cell
     import re
 
     if isinstance(filename, str):
@@ -96,7 +96,7 @@ def write_v_sim(filename, atoms):
 
     Writes the atom positions and unit cell.
     """
-    from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
+    from ase.geometry import cellpar_to_cell, cell_to_cellpar
 
     if isinstance(filename, str):
         f = open(filename)

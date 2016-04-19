@@ -12,7 +12,7 @@ import numpy as np
 
 import ase
 from ase.lattice.spacegroup import Spacegroup, crystal
-from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
+from ase.geometry import cellpar_to_cell, cell_to_cellpar
 
 
 def read_jsv(f):

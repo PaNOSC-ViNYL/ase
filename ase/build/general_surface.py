@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import norm, solve
 
 from ase.utils import gcd
-from ase.lattice.bulk import bulk
+from ase.build import bulk
 
 
 def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
