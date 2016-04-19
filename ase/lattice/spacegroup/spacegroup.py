@@ -19,10 +19,12 @@ class SpacegroupError(Exception):
     """Base exception for the spacegroup module."""
     pass
 
+    
 class SpacegroupNotFoundError(SpacegroupError):
     """Raised when given space group cannot be found in data base."""
     pass
 
+    
 class SpacegroupValueError(SpacegroupError):
     """Raised when arguments have invalid value."""
     pass
@@ -84,6 +86,7 @@ class Spacegroup(object):
     nsubtrans = property(
         lambda self: len(self._subtrans),
         doc='Number of cell-subtranslation vectors.')
+    
     def _get_nsymop(self):
         """Returns total number of symmetry operations."""
         if self.centrosymmetric:
@@ -212,7 +215,7 @@ class Spacegroup(object):
             for subtrans in self.subtrans:
                 for rot, trans in zip(self.rotations, self.translations):
                     newtrans = np.mod(trans + subtrans, 1)
-                    symop.append((parity*rot, newtrans))
+                    symop.append((parity * rot, newtrans))
         return symop
 
     def get_op(self):
@@ -260,8 +263,8 @@ class Spacegroup(object):
         hkl = np.array(hkl, dtype='int', ndmin=2)
         rot = self.get_rotations()
         n, nrot = len(hkl), len(rot)
-        R = rot.transpose(0, 2, 1).reshape((3*nrot, 3)).T
-        refl = np.dot(hkl, R).reshape((n*nrot, 3))
+        R = rot.transpose(0, 2, 1).reshape((3 * nrot, 3)).T
+        refl = np.dot(hkl, R).reshape((n * nrot, 3))
         ind = np.lexsort(refl.T)
         refl = refl[ind]
         diff = np.diff(refl, axis=0)
@@ -287,7 +290,7 @@ class Spacegroup(object):
         for i, g in enumerate(hkl):
             gsym = np.dot(R, g)
             j = np.lexsort(gsym.T)[0]
-            normalised[i,:] = gsym[j]
+            normalised[i, :] = gsym[j]
         return normalised
 
     def unique_reflections(self, hkl):
@@ -387,10 +390,10 @@ class Spacegroup(object):
                         kinds[ind] = kind
                     elif onduplicates == 'warn':
                         warnings.warn('scaled_positions %d and %d '
-                                      'are equivalent'%(kinds[ind], kind))
+                                      'are equivalent' % (kinds[ind], kind))
                     elif onduplicates == 'error':
                         raise SpacegroupValueError(
-                            'scaled_positions %d and %d are equivalent'%(
+                            'scaled_positions %d and %d are equivalent' % (
                                 kinds[ind], kind))
                     else:
                         raise SpacegroupValueError(
@@ -429,7 +432,7 @@ class Spacegroup(object):
                 sympos %= 1.0
                 sympos %= 1.0
             j = np.lexsort(sympos.T)[0]
-            normalised[i,:] = sympos[j]
+            normalised[i, :] = sympos[j]
         return normalised
 
     def unique_sites(self, scaled_positions, symprec=1e-3, output_mask=False,
@@ -491,8 +494,8 @@ class Spacegroup(object):
             # Must be done twice, see the scaled_positions.py test
             sympos %= 1.0
             sympos %= 1.0
-            m = ~np.all(np.any(np.abs(scaled[np.newaxis,:,:] -
-                                      sympos[:,np.newaxis,:]) > symprec,
+            m = ~np.all(np.any(np.abs(scaled[np.newaxis, :, :] -
+                                      sympos[:, np.newaxis, :]) > symprec,
                                axis=2), axis=0)
             assert not np.any((~mask) & m)
             tags[m] = i
@@ -531,12 +534,10 @@ def format_symbol(symbol):
     return ' '.join(s.split())
 
 
-#-----------------------------------------------------------------
 # Functions for parsing the database. They are moved outside the
 # Spacegroup class in order to make it easier to later implement
 # caching to avoid reading the database each time a new Spacegroup
 # instance is created.
-#-----------------------------------------------------------------
 
 def _skip_to_blank(f, spacegroup, setting):
     """Read lines from f until a blank line is encountered."""
@@ -545,7 +546,7 @@ def _skip_to_blank(f, spacegroup, setting):
         if not line:
             raise SpacegroupNotFoundError(
                 'invalid spacegroup %s, setting %i not found in data base' %
-                ( spacegroup, setting ) )
+                (spacegroup, setting))
         if not line.strip():
             break
 
@@ -558,7 +559,7 @@ def _skip_to_nonblank(f, spacegroup, setting):
         if not line1:
             raise SpacegroupNotFoundError(
                 'invalid spacegroup %s, setting %i not found in data base' %
-                ( spacegroup, setting ) )
+                (spacegroup, setting))
         line1.strip()
         if line1 and not line1.startswith('#'):
             line2 = f.readline()
@@ -595,27 +596,28 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
                       for i in range(nsym)],
                      dtype=np.float)
     spg._nsymop = nsym
-    spg._rotations = np.array(symop[:,:9].reshape((nsym,3,3)), dtype=np.int)
-    spg._translations = symop[:,9:]
+    spg._rotations = np.array(symop[:, :9].reshape((nsym, 3, 3)), dtype=np.int)
+    spg._translations = symop[:, 9:]
 
 
 def _read_datafile(spg, spacegroup, setting, f):
     if isinstance(spacegroup, int):
         pass
     elif isinstance(spacegroup, str):
-        #spacegroup = ' '.join(spacegroup.strip().split())
-        spacegroup = format_symbol(spacegroup)
+        spacegroup = ' '.join(spacegroup.strip().split())
+        compact_spacegroup = ''.join(spacegroup.split())
     else:
         raise SpacegroupValueError('`spacegroup` must be of type int or str')
     while True:
         line1, line2 = _skip_to_nonblank(f, spacegroup, setting)
-        _no,_symbol = line1.strip().split(None, 1)
+        _no, _symbol = line1.strip().split(None, 1)
         _symbol = format_symbol(_symbol)
+        compact_symbol = ''.join(_symbol.split())
         _setting = int(line2.strip().split()[1])
         _no = int(_no)
         if ((isinstance(spacegroup, int) and _no == spacegroup) or
             (isinstance(spacegroup, str) and
-             _symbol == spacegroup)) and _setting == setting:
+             compact_symbol == compact_spacegroup)) and _setting == setting:
             _read_datafile_entry(spg, _no, _symbol, _setting, f)
             break
         else:
@@ -656,7 +658,7 @@ def parse_sitesym(symlist, sep=','):
     rot = np.zeros((nsym, 3, 3), dtype='int')
     trans = np.zeros((nsym, 3))
     for i, sym in enumerate(symlist):
-        for j, s in enumerate (sym.split(sep)):
+        for j, s in enumerate(sym.split(sep)):
             s = s.lower().strip()
             while s:
                 sign = 1
@@ -676,9 +678,9 @@ def parse_sitesym(symlist, sep=','):
                     s = s[n:]
                     if '/' in t:
                         q, r = t.split('/')
-                        trans[i,j] = float(q)/float(r)
+                        trans[i, j] = float(q) / float(r)
                     else:
-                        trans[i,j] = float(t)
+                        trans[i, j] = float(t)
                 else:
                     raise SpacegroupValueError(
                         'Error parsing %r. Invalid site symmetry: %s' %

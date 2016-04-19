@@ -5,10 +5,11 @@ try:
 except ImportError:
     scipy = None
     
+from ase.collection import collection
 from ase.lattice.spacegroup import spacegroup, cell, findsym, xtal
 from ase.utils import geometry
 
-modules = [xtal, spacegroup, cell, findsym]
+modules = [collection, xtal, spacegroup, cell, findsym]
 if scipy:
     modules.append(geometry)
     
