@@ -1,3 +1,5 @@
+import os.path as op
+
 from ase.db.row import AtomsRow
 from ase.io.jsonio import read_json
 
@@ -5,13 +7,16 @@ from ase.io.jsonio import read_json
 class Collection:
     """Collection of atomic configurations and associated data.
     
-    >>> from ase.collections import g2
-    >>> g2.names
-    >>> g2.filename
-    >>> g2['CO2']
-    >>> g2.data['CO2']
-    >>> ???
-        
+    >>> from ase.collection import s22
+    >>> len(s22)
+    22
+    >>> s22.names[:3]
+    ['Ammonia_dimer', 'Water_dimer', 'Formic_acid_dimer']
+    >>> dimer = s22['Water_dimer']
+    >>> dimer.get_chemical_symbols()
+    ['O', 'H', 'H', 'O', 'H', 'H']
+    >>> s22.data['Ammonia_dimer']
+    {'cc_energy': -0.1375}
     """
     def __init__(self, name):
         """Create a collection lazily.
@@ -30,7 +35,7 @@ class Collection:
         self._names = []
         self._systems = {}
         self._data = {}
-        self.filename = __file__[:-13] + self.name + '.json'
+        self.filename = op.join(op.dirname(__file__), name + '.json')
         
     def __getitem__(self, name):
         self._read()
@@ -68,9 +73,13 @@ class Collection:
         for id in bigdct['ids']:
             dct = bigdct[id]
             kvp = dct['key_value_pairs']
-            name = kvp['name']
+            name = str(kvp['name'])
             self._names.append(name)
             self._systems[name] = AtomsRow(dct).toatoms()
             del kvp['name']
-            self._data[name] = kvp
+            self._data[name] = dict((str(k), v) for k, v in kvp.items())
 
+            
+if __name__ == '__main__':
+    import doctest
+    print('doctest: ', doctest.testmod())
