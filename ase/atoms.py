@@ -18,7 +18,7 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.utils.geometry import wrap_positions, find_mic
+from ase.geometry import wrap_positions, find_mic
 
 
 class Atoms(object):
@@ -1482,7 +1482,7 @@ class Atoms(object):
             Small number to prevent slightly negative coordinates from being
             wrapped.
 
-        See also the :func:`ase.utils.geometry.wrap_positions` function.
+        See also the :func:`ase.geometry.wrap_positions` function.
         Example:
 
         >>> a = Atoms('H',

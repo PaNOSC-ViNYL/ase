@@ -119,35 +119,6 @@ def get_layers(atoms, miller, tolerance=0.001):
     return tags, levels
 
 
-def rotation_matrix(a1, a2, b1, b2):
-    """Returns a rotation matrix that rotates the vectors *a1* in the
-    direction of *a2* and *b1* in the direction of *b2*.
-
-    In the case that the angle between *a2* and *b2* is not the same
-    as between *a1* and *b1*, a proper rotation matrix will anyway be
-    constructed by first rotate *b2* in the *b1*, *b2* plane.
-    """
-    a1 = np.asarray(a1, dtype=float) / np.linalg.norm(a1)
-    b1 = np.asarray(b1, dtype=float) / np.linalg.norm(b1)
-    c1 = np.cross(a1, b1)
-    c1 /= np.linalg.norm(c1)      # clean out rounding errors...
-
-    a2 = np.asarray(a2, dtype=float) / np.linalg.norm(a2)
-    b2 = np.asarray(b2, dtype=float) / np.linalg.norm(b2)
-    c2 = np.cross(a2, b2)
-    c2 /= np.linalg.norm(c2)      # clean out rounding errors...
-
-    # Calculate rotated *b2*
-    theta = np.arccos(np.dot(a2, b2)) - np.arccos(np.dot(a1, b1))
-    b3 = np.sin(theta) * a2 + np.cos(theta) * b2
-    b3 /= np.linalg.norm(b3)      # clean out rounding errors...
-
-    A1 = np.array([a1, b1, c1])
-    A2 = np.array([a2, b3, c2])
-    R = np.linalg.solve(A1, A2).T
-    return R
-
-
 def find_mic(D, cell, pbc=True):
     """Finds the minimum-image representation of vector(s) D"""
     # Calculate the 4 unique unit cell diagonal lengths
