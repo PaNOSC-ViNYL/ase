@@ -264,6 +264,12 @@ class Atoms(object):
             else:
                 self._constraints = [constraint]
 
+    def get_constrained_indices(self):
+        indicies = []
+        for constraint in self._constraints:
+            indicies.extend(np.array(constraint.get_affected()))
+        return np.array(np.unique(indicies))
+
     def _get_constraints(self):
         return self._constraints
 
