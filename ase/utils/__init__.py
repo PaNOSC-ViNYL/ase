@@ -14,6 +14,11 @@ import numpy as np
 
 from ase.data import chemical_symbols
 
+__all__ = ['_exec', 'basestring', 'import_module', 'seterr', 'plural',
+           'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
+           'opencew', 'OpenLock', 'hill', 'rotate', 'irotate', 'givens',
+           'hsv2rgb', 'hsv']
+
 
 # Python 2+3 compatibility stuff:
 if sys.version_info[0] == 3:
@@ -35,7 +40,7 @@ else:
             module = getattr(module, part)
         return module
     
-
+        
 @contextmanager
 def seterr(**kwargs):
     """Set how floating-point errors are handled.
