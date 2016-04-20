@@ -13,33 +13,36 @@ Quick links:
 
   * - :mod:`~ase.atom`
     - :mod:`~ase.atoms`
+    - :mod:`~ase.build`
     - :mod:`~ase.calculators`
-    - :mod:`~ase.collection`
-  * - :mod:`~ase.constraints`
+  * - :mod:`~ase.collection`
+    - :mod:`~ase.constraints`
     - :mod:`~ase.db`
     - :mod:`~ase.dft`
-    - :mod:`~ase.data`
-  * - :mod:`~ase.ga`
+  * - :mod:`~ase.data`
+    - :mod:`~ase.ga`
     - :mod:`~ase.gui`
     - :mod:`~ase.infrared`
-    - :mod:`~ase.io`
-  * - :mod:`~ase.lattice`
+  * - :mod:`~ase.io`
+    - :mod:`~ase.lattice`
     - :mod:`~ase.md`
     - :mod:`~ase.neb`
-    - :mod:`~ase.optimize`
-  * - :mod:`~ase.parallel`
+  * - :mod:`~ase.optimize`
+    - :mod:`~ase.parallel`
     - :mod:`~ase.phasediagram`
     - :mod:`~ase.phonons`
-    - :mod:`~ase.lattice.spacegroup`
-  * - :mod:`~ase.structure`
+  * - :mod:`~ase.lattice.spacegroup`
+    - :mod:`~ase.structure`
     - :mod:`~ase.lattice.surface`
     - :mod:`~ase.transport`
-    - :mod:`~ase.thermochemistry`
-  * - :mod:`~ase.units`
+  * - :mod:`~ase.thermochemistry`
+    - :mod:`~ase.units`
     - :mod:`~ase.utils`
     - :mod:`~ase.vibrations`
-    - :mod:`~ase.visualize`
-
+  * - :mod:`~ase.visualize`
+    -
+    -
+    -
 
 .. seealso::
 
@@ -60,6 +63,8 @@ List of all modules:
    units
    io
    build
+   geometry
+   eos
    collection
    gui/gui
    setup-overview

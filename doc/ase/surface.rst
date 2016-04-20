@@ -188,7 +188,7 @@ supply a primitive cell of the correct height.  This primitive cell can be
 any 2D surface whose normal points along the Z axis.  The cell's contents
 can also vary, such as in the creation of an alloy or deformation.
 
-.. autofunction:: ase.build.root_surface
+.. autofunction:: ase.lattice.surface.root_surface
 
 The difficulty with using these functions is the requirement to know the
 valid roots in advance, but a function has also been supplied to help with
@@ -196,7 +196,7 @@ this.  It is helpful to note that any primitive cell with the same cell
 shape, such as the case with the fcc111 and bcc111 functions, will have the
 same valid roots.
 
-.. autofunction:: ase.build.root_surface_analysis
+.. autofunction:: ase.lattice.surface.root_surface_analysis
 
 An example of using your own primitive cell::
 
