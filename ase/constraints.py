@@ -922,7 +922,12 @@ class Hookean(FixConstraint):
             return 0.
 
     def get_affected(self):
-        return self.indices
+        if self._type == 'two atoms':
+            return self.indices
+        elif self._type == 'point':
+            return self.index
+        elif self._type == 'plane':
+            return self.index
 
     def index_shuffle(self, atoms, ind):
         # See docstring of superclass
