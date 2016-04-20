@@ -18,7 +18,7 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.utils.geometry import wrap_positions, find_mic
+from ase.geometry import wrap_positions, find_mic
 
 
 class Atoms(object):
@@ -101,7 +101,7 @@ class Atoms(object):
     >>> d = 1.104  # N2 bondlength
     >>> a = Atoms('N2', [(0, 0, 0), (0, 0, d)])
     >>> a = Atoms(numbers=[7, 7], positions=[(0, 0, 0), (0, 0, d)])
-    >>> a = Atoms([Atom('N', (0, 0, 0)), Atom('N', (0, 0, d)])
+    >>> a = Atoms([Atom('N', (0, 0, 0)), Atom('N', (0, 0, d))])
 
     FCC gold:
 
@@ -289,12 +289,14 @@ class Atoms(object):
 
         Two equivalent ways to define an orthorhombic cell:
 
-        >>> a.set_cell([a, b, c])
-        >>> a.set_cell([(a, 0, 0), (0, b, 0), (0, 0, c)])
+        >>> atoms = Atoms('He')
+        >>> a, b, c = 7, 7.5, 8
+        >>> atoms.set_cell([a, b, c])
+        >>> atoms.set_cell([(a, 0, 0), (0, b, 0), (0, 0, c)])
 
         FCC unit cell:
 
-        >>> a.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+        >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
         """
 
         if fix is not None:
@@ -1111,7 +1113,9 @@ class Atoms(object):
         Rotate 90 degrees around the z-axis, so that the x-axis is
         rotated into the y-axis:
 
+        >>> from math import pi
         >>> a = pi / 2
+        >>> atoms = Atoms()
         >>> atoms.rotate('z', a)
         >>> atoms.rotate((0, 0, 1), a)
         >>> atoms.rotate('-z', -a)
@@ -1281,9 +1285,11 @@ class Atoms(object):
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
 
+        >>> from math import pi
         >>> atoms = Atoms('HHCCHH', [[-1, 1, 0], [-1, -1, 0], [0, 0, 0],
-                                     [1, 0, 0], [2, 1, 0], [2, -1, 0]])
-        >>> atoms.set_dihedral([1,2,3,4],7*pi/6,mask=[0,0,0,1,1,1])
+        ...                          [1, 0, 0], [2, 1, 0], [2, -1, 0]])
+        >>> atoms.set_dihedral([1, 2, 3, 4], 7 * pi / 6,
+        ...                    mask=[0, 0, 0, 1, 1, 1])
         """
         # if not provided, set mask to the last atom in the
         # dihedral description
@@ -1482,7 +1488,7 @@ class Atoms(object):
             Small number to prevent slightly negative coordinates from being
             wrapped.
 
-        See also the :func:`ase.utils.geometry.wrap_positions` function.
+        See also the :func:`ase.geometry.wrap_positions` function.
         Example:
 
         >>> a = Atoms('H',

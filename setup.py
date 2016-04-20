@@ -43,7 +43,10 @@ for dirname, dirnames, filenames in os.walk('ase'):
 
 package_dir = {'ase': 'ase'}
 
-package_data = {'ase': ['lattice/spacegroup/spacegroup.dat']}
+package_data = {'ase': ['spacegroup/spacegroup.dat',
+                        'collection/*.json',
+                        'db/templates/*',
+                        'db/static/*']}
 
 
 class build_py(_build_py):

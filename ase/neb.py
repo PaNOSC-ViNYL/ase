@@ -10,7 +10,7 @@ from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 from ase.optimize import BFGS
-from ase.utils.geometry import find_mic
+from ase.geometry import find_mic
 
 
 class NEB:

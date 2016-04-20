@@ -4,7 +4,7 @@ from math import sin, cos, pi
 
 import numpy as np
 
-from ase.lattice.spacegroup.cell import cell_to_cellpar
+from ase.geometry import cell_to_cellpar
 
 
 def monkhorst_pack(size):

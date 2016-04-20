@@ -1,6 +1,6 @@
 from __future__ import division
 from math import sqrt
-from ase.utils.geometry import find_mic
+from ase.geometry import find_mic
 
 import numpy as np
 

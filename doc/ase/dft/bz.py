@@ -1,4 +1,4 @@
-# creates: cubic.svg, fcc.svg, tetragonal.svg, orthogonal.svg, hexagonal.svg, monoclinic.svg
+# creates: cubic.svg, fcc.svg, bcc.svg, tetragonal.svg, orthorhombic.svg, hexagonal.svg, monoclinic.svg
 from math import pi, sin, cos
 
 import numpy as np

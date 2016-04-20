@@ -1,10 +1,11 @@
 import os
 
 import ase.db
+from ase import Atoms
 from ase.io import read
 
 
-def create_dcdft_database():
+def dcdft():
     os.environ['USER'] = 'ase'
     con = ase.db.connect('dcdft.json')
     with open('WIEN2k.txt') as fd:
@@ -37,5 +38,15 @@ def create_dcdft_database():
               len(atoms), len(p), dv, dv2)
         print(p.info)
         # assert dv < 0.0001
+  
         
-create_dcdft_database()
+def g2():
+    from ase.data.g2 import data
+    os.environ['USER'] = 'ase'
+    con = ase.db.connect('g2.json')
+    for name, d in data.items():
+        kwargs = {}
+        if d['magmoms']:
+            kwargs['magmoms'] = d['magmoms']
+        atoms = Atoms(d['symbols'], d['positions'], **kwargs)
+        con.write(atoms, name=name)

@@ -1,18 +1,13 @@
-from __future__ import print_function
-# Copyright 2010 CAMd
-# (see accompanying license files for details).
- 
 from optparse import OptionParser
 
 import numpy as np
 
-from ase.lattice.surface import fcc111, hcp0001, bcc110, bcc100, diamond111, \
-    add_adsorbate
-from ase.structure import estimate_lattice_constant, molecule
+from ase.atoms import Atoms, string2symbols
+from ase.build import (molecule, fcc111, hcp0001, bcc110, bcc100, diamond111,
+                       add_adsorbate)
 from ase.data import reference_states, atomic_numbers, covalent_radii
 from ase.io import write
 from ase.visualize import view
-from ase.atoms import Atoms, string2symbols
 
 
 def build():
@@ -203,5 +198,16 @@ def build():
         print('\n'.join(script))
 
 
+def estimate_lattice_constant(name, crystalstructure, covera):
+    from ase.build import bulk
+    atoms = bulk(name, crystalstructure, 1.0, covera)
+    v0 = atoms.get_volume()
+    v = 0.0
+    for Z in atoms.get_atomic_numbers():
+        r = covalent_radii[Z]
+        v += 4 * np.pi / 3 * r**3 * 1.5
+    return (v / v0)**(1.0 / 3)
+
+    
 if __name__ == '__main__':
     build()

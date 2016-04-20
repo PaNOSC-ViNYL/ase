@@ -150,7 +150,7 @@ def open_row(id):
     
 @app.route('/image/<name>')
 def image(name):
-    path = os.path.join(tmpdir, name).encode()
+    path = os.path.join(tmpdir, name)
     if not os.path.isfile(path):
         id = int(name[:-4])
         atoms = db.get_atoms(id)

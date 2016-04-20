@@ -1,2 +1,2 @@
-from ase.lattice.bulk import bulk
-__all__ = ['bulk']  # silence pyflakes
+from ase.build.bulk import bulk
+__all__ = ['bulk']

@@ -7,9 +7,6 @@ from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 
 
-__all__ = ['cell_to_cellpar', 'cellpar_to_cell', 'metric_from_cell']
-
-
 def unit_vector(x):
     """Return a unit vector in the same direction as x."""
     y = np.array(x, dtype='float')
@@ -29,7 +26,7 @@ def cell_to_cellpar(cell):
     b = np.linalg.norm(vb)
     c = np.linalg.norm(vc)
     alpha = 180.0 / pi * arccos(dot(vb, vc) / (b * c))
-    beta  = 180.0 / pi * arccos(dot(vc, va) / (c * a))
+    beta = 180.0 / pi * arccos(dot(vc, va) / (c * a))
     gamma = 180.0 / pi * arccos(dot(va, vb) / (a * b))
     return np.array([a, b, c, alpha, beta, gamma])
         
@@ -103,8 +100,3 @@ def metric_from_cell(cell):
     Cartesian system."""
     cell = np.asarray(cell, dtype=float)
     return np.dot(cell, cell.T)
-
-
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())

@@ -11,8 +11,8 @@ import re
 import numpy as np
 
 from ase.parallel import paropen
-from ase.lattice.spacegroup import crystal
-from ase.lattice.spacegroup.spacegroup import spacegroup_from_data
+from ase.spacegroup import crystal
+from ase.spacegroup.spacegroup import spacegroup_from_data
         
 
 def convert_value(value):

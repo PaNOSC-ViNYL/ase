@@ -12,8 +12,8 @@ import numpy as np
 
 import ase
 from ase.atoms import string2symbols
-from ase.lattice.spacegroup import Spacegroup
-from ase.lattice.spacegroup.cell import cellpar_to_cell
+from ase.spacegroup import Spacegroup
+from ase.geometry import cellpar_to_cell
 
 __all__ = ['crystal']
 
@@ -146,7 +146,7 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
                                 dtype=array.dtype, shape=array.shape[1:])
 
     if primitive_cell:
-        from ase.utils.geometry import cut
+        from ase.build import cut
         prim_cell = sg.scaled_primitive_cell
         atoms = cut(atoms, a=prim_cell[0], b=prim_cell[1], c=prim_cell[2])
 
@@ -160,9 +160,3 @@ def parse_symbols(symbols):
     if isinstance(symbols, str):
         symbols = string2symbols(symbols)
     return symbols
-
-    
-# Self test
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())
