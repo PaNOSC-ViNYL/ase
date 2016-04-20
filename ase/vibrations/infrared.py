@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 """Infrared intensities"""
@@ -14,7 +13,7 @@ from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
 
 
-class InfraRed(Vibrations):
+class Infrared(Vibrations):
     """Class for calculating vibrational modes and infrared intensities
     using finite difference.
 
@@ -34,7 +33,7 @@ class InfraRed(Vibrations):
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in the ``Vibrations`` class
-    the ``InfraRed`` class introduces two new methods;
+    the ``Infrared`` class introduces two new methods;
     *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*,
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
@@ -70,8 +69,8 @@ class InfraRed(Vibrations):
     
     >>> from ase.io import read
     >>> from ase.calculators.vasp import Vasp
-    >>> from ase.vibrations.infrared import InfraRed
-    >>> water = read('water.traj')  # read pre-relaxed structure of water molecule
+    >>> from ase.vibrations.infrared import Infrared
+    >>> water = read('water.traj')  # read pre-relaxed structure of water
     >>> calc = Vasp(prec='Accurate',
     ...             ediff=1E-8,
     ...             isym=0,
@@ -79,7 +78,7 @@ class InfraRed(Vibrations):
     ...             dipol=water.get_center_of_mass(scaled=True),
     ...             ldipol=True)
     >>> water.set_calculator(calc)
-    >>> ir = InfraRed(water)
+    >>> ir = Infrared(water)
     >>> ir.run()
     >>> ir.summary()
     -------------------------------------
@@ -111,7 +110,7 @@ class InfraRed(Vibrations):
 
     >>> from ase.io import read
     >>> from ase.calculators.siesta import Siesta
-    >>> from ase.infrared import InfraRed
+    >>> from ase.infrared import Infrared
 
     >>> bud = read('bud1.xyz')
 
@@ -134,12 +133,9 @@ class InfraRed(Vibrations):
 
     >>> bud.set_calculator(calc)
 
-    >>> ir = InfraRed(bud)
+    >>> ir = Infrared(bud)
     >>> ir.run()
     >>> ir.summary()
-
-
-
 
     """
     def __init__(self, atoms, indices=None, name='ir', delta=0.01,
@@ -147,8 +143,8 @@ class InfraRed(Vibrations):
         assert nfree in [2, 4]
         self.atoms = atoms
         if atoms.constraints:
-            print('WARNING! \n Your Atoms object is constrained. ' +
-            'Some forces may be unintended set to zero. \n')
+            print('WARNING! \n Your Atoms object is constrained. '
+                  'Some forces may be unintended set to zero. \n')
         self.calc = atoms.get_calculator()
         if indices is None:
             indices = range(len(atoms))
@@ -275,10 +271,10 @@ class InfraRed(Vibrations):
                      file=log)
         parprint('-------------------------------------', file=log)
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
-                file=log)
+                 file=log)
         parprint('Static dipole moment: %.3f D' % self.dipole_zero, file=log)
         parprint('Maximum force on atom in `equilibrium`: %.4f eV/Å' %
-                  self.force_zero, file=log)
+                 self.force_zero, file=log)
         parprint(file=log)
 
     def get_spectrum(self, start=800, end=4000, npts=None, width=4,
@@ -314,8 +310,8 @@ class InfraRed(Vibrations):
                                                type, method, direction,
                                                normalize)
 
-        #Write out spectrum in file. First column is absolute intensities.
-        #Second column is absorbance scaled so that data runs from 1 to 0
+        # Write out spectrum in file. First column is absolute intensities.
+        # Second column is absorbance scaled so that data runs from 1 to 0
         spectrum2 = 1. - spectrum / spectrum.max()
         outdata = np.empty([len(energies), 3])
         outdata.T[0] = energies
@@ -331,4 +327,7 @@ class InfraRed(Vibrations):
             fd.write('%.3f  %15.5e  %15.5e \n' %
                      (row[0], iu * row[1], row[2]))
         fd.close()
-        #np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
+        # np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
+
+        
+InfraRed = Infrared
