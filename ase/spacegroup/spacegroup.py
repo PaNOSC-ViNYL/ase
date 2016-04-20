@@ -727,9 +727,3 @@ def spacegroup_from_data(no=None, symbol=None, setting=1,
                                        'translations')
         spg._nsymop = spg._rotations.shape[0]
     return spg
-
-
-# Self test
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())

@@ -213,8 +213,3 @@ def _row_col_from_pdist(dim, i):
         return list(zip(x, y))
     else:
         return [(x, y)]
-
-
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())
