@@ -264,11 +264,19 @@ class Atoms(object):
             else:
                 self._constraints = [constraint]
 
-    def get_constrained_indices(self):
-        indicies = []
+    def get_constrained_indices(self, only_include=None):
+        """Returns a list of indices for the atoms that are constrained
+        by a constraint that is applied.  By setting only_include to a 
+        specific type of constraint you can make it only look for that
+        given constraint.
+        """
+        indices = []
         for constraint in self._constraints:
-            indicies.extend(np.array(constraint.get_affected()))
-        return np.array(np.unique(indicies))
+            if only_include is not None:
+                if not isinstance(constraint, only_include):
+                    continue
+            indices.extend(np.array(constraint.get_affected()))
+        return np.array(np.unique(indices))
 
     def _get_constraints(self):
         return self._constraints

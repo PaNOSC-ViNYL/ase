@@ -9,4 +9,6 @@ C3 = FixInternals(bonds=[[1, [7, 8]], [1, [8, 9]]])
 C4 = Hookean(a1=30, a2=40, rt=1.79, k=5.)
 
 slab.set_constraint([C1, C2, C3, C4])
+assert(all(slab.get_constrained_indices((FixAtoms, FixBondLengths))
+           == [0, 1, 2, 4]))
 assert(all(slab.get_constrained_indices() == [0, 1, 2, 4, 7, 8, 9, 30, 40]))
