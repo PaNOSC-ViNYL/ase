@@ -160,9 +160,3 @@ def parse_symbols(symbols):
     if isinstance(symbols, str):
         symbols = string2symbols(symbols)
     return symbols
-
-    
-# Self test
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())

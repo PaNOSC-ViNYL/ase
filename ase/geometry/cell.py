@@ -103,8 +103,3 @@ def metric_from_cell(cell):
     Cartesian system."""
     cell = np.asarray(cell, dtype=float)
     return np.dot(cell, cell.T)
-
-
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())

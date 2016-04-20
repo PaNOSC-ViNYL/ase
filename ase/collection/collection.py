@@ -88,8 +88,3 @@ class Collection:
             self._systems[name] = AtomsRow(dct).toatoms()
             del kvp['name']
             self._data[name] = dict((str(k), v) for k, v in kvp.items())
-
-            
-if __name__ == '__main__':
-    import doctest
-    print('doctest: ', doctest.testmod())

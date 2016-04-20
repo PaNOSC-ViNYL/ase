@@ -227,8 +227,3 @@ def unique(atoms, tol=1e-3, centering='P', types=None, isodata_dir=None):
     scaled = at.get_scaled_positions()
     at.set_scaled_positions(scaled)
     return at
-
-
-if __name__ == '__main__':
-    import doctest
-    print('doctest:', doctest.testmod())
