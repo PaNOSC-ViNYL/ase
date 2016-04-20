@@ -7,8 +7,11 @@ from ase.build.surface import (
     hcp0001, hcp10m10, mx2)
 from ase.build.bulk import bulk
 from ase.build.general_surface import surface
+from ase.build.molecule import molecule
 from ase.build.root import (hcp0001_root, fcc111_root, bcc111_root,
                             root_surface, root_surface_analysis)
+from ase.build.tube import nanotube
+from ase.build.ribbon import graphene_nanoribbon
 
 __all__ = ['minimize_rotation_and_translation',
            'add_adsorbate', 'add_vacuum',
@@ -16,7 +19,7 @@ __all__ = ['minimize_rotation_and_translation',
            'diamond100', 'diamond111',
            'fcc100', 'fcc110', 'fcc111', 'fcc211',
            'hcp0001', 'hcp10m10', 'mx2',
-           'surface',
+           'bulk', 'surface', 'molecule',
            'hcp0001_root', 'fcc111_root', 'bcc111_root',
            'root_surface', 'root_surface_analysis',
-           'bulk']
+           'nanotube', 'graphene_nanoribbon']
