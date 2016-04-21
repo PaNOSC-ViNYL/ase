@@ -12,7 +12,7 @@ import numpy as np
 import os
 
 from ase.test import NotAvailable
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.constraints import UnitCellFilter
 from ase.optimize import MDMin
 from ase.calculators.cp2k import CP2K

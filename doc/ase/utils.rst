@@ -15,10 +15,10 @@ Utillity functions and classes
 Equation of state
 =================
 
-The :class:`~ase.utils.eos.EquationOfState` class can be used to find
+The :class:`~ase.eos.EquationOfState` class can be used to find
 equilibrium volume, energy, and bulk modulus for solids:
 
-.. autoclass:: ase.utils.eos.EquationOfState
+.. autoclass:: ase.eos.EquationOfState
   :members: fit, plot
 
 

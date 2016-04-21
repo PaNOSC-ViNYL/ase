@@ -1,5 +1,5 @@
 from ase.calculators.octopus import Octopus
-from ase.lattice import bulk
+from ase.build import bulk
 
 system = bulk('Si', orthorhombic=True)
 

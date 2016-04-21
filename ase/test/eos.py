@@ -4,7 +4,7 @@
 import numpy as np
 import scipy  # skip test early if no scipy
 
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.io.trajectory import Trajectory
 from ase.calculators.emt import EMT
 

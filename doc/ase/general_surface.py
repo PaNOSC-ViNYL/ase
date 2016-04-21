@@ -3,7 +3,7 @@ from ase.lattice.surface import surface
 s1 = surface('Au', (2, 1, 1), 9)
 s1.center(vacuum=10, axis=2)
 
-from ase.lattice import bulk
+from ase.build import bulk
 Mobulk = bulk('Mo', 'bcc', a=3.16, cubic=True)
 s2 = surface(Mobulk, (3, 2, 1), 9)
 s2.center(vacuum=10, axis=2)

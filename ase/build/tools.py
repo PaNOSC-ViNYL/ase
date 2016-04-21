@@ -643,7 +643,7 @@ def sort(atoms, tags=None):
 
     Example:
 
-    >>> from ase.lattice import bulk
+    >>> from ase.build import bulk
     >>> # Two unit cells of NaCl:
     >>> a = 5.64
     >>> nacl = bulk('NaCl', 'rocksalt', a=a) * (2, 1, 1)

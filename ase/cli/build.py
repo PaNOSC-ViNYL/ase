@@ -4,7 +4,7 @@ import optparse
 import numpy as np
 
 from ase.db import connect
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.io import read, write
 from ase.visualize import view
 from ase.structure import molecule

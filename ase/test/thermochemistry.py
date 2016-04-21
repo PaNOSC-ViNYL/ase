@@ -3,7 +3,7 @@ CrystalThermo) from the thermochemistry module."""
 
 from ase import Atoms
 from ase.lattice.surface import fcc100, add_adsorbate
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.constraints import FixAtoms
 from ase.optimize import QuasiNewton
 from ase.vibrations import Vibrations

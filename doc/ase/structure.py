@@ -1,6 +1,6 @@
 # creates: a1.png a2.png a3.png cnt1.png cnt2.png gnr1.png gnr2.png
 from ase.io import write
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.structure import nanotube, graphene_nanoribbon
 import numpy as np
 
