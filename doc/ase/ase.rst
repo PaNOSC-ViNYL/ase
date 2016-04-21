@@ -55,31 +55,31 @@ List of all modules:
 .. toctree::
    :maxdepth: 2
 
-   atom
    atoms
    units
    io/io
-   build
-   geometry
+   build/build
    eos
    collection
-   gui/gui
+   data
    optimize
-   parallel
+   md
+   constraints
+   utils
+   neighborlist
+   geometry
+   db/db
+   neb
+   ga
+   gui/gui
    visualize/visualize
    calculators/calculators
-   constraints
    vibrations/vibrations
    phonons
    phasediagram/phasediagram
    thermochemistry/thermochemistry
-   md
    dft/dft
-   transport/transport
-   data
-   utils
-   neighborlist
-   db/db
-   ga
-   neb
+   parallel
    dimer
+   atom
+   transport/transport
