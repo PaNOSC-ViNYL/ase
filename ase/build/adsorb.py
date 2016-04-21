@@ -157,7 +157,7 @@ def build():
             script += ['ads = Atoms(%r)' % ads]
             ads = Atoms(ads)
         else:
-            script[:0] = ['from ase.structure import molecule']
+            script[:0] = ['from ase.build import molecule']
             script += ['ads = molecule(%r)' % ads]
             ads = molecule(ads)
 

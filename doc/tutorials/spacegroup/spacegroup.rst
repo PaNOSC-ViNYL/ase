@@ -1,4 +1,4 @@
-.. module:: ase.lattice.spacegroup
+.. module:: ase.spacegroup
 
 ===============================
 Using the spacegroup subpackage
@@ -15,7 +15,7 @@ Examples of setting up bulk structures
 
 We start by showing some examples of how to set up some common or
 interesting bulk structures using
-**ase.lattice.spacegroup.crystal()**.  This function takes a lot of
+**ase.spacegroup.crystal()**.  This function takes a lot of
 arguments, of which the most important are:
 
     symbols : string | sequence of strings
@@ -111,17 +111,17 @@ and edge atoms, even those belonging to neighbouring unit cells.
 The Spacegroup class
 ====================
 
-The :class:`ase.lattice.spacegroup.Spacegroup` class is used
-internally by the :func:`ase.lattice.spacegroup.crystal` function, but
+The :class:`ase.spacegroup.Spacegroup` class is used
+internally by the :func:`ase.spacegroup.crystal` function, but
 might sometimes also be useful if you want to know e.g. the symmetry
 operations of a given space group. Instances of the
-:class:`ase.lattice.spacegroup.Spacegroup` class are immutable
+:class:`ase.spacegroup.Spacegroup` class are immutable
 objects holding space group information, such as symmetry operations.
 
 Let us e.g. consider the fcc structure. To print information about the
 space group, do
 
->>> from ase.lattice.spacegroup import Spacegroup
+>>> from ase.spacegroup import Spacegroup
 >>> sg = Spacegroup(225)
 >>> print(sg)
 225   F m -3 m

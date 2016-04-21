@@ -1,6 +1,6 @@
 import ase.io as io
-from ase.lattice.spacegroup import crystal
-import ase.utils.geometry as geometry
+from ase.build import cut
+from ase.spacegroup import crystal
 
 a = 9.04
 skutterudite = crystal(('Co', 'Sb'),
@@ -10,7 +10,7 @@ skutterudite = crystal(('Co', 'Sb'),
 
 # Create a new atoms instance with Co at origo including all atoms on the
 # surface of the unit cell
-cosb3 = geometry.cut(skutterudite, origo=(0.25, 0.25, 0.25), extend=1.01)
+cosb3 = cut(skutterudite, origo=(0.25, 0.25, 0.25), extend=1.01)
 
 # Define the atomic bonds to show
 bondatoms = []

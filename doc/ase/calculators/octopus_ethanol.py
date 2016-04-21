@@ -1,5 +1,5 @@
 from ase.calculators.octopus import Octopus
-from ase.structure import molecule
+from ase.build import molecule
 from ase.optimize import QuasiNewton
 
 

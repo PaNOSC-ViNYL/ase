@@ -37,7 +37,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
 
     Example:
 
-    >>> from ase.utils.geometry import wrap_positions
+    >>> from ase.geometry import wrap_positions
     >>> wrap_positions([[-0.1, 1.01, -0.5]],
     ...                [[1, 0, 0], [0, 1, 0], [0, 0, 4]],
     ...                pbc=[1, 1, 0])
@@ -91,7 +91,7 @@ def get_layers(atoms, miller, tolerance=0.001):
     Example:
 
     >>> import numpy as np
-    >>> from ase.lattice.spacegroup import crystal
+    >>> from ase.spacegroup import crystal
     >>> atoms = crystal('Al', [(0,0,0)], spacegroup=225, cellpar=4.05)
     >>> np.round(atoms.positions, decimals=5)
     array([[ 0.   ,  0.   ,  0.   ],

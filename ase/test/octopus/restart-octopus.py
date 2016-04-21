@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from ase.calculators.octopus import Octopus
 from ase.calculators.interfacechecker import check_interface
-from ase.structure import molecule
+from ase.build import molecule
 
 system = molecule('H2O')
 system.center(vacuum=2.0)

@@ -31,8 +31,8 @@ Quick links:
     - :mod:`~ase.parallel`
     - :mod:`~ase.phasediagram`
     - :mod:`~ase.phonons`
-  * - :mod:`~ase.lattice.spacegroup`
-    - :mod:`~ase.structure`
+  * - :mod:`~ase.spacegroup`
+    - :mod:`~ase.build`
     - :mod:`~ase.build`
     - :mod:`~ase.transport`
   * - :mod:`~ase.thermochemistry`

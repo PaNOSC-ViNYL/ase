@@ -12,7 +12,7 @@ from __future__ import division, print_function
 import os
 
 from ase.test import NotAvailable
-from ase.structure import molecule
+from ase.build import molecule
 from ase.calculators.cp2k import CP2K
 
 

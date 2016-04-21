@@ -641,8 +641,8 @@ class GUI(View, Status):
                     a = ase.Atoms([ase.Atom(molecule)])
                 except:
                     try:
-                        import ase.structure
-                        a = ase.structure.molecule(molecule)
+                        import ase.build
+                        a = ase.build.molecule(molecule)
                     except:
                         try:
                             a = ase.io.read(molecule, -1)

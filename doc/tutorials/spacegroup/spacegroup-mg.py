@@ -1,4 +1,4 @@
-from ase.lattice.spacegroup import crystal
+from ase.spacegroup import crystal
 
 a = 3.21
 c = 5.21

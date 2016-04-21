@@ -35,8 +35,8 @@ Read more: :ref:`lattice-surface-section`.
 
 **Nanotubes and nanoribbons**
 
-The functions :func:`ase.structure.nanotube` and
-:func:`ase.structure.graphene_nanoribbon` can be used to create Carbon
+The functions :func:`ase.build.nanotube` and
+:func:`ase.build.graphene_nanoribbon` can be used to create Carbon
 nanotubes and graphene sheets or nanoribbons.  Per default, they
 create Carbon nanotubes and sheets, but other elements can be used. 
 
@@ -60,6 +60,6 @@ Read more: :ref:`general-crystal-section`.
 **Molecules**
 
 Some common molecules can be constructed using the
-:func:`ase.structure.molecule` function.
+:func:`ase.build.molecule` function.
 
 Read more: :ref:`molecular-data`.

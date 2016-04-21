@@ -99,7 +99,7 @@ def get_neighbor_list(system):
     //wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html#module-calculators
     """
 
-    from ase.calculators.neighborlist import NeighborList
+    from ase.neighborlist import NeighborList
     from ase.data import covalent_radii
     import os
     import pickle

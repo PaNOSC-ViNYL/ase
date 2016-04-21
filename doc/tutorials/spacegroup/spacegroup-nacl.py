@@ -1,4 +1,4 @@
-from ase.lattice.spacegroup import crystal
+from ase.spacegroup import crystal
 
 a = 5.64
 nacl = crystal(['Na', 'Cl'], [(0, 0, 0), (0.5, 0.5, 0.5)], spacegroup=225,

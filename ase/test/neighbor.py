@@ -1,7 +1,7 @@
 import numpy.random as random
 import numpy as np
 from ase import Atoms
-from ase.calculators.neighborlist import NeighborList
+from ase.neighborlist import NeighborList
 from ase.build import bulk
 
 atoms = Atoms(numbers=range(10),

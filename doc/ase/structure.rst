@@ -1,9 +1,9 @@
-.. module:: ase.structure
+.. module:: ase.build
 
 .. seealso::
 
    * The :mod:`ase.lattice` module
-   * The :mod:`~ase.lattice.spacegroup` module
+   * The :mod:`~ase.spacegroup` module
    * The :mod:`~ase.build` module
 
 
@@ -16,7 +16,7 @@ The G2-database of common molecules is available:
 
 Example::
 
->>> from ase.structure import molecule
+>>> from ase.build import molecule
 >>> atoms = molecule('H2O')
 
 To see a list of available molecules in the default set, use::
@@ -66,7 +66,7 @@ Nanotubes
 
 examples:
 
->>> from ase.structure import nanotube
+>>> from ase.build import nanotube
 >>> cnt1 = nanotube(6, 0, length=4)
 >>> cnt2 = nanotube(3, 3, length=6, bond=1.4, symbol='Si')
 
@@ -85,7 +85,7 @@ Graphene nanoribbons
 
 examples:
 
->>> from ase.structure import graphene_nanoribbon
+>>> from ase.build import graphene_nanoribbon
 >>> gnr1 = graphene_nanoribbon(3, 4, type='armchair', saturated=True)
 >>> gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
 >>>                            C_H=1.1, C_C=1.4, vacuum=6.0,

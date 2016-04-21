@@ -5,7 +5,7 @@ from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
 from ase.db import connect
 from ase.io import read
-from ase.structure import molecule
+from ase.build import molecule
 from ase.test import must_raise
 
 

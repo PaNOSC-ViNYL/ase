@@ -131,7 +131,7 @@ Version 3.8.0
 * ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
-* The old :func:`ase.structure.bulk` function is now deprecated.
+* The old :func:`ase.build.bulk` function is now deprecated.
   Use the new one instead (:func:`ase.lattice.bulk`).
 * We're now using BuildBot for continuous integration:
   https://ase-buildbot.fysik.dtu.dk/waterfall
@@ -179,7 +179,7 @@ Version 3.6.0
   ase.build.surface()
 
 * New ase.lattice.bulk() function.  Will replace old
-  ase.structure.bulk() function.  The new one will produce a more
+  ase.build.bulk() function.  The new one will produce a more
   natural hcp lattice and it will use experimental data for crystal
   structure and lattice constants if not provided explicitely.
 
@@ -216,7 +216,7 @@ Version 3.5.0
 13 April 2011: :git:`3.5.0 <../3.5.0>`.
 
 * Improved EMT potential:  uses a
-  :class:`~ase.calculators.neighborlist.NeighborList` object and is
+  :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
 * :mod:`BFGSLineSearch <optimize.bfgslinesearch>` is now the default
