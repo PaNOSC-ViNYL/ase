@@ -65,7 +65,7 @@ List of all modules:
    optimize
    md
    constraints
-   utils
+   spacegroup/spacegroup
    neighborlist
    geometry
    db/db
@@ -74,11 +74,12 @@ List of all modules:
    gui/gui
    visualize/visualize
    calculators/calculators
+   dft/dft
    vibrations/vibrations
    phonons
    phasediagram/phasediagram
    thermochemistry/thermochemistry
-   dft/dft
+   utils
    parallel
    dimer
    atom
