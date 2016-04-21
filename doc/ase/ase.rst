@@ -72,6 +72,7 @@ List of all modules:
    neb
    ga
    gui/gui
+   lattice
    visualize/visualize
    calculators/calculators
    dft/dft
