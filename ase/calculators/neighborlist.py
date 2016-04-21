@@ -1,5 +1,5 @@
-from ase.utils.deprecate import deprecate
+import warnings
 from ase.neighborlist import NeighborList
 __all__ = ['NeighborList']
 
-deprecate('Moved to ase.neighborlist', '3.11')
+warnings.warn('Moved to ase.neighborlist', DeprecationWarning)

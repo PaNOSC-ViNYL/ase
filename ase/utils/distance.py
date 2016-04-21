@@ -1,5 +1,5 @@
-from ase.utils.deprecate import deprecate
+import warnings
 from ase.geometry import distance
 __all__ = ['distance']
 
-deprecate('Moved to ase.geometry', '3.11')
+warnings.warn('Moved to ase.geometry', DeprecationWarning)

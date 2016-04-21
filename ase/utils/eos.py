@@ -1,5 +1,5 @@
-from ase.utils.deprecate import deprecate
+import warnings
 from ase.eos import EquationOfState
 __all__ = ['EquationOfState']
 
-deprecate('Moved to ase.eos', '3.11')
+warnings.warn('Moved to ase.eos', DeprecationWarning)

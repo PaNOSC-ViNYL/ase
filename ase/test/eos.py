@@ -104,7 +104,7 @@ except (ImportError, TypeError, ValueError):
 
 # ASE3
 
-from ase.utils.eos import EquationOfState as eos3
+from ase.eos import EquationOfState as eos3
 
 for e in eos_strl3 + ['sjeos', 'p3']:
     eos = eos3(volumes, energies, eos=e.lower())

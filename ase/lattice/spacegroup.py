@@ -1,5 +1,5 @@
-from ase.utils.deprecate import deprecate
+import warnings
 from ase.spacegroup import Spacegroup, crystal
 __all__ = ['Spacegroup', 'crystal']
 
-deprecate('Moved to ase.spacegroup', '3.11')
+warnings.warn('Moved to ase.spacegroup', DeprecationWarning)

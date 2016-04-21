@@ -1,5 +1,5 @@
-from ase.utils.deprecate import deprecate
+import warnings
 from vibrations.infrared import InfraRed
 __all__ = ['InfraRed']
 
-deprecate('Renamed to ase.vibrations.infrared.Infrared', '3.11')
+warnings.warn('Renamed to ase.vibrations.infrared.Infrared', DeprecationWarning)
