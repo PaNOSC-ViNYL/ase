@@ -6,6 +6,14 @@
 File input and output
 =====================
 
+.. seealso::
+    
+    * :ref:`trajectory`
+    
+.. toctree::
+    
+    trajectory
+    
 The :mod:`ase.io` module has three basic functions: :func:`read`,
 :func:`iread` and :func:`write`. The methods are described here:
 

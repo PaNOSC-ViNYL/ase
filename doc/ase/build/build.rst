@@ -4,54 +4,6 @@
 Builing things
 ==============
 
-
-:func:`~ase.build.bulk`
-:func:`~ase.build.surface`
-:func:`~ase.build.molecule`
-
-:func:`~ase.build.fcc100`
-:func:`~ase.build.fcc110`
-:func:`~ase.build.fcc111`
-:func:`~ase.build.fcc211`
-:func:`~ase.build.bcc100`
-:func:`~ase.build.bcc110`
-:func:`~ase.build.bcc111`
-:func:`~ase.build.hcp0001`
-:func:`~ase.build.hcp10m10`
-:func:`~ase.build.diamond100`
-:func:`~ase.build.diamond111`
-:func:`~ase.build.fcc111_root`
-:func:`~ase.build.bcc111_root`
-:func:`~ase.build.hcp0001_root`
-:func:`~ase.build.mx2`
-:func:`~ase.build.add_adsorbate`
-:func:`~ase.build.add_vacuum`
-:func:`~ase.build.root_surface`
-:func:`~ase.build.root_surface_analysis`
-
-:func:`~ase.build.nanotube`
-:func:`~ase.build.graphene_nanoribbon`
-
-:func:`~ase.build.cut`
-:func:`~ase.build.stack`
-:func:`~ase.build.sort`
-:func:`~ase.build.minimize_tilt`
-:func:`~ase.build.niggli_reduce`
-:func:`~ase.build.rotate`
-:func:`~ase.build.minimize_rotation_and_translation`
-
-.. toctree::
-   :maxdepth: 2
-
-   surface
-
-ASE contains a number of modules for setting up atomic structures,
-mainly molecules, bulk crystals and surfaces.  Some of these modules
-have overlapping functionality, but strike a different balance between
-flexibility and ease-of-use.
-
-
-
 **Common bulk crystals**
 
 The :func:`ase.lattice.bulk` function can be used to create the most
@@ -100,13 +52,61 @@ Some common molecules can be constructed using the
 :func:`ase.build.molecule` function.
 
 Read more: :ref:`molecular-data`.
+
+
+
+:func:`~ase.build.bulk`
+:func:`~ase.build.surface`
+:func:`~ase.build.molecule`
+
+.. list-table::
+    
+    * - :func:`~ase.build.fcc100`
+      - :func:`~ase.build.fcc110`
+      - :func:`~ase.build.fcc111`
+    * - :func:`~ase.build.fcc211`
+      - :func:`~ase.build.bcc100`
+      - :func:`~ase.build.bcc110`
+    * - :func:`~ase.build.bcc111`
+      - :func:`~ase.build.hcp0001`
+      - :func:`~ase.build.hcp10m10`
+    * - :func:`~ase.build.diamond100`
+      - :func:`~ase.build.diamond111`
+      - :func:`~ase.build.fcc111_root`
+    * - :func:`~ase.build.bcc111_root`
+      - :func:`~ase.build.hcp0001_root`
+      - :func:`~ase.build.mx2`
+    * - :func:`~ase.build.add_adsorbate`
+      - :func:`~ase.build.add_vacuum`
+      - :func:`~ase.build.root_surface`
+
+
+      :func:`~ase.build.nanotube`
+:func:`~ase.build.graphene_nanoribbon`
+
+:func:`~ase.build.cut`
+:func:`~ase.build.stack`
+:func:`~ase.build.sort`
+:func:`~ase.build.minimize_tilt`
+:func:`~ase.build.niggli_reduce`
+:func:`~ase.build.rotate`
+:func:`~ase.build.minimize_rotation_and_translation`
+
+
 .. seealso::
 
    * The :mod:`ase.lattice` module
-   * The :mod:`~ase.spacegroup` module
-   * The :mod:`~ase.build` module
+   * The :mod:`ase.spacegroup` module
+   * The :mod:`ase.geometry` module
 
+   
+.. toctree::
+   :maxdepth: 2
 
+   surface
+   tools
+   
+   
 Molecules
 =========
 
@@ -121,15 +121,16 @@ Example::
 
 To see a list of available molecules in the default set, use::
 
->>> from ase.data.g2 import data
->>> data.viewkeys()
+>>> from ase.collection import g2
+>>> g2.names
+
 
 .. _bulk-crystal-section:
 
 Common bulk crystals
 ====================
 
-.. autofunction:: ase.lattice.bulk
+.. autofunction:: bulk
 
 examples:
 
@@ -195,3 +196,13 @@ examples:
 
 .. |gnr1| image:: gnr1.png
 .. |gnr2| image:: gnr2.png
+
+
+
+ASE contains a number of modules for setting up atomic structures,
+mainly molecules, bulk crystals and surfaces.  Some of these modules
+have overlapping functionality, but strike a different balance between
+flexibility and ease-of-use.
+
+
+

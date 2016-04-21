@@ -1,11 +1,8 @@
-.. _lattice-surface-section:
-
 ========
 Surfaces
 ========
 
-.. module:: ase.build
-
+.. currentmodule:: ase.build
 
 Common surfaces
 ===============
@@ -15,7 +12,6 @@ the most common surfaces, to add vacuum layers, and to add adsorbates
 to a surface.  In general, all surfaces can be set up with
 the modules described in the section :ref:`general-crystal-section`, but these
 utility functions make common tasks easier.
-
 
 
 Example
@@ -99,7 +95,7 @@ later be used when adding an adsorbate with
 The following functions are provided
 ````````````````````````````````````
 
-.. function:: fcc100(symbol, size, a=None, vacuum=0.0)
+.. autofunction:: fcc100
 .. function:: fcc110(symbol, size, a=None, vacuum=0.0)
 .. function:: bcc100(symbol, size, a=None, vacuum=0.0)
 .. function:: hcp10m10(symbol, size, a=None, c=None, vacuum=0.0)
@@ -222,8 +218,6 @@ also possible to add one or more adsorbates.
 
 Create specific non-common surfaces
 ===================================
-
-.. versionadded:: 3.5.2
 
 In addition to the most normal surfaces, a function has been
 constructed to create more uncommon surfaces that one could be
