@@ -22,27 +22,24 @@ Quick links:
   * - :mod:`~ase.data`
     - :mod:`~ase.ga`
     - :mod:`~ase.gui`
-    - :mod:`~ase.infrared`
-  * - :mod:`~ase.io`
-    - :mod:`~ase.lattice`
+    - :mod:`~ase.io`
+  * - :mod:`~ase.lattice`
     - :mod:`~ase.md`
     - :mod:`~ase.neb`
+    - :mod:`~ase.neighborlist`
   * - :mod:`~ase.optimize`
     - :mod:`~ase.parallel`
     - :mod:`~ase.phasediagram`
     - :mod:`~ase.phonons`
   * - :mod:`~ase.spacegroup`
-    - :mod:`~ase.build`
-    - :mod:`~ase.build`
     - :mod:`~ase.transport`
-  * - :mod:`~ase.thermochemistry`
+    - :mod:`~ase.thermochemistry`
     - :mod:`~ase.units`
-    - :mod:`~ase.utils`
+  * - :mod:`~ase.utils`
     - :mod:`~ase.vibrations`
-  * - :mod:`~ase.visualize`
+    - :mod:`~ase.visualize`
     -
-    -
-    -
+
 
 .. seealso::
 
@@ -61,32 +58,28 @@ List of all modules:
    atom
    atoms
    units
-   io
+   io/io
    build
    geometry
    eos
    collection
    gui/gui
-   setup-overview
    optimize
    parallel
    visualize/visualize
    calculators/calculators
    constraints
-   vibrations
+   vibrations/vibrations
    phonons
    phasediagram/phasediagram
    thermochemistry/thermochemistry
-   infrared
    md
    dft/dft
    transport/transport
    data
-   trajectory
    utils
-   neighbors
-   io/opls
+   neighborlist
    db/db
    ga
    neb
-   dimermethod
+   dimer
