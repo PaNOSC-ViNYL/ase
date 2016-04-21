@@ -1,4 +1,4 @@
-"""Test the ase.utils.geometry module"""
+"""Test the ase.geometry module and ase.build.cut() function."""
 
 import numpy as np
 

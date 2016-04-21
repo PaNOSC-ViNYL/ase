@@ -10,27 +10,6 @@ Utillity functions and classes
 .. autoclass:: ase.utils.timing.timer
 .. autofunction:: ase.utils.convert_string_to_fd
 
-.. index:: Bulk modulus
-
-Equation of state
-=================
-
-The :class:`~ase.eos.EquationOfState` class can be used to find
-equilibrium volume, energy, and bulk modulus for solids:
-
-.. autoclass:: ase.eos.EquationOfState
-  :members: fit, plot
-
-
-.. seealso::  The :ref:`eos` tutorial.
-
-
-Geometry tools
-==============
-
-.. automodule:: ase.utils.geometry
-    :members:
-        
 
 Symmetry analysis
 =================

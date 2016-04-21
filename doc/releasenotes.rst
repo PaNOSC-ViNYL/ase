@@ -53,7 +53,7 @@ Version 3.10.0
 
 * New :func:`ase.dft.kpoints.get_special_points` function.
 
-* New :func:`ase.utils.geometry.get_duplicate_atoms` function for finding and
+* New :func:`ase.geometry.get_duplicate_atoms` function for finding and
   removing atoms on top of each other.
   
 * New: A replacement :mod:`Siesta <ase.calculators.siesta>` calculator was
@@ -69,7 +69,7 @@ Version 3.9.1
 21 July 2015: :git:`3.9.1 <../3.9.1>`.
 
 * Added function for finding maximally-reduced Niggli unit cell:
-  :func:`ase.utils.geometry.niggli_reduce`.
+  :func:`ase.build.niggli_reduce`.
   
 * Octopus interface added (experimental).
 
@@ -102,7 +102,7 @@ Version 3.9.0
 * Preliminary support for Python 3.
 
 * Wrapping: new :meth:`ase.atoms.Atoms.wrap` method and
-  :func:`ase.utils.geometry.wrap_positions` function.  Also
+  :func:`ase.geometry.wrap_positions` function.  Also
   added ``wrap=True`` keyword argument to
   :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
