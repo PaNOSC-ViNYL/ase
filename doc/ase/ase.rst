@@ -33,7 +33,7 @@ Quick links:
     - :mod:`~ase.phonons`
   * - :mod:`~ase.lattice.spacegroup`
     - :mod:`~ase.structure`
-    - :mod:`~ase.lattice.surface`
+    - :mod:`~ase.build`
     - :mod:`~ase.transport`
   * - :mod:`~ase.thermochemistry`
     - :mod:`~ase.units`

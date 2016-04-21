@@ -84,7 +84,7 @@ def build():
     else:
         a = estimate_lattice_constant(surf, x, opt.c_over_a)
 
-    script = ['from ase.lattice.surface import ',
+    script = ['from ase.build import ',
               'vac = %r' % opt.vacuum,
               'a = %r' % a]
     

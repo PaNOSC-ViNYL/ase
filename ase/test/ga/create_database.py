@@ -8,7 +8,7 @@ if os.path.isfile(db_file):
     os.remove(db_file)
 
 
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 
 atom_numbers = np.array([78, 78, 79, 79])
 slab = fcc111('Ag', size=(4, 4, 2), vacuum=10.)

@@ -4,7 +4,7 @@
 
    * The :mod:`ase.lattice` module
    * The :mod:`~ase.lattice.spacegroup` module
-   * The :mod:`~ase.lattice.surface` module
+   * The :mod:`~ase.build` module
 
 
 Molecules

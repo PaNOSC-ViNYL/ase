@@ -1,5 +1,5 @@
 # creates: s1.png s2.png s3.png s4.png general_surface.pdf
-from ase.lattice.surface import surface
+from ase.build import surface
 s1 = surface('Au', (2, 1, 1), 9)
 s1.center(vacuum=10, axis=2)
 

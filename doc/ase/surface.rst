@@ -4,7 +4,7 @@
 Surfaces
 ========
 
-.. module:: ase.lattice.surface
+.. module:: ase.build
 
 
 Common surfaces
@@ -24,7 +24,7 @@ Example
 To setup an Al(111) surface with a hydrogen atom adsorbed in an on-top
 position::
 
-  from ase.lattice.surface import fcc111
+  from ase.build import fcc111
   slab = fcc111('Al', size=(2,2,3), vacuum=10.0)
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
@@ -34,7 +34,7 @@ each side.
 To set up the same surface with with a hydrogen atom adsorbed in an on-top
 position 1.5 Å above the top layer::
 
-  from ase.lattice.surface import fcc111, add_adsorbate
+  from ase.build import fcc111, add_adsorbate
   slab = fcc111('Al', size=(2,2,3))
   add_adsorbate(slab, 'H', 1.5, 'ontop')
   slab.center(vacuum=10.0, axis=2)
@@ -93,7 +93,7 @@ All the functions setting up surfaces take the same arguments.
 
 Each function defines a number of standard adsorption sites that can
 later be used when adding an adsorbate with
-:func:`ase.lattice.surface.add_adsorbate`.
+:func:`ase.build.add_adsorbate`.
 
 
 The following functions are provided
@@ -188,7 +188,7 @@ supply a primitive cell of the correct height.  This primitive cell can be
 any 2D surface whose normal points along the Z axis.  The cell's contents
 can also vary, such as in the creation of an alloy or deformation.
 
-.. autofunction:: ase.lattice.surface.root_surface
+.. autofunction:: ase.build.root_surface
 
 The difficulty with using these functions is the requirement to know the
 valid roots in advance, but a function has also been supplied to help with
@@ -196,12 +196,12 @@ this.  It is helpful to note that any primitive cell with the same cell
 shape, such as the case with the fcc111 and bcc111 functions, will have the
 same valid roots.
 
-.. autofunction:: ase.lattice.surface.root_surface_analysis
+.. autofunction:: ase.build.root_surface_analysis
 
 An example of using your own primitive cell::
 
   from ase.lattice.root import root_surface
-  from ase.lattice.surface import fcc111
+  from ase.build import fcc111
   atoms = fcc111("Ag", (1, 1, 3))
   atoms = root_surface(atoms, 27)
 
@@ -214,8 +214,8 @@ Adding adsorbates
 After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
-.. autofunction:: ase.lattice.surface.add_adsorbate
-.. autofunction:: ase.lattice.surface.add_vacuum
+.. autofunction:: ase.build.add_adsorbate
+.. autofunction:: ase.build.add_vacuum
 
 
 .. _general-surface-section:
@@ -232,7 +232,7 @@ surface and can be used for both fcc, bcc and hcp structures.  The
 theory behind the implementation can be found here:
 :download:`general_surface.pdf`.
 
-.. autofunction:: ase.lattice.surface.surface
+.. autofunction:: ase.build.surface
 
 
 Example

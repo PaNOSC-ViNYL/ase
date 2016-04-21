@@ -90,7 +90,7 @@ Version 3.9.0
 
 * New :mod:`ase.db` module.
 
-* New functions: :func:`ase.lattice.surface.fcc211` and
+* New functions: :func:`ase.build.fcc211` and
   :func:`ase.visualize.mlab.plot`.
   
 * New :class:`~ase.atoms.Atoms` methods:
@@ -115,7 +115,7 @@ Version 3.9.0
 
 * We can now do :ref:`phase diagrams`.
 
-* New :func:`ase.lattice.surface.mx2` function for 1T and 2H metal
+* New :func:`ase.build.mx2` function for 1T and 2H metal
   dichalcogenides and friends.
 
 * New :func:`ase.dft.bandgap.get_band_gap` function
@@ -149,7 +149,7 @@ Version 3.7.0
 * The :class:`ase.neb.NEB` object now accepts a list of spring constants.
 
 * *Important backwards incompatible change*: The
-  :func:`ase.lattice.surface.surface` function now returns a
+  :func:`ase.build.surface` function now returns a
   right-handed unit cell.
 
 * Mopac, NWChem and Gaussian interfaces and EAM potential added.
@@ -176,7 +176,7 @@ Version 3.6.0
 
 * New function for making surfaces with arbitrary Miller indices with
   the smallest possible surface unit cell:
-  ase.lattice.surface.surface()
+  ase.build.surface()
 
 * New ase.lattice.bulk() function.  Will replace old
   ase.structure.bulk() function.  The new one will produce a more

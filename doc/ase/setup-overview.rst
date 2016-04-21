@@ -26,7 +26,7 @@ Read more: :ref:`bulk-crystal-section`.
 
 **Common surfaces**
 
-The :mod:`ase.lattice.surface` module contains a number of 
+The :mod:`ase.build` module contains a number of 
 functions for creating the most common surfaces in a minimal unit
 cell, and for adding adsorbates to these surfaces.
 

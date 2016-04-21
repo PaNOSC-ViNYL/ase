@@ -37,7 +37,7 @@ Examples
 
 ::
 
-    from ase.lattice.surface import *
+    from ase.build import *
     adsorbate = Atoms('CO')
     adsorbate[1].z = 1.1
     a = 3.61

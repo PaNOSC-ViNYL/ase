@@ -7,7 +7,7 @@ from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton
 from ase.gui.setupwindow import SetupWindow
-import ase.lattice.surface as _surf
+import ase.build as _surf
 import ase
 import numpy as np
 
@@ -47,7 +47,7 @@ surfaces = [(_('FCC(100)'), _('fcc'), True, False, _surf.fcc100),
             ]
 
 py_template = """
-from ase.lattice.surface import %(func)s
+from ase.build import %(func)s
 
 atoms = %(func)s(symbol='%(symbol)s', size=%(size)s,
     a=%(a).3f, vacuum=%(vacuum).3f%(orthoarg)s)

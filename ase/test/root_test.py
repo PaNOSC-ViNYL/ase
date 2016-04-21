@@ -1,7 +1,7 @@
-from ase.lattice.surface import fcc111
-from ase.lattice.surface import bcc111
-from ase.lattice.surface import hcp0001
-from ase.lattice.surface import fcc111_root
+from ase.build import fcc111
+from ase.build import bcc111
+from ase.build import hcp0001
+from ase.build import fcc111_root
 from ase.build import root_surface
 from ase.build import root_surface_analysis
 
