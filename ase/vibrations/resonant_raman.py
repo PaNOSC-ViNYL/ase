@@ -72,6 +72,10 @@ class ResonantRaman(Vibrations):
 
         self.verbose = verbose
 
+    @staticmethod
+    def m2(z):
+        return (z * z.conj()).real
+
     def log(self, message, pre='# ', end='\n'):
         if self.verbose:
             self.txt.write(pre + message + end)
@@ -351,7 +355,7 @@ class ResonantRaman(Vibrations):
         self.timer.stop('pre_r')
         return V_rcc
 
-    def get_intensity_tensor(self, omega, gamma):
+    def get_matrix_element(self, omega, gamma):
         self.read()
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         if self.approximation.lower() == 'profeta':
@@ -375,10 +379,48 @@ class ResonantRaman(Vibrations):
                 'Please use "Profeta", "Albrecht A/B/C/BC", ' +
                 'or "Albrecht".')
 
-        return omega**4 * (V_rcc * V_rcc.conj()).real
+        return V_rcc
 
-    def get_intensities(self, omega, gamma=0.1):
-        return self.get_intensity_tensor(omega, gamma).sum(axis=1).sum(axis=1)
+    def get_intensity_tensor(self, omega, gamma):
+        V_rcc = self.get_matrix_element(omega, gamma)
+        m2 = ResonantRaman.m2
+        return omega**4 * m2(V_rcc)
+
+    def get_intentsites_Porezag(self, omega, gamma=0.1):
+        """Intensity after Porezag PRB 54 (1996)7830"""
+        alpha_rcc = self.get_intensity_tensor(omega, gamma)
+        alpha_r = (alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
+                   alpha_rcc[:, 2, 2]) / 3.
+        m2 = ResonantRaman.m2
+        beta2_r = (m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
+                   m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
+                   m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2]) +
+                   6. * (m2(alpha_rcc[:, 0, 1]) + m2(alpha_rcc[:, 0, 2]) +
+                         m2(alpha_rcc[:, 1, 2]))) / 2.
+        return 45 * m2(alpha_r) + 7 * beta2_r
+
+    def get_intensities(self, omega, gamma=0.1, 
+#                        method='sum',
+                        method='Porezag',
+    ):
+        if method.lower() == 'sum':
+            return self.get_intensity_tensor(omega, gamma).sum(
+                axis=1).sum(axis=1)
+        elif method.lower() == 'porezag':
+            """Intensity after Porezag PRB 54 (1996)7830"""
+            alpha_rcc = self.get_intensity_tensor(omega, gamma)
+            alpha_r = (alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
+                       alpha_rcc[:, 2, 2]) / 3.
+            m2 = ResonantRaman.m2
+            beta2_r = (m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
+                       m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
+                       m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2]) +
+                       6. * (m2(alpha_rcc[:, 0, 1]) + m2(alpha_rcc[:, 0, 2]) +
+                             m2(alpha_rcc[:, 1, 2]))) / 2.
+            return 45 * m2(alpha_r) + 7 * beta2_r
+        else:
+            raise NotImplementedError('Method ' + method +
+                                      'not implemented')
 
     def get_spectrum(self, omega, gamma=0.1,
                      start=200.0, end=4000.0, npts=None, width=4.0,
