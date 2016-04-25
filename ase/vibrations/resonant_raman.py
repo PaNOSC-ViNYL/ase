@@ -258,22 +258,52 @@ class ResonantRaman(Vibrations):
             
             for m in ml:
                 self.timer.start('Franck-Condon overlaps')
-                if 'B' in term:
-                    fc1mm1_r = self.fco.direct(1, m, S_r)
-                if 'C' in term:
-                    fc0mm0_r = self.fco.direct(0, m, S_r)
-                    fc0mm2_r = self.fco.direct0mm2(m, S_r)
+                fc1mm1_r = self.fco.direct(1, m, S_r)
+                fc0mm02_r = self.fco.direct(0, m, S_r)
+                fc0mm02_r += np.sqrt(2) * self.fco.direct0mm2(m, S_r)
                 self.timer.stop('Franck-Condon overlaps')
 
-                self.timer.start('einsum')
-                m_rcc += np.einsum('a,bc->abc',
-                    fco_r / (energy + m * self.om_r - omega - 1j * gamma),
-                    self.ex0m_ccp[:, :, p])
-                m_rcc += np.einsum('a,bc->abc',
-                    fco_r / (energy + (m - 1) * self.om_r + omega + 1j * gamma),
-                    self.ex0m_ccp[:, :, p].conj())
-                self.timer.stop('einsum')
+                self.timer.start('me dervivatives')
+                dm_rc = []
+                r = 0
+                for a in self.indices:
+                    for i in 'xyz':
+                        dm_rc.append(
+                            (self.expm_rpc[r][p] - self.exmm_rpc[r][p])
+                            * self.im[r])
+                        r += 1
+                dm_rc = np.array(dm_rc) / (2 * self.delta)
+                self.timer.stop('me dervivatives')
 
+                self.timer.start('map to modes')
+                dm_rc = np.dot(dm_rc.T, self.modes.T).T
+                self.timer.stop('map to modes')
+
+                self.timer.start('multiply')
+                me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
+                for r in range(self.ndof):
+                    if 'B' in term:
+                        denom = (1. /
+                    (energy + m * self.om_r[r] - omega - 1j * gamma))
+                        m_rcc[r] += (np.outer(dm_rc[r], self.ex0m_pc[p].conj())
+                                     * fc1mm1_r[r] * denom)
+                        m_rcc[r] += (np.outer(self.ex0m_pc[p], dm_rc[r].conj())
+                                     * fc0mm02_r[r] * denom)
+                    if 'C' in term:
+                        denom = (1. /
+                    (energy + (m - 1) * self.om_r[r] + omega + 1j * gamma))
+                        m_rcc[r] += (np.outer(self.ex0m_pc[p], dm_rc[r].conj())
+                                     * fc1mm1_r[r] * denom)
+                        m_rcc[r] += (np.outer(dm_rc[r], self.ex0m_pc[p].conj())
+                                     * fc0mm02_r[r] * denom)
+                self.timer.stop('multiply')
+
+        self.timer.start('pre_r')
+        pre_r = np.where(self.om_r > 0,
+                         np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
+        for r, p in enumerate(pre_r):
+            m_rcc[r] *= p
+        self.timer.stop('pre_r')
         self.timer.stop('AlbrechtBC')
         return m_rcc
 
@@ -328,13 +358,10 @@ class ResonantRaman(Vibrations):
         elif self.approximation.lower() == 'albrecht a':
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
-            raise NotImplementedError('not yet')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='B')
         elif self.approximation.lower() == 'albrecht c':
-            raise NotImplementedError('not yet')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='C')
         elif self.approximation.lower() == 'albrecht bc':
-            raise NotImplementedError('not yet')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht':
             raise NotImplementedError('not yet')
