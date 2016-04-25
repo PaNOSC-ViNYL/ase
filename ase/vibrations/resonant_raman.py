@@ -459,7 +459,7 @@ class ResonantRaman(Vibrations):
 
     def summary(self, omega, gamma=0.1,
                 method='standard', direction='central',
-                intensity_unit='(D/A)2/amu', log=sys.stdout):
+                log=sys.stdout):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
@@ -470,9 +470,10 @@ class ResonantRaman(Vibrations):
 
         parprint('-------------------------------------', file=log)
         parprint(' excitation at ' + str(omega) + ' eV', file=log)
-        parprint(' gamma ' + str(gamma) + ' eV\n', file=log)
+        parprint(' gamma ' + str(gamma) + ' eV', file=log)
+        parprint(' approximation:', self.approximation, '\n', file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
-        parprint('  #    meV     cm^-1      [a.u.]', file=log)
+        parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
         parprint('-------------------------------------', file=log)
         for n, e in enumerate(hnu):
             if e.imag != 0:
