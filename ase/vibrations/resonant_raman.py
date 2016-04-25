@@ -342,8 +342,9 @@ class ResonantRaman(Vibrations):
         
         # map to modes
         self.timer.start('pre_r')
-        pre_r = np.where(self.om_r > 0,
-                         np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
+        with np.errstate(divide='ignore'):
+            pre_r = np.where(self.om_r > 0,
+                             np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
         V_rcc = np.dot(V_rcc.T, self.modes.T).T
         for r, p in enumerate(pre_r):
             V_rcc[r] *= p
