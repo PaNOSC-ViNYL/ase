@@ -46,6 +46,7 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  approximation='Profeta',
+                 polarization='sum',
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
                  txt='-',
@@ -64,6 +65,7 @@ class ResonantRaman(Vibrations):
             self.directions = np.array(directions)
 
         self.approximation = approximation
+        self.polarization = polarization
         self.exobj = Excitations
         self.exkwargs = exkwargs
 
@@ -399,14 +401,12 @@ class ResonantRaman(Vibrations):
                          m2(alpha_rcc[:, 1, 2]))) / 2.
         return 45 * m2(alpha_r) + 7 * beta2_r
 
-    def get_intensities(self, omega, gamma=0.1, 
-#                        method='sum',
-                        method='Porezag',
-    ):
-        if method.lower() == 'sum':
+    def get_intensities(self, omega, gamma=0.1):
+        if self.polarization.lower() == 'sum':
             return self.get_intensity_tensor(omega, gamma).sum(
                 axis=1).sum(axis=1)
-        elif method.lower() == 'porezag':
+        elif (self.polarization.lower() == 'porezag' or 
+              self.polarization.lower() == 'depolarization'):
             """Intensity after Porezag PRB 54 (1996)7830"""
             alpha_rcc = self.get_intensity_tensor(omega, gamma)
             alpha_r = (alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
@@ -417,9 +417,12 @@ class ResonantRaman(Vibrations):
                        m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2]) +
                        6. * (m2(alpha_rcc[:, 0, 1]) + m2(alpha_rcc[:, 0, 2]) +
                              m2(alpha_rcc[:, 1, 2]))) / 2.
-            return 45 * m2(alpha_r) + 7 * beta2_r
+            if self.polarization.lower() == 'porezag':
+                return 45 * m2(alpha_r) + 7 * beta2_r
+            else:
+                return 3 * beta2_r / (45 * m2(alpha_r) + 4 * beta2_r)
         else:
-            raise NotImplementedError('Method ' + method +
+            raise NotImplementedError('Polarization ' + self.polarization +
                                       'not implemented')
 
     def get_spectrum(self, omega, gamma=0.1,
@@ -515,6 +518,7 @@ class ResonantRaman(Vibrations):
         parprint(' excitation at ' + str(omega) + ' eV', file=log)
         parprint(' gamma ' + str(gamma) + ' eV', file=log)
         parprint(' approximation:', self.approximation, '\n', file=log)
+        parprint(' polarization:', self.polarization, '\n', file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
         parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
         parprint('-------------------------------------', file=log)
