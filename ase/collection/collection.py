@@ -50,7 +50,7 @@ class Collection:
         
     def __getitem__(self, name):
         self._read()
-        return self._systems[name]
+        return self._systems[name].copy()
 
     def __iter__(self):
         for name in self.names:
