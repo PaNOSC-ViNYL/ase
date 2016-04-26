@@ -10,6 +10,28 @@ Git master branch
 
 :git:`master <>`.
 
+* Moved modules:
+
+  * ``ase.utils.eos`` moved to :mod:`ase.eos`
+  * ``ase.calculators.neighborlist`` moved to :mod:`ase.neighborlist`
+  * ``ase.lattice.spacegroup`` moved to :mod:`ase.spacegroup`
+ 
+* The ``InfraRed`` that used to be in the ``ase.infrared`` or
+  ``ase.vibrations.infrared`` modules is now called :class:`
+  ~ase.vibrations.Infrared` and should be imported from the
+  :mod:`ase.vibrations` module.
+
+* Deprecated modules: ``ase.structure``, ``ase.utils.geometry``,
+  ``ase.utils.distance``, ``ase.lattice.surface``.  The functions from these
+  modules that will create and manipulate :class:`~ase.Atoms` objects are now
+  in the new :mod:`ase.build` module.  The remaining functions have been moved
+  to the new :mod:`ase.geometry` module.
+
+* The ``ase.lattice.bulk()`` function has been moved to :func:`ase.build.bulk`.
+
+* Two new functions: :func:`~ase.geometry.cell_to_cellpar` and
+  :func:`~ase.geometry.cellpar_to_cell`.
+
 * We can now :func:`~ase.io.read` and :func:`~ase.io.write` magres files.
 
 * :class:`~ase.neb.NEB` improvements:

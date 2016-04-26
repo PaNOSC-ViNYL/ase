@@ -1,7 +1,11 @@
 .. module:: ase.vibrations
 
+==================
 Vibration analysis
-------------------
+==================
+
+Vibrational modes
+=================
 
 You can calculate the vibrational modes of a an
 :class:`~ase.atoms.Atoms` object in the harmonic approximation using
@@ -20,14 +24,14 @@ finite difference method to calculate the Hessian matrix. method is -1
 for backward differences, 0 for centered differences, and 1 for
 forward differences.
 
-.. warning::
-   Using the *dacapo* calculator you must make sure that the symmetry
-   program in dacapo finds the same number of symmetries for the
-   displaced configurations in the vibrational modules as found in
-   the ground state used as input.
-   This is because the wavefunction is reused from one displacement
-   to the next.
-   One way to ensure this is to tell dacapo not to use symmetries.
+   
+Infrared intensities
+====================
 
-   This will show op as a python error 'Frames are not aligned'.
-   This could be the case for other calculators as well.
+:class:`~ase.vibrations.Infrared` is an extension of
+:class:`~ase.vibrations.Vibrations`, in addition to the
+vibrational modes, also the infrared intensities of the modes
+are calculated for an :class:`~ase.atoms.Atoms` object.
+
+.. autoclass:: ase.vibrations.Infrared
+   :members:

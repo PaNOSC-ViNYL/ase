@@ -96,10 +96,10 @@ The following functions are provided
 ````````````````````````````````````
 
 .. autofunction:: fcc100
-.. function:: fcc110(symbol, size, a=None, vacuum=0.0)
-.. function:: bcc100(symbol, size, a=None, vacuum=0.0)
-.. function:: hcp10m10(symbol, size, a=None, c=None, vacuum=0.0)
-.. function:: diamond100(symbol, size, a=None, vacuum=0.0)
+.. autofunction:: fcc110
+.. autofunction:: bcc100
+.. autofunction:: hcp10m10
+.. autofunction:: diamond100
 
 These always give orthorhombic cells:
 
@@ -112,12 +112,12 @@ diamond100  |diamond100|
 ==========  ============
 
 
-.. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: fcc211(symbol, size, a=None, vacuum=0.0, orthogonal=True)
-.. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
-.. function:: diamond111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. autofunction:: fcc111
+.. autofunction:: fcc211
+.. autofunction:: bcc110
+.. autofunction:: bcc111
+.. autofunction:: hcp0001
+.. autofunction:: diamond111
 
 These can give both non-orthorhombic and orthorhombic cells:
 

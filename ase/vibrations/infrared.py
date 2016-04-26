@@ -69,7 +69,7 @@ class Infrared(Vibrations):
     
     >>> from ase.io import read
     >>> from ase.calculators.vasp import Vasp
-    >>> from ase.vibrations.infrared import Infrared
+    >>> from ase.vibrations import Infrared
     >>> water = read('water.traj')  # read pre-relaxed structure of water
     >>> calc = Vasp(prec='Accurate',
     ...             ediff=1E-8,
@@ -110,7 +110,7 @@ class Infrared(Vibrations):
 
     >>> from ase.io import read
     >>> from ase.calculators.siesta import Siesta
-    >>> from ase.infrared import Infrared
+    >>> from ase.vibrations import Infrared
 
     >>> bud = read('bud1.xyz')
 
@@ -330,4 +330,4 @@ class Infrared(Vibrations):
         # np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
 
         
-InfraRed = Infrared
+InfraRed = Infrared  # old name

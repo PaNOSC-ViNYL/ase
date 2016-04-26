@@ -19,7 +19,7 @@ The :mod:`ase.build` module contains a number of
 functions for creating the most common surfaces in a minimal unit
 cell, and for adding adsorbates to these surfaces.
 
-Read more: :ref:`lattice-surface-section`.
+Read more: lattice-surface-section???
 
 
 **Nanotubes and nanoribbons**
@@ -81,7 +81,7 @@ Read more: :ref:`molecular-data`.
       - :func:`~ase.build.root_surface`
 
 
-      :func:`~ase.build.nanotube`
+:func:`~ase.build.nanotube`
 :func:`~ase.build.graphene_nanoribbon`
 
 :func:`~ase.build.cut`

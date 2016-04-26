@@ -57,7 +57,7 @@ For more details:
 
 * Look at the documentation for the individual :mod:`modules <ase>`.
 * See the automatically generated documentation ``Epydoc``: :epydoc:`ase`.
-* Browse the `source code`_ online.
+* Browse the :git:`source code <>` online.
 
 
 Videos
