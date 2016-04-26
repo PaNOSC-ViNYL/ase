@@ -321,7 +321,7 @@ xc_defaults = {
     'hse06': {'pp': 'PBE', 'gga': 'PE',
                   'lhfcalc': True, 'hfscreen': 0.2},
     'hsesol': {'pp': 'PBE', 'gga': 'PS',
-                  'lhfcalc': True, 'hfscreen': 0.2},                  
+                  'lhfcalc': True, 'hfscreen': 0.2},
     'vdw-df': {'pp': 'PBE', 'gga':'RE', 'luse_vdw': True, 'aggac': 0.}
     }
 
@@ -388,23 +388,9 @@ class Vasp(Calculator):
             # A null value of xc is permitted; custom recipes can be
             # used by explicitly setting the pseudopotential set and
             # INCAR keys
-        elif kwargs.get('pp', None):
-            self.input_params.update({'xc': None})
-            
-            # However, there is no way to correctly guess the desired
-            # set of pseudopotentials without either 'xc' or 'pp'
         else:
-            raise NotImplementedError(
-                'At least one of the xc and pp tags must be set in '
-                'order to select the correct pseudopotential set. '
-                'Please use one of these parameters.'
-                'The xc tag selects appropriate pseudopotentials from'
-                'the potpaw, potpaw_GGA, potpaw_PBE folders for a '
-                'given method. The pp tag allows the corresponding'
-                'shortcut names LDA, PW91, PBE or any full folder'
-                'name on the VASP_PP_PATH (e.g. '
-                '"my.custom.potpaw_gga").')
-            
+            self.input_params.update({'xc': None})
+
         self.restart = restart
         self.track_output = track_output
         self.output_template = output_template
@@ -483,6 +469,22 @@ class Vasp(Calculator):
 
         p = self.input_params
 
+            # There is no way to correctly guess the desired
+            # set of pseudopotentials without 'pp' being set.
+            # Usually, 'pp' will be set by 'xc'.
+        if not 'pp' in p:
+            raise NotImplementedError(
+                'At least one of the xc and pp tags must be set in '
+                'order to select the correct pseudopotential set. '
+                'Please use one of these parameters.'
+                'The xc tag selects appropriate pseudopotentials from'
+                'the potpaw, potpaw_GGA, potpaw_PBE folders for a '
+                'given method. The pp tag allows the corresponding'
+                'shortcut names LDA, PW91, PBE or any full folder'
+                'name on the VASP_PP_PATH (e.g. '
+                '"my.custom.potpaw_gga").')
+
+
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
         self.spinpol = atoms.get_initial_magnetic_moments().any()
@@ -545,7 +547,7 @@ class Vasp(Calculator):
                 break
         else:
             pp_folder = p['pp']
-        
+
         if 'VASP_PP_PATH' in os.environ:
             pppaths = os.environ['VASP_PP_PATH'].split(':')
         else:
@@ -937,7 +939,19 @@ class Vasp(Calculator):
         return self.dipole
 
     def get_xc_functional(self):
-        return self.input_params['xc']
+        """Returns the XC functional or the pseudopotential type
+
+        If a XC recipe is set explicitly with 'xc', this is returned.
+        Otherwise, the XC functional associated with the 
+        pseudopotentials (LDA, PW91 or PBE) is returned.
+        The string is always cast to uppercase for consistency 
+        in checks."""
+        if self.input_params.get('xc', None):
+            return self.input_params['xc'].upper()
+        elif self.input_params.get('pp', None):
+            return self.input_params['pp'].upper()
+        else:
+            raise ValueError('No xc or pp found.')
 
     def write_incar(self, atoms, **kwargs):
         """Writes the INCAR file."""
@@ -1492,7 +1506,7 @@ class Vasp(Calculator):
 
     def read_vib_freq(self):
         """Read vibrational frequencies.
-        
+
         Returns list of real and list of imaginary frequencies."""
         freq = []
         i_freq = []
