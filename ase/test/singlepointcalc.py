@@ -3,7 +3,7 @@ SinglePointCalculator are immutable. Previously, successive calls to
 atoms.get_forces(apply_constraint=x), with x alternating between True and
 False, would get locked into the constrained variation."""
 
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 from ase.calculators.emt import EMT
 from ase.io import read
 from ase.constraints import FixAtoms

@@ -1,5 +1,5 @@
 from ase.test import NotAvailable
-from ase.structure import molecule
+from ase.build import molecule
 from ase.calculators.calculator import get_calculator
 
 

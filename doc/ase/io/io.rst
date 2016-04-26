@@ -1,11 +1,21 @@
 .. module:: ase.io
    :synopsis: File input-output module
 
-
 =====================
 File input and output
 =====================
 
+.. seealso::
+    
+    * :mod:`ase.io.trajectory`
+    
+.. toctree::
+    :hidden:
+    
+    trajectory
+    opls
+    
+    
 The :mod:`ase.io` module has three basic functions: :func:`read`,
 :func:`iread` and :func:`write`. The methods are described here:
 
@@ -37,7 +47,7 @@ Examples
 
 ::
 
-    from ase.lattice.surface import *
+    from ase.build import *
     adsorbate = Atoms('CO')
     adsorbate[1].z = 1.1
     a = 3.61
@@ -96,7 +106,7 @@ can be found here: :download:`save_pov.py`
 .. image:: NaCl_C6H6.png
 
 An other example showing how to change colors and textures in pov can
-be found here: :download:`../tutorials/saving_graphics.py`.
+be found here: :download:`../../tutorials/saving_graphics.py`.
 
 
 Adding a new file-format to ASE

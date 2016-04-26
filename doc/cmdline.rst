@@ -29,7 +29,7 @@ Some ASE modules can be invoked directly form the command line using ``python
 
 Equation of state::
     
-    $ python -m ase.utils.eos [-p] traj-file, ...
+    $ python -m ase.eos [-p] traj-file, ...
     
 :ref:`iso surface`::
 
@@ -58,7 +58,7 @@ Help
 For all command-line tools, you can do::
     
     $ ase-gui --help
-    $ python -m ase.utils.eos --help
+    $ python -m ase.eos --help
     
 to get help (or ``-h`` for short).
 

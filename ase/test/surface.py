@@ -1,7 +1,7 @@
 import numpy as np
 
 from ase import Atoms, Atom
-from ase.lattice.surface import fcc111, fcc211, add_adsorbate
+from ase.build import fcc111, fcc211, add_adsorbate
 
 atoms = fcc211('Au', (3, 5, 8), vacuum=10.)
 assert len(atoms) == 120

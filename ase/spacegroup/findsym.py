@@ -15,8 +15,8 @@ and data_space.txt (NB: the path should end with a slash (/)).
 
 Example
 -------
->>> from ase.lattice.spacegroup import crystal
->>> from ase.utils.geometry import cut
+>>> from ase.spacegroup import crystal
+>>> from ase.build import cut
 
 # Start with simple fcc Al
 >>> al = crystal('Al', [(0,0,0)], spacegroup=225, cellpar=4.05)

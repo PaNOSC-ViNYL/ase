@@ -73,7 +73,7 @@ def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
     Example:
 
     >>> import ase
-    >>> from ase.lattice.spacegroup import crystal
+    >>> from ase.spacegroup import crystal
     >>>
     # Create an aluminium (111) slab with three layers
     #
@@ -226,7 +226,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     Example:
 
     >>> import ase
-    >>> from ase.lattice.spacegroup import crystal
+    >>> from ase.spacegroup import crystal
     >>>
     # Create an Ag(110)-Si(110) interface with three atomic layers
     # on each side.
@@ -643,7 +643,7 @@ def sort(atoms, tags=None):
 
     Example:
 
-    >>> from ase.lattice import bulk
+    >>> from ase.build import bulk
     >>> # Two unit cells of NaCl:
     >>> a = 5.64
     >>> nacl = bulk('NaCl', 'rocksalt', a=a) * (2, 1, 1)

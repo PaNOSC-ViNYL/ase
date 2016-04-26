@@ -84,7 +84,7 @@ def build():
     else:
         a = estimate_lattice_constant(surf, x, opt.c_over_a)
 
-    script = ['from ase.lattice.surface import ',
+    script = ['from ase.build import ',
               'vac = %r' % opt.vacuum,
               'a = %r' % a]
     
@@ -157,7 +157,7 @@ def build():
             script += ['ads = Atoms(%r)' % ads]
             ads = Atoms(ads)
         else:
-            script[:0] = ['from ase.structure import molecule']
+            script[:0] = ['from ase.build import molecule']
             script += ['ads = molecule(%r)' % ads]
             ads = molecule(ads)
 

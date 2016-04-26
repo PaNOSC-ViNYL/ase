@@ -1,6 +1,6 @@
 import numpy as np
 
-from ase.structure import molecule
+from ase.build import molecule
 from ase.io import read, write
 
 a = molecule('CO2')

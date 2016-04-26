@@ -38,7 +38,7 @@ class Spacegroup(object):
 
     Example:
     
-    >>> from ase.lattice.spacegroup import Spacegroup
+    >>> from ase.spacegroup import Spacegroup
     >>>
     >>> sg = Spacegroup(225)
     >>> print('Space group', sg.no, sg.symbol)
@@ -250,7 +250,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.equivalent_reflections([[0, 0, 2]])
         array([[ 0,  0, -2],
@@ -278,7 +278,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.symmetry_normalised_reflections([[2, 0, 0], [0, 2, 0]])
         array([[ 0,  0, -2],
@@ -299,7 +299,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.unique_reflections([[ 2,  0,  0],
         ...                        [ 0, -2,  0],
@@ -352,7 +352,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sites, kinds = sg.equivalent_sites([[0, 0, 0], [0.5, 0.0, 0.0]])
         >>> sites
@@ -416,7 +416,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.symmetry_normalised_sites([[0.0, 0.5, 0.5], [1.0, 1.0, 0.0]])
         array([[ 0.,  0.,  0.],
@@ -446,7 +446,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.unique_sites([[0.0, 0.0, 0.0],
         ...                  [0.5, 0.5, 0.0],
@@ -473,7 +473,7 @@ class Spacegroup(object):
 
         Example:
 
-        >>> from ase.lattice.spacegroup import Spacegroup
+        >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
         >>> sg.tag_sites([[0.0, 0.0, 0.0],
         ...               [0.5, 0.5, 0.0],

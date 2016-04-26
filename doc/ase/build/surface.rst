@@ -1,11 +1,8 @@
-.. _lattice-surface-section:
-
 ========
 Surfaces
 ========
 
-.. module:: ase.lattice.surface
-
+.. currentmodule:: ase.build
 
 Common surfaces
 ===============
@@ -17,14 +14,13 @@ the modules described in the section :ref:`general-crystal-section`, but these
 utility functions make common tasks easier.
 
 
-
 Example
 -------
 
 To setup an Al(111) surface with a hydrogen atom adsorbed in an on-top
 position::
 
-  from ase.lattice.surface import fcc111
+  from ase.build import fcc111
   slab = fcc111('Al', size=(2,2,3), vacuum=10.0)
 
 This will produce a slab 2x2x3 times the minimal possible size, with a
@@ -34,7 +30,7 @@ each side.
 To set up the same surface with with a hydrogen atom adsorbed in an on-top
 position 1.5 Å above the top layer::
 
-  from ase.lattice.surface import fcc111, add_adsorbate
+  from ase.build import fcc111, add_adsorbate
   slab = fcc111('Al', size=(2,2,3))
   add_adsorbate(slab, 'H', 1.5, 'ontop')
   slab.center(vacuum=10.0, axis=2)
@@ -93,17 +89,17 @@ All the functions setting up surfaces take the same arguments.
 
 Each function defines a number of standard adsorption sites that can
 later be used when adding an adsorbate with
-:func:`ase.lattice.surface.add_adsorbate`.
+:func:`ase.build.add_adsorbate`.
 
 
 The following functions are provided
 ````````````````````````````````````
 
-.. function:: fcc100(symbol, size, a=None, vacuum=0.0)
-.. function:: fcc110(symbol, size, a=None, vacuum=0.0)
-.. function:: bcc100(symbol, size, a=None, vacuum=0.0)
-.. function:: hcp10m10(symbol, size, a=None, c=None, vacuum=0.0)
-.. function:: diamond100(symbol, size, a=None, vacuum=0.0)
+.. autofunction:: fcc100
+.. autofunction:: fcc110
+.. autofunction:: bcc100
+.. autofunction:: hcp10m10
+.. autofunction:: diamond100
 
 These always give orthorhombic cells:
 
@@ -116,12 +112,12 @@ diamond100  |diamond100|
 ==========  ============
 
 
-.. function:: fcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: fcc211(symbol, size, a=None, vacuum=0.0, orthogonal=True)
-.. function:: bcc110(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: bcc111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
-.. function:: hcp0001(symbol, size, a=None, c=None, vacuum=0.0, orthogonal=False)
-.. function:: diamond111(symbol, size, a=None, vacuum=0.0, orthogonal=False)
+.. autofunction:: fcc111
+.. autofunction:: fcc211
+.. autofunction:: bcc110
+.. autofunction:: bcc111
+.. autofunction:: hcp0001
+.. autofunction:: diamond111
 
 These can give both non-orthorhombic and orthorhombic cells:
 
@@ -188,7 +184,7 @@ supply a primitive cell of the correct height.  This primitive cell can be
 any 2D surface whose normal points along the Z axis.  The cell's contents
 can also vary, such as in the creation of an alloy or deformation.
 
-.. autofunction:: ase.lattice.surface.root_surface
+.. autofunction:: ase.build.root_surface
 
 The difficulty with using these functions is the requirement to know the
 valid roots in advance, but a function has also been supplied to help with
@@ -196,12 +192,12 @@ this.  It is helpful to note that any primitive cell with the same cell
 shape, such as the case with the fcc111 and bcc111 functions, will have the
 same valid roots.
 
-.. autofunction:: ase.lattice.surface.root_surface_analysis
+.. autofunction:: ase.build.root_surface_analysis
 
 An example of using your own primitive cell::
 
   from ase.lattice.root import root_surface
-  from ase.lattice.surface import fcc111
+  from ase.build import fcc111
   atoms = fcc111("Ag", (1, 1, 3))
   atoms = root_surface(atoms, 27)
 
@@ -214,16 +210,14 @@ Adding adsorbates
 After a slab has been created, a vacuum layer can be added.  It is
 also possible to add one or more adsorbates.
 
-.. autofunction:: ase.lattice.surface.add_adsorbate
-.. autofunction:: ase.lattice.surface.add_vacuum
+.. autofunction:: ase.build.add_adsorbate
+.. autofunction:: ase.build.add_vacuum
 
 
 .. _general-surface-section:
 
 Create specific non-common surfaces
 ===================================
-
-.. versionadded:: 3.5.2
 
 In addition to the most normal surfaces, a function has been
 constructed to create more uncommon surfaces that one could be
@@ -232,7 +226,7 @@ surface and can be used for both fcc, bcc and hcp structures.  The
 theory behind the implementation can be found here:
 :download:`general_surface.pdf`.
 
-.. autofunction:: ase.lattice.surface.surface
+.. autofunction:: ase.build.surface
 
 
 Example

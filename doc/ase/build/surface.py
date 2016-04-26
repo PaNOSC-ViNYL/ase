@@ -2,9 +2,9 @@
 
 from ase import Atoms
 from ase.io import write
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 from ase.build import root_surface
-import ase.lattice.surface as surface
+import ase.build as surface
 
 
 surfaces = ['fcc100', 'fcc110', 'bcc100', 'hcp10m10', 'diamond100',

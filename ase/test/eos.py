@@ -4,7 +4,7 @@
 import numpy as np
 import scipy  # skip test early if no scipy
 
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.io.trajectory import Trajectory
 from ase.calculators.emt import EMT
 
@@ -104,7 +104,7 @@ except (ImportError, TypeError, ValueError):
 
 # ASE3
 
-from ase.utils.eos import EquationOfState as eos3
+from ase.eos import EquationOfState as eos3
 
 for e in eos_strl3 + ['sjeos', 'p3']:
     eos = eos3(volumes, energies, eos=e.lower())

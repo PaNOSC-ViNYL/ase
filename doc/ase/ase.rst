@@ -22,27 +22,24 @@ Quick links:
   * - :mod:`~ase.data`
     - :mod:`~ase.ga`
     - :mod:`~ase.gui`
-    - :mod:`~ase.infrared`
-  * - :mod:`~ase.io`
-    - :mod:`~ase.lattice`
+    - :mod:`~ase.io`
+  * - :mod:`~ase.lattice`
     - :mod:`~ase.md`
     - :mod:`~ase.neb`
+    - :mod:`~ase.neighborlist`
   * - :mod:`~ase.optimize`
     - :mod:`~ase.parallel`
     - :mod:`~ase.phasediagram`
     - :mod:`~ase.phonons`
-  * - :mod:`~ase.lattice.spacegroup`
-    - :mod:`~ase.structure`
-    - :mod:`~ase.lattice.surface`
+  * - :mod:`~ase.spacegroup`
     - :mod:`~ase.transport`
-  * - :mod:`~ase.thermochemistry`
+    - :mod:`~ase.thermochemistry`
     - :mod:`~ase.units`
-    - :mod:`~ase.utils`
+  * - :mod:`~ase.utils`
     - :mod:`~ase.vibrations`
-  * - :mod:`~ase.visualize`
+    - :mod:`~ase.visualize`
     -
-    -
-    -
+
 
 .. seealso::
 
@@ -58,35 +55,33 @@ List of all modules:
 .. toctree::
    :maxdepth: 2
 
-   atom
    atoms
    units
-   io
-   build
-   geometry
+   io/io
+   build/build
    eos
    collection
-   gui/gui
-   setup-overview
+   data
    optimize
-   parallel
+   md
+   constraints
+   spacegroup/spacegroup
+   neighborlist
+   geometry
+   db/db
+   neb
+   ga
+   gui/gui
+   lattice
    visualize/visualize
    calculators/calculators
-   constraints
-   vibrations
+   dft/dft
+   vibrations/vibrations
    phonons
    phasediagram/phasediagram
    thermochemistry/thermochemistry
-   infrared
-   md
-   dft/dft
-   transport/transport
-   data
-   trajectory
    utils
-   neighbors
-   io/opls
-   db/db
-   ga
-   neb
-   dimermethod
+   parallel
+   dimer
+   atom
+   transport/transport

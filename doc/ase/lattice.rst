@@ -10,7 +10,7 @@ Modules for creating crystal structures are found in the module
 are a few important lattices with a basis.  The modules can create
 lattices with any orientation (see below).  These modules can be used
 to create surfaces with any crystal structure and any orientation by
-later adding a vacuum layer with :func:`ase.lattice.surface.add_vacuum`.
+later adding a vacuum layer with :func:`ase.build.add_vacuum`.
 
 
 Example

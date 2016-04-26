@@ -1,4 +1,5 @@
 .. module:: ase.eos
+.. index:: Bulk modulus
 
 Equation of state
 =================

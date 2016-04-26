@@ -2,7 +2,7 @@ from __future__ import division
 
 import numpy as np
 
-from ase.calculators.neighborlist import NeighborList
+from ase.neighborlist import NeighborList
 from ase.calculators.calculator import Calculator, all_changes
 
 

@@ -6,7 +6,7 @@ import numpy as np
 
 from ase.data import chemical_symbols
 from ase.units import Bohr
-from ase.calculators.neighborlist import NeighborList
+from ase.neighborlist import NeighborList
 from ase.calculators.calculator import Calculator, all_changes
 
 

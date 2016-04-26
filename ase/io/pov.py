@@ -49,7 +49,7 @@ def get_bondpairs(atoms, radius=1.1):
     integers."""
     
     from ase.data import covalent_radii
-    from ase.calculators.neighborlist import NeighborList
+    from ase.neighborlist import NeighborList
     cutoffs = radius * covalent_radii[atoms.numbers]
     nl = NeighborList(cutoffs=cutoffs, self_interaction=False)
     nl.update(atoms)

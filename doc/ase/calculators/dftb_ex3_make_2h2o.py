@@ -2,7 +2,7 @@
 import os
 
 from ase.calculators.dftb import Dftb
-from ase.structure import molecule
+from ase.build import molecule
 from ase.md.verlet import VelocityVerlet
 from ase.md import MDLogger
 from ase.units import fs

@@ -112,7 +112,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     """Add an adsorbate to a surface.
 
     This function adds an adsorbate to a slab.  If the slab is
-    produced by one of the utility functions in ase.lattice.surface, it
+    produced by one of the utility functions in ase.build, it
     is possible to specify the position of the adsorbate by a keyword
     (the supported keywords depend on which function was used to
     create the slab).
@@ -138,7 +138,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
 
     position: The x-y position of the adsorbate, either as a tuple of
         two numbers or as a keyword (if the surface is produced by one
-        of the functions in ase.lattice.surfaces).
+        of the functions in ase.build).
 
     offset (default: None): Offsets the adsorbate by a number of unit
         cells. Mostly useful when adding more than one adsorbate.
@@ -166,7 +166,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
         # A site-name:
         if 'sites' not in info:
             raise TypeError('If the atoms are not made by an ' +
-                            'ase.lattice.surface function, ' +
+                            'ase.build function, ' +
                             'position cannot be a name.')
         if position not in info['sites']:
             raise TypeError('Adsorption site %s not supported.' % position)
@@ -205,10 +205,10 @@ def add_vacuum(atoms, vacuum):
 
     Parameters:
 
-    atoms: An Atoms object most likely created by one of the
-    ase.lattice modules.
-
-    vacuum: The thickness of the vacuum layer (in Angstrom).
+    atoms: Atoms object
+        Most likely created by one of the surface functions.
+    vacuum: float
+        The thickness of the vacuum layer (in Angstrom).
     """
     uc = atoms.get_cell()
     normal = np.cross(uc[0], uc[1])

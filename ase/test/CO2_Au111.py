@@ -3,7 +3,7 @@ from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixBondLengths
 from ase.optimize import BFGS
-from ase.lattice.surface import fcc111, add_adsorbate
+from ase.build import fcc111, add_adsorbate
 
 
 for wrap in [False, True]:
