@@ -27,19 +27,25 @@ class FranckCondonOverlap:
         """Direct squared Franck-Condon overlap corresponding to T=0."""
         return np.exp(-S) * S**n / self.factorial(n)
 
-    def direct(self, n, m, S):
+    def direct(self, n, m, S_in):
         """Direct squared Franck-Condon overlap."""
         if n > m:
             # use symmetry
-            return self.direct(m, n, S)
+            return self.direct(m, n, S_in)
 
+        S = np.array(S_in)
+        mask = np.where(S == 0)
+        S[mask] = 1 # hide zeros
         s = 0
         for k in range(n + 1):
             s += (-1)**(n - k) * S**(-k) / (
                 self.factorial(k) *
                 self.factorial(n - k) * self.factorial(m - k))
-        return np.exp(-S) * S**(n + m) * s**2 * (
+        res = np.exp(-S) * S**(n + m) * s**2 * (
             self.factorial(n) * self.factorial(m))
+        # use othogonality
+        res[mask] = int(n == m)
+        return res
 
     def direct0mm1(self, m, S):
         """<0|m><m|1>"""
