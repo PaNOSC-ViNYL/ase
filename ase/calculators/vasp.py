@@ -125,7 +125,7 @@ exp_keys = [
 
 string_keys = [
     'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
-    'gga',        # xc-type: PW PB LM or 91
+    'gga',        # xc-type: PW PB LM or 91 (LDA if not set)
     'metagga',    #
     'prec',       # Precission of calculation (Low, Normal, Accurate)
     'system',     # name of System
@@ -312,6 +312,19 @@ keys = [
     # 'WEIMIN, EBREAK, DEPER    special control tags
 ]
 
+xc_defaults = {
+    'lda': {'pp': 'LDA'},
+    'pw91': {'pp': 'potpaw_GGA', 'gga': '91'},
+    'pbe': {'pp': 'potpaw_PBE', 'gga': 'PE'},
+    'pbesol': {'pp': 'potpaw_PBE', 'gga': 'PS'},
+    'pbe0': {'pp': 'potpaw_PBE', 'gga': 'PE', 'lhfcalc': True},
+    'hse06': {'pp': 'potpaw_PBE', 'gga': 'PE',
+                  'lhfcalc': True, 'hfscreen': 0.2},
+    'hsesol': {'pp': 'potpaw_PBE', 'gga': 'PS',
+                  'lhfcalc': True, 'hfscreen': 0.2},                  
+    'vdw-df': {'pp': 'potpaw_PBE', 'gga':'RE',
+                   'luse_vdw': True, 'aggac': 0.}
+    }
 
 class Vasp(Calculator):
     name = 'Vasp'
@@ -345,21 +358,10 @@ class Vasp(Calculator):
         for key in dict_keys:
             self.dict_params[key] = None
 
-        # self.string_params['prec'] = 'Normal'
-
-        if kwargs.get('xc', None):
-            if kwargs['xc'] not in ['PW91', 'LDA', 'PBE']:
-                raise ValueError(
-                    '%s not supported for xc! use one of: PW91, LDA or PBE.' %
-                    kwargs['xc'])
-            # exchange correlation functional
-            self.input_params = {'xc': kwargs['xc']}
-
-        else:
-            # exchange correlation functional
-            self.input_params = {'xc': 'PW91'}
-
-        self.input_params.update({
+        # Initialise internal dictionary of input parameters which are
+        # not regular VASP keys
+        self.input_params = {
+            'pp': None, # Pseudopotential file (e.g. 'PW91')
             'setups': None,  # Special setups (e.g pv, sv, ...)
             'txt': '-',  # Where to send information
             'kpts': (1, 1, 1),  # k-points
@@ -369,8 +371,41 @@ class Vasp(Calculator):
             'kpts_nintersections': None,
             # Option to write explicit k-points in units
             # of reciprocal lattice vectors:
-            'reciprocal': False})
+            'reciprocal': False}
 
+        # Set default parameters for XC functional.
+        # (These will be overwritten where appropriate by a call to
+        # self.set(**kwargs) later in this function.)
+        if kwargs.get('xc', None):
+            if kwargs['xc'].lower() not in xc_defaults:
+                xc_allowed = ', '.join(xc_defaults.keys())
+                raise ValueError(
+                    '{0} is not supported for xc! Supported xc values'
+                    'are: '.format(kwargs['xc']), xc_allowed)
+            else:
+                self.set(**xc_defaults[kwargs['xc'].lower()])
+                self.input_params.update({'xc': kwargs['xc']})
+
+            # A null value of xc is permitted; custom recipes can be
+            # used by explicitly setting the pseudopotential set and
+            # INCAR keys
+        elif kwargs.get('pp', None):
+            self.input_params.update({'xc': None})
+            
+            # However, there is no way to correctly guess the desired
+            # set of pseudopotentials without either 'xc' or 'pp'
+        else:
+            raise NotImplementedError(
+                'At least one of the xc and pp tags must be set in '
+                'order to select the correct pseudopotential set. '
+                'Please use one of these parameters.'
+                'The xc tag selects appropriate pseudopotentials from'
+                'the potpaw, potpaw_GGA, potpaw_PBE folders for a '
+                'given method. The pp tag allows the corresponding'
+                'shortcut names LDA, PW91, PBE or any full folder'
+                'name on the VASP_PP_PATH (e.g. '
+                '"my.custom.potpaw_gga").')
+            
         self.restart = restart
         self.track_output = track_output
         self.output_template = output_template
@@ -442,8 +477,9 @@ class Vasp(Calculator):
         PW91: $VASP_PP_PATH/potpaw_GGA/
 
         if your pseudopotentials are somewhere else, or named
-        differently you should make symlinks at the paths above that
-        point to the right place.
+        differently you may make symlinks at the paths above that
+        point to the right place. Alternatively, you may pass the full
+        name of a folder on the VASP_PP_PATH to the 'pp' parameter.
         """
 
         p = self.input_params
@@ -501,12 +537,16 @@ class Vasp(Calculator):
             self.symbol_count.append([m, symbolcount[m]])
 
         sys.stdout.flush()
-        xc = '/'
 
-        if p['xc'] == 'PW91':
-            xc = '_gga/'
-        elif p['xc'] == 'PBE':
-            xc = '_pbe/'
+        # Potpaw folders may be identified by an alias or full name
+        for pp_alias, pp_folder in (('lda', 'potpaw'),
+                                    ('pw91', 'potpaw_GGA'),
+                                    ('pbe', 'potpaw_PBE')):
+            if p['pp'].lower() == pp_alias:
+                break
+        else:
+            pp_folder = p['pp']
+        
         if 'VASP_PP_PATH' in os.environ:
             pppaths = os.environ['VASP_PP_PATH'].split(':')
         else:
@@ -515,42 +555,36 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            name = 'potpaw' + xc.upper() + p['setups'][str(m)] + '/POTCAR'
-            found = False
+            name = join(pp_folder, p['setups'][str(m)], 'POTCAR')
             for path in pppaths:
                 filename = join(path, name)
 
                 if isfile(filename) or islink(filename):
-                    found = True
                     self.ppp_list.append(filename)
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
-                    found = True
                     self.ppp_list.append(filename + '.Z')
                     break
-            if not found:
+            else:
                 print('Looking for %s' % name)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
         for symbol in symbols:
             try:
-                name = 'potpaw' + xc.upper() + symbol + p['setups'][symbol]
+                name = join(pp_folder, symbol,
+                            p['setups'][symbol], 'POTCAR')
             except (TypeError, KeyError):
-                name = 'potpaw' + xc.upper() + symbol
-            name += '/POTCAR'
-            found = False
+                name = join(pp_folder, symbol, 'POTCAR')
             for path in pppaths:
                 filename = join(path, name)
 
                 if isfile(filename) or islink(filename):
-                    found = True
                     self.ppp_list.append(filename)
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
-                    found = True
                     self.ppp_list.append(filename + '.Z')
                     break
-            if not found:
+            else:
                 print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
@@ -1431,7 +1465,7 @@ class Vasp(Calculator):
                                       'grid supported for restart.')
 
     def read_potcar(self):
-        """ Method that reads the Exchange Correlation functional from POTCAR file.
+        """ Read the pseudopotential XC functional from POTCAR file.
         """
         file = open('POTCAR', 'r')
         lines = file.readlines()
@@ -1455,7 +1489,7 @@ class Vasp(Calculator):
             raise ValueError('Unknown xc-functional flag found in POTCAR,'
                              ' LEXCH=%s' % xc_flag)
 
-        self.input_params['xc'] = xc_dict[xc_flag]
+        self.input_params['pp'] = xc_dict[xc_flag]
 
     def read_vib_freq(self):
         """Read vibrational frequencies.
