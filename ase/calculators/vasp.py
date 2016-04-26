@@ -314,16 +314,15 @@ keys = [
 
 xc_defaults = {
     'lda': {'pp': 'LDA'},
-    'pw91': {'pp': 'potpaw_GGA', 'gga': '91'},
-    'pbe': {'pp': 'potpaw_PBE', 'gga': 'PE'},
-    'pbesol': {'pp': 'potpaw_PBE', 'gga': 'PS'},
-    'pbe0': {'pp': 'potpaw_PBE', 'gga': 'PE', 'lhfcalc': True},
-    'hse06': {'pp': 'potpaw_PBE', 'gga': 'PE',
+    'pw91': {'pp': 'GGA', 'gga': '91'},
+    'pbe': {'pp': 'PBE', 'gga': 'PE'},
+    'pbesol': {'pp': 'PBE', 'gga': 'PS'},
+    'pbe0': {'pp': 'PBE', 'gga': 'PE', 'lhfcalc': True},
+    'hse06': {'pp': 'PBE', 'gga': 'PE',
                   'lhfcalc': True, 'hfscreen': 0.2},
-    'hsesol': {'pp': 'potpaw_PBE', 'gga': 'PS',
+    'hsesol': {'pp': 'PBE', 'gga': 'PS',
                   'lhfcalc': True, 'hfscreen': 0.2},                  
-    'vdw-df': {'pp': 'potpaw_PBE', 'gga':'RE',
-                   'luse_vdw': True, 'aggac': 0.}
+    'vdw-df': {'pp': 'PBE', 'gga':'RE', 'luse_vdw': True, 'aggac': 0.}
     }
 
 class Vasp(Calculator):
