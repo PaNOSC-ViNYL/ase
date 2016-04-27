@@ -46,7 +46,7 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  approximation='Profeta',
-                 polarization='sum',
+                 observation='perpendicular',  # usual experimental setup
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
                  txt='-',
@@ -65,7 +65,7 @@ class ResonantRaman(Vibrations):
             self.directions = np.array(directions)
 
         self.approximation = approximation
-        self.polarization = polarization
+        self.observation = observation
         self.exobj = Excitations
         self.exkwargs = exkwargs
 
@@ -160,22 +160,22 @@ class ResonantRaman(Vibrations):
         self.ex0m_pc = np.array(
             [ex.get_dipole_me(form='v') for ex in ex0])
         self.exF_rp = []
-        self.exmm_rpc = []
-        self.expm_rpc = []
+        exmm_rpc = []
+        expm_rpc = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
                 self.exF_rp.append(
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
-                self.exmm_rpc.append(
+                exmm_rpc.append(
                     [ex.get_dipole_me(form='v') for ex in exm[r]])
-                self.expm_rpc.append(
+                expm_rpc.append(
                     [ex.get_dipole_me(form='v') for ex in exp[r]])
                 r += 1
         self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
-        self.exmm_rpc = np.array(self.exmm_rpc)
-        self.expm_rpc = np.array(self.expm_rpc)
+        self.exmm_rpc = np.array(exmm_rpc)
+        self.expm_rpc = np.array(expm_rpc)
 
         self.timer.stop('me and energy')
 
@@ -227,6 +227,7 @@ class ResonantRaman(Vibrations):
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
+ ##           print('S_r=', S_r)
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
             for m in ml:
@@ -245,7 +246,7 @@ class ResonantRaman(Vibrations):
         self.timer.stop('AlbrechtA')
         return m_rcc
 
-    def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml=range(10),
+    def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml = [1], #ml=range(10),
                                       term='BC'):
         """Evaluate Albrecht B and/or C term(s)."""
         self.read()
@@ -267,6 +268,10 @@ class ResonantRaman(Vibrations):
                 fc1mm1_r = self.fco.direct(1, m, S_r)
                 fc0mm02_r = self.fco.direct(0, m, S_r)
                 fc0mm02_r += np.sqrt(2) * self.fco.direct0mm2(m, S_r)
+                # XXXXX
+                fc1mm1_r[-1] = 1
+                fc0mm02_r[-1] = 1
+                print(m, fc1mm1_r[-1], fc0mm02_r[-1]) 
                 self.timer.stop('Franck-Condon overlaps')
 
                 self.timer.start('me dervivatives')
@@ -275,24 +280,32 @@ class ResonantRaman(Vibrations):
                 for a in self.indices:
                     for i in 'xyz':
                         dm_rc.append(
-                            (self.expm_rpc[r][p] - self.exmm_rpc[r][p])
+                            (self.expm_rpc[r, p] - self.exmm_rpc[r, p])
                             * self.im[r])
+                        print('pm=', self.expm_rpc[r, p], self.exmm_rpc[r, p])
                         r += 1
                 dm_rc = np.array(dm_rc) / (2 * self.delta)
                 self.timer.stop('me dervivatives')
 
                 self.timer.start('map to modes')
+##                print('dm_rc[2], dm_rc[5]', dm_rc[2], dm_rc[5])
+                print('dm_rc=', dm_rc)
                 dm_rc = np.dot(dm_rc.T, self.modes.T).T
+                print('dm_rc[-1][2]', dm_rc[-1][2])
                 self.timer.stop('map to modes')
 
                 self.timer.start('multiply')
                 me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
                 for r in range(self.ndof):
                     if 'B' in term:
+                        # XXXX
                         denom = (1. /
-                    (energy + m * self.om_r[r] - omega - 1j * gamma))
+                    (energy + m * 0 * self.om_r[r] - omega - 1j * gamma))
+#### ok                        print('denom=', denom)
                         m_rcc[r] += (np.outer(dm_rc[r], self.ex0m_pc[p].conj())
                                      * fc1mm1_r[r] * denom)
+                        if r == 5:
+                            print('m_rcc[r]=', m_rcc[r][2,2])
                         m_rcc[r] += (np.outer(self.ex0m_pc[p], dm_rc[r].conj())
                                      * fc0mm02_r[r] * denom)
                     if 'C' in term:
@@ -303,10 +316,13 @@ class ResonantRaman(Vibrations):
                         m_rcc[r] += (np.outer(dm_rc[r], self.ex0m_pc[p].conj())
                                      * fc0mm02_r[r] * denom)
                 self.timer.stop('multiply')
+        print('m_rcc[-1]=', m_rcc[-1][2,2])
 
         self.timer.start('pre_r')
-        pre_r = np.where(self.om_r > 0,
-                         np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
+        with np.errstate(divide='ignore'):
+            pre_r = np.where(self.om_r > 0,
+                             np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
+##        print('BC: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             m_rcc[r] *= p
         self.timer.stop('pre_r')
@@ -330,6 +346,8 @@ class ResonantRaman(Vibrations):
             me_ccp = np.empty((3, 3, len(e_p)), dtype=complex)
             for p, me_c in enumerate(me_pc):
                 me_ccp[:, :, p] = np.outer(me_pc[p], me_pc[p].conj())
+###            print('kappa: me_ccp=', me_ccp[2,2,0])
+#### ok            print('kappa: den=', 1./(e_p - omega - 1j * gamma))
             kappa_ccp = (me_ccp / (e_p - omega - 1j * gamma) +
                          me_ccp.conj() / (e_p + omega + 1j * gamma))
             return kappa_ccp.sum(2)
@@ -343,6 +361,7 @@ class ResonantRaman(Vibrations):
                     kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
                 r += 1
         self.timer.stop('kappa')
+###        print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
 
         self.timer.stop('amplitudes')
         
@@ -352,6 +371,9 @@ class ResonantRaman(Vibrations):
             pre_r = np.where(self.om_r > 0,
                              np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
         V_rcc = np.dot(V_rcc.T, self.modes.T).T
+#### looks ok        print('self.modes.T[-1]',self.modes.T)
+#### looks ok       print('V_rcc[-1]=', V_rcc[-1][2,2])
+#### ok       print('Profeta: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             V_rcc[r] *= p
         self.timer.stop('pre_r')
@@ -365,13 +387,16 @@ class ResonantRaman(Vibrations):
         elif self.approximation.lower() == 'albrecht a':
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
+            raise NotImplementedError('not working')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='B')
         elif self.approximation.lower() == 'albrecht c':
+            raise NotImplementedError('not working')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='C')
         elif self.approximation.lower() == 'albrecht bc':
+            raise NotImplementedError('not working')
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht':
-            raise NotImplementedError('not yet')
+            raise NotImplementedError('not working')
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         else:
@@ -383,46 +408,41 @@ class ResonantRaman(Vibrations):
 
         return V_rcc
 
-    def get_intensity_tensor(self, omega, gamma):
-        V_rcc = self.get_matrix_element(omega, gamma)
-        m2 = ResonantRaman.m2
-        return omega**4 * m2(V_rcc)
-
-    def get_intentsites_Porezag(self, omega, gamma=0.1):
-        """Intensity after Porezag PRB 54 (1996)7830"""
-        alpha_rcc = self.get_intensity_tensor(omega, gamma)
-        alpha_r = (alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
-                   alpha_rcc[:, 2, 2]) / 3.
-        m2 = ResonantRaman.m2
-        beta2_r = (m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
-                   m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
-                   m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2]) +
-                   6. * (m2(alpha_rcc[:, 0, 1]) + m2(alpha_rcc[:, 0, 2]) +
-                         m2(alpha_rcc[:, 1, 2]))) / 2.
-        return 45 * m2(alpha_r) + 7 * beta2_r
-
     def get_intensities(self, omega, gamma=0.1):
-        if self.polarization.lower() == 'sum':
-            return self.get_intensity_tensor(omega, gamma).sum(
-                axis=1).sum(axis=1)
-        elif (self.polarization.lower() == 'porezag' or 
-              self.polarization.lower() == 'depolarization'):
-            """Intensity after Porezag PRB 54 (1996)7830"""
-            alpha_rcc = self.get_intensity_tensor(omega, gamma)
-            alpha_r = (alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
-                       alpha_rcc[:, 2, 2]) / 3.
+        m2 = ResonantRaman.m2
+        alpha_rcc = self.get_matrix_element(omega, gamma)
+        if self.observation.lower() == 'sum':
+            """Simple sum, maybe too simple"""
+            return omega**4 * m2(alpha_rcc).sum(axis=1).sum(axis=1)
+        elif (self.observation.lower() == 'perpendicular' or 
+              self.observation.lower() == 'depolarization'):
+            """Intensity after 
+            Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
+            """
             m2 = ResonantRaman.m2
-            beta2_r = (m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
-                       m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
-                       m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2]) +
-                       6. * (m2(alpha_rcc[:, 0, 1]) + m2(alpha_rcc[:, 0, 2]) +
-                             m2(alpha_rcc[:, 1, 2]))) / 2.
-            if self.polarization.lower() == 'porezag':
-                return 45 * m2(alpha_r) + 7 * beta2_r
+            alpha2_r = m2(alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
+                          alpha_rcc[:, 2, 2]) / 9.
+            delta2_r = 3 / 4. * (
+                m2(alpha_rcc[:, 0, 1] - alpha_rcc[:, 1, 0]) +
+                m2(alpha_rcc[:, 0, 2] - alpha_rcc[:, 2, 0]) +
+                m2(alpha_rcc[:, 1, 2] - alpha_rcc[:, 2, 1]))
+            gamma2_r = ( 3 / 4. * (
+                m2(alpha_rcc[:, 0, 1] + alpha_rcc[:, 1, 0]) +
+                m2(alpha_rcc[:, 0, 2] + alpha_rcc[:, 2, 0]) +
+                m2(alpha_rcc[:, 1, 2] + alpha_rcc[:, 2, 1]))
+                         + (
+                m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
+                m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
+                m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
+            if self.observation.lower() == 'perpendicular':
+                pre = omega**4
+                return pre * (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
             else:
+                raise NotImplementedError('not yet')
+                # here Porezag and Woodward differ ???
                 return 3 * beta2_r / (45 * m2(alpha_r) + 4 * beta2_r)
         else:
-            raise NotImplementedError('Polarization ' + self.polarization +
+            raise NotImplementedError('Observation ' + self.observation +
                                       'not implemented')
 
     def get_spectrum(self, omega, gamma=0.1,
@@ -517,8 +537,8 @@ class ResonantRaman(Vibrations):
         parprint('-------------------------------------', file=log)
         parprint(' excitation at ' + str(omega) + ' eV', file=log)
         parprint(' gamma ' + str(gamma) + ' eV', file=log)
-        parprint(' approximation:', self.approximation, '\n', file=log)
-        parprint(' polarization:', self.polarization, '\n', file=log)
+        parprint(' approximation:', self.approximation, file=log)
+        parprint(' observation:', self.observation, '\n', file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
         parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
         parprint('-------------------------------------', file=log)
