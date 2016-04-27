@@ -277,6 +277,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     for option in castep_cell._options.values():
         if option.value is not None:
+            print(option.value)
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
@@ -349,17 +350,10 @@ def read_castep_cell(fd, index=None):
                 l += 1
                 continue
             else:
-                for c in comment_chars:
-                    if c in line:
-                        # icomment = min(line.index(c))
-                        # index returns an integer corresponding to the first
-                        # appearance, so min() does not work here (and we do
-                        # not need it anyways).
-                        # see: http://goo.gl/WIEVGs
-                        icomment = line.index(c)
-                    else:
-                        icomment = len(line)
-                tokens = re.split(separator_re, line[:icomment])
+                # Remove comments
+                line = re.split('[{0}]+'.format(comment_chars), line, 1)[0]
+                # Tokenize
+                tokens = re.split(separator_re, line.strip())
                 return tokens, l + 1
         tokens = ''
 
