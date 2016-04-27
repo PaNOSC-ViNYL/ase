@@ -382,7 +382,7 @@ class Vasp(Calculator):
         for key in dict_keys:
             self.dict_params[key] = None
 
-        # Initialise internal dictionary of input parameters which are
+        # Initialize internal dictionary of input parameters which are
         # not regular VASP keys
         self.input_params = {
             'pp': None, # Pseudopotential file (e.g. 'PW91')
@@ -497,17 +497,26 @@ class Vasp(Calculator):
             # There is no way to correctly guess the desired
             # set of pseudopotentials without 'pp' being set.
             # Usually, 'pp' will be set by 'xc'.
-        if not 'pp' in p:
-            raise NotImplementedError(
-                'At least one of the xc and pp tags must be set in '
-                'order to select the correct pseudopotential set. '
-                'Please use one of these parameters.'
-                'The xc tag selects appropriate pseudopotentials from'
-                'the potpaw, potpaw_GGA, potpaw_PBE folders for a '
-                'given method. The pp tag allows the corresponding'
-                'shortcut names LDA, PW91, PBE or any full folder'
-                'name on the VASP_PP_PATH (e.g. '
-                '"my.custom.potpaw_gga").')
+        if not 'pp' in p or p['pp'] is None:
+            if self.string_params['gga'] is None:
+                p.update({'pp': 'lda'})
+            elif self.string_params['gga'] == '91':
+                p.update({'pp': 'pw91'})
+            elif self.string_params['gga'] == 'PE':
+                p.update({'pp': 'pbe'})
+            else:
+                raise NotImplementedError(
+            "Unable to guess the desired set of pseudopotential"
+            "(POTCAR) files. Please do one of the following: \n"
+            "1. Use the 'xc' parameter to define your XC functional."
+            "These 'recipes' determine the pseudopotential file as "
+            "well as setting the INCAR parameters.\n"
+            "2. Use the 'gga' settings None (default), 'PE' or '91'; "
+            "these correspond to LDA, PBE and PW91 respectively.\n"
+            "3. Set the POTCAR explicitly with the 'pp' flag. The "
+            "value should be the name of a folder on the VASP_PP_PATH"
+            ", and the aliases 'LDA', 'PBE' and 'PW91' are also"
+            "accepted.\n")
 
 
         self.all_symbols = atoms.get_chemical_symbols()
@@ -967,9 +976,9 @@ class Vasp(Calculator):
         """Returns the XC functional or the pseudopotential type
 
         If a XC recipe is set explicitly with 'xc', this is returned.
-        Otherwise, the XC functional associated with the 
+        Otherwise, the XC functional associated with the
         pseudopotentials (LDA, PW91 or PBE) is returned.
-        The string is always cast to uppercase for consistency 
+        The string is always cast to uppercase for consistency
         in checks."""
         if self.input_params.get('xc', None):
             return self.input_params['xc'].upper()
