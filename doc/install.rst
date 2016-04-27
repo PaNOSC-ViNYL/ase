@@ -33,7 +33,7 @@ Installation using ``pip``
 The simplest way to install ASE is to use pip_ which will automatically get
 the source code from PyPI_::
     
-    $ pip install --upgrade ase
+    $ pip install --upgrade --user ase
     
 This will install ASE in your ``~/.local`` folder where Python can
 automatically find it.  Make sure you have ``~/.local/bin`` in your
@@ -94,7 +94,9 @@ from Git.
     
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
 ``~/ase/tools`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
-folder is).
+folder is).  Alternatively, you can install the code with ``python setup.py
+install --user`` and add ``~/.local/bin`` to the front of your :envvar:`PATH`
+environment variable (if you don't already have that).
     
 .. note::
     
