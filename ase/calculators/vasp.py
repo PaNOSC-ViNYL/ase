@@ -314,16 +314,41 @@ keys = [
 
 xc_defaults = {
     'lda': {'pp': 'LDA'},
+    # GGAs
     'pw91': {'pp': 'GGA', 'gga': '91'},
-    'pbe': {'pp': 'PBE', 'gga': 'PE'},
-    'pbesol': {'pp': 'PBE', 'gga': 'PS'},
-    'pbe0': {'pp': 'PBE', 'gga': 'PE', 'lhfcalc': True},
-    'hse06': {'pp': 'PBE', 'gga': 'PE',
-                  'lhfcalc': True, 'hfscreen': 0.2},
-    'hsesol': {'pp': 'PBE', 'gga': 'PS',
-                  'lhfcalc': True, 'hfscreen': 0.2},
-    'vdw-df': {'pp': 'PBE', 'gga':'RE', 'luse_vdw': True, 'aggac': 0.}
+    'pbe': {'gga': 'PE'},
+    'pbesol': {'gga': 'PS'},
+    'revpbe': {'gga': 'RE'},
+    'rpbe': {'gga': 'RP'},
+    'am05': {'gga': 'AM'},
+    # Meta-GGAs
+    'tpss': {'metagga': 'TPSS'},
+    'revtpss': {'metagga': 'RTPSS'},
+    'm06l': {'metagga': 'M06L'},
+    # vdW-DFs
+    'vdw-df': {'gga':'RE', 'luse_vdw': True, 'aggac': 0.},
+    'optpbe-vdw': {'gga': 'OR', 'luse_vdw': True, 'aggac': 0.0},
+    'optb88-vdw': {'gga': 'BO',  'luse_vdw': True, 'aggac': 0.0,
+                   'param1': 1.1/6.0, 'param2': 0.22},
+    'optb86b-vdw': {'gga': 'MK', 'luse_vdw': True, 'aggac': 0.0,
+                    'param1': 0.1234, 'param2': 1.0},
+    'vdw-df2': {'gga': 'ML', 'luse_vdw': True, 'aggac': 0.0,
+                'zab_vdw': -1.8867},
+    'beef-vdw': {'gga': 'BF', 'luse_vdw': True, 'zab_vdw': -1.8867},
+    # Hartree-Fock and hybrids
+    'hf': {'lhfcalc': True, 'aexx': 1.0, 'aldac': 0.0, 'aggac': 0.0},
+    'b3lyp': {'gga': 'B3', 'lhfcalc': True, 'aexx': 0.2,
+              'aggax': 0.72, 'aggac': 0.81, 'aldac': 0.19},
+    'pbe0': {'gga': 'PE', 'lhfcalc': True},
+    'hse03': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.3},
+    'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
+    'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}
     }
+
+# XC defaults use PBE pseudopotentials if not specified
+for xc, params in xc_defaults.items():
+    if 'pp' not in params:
+        params.update({'pp': 'PBE'})
 
 class Vasp(Calculator):
     name = 'Vasp'
