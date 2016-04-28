@@ -38,6 +38,10 @@ __all__ = [
 
 contact_email = 'simon.rittmeyer@tum.de'
 
+_tf_table = {
+    'True': True,
+    'False': False,
+}   # A convenient table to avoid the previously used "eval"
 
 class Castep(Calculator):
 
@@ -1468,9 +1472,9 @@ End CASTEP Interface Documentation
                         iline = line[line.index(INT_TOKEN) + len(INT_TOKEN):]
                         if (iline.split()[0] in self.internal_keys and
                                 not ignore_internal_keys):
-                            value = ' '.join(iline.split()[2:])
-                            if value in ['True', 'False']:
-                                self._opt[iline.split()[0]] = eval(value)
+                            value = ' '.join(iline.split()[1:])
+                            if value in _tf_table:
+                                self._opt[iline.split()[0]] = _tf_table[value]
                             else:
                                 self._opt[iline.split()[0]] = value
                     line = line[:line.index(comment_char)]
@@ -1907,7 +1911,7 @@ class CastepParam(object):
                 pass
             else:
                 try:
-                    value = bool(eval(str(value).title()))
+                    value = _tf_table[str(value).title()]
                 except:
                     raise ConversionError('bool', attr, value)
                 self._options[attr].value = value
@@ -2051,7 +2055,7 @@ class CastepCell(object):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             try:
-                value = bool(eval(str(value).title()))
+                value = _tf_table[str(value).title()]
             except:
                 raise ConversionError('bool', attr, value)
             self._options[attr].value = value
