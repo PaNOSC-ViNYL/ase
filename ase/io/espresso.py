@@ -37,7 +37,7 @@ def read_espresso_out(fileobj, index):
     cell = np.zeros((3, 3))
     for number, line in enumerate(lines[ca_line_no + 1: ca_line_no + 4]):
         line = line.split('=')[1].strip()[1:-1]
-        values = [eval(value) for value in line.split()]
+        values = [float(value) for value in line.split()]
         cell[number, 0] = values[0]
         cell[number, 1] = values[1]
         cell[number, 2] = values[2]
@@ -177,6 +177,16 @@ def get_cell_parameters(lines):
     return cell_parameters
 
 
+def str2value(string):
+    """Convert string into int, float, or bool, if possible, else return it."""
+    for datatype in [int, float]:
+        try:
+            return datatype(string)
+        except ValueError:
+            pass
+    return {'.true.': True, '.false.': False}.get(string, string)
+
+
 def read_fortran_namelist(fileobj):
     """Takes a fortran-namelist formatted file and returns appropriate
     dictionaries, followed by lines of text that do not fit this pattern.
@@ -198,11 +208,7 @@ def read_fortran_namelist(fileobj):
             key, value = line.strip().split('=')
             if value.endswith(','):
                 value = value[:-1]
-            value = value.strip()
-            try:
-                value = eval(value)
-            except SyntaxError:
-                value = {'.true.': True, '.false.': False}.get(value, value)
+            value = str2value(value.strip())
             data[dictname][key.strip()] = value
     return data, extralines
 
