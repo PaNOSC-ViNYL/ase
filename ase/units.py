@@ -3,7 +3,7 @@ from math import pi, sqrt
 # Constants from Konrad Hinsen's PhysicalQuantities module (1986 CODATA):
 _c = 299792458.              # speed of light, m/s
 _mu0 = 4.e-7 * pi            # permeability of vacuum
-_eps0 = 1 / _mu0 / _c**2     # permittivity of vacuum
+_eps0 = 1 / _mu0 / _c**2     # permittivity of vacuum C^2/(Jm)
 _Grav = 6.67259e-11          # gravitational constant
 _hplanck = 6.6260755e-34     # Planck constant, J s
 _hbar = _hplanck / (2 * pi)  # Planck constant / 2pi, J s
@@ -27,6 +27,8 @@ Rydberg = 0.5 * Hartree
 Ry = Rydberg
 Ha = Hartree
 hbar = _hbar / _e * 1e10 * sqrt(_e / _amu)
+eps0 = _eps0 / _e / 1e10
+c = _c / sqrt(_e / _amu)
 
 second = 1e10 * sqrt(_e / _amu)
 fs = 1e-15 * second

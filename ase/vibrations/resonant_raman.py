@@ -37,6 +37,12 @@ class ResonantRaman(Vibrations):
             
         The file is written by calling the method
         Excitations.write('filename').
+
+        Excitations should work like a list of ex obejects, where:
+            ex.get_dipole_me(form='v'):
+                gives the dipole matrix element in |e| * Angstrom
+            ex.energy:
+                is the transition energy in Hartrees
     """
     def __init__(self, atoms, Excitations,
                  indices=None,
@@ -418,7 +424,7 @@ class ResonantRaman(Vibrations):
         alpha_rcc = self.get_matrix_element(omega, gamma)
         if self.observation.lower() == 'sum':
             """Simple sum, maybe too simple"""
-            return omega**4 * m2(alpha_rcc).sum(axis=1).sum(axis=1)
+            return m2(alpha_rcc).sum(axis=1).sum(axis=1)
         elif (self.observation.lower() == 'perpendicular' or 
               self.observation.lower() == 'depolarization'):
             """Intensity after 
@@ -440,8 +446,7 @@ class ResonantRaman(Vibrations):
                 m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
                 m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
             if self.observation.lower() == 'perpendicular':
-                pre = omega**4
-                return pre * (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
+                return (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
             else:
                 raise NotImplementedError('not yet')
                 # here Porezag and Woodward differ ???
@@ -450,6 +455,13 @@ class ResonantRaman(Vibrations):
             raise NotImplementedError('Observation ' + self.observation +
                                       'not implemented')
 
+    def get_cross_sections(self, omega, gamma=0.1):
+        I_r = self.get_intensities(omega, gamma=0.1)
+        pre = 1. / 16 / np.pi**2 / units.eps0**2 / units.c**4
+        # frequency of scattered light 
+        omS_r = omega - self.hnu
+        return pre * omega * omS_r**3 * I_r
+
     def get_spectrum(self, omega, gamma=0.1,
                      start=200.0, end=4000.0, npts=None, width=4.0,
                      type='Gaussian', method='standard', direction='central',
@@ -457,11 +469,9 @@ class ResonantRaman(Vibrations):
         """Get resonant Raman spectrum.
 
         The method returns wavenumbers in cm^-1 with corresponding
-        absolute infrared intensity.
+        Raman cross section.
         Start and end point, and width of the Gaussian/Lorentzian should
         be given in cm^-1.
-        normalize=True ensures the integral over the peaks to give the
-        intensity.
         """
 
         self.type = type.lower()
@@ -470,7 +480,7 @@ class ResonantRaman(Vibrations):
         if not npts:
             npts = int((end - start) / width * 10 + 1)
         frequencies = self.get_frequencies(method, direction).real
-        intensities = self.get_intensities(omega, gamma)
+        intensities = self.get_cross_sections(omega, gamma)
         prefactor = 1
         if type == 'lorentzian':
             intensities = intensities * width * np.pi / 2.
@@ -545,7 +555,7 @@ class ResonantRaman(Vibrations):
         parprint(' approximation:', self.approximation, file=log)
         parprint(' observation:', self.observation, '\n', file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
-        parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
+        parprint('  #    meV     cm^-1      [e^4A^4/eV^2]', file=log)
         parprint('-------------------------------------', file=log)
         for n, e in enumerate(hnu):
             if e.imag != 0:
