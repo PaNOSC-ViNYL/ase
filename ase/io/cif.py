@@ -13,7 +13,8 @@ import numpy as np
 from ase.parallel import paropen
 from ase.spacegroup import crystal
 from ase.spacegroup.spacegroup import spacegroup_from_data
-        
+from ase.utils import basestring
+
 
 def convert_value(value):
     """Convert CIF value string to corresponding python type."""
@@ -146,6 +147,8 @@ def parse_block(lines, line):
 def parse_cif(fileobj):
     """Parse a CIF file. Returns a list of blockname and tag
     pairs. All tag names are converted to lower case."""
+    if isinstance(fileobj, basestring):
+        fileobj = open(fileobj)
     lines = [''] + fileobj.readlines()[::-1]  # all lines (reversed)
     blocks = []
     while True:
