@@ -214,12 +214,16 @@ class ResonantRaman(Vibrations):
         return s * d_r**2 * self.om_r / 2.
 
     def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(10)):
-        """Evaluate Albrecht A term."""
+        """Evaluate Albrecht A term.
+
+        Unit: |e|^2Angstrom^2/eV
+        """
         self.read()
         
         self.timer.start('AlbrechtA')
         
-        self.fco = FranckCondonOverlap()
+        if not hasattr(self, 'fco'):
+            self.fco = FranckCondonOverlap()
 
         # excited state forces
         F_pr = self.exF_rp.T
@@ -253,7 +257,8 @@ class ResonantRaman(Vibrations):
         
         self.timer.start('AlbrechtBC')
         
-        self.fco = FranckCondonOverlap()
+        if not hasattr(self, 'fco'):
+            self.fco = FranckCondonOverlap()
 
         # excited state forces
         F_pr = self.exF_rp.T
