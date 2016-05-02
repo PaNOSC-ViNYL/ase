@@ -158,7 +158,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
         pos_block = [('%s %8.6f %8.6f %8.6f' %
                       (x, y[0], y[1], y[2])) for (x, y)
                      in zip(atoms.get_chemical_symbols(),
-                            positions)]                    
+                            positions)]
 
     # Adding the CASTEP labels output
     if atoms.has('castep_labels'):
@@ -380,7 +380,7 @@ def read_castep_cell(fd, index=None):
         'MAGMOM': float,
         'LABEL': str,
     }
-    add_info_arrays = {k: [] for k in add_info}
+    add_info_arrays = dict((k, []) for k in add_info)
 
     # A convenient function that extracts this info from a line fragment
     def get_add_info(ai_arrays, line=''):
@@ -389,19 +389,18 @@ def read_castep_cell(fd, index=None):
         sline = re.split(re_keys, line, flags=re.IGNORECASE)
         for t_i, tok in enumerate(sline):
             if tok in add_info:
-                try:                    
+                try:
                     ai_dict[tok] = re.split('[:=]',
-                                            sline[t_i+1],
+                                            sline[t_i + 1],
                                             maxsplit=1)[1].strip()
                 except IndexError:
                     ai_dict[tok] = None
         # Then turn these into values into the arrays
         for k in ai_arrays:
             if k not in ai_dict or ai_dict[k] is None:
-                ai_arrays[k].append({
-                        str: 'NULL',
-                        float: 0.0,
-                    }[add_info[k]])
+                ai_arrays[k].append({str: 'NULL',
+                                     float: 0.0,
+                                     }[add_info[k]])
             else:
                 ai_arrays[k].append(add_info[k](ai_dict[k]))
 
@@ -469,7 +468,7 @@ def read_castep_cell(fd, index=None):
                     if len(tokens) > 4:
                         get_add_info(add_info_arrays, tokens[4])
                     else:
-                        get_add_info(add_info_arrays)                  
+                        get_add_info(add_info_arrays)
                     tokens, l = get_tokens(lines, l, maxsplit=4)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines in')
@@ -486,7 +485,7 @@ def read_castep_cell(fd, index=None):
                     if len(tokens) > 4:
                         get_add_info(add_info_arrays, tokens[4])
                     else:
-                        get_add_info(add_info_arrays)                        
+                        get_add_info(add_info_arrays)
                     tokens, l = get_tokens(lines, l, maxsplit=4)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines')
