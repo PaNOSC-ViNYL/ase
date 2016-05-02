@@ -594,9 +594,9 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            name = join(pp_folder, p['setups'][str(m)], 'POTCAR')
+            potcar = join(pp_folder, p['setups'][str(m)], 'POTCAR')
             for path in pppaths:
-                filename = join(path, name)
+                filename = join(path, potcar)
 
                 if isfile(filename) or islink(filename):
                     self.ppp_list.append(filename)
@@ -605,17 +605,17 @@ class Vasp(Calculator):
                     self.ppp_list.append(filename + '.Z')
                     break
             else:
-                print('Looking for %s' % name)
+                print('Looking for %s' % potcar)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
         for symbol in symbols:
             try:
-                name = join(pp_folder, symbol,
+                potcar = join(pp_folder, symbol,
                             p['setups'][symbol], 'POTCAR')
             except (TypeError, KeyError):
-                name = join(pp_folder, symbol, 'POTCAR')
+                potcar = join(pp_folder, symbol, 'POTCAR')
             for path in pppaths:
-                filename = join(path, name)
+                filename = join(path, potcar)
 
                 if isfile(filename) or islink(filename):
                     self.ppp_list.append(filename)
@@ -628,7 +628,7 @@ class Vasp(Calculator):
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
                 PBE:  $VASP_PP_PATH/potpaw_PBE/
-                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name)
+                PW91: $VASP_PP_PATH/potpaw_GGA/''' % potcar)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
