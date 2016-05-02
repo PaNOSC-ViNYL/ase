@@ -312,7 +312,14 @@ keys = [
     # 'WEIMIN, EBREAK, DEPER    special control tags
 ]
 
-xc_defaults = {
+
+class Vasp(Calculator):
+    name = 'Vasp'
+
+    # Parameters corresponding to 'xc' settings.  This may be modified
+    # by the user in-between loading calculators.vasp submodule and
+    # instantiating the calculator object with calculators.vasp.Vasp()
+    xc_defaults = {
     'lda': {'pp': 'LDA'},
     # GGAs
     'pw91': {'pp': 'GGA', 'gga': '91'},
@@ -344,14 +351,6 @@ xc_defaults = {
     'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
     'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}
     }
-
-# XC defaults use PBE pseudopotentials if not specified
-for xc, params in xc_defaults.items():
-    if 'pp' not in params:
-        params.update({'pp': 'PBE'})
-
-class Vasp(Calculator):
-    name = 'Vasp'
 
     def __init__(self, restart=None,
                  output_template='vasp',
@@ -401,12 +400,17 @@ class Vasp(Calculator):
         # (These will be overwritten where appropriate by a call to
         # self.set(**kwargs) later in this function.)
         if kwargs.get('xc', None):
-            if kwargs['xc'].lower() not in xc_defaults:
+            xc = kwargs['xc'].lower()
+            if xc not in xc_defaults:
                 xc_allowed = ', '.join(xc_defaults.keys())
                 raise ValueError(
                     '{0} is not supported for xc! Supported xc values'
                     'are: '.format(kwargs['xc']), xc_allowed)
             else:
+                # XC defaults to PBE pseudopotentials
+                if 'pp' not in xc_defaults[xc]
+                    xc_defaults[xc].update({'pp': 'PBE'})
+
                 self.set(**xc_defaults[kwargs['xc'].lower()])
                 self.input_params.update({'xc': kwargs['xc']})
 
