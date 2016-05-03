@@ -4,11 +4,16 @@
 Utillity functions and classes
 ==============================
 
+This module contains utility functions and classes.
+
 .. autofunction:: ase.utils.opencew
 .. autofunction:: ase.utils.gcd
+.. autofunction:: ase.utils.seterr
+.. autofunction:: ase.utils.plural
+.. autofunction:: ase.utils.hill
+.. autofunction:: ase.utils.convert_string_to_fd
 .. autoclass:: ase.utils.timing.Timer
 .. autoclass:: ase.utils.timing.timer
-.. autofunction:: ase.utils.convert_string_to_fd
 
 
 Symmetry analysis
