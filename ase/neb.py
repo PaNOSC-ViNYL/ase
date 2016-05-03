@@ -113,25 +113,20 @@ class NEB:
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
-        forces = np.empty(((self.nimages - 2), self.natoms, 3))
-        energies = np.empty(self.nimages)
+        N = self.nimages
+        forces = np.empty(((N - 2), self.natoms, 3))
+        energies = np.empty(N)
+        energies[:] = np.nan
 
         if self.remove_rotation_and_translation:
             # Remove translation and rotation between
             # images before computing forces:
-            for i in range(1, self.nimages):
+            for i in range(1, N):
                 minimize_rotation_and_translation(images[i - 1], images[i])
-
-        # Get initial and final energy:
-        for i in [0, -1]:
-            try:
-                energies[i] = images[i].get_potential_energy()
-            except RuntimeError:
-                energies[i] = np.nan
 
         if not self.parallel:
             # Do all images - one at a time:
-            for i in range(1, self.nimages - 1):
+            for i in range(1, N - 1):
                 energies[i] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
             
@@ -145,14 +140,14 @@ class NEB:
                                         args=(images[i],
                                               energies[i:i + 1],
                                               forces[i - 1:i]))
-                       for i in range(1, self.nimages - 1)]
+                       for i in range(1, N - 1)]
             for thread in threads:
                 thread.start()
             for thread in threads:
                 thread.join()
         else:
             # Parallelize over images:
-            i = self.world.rank * (self.nimages - 2) // self.world.size + 1
+            i = self.world.rank * (N - 2) // self.world.size + 1
             try:
                 energies[i] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
@@ -165,8 +160,8 @@ class NEB:
                 if error:
                     raise RuntimeError('Parallel NEB failed!')
 
-            for i in range(1, self.nimages - 1):
-                root = (i - 1) * self.world.size // (self.nimages - 2)
+            for i in range(1, N - 1):
+                root = (i - 1) * self.world.size // (N - 2)
                 self.world.broadcast(energies[i:i + 1], root)
                 self.world.broadcast(forces[i - 1], root)
 
@@ -181,9 +176,9 @@ class NEB:
         if self.cornercutting:
             # Find length of springs:
             t = dist(0, -1)
-            length = np.linalg.norm(t) / (self.nimages - 1)
+            length = np.linalg.norm(t) / (N - 1)
             
-        for i in range(1, self.nimages - 1):
+        for i in range(1, N - 1):
             t1 = -dist(i, i - 1)
             t2 = dist(i, i + 1)
             nt1 = np.linalg.norm(t1)
@@ -191,14 +186,11 @@ class NEB:
 
             # Tangents are bisections of spring-directions
             # (formula 2 of paper I)
-            if (i == 1 and np.isnan(energies[0]) or
-                i == self.nimages - 2 and np.isnan(energies[-1])):
+            if i == 1 or i == N - 2:
                 tangent = t1 / nt1 + t2 / nt2
             else:
                 # Tangents are improved according to formulas 8, 9, 10,
                 # and 11 of paper I.
-                # First and last image in NEB cannot be improved since
-                # the energy is not known for the static points
                 if energies[i + 1] > energies[i] > energies[i - 1]:
                     tangent = t2
                 elif energies[i + 1] < energies[i] < energies[i - 1]:
@@ -226,9 +218,7 @@ class NEB:
             elif self.cornercutting:
                 f1 = -(nt1 - length) * t1 / nt1 * self.k[i - 1]
                 f2 = (nt2 - length) * t2 / nt2 * self.k[i]
-                if (self.climb and abs(i - imax) == 1 and
-                    not np.isnan(energies[i - 1]) and
-                    not np.isnan(energies[i + 1])):
+                if self.climb and abs(i - imax) == 1 and 1 < i < N - 2:
                     demax = max(abs(energies[i + 1] - energies[i]),
                                 abs(energies[i - 1] - energies[i]))
                     demin = min(abs(energies[i + 1] - energies[i]),
