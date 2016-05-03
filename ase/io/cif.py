@@ -162,11 +162,16 @@ def parse_cif(fileobj):
     return blocks
 
 
-def tags2atoms(tags, store_tags=False, primitive_cell=False):
-    """Returns an Atoms object from a cif tags dictionary.  If
-    *store_tags* is true, the *info* attribute of the returned Atoms
-    object will be populated with all the cif tags.  Keyword arguments
-    are passed to the Atoms constructor."""
+def tags2atoms(tags, store_tags=False, primitive_cell=False,
+               subtrans_included=True):
+    """Returns an Atoms object from a cif tags dictionary.  See read_cif()
+    for a description of the arguments."""
+    if primitive_cell and subtrans_included:
+        raise RuntimeError(
+            'Primitive cell cannot be determined when sublattice translations '
+            'are included in the symmetry operations listed in the CIF file, '
+            'i.e. when `subtrans_included` is True.')
+
     a = tags['_cell_length_a']
     b = tags['_cell_length_b']
     c = tags['_cell_length_c']
@@ -218,8 +223,9 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False):
         
     spacegroup = 1
     if sitesym is not None:
-        spacegroup = spacegroup_from_data(no=no, symbol=symbolHM,
-                                          sitesym=sitesym)
+        subtrans = [(0.0, 0.0, 0.0)] if subtrans_included else None
+        spacegroup = spacegroup_from_data(
+            no=no, symbol=symbolHM, sitesym=sitesym, subtrans=subtrans)
     elif no is not None:
         spacegroup = no
     elif symbolHM is not None:
@@ -239,7 +245,8 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False):
     return atoms
     
 
-def read_cif(fileobj, index, store_tags=False, primitive_cell=False):
+def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
+             subtrans_included=True):
     """Read Atoms object from CIF file. *index* specifies the data
     block number or name (if string) to return.
 
@@ -251,15 +258,24 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False):
     Atoms object will be populated with all tags in the corresponding
     cif data block.
     
-    If *primitive_cell* is true, the primitive cell will be built insead
-    of the conventional cell."""
-    
+    If *primitive_cell* is true, the primitive cell will be built instead
+    of the conventional cell.
+
+    If *subtrans_included* is true, sublattice translations are
+    assumed to be included among the symmetry operations listed in the
+    CIF file (seems to be the common behaviour of CIF files).
+    Otherwise the sublattice translations are determined from setting
+    1 of the extracted space group.  A result of setting this flag to
+    true, is that it will not be possible to determine the primitive
+    cell.
+    """
     blocks = parse_cif(fileobj)
     # Find all CIF blocks with valid crystal data
     images = []
     for name, tags in blocks:
         try:
-            atoms = tags2atoms(tags, store_tags, primitive_cell)
+            atoms = tags2atoms(tags, store_tags, primitive_cell, 
+                               subtrans_included)
             images.append(atoms)
         except KeyError:
             pass
