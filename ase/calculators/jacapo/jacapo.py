@@ -4390,7 +4390,7 @@ s.recv(14)
 
         exc = exc_c + exc_e
 
-        if self.get_xc == 'RPBE':
+        if self.get_xc() == 'RPBE':
             EXC = exc[-1][-1]
 
         E0 = xc[1]    # Fx = 0
