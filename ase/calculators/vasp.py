@@ -401,17 +401,17 @@ class Vasp(Calculator):
         # self.set(**kwargs) later in this function.)
         if kwargs.get('xc', None):
             xc = kwargs['xc'].lower()
-            if xc not in xc_defaults:
-                xc_allowed = ', '.join(xc_defaults.keys())
+            if xc not in Vasp.xc_defaults:
+                xc_allowed = ', '.join(Vasp.xc_defaults.keys())
                 raise ValueError(
                     '{0} is not supported for xc! Supported xc values'
                     'are: '.format(kwargs['xc']), xc_allowed)
             else:
                 # XC defaults to PBE pseudopotentials
-                if 'pp' not in xc_defaults[xc]
-                    xc_defaults[xc].update({'pp': 'PBE'})
+                if 'pp' not in Vasp.xc_defaults[xc]:
+                    Vasp.xc_defaults[xc].update({'pp': 'PBE'})
 
-                self.set(**xc_defaults[kwargs['xc'].lower()])
+                self.set(**Vasp.xc_defaults[kwargs['xc'].lower()])
                 self.input_params.update({'xc': kwargs['xc']})
 
             # A null value of xc is permitted; custom recipes can be
