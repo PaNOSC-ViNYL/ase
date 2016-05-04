@@ -322,8 +322,8 @@ class Vasp(Calculator):
     xc_defaults = {
     'lda': {'pp': 'LDA'},
     # GGAs
-    'pw91': {'pp': 'GGA', 'gga': '91'},
-    'pbe': {'gga': 'PE'},
+    'pw91': {'pp': 'GGA'},
+    'pbe': {'pp': 'PBE'},
     'pbesol': {'gga': 'PS'},
     'revpbe': {'gga': 'RE'},
     'rpbe': {'gga': 'RP'},
@@ -414,9 +414,13 @@ class Vasp(Calculator):
                 self.set(**Vasp.xc_defaults[kwargs['xc'].lower()])
                 self.input_params.update({'xc': kwargs['xc']})
 
-            # A null value of xc is permitted; custom recipes can be
-            # used by explicitly setting the pseudopotential set and
-            # INCAR keys
+        # If no XC combination, GGA functional or POTCAR type is specified,
+        # default to PW91. This is mostly chosen for backwards compatiblity.
+        elif not (kwargs.get('gga', None) or kwargs.get('pp', None)):
+            self.input_params.update({'xc': 'PW91'})
+        # A null value of xc is permitted; custom recipes can be
+        # used by explicitly setting the pseudopotential set and
+        # INCAR keys
         else:
             self.input_params.update({'xc': None})
 
