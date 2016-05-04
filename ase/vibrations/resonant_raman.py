@@ -52,7 +52,10 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  approximation='Profeta',
-                 observation='perpendicular',  # usual experimental setup
+                 observation={
+##                     'orientation' : 'random',
+                     'scattered' : 'Z'
+                 },
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
                  txt='-',
@@ -431,38 +434,45 @@ class ResonantRaman(Vibrations):
     def get_intensities(self, omega, gamma=0.1):
         m2 = ResonantRaman.m2
         alpha_rcc = self.get_matrix_element(omega, gamma)
-        if self.observation.lower() == 'sum':
+        if not self.observation:  # XXXX remove
             """Simple sum, maybe too simple"""
             return m2(alpha_rcc).sum(axis=1).sum(axis=1)
-        elif (self.observation.lower() == 'perpendicular' or 
-              self.observation.lower() == 'depolarization'):
-            """Intensity after 
-            Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
-            """
-            m2 = ResonantRaman.m2
-            alpha2_r = m2(alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] + 
-                          alpha_rcc[:, 2, 2]) / 9.
-            delta2_r = 3 / 4. * (
-                m2(alpha_rcc[:, 0, 1] - alpha_rcc[:, 1, 0]) +
-                m2(alpha_rcc[:, 0, 2] - alpha_rcc[:, 2, 0]) +
-                m2(alpha_rcc[:, 1, 2] - alpha_rcc[:, 2, 1]))
-            gamma2_r = ( 3 / 4. * (
-                m2(alpha_rcc[:, 0, 1] + alpha_rcc[:, 1, 0]) +
-                m2(alpha_rcc[:, 0, 2] + alpha_rcc[:, 2, 0]) +
-                m2(alpha_rcc[:, 1, 2] + alpha_rcc[:, 2, 1]))
-                         + (
-                m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
-                m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
-                m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
-            if self.observation.lower() == 'perpendicular':
-                return (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
-            else:
-                raise NotImplementedError('not yet')
-                # here Porezag and Woodward differ ???
-                return 3 * beta2_r / (45 * m2(alpha_r) + 4 * beta2_r)
+## XXX enable when appropraiate
+##        if self.observation['orientation'].lower() != 'random':
+##            raise NotImplementedError('not yet')
+
+        # random orientation of the molecular frame
+        # Woodward & Long,
+        # Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
+        m2 = ResonantRaman.m2
+        alpha2_r = m2(alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] +
+                      alpha_rcc[:, 2, 2]) / 9.
+        delta2_r = 3 / 4. * (
+            m2(alpha_rcc[:, 0, 1] - alpha_rcc[:, 1, 0]) +
+            m2(alpha_rcc[:, 0, 2] - alpha_rcc[:, 2, 0]) +
+            m2(alpha_rcc[:, 1, 2] - alpha_rcc[:, 2, 1]))
+        gamma2_r = ( 3 / 4. * (
+            m2(alpha_rcc[:, 0, 1] + alpha_rcc[:, 1, 0]) +
+            m2(alpha_rcc[:, 0, 2] + alpha_rcc[:, 2, 0]) +
+            m2(alpha_rcc[:, 1, 2] + alpha_rcc[:, 2, 1]))
+                     + (
+            m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
+            m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
+            m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
+
+        if self.observation['scattered'] == 'Z':
+            # scattered light in dierction of incoming light
+            return (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
+        elif self.observation['scattered'] == 'parallel':
+            # scattered light perendicular and
+            # polarization in plane
+            return 6 * gamma2_r / 45.
+        elif self.observation['scattered'] == 'perpendicular':
+            # scattered light perendicular and
+            # polarization out of plane
+            return (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
         else:
-            raise NotImplementedError('Observation ' + self.observation +
-                                      'not implemented')
+            raise NotImplementedError
 
     def get_cross_sections(self, omega, gamma=0.1):
         I_r = self.get_intensities(omega, gamma=0.1)
