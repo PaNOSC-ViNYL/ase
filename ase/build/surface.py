@@ -28,7 +28,7 @@ def fcc110(symbol, size, a=None, vacuum=None):
     """FCC(110) surface.
 
     Supported special adsorption sites: 'ontop', 'longbridge',
-    'shortbridge','hollow'."""
+    'shortbridge', 'hollow'."""
     return _surface(symbol, 'fcc', '110', size, a, None, vacuum)
 
 

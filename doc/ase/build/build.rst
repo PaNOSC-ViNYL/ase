@@ -4,99 +4,52 @@
 Builing things
 ==============
 
-**Common bulk crystals**
-
-The :func:`ase.lattice.bulk` function can be used to create the most
-common bulk crystal structures.  The function creates a single unit cell
-oriented such that the number of atoms in the cell is minimal.
-
-Read more: :ref:`bulk-crystal-section`.
-
-
-**Common surfaces**
-
-The :mod:`ase.build` module contains a number of
-functions for creating the most common surfaces in a minimal unit
-cell, and for adding adsorbates to these surfaces.
-
-Read more: lattice-surface-section???
-
-
-**Nanotubes and nanoribbons**
-
-The functions :func:`ase.build.nanotube` and
-:func:`ase.build.graphene_nanoribbon` can be used to create Carbon
-nanotubes and graphene sheets or nanoribbons.  Per default, they
-create Carbon nanotubes and sheets, but other elements can be used.
-
-Read more:  :ref:`nanotubes-section` and :ref:`nanoribbons-section`.
-
-**Generally oriented bulk crystals and surfaces**
-
-The :mod:`ase.lattice` module contains functions for creating most common
-crystal structures with arbitrary orientation.  The user can specify
-the desired Miller index along the three axes of the simulation, and
-the smallest periodic structure fulfilling this specification is
-created.  Thirteen of the 14 Bravais lattices are supported by the
-module, as are a few lattices with a basis, and lattices for some of
-the most common compounds/alloys.  The modules makes it possible to
-define further lattices based on the supported Bravais lattices.
-
-Both bulk crystals and surfaces can be created.
-
-Read more: :ref:`general-crystal-section`.
-
-**Molecules**
-
-Some common molecules can be constructed using the
-:func:`ase.build.molecule` function.
-
-Read more: :ref:`molecular-data`.
-
-
-
-:func:`~ase.build.bulk`
-:func:`~ase.build.surface`
-:func:`~ase.build.molecule`
-
-.. list-table::
+Quick links:
     
-    * - :func:`~ase.build.fcc100`
-      - :func:`~ase.build.fcc110`
-      - :func:`~ase.build.fcc111`
-    * - :func:`~ase.build.fcc211`
-      - :func:`~ase.build.bcc100`
-      - :func:`~ase.build.bcc110`
-    * - :func:`~ase.build.bcc111`
-      - :func:`~ase.build.hcp0001`
-      - :func:`~ase.build.hcp10m10`
-    * - :func:`~ase.build.diamond100`
-      - :func:`~ase.build.diamond111`
-      - :func:`~ase.build.fcc111_root`
+* Simple bulk crystals: :func:`~ase.build.bulk`
+
+* Simple molecules: :func:`~ase.build.molecule`
+
+* Special surfaces:
+    
+  * fcc: :func:`~ase.build.fcc100`, :func:`~ase.build.fcc110`,
+    :func:`~ase.build.fcc111`, :func:`~ase.build.fcc211`,
+    :func:`~ase.build.fcc111_root`
+    
+  * bcc: :func:`~ase.build.bcc100`, :func:`~ase.build.bcc110`,
+    :func:`~ase.build.bcc111`
     * - :func:`~ase.build.bcc111_root`
-      - :func:`~ase.build.hcp0001_root`
-      - :func:`~ase.build.mx2`
-    * - :func:`~ase.build.add_adsorbate`
-      - :func:`~ase.build.add_vacuum`
-      - :func:`~ase.build.root_surface`
+    
+  * hcp: :func:`~ase.build.hcp0001`, :func:`~ase.build.hcp10m10`,
+    :func:`~ase.build.hcp0001_root`
+    
+  * diamond: :func:`~ase.build.diamond100`, :func:`~ase.build.diamond111`
+  
+* `MX_2` (2H or 1T): :func:`~ase.build.mx2`
 
+* Other surface tools: :func:`~ase.build.surface`,
+  :func:`~ase.build.add_adsorbate`, :func:`~ase.build.add_vacuum`,
+  :func:`~ase.build.root_surface`
 
-:func:`~ase.build.nanotube`
-:func:`~ase.build.graphene_nanoribbon`
+* 1D: :func:`~ase.build.nanotube`, :func:`~ase.build.graphene_nanoribbon`
 
-:func:`~ase.build.cut`
-:func:`~ase.build.stack`
-:func:`~ase.build.sort`
-:func:`~ase.build.minimize_tilt`
-:func:`~ase.build.niggli_reduce`
-:func:`~ase.build.rotate`
-:func:`~ase.build.minimize_rotation_and_translation`
+* Other tools: :func:`~ase.build.cut`, :func:`~ase.build.stack`,
+  :func:`~ase.build.sort`, :func:`~ase.build.minimize_tilt`,
+  :func:`~ase.build.niggli_reduce`, :func:`~ase.build.rotate`,
+  :func:`~ase.build.minimize_rotation_and_translation`
 
 
 .. seealso::
 
-   * The :mod:`ase.lattice` module
+   * The :mod:`ase.lattice` module.  The module contains functions for
+     creating most common crystal structures with arbitrary orientation.
+     The user can specify the desired Miller index along the three axes
+     of the simulation, and the smallest periodic structure fulfilling
+     this specification is created.  Both bulk crystals and surfaces can
+     be created.
+
    * The :mod:`ase.spacegroup` module
+   
    * The :mod:`ase.geometry` module
 
    
@@ -119,10 +72,36 @@ Example::
 >>> from ase.build import molecule
 >>> atoms = molecule('H2O')
 
-To see a list of available molecules in the default set, use::
+The list of available molecules is those from the :data:`ase.collection.g2`
+database:
 
 >>> from ase.collection import g2
 >>> g2.names
+['PH3', 'P2', 'CH3CHO', 'H2COH', 'CS', 'OCHCHO', 'C3H9C', 'CH3COF',
+ 'CH3CH2OCH3', 'HCOOH', 'HCCl3', 'HOCl', 'H2', 'SH2', 'C2H2',
+ 'C4H4NH', 'CH3SCH3', 'SiH2_s3B1d', 'CH3SH', 'CH3CO', 'CO', 'ClF3',
+ 'SiH4', 'C2H6CHOH', 'CH2NHCH2', 'isobutene', 'HCO', 'bicyclobutane',
+ 'LiF', 'Si', 'C2H6', 'CN', 'ClNO', 'S', 'SiF4', 'H3CNH2',
+ 'methylenecyclopropane', 'CH3CH2OH', 'F', 'NaCl', 'CH3Cl',
+ 'CH3SiH3', 'AlF3', 'C2H3', 'ClF', 'PF3', 'PH2', 'CH3CN',
+ 'cyclobutene', 'CH3ONO', 'SiH3', 'C3H6_D3h', 'CO2', 'NO',
+ 'trans-butane', 'H2CCHCl', 'LiH', 'NH2', 'CH', 'CH2OCH2',
+ 'C6H6', 'CH3CONH2', 'cyclobutane', 'H2CCHCN', 'butadiene', 'C',
+ 'H2CO', 'CH3COOH', 'HCF3', 'CH3S', 'CS2', 'SiH2_s1A1d', 'C4H4S',
+ 'N2H4', 'OH', 'CH3OCH3', 'C5H5N', 'H2O', 'HCl', 'CH2_s1A1d',
+ 'CH3CH2SH', 'CH3NO2', 'Cl', 'Be', 'BCl3', 'C4H4O', 'Al', 'CH3O',
+ 'CH3OH', 'C3H7Cl', 'isobutane', 'Na', 'CCl4', 'CH3CH2O', 'H2CCHF',
+ 'C3H7', 'CH3', 'O3', 'P', 'C2H4', 'NCCN', 'S2', 'AlCl3', 'SiCl4',
+ 'SiO', 'C3H4_D2d', 'H', 'COF2', '2-butyne', 'C2H5', 'BF3', 'N2O',
+ 'F2O', 'SO2', 'H2CCl2', 'CF3CN', 'HCN', 'C2H6NH', 'OCS', 'B', 'ClO',
+ 'C3H8', 'HF', 'O2', 'SO', 'NH', 'C2F4', 'NF3', 'CH2_s3B1d', 'CH3CH2Cl',
+ 'CH3COCl', 'NH3', 'C3H9N', 'CF4', 'C3H6_Cs', 'Si2H6', 'HCOOCH3', 'O',
+ 'CCH', 'N', 'Si2', 'C2H6SO', 'C5H8', 'H2CF2', 'Li2', 'CH2SCH2', 'C2Cl4',
+ 'C3H4_C3v', 'CH3COCH3', 'F2', 'CH4', 'SH', 'H2CCO', 'CH3CH2NH2', 'Li',
+ 'N2', 'Cl2', 'H2O2', 'Na2', 'BeH', 'C3H4_C2v', 'NO2']
+
+plus ``Be2``, ``C7NH5``, ``BDA``, ``biphenyl`` and ``C60`` (for historical
+reasons).
 
 
 .. _bulk-crystal-section:
@@ -196,8 +175,6 @@ examples:
 
 .. |gnr1| image:: gnr1.png
 .. |gnr2| image:: gnr2.png
-
-
 
 ASE contains a number of modules for setting up atomic structures,
 mainly molecules, bulk crystals and surfaces.  Some of these modules

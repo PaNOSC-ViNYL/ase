@@ -30,6 +30,17 @@ multiple configurations):
     :file: io.csv
     :header-rows: 1
     
+.. note::
+
+    Even though that ASE does a good job reading the above listed
+    formats, it may not read some unusual features or strangely
+    formatted files.
+
+    For the CIF format, STAR extensions as save frames, global blocks,
+    nested loops and multi-data values are not supported.  Furthermore,
+    ASE currently assumes the ``loop_`` identifier, and the following
+    loop variable names to be on separate lines.
+
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
 

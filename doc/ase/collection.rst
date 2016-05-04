@@ -4,6 +4,8 @@
 Collections
 ===========
 
+:data:`s22`, :data:`g2`
+
 .. autoclass:: ase.collection.collection.Collection
 
 
@@ -26,3 +28,9 @@ poised corrected (CP) and MP2 /CBS CP. The original S22 interaction energies
 are listed in the above references. The S22 energies used here are from
 Takatani, T. et al., J. Chem. Phys., 132, 144104 (2010) where a large and more
 complete basis set has been used for all database members.
+
+
+G2 ...
+======
+
+.. data:: g2
