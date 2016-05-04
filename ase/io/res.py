@@ -179,7 +179,7 @@ class Res(object):
             line_no += 1
 
         return Res(Atoms(symbols=sp,
-                         positions=coords,
+                         scaled_positions=coords,
                          cell=cellpar_to_cell(list(abc) + list(ang)),
                          pbc=True, info=info),
                    info.get('name'),
