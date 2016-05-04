@@ -163,6 +163,8 @@ class ResonantRaman(Vibrations):
 
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
+#        self.exmE_p = np.array([ex.energy * eu for ex in exm])
+#        self.expE_p = np.array([ex.energy * eu for ex in exp])
         self.ex0m_pc = np.array(
             [ex.get_dipole_me(form='v') for ex in ex0])
         self.exF_rp = []
@@ -340,7 +342,8 @@ class ResonantRaman(Vibrations):
         self.timer.stop('AlbrechtBC')
         return m_rcc
 
-    def get_matrix_element_Profeta(self, omega, gamma=0.1):
+    def get_matrix_element_Profeta(self, omega, gamma=0.1,
+                                   energy_derivative=False):
         """Evaluate Albrecht B+C term in Profeta and Mauri approximation"""
         self.read()
 
@@ -370,6 +373,10 @@ class ResonantRaman(Vibrations):
                 V_rcc[r] = pre * self.im[r] * (
                     kappa(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
                     kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
+                if energy_derivative:
+                    V_rcc[r] += pre * self.im[r] * (
+                        kappa(self.ex0m_rpc[r], self.expE_p, omega, gamma) -
+                        kappa(self.ex0m_rpc[r], self.exmE_p, omega, gamma))
                 r += 1
         self.timer.stop('kappa')
 ###        print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
@@ -395,6 +402,8 @@ class ResonantRaman(Vibrations):
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         if self.approximation.lower() == 'profeta':
             V_rcc += self.get_matrix_element_Profeta(omega, gamma)
+        elif self.approximation.lower() == 'placzek':
+            V_rcc += self.get_matrix_element_Profeta(omega, gamma, True)
         elif self.approximation.lower() == 'albrecht a':
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
