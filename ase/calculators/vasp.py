@@ -445,7 +445,7 @@ class Vasp(Calculator):
             xc_allowed = ', '.join(Vasp.xc_defaults.keys())
             raise ValueError(
                 '{0} is not supported for xc! Supported xc values'
-                'are: '.format(kwargs['xc']), xc_allowed)
+                'are: {1}'.format(xc, xc_allowed))
         else:
             # XC defaults to PBE pseudopotentials
             if 'pp' not in Vasp.xc_defaults[xc]:
