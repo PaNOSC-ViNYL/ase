@@ -384,6 +384,7 @@ class Vasp(Calculator):
         # Initialize internal dictionary of input parameters which are
         # not regular VASP keys
         self.input_params = {
+            'xc': None, # Exchange-correlation recipe (e.g. 'B3LYP')
             'pp': None, # Pseudopotential file (e.g. 'PW91')
             'setups': None,  # Special setups (e.g pv, sv, ...)
             'txt': '-',  # Where to send information
@@ -396,26 +397,17 @@ class Vasp(Calculator):
             # of reciprocal lattice vectors:
             'reciprocal': False}
 
-        # Set default parameters for XC functional.
-        # (These will be overwritten where appropriate by a call to
-        # self.set(**kwargs) later in this function.)
-        if kwargs.get('xc', None):
-            xc = kwargs['xc'].lower()
-            if xc not in Vasp.xc_defaults:
-                xc_allowed = ', '.join(Vasp.xc_defaults.keys())
-                raise ValueError(
-                    '{0} is not supported for xc! Supported xc values'
-                    'are: '.format(kwargs['xc']), xc_allowed)
-            else:
-                # XC defaults to PBE pseudopotentials
-                if 'pp' not in Vasp.xc_defaults[xc]:
-                    Vasp.xc_defaults[xc].update({'pp': 'PBE'})
-
-                self.set(**Vasp.xc_defaults[kwargs['xc'].lower()])
-                self.input_params.update({'xc': kwargs['xc']})
+        self.restart = restart
+        self.track_output = track_output
+        self.output_template = output_template
+        if restart:
+            self.restart_load()
+            return
 
         # If no XC combination, GGA functional or POTCAR type is specified,
         # default to PW91. This is mostly chosen for backwards compatiblity.
+        if kwargs.get('xc', None):
+            pass
         elif not (kwargs.get('gga', None) or kwargs.get('pp', None)):
             self.input_params.update({'xc': 'PW91'})
         # A null value of xc is permitted; custom recipes can be
@@ -424,12 +416,6 @@ class Vasp(Calculator):
         else:
             self.input_params.update({'xc': None})
 
-        self.restart = restart
-        self.track_output = track_output
-        self.output_template = output_template
-        if restart:
-            self.restart_load()
-            return
 
         if (('ldauu' in kwargs) and
             ('ldaul' in kwargs) and
@@ -450,7 +436,25 @@ class Vasp(Calculator):
         self.run_counts = 0
         self.set(**kwargs)
 
+    def set_xc_params(self, xc):
+        """Set parameters corresponding to XC functional"""
+        xc = xc.lower()
+        if xc is None:
+            pass
+        elif xc not in Vasp.xc_defaults:
+            xc_allowed = ', '.join(Vasp.xc_defaults.keys())
+            raise ValueError(
+                '{0} is not supported for xc! Supported xc values'
+                'are: '.format(kwargs['xc']), xc_allowed)
+        else:
+            # XC defaults to PBE pseudopotentials
+            if 'pp' not in Vasp.xc_defaults[xc]:
+                self.set(pp='PBE')
+            self.set(**Vasp.xc_defaults[xc])
+
     def set(self, **kwargs):
+        if 'xc' in kwargs:
+            self.set_xc_params(kwargs['xc'])
         for key in kwargs:
             if key in self.float_params:
                 self.float_params[key] = kwargs[key]
