@@ -322,8 +322,8 @@ class Vasp(Calculator):
     xc_defaults = {
         'lda': {'pp': 'LDA'},
         # GGAs
-        'pw91': {'pp': 'GGA'},
-        'pbe': {'pp': 'PBE'},
+        'pw91': {'pp': 'GGA', 'gga': '91'},
+        'pbe': {'pp': 'PBE', 'gga': 'PE'},
         'pbesol': {'gga': 'PS'},
         'revpbe': {'gga': 'RE'},
         'rpbe': {'gga': 'RP'},
