@@ -460,8 +460,12 @@ class ResonantRaman(Vibrations):
             m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
             m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
 
-        if self.observation['scattered'] == 'Z':
-            # scattered light in dierction of incoming light
+        if self.observation['geometry'] == '-Z(XX)Z':  # Porto's notation
+            return (45 * alpha2_r + 5 * delta2_r + 4 * gamma2_r) / 45.
+        elif self.observation['geometry'] == '-Z(XY)Z':  # Porto's notation
+            return gamma2_r / 15.
+        elif self.observation['scattered'] == 'Z':
+            # scattered light in direction of incoming light
             return (45 * alpha2_r + 5 * delta2_r + 7 * gamma2_r) / 45.
         elif self.observation['scattered'] == 'parallel':
             # scattered light perendicular and
