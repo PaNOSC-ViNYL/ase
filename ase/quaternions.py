@@ -88,6 +88,12 @@ class Quaternion:
                          [2*(xz + wy), 2*(yz - wx), ww - xx - yy + zz]
                          ])
 
+    def arc_distance(self, other):
+        """Gives a metric of the distance between two quaternions,
+        expressed as 1-|q1.q2|"""
+
+        return 1.0 - np.abs(np.dot(self.q, other.q))
+
     @staticmethod
     def rotate_byq(q, vector):
         """Apply the rotation matrix to a vector."""
