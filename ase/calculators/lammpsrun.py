@@ -410,7 +410,7 @@ class LAMMPS:
         if not (('minimize' in parameters) or ('run' in parameters)):
             f.write('run 0\n'.encode('utf-8'))
 
-        f.write('print "{0}"\n'.format(CALCULATION_END_MARK).encode('utf-8'))
+        f.write('print("{0}")\n'.format(CALCULATION_END_MARK).encode('utf-8'))
         f.write('log /dev/stdout\n'.encode('utf-8')) # Force LAMMPS to flush log
 
         f.flush()
@@ -786,7 +786,7 @@ if __name__ == '__main__':
     pair_coeff = [ '* * ' + Pd_eam_file ]
     parameters = { 'pair_style' : pair_style, 'pair_coeff' : pair_coeff }
     files = [ Pd_eam_file ]
-    calc = LAMMPS(parameters=parameters, files=files, keep_tmp_files=False)
+    calc = LAMMPS(parameters=parameters, files=files)
     a0 = 3.93
     b0 = a0 / 2.0
     if True:
