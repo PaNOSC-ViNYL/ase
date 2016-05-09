@@ -41,6 +41,8 @@ class Quaternion:
                            sw*oy + sy*ow + sz*ox - sx*oz,
                            sw*oz + sz*ow + sx*oy - sy*ox])
 
+    __mul__ = __mult__
+
     def conjugate(self):
         return Quaternion(-self.q * np.array([-1., 1., 1., 1.]))
 
@@ -85,8 +87,9 @@ class Quaternion:
                          [2*(xy - wz), ww - xx + yy - zz, 2*(yz + wx)],
                          [2*(xz + wy), 2*(yz - wx), ww - xx - yy + zz]
                          ])
- 
-    def rotate_byq(self, q, vector):
+
+    @staticmethod
+    def rotate_byq(q, vector):
         """Apply the rotation matrix to a vector."""
         qw, qx, qy, qz = q[0], q[1], q[2], q[3]
         x, y, z = vector[0], vector[1], vector[2]
@@ -107,16 +110,46 @@ class Quaternion:
                 (ww - xx + yy - zz) * y + 2 * ((xy + wz) * x + (yz - wx) * z),
                 (ww - xx - yy + zz) * z + 2 * ((xz - wy) * x + (yz + wx) * y)
                 ])
-   
-    def from_matrix(self, matrix):
+    
+    @staticmethod
+    def from_matrix(matrix):
         """Build quaternion from rotation matrix."""
         m = np.array(matrix)
         assert m.shape == (3, 3)
 
-        qw = np.sqrt(1 + m[0, 0] + m[1, 1] + m[2, 2]) / 2.
-        qx = (m[2, 1] - m[1, 2]) / (4 * qw)
-        qy = (m[0, 2] - m[2, 0]) / (4 *qw)
-        qz = (m[1, 0] - m[0, 1]) / (4 *qw)
+        # Now we need to find out the whole quaternion
+        # This method takes into account the possibility of qw being nearly zero,
+        # so it picks the stablest solution
 
-        self.q = np.array([qw, qx, qy, qz])
-        return self
+        if m[2, 2] < 0:
+            if (m[0, 0] > m[1, 1]):
+                # Use x-form
+                qx = np.sqrt(1 + m[0, 0] - m[1, 1] - m[2, 2])/2.0
+                fac = 1.0/(4*qx)
+                qw = (m[2, 1] - m[1, 2])*fac
+                qy = (m[0, 1] + m[1, 0])*fac
+                qz = (m[0, 2] + m[2, 0])*fac
+            else:
+                # Use y-form
+                qy = np.sqrt(1 - m[0, 0] + m[1, 1] - m[2, 2])/2.0
+                fac = 1.0/(4*qy)
+                qw = (m[0, 2] - m[2, 0])*fac
+                qx = (m[0, 1] + m[1, 0])*fac
+                qz = (m[1, 2] + m[2, 1])*fac
+        else:
+            if (m[0, 0] < -m[1, 1]):
+                # Use z-form
+                qz = np.sqrt(1 - m[0, 0] - m[1, 1] + m[2, 2])/2.0
+                fac = 1.0/(4*qz)
+                qw = (m[1, 0] - m[0, 1])*fac
+                qx = (m[2, 0] + m[0, 2])*fac
+                qy = (m[1, 2] + m[2, 1])*fac
+            else:
+                # Use w-form
+                qw = np.sqrt(1 + m[0, 0] + m[1, 1] + m[2, 2])/2.0
+                fac = 1.0/(4*qw)
+                qx = (m[2, 1] - m[1, 2])*fac
+                qy = (m[0, 2] - m[2, 0])*fac
+                qz = (m[1, 0] - m[0, 1])*fac
+
+        return Quaternion(np.array([qw, qx, qy, qz]))
