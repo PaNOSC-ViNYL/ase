@@ -1439,6 +1439,7 @@ End CASTEP Interface Documentation
                 if option.value is not None:
                     self.param.__setattr__(key, option.value)
             return
+
         elif isinstance(param, str):
             param_file = open(param, 'r')
             _close = True
@@ -1461,8 +1462,16 @@ End CASTEP Interface Documentation
             param = param_file.name
             _close = False
 
-        for i, line in enumerate(param_file.readlines()):
-            line = line.strip()
+        # ok, we need to load the file beforehand into memory, seems like the
+        # easiest way to do the BLOCK handling.
+        lines = param_file.readlines()
+        i=0
+        while i < len(lines):
+            line = lines[i].strip()
+
+            # note that i will point to the next line from now on
+            i +=1
+
             # remove comments
             for comment_char in ['#', ';', '!']:
                 if comment_char in line:
@@ -1478,18 +1487,35 @@ End CASTEP Interface Documentation
                             else:
                                 self._opt[iline.split()[0]] = value
                     line = line[:line.index(comment_char)]
+
             # if nothing remains
             if not line.strip():
                 continue
-
-            # also the '=' is valid // this fails for quantities with units
-            #line = re.sub('[:=]', ' ', line)
 
             if line == 'reuse':
                 self.param.reuse.value = 'default'
                 continue
             if line == 'continuation':
                 self.param.continuation.value = 'default'
+                continue
+
+            # here comes the handling of the devel block (the only block so far
+            # I know to be in the param file)
+            if line.upper() == '%BLOCK DEVEL_CODE':
+                key = 'devel_code'
+                value = ''
+                while True:
+                    line = lines[i].strip()
+                    i += 1
+                    if line.upper() == '%ENDBLOCK DEVEL_CODE':
+                        break
+                    value += '\n{}'.format(line)
+                value = value.strip()
+
+                if not overwrite and getattr(self.param, key).value is not None:
+                    continue
+
+                self.__setattr__(key, value)
                 continue
 
             try:
