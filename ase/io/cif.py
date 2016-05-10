@@ -238,10 +238,22 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         kwargs = {}
 
+    if 'D' in symbols:
+        deuterium = [symbol == 'D' for symbol in symbols]
+        symbols = [symbol if symbol != 'D' else 'H' for symbol in symbols]
+    else:
+        deuterium = False
+        
     atoms = crystal(symbols, basis=scaled_positions,
                     cellpar=[a, b, c, alpha, beta, gamma],
                     spacegroup=spacegroup, primitive_cell=primitive_cell,
                     **kwargs)
+    if deuterium:
+        masses = atoms.get_masses()
+        masses[atoms.numbers == 1] = 1.00783
+        masses[deuterium] = 2.01355
+        atoms.set_masses(masses)
+        
     return atoms
     
 
@@ -274,7 +286,7 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     images = []
     for name, tags in blocks:
         try:
-            atoms = tags2atoms(tags, store_tags, primitive_cell, 
+            atoms = tags2atoms(tags, store_tags, primitive_cell,
                                subtrans_included)
             images.append(atoms)
         except KeyError:
