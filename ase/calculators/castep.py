@@ -1482,7 +1482,8 @@ End CASTEP Interface Documentation
             if not line.strip():
                 continue
 
-            line = re.sub(':', ' ', line)
+            # also the '=' is valid // this fails for quantities with units
+            #line = re.sub('[:=]', ' ', line)
 
             if line == 'reuse':
                 self.param.reuse.value = 'default'
@@ -1492,7 +1493,8 @@ End CASTEP Interface Documentation
                 continue
 
             try:
-                key, value = line.split()
+                # we go for the regex split here
+                key, value = [s.strip() for s in re.split(r'[:=]+', line)]
             except:
                 print('Could not parse line %s of your param file: %s'
                       % (i, line))
