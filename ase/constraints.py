@@ -7,7 +7,7 @@ import numpy as np
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
-           'FixBondLengths', 'FixInternals', 'Hookean']
+           'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
 
 def dict2constraint(dct):
@@ -879,6 +879,42 @@ class Hookean(FixConstraint):
             return 'Hookean(%d) to cartesian' % self.index
         else:
             return 'Hookean(%d) to plane' % self.index
+
+
+class ExternalForce(FixConstraint):
+    """Constraint object for pulling two atoms apart by an external force."""
+    def __init__(self, a1, a2, f_ext):
+        self.indices = [a1, a2]
+        self.external_force = f_ext
+
+    def adjust_positions(self, atoms, new):
+        pass
+
+    def adjust_forces(self, atoms, forces):
+        dist = np.subtract.reduce(atoms.positions[self.indices])
+        force = self.external_force * dist / np.linalg.norm(dist)
+        forces[self.indices] += (force, -force)
+
+    def index_shuffle(self, atoms, ind):
+        """Shuffle the indices of the two atoms in this constraint"""
+        newa = [-1, -1]  # Signal error
+        for new, old in slice2enlist(ind, len(atoms)):
+            for i, a in enumerate(self.indices):
+                if old == a:
+                    newa[i] = new
+        if newa[0] == -1 or newa[1] == -1:
+            raise IndexError('Constraint not part of slice')
+        self.indices = newa
+
+    def __repr__(self):
+        return 'ExternalForce(%d, %d, %f)' % (self.indices[0],
+                                              self.indices[1],
+                                              self.external_force)
+
+    def todict(self):
+        return {'name': 'ExternalForce',
+                'kwargs': {'a1': self.indices[0], 'a2': self.indices[1],
+                           'f_ext': self.external_force}}
 
 
 class Filter:
