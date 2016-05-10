@@ -882,7 +882,13 @@ class Hookean(FixConstraint):
 
 
 class ExternalForce(FixConstraint):
-    """Constraint object for pulling two atoms apart by an external force."""
+    """Constraint object for pulling two atoms apart by an external force.
+    You can combine this constraint for example with FixBondLength but make
+    sure that the ExternalForce-constraint comes first in the list:
+    >>> con1 = ExternalForce(atom1, atom2, f_ext)
+    >>> con2 = FixBondLength(atom3, atom4)
+    >>> atoms.set_constraint([con1, con2])
+    see ase/test/external_force.py"""
     def __init__(self, a1, a2, f_ext):
         self.indices = [a1, a2]
         self.external_force = f_ext
