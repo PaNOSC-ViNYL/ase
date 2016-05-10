@@ -29,6 +29,10 @@ def convert_value(value):
     elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\(\d+\)$',
                   value):
         return float(value[:value.index('(')])  # strip off uncertainties
+    elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\(\d+$',
+                  value):
+        warnings.warn('Badly formed number: "{0}"'.format(value))
+        return float(value[:value.index('(')])  # strip off uncertainties
     else:
         return value
 
