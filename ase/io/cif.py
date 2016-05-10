@@ -5,8 +5,9 @@ description of the file format.  STAR extensions as save frames,
 global blocks, nested loops and multi-data values are not supported.
 """
 
-import shlex
 import re
+import shlex
+import warnings
 
 import numpy as np
 
@@ -96,10 +97,11 @@ def parse_loop(lines):
         tokens.extend(t)
         if len(tokens) < len(columns):
             continue
-        assert len(tokens) == len(header)
-
-        for h, t in zip(header, tokens):
-            columns[h].append(convert_value(t))
+        if len(tokens) == len(header):
+            for h, t in zip(header, tokens):
+                columns[h].append(convert_value(t))
+        else:
+            warnings.warn('Wrong number of tokens: {0}'.format(tokens))
         tokens = []
     if line:
         lines.append(line)
