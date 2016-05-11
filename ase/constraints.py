@@ -901,6 +901,10 @@ class ExternalForce(FixConstraint):
         force = self.external_force * dist / np.linalg.norm(dist)
         forces[self.indices] += (force, -force)
 
+    def adjust_potential_energy(self, atoms):
+        dist = np.subtract.reduce(atoms.positions[self.indices])
+        return -np.linalg.norm(dist) * self.external_force
+
     def index_shuffle(self, atoms, ind):
         """Shuffle the indices of the two atoms in this constraint"""
         newa = [-1, -1]  # Signal error
