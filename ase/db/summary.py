@@ -67,12 +67,15 @@ class Summary:
         if self.dipole is not None:
             self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
         
+        self.plots = []
         self.data = dct.get('data')
         if self.data:
+            if 'qpbs_kn' in self.data:
+                self.plots = [('bs', 'Band structure')]
+            if 'plots' in self.data:
+                self.plots = [(plot['tag'], plot['text'])
+                              for plot in self.data.plots]
             self.data = ', '.join(self.data.keys())
-            self.plots = [('bs', 'Band structure')]
-        else:
-            self.plots = []
             
         self.constraints = dct.get('constraints')
         if self.constraints:

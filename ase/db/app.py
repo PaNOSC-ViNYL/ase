@@ -30,6 +30,7 @@ from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.io.png import write_png
 from ase.visualize import view
+from ase.utils import basestring
 
 
 # Every client-connetions gets one of these tuples:
@@ -168,12 +169,11 @@ def image(name):
     return send_from_directory(tmpdir, name)
 
 
-@app.route('/plot/<name>')
-def plot(name):
-    path = os.path.join(tmpdir, name)
-    print(path)
+@app.route('/plot/<png>')
+def plot(png):
+    path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
-        tag, id = name[:-4].split('-')
+        tag, id = png[:-4].split('-')
         id = int(id)
         data = db[id].data
         if 'qpbs_kn' in data:
@@ -194,6 +194,7 @@ def plot(name):
                 break
 
         import matplotlib.pyplot as plt
+        fig = plt.figure()
         styles = ['r-', 'g-', 'b-']
         for name, style in zip(plot['names'], styles):
             x, Y = plot[name]
@@ -201,7 +202,7 @@ def plot(name):
             for y in Y[1:]:
                 plt.plot(x, y, style)
             plt.legend()
-        if isinstance(plot['xlabel'], str):
+        if isinstance(plot['xlabel'], basestring):
             plt.xlabel(plot['xlabel'])
         else:
             x, labels = plot['xlabel']
@@ -211,8 +212,9 @@ def plot(name):
         if 'ylim' in plot:
             plt.ylim(*plot['ylim'])
         plt.savefig(path)
+        plt.close(fig)
         
-    return send_from_directory(tmpdir, name)
+    return send_from_directory(tmpdir, png)
     
     
 @app.route('/gui/<int:id>')
