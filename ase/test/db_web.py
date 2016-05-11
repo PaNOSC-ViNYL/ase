@@ -13,6 +13,7 @@ app.db = c
 app.app.testing = True
 d = app.app.test_client().get('/')
 print(d)
-#d = app.app.test_client().get('/id/1').data
-d = app.app.test_client().get('/plot/test-1.png')#.data
+d = app.app.test_client().get('/id/1')
+print(d)
+d = app.app.test_client().get('/plot/test-1.png')
 print(d)
