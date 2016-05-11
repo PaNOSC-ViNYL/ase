@@ -165,17 +165,19 @@ class ResonantRaman(Vibrations):
 
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
-#        self.exmE_p = np.array([ex.energy * eu for ex in exm])
-#        self.expE_p = np.array([ex.energy * eu for ex in exp])
         self.ex0m_pc = np.array(
             [ex.get_dipole_me(form='v') for ex in ex0])
-        self.exF_rp = []
+        exmE_rp = []
+        expE_rp = []
+        exF_rp = []
         exmm_rpc = []
         expm_rpc = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                self.exF_rp.append(
+                exmE_rp.append([em.energy for em in exm[r]])
+                expE_rp.append([ep.energy for ep in exp[r]])
+                exF_rp.append(
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(
@@ -183,7 +185,9 @@ class ResonantRaman(Vibrations):
                 expm_rpc.append(
                     [ex.get_dipole_me(form='v') for ex in exp[r]])
                 r += 1
-        self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
+        self.exmE_rp = np.array(exmE_rp) * eu
+        self.expE_rp = np.array(expE_rp) * eu
+        self.exF_rp = np.array(exF_rp) * eu / 2 / self.delta
         self.exmm_rpc = np.array(exmm_rpc)
         self.expm_rpc = np.array(expm_rpc)
 
@@ -377,8 +381,8 @@ class ResonantRaman(Vibrations):
                     kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
                 if energy_derivative:
                     V_rcc[r] += pre * self.im[r] * (
-                        kappa(self.ex0m_rpc[r], self.expE_p, omega, gamma) -
-                        kappa(self.ex0m_rpc[r], self.exmE_p, omega, gamma))
+                        kappa(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
+                        kappa(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
                 r += 1
         self.timer.stop('kappa')
 ###        print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
