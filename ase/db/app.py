@@ -166,6 +166,53 @@ def image(name):
         write_png(path, atoms, show_unit_cell=1,
                   rotation=rotation, scale=scale)
     return send_from_directory(tmpdir, name)
+
+
+@app.route('/plot/<name>')
+def plot(name):
+    path = os.path.join(tmpdir, name)
+    print(path)
+    if not os.path.isfile(path):
+        tag, id = name[:-4].split('-')
+        id = int(id)
+        data = db[id].data
+        if 'qpbs_kn' in data:
+            ef = data.efermi
+            labels = ['${}$'.format(r'\Gamma' if k == 'Gamma' else k)
+                      for k in data.bslabels_K]
+            data = {'plots': [{'tag': 'bs',
+                               'text': 'Bandstructure',
+                               'names': ['ks', 'qp'],
+                               'ks': [data.xbs_k, data.ebs_kn.T - ef],
+                               'qp': [data.xqpbs_k, data.qpbs_kn.T - ef],
+                               'xlabel': [data.xbs_K, labels],
+                               'ylabel': 'energy [eV]',
+                               'ylim': [-10, 10]}]}
+
+        for plot in data['plots']:
+            if plot['tag'] == tag:
+                break
+
+        import matplotlib.pyplot as plt
+        styles = ['r-', 'g-', 'b-']
+        for name, style in zip(plot['names'], styles):
+            x, Y = plot[name]
+            plt.plot(x, Y[0], style, label=name)
+            for y in Y[1:]:
+                plt.plot(x, y, style)
+            plt.legend()
+        if isinstance(plot['xlabel'], str):
+            plt.xlabel(plot['xlabel'])
+        else:
+            x, labels = plot['xlabel']
+            plt.xticks(x, labels)
+            plt.xlim(x[0], x[-1])
+        plt.ylabel(plot['ylabel'])
+        if 'ylim' in plot:
+            plt.ylim(*plot['ylim'])
+        plt.savefig(path)
+        
+    return send_from_directory(tmpdir, name)
     
     
 @app.route('/gui/<int:id>')

@@ -70,6 +70,9 @@ class Summary:
         self.data = dct.get('data')
         if self.data:
             self.data = ', '.join(self.data.keys())
+            self.plots = [('bs', 'Band structure')]
+        else:
+            self.plots = []
             
         self.constraints = dct.get('constraints')
         if self.constraints:
