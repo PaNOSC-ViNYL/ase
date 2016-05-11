@@ -53,8 +53,7 @@ class ResonantRaman(Vibrations):
                  directions=None,
                  approximation='Profeta',
                  observation={
-##                     'orientation' : 'random',
-                     'scattered' : 'Z'
+                     'geometry' : '-Z(XX)Z',
                  },
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
@@ -422,6 +421,9 @@ class ResonantRaman(Vibrations):
             raise NotImplementedError('not working')
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
+        elif self.approximation.lower() == 'albrecht+profeta':
+            V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+            V_rcc += self.get_matrix_element_Profeta(omega, gamma)
         else:
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
@@ -596,3 +598,92 @@ class ResonantRaman(Vibrations):
 
     def __del__(self):
         self.timer.write(self.txt)
+
+
+class LrResonantRaman(ResonantRaman):
+    """Resonant Raman for linear response"""
+    def read_excitations(self):
+        self.timer.start('read excitations')
+        self.timer.start('really read')
+        self.log('reading ' + self.exname + '.eq' + self.exext)
+        ex0_object = self.exobj(self.exname + '.eq' + self.exext,
+                                **self.exkwargs)
+        ex0_object.diagonalize()
+        self.timer.stop('really read')
+        self.timer.start('index')
+        matching = frozenset(ex0_object.kss)
+        self.timer.stop('index')
+
+        def append(lst, exname, matching):
+            self.timer.start('really read')
+            self.log('reading ' + exname, end=' ')
+            exo = self.exobj(exname, **self.exkwargs)
+            exo.diagonalize()
+            lst.append(exo)
+            self.timer.stop('really read')
+            self.timer.start('index')
+            matching = matching.intersection(exo.kss)
+            self.log('len={0}, matching={1}'.format(len(exo.kss),
+                                                    len(matching)), pre='')
+            self.timer.stop('index')
+            return matching
+
+        exm_object_list = []
+        exp_object_list = []
+        for a in self.indices:
+            for i in 'xyz':
+                name = '%s.%d%s' % (self.exname, a, i)
+                matching = append(exm_object_list,
+                                  name + '-' + self.exext, matching)
+                matching = append(exp_object_list,
+                                  name + '+' + self.exext, matching)
+        self.ndof = 3 * len(self.indices)
+        self.nex = len(matching)
+        self.timer.stop('read excitations')
+
+        self.timer.start('select')
+
+        def select(exl, matching):
+            mlst = [ex for ex in exl]
+#            mlst = [ex for ex in exl if ex in matching]
+            assert(len(mlst) == len(matching))
+            return mlst
+        ex0 = select(ex0_object, matching)
+        exm = []
+        exp = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                exm.append(select(exm_object_list[r], matching))
+                exp.append(select(exp_object_list[r], matching))
+                r += 1
+        self.timer.stop('select')
+
+        self.timer.start('me and energy')
+
+        eu = units.Hartree
+        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
+#        self.exmE_p = np.array([ex.energy * eu for ex in exm])
+#        self.expE_p = np.array([ex.energy * eu for ex in exp])
+        self.ex0m_pc = np.array(
+            [ex.get_dipole_me(form='v') for ex in ex0])
+        self.exF_rp = []
+        exmm_rpc = []
+        expm_rpc = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                self.exF_rp.append(
+                    [(ep.energy - em.energy)
+                     for ep, em in zip(exp[r], exm[r])])
+                exmm_rpc.append(
+                    [ex.get_dipole_me(form='v') for ex in exm[r]])
+                expm_rpc.append(
+                    [ex.get_dipole_me(form='v') for ex in exp[r]])
+                r += 1
+        self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
+        self.exmm_rpc = np.array(exmm_rpc)
+        self.expm_rpc = np.array(expm_rpc)
+
+        self.timer.stop('me and energy')
+
