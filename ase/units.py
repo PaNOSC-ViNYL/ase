@@ -184,9 +184,23 @@ def create_units(codata_version):
 def __update_units(codata_version):
     globals().update(create_units(__codata_version__))
 
+
+def __add_labelled_units():
+    """
+    Add units that carry the version number of the respective CODATA
+    suggestions as as suffix, as suggested here:
+        https://gitlab.com/ase/ase/issues/8
+    """
+    for codata_version in CODATA.keys():
+        units = create_units(codata_version)
+        globals().update({'{}_{}'.format(k, codata_version) : v for (k,v) in units.items()})
+
+
 # the version we actually use
 __codata_version__ = '2014'
 
-# now update the moduel scope
+# now update the module scope
 __update_units(__codata_version__)
 
+# add the labelled units
+__add_labelled_units()
