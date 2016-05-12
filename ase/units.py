@@ -194,7 +194,7 @@ def __add_labelled_units():
     for codata_version in CODATA.keys():
         units = create_units(codata_version)
         globals().update({'{}_{}'.format(k, codata_version) : v for (k,v) in units.items()})
-
+        globals().update({'units_{}'.format(codata_version) : units})
 
 # the version we actually use
 __codata_version__ = '2014'
