@@ -173,21 +173,32 @@ def image(name):
 def plot(png):
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
-        n, id = (int(x) for x in png[:-4].split('-'))
-        plot = db[id].data['plots'][n]
+        tag, id = png[:-4].split('-')
+        id = int(id)
+        data = db[id].data
+        if 'qpbs_kn' in data:
+            ef = data.efermi
+            labels = ['${}$'.format(r'\Gamma' if k == 'Gamma' else k)
+                      for k in data.bslabels_K]
+            data = {'plots': [{'tag': 'bs',
+                               'text': 'Bandstructure',
+                               'names': ['ks', 'qp'],
+                               'ks': [data.xbs_k, data.ebs_kn.T - ef],
+                               'qp': [data.xqpbs_k, data.qpbs_kn.T - ef],
+                               'xlabel': [data.xbs_K, labels],
+                               'ylabel': 'energy [eV]',
+                               'ylim': [-10, 10]}]}
+
+        for plot in data['plots']:
+            if plot['tag'] == tag:
+                break
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
-        styles = ['k-', 'r-', 'g-', 'b-']
-        for dct in plot['data']:
-            x = dct['x']
-            Y = dct['y']
-            if Y.ndim == 1:
-                Y = Y[None]
-            style = dct.get('style')
-            if not style:
-                style = styles.pop()
-            plt.plot(x, Y[0], style, label=dct['label'])
+        styles = ['r-', 'g-', 'b-']
+        for name, style in zip(plot['names'], styles):
+            x, Y = plot[name]
+            plt.plot(x, Y[0], style, label=name)
             for y in Y[1:]:
                 plt.plot(x, y, style)
             plt.legend()
@@ -200,7 +211,6 @@ def plot(png):
         plt.ylabel(plot['ylabel'])
         if 'ylim' in plot:
             plt.ylim(*plot['ylim'])
-        plt.title(plot['title'])
         plt.savefig(path)
         plt.close(fig)
         

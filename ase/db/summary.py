@@ -70,10 +70,13 @@ class Summary:
         self.plots = []
         self.data = dct.get('data')
         if self.data:
+            if 'qpbs_kn' in self.data:
+                self.plots = [('bs', 'Band structure')]
             if 'plots' in self.data:
-                self.plots = range(len(self.data.plots))
+                self.plots = [(plot['tag'], plot['text'])
+                              for plot in self.data.plots]
             self.data = ', '.join(self.data.keys())
-                
+            
         self.constraints = dct.get('constraints')
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)

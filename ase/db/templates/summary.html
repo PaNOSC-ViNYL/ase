@@ -17,8 +17,9 @@ Download:
 <br>
 {% endif %}
 <br>
-{% for tag in s.plots %}
-<img src="/plot/{{ tag }}-{{ d.id }}.png"><br>
+{% for tag, text in s.plots %}
+{{ text }}:<br>
+<img src="/plot/{{ tag }}-{{ d.id }}.png">
 {% endfor %}
 
 <table>
