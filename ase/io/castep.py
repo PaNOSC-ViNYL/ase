@@ -284,7 +284,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     for option in castep_cell._options.values():
         if option.value is not None:
-            print(option.value)
+#            print(option.value)
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
