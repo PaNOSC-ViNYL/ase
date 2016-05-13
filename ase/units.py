@@ -28,7 +28,7 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_me' : 9.10938188e-31,
                     '_mp' : 1.67262158e-27,
                     '_Nav' : 6.02214199e23,
-                    '_k' : 1.3806503-23,
+                    '_k' : 1.3806503e-23,
                     '_amu' : 1.66053873e-27,
                     },
 
@@ -39,10 +39,10 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Grav' : 6.6742e-11,
                     '_hplanck' : 6.6260693e-34,
                     '_e' : 1.60217653e-19,
-                    '_me' : 9.10938226e-31,
+                    '_me' : 9.1093826e-31,
                     '_mp' : 1.67262171e-27,
                     '_Nav' : 6.0221415e23,
-                    '_k' : 1.3806505-23,
+                    '_k' : 1.3806505e-23,
                     '_amu' : 1.66053886e-27,
                     },
 
@@ -56,7 +56,7 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_me' : 9.10938215e-31,
                     '_mp' : 1.672621637e-27,
                     '_Nav' : 6.02214179e23,
-                    '_k' : 1.3806504-23,
+                    '_k' : 1.3806504e-23,
                     '_amu' : 1.660538782e-27,
                     },
 
@@ -70,7 +70,7 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_me' : 9.10938291e-31,
                     '_mp' : 1.672621777e-27,
                     '_Nav' : 6.02214129e23,
-                    '_k' : 1.3806488-23,
+                    '_k' : 1.3806488e-23,
                     '_amu' : 1.660538921e-27,
                     },
 
