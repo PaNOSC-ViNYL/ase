@@ -32,7 +32,11 @@ except ImportError:
     except ImportError:
         curve_fit = None
 
-        
+
+eos_names = ['sj', 'taylor', 'murnaghan', 'birch', 'birchmurnaghan',
+             'pouriertarantola', 'vinet', 'antonschmidt', 'p3']
+
+
 def taylor(V, E0, beta, alpha, V0):
     'Taylor Expansion up to 3rd order about V0'
 
@@ -194,11 +198,13 @@ class EquationOfState:
         eos.plot()
 
     """
-    def __init__(self, volumes, energies, eos='sjeos'):
+    def __init__(self, volumes, energies, eos='sj'):
         self.v = np.array(volumes)
         self.e = np.array(energies)
+        
+        if eos == 'sjeos':
+            eos = 'sj'
         self.eos_string = eos
-
         self.v0 = None
 
     def fit(self):
@@ -213,9 +219,11 @@ class EquationOfState:
 
         """
 
-        if self.eos_string == 'sjeos':
+        if self.eos_string == 'sj':
             return self.fit_sjeos()
             
+        self.func = globals()[self.eos_string]
+
         p0 = [min(self.e), 1, 1]
         popt, pcov = curve_fit(parabola, self.v, self.e, p0)
 
@@ -250,7 +258,7 @@ class EquationOfState:
 
         # now fit the equation of state
         p0 = initial_guess
-        popt, pcov = curve_fit(eval(self.eos_string), self.v, self.e, p0)
+        popt, pcov = curve_fit(self.func, self.v, self.e, p0)
 
         self.eos_parameters = popt
 
@@ -271,7 +279,6 @@ class EquationOfState:
             self.v0 = self.eos_parameters[3]
             self.e0 = self.eos_parameters[0]
             self.B = self.eos_parameters[1]
-            print(self.eos_parameters)
             
         return self.v0, self.e0, self.B
 
@@ -295,10 +302,10 @@ class EquationOfState:
         f.subplots_adjust(left=0.12, right=0.9, top=0.9, bottom=0.15)
         plt.plot(self.v, self.e, 'o')
         x = np.linspace(min(self.v), max(self.v), 100)
-        if self.eos_string == 'sjeos':
+        if self.eos_string == 'sj':
             y = self.fit0(x**-(1 / 3))
         else:
-            y = eval(self.eos_string)(x, *self.eos_parameters)
+            y = self.func(x, *self.eos_parameters)
             
         plt.plot(x, y, '-r')
         try:
@@ -354,11 +361,11 @@ class EquationOfState:
 def main():
     import optparse
     from ase.io import read
-    parser = optparse.OptionParser(usage='python -m ase.io.eos [options] '
-                                   'filename, ...',
+    parser = optparse.OptionParser(usage='python -m ase.eos [options] '
+                                   'trajectory, ...',
                                    description='Calculate equation of state.')
     parser.add_option('-p', '--plot', action='store_true')
-    parser.add_option('-t', '--type', default='sjeos')
+    parser.add_option('-t', '--type', default='sj')
     opts, args = parser.parse_args()
     if not opts.plot:
         print('# filename                '
