@@ -10,6 +10,10 @@ Git master branch
 
 :git:`master <>`.
 
+* Updated units definition to CODATA 2014. Additionally, support for older
+  versions of CODATA was added such that the respective units can be created by
+  the user when needed (e.g. interfacing codes with different CODATA
+  versions in use).
 
 Version 3.11.0
 ==============
