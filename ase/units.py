@@ -16,7 +16,6 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Nav' : 6.0221367e23,          # Avogadro number
                     '_k' : 1.380658e-23,            # Boltzmann constant, J/K
                     '_amu' : 1.6605402e-27,         # atomic mass unit, kg
-                    '_pi' : pi                      # pi used for derived units
                     },
 
           # CODATA 1998 taken from
@@ -31,7 +30,6 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Nav' : 6.02214199e23,
                     '_k' : 1.3806503-23,
                     '_amu' : 1.66053873e-27,
-                    '_pi' : pi
                     },
 
           # CODATA 2002 taken from
@@ -46,7 +44,6 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Nav' : 6.0221415e23,
                     '_k' : 1.3806505-23,
                     '_amu' : 1.66053886e-27,
-                    '_pi' : pi
                     },
 
           # CODATA 2006 taken from
@@ -61,7 +58,6 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Nav' : 6.02214179e23,
                     '_k' : 1.3806504-23,
                     '_amu' : 1.660538782e-27,
-                    '_pi' : pi
                     },
 
           # CODATA 2010 taken from
@@ -76,7 +72,6 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Nav' : 6.02214129e23,
                     '_k' : 1.3806488-23,
                     '_amu' : 1.660538921e-27,
-                    '_pi' : pi
                     },
 
           # CODATA 2014 taken from
@@ -91,7 +86,6 @@ CODATA = {# the "original" CODATA version ase used ever since
                     '_Nav' : 6.022140857e23,
                     '_k' : 1.38064852e-23,
                     '_amu' : 1.660539040e-27,
-                    '_pi' : pi
                     }
         }
 
@@ -134,14 +128,14 @@ def create_units(codata_version):
 
     # derived from the CODATA values
     units['_eps0'] = 1 / units['_mu0'] / units['_c']**2     # permittivity of vacuum
-    units['_hbar'] = units['_hplanck'] / (2 * units['_pi'])  # Planck constant / 2pi, J s
+    units['_hbar'] = units['_hplanck'] / (2 * pi)  # Planck constant / 2pi, J s
 
     units['Ang'] = units['Angstrom'] = 1.0
     units['nm'] = 10.0
-    units['Bohr'] = 4e10 * units['_pi'] * units['_eps0'] * units['_hbar']**2 / units['_me'] / units['_e']**2  # Bohr radius
+    units['Bohr'] = 4e10 * pi * units['_eps0'] * units['_hbar']**2 / units['_me'] / units['_e']**2  # Bohr radius
 
     units['eV'] = 1.0
-    units['Hartree'] = units['_me'] * units['_e']**3 / 16 / units['_pi']**2 / units['_eps0']**2 / units['_hbar']**2
+    units['Hartree'] = units['_me'] * units['_e']**3 / 16 / pi**2 / units['_eps0']**2 / units['_hbar']**2
     units['kJ'] = 1000.0 / units['_e']
     units['kcal'] = 4.184 * units['kJ']
     units['mol'] = units['_Nav']
@@ -158,12 +152,12 @@ def create_units(codata_version):
     units['GPa'] = 1e9 * units['Pascal']
 
     units['Debye'] = 1.0 / 1e11 / units['_e'] / units['_c']
-    units['alpha'] = units['_e']**2 / (4 * units['_pi'] * units['_eps0']) / units['_hbar'] / units['_c']  # fine structure constant
+    units['alpha'] = units['_e']**2 / (4 * pi * units['_eps0']) / units['_hbar'] / units['_c']  # fine structure constant
     units['invcm'] = 100 * units['_c'] * units['_hplanck'] / units['_e']               # cm^-1 energy unit
 
     # Derived atomic units that have no assigned name:
     units['_aut'] = units['_hbar'] / (units['alpha']**2 * units['_me'] * units['_c']**2)      # atomic unit of time, s
-    units['_auv'] = units['_e']**2 / units['_hbar'] / (4 * units['_pi'] * units['_eps0'])      # atomic unit of velocity, m/s
+    units['_auv'] = units['_e']**2 / units['_hbar'] / (4 * pi * units['_eps0'])               # atomic unit of velocity, m/s
     units['_auf'] = units['alpha']**3 * units['_me']**2 * units['_c']**3 / units['_hbar']     # atomic unit of force, N
     units['_aup'] = units['alpha']**5 * units['_me']**4 * units['_c']**5 / units['_hbar']**3  # atomic unit of pressure, Pa
 
