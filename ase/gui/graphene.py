@@ -8,7 +8,7 @@ from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.status import formula
-from ase.structure import graphene_nanoribbon
+from ase.build import graphene_nanoribbon
 import ase
 import numpy as np
 
@@ -18,7 +18,7 @@ optionally be saturated with hydrogen (or another element).\
 """)
 
 py_template = """
-from ase.structure import nanotube
+from ase.build import nanotube
 
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol=%(symb)s)
 """
@@ -239,7 +239,7 @@ class SetupGraphene(SetupWindow):
             norm = np.cross(uc[i-1], uc[i-2])
             norm /= np.sqrt(np.dot(norm, norm))
             h[i] = np.abs(np.dot(norm, uc[i]))
-        label = label_template % {'natoms'  : self.atoms.get_number_of_atoms(),
+        label = label_template % {'natoms'  : len(self.atoms),
                                   'symbols' : formula(self.atoms.get_atomic_numbers()),
                                   'volume'  : self.atoms.get_volume()}
         self.status.set_markup(label)

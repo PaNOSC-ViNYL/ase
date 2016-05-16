@@ -6,7 +6,7 @@ Tutorials
 Python
 ------
 
-If you are not familiar with Python please read :ref:`python_info`.
+If you are not familiar with Python please read :ref:`what is python`.
 
 .. toctree::
    :maxdepth: 3
@@ -32,7 +32,6 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    neb/diffusion
    neb/idpp
    dissociation
-   spacegroup/spacegroup
    md/md
    wannier/wannier
    minimahopping/minimahopping
@@ -58,15 +57,7 @@ For more details:
 
 * Look at the documentation for the individual :mod:`modules <ase>`.
 * See the automatically generated documentation ``Epydoc``: :epydoc:`ase`.
-* Browse the `source code`_ online.
-* Have a look at :mod:`~ase.calculators.siesta` exercises:
-
-.. toctree::
-   :maxdepth: 3
-
-   ../exercises/exercises
-
-.. _source code: http://trac.fysik.dtu.dk/projects/ase/browser/trunk
+* Browse the :git:`source code <>` online.
 
 
 Videos

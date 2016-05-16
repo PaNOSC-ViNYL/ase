@@ -2,13 +2,22 @@ import errno
 import os
 import sys
 import time
-import warnings
 from math import sin, cos, radians, atan2, degrees
 from contextlib import contextmanager
+
+try:
+    from math import gcd
+except ImportError:
+    from fractions import gcd
 
 import numpy as np
 
 from ase.data import chemical_symbols
+
+__all__ = ['_exec', 'basestring', 'import_module', 'seterr', 'plural',
+           'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
+           'opencew', 'OpenLock', 'hill', 'rotate', 'irotate', 'givens',
+           'hsv2rgb', 'hsv']
 
 
 # Python 2+3 compatibility stuff:
@@ -31,7 +40,7 @@ else:
             module = getattr(module, part)
         return module
     
-
+        
 @contextmanager
 def seterr(**kwargs):
     """Set how floating-point errors are handled.
@@ -186,27 +195,6 @@ def hill(numbers):
                    for symbol, n in result)
 
 
-def prnt(*args, **kwargs):
-    """Python 3 style print function."""
-    warnings.warn('Use from __future__ import print_function')
-    fd = kwargs.pop('file', sys.stdout)
-    fd.write(
-        kwargs.pop('sep', ' ').join(str(arg) for arg in args) +
-        kwargs.pop('end', '\n'))
-    if kwargs.pop('flush', False):
-        fd.flush()
-    if kwargs:
-        raise TypeError('%r is an invalid keyword argument for this function' %
-                        kwargs.keys()[0])
-
-
-def gcd(a, b):
-    """Greatest common divisor of a and b."""
-    while a != 0:
-        a, b = b % a, a
-    return b
-
-
 def rotate(rotations, rotation=np.identity(3)):
     """Convert string of format '50x,-10y,120z' to a rotation matrix.
 
@@ -324,16 +312,3 @@ def hsv(array, s=.9, v=.9):
 #     a = (array + array.min()) / array.ptp()
 #     rgba = getattr(pylab.cm, name)(a)
 #     return rgba[:-1] # return rgb only (not alpha)
-
-ON_POSIX = 'posix' in sys.builtin_module_names
-
-try:
-    from subprocess import Popen
-except ImportError:
-    from os import popen3
-else:
-    def popen3(cmd):
-        from subprocess import PIPE
-        p = Popen(cmd, shell=True, close_fds=ON_POSIX,
-                  stdin=PIPE, stdout=PIPE, stderr=PIPE)
-        return p.stdin, p.stdout, p.stderr

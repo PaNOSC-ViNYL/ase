@@ -1,5 +1,6 @@
+from __future__ import division
 from math import sqrt
-from ase.utils.geometry import find_mic
+from ase.geometry import find_mic
 
 import numpy as np
 
@@ -107,13 +108,11 @@ class FixAtoms(FixConstraint):
         else:
             # Check for duplicates:
             srt = np.sort(indices)
-            assert (srt == indices).all()
-            for i in range(len(indices) - 1):
-                if srt[i] == srt[i + 1]:
-                    raise ValueError(
-                        'FixAtoms: The indices array contained duplicates. '
-                        'Perhaps you wanted to specify a mask instead, but '
-                        'forgot the mask= keyword.')
+            if (np.diff(srt) == 0).any():
+                raise ValueError(
+                    'FixAtoms: The indices array contained duplicates. '
+                    'Perhaps you wanted to specify a mask instead, but '
+                    'forgot the mask= keyword.')
         self.index = np.asarray(indices, int)
 
         if self.index.ndim != 1:
@@ -594,10 +593,10 @@ class FixInternals(FixConstraint):
             h21 = h1 - h2
             h23 = h3 - h2
             # Calculating new positions
-            deriv = (((np.dot(r21, h23) + np.dot(r23, h21))
-                      / (r21_len * r23_len))
-                     - (np.dot(r21, h21) / (r21_len * r21_len)
-                        + np.dot(r23, h23) / (r23_len * r23_len)) * angle)
+            deriv = (((np.dot(r21, h23) + np.dot(r23, h21)) /
+                      (r21_len * r23_len)) -
+                     (np.dot(r21, h21) / (r21_len * r21_len) +
+                      np.dot(r23, h23) / (r23_len * r23_len)) * angle)
             deriv *= 2 * angle
             lamda = -self.sigma / deriv
             newpositions[self.indices[0]] += lamda * h1
@@ -682,13 +681,13 @@ class FixInternals(FixConstraint):
             h12 = h2 - h1
             h23 = h3 - h2
             h34 = h4 - h3
-            deriv = ((np.dot(n1, np.cross(r34, h23) + np.cross(h34, r23))
-                      + np.dot(n2, np.cross(r23, h12) + np.cross(h23, r12)))
-                     / (n1_len * n2_len))
-            deriv -= (((np.dot(n1, np.cross(r23, h12) + np.cross(h23, r12))
-                        / n1_len**2)
-                       + (np.dot(n2, np.cross(r34, h23) + np.cross(h34, r23))
-                          / n2_len**2)) * angle)
+            deriv = ((np.dot(n1, np.cross(r34, h23) + np.cross(h34, r23)) +
+                      np.dot(n2, np.cross(r23, h12) + np.cross(h23, r12))) /
+                     (n1_len * n2_len))
+            deriv -= (((np.dot(n1, np.cross(r23, h12) + np.cross(h23, r12)) /
+                        n1_len**2) +
+                       (np.dot(n2, np.cross(r34, h23) + np.cross(h34, r23)) /
+                        n2_len**2)) * angle)
             deriv *= -2 * angle
             lamda = -self.sigma / deriv
             newpositions[self.indices[0]] += lamda * h1
@@ -1099,7 +1098,7 @@ class StrainFilter(Filter):
 
 class UnitCellFilter(Filter):
     """Modify the supercell and the atom positions. """
-    def __init__(self, atoms, mask=None):
+    def __init__(self, atoms, mask=None, weight=1.):
         """Create a filter that returns the atomic forces and unit cell
         stresses together, so they can simultaneously be minimized.
 
@@ -1151,6 +1150,14 @@ class UnitCellFilter(Filter):
         self.origcell = atoms.get_cell()
         self.copy = self.atoms.copy
         self.arrays = self.atoms.arrays
+        self.weight = weight
+
+        # These Jacobians make the generalized stress/strain scale with
+        # the system size the same was a the atomic positions/forces.
+        # See DOI 10.1063/1.3684549
+        self.strain_renorm = (self.atoms.get_volume()**(1 / 3) *
+                              len(self.atoms)**(1 / 6))
+        self.stress_renorm = self.atoms.get_volume() / self.strain_renorm
 
     def get_positions(self):
         '''
@@ -1166,7 +1173,7 @@ class UnitCellFilter(Filter):
         natoms = len(self.atoms)
         all_pos = np.zeros((natoms + 2, 3), np.float)
         all_pos[0:natoms, :] = atom_positions
-        all_pos[natoms:, :] = strains
+        all_pos[natoms:, :] = strains * self.strain_renorm
 
         return all_pos
 
@@ -1187,7 +1194,7 @@ class UnitCellFilter(Filter):
         self.atoms.set_positions(atom_positions)
 
         new = new[natoms:, :]  # this is only the strains
-        new = new.ravel() * self.mask
+        new = new.ravel() * self.mask / self.strain_renorm
         eps = np.array([[1.0 + new[0], 0.5 * new[5], 0.5 * new[4]],
                         [0.5 * new[5], 1.0 + new[1], 0.5 * new[3]],
                         [0.5 * new[4], 0.5 * new[3], 1.0 + new[2]]])
@@ -1217,9 +1224,9 @@ class UnitCellFilter(Filter):
         all_forces = np.zeros((natoms + 2, 3), np.float)
         all_forces[0:natoms, :] = atom_forces
 
-        vol = self.atoms.get_volume()
-        stress_forces = -vol * (stress * self.mask).reshape((2, 3))
-        all_forces[natoms:, :] = stress_forces
+        stress_forces = -((stress * self.mask).reshape((2, 3)) *
+                          self.stress_renorm)
+        all_forces[natoms:, :] = stress_forces * self.weight
         return all_forces
 
     def get_potential_energy(self):

@@ -4,11 +4,10 @@ Atomic Simulation Environment
 
 The Atomic Simulation Environment (ASE) is a set of tools and Python_
 modules for setting up, manipulating, running, visualizing and analyzing
-atomistic simulations.  The code is freely available under the `GNU LGPL
-license`_.
+atomistic simulations.  The code is freely available under the :ref:`GNU LGPL
+license <license info>`.
 
 .. _Python: http://www.python.org
-.. _GNU LGPL license: https://wiki.fysik.dtu.dk/ase/licenseinfo.html
 
 >>> # Example: structure optimization of hydrogen molecule
 >>> from ase import Atoms
@@ -35,13 +34,17 @@ Supported :mod:`Calculators <ase.calculators>`:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
-:mod:`~ase.calculators.tip3p`
+:mod:`~ase.calculators.tip3p` Grimme-D3_
 
 
 .. _news:
 
 News
 ====
+
+* :ref:`ASE version 3.11.0 <releasenotes>` released (10 May 2016).
+
+* :ref:`ASE version 3.10.0 <releasenotes>` released (17 March 2016).
 
 * Web-page now use the `Read the Docs Sphinx Theme
   <https://github.com/snide/sphinx_rtd_theme>`_ (20 February 2016).
@@ -107,8 +110,6 @@ Contents
     contact
     development/development
     faq
-    licenseinfo
-    bugs
 
 
 .. |abinit| image:: static/abinit.png
@@ -180,6 +181,7 @@ Contents
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/
+.. _Grimme-D3: https://gitlab.com/ehermes/ased3/tree/master
 .. _Sphinx: http://sphinx.pocoo.org
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk

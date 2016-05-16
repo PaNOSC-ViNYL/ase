@@ -8,7 +8,7 @@ from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
 from ase.gui.status import formula
-from ase.structure import nanotube
+from ase.build import nanotube
 import ase
 import numpy as np
 
@@ -21,7 +21,7 @@ and bond length.\
 """)
 
 py_template = """
-from ase.structure import nanotube
+from ase.build import nanotube
 
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol='%(symb)s')
 """
@@ -145,7 +145,7 @@ class SetupNanotube(SetupWindow):
                 norm = np.cross(uc[i-1], uc[i-2])
                 norm /= np.sqrt(np.dot(norm, norm))
                 h[i] = np.abs(np.dot(norm, uc[i]))
-            label = label_template % {'natoms'   : self.atoms.get_number_of_atoms(),
+            label = label_template % {'natoms'   : len(self.atoms),
                                       'symbols'  : formula(self.atoms.get_atomic_numbers()),
                                       'volume'   : self.atoms.get_volume(),
                                       'diameter' : self.atoms.get_cell()[0][0]/2.0}

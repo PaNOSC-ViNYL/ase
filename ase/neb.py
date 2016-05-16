@@ -5,16 +5,17 @@ from math import sqrt
 import numpy as np
 
 import ase.parallel as mpi
+from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 from ase.optimize import BFGS
-from ase.utils.geometry import find_mic
+from ase.geometry import find_mic
 
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 world=None):
+                 remove_rotation_and_translation=False, world=None):
         """Nudged elastic band.
 
         images: list of Atoms objects
@@ -25,6 +26,10 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
+        remove_rotation_and_translation: bool
+            TRUE actives NEB-TR for removing translation and
+            rotation during NEB. By default applied non-periodic
+            systems
         """
         self.images = images
         self.climb = climb
@@ -32,7 +37,9 @@ class NEB:
         self.natoms = len(images[0])
         self.nimages = len(images)
         self.emax = np.nan
-
+        
+        self.remove_rotation_and_translation = remove_rotation_and_translation
+        
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
         self.k = list(k)
@@ -45,8 +52,11 @@ class NEB:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
     def interpolate(self, method='linear', mic=False):
+        if self.remove_rotation_and_translation:
+            minimize_rotation_and_translation(self.images[0], self.images[-1])
+        
         interpolate(self.images, mic)
-
+                 
         if method == 'idpp':
             self.idpp_interpolate(traj=None, log=None, mic=mic)
 
@@ -91,6 +101,12 @@ class NEB:
         images = self.images
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages - 2)
+
+        if self.remove_rotation_and_translation:
+            # Remove translation and rotation between
+            # images before computing forces:
+            for i in range(1, self.nimages):
+                minimize_rotation_and_translation(images[i - 1], images[i])
 
         if not self.parallel:
             # Do all images - one at a time:
@@ -454,9 +470,9 @@ class NEBtools:
                      % (Ef, Er, dE))
         return fig
 
-    def get_fmax(self):
+    def get_fmax(self, **kwargs):
         """Returns fmax, as used by optimizers with NEB."""
-        neb = NEB(self._images)
+        neb = NEB(self._images, **kwargs)
         forces = neb.get_forces()
         return np.sqrt((forces**2).sum(axis=1).max())
 

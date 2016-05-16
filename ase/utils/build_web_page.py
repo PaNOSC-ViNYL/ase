@@ -20,14 +20,6 @@ def git_pull(name='ase'):
     return not lastline.startswith('Already up-to-date')
 
         
-def svn_update(name='ase'):
-    os.chdir(name)
-    output = subprocess.check_output('svn update', shell=True)
-    os.chdir('..')
-    lastline = output.splitlines()[-1]
-    return not lastline.startswith('At revision')
-
-        
 def build(force_build, name='ase', env=''):
     if not force_build:
         return
@@ -66,28 +58,26 @@ def build(force_build, name='ase', env=''):
     os.rename('../dist/' + tar, 'build/html/' + tar)
     
     # Set correct version of snapshot tar-file:
-    if name == 'ase':
-        download_page = 'install.html'
-    else:
-        download_page = 'download.html'
     subprocess.check_call(
-        'find build/html -name {} | '
-        'xargs sed -i s/snapshot.tar.gz/{}/g'.format(download_page, tar),
+        'find build/html -name install.html | '
+        'xargs sed -i s/snapshot.tar.gz/{}/g'.format(tar),
         shell=True)
     
     os.chdir('..')
-    output = subprocess.check_output(
-        'epydoc --docformat restructuredtext --parse-only '
-        '--name {0} --url http://wiki.fysik.dtu.dk/{1} '
-        '--show-imports --no-frames -v {1}'.format(name.upper(), name),
-        shell=True)
     
-    # Check for warnings:
-    for line in output.splitlines():
-        if line.startswith('|'):
-            print(line)
-
-    os.rename('html', 'doc/build/html/epydoc')
+    if name == 'ase':
+        output = subprocess.check_output(
+            'epydoc --docformat restructuredtext --parse-only '
+            '--name {0} --url http://wiki.fysik.dtu.dk/{1} '
+            '--show-imports --no-frames -v {1}'.format(name.upper(), name),
+            shell=True)
+        
+        # Check for warnings:
+        for line in output.splitlines():
+            if line.startswith('|'):
+                print(line)
+    
+        os.rename('html', 'doc/build/html/epydoc')
     
     os.chdir('doc/build')
     dir = name + '-web-page'

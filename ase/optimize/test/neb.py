@@ -4,7 +4,7 @@ from ase.optimize import QuasiNewton
 from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
 from ase.neb import NEB
-from ase.lattice.surface import fcc100, add_adsorbate
+from ase.build import fcc100, add_adsorbate
 from ase.optimize.test import run_test
 from gpaw import GPAW
 import gpaw.mpi as mpi

@@ -1,5 +1,4 @@
 from __future__ import print_function
-import sys
 
 import numpy as np
 from ase import Atoms
@@ -57,7 +56,7 @@ def check(a, format):
         assert (a.get_stress() == atoms.get_stress()).all()
         assert abs(a.get_forces() - atoms.get_forces()).max() < 1e-12
 
-for format in all_formats:
+for format in sorted(all_formats):
     if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
         # Someone should do something ...
         continue
@@ -68,9 +67,6 @@ for format in all_formats:
 
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
-        continue
-
-    if sys.version_info[0] == 3 and format in ['cif']:
         continue
 
     if not matplotlib and format in ['eps', 'png']:
