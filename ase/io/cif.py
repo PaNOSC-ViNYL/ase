@@ -5,8 +5,9 @@ description of the file format.  STAR extensions as save frames,
 global blocks, nested loops and multi-data values are not supported.
 """
 
-import shlex
 import re
+import shlex
+import warnings
 
 import numpy as np
 
@@ -27,6 +28,10 @@ def convert_value(value):
         return float(value)
     elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\(\d+\)$',
                   value):
+        return float(value[:value.index('(')])  # strip off uncertainties
+    elif re.match(r'[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\(\d+$',
+                  value):
+        warnings.warn('Badly formed number: "{0}"'.format(value))
         return float(value[:value.index('(')])  # strip off uncertainties
     else:
         return value
@@ -96,10 +101,11 @@ def parse_loop(lines):
         tokens.extend(t)
         if len(tokens) < len(columns):
             continue
-        assert len(tokens) == len(header)
-
-        for h, t in zip(header, tokens):
-            columns[h].append(convert_value(t))
+        if len(tokens) == len(header):
+            for h, t in zip(header, tokens):
+                columns[h].append(convert_value(t))
+        else:
+            warnings.warn('Wrong number of tokens: {0}'.format(tokens))
         tokens = []
     if line:
         lines.append(line)
@@ -238,10 +244,22 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         kwargs = {}
 
+    if 'D' in symbols:
+        deuterium = [symbol == 'D' for symbol in symbols]
+        symbols = [symbol if symbol != 'D' else 'H' for symbol in symbols]
+    else:
+        deuterium = False
+        
     atoms = crystal(symbols, basis=scaled_positions,
                     cellpar=[a, b, c, alpha, beta, gamma],
                     spacegroup=spacegroup, primitive_cell=primitive_cell,
                     **kwargs)
+    if deuterium:
+        masses = atoms.get_masses()
+        masses[atoms.numbers == 1] = 1.00783
+        masses[deuterium] = 2.01355
+        atoms.set_masses(masses)
+        
     return atoms
     
 
@@ -274,7 +292,7 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     images = []
     for name, tags in blocks:
         try:
-            atoms = tags2atoms(tags, store_tags, primitive_cell, 
+            atoms = tags2atoms(tags, store_tags, primitive_cell,
                                subtrans_included)
             images.append(atoms)
         except KeyError:

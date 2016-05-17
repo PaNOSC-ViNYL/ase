@@ -15,18 +15,8 @@ from ase.geometry import find_mic
 
 class NEB:
     def __init__(self, images, k=0.1, climb=False, parallel=False,
-                 cornercutting=False, remove_rotation_and_translation=False,
-                 world=None):
+                 remove_rotation_and_translation=False, world=None):
         """Nudged elastic band.
-        
-        Paper I:
-            
-            G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
-            
-        Paper II:
-            
-            G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
-            113, 9901 (2000).
 
         images: list of Atoms objects
             Images defining path from initial to final state.
@@ -36,12 +26,9 @@ class NEB:
             Use a climbing image (default is no climbing image).
         parallel: bool
             Distribute images over processors.
-        cornercutting: bool
-            If True, springs are treated as real ones with forces in the
-            spring-directions (not the estimated tangent-directions).
         remove_rotation_and_translation: bool
-            If True, the rotation and translation along the path will be
-            minimized.  Only useful for molecules without any constraints.
+            TRUE actives NEB-TR for removing translation and
+            rotation during NEB. By default applied non-periodic
             systems
         """
         self.images = images
@@ -52,12 +39,11 @@ class NEB:
         self.emax = np.nan
         
         self.remove_rotation_and_translation = remove_rotation_and_translation
-        self.cornercutting = cornercutting
         
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
         self.k = list(k)
-        
+
         if world is None:
             world = mpi.world
         self.world = world
@@ -109,47 +95,42 @@ class NEB:
                 image.get_calculator().set_atoms(image)
             except AttributeError:
                 pass
-    
+
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
-        N = self.nimages
-        forces = np.empty(((N - 2), self.natoms, 3))
-        energies = np.empty(N)
-        energies[:] = np.nan
+        forces = np.empty(((self.nimages - 2), self.natoms, 3))
+        energies = np.empty(self.nimages - 2)
 
         if self.remove_rotation_and_translation:
             # Remove translation and rotation between
             # images before computing forces:
-            for i in range(1, N):
+            for i in range(1, self.nimages):
                 minimize_rotation_and_translation(images[i - 1], images[i])
 
         if not self.parallel:
             # Do all images - one at a time:
-            for i in range(1, N - 1):
-                energies[i] = images[i].get_potential_energy()
+            for i in range(1, self.nimages - 1):
+                energies[i - 1] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
-            
         elif self.world.size == 1:
             def run(image, energies, forces):
-                """Target function for thread."""
                 energies[:] = image.get_potential_energy()
                 forces[:] = image.get_forces()
-                
             threads = [threading.Thread(target=run,
                                         args=(images[i],
-                                              energies[i:i + 1],
+                                              energies[i - 1:i],
                                               forces[i - 1:i]))
-                       for i in range(1, N - 1)]
+                       for i in range(1, self.nimages - 1)]
             for thread in threads:
                 thread.start()
             for thread in threads:
                 thread.join()
         else:
             # Parallelize over images:
-            i = self.world.rank * (N - 2) // self.world.size + 1
+            i = self.world.rank * (self.nimages - 2) // self.world.size + 1
             try:
-                energies[i] = images[i].get_potential_energy()
+                energies[i - 1] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
             except:
                 # Make sure other images also fail:
@@ -160,75 +141,40 @@ class NEB:
                 if error:
                     raise RuntimeError('Parallel NEB failed!')
 
-            for i in range(1, N - 1):
-                root = (i - 1) * self.world.size // (N - 2)
-                self.world.broadcast(energies[i:i + 1], root)
+            for i in range(1, self.nimages - 1):
+                root = (i - 1) * self.world.size // (self.nimages - 2)
+                self.world.broadcast(energies[i - 1:i], root)
                 self.world.broadcast(forces[i - 1], root)
 
-        imax = 1 + np.argsort(energies[1:-1])[-1]
-        self.emax = energies[imax]
+        imax = 1 + np.argsort(energies)[-1]
+        self.emax = energies[imax - 1]
 
-        def dist(i1, i2):
-            """Vector pointing from image i1 to i2."""
-            return find_mic(images[i2].positions - images[i1].positions,
-                            images[i1].cell, images[i1].pbc)[0]
-
-        if self.cornercutting:
-            # Find length of springs:
-            t = dist(0, -1)
-            length = np.linalg.norm(t) / (N - 1)
-            
-        for i in range(1, N - 1):
-            t1 = -dist(i, i - 1)
-            t2 = dist(i, i + 1)
-            nt1 = np.linalg.norm(t1)
-            nt2 = np.linalg.norm(t2)
-
-            # Tangents are bisections of spring-directions
-            # (formula 2 of paper I)
-            if i == 1 or i == N - 2:
-                tangent = t1 / nt1 + t2 / nt2
+        tangent1 = find_mic(images[1].get_positions() -
+                            images[0].get_positions(),
+                            images[0].get_cell(), images[0].pbc)[0]
+        for i in range(1, self.nimages - 1):
+            tangent2 = find_mic(images[i + 1].get_positions() -
+                                images[i].get_positions(),
+                                images[i].get_cell(),
+                                images[i].pbc)[0]
+            if i < imax:
+                tangent = tangent2
+            elif i > imax:
+                tangent = tangent1
             else:
-                # Tangents are improved according to formulas 8, 9, 10,
-                # and 11 of paper I.
-                if energies[i + 1] > energies[i] > energies[i - 1]:
-                    tangent = t2
-                elif energies[i + 1] < energies[i] < energies[i - 1]:
-                    tangent = t1
-                else:
-                    demax = max(abs(energies[i + 1] - energies[i]),
-                                abs(energies[i - 1] - energies[i]))
-                    demin = min(abs(energies[i + 1] - energies[i]),
-                                abs(energies[i - 1] - energies[i]))
-                    if energies[i + 1] > energies[i - 1]:
-                        tangent = t2 * demax + t1 * demin
-                    else:
-                        tangent = t2 * demin + t1 * demax
-            # Normalize the tangent vector
-            tangent /= np.linalg.norm(tangent)
+                tangent = tangent1 + tangent2
+
+            tt = np.vdot(tangent, tangent)
             f = forces[i - 1]
             ft = np.vdot(f, tangent)
-            # Remove calculated force parallel to tangent
-            f -= ft * tangent
             if i == imax and self.climb:
-                # imax not affected by the spring forces. The full force
-                # with component along the elestic band converted
-                # (formula 5 of Paper II)
-                f -= ft * tangent
-            elif self.cornercutting:
-                f1 = -(nt1 - length) * t1 / nt1 * self.k[i - 1]
-                f2 = (nt2 - length) * t2 / nt2 * self.k[i]
-                if self.climb and abs(i - imax) == 1 and 1 < i < N - 2:
-                    demax = max(abs(energies[i + 1] - energies[i]),
-                                abs(energies[i - 1] - energies[i]))
-                    demin = min(abs(energies[i + 1] - energies[i]),
-                                abs(energies[i - 1] - energies[i]))
-                    f += (f1 + f2) * demin / demax
-                else:
-                    f += f1 + f2
+                f -= 2 * ft / tt * tangent
             else:
-                # Improved parallel spring force (formula 12 of paper I)
-                f += (nt2 * self.k[i] - nt1 * self.k[i - 1]) * tangent
+                f -= ft / tt * tangent
+                f -= np.vdot(tangent1 * self.k[i - 1] -
+                             tangent2 * self.k[i], tangent) / tt * tangent
+
+            tangent1 = tangent2
 
         return forces.reshape((-1, 3))
 
@@ -243,8 +189,11 @@ class IDPP(Calculator):
     """Image dependent pair potential.
 
     See:
+
         Improved initial guess for minimum energy path calculations.
+
         Søren Smidstrup, Andreas Pedersen, Kurt Stokbro and Hannes Jónsson
+
         Chem. Phys. 140, 214106 (2014)
     """
 

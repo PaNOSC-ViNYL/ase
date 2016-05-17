@@ -38,7 +38,7 @@ for remove_rotation_and_translation in [True, False]:
     # Define the NEB and make a linear interpolation
     # with removing translational
     # and rotational degrees of freedom
-    neb = NEB(images, cornercutting=True,
+    neb = NEB(images,
               remove_rotation_and_translation=remove_rotation_and_translation)
     neb.interpolate(method='idpp')
     
@@ -47,7 +47,7 @@ for remove_rotation_and_translation in [True, False]:
     
     # Switch to CI-NEB, still removing the external degrees of freedom
     # Also spesify the linearly varying spring constants
-    neb = NEB(images, climb=True, cornercutting=True,
+    neb = NEB(images, climb=True,
               remove_rotation_and_translation=remove_rotation_and_translation)
     qn = FIRE(neb, dt=0.005, maxmove=0.05, dtmax=0.1)
     qn.run(fmax=fmax)

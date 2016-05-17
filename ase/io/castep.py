@@ -70,9 +70,10 @@ __all__ = [
     'read_castep_cell',
     'read_geom',
     'read_castep_geom',
+    'read_phonon',
+    'read_castep_phonon',
     # additional reads that still need to be wrapped
     'read_md',
-    'read_phonon',
     'read_param',
     'read_seed',
     # write that is already wrapped
@@ -283,7 +284,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     for option in castep_cell._options.values():
         if option.value is not None:
-            print(option.value)
+#            print(option.value)
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
@@ -344,7 +345,7 @@ def read_castep_cell(fd, index=None):
 
     def get_tokens(lines, l, maxsplit=0):
         """Tokenizes one line of a *cell file."""
-        comment_chars = '#!'
+        comment_chars = '#!;'
         separator_re = '[\s=:]+'
         while l < len(lines):
             line = lines[l].strip()
@@ -806,7 +807,8 @@ def read_castep_phonon(fd, index=None, read_vib_data=False,
     Reads a .phonon file written by a CASTEP Phonon task and returns an atoms
     object, as well as the calculated vibrational data if requested.
 
-    Note that the index argument has no effect as of now."""
+    Note that the index argument has no effect as of now.
+    """
 
     # fd is closed by embracing read() routine
     lines = fd.readlines()
