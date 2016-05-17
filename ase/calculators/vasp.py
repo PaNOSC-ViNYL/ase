@@ -22,6 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 import os
 import sys
 import re
+import warnings
 from .general import Calculator
 from os.path import join, isfile, islink
 
@@ -534,6 +535,13 @@ class Vasp(Calculator):
             else:
                 raise NotImplementedError(
                     self._potcar_unguessable_string)
+
+        if (p['xc'].lower() == 'lda' and p['pp'].lower() != 'lda'):
+            warnings.warn("XC is set to LDA, but PP is set to "
+                          "{0}. \nThis calculation is using the {0} "
+                          "POTCAR set. \n Please check that this is "
+                          "really what you intended!"
+                          "\n".format(p['pp'].upper()))
 
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
