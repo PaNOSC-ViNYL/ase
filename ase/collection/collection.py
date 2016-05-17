@@ -69,7 +69,7 @@ class Collection:
     @property
     def names(self):
         self._read()
-        return self._names
+        return list(self._names)
         
     @property
     def data(self):
