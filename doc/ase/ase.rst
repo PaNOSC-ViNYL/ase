@@ -81,6 +81,7 @@ List of all modules:
    neighbors
    io/opls
    db/db
+   checkpointing
    ga
    neb
    dimermethod
