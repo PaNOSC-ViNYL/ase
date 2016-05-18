@@ -227,7 +227,7 @@ class ResonantRaman(Vibrations):
         self.timer.stop('Huang-Rhys')
         return s * d_r**2 * self.om_r / 2.
 
-    def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(10)):
+    def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
 
         Unit: |e|^2Angstrom^2/eV
@@ -605,14 +605,16 @@ class ResonantRaman(Vibrations):
 
 
 class LrResonantRaman(ResonantRaman):
-    """Resonant Raman for linear response"""
+    """Resonant Raman for linear response
+
+    Quick and dirty approach to enable loading of LrTDDFT calculations
+    """
     def read_excitations(self):
         self.timer.start('read excitations')
         self.timer.start('really read')
         self.log('reading ' + self.exname + '.eq' + self.exext)
         ex0_object = self.exobj(self.exname + '.eq' + self.exext,
                                 **self.exkwargs)
-        ex0_object.diagonalize()
         self.timer.stop('really read')
         self.timer.start('index')
         matching = frozenset(ex0_object.kss)
@@ -622,7 +624,6 @@ class LrResonantRaman(ResonantRaman):
             self.timer.start('really read')
             self.log('reading ' + exname, end=' ')
             exo = self.exobj(exname, **self.exkwargs)
-            exo.diagonalize()
             lst.append(exo)
             self.timer.stop('really read')
             self.timer.start('index')
@@ -642,17 +643,18 @@ class LrResonantRaman(ResonantRaman):
                 matching = append(exp_object_list,
                                   name + '+' + self.exext, matching)
         self.ndof = 3 * len(self.indices)
-        self.nex = len(matching)
         self.timer.stop('read excitations')
 
         self.timer.start('select')
 
         def select(exl, matching):
+            exl.diagonalize(**self.exkwargs)
             mlst = [ex for ex in exl]
 #            mlst = [ex for ex in exl if ex in matching]
-            assert(len(mlst) == len(matching))
+#            assert(len(mlst) == len(matching))
             return mlst
         ex0 = select(ex0_object, matching)
+        self.nex = len(ex0)
         exm = []
         exp = []
         r = 0
@@ -672,11 +674,15 @@ class LrResonantRaman(ResonantRaman):
         self.ex0m_pc = np.array(
             [ex.get_dipole_me(form='v') for ex in ex0])
         self.exF_rp = []
+        exmE_rp = []
+        expE_rp = []
         exmm_rpc = []
         expm_rpc = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
+                exmE_rp.append([em.energy for em in exm[r]])
+                expE_rp.append([ep.energy for ep in exp[r]])
                 self.exF_rp.append(
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
@@ -685,6 +691,8 @@ class LrResonantRaman(ResonantRaman):
                 expm_rpc.append(
                     [ex.get_dipole_me(form='v') for ex in exp[r]])
                 r += 1
+        self.exmE_rp = np.array(exmE_rp) * eu
+        self.expE_rp = np.array(expE_rp) * eu
         self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
         self.exmm_rpc = np.array(exmm_rpc)
         self.expm_rpc = np.array(expm_rpc)
