@@ -7,7 +7,7 @@ import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
-from ase.units import Ry, eV, Bohr
+from ase.units import Ry, eV, Bohr, Hartree
 from ase.data import atomic_numbers
 #from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
@@ -26,7 +26,7 @@ class deMon2k_Parameters(Parameters):
     """
     def __init__(
             self,
-            label='deMon',
+            label='rundir/deMon',
             atoms=None,
             restart=None,
             ignore_bad_restart_file=False,
@@ -104,7 +104,7 @@ class Base_deMon2k(FileIOCalculator):
             raise ValueError(mess)
 
         label = parameters['label']
-        runfile = label + '.in'
+        runfile = label + '.inp'
         outfile = label + '.out'
 
         try:
@@ -280,22 +280,17 @@ class Base_deMon2k(FileIOCalculator):
             - system_changes : List of properties changed since last run.
         """
         # Call base calculator.
-        #print('here13')
-        #print(self.parameters)
         FileIOCalculator.write_input(
             self,
             atoms=atoms,
             properties=properties,
             system_changes=system_changes)
 
-        #print('here3')
         if system_changes is None and properties is None:
             return
 
-        filename = self.label + '.in'
+        filename = self.label + '.inp'
 
-        #print('here!!!!!')
-        
         # On any changes, remove all analysis files.
 
 #        # this must be modified
@@ -303,40 +298,13 @@ class Base_deMon2k(FileIOCalculator):
 #            self.remove_analysis()
 
         # Start writing the file.
-# this must be modified
         with open(filename, 'w') as f:
-
-            # First write explicitly given options to
-            # allow the user to overwrite anything.
-#            self._write_input_arguments(f)
-
-#            # Use the saved density matrix if only 'cell' and 'positions'
-#            # haved changes.
-#            if (system_changes is None or
-#                ('numbers' not in system_changes and
-#                 'initial_magmoms' not in system_changes and
-#                 'initial_charges' not in system_changes)):
-#                f.write(format_input('DM.UseSaveDM', True))
-#
-#            # Save density.
-#            if 'density' in properties:
-#                f.write(format_input('SaveRho', True))
-#
-#            # Write system name and label.
-#            f.write(format_input('SystemName', self.label))
-#            f.write(format_input('SystemLabel', self.label))
-#
-#            # Force siesta to return error on no convergence.
-#            f.write(format_input('SCFMustConverge', True))
-#
-#            # Write the rest.
-#            self._write_species(f, atoms)
-#            self._write_kpts(f)
-#            self._write_structure(f, atoms)
 
             # write keyword argument keywords 
             value = self.parameters['title']
             self._write_argument('TITLE', value, f)
+
+            f.write('#\n')
             
             value = self.parameters['scftype']
             self._write_argument('SCFTYPE', value, f)
@@ -349,7 +317,7 @@ class Base_deMon2k(FileIOCalculator):
             self._write_argument('CHARGE', value, f)
             
             value = self.parameters['xc']
-            self._write_argument('VXTYPE', value, f)
+            self._write_argument('VXCTYPE', value, f)
 
             value = self.parameters['guess']
             self._write_argument('GUESS', value, f)
@@ -357,10 +325,13 @@ class Base_deMon2k(FileIOCalculator):
             value = self.parameters['print_out']
             if not len(value) == 0:
                 self._write_argument('PRINT', value, f)
-            
+                f.write('#\n')            
+
             # write general input arguments
             self._write_input_arguments(f)
             
+            f.write('#\n')
+
             # write basis set etc 
             basis = self.parameters['basis']
             if not 'all' in basis:
@@ -388,7 +359,7 @@ class Base_deMon2k(FileIOCalculator):
             self._write_atomic_coordinates(f, atoms)
                 
                 
-# this must be modified
+    # this must be modified
     def read(self, filename):
         """Read parameters from file."""
         if not os.path.exists(filename):
@@ -417,7 +388,6 @@ class Base_deMon2k(FileIOCalculator):
         - value : the arguemnts, can be a string, a number or a list
         - f :  and open file
         """
-        f.write('#\n')
         
         # for only one argument, write on same line
         if not isinstance(value, (tuple, list)):
@@ -425,7 +395,7 @@ class Base_deMon2k(FileIOCalculator):
             line += "    " + str(value)
             f.write(line)
             f.write('\n')
-            # for a list, write first argument on the first line, then the rest on new lines
+        # for a list, write first argument on the first line, then the rest on new lines
         else:
             line = key
             if not isinstance(value[0], (tuple, list)):
@@ -464,6 +434,8 @@ class Base_deMon2k(FileIOCalculator):
 
         #f.write('\n')
         f.write('#\n')
+        f.write('# Atomic coordinates\n')
+        f.write('#\n')
         f.write('GEOMETRY CARTESIAN ANGSTROM\n')
 
         for i in range(len(atoms)):
@@ -501,19 +473,12 @@ class Base_deMon2k(FileIOCalculator):
         - string: 'BASIS', 'ECP','AUXIS' or 'AUGMENT'
         """
 
-        # first basis sets
-        #f.write('\n')
-        f.write('#\n')
-
         # basis for all atoms
         line = '{0}'.format(string).ljust(10)
 
         if 'all' in basis:
             default_basis = basis['all']
             line += '({0})'.format(default_basis).rjust(16)
-        #else:
-        #    default_basis = default
-        #    line += '({0})'.format(default_basis).rjust(16)
         
         f.write(line)
         f.write('\n')        
@@ -551,10 +516,10 @@ class Base_deMon2k(FileIOCalculator):
         """Read the results.
         """
         self.read_energy()
-        self.read_forces_stress()
-        self.read_eigenvalues()
-        self.read_dipole()
-        self.read_pseudo_density()
+        #self.read_forces_stress()
+        #self.read_eigenvalues()
+        #self.read_dipole()
+        #self.read_pseudo_density()
 
 # might be useless
     def read_pseudo_density(self):
@@ -564,28 +529,30 @@ class Base_deMon2k(FileIOCalculator):
         if isfile(filename):
             self.results['density'] = read_rho(filename)
 
-# this must be modified
     def read_energy(self):
-        """Read energy from SIESTA's text-output file.
+        """Read energy from deMon2k's text-output file.
         """
+        print(self.label + '.out')
         with open(self.label + '.out', 'r') as f:
-            text = f.read().lower()
+            text = f.read().upper()
 
-        assert 'error' not in text
+        #assert 'error' not in text
         lines = iter(text.split('\n'))
 
-        # Get the number of grid points used:
-        for line in lines:
-            if line.startswith('initmesh: mesh ='):
-                n_points = [int(word) for word in line.split()[3:8:2]]
-                self.results['n_grid_point'] = n_points
-                break
+        ## Get the number of grid points used:
+        #for line in lines:
+        #    if line.startswith('initmesh: mesh ='):
+        #        n_points = [int(word) for word in line.split()[3:8:2]]
+        #        self.results['n_grid_point'] = n_points
+        #        break
 
         for line in lines:
-            if line.startswith('siesta: etot    ='):
-                self.results['energy'] = float(line.split()[-1])
-                line = lines.next()
-                self.results['free_energy'] = float(line.split()[-1])
+            if line.startswith(' TOTAL ENERGY                ='):
+                self.results['energy'] = float(line.split()[-1]) * Hartree
+                #print(line)
+                print(self.results['energy'])
+                #line = lines.next()
+                #self.results['free_energy'] = float(line.split()[-1])
                 break
         else:
             raise RuntimeError
