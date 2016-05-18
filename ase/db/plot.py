@@ -2,6 +2,19 @@ from ase.utils import basestring
 
 
 def dct2plot(dct, filename=None, show=True):
+    """Create a plot from a dict.
+    
+    Example dics::
+        
+        {'title': 'Example',
+         'data': [{'x': [0, 1, 2],
+                   'y': [1.2, 1.1, 1.0],
+                   'label': 'label1',
+                   'style': 'o-g'}],
+         'xlabel': 'blah-blah [eV]'}
+        
+    """
+    
     import matplotlib.pyplot as plt
     fig = plt.figure()
     styles = ['k-', 'r-', 'g-', 'b-']

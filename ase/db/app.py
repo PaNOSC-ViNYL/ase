@@ -26,11 +26,11 @@ import tempfile
 from flask import Flask, render_template, request, send_from_directory
 
 import ase.db
+from ase.db.plot import dct2plot
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.io.png import write_png
 from ase.visualize import view
-from ase.utils import basestring
 
 
 # Every client-connetions gets one of these tuples:
@@ -175,34 +175,7 @@ def plot(png):
     if not os.path.isfile(path):
         name, id = png[:-4].split('-')
         plot = db[int(id)].data[name]
-
-        import matplotlib.pyplot as plt
-        fig = plt.figure()
-        styles = ['k-', 'r-', 'g-', 'b-']
-        for dct in plot['data']:
-            x = dct['x']
-            Y = dct['y']
-            if Y.ndim == 1:
-                Y = Y[None]
-            style = dct.get('style')
-            if not style:
-                style = styles.pop()
-            plt.plot(x, Y[0], style, label=dct['label'])
-            for y in Y[1:]:
-                plt.plot(x, y, style)
-            plt.legend()
-        if isinstance(plot['xlabel'], basestring):
-            plt.xlabel(plot['xlabel'])
-        else:
-            x, labels = plot['xlabel']
-            plt.xticks(x, labels)
-            plt.xlim(x[0], x[-1])
-        plt.ylabel(plot['ylabel'])
-        if 'ylim' in plot:
-            plt.ylim(*plot['ylim'])
-        plt.title(plot['title'])
-        plt.savefig(path)
-        plt.close(fig)
+        dct2plot(plot, path, show=False)
         
     return send_from_directory(tmpdir, png)
     
