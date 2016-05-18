@@ -230,7 +230,7 @@ class SQLite3Database(Database):
         else:
             values += (None, None)
             
-        if not key_value_pairs:
+        if key_value_pairs is None:
             key_value_pairs = row.key_value_pairs
         
         if not data:
