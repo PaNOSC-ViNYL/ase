@@ -50,7 +50,7 @@ word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
 reserved_keys = set(all_properties + all_changes +
                     ['id', 'unique_id', 'ctime', 'mtime', 'user',
-                     'momenta', 'constraints',
+                     'momenta', 'constraints', 'natoms', 'formula', 'age',
                      'calculator', 'calculator_parameters',
                      'key_value_pairs', 'data'])
 
