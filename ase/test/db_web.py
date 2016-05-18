@@ -8,12 +8,12 @@ plot = {'title': 'A test',
                   'x': [0, 1, 2], 'y': [[2, 2, 1], [1, 1, 1]]}],
         'xlabel': 'x',
         'ylabel': 'y'}
-c.write(Atoms('H2O'), foo='bar', data={'plots': [plot]})
+c.write(Atoms('H2O'), foo='bar', data={'plot': plot})
 app.db = c
 app.app.testing = True
 d = app.app.test_client().get('/')
 print(d)
 d = app.app.test_client().get('/id/1')
 print(d)
-d = app.app.test_client().get('/plot/0-1.png')
+d = app.app.test_client().get('/plot/plot-1.png')
 print(d)

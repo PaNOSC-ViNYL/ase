@@ -70,8 +70,12 @@ class Summary:
         self.plots = []
         self.data = dct.get('data')
         if self.data:
-            if 'plots' in self.data:
-                self.plots = range(len(self.data.plots))
+            plots = []
+            for name, value in self.data.items():
+                if isinstance(value, dict) and 'xlabel' in value:
+                    plots.append((value.get('number'), name))
+            self.plots = [name for number, name in sorted(plots)]
+            
             self.data = ', '.join(self.data.keys())
                 
         self.constraints = dct.get('constraints')

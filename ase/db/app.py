@@ -173,8 +173,8 @@ def image(name):
 def plot(png):
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
-        n, id = (int(x) for x in png[:-4].split('-'))
-        plot = db[id].data['plots'][n]
+        name, id = png[:-4].split('-')
+        plot = db[int(id)].data[name]
 
         import matplotlib.pyplot as plt
         fig = plt.figure()
