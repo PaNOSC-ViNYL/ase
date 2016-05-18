@@ -351,7 +351,7 @@ class Atoms(object):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         return self._cell.copy()
         
-    def get_cell_lengths_and_angles(self):
+    def get_cellpar(self):
         """Get unit cell parameters. Sequence of 6 numbers.
         First three are unit cell vector lengths and second three 
         are angles between them:
