@@ -18,13 +18,7 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-<<<<<<< HEAD
-from ase.geometry import wrap_positions, find_mic
-=======
-from ase.utils.geometry import wrap_positions, find_mic
-from ase.lattice.spacegroup.cell import cell_to_cellpar, cellpar_to_cell
->>>>>>> 4ee506dd29140aad5591d6abe31081a1cc26dad6
-
+from ase.geometry import wrap_positions, find_mic, cellpar_to_cell, cell_to_cellpar
 
 class Atoms(object):
     """Atoms object.
@@ -323,20 +317,20 @@ class Atoms(object):
         >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
 
         >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
-=======
         >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
->>>>>>> 9d4e2fdfd6377eab71487ae2ca574c03dca71be2
         """
 
         if fix is not None:
             raise TypeError('Please use scale_atoms=%s' % (not fix))
 
+        if isinstance(cell, (int, float)):
+            cell = cellpar_to_cell(cell)
+
+        cell = np.array(cell)
         
-        if isinstance(cell,(int,float)):
+        if cell.shape in ((1, ), (3, ), (6, )):
             cell = cellpar_to_cell(cell)
-        elif cell.shape in ((1, ), (3, ), (6, )):
-            cell = cellpar_to_cell(cell)
-        elif cell.shape is not (3, 3):
+        elif cell.shape != (3, 3):
             raise ValueError("")
 
         if scale_atoms:
