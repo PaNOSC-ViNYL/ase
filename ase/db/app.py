@@ -26,10 +26,9 @@ import tempfile
 from flask import Flask, render_template, request, send_from_directory
 
 import ase.db
-from ase.db.plot import dct2plot
+from ase.db.plot import atoms2png, dct2plot
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
-from ase.io.png import write_png
 from ase.visualize import view
 
 
@@ -155,17 +154,8 @@ def image(name):
     if not os.path.isfile(path):
         id = int(name[:-4])
         atoms = db.get_atoms(id)
-        if atoms:
-            size = atoms.positions.ptp(0)
-            i = size.argmin()
-            rotation = ['-90y', '90x', ''][i]
-            size[i] = 0.0
-            scale = min(20, 20 / size.max() * 10.0)
-        else:
-            scale = 20
-            rotation = ''
-        write_png(path, atoms, show_unit_cell=1,
-                  rotation=rotation, scale=scale)
+        atoms2png(atoms, path)
+    
     return send_from_directory(tmpdir, name)
 
 

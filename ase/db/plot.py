@@ -1,6 +1,21 @@
+from ase.io.png import write_png
 from ase.utils import basestring
 
 
+def atoms2png(atoms, filename):
+    if atoms:
+        size = atoms.positions.ptp(0)
+        i = size.argmin()
+        rotation = ['-90y', '90x', ''][i]
+        size[i] = 0.0
+        scale = min(20, 20 / size.max() * 10.0)
+    else:
+        scale = 20
+        rotation = ''
+    write_png(filename, atoms, show_unit_cell=1,
+              rotation=rotation, scale=scale)
+
+    
 def dct2plot(dct, filename=None, show=True):
     """Create a plot from a dict.
     
