@@ -66,7 +66,7 @@ class Atoms(object):
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells, or 6 numbers, where
         first three are lengths of unit cell vector, and the
-        other three are angles between them. In following order:
+        other three are angles between them, in following order:
         [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
         First vector will lie in X - direction, second in XY - plane,
         and the third one in Z - positive subspace.
