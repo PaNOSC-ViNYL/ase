@@ -50,7 +50,7 @@ word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
 reserved_keys = set(all_properties + all_changes +
                     ['id', 'unique_id', 'ctime', 'mtime', 'user',
-                     'momenta', 'constraints',
+                     'momenta', 'constraints', 'natoms', 'formula', 'age',
                      'calculator', 'calculator_parameters',
                      'key_value_pairs', 'data'])
 
@@ -66,13 +66,14 @@ def check(key_value_pairs):
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):
-                    raise ValueError('Value ' + value + ' is put in as string ' +
-                                     'but can be interpreted as ' +
-                                     '{0}! Please convert '.format(t.__name__) +
-                                     'to {0} using '.format(t.__name__) +
-                                     '{0}(value) before '.format(t.__name__) +
-                                     'writing to the database OR change ' +
-                                     'to a different string.')
+                    raise ValueError(
+                        'Value ' + value + ' is put in as string ' +
+                        'but can be interpreted as ' +
+                        '{0}! Please convert '.format(t.__name__) +
+                        'to {0} using '.format(t.__name__) +
+                        '{0}(value) before '.format(t.__name__) +
+                        'writing to the database OR change ' +
+                        'to a different string.')
             
             
 def str_represents(value, t=int):
