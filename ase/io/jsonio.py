@@ -4,6 +4,7 @@ import json
 import numpy as np
 from ase.utils import basestring
 
+
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.ndarray):
