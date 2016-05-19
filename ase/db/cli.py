@@ -81,6 +81,8 @@ def main(args=sys.argv[1:]):
     add('-p', '--plot', metavar='[a,b:]x,y1,y2,...',
         help='Example: "-p x,y": plot y row against x row. Use '
         '"-p a:x,y" to make a plot for each value of a.')
+    add('-P', '--plot-data', metavar='name',
+        help="Show plot from data['name'] from the selected row.")
     add('--csv', action='store_true',
         help='Write comma-separated-values file.')
     add('-w', '--open-web-browser', action='store_true',
@@ -201,6 +203,11 @@ def run(opts, args, verbosity):
                 return
         con.delete(ids)
         out('Deleted %s' % plural(len(ids), 'row'))
+        return
+
+    if opts.plot_data:
+        from ase.db.plot import dct2plot
+        dct2plot(con.get(query).data[opts.plot_data])
         return
 
     if opts.plot:
