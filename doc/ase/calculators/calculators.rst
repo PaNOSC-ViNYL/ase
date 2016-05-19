@@ -44,7 +44,7 @@ or this::
 Supported calculators
 =====================
 
-The calculators can be divided in three groups:
+The calculators can be divided in four groups:
 
 1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
 
@@ -56,37 +56,44 @@ The calculators can be divided in three groups:
 3) Pure python implementations included in the ASE package: EMT, EAM,
    Lennard-Jones and Morse.
 
-=================================  ===========================================
-name                               description
-=================================  ===========================================
-Asap_                              Highly efficient EMT code
-GPAW_                              Real-space/plane-wave/LCAO PAW code
-Hotbit_                            DFT based tight binding
-:mod:`~ase.calculators.abinit`     Plane-wave pseudopotential code
-:mod:`~ase.calculators.castep`     Plane-wave pseudopotential code
-:mod:`~ase.calculators.cp2k`       DFT and classical potentials
-:mod:`~ase.calculators.dftb`       DFT based tight binding
-:mod:`~ase.calculators.eam`        Embedded Atom Method
-elk                                Full Potential LAPW code
-:mod:`~ase.calculators.exciting`   Full Potential LAPW code
-:mod:`~ase.calculators.aims`       Numeric atomic orbital, full potential code
-:mod:`~ase.calculators.fleur`      Full Potential LAPW code
-gaussian                           Gaussian based electronic structure code
-:mod:`~ase.calculators.gromacs`    Classical molecular dynamics code
-:mod:`~ase.calculators.jacapo`     Plane-wave ultra-soft pseudopotential code
-:mod:`~ase.calculators.lammps`     Classical molecular dynamics code
-mopac                   ...
-:mod:`~ase.calculators.nwchem`     Gaussian based electronic structure code
-:mod:`~ase.calculators.octopus`    Real-space pseudopotential code
-:mod:`~ase.calculators.siesta`     LCAO pseudopotential code
-:mod:`~ase.calculators.turbomole`  Fast atom orbital code
-:mod:`~ase.calculators.vasp`       Plane-wave PAW code
-:mod:`~ase.calculators.emt`        Effective Medium Theory calculator
-lj                                 Lennard-Jones potential
-morse                              Morse potential
-=================================  ===========================================
+4) Calculators that wrap others, included in the ASE package:
+   :class:`ase.calculators.checkpoint.CheckpointCalculator` and
+   the :ref:`Grimme-D3 <grimme>` potential.
+   
+
+==================================  ===========================================
+name                                description
+==================================  ===========================================
+Asap_                               Highly efficient EMT code
+GPAW_                               Real-space/plane-wave/LCAO PAW code
+Hotbit_                             DFT based tight binding
+:mod:`~ase.calculators.abinit`      Plane-wave pseudopotential code
+:mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
+:mod:`~ase.calculators.cp2k`        DFT and classical potentials
+:mod:`~ase.calculators.dftb`        DFT based tight binding
+:mod:`~ase.calculators.eam`         Embedded Atom Method
+elk                                 Full Potential LAPW code
+:mod:`~ase.calculators.exciting`    Full Potential LAPW code
+:mod:`~ase.calculators.aims`        Numeric atomic orbital, full potential code
+:mod:`~ase.calculators.fleur`       Full Potential LAPW code
+gaussian                            Gaussian based electronic structure code
+:mod:`~ase.calculators.gromacs`     Classical molecular dynamics code
+:mod:`~ase.calculators.jacapo`      Plane-wave ultra-soft pseudopotential code
+:mod:`~ase.calculators.lammps`      Classical molecular dynamics code
+mopac                               ...
+:mod:`~ase.calculators.nwchem`      Gaussian based electronic structure code
+:mod:`~ase.calculators.octopus`     Real-space pseudopotential code
+:mod:`~ase.calculators.siesta`      LCAO pseudopotential code
+:mod:`~ase.calculators.turbomole`   Fast atom orbital code
+:mod:`~ase.calculators.vasp`        Plane-wave PAW code
+:mod:`~ase.calculators.emt`         Effective Medium Theory calculator
+lj                                  Lennard-Jones potential
+morse                               Morse potential
+:mod:`~ase.calculators.checkpoint`  Checkpoint calculator
+==================================  ===========================================
 
 .. index:: D3, Grimme
+.. _grimme:
 
 .. note::
     
@@ -178,7 +185,6 @@ the :meth:`set` method:
 
 
 .. toctree::
-   :hidden:
 
    eam
    emt
@@ -199,6 +205,7 @@ the :meth:`set` method:
    turbomole
    vasp
    qmmm
+   checkpointing
    others
    ase_qmmm_manyqm
 

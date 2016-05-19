@@ -15,6 +15,9 @@ Git master branch
   be created by the user when needed (e.g. interfacing codes with different
   CODATA versions in use).
 
+* New :mod:`ase.calculators.checkpoint` module.  Adds restart and rollback
+  capabilities to ASE scripts.
+
   
 Version 3.11.0
 ==============
