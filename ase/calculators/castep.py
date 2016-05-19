@@ -26,6 +26,7 @@ import tempfile
 import time
 
 import ase
+import ase.units as units
 from ase.calculators.general import Calculator
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
@@ -911,7 +912,7 @@ End CASTEP Interface Documentation
             atoms.set_calculator(self)
 
         self._forces = forces_atoms
-        self._stress = np.array(stress)
+        self._stress = np.array(stress)*units.GPa # stress in .castep file is given in GPa
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
 
