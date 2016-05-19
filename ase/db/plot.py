@@ -29,7 +29,6 @@ def dct2plot(dct, filename=None, show=True):
          'xlabel': 'blah-blah [eV]'}
         
     """
-    
     import matplotlib.pyplot as plt
     fig = plt.figure()
     styles = ['k-', 'r-', 'g-', 'b-']
@@ -55,7 +54,10 @@ def dct2plot(dct, filename=None, show=True):
     if 'ylim' in dct:
         plt.ylim(*dct['ylim'])
     plt.title(dct['title'])
-    plt.tight_layout()
+    try:
+        plt.tight_layout()
+    except AttributeError:
+        pass
     if show:
         plt.show()
     if filename:
