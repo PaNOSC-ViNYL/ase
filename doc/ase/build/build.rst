@@ -72,10 +72,10 @@ Example::
 >>> from ase.build import molecule
 >>> atoms = molecule('H2O')
 
-The list of available molecules is those from the :data:`ase.collection.g2`
+The list of available molecules is those from the :data:`ase.collections.g2`
 database:
 
->>> from ase.collection import g2
+>>> from ase.collections import g2
 >>> g2.names
 ['PH3', 'P2', 'CH3CHO', 'H2COH', 'CS', 'OCHCHO', 'C3H9C', 'CH3COF',
  'CH3CH2OCH3', 'HCOOH', 'HCCl3', 'HOCl', 'H2', 'SH2', 'C2H2',

@@ -15,7 +15,7 @@ Quick links:
     - :mod:`~ase.atoms`
     - :mod:`~ase.build`
     - :mod:`~ase.calculators`
-  * - :mod:`~ase.collection`
+  * - :mod:`~ase.collections`
     - :mod:`~ase.constraints`
     - :mod:`~ase.db`
     - :mod:`~ase.dft`
@@ -60,7 +60,7 @@ List of all modules:
    io/io
    build/build
    eos
-   collection
+   collections
    data
    optimize
    md

@@ -7,7 +7,7 @@ except ImportError:
     scipy = None
     
 from ase import atoms
-from ase.collection import collection
+from ase.collections import collection
 from ase.spacegroup import spacegroup, findsym, xtal
 from ase.geometry import geometry, cell
 from ase.build import tools
