@@ -203,6 +203,7 @@ the :meth:`set` method:
    turbomole
    vasp
    qmmm
+   checkpointing
    others
    ase_qmmm_manyqm
 
