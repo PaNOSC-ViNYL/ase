@@ -1,7 +1,7 @@
 # creates: WL.png, Ni111slab2x2.png, WL_rot_c.png, WL_rot_a.png, WL_wrap.png, interface-h2o-wrap.png
 import numpy as np
 from ase.io import read, write
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 
 exec(compile(open('WL.py').read(), 'WL.py', 'exec'))
 
@@ -14,7 +14,7 @@ cellW = W.get_cell()
 print(cellW)
 
 # We will need as close a lattice match as possible. lets try this slab.
-# Using the ase.lattice.surface module, we make the fcc111 slab.
+# Using the ase.build module, we make the fcc111 slab.
 slab = fcc111('Ni', size=[2, 4, 3], a=3.55, orthogonal=True)
 cell = slab.get_cell()
 write('Ni111slab2x2.png', slab, show_unit_cell=2)

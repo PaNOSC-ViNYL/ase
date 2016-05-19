@@ -8,8 +8,6 @@ import tempfile
 import unittest
 from glob import glob
 
-import numpy as np
-
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
 from ase.utils import import_module, devnull
@@ -57,7 +55,7 @@ class ScriptTestCase(unittest.TestCase):
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
-            if module in ['scipy', 'cmr', 'Scientific', 'lxml']:
+            if module in ['scipy', 'Scientific', 'lxml', 'flask']:
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
@@ -171,16 +169,6 @@ def cli(command, calculator_name=None):
     assert error == 0
     
 
-class World:
-    """Class for testing parallelization with MPI"""
-    def __init__(self, size):
-        self.size = size
-        self.data = {}
-
-    def get_rank(self, rank):
-        return CPU(self, rank)
-
-
 class must_raise:
     """Context manager for checking raising of exceptions."""
     def __init__(self, exception):
@@ -193,47 +181,6 @@ class must_raise:
         if exc_type is None:
             raise RuntimeError('Failed to fail: ' + str(self.exception))
         return issubclass(exc_type, self.exception)
-        
-        
-class CPU:
-    def __init__(self, world, rank):
-        self.world = world
-        self.rank = rank
-        self.size = world.size
-
-    def send(self, x, rank):
-        while (self.rank, rank) in self.world.data:
-            pass
-        self.world.data[(self.rank, rank)] = x
-
-    def receive(self, x, rank):
-        while (rank, self.rank) not in self.world.data:
-            pass
-        x[:] = self.world.data.pop((rank, self.rank))
-
-    def sum(self, x):
-        if not isinstance(x, np.ndarray):
-            x = np.array([x])
-            self.sum(x)
-            return x[0]
-
-        if self.rank == 0:
-            y = np.empty_like(x)
-            for rank in range(1, self.size):
-                self.receive(y, rank)
-                x += y
-        else:
-            self.send(x, 0)
-
-        self.broadcast(x, 0)
-
-    def broadcast(self, x, root):
-        if self.rank == root:
-            for rank in range(self.size):
-                if rank != root:
-                    self.send(x, rank)
-        else:
-            self.receive(x, root)
 
             
 if __name__ == '__main__':

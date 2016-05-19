@@ -67,10 +67,17 @@ class Summary:
         if self.dipole is not None:
             self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
         
+        self.plots = []
         self.data = dct.get('data')
         if self.data:
-            self.data = ', '.join(self.data.keys())
+            plots = []
+            for name, value in self.data.items():
+                if isinstance(value, dict) and 'xlabel' in value:
+                    plots.append((value.get('number'), name))
+            self.plots = [name for number, name in sorted(plots)]
             
+            self.data = ', '.join(self.data.keys())
+                
         self.constraints = dct.get('constraints')
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)

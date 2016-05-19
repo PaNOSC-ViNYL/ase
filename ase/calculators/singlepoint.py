@@ -44,7 +44,8 @@ class SinglePointCalculator(Calculator):
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.results or self.check_state(atoms):
             if allow_calculation:
-                raise NotImplementedError
+                raise NotImplementedError(
+                    'The property "{0}" is not available.'.format(name))
             return None
 
         result = self.results[name]

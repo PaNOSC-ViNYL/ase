@@ -90,6 +90,14 @@ morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
 ==================================  ===========================================
 
+.. index:: D3, Grimme
+
+.. note::
+    
+    A Fortran implemetation of the Grimme-D3 potential, that can be used as
+    an add-on to any ASE calculator, can be found here:
+    https://gitlab.com/ehermes/ased3/tree/master.
+
 The calculators included in ASE are used like this:
 
 >>> from ase.calculators.abc import ABC

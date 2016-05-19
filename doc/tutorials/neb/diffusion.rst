@@ -43,7 +43,7 @@ used to make the figure you see above.
    * :mod:`ase.neb`
    * :mod:`ase.constraints`
    * :ref:`constraints diffusion tutorial`
-   * :func:`~ase.lattice.surface.fcc100`
+   * :func:`~ase.build.fcc100`
    
 
 

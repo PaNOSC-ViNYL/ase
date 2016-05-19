@@ -5,16 +5,22 @@
 SUMMARY
 {% endblock %}
 {% block content %}
+Download:
+<a href="/xyz/{{ d.id }}">xyz</a>,
+<a href="/sqlite/{{ d.id }}">db</a>,
+<a href="/json/{{ d.id }}">json</a>
+<br>
 {% if d.numbers|length %}
 <a href="/gui/{{ d.id }}">
 <img src="/image/{{ d.id }}.png">
 </a>
 <br>
 {% endif %}
-Download:
-<a href="/xyz/{{ d.id }}">xyz</a>,
-<a href="/sqlite/{{ d.id }}">db</a>,
-<a href="/json/{{ d.id }}">json</a>
+<br>
+{% for name in s.plots %}
+<img src="/plot/{{ name }}-{{ d.id }}.png"><br>
+{% endfor %}
+
 <table>
 <tr><th>name</th><th>unit</th><th>value</th></tr>
 {% for name, unit, value in s.table %}
@@ -78,4 +84,5 @@ Constraints: {{ s.constraints }}
 {% if s.data %}
 Data keys: {{ s.data }}
 {% endif %}
+
 {% endblock content %}

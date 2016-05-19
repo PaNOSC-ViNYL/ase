@@ -1,4 +1,4 @@
-from ase.structure import molecule
+from ase.build import molecule
 from ase.constraints import FixAtoms
 
 N = 2

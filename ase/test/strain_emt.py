@@ -5,7 +5,7 @@ import numpy as np
 from ase.constraints import StrainFilter
 from ase.optimize.mdmin import MDMin
 from ase.calculators.emt import EMT
-from ase.lattice import bulk
+from ase.build import bulk
 
 cu = bulk('Cu', 'fcc', a=3.6)
 

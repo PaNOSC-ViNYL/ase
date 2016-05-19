@@ -9,7 +9,7 @@ from ase.calculators.emt import EMT
 
 from ase.io import read, write
 
-from ase.structure import molecule
+from ase.build import molecule
 
 m1 = molecule('O2', pbc=True)
 m1.center(2.0)

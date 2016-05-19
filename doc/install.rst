@@ -33,7 +33,7 @@ Installation using ``pip``
 The simplest way to install ASE is to use pip_ which will automatically get
 the source code from PyPI_::
     
-    $ pip install --upgrade ase
+    $ pip install --upgrade --user ase
     
 This will install ASE in your ``~/.local`` folder where Python can
 automatically find it.  Make sure you have ``~/.local/bin`` in your
@@ -73,20 +73,20 @@ from Git.
 :Tar-file:
 
     You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-    latest stable release (ase-3.10.0.tar.gz_) or the latest
+    latest stable release (ase-3.11.0.tar.gz_) or the latest
     development snapshot (`<snapshot.tar.gz>`_).
 
     Unpack and make a soft link::
     
-        $ tar -xf ase-3.10.0.tar.gz
-        $ ln -s ase-3.10.0 ase
+        $ tar -xf ase-3.11.0.tar.gz
+        $ ln -s ase-3.11.0 ase
 
 :Git clone:
 
     Alternatively, you can get the source for the latest stable release from
     https://gitlab.com/ase/ase like this::
     
-        $ git clone -b 3.10.0 https://gitlab.com/ase/ase.git
+        $ git clone -b 3.11.0 https://gitlab.com/ase/ase.git
 
     or if you want the development version::
 
@@ -94,7 +94,9 @@ from Git.
     
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
 ``~/ase/tools`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
-folder is).
+folder is).  Alternatively, you can install the code with ``python setup.py
+install --user`` and add ``~/.local/bin`` to the front of your :envvar:`PATH`
+environment variable (if you don't already have that).
     
 .. note::
     
@@ -102,8 +104,8 @@ folder is).
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
 
-.. _ase-3.10.0.tar.gz:
-    https://pypi.python.org/packages/source/a/ase/ase-3.10.0.tar.gz
+.. _ase-3.11.0.tar.gz:
+    https://pypi.python.org/packages/source/a/ase/ase-3.11.0.tar.gz
 
     
 Environment variables

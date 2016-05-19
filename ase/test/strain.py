@@ -20,7 +20,7 @@ else:
     opt.run(0.001)
 
 # HCP:
-    from ase.lattice.surface import hcp0001
+    from ase.build import hcp0001
     cu = hcp0001('Cu', (1, 1, 2), a=a / sqrt(2))
     cu.cell[1,0] += 0.05
     cu *= (6, 6, 3)

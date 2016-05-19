@@ -1082,7 +1082,7 @@ class Octopus(FileIOCalculator):
 
 
 def main():
-    from ase.lattice import bulk
+    from ase.build import bulk
     from ase.calculators.interfacechecker import check_interface
 
     system = bulk('Si', 'diamond', orthorhombic=True)

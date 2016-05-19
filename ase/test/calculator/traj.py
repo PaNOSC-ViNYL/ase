@@ -2,7 +2,7 @@ import os
 
 from ase.calculators.calculator import get_calculator
 from ase.io import read, write
-from ase.structure import molecule
+from ase.build import molecule
 from ase.test import test_calculator_names
 
 

@@ -10,7 +10,7 @@ from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 from ase.optimize import BFGS
-from ase.utils.geometry import find_mic
+from ase.geometry import find_mic
 
 
 class NEB:
@@ -470,9 +470,9 @@ class NEBtools:
                      % (Ef, Er, dE))
         return fig
 
-    def get_fmax(self):
+    def get_fmax(self, **kwargs):
         """Returns fmax, as used by optimizers with NEB."""
-        neb = NEB(self._images)
+        neb = NEB(self._images, **kwargs)
         forces = neb.get_forces()
         return np.sqrt((forces**2).sum(axis=1).max())
 

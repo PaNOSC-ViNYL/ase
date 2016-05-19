@@ -11,7 +11,7 @@ from collections import OrderedDict
 
 import ase.units
 from ase.atoms import Atoms
-from ase.lattice.spacegroup import Spacegroup
+from ase.spacegroup import Spacegroup
 
 
 def read_magres(filename, include_unrecognised=False):

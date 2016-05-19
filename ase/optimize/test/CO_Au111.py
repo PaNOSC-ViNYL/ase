@@ -3,7 +3,7 @@ from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms
 from ase.optimize.test import run_test
-from ase.lattice.surface import fcc111, add_adsorbate
+from ase.build import fcc111, add_adsorbate
 
 name = 'CO_Au111'
 

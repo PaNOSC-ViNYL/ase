@@ -34,13 +34,15 @@ Supported :mod:`Calculators <ase.calculators>`:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
-:mod:`~ase.calculators.tip3p`
+:mod:`~ase.calculators.tip3p` Grimme-D3_
 
 
 .. _news:
 
 News
 ====
+
+* :ref:`ASE version 3.11.0 <releasenotes>` released (10 May 2016).
 
 * :ref:`ASE version 3.10.0 <releasenotes>` released (17 March 2016).
 
@@ -179,6 +181,7 @@ Contents
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/
+.. _Grimme-D3: https://gitlab.com/ehermes/ased3/tree/master
 .. _Sphinx: http://sphinx.pocoo.org
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk

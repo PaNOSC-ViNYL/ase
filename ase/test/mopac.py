@@ -1,5 +1,5 @@
 """Test H2 molecule atomization with MOPAC."""
-from ase.structure import molecule
+from ase.build import molecule
 from ase.calculators.mopac import MOPAC
 from ase.optimize import BFGS
 h2 = molecule('H2', calculator=MOPAC(label='h2'))
