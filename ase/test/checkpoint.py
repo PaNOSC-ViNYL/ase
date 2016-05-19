@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import os
 import unittest
-import sys
 
 import numpy as np
 
@@ -15,16 +14,15 @@ from ase.calculators.checkpoint import Checkpoint, CheckpointCalculator
 from ase.lattice import bulk
 from ase.calculators.lj import LennardJones
 
-###
 
 class TestCheckpoint(unittest.TestCase):
 
     def op1(self, a, m):
-        a[1].position += m*np.array([0.1, 0.2, 0.3])
+        a[1].position += m * np.array([0.1, 0.2, 0.3])
         return a
 
     def op2(self, a, m):
-        a += ase.Atom('C', m*np.array([0.2, 0.3, 0.1]))
+        a += ase.Atom('C', m * np.array([0.2, 0.3, 0.1]))
         return a, a.positions[0]
 
     def test_sqlite(self):
@@ -36,7 +34,7 @@ class TestCheckpoint(unittest.TestCase):
             pass
 
         CP = Checkpoint('checkpoints.db')
-        a = Diamond('Si', size=[2,2,2])
+        a = Diamond('Si', size=[2, 2, 2])
         a = CP(self.op1)(a, 1.0)
         op1a = a.copy()
         a, ra = CP(self.op2)(a, 2.0)
@@ -44,13 +42,14 @@ class TestCheckpoint(unittest.TestCase):
         op2ra = ra.copy()
 
         CP = Checkpoint('checkpoints.db')
-        a = Diamond('Si', size=[2,2,2])
+        a = Diamond('Si', size=[2, 2, 2])
         a = CP(self.op1)(a, 1.0)
         self.assertEqual(a, op1a)
         a, ra = CP(self.op2)(a, 2.0)
         self.assertEqual(a, op2a)
         self.assert_(np.abs(ra - op2ra).max() < 1e-5)
 
+        
 class TestCheckpointCalculator(unittest.TestCase):
 
     def rattle_calc(self, atoms, calc):
@@ -94,8 +93,6 @@ class TestCheckpointCalculator(unittest.TestCase):
         atoms = bulk('Cu')
         self.rattle_calc(atoms, calc)
 
-
-###
 
 if __name__ == '__main__':
     unittest.main()

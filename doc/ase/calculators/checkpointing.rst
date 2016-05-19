@@ -14,15 +14,17 @@ Something like what follows is found in many ASE scripts::
       ase.optimize.FIRE(a).run(fmax=0.01)
       ase.io.write('atoms_after_relax.traj')
 
-The idea behind checkpointing is to replace this manual checkpointing capability
-with a unified infrastructure.
+The idea behind checkpointing is to replace this manual checkpointing
+capability with a unified infrastructure.
+
 
 Manual checkpointing
 ====================
 
-The class :class:`Checkpoint` takes care of storing and retrieving information
-from the database. This information *always* includes an :class:`~ase.atoms.Atoms` object,
-and it can include attached information on the internal state of the script.
+The class :class:`Checkpoint` takes care of storing and retrieving
+information from the database. This information *always* includes an
+:class:`~ase.atoms.Atoms` object, and it can include attached information on
+the internal state of the script.
 
 .. autoclass:: ase.calculators.checkpoint.Checkpoint
     :members:
@@ -66,8 +68,8 @@ attached to the atomic configuration. If the script is executed again after the
 elastic constants have already been computed, it will skip that computation and
 just use the stored value.
 
-If the checkpointed region contains a single statement, such as the above, there
-is a shorthand notation available::
+If the checkpointed region contains a single statement, such as the above,
+there is a shorthand notation available::
 
   C = CP(fit_elastic_constants)(a)
 
@@ -120,4 +122,3 @@ database. Note that this is useful for calculation where each energy evaluation
 is slow (e.g. DFT), but not recommended for molecular dynamics with classical
 potentials since every single time step will be dumped to the database. This
 will generate huge files.
-

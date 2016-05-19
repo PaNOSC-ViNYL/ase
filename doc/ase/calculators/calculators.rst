@@ -182,7 +182,6 @@ the :meth:`set` method:
 
 
 .. toctree::
-   :hidden:
 
    eam
    emt
