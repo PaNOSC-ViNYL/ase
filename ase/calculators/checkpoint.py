@@ -1,6 +1,4 @@
-"""
-Checkpointing and restart functionality for Python scripts use ASE Atoms
-objects.
+"""Checkpointing and restart functionality for scripts using ASE Atoms objects.
 
 Initialize checkpoint object:
 
@@ -42,7 +40,6 @@ is performed:
     e = atoms.get_potential_energy() # 1st time, does calc, writes to checkfile
                                      # subsequent runs, reads from checkpoint
 """
-import os
 
 import numpy as np
 
@@ -50,13 +47,16 @@ import ase
 from ase.db import connect
 from ase.calculators.calculator import Calculator
 
+
 class NoCheckpoint(Exception):
     pass
 
+    
 class DevNull:
     def write(str, *args):
         pass
 
+        
 class Checkpoint(object):
     _value_prefix = '_values_'
 
@@ -71,6 +71,7 @@ class Checkpoint(object):
 
     def __call__(self, func, *args, **kwargs):
         checkpoint_func_name = str(func)
+        
         def decorated_func(*args, **kwargs):
             # Get the first ase.Atoms object.
             atoms = None
@@ -97,13 +98,13 @@ class Checkpoint(object):
         else:
             self.checkpoint_id[-1] += 1
         self.logfile.write('Entered checkpoint region '
-                       '{0}.\n'.format(self.checkpoint_id))
+                           '{0}.\n'.format(self.checkpoint_id))
 
         self.in_checkpointed_region = True
 
     def _decrease_checkpoint_id(self):
         self.logfile.write('Leaving checkpoint region '
-                       '{0}.\n'.format(self.checkpoint_id))
+                           '{0}.\n'.format(self.checkpoint_id))
         if not self.in_checkpointed_region:
             self.checkpoint_id = self.checkpoint_id[:-1]
             assert len(self.checkpoint_id) >= 1
@@ -114,10 +115,10 @@ class Checkpoint(object):
         """
         Returns a mangled checkpoint id string:
             c_1:c_2:c_3:...
-        E.g. if checkpoint is nested an id is [3,2,6] it returns:
+        E.g. if checkpoint is nested and id is [3,2,6] it returns:
             '3:2:6'
         """
-        return reduce(lambda a, b: '{0}:{1}'.format(a, b), self.checkpoint_id)
+        return ':'.join(str(id) for id in self.checkpoint_id)
 
     def load(self, atoms=None):
         """
@@ -140,8 +141,8 @@ class Checkpoint(object):
             data = dbentry.data
             atomsi = data['checkpoint_atoms_args_index']
             i = 0
-            while i == atomsi or \
-                '{0}{1}'.format(self._value_prefix, i) in data:
+            while (i == atomsi or
+                   '{0}{1}'.format(self._value_prefix, i) in data):
                 if i == atomsi:
                     newatoms = dbentry.toatoms()
                     if atoms is not None:
@@ -153,7 +154,7 @@ class Checkpoint(object):
                 i += 1
 
         self.logfile.write('Successfully restored checkpoint '
-                       '{0}.\n'.format(self.checkpoint_id))
+                           '{0}.\n'.format(self.checkpoint_id))
         self._decrease_checkpoint_id()
         if len(retvals) == 1:
             return retvals[0]
@@ -193,8 +194,7 @@ class Checkpoint(object):
                      data=data)
 
         self.logfile.write('Successfully stored checkpoint '
-                       '{0}.\n'.format(self.checkpoint_id))
-
+                           '{0}.\n'.format(self.checkpoint_id))
 
     def flush(self, *args, **kwargs):
         """
@@ -209,7 +209,6 @@ class Checkpoint(object):
         self.in_checkpointed_region = False
         self._flush(*args, **kwargs)
 
-
     def save(self, *args, **kwargs):
         """
         Store data to a checkpoint and increase the checkpoint id. This closes
@@ -220,10 +219,10 @@ class Checkpoint(object):
 
 
 def atoms_almost_equal(a, b, tol=1e-9):
-    return np.abs(a.positions - b.positions).max() < tol and \
-           (a.numbers == b.numbers).all() and \
-           np.abs(a.cell - b.cell).max() < tol and \
-           (a.pbc == b.pbc).all()
+    return (np.abs(a.positions - b.positions).max() < tol and
+            (a.numbers == b.numbers).all() and
+            np.abs(a.cell - b.cell).max() < tol and
+            (a.pbc == b.pbc).all())
 
 
 class CheckpointCalculator(Calculator):
@@ -239,8 +238,9 @@ class CheckpointCalculator(Calculator):
         calc = ...
         cp_calc = CheckpointCalculator(calc)
         atoms.set_calculator(cp_calc)
-        e = atoms.get_potential_energy() # 1st time, does calc, writes to checkfile
-                                         # subsequent runs, reads from checkpoint file
+        e = atoms.get_potential_energy()
+        # 1st time, does calc, writes to checkfile
+        # subsequent runs, reads from checkpoint file
     """
     implemented_properties = ase.calculators.calculator.all_properties
     default_parameters = {}
@@ -251,10 +251,9 @@ class CheckpointCalculator(Calculator):
         'energies': 'get_potential_energies',
         'forces': 'get_forces',
         'stress': 'get_stress',
-        'stresses': 'get_stresses'
-        }
+        'stresses': 'get_stresses'}
 
-    def __init__(self, calculator,  db='checkpoints.db', logfile=None):
+    def __init__(self, calculator, db='checkpoints.db', logfile=None):
         Calculator.__init__(self)
         self.calculator = calculator
         if logfile is None:
@@ -270,8 +269,10 @@ class CheckpointCalculator(Calculator):
             try:
                 assert atoms_almost_equal(atoms, prev_atoms)
             except AssertionError:
-                raise AssertionError('mismatch between current atoms and those read from checkpoint file')
-            self.logfile.write('retrieved results for {0} from checkpoint\n'.format(properties))
+                raise AssertionError('mismatch between current atoms and '
+                                     'those read from checkpoint file')
+            self.logfile.write('retrieved results for {0} from checkpoint\n'
+                               .format(properties))
             # save results in calculator for next time
             if isinstance(self.calculator, Calculator):
                 if not hasattr(self.calculator, 'results'):
@@ -279,14 +280,17 @@ class CheckpointCalculator(Calculator):
                 self.calculator.results.update(dict(zip(properties, results)))
         except NoCheckpoint:
             if isinstance(self.calculator, Calculator):
-                self.logfile.write('doing calculation of {0} with new-style calculator interface\n'.format(properties))
+                self.logfile.write('doing calculation of {0} with new-style '
+                                   'calculator interface\n'.format(properties))
                 self.calculator.calculate(atoms, properties, system_changes)
-                results = [self.calculator.results[prop] for prop in properties]
+                results = [self.calculator.results[prop]
+                           for prop in properties]
             else:
-                self.logfile.write('doing calculation of {0} with old-style calculator interface\n'.format(properties))
+                self.logfile.write('doing calculation of {0} with old-style '
+                                   'calculator interface\n'.format(properties))
                 results = []
                 for prop in properties:
-                    method_name = CheckpointCalculator.property_to_method_name[prop]
+                    method_name = self.property_to_method_name[prop]
                     method = getattr(self.calculator, method_name)
                     results.append(method(atoms))
             _calculator = atoms.get_calculator()
@@ -297,4 +301,3 @@ class CheckpointCalculator(Calculator):
                 atoms.set_calculator(_calculator)
 
         self.results = dict(zip(properties, results))
-
