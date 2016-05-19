@@ -57,7 +57,9 @@ The calculators can be divided in four groups:
    Lennard-Jones and Morse.
 
 4) Calculators that wrap others, included in the ASE package:
-   Checkpoint calculator
+   :class:`ase.calculators.checkpoint.CheckpointCalculator` and
+   the :ref:`Grimme-D3 <grimme>` potential.
+   
 
 ==================================  ===========================================
 name                                description
@@ -91,6 +93,7 @@ morse                               Morse potential
 ==================================  ===========================================
 
 .. index:: D3, Grimme
+.. _grimme:
 
 .. note::
     
