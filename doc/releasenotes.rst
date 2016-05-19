@@ -24,7 +24,7 @@ Version 3.11.0
 * Special `\mathbf{k}`-points from the [Setyawana-Curtarolo]_ paper was added:
   :data:`ase.dft.kpoints.special_points`.
 
-* New :mod:`ase.collection` module added.  Currently contains the G2 database
+* New :mod:`ase.collections` module added.  Currently contains the G2 database
   of molecules and the S22 set of weakly interacting dimers and complexes.
 
 * Moved modules:
