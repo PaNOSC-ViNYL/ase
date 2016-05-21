@@ -9,34 +9,37 @@ import string
 import numpy as np
 from ase.units import Ry, eV, Bohr, Hartree
 from ase.data import atomic_numbers
+import ase.data
 from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.calculator import equal
+import ase.io
 import subprocess
-
-#meV = 0.001 * eV
+import pickle
+import shutil
 
 class Parameters_deMon(Parameters):
     """Parameters class for the calculator.
     Documented in BaseSiesta.__init__
 
+    The options here are the most important ones that the user needs to be aware of. 
+    Further options accepted by deMon can be set in the dictionary input_arguments.
+
     """
     def __init__(
             self,
-            label='rundir/deMon',
+            label='rundir', # relative path to the rundir
             atoms=None,
-            restart=None,
-            basis_path=None,
-            ignore_bad_restart_file=False,
-            deMon_restart_path='.',
-            title="deMon input file",
-            scftype='RKS',
-            forces=False, 
-            multiplicity=None,
-            charge=0,
+            restart=None,  # relative path to restart to dir for parameters and atoms object, not deMon restart
+            basis_path=None, 
+            ignore_bad_restart_file=False, # for the restart option
+            deMon_restart_path='.',  #  relative path to the deMon restart dir it looks for deMon.mem and copies it to deMon.rst
+            title="deMon input file", # title in input file. not so useful
+            scftype='RKS', # 'RKS', 'UKS', 'ROKS' 
+            forces=False,  # if True we will run a BOMD trajectory with one step in order to extract the forces 
             xc='VWN',
-            guess='TB',
-            print_out="",
+            guess='TB', # This controls the restart if 'RESTART' 
+            print_out='MOE', # print out the orbital eigenvalues by default so that they can be parsed
             basis ={},
             ecps ={},
             mcps ={},
@@ -175,55 +178,7 @@ class Base_deMon(FileIOCalculator):
 
 
         #FileIOCalculator.set(self, **kwargs)
-        
-        ## Check energy inputs.
-        #for arg in ['mesh_cutoff', 'energy_shift']:
-        #    value = kwargs.get(arg)
-        #    if not (isinstance(value, (float, int)) and value > 0):
-        #        mess = "'%s' must be a positive number(in eV), \
-        #            got '%s'" % (arg, value)
-        #        raise ValueError(mess)
 
-#        # Check the basis set input.
-#        basis_set = kwargs.get('basis_set')
-#        allowed = self.allowed_basis_names
-#        if not (isinstance(basis_set, PAOBasisBlock) or basis_set in allowed):
-#            mess = "Basis must be either %s, got %s" % (allowed, basis_set)
-#            raise Exception(mess)
-#
-#        # Check the spin input.
-#        spin = kwargs.get('spin')
-#        if spin is not None and (spin not in self.allowed_spins):
-#            mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
-#            raise Exception(mess)
-#
-#        # Check the functional input.
-#        xc = kwargs.get('xc')
-#        if isinstance(xc, (tuple, list)) and len(xc) == 2:
-#            functional, authors = xc
-#            if not functional in self.allowed_xc:
-#                mess = "Unrecognized functional keyword: '%s'" % functional
-#                raise ValueError(mess)
-#            if not authors in self.allowed_xc[functional]:
-#                mess = "Unrecognized authors keyword for %s: '%s'"
-#                raise ValueError(mess % (functional, authors))
-#
-#        elif xc in self.allowed_xc:
-#            functional = xc
-#            authors = self.allowed_xc[xc][0]
-#        else:
-#            found = False
-#            for key, value in self.allowed_xc.iteritems():
-#                if xc in value:
-#                    found = True
-#                    functional = key
-#                    authors = xc
-#                    break
-#
-#            if not found:
-#                raise ValueError("Unrecognized 'xc' keyword: '%s'" % xc)
-#        kwargs['xc'] = (functional, authors)
-#
 #        # Check input_arguments.
 #        input_arguments = kwargs['input_arguments']
 #        if input_arguments is not None:
@@ -264,7 +219,7 @@ class Base_deMon(FileIOCalculator):
             raise RuntimeError('Please set $%s environment variable ' %
                                ('ASE_' + self.name.upper() + '_COMMAND') +
                                'or supply the command keyword')
-        command = self.command.replace('PREFIX', self.prefix)
+        command = self.command #.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
 
         # basis path
@@ -282,14 +237,16 @@ class Base_deMon(FileIOCalculator):
             value = self.parameters['guess']
             if value.upper() == 'RESTART':
                 value2 = self.parameters['deMon_restart_path']
-                if os.path.exists(self.directory + '/deMon.rst'):
+                if os.path.exists(self.directory + '/deMon.rst')\
+                        or  os.path.islink(self.directory + '/deMon.rst'):
                     os.remove(self.directory + '/deMon.rst')
                 abspath = os.path.abspath(value2)
                 
-                if os.path.exists(abspath + '/deMon.rst') \
-                        or  os.path.islink(abspath + '/deMon.rst'):
-                    os.symlink(abspath +'/deMon.rst', 
-                               self.directory + '/deMon.rst')
+                if os.path.exists(abspath + '/deMon.mem') \
+                        or  os.path.islink(abspath + '/deMon.mem'):
+                    #os.symlink(abspath +'/deMon.mem', 
+                    #           self.directory + '/deMon.rst')
+                    shutil.copy(abspath +'/deMon.mem', self.directory + '/deMon.rst')
                 else:
                     raise RuntimeError(
                         "{} doesn't exist".format(abspath + '/deMon.rst') )
@@ -358,9 +315,9 @@ class Base_deMon(FileIOCalculator):
             raise RuntimeError('%s returned an error: %d' %
                                (self.name, errorcode))
 
-        try:
+        if True: #try:
             self.read_results()
-        except:
+        else: #except:
             with open(self.directory + '/deMon.out', 'r') as f:
                 lines = f.readlines()
             debug_lines = 10
@@ -370,6 +327,15 @@ class Base_deMon(FileIOCalculator):
             print('##### end of deMon.out')
             raise RuntimeError
             
+
+    def set_label(self, label):
+        """Set label directory """
+
+        self.label = label
+
+        self.directory = self.label # why have both?
+        if self.directory == '':
+            self.directory = os.curdir
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input (in)-file.
@@ -390,11 +356,10 @@ class Base_deMon(FileIOCalculator):
         if system_changes is None and properties is None:
             return
 
-        filename = self.label + '.inp'
+        filename = self.label + '/deMon.inp'
 
-        # On any changes, remove all analysis files.
-
-#        # this must be modified
+# 2DO
+# On any changes, remove all analysis files.
 #        if system_changes is not None:
 #            self.remove_analysis()
 
@@ -410,13 +375,6 @@ class Base_deMon(FileIOCalculator):
             value = self.parameters['scftype']
             self._write_argument('SCFTYPE', value, f)
 
-            value = self.parameters['multiplicity']
-            if value is not None:
-                self._write_argument('MULTIPLICITY', value, f)
-            
-            value = self.parameters['charge']
-            self._write_argument('CHARGE', value, f)
-            
             value = self.parameters['xc']
             self._write_argument('VXCTYPE', value, f)
 
@@ -428,7 +386,7 @@ class Base_deMon(FileIOCalculator):
                 self._write_argument('PRINT', value, f)
                 f.write('#\n')            
 
-            # obtain forces through BOMD
+            # obtain forces through a single BOMD step
             value = self.parameters['forces']
             if value:
                 self._write_argument('DYNAMICS', ['INT=1', 'MAX=1', 'STEP=0'], f)
@@ -440,7 +398,7 @@ class Base_deMon(FileIOCalculator):
             
             f.write('#\n')
 
-            # write basis set etc 
+            # write basis set, ecps, mcps, auxis, augment  
             basis = self.parameters['basis']
             if not 'all' in basis:
                 basis['all'] = 'DZVP'
@@ -464,14 +422,26 @@ class Base_deMon(FileIOCalculator):
 
             # write geometry
             self._write_atomic_coordinates(f, atoms)
+
+            # write pickle of Parameters 
+            pickle.dump(self.parameters, open(self.directory +"/deMon_parameters.pckl", 'w'))
+
+            # write xyz file for good measure. 
+            ase.io.write(self.directory + "/deMon_atoms.xyz", self.atoms)
                 
-                
-    # this must be modified
-    def read(self, filename):
-        """Read parameters from file."""
-        if not os.path.exists(filename):
-            raise ReadError("The restart file '%s' does not exist" % filename)
-        self.atoms = xv_to_atoms(filename)
+    def read(self, restart_path):
+        """Read parameters from directory restart_path."""
+
+        self.set_label(restart_path)
+
+        if not os.path.exists(restart_path + '/deMon.inp'):
+            raise ReadError("The restart_path file {} does not exist".format(restart_path))
+        
+        parameters = pickle.load(open(restart_path + '/deMon_parameters.pckl','r'))
+        self.parameters = parameters
+
+        self.atoms = self.deMon_inp_to_atoms(restart_path + '/deMon.inp')
+        
         self.read_results()
 
     def _write_input_arguments(self, f):
@@ -531,7 +501,6 @@ class Base_deMon(FileIOCalculator):
 #        if os.path.exists(filename):
 #            os.remove(filename)
 
-    # this has been modified
     def _write_atomic_coordinates(self, f, atoms):
         """Write atomic coordinates.
         
@@ -616,44 +585,25 @@ class Base_deMon(FileIOCalculator):
                 f.write(line)
                 f.write('\n')        
 
+    #
+    # Analysis routines
+    #
 
-        
-                
-# main method for analyisis, must be modified
     def read_results(self):
-        """Read the results.
+        """Read the results from output files.
         """
         self.read_energy()
         self.read_forces(len(self.atoms))
-        #self.read_forces_stress()
-        #self.read_eigenvalues()
+        self.read_eigenvalues()
         #self.read_dipole()
-        #self.read_pseudo_density()
-
-# might be useless
-    def read_pseudo_density(self):
-        """Read the density if it is there.
-        """
-        filename = self.label + '.RHO'
-        if isfile(filename):
-            self.results['density'] = read_rho(filename)
 
     def read_energy(self):
         """Read energy from deMon's text-output file.
         """
-        print(self.label + '.out')
-        with open(self.label + '.out', 'r') as f:
+        with open(self.label + '/deMon.out', 'r') as f:
             text = f.read().upper()
 
-        #assert 'error' not in text
         lines = iter(text.split('\n'))
-
-        ## Get the number of grid points used:
-        #for line in lines:
-        #    if line.startswith('initmesh: mesh ='):
-        #        n_points = [int(word) for word in line.split()[3:8:2]]
-        #        self.results['n_grid_point'] = n_points
-        #        break
 
         for line in lines:
             if line.startswith(' TOTAL ENERGY                ='):
@@ -663,63 +613,90 @@ class Base_deMon(FileIOCalculator):
             raise RuntimeError
 
     def read_forces(self, natoms):
-        """Read the forces and stress from the deMon.trj file.
+        """Read the forces from the deMon.trj file.
         """
-        with open(self.label +'.trj', 'r') as f:
+        filename=self.label +'/deMon.trj'
+        if isfile(filename):
+            with open(filename, 'r') as f:
+                lines = f.readlines()
+
+            self.results['forces'] = np.zeros((natoms, 3), float)
+        
+            start = 8 + 2*natoms 
+            for i in range(natoms):
+                line = [s for s in lines[i+start].strip().split(' ') if len(s) > 0]
+                self.results['forces'][i] = map(float, line[0:3])
+
+            self.results['forces'] *= Hartree / Bohr
+        
+    def read_eigenvalues(self):
+        """Read eigenvalues from the 'deMon.out' file.
+        """
+        assert os.access(self.label + '/deMon.out', os.F_OK)
+
+        # Read eigenvalues 
+        with open(self.label + '/deMon.out', 'r') as f:
             lines = f.readlines()
 
-        self.results['forces'] = np.zeros((natoms, 3), float)
-        
-        start = 8 + 2*natoms 
-        for i in range(natoms):
-            line = [s for s in lines[i+start].strip().split(' ') if len(s) > 0]
-            self.results['forces'][i] = map(float, line[0:3])
+        # try  PRINT MOE
+        eig_alpha, occ_alpha = self.read_eigenvalues_one_spin(lines, 'ALPHA MO ENERGIES',6)
+        eig_beta, occ_beta = self.read_eigenvalues_one_spin(lines, 'BETA MO ENERGIES',6)
 
-        self.results['forces'] *= Hartree / Bohr
-        
-# this must be modified
-    def read_eigenvalues(self):
-        """Read eigenvalues from the '.EIG' file.
-        This is done pr. kpoint.
+        # otherwise try PRINT MOS
+        if len(eig_alpha) ==0 and len(eig_beta) == 0 :
+            eig_alpha, occ_alpha = self.read_eigenvalues_one_spin(lines, 'ALPHA MO COEFFICIENTS',5)
+            eig_beta, occ_beta = self.read_eigenvalues_one_spin(lines, 'BETA MO COEFFICIENTS',5)
+
+        self.results['eigenvalues'] = np.array([eig_alpha, eig_beta]) * Hartree
+        self.results['occupations'] = np.array([occ_alpha, occ_beta]) * Hartree
+
+
+ 
+    def read_eigenvalues_one_spin(self,lines, string, neigs_per_line):
+        """  utility method for retreiving eigenvalues after the string "string"
+        with neigs_per_line eigenvlaues written per line
         """
-        assert os.access(self.label + '.EIG', os.F_OK)
-        assert os.access(self.label + '.KP', os.F_OK)
+        eig=[]
+        occ=[]
 
-        # Read k point weights
-        text = open(self.label + '.KP', 'r').read()
-        lines = text.split('\n')
-        n_kpts = int(lines[0].strip())
-        self.weights = np.zeros((n_kpts,))
-        for i in range(n_kpts):
-            l = lines[i + 1].split()
-            self.weights[i] = float(l[4])
+        skip_line = False
+        more_eigs = False
 
-        # Read eigenvalues and fermi-level
-        with open(self.label + '.EIG', 'r') as f:
-            text = f.read()
-        lines = text.split('\n')
-        e_fermi = float(lines[0].split()[0])
-        tmp = lines[1].split()
-        self.n_bands = int(tmp[0])
-        n_spin_bands = int(tmp[1])
-        self.spin_pol = n_spin_bands == 2
-        lines = lines[2:-1]
-        lines_per_kpt = (self.n_bands * n_spin_bands / 10 +
-                         int((self.n_bands * n_spin_bands) % 10 != 0))
-        eig = dict()
-        for i in range(len(self.weights)):
-            tmp = lines[i * lines_per_kpt:(i + 1) * lines_per_kpt]
-            v = [float(v) for v in tmp[0].split()[1:]]
-            for l in tmp[1:]:
-                v.extend([float(t) for t in l.split()])
-            if self.spin_pol:
-                eig[(i, 0)] = np.array(v[0:self.n_bands])
-                eig[(i, 1)] = np.array(v[self.n_bands:])
-            else:
-                eig[(i, 0)] = np.array(v)
+        # find line where the orbitals start
+        for i in range(len(lines)):
+            if lines[i].rfind(string) > -1:
+                ii = i
+                more_eigs =True
+                break
 
-        self.results['fermi_energy'] = e_fermi
-        self.results['eigenvalues'] = eig
+        while more_eigs:
+            # search for two empty lines in a row preceeding a line with numbers
+            for i in range(ii+1, len(lines)):
+                if len(lines[i].split()) == 0 and \
+                        len(lines[i+1].split()) == 0 and \
+                        len(lines[i+2].split()) > 0 :
+                    ii = i+2
+                    break
+
+            # read eigenvalues, occupations
+            line = lines[ii].split()
+            if len(line) < neigs_per_line:
+                #last row
+                more_eigs = False
+            if line[0] != str(len(eig) +1):
+                more_eigs = False
+                skip_line = True
+
+            if not skip_line:
+                line = lines[ii+1].split()
+                for l in line:
+                    eig.append(float(l))
+                line = lines[ii+3].split()
+                for l in line:
+                    occ.append(float(l))
+                ii = ii +3
+
+        return eig, occ
 
 # this must be modified
     def read_dipole(self):
@@ -733,3 +710,73 @@ class Base_deMon(FileIOCalculator):
 
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
+
+
+
+    def deMon_inp_to_atoms(self, filename):
+        """  routine to read deMon.inp and convert it to an atoms object
+        
+        """
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+
+        # find line where geometry starts
+        for i in range(len(lines)):
+            if lines[i].rfind('GEOMETRY') > -1:
+                if lines[i].rfind('ANGSTROM'):
+                    #print('Read coordinates in Ang units')
+                    coord_units = 'Ang'
+                elif lines.rfind('Bohr'):
+                    #print('Read coordinates in Bohr units')
+                    coord_units = 'Bohr'
+                ii = i
+                break
+
+        chemical_symbols=[]
+        xyz=[]
+        atomic_numbers=[]
+        masses=[]
+
+        for i in range(ii+1, len(lines)):
+            try:
+                line = string.split(lines[i])
+                
+                for symbol in ase.data.chemical_symbols:
+                    found = None
+                    if line[0].upper().rfind(symbol.upper()) > -1:
+                        found = symbol
+                        break
+
+                if found is not None:
+                    chemical_symbols.append(found)
+                else:
+                    break
+
+                xyz.append([float(line[1]), float(line[2]), float(line[3])] )
+                
+                if len(line) > 4:
+                    atomic_numbers.append(int(line[4])) 
+                
+                if len(line) > 5:
+                    masses.append(float(line[5])) 
+
+            except:
+                raise RuntimeError
+
+        if coord_units == 'Bohr':
+            xyz = xyz * Bohr
+
+        natoms= len(chemical_symbols) 
+
+        # set atoms object
+        atoms = ase.Atoms(symbols=chemical_symbols, positions=xyz)
+
+        # if atomic numbers were read in, set them 
+        if(len(atomic_numbers) == natoms):
+            atoms.set_atomic_numbers(atomic_numbers)
+                
+        # if masses were read in, set them
+        if(len(masses) == natoms):
+            atoms.set_masses(masses)
+            
+        return atoms
