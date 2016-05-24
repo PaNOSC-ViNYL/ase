@@ -34,8 +34,8 @@ Version 3.11.0
   * ``ase.lattice.spacegroup`` moved to :mod:`ase.spacegroup`
  
 * The ``InfraRed`` that used to be in the ``ase.infrared`` or
-  ``ase.vibrations.infrared`` modules is now called :class:`
-  ~ase.vibrations.Infrared` and should be imported from the
+  ``ase.vibrations.infrared`` modules is now called
+  :class:`~ase.vibrations.Infrared` and should be imported from the
   :mod:`ase.vibrations` module.
 
 * Deprecated modules: ``ase.structure``, ``ase.utils.geometry``,
