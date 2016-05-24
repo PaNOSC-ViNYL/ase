@@ -170,8 +170,8 @@ def plot(png):
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
         name, id = png[:-4].split('-')
-        plot = db[int(id)].data[name]
-        dct2plot(plot, path, show=False)
+        dct = db[int(id)].data
+        dct2plot(dct, name, path, show=False)
         
     return send_from_directory(tmpdir, png)
     

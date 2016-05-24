@@ -207,7 +207,7 @@ def run(opts, args, verbosity):
 
     if opts.plot_data:
         from ase.db.plot import dct2plot
-        dct2plot(con.get(query).data[opts.plot_data])
+        dct2plot(con.get(query).data, opts.plot_data)
         return
 
     if opts.plot:

@@ -10,7 +10,7 @@ plot = {'title': 'A test',
         'ylabel': 'y'}
 x = [0, 1, 2]
 t1 = [1, 2, 0]
-t2 = [[2, 2, 1], [1, 1, 1]]
+t2 = [[2, 3], [1, 1], [1, 0]]
 c.write(Atoms('H2O'),
         foo='bar',
         data={'test': plot,
@@ -24,4 +24,4 @@ print(d)
 d = app.app.test_client().get('/id/1')
 print(d)
 d = app.app.test_client().get('/plot/test-1.png')
-print(d)
+print(d, app.tmpdir)

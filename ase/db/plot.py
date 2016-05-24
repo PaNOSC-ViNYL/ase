@@ -36,18 +36,21 @@ def dct2plot(dct, name, filename=None, show=True):
     fig = plt.figure()
     styles = ['k-', 'r-', 'g-', 'b-']
     plot = dct[name]
+    lines = []
+    labels = []
     for d in plot['data']:
-        x = dct[d['x']]
-        Y = dct[d['y']]
-        if Y.ndim == 1:
-            Y = Y[None]
+        x = d['x']
+        if isinstance(x, basestring):
+            x = dct[x]
+        y = d['y']
+        if isinstance(y, basestring):
+            y = dct[y]
         style = d.get('style')
         if not style:
             style = styles.pop()
-        plt.plot(x, Y[0], style, label=d['label'])
-        for y in Y[1:]:
-            plt.plot(x, y, style)
-        plt.legend()
+        lines.append(plt.plot(x, y, style)[0])
+        labels.append(d['label'])
+    plt.legend(lines, labels)
     if isinstance(plot['xlabel'], basestring):
         plt.xlabel(plot['xlabel'])
     else:
