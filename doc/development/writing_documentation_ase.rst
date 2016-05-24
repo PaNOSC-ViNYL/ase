@@ -15,21 +15,22 @@ reStructuredText_ markup language.
 Installing Docutils and Sphinx
 ==============================
 
-If you do:
+.. highlight:: bash
+
+If you do::
     
     $ pip install sphinx_rtd_theme --user
     
+and add ``~/.local/bin`` to you :envvar:`PATH` environment variable, then
 you should be ready to go.  You may need the following installed, but they
-are not required: scipy, matplotlib, povray (optional), dvipng, pdflatex,
-bibtex, AUCTex, fontconfig, convert (ImageMagick).
+are not required: scipy, matplotlib, povray, dvipng, pdflatex, bibtex,
+AUCTex, fontconfig, convert (ImageMagick).
 
 
 .. _using_sphinx:
 
 Using Sphinx
 ============
-
-.. highlight:: bash
 
 First, you should take a look at the documentation for Sphinx_ and
 reStructuredText_.

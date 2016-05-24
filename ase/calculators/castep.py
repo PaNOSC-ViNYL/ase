@@ -26,6 +26,7 @@ import tempfile
 import time
 
 import ase
+import ase.units as units
 from ase.calculators.general import Calculator
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
@@ -38,10 +39,11 @@ __all__ = [
 
 contact_email = 'simon.rittmeyer@tum.de'
 
+# A convenient table to avoid the previously used "eval"
 _tf_table = {
     'True': True,
-    'False': False,
-}   # A convenient table to avoid the previously used "eval"
+    'False': False}
+
 
 class Castep(Calculator):
 
@@ -911,7 +913,8 @@ End CASTEP Interface Documentation
             atoms.set_calculator(self)
 
         self._forces = forces_atoms
-        self._stress = np.array(stress)
+        # stress in .castep file is given in GPa:
+        self._stress = np.array(stress) * units.GPa
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
 
@@ -1465,12 +1468,12 @@ End CASTEP Interface Documentation
         # ok, we need to load the file beforehand into memory, seems like the
         # easiest way to do the BLOCK handling.
         lines = param_file.readlines()
-        i=0
+        i = 0
         while i < len(lines):
             line = lines[i].strip()
 
             # note that i will point to the next line from now on
-            i +=1
+            i += 1
 
             # remove comments
             for comment_char in ['#', ';', '!']:
@@ -1512,7 +1515,8 @@ End CASTEP Interface Documentation
                     value += '\n{}'.format(line)
                 value = value.strip()
 
-                if not overwrite and getattr(self.param, key).value is not None:
+                if (not overwrite and
+                    getattr(self.param, key).value is not None):
                     continue
 
                 self.__setattr__(key, value)

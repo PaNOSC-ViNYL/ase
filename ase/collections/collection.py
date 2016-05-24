@@ -9,7 +9,7 @@ class Collection:
 
     Example of use:
         
-    >>> from ase.collection import s22
+    >>> from ase.collections import s22
     >>> len(s22)
     22
     >>> s22.names[:3]

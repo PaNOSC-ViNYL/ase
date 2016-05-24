@@ -25,6 +25,12 @@ import tempfile
 
 from flask import Flask, render_template, request, send_from_directory
 
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+except ImportError:
+    pass
+
 import ase.db
 from ase.db.plot import atoms2png, dct2plot
 from ase.db.summary import Summary
@@ -164,8 +170,8 @@ def plot(png):
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
         name, id = png[:-4].split('-')
-        plot = db[int(id)].data[name]
-        dct2plot(plot, path, show=False)
+        dct = db[int(id)].data
+        dct2plot(dct, name, path, show=False)
         
     return send_from_directory(tmpdir, png)
     
