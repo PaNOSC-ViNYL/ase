@@ -1115,6 +1115,9 @@ class Vasp(Calculator):
                 incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
+            # unpack magmom array if three components specified
+            if len(magmom.shape)>1:
+                magmom = [item for sublist in magmom for item in sublist]
             list = [[1, magmom[0]]]
             for n in range(1, len(magmom)):
                 if magmom[n] == magmom[n - 1]:
