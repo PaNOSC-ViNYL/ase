@@ -294,7 +294,7 @@ class Abinit(FileIOCalculator):
                 'cartesian components of stress tensor (hartree/bohr^3)') > -1:
                 stress = np.empty(6)
                 for i in range(3):
-                    entries = lines.next().split()
+                    entries = next(lines).split()
                     stress[i] = float(entries[2])
                     stress[i + 3] = float(entries[5])
                 self.results['stress'] = stress * Hartree / Bohr**3
@@ -336,7 +336,7 @@ class Abinit(FileIOCalculator):
                 forces = []
                 for i in range(natoms):
                     forces.append(np.array(
-                            [float(f) for f in lines.next().split()[1:]]))
+                            [float(f) for f in next(lines).split()[1:]]))
                 self.results['forces'] = np.array(forces)
                 break
         else:
