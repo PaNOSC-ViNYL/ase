@@ -415,6 +415,7 @@ def filetype(filename, read=True):
         $ python -m ase.io.formats filename ...
     """
 
+    ext = None
     if isinstance(filename, basestring):
         if os.path.isdir(filename):
             if os.path.basename(os.path.normpath(filename)) == 'states':
@@ -456,7 +457,6 @@ def filetype(filename, read=True):
 
         fd = open(filename, 'rb')
     else:
-        ext = None
         fd = filename
         if fd is sys.stdin:
             return 'json'
