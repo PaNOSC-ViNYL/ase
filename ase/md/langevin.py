@@ -134,6 +134,11 @@ class Langevin(MolecularDynamics):
 
         # Make V and A/dt
         A2 = A/self.dt
+
+        if self.fixcm:
+            A2 -= np.sum(A2,0) / len(atoms)
+            A2 *= np.sqrt(natoms / (natoms -1.0))
+
         V = v + A2
         x = atoms.get_positions()
 
