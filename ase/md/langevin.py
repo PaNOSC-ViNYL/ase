@@ -116,6 +116,7 @@ class Langevin(MolecularDynamics):
         self.natoms = self.atoms.get_number_of_atoms() 
 
     def step(self, f):
+        atoms = self.atoms
         natoms = self.natoms
 
         v = atoms.get_velocities()
