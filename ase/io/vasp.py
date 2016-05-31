@@ -32,12 +32,12 @@ def get_atomtypes(fname):
 
 def atomtypes_outpot(posfname, numsyms):
     """Try to retrieve chemical symbols from OUTCAR or POTCAR
-    
+
     If getting atomtypes from the first line in POSCAR/CONTCAR fails, it might
     be possible to find the data in OUTCAR or POTCAR, if these files exist.
 
     posfname -- The filename of the POSCAR/CONTCAR file we're trying to read
-    
+
     numsyms -- The number of symbols we must find
 
     """
@@ -99,7 +99,7 @@ def read_vasp(filename='CONTCAR'):
     file and tries to read atom types from POSCAR/CONTCAR header, if this fails
     the atom types are read from OUTCAR or POTCAR file.
     """
- 
+
     from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
     from ase.data import chemical_symbols
@@ -154,7 +154,7 @@ def read_vasp(filename='CONTCAR'):
 
     if not vasp5:
         atomtypes = line1.split()
-       
+
         numsyms = len(numofatoms)
         if len(atomtypes) < numsyms:
             # First line in POSCAR/CONTCAR didn't contain enough symbols.
@@ -224,7 +224,7 @@ def read_vasp(filename='CONTCAR'):
     return atoms
 
 
-def read_vasp_out(filename='OUTCAR', index=-1):
+def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -280,7 +280,13 @@ def read_vasp_out(filename='OUTCAR', index=-1):
                 cell += [[float(temp[0]), float(temp[1]), float(temp[2])]]
             atoms.set_cell(cell)
         if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
-            energy = float(data[n + 4].split()[6])
+            # choose between energy wigh smearing extrapolated to zero
+            # or free energy (latter is consistent with forces)
+            energy_zero = float(data[n + 4].split()[6])
+            energy_free = float(data[n + 2].split()[4])
+            energy = energy_zero
+            if force_consistent:
+                energy = energy_free
             if ecount < poscount:
                 # reset energy for LAST set of atoms, not current one -
                 # VASP 5.11? and up
@@ -533,7 +539,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     to file. Cartesian coordiantes is default and default label is the
     atomic species, e.g. 'C N H Cu'.
     """
-    
+
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
@@ -541,7 +547,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
-    
+
     if isinstance(atoms, (list, tuple)):
         if len(atoms) > 1:
             raise RuntimeError('Don\'t know how to save more than ' +
@@ -563,7 +569,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
             elif isinstance(constr, FixAtoms):
                 sflags[constr.index] = [True, True, True]
             elif isinstance(constr, FixedPlane):
-                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5, 
+                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
                               axis=1)
                 if sum(mask) != 1:
                     raise RuntimeError(
@@ -571,7 +577,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                         'constraints is parallel with one of the cell axis')
                 sflags[constr.a] = mask
             elif isinstance(constr, FixedLine):
-                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5, 
+                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
                               axis=1)
                 if sum(mask) != 1:
                     raise RuntimeError(
