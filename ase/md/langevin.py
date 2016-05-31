@@ -31,10 +31,38 @@ class Langevin(MolecularDynamics):
     The temperature and friction are normally scalars, but in principle one
     quantity per atom could be specified by giving an array.
 
+    RATTLE constraints are implemented, see:
+    E. V.-Eijnden, and G. Ciccotti, Chem. Phys. Lett. 429, 310 (2006)    
+
+    A single step amounts to:
+
+        x(n+1) = x(n) + dt*v(n) + A(n)
+        v(n+1) = v(n) + 0.5*dt*(f(x(n+1))+f(x(n))) 
+                 - dt*y*v(n) + dt**0.5*o*xi(n) + y*A(n)
+
+        where: 
+        A(n) = 0.5*dt**2(f(x(n))-y*v(n)) 
+               + o*dt**3/2(0.5*xi(n)-(2*3**0.5)**-1*eta(n))
+
+        y is the friction coeff, o(sigma) is (2*kB*T*m_i*y)**1/2
+
+        xi and eta are random variables with mean 0 and covariance.
+
+        However, to allow for the possibility of constraints we 
+        rewrite the equations the following way:
+
+        x(n+1) = x(n) + dt*p(n)
+        v(n+1) = p(n) - 0.5*dt*y*v(n) - y*A(n) 
+                 - o*dt**0.5*(2*3**0.5)**-1*eta(n) 
+                 + 0.5*dt*f(n+1) + 0.5*dt**0.5*o*xi(n)
+
+        where:
+        p(n) = v(n) + A(n)*dt**-1.
+
     This dynamics accesses the atoms using Cartesian coordinates."""
     
     # Helps Asap doing the right thing.  Increment when changing stuff:
-    _lgv_version = 2
+    _lgv_version = 3
     
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1,
@@ -61,75 +89,63 @@ class Langevin(MolecularDynamics):
 
     def updatevars(self):
         dt = self.dt
-        # If the friction is an array some other constants must be arrays too.
-        self._localfrict = hasattr(self.frict, 'shape')
-        lt = self.frict * dt
-        masses = self.masses
-        sdpos = dt * np.sqrt(self.temp / masses.reshape(-1) *
-                             (2.0 / 3.0 - 0.5 * lt) * lt)
-        sdpos.shape = (-1, 1)
-        sdmom = np.sqrt(self.temp * masses.reshape(-1) * 2.0 * (1.0 - lt) * lt)
-        sdmom.shape = (-1, 1)
-        pmcor = np.sqrt(3.0) / 2.0 * (1.0 - 0.125 * lt)
-        cnst = np.sqrt((1.0 - pmcor) * (1.0 + pmcor))
 
-        act0 = 1.0 - lt + 0.5 * lt * lt
-        act1 = (1.0 - 0.5 * lt + (1.0 / 6.0) * lt * lt)
-        act2 = 0.5 - (1.0 / 6.0) * lt + (1.0 / 24.0) * lt * lt
-        c1 = act1 * dt / masses.reshape(-1)
-        c1.shape = (-1, 1)
-        c2 = act2 * dt * dt / masses.reshape(-1)
-        c2.shape = (-1, 1)
-        c3 = (act1 - act2) * dt
-        c4 = act2 * dt
-        del act1, act2
-        if self._localfrict:
-            # If the friction is an array, so are these
-            act0.shape = (-1, 1)
-            c3.shape = (-1, 1)
-            c4.shape = (-1, 1)
-            pmcor.shape = (-1, 1)
-            cnst.shape = (-1, 1)
-        self.sdpos = sdpos
-        self.sdmom = sdmom
+        dt = self.dt
+        T = self.temp
+        fr = self.frict
+        masses = self.masses
+        sigma = np.sqrt(2*T*fr/masses)
+        c1 = 0.5*dt**2
+        c2 = c1 * fr
+        c3 = sigma*dt*dt**0.5/2.0
+        c4 = sigma*dt*dt**0.5/(2.0*np.sqrt(3))
+        v1 = 0.5*dt
+        v2 = c3/dt
+        v3 = c4/dt
+
         self.c1 = c1
         self.c2 = c2
-        self.act0 = act0
         self.c3 = c3
         self.c4 = c4
-        self.pmcor = pmcor
-        self.cnst = cnst
-        # Also works in parallel Asap:
-        self.natoms = self.atoms.get_number_of_atoms() #GLOBAL number of atoms
+        self.v1 = v1
+        self.v2 = v2
+        self.v3 = v3
+        self.fr = fr
+
+        # Works in parallel Asap, #GLOBAL number of atoms:
+        self.natoms = self.atoms.get_number_of_atoms() 
 
     def step(self, f):
-        atoms = self.atoms
-        p = self.atoms.get_momenta()
+        natoms = self.natoms
 
-        random1 = standard_normal(size=(len(atoms), 3))
-        random2 = standard_normal(size=(len(atoms), 3))
+        v = atoms.get_velocities()
+
+        xi = standard_normal(size=(natoms, 3))
+        eta = standard_normal(size=(natoms, 3))
 
         if self.communicator is not None:
-            self.communicator.broadcast(random1, 0)
-            self.communicator.broadcast(random2, 0)
-        
-        rrnd = self.sdpos * random1
-        prnd = (self.sdmom * self.pmcor * random1 +
-                self.sdmom * self.cnst * random2)
+            self.communicator.broadcast(xi, 0)
+            self.communicator.broadcast(eta, 0)
 
-        if self.fixcm:
-            rrnd = rrnd - np.sum(rrnd, 0) / len(atoms)
-            prnd = prnd - np.sum(prnd, 0) / len(atoms)
-            rrnd *= np.sqrt(self.natoms / (self.natoms - 1.0))
-            prnd *= np.sqrt(self.natoms / (self.natoms - 1.0))
+        # Begin calculating A
+        A = self.c1*f/self.masses - self.c2*v + self.c3*xi \
+            + self.c4*eta
 
-        atoms.set_positions(atoms.get_positions() +
-                            self.c1 * p +
-                            self.c2 * f + rrnd)
-        p *= self.act0
-        p += self.c3 * f + prnd
-        atoms.set_momenta(p)
-                      
-        f = atoms.get_forces()
-        atoms.set_momenta(atoms.get_momenta() + self.c4 * f)
+        # Make V and A/dt
+        A2 = A/self.dt
+        V = v + A2
+        x = atoms.get_positions()
+
+        # Step: x^n -> x^(n+1) - this applies constraints if any. 
+        atoms.set_positions(x + self.dt*V)
+        # recalc vels after RATTLE constraints are applied 
+        V = (self.atoms.get_positions() - x) / self.dt
+        f = atoms.get_forces(md=True)
+
+        # Update the velocities 
+        V += self.v2*xi + self.v1*f/self.masses - self.fr*A \
+             - self.fr*self.v1*v - self.v3*eta
+
+        # Second part of RATTLE taken care of here
+        atoms.set_momenta(V*self.masses) 
         return f
