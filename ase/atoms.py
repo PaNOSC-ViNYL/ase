@@ -684,14 +684,14 @@ class Atoms(object):
         Ask the attached calculator to calculate the forces and apply
         constraints.  Use *apply_constraint=False* to get the raw
         forces.
-        
+
         For molecular dynamics (md=True) we don't apply the constraint
         to the forces but to the momenta."""
 
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         forces = self._calc.get_forces(self)
-        
+
         if apply_constraint:
             # We need a special md flag here because for MD we want
             # to skip real constraints but include special "constraints"
@@ -769,15 +769,17 @@ class Atoms(object):
         return len(self.arrays['positions'])
 
     def get_number_of_atoms(self):
-        """Returns the global number of atoms in a distributed-atoms parallel simulation.
+        """Returns the global number of atoms in a distributed-atoms parallel
+        simulation.
 
         DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING!
-        
-        Equivalent to len(atoms) in the standard ASE Atoms class.  You should normally
-        use len(atoms) instead.  This function's only purpose is to make compatibility
-        between ASE and Asap easier to maintain by having a few places in ASE use this
-        function instead.  It is typically only when counting the global number of
-        degrees of freedom or in similar situations.
+
+        Equivalent to len(atoms) in the standard ASE Atoms class.  You should
+        normally use len(atoms) instead.  This function's only purpose is to
+        make compatibility between ASE and Asap easier to maintain by having a
+        few places in ASE use this function instead.  It is typically only
+        when counting the global number of degrees of freedom or in similar
+        situations.
         """
         return len(self)
 
@@ -804,8 +806,9 @@ class Atoms(object):
             s += 'constraint=%s, ' % repr(self.constraints[0])
         if len(self.constraints) > 1:
             s += 'constraint=%s, ' % repr(self.constraints)
-        if self._calc is not None:
-            s += 'calculator=%s(...), ' % self._calc.__class__.__name__
+        if hasattr(self, '_calc'):
+            if self._calc is not None:
+                s += 'calculator=%s(...), ' % self._calc.__class__.__name__
         return s[:-2] + ')'
 
     def __add__(self, other):
