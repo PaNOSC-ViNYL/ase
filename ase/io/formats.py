@@ -508,13 +508,11 @@ if __name__ == '__main__':
         n = max(len(filename) for filename in filenames) + 2
     for filename in filenames:
         format = filetype(filename)
-        if format:
+        if format and format in all_formats:
             description, code = all_formats[format]
-            if code[0] == '+':
-                format += '+'
         else:
             format = '?'
-            description = ''
+            description = '?'
 
         print('{0:{1}}{2} ({3})'.format(filename + ':', n,
                                         description, format))
