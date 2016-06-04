@@ -134,16 +134,25 @@ class Langevin(MolecularDynamics):
 
         # Make V and A/dt
         A2 = A/self.dt
-
-        if self.fixcm:
-            A2 -= np.sum(A2,0) / len(atoms)
-            A2 *= np.sqrt(natoms / (natoms -1.0))
+        #XXX
+        #if self.fixcm: # THIS DOES NOT WORK
+        #    A2 -= np.sum(A2,0) / len(atoms)
+        #    A2 *= np.sqrt(natoms / (natoms -1.0))
 
         V = v + A2
         x = atoms.get_positions()
 
-        # Step: x^n -> x^(n+1) - this applies constraints if any. 
+        if self.fixcm:
+            old_cm = atoms.get_center_of_mass() 
+        # Step: x^n -> x^(n+1) - this applies constraints if any.
         atoms.set_positions(x + self.dt*V)
+    
+        if self.fixcm:
+            new_cm = atoms.get_center_of_mass()
+            d = old_cm-new_cm
+            print d
+            atoms.translate(d)
+
         # recalc vels after RATTLE constraints are applied 
         V = (self.atoms.get_positions() - x) / self.dt
         f = atoms.get_forces(md=True)
