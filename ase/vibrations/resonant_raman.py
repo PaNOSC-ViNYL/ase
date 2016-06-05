@@ -376,9 +376,10 @@ class ResonantRaman(Vibrations):
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                V_rcc[r] = pre * self.im[r] * (
-                    kappa(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
-                    kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
+                if not energy_derivative < 0:
+                    V_rcc[r] = pre * self.im[r] * (
+                        kappa(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
+                        kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
                 if energy_derivative:
                     V_rcc[r] += pre * self.im[r] * (
                         kappa(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
@@ -410,6 +411,8 @@ class ResonantRaman(Vibrations):
             V_rcc += self.get_matrix_element_Profeta(omega, gamma)
         elif self.approximation.lower() == 'placzek':
             V_rcc += self.get_matrix_element_Profeta(omega, gamma, True)
+        elif self.approximation.lower() == 'p-p':
+            V_rcc += self.get_matrix_element_Profeta(omega, gamma, -1)
         elif self.approximation.lower() == 'albrecht a':
             V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
@@ -485,7 +488,7 @@ class ResonantRaman(Vibrations):
             raise NotImplementedError
 
     def get_cross_sections(self, omega, gamma=0.1):
-        I_r = self.get_intensities(omega, gamma=0.1)
+        I_r = self.get_intensities(omega, gamma)
         pre = 1. / 16 / np.pi**2 / units.eps0**2 / units.c**4
         # frequency of scattered light 
         omS_r = omega - self.hnu
