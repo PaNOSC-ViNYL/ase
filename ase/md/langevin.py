@@ -141,7 +141,7 @@ class Langevin(MolecularDynamics):
             old_cm = atoms.get_center_of_mass()
             old_moms = atoms.get_momenta()  
             m = atoms.get_masses()
-            old_cmmmom = np.dot(m, old_moms / m.sum())
+            old_cmmom = np.dot(m, old_moms / m.sum())
         # Step: x^n -> x^(n+1) - this applies constraints if any.
         atoms.set_positions(x + self.dt*V)
     
@@ -163,7 +163,8 @@ class Langevin(MolecularDynamics):
 
         if self.fixcm:
             new_moms = atoms.get_momenta()
-            new_cmmom = np.dot(cm, new_moms / m.sum())
+            new_cmmom = np.dot(m, new_moms / m.sum())
+            print old_cmmom - new_cmmom
             # need to solve somehow such that all momenta give this again.. 
             # and then set to that without reapplying constraints.. ?!?     
         return f
