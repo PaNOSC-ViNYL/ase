@@ -139,9 +139,8 @@ class Langevin(MolecularDynamics):
 
         if self.fixcm:
             old_cm = atoms.get_center_of_mass()
-            old_moms = atoms.get_momenta()  
             m = atoms.get_masses()
-            old_pcom = np.dot(m, old_moms / m.sum())
+
         # Step: x^n -> x^(n+1) - this applies constraints if any.
         atoms.set_positions(x + self.dt*V)
     
@@ -159,23 +158,6 @@ class Langevin(MolecularDynamics):
              - self.fr*self.v1*v - self.v3*eta
 
         # Second part of RATTLE taken care of here
-        if self.fixcm:
-            new_p = V*self.masses
-            new_pcom = np.dot(m, new_p / m.sum())
-            pd = old_pcom - new_pcom
-            pcorr = (np.tile(pd,(natoms,1)).T/m).T
-            V = (new_p + pcorr) / self.masses
-            print V*self.masses
-            
         atoms.set_momenta(V*self.masses)
 
-        #if self.fixcm:
-            #new_moms = atoms.get_momenta()
-            #new_cmmom = np.dot(m, new_moms / m.sum())
-            #pd = old_cmom - new_cmom
-            # need to solve somehow such that all momenta give this again.. 
-            # and then set to that without reapplying constraints.. ?!?    
-            # or maybe just weighed correction .. hmm
-            #pcorr = (np.tile(pd,(natoms,1)).T/m).T 
-            #atoms.set_momenta( 
         return f
