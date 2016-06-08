@@ -629,8 +629,8 @@ class Vasp(Calculator):
 
         for symbol in symbols:
             try:
-                potcar = join(pp_folder, symbol,
-                              p['setups'][symbol], 'POTCAR')
+                potcar = join(pp_folder, symbol + p['setups'][symbol],
+                              'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
             for path in pppaths:
