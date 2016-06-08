@@ -152,6 +152,37 @@ to implement a hybrid PW91 calculation:
 Note that the dictionary keys must be *lower case*, while the ``xc``
 parameter is case-insensitive when used.
 
+
+Setups
+======
+
+For many elements, VASP is distributed with a choice of
+pseudopotential setups. These may be hard/soft variants of the
+pseudopotential or include additional valence electrons. While the
+Vasp calculator will default to the pseudopotential folders with the
+same name as the element, alternative setups may be selected
+with the `setups` dictionary.
+
+To use an alternative setup for all instances of an element, simply
+provide the characters which need to be added, e.g.
+
+.. code-block:: python
+                
+   calc = Vasp(xc='PBE', setups={'Li': '_sv'})
+
+will use the ``Li_sv`` all-electron pseudopotential for all Li atoms.
+To apply special setups to individual atoms, identify them by their
+zero-indexed number in the atom list and use the full setup name, e.g.
+
+.. code-block:: python
+                
+   calc= Vasp(xc='PBE', setups={3: 'Ga_d'})
+
+will treat the Ga atom in position 3 (i.e. the fourth atom) of the
+atoms object as special, with an additional 10 d-block valence
+electrons, while other Ga atoms use the default 3-electron setup and
+other elements use their own default setups.
+
 Spin-polarized calculation
 ==========================
 
