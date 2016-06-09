@@ -139,7 +139,6 @@ class Langevin(MolecularDynamics):
 
         if self.fixcm:
             old_cm = atoms.get_center_of_mass()
-            m = atoms.get_masses()
 
         # Step: x^n -> x^(n+1) - this applies constraints if any.
         atoms.set_positions(x + self.dt*V)
