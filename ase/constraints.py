@@ -61,6 +61,9 @@ class FixConstraintSingle(FixConstraint):
 
     """Base class for classes that fix a single atom."""
 
+    def __init__(self, a):
+        self.a = a
+
     def index_shuffle(self, atoms, ind):
         """The atom index must be stored as self.a."""
         newa = -1   # Signal error
@@ -71,6 +74,9 @@ class FixConstraintSingle(FixConstraint):
         if newa == -1:
             raise IndexError('Constraint not part of slice')
         self.a = newa
+
+    def get_affected(self):
+        return [a]
 
 
 class FixAtoms(FixConstraint):
@@ -330,9 +336,6 @@ class FixedPlane(FixConstraintSingle):
         return {'name': 'FixedPlane',
                 'kwargs': {'a': self.a, 'direction': self.dir}}
 
-    def get_affected(self):
-        return [a]
-
     def __repr__(self):
         return 'FixedPlane(%d, %s)' % (self.a, self.dir.tolist())
 
@@ -354,9 +357,6 @@ class FixedLine(FixConstraintSingle):
 
     def adjust_forces(self, atoms, forces):
         forces[self.a] = self.dir * np.dot(forces[self.a], self.dir)
-
-    def get_affected(self):
-        return [a]
 
     def __repr__(self):
         return 'FixedLine(%d, %s)' % (self.a, self.dir.tolist())
@@ -381,9 +381,6 @@ class FixCartesian(FixConstraintSingle):
 
     def adjust_forces(self, atoms, forces):
         forces[self.a] *= self.mask
-
-    def get_affected(self):
-        return [a]
 
     def __repr__(self):
         return 'FixCartesian(a={0}, mask={1})'.format(self.a,
@@ -415,9 +412,6 @@ class FixScaled(FixConstraintSingle):
         scaled_forces = np.linalg.solve(self.cell.T, forces.T).T
         scaled_forces[self.a] *= -(self.mask - 1)
         forces[self.a] = np.dot(scaled_forces, self.cell)[self.a]
-
-    def get_affected(self):
-        return [a]
 
     def todict(self):
         return {'name': 'FixScaled',
