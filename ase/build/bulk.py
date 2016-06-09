@@ -53,7 +53,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
         try:
             a = ref['a']
         except KeyError:
-            raise KeyError('No lattice parameter "a" for %s' % name)
+            raise KeyError('No reference lattice parameter "a" for "%s"' % name)
 
     if crystalstructure in ['hcp', 'wurtzite']:
         cubic = False
