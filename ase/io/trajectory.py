@@ -339,6 +339,7 @@ def convert(name):
     t = TrajectoryWriter(name + '.new')
     for atoms in PickleTrajectory(name, _warn=False):
         t.write(atoms)
+    t.close()
     os.rename(name, name + '.old')
     os.rename(name + '.new', name)
     
