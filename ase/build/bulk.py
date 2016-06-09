@@ -36,6 +36,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
         raise ValueError("Don't specify both c and c/a!")
 
     xref = None
+    ref = {}
     
     if name in chemical_symbols:
         Z = atomic_numbers[name]
@@ -52,7 +53,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
         try:
             a = ref['a']
         except KeyError:
-            raise ValueError('You need to specify the lattice constant or ask for a single element.')
+            raise KeyError('No lattice parameter "a" for %s' % name)
 
     if crystalstructure in ['hcp', 'wurtzite']:
         cubic = False
