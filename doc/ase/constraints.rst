@@ -182,7 +182,34 @@ For an example of use, see the :ref:`mhtutorial` tutorial.
 
   In previous versions of ASE, this was known as the BondSpring constraint.
 
-  
+
+The ExternalForce class
+======================
+
+This class can be used to simulate a constant external force
+(e.g. the force of atomic force microscope).
+One can set the absolute value of the force *f_ext* (in eV/Ang) and two
+atom indices *a1* and *a2* to define on which atoms the force should act.
+If the sign of the force is positive, the two atoms will be pulled apart.
+The external forces which acts on both atoms are parallel to the
+connecting line of the two atoms.
+
+.. class:: ExternalForce(a1, a2, f_ext)
+
+Example of use::
+
+  >>> c = ExternalForce(0, 1, 0.5)
+  >>> atoms.set_constraint(c)
+
+One can combine this constraint with :class:`FixBondLength` but one has to
+consider the correct ordering when setting both constraints. :class:`ExternalForce`
+must come first in the list as shown in the following example.
+
+  >>> c1 = ExternalForce(0, 1, 0.5)
+  >>> c2 = FixBondLength(1, 2)
+  >>> atoms.set_constraint([c1, c2])
+
+
 The FixInternals class
 ======================
 
