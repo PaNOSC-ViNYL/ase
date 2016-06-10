@@ -15,7 +15,6 @@ Optional:
 * For extra functionality: SciPy_ (library for scientific computing)
 * For :mod:`ase.gui`: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
 
-
 .. _Python: http://www.python.org/
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
@@ -104,8 +103,9 @@ environment variable (if you don't already have that).
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
 
-.. _ase-3.11.0.tar.gz:
-    https://pypi.python.org/packages/source/a/ase/ase-3.11.0.tar.gz
+.. _ase-3.11.0.tar.gz: https://pypi.python.org/packages/fc/7b/
+    558e7321f7a879c034ead5d10789b9d6f41beabaee0b156e807c19422ad0/
+    ase-3.11.0.tar.gz
 
     
 Environment variables
