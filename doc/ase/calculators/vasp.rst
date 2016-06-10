@@ -177,13 +177,13 @@ example,
 
 .. code-block:: python
                 
-   calc= Vasp(xc='PBE', setups={'3': 'Ga_d'})
+   calc= Vasp(xc='PBE', setups={3: 'Ga_d'})
 
 will treat the Ga atom in position 3 (i.e. the fourth atom) of the
 atoms object as special, with an additional 10 d-block valence
 electrons, while other Ga atoms use the default 3-electron setup and
-other elements use their own default setups. Note that the position
-must be quoted as a string.
+other elements use their own default setups. The positional index may
+be quoted as a string (e.g. ``{'3': 'Ga_d'}``).
 
 Spin-polarized calculation
 ==========================
