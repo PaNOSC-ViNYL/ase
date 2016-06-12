@@ -9,90 +9,92 @@ from ase.calculators.deMon.base_deMon import Base_deMon
 # Version 4.3.2 of deMon2k
 class DeMon2k_4_3_2(Base_deMon):
     
-    allowed_keywords= [
-        'TITLE',        # : Job title.
-        'CHARGe',       # : Molecular charge.
-        'SYMMEtry',     # : Molecular symmetry use.
-        'OPTIMization', # : Geometry optimization.
-        'SADDLe',       # : Saddle TS interpolation.
-        'IRC',          # : Intrinsic reaction coordinate.
-        'DYNAMics',     # : Molecular dynamics simulation.
-        'EFIELd',       # : Electric field embedding.
-        'EMBED',        # : Point charge embedding.
-        'ALIGNment',    # : Structure alignment.
-        'PATTErn',      # : Geometry pattern.
-        'GEOMEtry',     # : Input geometry.
-        'REACTant',     # : Reactant geometry.
-        'PRODUct',      # : Product geometry.
-        'FORCEfield',  # : Force field definition.
-        'QM/MM',        # : QM/MM interface definition.
-        'SCAN',         # : Scan potential energy surface.
-        'PRINT',       # : Print debug information.
-        'DISPErsion',   # : Dispersion energy function.
-        'ORBITals',     # : Orbital selection.
-        'AUGMEnt',      # : Augment basis set.
-        'BASIS',        # : Basis set.
-        'ECPS',         # : Effective core potential set.
-        'MCPS',         # : Model core potential set.
-        'AUXIS',        # : Auxiliary function set.
-        'MULTIplicity', # : Molecular multiplicity.
-        'MATINv',       # : Matrix inversion algorithm.
-        'SCFTYpe',      # : SCF specification.
-        'VXCTYpe',      # : Exchange-correlation potential.
-        'CONFIgure',    # : Atomic configuration.
-        'FREEZe',       # : Freezing of auxiliary funcions.
-        'VARIAbles',    # : Z-Matrix variables.
-        'TRAJEctory',   # : Molecular dynamics trajectory.
-        'BATH',         # : Heat bath for molecular dynamics simulation.
-        'VELOCities',   # : Nuclear velocities.
-        'LPCONserve',   # : Conserve LP in molecular dynamics simulation.
-        'CONSTants',    # : Z-Matrix and Cartesian constants.
-        'ERIS',         # : Electron repulsion integral calculation.
-        'GUESS',        # : SCF start density.
-        'MATDIa',       # : Matrix diagonalization algorithm.
-        'DIIS',         # : DIIS convergence acceleration.
-        'MIXINg',       # : Charge density mixing.
-        'SHIFT',        # : Level shift.
-        'SMEAR',        # : Fractional occupation smearing.
-        'MOMODify',     # : Molecular orbital modification.
-        'MOEXChange',   # : Molecular orbital exchange.
-        'FIXMOs',       # : Fixing of molecular orbitals.
-        'LOCALization', # : Localization of MOs during the SCF.
-        'GRID',         # : Grid selection.
-        'WEIGHting',    # : Atomic weight function.
-        'CFPINtegration'# : Central Force Potential integration.
-        'HESSIan',      # : Start Hessian for geometry optimization.
-        'UPDATe',       # : Hessian update.
-        'STEPType',     # : Optimization step type.
-        'FREQUency',    # : Frequency analysis.
-        'THERMo',       # : Thermodynamic data.
-        'EXCITation',   # : Excited electronic states.
-        'NONCOllinear', # : Calculate noncollinear TDDFT excitations.
-        'DIPOLe',       # : Dipole and higher electrostatic moments.
-        'POLARisability', # : Polarizability and hyperpolarizability.
-        'MAGOUt',       # : Magnetic property output.
-        'NMR',          # : Nuclear magnetic resonance.
-        'NQR',          # : Nuclear quadrupole resonance. 
-        'MAGNEtizability', #: Molecular magnetizability.
-        'XRAY',         # : X-ray absorption/emission spectroscopy.
-        'PLOT',         # : Plot output.
-        'POPULation',   # : Population analysis.
-        'TOPOLogy',     # : Topological analysis.
-        'DOS',          # : Density of states (MOs) distribution.
-        'SIGPI',        # : Sigma-pi energy separation.
-        'FUKUI',        # : Fukui reactivity analysis.
-        'VISUAlization', # : Visualization output.
-        'ISOSUrface',   # : Isosurface output.
-        'GEOSUrface',   # : Gemetrical surface output.
-        'CPSEArch',     # : Critical point search.
-        'BOX',          # : Plot box.
-        'POINTs',       # : Plot points.
-        'PHASE',        # : Phase convention for molecular orbital plot.
-        'RDF',          # : Radial distribution function.
-        'SIMULation',   # : Molecular dynamics simulation post processing.
-        'QUADRature',   # : Quadrature specification.
-        'DAVIDson',     # : Davidson diagonalization specification. 
-        'PARALlel' ]     # : Define parallel processing algorithm.
+    allowed_keywords={}
+
+#    allowed_keywords= [
+#        'TITLE',        # : Job title.
+#        'CHARGe',       # : Molecular charge.
+#        'SYMMEtry',     # : Molecular symmetry use.
+#        'OPTIMization', # : Geometry optimization.
+#        'SADDLe',       # : Saddle TS interpolation.
+#        'IRC',          # : Intrinsic reaction coordinate.
+#        'DYNAMics',     # : Molecular dynamics simulation.
+#        'EFIELd',       # : Electric field embedding.
+#        'EMBED',        # : Point charge embedding.
+#        'ALIGNment',    # : Structure alignment.
+#        'PATTErn',      # : Geometry pattern.
+#        'GEOMEtry',     # : Input geometry.
+#        'REACTant',     # : Reactant geometry.
+#        'PRODUct',      # : Product geometry.
+#        'FORCEfield',  # : Force field definition.
+#        'QM/MM',        # : QM/MM interface definition.
+#        'SCAN',         # : Scan potential energy surface.
+#        'PRINT',       # : Print debug information.
+#        'DISPErsion',   # : Dispersion energy function.
+#        'ORBITals',     # : Orbital selection.
+#        'AUGMEnt',      # : Augment basis set.
+#        'BASIS',        # : Basis set.
+#        'ECPS',         # : Effective core potential set.
+#        'MCPS',         # : Model core potential set.
+#        'AUXIS',        # : Auxiliary function set.
+#        'MULTIplicity', # : Molecular multiplicity.
+#        'MATINv',       # : Matrix inversion algorithm.
+#        'SCFTYpe',      # : SCF specification.
+#        'VXCTYpe',      # : Exchange-correlation potential.
+#        'CONFIgure',    # : Atomic configuration.
+#        'FREEZe',       # : Freezing of auxiliary funcions.
+#        'VARIAbles',    # : Z-Matrix variables.
+#        'TRAJEctory',   # : Molecular dynamics trajectory.
+#        'BATH',         # : Heat bath for molecular dynamics simulation.
+#        'VELOCities',   # : Nuclear velocities.
+#        'LPCONserve',   # : Conserve LP in molecular dynamics simulation.
+#        'CONSTants',    # : Z-Matrix and Cartesian constants.
+#        'ERIS',         # : Electron repulsion integral calculation.
+#        'GUESS',        # : SCF start density.
+#        'MATDIa',       # : Matrix diagonalization algorithm.
+#        'DIIS',         # : DIIS convergence acceleration.
+#        'MIXINg',       # : Charge density mixing.
+#        'SHIFT',        # : Level shift.
+#        'SMEAR',        # : Fractional occupation smearing.
+#        'MOMODify',     # : Molecular orbital modification.
+#        'MOEXChange',   # : Molecular orbital exchange.
+#        'FIXMOs',       # : Fixing of molecular orbitals.
+#        'LOCALization', # : Localization of MOs during the SCF.
+#        'GRID',         # : Grid selection.
+#        'WEIGHting',    # : Atomic weight function.
+#        'CFPINtegration'# : Central Force Potential integration.
+#        'HESSIan',      # : Start Hessian for geometry optimization.
+#        'UPDATe',       # : Hessian update.
+#        'STEPType',     # : Optimization step type.
+#        'FREQUency',    # : Frequency analysis.
+#        'THERMo',       # : Thermodynamic data.
+#        'EXCITation',   # : Excited electronic states.
+#        'NONCOllinear', # : Calculate noncollinear TDDFT excitations.
+#        'DIPOLe',       # : Dipole and higher electrostatic moments.
+#        'POLARisability', # : Polarizability and hyperpolarizability.
+#        'MAGOUt',       # : Magnetic property output.
+#        'NMR',          # : Nuclear magnetic resonance.
+#        'NQR',          # : Nuclear quadrupole resonance. 
+#        'MAGNEtizability', #: Molecular magnetizability.
+#        'XRAY',         # : X-ray absorption/emission spectroscopy.
+#        'PLOT',         # : Plot output.
+#        'POPULation',   # : Population analysis.
+#        'TOPOLogy',     # : Topological analysis.
+#        'DOS',          # : Density of states (MOs) distribution.
+#        'SIGPI',        # : Sigma-pi energy separation.
+#        'FUKUI',        # : Fukui reactivity analysis.
+#        'VISUAlization', # : Visualization output.
+#        'ISOSUrface',   # : Isosurface output.
+#        'GEOSUrface',   # : Gemetrical surface output.
+#        'CPSEArch',     # : Critical point search.
+#        'BOX',          # : Plot box.
+#        'POINTs',       # : Plot points.
+#        'PHASE',        # : Phase convention for molecular orbital plot.
+#        'RDF',          # : Radial distribution function.
+#        'SIMULation',   # : Molecular dynamics simulation post processing.
+#        'QUADRature',   # : Quadrature specification.
+#        'DAVIDson',     # : Davidson diagonalization specification. 
+#        'PARALlel' ]     # : Define parallel processing algorithm.
 
     
 #    allowed_xc = {

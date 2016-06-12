@@ -30,7 +30,7 @@ class Parameters_deMon(Parameters):
     """
     def __init__(
             self,
-            label='rundir', # relative path to the rundir
+            label='rundir', # relative path to the run directory
             atoms=None,
             restart=None,  # relative path to restart to dir for parameters and atoms object, not deMon restart
             basis_path=None, 
@@ -38,7 +38,8 @@ class Parameters_deMon(Parameters):
             deMon_restart_path='.',  #  relative path to the deMon restart dir it looks for deMon.mem and copies it to deMon.rst
             title="deMon input file", # title in input file. not so useful
             scftype='RKS', # 'RKS', 'UKS', 'ROKS' 
-            forces=False,  # if True we will run a BOMD trajectory with one step in order to extract the forces 
+            forces=False,  # if True a force calculation will be enforced 
+            dipole=False,  # if True a dipole calculation will be enforced 
             xc='VWN',
             guess='TB', # This controls the restart if 'RESTART' 
             print_out='MOE', # print out the orbital eigenvalues by default so that they can be parsed
@@ -62,10 +63,10 @@ class Base_deMon(FileIOCalculator):
     implemented_properties = (
         'energy',
         'forces',
-        'dipole',
-        'eigenvalues',
-        'density',
-        'fermi_energy')
+        'dipole', # parsing not ready
+        'eigenvalues') #,
+        #'density', # nope
+        #'fermi_energy') # useless, must set it to half of the gap if we really want it
 
     # Dictionary of valid input vaiables.
     #default_parameters = demon_Parameters()
@@ -111,18 +112,6 @@ class Base_deMon(FileIOCalculator):
         label = parameters['label']
         runfile = label + '.inp'
         outfile = label + '.out'
-
-        #try:
-        #    command = command #% (runfile, outfile)
-        #except TypeError:
-        #    raise ValueError(
-        #        "The 'DEMON_COMMAND' environment must " +
-        #        "be a format string" +
-        #        "Example : 'deMon >& ./ase_deMon.out .\n" +
-        #        "Got '%s'" % command)
-
-        # set up basis_path
-
 
         # Call the base class.
         FileIOCalculator.__init__(
@@ -316,9 +305,11 @@ class Base_deMon(FileIOCalculator):
             raise RuntimeError('%s returned an error: %d' %
                                (self.name, errorcode))
 
-        if True: #try:
+        #if True: 
+        try:
             self.read_results()
-        else: #except:
+        #else: #
+        except:
             with open(self.directory + '/deMon.out', 'r') as f:
                 lines = f.readlines()
             debug_lines = 10
@@ -359,10 +350,12 @@ class Base_deMon(FileIOCalculator):
 
         filename = self.label + '/deMon.inp'
 
-# 2DO
-# On any changes, remove all analysis files.
-#        if system_changes is not None:
-#            self.remove_analysis()
+        add_print=''
+
+        # 2DO? Don't think it is necessary
+        # On any changes, remove all analysis files.
+        #        if system_changes is not None:
+        #            self.remove_analysis()
 
         # Start writing the file.
         with open(filename, 'w') as f:
@@ -383,13 +376,19 @@ class Base_deMon(FileIOCalculator):
             self._write_argument('GUESS', value, f)
 
             # obtain forces through a single BOMD step
-            add_print=''
+            # only if forces is in properties, or if keyword forces is True
             value = self.parameters['forces']
-            if value:
+            if 'forces' in properties or value:
+
                 self._write_argument('DYNAMICS', ['INT=1', 'MAX=0', 'STEP=0'], f)
                 self._write_argument('TRAJECTORY', 'FORCES', f)
                 self._write_argument('VELOCITIES', 'ZERO', f)
                 add_print = add_print + ' ' + 'MD OPT'
+
+            # if dipole is True, enforce dipole calculation. Otherwise only if asked for
+            value = self.parameters['dipole']
+            if 'dipole' in properties or value:
+                self._write_argument('DIPOLE','', f)
 
             # print argument, here other options could change this    
             value = self.parameters['print_out']
@@ -501,12 +500,12 @@ class Base_deMon(FileIOCalculator):
             #else:
             #    raise ValueError("%s not in allowed keywords." % key)
 
-## this must be modified
-#    def remove_analysis(self):
-#        """ Remove all analysis files"""
-#        filename = self.label + '.RHO'
-#        if os.path.exists(filename):
-#            os.remove(filename)
+        # this must be modified? Not necessary
+        #    def remove_analysis(self):
+        #        """ Remove all analysis files"""
+        #        filename = self.label + '.RHO'
+        #        if os.path.exists(filename):
+        #            os.remove(filename)
 
     def _write_atomic_coordinates(self, f, atoms):
         """Write atomic coordinates.
@@ -544,7 +543,6 @@ class Base_deMon(FileIOCalculator):
             
             f.write(line)
             f.write('\n')
-        #f.write('#\n')
 
     # routine to write basis set inormation, including ecps and auxis
     def _write_basis(self, f, atoms, basis={}, string='BASIS'): 
@@ -602,9 +600,9 @@ class Base_deMon(FileIOCalculator):
         self.read_energy()
         self.read_forces(self.atoms)
         self.read_eigenvalues()
+        self.read_dipole()        
         self.read_xray()
-        #self.read_dipole()
-
+        
     def read_energy(self):
         """Read energy from deMon's text-output file.
         """
@@ -620,34 +618,11 @@ class Base_deMon(FileIOCalculator):
         else:
             raise RuntimeError
 
-    # old routine to read forces from trajectory file, gives slow and wrong? results
-    def read_forces_trj(self, atoms):
-        """Read the forces from the deMon.trj file.
-        """
-        natoms = len(atoms)
-        masses = atoms.get_masses()
-        filename=self.label +'/deMon.trj'
-        if isfile(filename):
-            with open(filename, 'r') as f:
-                lines = f.readlines()
-
-            self.results['forces'] = np.zeros((natoms, 3), float)
-        
-            start = 8 + 2*natoms 
-            for i in range(natoms):
-                line = [s for s in lines[i+start].strip().split(' ') if len(s) > 0]
-                self.results['forces'][i,:] = np.array(map(float, line[0:3])) * masses[i] * m_e_to_amu
-
-            self.results['forces'] *=  (Hartree / Bohr) 
-
     def read_forces(self, atoms):
         """Read the forces from the deMon.out file.
         """
-        
-
+    
         natoms = len(atoms)
-        self.results['forces'] = np.zeros((natoms, 3), float)
-        
         filename=self.label +'/deMon.out'
 
         if isfile(filename):
@@ -663,6 +638,7 @@ class Base_deMon(FileIOCalculator):
                         break
             
                 if flag_found:
+                    self.results['forces'] = np.zeros((natoms, 3), float)
                     for i in range(natoms):
                         line = [s for s in lines[i+start].strip().split(' ') if len(s) > 0]
                         self.results['forces'][i,:] = -np.array(map(float, line[2:5])) * (Hartree / Bohr) 
@@ -737,19 +713,24 @@ class Base_deMon(FileIOCalculator):
 
         return eig, occ
 
-# this must be modified
+
     def read_dipole(self):
         """Read dipole moment.
         """
-        dipole = np.zeros([1, 3])
-        with open(self.label + '.out', 'r') as f:
-            for line in f:
-                if line.rfind('Electric dipole (Debye)') > -1:
-                    dipole = np.array([float(f) for f in line.split()[5:8]])
+        dipole = np.zeros(3)
+        with open(self.label + '/deMon.out', 'r') as f:
+            lines = f.readlines()
 
-        # debye to e*Ang
-        self.results['dipole'] = dipole * 0.2081943482534
+            for i in range(len(lines)):
+                if lines[i].rfind('DIPOLE') > -1:
+                    dipole[0] = float(lines[i+1].split()[3])
+                    dipole[1] = float(lines[i+2].split()[3])
+                    dipole[2] = float(lines[i+3].split()[3])
 
+                    # debye to e*Ang
+                    self.results['dipole'] = dipole * 0.2081943482534
+
+                    break
  
     def read_xray(self):
         """ Read deMon.xry if present
@@ -782,9 +763,6 @@ class Base_deMon(FileIOCalculator):
                             'osc_strength': np.array(osc_strength), # units?
                             'trans_dip': np.array(trans_dip) } # units?
 
-            #print(xray_results)
-            #asdf
-            
             self.results['xray'] = xray_results
 
 
