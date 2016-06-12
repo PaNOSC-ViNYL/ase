@@ -18,6 +18,8 @@ import subprocess
 import pickle
 import shutil
 
+m_e_to_amu = 1822.88839
+
 class Parameters_deMon(Parameters):
     """Parameters class for the calculator.
     Documented in BaseSiesta.__init__
@@ -110,15 +112,14 @@ class Base_deMon(FileIOCalculator):
         runfile = label + '.inp'
         outfile = label + '.out'
 
-        try:
-            command = command % (runfile, outfile)
-        except TypeError:
-            raise ValueError(
-                "The 'DEMON_COMMAND' environment must " +
-                "be a format string" +
-                " with two string arguments.\n" +
-                "Example : 'deMon < ./%s > ./%s'.\n" +
-                "Got '%s'" % command)
+        #try:
+        #    command = command #% (runfile, outfile)
+        #except TypeError:
+        #    raise ValueError(
+        #        "The 'DEMON_COMMAND' environment must " +
+        #        "be a format string" +
+        #        "Example : 'deMon >& ./ase_deMon.out .\n" +
+        #        "Got '%s'" % command)
 
         # set up basis_path
 
@@ -217,7 +218,7 @@ class Base_deMon(FileIOCalculator):
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
             raise RuntimeError('Please set $%s environment variable ' %
-                               ('ASE_' + self.name.upper() + '_COMMAND') +
+                               ('DEMON_COMMAND') +
                                'or supply the command keyword')
         command = self.command #.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
@@ -381,17 +382,23 @@ class Base_deMon(FileIOCalculator):
             value = self.parameters['guess']
             self._write_argument('GUESS', value, f)
 
+            # obtain forces through a single BOMD step
+            add_print=''
+            value = self.parameters['forces']
+            if value:
+                self._write_argument('DYNAMICS', ['INT=1', 'MAX=0', 'STEP=0'], f)
+                self._write_argument('TRAJECTORY', 'FORCES', f)
+                self._write_argument('VELOCITIES', 'ZERO', f)
+                add_print = add_print + ' ' + 'MD OPT'
+
+            # print argument, here other options could change this    
             value = self.parameters['print_out']
+            assert(type(value) is str)
+            value = value  + add_print
+
             if not len(value) == 0:
                 self._write_argument('PRINT', value, f)
                 f.write('#\n')            
-
-            # obtain forces through a single BOMD step
-            value = self.parameters['forces']
-            if value:
-                self._write_argument('DYNAMICS', ['INT=1', 'MAX=1', 'STEP=0'], f)
-                self._write_argument('TRAJECTORY', 'FORCES', f)
-                self._write_argument('VELOCITIES', 'ZERO', f)
 
             # write general input arguments
             self._write_input_arguments(f)
@@ -593,8 +600,9 @@ class Base_deMon(FileIOCalculator):
         """Read the results from output files.
         """
         self.read_energy()
-        self.read_forces(len(self.atoms))
+        self.read_forces(self.atoms)
         self.read_eigenvalues()
+        self.read_xray()
         #self.read_dipole()
 
     def read_energy(self):
@@ -612,9 +620,12 @@ class Base_deMon(FileIOCalculator):
         else:
             raise RuntimeError
 
-    def read_forces(self, natoms):
+    # old routine to read forces from trajectory file, gives slow and wrong? results
+    def read_forces_trj(self, atoms):
         """Read the forces from the deMon.trj file.
         """
+        natoms = len(atoms)
+        masses = atoms.get_masses()
         filename=self.label +'/deMon.trj'
         if isfile(filename):
             with open(filename, 'r') as f:
@@ -625,9 +636,37 @@ class Base_deMon(FileIOCalculator):
             start = 8 + 2*natoms 
             for i in range(natoms):
                 line = [s for s in lines[i+start].strip().split(' ') if len(s) > 0]
-                self.results['forces'][i] = map(float, line[0:3])
+                self.results['forces'][i,:] = np.array(map(float, line[0:3])) * masses[i] * m_e_to_amu
 
-            self.results['forces'] *= Hartree / Bohr
+            self.results['forces'] *=  (Hartree / Bohr) 
+
+    def read_forces(self, atoms):
+        """Read the forces from the deMon.out file.
+        """
+        
+
+        natoms = len(atoms)
+        self.results['forces'] = np.zeros((natoms, 3), float)
+        
+        filename=self.label +'/deMon.out'
+
+        if isfile(filename):
+            with open(filename, 'r') as f:
+                lines = f.readlines()
+
+                # find line where the orbitals start
+                flag_found = False
+                for i in range(len(lines)):
+                    if lines[i].rfind('GRADIENTS OF TIME STEP 0 IN A.U.') > -1:
+                        start = i +4
+                        flag_found = True
+                        break
+            
+                if flag_found:
+                    for i in range(natoms):
+                        line = [s for s in lines[i+start].strip().split(' ') if len(s) > 0]
+                        self.results['forces'][i,:] = -np.array(map(float, line[2:5])) * (Hartree / Bohr) 
+
         
     def read_eigenvalues(self):
         """Read eigenvalues from the 'deMon.out' file.
@@ -648,7 +687,7 @@ class Base_deMon(FileIOCalculator):
             eig_beta, occ_beta = self.read_eigenvalues_one_spin(lines, 'BETA MO COEFFICIENTS',5)
 
         self.results['eigenvalues'] = np.array([eig_alpha, eig_beta]) * Hartree
-        self.results['occupations'] = np.array([occ_alpha, occ_beta]) * Hartree
+        self.results['occupations'] = np.array([occ_alpha, occ_beta]) 
 
 
  
@@ -710,6 +749,43 @@ class Base_deMon(FileIOCalculator):
 
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
+
+ 
+    def read_xray(self):
+        """ Read deMon.xry if present
+        """
+
+        filename=self.label +'/deMon.xry'
+        if isfile(filename):
+            with open(filename, 'r') as f:
+                lines = f.readlines()
+                
+            mode = lines[0].split()[0] 
+            ntrans = int(lines[0].split()[1])
+            
+
+            E_trans=[]
+            osc_strength=[]
+            trans_dip =[]
+            for i in range(1,ntrans+1):
+                E_trans.append(float(lines[i].split()[0] ))
+                osc_strength.append(float(lines[i].split()[1].replace('D','e')))
+                
+                dip1 = float(lines[i].split()[3].replace('D','e'))
+                dip2 = float(lines[i].split()[4].replace('D','e'))
+                dip3 = float(lines[i].split()[5].replace('D','e'))
+                trans_dip.append([dip1, dip2, dip3])
+                
+            xray_results = {'xray_mode': mode, 
+                            'ntrans': ntrans,                            
+                            'E_trans': np.array(E_trans) * Hartree,
+                            'osc_strength': np.array(osc_strength), # units?
+                            'trans_dip': np.array(trans_dip) } # units?
+
+            #print(xray_results)
+            #asdf
+            
+            self.results['xray'] = xray_results
 
 
 
