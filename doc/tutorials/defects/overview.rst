@@ -8,53 +8,106 @@ This section gives an (incomplete) overview of features in ASE that
 help in the preparation and analysis of supercell calculations as most
 commonly employed in the computation of defect properties.
 
+.. contents::
+
 Supercell creation
 ==============================
 
 Background
 ---------------------
 
-One is usually interested in defect properties in the so-called dilute
-limite, i.e. under conditions, in which defect-defect interactions are
-negligible. While alternative approaches in particular embedding
-techniques \cite{} exist, the most common approach is to use
-supercells. To this end, one creates a supercell by a *suitable* (see
-below) repetition of the primitive unit cell, after which a defect,
-e.g., a vacancy or an impurity atom, is inserted.
+Defect properties are most commonly investigated in the so-called
+dilute limit, i.e. under conditions, in which defect-defect
+interactions are negligible. While alternative approaches in
+particular embedding techniques exist, the most common approach is to
+use supercells. To this end, one creates a supercell by a *suitable*
+(see below) repetition of the primitive unit cell, after which a
+defect, e.g., a vacancy or an impurity atom, is inserted. This
+procedure can be schematically depicted as follows:
 
-.. image:: supercell-approach.png
+.. image:: supercell-1.svg
+   :width: 30%
+.. image:: supercell-2.svg
+   :width: 30%
+.. image:: supercell-3.svg
+   :width: 30%
 
 The calculation thus corresponds to a periodic arrangement of
 defects. Accordingly, care must be taken to keep the interactions
 between defects as small as possible, which generally calls for large
 supercells. It is furthermore indicated to maximize the defect-defect
 separation in *all* directions, which is in principle achieved if the
-supercell used has a cubic (or close to cubic) shape.
+supercell used has a suitable shape. Consider for illustration the
+following three 2D lattices with identical unit cell area but
+different lattice symmetry:
 
-.. image:: cubic-supercell.png
+.. image:: periodic-images-1.svg
+   :width: 30%
+.. image:: periodic-images-2.svg
+   :width: 30%
+.. image:: periodic-images-3.svg
+   :width: 30%
 
-While this is readily achievable for cubic materials (diamond,
-zincblende, face-centered cubic ...) by using simple repetitions of
-the *conventional* unit cell, for countless materials of lower
-symmetry the choice of a supercell is not necessarily straightforward.
+In the case of the square lattice, each defect has :math:`Z_1=4`
+nearest neighbors at a distance of :math:`r_1=a_0`, where
+:math:`a_0=\sqrt{A}` with :math:`A` being the unit cell area. By
+comparison in a rectangular lattice with an aspect ratio of 2:1, the
+defects are much closer to each other with :math:`r_1 = 0.5 a_0` and
+:math:`Z_1=2`. The largest defect-defect distance (at constant unit
+cell area) is obtained for the hexagonal lattice, which also
+correponds to the most closely packed 2D arrangement. Here, one
+obtains :math:`r_1=\sqrt{2}/\sqrt[4]{3}=1.075 a_0` and
+:math:`Z_1=6`. For defect calculation supercells corresponding to
+hexagonal or square lattices have thus clear advantages. This argument
+can be extended to 3D: Square lattices in 2D correspond to cubic
+lattices (supercells) in 3D with :math:`r_1=a_0` and
+:math:`Z_1=6`. The 3D analogue of the hexagonal 2D lattice are
+hexagonal and cubic close packed structures, both of which yield
+:math:`r_1 = \sqrt{3}/2 a_0` and :math:`Z_1=12`.
 
-Furthermore, electrostatic and strain interactions between periodic
-images die of very slowly with distance. While various correction
-schemes have been developed, the most reliable approach is still
-finite-size extrapolation using supercells of different size.
+It is straightforward to construct cubic or face-centered cubic (fcc,
+cubic closed packed) supercells for cubic materials (including e.g,
+diamond and zincblende) by using simple repetitions of the
+conventional or primitive unit cells. For countless materials of lower
+symmetry the choice of a supercell is, however not necessarily so
+simple. The algorithm below represents a general solution to this
+issue.
+
+In the case of semiconductors and insulators with small dielectric
+constants, defect-defect interactions are particularly pronounced due
+to the weak screening of long-ranged electrostatic interactions. While
+various correction schemes have been proposed, the most reliable
+approach is still finite-size extrapolation using supercells of
+different size. In this case care must be taken to use a sequence of
+self-similar supercells in order for the extrapolation to be
+meaningful. To motivate this statement consider that the leading
+(monopole-monopole) term :math:`E_{mp}`, which scales with :math:`1/r`
+and is proportional to the (ionic) dielectric constant
+:math:`\epsilon_0`. The :math:`E_{mp}` term is geometry dependent and
+in the case of simple lattices the dependence is easily expressed by
+the Madelung constant. The geometry dependence implies that different
+(super)cell shapes fall on different lines when plotting e.g., the
+formation energy as a function of :math:`N^{-1/3}` (equivalent to an
+effective inverse cell size, :math:`1/L \propto N^{-1/3}`. For
+extrapolation one should therefore only use geometrically equivalent
+cells or at least cells that are as self-similar to each other as
+possibly, see Fig.~10 in [Erhart]_ for a very clear example. In this
+context there is therefore also a particular need for supercells of a
+particular shape.
 
 
-Finding optimal supercell shapes
-------------------------------------------
 
+Algorithm for finding optimal supercell shapes
+-----------------------------------------------
 
 The above considerations illustrate the need for a more systematic
 approach to supercell construction. A simple scheme to construct
 "optimal" supercells is described in [Erhart]_. Optimality here
 implies that one identifies the supercell that for a given size
-(number of atoms) most closely approximates a cube. This approach
-ensures that the defect separation is large and that the electrostatic
-interactions exhibit a systematic scaling.
+(number of atoms) most closely approximates the desired shape, most
+commonly a simple cubic or fcc metric. This approach ensures that the
+defect separation is large and that the electrostatic interactions
+exhibit a systematic scaling.
 
 The ideal cubic cell metric for a given volume :math:`Omega` is
 simply given by :math:`\mathbf{h}_\text{cub} = \Omega^{1/3}
@@ -82,15 +135,25 @@ a given cell size can then be defined as
 where :math:`N_{uc}` defines the size of the supercell in terms of the
 number of primitive unit cells. This approach is general and can be
 applied to generate suitable supercells for arbitrary primitive cell
-metrics.
+metrics. Specifically, in order to obtain supercells that resemble the
+shape of a fcc primitive cell one simply needs to replace the above
+definition of the "acubicity" with the following expression
 
-Implementation
+.. math:: \Delta(\mathbf{h}) = ||\mathbf{h} - \mathbf{h}_\text{fcc}||_2
+
+where
+
+.. math:: \mathbf{h}_\text{fcc} = \Omega^{1/3} \frac{1}{2} \left(\begin{array}{rrr} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{array}\right).
+
+
+
+Implementation of algorithm
 ------------------------------------------
 
 The algorithm described above requires finding a matrix
 :math:`\mathbf{P}` from a *discrete* set of integer matrices. This can
 be achieved by a brute force loop over a subset of :math:`\mathbf{P}`
-matrices
+matrices [#algorithm-note]_
 
 .. math:: \mathbf{P} \in [n_{min},n_{max}]^{3\times3}.
 
@@ -105,8 +168,8 @@ module but is made available as ascript that can be executed from the
 command line, :download:`find_optimal_cell_shape.py`. Using inline C
 reduces the execution time by at least two orders of magnitude and
 :program:`find_optimal_cell_shape.py` takes only a few seconds to run
-on a standard desktop given a trial range of :math:`n_{max},n_{min}
-\lessim 16`.
+on a standard desktop given a trial range of :math:`n_{max}-n_{min}
+\lesssim 16`.
 
 For illustration consider the following example. First we set up a
 primitive face-centered cubic (fcc) unit cell::
@@ -114,11 +177,12 @@ primitive face-centered cubic (fcc) unit cell::
     ase-build -x fcc -a 4.05 Al Al.xyz
 
 after which we call :program:`find_optimal_cell_shape.py` to find the
-cell metric :math:`\mathbf{h}` and transformation matrix :math:`P`
-that yield the most cubic shape for a supercell comprising 32
-primitive unit cells::
+cell metric :math:`\mathbf{h}` and transformation matrix
+:math:`\mathbf{P}` that yield the cell that closely resembles a simple
+cubic (sc) cell metric for a supercell comprising 32 primitive unit
+cells::
      
-     find_optimal_cell_shape.py 32 Al.xyz
+     find_optimal_cell_shape.py 32 Al.xyz sc
 
 This will produce the following output::
 
@@ -128,8 +192,13 @@ This will produce the following output::
      [[ 0.     2.025  2.025]
       [ 2.025  0.     2.025]
       [ 2.025  2.025  0.   ]]
-     searching over 387420489 matrices with coefficients in the range from -4 to 4
-     best acubicity value: 4.37527e-24
+     effective target dimension: 8.1
+     target metric:
+     [[ 8.1  0.   0. ]
+      [ 0.   8.1  0. ]
+      [ 0.   0.   8.1]]
+     searching over 10604499373 matrices with coefficients in the range from -6 to 6
+     smallest |P h_p - h_target|_2 value: 0.000000
      optimal P:
      [[-2.  2.  2.]
       [ 2. -2.  2.]
@@ -142,25 +211,55 @@ This will produce the following output::
 
 and thus
 
-.. math:: \mathbf{P}_\text{opt} = \left(\begin{array} -2 & 2 & 2 \\ 2 & -2 & 2 \\ 2 & 2 & -2 \end{array}\right) \\
-          \mathbf{h}_{opt} = \left(\begin{array} 8.1 & 0 & 0 \\ 0 & 8.1 & 0 \\ 0 & 0 & 8.1 \end{array}\right)\,\text{\AA},
+.. math:: \mathbf{P}_\text{opt} = \left(\begin{array}{rrr} -2 & 2 & 2 \\ 2 & -2 & 2 \\ 2 & 2 & -2 \end{array}\right) \quad
+          \mathbf{h}_{opt} = \left(\begin{array}{ccc} 2 a_0 & 0 & 0 \\ 0 & 2 a_0 & 0 \\ 0 & 0 & 2 a_0 \end{array}\right),
 
-which is the expected outcome as it corresponds to a
-:math:`2\times2\times2` repetition of the *conventional* (4-atom) unit
-cell. On the other hand repeating this exercise with::
+where :math:`a_0` =4.05 Å is the lattice constant. This is indeed the
+expected outcome as it corresponds to a :math:`2\times2\times2`
+repetition of the *conventional* (4-atom) unit cell. On the other hand
+repeating this exercise with::
 
       find_optimal_cell_shape.py 90 Al.xyz
 
-yields a less obvious results, namely
+yields a less obvious result, namely
 
-.. math:: \mathbf{P}_\text{opt} = \left(\begin{array} -3 & 3 & 3 \\ 3 & -3 & 3 \\ 2 & 3 & -3 \end{array}\right) \\
-          \mathbf{h}_{opt} = \left(\begin{array} 12.24 & 0 & 0 \\ 0 & 12.24 & 0 \\ 0 & -2.04 & 10.2 \end{array}\right)\,\text{\AA},
+.. math:: \mathbf{P}_\text{opt} = \left(\begin{array}{rrr} -3 & 3 & 3 \\ 3 & -3 & 3 \\ 2 & 3 & -3 \end{array}\right) \quad
+          \mathbf{h}_{opt} = \left(\begin{array}{ccc} 3 a_0 & 0 & 0 \\ 0 & 3 a_0 & 0 \\ 0 & -0.5 a_0 & 2.5 a_0 \end{array}\right),
 
 which indeed corresponds to a reasonably cubic cell shape.
 
-Since this procedure requires only knowledge of the cell metric (and not the atomic positions) for standard metrics, e.g., fcc, bcc, and simple cubic one can generte series of shapes that are usable for *all* structures with the respective metric. For example the :math:`\mathbf{P}_\text{opt}` matrices that optimize the shape of a supercell build using a primitive FCC cell are directly applicable to diamond and zincblende lattices.
+Since this procedure requires only knowledge of the cell metric (and
+not the atomic positions) for standard metrics, e.g., fcc, bcc, and
+simple cubic one can generate series of shapes that are usable for
+*all* structures with the respective metric. For example the
+:math:`\mathbf{P}_\text{opt}` matrices that optimize the shape of a
+supercell build using a primitive FCC cell are directly applicable to
+diamond and zincblende lattices.
 
-For convenience the :math:`\mathbf{P}_\text{opt}` matrices for the aforementioned lattices have already been generated for :math:`N_{uc}\leq800` and are provide here as dictionaries in python pickle format for download: face-centered cubic (:download:`Popt-fcc.pkl`), body-centerd cubic (:download:`Popt-bcc.pkl`), simple cubic (:download:`Popt-sc.pkl`).
+For convenience the :math:`\mathbf{P}_\text{opt}` matrices for the
+aforementioned lattices have already been generated for
+:math:`N_{uc}\leq800` and are provided here as dictionaries in `json
+<https://en.wikipedia.org/wiki/JSON>`_ format.
+
+ * Transformation of face-centered cubic metric to simple cubic-like shapes: :download:`Popt-fcc-sc.json`
+ * Transformation of face-centered cubic metric to face-centered cubic-like shapes: :download:`Popt-fcc-fcc.json`
+ * Transformation of body-centered cubic metric to simple cubic-like shapes: :download:`Popt-bcc-sc.json`
+ * Transformation of body-centered cubic metric to face-centered cubic-like shapes: :download:`Popt-bcc-fcc.json`
+ * Transformation of simple cubic metric to simple cubic-like shapes: :download:`Popt-sc-sc.json`
+ * Transformation of simple cubic metric to face-centered cubic-like shapes: :download:`Popt-sc-fcc.json`
+
+
+
+
+Generation of supercell
+------------------------------------------
+
+Once 
+
+
+.. [#algorithm-note] One can easily conceive of more refined variants
+   but here we stick to the most obvious/trivial version as it
+   suffices for the task at hand.
 
 .. [Erhart] P. Erhart, B. Sadigh, A. Schleife, and D. Åberg.
    First-principles study of codoping in lanthanum bromide,
