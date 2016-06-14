@@ -234,12 +234,9 @@ class Atoms(object):
 
     def set_calculator(self, calc=None):
         """Attach calculator object."""
-        if hasattr(calc, '_SetListOfAtoms'):
-            from ase.old import OldASECalculatorWrapper
-            calc = OldASECalculatorWrapper(calc, self)
+        self._calc = calc
         if hasattr(calc, 'set_atoms'):
             calc.set_atoms(self)
-        self._calc = calc
 
     def get_calculator(self):
         """Get currently attached calculator object."""
@@ -806,9 +803,8 @@ class Atoms(object):
             s += 'constraint=%s, ' % repr(self.constraints[0])
         if len(self.constraints) > 1:
             s += 'constraint=%s, ' % repr(self.constraints)
-        if hasattr(self, '_calc'):
-            if self._calc is not None:
-                s += 'calculator=%s(...), ' % self._calc.__class__.__name__
+        if self._calc is not None:
+            s += 'calculator=%s(...), ' % self._calc.__class__.__name__
         return s[:-2] + ')'
 
     def __add__(self, other):
