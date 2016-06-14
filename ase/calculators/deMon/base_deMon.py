@@ -22,7 +22,7 @@ m_e_to_amu = 1822.88839
 
 class Parameters_deMon(Parameters):
     """Parameters class for the calculator.
-    Documented in BaseSiesta.__init__
+    Documented in Base_deMon.__init__
 
     The options here are the most important ones that the user needs to be aware of. 
     Further options accepted by deMon can be set in the dictionary input_arguments.
@@ -30,19 +30,20 @@ class Parameters_deMon(Parameters):
     """
     def __init__(
             self,
-            label='rundir', # relative path to the run directory
+            label='rundir', 
             atoms=None,
-            restart=None,  # relative path to restart to dir for parameters and atoms object, not deMon restart
+            command=None, 
+            restart=None,  
             basis_path=None, 
-            ignore_bad_restart_file=False, # for the restart option
-            deMon_restart_path='.',  #  relative path to the deMon restart dir it looks for deMon.mem and copies it to deMon.rst
-            title="deMon input file", # title in input file. not so useful
-            scftype='RKS', # 'RKS', 'UKS', 'ROKS' 
-            forces=False,  # if True a force calculation will be enforced 
-            dipole=False,  # if True a dipole calculation will be enforced 
+            ignore_bad_restart_file=False, 
+            deMon_restart_path='.',  
+            title="deMon input file", 
+            scftype='RKS', 
+            forces=False,  
+            dipole=False,  
             xc='VWN',
-            guess='TB', # This controls the restart if 'RESTART' 
-            print_out='MOE', # print out the orbital eigenvalues by default so that they can be parsed
+            guess='TB', 
+            print_out='MOE', 
             basis ={},
             ecps ={},
             mcps ={},
@@ -57,58 +58,57 @@ class Parameters_deMon(Parameters):
 class Base_deMon(FileIOCalculator):
     """Calculator interface to the deMon code.
     """
-    #allowed_xc = {}
-    allowed_keywords = {}
 
     implemented_properties = (
         'energy',
         'forces',
-        'dipole', # parsing not ready
-        'eigenvalues') #,
-        #'density', # nope
-        #'fermi_energy') # useless, must set it to half of the gap if we really want it
-
-    # Dictionary of valid input vaiables.
-    #default_parameters = demon_Parameters()
+        'dipole', 
+        'eigenvalues') 
 
     def __init__(self, **kwargs):
         """ASE interface to the deMon code.
 
         Parameters:
-            -xc           : The exchange-correlation potential. Can be set to
-                            any allowed value for either the Siesta
-                            XC.funtional or XC.authors keyword. Default "LDA"
-            -basis_set    : "SZ"|"SZP"|"DZ"|"DZP", strings which specify the
-                            type of functions basis set.
-            -basis_path  : None|path. This path is where
-                            basis sets, ecps and auxiliary basis sets are taken from.
-                            If None is given, then then the path given
-                            in $DEMON_BASIS_PATH will be used.
-            -atoms        : The Atoms object.
-            -restart      : str.  Prefix for restart file.
-                            May contain a directory.
-                            Default is  None, don't restart.
-            -ignore_bad_restart_file: bool.
-                            Ignore broken or missing restart file.
-                            By default, it is an error if the restart
-                            file is missing or broken.
-            -input_arguments: Explicitly given input arguments. Dictonary using
-                            demon keywords as given in the manual. List values
-                            are written as fdf blocks with each element on a
-                            separate line, while tuples will write each element
-                            in a single line.  ASE units are assumed in the
-                            input.
+            label    : str. relative path to the run directory
+            atoms    : The Atoms onject  
+            command  : str. Command to run deMon. If not present the environment varable DEMON_COMMAND will be used
+            restart  : str. Relative path to ASE restart directory for parameters and atoms object and results
+            basis_path  : str. Relative path to the directory containing BASIS, AUXIS, ECPS, MCPS and AUGMENT 
+            ignore_bad_restart_file : bool. Ignore broken or missing ASE restart files
+                                    By default, it is an error if the restart
+                                    file is missing or broken.  
+            deMon_restart_path  : str. Relative path to the deMon restart dir
+            title : str. Title in the deMon input file. 
+            scftype : str. Type of scf  
+            forces  : bool. If True a force calculation will be enforced.
+            dipole  : bool. If True a dipole calculation will be enforced 
+            xc      : str. xc-functional
+            guess   : str. guess for initial density and wave functions
+            print_out : str|list. Options for the printing in deMon
+            basis : dict. Definition of basis sets.
+            ecps  : dict. Definition of ECPs.
+            mcps  : dict. Definition of MCPs.
+            auxis  : dict. Definition of AUXIS,
+            augment : dict. Definition of AUGMENT.
+            input_arguments: dict. Explicitly given input arguments. The key is the input keyword
+                             and the value is either a str, a list of str (will be written on the same line as the keyword),
+                             or a list of lists of str (first list is written on the first line, the others on following lines.)
+                                                          
+                            
         """
-        # Put in the default arguments.
-        #parameters = self.default_parameters.__class__(**kwargs)
         parameters = Parameters_deMon(**kwargs)
         
-        # Setup the run command based on number of nodes.
-        command = os.environ.get('DEMON_COMMAND')
+        # Setup the run command 
+        command = parameters['command']
+        if command is None:
+            command = os.environ.get('DEMON_COMMAND')
+
         if command is None:
             mess = "The 'DEMON_COMMAND' environment is not defined."
             raise ValueError(mess)
-
+        else:
+            parameters['command'] = command
+            
         label = parameters['label']
         runfile = label + '.inp'
         outfile = label + '.out'
@@ -116,11 +116,8 @@ class Base_deMon(FileIOCalculator):
         # Call the base class.
         FileIOCalculator.__init__(
             self,
-            command=command,
             **parameters)
 
-        #self.parameters =parameters
-        
     def __getitem__(self, key):
         """Convenience method to retrieve a parameter as
         calculator[key] rather than calculator.parameters[key]
@@ -152,40 +149,10 @@ class Base_deMon(FileIOCalculator):
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                #if isinstance(oldvalue, dict):
-                #    # Special treatment for dictionary parameters:
-                #    for name in value:
-                #        if name not in oldvalue:
-                #            raise KeyError(
-                #                'Unknown subparameter "%s" in '
-                #                'dictionary parameter "%s"' % (name, key))
-                #    oldvalue.update(value)
-                #    value = oldvalue
                 changed_parameters[key] = value
                 self.parameters[key] = value
 
         return changed_parameters
-
-
-        #FileIOCalculator.set(self, **kwargs)
-
-#        # Check input_arguments.
-#        input_arguments = kwargs['input_arguments']
-#        if input_arguments is not None:
-#            # Type checking.
-#            if not isinstance(input_arguments, dict):
-#                raise TypeError("input_arguments must be a dictionary.")
-#
-#            # Check if keywords are allowed.
-#            input_keys = set(input_arguments.keys())
-#            allowed_keys = set(self.allowed_input_keywords)
-#            if not input_keys.issubset(allowed_keys):
-#                offending_keys = input_keys.difference(allowed_keys)
-#                raise ValueError("The 'input_arguments' dictionary " +
-#                                 "argument does not allow " +
-#                                 "the keywords: %s" % str(offending_keys))
-#
-
 
     def calculate(self,
                   atoms=None,
@@ -199,10 +166,6 @@ class Base_deMon(FileIOCalculator):
 
         if atoms is not None:
             self.atoms = atoms.copy()
-
-        # I can't seem to manage to call the super super class...
-        #self.FileIOCalculator.Calculator.calculate(self, atoms, properties, system_changes)
-        #self.__class__.__bases__[0].__class__.__bases__[0].calculate(self, atoms, properties, system_changes)
 
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
@@ -234,8 +197,7 @@ class Base_deMon(FileIOCalculator):
                 
                 if os.path.exists(abspath + '/deMon.mem') \
                         or  os.path.islink(abspath + '/deMon.mem'):
-                    #os.symlink(abspath +'/deMon.mem', 
-                    #           self.directory + '/deMon.rst')
+
                     shutil.copy(abspath +'/deMon.mem', self.directory + '/deMon.rst')
                 else:
                     raise RuntimeError(
@@ -305,10 +267,8 @@ class Base_deMon(FileIOCalculator):
             raise RuntimeError('%s returned an error: %d' %
                                (self.name, errorcode))
 
-        #if True: 
         try:
             self.read_results()
-        #else: #
         except:
             with open(self.directory + '/deMon.out', 'r') as f:
                 lines = f.readlines()
@@ -325,18 +285,20 @@ class Base_deMon(FileIOCalculator):
 
         self.label = label
 
-        self.directory = self.label # why have both?
+        # in our case self.directory = self.label
+        self.directory = self.label 
         if self.directory == '':
             self.directory = os.curdir
 
+        
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input (in)-file.
         See calculator.py for further details.
 
         Parameters:
-            - atoms        : The Atoms object to write.
-            - properties   : The properties which should be calculated.
-            - system_changes : List of properties changed since last run.
+             atoms        : The Atoms object to write.
+             properties   : The properties which should be calculated.
+             system_changes : List of properties changed since last run.
         """
         # Call base calculator.
         FileIOCalculator.write_input(
@@ -351,11 +313,6 @@ class Base_deMon(FileIOCalculator):
         filename = self.label + '/deMon.inp'
 
         add_print=''
-
-        # 2DO? Don't think it is necessary
-        # On any changes, remove all analysis files.
-        #        if system_changes is not None:
-        #            self.remove_analysis()
 
         # Start writing the file.
         with open(filename, 'w') as f:
@@ -430,10 +387,10 @@ class Base_deMon(FileIOCalculator):
             self._write_atomic_coordinates(f, atoms)
 
             # write pickle of Parameters 
-            pickle.dump(self.parameters, open(self.directory +"/deMon_parameters.pckl", 'w'))
+            pickle.dump(self.parameters, open(self.label +"/deMon_parameters.pckl", 'w'))
 
             # write xyz file for good measure. 
-            ase.io.write(self.directory + "/deMon_atoms.xyz", self.atoms)
+            ase.io.write(self.label + "/deMon_atoms.xyz", self.atoms)
                 
     def read(self, restart_path):
         """Read parameters from directory restart_path."""
@@ -460,16 +417,14 @@ class Base_deMon(FileIOCalculator):
             return
 
         for key, value in input_arguments.iteritems():
-            #elif key in self.allowed_input_keywords:
-
             self._write_argument(key, value, f)
 
             
     def _write_argument(self, key, value, f):
         """ write an argument to file. 
-        - key :  a string coresponding to the input keyword
-        - value : the arguemnts, can be a string, a number or a list
-        - f :  and open file
+         key :  a string coresponding to the input keyword
+         value : the arguemnts, can be a string, a number or a list
+         f :  and open file
         """
         
         # for only one argument, write on same line
@@ -495,18 +450,6 @@ class Base_deMon(FileIOCalculator):
                     f.write('\n')
                     line = ""
                         
-                    
-                    
-            #else:
-            #    raise ValueError("%s not in allowed keywords." % key)
-
-        # this must be modified? Not necessary
-        #    def remove_analysis(self):
-        #        """ Remove all analysis files"""
-        #        filename = self.label + '.RHO'
-        #        if os.path.exists(filename):
-        #            os.remove(filename)
-
     def _write_atomic_coordinates(self, f, atoms):
         """Write atomic coordinates.
         
@@ -515,7 +458,6 @@ class Base_deMon(FileIOCalculator):
         - atoms: An atoms object.
         """
 
-        #f.write('\n')
         f.write('#\n')
         f.write('# Atomic coordinates\n')
         f.write('#\n')
@@ -778,10 +720,8 @@ class Base_deMon(FileIOCalculator):
         for i in range(len(lines)):
             if lines[i].rfind('GEOMETRY') > -1:
                 if lines[i].rfind('ANGSTROM'):
-                    #print('Read coordinates in Ang units')
                     coord_units = 'Ang'
                 elif lines.rfind('Bohr'):
-                    #print('Read coordinates in Bohr units')
                     coord_units = 'Bohr'
                 ii = i
                 break
