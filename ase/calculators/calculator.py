@@ -11,7 +11,7 @@ class ReadError(Exception):
 
 
 all_properties = ['energy', 'forces', 'stress', 'dipole',
-                  'charges', 'magmom', 'magmoms']
+                  'charges', 'magmom', 'magmoms', 'free_energy']
 
 
 all_changes = ['positions', 'numbers', 'cell', 'pbc',
