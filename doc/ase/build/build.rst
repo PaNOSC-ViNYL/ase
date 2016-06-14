@@ -1,8 +1,8 @@
 .. module:: ase.build
 
-==============
-Builing things
-==============
+================
+Building things
+================
 
 Quick links:
     
@@ -36,8 +36,11 @@ Quick links:
 * Other tools: :func:`~ase.build.cut`, :func:`~ase.build.stack`,
   :func:`~ase.build.sort`, :func:`~ase.build.minimize_tilt`,
   :func:`~ase.build.niggli_reduce`, :func:`~ase.build.rotate`,
-  :func:`~ase.build.minimize_rotation_and_translation`
-
+  :func:`~ase.build.minimize_rotation_and_translation`,
+  :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
+  :func:`~ase.build.make_supercell`
 
 .. seealso::
 

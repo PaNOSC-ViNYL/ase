@@ -88,10 +88,10 @@ in the case of simple lattices the dependence is easily expressed by
 the Madelung constant. The geometry dependence implies that different
 (super)cell shapes fall on different lines when plotting e.g., the
 formation energy as a function of :math:`N^{-1/3}` (equivalent to an
-effective inverse cell size, :math:`1/L \propto N^{-1/3}`. For
+effective inverse cell size, :math:`L^{-1} \propto N^{-1/3}`. For
 extrapolation one should therefore only use geometrically equivalent
 cells or at least cells that are as self-similar to each other as
-possibly, see Fig.~10 in [Erhart]_ for a very clear example. In this
+possibly, see Fig. 10 in [Erhart]_ for a very clear example. In this
 context there is therefore also a particular need for supercells of a
 particular shape.
 
@@ -105,128 +105,98 @@ approach to supercell construction. A simple scheme to construct
 "optimal" supercells is described in [Erhart]_. Optimality here
 implies that one identifies the supercell that for a given size
 (number of atoms) most closely approximates the desired shape, most
-commonly a simple cubic or fcc metric. This approach ensures that the
-defect separation is large and that the electrostatic interactions
-exhibit a systematic scaling.
+commonly a simple cubic or fcc metric (see above). This approach
+ensures that the defect separation is large and that the electrostatic
+interactions exhibit a systematic scaling.
 
-The ideal cubic cell metric for a given volume :math:`Omega` is
-simply given by :math:`\mathbf{h}_\text{cub} = \Omega^{1/3}
-\mathbf{I}`, which in general does not satisfy the crystallographic
-boundary conditions. The :math:`l_2`-norm provides a convenient
-measure of the deviation of any other cell metric from a cubic
-shape. The "acubicity" can thus be defined as
+The ideal cubic cell metric for a given volume :math:`\Omega` is simply
+given by :math:`\Omega^{1/3} \mathbf{I}`, which in general does not
+satisfy the crystallographic boundary conditions. The :math:`l_2`-norm
+provides a convenient measure of the deviation of any other cell
+metric from a cubic shape. The optimality measure can thus be defined
+as
 
-.. math:: \Delta_c(\mathbf{h}) = ||\mathbf{h} - \mathbf{h}_\text{cub}||_2
+.. math:: \Delta_\text{sc}(\mathbf{h}) = ||\mathbf{h} - \Omega^{1/3} \mathbf{1}||_2,
 
 Any cell metric that is compatible with the crystal symmetry can be
 written in the form
 
 .. math:: \mathbf{h} = \mathbf{P} \mathbf{h}_p
 
-where
+where :math:`\mathbf{P} \in \mathbb{Z}^{3\times3}` and
+:math:`\mathbf{h}_p` is the primitive cell metric.  This approach can
+be readily generalized to arbitrary target cell metrics. In order to
+obtain a measure that is size-independent it is furthermore convenient
+to introduce a normalization, which leads to the expression
+implemented here, namely
 
-.. math:: \mathbf{P} \in \mathbb{Z}^{3\times3}.
+.. math:: \bar{\Delta}(\mathbf{Ph}_p) = ||Q\mathbf{Ph}_p - \mathbf{h}_\text{target}||_2,
 
-The matrix :math:`\mathbf{P}`, which yields the optimal cell shape for
-a given cell size can then be defined as
+where :math:`Q = \left(\det\mathbf{h}_\text{target} \big/
+\det\mathbf{h}_p\right)^{1/3}` is a normalization factor.  The
+matrix :math:`\mathbf{P}_\text{opt}` that yields the optimal cell
+shape for a given cell size can then be obtained by
 
-.. math:: \mathbf{P}_\text{opt} = \underset{\mathbf{P}}{\operatorname{argmin}} \left\{ \Delta_c\left(\mathbf{Ph}_p\right) | \det\mathbf{P} = N_{uc}\right\},
+.. math:: \mathbf{P}_\text{opt} = \underset{\mathbf{P}}{\operatorname{argmin}} \left\{ \bar\Delta\left(\mathbf{Ph}_p\right) | \det\mathbf{P} = N_{uc}\right\},
 
 where :math:`N_{uc}` defines the size of the supercell in terms of the
-number of primitive unit cells. This approach is general and can be
-applied to generate suitable supercells for arbitrary primitive cell
-metrics. Specifically, in order to obtain supercells that resemble the
-shape of a fcc primitive cell one simply needs to replace the above
-definition of the "acubicity" with the following expression
-
-.. math:: \Delta(\mathbf{h}) = ||\mathbf{h} - \mathbf{h}_\text{fcc}||_2
-
-where
-
-.. math:: \mathbf{h}_\text{fcc} = \Omega^{1/3} \frac{1}{2} \left(\begin{array}{rrr} 0 & 1 & 1 \\ 1 & 0 & 1 \\ 1 & 1 & 0 \end{array}\right).
+number of primitive unit cells.
 
 
 
 Implementation of algorithm
 ------------------------------------------
 
-The algorithm described above requires finding a matrix
-:math:`\mathbf{P}` from a *discrete* set of integer matrices. This can
-be achieved by a brute force loop over a subset of :math:`\mathbf{P}`
-matrices [#algorithm-note]_
+The algorithm described above has been implemented in two versions:
 
-.. math:: \mathbf{P} \in [n_{min},n_{max}]^{3\times3}.
+* :func:`~ase.build.find_optimal_cell_shape`: An
+  implementation that invokes inline-C code via the `scipy.weave
+  <http://docs.scipy.org/doc/scipy/reference/tutorial/weave.html>`_
+  interface as is substantially (about one to two orders of magnitude)
+  faster than the pure python version. `scipy
+  <https://www.scipy.org/>`_ is available on many systems for
+  scientific computing and should be preferable if available.
 
-Since this involves looping over :math:`(n_{max}-n_{min}+1)^9`
-matrices, which is a staggeringly large number already for a moderate
-range of integers, a plain python implementation is rather
-slow. Instead the algorithm has been implemented as inline C using
-`scipy.weave
-<http://docs.scipy.org/doc/scipy/reference/tutorial/weave.html>`_. For
-this reason the respective code is currently not included as an ASE
-module but is made available as ascript that can be executed from the
-command line, :download:`find_optimal_cell_shape.py`. Using inline C
-reduces the execution time by at least two orders of magnitude and
-:program:`find_optimal_cell_shape.py` takes only a few seconds to run
-on a standard desktop given a trial range of :math:`n_{max}-n_{min}
-\lesssim 16`.
+* :func:`~ase.build.find_optimal_cell_shape_pure_python`:
+  A pure python implementation that is, however, quite slow.
 
 For illustration consider the following example. First we set up a
-primitive face-centered cubic (fcc) unit cell::
+primitive face-centered cubic (fcc) unit cell, after which we call
+:func:`~ase.build.find_optimal_cell_shape` to obtain a
+:math:`\mathbf{P}` matrix that will enable us to generate a supercell
+with 32 atoms that is as close as possible to a simple cubic shape::
+				 
+   from ase.build import bulk
+   from ase.build import find_optimal_cell_shape, get_deviation_from_optimal_cell_shape
+   import numpy as np
+   conf = bulk('Au')
+   P1 = find_optimal_cell_shape(conf.cell, 32, 'sc')
+ 
+This yields
 
-    ase-build -x fcc -a 4.05 Al Al.xyz
-
-after which we call :program:`find_optimal_cell_shape.py` to find the
-cell metric :math:`\mathbf{h}` and transformation matrix
-:math:`\mathbf{P}` that yield the cell that closely resembles a simple
-cubic (sc) cell metric for a supercell comprising 32 primitive unit
-cells::
-     
-     find_optimal_cell_shape.py 32 Al.xyz sc
-
-This will produce the following output::
-
-     target size in number of unit cells: 32
-     primitive cell read from file: Al.xyz
-     primitive cell metric:
-     [[ 0.     2.025  2.025]
-      [ 2.025  0.     2.025]
-      [ 2.025  2.025  0.   ]]
-     effective target dimension: 8.1
-     target metric:
-     [[ 8.1  0.   0. ]
-      [ 0.   8.1  0. ]
-      [ 0.   0.   8.1]]
-     searching over 10604499373 matrices with coefficients in the range from -6 to 6
-     smallest |P h_p - h_target|_2 value: 0.000000
-     optimal P:
-     [[-2.  2.  2.]
-      [ 2. -2.  2.]
-      [ 2.  2. -2.]]
-     cell:
-     [[ 8.1  0.   0. ]
-      [ 0.   8.1  0. ]
-      [ 0.   0.   8.1]]
-     determinant of optimal P:  32.0
-
-and thus
-
-.. math:: \mathbf{P}_\text{opt} = \left(\begin{array}{rrr} -2 & 2 & 2 \\ 2 & -2 & 2 \\ 2 & 2 & -2 \end{array}\right) \quad
-          \mathbf{h}_{opt} = \left(\begin{array}{ccc} 2 a_0 & 0 & 0 \\ 0 & 2 a_0 & 0 \\ 0 & 0 & 2 a_0 \end{array}\right),
+.. math:: \mathbf{P}_1 = \left(\begin{array}{rrr} -2 & 2 & 2 \\ 2 & -2 & 2 \\ 2 & 2 & -2 \end{array}\right) \quad
+          \mathbf{h}_1 = \left(\begin{array}{ccc} 2 a_0 & 0 & 0 \\ 0 & 2 a_0 & 0 \\ 0 & 0 & 2 a_0 \end{array}\right),
 
 where :math:`a_0` =4.05 Å is the lattice constant. This is indeed the
 expected outcome as it corresponds to a :math:`2\times2\times2`
 repetition of the *conventional* (4-atom) unit cell. On the other hand
 repeating this exercise with::
 
-      find_optimal_cell_shape.py 90 Al.xyz
+   P2 = find_optimal_cell_shape(conf.cell, 495, 'sc')
 
 yields a less obvious result, namely
 
-.. math:: \mathbf{P}_\text{opt} = \left(\begin{array}{rrr} -3 & 3 & 3 \\ 3 & -3 & 3 \\ 2 & 3 & -3 \end{array}\right) \quad
-          \mathbf{h}_{opt} = \left(\begin{array}{ccc} 3 a_0 & 0 & 0 \\ 0 & 3 a_0 & 0 \\ 0 & -0.5 a_0 & 2.5 a_0 \end{array}\right),
+.. math:: \mathbf{P}_2 = \left(\begin{array}{rrr} -5 & 5 & 5 \\ 5 & -4 & 5 \\ 5 & 5 & -4 \end{array}\right) \quad
+          \mathbf{h}_2 = a_0 \left(\begin{array}{ccc}  5 & 0 & 0 \\ 0.5 & 5 & 0.5 \\ 0.5 & 0.5 & 5 \end{array}\right),
 
-which indeed corresponds to a reasonably cubic cell shape.
+which indeed corresponds to a reasonably cubic cell shape. One can
+also obtain the optimality measure :math:`\bar{\Delta}` by executing::
+
+   dev1 = get_deviation_from_optimal_cell_shape(np.dot(P1, conf.cell)
+   dev2 = get_deviation_from_optimal_cell_shape(np.dot(P2, conf.cell)
+
+which yields :math:`\bar{\Delta}(\mathbf{P}_1)=0` and
+:math:`\bar{\Delta}(\mathbf{P}_2)=0.201`.
 
 Since this procedure requires only knowledge of the cell metric (and
 not the atomic positions) for standard metrics, e.g., fcc, bcc, and
@@ -238,29 +208,59 @@ diamond and zincblende lattices.
 
 For convenience the :math:`\mathbf{P}_\text{opt}` matrices for the
 aforementioned lattices have already been generated for
-:math:`N_{uc}\leq800` and are provided here as dictionaries in `json
+:math:`N_{uc}\leq2000` and are provided here as dictionaries in `json
 <https://en.wikipedia.org/wiki/JSON>`_ format.
 
- * Transformation of face-centered cubic metric to simple cubic-like shapes: :download:`Popt-fcc-sc.json`
- * Transformation of face-centered cubic metric to face-centered cubic-like shapes: :download:`Popt-fcc-fcc.json`
- * Transformation of body-centered cubic metric to simple cubic-like shapes: :download:`Popt-bcc-sc.json`
- * Transformation of body-centered cubic metric to face-centered cubic-like shapes: :download:`Popt-bcc-fcc.json`
- * Transformation of simple cubic metric to simple cubic-like shapes: :download:`Popt-sc-sc.json`
- * Transformation of simple cubic metric to face-centered cubic-like shapes: :download:`Popt-sc-fcc.json`
+ * Transformation of face-centered cubic metric to simple cubic-like shapes: :download:`Popt-fcc2sc.json`
+ * Transformation of face-centered cubic metric to face-centered cubic-like shapes: :download:`Popt-fcc2fcc.json`
+ * Transformation of body-centered cubic metric to simple cubic-like shapes: :download:`Popt-bcc2sc.json`
+ * Transformation of body-centered cubic metric to face-centered cubic-like shapes: :download:`Popt-bcc2fcc.json`
+ * Transformation of simple cubic metric to simple cubic-like shapes: :download:`Popt-sc2sc.json`
+ * Transformation of simple cubic metric to face-centered cubic-like shapes: :download:`Popt-sc2fcc.json`
 
+The thus obtained :math:`\bar{\Delta}` values are shown as a function
+of the number of unit cells :math:`N_{uc}` in the panel below, which
+demonstrates that this approach provides access to a large number of
+supercells with e.g., simple cubic or face-centered cubic shapes that
+span the range between the "exact" solutions, for which
+:math:`\bar{\Delta}=0`. The algorithm is, however, most useful for
+non-cubic cell shapes, for which finding several reasonably sized cell
+shapes is more challenging as illustrated for a hexagonal material
+(LaBr\ :sub:`3`) in [Erhart]_.
 
-
+.. image:: score-size-sc2sc.svg
+   :width: 30%
+.. image:: score-size-fcc2sc.svg
+   :width: 30%
+.. image:: score-size-bcc2sc.svg
+   :width: 30%
+.. image:: score-size-sc2fcc.svg
+   :width: 30%
+.. image:: score-size-fcc2fcc.svg
+   :width: 30%
+.. image:: score-size-bcc2fcc.svg
+   :width: 30%
 
 Generation of supercell
 ------------------------------------------
 
-Once 
+Once the transformation matrix :math:`\mathbf{P}` it is
+straightforward to generate the actual supercell using e.g., the
+:func:`~ase.build.cut` function. A convenient interface is provided by
+the :func:`~ase.build.make_supercell` function, which is invoked as
+follows::
+
+   from ase.build import bulk
+   from ase.build import find_optimal_cell_shape
+   from ase.build import make_supercell
+   conf = bulk('Au')
+   P = find_optimal_cell_shape(conf.cell, 495, 'sc')
+   from ase.build import make_supercell
+   supercell = make_supercell(P, conf)
 
 
-.. [#algorithm-note] One can easily conceive of more refined variants
-   but here we stick to the most obvious/trivial version as it
-   suffices for the task at hand.
-
+   
 .. [Erhart] P. Erhart, B. Sadigh, A. Schleife, and D. Åberg.
    First-principles study of codoping in lanthanum bromide,
-   Phys. Rev. B, Vol **91**, pp. 165206 (2012); Appendix C
+   Phys. Rev. B, Vol **91**, 165206 (2012),
+   `doi: 10.1103/PhysRevB.91.165206 <http://dx.doi.org/10.1103/PhysRevB.91.165206>`_; Appendix C
