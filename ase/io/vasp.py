@@ -407,22 +407,33 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     import xml.etree.ElementTree as ET
     from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
-    from ase.calculators.singlepoint import SinglePointCalculator
+    from ase.calculators.singlepoint import (SinglePointDFTCalculator,
+                                             SinglePointKPoint)
     from ase.units import GPa
 
     tree = ET.iterparse(filename)
 
     atoms_init = None
     calculation = []
+    ibz_kpts = None
 
     try:
         for event, elem in tree:
-            if elem.tag == 'atominfo':
+            if elem.tag == 'kpoints':
+                kpts = elem.findall("varray[@name='kpointlist']/v")
+                ibz_kpts = np.zeros((len(kpts), 3))
+
+                for i, kpt in enumerate(kpts):
+                    ibz_kpts[i] = [float(val) for val in kpt.text.split()]
+
+            elif elem.tag == 'atominfo':
                 species = []
 
                 for entry in elem.find("array[@name='atoms']/set"):
                     species.append(entry[0].text.strip())
+
                 natoms = len(species)
+
             elif (elem.tag == 'structure' and
                   elem.attrib.get('name') == 'initialpos'):
                 cell_init = np.zeros((3, 3), dtype=float)
@@ -433,6 +444,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                         float(val) for val in v.text.split()])
 
                 scpos_init = np.zeros((natoms, 3), dtype=float)
+
                 for i, v in enumerate(elem.find(
                         "varray[@name='positions']")):
                     scpos_init[i] = np.array([
@@ -458,8 +470,10 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                    scaled_positions=scpos_init,
                                    constraint=constraints,
                                    pbc=True)
+
             elif elem.tag == 'calculation':
                 calculation.append(elem)
+
     except ET.ParseError as parse_error:
         if atoms_init is None:
             raise parse_error
@@ -485,7 +499,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         de = (float(lastscf.find('i[@name="e_0_energy"]').text) -
               float(lastscf.find('i[@name="e_fr_energy"]').text))
 
-        energy = float(step.find('energy/i[@name="e_fr_energy"]').text) + de
+        free_energy = float(step.find('energy/i[@name="e_fr_energy"]').text)
+        energy = free_energy + de
 
         cell = np.zeros((3, 3), dtype=float)
         for i, vector in enumerate(step.find(
@@ -515,12 +530,36 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             stress *= -0.1 * GPa
             stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
+        efermi = step.find('dos/i[@name="efermi"]')
+        if efermi is not None:
+            efermi = float(efermi.text)
+
+        kpoints = None
+        kblocks = step.findall(
+                'eigenvalues/array/set/set/set[@comment="kpoint 1"]')
+        if kblocks is not None:
+            kpoints = []
+            for i, kpoint in enumerate(kblocks):
+                eigenvals = kpoint.findall('r')
+                eps_n = np.zeros(len(eigenvals))
+                f_n = np.zeros(len(eigenvals))
+                for j, val in enumerate(eigenvals):
+                    val = val.text.split()
+                    eps_n[j] = float(val[0])
+                    f_n[j] = float(val[1])
+                if len(kblocks) == 1:
+                    f_n *= 2
+                kpoints.append(SinglePointKPoint(1, i, 0, eps_n, f_n))
+
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
-            SinglePointCalculator(atoms, energy=energy, forces=forces,
-                                  stress=stress))
+            SinglePointDFTCalculator(atoms, energy=energy, forces=forces,
+                                     stress=stress, free_energy=free_energy,
+                                     ibz_kpts=ibz_kpts, eFermi=efermi))
+        atoms.calc.name = 'vasp'
+        atoms.calc.kpts = kpoints
         yield atoms
 
 
