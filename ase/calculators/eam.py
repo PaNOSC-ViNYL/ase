@@ -13,6 +13,7 @@ from ase.test import NotAvailable
 from ase.neighborlist import NeighborList
 from ase.calculators.calculator import Calculator, all_changes
 from scipy.interpolate import InterpolatedUnivariateSpline as spline
+from ase.units import Bohr, Hartree
 
 
 class EAM(Calculator):
@@ -255,7 +256,6 @@ End EAM Interface Documentation
 
         if extension == '.eam':
             self.form = 'eam'
-            raise NotImplementedError
         elif extension == '.alloy':
             self.form = 'alloy'
         elif extension == '.adp':
@@ -273,55 +273,89 @@ End EAM Interface Documentation
             self.set_form(fileobj)
         else:
             f = fileobj
+            
+        def lines_to_list(lines):
+            """ make the data one long line so as not to care how its formatted """
+            data = []
+            for line in lines:
+                data.extend(line.split())
+            return data
 
         lines = f.readlines()
-        self.header = lines[:3]
-        i = 3
+        if (self.form == 'eam'):	# single element eam file (aka funcfl)
+                self.header = lines[:1]
+                
+                data = lines_to_list(lines[1:])
+                
+                # eam form is just like an alloy form for one element
+                
+                self.Nelements = 1
+                self.Z = np.array([data[0] ], dtype=int)
+                self.mass = np.array([data[1]  ])
+                self.a = np.array([data[2] ])
+                self.lattice = [data[3] ]
+                 
+                self.nrho = int(data[4])
+                self.drho = float(data[5])
+                self.nr = int(data[6])
+                self.dr = float(data[7])
+                self.cutoff = float(data[8])                
+                
+                self.embedded_data = np.array([np.float_(data[9:(9 + self.nrho)]) ] )
+                
+                self.rphi_data = np.zeros([self.Nelements, self.Nelements, self.nr])
+                                
+                effective_charge = np.float_(data[(9 + self.nrho):(9 + self.nrho + self.nr)] )
+                # convert effective charges to rphi according to http://lammps.sandia.gov/doc/pair_eam.html
+                self.rphi_data[0, 0] = Bohr * Hartree * (effective_charge**2)  
+                
+                self.density_data = np.array([np.float_(data[(9 + self.nrho + self.nr):(9 + self.nrho + 2*self.nr)]) ] )
+                
+        else:
+                self.header = lines[:3]
+                i = 3
 
-        # make the data one long line so as not to care how its formatted
-        data = []
-        for line in lines[i:]:
-            data.extend(line.split())
+                data = lines_to_list(lines[i:])
 
-        self.Nelements = int(data[0])
-        d = 1
-        self.elements = data[d:d + self.Nelements]
-        d += self.Nelements
+                self.Nelements = int(data[0])
+                d = 1
+                self.elements = data[d:d + self.Nelements]
+                d += self.Nelements
 
-        self.nrho = int(data[d])
-        self.drho = float(data[d + 1])
-        self.nr = int(data[d + 2])
-        self.dr = float(data[d + 3])
-        self.cutoff = float(data[d + 4])
+                self.nrho = int(data[d])
+                self.drho = float(data[d + 1])
+                self.nr = int(data[d + 2])
+                self.dr = float(data[d + 3])
+                self.cutoff = float(data[d + 4])
 
-        self.embedded_data = np.zeros([self.Nelements, self.nrho])
-        self.density_data = np.zeros([self.Nelements, self.nr])
-        self.Z = np.zeros([self.Nelements], dtype=int)
-        self.mass = np.zeros([self.Nelements])
-        self.a = np.zeros([self.Nelements])
-        self.lattice = []
-        d += 5
+                self.embedded_data = np.zeros([self.Nelements, self.nrho])
+                self.density_data = np.zeros([self.Nelements, self.nr])
+                self.Z = np.zeros([self.Nelements], dtype=int)
+                self.mass = np.zeros([self.Nelements])
+                self.a = np.zeros([self.Nelements])
+                self.lattice = []
+                d += 5
 
-        # reads in the part of the eam file for each element
-        for elem in range(self.Nelements):
-            self.Z[elem] = int(data[d])
-            self.mass[elem] = float(data[d + 1])
-            self.a[elem] = float(data[d + 2])
-            self.lattice.append(data[d + 3])
-            d += 4
+                # reads in the part of the eam file for each element
+                for elem in range(self.Nelements):
+                    self.Z[elem] = int(data[d])
+                    self.mass[elem] = float(data[d + 1])
+                    self.a[elem] = float(data[d + 2])
+                    self.lattice.append(data[d + 3])
+                    d += 4
 
-            self.embedded_data[elem] = np.float_(data[d:(d + self.nrho)])
-            d += self.nrho
-            self.density_data[elem] = np.float_(data[d:(d + self.nr)])
-            d += self.nr
+                    self.embedded_data[elem] = np.float_(data[d:(d + self.nrho)])
+                    d += self.nrho
+                    self.density_data[elem] = np.float_(data[d:(d + self.nr)])
+                    d += self.nr
 
-        # reads in the r*phi data for each interaction between elements
-        self.rphi_data = np.zeros([self.Nelements, self.Nelements, self.nr])
+                # reads in the r*phi data for each interaction between elements
+                self.rphi_data = np.zeros([self.Nelements, self.Nelements, self.nr])
 
-        for i in range(self.Nelements):
-            for j in range(i + 1):
-                self.rphi_data[j, i] = np.float_(data[d:(d + self.nr)])
-                d += self.nr
+                for i in range(self.Nelements):
+                    for j in range(i + 1):
+                        self.rphi_data[j, i] = np.float_(data[d:(d + self.nr)])
+                        d += self.nr
 
         self.r = np.arange(0, self.nr) * self.dr
         self.rho = np.arange(0, self.nrho) * self.drho
@@ -355,16 +389,9 @@ End EAM Interface Documentation
         # to go through zero due to the r*phi format in alloy and adp
         for i in range(self.Nelements):
             for j in range(i, self.Nelements):
-                if self.form == 'eam':  # not stored as rphi
-                    # should we ignore the first point for eam ?
-                    raise RuntimeError('.eam format not yet supported')
-
-                    self.phi[i, j] = spline(
-                        self.r[1:], self.rphi_data[i, j][1:], k=3)
-                else:
-                    self.phi[i, j] = spline(
-                        self.r[1:],
-                        self.rphi_data[i, j][1:] / self.r[1:], k=3)
+                self.phi[i, j] = spline(
+                    self.r[1:],
+                    self.rphi_data[i, j][1:] / self.r[1:], k=3)
 
                 self.d_phi[i, j] = self.deriv(self.phi[i, j])
 
