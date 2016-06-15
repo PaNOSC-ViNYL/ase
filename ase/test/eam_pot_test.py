@@ -18,8 +18,8 @@ eam = EAM(potential='Pt_u3.eam', elements=['Pt'])
 slab = fcc111('Pt', size=(4, 4, 2), vacuum=10.0)
 slab.set_calculator(eam)
 
-assert( abs(-164.2775 - slab.get_potential_energy()) < 1E-3 )
-assert( abs(6.3637 - np.linalg.norm(slab.get_forces()))  < 1E-3 )
+assert( abs(-164.277599313 - slab.get_potential_energy()) < 1E-8 )
+assert( abs(6.36379627645 - np.linalg.norm(slab.get_forces()))  < 1E-8 )
 
 os.remove(pot_fn)
 
