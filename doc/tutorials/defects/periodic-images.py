@@ -1,6 +1,5 @@
 # creates: periodic-images-1.svg periodic-images-2.svg
 
-from math import pi, sin, cos
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -66,7 +65,7 @@ rescale = 1.0
 myfig = CellFigure(dim)
 prim = np.eye(2)
 atompos = [0.5,0.5]
-from itertools import product,permutations
+from itertools import product
 for i,j in [[-1,0],[1,0],[0,-1],[0,1]]:
     myfig.add_vector(prim, atompos, rescale*np.array([i,j]))
 for i,j in product(range(-dim,dim+1), repeat=2):

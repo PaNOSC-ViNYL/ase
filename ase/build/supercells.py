@@ -198,6 +198,7 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
     # Execute the inline C code.
     from scipy import weave
     weave.inline(code, ['search_range', 'norm_cell', 'best_score', 'optimal_P', 'target_metric', 'target_size', 'starting_P'])
+    search_range -= 1.0
 
     # Finalize.
     if verbose:
