@@ -6,8 +6,7 @@ import numpy as np
 
 
 def get_deviation_from_optimal_cell_shape(cell, target_shape='sc', norm=None):
-    """
-    Calculate the deviation of the given cell metric from the ideal
+    """Calculate the deviation of the given cell metric from the ideal
     cell metric defining a certain shape. Specifically, the function
     evaluates the expression :math:`\Delta = || Q \mathbf{h} -
     \mathbf{h}_{target}||_2`, where :math:`\mathbf{h}` is the input
@@ -27,6 +26,7 @@ def get_deviation_from_optimal_cell_shape(cell, target_shape='sc', norm=None):
         Specify the normalization factor. This is useful to avoid
         recomputing the normalization factor when computing the
         deviation for a series of P matrices.
+
     """
 
     if target_shape in ['sc', 'simple-cubic']:
@@ -44,8 +44,7 @@ def get_deviation_from_optimal_cell_shape(cell, target_shape='sc', norm=None):
 def find_optimal_cell_shape(cell, target_size, target_shape,
                             lower_limit=-2, upper_limit=2,
                             verbose=False):
-    """
-    Returns the transformation matrix that produces a supercell
+    """Returns the transformation matrix that produces a supercell
     corresponding to a certain number of unit cells (*target_size*)
     based on a primitive metric (*cell*) that most closely
     approximates a desired shape (*target_shape*).
@@ -219,8 +218,7 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
 def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
                                         lower_limit=-2, upper_limit=2,
                                         verbose=False):
-    """
-    Returns the transformation matrix that produces a supercell
+    """Returns the transformation matrix that produces a supercell
     corresponding to `target_size` unit cells with metric `cell` that
     most closely approximates the shape defined by `target_shape`.
 
@@ -244,6 +242,7 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
     verbose: bool
         Set to True to obtain additional information regarding
         construction of transformation matrix.
+
     """
 
     # Set up target metric
@@ -306,8 +305,7 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
 
 
 def make_supercell(prim, P):
-    """
-    Generate a supercell by applying a general transformation (*P*) to
+    """Generate a supercell by applying a general transformation (*P*) to
     the input configuration (*prim*).
 
     The transformation is described by a 3x3 integer matrix
@@ -324,6 +322,7 @@ def make_supercell(prim, P):
         Input configuration.
     P: 3x3 integer matrix
         Transformation matrix :math:`\mathbf{P}`.
+
     """
 
     from ase.build import cut
