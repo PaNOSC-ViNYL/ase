@@ -411,7 +411,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                              SinglePointKPoint)
     from ase.units import GPa
 
-    tree = ET.iterparse(filename)
+    tree = ET.iterparse(filename, events=['start', 'end'])
 
     atoms_init = None
     calculation = []
@@ -419,59 +419,60 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
     try:
         for event, elem in tree:
-            if elem.tag == 'kpoints':
-                kpts = elem.findall("varray[@name='kpointlist']/v")
-                ibz_kpts = np.zeros((len(kpts), 3))
+            if event == 'end':
+                if elem.tag == 'kpoints':
+                    kpts = elem.findall("varray[@name='kpointlist']/v")
+                    ibz_kpts = np.zeros((len(kpts), 3))
 
-                for i, kpt in enumerate(kpts):
-                    ibz_kpts[i] = [float(val) for val in kpt.text.split()]
+                    for i, kpt in enumerate(kpts):
+                        ibz_kpts[i] = [float(val) for val in kpt.text.split()]
 
-            elif elem.tag == 'atominfo':
-                species = []
+                elif elem.tag == 'atominfo':
+                    species = []
 
-                for entry in elem.find("array[@name='atoms']/set"):
-                    species.append(entry[0].text.strip())
+                    for entry in elem.find("array[@name='atoms']/set"):
+                        species.append(entry[0].text.strip())
 
-                natoms = len(species)
+                    natoms = len(species)
 
-            elif (elem.tag == 'structure' and
-                  elem.attrib.get('name') == 'initialpos'):
-                cell_init = np.zeros((3, 3), dtype=float)
+                elif (elem.tag == 'structure' and
+                      elem.attrib.get('name') == 'initialpos'):
+                    cell_init = np.zeros((3, 3), dtype=float)
 
-                for i, v in enumerate(elem.find(
-                        "crystal/varray[@name='basis']")):
-                    cell_init[i] = np.array([
-                        float(val) for val in v.text.split()])
+                    for i, v in enumerate(elem.find(
+                            "crystal/varray[@name='basis']")):
+                        cell_init[i] = np.array([
+                            float(val) for val in v.text.split()])
 
-                scpos_init = np.zeros((natoms, 3), dtype=float)
+                    scpos_init = np.zeros((natoms, 3), dtype=float)
 
-                for i, v in enumerate(elem.find(
-                        "varray[@name='positions']")):
-                    scpos_init[i] = np.array([
-                        float(val) for val in v.text.split()])
+                    for i, v in enumerate(elem.find(
+                            "varray[@name='positions']")):
+                        scpos_init[i] = np.array([
+                            float(val) for val in v.text.split()])
 
-                constraints = []
-                fixed_indices = []
+                    constraints = []
+                    fixed_indices = []
 
-                for i, entry in enumerate(elem.findall(
-                        "varray[@name='selective']/v")):
-                    flags = (np.array(entry.text.split() ==
-                                      np.array(['F', 'F', 'F'])))
-                    if flags.all():
-                        fixed_indices.append(i)
-                    elif flags.any():
-                        constraints.append(FixScaled(cell_init, i, flags))
+                    for i, entry in enumerate(elem.findall(
+                            "varray[@name='selective']/v")):
+                        flags = (np.array(entry.text.split() ==
+                                          np.array(['F', 'F', 'F'])))
+                        if flags.all():
+                            fixed_indices.append(i)
+                        elif flags.any():
+                            constraints.append(FixScaled(cell_init, i, flags))
 
-                if fixed_indices:
-                    constraints.append(FixAtoms(fixed_indices))
+                    if fixed_indices:
+                        constraints.append(FixAtoms(fixed_indices))
 
-                atoms_init = Atoms(species,
-                                   cell=cell_init,
-                                   scaled_positions=scpos_init,
-                                   constraint=constraints,
-                                   pbc=True)
+                    atoms_init = Atoms(species,
+                                       cell=cell_init,
+                                       scaled_positions=scpos_init,
+                                       constraint=constraints,
+                                       pbc=True)
 
-            elif elem.tag == 'calculation':
+            elif event == 'start' and elem.tag == 'calculation':
                 calculation.append(elem)
 
     except ET.ParseError as parse_error:
