@@ -28,15 +28,16 @@ def get_deviation_from_optimal_cell_shape(cell, target_shape='sc', norm=None):
         recomputing the normalization factor when computing the
         deviation for a series of P matrices.
     """
-    
+
     if target_shape in ['sc', 'simple-cubic']:
         target_metric = np.eye(3)
     elif target_shape in ['fcc', 'face-centered cubic']:
-        target_metric = 0.5 * np.array([[0,1,1],
-                                        [1,0,1],
-                                        [1,1,0]])
+        target_metric = 0.5 * np.array([[0, 1, 1],
+                                        [1, 0, 1],
+                                        [1, 1, 0]])
     if not norm:
-        norm = (np.linalg.det(cell) / np.linalg.det(target_metric))** (-1./3)
+        norm = (np.linalg.det(cell) /
+                np.linalg.det(target_metric))**(-1.0 / 3)
     return np.linalg.norm(norm * cell - target_metric)
 
 
@@ -73,7 +74,7 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
         construction of transformation matrix.
 
     """
-    
+
     # Inline C code that does the heavy work.
     # It iterates over all possible matrices and finds the best match.
     code = """
@@ -101,14 +102,14 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
     double m;      // auxiliary variable
     double current_score; // l2-norm of (QPh - h_opt)
 
-    for (int dxx=imin ; dxx<=imax ; dxx++) 
-    for (int dxy=imin ; dxy<=imax ; dxy++) 
-    for (int dxz=imin ; dxz<=imax ; dxz++) 
-    for (int dyx=imin ; dyx<=imax ; dyx++) 
-    for (int dyy=imin ; dyy<=imax ; dyy++) 
-    for (int dyz=imin ; dyz<=imax ; dyz++) 
-    for (int dzx=imin ; dzx<=imax ; dzx++) 
-    for (int dzy=imin ; dzy<=imax ; dzy++) 
+    for (int dxx=imin ; dxx<=imax ; dxx++)
+    for (int dxy=imin ; dxy<=imax ; dxy++)
+    for (int dxz=imin ; dxz<=imax ; dxz++)
+    for (int dyx=imin ; dyx<=imax ; dyx++)
+    for (int dyy=imin ; dyy<=imax ; dyy++)
+    for (int dyz=imin ; dyz<=imax ; dyz++)
+    for (int dzx=imin ; dzx<=imax ; dzx++)
+    for (int dzy=imin ; dzy<=imax ; dzy++)
     for (int dzz=imin ; dzz<=imax ; dzz++) {
 
       // P matrix
@@ -166,15 +167,16 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
     if target_shape in ['sc', 'simple-cubic']:
         target_metric = np.eye(3)
     elif target_shape in ['fcc', 'face-centered cubic']:
-        target_metric = 0.5 * np.array([[0,1,1],
-                                   [1,0,1],
-                                   [1,1,0]], dtype=float)
+        target_metric = 0.5 * np.array([[0, 1, 1],
+                                        [1, 0, 1],
+                                        [1, 1, 0]], dtype=float)
     if verbose:
         print('target metric (h_target):')
         print(target_metric)
 
-    # Normalize cell metric to reduce computation time during looping    
-    norm = (target_size * np.linalg.det(cell) / np.linalg.det(target_metric)) ** (-1./3)
+    # Normalize cell metric to reduce computation time during looping
+    norm = (target_size * np.linalg.det(cell) /
+            np.linalg.det(target_metric))**(-1.0 / 3)
     norm_cell = norm * cell
     if verbose:
         print('normalization factor (Q): %g' % norm)
@@ -192,12 +194,14 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
     # Prepare run.
     # Weave expects all input/output variables to be numpy arrays.
     best_score = np.array([100000.0])
-    optimal_P = np.zeros((3,3))
+    optimal_P = np.zeros((3, 3))
     search_range = np.array([lower_limit, upper_limit], dtype=int)
     target_size = np.array(target_size, dtype=int)
     # Execute the inline C code.
     from scipy import weave
-    weave.inline(code, ['search_range', 'norm_cell', 'best_score', 'optimal_P', 'target_metric', 'target_size', 'starting_P'])
+    weave.inline(code, ['search_range', 'norm_cell', 'best_score',
+                        'optimal_P', 'target_metric', 'target_size',
+                        'starting_P'])
     search_range -= 1.0
 
     # Finalize.
@@ -207,7 +211,8 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
         print(optimal_P)
         print('supercell metric:')
         print(np.round(np.dot(optimal_P, cell), 4))
-        print('determinant of optimal transformation matrix: %d' % np.linalg.det(optimal_P))
+        print('determinant of optimal transformation matrix: %d' %
+              np.linalg.det(optimal_P))
     return optimal_P
 
 
@@ -245,15 +250,16 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
     if target_shape in ['sc', 'simple-cubic']:
         target_metric = np.eye(3)
     elif target_shape in ['fcc', 'face-centered cubic']:
-        target_metric = 0.5 * np.array([[0,1,1],
-                                        [1,0,1],
-                                        [1,1,0]], dtype=float)
+        target_metric = 0.5 * np.array([[0, 1, 1],
+                                        [1, 0, 1],
+                                        [1, 1, 0]], dtype=float)
     if verbose:
         print('target metric (h_target):')
         print(target_metric)
 
-    # Normalize cell metric to reduce computation time during looping    
-    norm = (target_size * np.linalg.det(cell) / np.linalg.det(target_metric)) ** (-1./3)
+    # Normalize cell metric to reduce computation time during looping
+    norm = (target_size * np.linalg.det(cell) /
+            np.linalg.det(target_metric))**(-1.0 / 3)
     norm_cell = norm * cell
     if verbose:
         print('normalization factor (Q): %g' % norm)
@@ -272,11 +278,13 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
     from itertools import product
     best_score = 1e6
     optimal_P = None
-    for dP in product(range(lower_limit,upper_limit+1), repeat=9):
-        dP = np.array(dP, dtype=int).reshape(3,3)
+    for dP in product(range(lower_limit, upper_limit + 1), repeat=9):
+        dP = np.array(dP, dtype=int).reshape(3, 3)
         P = starting_P + dP
-        if int(np.linalg.det(P)) != target_size: continue
-        score = get_deviation_from_optimal_cell_shape(np.dot(P, norm_cell), target_shape=target_shape, norm=1.0)
+        if int(np.linalg.det(P)) != target_size:
+            continue
+        score = get_deviation_from_optimal_cell_shape(
+            np.dot(P, norm_cell), target_shape=target_shape, norm=1.0)
         if score < best_score:
             best_score = score
             optimal_P = P
@@ -284,7 +292,7 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
     if optimal_P is None:
         print('Failed to find a transformation matrix.')
         return None
-            
+
     # Finalize.
     if verbose:
         print('smallest score (|Q P h_p - h_target|_2): %f' % best_score)
@@ -292,7 +300,8 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
         print(optimal_P)
         print('supercell metric:')
         print(np.round(np.dot(optimal_P, cell), 4))
-        print('determinant of optimal transformation matrix: %d' % np.linalg.det(optimal_P))
+        print('determinant of optimal transformation matrix: %d' %
+              np.linalg.det(optimal_P))
     return optimal_P
 
 
@@ -310,7 +319,7 @@ def make_supercell(prim, P):
     Internally this function uses the :func:`~ase.build.cut` function.
 
     Parameters:
-    
+
     prim: ASE Atoms object
         Input configuration.
     P: 3x3 integer matrix
