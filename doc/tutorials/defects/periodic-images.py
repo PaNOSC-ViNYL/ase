@@ -61,11 +61,12 @@ dim = 2
 # rescaling factor for arrows
 rescale = 1.0
 
+from itertools import product
+
 #-------------------------------------
 myfig = CellFigure(dim)
 prim = np.eye(2)
 atompos = [0.5,0.5]
-from itertools import product
 for i,j in [[-1,0],[1,0],[0,-1],[0,1]]:
     myfig.add_vector(prim, atompos, rescale*np.array([i,j]))
 for i,j in product(range(-dim,dim+1), repeat=2):
@@ -77,7 +78,6 @@ plt.savefig('periodic-images-1.svg', bbox_inches='tight')
 #-------------------------------------
 myfig = CellFigure(dim)
 prim = np.array([[2,0],[0,0.5]])
-from itertools import product,permutations
 for i,j in [[0,-1],[0,1]]:
     myfig.add_vector(prim, atompos, rescale*np.array([i,j]))
 for i,j in product(range(-dim,dim+1), repeat=2):
@@ -91,7 +91,6 @@ myfig = CellFigure(dim)
 prim = np.array([[1,0.5],[0,np.sqrt(3)/2]])
 prim /= np.linalg.det(prim)**(1./2)
 s = np.sqrt(2./np.sqrt(3))
-from itertools import product,permutations
 for i,j in [[-1,0],[1,0],[0,-1],[0,1],[-1,1],[1,-1]]:
     myfig.add_vector(prim, atompos, rescale*np.array([i,j]))
 for i,j in product(range(-dim,dim+1), repeat=2):
