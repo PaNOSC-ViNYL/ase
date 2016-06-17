@@ -3,9 +3,6 @@ from subprocess import Popen, PIPE
 from ase.calculators.calculator import Calculator
 from ase.io import read, write
 import os
-import atexit
-
-import numpy as np
 
 
 class VaspInteractive(Calculator):
@@ -13,27 +10,29 @@ class VaspInteractive(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
 
     def __init__(self, txt="interactive.log", print_log=True, process=None,
-                 command=None, exitcleanly=False, path="./"):
+                 command=None, path="./"):
         self.process = process
         self.path = path
         if txt is not None:
-            self.txt = open(self.path + txt, "a")
+            self.txt = open(txt, "a")
         else:
             self.txt = None
         self.print_log = print_log
-        self.command = command
-        self.atoms = None
-        self.exitcleanly = exitcleanly
 
-    def get_executable(self):
-        if self.command is not None:
-            return "cd {0} && {1} ".format(self.path, self.command)
+        if command is not None:
+            self.command = command
         elif 'VASP_COMMAND' in os.environ:
-            return "cd {0} && {1}".format(self.path,
-                                          os.environ['VASP_COMMAND'])
+            self.command = os.environ['VASP_COMMAND']
+        elif 'VASP_SCRIPT' in os.environ:
+            self.command = os.environ['VASP_SCRIPT']
         else:
             raise RuntimeError('Please set either command in calculator'
                                ' or VASP_COMMAND environment variable')
+
+        if isinstance(self.command, str):
+            self.command = self.command.split()
+
+        self.atoms = None
 
     def _stdin(self, text, ending="\n"):
         if self.txt is not None:
@@ -48,55 +47,38 @@ class VaspInteractive(Calculator):
         if self.print_log:
             print(text, end="")
 
-    def first_step(self, atoms):
-        if os.path.isfile('STOPCAR'):
-            os.remove('STOPCAR')
-        self._stdout("Writing Initial POSCAR\n")
-        write(os.path.join(self.path, "POSCAR"), atoms)
-        self._stdout("Starting VASP for initial step...\n")
-        self.process = Popen([self.get_executable()], stdout=PIPE,
-                             stdin=PIPE, stderr=PIPE, shell=True)
-        if self.exitcleanly:
-            atexit.register(self.close)
+    def _run_vasp(self, atoms):
+        if self.process is None:
+            if os.path.isfile('STOPCAR'):
+                os.remove('STOPCAR')
+            self._stdout("Writing Initial POSCAR\n")
+            write(os.path.join(self.path, "POSCAR"), atoms)
+            self._stdout("Starting VASP for initial step...\n")
+            self.process = Popen(self.command, stdout=PIPE,
+                                 stdin=PIPE, stderr=PIPE, cwd=self.path)
+        else:
+            self._stdout("Inputting positions...\n")
+            for atom in atoms.get_scaled_positions():
+                self._stdin(' '.join(map('{:19.16f}'.format, atom)))
+
         while self.process.poll() is None:
             text = self.process.stdout.readline()
             self._stdout(text)
             if "POSITIONS: reading from stdin" in text:
                 break
-
-    def continue_stepping(self, atoms):
-        self._input_positions(atoms)
-        while self.process.poll() is None:
-            text = self.process.stdout.readline()
-            self._stdout(text)
-            if "POSITIONS: reading from stdin" in text:
-                break
-
-    def _input_positions(self, atoms):
-        self._stdout("Inputting positions...\n")
-        for atom in atoms.get_scaled_positions():
-            self._stdin(' '.join(map('{:19.16f}'.format, atom)))
 
     def close(self):
         if self.process is None:
             return
 
         self._stdout('Attemping to close VASP cleanly\n')
-        stopcar = open(self.path + "STOPCAR", "w")
-        stopcar.write("LABORT = .TRUE.")
-        stopcar.close()
-        self._input_positions(self.atoms)
-        while self.process.poll() is None:
-            text = self.process.stdout.readline()
-            self._stdout(text)
-            if "POSITIONS: reading from stdin" in text:
-                break
-        self._input_positions(self.atoms)
-        while self.process.poll() is None:
-            text = self.process.stdout.readline()
-            self._stdout(text)
-            if "deleting file STOPCAR" in text:
-                break
+        with open(os.path.join(self.path, 'STOPCAR', 'w')) as stopcar:
+            stopcar.write('LABORT = .TRUE.')
+
+        self._run_vasp(self.atoms)
+        self._run_vasp(self.atoms)
+        while self.process.poll() is not None:
+            time.sleep(1)
         self._stdout("VASP has been closed\n")
         self.process = None
 
@@ -104,17 +86,15 @@ class VaspInteractive(Calculator):
                   system_changes=['positions', 'numbers', 'cell']):
         Calculator.calculate(self, atoms, properties, system_changes)
 
+        if not system_changes:
+            return
+
         if 'numbers' in system_changes:
             self.close()
 
-        if self.process is None:
-            self.first_step(atoms)
-        else:
-            if not system_changes:
-                return
-            self.continue_stepping(atoms)
+        self._run_vasp(atoms)
 
-        new = read('vasprun.xml', index=-1)
+        new = read(os.path.join(self.path, 'vasprun.xml'), index=-1)
 
         self.results = {'free_energy': new.get_potential_energy(force_consistent=True),
                         'energy': new.get_potential_energy(),
