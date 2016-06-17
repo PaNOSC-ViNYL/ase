@@ -75,7 +75,7 @@ class VaspInteractive(Calculator):
     def _input_positions(self, atoms):
         self._stdout("Inputting positions...\n")
         for atom in atoms.get_scaled_positions():
-            self._stdin('{0} {1} {2}'.format(*atom))
+            self._stdin(' '.join(map('{:19.16f}'.format, atom)))
 
     def close(self):
         if self.process is None:
