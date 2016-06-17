@@ -13,7 +13,7 @@ There is a mailing list for discussing ASE:
 
 * ase-users_
 
-The mailing lists below are of interest for active ASE developers only:
+Old mailing lists no longer used:
 
 * ase-developers_
 * ase-svncheckins_
