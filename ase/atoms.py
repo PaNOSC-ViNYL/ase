@@ -730,7 +730,7 @@ class Atoms(object):
         if only_tddft:
             return self._calc.get_polarizability(mbpt_inp, output_name, write_inp, format_output, units)
         else:
-            forces = self._calc.get_forces(self) # just to run siesta
+            self._calc.get_forces(self) # just to run siesta
             return self._calc.get_polarizability(mbpt_inp, output_name, write_inp, format_output, units)
         
 

@@ -1,7 +1,5 @@
 from __future__ import division
 import numpy as np
-import h5py as hdf
-import sys
 import re
 
 

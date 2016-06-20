@@ -4,9 +4,6 @@
 
 
 from __future__ import division
-import os
-import sys
-import subprocess
 import matplotlib.cm as cm
 import ase.io as aio
 import numpy as np
@@ -92,7 +89,7 @@ class read_hdf5_data:
     if args_p.quantity == 'intensity':
       self.ylabel = r'$|\frac{E}{E_{0}}|^{2}$'
     elif args_p.quantity == 'density':
-      if args.ReIm == 'im':
+      if args_p.ReIm == 'im':
         self.ylabel = r'$Im(\delta n)$'
       elif args_p.ReIm == 're':
         self.ylabel = r'$Re(\delta n)$'
@@ -380,20 +377,18 @@ class read_hdf5_data:
     self.ymesh = np.zeros((self.dim[0], self.dim[1], self.dim[2]), dtype=float)
     self.zmesh = np.zeros((self.dim[0], self.dim[1], self.dim[2]), dtype=float)
 
+
     for i in range(self.xmesh.shape[0]):
       nb = self.box[0][0] + i*self.dr[0] + self.origin[0]
-      arr = unit_matrix(nb, [self.xmesh.shape[1], self.xmesh.shape[2]])
-      self.xmesh[i, :, :] = arr
+      self.xmesh[i, :, :] = nb 
 
     for i in range(self.xmesh.shape[1]):
       nb = self.box[0][1] + i*self.dr[1] + self.origin[1]
-      arr = unit_matrix(nb, [self.xmesh.shape[0], self.xmesh.shape[2]])
-      self.ymesh[:, i, :] = arr
+      self.ymesh[:, i, :] = nb
 
     for i in range(self.xmesh.shape[2]):
       nb = self.box[0][2] + i*self.dr[2] + self.origin[2]
-      arr = unit_matrix(nb, [self.xmesh.shape[0], self.xmesh.shape[1]])
-      self.zmesh[:, :, i] = arr
+      self.zmesh[:, :, i] = nb
 
 #
 #
@@ -461,7 +456,7 @@ class read_text_data:
     if args_p.quantity == 'intensity':
       self.ylabel = r'$|\frac{E}{E_{0}}|^{2}$'
     elif args_p.quantity == 'density':
-      if args.ReIm == 'im':
+      if args_p.ReIm == 'im':
         self.ylabel = r'$Im(\delta n)$'
       elif args_p.ReIm == 're':
         self.ylabel = r'$Re(\delta n)$'
@@ -527,8 +522,6 @@ class read_text_data:
 
         A.append(np.zeros((dim[0], dim[1], dim[2]), dtype=float))
 
-        compt = 0
-        z = 0
 
         l = end_box 
         for k in range(int(dim[2])) :
@@ -565,8 +558,6 @@ class read_text_data:
       box, dim = self.determine_box(dr, ubound, lbound, origin)
       
       Array = np.zeros((dim[0], dim[1], dim[2]), dtype=float)
-      compt = 0
-      z = 0
 
       l = end_box 
       for k in range(int(dim[2])) :
@@ -635,18 +626,15 @@ class read_text_data:
 
     for i in range(self.xmesh.shape[0]):
       nb = self.box[0][0] + i*self.dr[0] + self.origin[0]
-      arr = unit_matrix(nb, [self.xmesh.shape[1], self.xmesh.shape[2]])
-      self.xmesh[i, :, :] = arr
+      self.xmesh[i, :, :] = nb
 
     for i in range(self.xmesh.shape[1]):
       nb = self.box[0][1] + i*self.dr[1] + self.origin[1]
-      arr = unit_matrix(nb, [self.xmesh.shape[0], self.xmesh.shape[2]])
-      self.ymesh[:, i, :] = arr
+      self.ymesh[:, i, :] = nb
 
     for i in range(self.xmesh.shape[2]):
       nb = self.box[0][2] + i*self.dr[2] + self.origin[2]
-      arr = unit_matrix(nb, [self.xmesh.shape[0], self.xmesh.shape[1]])
-      self.zmesh[:, :, i] = arr
+      self.zmesh[:, :, i] = nb
 
 
 ###########################################################
@@ -829,27 +817,3 @@ class MBPT_LCAO_Properties_figure:
                       'atoms_scale': 1, 'fps': 20, 'opacity':0.5, 'line_width': 2.0, 'magnification': 1}
     self.maya_cam = {'distance': None, 'focalpoint': None, 'azimuth': None, 'elevation': None, 'roll': None,\
                       'reset_roll': True, 'figure': None, 'focalpoint': 'auto'}
-
-
-
-#
-#
-#
-def pol2cross_sec(p, omg):
-  """
-  Convert the polarizability in au to cross section in nm**2
-  INPUT PARAMETERS:
-  -----------------
-    p (np array): polarizability from mbpt_lcao calc
-    omg (np.array): frequency range in eV
-  OUTPUT_PARAMETERS:
-  ------------------
-    sigma (np array): cross section in nm**2
-  """
-  c = 137 #speed of the light in au
-  omg = omg*0.036749309 #to convert from eV to Hartree
-
-  sigma = 4*np.pi*omg*p/(c) #bohr**2
-  sigma = sigma*(0.052917725)**2 #nm**2
-
-  return sigma
