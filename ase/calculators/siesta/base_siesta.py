@@ -712,6 +712,38 @@ class BaseSiesta(FileIOCalculator):
             for line in f:
                 if line.rfind('Electric dipole (Debye)') > -1:
                     dipole = np.array([float(f) for f in line.split()[5:8]])
-
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
+
+    def get_polarizability_siesta(self, mbpt_inp, output_name='mbpt_lcao.out', 
+               write_inp=False, format_output='hdf5', units = 'au'):
+        """
+        Get the polarizability from mbpt_lcao calculation
+        """
+        from mbpt_lcao.mbpt_lcao import MBPT_LCAO
+        from mbpt_lcao.mbpt_lcao_io import read_mbpt_lcao_output
+
+        if mbpt_inp is not None:
+            tddft = MBPT_LCAO(mbpt_inp)
+            tddft.run_mbpt_lcao(output_name, write_inp)
+
+        r = read_mbpt_lcao_output()
+
+        r.args.format_input = format_output
+
+        data = r.Read()
+
+        if units == 'nm**2':
+            from mbpt_lcao.mbpt_lcao_utils import pol2cross_sec
+            for i in range(2):
+                for j in range(2):
+                    data.Array[:, i, j] = pol2cross_sec(data.Array[:, i, j], data.freq)
+
+            self.results['polarizability'] = data.Array
+        elif units == 'au':
+            self.results['polarizability'] = data.Array
+        else:
+            raise ValueError('units can be only au or nm**2')
+
+        return self.results['polarizability']
+

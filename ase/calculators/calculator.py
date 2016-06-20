@@ -11,7 +11,7 @@ class ReadError(Exception):
 
 
 all_properties = ['energy', 'forces', 'stress', 'dipole',
-                  'charges', 'magmom', 'magmoms', 'free_energy']
+                  'charges', 'magmom', 'magmoms']
 
 
 all_changes = ['positions', 'numbers', 'cell', 'pbc',
@@ -350,6 +350,13 @@ class Calculator:
             return self.results.get('free_energy', energy)
         else:
             return energy
+
+    def get_polarizability(self, mbpt_inp, output_name='mbpt_lcao.out', 
+        write_inp=False, format_output='hdf5', units='au'):
+
+        self.results['polarizability'] = self.get_polarizability_siesta(mbpt_inp, \
+                   output_name, write_inp, format_output, units)
+        return self.results['polarizability']
 
     def get_forces(self, atoms=None):
         return self.get_property('forces', atoms)

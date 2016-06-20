@@ -234,9 +234,12 @@ class Atoms(object):
 
     def set_calculator(self, calc=None):
         """Attach calculator object."""
-        self._calc = calc
+        if hasattr(calc, '_SetListOfAtoms'):
+            from ase.old import OldASECalculatorWrapper
+            calc = OldASECalculatorWrapper(calc, self)
         if hasattr(calc, 'set_atoms'):
             calc.set_atoms(self)
+        self._calc = calc
 
     def get_calculator(self):
         """Get currently attached calculator object."""
@@ -681,14 +684,14 @@ class Atoms(object):
         Ask the attached calculator to calculate the forces and apply
         constraints.  Use *apply_constraint=False* to get the raw
         forces.
-
+        
         For molecular dynamics (md=True) we don't apply the constraint
         to the forces but to the momenta."""
 
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         forces = self._calc.get_forces(self)
-
+        
         if apply_constraint:
             # We need a special md flag here because for MD we want
             # to skip real constraints but include special "constraints"
@@ -697,6 +700,39 @@ class Atoms(object):
                 if not md or hasattr(constraint, 'adjust_potential_energy'):
                     constraint.adjust_forces(self, forces)
         return forces
+
+
+    def get_polarizability(self, mbpt_inp=None, only_tddft = False,
+        output_name='mbpt_lcao.out', write_inp=True, format_output='hdf5', units='au'):
+        """
+        Calculate the polarizability of the system using the mbpt_lcao program.
+
+        WORK ONLY WITH SIESTA CALCULATOR
+
+        INPUT PARAMETERS:
+        -----------------
+          mbpt_inp (dict): input parameters for mbpt_lcao, if mbpt is None, no calculation perform (to read output)
+          only_tddft (bool): to run only tddft calculation if siesta data are already present
+                      in the folder.
+          output_name (string): name of the output given by mbpt_lcao
+          write_inp (write_inp): write input file for tddft calculation
+          format_output (string): the format for the output ddata of mbpt_lcao, can be hdf5 or txt
+          units (string): unit of the output polarizability au (atomic units) or nm**2
+        """
+        from calculators.siesta import Siesta
+
+        #check if the calculator is siesta
+        if not isinstance(self._calc, Siesta):
+            print(self._calc)
+            print(Siesta)
+            raise RuntimeError('Polarizability only with Siesta calculators')
+
+        if only_tddft:
+            return self._calc.get_polarizability(mbpt_inp, output_name, write_inp, format_output, units)
+        else:
+            forces = self._calc.get_forces(self) # just to run siesta
+            return self._calc.get_polarizability(mbpt_inp, output_name, write_inp, format_output, units)
+        
 
     def get_stress(self, voigt=True):
         """Calculate stress tensor.
@@ -766,17 +802,15 @@ class Atoms(object):
         return len(self.arrays['positions'])
 
     def get_number_of_atoms(self):
-        """Returns the global number of atoms in a distributed-atoms parallel
-        simulation.
+        """Returns the global number of atoms in a distributed-atoms parallel simulation.
 
         DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING!
-
-        Equivalent to len(atoms) in the standard ASE Atoms class.  You should
-        normally use len(atoms) instead.  This function's only purpose is to
-        make compatibility between ASE and Asap easier to maintain by having a
-        few places in ASE use this function instead.  It is typically only
-        when counting the global number of degrees of freedom or in similar
-        situations.
+        
+        Equivalent to len(atoms) in the standard ASE Atoms class.  You should normally
+        use len(atoms) instead.  This function's only purpose is to make compatibility
+        between ASE and Asap easier to maintain by having a few places in ASE use this
+        function instead.  It is typically only when counting the global number of
+        degrees of freedom or in similar situations.
         """
         return len(self)
 
