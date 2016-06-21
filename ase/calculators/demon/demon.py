@@ -123,7 +123,7 @@ class Base_deMon(FileIOCalculator):
         calculator[key] rather than calculator.parameters[key]
 
             Parameters:
-                -key       : str, the name of the parameters to get.
+                key       : str, the name of the parameters to get.
         """
         return self.parameters[key]
 
@@ -131,9 +131,8 @@ class Base_deMon(FileIOCalculator):
     def set(self, **kwargs):
         """Set all parameters.
 
-            Parameters:
-                -kwargs  : Dictionary containing the keywords defined in
-                           SiestaParameters.
+        Parameters:
+            kwargs  : Dictionary containing the keywords for deMon 
         """
         # Put in the default arguments.
         kwargs = self.default_parameters.__class__(**kwargs)
@@ -159,7 +158,7 @@ class Base_deMon(FileIOCalculator):
                   properties=['energy'],
                   system_changes=all_changes):
         """Capture the RuntimeError from FileIOCalculator.calculate
-        and add a little debug information from the Siesta output.
+        and add a little debug information from the deMon output.
 
         See base FileIocalculator for documentation.
         """
@@ -774,3 +773,9 @@ class Base_deMon(FileIOCalculator):
             atoms.set_masses(masses)
             
         return atoms
+
+class Demon(Base_deMon):
+    """ This is a class for the deMon interface that for now 
+    only inherits the base class.
+    """
+

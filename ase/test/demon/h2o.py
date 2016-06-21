@@ -1,4 +1,4 @@
-import ase.calculators.deMon.deMon as deMon
+import ase.calculators.demon.demon as demon
 import ase.io
 from ase import Atoms
 from ase.optimize import BFGS
@@ -21,7 +21,7 @@ basis = {'all': 'aug-cc-pvdz',
 auxis = {'all': 'GEN-A2*'}
 input_arguments={'GRID':'FINE'} 
     
-calc=deMon.DeMon(basis=basis,
+calc=demon.Demon(basis=basis,
                  auxis=auxis,
                  scftype='RKS TOL=1.0E-6 CDF=1.0E-5',
                  guess='TB',
@@ -37,7 +37,7 @@ ref = -469.604903217
 print('energy')
 print(energy)
 error = np.sqrt(np.sum((energy-ref)**2))
-print('error')
+print('diff from reference:')
 print(error)
 
 assert(error < tol)
@@ -49,7 +49,7 @@ ref=np.array([ 0.19228183,  0.27726241,  0.        ])
 error = np.sqrt(np.sum((dipole-ref)**2))
 print('dipole')
 print(dipole)
-print('error')
+print('diff from reference:')
 print(error)
 
 assert(error < tol)
@@ -64,7 +64,7 @@ ref=np.array([[ -1.26056790e-01,   4.10007704e-01,   2.85719636e-04],
 error = np.sqrt(np.sum((forces_num-ref)**2))
 print('forces_num')
 print(forces_num)
-print('error')
+print('diff from reference:')
 print(error)
 
 assert(error < tol)
@@ -80,7 +80,7 @@ ref=np.array([[ -1.26446897e-01,   4.09628295e-01,  -0.00000000e+00],
 error = np.sqrt(np.sum((forces_an-ref)**2))
 print('forces_an')
 print(forces_an)
-print('error')
+print('diff from reference:')
 print(error)
 
 assert(error < tol)
@@ -96,12 +96,12 @@ ref=np.array([[  9.61364575e-01,   2.81689442e-02,  -1.58730812e-06],
 error = np.sqrt(np.sum((positions-ref)**2))
 print('positions')
 print(positions)
-print('error')
+print('diff from reference:')
 print(error)
 
 assert(error < tol)
 
-
+print('tests passed')
 
 
 
