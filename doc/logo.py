@@ -42,10 +42,11 @@ if 1:
     c1 = np.array([1.0, 1, 0]).reshape((3, 1, 1))
     a = c0 + n / n.max() * (c1 - c0)
     import pylab as p
+    print(a.shape)
     i = p.imshow(a.T, aspect=True)
     i.write_png('ase.png')
-    os.system('convert ase.png -geometry 256x256! ase256.png')
-    #p.axis('off')
-    p.show()
-    #p.savefig('ase.png', dpi=8)
+    #os.system('convert ase.png -geometry 256x256! ase256.png')
+    p.axis('off')
+    #p.show()
+    p.savefig('ase2.png', dpi=200)
 
