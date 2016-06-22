@@ -181,8 +181,6 @@ class NEB:
         nt1 = np.linalg.norm(t1)
 
         for i in range(1, self.nimages - 1):
-            j = i - 1
-
             t2 = find_mic(images[i + 1].get_positions() -
                           images[i].get_positions(),
                           images[i].get_cell(), images[i].pbc)[0]
