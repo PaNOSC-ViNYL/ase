@@ -68,10 +68,10 @@ mbpt_inp = {'prod_basis_type' : 'MIXED',
 
 
 Na8.set_calculator(siesta)
-pol = Na8.get_polarizability(mbpt_inp, write_inp=True, only_tddft=False, format_output='txt', units='nm**2')
+e = Na8.get_potential_energy()
+freq, pol = Na8.get_polarizability(mbpt_inp, format_output='txt', units='nm**2')
 
 #plot polarizability
-freq=np.loadtxt('dipol_inter_iter_krylov_im.txt')[:, 0]
 plt.plot(freq, pol[:, 0, 0])
 
 plt.show()

@@ -702,38 +702,6 @@ class Atoms(object):
         return forces
 
 
-    def get_polarizability(self, mbpt_inp=None, only_tddft = False,
-        output_name='mbpt_lcao.out', write_inp=True, format_output='hdf5', units='au'):
-        """
-        Calculate the polarizability of the system using the mbpt_lcao program.
-
-        WORK ONLY WITH SIESTA CALCULATOR
-
-        INPUT PARAMETERS:
-        -----------------
-          mbpt_inp (dict): input parameters for mbpt_lcao, if mbpt is None, no calculation perform (to read output)
-          only_tddft (bool): to run only tddft calculation if siesta data are already present
-                      in the folder.
-          output_name (string): name of the output given by mbpt_lcao
-          write_inp (write_inp): write input file for tddft calculation
-          format_output (string): the format for the output ddata of mbpt_lcao, can be hdf5 or txt
-          units (string): unit of the output polarizability au (atomic units) or nm**2
-        """
-        from calculators.siesta import Siesta
-
-        #check if the calculator is siesta
-        if not isinstance(self._calc, Siesta):
-            print(self._calc)
-            print(Siesta)
-            raise RuntimeError('Polarizability only with Siesta calculators')
-
-        if only_tddft:
-            return self._calc.get_polarizability(mbpt_inp, output_name, write_inp, format_output, units)
-        else:
-            self._calc.get_forces(self) # just to run siesta
-            return self._calc.get_polarizability(mbpt_inp, output_name, write_inp, format_output, units)
-        
-
     def get_stress(self, voigt=True):
         """Calculate stress tensor.
 

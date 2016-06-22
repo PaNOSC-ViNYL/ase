@@ -351,13 +351,6 @@ class Calculator:
         else:
             return energy
 
-    def get_polarizability(self, mbpt_inp, output_name='mbpt_lcao.out', 
-        write_inp=False, format_output='hdf5', units='au'):
-
-        self.results['polarizability'] = self.get_polarizability_siesta(mbpt_inp, \
-                   output_name, write_inp, format_output, units)
-        return self.results['polarizability']
-
     def get_forces(self, atoms=None):
         return self.get_property('forces', atoms)
 
