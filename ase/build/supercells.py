@@ -224,7 +224,7 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
 
     Note: This pure python implementation of the is much slower than
     the inline-C version provided in
-    :func:`~ase.build.find_optimal_cell_shape`_.
+    :func:`~ase.build.find_optimal_cell_shape`.
 
     Parameters:
 
