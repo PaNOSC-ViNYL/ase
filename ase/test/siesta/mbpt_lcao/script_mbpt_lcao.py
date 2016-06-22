@@ -69,7 +69,7 @@ mbpt_inp = {'prod_basis_type' : 'MIXED',
 
 Na8.set_calculator(siesta)
 e = Na8.get_potential_energy()
-freq, pol = Na8.get_polarizability(mbpt_inp, format_output='txt', units='nm**2')
+freq, pol = siesta.get_polarizability(mbpt_inp, format_output='txt', units='nm**2')
 
 #plot polarizability
 plt.plot(freq, pol[:, 0, 0])
