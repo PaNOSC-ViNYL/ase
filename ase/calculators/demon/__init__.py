@@ -1,2 +1,2 @@
-from ase.calculators.demon import demon
-__all__ = ['demon']
+from ase.calculators.demon.demon import Demon
+__all__ = ['Demon']
