@@ -1,5 +1,5 @@
 from ase.calculators.lj import LennardJones
-from ase.optimize import FIRE
+from ase.optimize import FIRE, BFGS
 from ase.neb import NEB, NEBtools
 from ase import Atoms
 
