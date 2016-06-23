@@ -12,7 +12,7 @@ images.append(final)
 
 neb = NEB(images)
 d0 = images[3].get_distance(2, 3)
-neb.interpolate()
+neb.interpolate(fmax=0.005)
 d1 = images[3].get_distance(2, 3)
 neb.idpp_interpolate()
 d2 = images[3].get_distance(2, 3)
