@@ -73,7 +73,7 @@ class VaspInteractive(Calculator):
             return
 
         self._stdout('Attemping to close VASP cleanly\n')
-        with open(os.path.join(self.path, 'STOPCAR', 'w')) as stopcar:
+        with open(os.path.join(self.path, 'STOPCAR'), 'w') as stopcar:
             stopcar.write('LABORT = .TRUE.')
 
         self._run_vasp(self.atoms)
