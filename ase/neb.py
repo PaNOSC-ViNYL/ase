@@ -71,11 +71,14 @@ class NEB:
             image.calc = IDPP(d1 + i * d, mic=mic)
         opt = optimizer(self, trajectory=traj, logfile=log)
         # BFGS was originally used by the paper, but testing shows that
-        # MDMin results in the same results in 3-4 orders of magnitude less time
-        # Known working optimizers = BFGS, MDMin, FIRE, HessLBFGS
+        # MDMin results in nearly the same results in 3-4 orders of magnitude
+        # less time. Known working optimizers = BFGS, MDMin, FIRE, HessLBFGS
+        # Internal testing shows BFGS is only needed in situations where MDMIN
+        # cannot converge easily and tends to be obvious on inspection.
         opt.run(fmax=fmax, steps=steps)
         for image, calc in zip(self.images, old):
             image.calc = calc
+
 
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
