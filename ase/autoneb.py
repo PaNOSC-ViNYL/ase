@@ -10,18 +10,22 @@ from ase.calculators.singlepoint import SinglePointCalculator
 import ase.parallel as mpi
 import numpy as np
 import shutil
-import time
 import os
 import types
 from math import log
 from math import exp
+from ase.io import write
 
 
 class AutoNEB(object):
     """AutoNEB object.
 
     The AutoNEB algorithm streamlines the execution of NEB and CI-NEB
-    calculations in a parallel environment.
+    calculations following the algorithm described in:
+
+    E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
+    submitted (june 2016)
+
     The user supplies at minimum the two end-points and possibly also some
     intermediate images.
     
@@ -39,6 +43,8 @@ class AutoNEB(object):
            are further relaxed to smooth the path
         6) All the images between the highest point and the ending point are
            further relaxed to smooth the path
+           
+           Step 4 and 5-6 are optional steps!
 
     Parameters:
 
@@ -56,25 +62,24 @@ class AutoNEB(object):
         must be updated if the NEB is restarted.
     climb: boolean
         Should a CI-NEB calculation be done at the top-point
-    neb_fmax: float
+    fmax: float or list of floats
         The maximum force along the NEB path
-    neb_maxsteps: int
+    maxsteps: int
         The maximum number of steps in each NEB relaxation.
         If a list is given the first number of steps is used in the build-up
         and final scan phase;
         the second number of steps is used in the CI step after all images
         have been inserted.
-    neb_k: float
+    k: float
         The spring constant along the NEB path
-    neb_cornercutting: boolean
-        Determine whether the cornercutting algorithm should be used
-    neb_improvedtangent: boolean
-        Should the improved tangent method described in neb be used?
-    neb_improvedparallelforce: boolean
-        Should the improved force method described in neb be used?
+    method: str (see neb.py)
+        Choice betweeen three method:
+        'aseneb', standard ase NEB implementation
+        'improvedtangent', published NEB implementation
+        'eb', full spring force implementation (defualt)
     optimizer: str
         Which optimizer to use in the relaxation. Valid values are 'BFGS'
-        and 'FIRE'
+        and 'FIRE' (defualt)
     space_energy_ratio: float
         The preference for new images to be added in a big energy gab
         with a preference around the peak or in the biggest geometric gab.
@@ -92,16 +97,13 @@ class AutoNEB(object):
     currently in the NEB.
 
     The most recent NEB path can always be monitored by:
-       ase-gui -n -1 prefix*iter010.traj (assuming we have reached the 10th
-       iteration)
+       ase-gui -n -1 iter prefix???.traj
     """
 
-    def __init__(self, attach_calculators, prefix, n_simul, n_max, climb,
-                 neb_fmax=0.025, neb_maxsteps=10000, neb_k=10.,
-                 neb_cornercutting=True, neb_improvedtangent=True,
-                 neb_improvedparallelforce=True, optimizer='BFGS',
-                 space_energy_ratio=0.5, world=None, parallel=True,
-                 smooth_curve=False, interpolate_method='IDPP'):
+    def __init__(self, attach_calculators, prefix, n_simul, n_max, iter_folder='AutoNEB_iter',
+                 fmax=0.025, maxsteps=10000, k=0.1, climb=True, method='eb', optimizer='FIRE',
+                 remove_rotation_and_translation=False, space_energy_ratio=0.5, world=None,
+                 parallel=True, smooth_curve=False, interpolate_method='IDPP'):
         self.attach_calculators = attach_calculators
         self.prefix = prefix
         self.n_simul = n_simul
@@ -110,12 +112,11 @@ class AutoNEB(object):
         self.all_images = []
 
         self.parallel = parallel
-        self.neb_maxsteps = neb_maxsteps
-        self.neb_fmax = neb_fmax
-        self.neb_k = neb_k
-        self.neb_cornercutting = neb_cornercutting
-        self.neb_improvedparallelforce = neb_improvedparallelforce
-        self.neb_improvedtangent = neb_improvedtangent
+        self.maxsteps = maxsteps
+        self.fmax = fmax
+        self.k = k
+        self.method = method
+        self.remove_rotation_and_translation = remove_rotation_and_translation
         self.space_energy_ratio = space_energy_ratio
         if interpolate_method not in ['IDPP', 'linear']:
             self.interpolate_method = 'IDPP'
@@ -134,6 +135,9 @@ class AutoNEB(object):
             self.optimizer = FIRE
         else:
             raise Exception('Optimizer needs to be BFGS or FIRE')
+        self.iter_folder = iter_folder
+        if not os.path.exists(self.iter_folder):
+            os.makedirs(self.iter_folder)
 
     def execute_one_neb(self, n_cur, to_run, climb=False, many_steps=False):
         '''Internal method which executes one NEB optimization.'''
@@ -145,8 +149,9 @@ class AutoNEB(object):
                 if i not in to_run[1: -1]:
                     filename = '%s%03d.traj' % (self.prefix, i)
                     self.all_images[i].write(filename)
-                    filename_ref = '%s%03diter%03d.traj' % (self.prefix, i,
-                                                            self.iteration)
+                    filename_ref = self.iter_folder + \
+                        '/%s%03diter%03d.traj' % (self.prefix, i, 
+                                                  self.iteration)
                     if os.path.isfile(filename):
                         shutil.copy2(filename, filename_ref)
         if self.world.rank == 0:
@@ -154,49 +159,64 @@ class AutoNEB(object):
         # Attach calculators to all the images we will include in the NEB
         self.attach_calculators([self.all_images[i] for i in to_run[1: -1]])
         neb = NEB([self.all_images[i] for i in to_run],
-                  k=[self.neb_k[i] for i in to_run[0:-1]],
-                  cornercutting=self.neb_cornercutting,
-                  improvedparallelforce=self.neb_improvedparallelforce,
-                  improvedtangent=self.neb_improvedtangent,
+                  k=[self.k[i] for i in to_run[0:-1]],
+                  method=self.method,
                   parallel=self.parallel,
+                  remove_rotation_and_translation=self.remove_rotation_and_translation,
                   climb=climb)
-
-        # Find the ranks which are masters for each their calculation
-        nneb = to_run[0]
-        nim = len(to_run) - 2
-        n = self.world.size // nim      # number of cpu's per image
-        j = 1 + self.world.rank // n  # my image number
-        assert nim * n == self.world.size
 
         # Do the actual NEB calculation
         qn = self.optimizer(neb,
-                            logfile='%s_log_iter%03d.log' % (self.prefix,
-                                                             self.iteration))
-        traj = Trajectory('%s%03d.traj' % (self.prefix, j + nneb), 'w',
-                          self.all_images[j + nneb],
-                          master=(self.world.rank % n == 0))
-        filename_ref = '%s%03diter%03d.traj' % (self.prefix,
-                                                j + nneb, self.iteration)
-        trajhist = Trajectory(filename_ref, 'w', self.all_images[j + nneb],
-                              master=(self.world.rank % n == 0))
-        qn.attach(traj)
-        qn.attach(trajhist)
-
-        if isinstance(self.neb_maxsteps, (list, tuple)) and many_steps:
-            steps = self.neb_maxsteps[1]
-        elif isinstance(self.neb_maxsteps, (list, tuple)) and not many_steps:
-            steps = self.neb_maxsteps[0]
-        else:
-            steps = self.neb_maxsteps
-
-        if isinstance(self.neb_fmax, (list, tuple)) and many_steps:
-            fmax = self.neb_fmax[1]
-        elif isinstance(self.neb_fmax, (list, tuple)) and not many_steps:
-            fmax = self.neb_fmax[0]
-        else:
-            fmax = self.neb_fmax
-        qn.run(fmax=fmax, steps=steps)
+                            logfile=self.iter_folder + \
+                                '/%s_log_iter%03d.log' % (self.prefix,
+                                                          self.iteration))
         
+        # Find the ranks which are masters for each their calculation
+        if self.parallel:
+            nneb = to_run[0]
+            nim = len(to_run) - 2
+            n = self.world.size // nim      # number of cpu's per image
+            j = 1 + self.world.rank // n    # my image number
+            assert nim * n == self.world.size
+            traj = Trajectory('%s%03d.traj' % (self.prefix, j + nneb), 'w',
+                              self.all_images[j + nneb],
+                              master=(self.world.rank % n == 0))
+            filename_ref = self.iter_folder + \
+                '/%s%03diter%03d.traj' % (self.prefix,
+                                          j + nneb, self.iteration)
+            trajhist = Trajectory(filename_ref, 'w', 
+                                  self.all_images[j + nneb],
+                                  master=(self.world.rank % n == 0))
+            qn.attach(traj)
+            qn.attach(trajhist)
+        else:
+            global num
+            num = 1
+            for i, j in enumerate(to_run[1: -1]):
+                filename_ref = self.iter_folder + \
+                    '/%s%03diter%03d.traj' % (self.prefix, j, self.iteration)
+                trajhist = Trajectory(filename_ref, 'w', self.all_images[j])
+                qn.attach(seriel_writer(trajhist, i, add=False).write)
+
+                traj = Trajectory('%s%03d.traj' % (self.prefix, j), 'w',
+                                  self.all_images[j])
+                qn.attach(seriel_writer(traj, i, add=True).write)
+
+        if isinstance(self.maxsteps, (list, tuple)) and many_steps:
+            steps = self.maxsteps[1]
+        elif isinstance(self.maxsteps, (list, tuple)) and not many_steps:
+            steps = self.maxsteps[0]
+        else:
+            steps = self.maxsteps
+
+        if isinstance(self.fmax, (list, tuple)) and many_steps:
+            fmax = self.fmax[1]
+        elif isinstance(self.fmax, (list, tuple)) and not many_steps:
+            fmax = self.fmax[0]
+        else:
+            fmax = self.fmax
+        qn.run(fmax=fmax, steps=steps)
+
         # Remove the calculators and replace them with single
         # point calculators and update all the nodes for
         # preperration for next iteration
@@ -207,8 +227,8 @@ class AutoNEB(object):
         '''Run the AutoNEB optimization algorithm.'''
         n_cur = self.__initialize__()
         while len(self.all_images) < self.n_simul + 2:
-            if isinstance(self.neb_k, (float, int)):
-                self.neb_k = [self.neb_k] * (len(self.all_images) - 1)
+            if isinstance(self.k, (float, int)):
+                self.k = [self.k] * (len(self.all_images) - 1)
             if self.world.rank == 0:
                 print('Now adding images for initial run')
             # Insert a new image where the distance between two images is
@@ -223,13 +243,13 @@ class AutoNEB(object):
             if self.world.rank == 0:
                 print('Max length between images is at ', jmax)
 
-            # The interpolation used to make initial guesses                                                                      
+            # The interpolation used to make initial guesses
             # If only start and end images supplied make all img at ones
             if len(self.all_images) == 2:
                 n_between = self.n_simul
             else:
                 n_between = 1
-    
+
             toInterpolate = [self.all_images[jmax]]
             for i in range(n_between):
                 toInterpolate += [toInterpolate[0].copy()]
@@ -245,10 +265,10 @@ class AutoNEB(object):
             self.all_images = tmp
 
             # Expect springs to be in equilibrium
-            neb_tmp = self.neb_k[:jmax]
-            neb_tmp += [self.neb_k[jmax] * (n_between + 1)] * (n_between + 1)
-            neb_tmp.extend(self.neb_k[jmax + 1:])
-            self.neb_k = neb_tmp
+            k_tmp = self.k[:jmax]
+            k_tmp += [self.k[jmax] * (n_between + 1)] * (n_between + 1)
+            k_tmp.extend(self.k[jmax + 1:])
+            self.k = k_tmp
 
             # Run the NEB calculation with the new image included
             n_cur += n_between
@@ -262,8 +282,8 @@ class AutoNEB(object):
             print('Start of evaluation of the initial images')
 
         while n_non_valid_energies != 0:
-            if isinstance(self.neb_k, (float, int)):
-                self.neb_k = [self.neb_k] * (len(self.all_images) - 1)
+            if isinstance(self.k, (float, int)):
+                self.k = [self.k] * (len(self.all_images) - 1)
 
             # First do one run since some energie are non-determined
             to_run, climb_safe = self.which_images_to_run_on()
@@ -277,8 +297,8 @@ class AutoNEB(object):
 
         # Then add one image at a time until we have n_max images
         while n_cur < self.n_max:
-            if isinstance(self.neb_k, (float, int)):
-                self.neb_k = [self.neb_k] * (len(self.all_images) - 1)
+            if isinstance(self.k, (float, int)):
+                self.k = [self.k] * (len(self.all_images) - 1)
             # Insert a new image where the distance between two images
             # is the largest OR where a higher energy reselution is needed
             if self.world.rank == 0:
@@ -294,19 +314,20 @@ class AutoNEB(object):
                 self.all_images[-1].get_positions()
             tl = np.linalg.norm(total_vec)
 
-            s_power = max(spring_lengths) / tl * self.space_energy_ratio
+            fR = max(spring_lengths) / tl
             
             e = self.get_energies()
             ed = []
+            emin = min(e)
+            enorm = max(e) - emin
             for j in range(n_cur - 1):
                 delta_E = (e[j + 1] - e[j]) * (e[j + 1] + e[j] - 2 *
-                                               e[0]) / 2 / (max(e) - e[0])
+                                               emin) / 2 / enorm
                 ed.append(abs(delta_E))
 
-            e_power = max(ed) / (max(e) - min(e)) * (1 -
-                                                     self.space_energy_ratio)
+            gR = max(ed) / enorm
 
-            if s_power > e_power:
+            if fR / gR > self.space_energy_ratio:
                 jmax = np.argmax(spring_lengths)
                 t = 'spring length!'
             else:
@@ -332,10 +353,10 @@ class AutoNEB(object):
             self.all_images = tmp
 
             # Expect springs to be in equilibrium
-            neb_tmp = self.neb_k[:jmax]
-            neb_tmp += [self.neb_k[jmax] * 2] * 2
-            neb_tmp.extend(self.neb_k[jmax + 1:])
-            self.neb_k = neb_tmp
+            k_tmp = self.k[:jmax]
+            k_tmp += [self.k[jmax] * 2] * 2
+            k_tmp.extend(self.k[jmax + 1:])
+            self.k = k_tmp
 
             # Run the NEB calculation with the new image included
             n_cur += 1
@@ -348,8 +369,8 @@ class AutoNEB(object):
 
         # Do a single climb around the top-point if requested
         if self.climb:
-            if isinstance(self.neb_k, (float, int)):
-                self.neb_k = [self.neb_k] * (len(self.all_images) - 1)
+            if isinstance(self.k, (float, int)):
+                self.k = [self.k] * (len(self.all_images) - 1)
             if self.world.rank == 0:
                 print('****Now doing the CI-NEB calculation****')
             to_run, climb_safe = self.which_images_to_run_on()
@@ -392,7 +413,7 @@ class AutoNEB(object):
         for x in x2:
             k_tmp.append(k_max * exp(-((x - d1) ** 2) / l2))
 
-        self.neb_k = k_tmp
+        self.k = k_tmp
         # Roll back to start from the top-point
         if self.world.rank == 0:
             print('Now moving from top to start')
@@ -438,7 +459,8 @@ class AutoNEB(object):
                                 'without gaps.')
         if self.world.rank == 0:
             for i in index_exists:
-                filename_ref = '%s%03diter000.traj' % (self.prefix, i)
+                filename_ref = self.iter_folder + \
+                    '/%s%03diter000.traj' % (self.prefix, i)
                 if os.path.isfile(filename_ref):
                     try:
                         os.rename(filename_ref, filename_ref + '.bak')
@@ -449,12 +471,13 @@ class AutoNEB(object):
                     shutil.copy2(filename, filename_ref)
                 except IOError:
                     pass
-        # Wait 10s so the file system on all nodes is syncronized
-        time.sleep(10.)
+        # Wait for file system on all nodes is syncronized
+        self.world.barrier()
         # And now lets read in the configurations
         for i in range(n_cur):
             if i in index_exists:
-                filename = '%s%03diter000.traj' % (self.prefix, i)
+                filename = self.iter_folder + \
+                    '/%s%03diter000.traj' % (self.prefix, i)
                 newim = read(filename)
                 self.all_images.append(newim)
             else:
@@ -482,18 +505,6 @@ class AutoNEB(object):
         except RuntimeError:
             energy = np.NaN
         return energy
-
-    def GetPeakToPtsRatio(self, energies, highEIndex):
-        PeakE = energies[highEIndex]
-        if highEIndex == len(energies) - 1:
-            AveOffPeakE = energies[highEIndex - 1]
-        elif highEIndex == 0:
-            AveOffPeakE = energies[highEIndex + 1]
-        else:
-            AveOffPeakE = (energies[highEIndex - 1] +
-                           energies[highEIndex + 1]) / 2
-        AveEndPts = (energies[0] + energies[-1]) / 2
-        return (PeakE - AveOffPeakE) / (PeakE - AveEndPts)
 
     def get_highest_energy_index(self):
         """Find the index of the image with the highest energy."""
@@ -536,6 +547,20 @@ class AutoNEB(object):
             to_use[-1] += 1
 
         return to_use, (highest_energy_index in to_use[1: -1])
+
+
+class seriel_writer:
+    def __init__(self, traj, i, add=False):
+        self.traj = traj
+        self.i = i
+        self.add = add
+
+    def write(self):
+        global num
+        if num % (self.i + 1) == 0:
+            self.traj.write()
+            if self.add:
+                num += 1
 
 
 def store_E_and_F_in_spc(self):
