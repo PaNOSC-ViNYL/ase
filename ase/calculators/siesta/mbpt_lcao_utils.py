@@ -16,8 +16,6 @@ def read_file(fname):
     return LINE
 
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 def delete_blanc(L):
     """
     delete the blank space from a string
@@ -28,20 +26,18 @@ def delete_blanc(L):
         L = L[compt:len(L)]
     return L
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def read_number(L):
     compt = 0
 
-    while L[compt] != ' ' and compt<(len(L)-1):
+    while L[compt] != ' ' and compt < (len(L) - 1):
         compt = compt + 1
 
-        nb1 = float(L[0:compt+1])
+        nb1 = float(L[0:compt + 1])
         L = L[compt:len(L)]
 
     return nb1, L
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def recover_data_string(fname, string):
     L = read_file(fname)
@@ -49,10 +45,9 @@ def recover_data_string(fname, string):
     for i in L:
         print(i[0:len(string)], string)
         if i[0:len(string)] == string:
-              v = str2float(i)
+            v = str2float(i)
     return v
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def save_line(Lnb, Cnb, LINE):
     number = LINE[Lnb]
@@ -65,18 +60,16 @@ def save_line(Lnb, Cnb, LINE):
 
     return nombre
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def dim_y(Cnb, L):
 
-    if len(L) == Cnb*10+Cnb*6 +1:
+    if len(L) == Cnb * 10 + Cnb * 6 + 1:
         nb_col = Cnb
     else:
         nb_col = Cnb + 1
 
     return nb_col
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def read_color_file(fname):
 
@@ -92,8 +85,6 @@ def read_color_file(fname):
     return atom
 
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 def readSiestaFA(fname):
     L = read_file(fname)
 
@@ -103,7 +94,6 @@ def readSiestaFA(fname):
 
     return Forces
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def readBasis_spec(fname, nb_specie):
     """
@@ -133,14 +123,18 @@ def readBasis_spec(fname, nb_specie):
     line = 0
     len_basis = len('<basis_specs>')
     i = 0
-    while i<nb_specie:
+    while i < nb_specie:
         if L[line][0:len_basis] == '<basis_specs>':
             i = i + 1
-            info = str2float(L[line+2])
-            if L[line+2][1] == ' ':
-                specie_charac[L[line+2][0]] = {'Z': info[0], 'Mass': info[1], 'Charge': info[2]}
+            info = str2float(L[line + 2])
+            if L[line + 2][1] == ' ':
+                specie_charac[
+                    L[line + 2][0]] = {'Z': info[0],
+                                       'Mass': info[1], 'Charge': info[2]}
             else:
-                specie_charac[L[line+2][0:2]] = {'Z': info[0], 'Mass': info[1], 'Charge': info[2]}
+                specie_charac[
+                    L[line + 2][0:2]] = {'Z': info[0],
+                                         'Mass': info[1], 'Charge': info[2]}
 
             while L[line][0:len('</basis_specs>')] != '</basis_specs>':
                 line = line + 1
@@ -149,10 +143,9 @@ def readBasis_spec(fname, nb_specie):
 
     return specie_charac
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 def str2float(string):
-  numeric_const_pattern = r"""
+    numeric_const_pattern = r"""
   [-+]? # optional sign
   (?:
     (?: \d* \. \d+ ) # .1 .12 .123 etc 9.1 etc 98.1 etc
@@ -162,18 +155,17 @@ def str2float(string):
   # followed by optional exponent part if desired
   (?: [Ee] [+-]? \d+ ) ?
   """
-  rx = re.compile(numeric_const_pattern, re.VERBOSE)
+    rx = re.compile(numeric_const_pattern, re.VERBOSE)
 
-  nb = rx.findall(string)
-  for i in enumerate(nb):
-    nb[i[0]] = float(i[1])
+    nb = rx.findall(string)
+    for i in enumerate(nb):
+        nb[i[0]] = float(i[1])
 
-  return np.array(nb)
+    return np.array(nb)
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 def str2int(string):
-  numeric_const_pattern = r"""
+    numeric_const_pattern = r"""
   [-+]? # optional sign
   (?:
     (?: \d* \. \d+ ) # .1 .12 .123 etc 9.1 etc 98.1 etc
@@ -183,82 +175,77 @@ def str2int(string):
   # followed by optional exponent part if desired
   (?: [Ee] [+-]? \d+ ) ?
   """
-  rx = re.compile(numeric_const_pattern, re.VERBOSE)
+    rx = re.compile(numeric_const_pattern, re.VERBOSE)
 
-  nb = rx.findall(string)
-  for i in enumerate(nb):
-    nb[i[0]] = int(i[1])
+    nb = rx.findall(string)
+    for i in enumerate(nb):
+        nb[i[0]] = int(i[1])
 
-  return np.array(nb)
+    return np.array(nb)
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 def recover_specie(string):
-  """
-  Select specie in a string of caractere from
-  a .xyz file
-  Input parameters:
-    string (str): the string to analyse
-  Output parameter:
-    string_p (str): the specie
-  """
+    """
+    Select specie in a string of caractere from
+    a .xyz file
+    Input parameters:
+      string (str): the string to analyse
+    Output parameter:
+      string_p (str): the specie
+    """
 
-  specie = list()
-  comp = 0
-  letter = string[0]
-  if letter == ' ':
-    while letter == ' ' or comp>= len(string):
-      letter = string[comp]
-      comp = comp + 1
-    while letter != ' ' or comp>= len(string):
-      letter = string[comp]
-      specie.append(letter)
-      comp = comp + 1
-  else:
-    while letter != ' ' or comp>= len(string):
-      letter = string[comp]
-      specie.append(letter)
-      comp = comp + 1
+    specie = list()
+    comp = 0
+    letter = string[0]
+    if letter == ' ':
+        while letter == ' ' or comp >= len(string):
+            letter = string[comp]
+            comp = comp + 1
+        while letter != ' ' or comp >= len(string):
+            letter = string[comp]
+            specie.append(letter)
+            comp = comp + 1
+    else:
+        while letter != ' ' or comp >= len(string):
+            letter = string[comp]
+            specie.append(letter)
+            comp = comp + 1
 
-  specie.remove(' ')
+    specie.remove(' ')
 
-  string_p = ''
-  for i in specie:
-    string_p = string_p + i
+    string_p = ''
+    for i in specie:
+        string_p = string_p + i
 
-  return string_p
+    return string_p
 
-#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 
 def delete_number_string(string):
-#not working for exponential expression
-  nb_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
-  L = list()
+    # not working for exponential expression
+    nb_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
+    L = list()
 
-  for i in string:
-    L.append(i)
+    for i in string:
+        L.append(i)
 
-  L_P = list()
-  for i in enumerate(L):
-    inside = False
-    for j in nb_list:
-      if i[1] == j:
-        inside  = True
+    L_P = list()
+    for i in enumerate(L):
+        inside = False
+        for j in nb_list:
+            if i[1] == j:
+                inside = True
 
-    if inside == False:
-      L_P.append(i[1])
+        if not inside:
+            L_P.append(i[1])
 
-  string_p = ''
-  for i in L_P:
-    if i != ' ':
-      string_p = string_p + i
+    string_p = ''
+    for i in L_P:
+        if i != ' ':
+            string_p = string_p + i
 
-  return string_p
+    return string_p
 
 
-#
-#
-#
 def pol2cross_sec(p, omg):
     """
     Convert the polarizability in au to cross section in nm**2
@@ -270,10 +257,10 @@ def pol2cross_sec(p, omg):
     ------------------
     sigma (np array): cross section in nm**2
     """
-    c = 137 # speed of the light in au
-    omg = omg*0.036749309 # to convert from eV to Hartree
+    c = 137  # speed of the light in au
+    omg = omg * 0.036749309  # to convert from eV to Hartree
 
-    sigma = 4*np.pi*omg*p/(c) # bohr**2
-    sigma = sigma*(0.052917725)**2 # nm**2
+    sigma = 4 * np.pi * omg * p / (c)  # bohr**2
+    sigma = sigma * (0.052917725)**2  # nm**2
 
     return sigma
