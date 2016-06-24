@@ -18,11 +18,20 @@ class NEB:
                  remove_rotation_and_translation=False, world=None,
                  method='aseneb'):
         """Nudged elastic band.
-        Paper I: G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
-        Paper II: G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
-                  113, 9901 (2000).
-        Paper III: E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
-                   submitted (2016)
+        
+        Paper I:
+            
+            G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
+            
+        Paper II:
+            
+            G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
+            113, 9901 (2000).
+            
+        Paper III:
+            
+            E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
+            submitted (2016)
 
         images: list of Atoms objects
             Images defining path from initial to final state.
