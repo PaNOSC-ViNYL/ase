@@ -9,7 +9,7 @@ from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
-from ase.optimize import BFGS
+from ase.optimize import MDMin
 from ase.geometry import find_mic
 
 
@@ -61,7 +61,7 @@ class NEB:
             self.idpp_interpolate(traj=None, log=None, mic=mic)
 
     def idpp_interpolate(self, traj='idpp.traj', log='idpp.log', fmax=0.1,
-                         optimizer=BFGS, mic=False):
+                         optimizer=MDMin, mic=False, steps=100):
         d1 = self.images[0].get_all_distances(mic=mic)
         d2 = self.images[-1].get_all_distances(mic=mic)
         d = (d2 - d1) / (self.nimages - 1)
@@ -70,9 +70,15 @@ class NEB:
             old.append(image.calc)
             image.calc = IDPP(d1 + i * d, mic=mic)
         opt = optimizer(self, trajectory=traj, logfile=log)
-        opt.run(fmax=fmax)
+        # BFGS was originally used by the paper, but testing shows that
+        # MDMin results in nearly the same results in 3-4 orders of magnitude
+        # less time. Known working optimizers = BFGS, MDMin, FIRE, HessLBFGS
+        # Internal testing shows BFGS is only needed in situations where MDMIN
+        # cannot converge easily and tends to be obvious on inspection.
+        opt.run(fmax=fmax, steps=steps)
         for image, calc in zip(self.images, old):
             image.calc = calc
+
 
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))

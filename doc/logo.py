@@ -1,4 +1,4 @@
-import os
+# import os
 import numpy as np
 
 from ase import Atoms, Atom
