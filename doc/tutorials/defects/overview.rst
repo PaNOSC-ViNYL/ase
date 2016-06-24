@@ -1,8 +1,8 @@
 .. _defects:
 
-======================================================
+=============================
 Tools for defect calculations
-======================================================
+=============================
 
 This section gives an (incomplete) overview of features in ASE that
 help in the preparation and analysis of supercell calculations as most
@@ -11,10 +11,10 @@ commonly employed in the computation of defect properties.
 .. contents::
 
 Supercell creation
-==============================
+==================
 
 Background
----------------------
+----------
 
 Defect properties are most commonly investigated in the so-called
 dilute limit, i.e. under conditions, in which defect-defect
@@ -96,9 +96,8 @@ context there is therefore also a particular need for supercells of a
 particular shape.
 
 
-
 Algorithm for finding optimal supercell shapes
------------------------------------------------
+----------------------------------------------
 
 The above considerations illustrate the need for a more systematic
 approach to supercell construction. A simple scheme to construct
@@ -143,9 +142,8 @@ where :math:`N_{uc}` defines the size of the supercell in terms of the
 number of primitive unit cells.
 
 
-
 Implementation of algorithm
-------------------------------------------
+---------------------------
 
 The algorithm described above has been implemented in two versions:
 
@@ -165,7 +163,7 @@ primitive face-centered cubic (fcc) unit cell, after which we call
 :func:`~ase.build.find_optimal_cell_shape` to obtain a
 :math:`\mathbf{P}` matrix that will enable us to generate a supercell
 with 32 atoms that is as close as possible to a simple cubic shape::
-				 
+                                 
    from ase.build import bulk
    from ase.build import find_optimal_cell_shape, get_deviation_from_optimal_cell_shape
    import numpy as np
@@ -241,8 +239,9 @@ shapes is more challenging as illustrated for a hexagonal material
 .. image:: score-size-bcc2fcc.svg
    :width: 30%
 
+   
 Generation of supercell
-------------------------------------------
+-----------------------
 
 Once the transformation matrix :math:`\mathbf{P}` it is
 straightforward to generate the actual supercell using e.g., the
