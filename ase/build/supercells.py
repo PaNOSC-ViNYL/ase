@@ -1,6 +1,4 @@
-"""
-Helper functions for creating supercells.
-"""
+"""Helper functions for creating supercells."""
 
 import numpy as np
 
@@ -8,10 +6,10 @@ import numpy as np
 def get_deviation_from_optimal_cell_shape(cell, target_shape='sc', norm=None):
     """Calculate the deviation of the given cell metric from the ideal
     cell metric defining a certain shape. Specifically, the function
-    evaluates the expression :math:`\Delta = || Q \mathbf{h} -
-    \mathbf{h}_{target}||_2`, where :math:`\mathbf{h}` is the input
-    metric (*cell*) and :math:`Q` is a normalization factor (*norm*)
-    while the target metric :math:`\mathbf{h}_{target}` (via
+    evaluates the expression `\Delta = || Q \mathbf{h} -
+    \mathbf{h}_{target}||_2`, where `\mathbf{h}` is the input
+    metric (*cell*) and `Q` is a normalization factor (*norm*)
+    while the target metric `\mathbf{h}_{target}` (via
     *target_shape*) represent simple cubic ('sc') or face-centered
     cubic ('fcc') cell shapes.
 
@@ -50,7 +48,8 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
     approximates a desired shape (*target_shape*).
 
     Note: This implementation uses inline-C via
-    `scipy.weave <http://docs.scipy.org/doc/scipy/reference/tutorial/weave.html>`_
+    `scipy.weave
+    <http://docs.scipy.org/doc/scipy/reference/tutorial/weave.html>`_
     to achieve a significant speed-up (about two orders of magnitude)
     compared to the pure python implementation in the
     :func:`~ase.build.find_optimal_cell_shape_pure_python` function.
@@ -136,15 +135,24 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
         // compute l2-norm squared (taking the square root
         // is unnecessary and just consumes computer time)
         current_score = 0.0;
-        current_score += pow(xx * h11 + xy * h21 + xz * h31 - target_metric[0], 2); // 1-1
-        current_score += pow(xx * h12 + xy * h22 + xz * h32 - target_metric[1], 2);
-        current_score += pow(xx * h13 + xy * h23 + xz * h33 - target_metric[2], 2);
-        current_score += pow(yx * h11 + yy * h21 + yz * h31 - target_metric[3], 2);
-        current_score += pow(yx * h12 + yy * h22 + yz * h32 - target_metric[4], 2); // 2-2
-        current_score += pow(yx * h13 + yy * h23 + yz * h33 - target_metric[5], 2);
-        current_score += pow(zx * h11 + zy * h21 + zz * h31 - target_metric[6], 2);
-        current_score += pow(zx * h12 + zy * h22 + zz * h32 - target_metric[7], 2);
-        current_score += pow(zx * h13 + zy * h23 + zz * h33 - target_metric[8], 2); // 3-3
+        current_score += pow(xx * h11 + xy * h21 + xz * h31 - target_metric[0],
+                             2); // 1-1
+        current_score += pow(xx * h12 + xy * h22 + xz * h32 - target_metric[1],
+                             2);
+        current_score += pow(xx * h13 + xy * h23 + xz * h33 - target_metric[2],
+                             2);
+        current_score += pow(yx * h11 + yy * h21 + yz * h31 - target_metric[3],
+                             2);
+        current_score += pow(yx * h12 + yy * h22 + yz * h32 - target_metric[4],
+                             2); // 2-2
+        current_score += pow(yx * h13 + yy * h23 + yz * h33 - target_metric[5],
+                             2);
+        current_score += pow(zx * h11 + zy * h21 + zz * h31 - target_metric[6],
+                             2);
+        current_score += pow(zx * h12 + zy * h22 + zz * h32 - target_metric[7],
+                             2);
+        current_score += pow(zx * h13 + zy * h23 + zz * h33 - target_metric[8],
+                             2); // 3-3
 
         if (current_score < best_score[0]) {
           best_score[0] = current_score;
@@ -219,8 +227,8 @@ def find_optimal_cell_shape_pure_python(cell, target_size, target_shape,
                                         lower_limit=-2, upper_limit=2,
                                         verbose=False):
     """Returns the transformation matrix that produces a supercell
-    corresponding to `target_size` unit cells with metric `cell` that
-    most closely approximates the shape defined by `target_shape`.
+    corresponding to *target_size* unit cells with metric *cell* that
+    most closely approximates the shape defined by *target_shape*.
 
     Note: This pure python implementation of the is much slower than
     the inline-C version provided in
@@ -309,9 +317,9 @@ def make_supercell(prim, P):
     the input configuration (*prim*).
 
     The transformation is described by a 3x3 integer matrix
-    :math:`\mathbf{P}`. Specifically, the new cell metric
-    :math:`\mathbf{h}` is given in terms of the metric of the input
-    configuraton :math:`\mathbf{h}_p` by :math:`\mathbf{P h}_p =
+    `\mathbf{P}`. Specifically, the new cell metric
+    `\mathbf{h}` is given in terms of the metric of the input
+    configuraton `\mathbf{h}_p` by `\mathbf{P h}_p =
     \mathbf{h}`.
 
     Internally this function uses the :func:`~ase.build.cut` function.
@@ -321,7 +329,7 @@ def make_supercell(prim, P):
     prim: ASE Atoms object
         Input configuration.
     P: 3x3 integer matrix
-        Transformation matrix :math:`\mathbf{P}`.
+        Transformation matrix `\mathbf{P}`.
 
     """
 
