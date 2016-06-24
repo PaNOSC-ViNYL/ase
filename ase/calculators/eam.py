@@ -275,14 +275,15 @@ End EAM Interface Documentation
             f = fileobj
             
         def lines_to_list(lines):
-            """ make the data one long line so as not to care how its formatted """
+            """Make the data one long line so as not to care how its formatted
+            """
             data = []
             for line in lines:
                 data.extend(line.split())
             return data
 
         lines = f.readlines()
-        if (self.form == 'eam'):	# single element eam file (aka funcfl)
+        if self.form == 'eam':        # single element eam file (aka funcfl)
                 self.header = lines[:1]
                 
                 data = lines_to_list(lines[1:])
@@ -290,26 +291,30 @@ End EAM Interface Documentation
                 # eam form is just like an alloy form for one element
                 
                 self.Nelements = 1
-                self.Z = np.array([data[0] ], dtype=int)
-                self.mass = np.array([data[1]  ])
-                self.a = np.array([data[2] ])
-                self.lattice = [data[3] ]
+                self.Z = np.array([data[0]], dtype=int)
+                self.mass = np.array([data[1]])
+                self.a = np.array([data[2]])
+                self.lattice = [data[3]]
                  
                 self.nrho = int(data[4])
                 self.drho = float(data[5])
                 self.nr = int(data[6])
                 self.dr = float(data[7])
-                self.cutoff = float(data[8])                
+                self.cutoff = float(data[8])
                 
-                self.embedded_data = np.array([np.float_(data[9:(9 + self.nrho)]) ] )
+                n = 9 + self.nrho
+                self.embedded_data = np.array([np.float_(data[9:n])])
                 
-                self.rphi_data = np.zeros([self.Nelements, self.Nelements, self.nr])
+                self.rphi_data = np.zeros([self.Nelements, self.Nelements,
+                                           self.nr])
                                 
-                effective_charge = np.float_(data[(9 + self.nrho):(9 + self.nrho + self.nr)] )
-                # convert effective charges to rphi according to http://lammps.sandia.gov/doc/pair_eam.html
-                self.rphi_data[0, 0] = Bohr * Hartree * (effective_charge**2)  
+                effective_charge = np.float_(data[n:n + self.nr])
+                # convert effective charges to rphi according to
+                # http://lammps.sandia.gov/doc/pair_eam.html
+                self.rphi_data[0, 0] = Bohr * Hartree * (effective_charge**2)
                 
-                self.density_data = np.array([np.float_(data[(9 + self.nrho + self.nr):(9 + self.nrho + 2*self.nr)]) ] )
+                self.density_data = np.array(
+                    [np.float_(data[n + self.nr:n + 2 * self.nr])])
                 
         else:
                 self.header = lines[:3]
@@ -344,13 +349,15 @@ End EAM Interface Documentation
                     self.lattice.append(data[d + 3])
                     d += 4
 
-                    self.embedded_data[elem] = np.float_(data[d:(d + self.nrho)])
+                    self.embedded_data[elem] = np.float_(
+                        data[d:(d + self.nrho)])
                     d += self.nrho
                     self.density_data[elem] = np.float_(data[d:(d + self.nr)])
                     d += self.nr
 
                 # reads in the r*phi data for each interaction between elements
-                self.rphi_data = np.zeros([self.Nelements, self.Nelements, self.nr])
+                self.rphi_data = np.zeros([self.Nelements, self.Nelements,
+                                           self.nr])
 
                 for i in range(self.Nelements):
                     for j in range(i + 1):
@@ -704,13 +711,13 @@ End EAM Interface Documentation
         for gamma in range(3):
             term1 = (mu_i[gamma] - mu[:, gamma]) * self.d[form1][form2](r)
 
-            term2 = np.sum((mu_i - mu)
-                           * self.d_d[form1][form2](r)[:, np.newaxis]
-                           * (rvec * rvec[:, gamma][:, np.newaxis]
-                           / r[:, np.newaxis]), axis=1)
+            term2 = np.sum((mu_i - mu) *
+                           self.d_d[form1][form2](r)[:, np.newaxis] *
+                           (rvec * rvec[:, gamma][:, np.newaxis] /
+                            r[:, np.newaxis]), axis=1)
 
-            term3 = 2 * np.sum((lam_i[:, gamma] + lam[:, :, gamma])
-                               * rvec * self.q[form1][form2](r)[:, np.newaxis],
+            term3 = 2 * np.sum((lam_i[:, gamma] + lam[:, :, gamma]) *
+                               rvec * self.q[form1][form2](r)[:, np.newaxis],
                                axis=1)
             term4 = 0.0
             for alpha in range(3):
@@ -720,8 +727,8 @@ End EAM Interface Documentation
                               self.d_q[form1][form2](r) * rs) / r
 
             term5 = ((lam_i.trace() + lam.trace(axis1=1, axis2=2)) *
-                     (self.d_q[form1][form2](r) * r
-                      + 2 * self.q[form1][form2](r)) * rvec[:, gamma]) / 3.
+                     (self.d_q[form1][form2](r) * r +
+                      2 * self.q[form1][form2](r)) * rvec[:, gamma]) / 3.
 
             # the minus for term5 is a correction on the adp
             # formulation given in the 2005 Mishin Paper and is posted
