@@ -38,9 +38,10 @@ class NEB:
             systems
         method: string of method
             Choice betweeen three method:
-            'aseneb', standard ase NEB implementation
-            'improvedtangent', Paper I NEB implementation
-            'eb', Paper III full spring force implementation
+                
+            * aseneb: standard ase NEB implementation
+            * improvedtangent: Paper I NEB implementation
+            * eb: Paper III full spring force implementation
         """
         self.images = images
         self.climb = climb
@@ -124,8 +125,9 @@ class NEB:
             for i in range(1, self.nimages):
                 minimize_rotation_and_translation(images[i - 1], images[i])
 
-        energies[0] = images[0].get_potential_energy()
-        energies[-1] = images[-1].get_potential_energy()
+        if self.method != 'aseneb':
+            energies[0] = images[0].get_potential_energy()
+            energies[-1] = images[-1].get_potential_energy()
 
         if not self.parallel:
             # Do all images - one at a time:
@@ -173,10 +175,10 @@ class NEB:
                       images[0].get_cell(), images[0].pbc)[0]
 
         if self.method == 'eb':
-            BeeLine = (images[self.nimages - 1].get_positions() -
+            beeline = (images[self.nimages - 1].get_positions() -
                        images[0].get_positions())
-            BeeLineLength = np.linalg.norm(BeeLine)
-            eqLength = BeeLineLength / (self.nimages - 1)
+            beelinelength = np.linalg.norm(beeline)
+            eqlength = beelinelength / (self.nimages - 1)
 
         nt1 = np.linalg.norm(t1)
 
@@ -197,18 +199,17 @@ class NEB:
                 # and 11 of paper I.
                 if energies[i + 1] > energies[i] > energies[i - 1]:
                     tangent = t2.copy()
-                elif energies[i + 1] < energies[i] < \
-                        energies[i - 1]:
+                elif energies[i + 1] < energies[i] < energies[i - 1]:
                     tangent = t1.copy()
                 else:
-                    DeltaVmax = max(abs(energies[i + 1] - energies[i]),
+                    deltavmax = max(abs(energies[i + 1] - energies[i]),
                                     abs(energies[i - 1] - energies[i]))
-                    DeltaVmin = min(abs(energies[i + 1] - energies[i]),
+                    deltavmin = min(abs(energies[i + 1] - energies[i]),
                                     abs(energies[i - 1] - energies[i]))
                     if energies[i + 1] > energies[i - 1]:
-                        tangent = t2 * DeltaVmax + t1 * DeltaVmin
+                        tangent = t2 * deltavmax + t1 * deltavmin
                     else:
-                        tangent = t2 * DeltaVmin + t1 * DeltaVmax
+                        tangent = t2 * deltavmin + t1 * deltavmax
                 # Normalize the tangent vector
                 tangent /= np.linalg.norm(tangent)
             else:
@@ -235,14 +236,14 @@ class NEB:
                 f -= ft * tangent
                 # Spring forces
                 # (formula C1, C5, C6 and C7 of Paper III)
-                f1 = -(nt1 - eqLength) * t1 / nt1 * self.k[i - 1]
-                f2 = (nt2 - eqLength) * t2 / nt2 * self.k[i]
+                f1 = -(nt1 - eqlength) * t1 / nt1 * self.k[i - 1]
+                f2 = (nt2 - eqlength) * t2 / nt2 * self.k[i]
                 if self.climb and abs(i - imax) == 1:
-                    DeltaVmax = max(abs(energies[i + 1] - energies[i]),
+                    deltavmax = max(abs(energies[i + 1] - energies[i]),
                                     abs(energies[i - 1] - energies[i]))
-                    DeltaVmin = min(abs(energies[i + 1] - energies[i]),
+                    deltavmin = min(abs(energies[i + 1] - energies[i]),
                                     abs(energies[i - 1] - energies[i]))
-                    f += (f1 + f2) * DeltaVmin / DeltaVmax
+                    f += (f1 + f2) * deltavmin / deltavmax
                 else:
                     f += f1 + f2
             elif self.method == 'improvedtangent':
