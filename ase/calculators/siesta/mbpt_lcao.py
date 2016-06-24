@@ -2,12 +2,6 @@ from __future__ import division
 import numpy as np
 import os
 
-#############################################
-#                                           #
-#             Class MBPT_LCAO               #
-#                                           #
-#############################################
-
 
 class MBPT_LCAO:
     """
@@ -46,9 +40,9 @@ class MBPT_LCAO:
         f = open('tddft_lr.inp', 'w')
 
         for k, v in self.param.items():
-            if isinstance(v, type(np.array([0.5, 0.5, 0.5]))):
+            if isinstance(v, np.ndarray):
                 f.write(k + '  {0}  {1}  {2}\n'.format(v[0], v[1], v[2]))
-            elif isinstance(v, type('string')):
+            elif isinstance(v, str):
                 f.write(k + '      ' + v + '\n')
             elif k == 'group_species' or k == 'species_iter':
                 gp = '{'
@@ -73,11 +67,12 @@ class MBPT_LCAO:
         run mbpt_lcao
         Parameters
         ----------
-        output_name : str, optional:
+        output_name : str, optional
             name of the output file, defualt: mbpt_lcao.out
 
-        write_inp : bool, optional:
-            write the tddft_lr,inp file before to run the program, by default False
+        write_inp : bool, optional
+            write the tddft_lr,inp file before to run the program, by default
+            False
         """
 
         import subprocess

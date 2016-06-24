@@ -724,12 +724,6 @@ class read_text_data:
             self.zmesh[:, :, i] = nb
 
 
-###########################################################
-#                                                         #
-#       Class for the input MBPT_LCAO_Parameters          #
-#                                                         #
-###########################################################
-
 class MBPT_LCAO_Parameters:
     """
     Contains the input parameters use by plot_3D in plot_lib.py
@@ -746,7 +740,8 @@ class MBPT_LCAO_Parameters:
     self.interacting (int, default: 0) interacting or non-interacting data,
                                       depend of your TDDFT calculation
     self.ReIm (string, default: 'im'): plot imaginary or real part
-    self.format_input (string, default:'.hdf5'): format of the input file, can be
+    self.format_input (string, default:'.hdf5'): format of the input file,
+    can be
                                                 .dat
                                                 .npy
                                                 .hdf5
@@ -755,8 +750,8 @@ class MBPT_LCAO_Parameters:
     self.time (int, default: 1): time plotting, 0 or 1
     self.time_num (int, default: 0): time index than one which to plot
     self.tem_iter (int, default: 0) : tem or iter plotting, 0 => iter, 1 => tem
-    self.movie (int, default: 0) : if tem and plot_dens_time=1 (in tddft_lr.inp)
-                                   then do a movie
+    self.movie (int, default: 0) : if tem and plot_dens_time=1
+                                   (in tddft_lr.inp) then do a movie
     """
 
     def __init__(self):
@@ -831,12 +826,6 @@ class MBPT_LCAO_Parameters:
                 if values[0] == 'polarizability' and self.tem_iter != 'iter':
                     raise ValueError('polarizability only with iter')
 
-
-#################################################################
-#                                                               #
-#                     MBPT_LCAO_Properties Class                #
-#                                                               #
-#################################################################
 
 class MBPT_LCAO_Properties_figure:
     """
