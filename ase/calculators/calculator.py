@@ -11,7 +11,7 @@ class ReadError(Exception):
 
 
 all_properties = ['energy', 'forces', 'stress', 'dipole',
-                  'charges', 'magmom', 'magmoms']
+                  'charges', 'magmom', 'magmoms', 'free_energy']
 
 
 all_changes = ['positions', 'numbers', 'cell', 'pbc',
@@ -19,9 +19,9 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 
 # Recognized names of calculators sorted alphabetically:
-names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'dftb', 'eam', 'elk',
-         'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'hotbit',
-         'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
+names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'demon', 'dftb', 'eam',
+         'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs',
+         'hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
          'nwchem', 'octopus', 'siesta', 'tip3p', 'turbomole', 'vasp']
 
 
