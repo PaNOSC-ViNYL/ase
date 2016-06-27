@@ -115,23 +115,6 @@ def unpad_smarter(pbc, arr):
     return np.ascontiguousarray(arr[slices])
 
 
-# Octopus writes slightly broken XSF files.  This hack purports to fix them.
-def repair_brokenness_of_octopus_xsf(path):
-    assert os.path.isfile(path), path
-
-    def replace(old, new):
-        # XXX Ouch... need to get rid of this
-        os.system('sed -i s/%s/%s/ %s' % (old, new, path))
-
-    replace('BEGIN_BLOCK_DATAGRID3D', 'BEGIN_BLOCK_DATAGRID_3D')
-    replace('^DATAGRID_3D', 'BEGIN_DATAGRID_3D')
-
-
-def fix_and_read_xsf(fname, read_data=False):
-    repair_brokenness_of_octopus_xsf(fname)
-    return read_xsf(fname, read_data=read_data)
-
-
 # Parse value as written in input file *or* something that one would be
 # passing to the ASE interface, i.e., this might already be a boolean
 def octbool2bool(value):
@@ -697,7 +680,7 @@ class Octopus(FileIOCalculator):
             raise OctopusIOError(msg)
         # If this causes an error now that the file exists, things are
         # messed up.  Then it is better that the error propagates as normal
-        return fix_and_read_xsf(path, read_data=True)
+        return read_xsf(path, read_data=True)
 
     def read_vn(self, basefname, keywordname):
         static_dir = self._getpath('static')
