@@ -419,7 +419,7 @@ class Calculator:
             and 'magmoms'.
         system_changes: list of str
             List of what has changed since last calculation.  Can be
-            any combination of these five: 'positions', 'numbers', 'cell',
+            any combination of these six: 'positions', 'numbers', 'cell',
             'pbc', 'initial_charges' and 'initial_magmoms'.
 
         Subclasses need to implement this, but can ignore properties
