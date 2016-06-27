@@ -128,7 +128,12 @@ class TrajectoryWriter:
             atoms = atoms.atoms_for_saving
 
         if len(b) == 0:
-            self.write_header(atoms)
+            b.write(version=1)
+            # Atomic numbers and periodic boundary conditions are only
+            # written once - in the header.  Store them here so that we can
+            # check that they are the same for all images:
+            self.numbers = atoms.get_atomic_numbers()
+            self.pbc = atoms.get_pbc()
         else:
             if (atoms.pbc != self.pbc).any():
                 raise ValueError('Bad periodic boundary conditions!')
@@ -137,20 +142,7 @@ class TrajectoryWriter:
             elif (atoms.numbers != self.numbers).any():
                 raise ValueError('Bad atomic numbers!')
 
-        b.write(positions=atoms.get_positions(),
-                cell=atoms.get_cell().tolist())
-        
-        if atoms.has('tags'):
-            b.write(tags=atoms.get_tags())
-
-        if atoms.has('momenta'):
-            b.write(momenta=atoms.get_momenta())
-
-        if atoms.has('magmoms'):
-            b.write(magmoms=atoms.get_initial_magnetic_moments())
-            
-        if atoms.has('charges'):
-            b.write(charges=atoms.get_initial_charges())
+        write_atoms(b, atoms, write_header=(len(b) == 0))
 
         calc = atoms.get_calculator()
         
@@ -196,23 +188,6 @@ class TrajectoryWriter:
 
         b.sync()
         
-    def write_header(self, atoms):
-        # Atomic numbers and periodic boundary conditions are only
-        # written once - in the header.  Store them here so that we can
-        # check that they are the same for all images:
-        self.numbers = atoms.get_atomic_numbers()
-        self.pbc = atoms.get_pbc()
-
-        b = self.backend
-        b.write(version=1,
-                pbc=self.pbc.tolist(),
-                numbers=self.numbers)
-        if atoms.constraints:
-            if all(hasattr(c, 'todict') for c in atoms.constraints):
-                b.write(constraints=encode(atoms.constraints))
-        if atoms.has('masses'):
-            b.write(masses=atoms.get_masses())
-
     def close(self):
         """Close the trajectory file."""
         self.backend.close()
@@ -264,18 +239,8 @@ class TrajectoryReader:
 
     def __getitem__(self, i=-1):
         b = self.backend[i]
-        atoms = Atoms(positions=b.positions,
-                      numbers=self.numbers,
-                      cell=b.cell,
-                      masses=self.masses,
-                      pbc=self.pbc,
-                      info=b.get('info'),
-                      constraint=[dict2constraint(d)
-                                  for d in decode(self.constraints)],
-                      momenta=b.get('momenta'),
-                      magmoms=b.get('magmoms'),
-                      charges=b.get('charges'),
-                      tags=b.get('tags'))
+        atoms = read_atoms(b, header=[self.pbc, self.numbers, self.masses,
+                                      self.constraints])
         if 'calculator' in b:
             results = {}
             c = b.calculator
@@ -294,7 +259,58 @@ class TrajectoryReader:
         for i in range(len(self)):
             yield self[i]
 
+            
+def read_atoms(backend, header=None):
+    b = backend
+    if header:
+        pbc, numbers, masses, constraints = header
+    else:
+        pbc = b.pbc
+        numbers = b.numbers
+        masses = b.get('masses')
+        constraints = b.get('constraints', '[]')
+        
+    atoms = Atoms(positions=b.positions,
+                  numbers=numbers,
+                  cell=b.cell,
+                  masses=masses,
+                  pbc=pbc,
+                  info=b.get('info'),
+                  constraint=[dict2constraint(d)
+                              for d in decode(constraints)],
+                  momenta=b.get('momenta'),
+                  magmoms=b.get('magmoms'),
+                  charges=b.get('charges'),
+                  tags=b.get('tags'))
+    return atoms
+    
+    
+def write_atoms(backend, atoms, write_header=True):
+    b = backend
+    
+    if write_header:
+        b.write(pbc=atoms.pbc.tolist(),
+                numbers=atoms.numbers)
+        if atoms.constraints:
+            if all(hasattr(c, 'todict') for c in atoms.constraints):
+                b.write(constraints=encode(atoms.constraints))
 
+        if atoms.has('masses'):
+            b.write(masses=atoms.get_masses())
+
+    b.write(positions=atoms.get_positions(),
+            cell=atoms.get_cell().tolist())
+    
+    if atoms.has('tags'):
+        b.write(tags=atoms.get_tags())
+    if atoms.has('momenta'):
+        b.write(momenta=atoms.get_momenta())
+    if atoms.has('magmoms'):
+        b.write(magmoms=atoms.get_initial_magnetic_moments())
+    if atoms.has('charges'):
+        b.write(charges=atoms.get_initial_charges())
+
+        
 def read_traj(filename, index):
     trj = TrajectoryReader(filename)
     for i in range(*index.indices(len(trj))):
