@@ -854,11 +854,11 @@ class Octopus(FileIOCalculator):
             nkpts = int(nkptsline.split('=')[-1].strip())
 
             kpt_coord_weight_line = search('List of k-points:')
-            kpt_coord_weight_line = fd.next()
+            kpt_coord_weight_line = next(fd)
             tokens = kpt_coord_weight_line.split()
             assert tokens == ['ik', 'k_x', 'k_y', 'k_z', 'Weight']
-            kpt_coord_weight_line = fd.next()
-            kpt_coord_weight_line = fd.next()
+            kpt_coord_weight_line = next(fd)
+            kpt_coord_weight_line = next(fd)
             ibz_k_points = np.zeros(shape=[nkpts, 3])
             k_point_weights = np.zeros(shape=[nkpts])
             for i in range(nkpts):
@@ -868,7 +868,7 @@ class Octopus(FileIOCalculator):
                 ibz_k_points[i][1] = float(tokens[2])
                 ibz_k_points[i][2] = float(tokens[3])
                 k_point_weights[i] = float(tokens[4])
-                kpt_coord_weight_line = fd.next()
+                kpt_coord_weight_line = next(fd)
 
         self.results['ibz_k_points'] = ibz_k_points
         self.results['k_point_weights'] = k_point_weights
@@ -899,7 +899,7 @@ class Octopus(FileIOCalculator):
             states_down = []
 
             if line.startswith('#'):
-                line = fd.next()
+                line = next(fd)
             while line.strip(' ')[0].isdigit():
                 tokens = line.split()
                 # n = int(tokens[0])
@@ -917,7 +917,7 @@ class Octopus(FileIOCalculator):
                     states.append(state)
                 else:
                     states_down.append(state)
-                line = fd.next()
+                line = next(fd)
             if nbands is None:
                 nbands = len(states)
                 assert nbands > 0
@@ -967,22 +967,22 @@ class Octopus(FileIOCalculator):
         self.results['efermi'] = eFermi
 
         search('Energy [eV]:')
-        line = fd.next()
+        line = next(fd)
         assert line.strip().startswith('Total'), line
         self.results['energy'] = float(line.split('=')[-1].strip())
-        line = fd.next()
+        line = next(fd)
         assert line.strip().startswith('Free'), line
         self.results['free_energy'] = float(line.split('=')[-1].strip())
 
         if nspins == 2:
             line = search('Total Magnetic Moment:')
-            line = fd.next()
+            line = next(fd)
             values = line.split()
             self.results['magmom'] = float(values[-1])
 
-            line = fd.next()
+            line = next(fd)
             assert line.startswith('Local Magnetic Moments')
-            line = fd.next()
+            line = next(fd)
             assert line.split() == ['Ion', 'mz']
             # Reading  Local Magnetic Moments
             mag_moment = []
@@ -1005,7 +1005,7 @@ class Octopus(FileIOCalculator):
             pass
         else:
             dipole = np.zeros(shape=[3, 2])
-            line = fd.next()
+            line = next(fd)
             for i in range(3):
                 line = line.replace('<', ' ')
                 line = line.replace('>', ' ')
@@ -1014,7 +1014,7 @@ class Octopus(FileIOCalculator):
                 values = line.split()
                 dipole[i][0] = float(values[1])
                 dipole[i][1] = float(values[2])
-                line = fd.next()
+                line = next(fd)
 
             self.results['dipole'] = dipole
 
