@@ -12,10 +12,7 @@ from ase.data.colors import jmol_colors
 class MATPLOTLIB:
     def __init__(self, atoms, ax,
                  rotation='', show_unit_cell=False, radii=None,
-                 bbox=None, colors=None, scale=20):
-#        if ax is None:
-#            self.fig, self.ax = plt.subplots()
-#        else:
+                 colors=None):
         self.ax = ax
         self.figure = ax.figure
         self.numbers = atoms.get_atomic_numbers()
@@ -68,40 +65,29 @@ class MATPLOTLIB:
         X = np.dot(X, rotation)
         R = X[:natoms]
 
-        if bbox is None:
-            X1 = (R - radii[:, None]).min(0)
-            X2 = (R + radii[:, None]).max(0)
-            if show_unit_cell == 2:
-                X1 = np.minimum(X1, C.min(0))
-                X2 = np.maximum(X2, C.max(0))
-            M = (X1 + X2) / 2
-            S = 1.05 * (X2 - X1)
-            w = scale * S[0]
-            if w > 500:
-                w = 500
-                scale = w / S[0]
-            h = scale * S[1]
-            offset = np.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
-        else:
-            w = (bbox[2] - bbox[0]) * scale
-            h = (bbox[3] - bbox[1]) * scale
-            offset = np.array([bbox[0], bbox[1], 0]) * scale
+        X1 = (R - radii[:, None]).min(0)
+        X2 = (R + radii[:, None]).max(0)
+        if show_unit_cell == 2:
+            X1 = np.minimum(X1, C.min(0))
+            X2 = np.maximum(X2, C.max(0))
+        M = (X1 + X2) / 2
+        S = 1.05 * (X2 - X1)
+        w = S[0]
+        h = S[1]
+        offset = np.array([M[0] - w / 2, M[1] - h / 2, 0])
 
-        X *= scale
         X -= offset
 
         self.xlim = 0, w
         self.ylim = 0, h 
 
         if nlines > 0:
-            D = np.dot(D, rotation)[:, :2] * scale
+            D = np.dot(D, rotation)[:, :2]
 
         if C is not None:
-            C *= scale
             C -= offset
 
         A = np.dot(A, rotation)
-        A *= scale
 
         self.A = A
         self.X = X
@@ -109,7 +95,7 @@ class MATPLOTLIB:
         self.T = T
         self.C = C
         self.natoms = natoms
-        self.d = 2 * scale * radii
+        self.d = 2 * radii
 
     def cell_to_lines(self, A):
         nlines = 0
