@@ -167,10 +167,8 @@ class Writer:
             
         i = align(self.fd)
         
-        self.data[name + '.'] = {'ndarray':
-                                 (shape,
-                                  np.dtype(dtype).name,
-                                  i)}
+        self.data[name + '.'] = {
+            'ndarray': (shape, np.dtype(dtype).name, i)}
             
         assert self.shape[0] == 0, 'last array not done'
         
@@ -259,6 +257,7 @@ class Writer:
                 value.write(self.child(name))
       
     def child(self, name):
+        self._write_header()
         dct = self.data[name + '.'] = {}
         return Writer(self.fd, data=dct)
         

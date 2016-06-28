@@ -129,7 +129,7 @@ class Parameters(dict):
         return parameters
 
     def tostring(self):
-        keys = sorted(self.keys())
+        keys = sorted(self)
         return 'dict(' + ',\n     '.join(
             '%s=%r' % (key, self[key]) for key in keys) + ')\n'
 
