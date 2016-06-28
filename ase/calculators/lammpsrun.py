@@ -410,7 +410,7 @@ class LAMMPS:
         if not (('minimize' in parameters) or ('run' in parameters)):
             f.write('run 0\n'.encode('utf-8'))
 
-        f.write('print("{0}")\n'.format(CALCULATION_END_MARK).encode('utf-8'))
+        f.write('print "{0}" \n'.format(CALCULATION_END_MARK).encode('utf-8'))
         f.write('log /dev/stdout\n'.encode('utf-8')) # Force LAMMPS to flush log
 
         f.flush()
