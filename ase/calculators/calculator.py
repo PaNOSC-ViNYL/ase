@@ -383,11 +383,7 @@ class Calculator:
         if name not in self.results:
             if not allow_calculation:
                 return None
-            try:
-                self.calculate(atoms, [name], system_changes)
-            except Exception:
-                self.reset()
-                raise
+            self.calculate(atoms, [name], system_changes)
 
         if name == 'magmom' and 'magmom' not in self.results:
             return 0.0
