@@ -384,7 +384,7 @@ class Demon(FileIOCalculator):
 
             # write pickle of Parameters
             pickle.dump(self.parameters,
-                        open(self.label + '/deMon_parameters.pckl', 'w'))
+                        open(self.label + '/deMon_parameters.pckl', 'wb'))
 
             # write xyz file for good measure.
             ase.io.write(self.label + '/deMon_atoms.xyz', self.atoms)
@@ -399,7 +399,7 @@ class Demon(FileIOCalculator):
                             .format(restart_path))
         
         parameters = pickle.load(open(restart_path +
-                                      '/deMon_parameters.pckl', 'r'))
+                                      '/deMon_parameters.pckl', 'rb'))
         self.parameters = parameters
 
         self.atoms = self.deMon_inp_to_atoms(restart_path + '/deMon.inp')
@@ -414,7 +414,7 @@ class Demon(FileIOCalculator):
         if input_arguments is None:
             return
 
-        for key, value in input_arguments.iteritems():
+        for key, value in input_arguments.items():
             self._write_argument(key, value, f)
 
     def _write_argument(self, key, value, f):
