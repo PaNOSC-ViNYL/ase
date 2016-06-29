@@ -240,9 +240,13 @@ class Calculator:
 
     def todict(self):
         default = self.get_default_parameters()
-        return dict((key, value)
-                    for key, value in self.parameters.items()
-                    if key not in default or value != default[key])
+        dct = {}
+        for key, value in self.parameters.items():
+            if key not in default or value != default[key]:
+                if hasattr(value, 'todict'):
+                    value = value.todict()
+                dct[key] = value
+        return dct
 
     def reset(self):
         """Clear all information from old calculation."""
