@@ -154,7 +154,7 @@ def normalize_keywords(kwargs):
 def get_octopus_keywords():
     """Get dict mapping all normalized keywords to pretty keywords."""
     proc = Popen(['oct-help', '--search', ''], stdout=PIPE)
-    keywords = proc.stdout.read().split()
+    keywords = proc.stdout.read().decode().split()
     return normalize_keywords(dict(zip(keywords, keywords)))
 
 
