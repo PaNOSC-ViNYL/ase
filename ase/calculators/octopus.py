@@ -17,7 +17,7 @@ from ase.calculators.calculator import FileIOCalculator
 from ase.data import atomic_numbers
 from ase.io import read
 from ase.io.xsf import read_xsf
-from ase.units import Bohr, Angstrom, Hartree
+from ase.units import Bohr, Angstrom, Hartree, eV, Debye
 
 # Representation of parameters from highest to lowest level of abstraction:
 #
@@ -175,7 +175,7 @@ def block2list(lines, header=None):
     lines = iter(lines)
     block = []
     if header is None:
-        header = lines.next()
+        header = next(lines)
     assert header.startswith('%'), header
     name = header[1:]
     for line in lines:
@@ -192,7 +192,7 @@ def parse_input_file(fd):
     lines = input_line_iter(fd)
     while True:
         try:
-            line = lines.next()
+            line = next(lines)
         except StopIteration:
             break
         else:
@@ -232,7 +232,7 @@ def boxshape_is_ase_compatible(kwargs):
     if boxshape == 'parallelepiped':
         return True
     else:
-        pdims = kwargs.get('periodicdimensions', 0)
+        pdims = int(kwargs.get('periodicdimensions', 0))
         return boxshape is None and pdims > 0
 
 
@@ -834,18 +834,17 @@ class Octopus(FileIOCalculator):
         """Read octopus output files and extract data."""
         fd = open(self._getpath('static/info', check=True))
 
-        def search(token):
-            initial_pos = fd.tell()
+        def search(token, stop=None):
             for line in fd:
                 if line.strip().startswith(token):
                     return line
-            try:
-                raise ValueError('No such token: \'%s\'' % token)
-            finally:
-                fd.seek(initial_pos)
+                if stop is not None and line.startswith(stop):
+                    break
+            raise ValueError('No such token: \'%s\'' % token)
 
         try:
-            nkptsline = search('Number of symmetry-reduced')
+            nkptsline = search('Number of symmetry-reduced',
+                               stop='Exchange-correlation')
         except ValueError:
             nkpts = 1
             ibz_k_points = np.zeros((1, 3))
@@ -874,15 +873,13 @@ class Octopus(FileIOCalculator):
         self.results['k_point_weights'] = k_point_weights
 
         statesheader = search('Eigenvalues [')
-        assert statesheader == 'Eigenvalues [eV]\n'
+        energy_unitspec = statesheader.split()[1]
+        energy_unit = {'[eV]': eV, '[H]': Hartree}[energy_unitspec]
 
+        # Skip forward to numbers:
         for line in fd:
-            tokens = line.split()
-            try:
-                if int(tokens[0]):
-                    break
-            except ValueError:
-                continue
+            if line.strip()[:1].isdigit():
+                break
 
         kpts = []
         kpts_down = []
@@ -910,7 +907,7 @@ class Octopus(FileIOCalculator):
                 else:
                     raise ValueError('Unexpected spin specification: %s'
                                      % tokens[1])
-                energy = float(tokens[2])
+                energy = float(tokens[2]) * energy_unit
                 occupation = float(tokens[3])
                 state = State(energy, occupation)
                 if spin == 0:
@@ -951,8 +948,7 @@ class Octopus(FileIOCalculator):
 
         if line.startswith('Fermi'):
             tokens = line.split()
-            assert tokens[-1] == 'eV'
-            eFermi = float(tokens[-2])
+            eFermi = float(tokens[-2]) * energy_unit
         else:
             # Find HOMO level.  Note: This could be a very bad
             # implementation with fractional occupations if the Fermi
@@ -966,13 +962,15 @@ class Octopus(FileIOCalculator):
             eFermi = all_energies[arg]
         self.results['efermi'] = eFermi
 
-        search('Energy [eV]:')
+        search('Energy [')
         line = next(fd)
         assert line.strip().startswith('Total'), line
-        self.results['energy'] = float(line.split('=')[-1].strip())
+        self.results['energy'] = \
+            float(line.split('=')[-1].strip()) * energy_unit
         line = next(fd)
         assert line.strip().startswith('Free'), line
-        self.results['free_energy'] = float(line.split('=')[-1].strip())
+        self.results['free_energy'] = \
+            float(line.split('=')[-1].strip()) * energy_unit
 
         if nspins == 2:
             line = search('Total Magnetic Moment:')
@@ -1004,23 +1002,31 @@ class Octopus(FileIOCalculator):
         except ValueError:
             pass
         else:
-            dipole = np.zeros(shape=[3, 2])
+            assert line.split()[-1] == '[Debye]'
+            dipole = [float(next(fd).split()[-1]) for i in range(3)]
+            self.results['dipole'] = np.array(dipole) * Debye
+
+        try:
+            line = search('Forces')
+        except ValueError:
+            pass
+        else:
+            forceunitspec = line.split()[-1]
+            if energy_unitspec == '[eV]':
+                assert forceunitspec == '[eV/A]'
+                forceunit = eV / Angstrom
+            else:
+                assert forceunitspec == '[H/b]'
+                forceunit = Hartree / Bohr
+            forces = []
             line = next(fd)
-            for i in range(3):
-                line = line.replace('<', ' ')
-                line = line.replace('>', ' ')
-                line = line.replace('=', ' ')
-                line = line.replace('\n', ' ')
-                values = line.split()
-                dipole[i][0] = float(values[1])
-                dipole[i][1] = float(values[2])
-                line = next(fd)
-
-            self.results['dipole'] = dipole
-
-        forces_atoms = read_xsf(self._getpath('static/forces.xsf'))
-        F_av = forces_atoms.get_forces() / Hartree
-        self.results['forces'] = F_av
+            assert line.strip().startswith('Ion')
+            for line in fd:
+                if line.strip().startswith('---'):
+                    break
+                tokens = line.split()[-3:]
+                forces.append([float(f) for f in tokens])
+            self.results['forces'] = np.array(forces) * forceunit
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
