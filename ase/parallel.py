@@ -4,6 +4,7 @@ import functools
 import pickle
 import sys
 import time
+import inspect
 
 import numpy as np
 
@@ -77,7 +78,7 @@ class MPI4PY:
         self.comm.Abort(code)
 
     def broadcast(self, a, rank):
-        a[:] = self.comm.bcast(a, rank)
+        a[:] = self.comm.bcast(a, root=rank)
 
 
 # Check for special MPI-enabled Python interpreters:
@@ -111,7 +112,7 @@ def broadcast(obj, root=0, comm=world):
     """Broadcast a Python object across an MPI communicator and return it."""
     if comm.rank == root:
         string = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
-        n = np.array(len(string), int)
+        n = np.array([len(string)], int)
     else:
         string = None
         n = np.empty(1, int)
@@ -141,6 +142,15 @@ def parallel_function(func):
         result = None
         if world.rank == 0:
             try:
+                fileandfuncname = [s[1]+s[3] for s in inspect.stack()]
+                try:
+                    # current filename and function has another occurence
+                    # raise NotImplementedError to warn about nesting
+                    fileandfuncname.index(fileandfuncname[0],1)
+                    raise NotImplementedError(
+                        "Cannot handle nested parallel_function!")
+                except ValueError:
+                    pass
                 result = func(*args, **kwargs)
             except Exception as ex:
                 pass
