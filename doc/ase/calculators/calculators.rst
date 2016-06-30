@@ -111,7 +111,7 @@ where ``abc`` is the module name and ``ABC`` is the class name.
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
-.. _Hotbit: https://trac.cc.jyu.fi/projects/hotbit
+.. _Hotbit: https://github.com/pekkosk/hotbit
 
 
 Calculator keywords
