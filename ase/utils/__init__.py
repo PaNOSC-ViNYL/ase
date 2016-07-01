@@ -95,7 +95,7 @@ def convert_string_to_fd(name, world=None):
         return devnull
     if name == '-':
         return sys.stdout
-    if isinstance(name, str):
+    if isinstance(name, basestring):
         return open(name, 'w')
     return name  # we assume name is already a file-descriptor
 
