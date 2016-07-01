@@ -153,8 +153,9 @@ class Writer:
         self.fd = fd
         self.data = data
         
-        # Shape and dtype of array being filled:
-        self.shape = (0,)
+        # date for array being filled:
+        self.nmissing = 0  # number of missing numbers
+        self.shape = None
         self.dtype = None
         
     def add_array(self, name, shape, dtype=float):
@@ -170,25 +171,24 @@ class Writer:
         self.data[name + '.'] = {
             'ndarray': (shape, np.dtype(dtype).name, i)}
             
-        assert self.shape[0] == 0, 'last array not done'
+        assert self.nmissing == 0, 'last array not done'
         
         self.dtype = dtype
         self.shape = shape
+        self.nmissing = np.prod(shape)
         
     def _write_header(self):
+        # We want to delay writing until there is any real data written.
+        # Some people rely on zero file size.
         if self.header:
             self.fd.write(self.header)
             self.header = b''
             
     def fill(self, a):
         assert a.dtype == self.dtype
-        if a.shape[1:] == self.shape[1:]:
-            assert a.shape[0] <= self.shape[0]
-            self.shape = (self.shape[0] - a.shape[0],) + self.shape[1:]
-        else:
-            assert a.shape == self.shape[1:]
-            self.shape = (self.shape[0] - 1,) + self.shape[1:]
-        assert self.shape[0] >= 0
+        assert a.shape[1:] == self.shape[len(self.shape) - a.ndim + 1:]
+        self.nmissing -= a.size
+        assert self.nmissing >= 0
             
         a.tofile(self.fd)
 
@@ -200,7 +200,7 @@ class Writer:
 
         self._write_header()
 
-        assert self.shape[0] == 0
+        assert self.nmissing == 0
         i = self.fd.tell()
         s = encode(self.data).encode()
         writeint(self.fd, len(s))
