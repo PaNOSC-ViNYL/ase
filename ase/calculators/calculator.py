@@ -311,13 +311,7 @@ class Calculator:
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                if isinstance(oldvalue, dict):
-                    # Special treatment for dictionary parameters:
-                    for name in value:
-                        if name not in oldvalue:
-                            raise KeyError(
-                                'Unknown subparameter "%s" in '
-                                'dictionary parameter "%s"' % (name, key))
+                if isinstance(oldvalue, dict) and isinstance(value, dict):
                     oldvalue.update(value)
                     value = oldvalue
                 changed_parameters[key] = value
