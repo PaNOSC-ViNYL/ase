@@ -524,6 +524,157 @@ def generate_input(atoms, kwargs, normalized2pretty):
     return '\n'.join(_lines)
 
 
+def read_static_info_kpoints(fd):
+    for line in fd:
+        if line.startswith('Number of symmetry-reduced'):
+            break
+    nkpts = int(line.split('=')[-1].strip())
+    for line in fd:
+        if line.startswith('List of k-points'):
+            break
+
+    tokens = next(fd).split()
+    assert tokens == ['ik', 'k_x', 'k_y', 'k_z', 'Weight']
+    bar = next(fd)
+    assert bar.startswith('---')
+
+    ibz_k_points = np.zeros((nkpts, 3))
+    k_point_weights = np.zeros(nkpts)
+
+    for kpt in range(nkpts):
+        _ik, k_x, k_y, k_z, weight = [float(n) for n in next(fd).split()]
+        ibz_k_points[kpt, :] = [k_x, k_y, k_z]
+        k_point_weights[kpt] = weight
+
+    return dict(ibz_k_points=ibz_k_points, k_point_weights=k_point_weights)
+
+
+def read_static_info_eigenvalues(fd, energy_unit):
+
+    values_sknx = {}
+
+    nbands = 0
+    for line in fd:
+        line = line.strip()
+        if line.startswith('#'):
+            continue
+        if not line[:1].isdigit():
+            break
+
+        tokens = line.split()
+        nbands = max(nbands, int(tokens[0]))
+        energy = float(tokens[2]) * energy_unit
+        occupation = float(tokens[3])
+        values_sknx.setdefault(tokens[1], []).append((energy, occupation))
+
+    nspins = len(values_sknx)
+    if nspins == 1:
+        val = [values_sknx['--']]
+    else:
+        val = [values_sknx['up'], values_sknx['dn']]
+    val = np.array(val)
+    nkpts, remainder = divmod(len(val[0]), nbands)
+    assert remainder == 0
+
+    eps_skn = val[:, :, 0].reshape(nspins, nkpts, nbands).copy()
+    occ_skn = val[:, :, 1].reshape(nspins, nkpts, nbands).copy()
+    assert eps_skn.flags.contiguous
+    return dict(nspins=nspins,
+                nkpts=nkpts,
+                nbands=nbands,
+                eigenvalues=eps_skn,
+                occupations=occ_skn)
+
+
+def read_static_info_energy(fd, energy_unit):
+    def get(name):
+        for line in fd:
+            if line.strip().startswith(name):
+                return float(line.split('=')[-1].strip()) * energy_unit
+    return dict(energy=get('Total'), free_energy=get('Free'))
+
+
+def read_static_info(fd):
+    results = {}
+
+    recognize_headers = {'kpts': 'Number of symmetry-reduced k-points',
+                         'states': 'Eigenvalues [',
+                         'energy': 'Energy [',
+                         'forces': 'Forces on the ions ['}
+
+    def get_energy_unit(line):  # title [unit]: ---> unit
+        return {'[eV]': eV, '[H]': Hartree}[line.split()[1].rstrip(':')]
+
+    for line in fd:
+        if line.strip('*').strip().startswith('Brillouin zone'):
+            results.update(read_static_info_kpoints(fd))
+        elif line.startswith('Eigenvalues ['):
+            unit = get_energy_unit(line)
+            results.update(read_static_info_eigenvalues(fd, unit))
+        elif line.startswith('Energy ['):
+            unit = get_energy_unit(line)
+            results.update(read_static_info_energy(fd, unit))
+        elif line.startswith('Total Magnetic Moment'):
+            line = next(fd)
+            values = line.split()
+            results['magmom'] = float(values[-1])
+
+            line = next(fd)
+            assert line.startswith('Local Magnetic Moments')
+            line = next(fd)
+            assert line.split() == ['Ion', 'mz']
+            # Reading  Local Magnetic Moments
+            mag_moment = []
+            for line in fd:
+                if line == '\n':
+                    break  # there is no more thing to search for
+                line = line.replace('\n', ' ')
+                values = line.split()
+                mag_moment.append(float(values[-1]))
+
+            results['magmoms'] = np.array(mag_moment)
+        elif line.startswith('Dipole'):
+            assert line.split()[-1] == '[Debye]'
+            dipole = [float(next(fd).split()[-1]) for i in range(3)]
+            results['dipole'] = np.array(dipole) * Debye
+        elif line.startswith('Forces'):
+            forceunitspec = line.split()[-1]
+            forceunit = {'[eV/A]': eV / Angstrom,
+                         '[H/b]': Hartree / Bohr}[forceunitspec]
+            forces = []
+            line = next(fd)
+            assert line.strip().startswith('Ion')
+            for line in fd:
+                if line.strip().startswith('---'):
+                    break
+                tokens = line.split()[-3:]
+                forces.append([float(f) for f in tokens])
+            results['forces'] = np.array(forces) * forceunit
+        elif line.startswith('Fermi'):
+            tokens = line.split()
+            unit = {'eV': eV, 'H': Hartree}[tokens[-1]]
+            eFermi = float(tokens[-2]) * unit
+            results['efermi'] = eFermi
+
+    if 'ibz_k_points' not in results:
+        results['ibz_k_points'] = np.zeros((1, 3))
+        results['k_point_weights'] = np.ones(1)
+    if 'efermi' not in results:
+        # Find HOMO level.  Note: This could be a very bad
+        # implementation with fractional occupations if the Fermi
+        # level was not found otherwise.
+        all_energies = results['eigenvalues'].ravel()
+        all_occupations = results['occupations'].ravel()
+        args = np.argsort(all_energies)
+        for arg in args[::-1]:
+            if all_occupations[arg] > 0.1:
+                break
+        eFermi = all_energies[arg]
+        results['efermi'] = eFermi
+
+    return results
+
+
 class Octopus(FileIOCalculator):
     """Octopus calculator.
 
@@ -809,9 +960,13 @@ class Octopus(FileIOCalculator):
         return self.results['nbands']
 
     def get_magnetic_moments(self, atoms=None):
+        if self.results['nspins'] == 1:
+            return np.zeros(len(self.atoms))
         return self.results['magmoms'].copy()
 
     def get_magnetic_moment(self, atoms=None):
+        if self.results['nspins'] == 1:
+            return 0.0
         return self.results['magmom']
 
     def get_occupation_numbers(self, kpt=0, spin=0):
@@ -833,200 +988,7 @@ class Octopus(FileIOCalculator):
     def read_results(self):
         """Read octopus output files and extract data."""
         fd = open(self._getpath('static/info', check=True))
-
-        def search(token, stop=None):
-            for line in fd:
-                if line.strip().startswith(token):
-                    return line
-                if stop is not None and line.startswith(stop):
-                    break
-            raise ValueError('No such token: \'%s\'' % token)
-
-        try:
-            nkptsline = search('Number of symmetry-reduced',
-                               stop='Exchange-correlation')
-        except ValueError:
-            nkpts = 1
-            ibz_k_points = np.zeros((1, 3))
-            k_point_weights = np.ones(1)
-        else:
-            nkpts = int(nkptsline.split('=')[-1].strip())
-
-            kpt_coord_weight_line = search('List of k-points:')
-            kpt_coord_weight_line = next(fd)
-            tokens = kpt_coord_weight_line.split()
-            assert tokens == ['ik', 'k_x', 'k_y', 'k_z', 'Weight']
-            kpt_coord_weight_line = next(fd)
-            kpt_coord_weight_line = next(fd)
-            ibz_k_points = np.zeros(shape=[nkpts, 3])
-            k_point_weights = np.zeros(shape=[nkpts])
-            for i in range(nkpts):
-                tokens = kpt_coord_weight_line.split()
-                assert int(tokens[0])
-                ibz_k_points[i][0] = float(tokens[1])
-                ibz_k_points[i][1] = float(tokens[2])
-                ibz_k_points[i][2] = float(tokens[3])
-                k_point_weights[i] = float(tokens[4])
-                kpt_coord_weight_line = next(fd)
-
-        self.results['ibz_k_points'] = ibz_k_points
-        self.results['k_point_weights'] = k_point_weights
-
-        statesheader = search('Eigenvalues [')
-        energy_unitspec = statesheader.split()[1]
-        energy_unit = {'[eV]': eV, '[H]': Hartree}[energy_unitspec]
-
-        # Skip forward to numbers:
-        for line in fd:
-            if line.strip()[:1].isdigit():
-                break
-
-        kpts = []
-        kpts_down = []
-
-        class State(object):
-            """Represents pairs (energy, occupation)."""
-            def __init__(self, energy, occ):
-                self.energy = energy
-                self.occ = occ
-
-        for k in range(nkpts):
-            nbands = None
-            states = []
-            states_down = []
-
-            if line.startswith('#'):
-                line = next(fd)
-            while line.strip(' ')[0].isdigit():
-                tokens = line.split()
-                # n = int(tokens[0])
-                if tokens[1] in ['--', 'up']:
-                    spin = 0
-                elif tokens[1] == 'dn':
-                    spin = 1
-                else:
-                    raise ValueError('Unexpected spin specification: %s'
-                                     % tokens[1])
-                energy = float(tokens[2]) * energy_unit
-                occupation = float(tokens[3])
-                state = State(energy, occupation)
-                if spin == 0:
-                    states.append(state)
-                else:
-                    states_down.append(state)
-                line = next(fd)
-            if nbands is None:
-                nbands = len(states)
-                assert nbands > 0
-            else:
-                # this assert is triggered in the second run if
-                # nbands is not reinitialized
-                assert nbands == len(states)
-            kpts.append(states)
-            if len(states_down) > 0:
-                kpts_down.append(states_down)
-
-        nspins = 1
-        if len(kpts_down):
-            nspins = 2
-            assert len(kpts_down) == len(kpts)
-        eps_skn = np.empty((nspins, len(kpts), len(states)))
-        occ_skn = np.empty((nspins, len(kpts), len(states)))
-
-        for k in range(len(kpts)):
-            kpt = kpts[k]
-            eps_skn[0, k, :] = [state.energy for state in kpt]
-            occ_skn[0, k, :] = [state.occ for state in kpt]
-            if nspins == 2:
-                kpt = kpts_down[k]
-                eps_skn[1, k, :] = [state.energy for state in kpt]
-                occ_skn[1, k, :] = [state.occ for state in kpt]
-
-        self.results['nbands'] = nbands
-        self.results['eigenvalues'] = eps_skn
-        self.results['occupations'] = occ_skn
-
-        if line.startswith('Fermi'):
-            tokens = line.split()
-            eFermi = float(tokens[-2]) * energy_unit
-        else:
-            # Find HOMO level.  Note: This could be a very bad
-            # implementation with fractional occupations if the Fermi
-            # level was not found otherwise.
-            all_energies = eps_skn.ravel()
-            all_occupations = occ_skn.ravel()
-            args = np.argsort(all_energies)
-            for arg in args[::-1]:
-                if all_occupations[arg] > 0.1:
-                    break
-            eFermi = all_energies[arg]
-        self.results['efermi'] = eFermi
-
-        search('Energy [')
-        line = next(fd)
-        assert line.strip().startswith('Total'), line
-        self.results['energy'] = \
-            float(line.split('=')[-1].strip()) * energy_unit
-        line = next(fd)
-        assert line.strip().startswith('Free'), line
-        self.results['free_energy'] = \
-            float(line.split('=')[-1].strip()) * energy_unit
-
-        if nspins == 2:
-            line = search('Total Magnetic Moment:')
-            line = next(fd)
-            values = line.split()
-            self.results['magmom'] = float(values[-1])
-
-            line = next(fd)
-            assert line.startswith('Local Magnetic Moments')
-            line = next(fd)
-            assert line.split() == ['Ion', 'mz']
-            # Reading  Local Magnetic Moments
-            mag_moment = []
-            for line in fd:
-                if line == '\n':
-                    break  # there is no more thing to search for
-                line = line.replace('\n', ' ')
-                values = line.split()
-                mag_moment.append(float(values[-1]))
-
-            self.results['magmoms'] = np.array(mag_moment, dtype=float)
-        else:
-            self.results['magmom'] = 0.0
-            self.results['magmoms'] = np.zeros(len(self.get_atoms()))
-
-        # Read dipole data
-        try:
-            line = search('Dipole:')
-        except ValueError:
-            pass
-        else:
-            assert line.split()[-1] == '[Debye]'
-            dipole = [float(next(fd).split()[-1]) for i in range(3)]
-            self.results['dipole'] = np.array(dipole) * Debye
-
-        try:
-            line = search('Forces')
-        except ValueError:
-            pass
-        else:
-            forceunitspec = line.split()[-1]
-            if energy_unitspec == '[eV]':
-                assert forceunitspec == '[eV/A]'
-                forceunit = eV / Angstrom
-            else:
-                assert forceunitspec == '[H/b]'
-                forceunit = Hartree / Bohr
-            forces = []
-            line = next(fd)
-            assert line.strip().startswith('Ion')
-            for line in fd:
-                if line.strip().startswith('---'):
-                    break
-                tokens = line.split()[-3:]
-                forces.append([float(f) for f in tokens])
-            self.results['forces'] = np.array(forces) * forceunit
+        self.results.update(read_static_info(fd))
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
