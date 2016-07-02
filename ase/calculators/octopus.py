@@ -227,13 +227,11 @@ def kwargs2cell(kwargs):
 
 
 def boxshape_is_ase_compatible(kwargs):
-    boxshape = kwargs.get('boxshape')
+    pdims = int(kwargs.get('periodicdimensions', 0))
+    default_boxshape = 'parallelepiped' if pdims > 0 else 'minimum'
+    boxshape = kwargs.get('boxshape', default_boxshape).lower()
     # XXX add support for experimental keyword 'latticevectors'
-    if boxshape == 'parallelepiped':
-        return True
-    else:
-        pdims = int(kwargs.get('periodicdimensions', 0))
-        return boxshape is None and pdims > 0
+    return boxshape == 'parallelepiped'
 
 
 def kwargs2atoms(kwargs, directory=None):
@@ -395,12 +393,13 @@ def kwargs2atoms(kwargs, directory=None):
         atoms.pbc = pbc
 
     if cell is not None and adjust_positions_by_half_cell:
-        atoms.positions[:, :] += np.array(cell)[None, :] / 2.0
+        nonpbc = (atoms.pbc == 0)
+        atoms.positions[:, nonpbc] += np.array(cell)[None, nonpbc] / 2.0
 
     return atoms, kwargs
 
 
-def atoms2kwargs(atoms):
+def atoms2kwargs(atoms, use_ase_cell):
     kwargs = {}
 
     kwargs['units'] = 'ev_angstrom'
@@ -410,15 +409,19 @@ def atoms2kwargs(atoms):
     # kwargs['boxshape'] = 'parallelepiped'
 
     # TODO LatticeVectors parameter for non-orthogonal cells
-    Lsize = 0.5 * np.diag(atoms.cell).copy()
-    kwargs['lsize'] = [[repr(size) for size in Lsize]]
+    if use_ase_cell:
+        Lsize = 0.5 * np.diag(atoms.cell).copy()
+        kwargs['lsize'] = [[repr(size) for size in Lsize]]
 
-    # ASE uses (0...cell) while Octopus uses -L/2...L/2.
-    # Lsize is really cell / 2, and we have to adjust our
-    # positions by subtracting Lsize (see construction of the coords
-    # block).
-    positions = atoms.positions.copy()
-    positions -= Lsize[None, :]
+        # ASE uses (0...cell) while Octopus uses -L/2...L/2.
+        # Lsize is really cell / 2, and we have to adjust our
+        # positions by subtracting Lsize (see construction of the coords
+        # block) in non-periodic directions.
+        nonpbc = (atoms.pbc == 0)
+        positions = atoms.positions.copy()
+        positions[:, nonpbc] -= Lsize[None, nonpbc]
+    else:
+        positions = atoms.positions
 
     coord_block = [[repr(sym)] + list(map(repr, pos))
                    for sym, pos in zip(atoms.get_chemical_symbols(),
@@ -464,17 +467,16 @@ def generate_input(atoms, kwargs, normalized2pretty):
     else:
         setvar('units', 'ev_angstrom')
 
-    atomskwargs = atoms2kwargs(atoms)
-
-    # Use cell from Atoms object unless user specified BoxShape
-    # use_ase_box = 'boxshape' not in kwargs
-    # if 'boxshape' in kwargs:
-    # if use_ase_box:
-    #    setvar('boxshape', atomskwargs['boxshape'])
-    # Use Lsize no matter what.
     assert 'lsize' not in kwargs
-    lsizeblock = list2block('LSize', atomskwargs['lsize'])
-    extend(lsizeblock)
+
+    defaultboxshape = 'parallelepiped' if atoms.pbc.any() else 'minimum'
+    boxshape = kwargs.get('boxshape', defaultboxshape).lower()
+    use_ase_cell = (boxshape == 'parallelepiped')
+    atomskwargs = atoms2kwargs(atoms, use_ase_cell)
+
+    if use_ase_cell:
+        lsizeblock = list2block('LSize', atomskwargs['lsize'])
+        extend(lsizeblock)
 
     # Allow override or issue errors?
     pdim = 'periodicdimensions'
