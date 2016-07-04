@@ -599,12 +599,7 @@ def read_static_info_energy(fd, energy_unit):
 def read_static_info(fd):
     results = {}
 
-    recognize_headers = {'kpts': 'Number of symmetry-reduced k-points',
-                         'states': 'Eigenvalues [',
-                         'energy': 'Energy [',
-                         'forces': 'Forces on the ions ['}
-
-    def get_energy_unit(line):  # title [unit]: ---> unit
+    def get_energy_unit(line):  # Convert "title [unit]": ---> unit
         return {'[eV]': eV, '[H]': Hartree}[line.split()[1].rstrip(':')]
 
     for line in fd:
