@@ -25,10 +25,12 @@ if sys.version_info[0] == 3:
     import builtins
     exec_ = getattr(builtins, 'exec')
     basestring = str
+    from io import StringIO
 else:
     def exec_(code, dct):
         exec('exec code in dct')
     basestring = basestring
+    from StringIO import StringIO
     
 if sys.version_info >= (2, 7):
     from importlib import import_module
