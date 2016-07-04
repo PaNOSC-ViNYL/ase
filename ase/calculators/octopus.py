@@ -702,6 +702,7 @@ class Octopus(FileIOCalculator):
                  atoms=None,
                  command='octopus',
                  ignore_troublesome_keywords=None,
+                 check_keywords=True,
                  _autofix_outputformats=False,
                  **kwargs):
         """Create Octopus calculator.
@@ -716,13 +717,17 @@ class Octopus(FileIOCalculator):
         # This makes us able to robustly construct the input file
         # in the face of changing octopus versions, and also of
         # early partial verification of user input.
-        try:
-            octopus_keywords = get_octopus_keywords()
-        except OSError as err:
-            msg = ('Could not obtain Octopus keyword list from '
-                   'command oct-help: %s.  Octopus not installed in '
-                   'accordance with expectations.' % err)
-            raise OSError(msg)
+        if check_keywords:
+            try:
+                octopus_keywords = get_octopus_keywords()
+            except OSError as err:
+                msg = ('Could not obtain Octopus keyword list from '
+                       'command oct-help: %s.  Octopus not installed in '
+                       'accordance with expectations.  '
+                       'Use check_octopus_keywords=False to override.' % err)
+                raise OSError(msg)
+        else:
+            octopus_keywords = None
         self.octopus_keywords = octopus_keywords
         self._autofix_outputformats = _autofix_outputformats
 
@@ -760,7 +765,8 @@ class Octopus(FileIOCalculator):
     def set(self, **kwargs):
         """Set octopus input file parameters."""
         kwargs = normalize_keywords(kwargs)
-        self.check_keywords_exist(kwargs)
+        if self.octopus_keywords is not None:
+            self.check_keywords_exist(kwargs)
 
         for keyword in kwargs:
             if keyword in self.troublesome_keywords:
@@ -995,7 +1001,11 @@ class Octopus(FileIOCalculator):
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
                                      system_changes=system_changes)
-        txt = generate_input(atoms, self.kwargs, self.octopus_keywords)
+        octopus_keywords = self.octopus_keywords
+        if octopus_keywords is None:
+            # Will not do automatic pretty capitalization
+            octopus_keywords = self.kwargs
+        txt = generate_input(atoms, self.kwargs, octopus_keywords)
         fd = open(self._getpath('inp'), 'w')
         fd.write(txt)
         fd.close()
@@ -1012,7 +1022,8 @@ class Octopus(FileIOCalculator):
         fd = open(inp_path)
         names, values = parse_input_file(fd)
         kwargs = normalize_keywords(dict(zip(names, values)))
-        self.check_keywords_exist(kwargs)
+        if self.octopus_keywords is not None:
+            self.check_keywords_exist(kwargs)
 
         self.atoms, kwargs = kwargs2atoms(kwargs)
         self.kwargs.update(kwargs)
