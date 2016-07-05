@@ -160,8 +160,10 @@ def read_gpaw_out(fileobj, index):
         except ValueError:
             dipole = None
         else:
-            line = lines[ii].replace(']', '').replace('[', '')
-            dipole = np.array([float(c) for c in line.split()[-3:]])
+            line = lines[ii]
+            for x in '()[],':
+                line = line.replace(x, '')
+            dipole = np.array([float(c) for c in line.split()[2:5]])
 
         try:
             ii = index_startswith(lines, 'local magnetic moments')
