@@ -360,9 +360,11 @@ class Reader:
         """Return special tag string."""
         return self._tag
         
-    def __dir__(self):
-        return self._data.keys()  # needed for tab-completion
-
+    def keys(self):
+        return self._data.keys()
+    
+    __dir__ = keys  # needed for tab-completion
+    
     def __getattr__(self, attr):
         value = self._data[attr]
         if isinstance(value, NDArrayReader):
@@ -386,9 +388,11 @@ class Reader:
         except KeyError:
             return value
             
-    def proxy(self, name):
+    def proxy(self, name, *indices):
         value = self._data[name]
         assert isinstance(value, NDArrayReader)
+        if indices:
+            return value.proxy(*indices)
         return value
 
     def __len__(self):
@@ -440,6 +444,9 @@ class NDArrayReader:
         self.itemsize = dtype.itemsize
         self.size = np.prod(self.shape)
         self.nbytes = self.size * self.itemsize
+
+        self.scale = 1.0
+        self.length_of_last_dimension = None
         
     def __len__(self):
         return int(self.shape[0])  # Python-2.6 needs int
@@ -462,8 +469,24 @@ class NDArrayReader:
             a = a[::step].copy()
         if self.little_endian != np.little_endian:
             a.byteswap(True)
+        if self.length_of_last_dimension is not None:
+            a = a[..., :self.length_of_last_dimension]
+        if self.scale != 1.0:
+            a *= self.scale
         return a
 
+    def proxy(self, *indices):
+        stride = self.size // len(self)
+        start = 0
+        for i, index in enumerate(indices):
+            start += stride * index
+            stride /= self.shape[i + 1]
+        offset = self.offset + start
+        p = NDArrayReader(self.fd, self.shape[i + 1:], self.dtype,
+                          offset, self.little_endian)
+        p.scale = self.scale
+        return p
+        
         
 def print_aff_info(filename, index=None, verbose=False):
     b = affopen(filename, 'r')
