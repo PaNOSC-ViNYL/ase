@@ -102,6 +102,7 @@ def read_gpaw_out(fileobj, index):
             assert (line.startswith('zero kelvin:') or
                     line.startswith('extrapolated:'))
             e = float(line.split()[-1])
+
         try:
             ii = index_startswith(lines, 'fermi level')
         except ValueError:
@@ -180,6 +181,16 @@ def read_gpaw_out(fileobj, index):
             f = None
         else:
             f, i = read_forces(lines, ii)
+
+        try:
+            ii = index_startswith(lines, 'vdw correction:')
+        except ValueError:
+            pass
+        else:
+            line = lines[ii + 1]
+            assert line.startswith('energy:')
+            e = float(line.split()[-1])
+            f, i = read_forces(lines, ii + 3)
 
         if len(images) > 0 and e is None:
             break
