@@ -233,18 +233,18 @@ class Pourbaix:
             print_results(zip(names, result.x, energies))
                     
         return result.x, result.fun
-        
+
     def diagram(self, U, pH, ax=None):
         """Calculate Pourbaix diagram.
-        
+
         U: list of float
             Potentials in V.
         pH: list of float
             pH values.
-        ax: matplotlib Axis object
+        ax: matplotlib axes object
             Create plot.
         """
-        
+
         a = np.empty((len(U), len(pH)), int)
         a[:] = -1
         colors = {}
@@ -265,7 +265,7 @@ class Pourbaix:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
-        if ax != None:
+        if ax is not None:
             import matplotlib.cm as cm
             ax.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
             for x, y, name in text:
@@ -274,9 +274,9 @@ class Pourbaix:
             ax.set_ylabel('potential [V]')
             ax.set_xlim(min(pH), max(pH))
             ax.set_ylim(min(U), max(U))
-        
+
         return a, compositions, text
-        
+
     def colorfunction(self, U, pH, colors):
         coefs, energy = self.decompose(U, pH, verbose=False)
         indices = tuple(sorted(np.where(abs(coefs) > 1e-7)[0]))
@@ -415,22 +415,22 @@ class PhaseDiagram:
             print_results(results)
             
         return energy, indices, np.array(coefs)
-        
+
     def plot(self, ax, dims=None, show=True):
         """Make 2-d or 3-d plot of datapoints and convex hull.
-        
+
         Default is 2-d for 2- and 3-component diagrams and 3-d for a
         4-component diagram.
         """
-        
+
         N = len(self.species)
-        
+
         if dims is None:
             if N <= 3:
                 dims = 2
             else:
                 dims = 3
-              
+
         if dims == 2:
             if N == 2:
                 self.plot2d2(ax)
@@ -474,14 +474,13 @@ class PhaseDiagram:
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j, k in self.simplices:
             ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
-        
+
     def plot3d3(self, ax):
         from mpl_toolkits.mplot3d import Axes3D
         Axes3D  # silence pyflakes
 
         x, y, e = self.points[:, 1:].T
 
-        ax = fig.gca(projection='3d')
         ax.scatter(x[self.hull], y[self.hull], e[self.hull],
                    c='g', marker='o')
         ax.scatter(x[~self.hull], y[~self.hull], e[~self.hull],
@@ -495,23 +494,23 @@ class PhaseDiagram:
             ax.plot(x[[i, j, k, i]],
                     y[[i, j, k, i]],
                     zs=e[[i, j, k, i]], c='b')
-        
+
         ax.set_xlim3d(0, 1)
         ax.set_ylim3d(0, 1)
         ax.view_init(azim=115, elev=30)
         ax.set_xlabel(self.symbols[1])
         ax.set_ylabel(self.symbols[2])
         ax.set_zlabel('energy [eV/atom]')
-        
-    def plot3d4(self):
+
+    def plot3d4(self, ax):
         from mpl_toolkits.mplot3d import Axes3D
         Axes3D  # silence pyflakes
-        
+
         x, y, z = self.points[:, 1:-1].T
         a = x / 2 + y + z / 2
         b = 3**0.5 * (x / 2 + y / 6)
         c = (2 / 3)**0.5 * z
- 
+
         ax = fig.gca(projection='3d')
         ax.scatter(a[self.hull], b[self.hull], c[self.hull],
                    c='g', marker='o')
@@ -526,13 +525,13 @@ class PhaseDiagram:
             ax.plot(a[[i, j, k, i, w, k, j, w]],
                     b[[i, j, k, i, w, k, j, w]],
                     zs=c[[i, j, k, i, w, k, j, w]], c='b')
-        
+
         ax.set_xlim3d(0, 1)
         ax.set_ylim3d(0, 1)
         ax.set_zlim3d(0, 1)
         ax.view_init(azim=115, elev=30)
-        
-        
+
+
 _aqueous = """\
 -525700,SiF6--
 -514100,Rh(SO4)3----
