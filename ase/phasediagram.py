@@ -416,20 +416,28 @@ class PhaseDiagram:
             
         return energy, indices, np.array(coefs)
 
-    def plot(self, ax, dims=None, show=True):
+    def plot(self, ax=None, dims=None, show=True):
         """Make 2-d or 3-d plot of datapoints and convex hull.
 
         Default is 2-d for 2- and 3-component diagrams and 3-d for a
         4-component diagram.
         """
+        import matplotlib.pyplot as plt
 
         N = len(self.species)
 
         if dims is None:
             if N <= 3:
                 dims = 2
+                projection = None
             else:
+                from mpl_toolkits.mplot3d import Axes3D
+                Axes3D  # silence pyflakes
                 dims = 3
+                projection = '3d'
+
+        if ax is None:
+            ax = plt.gca(projection=projection)
 
         if dims == 2:
             if N == 2:
@@ -447,6 +455,7 @@ class PhaseDiagram:
             else:
                 raise ValueError('Can only make 3-d plots for 3 and 4 '
                                  'component systems!')
+        return ax
 
     def plot2d2(self, ax):
         x, e = self.points[:, 1:].T
@@ -476,9 +485,6 @@ class PhaseDiagram:
             ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
 
     def plot3d3(self, ax):
-        from mpl_toolkits.mplot3d import Axes3D
-        Axes3D  # silence pyflakes
-
         x, y, e = self.points[:, 1:].T
 
         ax.scatter(x[self.hull], y[self.hull], e[self.hull],
@@ -503,15 +509,11 @@ class PhaseDiagram:
         ax.set_zlabel('energy [eV/atom]')
 
     def plot3d4(self, ax):
-        from mpl_toolkits.mplot3d import Axes3D
-        Axes3D  # silence pyflakes
-
         x, y, z = self.points[:, 1:-1].T
         a = x / 2 + y + z / 2
         b = 3**0.5 * (x / 2 + y / 6)
         c = (2 / 3)**0.5 * z
 
-        ax = fig.gca(projection='3d')
         ax.scatter(a[self.hull], b[self.hull], c[self.hull],
                    c='g', marker='o')
         ax.scatter(a[~self.hull], b[~self.hull], c[~self.hull],
