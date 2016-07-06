@@ -173,7 +173,7 @@ class Pourbaix:
         """Decompose material.
         
         U: float
-            Potential in eV.
+            Potential in V.
         pH: float
             pH value.
         verbose: bool
@@ -234,17 +234,15 @@ class Pourbaix:
                     
         return result.x, result.fun
         
-    def diagram(self, U, pH, plot=True, show=True):
+    def diagram(self, U, pH, ax=None):
         """Calculate Pourbaix diagram.
         
         U: list of float
-            Potentials in eV.
+            Potentials in V.
         pH: list of float
             pH values.
-        plot: bool
+        ax: matplotlib Axis object
             Create plot.
-        show: bool
-            Show plot.
         """
         
         a = np.empty((len(U), len(pH)), int)
@@ -267,18 +265,15 @@ class Pourbaix:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
-        if plot:
-            import matplotlib.pyplot as plt
+        if ax != None:
             import matplotlib.cm as cm
-            plt.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
+            ax.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
             for x, y, name in text:
-                plt.text(y, x, name, horizontalalignment='center')
-            plt.xlabel('pH')
-            plt.ylabel('potential [eV]')
-            plt.xlim(min(pH), max(pH))
-            plt.ylim(min(U), max(U))
-            if show:
-                plt.show()
+                ax.text(y, x, name, horizontalalignment='center')
+            ax.set_xlabel('pH')
+            ax.set_ylabel('potential [V]')
+            ax.set_xlim(min(pH), max(pH))
+            ax.set_ylim(min(U), max(U))
         
         return a, compositions, text
         
@@ -421,7 +416,7 @@ class PhaseDiagram:
             
         return energy, indices, np.array(coefs)
         
-    def plot(self, dims=None, show=True):
+    def plot(self, ax, dims=None, show=True):
         """Make 2-d or 3-d plot of datapoints and convex hull.
         
         Default is 2-d for 2- and 3-component diagrams and 3-d for a
@@ -438,62 +433,54 @@ class PhaseDiagram:
               
         if dims == 2:
             if N == 2:
-                self.plot2d2()
+                self.plot2d2(ax)
             elif N == 3:
-                self.plot2d3()
+                self.plot2d3(ax)
             else:
                 raise ValueError('Can only make 2-d plots for 2 and 3 '
                                  'component systems!')
         else:
             if N == 3:
-                self.plot3d3()
+                self.plot3d3(ax)
             elif N == 4:
-                self.plot3d4()
+                self.plot3d4(ax)
             else:
                 raise ValueError('Can only make 3-d plots for 3 and 4 '
                                  'component systems!')
-                
-        if show:
-            import matplotlib.pyplot as plt
-            plt.show()
-            
-    def plot2d2(self):
-        import matplotlib.pyplot as plt
+
+    def plot2d2(self, ax):
         x, e = self.points[:, 1:].T
-        plt.plot(x[self.hull], e[self.hull], 'og')
-        plt.plot(x[~self.hull], e[~self.hull], 'sr')
+        ax.plot(x[self.hull], e[self.hull], 'og')
+        ax.plot(x[~self.hull], e[~self.hull], 'sr')
         for a, b, ref in zip(x, e, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
-            plt.text(a, b, name,
+            ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j in self.simplices:
-            plt.plot(x[[i, j]], e[[i, j]], '-b')
+            ax.plot(x[[i, j]], e[[i, j]], '-b')
 
-        plt.xlabel(self.symbols[1])
-        plt.ylabel('energy [eV/atom]')
+        ax.set_xlabel(self.symbols[1])
+        ax.set_ylabel('energy [eV/atom]')
 
-    def plot2d3(self):
-        import matplotlib.pyplot as plt
+    def plot2d3(self, ax):
         x, y = self.points[:, 1:-1].T.copy()
         x += y / 2
         y *= 3**0.5 / 2
-        plt.plot(x[self.hull], y[self.hull], 'og')
-        plt.plot(x[~self.hull], y[~self.hull], 'sr')
+        ax.plot(x[self.hull], y[self.hull], 'og')
+        ax.plot(x[~self.hull], y[~self.hull], 'sr')
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
-            plt.text(a, b, name,
+            ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j, k in self.simplices:
-            plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
+            ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
         
-    def plot3d3(self):
-        import matplotlib.pyplot as plt
+    def plot3d3(self, ax):
         from mpl_toolkits.mplot3d import Axes3D
         Axes3D  # silence pyflakes
 
         x, y, e = self.points[:, 1:].T
 
-        fig = plt.figure()
         ax = fig.gca(projection='3d')
         ax.scatter(x[self.hull], y[self.hull], e[self.hull],
                    c='g', marker='o')
@@ -517,7 +504,6 @@ class PhaseDiagram:
         ax.set_zlabel('energy [eV/atom]')
         
     def plot3d4(self):
-        import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D
         Axes3D  # silence pyflakes
         
@@ -526,7 +512,6 @@ class PhaseDiagram:
         b = 3**0.5 * (x / 2 + y / 6)
         c = (2 / 3)**0.5 * z
  
-        fig = plt.figure()
         ax = fig.gca(projection='3d')
         ax.scatter(a[self.hull], b[self.hull], c[self.hull],
                    c='g', marker='o')
