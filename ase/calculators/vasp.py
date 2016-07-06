@@ -535,7 +535,9 @@ class Vasp(Calculator):
                 raise NotImplementedError(
                     self._potcar_unguessable_string)
 
-        if (p['xc'].lower() == 'lda' and p['pp'].lower() != 'lda'):
+        if (p['xc'] is not None
+            and p['xc'].lower() == 'lda'
+            and p['pp'].lower() != 'lda'):
             warnings.warn("XC is set to LDA, but PP is set to "
                           "{0}. \nThis calculation is using the {0} "
                           "POTCAR set. \n Please check that this is "
