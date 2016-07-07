@@ -438,6 +438,10 @@ class PhaseDiagram:
 
         if ax is None:
             ax = plt.gca(projection=projection)
+        else:
+            if dims == 3 and not hasattr(ax, 'set_zlim'):
+                raise ValueError('Cannot make 3d plot unless axes projection '
+                                 'is 3d')
 
         if dims == 2:
             if N == 2:
