@@ -234,17 +234,21 @@ class Pourbaix:
                     
         return result.x, result.fun
 
-    def diagram(self, U, pH, ax=None):
+    def diagram(self, U, pH, plot=True, show=True, ax=None):
         """Calculate Pourbaix diagram.
 
         U: list of float
             Potentials in V.
         pH: list of float
             pH values.
-        ax: matplotlib axes object
+        plot: bool
             Create plot.
+        show: bool
+            Open graphical window and show plot.
+        ax: matplotlib axes object
+            When creating plot, plot onto the given axes object.
+            If none given, plot onto the current one.
         """
-
         a = np.empty((len(U), len(pH)), int)
         a[:] = -1
         colors = {}
@@ -265,8 +269,11 @@ class Pourbaix:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
-        if ax is not None:
+        if plot:
+            import matplotlib.pyplot as plt
             import matplotlib.cm as cm
+            if ax is None:
+                ax = plt.gca()
             ax.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
             for x, y, name in text:
                 ax.text(y, x, name, horizontalalignment='center')
@@ -274,6 +281,8 @@ class Pourbaix:
             ax.set_ylabel('potential [V]')
             ax.set_xlim(min(pH), max(pH))
             ax.set_ylim(min(U), max(U))
+            if show:
+                plt.show()
 
         return a, compositions, text
 
@@ -459,6 +468,8 @@ class PhaseDiagram:
             else:
                 raise ValueError('Can only make 3-d plots for 3 and 4 '
                                  'component systems!')
+        if show:
+            plt.show()
         return ax
 
     def plot2d2(self, ax):
