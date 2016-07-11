@@ -275,7 +275,15 @@ class Pourbaix:
             import matplotlib.cm as cm
             if ax is None:
                 ax = plt.gca()
-            ax.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
+
+            # rasterized pcolormesh has a bug which leaves a tiny
+            # white border.  Unrasterized pcolormesh produces
+            # unreasonably large files.  Avoid this by using the more
+            # general imshow.
+            ax.imshow(a, cmap=cm.Accent,
+                      extent=[min(pH), max(pH), min(U), max(U)],
+                      origin='lower',
+                      aspect='auto')
 
             for x, y, name in text:
                 ax.text(y, x, name, horizontalalignment='center')
