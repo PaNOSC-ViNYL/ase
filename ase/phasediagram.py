@@ -269,12 +269,14 @@ class Pourbaix:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
+
         if plot:
             import matplotlib.pyplot as plt
             import matplotlib.cm as cm
             if ax is None:
                 ax = plt.gca()
             ax.pcolormesh(pH, U, a, cmap=cm.Accent, rasterized=True)
+
             for x, y, name in text:
                 ax.text(y, x, name, horizontalalignment='center')
             ax.set_xlabel('pH')
@@ -438,14 +440,15 @@ class PhaseDiagram:
         if dims is None:
             if N <= 3:
                 dims = 2
-                projection = None
             else:
-                from mpl_toolkits.mplot3d import Axes3D
-                Axes3D  # silence pyflakes
                 dims = 3
-                projection = '3d'
 
         if ax is None:
+            projection = None
+            if dims == 3:
+                projection = '3d'
+                from mpl_toolkits.mplot3d import Axes3D
+                Axes3D  # silence pyflakes
             ax = plt.gca(projection=projection)
         else:
             if dims == 3 and not hasattr(ax, 'set_zlim'):
