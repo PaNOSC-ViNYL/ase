@@ -31,7 +31,8 @@ else:
         exec('exec code in dct')
     basestring = basestring
     from StringIO import StringIO
-    
+StringIO  # appease pyflakes
+
 if sys.version_info >= (2, 7):
     from importlib import import_module
 else:
