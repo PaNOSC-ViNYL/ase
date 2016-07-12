@@ -1,3 +1,5 @@
+import numpy as np
+
 from ase.io import read, write
 
 # This reads and writes XSF examples taken from the
@@ -7,8 +9,53 @@ from ase.io import read, write
 #
 # See the data below
 
-def main():
+def check(name, xsf_text, check_data):
+    fname = '%s.xsf' % name
+    fd = open(fname, 'w')
+    fd.write(xsf_text)
+    fd.close()
 
+    print('Read: %s' % fname)
+    images = read(fname + '@:', read_data=check_data)
+    if check_data:
+        array, images = images
+
+    assert isinstance(images, list)
+    print('  Images: %s' % len(images))
+    for image in images:
+        print('    %s' % image)
+
+    # Now write the same system back out:
+    outfname = 'out.%s' % fname
+    if check_data:
+        write(outfname, images, data=array)
+    else:
+        write(outfname, images)
+
+    # ...and read it back in:
+    images2 = read(outfname + '@:', read_data=check_data)
+    if check_data:
+        array2, images2 = images2
+
+    # It should be the same as the original file.
+    assert images == images2
+    if check_data:
+        print(array)
+        print(array2)
+        assert np.abs(array - array2).max() < 1e-13
+
+    # In fact, if we write it back out again, it should be
+    # byte-wise identical to the other file that we just wrote.
+    # So do that:
+    outfname2 = 'doubleout.%s' % fname
+    if check_data:
+        write(outfname2, images2, data=array2)
+    else:
+        write(outfname2, images2)
+    assert open(outfname).read() == open(outfname2).read()
+
+
+def main():
     files = {'01-comments': f1,
              '02-atoms': f2,
              '03-periodic': f3,
@@ -21,34 +68,11 @@ def main():
     names = list(sorted(files.keys()))
 
     for name in names:
-        fname = '%s.xsf' % name
-        fd = open(fname, 'w')
-        fd.write(files[name])
-        fd.close()
-
-        print('Read: %s' % fname)
-        images = read(fname + '@:')
-        assert isinstance(images, list)
-        print('  Images: %s' % len(images))
-        for image in images:
-            print('    %s' % image)
-
-        # Now write the same system back out:
-        outfname = 'out.%s' % fname
-        write(outfname, images)
-
-        # ...and read it back in:
-        images2 = read(outfname + '@:')
-
-        # It should be the same as the original file.
-        assert images == images2
-
-        # In fact, if we write it back out again, it should be
-        # byte-wise identical to the other file that we just wrote.
-        # So do that:
-        outfname2 = 'doubleout.%s' % fname
-        write(outfname2, images2)
-        assert open(outfname).read() == open(outfname2).read()
+        check(name, files[name], check_data=False)
+        check('%s-ignore-datagrid' % name, files[name] + datagrid,
+              check_data=False)
+        check('%s-read-datagrid' % name, files[name] + datagrid,
+              check_data=True)
 
 
 f1 = """
@@ -205,6 +229,47 @@ PRIMCOORD 2
    2 1
    16      0.0000000     0.0000000     0.00000000
    30      1.5905000    -1.5905000    -1.59050000
+"""
+
+datagrid = """BEGIN_BLOCK_DATAGRID_3D                        
+   my_first_example_of_3D_datagrid      
+   BEGIN_DATAGRID_3D_this_is_3Dgrid#1           
+     5  5  5                              
+     0.0 0.0 0.0                          
+     1.0 0.0 0.0                          
+     0.0 1.0 0.0                                
+     0.0 0.0 1.0                          
+       0.000  1.000  2.000  5.196  8.000        
+       1.000  1.414  2.236  5.292  8.062        
+       2.000  2.236  2.828  5.568  8.246        
+       3.000  3.162  3.606  6.000  8.544        
+       4.000  4.123  4.472  6.557  8.944        
+                                        
+       1.000  1.414  2.236  5.292  8.062        
+       1.414  1.732  2.449  5.385  8.124        
+       2.236  2.449  3.000  5.657  8.307        
+       3.162  3.317  3.742  6.083  8.602        
+       4.123  4.243  4.583  6.633  9.000        
+                                        
+       2.000  2.236  2.828  5.568  8.246        
+       2.236  2.449  3.000  5.657  8.307        
+       2.828  3.000  3.464  5.916  8.485        
+       3.606  3.742  4.123  6.325  8.775        
+       4.472  4.583  4.899  6.856  9.165        
+                                        
+       3.000  3.162  3.606  6.000  8.544        
+       3.162  3.317  3.742  6.083  8.602        
+       3.606  3.742  4.123  6.325  8.775        
+       4.243  4.359  4.690  6.708  9.055        
+       5.000  5.099  5.385  7.211  9.434        
+                                        
+       4.000  4.123  4.472  6.557  8.944        
+       4.123  4.243  4.583  6.633  9.000        
+       4.472  4.583  4.899  6.856  9.165        
+       5.000  5.099  5.385  7.211  9.434        
+       5.657  5.745  6.000  7.681  9.798        
+   END_DATAGRID_3D                      
+ END_BLOCK_DATAGRID_3D          
 """
 
 main()

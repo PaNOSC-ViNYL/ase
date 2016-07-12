@@ -102,13 +102,16 @@ def write_xsf(fileobj, images, data=None):
     fileobj.write('  %f %f %f\n' % tuple(origin))
 
     for i in range(3):
+        # XXXX is this not just supposed to be the cell?
+        # What's with the strange division?
+        # This disagrees with the output of Octopus.  Investigate
         fileobj.write('  %f %f %f\n' %
                       tuple(cell[i] * (shape[i] + 1) / shape[i]))
 
-    for x in range(shape[2]):
-        for y in range(shape[1]):
+    for k in range(shape[2]):
+        for j in range(shape[1]):
             fileobj.write('   ')
-            fileobj.write(' '.join(['%f' % d for d in data[x, y]]))
+            fileobj.write(' '.join(['%f' % d for d in data[:, j, k]]))
             fileobj.write('\n')
         fileobj.write('\n')
 
@@ -182,7 +185,7 @@ def iread_xsf(fileobj, read_data=False):
             assert line.startswith('ATOMS'), line
             line = readline()
             lines = []
-            while line[:1].isdigit():
+            while not (line.startswith('ATOMS') or line.startswith('BEGIN')):
                 lines.append(line)
                 try:
                     line = readline()
@@ -230,15 +233,23 @@ def iread_xsf(fileobj, read_data=False):
         assert line.startswith('BEGIN_DATAGRID_3D')
 
         shape = [int(x) for x in readline().split()]
+        assert len(shape) == 3
         readline()  # start
+        # XXX what to do about these?
 
         for i in range(3):
-            readline()
+            readline()  # Skip 3x3 matrix for some reason
 
-        n_data = shape[0] * shape[1] * shape[2]
-        data = np.array([float(readline())
-                         for s in range(n_data)]).reshape(shape[::-1])
-        data = np.swapaxes(data, 0, 2)
+        npoints = np.prod(shape)
+
+        data = []
+        line = readline()  # First line of data
+        while not line.startswith('END_DATAGRID_3D'):
+            data.extend([float(x) for x in line.split()])
+            line = readline()
+        assert len(data) == npoints
+        data = np.array(data, float).reshape(shape[::-1]).T
+        # Note that data array is Fortran-ordered
         yield data
 
 
