@@ -1,6 +1,4 @@
 from ase.io import read, write
-from glob import glob
-from StringIO import StringIO
 
 # This reads and writes XSF examples taken from the
 # specification of the XSF format:
