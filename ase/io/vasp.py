@@ -478,7 +478,9 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     except ET.ParseError as parse_error:
         if atoms_init is None:
             raise parse_error
-        elif not calculation:
+        if calculation[-1].find('energy') is None:
+            calculation = calculation[:-1]
+        if not calculation:
             yield atoms_init
 
     if calculation:
