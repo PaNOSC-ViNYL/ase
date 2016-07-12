@@ -119,7 +119,19 @@ class Parameters(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
-
+        
+    def update(self, other=None, **kwargs):
+        if isinstance(other, dict):
+            self.update(other.items())
+        else:
+            for key, value in other:
+                if isinstance(value, dict):
+                    self[key].update(value)
+                else:
+                    self[key] = value
+        if kwargs:
+            self.update(kwargs)
+            
     @classmethod
     def read(cls, filename):
         """Read parameters from file."""
@@ -129,7 +141,7 @@ class Parameters(dict):
         return parameters
 
     def tostring(self):
-        keys = sorted(self.keys())
+        keys = sorted(self)
         return 'dict(' + ',\n     '.join(
             '%s=%r' % (key, self[key]) for key in keys) + ')\n'
 
@@ -239,10 +251,19 @@ class Calculator:
         return Parameters(copy.deepcopy(self.default_parameters))
 
     def todict(self):
-        default = self.get_default_parameters()
-        return dict((key, value)
-                    for key, value in self.parameters.items()
-                    if key not in default or value != default[key])
+        defaults = self.get_default_parameters()
+        dct = {}
+        for key, value in self.parameters.items():
+            default = defaults[key]
+            if key not in defaults or value != default:
+                if hasattr(value, 'todict'):
+                    value = value.todict()
+                elif isinstance(value, dict):
+                    # Only keep values that are not default:
+                    value = dict((k, v)
+                                 for k, v in value.items() if v != default[k])
+                dct[key] = value
+        return dct
 
     def reset(self):
         """Clear all information from old calculation."""
@@ -307,13 +328,7 @@ class Calculator:
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                if isinstance(oldvalue, dict):
-                    # Special treatment for dictionary parameters:
-                    for name in value:
-                        if name not in oldvalue:
-                            raise KeyError(
-                                'Unknown subparameter "%s" in '
-                                'dictionary parameter "%s"' % (name, key))
+                if isinstance(oldvalue, dict) and isinstance(value, dict):
                     oldvalue.update(value)
                     value = oldvalue
                 changed_parameters[key] = value
@@ -383,11 +398,7 @@ class Calculator:
         if name not in self.results:
             if not allow_calculation:
                 return None
-            try:
-                self.calculate(atoms, [name], system_changes)
-            except Exception:
-                self.reset()
-                raise
+            self.calculate(atoms, [name], system_changes)
 
         if name == 'magmom' and 'magmom' not in self.results:
             return 0.0

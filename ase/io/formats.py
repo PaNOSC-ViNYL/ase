@@ -68,7 +68,7 @@ all_formats = {
     'gaussian': ('Gaussian com (input) file', '1S'),
     'gaussian-out': ('Gaussian output file', '1F'),
     'gen': ('DFTBPlus GEN format', '1F'),
-    'gpaw-out': ('GPAW text output', '+S'),
+    'gpaw-out': ('GPAW text output', '+F'),
     'gpw': ('GPAW restart-file', '1S'),
     'gromacs': ('Gromacs coordinates', '1S'),
     'gromos': ('Gromos96 geometry file', '1F'),
