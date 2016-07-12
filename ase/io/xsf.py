@@ -14,8 +14,7 @@ def write_xsf(fileobj, images, data=None):
     if not isinstance(images, (list, tuple)):
         images = [images]
 
-    nimages = len(images)
-    is_anim = nimages > 1
+    is_anim = len(images) > 1
 
     if is_anim:
         fileobj.write('ANIMSTEPS %d\n' % len(images))
