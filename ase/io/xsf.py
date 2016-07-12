@@ -116,7 +116,14 @@ def write_xsf(fileobj, images, data=None):
     fileobj.write('END_BLOCK_DATAGRID_3D\n')
 
 
-def read_xsf(fileobj, index=-1, read_data=False):
+def iread_xsf(fileobj, read_data=False):
+    """Yield images and optionally data from xsf file.
+
+    Yields image1, image2, ..., imageN[, data].
+
+    Images are Atoms objects and data is a numpy array.
+
+    Presently supports only a single 3D datagrid."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
@@ -150,7 +157,6 @@ def read_xsf(fileobj, index=-1, read_data=False):
         assert line.startswith('ATOMS'), line  # can also be ATOMS 1
         pbc = (False, False, False)
 
-    images = []
     cell = None
     for n in range(nimages):
         if any(pbc):
@@ -211,7 +217,7 @@ def read_xsf(fileobj, index=-1, read_data=False):
 
         if forces is not None:
             image.set_calculator(SinglePointCalculator(image, forces=forces))
-        images.append(image)
+        yield image
 
     if read_data:
         if any(pbc):
@@ -233,7 +239,13 @@ def read_xsf(fileobj, index=-1, read_data=False):
         data = np.array([float(readline())
                          for s in range(n_data)]).reshape(shape[::-1])
         data = np.swapaxes(data, 0, 2)
+        yield data
 
-        return data, images[index]
 
+def read_xsf(fileobj, index=-1, read_data=False):
+    images = list(iread_xsf(fileobj, read_data=read_data))
+    if read_data:
+        array = images[-1]
+        images = images[:-1]
+        return array, images[index]
     return images[index]
