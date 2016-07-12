@@ -2,8 +2,14 @@ from ase.io import read, write
 from glob import glob
 from StringIO import StringIO
 
+# This reads and writes XSF examples taken from the
+# specification of the XSF format:
+#
+#   http://www.xcrysden.org/doc/XSF.html
+#
+# See the data below
+
 def main():
-    # See data below
 
     files = {'01-comments': f1,
              '02-atoms': f2,
