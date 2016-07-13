@@ -6,5 +6,7 @@ master:
     - echo $HOME
     - echo $PWD
     - echo $PYTHONPATH
-    - PATH=$PATH:$PWD/tools PYTHONPATH=$PYTHONPATH:$PWD python -m ase.test
-    - PYTHONPATH=$PYTHONPATH:$PWD python ase/test/__init__.py
+    - cd ..
+    - PATH=$PATH:$PWD/ase/tools PYTHONPATH=$PWD/ase python -m ase.test
+    - cd ase
+    - PYTHONPATH=$PWD python ase/test/__init__.py

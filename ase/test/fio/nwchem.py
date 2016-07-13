@@ -1,6 +1,6 @@
 """Checks that writing and reading of NWChem input files is consistent."""
 
-from ase.structure import molecule
+from ase.build import molecule
 from ase.calculators.nwchem import NWChem
 from ase import io
 

@@ -15,38 +15,22 @@ reStructuredText_ markup language.
 Installing Docutils and Sphinx
 ==============================
 
-If you prefer to configure Sphinx in a vitual machine see
-:ref:`sphinx_vagrant`.
+.. highlight:: bash
 
-The reStructuredText_ parser that Sphinx needs, is part of the Docutils_
-project.  So, we need to install docutils and sphinx (version>= 1.1.3).
-
-.. _Docutils: http://docutils.sourceforge.net/
-
-
-Other requirements
-==================
-
-When building the documentation, a number of png-files are generated_.
-For that to work, you *may* need the following installed:
-
-* scipy
-* matplotlib
-* povray (optional)
-* dvipng
-* pdflatex
-* bibtex
-* AUCTex
-* fontconfig
-* convert (ImageMagick)
+If you do::
+    
+    $ pip install sphinx_rtd_theme --user
+    
+and add ``~/.local/bin`` to you :envvar:`PATH` environment variable, then
+you should be ready to go.  You may need the following installed, but they
+are not required: scipy, matplotlib, povray, dvipng, pdflatex, bibtex,
+AUCTex, fontconfig, convert (ImageMagick).
 
 
 .. _using_sphinx:
 
 Using Sphinx
 ============
-
-.. highlight:: bash
 
 First, you should take a look at the documentation for Sphinx_ and
 reStructuredText_.
@@ -65,7 +49,7 @@ This might take a long time the first time you do it.
 
    Make sure that you build the Sphinx documentation using the
    corresponding ASE version by setting the environment variables
-   :envvar:`$PYTHONPATH` and :envvar:`$PATH`.
+   :envvar:`PYTHONPATH` and :envvar:`PATH`.
 
 Create a branch for your work, make your changes to the ``.rst`` files, run
 :command:`make` again, check the results and if things
@@ -74,7 +58,7 @@ look ok, create a *merge request*::
     $ git checkout -b fixdoc
     $ idle index.rst
     $ make
-    $ firefox build/html/index.html
+    $ make browse
     $ git commit -am "..."
     $ git push -u origin fixdoc
 
@@ -107,7 +91,7 @@ We have a couple of extensions to Sphinx:
 
    This role is for inline LaTeX-style math.  Example:
    ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.  This role
-   is actually the default for ASE's documentation, so you can leave
+   is actually the default for ASE's documentation, so you should leave
    out the ``:math:`` part like here: ```\sin(x_n^2)```.
 
 
@@ -173,112 +157,3 @@ In your ``.emacs`` file.
 
 .. _reStructuredText extension: http://docutils.sourceforge.net/
                                 tools/editors/emacs/rst.el
-
-
-.. _sphinx_vagrant:
-
-Setting up development environment with Vagrant
-===============================================
-
-If you contribue documentation together with the
-code and tests (and you should) here is how you create a development environment
-on a virtual CentOS7 guest machine using Vagrant_. It takes about 10 minutes.
-
-1. install Vagrant_ on a host:
-
-   - on Windows 7:
-
-     - open command prompt (see http://windows.microsoft.com/en-us/windows/command-prompt-faq) and
-       create the C:\ase-develop directory::
-
-         cd C:\ase-develop
-
-     - download the following software under **C:\ase-develop**:
-
-       * http://the.earth.li/~sgtatham/putty/latest/x86/putty-0.64-installer.exe
-       * https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2.msi
-       * http://download.virtualbox.org/virtualbox/4.3.26/VirtualBox-4.3.26-98988-Win.exe
-
-     - install the downloaded software (you will need to click in order to agree to install the software)::
-
-         C:\ase-develop>vagrant_1.7.2.msi /passive
-         C:\ase-develop>putty-0.64-installer.exe /silent
-         C:\ase-develop>VirtualBox-4.3.26-98988-Win.exe --silent --extract --path .
-         C:\ase-develop>VirtualBox-4.3.26-98988-MultiArch_amd64.msi /passive
-
-     See https://github.com/Varying-Vagrant-Vagrants/VVV/wiki/Connect-to-Your-Vagrant-Virtual-Machine-with-PuTTY for configuring putty for Vagrant.
-
-     The machine should reboot.
-
-   - on Ubuntu/Debian:
-
-     - install virtualbox dependencies and vagrant::
-
-         $ sudo apt-get install -y vagrant
-
-     - add the **unprivileged** user to the `vboxusers` group::
-
-         $ whoami=`whoami`&& sudo usermod -a -G vboxusers $whoami
-
-   - on Fedora/RHEL/CentOS:
-
-     - on RHEL6/CentOS6 only: install virtualbox and EPEL repositories::
-
-         $ su -c "yum -y install wget"
-         $ su -c "wget http://download.virtualbox.org/virtualbox/rpm/rhel/virtualbox.repo -O /etc/yum.repos.d/virtualbox.repo"
-         $ su -c "yum -y install http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm"
-
-     - on Fedora only: install virtualbox repository::
-
-         $ su -c "yum -y install wget"
-         $ su -c "wget http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo -O /etc/yum.repos.d/virtualbox.repo"
-
-     - install virtualbox dependencies and vagrant::
-
-         $ su -c "yum -y install kernel kernel-devel kernel-headers dkms"
-         $ su -c "yum -y install https://dl.bintray.com/mitchellh/vagrant/vagrant_1.7.2_x86_64.rpm"
-
-     Reboot in order to get the latest kernel.
-
-     - install virtualbox and add the **unprivileged** user to the `vboxusers` group::
-
-         $ su -c "yum -y install VirtualBox-4.3"
-         $ whoami=`whoami`&& su -c "usermod -a -G vboxusers $whoami"
-
-   Logout and login in order for the user to get the `vboxusers` group permissions.
-
-2. as the **unprivileged** user, create the virtual guest::
-
-     $ cd /tmp
-     $ mkdir ase-develop
-     $ cd ase-develop
-     $ wget https://svn.fysik.dtu.dk/projects/ase/trunk/doc/development/Vagrantfile
-     $ vagrant up
-     $ vagrant ssh -- -X
-
-3. after you log in into the virtual guest in order to build ASE documentation do::
-
-     $ cd /vagrant
-     $ svn co https://svn.fysik.dtu.dk/projects/ase/trunk ase
-     $ cd ase/doc
-     $ PATH=/vagrant/ase/tools:$PATH PYTHONPATH=/vagrant/ase make
-
-.. note::
-
-    The ASE checkout is available on the host under **/tmp/ase-develop/ase**
-    and on the guest under **/vagrant/ase**.
-    If you need root access on the virtual guest do: **sudo su -**.
-
-4. deploy just built documentation into the virtual guest webserver::
-
-     $ su -c "cp -rpf /vagrant/ase/doc/build/html /var/www"
-     $ su -c "chown -R apache.apache /var/www/html"
-     $ su -c "systemctl reload httpd.service"
-
-5. you can access the documentation webpage from the host with::
-
-     $ firefox http://localhost:8080
-
-
-.. _Vagrant: https://www.vagrantup.com/
-

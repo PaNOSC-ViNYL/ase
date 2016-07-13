@@ -1,7 +1,7 @@
 import os
 
 from ase.test import NotAvailable
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.calculators.calculator import kpts2mp
 from ase.calculators.elk import ELK
 

@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 import ase.io
-from ase.lattice import bulk
+from ase.build import bulk
 
 # array data of shape (N, 1) squeezed down to shape (N, ) -- bug fixed
 # in commit r4541

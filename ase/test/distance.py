@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 
 from ase import Atoms, Atom
-from ase.utils.distance import distance
+from ase.geometry import distance
 
 # artificial structure
 org = Atoms('COPNS',

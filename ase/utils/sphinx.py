@@ -133,9 +133,7 @@ def creates():
                 if line.startswith('# creates:'):
                     yield dirpath, filename, [file.rstrip(',')
                                               for file in line.split()[2:]]
-        if '.svn' in dirnames:
-            dirnames.remove('.svn')
-        if 'build' in dirnames:
+        if 'build' in dirnames and dirpath == '.':
             dirnames.remove('build')
 
                         
@@ -211,7 +209,7 @@ def visual_inspection():
             ext = path.rsplit('.', 1)[1]
             if ext == 'pdf':
                 pdf.append(path)
-            elif ext in ['csv', 'txt', 'out']:
+            elif ext in ['csv', 'txt', 'out', 'css', 'LDA']:
                 text.append(path)
             else:
                 images.append(path)

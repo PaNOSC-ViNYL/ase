@@ -2,7 +2,6 @@ from __future__ import division, print_function
 import fractions
 import functools
 import re
-from distutils.version import LooseVersion
 
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -10,12 +9,6 @@ from scipy.spatial import ConvexHull
 import ase.units as units
 from ase.atoms import string2symbols
 from ase.utils import hill
-
-if LooseVersion(np.__version__) < '1.8':
-    def solve(A, B):
-        return np.array([np.linalg.solve(a, b) for a, b in zip(A, B)])
-else:
-    solve = np.linalg.solve
     
 _solvated = []
 
@@ -180,7 +173,7 @@ class Pourbaix:
         """Decompose material.
         
         U: float
-            Potential in eV.
+            Potential in V.
         pH: float
             pH value.
         verbose: bool
@@ -240,20 +233,22 @@ class Pourbaix:
             print_results(zip(names, result.x, energies))
                     
         return result.x, result.fun
-        
-    def diagram(self, U, pH, plot=True, show=True):
+
+    def diagram(self, U, pH, plot=True, show=True, ax=None):
         """Calculate Pourbaix diagram.
-        
+
         U: list of float
-            Potentials in eV.
+            Potentials in V.
         pH: list of float
             pH values.
         plot: bool
             Create plot.
         show: bool
-            Show plot.
+            Open graphical window and show plot.
+        ax: matplotlib axes object
+            When creating plot, plot onto the given axes object.
+            If none given, plot onto the current one.
         """
-        
         a = np.empty((len(U), len(pH)), int)
         a[:] = -1
         colors = {}
@@ -274,21 +269,33 @@ class Pourbaix:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
+
         if plot:
             import matplotlib.pyplot as plt
             import matplotlib.cm as cm
-            plt.pcolormesh(pH, U, a, cmap=cm.Accent)
+            if ax is None:
+                ax = plt.gca()
+
+            # rasterized pcolormesh has a bug which leaves a tiny
+            # white border.  Unrasterized pcolormesh produces
+            # unreasonably large files.  Avoid this by using the more
+            # general imshow.
+            ax.imshow(a, cmap=cm.Accent,
+                      extent=[min(pH), max(pH), min(U), max(U)],
+                      origin='lower',
+                      aspect='auto')
+
             for x, y, name in text:
-                plt.text(y, x, name, horizontalalignment='center')
-            plt.xlabel('pH')
-            plt.ylabel('potential [eV]')
-            plt.xlim(min(pH), max(pH))
-            plt.ylim(min(U), max(U))
+                ax.text(y, x, name, horizontalalignment='center')
+            ax.set_xlabel('pH')
+            ax.set_ylabel('potential [V]')
+            ax.set_xlim(min(pH), max(pH))
+            ax.set_ylim(min(U), max(U))
             if show:
                 plt.show()
-        
+
         return a, compositions, text
-        
+
     def colorfunction(self, U, pH, colors):
         coefs, energy = self.decompose(U, pH, verbose=False)
         indices = tuple(sorted(np.where(abs(coefs) > 1e-7)[0]))
@@ -394,19 +401,24 @@ class PhaseDiagram:
             
         # Find coordinates within each simplex:
         X = self.points[self.simplices, 1:-1] - point[1:] / N
-        D = X[:, 1:] - X[:, :1]
-        C = solve(D.transpose((0, 2, 1)), -X[:, 0])
-        
+
         # Find the simplex with positive coordinates that sum to
         # less than one:
-        ok = np.logical_and.reduce(C >= 0, axis=1) & (C.sum(axis=1) <= 1)
-        i = np.argmax(ok)
-        
+        for i, Y in enumerate(X):
+            try:
+                x = np.linalg.solve((Y[1:] - Y[:1]).T, -Y[0])
+            except np.linalg.linalg.LinAlgError:
+                continue
+            if (x >= 0).all() and x.sum() <= 1:
+                break
+        else:
+            assert False, X
+                
         indices = self.simplices[i]
         points = self.points[indices]
         
-        scaledcoefs = [1 - C[i].sum()]
-        scaledcoefs.extend(C[i])
+        scaledcoefs = [1 - x.sum()]
+        scaledcoefs.extend(x)
         
         energy = N * np.dot(scaledcoefs, points[:, -1])
         
@@ -422,81 +434,85 @@ class PhaseDiagram:
             print_results(results)
             
         return energy, indices, np.array(coefs)
-        
-    def plot(self, dims=None, show=True):
+
+    def plot(self, ax=None, dims=None, show=True):
         """Make 2-d or 3-d plot of datapoints and convex hull.
-        
+
         Default is 2-d for 2- and 3-component diagrams and 3-d for a
         4-component diagram.
         """
-        
+        import matplotlib.pyplot as plt
+
         N = len(self.species)
-        
+
         if dims is None:
             if N <= 3:
                 dims = 2
             else:
                 dims = 3
-              
+
+        if ax is None:
+            projection = None
+            if dims == 3:
+                projection = '3d'
+                from mpl_toolkits.mplot3d import Axes3D
+                Axes3D  # silence pyflakes
+            ax = plt.gca(projection=projection)
+        else:
+            if dims == 3 and not hasattr(ax, 'set_zlim'):
+                raise ValueError('Cannot make 3d plot unless axes projection '
+                                 'is 3d')
+
         if dims == 2:
             if N == 2:
-                self.plot2d2()
+                self.plot2d2(ax)
             elif N == 3:
-                self.plot2d3()
+                self.plot2d3(ax)
             else:
                 raise ValueError('Can only make 2-d plots for 2 and 3 '
                                  'component systems!')
         else:
             if N == 3:
-                self.plot3d3()
+                self.plot3d3(ax)
             elif N == 4:
-                self.plot3d4()
+                self.plot3d4(ax)
             else:
                 raise ValueError('Can only make 3-d plots for 3 and 4 '
                                  'component systems!')
-                
         if show:
-            import matplotlib.pyplot as plt
             plt.show()
-            
-    def plot2d2(self):
-        import matplotlib.pyplot as plt
+        return ax
+
+    def plot2d2(self, ax):
         x, e = self.points[:, 1:].T
-        plt.plot(x[self.hull], e[self.hull], 'og')
-        plt.plot(x[~self.hull], e[~self.hull], 'sr')
+        ax.plot(x[self.hull], e[self.hull], 'og')
+        ax.plot(x[~self.hull], e[~self.hull], 'sr')
         for a, b, ref in zip(x, e, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
-            plt.text(a, b, name,
+            ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j in self.simplices:
-            plt.plot(x[[i, j]], e[[i, j]], '-b')
+            ax.plot(x[[i, j]], e[[i, j]], '-b')
 
-        plt.xlabel(self.symbols[1])
-        plt.ylabel('energy [eV/atom]')
+        ax.set_xlabel(self.symbols[1])
+        ax.set_ylabel('energy [eV/atom]')
 
-    def plot2d3(self):
-        import matplotlib.pyplot as plt
+    def plot2d3(self, ax):
         x, y = self.points[:, 1:-1].T.copy()
         x += y / 2
         y *= 3**0.5 / 2
-        plt.plot(x[self.hull], y[self.hull], 'og')
-        plt.plot(x[~self.hull], y[~self.hull], 'sr')
+        ax.plot(x[self.hull], y[self.hull], 'og')
+        ax.plot(x[~self.hull], y[~self.hull], 'sr')
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
-            plt.text(a, b, name,
+            ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
         for i, j, k in self.simplices:
-            plt.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
-        
-    def plot3d3(self):
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        Axes3D  # silence pyflakes
+            ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
 
+    def plot3d3(self, ax):
         x, y, e = self.points[:, 1:].T
 
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
         ax.scatter(x[self.hull], y[self.hull], e[self.hull],
                    c='g', marker='o')
         ax.scatter(x[~self.hull], y[~self.hull], e[~self.hull],
@@ -510,26 +526,20 @@ class PhaseDiagram:
             ax.plot(x[[i, j, k, i]],
                     y[[i, j, k, i]],
                     zs=e[[i, j, k, i]], c='b')
-        
+
         ax.set_xlim3d(0, 1)
         ax.set_ylim3d(0, 1)
         ax.view_init(azim=115, elev=30)
         ax.set_xlabel(self.symbols[1])
         ax.set_ylabel(self.symbols[2])
         ax.set_zlabel('energy [eV/atom]')
-        
-    def plot3d4(self):
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D
-        Axes3D  # silence pyflakes
-        
+
+    def plot3d4(self, ax):
         x, y, z = self.points[:, 1:-1].T
         a = x / 2 + y + z / 2
         b = 3**0.5 * (x / 2 + y / 6)
         c = (2 / 3)**0.5 * z
- 
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
+
         ax.scatter(a[self.hull], b[self.hull], c[self.hull],
                    c='g', marker='o')
         ax.scatter(a[~self.hull], b[~self.hull], c[~self.hull],
@@ -543,13 +553,13 @@ class PhaseDiagram:
             ax.plot(a[[i, j, k, i, w, k, j, w]],
                     b[[i, j, k, i, w, k, j, w]],
                     zs=c[[i, j, k, i, w, k, j, w]], c='b')
-        
+
         ax.set_xlim3d(0, 1)
         ax.set_ylim3d(0, 1)
         ax.set_zlim3d(0, 1)
         ax.view_init(azim=115, elev=30)
-        
-        
+
+
 _aqueous = """\
 -525700,SiF6--
 -514100,Rh(SO4)3----

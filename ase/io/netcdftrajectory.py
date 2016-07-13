@@ -28,7 +28,7 @@ import numpy as np
 import ase
 
 from ase.data import atomic_masses
-from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
+from ase.geometry import cellpar_to_cell, cell_to_cellpar
 import collections
 from functools import reduce
 

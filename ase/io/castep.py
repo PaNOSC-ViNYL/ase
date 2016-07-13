@@ -70,9 +70,10 @@ __all__ = [
     'read_castep_cell',
     'read_geom',
     'read_castep_geom',
+    'read_phonon',
+    'read_castep_phonon',
     # additional reads that still need to be wrapped
     'read_md',
-    'read_phonon',
     'read_param',
     'read_seed',
     # write that is already wrapped
@@ -159,6 +160,12 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
                       (x, y[0], y[1], y[2])) for (x, y)
                      in zip(atoms.get_chemical_symbols(),
                             positions)]
+
+    # Adding the CASTEP labels output
+    if atoms.has('castep_labels'):
+        labels = atoms.get_array('castep_labels')
+        for l_i, label in enumerate(labels):
+            pos_block[l_i] += ' LABEL=%s' % label if label != 'NULL' else ''
 
     fd.write('%%BLOCK %s\n' % keyword)
     for line in pos_block:
@@ -277,6 +284,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     for option in castep_cell._options.values():
         if option.value is not None:
+#            print(option.value)
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
@@ -335,9 +343,9 @@ def read_castep_cell(fd, index=None):
     # fd will be closed by embracing read() routine
     lines = fd.readlines()
 
-    def get_tokens(lines, l):
+    def get_tokens(lines, l, maxsplit=0):
         """Tokenizes one line of a *cell file."""
-        comment_chars = '#!'
+        comment_chars = '#!;'
         separator_re = '[\s=:]+'
         while l < len(lines):
             line = lines[l].strip()
@@ -349,17 +357,10 @@ def read_castep_cell(fd, index=None):
                 l += 1
                 continue
             else:
-                for c in comment_chars:
-                    if c in line:
-                        # icomment = min(line.index(c))
-                        # index returns an integer corresponding to the first
-                        # appearance, so min() does not work here (and we do
-                        # not need it anyways).
-                        # see: http://goo.gl/WIEVGs
-                        icomment = line.index(c)
-                    else:
-                        icomment = len(line)
-                tokens = re.split(separator_re, line[:icomment])
+                # Remove comments
+                line = re.split('[{0}]+'.format(comment_chars), line, 1)[0]
+                # Tokenize
+                tokens = re.split(separator_re, line.strip(), maxsplit)
                 return tokens, l + 1
         tokens = ''
 
@@ -373,8 +374,36 @@ def read_castep_cell(fd, index=None):
     pos = []
     spec = []
 
-    # we want to also extract the spins
-    magmom = []
+    # Here we extract all the possible additional info
+    # These are marked by their type
+    add_info = {
+        'SPIN': float,
+        'MAGMOM': float,
+        'LABEL': str,
+    }
+    add_info_arrays = dict((k, []) for k in add_info)
+
+    # A convenient function that extracts this info from a line fragment
+    def get_add_info(ai_arrays, line=''):
+        re_keys = '({0})'.format('|'.join(add_info.keys()))
+        ai_dict = {}
+        sline = re.split(re_keys, line, flags=re.IGNORECASE)
+        for t_i, tok in enumerate(sline):
+            if tok in add_info:
+                try:
+                    ai_dict[tok] = re.split('[:=]',
+                                            sline[t_i + 1],
+                                            maxsplit=1)[1].strip()
+                except IndexError:
+                    ai_dict[tok] = None
+        # Then turn these into values into the arrays
+        for k in ai_arrays:
+            if k not in ai_dict or ai_dict[k] is None:
+                ai_arrays[k].append({str: 'NULL',
+                                     float: 0.0,
+                                     }[add_info[k]])
+            else:
+                ai_arrays[k].append(add_info[k](ai_dict[k]))
 
     constraints = []
     raw_constraints = {}
@@ -432,21 +461,16 @@ def read_castep_cell(fd, index=None):
                 if len(tokens) == 1:
                     print('read_cell: Warning - ignoring unit specifier in')
                     print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
-                    tokens, l = get_tokens(lines, l)
+                    tokens, l = get_tokens(lines, l, maxsplit=4)
                 # fix to be able to read initial spin assigned on the atoms
                 while len(tokens) >= 4:
                     spec.append(tokens[0])
                     pos.append([float(p) for p in tokens[1:4]])
-                    # read initial spins
-                    try:
-                        spin = ''.join(tokens[4::]).lower()
-                        if 'spin' not in spin:
-                            magmom.append(0.)
-                        else:
-                            magmom.append(float(re.split(r'[:=]+', spin)[-1]))
-                    except IndexError:
-                        magmom.append(0.)
-                    tokens, l = get_tokens(lines, l)
+                    if len(tokens) > 4:
+                        get_add_info(add_info_arrays, tokens[4])
+                    else:
+                        get_add_info(add_info_arrays)
+                    tokens, l = get_tokens(lines, l, maxsplit=4)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines in')
                     print('%%BLOCK POSITIONS_ABS:\n\t %s' % tokens)
@@ -454,21 +478,16 @@ def read_castep_cell(fd, index=None):
 
             elif tokens[1].upper() == 'POSITIONS_FRAC' and not have_pos:
                 pos_frac = True
-                tokens, l = get_tokens(lines, l)
+                tokens, l = get_tokens(lines, l, maxsplit=4)
                 # fix to be able to read initial spin assigned on the atoms
                 while len(tokens) >= 4:
                     spec.append(tokens[0])
                     pos.append([float(p) for p in tokens[1:4]])
-                    # read initial spins
-                    try:
-                        spin = ''.join(tokens[4::]).lower()
-                        if 'spin' not in spin:
-                            magmom.append(0.)
-                        else:
-                            magmom.append(float(re.split(r'[:=]+', spin)[-1]))
-                    except IndexError:
-                        magmom.append(0.)
-                    tokens, l = get_tokens(lines, l)
+                    if len(tokens) > 4:
+                        get_add_info(add_info_arrays, tokens[4])
+                    else:
+                        get_add_info(add_info_arrays)
+                    tokens, l = get_tokens(lines, l, maxsplit=4)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines')
                     print('%%BLOCK POSITIONS_FRAC:\n\t %s' % tokens)
@@ -516,6 +535,12 @@ def read_castep_cell(fd, index=None):
                     print('Problem setting calc.cell.%s = %s' % (key, value))
                     raise
 
+    # Get the relevant additional info
+    magmom = np.array(add_info_arrays['SPIN'])
+    # SPIN or MAGMOM are alternative keywords
+    magmom = np.where(magmom != 0, magmom, add_info_arrays['MAGMOM'])
+    labels = np.array(add_info_arrays['LABEL'])
+
     if pos_frac:
         atoms = ase.Atoms(
             calculator=calc,
@@ -532,6 +557,8 @@ def read_castep_cell(fd, index=None):
             positions=pos,
             symbols=spec,
             magmoms=magmom)
+
+    atoms.new_array('castep_labels', labels)
 
     fixed_atoms = []
     for (species, nic), value in raw_constraints.items():
@@ -742,7 +769,8 @@ def read_castep_geom(fd, index=None, units=units_CODATA2002):
                                    (geom_stop - geom_start)]])
             image = ase.Atoms(species, geom, cell=cell, pbc=True)
             image.set_calculator(
-                SinglePointCalculator(energy, forces, None, None, image))
+                SinglePointCalculator(atoms=image, energy=energy,
+                                      forces=forces))
             traj.append(image)
 
     if index is None:
@@ -780,7 +808,8 @@ def read_castep_phonon(fd, index=None, read_vib_data=False,
     Reads a .phonon file written by a CASTEP Phonon task and returns an atoms
     object, as well as the calculated vibrational data if requested.
 
-    Note that the index argument has no effect as of now."""
+    Note that the index argument has no effect as of now.
+    """
 
     # fd is closed by embracing read() routine
     lines = fd.readlines()
@@ -965,11 +994,12 @@ def read_castep_md(fd, index=None, return_scalars=False,
                 atoms.set_velocities(velocities)
                 if len(stress) == 0:
                     atoms.set_calculator(
-                        SinglePointCalculator(Epot, forces, None, None, atoms))
+                        SinglePointCalculator(atoms=atoms, energy=Epot,
+                                              forces=forces))
                 else:
                     atoms.set_calculator(
-                        SinglePointCalculator(Epot, forces, stress, None,
-                                              atoms))
+                        SinglePointCalculator(atoms=atoms, energy=Epot,
+                                              forces=forces, stress=stress))
                 traj.append(atoms)
             symbols = []
             positions = []

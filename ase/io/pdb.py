@@ -2,7 +2,7 @@ import numpy as np
 
 from ase.atoms import Atom, Atoms
 from ase.parallel import paropen
-from ase.lattice.spacegroup.cell import cellpar_to_cell
+from ase.geometry import cellpar_to_cell
 
 """Module to read and write atoms in PDB file format"""
 
@@ -62,7 +62,7 @@ def write_pdb(fileobj, images):
         images = [images]
 
     if images[0].get_pbc().any():
-        from ase.lattice.spacegroup.cell import cell_to_cellpar
+        from ase.geometry import cell_to_cellpar
         cellpar = cell_to_cellpar( images[0].get_cell())
         # ignoring Z-value, using P1 since we have all atoms defined explicitly
         format = 'CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1\n'

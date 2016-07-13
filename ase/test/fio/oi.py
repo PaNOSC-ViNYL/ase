@@ -1,5 +1,4 @@
 from __future__ import print_function
-import sys
 
 import numpy as np
 from ase import Atoms
@@ -68,9 +67,6 @@ for format in sorted(all_formats):
 
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
-        continue
-
-    if sys.version_info[0] == 3 and format in ['cif']:
         continue
 
     if not matplotlib and format in ['eps', 'png']:

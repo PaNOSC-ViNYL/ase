@@ -15,7 +15,6 @@ Optional:
 * For extra functionality: SciPy_ (library for scientific computing)
 * For :mod:`ase.gui`: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
 
-
 .. _Python: http://www.python.org/
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
@@ -33,22 +32,39 @@ Installation using ``pip``
 The simplest way to install ASE is to use pip_ which will automatically get
 the source code from PyPI_::
     
-    $ pip install --upgrade ase
+    $ pip install --upgrade --user ase
     
-This will install ASE in your ``~/.local`` folder where Python can
-automatically find it.  Make sure you have ``~/.local/bin`` in your
-:envvar:`PATH` environment variable.
+This will install ASE in a local folder where Python can
+automatically find it (``~/.local`` on Unix, see here_ for details).  Some
+:ref:`cli` will be installed in the following location:
+    
+=================  ============================
+Unix and Mac OS X  ``~/.local/bin``
+Homebrew           ``~/Library/Python/X.Y/bin``
+Windows            ``%APPDATA%/Python/Scripts``
+=================  ============================
 
+Make sure you have that path in your :envvar:`PATH` environment variable.
+    
 Now you should be ready to use ASE, but before you start, please run the
 tests as described below.
 
+.. note::
+
+    If your OS doesn't have ``numpy``, ``scipy`` and ``matplotlib`` packages
+    installed, you can install them with::
+        
+        $ pip install --upgrade --user numpy scipy matplotlib
+    
 .. note::
 
     Some Linux distributions have an ASE package (named ``python-ase``),
     that you can install on your system so that it is avilable for all
     users.
 
-    
+.. _here: https://docs.python.org/3/library/site.html#site.USER_BASE
+
+
 .. index:: test
 .. _running tests:
 
@@ -73,20 +89,20 @@ from Git.
 :Tar-file:
 
     You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-    latest stable release (ase-3.10.0.tar.gz_) or the latest
+    latest stable release (ase-3.11.0.tar.gz_) or the latest
     development snapshot (`<snapshot.tar.gz>`_).
 
     Unpack and make a soft link::
     
-        $ tar -xf ase-3.10.0.tar.gz
-        $ ln -s ase-3.10.0 ase
+        $ tar -xf ase-3.11.0.tar.gz
+        $ ln -s ase-3.11.0 ase
 
 :Git clone:
 
     Alternatively, you can get the source for the latest stable release from
     https://gitlab.com/ase/ase like this::
     
-        $ git clone -b 3.10.0 https://gitlab.com/ase/ase.git
+        $ git clone -b 3.11.0 https://gitlab.com/ase/ase.git
 
     or if you want the development version::
 
@@ -94,7 +110,9 @@ from Git.
     
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
 ``~/ase/tools`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
-folder is).
+folder is).  Alternatively, you can install the code with ``python setup.py
+install --user`` and add ``~/.local/bin`` to the front of your :envvar:`PATH`
+environment variable (if you don't already have that).
     
 .. note::
     
@@ -102,8 +120,9 @@ folder is).
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
 
-.. _ase-3.10.0.tar.gz:
-    https://pypi.python.org/packages/source/a/ase/ase-3.10.0.tar.gz
+.. _ase-3.11.0.tar.gz: https://pypi.python.org/packages/fc/7b/
+    558e7321f7a879c034ead5d10789b9d6f41beabaee0b156e807c19422ad0/
+    ase-3.11.0.tar.gz
 
     
 Environment variables
@@ -126,76 +145,6 @@ or your :file:`~/.cshrc` file::
 
     $ setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
     $ setenv PATH ${HOME}/ase/tools:${PATH}
-
-        
-Installation on OS X
-====================
-
-For installation with http://brew.sh please follow
-instructions at the `Homebrew ASE installation page
-<https://wiki.fysik.dtu.dk/gpaw/install/MacOSX/homebrew.html>`_.
-
-After performing the installation do not forget to :ref:`running tests`!
-
-
-Installation on Windows
-=======================
-
-.. note::
-
-   ASE is not yet fully functional on Windows!
-   https://trac.fysik.dtu.dk/projects/ase/ticket/62
-
-Python(x,y), on both 32- and 64-bit Windows,
-requires Microsoft Visual C++ 2008 Redistributable Package (x86),
-download and install it from:
-https://www.microsoft.com/en-us/download/details.aspx?id=5582
-Use http://www.dependencywalker.com/ to find missing DLLs in case of
-"ImportError: DLL load failed: The specified module could not be found".
-
-Continue with:
-
-.. note:: installation assumes the python TARGETDIR C:\\Python27,
-          leave also the default C:\\Program Files\\pythonxy.
-
--  pythonxy_. Download the *2.7.5.2* exe installer (other versions
-   may be incompatible)and install with::
-
-     Python(x,y)-2.7.5.2.exe /Log="%TMP%\pythonxy_install.log" /S
-
-.. note::
-
-   Open Task Manager and control when the process in finished.
-
-- pygtk_win32_. Download the msi **pygtk-all-in-one** installer.
-  Specify the correct TARGETDIR and install::
-
-     pygtk-all-in-one-2.24.2.win32-py2.7.msi TARGETDIR="%HOMEDRIVE%\Python27" ALLUSERS=1 /l*vx "%TMP%\pygtk_install.log" /passive
-
-.. note::
-
-   If performing clicking-installation make sure that the default
-   python Windows TARGETDIR is selected.
-
-- Download the python-ase-win32.msi_ installer and install with::
-
-     python-ase-X.X.X.win32.msi /l*vx "%TMP%\python-ase_install.log" /passive
-
-.. note::
-
-   You can build the msi ASE package on Windows with::
-
-      python setup.py bdist_msi
-
-   The msi package will be created under the *dist* directory.
-
-.. _pythonxy: http://code.google.com/p/pythonxy
-.. _pygtk_win32: http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/
-
-.. _python-ase-win32.msi:
-    https://wiki.fysik.dtu.dk/ase-files/python-ase.win32.msi
-
-After performing the installation do not forget to :ref:`running tests`!
 
 
 Old video tutorial

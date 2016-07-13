@@ -4,7 +4,7 @@ from ase.ga.utilities import closest_distances_generator
 from ase.ga.utilities import get_all_atom_types
 from ase.constraints import FixAtoms
 import numpy as np
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 
 db_file = 'gadb.db'
 

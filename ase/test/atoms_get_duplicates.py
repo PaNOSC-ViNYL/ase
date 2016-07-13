@@ -1,5 +1,5 @@
 from ase import Atoms
-from ase.utils.geometry import get_duplicate_atoms
+from ase.geometry import get_duplicate_atoms
 
 at = Atoms('H5', positions=[[0., 0., 0.],
                             [1., 0., 0.],

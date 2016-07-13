@@ -5,9 +5,9 @@ import random
 from itertools import chain
 
 from ase import Atoms, Atom
-from ase.structure import molecule
+from ase.build import molecule
 from ase.ga.offspring_creator import OffspringCreator
-from ase.calculators.neighborlist import NeighborList as aseNeighborList
+from ase.neighborlist import NeighborList as aseNeighborList
 
 
 class AdsorbateOperator(OffspringCreator):

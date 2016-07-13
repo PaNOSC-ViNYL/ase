@@ -7,7 +7,7 @@ c0 = np.sqrt(8 / 3.0) * a0
 from ase.io import Trajectory
 traj = Trajectory('Ni.traj', 'w')
 
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.calculators.emt import EMT
 eps = 0.01
 for a in a0 * np.linspace(1 - eps, 1 + eps, 3):
