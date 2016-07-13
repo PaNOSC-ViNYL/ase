@@ -229,12 +229,13 @@ def get_nnmat(atoms):
     return nnlist
 
 
-def get_atoms_connections(atoms, max_conn=5):
+def get_atoms_connections(atoms, max_conn=5, no_count_types=[]):
     """
     This method returns a list of the numbers of atoms
     with X number of neighbors. The method utilizes the
     neighbor list and hence inherit the restrictions for
-    neighbors.
+    neighbors. Option added to remove connections between
+    defined atom types.
     """
     conn = get_neighbor_list(atoms)
 
@@ -243,7 +244,8 @@ def get_atoms_connections(atoms, max_conn=5):
 
     no_of_conn = [0] * max_conn
     for i in range(len(atoms)):
-        no_of_conn[min(len(conn[i]), max_conn - 1)] += 1
+        if atoms[i].number not in no_count_types:
+            no_of_conn[min(len(conn[i]), max_conn - 1)] += 1
 
     return no_of_conn
 
