@@ -229,7 +229,7 @@ def get_nnmat(atoms):
     return nnlist
 
 
-def get_atoms_connections(atoms, max_conn=5, no_count_types=[]):
+def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
     """
     This method returns a list of the numbers of atoms
     with X number of neighbors. The method utilizes the
@@ -241,6 +241,9 @@ def get_atoms_connections(atoms, max_conn=5, no_count_types=[]):
 
     if conn is None:
         conn = get_neighborlist(atoms)
+
+    if no_count_types is None:
+        no_count_types = []
 
     no_of_conn = [0] * max_conn
     for i in range(len(atoms)):
@@ -278,7 +281,7 @@ def get_angles_distribution(atoms, ang_grid=9):
     return bins
 
 
-def get_neighborlist(atoms, dx=0.2, no_count_types=[]):
+def get_neighborlist(atoms, dx=0.2, no_count_types=None):
     """
     Method to get the a dict with list of neighboring
     atoms defined as the two covalent radii + fixed distance.
@@ -286,6 +289,9 @@ def get_neighborlist(atoms, dx=0.2, no_count_types=[]):
     """
     cell = atoms.get_cell()
     pbc = atoms.get_pbc()
+
+    if no_count_types is None:
+        no_count_types = []
 
     conn = {}
     for atomi in atoms:
@@ -308,7 +314,7 @@ def get_neighborlist(atoms, dx=0.2, no_count_types=[]):
 
 
 def get_atoms_distribution(atoms, number_of_bins=5, max_distance=8,
-                           center=None, no_count_types=[]):
+                           center=None, no_count_types=None):
     """
     Method to get the distribution of atoms in the
     structure in bins of distances from a defined
@@ -324,6 +330,10 @@ def get_atoms_distribution(atoms, number_of_bins=5, max_distance=8,
         cz = sum(cell[:, 2]) / 2.
         center = (cx, cy, cz)
     bins = [0] * number_of_bins
+
+    if no_count_types is None:
+        no_count_types = []
+
     for atom in atoms:
         if atom.number not in no_count_types:
             d = get_mic_distance(atom.position, center, cell, pbc)
