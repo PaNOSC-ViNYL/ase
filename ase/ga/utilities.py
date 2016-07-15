@@ -229,10 +229,11 @@ def get_nnmat(atoms):
     return nnlist
 
 
-def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
+def get_connections_index(atoms, max_conn=5, no_count_types=None):
     """
-    This method returns a list of the numbers of atoms
-    with X number of neighbors. The method utilizes the
+    This method returns a dictionary where each key value are a
+    specific number of neighbors and list of atoms indices with
+    that amount of neighbors respectively. The method utilizes the
     neighbor list and hence inherit the restrictions for
     neighbors. Option added to remove connections between
     defined atom types.
@@ -245,10 +246,31 @@ def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
     if no_count_types is None:
         no_count_types = []
 
-    no_of_conn = [0] * max_conn
+    conn_index = {}
     for i in range(len(atoms)):
         if atoms[i].number not in no_count_types:
-            no_of_conn[min(len(conn[i]), max_conn - 1)] += 1
+            cconn = min(len(conn[i]), max_conn - 1)
+            if cconn not in conn_index:
+                conn_index[cconn] = []
+            conn_index[cconn].append(i)
+
+    return conn_index  
+    
+    
+def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
+    """
+    This method returns a list of the numbers of atoms
+    with X number of neighbors. The method utilizes the
+    neighbor list and hence inherit the restrictions for
+    neighbors. Option added to remove connections between
+    defined atom types.
+    """
+    conn_index = get_connections_index(atoms, max_conn=max_conn,
+                                       no_count_types=no_count_types)
+    
+    no_of_conn = [0] * max_conn
+    for i in conn_index:
+        no_of_conn[i] += len(conn_index[i])
 
     return no_of_conn
 
