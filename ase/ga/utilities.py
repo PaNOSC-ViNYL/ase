@@ -237,6 +237,21 @@ def get_connections_index(atoms, max_conn=5, no_count_types=None):
     neighbor list and hence inherit the restrictions for
     neighbors. Option added to remove connections between
     defined atom types.
+
+    Parameters
+    ----------
+
+    atoms : Atoms object
+        The connections will be counted using this supplied Atoms object
+
+    max_conn : int
+        Any atom with more connections than this will be counted as
+        having max_conn connections.
+        Default 5
+
+    no_count_types : list or None
+        List of atomic numbers that should be excluded in the count.
+        Default None (meaning all atoms count).
     """
     conn = get_neighbor_list(atoms)
 
