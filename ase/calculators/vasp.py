@@ -1538,17 +1538,22 @@ class Vasp(Calculator):
         lines = file.readlines()
         file.close()
         ktype = lines[2].split()[0].lower()[0]
-        if ktype in ['g', 'm']:
+        if ktype in ['g', 'm', 'a']:
             if ktype == 'g':
                 self.set(gamma=True)
-            kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
+            elif ktype == 'a':
+                kpts = np.array([int(lines[3].split()[i]) for i in range(1)])
+            elif ktype == 'm':
+                kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             self.set(kpts=kpts)
         elif ktype in ['c', 'k']:
-            raise NotImplementedError('Only Monkhorst-Pack and gamma centered'
-                                      ' grid supported for restart.')
+            raise NotImplementedError('Only Monkhorst-Pack, gamma centered'
+                                      ' and Automatic grid supported'
+                                      ' for restart.')
         else:
-            raise NotImplementedError('Only Monkhorst-Pack and gamma centered '
-                                      'grid supported for restart.')
+            raise NotImplementedError('Only Monkhorst-Pack, gamma centered'
+                                      ' and Automatic grid supported'
+                                      ' for restart.')
 
     def read_potcar(self):
         """ Read the pseudopotential XC functional from POTCAR file.
