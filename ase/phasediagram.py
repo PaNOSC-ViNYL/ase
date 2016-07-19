@@ -485,14 +485,14 @@ class PhaseDiagram:
 
     def plot2d2(self, ax):
         x, e = self.points[:, 1:].T
+        for i, j in self.simplices:
+            ax.plot(x[[i, j]], e[[i, j]], '-b')
         ax.plot(x[self.hull], e[self.hull], 'og')
         ax.plot(x[~self.hull], e[~self.hull], 'sr')
         for a, b, ref in zip(x, e, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
-        for i, j in self.simplices:
-            ax.plot(x[[i, j]], e[[i, j]], '-b')
 
         ax.set_xlabel(self.symbols[1])
         ax.set_ylabel('energy [eV/atom]')
@@ -501,14 +501,14 @@ class PhaseDiagram:
         x, y = self.points[:, 1:-1].T.copy()
         x += y / 2
         y *= 3**0.5 / 2
+        for i, j, k in self.simplices:
+            ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
         ax.plot(x[self.hull], y[self.hull], 'og')
         ax.plot(x[~self.hull], y[~self.hull], 'sr')
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
-        for i, j, k in self.simplices:
-            ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
 
     def plot3d3(self, ax):
         x, y, e = self.points[:, 1:].T
