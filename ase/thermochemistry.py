@@ -275,7 +275,6 @@ class HinderedThermo(ThermoChem):
 
         self.verbose = verbose
         write = self._vprint
-        print('TEST TEST TEST TEST TEST TEST TEST TEST TEST TEST' , self.inertia)
         fmt = '%-15s%13.3f eV'
         write('Internal energy components at T = %.2f K:' % temperature)
         write('=' * 31)
