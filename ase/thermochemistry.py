@@ -285,8 +285,8 @@ class HinderedThermo(ThermoChem):
         U += self.potentialenergy
 
         # Translational Energy
-        freq_t = np.sqrt(self.trans_barrier_energy /
-                  (2 * self.mass * self.area))
+        freq_t = np.sqrt(self.trans_barrier_energy / (2 * self.mass *
+                  self.area))
         T_t = units._k * temperature / (units._hplanck * freq_t)
         R_t = self.trans_barrier_energy / (units._hplanck * freq_t)
         dU_t = 2 * (-1./2 - 1./T_t/(2+16*R_t) + R_t/2/T_t 
@@ -340,8 +340,8 @@ class HinderedThermo(ThermoChem):
         S = 0.
 
         # Translational Entropy
-        freq_t = np.sqrt(self.trans_barrier_energy /
-                  (2 * self.mass * self.area))
+        freq_t = np.sqrt(self.trans_barrier_energy / (2 * self.mass *
+                  self.area))
         T_t = units._k * temperature / (units._hplanck * freq_t)
         R_t = self.trans_barrier_energy / (units._hplanck * freq_t)
         S_t = 2 * (-1./2 + 1./2*np.log(np.pi*R_t/T_t) 
