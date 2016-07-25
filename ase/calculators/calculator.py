@@ -261,7 +261,8 @@ class Calculator:
                 elif isinstance(value, dict):
                     # Only keep values that are not default:
                     value = dict((k, v)
-                                 for k, v in value.items() if v != default[k])
+                                 for k, v in value.items()
+                                 if v != default.get(k))
                 dct[key] = value
         return dct
 
