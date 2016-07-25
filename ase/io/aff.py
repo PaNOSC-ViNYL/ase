@@ -483,7 +483,7 @@ class NDArrayReader:
         for i, index in enumerate(indices):
             start += stride * index
             stride //= self.shape[i + 1]
-        offset = self.offset + start
+        offset = self.offset + start * self.itemsize
         p = NDArrayReader(self.fd, self.shape[i + 1:], self.dtype,
                           offset, self.little_endian)
         p.scale = self.scale
