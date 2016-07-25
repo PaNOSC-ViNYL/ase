@@ -166,6 +166,8 @@ class Writer:
         if isinstance(shape, int):
             shape = (shape,)
             
+        shape = tuple(int(s) for s in shape)  # Convert np.int64 to int
+        
         i = align(self.fd)
         
         self.data[name + '.'] = {
@@ -480,7 +482,7 @@ class NDArrayReader:
         start = 0
         for i, index in enumerate(indices):
             start += stride * index
-            stride /= self.shape[i + 1]
+            stride //= self.shape[i + 1]
         offset = self.offset + start
         p = NDArrayReader(self.fd, self.shape[i + 1:], self.dtype,
                           offset, self.little_endian)
