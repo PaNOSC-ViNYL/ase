@@ -23,7 +23,8 @@ There are two ways to construct the exciting calculator.
 
 1. Using keyword arguments to specify groundstate attributes
 2. Use paramdict to specify an input file  structure with a data structure of dictionaries.
- 
+
+See also the tutorial on the web page of exciting: http://exciting-code.org/lithium-atomic-simulation-environment
 
 
 Constructor with Groundstate Keywords

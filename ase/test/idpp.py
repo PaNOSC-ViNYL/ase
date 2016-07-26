@@ -14,7 +14,7 @@ neb = NEB(images)
 d0 = images[3].get_distance(2, 3)
 neb.interpolate()
 d1 = images[3].get_distance(2, 3)
-neb.idpp_interpolate()
+neb.idpp_interpolate(fmax=0.005)
 d2 = images[3].get_distance(2, 3)
 print(d0, d1, d2)
 assert abs(d2 - 1.74) < 0.01

@@ -14,6 +14,11 @@ from ase.build.tube import nanotube
 from ase.build.ribbon import graphene_nanoribbon
 from ase.build.tools import (cut, stack, sort, minimize_tilt, niggli_reduce,
                              rotate)
+from ase.build.supercells import (
+    get_deviation_from_optimal_cell_shape,
+    find_optimal_cell_shape,
+    find_optimal_cell_shape_pure_python,
+    make_supercell)
 
 __all__ = ['minimize_rotation_and_translation',
            'add_adsorbate', 'add_vacuum',
@@ -26,4 +31,8 @@ __all__ = ['minimize_rotation_and_translation',
            'root_surface', 'root_surface_analysis',
            'nanotube', 'graphene_nanoribbon',
            'cut', 'stack', 'sort', 'minimize_tilt', 'niggli_reduce',
-           'rotate']
+           'rotate',
+           'get_deviation_from_optimal_cell_shape',
+           'find_optimal_cell_shape',
+           'find_optimal_cell_shape_pure_python',
+           'make_supercell']

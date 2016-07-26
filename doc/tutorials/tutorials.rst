@@ -37,6 +37,7 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    minimahopping/minimahopping
    ga/ga_optimize
    ga/ga_fcc_alloys
+   defects/defects
  
    
 NumPy

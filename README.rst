@@ -31,8 +31,7 @@ Testing
 
 Please run the tests::
     
-    $ cd ~/ase
-    $ python3 setup.py test  # takes 1 min.
+    $ python -m ase.test  # takes 1 min.
 
 and send us the output if there are failing tests.
 

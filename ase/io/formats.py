@@ -68,7 +68,7 @@ all_formats = {
     'gaussian': ('Gaussian com (input) file', '1S'),
     'gaussian-out': ('Gaussian output file', '1F'),
     'gen': ('DFTBPlus GEN format', '1F'),
-    'gpaw-out': ('GPAW text output', '+S'),
+    'gpaw-out': ('GPAW text output', '+F'),
     'gpw': ('GPAW restart-file', '1S'),
     'gromacs': ('Gromacs coordinates', '1S'),
     'gromos': ('Gromos96 geometry file', '1F'),
@@ -508,13 +508,11 @@ if __name__ == '__main__':
         n = max(len(filename) for filename in filenames) + 2
     for filename in filenames:
         format = filetype(filename)
-        if format:
+        if format and format in all_formats:
             description, code = all_formats[format]
-            if code[0] == '+':
-                format += '+'
         else:
             format = '?'
-            description = ''
+            description = '?'
 
         print('{0:{1}}{2} ({3})'.format(filename + ':', n,
                                         description, format))

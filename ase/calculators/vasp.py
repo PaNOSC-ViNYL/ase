@@ -535,7 +535,9 @@ class Vasp(Calculator):
                 raise NotImplementedError(
                     self._potcar_unguessable_string)
 
-        if (p['xc'].lower() == 'lda' and p['pp'].lower() != 'lda'):
+        if (p['xc'] is not None
+                and p['xc'].lower() == 'lda'
+                and p['pp'].lower() != 'lda'):
             warnings.warn("XC is set to LDA, but PP is set to "
                           "{0}. \nThis calculation is using the {0} "
                           "POTCAR set. \n Please check that this is "
@@ -613,7 +615,16 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            potcar = join(pp_folder, p['setups'][str(m)], 'POTCAR')
+            if m in p['setups']:
+                special_setup_index = m
+            elif str(m) in p['setups']:
+                special_setup_index = str(m)
+            else:
+                raise Exception("Having trouble with special setup index {0}."
+                                " Please use an int.".format(m))
+            potcar = join(pp_folder,
+                          p['setups'][special_setup_index],
+                          'POTCAR')
             for path in pppaths:
                 filename = join(path, potcar)
 
@@ -629,8 +640,8 @@ class Vasp(Calculator):
 
         for symbol in symbols:
             try:
-                potcar = join(pp_folder, symbol,
-                              p['setups'][symbol], 'POTCAR')
+                potcar = join(pp_folder, symbol + p['setups'][symbol],
+                              'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
             for path in pppaths:
