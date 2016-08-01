@@ -359,42 +359,39 @@ def read_vasp_xdatcar(filename, index=-1):
 
     images = list()
 
+    cell = np.eye(3)
+    atomic_formula = str()
+
     with open(filename, 'r') as xdatcar:
-        xdatcar.readline()
-        xdatcar.readline()
+        
+        while True:
+            comment_line = xdatcar.readline()
+            if "Direct configuration=" not in comment_line:
+                try:
+                    lattice_constant = float(xdatcar.readline())
+                except:
+                    break
+                
+                xx = [float(x) for x in xdatcar.readline().split()]
+                yy = [float(y) for y in xdatcar.readline().split()]
+                zz = [float(z) for z in xdatcar.readline().split()]
+                cell = np.array([xx, yy, zz]) * lattice_constant
 
-        xx = [float(x) for x in xdatcar.readline().split()]
-        yy = [float(y) for y in xdatcar.readline().split()]
-        zz = [float(z) for z in xdatcar.readline().split()]
-        cell = np.array([xx, yy, zz])
+                symbols = xdatcar.readline().split()
+                numbers = [int(n) for n in xdatcar.readline().split()]
+                total = sum(numbers)
 
-        symbols = xdatcar.readline().split()
-        numbers = [int(n) for n in xdatcar.readline().split()]
-        total = sum(numbers)
+                atomic_formula = str()
+                for n, sym in enumerate(symbols):
+                    atomic_formula += '%s%s' % (sym, numbers[n])
 
-        atomic_formula = str()
-        for n, sym in enumerate(symbols):
-            atomic_formula += '%s%s' % (sym, numbers[n])
+                xdatcar.readline()
 
-        count = 0
-        nimage = 0
-        coords = list()
+            coords = [ np.array(xdatcar.readline().split(), np.float) for ii in range(total) ]
 
-        for line in xdatcar:
-            if 'Direct configuration=' in line:
-                nimage += 1
-            else:
-                coord = [float(x) for x in line.split()]
-                coords.append(coord)
-                count += 1
-
-            if count == total:
-                image = Atoms(atomic_formula, cell=cell, pbc=True)
-                image.set_scaled_positions(coords)
-                images.append(image)
-
-                count = 0
-                coords = list()
+            image = Atoms(atomic_formula, cell=cell, pbc=True)
+            image.set_scaled_positions(np.array(coords))
+            images.append(image)
 
     if not index:
         return images
