@@ -471,6 +471,7 @@ def filetype(filename, read=True):
         raise IOError('Empty file: ' + filename)
 
     for format, magic in [('traj', b'AFFormatASE-Trajectory'),
+                          ('gpw', b'AFFormatGPAW'),
                           ('trj', b'PickleTrajectory'),
                           ('etsf', b'CDF'),
                           ('turbomole', b'$coord'),

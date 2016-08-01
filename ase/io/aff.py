@@ -365,6 +365,9 @@ class Reader:
     def keys(self):
         return self._data.keys()
     
+    def items(self):
+        return self._data.items()
+        
     __dir__ = keys  # needed for tab-completion
     
     def __getattr__(self, attr):

@@ -3,7 +3,8 @@ from __future__ import print_function
 import numpy as np
 from ase.units import Bohr, Hartree
 from ase.calculators.calculator import Calculator
-from ase.parallel import rank, get_txt
+from ase.utils import convert_string_to_fd
+
 
 # dipole polarizabilities and C6 values from
 # X. Chu and A. Dalgarno, J. Chem. Phys. 121 (2004) 4083
@@ -133,10 +134,7 @@ class vdWTkatchenko09prl(Calculator):
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
-        if txt is None:
-            self.txt = self.calculator.txt
-        else:
-            self.txt = get_txt(txt, rank)
+        self.txt = convert_string_to_fd(txt)
         self.vdwradii = vdwradii
         self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax

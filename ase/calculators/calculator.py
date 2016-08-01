@@ -125,7 +125,7 @@ class Parameters(dict):
             self.update(other.items())
         else:
             for key, value in other:
-                if isinstance(value, dict):
+                if isinstance(value, dict) and isinstance(self[key], dict):
                     self[key].update(value)
                 else:
                     self[key] = value
@@ -254,11 +254,11 @@ class Calculator:
         defaults = self.get_default_parameters()
         dct = {}
         for key, value in self.parameters.items():
-            default = defaults[key]
-            if key not in defaults or value != default:
+            default = defaults.get(key, '_no_default_')
+            if default == '_no_default_' or not equal(value, default):
                 if hasattr(value, 'todict'):
                     value = value.todict()
-                elif isinstance(value, dict):
+                elif isinstance(value, dict) and isinstance(default, dict):
                     # Only keep values that are not default:
                     value = dict((k, v)
                                  for k, v in value.items()
