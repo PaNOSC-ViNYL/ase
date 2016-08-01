@@ -183,7 +183,7 @@ class NEB:
                 self.world.broadcast(forces[i - 1], root)
 
         imax = 1 + np.argsort(energies[1:-1])[-1]
-        self.emax = energies[imax - 1]
+        self.emax = energies[imax]
 
         t1 = find_mic(images[1].get_positions() -
                       images[0].get_positions(),

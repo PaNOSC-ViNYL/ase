@@ -166,7 +166,9 @@ def cli(command, calculator_name=None):
         calculator_name not in test_calculator_names):
         return
     error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    assert error == 0
+    if error != 0:
+        raise RuntimeError('Failed running a shell command.  '
+                           'Please set you $PATH environment variable!')
     
 
 class must_raise:

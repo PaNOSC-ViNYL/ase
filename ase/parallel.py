@@ -84,9 +84,14 @@ class MPI4PY:
 if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
     from gpaw.mpi import world
-elif 'asapparallel3' in sys.modules:
-    # http://wiki.fysik.dtu.dk/Asap
+elif '_asap' in sys.builtin_module_names:
+    # Modern version of Asap
+    # http://wiki.fysik.dtu.dk/asap
     # We cannot import asap3.mpi here, as that creates an import deadlock
+    import _asap
+    world = _asap.Communicator()
+elif 'asapparallel3' in sys.modules:
+    # Older version of Asap
     import asapparallel3
     world = asapparallel3.Communicator()
 elif 'Scientific_mpi' in sys.modules:
