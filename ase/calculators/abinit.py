@@ -369,7 +369,7 @@ class Abinit(FileIOCalculator):
             xcname = 'LDA'
 
         pps = self.parameters.pps
-        if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
+        if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw','pawxml']:
             raise ValueError('Unexpected PP identifier %s' % pps)
 
         for Z in self.species:
@@ -380,6 +380,9 @@ class Abinit(FileIOCalculator):
                 name = '%02d-%s.%s.fhi' % (number, symbol, xcname)
             elif pps in ['paw']:
                 hghtemplate = '%s-%s-%s.paw'  # E.g. "H-GGA-hard-uspp.paw"
+                name = hghtemplate % (symbol, xcname, '*')
+            elif pps in ['pawxml']:
+                hghtemplate = '%s.%s%s.xml'  # E.g. "H.GGA_PBE-JTH.xml"
                 name = hghtemplate % (symbol, xcname, '*')
             elif pps in ['hgh.k']:
                 hghtemplate = '%s-q%s.hgh.k'  # E.g. "Co-q17.hgh.k"
@@ -430,8 +433,7 @@ class Abinit(FileIOCalculator):
                         selector = max  # Semicore - highest electron count
                         # currently only one version of psp per atom
                         name = hghtemplate % (number, symbol.lower(), '')
-                    else:
-                        assert pps == 'hgh.sc'
+                    elif pps == 'hgh.sc':
                         selector = max  # Semicore - highest electron count
                         Z = selector([int(os.path.split(name)[1].split('.')[1])
                                       for name in filenames])
@@ -440,6 +442,23 @@ class Abinit(FileIOCalculator):
                 if isfile(filename) or islink(filename):
                     found = True
                     self.ppp_list.append(filename)
+                    break
+                    
+            # PP not found. We search for any other suitable choice. We should favour PAWXML
+            names = ['%s.%s.xml' % (symbol, '*'),
+                     '%s-%s.paw' % (symbol, '*'),
+                     '%02d-%s.%s.fhi' % (number, symbol, '*')]
+            for name in names:
+                for path in pppaths:
+                    filenames = glob(join(path, name))
+                    if not filenames:
+                        continue
+                    filename = filenames[0] # get first match
+                    if isfile(filename) or islink(filename):
+                        found = True
+                        self.ppp_list.append(filename)
+                        break
+                if found:
                     break
             if not found:
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
