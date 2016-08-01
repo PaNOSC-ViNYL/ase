@@ -1,7 +1,4 @@
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from ase.utils import StringIO
 from ase.io import read
 
 

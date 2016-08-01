@@ -39,6 +39,8 @@ except ImportError: #probably an old python before 2.5
 import logging
 log = logging.getLogger('Jacapo')
 
+import ase.dft.kpoints
+
 handler = logging.StreamHandler()
 if sys.version_info < (2,5): # no funcName in python 2.4
     formatstring = ('%(levelname)-10s '
@@ -349,8 +351,8 @@ class Jacapo:
                 continue
 
             #now check for valid input
-            validf = 'validate.valid_%s' % key
-            valid = eval('%s(kwargs[key])' % validf)
+            validf = getattr(validate, 'valid_%s' % key)
+            valid = validf(kwargs[key])
             if not valid:
                 s = 'Warning invalid input detected for key "%s" %s'
                 log.warn(s % (key,
@@ -359,9 +361,9 @@ class Jacapo:
 
             #now see if key has changed
             if key in self.pars:
-                changef = 'changed.%s_changed' % key
+                changef = getattr(changed, '%s_changed' % key)
                 if os.path.exists(self.get_nc()):
-                    notchanged = not eval('%s(self,kwargs[key])' % changef)
+                    notchanged = not changef(self, kwargs[key])
                 else:
                     notchanged = False
                 log.debug('%s notchanged = %s' % (key, notchanged))
@@ -403,7 +405,8 @@ class Jacapo:
         # functions.
         for key in self.pars:
             if self.pars_uptodate[key] is False:
-                setf = 'set_%s' % key
+                setf = getattr(self, 'set_%s' % key)
+                #setf = 'set_%s' % key
 
                 if self.pars[key] is None:
                     continue
@@ -413,9 +416,9 @@ class Jacapo:
                 log.debug('key = %s' % str(self.pars[key]))
 
                 if isinstance(self.pars[key], dict):
-                    eval('self.%s(**self.pars[key])' % setf)
+                    setf(**self.pars[key])
                 else:
-                    eval('self.%s(self.pars[key])' % setf)
+                    setf(self.pars[key])
 
                 self.pars_uptodate[key] = True #update the changed flag
 
@@ -433,9 +436,9 @@ class Jacapo:
         log.debug('Updating parameters')
 
         for key in self.default_input:
-            getf = 'self.get_%s()' % key
+            getf = getattr(self, 'get_%' % key)
             log.debug('getting key: %s' % key)
-            self.pars[key] = eval(getf)
+            self.pars[key] = getf()
             self.pars_uptodate[key] = True
         return self.pars
 
@@ -925,8 +928,7 @@ than density cutoff %i' % (pw, dw))
 
         #chadi-cohen
         if isinstance(kpts, str):
-            exec('from ase.dft.kpoints import %s' % kpts)
-            listofkpts = eval(kpts)
+            listofkpts = getattr(ase.dft.kpoints, kpts)
             gridtype = kpts #stored in ncfile
             #uc = self.get_atoms().get_cell()
             #listofkpts = np.dot(ccgrid,np.linalg.inv(uc.T))
@@ -1757,7 +1759,8 @@ than density cutoff %i' % (pw, dw))
             mdos['energywidth'] = v.EnergyWidth
             mdos['numberenergypoints'] = v.NumberEnergyPoints
             mdos['cutoffradius'] = v.CutoffRadius
-            mdos['mcenters'] = eval(v.mcenters)
+            # XXXXX avoid eval()
+            #mdos['mcenters'] = eval(v.mcenters)
 
         nc.close()
 
@@ -4387,7 +4390,7 @@ s.recv(14)
 
         exc = exc_c + exc_e
 
-        if self.get_xc == 'RPBE':
+        if self.get_xc() == 'RPBE':
             EXC = exc[-1][-1]
 
         E0 = xc[1]    # Fx = 0

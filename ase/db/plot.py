@@ -16,44 +16,51 @@ def atoms2png(atoms, filename):
               rotation=rotation, scale=scale)
 
     
-def dct2plot(dct, filename=None, show=True):
+def dct2plot(dct, name, filename=None, show=True):
     """Create a plot from a dict.
     
-    Example dics::
+    Example::
         
-        {'title': 'Example',
-         'data': [{'x': [0, 1, 2],
-                   'y': [1.2, 1.1, 1.0],
-                   'label': 'label1',
-                   'style': 'o-g'}],
-         'xlabel': 'blah-blah [eV]'}
+        d = {'a': [0, 1, 2],
+             'b': [1.2, 1.1, 1.0],
+             'abplot': {'title': 'Example',
+                        'data': [{'x': 'a',
+                                  'y': 'b',
+                                  'label': 'label1',
+                                  'style': 'o-g'}],
+                        'xlabel': 'blah-blah [eV]'}}
+        dct2plot(d, 'plot')
         
     """
     import matplotlib.pyplot as plt
     fig = plt.figure()
     styles = ['k-', 'r-', 'g-', 'b-']
-    for d in dct['data']:
+    plot = dct[name]
+    lines = []
+    labels = []
+    for d in plot['data']:
         x = d['x']
-        Y = d['y']
-        if Y.ndim == 1:
-            Y = Y[None]
+        if isinstance(x, basestring):
+            x = dct[x]
+        y = d['y']
+        if isinstance(y, basestring):
+            y = dct[y]
         style = d.get('style')
         if not style:
             style = styles.pop()
-        plt.plot(x, Y[0], style, label=d['label'])
-        for y in Y[1:]:
-            plt.plot(x, y, style)
-        plt.legend()
-    if isinstance(dct['xlabel'], basestring):
-        plt.xlabel(dct['xlabel'])
+        lines.append(plt.plot(x, y, style)[0])
+        labels.append(d['label'])
+    plt.legend(lines, labels)
+    if isinstance(plot['xlabel'], basestring):
+        plt.xlabel(plot['xlabel'])
     else:
-        x, labels = dct['xlabel']
+        x, labels = plot['xlabel']
         plt.xticks(x, labels)
         plt.xlim(x[0], x[-1])
-    plt.ylabel(dct['ylabel'])
-    if 'ylim' in dct:
-        plt.ylim(*dct['ylim'])
-    plt.title(dct['title'])
+    plt.ylabel(plot['ylabel'])
+    if 'ylim' in plot:
+        plt.ylim(*plot['ylim'])
+    plt.title(plot['title'])
     try:
         plt.tight_layout()
     except AttributeError:

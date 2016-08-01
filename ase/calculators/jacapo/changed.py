@@ -4,6 +4,8 @@ import numpy as np
 import logging
 log = logging.getLogger('Jacapo')
 
+import ase.dft.kpoints
+
 '''
 provides functions to determine if an input parameter has changed.
 '''
@@ -25,8 +27,7 @@ def kpts_changed(calc, x):
     '''
     #chadi-cohen
     if isinstance(x, str):
-        exec('from ase.dft.kpoints import %s' % x)
-        listofkpts = eval(x)
+        listofkpts = getattr(ase.dft.kpoints, x)
     #monkhorst-pack grid
     elif np.array(x).shape == (3,):
         from ase.dft.kpoints import monkhorst_pack

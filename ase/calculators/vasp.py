@@ -336,8 +336,8 @@ class Vasp(Calculator):
         # vdW-DFs
         'vdw-df': {'gga': 'RE', 'luse_vdw': True, 'aggac': 0.},
         'optpbe-vdw': {'gga': 'OR', 'luse_vdw': True, 'aggac': 0.0},
-        'optb88-vdw': {'gga': 'BO',  'luse_vdw': True, 'aggac': 0.0,
-                       'param1': 1.1/6.0, 'param2': 0.22},
+        'optb88-vdw': {'gga': 'BO', 'luse_vdw': True, 'aggac': 0.0,
+                       'param1': 1.1 / 6.0, 'param2': 0.22},
         'optb86b-vdw': {'gga': 'MK', 'luse_vdw': True, 'aggac': 0.0,
                         'param1': 0.1234, 'param2': 1.0},
         'vdw-df2': {'gga': 'ML', 'luse_vdw': True, 'aggac': 0.0,
@@ -352,8 +352,7 @@ class Vasp(Calculator):
         'pbe0': {'gga': 'PE', 'lhfcalc': True},
         'hse03': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.3},
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
-        'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}
-        }
+        'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
 
     def __init__(self, restart=None,
                  output_template='vasp',
@@ -522,10 +521,10 @@ class Vasp(Calculator):
 
         p = self.input_params
 
-            # There is no way to correctly guess the desired
-            # set of pseudopotentials without 'pp' being set.
-            # Usually, 'pp' will be set by 'xc'.
-        if not 'pp' in p or p['pp'] is None:
+        # There is no way to correctly guess the desired
+        # set of pseudopotentials without 'pp' being set.
+        # Usually, 'pp' will be set by 'xc'.
+        if 'pp' not in p or p['pp'] is None:
             if self.string_params['gga'] is None:
                 p.update({'pp': 'lda'})
             elif self.string_params['gga'] == '91':
@@ -536,7 +535,9 @@ class Vasp(Calculator):
                 raise NotImplementedError(
                     self._potcar_unguessable_string)
 
-        if (p['xc'].lower() == 'lda' and p['pp'].lower() != 'lda'):
+        if (p['xc'] is not None
+                and p['xc'].lower() == 'lda'
+                and p['pp'].lower() != 'lda'):
             warnings.warn("XC is set to LDA, but PP is set to "
                           "{0}. \nThis calculation is using the {0} "
                           "POTCAR set. \n Please check that this is "
@@ -614,7 +615,16 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            potcar = join(pp_folder, p['setups'][str(m)], 'POTCAR')
+            if m in p['setups']:
+                special_setup_index = m
+            elif str(m) in p['setups']:
+                special_setup_index = str(m)
+            else:
+                raise Exception("Having trouble with special setup index {0}."
+                                " Please use an int.".format(m))
+            potcar = join(pp_folder,
+                          p['setups'][special_setup_index],
+                          'POTCAR')
             for path in pppaths:
                 filename = join(path, potcar)
 
@@ -630,8 +640,8 @@ class Vasp(Calculator):
 
         for symbol in symbols:
             try:
-                potcar = join(pp_folder, symbol,
-                              p['setups'][symbol], 'POTCAR')
+                potcar = join(pp_folder, symbol + p['setups'][symbol],
+                              'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
             for path in pppaths:
@@ -1115,6 +1125,9 @@ class Vasp(Calculator):
                 incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
+            # unpack magmom array if three components specified
+            if magmom.ndim > 1:
+                magmom = [item for sublist in magmom for item in sublist]
             list = [[1, magmom[0]]]
             for n in range(1, len(magmom)):
                 if magmom[n] == magmom[n - 1]:

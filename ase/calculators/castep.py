@@ -2146,8 +2146,10 @@ class CastepCell(object):
 
             # However if a unit is present it will be dealt with
 
-            if len(value.split()) > 1:
-                value = value.split(' ', 1)[0]
+            # this crashes if non-string types are passed
+            if isinstance(value, str):
+                if len(value.split()) > 1:
+                    value = value.split(' ', 1)[0]
             try:
                 value = float(value)
             except:
