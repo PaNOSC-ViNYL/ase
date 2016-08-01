@@ -79,7 +79,7 @@ pseudopotentials is also available there.
 .. _pseudopotentials: http://www.abinit.org/downloads/atomic-data-files
 
 The best potentials are gathered into the so called JTH archive, in the PAW/XML 
-format, specified by GPAW. You should then add the correct path to ABINIT_PP_PATH
+format, specified by GPAW. You should then add the correct path to ABINIT_PP_PATH::
 
   ABINIT_PP_PATH=$PP/GGA_PBE:$ABINIT_PP_PATH
   ABINIT_PP_PATH=$PP/LDA_PW:$ABINIT_PP_PATH
