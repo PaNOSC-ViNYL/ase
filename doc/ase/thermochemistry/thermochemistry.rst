@@ -7,16 +7,19 @@ Thermochemistry
 
 ASE contains a :mod:`ase.thermochemistry` module that lets the user derive
 commonly desired thermodynamic quantities of molecules and crystalline solids
-from ASE output and some user-specified parameters. Three cases are currently
+from ASE output and some user-specified parameters. Four cases are currently
 handled by this module: the ideal-gas limit (in which translational and
-rotational degrees of freedom are taken into account), the harmonic limit
-(generally used for adsorbates, in which all degrees of freedom are treated
-harmonically), and a crystalline solid model (in which a lattice of N atoms
-is treated as a system of 3N independent harmonic oscillators). The first two
-cases rely on good vibrational energies being fed to the calculators, which
-can be calculated with the :mod:`ase.vibrations` module. Likewise, the
-crystalline solid model depends on an accurate phonon density of states; this
-is readily calculated using the :mod:`ase.phonons` module.
+rotational degrees of freedom are taken into account), the hindered
+translator / hindered rotor model (used for adsorbates, in which two degrees
+of freedom are translational, one is rotational, and the remaining 3N-3 are
+vibrational), the harmonic limit (generally used for adsorbates, in which all
+degrees of freedom are treated harmonically), and a crystalline solid model
+(in which a lattice of N atoms is treated as a system of 3N independent
+harmonic oscillators). The first three cases rely on good vibrational energies
+being fed to the calculators, which can be calculated with the
+:mod:`ase.vibrations` module. Likewise, the crystalline solid model depends on
+an accurate phonon density of states; this is readily calculated using the
+:mod:`ase.phonons` module.
 
 
 Ideal-gas limit
@@ -47,6 +50,54 @@ and symmetry number. An example on the nitrogen molecule is:
 This will give the thermodynamic summary output:
 
 .. literalinclude:: nitrogen.txt
+
+
+Hindered translator / hindered rotor model
+==========================================
+
+The hindered translator / hindered rotor model bridges the gap between the
+2D gas (i.e. free translator / free rotor) and the 2D lattice gas (i.e.
+harmonic oscillator). For an adsorbate containing N atoms, two degrees of
+freedom are treated as hindered translations in the two directions parallel to
+the surface, one degree of freedom is treated as a hindered rotation about the
+axis perpendicular to the surface, and the remaining 3N-3 degrees of freedom
+are treated as vibrations. The :class:`HinderedThermo` class supports the
+calculation of internal energy, entropy, and free energy. This class returns
+the Helmholtz free energy; if the user assumes that the pV term (in H = U +
+pV) is zero then this can also be interpreted as the Gibbs free energy. This
+class depends on the user defined trans_barrier_energy and rot_barrier_energy
+for the adsorbate to move on the surface in order to calculate the
+translational and rotational degrees of freedom. To calculate the vibrational
+degrees of freedom, all 3N vibrational energies must be supplied in the
+vib_energies list and the 3N-3 largest vibrational energies are used to
+calculate the vibrational contribution; this is a list as can be generated
+with the .get_energies() method of :class:`ase.vibrations.Vibrations`. The
+class :class:`HinderedThermo` has the interface described below.
+
+.. autoclass:: HinderedThermo
+   :members:
+
+
+Example
+-------
+
+The :class:`HinderedThermo` class would generally be called after an energy
+optimization and a vibrational analysis. The user needs to supply certain
+parameters, such as the vibrational energies, translational energy barrier,
+rotational energy barrier, surface site density, number of equivalent minima
+in a full rotation, and the number of symmetric arms of the adsorbate as it
+rotates on the surface. The user also needs to supply either the mass of the
+adsorbate and the reduced moment of inertia of the adsorbate as it rotates on
+the surface or the user can supply the atoms object from which the mass and an
+approximate reduced moment of inertia may be determined. An example for ethane
+on a platinum (111) surface is:
+
+.. literalinclude:: ethane.py
+
+
+This will give the thermodynamic summary output:
+
+.. literalinclude:: ethane.txt
 
 
 Harmonic limit
@@ -111,7 +162,11 @@ of pressure):
 .. math ::
    H(T) = E_\text{elec} + E_\text{ZPE} + \int_0^\text{T} C_P \, \text{d}T
 
-where the first two terms are the electronic energy and the zero-point energy, and the integral is over the constant-pressure heat capacity. The heat capacity is separable into translational, rotational, vibrational, and electronic parts (plus a term of :math:`k_\text{B}` to switch from constant-volume to constant-pressure):
+where the first two terms are the electronic energy and the zero-point energy,
+and the integral is over the constant-pressure heat capacity. The heat
+capacity is separable into translational, rotational, vibrational, and
+electronic parts (plus a term of :math:`k_\text{B}` to switch from
+constant-volume to constant-pressure):
 
 .. math ::
    C_P = k_\text{B} + C_{V\text{,trans}} + C_{V\text{,rot}} + C_{V\text{,vib}} + C_{V\text{,elec}}
@@ -176,6 +231,107 @@ of the enthalpy and entropy:
 .. math ::
    G(T,P) = H(T) - T\, S(T,P)
 
+**Hindered translator / hindered rotor.** The conversion of electronic
+structure calculations to thermodynamic properties in the hindered
+translator / hindered rotor model was developed for adsorbates on close packed
+surfaces and is documented by Sprowl, Campbell, and Arnadottir, 2016. The key
+equations used in the :class:`HinderedThermo` class are summarized here.
+
+   L.H. Sprowl, C.T. Campbell, and L. Arnadottir. Hindered Translator and
+   Hindered Rotor Models for Adsorbates: Partition Functions and Entropies.
+   *J. Phys. Chem. C*, **2016**, 120 (18), pp 9719-9731.
+
+   C.T. Campbell, L.H. Sprowl, and L. Arnadottir. Equilibrium Constants and
+   Rate Constants for Adsorbates: Two-Dimensional (2D) Ideal Gas, 2D Ideal
+   Lattice Gas, and Ideal Hindered Translator Models. *J. Phys. Chem. C*,
+   **2016**, 120 (19), pp 10283-10297.
+
+The :math:`3N-3` largest vibrational frequencies are used to calculate the
+vibrational contributions to the internal energy and the entropy. The
+remaining three degrees of freedom are calculated from two translational
+contributions and one rotational contribution. The energy barriers for the
+adsorbate to translate and rotate on a close packed surface are used to
+calculate the translational and rotational frequencies, respectively. From the
+translational and rotational frequencies, the translational and rotational
+contributions to the internal energy and the entropy are determined. The
+calculation of the translational frequency is:
+
+.. math ::
+   \nu_{trans} = \sqrt{\frac{W_{trans}}{2mA}}
+
+where :math:`W_{trans}` is the translational energy barrier, :math:`m` is the
+mass of the adsorbate, and :math:`A` is the area per surface atom, or the
+inverse of the surface site density. The rotational frequency is calculated
+as:
+
+.. math ::
+   \nu_{rot} = \frac{1}{2\pi}\sqrt{\frac{n^2W_{rot}}{2I}}
+
+where :math:`W_{rot}` is the rotational energy barrier, :math:`n` is the
+number of equivalent energy minima in a full rotation of the adsorbate, and
+:math:`I` is the reduced moment of inertia of the adsorbate about its surface
+bond. Two variables are now introduced, a unitless temperature
+
+.. math ::
+   T_i = \frac{kT}{h\nu_i}
+
+and a unitless energy barrier
+
+.. math ::
+   r_i = \frac{W_i}{h\nu_i}
+
+to ease the internal energy and entropy calculations.
+
+The internal energy of the adsorbate is calculated as:
+
+.. math ::
+   U(T) = E_\text{elec} + E_\text{ZPE} + E_\text{trans} + E_\text{rot} + E_\text{vib}
+
+where :math:`E_{trans}` and :math:`E_{rot}` are:
+
+.. math ::
+   E_i = k_\text{B}T \left( \frac{1/T_i}{\exp\left[1/T_i\right]-1} -\frac{1}{2} - \frac{1}{\left(2+16r_i\right)T_i} + \frac{r_i}{2T_i} \left( 1 - \frac{\text{I}_1\left[r_i/2T_i\right]}{\text{I}_0\left[r_i/2T_i\right]}\right) \right)
+
+where :math:`I_{n}` is the nth-order modified Bessel function of the first
+kind. Similar to the harmonic limit, :math:`E_{vib}` is:
+
+.. math ::
+   E_\text{vib} = k_\text{B}T \sum_i^\text{3N-3} \left( \frac{1/T_i}{\exp\left[1/T_i\right]-1} \right)
+
+The entropy of the adsorbate is calculated as:
+
+.. math ::
+   S = S_\text{trans} + S_\text{rot} + S_\text{vib} + S_\text{con}
+
+where :math:`S_{trans}` and :math:`S_{rot}` are:
+
+.. math ::
+   S_i = k_\text{B} \left( \frac{1/T_i}{\exp\left[1/T_i\right]-1} - \ln \left[ 1 - \exp\left[-\frac{1}{T_i}\right]\right] - \frac{1}{2} - \frac{r_i}{2T_i}\frac{\text{I}_1\left[r_i/2T_i\right]}{\text{I}_0\left[r_i/2T_i\right]} + \ln\left[\left(\frac{\pi r_i}{T_i}\right)^{1/2}\text{I}_0\left[\frac{r_i}{2T_i}\right]\right] \right)
+
+and :math:`S_{vib}` is:
+
+.. math ::
+   S_\text{vib} = k_\text{B} \sum_i^\text{3N-3} \left( \frac{1/T_i}{\exp\left[1/T_i\right]-1} - \ln \left[ 1 - \exp\left[-\frac{1}{T_i}\right]\right] \right)
+
+:math:`S_{con}` is a concentration related entropy and is calculated as:
+
+.. math ::
+   S_\text{con} = k_\text{B} \left( 1 - \ln\left[A\left(\frac{N}{A}\right)^0\right] \right)
+
+where
+
+.. math ::
+   \left(\frac{N}{A}\right)^0 = e^{1/3}\left(\frac{N_A \text{ 1 bar}}{RT}\right)
+
+The Helmholtz free energy is calculated as:
+
+.. math ::
+   F(T) = U(T) - T\, S(T)
+
+If the user assumes that the :math:`pV` term in :math:`H = U + pV` is
+negligible, then the Helmholtz free energy can be used to approximate the
+Gibbs free energy, as :math:`G = F + pV`.
+
 **Harmonic limit.** The conversion of electronic structure calculation
 information into thermodynamic properties is less established for adsorbates.
 However, the simplest approach often taken is to treat all :math:`3N` degrees
@@ -202,11 +358,9 @@ in the adsorbate. If the user assumes that the :math:`pV` term in
 :math:`H = U + pV` is negligible, then the Helmholtz free energy can be used
 to approximate the Gibbs free energy, as :math:`G = F + pV`.
 
-**Crystalline solid**
-
-The derivation of the partition function for a crystalline solid is fairly
-straight-forward and can be found, for example, in Chapter 11 of McQuarrie,
-2000.
+**Crystalline solid** The derivation of the partition function for a
+crystalline solid is fairly straight-forward and can be found, for example,
+in Chapter 11 of McQuarrie, 2000.
 
    D.A. McQuarrie. *Statistical Mechanics*. University Science Books, 2000.
 
@@ -229,8 +383,8 @@ is essentially continuous) gives
 
 Here :math:`\sigma (\epsilon)` represents the degeneracy or phonon density of
 states as a function of vibrational energy. Once this function has been
-determined (i.e. using the :mod:`ase.phonons` module), it is a simple matter to
-calculate the canonical ensemble thermodynamic quantities; namely the
+determined (i.e. using the :mod:`ase.phonons` module), it is a simple matter
+to calculate the canonical ensemble thermodynamic quantities; namely the
 internal energy, the entropy and the Helmholtz free energy.
 
 .. math ::
