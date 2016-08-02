@@ -113,6 +113,17 @@ vdWDB_Grimme06jcc = {
     'Xe': [29.99, 1.881]}
 
 
+def get_logging_file_descriptor(calculator):
+    if hasattr(calculator, 'log'):
+        fd = calculator.log
+        if hasattr(fd, 'write'):
+            return fd
+        if hasattr(fd, 'fd'):
+            return fd.fd
+    if hasattr(calculator, 'txt'):
+        return calculator.txt
+            
+            
 class vdWTkatchenko09prl(Calculator):
     """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
     implemented_properties = ['energy', 'forces']
@@ -134,7 +145,11 @@ class vdWTkatchenko09prl(Calculator):
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
+            
+        if txt is None:
+            txt = get_logging_file_descriptor(self.calculator)
         self.txt = convert_string_to_fd(txt)
+
         self.vdwradii = vdwradii
         self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax
