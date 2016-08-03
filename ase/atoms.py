@@ -908,7 +908,6 @@ class Atoms(object):
             i = np.arange(n)[i]
             if isinstance(i, int):
                 i = [i]
-            print(i)
             constraints = []
             for c in self._constraints:
                 c = c.delete_atoms(i, n)
