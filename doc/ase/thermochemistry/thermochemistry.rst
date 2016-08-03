@@ -63,16 +63,17 @@ the surface, one degree of freedom is treated as a hindered rotation about the
 axis perpendicular to the surface, and the remaining 3N-3 degrees of freedom
 are treated as vibrations. The :class:`HinderedThermo` class supports the
 calculation of internal energy, entropy, and free energy. This class returns
-the Helmholtz free energy; if the user assumes that the pV term (in H = U +
-pV) is zero then this can also be interpreted as the Gibbs free energy. This
-class depends on the user defined trans_barrier_energy and rot_barrier_energy
-for the adsorbate to move on the surface in order to calculate the
-translational and rotational degrees of freedom. To calculate the vibrational
-degrees of freedom, all 3N vibrational energies must be supplied in the
-vib_energies list and the 3N-3 largest vibrational energies are used to
-calculate the vibrational contribution; this is a list as can be generated
-with the .get_energies() method of :class:`ase.vibrations.Vibrations`. The
-class :class:`HinderedThermo` has the interface described below.
+the Helmholtz free energy; if the user assumes that the pV term (in G = U +
+pV - TS) is zero then this free energy can also be interpreted as the Gibbs
+free energy. This class depends on the user defined trans_barrier_energy and
+rot_barrier_energy for the adsorbate to move on the surface in order to
+calculate the translational and rotational degrees of freedom. To calculate
+the vibrational degrees of freedom, all 3N vibrational energies must be
+supplied in the vib_energies list and the 3N-3 largest vibrational energies
+are used to calculate the vibrational contribution; this is a list as can be
+generated with the .get_energies() method of
+:class:`ase.vibrations.Vibrations`. The class :class:`HinderedThermo` has the
+interface described below.
 
 .. autoclass:: HinderedThermo
    :members:
@@ -249,12 +250,13 @@ equations used in the :class:`HinderedThermo` class are summarized here.
 The :math:`3N-3` largest vibrational frequencies are used to calculate the
 vibrational contributions to the internal energy and the entropy. The
 remaining three degrees of freedom are calculated from two translational
-contributions and one rotational contribution. The energy barriers for the
-adsorbate to translate and rotate on a close packed surface are used to
-calculate the translational and rotational frequencies, respectively. From the
-translational and rotational frequencies, the translational and rotational
-contributions to the internal energy and the entropy are determined. The
-calculation of the translational frequency is:
+contributions and one rotational contribution of the adsorbate. The energy
+barriers for the adsorbate to translate and rotate on a close packed surface
+are used to calculate the translational and rotational frequencies,
+respectively. From the translational and rotational frequencies, the
+translational and rotational contributions to the internal energy and the
+entropy of the adsorbate are determined. The calculation of the translational
+frequency is:
 
 .. math ::
    \nu_{trans} = \sqrt{\frac{W_{trans}}{2mA}}
@@ -293,7 +295,7 @@ where :math:`E_{trans}` and :math:`E_{rot}` are:
    E_i = k_\text{B}T \left( \frac{1/T_i}{\exp\left[1/T_i\right]-1} -\frac{1}{2} - \frac{1}{\left(2+16r_i\right)T_i} + \frac{r_i}{2T_i} \left( 1 - \frac{\text{I}_1\left[r_i/2T_i\right]}{\text{I}_0\left[r_i/2T_i\right]}\right) \right)
 
 where :math:`I_{n}` is the nth-order modified Bessel function of the first
-kind. Similar to the harmonic limit, :math:`E_{vib}` is:
+kind. Similarly for the harmonic limit, :math:`E_{vib}` is:
 
 .. math ::
    E_\text{vib} = k_\text{B}T \sum_i^\text{3N-3} \left( \frac{1/T_i}{\exp\left[1/T_i\right]-1} \right)
