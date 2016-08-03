@@ -157,16 +157,20 @@ class FixAtoms(FixConstraint):
         self.index = np.asarray(index_new, int)
         return self
 
-    def delete_atom(self, ind):
-        """ Removes atom number ind from the index array, if present.
+    def delete_atoms(self, indices, natoms):
+        """Removes atom number ind from the index array, if present.
+        
         Required for removing atoms with existing FixAtoms constraints.
         """
-        if ind in self.index:
-            i = list(self.index).index(ind)
-            self.index = np.delete(self.index, i)
-        for i in range(len(self.index)):
-            if self.index[i] >= ind:
-                self.index[i] -= 1
+        
+        i = np.zeros(natoms, int) - 1
+        new = np.delete(np.arange(natoms), indices)
+        i[new] = np.arange(len(new))
+        index = i[self.index]
+        self.index = index[index >= 0]
+        if len(self.index) == 0:
+            return None
+        return self
 
 
 def ints2string(x, threshold=None):
