@@ -5,7 +5,6 @@ outputs."""
 import os
 import sys
 import numpy as np
-from scipy import special
 
 from ase import units
 
@@ -273,6 +272,8 @@ class HinderedThermo(ThermoChem):
         """Returns the internal energy, in eV, in the hindered translator
         and hindered rotor model at a specified temperature (K)."""
 
+        from scipy.special import iv
+
         self.verbose = verbose
         write = self._vprint
         fmt = '%-15s%13.3f eV'
@@ -290,7 +291,7 @@ class HinderedThermo(ThermoChem):
         T_t = units._k * temperature / (units._hplanck * freq_t)
         R_t = self.trans_barrier_energy / (units._hplanck * freq_t)
         dU_t = 2 * (-1./2 - 1./T_t/(2+16*R_t) + R_t/2/T_t 
-                - R_t/2/T_t*special.iv(1,R_t/2/T_t)/special.iv(0,R_t/2/T_t)
+                - R_t/2/T_t*iv(1,R_t/2/T_t)/iv(0,R_t/2/T_t)
                 + 1./T_t/(np.exp(1./T_t)-1))
         dU_t *= units.kB * temperature
         write(fmt % ('Cv_trans (0->T)', dU_t))
@@ -302,7 +303,7 @@ class HinderedThermo(ThermoChem):
         T_r = units._k * temperature / (units._hplanck * freq_r)
         R_r = self.rot_barrier_energy / (units._hplanck * freq_r)
         dU_r = (-1./2 - 1./T_r/(2+16*R_r) + R_r/2/T_r 
-                - R_r/2/T_r*special.iv(1,R_r/2/T_r)/special.iv(0,R_r/2/T_r)
+                - R_r/2/T_r*iv(1,R_r/2/T_r)/iv(0,R_r/2/T_r)
                 + 1./T_r/(np.exp(1./T_r)-1))
         dU_r *= units.kB * temperature
         write(fmt % ('Cv_rot (0->T)', dU_r))
@@ -330,6 +331,8 @@ class HinderedThermo(ThermoChem):
         """Returns the entropy, in eV/K, in the hindered translator
         and hindered rotor model at a specified temperature (K)."""
 
+        from scipy.special import iv
+
         self.verbose = verbose
         write = self._vprint
         fmt = '%-15s%13.7f eV/K%13.3f eV'
@@ -345,8 +348,8 @@ class HinderedThermo(ThermoChem):
         T_t = units._k * temperature / (units._hplanck * freq_t)
         R_t = self.trans_barrier_energy / (units._hplanck * freq_t)
         S_t = 2 * (-1./2 + 1./2*np.log(np.pi*R_t/T_t) 
-               - R_t/2/T_t*special.iv(1,R_t/2/T_t)/special.iv(0,R_t/2/T_t) 
-               + np.log(special.iv(0,R_t/2/T_t))
+               - R_t/2/T_t*iv(1,R_t/2/T_t)/iv(0,R_t/2/T_t) 
+               + np.log(iv(0,R_t/2/T_t))
                + 1./T_t/(np.exp(1./T_t)-1) - np.log(1-np.exp(-1./T_t)))
         S_t *= units.kB
         write(fmt % ('S_trans', S_t, S_t * temperature))
@@ -358,8 +361,8 @@ class HinderedThermo(ThermoChem):
         T_r = units._k * temperature / (units._hplanck * freq_r)
         R_r = self.rot_barrier_energy / (units._hplanck * freq_r)
         S_r = (-1./2 + 1./2*np.log(np.pi*R_r/T_r) - np.log(self.symmetry)
-               - R_r/2/T_r*special.iv(1,R_r/2/T_r)/special.iv(0,R_r/2/T_r) 
-               + np.log(special.iv(0,R_r/2/T_r))
+               - R_r/2/T_r*iv(1,R_r/2/T_r)/iv(0,R_r/2/T_r) 
+               + np.log(iv(0,R_r/2/T_r))
                + 1./T_r/(np.exp(1./T_r)-1) - np.log(1-np.exp(-1./T_r)))
         S_r *= units.kB
         write(fmt % ('S_rot', S_r, S_r * temperature))
