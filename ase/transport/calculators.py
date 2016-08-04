@@ -348,7 +348,7 @@ class TransportCalculator:
 
         c_mm = np.take(c_mm, bfs, axis=0)
         c_mm = np.take(c_mm, bfs, axis=1)
-        return ht_mm, st_mm, e_m, c_mm
+        return ht_mm, st_mm, e_m.real, c_mm
 
     def cutcoupling_bfs(self, bfs, apply=False):
         self.initialize()
