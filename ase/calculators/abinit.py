@@ -5,7 +5,7 @@ http://www.abinit.org/
 
 import os
 from glob import glob
-from os.path import join, isfile, islink
+from os.path import join, isfile
 
 import numpy as np
 
@@ -438,10 +438,10 @@ class Abinit(FileIOCalculator):
                         Z = selector([int(os.path.split(name)[1].split('.')[1])
                                       for name in filenames])
                         name = hghtemplate % (number, symbol.lower(), str(Z))
-                filename = join(path, name)
-                if isfile(filename) or islink(filename):
+                filenames = glob(join(path, name))
+                if filenames:
                     found = True
-                    self.ppp_list.append(filename)
+                    self.ppp_list.append(filenames[0])
                     break
                     
             if not found:
