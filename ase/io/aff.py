@@ -4,7 +4,7 @@ from __future__ import print_function
 Stores ndarrays as binary data and Python's built-in datatypes (int, float,
 bool, str, dict, list) as json.
 
-File layout for a single item::
+File layout when there is only a single item::
     
     0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
@@ -240,7 +240,7 @@ class Writer:
             writer.write(n=7)
             writer.write(n=7, s='abc', a=np.zeros(3), density=density)
         """
-        
+    
         if args:
             name, value = args
             kwargs[name] = value
