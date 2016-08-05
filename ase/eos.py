@@ -10,13 +10,13 @@ try:
 except ImportError:
     try:
         from scipy.optimize import leastsq
-    
+
         # this part comes from
         # http://projects.scipy.org/scipy/browser/trunk/scipy/optimize/minpack.py
         def _general_function(params, xdata, ydata, function):
             return function(xdata, *params) - ydata
         # end of this part
-    
+
         def curve_fit(f, x, y, p0):
             func = _general_function
             args = (x, y, f)
@@ -24,7 +24,7 @@ except ImportError:
             # http://projects.scipy.org/scipy/browser/trunk/scipy/optimize/minpack.py
             popt, pcov, infodict, mesg, ier = leastsq(func, p0, args=args,
                                                       full_output=1)
-    
+
             if ier not in [1, 2, 3, 4]:
                 raise RuntimeError("Optimal parameters not found: " + mesg)
             # end of this part
@@ -43,14 +43,14 @@ def taylor(V, E0, beta, alpha, V0):
     E = E0 + beta / 2 * (V - V0)**2 / V0 + alpha / 6 * (V - V0)**3 / V0
     return E
 
-    
+
 def murnaghan(V, E0, B0, BP, V0):
     'From PRB 28,5480 (1983'
 
     E = E0 + B0 * V / BP * (((V0 / V)**BP) / (BP - 1) + 1) - V0 * B0 / (BP - 1)
     return E
 
-    
+
 def birch(V, E0, B0, BP, V0):
     """
     From Intermetallic compounds: Principles and Practice, Vol. I: Principles
@@ -65,7 +65,7 @@ def birch(V, E0, B0, BP, V0):
          9 / 16 * B0 * V0 * (BP - 4) * ((V0 / V)**(2 / 3) - 1)**3)
     return E
 
-    
+
 def birchmurnaghan(V, E0, B0, BP, V0):
     'BirchMurnaghan equation from PRB 70, 224107'
 
@@ -74,7 +74,7 @@ def birchmurnaghan(V, E0, B0, BP, V0):
         6 + BP * (eta**2 - 1) - 4 * eta**2)
     return E
 
-    
+
 def check_birchmurnaghan():
     from sympy import symbols, Rational, diff, simplify
     v, b, bp, v0 = symbols('v b bp v0')
@@ -85,8 +85,8 @@ def check_birchmurnaghan():
     BP = -v * diff(B, v) / b
     print(simplify(B.subs(v, v0)))
     print(simplify(BP.subs(v, v0)))
-    
-    
+
+
 def pouriertarantola(V, E0, B0, BP, V0):
     'Pourier-Tarantola equation from PRB 70, 224107'
 
@@ -96,7 +96,7 @@ def pouriertarantola(V, E0, B0, BP, V0):
     E = E0 + B0 * V0 * squiggle**2 / 6 * (3 + squiggle * (BP - 2))
     return E
 
-    
+
 def vinet(V, E0, B0, BP, V0):
     'Vinet equation from PRB 70, 224107'
 
@@ -107,7 +107,7 @@ def vinet(V, E0, B0, BP, V0):
           np.exp(-3 * (BP - 1) * (eta - 1) / 2)))
     return E
 
-    
+
 def antonschmidt(V, Einf, B, n, V0):
     """From Intermetallics 11, 23-32 (2003)
 
@@ -131,14 +131,14 @@ def antonschmidt(V, Einf, B, n, V0):
                                                 (1 / (n + 1))) + Einf
     return E
 
-    
+
 def p3(V, c0, c1, c2, c3):
     'polynomial fit'
 
     E = c0 + c1 * V + c2 * V**2 + c3 * V**3
     return E
 
-    
+
 def parabola(x, a, b, c):
     """parabola polynomial function
 
@@ -151,7 +151,7 @@ def parabola(x, a, b, c):
 
     return a + b * x + c * x**2
 
-    
+
 class EquationOfState:
     """Fit equation of state for bulk systems.
 
@@ -161,33 +161,33 @@ class EquationOfState:
             A third order inverse polynomial fit 10.1103/PhysRevB.67.026103
 
             ::
-                
+
                                     2      3        -1/3
                 E(V) = c + c t + c t  + c t ,  t = V
                         0   1     2      3
 
         taylor
             A third order Taylor series expansion about the minimum volume
- 
+
         murnaghan
             PRB 28, 5480 (1983)
- 
+
         birch
             Intermetallic compounds: Principles and Practice,
             Vol I: Principles. pages 195-210
- 
+
         birchmurnaghan
             PRB 70, 224107
- 
+
         pouriertarantola
             PRB 70, 224107
- 
+
         vinet
             PRB 70, 224107
- 
+
         antonschmidt
             Intermetallics 11, 23-32 (2003)
- 
+
         p3
             A third order polynomial fit
 
@@ -201,7 +201,7 @@ class EquationOfState:
     def __init__(self, volumes, energies, eos='sj'):
         self.v = np.array(volumes)
         self.e = np.array(energies)
-        
+
         if eos == 'sjeos':
             eos = 'sj'
         self.eos_string = eos
@@ -221,7 +221,7 @@ class EquationOfState:
 
         if self.eos_string == 'sj':
             return self.fit_sjeos()
-            
+
         self.func = globals()[self.eos_string]
 
         p0 = [min(self.e), 1, 1]
@@ -279,7 +279,7 @@ class EquationOfState:
             self.v0 = self.eos_parameters[3]
             self.e0 = self.eos_parameters[0]
             self.B = self.eos_parameters[1]
-            
+
         return self.v0, self.e0, self.B
 
     def plot(self, filename=None, show=None, ax=None):
@@ -364,7 +364,7 @@ class EquationOfState:
         self.fit0 = fit0
 
         return self.v0, self.e0, self.B
-    
+
 
 def main():
     import optparse
@@ -405,7 +405,7 @@ def main():
             else:
                 print('{0:30}{1:2} {2:10.3f}{3:10.3f}{4:14.3f}'
                       .format(name, len(v), v0, e0, B / kJ * 1.0e24))
-            
-            
+
+
 if __name__ == '__main__':
     main()
