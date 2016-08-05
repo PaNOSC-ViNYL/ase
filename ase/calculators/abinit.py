@@ -444,22 +444,6 @@ class Abinit(FileIOCalculator):
                     self.ppp_list.append(filename)
                     break
                     
-            # PP not found. We search for any other suitable choice. We should favour PAWXML
-            names = ['%s.%s.xml' % (symbol, '*'),
-                     '%s-%s.paw' % (symbol, '*'),
-                     '%02d-%s.%s.fhi' % (number, symbol, '*')]
-            for name in names:
-                for path in pppaths:
-                    filenames = glob(join(path, name))
-                    if not filenames:
-                        continue
-                    filename = filenames[0] # get first match
-                    if isfile(filename) or islink(filename):
-                        found = True
-                        self.ppp_list.append(filename)
-                        break
-                if found:
-                    break
             if not found:
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
