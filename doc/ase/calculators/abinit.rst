@@ -85,8 +85,7 @@ format, specified by GPAW. You should then add the correct path to ABINIT_PP_PAT
   ABINIT_PP_PATH=$PP/LDA_PW:$ABINIT_PP_PATH
 
 At execution, you can select the potential database to use with the ``pps`` argument, as one of 
-'fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw', 'pawxml'. When not found, a suitable
-alternative is searched, with priority to PAWXML, PAW and then FHI.
+'fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw', 'pawxml'.
 
 Example 1
 =========
