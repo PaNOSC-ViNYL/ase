@@ -309,9 +309,9 @@ class EquationOfState:
             
         plt.plot(x, y, '-r')
         try:
-            plt.xlabel(u'volume [Å^3]')
+            plt.xlabel(u'volume [Å$^3$]')
             plt.ylabel(u'energy [eV]')
-            plt.title(u'%s: E: %.3f eV, V: %.3f Å^3, B: %.3f GPa' %
+            plt.title(u'%s: E: %.3f eV, V: %.3f Å$^3$, B: %.3f GPa' %
                       (self.eos_string, self.e0, self.v0, self.B / kJ * 1.e24))
         except ImportError:
             plt.xlabel(u'volume [L(length)^3]')
