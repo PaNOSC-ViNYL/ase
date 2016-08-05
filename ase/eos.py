@@ -282,7 +282,7 @@ class EquationOfState:
             
         return self.v0, self.e0, self.B
 
-    def plot(self, filename=None, show=None):
+    def plot(self, filename=None, show=None, ax=None):
         """Plot fitted energy curve.
 
         Uses Matplotlib to plot the energy curve.  Use *show=True* to
@@ -297,34 +297,42 @@ class EquationOfState:
         if filename is None and show is None:
             show = True
 
-        x = 4.5
-        f = plt.figure(figsize=(x * 2.5**0.5, x))
-        f.subplots_adjust(left=0.12, right=0.9, top=0.9, bottom=0.15)
-        plt.plot(self.v, self.e, 'o')
+        if ax is None:
+            figsize_x = 4.5
+            fig = plt.figure(figsize=(figsize_x * 2.5**0.5, figsize_x))
+            fig.subplots_adjust(left=0.12, right=0.9, top=0.9, bottom=0.15)
+            ax = fig.add_subplot(111)
+        else:
+            fig = ax.get_figure()
+
         x = np.linspace(min(self.v), max(self.v), 100)
         if self.eos_string == 'sj':
             y = self.fit0(x**-(1 / 3))
         else:
             y = self.func(x, *self.eos_parameters)
-            
-        plt.plot(x, y, '-r')
+
+        ax.plot(x, y, '-r')
+        ax.plot(self.v, self.e, 'o')
+
         try:
-            plt.xlabel(u'volume [Å$^3$]')
-            plt.ylabel(u'energy [eV]')
-            plt.title(u'%s: E: %.3f eV, V: %.3f Å$^3$, B: %.3f GPa' %
-                      (self.eos_string, self.e0, self.v0, self.B / kJ * 1.e24))
-        except ImportError:
-            plt.xlabel(u'volume [L(length)^3]')
-            plt.ylabel(u'energy [E(energy)]')
-            plt.title(u'%s: E: %.3f E, V: %.3f L^3, B: %.3e E/L^3' %
-                      (self.eos_string, self.e0, self.v0, self.B))
+            ax.set_xlabel(u'volume [Å$^3$]')
+            ax.set_ylabel(u'energy [eV]')
+            ax.set_title(u'%s: E: %.3f eV, V: %.3f Å$^3$, B: %.3f GPa' %
+                         (self.eos_string, self.e0, self.v0,
+                          self.B / kJ * 1.e24))
+
+        except ImportError:  # XXX what would cause this error?  LaTeX?
+            ax.set_xlabel(u'volume [L(length)^3]')
+            ax.set_ylabel(u'energy [E(energy)]')
+            ax.set_title(u'%s: E: %.3f E, V: %.3f L^3, B: %.3e E/L^3' %
+                         (self.eos_string, self.e0, self.v0, self.B))
 
         if show:
             plt.show()
         if filename is not None:
-            f.savefig(filename)
+            fig.savefig(filename)
 
-        return f
+        return fig  # XXX maybe return ax instead?
 
     def fit_sjeos(self):
         """Calculate volume, energy, and bulk modulus.
