@@ -176,12 +176,14 @@ class Abinit(FileIOCalculator):
             inp['nband'] = param.nbands
             del inp['nbands']
 
-        if 'ixc' not in param:
-            inp['ixc'] = {'LDA': 7,
-                          'PBE': 11,
-                          'revPBE': 14,
-                          'RPBE': 15,
-                          'WC': 23}[param.xc]
+        # ixc is set from paw/xml file. Ignore 'xc' setting then.
+        if param.get('pps') not in ['pawxml']:
+            if 'ixc' not in param:
+                inp['ixc'] = {'LDA': 7,
+                              'PBE': 11,
+                              'revPBE': 14,
+                              'RPBE': 15,
+                              'WC': 23}[param.xc]
 
         magmoms = atoms.get_initial_magnetic_moments()
         if magmoms.any():
