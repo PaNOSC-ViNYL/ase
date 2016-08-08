@@ -468,7 +468,11 @@ class NDArrayReader:
         offset = self.offset + start * self.nbytes // len(self)
         self.fd.seek(offset)
         count = (stop - start) * self.size // len(self)
-        a = np.fromfile(self.fd, self.dtype, count)
+        try:
+            a = np.fromfile(self.fd, self.dtype, count)
+        except (AttributeError, IOError):
+            # Not as fast, but works for reading from tar-files:
+            a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
         a.shape = (-1,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()

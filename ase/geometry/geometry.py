@@ -179,7 +179,7 @@ def find_mic(D, cell, pbc=True):
     # first one in D_trans_len.
     D_min_len = np.min(D_trans_len, axis=1)
     D_min_ind = D_trans_len.argmin(axis=1)
-    D_min = D_trans[range(len(D_min_ind)), D_min_ind]
+    D_min = D_trans[list(range(len(D_min_ind))), D_min_ind]
 
     return D_min, D_min_len
 
