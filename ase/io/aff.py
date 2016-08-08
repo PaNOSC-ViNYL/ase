@@ -465,9 +465,10 @@ class NDArrayReader:
                 i += len(self)
             return self[i:i + 1][0]
         start, stop, step = i.indices(len(self))
-        offset = self.offset + start * self.nbytes // len(self)
+        stride = np.prod(self.shape[1:], dtype=int)
+        offset = self.offset + start * self.itemsize * stride
         self.fd.seek(offset)
-        count = (stop - start) * self.size // len(self)
+        count = (stop - start) * stride
         try:
             a = np.fromfile(self.fd, self.dtype, count)
         except (AttributeError, IOError):
