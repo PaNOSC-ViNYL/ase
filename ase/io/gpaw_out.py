@@ -45,9 +45,11 @@ def read_gpaw_out(fileobj, index):
         except ValueError:
             pass
         else:
+            if lines[i + 2].startswith('  -'):
+                del lines[i + 2]  # old format
             cell = []
             pbc = []
-            for line in lines[i + 3:i + 6]:
+            for line in lines[i + 2:i + 5]:
                 words = line.split()
                 if len(words) == 5:  # old format
                     cell.append(float(words[2]))

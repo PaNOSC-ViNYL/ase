@@ -4,7 +4,7 @@ from __future__ import print_function
 Stores ndarrays as binary data and Python's built-in datatypes (int, float,
 bool, str, dict, list) as json.
 
-File layout for a single item::
+File layout when there is only a single item::
     
     0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
@@ -240,7 +240,7 @@ class Writer:
             writer.write(n=7)
             writer.write(n=7, s='abc', a=np.zeros(3), density=density)
         """
-        
+    
         if args:
             name, value = args
             kwargs[name] = value
@@ -468,7 +468,11 @@ class NDArrayReader:
         offset = self.offset + start * self.nbytes // len(self)
         self.fd.seek(offset)
         count = (stop - start) * self.size // len(self)
-        a = np.fromfile(self.fd, self.dtype, count)
+        try:
+            a = np.fromfile(self.fd, self.dtype, count)
+        except (AttributeError, IOError):
+            # Not as fast, but works for reading from tar-files:
+            a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
         a.shape = (-1,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()

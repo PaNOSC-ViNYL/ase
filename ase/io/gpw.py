@@ -54,4 +54,4 @@ def read_old_gpw(filename):
                                           eps_n[0], f_n[0]))
     atoms.calc.kpts = kpts
 
-    yield atoms
+    return atoms

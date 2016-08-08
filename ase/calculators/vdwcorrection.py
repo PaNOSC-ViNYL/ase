@@ -270,6 +270,7 @@ class vdWTkatchenko09prl(Calculator):
                 print('%3d %-2s %10.5f %10.5f %10.5f' %
                       ((ia, symbol) + tuple(self.results['forces'][ia])),
                       file=self.txt)
+            self.txt.flush()
         
     def damping(self, RAB, R0A, R0B,
                 d=20,   # steepness of the step function for PBE
