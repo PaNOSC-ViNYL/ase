@@ -298,12 +298,7 @@ class EquationOfState:
             show = True
 
         if ax is None:
-            figsize_x = 4.5
-            fig = plt.figure(figsize=(figsize_x * 2.5**0.5, figsize_x))
-            fig.subplots_adjust(left=0.12, right=0.9, top=0.9, bottom=0.15)
-            ax = fig.add_subplot(111)
-        else:
-            fig = ax.get_figure()
+            ax = plt.gca()
 
         x = np.linspace(min(self.v), max(self.v), 100)
         if self.eos_string == 'sj':
@@ -330,9 +325,10 @@ class EquationOfState:
         if show:
             plt.show()
         if filename is not None:
+            fig = ax.get_figure()
             fig.savefig(filename)
 
-        return fig  # XXX maybe return ax instead?
+        return ax
 
     def fit_sjeos(self):
         """Calculate volume, energy, and bulk modulus.
