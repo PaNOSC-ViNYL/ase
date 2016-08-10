@@ -91,10 +91,10 @@ class BaseSiesta(FileIOCalculator):
 
         Parameters:
             -label        : The base head of all created files.
-            -mesh_cutoff  : tuple of (value, energy_unit)
+            -mesh_cutoff  : Energy in eV.
                             The mesh cutoff energy for determining number of
                             grid points.
-            -energy_shift : tuple of (value, energy_unit)
+            -energy_shift : Energy in eVV
                             The confining energy of the basis sets.
             -kpts         : Tuple of 3 integers, the k-points in different
                             directions.
@@ -226,72 +226,80 @@ class BaseSiesta(FileIOCalculator):
                 -kwargs  : Dictionary containing the keywords defined in
                            SiestaParameters.
         """
-        # Put in the default arguments.
-        kwargs = self.default_parameters.__class__(**kwargs)
+        # Find not allowed keys.
+        offending_keys = set(kwargs) - set(self.__class__.default_parameters.keys())
+        if len(offending_keys) > 0:
+            raise ValueError("'set' does not take the keywords: %s " % list(offending_keys))
 
         # Check energy inputs.
         for arg in ['mesh_cutoff', 'energy_shift']:
             value = kwargs.get(arg)
+            if value is None:
+                continue
             if not (isinstance(value, (float, int)) and value > 0):
                 mess = "'%s' must be a positive number(in eV), \
                     got '%s'" % (arg, value)
                 raise ValueError(mess)
 
         # Check the basis set input.
-        basis_set = kwargs.get('basis_set')
-        allowed = self.allowed_basis_names
-        if not (isinstance(basis_set, PAOBasisBlock) or basis_set in allowed):
-            mess = "Basis must be either %s, got %s" % (allowed, basis_set)
-            raise Exception(mess)
+        if 'basis_set' in kwargs.keys():
+            basis_set = kwargs['basis_set']
+            allowed = self.allowed_basis_names
+            if not (isinstance(basis_set, PAOBasisBlock) or basis_set in allowed):
+                mess = "Basis must be either %s, got %s" % (allowed, basis_set)
+                raise Exception(mess)
 
         # Check the spin input.
-        spin = kwargs.get('spin')
-        if spin is not None and (spin not in self.allowed_spins):
-            mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
-            raise Exception(mess)
+        if 'spin' in kwargs.keys():
+            spin = kwargs['spin']
+            if spin is not None and (spin not in self.allowed_spins):
+                mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
+                raise Exception(mess)
 
         # Check the functional input.
-        xc = kwargs.get('xc')
-        if isinstance(xc, (tuple, list)) and len(xc) == 2:
-            functional, authors = xc
-            if not functional in self.allowed_xc:
-                mess = "Unrecognized functional keyword: '%s'" % functional
-                raise ValueError(mess)
-            if not authors in self.allowed_xc[functional]:
-                mess = "Unrecognized authors keyword for %s: '%s'"
-                raise ValueError(mess % (functional, authors))
+        if 'xc' in kwargs.keys():
+            xc = kwargs['xc']
+            if isinstance(xc, (tuple, list)) and len(xc) == 2:
+                functional, authors = xc
+                if not functional in self.allowed_xc:
+                    mess = "Unrecognized functional keyword: '%s'" % functional
+                    raise ValueError(mess)
+                if not authors in self.allowed_xc[functional]:
+                    mess = "Unrecognized authors keyword for %s: '%s'"
+                    raise ValueError(mess % (functional, authors))
 
-        elif xc in self.allowed_xc:
-            functional = xc
-            authors = self.allowed_xc[xc][0]
-        else:
-            found = False
-            for key, value in self.allowed_xc.iteritems():
-                if xc in value:
-                    found = True
-                    functional = key
-                    authors = xc
-                    break
+            elif xc in self.allowed_xc:
+                functional = xc
+                authors = self.allowed_xc[xc][0]
+            else:
+                found = False
+                for key, value in self.allowed_xc.iteritems():
+                    if xc in value:
+                        found = True
+                        functional = key
+                        authors = xc
+                        break
 
-            if not found:
-                raise ValueError("Unrecognized 'xc' keyword: '%s'" % xc)
-        kwargs['xc'] = (functional, authors)
+                if not found:
+                    raise ValueError("Unrecognized 'xc' keyword: '%s'" % xc)
+            kwargs['xc'] = (functional, authors)
 
         # Check fdf_arguments.
-        fdf_arguments = kwargs['fdf_arguments']
-        if fdf_arguments is not None:
-            # Type checking.
-            if not isinstance(fdf_arguments, dict):
-                raise TypeError("fdf_arguments must be a dictionary.")
+        if 'fdf_arguments' in kwargs.keys():
+            fdf_arguments = kwargs['fdf_arguments']
+            if fdf_arguments is not None:
+                # Type checking.
+                if not isinstance(fdf_arguments, dict):
+                    raise TypeError("fdf_arguments must be a dictionary.")
 
-            # Check if keywords are allowed.
-            fdf_keys = set(fdf_arguments.keys())
-            allowed_keys = set(self.allowed_fdf_keywords)
-            if not fdf_keys.issubset(allowed_keys):
-                offending_keys = fdf_keys.difference(allowed_keys)
-                raise ValueError("The 'fdf_arguments' dictionary " +
-                                 "argument does not allow " +
-                                 "the keywords: %s" % str(offending_keys))
+                # Check if keywords are allowed.
+                fdf_keys = set(fdf_arguments.keys())
+                allowed_keys = set(self.allowed_fdf_keywords)
+                if not fdf_keys.issubset(allowed_keys):
+                    offending_keys = fdf_keys.difference(allowed_keys)
+                    raise ValueError("The 'fdf_arguments' dictionary " +
+                                     "argument does not allow " +
+                                     "the keywords: %s" % str(offending_keys))
 
         FileIOCalculator.set(self, **kwargs)
 

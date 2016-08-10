@@ -12,7 +12,7 @@ class Siesta3_2(BaseSiesta):
         'LDA': ['PZ', 'CA', 'PW92'],
         'GGA': ['PBE', 'revPBE', 'RPBE',
                 'WC', 'PBEsol', 'LYP']}
-    
+
     unit_fdf_keywords = {
         'BasisPressure': 'eV/Ang**3',
         'LatticeConstant': 'Ang',
@@ -52,8 +52,10 @@ class Siesta3_2(BaseSiesta):
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
         'MD.FCDispl': 'Ang'}
-    
+
     allowed_fdf_keywords = [
+        'MD.UseSaveXV',
+        'MD.UseSaveCG',
         'LongOutput',
         'SystemName',
         'SystemLabel',
@@ -350,8 +352,10 @@ class SiestaTrunk462(BaseSiesta):
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
         'MD.FCDispl': 'Ang'}
-    
+
     allowed_fdf_keywords = [
+        'MD.UseSaveXV',
+        'MD.UseSaveCG',
         'LongOutput',
         'SystemName',
         'SystemLabel',
