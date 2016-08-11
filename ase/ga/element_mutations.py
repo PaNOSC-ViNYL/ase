@@ -38,7 +38,7 @@ class ElementMutation(OffspringCreator):
         else:
             self.min_percentage_elements = min_percentage_elements
         assert len(self.min_percentage_elements) == len(self.element_pools)
-        
+
         self.min_inputs = 1
 
     def get_new_individual(self, parents):
@@ -264,25 +264,25 @@ class MoveDownMutation(ElementMutation):
             # in the periodic table so that the one closest below is first
             choices.sort(key=lambda x: get_row_column(x)[0])
         new_element = choices[0]
-        
+
         for a in f:
             if a.index in ltbm:
                 a.symbol = new_element
             indi.append(a)
-            
+
         return (self.finalize_individual(indi),
                 used_descriptor + ': Parent {0}'.format(f.info['confid']))
-    
+
 
 class MoveUpMutation(ElementMutation):
     """
     Mutation that exchanges an element with an element one step
     (or more steps if fewer is forbidden) up the same
     column in the periodic table.
-    
+
     This mutation is introduced and used in:
     P. B. Jensen et al., Phys. Chem. Chem. Phys., 16, 36, 19732-19740 (2014)
-    
+
     See MoveDownMutation for the idea behind
 
     Parameters:
@@ -290,7 +290,7 @@ class MoveUpMutation(ElementMutation):
     element_pool: List of elements in the phase space. The elements can be
         grouped if the individual consist of different types of elements.
         The list should then be a list of lists e.g. [[list1], [list2]]
-    
+
     max_diff_elements: The maximum number of different elements in the
         individual. Default is infinite. If the elements are grouped
         max_diff_elements should be supplied as a list with each input
@@ -302,7 +302,7 @@ class MoveUpMutation(ElementMutation):
         grouped min_percentage_elements should be supplied as a list with
         each input corresponding to the elements specified in the same input
         in element_pool.
-    
+
     Example: element_pool=[[A,B,C,D],[x,y,z]], max_diff_elements=[3,2],
         min_percentage_elements=[.25, .5]
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
@@ -313,7 +313,7 @@ class MoveUpMutation(ElementMutation):
                                  min_percentage_elements, verbose,
                                  num_muts=num_muts)
         self.descriptor = 'MoveUpMutation'
-        
+
     def get_new_individual(self, parents):
         f = parents[0]
 
@@ -359,20 +359,20 @@ class MoveUpMutation(ElementMutation):
             if a.index in ltbm:
                 a.symbol = new_element
             indi.append(a)
-            
+
         return (self.finalize_individual(indi),
                 used_descriptor + ': Parent {0}'.format(f.info['confid']))
-        
-        
+
+
 class MoveRightMutation(ElementMutation):
     """
     Mutation that exchanges an element with an element one step
     (or more steps if fewer is forbidden) to the right in the
     same row in the periodic table.
-    
+
     This mutation is introduced and used in:
     P. B. Jensen et al., Phys. Chem. Chem. Phys., 16, 36, 19732-19740 (2014)
-    
+
     See MoveDownMutation for the idea behind
 
     Parameters:
@@ -380,7 +380,7 @@ class MoveRightMutation(ElementMutation):
     element_pool: List of elements in the phase space. The elements can be
         grouped if the individual consist of different types of elements.
         The list should then be a list of lists e.g. [[list1], [list2]]
-    
+
     max_diff_elements: The maximum number of different elements in the
         individual. Default is infinite. If the elements are grouped
         max_diff_elements should be supplied as a list with each input
@@ -392,7 +392,7 @@ class MoveRightMutation(ElementMutation):
         grouped min_percentage_elements should be supplied as a list with
         each input corresponding to the elements specified in the same input
         in element_pool.
-    
+
     Example: element_pool=[[A,B,C,D],[x,y,z]], max_diff_elements=[3,2],
         min_percentage_elements=[.25, .5]
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
@@ -403,13 +403,13 @@ class MoveRightMutation(ElementMutation):
                                  min_percentage_elements, verbose,
                                  num_muts=num_muts)
         self.descriptor = 'MoveRightMutation'
-        
+
     def get_new_individual(self, parents):
         f = parents[0]
-        
+
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
-        
+
         ltbm, choices = self.get_mutation_index_list_and_choices(f)
         # periodic table row, periodic table column
         ptrow, ptcol = get_row_column(f[ltbm[0]].symbol)
@@ -442,25 +442,25 @@ class MoveRightMutation(ElementMutation):
             # Sorting so the element closest to the right is first
             choices.sort(key=lambda x: get_row_column(x)[1])
         new_element = choices[0]
-        
+
         for a in f:
             if a.index in ltbm:
                 a.symbol = new_element
             indi.append(a)
-            
+
         return (self.finalize_individual(indi),
                 used_descriptor + ': Parent {0}'.format(f.info['confid']))
-        
-        
+
+
 class MoveLeftMutation(ElementMutation):
     """
     Mutation that exchanges an element with an element one step
     (or more steps if fewer is forbidden) to the left in the
     same row in the periodic table.
-    
+
     This mutation is introduced and used in:
     P. B. Jensen et al., Phys. Chem. Chem. Phys., 16, 36, 19732-19740 (2014)
-    
+
     See MoveDownMutation for the idea behind
 
     Parameters:
@@ -468,7 +468,7 @@ class MoveLeftMutation(ElementMutation):
     element_pool: List of elements in the phase space. The elements can be
         grouped if the individual consist of different types of elements.
         The list should then be a list of lists e.g. [[list1], [list2]]
-    
+
     max_diff_elements: The maximum number of different elements in the
         individual. Default is infinite. If the elements are grouped
         max_diff_elements should be supplied as a list with each input
@@ -480,7 +480,7 @@ class MoveLeftMutation(ElementMutation):
         grouped min_percentage_elements should be supplied as a list with
         each input corresponding to the elements specified in the same input
         in element_pool.
-    
+
     Example: element_pool=[[A,B,C,D],[x,y,z]], max_diff_elements=[3,2],
         min_percentage_elements=[.25, .5]
         An individual could be "D,B,B,C,x,x,x,x,z,z,z,z"
@@ -530,11 +530,11 @@ class MoveLeftMutation(ElementMutation):
             # Sorting so the element closest to the left is first
             choices.sort(key=lambda x: get_row_column(x)[1], reverse=True)
         new_element = choices[0]
-        
+
         for a in f:
             if a.index in ltbm:
                 a.symbol = new_element
             indi.append(a)
-            
+
         return (self.finalize_individual(indi),
                 used_descriptor + ':Parent {0}'.format(f.info['confid']))
