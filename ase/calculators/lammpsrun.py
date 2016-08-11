@@ -118,7 +118,7 @@ class LAMMPS:
             self.tmp_dir=os.path.realpath(tmp_dir)
             if not os.path.isdir(self.tmp_dir):
                 os.mkdir(self.tmp_dir, 0o755)
-        
+
         for f in files:
             shutil.copy(f, os.path.join(self.tmp_dir, os.path.basename(f)))
 
@@ -175,7 +175,7 @@ class LAMMPS:
         if self._lmp_alive():
             self._lmp_handle.stdin.close()
             return self._lmp_handle.wait()
-        
+
     def run(self):
         """Method which explicitely runs LAMMPS."""
 
@@ -203,7 +203,7 @@ class LAMMPS:
         # change into subdirectory for LAMMPS calculations
         cwd = os.getcwd()
         os.chdir(self.tmp_dir)
- 
+
 
         # setup file names for LAMMPS calculation
         label = '{0}{1:>06}'.format(self.label, self.calls)
@@ -301,7 +301,7 @@ class LAMMPS:
             # Expect lammps_in to be a file-like object
             f = lammps_in
             close_in_file = False
-            
+
         if self.keep_tmp_files:
             f.write('# (written by ASE)\n'.encode('utf-8'))
 
@@ -349,7 +349,7 @@ class LAMMPS:
                 f.write(('region asecell block 0.0 {0} 0.0 {1} 0.0 {2} '
                          'side in units box\n').format(xhi, yhi, zhi
                             ).encode('utf-8'))
-                    
+
             symbols = self.atoms.get_chemical_symbols()
             if self.specorder is None:
                 # By default, atom types in alphabetic order
@@ -370,7 +370,7 @@ class LAMMPS:
                 f.write('create_atoms {0} single {1} {2} {3} units box\n'.format(
                         *((species_i[s],)+p.pos_to_lammps_fold_str(pos))
                                 ).encode('utf-8'))
-                
+
 
         # if NOT self.no_lammps_data, then simply refer to the data-file
         else:
@@ -475,7 +475,7 @@ class LAMMPS:
             if 'ITEM: NUMBER OF ATOMS' in line:
                 line = f.readline()
                 n_atoms = int(line.split()[0])
-            
+
             if 'ITEM: BOX BOUNDS' in line:
                 # save labels behind "ITEM: BOX BOUNDS" in triclinic case (>=lammps-7Jul09)
                 tilt_items = line.split()[3:]
@@ -486,7 +486,7 @@ class LAMMPS:
                     hi.append(float(fields[1]))
                     if (len(fields) >= 3):
                         tilt.append(float(fields[2]))
-            
+
             if 'ITEM: ATOMS' in line:
                 # (reliably) identify values by labels behind "ITEM: ATOMS" - requires >=lammps-7Jul09
                 # create corresponding index dictionary before iterating over atoms to (hopefully) speed up lookups...
@@ -501,6 +501,13 @@ class LAMMPS:
                     positions.append( [ float(fields[atom_attributes[x]]) for x in ['x', 'y', 'z'] ] )
                     velocities.append( [ float(fields[atom_attributes[x]]) for x in ['vx', 'vy', 'vz'] ] )
                     forces.append( [ float(fields[atom_attributes[x]]) for x in ['fx', 'fy', 'fz'] ] )
+                # Re-order items according to their 'id' since running in
+                # parallel can give arbitrary ordering.
+                type = [type[x-1] for x in id]
+                positions = [positions[x-1] for x in id]
+                velocities = [velocities[x-1] for x in id]
+                forces = [forces[x-1] for x in id]
+
         f.close()
 
         # determine cell tilt (triclinic case!)
@@ -520,7 +527,7 @@ class LAMMPS:
         xhilo = (hi[0] - lo[0]) - xy - xz
         yhilo = (hi[1] - lo[1]) - yz
         zhilo = (hi[2] - lo[2])
-        
+
 # The simulation box bounds are included in each snapshot and if the box is triclinic (non-orthogonal),
 # then the tilt factors are also printed; see the region prism command for a description of tilt factors.
 # For triclinic boxes the box bounds themselves (first 2 quantities on each line) are a true "bounding box"
@@ -621,18 +628,18 @@ class prism:
         """
         a, b, c = cell
         an, bn, cn = [np.linalg.norm(v) for v in cell]
-        
+
         alpha = np.arccos(np.dot(b, c)/(bn*cn))
         beta  = np.arccos(np.dot(a, c)/(an*cn))
         gamma = np.arccos(np.dot(a, b)/(an*bn))
-        
+
         xhi = an
         xyp = np.cos(gamma)*bn
         yhi = np.sin(gamma)*bn
         xzp = np.cos(beta)*cn
         yzp = (bn*cn*np.cos(alpha) - xyp*xzp)/yhi
         zhi = np.sqrt(cn**2 - xzp**2 - yzp**2)
-    
+
         # Set precision
         self.car_prec = dec.Decimal('10.0') ** \
             int(np.floor(np.log10(max((xhi,yhi,zhi))))-digits)
@@ -690,7 +697,7 @@ class prism:
              map(dec.Decimal, map(repr, np.mod(self.car2dir(v) + self.eps, 1.0)))]
         return tuple([self.f2qs(x) for x in
                       self.dir2car(list(map(float, d)))])
-        
+
     def get_lammps_prism(self):
         A = self.A
         return (A[0,0], A[1,1], A[2,2], A[1,0], A[2,0], A[2,1])
@@ -713,7 +720,7 @@ class prism:
         prism = self.get_lammps_prism()
         axy, axz, ayz = [np.abs(x) for x in prism[3:]]
         return (axy >= acc) or (axz >= acc) or (ayz >= acc)
-        
+
 
 def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
                       prismobj=None, velocities=False):
@@ -757,7 +764,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
     f.write('0.0 {0}  xlo xhi\n'.format(xhi).encode('utf-8'))
     f.write('0.0 {0}  ylo yhi\n'.format(yhi).encode('utf-8'))
     f.write('0.0 {0}  zlo zhi\n'.format(zhi).encode('utf-8'))
-    
+
     if force_skew or p.is_skewed():
         f.write('{0} {1} {2}  xy xz yz\n'.format(xy, xz, yz).encode('utf-8'))
     f.write('\n\n'.encode('utf-8'))
@@ -774,7 +781,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
         for i, v in enumerate(atoms.get_velocities()):
             f.write('{0:>6} {1} {2} {3}\n'.format(
                     *(i+1,)+tuple(v)).encode('utf-8'))
-    
+
     f.flush()
     if close_file:
         f.close()
