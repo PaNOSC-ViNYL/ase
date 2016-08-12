@@ -165,7 +165,7 @@ class LAMMPS:
             print("WARNING: semi-periodic ASE cell detected - translation")
             print("         to proper LAMMPS input cell might fail")
             cell = self.atoms.get_cell()
-        self.prism = prism(cell)
+        self.prism = Prism(cell)
         self.run()
 
     def _lmp_alive(self):
@@ -240,7 +240,7 @@ class LAMMPS:
         # also create lammps_log, although it is never used)
         if self.keep_tmp_files:
             lammps_log_fd = open(lammps_log, 'wb')
-            fd = special_tee(lmp_handle.stdout, lammps_log_fd)
+            fd = SpecialTee(lmp_handle.stdout, lammps_log_fd)
         else:
             fd = lmp_handle.stdout
         thr_read_log = Thread(target=self.read_lammps_log, args=(fd,))
@@ -250,7 +250,7 @@ class LAMMPS:
         # although it is never used)
         if self.keep_tmp_files:
             lammps_in_fd = open(lammps_in, 'wb')
-            fd = special_tee(lmp_handle.stdin, lammps_in_fd)
+            fd = SpecialTee(lmp_handle.stdin, lammps_in_fd)
         else:
             fd = lmp_handle.stdin
         self.write_lammps_in(lammps_in=fd, lammps_trj=lammps_trj,
@@ -616,7 +616,7 @@ class LAMMPS:
         self.forces = forces_atoms
 
 
-class special_tee:
+class SpecialTee(object):
     """A special purpose, with limited applicability, tee-like thing.
 
     A subset of stuff read from, or written to, orig_fd,
@@ -655,7 +655,7 @@ class special_tee:
         self._out_fd.flush()
 
 
-class prism:
+class Prism(object):
 
     def __init__(self, cell, pbc=(True, True, True), digits=10):
         """Create a lammps-style triclinic prism object from a cell
@@ -811,7 +811,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
     f.write('{0}  atom types\n'.format(n_atom_types).encode('utf-8'))
 
     if prismobj is None:
-        p = prism(atoms.get_cell())
+        p = Prism(atoms.get_cell())
     else:
         p = prismobj
     xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
