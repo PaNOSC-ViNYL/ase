@@ -258,11 +258,6 @@ class Calculator:
             if default == '_no_default_' or not equal(value, default):
                 if hasattr(value, 'todict'):
                     value = value.todict()
-                elif isinstance(value, dict) and isinstance(default, dict):
-                    # Only keep values that are not default:
-                    value = dict((k, v)
-                                 for k, v in value.items()
-                                 if v != default.get(k))
                 dct[key] = value
         return dct
 
@@ -383,6 +378,7 @@ class Calculator:
         return self.get_property('magmom', atoms)
 
     def get_magnetic_moments(self, atoms=None):
+        """Calculate magnetic moments projected onto atoms."""
         return self.get_property('magmoms', atoms)
 
     def get_property(self, name, atoms=None, allow_calculation=True):
