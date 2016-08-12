@@ -14,7 +14,11 @@ import os
 import types
 from math import log
 from math import exp
-from ase.io import write
+
+
+# XXX 'num' this somehow is used as a global variable when running in the
+# special serial mode.  This should definitely be done in a different way.
+num = None
 
 
 class AutoNEB(object):
