@@ -365,8 +365,16 @@ class Reader:
     def keys(self):
         return self._data.keys()
     
-    def items(self):
-        return self._data.items()
+    def asdict(self):
+        """Read everything now and convert to dict."""
+        dct = {}
+        for key, value in self._data.items():
+            if isinstance(value, NDArrayReader):
+                value = value.read()
+            elif isinstance(value, Reader):
+                value = value.asdict()
+            dct[key] = value
+        return dct
         
     __dir__ = keys  # needed for tab-completion
     
