@@ -269,9 +269,9 @@ def get_connections_index(atoms, max_conn=5, no_count_types=None):
                 conn_index[cconn] = []
             conn_index[cconn].append(i)
 
-    return conn_index  
-    
-    
+    return conn_index
+
+
 def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
     """
     This method returns a list of the numbers of atoms
