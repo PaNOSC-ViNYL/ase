@@ -58,7 +58,7 @@ class FIRE(Optimizer):
 
     def read(self):
         self.v, self.dt = self.load()
-       
+
     def step(self,f):
         atoms = self.atoms
         if self.v is None:
