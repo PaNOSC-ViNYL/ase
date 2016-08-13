@@ -64,7 +64,7 @@ class FIRE(Optimizer):
         if self.v is None:
             self.v = np.zeros((len(atoms), 3))
             if self.downhill_check:
-                self.e_last = atoms.get_potential_energy()+1.0
+                self.e_last = atoms.get_potential_energy()
                 self.r_last = atoms.get_positions().copy()
                 self.v_last = self.v.copy()
         else:
