@@ -1,13 +1,13 @@
 import numpy as np
 
 from ase.optimize.optimize import Optimizer
-from ase.parallel import parprint
 
 
 class FIRE(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  dt=0.1, maxmove=0.2, dtmax=1.0, Nmin=5, finc=1.1, fdec=0.5,
-                 astart=0.1, fa=0.99, a=0.1, master=None, downhill_check=False):
+                 astart=0.1, fa=0.99, a=0.1, master=None, downhill_check=False,
+                 position_reset_callback=None):
         """Parameters:
 
         atoms: Atoms object
@@ -32,6 +32,11 @@ class FIRE(Optimizer):
         downhill_check: boolean
             Check if energy actually decreased during FIRE steps, otherwise
             reset and decrease time step.
+
+        position_reset_callback: function(atoms, r, e, e_last)
+            Function that takes current *atoms* object, an array of position
+            *r* that the optimizer will revert to, current energy *e* and energy
+            of last step *e_last*. This is only called if e > e_last.
         """
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
@@ -46,6 +51,7 @@ class FIRE(Optimizer):
         self.fa = fa
         self.a = a
         self.downhill_check = downhill_check
+        self.position_reset_callback = position_reset_callback
 
     def initialize(self):
         self.v = None
@@ -68,8 +74,9 @@ class FIRE(Optimizer):
                 # Check if the energy actually decreased
                 if e > self.e_last:
                     # If not, reset to old positions...
-                    parprint('Resetting positions because energy increased from'
-                             ' %f to %f during step.' % (self.e_last, e))
+                    if self.position_reset_callback is not None:
+                        self.position_reset_callback(atoms, self.r_last, e,
+                                                     self.e_last)
                     atoms.set_positions(self.r_last)
                     is_uphill = True
                 self.e_last = atoms.get_potential_energy()
