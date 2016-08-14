@@ -30,8 +30,12 @@ class FIRE(Optimizer):
             set to true,  this rank will save files.
 
         downhill_check: boolean
-            Check if energy actually decreased during FIRE steps, otherwise
-            reset and decrease time step.
+            Downhill check directly compares potential energies of subsequent
+            steps of the FIRE algorithm rather than relying on the current
+            product v*f that is positive if the FIRE dynamics moves downhill.
+            This can detect numerical issues where at large time steps the step
+            is uphill in energy even though locally v*f is positive, i.e. the
+            algorithm jumps over a valley because of a too large time step.
 
         position_reset_callback: function(atoms, r, e, e_last)
             Function that takes current *atoms* object, an array of position
