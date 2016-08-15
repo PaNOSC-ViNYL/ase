@@ -335,7 +335,7 @@ class Calculator:
     def check_state(self, atoms, tol=1e-15):
         """Check for system changes since last calculation."""
         if self.atoms is None:
-            system_changes = all_changes
+            system_changes = all_changes[:]
         else:
             system_changes = []
             if not equal(self.atoms.positions, atoms.positions, tol):
