@@ -41,6 +41,7 @@ contact_email = 'simon.rittmeyer@tum.de'
 
 # A convenient table to avoid the previously used "eval"
 _tf_table = {
+    '': True, # Just the keyword is equivalent to True
     'True': True,
     'False': False}
 
