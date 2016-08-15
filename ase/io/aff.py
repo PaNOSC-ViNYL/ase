@@ -482,7 +482,7 @@ class NDArrayReader:
         except (AttributeError, IOError):
             # Not as fast, but works for reading from tar-files:
             a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
-        a.shape = (-1,) + self.shape[1:]
+        a.shape = (stop - start,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()
         if self.little_endian != np.little_endian:
