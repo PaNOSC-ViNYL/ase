@@ -71,8 +71,9 @@ def write_proteindatabank(fileobj, images):
         fileobj.write(format % (cellpar[0], cellpar[1], cellpar[2],
                                 cellpar[3], cellpar[4], cellpar[5]))
 
-    #         1234567 123 6789012345678901   89   67   456789012345678901234567 890
-    format = 'ATOM  %5d %4s MOL     1    %8.3f%8.3f%8.3f  1.00  0.00          %2s  \n'
+    #     1234567 123 6789012345678901   89   67   456789012345678901234567 890
+    format = ('ATOM  %5d %4s MOL     1    %8.3f%8.3f%8.3f  1.00  0.00'
+              '          %2s  \n')
 
     # RasMol complains if the atom index exceeds 100000. There might
     # be a limit of 5 digit numbers in this field.
@@ -82,7 +83,7 @@ def write_proteindatabank(fileobj, images):
     natoms = len(symbols)
 
     for n, atoms in enumerate(images):
-        fileobj.write('MODEL     '+str(n+1)+'\n')
+        fileobj.write('MODEL     ' + str(n + 1) + '\n')
         p = atoms.get_positions()
         for a in range(natoms):
             x, y, z = p[a]
