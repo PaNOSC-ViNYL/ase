@@ -5,7 +5,7 @@ http://www.abinit.org/
 
 import os
 from glob import glob
-from os.path import join, isfile
+from os.path import join
 
 import numpy as np
 
@@ -65,7 +65,7 @@ class Abinit(FileIOCalculator):
     """
 
     implemented_properties = ['energy', 'forces', 'stress', 'magmom']
-    command = 'abinis < PREFIX.files > PREFIX.log'
+    command = 'abinit < PREFIX.files > PREFIX.log'
 
     default_parameters = dict(
         xc='LDA',
