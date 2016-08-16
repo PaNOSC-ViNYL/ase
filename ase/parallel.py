@@ -4,11 +4,43 @@ import functools
 import pickle
 import sys
 import time
-import inspect
 
 import numpy as np
 
 from ase.utils import devnull
+
+
+def get_txt(txt, rank):
+    if hasattr(txt, 'write'):
+        # Note: User-supplied object might write to files from many ranks.
+        return txt
+    elif rank == 0:
+        if txt is None:
+            return devnull
+        elif txt == '-':
+            return sys.stdout
+        else:
+            return open(txt, 'w', 1)
+    else:
+        return devnull
+
+
+def paropen(name, mode='r', buffering=-1):
+    """MPI-safe version of open function.
+
+    In read mode, the file is opened on all nodes.  In write and
+    append mode, the file is opened on the master only, and /dev/null
+    is opened on all other nodes.
+    """
+    if world.rank > 0 and mode[0] != 'r':
+        name = '/dev/null'
+    return open(name, mode, buffering)
+
+
+def parprint(*args, **kwargs):
+    """MPI-safe print - prints only from master. """
+    if world.rank == 0:
+        print(*args, **kwargs)
 
 
 class DummyMPI:
@@ -39,15 +71,15 @@ class MPI4PY:
     def sum(self, a):
         return self.comm.allreduce(a)
     
-    def split(self, split_size = None):
-        # devide the communicator
+    def split(self, split_size=None):
+        """Divide the communicator."""
         # color - subgroup id
         # key - new subgroup rank
         if not split_size:
             split_size = self.size
         color = int(self.rank // (self.size / split_size))
         key = int(self.rank % (self.size / split_size))
-        self.comm = self.comm.Split(color,key)
+        self.comm = self.comm.Split(color, key)
         self.rank = self.comm.rank
         self.size = self.comm.size
 
@@ -88,39 +120,6 @@ size = world.size
 barrier = world.barrier
 
 
-def get_txt(txt, rank):
-    if hasattr(txt, 'write'):
-        # Note: User-supplied object might write to files from many ranks.
-        return txt
-    elif rank == 0:
-        if txt is None:
-            return devnull
-        elif txt == '-':
-            return sys.stdout
-        else:
-            return open(txt, 'w', 1)
-    else:
-        return devnull
-
-
-def paropen(name, mode='r', buffering=-1):
-    """MPI-safe version of open function.
-
-    In read mode, the file is opened on all nodes.  In write and
-    append mode, the file is opened on the master only, and /dev/null
-    is opened on all other nodes.
-    """
-    if world.rank > 0 and mode[0] != 'r':
-        name = '/dev/null'
-    return open(name, mode, buffering)
-
-
-def parprint(*args, **kwargs):
-    """MPI-safe print - prints only from master. """
-    if world.rank == 0:
-        print(*args, **kwargs)
-
-
 def broadcast(obj, root=0, comm=world):
     """Broadcast a Python object across an MPI communicator and return it."""
     if comm.rank == root:
@@ -155,15 +154,6 @@ def parallel_function(func):
         result = None
         if world.rank == 0:
             try:
-                fileandfuncname = [s[1]+s[3] for s in inspect.stack()]
-                try:
-                    # current filename and function has another occurence
-                    # raise NotImplementedError to warn about nesting
-                    fileandfuncname.index(fileandfuncname[0],1)
-                    raise NotImplementedError(
-                        "Cannot handle nested parallel_function!")
-                except ValueError:
-                    pass
                 result = func(*args, **kwargs)
             except Exception as ex:
                 pass
