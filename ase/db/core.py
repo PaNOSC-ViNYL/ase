@@ -142,6 +142,13 @@ def lock(method):
     return new_method
 
 
+def convert_str_to_int_float_or_str(value):
+    try:
+        return int(value)
+    except ValueError:
+        return convert_str_to_float_or_str(value)
+
+
 def convert_str_to_float_or_str(value):
     """Safe eval()"""
     try:
@@ -149,8 +156,8 @@ def convert_str_to_float_or_str(value):
     except ValueError:
         value = {'True': 1.0, 'False': 0.0}.get(value, value)
     return value
-
-
+    
+    
 class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
