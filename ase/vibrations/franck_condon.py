@@ -33,7 +33,7 @@ class FranckCondonOverlap:
             # use symmetry
             return self.direct(m, n, S_in)
 
-        S = np.array(S_in)
+        S = np.array([S_in])
         mask = np.where(S == 0)
         S[mask] = 1 # hide zeros
         s = 0
@@ -45,7 +45,7 @@ class FranckCondonOverlap:
             self.factorial(n) * self.factorial(m))
         # use othogonality
         res[mask] = int(n == m)
-        return res
+        return res[0]
 
     def direct0mm1(self, m, S):
         """<0|m><m|1>"""
