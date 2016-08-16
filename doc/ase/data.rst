@@ -54,7 +54,7 @@ Molecular data
 
 The G1, G2, and G3-databases are available.  Example:
 
->>> from ase.structure import molecule
+>>> from ase.build import molecule
 >>> atoms = molecule('H2O')
 
 All molecular members of each database is conveniently contained in a list

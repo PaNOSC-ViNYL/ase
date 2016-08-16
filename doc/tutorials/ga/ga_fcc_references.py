@@ -2,7 +2,7 @@ import numpy as np
 
 from ase.lattice.cubic import FaceCenteredCubic
 from ase.calculators.emt import EMT
-from ase.utils.eos import EquationOfState
+from ase.eos import EquationOfState
 from ase.db import connect
 
 db = connect('refs.db')

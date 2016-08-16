@@ -206,7 +206,7 @@ class LAMMPS:
  
 
         # setup file names for LAMMPS calculation
-        label = '%s%06d' % (self.label, self.calls)
+        label = '{0}{1:>06}'.format(self.label, self.calls)
         lammps_in = uns_mktemp(prefix='in_'+label, dir=self.tmp_dir)
         lammps_log = uns_mktemp(prefix='log_'+label, dir=self.tmp_dir)
         lammps_trj_fd = NamedTemporaryFile(prefix='trj_'+label, dir=self.tmp_dir,
@@ -233,7 +233,7 @@ class LAMMPS:
         # Create thread reading lammps stdout (for reference, if requested,
         # also create lammps_log, although it is never used)
         if self.keep_tmp_files:
-            lammps_log_fd = open(lammps_log, 'w')
+            lammps_log_fd = open(lammps_log, 'wb')
             fd = special_tee(lmp_handle.stdout, lammps_log_fd)
         else:
             fd = lmp_handle.stdout
@@ -244,7 +244,7 @@ class LAMMPS:
         # write LAMMPS input (for reference, also create the file lammps_in,
         # although it is never used)
         if self.keep_tmp_files:
-            lammps_in_fd = open(lammps_in, 'w')
+            lammps_in_fd = open(lammps_in, 'wb')
             fd = special_tee(lmp_handle.stdin, lammps_in_fd)
         else:
             fd = lmp_handle.stdin
@@ -266,8 +266,8 @@ class LAMMPS:
         exitcode = lmp_handle.poll()
         if exitcode and exitcode != 0:
             cwd = os.getcwd()
-            raise RuntimeError('LAMMPS exited in %s with exit code: %d.' %\
-                                   (cwd,exitcode))
+            raise RuntimeError('LAMMPS exited in {0} with exit code: {0}.'
+                               ''.format(cwd,exitcode))
 
         # A few sanity checks
         if len(self.thermo_content) == 0:
@@ -295,7 +295,7 @@ class LAMMPS:
         """Method which writes a LAMMPS in file with run parameters and settings."""
 
         if isinstance(lammps_in, str):
-            f = paropen(lammps_in, 'w')
+            f = paropen(lammps_in, 'wb')
             close_in_file = True
         else:
             # Expect lammps_in to be a file-like object
@@ -303,46 +303,52 @@ class LAMMPS:
             close_in_file = False
             
         if self.keep_tmp_files:
-            f.write('# (written by ASE)\n')
+            f.write('# (written by ASE)\n'.encode('utf-8'))
 
         # Write variables
-        f.write('clear\n' +
-                ('variable dump_file string "%s"\n' % lammps_trj) +
-                ('variable data_file string "%s"\n' % lammps_data))
+        f.write(('clear\n'
+                'variable dump_file string "{0}"\n'
+                'variable data_file string "{1}"\n'
+                ).format(lammps_trj, lammps_data).encode('utf-8'))
 
         parameters = self.parameters
         pbc = self.atoms.get_pbc()
-        f.write('units metal \n')
+        f.write('units metal \n'.encode('utf-8'))
         if ('boundary' in parameters):
-            f.write('boundary %s \n' % parameters['boundary'])
+            f.write('boundary {0} \n'.format(parameters['boundary']
+                    ).encode('utf-8'))
         else:
-            f.write('boundary %c %c %c \n' % tuple('sp'[x] for x in pbc))
-        f.write('atom_modify sort 0 0.0 \n')
+            f.write('boundary {0} {1} {2} \n'.format(
+                    *tuple('sp'[x] for x in pbc)).encode('utf-8'))
+        f.write('atom_modify sort 0 0.0 \n'.encode('utf-8'))
         for key in ('neighbor' ,'newton'):
             if key in parameters:
-                f.write('%s %s \n' % (key, parameters[key]))
-        f.write('\n')
+                f.write('{0} {1} \n'.format(key, parameters[key]
+                        ).encode('utf-8'))
+        f.write('\n'.encode('utf-8'))
 
 
         # If self.no_lammps_data,
         # write the simulation box and the atoms
         if self.no_data_file:
             if self.keep_tmp_files:
-                f.write('## Original ase cell\n')
-                f.write(''.join(['# %.16f %.16f %.16f\n' % tuple(x)
-                                 for x in self.atoms.get_cell()]))
+                f.write('## Original ase cell\n'.encode('utf-8'))
+                f.write(''.join(['# {0:.16} {1:.16} {2:.16}\n'.format(*x)
+                                for x in self.atoms.get_cell()]
+                                ).encode('utf-8'))
 
             p = self.prism
-            f.write('lattice sc 1.0\n')
+            f.write('lattice sc 1.0\n'.encode('utf-8'))
             xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
             if self.always_triclinic or p.is_skewed():
-                f.write('region asecell prism 0.0 %s 0.0 %s 0.0 %s ' % \
-                            (xhi, yhi, zhi))
-                f.write('%s %s %s side in units box\n' % \
-                            (xy, xz, yz))
+                f.write('region asecell prism 0.0 {0} 0.0 {1} 0.0 {2} '.format(
+                            xhi, yhi, zhi).encode('utf-8'))
+                f.write('{0} {1} {2} side in units box\n'.format(
+                            xy, xz, yz).encode('utf-8'))
             else:
-                f.write(('region asecell block 0.0 %s 0.0 %s 0.0 %s '
-                         'side in units box\n') % (xhi, yhi, zhi))
+                f.write(('region asecell block 0.0 {0} 0.0 {1} 0.0 {2} '
+                         'side in units box\n').format(xhi, yhi, zhi
+                            ).encode('utf-8'))
                     
             symbols = self.atoms.get_chemical_symbols()
             if self.specorder is None:
@@ -355,53 +361,59 @@ class LAMMPS:
             n_atom_types = len(species)
             species_i = dict([(s,i+1) for i,s in enumerate(species)])
 
-            f.write('create_box %i asecell\n' % n_atom_types)
+            f.write('create_box {0} asecell\n'.format(n_atom_types
+                    ).encode('utf-8'))
             for s, pos in zip(symbols, self.atoms.get_positions()):
                 if self.keep_tmp_files:
-                    f.write('# atom pos in ase cell: %.16f %.16f %.16f\n' % tuple(pos))
-                f.write('create_atoms %i single %s %s %s units box\n' % \
-                            ((species_i[s],)+p.pos_to_lammps_fold_str(pos)))
+                    f.write('# atom pos in ase cell: {0:.16} {1:.16} {2:.16}\n'
+                            ''.format(*tuple(pos)).encode('utf-8'))
+                f.write('create_atoms {0} single {1} {2} {3} units box\n'.format(
+                        *((species_i[s],)+p.pos_to_lammps_fold_str(pos))
+                                ).encode('utf-8'))
                 
 
         # if NOT self.no_lammps_data, then simply refer to the data-file
         else:
-            f.write('read_data %s\n' % lammps_data)
+            f.write('read_data {0}\n'.format(lammps_data).encode('utf-8'))
 
 
         # Write interaction stuff
-        f.write('\n### interactions \n')
+        f.write('\n### interactions \n'.encode('utf-8'))
         if ( ('pair_style' in parameters) and ('pair_coeff' in parameters) ):
             pair_style = parameters['pair_style']
-            f.write('pair_style %s \n' % pair_style)
+            f.write('pair_style {0} \n'.format(pair_style).encode('utf-8'))
             for pair_coeff in parameters['pair_coeff']:
-                f.write('pair_coeff %s \n' % pair_coeff)
+                f.write('pair_coeff {0} \n'.format(pair_coeff).encode('utf-8'))
             if 'mass' in parameters:
                 for mass in parameters['mass']:
-                    f.write('mass %s \n' % mass)
+                    f.write('mass {0} \n'.format(mass).encode('utf-8'))
         else:
             # simple default parameters
             # that should always make the LAMMPS calculation run
-            f.write('pair_style lj/cut 2.5 \n' +
-                    'pair_coeff * * 1 1 \n' +
-                    'mass * 1.0 \n')
+            f.write('pair_style lj/cut 2.5 \n'
+                    'pair_coeff * * 1 1 \n'
+                    'mass * 1.0 \n'.encode('utf-8'))
 
-        f.write('\n### run\n' +
-                'fix fix_nve all nve\n' +
-                ('dump dump_all all custom 1 %s id type x y z vx vy vz fx fy fz\n' % lammps_trj) )
-        f.write(('thermo_style custom %s\n' +
-                'thermo_modify flush yes\n' +
-                'thermo 1\n') % (' '.join(self._custom_thermo_args)))
+        f.write('\n### run\n'
+                'fix fix_nve all nve\n'
+                'dump dump_all all custom 1 {0} id type x y z vx vy vz fx fy fz\n'
+                ''.format(lammps_trj).encode('utf-8'))
+        f.write('thermo_style custom {0}\n'
+                'thermo_modify flush yes\n'
+                'thermo 1\n'.format(' '.join(self._custom_thermo_args)
+                                    ).encode('utf-8'))
 
         if 'minimize' in parameters:
-            f.write('minimize %s\n' % parameters['minimize'])
+            f.write('minimize {0}\n'.format(parameters['minimize']).encode('utf-8'))
         if 'run' in parameters:
-            f.write('run %s\n' % parameters['run'])
+            f.write('run {0}\n'.format(parameters['run']).encode('utf-8'))
         if not (('minimize' in parameters) or ('run' in parameters)):
-            f.write('run 0\n')
+            f.write('run 0\n'.encode('utf-8'))
 
-        f.write('print "%s"\n' % CALCULATION_END_MARK)
-        f.write('log /dev/stdout\n') # Force LAMMPS to flush log
+        f.write('print "{0}" \n'.format(CALCULATION_END_MARK).encode('utf-8'))
+        f.write('log /dev/stdout\n'.encode('utf-8')) # Force LAMMPS to flush log
 
+        f.flush()
         if close_in_file:
             f.close()
 
@@ -412,7 +424,7 @@ class LAMMPS:
             lammps_log = self.label + '.log'
 
         if isinstance(lammps_log, str):
-            f = paropen(lammps_log, 'w')
+            f = paropen(lammps_log, 'wb')
             close_log_file = True
         else:
             # Expect lammps_in to be a file-like object
@@ -420,13 +432,13 @@ class LAMMPS:
             close_log_file = False
 
         thermo_content = []
-        line = f.readline()
+        line = f.readline().decode('utf-8')
         while line and line.strip() != CALCULATION_END_MARK:
             # get thermo output
             if line.startswith(self._custom_thermo_mark):
                 m = True
                 while m:
-                    line = f.readline()
+                    line = f.readline().decode('utf-8')
                     m = self._custom_thermo_re.match(line)
                     if m:
                         # create a dictionary between each of the thermo_style args
@@ -434,7 +446,7 @@ class LAMMPS:
                         thermo_content.append(dict(zip(self._custom_thermo_args,
                                                        map(float, m.groups()))))
             else:
-                line = f.readline()
+                line = f.readline().decode('utf-8')
 
         if close_log_file:
             f.close()
@@ -576,6 +588,7 @@ class special_tee:
     def write(self, data):
         self._orig_fd.write(data)
         self._out_fd.write(data)
+        self.flush()
     def read(self, *args, **kwargs):
         data = self._orig_fd.read(*args, **kwargs)
         self._out_fd.write(data)
@@ -706,7 +719,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
                       prismobj=None, velocities=False):
     """Method which writes atomic structure data to a LAMMPS data file."""
     if isinstance(fileobj, str):
-        f = paropen(fileobj, 'w')
+        f = paropen(fileobj, 'wb')
         close_file = True
     else:
         # Presume fileobj acts like a fileobj
@@ -718,11 +731,11 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
             raise ValueError('Can only write one configuration to a lammps data file!')
         atoms = atoms[0]
 
-    f.write(f.name + ' (written by ASE) \n\n')
+    f.write('{0} (written by ASE) \n\n'.format(f.name).encode('utf-8'))
 
     symbols = atoms.get_chemical_symbols()
     n_atoms = len(symbols)
-    f.write('%d \t atoms \n' % n_atoms)
+    f.write('{0} \t atoms \n'.format(n_atoms).encode('utf-8'))
 
     if specorder is None:
         # This way it is assured that LAMMPS atom types are always
@@ -733,7 +746,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
         # (indices must correspond to order in the potential file)
         species = specorder
     n_atom_types = len(species)
-    f.write('%d  atom types\n' % n_atom_types)
+    f.write('{0}  atom types\n'.format(n_atom_types).encode('utf-8'))
 
     if prismobj is None:
         p = prism(atoms.get_cell())
@@ -741,25 +754,28 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
         p = prismobj
     xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
 
-    f.write('0.0 %s  xlo xhi\n' % xhi)
-    f.write('0.0 %s  ylo yhi\n' % yhi)
-    f.write('0.0 %s  zlo zhi\n' % zhi)
+    f.write('0.0 {0}  xlo xhi\n'.format(xhi).encode('utf-8'))
+    f.write('0.0 {0}  ylo yhi\n'.format(yhi).encode('utf-8'))
+    f.write('0.0 {0}  zlo zhi\n'.format(zhi).encode('utf-8'))
     
     if force_skew or p.is_skewed():
-        f.write('%s %s %s  xy xz yz\n' % (xy, xz, yz))
-    f.write('\n\n')
+        f.write('{0} {1} {2}  xy xz yz\n'.format(xy, xz, yz).encode('utf-8'))
+    f.write('\n\n'.encode('utf-8'))
 
-    f.write('Atoms \n\n')
+    f.write('Atoms \n\n'.encode('utf-8'))
     for i, r in enumerate(map(p.pos_to_lammps_str,
                               atoms.get_positions())):
         s = species.index(symbols[i]) + 1
-        f.write('%6d %3d %s %s %s\n' % ((i+1, s)+tuple(r)))
+        f.write('{0:>6} {1:>3} {2} {3} {4}\n'.format(
+                *(i+1, s)+tuple(r)).encode('utf-8'))
 
     if velocities and atoms.get_velocities() is not None:
-        f.write('\n\nVelocities \n\n')
+        f.write('\n\nVelocities \n\n'.encode('utf-8'))
         for i, v in enumerate(atoms.get_velocities()):
-            f.write('%6d %s %s %s\n' % ((i+1,)+tuple(v)))
+            f.write('{0:>6} {1} {2} {3}\n'.format(
+                    *(i+1,)+tuple(v)).encode('utf-8'))
     
+    f.flush()
     if close_file:
         f.close()
 
@@ -779,14 +795,14 @@ if __name__ == '__main__':
                      cell=[a0]*3,
                      pbc=True)
         # test get_forces
-        print('forces for a = %f' % a0)
+        print('forces for a = {0}'.format(a0))
         print(calc.get_forces(bulk))
         # single points for various lattice constants
         bulk.set_calculator(calc)
         for n in range(-5,5,1):
             a = a0 * (1 + n/100.0)
             bulk.set_cell([a]*3)
-            print('a : %f , total energy : %f' % (a, bulk.get_potential_energy()))
+            print('a : {0} , total energy : {1}'.format(a, bulk.get_potential_energy()))
 
     calc.clean()
 

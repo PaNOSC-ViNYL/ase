@@ -7,7 +7,7 @@ that energy is conserved in NVE dynamics.
 
 import numpy as np
 from ase import Atoms, Atom
-from ase.lattice.surface import fcc110
+from ase.build import fcc110
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, Hookean
 from ase.md import VelocityVerlet

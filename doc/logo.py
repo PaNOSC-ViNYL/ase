@@ -1,4 +1,3 @@
-import os
 import numpy as np
 
 from ase import Atoms, Atom
@@ -19,9 +18,6 @@ for i, line in enumerate(ase.split('\n')):
             logo.append(Atom('H', [d * j, d * i, 0]))
 logo.set_cell((15, 15, 2))
 logo.center()
-#logo.center(vacuum=2.0)
-
-#view(logo)
 
 if 1:
     from gpaw import GPAW
@@ -37,15 +33,13 @@ if 0:
 if 1:
     print(calc.density.nt_sg.shape)
     n = calc.density.nt_sg[0, :, :, 10]
-    #1c4e63
+    # 1c4e63
     c0 = np.array([19, 63, 82.0]).reshape((3, 1, 1)) / 255
     c1 = np.array([1.0, 1, 0]).reshape((3, 1, 1))
     a = c0 + n / n.max() * (c1 - c0)
     import pylab as p
+    print(a.shape)
     i = p.imshow(a.T, aspect=True)
     i.write_png('ase.png')
-    os.system('convert ase.png -geometry 256x256! ase256.png')
-    #p.axis('off')
-    p.show()
-    #p.savefig('ase.png', dpi=8)
-
+    p.axis('off')
+    p.savefig('ase2.png', dpi=200)

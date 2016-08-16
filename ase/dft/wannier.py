@@ -384,7 +384,7 @@ class Wannier:
         Nb = self.nbands
 
         if file is not None:
-            self.Z_dknn, self.U_kww, self.C_kul = load(paropen(file))
+            self.Z_dknn, self.U_kww, self.C_kul = load(paropen(file, 'rb'))
         elif initialwannier == 'bloch':
             # Set U and C to pick the lowest Bloch states
             self.U_kww = np.zeros((self.Nk, Nw, Nw), complex)
@@ -416,7 +416,7 @@ class Wannier:
 
     def save(self, file):
         """Save information on localization and rotation matrices to file."""
-        dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'w'))
+        dump((self.Z_dknn, self.U_kww, self.C_kul), paropen(file, 'wb'))
 
     def update(self):
         # Update large rotation matrix V (from rotation U and coeff C)

@@ -13,25 +13,25 @@ Quick links:
 
   * - :mod:`~ase.atom`
     - :mod:`~ase.atoms`
+    - :mod:`~ase.build`
     - :mod:`~ase.calculators`
+  * - :mod:`~ase.collections`
     - :mod:`~ase.constraints`
-  * - :mod:`~ase.db`
+    - :mod:`~ase.db`
     - :mod:`~ase.dft`
-    - :mod:`~ase.data`
+  * - :mod:`~ase.data`
     - :mod:`~ase.ga`
-  * - :mod:`~ase.gui`
-    - :mod:`~ase.infrared`
+    - :mod:`~ase.gui`
     - :mod:`~ase.io`
-    - :mod:`~ase.lattice`
-  * - :mod:`~ase.md`
+  * - :mod:`~ase.lattice`
+    - :mod:`~ase.md`
     - :mod:`~ase.neb`
-    - :mod:`~ase.optimize`
+    - :mod:`~ase.neighborlist`
+  * - :mod:`~ase.optimize`
     - :mod:`~ase.parallel`
-  * - :mod:`~ase.phasediagram`
+    - :mod:`~ase.phasediagram`
     - :mod:`~ase.phonons`
-    - :mod:`~ase.lattice.spacegroup`
-    - :mod:`~ase.structure`
-  * - :mod:`~ase.lattice.surface`
+  * - :mod:`~ase.spacegroup`
     - :mod:`~ase.transport`
     - :mod:`~ase.thermochemistry`
     - :mod:`~ase.units`
@@ -55,31 +55,33 @@ List of all modules:
 .. toctree::
    :maxdepth: 2
 
-   atom
    atoms
    units
-   io
-   gui/gui
-   setup-overview
+   io/io
+   build/build
+   eos
+   collections
+   data
    optimize
-   parallel
+   md
+   constraints
+   spacegroup/spacegroup
+   neighborlist
+   geometry
+   db/db
+   neb
+   ga
+   gui/gui
+   lattice
    visualize/visualize
    calculators/calculators
-   constraints
-   vibrations
+   dft/dft
+   vibrations/vibrations
    phonons
    phasediagram/phasediagram
    thermochemistry/thermochemistry
-   infrared
-   md
-   dft/dft
-   transport/transport
-   data
-   trajectory
    utils
-   neighbors
-   io/opls
-   db/db
-   ga
-   neb
-   dimermethod
+   parallel
+   dimer
+   atom
+   transport/transport

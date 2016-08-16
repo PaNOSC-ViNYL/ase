@@ -1,7 +1,7 @@
 import numpy as np
 
 from ase.calculators.eam import EAM
-from ase.lattice import bulk
+from ase.build import bulk
 
 # test to generate an EAM potential file using a simplified
 # approximation to the Mishin potential Al99.eam.alloy data

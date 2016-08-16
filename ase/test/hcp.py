@@ -1,6 +1,6 @@
 import numpy as np
 from ase.io import read, Trajectory
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.calculators.emt import EMT
 
 

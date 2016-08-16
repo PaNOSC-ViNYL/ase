@@ -126,6 +126,7 @@ class SQLite3Database(Database):
         return sqlite3.connect(self.filename, timeout=600)
 
     def __enter__(self):
+        assert self.connection is None
         self.connection = self._connect()
         return self
         
@@ -230,7 +231,7 @@ class SQLite3Database(Database):
         else:
             values += (None, None)
             
-        if not key_value_pairs:
+        if key_value_pairs is None:
             key_value_pairs = row.key_value_pairs
         
         if not data:
@@ -304,6 +305,7 @@ class SQLite3Database(Database):
         
     def _get_row(self, id):
         con = self._connect()
+        self._initialize(con)
         c = con.cursor()
         if id is None:
             c.execute('SELECT COUNT(*) FROM systems')
@@ -557,19 +559,27 @@ class SQLite3Database(Database):
         """
         
         rows = [self._get_row(id) for id in ids]
+        if self.connection:
+            # We are already running inside a context manager:
+            return self._update_rows(rows, delete_keys, add_key_value_pairs)
+            
+        # Create new context manager:
+        with self:
+            return self._update_rows(rows, delete_keys, add_key_value_pairs)
+
+    def _update_rows(self, rows, delete_keys, add_key_value_pairs):
         m = 0
         n = 0
-        with self:
-            for row in rows:
-                kvp = row.key_value_pairs
-                n += len(kvp)
-                for key in delete_keys:
-                    kvp.pop(key, None)
-                n -= len(kvp)
-                m -= len(kvp)
-                kvp.update(add_key_value_pairs)
-                m += len(kvp)
-                self._write(row, kvp, None)
+        for row in rows:
+            kvp = row.key_value_pairs
+            n += len(kvp)
+            for key in delete_keys:
+                kvp.pop(key, None)
+            n -= len(kvp)
+            m -= len(kvp)
+            kvp.update(add_key_value_pairs)
+            m += len(kvp)
+            self._write(row, kvp, None)
         return m, n
 
     @parallel_function
@@ -594,6 +604,8 @@ def blob(array):
         return None
     if array.dtype == np.int64:
         array = array.astype(np.int32)
+    if not np.little_endian:
+        array.byteswap(True)
     return buffer(np.ascontiguousarray(array))
 
 
@@ -612,6 +624,8 @@ def deblob(buf, dtype=float, shape=None):
             array = np.fromstring(str(buf)[1:].decode('hex'), dtype)
         else:
             array = np.frombuffer(buf, dtype)
+        if not np.little_endian:
+            array.byteswap(True)
     if shape is not None:
         array.shape = shape
     return array

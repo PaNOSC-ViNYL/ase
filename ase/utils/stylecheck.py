@@ -65,6 +65,11 @@ grrr = """Please always run this check on Python source-code before committing:
     $ alias check="python -m ase.utils.stylecheck"
     $ check foo.py bar.py ...
     
+This will run pep8 and pyflakes on you source.  Install pep8 and pyflakes
+like this:
+    
+    $ pip install pep8 pyflakes
+    
 """
 
 
