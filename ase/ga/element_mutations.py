@@ -565,8 +565,8 @@ class FullElementMutation(OffspringCreator):
         indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
 
-        # Randomly choose and element to mutate in the current individual.
-        old_element = random.choice([f[i].symbol for i in range(len(f))])
+        # Randomly choose an element to mutate in the current individual.
+        old_element = random.choice([a.symbol for a in f])
         # Find the list containing the chosen element. By choosing a new
         # element from the same list, the percentages are not altered.
         for i in range(len(self.element_pools)):
@@ -576,8 +576,7 @@ class FullElementMutation(OffspringCreator):
         not_val = True
         while not_val:
             new_element = random.choice(self.element_pools[lm])
-            if new_element != old_element:
-                not_val = False
+            not_val = new_element == old_element
 
         for a in f:
             if a.symbol == old_element:
