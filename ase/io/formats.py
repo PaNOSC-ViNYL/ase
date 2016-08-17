@@ -351,7 +351,7 @@ def _iread(filename, index, format, full_output=False, **kwargs):
                 import bz2
                 fd = bz2.BZ2File(filename + '.bz2')
             else:
-                fd = open(filename)
+                fd = open(filename, 'rU')
             must_close_fd = True
         else:
             fd = filename
@@ -481,7 +481,7 @@ def filetype(filename, read=True):
         if data.startswith(magic):
             return format
 
-    for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _  \n'),
+    for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _'),
                           ('espresso-in', b'\n&system'),
                           ('espresso-in', b'\n&SYSTEM'),
                           ('aims-output', b'Invoking FHI-aims ...'),
