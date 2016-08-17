@@ -212,10 +212,6 @@ class ResonantRaman(Vibrations):
         self.timer.start('Huang-Rhys')
         assert(len(forces_r.flat) == self.ndof)
 
-        # mass weighted quantities
-        Hm_rr = self.im[:, None] * self.H * self.im
-        Fm_r = forces_r.flat * self.im
-        
         # solve the matrix equation for the equilibrium displacements
         # XXX why are the forces mass weighted ???
         X_r = np.linalg.solve(self.im[:, None] * self.H * self.im,
@@ -278,7 +274,7 @@ class ResonantRaman(Vibrations):
         F_pr = self.exF_rp.T
 
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        pre = 1. / (2 * self.delta)
+##        pre = 1. / (2 * self.delta)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
             
@@ -314,7 +310,7 @@ class ResonantRaman(Vibrations):
                 self.timer.stop('map to modes')
 
                 self.timer.start('multiply')
-                me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
+##                me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
                 for r in range(self.ndof):
                     if 'B' in term:
                         # XXXX
