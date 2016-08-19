@@ -161,13 +161,13 @@ Environment variables
 
 Set these permanently in your :file:`~/.bashrc` file::
 
-    $ export PYTHONPATH=~/ase:$PYTHONPATH
-    $ export PATH=~ase/tools:$PATH
+    $ export PYTHONPATH=<path-to-ase-package>:$PYTHONPATH
+    $ export PATH=<path-to-ase-command-line-tools>:$PATH
 
 or your :file:`~/.cshrc` file::
 
-    $ setenv PYTHONPATH ${HOME}/ase:${PYTHONPATH}
-    $ setenv PATH ${HOME}/ase/tools:${PATH}
+    $ setenv PYTHONPATH <path-to-ase-package>:${PYTHONPATH}
+    $ setenv PATH <path-to-ase-command-line-tools>:${PATH}
 
 
 .. index:: test
@@ -177,35 +177,10 @@ or your :file:`~/.cshrc` file::
 Test your installation
 ======================
 
+Before running the tests, make sure you have set your :envvar:`PATH`
+environment variable correctly as described in the relevant section above.
 Run the tests like this::
 
     $ python -m ase.test  # takes 1 min.
 
 and send us the output if there are failing tests.
-
-
-Old video tutorial
-==================
-
-In the video: Introduction to ASE, followed by a guide to installing ASE on a
-Linux system.
-
-.. note::
-
-   Use "Right Click -> Play" to play.
-
-.. raw:: html
-
-        <p></p>
-        <object width="800" height="600">
-        <embed src="https://wiki.fysik.dtu.dk/ase-files/oi_en_800x600.swf"
-        type="application/x-shockwave-flash"
-        allowFullScreen="false"
-        allowscriptaccess="never"
-        loop="false"
-        play="false"
-        width="800" height="600">
-        <p></p>
-        Video not playing? Download avi <a href="https://wiki.fysik.dtu.dk/ase-files/oi_en.avi">file</a> instead.
-        </embed></object>
-        <p></p>
