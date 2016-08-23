@@ -184,7 +184,7 @@ For an example of use, see the :ref:`mhtutorial` tutorial.
 
 
 The ExternalForce class
-======================
+=======================
 
 This class can be used to simulate a constant external force
 (e.g. the force of atomic force microscope).
