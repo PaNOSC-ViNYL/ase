@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* New :class:`ase.constraints.ExternalForce` constraint.
+
 * Special `\mathbf{k}`-points from the [Setyawana-Curtarolo]_ paper was added:
   :data:`ase.dft.kpoints.special_points`.
 
