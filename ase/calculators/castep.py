@@ -1684,6 +1684,7 @@ def get_castep_version(castep_command):
     temp_dir = tempfile.mkdtemp()
     jname = 'dummy_jobname'
     stdout, stderr = '', ''
+    fallback_version = 16. # CASTEP 16.0 and 16.1 report version wrongly
     try:
         stdout, stderr = subprocess.Popen(
             castep_command.split() + ['--version'],
@@ -1716,7 +1717,11 @@ def get_castep_version(castep_command):
     shutil.rmtree(temp_dir)
     for line in output_txt:
         if 'CASTEP version' in line:
-            return float(version_re.findall(line)[0])
+            try:
+                return float(version_re.findall(line)[0])
+            except ValueError, e:
+                # Fallback for buggy --version on CASTEP 16.0, 16.1
+                return fallback_version
 
 
 def create_castep_keywords(castep_command, filename='castep_keywords.py',
