@@ -22,22 +22,23 @@ def slice2enlist(s, n):
         return enumerate(s)
     return enumerate(range(*s.indices(n)))
 
-def constrainted_indices(atoms, only_include=None):
-        """Returns a list of indices for the atoms that are constrained
-        by a constraint that is applied.  By setting only_include to a 
-        specific type of constraint you can make it only look for that
-        given constraint.
-        """
-        indices = []
-        for constraint in atoms._constraints:
-            if only_include is not None:
-                if not isinstance(constraint, only_include):
-                    continue
-            indices.extend(np.array(constraint.get_indices()))
-        return np.array(np.unique(indices))
+
+def constrained_indices(atoms, only_include=None):
+    """Returns a list of indices for the atoms that are constrained
+    by a constraint that is applied.  By setting only_include to a
+    specific type of constraint you can make it only look for that
+    given constraint.
+    """
+    indices = []
+    for constraint in atoms.constraints:
+        if only_include is not None:
+            if not isinstance(constraint, only_include):
+                continue
+        indices.extend(np.array(constraint.get_indices()))
+    return np.array(np.unique(indices))
+
 
 class FixConstraint:
-
     """Base class for classes that fix one or more atoms in some way."""
 
     def index_shuffle(self, atoms, ind):
@@ -71,7 +72,6 @@ class FixConstraint:
 
 
 class FixConstraintSingle(FixConstraint):
-
     """Base class for classes that fix a single atom."""
 
     def __init__(self, a):
@@ -89,11 +89,10 @@ class FixConstraintSingle(FixConstraint):
         self.a = newa
 
     def get_indices(self):
-        return [a]
+        return [self.a]
 
 
 class FixAtoms(FixConstraint):
-
     """Constraint object for fixing some chosen atoms."""
 
     def __init__(self, indices=None, mask=None):
@@ -205,7 +204,6 @@ def ints2string(x, threshold=None):
 
 
 class FixBondLengths(FixConstraint):
-
     def __init__(self, pairs, iterations=10):
         self.constraints = [FixBondLength(a1, a2) for a1, a2 in pairs]
         self.iterations = iterations
@@ -232,7 +230,6 @@ class FixBondLengths(FixConstraint):
 
 
 class FixBondLength(FixConstraint):
-
     """Constraint object for fixing a bond length."""
 
     def __init__(self, a1, a2):
@@ -287,7 +284,6 @@ class FixBondLength(FixConstraint):
 
 
 class FixedMode(FixConstraint):
-
     """Constrain atoms to move along directions orthogonal to
     a given mode only."""
 
@@ -329,7 +325,6 @@ class FixedMode(FixConstraint):
 
 
 class FixedPlane(FixConstraintSingle):
-
     """Constrain an atom index *a* to move in a given plane only.
 
     The plane is defined by its normal vector *direction*."""
@@ -354,7 +349,6 @@ class FixedPlane(FixConstraintSingle):
 
 
 class FixedLine(FixConstraintSingle):
-
     """Constrain an atom index *a* to move on a given line only.
 
     The line is defined by its vector *direction*."""
@@ -380,7 +374,6 @@ class FixedLine(FixConstraintSingle):
 
 
 class FixCartesian(FixConstraintSingle):
-
     'Fix an atom index *a* in the directions of the cartesian coordinates.'
 
     def __init__(self, a, mask=(1, 1, 1)):
@@ -405,7 +398,6 @@ class FixCartesian(FixConstraintSingle):
 
 
 class FixScaled(FixConstraintSingle):
-
     'Fix an atom index *a* in the directions of the unit vectors.'
 
     def __init__(self, cell, a, mask=(1, 1, 1)):
@@ -441,7 +433,6 @@ class FixScaled(FixConstraintSingle):
 # TODO: Better interface might be to use dictionaries in place of very
 # nested lists/tuples
 class FixInternals(FixConstraint):
-
     """Constraint object for fixing multiple internal coordinates.
 
     Allows fixing bonds, angles, and dihedrals."""
@@ -570,7 +561,6 @@ class FixInternals(FixConstraint):
 
     # Classes for internal use in FixInternals
     class FixBondLengthAlt:
-
         """Constraint subobject for fixing bond length within FixInternals."""
 
         def __init__(self, bond, indices, masses, maxstep=0.01):
@@ -616,7 +606,6 @@ class FixInternals(FixConstraint):
                 (repr(self.bond), self.indices[0], self.indices[1])
 
     class FixAngle:
-
         """Constraint object for fixing an angle within
         FixInternals."""
 
@@ -694,7 +683,6 @@ class FixInternals(FixConstraint):
                                          np.arccos(self.angle))
 
     class FixDihedral:
-
         """Constraint object for fixing an dihedral using
         the shake algorithm. This one allows also other constraints."""
 
@@ -800,7 +788,6 @@ class FixInternals(FixConstraint):
 
 
 class Hookean(FixConstraint):
-
     """Applies a Hookean restorative force between a pair of atoms, an atom
     and a point, or an atom and a plane."""
 
@@ -956,7 +943,6 @@ class Hookean(FixConstraint):
 
 
 class Filter:
-
     """Subset filter class."""
 
     def __init__(self, atoms, indices=None, mask=None):
@@ -1105,7 +1091,6 @@ class Filter:
 
 
 class StrainFilter(Filter):
-
     """Modify the supercell while keeping the scaled positions fixed.
 
     Presents the strain of the supercell as the generalized positions,
@@ -1175,7 +1160,6 @@ class StrainFilter(Filter):
 
 
 class UnitCellFilter(Filter):
-
     """Modify the supercell and the atom positions. """
 
     def __init__(self, atoms, mask=None, weight=1.):
