@@ -1,5 +1,5 @@
 from ase.lattice.surface import fcc111
-from ase.constraints import FixAtoms, FixBondLengths, FixInternals, Hookean
+from ase.constraints import FixAtoms, FixBondLengths, FixInternals, Hookean, constrainted_indices
 
 slab = fcc111("Pt", (4, 4, 4))
 
@@ -9,6 +9,6 @@ C3 = FixInternals(bonds=[[1, [7, 8]], [1, [8, 9]]])
 C4 = Hookean(a1=30, a2=40, rt=1.79, k=5.)
 
 slab.set_constraint([C1, C2, C3, C4])
-assert(all(slab.get_constrained_indices((FixAtoms, FixBondLengths))
+assert(all(constrainted_indices(slab, (FixAtoms, FixBondLengths))
            == [0, 1, 2, 4]))
-assert(all(slab.get_constrained_indices() == [0, 1, 2, 4, 7, 8, 9, 30, 40]))
+assert(all(constrainted_indices(slab) == [0, 1, 2, 4, 7, 8, 9, 30, 40]))
