@@ -140,6 +140,8 @@ class FixAtoms(FixConstraint):
         if self.index.ndim != 1:
             raise ValueError('Wrong argument to FixAtoms class!')
 
+        self.removed_dof = 3 * len(self.index)
+
     def adjust_positions(self, atoms, new):
         new[self.index] = atoms.positions[self.index]
 
@@ -184,10 +186,10 @@ class FixAtoms(FixConstraint):
 
     def delete_atoms(self, indices, natoms):
         """Removes atom number ind from the index array, if present.
-        
+
         Required for removing atoms with existing FixAtoms constraints.
         """
-        
+
         i = np.zeros(natoms, int) - 1
         new = np.delete(np.arange(natoms), indices)
         i[new] = np.arange(len(new))
@@ -209,6 +211,7 @@ class FixBondLengths(FixConstraint):
     def __init__(self, pairs, iterations=10):
         self.constraints = [FixBondLength(a1, a2) for a1, a2 in pairs]
         self.iterations = iterations
+        self.removed_dof = len(pairs)
 
     def adjust_positions(self, atoms, new):
         for i in range(self.iterations):
@@ -233,6 +236,8 @@ class FixBondLengths(FixConstraint):
 
 class FixBondLength(FixConstraint):
     """Constraint object for fixing a bond length."""
+
+    removed_dof = 1
 
     def __init__(self, a1, a2):
         """Fix distance between atoms with indices a1 and a2. If mic is
@@ -331,6 +336,8 @@ class FixedPlane(FixConstraintSingle):
 
     The plane is defined by its normal vector *direction*."""
 
+    removed_dof = 1
+
     def __init__(self, a, direction):
         self.a = a
         self.dir = np.asarray(direction) / sqrt(np.dot(direction, direction))
@@ -354,6 +361,8 @@ class FixedLine(FixConstraintSingle):
     """Constrain an atom index *a* to move on a given line only.
 
     The line is defined by its vector *direction*."""
+
+    removed_dof = 2
 
     def __init__(self, a, direction):
         self.a = a
@@ -381,6 +390,7 @@ class FixCartesian(FixConstraintSingle):
     def __init__(self, a, mask=(1, 1, 1)):
         self.a = a
         self.mask = ~np.asarray(mask, bool)
+        self.removed_dof = 3 - self.mask.sum()
 
     def adjust_positions(self, atoms, new):
         step = new[self.a] - atoms.positions[self.a]
@@ -405,7 +415,8 @@ class FixScaled(FixConstraintSingle):
     def __init__(self, cell, a, mask=(1, 1, 1)):
         self.cell = np.asarray(cell)
         self.a = a
-        self.mask = np.array(mask)
+        self.mask = np.array(mask, bool)
+        self.removed_dof = self.mask.sum()
 
     def adjust_positions(self, atoms, new):
         scaled_old = np.linalg.solve(self.cell.T, atoms.positions.T).T
@@ -451,6 +462,9 @@ class FixInternals(FixConstraint):
         self.epsilon = epsilon
 
         self.initialized = False
+        self.removed_dof = (len(self.bonds) +
+                            len(self.angles) +
+                            len(self.dihedrals))
 
     def initialize(self, atoms):
         if self.initialized:
@@ -946,16 +960,16 @@ class Hookean(FixConstraint):
 
 class ExternalForce(FixConstraint):
     """Constraint object for pulling two atoms apart by an external force.
-    
+
     You can combine this constraint for example with FixBondLength but make
     sure that the ExternalForce-constraint comes first in the list:
-        
+
     >>> con1 = ExternalForce(atom1, atom2, f_ext)
     >>> con2 = FixBondLength(atom3, atom4)
     >>> atoms.set_constraint([con1, con2])
-    
+
     see ase/test/external_force.py"""
-    
+
     def __init__(self, a1, a2, f_ext):
         self.indices = [a1, a2]
         self.external_force = f_ext

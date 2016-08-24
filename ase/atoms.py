@@ -902,7 +902,7 @@ class Atoms(object):
             if not isinstance(c, FixAtoms):
                 raise RuntimeError('Remove constraint using set_constraint() '
                                    'before deleting atoms.')
-                
+
         if len(self._constraints) > 0:
             n = len(self)
             i = np.arange(n)[i]
@@ -919,7 +919,7 @@ class Atoms(object):
         mask[i] = False
         for name, a in self.arrays.items():
             self.arrays[name] = a[mask]
-            
+
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""
         atom = self[i]
@@ -1514,8 +1514,11 @@ class Atoms(object):
 
     def get_temperature(self):
         """Get the temperature in Kelvin."""
-        ekin = self.get_kinetic_energy() / len(self)
-        return ekin / (1.5 * units.kB)
+        dof = len(self) * 3
+        for constraint in self._constraints:
+            dof -= constraint.removed_dof
+        ekin = self.get_kinetic_energy()
+        return 2 * ekin / (dof * units.kB)
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.
