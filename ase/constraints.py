@@ -207,62 +207,70 @@ def ints2string(x, threshold=None):
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
 
-class FixBondLengths(FixConstraint):
-    def __init__(self, pairs, iterations=10):
-        self.constraints = [FixBondLength(a1, a2) for a1, a2 in pairs]
-        self.iterations = iterations
+class FixBondLengths:
+    maxiter = 500
+
+    def __init__(self, pairs, tolerance=1e-10, iterations=None):
+        """iterations:
+                Ignored"""
+        self.pairs = np.asarray(pairs)
+        self.tolerance = tolerance
+
         self.removed_dof = len(pairs)
 
     def adjust_positions(self, atoms, new):
-        for i in range(self.iterations):
-            for constraint in self.constraints:
-                constraint.adjust_positions(atoms, new)
+        old = atoms.positions
+        masses = atoms.get_masses()
+
+        for i in range(self.maxiter):
+            converged = True
+            for a, b in self.pairs:
+                r0 = old[a] - old[b]
+                d0 = find_mic([r0], atoms._cell, atoms._pbc)[0][0]
+                d1 = new[a] - new[b] - r0 + d0
+                m = 1 / (1 / masses[a] + 1 / masses[b])
+                x = 0.5 * (np.dot(d0, d0) - np.dot(d1, d1)) / np.dot(d0, d1)
+                if abs(x) > self.tolerance:
+                    new[a] += x * m / masses[a] * d0
+                    new[b] -= x * m / masses[b] * d0
+                    converged = False
+            if converged:
+                break
+        else:
+            raise RuntimeError('Did not converge')
+
+    def adjust_momenta(self, atoms, p):
+        old = atoms.positions
+        masses = atoms.get_masses()
+        for i in range(self.maxiter):
+            converged = True
+            for a, b in self.pairs:
+                d = old[a] - old[b]
+                d = find_mic([d], atoms._cell, atoms._pbc)[0][0]
+                dv = p[a] / masses[a] - p[b] / masses[b]
+                m = 1 / (1 / masses[a] + 1 / masses[b])
+                x = -np.dot(dv, d) / np.dot(d, d)
+                if abs(x) > self.tolerance:
+                    p[a] += x * m * d
+                    p[b] -= x * m * d
+                    converged = False
+            if converged:
+                break
+        else:
+            raise RuntimeError('Did not converge')
 
     def adjust_forces(self, atoms, forces):
-        for i in range(self.iterations):
-            for constraint in self.constraints:
-                constraint.adjust_forces(atoms, forces)
+        self.constraint_forces = -forces
+        self.adjust_momenta(atoms, forces)
+        self.constraint_forces += forces
 
     def get_indices(self):
-        return np.unique(np.ravel([constraint.indices
-                                   for constraint in self.constraints]))
+        return np.unique(self.pairs.ravel())
 
     def todict(self):
         return {'name': 'FixBondLengths',
-                'kwargs': {'pairs': [constraint.indices
-                                     for constraint in self.constraints],
-                           'iterations': self.iterations}}
-
-
-class FixBondLength(FixConstraint):
-    """Constraint object for fixing a bond length."""
-
-    removed_dof = 1
-
-    def __init__(self, a1, a2):
-        """Fix distance between atoms with indices a1 and a2. If mic is
-        True, follows the minimum image convention to keep constant the
-        shortest distance between a1 and a2 in any periodic direction.
-        atoms only needs to be supplied if mic=True.
-        """
-        self.indices = [a1, a2]
-        self.constraint_force = None
-
-    def adjust_positions(self, atoms, new):
-        p1, p2 = atoms.positions[self.indices]
-        d, p = find_mic(np.array([p2 - p1]), atoms._cell, atoms._pbc)
-        q1, q2 = new[self.indices]
-        d, q = find_mic(np.array([q2 - q1]), atoms._cell, atoms._pbc)
-        d *= 0.5 * (p - q) / q
-        new[self.indices] = (q1 - d[0], q2 + d[0])
-
-    def adjust_forces(self, atoms, forces):
-        d = np.subtract.reduce(atoms.positions[self.indices])
-        d, p = find_mic(np.array([d]), atoms._cell, atoms._pbc)
-        d = d[0]
-        d *= 0.5 * np.dot(np.subtract.reduce(forces[self.indices]), d) / p**2
-        self.constraint_force = d
-        forces[self.indices] += (-d, d)
+                'kwargs': {'pairs': self.pairs,
+                           'tolerance': self.tolerance}}
 
     def index_shuffle(self, atoms, ind):
         """Shuffle the indices of the two atoms in this constraint"""
@@ -275,19 +283,10 @@ class FixBondLength(FixConstraint):
             raise IndexError('Constraint not part of slice')
         self.indices = newa
 
-    def get_constraint_force(self):
-        """Return the (scalar) force required to maintain the constraint"""
-        return self.constraint_force
 
-    def get_indices(self):
-        return self.indices
-
-    def __repr__(self):
-        return 'FixBondLength(%d, %d)' % tuple(self.indices)
-
-    def todict(self):
-        return {'name': 'FixBondLength',
-                'kwargs': {'a1': self.indices[0], 'a2': self.indices[1]}}
+def FixBondLength(a1, a2):
+    """Fix distance between atoms with indices a1 and a2."""
+    return FixBondLengths([(a1, a2)])
 
 
 class FixedMode(FixConstraint):

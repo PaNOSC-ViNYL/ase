@@ -40,7 +40,8 @@ con2 = FixBondLength(atom1, atom2)
 atoms.set_constraint([con1, con2])
 opt = FIRE(atoms)
 opt.run(fmax=fmax)
-f_con = con2.get_constraint_force()
+f_con = con2.constraint_forces
+print(f_con)
 # It was already optimized with this external force, therefore
 # the constraint force should be almost zero
 assert norm(f_con) <= fmax
