@@ -41,7 +41,7 @@ contact_email = 'simon.rittmeyer@tum.de'
 
 # A convenient table to avoid the previously used "eval"
 _tf_table = {
-    '': True, # Just the keyword is equivalent to True
+    '': True,  # Just the keyword is equivalent to True
     'True': True,
     'False': False}
 
@@ -1684,7 +1684,7 @@ def get_castep_version(castep_command):
     temp_dir = tempfile.mkdtemp()
     jname = 'dummy_jobname'
     stdout, stderr = '', ''
-    fallback_version = 16. # CASTEP 16.0 and 16.1 report version wrongly
+    fallback_version = 16.  # CASTEP 16.0 and 16.1 report version wrongly
     try:
         stdout, stderr = subprocess.Popen(
             castep_command.split() + ['--version'],
@@ -1719,7 +1719,7 @@ def get_castep_version(castep_command):
         if 'CASTEP version' in line:
             try:
                 return float(version_re.findall(line)[0])
-            except ValueError, e:
+            except ValueError:
                 # Fallback for buggy --version on CASTEP 16.0, 16.1
                 return fallback_version
 
