@@ -119,7 +119,7 @@ class Parameters(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
-        
+
     def update(self, other=None, **kwargs):
         if isinstance(other, dict):
             self.update(other.items())
@@ -131,7 +131,7 @@ class Parameters(dict):
                     self[key] = value
         if kwargs:
             self.update(kwargs)
-            
+
     @classmethod
     def read(cls, filename):
         """Read parameters from file."""
@@ -250,15 +250,17 @@ class Calculator:
     def get_default_parameters(self):
         return Parameters(copy.deepcopy(self.default_parameters))
 
-    def todict(self):
+    def todict(self, skip_default=True):
         defaults = self.get_default_parameters()
         dct = {}
         for key, value in self.parameters.items():
-            default = defaults.get(key, '_no_default_')
-            if default == '_no_default_' or not equal(value, default):
-                if hasattr(value, 'todict'):
-                    value = value.todict()
-                dct[key] = value
+            if hasattr(value, 'todict'):
+                value = value.todict()
+            if skip_default:
+                default = defaults.get(key, '_no_default_')
+                if default != '_no_default_' and equal(value, default):
+                    continue
+            dct[key] = value
         return dct
 
     def reset(self):
