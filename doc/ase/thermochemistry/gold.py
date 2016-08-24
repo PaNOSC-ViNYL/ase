@@ -1,4 +1,4 @@
-from ase.lattice.spacegroup import crystal
+from ase.spacegroup import crystal
 from ase.calculators.emt import EMT
 from ase.optimize import QuasiNewton
 from ase.phonons import Phonons

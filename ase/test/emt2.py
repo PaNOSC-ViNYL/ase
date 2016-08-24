@@ -1,6 +1,6 @@
 from ase.calculators.emt import EMT
 from ase import Atoms
-from ase.structure import molecule
+from ase.build import molecule
 a1 = Atoms('Au', calculator=EMT())
 e1 = a1.get_potential_energy()
 a2 = molecule('C6H6', calculator=EMT())

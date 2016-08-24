@@ -172,7 +172,7 @@ def check_interface(calc):
 
 def main_gpaw():
     from gpaw import GPAW
-    from ase.structure import molecule
+    from ase.build import molecule
     system = molecule('H2')
     system.center(vacuum=1.5)
     system.pbc = 1
@@ -184,7 +184,7 @@ def main_gpaw():
 
 def main_octopus():
     from octopus import Octopus
-    from ase.structure import molecule
+    from ase.build import molecule
     system = molecule('H2')
     system.center(vacuum=1.5)
     system.pbc = 1

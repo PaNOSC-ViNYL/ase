@@ -856,7 +856,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                 for b in fordered:
                     border, brest = b[0], b[1:]
                     if border not in rec_vrc:
-                        if any(np.array(brest) >= np.array(rest)):
+                        if np.any(np.array(brest) >= np.array(rest)):
                             pff.append((border, brest))
                 # Remove any candidate from pff list that is dominated
                 # by another in the list.
@@ -866,7 +866,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                     for nb in pff:
                         nborder, nbrest = nb[0], nb[1:]
                         if norder != nborder:
-                            if all(np.array(nbrest) > np.array(nrest)):
+                            if np.all(np.array(nbrest) > np.array(nrest)):
                                 dom = True
                     if not dom:
                         pff2.append((norder, nrest))

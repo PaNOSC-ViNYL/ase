@@ -1,4 +1,4 @@
-from ase.lattice.surface import fcc100, add_adsorbate
+from ase.build import fcc100, add_adsorbate
 from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
 from ase.dimer import DimerControl, MinModeAtoms, MinModeTranslate

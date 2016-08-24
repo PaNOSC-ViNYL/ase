@@ -16,7 +16,7 @@ from ase.utils import devnull
 from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
 from ase.io.trajectory import Trajectory
-from ase.utils.eos import EquationOfState
+from ase.eos import EquationOfState
 from ase.calculators.calculator import get_calculator, names as calcnames
 import ase.db as db
 

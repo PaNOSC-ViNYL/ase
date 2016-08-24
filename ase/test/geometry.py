@@ -1,9 +1,10 @@
-"""Test the ase.utils.geometry module"""
+"""Test the ase.geometry module and ase.build.cut() function."""
 
 import numpy as np
 
-from ase.lattice.spacegroup import crystal
-from ase.utils.geometry import get_layers, cut, wrap_positions
+from ase.build import cut
+from ase.geometry import get_layers, wrap_positions
+from ase.spacegroup import crystal
 
 al = crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=4.05)
 

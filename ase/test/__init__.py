@@ -8,10 +8,9 @@ import tempfile
 import unittest
 from glob import glob
 
-import numpy as np
-
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
+from ase.utils import import_module, devnull
 
 
 class NotAvailable(Exception):
@@ -56,7 +55,7 @@ class ScriptTestCase(unittest.TestCase):
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
-            if module in ['scipy', 'cmr', 'Scientific', 'lxml']:
+            if module in ['scipy', 'Scientific', 'lxml', 'flask']:
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
@@ -106,14 +105,20 @@ def test(verbosity=1, calculators=[],
         ts.addTest(ScriptTestCase(filename=os.path.abspath(lasttest),
                                   display=display))
 
-    operating_system = platform.system() + ' ' + platform.machine()
-    operating_system += ' ' + ' '.join(platform.dist())
-    python = platform.python_version() + ' ' + platform.python_compiler()
-    python += ' ' + ' '.join(platform.architecture())
-    print('python %s on %s' % (python, operating_system))
-    print('numpy-' + np.__version__)
-    
-    from ase.utils import devnull
+    versions = [('platform', platform.platform()),
+                ('python-' + sys.version.split()[0], sys.executable)]
+    for name in ['ase', 'numpy', 'scipy']:
+        try:
+            module = import_module(name)
+        except ImportError:
+            versions.append((name, 'no'))
+        else:
+            versions.append((name + '-' + module.__version__,
+                            module.__file__.rsplit('/', 1)[0] + '/'))
+
+    for a, b in versions:
+        print('{0:16}{1}'.format(a, b))
+        
     sys.stdout = devnull
 
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
@@ -127,7 +132,7 @@ def test(verbosity=1, calculators=[],
             shutil.rmtree(testdir)  # clean before running tests!
         os.mkdir(testdir)
     os.chdir(testdir)
-    print('running in', testdir, file=sys.__stdout__)
+    print('test-dir       ', testdir, '\n', file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:
@@ -161,18 +166,10 @@ def cli(command, calculator_name=None):
         calculator_name not in test_calculator_names):
         return
     error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    assert error == 0
+    if error != 0:
+        raise RuntimeError('Failed running a shell command.  '
+                           'Please set you $PATH environment variable!')
     
-
-class World:
-    """Class for testing parallelization with MPI"""
-    def __init__(self, size):
-        self.size = size
-        self.data = {}
-
-    def get_rank(self, rank):
-        return CPU(self, rank)
-
 
 class must_raise:
     """Context manager for checking raising of exceptions."""
@@ -186,47 +183,6 @@ class must_raise:
         if exc_type is None:
             raise RuntimeError('Failed to fail: ' + str(self.exception))
         return issubclass(exc_type, self.exception)
-        
-        
-class CPU:
-    def __init__(self, world, rank):
-        self.world = world
-        self.rank = rank
-        self.size = world.size
-
-    def send(self, x, rank):
-        while (self.rank, rank) in self.world.data:
-            pass
-        self.world.data[(self.rank, rank)] = x
-
-    def receive(self, x, rank):
-        while (rank, self.rank) not in self.world.data:
-            pass
-        x[:] = self.world.data.pop((rank, self.rank))
-
-    def sum(self, x):
-        if not isinstance(x, np.ndarray):
-            x = np.array([x])
-            self.sum(x)
-            return x[0]
-
-        if self.rank == 0:
-            y = np.empty_like(x)
-            for rank in range(1, self.size):
-                self.receive(y, rank)
-                x += y
-        else:
-            self.send(x, 0)
-
-        self.broadcast(x, 0)
-
-    def broadcast(self, x, root):
-        if self.rank == root:
-            for rank in range(self.size):
-                if rank != root:
-                    self.send(x, rank)
-        else:
-            self.receive(x, root)
 
             
 if __name__ == '__main__':

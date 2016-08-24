@@ -23,9 +23,13 @@ from ase.parallel import paropen
 from ase.calculators.singlepoint import SinglePointCalculator
 import numpy as np
 import os
+import sys
 import shutil
 import time
-import pickle
+try:
+    import cPickle as pickle   # Need efficient pickle if using Python 2
+except ImportError:
+    import pickle              # Python 3 pickle is efficient.
 import collections
 
 
@@ -106,7 +110,7 @@ class BundleTrajectory:
             raise NotImplementedError(
                 "This version of ASE cannot use BundleTrajectory with backend '%s'"
                 % self.backend_name)
-
+        
     def write(self, atoms=None):
         """Write the atoms to the file.
 
@@ -484,6 +488,13 @@ class BundleTrajectory:
         if self.nframes == 0:
             raise IOError("Empty BundleTrajectory")
         self.datatypes = metadata['datatypes']
+        try:
+            self.pythonmajor = metadata['python_ver'][0]
+        except KeyError:
+            self.pythonmajor = 2  # Assume written with Python 2.
+        # We need to know if we are running Python 3.X and try to read
+        # a bundle written with Python 2.X
+        self.backend.readpy2 = (sys.version_info[0] == 3 and self.pythonmajor == 2)
         self.state = 'read'
         
     def _open_append(self, atoms):
@@ -537,8 +548,9 @@ class BundleTrajectory:
         metadata['version'] = self.version
         metadata['subtype'] = self.subtype
         metadata['backend'] = self.backend_name
+        metadata['python_ver'] = tuple(sys.version_info)
         f = paropen(os.path.join(self.filename, "metadata"), "wb")
-        pickle.dump(metadata, f, -1)
+        pickle.dump(metadata, f, protocol=0)
         f.close()
 
     def _read_metadata(self):
@@ -703,7 +715,10 @@ class PickleBundleBackend:
     def read_small(self, framedir):
         "Read small data."
         f = open(os.path.join(framedir, "smalldata.pickle"), 'rb')
-        data = pickle.load(f)
+        if self.readpy2:
+            data = pickle.load(f, encoding='latin1')
+        else:
+            data = pickle.load(f)
         f.close()
         return data
 
@@ -711,8 +726,12 @@ class PickleBundleBackend:
         "Read data from separate file."
         fn = os.path.join(framedir, name + '.pickle')
         f = open(fn, 'rb')
-        pickle.load(f)  # Discarded.
-        data = pickle.load(f)
+        if self.readpy2:
+            pickle.load(f, encoding='latin1')  # Discarded.
+            data = pickle.load(f, encoding='latin1')
+        else:
+            pickle.load(f)  # Discarded.
+            data = pickle.load(f)
         f.close()
         return data
 
@@ -721,14 +740,20 @@ class PickleBundleBackend:
         fn = os.path.join(framedir, name + '.pickle')
         if split is None or os.path.exists(fn):
             f = open(fn, 'rb')
-            info = pickle.load(f)
+            if self.readpy2:
+                info = pickle.load(f, encoding='latin1')
+            else:
+                info = pickle.load(f)
             f.close()
             return info
         else:
             for i in range(split):
                 fn = os.path.join(framedir, name + '_' + str(i) + '.pickle')
                 f = open(fn, 'rb')
-                info = pickle.load(f)
+                if self.readpy2:
+                    info = pickle.load(f, encoding='latin1')
+                else:
+                    info = pickle.load(f)
                 f.close()
                 if i == 0:
                     shape = list(info[0])
@@ -757,8 +782,12 @@ class PickleBundleBackend:
             suf = "_%d" % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
             f = open(fn, 'rb')
-            pickle.load(f)  # Discarding the shape.
-            data.append(pickle.load(f))
+            if self.readpy2:
+                pickle.load(f, encoding='latin1')  # Discarding the shape.
+                data.append(pickle.load(f, encoding='latin1'))
+            else:
+                pickle.load(f)  # Discarding the shape.
+                data.append(pickle.load(f))
             f.close()
         return (np.concatenate(data), True)
     

@@ -187,7 +187,7 @@ class View:
             return
         
         from ase.atoms import Atoms
-        from ase.calculators.neighborlist import NeighborList
+        from ase.neighborlist import NeighborList
         nl = NeighborList(self.images.r * 1.5, skin=0, self_interaction=False)
         nl.update(Atoms(positions=self.images.P[frame],
                         cell=(self.images.repeat[:, np.newaxis] *

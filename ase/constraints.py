@@ -1,13 +1,13 @@
 from __future__ import division
 from math import sqrt
-from ase.utils.geometry import find_mic
+from ase.geometry import find_mic
 
 import numpy as np
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
-           'FixBondLengths', 'FixInternals', 'Hookean']
+           'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
 
 def dict2constraint(dct):
@@ -18,9 +18,9 @@ def dict2constraint(dct):
 
 def slice2enlist(s, n):
     """Convert a slice object into a list of (new, old) tuples."""
-    if isinstance(s, (list, tuple)):
-        return enumerate(s)
-    return enumerate(range(*s.indices(n)))
+    if isinstance(s, slice):
+        return enumerate(range(*s.indices(n)))
+    return enumerate(s)
 
 
 def constrained_indices(atoms, only_include=None):
@@ -130,13 +130,11 @@ class FixAtoms(FixConstraint):
         else:
             # Check for duplicates:
             srt = np.sort(indices)
-            assert (srt == indices).all()
-            for i in range(len(indices) - 1):
-                if srt[i] == srt[i + 1]:
-                    raise ValueError(
-                        'FixAtoms: The indices array contained duplicates. '
-                        'Perhaps you wanted to specify a mask instead, but '
-                        'forgot the mask= keyword.')
+            if (np.diff(srt) == 0).any():
+                raise ValueError(
+                    'FixAtoms: The indices array contained duplicates. '
+                    'Perhaps you wanted to specify a mask instead, but '
+                    'forgot the mask= keyword.')
         self.index = np.asarray(indices, int)
 
         if self.index.ndim != 1:
@@ -184,16 +182,20 @@ class FixAtoms(FixConstraint):
         self.index = np.asarray(index_new, int)
         return self
 
-    def delete_atom(self, ind):
-        """ Removes atom number ind from the index array, if present.
+    def delete_atoms(self, indices, natoms):
+        """Removes atom number ind from the index array, if present.
+        
         Required for removing atoms with existing FixAtoms constraints.
         """
-        if ind in self.index:
-            i = list(self.index).index(ind)
-            self.index = np.delete(self.index, i)
-        for i in range(len(self.index)):
-            if self.index[i] >= ind:
-                self.index[i] -= 1
+        
+        i = np.zeros(natoms, int) - 1
+        new = np.delete(np.arange(natoms), indices)
+        i[new] = np.arange(len(new))
+        index = i[self.index]
+        self.index = index[index >= 0]
+        if len(self.index) == 0:
+            return None
+        return self
 
 
 def ints2string(x, threshold=None):
@@ -940,6 +942,56 @@ class Hookean(FixConstraint):
             return 'Hookean(%d) to cartesian' % self.index
         else:
             return 'Hookean(%d) to plane' % self.index
+
+
+class ExternalForce(FixConstraint):
+    """Constraint object for pulling two atoms apart by an external force.
+    
+    You can combine this constraint for example with FixBondLength but make
+    sure that the ExternalForce-constraint comes first in the list:
+        
+    >>> con1 = ExternalForce(atom1, atom2, f_ext)
+    >>> con2 = FixBondLength(atom3, atom4)
+    >>> atoms.set_constraint([con1, con2])
+    
+    see ase/test/external_force.py"""
+    
+    def __init__(self, a1, a2, f_ext):
+        self.indices = [a1, a2]
+        self.external_force = f_ext
+
+    def adjust_positions(self, atoms, new):
+        pass
+
+    def adjust_forces(self, atoms, forces):
+        dist = np.subtract.reduce(atoms.positions[self.indices])
+        force = self.external_force * dist / np.linalg.norm(dist)
+        forces[self.indices] += (force, -force)
+
+    def adjust_potential_energy(self, atoms):
+        dist = np.subtract.reduce(atoms.positions[self.indices])
+        return -np.linalg.norm(dist) * self.external_force
+
+    def index_shuffle(self, atoms, ind):
+        """Shuffle the indices of the two atoms in this constraint"""
+        newa = [-1, -1]  # Signal error
+        for new, old in slice2enlist(ind, len(atoms)):
+            for i, a in enumerate(self.indices):
+                if old == a:
+                    newa[i] = new
+        if newa[0] == -1 or newa[1] == -1:
+            raise IndexError('Constraint not part of slice')
+        self.indices = newa
+
+    def __repr__(self):
+        return 'ExternalForce(%d, %d, %f)' % (self.indices[0],
+                                              self.indices[1],
+                                              self.external_force)
+
+    def todict(self):
+        return {'name': 'ExternalForce',
+                'kwargs': {'a1': self.indices[0], 'a2': self.indices[1],
+                           'f_ext': self.external_force}}
 
 
 class Filter:

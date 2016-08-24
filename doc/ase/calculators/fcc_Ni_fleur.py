@@ -1,7 +1,7 @@
 from numpy import linspace
 
 from ase.calculators.fleur import FLEUR
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.io.trajectory import Trajectory
 
 atoms = bulk('Ni', a=3.52)

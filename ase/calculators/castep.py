@@ -26,6 +26,7 @@ import tempfile
 import time
 
 import ase
+import ase.units as units
 from ase.calculators.general import Calculator
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
@@ -37,6 +38,12 @@ __all__ = [
     'create_castep_keywords']
 
 contact_email = 'simon.rittmeyer@tum.de'
+
+# A convenient table to avoid the previously used "eval"
+_tf_table = {
+    '': True, # Just the keyword is equivalent to True
+    'True': True,
+    'False': False}
 
 
 class Castep(Calculator):
@@ -907,7 +914,8 @@ End CASTEP Interface Documentation
             atoms.set_calculator(self)
 
         self._forces = forces_atoms
-        self._stress = np.array(stress)
+        # stress in .castep file is given in GPa:
+        self._stress = np.array(stress) * units.GPa
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
 
@@ -1435,6 +1443,7 @@ End CASTEP Interface Documentation
                 if option.value is not None:
                     self.param.__setattr__(key, option.value)
             return
+
         elif isinstance(param, str):
             param_file = open(param, 'r')
             _close = True
@@ -1457,8 +1466,16 @@ End CASTEP Interface Documentation
             param = param_file.name
             _close = False
 
-        for i, line in enumerate(param_file.readlines()):
-            line = line.strip()
+        # ok, we need to load the file beforehand into memory, seems like the
+        # easiest way to do the BLOCK handling.
+        lines = param_file.readlines()
+        i = 0
+        while i < len(lines):
+            line = lines[i].strip()
+
+            # note that i will point to the next line from now on
+            i += 1
+
             # remove comments
             for comment_char in ['#', ';', '!']:
                 if comment_char in line:
@@ -1468,17 +1485,16 @@ End CASTEP Interface Documentation
                         iline = line[line.index(INT_TOKEN) + len(INT_TOKEN):]
                         if (iline.split()[0] in self.internal_keys and
                                 not ignore_internal_keys):
-                            value = ' '.join(iline.split()[2:])
-                            if value in ['True', 'False']:
-                                self._opt[iline.split()[0]] = eval(value)
+                            value = ' '.join(iline.split()[1:])
+                            if value in _tf_table:
+                                self._opt[iline.split()[0]] = _tf_table[value]
                             else:
                                 self._opt[iline.split()[0]] = value
                     line = line[:line.index(comment_char)]
+
             # if nothing remains
             if not line.strip():
                 continue
-
-            line = re.sub(':', ' ', line)
 
             if line == 'reuse':
                 self.param.reuse.value = 'default'
@@ -1487,8 +1503,29 @@ End CASTEP Interface Documentation
                 self.param.continuation.value = 'default'
                 continue
 
+            # here comes the handling of the devel block (the only block so far
+            # I know to be in the param file)
+            if line.upper() == '%BLOCK DEVEL_CODE':
+                key = 'devel_code'
+                value = ''
+                while True:
+                    line = lines[i].strip()
+                    i += 1
+                    if line.upper() == '%ENDBLOCK DEVEL_CODE':
+                        break
+                    value += '\n{}'.format(line)
+                value = value.strip()
+
+                if (not overwrite and
+                    getattr(self.param, key).value is not None):
+                    continue
+
+                self.__setattr__(key, value)
+                continue
+
             try:
-                key, value = line.split()
+                # we go for the regex split here
+                key, value = [s.strip() for s in re.split(r'[:=]+', line)]
             except:
                 print('Could not parse line %s of your param file: %s'
                       % (i, line))
@@ -1907,7 +1944,7 @@ class CastepParam(object):
                 pass
             else:
                 try:
-                    value = bool(eval(str(value).title()))
+                    value = _tf_table[str(value).title()]
                 except:
                     raise ConversionError('bool', attr, value)
                 self._options[attr].value = value
@@ -1955,8 +1992,10 @@ class CastepParam(object):
             self._options[attr].value = value
         # Newly added "Vector" options
         elif opt.type == 'Integer Vector':
-            if ',' in value:
-                value = value.replace(',', ' ')
+            # crashes if value is not a string
+            if isinstance(value, str):
+                if ',' in value:
+                    value = value.replace(',', ' ')
             if isinstance(value, str) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
@@ -1987,8 +2026,10 @@ class CastepParam(object):
 
             # However if a unit is present it will be dealt with
 
-            if len(value.split()) > 1:
-                value = value.split(' ', 1)[0]
+            # this crashes if non-string types are passed
+            if isinstance(value, str):
+                if len(value.split()) > 1:
+                    value = value.split(' ', 1)[0]
             try:
                 value = float(value)
             except:
@@ -2047,7 +2088,7 @@ class CastepCell(object):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             try:
-                value = bool(eval(str(value).title()))
+                value = _tf_table[str(value).title()]
             except:
                 raise ConversionError('bool', attr, value)
             self._options[attr].value = value
@@ -2106,8 +2147,10 @@ class CastepCell(object):
 
             # However if a unit is present it will be dealt with
 
-            if len(value.split()) > 1:
-                value = value.split(' ', 1)[0]
+            # this crashes if non-string types are passed
+            if isinstance(value, str):
+                if len(value.split()) > 1:
+                    value = value.split(' ', 1)[0]
             try:
                 value = float(value)
             except:

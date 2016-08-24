@@ -137,7 +137,7 @@ array([[  8.490373   0.         0.      ]
 We will need at Ni(111) slab which matches the water as closely as possible.
 A 2x4 orthogonal fcc111 supercell should be good enough.
 
->>> from ase.lattice.surface import fcc111
+>>> from ase.build import fcc111
 >>> slab = fcc111('Ni', size=[2, 4, 3], a=3.55, orthogonal=True)
 >>> cell = slab.get_cell()
 

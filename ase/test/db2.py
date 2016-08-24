@@ -5,7 +5,7 @@ from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
 from ase.db import connect
 from ase.io import read
-from ase.structure import molecule
+from ase.build import molecule
 from ase.test import must_raise
 
 
@@ -57,3 +57,8 @@ for name in ['y2.json', 'y2.db']:
         
     with must_raise(ValueError):
         c.write(Atoms(), pi='3.14')
+
+    # Make sure deleting a single sey works:
+    id = c.write(Atoms(), key=7)
+    c.update(id, delete_keys=['key'])
+    assert 'key' not in c[id]

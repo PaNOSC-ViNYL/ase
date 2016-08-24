@@ -641,8 +641,8 @@ class GUI(View, Status):
                     a = ase.Atoms([ase.Atom(molecule)])
                 except:
                     try:
-                        import ase.structure
-                        a = ase.structure.molecule(molecule)
+                        import ase.build
+                        a = ase.build.molecule(molecule)
                     except:
                         try:
                             a = ase.io.read(molecule, -1)
@@ -1003,7 +1003,7 @@ class GUI(View, Status):
         NudgedElasticBand(self.images)
 
     def bulk_modulus(self, action):
-        process = subprocess.Popen([sys.executable, '-m', 'ase.utils.eos',
+        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
         v = np.array([abs(np.linalg.det(A)) for A in self.images.A])

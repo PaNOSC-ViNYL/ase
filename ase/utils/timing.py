@@ -102,8 +102,7 @@ class Timer:
         tot = t0 - self.t0
 
         n = max([len(names[-1]) + len(names) for names in self.timers]) + 1
-        line = '=' * (n + 26) + '\n'
-        out.write(line)
+        line = '-' * (n + 26) + '\n'
         out.write('%-*s    incl.     excl.\n' % (n, 'Timing:'))
         out.write(line)
         tother = tot
@@ -138,9 +137,7 @@ class Timer:
             out.write('%-*s%9.3f %9.3f %5.1f%% %s\n' %
                       (n, name, tinclusive, t, p, bar))
         out.write(line)
-        out.write('%-*s%9.3f %5.1f%%\n' % (n + 10, 'Total:', tot, 100.0))
-        out.write(line)
-        out.write('date: %s\n' % time.asctime())
+        out.write('%-*s%9.3f %5.1f%%\n\n' % (n + 10, 'Total:', tot, 100.0))
         
         for name in were_running:
             self.start(name)

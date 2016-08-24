@@ -13,29 +13,15 @@ class SinglePointCalculator(Calculator):
     
     name = 'unknown'
     
-    def __init__(self, *args, **results):
+    def __init__(self, atoms, **results):
         """Save energy, forces, stress, ... for the current configuration."""
-        if args and isinstance(args[0], float):
-            # Old interface:
-            assert not results
-            for key, value in zip(['energy', 'forces', 'stress', 'magmoms'],
-                                  args):
-                if value is not None:
-                    results[key] = value
-            atoms = args[-1]
-        else:
-            if args:
-                atoms = args[0]
-            else:
-                atoms = results.pop('atoms')
-            
         Calculator.__init__(self)
         self.results = {}
         for property, value in results.items():
             assert property in all_properties
             if value is None:
                 continue
-            if property in ['energy', 'magmom']:
+            if property in ['energy', 'magmom', 'free_energy']:
                 self.results[property] = value
             else:
                 self.results[property] = np.array(value, float)
@@ -44,7 +30,8 @@ class SinglePointCalculator(Calculator):
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.results or self.check_state(atoms):
             if allow_calculation:
-                raise NotImplementedError
+                raise NotImplementedError(
+                    'The property "{0}" is not available.'.format(name))
             return None
 
         result = self.results[name]

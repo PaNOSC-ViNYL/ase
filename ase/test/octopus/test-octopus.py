@@ -5,14 +5,13 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.interfacechecker import check_interface
 from ase.calculators.octopus import Octopus, OctopusIOError
-from ase.structure import molecule
+from ase.build import molecule
 
 def getkwargs(**kwargs):
     kwargs0 = dict(FromScratch=True,
                    RestartWrite=False,
                    BoxShape='parallelepiped',
                    stdout='"stdout.txt"',
-                   stderr='"stderr.txt"',
                    Spacing=0.15)
     kwargs0.update(kwargs)
     return kwargs0

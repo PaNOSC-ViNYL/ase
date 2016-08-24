@@ -2,7 +2,7 @@ from ase.calculators.dftb import Dftb
 from ase.optimize import QuasiNewton
 from ase.io import write
 
-from ase.structure import molecule
+from ase.build import molecule
 test = molecule('H2O')
 test.set_calculator(Dftb(label='h2o',
                          atoms=test,
