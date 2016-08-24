@@ -33,7 +33,7 @@ def constrainted_indices(atoms, only_include=None):
             if only_include is not None:
                 if not isinstance(constraint, only_include):
                     continue
-            indices.extend(np.array(constraint.get_affected()))
+            indices.extend(np.array(constraint.get_indices()))
         return np.array(np.unique(indices))
 
 class FixConstraint:
@@ -88,7 +88,7 @@ class FixConstraintSingle(FixConstraint):
             raise IndexError('Constraint not part of slice')
         self.a = newa
 
-    def get_affected(self):
+    def get_indices(self):
         return [a]
 
 
@@ -159,7 +159,7 @@ class FixAtoms(FixConstraint):
             raise IndexError('All indices in FixAtoms not part of slice')
         self.index = np.asarray(index, int)
 
-    def get_affected(self):
+    def get_indices(self):
         return self.index
 
     def __repr__(self):
@@ -220,7 +220,7 @@ class FixBondLengths(FixConstraint):
             for constraint in self.constraints:
                 constraint.adjust_forces(atoms, forces)
 
-    def get_affected(self):
+    def get_indices(self):
         return np.unique(np.ravel([constraint.indices
                                    for constraint in self.constraints]))
 
@@ -275,7 +275,7 @@ class FixBondLength(FixConstraint):
         """Return the (scalar) force required to maintain the constraint"""
         return self.constraint_force
 
-    def get_affected(self):
+    def get_indices(self):
         return self.indices
 
     def __repr__(self):
@@ -313,7 +313,7 @@ class FixedMode(FixConstraint):
             raise IndexError('All nonzero parts of mode not in slice')
         self.mode = mode[ind].ravel()
 
-    def get_affected(self):
+    def get_indices(self):
         # This function will never properly work because it works on all
         # atoms and it has no idea how to tell how many atoms it is
         # attached to.  If it is being used, surely the user knows
@@ -480,7 +480,7 @@ class FixInternals(FixConstraint):
                                                      masses_dihedral))
         self.initialized = True
 
-    def get_affected(self):
+    def get_indices(self):
         cons = self.bonds + self.dihedrals + self.angles
         return np.unique(np.ravel([constraint[1]
                                    for constraint in cons]))
@@ -928,7 +928,7 @@ class Hookean(FixConstraint):
         else:
             return 0.
 
-    def get_affected(self):
+    def get_indices(self):
         if self._type == 'two atoms':
             return self.indices
         elif self._type == 'point':
