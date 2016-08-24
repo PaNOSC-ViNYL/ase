@@ -22,6 +22,19 @@ def slice2enlist(s, n):
         return enumerate(s)
     return enumerate(range(*s.indices(n)))
 
+def constrainted_indices(atoms, only_include=None):
+        """Returns a list of indices for the atoms that are constrained
+        by a constraint that is applied.  By setting only_include to a 
+        specific type of constraint you can make it only look for that
+        given constraint.
+        """
+        indices = []
+        for constraint in atoms._constraints:
+            if only_include is not None:
+                if not isinstance(constraint, only_include):
+                    continue
+            indices.extend(np.array(constraint.get_affected()))
+        return np.array(np.unique(indices))
 
 class FixConstraint:
 
