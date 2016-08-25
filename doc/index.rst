@@ -28,6 +28,14 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 >>> h2.get_potential_energy()
 -31.492847800329216
 
+Please go through this check-list to figure out if you need to convert your
+old ASE trajectory files to the modern file-format:
+
+.. image:: static/oldtraj.png
+    :align: center
+
+See how to identify and convert old trajectory files here: :ref:`convert`.
+
 
 Supported :mod:`Calculators <ase.calculators>`:
 
@@ -96,10 +104,10 @@ News
 * A beta version of the new ASE-3.0 will be used for the
   electronic structure course at CAMd_.  (10 Jan 2008)
 
-  
+
 Contents
 ========
-  
+
 .. toctree::
 
     about
