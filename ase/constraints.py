@@ -210,7 +210,7 @@ def ints2string(x, threshold=None):
 class FixBondLengths:
     maxiter = 500
 
-    def __init__(self, pairs, tolerance=1e-10, iterations=None):
+    def __init__(self, pairs, tolerance=1e-13, iterations=None):
         """iterations:
                 Ignored"""
         self.pairs = np.asarray(pairs)
