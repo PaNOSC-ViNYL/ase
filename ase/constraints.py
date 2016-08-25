@@ -274,14 +274,15 @@ class FixBondLengths:
 
     def index_shuffle(self, atoms, ind):
         """Shuffle the indices of the two atoms in this constraint"""
-        newa = [-1, -1]  # Signal error
-        for new, old in slice2enlist(ind, len(atoms)):
-            for i, a in enumerate(self.indices):
-                if old == a:
-                    newa[i] = new
-        if newa[0] == -1 or newa[1] == -1:
+        map = np.zeros(len(atoms), int)
+        map[ind] = 1
+        n = map.sum()
+        map[:] = -1
+        map[ind] = range(n)
+        pairs = map[self.pairs]
+        self.pairs = pairs[(pairs != -1).all(1)]
+        if len(self.pairs) == 0:
             raise IndexError('Constraint not part of slice')
-        self.indices = newa
 
 
 def FixBondLength(a1, a2):

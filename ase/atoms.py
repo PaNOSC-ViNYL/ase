@@ -28,7 +28,6 @@ class Atoms(object):
     periodically repeated structure.  It has a unit cell and
     there may be periodic boundary conditions along any of the three
     unit cell axes.
-
     Information about the atoms (atomic numbers and position) is
     stored in ndarrays.  Optionally, there can be information about
     tags, momenta, masses, magnetic moments and charges.
@@ -872,7 +871,7 @@ class Atoms(object):
             return Atom(atoms=self, index=i)
 
         import copy
-        from ase.constraints import FixConstraint
+        from ase.constraints import FixConstraint, FixBondLengths
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
@@ -887,7 +886,7 @@ class Atoms(object):
         atoms.constraints = copy.deepcopy(self.constraints)
         condel = []
         for con in atoms.constraints:
-            if isinstance(con, FixConstraint):
+            if isinstance(con, (FixConstraint, FixBondLengths)):
                 try:
                     con.index_shuffle(self, i)
                 except IndexError:
