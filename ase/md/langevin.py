@@ -31,7 +31,7 @@ class Langevin(MolecularDynamics):
     The temperature and friction are normally scalars, but in principle one
     quantity per atom could be specified by giving an array.
 
-    RATTLE constraints are implemented, see:
+    RATTLE constraints can be used with these propagators, see:
     E. V.-Eijnden, and G. Ciccotti, Chem. Phys. Lett. 429, 310 (2006)    
 
     A single step amounts to:
@@ -155,6 +155,10 @@ class Langevin(MolecularDynamics):
         # Update the velocities 
         V += self.v2*xi + self.v1*f/self.masses - self.fr*A \
              - self.fr*self.v1*v - self.v3*eta
+
+        if self.fixcm: # subtract center of mass vel
+            v_cm = np.dot(self.masses.flatten(), V) / self.masses.sum()
+            V -= v_cm
 
         # Second part of RATTLE taken care of here
         atoms.set_momenta(V*self.masses)
