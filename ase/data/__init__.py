@@ -57,7 +57,7 @@ atomic_names = [
     'Lawrencium', 'Unnilquadium', 'Unnilpentium', 'Unnilhexium']
 
 atomic_masses = np.array([
-   0.00000, # X
+   1.00000, # X
    1.00794, # H
    4.00260, # He
    6.94100, # Li
