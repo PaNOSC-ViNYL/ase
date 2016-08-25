@@ -1,4 +1,4 @@
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 from ase.constraints import (FixAtoms, FixBondLengths, FixInternals, Hookean,
                              constrained_indices)
 
