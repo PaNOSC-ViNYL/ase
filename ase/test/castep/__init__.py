@@ -13,7 +13,8 @@ def installed():
         # not python 2.6-safe
         #subprocess.check_output([os.environ['CASTEP_COMMAND']])
         devnull = open(os.devnull)
-        subprocess.Popen([os.environ['CASTEP_COMMAND']], stdout=devnull, stderr=devnull)
+        # split to allow for mpi calls as well
+        subprocess.Popen(os.environ['CASTEP_COMMAND'].split(), stdout=devnull, stderr=devnull)
     except OSError:
         raise NotAvailable("""Could not find CASTEP. If you have it
                               installed make sure, you set the CASTEP_COMMAND
