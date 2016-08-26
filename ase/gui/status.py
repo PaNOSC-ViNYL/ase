@@ -2,13 +2,13 @@
 
 from math import sqrt, pi, acos
 
-import gtk
 import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
 from ase.gui.widgets import pack
 from gettext import gettext as _
+
 
 def formula(Z):
     hist = {}
@@ -26,17 +26,9 @@ def formula(Z):
             text += '<sub>%d</sub>' % n
     return text
 
+    
 class Status:
-    def __init__(self, vbox):
-        self.eventbox = gtk.EventBox()
-        self.label = gtk.Label()
-        self.eventbox.add(self.label)
-        self.label.show()
-        if gtk.pygtk_version < (2, 12):
-            self.set_tip(self.eventbox, _('Tip for status box ...'))
-        else:
-            self.eventbox.set_tooltip_text(_('Tip for status box ...'))
-        pack(vbox, self.eventbox)
+    def __init__(self):
         self.ordered_indices = []
 
     def status(self):
@@ -47,7 +39,7 @@ class Status:
         self.nselected = n
         
         if n == 0:
-            self.label.set_text('')
+            self.window.update_status_line('')
             return
 
         Z = self.images.Z[indices]
@@ -104,8 +96,4 @@ class Status:
         else:
             text = ' ' + formula(Z)
             
-        self.label.set_markup(text)
-        
-if __name__ == '__main__':
-    import os
-    os.system('python gui.py')
+        self.window.update_status_line(text)

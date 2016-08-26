@@ -1,8 +1,4 @@
-# Emacs: treat this as -*- python -*-
-
 import os
-import gtk
-import pango
 import tempfile
 from math import cos, sin, sqrt, atan, atan2
 from os.path import basename
@@ -15,13 +11,12 @@ from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
-from ase.gui.defaults import read_defaults
 from ase.utils import rotate
 from ase.quaternions import Quaternion
 
 
 class View:
-    def __init__(self, vbox, rotations):
+    def __init__(self, rotations):
         self.colormode = 'jmol'  # The default colors
         self.nselected = 0
         self.labels = None
@@ -33,20 +28,6 @@ class View:
     
         self.atoms_to_rotate = None
         
-        self.drawing_area = gtk.DrawingArea()
-        self.drawing_area.set_size_request(450, 450)
-        self.drawing_area.connect('button_press_event', self.press)
-        self.drawing_area.connect('button_release_event', self.release)
-        self.drawing_area.connect('motion-notify-event', self.move)
-        # Signals used to handle backing pixmap:
-        self.drawing_area.connect('expose_event', self.expose_event)
-        self.drawing_area.connect('configure_event', self.configure_event)
-        self.drawing_area.set_events(gtk.gdk.BUTTON_PRESS_MASK |
-                                     gtk.gdk.BUTTON_RELEASE_MASK |
-                                     gtk.gdk.BUTTON_MOTION_MASK |
-                                     gtk.gdk.POINTER_MOTION_HINT_MASK)
-        vbox.pack_start(self.drawing_area)
-        self.drawing_area.show()
         self.configured = False
         self.config = None
         self.frame = None
@@ -58,8 +39,6 @@ class View:
         self.bind(frame)
         n = self.images.natoms
         self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
-        #self.X[n:] = np.dot(self.B1, self.images.A[frame])
-        #self.B = np.dot(self.B2, self.images.A[frame])
         self.set_frame(frame, focus=focus, init=True)
 
     def set_frame(self, frame=None, focus=False, init=False):
@@ -103,7 +82,7 @@ class View:
                 if filename is None:
                     filename = 'ase.gui'
             filename = basename(filename)
-            self.window.set_title(filename)
+            self.window.title = filename
 
         self.frame = frame
         self.X[:n] = self.images.P[frame]
@@ -120,14 +99,11 @@ class View:
     def set_jmol_colors(self):
         self.colors = [None] * (len(jmol_colors) + 1)
         self.colordata = []
-        new = self.drawing_area.window.new_gc
-        alloc = self.colormap.alloc_color
         for z in self.images.Z:
             if self.colors[z] is None:
-                c, p, k = jmol_colors[z]
-                self.colors[z] = new(alloc(int(65535 * c),
-                                           int(65535 * p),
-                                           int(65535 * k)))
+                cpk = jmol_colors[z]
+                self.colors[z] = '#{0:02X}{1:02X}{2:02X}'.format(
+                    *(int(x * 255) for x in cpk))
         hasfound = {}
         for z in self.images.Z:
             if z not in hasfound:
@@ -150,8 +126,7 @@ class View:
         return np.concatenate(R1), np.concatenate(R2)
 
     def make_box(self):
-        if not self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell'
-                                  ).get_active():
+        if not self.window['show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
             return
         
@@ -181,8 +156,7 @@ class View:
         self.B2.shape = (-1, 3)
 
     def bind(self, frame):
-        if not self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds'
-                                  ).get_active():
+        if not self.window['show-bonds']:
             self.bonds = np.empty((0, 5), int)
             return
         
@@ -222,9 +196,8 @@ class View:
     def reset_tools_modes(self):
         self.menu_change = 1
         self.atoms_to_rotate = None
-        for c_mode in ['Rotate', 'Orient', 'Move']:
-            self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
-                               c_mode).set_active(False)
+        for c_mode in ['rotate', 'orient', 'move']:
+            self.window[c_mode + '-atoms'] = False
         self.light_green_markings = 0
         self.menu_change = 0
         self.draw()
@@ -372,8 +345,7 @@ class View:
         ColorWindow(self)
 
     def focus(self, x=None):
-        if (self.images.natoms == 0 and not
-            self.ui.get_widget('/MenuBar/ViewMenu/ShowUnitCell').get_active()):
+        if self.images.natoms == 0 and not self.window['show-unit-cell']:
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
@@ -441,7 +413,7 @@ class View:
 
         self.set_coordinates()
 
-    def get_colors(self, rgb = False):
+    def get_colors(self, rgb=False):
         Z = self.images.Z
         if rgb:
             # Create a shape that is equivalent to self.colors,
@@ -456,7 +428,7 @@ class View:
             for z, c in self.colordata:
                 if z >= len(colarray):
                     # Allocate unused elements as well.
-                    colarray.extend([c,] * (1 + z - len(colarray)))
+                    colarray.extend([c] * (1 + z - len(colarray)))
                 colarray[z] = c
         else:
             colarray = self.colors
@@ -591,15 +563,14 @@ class View:
         line(self.foreground_gc, x2, y2, en[0], en[1])
 
     def draw(self, status=True):
-        self.pixmap.draw_rectangle(self.background_gc, True, 0, 0,
-                                   self.width, self.height)
+        self.window.clear()
         axes = self.scale * self.axes * (1, -1, 1)
-        offset = (np.dot(self.center, axes) -
-                  (0.5 * self.width, 0.5 * self.height, 0))
+        offset = np.dot(self.center, axes)
+        offset[:2] -= 0.5 * self.window.size
         X = np.dot(self.X, axes) - offset
         n = self.images.natoms
         self.indices = X[:, 2].argsort()
-        if self.ui.get_widget('/MenuBar/ViewMenu/ShowBonds').get_active():
+        if self.window['show-bonds']:
             r = self.images.r * (0.65 * self.scale)
         else:
             r = self.images.r * self.scale
@@ -610,18 +581,15 @@ class View:
         disp = (np.dot(self.images.D[self.frame],axes)).round().astype(int)
         d = (2 * r).round().astype(int)
 
-        vectors = (self.ui.get_widget('/MenuBar/ViewMenu/ShowVelocities'
-                                      ).get_active() or
-                   self.ui.get_widget('/MenuBar/ViewMenu/ShowForces'
-                                      ).get_active())
+        vectors = (self.window['show-velocities'] or
+                   self.window['show-forces'])
         if vectors:
             V = np.dot(self.vectors[self.frame], axes)
 
-        selected_gc = self.selected_gc
+        selected_color = self.window.selected_color
         colors = self.get_colors()
-        arc = self.pixmap.draw_arc
-        line = self.pixmap.draw_line
-        foreground_gc = self.foreground_gc
+        circle = self.window.circle
+        line = self.window.line
         dynamic = self.images.dynamic
         selected = self.images.selected
         visible = self.images.visible
@@ -630,7 +598,8 @@ class View:
                 ra = d[a]
                 if visible[a]:
                     # Draw the atoms
-                    self.my_arc(colors[a], True, a, X, r, n, A, d)
+                    circle(colors[a],
+                           (A[a, 0], A[a, 1], A[a, 0] + d, A[a, 1] + d))
 
                     # Draw labels on the atoms
                     if self.labels is not None:
@@ -676,15 +645,13 @@ class View:
                 a -= n
                 line(foreground_gc, X1[a, 0] + disp[0], X1[a, 1] + disp[1], X2[a, 0] + disp[0], X2[a, 1] + disp[1])
 
-        if self.ui.get_widget('/MenuBar/ViewMenu/ShowAxes').get_active():
+        if self.window['show-axes']:
             self.draw_axes()
 
         if self.images.nimages > 1:
             self.draw_frame_number()
             
-        self.drawing_area.window.draw_drawable(self.background_gc, self.pixmap,
-                                               0, 0, 0, 0,
-                                               self.width, self.height)
+        self.window.update()
 
         if status:
             self.status()
@@ -822,48 +789,10 @@ class View:
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
         
-    # Create a new backing pixmap of the appropriate size
-    def configure_event(self, drawing_area, event):
-        if self.configured:
-            w = self.width
-            h = self.height
-        else:
-            self.config = read_defaults()
-            self.colormap = self.drawing_area.get_colormap()
-            self.foreground_gc = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(self.config['gui_foreground_color']))
-            self.background_gc = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(self.config['gui_background_color']))
-            self.red = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(62345, 0, 0), line_width=2)
-            self.green = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(0, 54456, 0), line_width=2)
-            self.blue = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(0, 0, 54456), line_width=2)
-            self.selected_gc = self.drawing_area.window.new_gc(
-                self.colormap.alloc_color(0, 16456, 0),
-                line_width=3)
-            
-        x, y, self.width, self.height = drawing_area.get_allocation()
-        self.pixmap = gtk.gdk.Pixmap(drawing_area.window,
-                                     self.width, self.height)
-        if self.configured:
-            self.scale *= sqrt(1.0 * self.width * self.height / (w * h))
-            self.draw()
-        self.configured = True
-        
-    # Redraw the screen from the backing pixmap
-    def expose_event(self, drawing_area, event):
-        x , y, width, height = event.area
-        gc = self.background_gc
-        drawing_area.window.draw_drawable(gc, self.pixmap,
-                                          x, y, x, y, width, height)
-
     def external_viewer(self, action):
         name = action.get_name()
-        command = {'Avogadro' : 'avogadro',
-                   'XMakeMol' : 'xmakemol -f',
-                   'RasMol':'rasmol -xyz',
+        command = {'Avogadro': 'xmakemol -f',
+                   'RasMol': 'rasmol -xyz',
                    'VMD': 'vmd'}[name]
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
         os.close(fd)

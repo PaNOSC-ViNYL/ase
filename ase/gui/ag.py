@@ -1,4 +1,3 @@
-from __future__ import print_function
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
 from __future__ import print_function
@@ -49,10 +48,6 @@ def build_parser():
                       action='store_true',
                       default=False,
                       help='Run in terminal window - no GUI.')
-    parser.add_option('--aneb',
-                      action='store_true',
-                      default=False,
-                      help='Read ANEB data.')
     parser.add_option('--interpolate',
                       type='int', metavar='N',
                       help='Interpolate N images between 2 given images.')
@@ -80,9 +75,6 @@ def main():
     def run(opt, args):
         images = Images()
 
-        if opt.aneb:
-            opt.image_number = '-1'
-
         if len(args) > 0:
             from ase.io import string2index
             images.read(args, string2index(opt.image_number))
@@ -91,9 +83,6 @@ def main():
 
         if opt.interpolate:
             images.interpolate(opt.interpolate)
-
-        if opt.aneb:
-            images.aneb()
 
         if opt.repeat != '1':
             r = opt.repeat.split(',')
@@ -118,8 +107,6 @@ def main():
                     print()
         else:
             from ase.gui.gui import GUI
-            import ase.gui.gtkexcepthook
-            ase
             gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
             gui.run(opt.graph)
 

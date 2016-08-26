@@ -1,43 +1,15 @@
 from __future__ import print_function
-# husk:
-# DFT
-# ADOS
-# grey-out stuff after one second: vmd, rasmol, ...
-# Show with ....
-# rasmol: set same rotation as ag
-# Graphs: save, Python, 3D
-# start from python (interactive mode?)
-# surfacebuilder
-# screen-dump
-# icon
-# translate option: record all translations,
-# and check for missing translations.
-
-# TODO: Add possible way of choosing orinetations. \
-# TODO: Two atoms defines a direction, three atoms their normal does
-# TODO: Align orientations chosen in Rot_selected v unselcted
-# TODO: Get the atoms_rotate_0 thing string
-# TODO: Use set atoms instead og the get atoms
-# TODO: Arrow keys will decide how the orientation changes
-# TODO: Undo redo que should be implemented
-# TODO: Update should have possibility to change positions
-# TODO: Window for rotation modes and move moves which can be chosen
-# TODO: WHen rotate and move / hide the movie menu
-
 import os
 import sys
 import weakref
 import pickle
 import subprocess
-
-from gettext import gettext as _
-from gettext import ngettext
+from gettext import gettext as _, ngettext
 
 import numpy as np
-import pygtk
-pygtk.require("2.0")
-import gtk
 
+from ase import __version__
+import ase.gui.backend as be
 from ase.gui.view import View
 from ase.gui.status import Status
 from ase.gui.widgets import pack, oops
@@ -53,7 +25,6 @@ from ase.gui.minimize import Minimize
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
 from ase.gui.save import save_dialog
-from ase import __version__
 
 ui_info = """\
 <ui>
@@ -174,34 +145,33 @@ class GUI(View, Status):
         except:
             pass
         self.images = images
-        self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-        # self.window.set_icon(gtk.gdk.pixbuf_new_from_file('guiase.png'))
-        self.window.set_position(gtk.WIN_POS_CENTER)
-        # self.window.connect("destroy", lambda w: gtk.main_quit())
-        self.window.connect('delete_event', self.exit)
-        vbox = gtk.VBox()
-        self.window.add(vbox)
-        if gtk.pygtk_version < (2, 12):
-            self.set_tip = gtk.Tooltips().set_tip
 
-        actions = gtk.ActionGroup("Actions")
-        actions.add_actions([
-            ('FileMenu', None, _('_File')),
-            ('EditMenu', None, _('_Edit')),
-            ('ViewMenu', None, _('_View')),
-            ('ToolsMenu', None, _('_Tools')),
+        menu = [
+            ('_File',
+             [('_Open', '<control>O', 'Create a new file', self.open),
+              ('_New', '<control>N', 'New ase.gui window',
+               lambda widget: os.system('ase-gui &')),
+              ('_Save', '<control>S', 'Save current file',
+               lambda x: save_dialog(self)),
+              ('_Quit', '<control>Q', 'Quit', self.exit)]),
+            ('_Edit',
+             []),
+            ('_View',
+             []),
+            ('_Tools',
+             []),
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-            ('SetupMenu', None, _('_Setup')),
-            ('CalculateMenu', None, _('_Calculate')),
-            ('HelpMenu', None, _('_Help')),
-            ('Open', gtk.STOCK_OPEN, _('_Open'), '<control>O',
-             _('Create a new file'), self.open),
-            ('New', gtk.STOCK_NEW, _('_New'), '<control>N',
-             _('New ase.gui window'), lambda widget: os.system('ase-gui &')),
-            ('Save', gtk.STOCK_SAVE, _('_Save'), '<control>S',
-             _('Save current file'), lambda x: save_dialog(self)),
-            ('Quit', gtk.STOCK_QUIT, _('_Quit'), '<control>Q', _('Quit'),
-             self.exit),
+            ('_Setup',
+             []),
+            ('_Calculate',
+             []),
+            ('_Help',
+             [])]
+
+        self.window = be.MainWindow(menu, self.exit, self.scroll,
+                                    self.scroll_event)
+        x = """
+        ,
             ('SelectAll', None, _('Select _all'), None, '', self.select_all),
             ('Invert', None, _('_Invert selection'), None, '',
              self.invert_selection),
@@ -328,21 +298,11 @@ class GUI(View, Status):
              ('MagMom', None, _('_Magnetic Moments'), None, None, 2),
              ('Element', None, _('_Element Symbol'), None, None, 3)), 0,
             self.show_labels)
-        self.ui = ui = gtk.UIManager()
-        ui.insert_action_group(actions, 0)
-        self.window.add_accel_group(ui.get_accel_group())
 
-        ui.add_ui_from_string(ui_info)
+        """
+        View.__init__(self, rotations)
+        Status.__init__(self)
 
-        vbox.pack_start(ui.get_widget('/MenuBar'), False, False, 0)
-
-        View.__init__(self, vbox, rotations)
-        Status.__init__(self, vbox)
-        vbox.show()
-        # self.window.set_events(gtk.gdk.BUTTON_PRESS_MASK)
-        self.window.connect('key-press-event', self.scroll)
-        self.window.connect('scroll_event', self.scroll_event)
-        self.window.show()
         self.graphs = []  # list of matplotlib processes
         self.graph_wref = []  # list of weakrefs to Graph objects
         self.movie_window = None
@@ -363,7 +323,7 @@ class GUI(View, Status):
         if expr is not None and expr != '' and self.images.nimages > 1:
             self.plot_graphs(expr=expr)
 
-        gtk.main()
+        self.window.run()
 
     def step(self, action):
         d = {'First': -10000000,
