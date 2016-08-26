@@ -2088,6 +2088,12 @@ class CastepCell(object):
         if 'kpoint_' in attr:
             if attr.replace('kpoint_', 'kpoints_') in self._options:
                 attr = attr.replace('kpoint_', 'kpoints_')
+
+        # CASTEP < 16 lists kpoints_mp_grid as type "Integer" -> convert to
+        # "Integer Vector"
+        if attr == 'kpoints_mp_grid':
+            self._options[attr].type = 'Integer Vector'
+
         opt = self._options[attr]
         if not opt.type == 'Block' and isinstance(value, str):
             value = value.replace(':', ' ')
