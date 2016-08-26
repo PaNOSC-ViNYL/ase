@@ -80,7 +80,7 @@ class GUI(View, Status):
                self.paste_atoms),
               '---',
               ('Hide selected atoms', '',
-              '',
+               '',
                self.hide_selected),
               ('Show selected atoms', '',
               '',
@@ -120,10 +120,11 @@ class GUI(View, Status):
                self.toggle_show_velocities, False),
               ('Show _forces', '^F',
                self.toggle_show_forces, False),
-              ('Show _Labels', ['None',
-                                'Atom _Index',
-                                '_Magnetic Moments'
-                                '_Element Symbol'],
+              ('Show _Labels', '', '',
+               ['None',
+                'Atom _Index',
+                '_Magnetic Moments'
+                '_Element Symbol'],
                self.show_labels),
               '---',
               ('Quick Info ...', '',
@@ -148,7 +149,7 @@ class GUI(View, Status):
               ('Zoom out', 'minus',
                '',
                self.zoom),
-              ('Change View',
+              ('Change View', '', '',
                [('Reset View', 'equal',
                  '',
                  self.reset_view),
@@ -199,42 +200,52 @@ class GUI(View, Status):
               ('_Rotate atoms', '^R',
               self.toggle_rotate_mode, False),
               ('Orien_t atoms', '^T',
-               self.toggle_orient_mode, False)
-            ('NEB', '', _('NE_B'), '', '', self.NEB),
-            ('BulkModulus', '', _('B_ulk Modulus'), '', '',
-             self.bulk_modulus)]),
-            ('_Setup',
-             [      <menuitem action='Bulk'/>
-            ('Bulk', '', _('_Bulk Crystal'), '',
-             _("Create a bulk crystal with arbitrary orientation"),
-             self.bulk_window),
-            ('Surface', '', _('_Surface slab'), '',
-             _("Create the most common surfaces"), self.surface_window),
-            ('Nanoparticle', '', _('_Nanoparticle'), '',
-             _("Create a crystalline nanoparticle"), self.nanoparticle_window),
-            ('Nanotube', '', _('Nano_tube'), '', _("Create a nanotube"),
-             self.nanotube_window),
-            ('Graphene', '', _('Graphene'), '',
-             _("Create a graphene sheet or nanoribbon"), self.graphene_window),
-]),
-
-                        ('SetCalculator', '', _('Set _Calculator'), '',
-             _("Set a calculator used in all calculation modules"),
-             self.calculator_window),
-            ('EnergyForces', '', _('_Energy and Forces'), '',
-             _("Calculate energy and forces"), self.energy_window),
-            ('Minimize', '', _('Energy _Minimization'), '',
-             _("Minimize the energy"), self.energy_minimize_window),
-            ('Scaling', '', _('Scale system'), '',
-             _("Deform system by scaling it"), self.scaling_window),
-
-            ('About', '', _('_About'), '', '', self.about),
-            ('Webpage', gtk.STOCK_HELP, _('Webpage ...'), '', '', webpage),
-            ('Debug', '', _('Debug ...'), '', '', self.debug)
+               self.toggle_orient_mode, False),
+              ('NE_B', '',
+               '',
+               self.NEB),
+              ('B_ulk Modulus', '',
+               '',
+               self.bulk_modulus)]),
+            
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-])]
+            ('_Setup',
+             [('_Bulk Crystal', '',
+               'Create a bulk crystal with arbitrary orientation',
+               self.bulk_window),
+              ('_Surface slab', '',
+               '"Create the most common surfaces',
+               self.surface_window),
+              ('_Nanoparticle', '',
+               'Create a crystalline nanoparticle',
+               self.nanoparticle_window),
+              ('Nano_tube', '',
+               'Create a nanotube',
+               self.nanotube_window),
+              ('Graphene', '',
+               'Create a graphene sheet or nanoribbon',
+               self.graphene_window)]),
+            
+            ('Calculate',
+             [('Set _Calculator', '',
+               'Set a calculator used in all calculation modules',
+               self.calculator_window),
+              ('_Energy and Forces', '',
+               'Calculate energy and forces',
+               self.energy_window),
+              ('Energy _Minimization', '',
+               'Minimize the energy',
+               self.energy_minimize_window),
+              ('Scale system', '',
+               'Deform system by scaling it',
+               self.scaling_window)]),
 
-        self.window = be.MainWindow(menu, self.config, 
+            ('Help',
+             [('_About', '', '', self.about),
+              ('Webpage ...', '', '', webpage),
+              ('Debug ...', '', '', self.debug)])]
+
+        self.window = be.MainWindow(menu, self.config,
                                     self.exit, self.scroll,
                                     self.scroll_event)
 
@@ -1050,11 +1061,10 @@ class GUI(View, Status):
         """
         self.vulnerable_windows.append(weakref.ref(obj))
 
-    def exit(self, button, event=None):
+    def exit(self, event):
         for process in self.graphs:
             process.terminate()
         self.window.destroy()
-        gtk.main_quit()
         return True
 
     def xxx(self,

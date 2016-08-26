@@ -599,7 +599,7 @@ class View:
                 if visible[a]:
                     # Draw the atoms
                     circle(colors[a],
-                           (A[a, 0], A[a, 1], A[a, 0] + d, A[a, 1] + d))
+                           (A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra))
 
                     # Draw labels on the atoms
                     if self.labels is not None:
