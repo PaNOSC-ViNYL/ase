@@ -7,11 +7,9 @@ from gettext import gettext as _
 
 import numpy as np
 
-from ase.gui.defaults import read_defaults
-
 
 class MainWindow:
-    def __init__(self, menu_description, a, b, c):
+    def __init__(self, menu_description, config, a, b, c):
         self.size = np.array([600, 600])
         
         root = tkinter.Tk()
@@ -55,7 +53,6 @@ class MainWindow:
         
         #    self.eventbox.set_tooltip_text(_('Tip for status box ...'))
 
-        config = read_defaults()
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']
         self.red = '#F30000'
@@ -89,7 +86,7 @@ class MainWindow:
         self.canvas.update_idletasks()
         
     def circle(self, color, bbox):
-        self.canvas.create_oval(*bbox, fill=color)
+        self.canvas.create_oval(*tuple(int(x) for x in bbox), fill=color)
 
     def line(self):
         self.canvas.create_line(0, 0, 200, 100)

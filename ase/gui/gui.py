@@ -10,127 +10,22 @@ import numpy as np
 
 from ase import __version__
 import ase.gui.backend as be
-from ase.gui.view import View
-from ase.gui.status import Status
-from ase.gui.widgets import pack, oops
-from ase.gui.settings import Settings
+from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
-from ase.gui.surfaceslab import SetupSurfaceSlab
+from ase.gui.defaults import read_defaults
+from ase.gui.energyforces import EnergyForces
+from ase.gui.graphene import SetupGraphene
+from ase.gui.minimize import Minimize
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
-from ase.gui.graphene import SetupGraphene
-from ase.gui.calculator import SetCalculator
-from ase.gui.energyforces import EnergyForces
-from ase.gui.minimize import Minimize
-from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.quickinfo import QuickInfo
 from ase.gui.save import save_dialog
-
-ui_info = """\
-<ui>
-  <menubar name='MenuBar'>
-    <menu action='FileMenu'>
-      <menuitem action='Open'/>
-      <menuitem action='New'/>
-      <menuitem action='Save'/>
-      <separator/>
-      <menuitem action='Quit'/>
-    </menu>
-    <menu action='EditMenu'>
-      <menuitem action='SelectAll'/>
-      <menuitem action='Invert'/>
-      <menuitem action='SelectConstrained'/>
-      <menuitem action='SelectImmobile'/>
-      <separator/>
-      <menuitem action='Copy'/>
-      <menuitem action='Paste'/>
-      <separator/>
-      <menuitem action='HideAtoms'/>
-      <menuitem action='ShowAtoms'/>
-      <separator/>
-      <menuitem action='Modify'/>
-      <menuitem action='AddAtoms'/>
-      <menuitem action='DeleteAtoms'/>
-      <separator/>
-      <menuitem action='First'/>
-      <menuitem action='Previous'/>
-      <menuitem action='Next'/>
-      <menuitem action='Last'/>
-    </menu>
-    <menu action='ViewMenu'>
-      <menuitem action='ShowUnitCell'/>
-      <menuitem action='ShowAxes'/>
-      <menuitem action='ShowBonds'/>
-      <menuitem action='ShowVelocities'/>
-      <menuitem action='ShowForces'/>
-      <menu action='ShowLabels'>
-        <menuitem action='NoLabel'/>
-        <menuitem action='AtomIndex'/>
-        <menuitem action='MagMom'/>
-        <menuitem action='Element'/>
-      </menu>
-      <separator/>
-      <menuitem action='QuickInfo'/>
-      <menuitem action='Repeat'/>
-      <menuitem action='Rotate'/>
-      <menuitem action='Colors'/>
-      <menuitem action='Focus'/>
-      <menuitem action='ZoomIn'/>
-      <menuitem action='ZoomOut'/>
-      <menu action='ChangeView'>
-        <menuitem action='ResetView'/>
-        <menuitem action='xyPlane'/>
-        <menuitem action='yzPlane'/>
-        <menuitem action='zxPlane'/>
-        <menuitem action='yxPlane'/>
-        <menuitem action='zyPlane'/>
-        <menuitem action='xzPlane'/>
-        <menuitem action='a2a3Plane'/>
-        <menuitem action='a3a1Plane'/>
-        <menuitem action='a1a2Plane'/>
-        <menuitem action='a3a2Plane'/>
-        <menuitem action='a2a1Plane'/>
-        <menuitem action='a1a3Plane'/>
-      </menu>
-      <menuitem action='Settings'/>
-      <menuitem action='VMD'/>
-      <menuitem action='RasMol'/>
-      <menuitem action='XMakeMol'/>
-      <menuitem action='Avogadro'/>
-    </menu>
-    <menu action='ToolsMenu'>
-      <menuitem action='Graphs'/>
-      <menuitem action='Movie'/>
-      <menuitem action='EModify'/>
-      <menuitem action='Constraints'/>
-      <menuitem action='RenderScene'/>
-      <menuitem action='MoveAtoms'/>
-      <menuitem action='RotateAtoms'/>
-      <menuitem action='OrientAtoms'/>
-      <menuitem action='NEB'/>
-      <menuitem action='BulkModulus'/>
-    </menu>
-    <menu action='SetupMenu'>
-      <menuitem action='Bulk'/>
-      <menuitem action='Surface'/>
-      <menuitem action='Nanoparticle'/>
-      <menuitem action='Graphene'/>
-      <menuitem action='Nanotube'/>
-    </menu>
-    <menu action='CalculateMenu'>
-      <menuitem action='SetCalculator'/>
-      <separator/>
-      <menuitem action='EnergyForces'/>
-      <menuitem action='Minimize'/>
-      <menuitem action='Scaling'/>
-    </menu>
-    <menu action='HelpMenu'>
-      <menuitem action='About'/>
-      <menuitem action='Webpage'/>
-      <menuitem action='Debug'/>
-    </menu>
-  </menubar>
-</ui>"""
+from ase.gui.scaling import HomogeneousDeformation
+from ase.gui.settings import Settings
+from ase.gui.status import Status
+from ase.gui.surfaceslab import SetupSurfaceSlab
+from ase.gui.view import View
+from ase.gui.widgets import pack, oops
 
 
 class GUI(View, Status):
@@ -138,6 +33,9 @@ class GUI(View, Status):
                  rotations='',
                  show_unit_cell=True,
                  show_bonds=False):
+    
+        self.config = read_defaults()
+
         # Try to change into directory of file you are viewing
         try:
             os.chdir(os.path.split(sys.argv[1])[0])
@@ -147,159 +45,199 @@ class GUI(View, Status):
         self.images = images
 
         menu = [
-            ('_File',
-             [('_Open', '<control>O', 'Create a new file', self.open),
-              ('_New', '<control>N', 'New ase.gui window',
+            ('File',
+             [('Open', '^O',
+               'Create a new file',
+               self.open),
+              ('New', '^N',
+               'New ase-gui window',
                lambda widget: os.system('ase-gui &')),
-              ('_Save', '<control>S', 'Save current file',
+              ('Save', '^S',
+               'Save current file',
                lambda x: save_dialog(self)),
-              ('_Quit', '<control>Q', 'Quit', self.exit)]),
-            ('_Edit',
-             []),
-            ('_View',
-             []),
-            ('_Tools',
-             []),
-            # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-            ('_Setup',
-             []),
-            ('_Calculate',
-             []),
-            ('_Help',
-             [])]
+              '---',
+              ('Quit', '^Q',
+               'Quit',
+               self.exit)]),
+            
+            ('Edit',
+             [('Select _all', '',
+               '',
+               self.select_all),
+              ('Invert selection', '',
+               '', self.invert_selection),
+              ('Select _constrained atoms', '',
+               '',
+               self.select_constrained_atoms),
+              ('Select _immobile atoms', '^I',
+               '', self.select_immobile_atoms),
+              '---',
+              ('Copy', '^C',
+               'Copy current selection and its orientation to clipboard',
+               self.copy_atoms),
+              ('_Paste', '^V',
+               'Insert current clipboard selection',
+               self.paste_atoms),
+              '---',
+              ('Hide selected atoms', '',
+              '',
+               self.hide_selected),
+              ('Show selected atoms', '',
+              '',
+               self.show_selected),
+              '---',
+              ('Modify', '^Y',
+               'Change tags, moments and atom types of the selected atoms',
+               self.modify_atoms),
+              ('_Add atoms', '^A',
+               'Insert or import atoms and molecules',
+               self.add_atoms),
+              ('_Delete selected atoms', 'BackSpace',
+               'Delete the selected atoms',
+               self.delete_selected_atoms),
+              '---',
+              ('_First image', 'Home',
+               '',
+               self.step),
+              ('_Previous image', 'Page_Up',
+               '',
+               self.step),
+              ('_Next image', 'Page_Down',
+               '',
+               self.step),
+              ('_Last image', 'End',
+               '',
+               self.step)]),
 
-        self.window = be.MainWindow(menu, self.exit, self.scroll,
-                                    self.scroll_event)
-        x = """
-        ,
-            ('SelectAll', None, _('Select _all'), None, '', self.select_all),
-            ('Invert', None, _('_Invert selection'), None, '',
-             self.invert_selection),
-            ('SelectConstrained', None, _('Select _constrained atoms'), None,
-             '', self.select_constrained_atoms),
-            ('SelectImmobile', None, _('Select _immobile atoms'), '<control>I',
-             '', self.select_immobile_atoms),
-            ('Copy', None, _('_Copy'), '<control>C',
-             _('Copy current selection and its orientation to clipboard'),
-             self.copy_atoms),
-            ('Paste', None, _('_Paste'), '<control>V',
-             _('Insert current clipboard selection'), self.paste_atoms),
-            ('Modify', None, _('_Modify'), '<control>Y',
-             _('Change tags, moments and atom types of the selected atoms'),
-             self.modify_atoms),
-            ('AddAtoms', None, _('_Add atoms'), '<control>A',
-             _('Insert or import atoms and molecules'), self.add_atoms),
-            ('DeleteAtoms', None, _('_Delete selected atoms'), 'BackSpace',
-             _('Delete the selected atoms'), self.delete_selected_atoms),
-            ('First', gtk.STOCK_GOTO_FIRST, _('_First image'), 'Home', '',
-             self.step),
-            ('Previous', gtk.STOCK_GO_BACK, _('_Previous image'), 'Page_Up',
-             '', self.step),
-            ('Next', gtk.STOCK_GO_FORWARD, _('_Next image'), 'Page_Down', '',
-             self.step),
-            ('Last', gtk.STOCK_GOTO_LAST, _('_Last image'), 'End', '',
-             self.step),
-            ('ShowLabels', None, _('Show _Labels')),
-            ('HideAtoms', None, _('Hide selected atoms'), None, '',
-             self.hide_selected),
-            ('ShowAtoms', None, _('Show selected atoms'), None, '',
-             self.show_selected),
-            ('QuickInfo', None, _('Quick Info ...'), None, '',
-             self.quick_info_window),
-            ('Repeat', None, _('Repeat ...'), None, '', self.repeat_window),
-            ('Rotate', None, _('Rotate ...'), None, '', self.rotate_window),
-            ('Colors', None, _('Colors ...'), 'C', '', self.colors_window),
-            # TRANSLATORS: verb
-            ('Focus', gtk.STOCK_ZOOM_FIT, _('Focus'), 'F', '', self.focus),
-            ('ZoomIn', gtk.STOCK_ZOOM_IN, _('Zoom in'), 'plus', '', self.zoom),
-            ('ZoomOut', gtk.STOCK_ZOOM_OUT, _('Zoom out'), 'minus', '',
-             self.zoom),
-            ('ChangeView', None, _('Change View')),
-            ('ResetView', None, _('Reset View'), 'equal', '', self.reset_view),
-            ('xyPlane', None, _('\'xy\' Plane'), 'z', '', self.set_view),
-            ('yzPlane', None, _('\'yz\' Plane'), 'x', '', self.set_view),
-            ('zxPlane', None, _('\'zx\' Plane'), 'y', '', self.set_view),
-            ('yxPlane', None, _('\'yx\' Plane'), '<alt>z', '', self.set_view),
-            ('zyPlane', None, _('\'zy\' Plane'), '<alt>x', '', self.set_view),
-            ('xzPlane', None, _('\'xz\' Plane'), '<alt>y', '', self.set_view),
-            ('a2a3Plane', None, _('\'a2 a3\' Plane'), '1', '', self.set_view),
-            ('a3a1Plane', None, _('\'a3 a1\' Plane'), '2', '', self.set_view),
-            ('a1a2Plane', None, _('\'a1 a2\' Plane'), '3', '', self.set_view),
-            ('a3a2Plane', None, _('\'a3 a2\' Plane'), '<alt>1', '',
-             self.set_view),
-            ('a1a3Plane', None, _('\'a1 a3\' Plane'), '<alt>2', '',
-             self.set_view),
-            ('a2a1Plane', None, _('\'a2 a1\' Plane'), '<alt>3', '',
-             self.set_view),
-            ('Settings', gtk.STOCK_PREFERENCES, _('Settings ...'), None, '',
-             self.settings),
-            ('VMD', None, _('VMD'), None, '', self.external_viewer),
-            ('RasMol', None, _('RasMol'), None, '', self.external_viewer),
-            ('XMakeMol', None, _('xmakemol'), None, '', self.external_viewer),
-            ('Avogadro', None, _('avogadro'), None, '', self.external_viewer),
-            ('Graphs', None, _('Graphs ...'), None, '', self.plot_graphs),
-            ('Movie', None, _('Movie ...'), None, '', self.movie),
-            ('EModify', None, _('Expert mode ...'), '<control>E', '',
-             self.execute),
-            ('Constraints', None, _('Constraints ...'), None, '',
-             self.constraints_window),
-            ('RenderScene', None, _('Render scene ...'), None, '',
-             self.render_window),
-            ('NEB', None, _('NE_B'), None, '', self.NEB),
-            ('BulkModulus', None, _('B_ulk Modulus'), None, '',
-             self.bulk_modulus),
-            ('Bulk', None, _('_Bulk Crystal'), None,
+            ('_View',
+             [('Show _unit cell', '^U',
+               self.toggle_show_unit_cell, show_unit_cell > 0),
+              ('Show _axes', '',
+               self.toggle_show_axes, True),
+              ('Show _bonds', '^B',
+               self.toggle_show_bonds, show_bonds),
+              ('Show _velocities', '^G',
+               self.toggle_show_velocities, False),
+              ('Show _forces', '^F',
+               self.toggle_show_forces, False),
+              ('Show _Labels', ['None',
+                                'Atom _Index',
+                                '_Magnetic Moments'
+                                '_Element Symbol'],
+               self.show_labels),
+              '---',
+              ('Quick Info ...', '',
+               '',
+               self.quick_info_window),
+              ('Repeat ...', '',
+               '',
+               self.repeat_window),
+              ('Rotate ...', '',
+               '',
+               self.rotate_window),
+              ('Colors ...', 'C',
+               '',
+               self.colors_window),
+              # TRANSLATORS: verb
+              ('Focus', 'F',
+               '',
+               self.focus),
+              ('Zoom in', 'plus',
+               '',
+               self.zoom),
+              ('Zoom out', 'minus',
+               '',
+               self.zoom),
+              ('Change View',
+               [('Reset View', 'equal',
+                 '',
+                 self.reset_view),
+                ('\'xy\' Plane', 'z',
+                 '', self.set_view),
+                ('\'yz\' Plane', 'x',
+                 '', self.set_view),
+                ('\'zx\' Plane', 'y',
+                 '', self.set_view),
+                ('\'yx\' Plane', '<alt>z',
+                 '', self.set_view),
+                ('\'zy\' Plane', '<alt>x',
+                 '', self.set_view),
+                ('\'xz\' Plane', '<alt>y',
+                 '', self.set_view),
+                ('\'a2 a3\' Plane', '1',
+                 '', self.set_view),
+                ('\'a3 a1\' Plane', '2',
+                 '', self.set_view),
+                ('\'a1 a2\' Plane', '3',
+                 '', self.set_view),
+                ('\'a3 a2\' Plane', '<alt>1',
+                 '', self.set_view),
+                ('\'a1 a3\' Plane', '<alt>2',
+                 '', self.set_view),
+                ('\'a2 a1\' Plane', '<alt>3',
+                 '', self.set_view)]),
+              ('Settings ...', '',
+               '',
+               self.settings),
+              '---',
+              ('VMD', '', '', self.external_viewer),
+              ('RasMol', '', '', self.external_viewer),
+              ('xmakemol', '', '', self.external_viewer),
+              ('avogadro', '', '', self.external_viewer)]),
+            
+            ('_Tools',
+             [('Graphs ...', '', '', self.plot_graphs),
+              ('Movie ...', '', '', self.movie),
+              ('Expert mode ...', '^E', '',
+               self.execute),
+              ('Constraints ...', '', '',
+               self.constraints_window),
+              ('Render scene ...', '', '',
+               self.render_window),
+              ('_Move atoms', '^M',
+               self.toggle_move_mode, False),
+              ('_Rotate atoms', '^R',
+              self.toggle_rotate_mode, False),
+              ('Orien_t atoms', '^T',
+               self.toggle_orient_mode, False)
+            ('NEB', '', _('NE_B'), '', '', self.NEB),
+            ('BulkModulus', '', _('B_ulk Modulus'), '', '',
+             self.bulk_modulus)]),
+            ('_Setup',
+             [      <menuitem action='Bulk'/>
+            ('Bulk', '', _('_Bulk Crystal'), '',
              _("Create a bulk crystal with arbitrary orientation"),
              self.bulk_window),
-            ('Surface', None, _('_Surface slab'), None,
+            ('Surface', '', _('_Surface slab'), '',
              _("Create the most common surfaces"), self.surface_window),
-            ('Nanoparticle', None, _('_Nanoparticle'), None,
+            ('Nanoparticle', '', _('_Nanoparticle'), '',
              _("Create a crystalline nanoparticle"), self.nanoparticle_window),
-            ('Nanotube', None, _('Nano_tube'), None, _("Create a nanotube"),
+            ('Nanotube', '', _('Nano_tube'), '', _("Create a nanotube"),
              self.nanotube_window),
-            ('Graphene', None, _('Graphene'), None,
+            ('Graphene', '', _('Graphene'), '',
              _("Create a graphene sheet or nanoribbon"), self.graphene_window),
-            ('SetCalculator', None, _('Set _Calculator'), None,
+]),
+
+                        ('SetCalculator', '', _('Set _Calculator'), '',
              _("Set a calculator used in all calculation modules"),
              self.calculator_window),
-            ('EnergyForces', None, _('_Energy and Forces'), None,
+            ('EnergyForces', '', _('_Energy and Forces'), '',
              _("Calculate energy and forces"), self.energy_window),
-            ('Minimize', None, _('Energy _Minimization'), None,
+            ('Minimize', '', _('Energy _Minimization'), '',
              _("Minimize the energy"), self.energy_minimize_window),
-            ('Scaling', None, _('Scale system'), None,
+            ('Scaling', '', _('Scale system'), '',
              _("Deform system by scaling it"), self.scaling_window),
-            ('About', None, _('_About'), None, None, self.about),
-            ('Webpage', gtk.STOCK_HELP, _('Webpage ...'), None, None, webpage),
-            ('Debug', None, _('Debug ...'), None, None, self.debug)
-        ])
-        actions.add_toggle_actions([
-            ('ShowUnitCell', None, _('Show _unit cell'), '<control>U', 'Bold',
-             self.toggle_show_unit_cell,
-             show_unit_cell > 0), ('ShowAxes', None, _('Show _axes'), None,
-                                   'Bold', self.toggle_show_axes, True),
-            ('ShowBonds', None, _('Show _bonds'), '<control>B', 'Bold',
-             self.toggle_show_bonds,
-             show_bonds), ('ShowVelocities', None, _('Show _velocities'),
-                           '<control>G', 'Bold', self.toggle_show_velocities,
-                           False), ('ShowForces', None, _('Show _forces'),
-                                    '<control>F', 'Bold',
-                                    self.toggle_show_forces, False),
-            ('MoveAtoms', None, _('_Move atoms'), '<control>M', 'Bold',
-             self.toggle_move_mode,
-             False), ('RotateAtoms', None, _('_Rotate atoms'), '<control>R',
-                      'Bold', self.toggle_rotate_mode,
-                      False), ('OrientAtoms', None, _('Orien_t atoms'),
-                               '<control>T', 'Bold', self.toggle_orient_mode,
-                               False)
-        ])
-        actions.add_radio_actions(
-            (('NoLabel', None, _('_None'), None, None, 0),
-             ('AtomIndex', None, _('Atom _Index'), None, None, 1),
-             ('MagMom', None, _('_Magnetic Moments'), None, None, 2),
-             ('Element', None, _('_Element Symbol'), None, None, 3)), 0,
-            self.show_labels)
 
-        """
+            ('About', '', _('_About'), '', '', self.about),
+            ('Webpage', gtk.STOCK_HELP, _('Webpage ...'), '', '', webpage),
+            ('Debug', '', _('Debug ...'), '', '', self.debug)
+            # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
+])]
+
+        self.window = be.MainWindow(menu, self.config, 
+                                    self.exit, self.scroll,
+                                    self.scroll_event)
+
         View.__init__(self, rotations)
         Status.__init__(self)
 

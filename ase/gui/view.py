@@ -29,7 +29,6 @@ class View:
         self.atoms_to_rotate = None
         
         self.configured = False
-        self.config = None
         self.frame = None
         
     def set_coordinates(self, frame=None, focus=None):
@@ -359,10 +358,11 @@ class View:
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
         S = 1.3 * (P2 - P1)
-        if S[0] * self.height < S[1] * self.width:
-            self.scale = self.height / S[1]
+        w, h = self.window.size
+        if S[0] * h < S[1] * w:
+            self.scale = h / S[1]
         else:
-            self.scale = self.width / S[0]
+            self.scale = w / S[0]
         self.draw()
 
     def reset_view(self, menuitem):
@@ -638,8 +638,8 @@ class View:
                 # Draw marking circles around the atoms
                 if selected[a]:
                     self.my_arc(selected_gc, False, a, X, r, n, A, d)
-                elif visible[a]:
-                    self.my_arc(foreground_gc, False, a, X, r, n, A, d)
+                #elif visible[a]:
+                #    self.my_arc(foreground_gc, False, a, X, r, n, A, d)
             else:
                 # Draw unit cell
                 a -= n
