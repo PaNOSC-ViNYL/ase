@@ -13,7 +13,9 @@ def name2str(name):
 
 
 class MainWindow:
-    def __init__(self, menu_description, config, a, b, c):
+    def __init__(self, menu_description, config,
+                 exit, scroll, scroll_event,
+                 press, move, release):
         self.size = np.array([600, 600])
 
         self.root = tk.Tk()
@@ -30,49 +32,51 @@ class MainWindow:
             for thing in things:
                 if thing == '---':
                     submenu.add_separator()
-                elif len(things) == 5 and isinstance(things[4], bool):
-                    subname, key, text, callback, on = thing
-                    # check
-                elif len(thing) == 5:
-                    subname, key, text, things, callback = thing
-                    #submenu.add_radio(label=_(subname),
-                    #                  command=callback)
-                    #self.menu[name2str(subname)] = 0
-                elif isinstance(thing[3], list):
-                    subname, key, text, subthings = thing
-                    subsubmenu = tk.Menu(submenu)
-                    submenu.add_cascade(label=_(subname), menu=subsubmenu)
-                    for subsubname, key, text, callback in subthings:
-                        subsubmenu.add_command(label=_(subsubname),
-                                               command=callback,
-                                               accelerator=key)
-                else:
-                    subname, key, text, callback = thing
+                    continue
+                subname, key, text, callback = thing[:4]
+                if len(thing) == 4:
                     submenu.add_command(label=_(subname),
                                         command=callback,
                                         accelerator=key)
+                    continue
+                x = thing[4]
+                if isinstance(x, bool):
+                    on = x
+                    # check
+                elif isinstance(x[0], str):
+                    hmm = x
+                    #submenu.add_radio(label=_(subname),
+                    #                  command=callback)
+                    #self.menu[name2str(subname)] = 0
+                else:
+                    subsubmenu = tk.Menu(submenu)
+                    submenu.add_cascade(label=_(subname), menu=subsubmenu)
+                    for subsubname, key, text, callback in x:
+                        subsubmenu.add_command(label=_(subsubname),
+                                               command=callback,
+                                               accelerator=key)
 
         self.canvas = tk.Canvas(self.root,
-                                     width=self.size[0],
-                                     height=self.size[1],
-                                     bg='white')
+                                width=self.size[0],
+                                height=self.size[1],
+                                bg='white')
         self.canvas.pack(side=tk.TOP, fill=tk.X)# & tk.Y)
 
         status = tk.Label(self.root, text="asdgag", #bd=1,
-                               #relief=tk.SUNKEN,
-                               anchor=tk.W)
+                          #relief=tk.SUNKEN,
+                          anchor=tk.W)
         status.pack(side=tk.BOTTOM, fill=tk.X)
+
+        self.canvas.bind('<ButtonPress>', Handler(press))
+        self.canvas.bind('<B1-Motion>', Handler(move))
+        self.canvas.bind('<B3-Motion>', Handler(move))
+        self.canvas.bind('<ButtonRelease>', Handler(release))
+        self.canvas.bind('<Control-ButtonRelease>',
+                         Handler(release, 'ctrl'))
         #self.window.connect('key-press-event', self.scroll)
         #self.window.connect('scroll_event', self.scroll_event)
-        #self.drawing_area.connect('button_press_event', self.press)
-        #self.drawing_area.connect('button_release_event', self.release)
-        #self.drawing_area.connect('motion-notify-event', self.move)
         #self.drawing_area.connect('expose_event', self.expose_event)
         #self.drawing_area.connect('configure_event', self.configure_event)
-        #self.drawing_area.set_events(gtk.gdk.BUTTON_PRESS_MASK |
-        #                             gtk.gdk.BUTTON_RELEASE_MASK |
-        #                             gtk.gdk.BUTTON_MOTION_MASK |
-        #                             gtk.gdk.POINTER_MOTION_HINT_MASK)
 
         #    self.eventbox.set_tooltip_text(_('Tip for status box ...'))
 
@@ -81,7 +85,6 @@ class MainWindow:
         self.red = '#F30000'
         self.green = '#00D300'
         self.blue = '#0000D3'
-        self.selected_color = '#004500'
 
     def update_status_line(self, text):
         pass
@@ -108,8 +111,15 @@ class MainWindow:
     def update(self):
         self.canvas.update_idletasks()
 
-    def circle(self, color, bbox):
-        self.canvas.create_oval(*tuple(int(x) for x in bbox), fill=color)
+    def circle(self, color, selected, *bbox):
+        if selected:
+            outline = '#004500'
+            width = 3
+        else:
+            outline = 'black'
+            width = 1
+        self.canvas.create_oval(*tuple(int(x) for x in bbox), fill=color,
+                                outline=outline, width=width)
 
     def line(self, bbox):
         self.canvas.create_line(*tuple(int(x) for x in bbox))
@@ -117,6 +127,30 @@ class MainWindow:
     def text(self, x, y, txt, anchor=tk.CENTER):
         anchor = {'SE': tk.SE}.get(anchor, anchor)
         self.canvas.create_text((x, y), text=txt, anchor=anchor)
+
+
+class Handler:
+    def __init__(self, callback, modifier=None):
+        self.callback = callback
+        self.modifier = modifier
+
+    def __call__(self, event):
+        self.callback(Event(event, self.modifier))
+
+
+class Event:
+    def __init__(self, event, modifier):
+        self.x = event.x
+        self.y = event.y
+        self.time = event.time
+        self.button = event.num
+        self.modifier = modifier
+        if 0:
+            print(self.x,
+                  self.y,
+                  self.time,
+                  self.button,
+                  self.modifier)
 
 
 class Window:

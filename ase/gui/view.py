@@ -578,7 +578,7 @@ class View:
         A = (P - r[:, None]).round().astype(int)
         X1 = X[n:, :2].round().astype(int)
         X2 = (np.dot(self.B, axes) - offset).round().astype(int)
-        disp = (np.dot(self.images.D[self.frame],axes)).round().astype(int)
+        disp = (np.dot(self.images.D[self.frame], axes)).round().astype(int)
         d = (2 * r).round().astype(int)
 
         vectors = (self.window['show-velocities'] or
@@ -586,7 +586,6 @@ class View:
         if vectors:
             V = np.dot(self.vectors[self.frame], axes)
 
-        selected_color = self.window.selected_color
         colors = self.get_colors()
         circle = self.window.circle
         line = self.window.line
@@ -598,52 +597,35 @@ class View:
                 ra = d[a]
                 if visible[a]:
                     # Draw the atoms
-                    circle(colors[a],
-                           (A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra))
+                    circle(colors[a], selected[a],
+                           A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
 
                     # Draw labels on the atoms
                     if self.labels is not None:
-                        # start labeling with atomic indexes
-                        # to do: scale position and size with radius in some
-                        # meaningful manner - pick a reference magnification
-                        # where it "looks good" and then go from there ...
-                        nlabel = str(self.labels[self.frame][a])
-                        colorl = self.foreground_gc
-
-                        layout = self.drawing_area.create_pango_layout(nlabel)
-                        xlabel = int(A[a,0]+ra/2 - layout.get_size()[0]/2. / pango.SCALE)
-                        ylabel = int(A[a,1]+ra/2 - layout.get_size()[1]/2. / pango.SCALE)
-
-                        self.pixmap.draw_layout(colorl, xlabel, ylabel, layout)
+                        self.window.text(A[a, 0], A[a, 1],
+                                         str(self.labels[self.frame][a]))
 
                     # Draw cross on constrained atoms
                     if not dynamic[a]:
                         R1 = int(0.14644 * ra)
                         R2 = int(0.85355 * ra)
-                        line(foreground_gc,
-                             A[a, 0] + R1, A[a, 1] + R1,
+                        line(A[a, 0] + R1, A[a, 1] + R1,
                              A[a, 0] + R2, A[a, 1] + R2)
-                        line(foreground_gc,
-                             A[a, 0] + R2, A[a, 1] + R1,
+                        line(A[a, 0] + R2, A[a, 1] + R1,
                              A[a, 0] + R1, A[a, 1] + R2)
 
-                    # Draw velocities og forces
+                    # Draw velocities or forces
                     if vectors:
                         self.arrow(X[a], X[a] + V[a])
 
                 if self.light_green_markings and self.atoms_to_rotate_0[a]:
                     arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
                         ra - 4, ra - 4, 0, 23040)
-
-                # Draw marking circles around the atoms
-                if selected[a]:
-                    self.my_arc(selected_gc, False, a, X, r, n, A, d)
-                #elif visible[a]:
-                #    self.my_arc(foreground_gc, False, a, X, r, n, A, d)
             else:
-                # Draw unit cell
+                # Draw unit cell and/or bonds:
                 a -= n
-                line(foreground_gc, X1[a, 0] + disp[0], X1[a, 1] + disp[1], X2[a, 0] + disp[0], X2[a, 1] + disp[1])
+                line(X1[a, 0] + disp[0], X1[a, 1] + disp[1],
+                     X2[a, 0] + disp[0], X2[a, 1] + disp[1])
 
         if self.window['show-axes']:
             self.draw_axes()
@@ -685,7 +667,7 @@ class View:
                                                 self.images.nimages),
                          anchor='SE')
 
-    def release(self, drawing_area, event):
+    def release(self, event):
         if event.button != 1:
             return
 
@@ -697,7 +679,7 @@ class View:
             hit = np.less((d**2).sum(1), (self.scale * self.images.r)**2)
             for a in self.indices[::-1]:
                 if a < self.images.natoms and hit[a]:
-                    if event.state & gtk.gdk.CONTROL_MASK:
+                    if event.modifier == 'ctrl':
                         selected[a] = not selected[a]
                         if selected[a]:
                             selected_ordered += [a]
@@ -721,10 +703,11 @@ class View:
             C2 = np.maximum(A, self.xy)
             hit = np.logical_and(self.P > C1, self.P < C2)
             indices = np.compress(hit.prod(1), np.arange(len(hit)))
-            if not (event.state & gtk.gdk.CONTROL_MASK):
+            if event.modifier != 'ctrl':
                 selected[:] = False
             selected[indices] = True
-            if len(indices) == 1 and indices[0] not in self.images.selected_ordered:
+            if (len(indices) == 1 and
+                indices[0] not in self.images.selected_ordered):
                 selected_ordered += [indices[0]]
             elif len(indices) > 1:
                 selected_ordered = []
@@ -735,31 +718,25 @@ class View:
             selected_ordered = []
         self.images.selected_ordered = selected_ordered
 
-    def press(self, drawing_area, event):
+    def press(self, event):
         self.button = event.button
         self.xy = (event.x, event.y)
         self.t0 = event.time
         self.axes0 = self.axes
         self.center0 = self.center
 
-    def move(self, drawing_area, event):
-
-        x, y, state = event.window.get_pointer()
+    def move(self, event):
+        x = event.x
+        y = event.y
         x0, y0 = self.xy
         if self.button == 1:
-            window = self.drawing_area.window
-            window.draw_drawable(self.background_gc, self.pixmap,
-                                 0, 0, 0, 0,
-                                 self.width, self.height)
             x0 = int(round(x0))
             y0 = int(round(y0))
-            window.draw_rectangle(self.selected_gc, False,
-                                  min(x, x0), min(y, y0),
-                                  abs(x - x0), abs(y - y0))
+            self.window.canvas.create_rectangle((x, y, x0, y0))
             return
         if self.button == 2:
             return
-        if state & gtk.gdk.SHIFT_MASK:
+        if event.modifier == 'shift':
             self.center = (self.center0 -
                            np.dot(self.axes, (x - x0, y0 - y, 0)) / self.scale)
         else:
