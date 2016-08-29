@@ -25,12 +25,12 @@ class View:
         # this is a hack, in order to be able to toggle menu actions off/on
         # without getting into an infinte loop
         self.menu_change = 0
-    
+
         self.atoms_to_rotate = None
-        
+
         self.configured = False
         self.frame = None
-        
+
     def set_coordinates(self, frame=None, focus=None):
         if frame is None:
             frame = self.frame
@@ -48,12 +48,12 @@ class View:
 
         if self.frame > self.images.nimages:
             self.frame = self.images.nimages - 1
-        
+
         if init or frame != self.frame:
             A = self.images.A
             nc = len(self.B1)
             nb = len(self.bonds)
-            
+
             if init or (A[frame] != A[self.frame]).any():
                 self.X[n:n + nc] = np.dot(self.B1, A[frame])
                 self.B = np.empty((nc + nb, 3))
@@ -90,7 +90,7 @@ class View:
             self.focus()
         else:
             self.draw()
-        
+
     def set_colors(self):
         self.colormode = 'jmol'
         self.set_jmol_colors()
@@ -108,7 +108,7 @@ class View:
             if z not in hasfound:
                 hasfound[z] = True
                 self.colordata.append([z, jmol_colors[z]])
-                
+
     def plot_cell(self):
         V = self.images.A[0]
         R1 = []
@@ -128,7 +128,7 @@ class View:
         if not self.window['show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
             return
-        
+
         V = self.images.A[0]
         nn = []
         for c in range(3):
@@ -158,7 +158,7 @@ class View:
         if not self.window['show-bonds']:
             self.bonds = np.empty((0, 5), int)
             return
-        
+
         from ase.atoms import Atoms
         from ase.neighborlist import NeighborList
         nl = NeighborList(self.images.r * 1.5, skin=0, self_interaction=False)
@@ -171,7 +171,7 @@ class View:
         self.coordination = np.zeros((self.images.natoms), dtype=int)
         if nb == 0:
             return
-        
+
         n1 = 0
         for a in range(self.images.natoms):
             indices, offsets = nl.get_neighbors(a)
@@ -191,7 +191,7 @@ class View:
 
     def toggle_show_unit_cell(self, action):
         self.set_coordinates()
-        
+
     def reset_tools_modes(self):
         self.menu_change = 1
         self.atoms_to_rotate = None
@@ -200,7 +200,7 @@ class View:
         self.light_green_markings = 0
         self.menu_change = 0
         self.draw()
-        
+
     def toggle_mode(self, mode):
         self.menu_change = 1
         i_sum = 0
@@ -210,7 +210,7 @@ class View:
         if i_sum == 0 or (i_sum == 1 and sum(self.images.selected) == 0):
             self.reset_tools_modes()
             return()
-            
+
         if i_sum == 2:
             try:
                 self.images.selected = self.atoms_to_rotate_0.copy()
@@ -223,7 +223,7 @@ class View:
             if c_mode != mode:
                 self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
                                    c_mode).set_active(False)
-        
+
         if self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
                               mode).get_active():
             self.atoms_to_rotate_0 = self.images.selected.copy()
@@ -237,20 +237,20 @@ class View:
                     self.images.selected[i] = atr[i]
             except:
                 pass
-                
+
         self.menu_change = 0
         self.draw()
-                      
+
     def toggle_move_mode(self, action):
         """
         Toggles the move mode, where the selected atoms
         can be moved with the arrow
         keys and pg up/dn. If the shift key is pressed,
         the movement will be reduced.
-        
+
         The movement will be relative to the current
         rotation of the coordinate system.
-        
+
         The implementation of the move mode is found in the gui.scroll
         """
         if not (self.menu_change):
@@ -260,24 +260,24 @@ class View:
         """
         Toggles the rotate mode, where the selected atoms can be rotated with the arrow keys
         and pg up/dn. If the shift key is pressed, the rotation angle will be reduced.
-        
+
         The atoms to be rotated will be marked with light green - and the COM of the selected
         atoms will be used as the COM of the rotation. This can be changed while rotating the
         selected atoms.
-        
+
         If only two atoms are seleceted, and the number of atoms to be rotated is different from
         two, the selected atoms will define the axis of rotation.
-        
+
         The implementation of the rotate mode is found in the gui.scroll
         """
         if not (self.menu_change):
             self.toggle_mode('Rotate')
-                
+
     def toggle_orient_mode(self, action):
         """
         Toggle the orientation mode - the orientation of the atoms will be changed
         according to the arrow keys selected.
-        
+
         If nothing is selected, standard directions are x, y and z
         if two atoms are selected, the standard directions are along their displacement vector
         if three atoms are selected, the orientation is changed according to the normal of these
@@ -349,7 +349,7 @@ class View:
             self.center = np.zeros(3)
             self.draw()
             return
-        
+
         P = np.dot(self.X, self.axes)
         n = self.images.natoms
         P[:n] -= self.images.r[:, None]
@@ -489,7 +489,7 @@ class View:
             self.colordata = colordata
 
     def my_arc(self, gc, fill, j, X, r, n, A, d):
-   
+
         if self.images.shapes is not None:
             rx = (self.images.shapes[j, 0]).round().astype(int)
             ry = (self.images.shapes[j, 1]).round().astype(int)
@@ -553,7 +553,7 @@ class View:
         beg = begin.round().astype(int)
         en = end.round().astype(int)
         line(self.foreground_gc, beg[0], beg[1], en[0], en[1])
-        
+
         angle = atan2(en[1] - beg[1], en[0] - beg[0]) + np.pi
         x1 = (end[0] + length * cos(angle - 0.3)).round().astype(int)
         y1 = (end[1] + length * sin(angle - 0.3)).round().astype(int)
@@ -650,7 +650,7 @@ class View:
 
         if self.images.nimages > 1:
             self.draw_frame_number()
-            
+
         self.window.update()
 
         if status:
@@ -662,7 +662,7 @@ class View:
                 "<span foreground=\"green\" weight=\"bold\">Y</span>",
                 "<span foreground=\"blue\" weight=\"bold\">Z</span>"]
         axes_length = 15
- 
+
         for i in self.axes[:,2].argsort():
             a = 20
             b = self.height - 20
@@ -678,14 +678,12 @@ class View:
             loy = int(self.height - 20 - self.axes[i][1] * 20\
                     - layout.get_size()[1] / 2. / pango.SCALE)
             self.pixmap.draw_layout(self.foreground_gc, lox, loy, layout)
-    
+
     def draw_frame_number(self):
-        n = str(self.frame)
-        layout = self.drawing_area.create_pango_layout("Frame: " + n)
-        x = self.width - 3 - layout.get_size()[0] // pango.SCALE
-        y = self.height - 5 - layout.get_size()[1] // pango.SCALE
-        self.pixmap.draw_layout(self.foreground_gc, x, y, layout)
- 
+        x, y = self.window.size
+        self.window.text(x, y, '{0}/{1}'.format(self.frame,
+                                                self.images.nimages),
+                         anchor='SE')
 
     def release(self, drawing_area, event):
         if event.button != 1:
@@ -743,9 +741,9 @@ class View:
         self.t0 = event.time
         self.axes0 = self.axes
         self.center0 = self.center
-        
+
     def move(self, drawing_area, event):
-             
+
         x, y, state = event.window.get_pointer()
         x0, y0 = self.xy
         if self.button == 1:
@@ -788,7 +786,7 @@ class View:
             self.center = com - np.dot(com - self.center0,
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
-        
+
     def external_viewer(self, action):
         name = action.get_name()
         command = {'Avogadro': 'xmakemol -f',
@@ -802,6 +800,6 @@ class View:
 
     def render_window(self, action):
         Render(self)
-        
+
     def show_vectors(self, vectors):
         self.vectors = vectors
