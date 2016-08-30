@@ -2,7 +2,9 @@ from __future__ import division
 import numpy as np
 import re
 
-
+#
+#
+#
 def read_file(fname):
     """
     read the file fname and return a list of the lines.
@@ -15,7 +17,9 @@ def read_file(fname):
 
     return LINE
 
-
+#
+#
+#
 def delete_blanc(L):
     """
     delete the blank space from a string
@@ -26,7 +30,9 @@ def delete_blanc(L):
         L = L[compt:len(L)]
     return L
 
-
+#
+#
+#
 def read_number(L):
     compt = 0
 
@@ -38,7 +44,9 @@ def read_number(L):
 
     return nb1, L
 
-
+#
+#
+#
 def recover_data_string(fname, string):
     L = read_file(fname)
 
@@ -48,7 +56,9 @@ def recover_data_string(fname, string):
             v = str2float(i)
     return v
 
-
+#
+#
+#
 def save_line(Lnb, Cnb, LINE):
     number = LINE[Lnb]
     nombre = list()
@@ -60,7 +70,9 @@ def save_line(Lnb, Cnb, LINE):
 
     return nombre
 
-
+#
+#
+#
 def dim_y(Cnb, L):
 
     if len(L) == Cnb * 10 + Cnb * 6 + 1:
@@ -70,7 +82,9 @@ def dim_y(Cnb, L):
 
     return nb_col
 
-
+#
+#
+#
 def read_color_file(fname):
 
     L = read_file(fname)
@@ -84,7 +98,9 @@ def read_color_file(fname):
 
     return atom
 
-
+#
+#
+#
 def readSiestaFA(fname):
     L = read_file(fname)
 
@@ -94,7 +110,9 @@ def readSiestaFA(fname):
 
     return Forces
 
-
+#
+#
+#
 def readBasis_spec(fname, nb_specie):
     """
     Example Basis_specs from siesta output
@@ -143,7 +161,9 @@ def readBasis_spec(fname, nb_specie):
 
     return specie_charac
 
-
+#
+#
+#
 def str2float(string):
     numeric_const_pattern = r"""
   [-+]? # optional sign
@@ -163,7 +183,9 @@ def str2float(string):
 
     return np.array(nb)
 
-
+#
+#
+#
 def str2int(string):
     numeric_const_pattern = r"""
   [-+]? # optional sign
@@ -183,7 +205,9 @@ def str2int(string):
 
     return np.array(nb)
 
-
+#
+#
+#
 def recover_specie(string):
     """
     Select specie in a string of caractere from
@@ -219,7 +243,9 @@ def recover_specie(string):
 
     return string_p
 
-
+#
+#
+#
 def delete_number_string(string):
     # not working for exponential expression
     nb_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '-']
@@ -245,7 +271,9 @@ def delete_number_string(string):
 
     return string_p
 
-
+#
+#
+#
 def pol2cross_sec(p, omg):
     """
     Convert the polarizability in au to cross section in nm**2
@@ -264,3 +292,25 @@ def pol2cross_sec(p, omg):
     sigma = sigma * (0.052917725)**2  # nm**2
 
     return sigma
+
+#
+#
+#
+def interpolate(x, y, nb_pts):
+    """
+    perform a 1D spline interpolation.
+    INPUT PARAMETERS
+    ----------------
+    x (1D np array) : the original abscisse
+    y (1D np array) : the original data
+    nb_pts (integer): the number of points for the interpolation
+    OUTPUT PARAMETERS
+    -----------------
+    xnew (1D np array) : the spline abscisse
+    ynew (1D np array) : the spline approximations
+    """
+    from scipy import interpolate
+    tck = interpolate.splrep(x, y, s=0)
+    xnew = np.linspace(x[0], x[x.shape[0]-1], nb_pts)
+    ynew = interpolate.splev(xnew, tck, der=0)
+    return xnew, ynew

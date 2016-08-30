@@ -99,6 +99,9 @@ class Vibrations:
         self.nfree = nfree
         self.H = None
         self.ir = None
+        self.ram = None
+        self.siesta = None
+        self.mbpt_inp = None
 
     def run(self):
         """Run the vibration calculations.
@@ -144,12 +147,21 @@ class Vibrations:
         forces = self.atoms.get_forces()
         if self.ir:
             dipole = self.calc.get_dipole_moment(self.atoms)
+        if self.ram:
+            #dipole = self.calc.get_dipole_moment(self.atoms)
+            freq, Pol = self.siesta.get_polarizability(self.mbpt_inp, format_output='txt', units='au')
         if rank == 0:
-            if self.ir:
+            if self.ir and self.ram:
+                pickle.dump([forces, dipole, freq, Pol], fd)
+                sys.stdout.write(
+                    'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
+                    (filename, dipole[0], dipole[1], dipole[2]))
+            elif self.ir and not self.ram:
                 pickle.dump([forces, dipole], fd)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
+
             else:
                 pickle.dump(forces, fd)
                 sys.stdout.write('Writing %s\n' % filename)

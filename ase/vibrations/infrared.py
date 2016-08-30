@@ -158,6 +158,7 @@ class Infrared(Vibrations):
         else:
             self.directions = np.asarray(directions)
         self.ir = True
+        self.ram = False
 
     def read(self, method='standard', direction='central'):
         self.method = method.lower()

@@ -845,17 +845,28 @@ class BaseSiesta(FileIOCalculator):
 
         r.args.format_input = format_output
 
+        #read real part
+        r.args.ReIm = 're'
         data = r.Read()
+        self.results['polarizability'] = data.Array
+        
+        #read imaginary part
+        r.args.ReIm = 'im'
+        data = r.Read()
+        self.results['polarizability'] = self.results['polarizability'] + complex(0.0, 1.0)*data.Array
 
         if units == 'nm**2':
             from ase.calculators.siesta.mbpt_lcao_utils import pol2cross_sec
             for i in range(2):
                 for j in range(2):
-                    data.Array[:, i, j] = pol2cross_sec(data.Array[:, i, j], data.freq)
+                    self.results['polarizability'][:, i, j] =\
+                    pol2cross_sec(self.results['polarizability'][:, i, j], data.freq)
 
-            self.results['polarizability'] = data.Array
+            print('unit nm**2')
+            #self.results['polarizability'] = data.Array
         elif units == 'au':
-            self.results['polarizability'] = data.Array
+            print('unit au')
+            #self.results['polarizability'] = data.Array
         else:
             raise ValueError('units can be only au or nm**2')
 
