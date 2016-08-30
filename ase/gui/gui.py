@@ -864,7 +864,7 @@ class GUI(View, Status):
         """
         self.vulnerable_windows.append(weakref.ref(obj))
 
-    def exit(self, event):
+    def exit(self):
         for process in self.graphs:
             process.terminate()
         self.window.destroy()

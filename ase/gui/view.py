@@ -189,7 +189,7 @@ class View:
         self.bonds[n2:, 1] = self.bonds[i, 0]
         self.bonds[n2:, 2:] = -self.bonds[i, 2:]
 
-    def toggle_show_unit_cell(self, action):
+    def toggle_show_unit_cell(self):
         self.set_coordinates()
 
     def reset_tools_modes(self):
@@ -273,7 +273,7 @@ class View:
         if not (self.menu_change):
             self.toggle_mode('Rotate')
 
-    def toggle_orient_mode(self, action):
+    def toggle_orient_mode(self):
         """
         Toggle the orientation mode - the orientation of the atoms will be changed
         according to the arrow keys selected.
@@ -311,17 +311,17 @@ class View:
 
         self.draw()
 
-    def toggle_show_axes(self, action):
+    def toggle_show_axes(self):
         self.draw()
 
-    def toggle_show_bonds(self, action):
+    def toggle_show_bonds(self):
         self.set_coordinates()
 
-    def toggle_show_velocities(self, action):
+    def toggle_show_velocities(self):
         self.show_vectors(10 * self.images.V) # XXX hard coded scale is ugly
         self.draw()
 
-    def toggle_show_forces(self, action):
+    def toggle_show_forces(self):
         self.show_vectors(self.images.F)
         self.draw()
 
@@ -639,27 +639,17 @@ class View:
             self.status()
 
     def draw_axes(self):
-        axes_labels = [
-                "<span foreground=\"red\" weight=\"bold\">X</span>",
-                "<span foreground=\"green\" weight=\"bold\">Y</span>",
-                "<span foreground=\"blue\" weight=\"bold\">Z</span>"]
         axes_length = 15
 
-        for i in self.axes[:,2].argsort():
+        rgb = ['red', 'green', 'blue']
+
+        for i in self.axes[:, 2].argsort():
             a = 20
-            b = self.height - 20
+            b = self.window.size[1] - 20
             c = int(self.axes[i][0] * axes_length + a)
             d = int(-self.axes[i][1] * axes_length + b)
-            self.pixmap.draw_line(self.foreground_gc, a, b, c, d)
-
-            # The axes label
-            layout = self.drawing_area.create_pango_layout(axes_labels[i])
-            layout.set_markup(axes_labels[i])
-            lox = int(self.axes[i][0] * 20 + 20\
-                    - layout.get_size()[0] / 2. / pango.SCALE)
-            loy = int(self.height - 20 - self.axes[i][1] * 20\
-                    - layout.get_size()[1] / 2. / pango.SCALE)
-            self.pixmap.draw_layout(self.foreground_gc, lox, loy, layout)
+            self.window.line(a, b, c, d)
+            self.window.text(c, d, 'XYZ'[i], color=rgb[i])
 
     def draw_frame_number(self):
         x, y = self.window.size

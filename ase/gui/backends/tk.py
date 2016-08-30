@@ -12,6 +12,14 @@ def name2str(name):
     return '-'.join(x.lower() for x in name.replace('_', '').split())
 
 
+def parselabel(label):
+    label = _(label)
+    i = label.find('_')
+    if i >= 0:
+        return i, label.replace('_', '')
+    return None, label
+
+
 class MainWindow:
     def __init__(self, menu_description, config,
                  exit, scroll, scroll_event,
@@ -26,28 +34,39 @@ class MainWindow:
         menu = tk.Menu(self.root)
         self.root.config(menu=menu)
 
+        self.menu = {}
+
         for name, things in menu_description:
             submenu = tk.Menu(menu)
-            menu.add_cascade(label=_(name), menu=submenu)
+            underline, label = parselabel(name)
+            menu.add_cascade(label=label, underline=underline, menu=submenu)
             for thing in things:
                 if thing == '---':
                     submenu.add_separator()
                     continue
                 subname, key, text, callback = thing[:4]
+                underline, label = parselabel(subname)
                 if len(thing) == 4:
-                    submenu.add_command(label=_(subname),
+                    submenu.add_command(label=label,
+                                        underline=underline,
                                         command=callback,
                                         accelerator=key)
                     continue
                 x = thing[4]
                 if isinstance(x, bool):
                     on = x
-                    # check
+                    var = tk.BooleanVar(value=on)
+                    self.menu[name2str(subname)] = var
+                    submenu.add_checkbutton(label=label,
+                                            underline=underline,
+                                            command=callback,
+                                            accelerator=key,
+                                            var=var)
+
                 elif isinstance(x[0], str):
                     hmm = x
                     #submenu.add_radio(label=_(subname),
                     #                  command=callback)
-                    #self.menu[name2str(subname)] = 0
                 else:
                     subsubmenu = tk.Menu(submenu)
                     submenu.add_cascade(label=_(subname), menu=subsubmenu)
@@ -98,7 +117,7 @@ class MainWindow:
         tk.mainloop()
 
     def __getitem__(self, name):
-        return False
+        return self.menu[name].get()
 
     def title(self, txt):
         self.root.title(txt)
@@ -121,12 +140,12 @@ class MainWindow:
         self.canvas.create_oval(*tuple(int(x) for x in bbox), fill=color,
                                 outline=outline, width=width)
 
-    def line(self, bbox):
+    def line(self, *bbox):
         self.canvas.create_line(*tuple(int(x) for x in bbox))
 
-    def text(self, x, y, txt, anchor=tk.CENTER):
+    def text(self, x, y, txt, anchor=tk.CENTER, color='black'):
         anchor = {'SE': tk.SE}.get(anchor, anchor)
-        self.canvas.create_text((x, y), text=txt, anchor=anchor)
+        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color)
 
 
 class Handler:
