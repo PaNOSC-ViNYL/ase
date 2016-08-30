@@ -5,7 +5,6 @@ from ase.units import Ry, eV
 from ase.calculators.siesta import Siesta
 from ase import Atoms
 import numpy as np
-import matplotlib.pyplot as plt
 
 #Define the systems
 #example of Raman calculation for CO2 molecule,
