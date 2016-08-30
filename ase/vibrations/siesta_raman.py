@@ -175,7 +175,7 @@ class Siesta_Raman(Vibrations):
                                 fplusplus)[self.indices].ravel() / 12.0
                     dpdx[r] = (-dplusplus + 8 * dplus - 8 * dminus +
                                 dminusminus) / 6.0
-                    dadx[r] = pol_cl + (-pplusplus + 8 * pplus - 8 * pminus +
+                    dadx[r] = (-pplusplus + 8 * pplus - 8 * pminus +
                                 pminusminus) / 6.0
                 H[r] /= 2 * self.delta
                 dpdx[r] /= 2 * self.delta
@@ -467,8 +467,8 @@ class Siesta_Raman(Vibrations):
         iu_ir, iu_string_ir = self.intensity_prefactor(intensity_unit_ir)
         iu_ram, iu_string_ram = self.intensity_prefactor(intensity_unit_ram)
 
-        if normalize:
-            iu_string = 'cm ' + iu_string_ir + iu_string_ram
+        #if normalize:
+        #    iu_string = 'cm ' + iu_string_ir + iu_string_ram
         fd.write('# [cm^-1] %14s\n' % ('[' + iu_string_ir + iu_string_ram + iu_string_ram + ']'))
         for row in outdata:
             fd.write('%.3f  %15.5e  %15.5e %15.5e  %15.5e   %15.5e    %15.5e\n' % 
@@ -476,40 +476,3 @@ class Siesta_Raman(Vibrations):
         fd.close()
         #np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
 
-
-
-def write_spectra_QE(atoms, fname, out='ram-spectra.dat', start=800, end=4000,
-                npts=None, width=10, type='Gaussian', method='standard', direction='central',
-                intensity_unit_ir='(D/A)2/amu', intensity_unit_ram='A^4 amu^-1', normalize=False):
-
-  data = np.loadtxt(fname)
-  ram = Raman(atoms) 
-
-  energies, spectrum_ir = ram.fold(data[:, 1], data[:, 3], start, end, npts, width, type, normalize)
-  energies, spectrum_ram = ram.fold(data[:, 1], data[:, 4], start, end, npts, width, type, normalize)
-
-  spectrum2_ir = 1. - spectrum_ir / spectrum_ir.max()
-  spectrum2_ram = 1. - spectrum_ram / spectrum_ram.max()
-
-  outdata = np.empty([len(energies), 5])
-  outdata.T[0] = energies
-  outdata.T[1] = spectrum_ir
-  outdata.T[2] = spectrum2_ir
-  outdata.T[3] = spectrum_ram
-  outdata.T[4] = spectrum2_ram
-
-  fd = open(out, 'w')
-  fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
-  iu_ir, iu_string_ir = ram.intensity_prefactor(intensity_unit_ir)
-  iu_ram, iu_string_ram = ram.intensity_prefactor(intensity_unit_ram)
-
-  if normalize:
-      iu_string = 'cm ' + iu_string_ir + iu_string_ram
-  fd.write('# [cm^-1] %14s\n' % ('[' + iu_string_ir + iu_string_ram + ']'))
-  for row in outdata:
-      fd.write('%.3f  %15.5e  %15.5e %15.5e  %15.5e\n' % 
-               #(row[0], iu_ir * row[1], row[2], iu_ram * row[3], row[4]))
-               (row[0], 1.0 * row[1], row[2], 1.0 * row[3], row[4]))
-  fd.close()
-
-InfraRed = Siesta_Raman  # old name
