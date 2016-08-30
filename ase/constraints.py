@@ -207,7 +207,7 @@ def ints2string(x, threshold=None):
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
 
-class FixBondLengths:
+class FixBondLengths(FixConstraint):
     maxiter = 500
 
     def __init__(self, pairs, tolerance=1e-13, iterations=None):
