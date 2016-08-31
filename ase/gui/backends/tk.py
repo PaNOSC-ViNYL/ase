@@ -140,8 +140,8 @@ class MainWindow:
         self.canvas.create_oval(*tuple(int(x) for x in bbox), fill=color,
                                 outline=outline, width=width)
 
-    def line(self, *bbox):
-        self.canvas.create_line(*tuple(int(x) for x in bbox))
+    def line(self, bbox, width=1):
+        self.canvas.create_line(*tuple(int(x) for x in bbox), width=width)
 
     def text(self, x, y, txt, anchor=tk.CENTER, color='black'):
         anchor = {'SE': tk.SE}.get(anchor, anchor)

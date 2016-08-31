@@ -592,6 +592,8 @@ class View:
         dynamic = self.images.dynamic
         selected = self.images.selected
         visible = self.images.visible
+        ncell = len(self.B1)
+        bw = self.scale * 0.15
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -624,8 +626,12 @@ class View:
             else:
                 # Draw unit cell and/or bonds:
                 a -= n
-                line(X1[a, 0] + disp[0], X1[a, 1] + disp[1],
-                     X2[a, 0] + disp[0], X2[a, 1] + disp[1])
+                if a < ncell:
+                    line((X1[a, 0] + disp[0], X1[a, 1] + disp[1],
+                          X2[a, 0] + disp[0], X2[a, 1] + disp[1]))
+                else:
+                    line((X1[a, 0] + disp[0], X1[a, 1] + disp[1],
+                          X2[a, 0] + disp[0], X2[a, 1] + disp[1]), width=bw)
 
         if self.window['show-axes']:
             self.draw_axes()
@@ -648,7 +654,7 @@ class View:
             b = self.window.size[1] - 20
             c = int(self.axes[i][0] * axes_length + a)
             d = int(-self.axes[i][1] * axes_length + b)
-            self.window.line(a, b, c, d)
+            self.window.line((a, b, c, d))
             self.window.text(c, d, 'XYZ'[i], color=rgb[i])
 
     def draw_frame_number(self):
