@@ -10,3 +10,6 @@ assert len(a[2:].constraints) == 0
 assert len(a[1:2].constraints) == 0
 assert len(a[:2].constraints) == 0
 assert len(a[:1].constraints) == 0
+
+# Execise Atoms.__init__:
+Atoms(a)
