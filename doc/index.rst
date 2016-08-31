@@ -115,7 +115,7 @@ Contents
     tutorials/tutorials
     ase/ase
     cmdline
-    gallery
+    gallery/gallery
     releasenotes
     contact
     development/development
