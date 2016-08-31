@@ -10,8 +10,68 @@ Git master branch
 
 :git:`master <>`.
 
+* New :class:`ase.constraints.ExternalForce` constraint.
+
+* Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
+  for older versions of CODATA was added such that the respective units can
+  be created by the user when needed (e.g. interfacing codes with different
+  CODATA versions in use).
+
+* New :mod:`ase.calculators.checkpoint` module.  Adds restart and rollback
+  capabilities to ASE scripts.
+
+* Two new flawors of :class:`~ase.neb.NEB` calculations have been added:
+  ``method='eb'`` and ``method='improvedtangent'``.
+  
+* :func:`ase.io.write` can now write XSD files.
+
+* Interface for deMon added.
+
+* New :ref:`defects` tutorial and new super-cell functions:
+  :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
+  :func:`~ase.build.make_supercell`.
+
+  
+Version 3.11.0
+==============
+
+10 May 2016: :git:`3.11.0 <../3.11.0>`.
+
+* Special `\mathbf{k}`-points from the [Setyawana-Curtarolo]_ paper was added:
+  :data:`ase.dft.kpoints.special_points`.
+
+* New :mod:`ase.collections` module added.  Currently contains the G2 database
+  of molecules and the S22 set of weakly interacting dimers and complexes.
+
+* Moved modules:
+
+  * ``ase.utils.eos`` moved to :mod:`ase.eos`
+  * ``ase.calculators.neighborlist`` moved to :mod:`ase.neighborlist`
+  * ``ase.lattice.spacegroup`` moved to :mod:`ase.spacegroup`
+ 
+* The ``InfraRed`` that used to be in the ``ase.infrared`` or
+  ``ase.vibrations.infrared`` modules is now called
+  :class:`~ase.vibrations.Infrared` and should be imported from the
+  :mod:`ase.vibrations` module.
+
+* Deprecated modules: ``ase.structure``, ``ase.utils.geometry``,
+  ``ase.utils.distance``, ``ase.lattice.surface``.  The functions from these
+  modules that will create and manipulate :class:`~ase.Atoms` objects are now
+  in the new :mod:`ase.build` module.  The remaining functions have been moved
+  to the new :mod:`ase.geometry` module.
+
+* The ``ase.lattice.bulk()`` function has been moved to :func:`ase.build.bulk`.
+
+* Two new functions: :func:`~ase.geometry.cell_to_cellpar` and
+  :func:`~ase.geometry.cellpar_to_cell`.
+
 * We can now :func:`~ase.io.read` and :func:`~ase.io.write` magres files.
 
+* :class:`~ase.neb.NEB` improvement:  calculations for molecules can now be
+  told to minimize ratation and translation along the path.
+    
 
 Version 3.10.0
 ==============
@@ -44,7 +104,7 @@ Version 3.10.0
 
 * New :func:`ase.dft.kpoints.get_special_points` function.
 
-* New :func:`ase.utils.geometry.get_duplicate_atoms` function for finding and
+* New :func:`ase.geometry.get_duplicate_atoms` function for finding and
   removing atoms on top of each other.
   
 * New: A replacement :mod:`Siesta <ase.calculators.siesta>` calculator was
@@ -60,7 +120,7 @@ Version 3.9.1
 21 July 2015: :git:`3.9.1 <../3.9.1>`.
 
 * Added function for finding maximally-reduced Niggli unit cell:
-  :func:`ase.utils.geometry.niggli_reduce`.
+  :func:`ase.build.niggli_reduce`.
   
 * Octopus interface added (experimental).
 
@@ -81,7 +141,7 @@ Version 3.9.0
 
 * New :mod:`ase.db` module.
 
-* New functions: :func:`ase.lattice.surface.fcc211` and
+* New functions: :func:`ase.build.fcc211` and
   :func:`ase.visualize.mlab.plot`.
   
 * New :class:`~ase.atoms.Atoms` methods:
@@ -93,7 +153,7 @@ Version 3.9.0
 * Preliminary support for Python 3.
 
 * Wrapping: new :meth:`ase.atoms.Atoms.wrap` method and
-  :func:`ase.utils.geometry.wrap_positions` function.  Also
+  :func:`ase.geometry.wrap_positions` function.  Also
   added ``wrap=True`` keyword argument to
   :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
@@ -106,7 +166,7 @@ Version 3.9.0
 
 * We can now do :ref:`phase diagrams`.
 
-* New :func:`ase.lattice.surface.mx2` function for 1T and 2H metal
+* New :func:`ase.build.mx2` function for 1T and 2H metal
   dichalcogenides and friends.
 
 * New :func:`ase.dft.bandgap.get_band_gap` function
@@ -122,7 +182,7 @@ Version 3.8.0
 * ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
-* The old :func:`ase.structure.bulk` function is now deprecated.
+* The old :func:`ase.build.bulk` function is now deprecated.
   Use the new one instead (:func:`ase.lattice.bulk`).
 * We're now using BuildBot for continuous integration:
   https://ase-buildbot.fysik.dtu.dk/waterfall
@@ -140,7 +200,7 @@ Version 3.7.0
 * The :class:`ase.neb.NEB` object now accepts a list of spring constants.
 
 * *Important backwards incompatible change*: The
-  :func:`ase.lattice.surface.surface` function now returns a
+  :func:`ase.build.surface` function now returns a
   right-handed unit cell.
 
 * Mopac, NWChem and Gaussian interfaces and EAM potential added.
@@ -167,10 +227,10 @@ Version 3.6.0
 
 * New function for making surfaces with arbitrary Miller indices with
   the smallest possible surface unit cell:
-  ase.lattice.surface.surface()
+  ase.build.surface()
 
 * New ase.lattice.bulk() function.  Will replace old
-  ase.structure.bulk() function.  The new one will produce a more
+  ase.build.bulk() function.  The new one will produce a more
   natural hcp lattice and it will use experimental data for crystal
   structure and lattice constants if not provided explicitely.
 
@@ -207,7 +267,7 @@ Version 3.5.0
 13 April 2011: :git:`3.5.0 <../3.5.0>`.
 
 * Improved EMT potential:  uses a
-  :class:`~ase.calculators.neighborlist.NeighborList` object and is
+  :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
 * :mod:`BFGSLineSearch <optimize.bfgslinesearch>` is now the default

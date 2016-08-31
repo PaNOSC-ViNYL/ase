@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 
 from ase.data import atomic_numbers as ref_atomic_numbers
-from ase.lattice.spacegroup import Spacegroup
+from ase.spacegroup import Spacegroup
 from ase.cluster.base import ClusterBase
 from ase.cluster.cluster import Cluster
 

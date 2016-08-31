@@ -28,19 +28,30 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 >>> h2.get_potential_energy()
 -31.492847800329216
 
+Please go through this check-list to figure out if you need to convert your
+old ASE trajectory files to the modern file-format:
+
+.. image:: static/oldtraj.png
+    :align: center
+
+See how to identify and convert old trajectory files here: :ref:`convert`.
+
 
 Supported :mod:`Calculators <ase.calculators>`:
 
-|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
+|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
+|elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
-:mod:`~ase.calculators.tip3p`
+:mod:`~ase.calculators.tip3p` Grimme-D3_
 
 
 .. _news:
 
 News
 ====
+
+* :ref:`ASE version 3.11.0 <releasenotes>` released (10 May 2016).
 
 * :ref:`ASE version 3.10.0 <releasenotes>` released (17 March 2016).
 
@@ -93,10 +104,10 @@ News
 * A beta version of the new ASE-3.0 will be used for the
   electronic structure course at CAMd_.  (10 Jan 2008)
 
-  
+
 Contents
 ========
-  
+
 .. toctree::
 
     about
@@ -125,6 +136,9 @@ Contents
    :align: middle
 .. |CP2K| image:: static/cp2k.png
    :target: ase/calculators/cp2k.html
+   :align: middle
+.. |deMon| image:: static/demon.png
+   :target: http://www.demon-software.com/public_html/index.html
    :align: middle
 .. |elk| image:: static/elk.png
    :target: http://elk.sourceforge.net/
@@ -180,6 +194,7 @@ Contents
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/
+.. _Grimme-D3: https://gitlab.com/ehermes/ased3/tree/master
 .. _Sphinx: http://sphinx.pocoo.org
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk

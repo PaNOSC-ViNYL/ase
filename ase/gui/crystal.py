@@ -8,7 +8,7 @@ from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.status import formula
-from ase.lattice.spacegroup import crystal, Spacegroup
+from ase.spacegroup import crystal, Spacegroup
 
 import ase
 
@@ -23,7 +23,7 @@ introtext = _("""\
   yourself.  """)
 
 py_template = """
-from ase.lattice.spacegroup import crystal
+from ase.spacegroup import crystal
 
 atoms = crystal(spacegroup=%(spacegroup)d,
                 symbols=%(symbols)s,

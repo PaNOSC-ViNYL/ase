@@ -150,6 +150,7 @@ def read_cfg(f):
         if len(l) != 0 and not l.startswith('#'):
             if l == '.NO_VELOCITY.':
                 vels = None
+                naux += 3
             else:
                 s = l.split('=')
                 if len(s) == 2:
@@ -167,7 +168,7 @@ def read_cfg(f):
                     elif key == 'A':
                         pass  # unit = float(value[0])
                     elif key == 'entry_count':
-                        naux = int(value[0]) - 3
+                        naux += int(value[0]) - 6
                         auxstrs = [''] * naux
                         if nat is not None:
                             aux = np.zeros([nat, naux])

@@ -1,5 +1,5 @@
 from ase.test import NotAvailable
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.dft.bandgap import get_band_gap
 from ase.calculators.calculator import get_calculator
 

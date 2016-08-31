@@ -133,7 +133,7 @@ def creates():
                 if line.startswith('# creates:'):
                     yield dirpath, filename, [file.rstrip(',')
                                               for file in line.split()[2:]]
-        if 'build' in dirnames:
+        if 'build' in dirnames and dirpath == '.':
             dirnames.remove('build')
 
                         

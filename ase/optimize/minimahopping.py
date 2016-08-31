@@ -122,8 +122,8 @@ class MinimaHopping:
         mdcount, qncount = 0, 0
         for line in lines:
             if (line[:4] == 'par:') and ('Ediff' not in line):
-                self._temperature = eval(line.split()[1])
-                self._Ediff = eval(line.split()[2])
+                self._temperature = float(line.split()[1])
+                self._Ediff = float(line.split()[2])
             elif line[:18] == 'msg: Optimization:':
                 qncount = int(line[19:].split('qn')[1])
             elif line[:24] == 'msg: Molecular dynamics:':

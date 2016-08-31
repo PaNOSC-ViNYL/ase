@@ -5,7 +5,7 @@ from ase.ga.utilities import closest_distances_generator
 from ase.ga import set_raw_score
 import os
 import numpy as np
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 from ase.constraints import FixAtoms
 
 db_file = 'gadb_logics_test.db'

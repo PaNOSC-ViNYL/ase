@@ -143,8 +143,8 @@ def read_lammps_dump(fileobj, index=-1, order=True, atomsobj=Atoms):
             if len(velocities):
                 images[-1].set_velocities(velocities)
             if len(forces):
-                calculator = SinglePointCalculator(0.0, forces,
-                                                   None, None, images[-1])
+                calculator = SinglePointCalculator(images[-1],
+                                                   energy=0.0, forces=forces)
                 images[-1].set_calculator(calculator)
 
     return images[index]

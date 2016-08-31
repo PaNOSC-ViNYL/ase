@@ -18,7 +18,7 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.utils.geometry import wrap_positions, find_mic
+from ase.geometry import wrap_positions, find_mic
 
 
 class Atoms(object):
@@ -28,7 +28,6 @@ class Atoms(object):
     periodically repeated structure.  It has a unit cell and
     there may be periodic boundary conditions along any of the three
     unit cell axes.
-
     Information about the atoms (atomic numbers and position) is
     stored in ndarrays.  Optionally, there can be information about
     tags, momenta, masses, magnetic moments and charges.
@@ -101,7 +100,7 @@ class Atoms(object):
     >>> d = 1.104  # N2 bondlength
     >>> a = Atoms('N2', [(0, 0, 0), (0, 0, d)])
     >>> a = Atoms(numbers=[7, 7], positions=[(0, 0, 0), (0, 0, d)])
-    >>> a = Atoms([Atom('N', (0, 0, 0)), Atom('N', (0, 0, d)])
+    >>> a = Atoms([Atom('N', (0, 0, 0)), Atom('N', (0, 0, d))])
 
     FCC gold:
 
@@ -234,12 +233,9 @@ class Atoms(object):
 
     def set_calculator(self, calc=None):
         """Attach calculator object."""
-        if hasattr(calc, '_SetListOfAtoms'):
-            from ase.old import OldASECalculatorWrapper
-            calc = OldASECalculatorWrapper(calc, self)
+        self._calc = calc
         if hasattr(calc, 'set_atoms'):
             calc.set_atoms(self)
-        self._calc = calc
 
     def get_calculator(self):
         """Get currently attached calculator object."""
@@ -289,12 +285,14 @@ class Atoms(object):
 
         Two equivalent ways to define an orthorhombic cell:
 
-        >>> a.set_cell([a, b, c])
-        >>> a.set_cell([(a, 0, 0), (0, b, 0), (0, 0, c)])
+        >>> atoms = Atoms('He')
+        >>> a, b, c = 7, 7.5, 8
+        >>> atoms.set_cell([a, b, c])
+        >>> atoms.set_cell([(a, 0, 0), (0, b, 0), (0, 0, c)])
 
         FCC unit cell:
 
-        >>> a.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+        >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
         """
 
         if fix is not None:
@@ -682,14 +680,14 @@ class Atoms(object):
         Ask the attached calculator to calculate the forces and apply
         constraints.  Use *apply_constraint=False* to get the raw
         forces.
-        
+
         For molecular dynamics (md=True) we don't apply the constraint
         to the forces but to the momenta."""
 
         if self._calc is None:
             raise RuntimeError('Atoms object has no calculator.')
         forces = self._calc.get_forces(self)
-        
+
         if apply_constraint:
             # We need a special md flag here because for MD we want
             # to skip real constraints but include special "constraints"
@@ -767,15 +765,17 @@ class Atoms(object):
         return len(self.arrays['positions'])
 
     def get_number_of_atoms(self):
-        """Returns the global number of atoms in a distributed-atoms parallel simulation.
+        """Returns the global number of atoms in a distributed-atoms parallel
+        simulation.
 
         DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING!
-        
-        Equivalent to len(atoms) in the standard ASE Atoms class.  You should normally
-        use len(atoms) instead.  This function's only purpose is to make compatibility
-        between ASE and Asap easier to maintain by having a few places in ASE use this
-        function instead.  It is typically only when counting the global number of
-        degrees of freedom or in similar situations.
+
+        Equivalent to len(atoms) in the standard ASE Atoms class.  You should
+        normally use len(atoms) instead.  This function's only purpose is to
+        make compatibility between ASE and Asap easier to maintain by having a
+        few places in ASE use this function instead.  It is typically only
+        when counting the global number of degrees of freedom or in similar
+        situations.
         """
         return len(self)
 
@@ -871,7 +871,7 @@ class Atoms(object):
             return Atom(atoms=self, index=i)
 
         import copy
-        from ase.constraints import FixConstraint
+        from ase.constraints import FixConstraint, FixBondLengths
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
@@ -886,7 +886,7 @@ class Atoms(object):
         atoms.constraints = copy.deepcopy(self.constraints)
         condel = []
         for con in atoms.constraints:
-            if isinstance(con, FixConstraint):
+            if isinstance(con, (FixConstraint, FixBondLengths)):
                 try:
                     con.index_shuffle(self, i)
                 except IndexError:
@@ -897,19 +897,27 @@ class Atoms(object):
 
     def __delitem__(self, i):
         from ase.constraints import FixAtoms
-        check_constraint = np.array([isinstance(c, FixAtoms)
-                                     for c in self._constraints])
-        if (len(self._constraints) > 0 and (not check_constraint.all() or
-                                            isinstance(i, list))):
-            raise RuntimeError('Remove constraint using set_constraint() '
-                               'before deleting atoms.')
+        for c in self._constraints:
+            if not isinstance(c, FixAtoms):
+                raise RuntimeError('Remove constraint using set_constraint() '
+                                   'before deleting atoms.')
+
+        if len(self._constraints) > 0:
+            n = len(self)
+            i = np.arange(n)[i]
+            if isinstance(i, int):
+                i = [i]
+            constraints = []
+            for c in self._constraints:
+                c = c.delete_atoms(i, n)
+                if c is not None:
+                    constraints.append(c)
+            self.constraints = constraints
+
         mask = np.ones(len(self), bool)
         mask[i] = False
         for name, a in self.arrays.items():
             self.arrays[name] = a[mask]
-        if len(self._constraints) > 0:
-            for n in range(len(self._constraints)):
-                self._constraints[n].delete_atom(range(len(mask))[i])
 
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""
@@ -1111,7 +1119,9 @@ class Atoms(object):
         Rotate 90 degrees around the z-axis, so that the x-axis is
         rotated into the y-axis:
 
+        >>> from math import pi
         >>> a = pi / 2
+        >>> atoms = Atoms()
         >>> atoms.rotate('z', a)
         >>> atoms.rotate((0, 0, 1), a)
         >>> atoms.rotate('-z', -a)
@@ -1281,9 +1291,11 @@ class Atoms(object):
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
 
+        >>> from math import pi
         >>> atoms = Atoms('HHCCHH', [[-1, 1, 0], [-1, -1, 0], [0, 0, 0],
-                                     [1, 0, 0], [2, 1, 0], [2, -1, 0]])
-        >>> atoms.set_dihedral([1,2,3,4],7*pi/6,mask=[0,0,0,1,1,1])
+        ...                          [1, 0, 0], [2, 1, 0], [2, -1, 0]])
+        >>> atoms.set_dihedral([1, 2, 3, 4], 7 * pi / 6,
+        ...                    mask=[0, 0, 0, 1, 1, 1])
         """
         # if not provided, set mask to the last atom in the
         # dihedral description
@@ -1482,7 +1494,7 @@ class Atoms(object):
             Small number to prevent slightly negative coordinates from being
             wrapped.
 
-        See also the :func:`ase.utils.geometry.wrap_positions` function.
+        See also the :func:`ase.geometry.wrap_positions` function.
         Example:
 
         >>> a = Atoms('H',
@@ -1501,8 +1513,11 @@ class Atoms(object):
 
     def get_temperature(self):
         """Get the temperature in Kelvin."""
-        ekin = self.get_kinetic_energy() / len(self)
-        return ekin / (1.5 * units.kB)
+        dof = len(self) * 3
+        for constraint in self._constraints:
+            dof -= constraint.removed_dof
+        ekin = self.get_kinetic_energy()
+        return 2 * ekin / (dof * units.kB)
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.

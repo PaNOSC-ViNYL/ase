@@ -1,6 +1,6 @@
 # creates: Al_phonon.png Al_mode.gif Al_mode.pdf
 
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.calculators.emt import EMT
 from ase.dft.kpoints import ibz_points, get_bandpath
 from ase.phonons import Phonons

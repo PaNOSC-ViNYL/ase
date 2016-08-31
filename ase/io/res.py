@@ -15,7 +15,7 @@ import glob
 import re
 
 from ase.atoms import Atoms
-from ase.lattice.spacegroup.cell import cellpar_to_cell, cell_to_cellpar
+from ase.geometry import cellpar_to_cell, cell_to_cellpar
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 
@@ -23,6 +23,7 @@ __all__ = ['Res', 'read_res', 'write_res']
 
 
 class Res(object):
+
     """
     Object for representing the data in a Res file.
     Most attributes can be set directly.
@@ -174,12 +175,12 @@ class Res(object):
                             if match:
                                 sp.append(match.group(1))  # 1-indexed
                                 cs = match.groups()[2:5]
-                                coords.append([float(c) for c in cs ])
+                                coords.append([float(c) for c in cs])
                         line_no += 1  # Make sure the global is updated
             line_no += 1
 
         return Res(Atoms(symbols=sp,
-                         positions=coords,
+                         scaled_positions=coords,
                          cell=cellpar_to_cell(list(abc) + list(ang)),
                          pbc=True, info=info),
                    info.get('name'),
@@ -234,7 +235,8 @@ class Res(object):
 
         fmt = '{{0}} {{1}} {{2:.{0}f}} {{3:.{0}f}} {{4:.{0}f}} 1.0'
         fmtstr = fmt.format(significant_figures)
-        for symbol, coords in zip(symbols, self.atoms_.get_positions()):
+        for symbol, coords in zip(symbols,
+                                  self.atoms_.get_scaled_positions()):
             lines.append(
                 fmtstr.format(symbol,
                               species_types.index(symbol) + 1,
@@ -320,7 +322,7 @@ def write_res(filename, images, write_info=True,
         if write_results:
             calculator = atoms.get_calculator()
             if (calculator is not None and
-                isinstance(calculator, Calculator)):
+                    isinstance(calculator, Calculator)):
                 energy = calculator.results.get('energy')
                 if energy is not None:
                     res.energy = energy

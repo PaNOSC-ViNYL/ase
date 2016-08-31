@@ -3,7 +3,7 @@ import sys
 from ase.calculators.emt import EMT
 from ase.constraints import FixInternals
 from ase.optimize.bfgs import BFGS
-from ase.structure import molecule
+from ase.build import molecule
 from ase.test import NotAvailable
 
 

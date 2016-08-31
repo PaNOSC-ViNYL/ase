@@ -2,7 +2,7 @@ from ase.ga.startgenerator import StartGenerator
 from ase.ga.utilities import closest_distances_generator
 from ase.ga.standardmutations import RattleMutation, PermutationMutation
 import numpy as np
-from ase.lattice.surface import fcc111
+from ase.build import fcc111
 from ase.constraints import FixAtoms
 
 # first create two random starting candidates
