@@ -80,7 +80,7 @@ class MainWindow:
                                 width=self.size[0],
                                 height=self.size[1],
                                 bg='white')
-        self.canvas.pack(side=tk.TOP, fill=tk.X)  # & tk.Y)
+        self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         status = tk.Label(self.root, text="asdgag",  # bd=1,
                           # relief=tk.SUNKEN,
