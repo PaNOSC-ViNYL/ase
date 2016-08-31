@@ -97,43 +97,38 @@ class GUI(View, Status):
         x = {'ZoomIn': 1.2, 'ZoomOut': 1 / 1.2}[action.get_name()]
         self._do_zoom(x)
 
-    def scroll_event(self, window, event):
+    def scroll_event(self, event):
         """Zoom in/out when using mouse wheel"""
-        SHIFT = event.state == gtk.gdk.SHIFT_MASK
+        print(event)
+        SHIFT = event.modifier == 'shift'
         x = 1.0
-        if event.direction == gtk.gdk.SCROLL_UP:
+        if event.button == 4:
             x = 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01
-        elif event.direction == gtk.gdk.SCROLL_DOWN:
+        elif event.button == 5:
             x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 
     def settings(self, menuitem):
         Settings(self)
 
-    def scroll(self, window, event):
+    def scroll(self, event):
         from copy import copy
-        CTRL = event.state == gtk.gdk.CONTROL_MASK
-        SHIFT = event.state == gtk.gdk.SHIFT_MASK
+        CTRL = event.modifier == 'ctrl'
+        SHIFT = event.modifier == 'shift'
+        print(event.key)
         dxdydz = {
-            gtk.keysyms.KP_Add: ('zoom', 1.0 +
-                                 (1 - SHIFT) * 0.2 + SHIFT * 0.01, 0),
-            gtk.keysyms.KP_Subtract: ('zoom', 1 /
-                                      (1.0 +
-                                       (1 - SHIFT) * 0.2 + SHIFT * 0.01), 0),
-            gtk.keysyms.Up: (0, +1 - CTRL, +CTRL),
-            gtk.keysyms.Down: (0, -1 + CTRL, -CTRL),
-            gtk.keysyms.Right: (+1, 0, 0),
-            gtk.keysyms.Left: (-1, 0, 0)
-        }.get(event.keyval, None)
+            '+': ('zoom', 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01, 0),
+            '-': ('zoom', 1 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01), 0),
+            'up': (0, +1 - CTRL, +CTRL),
+            'down': (0, -1 + CTRL, -CTRL),
+            'right': (+1, 0, 0),
+            'left': (-1, 0, 0)}.get(event.key, None)
 
         sel = []
 
-        atom_move = self.ui.get_widget(
-            '/MenuBar/ToolsMenu/MoveAtoms').get_active()
-        atom_rotate = self.ui.get_widget(
-            '/MenuBar/ToolsMenu/RotateAtoms').get_active()
-        atom_orient = self.ui.get_widget(
-            '/MenuBar/ToolsMenu/OrientAtoms').get_active()
+        atom_move = self.window['move-atoms']
+        atom_rotate = self.window['rotate-atoms']
+        atom_orient = self.window['orient-atoms']
         if dxdydz is None:
             return
         dx, dy, dz = dxdydz
@@ -261,8 +256,7 @@ class GUI(View, Status):
             self.set_coordinates()
         else:
             self.center -= (
-                dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1]
-            )
+                dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
         self.draw()
 
     def copy_atoms(self, widget):
@@ -891,12 +885,12 @@ class GUI(View, Status):
     def get_menu_data(self, show_unit_cell, show_bonds):
         return [
             ('File',
-             [('Open', '^O', 'Create a new file', self.open),
-              ('New', '^N', 'New ase-gui window',
+             [('_Open', '^O', 'Create a new file', self.open),
+              ('_New', '^N', 'New ase-gui window',
                lambda widget: os.system('ase-gui &')),
-              ('Save', '^S', 'Save current file', lambda x: save_dialog(self)),
+              ('_Save', '^S', 'Save current file', lambda x: save_dialog(self)),
               '---',
-              ('Quit', '^Q', 'Quit', self.exit)]),
+              ('_Quit', '^Q', 'Quit', self.exit)]),
 
             ('Edit',
              [('Select _all', '', '', self.select_all),
@@ -905,10 +899,10 @@ class GUI(View, Status):
                self.select_constrained_atoms),
               ('Select _immobile atoms', '^I', '', self.select_immobile_atoms),
               '---',
-              ('Copy', '^C',
+              ('_Copy', '^C',
                'Copy current selection and its orientation to clipboard',
                self.copy_atoms),
-              ('_Paste', '^V', 'Insert current clipboard selection',
+              ('Paste', '^V', 'Insert current clipboard selection',
                self.paste_atoms),
               '---',
               ('Hide selected atoms', '', '', self.hide_selected),

@@ -3,7 +3,7 @@ try:
 except ImportError:
     import Tkinter as tk
 
-from gettext import gettext as _
+from gettext import gettext
 
 import numpy as np
 
@@ -13,7 +13,7 @@ def name2str(name):
 
 
 def parselabel(label):
-    label = _(label)
+    label = gettext(label)
     i = label.find('_')
     if i >= 0:
         return i, label.replace('_', '')
@@ -28,8 +28,8 @@ class MainWindow:
 
         self.root = tk.Tk()
 
-        #self.window.set_position(gtk.WIN_POS_CENTER)
-        #self.window.connect('delete_event', self.exit)
+        # self.window.set_position(gtk.WIN_POS_CENTER)
+        # self.window.connect('delete_event', self.exit)
 
         menu = tk.Menu(self.root)
         self.root.config(menu=menu)
@@ -64,14 +64,15 @@ class MainWindow:
                                             var=var)
 
                 elif isinstance(x[0], str):
-                    hmm = x
-                    #submenu.add_radio(label=_(subname),
-                    #                  command=callback)
+                    pass  # hmm = x
+                    # submenu.add_radio(label=_(subname),
+                    #                   command=callback)
                 else:
                     subsubmenu = tk.Menu(submenu)
-                    submenu.add_cascade(label=_(subname), menu=subsubmenu)
+                    submenu.add_cascade(label=gettext(subname),
+                                        menu=subsubmenu)
                     for subsubname, key, text, callback in x:
-                        subsubmenu.add_command(label=_(subsubname),
+                        subsubmenu.add_command(label=gettext(subsubname),
                                                command=callback,
                                                accelerator=key)
 
@@ -79,10 +80,10 @@ class MainWindow:
                                 width=self.size[0],
                                 height=self.size[1],
                                 bg='white')
-        self.canvas.pack(side=tk.TOP, fill=tk.X)# & tk.Y)
+        self.canvas.pack(side=tk.TOP, fill=tk.X)  # & tk.Y)
 
-        status = tk.Label(self.root, text="asdgag", #bd=1,
-                          #relief=tk.SUNKEN,
+        status = tk.Label(self.root, text="asdgag",  # bd=1,
+                          # relief=tk.SUNKEN,
                           anchor=tk.W)
         status.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -92,24 +93,24 @@ class MainWindow:
         self.canvas.bind('<ButtonRelease>', Handler(release))
         self.canvas.bind('<Control-ButtonRelease>',
                          Handler(release, 'ctrl'))
-        #self.window.connect('key-press-event', self.scroll)
-        #self.window.connect('scroll_event', self.scroll_event)
-        #self.drawing_area.connect('expose_event', self.expose_event)
-        #self.drawing_area.connect('configure_event', self.configure_event)
+        self.root.bind('<Key>', Handler(scroll))
+        self.root.bind('<Shift-Key>', Handler(scroll, 'shift'))
+        self.root.bind('<Control-Key>', Handler(scroll, 'ctrl'))
+        #self.canvas.bind('<B4>', Handler(scroll_event))
+        #self.canvas.bind('<Shift-MouseWheel>', Handler(scroll_event, 'shift'))
+        # self.root.bind('<Configure>', configure_event)
+        # self.drawing_area.connect('expose_event', self.expose_event)
 
         #    self.eventbox.set_tooltip_text(_('Tip for status box ...'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']
-        self.red = '#F30000'
-        self.green = '#00D300'
-        self.blue = '#0000D3'
 
     def update_status_line(self, text):
         pass
 
     def resize_event(self):
-        self.scale *= sqrt(1.0 * self.width * self.height / (w * h))
+        # self.scale *= sqrt(1.0 * self.width * self.height / (w * h))
         self.draw()
         self.configured = True
 
@@ -159,12 +160,15 @@ class Handler:
 
 class Event:
     def __init__(self, event, modifier):
+        print(event.delta, event.keysym)
         self.x = event.x
         self.y = event.y
         self.time = event.time
         self.button = event.num
         self.modifier = modifier
-        if 0:
+        self.key = event.keysym.lower()
+
+        if 1:
             print(self.x,
                   self.y,
                   self.time,
@@ -175,8 +179,8 @@ class Event:
 class Window:
     def __init__(self, stuff):
         for line in stuff:
-            box = Box()
-            pack
+            pass  # box = Box()
+            # pack
 
 
 class Button:
