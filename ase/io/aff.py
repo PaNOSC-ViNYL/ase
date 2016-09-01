@@ -5,7 +5,7 @@ Stores ndarrays as binary data and Python's built-in datatypes (int, float,
 bool, str, dict, list) as json.
 
 File layout when there is only a single item::
-    
+
     0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
     24: version (int64)
@@ -18,21 +18,21 @@ File layout when there is only a single item::
     p0+8+n: EOF
 
 Writing:
-    
+
 >>> from ase.io.aff import affopen
 >>> w = affopen('x.aff', 'w')
 >>> w.write(a=np.ones(7), b=42, c='abc')
 >>> w.write(d=3.14)
 >>> w.close()
-    
+
 Reading:
-    
+
 >>> r = affopen('x.aff')
 >>> print(r.c)
 'abc'
 
 To see what's inside 'x.aff' do this::
-    
+
     $ alias aff="python -m ase.io.aff"
     $ aff x.aff
     x.aff  (tag: "", 1 item)
@@ -44,7 +44,7 @@ To see what's inside 'x.aff' do this::
         d: 3.14}
 
 Versions:
-    
+
 1) Initial version.
 
 2) Added support for big endian machines.  Json data may now have
@@ -92,19 +92,19 @@ def writeint(fd, n, pos=None):
     if not np.little_endian:
         a.byteswap(True)
     a.tofile(fd)
-    
+
 
 def readints(fd, n):
     a = np.fromfile(fd, np.int64, n)
     if not np.little_endian:
         a.byteswap(True)
     return a
-    
-    
+
+
 class Writer:
     def __init__(self, fd, mode='w', tag='', data=None):
         """Create writer object.
-        
+
         fd: str
             Filename.
         mode: str
@@ -115,10 +115,10 @@ class Writer:
         """
 
         assert mode in 'aw'
-        
+
         # Header to be written later:
         self.header = b''
-        
+
         if data is None:
             if np.little_endian:
                 data = {}
@@ -140,7 +140,7 @@ class Writer:
                                self.offsets.tostring())
             else:
                 fd = open(fd, 'r+b')
-            
+
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
                 assert version == VERSION
                 n = 1
@@ -149,49 +149,49 @@ class Writer:
                 padding = np.zeros(n - self.nitems, np.int64)
                 self.offsets = np.concatenate((offsets, padding))
                 fd.seek(0, 2)
-            
+
         self.fd = fd
         self.data = data
-        
+
         # date for array being filled:
         self.nmissing = 0  # number of missing numbers
         self.shape = None
         self.dtype = None
-        
+
     def add_array(self, name, shape, dtype=float):
         """Add ndarray object."""
-        
+
         self._write_header()
 
         if isinstance(shape, int):
             shape = (shape,)
-            
+
         shape = tuple(int(s) for s in shape)  # Convert np.int64 to int
-        
+
         i = align(self.fd)
-        
+
         self.data[name + '.'] = {
             'ndarray': (shape, np.dtype(dtype).name, i)}
-            
+
         assert self.nmissing == 0, 'last array not done'
-        
+
         self.dtype = dtype
         self.shape = shape
         self.nmissing = np.prod(shape)
-        
+
     def _write_header(self):
         # We want to delay writing until there is any real data written.
         # Some people rely on zero file size.
         if self.header:
             self.fd.write(self.header)
             self.header = b''
-            
+
     def fill(self, a):
         assert a.dtype == self.dtype
         assert a.shape[1:] == self.shape[len(self.shape) - a.ndim + 1:]
         self.nmissing -= a.size
         assert self.nmissing >= 0
-            
+
         a.tofile(self.fd)
 
     def sync(self):
@@ -207,7 +207,7 @@ class Writer:
         s = encode(self.data).encode()
         writeint(self.fd, len(s))
         self.fd.write(s)
-        
+
         n = len(self.offsets)
         if self.nitems >= n:
             offsets = np.zeros(n * N1, np.int64)
@@ -219,7 +219,7 @@ class Writer:
                 offsets.byteswap().tofile(self.fd)
             writeint(self.fd, self.pos0, 40)
             self.offsets = offsets
-            
+
         self.offsets[self.nitems] = i
         writeint(self.fd, i, self.pos0 + self.nitems * 8)
         self.nitems += 1
@@ -230,21 +230,21 @@ class Writer:
             self.data = {}
         else:
             self.data = {'_little_endian': False}
-        
+
     def write(self, *args, **kwargs):
         """Write data.
 
         Examples::
-            
+
             writer.write('n', 7)
             writer.write(n=7)
             writer.write(n=7, s='abc', a=np.zeros(3), density=density)
         """
-    
+
         if args:
             name, value = args
             kwargs[name] = value
-            
+
         self._write_header()
 
         for name, value in kwargs.items():
@@ -257,12 +257,12 @@ class Writer:
                 self.fill(value)
             else:
                 value.write(self.child(name))
-      
+
     def child(self, name):
         self._write_header()
         dct = self.data[name + '.'] = {}
         return Writer(self.fd, data=dct)
-        
+
     def close(self):
         n = int('_little_endian' in self.data)
         if len(self.data) > n:
@@ -273,34 +273,34 @@ class Writer:
             # Make sure header has been written (empty aff-file):
             self._write_header()
         self.fd.close()
-        
+
     def __len__(self):
         return int(self.nitems)
-        
-        
+
+
 class DummyWriter:
     def add_array(self, name, shape, dtype=float):
         pass
-        
+
     def fill(self, a):
         pass
-        
+
     def sync(self):
         pass
-        
+
     def write(self, *args, **kwargs):
         pass
-        
+
     def child(self, name):
         return self
-        
+
     def close(self):
         pass
-        
+
     def __len__(self):
         return 0
-        
-        
+
+
 def read_header(fd):
     fd.seek(0)
     if not fd.read(8) == b'AFFormat':
@@ -315,17 +315,17 @@ def read_header(fd):
 class InvalidAFFError(Exception):
     pass
 
-    
+
 class Reader:
     def __init__(self, fd, index=0, data=None, little_endian=None):
         """Create reader."""
-        
+
         if isinstance(fd, str):
             fd = open(fd, 'rb')
-        
+
         self._fd = fd
         self._index = index
-        
+
         if data is None:
             (self._tag, self._version, self._nitems, self._pos0,
              self._offsets) = read_header(fd)
@@ -336,9 +336,9 @@ class Reader:
             self._little_endian = data.pop('_little_endian', True)
         else:
             self._little_endian = little_endian
-            
+
         self._parse_data(data)
-        
+
     def _parse_data(self, data):
         self._data = {}
         for name, value in data.items():
@@ -355,16 +355,16 @@ class Reader:
                     value = Reader(self._fd, data=value,
                                    little_endian=self._little_endian)
                 name = name[:-1]
-        
+
             self._data[name] = value
-            
+
     def get_tag(self):
         """Return special tag string."""
         return self._tag
-        
+
     def keys(self):
         return self._data.keys()
-    
+
     def asdict(self):
         """Read everything now and convert to dict."""
         dct = {}
@@ -375,9 +375,9 @@ class Reader:
                 value = value.asdict()
             dct[key] = value
         return dct
-        
+
     __dir__ = keys  # needed for tab-completion
-    
+
     def __getattr__(self, attr):
         value = self._data[attr]
         if isinstance(value, NDArrayReader):
@@ -386,7 +386,7 @@ class Reader:
 
     def __contains__(self, key):
         return key in self._data
-        
+
     def __iter__(self):
         yield self
         for i in range(self._index + 1, self._nitems):
@@ -394,13 +394,13 @@ class Reader:
             data = self._read_data(i)
             self._parse_data(data)
             yield self
-    
+
     def get(self, attr, value=None):
         try:
             return self.__getattr__(attr)
         except KeyError:
             return value
-            
+
     def proxy(self, name, *indices):
         value = self._data[name]
         assert isinstance(value, NDArrayReader)
@@ -410,17 +410,17 @@ class Reader:
 
     def __len__(self):
         return int(self._nitems)
-        
+
     def _read_data(self, index):
         self._fd.seek(self._offsets[index])
         size = readints(self._fd, 1)[0]
         data = decode(self._fd.read(size).decode())
         return data
-    
+
     def __getitem__(self, index):
         data = self._read_data(index)
         return Reader(self._fd, index, data, self._little_endian)
-        
+
     def tostr(self, verbose=False, indent='    '):
         keys = sorted(self._data)
         strings = []
@@ -437,14 +437,14 @@ class Reader:
                 s = str(value).replace('\n', '\n  ' + ' ' * len(key) + indent)
             strings.append('{0}{1}: {2}'.format(indent, key, s))
         return '{\n' + ',\n'.join(strings) + '}'
-           
+
     def __str__(self):
         return self.tostr(False, '').replace('\n', ' ')
 
     def close(self):
         self._fd.close()
-        
-        
+
+
 class NDArrayReader:
     def __init__(self, fd, shape, dtype, offset, little_endian):
         self.fd = fd
@@ -452,7 +452,7 @@ class NDArrayReader:
         self.dtype = dtype
         self.offset = offset
         self.little_endian = little_endian
-        
+
         self.ndim = len(self.shape)
         self.itemsize = dtype.itemsize
         self.size = np.prod(self.shape)
@@ -460,13 +460,13 @@ class NDArrayReader:
 
         self.scale = 1.0
         self.length_of_last_dimension = None
-        
+
     def __len__(self):
         return int(self.shape[0])  # Python-2.6 needs int
-        
+
     def read(self):
         return self[:]
-        
+
     def __getitem__(self, i):
         if isinstance(i, int):
             if i < 0:
@@ -504,26 +504,26 @@ class NDArrayReader:
                           offset, self.little_endian)
         p.scale = self.scale
         return p
-        
-        
+
+
 def print_aff_info(filename, index=None, verbose=False):
     b = affopen(filename, 'r')
     if index is None:
         indices = range(len(b))
     else:
         indices = [index]
-    print('{0}  (tag: "{1}", {2})'.format(filename, b.get_tag(),
+    print('{0}  (tag: {1!r}, {2})'.format(filename, b.get_tag(),
                                           plural(len(b), 'item')))
     for i in indices:
         print('item #{0}:'.format(i))
         print(b[i].tostr(verbose))
-        
-        
+
+
 def main():
     parser = optparse.OptionParser(
         usage='Usage: %prog [options] aff-file [item number]',
         description='Show content of aff-file')
-    
+
     add = parser.add_option
     add('-v', '--verbose', action='store_true')
     opts, args = parser.parse_args()
@@ -538,6 +538,6 @@ def main():
         index = None
     print_aff_info(filename, index, verbose=opts.verbose)
 
-    
+
 if __name__ == '__main__':
     main()

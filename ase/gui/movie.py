@@ -1,30 +1,23 @@
-import gtk
+import threading
 from gettext import gettext as _
-import gobject
 
 import numpy as np
 
-from ase.gui.widgets import pack
+import ase.gui.backend as be
 
 
-class Movie(gtk.Window):
+class Movie:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
-        self.set_position(gtk.WIN_POS_NONE)
-        self.connect('destroy', self.close)
-        self.set_title(_('Movie'))
-        vbox = gtk.VBox()
-        pack(vbox, gtk.Label(_('Image number:')))
-        self.frame_number = gtk.Adjustment(gui.frame, 0,
-                                           gui.images.nimages - 1,
-                                           1.0, 5.0)
-        self.frame_number.connect('value-changed', self.new_frame)
+        win = be.Window(_('Movie'))
+        win.connect('destroy', self.close)
+        win.add(be.Label(_('Image number:')))
+        self.frame_number = be.Scale(gui.frame, 0,
+                                     gui.images.nimages - 1,
+                                     1, 5,
+                                     callback=self.new_frame)
+        win.add(self.frame_number)
 
-        hscale = pack(vbox, gtk.HScale(self.frame_number))
-        hscale.set_update_policy(gtk.UPDATE_CONTINUOUS)
-        hscale.set_digits(0)
-
-        buttons = [gtk.Button(stock=gtk.STOCK_GOTO_FIRST),
+        win.add([be.Button('First', callback=self.click),
                    gtk.Button(stock=gtk.STOCK_GO_BACK),
                    gtk.Button(stock=gtk.STOCK_GO_FORWARD),
                    gtk.Button(stock=gtk.STOCK_GOTO_LAST)]
@@ -73,7 +66,7 @@ class Movie(gtk.Window):
     def notify_atoms_changed(self):
         """Called by gui object when the atoms have changed."""
         self.destroy()
-        
+
     def close(self, event):
         self.stop()
 
@@ -90,15 +83,15 @@ class Movie(gtk.Window):
             self.direction = np.sign(-step)
         else:
             self.direction = np.sign(step)
-            
+
     def new_frame(self, widget):
         self.gui.set_coordinates(int(self.frame_number.value))
 
     def play(self, widget=None):
-        if self.id is not None:
-            gobject.source_remove(self.id)
+        if self.timer is not None:
+            self.timer.cancel()
         t = int(1000.0 / float(self.time.value))
-        self.id = gobject.timeout_add(t, self.step)
+        self.timer = threading.Timer(t, self.step)
 
     def stop(self, widget=None):
         if self.id is not None:
@@ -113,7 +106,7 @@ class Movie(gtk.Window):
         i = self.gui.frame
         nimages = self.gui.images.nimages
         delta = int(self.skip.value + 1)
-        
+
         if self.rock.get_active():
             if i <= self.skip.value:
                 self.direction = 1
@@ -122,7 +115,7 @@ class Movie(gtk.Window):
             i += self.direction * delta
         else:
             i = (i + self.direction * delta + nimages) % nimages
-            
+
         self.frame_number.value = i
         return True
 
