@@ -205,10 +205,6 @@ class HinderedThermo(ThermoChem):
         i.e., 3*n, where n is the number of atoms. Note that this class does
         not check that the user has supplied the correct number of energies.
         Units of energies are eV.
-    potentialenergy : float
-        the potential energy in eV (e.g., from atoms.get_potential_energy)
-        (if potentialenergy is unspecified, then the methods of this class
-        can be interpreted as the energy corrections)
     trans_barrier_energy : float
         the translational energy barrier in eV. This is the barrier for an
         adsorbate to diffuse on the surface.
@@ -219,7 +215,18 @@ class HinderedThermo(ThermoChem):
         density of surface sites in cm^-2
     rotationalminima : integer
         the number of equivalent minima for an adsorabte's full rotation.
+    potentialenergy : float
+        the potential energy in eV (e.g., from atoms.get_potential_energy)
+        (if potentialenergy is unspecified, then the methods of this class
+        can be interpreted as the energy corrections)
         For example, 6 for an adsorbate on an fcc(111) top site
+    mass : float
+        the mass of the adsorbate in amu (if mass is unspecified, then it will
+        be calculated from the atoms class)
+    inertia : float
+        the reduced moment of inertia of the adsorbate in amu*Ang^-2
+        (if inertia is unspecified, then it will be calculated from the
+        atoms class)
     atoms : an ASE atoms object
         used to calculate rotational moments of inertia and molecular mass
     symmetrynumber : integer
@@ -228,39 +235,34 @@ class HinderedThermo(ThermoChem):
         For example, propane bound through its end carbon has a symmetry
         number of 1 but propane bound through its middle carbon has a symmetry
         number of 2. (if symmetrynumber is unspecified, then the default is 1)
-    mass : float
-        the mass of the adsorbate in amu (if mass is unspecified, then it will
-        be calculated from the atoms class)
-    inertia : float
-        the reduced moment of inertia of the adsorbate in amu*Ang^-2
-        (if inertia is unspecified, then it will be calculated from the
-        atoms class)
     """
 
     def __init__(self, vib_energies, trans_barrier_energy, rot_barrier_energy,
                  sitedensity, rotationalminima, potentialenergy=0.,
                  mass=None, inertia=None, atoms=None, symmetrynumber=1):
-        self.vib_energies = vib_energies[:-3]
-        self.potentialenergy = potentialenergy
+        self.vib_energies = sorted(vib_energies,reverse=True)[:-3]
         self.trans_barrier_energy = trans_barrier_energy * units._e
         self.rot_barrier_energy = rot_barrier_energy * units._e
         self.area = 1. / sitedensity / 100.0**2
         self.rotationalminima = rotationalminima
+        self.potentialenergy = potentialenergy
         self.atoms = atoms
         self.symmetry = symmetrynumber
 
-        if mass and inertia:
-            self.mass = mass * units._amu
-            self.inertia = inertia * units._amu / units.m**2
-        else:
-            if atoms:
+        if (mass or atoms) and (inertia or atoms):
+            if mass:
+                self.mass = mass * units._amu
+            elif atoms:
                 self.mass = np.sum(atoms.get_masses()) * units._amu
+            if inertia:
+                self.inertia = inertia * units._amu / units.m**2
+            elif atoms:
                 self.inertia = (rotationalinertia(atoms)[2] *
                                 units._amu / units.m**2)
-            else:
-                raise RuntimeError('Either mass and inertia of the '
-                                   'adsorbate must be specified or '
-                                   'atoms must be specified.')
+        else:
+            raise RuntimeError('Either mass and inertia of the '
+                               'adsorbate must be specified or '
+                               'atoms must be specified.')
 
         # Make sure no imaginary frequencies remain.
         if sum(np.iscomplex(self.vib_energies)):
@@ -268,9 +270,16 @@ class HinderedThermo(ThermoChem):
         else:
             self.vib_energies = np.real(self.vib_energies)  # clear +0.j
 
+        # Calculate hindered translational and rotational frequencies
+        self.freq_t = np.sqrt(self.trans_barrier_energy / (2 * self.mass *
+                  self.area))
+        self.freq_r = 1. / (2 * np.pi) * np.sqrt(self.rotationalminima**2 * 
+                  self.rot_barrier_energy / (2 * self.inertia))
+
     def get_internal_energy(self, temperature, verbose=True):
-        """Returns the internal energy, in eV, in the hindered translator
-        and hindered rotor model at a specified temperature (K)."""
+        """Returns the internal energy (including the zero point energy),
+        in eV, in the hindered translator and hindered rotor model at a
+        specified temperature (K)."""
 
         from scipy.special import iv
 
@@ -286,46 +295,49 @@ class HinderedThermo(ThermoChem):
         U += self.potentialenergy
 
         # Translational Energy
-        freq_t = np.sqrt(self.trans_barrier_energy / (2 * self.mass *
-                  self.area))
-        T_t = units._k * temperature / (units._hplanck * freq_t)
-        R_t = self.trans_barrier_energy / (units._hplanck * freq_t)
+        T_t = units._k * temperature / (units._hplanck * self.freq_t)
+        R_t = self.trans_barrier_energy / (units._hplanck * self.freq_t)
         dU_t = 2 * (-1./2 - 1./T_t/(2+16*R_t) + R_t/2/T_t 
                 - R_t/2/T_t*iv(1,R_t/2/T_t)/iv(0,R_t/2/T_t)
                 + 1./T_t/(np.exp(1./T_t)-1))
         dU_t *= units.kB * temperature
-        write(fmt % ('Cv_trans (0->T)', dU_t))
+        write(fmt % ('E_trans', dU_t))
         U += dU_t
 
         # Rotational Energy
-        freq_r = 1. / (2 * np.pi) * np.sqrt(self.rotationalminima**2 * 
-                  self.rot_barrier_energy / (2 * self.inertia))
-        T_r = units._k * temperature / (units._hplanck * freq_r)
-        R_r = self.rot_barrier_energy / (units._hplanck * freq_r)
+        T_r = units._k * temperature / (units._hplanck * self.freq_r)
+        R_r = self.rot_barrier_energy / (units._hplanck * self.freq_r)
         dU_r = (-1./2 - 1./T_r/(2+16*R_r) + R_r/2/T_r 
                 - R_r/2/T_r*iv(1,R_r/2/T_r)/iv(0,R_r/2/T_r)
                 + 1./T_r/(np.exp(1./T_r)-1))
         dU_r *= units.kB * temperature
-        write(fmt % ('Cv_rot (0->T)', dU_r))
+        write(fmt % ('E_rot', dU_r))
         U += dU_r
 
         # Vibrational Energy
         dU_v = self._vibrational_energy_contribution(temperature)
-        write(fmt % ('Cv_vib (0->T)', dU_v))
+        write(fmt % ('E_vib', dU_v))
         U += dU_v
 
-        # Calculate Zero Point Energy
-        zpe_t = 2 * (1./2 * freq_t * units._hplanck / units._e)
-        zpe_r = 1./2 * freq_r * units._hplanck / units._e
-        zpe_v = self.get_ZPE_correction()
-        zpe = zpe_t + zpe_r + zpe_v
-        write(fmt % ('E_ZPE', zpe))
-        U += zpe
+        # Zero Point Energy
+        dU_zpe = self.get_zero_point_energy()
+        write(fmt % ('E_ZPE', dU_zpe))
+        U += dU_zpe
 
         write('-' * 31)
         write(fmt % ('U', U))
         write('=' * 31)
         return U
+
+    def get_zero_point_energy(self, verbose=True):
+        """Returns the zero point energy, in eV, in the hindered
+        translator and hindered rotor model"""
+
+        zpe_t = 2 * (1./2 * self.freq_t * units._hplanck / units._e)
+        zpe_r = 1./2 * self.freq_r * units._hplanck / units._e
+        zpe_v = self.get_ZPE_correction()
+        zpe = zpe_t + zpe_r + zpe_v
+        return zpe
 
     def get_entropy(self, temperature, verbose=True):
         """Returns the entropy, in eV/K, in the hindered translator
@@ -343,10 +355,8 @@ class HinderedThermo(ThermoChem):
         S = 0.
 
         # Translational Entropy
-        freq_t = np.sqrt(self.trans_barrier_energy / (2 * self.mass *
-                  self.area))
-        T_t = units._k * temperature / (units._hplanck * freq_t)
-        R_t = self.trans_barrier_energy / (units._hplanck * freq_t)
+        T_t = units._k * temperature / (units._hplanck * self.freq_t)
+        R_t = self.trans_barrier_energy / (units._hplanck * self.freq_t)
         S_t = 2 * (-1./2 + 1./2*np.log(np.pi*R_t/T_t) 
                - R_t/2/T_t*iv(1,R_t/2/T_t)/iv(0,R_t/2/T_t) 
                + np.log(iv(0,R_t/2/T_t))
@@ -356,10 +366,8 @@ class HinderedThermo(ThermoChem):
         S += S_t
 
         # Rotational Entropy
-        freq_r = 1. / (2 * np.pi) * np.sqrt(self.rotationalminima**2 * 
-                  self.rot_barrier_energy / (2 * self.inertia))
-        T_r = units._k * temperature / (units._hplanck * freq_r)
-        R_r = self.rot_barrier_energy / (units._hplanck * freq_r)
+        T_r = units._k * temperature / (units._hplanck * self.freq_r)
+        R_r = self.rot_barrier_energy / (units._hplanck * self.freq_r)
         S_r = (-1./2 + 1./2*np.log(np.pi*R_r/T_r) - np.log(self.symmetry)
                - R_r/2/T_r*iv(1,R_r/2/T_r)/iv(0,R_r/2/T_r) 
                + np.log(iv(0,R_r/2/T_r))
