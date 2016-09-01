@@ -1,43 +1,33 @@
 import threading
-from gettext import gettext as _
 
 import numpy as np
 
-import ase.gui.backend as be
+import ase.gui.ui as ui
 
 
 class Movie:
     def __init__(self, gui):
-        win = be.Window(_('Movie'))
-        win.connect('destroy', self.close)
-        win.add(be.Label(_('Image number:')))
-        self.frame_number = be.Scale(gui.frame, 0,
-                                     gui.images.nimages - 1,
-                                     1, 5,
-                                     callback=self.new_frame)
-        win.add(self.frame_number)
+        win = ui.Window('Movie')
+        #win.connect('destroy', self.close)
+        win.add('Image number:')
+        #self.frame_number = be.Scale(gui.frame, 0,
+        #                             gui.images.nimages - 1,
+        #                             1, 5,
+        #                             callback=self.new_frame)
+        #win.add(self.frame_number)
 
-        win.add([be.Button('First', callback=self.click),
-                   gtk.Button(stock=gtk.STOCK_GO_BACK),
-                   gtk.Button(stock=gtk.STOCK_GO_FORWARD),
-                   gtk.Button(stock=gtk.STOCK_GOTO_LAST)]
+        win.add([ui.Button('First', self.click, -1, True),
+                 ui.Button('Back', self.click, -1),
+                 ui.Button('Forward', self.click, 1),
+                 ui.Button('Last', self.click, 1, True)])
 
-        buttons[0].connect('clicked', self.click, -1, True)
-        buttons[1].connect('clicked', self.click, -1)
-        buttons[2].connect('clicked', self.click, 1)
-        buttons[3].connect('clicked', self.click, 1, True)
-
-        pack(vbox, buttons)
-
-        play = gtk.Button(_('Play'))
-        play.connect('clicked', self.play)
-        stop = gtk.Button(_('Stop'))
-        stop.connect('clicked', self.stop)
+        play = ui.Button('Play', self.play)
+        stop = ui.Button('Stop', self.stop)
         # TRANSLATORS: This function plays an animation forwards and backwards
         # alternatingly, e.g. for displaying vibrational movement
-        self.rock = gtk.CheckButton(_('Rock'))
+        self.rock = ui.CheckButton('Rock')
 
-        pack(vbox, [play, stop, gtk.Label('  '), self.rock])
+        win.add([play, stop, self.rock])
 
         if gui.images.nimages > 150:
             skipdefault = gui.images.nimages // 150
@@ -46,21 +36,13 @@ class Movie:
         else:
             skipdefault = 0
             tdefault = min(max(gui.images.nimages / 5.0, 1.0), 30)
-        self.time = gtk.Adjustment(tdefault, 1.0, 99, 0.1)
-        self.time_spin = gtk.SpinButton(self.time, 0, 0)
-        self.time_spin.set_digits(1)
-        self.time.connect('value-changed', self.frame_rate_changed)
-        self.skip = gtk.Adjustment(skipdefault, 0, 99, 1)
-        self.skip_spin = gtk.SpinButton(self.skip, 0, 0)
-        pack(vbox, [gtk.Label(_(' Frame rate: ')), self.time_spin,
-                    gtk.Label(_(' Skip frames: ')), self.skip_spin,
-                    gtk.Label('   ')])
-        self.add(vbox)
-        vbox.show()
-        self.show()
+        self.time = ui.SpinButton(tdefault, 1.0, 99, 0.1)
+        self.skip = ui.SpinButton(skipdefault, 0, 99, 1)
+        win.add([' Frame rate: ', self.time, ' Skip frames: ', self.skip])
+
         self.gui = gui
         self.direction = 1
-        self.id = None
+        self.timer = None
         gui.register_vulnerable(self)
 
     def notify_atoms_changed(self):
@@ -70,7 +52,7 @@ class Movie:
     def close(self, event):
         self.stop()
 
-    def click(self, button, step, firstlast=False):
+    def click(self, step, firstlast=False):
         if firstlast and step < 0:
             i = 0
         elif firstlast:
@@ -97,10 +79,6 @@ class Movie:
         if self.id is not None:
             gobject.source_remove(self.id)
             self.id = None
-
-    def frame_rate_changed(self, widget=None):
-        if self.id is not None:
-            self.play()
 
     def step(self):
         i = self.gui.frame

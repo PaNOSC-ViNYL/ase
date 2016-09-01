@@ -1,3 +1,4 @@
+import functools
 try:
     import tkinter as tk
 except ImportError:
@@ -87,17 +88,17 @@ class MainWindow:
                           anchor=tk.W)
         status.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.canvas.bind('<ButtonPress>', Handler(press))
-        self.canvas.bind('<B1-Motion>', Handler(move))
-        self.canvas.bind('<B3-Motion>', Handler(move))
-        self.canvas.bind('<ButtonRelease>', Handler(release))
+        self.canvas.bind('<ButtonPress>', bind(press))
+        self.canvas.bind('<B1-Motion>', bind(move))
+        self.canvas.bind('<B3-Motion>', bind(move))
+        self.canvas.bind('<ButtonRelease>', bind(release))
         self.canvas.bind('<Control-ButtonRelease>',
-                         Handler(release, 'ctrl'))
-        self.root.bind('<Key>', Handler(scroll))
-        self.root.bind('<Shift-Key>', Handler(scroll, 'shift'))
-        self.root.bind('<Control-Key>', Handler(scroll, 'ctrl'))
-        #self.canvas.bind('<B4>', Handler(scroll_event))
-        #self.canvas.bind('<Shift-MouseWheel>', Handler(scroll_event, 'shift'))
+                         bind(release, 'ctrl'))
+        self.root.bind('<Key>', bind(scroll))
+        self.root.bind('<Shift-Key>', bind(scroll, 'shift'))
+        self.root.bind('<Control-Key>', bind(scroll, 'ctrl'))
+        #self.canvas.bind('<B4>', bind(scroll_event))
+        #self.canvas.bind('<Shift-MouseWheel>', bind(scroll_event, 'shift'))
         # self.root.bind('<Configure>', configure_event)
         # self.drawing_area.connect('expose_event', self.expose_event)
 
@@ -149,44 +150,80 @@ class MainWindow:
         self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color)
 
 
-class Handler:
-    def __init__(self, callback, modifier=None):
-        self.callback = callback
-        self.modifier = modifier
-
-    def __call__(self, event):
-        self.callback(Event(event, self.modifier))
-
-
-class Event:
-    def __init__(self, event, modifier):
-        print(event.delta, event.keysym)
-        self.x = event.x
-        self.y = event.y
-        self.time = event.time
-        self.button = event.num
-        self.modifier = modifier
-        self.key = event.keysym.lower()
-
-        if 1:
-            print(self.x,
-                  self.y,
-                  self.time,
-                  self.button,
-                  self.modifier)
+def bind(callback, modifier=None):
+    def handle(event):
+        event.button = event.num
+        event.key = event.keysym.lower()
+        event.modifier = modifier
+        callback(event)
+    return handle
 
 
 class Window:
-    def __init__(self, stuff):
-        for line in stuff:
-            pass  # box = Box()
-            # pack
+    def __init__(self, title):
+        self.top = tk.Toplevel()
+        self.top.title(gettext(title))
+        
+    def add(self, stuff):
+        if isinstance(stuff, str):
+            stuff = Label(stuff)
+        if isinstance(stuff, list):
+            frame = tk.Frame(self.top)
+            for thing in stuff:
+                if isinstance(thing, str):
+                    thing = Label(thing)
+                thing.pack(frame, 'left')
+            frame.pack()
+        else:
+            stuff.pack(self.top)
 
 
-class Button:
-    pass
+class Widget:
+    def pack(self, parent, side='top'):
+        side = getattr(tk, side.upper())
+        widget = self.create(parent)
+        widget.pack(side=side)
+        
+        
+class Label(Widget):
+    def __init__(self, text):
+        self.text = gettext(text)
+        
+    def create(self, parent):
+        return tk.Label(parent, text=self.text)
+    
+    
+class Button(Widget):
+    def __init__(self, text, on_press, *args, **kwargs):
+        self.text = gettext(text)
+        self.on_press = functools.partial(on_press, *args, **kwargs)
+        
+    def create(self, parent):
+        return tk.Button(parent, text=self.text, command=self.on_press)
 
-"""
-Entry
-Text
-"""
+        
+class CheckButton(Widget):
+    def __init__(self, text, value=False):
+        self.text = gettext(text)
+        self.var = tk.BooleanVar(value=value)
+        
+    def create(self, parent):
+        self.check = tk.CheckButton(parent, text=self.text, var=self.var)
+        return self.check
+
+    @property
+    def value(self):
+        return self.var.get()
+        
+        
+class Spinbox(Widget):
+    def __init__(self, value=False):
+        self.text = gettext(text)
+        
+    def create(self, parent):
+        self.spin = tk.Spinbox(parent, text=self.text, var=self.var)
+        return self.spin
+
+    @property
+    def value(self):
+        return self.spin.get()
