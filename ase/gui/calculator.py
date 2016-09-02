@@ -1,7 +1,6 @@
 # encoding: utf-8
 """calculator.py - module for choosing a calculator."""
 
-import gtk
 from gettext import gettext as _
 import os
 import numpy as np
@@ -629,7 +628,7 @@ class SetCalculator(SetupWindow):
         return True
  
 
-class InfoButton(gtk.Button):
+class InfoButton:
     def __init__(self, txt):
         gtk.Button.__init__(self, _("Info"))
         self.txt = txt
@@ -644,7 +643,7 @@ class InfoButton(gtk.Button):
         dialog.show()
 
 
-class LJ_Window(gtk.Window):
+class LJ_Window:
     def __init__(self, owner, param, attrname):
         gtk.Window.__init__(self)
         self.set_title(_("Lennard-Jones parameters"))
@@ -746,7 +745,7 @@ class LJ_Window(gtk.Window):
         self.destroy()
 
 
-class EAM_Window(gtk.Window):
+class EAM_Window:
     def __init__(self, owner, param, attrname):
         gtk.Window.__init__(self)
         self.set_title(_("EAM parameters"))
@@ -811,7 +810,7 @@ class EAM_Window(gtk.Window):
         chooser.destroy()
 
 
-class GPAW_Window(gtk.Window):
+class GPAW_Window:
     gpaw_xc_list = ['LDA', 'PBE', 'RPBE', 'revPBE']
     gpaw_xc_default = 'PBE'
 
@@ -1091,7 +1090,7 @@ class GPAW_Window(gtk.Window):
         self.destroy()
 
 
-class AIMS_Window(gtk.Window):
+class AIMS_Window:
     aims_xc_cluster = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
                     'blyp','am05','b3lyp','hse03','hse06','pbe0','pbesol0',
                     'hf','mp2']
@@ -1580,7 +1579,7 @@ class AIMS_Window(gtk.Window):
         self.expert_keywords[index][3] = False
 
 
-class ExpertDeleteButton(gtk.Button):
+class ExpertDeleteButton:
     def __init__(self, index):
         gtk.Button.__init__(self, stock=gtk.STOCK_DELETE)
         alignment = self.get_children()[0]
@@ -1592,7 +1591,7 @@ class ExpertDeleteButton(gtk.Button):
         self.index = index
 
 
-class VASP_Window(gtk.Window):
+class VASP_Window:
     vasp_xc_list = ['PW91', 'PBE', 'LDA']
     vasp_xc_default = 'PBE'
     vasp_prec_default = 'Normal'

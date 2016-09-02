@@ -1,11 +1,10 @@
-import gtk
 from gettext import gettext as _
 
 from ase.gui.widgets import pack
 from ase.utils import rotate, irotate
 
 
-class Rotate(gtk.Window):
+class Rotate:
     update = True
     
     def __init__(self, gui):

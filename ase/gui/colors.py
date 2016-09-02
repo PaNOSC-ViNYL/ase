@@ -2,8 +2,6 @@ from __future__ import print_function
 # encoding: utf-8
 """colors.py - select how to color the atoms in the GUI."""
 
-
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 import ase
@@ -16,7 +14,7 @@ named_colors = ('Green', 'Yellow', 'Blue', 'Red', 'Orange', 'Cyan',
                 'Navy')
 
 
-class ColorWindow(gtk.Window):
+class ColorWindow:
     "A window for selecting how to color the atoms."
     def __init__(self, gui):
         gtk.Window.__init__(self)
@@ -61,8 +59,8 @@ class ColorWindow(gtk.Window):
         self.charge_box = gtk.VBox()
         self.magnetic_moment_box = gtk.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
-                       self.radio_force, self.force_box, 
-                       self.radio_velocity, self.velocity_box, 
+                       self.radio_force, self.force_box,
+                       self.radio_velocity, self.velocity_box,
                        self.radio_charge, self.charge_box,
                        self.radio_magnetic_moment,
                        self.magnetic_moment_box,
@@ -667,4 +665,3 @@ class ColorWindow(gtk.Window):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-        

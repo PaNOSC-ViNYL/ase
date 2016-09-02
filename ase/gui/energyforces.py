@@ -2,7 +2,6 @@
 
 "Module for calculating energies and forces."
 
-import gtk
 from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import pack

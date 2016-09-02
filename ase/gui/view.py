@@ -333,14 +333,14 @@ class View:
         self.images.visible[self.images.selected] = True
         self.draw()
 
-    def repeat_window(self, menuitem):
+    def repeat_window(self):
         self.reset_tools_modes()
         Repeat(self)
 
-    def rotate_window(self, menuitem):
+    def rotate_window(self):
         Rotate(self)
 
-    def colors_window(self, menuitem):
+    def colors_window(self):
         ColorWindow(self)
 
     def focus(self, x=None):

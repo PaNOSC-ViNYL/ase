@@ -2,7 +2,6 @@
 """nanoparticle.py - Window for setting up crystalline nanoparticles.
 """
 
-import gtk
 from gettext import gettext as _
 from copy import copy
 from ase.gui.widgets import pack, cancel_apply_ok, oops, help
@@ -190,7 +189,7 @@ class SetupNanoparticle(SetupWindow):
         # the list of directions is changed.
         self.direction_table_box = gtk.VBox()
         pack(framebox, self.direction_table_box)
-        pack(self.direction_table_box, 
+        pack(self.direction_table_box,
              gtk.Label(_("Dummy placeholder object")))
         pack(framebox, gtk.Label(""))
         pack(framebox, [gtk.Label(_("Add new direction:"))])
@@ -540,7 +539,7 @@ class SetupNanoparticle(SetupWindow):
             # Wulff construction
             assert self.method.get_active() == 1
             surfaces = [x[0] for x in self.direction_table]
-            surfaceenergies = [x[2].value for x in self.direction_table]            
+            surfaceenergies = [x[2].value for x in self.direction_table]
             self.update_size_dia()
             if self.round_above.get_active():
                 rounding = "above"
@@ -619,4 +618,3 @@ class SetupNanoparticle(SetupWindow):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-            

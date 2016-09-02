@@ -2,9 +2,8 @@ import pickle
 import subprocess
 import sys
 
-import gtk
 from gettext import gettext as _
-from ase.gui.widgets import pack, help
+import ase.gui.ui as ui
 
 graph_help_text = _("""\
 Help for plot ...
@@ -30,48 +29,29 @@ Symbols:
 """)
 
 
-class Graphs(gtk.Window):
+class Graphs:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
-        self.set_title('Graphs')
-        vbox = gtk.VBox()
-        self.expr = pack(vbox, [gtk.Entry(64),
-                                help(graph_help_text)])[0]
-        self.expr.connect('activate', self.plot)
+        win = ui.Window('Graphs')
+        self.expr = ui.Entry('', 50, self.plot)
+        win.add([self.expr, 'help'])  # help(graph_help_text)])
+        # completion:  ['fmax', 's, e-E[0]', 'i, d(0,1)'] ????
 
-        completion = gtk.EntryCompletion()
-        self.liststore = gtk.ListStore(str)
-        for s in ['fmax', 's, e-E[0]', 'i, d(0,1)']:
-            self.liststore.append([s])
-        completion.set_model(self.liststore)
-        self.expr.set_completion(completion)
-        completion.set_text_column(0)
+        win.add([ui.Button('Plot', self.plot, 'xy'), ' x, y1, y2, ...'], 'w')
+        win.add([ui.Button('Plot', self.plot, 'y'), ' y1, y2, ...'], 'w')
 
-        button = pack(vbox, [gtk.Button(_('Plot')),
-                             gtk.Label(' x, y1, y2, ...')])[0]
-        button.connect('clicked', self.plot, 'xy')
-        button = pack(vbox, [gtk.Button(_('Plot')),
-                             gtk.Label(' y1, y2, ...')])[0]
-        button.connect('clicked', self.plot, 'y')
-        save_button = gtk.Button(stock=gtk.STOCK_SAVE)
-        save_button.connect('clicked', self.save)
-        clear_button = gtk.Button(_('clear'))
-        clear_button.connect('clicked', self.clear)
-        pack(vbox, [save_button, clear_button])
+        win.add([ui.Button('Save', self.save),
+                 ui.Button('Clear', self.clear)], 'w')
 
-        self.add(vbox)
-        vbox.show()
-        self.show()
         self.gui = gui
 
-    def plot(self, button=None, type=None, expr=None):
+    def plot(self, type=None, expr=None):
         if expr is None:
-            expr = self.expr.get_text()
+            expr = self.expr.value
         else:
-            self.expr.set_text(expr)
+            self.expr.value = expr
 
-        if expr not in [row[0] for row in self.liststore]:
-            self.liststore.append([expr])
+        #if expr not in [row[0] for row in self.liststore]:
+        #    self.liststore.append([expr])
 
         data = self.gui.images.graph(expr)
         
@@ -104,7 +84,7 @@ class Graphs(gtk.Window):
             fd.close()
         chooser.destroy()
 
-    def clear(self, button):
+    def clear(self):
         for process in self.gui.graphs:
             process.terminate()
         self.gui.graphs = []

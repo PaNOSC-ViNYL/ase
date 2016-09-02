@@ -2,8 +2,6 @@
 """nanotube.py - Window for setting up Graphene sheets and ribbons.
 """
 
-
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
@@ -258,6 +256,3 @@ class SetupGraphene(SetupWindow):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-            
-            
-                                                 

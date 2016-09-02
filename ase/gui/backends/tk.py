@@ -121,6 +121,9 @@ class MainWindow:
     def __getitem__(self, name):
         return self.menu[name].get()
 
+    def __setitem__(self, name, value):
+        return self.menu[name].set(value)
+
     def title(self, txt):
         self.root.title(txt)
 
@@ -171,7 +174,7 @@ class Window:
     def close(self):
         self.top.destroy()
         
-    def add(self, stuff):
+    def add(self, stuff, anchor='center'):
         if isinstance(stuff, str):
             stuff = Label(stuff)
         if isinstance(stuff, list):
@@ -180,15 +183,15 @@ class Window:
                 if isinstance(thing, str):
                     thing = Label(thing)
                 thing.pack(frame, 'left')
-            frame.pack()
+            frame.pack(anchor=anchor)
         else:
-            stuff.pack(self.top)
+            stuff.pack(self.top, anchor=anchor)
 
 
 class Widget(object):
-    def pack(self, parent, side='top'):
+    def pack(self, parent, side='top', anchor='center'):
         widget = self.create(parent)
-        widget.pack(side=side)
+        widget.pack(side=side, anchor=anchor)
         
     def create(self, parent):
         self.widget = self.creator(parent)
@@ -227,23 +230,51 @@ class CheckButton(Widget):
         
         
 class SpinBox(Widget):
-    def __init__(self, value, start, end, step):
+    def __init__(self, value, start, end, step, on_change=None):
         self.creator = partial(tk.Spinbox,
                                from_=start,
                                to=end,
                                increment=step,
+                               command=on_change,
                                width=6)
         self.initial = str(value)
         
     def create(self, parent):
         self.spin = self.creator(parent)
-        self.spin.delete(0, 'end')
-        self.spin.insert(0, self.initial)
+        self.spin.value = self.initial
         return self.spin
         
     @property
     def value(self):
         return float(self.spin.get().replace(',', '.'))
+
+    @value.setter
+    def value(self, x):
+        self.spin.delete(0, 'end')
+        self.spin.insert(0, x)
+        
+        
+class Entry(Widget):
+    def __init__(self, value='', width=20, callback=None):
+        self.creator = partial(tk.Entry,
+                               width=width)
+        self.callback = lambda event: callback()
+        self.initial = value
+        
+    def create(self, parent):
+        self.entry = self.creator(parent)
+        self.value = self.initial
+        self.entry.bind('<Return>', self.callback)
+        return self.entry
+        
+    @property
+    def value(self):
+        return self.entry.get()
+
+    @value.setter
+    def value(self, x):
+        self.entry.delete(0, 'end')
+        self.entry.insert(0, x)
 
         
 class Scale(Widget):

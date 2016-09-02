@@ -9,7 +9,7 @@ from gettext import gettext as _, ngettext
 import numpy as np
 
 from ase import __version__
-import ase.gui.backend as be
+import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.defaults import read_defaults
@@ -47,7 +47,7 @@ class GUI(View, Status):
 
         menu = self.get_menu_data(show_unit_cell, show_bonds)
 
-        self.window = be.MainWindow(menu, self.config,
+        self.window = ui.MainWindow(menu, self.config,
                                     self.exit, self.scroll,
                                     self.scroll_event,
                                     self.press, self.move, self.release)

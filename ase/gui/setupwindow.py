@@ -2,13 +2,12 @@
 """setupwindow.py - Window base class for setup modules.
 """
 
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack
 import ase
 
 
-class SetupWindow(gtk.Window):
+class SetupWindow:
     "Base class for ase.gui setup windows."
     # __init__ inherited from gtk.Window
 

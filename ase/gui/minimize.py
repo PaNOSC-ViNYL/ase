@@ -2,7 +2,6 @@
 
 "Module for performing energy minimization."
 
-import gtk
 from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import pack, AseGuiCancelException

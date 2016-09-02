@@ -1,12 +1,11 @@
 "Base class for simulation windows"
 
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import oops, pack, help
 from ase import Atoms
 from ase.constraints import FixAtoms
 
-class Simulation(gtk.Window):
+class Simulation:
     def __init__(self, gui):
         gtk.Window.__init__(self)
         self.gui = gui

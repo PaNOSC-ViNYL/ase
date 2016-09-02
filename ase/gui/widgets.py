@@ -1,42 +1,12 @@
 from __future__ import print_function
 import sys
 from gettext import gettext as _
-import gtk
 import re
 
 
-class Number(gtk.SpinButton):
-    def __init__(self, value=0,
-                 lower=0, upper=10000,
-                 step_incr=1, page_incr=10,
-                 climb_rate=0.5, digits=0):
-        self.adj = gtk.Adjustment(value, lower, upper, step_incr, page_incr, 0)
-        gtk.SpinButton.__init__(self, self.adj, climb_rate, digits)
-
-    def connect(self, *args):
-        return self.adj.connect(*args)
 
 
-class Menu:
-    def __init__(self, menubar, name, items):
-        self.items = {}
-        menu = gtk.Menu()
-        for data in items:
-            text = data[0]
-            callback = data[1]
-            args = data[2:]
-            menuitem = gtk.MenuItem(text)
-            menu.append(menuitem)
-            menuitem.connect('activate', callback, *args)
-            menuitem.show()
-            self.items[text] = menuitem
-        menuitem = gtk.MenuItem(name)
-        menubar.append(menuitem)
-        menuitem.set_submenu(menu)
-        menuitem.show()
-
-
-class Help(gtk.Window):
+class Help:
     __instance = None
 
     def __new__(cls, *args, **kwargs):
@@ -89,7 +59,7 @@ def help(text):
     return button
 
 
-class Window(gtk.Window):
+class Window:
     def __init__(self, gui):
         self.gui = gui
         gtk.Window.__init__(self)
@@ -135,7 +105,7 @@ def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
     return widgets
 
     
-class cancel_apply_ok(gtk.HButtonBox):
+class cancel_apply_ok:
     "Widget with Cancel, Apply and OK buttons.  The arguments are callbacks."
     def __init__(self, cancel, apply, ok):
         gtk.HButtonBox.__init__(self)

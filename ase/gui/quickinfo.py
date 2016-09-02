@@ -2,7 +2,6 @@
 
 "Module for displaying information about the system."
 
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack
 
@@ -25,7 +24,7 @@ Unit cell:
 %s
 """)
 
-class QuickInfo(gtk.Window):
+class QuickInfo:
     def __init__(self, gui):
         gtk.Window.__init__(self)
         self.set_title(_("Quick Info"))
@@ -58,7 +57,7 @@ class QuickInfo(gtk.Window):
             
             # TRANSLATORS: This has the form Periodic: no, no, yes
             pbcstring = _('Periodic: %s, %s, %s') % tuple(periodic)
-            txt = format % ((imgtxt, natoms) + tuple(uc.flat) + 
+            txt = format % ((imgtxt, natoms) + tuple(uc.flat) +
                             (pbcstring,) + (uctxt,))
         label = gtk.Label(txt)
         pack(vbox, [label])

@@ -2,7 +2,6 @@
 
 "Module for homogeneous deformation and calculations of elastic constants."
 
-import gtk
 from gettext import gettext as _
 from ase.gui.simulation import Simulation
 from ase.gui.minimize import MinimizeMixin
@@ -56,8 +55,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
 
         # Radio buttons for choosing deformation mode.
         tbl = gtk.Table(4,3)
-        for i, l in enumerate([_('3D deformation   '), 
-                               _('2D deformation   '), 
+        for i, l in enumerate([_('3D deformation   '),
+                               _('2D deformation   '),
                                _('1D deformation   ')]):
             lbl = gtk.Label(l)
             tbl.attach(lbl, i, i+1, 0, 1)
@@ -139,7 +138,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
 
         # Output field
         #label = gtk.Label("Strain\t\tEnergy [eV]\n")
-        outframe = self.makeoutputfield(None, 
+        outframe = self.makeoutputfield(None,
                                         heading=_("Strain\t\tEnergy [eV]"))
         fitframe = gtk.Frame(_("Fit:"))
         fitframe.set_size_request(100,150)
@@ -168,7 +167,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         for w in [outframe, fitframe]:
             hbox.pack_start(w)
             w.show()
-        pack(vbox, hbox)    
+        pack(vbox, hbox)
         pack(vbox, gtk.Label(""))
 
         # Status field
@@ -182,34 +181,34 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.makebutbox(vbox, helptext=help_txt)
         vbox.show()
         if self.use_scrollbar:
-            self.scrwin = gtk.ScrolledWindow() 
-            self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC) 
-            self.scrwin.add_with_viewport(vbox) 
-            self.scrwin.show() 
-            self.add(self.scrwin) 
+            self.scrwin = gtk.ScrolledWindow()
+            self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.scrwin.add_with_viewport(vbox)
+            self.scrwin.show()
+            self.add(self.scrwin)
             self.scaling_is_ready = True
-            self.set_reasonable_size() 
+            self.set_reasonable_size()
         else:
             self.add(vbox)
         self.show()
         self.gui.register_vulnerable(self)
         
-    def set_reasonable_size(self, resize=False): 
+    def set_reasonable_size(self, resize=False):
         if not self.use_scrollbar or not self.scaling_is_ready:
             return
-        x, y = self.scrwin.get_children()[0].size_request() 
+        x, y = self.scrwin.get_children()[0].size_request()
         x += self.scrwin.get_vscrollbar().size_request()[0] + 5
         y += self.scrwin.get_hscrollbar().size_request()[1] + 5
 
-        if resize: 
-            xdef, ydef = self.get_default_size() 
-            xnow, ynow = self.get_size() 
-            if xdef == xnow and ydef == ynow: 
-                # The user has not changed the size.  Resize should be OK 
-                self.resize(x,y) 
-                self.set_default_size(x,y) 
-        else: 
-            self.set_default_size(x,y) 
+        if resize:
+            xdef, ydef = self.get_default_size()
+            xnow, ynow = self.get_size()
+            if xdef == xnow and ydef == ynow:
+                # The user has not changed the size.  Resize should be OK
+                self.resize(x,y)
+                self.set_default_size(x,y)
+        else:
+            self.set_default_size(x,y)
                   
     def min_algo_specific(self, *args):
         MinimizeMixin.min_algo_specific(self, *args)
@@ -383,14 +382,14 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             self.activate_output()
             if stored_atoms:
                 self.gui.notify_vulnerable()
-        self.end()    
+        self.end()
             
         # If we store all configurations: Open movie window and energy graph
         if stored_atoms and self.gui.images.nimages > 1:
             self.gui.movie()
             assert not np.isnan(self.gui.images.E[0])
             if not self.gui.plot_graphs_newatoms():
-                expr = 'i, e - E[-1]'            
+                expr = 'i, e - E[-1]'
                 self.gui.plot_graphs(expr=expr)
             # Continuations should use the best image
             nbest = np.argmin(np.array(results)[:,1])
@@ -459,4 +458,3 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                     self.minimum_ok = True
                     self.x0 = x0
         self.fit_output.set_text(txt)
-        

@@ -2,7 +2,6 @@
 """surfaceslab.py - Window for setting up surfaces
 """
 from __future__ import division
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton

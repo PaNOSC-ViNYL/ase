@@ -25,13 +25,12 @@ Displays the Python code.  This object is created by the PyButton
 object when needed.
 """
 
-import gtk
 from gettext import gettext as _
 import time
 from ase.gui.widgets import oops, pack
 
 
-class PyButton(gtk.Button):
+class PyButton:
     "A button for displaying Python code."
     def __init__(self, title):
         gtk.Button.__init__(self, _("Python"))
@@ -54,7 +53,7 @@ Title: %(title)s
 Time: %(time)s
 """)
 
-class PyWindow(gtk.Window):
+class PyWindow:
     "A window displaying Python code."
     def __init__(self, title, time, code):
         gtk.Window.__init__(self)

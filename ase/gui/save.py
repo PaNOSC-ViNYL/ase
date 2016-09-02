@@ -2,7 +2,6 @@
 import os
 
 import numpy as np
-import gtk
 from gettext import gettext as _
 
 from ase.io.formats import (write, parse_filename, get_ioformat, string2index,

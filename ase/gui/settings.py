@@ -1,8 +1,7 @@
-import gtk
 from ase.gui.widgets import pack
 from gettext import gettext as _
 
-class Settings(gtk.Window):
+class Settings:
     def __init__(self, gui):
         gtk.Window.__init__(self)
         self.set_title('Settings')
@@ -15,7 +14,7 @@ class Settings(gtk.Window):
                      '%s</span>' % _('Constraints:'))
         a, b = pack(vbox, [gtk.Button(_('Constrain')),
                            gtk.Label('/'),
-                           gtk.Button(_('release')),                        
+                           gtk.Button(_('release')),
                            gtk.Label(_(' selected atoms'))])[::2]
         a.connect('clicked', self.constrain_selected)
         b.connect('clicked', self.release_selected)

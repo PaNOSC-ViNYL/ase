@@ -2,7 +2,6 @@
 """nanotube.py - Window for setting up Carbon nanotubes and similar tubes.
 """
 
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
@@ -149,7 +148,7 @@ class SetupNanotube(SetupWindow):
                                       'symbols'  : formula(self.atoms.get_atomic_numbers()),
                                       'volume'   : self.atoms.get_volume(),
                                       'diameter' : self.atoms.get_cell()[0][0]/2.0}
-            self.status.set_markup(label)                
+            self.status.set_markup(label)
 
     def apply(self, *args):
         self.makeatoms()
@@ -165,5 +164,3 @@ class SetupNanotube(SetupWindow):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-            
-

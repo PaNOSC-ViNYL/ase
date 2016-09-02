@@ -1,7 +1,6 @@
 from __future__ import print_function
 # encoding: utf-8
 
-import gtk
 from gettext import gettext as _
 import numpy as np
 from ase.gui.widgets import pack, AseGuiCancelException
@@ -18,7 +17,7 @@ class DummyProgressIndicator:
         pass
 
         
-class DefaultProgressIndicator(gtk.Window):
+class DefaultProgressIndicator:
     "Window for reporting progress."
     waittime = 3  # Time (in sec) after which a progress bar appears.
     updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.

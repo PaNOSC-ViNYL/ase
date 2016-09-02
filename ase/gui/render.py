@@ -1,5 +1,4 @@
 from __future__ import print_function
-import gtk
 from gettext import gettext as _
 from ase.gui.widgets import pack, Help, oops
 from ase.io.pov import write_pov
@@ -9,7 +8,7 @@ from os import system
 import numpy as np
 
 
-class Render(gtk.Window):
+class Render:
     finish_list = ['ase2','ase3','glass','simple','pale','intermediate','vmd','jmol']
     cameras = ['orthographic','perspective','ultra_wide_angle']
     selection_info_txt = _("""\
