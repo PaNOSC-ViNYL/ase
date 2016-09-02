@@ -146,7 +146,8 @@ class Langevin(MolecularDynamics):
         if self.fixcm:
             new_cm = atoms.get_center_of_mass()
             d = old_cm-new_cm
-            atoms.translate(d)
+            # atoms.translate(d)  # Does not respect constraints
+            atoms.set_positions(atoms.get_positions() + d)
 
         # recalc vels after RATTLE constraints are applied 
         self.V = (self.atoms.get_positions() - x) / self.dt
