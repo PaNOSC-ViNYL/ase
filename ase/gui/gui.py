@@ -861,8 +861,6 @@ class GUI(View, Status):
     def exit(self):
         for process in self.graphs:
             process.terminate()
-        self.window.destroy()
-        return True
 
     def xxx(self,
             x=None,

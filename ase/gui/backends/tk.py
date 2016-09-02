@@ -30,8 +30,11 @@ class MainWindow:
 
         self.root = tk.Tk()
 
-        # self.window.set_position(gtk.WIN_POS_CENTER)
-        # self.window.connect('delete_event', self.exit)
+        def close():
+            exit()
+            self.root.destroy()
+            
+        self.root.protocol('WM_DELETE_WINDOW', close)
 
         menu = tk.Menu(self.root)
         self.root.config(menu=menu)

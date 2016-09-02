@@ -115,4 +115,7 @@ def make_plot(data, i, expr, type):
 
     
 if __name__ == '__main__':
-    make_plot(*pickle.load(sys.stdin))
+    fd = sys.stdin
+    if sys.version_info[0] > 2:
+        fd = fd.buffer
+    make_plot(*pickle.load(fd))

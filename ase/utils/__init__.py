@@ -21,7 +21,7 @@ __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
 
 
 # Python 2+3 compatibility stuff:
-if sys.version_info[0] == 3:
+if sys.version_info[0] > 2:
     import builtins
     exec_ = getattr(builtins, 'exec')
     basestring = str
