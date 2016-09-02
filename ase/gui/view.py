@@ -46,7 +46,7 @@ class View:
 
         n = self.images.natoms
 
-        if self.frame > self.images.nimages:
+        if self.frame is not None and self.frame > self.images.nimages:
             self.frame = self.images.nimages - 1
 
         if init or frame != self.frame:

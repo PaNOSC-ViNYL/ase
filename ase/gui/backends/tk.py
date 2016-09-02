@@ -10,7 +10,8 @@ import numpy as np
 
 
 def name2str(name):
-    return '-'.join(x.lower() for x in name.replace('_', '').split())
+    name = name.replace('_', '').replace('.', '').strip()
+    return '-'.join(x.lower() for x in name.split())
 
 
 def parselabel(label):
@@ -36,7 +37,8 @@ class MainWindow:
         self.root.config(menu=menu)
 
         self.menu = {}
-
+        self.callbacks = {}
+        
         for name, things in menu_description:
             submenu = tk.Menu(menu)
             underline, label = parselabel(name)
@@ -46,6 +48,8 @@ class MainWindow:
                     submenu.add_separator()
                     continue
                 subname, key, text, callback = thing[:4]
+                id = name2str(subname)
+                self.callbacks[id] = callback
                 underline, label = parselabel(subname)
                 if len(thing) == 4:
                     submenu.add_command(label=label,
@@ -57,7 +61,7 @@ class MainWindow:
                 if isinstance(x, bool):
                     on = x
                     var = tk.BooleanVar(value=on)
-                    self.menu[name2str(subname)] = var
+                    self.menu[id] = var
                     submenu.add_checkbutton(label=label,
                                             underline=underline,
                                             command=callback,
@@ -115,8 +119,13 @@ class MainWindow:
         self.draw()
         self.configured = True
 
-    def run(self):
+    def run(self, click):
+        if click:
+            self.root.after_idle(self.click, click)
         tk.mainloop()
+        
+    def click(self, name):
+        self.callbacks[name]()
 
     def __getitem__(self, name):
         return self.menu[name].get()

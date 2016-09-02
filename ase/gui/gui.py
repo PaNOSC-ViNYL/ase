@@ -62,7 +62,7 @@ class GUI(View, Status):
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
 
-    def run(self, expr=None):
+    def run(self, expr=None, click=None):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
@@ -75,7 +75,7 @@ class GUI(View, Status):
         if expr is not None and expr != '' and self.images.nimages > 1:
             self.plot_graphs(expr=expr)
 
-        self.window.run()
+        self.window.run(click)
 
     def step(self, action):
         d = {'First': -10000000,
@@ -888,7 +888,8 @@ class GUI(View, Status):
              [('_Open', '^O', 'Create a new file', self.open),
               ('_New', '^N', 'New ase-gui window',
                lambda widget: os.system('ase-gui &')),
-              ('_Save', '^S', 'Save current file', lambda x: save_dialog(self)),
+              ('_Save', '^S', 'Save current file',
+               lambda x: save_dialog(self)),
               '---',
               ('_Quit', '^Q', 'Quit', self.exit)]),
 
