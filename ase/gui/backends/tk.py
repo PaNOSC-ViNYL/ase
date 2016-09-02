@@ -1,9 +1,9 @@
-import functools
 try:
     import tkinter as tk
 except ImportError:
     import Tkinter as tk
 
+from functools import partial
 from gettext import gettext
 
 import numpy as np
@@ -25,7 +25,7 @@ class MainWindow:
     def __init__(self, menu_description, config,
                  exit, scroll, scroll_event,
                  press, move, release):
-        self.size = np.array([600, 600])
+        self.size = np.array([450, 450])
 
         self.root = tk.Tk()
 
@@ -160,9 +160,16 @@ def bind(callback, modifier=None):
 
 
 class Window:
-    def __init__(self, title):
+    def __init__(self, title, close=None):
         self.top = tk.Toplevel()
         self.top.title(gettext(title))
+        if close:
+            self.top.protocol('WM_DELETE_WINDOW', close)
+        else:
+            self.top.protocol('WM_DELETE_WINDOW', self.close)
+        
+    def close(self):
+        self.top.destroy()
         
     def add(self, stuff):
         if isinstance(stuff, str):
@@ -178,11 +185,14 @@ class Window:
             stuff.pack(self.top)
 
 
-class Widget:
+class Widget(object):
     def pack(self, parent, side='top'):
-        side = getattr(tk, side.upper())
         widget = self.create(parent)
         widget.pack(side=side)
+        
+    def create(self, parent):
+        self.widget = self.creator(parent)
+        return self.widget
         
         
 class Label(Widget):
@@ -196,7 +206,7 @@ class Label(Widget):
 class Button(Widget):
     def __init__(self, text, on_press, *args, **kwargs):
         self.text = gettext(text)
-        self.on_press = functools.partial(on_press, *args, **kwargs)
+        self.on_press = partial(on_press, *args, **kwargs)
         
     def create(self, parent):
         return tk.Button(parent, text=self.text, command=self.on_press)
@@ -208,7 +218,7 @@ class CheckButton(Widget):
         self.var = tk.BooleanVar(value=value)
         
     def create(self, parent):
-        self.check = tk.CheckButton(parent, text=self.text, var=self.var)
+        self.check = tk.Checkbutton(parent, text=self.text, var=self.var)
         return self.check
 
     @property
@@ -216,14 +226,47 @@ class CheckButton(Widget):
         return self.var.get()
         
         
-class Spinbox(Widget):
-    def __init__(self, value=False):
-        self.text = gettext(text)
+class SpinBox(Widget):
+    def __init__(self, value, start, end, step):
+        self.creator = partial(tk.Spinbox,
+                               from_=start,
+                               to=end,
+                               increment=step,
+                               width=6)
+        self.initial = str(value)
         
     def create(self, parent):
-        self.spin = tk.Spinbox(parent, text=self.text, var=self.var)
+        self.spin = self.creator(parent)
+        self.spin.delete(0, 'end')
+        self.spin.insert(0, self.initial)
         return self.spin
-
+        
     @property
     def value(self):
-        return self.spin.get()
+        return float(self.spin.get().replace(',', '.'))
+
+        
+class Scale(Widget):
+    def __init__(self, value, start, end, callback):
+        def command(val):
+            callback(int(val))
+            
+        self.creator = partial(tk.Scale,
+                               from_=start,
+                               to=end,
+                               orient='horizontal',
+                               command=command)
+        self.initial = value
+        
+    def create(self, parent):
+        self.scale = self.creator(parent)
+        self.value = self.initial
+        return self.scale
+        
+    @property
+    def value(self):
+        return self.scale.get()
+
+    @value.setter
+    def value(self, x):
+        self.scale.set(x)

@@ -7,14 +7,12 @@ import ase.gui.ui as ui
 
 class Movie:
     def __init__(self, gui):
-        win = ui.Window('Movie')
-        #win.connect('destroy', self.close)
+        self.win = win = ui.Window('Movie', self.close)
         win.add('Image number:')
-        #self.frame_number = be.Scale(gui.frame, 0,
-        #                             gui.images.nimages - 1,
-        #                             1, 5,
-        #                             callback=self.new_frame)
-        #win.add(self.frame_number)
+        self.frame_number = ui.Scale(gui.frame, 0,
+                                     gui.images.nimages - 1,
+                                     callback=self.new_frame)
+        win.add(self.frame_number)
 
         win.add([ui.Button('First', self.click, -1, True),
                  ui.Button('Back', self.click, -1),
@@ -23,6 +21,7 @@ class Movie:
 
         play = ui.Button('Play', self.play)
         stop = ui.Button('Stop', self.stop)
+        
         # TRANSLATORS: This function plays an animation forwards and backwards
         # alternatingly, e.g. for displaying vibrational movement
         self.rock = ui.CheckButton('Rock')
@@ -36,8 +35,8 @@ class Movie:
         else:
             skipdefault = 0
             tdefault = min(max(gui.images.nimages / 5.0, 1.0), 30)
-        self.time = ui.SpinButton(tdefault, 1.0, 99, 0.1)
-        self.skip = ui.SpinButton(skipdefault, 0, 99, 1)
+        self.time = ui.SpinBox(tdefault, 1.0, 99, 0.1)
+        self.skip = ui.SpinBox(skipdefault, 0, 99, 1)
         win.add([' Frame rate: ', self.time, ' Skip frames: ', self.skip])
 
         self.gui = gui
@@ -47,10 +46,11 @@ class Movie:
 
     def notify_atoms_changed(self):
         """Called by gui object when the atoms have changed."""
-        self.destroy()
+        self.close()
 
-    def close(self, event):
+    def close(self):
         self.stop()
+        self.win.close()
 
     def click(self, step, firstlast=False):
         if firstlast and step < 0:
@@ -66,26 +66,26 @@ class Movie:
         else:
             self.direction = np.sign(step)
 
-    def new_frame(self, widget):
-        self.gui.set_coordinates(int(self.frame_number.value))
+    def new_frame(self, value):
+        self.gui.set_coordinates(value)
 
-    def play(self, widget=None):
+    def play(self):
         if self.timer is not None:
             self.timer.cancel()
-        t = int(1000.0 / float(self.time.value))
+        t = 1 / self.time.value
         self.timer = threading.Timer(t, self.step)
+        self.timer.start()
 
-    def stop(self, widget=None):
-        if self.id is not None:
-            gobject.source_remove(self.id)
-            self.id = None
+    def stop(self):
+        if self.timer is not None:
+            self.timer.cancel()
 
     def step(self):
         i = self.gui.frame
         nimages = self.gui.images.nimages
         delta = int(self.skip.value + 1)
 
-        if self.rock.get_active():
+        if self.rock.value:
             if i <= self.skip.value:
                 self.direction = 1
             elif i >= nimages - delta:
@@ -95,8 +95,4 @@ class Movie:
             i = (i + self.direction * delta + nimages) % nimages
 
         self.frame_number.value = i
-        return True
-
-    def new_time(self, widget):
-        if self.id is not None:
-            self.play()
+        self.play()
