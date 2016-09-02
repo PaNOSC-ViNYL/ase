@@ -30,11 +30,7 @@ class MainWindow:
 
         self.root = tk.Tk()
 
-        def close():
-            exit()
-            self.root.destroy()
-            
-        self.root.protocol('WM_DELETE_WINDOW', close)
+        self.root.protocol('WM_DELETE_WINDOW', exit)
 
         menu = tk.Menu(self.root)
         self.root.config(menu=menu)
@@ -114,6 +110,9 @@ class MainWindow:
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']
 
+    def close(self):
+        self.root.destroy()
+            
     def update_status_line(self, text):
         pass
 

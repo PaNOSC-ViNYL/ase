@@ -861,7 +861,8 @@ class GUI(View, Status):
     def exit(self):
         for process in self.graphs:
             process.terminate()
-
+        self.window.close()
+        
     def xxx(self,
             x=None,
             message1=_('Not implemented!'),
@@ -889,7 +890,7 @@ class GUI(View, Status):
               ('_Save', '^S', 'Save current file',
                lambda x: save_dialog(self)),
               '---',
-              ('_Quit', '^Q', 'Quit', self.exit)]),
+              ('_Quit', 'Ctrl+Q', 'Quit', self.exit)]),
 
             ('Edit',
              [('Select _all', '', '', self.select_all),
