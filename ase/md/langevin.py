@@ -70,7 +70,7 @@ class Langevin(MolecularDynamics):
         MolecularDynamics.__init__(self, atoms, timestep, trajectory,
                                    logfile, loginterval)
         self.temp = temperature
-        self.frict = friction
+        self.fr = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?
         self.communicator = communicator
         self.updatevars()
@@ -80,7 +80,7 @@ class Langevin(MolecularDynamics):
         self.updatevars()
 
     def set_friction(self, friction):
-        self.frict = friction
+        self.fr = friction
         self.updatevars()
 
     def set_timestep(self, timestep):
@@ -92,7 +92,7 @@ class Langevin(MolecularDynamics):
 
         dt = self.dt
         T = self.temp
-        fr = self.frict
+        fr = self.fr
         masses = self.masses
         sigma = np.sqrt(2*T*fr/masses)
         c1 = 0.5*dt**2
@@ -110,38 +110,38 @@ class Langevin(MolecularDynamics):
         self.v1 = v1
         self.v2 = v2
         self.v3 = v3
-        self.fr = fr
 
         # Works in parallel Asap, #GLOBAL number of atoms:
         self.natoms = self.atoms.get_number_of_atoms() 
 
     def step(self, f):
         atoms = self.atoms
-        natoms = self.natoms
+        natoms = len(atoms)
 
-        v = atoms.get_velocities()
+        self.v = atoms.get_velocities()
 
-        xi = standard_normal(size=(natoms, 3))
-        eta = standard_normal(size=(natoms, 3))
+        # Note: xi, eta, A, v and V are made into attributes, so Asap can do its magic when
+        # atoms migrate between processors as get_forces() is called.
+        self.xi = standard_normal(size=(natoms, 3))
+        self.eta = standard_normal(size=(natoms, 3))
 
         if self.communicator is not None:
-            self.communicator.broadcast(xi, 0)
-            self.communicator.broadcast(eta, 0)
+            self.communicator.broadcast(self.xi, 0)
+            self.communicator.broadcast(self.eta, 0)
 
         # Begin calculating A
-        A = self.c1*f/self.masses - self.c2*v + self.c3*xi \
-            + self.c4*eta
+        self.A = self.c1*f/self.masses - self.c2*self.v + self.c3*self.xi \
+            + self.c4*self.eta
 
-        # Make V and A/dt
-        A2 = A/self.dt
-        V = v + A2
+        # Make self.V 
+        self.V = self.v + self.A/self.dt
         x = atoms.get_positions()
 
         if self.fixcm:
             old_cm = atoms.get_center_of_mass()
 
         # Step: x^n -> x^(n+1) - this applies constraints if any.
-        atoms.set_positions(x + self.dt*V)
+        atoms.set_positions(x + self.dt*self.V)
     
         if self.fixcm:
             new_cm = atoms.get_center_of_mass()
@@ -149,18 +149,25 @@ class Langevin(MolecularDynamics):
             atoms.translate(d)
 
         # recalc vels after RATTLE constraints are applied 
-        V = (self.atoms.get_positions() - x) / self.dt
+        self.V = (self.atoms.get_positions() - x) / self.dt
         f = atoms.get_forces(md=True)
 
         # Update the velocities 
-        V += self.v2*xi + self.v1*f/self.masses - self.fr*A \
-             - self.fr*self.v1*v - self.v3*eta
+        self.V += self.v2*self.xi + self.v1*f/self.masses - self.fr*self.A \
+             - self.fr*self.v1*self.v - self.v3*self.eta
 
         if self.fixcm: # subtract center of mass vel
-            v_cm = np.dot(self.masses.flatten(), V) / self.masses.sum()
-            V -= v_cm
+            v_cm = self._get_com_velocity()
+            self.V -= v_cm
 
         # Second part of RATTLE taken care of here
-        atoms.set_momenta(V*self.masses)
+        atoms.set_momenta(self.V*self.masses)
 
         return f
+
+    def _get_com_velocity(self):
+        """Return the center of mass velocity.
+
+        Internal use only.  This function can be reimplemented by Asap.
+        """
+        return np.dot(self.masses.flatten(), self.V) / self.masses.sum()
