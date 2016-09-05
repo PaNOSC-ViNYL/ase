@@ -24,13 +24,13 @@ Installation
 
 Add ``~/ase`` to your $PYTHONPATH environment variable and add
 ``~/ase/tools`` to $PATH (assuming ``~/ase`` is where your ASE folder is).
-    
-    
+
+
 Testing
 -------
 
 Please run the tests::
-    
+
     $ python -m ase.test  # takes 1 min.
 
 and send us the output if there are failing tests.
@@ -49,7 +49,7 @@ Example
 -------
 
 Geometry optimization of hydrogen molecule with NWChem:
-    
+
 >>> from ase import Atoms
 >>> from ase.optimize import BFGS
 >>> from ase.calculators.nwchem import NWChem
@@ -69,10 +69,10 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 -31.492847800329216
 
 ::
-    
+
     $ ase-gui h2.traj
-    
-    
+
+
 .. _Python: http://www.python.org/
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
