@@ -890,7 +890,7 @@ class GUI(View, Status):
               ('_Save', '^S', 'Save current file',
                lambda x: save_dialog(self)),
               '---',
-              ('_Quit', 'Ctrl+Q', 'Quit', self.exit)]),
+              ('_Quit', '<Control-q>', 'Quit', self.exit)]),
 
             ('Edit',
              [('Select _all', '', '', self.select_all),

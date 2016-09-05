@@ -9,17 +9,24 @@ from gettext import gettext
 import numpy as np
 
 
-def name2str(name):
+font = ('Helvetica', 12)
+        
+
+def parse(name, key):
+    label = gettext(name)
     name = name.replace('_', '').replace('.', '').strip()
-    return '-'.join(x.lower() for x in name.split())
-
-
-def parselabel(label):
-    label = gettext(label)
-    i = label.find('_')
-    if i >= 0:
-        return i, label.replace('_', '')
-    return None, label
+    id = '-'.join(x.lower() for x in name.split())
+    underline = -1
+    acc = key
+    keyname = key
+    if key:
+        if key[0] = '^':
+            key = key[1]
+            underline = label.lower().find(key)
+            acc = 'Ctrl+' + key
+            keyname = '<Control-{0}>'.format(key)
+            
+    return id, label, underline, acc, keyname
 
 
 class MainWindow:
@@ -29,17 +36,19 @@ class MainWindow:
         self.size = np.array([450, 450])
 
         self.root = tk.Tk()
+        #self.root.tk.call('tk', 'scaling', 3.0)
+        #self.root.tk.call('tk', 'scaling', '-displayof', '.', 7)
 
         self.root.protocol('WM_DELETE_WINDOW', exit)
 
-        menu = tk.Menu(self.root)
+        menu = tk.Menu(self.root, font=font)
         self.root.config(menu=menu)
 
         self.menu = {}
         self.callbacks = {}
         
         for name, things in menu_description:
-            submenu = tk.Menu(menu)
+            submenu = tk.Menu(menu, font=font)
             underline, label = parselabel(name)
             menu.add_cascade(label=label, underline=underline, menu=submenu)
             for thing in things:
@@ -47,14 +56,15 @@ class MainWindow:
                     submenu.add_separator()
                     continue
                 subname, key, text, callback = thing[:4]
-                id = name2str(subname)
+                id, label, underline, acc, keyname = parse(subname, key)
                 self.callbacks[id] = callback
-                underline, label = parselabel(subname)
                 if len(thing) == 4:
                     submenu.add_command(label=label,
                                         underline=underline,
                                         command=callback,
-                                        accelerator=key)
+                                        accelerator=acc)
+                    if key == '<Control-q>':
+                        self.root.bind(key, lambda event: callback())
                     continue
                 x = thing[4]
                 if isinstance(x, bool):
@@ -86,9 +96,10 @@ class MainWindow:
                                 bg='white')
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        status = tk.Label(self.root, text="asdgag",  # bd=1,
+        status = tk.Label(self.root, text='H\u2082O',  # bd=1,
                           # relief=tk.SUNKEN,
-                          anchor=tk.W)
+                          anchor=tk.W,
+                          font=font)
         status.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.canvas.bind('<ButtonPress>', bind(press))
@@ -97,9 +108,9 @@ class MainWindow:
         self.canvas.bind('<ButtonRelease>', bind(release))
         self.canvas.bind('<Control-ButtonRelease>',
                          bind(release, 'ctrl'))
-        self.root.bind('<Key>', bind(scroll))
-        self.root.bind('<Shift-Key>', bind(scroll, 'shift'))
-        self.root.bind('<Control-Key>', bind(scroll, 'ctrl'))
+        #self.root.bind('<Key>', bind(scroll))
+        #self.root.bind('<Shift-Key>', bind(scroll, 'shift'))
+        #self.root.bind('<Control-Key>', bind(scroll, 'ctrl'))
         #self.canvas.bind('<B4>', bind(scroll_event))
         #self.canvas.bind('<Shift-MouseWheel>', bind(scroll_event, 'shift'))
         # self.root.bind('<Configure>', configure_event)
@@ -161,7 +172,8 @@ class MainWindow:
 
     def text(self, x, y, txt, anchor=tk.CENTER, color='black'):
         anchor = {'SE': tk.SE}.get(anchor, anchor)
-        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color)
+        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color,
+                                font=font)
 
 
 def bind(callback, modifier=None):
@@ -203,6 +215,7 @@ class Widget(object):
     def pack(self, parent, side='top', anchor='center'):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
+        widget['font'] = font
         
     def create(self, parent):
         self.widget = self.creator(parent)
