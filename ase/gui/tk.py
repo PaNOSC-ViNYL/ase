@@ -3,6 +3,7 @@ try:
     from tkinter.messagebox import askokcancel
 except ImportError:
     import Tkinter as tk
+    from tkMessageBox import askokcancel
 
 from functools import partial
 from gettext import gettext
