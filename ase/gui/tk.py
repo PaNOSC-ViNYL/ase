@@ -120,11 +120,11 @@ class MainWindow:
         self.canvas.bind('<ButtonRelease>', bind(release))
         self.canvas.bind('<Control-ButtonRelease>',
                          bind(release, 'ctrl'))
-        #self.root.bind('<Key>', bind(scroll))
-        #self.root.bind('<Shift-Key>', bind(scroll, 'shift'))
-        #self.root.bind('<Control-Key>', bind(scroll, 'ctrl'))
-        #self.canvas.bind('<B4>', bind(scroll_event))
-        #self.canvas.bind('<Shift-MouseWheel>', bind(scroll_event, 'shift'))
+        self.root.bind('<Key>', bind(scroll))
+        self.root.bind('<Shift-Key>', bind(scroll, 'shift'))
+        self.root.bind('<Control-Key>', bind(scroll, 'ctrl'))
+        # self.canvas.bind('<B4>', bind(scroll_event))
+        # self.canvas.bind('<Shift-MouseWheel>', bind(scroll_event, 'shift'))
         # self.root.bind('<Configure>', configure_event)
         # self.drawing_area.connect('expose_event', self.expose_event)
 
@@ -337,3 +337,28 @@ class Scale(Widget):
     @value.setter
     def value(self, x):
         self.scale.set(x)
+
+        
+class RadioButtons(list):
+    def __init__(self, labels, values=None, toggle=None):
+        self.var = tk.IntVar
+        
+        def callback():
+            toggle(self.value)
+            
+        self.values = values or list(range(len(labels)))
+        list.__init__(self, [RadioButton(label, i, self.var, callback)
+                             for i, label in enumerate(labels)])
+        
+    @property
+    def value(self):
+        return self.values[self.var.get()]
+
+    
+class RadioButton(Widget):
+    def __init__(self, label, i, var, callback):
+        self.creator = partial(tk.Radiobutton,
+                               text=gettext(label),
+                               var=var,
+                               value=i,
+                               callback=callback)
