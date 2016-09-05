@@ -37,7 +37,7 @@ class MainWindow:
 
         self.menu = {}
         self.callbacks = {}
-        
+
         for name, things in menu_description:
             submenu = tk.Menu(menu)
             underline, label = parselabel(name)
@@ -86,10 +86,10 @@ class MainWindow:
                                 bg='white')
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        status = tk.Label(self.root, text="asdgag",  # bd=1,
+        self.status = tk.Label(self.root, text='',  # bd=1,
                           # relief=tk.SUNKEN,
                           anchor=tk.W)
-        status.pack(side=tk.BOTTOM, fill=tk.X)
+        self.status.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.canvas.bind('<ButtonPress>', bind(press))
         self.canvas.bind('<B1-Motion>', bind(move))
@@ -112,9 +112,9 @@ class MainWindow:
 
     def close(self):
         self.root.destroy()
-            
+
     def update_status_line(self, text):
-        pass
+        self.status.config(text=text)
 
     def resize_event(self):
         # self.scale *= sqrt(1.0 * self.width * self.height / (w * h))
@@ -125,7 +125,7 @@ class MainWindow:
         if click:
             self.root.after_idle(self.click, click)
         tk.mainloop()
-        
+
     def click(self, name):
         self.callbacks[name]()
 
@@ -181,10 +181,10 @@ class Window:
             self.top.protocol('WM_DELETE_WINDOW', close)
         else:
             self.top.protocol('WM_DELETE_WINDOW', self.close)
-        
+
     def close(self):
         self.top.destroy()
-        
+
     def add(self, stuff, anchor='center'):
         if isinstance(stuff, str):
             stuff = Label(stuff)
@@ -203,34 +203,34 @@ class Widget(object):
     def pack(self, parent, side='top', anchor='center'):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
-        
+
     def create(self, parent):
         self.widget = self.creator(parent)
         return self.widget
-        
-        
+
+
 class Label(Widget):
     def __init__(self, text):
         self.text = gettext(text)
-        
+
     def create(self, parent):
         return tk.Label(parent, text=self.text)
-    
-    
+
+
 class Button(Widget):
     def __init__(self, text, on_press, *args, **kwargs):
         self.text = gettext(text)
         self.on_press = partial(on_press, *args, **kwargs)
-        
+
     def create(self, parent):
         return tk.Button(parent, text=self.text, command=self.on_press)
 
-        
+
 class CheckButton(Widget):
     def __init__(self, text, value=False):
         self.text = gettext(text)
         self.var = tk.BooleanVar(value=value)
-        
+
     def create(self, parent):
         self.check = tk.Checkbutton(parent, text=self.text, var=self.var)
         return self.check
@@ -238,8 +238,8 @@ class CheckButton(Widget):
     @property
     def value(self):
         return self.var.get()
-        
-        
+
+
 class SpinBox(Widget):
     def __init__(self, value, start, end, step, on_change=None):
         self.creator = partial(tk.Spinbox,
@@ -249,12 +249,12 @@ class SpinBox(Widget):
                                command=on_change,
                                width=6)
         self.initial = str(value)
-        
+
     def create(self, parent):
         self.spin = self.creator(parent)
         self.spin.value = self.initial
         return self.spin
-        
+
     @property
     def value(self):
         return float(self.spin.get().replace(',', '.'))
@@ -263,21 +263,21 @@ class SpinBox(Widget):
     def value(self, x):
         self.spin.delete(0, 'end')
         self.spin.insert(0, x)
-        
-        
+
+
 class Entry(Widget):
     def __init__(self, value='', width=20, callback=None):
         self.creator = partial(tk.Entry,
                                width=width)
         self.callback = lambda event: callback()
         self.initial = value
-        
+
     def create(self, parent):
         self.entry = self.creator(parent)
         self.value = self.initial
         self.entry.bind('<Return>', self.callback)
         return self.entry
-        
+
     @property
     def value(self):
         return self.entry.get()
@@ -287,24 +287,24 @@ class Entry(Widget):
         self.entry.delete(0, 'end')
         self.entry.insert(0, x)
 
-        
+
 class Scale(Widget):
     def __init__(self, value, start, end, callback):
         def command(val):
             callback(int(val))
-            
+
         self.creator = partial(tk.Scale,
                                from_=start,
                                to=end,
                                orient='horizontal',
                                command=command)
         self.initial = value
-        
+
     def create(self, parent):
         self.scale = self.creator(parent)
         self.value = self.initial
         return self.scale
-        
+
     @property
     def value(self):
         return self.scale.get()
