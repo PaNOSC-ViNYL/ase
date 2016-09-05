@@ -613,41 +613,19 @@ class GUI(View, Status):
             window.show()
 
     def delete_selected_atoms(self, widget=None, data=None):
-        if data == 'OK':
+        import ase.gui.ui as ui
+        nselected = sum(self.images.selected)
+        if nselected and ui.ask_question('Delete atoms',
+                                         'Delete selected atoms?'):
             atoms = self.images.get_atoms(self.frame)
             lena = len(atoms)
             for i in range(len(atoms)):
                 li = lena - 1 - i
                 if self.images.selected[li]:
-                    del (atoms[li])
+                    del atoms[li]
             self.new_atoms(atoms)
 
             self.draw()
-        if data:
-            self.delete_window.destroy()
-
-        if not (data) and sum(self.images.selected):
-            nselected = sum(self.images.selected)
-            self.delete_window = gtk.Window(gtk.WINDOW_TOPLEVEL)
-            self.delete_window.set_title(_('Confirmation'))
-            self.delete_window.set_border_width(10)
-            self.box1 = gtk.HBox(False, 0)
-            self.delete_window.add(self.box1)
-            self.button1 = gtk.Button(ngettext('Delete selected atom?',
-                                               'Delete selected atoms?',
-                                               nselected))
-            self.button1.connect("clicked", self.delete_selected_atoms, "OK")
-            self.box1.pack_start(self.button1, True, True, 0)
-            self.button1.show()
-
-            self.button2 = gtk.Button(_("Cancel"))
-            self.button2.connect("clicked", self.delete_selected_atoms,
-                                 "Cancel")
-            self.box1.pack_start(self.button2, True, True, 0)
-            self.button2.show()
-
-            self.box1.show()
-            self.delete_window.show()
 
     def debug(self, x):
         from ase.gui.debug import Debug
@@ -858,7 +836,7 @@ class GUI(View, Status):
         """
         self.vulnerable_windows.append(weakref.ref(obj))
 
-    def exit(self):
+    def exit(self, event=None):
         for process in self.graphs:
             process.terminate()
         self.window.close()
@@ -884,54 +862,53 @@ class GUI(View, Status):
     def get_menu_data(self, show_unit_cell, show_bonds):
         return [
             ('File',
-             [('_Open', '^O', 'Create a new file', self.open),
-              ('_New', '^N', 'New ase-gui window',
+             [('Open', 'Ctrl+O', 'Create a new file', self.open),
+              ('New', 'Ctrl+N', 'New ase-gui window',
                lambda widget: os.system('ase-gui &')),
-              ('_Save', '^S', 'Save current file',
+              ('Save', 'Ctrl+S', 'Save current file',
                lambda x: save_dialog(self)),
               '---',
-              ('_Quit', '<Control-q>', 'Quit', self.exit)]),
+              ('Quit', 'Ctrl+Q', 'Quit', self.exit)]),
 
             ('Edit',
-             [('Select _all', '', '', self.select_all),
+             [('Select all', '', '', self.select_all),
               ('Invert selection', '', '', self.invert_selection),
-              ('Select _constrained atoms', '', '',
+              ('Select constrained atoms', '', '',
                self.select_constrained_atoms),
-              ('Select _immobile atoms', '^I', '', self.select_immobile_atoms),
+              ('Select immobile atoms', 'Ctrl+I', '', self.select_immobile_atoms),
               '---',
-              ('_Copy', '^C',
+              ('Copy', 'Ctrl+C',
                'Copy current selection and its orientation to clipboard',
                self.copy_atoms),
-              ('Paste', '^V', 'Insert current clipboard selection',
+              ('Paste', 'Ctrl+V', 'Insert current clipboard selection',
                self.paste_atoms),
               '---',
               ('Hide selected atoms', '', '', self.hide_selected),
               ('Show selected atoms', '', '', self.show_selected),
               '---',
-              ('Modify', '^Y',
+              ('Modify', 'Ctrl+Y',
                'Change tags, moments and atom types of the selected atoms',
                self.modify_atoms),
-              ('_Add atoms', '^A', 'Insert or import atoms and molecules',
+              ('Add atoms', 'Ctrl+A', 'Insert or import atoms and molecules',
                self.add_atoms),
-              ('_Delete selected atoms', 'BackSpace',
+              ('Delete selected atoms', 'Backspace',
                'Delete the selected atoms', self.delete_selected_atoms),
               '---',
-              ('_First image', 'Home', '', self.step),
-              ('_Previous image', 'Page_Up', '', self.step),
-              ('_Next image', 'Page_Down', '', self.step),
-              ('_Last image', 'End', '', self.step)]),
+              ('First image', 'Home', '', self.step),
+              ('Previous image', 'Page-Up', '', self.step),
+              ('Next image', 'Page-Down', '', self.step),
+              ('Last image', 'End', '', self.step)]),
 
-            ('_View',
-             [('Show _unit cell', '^U', '', self.toggle_show_unit_cell,
+            ('View',
+             [('Show unit cell', 'Ctrl+U', '', self.toggle_show_unit_cell,
                show_unit_cell > 0),
-              ('Show _axes', '', '', self.toggle_show_axes, True),
-              ('Show _bonds', '^B', '', self.toggle_show_bonds, show_bonds),
-              ('Show _velocities', '^G', '', self.toggle_show_velocities,
+              ('Show axes', '', '', self.toggle_show_axes, True),
+              ('Show bonds', 'Ctrl+B', '', self.toggle_show_bonds, show_bonds),
+              ('Show velocities', 'Ctrl+G', '', self.toggle_show_velocities,
                False),
-              ('Show _forces', '^F', '', self.toggle_show_forces, False),
-              ('Show _Labels', '', '', self.show_labels,
-               ['None', 'Atom _Index', '_Magnetic Moments',
-                '_Element Symbol']),
+              ('Show forces', 'Ctrl+F', '', self.toggle_show_forces, False),
+              ('Show Labels', '', '', self.show_labels,
+               ['None', 'Atom Index', 'Magnetic Moments', 'Element Symbol']),
               '---',
               ('Quick Info ...', '', '', self.quick_info_window),
               ('Repeat ...', '', '', self.repeat_window),
@@ -939,22 +916,22 @@ class GUI(View, Status):
               ('Colors ...', 'C', '', self.colors_window),
               # TRANSLATORS: verb
               ('Focus', 'F', '', self.focus),
-              ('Zoom in', 'plus', '', self.zoom),
-              ('Zoom out', 'minus', '', self.zoom),
+              ('Zoom in', '+', '', self.zoom),
+              ('Zoom out', '-', '', self.zoom),
               ('Change View', '', '', None,
-               [('Reset View', 'equal', '', self.reset_view),
-                ('\'xy\' Plane', 'z', '', self.set_view),
-                ('\'yz\' Plane', 'x', '', self.set_view),
-                ('\'zx\' Plane', 'y', '', self.set_view),
-                ('\'yx\' Plane', '<alt>z', '', self.set_view),
-                ('\'zy\' Plane', '<alt>x', '', self.set_view),
-                ('\'xz\' Plane', '<alt>y', '', self.set_view),
-                ('\'a2 a3\' Plane', '1', '', self.set_view),
-                ('\'a3 a1\' Plane', '2', '', self.set_view),
-                ('\'a1 a2\' Plane', '3', '', self.set_view),
-                ('\'a3 a2\' Plane', '<alt>1', '', self.set_view),
-                ('\'a1 a3\' Plane', '<alt>2', '', self.set_view),
-                ('\'a2 a1\' Plane', '<alt>3', '', self.set_view)]),
+               [('Reset View', '=', '', self.reset_view),
+                ('XY-plane', 'Z', '', self.set_view),
+                ('YZ-plane', 'X', '', self.set_view),
+                ('ZX-plane', 'Y', '', self.set_view),
+                ('YX-plane', 'Alt+Z', '', self.set_view),
+                ('ZY-plane', 'Alt+X', '', self.set_view),
+                ('XZ-plane', 'Alt+Y', '', self.set_view),
+                ('a2,a3-plane', '1', '', self.set_view),
+                ('a3,a1-plane', '2', '', self.set_view),
+                ('a1,a2-plane', '3', '', self.set_view),
+                ('a3,a2-plane', 'Alt+1', '', self.set_view),
+                ('a1,a3-plane', 'Alt+2', '', self.set_view),
+                ('a2,a1-plane', 'Alt+3', '', self.set_view)]),
               ('Settings ...', '', '', self.settings),
               '---',
               ('VMD', '', '', self.external_viewer),
@@ -962,44 +939,44 @@ class GUI(View, Status):
               ('xmakemol', '', '', self.external_viewer),
               ('avogadro', '', '', self.external_viewer)]),
 
-            ('_Tools',
+            ('Tools',
              [('Graphs ...', '', '', self.plot_graphs),
               ('Movie ...', '', '', self.movie),
-              ('Expert mode ...', '^E', '', self.execute),
+              ('Expert mode ...', 'Ctrl+E', '', self.execute),
               ('Constraints ...', '', '', self.constraints_window),
               ('Render scene ...', '', '', self.render_window),
-              ('_Move atoms', '^M', '', self.toggle_move_mode, False),
-              ('_Rotate atoms', '^R', '', self.toggle_rotate_mode, False),
-              ('Orien_t atoms', '^T', '', self.toggle_orient_mode, False),
-              ('NE_B', '', '', self.NEB),
-              ('B_ulk Modulus', '', '', self.bulk_modulus)]),
+              ('Move atoms', 'Ctrl+M', '', self.toggle_move_mode, False),
+              ('Rotate atoms', 'Ctrl+R', '', self.toggle_rotate_mode, False),
+              ('Orient atoms', 'Ctrl+T', '', self.toggle_orient_mode, False),
+              ('NEB', '', '', self.NEB),
+              ('Bulk Modulus', '', '', self.bulk_modulus)]),
 
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-            ('_Setup',
-             [('_Bulk Crystal', '',
+            ('Setup',
+             [('Bulk Crystal', '',
                'Create a bulk crystal with arbitrary orientation',
                self.bulk_window),
-              ('_Surface slab', '', '"Create the most common surfaces',
+              ('Surface slab', '', '"Create the most common surfaces',
                self.surface_window),
-              ('_Nanoparticle', '', 'Create a crystalline nanoparticle',
+              ('Nanoparticle', '', 'Create a crystalline nanoparticle',
                self.nanoparticle_window),
-              ('Nano_tube', '', 'Create a nanotube', self.nanotube_window),
+              ('Nanotube', '', 'Create a nanotube', self.nanotube_window),
               ('Graphene', '', 'Create a graphene sheet or nanoribbon',
                self.graphene_window)]),
 
             ('Calculate',
-             [('Set _Calculator', '',
+             [('Set Calculator', '',
                'Set a calculator used in all calculation modules',
                self.calculator_window),
-              ('_Energy and Forces', '', 'Calculate energy and forces',
+              ('Energy and Forces', '', 'Calculate energy and forces',
                self.energy_window),
-              ('Energy _Minimization', '', 'Minimize the energy',
+              ('Energy Minimization', '', 'Minimize the energy',
                self.energy_minimize_window),
               ('Scale system', '', 'Deform system by scaling it',
                self.scaling_window)]),
 
             ('Help',
-             [('_About', '', '', self.about),
+             [('About', '', '', self.about),
               ('Webpage ...', '', '', webpage),
               ('Debug ...', '', '', self.debug)])]
 

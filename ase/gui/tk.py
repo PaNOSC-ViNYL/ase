@@ -1,5 +1,6 @@
 try:
     import tkinter as tk
+    from tkinter.messagebox import askokcancel
 except ImportError:
     import Tkinter as tk
 
@@ -9,24 +10,29 @@ from gettext import gettext
 import numpy as np
 
 
-font = ('Helvetica', 12)
+font = ('Helvetica', 10)
         
+
+def ask_question(title, question):
+    return askokcancel(gettext(title), gettext(question))
+    
 
 def parse(name, key):
     label = gettext(name)
     name = name.replace('_', '').replace('.', '').strip()
     id = '-'.join(x.lower() for x in name.split())
     underline = -1
-    acc = key
-    keyname = key
-    if key:
-        if key[0] = '^':
-            key = key[1]
-            underline = label.lower().find(key)
-            acc = 'Ctrl+' + key
-            keyname = '<Control-{0}>'.format(key)
-            
-    return id, label, underline, acc, keyname
+    if key[:4] == 'Ctrl':
+        key = key[-1].lower()
+        underline = label.lower().find(key)
+        keyname = '<Control-{0}>'.format(key)
+    else:
+        keyname = {'Home': '<Home>',
+                   'End': '<End>',
+                   'Page-Up': '<Prior>',
+                   'Page-Down': '<Next>',
+                   'Backspace': '<BackSpace>'}.get(key, key.lower())
+    return id, label, underline, keyname
 
 
 class MainWindow:
@@ -36,8 +42,8 @@ class MainWindow:
         self.size = np.array([450, 450])
 
         self.root = tk.Tk()
-        #self.root.tk.call('tk', 'scaling', 3.0)
-        #self.root.tk.call('tk', 'scaling', '-displayof', '.', 7)
+        # self.root.tk.call('tk', 'scaling', 3.0)
+        # self.root.tk.call('tk', 'scaling', '-displayof', '.', 7)
 
         self.root.protocol('WM_DELETE_WINDOW', exit)
 
@@ -49,23 +55,25 @@ class MainWindow:
 
         for name, things in menu_description:
             submenu = tk.Menu(menu, font=font)
-            underline, label = parselabel(name)
-            menu.add_cascade(label=label, underline=underline, menu=submenu)
+            label = gettext(name)
+            menu.add_cascade(label=label, menu=submenu)
             for thing in things:
                 if thing == '---':
                     submenu.add_separator()
                     continue
                 subname, key, text, callback = thing[:4]
-                id, label, underline, acc, keyname = parse(subname, key)
+                id, label, underline, keyname = parse(subname, key)
                 self.callbacks[id] = callback
                 if len(thing) == 4:
                     submenu.add_command(label=label,
                                         underline=underline,
                                         command=callback,
-                                        accelerator=acc)
-                    if key == '<Control-q>':
-                        self.root.bind(key, lambda event: callback())
+                                        accelerator=key)
+                    if key:
+                        print(keyname, callback)
+                        self.root.bind(keyname, callback)
                     continue
+                    
                 x = thing[4]
                 if isinstance(x, bool):
                     on = x
@@ -86,9 +94,13 @@ class MainWindow:
                     submenu.add_cascade(label=gettext(subname),
                                         menu=subsubmenu)
                     for subsubname, key, text, callback in x:
-                        subsubmenu.add_command(label=gettext(subsubname),
+                        id, label, underline, keyname = parse(subsubname, key)
+                        subsubmenu.add_command(label=label,
+                                               underline=underline,
                                                command=callback,
                                                accelerator=key)
+                        if key:
+                            self.root.bind(keyname, callback)
 
         self.canvas = tk.Canvas(self.root,
                                 width=self.size[0],
@@ -97,8 +109,8 @@ class MainWindow:
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.status = tk.Label(self.root, text='',  # bd=1,
-                          # relief=tk.SUNKEN,
-                          anchor=tk.W)
+                               # relief=tk.SUNKEN,
+                               anchor=tk.W)
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.canvas.bind('<ButtonPress>', bind(press))
@@ -264,7 +276,7 @@ class SpinBox(Widget):
 
     def create(self, parent):
         self.spin = self.creator(parent)
-        self.spin.value = self.initial
+        self.value = self.initial
         return self.spin
 
     @property
