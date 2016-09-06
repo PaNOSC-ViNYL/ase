@@ -320,7 +320,7 @@ class Reader:
     def __init__(self, fd, index=0, data=None, little_endian=None):
         """Create reader."""
         
-        if isinstance(fd, str):
+        if isinstance(fd, basestring):
             fd = open(fd, 'rb')
         
         self._fd = fd
