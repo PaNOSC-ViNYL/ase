@@ -47,10 +47,10 @@ class GUI(View, Status):
 
         menu = self.get_menu_data(show_unit_cell, show_bonds)
 
-        self.window = ui.MainWindow(menu, self.config,
-                                    self.exit, self.scroll,
-                                    self.scroll_event,
-                                    self.press, self.move, self.release)
+        self.window = ui.ASEGUIWindow(self.exit, menu, self.config,
+                                      self.scroll,
+                                      self.scroll_event,
+                                      self.press, self.move, self.release)
 
         View.__init__(self, rotations)
         Status.__init__(self)
@@ -840,7 +840,7 @@ class GUI(View, Status):
         for process in self.graphs:
             process.terminate()
         self.window.close()
-        
+
     def xxx(self,
             x=None,
             message1=_('Not implemented!'),
