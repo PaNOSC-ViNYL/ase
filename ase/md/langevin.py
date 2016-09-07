@@ -34,31 +34,11 @@ class Langevin(MolecularDynamics):
     RATTLE constraints can be used with these propagators, see:
     E. V.-Eijnden, and G. Ciccotti, Chem. Phys. Lett. 429, 310 (2006)    
 
-    A single step amounts to:
-
-        x(n+1) = x(n) + dt*v(n) + A(n)
-        v(n+1) = v(n) + 0.5*dt*(f(x(n+1))+f(x(n))) 
-                 - dt*y*v(n) + dt**0.5*o*xi(n) + y*A(n)
-
-        where: 
-        A(n) = 0.5*dt**2(f(x(n))-y*v(n)) 
-               + o*dt**3/2(0.5*xi(n)-(2*3**0.5)**-1*eta(n))
-
-        y is the friction coeff, o(sigma) is (2*kB*T*m_i*y)**1/2
-
-        xi and eta are random variables with mean 0 and covariance.
-
-        However, to allow for the possibility of constraints we 
-        rewrite the equations the following way:
-
-        x(n+1) = x(n) + dt*p(n)
-        v(n+1) = p(n) - 0.5*dt*y*v(n) - y*A(n) 
-                 - o*dt**0.5*(2*3**0.5)**-1*eta(n) 
-                 + 0.5*dt*f(n+1) + 0.5*dt**0.5*o*xi(n)
-
-        where:
-        p(n) = v(n) + A(n)*dt**-1.
-
+    The propagator is Equation 23 (Eq. 39 if RATTLE constraints are used)
+    of the above reference.  That reference also contains another
+    propagator in Eq. 21/34; but that propagator is not quasi-symplectic
+    and gives a systematic offset in the temperature at large time steps.
+    
     This dynamics accesses the atoms using Cartesian coordinates."""
     
     # Helps Asap doing the right thing.  Increment when changing stuff:
@@ -89,28 +69,17 @@ class Langevin(MolecularDynamics):
 
     def updatevars(self):
         dt = self.dt
-
-        dt = self.dt
         T = self.temp
         fr = self.fr
         masses = self.masses
         sigma = np.sqrt(2*T*fr/masses)
-        c1 = 0.5*dt**2
-        c2 = c1 * fr
-        c3 = sigma*dt*dt**0.5/2.0
-        c4 = sigma*dt*dt**0.5/(2.0*np.sqrt(3))
-        v1 = 0.5*dt
-        v2 = c3/dt
-        v3 = c4/dt
 
-        self.c1 = c1
-        self.c2 = c2
-        self.c3 = c3
-        self.c4 = c4
-        self.v1 = v1
-        self.v2 = v2
-        self.v3 = v3
-
+        self.c1 = dt/2. - dt*dt*fr/8.
+        self.c2 = dt*fr/2 - dt*dt*fr*fr/8.
+        self.c3 = np.sqrt(dt)*sigma/2. - dt**1.5*fr*sigma/8.
+        self.c5 = dt**1.5*sigma/(2*np.sqrt(3))
+        self.c4 = fr/2. * self.c5
+        
         # Works in parallel Asap, #GLOBAL number of atoms:
         self.natoms = self.atoms.get_number_of_atoms() 
 
@@ -129,19 +98,18 @@ class Langevin(MolecularDynamics):
             self.communicator.broadcast(self.xi, 0)
             self.communicator.broadcast(self.eta, 0)
 
-        # Begin calculating A
-        self.A = self.c1*f/self.masses - self.c2*self.v + self.c3*self.xi \
-            + self.c4*self.eta
+        # First halfstep in the velocity.
+        self.v += self.c1 * f / self.masses - self.c2 * self.v \
+          + self.c3 * self.xi - self.c4 * self.eta
 
-        # Make self.V 
-        self.V = self.v + self.A/self.dt
+        # Full step in positions
         x = atoms.get_positions()
 
         if self.fixcm:
             old_cm = atoms.get_center_of_mass()
 
         # Step: x^n -> x^(n+1) - this applies constraints if any.
-        atoms.set_positions(x + self.dt*self.V)
+        atoms.set_positions(x + self.dt*self.v + self.c5 * self.eta)
     
         if self.fixcm:
             new_cm = atoms.get_center_of_mass()
@@ -149,20 +117,20 @@ class Langevin(MolecularDynamics):
             # atoms.translate(d)  # Does not respect constraints
             atoms.set_positions(atoms.get_positions() + d)
 
-        # recalc vels after RATTLE constraints are applied 
-        self.V = (self.atoms.get_positions() - x) / self.dt
+        # recalc velocities after RATTLE constraints are applied 
+        self.v = (self.atoms.get_positions() - x - self.c5 * self.eta) / self.dt
         f = atoms.get_forces(md=True)
 
         # Update the velocities 
-        self.V += self.v2*self.xi + self.v1*f/self.masses - self.fr*self.A \
-             - self.fr*self.v1*self.v - self.v3*self.eta
+        self.v += self.c1 * f / self.masses - self.c2 * self.v \
+          + self.c3 * self.xi - self.c4 * self.eta
 
         if self.fixcm: # subtract center of mass vel
             v_cm = self._get_com_velocity()
-            self.V -= v_cm
+            self.v -= v_cm
 
         # Second part of RATTLE taken care of here
-        atoms.set_momenta(self.V*self.masses)
+        atoms.set_momenta(self.v*self.masses)
 
         return f
 
@@ -171,4 +139,4 @@ class Langevin(MolecularDynamics):
 
         Internal use only.  This function can be reimplemented by Asap.
         """
-        return np.dot(self.masses.flatten(), self.V) / self.masses.sum()
+        return np.dot(self.masses.flatten(), self.v) / self.masses.sum()
