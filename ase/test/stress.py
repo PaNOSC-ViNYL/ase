@@ -36,7 +36,7 @@ assert np.all(abs(s_p_err) < 1e-5)
 
 # Minimize unit cell
 opt = MDMin(UnitCellFilter(a), dt=0.01)
-opt.run(fmax=0.5)
+opt.run(fmax=1e-3)
 
 # Verify minimized unit cell using Niggli tensors
 g_minimized = np.dot(a.cell, a.cell.T)
