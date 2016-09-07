@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import division, print_function
 from math import sqrt
 from ase.geometry import find_mic
 
@@ -288,6 +288,7 @@ class FixBondLengths(FixConstraint):
 def FixBondLength(a1, a2):
     """Fix distance between atoms with indices a1 and a2."""
     return FixBondLengths([(a1, a2)])
+
 
 
 class FixedMode(FixConstraint):
@@ -1225,10 +1226,66 @@ class StrainFilter(Filter):
         return 2
 
 
+# The indices of the full stiffness matrix of (orthorhombic) interest
+Voigt_notation = [(0, 0), (1, 1), (2, 2), (1, 2), (0, 2), (0, 1)]
+
+def full_3x3_to_Voigt_6_index(i, j):
+    if i == j:
+        return i
+    return 6-i-j
+
+def Voigt_6_to_full_3x3_strain(strain_vector):
+    """
+    Form a 3x3 strain matrix from a 6 component vector in Voigt notation
+    """
+    e1, e2, e3, e4, e5, e6 = np.transpose(strain_vector)
+    return np.transpose([[1.0+e1, 0.5*e6, 0.5*e5],
+                         [0.5*e6, 1.0+e2, 0.5*e4],
+                         [0.5*e5, 0.5*e4, 1.0+e3]])
+
+
+def Voigt_6_to_full_3x3_stress(stress_vector):
+    """
+    Form a 3x3 stress matrix from a 6 component vector in Voigt notation
+    """
+    s1, s2, s3, s4, s5, s6 = np.transpose(stress_vector)
+    return np.transpose([[s1, s6, s5],
+                         [s6, s2, s4],
+                         [s5, s4, s3]])
+
+
+def full_3x3_to_Voigt_6_strain(strain_matrix):
+    """
+    Form a 6 component strain vector in Voigt notation from a 3x3 matrix
+    """
+    strain_matrix = np.asarray(strain_matrix)
+    return np.transpose([strain_matrix[...,0,0] - 1.0,
+                         strain_matrix[...,1,1] - 1.0,
+                         strain_matrix[...,2,2] - 1.0,
+                         strain_matrix[...,1,2]+strain_matrix[...,2,1],
+                         strain_matrix[...,0,2]+strain_matrix[...,2,0],
+                         strain_matrix[...,0,1]+strain_matrix[...,1,0]])
+
+
+def full_3x3_to_Voigt_6_stress(stress_matrix):
+    """
+    Form a 6 component stress vector in Voigt notation from a 3x3 matrix
+    """
+    stress_matrix = np.asarray(stress_matrix)
+    return np.transpose([stress_matrix[...,0,0],
+                         stress_matrix[...,1,1],
+                         stress_matrix[...,2,2],
+                         (stress_matrix[...,1,2]+stress_matrix[...,1,2])/2,
+                         (stress_matrix[...,0,2]+stress_matrix[...,0,2])/2,
+                         (stress_matrix[...,0,1]+stress_matrix[...,0,1])/2])
+
+
 class UnitCellFilter(Filter):
     """Modify the supercell and the atom positions. """
-
-    def __init__(self, atoms, mask=None, weight=1.):
+    def __init__(self, atoms, mask=None,
+                 cell_factor=None,
+                 hydrostatic_strain=False,
+                 constant_volume=False):
         """Create a filter that returns the atomic forces and unit cell
         stresses together, so they can simultaneously be minimized.
 
@@ -1238,6 +1295,15 @@ class UnitCellFilter(Filter):
 
         - True = relax to zero
         - False = fixed, ignore this component
+
+        Degrees of freedom are the positions in the original undeformed cell,
+        plus the deformation tensor (extra 3 "atoms"). This gives forces
+        consistent with numerical derivatives of the potential energy
+        with respect to the cell degreees of freedom.
+
+        For full details see:
+            E. B. Tadmor, G. S. Smith, N. Bernstein, and E. Kaxiras,
+            Phys. Rev. B 59, 235 (1999)
 
         You can still use constraints on the atoms, e.g. FixAtoms, to control
         the relaxation of the atoms.
@@ -1265,72 +1331,89 @@ class UnitCellFilter(Filter):
         - 0.0006 eV/A^3 = 0.096 GPa
         - 0.0003 eV/A^3 = 0.048 GPa
         - 0.0001 eV/A^3 = 0.02 GPa
+
+        Additional optional arguments
+        -----------------------------
+
+        cell_factor: float (default float(len(atoms)))
+            Factor by which deformation gradient is multiplied to put
+            it on the same scale as the positions when assembling
+            the combined position/cell vector. The stress contribution to
+            the forces is scaled down by the same factor. This can be thought of
+            as a very simple preconditioners. Default is number of atoms
+            which gives approximately the correct scaling.
+
+        hydrostatic_strain: bool (default False)
+            Constrain the cell by only allowing hydrostatic deformation.
+            The virial tensor is replaced by np.diag([np.trace(virial)]*3).
+
+        constant_volume: bool (default False)
+            Project out the diagonal elements of the virial tensor to allow
+            relaxations at constant volume, e.g. for mapping out an energy-volume
+            curve. Note: this only approximately conserves the volume and breaks
+            energy/force consistency so can only be used with optimizers that do
+            require do a line minimisation (e.g. FIRE).
         """
 
         Filter.__init__(self, atoms, indices=range(len(atoms)))
-
         self.atoms = atoms
-        self.strain = np.zeros(6)
+        self.deform_grad = np.eye(3)
+        self.atom_positions = atoms.get_positions()
+        self.orig_cell = atoms.get_cell()
+        self.stress = None
 
         if mask is None:
-            self.mask = np.ones(6)
+            mask = np.ones(6)
+        mask = np.asarray(mask)
+        if mask.shape == (6,):
+            self.mask = Voigt_6_to_full_3x3_stress(mask)
+        elif mask.shape == (3,3):
+            self.mask = mask
         else:
-            self.mask = np.array(mask)
+            raise ValueError('shape of mask should be (3,3) or (6,)')
 
-        self.origcell = atoms.get_cell()
+        if cell_factor is None:
+            cell_factor = float(len(atoms))
+        self.hydrostatic_strain = hydrostatic_strain
+        self.constant_volume = constant_volume
+        self.cell_factor = cell_factor
         self.copy = self.atoms.copy
         self.arrays = self.atoms.arrays
-        self.weight = weight
-
-        # These Jacobians make the generalized stress/strain scale with
-        # the system size the same was a the atomic positions/forces.
-        # See DOI 10.1063/1.3684549
-        self.strain_renorm = (self.atoms.get_volume()**(1 / 3) *
-                              len(self.atoms)**(1 / 6))
-        self.stress_renorm = self.atoms.get_volume() / self.strain_renorm
 
     def get_positions(self):
         '''
-        this returns an array with shape (natoms + 2,3).
+        this returns an array with shape (natoms + 3,3).
 
         the first natoms rows are the positions of the atoms, the last
-        two rows are the strains associated with the unit cell
+        three rows are the deformation tensor associated with the unit cell,
+        scaled by self.cell_factor.
         '''
 
-        atom_positions = self.atoms.get_positions()
-        strains = self.strain.reshape((2, 3))
-
         natoms = len(self.atoms)
-        all_pos = np.zeros((natoms + 2, 3), np.float)
-        all_pos[0:natoms, :] = atom_positions
-        all_pos[natoms:, :] = strains * self.strain_renorm
-
-        return all_pos
+        pos = np.zeros((natoms + 3, 3))
+        pos[:natoms] = self.atom_positions
+        pos[natoms:] = self.cell_factor*self.deform_grad
+        return pos
 
     def set_positions(self, new):
         '''
-        new is an array with shape (natoms+2,3).
+        new is an array with shape (natoms+3,3).
 
         the first natoms rows are the positions of the atoms, the last
-        two rows are the strains used to change the cell shape.
+        three rows are the deformation tensor used to change the cell shape.
 
-        The atom positions are set first, then the unit cell is
-        changed keeping the atoms in their scaled positions.
+        the positions are first set with respect to the original
+        undeformed cell, and then the cell is transformed by the
+        current deformation gradient.
         '''
 
         natoms = len(self.atoms)
-
-        atom_positions = new[0:natoms, :]
-        self.atoms.set_positions(atom_positions)
-
-        new = new[natoms:, :]  # this is only the strains
-        new = new.ravel() * self.mask / self.strain_renorm
-        eps = np.array([[1.0 + new[0], 0.5 * new[5], 0.5 * new[4]],
-                        [0.5 * new[5], 1.0 + new[1], 0.5 * new[3]],
-                        [0.5 * new[4], 0.5 * new[3], 1.0 + new[2]]])
-
-        self.atoms.set_cell(np.dot(self.origcell, eps), scale_atoms=True)
-        self.strain[:] = new
+        self.atom_positions[:] = new[:natoms]
+        self.deform_grad = new[natoms:]/self.cell_factor
+        self.atoms.set_positions(self.atom_positions)
+        self.atoms.set_cell(self.orig_cell, scale_atoms=False)
+        self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
+                            scale_atoms=True)
 
     def get_forces(self, apply_constraint=False):
         '''
@@ -1338,32 +1421,46 @@ class UnitCellFilter(Filter):
         and unit cell stresses.
 
         the first natoms rows are the forces on the atoms, the last
-        two rows are the stresses on the unit cell, which have been
-        reshaped to look like "atomic forces". i.e.,
-
-        f[-2] = -vol*[sxx,syy,szz]*mask[0:3]
-        f[-1] = -vol*[syz, sxz, sxy]*mask[3:]
-
-        apply_constraint is an argument expected by ase
+        three rows are the forces on the unit cell, which are
+        computed from the stress tensor.
         '''
 
+        atoms_forces = self.atoms.get_forces()
         stress = self.atoms.get_stress()
-        atom_forces = self.atoms.get_forces()
+        self.stress = Voigt_6_to_full_3x3_stress(stress)*self.mask
+
+        volume = self.atoms.get_volume()
+        virial = -volume*Voigt_6_to_full_3x3_stress(stress)
+        atoms_forces = np.dot(atoms_forces, self.deform_grad)
+        dg_inv = np.linalg.inv(self.deform_grad)
+        virial = np.dot(virial, dg_inv.T)
+
+        if self.hydrostatic_strain:
+            vtr = virial.trace()
+            virial = np.diag([vtr/3.0, vtr/3.0, vtr/3.0])
+
+        # Zero out components corresponding to fixed lattice elements
+        if (self.mask != 1.0).any():
+            virial *= self.mask
+
+        if self.constant_volume:
+            vtr = virial.trace()
+            np.fill_diagonal(virial, np.diag(virial) - vtr/3.0)
 
         natoms = len(self.atoms)
-        all_forces = np.zeros((natoms + 2, 3), np.float)
-        all_forces[0:natoms, :] = atom_forces
-
-        stress_forces = -((stress * self.mask).reshape((2, 3)) *
-                          self.stress_renorm)
-        all_forces[natoms:, :] = stress_forces * self.weight
-        return all_forces
+        forces = np.zeros((natoms + 3, 3))
+        forces[:natoms] = atoms_forces
+        forces[natoms:] = virial/self.cell_factor
+        return forces
 
     def get_potential_energy(self):
         return self.atoms.get_potential_energy()
+
+    def get_stress(self):
+        raise NotImplementedError
 
     def has(self, x):
         return self.atoms.has(x)
 
     def __len__(self):
-        return (2 + len(self.atoms))
+        return (len(self.atoms) + 3)
