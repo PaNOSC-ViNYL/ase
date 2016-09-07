@@ -1,5 +1,6 @@
 try:
     import tkinter as tk
+    import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel
 except ImportError:
     import Tkinter as tk
@@ -202,6 +203,27 @@ class RadioButton(Widget):
                                var=var,
                                value=i,
                                command=callback)
+
+
+class ComboBox(Widget):
+    def __init__(self, labels, selected=None):
+        self.var = tk.StringVar()
+        self.selected = selected
+        self.creator = partial(ttk.Combobox,
+                               textvariable=self.var, values=labels)
+
+    def create(self, parrent):
+        widget = Widget.create(self, parrent)
+        widget.current(0)
+        if self.selected:
+            def callback(event):
+                self.selected(self.value)
+            widget.bind('<<ComboboxSelected>>', callback)
+        return widget
+
+    @property
+    def value(self):
+        return self.var.get()
 
 
 def parse(name, key):
