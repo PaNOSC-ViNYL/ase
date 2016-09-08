@@ -248,13 +248,14 @@ class Rows(Widget):
         self.rows.append(row)
 
     def __delitem__(self, i):
-        self.rows[i].widget.grid_remove()
-        del self.rows[i]
+        widget = self.rows.pop(i).widget
+        widget.grid_remove()
+        widget.destroy()
 
 
 def parse(name, key):
     label = gettext(name)
-    name = name.replace('_', '').replace('.', '').strip()
+    name = name.replace('.', '').strip()
     id = '-'.join(x.lower() for x in name.split())
     underline = -1
     if key[:4] == 'Ctrl':
