@@ -66,6 +66,20 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     return np.dot(fractional, cell)
 
 
+def undo_pbc_jumps(atoms):
+    """
+    Return change in atomic positions since last call, correcting for jumps across PBC
+    """
+    if not hasattr(atoms, 'old_positions'):
+        atoms.old_positions = atoms.positions.copy()
+    p = atoms.old_positions.copy()
+    g = np.linalg.inv(atoms.cell.T)
+    f = np.floor(np.dot(g, (atoms.positions - p).T) + 0.5)
+    p -= np.dot(atoms.cell.T, f).T
+    d = (atoms.positions - p).copy()
+    atoms.old_positions = atoms.positions.copy()
+    return d
+
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
     to and the distance between the layers and origo.
