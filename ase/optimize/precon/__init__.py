@@ -1,5 +1,5 @@
 """
-This module contains tools for preconditioned geometry optimsiation.
+This module contains tools for preconditioned geometry optimisation.
 
 Code maintained by James Kermode <james.kermode@gmail.com>
 Parts written by John Woolley, Letif Mones and Christoph Ortner.
