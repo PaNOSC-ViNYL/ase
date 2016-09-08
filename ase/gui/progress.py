@@ -43,7 +43,7 @@ class DefaultProgressIndicator:
         pack(vbox, [self.label_scale_stepno])
         self.scale_progress = ui.ProgressBar()
         self.scale_progress.modify_bg(ui.STATE_PRELIGHT,
-                                      ui.gdk.color_parse('#00AA00'))
+                                      '#00AA00')
         pack(vbox, [self.scale_progress])
 
         vbox.show()

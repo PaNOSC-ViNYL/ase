@@ -50,7 +50,7 @@ class SetupNanotube(SetupWindow):
         pack(vbox, [label1, self.element, label2, bond_box, label3])
         self.elementinfo = ui.Label("")
         self.elementinfo.modify_fg(ui.STATE_NORMAL,
-                                   ui.gdk.color_parse('#FF0000'))
+                                   '#FF0000')
         pack(vbox, [self.elementinfo])
         pack(vbox, ui.Label(""))
 
@@ -68,7 +68,7 @@ class SetupNanotube(SetupWindow):
         spinl = ui.SpinButton(self.length, 0, 0)
         pack(vbox, [label1, spinn, label2, spinm, label3, spinl])
         self.err = ui.Label("")
-        self.err.modify_fg(ui.STATE_NORMAL, ui.gdk.color_parse('#FF0000'))
+        self.err.modify_fg(ui.STATE_NORMAL, '#FF0000')
         pack(vbox, [self.err])
         pack(vbox, ui.Label(""))
 

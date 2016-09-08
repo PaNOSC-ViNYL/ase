@@ -299,7 +299,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # Display status message
         self.status_label.set_text(_("Running ..."))
         self.status_label.modify_fg(ui.STATE_NORMAL,
-                                    ui.gdk.color_parse('#AA0000'))
+                                    '#AA0000')
         while ui.events_pending():
             ui.main_iteration()
 
@@ -346,18 +346,18 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             # Update display to reflect cancellation of simulation.
             self.status_label.set_text(_("Calculation CANCELLED."))
             self.status_label.modify_fg(ui.STATE_NORMAL,
-                                        ui.gdk.color_parse('#AA4000'))
+                                        '#AA4000')
         except MemoryError:
             self.status_label.set_text(_("Out of memory, consider using "
                                          "LBFGS instead"))
             self.status_label.modify_fg(ui.STATE_NORMAL,
-                                        ui.gdk.color_parse('#AA4000'))
+                                        '#AA4000')
             
         else:
             # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Calculation completed."))
             self.status_label.modify_fg(ui.STATE_NORMAL,
-                                        ui.gdk.color_parse('#007700'))
+                                        '#007700')
                      
         if results:
             self.do_fit(np.array(results))

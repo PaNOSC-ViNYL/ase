@@ -79,7 +79,7 @@ class SetupGraphene(SetupWindow):
 
         self.elementinfo = ui.Label("")
         self.elementinfo.modify_fg(ui.STATE_NORMAL,
-                                   ui.gdk.color_parse('#FF0000'))
+                                   '#FF0000')
         pack(vbox, [self.elementinfo])
         pack(vbox, ui.Label(""))
 

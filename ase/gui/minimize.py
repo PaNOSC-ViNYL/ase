@@ -93,7 +93,7 @@ class Minimize(Simulation, MinimizeMixin):
         # Display status message
         self.status_label.set_text(_("Running ..."))
         self.status_label.modify_fg(ui.STATE_NORMAL,
-                                    ui.gdk.color_parse('#AA0000'))
+                                    '#AA0000')
         while ui.events_pending():
             ui.main_iteration()
 
@@ -112,19 +112,19 @@ class Minimize(Simulation, MinimizeMixin):
                                          "%i steps.")
                                        % (self.count_steps,))
             self.status_label.modify_fg(ui.STATE_NORMAL,
-                                        ui.gdk.color_parse('#AA4000'))
+                                        '#AA4000')
         except MemoryError:
             self.status_label.set_text(_("Out of memory, consider using "
                                          "LBFGS instead"))
             self.status_label.modify_fg(ui.STATE_NORMAL,
-                                        ui.gdk.color_parse('#AA4000'))
+                                        '#AA4000')
             
         else:
             # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Minimization completed in %i steps.")
                                        % (self.count_steps,))
             self.status_label.modify_fg(ui.STATE_NORMAL,
-                                        ui.gdk.color_parse('#007700'))
+                                        '#007700')
             
         self.end()
         if self.count_steps:

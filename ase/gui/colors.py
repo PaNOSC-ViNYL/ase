@@ -171,7 +171,7 @@ class ColorWindow:
     def notify_atoms_changed(self):
         "Called by gui object when the atoms have changed."
         self.destroy()
-  
+
     def init_colors_from_gui(self):
         cm = self.gui.colormode
         # Disallow methods if corresponding data is not available
@@ -227,7 +227,7 @@ class ColorWindow:
             self.radio_manual.set_active(True)
         elif cm == 'same':
             self.radio_same.set_active(True)
-            
+
     def method_radio_changed(self, widget=None):
         "Called when a radio button is changed."
         self.scaletype_created = None
@@ -267,7 +267,7 @@ class ColorWindow:
             self.set_same_color()
         else:
             raise RuntimeError('Unknown widget in method_radio_changed')
-            
+
     def make_jmol_colors(self):
         "Set the colors to the default jmol colors"
         self.colordata_z = []
@@ -284,7 +284,7 @@ class ColorWindow:
         for entry in self.color_entries:
             entry.set_sensitive(False)
         self.colormode = 'jmol'
-        
+
     def set_atno_colors(self):
         "We use user-specified per-element colors."
         if not hasattr(self, 'colordata_z'):
@@ -503,7 +503,7 @@ class ColorWindow:
                 clr = ui.gdk.Color(*intval)
             else:
                 try:
-                    clr = ui.gdk.color_parse(val)
+                    clr = val
                 except ValueError:
                     error = True
             entry.set_text(val)
@@ -525,7 +525,7 @@ class ColorWindow:
             entry.connect('changed', self.entry_changed, i)
             self.color_display.append(blob)
             self.color_entries.append(entry)
-            
+
     def entry_changed(self, widget, index):
         """The user has changed a color."""
         txt = widget.get_text()
@@ -537,18 +537,18 @@ class ColorWindow:
         else:
             self.actual_colordata[index][1] = txt
             try:
-                clr = ui.gdk.color_parse(txt)
+                clr = txt
             except ValueError:
                 # Cannot parse the color
                 displ = self.color_display[index]
-                displ.modify_bg(ui.STATE_NORMAL, ui.gdk.color_parse('white'))
+                displ.modify_bg(ui.STATE_NORMAL, 'white')
                 displ.get_child().set_text(_("ERR"))
                 self.color_errors[index] = (self.color_labels[index], txt)
                 return
         self.color_display[index].get_child().set_text("    ") # Clear error message
         self.color_errors.pop(index, None)
         self.color_display[index].modify_bg(ui.STATE_NORMAL, clr)
-        
+
     def create_color_scale(self, *args):
         if self.radio_jmol.get_active():
             self.radio_atno.set_active(1)
@@ -629,7 +629,7 @@ class ColorWindow:
             return named_colors[:n]
         else:
             return named_colors + ('Black',) * (n - len(named_colors))
-        
+
     def apply(self, *args):
         #if self.colormode in ['atno', 'jmol', 'tags']:
         # Color atoms according to an integer value number
