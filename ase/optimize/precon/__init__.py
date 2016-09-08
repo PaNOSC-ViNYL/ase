@@ -40,7 +40,7 @@ try:
     from matscipy.neighbours import neighbour_list
     have_matscipy = True
 except ImportError:
-    from ase.calculators.neighborlist import NeighborList
+    from ase.neighborlist import NeighborList
     have_matscipy = False
 
 def get_neighbours(atoms, r_cut, self_interaction=False):
