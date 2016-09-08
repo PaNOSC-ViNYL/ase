@@ -3,7 +3,7 @@ import time
 from math import sqrt
 import numpy as np
 
-from ase.utils import sum128
+from ase.utils import sum128, basestring
 from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
 from ase.optimize.precon import C1, Exp, Pfrommer, logger
