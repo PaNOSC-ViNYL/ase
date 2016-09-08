@@ -5,7 +5,7 @@ import numpy as np
 from ase.build import bulk
 from ase.constraints import UnitCellFilter
 from ase.calculators.lj import LennardJones
-from ase.optimize.precon import Exp, LBFGS #, FIRE
+from ase.optimize.precon import Exp, LBFGS, FIRE
 
 N = 1
 a0 = bulk('Cu', cubic=True)
@@ -19,7 +19,7 @@ a0.set_scaled_positions(s)
 nsteps = []
 energies = []
 for variable_cell in [False, True]:
-	for OPT in [LBFGS]: #, FIRE]:
+	for OPT in [LBFGS, FIRE]:
 		for precon in [None, Exp(A=3)]:
 			atoms = a0.copy()
 			atoms.set_calculator(LennardJones())

@@ -5,12 +5,14 @@ Code maintained by James Kermode <james.kermode@gmail.com>
 Parts written by John Woolley, Letif Mones and Christoph Ortner.
 
 The preconditioned LBFGS optimizer implemented here is described in
-the following publicaiton:
+the following publication:
 
     D. Packwood, J. R. Kermode, L. Mones, N. Bernstein, J. Woolley,
     N. Gould, C. Ortner, and G. Csanyi, A universal preconditioner for
     simulating condensed phase materials, J. Chem. Phys. 144, 164109 (2016).
     DOI: http://dx.doi.org/10.1063/1.4947024
+
+A preconditioned version of FIRE is also included, this is less well tested.
 
 Optional dependencies
 ---------------------
@@ -168,4 +170,4 @@ def estimate_nearest_neighbour_distance(atoms):
 
 from ase.optimize.precon.precon import Precon, Exp, C1, Pfrommer
 from ase.optimize.precon.lbfgs import LBFGS
-#from ase.optimize.precon.fire import FIRE
+from ase.optimize.precon.fire import FIRE
