@@ -2,11 +2,12 @@
 Implementation of the Precon abstract base class and subclasses
 """
 import time
+import itertools
 
 import numpy as np
 
-from ase.constraints import Filter, UnitCellFilter, FixAtoms, full_3x3_to_Voigt_6_strain
-from ase.utils import sum128, dot128, norm128
+from ase.constraints import Filter
+from ase.utils import sum128, dot128
 from ase.geometry import undo_pbc_jumps
 
 import ase.units as units
@@ -17,8 +18,6 @@ from ase.optimize.precon import (get_neighbours, estimate_nearest_neighbour_dist
 
 try:
     from scipy import sparse, rand
-    from scipy.linalg import eigh, solve
-    from scipy.optimize import fmin_l_bfgs_b
     from scipy.sparse.linalg import spsolve
     have_scipy = True
 except ImportError:
@@ -191,7 +190,6 @@ class Precon(object):
         if recalc_mu:
             self.estimate_mu(atoms)
 
-        positions = atoms.get_positions()
         if self.P is not None:
             real_atoms = atoms
             if isinstance(atoms, Filter):
@@ -603,14 +601,12 @@ class Pfrommer(object):
             # only build H0 on first call
             return NotImplemented
 
-        ndof = 3*len(atoms)
         variable_cell = False
         if isinstance(atoms, Filter):
             variable_cell = True
             atoms = atoms.atoms
 
         # position DoF
-        g0 = np.dot(atoms.cell, atoms.cell.T)
         omega = self.phonon_frequency
         mass = atoms.get_masses().mean()
         block = np.eye(3)/(mass*omega**2)

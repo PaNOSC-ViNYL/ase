@@ -33,7 +33,7 @@ import time
 
 import numpy as np
 
-from ase.constraints import Filter
+from ase.constraints import Filter, FixAtoms
 from ase.geometry.cell import cell_to_cellpar
 
 try:
@@ -171,3 +171,5 @@ def estimate_nearest_neighbour_distance(atoms):
 from ase.optimize.precon.precon import Precon, Exp, C1, Pfrommer
 from ase.optimize.precon.lbfgs import LBFGS
 from ase.optimize.precon.fire import FIRE
+
+__all__ = ['Precon', 'Exp', 'C1', 'Pfrommer', 'LBFGS', 'FIRE']

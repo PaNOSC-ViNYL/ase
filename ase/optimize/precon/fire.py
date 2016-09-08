@@ -1,7 +1,8 @@
 import numpy as np
 
 from ase.optimize.optimize import Optimizer
-from ase.utils import sum128, dot128, norm128
+from ase.constraints import UnitCellFilter
+from ase.utils import sum128
 
 class FIRE(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
@@ -65,7 +66,7 @@ class FIRE(Optimizer):
         r = atoms.get_positions()
 
         if self.precon is not None:
-            P_matrix = self.precon.make_precon(atoms) # Can this be moved out of the step method?
+            self.precon.make_precon(atoms) # Can this be moved out of the step method?
             invP_f = self.precon.solve(f.reshape(-1)).reshape(len(atoms), -1)
 
         if self.v is None:

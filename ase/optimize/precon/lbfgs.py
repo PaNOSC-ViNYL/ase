@@ -3,7 +3,7 @@ import time
 from math import sqrt
 import numpy as np
 
-from ase.utils import sum128, dot128, norm128
+from ase.utils import sum128
 from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
 from ase.optimize.precon import C1, Exp, Pfrommer, logger
@@ -200,7 +200,7 @@ class LBFGS(Optimizer):
         if self.precon is None:
             z = H0 * q
         else:
-            P_matrix = self.precon.make_precon(self.atoms)
+            self.precon.make_precon(self.atoms)
             z = self.precon.solve(q)
 
         for i in range(loopmax):
@@ -229,20 +229,6 @@ class LBFGS(Optimizer):
         self.f0 = -g
         self.dump((self.iteration, self.s, self.y,
                    self.rho, self.r0, self.f0, self.e0, self.task))
-
-    def log(self, forces):
-        fmax = np.sqrt((forces**2).sum(axis=1).max())
-        if self.e1 is not None:
-            # reuse energy at end of line search to avoid extra call
-            e = self.e1
-        else:
-            e = self.atoms.get_potential_energy()
-        T = time.localtime()
-        if self.logfile is not None:
-            name = self.__class__.__name__
-            self.logfile.write('%s: %3d  %02d:%02d:%02d %15.6f %12.4f\n' %
-                               (name, self.nsteps, T[3], T[4], T[5], e, fmax))
-            self.logfile.flush()
 
     def determine_step(self, dr):
         """Determine step to take according to maxstep
@@ -370,7 +356,11 @@ class LBFGS(Optimizer):
             smax = sqrt((stress**2).max())
         else:
             fmax = sqrt((forces**2).sum(axis=1).max())
-        e = self.atoms.get_potential_energy()
+        if self.e1 is not None:
+            # reuse energy at end of line search to avoid extra call
+            e = self.e1
+        else:
+            e = self.atoms.get_potential_energy()
         T = time.localtime()
         if self.logfile is not None:
             name = self.__class__.__name__
