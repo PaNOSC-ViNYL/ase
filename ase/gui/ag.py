@@ -66,7 +66,7 @@ def build_parser():
 
 def main():
     enable_localization()
-    from gettext import gettext as _
+    import ase.gui.ui as ui
     parser = build_parser()
     opt, args = parser.parse_args()
 

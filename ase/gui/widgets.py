@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-from gettext import gettext as _
+import ase.gui.ui as ui
 import re
 
 
@@ -12,7 +12,7 @@ class Help:
     def __new__(cls, *args, **kwargs):
         # Make this a singleton.
         if Help.__instance is None:
-            Help.__instance = gtk.Window.__new__(cls, *args, **kwargs)
+            Help.__instance = ui.Window.__new__(cls, *args, **kwargs)
         return Help.__instance
 
     def __init__(self, text):
@@ -24,15 +24,15 @@ class Help:
         self.present()  # Show the window.
         
     def initialize(self, text):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("Help"))
         self._initialized = True
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.add(vbox)
-        self.label = pack(vbox, gtk.Label())
+        self.label = pack(vbox, ui.Label())
         self.label.set_line_wrap(True)
         self.set_text(text)
-        close = gtk.Button(_('Close'))
+        close = ui.Button(_('Close'))
         pack(vbox, [close])
         close.connect('clicked', self.destroy)
         self.connect("delete-event", self.destroy)
@@ -54,7 +54,7 @@ class Help:
     
         
 def help(text):
-    button = gtk.Button(_('Help'))
+    button = ui.Button(_('Help'))
     button.connect('clicked', lambda widget, text=text: Help(text))
     return button
 
@@ -62,18 +62,18 @@ def help(text):
 class Window:
     def __init__(self, gui):
         self.gui = gui
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_('Constraints'))
-        vbox = gtk.VBox()
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' selected atoms'))])[0]
+        vbox = ui.VBox()
+        b = pack(vbox, [ui.Button(_('Constrain')),
+                        ui.Label(_(' selected atoms'))])[0]
         b.connect('clicked', self.selected)
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' immobile atoms:'))])[0]
+        b = pack(vbox, [ui.Button(_('Constrain')),
+                        ui.Label(_(' immobile atoms:'))])[0]
         b.connect('clicked', self.immobile)
-        b = pack(vbox, gtk.Button(_('Clear constraint')))
+        b = pack(vbox, ui.Button(_('Clear constraint')))
         b.connect('clicked', self.clear)
-        close = pack(vbox, gtk.Button(_('Close')))
+        close = pack(vbox, ui.Button(_('Close')))
         close.connect('clicked', lambda widget: self.destroy())
         self.add(vbox)
         vbox.show()
@@ -88,14 +88,14 @@ def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
         else:
             vbox.pack_start(widgets, expand, expand, padding)
         return widgets
-    hbox = gtk.HBox(0, 0)
+    hbox = ui.HBox(0, 0)
     hbox.show()
     if bottom:
         vbox.pack_end(hbox, expand, expand, padding)
     else:
         vbox.pack_start(hbox, expand, expand, padding)
     for widget in widgets:
-        if type(widget) is gtk.Entry:  # isinstance does not work here
+        if type(widget) is ui.Entry:  # isinstance does not work here
             widget.set_size_request(widget.get_max_length() * 9, 24)
         widget.show()
         if end and widget is widgets[-1]:
@@ -108,12 +108,12 @@ def pack(vbox, widgets, end=False, bottom=False, expand=False, padding=0):
 class cancel_apply_ok:
     "Widget with Cancel, Apply and OK buttons.  The arguments are callbacks."
     def __init__(self, cancel, apply, ok):
-        gtk.HButtonBox.__init__(self)
-        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        ui.HButtonBox.__init__(self)
+        cancel_but = ui.Button('Cancel')
         cancel_but.connect('clicked', cancel)
-        apply_but = gtk.Button(stock=gtk.STOCK_APPLY)
+        apply_but = ui.Button('Apply')
         apply_but.connect('clicked', apply)
-        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but = ui.Button('OK')
         ok_but.connect('clicked', ok)
         for w in (cancel_but, apply_but, ok_but):
             self.pack_start(w, 0, 0)
@@ -122,9 +122,9 @@ class cancel_apply_ok:
        
         
 def oops(message, message2=None):
-    dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                               type=gtk.MESSAGE_WARNING,
-                               buttons=gtk.BUTTONS_CLOSE,
+    dialog = ui.MessageDialog(flags=ui.DIALOG_MODAL,
+                               type=ui.MESSAGE_WARNING,
+                               buttons=ui.BUTTONS_CLOSE,
                                message_format=message)
     try:
         dialog.format_secondary_text(message2)

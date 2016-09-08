@@ -2,24 +2,24 @@
 """setupwindow.py - Window base class for setup modules.
 """
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack
 import ase
 
 
 class SetupWindow:
     "Base class for ase.gui setup windows."
-    # __init__ inherited from gtk.Window
+    # __init__ inherited from ui.Window
 
     def packtext(self, vbox, text, label=None):
         "Pack an text frame into the window."
-        pack(vbox, gtk.Label(""))
-        txtframe = gtk.Frame(label)
-        txtlbl = gtk.Label(text)
+        pack(vbox, ui.Label(""))
+        txtframe = ui.Frame(label)
+        txtlbl = ui.Label(text)
         txtframe.add(txtlbl)
         txtlbl.show()
         pack(vbox, txtframe)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
     def update_element(self, *args):
         "Called when a new element may have been entered."

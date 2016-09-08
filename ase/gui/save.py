@@ -2,18 +2,18 @@
 import os
 
 import numpy as np
-from gettext import gettext as _
+import ase.gui.ui as ui
 
 from ase.io.formats import (write, parse_filename, get_ioformat, string2index,
                             filetype)
 
 
 def save_dialog(gui):
-    dialog = gtk.FileChooserDialog(_('Save ...'),
+    dialog = ui.FileChooserDialog(_('Save ...'),
                                    None,
-                                   gtk.FILE_CHOOSER_ACTION_SAVE,
-                                   (gtk.STOCK_SAVE, gtk.RESPONSE_OK,
-                                    gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL))
+                                   ui.FILE_CHOOSER_ACTION_SAVE,
+                                   ('Save', ui.RESPONSE_OK,
+                                    'Cancel', ui.RESPONSE_CANCEL))
     dialog.set_current_name('')
     dialog.set_current_folder(os.getcwd())
     text = _('Append name with "@n" in order to write image number "n" '
@@ -24,9 +24,9 @@ def save_dialog(gui):
              'give you all images.\n'
              'Negative numbers count from the last image '
              '("name@-1": last image, "name@-2:": last two).')
-    dialog.set_extra_widget(gtk.Label(text))
+    dialog.set_extra_widget(ui.Label(text))
     response = dialog.run()
-    if response == gtk.RESPONSE_OK:
+    if response == ui.RESPONSE_OK:
         filename = dialog.get_filename()
         dialog.destroy()
     else:

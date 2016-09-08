@@ -6,7 +6,7 @@ import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
-from gettext import gettext as _
+import ase.gui.ui as ui
 
 try:
     chr = unichr

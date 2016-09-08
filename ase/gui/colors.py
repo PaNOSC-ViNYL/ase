@@ -2,7 +2,7 @@ from __future__ import print_function
 # encoding: utf-8
 """colors.py - select how to color the atoms in the GUI."""
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 import ase
 from ase.data.colors import jmol_colors
@@ -17,47 +17,47 @@ named_colors = ('Green', 'Yellow', 'Blue', 'Red', 'Orange', 'Cyan',
 class ColorWindow:
     "A window for selecting how to color the atoms."
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.gui = gui
         self.colormode = gui.colormode
         self.actual_colordata = None
         self.colordata = {}
         self.set_title(_("Colors"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.add(vbox)
         vbox.show()
         # The main layout consists of two columns, the leftmost split in an upper and lower part.
-        self.maintable = gtk.Table(2,2)
+        self.maintable = ui.Table(2,2)
         pack(vbox, self.maintable)
-        self.methodbox = gtk.VBox()
+        self.methodbox = ui.VBox()
         self.methodbox.show()
         self.maintable.attach(self.methodbox, 0, 1, 0, 1)
-        self.scalebox = gtk.VBox()
+        self.scalebox = ui.VBox()
         self.scalebox.show()
         self.maintable.attach(self.scalebox, 0, 1, 1, 2)
-        self.colorbox = gtk.Frame()
+        self.colorbox = ui.Frame()
         self.colorbox.show()
-        self.maintable.attach(self.colorbox, 1, 2, 0, 2, gtk.EXPAND)
+        self.maintable.attach(self.colorbox, 1, 2, 0, 2, ui.EXPAND)
         # Upper left: Choose how the atoms are colored.
-        lbl = gtk.Label(_("Choose how the atoms are colored:"))
+        lbl = ui.Label(_("Choose how the atoms are colored:"))
         pack(self.methodbox, [lbl])
-        self.radio_jmol = gtk.RadioButton(None, _('By atomic number, default "jmol" colors'))
-        self.radio_atno = gtk.RadioButton(self.radio_jmol,
+        self.radio_jmol = ui.RadioButton(None, _('By atomic number, default "jmol" colors'))
+        self.radio_atno = ui.RadioButton(self.radio_jmol,
                                           _('By atomic number, user specified'))
-        self.radio_tag = gtk.RadioButton(self.radio_jmol, _('By tag'))
-        self.radio_force = gtk.RadioButton(self.radio_jmol, _('By force'))
-        self.radio_velocity = gtk.RadioButton(self.radio_jmol, _('By velocity'))
-        self.radio_charge = gtk.RadioButton(self.radio_jmol, _('By charge'))
-        self.radio_magnetic_moment = gtk.RadioButton(
+        self.radio_tag = ui.RadioButton(self.radio_jmol, _('By tag'))
+        self.radio_force = ui.RadioButton(self.radio_jmol, _('By force'))
+        self.radio_velocity = ui.RadioButton(self.radio_jmol, _('By velocity'))
+        self.radio_charge = ui.RadioButton(self.radio_jmol, _('By charge'))
+        self.radio_magnetic_moment = ui.RadioButton(
             self.radio_jmol, _('By magnetic moment'))
-        self.radio_coordination = gtk.RadioButton(
+        self.radio_coordination = ui.RadioButton(
             self.radio_jmol, _('By coordination'))
-        self.radio_manual = gtk.RadioButton(self.radio_jmol, _('Manually specified'))
-        self.radio_same = gtk.RadioButton(self.radio_jmol, _('All the same color'))
-        self.force_box = gtk.VBox()
-        self.velocity_box = gtk.VBox()
-        self.charge_box = gtk.VBox()
-        self.magnetic_moment_box = gtk.VBox()
+        self.radio_manual = ui.RadioButton(self.radio_jmol, _('Manually specified'))
+        self.radio_same = ui.RadioButton(self.radio_jmol, _('All the same color'))
+        self.force_box = ui.VBox()
+        self.velocity_box = ui.VBox()
+        self.charge_box = ui.VBox()
+        self.magnetic_moment_box = ui.VBox()
         for widget in (self.radio_jmol, self.radio_atno, self.radio_tag,
                        self.radio_force, self.force_box,
                        self.radio_velocity, self.velocity_box,
@@ -67,74 +67,74 @@ class ColorWindow:
                        self.radio_coordination,
                        self.radio_manual, self.radio_same):
             pack(self.methodbox, [widget])
-            if isinstance(widget, gtk.RadioButton):
+            if isinstance(widget, ui.RadioButton):
                 widget.connect('toggled', self.method_radio_changed)
         # Now fill in the box for additional information in case the force is used.
-        self.force_label = gtk.Label(_("This should not be displayed in forces!"))
+        self.force_label = ui.Label(_("This should not be displayed in forces!"))
         pack(self.force_box, [self.force_label])
-        self.min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.steps = gtk.Adjustment(10, 2, 500, 1)
-        force_apply = gtk.Button(_('Update'))
+        self.min = ui.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.max = ui.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.steps = ui.Adjustment(10, 2, 500, 1)
+        force_apply = ui.Button(_('Update'))
         force_apply.connect('clicked', self.set_min_max_colors, 'force')
-        pack(self.force_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.min, 1.0, 2),
-                              gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.max, 1.0, 2),
-                              gtk.Label(_('  Steps: ')),
-                              gtk.SpinButton(self.steps, 1, 0),
-                              gtk.Label('  '),
+        pack(self.force_box, [ui.Label(_('Min: ')),
+                              ui.SpinButton(self.min, 1.0, 2),
+                              ui.Label(_('  Max: ')),
+                              ui.SpinButton(self.max, 1.0, 2),
+                              ui.Label(_('  Steps: ')),
+                              ui.SpinButton(self.steps, 1, 0),
+                              ui.Label('  '),
                               force_apply])
         self.force_box.hide()
         # Now fill in the box for additional information in case the velocity is used.
-        self.velocity_label = gtk.Label("This should not be displayed!")
+        self.velocity_label = ui.Label("This should not be displayed!")
         pack(self.velocity_box, [self.velocity_label])
-        velocity_apply = gtk.Button(_('Update'))
+        velocity_apply = ui.Button(_('Update'))
         velocity_apply.connect('clicked', self.set_min_max_colors, 'velocity')
-        pack(self.velocity_box, [gtk.Label(_('Min: ')),
-                                 gtk.SpinButton(self.min, 1.0, 3),
-                                 gtk.Label(_('  Max: ')),
-                                 gtk.SpinButton(self.max, 1.0, 3),
-                                 gtk.Label(_('  Steps: ')),
-                                 gtk.SpinButton(self.steps, 1, 0),
-                                 gtk.Label('  '),
+        pack(self.velocity_box, [ui.Label(_('Min: ')),
+                                 ui.SpinButton(self.min, 1.0, 3),
+                                 ui.Label(_('  Max: ')),
+                                 ui.SpinButton(self.max, 1.0, 3),
+                                 ui.Label(_('  Steps: ')),
+                                 ui.SpinButton(self.steps, 1, 0),
+                                 ui.Label('  '),
                                  velocity_apply])
         self.velocity_box.hide()
         # Now fill in the box for additional information in case
         # the charge is used.
-        self.charge_label = gtk.Label(_("This should not be displayed!"))
+        self.charge_label = ui.Label(_("This should not be displayed!"))
         pack(self.charge_box, [self.charge_label])
-        charge_apply = gtk.Button(_('Update'))
+        charge_apply = ui.Button(_('Update'))
         charge_apply.connect('clicked', self.set_min_max_colors, 'charge')
-        pack(self.charge_box, [gtk.Label(_('Min: ')),
-                              gtk.SpinButton(self.min, 10.0, 2),
-                              gtk.Label(_('  Max: ')),
-                              gtk.SpinButton(self.max, 10.0, 2),
-                              gtk.Label(_('  Steps: ')),
-                              gtk.SpinButton(self.steps, 1, 0),
-                              gtk.Label('  '),
+        pack(self.charge_box, [ui.Label(_('Min: ')),
+                              ui.SpinButton(self.min, 10.0, 2),
+                              ui.Label(_('  Max: ')),
+                              ui.SpinButton(self.max, 10.0, 2),
+                              ui.Label(_('  Steps: ')),
+                              ui.SpinButton(self.steps, 1, 0),
+                              ui.Label('  '),
                               charge_apply])
         self.charge_box.hide()
         # Now fill in the box for additional information in case
         # the magnetic moment is used.
-        self.magnetic_moment_label = gtk.Label(_(
+        self.magnetic_moment_label = ui.Label(_(
             "This should not be displayed!"))
         pack(self.magnetic_moment_box, [self.magnetic_moment_label])
-        magnetic_moment_apply = gtk.Button(_('Update'))
+        magnetic_moment_apply = ui.Button(_('Update'))
         magnetic_moment_apply.connect('clicked', self.set_min_max_colors,
                                       'magnetic moment')
-        pack(self.magnetic_moment_box, [gtk.Label(_('Min: ')),
-                                        gtk.SpinButton(self.min, 10.0, 2),
-                                        gtk.Label(_('  Max: ')),
-                                        gtk.SpinButton(self.max, 10.0, 2),
-                                        gtk.Label(_('  Steps: ')),
-                                        gtk.SpinButton(self.steps, 1, 0),
-                                        gtk.Label('  '),
+        pack(self.magnetic_moment_box, [ui.Label(_('Min: ')),
+                                        ui.SpinButton(self.min, 10.0, 2),
+                                        ui.Label(_('  Max: ')),
+                                        ui.SpinButton(self.max, 10.0, 2),
+                                        ui.Label(_('  Steps: ')),
+                                        ui.SpinButton(self.steps, 1, 0),
+                                        ui.Label('  '),
                                         magnetic_moment_apply])
         self.magnetic_moment_box.hide()
         # Lower left: Create a color scale
-        pack(self.scalebox, gtk.Label(""))
-        lbl = gtk.Label(_('Create a color scale:'))
+        pack(self.scalebox, ui.Label(""))
+        lbl = ui.Label(_('Create a color scale:'))
         pack(self.scalebox, [lbl])
         color_scales = (
             _('Black - white'),
@@ -146,18 +146,18 @@ class ColorWindow:
             _('Named colors')
             )
         self.scaletype_created = None
-        self.scaletype = gtk.combo_box_new_text()
+        self.scaletype = ui.combo_box_new_text()
         for s in color_scales:
             self.scaletype.append_text(s)
-        self.createscale = gtk.Button(_("Create"))
+        self.createscale = ui.Button(_("Create"))
         pack(self.scalebox, [self.scaletype, self.createscale])
         self.createscale.connect('clicked', self.create_color_scale)
         # The actually colors are specified in a box possibly with scrollbars
-        self.colorwin = gtk.ScrolledWindow()
-        self.colorwin.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.colorwin = ui.ScrolledWindow()
+        self.colorwin.set_policy(ui.POLICY_NEVER, ui.POLICY_AUTOMATIC)
         self.colorwin.show()
         self.colorbox.add(self.colorwin)
-        self.colorwin.add_with_viewport(gtk.VBox()) # Dummy contents
+        self.colorwin.add_with_viewport(ui.VBox()) # Dummy contents
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
@@ -487,35 +487,35 @@ class ColorWindow:
         old = self.colorwin.get_child()
         self.colorwin.remove(old)
         del old
-        table = gtk.Table(len(self.actual_colordata)+1, 4)
+        table = ui.Table(len(self.actual_colordata)+1, 4)
         self.colorwin.add_with_viewport(table)
         table.show()
         self.color_display = []
         for i in range(len(self.actual_colordata)):
-            lbl = gtk.Label(self.color_labels[i])
-            entry = gtk.Entry(max=20)
+            lbl = ui.Label(self.color_labels[i])
+            entry = ui.Entry(max=20)
             val = self.actual_colordata[i][1]
             error = False
             if not isinstance(val, str):
                 assert len(val) == 3
                 intval = tuple(np.round(65535*np.array(val)).astype(int))
                 val = "%.3f, %.3f, %.3f" % tuple(val)
-                clr = gtk.gdk.Color(*intval)
+                clr = ui.gdk.Color(*intval)
             else:
                 try:
-                    clr = gtk.gdk.color_parse(val)
+                    clr = ui.gdk.color_parse(val)
                 except ValueError:
                     error = True
             entry.set_text(val)
-            blob = gtk.EventBox()
-            space = gtk.Label
-            space = gtk.Label("    ")
+            blob = ui.EventBox()
+            space = ui.Label
+            space = ui.Label("    ")
             space.show()
             blob.add(space)
             if error:
                 space.set_text(_("ERROR"))
             else:
-                blob.modify_bg(gtk.STATE_NORMAL, clr)
+                blob.modify_bg(ui.STATE_NORMAL, clr)
             table.attach(lbl, 0, 1, i, i+1, yoptions=0)
             table.attach(entry, 1, 2, i, i+1, yoptions=0)
             table.attach(blob, 2, 3, i, i+1, yoptions=0)
@@ -533,21 +533,21 @@ class ColorWindow:
         if len(txtfields) == 3:
             self.actual_colordata[index][1] = [float(x) for x in txtfields]
             val = tuple([int(65535*float(x)) for x in txtfields])
-            clr = gtk.gdk.Color(*val)
+            clr = ui.gdk.Color(*val)
         else:
             self.actual_colordata[index][1] = txt
             try:
-                clr = gtk.gdk.color_parse(txt)
+                clr = ui.gdk.color_parse(txt)
             except ValueError:
                 # Cannot parse the color
                 displ = self.color_display[index]
-                displ.modify_bg(gtk.STATE_NORMAL, gtk.gdk.color_parse('white'))
+                displ.modify_bg(ui.STATE_NORMAL, ui.gdk.color_parse('white'))
                 displ.get_child().set_text(_("ERR"))
                 self.color_errors[index] = (self.color_labels[index], txt)
                 return
         self.color_display[index].get_child().set_text("    ") # Clear error message
         self.color_errors.pop(index, None)
-        self.color_display[index].modify_bg(gtk.STATE_NORMAL, clr)
+        self.color_display[index].modify_bg(ui.STATE_NORMAL, clr)
         
     def create_color_scale(self, *args):
         if self.radio_jmol.get_active():

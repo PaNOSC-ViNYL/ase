@@ -1,7 +1,7 @@
 # encoding: utf-8
 """calculator.py - module for choosing a calculator."""
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 import os
 import numpy as np
 from copy import copy
@@ -186,29 +186,29 @@ class SetCalculator(SetupWindow):
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Select calculator"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         
         # Intoductory text
         self.packtext(vbox, introtext)
         
-        pack(vbox, [gtk.Label(_("Calculator:"))])
+        pack(vbox, [ui.Label(_("Calculator:"))])
 
         # No calculator (the default)
-        self.none_radio = gtk.RadioButton(None, _("None"))
+        self.none_radio = ui.RadioButton(None, _("None"))
         pack(vbox, [self.none_radio])
 
         # Lennard-Jones
-        self.lj_radio = gtk.RadioButton(self.none_radio,
+        self.lj_radio = ui.RadioButton(self.none_radio,
                                         _("Lennard-Jones (ASAP)"))
-        self.lj_setup = gtk.Button(_("Setup"))
+        self.lj_setup = ui.Button(_("Setup"))
         self.lj_info = InfoButton(lj_info_txt)
         self.lj_setup.connect("clicked", self.lj_setup_window)
         self.pack_line(vbox, self.lj_radio, self.lj_setup, self.lj_info)
 
         # EMT
-        self.emt_radio = gtk.RadioButton(
+        self.emt_radio = ui.RadioButton(
             self.none_radio, _("EMT - Effective Medium Theory (ASAP)"))
-        self.emt_setup = gtk.combo_box_new_text()
+        self.emt_setup = ui.combo_box_new_text()
         self.emt_param_info = {}
         for p in emt_parameters:
             self.emt_setup.append_text(p[0])
@@ -218,63 +218,63 @@ class SetCalculator(SetupWindow):
         self.pack_line(vbox, self.emt_radio, self.emt_setup, self.emt_info)
 
         # EMT (ASE implementation)
-        self.aseemt_radio = gtk.RadioButton(
+        self.aseemt_radio = ui.RadioButton(
             self.none_radio, _("EMT - Effective Medium Theory (ASE)"))
         self.aseemt_info = InfoButton(aseemt_info_txt)
         self.pack_line(vbox, self.aseemt_radio, None, self.aseemt_info)
 
         # EAM
-        self.eam_radio = gtk.RadioButton(
+        self.eam_radio = ui.RadioButton(
             self.none_radio,
             _("EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"))
-        self.eam_setup = gtk.Button(_("Setup"))
+        self.eam_setup = ui.Button(_("Setup"))
         self.eam_setup.connect("clicked", self.eam_setup_window)
         self.eam_info = InfoButton(eam_info_txt)
         self.pack_line(vbox, self.eam_radio, self.eam_setup, self.eam_info)
 
         # Brenner potential
-        self.brenner_radio = gtk.RadioButton(
+        self.brenner_radio = ui.RadioButton(
             self.none_radio, _("Brenner Potential (ASAP)"))
         self.brenner_info = InfoButton(brenner_info_txt)
         self.pack_line(vbox, self.brenner_radio, None, self.brenner_info)
         
         # GPAW
-        self.gpaw_radio = gtk.RadioButton(self.none_radio,
+        self.gpaw_radio = ui.RadioButton(self.none_radio,
                                           _("Density Functional Theory (GPAW)")
                                           )
-        self.gpaw_setup = gtk.Button(_("Setup"))
+        self.gpaw_setup = ui.Button(_("Setup"))
         self.gpaw_info = InfoButton(gpaw_info_txt)
         self.gpaw_setup.connect("clicked", self.gpaw_setup_window)
         self.pack_line(vbox, self.gpaw_radio, self.gpaw_setup, self.gpaw_info)
         
         # FHI-aims
-        self.aims_radio = gtk.RadioButton(self.none_radio,
+        self.aims_radio = ui.RadioButton(self.none_radio,
                                           _("Density Functional Theory "
                                             "(FHI-aims)"))
-        self.aims_setup = gtk.Button(_("Setup"))
+        self.aims_setup = ui.Button(_("Setup"))
         self.aims_info = InfoButton(aims_info_txt)
         self.aims_setup.connect("clicked", self.aims_setup_window)
         self.pack_line(vbox, self.aims_radio, self.aims_setup, self.aims_info)
         
         # VASP
-        self.vasp_radio = gtk.RadioButton(self.none_radio,
+        self.vasp_radio = ui.RadioButton(self.none_radio,
                                           _("Density Functional Theory "
                                             "(VASP)"))
-        self.vasp_setup = gtk.Button(_("Setup"))
+        self.vasp_setup = ui.Button(_("Setup"))
         self.vasp_info = InfoButton(vasp_info_txt)
         self.vasp_setup.connect("clicked", self.vasp_setup_window)
         self.pack_line(vbox, self.vasp_radio, self.vasp_setup, self.vasp_info)
 
         # Buttons etc.
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
                                ok=self.ok)
         pack(vbox, [buts], end=True, bottom=True)
-        self.check = gtk.CheckButton(_("Check that the calculator is "
+        self.check = ui.CheckButton(_("Check that the calculator is "
                                        "reasonable."))
         self.check.set_active(True)
-        fr = gtk.Frame()
+        fr = ui.Frame()
         fr.add(self.check)
         fr.show_all()
         pack(vbox, [fr], end=True, bottom=True)
@@ -287,9 +287,9 @@ class SetCalculator(SetupWindow):
         self.load_state()
         
     def pack_line(self, box, radio, setup, info):
-        hbox = gtk.HBox()
+        hbox = ui.HBox()
         hbox.pack_start(radio, 0, 0)
-        hbox.pack_start(gtk.Label("  "), 0, 0)
+        hbox.pack_start(ui.Label("  "), 0, 0)
         hbox.pack_end(info, 0, 0)
         if setup is not None:
             radio.connect("toggled", self.radio_toggled, setup)
@@ -630,14 +630,14 @@ class SetCalculator(SetupWindow):
 
 class InfoButton:
     def __init__(self, txt):
-        gtk.Button.__init__(self, _("Info"))
+        ui.Button.__init__(self, _("Info"))
         self.txt = txt
         self.connect('clicked', self.run)
 
     def run(self, widget):
-        dialog = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                                   type=gtk.MESSAGE_INFO,
-                                   buttons=gtk.BUTTONS_CLOSE)
+        dialog = ui.MessageDialog(flags=ui.DIALOG_MODAL,
+                                   type=ui.MESSAGE_INFO,
+                                   buttons=ui.BUTTONS_CLOSE)
         dialog.set_markup(self.txt)
         dialog.connect('response', lambda x, y: dialog.destroy())
         dialog.show()
@@ -645,7 +645,7 @@ class InfoButton:
 
 class LJ_Window:
     def __init__(self, owner, param, attrname):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("Lennard-Jones parameters"))
         self.owner = owner
         self.attrname = attrname
@@ -657,27 +657,27 @@ class LJ_Window:
         self.present = found.keys()
         self.present.sort()  # Sorted list of atomic numbers
         nelem = len(self.present)
-        vbox = gtk.VBox()
-        label = gtk.Label(_("Specify the Lennard-Jones parameters here"))
+        vbox = ui.VBox()
+        label = ui.Label(_("Specify the Lennard-Jones parameters here"))
         pack(vbox, [label])
-        pack(vbox, gtk.Label(""))
-        pack(vbox, [gtk.Label(_("Epsilon (eV):"))])
+        pack(vbox, ui.Label(""))
+        pack(vbox, [ui.Label(_("Epsilon (eV):"))])
         tbl, self.epsilon_adj = self.makematrix(self.present)
         pack(vbox, [tbl])
-        pack(vbox, gtk.Label(""))
-        pack(vbox, [gtk.Label(_(u"Sigma (Å):"))])
+        pack(vbox, ui.Label(""))
+        pack(vbox, [ui.Label(_(u"Sigma (Å):"))])
         tbl, self.sigma_adj = self.makematrix(self.present)
         pack(vbox, [tbl])
         # TRANSLATORS: Shift roughly means adjust (about a potential)
-        self.modif = gtk.CheckButton(_("Shift to make smooth at cutoff"))
+        self.modif = ui.CheckButton(_("Shift to make smooth at cutoff"))
         self.modif.set_active(True)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
         pack(vbox, self.modif)
-        pack(vbox, gtk.Label(""))
-        butbox = gtk.HButtonBox()
-        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        pack(vbox, ui.Label(""))
+        butbox = ui.HButtonBox()
+        cancel_but = ui.Button('Cancel')
         cancel_but.connect('clicked', lambda widget: self.destroy())
-        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but = ui.Button('OK')
         ok_but.connect('clicked', self.ok)
         butbox.pack_start(cancel_but, 0, 0)
         butbox.pack_start(ok_but, 0, 0)
@@ -698,17 +698,17 @@ class LJ_Window:
     def makematrix(self, present):
         nelem = len(present)
         adjdict = {}
-        tbl = gtk.Table(2 + nelem, 2 + nelem)
+        tbl = ui.Table(2 + nelem, 2 + nelem)
         for i in range(nelem):
             s = chemical_symbols[present[i]]
-            tbl.attach(gtk.Label(" " + str(present[i])), 0, 1, i, i + 1)
-            tbl.attach(gtk.Label("  " + s + " "), 1, 2, i, i + 1)
-            tbl.attach(gtk.Label(str(present[i])),
+            tbl.attach(ui.Label(" " + str(present[i])), 0, 1, i, i + 1)
+            tbl.attach(ui.Label("  " + s + " "), 1, 2, i, i + 1)
+            tbl.attach(ui.Label(str(present[i])),
                        i + 2, i + 3, 1 + nelem, 2 + nelem)
-            tbl.attach(gtk.Label(s), i + 2, i + 3, nelem, 1 + nelem)
+            tbl.attach(ui.Label(s), i + 2, i + 3, nelem, 1 + nelem)
             for j in range(i + 1):
-                adj = gtk.Adjustment(1.0, 0.0, 100.0, 0.1)
-                spin = gtk.SpinButton(adj, 0.1, 3)
+                adj = ui.Adjustment(1.0, 0.0, 100.0, 0.1)
+                spin = ui.SpinButton(adj, 0.1, 3)
                 tbl.attach(spin, 2 + j, 3 + j, i, i + 1)
                 adjdict[(i, j)] = adj
         tbl.show_all()
@@ -728,7 +728,7 @@ class LJ_Window:
 
     def destroy(self):
         self.grab_remove()
-        gtk.Window.destroy(self)
+        ui.Window.destroy(self)
 
     def ok(self, *args):
         params = {}
@@ -747,7 +747,7 @@ class LJ_Window:
 
 class EAM_Window:
     def __init__(self, owner, param, attrname):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("EAM parameters"))
         self.owner = owner
         self.attrname = attrname
@@ -756,17 +756,17 @@ class EAM_Window:
         atoms = owner.atoms
         self.natoms = len(atoms)
 
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         vbox.show()
         self.add(vbox)
 
-        pack(vbox, gtk.Label(""))
-        butbox = gtk.HButtonBox()
-        import_potential_but = gtk.Button(_("Import Potential"))
+        pack(vbox, ui.Label(""))
+        butbox = ui.HButtonBox()
+        import_potential_but = ui.Button(_("Import Potential"))
         import_potential_but.connect("clicked", self.import_potential)
-        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        cancel_but = ui.Button('Cancel')
         cancel_but.connect('clicked', lambda widget: self.destroy())
-        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but = ui.Button('OK')
         ok_but.connect('clicked', self.ok)
 
         butbox.pack_start(import_potential_but, 0, 0)
@@ -792,16 +792,16 @@ class EAM_Window:
     def import_potential(self, *args):
         dirname = "."
         filename = "Al99.eam.alloy"
-        chooser = gtk.FileChooserDialog(
+        chooser = ui.FileChooserDialog(
             _('Import .alloy or .adp potential file ... '),
-            None, gtk.FILE_CHOOSER_ACTION_OPEN,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            None, ui.FILE_CHOOSER_ACTION_OPEN,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Open', ui.RESPONSE_OK))
 
         chooser.set_filename(dirname + filename)
         openr = chooser.run()
 
-        if openr == gtk.RESPONSE_OK:
+        if openr == ui.RESPONSE_OK:
             param = {}
             filename = chooser.get_filename()
             param['potential'] = filename
@@ -815,7 +815,7 @@ class GPAW_Window:
     gpaw_xc_default = 'PBE'
 
     def __init__(self, owner, param, attrname):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("GPAW parameters"))
         self.owner = owner
         self.attrname = attrname
@@ -826,8 +826,8 @@ class GPAW_Window:
         self.orthogonal = self.isorthogonal(self.ucell)
         self.natoms = len(atoms)
         
-        vbox = gtk.VBox()
-        #label = gtk.Label("Specify the GPAW parameters here")
+        vbox = ui.VBox()
+        #label = ui.Label("Specify the GPAW parameters here")
         #pack(vbox, [label])
 
         # Print some info
@@ -837,36 +837,36 @@ class GPAW_Window:
         else:
             txt += _("Non-orthogonal unit cell:\n")
             txt += str(self.ucell)
-        pack(vbox, [gtk.Label(txt)])
+        pack(vbox, [ui.Label(txt)])
         
         # XC potential
-        self.xc = gtk.combo_box_new_text()
+        self.xc = ui.combo_box_new_text()
         for i, x in enumerate(self.gpaw_xc_list):
             self.xc.append_text(x)
             if x == self.gpaw_xc_default:
                 self.xc.set_active(i)
-        pack(vbox, [gtk.Label(_("Exchange-correlation functional: ")),
+        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),
                     self.xc])
         
         # Grid spacing
-        self.radio_h = gtk.RadioButton(None, _("Grid spacing"))
-        self.h = gtk.Adjustment(0.18, 0.0, 1.0, 0.01)
-        self.h_spin = gtk.SpinButton(self.h, 0, 2)
-        pack(vbox, [self.radio_h, gtk.Label(" h = "), self.h_spin,
-                    gtk.Label(_(u"Å"))])
-        self.radio_gpts = gtk.RadioButton(self.radio_h, _("Grid points"))
+        self.radio_h = ui.RadioButton(None, _("Grid spacing"))
+        self.h = ui.Adjustment(0.18, 0.0, 1.0, 0.01)
+        self.h_spin = ui.SpinButton(self.h, 0, 2)
+        pack(vbox, [self.radio_h, ui.Label(" h = "), self.h_spin,
+                    ui.Label(_(u"Å"))])
+        self.radio_gpts = ui.RadioButton(self.radio_h, _("Grid points"))
         self.gpts = []
         self.gpts_spin = []
         for i in range(3):
-            g = gtk.Adjustment(4, 4, 1000, 4)
-            s = gtk.SpinButton(g, 0, 0)
+            g = ui.Adjustment(4, 4, 1000, 4)
+            s = ui.SpinButton(g, 0, 0)
             self.gpts.append(g)
             self.gpts_spin.append(s)
-        self.gpts_hlabel = gtk.Label("")
+        self.gpts_hlabel = ui.Label("")
         self.gpts_hlabel_format = _(u"h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å")
-        pack(vbox, [self.radio_gpts, gtk.Label(" gpts = ("), self.gpts_spin[0],
-                    gtk.Label(", "), self.gpts_spin[1], gtk.Label(", "),
-                    self.gpts_spin[2], gtk.Label(")  "), self.gpts_hlabel])
+        pack(vbox, [self.radio_gpts, ui.Label(" gpts = ("), self.gpts_spin[0],
+                    ui.Label(", "), self.gpts_spin[1], ui.Label(", "),
+                    self.gpts_spin[2], ui.Label(")  "), self.gpts_hlabel])
         self.radio_h.connect("toggled", self.radio_grid_toggled)
         self.radio_gpts.connect("toggled", self.radio_grid_toggled)
         self.radio_grid_toggled(None)
@@ -882,69 +882,69 @@ class GPAW_Window:
                 default = np.ceil(20.0 / self.size[i])
             else:
                 default = 1
-            g = gtk.Adjustment(default, 1, 100, 1)
-            s = gtk.SpinButton(g, 0, 0)
+            g = ui.Adjustment(default, 1, 100, 1)
+            s = ui.SpinButton(g, 0, 0)
             self.kpts.append(g)
             self.kpts_spin.append(s)
             if not self.pbc[i]:
                 s.set_sensitive(False)
             g.connect("value-changed", self.k_changed)
-        pack(vbox, [gtk.Label(_("k-points  k = (")), self.kpts_spin[0],
-                    gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
-                    self.kpts_spin[2], gtk.Label(")")])
-        self.kpts_label = gtk.Label("")
+        pack(vbox, [ui.Label(_("k-points  k = (")), self.kpts_spin[0],
+                    ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
+                    self.kpts_spin[2], ui.Label(")")])
+        self.kpts_label = ui.Label("")
         self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
         pack(vbox, [self.kpts_label])
         self.k_changed()
         
         # Spin polarized
-        self.spinpol = gtk.CheckButton(_("Spin polarized"))
+        self.spinpol = ui.CheckButton(_("Spin polarized"))
         pack(vbox, [self.spinpol])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # Mode and basis functions
-        self.mode = gtk.combo_box_new_text()
+        self.mode = ui.combo_box_new_text()
         self.mode.append_text(_("FD - Finite Difference (grid) mode"))
         self.mode.append_text(_("LCAO - Linear Combination of Atomic "
                                 "Orbitals"))
         self.mode.set_active(0)
-        pack(vbox, [gtk.Label(_("Mode: ")), self.mode])
-        self.basis = gtk.combo_box_new_text()
+        pack(vbox, [ui.Label(_("Mode: ")), self.mode])
+        self.basis = ui.combo_box_new_text()
         self.basis.append_text(_("sz - Single Zeta"))
         self.basis.append_text(_("szp - Single Zeta polarized"))
         self.basis.append_text(_("dzp - Double Zeta polarized"))
         self.basis.set_active(2)  # dzp
-        pack(vbox, [gtk.Label(_("Basis functions: ")), self.basis])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, [ui.Label(_("Basis functions: ")), self.basis])
+        pack(vbox, ui.Label(""))
         self.mode.connect("changed", self.mode_changed)
         self.mode_changed()
         
         # Mixer
-        self.use_mixer = gtk.CheckButton(_("Non-standard mixer parameters"))
+        self.use_mixer = ui.CheckButton(_("Non-standard mixer parameters"))
         pack(vbox, [self.use_mixer])
-        self.radio_mixer = gtk.RadioButton(None, "Mixer   ")
-        self.radio_mixersum = gtk.RadioButton(self.radio_mixer, "MixerSum   ")
-        self.radio_mixerdiff = gtk.RadioButton(self.radio_mixer, "MixerDiff")
+        self.radio_mixer = ui.RadioButton(None, "Mixer   ")
+        self.radio_mixersum = ui.RadioButton(self.radio_mixer, "MixerSum   ")
+        self.radio_mixerdiff = ui.RadioButton(self.radio_mixer, "MixerDiff")
         pack(vbox, [self.radio_mixer, self.radio_mixersum,
                     self.radio_mixerdiff])
-        self.beta_adj = gtk.Adjustment(0.25, 0.0, 1.0, 0.05)
-        self.beta_spin = gtk.SpinButton(self.beta_adj, 0, 2)
-        self.nmaxold_adj = gtk.Adjustment(3, 1, 10, 1)
-        self.nmaxold_spin = gtk.SpinButton(self.nmaxold_adj, 0, 0)
-        self.weight_adj = gtk.Adjustment(50, 1, 500, 1)
-        self.weight_spin = gtk.SpinButton(self.weight_adj, 0, 0)
-        pack(vbox, [gtk.Label("beta = "), self.beta_spin,
-                    gtk.Label("  nmaxold = "), self.nmaxold_spin,
-                    gtk.Label("  weight = "), self.weight_spin])
-        self.beta_m_adj = gtk.Adjustment(0.70, 0.0, 1.0, 0.05)
-        self.beta_m_spin = gtk.SpinButton(self.beta_m_adj, 0, 2)
-        self.nmaxold_m_adj = gtk.Adjustment(2, 1, 10, 1)
-        self.nmaxold_m_spin = gtk.SpinButton(self.nmaxold_m_adj, 0, 0)
-        self.weight_m_adj = gtk.Adjustment(10, 1, 500, 1)
-        self.weight_m_spin = gtk.SpinButton(self.weight_m_adj, 0, 0)
-        pack(vbox, [gtk.Label("beta_m = "), self.beta_m_spin,
-                    gtk.Label("  nmaxold_m = "), self.nmaxold_m_spin,
-                    gtk.Label("  weight_m = "), self.weight_m_spin])
+        self.beta_adj = ui.Adjustment(0.25, 0.0, 1.0, 0.05)
+        self.beta_spin = ui.SpinButton(self.beta_adj, 0, 2)
+        self.nmaxold_adj = ui.Adjustment(3, 1, 10, 1)
+        self.nmaxold_spin = ui.SpinButton(self.nmaxold_adj, 0, 0)
+        self.weight_adj = ui.Adjustment(50, 1, 500, 1)
+        self.weight_spin = ui.SpinButton(self.weight_adj, 0, 0)
+        pack(vbox, [ui.Label("beta = "), self.beta_spin,
+                    ui.Label("  nmaxold = "), self.nmaxold_spin,
+                    ui.Label("  weight = "), self.weight_spin])
+        self.beta_m_adj = ui.Adjustment(0.70, 0.0, 1.0, 0.05)
+        self.beta_m_spin = ui.SpinButton(self.beta_m_adj, 0, 2)
+        self.nmaxold_m_adj = ui.Adjustment(2, 1, 10, 1)
+        self.nmaxold_m_spin = ui.SpinButton(self.nmaxold_m_adj, 0, 0)
+        self.weight_m_adj = ui.Adjustment(10, 1, 500, 1)
+        self.weight_m_spin = ui.SpinButton(self.weight_m_adj, 0, 0)
+        pack(vbox, [ui.Label("beta_m = "), self.beta_m_spin,
+                    ui.Label("  nmaxold_m = "), self.nmaxold_m_spin,
+                    ui.Label("  weight_m = "), self.weight_m_spin])
         for but in (self.spinpol, self.use_mixer, self.radio_mixer,
                     self.radio_mixersum, self.radio_mixerdiff):
             but.connect("clicked", self.mixer_changed)
@@ -957,11 +957,11 @@ class GPAW_Window:
         self.add(vbox)
 
         # Buttons at the bottom
-        pack(vbox, gtk.Label(""))
-        butbox = gtk.HButtonBox()
-        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        pack(vbox, ui.Label(""))
+        butbox = ui.HButtonBox()
+        cancel_but = ui.Button('Cancel')
         cancel_but.connect('clicked', lambda widget: self.destroy())
-        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but = ui.Button('OK')
         ok_but.connect('clicked', self.ok)
         butbox.pack_start(cancel_but, 0, 0)
         butbox.pack_start(ok_but, 0, 0)
@@ -1116,9 +1116,9 @@ class AIMS_Window:
         self.expert_keywords = []
 
         natoms = len(atoms)
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("FHI-aims parameters"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         vbox.set_border_width(5)
         # Print some info
         txt = _("%i atoms.\n") % (natoms)
@@ -1131,15 +1131,15 @@ class AIMS_Window:
         else:
             txt += _("Non-periodic geometry.\n")
             self.xc_list = self.aims_xc_cluster
-        pack(vbox, [gtk.Label(txt)])
+        pack(vbox, [ui.Label(txt)])
 
         # XC functional & dispersion correction
-        self.xc = gtk.combo_box_new_text()
+        self.xc = ui.combo_box_new_text()
         self.xc_setup = False
-        self.TS = gtk.CheckButton(_("Hirshfeld-based dispersion correction"))
-        pack(vbox, [gtk.Label(_("Exchange-correlation functional: ")),self.xc])
+        self.TS = ui.CheckButton(_("Hirshfeld-based dispersion correction"))
+        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),self.xc])
         pack(vbox, [self.TS])
-        pack(vbox, [gtk.Label("")])
+        pack(vbox, [ui.Label("")])
         
         # k-grid?
         if self.periodic:
@@ -1147,112 +1147,112 @@ class AIMS_Window:
             self.kpts_spin = []
             for i in range(3):
                 default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
-                g = gtk.Adjustment(default, 1, 100, 1)
-                s = gtk.SpinButton(g, 0, 0)
+                g = ui.Adjustment(default, 1, 100, 1)
+                s = ui.SpinButton(g, 0, 0)
                 self.kpts.append(g)
                 self.kpts_spin.append(s)
                 g.connect("value-changed", self.k_changed)
-            pack(vbox, [gtk.Label(_("k-points  k = (")), self.kpts_spin[0],
-                        gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
-                        self.kpts_spin[2], gtk.Label(")")])
-            self.kpts_label = gtk.Label("")
+            pack(vbox, [ui.Label(_("k-points  k = (")), self.kpts_spin[0],
+                        ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
+                        self.kpts_spin[2], ui.Label(")")])
+            self.kpts_label = ui.Label("")
             self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
             pack(vbox, [self.kpts_label])
             self.k_changed()
-            pack(vbox, gtk.Label(""))
+            pack(vbox, ui.Label(""))
 
         # Spin polarized, charge, relativity
-        self.spinpol = gtk.CheckButton(_("Spin / initial moment "))
+        self.spinpol = ui.CheckButton(_("Spin / initial moment "))
         self.spinpol.connect('toggled',self.spinpol_changed)
-        self.moment = gtk.Adjustment(0,-100,100,0.1)
-        self.moment_spin = gtk.SpinButton(self.moment, 0, 0)
+        self.moment = ui.Adjustment(0,-100,100,0.1)
+        self.moment_spin = ui.SpinButton(self.moment, 0, 0)
         self.moment_spin.set_digits(2)
         self.moment_spin.set_sensitive(False)
-        self.charge = gtk.Adjustment(0,-100,100,0.1)
-        self.charge_spin = gtk.SpinButton(self.charge, 0, 0)
+        self.charge = ui.Adjustment(0,-100,100,0.1)
+        self.charge_spin = ui.SpinButton(self.charge, 0, 0)
         self.charge_spin.set_digits(2)
-        self.relativity_type = gtk.combo_box_new_text()
+        self.relativity_type = ui.combo_box_new_text()
         for i, x in enumerate(self.aims_relativity_list):
             self.relativity_type.append_text(x)
         self.relativity_type.connect('changed',self.relativity_changed)
-        self.relativity_threshold = gtk.Entry(max=8)
+        self.relativity_threshold = ui.Entry(max=8)
         self.relativity_threshold.set_text('1.00e-12')
         self.relativity_threshold.set_sensitive(False)
         pack(vbox, [self.spinpol,
                     self.moment_spin,
-                    gtk.Label(_("   Charge")),
+                    ui.Label(_("   Charge")),
                     self.charge_spin,
-                    gtk.Label(_("   Relativity")),
+                    ui.Label(_("   Relativity")),
                     self.relativity_type,
-                    gtk.Label(_(" Threshold")),
+                    ui.Label(_(" Threshold")),
                     self.relativity_threshold])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # self-consistency criteria
-        pack(vbox,[gtk.Label(_("Self-consistency convergence:"))])
-        self.sc_tot_energy = gtk.Adjustment(1e-6, 1e-6, 1e0, 1e-6)
-        self.sc_tot_energy_spin = gtk.SpinButton(self.sc_tot_energy, 0, 0)
+        pack(vbox,[ui.Label(_("Self-consistency convergence:"))])
+        self.sc_tot_energy = ui.Adjustment(1e-6, 1e-6, 1e0, 1e-6)
+        self.sc_tot_energy_spin = ui.SpinButton(self.sc_tot_energy, 0, 0)
         self.sc_tot_energy_spin.set_digits(6)
         self.sc_tot_energy_spin.set_numeric(True)
-        self.sc_sum_eigenvalue = gtk.Adjustment(1e-3, 1e-6, 1e0, 1e-6)
-        self.sc_sum_eigenvalue_spin = gtk.SpinButton(self.sc_sum_eigenvalue, 0, 0)
+        self.sc_sum_eigenvalue = ui.Adjustment(1e-3, 1e-6, 1e0, 1e-6)
+        self.sc_sum_eigenvalue_spin = ui.SpinButton(self.sc_sum_eigenvalue, 0, 0)
         self.sc_sum_eigenvalue_spin.set_digits(6)
         self.sc_sum_eigenvalue_spin.set_numeric(True)
-        self.sc_density = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
-        self.sc_density_spin = gtk.SpinButton(self.sc_density, 0, 0)
+        self.sc_density = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
+        self.sc_density_spin = ui.SpinButton(self.sc_density, 0, 0)
         self.sc_density_spin.set_digits(6)
         self.sc_density_spin.set_numeric(True)
-        self.compute_forces = gtk.CheckButton(_("Compute forces"))
+        self.compute_forces = ui.CheckButton(_("Compute forces"))
         self.compute_forces.set_active(True)
         self.compute_forces.connect("toggled", self.compute_forces_toggled,"")
-        self.sc_forces = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
-        self.sc_forces_spin = gtk.SpinButton(self.sc_forces, 0, 0)
+        self.sc_forces = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
+        self.sc_forces_spin = ui.SpinButton(self.sc_forces, 0, 0)
         self.sc_forces_spin.set_numeric(True)
         self.sc_forces_spin.set_digits(6)
-        # XXX: use gtk table for layout.  Spaces will not work well otherwise
+        # XXX: use ui.table for layout.  Spaces will not work well otherwise
         # (depend on fonts, widget style, ...)
         # TRANSLATORS: Don't care too much about these, just get approximately
         # the same string lengths
-        pack(vbox, [gtk.Label(_("Energy:                 ")),
+        pack(vbox, [ui.Label(_("Energy:                 ")),
                     self.sc_tot_energy_spin,
-                    gtk.Label(_(" eV   Sum of eigenvalues:  ")),
+                    ui.Label(_(" eV   Sum of eigenvalues:  ")),
                     self.sc_sum_eigenvalue_spin,
-                    gtk.Label(_(" eV"))])
-        pack(vbox, [gtk.Label(_("Electron density: ")),
+                    ui.Label(_(" eV"))])
+        pack(vbox, [ui.Label(_("Electron density: ")),
                     self.sc_density_spin,
-                    gtk.Label(_("        Force convergence:  ")),
+                    ui.Label(_("        Force convergence:  ")),
                     self.sc_forces_spin,
-                    gtk.Label(_(" eV/Ang  "))])
+                    ui.Label(_(" eV/Ang  "))])
 
         pack(vbox, [self.compute_forces])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
-        swin = gtk.ScrolledWindow()
+        swin = ui.ScrolledWindow()
         swin.set_border_width(0)
-        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        swin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
 
-        self.expert_keyword_set = gtk.Entry(max=55)
-        self.expert_keyword_add = gtk.Button(stock=gtk.STOCK_ADD)
+        self.expert_keyword_set = ui.Entry(max=55)
+        self.expert_keyword_add = ui.Button('Add')
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
         self.expert_keyword_set.connect("activate", self.expert_keyword_import)
-        pack(vbox,[gtk.Label(_("Additional keywords: ")),
+        pack(vbox,[ui.Label(_("Additional keywords: ")),
                    self.expert_keyword_set,
                    self.expert_keyword_add])
 
-        self.expert_vbox = gtk.VBox()
+        self.expert_vbox = ui.VBox()
         vbox.pack_start(swin, True, True, 0)
         swin.add_with_viewport(self.expert_vbox)
-        self.expert_vbox.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.expert_vbox.get_parent().set_shadow_type(ui.SHADOW_NONE)
         self.expert_vbox.get_parent().set_size_request(-1, 100)
         swin.show()
         self.expert_vbox.show()
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # run command and species defaults:
-        pack(vbox, gtk.Label(_('FHI-aims execution command: ')))
-        self.run_command = pack(vbox, gtk.Entry(max=0))
-        pack(vbox, gtk.Label(_('Directory for species defaults: ')))
-        self.species_defaults = pack(vbox, gtk.Entry(max=0))
+        pack(vbox, ui.Label(_('FHI-aims execution command: ')))
+        self.run_command = pack(vbox, ui.Entry(max=0))
+        pack(vbox, ui.Label(_('Directory for species defaults: ')))
+        self.species_defaults = pack(vbox, ui.Entry(max=0))
 
         # set defaults from previous instance of the calculator, if applicable:
         if param is not None:
@@ -1261,17 +1261,17 @@ class AIMS_Window:
             self.set_defaults()
 
         # Buttons at the bottom
-        pack(vbox, gtk.Label(""))
-        butbox = gtk.HButtonBox()
-        default_but = gtk.Button(_("Set Defaults"))
+        pack(vbox, ui.Label(""))
+        butbox = ui.HButtonBox()
+        default_but = ui.Button(_("Set Defaults"))
         default_but.connect("clicked",self.set_defaults)
-        import_control_but = gtk.Button(_("Import control.in"))
+        import_control_but = ui.Button(_("Import control.in"))
         import_control_but.connect("clicked",self.import_control)
-        export_control_but = gtk.Button(_("Export control.in"))
+        export_control_but = ui.Button(_("Export control.in"))
         export_control_but.connect("clicked", self.export_control)
-        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        cancel_but = ui.Button('Cancel')
         cancel_but.connect('clicked', lambda widget: self.destroy())
-        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but = ui.Button('OK')
         ok_but.connect('clicked', self.ok)
         butbox.pack_start(default_but, 0, 0)
         butbox.pack_start(import_control_but, 0, 0)
@@ -1453,13 +1453,13 @@ class AIMS_Window:
 
     def export_control(self, *args):
         filename = "control.in"
-        chooser = gtk.FileChooserDialog(
-            _('Export parameters ... '), None, gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser = ui.FileChooserDialog(
+            _('Export parameters ... '), None, ui.FILE_CHOOSER_ACTION_SAVE,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Save', ui.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
-        if save == gtk.RESPONSE_OK or save == gtk.RESPONSE_SAVE:
+        if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
             filename = chooser.get_filename()
             self.set_attributes(*args)
             param = getattr(self.owner, "aims_parameters")
@@ -1473,14 +1473,14 @@ class AIMS_Window:
 
     def import_control(self, *args):
         filename = "control.in"
-        chooser = gtk.FileChooserDialog(
+        chooser = ui.FileChooserDialog(
             _('Import control.in file ... '), None,
-            gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+            ui.FILE_CHOOSER_ACTION_SAVE,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Save', ui.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
-        if save == gtk.RESPONSE_OK:
+        if save == ui.RESPONSE_OK:
             self.set_defaults()
             filename = chooser.get_filename()
             control = open(filename,'r')
@@ -1547,14 +1547,14 @@ class AIMS_Window:
             for a in command[2:]:
                 argument += ' '+a
         index = len(self.expert_keywords)
-        self.expert_keywords += [[gtk.Label("    " +key+"  "),
-                                  gtk.Entry(max=45),
+        self.expert_keywords += [[ui.Label("    " +key+"  "),
+                                  ui.Entry(max=45),
                                   ExpertDeleteButton(index),
                                   True]]
         self.expert_keywords[index][1].set_text(argument)
         self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
         if not self.expert_vbox.get_children():
-            table = gtk.Table(1, 3)
+            table = ui.Table(1, 3)
             table.attach(self.expert_keywords[index][0], 0, 1, 0, 1, 0)
             table.attach(self.expert_keywords[index][1], 1, 2, 0, 1, 0)
             table.attach(self.expert_keywords[index][2], 2, 3, 0, 1, 0)
@@ -1581,7 +1581,7 @@ class AIMS_Window:
 
 class ExpertDeleteButton:
     def __init__(self, index):
-        gtk.Button.__init__(self, stock=gtk.STOCK_DELETE)
+        ui.Button.__init__(self, 'Delete')
         alignment = self.get_children()[0]
         hbox = alignment.get_children()[0]
         #self.set_size_request(1, 3)
@@ -1605,9 +1605,9 @@ class VASP_Window:
         self.vasp_keyword_list = float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+special_keys
         self.expert_keywords = []
         natoms = len(atoms)
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("VASP parameters"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         vbox.set_border_width(5)
         # Print some info
         txt = _("%i atoms.\n") % natoms
@@ -1615,35 +1615,35 @@ class VASP_Window:
         txt += _("Periodic geometry, unit cell is: \n")
         for i in range(3):
             txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
-        pack(vbox, [gtk.Label(txt)])
+        pack(vbox, [ui.Label(txt)])
 
         # XC functional ()
-        self.xc = gtk.combo_box_new_text()
+        self.xc = ui.combo_box_new_text()
         for i, x in enumerate(self.vasp_xc_list):
             self.xc.append_text(x)
 
         # Spin polarized
-        self.spinpol = gtk.CheckButton(_("Spin polarized"))
+        self.spinpol = ui.CheckButton(_("Spin polarized"))
         
-        pack(vbox, [gtk.Label(_("Exchange-correlation functional: ")),
+        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),
                     self.xc,
-                    gtk.Label("    "),
+                    ui.Label("    "),
                     self.spinpol])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # k-grid
         self.kpts = []
         self.kpts_spin = []
         for i in range(3):
             default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
-            g = gtk.Adjustment(default, 1, 100, 1)
-            s = gtk.SpinButton(g, 0, 0)
+            g = ui.Adjustment(default, 1, 100, 1)
+            s = ui.SpinButton(g, 0, 0)
             self.kpts.append(g)
             self.kpts_spin.append(s)
             g.connect("value-changed", self.k_changed)
 
         # Precision of calculation
-        self.prec = gtk.combo_box_new_text()
+        self.prec = ui.combo_box_new_text()
         for i, x in enumerate(['Low', 'Normal', 'Accurate']):
             self.prec.append_text(x)
             if x == self.vasp_prec_default:
@@ -1655,92 +1655,92 @@ class VASP_Window:
         else:
             self.encut_max_default = 400.0
             self.encut_min_default = 100.0
-        self.encut = gtk.Adjustment(self.encut_max_default, 0, 9999, 10)
-        self.encut_spin = gtk.SpinButton(self.encut, 0, 0)
+        self.encut = ui.Adjustment(self.encut_max_default, 0, 9999, 10)
+        self.encut_spin = ui.SpinButton(self.encut, 0, 0)
         self.encut_spin.set_digits(2)
         self.encut_spin.connect("value-changed",self.check_encut_warning)
-        self.encut_warning = gtk.Label("")
+        self.encut_warning = ui.Label("")
 
-        pack(vbox, [gtk.Label(_("k-points  k = (")), self.kpts_spin[0],
-                    gtk.Label(", "), self.kpts_spin[1], gtk.Label(", "),
+        pack(vbox, [ui.Label(_("k-points  k = (")), self.kpts_spin[0],
+                    ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
                     self.kpts_spin[2],
-                    gtk.Label(_(")    Cutoff: ")),self.encut_spin,
-                    gtk.Label(_("    Precision: ")),self.prec])
-        self.kpts_label = gtk.Label("")
+                    ui.Label(_(")    Cutoff: ")),self.encut_spin,
+                    ui.Label(_("    Precision: ")),self.prec])
+        self.kpts_label = ui.Label("")
         self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å       ")
         pack(vbox, [self.kpts_label, self.encut_warning])
         self.k_changed()
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
-        self.ismear = gtk.combo_box_new_text()
+        self.ismear = ui.combo_box_new_text()
         for x in ['Fermi', 'Gauss', 'Methfessel-Paxton']:
             self.ismear.append_text(x)
         self.ismear.set_active(2)
-        self.smearing_order = gtk.Adjustment(2,0,9,1)
-        self.smearing_order_spin = gtk.SpinButton(self.smearing_order,0,0)
+        self.smearing_order = ui.Adjustment(2,0,9,1)
+        self.smearing_order_spin = ui.SpinButton(self.smearing_order,0,0)
         self.smearing_order_spin.set_digits(0)
         self.ismear.connect("changed", self.check_ismear_changed)
-        self.sigma = gtk.Adjustment(0.1, 0.001, 9.0, 0.1)
-        self.sigma_spin = gtk.SpinButton(self.sigma,0,0)
+        self.sigma = ui.Adjustment(0.1, 0.001, 9.0, 0.1)
+        self.sigma_spin = ui.SpinButton(self.sigma,0,0)
         self.sigma_spin.set_digits(3)
-        pack(vbox, [gtk.Label(_("Smearing: ")),
+        pack(vbox, [ui.Label(_("Smearing: ")),
                     self.ismear,
-                    gtk.Label(_(" order: ")),
+                    ui.Label(_(" order: ")),
                     self.smearing_order_spin,
-                    gtk.Label(_(" width: ")),
+                    ui.Label(_(" width: ")),
                     self.sigma_spin])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
         
-        self.ediff = gtk.Adjustment(1e-4, 1e-6, 1e0, 1e-4)
-        self.ediff_spin = gtk.SpinButton(self.ediff, 0, 0)
+        self.ediff = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-4)
+        self.ediff_spin = ui.SpinButton(self.ediff, 0, 0)
         self.ediff_spin.set_digits(6)
-        pack(vbox,[gtk.Label(_("Self-consistency convergence: ")),
+        pack(vbox,[ui.Label(_("Self-consistency convergence: ")),
                    self.ediff_spin,
-                   gtk.Label(_(" eV"))])
-        pack(vbox,gtk.Label(""))
+                   ui.Label(_(" eV"))])
+        pack(vbox,ui.Label(""))
 
-        swin = gtk.ScrolledWindow()
+        swin = ui.ScrolledWindow()
         swin.set_border_width(0)
-        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        swin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
 
-        self.expert_keyword_set = gtk.Entry(max=55)
-        self.expert_keyword_add = gtk.Button(stock=gtk.STOCK_ADD)
+        self.expert_keyword_set = ui.Entry(max=55)
+        self.expert_keyword_add = ui.Button('Add')
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
         self.expert_keyword_set.connect("activate", self.expert_keyword_import)
-        pack(vbox,[gtk.Label(_("Additional keywords: ")),
+        pack(vbox,[ui.Label(_("Additional keywords: ")),
                    self.expert_keyword_set,
                    self.expert_keyword_add])
-        self.expert_vbox = gtk.VBox()
+        self.expert_vbox = ui.VBox()
         vbox.pack_start(swin, True, True, 0)
         swin.add_with_viewport(self.expert_vbox)
-        self.expert_vbox.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.expert_vbox.get_parent().set_shadow_type(ui.SHADOW_NONE)
         self.expert_vbox.get_parent().set_size_request(-1, 100)
         swin.show()
         self.expert_vbox.show()
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # run command and location of POTCAR files:
-        pack(vbox, gtk.Label(_('VASP execution command: ')))
-        self.run_command = pack(vbox, gtk.Entry(max=0))
+        pack(vbox, ui.Label(_('VASP execution command: ')))
+        self.run_command = pack(vbox, ui.Entry(max=0))
         if 'VASP_COMMAND' in os.environ:
             self.run_command.set_text(os.environ['VASP_COMMAND'])
-        pack(vbox, gtk.Label(_('Directory for species defaults: ')))
-        self.pp_path = pack(vbox, gtk.Entry(max=0))
+        pack(vbox, ui.Label(_('Directory for species defaults: ')))
+        self.pp_path = pack(vbox, ui.Entry(max=0))
         if 'VASP_PP_PATH' in os.environ:
             self.pp_path.set_text(os.environ['VASP_PP_PATH'])
 
         # Buttons at the bottom
-        pack(vbox, gtk.Label(""))
-        butbox = gtk.HButtonBox()
-        set_default_but = gtk.Button(_("Set Defaults"))
+        pack(vbox, ui.Label(""))
+        butbox = ui.HButtonBox()
+        set_default_but = ui.Button(_("Set Defaults"))
         set_default_but.connect("clicked", self.set_defaults)
-        import_vasp_but = gtk.Button(_("Import VASP files"))
+        import_vasp_but = ui.Button(_("Import VASP files"))
         import_vasp_but.connect("clicked", self.import_vasp_files)
-        export_vasp_but = gtk.Button(_("Export VASP files"))
+        export_vasp_but = ui.Button(_("Export VASP files"))
         export_vasp_but.connect("clicked", self.export_vasp_files)
-        cancel_but = gtk.Button(stock=gtk.STOCK_CANCEL)
+        cancel_but = ui.Button('Cancel')
         cancel_but.connect('clicked', lambda widget: self.destroy())
-        ok_but = gtk.Button(stock=gtk.STOCK_OK)
+        ok_but = ui.Button('OK')
         ok_but.connect('clicked', self.ok)
         butbox.pack_start(set_default_but, 0, 0)
         butbox.pack_start(import_vasp_but, 0, 0)
@@ -1965,7 +1965,7 @@ class VASP_Window:
 
     def destroy(self):
         self.grab_remove()
-        gtk.Window.destroy(self)
+        ui.Window.destroy(self)
 
     def set_defaults(self, *args):
          # Reset fields to what they were
@@ -1994,28 +1994,28 @@ class VASP_Window:
 
     def import_vasp_files(self, *args):
         dirname = ""
-        chooser = gtk.FileChooserDialog(
+        chooser = ui.FileChooserDialog(
             _('Import VASP input files: choose directory ... '),
-            None, gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+            None, ui.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Open', ui.RESPONSE_OK))
         chooser.set_filename(dirname)
         openr = chooser.run()
-        if openr == gtk.RESPONSE_OK or openr == gtk.RESPONSE_SAVE:
+        if openr == ui.RESPONSE_OK or openr == ui.RESPONSE_SAVE:
             dirname = chooser.get_filename()
             self.load_attributes(dirname)
         chooser.destroy()
             
     def export_vasp_files(self, *args):
         filename = ""
-        chooser = gtk.FileChooserDialog(
+        chooser = ui.FileChooserDialog(
             _('Export VASP input files: choose directory ... '),
-            None, gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+            None, ui.FILE_CHOOSER_ACTION_SELECT_FOLDER,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Save', ui.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
-        if save == gtk.RESPONSE_OK or save == gtk.RESPONSE_SAVE:
+        if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
             filename = chooser.get_filename()
             from os import chdir
             chdir(filename)
@@ -2058,14 +2058,14 @@ class VASP_Window:
             for a in command[2:]:
                 argument += ' '+a
         index = len(self.expert_keywords)
-        self.expert_keywords += [[gtk.Label("    " +key+" = "),
-                                  gtk.Entry(max=55),
+        self.expert_keywords += [[ui.Label("    " +key+" = "),
+                                  ui.Entry(max=55),
                                   ExpertDeleteButton(index),
                                   True]]
         self.expert_keywords[index][1].set_text(argument)
         self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
         if not self.expert_vbox.get_children():
-            table = gtk.Table(1, 3)
+            table = ui.Table(1, 3)
             table.attach(self.expert_keywords[index][0], 0, 1, 0, 1, 0)
             table.attach(self.expert_keywords[index][1], 1, 2, 0, 1, 0)
             table.attach(self.expert_keywords[index][2], 2, 3, 0, 1, 0)

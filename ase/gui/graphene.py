@@ -2,7 +2,7 @@
 """nanotube.py - Window for setting up Graphene sheets and ribbons.
 """
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.status import formula
@@ -28,14 +28,14 @@ class SetupGraphene(SetupWindow):
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Graphene"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
 
         # Intoductory text
         self.packtext(vbox, introtext)
 
         # Choose structure
-        label = gtk.Label(_("Structure: "))
-        self.struct = gtk.combo_box_new_text()
+        label = ui.Label(_("Structure: "))
+        self.struct = ui.combo_box_new_text()
         for s in (_("Infinite sheet"), _("Unsaturated ribbon"),
                   _("Saturated ribbon")):
             self.struct.append_text(s)
@@ -44,65 +44,65 @@ class SetupGraphene(SetupWindow):
         pack(vbox, [label, self.struct])
 
         # Orientation
-        label = gtk.Label(_("Orientation: "))
-        self.orient = gtk.combo_box_new_text()
+        label = ui.Label(_("Orientation: "))
+        self.orient = ui.combo_box_new_text()
         self.orient_text = []
         for s in (_("zigzag"), _("armchair")):
             self.orient.append_text(s)
             self.orient_text.append(s)
         self.orient.set_active(0)
         pack(vbox, [label, self.orient])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # Choose the element and bond length
-        label1 = gtk.Label("Element: ")
+        label1 = ui.Label("Element: ")
         #label.set_alignment(0.0, 0.2)
-        self.element = gtk.Entry(max=3)
+        self.element = ui.Entry(max=3)
         self.element.set_text("C")
-        self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
-        label2 = gtk.Label(_("  Bond length: "))
-        label3 = gtk.Label(_(u"Å"))
-        bond_box = gtk.SpinButton(self.bondlength, 10.0, 3)
+        self.bondlength = ui.Adjustment(1.42, 0.0, 1000.0, 0.01)
+        label2 = ui.Label(_("  Bond length: "))
+        label3 = ui.Label(_(u"Å"))
+        bond_box = ui.SpinButton(self.bondlength, 10.0, 3)
         pack(vbox, [label1, self.element, label2, bond_box, label3])
 
         # Choose the saturation element and bond length
-        self.sat_label1 = gtk.Label(_("Saturation: "))
+        self.sat_label1 = ui.Label(_("Saturation: "))
         #label.set_alignment(0.0, 0.2)
-        self.element2 = gtk.Entry(max=3)
+        self.element2 = ui.Entry(max=3)
         self.element2.set_text(_("H"))
-        self.bondlength2 = gtk.Adjustment(1.12, 0.0, 1000.0, 0.01)
-        self.sat_label2 = gtk.Label(_("  Bond length: "))
-        self.sat_label3 = gtk.Label(_(u"Å"))
-        self.bond_box = gtk.SpinButton(self.bondlength2, 10.0, 3)
+        self.bondlength2 = ui.Adjustment(1.12, 0.0, 1000.0, 0.01)
+        self.sat_label2 = ui.Label(_("  Bond length: "))
+        self.sat_label3 = ui.Label(_(u"Å"))
+        self.bond_box = ui.SpinButton(self.bondlength2, 10.0, 3)
         pack(vbox, [self.sat_label1, self.element2, self.sat_label2,
                     self.bond_box, self.sat_label3])
 
-        self.elementinfo = gtk.Label("")
-        self.elementinfo.modify_fg(gtk.STATE_NORMAL,
-                                   gtk.gdk.color_parse('#FF0000'))
+        self.elementinfo = ui.Label("")
+        self.elementinfo.modify_fg(ui.STATE_NORMAL,
+                                   ui.gdk.color_parse('#FF0000'))
         pack(vbox, [self.elementinfo])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # Size
-        label1 = gtk.Label(_("Width: "))
-        label2 = gtk.Label(_("  Length: "))
-        self.n = gtk.Adjustment(1, 1, 100, 1)
-        self.m = gtk.Adjustment(1, 1, 100, 1)
-        spinn = gtk.SpinButton(self.n, 0, 0)
-        spinm = gtk.SpinButton(self.m, 0, 0)
+        label1 = ui.Label(_("Width: "))
+        label2 = ui.Label(_("  Length: "))
+        self.n = ui.Adjustment(1, 1, 100, 1)
+        self.m = ui.Adjustment(1, 1, 100, 1)
+        spinn = ui.SpinButton(self.n, 0, 0)
+        spinm = ui.SpinButton(self.m, 0, 0)
         pack(vbox, [label1, spinn, label2, spinm])
 
         # Vacuum
-        label1 = gtk.Label(_("Vacuum: "))
-        self.vacuum = gtk.Adjustment(5.0, 0.0, 1000.0, 0.1)
-        label2 = gtk.Label(_(u"Å"))
-        vac_box = gtk.SpinButton(self.vacuum, 10.0, 2)
+        label1 = ui.Label(_("Vacuum: "))
+        self.vacuum = ui.Adjustment(5.0, 0.0, 1000.0, 0.1)
+        label2 = ui.Label(_(u"Å"))
+        vac_box = ui.SpinButton(self.vacuum, 10.0, 2)
         pack(vbox, [label1, vac_box, label2])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
-        self.status = gtk.Label("")
+        self.status = ui.Label("")
         pack(vbox,[self.status])
-        pack(vbox,[gtk.Label("")])
+        pack(vbox,[ui.Label("")])
 
         # Buttons
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),

@@ -2,7 +2,7 @@
 
 "Module for homogeneous deformation and calculations of elastic constants."
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 from ase.gui.minimize import MinimizeMixin
 from ase.gui.energyforces import OutputFieldMixin
@@ -47,32 +47,32 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         Simulation.__init__(self, gui)
         self.set_title(_("Homogeneous scaling"))
         self.scaling_is_ready = False
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.packtext(vbox, scaling_txt)
         self.packimageselection(vbox, txt1="", txt2="")
         self.start_radio_nth.set_active(True)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # Radio buttons for choosing deformation mode.
-        tbl = gtk.Table(4,3)
+        tbl = ui.Table(4,3)
         for i, l in enumerate([_('3D deformation   '),
                                _('2D deformation   '),
                                _('1D deformation   ')]):
-            lbl = gtk.Label(l)
+            lbl = ui.Label(l)
             tbl.attach(lbl, i, i+1, 0, 1)
-        self.radio_bulk = gtk.RadioButton(None, _("Bulk"))
+        self.radio_bulk = ui.RadioButton(None, _("Bulk"))
         tbl.attach(self.radio_bulk, 0, 1, 1, 2)
-        self.radio_xy = gtk.RadioButton(self.radio_bulk, _("xy-plane"))
+        self.radio_xy = ui.RadioButton(self.radio_bulk, _("xy-plane"))
         tbl.attach(self.radio_xy, 1, 2, 1, 2)
-        self.radio_xz = gtk.RadioButton(self.radio_bulk, _("xz-plane"))
+        self.radio_xz = ui.RadioButton(self.radio_bulk, _("xz-plane"))
         tbl.attach(self.radio_xz, 1, 2, 2, 3)
-        self.radio_yz = gtk.RadioButton(self.radio_bulk, _("yz-plane"))
+        self.radio_yz = ui.RadioButton(self.radio_bulk, _("yz-plane"))
         tbl.attach(self.radio_yz, 1, 2, 3, 4)
-        self.radio_x = gtk.RadioButton(self.radio_bulk, _("x-axis"))
+        self.radio_x = ui.RadioButton(self.radio_bulk, _("x-axis"))
         tbl.attach(self.radio_x, 2, 3, 1, 2)
-        self.radio_y = gtk.RadioButton(self.radio_bulk, _("y-axis"))
+        self.radio_y = ui.RadioButton(self.radio_bulk, _("y-axis"))
         tbl.attach(self.radio_y, 2, 3, 2, 3)
-        self.radio_z = gtk.RadioButton(self.radio_bulk, _("z-axis"))
+        self.radio_z = ui.RadioButton(self.radio_bulk, _("z-axis"))
         tbl.attach(self.radio_z, 2, 3, 3, 4)
         tbl.show_all()
         pack(vbox, [tbl])
@@ -84,52 +84,52 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             (self.radio_x, (1,0,0)),
             (self.radio_y, (0,1,0)),
             (self.radio_z, (0,0,1))]
-        self.allow_non_pbc = gtk.CheckButton(
+        self.allow_non_pbc = ui.CheckButton(
             _("Allow deformation along non-periodic directions."))
         pack(vbox, [self.allow_non_pbc])
         self.allow_non_pbc.connect('toggled', self.choose_possible_deformations)
 
         # Parameters for the deformation
-        framedef = gtk.Frame(_("Deformation:"))
-        vbox2 = gtk.VBox()
+        framedef = ui.Frame(_("Deformation:"))
+        vbox2 = ui.VBox()
         vbox2.show()
         framedef.add(vbox2)
-        self.max_scale = gtk.Adjustment(0.010, 0.001, 10.0, 0.001)
-        max_scale_spin = gtk.SpinButton(self.max_scale, 10.0, 3)
-        pack(vbox2, [gtk.Label(_("Maximal scale factor: ")), max_scale_spin])
-        self.scale_offset = gtk.Adjustment(0.0, -10.0, 10.0, 0.001)
-        self.scale_offset_spin = gtk.SpinButton(self.scale_offset, 10.0, 3)
-        pack(vbox2, [gtk.Label(_("Scale offset: ")), self.scale_offset_spin])
-        self.nsteps = gtk.Adjustment(5, 3, 1000, 1)
-        nsteps_spin = gtk.SpinButton(self.nsteps, 1, 0)
-        pack(vbox2, [gtk.Label(_("Number of steps: ")), nsteps_spin])
-        self.pull = gtk.CheckButton(_("Only positive deformation"))
+        self.max_scale = ui.Adjustment(0.010, 0.001, 10.0, 0.001)
+        max_scale_spin = ui.SpinButton(self.max_scale, 10.0, 3)
+        pack(vbox2, [ui.Label(_("Maximal scale factor: ")), max_scale_spin])
+        self.scale_offset = ui.Adjustment(0.0, -10.0, 10.0, 0.001)
+        self.scale_offset_spin = ui.SpinButton(self.scale_offset, 10.0, 3)
+        pack(vbox2, [ui.Label(_("Scale offset: ")), self.scale_offset_spin])
+        self.nsteps = ui.Adjustment(5, 3, 1000, 1)
+        nsteps_spin = ui.SpinButton(self.nsteps, 1, 0)
+        pack(vbox2, [ui.Label(_("Number of steps: ")), nsteps_spin])
+        self.pull = ui.CheckButton(_("Only positive deformation"))
         pack(vbox2, [self.pull])
         self.pull.connect('toggled', self.pull_toggled)
         
         # Atomic relaxations
-        framerel = gtk.Frame(_("Atomic relaxations:"))
-        vbox2 = gtk.VBox()
+        framerel = ui.Frame(_("Atomic relaxations:"))
+        vbox2 = ui.VBox()
         vbox2.show()
         framerel.add(vbox2)
-        self.radio_relax_on = gtk.RadioButton(None, _("On   "))
-        self.radio_relax_off = gtk.RadioButton(self.radio_relax_on, _("Off"))
+        self.radio_relax_on = ui.RadioButton(None, _("On   "))
+        self.radio_relax_off = ui.RadioButton(self.radio_relax_on, _("Off"))
         self.radio_relax_off.set_active(True)
         pack(vbox2, [self.radio_relax_on, self.radio_relax_off])
         self.make_minimize_gui(vbox2)
         for r in (self.radio_relax_on, self.radio_relax_off):
             r.connect("toggled", self.relax_toggled)
         self.relax_toggled()
-        pack(vbox, [framedef, gtk.Label(" "), framerel])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, [framedef, ui.Label(" "), framerel])
+        pack(vbox, ui.Label(""))
         
         # Results
-        pack(vbox, [gtk.Label(_("Results:"))])
-        self.radio_results_keep = gtk.RadioButton(
+        pack(vbox, [ui.Label(_("Results:"))])
+        self.radio_results_keep = ui.RadioButton(
             None, _("Keep original configuration"))
-        self.radio_results_optimal = gtk.RadioButton(
+        self.radio_results_optimal = ui.RadioButton(
             self.radio_results_keep, _("Load optimal configuration"))
-        self.radio_results_all =  gtk.RadioButton(
+        self.radio_results_all =  ui.RadioButton(
             self.radio_results_optimal, _("Load all configurations"))
         self.radio_results_keep.set_active(True)
         pack(vbox, [self.radio_results_keep])
@@ -137,41 +137,41 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         pack(vbox, [self.radio_results_all])
 
         # Output field
-        #label = gtk.Label("Strain\t\tEnergy [eV]\n")
+        #label = ui.Label("Strain\t\tEnergy [eV]\n")
         outframe = self.makeoutputfield(None,
                                         heading=_("Strain\t\tEnergy [eV]"))
-        fitframe = gtk.Frame(_("Fit:"))
+        fitframe = ui.Frame(_("Fit:"))
         fitframe.set_size_request(100,150)
 
-        vbox2 = gtk.VBox()
+        vbox2 = ui.VBox()
         vbox2.show()
         fitframe.add(vbox2)
-        self.radio_fit_2 = gtk.RadioButton(None, _("2nd"))
-        self.radio_fit_3 = gtk.RadioButton(self.radio_fit_2, _("3rd"))
+        self.radio_fit_2 = ui.RadioButton(None, _("2nd"))
+        self.radio_fit_3 = ui.RadioButton(self.radio_fit_2, _("3rd"))
         self.radio_fit_2.connect("toggled", self.change_fit)
         self.radio_fit_3.connect("toggled", self.change_fit)
         self.radio_fit_3.set_active(True)
-        pack(vbox2, [gtk.Label(_("Order of fit: ")), self.radio_fit_2,
+        pack(vbox2, [ui.Label(_("Order of fit: ")), self.radio_fit_2,
                      self.radio_fit_3])
-        pack(vbox2, [gtk.Label("")])
-        scrwin = gtk.ScrolledWindow()
-        scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.fit_output = gtk.TextBuffer()
-        txtview = gtk.TextView(self.fit_output)
+        pack(vbox2, [ui.Label("")])
+        scrwin = ui.ScrolledWindow()
+        scrwin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
+        self.fit_output = ui.TextBuffer()
+        txtview = ui.TextView(self.fit_output)
         txtview.set_editable(False)
         scrwin.add(txtview)
         scrwin.show_all()
         self.fit_win = scrwin
         vbox2.pack_start(scrwin, True, True, 0)
-        hbox = gtk.HBox(homogeneous=True)
+        hbox = ui.HBox(homogeneous=True)
         for w in [outframe, fitframe]:
             hbox.pack_start(w)
             w.show()
         pack(vbox, hbox)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # Status field
-        self.status_label = gtk.Label("")
+        self.status_label = ui.Label("")
         pack(vbox, [self.status_label])
 
         # Activate the right deformation buttons
@@ -181,8 +181,8 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.makebutbox(vbox, helptext=help_txt)
         vbox.show()
         if self.use_scrollbar:
-            self.scrwin = gtk.ScrolledWindow()
-            self.scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.scrwin = ui.ScrolledWindow()
+            self.scrwin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
             self.scrwin.add_with_viewport(vbox)
             self.scrwin.show()
             self.add(self.scrwin)
@@ -298,10 +298,10 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
 
         # Display status message
         self.status_label.set_text(_("Running ..."))
-        self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                    gtk.gdk.color_parse('#AA0000'))
-        while gtk.events_pending():
-            gtk.main_iteration()
+        self.status_label.modify_fg(ui.STATE_NORMAL,
+                                    ui.gdk.color_parse('#AA0000'))
+        while ui.events_pending():
+            ui.main_iteration()
 
         # Do the scaling
         scale = self.max_scale.value
@@ -345,19 +345,19 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         except AseGuiCancelException:
             # Update display to reflect cancellation of simulation.
             self.status_label.set_text(_("Calculation CANCELLED."))
-            self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                        gtk.gdk.color_parse('#AA4000'))
+            self.status_label.modify_fg(ui.STATE_NORMAL,
+                                        ui.gdk.color_parse('#AA4000'))
         except MemoryError:
             self.status_label.set_text(_("Out of memory, consider using "
                                          "LBFGS instead"))
-            self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                        gtk.gdk.color_parse('#AA4000'))
+            self.status_label.modify_fg(ui.STATE_NORMAL,
+                                        ui.gdk.color_parse('#AA4000'))
             
         else:
             # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Calculation completed."))
-            self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                        gtk.gdk.color_parse('#007700'))
+            self.status_label.modify_fg(ui.STATE_NORMAL,
+                                        ui.gdk.color_parse('#007700'))
                      
         if results:
             self.do_fit(np.array(results))

@@ -2,7 +2,7 @@
 
 "Module for performing energy minimization."
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import pack, AseGuiCancelException
 import ase
@@ -15,27 +15,27 @@ class MinimizeMixin:
                   'MDMin', 'FIRE')
 
     def make_minimize_gui(self, box):
-        self.algo = gtk.combo_box_new_text()
+        self.algo = ui.combo_box_new_text()
         for m in self.minimizers:
             self.algo.append_text(m)
         self.algo.set_active(0)
         self.algo.connect('changed', self.min_algo_specific)
-        pack(box, [gtk.Label(_("Algorithm: ")), self.algo])
+        pack(box, [ui.Label(_("Algorithm: ")), self.algo])
         
-        self.fmax = gtk.Adjustment(0.05, 0.00, 10.0, 0.01)
-        self.fmax_spin = gtk.SpinButton(self.fmax, 0, 3)
-        lbl = gtk.Label()
+        self.fmax = ui.Adjustment(0.05, 0.00, 10.0, 0.01)
+        self.fmax_spin = ui.SpinButton(self.fmax, 0, 3)
+        lbl = ui.Label()
         lbl.set_markup(_("Convergence criterion: F<sub>max</sub> = "))
         pack(box, [lbl, self.fmax_spin])
 
-        self.steps = gtk.Adjustment(100, 1, 1000000, 1)
-        self.steps_spin = gtk.SpinButton(self.steps, 0, 0)
-        pack(box, [gtk.Label(_("Max. number of steps: ")), self.steps_spin])
+        self.steps = ui.Adjustment(100, 1, 1000000, 1)
+        self.steps_spin = ui.SpinButton(self.steps, 0, 0)
+        pack(box, [ui.Label(_("Max. number of steps: ")), self.steps_spin])
 
         # Special stuff for MDMin
-        lbl = gtk.Label(_("Pseudo time step: "))
-        self.mdmin_dt = gtk.Adjustment(0.05, 0.0, 10.0, 0.01)
-        spin = gtk.SpinButton(self.mdmin_dt, 0, 3)
+        lbl = ui.Label(_("Pseudo time step: "))
+        self.mdmin_dt = ui.Adjustment(0.05, 0.0, 10.0, 0.01)
+        spin = ui.SpinButton(self.mdmin_dt, 0, 3)
         self.mdmin_widgets = [lbl, spin]
         pack(box, self.mdmin_widgets)
         self.min_algo_specific()
@@ -57,16 +57,16 @@ class Minimize(Simulation, MinimizeMixin):
         Simulation.__init__(self, gui)
         self.set_title(_("Energy minimization"))
         
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.packtext(vbox,
                       _("Minimize the energy with respect to the positions."))
         self.packimageselection(vbox)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         self.make_minimize_gui(vbox)
         
-        pack(vbox, gtk.Label(""))
-        self.status_label = gtk.Label("")
+        pack(vbox, ui.Label(""))
+        self.status_label = ui.Label("")
         pack(vbox, [self.status_label])
         self.makebutbox(vbox)
         vbox.show()
@@ -92,10 +92,10 @@ class Minimize(Simulation, MinimizeMixin):
 
         # Display status message
         self.status_label.set_text(_("Running ..."))
-        self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                    gtk.gdk.color_parse('#AA0000'))
-        while gtk.events_pending():
-            gtk.main_iteration()
+        self.status_label.modify_fg(ui.STATE_NORMAL,
+                                    ui.gdk.color_parse('#AA0000'))
+        while ui.events_pending():
+            ui.main_iteration()
 
         self.prepare_store_atoms()
         if mininame == "MDMin":
@@ -111,20 +111,20 @@ class Minimize(Simulation, MinimizeMixin):
             self.status_label.set_text(_("Minimization CANCELLED after "
                                          "%i steps.")
                                        % (self.count_steps,))
-            self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                        gtk.gdk.color_parse('#AA4000'))
+            self.status_label.modify_fg(ui.STATE_NORMAL,
+                                        ui.gdk.color_parse('#AA4000'))
         except MemoryError:
             self.status_label.set_text(_("Out of memory, consider using "
                                          "LBFGS instead"))
-            self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                        gtk.gdk.color_parse('#AA4000'))
+            self.status_label.modify_fg(ui.STATE_NORMAL,
+                                        ui.gdk.color_parse('#AA4000'))
             
         else:
             # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Minimization completed in %i steps.")
                                        % (self.count_steps,))
-            self.status_label.modify_fg(gtk.STATE_NORMAL,
-                                        gtk.gdk.color_parse('#007700'))
+            self.status_label.modify_fg(ui.STATE_NORMAL,
+                                        ui.gdk.color_parse('#007700'))
             
         self.end()
         if self.count_steps:

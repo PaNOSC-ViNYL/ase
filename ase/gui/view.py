@@ -417,7 +417,7 @@ class View:
         Z = self.images.Z
         if rgb:
             # Create a shape that is equivalent to self.colors,
-            # but contains rgb data instead gtk.gdk.GCX11 objects.
+            # but contains rgb data instead ui.gdk.GCX11 objects.
             # The rgb data may be three numbers, or a named color.  As
             # the type of data is unknown, we cannot create an array
             # beforehand with sensible default values, but need to

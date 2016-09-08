@@ -1,4 +1,4 @@
-from gettext import gettext as _
+import ase.gui.ui as ui
 
 from ase.gui.widgets import pack
 from ase.utils import rotate, irotate
@@ -8,21 +8,21 @@ class Rotate:
     update = True
     
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         angles = irotate(gui.axes)
         self.set_title(_('Rotate'))
-        vbox = gtk.VBox()
-        pack(vbox, gtk.Label(_('Rotation angles:')))
-        self.rotate = [gtk.Adjustment(value=a, lower=-360, upper=360,
+        vbox = ui.VBox()
+        pack(vbox, ui.Label(_('Rotation angles:')))
+        self.rotate = [ui.Adjustment(value=a, lower=-360, upper=360,
                                       step_incr=1, page_incr=10)
                        for a in angles]
-        pack(vbox, [gtk.SpinButton(a, climb_rate=0, digits=1)
+        pack(vbox, [ui.SpinButton(a, climb_rate=0, digits=1)
                     for a in self.rotate])
         for r in self.rotate:
             r.connect('value-changed', self.change)
-        button = pack(vbox, gtk.Button(_('Update')))
+        button = pack(vbox, ui.Button(_('Update')))
         button.connect('clicked', self.update_angles)
-        pack(vbox, gtk.Label(_('Note:\nYou can rotate freely\n'
+        pack(vbox, ui.Label(_('Note:\nYou can rotate freely\n'
                                'with the mouse, by holding\n'
                                'down mouse button 2.')))
         self.add(vbox)

@@ -2,7 +2,7 @@
 """crystal.py - Window for setting up arbitrary crystal lattices
 """
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton
 from ase.gui.setupwindow import SetupWindow
@@ -56,38 +56,38 @@ class SetupBulkCrystal(SetupWindow):
         SetupWindow.__init__(self)
         self.set_title(_("Create Bulk Crystal by Spacegroup"))
         self.atoms = None
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.packtext(vbox, introtext)
-        self.structinfo = gtk.combo_box_new_text()
+        self.structinfo = ui.combo_box_new_text()
         self.structures = {}
         for c in crystal_definitions:
             self.structinfo.append_text(c[0])
             self.structures[c[0]] = c
         self.structinfo.set_active(0)
         self.structinfo.connect("changed",self.set_lattice_type)
-        self.spacegroup = gtk.Entry(max=14)
+        self.spacegroup = ui.Entry(max=14)
         self.spacegroup.set_text('P 1')
-        self.elementinfo = gtk.Label("")
-        self.spacegroupinfo = gtk.Label(_('Number: 1'))
-        pack(vbox,[gtk.Label(_("Lattice: ")),self.structinfo,gtk.Label(_("\tSpace group: ")),self.spacegroup,gtk.Label('  '),self.spacegroupinfo,gtk.Label('  '),self.elementinfo])
-        pack(vbox,[gtk.Label("")])
-        self.size = [gtk.Adjustment(1, 1, 100, 1) for i in range(3)]
-        buttons = [gtk.SpinButton(s, 0, 0) for s in self.size]
-        pack(vbox, [gtk.Label(_("Size: x: ")), buttons[0],
-                    gtk.Label(_("  y: ")), buttons[1],
-                    gtk.Label(_("  z: ")), buttons[2],
-                    gtk.Label(_(" unit cells"))])
-        pack(vbox,[gtk.Label("")])
-        self.lattice_lengths = [gtk.Adjustment(3.0, 0.0, 1000.0, 0.01) for i in range(3)]
-        self.lattice_angles  = [gtk.Adjustment(90.0,0.0, 180.0, 1) for i in range(3)]
-        self.lattice_lbuts = [gtk.SpinButton(self.lattice_lengths[i], 0, 0) for i in range(3)]
-        self.lattice_abuts = [gtk.SpinButton(self.lattice_angles[i] , 0, 0) for i in range(3)]
+        self.elementinfo = ui.Label("")
+        self.spacegroupinfo = ui.Label(_('Number: 1'))
+        pack(vbox,[ui.Label(_("Lattice: ")),self.structinfo,ui.Label(_("\tSpace group: ")),self.spacegroup,ui.Label('  '),self.spacegroupinfo,ui.Label('  '),self.elementinfo])
+        pack(vbox,[ui.Label("")])
+        self.size = [ui.Adjustment(1, 1, 100, 1) for i in range(3)]
+        buttons = [ui.SpinButton(s, 0, 0) for s in self.size]
+        pack(vbox, [ui.Label(_("Size: x: ")), buttons[0],
+                    ui.Label(_("  y: ")), buttons[1],
+                    ui.Label(_("  z: ")), buttons[2],
+                    ui.Label(_(" unit cells"))])
+        pack(vbox,[ui.Label("")])
+        self.lattice_lengths = [ui.Adjustment(3.0, 0.0, 1000.0, 0.01) for i in range(3)]
+        self.lattice_angles  = [ui.Adjustment(90.0,0.0, 180.0, 1) for i in range(3)]
+        self.lattice_lbuts = [ui.SpinButton(self.lattice_lengths[i], 0, 0) for i in range(3)]
+        self.lattice_abuts = [ui.SpinButton(self.lattice_angles[i] , 0, 0) for i in range(3)]
         for i in self.lattice_lbuts:
             i.set_digits(5)
         for i in self.lattice_abuts:
             i.set_digits(3)
-        self.lattice_lequals = [gtk.combo_box_new_text() for i in range(3)]
-        self.lattice_aequals = [gtk.combo_box_new_text() for i in range(3)]
+        self.lattice_lequals = [ui.combo_box_new_text() for i in range(3)]
+        self.lattice_aequals = [ui.combo_box_new_text() for i in range(3)]
         self.lattice_lequals[0].append_text(_('free'))
         self.lattice_lequals[0].append_text(_('equals b'))
         self.lattice_lequals[0].append_text(_('equals c'))
@@ -115,48 +115,48 @@ class SetupBulkCrystal(SetupWindow):
         for i in range(3):
             self.lattice_lequals[i].set_active(0)
             self.lattice_aequals[i].set_active(0)
-        pack(vbox,[gtk.Label(_('Lattice parameters'))])
-        pack(vbox,[gtk.Label(_('\t\ta:\t'))  , self.lattice_lbuts[0],gtk.Label('  '),self.lattice_lequals[0],
-                   gtk.Label(_('\talpha:\t')), self.lattice_abuts[0],gtk.Label('  '),self.lattice_aequals[0]])
-        pack(vbox,[gtk.Label(_('\t\tb:\t'))  , self.lattice_lbuts[1],gtk.Label('  '),self.lattice_lequals[1],
-                   gtk.Label(_('\tbeta:\t')) , self.lattice_abuts[1],gtk.Label('  '),self.lattice_aequals[1]])
-        pack(vbox,[gtk.Label(_('\t\tc:\t'))  , self.lattice_lbuts[2],gtk.Label('  '),self.lattice_lequals[2],
-                   gtk.Label(_('\tgamma:\t')), self.lattice_abuts[2],gtk.Label('  '),self.lattice_aequals[2]])
-        self.get_data = gtk.Button(_("Get from database"))
+        pack(vbox,[ui.Label(_('Lattice parameters'))])
+        pack(vbox,[ui.Label(_('\t\ta:\t'))  , self.lattice_lbuts[0],ui.Label('  '),self.lattice_lequals[0],
+                   ui.Label(_('\talpha:\t')), self.lattice_abuts[0],ui.Label('  '),self.lattice_aequals[0]])
+        pack(vbox,[ui.Label(_('\t\tb:\t'))  , self.lattice_lbuts[1],ui.Label('  '),self.lattice_lequals[1],
+                   ui.Label(_('\tbeta:\t')) , self.lattice_abuts[1],ui.Label('  '),self.lattice_aequals[1]])
+        pack(vbox,[ui.Label(_('\t\tc:\t'))  , self.lattice_lbuts[2],ui.Label('  '),self.lattice_lequals[2],
+                   ui.Label(_('\tgamma:\t')), self.lattice_abuts[2],ui.Label('  '),self.lattice_aequals[2]])
+        self.get_data = ui.Button(_("Get from database"))
         self.get_data.connect("clicked", self.get_from_database)
         self.get_data.set_sensitive(False)
-        pack(vbox,[gtk.Label("     "),self.get_data])
-        pack(vbox,[gtk.Label("")])
-        pack(vbox,[gtk.Label(_("Basis: "))])
-        self.elements = [[gtk.Entry(max=3),gtk.Entry(max=8),gtk.Entry(max=8),gtk.Entry(max=8),True]]
+        pack(vbox,[ui.Label("     "),self.get_data])
+        pack(vbox,[ui.Label("")])
+        pack(vbox,[ui.Label(_("Basis: "))])
+        self.elements = [[ui.Entry(max=3),ui.Entry(max=8),ui.Entry(max=8),ui.Entry(max=8),True]]
         self.element = self.elements[0][0]
-        add_atom = gtk.Button(stock = gtk.STOCK_ADD)
+        add_atom = ui.Button(stock = 'Add')
         add_atom.connect("clicked",self.add_basis_atom)
         add_atom.connect("activate",self.add_basis_atom)
-        pack(vbox,[gtk.Label(_('  Element:\t')),self.elements[0][0],gtk.Label(_('\tx: ')),
-                   self.elements[0][1],gtk.Label(_('  y: ')),self.elements[0][2],
-                   gtk.Label(_('  z: ')),self.elements[0][3],gtk.Label('\t'),add_atom])
-        self.vbox_basis = gtk.VBox()
-        swin = gtk.ScrolledWindow()
+        pack(vbox,[ui.Label(_('  Element:\t')),self.elements[0][0],ui.Label(_('\tx: ')),
+                   self.elements[0][1],ui.Label(_('  y: ')),self.elements[0][2],
+                   ui.Label(_('  z: ')),self.elements[0][3],ui.Label('\t'),add_atom])
+        self.vbox_basis = ui.VBox()
+        swin = ui.ScrolledWindow()
         swin.set_border_width(0)
-        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        swin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
         vbox.pack_start(swin, True, True, 0)
         swin.add_with_viewport(self.vbox_basis)
-        self.vbox_basis.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.vbox_basis.get_parent().set_shadow_type(ui.SHADOW_NONE)
         self.vbox_basis.get_parent().set_size_request(-1, 100)
         swin.show()
 
-        pack(self.vbox_basis,[gtk.Label('')])
+        pack(self.vbox_basis,[ui.Label('')])
         pack(vbox,[self.vbox_basis])
         self.vbox_basis.show()
-        pack(vbox,[gtk.Label("")])
-        self.status = gtk.Label("")
+        pack(vbox,[ui.Label("")])
+        self.status = ui.Label("")
         pack(vbox,[self.status])
-        pack(vbox,[gtk.Label("")])
+        pack(vbox,[ui.Label("")])
         self.pybut = PyButton(_("Creating a crystal."))
         self.pybut.connect('clicked', self.update)
 
-        clear = gtk.Button(stock = gtk.STOCK_CLEAR)
+        clear = ui.Button(stock = 'Clear')
         clear.connect("clicked", self.clear)
         buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
                                apply=self.apply,
@@ -356,10 +356,10 @@ class SetupBulkCrystal(SetupWindow):
     def add_basis_atom(self,*args):
         """ add an atom to the customizable basis """
         n = len(self.elements)
-        self.elements += [[gtk.Entry(max=3),gtk.Entry(max=8),gtk.Entry(max=8),gtk.Entry(max=8),
-                           gtk.Label('\t\t\t'),gtk.Label('\tx: '),gtk.Label('  y: '),
-                           gtk.Label('  z: '),gtk.Label(' '),
-                           gtk.Button(stock=gtk.STOCK_DELETE),True]]
+        self.elements += [[ui.Entry(max=3),ui.Entry(max=8),ui.Entry(max=8),ui.Entry(max=8),
+                           ui.Label('\t\t\t'),ui.Label('\tx: '),ui.Label('  y: '),
+                           ui.Label('  z: '),ui.Label(' '),
+                           ui.Button('Delete'),True]]
         self.elements[n][-2].connect("clicked",self.delete_basis_atom,{'n':n})
         pack(self.vbox_basis,[self.elements[n][4],self.elements[n][0],self.elements[n][5],
                               self.elements[n][1],self.elements[n][6],self.elements[n][2],

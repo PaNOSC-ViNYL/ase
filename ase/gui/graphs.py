@@ -2,7 +2,7 @@ import pickle
 import subprocess
 import sys
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 import ase.gui.ui as ui
 
 graph_help_text = _("""\
@@ -64,12 +64,12 @@ class Graphs:
     python = plot
 
     def save(self, filename):
-        chooser = gtk.FileChooserDialog(
-            _('Save data to file ... '), None, gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser = ui.FileChooserDialog(
+            _('Save data to file ... '), None, ui.FILE_CHOOSER_ACTION_SAVE,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Save', ui.RESPONSE_OK))
         save = chooser.run()
-        if save == gtk.RESPONSE_OK:
+        if save == ui.RESPONSE_OK:
             filename = chooser.get_filename()
             expr = self.expr.get_text()
             data = self.gui.images.graph(expr)

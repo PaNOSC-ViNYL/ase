@@ -2,7 +2,7 @@
 
 "Module for displaying information about the system."
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack
 
 singleimage = _("Single image loaded.")
@@ -26,9 +26,9 @@ Unit cell:
 
 class QuickInfo:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("Quick Info"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         images = gui.images
         if images.natoms < 1:
             txt = _("No atoms loaded.")
@@ -59,9 +59,9 @@ class QuickInfo:
             pbcstring = _('Periodic: %s, %s, %s') % tuple(periodic)
             txt = format % ((imgtxt, natoms) + tuple(uc.flat) +
                             (pbcstring,) + (uctxt,))
-        label = gtk.Label(txt)
+        label = ui.Label(txt)
         pack(vbox, [label])
-        but = gtk.Button(stock=gtk.STOCK_CLOSE)
+        but = ui.Button('Close')
         but.connect('clicked', self.close)
         pack(vbox, [but], end=True)
         self.add(vbox)

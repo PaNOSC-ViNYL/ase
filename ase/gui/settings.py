@@ -1,54 +1,54 @@
 from ase.gui.widgets import pack
-from gettext import gettext as _
+import ase.gui.ui as ui
 
 class Settings:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title('Settings')
         self.gui = gui
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
 
         # Constraints
-        a = pack(vbox, gtk.Label())
+        a = pack(vbox, ui.Label())
         a.set_markup('<span size="larger" underline="single">'
                      '%s</span>' % _('Constraints:'))
-        a, b = pack(vbox, [gtk.Button(_('Constrain')),
-                           gtk.Label('/'),
-                           gtk.Button(_('release')),
-                           gtk.Label(_(' selected atoms'))])[::2]
+        a, b = pack(vbox, [ui.Button(_('Constrain')),
+                           ui.Label('/'),
+                           ui.Button(_('release')),
+                           ui.Label(_(' selected atoms'))])[::2]
         a.connect('clicked', self.constrain_selected)
         b.connect('clicked', self.release_selected)
-        a = pack(vbox, gtk.Button(_('Constrain immobile atoms')))
+        a = pack(vbox, ui.Button(_('Constrain immobile atoms')))
         a.connect('clicked', self.immobile)
-        a = pack(vbox, gtk.Button(_('Clear all constraints')))
+        a = pack(vbox, ui.Button(_('Clear all constraints')))
         a.connect('clicked', self.clear_constraints)
 
         # Visibility
-        a = pack(vbox, gtk.Label())
+        a = pack(vbox, ui.Label())
         a.set_markup('\n<span size="larger" underline="single">'
                      '%s</span>' % _('Visibility:'))
-        a, b = pack(vbox, [gtk.Button(_('Hide')),
-                           gtk.Label('/'),
-                           gtk.Button(_('show')),
-                           gtk.Label(_(' selected atoms'))])[::2]
+        a, b = pack(vbox, [ui.Button(_('Hide')),
+                           ui.Label('/'),
+                           ui.Button(_('show')),
+                           ui.Label(_(' selected atoms'))])[::2]
         a.connect('clicked', self.hide_selected)
         b.connect('clicked', self.show_selected)
-        a = pack(vbox, gtk.Button(_('View all atoms')))
+        a = pack(vbox, ui.Button(_('View all atoms')))
         a.connect('clicked', self.view_all)
 
         # Miscellaneous
-        a = pack(vbox, gtk.Label())
+        a = pack(vbox, ui.Label())
         a.set_markup('\n<span size="larger" underline="single">'
                      '%s</span>' % _('Miscellaneous:'))
-        self.scale = gtk.Adjustment(value=.89, lower=0.2, upper=2.0,
+        self.scale = ui.Adjustment(value=.89, lower=0.2, upper=2.0,
                                     step_incr=0.1, page_incr=0.5)
-        pack(vbox, [gtk.Label(_('Scale atomic radii:')),
-                    gtk.SpinButton(self.scale, climb_rate=0, digits=2)])
+        pack(vbox, [ui.Label(_('Scale atomic radii:')),
+                    ui.SpinButton(self.scale, climb_rate=0, digits=2)])
         self.scale.connect('value-changed', self.scale_radii)
 
         # A close button
-        pack(vbox, gtk.Label(_('\n')))
-        close = pack(vbox, gtk.Button(_('Close')))
+        pack(vbox, ui.Label(_('\n')))
+        close = pack(vbox, ui.Button(_('Close')))
         close.connect('clicked', lambda widget: self.destroy())
 
         # Add elements and show frame

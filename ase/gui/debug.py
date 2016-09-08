@@ -2,15 +2,15 @@ from __future__ import print_function
 import sys
 
 import gtk
-from gettext import gettext as _
+import ase.gui.ui as ui
 
 
-class Debug(gtk.Window):
+class Debug(ui.Window):
     def __init__(self, gui):
         self.gui = gui
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_('Debug'))
-        entry = gtk.Entry(200)
+        entry = ui.Entry(200)
         self.add(entry)
         entry.connect('activate', self.enter, entry)
         entry.show()

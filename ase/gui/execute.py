@@ -1,6 +1,6 @@
 import __future__
 import gtk
-from gettext import gettext as _
+import ase.gui.ui as ui
 import os.path
 import numpy as np
 
@@ -9,7 +9,7 @@ from ase.data.colors import jmol_colors
 from ase.atoms import Atoms
 
 
-class Execute(gtk.Window):
+class Execute(ui.Window):
     """The Execute class provides an expert-user window for modification
     and evaluation of system properties with a simple one-line command
     structure.
@@ -63,14 +63,14 @@ class Execute(gtk.Window):
     """)
     
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.gui = gui
         self.set_title(_('Expert user mode'))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         vbox.set_border_width(5)
-        self.sw = gtk.ScrolledWindow()
-        self.sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.textview = gtk.TextView()
+        self.sw = ui.ScrolledWindow()
+        self.sw.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
+        self.textview = ui.TextView()
         self.textbuffer = self.textview.get_buffer()
         self.textview.set_editable(False)
         self.textview.set_cursor_visible(False)
@@ -79,25 +79,25 @@ class Execute(gtk.Window):
         self.sw.set_size_request(540, 150)
         self.textview.show()
         self.add_text(_('Welcome to the ASE Expert user mode'))
-        self.cmd = gtk.Entry(60)
+        self.cmd = ui.Entry(60)
         self.cmd.connect('activate', self.execute)
         self.cmd.connect('key-press-event', self.update_command_buffer)
-        pack(vbox, [gtk.Label('>>>'),self.cmd])
+        pack(vbox, [ui.Label('>>>'),self.cmd])
         self.cmd_buffer = getattr(gui,'expert_mode_buffer',[''])
         self.cmd_position = len(self.cmd_buffer)-1
-        self.selected = gtk.CheckButton(_('Only selected atoms (sa)   '))
+        self.selected = ui.CheckButton(_('Only selected atoms (sa)   '))
         self.selected.connect('toggled',self.selected_changed)
-        self.images_only = gtk.CheckButton(_('Only current frame (cf)  '))
+        self.images_only = ui.CheckButton(_('Only current frame (cf)  '))
         self.images_only.connect('toggled',self.images_changed)
         pack(vbox, [self.selected, self.images_only])
-        save_button = gtk.Button(stock=gtk.STOCK_SAVE)
+        save_button = ui.Button('Save')
         save_button.connect('clicked',self.save_output)
-        help_button = gtk.Button(stock=gtk.STOCK_HELP)
+        help_button = ui.Button('Help')
         help_button.connect('clicked',self.terminal_help,"")
-        stop_button = gtk.Button(stock=gtk.STOCK_STOP)
+        stop_button = ui.Button('Stop')
         stop_button.connect('clicked',self.stop_execution)
         self.stop = False
-        pack(vbox, [gtk.Label(_('Global: Use A, D, E, M, N, R, S, n, frame;'
+        pack(vbox, [ui.Label(_('Global: Use A, D, E, M, N, R, S, n, frame;'
                                 ' Atoms: Use a, f, m, s, x, y, z, Z     ')),
                     stop_button, help_button, save_button], end = True)
         self.add(vbox)
@@ -286,7 +286,7 @@ class Execute(gtk.Window):
             self.add_text(_('*** Working on all images'))
 
     def update_command_buffer(self, entry, event, *args):
-        arrow = {gtk.keysyms.Up: -1, gtk.keysyms.Down: 1}.get(event.keyval, None)
+        arrow = {ui.keysyms.Up: -1, ui.keysyms.Down: 1}.get(event.keyval, None)
         if arrow is not None:
             self.cmd_position += arrow
             self.cmd_position = max(self.cmd_position,0)
@@ -298,12 +298,12 @@ class Execute(gtk.Window):
             return False
 
     def save_output(self, *args):
-        chooser = gtk.FileChooserDialog(
-            _('Save Terminal text ...'), None, gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser = ui.FileChooserDialog(
+            _('Save Terminal text ...'), None, ui.FILE_CHOOSER_ACTION_SAVE,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Save', ui.RESPONSE_OK))
         save = chooser.run()
-        if save == gtk.RESPONSE_OK or save == gtk.RESPONSE_SAVE:
+        if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
             filename = chooser.get_filename()
             text = self.textbuffer.get_text(self.textbuffer.get_start_iter(),
                                             self.textbuffer.get_end_iter())

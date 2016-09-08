@@ -1,7 +1,7 @@
 from __future__ import print_function
 # encoding: utf-8
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 import numpy as np
 from ase.gui.widgets import pack, AseGuiCancelException
 import sys
@@ -23,27 +23,27 @@ class DefaultProgressIndicator:
     updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.
     
     def __init__(self):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_("Progress"))
-        self.globalbox = gtk.VBox()
+        self.globalbox = ui.VBox()
         self.nextupdate = 0
         self.fmax_max = 1.0
         
         # Scaling deformation progress frame
-        self.scalebox = gtk.VBox()
-        self.scaleframe = gtk.Frame(_("Scaling deformation:"))
-        vbox = gtk.VBox()
+        self.scalebox = ui.VBox()
+        self.scaleframe = ui.Frame(_("Scaling deformation:"))
+        vbox = ui.VBox()
         self.scaleframe.add(vbox)
         pack(self.scalebox, [self.scaleframe])
-        pack(self.scalebox, gtk.Label(""))
+        pack(self.scalebox, ui.Label(""))
 
         self.label_scale_stepno_format = _("Step number %s of %s.")
-        self.label_scale_stepno = gtk.Label(
+        self.label_scale_stepno = ui.Label(
             self.label_scale_stepno_format % ("-" , "-"))
         pack(vbox, [self.label_scale_stepno])
-        self.scale_progress = gtk.ProgressBar()
-        self.scale_progress.modify_bg(gtk.STATE_PRELIGHT,
-                                      gtk.gdk.color_parse('#00AA00'))
+        self.scale_progress = ui.ProgressBar()
+        self.scale_progress.modify_bg(ui.STATE_PRELIGHT,
+                                      ui.gdk.color_parse('#00AA00'))
         pack(vbox, [self.scale_progress])
 
         vbox.show()
@@ -51,25 +51,25 @@ class DefaultProgressIndicator:
         self.globalbox.pack_start(self.scalebox)
         
         # Minimization progress frame
-        self.minbox = gtk.VBox()  # Box containing frame and spacing
-        self.minframe = gtk.Frame(_("Energy minimization:"))
-        vbox = gtk.VBox()         # Box containing the frames content.
+        self.minbox = ui.VBox()  # Box containing frame and spacing
+        self.minframe = ui.Frame(_("Energy minimization:"))
+        vbox = ui.VBox()         # Box containing the frames content.
         self.minframe.add(vbox)
         pack(self.minbox, [self.minframe])
-        pack(self.minbox, gtk.Label(""))
+        pack(self.minbox, ui.Label(""))
         
-        self.label_min_stepno = gtk.Label("-")
-        pack(vbox, [gtk.Label(_("Step number: ")), self.label_min_stepno])
-        lbl = gtk.Label()
+        self.label_min_stepno = ui.Label("-")
+        pack(vbox, [ui.Label(_("Step number: ")), self.label_min_stepno])
+        lbl = ui.Label()
         lbl.set_markup(_("F<sub>max</sub>: "))
-        self.minimize_progress = gtk.ProgressBar()
+        self.minimize_progress = ui.ProgressBar()
         pack(vbox, [lbl, self.minimize_progress])
-        self.label_min_fmax = gtk.Label("-")
-        lbl = gtk.Label()
+        self.label_min_fmax = ui.Label("-")
+        lbl = ui.Label()
         lbl.set_markup(_("Convergence criterion: F<sub>max</sub> = "))
         pack(vbox, [lbl, self.label_min_fmax])
-        self.label_min_maxsteps = gtk.Label("-")
-        pack(vbox, [gtk.Label(_("Max. number of steps: ")),
+        self.label_min_maxsteps = ui.Label("-")
+        pack(vbox, [ui.Label(_("Max. number of steps: ")),
                     self.label_min_maxsteps])
         
         vbox.show()
@@ -79,7 +79,7 @@ class DefaultProgressIndicator:
         self.add(self.globalbox)
 
         # Make the cancel button
-        self.cancelbut = gtk.Button(stock=gtk.STOCK_CANCEL)
+        self.cancelbut = ui.Button('Cancel')
         self.cancelbut.connect('clicked', self.cancel)
         pack(self.globalbox, [self.cancelbut], end=True, bottom=True)
         
@@ -119,8 +119,8 @@ class DefaultProgressIndicator:
             self.active = True
         # Allow GTK to update display
         if self.active:
-            while gtk.events_pending():
-                gtk.main_iteration()
+            while ui.events_pending():
+                ui.main_iteration()
         if self.raisecancelexception:
             self.cancelbut.set_sensitive(True)
             raise AseGuiCancelException
@@ -171,33 +171,33 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         DefaultProgressIndicator.__init__(self)
 
         # GPAW progress frame
-        self.gpawframe = gtk.Frame("GPAW progress:")
-        vbox = self.gpawvbox = gtk.VBox()
+        self.gpawframe = ui.Frame("GPAW progress:")
+        vbox = self.gpawvbox = ui.VBox()
         self.gpawframe.add(vbox)
-        self.table = gtk.Table(1, 2)
+        self.table = ui.Table(1, 2)
         self.tablerows = 0
         pack(vbox, self.table)
-        self.status = gtk.Label("-")
-        self.tablepack([gtk.Label(_("Status: ")), self.status])
-        self.iteration = gtk.Label("-")
-        self.tablepack([gtk.Label(_("Iteration: ")), self.iteration])
-        self.tablepack([gtk.Label("")])
-        lbl = gtk.Label()
+        self.status = ui.Label("-")
+        self.tablepack([ui.Label(_("Status: ")), self.status])
+        self.iteration = ui.Label("-")
+        self.tablepack([ui.Label(_("Iteration: ")), self.iteration])
+        self.tablepack([ui.Label("")])
+        lbl = ui.Label()
         lbl.set_markup(_("log<sub>10</sub>(change):"))
-        self.tablepack([gtk.Label(""), lbl])
-        self.wfs_progress = gtk.ProgressBar()
-        self.tablepack([gtk.Label(_("Wave functions: ")), self.wfs_progress])
-        self.dens_progress = gtk.ProgressBar()
-        self.tablepack([gtk.Label(_("Density: ")), self.dens_progress])
-        self.energy_progress = gtk.ProgressBar()
-        self.tablepack([gtk.Label(_("Energy: ")), self.energy_progress])
-        self.tablepack([gtk.Label("")])
-        self.versionlabel = gtk.Label("")
-        self.tablepack([gtk.Label(_("GPAW version: ")), self.versionlabel])
-        self.natomslabel = gtk.Label("")
-        self.tablepack([gtk.Label(_("Number of atoms: ")), self.natomslabel])
-        self.memorylabel = gtk.Label(_("N/A"))
-        self.tablepack([gtk.Label(_("Memory estimate: ")), self.memorylabel])
+        self.tablepack([ui.Label(""), lbl])
+        self.wfs_progress = ui.ProgressBar()
+        self.tablepack([ui.Label(_("Wave functions: ")), self.wfs_progress])
+        self.dens_progress = ui.ProgressBar()
+        self.tablepack([ui.Label(_("Density: ")), self.dens_progress])
+        self.energy_progress = ui.ProgressBar()
+        self.tablepack([ui.Label(_("Energy: ")), self.energy_progress])
+        self.tablepack([ui.Label("")])
+        self.versionlabel = ui.Label("")
+        self.tablepack([ui.Label(_("GPAW version: ")), self.versionlabel])
+        self.natomslabel = ui.Label("")
+        self.tablepack([ui.Label(_("Number of atoms: ")), self.natomslabel])
+        self.memorylabel = ui.Label(_("N/A"))
+        self.tablepack([ui.Label(_("Memory estimate: ")), self.memorylabel])
         self.globalbox.pack_start(self.gpawframe)
         self.gpawframe.show()
 
@@ -223,8 +223,8 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         # With GPAW, all calculations are slow: Show progress window
         # immediately.
         self.show()
-        while gtk.events_pending():
-            gtk.main_iteration()
+        while ui.events_pending():
+            ui.main_iteration()
 
     def reset_gpaw_bars(self):
         for lbl in (self.status, self.iteration):

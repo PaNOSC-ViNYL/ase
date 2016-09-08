@@ -2,7 +2,7 @@
 """surfaceslab.py - Window for setting up surfaces
 """
 from __future__ import division
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.pybutton import PyButton
 from ase.gui.setupwindow import SetupWindow
@@ -59,23 +59,23 @@ class SetupSurfaceSlab(SetupWindow):
         self.set_title(_('Surface'))
         self.atoms = None
 
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
 
         # Intoductory text
         self.packtext(vbox, introtext)
              
         # Choose the element
-        label = gtk.Label(_('Element: '))
-        element = gtk.Entry(max=3)
+        label = ui.Label(_('Element: '))
+        element = ui.Entry(max=3)
         self.element = element
-        self.elementinfo = gtk.Label('')
+        self.elementinfo = ui.Label('')
         pack(vbox, [label, element, self.elementinfo])
         self.element.connect('activate', self.update)
         self.legal_element = False
         
         # Choose the surface structure
-        label = gtk.Label(_('Structure: '))
-        self.structchoice = gtk.combo_box_new_text()
+        label = ui.Label(_('Structure: '))
+        self.structchoice = ui.combo_box_new_text()
         self.surfinfo = {}
         for s in surfaces:
             assert len(s) == 5
@@ -85,29 +85,29 @@ class SetupSurfaceSlab(SetupWindow):
         self.structchoice.connect('changed', self.update)
 
         # Choose the lattice constant
-        tbl = gtk.Table(2, 3)
-        label = gtk.Label(_('Lattice constant: '))
+        tbl = ui.Table(2, 3)
+        label = ui.Label(_('Lattice constant: '))
         tbl.attach(label, 0, 1, 0, 1)
-        vbox2 = gtk.VBox()          # For the non-HCP stuff
-        self.vbox_hcp = gtk.VBox()  # For the HCP stuff.
-        self.lattice_const = gtk.Adjustment(3.0, 0.0, 1000.0, 0.01)
-        lattice_box = gtk.SpinButton(self.lattice_const, 10.0, 3)
+        vbox2 = ui.VBox()          # For the non-HCP stuff
+        self.vbox_hcp = ui.VBox()  # For the HCP stuff.
+        self.lattice_const = ui.Adjustment(3.0, 0.0, 1000.0, 0.01)
+        lattice_box = ui.SpinButton(self.lattice_const, 10.0, 3)
         lattice_box.numeric = True
-        pack(vbox2, [gtk.Label(_('a:')), lattice_box, gtk.Label(_(u'Å'))])
+        pack(vbox2, [ui.Label(_('a:')), lattice_box, ui.Label(_(u'Å'))])
         tbl.attach(vbox2, 1, 2, 0, 1)
-        lattice_button = gtk.Button(_('Get from database'))
+        lattice_button = ui.Button(_('Get from database'))
         tbl.attach(lattice_button, 2, 3, 0, 1)
         # HCP stuff
         self.hcp_ideal = (8 / 3)**(1 / 3)
-        self.lattice_const_c = gtk.Adjustment(self.lattice_const.value *
+        self.lattice_const_c = ui.Adjustment(self.lattice_const.value *
                                               self.hcp_ideal,
                                               0.0, 1000.0, 0.01)
-        lattice_box_c = gtk.SpinButton(self.lattice_const_c, 10.0, 3)
+        lattice_box_c = ui.SpinButton(self.lattice_const_c, 10.0, 3)
         lattice_box_c.numeric = True
-        pack(self.vbox_hcp, [gtk.Label('c:'),
-                             lattice_box_c, gtk.Label(u'Å')])
+        pack(self.vbox_hcp, [ui.Label('c:'),
+                             lattice_box_c, ui.Label(u'Å')])
         self.hcp_c_over_a_format = 'c/a: %.3f ' + _('(%.1f %% of ideal)')
-        self.hcp_c_over_a_label = gtk.Label(self.hcp_c_over_a_format %
+        self.hcp_c_over_a_label = ui.Label(self.hcp_c_over_a_format %
                                             (self.hcp_ideal, 100.0))
         pack(self.vbox_hcp, [self.hcp_c_over_a_label])
         tbl.attach(self.vbox_hcp, 1, 2, 1, 2)
@@ -116,27 +116,27 @@ class SetupSurfaceSlab(SetupWindow):
         self.lattice_const.connect('value-changed', self.update)
         self.lattice_const_c.connect('value-changed', self.update)
         lattice_button.connect('clicked', self.get_lattice_const)
-        pack(vbox, gtk.Label(''))
+        pack(vbox, ui.Label(''))
 
         # System size
-        self.size = [gtk.Adjustment(1, 1, 100, 1) for i in range(3)]
-        buttons = [gtk.SpinButton(s, 0, 0) for s in self.size]
-        self.vacuum = gtk.Adjustment(10.0, 0, 100.0, 0.1)
-        vacuum_box = gtk.SpinButton(self.vacuum, 0.0, 1)
-        pack(vbox, [gtk.Label(_('Size: \tx: ')), buttons[0],
-                    gtk.Label(_(' unit cells'))])
-        pack(vbox, [gtk.Label(_('\t\ty: ')), buttons[1],
-                    gtk.Label(_(' unit cells'))])
-        pack(vbox, [gtk.Label(_('      \t\tz: ')), buttons[2],
-                    gtk.Label(_(' layers,  ')),
-                    vacuum_box, gtk.Label(_(u' Å vacuum'))])
+        self.size = [ui.Adjustment(1, 1, 100, 1) for i in range(3)]
+        buttons = [ui.SpinButton(s, 0, 0) for s in self.size]
+        self.vacuum = ui.Adjustment(10.0, 0, 100.0, 0.1)
+        vacuum_box = ui.SpinButton(self.vacuum, 0.0, 1)
+        pack(vbox, [ui.Label(_('Size: \tx: ')), buttons[0],
+                    ui.Label(_(' unit cells'))])
+        pack(vbox, [ui.Label(_('\t\ty: ')), buttons[1],
+                    ui.Label(_(' unit cells'))])
+        pack(vbox, [ui.Label(_('      \t\tz: ')), buttons[2],
+                    ui.Label(_(' layers,  ')),
+                    vacuum_box, ui.Label(_(u' Å vacuum'))])
         self.nosize = _('\t\tNo size information yet.')
-        self.sizelabel = gtk.Label(self.nosize)
+        self.sizelabel = ui.Label(self.nosize)
         pack(vbox, [self.sizelabel])
         for s in self.size:
             s.connect('value-changed', self.update)
         self.vacuum.connect('value-changed', self.update)
-        pack(vbox, gtk.Label(''))
+        pack(vbox, ui.Label(''))
 
         # Buttons
         self.pybut = PyButton(_('Creating a surface slab.'))

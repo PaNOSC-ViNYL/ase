@@ -4,7 +4,7 @@ import sys
 import weakref
 import pickle
 import subprocess
-from gettext import gettext as _, ngettext
+import ase.gui.ui as ui, ngettext
 
 import numpy as np
 
@@ -262,7 +262,7 @@ class GUI(View, Status):
     def copy_atoms(self, widget):
         "Copies selected atoms to a clipboard."
 
-        clip = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
+        clip = ui.clipboard_get(ui.gdk.SELECTION_CLIPBOARD)
 
         if self.images.selected.any():
             atoms = self.images.get_atoms(self.frame)
@@ -283,7 +283,7 @@ class GUI(View, Status):
     def paste_atoms(self, widget):
         """Inserts clipboard selection into the current frame using the
         add_atoms window."""
-        clip = gtk.clipboard_get(gtk.gdk.SELECTION_CLIPBOARD)
+        clip = ui.clipboard_get(ui.gdk.SELECTION_CLIPBOARD)
         try:
             atoms = pickle.loads(clip.wait_for_text())
         except TypeError:
@@ -313,14 +313,14 @@ class GUI(View, Status):
         """
 
         if data == 'load':
-            chooser = gtk.FileChooserDialog(
-                _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
-                 gtk.RESPONSE_OK))
+            chooser = ui.FileChooserDialog(
+                _('Open ...'), None, ui.FILE_CHOOSER_ACTION_OPEN,
+                ('Cancel', ui.RESPONSE_CANCEL, 'Open',
+                 ui.RESPONSE_OK))
 
             chooser.set_filename(_("<<filename>>"))
             ok = chooser.run()
-            if ok == gtk.RESPONSE_OK:
+            if ok == ui.RESPONSE_OK:
                 filename = chooser.get_filename()
                 chooser.destroy()
             else:
@@ -451,14 +451,14 @@ class GUI(View, Status):
             mom = '0'
             pos = 'auto+1'
             self.add_entries = []
-            window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            window = ui.Window(ui.WINDOW_TOPLEVEL)
             self.add_entries.append(window)
             window.set_title(_('Add atoms'))
             if data == 'Paste':
                 molecule = paste.get_chemical_formula()
                 window.set_title(_('Paste'))
 
-            vbox = gtk.VBox(False, 0)
+            vbox = ui.VBox(False, 0)
             window.add(vbox)
             vbox.show()
             packed = False
@@ -466,7 +466,7 @@ class GUI(View, Status):
                          [_('Tag'), tag], [_('Moment'), mom], [_('Position'),
                                                                pos]]:
 
-                label = gtk.Label(i)
+                label = ui.Label(i)
                 if not packed:
                     vbox.pack_start(label, True, True, 0)
                 else:
@@ -474,30 +474,30 @@ class GUI(View, Status):
                     vbox.add(label)
                 label.show()
 
-                entry = gtk.Entry()
+                entry = ui.Entry()
                 entry.set_text(j)
                 self.add_entries.append(entry)
                 entry.set_max_length(50)
                 entry.show()
                 vbox.add(entry)
 
-            pack(vbox, [gtk.Label('atom/molecule reference:')])
-            self.centre_radio = gtk.RadioButton(None, "centre ")
-            self.origin_radio = gtk.RadioButton(self.centre_radio, "origin")
+            pack(vbox, [ui.Label('atom/molecule reference:')])
+            self.centre_radio = ui.RadioButton(None, "centre ")
+            self.origin_radio = ui.RadioButton(self.centre_radio, "origin")
             pack(vbox, [self.centre_radio, self.origin_radio])
             if data == 'Paste':
                 self.origin_radio.set_active(True)
                 self.add_entries[1].set_sensitive(False)
             if data is None:
-                button = gtk.Button(_('_Load molecule'))
+                button = ui.Button(_('_Load molecule'))
                 button.connect('clicked', self.add_atoms, 'load')
                 button.show()
                 vbox.add(button)
-            button = gtk.Button(_('_OK'))
+            button = ui.Button(_('_OK'))
             button.connect('clicked', self.add_atoms, 'OK', paste)
             button.show()
             vbox.add(button)
-            button = gtk.Button(_('_Cancel'))
+            button = ui.Button(_('_Cancel'))
             button.connect('clicked', self.add_atoms, 'Cancel')
             button.show()
             vbox.add(button)
@@ -577,17 +577,17 @@ class GUI(View, Status):
                         s_symbol = 'X'
 
             self.add_entries = []
-            window = gtk.Window(gtk.WINDOW_TOPLEVEL)
+            window = ui.Window(ui.WINDOW_TOPLEVEL)
             self.add_entries.append(window)
             window.set_title(_('Modify'))
 
-            vbox = gtk.VBox(False, 0)
+            vbox = ui.VBox(False, 0)
             window.add(vbox)
             vbox.show()
             pack = False
             for i, j in [[_('Atom'), s_symbol], [_('Tag'), s_tag],
                          [_('Moment'), s_mom]]:
-                label = gtk.Label(i)
+                label = ui.Label(i)
                 if not pack:
                     vbox.pack_start(label, True, True, 0)
                 else:
@@ -595,17 +595,17 @@ class GUI(View, Status):
                     vbox.add(label)
                 label.show()
 
-                entry = gtk.Entry()
+                entry = ui.Entry()
                 entry.set_text(j)
                 self.add_entries.append(entry)
                 entry.set_max_length(50)
                 entry.show()
                 vbox.add(entry)
-            button = gtk.Button(_('_OK'))
+            button = ui.Button(_('_OK'))
             button.connect('clicked', self.modify_atoms, 'OK')
             button.show()
             vbox.add(button)
-            button = gtk.Button(_('_Cancel'))
+            button = ui.Button(_('_Cancel'))
             button.connect('clicked', self.modify_atoms, 'Cancel')
             button.show()
             vbox.add(button)
@@ -709,26 +709,26 @@ class GUI(View, Status):
             if io.read and description != '?':
                 formats.append((_(description), format))
 
-        chooser = gtk.FileChooserDialog(
-            _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
-             gtk.RESPONSE_OK))
+        chooser = ui.FileChooserDialog(
+            _('Open ...'), None, ui.FILE_CHOOSER_ACTION_OPEN,
+            ('Cancel', ui.RESPONSE_CANCEL, 'Open',
+             ui.RESPONSE_OK))
         chooser.set_filename(_("<<filename>>"))
 
         # Add a file type filter
         name_to_format = {}
-        types = gtk.combo_box_new_text()
+        types = ui.combo_box_new_text()
         for name, format in formats:
             types.append_text(name)
             name_to_format[name] = format
 
         types.set_active(0)
-        img_vbox = gtk.VBox()
-        pack(img_vbox, [gtk.Label(_('File type:')), types])
+        img_vbox = ui.VBox()
+        pack(img_vbox, [ui.Label(_('File type:')), types])
         img_vbox.show()
         chooser.set_extra_widget(img_vbox)
 
-        ok = chooser.run() == gtk.RESPONSE_OK
+        ok = chooser.run() == ui.RESPONSE_OK
         if ok:
             filenames = [chooser.get_filename()]
             filetype = types.get_active_text()
@@ -744,12 +744,12 @@ class GUI(View, Status):
 
     def import_atoms(self, button=None, filenames=None):
         if filenames is None:
-            chooser = gtk.FileChooserDialog(
-                _('Open ...'), None, gtk.FILE_CHOOSER_ACTION_OPEN,
-                (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN,
-                 gtk.RESPONSE_OK))
+            chooser = ui.FileChooserDialog(
+                _('Open ...'), None, ui.FILE_CHOOSER_ACTION_OPEN,
+                ('Cancel', ui.RESPONSE_CANCEL, 'Open',
+                 ui.RESPONSE_OK))
             ok = chooser.run()
-            if ok == gtk.RESPONSE_OK:
+            if ok == ui.RESPONSE_OK:
                 filenames = [chooser.get_filename()]
             chooser.destroy()
 
@@ -849,7 +849,7 @@ class GUI(View, Status):
 
     def about(self, action):
         try:
-            dialog = gtk.AboutDialog()
+            dialog = ui.AboutDialog()
             dialog.set_version(__version__)
             dialog.set_website(
                 'https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')

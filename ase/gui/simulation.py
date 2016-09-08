@@ -1,50 +1,50 @@
 "Base class for simulation windows"
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import oops, pack, help
 from ase import Atoms
 from ase.constraints import FixAtoms
 
 class Simulation:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.gui = gui
 
     def packtext(self, vbox, text, label=None):
         "Pack an text frame into the window."
-        pack(vbox, gtk.Label(""))
-        txtframe = gtk.Frame(label)
-        txtlbl = gtk.Label(text)
+        pack(vbox, ui.Label(""))
+        txtframe = ui.Frame(label)
+        txtlbl = ui.Label(text)
         txtframe.add(txtlbl)
         txtlbl.show()
         pack(vbox, txtframe)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
     def packimageselection(self, outerbox, txt1=_(" (rerun simulation)"),
                            txt2=_(" (continue simulation)")):
         "Make the frame for selecting starting config if more than one."
-        self.startframe = gtk.Frame(_("Select starting configuration:"))
+        self.startframe = ui.Frame(_("Select starting configuration:"))
         pack(outerbox, [self.startframe])
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.startframe.add(vbox)
         vbox.show()
         self.numconfig_format = _("There are currently %i "
                                   "configurations loaded.")
-        self.numconfig_label = gtk.Label("")
+        self.numconfig_label = ui.Label("")
         pack(vbox, [self.numconfig_label])
-        lbl = gtk.Label(_("Choose which one to use as the "
+        lbl = ui.Label(_("Choose which one to use as the "
                           "initial configuration"))
         pack(vbox, [lbl])
-        self.start_radio_first = gtk.RadioButton(
+        self.start_radio_first = ui.RadioButton(
             None, _("The first configuration %s.") % txt1)
         pack(vbox, [self.start_radio_first])
-        self.start_radio_nth = gtk.RadioButton(self.start_radio_first,
+        self.start_radio_nth = ui.RadioButton(self.start_radio_first,
                                                _("Configuration number "))
-        self.start_nth_adj = gtk.Adjustment(0, 0, 1, 1)
-        self.start_nth_spin = gtk.SpinButton(self.start_nth_adj, 0, 0)
+        self.start_nth_adj = ui.Adjustment(0, 0, 1, 1)
+        self.start_nth_spin = ui.SpinButton(self.start_nth_adj, 0, 0)
         self.start_nth_spin.set_sensitive(False)
         pack(vbox, [self.start_radio_nth, self.start_nth_spin])
-        self.start_radio_last = gtk.RadioButton(self.start_radio_first,
+        self.start_radio_last = ui.RadioButton(self.start_radio_first,
             _("The last configuration %s.") % txt2)
         self.start_radio_last.set_active(True)
         pack(vbox, self.start_radio_last)
@@ -80,10 +80,10 @@ class Simulation:
             return nmax-1
 
     def makebutbox(self, vbox, helptext=None):
-        self.buttons = gtk.HButtonBox()
-        runbut = gtk.Button(_("Run"))
+        self.buttons = ui.HButtonBox()
+        runbut = ui.Button(_("Run"))
         runbut.connect('clicked', self.run)
-        closebut = gtk.Button(stock=gtk.STOCK_CLOSE)
+        closebut = ui.Button('Close')
         closebut.connect('clicked', lambda x: self.destroy())
         for w in (runbut, closebut):
             self.buttons.pack_start(w, 0, 0)

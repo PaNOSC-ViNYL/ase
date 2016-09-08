@@ -1,26 +1,26 @@
 import gtk
-from gettext import gettext as _
+import ase.gui.ui as ui
 
 from ase.gui.widgets import pack
 
 
-class Constraints(gtk.Window):
+class Constraints(ui.Window):
     def __init__(self, gui):
-        gtk.Window.__init__(self)
+        ui.Window.__init__(self)
         self.set_title(_('Constraints'))
-        vbox = gtk.VBox()
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' selected atoms'))])[0]
+        vbox = ui.VBox()
+        b = pack(vbox, [ui.Button(_('Constrain')),
+                        ui.Label(_(' selected atoms'))])[0]
         b.connect('clicked', self.selected)
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' immobile atoms:'))])[0]
+        b = pack(vbox, [ui.Button(_('Constrain')),
+                        ui.Label(_(' immobile atoms:'))])[0]
         b.connect('clicked', self.immobile)
-        b = pack(vbox, [gtk.Button(_('Unconstrain')),
-                        gtk.Label(_(' selected atoms:'))])[0]
+        b = pack(vbox, [ui.Button(_('Unconstrain')),
+                        ui.Label(_(' selected atoms:'))])[0]
         b.connect('clicked', self.unconstrain)
-        b = pack(vbox, gtk.Button(_('Clear constraints')))
+        b = pack(vbox, ui.Button(_('Clear constraints')))
         b.connect('clicked', self.clear)
-        close = pack(vbox, gtk.Button(_('Close')))
+        close = pack(vbox, ui.Button(_('Close')))
         close.connect('clicked', lambda widget: self.destroy())
         self.add(vbox)
         vbox.show()

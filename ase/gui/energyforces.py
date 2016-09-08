@@ -2,29 +2,29 @@
 
 "Module for calculating energies and forces."
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 from ase.gui.widgets import pack
 
 
 class OutputFieldMixin:
     def makeoutputfield(self, box, label=_("Output:"), heading=None):
-        frame = gtk.Frame(label)
+        frame = ui.Frame(label)
         if box is not None:
             box.pack_start(frame, True, True, 0)
-        box2 = gtk.VBox()
+        box2 = ui.VBox()
         frame.add(box2)
         if heading is not None:
-            pack(box2, [gtk.Label(heading)])
-        scrwin = gtk.ScrolledWindow()
-        scrwin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.output = gtk.TextBuffer()
-        txtview = gtk.TextView(self.output)
+            pack(box2, [ui.Label(heading)])
+        scrwin = ui.ScrolledWindow()
+        scrwin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
+        self.output = ui.TextBuffer()
+        txtview = ui.TextView(self.output)
         txtview.set_editable(False)
         scrwin.add(txtview)
         scrwin.show_all()
         box2.pack_start(scrwin, True, True, 0)
-        self.savebutton = gtk.Button(stock=gtk.STOCK_SAVE)
+        self.savebutton = ui.Button('Save')
         self.savebutton.connect('clicked', self.saveoutput)
         self.savebutton.set_sensitive(False)
         pack(box2, [self.savebutton])
@@ -36,12 +36,12 @@ class OutputFieldMixin:
         self.savebutton.set_sensitive(True)
 
     def saveoutput(self, widget):
-        chooser = gtk.FileChooserDialog(
-            _('Save output'), None, gtk.FILE_CHOOSER_ACTION_SAVE,
-            (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-             gtk.STOCK_SAVE, gtk.RESPONSE_OK))
+        chooser = ui.FileChooserDialog(
+            _('Save output'), None, ui.FILE_CHOOSER_ACTION_SAVE,
+            ('Cancel', ui.RESPONSE_CANCEL,
+             'Save', ui.RESPONSE_OK))
         ok = chooser.run()
-        if ok == gtk.RESPONSE_OK:
+        if ok == ui.RESPONSE_OK:
             filename = chooser.get_filename()
             txt = self.output.get_text(self.output.get_start_iter(),
                                        self.output.get_end_iter())
@@ -56,18 +56,18 @@ class EnergyForces(Simulation, OutputFieldMixin):
         Simulation.__init__(self, gui)
         self.set_title(_("Potential energy and forces"))
         self.set_default_size(-1, 400)
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.packtext(vbox,
                       _("Calculate potential energy and the force on all "
                         "atoms"))
         self.packimageselection(vbox)
-        pack(vbox, gtk.Label(""))
-        self.forces = gtk.CheckButton(_("Write forces on the atoms"))
+        pack(vbox, ui.Label(""))
+        self.forces = ui.CheckButton(_("Write forces on the atoms"))
         self.forces.set_active(True)
         pack(vbox, [self.forces])
-        pack(vbox, [gtk.Label("")])
+        pack(vbox, [ui.Label("")])
         self.makeoutputfield(vbox)
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
         self.makebutbox(vbox)
         vbox.show()
         self.add(vbox)

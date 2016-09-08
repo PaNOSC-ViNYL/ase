@@ -2,7 +2,7 @@
 """nanotube.py - Window for setting up Carbon nanotubes and similar tubes.
 """
 
-from gettext import gettext as _
+import ase.gui.ui as ui
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import PyButton
@@ -32,49 +32,49 @@ class SetupNanotube(SetupWindow):
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Nanotube"))
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
 
         # Intoductory text
         self.packtext(vbox, introtext)
            
         # Choose the element and bond length
-        label1 = gtk.Label(_("Element: "))
+        label1 = ui.Label(_("Element: "))
         #label.set_alignment(0.0, 0.2)
-        self.element = gtk.Entry(max=3)
+        self.element = ui.Entry(max=3)
         self.element.set_text("C")
         self.element.connect('activate', self.makeatoms)
-        self.bondlength = gtk.Adjustment(1.42, 0.0, 1000.0, 0.01)
-        label2 = gtk.Label(_("  Bond length: "))
-        label3 = gtk.Label(_(u"Å"))
-        bond_box = gtk.SpinButton(self.bondlength, 10.0, 3)
+        self.bondlength = ui.Adjustment(1.42, 0.0, 1000.0, 0.01)
+        label2 = ui.Label(_("  Bond length: "))
+        label3 = ui.Label(_(u"Å"))
+        bond_box = ui.SpinButton(self.bondlength, 10.0, 3)
         pack(vbox, [label1, self.element, label2, bond_box, label3])
-        self.elementinfo = gtk.Label("")
-        self.elementinfo.modify_fg(gtk.STATE_NORMAL,
-                                   gtk.gdk.color_parse('#FF0000'))
+        self.elementinfo = ui.Label("")
+        self.elementinfo.modify_fg(ui.STATE_NORMAL,
+                                   ui.gdk.color_parse('#FF0000'))
         pack(vbox, [self.elementinfo])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
         # Choose the structure.
-        pack(vbox, [gtk.Label(_("Select roll-up vector (n,m) "
+        pack(vbox, [ui.Label(_("Select roll-up vector (n,m) "
                                 "and tube length:"))])
-        label1 = gtk.Label("n: ")
-        label2 = gtk.Label("  m: ")
-        self.n = gtk.Adjustment(5, 1, 100, 1)
-        self.m = gtk.Adjustment(5, 0, 100, 1)
-        spinn = gtk.SpinButton(self.n, 0, 0)
-        spinm = gtk.SpinButton(self.m, 0, 0)
-        label3 = gtk.Label(_("  Length: "))
-        self.length = gtk.Adjustment(1, 1, 100, 1)
-        spinl = gtk.SpinButton(self.length, 0, 0)
+        label1 = ui.Label("n: ")
+        label2 = ui.Label("  m: ")
+        self.n = ui.Adjustment(5, 1, 100, 1)
+        self.m = ui.Adjustment(5, 0, 100, 1)
+        spinn = ui.SpinButton(self.n, 0, 0)
+        spinm = ui.SpinButton(self.m, 0, 0)
+        label3 = ui.Label(_("  Length: "))
+        self.length = ui.Adjustment(1, 1, 100, 1)
+        spinl = ui.SpinButton(self.length, 0, 0)
         pack(vbox, [label1, spinn, label2, spinm, label3, spinl])
-        self.err = gtk.Label("")
-        self.err.modify_fg(gtk.STATE_NORMAL, gtk.gdk.color_parse('#FF0000'))
+        self.err = ui.Label("")
+        self.err.modify_fg(ui.STATE_NORMAL, ui.gdk.color_parse('#FF0000'))
         pack(vbox, [self.err])
-        pack(vbox, gtk.Label(""))
+        pack(vbox, ui.Label(""))
 
-        self.status = gtk.Label("")
+        self.status = ui.Label("")
         pack(vbox,[self.status])
-        pack(vbox,[gtk.Label("")])
+        pack(vbox,[ui.Label("")])
 
         # Buttons
         self.pybut = PyButton(_("Creating a nanoparticle."))
