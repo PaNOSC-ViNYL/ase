@@ -4,7 +4,6 @@ import sys
 import weakref
 import pickle
 import subprocess
-import ase.gui.ui as ui, ngettext
 
 import numpy as np
 

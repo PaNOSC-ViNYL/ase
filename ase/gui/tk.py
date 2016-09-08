@@ -59,7 +59,12 @@ class Widget(object):
     def pack(self, parent, side='top', anchor='center'):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
-        #widget['font'] = font
+        # widget['font'] = font
+
+    def grid(self, parent):
+        widget = self.create(parent)
+        widget.grid()
+        # widget['font'] = font
 
     def create(self, parent):
         self.widget = self.creator(parent)
@@ -68,10 +73,7 @@ class Widget(object):
 
 class Label(Widget):
     def __init__(self, text):
-        self.text = gettext(text)
-
-    def create(self, parent):
-        return tk.Label(parent, text=self.text)
+        self.creator = partial(tk.Label, text=gettext(text))
 
 
 class Button(Widget):
@@ -224,6 +226,30 @@ class ComboBox(Widget):
     @property
     def value(self):
         return self.var.get()
+
+
+class Rows(Widget):
+    def __init__(self, rows):
+        self.rows_to_be_added = rows
+        self.creator = tk.Frame
+        self.rows = []
+
+    def create(self, parent):
+        widget = Widget.create(self, parent)
+        for row in self.rows_to_be_added:
+            self.add(row)
+        self.rows_to_be_added = []
+        return widget
+
+    def add(self, row):
+        if isinstance(row, str):
+            row = Label(row)
+        row.grid(self.widget)
+        self.rows.append(row)
+
+    def __delitem__(self, i):
+        self.rows[i].widget.grid_remove()
+        del self.rows[i]
 
 
 def parse(name, key):
