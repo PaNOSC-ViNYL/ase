@@ -42,12 +42,12 @@ else:
         for part in name.split('.')[1:]:
             module = getattr(module, part)
         return module
-    
-        
+
+
 @contextmanager
 def seterr(**kwargs):
     """Set how floating-point errors are handled.
-    
+
     See np.seterr() for more details.
     """
     old = np.seterr(**kwargs)
@@ -60,10 +60,10 @@ def plural(n, word):
         return '1 ' + word
     return '%d %ss' % (n, word)
 
-    
+
 class DevNull:
     encoding = 'UTF-8'
-    
+
     def write(self, string):
         pass
 
@@ -78,17 +78,17 @@ class DevNull:
 
     def close(self):
         pass
-    
+
     def isatty(self):
         return False
-        
+
 
 devnull = DevNull()
 
 
 def convert_string_to_fd(name, world=None):
     """Create a file-descriptor for text output.
-    
+
     Will open a file for writing with given name.  Use None for no output and
     '-' for sys.stdout.
     """
@@ -102,7 +102,7 @@ def convert_string_to_fd(name, world=None):
         return open(name, 'w')
     return name  # we assume name is already a file-descriptor
 
-    
+
 # Only Windows has O_BINARY:
 CEW_FLAGS = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, 'O_BINARY', 0)
 
@@ -117,7 +117,7 @@ def opencew(filename, world=None):
 
     if world is None:
         from ase.parallel import world
-        
+
     if world.rank == 0:
         try:
             fd = os.open(filename, CEW_FLAGS)
@@ -142,7 +142,7 @@ def opencew(filename, world=None):
 class Lock:
     def __init__(self, name='lock', world=None):
         self.name = name
-        
+
         if world is None:
             from ase.parallel import world
         self.world = world
@@ -153,7 +153,7 @@ class Lock:
             if fd is not None:
                 break
             time.sleep(1.0)
-            
+
     def release(self):
         self.world.barrier()
         if self.world.rank == 0:
@@ -182,9 +182,9 @@ class OpenLock:
 
 def hill(numbers):
     """Convert list of atomic numbers to a chemical formula as a string.
-    
+
     Elements are alphabetically ordered with C and H first."""
-    
+
     if isinstance(numbers, dict):
         count = dict(numbers)
     else:
@@ -315,3 +315,21 @@ def hsv(array, s=.9, v=.9):
 #     a = (array + array.min()) / array.ptp()
 #     rgba = getattr(pylab.cm, name)(a)
 #     return rgba[:-1] # return rgb only (not alpha)
+
+def sum128(x):
+    """
+    128-bit floating point sum
+    """
+    return np.asarray(x, dtype=np.float128).sum()
+
+def dot128(x,y):
+    """
+    128-bit floating point dot product
+    """
+    return sum128(x*y)
+
+def norm128(x):
+    """
+    128-bit floating point vector norm
+    """
+    return np.sqrt(dot128(x,x))
