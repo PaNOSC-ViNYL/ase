@@ -1541,6 +1541,7 @@ class Vasp(Calculator):
         if ktype in ['g', 'm', 'a']:
             if ktype == 'g':
                 self.set(gamma=True)
+                kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             elif ktype == 'a':
                 kpts = np.array([int(lines[3].split()[i]) for i in range(1)])
             elif ktype == 'm':
