@@ -391,16 +391,16 @@ class GenerateVaspInput(object):
         xc = xc.lower()
         if xc is None:
             pass
-        elif xc not in Vasp.xc_defaults:
-            xc_allowed = ', '.join(Vasp.xc_defaults.keys())
+        elif xc not in self.xc_defaults:
+            xc_allowed = ', '.join(self.xc_defaults.keys())
             raise ValueError(
                 '{0} is not supported for xc! Supported xc values'
                 'are: {1}'.format(xc, xc_allowed))
         else:
             # XC defaults to PBE pseudopotentials
-            if 'pp' not in Vasp.xc_defaults[xc]:
+            if 'pp' not in self.xc_defaults[xc]:
                 self.set(pp='PBE')
-            self.set(**Vasp.xc_defaults[xc])
+            self.set(**self.xc_defaults[xc])
 
     def set(self, **kwargs):
         # If no XC combination, GGA functional or POTCAR type is specified,
