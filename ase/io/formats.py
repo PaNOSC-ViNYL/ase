@@ -68,20 +68,20 @@ all_formats = {
     'gaussian': ('Gaussian com (input) file', '1S'),
     'gaussian-out': ('Gaussian output file', '1F'),
     'gen': ('DFTBPlus GEN format', '1F'),
-    'gpaw-out': ('GPAW text output', '+S'),
+    'gpaw-out': ('GPAW text output', '+F'),
     'gpw': ('GPAW restart-file', '1S'),
     'gromacs': ('Gromacs coordinates', '1S'),
     'gromos': ('Gromos96 geometry file', '1F'),
     'html': ('X3DOM HTML', '1S'),
     'iwm': ('?', '1F'),
-    'json': ('ASE JSON database file', '+F'),
+    'json': ('ASE JSON database file', '+S'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
-    'pdb': ('Protein Data Bank', '+F'),
+    'proteindatabank': ('Protein Data Bank', '+F'),
     'png': ('Portable Network Graphics', '1F'),
     'postgresql': ('ASE PostgreSQL database file', '+S'),
     'pov': ('Persistance of Vision', '1S'),
@@ -147,6 +147,7 @@ extension2format = {
     'md': 'castep-md',
     'nw': 'nwchem',
     'out': 'espresso-out',
+    'pdb': 'proteindatabank',
     'shelx': 'res',
     'in': 'aims',
     'poscar': 'vasp',
@@ -350,7 +351,7 @@ def _iread(filename, index, format, full_output=False, **kwargs):
                 import bz2
                 fd = bz2.BZ2File(filename + '.bz2')
             else:
-                fd = open(filename)
+                fd = open(filename, 'rU')
             must_close_fd = True
         else:
             fd = filename
@@ -471,6 +472,7 @@ def filetype(filename, read=True):
         raise IOError('Empty file: ' + filename)
 
     for format, magic in [('traj', b'AFFormatASE-Trajectory'),
+                          ('gpw', b'AFFormatGPAW'),
                           ('trj', b'PickleTrajectory'),
                           ('etsf', b'CDF'),
                           ('turbomole', b'$coord'),
@@ -479,7 +481,7 @@ def filetype(filename, read=True):
         if data.startswith(magic):
             return format
 
-    for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _  \n'),
+    for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _'),
                           ('espresso-in', b'\n&system'),
                           ('espresso-in', b'\n&SYSTEM'),
                           ('aims-output', b'Invoking FHI-aims ...'),

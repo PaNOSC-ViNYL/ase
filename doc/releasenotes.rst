@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* New :class:`ase.constraints.ExternalForce` constraint.
+
 * Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
   for older versions of CODATA was added such that the respective units can
   be created by the user when needed (e.g. interfacing codes with different
@@ -17,6 +19,19 @@ Git master branch
 
 * New :mod:`ase.calculators.checkpoint` module.  Adds restart and rollback
   capabilities to ASE scripts.
+
+* Two new flawors of :class:`~ase.neb.NEB` calculations have been added:
+  ``method='eb'`` and ``method='improvedtangent'``.
+  
+* :func:`ase.io.write` can now write XSD files.
+
+* Interface for deMon added.
+
+* New :ref:`defects` tutorial and new super-cell functions:
+  :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
+  :func:`~ase.build.make_supercell`.
 
   
 Version 3.11.0

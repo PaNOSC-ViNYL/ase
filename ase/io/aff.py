@@ -4,7 +4,7 @@ from __future__ import print_function
 Stores ndarrays as binary data and Python's built-in datatypes (int, float,
 bool, str, dict, list) as json.
 
-File layout for a single item::
+File layout when there is only a single item::
     
     0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
@@ -153,8 +153,9 @@ class Writer:
         self.fd = fd
         self.data = data
         
-        # Shape and dtype of array being filled:
-        self.shape = (0,)
+        # date for array being filled:
+        self.nmissing = 0  # number of missing numbers
+        self.shape = None
         self.dtype = None
         
     def add_array(self, name, shape, dtype=float):
@@ -165,32 +166,31 @@ class Writer:
         if isinstance(shape, int):
             shape = (shape,)
             
+        shape = tuple(int(s) for s in shape)  # Convert np.int64 to int
+        
         i = align(self.fd)
         
-        self.data[name + '.'] = {'ndarray':
-                                 (shape,
-                                  np.dtype(dtype).name,
-                                  i)}
+        self.data[name + '.'] = {
+            'ndarray': (shape, np.dtype(dtype).name, i)}
             
-        assert self.shape[0] == 0, 'last array not done'
+        assert self.nmissing == 0, 'last array not done'
         
         self.dtype = dtype
         self.shape = shape
+        self.nmissing = np.prod(shape)
         
     def _write_header(self):
+        # We want to delay writing until there is any real data written.
+        # Some people rely on zero file size.
         if self.header:
             self.fd.write(self.header)
             self.header = b''
             
     def fill(self, a):
         assert a.dtype == self.dtype
-        if a.shape[1:] == self.shape[1:]:
-            assert a.shape[0] <= self.shape[0]
-            self.shape = (self.shape[0] - a.shape[0],) + self.shape[1:]
-        else:
-            assert a.shape == self.shape[1:]
-            self.shape = (self.shape[0] - 1,) + self.shape[1:]
-        assert self.shape[0] >= 0
+        assert a.shape[1:] == self.shape[len(self.shape) - a.ndim + 1:]
+        self.nmissing -= a.size
+        assert self.nmissing >= 0
             
         a.tofile(self.fd)
 
@@ -202,7 +202,7 @@ class Writer:
 
         self._write_header()
 
-        assert self.shape[0] == 0
+        assert self.nmissing == 0
         i = self.fd.tell()
         s = encode(self.data).encode()
         writeint(self.fd, len(s))
@@ -240,7 +240,7 @@ class Writer:
             writer.write(n=7)
             writer.write(n=7, s='abc', a=np.zeros(3), density=density)
         """
-        
+    
         if args:
             name, value = args
             kwargs[name] = value
@@ -259,6 +259,7 @@ class Writer:
                 value.write(self.child(name))
       
     def child(self, name):
+        self._write_header()
         dct = self.data[name + '.'] = {}
         return Writer(self.fd, data=dct)
         
@@ -319,7 +320,7 @@ class Reader:
     def __init__(self, fd, index=0, data=None, little_endian=None):
         """Create reader."""
         
-        if isinstance(fd, str):
+        if isinstance(fd, basestring):
             fd = open(fd, 'rb')
         
         self._fd = fd
@@ -361,9 +362,22 @@ class Reader:
         """Return special tag string."""
         return self._tag
         
-    def __dir__(self):
-        return self._data.keys()  # needed for tab-completion
-
+    def keys(self):
+        return self._data.keys()
+    
+    def asdict(self):
+        """Read everything now and convert to dict."""
+        dct = {}
+        for key, value in self._data.items():
+            if isinstance(value, NDArrayReader):
+                value = value.read()
+            elif isinstance(value, Reader):
+                value = value.asdict()
+            dct[key] = value
+        return dct
+        
+    __dir__ = keys  # needed for tab-completion
+    
     def __getattr__(self, attr):
         value = self._data[attr]
         if isinstance(value, NDArrayReader):
@@ -387,9 +401,11 @@ class Reader:
         except KeyError:
             return value
             
-    def proxy(self, name):
+    def proxy(self, name, *indices):
         value = self._data[name]
         assert isinstance(value, NDArrayReader)
+        if indices:
+            return value.proxy(*indices)
         return value
 
     def __len__(self):
@@ -441,6 +457,9 @@ class NDArrayReader:
         self.itemsize = dtype.itemsize
         self.size = np.prod(self.shape)
         self.nbytes = self.size * self.itemsize
+
+        self.scale = 1.0
+        self.length_of_last_dimension = None
         
     def __len__(self):
         return int(self.shape[0])  # Python-2.6 needs int
@@ -454,17 +473,38 @@ class NDArrayReader:
                 i += len(self)
             return self[i:i + 1][0]
         start, stop, step = i.indices(len(self))
-        offset = self.offset + start * self.nbytes // len(self)
+        stride = np.prod(self.shape[1:], dtype=int)
+        offset = self.offset + start * self.itemsize * stride
         self.fd.seek(offset)
-        count = (stop - start) * self.size // len(self)
-        a = np.fromfile(self.fd, self.dtype, count)
-        a.shape = (-1,) + self.shape[1:]
+        count = (stop - start) * stride
+        try:
+            a = np.fromfile(self.fd, self.dtype, count)
+        except (AttributeError, IOError):
+            # Not as fast, but works for reading from tar-files:
+            a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
+        a.shape = (stop - start,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()
         if self.little_endian != np.little_endian:
             a.byteswap(True)
+        if self.length_of_last_dimension is not None:
+            a = a[..., :self.length_of_last_dimension]
+        if self.scale != 1.0:
+            a *= self.scale
         return a
 
+    def proxy(self, *indices):
+        stride = self.size // len(self)
+        start = 0
+        for i, index in enumerate(indices):
+            start += stride * index
+            stride //= self.shape[i + 1]
+        offset = self.offset + start * self.itemsize
+        p = NDArrayReader(self.fd, self.shape[i + 1:], self.dtype,
+                          offset, self.little_endian)
+        p.scale = self.scale
+        return p
+        
         
 def print_aff_info(filename, index=None, verbose=False):
     b = affopen(filename, 'r')

@@ -165,7 +165,9 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     if atoms.has('castep_labels'):
         labels = atoms.get_array('castep_labels')
         for l_i, label in enumerate(labels):
-            pos_block[l_i] += ' LABEL=%s' % label if label != 'NULL' else ''
+            # avoid empty labels that crash CASTEP runs
+            if label and label != 'NULL':
+                pos_block[l_i] += ' LABEL=%s' % label
 
     fd.write('%%BLOCK %s\n' % keyword)
     for line in pos_block:
@@ -769,7 +771,8 @@ def read_castep_geom(fd, index=None, units=units_CODATA2002):
                                    (geom_stop - geom_start)]])
             image = ase.Atoms(species, geom, cell=cell, pbc=True)
             image.set_calculator(
-                SinglePointCalculator(energy, forces, None, None, image))
+                SinglePointCalculator(atoms=image, energy=energy,
+                                      forces=forces))
             traj.append(image)
 
     if index is None:
@@ -993,11 +996,12 @@ def read_castep_md(fd, index=None, return_scalars=False,
                 atoms.set_velocities(velocities)
                 if len(stress) == 0:
                     atoms.set_calculator(
-                        SinglePointCalculator(Epot, forces, None, None, atoms))
+                        SinglePointCalculator(atoms=atoms, energy=Epot,
+                                              forces=forces))
                 else:
                     atoms.set_calculator(
-                        SinglePointCalculator(Epot, forces, stress, None,
-                                              atoms))
+                        SinglePointCalculator(atoms=atoms, energy=Epot,
+                                              forces=forces, stress=stress))
                 traj.append(atoms)
             symbols = []
             positions = []
