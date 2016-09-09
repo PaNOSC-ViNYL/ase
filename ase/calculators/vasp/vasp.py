@@ -77,14 +77,7 @@ class Vasp(Calculator, GenerateVaspInput):
         self.initialize(atoms)
 
         # Write input
-        from ase.io.vasp import write_vasp
-        write_vasp('POSCAR',
-                   self.atoms_sorted,
-                   symbol_count=self.symbol_count)
-        self.write_incar(atoms)
-        self.write_potcar()
-        self.write_kpoints()
-        self.write_sort_file()
+        self.write_input(atoms)
 
         # Execute VASP
         self.run()
