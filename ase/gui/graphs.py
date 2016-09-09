@@ -3,9 +3,8 @@ import subprocess
 import sys
 
 import ase.gui.ui as ui
-import ase.gui.ui as ui
 
-graph_help_text = _("""\
+graph_help_text = """\
 Help for plot ...
 
 Symbols:
@@ -26,14 +25,15 @@ Symbols:
 <c>a(n1,n2,n3)</c>:\t\tangle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>
 <c>dih(n1,n2,n3,n4)</c>:\tdihedral angle between <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>
 <c>T</c>:\t\t\t\ttemperature (K)\
-""")
+"""
 
 
 class Graphs:
     def __init__(self, gui):
         win = ui.Window('Graphs')
+        win.add(graph_help_text)
         self.expr = ui.Entry('', 50, self.plot)
-        win.add([self.expr, 'help'])  # help(graph_help_text)])
+        win.add(self.expr)
         # completion:  ['fmax', 's, e-E[0]', 'i, d(0,1)'] ????
 
         win.add([ui.Button('Plot', self.plot, 'xy'), ' x, y1, y2, ...'], 'w')

@@ -17,7 +17,6 @@ from ase.gui.graphene import SetupGraphene
 from ase.gui.minimize import Minimize
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
-from ase.gui.quickinfo import QuickInfo
 from ase.gui.save import save_dialog
 from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.settings import Settings
@@ -759,8 +758,9 @@ class GUI(View, Status):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def quick_info_window(self, menuitem):
-        QuickInfo(self)
+    def quick_info_window(self):
+        from ase.gui.quickinfo import info
+        ui.Window('Quick Info').add(info(self))
 
     def bulk_window(self, menuitem):
         SetupBulkCrystal(self)
