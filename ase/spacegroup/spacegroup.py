@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
@@ -569,13 +569,19 @@ def _skip_to_nonblank(f, spacegroup, setting):
 
 def _read_datafile_entry(spg, no, symbol, setting, f):
     """Read space group data from f to spg."""
+    
+    floats = {'0.0': 0.0, '1.0': 1.0, '0': 0.0, '1': 1.0, '-1': -1.0}
+    for n, d in [(1, 2), (1, 3), (2, 3), (1, 4), (3, 4), (1, 6), (5, 6)]:
+        floats['{0}/{1}'.format(n, d)] = n / d
+        floats['-{0}/{1}'.format(n, d)] = -n / d
+        
     spg._no = no
     spg._symbol = symbol.strip()
     spg._setting = setting
     spg._centrosymmetric = bool(int(f.readline().split()[1]))
     # primitive vectors
     f.readline()
-    spg._scaled_primitive_cell = np.array([[float(s)
+    spg._scaled_primitive_cell = np.array([[floats[s]
                                             for s in f.readline().split()]
                                            for i in range(3)],
                                           dtype=np.float)
@@ -587,12 +593,12 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
                                     dtype=np.int)
     # subtranslations
     spg._nsubtrans = int(f.readline().split()[0])
-    spg._subtrans = np.array([[float(t) for t in f.readline().split()]
+    spg._subtrans = np.array([[floats[t] for t in f.readline().split()]
                               for i in range(spg._nsubtrans)],
                              dtype=np.float)
     # symmetry operations
     nsym = int(f.readline().split()[0])
-    symop = np.array([[float(s) for s in f.readline().split()]
+    symop = np.array([[floats[s] for s in f.readline().split()]
                       for i in range(nsym)],
                      dtype=np.float)
     spg._nsymop = nsym

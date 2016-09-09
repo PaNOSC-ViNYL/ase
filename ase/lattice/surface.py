@@ -14,4 +14,4 @@ __all__ = ['add_adsorbate', 'add_vacuum',
            'hcp0001_root', 'fcc111_root', 'bcc111_root',
            'root_surface', 'root_surface_analysis', 'surface']
 
-warnings.warn('Moved to ase.build', DeprecationWarning)
+warnings.warn('Moved to ase.build')

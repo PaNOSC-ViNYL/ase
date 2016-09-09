@@ -136,17 +136,17 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
             for i in range(len(xx)):
                 X.append(xx[i][:2] + [xx[i][2] + (mnp - 1) * t])
 
-    TransVec = t
-    NumAtom = ntotal * length
-    Diameter = rs * 2
-    ChiralAngle = np.arctan((sq3 * n) / (2 * m + n)) / (np.pi * 180)
+    transvec = t
+    numatom = ntotal * length
+    diameter = rs * 2
+    chiralangle = np.arctan((sq3 * n) / (2 * m + n)) / np.pi * 180
 
-    cell = [Diameter * 2, Diameter * 2, length * t]
-    atoms = Atoms(symbol + str(NumAtom), positions=X, cell=cell,
+    cell = [diameter * 2, diameter * 2, length * t]
+    atoms = Atoms(symbol + str(numatom), positions=X, cell=cell,
                   pbc=[False, False, True])
     atoms.center()
     if verbose:
-        print('translation vector =', TransVec)
-        print('diameter = ', Diameter)
-        print('chiral angle = ', ChiralAngle)
+        print('translation vector =', transvec)
+        print('diameter = ', diameter)
+        print('chiral angle = ', chiralangle)
     return atoms

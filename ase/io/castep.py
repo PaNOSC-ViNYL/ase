@@ -165,7 +165,9 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     if atoms.has('castep_labels'):
         labels = atoms.get_array('castep_labels')
         for l_i, label in enumerate(labels):
-            pos_block[l_i] += ' LABEL=%s' % label if label != 'NULL' else ''
+            # avoid empty labels that crash CASTEP runs
+            if label and label != 'NULL':
+                pos_block[l_i] += ' LABEL=%s' % label
 
     fd.write('%%BLOCK %s\n' % keyword)
     for line in pos_block:
