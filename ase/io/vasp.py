@@ -399,6 +399,23 @@ def read_vasp_xdatcar(filename, index=-1):
         return images[index]
 
 
+def __get_parameter_from_xml(elem, tag):
+    fld = elem.find('separator/i[@name="%s"]' % tag)
+    typ = 'single'
+    if fld is None:
+        fld = elem.find('separator/separator/i[@name="%s"]' % tag)
+    if fld is None:
+        fld = elem.find('separator/v[@name="%s"]' % tag)
+        typ = 'vector'
+    if fld is None:
+        fld = elem.find('separator/separator/v[@name="%s"]' % tag)
+        typ = 'vector'
+    if fld is None:
+        return None, None
+    else:
+        return fld.text, typ
+
+
 def read_vasp_xml(filename='vasprun.xml', index=-1):
     """Parse vasprun.xml file.
 
@@ -414,22 +431,76 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                              SinglePointKPoint)
     from ase.units import GPa
 
+    # prepare list of keys for parsing of parameters
+    from ase.calculators.vasp import (float_keys,
+                                      exp_keys,
+                                      string_keys,
+                                      int_keys,
+                                      bool_keys,
+                                      list_keys,
+                                      special_keys)
+    keys = float_keys + exp_keys + string_keys + int_keys
+    keys += bool_keys + list_keys + special_keys
+    keys += ['enini']
+    # Some keys should be parsed as a different type.
+    # Here 'extended' versions of the lists are set
+    # up to enable this without much ado.
+    extended_int_keys = int_keys
+    extended_int_keys.remove('nupdown')
+    extended_float_keys = float_keys + exp_keys
+    extended_float_keys += ['enini', 'nupdown']
+    extended_float_keys.remove('pomass')
+    extended_list_keys = list_keys + ['pomass']
+    
     tree = ET.iterparse(filename, events=['start', 'end'])
 
     atoms_init = None
     calculation = []
     ibz_kpts = None
+    parameters = {}
 
     try:
         for event, elem in tree:
+            
             if event == 'end':
                 if elem.tag == 'kpoints':
+                    try:
+                        txt = elem.find("generation/v[@name='divisions']").text.split()
+                        parameters['kmesh_divisions'] = [int(float(i)) for i in txt]
+                    except:
+                        pass
+
+                    try:
+                        txt = elem.find("generation/v[@name='shift']").text.split()
+                        parameters['kmesh_shift'] = [float(float(i)) for i in txt]
+                    except:
+                        pass
+
                     kpts = elem.findall("varray[@name='kpointlist']/v")
                     ibz_kpts = np.zeros((len(kpts), 3))
 
                     for i, kpt in enumerate(kpts):
                         ibz_kpts[i] = [float(val) for val in kpt.text.split()]
 
+                elif elem.tag == 'parameters':
+                    for key in keys:
+                        ukey = key.upper()
+                        value, typ = __get_parameter_from_xml(elem, ukey)
+                        if value is not None:
+                            parameters[ukey] = value
+                            try:
+                                if key in extended_float_keys:
+                                    parameters[ukey] = float(value)
+                                elif key in extended_int_keys:
+                                    parameters[ukey] = int(value)
+                                elif key in bool_keys:
+                                    parameters[ukey] = bool(value)
+                                elif key in extended_list_keys:
+                                    lst = [float(val) for val in value.split()]
+                                    parameters[ukey] = lst
+                            except:
+                                pass
+                         
                 elif elem.tag == 'atominfo':
                     species = []
 
@@ -540,23 +611,25 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if efermi is not None:
             efermi = float(efermi.text)
 
-        kpoints = None
-        kblocks = step.findall(
-                'eigenvalues/array/set/set/set[@comment="kpoint 1"]')
-        if kblocks is not None:
-            kpoints = []
-            for i, kpoint in enumerate(kblocks):
-                eigenvals = kpoint.findall('r')
-                eps_n = np.zeros(len(eigenvals))
-                f_n = np.zeros(len(eigenvals))
-                for j, val in enumerate(eigenvals):
-                    val = val.text.split()
-                    eps_n[j] = float(val[0])
-                    f_n[j] = float(val[1])
-                if len(kblocks) == 1:
-                    f_n *= 2
-                kpoints.append(SinglePointKPoint(1, i, 0, eps_n, f_n))
-
+        kpoints = []
+        for ikpt in range(1, len(ibz_kpts) + 1):
+            kblocks = step.findall(
+                'eigenvalues/array/set/set/set[@comment="kpoint %d"]' % ikpt)
+            if kblocks is not None:
+                for i, kpoint in enumerate(kblocks):
+                    eigenvals = kpoint.findall('r')
+                    eps_n = np.zeros(len(eigenvals))
+                    f_n = np.zeros(len(eigenvals))
+                    for j, val in enumerate(eigenvals):
+                        val = val.text.split()
+                        eps_n[j] = float(val[0])
+                        f_n[j] = float(val[1])
+                    if len(kblocks) == 1:
+                        f_n *= 2
+                    kpoints.append(SinglePointKPoint(1, 0, ikpt, eps_n, f_n))
+        if len(kpoints) == 0:
+            kpoints = None
+                
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
@@ -566,6 +639,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                      ibz_kpts=ibz_kpts, eFermi=efermi))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
+        atoms.calc.parameters = parameters
         yield atoms
 
 
