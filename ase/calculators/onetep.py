@@ -27,10 +27,9 @@ contact_email = 'ewt23@cam.ac.uk'
 
 class Onetep(FileIOCalculator):
     """ Implements the calculator for the onetep linear
-    scaling DFT code"""
+    scaling DFT code. Recomended ASE_ONETEP_COMMAND format
+    is "onetep_executable_name PREFIX.dat > PREFIX.out 2> PREFIX.err" """
 
-
-    command = "~/rscratch/ONETEP/retreat/bin/onetep.tcm PREFIX.dat > PREFIX.out 2>PREFIX.err"
 
     implemented_properties = ["energy", "forces"]
 
