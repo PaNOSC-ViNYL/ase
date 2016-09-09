@@ -1,45 +1,30 @@
-import gtk
 import ase.gui.ui as ui
 
-from ase.gui.widgets import pack
 
-
-class Constraints(ui.Window):
+class Constraints:
     def __init__(self, gui):
-        ui.Window.__init__(self)
-        self.set_title(_('Constraints'))
-        vbox = ui.VBox()
-        b = pack(vbox, [ui.Button(_('Constrain')),
-                        ui.Label(_(' selected atoms'))])[0]
-        b.connect('clicked', self.selected)
-        b = pack(vbox, [ui.Button(_('Constrain')),
-                        ui.Label(_(' immobile atoms:'))])[0]
-        b.connect('clicked', self.immobile)
-        b = pack(vbox, [ui.Button(_('Unconstrain')),
-                        ui.Label(_(' selected atoms:'))])[0]
-        b.connect('clicked', self.unconstrain)
-        b = pack(vbox, ui.Button(_('Clear constraints')))
-        b.connect('clicked', self.clear)
-        close = pack(vbox, ui.Button(_('Close')))
-        close.connect('clicked', lambda widget: self.destroy())
-        self.add(vbox)
-        vbox.show()
-        self.show()
+        win = ui.Window('Constraints')
+        win.add([ui.Button('Constrain', self.selected),
+                 'selected atoms'])
+        win.add([ui.Button('Constrain', self.immobile),
+                 'immobile atoms'])
+        win.add([ui.Button('Unconstrain', self.unconstrain),
+                 'selected atoms'])
+        win.add(ui.Button('Clear constraints', self.clear))
         self.gui = gui
 
-    def selected(self, button):
+    def selected(self):
         self.gui.images.dynamic[self.gui.images.selected] = False
         self.gui.draw()
 
-    def unconstrain(self, button):
+    def unconstrain(self):
         self.gui.images.dynamic[self.gui.images.selected] = True
         self.gui.draw()
-        
-    def immobile(self, button):
+
+    def immobile(self):
         self.gui.images.set_dynamic()
         self.gui.draw()
 
-    def clear(self, button):
+    def clear(self):
         self.gui.images.dynamic[:] = True
         self.gui.draw()
-

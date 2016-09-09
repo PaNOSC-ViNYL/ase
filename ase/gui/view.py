@@ -611,10 +611,10 @@ class View:
                     if not dynamic[a]:
                         R1 = int(0.14644 * ra)
                         R2 = int(0.85355 * ra)
-                        line(A[a, 0] + R1, A[a, 1] + R1,
-                             A[a, 0] + R2, A[a, 1] + R2)
-                        line(A[a, 0] + R2, A[a, 1] + R1,
-                             A[a, 0] + R1, A[a, 1] + R2)
+                        line((A[a, 0] + R1, A[a, 1] + R1,
+                              A[a, 0] + R2, A[a, 1] + R2))
+                        line((A[a, 0] + R2, A[a, 1] + R1,
+                              A[a, 0] + R1, A[a, 1] + R2))
 
                     # Draw velocities or forces
                     if vectors:
