@@ -33,7 +33,7 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from .create_input import GenerateVaspInput
 
 
-class Vasp(Calculator, GenerateVaspInput):
+class Vasp(GenerateVaspInput, Calculator):
     name = 'Vasp'
 
     def __init__(self, restart=None,
