@@ -336,9 +336,13 @@ class OldCalculatorWrapper:
             self.name = calc.__class__.__name__.lower()
     
     def get_property(self, prop, atoms, allow_calculation=True):
-        if not allow_calculation and self.calc.calculation_required(atoms,
-                                                                    [prop]):
-            return None
+        try:
+            if (not allow_calculation and
+                self.calc.calculation_required(atoms, [prop])):
+                return None
+        except AttributeError:
+            pass
+        
         method = 'get_' + {'energy': 'potential_energy',
                            'magmom': 'magnetic_moment',
                            'magmoms': 'magnetic_moments',

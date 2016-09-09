@@ -84,7 +84,7 @@ class TestCalculator:
 
     def get_fermi_level(self):
         return 0.0
-    
+
     def get_pseudo_density(self):
         n = 0.0
         for w, eps, psi in zip(self.weights, self.eps[:, 0], self.psi):
@@ -98,10 +98,10 @@ class TestCalculator:
         n /= 8
         return n
 
-        
+
 class TestPotential(Calculator):
     implemented_properties = ['energy', 'forces']
-    
+
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
         E = 0.0
@@ -119,15 +119,34 @@ class TestPotential(Calculator):
 
 
 def numeric_force(atoms, a, i, d=0.001):
-    """Evaluate force along i'th axis on a'th atom using finite difference.
-
-    This will trigger two calls to get_potential_energy(), with atom a moved
-    plus/minus d in the i'th axial direction, respectively.
     """
-    p0 = atoms.positions[a, i]
-    atoms.positions[a, i] += d
+    Compute numeric force on atom with index a, Cartesian component i, with finite step of size d
+    """
+    p0 = atoms.get_positions()
+    p = p0.copy()
+    p[a, i] += d
+    atoms.set_positions(p)
     eplus = atoms.get_potential_energy()
-    atoms.positions[a, i] -= 2 * d
+    p[a, i] -= 2 * d
+    atoms.set_positions(p)
     eminus = atoms.get_potential_energy()
-    atoms.positions[a, i] = p0
+    atoms.set_positions(p0)
     return (eminus - eplus) / (2 * d)
+
+def gradient_test(atoms, indices=None):
+    """
+    Use numeric_force to compare analytical and numerical forces on atoms
+
+    If indices is None, test is done on all atoms.
+    """
+    if indices is None:
+        indices = range(len(atoms))
+    f = atoms.get_forces()[indices]
+    print('{:>16} {:>20}'.format('eps', 'max(abs(df))'))
+    for eps in np.logspace(-1,-8,8):
+        fn = np.zeros((len(indices), 3))
+        for i in indices:
+            for j in range(3):
+                fn[i,j] = numeric_force(atoms, i, j, eps)
+        print('{0:16.12f} {1:20.12f}'.format(eps, abs(fn - f).max()))
+    return f, fn

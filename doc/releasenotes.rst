@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* New :class:`ase.constraints.ExternalForce` constraint.
+
 * Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
   for older versions of CODATA was added such that the respective units can
   be created by the user when needed (e.g. interfacing codes with different
