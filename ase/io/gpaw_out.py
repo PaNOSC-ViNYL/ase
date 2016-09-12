@@ -132,6 +132,7 @@ def read_gpaw_out(fileobj, index):
         except ValueError:
             pass
         ii = min(ii1, ii2)
+        spinpol = False
         if ii == 1e32:
             kpts = None
         else:
@@ -147,6 +148,7 @@ def read_gpaw_out(fileobj, index):
             kpts[0].eps_n = vals[1]
             kpts[0].f_n = vals[2]
             if vals.shape[0] > 3:
+                spinpol = True
                 kpts.append(SinglePointKPoint(1, 1, 0))
                 kpts[1].eps_n = vals[3]
                 kpts[1].f_n = vals[4]
@@ -169,8 +171,11 @@ def read_gpaw_out(fileobj, index):
             dipole = np.array([float(c) for c in line.split()[2:5]])
 
         try:
+            assert(spinpol)
             ii = index_startswith(lines, 'local magnetic moments')
         except ValueError:
+            magmoms = None
+        except AssertionError:
             magmoms = None
         else:
             magmoms = []
