@@ -50,8 +50,6 @@ Set the environment variables in your in your shell configuration file::
   export ABINIT_PP_PATH=$PP/GGA_HGHK:$ABINIT_PP_PATH
   export ABINIT_PP_PATH=$PP/GGA_PAW:$ABINIT_PP_PATH
 
-.. highlight:: python
-
 
 ABINIT Calculator
 =================
@@ -62,8 +60,8 @@ page, otherwise calculations will fail.  Calculations wihout k-points
 are not parallelized by default and will fail! To enable band
 paralellization specify ``Number of BanDs in a BLOCK`` (``nbdblock``).
 
-In Abinit version 7 and above, the ``autoparal=1`` argument sets the best 
-parallelization options, but the command line for execution should include the 
+In Abinit version 7 and above, the ``autoparal=1`` argument sets the best
+parallelization options, but the command line for execution should include the
 ``mpirun`` command, e.g.::
 
   ASE_ABINIT_COMMAND="mpirun -np 4 abinit  < PREFIX.files > PREFIX.log"
@@ -78,14 +76,16 @@ pseudopotentials is also available there.
 
 .. _pseudopotentials: http://www.abinit.org/downloads/atomic-data-files
 
-The best potentials are gathered into the so called JTH archive, in the PAW/XML 
-format, specified by GPAW. You should then add the correct path to ABINIT_PP_PATH::
+The best potentials are gathered into the so called JTH archive, in the
+PAW/XML format, specified by GPAW. You should then add the correct path to
+ABINIT_PP_PATH::
 
   ABINIT_PP_PATH=$PP/GGA_PBE:$ABINIT_PP_PATH
   ABINIT_PP_PATH=$PP/LDA_PW:$ABINIT_PP_PATH
 
-At execution, you can select the potential database to use with the ``pps`` argument, as one of 
-'fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw', 'pawxml'.
+At execution, you can select the potential database to use with the ``pps``
+argument, as one of 'fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw', 'pawxml'.
+
 
 Example 1
 =========
