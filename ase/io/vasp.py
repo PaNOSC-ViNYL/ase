@@ -446,10 +446,16 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     # Here 'extended' versions of the lists are set
     # up to enable this without much ado.
     extended_int_keys = int_keys
-    extended_int_keys.remove('nupdown')
+    try:
+        extended_int_keys.remove('nupdown')
+    except:
+        pass
     extended_float_keys = float_keys + exp_keys
     extended_float_keys += ['enini', 'nupdown']
-    extended_float_keys.remove('pomass')
+    try:
+        extended_float_keys.remove('pomass')
+    except:
+        pass
     extended_list_keys = list_keys + ['pomass']
     
     tree = ET.iterparse(filename, events=['start', 'end'])
