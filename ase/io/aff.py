@@ -4,7 +4,7 @@ from __future__ import print_function
 Stores ndarrays as binary data and Python's built-in datatypes (int, float,
 bool, str, dict, list) as json.
 
-File layout for a single item::
+File layout when there is only a single item::
     
     0: "AFFormat" (magic prefix, ascii)
     8: "                " (tag, ascii)
@@ -166,6 +166,8 @@ class Writer:
         if isinstance(shape, int):
             shape = (shape,)
             
+        shape = tuple(int(s) for s in shape)  # Convert np.int64 to int
+        
         i = align(self.fd)
         
         self.data[name + '.'] = {
@@ -238,7 +240,7 @@ class Writer:
             writer.write(n=7)
             writer.write(n=7, s='abc', a=np.zeros(3), density=density)
         """
-        
+    
         if args:
             name, value = args
             kwargs[name] = value
@@ -318,7 +320,7 @@ class Reader:
     def __init__(self, fd, index=0, data=None, little_endian=None):
         """Create reader."""
         
-        if isinstance(fd, str):
+        if isinstance(fd, basestring):
             fd = open(fd, 'rb')
         
         self._fd = fd
@@ -363,6 +365,17 @@ class Reader:
     def keys(self):
         return self._data.keys()
     
+    def asdict(self):
+        """Read everything now and convert to dict."""
+        dct = {}
+        for key, value in self._data.items():
+            if isinstance(value, NDArrayReader):
+                value = value.read()
+            elif isinstance(value, Reader):
+                value = value.asdict()
+            dct[key] = value
+        return dct
+        
     __dir__ = keys  # needed for tab-completion
     
     def __getattr__(self, attr):
@@ -460,11 +473,16 @@ class NDArrayReader:
                 i += len(self)
             return self[i:i + 1][0]
         start, stop, step = i.indices(len(self))
-        offset = self.offset + start * self.nbytes // len(self)
+        stride = np.prod(self.shape[1:], dtype=int)
+        offset = self.offset + start * self.itemsize * stride
         self.fd.seek(offset)
-        count = (stop - start) * self.size // len(self)
-        a = np.fromfile(self.fd, self.dtype, count)
-        a.shape = (-1,) + self.shape[1:]
+        count = (stop - start) * stride
+        try:
+            a = np.fromfile(self.fd, self.dtype, count)
+        except (AttributeError, IOError):
+            # Not as fast, but works for reading from tar-files:
+            a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
+        a.shape = (stop - start,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()
         if self.little_endian != np.little_endian:
@@ -480,8 +498,8 @@ class NDArrayReader:
         start = 0
         for i, index in enumerate(indices):
             start += stride * index
-            stride /= self.shape[i + 1]
-        offset = self.offset + start
+            stride //= self.shape[i + 1]
+        offset = self.offset + start * self.itemsize
         p = NDArrayReader(self.fd, self.shape[i + 1:], self.dtype,
                           offset, self.little_endian)
         p.scale = self.scale

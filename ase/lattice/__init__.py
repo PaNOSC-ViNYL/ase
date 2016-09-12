@@ -6,6 +6,5 @@ __all__ = ['bulk']
 
 @functools.wraps(newbulk)
 def bulk(*args, **kwargs):
-    warnings.warn('Use ase.build.bulk() instead', DeprecationWarning,
-                  stacklevel=2)
+    warnings.warn('Use ase.build.bulk() instead', stacklevel=2)
     return newbulk(*args, **kwargs)
