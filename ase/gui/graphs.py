@@ -5,36 +5,37 @@ import sys
 import ase.gui.ui as ui
 
 graph_help_text = """\
-Help for plot ...
-
 Symbols:
-<c>e</c>:\t\t\t\ttotal energy
-<c>epot</c>:\t\t\tpotential energy
-<c>ekin</c>:\t\t\tkinetic energy
-<c>fmax</c>:\t\t\tmaximum force
-<c>fave</c>:\t\t\taverage force
-<c>R[n,0-2]</c>:\t\t\tposition of atom number <c>n</c>
-<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>:\t\t\tdistance between two atoms <c>n<sub>1</sub></c> and <c>n<sub>2</sub></c>
-<c>i</c>:\t\t\t\tcurrent image number
-<c>E[i]</c>:\t\t\t\tenergy of image number <c>i</c>
-<c>F[n,0-2]</c>:\t\t\tforce on atom number <c>n</c>
-<c>V[n,0-2]</c>:\t\t\tvelocity of atom number <c>n</c>
-<c>M[n]</c>:\t\t\tmagnetic moment of atom number <c>n</c>
-<c>A[0-2,0-2]</c>:\t\tunit-cell basis vectors
-<c>s</c>:\t\t\t\tpath length
-<c>a(n1,n2,n3)</c>:\t\tangle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>
-<c>dih(n1,n2,n3,n4)</c>:\tdihedral angle between <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>
-<c>T</c>:\t\t\t\ttemperature (K)\
+<c>e</c>: total energy
+<c>epot</c>: potential energy
+<c>ekin</c>: kinetic energy
+<c>fmax</c>: maximum force
+<c>fave</c>: average force
+<c>R[n,0-2]</c>: position of atom number <c>n</c>
+<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distance between two atoms <c>n<sub>1</sub></c> and <c>n<sub>2</sub></c>
+<c>i</c>: current image number
+<c>E[i]</c>: energy of image number <c>i</c>
+<c>F[n,0-2]</c>: force on atom number <c>n</c>
+<c>V[n,0-2]</c>: velocity of atom number <c>n</c>
+<c>M[n]</c>: magnetic moment of atom number <c>n</c>
+<c>A[0-2,0-2]</c>: unit-cell basis vectors
+<c>s</c>: path length
+<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>
+<c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>
+<c>T</c>: temperature (K)\
 """
+
+
+def help():
+    win = ui.Window('Help for plot')
+    win.add(ui.Text(graph_help_text))
 
 
 class Graphs:
     def __init__(self, gui):
         win = ui.Window('Graphs')
-        win.add(graph_help_text)
         self.expr = ui.Entry('', 50, self.plot)
-        win.add(self.expr)
-        # completion:  ['fmax', 's, e-E[0]', 'i, d(0,1)'] ????
+        win.add([self.expr, ui.Button('Help', help)])
 
         win.add([ui.Button('Plot', self.plot, 'xy'), ' x, y1, y2, ...'], 'w')
         win.add([ui.Button('Plot', self.plot, 'y'), ' y1, y2, ...'], 'w')
@@ -50,10 +51,10 @@ class Graphs:
         else:
             self.expr.value = expr
 
-        #if expr not in [row[0] for row in self.liststore]:
-        #    self.liststore.append([expr])
-
         data = self.gui.images.graph(expr)
+        
+        import matplotlib
+        matplotlib.use('TkAgg')
         
         process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
                                    stdin=subprocess.PIPE)

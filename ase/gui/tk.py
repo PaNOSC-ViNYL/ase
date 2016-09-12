@@ -6,6 +6,7 @@ except ImportError:
     import Tkinter as tk
     from tkMessageBox import askokcancel
 
+import re
 from functools import partial
 from gettext import gettext
 
@@ -59,12 +60,12 @@ class Widget(object):
     def pack(self, parent, side='top', anchor='center'):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
-        # widget['font'] = font
+        widget['font'] = font
 
     def grid(self, parent):
         widget = self.create(parent)
         widget.grid()
-        # widget['font'] = font
+        widget['font'] = font
 
     def create(self, parent):
         self.widget = self.creator(parent)
@@ -76,6 +77,32 @@ class Label(Widget):
         self.creator = partial(tk.Label, text=gettext(text))
 
 
+class Text(Widget):
+    def __init__(self, text):
+        self.creator = tk.Text
+        s = re.split('<(.*?)>', text)
+        self.text = [(s[0], ())]
+        i = 1
+        tags = []
+        while i < len(s):
+            tag = s[i]
+            if tag[0] != '/':
+                tags.append(tag)
+            else:
+                tags.pop()
+            self.text.append((s[i + 1], tuple(tags)))
+            i += 2
+            
+    def create(self, parent):
+        widget = Widget.create(self, parent)
+        widget.tag_configure('sub', offset=-6)
+        widget.tag_configure('c', foreground='blue')
+        for text, tags in self.text:
+            widget.insert("insert", text, tags)
+        widget.configure(state="disabled")
+        return widget
+        
+        
 class Button(Widget):
     def __init__(self, text, on_press, *args, **kwargs):
         self.text = gettext(text)
@@ -306,7 +333,7 @@ class MainWindow(BaseWindow):
                                         command=callback,
                                         accelerator=key)
                     if key:
-                        print(keyname, callback)
+                        #print(keyname, callback)
                         self.win.bind(keyname, callback)
                     continue
 
