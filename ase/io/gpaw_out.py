@@ -205,6 +205,8 @@ def read_gpaw_out(fileobj, index):
         if q is not None and len(atoms) > 0:
             n = len(atoms)
             atoms.set_initial_charges([q / n] * n)
+        if magmoms is not None:
+            atoms.set_initial_magnetic_moments(magmoms)
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
@@ -214,8 +216,6 @@ def read_gpaw_out(fileobj, index):
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
-        if magmoms is not None:
-            atoms.set_initial_magnetic_moments(magmoms)
 
         images.append(atoms)
         lines = lines[i:]
