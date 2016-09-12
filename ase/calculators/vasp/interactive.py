@@ -1,19 +1,50 @@
 from __future__ import print_function
+
 from subprocess import Popen, PIPE
+
 from ase.calculators.calculator import Calculator
 from ase.io import read, write
+
+from .create_input import GenerateVaspInput
+
 import time
 import os
 
 
-class VaspInteractive(Calculator):
+class VaspInteractive(GenerateVaspInput, Calculator):
     name = "VaspInteractive"
     implemented_properties = ['energy', 'forces', 'stress']
 
+    mandatory_input = {'potim': 0.0,
+                       'ibrion': -1,
+                       'interactive': True,
+                       }
+
+    default_input = {'nsw': 2000,
+                     }
+
     def __init__(self, txt="interactive.log", print_log=True, process=None,
-                 command=None, path="./"):
+                 command=None, path="./", **kwargs):
+        
+        GenerateVaspInput.__init__(self)
+
+        for kw, val in self.mandatory_input.items():
+            if kw in kwargs and val != kwargs[kw]:
+                raise ValueError('Keyword {} cannot be overridden! '
+                                 'It must have have value {}, but {} '
+                                 'was provided instead.'.format(kw, val,
+                                                                kwargs[kw]))
+        kwargs.update(self.mandatory_input)
+
+        for kw, val in self.default_input.items():
+            if kw not in kwargs:
+                kwargs[kw] = val
+
+        self.set(**kwargs)
+
         self.process = process
         self.path = path
+
         if txt is not None:
             self.txt = open(txt, "a")
         else:
@@ -52,6 +83,9 @@ class VaspInteractive(Calculator):
         if self.process is None:
             if os.path.isfile('STOPCAR'):
                 os.remove('STOPCAR')
+            self._stdout("Writing VASP input files\n")
+            self.initialize(atoms)
+            self.write_input(atoms)
             self._stdout("Writing Initial POSCAR\n")
             write(os.path.join(self.path, "POSCAR"), atoms)
             self._stdout("Starting VASP for initial step...\n")
@@ -78,7 +112,7 @@ class VaspInteractive(Calculator):
 
         self._run_vasp(self.atoms)
         self._run_vasp(self.atoms)
-        while self.process.poll() is not None:
+        while self.process.poll() is None:
             time.sleep(1)
         self._stdout("VASP has been closed\n")
         self.process = None
