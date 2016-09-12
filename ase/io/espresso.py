@@ -5,11 +5,12 @@ import numpy as np
 from ase.atoms import Atoms, Atom
 from ase import units
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.utils import basestring
 
 
 def read_espresso_out(fileobj, index=-1):
     """Reads quantum espresso output text files."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj, 'rU')
     lines = fileobj.readlines()
     images = []
@@ -111,7 +112,7 @@ def make_atoms(index, lines, key, cell):
 
 def read_espresso_in(fileobj):
     """Reads espresso input files."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj, 'rU')
     data, extralines = read_fortran_namelist(fileobj)
     positions, method = get_atomic_positions(extralines,
