@@ -7,7 +7,7 @@ from ase import units
 from ase.calculators.singlepoint import SinglePointCalculator
 
 
-def read_espresso_out(fileobj, index):
+def read_espresso_out(fileobj, index=-1):
     """Reads quantum espresso output text files."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj, 'rU')
