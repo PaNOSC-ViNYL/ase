@@ -133,7 +133,7 @@ class VaspInteractive(GenerateVaspInput, Calculator):
 
         self.results = {'free_energy': new.get_potential_energy(force_consistent=True),
                         'energy': new.get_potential_energy(),
-                        'forces': new.get_forces(),
+                        'forces': new.get_forces()[self.resort],
                         'stress': new.get_stress()}
 
     def __del__(self):
