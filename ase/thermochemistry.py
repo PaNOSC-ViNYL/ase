@@ -240,7 +240,7 @@ class HinderedThermo(ThermoChem):
     def __init__(self, vib_energies, trans_barrier_energy, rot_barrier_energy,
                  sitedensity, rotationalminima, potentialenergy=0.,
                  mass=None, inertia=None, atoms=None, symmetrynumber=1):
-        self.vib_energies = sorted(vib_energies,reverse=True)[:-3]
+        self.vib_energies = sorted(vib_energies, reverse=True)[:-3]
         self.trans_barrier_energy = trans_barrier_energy * units._e
         self.rot_barrier_energy = rot_barrier_energy * units._e
         self.area = 1. / sitedensity / 100.0**2
@@ -272,9 +272,10 @@ class HinderedThermo(ThermoChem):
 
         # Calculate hindered translational and rotational frequencies
         self.freq_t = np.sqrt(self.trans_barrier_energy / (2 * self.mass *
-                  self.area))
-        self.freq_r = 1. / (2 * np.pi) * np.sqrt(self.rotationalminima**2 * 
-                  self.rot_barrier_energy / (2 * self.inertia))
+                                                           self.area))
+        self.freq_r = 1. / (2 * np.pi) * np.sqrt(self.rotationalminima**2 *
+                                                 self.rot_barrier_energy /
+                                                 (2 * self.inertia))
 
     def get_internal_energy(self, temperature, verbose=True):
         """Returns the internal energy (including the zero point energy),
@@ -297,9 +298,10 @@ class HinderedThermo(ThermoChem):
         # Translational Energy
         T_t = units._k * temperature / (units._hplanck * self.freq_t)
         R_t = self.trans_barrier_energy / (units._hplanck * self.freq_t)
-        dU_t = 2 * (-1./2 - 1./T_t/(2+16*R_t) + R_t/2/T_t 
-                - R_t/2/T_t*iv(1,R_t/2/T_t)/iv(0,R_t/2/T_t)
-                + 1./T_t/(np.exp(1./T_t)-1))
+        dU_t = 2 * (-1. / 2 - 1. / T_t / (2 + 16 * R_t) + R_t / 2 / T_t -
+                    R_t / 2 / T_t *
+                    iv(1, R_t / 2 / T_t) / iv(0, R_t / 2 / T_t) +
+                    1. / T_t / (np.exp(1. / T_t) - 1))
         dU_t *= units.kB * temperature
         write(fmt % ('E_trans', dU_t))
         U += dU_t
@@ -307,9 +309,10 @@ class HinderedThermo(ThermoChem):
         # Rotational Energy
         T_r = units._k * temperature / (units._hplanck * self.freq_r)
         R_r = self.rot_barrier_energy / (units._hplanck * self.freq_r)
-        dU_r = (-1./2 - 1./T_r/(2+16*R_r) + R_r/2/T_r 
-                - R_r/2/T_r*iv(1,R_r/2/T_r)/iv(0,R_r/2/T_r)
-                + 1./T_r/(np.exp(1./T_r)-1))
+        dU_r = (-1. / 2 - 1. / T_r / (2 + 16 * R_r) + R_r / 2 / T_r -
+                R_r / 2 / T_r *
+                iv(1, R_r / 2 / T_r) / iv(0, R_r / 2 / T_r) +
+                1. / T_r / (np.exp(1. / T_r) - 1))
         dU_r *= units.kB * temperature
         write(fmt % ('E_rot', dU_r))
         U += dU_r
@@ -333,8 +336,8 @@ class HinderedThermo(ThermoChem):
         """Returns the zero point energy, in eV, in the hindered
         translator and hindered rotor model"""
 
-        zpe_t = 2 * (1./2 * self.freq_t * units._hplanck / units._e)
-        zpe_r = 1./2 * self.freq_r * units._hplanck / units._e
+        zpe_t = 2 * (1. / 2 * self.freq_t * units._hplanck / units._e)
+        zpe_r = 1. / 2 * self.freq_r * units._hplanck / units._e
         zpe_v = self.get_ZPE_correction()
         zpe = zpe_t + zpe_r + zpe_v
         return zpe
@@ -357,10 +360,12 @@ class HinderedThermo(ThermoChem):
         # Translational Entropy
         T_t = units._k * temperature / (units._hplanck * self.freq_t)
         R_t = self.trans_barrier_energy / (units._hplanck * self.freq_t)
-        S_t = 2 * (-1./2 + 1./2*np.log(np.pi*R_t/T_t) 
-               - R_t/2/T_t*iv(1,R_t/2/T_t)/iv(0,R_t/2/T_t) 
-               + np.log(iv(0,R_t/2/T_t))
-               + 1./T_t/(np.exp(1./T_t)-1) - np.log(1-np.exp(-1./T_t)))
+        S_t = 2 * (-1. / 2 + 1. / 2 * np.log(np.pi * R_t / T_t) -
+                   R_t / 2 / T_t *
+                   iv(1, R_t / 2 / T_t) / iv(0, R_t / 2 / T_t) +
+                   np.log(iv(0, R_t / 2 / T_t)) +
+                   1. / T_t / (np.exp(1. / T_t) - 1) -
+                   np.log(1 - np.exp(-1. / T_t)))
         S_t *= units.kB
         write(fmt % ('S_trans', S_t, S_t * temperature))
         S += S_t
@@ -368,10 +373,12 @@ class HinderedThermo(ThermoChem):
         # Rotational Entropy
         T_r = units._k * temperature / (units._hplanck * self.freq_r)
         R_r = self.rot_barrier_energy / (units._hplanck * self.freq_r)
-        S_r = (-1./2 + 1./2*np.log(np.pi*R_r/T_r) - np.log(self.symmetry)
-               - R_r/2/T_r*iv(1,R_r/2/T_r)/iv(0,R_r/2/T_r) 
-               + np.log(iv(0,R_r/2/T_r))
-               + 1./T_r/(np.exp(1./T_r)-1) - np.log(1-np.exp(-1./T_r)))
+        S_r = (-1. / 2 + 1. / 2 * np.log(np.pi * R_r / T_r) -
+               np.log(self.symmetry) -
+               R_r / 2 / T_r * iv(1, R_r / 2 / T_r) / iv(0, R_r / 2 / T_r) +
+               np.log(iv(0, R_r / 2 / T_r)) +
+               1. / T_r / (np.exp(1. / T_r) - 1) -
+               np.log(1 - np.exp(-1. / T_r)))
         S_r *= units.kB
         write(fmt % ('S_rot', S_r, S_r * temperature))
         S += S_r
@@ -382,7 +389,8 @@ class HinderedThermo(ThermoChem):
         S += S_v
 
         # Concentration Related Entropy
-        N_over_A = np.exp(1./3) * (10.0**5/(units._k*temperature))**(2./3)
+        N_over_A = np.exp(1. / 3) * (10.0**5 /
+                                     (units._k * temperature))**(2. / 3)
         S_c = 1 - np.log(N_over_A) - np.log(self.area)
         S_c *= units.kB
         write(fmt % ('S_con', S_c, S_c * temperature))
