@@ -403,17 +403,6 @@ class GenerateVaspInput(object):
             self.set(**self.xc_defaults[xc])
 
     def set(self, **kwargs):
-        # If no XC combination, GGA functional or POTCAR type is specified,
-        # default to PW91. This is mostly chosen for backwards compatiblity.
-        if kwargs.get('xc', None):
-            pass
-        elif not (kwargs.get('gga', None) or kwargs.get('pp', None)):
-            self.input_params.update({'xc': 'PW91'})
-        # A null value of xc is permitted; custom recipes can be
-        # used by explicitly setting the pseudopotential set and
-        # INCAR keys
-        else:
-            self.input_params.update({'xc': None})
 
         if ((('ldauu' in kwargs) and
              ('ldaul' in kwargs) and
@@ -452,18 +441,50 @@ class GenerateVaspInput(object):
             else:
                 raise TypeError('Parameter not defined: ' + key)
 
-    _potcar_unguessable_string = (
-        "Unable to guess the desired set of pseudopotential"
-        "(POTCAR) files. Please do one of the following: \n"
-        "1. Use the 'xc' parameter to define your XC functional."
-        "These 'recipes' determine the pseudopotential file as "
-        "well as setting the INCAR parameters.\n"
-        "2. Use the 'gga' settings None (default), 'PE' or '91'; "
-        "these correspond to LDA, PBE and PW91 respectively.\n"
-        "3. Set the POTCAR explicitly with the 'pp' flag. The "
-        "value should be the name of a folder on the VASP_PP_PATH"
-        ", and the aliases 'LDA', 'PBE' and 'PW91' are also"
-        "accepted.\n")
+    def check_xc(self):
+        """Make sure the calculator has functional & pseudopotentials set up
+
+        If no XC combination, GGA functional or POTCAR type is specified,
+        default to PW91. Otherwise, try to guess the desired pseudopotentials.
+        """
+
+        p = self.input_params
+
+        if not p['xc'] and not (p['gga'] or p['pp']):
+            self.set({'xc': 'PW91'})
+
+        # There is no way to correctly guess the desired
+        # set of pseudopotentials without 'pp' being set.
+        # Usually, 'pp' will be set by 'xc'.
+        if 'pp' not in p or p['pp'] is None:
+            if self.string_params['gga'] is None:
+                p.update({'pp': 'lda'})
+            elif self.string_params['gga'] == '91':
+                p.update({'pp': 'pw91'})
+            elif self.string_params['gga'] == 'PE':
+                p.update({'pp': 'pbe'})
+            else:
+                raise NotImplementedError(
+                    "Unable to guess the desired set of pseudopotential"
+                    "(POTCAR) files. Please do one of the following: \n"
+                    "1. Use the 'xc' parameter to define your XC functional."
+                    "These 'recipes' determine the pseudopotential file as "
+                    "well as setting the INCAR parameters.\n"
+                    "2. Use the 'gga' settings None (default), 'PE' or '91'; "
+                    "these correspond to LDA, PBE and PW91 respectively.\n"
+                    "3. Set the POTCAR explicitly with the 'pp' flag. The "
+                    "value should be the name of a folder on the VASP_PP_PATH"
+                    ", and the aliases 'LDA', 'PBE' and 'PW91' are also"
+                    "accepted.\n")
+
+        if (p['xc'] is not None and
+                p['xc'].lower() == 'lda' and
+                p['pp'].lower() != 'lda'):
+            warnings.warn("XC is set to LDA, but PP is set to "
+                          "{0}. \nThis calculation is using the {0} "
+                          "POTCAR set. \n Please check that this is "
+                          "really what you intended!"
+                          "\n".format(p['pp'].upper()))
 
     def initialize(self, atoms):
         """Initialize a VASP calculation
@@ -485,29 +506,7 @@ class GenerateVaspInput(object):
 
         p = self.input_params
 
-        # There is no way to correctly guess the desired
-        # set of pseudopotentials without 'pp' being set.
-        # Usually, 'pp' will be set by 'xc'.
-        if 'pp' not in p or p['pp'] is None:
-            if self.string_params['gga'] is None:
-                p.update({'pp': 'lda'})
-            elif self.string_params['gga'] == '91':
-                p.update({'pp': 'pw91'})
-            elif self.string_params['gga'] == 'PE':
-                p.update({'pp': 'pbe'})
-            else:
-                raise NotImplementedError(
-                    self._potcar_unguessable_string)
-
-        if (p['xc'] is not None and
-                p['xc'].lower() == 'lda' and
-                p['pp'].lower() != 'lda'):
-            warnings.warn("XC is set to LDA, but PP is set to "
-                          "{0}. \nThis calculation is using the {0} "
-                          "POTCAR set. \n Please check that this is "
-                          "really what you intended!"
-                          "\n".format(p['pp'].upper()))
-
+        self.check_xc()
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
         self.spinpol = atoms.get_initial_magnetic_moments().any()
