@@ -47,6 +47,7 @@ float_keys = [
     'amix_mag',   #
     'bmix',       # tags for mixing
     'bmix_mag',   #
+    'cshift',     # Complex shift for dielectric tensor calculation (LOPTICS)
     'deper',      # relative stopping criterion for optimization of eigenvalue
     'ebreak',     # absolute stopping criterion for optimization of eigenvalues
                   # (EDIFF/N-BANDS/4)
