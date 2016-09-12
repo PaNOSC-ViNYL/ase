@@ -82,7 +82,7 @@ all_formats = {
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
-    'png': ('Portable Network Graphics', '1F'),
+    'png': ('Portable Network Graphics', '1S'),
     'postgresql': ('ASE PostgreSQL database file', '+S'),
     'pov': ('Persistance of Vision', '1S'),
     'py': ('Python file', '+F'),
@@ -292,7 +292,7 @@ def read(filename, index=None, format=None, **kwargs):
     else:
         return next(_iread(filename, slice(index, None), format, **kwargs))
 
-        
+
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
 

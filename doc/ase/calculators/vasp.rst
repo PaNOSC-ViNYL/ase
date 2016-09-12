@@ -87,6 +87,11 @@ keyword         type       default value   description
 
 *seq*: A sequence of three ``int``'s.
 
+.. note::
+
+   kpts parameter can be also a sequence of one integer. If so, it
+   is interpreted as **k**-point density (see Vasp manual)
+
 For parameters in the list without default value given, VASP will set 
 the default value. Most of the parameters used in the VASP :file:`INCAR` file 
 are allowed keywords. See the official `VASP manual`_ for more details.
