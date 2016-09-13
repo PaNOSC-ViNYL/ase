@@ -12,8 +12,8 @@ def main():
     # Tests conducted with the JTH PAW data set.
     # http://www.abinit.org/downloads/PAW2
     prefix = dirname(abspath(__file__))
-    h_path = join(prefix,"H.abinit")
-    o_path = join(prefix,"O.abinit")
+    h_path = join(prefix, "H.abinit")
+    o_path = join(prefix, "O.abinit")
     if not (isfile(h_path) and isfile(o_path)):
         raise Exception("""You must supply PAW data sets for
             hydrogen and oxygen to run this test.
