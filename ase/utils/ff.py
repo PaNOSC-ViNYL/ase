@@ -150,12 +150,6 @@ def get_morse_potential_reduced_hessian(atoms, morse):
 
     Hx = np.dot(Mx.T, np.dot(Hr, Mx))
 
-    if spectral:
-        eigvals, eigvecs = linalg.eigh(Hx)
-        D = np.diag(np.abs(eigvals))
-        U = eigvecs
-        Hx = np.dot(U,np.dot(D,np.transpose(U)))
-
     morse.r = dij
 
     return i, j, Hx
@@ -279,13 +273,10 @@ def get_angle_potential_value(atoms, angle):
 
     rij = rel_pos_pbc(atoms, i, j)
     dij = linalg.norm(rij)
-    dij2 = dij*dij
     eij = rij/dij
     rkj = rel_pos_pbc(atoms, k, j)
     dkj = linalg.norm(rkj)
-    dkj2 = dkj*dkj
     ekj = rkj/dkj
-    dijdkj = dij*dkj
     eijekj = np.dot(eij, ekj)
 
     a = np.arccos(eijekj)
@@ -367,7 +358,6 @@ def get_angle_potential_hessian(atoms, angle, morses=None, spectral=False):
     da = a-angle.a0
     da = da - np.around(da / np.pi) * np.pi
     sina = np.sin(a)
-    sina2 = sina*sina
     cosa = np.cos(a)
     ctga = cosa/sina
 
@@ -440,7 +430,6 @@ def get_angle_potential_reduced_hessian(atoms, angle, morses=None):
     Qij = np.eye(3)-Pij
     Pkj = np.tensordot(ekj,ekj,axes=0)
     Qkj = np.eye(3)-Pkj
-    Pik = np.tensordot(eij,ekj,axes=0)
     Pki = np.tensordot(ekj,eij,axes=0)
 
     Hr = np.zeros((6,6))

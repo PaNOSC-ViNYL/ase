@@ -837,7 +837,7 @@ class FF(Precon):
                 self.P[3*l:3*(l+1), 3*l:3*(l+1)] += Hx[9:12,9:12]
 
         if self.hessian == 'spectral_final':
-            eigvals, eigvecs = linalg.eigh(self.P)
+            eigvals, eigvecs = np.linalg.eigh(self.P)
             D = np.diag(np.abs(eigvals))
             U = eigvecs
             self.P = np.dot(U,np.dot(D,np.transpose(U)))
@@ -1180,7 +1180,7 @@ class Exp_FF(Exp, FF):
                 self.P[3*l:3*(l+1), 3*l:3*(l+1)] += Hx[9:12,9:12]
 
         if self.hessian == 'spectral_final':
-            eigvals, eigvecs = linalg.eigh(self.P)
+            eigvals, eigvecs = np.linalg.eigh(self.P)
             D = np.diag(np.abs(eigvals))
             U = eigvecs
             self.P = np.dot(U,np.dot(D,np.transpose(U)))
