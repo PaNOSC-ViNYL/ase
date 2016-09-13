@@ -19,36 +19,35 @@ from ase.units import Bohr, Hartree
 from ase import Atoms
 
 
-
 __all__ = [
     'Onetep']
 
 contact_email = 'ewt23@cam.ac.uk'
+
 
 class Onetep(FileIOCalculator):
     """ Implements the calculator for the onetep linear
     scaling DFT code. Recomended ASE_ONETEP_COMMAND format
     is "onetep_executable_name PREFIX.dat > PREFIX.out 2> PREFIX.err" """
 
-
     implemented_properties = ["energy", "forces"]
 
-    #used to indicate 'parameters' which shouldn't be written to
-    #the onetep input file in the standard <key> : <value> format
-    #for example the NGWF radius is used in the species block and isn't
-    #written elsewhere in the input file
-    _dummy_parameters = ["NGWF_RADIUS","XC"]
+    # Used to indicate 'parameters' which shouldn't be written to
+    # the onetep input file in the standard <key> : <value> format
+    # for example the NGWF radius is used in the species block and isn't
+    # written elsewhere in the input file
+    _dummy_parameters = ["NGWF_RADIUS", "XC"]
 
-    default_parameters = {"CUTOFF_ENERGY":"1000 eV",\
-             "KERNEL_CUTOFF":"1000 bohr",\
-             "NGWF_RADIUS":12.0}
+    default_parameters = {"CUTOFF_ENERGY": "1000 eV",
+                          "KERNEL_CUTOFF": "1000 bohr",
+                          "NGWF_RADIUS": 12.0}
 
     name = "ONETEP"
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=None, command=None, atoms=None, **kwargs):
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,\
-                 label, atoms, command, **kwargs)
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
+                                  label, atoms, command, **kwargs)
 
         self.species = []
         self.species_cond = []
@@ -56,7 +55,6 @@ class Onetep(FileIOCalculator):
         self.restart = False
         self.prefix = label
         self.directory = "."
-
 
     def read(self, label):
         """Read a onetep .out file into the current instance."""
@@ -72,7 +70,7 @@ class Onetep(FileIOCalculator):
         except:
             raise ReadError("Could not open output file \"%s\"" % onetep_file)
 
-        #Keep track of what we've read in
+        # keep track of what we've read in
         read_lattice = False
         read_species = False
         read_positions = False
@@ -109,11 +107,10 @@ class Onetep(FileIOCalculator):
                 print(warning)
 
         if not (read_lattice and read_species and read_positions):
-            raise ReadError("Failed to read in essential calculation"\
-                 " data from output file \"%s\"" % onetep_file)
+            raise ReadError("Failed to read in essential calculation"
+                            " data from output file \"%s\"" % onetep_file)
 
         self.read_results(label)
-
 
     def read_results(self):
         FileIOCalculator.read_results(self)
@@ -150,7 +147,7 @@ class Onetep(FileIOCalculator):
         axes = []
 
         l = out.readline()
-        #onetep assumes lengths are in atomic units by default
+        # onetep assumes lengths are in atomic units by default
         conv_fac = Bohr
         if "ang" in l:
             l = out.readline()
@@ -176,7 +173,7 @@ class Onetep(FileIOCalculator):
         comment lines and is aware of angstom vs. bohr"""
 
         line = out.readline()
-        #onetep assumes lengths are in atomic units by default
+        # onetep assumes lengths are in atomic units by default
         conv_fac = Bohr
         if "ang" in line:
             line = out.readline()
@@ -204,7 +201,7 @@ class Onetep(FileIOCalculator):
         """ Read in species block from a onetep output file"""
         line = out.readline().strip()
         species = []
-        while not "%endblock" in line.lower():
+        while "%endblock" not in line.lower():
             atom, element, z, nngwf, ngwf_radius = line.split(None, 5)
             z = int(z)
             nngwf = int(nngwf)
@@ -217,10 +214,10 @@ class Onetep(FileIOCalculator):
         """ Read in pseudopotential information from a onetep output file"""
         line = out.readline().strip()
         pots = []
-        while not "%endblock" in line.lower() and len(line) > 0:
+        while "%endblock" not in line.lower() and len(line) > 0:
             atom, suffix = line.split(None, 1)
             filename = suffix.split("#", 1)[0].strip()
-            filename = filename.replace("\"", "") #take out quotes
+            filename = filename.replace("\"", "")   # take out quotes
             filename = filename.replace("'", "")
             pots.append((atom, filename,))
             line = out.readline().strip()
@@ -240,7 +237,6 @@ class Onetep(FileIOCalculator):
             species_cond.append((atom, element, z, nngwf, ngwf_radius, ))
             line = out.readline().strip()
         self.set_species_cond(species_cond)
-
 
     def _read_forces(self, out):
         """ Extract the computed forces from a onetep output file"""
@@ -263,18 +259,16 @@ class Onetep(FileIOCalculator):
         to trigger automatic NGWF number assigment using onetep's internal
         routines."""
 
-        #check if we need to do anything.
+        # check if we need to do anything.
         if len(self.species) == len(self.atoms.get_chemical_symbols()):
             return
 
         self.species = []
         atoms = self.atoms
         ngwf_radius = self.parameters['NGWF_RADIUS']
-        for sp in set(zip(atoms.get_atomic_numbers(),\
-                atoms.get_chemical_symbols())):
+        for sp in set(zip(atoms.get_atomic_numbers(),
+                          atoms.get_chemical_symbols())):
             self.species.append((sp[1], sp[1], sp[0], -1, ngwf_radius))
-
-
 
     def set_pseudos(self, pots):
         """ Sets the pseudopotential files used in this dat file
@@ -297,7 +291,6 @@ class Onetep(FileIOCalculator):
         in onetep this includes both atomic number information
         as well as NGWF parameters like number and cut off radius"""
         self.species_cond = deepcopy(spc)
-
 
     def write_input(self, atoms, properties=None, system_changes=None):
         """Only writes the input .dat file and return
@@ -339,9 +332,9 @@ class Onetep(FileIOCalculator):
             raise Exception("Target input file already exists.")
 
         if "XC" in parameters and "XC_FUNCTIONAL" in parameters \
-            and parameters["XC"] != parameters["XC_FUNCTIONAL"]:
-            raise Exception("Conflicting functionals defined! %s vs. %s" %\
-               (parameters["XC"],parameters["XC_FUNCTIONAL"]))
+                and parameters["XC"] != parameters["XC_FUNCTIONAL"]:
+            raise Exception("Conflicting functionals defined! %s vs. %s" %
+                            (parameters["XC"], parameters["XC_FUNCTIONAL"]))
 
         fd = open(filename, 'w')
         fd.write('######################################################\n')
@@ -385,10 +378,10 @@ class Onetep(FileIOCalculator):
 
         for p in parameters:
             if parameters[p] is not None and \
-                p.upper() not in self._dummy_parameters:
+                    p.upper() not in self._dummy_parameters:
                 fd.write('%s : %s\n' % (p, parameters[p]))
             if p.upper() == "XC":
-                #Onetep calls XC something else...
+                # Onetep calls XC something else...
                 fd.write('xc_functional : %s\n' % parameters[p])
         fd.close()
 
