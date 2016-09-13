@@ -1,12 +1,16 @@
 """Reads quantum espresso files. Tested for output on PWSCF v.5.0.2, only
 for typical output of input files made with ASE -- that is, ibrav=0."""
 
+import warnings
+
 import numpy as np
 from ase.atoms import Atoms, Atom
-from ase import units
+from ase.units import create_units
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.utils import basestring, chemical_symbols
 
+# Quantum ESPRESSO uses CODATA 2010 internally
+units = create_units('2010')
 
 def read_espresso_out(fileobj, index=-1):
     """Reads quantum espresso output text files."""
@@ -24,12 +28,13 @@ def read_espresso_out(fileobj, index=-1):
     if brav_latt_index != '0':
         raise NotImplementedError('Supported only for Bravais-lattice '
                                   'index of 0 (free).')
-    lp_line = [line for line in lines if 'lattice parameter (alat)' in
-               line]
+    # get alat=celldm(1); use celldm it has more decimal places.
+    lp_line = [line for line in lines if 'celldm(1)' in line]
+    # TODO: implement changing cell shape
     if len(lp_line) != 1:
         raise NotImplementedError('Unsupported: unit cell changing.')
-    lp_line = lp_line[0].strip().split('=')[1].strip().split()[0]
-    lattice_parameter = float(lp_line) * units.Bohr
+    lp_line = lp_line[0].split()[1]
+    lattice_parameter = float(lp_line) * units['Bohr']
     ca_line_no = [number for (number, line) in enumerate(lines) if
                   'crystal axes: (cart. coord. in units of alat)' in line]
     if len(ca_line_no) != 1:
@@ -51,28 +56,31 @@ def read_espresso_out(fileobj, index=-1):
             break
         key = 'Cartesian axes'
         if key in line:
-            atoms = make_atoms(number, lines, key, cell)
+            atoms = make_atoms(number, lines, key, cell, lattice_parameter)
             images.append(atoms)
         key = 'ATOMIC_POSITIONS (crystal)'  # TODO: angstrom
         if key in line:
-            atoms = make_atoms(number, lines, key, cell)
+            atoms = make_atoms(number, lines, key, cell, lattice_parameter)
             images.append(atoms)
     return images[index]
 
 
-def make_atoms(index, lines, key, cell):
+def make_atoms(index, lines, key, cell, alat=None):
     """Scan through lines to get the atomic positions."""
     atoms = Atoms()
-    # TODO: alat units
     if key == 'Cartesian axes':
+        # initial coordinates are given in terms of 'alat'
+        if alat is None:
+            warnings.warn("alat expected in make_atoms with cartesian axes")
+            alat = 1.0
         for line in lines[index + 3:]:
             entries = line.split()
             if len(entries) == 0:
                 break
             symbol = label_to_symbol(entries[1])
-            x = float(entries[6])
-            y = float(entries[7])
-            z = float(entries[8])
+            x = float(entries[6])*alat
+            y = float(entries[7])*alat
+            z = float(entries[8])*alat
             atoms.append(Atom(symbol, (x, y, z)))
         atoms.set_cell(cell)
     elif key == 'ATOMIC_POSITIONS (crystal)':
@@ -90,7 +98,7 @@ def make_atoms(index, lines, key, cell):
     energylines = [number for number, line in enumerate(lines) if
                    ('!' in line and 'total energy' in line)]
     energyline = min([n for n in energylines if n > index])
-    energy = float(lines[energyline].split()[-2]) * units.Ry
+    energy = float(lines[energyline].split()[-2]) * units['Ry']
     # Forces are located after positions.
     forces = np.zeros((len(atoms), 3))
     forcelines = [number for number, line in enumerate(lines) if
@@ -111,7 +119,7 @@ def make_atoms(index, lines, key, cell):
             break
         else:
             continue
-    forces *= units.Ry / units.Bohr
+    forces *= units['Ry'] / units['Bohr']
     # Stresses are not always present
     stresslines = [number for number, line in enumerate(lines) if
                    'total   stress  (Ry/bohr**3)' in line]
@@ -121,7 +129,7 @@ def make_atoms(index, lines, key, cell):
         yx, yy, yz = lines[stressline + 2].split()[:3]
         zx, zy, zz = lines[stressline + 3].split()[:3]
         stress = np.array([xx, yy, zz, yz, xz, xy], dtype=float)
-        stress *= units.Ry / (units.Bohr**3)
+        stress *= units['Ry'] / (units['Bohr']**3)
     else:
         stress = None
     calc = SinglePointCalculator(atoms, energy=energy, forces=forces,
@@ -155,7 +163,7 @@ def build_atoms(positions, method, cell, alat):
     atoms = Atoms()
     for el, (x, y, z) in positions:
         atoms.append(Atom(el, (x, y, z)))
-    cell *= alat * units.Bohr
+    cell *= alat * units['Bohr']
     atoms.set_cell(cell, scale_atoms=True)
     return atoms
 
