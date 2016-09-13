@@ -10,12 +10,12 @@ def main():
     calc = onetep.Onetep(label="water")
     #Tests conducted with the JTH PAW data set.
     #http://www.abinit.org/downloads/PAW2
-    #if not (isfile("H.abinit") and isfile("O.abinit")):
-    #    raise Exception( """You must supply PAW data sets for
-    #        hydrogen and oxygen to run this test.
-    #        Please see http://www.abinit.org/downloads/PAW2
-    #        for suitable data. ONETEP takes PAW data sets in the
-    #        abinit format. I need H.abinit and O.abinit""")
+    if not (isfile("H.abinit") and isfile("O.abinit")):
+        raise Exception( """You must supply PAW data sets for
+            hydrogen and oxygen to run this test.
+            Please see http://www.abinit.org/downloads/PAW2
+            for suitable data. ONETEP takes PAW data sets in the
+            abinit format. I need H.abinit and O.abinit""")
     calc.set_pseudos([('H',"H.abinit"),('O',"O.abinit")])
     calc.set(PAW=True,xc="PBE")
     mol.set_calculator(calc)
