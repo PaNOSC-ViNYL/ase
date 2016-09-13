@@ -9,8 +9,8 @@ from ase.units import create_units
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.utils import basestring, chemical_symbols
 
-# Quantum ESPRESSO uses CODATA 2010 internally
-units = create_units('2010')
+# Quantum ESPRESSO uses CODATA 2006 internally
+units = create_units('2006')
 
 
 def read_espresso_out(fileobj, index=-1):
