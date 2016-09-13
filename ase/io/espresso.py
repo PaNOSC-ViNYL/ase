@@ -5,7 +5,7 @@ import numpy as np
 from ase.atoms import Atoms, Atom
 from ase import units
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.utils import basestring
+from ase.utils import basestring, chemical_symbols
 
 
 def read_espresso_out(fileobj, index=-1):
@@ -53,7 +53,7 @@ def read_espresso_out(fileobj, index=-1):
         if key in line:
             atoms = make_atoms(number, lines, key, cell)
             images.append(atoms)
-        key = 'ATOMIC_POSITIONS (crystal)'
+        key = 'ATOMIC_POSITIONS (crystal)'  # TODO: angstrom
         if key in line:
             atoms = make_atoms(number, lines, key, cell)
             images.append(atoms)
@@ -63,12 +63,13 @@ def read_espresso_out(fileobj, index=-1):
 def make_atoms(index, lines, key, cell):
     """Scan through lines to get the atomic positions."""
     atoms = Atoms()
+    # TODO: alat units
     if key == 'Cartesian axes':
         for line in lines[index + 3:]:
             entries = line.split()
             if len(entries) == 0:
                 break
-            symbol = entries[1][:-1]
+            symbol = label_to_symbol(entries[1])
             x = float(entries[6])
             y = float(entries[7])
             z = float(entries[8])
@@ -79,7 +80,7 @@ def make_atoms(index, lines, key, cell):
             entries = line.split()
             if len(entries) == 0 or (entries[0] == 'End'):
                 break
-            symbol = entries[0][:-1]
+            symbol = label_to_symbol(entries[0])
             x = float(entries[1])
             y = float(entries[2])
             z = float(entries[3])
@@ -95,17 +96,36 @@ def make_atoms(index, lines, key, cell):
     forcelines = [number for number, line in enumerate(lines) if
                   'Forces acting on atoms (Ry/au):' in line]
     forceline = min([n for n in forcelines if n > index])
-    for line in lines[forceline + 4:]:
+    # In QE 5.3 the 'negative rho' has moved above the forceline
+    # so need to start 2 lines down.
+    for line in lines[forceline + 2:]:
         words = line.split()
-        if len(words) == 0:
+        if 'force =' in line:
+            fx = float(words[-3])
+            fy = float(words[-2])
+            fz = float(words[-1])
+            atom_number = int(words[1]) - 1
+            forces[atom_number] = (fx, fy, fz)
+        elif len(words) == 0 or 'non-local' in words:
+            # 'non-local' line is found with 'high' verbosity
             break
-        fx = float(words[-3])
-        fy = float(words[-2])
-        fz = float(words[-1])
-        atom_number = int(words[1]) - 1
-        forces[atom_number] = (fx, fy, fz)
+        else:
+            continue
     forces *= units.Ry / units.Bohr
-    calc = SinglePointCalculator(atoms, energy=energy, forces=forces)
+    # Stresses are not always present
+    stresslines = [number for number, line in enumerate(lines) if
+                   'total   stress  (Ry/bohr**3)' in line]
+    if stresslines:
+        stressline = min([n for n in stresslines if n > index])
+        xx, xy, xz = lines[stressline + 1].split()[:3]
+        yx, yy, yz = lines[stressline + 2].split()[:3]
+        zx, zy, zz = lines[stressline + 3].split()[:3]
+        stress = np.array([xx, yy, zz, yz, xz, xy], dtype=float)
+        stress *= units.Ry / (units.Bohr**3)
+    else:
+        stress = None
+    calc = SinglePointCalculator(atoms, energy=energy, forces=forces,
+                                 stress=stress)
     atoms.set_calculator(calc)
     return atoms
 
@@ -143,6 +163,7 @@ def build_atoms(positions, method, cell, alat):
 def get_atomic_positions(lines, n_atoms):
     """Returns the atomic positions of the atoms as an (ordered) list from
     the lines of text of the espresso input file."""
+    # FIXME: assumes angstrom units
     atomic_positions = []
     line = [n for (n, l) in enumerate(lines) if 'ATOMIC_POSITIONS' in l]
     if len(line) == 0:
@@ -220,3 +241,46 @@ def f2f(value):
     value = value.replace('d', 'e')
     value = value.replace('D', 'e')
     return float(value)
+
+
+def label_to_symbol(label):
+    """Convert a valid espresso ATOMIC_SPECIES label to a
+    chemical symbol.
+
+    Parameters
+    ----------
+    label : str
+        chemical symbol X (1 or 2 characters, case-insensitive)
+        or chemical symbol plus a number or a letter, as in
+        "Xn" (e.g. Fe1) or "X_*" or "X-*" (e.g. C1, C_h;
+        max total length cannot exceed 3 characters).
+
+    Returns
+    -------
+    symbol : str
+        The matching species from ase.utils.chemcial_symbols
+
+    Raises
+    ------
+    KeyError
+        Couldn't find an appropriate species.
+
+    Notes
+    -----
+        It's impossible to tell whether e.g. He is helium
+        or hydrogen labelled 'e'.
+    """
+
+    # possibly a two character species
+    # ase Atoms need proper case of chemical symbols.
+    if len(label) >= 2:
+        test_symbol = label[0].upper() + label[1].lower()
+        if test_symbol in chemical_symbols:
+            return test_symbol
+    # finally try with one character
+    test_symbol = label[0].upper()
+    if test_symbol in chemical_symbols:
+        return test_symbol
+    else:
+        raise KeyError('Could not parse species from label {0}.'
+                       ''.format(label))
