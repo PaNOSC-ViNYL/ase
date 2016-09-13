@@ -60,7 +60,7 @@ all_formats = {
     'eon': ('EON reactant.con file', '1F'),
     'eps': ('Encapsulated Postscript', '1S'),
     'espresso-in': ('Quantum espresso in file', '1F'),
-    'espresso-out': ('Quantum espresso out file', '1F'),
+    'espresso-out': ('Quantum espresso out file', '+F'),
     'etsf': ('ETSF format', '1S'),
     'exciting': ('exciting input', '1S'),
     'extxyz': ('Extended XYZ file', '+F'),

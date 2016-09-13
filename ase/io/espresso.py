@@ -12,6 +12,7 @@ from ase.utils import basestring, chemical_symbols
 # Quantum ESPRESSO uses CODATA 2010 internally
 units = create_units('2010')
 
+
 def read_espresso_out(fileobj, index=-1):
     """Reads quantum espresso output text files."""
     if isinstance(fileobj, basestring):
@@ -58,11 +59,15 @@ def read_espresso_out(fileobj, index=-1):
         if key in line:
             atoms = make_atoms(number, lines, key, cell, lattice_parameter)
             images.append(atoms)
-        key = 'ATOMIC_POSITIONS (crystal)'  # TODO: angstrom
+        key = 'ATOMIC_POSITIONS'
         if key in line:
             atoms = make_atoms(number, lines, key, cell, lattice_parameter)
             images.append(atoms)
-    return images[index]
+
+    if index is None:
+        return images
+    else:
+        return images[index]
 
 
 def make_atoms(index, lines, key, cell, alat=None):
@@ -83,46 +88,73 @@ def make_atoms(index, lines, key, cell, alat=None):
             z = float(entries[8])*alat
             atoms.append(Atom(symbol, (x, y, z)))
         atoms.set_cell(cell)
-    elif key == 'ATOMIC_POSITIONS (crystal)':
+    elif key == 'ATOMIC_POSITIONS':
+        # decide on scale factor based on how the positions
+        # are given, choose from:
+        # alat, bohr, angstrom, crystal, crystal_sg
+        if 'alat' in lines[index]:
+            position_scale = alat
+            crystal_scale = False
+        elif 'bohr' in lines[index]:
+            position_scale = units['Bohr']
+            crystal_scale = False
+        elif 'angstrom' in lines[index]:
+            position_scale = 1.0
+            crystal_scale = False
+        elif 'crystal_sg' in lines[index]:
+            raise NotImplementedError('crystal_sg parsing not implemented')
+        elif 'crystal' in lines[index]:
+            position_scale = 1.0
+            crystal_scale = True
+        else:
+            raise NotImplementedError('{0}'.format(lines[index]))
         for line in lines[index + 1:]:
             entries = line.split()
             if len(entries) == 0 or (entries[0] == 'End'):
                 break
             symbol = label_to_symbol(entries[0])
-            x = float(entries[1])
-            y = float(entries[2])
-            z = float(entries[3])
+            x = float(entries[1])*position_scale
+            y = float(entries[2])*position_scale
+            z = float(entries[3])*position_scale
             atoms.append(Atom(symbol, (x, y, z)))
-        atoms.set_cell(cell, scale_atoms=True)
+        atoms.set_cell(cell, scale_atoms=crystal_scale)
     # Energy is located after positions.
     energylines = [number for number, line in enumerate(lines) if
-                   ('!' in line and 'total energy' in line)]
-    energyline = min([n for n in energylines if n > index])
-    energy = float(lines[energyline].split()[-2]) * units['Ry']
+                   ('!' in line and 'total energy' in line
+                    and number > index)]
+    if energylines:
+        energyline = min([n for n in energylines if n > index])
+        energy = float(lines[energyline].split()[-2]) * units['Ry']
+    else:
+        energy = None
     # Forces are located after positions.
     forces = np.zeros((len(atoms), 3))
     forcelines = [number for number, line in enumerate(lines) if
-                  'Forces acting on atoms (Ry/au):' in line]
-    forceline = min([n for n in forcelines if n > index])
-    # In QE 5.3 the 'negative rho' has moved above the forceline
-    # so need to start 2 lines down.
-    for line in lines[forceline + 2:]:
-        words = line.split()
-        if 'force =' in line:
-            fx = float(words[-3])
-            fy = float(words[-2])
-            fz = float(words[-1])
-            atom_number = int(words[1]) - 1
-            forces[atom_number] = (fx, fy, fz)
-        elif len(words) == 0 or 'non-local' in words:
-            # 'non-local' line is found with 'high' verbosity
-            break
-        else:
-            continue
-    forces *= units['Ry'] / units['Bohr']
+                  'Forces acting on atoms (Ry/au):' in line
+                  and number > index]
+    if forcelines:
+        forceline = min([n for n in forcelines if n > index])
+        # In QE 5.3 the 'negative rho' has moved above the forceline
+        # so need to start 2 lines down.
+        for line in lines[forceline + 2:]:
+            words = line.split()
+            if 'force =' in line:
+                fx = float(words[-3])
+                fy = float(words[-2])
+                fz = float(words[-1])
+                atom_number = int(words[1]) - 1
+                forces[atom_number] = (fx, fy, fz)
+            elif len(words) == 0 or 'non-local' in words:
+                # 'non-local' line is found with 'high' verbosity
+                break
+            else:
+                continue
+        forces *= units['Ry'] / units['Bohr']
+    else:
+        forces = None
     # Stresses are not always present
     stresslines = [number for number, line in enumerate(lines) if
-                   'total   stress  (Ry/bohr**3)' in line]
+                   'total   stress  (Ry/bohr**3)' in line and number > index]
     if stresslines:
         stressline = min([n for n in stresslines if n > index])
         xx, xy, xz = lines[stressline + 1].split()[:3]
