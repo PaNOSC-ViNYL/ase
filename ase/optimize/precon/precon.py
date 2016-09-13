@@ -9,7 +9,7 @@ import numpy as np
 from ase.constraints import Filter
 from ase.utils import sum128, dot128
 from ase.geometry import undo_pbc_jumps
-import ase.optimize.ff as ff
+import ase.optimize.precon.ff as ff
 
 import ase.units as units
 THz = 1e12*1./units.s
