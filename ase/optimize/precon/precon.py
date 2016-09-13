@@ -9,6 +9,7 @@ import numpy as np
 from ase.constraints import Filter
 from ase.utils import sum128, dot128
 from ase.geometry import undo_pbc_jumps
+import ase.optimize.ff as ff
 
 import ase.units as units
 THz = 1e12*1./units.s
@@ -695,3 +696,497 @@ class Exp(Precon):
 
     def get_coeff(self, r):
         return -self.mu * np.exp(-self.A*(r/self.r_NN - 1))
+
+class FF(Precon):
+    """Creates matrix using morse/bond/angle/dihedral force field parameters.
+    """
+
+    def __init__(self, dim=3, c_stab=0.1, force_stab=False, sparse=True,
+                 array_convention="C", use_pyamg=True, solve_tol=1e-9,
+                 apply_positions=True, apply_cell=True,
+                 hessian="reduced", morses=None, bonds=None, angles=None, dihedrals=None):
+        """Initialise an FF preconditioner with given parameters.
+
+        Args:
+             dim, c_stab, force_stab, sparse, array_convention: see
+             precon.__init__(), use_pyamg, solve_tol
+             morses: class Morses
+             bonds: class Bonds
+             angles: class Angles
+             dihedrals: class Dihedrals
+        """
+
+        if morses is None and bonds is None and angles is None and dihedrals is None:
+            raise ImportError('At least one of morses, bonds, angles or dihedrals must be defined!')
+
+        Precon.__init__(self,
+                        dim=dim, c_stab=c_stab,
+                        force_stab=force_stab,
+                        sparse=sparse,
+                        array_convention=array_convention,
+                        use_pyamg=use_pyamg,
+                        solve_tol=solve_tol,
+                        apply_positions=apply_positions,
+                        apply_cell=apply_cell)
+
+        self.hessian = hessian
+        self.morses = morses
+        self.bonds = bonds
+        self.angles = angles
+        self.dihedrals = dihedrals
+
+    def make_precon(self, atoms):
+
+        start_time = time.time()
+
+        # Create the preconditioner:
+        if self.sparse:
+            self._make_sparse_precon(atoms, force_stab=self.force_stab)
+        else:
+            self._make_dense_precon(atoms, force_stab=self.force_stab)
+
+        logger.info("--- Precon created in %s seconds ---",
+                    time.time()-start_time)
+        return self.P
+
+    def _make_dense_precon(self, atoms, initial_assembly=False, force_stab=False):
+        """ """
+        N = len(atoms)
+
+        self.P = self.c_stab * np.eye(self.dim*N)
+
+        if self.morses is not None:
+
+            for n in range(len(self.morses)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_morse_potential_reduced_hessian(atoms, self.morses[n])
+                elif self.hessian == 'spectral_individual':
+                    i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+
+        if self.bonds is not None:
+
+            for n in range(len(self.bonds)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_bond_potential_reduced_hessian(atoms, self.bonds[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+
+        if self.angles is not None:
+
+            for n in range(len(self.angles)):
+                if self.hessian == 'reduced':
+                    i, j, k, Hx = ff.get_angle_potential_reduced_hessian(atoms, self.angles[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*i:3*(i+1), 3*k:3*(k+1)] += Hx[0:3,6:9]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+                self.P[3*j:3*(j+1), 3*k:3*(k+1)] += Hx[3:6,6:9]
+                self.P[3*k:3*(k+1), 3*i:3*(i+1)] += Hx[6:9,0:3]
+                self.P[3*k:3*(k+1), 3*j:3*(j+1)] += Hx[6:9,3:6]
+                self.P[3*k:3*(k+1), 3*k:3*(k+1)] += Hx[6:9,6:9]
+
+        if self.dihedrals is not None:
+
+            for n in range(len(self.dihedrals)):
+                if self.hessian == 'reduced':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(atoms, self.dihedrals[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*i:3*(i+1), 3*k:3*(k+1)] += Hx[0:3,6:9]
+                self.P[3*i:3*(i+1), 3*l:3*(l+1)] += Hx[0:3,9:12]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+                self.P[3*j:3*(j+1), 3*k:3*(k+1)] += Hx[3:6,6:9]
+                self.P[3*j:3*(j+1), 3*l:3*(l+1)] += Hx[3:6,9:12]
+                self.P[3*k:3*(k+1), 3*i:3*(i+1)] += Hx[6:9,0:3]
+                self.P[3*k:3*(k+1), 3*j:3*(j+1)] += Hx[6:9,3:6]
+                self.P[3*k:3*(k+1), 3*k:3*(k+1)] += Hx[6:9,6:9]
+                self.P[3*k:3*(k+1), 3*l:3*(l+1)] += Hx[6:9,9:12]
+                self.P[3*l:3*(l+1), 3*i:3*(i+1)] += Hx[9:12,0:3]
+                self.P[3*l:3*(l+1), 3*j:3*(j+1)] += Hx[9:12,3:6]
+                self.P[3*l:3*(l+1), 3*k:3*(k+1)] += Hx[9:12,6:9]
+                self.P[3*l:3*(l+1), 3*l:3*(l+1)] += Hx[9:12,9:12]
+
+        if self.hessian == 'spectral_final':
+            eigvals, eigvecs = linalg.eigh(self.P)
+            D = np.diag(np.abs(eigvals))
+            U = eigvecs
+            self.P = np.dot(U,np.dot(D,np.transpose(U)))
+
+        return self.P
+
+    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+        """ """
+
+        start_time = time.time()
+
+        N = len(atoms)
+
+        row=[]
+        col=[]
+        data=[]
+
+        if self.morses is not None:
+
+           for n in range(len(self.morses)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_morse_potential_reduced_hessian(atoms, self.morses[n])
+                elif self.hessian == 'spectral_individual':
+                    i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x=np.array([3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2])
+                row=np.hstack((row, np.repeat(x,6)))
+                col=np.hstack((col, np.tile(x,6)))
+                data=np.hstack((data, np.hstack(Hx)))
+
+        if self.bonds is not None:
+
+           for n in range(len(self.bonds)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_bond_potential_reduced_hessian(atoms, self.bonds[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x=np.array([3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2])
+                row=np.hstack((row, np.repeat(x,6)))
+                col=np.hstack((col, np.tile(x,6)))
+                data=np.hstack((data, np.hstack(Hx)))
+
+        if self.angles is not None:
+
+            for n in range(len(self.angles)):
+                if self.hessian == 'reduced':
+                    i, j, k, Hx = ff.get_angle_potential_reduced_hessian(atoms, self.angles[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x=np.array([3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2])
+                row=np.hstack((row, np.repeat(x,9)))
+                col=np.hstack((col, np.tile(x,9)))
+                data=np.hstack((data, np.hstack(Hx)))
+
+        if self.dihedrals is not None:
+
+            for n in range(len(self.dihedrals)):
+                if self.hessian == 'reduced':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(atoms, self.dihedrals[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x=np.array([3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2, 3*l, 3*l+1, 3*l+2])
+                row=np.hstack((row, np.repeat(x,12)))
+                col=np.hstack((col, np.tile(x,12)))
+                data=np.hstack((data, np.hstack(Hx)))
+
+        row=np.hstack((row, range(self.dim*N)))
+        col=np.hstack((col, range(self.dim*N)))
+        data=np.hstack((data, np.repeat(self.c_stab,self.dim*N)))
+
+        self.P = sparse.csc_matrix((data, (row,col)), shape=(self.dim*N,self.dim*N))
+        self.P = self.P.tocsr()
+
+        logger.info('--- N-dim precon created in %s s ---' % (time.time() - start_time))
+
+        # Create solver
+        if self.use_pyamg and have_pyamg:
+            start_time = time.time()
+            self.ml = smoothed_aggregation_solver(self.P, B=None,
+                    strength=('symmetric', {'theta': 0.0}),
+                    smooth=('jacobi', {'filter': True, 'weighting': 'local'}),
+                    improve_candidates=[('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 4}),
+                    None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+                    aggregate="standard",
+                    presmoother=('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 1}),
+                    postsmoother=('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 1}),
+                    max_levels=15,
+                    max_coarse=300,
+                    coarse_solver="pinv")
+            logger.info('--- multi grid solver created in %s s ---' % (time.time() - start_time))
+
+        return self.P
+
+class Exp_FF(Exp, FF):
+    """Creates matrix with values decreasing exponentially with distance.
+    """
+
+    def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
+                 force_stab=False, sparse=True, recalc_mu=False, array_convention="C",
+                 use_pyamg=True, solve_tol=1e-9,
+                 apply_positions=True, apply_cell=True,
+                 hessian="reduced", morses=None, bonds=None, angles=None, dihedrals=None):
+        """Initialise an Exp+FF preconditioner with given parameters.
+
+        Args:
+            r_cut, mu, c_stab, dim, sparse, recalc_mu, array_convention: see
+                precon.__init__()
+            A: coefficient in exp(-A*r/r_NN). Default is A=3.0.
+        """
+        if morses is None and bonds is None and angles is None and dihedrals is None:
+            raise ImportError('At least one of morses, bonds, angles or dihedrals must be defined!')
+
+        Precon.__init__(self, r_cut=r_cut, r_NN=r_NN,
+                        mu=mu, mu_c=mu_c, dim=dim, c_stab=c_stab,
+                        force_stab=force_stab,
+                        sparse=sparse, recalc_mu=recalc_mu,
+                        array_convention=array_convention,
+                        use_pyamg=use_pyamg,
+                        solve_tol=solve_tol,
+                        apply_positions=apply_positions,
+                        apply_cell=apply_cell)
+
+        self.A = A
+        self.hessian = hessian
+        self.morses = morses
+        self.bonds = bonds
+        self.angles = angles
+        self.dihedrals = dihedrals
+
+    def _make_dense_precon(self, atoms, initial_assembly=False, force_stab=False):
+        """Create a dense preconditioner matrix based on the passed atoms.
+
+        Creates a general-purpose preconditioner for use with optimization
+        algorithms, based on examining distances between pairs of atoms in the
+        lattice. The matrix will be stored in the attribute self.P and
+        returned. Note that this function will use self.mu, whatever it is.
+
+        Args:
+            atoms: the Atoms object used to create the preconditioner.
+
+        Returns:
+            A two-dimensional numpy array which is a d*N by d*N matrix (where
+            N is the number of atoms, and d is the value of self.dim).
+
+        """
+
+        N = len(atoms)
+
+        # csc_P is smaller than P, and holds the coefficients which will
+        # eventually make up self.P, the complete preconditioning matrix.
+
+        if self.apply_positions:
+            csc_P = np.zeros((N, N))
+            i_list, j_list, rij_list, fixed_atoms = get_neighbours(atoms, self.r_cut)
+
+            if force_stab or len(fixed_atoms) == 0:
+                for i in range(N):
+                    csc_P[i,i] += self.mu * self.c_stab
+        else:
+            csc_P = np.eye(N)
+
+        # P_ii is mu_c for cell DoF
+        if isinstance(atoms, Filter):
+            if self.apply_cell:
+                csc_P[N-3,N-3] = self.mu_c
+                csc_P[N-2,N-2] = self.mu_c
+                csc_P[N-1,N-1] = self.mu_c
+            else:
+                csc_P[N-3,N-3] = 1.0
+                csc_P[N-2,N-2] = 1.0
+                csc_P[N-1,N-1] = 1.0
+
+        if self.apply_positions:
+            for i, j, rij in zip(i_list, j_list, rij_list):
+                if i == j:
+                    continue
+                Cij = self.get_coeff(rij)
+                csc_P[i,i] -= Cij
+                csc_P[i,j] = Cij
+
+            if not initial_assembly:
+                for i in fixed_atoms:
+                    csc_P[:,i] = 0.0
+                    csc_P[i,:] = 0.0
+                    csc_P[i,i] = 1.0
+
+        self.csc_P = csc_P
+        self.P = np.zeros((self.dim*N, self.dim*N))
+
+        # remove contributions that will be replaced by the corresponding FF based preconditioner
+        if self.morses is not None:
+            for n in range(len(self.morses)):
+                i = self.morses[n].atomi
+                j = self.morses[n].atomj
+                for x, y in [(i,j)]:
+                    if csc_P[x,y] != 0.0:
+                        csc_P[x,x] += csc_P[x,y]
+                        csc_P[y,y] += csc_P[x,y]
+                        csc_P[x,y] = 0.0
+                        csc_P[y,x] = 0.0
+
+        if self.bonds is not None:
+            for n in range(len(self.bonds)):
+                i = self.bonds[n].atomi
+                j = self.bonds[n].atomj
+                for x, y in [(i,j)]:
+                    if csc_P[x,y] != 0.0:
+                        csc_P[x,x] += csc_P[x,y]
+                        csc_P[y,y] += csc_P[x,y]
+                        csc_P[x,y] = 0.0
+                        csc_P[y,x] = 0.0
+
+        if self.angles is not None:
+            for n in range(len(self.angles)):
+                i = self.angles[n].atomi
+                j = self.angles[n].atomj
+                k = self.angles[n].atomk
+                for x, y in [(i,j), (i,k), (j,k)]:
+                    if csc_P[x,y] != 0.0:
+                        csc_P[x,x] += csc_P[x,y]
+                        csc_P[y,y] += csc_P[x,y]
+                        csc_P[x,y] = 0.0
+                        csc_P[y,x] = 0.0       
+
+        if self.dihedrals is not None:
+            for n in range(len(self.dihedrals)):
+                i = self.dihedrals[n].atomi
+                j = self.dihedrals[n].atomj
+                k = self.dihedrals[n].atomk
+                l = self.dihedrals[n].atoml
+                for x, y in [(i,j), (i,k), (i,l), (j,k), (j,l), (k,l)]:
+                    if csc_P[x,y] != 0.0:
+                        csc_P[x,x] += csc_P[x,y]
+                        csc_P[y,y] += csc_P[x,y]
+                        csc_P[x,y] = 0.0
+                        csc_P[y,x] = 0.0
+
+        if self.dim == 1:
+            self.P = csc_P
+
+        # Now create the complete self.P matrix based on csc_P.
+        elif self.array_convention == "F":
+            # Build a matrix using csc_P as blocks.
+            self.P = np.zeros((self.dim*N, self.dim*N))
+            for i in range(self.dim):
+                j = i*N
+                k = (i+1)*N
+                self.P[j:k, j:k] = csc_P
+        else:
+            # array_convention assumed to be "C". Here each element in csc_P is
+            # 'expanded' into a scalar matrix.
+            for i, j in itertools.product(range(N), range(N)):
+                k = self.dim*i
+                l = self.dim*j
+                np.fill_diagonal(self.P[k:k+self.dim, l:l+self.dim],
+                                 csc_P[i, j])
+
+        if self.morses is not None:
+            for n in range(len(self.morses)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_morse_potential_reduced_hessian(atoms, self.morses[n])
+                elif self.hessian == 'spectral_individual':
+                    i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+
+        if self.bonds is not None:
+            for n in range(len(self.bonds)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_bond_potential_reduced_hessian(atoms, self.bonds[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+
+        if self.angles is not None:
+            for n in range(len(self.angles)):
+                if self.hessian == 'reduced':
+                    i, j, k, Hx = ff.get_angle_potential_reduced_hessian(atoms, self.angles[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*i:3*(i+1), 3*k:3*(k+1)] += Hx[0:3,6:9]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+                self.P[3*j:3*(j+1), 3*k:3*(k+1)] += Hx[3:6,6:9]
+                self.P[3*k:3*(k+1), 3*i:3*(i+1)] += Hx[6:9,0:3]
+                self.P[3*k:3*(k+1), 3*j:3*(j+1)] += Hx[6:9,3:6]
+                self.P[3*k:3*(k+1), 3*k:3*(k+1)] += Hx[6:9,6:9]
+
+        if self.dihedrals is not None:
+            for n in range(len(self.dihedrals)):
+                if self.hessian == 'reduced':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(atoms, self.dihedrals[n], self.morses)
+                elif self.hessian == 'spectral_individual':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=True)
+                elif self.hessian == 'spectral_final':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=False)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                self.P[3*i:3*(i+1), 3*i:3*(i+1)] += Hx[0:3,0:3]
+                self.P[3*i:3*(i+1), 3*j:3*(j+1)] += Hx[0:3,3:6]
+                self.P[3*i:3*(i+1), 3*k:3*(k+1)] += Hx[0:3,6:9]
+                self.P[3*i:3*(i+1), 3*l:3*(l+1)] += Hx[0:3,9:12]
+                self.P[3*j:3*(j+1), 3*i:3*(i+1)] += Hx[3:6,0:3]
+                self.P[3*j:3*(j+1), 3*j:3*(j+1)] += Hx[3:6,3:6]
+                self.P[3*j:3*(j+1), 3*k:3*(k+1)] += Hx[3:6,6:9]
+                self.P[3*j:3*(j+1), 3*l:3*(l+1)] += Hx[3:6,9:12]
+                self.P[3*k:3*(k+1), 3*i:3*(i+1)] += Hx[6:9,0:3]
+                self.P[3*k:3*(k+1), 3*j:3*(j+1)] += Hx[6:9,3:6]
+                self.P[3*k:3*(k+1), 3*k:3*(k+1)] += Hx[6:9,6:9]
+                self.P[3*k:3*(k+1), 3*l:3*(l+1)] += Hx[6:9,9:12]
+                self.P[3*l:3*(l+1), 3*i:3*(i+1)] += Hx[9:12,0:3]
+                self.P[3*l:3*(l+1), 3*j:3*(j+1)] += Hx[9:12,3:6]
+                self.P[3*l:3*(l+1), 3*k:3*(k+1)] += Hx[9:12,6:9]
+                self.P[3*l:3*(l+1), 3*l:3*(l+1)] += Hx[9:12,9:12]
+
+        if self.hessian == 'spectral_final':
+            eigvals, eigvecs = linalg.eigh(self.P)
+            D = np.diag(np.abs(eigvals))
+            U = eigvecs
+            self.P = np.dot(U,np.dot(D,np.transpose(U)))
+
+        return self.P
+
+    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+        """ """
+        raise NotImplementedError("Sparse version is not implemented for Exp_FF")
