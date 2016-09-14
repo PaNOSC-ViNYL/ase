@@ -1142,10 +1142,21 @@ class Vasp(Calculator):
 
     def write_kpoints(self, **kwargs):
         """Writes the KPOINTS file."""
+
+        # Don't write anything if KSPACING is being used
+        if self.float_params['kspacing']:
+            return
+
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
         shape = np.array(p['kpts']).shape
+
+        # Wrap scalar in list if necessary
+        if shape == ():
+            p['kpts'] = [p['kpts']]
+            shape = (1, )
+
         if len(shape) == 1:
             kpoints.write('0\n')
             if p['gamma']:
