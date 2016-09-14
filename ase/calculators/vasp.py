@@ -1144,9 +1144,13 @@ class Vasp(Calculator):
         """Writes the KPOINTS file."""
 
         # Don't write anything if KSPACING is being used
-        if (self.float_params['kspacing'] is not None and
-                self.float_params['kspacing'] > 0):
-            return
+        if self.float_params['kspacing'] is not None:
+            if self.float_params['kspacing'] > 0:
+                return
+            else:
+                raise ValueError("KSPACING value {0} is not allowable. "
+                                 "Please use None or a positive number."
+                                 "".format(self.float_params['kspacing']))
 
         p = self.input_params
         kpoints = open('KPOINTS', 'w')

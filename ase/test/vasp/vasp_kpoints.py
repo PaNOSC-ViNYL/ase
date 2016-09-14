@@ -60,6 +60,17 @@ with open('INCAR', 'r') as f:
     assert ' KSPACING = 0.230000\n' in f.readlines()
 calc.clean()
 
+# Negative KSPACING raises an error
+calc = Vasp(kspacing=-0.5)
+
+try:
+    calc.write_kpoints()
+except ValueError:
+    pass
+else:
+    raise AssertionError("Negative KSPACING did not raise ValueError")
+calc.clean()
+
 # Explicit weighted points with nested lists, Cartesian if not specified
 calc = Vasp(
     kpts=[[0.1, 0.2, 0.3, 2], [0.0, 0.0, 0.0, 1], [0.0, 0.5, 0.5, 2]])
