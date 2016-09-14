@@ -1159,10 +1159,10 @@ class Vasp(Calculator):
 
         if len(shape) == 1:
             kpoints.write('0\n')
-            if p['gamma']:
-                kpoints.write('Gamma\n')
-            elif shape == (1, ):
+            if shape == (1, ):
                 kpoints.write('Auto\n')
+            elif p['gamma']:
+                kpoints.write('Gamma\n')
             else:
                 kpoints.write('Monkhorst-Pack\n')
             [kpoints.write('%i ' % kpt) for kpt in p['kpts']]
