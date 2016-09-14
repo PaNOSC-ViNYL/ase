@@ -7,7 +7,7 @@ from ase.calculators.singlepoint import SinglePointKPoint
 
 def read_gpaw_out(fileobj, index):
     notfound = []
-    
+
     def index_startswith(lines, string):
         if string in notfound:
             raise ValueError
@@ -57,7 +57,7 @@ def read_gpaw_out(fileobj, index):
                 else:                # new format with GUC
                     cell.append([float(word) for word in words[3:6]])
                     pbc.append(words[2] == 'yes')
-            
+
         try:
             i = lines.index('positions:\n')
         except ValueError:
@@ -114,7 +114,7 @@ def read_gpaw_out(fileobj, index):
                 eFermi = float(lines[ii].split()[2])
             except ValueError:  # we have two Fermi levels
                 fields = lines[ii].split()
-                
+
                 def strip(string):
                     for rubbish in '[],':
                         string = string.replace(rubbish, '')
@@ -170,18 +170,19 @@ def read_gpaw_out(fileobj, index):
                 line = line.replace(x, '')
             dipole = np.array([float(c) for c in line.split()[2:5]])
 
-        try:
-            assert(spinpol)
-            ii = index_startswith(lines, 'local magnetic moments')
-        except ValueError:
-            magmoms = None
-        except AssertionError:
-            magmoms = None
+        if spinpol:
+            try:
+                ii = index_startswith(lines, 'local magnetic moments')
+            except ValueError:
+                magmoms = None
+            else:
+                magmoms = []
+                for i in range(ii + 1, ii + 1 + len(atoms)):
+                    magmom = lines[i].split()[-1]
+                    magmoms.append(float(magmom))
         else:
-            magmoms = []
-            for i in range(ii + 1, ii + 1 + len(atoms)):
-                iii, magmom = lines[i].split()[:2]
-                magmoms.append(float(magmom))
+            magmoms = None
+
         try:
             ii = lines.index('forces in ev/ang:\n')
         except ValueError:
@@ -222,5 +223,5 @@ def read_gpaw_out(fileobj, index):
 
     if len(images) == 0:
         raise IOError('Corrupted GPAW-text file!')
-    
+
     return images[index]
