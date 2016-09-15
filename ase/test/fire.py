@@ -11,7 +11,7 @@ a[0].x += 0.5
 
 a.set_calculator(EMT())
 
-opt = FIRE(a, dtmax=10.0, dt=10.0, maxmove=100.0, downhill_check=False)
+opt = FIRE(a, dtmax=5.0, dt=5.0, maxmove=100.0, downhill_check=False)
 opt.run(fmax=0.001)
 e1 = a.get_potential_energy()
 n1 = opt.nsteps
@@ -29,7 +29,7 @@ reset_history = []
 def callback(a, r, e, e_last):
     reset_history.append([e - e_last])
 
-opt = FIRE(a, dtmax=10.0, dt=10.0, maxmove=100.0, downhill_check=True,
+opt = FIRE(a, dtmax=5.0, dt=5.0, maxmove=100.0, downhill_check=True,
            position_reset_callback=callback)
 opt.run(fmax=0.001)
 e2 = a.get_potential_energy()
