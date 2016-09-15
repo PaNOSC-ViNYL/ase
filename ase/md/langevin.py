@@ -87,10 +87,10 @@ class Langevin(MolecularDynamics):
         atoms = self.atoms
         natoms = len(atoms)
 
+        # This velocity as well as xi, eta and a few other variables are stored
+        # as attributes, so Asap can do its magic when atoms migrate between processors.
         self.v = atoms.get_velocities()
 
-        # Note: xi, eta, A, v and V are made into attributes, so Asap can do its magic when
-        # atoms migrate between processors as get_forces() is called.
         self.xi = standard_normal(size=(natoms, 3))
         self.eta = standard_normal(size=(natoms, 3))
 
@@ -104,13 +104,10 @@ class Langevin(MolecularDynamics):
 
         # Full step in positions
         x = atoms.get_positions()
-
         if self.fixcm:
             old_cm = atoms.get_center_of_mass()
-
         # Step: x^n -> x^(n+1) - this applies constraints if any.
         atoms.set_positions(x + self.dt*self.v + self.c5 * self.eta)
-    
         if self.fixcm:
             new_cm = atoms.get_center_of_mass()
             d = old_cm-new_cm
