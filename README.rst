@@ -67,7 +67,7 @@ Geometry optimization of hydrogen molecule with NWChem:
     BFGS:   2  19:10:50    -31.492791     0.0630
     BFGS:   3  19:10:51    -31.492848     0.0023
     >>> write('H2.xyz', h2)
-    >>> h2.get_potential_energy()  # ASE's units are eV and Å
+    >>> h2.get_potential_energy()  # ASE's units are eV and A
     -31.492847800329216
 
 ::
