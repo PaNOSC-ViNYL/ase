@@ -1,3 +1,13 @@
+# @Author: James Kermode <jameskermode>
+# @Date:   2016-09-15T09:37:09+01:00
+# @Email:  james.kermode@gmail.com
+# @Project: f90wrap
+# @Last modified by:   jameskermode
+# @Last modified time: 2016-09-15T11:07:36+01:00
+# @License: f90wrap - F90 to Python interface generator with derived type support
+
+
+
 import time
 
 from math import sqrt
@@ -29,7 +39,7 @@ class LBFGS(Optimizer):
     ###CO : added parameters rigid_units and rotation_factors
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
-                 use_line_search=True, master=None, precon='Exp',
+                 master=None, precon='Exp',
                  use_armijo=True, c1=0.23, c2=0.46, variable_cell=False,
                  rigid_units=None, rotation_factors=None):
         """Parameters:
@@ -122,7 +132,6 @@ class LBFGS(Optimizer):
                               # 1./70. is to emulate the behaviour of BFGS
                               # Note that this is never changed!
         self.damping = damping
-        self.use_line_search = use_line_search
         self.p = None
 
         # construct preconditioner if passed as a string
@@ -211,15 +220,12 @@ class LBFGS(Optimizer):
         ###
 
         g = -f
-        if self.use_line_search == True:
-            if self.e1 is not None:
-                e = self.e1
-            else:
-                e = self.func(r)
-            self.line_search(r, g, e, previously_reset_hessian)
-            dr = (self.alpha_k * self.p).reshape(len(self.atoms), -1)
+        if self.e1 is not None:
+            e = self.e1
         else:
-            dr = self.determine_step(self.p) * self.damping
+            e = self.func(r)
+        self.line_search(r, g, e, previously_reset_hessian)
+        dr = (self.alpha_k * self.p).reshape(len(self.atoms), -1)
 
         if self.alpha_k != 0.0:
             self.atoms.set_positions(r + dr)
@@ -229,19 +235,6 @@ class LBFGS(Optimizer):
         self.f0 = -g
         self.dump((self.iteration, self.s, self.y,
                    self.rho, self.r0, self.f0, self.e0, self.task))
-
-    def determine_step(self, dr):
-        """Determine step to take according to maxstep
-
-        Normalize all steps as the largest step. This way
-        we still move along the eigendirection.
-        """
-        steplengths = (dr**2).sum(1)**0.5
-        longest_step = np.max(steplengths)
-        if longest_step >= self.maxstep:
-            dr *= self.maxstep / longest_step
-
-        return dr
 
     def update(self, r, f, r0, f0):
         """Update everything that is kept in memory
