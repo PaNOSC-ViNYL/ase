@@ -16,16 +16,16 @@ with seterr(all='raise'):
               calculator=TestPotential())
     print(a.get_forces())
     # Langevin should reproduce Verlet if friction is 0.
-    md = Langevin(a, 0.5 * fs, 300*kB, 0.0, logfile='-', loginterval=500)
+    md = Langevin(a, 0.5 * fs, 300 * kB, 0.0, logfile='-', loginterval=500)
     traj = Trajectory('4N.traj', 'w', a)
     md.attach(traj.write, 100)
     e0 = a.get_total_energy()
     md.run(steps=10000)
     del traj
     assert abs(read('4N.traj').get_total_energy() - e0) < 0.0001
-    
+
     # Try again with nonzero friction.
-    md = Langevin(a, 0.5 * fs, 300*kB, 0.001, logfile='-', loginterval=500)
+    md = Langevin(a, 0.5 * fs, 300 * kB, 0.001, logfile='-', loginterval=500)
     traj = Trajectory('4N.traj', 'w', a)
     md.run(steps=10000)
 
