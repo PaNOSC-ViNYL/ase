@@ -32,6 +32,7 @@ Testing
 Please run the tests:
 
 ::
+
     $ python -m ase.test  # takes 1 min.
 
 and send us the output if there are failing tests.
@@ -52,6 +53,7 @@ Example
 Geometry optimization of hydrogen molecule with NWChem:
 
 ::
+
     >>> from ase import Atoms
     >>> from ase.optimize import BFGS
     >>> from ase.calculators.nwchem import NWChem
@@ -71,6 +73,7 @@ Geometry optimization of hydrogen molecule with NWChem:
     -31.492847800329216
 
 ::
+
     $ ase-gui h2.traj
 
 
