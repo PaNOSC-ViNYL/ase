@@ -29,8 +29,9 @@ Add ``~/ase`` to your $PYTHONPATH environment variable and add
 Testing
 -------
 
-Please run the tests::
+Please run the tests:
 
+::
     $ python -m ase.test  # takes 1 min.
 
 and send us the output if there are failing tests.
@@ -48,8 +49,9 @@ Please send us bug-reports, patches, code, ideas and questions.
 Example
 -------
 
-Geometry optimization of hydrogen molecule with NWChem::
+Geometry optimization of hydrogen molecule with NWChem:
 
+::
     >>> from ase import Atoms
     >>> from ase.optimize import BFGS
     >>> from ase.calculators.nwchem import NWChem
@@ -69,7 +71,6 @@ Geometry optimization of hydrogen molecule with NWChem::
     -31.492847800329216
 
 ::
-
     $ ase-gui h2.traj
 
 
