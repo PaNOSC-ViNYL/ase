@@ -2,6 +2,7 @@
 for typical output of input files made with ASE -- that is, ibrav=0."""
 
 import warnings
+from collections import OrderedDict
 
 import numpy as np
 from ase.atoms import Atoms, Atom
@@ -212,7 +213,7 @@ def get_atomic_positions(lines, n_atoms):
         raise RuntimeError('More than one ATOMIC_POSITIONS section?')
     line_no = line[0]
     for line in lines[line_no + 1:line_no + n_atoms + 1]:
-        el, x, y, z = line.split()
+        el, x, y, z = line.split()[:4]
         atomic_positions.append([el, (f2f(x), f2f(y), f2f(z))])
     line = lines[line_no]
     if '{' in line:
@@ -239,40 +240,95 @@ def get_cell_parameters(lines):
     return cell_parameters
 
 
-def str2value(string):
+def str_to_value(string):
     """Convert string into int, float, or bool, if possible, else return it."""
     for datatype in [int, float]:
         try:
             return datatype(string)
         except ValueError:
             pass
-    return {'.true.': True, '.false.': False}.get(string, string)
+    return {'.true.': True,
+            '.false.': False}.get(string.lower(), string.strip("'"))
 
 
 def read_fortran_namelist(fileobj):
     """Takes a fortran-namelist formatted file and returns appropriate
     dictionaries, followed by lines of text that do not fit this pattern.
+
+    Behaviour taken from Quantum ESPRESSO 5.3:
+        Ignores anything after '!' in a namelist, split pairs on ','
+        to include multiple key=values on a line, read values on section
+        start and end lines, section terminating character, '/', can appear
+        anywhere on a line.
+        All of these are ignored if the value is in 'quotes'.
+
+    Parameters
+    ----------
+    fileobj : file
+        An open file-like object.
+
+    Returns
+    -------
+    data : dict of dict
+        Dictionary for each section in the namelist with key = value
+        pairs of data.
+    extra_lines : list of str
+        Any lines not used to create the data.
+
     """
-    data = {}
-    extralines = []
-    indict = False
+    # ensure whole file is considered
     fileobj.seek(0)
-    for line in fileobj.readlines():
-        if indict and line.strip().startswith('/'):
-            indict = False
-        elif line.strip().startswith('&'):
-            indict = True
-            dictname = line.strip()[1:].lower()
-            data[dictname] = {}
-        elif (not indict) and (len(line.strip()) > 0):
-            extralines.append(line)
-        elif indict:
-            key, value = line.strip().split('=')
-            if value.endswith(','):
-                value = value[:-1]
-            value = str2value(value.strip())
-            data[dictname][key.strip()] = value
-    return data, extralines
+
+    # Espresso requires the correct order
+    data = OrderedDict()
+    extra_lines = []
+    in_namelist = False
+    section = 'none'  # can't be in a section without changing this
+
+    for line in fileobj:
+        # leading and trailing whitespace never needed
+        line = line.strip()
+        if line.startswith('&'):
+            # inside a namelist
+            section = line.split()[0][1:].lower()  # case insensitive
+            data[section] = OrderedDict()
+            in_namelist = True
+        if not in_namelist and line:
+            # TODO, strip comments
+            extra_lines.append(line)
+        if in_namelist:
+            # parse k, v from line:
+            key = []
+            value = None
+            in_quotes = False
+            for character in line:
+                if character == ',' and value is not None and not in_quotes:
+                    # finished value:
+                    data[section][''.join(key).strip()] = str_to_value(
+                        ''.join(value).strip())
+                    key = []
+                    value = None
+                elif character == '=' and value is None and not in_quotes:
+                    # start writing value
+                    value = []
+                elif character == "'":
+                    # only found in value anyway
+                    in_quotes = not in_quotes
+                    value.append("'")
+                elif character == '!' and not in_quotes:
+                    break
+                elif character == '/' and not in_quotes:
+                    in_namelist = False
+                    break
+                elif value is not None:
+                    value.append(character)
+                else:
+                    key.append(character)
+            if value is not None:
+                data[section][''.join(key).strip()] = str_to_value(
+                    ''.join(value).strip())
+
+    return data, extra_lines
 
 
 def f2f(value):
@@ -298,7 +354,7 @@ def label_to_symbol(label):
     Returns
     -------
     symbol : str
-        The matching species from ase.utils.chemcial_symbols
+        The best matching species from ase.utils.chemical_symbols
 
     Raises
     ------
