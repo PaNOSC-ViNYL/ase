@@ -39,7 +39,7 @@ and send us the output if there are failing tests.
 Contact
 -------
 
-* Mailing lists: ase-users_ and ase-developers_
+* Mailing list: ase-users_
 * IRC_: #ase on freenode.net
 
 Please send us bug-reports, patches, code, ideas and questions.
@@ -79,5 +79,4 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 .. _Matplotlib: http://matplotlib.org/
 .. _pygtk: http://www.pygtk.org/
 .. _ase-users: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
-.. _ase-developers: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-developers
 .. _IRC: http://webchat.freenode.net/?randomnick=0&channels=ase
