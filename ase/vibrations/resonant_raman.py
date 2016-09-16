@@ -14,9 +14,7 @@ from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.vibrations.franck_condon import FranckCondonOverlap
 from ase.utils.timing import Timer
-
-# XXX remove gpaw dependence
-from gpaw.output import get_txt
+from ase.utils import convert_string_to_fd
 
 
 class ResonantRaman(Vibrations):
@@ -78,7 +76,7 @@ class ResonantRaman(Vibrations):
         self.exkwargs = exkwargs
 
         self.timer = Timer()
-        self.txt = get_txt(txt, rank)
+        self.txt = convert_string_to_fd(txt)
 
         self.verbose = verbose
 
@@ -336,7 +334,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('pre_r')
         with np.errstate(divide='ignore'):
             pre_r = np.where(self.om_r > 0,
-                             np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
+                             np.sqrt(units._hbar**2 / 2. / self.om_r), 0)
 ##        print('BC: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             m_rcc[r] *= p
@@ -390,7 +388,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('pre_r')
         with np.errstate(divide='ignore'):
             pre_r = np.where(self.om_r > 0,
-                             np.sqrt(units.hbar**2 / 2. / self.om_r), 0)
+                             np.sqrt(units._hbar**2 / 2. / self.om_r), 0)
         V_rcc = np.dot(V_rcc.T, self.modes.T).T
 #### looks ok        print('self.modes.T[-1]',self.modes.T)
 #### looks ok       print('V_rcc[-1]=', V_rcc[-1][2,2])
