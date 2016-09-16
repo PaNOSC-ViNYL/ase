@@ -29,9 +29,7 @@ Add ``~/ase`` to your $PYTHONPATH environment variable and add
 Testing
 -------
 
-Please run the tests:
-
-::
+Please run the tests::
 
     $ python -m ase.test  # takes 1 min.
 
@@ -52,25 +50,23 @@ Example
 
 Geometry optimization of hydrogen molecule with NWChem:
 
-::
-
-    >>> from ase import Atoms
-    >>> from ase.optimize import BFGS
-    >>> from ase.calculators.nwchem import NWChem
-    >>> from ase.io import write
-    >>> h2 = Atoms('H2',
-                   positions=[[0, 0, 0],
-                              [0, 0, 0.7]])
-    >>> h2.calc = NWChem(xc='PBE')
-    >>> opt = BFGS(h2, trajectory='h2.traj')
-    >>> opt.run(fmax=0.02)
-    BFGS:   0  19:10:49    -31.435229     2.2691
-    BFGS:   1  19:10:50    -31.490773     0.3740
-    BFGS:   2  19:10:50    -31.492791     0.0630
-    BFGS:   3  19:10:51    -31.492848     0.0023
-    >>> write('H2.xyz', h2)
-    >>> h2.get_potential_energy()  # ASE's units are eV and Å
-    -31.492847800329216
+>>> from ase import Atoms
+>>> from ase.optimize import BFGS
+>>> from ase.calculators.nwchem import NWChem
+>>> from ase.io import write
+>>> h2 = Atoms('H2',
+               positions=[[0, 0, 0],
+                          [0, 0, 0.7]])
+>>> h2.calc = NWChem(xc='PBE')
+>>> opt = BFGS(h2, trajectory='h2.traj')
+>>> opt.run(fmax=0.02)
+BFGS:   0  19:10:49    -31.435229     2.2691
+BFGS:   1  19:10:50    -31.490773     0.3740
+BFGS:   2  19:10:50    -31.492791     0.0630
+BFGS:   3  19:10:51    -31.492848     0.0023
+>>> write('H2.xyz', h2)
+>>> h2.get_potential_energy()  # ASE's units are eV and Ang
+-31.492847800329216
 
 ::
 
