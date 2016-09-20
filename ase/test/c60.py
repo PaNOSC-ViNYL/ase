@@ -2,9 +2,7 @@ import numpy as np
 
 from ase.build import molecule
 
-from ase.io import read, write
-
-from ase.utils.ff import Morse, Bond, Angle, Dihedral, VdW, Coulomb, rel_pos_pbc
+from ase.utils.ff import Morse, Angle, Dihedral, VdW, rel_pos_pbc
 from ase.calculators.ff import ForceField
 
 from ase.optimize.precon.lbfgs import LBFGS
