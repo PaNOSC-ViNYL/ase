@@ -345,24 +345,27 @@ def read_castep_cell(fd, index=None):
     # fd will be closed by embracing read() routine
     lines = fd.readlines()
 
-    def get_tokens(lines, l, maxsplit=0):
+    def get_tokens(lines, l, maxsplit=0, has_species=False):
         """Tokenizes one line of a *cell file."""
         comment_chars = '#!;'
         separator_re = '[\s=:]+'
         while l < len(lines):
             line = lines[l].strip()
-            if len(line) == 0:
-                l += 1
-                continue
-            elif any([line.startswith(comment_char)
-                      for comment_char in comment_chars]):
+            if len(line) == 0 or line[0] in comment_chars:
                 l += 1
                 continue
             else:
                 # Remove comments
                 line = re.split('[{0}]+'.format(comment_chars), line, 1)[0]
                 # Tokenize
-                tokens = re.split(separator_re, line.strip(), maxsplit)
+                # If we expect a species symbol to be in there, we take it out
+                # first:
+                if has_species:
+                    species, line = line.split(None, 1)
+                    tokens = [species]
+                else:
+                    tokens = []
+                tokens += re.split(separator_re, line.strip(), maxsplit)
                 return tokens, l + 1
         tokens = ''
 
