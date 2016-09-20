@@ -469,13 +469,15 @@ def read_castep_cell(fd, index=None):
                 pos_frac = (block_name == 'POSITIONS_FRAC')
                 if not pos_frac:
                     # Check for units
+                    l_start = l
                     tokens, l = get_tokens(lines, l)
                     if len(tokens) == 1:
                         print('read_cell: Warning - ignoring unit specifier in')
                         print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
                     else:
-                        l -= 1
+                        l = l_start
                 # fix to be able to read initial spin assigned on the atoms
+                tokens, l = get_tokens(lines, l, maxsplit=4)
                 while len(tokens) >= 4:
                     spec.append(tokens[0])
                     pos.append([float(p) for p in tokens[1:4]])
