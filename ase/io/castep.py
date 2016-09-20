@@ -388,6 +388,10 @@ def read_castep_cell(fd, index=None):
     }
     add_info_arrays = dict((k, []) for k in add_info)
 
+    # Array for custom species (a CASTEP special thing)
+    # Usually left unused
+    custom_species = None
+
     # A convenient function that extracts this info from a line fragment
     def get_add_info(ai_arrays, line=''):
         re_keys = '({0})'.format('|'.join(add_info.keys()))
@@ -477,15 +481,24 @@ def read_castep_cell(fd, index=None):
                     else:
                         l = l_start
                 # fix to be able to read initial spin assigned on the atoms
-                tokens, l = get_tokens(lines, l, maxsplit=4)
+                tokens, l = get_tokens(lines, l, maxsplit=4, has_species=True)
                 while len(tokens) >= 4:
-                    spec.append(tokens[0])
+                    # Now, process the whole 'species' thing
+                    spec_custom = tokens[0].split(':', 1)
+                    elem = spec_custom[0]
+                    if len(spec_custom) > 1 and custom_species is None:
+                        # Add it to the custom info!
+                        custom_species = list(spec)
+                    spec.append(elem)
+                    if custom_species is not None:
+                        custom_species.append(tokens[0])
                     pos.append([float(p) for p in tokens[1:4]])
                     if len(tokens) > 4:
                         get_add_info(add_info_arrays, tokens[4])
                     else:
                         get_add_info(add_info_arrays)
-                    tokens, l = get_tokens(lines, l, maxsplit=4)
+                    tokens, l = get_tokens(lines, l, maxsplit=4,
+                                           has_species=True)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines in')
                     print('%%BLOCK %s:\n\t %s' % (block_name, tokens))
