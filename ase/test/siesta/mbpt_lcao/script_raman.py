@@ -68,8 +68,8 @@ mbpt_inp = {'prod_basis_type' : 'MIXED',
 
 CO2.set_calculator(siesta)
 
-from ase.vibrations import Siesta_Raman
-ram = Siesta_Raman(CO2, siesta, mbpt_inp)
+from ase.calculators.siesta.siesta_raman import SiestaRaman
+ram = SiestaRaman(CO2, siesta, mbpt_inp)
 ram.run()
 ram.summary(intensity_unit_ram='A^4 amu^-1')
 
