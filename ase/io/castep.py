@@ -149,17 +149,21 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     else:
         _spin_pol = True
 
-    if atoms.get_initial_magnetic_moments().any() and _spin_pol:
-        pos_block = [('%s %8.6f %8.6f %8.6f SPIN=%4.2f' %
-                      (x, y[0], y[1], y[2], m)) for (x, y, m)
-                     in zip(atoms.get_chemical_symbols(),
-                            positions,
-                            atoms.get_initial_magnetic_moments())]
+    # Gather the data that will be used to generate the block
+    pos_block_data = []
+    pos_block_format = '%s %8.6f %8.6f %8.6f'
+    if atoms.has('castep_custom_species'):
+        pos_block_data.append(atoms.get_array('castep_custom_species'))
     else:
-        pos_block = [('%s %8.6f %8.6f %8.6f' %
-                      (x, y[0], y[1], y[2])) for (x, y)
-                     in zip(atoms.get_chemical_symbols(),
-                            positions)]
+        pos_block_data.append(atoms.get_chemical_symbols())
+    pos_block_data += [xlist for xlist in zip(*positions)]
+    if atoms.get_initial_magnetic_moments().any() and _spin_pol:
+        pos_block_data.append(atoms.get_initial_magnetic_moments())
+        pos_block_format += ' SPIN=%4.2f'
+
+    pos_block = [(pos_block_format %
+                  line_data) for line_data
+                 in zip(*pos_block_data)]
 
     # Adding the CASTEP labels output
     if atoms.has('castep_labels'):
@@ -571,6 +575,8 @@ def read_castep_cell(fd, index=None):
             magmoms=magmom)
 
     atoms.new_array('castep_labels', labels)
+    if custom_species is not None:
+        atoms.new_array('castep_custom_species', np.array(custom_species))
 
     fixed_atoms = []
     for (species, nic), value in raw_constraints.items():
