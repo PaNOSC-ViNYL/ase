@@ -399,23 +399,6 @@ def read_vasp_xdatcar(filename, index=-1):
         return images[index]
 
 
-def __get_parameter_from_xml(elem, tag):
-    fld = elem.find('separator/i[@name="%s"]' % tag)
-    typ = 'single'
-    if fld is None:
-        fld = elem.find('separator/separator/i[@name="%s"]' % tag)
-    if fld is None:
-        fld = elem.find('separator/v[@name="%s"]' % tag)
-        typ = 'vector'
-    if fld is None:
-        fld = elem.find('separator/separator/v[@name="%s"]' % tag)
-        typ = 'vector'
-    if fld is None:
-        return None, None
-    else:
-        return fld.text, typ
-
-
 def read_vasp_xml(filename='vasprun.xml', index=-1):
     """Parse vasprun.xml file.
 
@@ -430,57 +413,45 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from ase.calculators.singlepoint import (SinglePointDFTCalculator,
                                              SinglePointKPoint)
     from ase.units import GPa
+    from collections import OrderedDict
 
-    # prepare list of keys for parsing of parameters
-    from ase.calculators.vasp import (float_keys,
-                                      exp_keys,
-                                      string_keys,
-                                      int_keys,
-                                      bool_keys,
-                                      list_keys,
-                                      special_keys)
-    keys = float_keys + exp_keys + string_keys + int_keys
-    keys += bool_keys + list_keys + special_keys
-    keys += ['enini']
-    # Some keys should be parsed as a different type.
-    # Here 'extended' versions of the lists are set
-    # up to enable this without much ado.
-    extended_int_keys = int_keys
-    try:
-        extended_int_keys.remove('nupdown')
-    except:
-        pass
-    extended_float_keys = float_keys + exp_keys
-    extended_float_keys += ['enini', 'nupdown']
-    try:
-        extended_float_keys.remove('pomass')
-    except:
-        pass
-    extended_list_keys = list_keys + ['pomass']
-    
     tree = ET.iterparse(filename, events=['start', 'end'])
-
+    
     atoms_init = None
     calculation = []
     ibz_kpts = None
-    parameters = {}
+    parameters = OrderedDict()
+
+    to_bool = lambda b: True if b == 'T' else False
+                    
+    to_type = {'int': int,
+               'logical': to_bool,
+               'string': str,
+               'float': float}
 
     try:
         for event, elem in tree:
             
             if event == 'end':
                 if elem.tag == 'kpoints':
-                    try:
-                        txt = elem.find("generation/v[@name='divisions']").text.split()
-                        parameters['kmesh_divisions'] = [int(float(i)) for i in txt]
-                    except:
-                        pass
+                    for subelem in elem.iter(tag='generation'):
+                        kpoints_generation = OrderedDict()
+                        parameters['kpoints_generation'] = kpoints_generation
+                        for par in subelem.iter():
+                            if par.tag in ['v', 'i']:
+                                name = par.attrib['name'].lower()
 
-                    try:
-                        txt = elem.find("generation/v[@name='shift']").text.split()
-                        parameters['kmesh_shift'] = [float(float(i)) for i in txt]
-                    except:
-                        pass
+                                text = par.text
+                                if text is None:
+                                    text = ''
+
+                                # Float parameters do not have a 'type' attrib
+                                var_type = to_type[par.attrib.get('type', 'float')]
+
+                                if par.tag == 'v':
+                                    kpoints_generation[name] = map(var_type, text.split())
+                                else:
+                                    kpoints_generation[name] = var_type(text.strip())
 
                     kpts = elem.findall("varray[@name='kpointlist']/v")
                     ibz_kpts = np.zeros((len(kpts), 3))
@@ -489,24 +460,22 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                         ibz_kpts[i] = [float(val) for val in kpt.text.split()]
 
                 elif elem.tag == 'parameters':
-                    for key in keys:
-                        ukey = key.upper()
-                        value, typ = __get_parameter_from_xml(elem, ukey)
-                        if value is not None:
-                            parameters[ukey] = value
-                            try:
-                                if key in extended_float_keys:
-                                    parameters[ukey] = float(value)
-                                elif key in extended_int_keys:
-                                    parameters[ukey] = int(value)
-                                elif key in bool_keys:
-                                    parameters[ukey] = bool(value)
-                                elif key in extended_list_keys:
-                                    lst = [float(val) for val in value.split()]
-                                    parameters[ukey] = lst
-                            except:
-                                pass
-                         
+                    for par in elem.iter():
+                        if par.tag in ['v', 'i']:
+                            name = par.attrib['name'].upper()
+
+                            text = par.text
+                            if text is None:
+                                text = ''
+
+                            # Float parameters do not have a 'type' attrib
+                            var_type = to_type[par.attrib.get('type', 'float')]
+
+                            if par.tag == 'v':
+                                parameters[name] = map(var_type, text.split())
+                            else:
+                                parameters[name] = var_type(text.strip())
+
                 elif elem.tag == 'atominfo':
                     species = []
 
