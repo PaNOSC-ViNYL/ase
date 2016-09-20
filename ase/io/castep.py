@@ -473,6 +473,7 @@ def read_castep_cell(fd, index=None):
                     if len(tokens) == 1:
                         print('read_cell: Warning - ignoring unit specifier in')
                         print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
+                    else:
                         l -= 1
                 # fix to be able to read initial spin assigned on the atoms
                 while len(tokens) >= 4:
