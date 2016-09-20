@@ -286,7 +286,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     for option in castep_cell._options.values():
         if option.value is not None:
-#            print(option.value)
+            #            print(option.value)
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
@@ -421,7 +421,10 @@ def read_castep_cell(fd, index=None):
         if not tokens:
             continue
         elif tokens[0].upper() == '%BLOCK':
-            if tokens[1].upper() == 'LATTICE_CART' and not have_lat:
+
+            block_name = tokens[1].upper()
+
+            if block_name == 'LATTICE_CART' and not have_lat:
                 tokens, l = get_tokens(lines, l)
                 if len(tokens) == 1:
                     print('read_cell: Warning - ignoring unit specifier in')
@@ -437,7 +440,7 @@ def read_castep_cell(fd, index=None):
                     print('%s ...' % tokens[0].upper())
                 have_lat = True
 
-            elif tokens[1].upper() == 'LATTICE_ABC' and not have_lat:
+            elif block_name == 'LATTICE_ABC' and not have_lat:
                 tokens, l = get_tokens(lines, l)
                 if len(tokens) == 1:
                     print('read_cell: Warning - ignoring unit specifier in')
@@ -461,12 +464,16 @@ def read_castep_cell(fd, index=None):
                 lat = [lat_a, lat_b, lat_c]
                 have_lat = True
 
-            elif tokens[1].upper() == 'POSITIONS_ABS' and not have_pos:
-                tokens, l = get_tokens(lines, l)
-                if len(tokens) == 1:
-                    print('read_cell: Warning - ignoring unit specifier in')
-                    print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
-                    tokens, l = get_tokens(lines, l, maxsplit=4)
+            elif block_name in ('POSITIONS_ABS',
+                                'POSITIONS_FRAC') and not have_pos:
+                pos_frac = (block_name == 'POSITIONS_FRAC')
+                if not pos_frac:
+                    # Check for units
+                    tokens, l = get_tokens(lines, l)
+                    if len(tokens) == 1:
+                        print('read_cell: Warning - ignoring unit specifier in')
+                        print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
+                        l -= 1
                 # fix to be able to read initial spin assigned on the atoms
                 while len(tokens) >= 4:
                     spec.append(tokens[0])
@@ -478,33 +485,17 @@ def read_castep_cell(fd, index=None):
                     tokens, l = get_tokens(lines, l, maxsplit=4)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines in')
-                    print('%%BLOCK POSITIONS_ABS:\n\t %s' % tokens)
+                    print('%%BLOCK %s:\n\t %s' % (block_name, tokens))
                 have_pos = True
 
-            elif tokens[1].upper() == 'POSITIONS_FRAC' and not have_pos:
-                pos_frac = True
-                tokens, l = get_tokens(lines, l, maxsplit=4)
-                # fix to be able to read initial spin assigned on the atoms
-                while len(tokens) >= 4:
-                    spec.append(tokens[0])
-                    pos.append([float(p) for p in tokens[1:4]])
-                    if len(tokens) > 4:
-                        get_add_info(add_info_arrays, tokens[4])
-                    else:
-                        get_add_info(add_info_arrays)
-                    tokens, l = get_tokens(lines, l, maxsplit=4)
-                if tokens[0].upper() != '%ENDBLOCK':
-                    print('read_cell: Warning - ignoring invalid lines')
-                    print('%%BLOCK POSITIONS_FRAC:\n\t %s' % tokens)
-                have_pos = True
-            elif tokens[1].upper() == 'SPECIES_POT':
+            elif block_name == 'SPECIES_POT':
                 if not _fallback:
                     tokens, l = get_tokens(lines, l)
                     while tokens and not tokens[0].upper() == '%ENDBLOCK':
                         if len(tokens) == 2:
                             calc.cell.species_pot = tuple(tokens)
                         tokens, l = get_tokens(lines, l)
-            elif tokens[1].upper() == 'IONIC_CONSTRAINTS':
+            elif block_name == 'IONIC_CONSTRAINTS':
 
                 while True:
                     if tokens and tokens[0].upper() == '%ENDBLOCK':
