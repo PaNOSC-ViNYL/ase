@@ -18,7 +18,7 @@ from ase.optimize.precon import (get_neighbours, estimate_nearest_neighbour_dist
                                  logger, have_matscipy)
 
 try:
-    from scipy import linalg, sparse, rand
+    from scipy import sparse, rand
     from scipy.sparse.linalg import spsolve
     have_scipy = True
 except ImportError:

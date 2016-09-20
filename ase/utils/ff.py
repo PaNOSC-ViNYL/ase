@@ -2,12 +2,6 @@ import numpy as np
 from numpy import linalg
 from ase import units 
 
-try:
-    from scipy import sparse
-    have_scipy = True
-except ImportError:
-    have_scipy = False
-
 class Morse:
 
     def __init__(self, atomi, atomj, D, alpha, r0):
@@ -682,7 +676,7 @@ def get_dihedral_potential_hessian(atoms, dihedral, morses=None, spectral=False)
         rkj = rel_pos_pbc(atoms, k, j)
         dkj = linalg.norm(rkj)
         rkl = rel_pos_pbc(atoms, k, l)
-        dkl = linalg.norm(dkl)
+        dkl = linalg.norm(rkl)
         Hx *= np.exp(dihedral.alpha[0]*(dihedral.rref[0]**2-dij**2))*np.exp(dihedral.alpha[1]*(dihedral.rref[1]**2-dkj**2))*np.exp(dihedral.alpha[2]*(dihedral.rref[2]**2-dkl**2))
 
     if morses is not None:
