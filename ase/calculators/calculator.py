@@ -66,6 +66,10 @@ def equal(a, b, tol=None):
             return np.allclose(a, b, rtol=tol, atol=tol)
     if isinstance(b, np.ndarray):
         return equal(b, a, tol)
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return False
+        return all(equal(a[key], b[key], tol) for key in a.keys())
     if tol is None:
         return a == b
     return abs(a - b) < tol * abs(b) + tol
@@ -404,6 +408,11 @@ class Calculator:
 
         if name == 'magmoms' and 'magmoms' not in self.results:
             return np.zeros(len(atoms))
+
+        if name not in self.results:
+            # For some reason the calculator was not able to do what we want,
+            # and that is OK.
+            raise NotImplementedError
 
         result = self.results[name]
         if isinstance(result, np.ndarray):

@@ -2190,7 +2190,7 @@ class CastepCell(object):
 
                     # sort based on atomic numbers
                     pspots.sort(key=lambda x: ase.data.atomic_numbers[
-                        x.split()[0]])
+                        re.split('[\s:]', x, 1)[0]])
 
                     # rejoin; the first blank-line
                     # makes the print(calc) output look prettier

@@ -119,8 +119,8 @@ class TestPotential(Calculator):
 
 
 def numeric_force(atoms, a, i, d=0.001):
-    """
-    Compute numeric force on atom with index a, Cartesian component i, with finite step of size d
+    """Compute numeric force on atom with index a, Cartesian component i,
+    with finite step of size d
     """
     p0 = atoms.get_positions()
     p = p0.copy()
@@ -133,6 +133,7 @@ def numeric_force(atoms, a, i, d=0.001):
     atoms.set_positions(p0)
     return (eminus - eplus) / (2 * d)
 
+
 def gradient_test(atoms, indices=None):
     """
     Use numeric_force to compare analytical and numerical forces on atoms
@@ -142,11 +143,11 @@ def gradient_test(atoms, indices=None):
     if indices is None:
         indices = range(len(atoms))
     f = atoms.get_forces()[indices]
-    print('{:>16} {:>20}'.format('eps', 'max(abs(df))'))
-    for eps in np.logspace(-1,-8,8):
+    print('{0:>16} {1:>20}'.format('eps', 'max(abs(df))'))
+    for eps in np.logspace(-1, -8, 8):
         fn = np.zeros((len(indices), 3))
         for i in indices:
             for j in range(3):
-                fn[i,j] = numeric_force(atoms, i, j, eps)
+                fn[i, j] = numeric_force(atoms, i, j, eps)
         print('{0:16.12f} {1:20.12f}'.format(eps, abs(fn - f).max()))
     return f, fn

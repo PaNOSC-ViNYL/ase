@@ -47,6 +47,7 @@ float_keys = [
     'amix_mag',   #
     'bmix',       # tags for mixing
     'bmix_mag',   #
+    'cshift',     # Complex shift for dielectric tensor calculation (LOPTICS)
     'deper',      # relative stopping criterion for optimization of eigenvalue
     'ebreak',     # absolute stopping criterion for optimization of eigenvalues
                   # (EDIFF/N-BANDS/4)
@@ -1141,16 +1142,32 @@ class Vasp(Calculator):
 
     def write_kpoints(self, **kwargs):
         """Writes the KPOINTS file."""
+
+        # Don't write anything if KSPACING is being used
+        if self.float_params['kspacing'] is not None:
+            if self.float_params['kspacing'] > 0:
+                return
+            else:
+                raise ValueError("KSPACING value {0} is not allowable. "
+                                 "Please use None or a positive number."
+                                 "".format(self.float_params['kspacing']))
+
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
         shape = np.array(p['kpts']).shape
+
+        # Wrap scalar in list if necessary
+        if shape == ():
+            p['kpts'] = [p['kpts']]
+            shape = (1, )
+
         if len(shape) == 1:
             kpoints.write('0\n')
-            if p['gamma']:
-                kpoints.write('Gamma\n')
-            elif shape == (1, ):
+            if shape == (1, ):
                 kpoints.write('Auto\n')
+            elif p['gamma']:
+                kpoints.write('Gamma\n')
             else:
                 kpoints.write('Monkhorst-Pack\n')
             [kpoints.write('%i ' % kpt) for kpt in p['kpts']]
@@ -1541,19 +1558,19 @@ class Vasp(Calculator):
         if ktype in ['g', 'm', 'a']:
             if ktype == 'g':
                 self.set(gamma=True)
+                kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             elif ktype == 'a':
                 kpts = np.array([int(lines[3].split()[i]) for i in range(1)])
             elif ktype == 'm':
                 kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             self.set(kpts=kpts)
-        elif ktype in ['c', 'k']:
-            raise NotImplementedError('Only Monkhorst-Pack, gamma centered'
-                                      ' and Automatic grid supported'
-                                      ' for restart.')
         else:
-            raise NotImplementedError('Only Monkhorst-Pack, gamma centered'
-                                      ' and Automatic grid supported'
-                                      ' for restart.')
+            if ktype in ['c', 'k']:
+                self.set(reciprocal=False)
+            else:
+                self.set(reciprocal=True)
+            kpts = np.array([map(float, line.split()) for line in lines[3:]])
+            self.set(kpts=kpts)
 
     def read_potcar(self):
         """ Read the pseudopotential XC functional from POTCAR file.
