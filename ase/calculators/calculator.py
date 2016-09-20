@@ -66,6 +66,10 @@ def equal(a, b, tol=None):
             return np.allclose(a, b, rtol=tol, atol=tol)
     if isinstance(b, np.ndarray):
         return equal(b, a, tol)
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return False
+        return all(equal(a[key], b[key], tol) for key in a.keys())
     if tol is None:
         return a == b
     return abs(a - b) < tol * abs(b) + tol
