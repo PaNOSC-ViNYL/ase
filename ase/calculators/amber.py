@@ -29,7 +29,7 @@ class Amber(FileIOCalculator):
 
 
 
- 
+
     """
 
     implemented_properties = ['energy', 'forces']
@@ -78,7 +78,7 @@ class Amber(FileIOCalculator):
 
         2) atom coordinates
         2h2o.pdb:
- 
+
         3) topology file
         2h2o.top:
 
@@ -96,7 +96,7 @@ class Amber(FileIOCalculator):
     dyn.run(fmax=0.005)
     e = atoms.get_potential_energy()
     print ("FINAL ENERGY: "+ str(e) + " [eV]")
-   
+
 
         """
 
@@ -116,12 +116,12 @@ class Amber(FileIOCalculator):
         if command is not None:
             self.command = command
         else:
-            self.command = self.amber_exe + \
-                           ' -i ' + self.infile + \
-                           ' -o ' + self.outfile + \
-                           ' -p ' + self.topologyfile + \
-                           ' -c ' + self.incoordfile + \
-                           ' -r ' + self.outcoordfile
+            self.command = (self.amber_exe +
+                            ' -i ' + self.infile +
+                            ' -o ' + self.outfile +
+                            ' -p ' + self.topologyfile +
+                            ' -c ' + self.incoordfile +
+                            ' -r ' + self.outcoordfile)
 
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
@@ -222,7 +222,7 @@ class Amber(FileIOCalculator):
 
         if filename == '':
             filename = self.outcoordfile
-        
+
         from scipy.io import netcdf
         import numpy as np
         import ase.units as units
@@ -234,13 +234,13 @@ class Amber(FileIOCalculator):
                 fin.variables['velocities'][:] / (1000 * units.fs))
 
         if 'cell_lengths' in fin.variables:
-            a, b, c = fin.variables['cell_lengths'][0], \
-                      fin.variables['cell_lengths'][1], \
-                      fin.variables['cell_lengths'][2],
+            a = fin.variables['cell_lengths'][0]
+            b = fin.variables['cell_lengths'][1]
+            c = fin.variables['cell_lengths'][2]
 
-            alpha, beta, gamma = fin.variables['cell_angles'][0], \
-                                 fin.variables['cell_angles'][1], \
-                                 fin.variables['cell_angles'][2],
+            alpha = fin.variables['cell_angles'][0]
+            beta = fin.variables['cell_angles'][1]
+            gamma = fin.variables['cell_angles'][2]
 
             if (all(angle > 89.99 for angle in [alpha, beta, gamma]) and
                 all(angle < 90.01 for angle in [alpha, beta, gamma])):
@@ -284,10 +284,9 @@ class Amber(FileIOCalculator):
         fout.write('# Output the topology file \n')
         fout.write('outparm ' + self.topologyfile + ' \n')
         fout.close()
-        parmed_command = \
-                        'parmed -O -i ' + parmed_filename + \
-                        ' -p ' + self.topologyfile + \
-                        ' > ' + self.topologyfile + '.log 2>&1'
+        parmed_command = ('parmed -O -i ' + parmed_filename +
+                          ' -p ' + self.topologyfile +
+                          ' > ' + self.topologyfile + '.log 2>&1')
         olddir = os.getcwd()
         try:
             os.chdir(self.directory)
