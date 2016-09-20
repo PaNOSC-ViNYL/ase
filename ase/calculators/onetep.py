@@ -9,7 +9,6 @@ Authors:
     Jörg Meyer, joerg.meyer@ch.tum.de
 """
 
-from __future__ import print_function
 from copy import deepcopy
 from os.path import isfile
 from numpy import array
@@ -17,6 +16,7 @@ from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.parallel import paropen
 from ase.units import Bohr, Hartree
 from ase import Atoms
+from warnings import warn
 
 
 __all__ = [
@@ -36,13 +36,13 @@ class Onetep(FileIOCalculator):
     # the onetep input file in the standard <key> : <value> format
     # for example the NGWF radius is used in the species block and isn't
     # written elsewhere in the input file
-    _dummy_parameters = ["NGWF_RADIUS", "XC"]
+    _dummy_parameters = ["ngwf_radius", "xc"]
 
-    default_parameters = {"CUTOFF_ENERGY": "1000 eV",
-                          "KERNEL_CUTOFF": "1000 bohr",
-                          "NGWF_RADIUS": 12.0}
+    default_parameters = {"cutoff_energy": "1000 eV",
+                          "kernel_cutoff": "1000 bohr",
+                          "ngwf_radius": 12.0}
 
-    name = "ONETEP"
+    name = "onetep"
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label=None, command=None, atoms=None, **kwargs):
@@ -67,7 +67,7 @@ class Onetep(FileIOCalculator):
 
         try:
             out = paropen(onetep_file, 'r')
-        except:
+        except IOError:
             raise ReadError("Could not open output file \"%s\"" % onetep_file)
 
         # keep track of what we've read in
@@ -102,9 +102,9 @@ class Onetep(FileIOCalculator):
         out.close()
 
         if warnings:
-            print("WARNING: %s contains warnings" % onetep_file)
+            warn("WARNING: %s contains warnings" % onetep_file)
             for warning in warnings:
-                print(warning)
+                warn(warning)
 
         if not (read_lattice and read_species and read_positions):
             raise ReadError("Failed to read in essential calculation"
@@ -121,7 +121,7 @@ class Onetep(FileIOCalculator):
 
         try:
             out = paropen(onetep_file, 'r')
-        except:
+        except IOError:
             raise ReadError("Could not open output file \"%s\"" % onetep_file)
 
         line = out.readline()
@@ -136,9 +136,9 @@ class Onetep(FileIOCalculator):
             line = out.readline()
 
         if warnings:
-            print("WARNING: %s contains warnings" % onetep_file)
+            warn("WARNING: %s contains warnings" % onetep_file)
             for warning in warnings:
-                print(warning)
+                warn(warning)
 
     def _read_lattice(self, out):
         """ read the lattice parameters out of a onetep .out formatted file
@@ -162,7 +162,7 @@ class Onetep(FileIOCalculator):
                 raise ReadError("Malfromed Lattice block line \"%s\"" % l)
             try:
                 axes.append([conv_fac*float(comp) for comp in p[0:3]])
-            except:
+            except ValueError:
                 raise ReadError("Can't parse line \"%s\" in axes block" % l)
             l = out.readline()
         self.atoms.set_cell(axes)
@@ -189,7 +189,7 @@ class Onetep(FileIOCalculator):
                 pos = suffix.split(None, 3)[0:3]
                 try:
                     pos = [conv_fac*float(p) for p in pos]
-                except:
+                except ValueError:
                     raise ReadError("Malformed position line \"%s\"", line)
                 symbols.append(atom)
                 positions.append(pos)
@@ -265,7 +265,7 @@ class Onetep(FileIOCalculator):
 
         self.species = []
         atoms = self.atoms
-        ngwf_radius = self.parameters['NGWF_RADIUS']
+        ngwf_radius = self.parameters['ngwf_radius']
         for sp in set(zip(atoms.get_atomic_numbers(),
                           atoms.get_chemical_symbols())):
             self.species.append((sp[1], sp[1], sp[0], -1, ngwf_radius))
@@ -304,15 +304,15 @@ class Onetep(FileIOCalculator):
             atoms = self.atoms
 
         if self.restart:
-            self.parameters['READ_TIGHTBOX_NGWFS'] = True
-            self.parameters['READ_DENSKERN'] = True
+            self.parameters['read_tightbox_ngwfs'] = True
+            self.parameters['read_denskern'] = True
 
         self._generate_species_block()
 
         self._write_dat()
 
     def get_forces(self, atoms=None):
-        self.parameters["WRITE_FORCES"] = True
+        self.parameters["write_forces"] = True
         return FileIOCalculator.get_forces(self, atoms)
 
     def _write_dat(self, force_write=True):
@@ -331,10 +331,10 @@ class Onetep(FileIOCalculator):
         if isfile(filename) and not force_write:
             raise Exception("Target input file already exists.")
 
-        if "XC" in parameters and "XC_FUNCTIONAL" in parameters \
-                and parameters["XC"] != parameters["XC_FUNCTIONAL"]:
+        if "xc" in parameters and "xc_functional" in parameters \
+                and parameters["xc"] != parameters["xc_functional"]:
             raise Exception("Conflicting functionals defined! %s vs. %s" %
-                            (parameters["XC"], parameters["XC_FUNCTIONAL"]))
+                            (parameters["xc"], parameters["xc_functional"]))
 
         fd = open(filename, 'w')
         fd.write('######################################################\n')
@@ -378,7 +378,7 @@ class Onetep(FileIOCalculator):
 
         for p in parameters:
             if parameters[p] is not None and \
-                    p.upper() not in self._dummy_parameters:
+                    p.lower() not in self._dummy_parameters:
                 fd.write('%s : %s\n' % (p, parameters[p]))
             if p.upper() == "XC":
                 # Onetep calls XC something else...

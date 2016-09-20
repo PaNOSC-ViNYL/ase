@@ -1,9 +1,8 @@
 from __future__ import print_function
-
 from ase.build import molecule
 from ase.calculators import onetep
 from os.path import isfile, dirname, abspath, join
-
+from ase.calculators.calculator import equal
 
 def main():
     mol = molecule('H2O')
@@ -21,14 +20,14 @@ def main():
             for suitable data. ONETEP takes PAW data sets in the
             abinit format. I need H.abinit and O.abinit""")
     calc.set_pseudos([('H', h_path), ('O', o_path)])
-    calc.set(PAW=True, xc="PBE")
+    calc.set(paw=True, xc="PBE")
     mol.set_calculator(calc)
     energy = mol.get_total_energy()
     ref_energy = -471.576999443
-    if abs(energy-ref_energy) < 1e-5:
-        print("Test passed.")
+    if equal(energy, ref_energy, 1e-8):
+        print("Passed: Expected energy: %.9f, got %.9f" % (ref_energy, energy))
     else:
-        raise Exception("Test failed. Expected energy %f, got %f"
-                        % (energy, ref_energy))
+        raise Exception("Test failed. Expected energy %.9f, got %.9f"
+                        % (ref_energy, energy))
 
 main()
