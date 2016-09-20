@@ -506,11 +506,11 @@ def read_castep_cell(fd, index=None):
 
             elif block_name == 'SPECIES_POT':
                 if not _fallback:
-                    tokens, l = get_tokens(lines, l)
+                    tokens, l = get_tokens(lines, l, has_species=True)
                     while tokens and not tokens[0].upper() == '%ENDBLOCK':
                         if len(tokens) == 2:
                             calc.cell.species_pot = tuple(tokens)
-                        tokens, l = get_tokens(lines, l)
+                        tokens, l = get_tokens(lines, l, has_species=True)
             elif block_name == 'IONIC_CONSTRAINTS':
 
                 while True:
