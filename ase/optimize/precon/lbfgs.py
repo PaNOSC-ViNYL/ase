@@ -31,7 +31,7 @@ class LBFGS(Optimizer):
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
                  use_line_search=True, master=None, precon='Exp',
                  use_armijo=True, c1=0.23, c2=0.46, variable_cell=False,
-                 rigid_units=None, rotation_factors=None):
+                 rigid_units=None, rotation_factors=None, Hinv=None):
         """Parameters:
 
         atoms: Atoms object
@@ -121,6 +121,8 @@ class LBFGS(Optimizer):
         self.H0 = 1. / alpha  # Initial approximation of inverse Hessian
                               # 1./70. is to emulate the behaviour of BFGS
                               # Note that this is never changed!
+        #LAM81
+        self.Hinv = Hinv
         self.damping = damping
         self.use_line_search = use_line_search
         self.p = None
@@ -198,7 +200,11 @@ class LBFGS(Optimizer):
             q -= a[i] * y[i]
 
         if self.precon is None:
-            z = H0 * q
+            #LAM81
+            if self.Hinv is not None:
+                z = np.dot(self.Hinv, q)
+            else:
+                z = H0 * q
         else:
             self.precon.make_precon(self.atoms)
             z = self.precon.solve(q)

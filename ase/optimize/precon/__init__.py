@@ -168,8 +168,8 @@ def estimate_nearest_neighbour_distance(atoms):
                 r_NN, time.time() - start_time)
     return r_NN
 
-from ase.optimize.precon.precon import Precon, Exp, C1, Pfrommer
+from ase.optimize.precon.precon import Precon, Exp, C1, Pfrommer, FF, Exp_FF
 from ase.optimize.precon.lbfgs import LBFGS
 from ase.optimize.precon.fire import FIRE
 
-__all__ = ['Precon', 'Exp', 'C1', 'Pfrommer', 'LBFGS', 'FIRE']
+__all__ = ['Precon', 'Exp', 'C1', 'Pfrommer', 'FF', 'Exp_FF', 'LBFGS', 'FIRE']
