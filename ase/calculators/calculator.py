@@ -409,6 +409,11 @@ class Calculator:
         if name == 'magmoms' and 'magmoms' not in self.results:
             return np.zeros(len(atoms))
 
+        if name not in self.results:
+            # For some reason the calculator was not able to do what we want,
+            # and that is OK.
+            raise NotImplementedError
+
         result = self.results[name]
         if isinstance(result, np.ndarray):
             result = result.copy()
