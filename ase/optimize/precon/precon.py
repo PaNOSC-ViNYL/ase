@@ -2,7 +2,6 @@
 Implementation of the Precon abstract base class and subclasses
 """
 import time
-import itertools
 
 import numpy as np
 
