@@ -41,7 +41,7 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
     
     # Make the new bundle directory
     os.mkdir(outbundle)
-    f = open(os.path.join(outbundle, 'metadata'), 'w')
+    f = open(os.path.join(outbundle, 'metadata'), 'wb')
     pickle.dump(metadata, f, -1)
     f.close()
     
@@ -76,9 +76,9 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             # has not changed, if the data is written in a fragmented
             # way AND it looks like we got such data from F0
             assert metadata['backend'] == "pickle"
-            f = open(os.path.join(inbundle, "F0", "smalldata.pickle"))
+            f = open(os.path.join(inbundle, "F0", "smalldata.pickle"), 'rb')
             data0 = pickle.load(f)
-            f = open(os.path.join(indir, "smalldata.pickle"))
+            f = open(os.path.join(indir, "smalldata.pickle"), 'rb')
             data1 = pickle.load(f)
             if (metadata['subtype'] == 'split' and
                 n_from_first >= data0['fragments']):
@@ -89,7 +89,7 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             data0.update(data1)  # Data in frame overrides data from frame 0.
             smallname = os.path.join(outdir, "smalldata.pickle")
             os.unlink(smallname)
-            f = open(smallname, "w")
+            f = open(smallname, "wb")
             pickle.dump(data0, f, -1)
             f.close()
     # Finally, write the number of frames
@@ -110,7 +110,7 @@ def read_bundle_info(name):
     if not os.path.isfile(metaname):
         raise IOError("'%s' does not appear to be a BundleTrajectory (no %s)"
                       % (name, metaname))
-    f = open(metaname)
+    f = open(metaname, 'rb')
     mdata = pickle.load(f)
     f.close()
     if 'format' not in mdata or mdata['format'] != 'BundleTrajectory':
