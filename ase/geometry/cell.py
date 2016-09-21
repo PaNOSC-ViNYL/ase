@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
@@ -103,18 +103,18 @@ def metric_from_cell(cell):
 
 
 def crystal_structure_from_cell(cell, eps=1e-4):
-    """Supply a cell (from atoms.get_cell()) and get a string representing
+    """Return the crystal structure as a string calculated from the cell.
+
+    Supply a cell (from atoms.get_cell()) and get a string representing
     the crystal structure returned. Works exactly the opposite
-    way as get_special_points().
+    way as ase.dft.kpoints.get_special_points().
 
-    Parameters
-    ----------
-
+    Parameters:
+    
     cell : numpy.array
         Array from atoms.get_cell()
 
-    Returns
-    -------
+    Returns:
 
     crystal structure : str
         Example: 'fcc'
