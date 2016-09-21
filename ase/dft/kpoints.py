@@ -1,10 +1,11 @@
 from __future__ import division
+import re
 import warnings
 from math import sin, cos, pi
 
 import numpy as np
 
-from ase.geometry import cell_to_cellpar
+from ase.geometry import cell_to_cellpar, crystal_structure_from_cell
 
 
 def monkhorst_pack(size):
@@ -72,7 +73,7 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
         raise KeyError('Either scaled or cartesian coordinates must be given.')
 
 
-def get_bandpath(points, cell, npoints=50):
+def bandpath(paths, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
     points: list
@@ -87,14 +88,27 @@ def get_bandpath(points, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
-    if isinstance(points, str):
-        x = crystal_structure_from_cell(cell)
-        special = get_special_points(x, cell)
-        points = [name for name in re.split(r'([A-Z][a-z0-9]*)', points)
-                  if name]
-    points = np.asarray(points)
+    if isinstance(paths, str):
+        xtal = crystal_structure_from_cell(cell)
+        special = get_special_points(xtal, cell)
+        strpaths = paths
+        paths = []
+        for path in strpaths.split(','):
+            names = (name if name != 'Gamma' else 'G'
+                     for name in re.split(r'([A-Z][a-z0-9]*)', path)
+                     if name)
+            paths.append([special[name] for name in names])
+    elif np.array(paths[0]).ndim == 1:
+        paths = [paths]
+        
+    points = np.concatenate(*paths)
     dists = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
+    i = 0
+    for path in paths[:-1]:
+        i += len(path)
+        lengths[i] = 0
+        
     length = sum(lengths)
     kpts = []
     x0 = 0
@@ -110,6 +124,9 @@ def get_bandpath(points, cell, npoints=50):
     kpts.append(points[-1])
     x.append(x0)
     return np.array(kpts), np.array(x), np.array(X)
+
+
+get_bandpath = bandpath  # old name
 
 
 special_points = {
