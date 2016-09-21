@@ -18,18 +18,6 @@ from scipy.io import netcdf
 class Amber(FileIOCalculator):
     """Class for doing Amber classical MM calculations.
 
-    Example:
-    mm.in:
-
-    Minimization with Cartesian restraints
-    &cntrl
-    imin=1, maxcyc=200, (invoke minimization)
-    ntpr=5, (print frequency)
-    &end
-
-
-
- 
     """
 
     implemented_properties = ['energy', 'forces']
@@ -70,7 +58,7 @@ class Amber(FileIOCalculator):
             It is only relevant
             if you run MD/optimisation many steps with amber.
 
-        Examples (optimise 2 water molecules in vacuum)
+        Example (optimise 2 water molecules in vacuum)
         ========
         You need three input files for this (with the names given):
         1) MD instructions for amber
@@ -82,21 +70,21 @@ class Amber(FileIOCalculator):
         3) topology file
         2h2o.top:
 
-    from ase.calculators.amber import Amber
-    from ase.optimize import BFGS
-    import ase.io as io
+        from ase.calculators.amber import Amber
+        from ase.optimize import BFGS
+        import ase.io as io
 
-    atoms = io.read('2h2o.pdb')
-    calc = Amber(amber_exe='sander -O ',
-        infile = 'mm.in', outfile = 'mm.out',
-        topologyfile = 'mm.top', incoordfile='mm.crd')
-    calc.write_coordinates(atoms, 'mm.crd')
-    atoms.set_calculator(calc)
-    dyn = BFGS(atoms, trajectory='mm.traj')
-    dyn.run(fmax=0.005)
-    e = atoms.get_potential_energy()
-    print ("FINAL ENERGY: "+ str(e) + " [eV]")
-   
+        atoms = io.read('2h2o.pdb')
+        calc = Amber(amber_exe='sander -O ',
+            infile = 'mm.in', outfile = 'mm.out',
+            topologyfile = 'mm.top', incoordfile='mm.crd')
+        calc.write_coordinates(atoms, 'mm.crd')
+        atoms.set_calculator(calc)
+        dyn = BFGS(atoms, trajectory='mm.traj')
+        dyn.run(fmax=0.005)
+        e = atoms.get_potential_energy()
+        print ("FINAL ENERGY: "+ str(e) + " [eV]")
+
 
         """
 
