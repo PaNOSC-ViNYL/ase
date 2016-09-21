@@ -169,7 +169,7 @@ class Infrared(Vibrations):
 
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
-        [forces_zero, dipole_zero] = pickle.load(open(name))
+        [forces_zero, dipole_zero] = pickle.load(open(name, 'rb'))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
@@ -181,13 +181,13 @@ class Infrared(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                [fminus, dminus] = pickle.load(open(name + '-.pckl'))
-                [fplus, dplus] = pickle.load(open(name + '+.pckl'))
+                [fminus, dminus] = pickle.load(open(name + '-.pckl', 'rb'))
+                [fplus, dplus] = pickle.load(open(name + '+.pckl', 'rb'))
                 if self.nfree == 4:
                     [fminusminus, dminusminus] = pickle.load(
-                        open(name + '--.pckl'))
+                        open(name + '--.pckl', 'rb'))
                     [fplusplus, dplusplus] = pickle.load(
-                        open(name + '++.pckl'))
+                        open(name + '++.pckl', 'rb'))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
                     fplus[a] += -fplus.sum(0)
