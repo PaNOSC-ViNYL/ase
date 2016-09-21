@@ -1,6 +1,4 @@
-import sys
-
-from ase.test import NotAvailable, must_raise
+from ase.test import must_raise
 
 import os
 from ase import Atom, Atoms

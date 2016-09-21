@@ -1,5 +1,4 @@
-import sys
-from ase.test import cli, NotAvailable
+from ase.test import cli
 from ase.db import connect
 
 cmd = """
