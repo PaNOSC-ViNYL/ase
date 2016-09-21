@@ -176,4 +176,4 @@ class Optimizer(Dynamics):
             pickle.dump(data, open(self.restart, 'wb'), protocol=2)
 
     def load(self):
-        return pickle.load(open(self.restart))
+        return pickle.load(open(self.restart, 'rb'))
