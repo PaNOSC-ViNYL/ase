@@ -111,13 +111,14 @@ def crystal_structure_from_cell(cell, eps=1e-4):
 
     Parameters:
     
-    cell : numpy.array
-        Array from atoms.get_cell()
+    cell : numpy.array or list
+        An array like atoms.get_cell()
 
     Returns:
 
     crystal structure : str
-        Example: 'fcc'
+        'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic',
+        'hexagonal' or 'monoclinic'
     """
     cellpar = cell_to_cellpar(cell=cell)
     abc = cellpar[:3]
