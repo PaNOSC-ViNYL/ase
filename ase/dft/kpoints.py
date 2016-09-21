@@ -87,6 +87,11 @@ def get_bandpath(points, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
+    if isinstance(points, str):
+        x = crystal_structure_from_cell(cell)
+        special = get_special_points(x, cell)
+        points = [name for name in re.split(r'([A-Z][a-z0-9]*)', points)
+                  if name]
     points = np.asarray(points)
     dists = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
