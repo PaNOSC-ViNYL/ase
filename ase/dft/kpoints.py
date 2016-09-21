@@ -100,15 +100,19 @@ def bandpath(paths, cell, npoints=50):
             paths.append([special[name] for name in names])
     elif np.array(paths[0]).ndim == 1:
         paths = [paths]
-        
-    points = np.concatenate(*paths)
+
+    print(paths)
+    points = np.concatenate(paths)
     dists = points[1:] - points[:-1]
+    print(points)
+    print(dists)
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
     i = 0
     for path in paths[:-1]:
         i += len(path)
         lengths[i] = 0
         
+    print(lengths)
     length = sum(lengths)
     kpts = []
     x0 = 0
