@@ -100,3 +100,46 @@ def metric_from_cell(cell):
     Cartesian system."""
     cell = np.asarray(cell, dtype=float)
     return np.dot(cell, cell.T)
+
+
+def crystal_structure_from_cell(cell, eps=1e-4):
+    """Supply a cell (from atoms.get_cell()) and get a string representing
+    the crystal structure returned. Works exactly the opposite
+    way as get_special_points().
+
+    Parameters
+    ----------
+
+    cell : numpy.array
+        Array from atoms.get_cell()
+
+    Returns
+    -------
+
+    crystal structure : str
+        Example: 'fcc'
+    """
+    cellpar = cell_to_cellpar(cell=cell)
+    abc = cellpar[:3]
+    angles = cellpar[3:] / 180 * pi
+    a, b, c = abc
+    alpha, beta, gamma = angles
+    if abc.ptp() < eps and abs(angles - pi / 2).max() < eps:
+        return 'cubic'
+    elif abc.ptp() < eps and abs(angles - pi / 3).max() < eps:
+        return 'fcc'
+    elif abc.ptp() < eps and abs(angles - np.arccos(-1 / 3)).max() < eps:
+        return 'bcc'
+    elif abs(a - b) < eps and abs(angles - pi / 2).max() < eps:
+        return 'tetragonal'
+    elif abs(angles - pi / 2).max() < eps:
+        return 'orthorhombic'
+    elif (abs(a - b) < eps and
+          abs(gamma - pi / 3 * 2) < eps and
+          abs(angles[:2] - pi / 2).max() < eps):
+        return 'hexagonal'
+    elif (c >= a and c >= b and alpha < pi / 2 and
+          abs(angles[1:] - pi / 2).max() < eps):
+        return 'monoclinic'
+    else:
+       raise ValueError('Cannot find crystal structure')
