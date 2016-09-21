@@ -6,13 +6,13 @@ environment variables
 """
 
 from ase.test.vasp import installed
-
-assert installed()
-
 from ase import Atoms
 from ase.calculators.vasp import Vasp
 from ase.io import read
 import numpy as np
+
+assert installed()
+
 
 def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
     """Replacement for old numpy.testing.utils.array_almost_equal."""
@@ -21,18 +21,17 @@ def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
 # simple test calculation of CO molecule
 d = 1.14
 co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
-              pbc=True)
+           pbc=True)
 co.center(vacuum=5.)
 
-calc = Vasp(
-            xc = 'PBE',
-            prec = 'Low',
-            algo = 'Fast',
-            ismear= 0,
-            sigma = 1.,
-            istart = 0,
-            lwave = False,
-            lcharg = False)
+calc = Vasp(xc='PBE',
+            prec='Low',
+            algo='Fast',
+            ismear=0,
+            sigma=1.,
+            istart=0,
+            lwave=False,
+            lcharg=False)
 
 co.set_calculator(calc)
 energy = co.get_potential_energy()
