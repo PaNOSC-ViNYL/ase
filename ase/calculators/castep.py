@@ -1517,7 +1517,7 @@ End CASTEP Interface Documentation
                 value = value.strip()
 
                 if (not overwrite and
-                    getattr(self.param, key).value is not None):
+                        getattr(self.param, key).value is not None):
                     continue
 
                 self.__setattr__(key, value)
@@ -2248,19 +2248,10 @@ class CastepCell(object):
                                                                   pos[1],
                                                                   pos[2]))
                 return
-            elif attr in ['cell_constraints']:
-                # put block type options here, that don't need special care
-                try:
-                    value = str(value)
-                except:
-                    raise ConversionError('str', attr, value)
             else:
-                print('Not implemented')
-                print('The option %s is of block type, which usually' % attr)
-                print('needs some special care to get the formattings right.')
-                print('Please feel free to add it and send the')
-                print('patch to %s, so we can all benefit.' % contact_email)
-                raise
+                # For generic, non-implemented blocks all we want is to
+                # store the lines and reprint them without any changes later
+                value = '\n'.join(value)
             self._options[attr].value = value
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'

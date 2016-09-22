@@ -294,9 +294,9 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
-                fd.write('\n%%ENDBLOCK %s\n' % option.keyword.upper())
+                fd.write('\n%%ENDBLOCK %s\n\n' % option.keyword.upper())
             else:
-                fd.write('%s : %s\n' % (option.keyword.upper(), option.value))
+                fd.write('%s : %s\n\n' % (option.keyword.upper(), option.value))
 
 #    fd.close()
     return True
@@ -536,10 +536,18 @@ def read_castep_cell(fd, index=None):
                                                            [x, y, z]))
 
             else:
-                print('Warning: the keyword %s is not' % tokens[1].upper())
+                print('Warning: the keyword %s is not' % block_name)
                 print('         interpreted in cell files')
-                while not tokens[0].upper() == '%ENDBLOCK':
+                # Just collect all lines
+                block_lines = []
+                while l < len(lines):
                     tokens, l = get_tokens(lines, l)
+                    if tokens[0].upper() == '%ENDBLOCK':
+                        break
+                    else:
+                        block_lines.append(lines[l-1].strip())
+                print('\n'.join(block_lines))
+                calc.__setattr__(block_name, block_lines)
                 # raise UserWarning
         else:
             key = tokens[0]
