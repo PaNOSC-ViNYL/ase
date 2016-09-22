@@ -334,12 +334,17 @@ It has the following methods:
   Change the mask.  Use with care, as you may "freeze" a
   fluctuation in the strain rate.
 
-.. method:: NPT.set_strainrate(eps):
+.. method:: NPT.set_strain_rate(eps):
 
   Set the strain rate.  ``eps`` must be an upper-triangular matrix.
   If you set a strain rate along a direction that is "masked out"
   (see ``set_mask``), the strain rate along that direction will be
   maintained constantly.
+
+.. method:: NPT.get_strain_rate():
+
+  Set the instantaneous strain rate (due to the fluctuations in the
+  shape of the computational box).
 
 .. method:: NPT.get_gibbs_free_energy():
 
