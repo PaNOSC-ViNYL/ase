@@ -22,7 +22,7 @@ test_calculator_names = []
 
 def require(calcname):
     if calcname not in test_calculator_names:
-        raise NotAvailable
+        raise NotAvailable('use --calculators={0} to enable'.format(calcname))
 
 
 class CustomTextTestRunner(unittest.TextTestRunner):
@@ -146,12 +146,6 @@ def test(verbosity=1, calculators=[],
 
 
 def disable_calculators(names):
-    def __init__(self, *args, **kwargs):
-        raise NotAvailable
-
-    def __del__(self):
-        pass
-
     for name in names:
         if name in ['emt', 'lj', 'eam', 'morse', 'tip3p']:
             continue
@@ -160,8 +154,16 @@ def disable_calculators(names):
         except ImportError:
             pass
         else:
-            cls.__init__ = __init__
-            cls.__del__ = __del__
+            def get_mock_init(name):
+                def mock_init(obj, *args, **kwargs):
+                    raise NotAvailable('use --calculators={0} to enable'
+                                       .format(name))
+                return mock_init
+
+            def mock_del(obj):
+                pass
+            cls.__init__ = get_mock_init(name)
+            cls.__del__ = mock_del
 
 
 def cli(command, calculator_name=None):
