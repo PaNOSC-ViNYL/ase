@@ -1,12 +1,12 @@
-def test():
+def window():
     import ase.gui.ui as ui
 
-    #ui.select_backend('test')
+    # ui.select_backend('test')
 
     def hello(event=None):
         print('hello')
 
-    menu = [('Hi', [('Hello', 'Ctrl+H', '', hello)])]
+    menu = [('Hi', [ui.MenuItem('_Hello', hello, 'Ctrl+H')])]
     win = ui.MainWindow('Test', menu=menu)
 
     win.add(ui.Label('Hello'))
@@ -34,7 +34,29 @@ def test():
 
     win.add([b, ui.Button('Hi', hi)])
 
+    return win
+
+
+def run():
+    win = window()
+    t = test(win)
+
+    def callback():
+        try:
+            next(t)
+        except StopIteration:
+            # win.close()
+            return
+        win.win.after_idle(callback)
+
+    win.win.after_idle(callback)
     win.run()
 
 
-test()
+def test(w):
+    w.things[1].on_press()
+    yield
+    w.things[1].on_press()
+
+
+run()

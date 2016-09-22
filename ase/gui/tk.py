@@ -1,14 +1,15 @@
 try:
+    # Python 3
     import tkinter as tk
     import tkinter.ttk as ttk
-    from tkinter.messagebox import askokcancel
+    from tkinter.messagebox import askokcancel as ask_question
 except ImportError:
+    # Python 2
     import Tkinter as tk
-    from tkMessageBox import askokcancel
+    from tkMessageBox import askokcancel as ask_question
 
 import re
 from functools import partial
-from gettext import gettext
 
 import numpy as np
 
@@ -16,17 +17,15 @@ import numpy as np
 font = ('Helvetica', 10)
 
 
-def ask_question(title, question):
-    return askokcancel(gettext(title), gettext(question))
-
-
 class BaseWindow:
     def __init__(self, title, close=None):
-        self.title = gettext(title)
+        self.title = title
         if close:
             self.win.protocol('WM_DELETE_WINDOW', close)
         else:
             self.win.protocol('WM_DELETE_WINDOW', self.close)
+
+        self.things = []
 
     def close(self):
         self.win.destroy()
@@ -48,6 +47,7 @@ class BaseWindow:
             frame.pack(anchor=anchor)
         else:
             stuff.pack(self.win, anchor=anchor)
+        self.things.append(stuff)
 
 
 class Window(BaseWindow):
@@ -60,7 +60,8 @@ class Widget(object):
     def pack(self, parent, side='top', anchor='center'):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
-        widget['font'] = font
+        if not isinstance(self, (Rows, RadioButtons)):
+            widget['font'] = font
 
     def grid(self, parent):
         widget = self.create(parent)
@@ -74,7 +75,7 @@ class Widget(object):
 
 class Label(Widget):
     def __init__(self, text):
-        self.creator = partial(tk.Label, text=gettext(text))
+        self.creator = partial(tk.Label, text=text)
 
 
 class Text(Widget):
@@ -92,20 +93,20 @@ class Text(Widget):
                 tags.pop()
             self.text.append((s[i + 1], tuple(tags)))
             i += 2
-            
+
     def create(self, parent):
         widget = Widget.create(self, parent)
         widget.tag_configure('sub', offset=-6)
         widget.tag_configure('c', foreground='blue')
         for text, tags in self.text:
-            widget.insert("insert", text, tags)
-        widget.configure(state="disabled")
+            widget.insert('insert', text, tags)
+        widget.configure(state='disabled')
         return widget
-        
-        
+
+
 class Button(Widget):
     def __init__(self, text, on_press, *args, **kwargs):
-        self.text = gettext(text)
+        self.text = text
         self.on_press = partial(on_press, *args, **kwargs)
 
     def create(self, parent):
@@ -114,7 +115,7 @@ class Button(Widget):
 
 class CheckButton(Widget):
     def __init__(self, text, value=False):
-        self.text = gettext(text)
+        self.text = text
         self.var = tk.BooleanVar(value=value)
 
     def create(self, parent):
@@ -228,7 +229,7 @@ class RadioButtons(Widget):
 class RadioButton(Widget):
     def __init__(self, label, i, var, callback):
         self.creator = partial(tk.Radiobutton,
-                               text=gettext(label),
+                               text=label,
                                var=var,
                                value=i,
                                command=callback)
@@ -280,22 +281,56 @@ class Rows(Widget):
         widget.destroy()
 
 
-def parse(name, key):
-    label = gettext(name)
-    name = name.replace('.', '').strip()
-    id = '-'.join(x.lower() for x in name.split())
-    underline = -1
-    if key[:4] == 'Ctrl':
-        key = key[-1].lower()
-        underline = label.lower().find(key)
-        keyname = '<Control-{0}>'.format(key)
-    else:
-        keyname = {'Home': '<Home>',
-                   'End': '<End>',
-                   'Page-Up': '<Prior>',
-                   'Page-Down': '<Next>',
-                   'Backspace': '<BackSpace>'}.get(key, key.lower())
-    return id, label, underline, keyname
+class MenuItem:
+    def __init__(self, label, callback=None, key=None,
+                 value=None, choices=None, submenu=None):
+        self.underline = label.find('_')
+        self.label = label.replace('_', '')
+
+        if key:
+            if key[:4] == 'Ctrl':
+                self.keyname = '<Control-{0}>'.format(key[-1].lower())
+            else:
+                self.keyname = {
+                    'Home': '<Home>',
+                    'End': '<End>',
+                    'Page-Up': '<Prior>',
+                    'Page-Down': '<Next>',
+                    'Backspace': '<BackSpace>'}.get(key, key.lower())
+
+        self.key = key
+        self.callback = callback
+        self.value = value
+        self.choices = choices
+        self.submenu = submenu
+
+    def addto(self, menu, window, stuff=None):
+        if self.label == '---':
+            menu.add_separator()
+        elif self.value is not None:
+            var = tk.BooleanVar(value=self.value)
+            stuff[self.callback.__name__.replace('_', '-')] = var
+            menu.add_checkbutton(label=self.label,
+                                 underline=self.underline,
+                                 command=self.callback,
+                                 accelerator=self.key,
+                                 var=var)
+        elif self.choices:
+            pass
+            # submenu.add_radio(label=_(subname), command=callback)
+        elif self.submenu:
+            submenu = tk.Menu(menu)
+            menu.add_cascade(label=self.label,
+                             menu=submenu)
+            for thing in self.submenu:
+                thing.addto(submenu, window)
+        else:
+            menu.add_command(label=self.label,
+                             underline=self.underline,
+                             command=self.callback,
+                             accelerator=self.key)
+        if self.key:
+            window.bind(self.keyname, self.callback)
 
 
 class MainWindow(BaseWindow):
@@ -307,7 +342,6 @@ class MainWindow(BaseWindow):
         # self.win.tk.call('tk', 'scaling', '-displayof', '.', 7)
 
         self.menu = {}
-        self.callbacks = {}
 
         if menu:
             self.create_menu(menu)
@@ -316,54 +350,11 @@ class MainWindow(BaseWindow):
         menu = tk.Menu(self.win, font=font)
         self.win.config(menu=menu)
 
-        for name, things in menu_description:
+        for label, things in menu_description:
             submenu = tk.Menu(menu, font=font)
-            label = gettext(name)
             menu.add_cascade(label=label, menu=submenu)
             for thing in things:
-                if thing == '---':
-                    submenu.add_separator()
-                    continue
-                subname, key, text, callback = thing[:4]
-                id, label, underline, keyname = parse(subname, key)
-                self.callbacks[id] = callback
-                if len(thing) == 4:
-                    submenu.add_command(label=label,
-                                        underline=underline,
-                                        command=callback,
-                                        accelerator=key)
-                    if key:
-                        #print(keyname, callback)
-                        self.win.bind(keyname, callback)
-                    continue
-
-                x = thing[4]
-                if isinstance(x, bool):
-                    on = x
-                    var = tk.BooleanVar(value=on)
-                    self.menu[id] = var
-                    submenu.add_checkbutton(label=label,
-                                            underline=underline,
-                                            command=callback,
-                                            accelerator=key,
-                                            var=var)
-
-                elif isinstance(x[0], str):
-                    pass  # hmm = x
-                    # submenu.add_radio(label=_(subname),
-                    #                   command=callback)
-                else:
-                    subsubmenu = tk.Menu(submenu)
-                    submenu.add_cascade(label=gettext(subname),
-                                        menu=subsubmenu)
-                    for subsubname, key, text, callback in x:
-                        id, label, underline, keyname = parse(subsubname, key)
-                        subsubmenu.add_command(label=label,
-                                               underline=underline,
-                                               command=callback,
-                                               accelerator=key)
-                        if key:
-                            self.win.bind(keyname, callback)
+                thing.addto(submenu, self.win, self.menu)
 
     def resize_event(self):
         # self.scale *= sqrt(1.0 * self.width * self.height / (w * h))

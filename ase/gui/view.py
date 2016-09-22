@@ -125,7 +125,7 @@ class View:
         return np.concatenate(R1), np.concatenate(R2)
 
     def make_box(self):
-        if not self.window['show-unit-cell']:
+        if not self.window['toggle-show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
             return
 
@@ -155,7 +155,7 @@ class View:
         self.B2.shape = (-1, 3)
 
     def bind(self, frame):
-        if not self.window['show-bonds']:
+        if not self.window['toggle-show-bonds']:
             self.bonds = np.empty((0, 5), int)
             return
 
@@ -344,7 +344,7 @@ class View:
         ColorWindow(self)
 
     def focus(self, x=None):
-        if self.images.natoms == 0 and not self.window['show-unit-cell']:
+        if self.images.natoms == 0 and not self.window['toggle-show-unit-cell']:
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
@@ -570,7 +570,7 @@ class View:
         X = np.dot(self.X, axes) - offset
         n = self.images.natoms
         self.indices = X[:, 2].argsort()
-        if self.window['show-bonds']:
+        if self.window['toggle-show-bonds']:
             r = self.images.r * (0.65 * self.scale)
         else:
             r = self.images.r * self.scale
@@ -581,8 +581,8 @@ class View:
         disp = (np.dot(self.images.D[self.frame], axes)).round().astype(int)
         d = (2 * r).round().astype(int)
 
-        vectors = (self.window['show-velocities'] or
-                   self.window['show-forces'])
+        vectors = (self.window['toggle-show-velocities'] or
+                   self.window['toggle-show-forces'])
         if vectors:
             V = np.dot(self.vectors[self.frame], axes)
 
@@ -633,7 +633,7 @@ class View:
                     line((X1[a, 0] + disp[0], X1[a, 1] + disp[1],
                           X2[a, 0] + disp[0], X2[a, 1] + disp[1]), width=bw)
 
-        if self.window['show-axes']:
+        if self.window['toggle-show-axes']:
             self.draw_axes()
 
         if self.images.nimages > 1:
