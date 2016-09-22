@@ -5,45 +5,55 @@ environment variables
 
 """
 
+from ase.test import NotAvailable
 from ase.test.vasp import installed
 from ase import Atoms
 from ase.calculators.vasp import Vasp
 from ase.io import read
 import numpy as np
-
-assert installed()
+import sys
 
 
 def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
     """Replacement for old numpy.testing.utils.array_almost_equal."""
     return (np.abs(a1 - a2) < tol).all()
 
-# simple test calculation of CO molecule
-d = 1.14
-co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
-           pbc=True)
-co.center(vacuum=5.)
 
-calc = Vasp(xc='PBE',
-            prec='Low',
-            algo='Fast',
-            ismear=0,
-            sigma=1.,
-            istart=0,
-            lwave=False,
-            lcharg=False)
+def main():
+    if sys.version < (2, 7):
+        raise NotAvailable('read_xml requires Python version 2.7 or greater')
 
-co.set_calculator(calc)
-energy = co.get_potential_energy()
-forces = co.get_forces()
+    assert installed()
 
-# check that parsing of vasprun.xml file works
-conf = read('vasprun.xml')
-assert conf.calc.parameters['kpoints_generation']
-assert conf.calc.parameters['sigma'] == 1.0
-assert conf.calc.parameters['ialgo'] == 68
-assert energy - conf.get_potential_energy() == 0.0
-assert array_almost_equal(conf.get_forces(), forces, tol=1e-4)
+    # simple test calculation of CO molecule
+    d = 1.14
+    co = Atoms('CO', positions=[(0, 0, 0), (0, 0, d)],
+               pbc=True)
+    co.center(vacuum=5.)
 
-# Cleanup
-calc.clean()
+    calc = Vasp(xc='PBE',
+                prec='Low',
+                algo='Fast',
+                ismear=0,
+                sigma=1.,
+                istart=0,
+                lwave=False,
+                lcharg=False)
+
+    co.set_calculator(calc)
+    energy = co.get_potential_energy()
+    forces = co.get_forces()
+
+    # check that parsing of vasprun.xml file works
+    conf = read('vasprun.xml')
+    assert conf.calc.parameters['kpoints_generation']
+    assert conf.calc.parameters['sigma'] == 1.0
+    assert conf.calc.parameters['ialgo'] == 68
+    assert energy - conf.get_potential_energy() == 0.0
+    assert array_almost_equal(conf.get_forces(), forces, tol=1e-4)
+
+    # Cleanup
+    calc.clean()
+
+if __name__ == '__main__':
+    main()
