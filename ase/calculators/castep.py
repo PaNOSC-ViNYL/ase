@@ -2214,26 +2214,23 @@ class CastepCell(object):
 #                    return
 
             elif attr == 'symmetry_ops':
-                if (not isinstance(value, dict) or
-                        'rotation' not in value or
-                        len(value['rotation']) != 3 or
-                        len(value['displacement']) != 3 or
-                        'displacement' not in value):
-                    print('Cannot process your symmetry_op %s' % value)
-                    print('It has statet like {"rotation":[a, b, c], ')
-                    print('                    "displacement": [x, y, z]}')
+                if not isinstance(value, tuple) \
+                   or not len(value) == 2 \
+                   or not value[0].shape[1:] == (3,3) \
+                   or not value[1].shape[1:] == (3,) \
+                   or not value[0].shape[0] == value[1].shape[0]:
+                    print('Invalid symmetry_ops block, skipping')
                     return
-                if self.__dict__['symmetry_ops'].value is None:
-                    self.__dict__['symmetry_ops'].value = ''
-                n = (len(self.__dict__['symmetry_ops'].value.split('\n')) /
-                     4) + 1
-                for i in range(3):
-                    self.__dict__['symmetry_ops'].value += \
-                        (('%9.6f ' * 3 + '! rotation     %5d\n') %
-                         (tuple(value['rotation'][i] + (n, ))))
-                self.__dict__['symmetry_ops'].value\
-                    += (('%9.6f ' * 3 + '! displacement %5d \n') %
-                        (tuple(value['displacement'] + (n, ))))
+                # Now on to print...
+                text_block = ''
+                for op_i, (op_rot, op_tranls) in enumerate(zip(*value)):
+                  text_block += '\n'.join([' '.join([str(x) for x in row])
+                                           for row in op_rot])
+                  text_block += '\n'
+                  text_block += ' '.join([str(x) for x in op_tranls])
+                  text_block += '\n'
+                value = text_block
+
             elif attr in ['positions_abs_intermediate',
                           'positions_abs_product']:
                 if not isinstance(value, ase.atoms.Atoms):
