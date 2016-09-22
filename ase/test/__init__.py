@@ -59,8 +59,11 @@ class ScriptTestCase(unittest.TestCase):
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
-        except NotAvailable:
+        except NotAvailable as notavailable:
             sys.__stdout__.write('skipped ')
+            msg = str(notavailable)
+            if msg:
+                sys.__stdout__.write('({0}) '.format(msg))
 
     def id(self):
         return self.filename
