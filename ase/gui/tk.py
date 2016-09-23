@@ -316,8 +316,17 @@ class MenuItem:
                                  accelerator=self.key,
                                  var=var)
         elif self.choices:
-            pass
-            # submenu.add_radio(label=_(subname), command=callback)
+            submenu = tk.Menu(menu)
+            menu.add_cascade(label=self.label,
+                             menu=submenu)
+            var = tk.IntVar()
+            var.set(0)
+            for i, choice in enumerate(self.choices):
+                submenu.add_radiobutton(label=choice.replace('_', ''),
+                                        underline=choice.find('_'),
+                                        command=self.callback,
+                                        value=i,
+                                        var=var)
         elif self.submenu:
             submenu = tk.Menu(menu)
             menu.add_cascade(label=self.label,
