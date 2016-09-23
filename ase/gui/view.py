@@ -196,7 +196,7 @@ class View:
         self.menu_change = 1
         self.atoms_to_rotate = None
         for c_mode in ['rotate', 'orient', 'move']:
-            self.window[c_mode + '-atoms'] = False
+            self.window['toggle-' + c_mode + '-mode'] = False
         self.light_green_markings = 0
         self.menu_change = 0
         self.draw()
@@ -298,16 +298,18 @@ class View:
             self.orient_normal = np.cross(v1, v2)
         self.orient_normal /= sum(self.orient_normal ** 2) ** 0.5
 
-    def show_labels(self, action, active):
-        an = active.get_name()
-        if an == "AtomIndex":
-            self.labels = [list(range(self.images.natoms))] * self.images.nimages
-        elif an == "NoLabel":
+    def show_labels(self):
+        index = self.window['show-labels']
+        if index == 0:
             self.labels = None
-        elif an == "MagMom":
+        elif index == 1:
+            self.labels = ([list(range(self.images.natoms))] *
+                           self.images.nimages)
+        elif index == 2:
             self.labels = self.images.M
-        elif an == "Element":
-            self.labels = [[chemical_symbols[x] for x in self.images.Z]] * self.images.nimages
+        else:
+            self.labels = [[chemical_symbols[x]
+                            for x in self.images.Z]] * self.images.nimages
 
         self.draw()
 

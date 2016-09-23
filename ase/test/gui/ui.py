@@ -4,9 +4,10 @@ def window():
     # ui.select_backend('test')
 
     def hello(event=None):
-        print('hello')
+        print('hello', event)
 
-    menu = [('Hi', [ui.MenuItem('_Hello', hello, 'Ctrl+H')])]
+    menu = [('Hi', [ui.MenuItem('_Hello', hello, 'Ctrl+H')]),
+            ('Hell_o', [ui.MenuItem('ABC', hello, choices='ABC')])]
     win = ui.MainWindow('Test', menu=menu)
 
     win.add(ui.Label('Hello'))

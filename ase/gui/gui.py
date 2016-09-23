@@ -118,16 +118,16 @@ class GUI(View, Status):
         dxdydz = {
             '+': ('zoom', 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01, 0),
             '-': ('zoom', 1 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01), 0),
-            'up': (0, +1 - CTRL, +CTRL),
+            'up': (0, 1 - CTRL, CTRL),
             'down': (0, -1 + CTRL, -CTRL),
-            'right': (+1, 0, 0),
+            'right': (1, 0, 0),
             'left': (-1, 0, 0)}.get(event.key, None)
 
         sel = []
 
-        atom_move = self.window['move-atoms']
-        atom_rotate = self.window['rotate-atoms']
-        atom_orient = self.window['orient-atoms']
+        atom_move = self.window['toggle-move-mode']
+        atom_rotate = self.window['toggle-rotate-mode']
+        atom_orient = self.window['toggle-orient-mode']
         if dxdydz is None:
             return
         dx, dy, dz = dxdydz
