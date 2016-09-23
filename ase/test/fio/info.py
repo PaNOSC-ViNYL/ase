@@ -8,16 +8,14 @@ class Foo(object):
         return int(self.value - other.value)
 
 
-if __name__ == '__main__':
-    from . import info  # import ourselves to make info.Foo reachable
-
+if 1:
     # Create a molecule with an info attribute
-    info = dict(creation_date='2011-06-27', 
+    info = dict(creation_date='2011-06-27',
                 chemical_name='Hydrogen',
                 # custom classes also works provided that it is
                 # imported and pickleable...
-                foo=info.Foo(7),  
-                )
+                foo=Foo(7))
+
     molecule = Atoms('H2', positions=[(0., 0., 0.), (0., 0., 1.1)], info=info)
     assert molecule.info == info
 
@@ -30,8 +28,7 @@ if __name__ == '__main__':
     traj.write()
     del traj
 
-    # Load molecule from trajectory 
+    # Load molecule from trajectory
     t = Trajectory('info.traj')
     atoms = t[-1]
     assert atoms.info == info
-

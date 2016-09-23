@@ -49,7 +49,7 @@ class TestCheckpoint(unittest.TestCase):
         self.assertEqual(a, op2a)
         self.assert_(np.abs(ra - op2ra).max() < 1e-5)
 
-        
+
 class TestCheckpointCalculator(unittest.TestCase):
 
     def rattle_calc(self, atoms, calc):
@@ -94,5 +94,5 @@ class TestCheckpointCalculator(unittest.TestCase):
         self.rattle_calc(atoms, calc)
 
 
-if __name__ == '__main__':
+if 1:
     unittest.main()

@@ -126,5 +126,5 @@ def test_castep_interface():
 
     print("Test finished without errors")
 
-if __name__ == '__main__':
+if 1:
     test_castep_interface()
