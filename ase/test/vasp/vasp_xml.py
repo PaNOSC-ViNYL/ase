@@ -20,7 +20,7 @@ def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
 
 
 def main():
-    if sys.version < (2, 7):
+    if sys.version_info < (2, 7):
         raise NotAvailable('read_xml requires Python version 2.7 or greater')
 
     assert installed()
