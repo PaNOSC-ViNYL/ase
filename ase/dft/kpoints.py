@@ -22,12 +22,12 @@ def get_monkhorst_pack_size_and_offset(kpts):
     Returns (size, offset), where::
 
         kpts = monkhorst_pack(size) + offset.
-    
+
     The set of k-points must not have been symmetry reduced."""
 
     if len(kpts) == 1:
         return np.ones(3, int), np.array(kpts[0], dtype=float)
-    
+
     size = np.zeros(3, int)
     for c in range(3):
         # Determine increment between k-points along current axis
@@ -46,7 +46,7 @@ def get_monkhorst_pack_size_and_offset(kpts):
         # All offsets must be identical:
         if (offsets.ptp(axis=0) < 1e-9).all():
             return size, offsets[0].copy()
-    
+
     raise ValueError('Not an ASE-style Monkhorst-Pack grid!')
 
 
@@ -111,7 +111,7 @@ def bandpath(paths, cell, npoints=50):
     for path in paths[:-1]:
         i += len(path)
         lengths[i] = 0
-        
+
     print(lengths)
     length = sum(lengths)
     kpts = []
@@ -131,6 +131,55 @@ def bandpath(paths, cell, npoints=50):
 
 
 get_bandpath = bandpath  # old name
+
+
+def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-4):
+    """Get an x-axis to be used when plotting a band structure.
+
+    The first of the returned lists can be used as a x-axis when plotting
+    the band structure. The second list can be used as xticks, and the third
+    as xticklabels.
+
+    Parameters:
+
+    kpts: list
+        List of scaled k-points.
+
+    cell: list
+        Unit cell of the atomic structure.
+
+    crystal_structure: str
+        Crystal structure of the atoms. If None is provided the crystal
+        structure is determined from the cell.
+
+    Returns:
+
+    Three arrays; the first is a list of cumulative distances between kpoints,
+    the second is x coordinates of the special points,
+    the third is the special points as strings.
+     """
+    # if crystal_structure is None:
+    #     crystal_structure = crystal_structure_from_cell(cell)
+    points = np.asarray(kpts)
+    diffs = points[1:] - points[:-1]
+    lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=diffs)]
+    x = np.append([0], np.cumsum(lengths))
+
+    xcoords_syms = []
+    for p, scaled_point in special_points[crystal_structure].items():
+        ldist = np.inf
+        xp = False
+        for xc, kp in zip(x, points):
+            dist = np.linalg.norm(kp - np.array(scaled_point))
+            if dist < eps and dist < ldist:
+                ldist = dist
+                xp = (xc, p)
+        if xp:
+            xcoords_syms.append(xp)
+
+    xcoords_syms.sort()
+    special_xcoords, syms = zip(*xcoords_syms)
+    return x, np.array(special_xcoords), np.array(syms)
 
 
 special_points = {
@@ -169,7 +218,7 @@ special_points = {
                   'L': [1 / 2, 0, 1 / 2],
                   'M': [1 / 2, 0, 0]}}
 
-        
+
 special_paths = {
     'cubic': [['G', 'X', 'M', 'G', 'R', 'X'], ['M', 'R']],
     'fcc': [['G', 'X', 'W', 'K', 'G', 'L', 'U', 'W', 'L', 'K'], ['U', 'X']],
@@ -186,12 +235,12 @@ special_paths = {
 
 def get_special_points(lattice, cell, eps=1e-4):
     """Return dict of special points.
-    
+
     The definitions are from a paper by Wahyu Setyawana and Stefano
     Curtarolo::
-        
+
         http://dx.doi.org/10.1016/j.commatsci.2010.05.010
-    
+
     lattice: str
         One of the following: cubic, fcc, bcc, orthorhombic, tetragonal,
         hexagonal or monoclinic.
@@ -200,15 +249,15 @@ def get_special_points(lattice, cell, eps=1e-4):
     eps: float
         Tolerance for cell-check.
     """
-    
+
     lattice = lattice.lower()
-    
+
     cellpar = cell_to_cellpar(cell=cell)
     abc = cellpar[:3]
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
     alpha, beta, gamma = angles
-    
+
     # Check that the unit-cells are as in the Setyawana-Curtarolo paper:
     if lattice == 'cubic':
         assert abc.ptp() < eps and abs(angles - pi / 2).max() < eps
@@ -228,10 +277,10 @@ def get_special_points(lattice, cell, eps=1e-4):
     elif lattice == 'monoclinic':
         assert c >= a and c >= b
         assert alpha < pi / 2 and abs(angles[1:] - pi / 2).max() < eps
-        
+
     if lattice != 'monoclinic':
         return special_points[lattice]
-    
+
     # Here, we need the cell:
     eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
     nu = 1 / 2 - eta * c * cos(alpha) / b
@@ -251,8 +300,8 @@ def get_special_points(lattice, cell, eps=1e-4):
             'Y': [0, 0, 1 / 2],
             'Y1': [0, 0, -1 / 2],
             'Z': [1 / 2, 0, 0]}
-        
-    
+
+
 # ChadiCohen k point grids. The k point grids are given in units of the
 # reciprocal unit cell. The variables are named after the following
 # convention: cc+'<Nkpoints>'+_+'shape'. For example an 18 k point
