@@ -352,7 +352,9 @@ class MainWindow(BaseWindow):
 
         for label, things in menu_description:
             submenu = tk.Menu(menu, font=font)
-            menu.add_cascade(label=label, menu=submenu)
+            menu.add_cascade(label=label.replace('_', ''),
+                             underline=label.find('_'),
+                             menu=submenu)
             for thing in things:
                 thing.addto(submenu, self.win, self.menu)
 
