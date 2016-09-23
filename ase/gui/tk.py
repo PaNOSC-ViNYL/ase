@@ -3,6 +3,7 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
+    from tkinter.messagebox import showerror as oops
 except ImportError:
     # Python 2
     import Tkinter as tk
@@ -97,6 +98,7 @@ class Text(Widget):
     def create(self, parent):
         widget = Widget.create(self, parent)
         widget.tag_configure('sub', offset=-6)
+        widget.tag_configure('sup', offset=6)
         widget.tag_configure('c', foreground='blue')
         for text, tags in self.text:
             widget.insert('insert', text, tags)
@@ -274,6 +276,7 @@ class Rows(Widget):
             row = Label(row)
         row.grid(self.widget)
         self.rows.append(row)
+        print(self.rows)
 
     def __delitem__(self, i):
         widget = self.rows.pop(i).widget
@@ -376,6 +379,19 @@ class MainWindow(BaseWindow):
     def run(self):
         tk.mainloop()
 
+    def test(self, test, close_after_test=False):
+        def callback():
+            try:
+                next(test)
+            except StopIteration:
+                if close_after_test:
+                    self.close()
+            else:
+                self.win.after_idle(callback)
+
+        self.win.after_idle(callback)
+        self.run()
+
     def __getitem__(self, name):
         return self.menu[name].get()
 
@@ -433,9 +449,7 @@ class ASEGUIWindow(MainWindow):
     def update_status_line(self, text):
         self.status.config(text=text)
 
-    def run(self, click):
-        if click:
-            self.win.after_idle(self.click, click)
+    def run(self):
         MainWindow.run(self)
 
     def click(self, name):

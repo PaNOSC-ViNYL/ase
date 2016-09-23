@@ -1,15 +1,18 @@
 # encoding: utf-8
 """nanotube.py - Window for setting up Carbon nanotubes and similar tubes.
 """
+from gettext import gettext as _
+
+import numpy as np
 
 import ase.gui.ui as ui
 from ase.gui.widgets import pack, cancel_apply_ok, oops
 from ase.gui.setupwindow import SetupWindow
-from ase.gui.pybutton import PyButton
+from ase.gui.pybutton import pybutton
 from ase.gui.status import formula
 from ase.build import nanotube
 import ase
-import numpy as np
+
 
 introtext = _("""\
 Set up a Carbon nanotube by specifying the (n,m) roll-up vector.
@@ -19,35 +22,30 @@ Nanotubes of other elements can be made by specifying the element
 and bond length.\
 """)
 
-py_template = """
+py_template = """\
 from ase.build import nanotube
-
-atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol='%(symb)s')
+atoms = nanotube({n}, {m}, length={length}, bond={bl:.3f}, symbol='{symb}')
 """
 
-label_template = _(u""" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %(volume).3f Å<sup>3</sup>""")
+label_template = _('{natoms} atoms: {symbols}, diameter: {diameter:.3f} Å, '
+                   'cell volume: {volume:.3f} Å<sup>3</sup>')
 
-class SetupNanotube(SetupWindow):
+
+class SetupNanotube:
     "Window for setting up a (Carbon) nanotube."
     def __init__(self, gui):
-        SetupWindow.__init__(self)
-        self.set_title(_("Nanotube"))
-        vbox = ui.VBox()
+        win = ui.Window(_("Nanotube"))
+        win.add(ui.Text(introtext))
 
-        # Intoductory text
-        self.packtext(vbox, introtext)
-           
-        # Choose the element and bond length
-        label1 = ui.Label(_("Element: "))
-        #label.set_alignment(0.0, 0.2)
-        self.element = ui.Entry(max=3)
-        self.element.set_text("C")
-        self.element.connect('activate', self.makeatoms)
-        self.bondlength = ui.Adjustment(1.42, 0.0, 1000.0, 0.01)
-        label2 = ui.Label(_("  Bond length: "))
-        label3 = ui.Label(_(u"Å"))
-        bond_box = ui.SpinButton(self.bondlength, 10.0, 3)
-        pack(vbox, [label1, self.element, label2, bond_box, label3])
+        self.element = ui.Entry('C', 3, self.make)
+        self.bondlength = ui.SpinBox(1.42, 0.0, 10.0, 0.01, self.make)
+
+        win.add([_("Element: "),
+                 self.element,
+                 _("  Bond length: "),
+                 self.bondlength,
+                 _(u"Å")])
+
         self.elementinfo = ui.Label("")
         self.elementinfo.modify_fg(ui.STATE_NORMAL,
                                    '#FF0000')
@@ -122,7 +120,7 @@ class SetupNanotube(SetupWindow):
         self.elementinfo.set_text("")
         self.legal_element = symb
         return True
-        
+
     def makeatoms(self, *args):
         self.update_element()
         if self.legal_element is None:

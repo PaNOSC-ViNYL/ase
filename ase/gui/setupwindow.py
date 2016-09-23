@@ -1,26 +1,3 @@
-# encoding: utf-8
-"""setupwindow.py - Window base class for setup modules.
-"""
-
-import ase.gui.ui as ui
-from ase.gui.widgets import pack
-import ase
-
-
-class SetupWindow:
-    "Base class for ase.gui setup windows."
-    # __init__ inherited from ui.Window
-
-    def packtext(self, vbox, text, label=None):
-        "Pack an text frame into the window."
-        pack(vbox, ui.Label(""))
-        txtframe = ui.Frame(label)
-        txtlbl = ui.Label(text)
-        txtframe.add(txtlbl)
-        txtlbl.show()
-        pack(vbox, txtframe)
-        pack(vbox, ui.Label(""))
-
     def update_element(self, *args):
         "Called when a new element may have been entered."
         # Assumes the element widget is self.element and that a label
@@ -53,12 +30,12 @@ class SetupWindow:
             struct = ref['symmetry']
             if struct == 'fcc' or struct == 'bcc':
                 struct = "%s (a=%.3f Å)" % (struct, ref['a'])
-        
+
         txt = "  %s: %s, Z=%i, %s" % (name, symb, z, struct)
         self.elementinfo.set_text(txt)
         self.legal_element = symb
         return True
-        
+
     def invalid_element(self, txt=_("  ERROR: Invalid element!")):
         self.legal_element = False
         self.elementinfo.set_text(txt)

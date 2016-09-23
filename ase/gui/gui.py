@@ -8,13 +8,14 @@ from gettext import gettext as _
 
 import numpy as np
 
-from ase import __version__
+from ase import __version__, Atoms
 import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.defaults import read_defaults
 from ase.gui.energyforces import EnergyForces
 from ase.gui.graphene import SetupGraphene
+from ase.gui.images import Images
 from ase.gui.minimize import Minimize
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
@@ -28,7 +29,7 @@ from ase.gui.widgets import pack, oops
 
 
 class GUI(View, Status):
-    def __init__(self, images,
+    def __init__(self, images=None,
                  rotations='',
                  show_unit_cell=True,
                  show_bonds=False):
@@ -39,6 +40,10 @@ class GUI(View, Status):
         # This will fail sometimes (e.g. for starting a new session)
         except:
             pass
+
+        if not images:
+            images = Images()
+            images.initialize([Atoms()])
 
         self.images = images
 
@@ -61,7 +66,7 @@ class GUI(View, Status):
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
 
-    def run(self, expr=None, click=None):
+    def run(self, expr=None, test=None):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
@@ -74,7 +79,10 @@ class GUI(View, Status):
         if expr is not None and expr != '' and self.images.nimages > 1:
             self.plot_graphs(expr=expr)
 
-        self.window.run(click)
+        if test:
+            self.window.test(test)
+        else:
+            self.window.run()
 
     def step(self, action):
         d = {'First': -10000000,

@@ -1,2 +1,12 @@
-import ase.gui.backend as be
-be.MainWindow(2345)
+from ase.gui.i18n import enable_localization
+enable_localization()
+from ase.gui.gui import GUI
+
+
+def test(gui):
+    yield
+    gui.exit()
+
+
+gui = GUI()
+gui.run(test=test(gui))

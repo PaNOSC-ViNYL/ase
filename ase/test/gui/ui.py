@@ -1,7 +1,7 @@
-def window():
-    import ase.gui.ui as ui
+import ase.gui.ui as ui
 
-    # ui.select_backend('test')
+
+def window():
 
     def hello(event=None):
         print('hello', event)
@@ -41,17 +41,7 @@ def window():
 def run():
     win = window()
     t = test(win)
-
-    def callback():
-        try:
-            next(t)
-        except StopIteration:
-            # win.close()
-            return
-        win.win.after_idle(callback)
-
-    win.win.after_idle(callback)
-    win.run()
+    win.test(t)
 
 
 def test(w):

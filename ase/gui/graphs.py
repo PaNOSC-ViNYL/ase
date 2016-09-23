@@ -52,16 +52,16 @@ class Graphs:
             self.expr.value = expr
 
         data = self.gui.images.graph(expr)
-        
+
         import matplotlib
         matplotlib.use('TkAgg')
-        
+
         process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
                                    stdin=subprocess.PIPE)
         pickle.dump((data, self.gui.frame, expr, type), process.stdin)
         process.stdin.close()
         self.gui.graphs.append(process)
-                   
+
     python = plot
 
     def save(self, filename):
@@ -102,7 +102,7 @@ def make_plot(data, i, expr, type):
             type = 'y'
         else:
             type = 'xy'
-            
+
     if type == 'y':
         for j in range(m):
             plt.plot(data[j])
@@ -114,7 +114,7 @@ def make_plot(data, i, expr, type):
     plt.title(expr)
     plt.show()
 
-    
+
 if __name__ == '__main__':
     fd = sys.stdin
     if sys.version_info[0] > 2:

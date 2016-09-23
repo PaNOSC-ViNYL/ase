@@ -60,7 +60,6 @@ def build_parser():
                       help='Scale covalent radii.')
     parser.add_option('-v', '--verbose', action='store_true',
                       help='Verbose mode.')
-    parser.add_option('--click')
     return parser
 
 
@@ -109,7 +108,7 @@ def main():
         else:
             from ase.gui.gui import GUI
             gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
-            gui.run(opt.graph, opt.click)
+            gui.run(opt.graph)
 
     try:
         run(opt, args)
