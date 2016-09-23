@@ -321,6 +321,7 @@ class MenuItem:
                              menu=submenu)
             var = tk.IntVar()
             var.set(0)
+            stuff[self.callback.__name__.replace('_', '-')] = var
             for i, choice in enumerate(self.choices):
                 submenu.add_radiobutton(label=choice.replace('_', ''),
                                         underline=choice.find('_'),
