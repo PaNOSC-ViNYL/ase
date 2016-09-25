@@ -6,7 +6,7 @@ from gettext import gettext as _
 import numpy as np
 
 import ase.gui.ui as ui
-from ase.gui.widgets import pack, cancel_apply_ok, oops
+from ase.gui.widgets import Element, oops
 from ase.gui.setupwindow import SetupWindow
 from ase.gui.pybutton import pybutton
 from ase.gui.status import formula
@@ -34,95 +34,32 @@ label_template = _('{natoms} atoms: {symbols}, diameter: {diameter:.3f} Å, '
 class SetupNanotube:
     "Window for setting up a (Carbon) nanotube."
     def __init__(self, gui):
-        win = ui.Window(_("Nanotube"))
-        win.add(ui.Text(introtext))
 
-        self.element = ui.Entry('C', 3, self.make)
+        self.element = Element('C', self.make)
         self.bondlength = ui.SpinBox(1.42, 0.0, 10.0, 0.01, self.make)
+        self.n = ui.SpinBox(5, 1, 100, 1, self.make)
+        self.m = ui.SpinBox(5, 0, 100, 1, self.make)
+        self.length = ui.SpinBox(1, 1, 100, 1, self.make)
 
-        win.add([_("Element: "),
-                 self.element,
-                 _("  Bond length: "),
+        win = ui.Window(_('Nanotube'))
+        win.add(ui.Text(introtext))
+        win.add(self.element)
+        win.add([_('Bond length: '),
                  self.bondlength,
-                 _(u"Å")])
+                 _(u'Å')])
+        win.add(_('Select roll-up vector (n,m) and tube length:'))
+        win.add(['n:', self.n,
+                 'm:', self.m,
+                 _('Length:'), self.length])
+        win.add([pybutton(_('Creating a nanoparticle.'), self, self.make),
+                 ui.Button(_('Apply'), self.apply),
+                 ui.Button(_('OK'), self.ok)])
 
-        self.elementinfo = ui.Label("")
-        self.elementinfo.modify_fg(ui.STATE_NORMAL,
-                                   '#FF0000')
-        pack(vbox, [self.elementinfo])
-        pack(vbox, ui.Label(""))
-
-        # Choose the structure.
-        pack(vbox, [ui.Label(_("Select roll-up vector (n,m) "
-                                "and tube length:"))])
-        label1 = ui.Label("n: ")
-        label2 = ui.Label("  m: ")
-        self.n = ui.Adjustment(5, 1, 100, 1)
-        self.m = ui.Adjustment(5, 0, 100, 1)
-        spinn = ui.SpinButton(self.n, 0, 0)
-        spinm = ui.SpinButton(self.m, 0, 0)
-        label3 = ui.Label(_("  Length: "))
-        self.length = ui.Adjustment(1, 1, 100, 1)
-        spinl = ui.SpinButton(self.length, 0, 0)
-        pack(vbox, [label1, spinn, label2, spinm, label3, spinl])
-        self.err = ui.Label("")
-        self.err.modify_fg(ui.STATE_NORMAL, '#FF0000')
-        pack(vbox, [self.err])
-        pack(vbox, ui.Label(""))
-
-        self.status = ui.Label("")
-        pack(vbox,[self.status])
-        pack(vbox,[ui.Label("")])
-
-        # Buttons
-        self.pybut = PyButton(_("Creating a nanoparticle."))
-        self.pybut.connect('clicked', self.makeatoms)
-        buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
-                               apply=self.apply,
-                               ok=self.ok)
-        pack(vbox, [self.pybut, buts], end=True, bottom=True)
-
-        # Finalize setup
-        self.makeatoms()
-        self.bondlength.connect('value-changed', self.makeatoms)
-        self.m.connect('value-changed', self.makeatoms)
-        self.n.connect('value-changed', self.makeatoms)
-        self.length.connect('value-changed', self.makeatoms)
-        self.add(vbox)
-        vbox.show()
-        self.show()
+        self.make()
         self.gui = gui
 
-    def update_element(self, *args):
-        "Called when a new element may have been entered."
-        # Assumes the element widget is self.element and that a label
-        # for errors is self.elementinfo.  The chemical symbol is
-        # placed in self.legalelement - or None if the element is
-        # invalid.
-        elem = self.element.get_text()
-        if not elem:
-            self.invalid_element(_("  No element specified!"))
-            return False
-        try:
-            z = int(elem)
-        except ValueError:
-            # Probably a symbol
-            try:
-                z = ase.data.atomic_numbers[elem]
-            except KeyError:
-                self.invalid_element()
-                return False
-        try:
-            symb = ase.data.chemical_symbols[z]
-        except KeyError:
-            self.invalid_element()
-            return False
-        self.elementinfo.set_text("")
-        self.legal_element = symb
-        return True
-
-    def makeatoms(self, *args):
-        self.update_element()
+    def make(self):
+        if self.element.symbol is None:
         if self.legal_element is None:
             self.atoms = None
             self.pybut.python = None

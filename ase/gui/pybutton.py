@@ -10,11 +10,13 @@ from gettext import gettext as _
 import ase.gui.ui as ui
 
 
-def pybutton(title, obj):
-    return ui.Button('Python', functools.partial(pywindow, title, obj))
+def pybutton(title, obj, callback):
+    return ui.Button('Python',
+                     functools.partial(pywindow, title, obj, callback))
 
 
-def pywindow(title, obj):
+def pywindow(title, obj, callback):
+    callback()
     code = obj.python
     if code is None:
         ui.oops(

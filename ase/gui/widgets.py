@@ -1,23 +1,47 @@
-from __future__ import print_function
-import sys
+from gettext import gettext as _
+
 import ase.gui.ui as ui
-import re
 
 
-def element():
-    return [
-class cancel_apply_ok:
-    "Widget with Cancel, Apply and OK buttons.  The arguments are callbacks."
-    def __init__(self, cancel, apply, ok):
-        ui.HButtonBox.__init__(self)
-        cancel_but = ui.Button('Cancel')
-        cancel_but.connect('clicked', cancel)
-        apply_but = ui.Button('Apply')
-        apply_but.connect('clicked', apply)
-        ok_but = ui.Button('OK')
-        ok_but.connect('clicked', ok)
-        for w in (cancel_but, apply_but, ok_but):
-            self.pack_start(w, 0, 0)
-            w.show()
-        # self.show_all()
+class Element(list):
+    def __init__(self, symbol='', callback=None):
+        list.__init__(self,
+                      [_('Element:'),
+                       ui.Entry(symbol, 3, self.enter),
+                       ui.Label()])
+        self.callback = callback
+        self._symbol = None
+        self._Z = None
+        
+    @property
+    def symbol(self):
+        self.check()
+        return self._symbol
 
+    @property    
+    def Z(self):
+        self.check()
+        return self._Z
+        
+    def check(self):
+        self._symbol = self[1].value
+        if not self._symbol:
+            self.error(_('No element specified!'))
+            return
+        self._Z = ase.data.atomic_numbers.get(self._symbol)
+        if self._Z is None:
+            try:
+                self._Z = int(self._symbol)
+            except ValueError:
+                self.error()
+                return
+            self._symbol = ase.data.chemical_symbols[_self.Z]
+            
+    def enter(self):
+        self.check()
+        self.callback()
+        
+    def error(self, text=_('ERROR: Invalid element!')):
+        self.symbol = None
+        self.Z = None
+        self[2].text = text
