@@ -17,8 +17,6 @@ def equal(x, y, tolerance=0, fail=True, msg=''):
         else:
             sys.stderr.write('WARNING: %s\n' % msg)
 
-
-# -------------------
 # FCOverlap
 
 fco = FranckCondonOverlap()
@@ -31,9 +29,8 @@ assert(fco.factorial(5) == factorial(5))
 # check T=0 and n=0 equality
 S = np.array([1, 2.1, 34])
 m = 5
-assert(((fco.directT0(m, S) - fco.direct(0, m, S)) / fco.directT0(m, S)
-        < 1e-15).all())
-#assert((fco.directT0(m, S) == fco.direct(0, m, S)).all())
+assert(((fco.directT0(m, S) - fco.direct(0, m, S)) / fco.directT0(m, S) <
+        1e-15).all())
 
 # check symmetry
 S = 2

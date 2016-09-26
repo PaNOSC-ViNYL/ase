@@ -26,13 +26,13 @@ class ResonantRaman(Vibrations):
     Excitations:
         Class to calculate the excitations. The class object is
         initialized as::
-            
+
             Excitations(atoms.get_calculator())
-            
+
         or by reading form a file as::
-            
+
             Excitations('filename', **exkwargs)
-            
+
         The file is written by calling the method
         Excitations.write('filename').
 
@@ -50,9 +50,7 @@ class ResonantRaman(Vibrations):
                  nfree=2,
                  directions=None,
                  approximation='Profeta',
-                 observation={
-                     'geometry' : '-Z(XX)Z',
-                 },
+                 observation={'geometry': '-Z(XX)Z'},
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
                  txt='-',
@@ -227,19 +225,18 @@ class ResonantRaman(Vibrations):
         Unit: |e|^2Angstrom^2/eV
         """
         self.read()
-        
+
         self.timer.start('AlbrechtA')
-        
+
         if not hasattr(self, 'fco'):
             self.fco = FranckCondonOverlap()
 
         # excited state forces
         F_pr = self.exF_rp.T
-        
+
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
- ##           print('S_r=', S_r)
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
             for m in ml:
@@ -248,23 +245,25 @@ class ResonantRaman(Vibrations):
                 self.timer.stop('0mm1')
                 self.timer.start('einsum')
                 m_rcc += np.einsum('a,bc->abc',
-                    fco_r / (energy + m * self.om_r - omega - 1j * gamma),
+                                   fco_r / (energy + m * self.om_r - omega -
+                                            1j * gamma),
                                    me_cc)
                 m_rcc += np.einsum('a,bc->abc',
-                    fco_r / (energy + (m - 1) * self.om_r + omega + 1j * gamma),
+                                   fco_r / (energy + (m - 1) * self.om_r +
+                                            omega + 1j * gamma),
                                    me_cc)
                 self.timer.stop('einsum')
 
         self.timer.stop('AlbrechtA')
         return m_rcc
 
-    def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml = [1], #ml=range(10),
+    def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml=[1],
                                       term='BC'):
         """Evaluate Albrecht B and/or C term(s)."""
         self.read()
-        
+
         self.timer.start('AlbrechtBC')
-        
+
         if not hasattr(self, 'fco'):
             self.fco = FranckCondonOverlap()
 
@@ -272,10 +271,9 @@ class ResonantRaman(Vibrations):
         F_pr = self.exF_rp.T
 
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-##        pre = 1. / (2 * self.delta)
         for p, energy in enumerate(self.ex0E_p):
             S_r = self.get_Huang_Rhys_factors(F_pr[p])
-            
+
             for m in ml:
                 self.timer.start('Franck-Condon overlaps')
                 fc1mm1_r = self.fco.direct(1, m, S_r)
@@ -284,7 +282,7 @@ class ResonantRaman(Vibrations):
                 # XXXXX
                 fc1mm1_r[-1] = 1
                 fc0mm02_r[-1] = 1
-                print(m, fc1mm1_r[-1], fc0mm02_r[-1]) 
+                print(m, fc1mm1_r[-1], fc0mm02_r[-1])
                 self.timer.stop('Franck-Condon overlaps')
 
                 self.timer.start('me dervivatives')
@@ -293,49 +291,55 @@ class ResonantRaman(Vibrations):
                 for a in self.indices:
                     for i in 'xyz':
                         dm_rc.append(
-                            (self.expm_rpc[r, p] - self.exmm_rpc[r, p])
-                            * self.im[r])
+                            (self.expm_rpc[r, p] - self.exmm_rpc[r, p]) *
+                            self.im[r])
                         print('pm=', self.expm_rpc[r, p], self.exmm_rpc[r, p])
                         r += 1
                 dm_rc = np.array(dm_rc) / (2 * self.delta)
                 self.timer.stop('me dervivatives')
 
                 self.timer.start('map to modes')
-##                print('dm_rc[2], dm_rc[5]', dm_rc[2], dm_rc[5])
+                # print('dm_rc[2], dm_rc[5]', dm_rc[2], dm_rc[5])
                 print('dm_rc=', dm_rc)
                 dm_rc = np.dot(dm_rc.T, self.modes.T).T
                 print('dm_rc[-1][2]', dm_rc[-1][2])
                 self.timer.stop('map to modes')
 
                 self.timer.start('multiply')
-##                me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
+                # me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
                 for r in range(self.ndof):
                     if 'B' in term:
                         # XXXX
                         denom = (1. /
-                    (energy + m * 0 * self.om_r[r] - omega - 1j * gamma))
-#### ok                        print('denom=', denom)
-                        m_rcc[r] += (np.outer(dm_rc[r], self.ex0m_pc[p].conj())
-                                     * fc1mm1_r[r] * denom)
+                                 (energy + m * 0 * self.om_r[r] -
+                                  omega - 1j * gamma))
+                        # ok print('denom=', denom)
+                        m_rcc[r] += (np.outer(dm_rc[r],
+                                              self.ex0m_pc[p].conj()) *
+                                     fc1mm1_r[r] * denom)
                         if r == 5:
-                            print('m_rcc[r]=', m_rcc[r][2,2])
-                        m_rcc[r] += (np.outer(self.ex0m_pc[p], dm_rc[r].conj())
-                                     * fc0mm02_r[r] * denom)
+                            print('m_rcc[r]=', m_rcc[r][2, 2])
+                        m_rcc[r] += (np.outer(self.ex0m_pc[p],
+                                              dm_rc[r].conj()) *
+                                     fc0mm02_r[r] * denom)
                     if 'C' in term:
                         denom = (1. /
-                    (energy + (m - 1) * self.om_r[r] + omega + 1j * gamma))
-                        m_rcc[r] += (np.outer(self.ex0m_pc[p], dm_rc[r].conj())
-                                     * fc1mm1_r[r] * denom)
-                        m_rcc[r] += (np.outer(dm_rc[r], self.ex0m_pc[p].conj())
-                                     * fc0mm02_r[r] * denom)
+                                 (energy + (m - 1) * self.om_r[r] +
+                                  omega + 1j * gamma))
+                        m_rcc[r] += (np.outer(self.ex0m_pc[p],
+                                              dm_rc[r].conj()) *
+                                     fc1mm1_r[r] * denom)
+                        m_rcc[r] += (np.outer(dm_rc[r],
+                                              self.ex0m_pc[p].conj()) *
+                                     fc0mm02_r[r] * denom)
                 self.timer.stop('multiply')
-        print('m_rcc[-1]=', m_rcc[-1][2,2])
+        print('m_rcc[-1]=', m_rcc[-1][2, 2])
 
         self.timer.start('pre_r')
         with np.errstate(divide='ignore'):
             pre_r = np.where(self.om_r > 0,
                              np.sqrt(units._hbar**2 / 2. / self.om_r), 0)
-##        print('BC: pre_r=', pre_r)
+            # print('BC: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             m_rcc[r] *= p
         self.timer.stop('pre_r')
@@ -353,15 +357,15 @@ class ResonantRaman(Vibrations):
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
         self.timer.stop('init')
-        
+
         def kappa(me_pc, e_p, omega, gamma, form='v'):
             """Kappa tensor after Profeta and Mauri
             PRB 63 (2001) 245415"""
             me_ccp = np.empty((3, 3, len(e_p)), dtype=complex)
             for p, me_c in enumerate(me_pc):
                 me_ccp[:, :, p] = np.outer(me_pc[p], me_pc[p].conj())
-###            print('kappa: me_ccp=', me_ccp[2,2,0])
-#### ok            print('kappa: den=', 1./(e_p - omega - 1j * gamma))
+                # print('kappa: me_ccp=', me_ccp[2,2,0])
+                # ok print('kappa: den=', 1./(e_p - omega - 1j * gamma))
             kappa_ccp = (me_ccp / (e_p - omega - 1j * gamma) +
                          me_ccp.conj() / (e_p + omega + 1j * gamma))
             return kappa_ccp.sum(2)
@@ -380,19 +384,19 @@ class ResonantRaman(Vibrations):
                         kappa(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
                 r += 1
         self.timer.stop('kappa')
-###        print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
+        # print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
 
         self.timer.stop('amplitudes')
-        
+
         # map to modes
         self.timer.start('pre_r')
         with np.errstate(divide='ignore'):
             pre_r = np.where(self.om_r > 0,
                              np.sqrt(units._hbar**2 / 2. / self.om_r), 0)
         V_rcc = np.dot(V_rcc.T, self.modes.T).T
-#### looks ok        print('self.modes.T[-1]',self.modes.T)
-#### looks ok       print('V_rcc[-1]=', V_rcc[-1][2,2])
-#### ok       print('Profeta: pre_r=', pre_r)
+        # looks ok        print('self.modes.T[-1]',self.modes.T)
+        # looks ok       print('V_rcc[-1]=', V_rcc[-1][2,2])
+        # ok       print('Profeta: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             V_rcc[r] *= p
         self.timer.stop('pre_r')
@@ -440,9 +444,9 @@ class ResonantRaman(Vibrations):
         if not self.observation:  # XXXX remove
             """Simple sum, maybe too simple"""
             return m2(alpha_rcc).sum(axis=1).sum(axis=1)
-## XXX enable when appropraiate
-##        if self.observation['orientation'].lower() != 'random':
-##            raise NotImplementedError('not yet')
+        # XXX enable when appropraiate
+        #        if self.observation['orientation'].lower() != 'random':
+        #            raise NotImplementedError('not yet')
 
         # random orientation of the molecular frame
         # Woodward & Long,
@@ -454,14 +458,12 @@ class ResonantRaman(Vibrations):
             m2(alpha_rcc[:, 0, 1] - alpha_rcc[:, 1, 0]) +
             m2(alpha_rcc[:, 0, 2] - alpha_rcc[:, 2, 0]) +
             m2(alpha_rcc[:, 1, 2] - alpha_rcc[:, 2, 1]))
-        gamma2_r = ( 3 / 4. * (
-            m2(alpha_rcc[:, 0, 1] + alpha_rcc[:, 1, 0]) +
-            m2(alpha_rcc[:, 0, 2] + alpha_rcc[:, 2, 0]) +
-            m2(alpha_rcc[:, 1, 2] + alpha_rcc[:, 2, 1]))
-                     + (
-            m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
-            m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
-            m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
+        gamma2_r = (3 / 4. * (m2(alpha_rcc[:, 0, 1] + alpha_rcc[:, 1, 0]) +
+                              m2(alpha_rcc[:, 0, 2] + alpha_rcc[:, 2, 0]) +
+                              m2(alpha_rcc[:, 1, 2] + alpha_rcc[:, 2, 1])) +
+                    (m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
+                     m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
+                     m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
 
         if self.observation['geometry'] == '-Z(XX)Z':  # Porto's notation
             return (45 * alpha2_r + 5 * delta2_r + 4 * gamma2_r) / 45.
@@ -484,7 +486,7 @@ class ResonantRaman(Vibrations):
     def get_cross_sections(self, omega, gamma=0.1):
         I_r = self.get_intensities(omega, gamma)
         pre = 1. / 16 / np.pi**2 / units.eps0**2 / units.c**4
-        # frequency of scattered light 
+        # frequency of scattered light
         omS_r = omega - self.hnu
         return pre * omega * omS_r**3 * I_r
 
@@ -695,4 +697,3 @@ class LrResonantRaman(ResonantRaman):
         self.expm_rpc = np.array(expm_rpc)
 
         self.timer.stop('me and energy')
-
