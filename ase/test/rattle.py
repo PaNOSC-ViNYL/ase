@@ -3,7 +3,8 @@ from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaHOH,
                                    set_tip3p_charges)
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.data.s22 import create_s22_system as s22
-from ase.md.verlet import VelocityVerlet, FixBondLengths
+from ase.md.verlet import VelocityVerlet
+from ase.constraints import FixBondLengths
 
 i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 

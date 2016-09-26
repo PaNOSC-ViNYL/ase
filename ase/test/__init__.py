@@ -22,8 +22,8 @@ test_calculator_names = []
 
 def require(calcname):
     if calcname not in test_calculator_names:
-        raise NotAvailable
-        
+        raise NotAvailable('use --calculators={0} to enable'.format(calcname))
+
 
 class CustomTextTestRunner(unittest.TextTestRunner):
     def __init__(self, logname, descriptions=1, verbosity=1):
@@ -55,12 +55,15 @@ class ScriptTestCase(unittest.TestCase):
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
-            if module in ['scipy', 'Scientific', 'lxml', 'flask']:
+            if module in ['scipy', 'Scientific', 'lxml', 'flask', 'gpaw']:
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
-        except NotAvailable:
+        except NotAvailable as notavailable:
             sys.__stdout__.write('skipped ')
+            msg = str(notavailable)
+            if msg:
+                sys.__stdout__.write('({0}) '.format(msg))
 
     def id(self):
         return self.filename
@@ -118,13 +121,13 @@ def test(verbosity=1, calculators=[],
 
     for a, b in versions:
         print('{0:16}{1}'.format(a, b))
-        
+
     sys.stdout = devnull
 
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
 
     origcwd = os.getcwd()
-    
+
     if testdir is None:
         testdir = tempfile.mkdtemp(prefix='ase-test-')
     else:
@@ -143,12 +146,6 @@ def test(verbosity=1, calculators=[],
 
 
 def disable_calculators(names):
-    def __init__(self, *args, **kwargs):
-        raise NotAvailable
-
-    def __del__(self):
-        pass
-        
     for name in names:
         if name in ['emt', 'lj', 'eam', 'morse', 'tip3p']:
             continue
@@ -157,8 +154,16 @@ def disable_calculators(names):
         except ImportError:
             pass
         else:
-            cls.__init__ = __init__
-            cls.__del__ = __del__
+            def get_mock_init(name):
+                def mock_init(obj, *args, **kwargs):
+                    raise NotAvailable('use --calculators={0} to enable'
+                                       .format(name))
+                return mock_init
+
+            def mock_del(obj):
+                pass
+            cls.__init__ = get_mock_init(name)
+            cls.__del__ = mock_del
 
 
 def cli(command, calculator_name=None):
@@ -166,23 +171,25 @@ def cli(command, calculator_name=None):
         calculator_name not in test_calculator_names):
         return
     error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    assert error == 0
-    
+    if error != 0:
+        raise RuntimeError('Failed running a shell command.  '
+                           'Please set you $PATH environment variable!')
+
 
 class must_raise:
     """Context manager for checking raising of exceptions."""
     def __init__(self, exception):
         self.exception = exception
-        
+
     def __enter__(self):
         pass
-        
+
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is None:
             raise RuntimeError('Failed to fail: ' + str(self.exception))
         return issubclass(exc_type, self.exception)
 
-            
+
 if __name__ == '__main__':
     # Run pyflakes3 on all code in ASE:
     try:

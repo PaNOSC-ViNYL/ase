@@ -28,7 +28,6 @@ class Atoms(object):
     periodically repeated structure.  It has a unit cell and
     there may be periodic boundary conditions along any of the three
     unit cell axes.
-
     Information about the atoms (atomic numbers and position) is
     stored in ndarrays.  Optionally, there can be information about
     tags, momenta, masses, magnetic moments and charges.
@@ -872,7 +871,7 @@ class Atoms(object):
             return Atom(atoms=self, index=i)
 
         import copy
-        from ase.constraints import FixConstraint
+        from ase.constraints import FixConstraint, FixBondLengths
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
@@ -887,7 +886,7 @@ class Atoms(object):
         atoms.constraints = copy.deepcopy(self.constraints)
         condel = []
         for con in atoms.constraints:
-            if isinstance(con, FixConstraint):
+            if isinstance(con, (FixConstraint, FixBondLengths)):
                 try:
                     con.index_shuffle(self, i)
                 except IndexError:
@@ -898,19 +897,27 @@ class Atoms(object):
 
     def __delitem__(self, i):
         from ase.constraints import FixAtoms
-        check_constraint = np.array([isinstance(c, FixAtoms)
-                                     for c in self._constraints])
-        if (len(self._constraints) > 0 and (not check_constraint.all() or
-                                            isinstance(i, list))):
-            raise RuntimeError('Remove constraint using set_constraint() '
-                               'before deleting atoms.')
+        for c in self._constraints:
+            if not isinstance(c, FixAtoms):
+                raise RuntimeError('Remove constraint using set_constraint() '
+                                   'before deleting atoms.')
+
+        if len(self._constraints) > 0:
+            n = len(self)
+            i = np.arange(n)[i]
+            if isinstance(i, int):
+                i = [i]
+            constraints = []
+            for c in self._constraints:
+                c = c.delete_atoms(i, n)
+                if c is not None:
+                    constraints.append(c)
+            self.constraints = constraints
+
         mask = np.ones(len(self), bool)
         mask[i] = False
         for name, a in self.arrays.items():
             self.arrays[name] = a[mask]
-        if len(self._constraints) > 0:
-            for n in range(len(self._constraints)):
-                self._constraints[n].delete_atom(range(len(mask))[i])
 
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""
@@ -1506,8 +1513,11 @@ class Atoms(object):
 
     def get_temperature(self):
         """Get the temperature in Kelvin."""
-        ekin = self.get_kinetic_energy() / len(self)
-        return ekin / (1.5 * units.kB)
+        dof = len(self) * 3
+        for constraint in self._constraints:
+            dof -= constraint.removed_dof
+        ekin = self.get_kinetic_energy()
+        return 2 * ekin / (dof * units.kB)
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.

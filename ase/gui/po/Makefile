@@ -54,7 +54,7 @@ compile: */LC_MESSAGES/ag.po
 	done
 
 gitrevert:
-	git checkout -- ag.pot */LC_MESSAGES/ag.po
+	git checkout -- ag.pot '*/LC_MESSAGES/ag.po'
 
 clean:
 	rm -f ./*/LC_MESSAGES/ag.mo

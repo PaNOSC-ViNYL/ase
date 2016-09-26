@@ -577,7 +577,7 @@ def print_trajectory_info(filename):
 
     Mainly intended to be called from a command line tool.
     """
-    f = open(filename)
+    f = open(filename, 'rb')
     hdr = 'PickleTrajectory'
     x = f.read(len(hdr))
     if x != hdr:

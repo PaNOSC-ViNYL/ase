@@ -5,7 +5,7 @@ http://www.abinit.org/
 
 import os
 from glob import glob
-from os.path import join, isfile, islink
+from os.path import join
 
 import numpy as np
 
@@ -65,7 +65,7 @@ class Abinit(FileIOCalculator):
     """
 
     implemented_properties = ['energy', 'forces', 'stress', 'magmom']
-    command = 'abinis < PREFIX.files > PREFIX.log'
+    command = 'abinit < PREFIX.files > PREFIX.log'
 
     default_parameters = dict(
         xc='LDA',
@@ -176,12 +176,14 @@ class Abinit(FileIOCalculator):
             inp['nband'] = param.nbands
             del inp['nbands']
 
-        if 'ixc' not in param:
-            inp['ixc'] = {'LDA': 7,
-                          'PBE': 11,
-                          'revPBE': 14,
-                          'RPBE': 15,
-                          'WC': 23}[param.xc]
+        # ixc is set from paw/xml file. Ignore 'xc' setting then.
+        if param.get('pps') not in ['pawxml']:
+            if 'ixc' not in param:
+                inp['ixc'] = {'LDA': 7,
+                              'PBE': 11,
+                              'revPBE': 14,
+                              'RPBE': 15,
+                              'WC': 23}[param.xc]
 
         magmoms = atoms.get_initial_magnetic_moments()
         if magmoms.any():
@@ -369,80 +371,79 @@ class Abinit(FileIOCalculator):
             xcname = 'LDA'
 
         pps = self.parameters.pps
-        if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw']:
+        if pps not in ['fhi', 'hgh', 'hgh.sc', 'hgh.k', 'tm', 'paw','pawxml']:
             raise ValueError('Unexpected PP identifier %s' % pps)
 
         for Z in self.species:
             symbol = chemical_symbols[abs(Z)]
             number = atomic_numbers[symbol]
-
-            if pps == 'fhi':
-                name = '%02d-%s.%s.fhi' % (number, symbol, xcname)
-            elif pps in ['paw']:
-                hghtemplate = '%s-%s-%s.paw'  # E.g. "H-GGA-hard-uspp.paw"
-                name = hghtemplate % (symbol, xcname, '*')
-            elif pps in ['hgh.k']:
-                hghtemplate = '%s-q%s.hgh.k'  # E.g. "Co-q17.hgh.k"
-                name = hghtemplate % (symbol, '*')
-            elif pps in ['tm']:
-                hghtemplate = '%d%s%s.pspnc'  # E.g. "44ru.pspnc"
-                name = hghtemplate % (number, symbol.lower(), '*')
-            elif pps in ['hgh', 'hgh.sc']:
-                hghtemplate = '%d%s.%s.hgh'  # E.g. "42mo.6.hgh"
-                # There might be multiple files with different valence
-                # electron counts, so we must choose between
-                # the ordinary and the semicore versions for some elements.
-                #
-                # Therefore we first use glob to get all relevant files,
-                # then pick the correct one afterwards.
-                name = hghtemplate % (number, symbol.lower(), '*')
+            names  = []
+            
+            for s in [ symbol, symbol.lower() ]:
+                for xcn in [ xcname, xcname.lower() ]:
+                    if pps == 'fhi':
+                        names.append('%02d-%s.%s.fhi' % (number, s, xcn))
+                        names.append('%02d[.-_]%s*.fhi'   % (number, s))
+                        names.append('%02d%s*.fhi'   % (number, s))
+                        names.append('%s[.-_]*.fhi'   % s)
+                    elif pps in ['paw']:
+                        hghtemplate = '%s-%s-%s.paw'  # E.g. "H-GGA-hard-uspp.paw"
+                        names.append(hghtemplate % (s, xcn, '*'))
+                        names.append('%s[.-_]*.paw'   % s)
+                    elif pps in ['pawxml']:
+                        hghtemplate = '%s.%s%s.xml'  # E.g. "H.GGA_PBE-JTH.xml"
+                        names.append(hghtemplate % (s, xcn, '*'))
+                        names.append('%s[.-_]*.xml'   % s)
+                    elif pps in ['hgh.k']:
+                        hghtemplate = '%s-q%s.hgh.k'  # E.g. "Co-q17.hgh.k"
+                        names.append(hghtemplate % (s, '*'))
+                        names.append('%s[.-_]*.hgh.k' % s)
+                        names.append('%s[.-_]*.hgh' % s)
+                    elif pps in ['tm']:
+                        hghtemplate = '%d%s%s.pspnc'  # E.g. "44ru.pspnc"
+                        names.append(hghtemplate % (number, s, '*'))
+                        names.append('%s[.-_]*.pspnc' % s)
+                    elif pps in ['hgh', 'hgh.sc']:
+                        hghtemplate = '%d%s.%s.hgh'  # E.g. "42mo.6.hgh"
+                        # There might be multiple files with different valence
+                        # electron counts, so we must choose between
+                        # the ordinary and the semicore versions for some elements.
+                        #
+                        # Therefore we first use glob to get all relevant files,
+                        # then pick the correct one afterwards.
+                        names.append(hghtemplate % (number, s, '*'))
+                        names.append('%d%s%s.hgh' % (number, s, '*'))
+                        names.append('%s[.-_]*.hgh' % s)
 
             found = False
-            for path in pppaths:
-                if (pps.startswith('paw') or
-                    pps.startswith('hgh') or
-                    pps.startswith('tm')):
+            for name in names:        # search for file names possibilities
+                for path in pppaths:  # in all available directories
                     filenames = glob(join(path, name))
                     if not filenames:
                         continue
-                    assert len(filenames) in [0, 1, 2]
                     if pps == 'paw':
-                        selector = max  # Semicore or hard
                         # warning: see download.sh in
                         # abinit-pseudopotentials*tar.gz for additional
                         # information!
-                        S = selector(
-                            [str(os.path.split(name)[1].split('-')[2][:-4])
-                             for name in filenames])
-                        name = hghtemplate % (symbol, xcname, S)
+                        filenames = max(filenames)  # Semicore or hard
                     elif pps == 'hgh':
-                        selector = min  # Lowest valence electron count
-                        Z = selector([int(os.path.split(name)[1].split('.')[1])
-                                      for name in filenames])
-                        name = hghtemplate % (number, symbol.lower(), str(Z))
+                        filenames = min(filenames)  # Lowest valence electron count
                     elif pps == 'hgh.k':
-                        selector = max  # Semicore - highest electron count
-                        Z = selector(
-                            [int(os.path.split(name)[1].split('-')[1][:-6][1:])
-                             for name in filenames])
-                        name = hghtemplate % (symbol, Z)
+                        filenames = max(filenames)  # Semicore - highest electron count
                     elif pps == 'tm':
-                        selector = max  # Semicore - highest electron count
-                        # currently only one version of psp per atom
-                        name = hghtemplate % (number, symbol.lower(), '')
-                    else:
-                        assert pps == 'hgh.sc'
-                        selector = max  # Semicore - highest electron count
-                        Z = selector([int(os.path.split(name)[1].split('.')[1])
-                                      for name in filenames])
-                        name = hghtemplate % (number, symbol.lower(), str(Z))
-                filename = join(path, name)
-                if isfile(filename) or islink(filename):
-                    found = True
-                    self.ppp_list.append(filename)
+                        filenames = max(filenames)  # Semicore - highest electron count
+                    elif pps == 'hgh.sc':
+                        filenames = max(filenames)  # Semicore - highest electron count
+
+                    if filenames:
+                        found = True
+                        self.ppp_list.append(filenames[0])
+                        break
+                if found:
                     break
+                    
             if not found:
-                raise RuntimeError('No pseudopotential for %s!' % symbol)
+                raise RuntimeError('No pseudopotential for %s !' % symbol)
 
     def get_number_of_iterations(self):
         return self.niter

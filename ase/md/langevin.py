@@ -1,8 +1,8 @@
 """Langevin dynamics class."""
 
-
 import numpy as np
 from numpy.random import standard_normal
+
 from ase.md.md import MolecularDynamics
 from ase.parallel import world
 
@@ -14,7 +14,7 @@ class Langevin(MolecularDynamics):
 
     atoms
         The list of atoms.
-        
+
     dt
         The time step.
 
@@ -31,28 +31,36 @@ class Langevin(MolecularDynamics):
     The temperature and friction are normally scalars, but in principle one
     quantity per atom could be specified by giving an array.
 
+    RATTLE constraints can be used with these propagators, see:
+    E. V.-Eijnden, and G. Ciccotti, Chem. Phys. Lett. 429, 310 (2006)
+
+    The propagator is Equation 23 (Eq. 39 if RATTLE constraints are used)
+    of the above reference.  That reference also contains another
+    propagator in Eq. 21/34; but that propagator is not quasi-symplectic
+    and gives a systematic offset in the temperature at large time steps.
+
     This dynamics accesses the atoms using Cartesian coordinates."""
-    
+
     # Helps Asap doing the right thing.  Increment when changing stuff:
-    _lgv_version = 2
-    
+    _lgv_version = 3
+
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1,
                  communicator=world):
         MolecularDynamics.__init__(self, atoms, timestep, trajectory,
                                    logfile, loginterval)
         self.temp = temperature
-        self.frict = friction
+        self.fr = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?
         self.communicator = communicator
         self.updatevars()
-        
+
     def set_temperature(self, temperature):
         self.temp = temperature
         self.updatevars()
 
     def set_friction(self, friction):
-        self.frict = friction
+        self.fr = friction
         self.updatevars()
 
     def set_timestep(self, timestep):
@@ -61,75 +69,73 @@ class Langevin(MolecularDynamics):
 
     def updatevars(self):
         dt = self.dt
-        # If the friction is an array some other constants must be arrays too.
-        self._localfrict = hasattr(self.frict, 'shape')
-        lt = self.frict * dt
+        T = self.temp
+        fr = self.fr
         masses = self.masses
-        sdpos = dt * np.sqrt(self.temp / masses.reshape(-1) *
-                             (2.0 / 3.0 - 0.5 * lt) * lt)
-        sdpos.shape = (-1, 1)
-        sdmom = np.sqrt(self.temp * masses.reshape(-1) * 2.0 * (1.0 - lt) * lt)
-        sdmom.shape = (-1, 1)
-        pmcor = np.sqrt(3.0) / 2.0 * (1.0 - 0.125 * lt)
-        cnst = np.sqrt((1.0 - pmcor) * (1.0 + pmcor))
+        sigma = np.sqrt(2 * T * fr / masses)
 
-        act0 = 1.0 - lt + 0.5 * lt * lt
-        act1 = (1.0 - 0.5 * lt + (1.0 / 6.0) * lt * lt)
-        act2 = 0.5 - (1.0 / 6.0) * lt + (1.0 / 24.0) * lt * lt
-        c1 = act1 * dt / masses.reshape(-1)
-        c1.shape = (-1, 1)
-        c2 = act2 * dt * dt / masses.reshape(-1)
-        c2.shape = (-1, 1)
-        c3 = (act1 - act2) * dt
-        c4 = act2 * dt
-        del act1, act2
-        if self._localfrict:
-            # If the friction is an array, so are these
-            act0.shape = (-1, 1)
-            c3.shape = (-1, 1)
-            c4.shape = (-1, 1)
-            pmcor.shape = (-1, 1)
-            cnst.shape = (-1, 1)
-        self.sdpos = sdpos
-        self.sdmom = sdmom
-        self.c1 = c1
-        self.c2 = c2
-        self.act0 = act0
-        self.c3 = c3
-        self.c4 = c4
-        self.pmcor = pmcor
-        self.cnst = cnst
-        # Also works in parallel Asap:
-        self.natoms = self.atoms.get_number_of_atoms() #GLOBAL number of atoms
+        self.c1 = dt / 2. - dt * dt * fr / 8.
+        self.c2 = dt * fr / 2 - dt * dt * fr * fr / 8.
+        self.c3 = np.sqrt(dt) * sigma / 2. - dt**1.5 * fr * sigma / 8.
+        self.c5 = dt**1.5 * sigma / (2 * np.sqrt(3))
+        self.c4 = fr / 2. * self.c5
+
+        # Works in parallel Asap, #GLOBAL number of atoms:
+        self.natoms = self.atoms.get_number_of_atoms()
 
     def step(self, f):
         atoms = self.atoms
-        p = self.atoms.get_momenta()
+        natoms = len(atoms)
 
-        random1 = standard_normal(size=(len(atoms), 3))
-        random2 = standard_normal(size=(len(atoms), 3))
+        # This velocity as well as xi, eta and a few other variables are stored
+        # as attributes, so Asap can do its magic when atoms migrate between
+        # processors.
+        self.v = atoms.get_velocities()
+
+        self.xi = standard_normal(size=(natoms, 3))
+        self.eta = standard_normal(size=(natoms, 3))
 
         if self.communicator is not None:
-            self.communicator.broadcast(random1, 0)
-            self.communicator.broadcast(random2, 0)
-        
-        rrnd = self.sdpos * random1
-        prnd = (self.sdmom * self.pmcor * random1 +
-                self.sdmom * self.cnst * random2)
+            self.communicator.broadcast(self.xi, 0)
+            self.communicator.broadcast(self.eta, 0)
 
+        # First halfstep in the velocity.
+        self.v += (self.c1 * f / self.masses - self.c2 * self.v +
+                   self.c3 * self.xi - self.c4 * self.eta)
+
+        # Full step in positions
+        x = atoms.get_positions()
         if self.fixcm:
-            rrnd = rrnd - np.sum(rrnd, 0) / len(atoms)
-            prnd = prnd - np.sum(prnd, 0) / len(atoms)
-            rrnd *= np.sqrt(self.natoms / (self.natoms - 1.0))
-            prnd *= np.sqrt(self.natoms / (self.natoms - 1.0))
+            old_cm = atoms.get_center_of_mass()
+        # Step: x^n -> x^(n+1) - this applies constraints if any.
+        atoms.set_positions(x + self.dt * self.v + self.c5 * self.eta)
+        if self.fixcm:
+            new_cm = atoms.get_center_of_mass()
+            d = old_cm - new_cm
+            # atoms.translate(d)  # Does not respect constraints
+            atoms.set_positions(atoms.get_positions() + d)
 
-        atoms.set_positions(atoms.get_positions() +
-                            self.c1 * p +
-                            self.c2 * f + rrnd)
-        p *= self.act0
-        p += self.c3 * f + prnd
-        atoms.set_momenta(p)
-                      
-        f = atoms.get_forces()
-        atoms.set_momenta(atoms.get_momenta() + self.c4 * f)
+        # recalc velocities after RATTLE constraints are applied
+        self.v = (self.atoms.get_positions() - x -
+                  self.c5 * self.eta) / self.dt
+        f = atoms.get_forces(md=True)
+
+        # Update the velocities
+        self.v += (self.c1 * f / self.masses - self.c2 * self.v +
+                   self.c3 * self.xi - self.c4 * self.eta)
+
+        if self.fixcm:  # subtract center of mass vel
+            v_cm = self._get_com_velocity()
+            self.v -= v_cm
+
+        # Second part of RATTLE taken care of here
+        atoms.set_momenta(self.v * self.masses)
+
         return f
+
+    def _get_com_velocity(self):
+        """Return the center of mass velocity.
+
+        Internal use only.  This function can be reimplemented by Asap.
+        """
+        return np.dot(self.masses.flatten(), self.v) / self.masses.sum()
