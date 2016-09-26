@@ -3,20 +3,19 @@ the folder"""
 
 from ase.units import Ry, eV
 from ase.calculators.siesta import Siesta
+from ase.calculators.siesta.siesta_raman import SiestaRaman
 from ase import Atoms
 import numpy as np
-import matplotlib.pyplot as plt
 
 # Define the systems
-Na8 = Atoms('Na8',
-            positions=[[-1.90503810, 1.56107288, 0.00000000],
-                       [1.90503810, 1.56107288, 0.00000000],
-                       [1.90503810, -1.56107288, 0.00000000],
-                       [-1.90503810, -1.56107288, 0.00000000],
-                       [0.00000000, 0.00000000, 2.08495836],
-                       [0.00000000, 0.00000000, -2.08495836],
-                       [0.00000000, 3.22798122, 2.08495836],
-                       [0.00000000, 3.22798122, -2.08495836]],
+# example of Raman calculation for CO2 molecule,
+# comparison with QE calculation can be done from
+# https://github.com/maxhutch/quantum-espresso/blob/master/PHonon/examples/example15/README
+
+CO2 = Atoms('CO2',
+            positions=[[-0.009026, -0.020241, 0.026760],
+                       [1.167544, 0.012723, 0.071808],
+                       [-1.185592, -0.053316, -0.017945]],
             cell=[20, 20, 20])
 
 # enter siesta input
@@ -34,7 +33,6 @@ siesta = Siesta(
         'DM.MixingWeight': 0.01,
         'MaxSCFIterations': 300,
         'DM.NumberPulay': 4})
-
 
 mbpt_inp = {'prod_basis_type': 'MIXED',
             'solver_type': 1,
@@ -67,13 +65,10 @@ mbpt_inp = {'prod_basis_type': 'MIXED',
             'gwa_initialization': 'SIESTA_PB'}
 
 
-Na8.set_calculator(siesta)
-e = Na8.get_potential_energy()
-freq, pol = siesta.get_polarizability(mbpt_inp,
-                                      format_output='txt',
-                                      units='nm**2')
+CO2.set_calculator(siesta)
 
-# plot polarizability
-plt.plot(freq, pol[:, 0, 0].im)
+ram = SiestaRaman(CO2, siesta, mbpt_inp)
+ram.run()
+ram.summary(intensity_unit_ram='A^4 amu^-1')
 
-plt.show()
+ram.write_spectra(start=200)
