@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""This module defines an interface to ONETEP for
-    use by the ASE (Webpage: http://wiki.fysik.dtu.dk/ase)
+"""This module defines an interface to ONETEP for use by the ASE.
 
 Authors:
     Edward Tait, ewt23@cam.ac.uk
@@ -11,12 +10,14 @@ Authors:
 
 from copy import deepcopy
 from os.path import isfile
+from warnings import warn
+
 from numpy import array
+
+from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.parallel import paropen
 from ase.units import Bohr, Hartree
-from ase import Atoms
-from warnings import warn
 
 
 __all__ = ['Onetep']
@@ -160,7 +161,7 @@ class Onetep(FileIOCalculator):
             try:
                 axes.append([conv_fac * float(comp) for comp in p[0:3]])
             except ValueError:
-                raise ReadError('Can't parse line "%s" in axes block' % l)
+                raise ReadError("Can't parse line \"%s\" in axes block" % l)
             l = out.readline()
         self.atoms.set_cell(axes)
 

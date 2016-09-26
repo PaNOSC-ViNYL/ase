@@ -183,7 +183,7 @@ Contents
    :target: ase/calculators/octopus.html
    :align: middle
 .. |onetep| image:: static/onetep.png
-   :target: ase/calculators/onetep.html
+   :target: http://www.onetep.org/
    :align: middle
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
