@@ -6,7 +6,6 @@ from gettext import gettext as _
 import ase.gui.ui as ui
 from ase.gui.widgets import Element
 from ase.gui.pybutton import pybutton
-from ase.gui.status import formula
 from ase.build import nanotube
 
 
@@ -23,8 +22,8 @@ from ase.build import nanotube
 atoms = nanotube({n}, {m}, length={length}, bond={bl:.3f}, symbol='{symb}')
 """
 
-label_template = _('{natoms} atoms: {symbols}, diameter: {diameter:.3f} Å, '
-                   'cell volume: {volume:.3f} Å<sup>3</sup>')
+label_template = _('{natoms} atoms, diameter: {diameter:.3f} Å, '
+                   'total length: {total_length:.3f} Å')
 
 
 class SetupNanotube:
@@ -61,6 +60,7 @@ class SetupNanotube:
         if symbol is None:
             self.atoms = None
             self.python = None
+            self.description.text = ''
             return
 
         n = self.n.value
@@ -70,12 +70,11 @@ class SetupNanotube:
         self.atoms = nanotube(n, m, length=length, bond=bl, symbol=symbol)
         self.python = py_template.format(n=n, m=m, length=length,
                                          symb=symbol, bl=bl)
-        label = label_template % {
-            'natoms': len(self.atoms),
-            'symbols': formula(self.atoms.get_atomic_numbers()),
-            'volume': self.atoms.get_volume(),
-            'diameter': self.atoms.get_cell()[0][0] / 2}
-        self.description.value = label
+        label = label_template.format(
+            natoms=len(self.atoms),
+            total_length=self.atoms.cell[2, 2],
+            diameter=self.atoms.cell[0, 0] / 2)
+        self.description.text = label
 
     def apply(self):
         self.make()
