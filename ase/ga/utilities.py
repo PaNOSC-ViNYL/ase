@@ -187,7 +187,7 @@ def get_nndist(atoms, distance_matrix):
     return dists[np.argmax(rdf)]
 
 
-def get_nnmat(atoms):
+def get_nnmat(atoms, mic=False):
     """
     Calculate the nearest neighbor matrix as specified in
     S. Lysgaard et al., Top. Catal., 2014, 57 (1-4), pp 33-39
@@ -205,12 +205,12 @@ def get_nnmat(atoms):
     it makes sense to calculate nnmat along with e.g. the
     potential energy and save it in atoms.info['data']['nnmat'].
     """
-    if 'nnmat' in atoms.info['data']:
+    if 'data' in atoms.info and 'nnmat' in atoms.info['data']:
         return atoms.info['data']['nnmat']
     elements = sorted(set(atoms.get_chemical_symbols()))
     nnmat = np.zeros((len(elements), len(elements)))
     # dm = get_distance_matrix(atoms)
-    dm = atoms.get_all_distances()
+    dm = atoms.get_all_distances(mic=mic)
     nndist = get_nndist(atoms, dm) + 0.2
     for i in range(len(atoms)):
         row = [j for j in range(len(elements))
