@@ -42,7 +42,7 @@ Supported :mod:`Calculators <ase.calculators>`:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
+|octopus| |onetep| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
 :mod:`~ase.calculators.tip3p` Grimme-D3_
 
 
@@ -181,6 +181,9 @@ Contents
    :align: middle
 .. |octopus| image:: static/octopus.png
    :target: ase/calculators/octopus.html
+   :align: middle
+.. |onetep| image:: static/onetep.png
+   :target: ase/calculators/onetep.html
    :align: middle
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
