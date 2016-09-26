@@ -364,10 +364,6 @@ Physical Review A 41, p. 4552 (1990).
 
 [4] F. D. Di Tolla and M. Ronchetti, Physical Review E 48, p. 1726 (1993).
 
-.. seealso::
-
-   The API documentation: :epydoc:`ase.md`
-
 
 Berendsen NPT dynamics
 -----------------------

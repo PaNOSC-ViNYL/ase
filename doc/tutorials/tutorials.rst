@@ -38,8 +38,8 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    ga/ga_optimize
    ga/ga_fcc_alloys
    defects/defects
- 
-   
+
+
 NumPy
 -----
 
@@ -57,7 +57,6 @@ Further reading
 For more details:
 
 * Look at the documentation for the individual :mod:`modules <ase>`.
-* See the automatically generated documentation ``Epydoc``: :epydoc:`ase`.
 * Browse the :git:`source code <>` online.
 
 
