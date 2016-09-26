@@ -1,7 +1,6 @@
 from ase.build import molecule
 from ase.calculators.onetep import Onetep
 from os.path import isfile, dirname, abspath, join
-from ase.test import equal
 
 mol = molecule('H2O')
 mol.center(8)
@@ -20,6 +19,7 @@ if not (isfile(h_path) and isfile(o_path)):
 calc.set_pseudos([('H', h_path), ('O', o_path)])
 calc.set(paw=True, xc='PBE')
 mol.set_calculator(calc)
+
 energy = mol.get_total_energy()
 ref_energy = -471.576999443
-equal(energy, ref_energy, 1e-8)
+assert abs(energy - ref_energy) < 1e-8
