@@ -10,6 +10,7 @@ import re
 import numpy as np
 
 import ase
+from ase.spacegroup import Spacegroup
 from ase.constraints import FixAtoms, FixCartesian, FixedLine
 from ase.parallel import paropen
 
@@ -294,9 +295,10 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
-                fd.write('\n%%ENDBLOCK %s\n' % option.keyword.upper())
+                fd.write('\n%%ENDBLOCK %s\n\n' % option.keyword.upper())
             else:
-                fd.write('%s : %s\n' % (option.keyword.upper(), option.value))
+                fd.write('%s : %s\n\n' % (option.keyword.upper(),
+                                          option.value))
 
 #    fd.close()
     return True
@@ -395,6 +397,8 @@ def read_castep_cell(fd, index=None):
     # Array for custom species (a CASTEP special thing)
     # Usually left unused
     custom_species = None
+    # Spacegroup, only if SYMMETRY_OPS is found
+    atoms_spg = None
 
     # A convenient function that extracts this info from a line fragment
     def get_add_info(ai_arrays, line=''):
@@ -534,12 +538,67 @@ def read_castep_cell(fd, index=None):
                         raw_constraints[(species, nic)] = []
                     raw_constraints[(species, nic)].append(np.array(
                                                            [x, y, z]))
+            elif block_name == 'SYMMETRY_OPS':
+                # Parse the symmetry operations, create a spacegroup
+                rotations = []
+                translations = []
+                while tokens[0].upper() != '%ENDBLOCK':                    
+                    # Read in blocks of four
+                    for i in range(4):
+                        tokens, l = get_tokens(lines, l)
+                        if tokens[0].upper() == '%ENDBLOCK':
+                            break
+                        if i == 0:
+                            rotations.append([])
+                        if i < 3:
+                            rotations[-1].append([float(x)
+                                                  for x in tokens[:3]])
+                        else:
+                            translations.append([float(x)
+                                                 for x in tokens[:3]])
+
+                rotations = np.sort(rotations, axis=0)
+                translations = np.sort(translations, axis=0)
+                if rotations.shape[1:] != (3,3) or \
+                   translations.shape[1:] != (3,):
+                    print ('Warning: could not parse SYMMETRY_OPS'
+                           ' block properly, skipping')
+                    continue
+
+                # Now on to find the actual symmetry!
+                for spg_n in range(1, 231):
+                    test_spg = Spacegroup(spg_n)
+                    test_symops = test_spg.get_op()
+                    test_symops[0].sort(axis=0)
+                    test_symops[1].sort(axis=0)
+                    # And test!
+                    try:
+                        found = np.allclose(test_symops[0], rotations) and \
+                                np.allclose(test_symops[1], translations)
+                    except ValueError:
+                        found = False
+                    if found:
+                        # We got it!
+                        atoms_spg = test_spg
+                if atoms_spg is None:
+                    # All failed...
+                    print('Could not identify Spacegroup from SYMMETRY_OPS,'
+                          ' skipping')
+                else:
+                    calc.__setattr__(block_name, (rotations, translations))
 
             else:
-                print('Warning: the keyword %s is not' % tokens[1].upper())
+                print('Warning: the keyword %s is not' % block_name)
                 print('         interpreted in cell files')
-                while not tokens[0].upper() == '%ENDBLOCK':
+                # Just collect all lines
+                block_lines = []
+                while l < len(lines):
                     tokens, l = get_tokens(lines, l)
+                    if tokens[0].upper() == '%ENDBLOCK':
+                        break
+                    else:
+                        block_lines.append(lines[l-1].strip())
+                calc.__setattr__(block_name, block_lines)
                 # raise UserWarning
         else:
             key = tokens[0]
@@ -573,6 +632,10 @@ def read_castep_cell(fd, index=None):
             positions=pos,
             symbols=spec,
             magmoms=magmom)
+
+    # Spacegroup...
+    if atoms_spg is not None:
+        atoms.info['spacegroup'] = atoms_spg
 
     atoms.new_array('castep_labels', labels)
     if custom_species is not None:
