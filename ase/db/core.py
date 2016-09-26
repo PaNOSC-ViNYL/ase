@@ -143,21 +143,17 @@ def lock(method):
 
 
 def convert_str_to_int_float_or_str(value):
+    """Safe eval()"""
     try:
         return int(value)
     except ValueError:
-        return convert_str_to_float_or_str(value)
+        try:
+            value = float(value)
+        except ValueError:
+            value = {'True': 1.0, 'False': 0.0}.get(value, value)
+        return value
 
 
-def convert_str_to_float_or_str(value):
-    """Safe eval()"""
-    try:
-        value = float(value)
-    except ValueError:
-        value = {'True': 1.0, 'False': 0.0}.get(value, value)
-    return value
-    
-    
 class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
@@ -352,7 +348,7 @@ class Database:
                 key = atomic_numbers[key]
                 value = int(value)
             elif isinstance(value, basestring):
-                value = convert_str_to_float_or_str(value)
+                value = convert_str_to_int_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
