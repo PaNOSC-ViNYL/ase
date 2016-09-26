@@ -45,7 +45,7 @@ Supported :mod:`Calculators <ase.calculators>`:
 |octopus| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`~ase.calculators.tip3p`
- Gaussian_ Mopac_ Grimme-D3_
+Gaussian_ Mopac_ Grimme-D3_
 
 
 .. _news:
