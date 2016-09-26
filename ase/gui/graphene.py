@@ -3,8 +3,6 @@
 """
 
 import ase.gui.ui as ui
-from ase.gui.widgets import pack, cancel_apply_ok, oops
-from ase.gui.setupwindow import SetupWindow
 from ase.gui.status import formula
 from ase.build import graphene_nanoribbon
 import ase
@@ -23,7 +21,7 @@ atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol=%(symb)s
 
 label_template = _(""" %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
 
-class SetupGraphene(SetupWindow):
+class SetupGraphene:
     "Window for setting up a graphene sheet or nanoribbon."
     def __init__(self, gui):
         SetupWindow.__init__(self)
@@ -40,7 +38,7 @@ class SetupGraphene(SetupWindow):
                   _("Saturated ribbon")):
             self.struct.append_text(s)
         self.struct.set_active(0)
-    
+
         pack(vbox, [label, self.struct])
 
         # Orientation
@@ -139,7 +137,7 @@ class SetupGraphene(SetupWindow):
             elements = (self.element.get_text(), self.element2.get_text())
         else:
             elements = (self.element.get_text(), )
-            
+
         for elem in elements:
             if not elem:
                 self.invalid_element(_("  No element specified!"))
@@ -165,7 +163,7 @@ class SetupGraphene(SetupWindow):
         else:
             self.legal_element2 = None
         return True
-        
+
     def update_gui(self, *args):
         # Saturation element is only relevant for saturated nanoribbons
         satur = self.struct.get_active() == 2
@@ -180,7 +178,7 @@ class SetupGraphene(SetupWindow):
         else:
             self.n.lower = 1
             self.n.step_increment = 1
-        
+
     def makeatoms(self, *args):
         self.update_element()
         self.update_gui()

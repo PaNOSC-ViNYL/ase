@@ -1,10 +1,11 @@
 import pickle
 import subprocess
 import sys
+from gettext import gettext as _
 
 import ase.gui.ui as ui
 
-graph_help_text = """\
+graph_help_text = _("""\
 Symbols:
 <c>e</c>: total energy
 <c>epot</c>: potential energy
@@ -23,25 +24,21 @@ Symbols:
 <c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>
 <c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>
 <c>T</c>: temperature (K)\
-"""
-
-
-def help():
-    win = ui.Window('Help for plot')
-    win.add(ui.Text(graph_help_text))
+""")
 
 
 class Graphs:
     def __init__(self, gui):
         win = ui.Window('Graphs')
         self.expr = ui.Entry('', 50, self.plot)
-        win.add([self.expr, ui.Button('Help', help)])
+        win.add([self.expr, ui.Button(_('Help'), ui.help,
+                                      _('Help for plot'), graph_help_text)])
 
-        win.add([ui.Button('Plot', self.plot, 'xy'), ' x, y1, y2, ...'], 'w')
-        win.add([ui.Button('Plot', self.plot, 'y'), ' y1, y2, ...'], 'w')
+        win.add([ui.Button(_('Plot'), self.plot, 'xy'), ' x, y1, y2, ...'], 'w')
+        win.add([ui.Button(_('Plot'), self.plot, 'y'), ' y1, y2, ...'], 'w')
 
-        win.add([ui.Button('Save', self.save),
-                 ui.Button('Clear', self.clear)], 'w')
+        win.add([ui.Button(_('Save'), self.save),
+                 ui.Button(_('Clear'), self.clear)], 'w')
 
         self.gui = gui
 
@@ -61,8 +58,6 @@ class Graphs:
         pickle.dump((data, self.gui.frame, expr, type), process.stdin)
         process.stdin.close()
         self.gui.graphs.append(process)
-
-    python = plot
 
     def save(self, filename):
         chooser = ui.FileChooserDialog(

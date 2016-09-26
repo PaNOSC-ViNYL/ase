@@ -3,7 +3,6 @@ from __future__ import print_function
 
 import ase.gui.ui as ui
 import numpy as np
-from ase.gui.widgets import pack, AseGuiCancelException
 import sys
 import re
 import time
@@ -16,19 +15,19 @@ class DummyProgressIndicator:
     def end(self):
         pass
 
-        
+
 class DefaultProgressIndicator:
     "Window for reporting progress."
     waittime = 3  # Time (in sec) after which a progress bar appears.
     updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.
-    
+
     def __init__(self):
         ui.Window.__init__(self)
         self.set_title(_("Progress"))
         self.globalbox = ui.VBox()
         self.nextupdate = 0
         self.fmax_max = 1.0
-        
+
         # Scaling deformation progress frame
         self.scalebox = ui.VBox()
         self.scaleframe = ui.Frame(_("Scaling deformation:"))
@@ -49,7 +48,7 @@ class DefaultProgressIndicator:
         vbox.show()
         self.scaleframe.show()
         self.globalbox.pack_start(self.scalebox)
-        
+
         # Minimization progress frame
         self.minbox = ui.VBox()  # Box containing frame and spacing
         self.minframe = ui.Frame(_("Energy minimization:"))
@@ -57,7 +56,7 @@ class DefaultProgressIndicator:
         self.minframe.add(vbox)
         pack(self.minbox, [self.minframe])
         pack(self.minbox, ui.Label(""))
-        
+
         self.label_min_stepno = ui.Label("-")
         pack(vbox, [ui.Label(_("Step number: ")), self.label_min_stepno])
         lbl = ui.Label()
@@ -71,7 +70,7 @@ class DefaultProgressIndicator:
         self.label_min_maxsteps = ui.Label("-")
         pack(vbox, [ui.Label(_("Max. number of steps: ")),
                     self.label_min_maxsteps])
-        
+
         vbox.show()
         self.minframe.show()
         self.globalbox.pack_start(self.minbox)
@@ -82,7 +81,7 @@ class DefaultProgressIndicator:
         self.cancelbut = ui.Button('Cancel')
         self.cancelbut.connect('clicked', self.cancel)
         pack(self.globalbox, [self.cancelbut], end=True, bottom=True)
-        
+
     def begin(self, mode=None, algo=None, fmax=None, steps=None,
               scalesteps=None):
         self.mode = mode
@@ -106,7 +105,7 @@ class DefaultProgressIndicator:
         self.starttime = time.time()
         self.active = None  # Becoming active
         self.raisecancelexception = False
-        
+
     def end(self):
         self.hide()
         self.active = False
@@ -141,7 +140,7 @@ class DefaultProgressIndicator:
         self.scale_progress.set_text("%i%%" % (round(100*percent),))
         if not init:
             self.activity()
-        
+
     def logger_write(self, line):
         if time.time() > self.nextupdate:
             if self.mode == "min" or self.mode == "scale/min":
@@ -159,7 +158,7 @@ class DefaultProgressIndicator:
                     "ProgressIndicator.logger_write called unexpectedly")
             self.activity()
             self.nextupdate = time.time() + self.updatetime
-            
+
     def get_logger_stream(self):
         return LoggerStream(self)
 
@@ -212,7 +211,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
             if hasattr(w, "set_alignment"):
                 w.set_alignment(0, 0.5)
             w.show()
-            
+
     def begin(self, **kwargs):
         DefaultProgressIndicator.begin(self, **kwargs)
         # Set GPAW specific stuff.
@@ -315,19 +314,19 @@ class LoggerStream:
     "A file-like object feeding minimizer logs to GpawProgressWindow."
     def __init__(self, progresswindow):
         self.window = progresswindow
-        
+
     def write(self, txt):
         self.window.logger_write(txt)
 
     def flush(self):
         pass
-    
-        
+
+
 class GpawStream:
     "A file-like object feeding GPAWs txt file to GpawProgressWindow."
     def __init__(self, progresswindow):
         self.window = progresswindow
-        
+
     def write(self, txt):
         if txt == "":
             return
@@ -346,7 +345,7 @@ class GpawStream:
     def flush(self):
         pass
 
-        
+
 def fraction(value, maximum):
     p = value / maximum
     if p < 0.0:
@@ -355,5 +354,5 @@ def fraction(value, maximum):
         return 1.0
     else:
         return p
-    
-    
+
+

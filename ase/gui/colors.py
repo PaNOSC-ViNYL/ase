@@ -3,7 +3,6 @@ from __future__ import print_function
 """colors.py - select how to color the atoms in the GUI."""
 
 import ase.gui.ui as ui
-from ase.gui.widgets import pack, cancel_apply_ok, oops
 import ase
 from ase.data.colors import jmol_colors
 import numpy as np

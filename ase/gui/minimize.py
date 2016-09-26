@@ -4,7 +4,6 @@
 
 import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
-from ase.gui.widgets import pack, AseGuiCancelException
 import ase
 import ase.optimize
 import numpy as np
@@ -21,7 +20,7 @@ class MinimizeMixin:
         self.algo.set_active(0)
         self.algo.connect('changed', self.min_algo_specific)
         pack(box, [ui.Label(_("Algorithm: ")), self.algo])
-        
+
         self.fmax = ui.Adjustment(0.05, 0.00, 10.0, 0.01)
         self.fmax_spin = ui.SpinButton(self.fmax, 0, 3)
         lbl = ui.Label()
@@ -39,7 +38,7 @@ class MinimizeMixin:
         self.mdmin_widgets = [lbl, spin]
         pack(box, self.mdmin_widgets)
         self.min_algo_specific()
-        
+
     def min_algo_specific(self, *args):
         "SHow or hide algorithm-specific widgets."
         minimizer = self.minimizers[self.algo.get_active()]
@@ -48,15 +47,15 @@ class MinimizeMixin:
                 w.show()
             else:
                 w.hide()
-        
-                
+
+
 class Minimize(Simulation, MinimizeMixin):
     "Window for performing energy minimization."
-    
+
     def __init__(self, gui):
         Simulation.__init__(self, gui)
         self.set_title(_("Energy minimization"))
-        
+
         vbox = ui.VBox()
         self.packtext(vbox,
                       _("Minimize the energy with respect to the positions."))
@@ -64,7 +63,7 @@ class Minimize(Simulation, MinimizeMixin):
         pack(vbox, ui.Label(""))
 
         self.make_minimize_gui(vbox)
-        
+
         pack(vbox, ui.Label(""))
         self.status_label = ui.Label("")
         pack(vbox, [self.status_label])
@@ -118,14 +117,14 @@ class Minimize(Simulation, MinimizeMixin):
                                          "LBFGS instead"))
             self.status_label.modify_fg(ui.STATE_NORMAL,
                                         '#AA4000')
-            
+
         else:
             # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Minimization completed in %i steps.")
                                        % (self.count_steps,))
             self.status_label.modify_fg(ui.STATE_NORMAL,
                                         '#007700')
-            
+
         self.end()
         if self.count_steps:
             # Notify other windows that atoms have changed.

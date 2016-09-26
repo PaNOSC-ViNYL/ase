@@ -1,5 +1,5 @@
-from ase.gui.widgets import pack
 import ase.gui.ui as ui
+
 
 class Settings:
     def __init__(self, gui):

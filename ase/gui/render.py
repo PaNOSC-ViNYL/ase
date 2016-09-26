@@ -1,6 +1,5 @@
 from __future__ import print_function
 import ase.gui.ui as ui
-from ase.gui.widgets import pack, Help, oops
 from ase.io.pov import write_pov
 from ase.gui.status import formula
 from os.path import basename
@@ -236,7 +235,7 @@ class Render:
             self.window_open.set_active(False)
             self.window_open.set_sensitive(False)
         self.set_outputname()
-        
+
     def toggle_run_povray(self, *args):
         if self.run_povray.get_active():
             self.keep_files.set_active(self.keep_files_status)
@@ -255,7 +254,7 @@ class Render:
 
     def selection_help(self,*args):
         Help(self.selection_info_txt)
-        
+
     def set_textures(self):
         textures =  self.natoms*[self.finish_list[self.default_texture.get_active()]]
         for mat in self.materials:
@@ -280,7 +279,7 @@ class Render:
                 if val:
                     colors[n][4] = trans
         return colors
-        
+
     def ok(self, *args):
         print("Rendering povray image(s): ")
         scale = self.gui.scale*self.height.get_value()/self.gui.height

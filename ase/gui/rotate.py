@@ -1,12 +1,10 @@
 import ase.gui.ui as ui
-
-from ase.gui.widgets import pack
 from ase.utils import rotate, irotate
 
 
 class Rotate:
     update = True
-    
+
     def __init__(self, gui):
         ui.Window.__init__(self)
         angles = irotate(gui.axes)
@@ -36,7 +34,7 @@ class Rotate:
             self.gui.axes = rotate('%fx,%fy,%fz' % (x, y, z))
             self.gui.set_coordinates()
         return True
-        
+
     def update_angles(self, button):
         angles = irotate(self.gui.axes)
         self.update = False

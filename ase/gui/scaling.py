@@ -6,7 +6,6 @@ import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 from ase.gui.minimize import MinimizeMixin
 from ase.gui.energyforces import OutputFieldMixin
-from ase.gui.widgets import oops, pack, AseGuiCancelException
 import ase
 import numpy as np
 
@@ -106,7 +105,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.pull = ui.CheckButton(_("Only positive deformation"))
         pack(vbox2, [self.pull])
         self.pull.connect('toggled', self.pull_toggled)
-        
+
         # Atomic relaxations
         framerel = ui.Frame(_("Atomic relaxations:"))
         vbox2 = ui.VBox()
@@ -122,7 +121,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         self.relax_toggled()
         pack(vbox, [framedef, ui.Label(" "), framerel])
         pack(vbox, ui.Label(""))
-        
+
         # Results
         pack(vbox, [ui.Label(_("Results:"))])
         self.radio_results_keep = ui.RadioButton(
@@ -192,7 +191,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             self.add(vbox)
         self.show()
         self.gui.register_vulnerable(self)
-        
+
     def set_reasonable_size(self, resize=False):
         if not self.use_scrollbar or not self.scaling_is_ready:
             return
@@ -209,11 +208,11 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                 self.set_default_size(x,y)
         else:
             self.set_default_size(x,y)
-                  
+
     def min_algo_specific(self, *args):
         MinimizeMixin.min_algo_specific(self, *args)
         self.set_reasonable_size(resize=True)
-                  
+
     def choose_possible_deformations(self, widget=None, first=False):
         """Turn on sensible radio buttons.
 
@@ -256,7 +255,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
     def pull_toggled(self, *args):
         "When positive def. only, the scale offset is turned off."
         self.scale_offset_spin.set_sensitive(not self.pull.get_active())
-        
+
     def notify_atoms_changed(self):
         "When atoms have changed, check for the number of images."
         self.setupimageselection()
@@ -271,7 +270,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # No deformation chosen!
         oops("No deformation chosen: Please choose a deformation mode.")
         return False
-            
+
     def run(self, *args):
         """Make the deformation."""
         self.output.set_text("")
@@ -352,13 +351,13 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
                                          "LBFGS instead"))
             self.status_label.modify_fg(ui.STATE_NORMAL,
                                         '#AA4000')
-            
+
         else:
             # Update display to reflect successful end of simulation.
             self.status_label.set_text(_("Calculation completed."))
             self.status_label.modify_fg(ui.STATE_NORMAL,
                                         '#007700')
-                     
+
         if results:
             self.do_fit(np.array(results))
             if self.radio_results_optimal.get_active():
@@ -383,7 +382,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             if stored_atoms:
                 self.gui.notify_vulnerable()
         self.end()
-            
+
         # If we store all configurations: Open movie window and energy graph
         if stored_atoms and self.gui.images.nimages > 1:
             self.gui.movie()
@@ -394,7 +393,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             # Continuations should use the best image
             nbest = np.argmin(np.array(results)[:,1])
             self.start_nth_adj.value = nbest
-            
+
 
     def change_fit(self, widget):
         "Repeat the fitting if the order is changed."
@@ -404,7 +403,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
         # order is changed AFTER the calculation is done).
         if widget.get_active() and getattr(self, "results", None) is not None:
             self.do_fit(None)
-                
+
     def do_fit(self, results):
         "Fit the results to a polynomial"
         if results is None:
@@ -416,7 +415,7 @@ class HomogeneousDeformation(Simulation, MinimizeMixin, OutputFieldMixin):
             order = 3
         else:
             order = 2
-            
+
         if len(results) < 3:
             txt = (_("Insufficent data for a fit\n(only %i data points)\n")
                    % (len(results),) )

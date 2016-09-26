@@ -25,7 +25,6 @@ from ase.gui.settings import Settings
 from ase.gui.status import Status
 from ase.gui.surfaceslab import SetupSurfaceSlab
 from ase.gui.view import View
-from ase.gui.widgets import pack, oops
 
 
 class GUI(View, Status):
@@ -777,14 +776,14 @@ class GUI(View, Status):
     def surface_window(self, menuitem):
         SetupSurfaceSlab(self)
 
-    def nanoparticle_window(self, menuitem):
+    def nanoparticle_window(self):
         SetupNanoparticle(self)
 
     def graphene_window(self, menuitem):
         SetupGraphene(self)
 
-    def nanotube_window(self, menuitem):
-        SetupNanotube(self)
+    def nanotube_window(self):
+        return SetupNanotube(self)
 
     def calculator_window(self, menuitem):
         SetCalculator(self)

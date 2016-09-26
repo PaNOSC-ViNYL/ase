@@ -75,13 +75,18 @@ class Widget(object):
 
 
 class Label(Widget):
-    def __init__(self, text):
-        self.creator = partial(tk.Label, text=text)
+    def __init__(self, text, color=None):
+        self.creator = partial(tk.Label, text=text, fg=color)
+
+    def text(self, new):
+        self.widget.config(text=new)
+
+    text = property(None, text)
 
 
 class Text(Widget):
     def __init__(self, text):
-        self.creator = tk.Text
+        self.creator = partial(tk.Text, height=5)
         s = re.split('<(.*?)>', text)
         self.text = [(s[0], ())]
         i = 1
@@ -146,7 +151,10 @@ class SpinBox(Widget):
 
     @property
     def value(self):
-        return float(self.spin.get().replace(',', '.'))
+        x = self.spin.get().replace(',', '.')
+        if '.' in x:
+            return float(x)
+        return int(x)
 
     @value.setter
     def value(self, x):

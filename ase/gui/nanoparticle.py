@@ -4,9 +4,7 @@
 
 import ase.gui.ui as ui
 from copy import copy
-from ase.gui.widgets import pack, cancel_apply_ok, oops, help
-from ase.gui.setupwindow import SetupWindow
-from ase.gui.pybutton import PyButton
+from ase.gui.pybutton import pybutton
 import ase
 import ase.data
 import numpy as np
@@ -77,7 +75,7 @@ atoms = wulff_construction('%(element)s', surfaces, esurf, size, '%(structure)s'
 # atoms = ase.Atoms(atoms)
 """
 
-class SetupNanoparticle(SetupWindow):
+class SetupNanoparticle:
     "Window for setting up a nanoparticle."
     # Structures:  Abbreviation, name, 4-index (boolean), two lattice const (bool), factory
     structure_data = (('fcc', _('Face centered cubic (fcc)'), False, False, FaceCenteredCubic),
@@ -87,7 +85,7 @@ class SetupNanoparticle(SetupWindow):
                       ('graphite', _('Graphite'), True, True, Graphite),
                       )
     #NB:  HCP is broken!
-    
+
     # A list of import statements for the Python window.
     import_names = {'fcc': 'from ase.cluster.cubic import FaceCenteredCubic',
                     'bcc': 'from ase.cluster.cubic import BodyCenteredCubic',
@@ -110,18 +108,18 @@ class SetupNanoparticle(SetupWindow):
                       'graphite': [( (0,0,0,1), 5),
                                    ( (1,0,-1,0), 5)]
                       }
-    
+
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Nanoparticle"))
         self.atoms = None
         self.no_update = True
-        
+
         vbox = ui.VBox()
 
         # Intoductory text
         self.packtext(vbox, introtext)
-           
+
         # Choose the element
         label = ui.Label(_("Element: "))
         label.set_alignment(0.0, 0.2)
@@ -150,7 +148,7 @@ class SetupNanoparticle(SetupWindow):
         self.structure.set_active(0)
         self.fourindex = self.needs_4index[self.list_of_structures[0]]
         self.structure.connect('changed', self.update_structure)
-        
+
         label2 = ui.Label(_("Lattice constant:  a ="))
         self.lattice_const_a = ui.Adjustment(3.0, 0.0, 1000.0, 0.01)
         self.lattice_const_c = ui.Adjustment(5.0, 0.0, 1000.0, 0.01)
@@ -272,7 +270,7 @@ class SetupNanoparticle(SetupWindow):
         infoframe.add(infobox)
         infobox.show()
         pack(vbox, infoframe)
-        
+
         # Buttons
         self.pybut = PyButton(_("Creating a nanoparticle."))
         self.pybut.connect('clicked', self.makeatoms)
@@ -286,7 +284,7 @@ class SetupNanoparticle(SetupWindow):
         fr.add(self.auto)
         fr.show_all()
         pack(vbox, [fr], end=True, bottom=True)
-        
+
         # Finalize setup
         self.update_structure()
         self.update_gui_method()
@@ -406,7 +404,7 @@ class SetupNanoparticle(SetupWindow):
         self.size_n_adj.value = n+1
         self.round_above.set_active(True)
         self.apply()
-    
+
     def row_add(self, widget=None):
         "Add a row to the list of directions."
         if self.fourindex:
@@ -436,7 +434,7 @@ class SetupNanoparticle(SetupWindow):
         dt = self.direction_table
         dt[row], dt[row+1] = dt[row+1], dt[row]
         self.update_direction_table()
-        
+
     def update_gui_size(self, widget=None):
         "Update gui when the cluster size specification changes."
         self.size_n_spin.set_sensitive(self.size_n_radio.get_active())
@@ -457,7 +455,7 @@ class SetupNanoparticle(SetupWindow):
         n = round(np.pi / 6 * self.size_dia_adj.value**3 / at_vol)
         self.size_n_adj.value = n
         self.update()
-                
+
     def update(self, *args):
         if self.no_update:
             return
@@ -481,7 +479,7 @@ class SetupNanoparticle(SetupWindow):
             structure = None
         else:
             structure = ref['symmetry']
-                
+
         if ref is None or not structure in self.list_of_structures:
             oops(_("Unsupported or unknown structure",
                    "Element = %s,  structure = %s" % (self.legal_element,
@@ -603,7 +601,7 @@ class SetupNanoparticle(SetupWindow):
             self.dia1_label.set_label(_(u"%.1f Å") % (dia,))
             self.smaller_button.set_sensitive(True)
             self.larger_button.set_sensitive(True)
-            
+
     def apply(self, *args):
         self.makeatoms()
         if self.atoms is not None:

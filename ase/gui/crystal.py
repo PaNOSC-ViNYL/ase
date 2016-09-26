@@ -3,9 +3,7 @@
 """
 
 import ase.gui.ui as ui
-from ase.gui.widgets import pack, cancel_apply_ok, oops
-from ase.gui.pybutton import PyButton
-from ase.gui.setupwindow import SetupWindow
+from ase.gui.pybutton import pybutton
 from ase.gui.status import formula
 from ase.spacegroup import crystal, Spacegroup
 
@@ -50,7 +48,7 @@ crystal_definitions = [('Spacegroup',   1,  True, [1,1,1], [3.0, 3.0, 3.0, 90.0,
                        ('rutile',     136, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
                         [0,1,0,3,3,3], [False,False,False,False,False,False], [['','0','0','0'],['O','0.3','0.3','0'  ]])]
 
-class SetupBulkCrystal(SetupWindow):
+class SetupBulkCrystal:
     """Window for setting up a surface."""
     def __init__(self, gui):
         SetupWindow.__init__(self)
@@ -208,7 +206,7 @@ class SetupBulkCrystal(SetupWindow):
             except:
                 self.spacegroupinfo.set_label(_('Invalid Spacegroup!'))
                 valid = False
-                
+
         if a_equals == 0:
             self.lattice_lbuts[0].set_sensitive(True)
         elif a_equals == 1:
@@ -269,7 +267,7 @@ class SetupBulkCrystal(SetupWindow):
             self.lattice_abuts[2].set_value(self.lattice_abuts[1].get_value())
         else:
             self.lattice_abuts[2].set_sensitive(False)
-            
+
         valid = len(self.elements[0][0].get_text()) and valid
         self.get_data.set_sensitive(valid and self.get_n_elements() == 1 and self.update_element())
         self.atoms = None
@@ -352,7 +350,7 @@ class SetupBulkCrystal(SetupWindow):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-        
+
     def add_basis_atom(self,*args):
         """ add an atom to the customizable basis """
         n = len(self.elements)
@@ -391,7 +389,7 @@ class SetupBulkCrystal(SetupWindow):
         self.set_lattice_type()
         self.clearing_in_process = False
         self.update()
-        
+
     def clear_lattice(self, *args):
         """ delete all custom settings """
         self.atoms = None

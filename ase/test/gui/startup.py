@@ -5,7 +5,14 @@ from ase.gui.gui import GUI
 
 def test(gui):
     yield
-    gui.exit()
+    nt = gui.nanotube_window()
+    yield
+    nt.apply()
+    yield
+    nt.element[1].value = '?'
+    nt.apply()
+    yield
+    #gui.exit()
 
 
 gui = GUI()

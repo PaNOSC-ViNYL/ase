@@ -5,9 +5,7 @@ import ase.gui.ui as ui
 import os
 import numpy as np
 from copy import copy
-from ase.gui.setupwindow import SetupWindow
 from ase.gui.progress import DefaultProgressIndicator, GpawProgressIndicator
-from ase.gui.widgets import pack, oops, cancel_apply_ok
 from ase import Atoms
 from ase.data import chemical_symbols
 import ase
@@ -171,7 +169,7 @@ emt_parameters = (
     )
 
 
-class SetCalculator(SetupWindow):
+class SetCalculator:
     "Window for selecting a calculator."
 
     # List the names of the radio button attributes
@@ -182,15 +180,15 @@ class SetCalculator(SetupWindow):
                   "aims_parameters",)
     # The name used to store parameters on the gui object
     classname = "SetCalculator"
-    
+
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Select calculator"))
         vbox = ui.VBox()
-        
+
         # Intoductory text
         self.packtext(vbox, introtext)
-        
+
         pack(vbox, [ui.Label(_("Calculator:"))])
 
         # No calculator (the default)
@@ -237,7 +235,7 @@ class SetCalculator(SetupWindow):
             self.none_radio, _("Brenner Potential (ASAP)"))
         self.brenner_info = InfoButton(brenner_info_txt)
         self.pack_line(vbox, self.brenner_radio, None, self.brenner_info)
-        
+
         # GPAW
         self.gpaw_radio = ui.RadioButton(self.none_radio,
                                           _("Density Functional Theory (GPAW)")
@@ -246,7 +244,7 @@ class SetCalculator(SetupWindow):
         self.gpaw_info = InfoButton(gpaw_info_txt)
         self.gpaw_setup.connect("clicked", self.gpaw_setup_window)
         self.pack_line(vbox, self.gpaw_radio, self.gpaw_setup, self.gpaw_info)
-        
+
         # FHI-aims
         self.aims_radio = ui.RadioButton(self.none_radio,
                                           _("Density Functional Theory "
@@ -255,7 +253,7 @@ class SetCalculator(SetupWindow):
         self.aims_info = InfoButton(aims_info_txt)
         self.aims_setup.connect("clicked", self.aims_setup_window)
         self.pack_line(vbox, self.aims_radio, self.aims_setup, self.aims_info)
-        
+
         # VASP
         self.vasp_radio = ui.RadioButton(self.none_radio,
                                           _("Density Functional Theory "
@@ -278,14 +276,14 @@ class SetCalculator(SetupWindow):
         fr.add(self.check)
         fr.show_all()
         pack(vbox, [fr], end=True, bottom=True)
-        
+
         # Finalize setup
         self.add(vbox)
         vbox.show()
         self.show()
         self.gui = gui
         self.load_state()
-        
+
     def pack_line(self, box, radio, setup, info):
         hbox = ui.HBox()
         hbox.pack_start(radio, 0, 0)
@@ -307,21 +305,21 @@ class SetCalculator(SetupWindow):
         lj_param = getattr(self, "lj_parameters", None)
         LJ_Window(self, lj_param, "lj_parameters")
         # When control is retuned, self.lj_parameters has been set.
-        
+
     def eam_setup_window(self, widget):
         if not self.get_atoms():
             return
         eam_param = getattr(self, "eam_parameters", None)
         EAM_Window(self, eam_param, "eam_parameters")
         # When control is retuned, self.eam_parameters has been set.
-        
+
     def gpaw_setup_window(self, widget):
         if not self.get_atoms():
             return
         gpaw_param = getattr(self, "gpaw_parameters", None)
         GPAW_Window(self, gpaw_param, "gpaw_parameters")
         # When control is retuned, self.gpaw_parameters has been set.
-        
+
     def aims_setup_window(self, widget):
         if not self.get_atoms():
             return
@@ -359,7 +357,7 @@ class SetCalculator(SetupWindow):
             return True
         else:
             return False
-        
+
     def do_apply(self):
         nochk = not self.check.get_active()
         self.gui.simulation["progress"] = DefaultProgressIndicator()
@@ -430,7 +428,7 @@ class SetCalculator(SetupWindow):
         for p in self.paramdicts:
             if p in state:
                 setattr(self, p, state[p])
-            
+
     def lj_check(self):
         try:
             import asap3
@@ -463,7 +461,7 @@ class SetCalculator(SetupWindow):
         if provider is not None:
             provider = getattr(asap3, provider)
         return (asap3.EMT, provider, asap3)
-                                      
+
     def emt_check(self):
         if not self.get_atoms():
             return False
@@ -579,7 +577,7 @@ class SetCalculator(SetupWindow):
         def gpaw_factory(calc=gpaw_calc):
             return calc
         self.gui.simulation["calc"] = gpaw_factory
-                
+
     def aims_check(self):
         if not hasattr(self, "aims_parameters"):
             oops(_("You must set up the FHI-aims parameters"))
@@ -626,7 +624,7 @@ class SetCalculator(SetupWindow):
                  % dict(sym=ase.data.chemical_symbols[e], name=name))
             return False
         return True
- 
+
 
 class InfoButton:
     def __init__(self, txt):
@@ -694,7 +692,7 @@ class LJ_Window:
 
         self.show()
         self.grab_add()  # Lock all other windows
-        
+
     def makematrix(self, present):
         nelem = len(present)
         adjdict = {}
@@ -713,7 +711,7 @@ class LJ_Window:
                 adjdict[(i, j)] = adj
         tbl.show_all()
         return tbl, adjdict
-    
+
     def set_param(self, adj, params, n):
         for i in range(n):
             for j in range(n):
@@ -782,7 +780,7 @@ class EAM_Window:
 
         self.show()
         self.grab_add()  # Lock all other windows
-        
+
     def ok(self, *args):
         if not hasattr(self.owner, "eam_parameters"):
             oops(_("You need to import the potential file"))
@@ -825,7 +823,7 @@ class GPAW_Window:
         self.pbc = atoms.get_pbc()
         self.orthogonal = self.isorthogonal(self.ucell)
         self.natoms = len(atoms)
-        
+
         vbox = ui.VBox()
         #label = ui.Label("Specify the GPAW parameters here")
         #pack(vbox, [label])
@@ -838,7 +836,7 @@ class GPAW_Window:
             txt += _("Non-orthogonal unit cell:\n")
             txt += str(self.ucell)
         pack(vbox, [ui.Label(txt)])
-        
+
         # XC potential
         self.xc = ui.combo_box_new_text()
         for i, x in enumerate(self.gpaw_xc_list):
@@ -847,7 +845,7 @@ class GPAW_Window:
                 self.xc.set_active(i)
         pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),
                     self.xc])
-        
+
         # Grid spacing
         self.radio_h = ui.RadioButton(None, _("Grid spacing"))
         self.h = ui.Adjustment(0.18, 0.0, 1.0, 0.01)
@@ -873,7 +871,7 @@ class GPAW_Window:
         for g in self.gpts:
             g.connect("value-changed", self.gpts_changed)
         self.h.connect("value-changed", self.h_changed)
-        
+
         # K-points
         self.kpts = []
         self.kpts_spin = []
@@ -896,7 +894,7 @@ class GPAW_Window:
         self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
         pack(vbox, [self.kpts_label])
         self.k_changed()
-        
+
         # Spin polarized
         self.spinpol = ui.CheckButton(_("Spin polarized"))
         pack(vbox, [self.spinpol])
@@ -918,7 +916,7 @@ class GPAW_Window:
         pack(vbox, ui.Label(""))
         self.mode.connect("changed", self.mode_changed)
         self.mode_changed()
-        
+
         # Mixer
         self.use_mixer = ui.CheckButton(_("Non-standard mixer parameters"))
         pack(vbox, [self.use_mixer])
@@ -949,10 +947,10 @@ class GPAW_Window:
                     self.radio_mixersum, self.radio_mixerdiff):
             but.connect("clicked", self.mixer_changed)
         self.mixer_changed()
-        
+
         # Eigensolver
         # Poisson-solver
-        
+
         vbox.show()
         self.add(vbox)
 
@@ -1052,7 +1050,7 @@ class GPAW_Window:
             # No mixer parameters
             for widget in radios + spin1 + spin2:
                 widget.set_sensitive(False)
-                
+
     def isorthogonal(self, matrix):
         ortho = True
         for i in range(3):
@@ -1140,7 +1138,7 @@ class AIMS_Window:
         pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),self.xc])
         pack(vbox, [self.TS])
         pack(vbox, [ui.Label("")])
-        
+
         # k-grid?
         if self.periodic:
             self.kpts = []
@@ -1624,7 +1622,7 @@ class VASP_Window:
 
         # Spin polarized
         self.spinpol = ui.CheckButton(_("Spin polarized"))
-        
+
         pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),
                     self.xc,
                     ui.Label("    "),
@@ -1690,7 +1688,7 @@ class VASP_Window:
                     ui.Label(_(" width: ")),
                     self.sigma_spin])
         pack(vbox, ui.Label(""))
-        
+
         self.ediff = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-4)
         self.ediff_spin = ui.SpinButton(self.ediff, 0, 0)
         self.ediff_spin.set_digits(6)
@@ -1761,7 +1759,7 @@ class VASP_Window:
         set inside the INCAR, KPOINTS and POTCAR file in 'directory'."""
         from os import chdir
         chdir(directory)
-       
+
         # Try and load INCAR, in the current directory
         from ase.calculators.vasp import Vasp
         calc_temp = Vasp()
@@ -1777,7 +1775,7 @@ class VASP_Window:
 
             if calc_temp.float_params['encut']:
                 self.encut.set_value(calc_temp.float_params['encut'])
- 
+
             if calc_temp.int_params['ismear'] == -1:  # Fermi
                 vasp_ismear_default = 'Fermi'
             elif calc_temp.int_params['ismear'] == 0:  # Gauss
@@ -1841,7 +1839,7 @@ class VASP_Window:
                     for v in value:
                         command += str(v) + " "
                     self.expert_keyword_create(command.split())
-                 
+
         # Try and load POTCAR, in the current directory
         try:
             calc_temp.read_potcar()
@@ -1915,7 +1913,7 @@ class VASP_Window:
         setattr(self.owner, self.attrname, self.param)
         os.environ['VASP_COMMAND'] = self.run_command.get_text()
         os.environ['VASP_PP_PATH'] = self.pp_path.get_text()
-        
+
     def ok(self, *args):
         self.set_attributes(*args)
         self.destroy()
@@ -2005,7 +2003,7 @@ class VASP_Window:
             dirname = chooser.get_filename()
             self.load_attributes(dirname)
         chooser.destroy()
-            
+
     def export_vasp_files(self, *args):
         filename = ""
         chooser = ui.FileChooserDialog(
@@ -2079,7 +2077,7 @@ class VASP_Window:
             table.attach(self.expert_keywords[index][1], 1, 2, nrows, nrows + 1, 0)
             table.attach(self.expert_keywords[index][2], 2, 3, nrows, nrows + 1, 0)
             table.show_all()
-        
+
     def expert_keyword_delete(self, button, *args):
         index = button.index   # which one to kill
         for i in [0,1,2]:

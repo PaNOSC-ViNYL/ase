@@ -3,15 +3,11 @@
 """
 from gettext import gettext as _
 
-import numpy as np
-
 import ase.gui.ui as ui
-from ase.gui.widgets import Element, oops
-from ase.gui.setupwindow import SetupWindow
+from ase.gui.widgets import Element
 from ase.gui.pybutton import pybutton
 from ase.gui.status import formula
 from ase.build import nanotube
-import ase
 
 
 introtext = _("""\
@@ -40,8 +36,8 @@ class SetupNanotube:
         self.m = ui.SpinBox(5, 0, 100, 1, self.make)
         self.length = ui.SpinBox(1, 1, 100, 1, self.make)
         self.description = ui.Label('')
-        
-        win = ui.Window(_('Nanotube'))
+
+        win = self.win = ui.Window(_('Nanotube'))
         win.add(ui.Text(introtext))
         win.add(self.element)
         win.add([_('Bond length: '),
@@ -56,33 +52,29 @@ class SetupNanotube:
                  ui.Button(_('Apply'), self.apply),
                  ui.Button(_('OK'), self.ok)])
 
-        self.make()
         self.gui = gui
+        self.atoms = None
+        self.python = None
 
     def make(self):
-        if self.element.symbol is None:
+        symbol = self.element.symbol
+        if symbol is None:
             self.atoms = None
-            self.pybut.python = None
-        return
+            self.python = None
+            return
 
         n = self.n.value
         m = self.m.value
         length = self.length.value
         bl = self.bondlength.value
-        self.atoms = nanotube(n, m, length=length, bond=bl, symbol=self.symbol)
-        self.python = py_template % {'n': n, 'm': m, 'length': length,
-                                     'symb': self.symbol, 'bl': bl}
-        h = np.zeros(3)
-        uc = self.atoms.get_cell()
-        for i in range(3):
-            norm = np.cross(uc[i-1], uc[i-2])
-            norm /= np.sqrt(np.dot(norm, norm))
-            h[i] = np.abs(np.dot(norm, uc[i]))
+        self.atoms = nanotube(n, m, length=length, bond=bl, symbol=symbol)
+        self.python = py_template.format(n=n, m=m, length=length,
+                                         symb=symbol, bl=bl)
         label = label_template % {
-            'natoms' : len(self.atoms),
-            'symbols' : formula(self.atoms.get_atomic_numbers()),
-            'volume' : self.atoms.get_volume(),
-            'diameter' : self.atoms.get_cell()[0][0]/2.0}
+            'natoms': len(self.atoms),
+            'symbols': formula(self.atoms.get_atomic_numbers()),
+            'volume': self.atoms.get_volume(),
+            'diameter': self.atoms.get_cell()[0][0] / 2}
         self.description.value = label
 
     def apply(self):
@@ -91,11 +83,11 @@ class SetupNanotube:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(_('No valid atoms.'),
-                _('You have not (yet) specified a consistent '
-                  'set of parameters.'))
+            ui.oops(_('No valid atoms.'),
+                    _('You have not (yet) specified a consistent '
+                      'set of parameters.'))
             return False
-            
+
     def ok(self, *args):
         if self.apply():
             self.win.close()

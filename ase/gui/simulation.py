@@ -1,7 +1,6 @@
 "Base class for simulation windows"
 
 import ase.gui.ui as ui
-from ase.gui.widgets import oops, pack, help
 from ase import Atoms
 from ase.constraints import FixAtoms
 
@@ -50,7 +49,7 @@ class Simulation:
         pack(vbox, self.start_radio_last)
         self.start_radio_nth.connect("toggled", self.start_radio_nth_toggled)
         self.setupimageselection()
-        
+
     def start_radio_nth_toggled(self, widget):
         self.start_nth_spin.set_sensitive(self.start_radio_nth.get_active())
 
@@ -105,7 +104,7 @@ class Simulation:
             return False
         self.atoms.set_calculator(self.calculator())
         return True
-    
+
     def get_atoms(self):
         "Make an atoms object from the active image"
         images = self.gui.images
@@ -137,7 +136,7 @@ class Simulation:
         "Informs the gui that the next configuration should be the first."
         self.gui.prepare_new_atoms()
         self.count_steps = 0
-        
+
     def store_atoms(self):
         "Observes the minimization and stores the atoms in the gui."
         self.gui.append_atoms(self.atoms)

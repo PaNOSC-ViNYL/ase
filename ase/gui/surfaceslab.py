@@ -3,12 +3,11 @@
 """
 from __future__ import division
 import ase.gui.ui as ui
-from ase.gui.widgets import pack, cancel_apply_ok, oops
-from ase.gui.pybutton import PyButton
-from ase.gui.setupwindow import SetupWindow
+from ase.gui.pybutton import pybutton
 import ase.build as build
 import ase
 import numpy as np
+
 
 introtext = _("""\
   Use this dialog to create surface slabs.  Select the element by
@@ -52,7 +51,7 @@ atoms = %(func)s(symbol='%(symbol)s', size=%(size)s,
 """
 
 
-class SetupSurfaceSlab(SetupWindow):
+class SetupSurfaceSlab:
     """Window for setting up a surface."""
     def __init__(self, gui):
         SetupWindow.__init__(self)
@@ -63,7 +62,7 @@ class SetupSurfaceSlab(SetupWindow):
 
         # Intoductory text
         self.packtext(vbox, introtext)
-             
+
         # Choose the element
         label = ui.Label(_('Element: '))
         element = ui.Entry(max=3)
@@ -72,7 +71,7 @@ class SetupSurfaceSlab(SetupWindow):
         pack(vbox, [label, element, self.elementinfo])
         self.element.connect('activate', self.update)
         self.legal_element = False
-        
+
         # Choose the surface structure
         label = ui.Label(_('Structure: '))
         self.structchoice = ui.combo_box_new_text()
@@ -145,7 +144,7 @@ class SetupSurfaceSlab(SetupWindow):
                                apply=self.apply,
                                ok=self.ok)
         pack(vbox, [self.pybut, buts], end=True, bottom=True)
-        
+
         self.add(vbox)
         vbox.show()
         self.show()
@@ -213,7 +212,7 @@ class SetupSurfaceSlab(SetupWindow):
                % (h[0], h[1], h[2], _('%i atoms.') % natoms))
         self.sizelabel.set_text(txt)
         return True
-    
+
     def get_lattice_const(self, *args):
         if not self.update_element():
             oops(_('Invalid element.'))
@@ -233,7 +232,7 @@ class SetupSurfaceSlab(SetupWindow):
             else:
                 oops(_('%(struct)s lattice constant unknown for %(element)s.')
                      % dict(struct=struct.upper(), element=self.legal_element))
-        
+
         a = ref['a']
         self.lattice_const.set_value(a)
         if struct == 'hcp':

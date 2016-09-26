@@ -4,7 +4,6 @@
 
 import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
-from ase.gui.widgets import pack
 
 
 class OutputFieldMixin:
@@ -31,7 +30,7 @@ class OutputFieldMixin:
         box2.show()
         frame.show()
         return frame
-    
+
     def activate_output(self):
         self.savebutton.set_sensitive(True)
 
@@ -49,8 +48,8 @@ class OutputFieldMixin:
             f.write(txt)
             f.close()
         chooser.destroy()
-        
-        
+
+
 class EnergyForces(Simulation, OutputFieldMixin):
     def __init__(self, gui):
         Simulation.__init__(self, gui)
@@ -73,7 +72,7 @@ class EnergyForces(Simulation, OutputFieldMixin):
         self.add(vbox)
         self.show()
         self.gui.register_vulnerable(self)
-        
+
     def run(self, *args):
         if not self.setup_atoms():
             return
@@ -90,7 +89,7 @@ class EnergyForces(Simulation, OutputFieldMixin):
         self.output.set_text(txt)
         self.activate_output()
         self.end()
-                
+
     def notify_atoms_changed(self):
         "When atoms have changed, check for the number of images."
         self.setupimageselection()
