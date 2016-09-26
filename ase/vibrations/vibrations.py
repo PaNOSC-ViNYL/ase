@@ -146,10 +146,10 @@ class Vibrations:
         if self.ir:
             dipole = self.calc.get_dipole_moment(self.atoms)
         if self.ram:
-            freq, Pol = self.get_polarizability()
+            freq, pol = self.get_polarizability()
         if rank == 0:
             if self.ir and self.ram:
-                pickle.dump([forces, dipole, freq, Pol], fd)
+                pickle.dump([forces, dipole, freq, pol], fd)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
@@ -158,7 +158,6 @@ class Vibrations:
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
-
             else:
                 pickle.dump(forces, fd)
                 sys.stdout.write('Writing %s\n' % filename)
@@ -167,24 +166,24 @@ class Vibrations:
 
     def clean(self, empty_files=False):
         """Remove pickle-files.
-        
+
         Use empty_files=True to remove only empty files."""
-        
+
         if rank != 0:
             return 0
-            
+
         n = 0
         filenames = [self.name + '.eq.pckl']
         for filename, a, i, disp in self.displacements():
             filenames.append(filename)
-        
+
         for name in filenames:
             if op.isfile(name):
                 if not empty_files or op.getsize(name) == 0:
                     os.remove(name)
                     n += 1
         return n
-        
+
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
         self.direction = direction.lower()

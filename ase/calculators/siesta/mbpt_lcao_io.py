@@ -8,11 +8,6 @@ import ase.io as aio
 import numpy as np
 
 
-#############################################
-#                                           #
-#       Class of the plot_lib library       #
-#                                           #
-#############################################
 """
   class read_mbpt_lcao_output: Main class of the library
           use to load the data from the TDDFT code
@@ -244,9 +239,10 @@ class read_hdf5_data:
                 self.t = self.group['t'].value
                 if args_p.quantity == 'Efield':
                     self.Array = np.array(
-                        (self.t.shape[0], sh[0], sh[1], sh[2], sh[3]), dtype=float)
+                        (self.t.shape[0], sh[0], sh[1], sh[2], sh[3]),
+                        dtype=float)
                     for i in range(len(self.dname)):
-                        self.Array[i, :, :, :, :] = self.group[self.dname[i]].value
+                        self.Array[i] = self.group[self.dname[i]].value
                 else:
                     self.Array = np.zeros(
                         (self.t.shape[0], sh[0], sh[1], sh[2]), dtype=float)
@@ -254,7 +250,7 @@ class read_hdf5_data:
                         print('array ', self.Array.shape)
                         print('sum(data) ',
                               np.sum(abs(self.group[self.dname[i]].value)))
-                        self.Array[i, :, :, :] = self.group[self.dname[i]].value
+                        self.Array[i] = self.group[self.dname[i]].value
 
             self.determine_box()
             self.mesh3D()
@@ -910,8 +906,8 @@ class MBPT_LCAO_Properties_figure:
         self.bohr_rad = 0.52917721
         self.figname = 'default'
         self.cmap = cm.jet
-        self.units = 'au'   # for the moment only the polarizability
-                            # can be modify in nm**2
+        self.units = 'au'
+        # for the moment only the polarizability can be modify in nm**2
         self.vmin = None
         self.vmax = None
         # to save a mayavi scrennshot in order to perform subplot with
@@ -932,7 +928,6 @@ class MBPT_LCAO_Properties_figure:
             'magnification': 1}
         self.maya_cam = {
             'distance': None,
-            'focalpoint': None,
             'azimuth': None,
             'elevation': None,
             'roll': None,

@@ -233,10 +233,10 @@ class BaseSiesta(FileIOCalculator):
         xc = kwargs.get('xc')
         if isinstance(xc, (tuple, list)) and len(xc) == 2:
             functional, authors = xc
-            if not functional in self.allowed_xc:
+            if functional not in self.allowed_xc:
                 mess = "Unrecognized functional keyword: '%s'" % functional
                 raise ValueError(mess)
-            if not authors in self.allowed_xc[functional]:
+            if authors not in self.allowed_xc[functional]:
                 mess = "Unrecognized authors keyword for %s: '%s'"
                 raise ValueError(mess % (functional, authors))
 
@@ -715,8 +715,8 @@ class BaseSiesta(FileIOCalculator):
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
 
-    def get_polarizability(self, mbpt_inp=None, output_name='mbpt_lcao.out', 
-               format_output='hdf5', units = 'au'):
+    def get_polarizability(self, mbpt_inp=None, output_name='mbpt_lcao.out',
+                           format_output='hdf5', units='au'):
         """
         Calculate the polarizability by running the mbpt_lcao program.
         The mbpt_lcao program need the siesta output, therefore siesta need
@@ -724,36 +724,39 @@ class BaseSiesta(FileIOCalculator):
 
         Parameters
         ----------
-            mbpt_inp : dict, optional
-                dictionnary of the input for the mbpt_lcao program (http://mbpt-domiprod.wikidot.com/list-of-parameters)
-                if mbpt_inp is None, the function read the output file from a previous mbpt_lcao run.
-            
-            output_name : str, optional
-                Name of the mbpt_lcao output
-            
-            format_output : str, optional
-                Format of the mbpt_lcao output data,
-                if hdf5, the output name is tddft_iter_output.hdf5 if do_tddft_iter is set to 1
-                         the output name is tddft_tem_output.hdf5 if do_tddft_tem is set to 1
-                if txt, a lot of output data files are produced depending on the input, in the text and
-                    fortran binaries format
-            
-            units : str, optional
-                unit for the returned polarizability, can be au (atomic units) or nm**2
+        mbpt_inp : dict, optional
+            dictionnary of the input for the mbpt_lcao program
+            (http://mbpt-domiprod.wikidot.com/list-of-parameters)
+            if mbpt_inp is None, the function read the output file
+            from a previous mbpt_lcao run.
+        output_name : str, optional
+            Name of the mbpt_lcao output
+        format_output : str, optional
+            Format of the mbpt_lcao output data,
+            if hdf5, the output name is tddft_iter_output.hdf5 if
+            do_tddft_iter is set to 1 the output name is
+            tddft_tem_output.hdf5 if do_tddft_tem is set to 1
+            if txt, a lot of output data files are produced depending on
+            the input, in the text and fortran binaries format
+        units : str, optional
+            unit for the returned polarizability, can be au (atomic units)
+            or nm**2
 
         Returns
         -------
-            freq : array like
-                array of dimension (nff) containing the frequency range in eV.
+        freq : array like
+            array of dimension (nff) containing the frequency range in eV.
 
-            self.results['polarizability'], array like
-                array of dimension (nff, 3, 3) with nff the frequency number,
-                the second and third dimension are the matrix elements of the polarizability:
-                    P_xx, P_xy, P_xz, Pyx, .......
+        self.results['polarizability'], array like
+            array of dimension (nff, 3, 3) with nff the frequency number,
+            the second and third dimension are the matrix elements of the
+            polarizability::
+
+                P_xx, P_xy, P_xz, Pyx, .......
 
         References
         ----------
-            http://mbpt-domiprod.wikidot.com
+        http://mbpt-domiprod.wikidot.com
 
         Example
         -------
@@ -827,7 +830,9 @@ class BaseSiesta(FileIOCalculator):
 
         Na8.set_calculator(siesta)
         e = Na8.get_potential_energy() #run siesta
-        freq, pol = siesta.get_polarizability_siesta(mbpt_inp, format_output='txt', units='nm**2')
+        freq, pol = siesta.get_polarizability_siesta(mbpt_inp,
+                                                     format_output='txt',
+                                                     units='nm**2')
 
         #plot polarizability
         plt.plot(freq, pol[:, 0, 0])
@@ -845,28 +850,30 @@ class BaseSiesta(FileIOCalculator):
 
         r.args.format_input = format_output
 
-        #read real part
+        # read real part
         r.args.ReIm = 're'
         data = r.Read()
         self.results['polarizability'] = data.Array
-        
-        #read imaginary part
+
+        # read imaginary part
         r.args.ReIm = 'im'
         data = r.Read()
-        self.results['polarizability'] = self.results['polarizability'] + complex(0.0, 1.0)*data.Array
+        self.results['polarizability'] = (self.results['polarizability'] +
+                                          complex(0.0, 1.0) * data.Array)
 
         if units == 'nm**2':
             from ase.calculators.siesta.mbpt_lcao_utils import pol2cross_sec
             for i in range(2):
                 for j in range(2):
-                    self.results['polarizability'][:, i, j] =\
-                    pol2cross_sec(self.results['polarizability'][:, i, j], data.freq)
+                    p = pol2cross_sec(self.results['polarizability'][:, i, j],
+                                      data.freq)
+                    self.results['polarizability'][:, i, j] = p
 
             print('unit nm**2')
-            #self.results['polarizability'] = data.Array
+            # self.results['polarizability'] = data.Array
         elif units == 'au':
             print('unit au')
-            #self.results['polarizability'] = data.Array
+            # self.results['polarizability'] = data.Array
         else:
             raise ValueError('units can be only au or nm**2')
 
