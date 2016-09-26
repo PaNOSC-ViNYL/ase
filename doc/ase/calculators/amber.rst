@@ -1,10 +1,10 @@
 .. module:: ase.calculators.amber
 
 Amber
-=======
+=====
 
 Introduction
-------------------------
+------------
 
 Amber is a powerfull classical simulations package
 (http://ambermd.org).  It is not free, academic license costs $500.
@@ -16,12 +16,13 @@ fileIO.
 
 
 Example
--------------------------
+-------
 
 You need input files
 (instructions for md, structure and topology, respectively):
-:download:`mm.in<./mm.in>` :download:`2h2o.pdb<./2h2o.pdb>` :download:`mm.top<./2h2o.top>`
+:download:`mm.in<./mm.in>` :download:`2h2o.pdb<./2h2o.pdb>`
+:download:`mm.top<./2h2o.top>`
 
 The actual ase-amber script:
-	  
-.. literalinclude:: ./test_amber.py
+
+.. literalinclude:: ../../../ase/ase/test/amber/amber.py

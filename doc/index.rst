@@ -42,8 +42,10 @@ Supported :mod:`Calculators <ase.calculators>`:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
-:mod:`~ase.calculators.tip3p` Grimme-D3_
+|octopus| |siesta| |turbomole| |vasp|
+:mod:`~ase.calculators.amber`
+:mod:`~ase.calculators.tip3p`
+ Gaussian_ Mopac_ Grimme-D3_
 
 
 .. _news:
@@ -191,6 +193,7 @@ Contents
 .. |vasp| image:: static/vasp.png
    :target: ase/calculators/vasp.html
    :align: middle
+
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/
