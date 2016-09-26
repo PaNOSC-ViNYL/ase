@@ -433,7 +433,7 @@ def filetype(filename, read=True):
 
         if '.' in basename:
             ext = filename.rsplit('.', 1)[-1].lower()
-            if ext in ['xyz', 'cube', 'json']:
+            if ext in ['xyz', 'cube', 'json', 'cif']:
                 return ext
 
         if 'POSCAR' in basename or 'CONTCAR' in basename:
