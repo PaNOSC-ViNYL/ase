@@ -73,7 +73,7 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
         raise KeyError('Either scaled or cartesian coordinates must be given.')
 
 
-def bandpath(paths, cell, npoints=50):
+def bandpath(path, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
     points: list
@@ -88,10 +88,11 @@ def bandpath(paths, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
-    if isinstance(paths, str):
+    if isinstance(path, str):
         xtal = crystal_structure_from_cell(cell)
+        print(xtal)
         special = get_special_points(xtal, cell)
-        strpaths = paths
+        strpaths = path
         paths = []
         for path in strpaths.split(','):
             names = (name if name != 'Gamma' else 'G'
@@ -158,8 +159,8 @@ def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-4):
     the second is x coordinates of the special points,
     the third is the special points as strings.
      """
-    # if crystal_structure is None:
-    #     crystal_structure = crystal_structure_from_cell(cell)
+    if crystal_structure is None:
+        crystal_structure = crystal_structure_from_cell(cell)
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=diffs)]
@@ -179,7 +180,7 @@ def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-4):
 
     xcoords_syms.sort()
     special_xcoords, syms = zip(*xcoords_syms)
-    return x, np.array(special_xcoords), np.array(syms)
+    return x, np.array(special_xcoords), syms
 
 
 special_points = {

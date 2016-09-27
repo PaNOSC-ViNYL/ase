@@ -3,7 +3,8 @@ from math import pi
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.calculators.calculator import Calculator
+from ase.calculators.calculator import Calculator, kpts2ndarray
+from ase.units import Bohr, Ha
 
 
 def make_test_dft_calculation():
@@ -116,6 +117,34 @@ class TestPotential(Calculator):
             F -= (x / d)[:, None] * D
         energy = 0.25 * E
         self.results = {'energy': energy, 'forces': F}
+
+
+class FreeElectrons(Calculator):
+    implemented_properties = ['energy']
+
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms)
+        self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
+        icell = atoms.get_reciprocal_cell() / Bohr
+        n = 7
+        offsets = np.indices((n, n, n)).T.reshape((n**3, 1, 3)) - n // 2
+        eps = 0.5 * (np.dot(self.kpts + offsets, icell)**2).sum(2).T
+        eps.sort()
+        self.eigenvalues = eps[:, :20] * Ha
+        self.results = {'energy': 0.0}
+
+    def get_eigenvalues(self, kpt, spin=0):
+        assert spin == 0
+        return self.eigenvalues[kpt].copy()
+
+    def get_fermi_level(self):
+        return 5.0
+
+    def get_ibz_k_points(self):
+        return self.kpts.copy()
+
+    def get_number_of_spins(self):
+        return 1
 
 
 def numeric_force(atoms, a, i, d=0.001):
