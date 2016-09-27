@@ -30,7 +30,7 @@ class BandStructure:
     def write(self, filename):
         data = {key: getattr(self, key) for key in
                 ['cell', 'kpts', 'energies', 'fermilevel', 'labels',
-                 'xcoord', 'label_xcoords']}
+                 'xcoords', 'label_xcoords']}
         with paropen(filename, 'wb') as f:
             pickle.dump(data, f, protocol=2)  # Python 2+3 compatible?
 
@@ -39,9 +39,9 @@ class BandStructure:
             data = pickle.load(f)
         self.__dict__.update(data)
 
-    def plot(self, spin=None, emax=10.0, filename=None, ax=None, show=True):
+    def plot(self, spin=None, emax=None, filename=None, ax=None, show=True):
+        import matplotlib.pyplot as plt
         if ax is None:
-            import matplotlib.pyplot as plt
             ax = plt.gca()
 
         def pretty(kpt):
@@ -51,10 +51,21 @@ class BandStructure:
                 kpt = kpt[0] + '_' + kpt[1]
             return '$' + kpt + '$'
 
+        if emax is not None:
+            emax = emax + self.fermilevel
+
         if spin is None:
             e_skn = self.energies
         else:
             e_skn = self.energies[spin][None]
+
+        labels = [pretty(name) for name in self.labels]
+        i = 1
+        while i < len(labels):
+            if self.label_xcoords[i - 1] == self.label_xcoords[i]:
+                labels[i - 1] = labels[i - 1][:-1] + ',' + labels[i][1:]
+                labels[i] = ''
+            i += 1
 
         for spin, e_kn in enumerate(e_skn):
             color = 'br'[spin]
@@ -65,11 +76,11 @@ class BandStructure:
             ax.axvline(x, color='0.5')
 
         ax.set_xticks(self.label_xcoords)
-        ax.set_xticklabels([pretty(name) for name in self.labels])
-        ax.axis(xmin=0, xmax=self.xcoords[-1], ymax=self.fermilevel + emax)
+        ax.set_xticklabels(labels)
+        ax.axis(xmin=0, xmax=self.xcoords[-1], ymax=emax)
         ax.set_ylabel('eigenvalues [eV]')
-        ax.grid(axis='x')
         ax.axhline(self.fermilevel, color='k')
+        plt.tight_layout()
 
         if filename:
             plt.savefig(filename)

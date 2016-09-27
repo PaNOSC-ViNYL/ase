@@ -90,7 +90,6 @@ def bandpath(path, cell, npoints=50):
 
     if isinstance(path, str):
         xtal = crystal_structure_from_cell(cell)
-        print(xtal)
         special = get_special_points(xtal, cell)
         strpaths = path
         paths = []
@@ -102,26 +101,22 @@ def bandpath(path, cell, npoints=50):
     elif np.array(paths[0]).ndim == 1:
         paths = [paths]
 
-    print(paths)
     points = np.concatenate(paths)
     dists = points[1:] - points[:-1]
-    print(points)
-    print(dists)
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
     i = 0
     for path in paths[:-1]:
         i += len(path)
-        lengths[i] = 0
+        lengths[i - 1] = 0
 
-    print(lengths)
     length = sum(lengths)
     kpts = []
     x0 = 0
     x = []
     X = [0]
     for P, d, L in zip(points[:-1], dists, lengths):
-        n = int(round(L * (npoints - 1 - len(x)) / (length - x0)))
-        for t in np.linspace(0, 1, n, endpoint=False):
+        n = max(2, int(round(L * (npoints - len(x)) / (length - x0))))
+        for t in np.linspace(0, 1, n)[:-1]:
             kpts.append(P + t * d)
             x.append(x0 + t * L)
         x0 += L
@@ -134,7 +129,7 @@ def bandpath(path, cell, npoints=50):
 get_bandpath = bandpath  # old name
 
 
-def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-4):
+def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-6):
     """Get an x-axis to be used when plotting a band structure.
 
     The first of the returned lists can be used as a x-axis when plotting
@@ -161,26 +156,36 @@ def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-4):
      """
     if crystal_structure is None:
         crystal_structure = crystal_structure_from_cell(cell)
+
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
-    lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=diffs)]
-    x = np.append([0], np.cumsum(lengths))
+    kinks = abs(diffs[1:] - diffs[:-1]).sum(1) > eps
+    N = len(points)
+    indices = [0]
+    indices.extend(np.arange(1, N - 1)[kinks])
+    indices.append(N - 1)
 
-    xcoords_syms = []
-    for p, scaled_point in special_points[crystal_structure].items():
-        ldist = np.inf
-        xp = False
-        for xc, kp in zip(x, points):
-            dist = np.linalg.norm(kp - np.array(scaled_point))
-            if dist < eps and dist < ldist:
-                ldist = dist
-                xp = (xc, p)
-        if xp:
-            xcoords_syms.append(xp)
+    special = get_special_points(crystal_structure, cell)
+    labels = []
+    for kpt in points[indices]:
+        for label, k in special.items():
+            if abs(kpt - k).sum() < eps:
+                break
+        else:
+            label = '?'
+        labels.append(label)
 
-    xcoords_syms.sort()
-    special_xcoords, syms = zip(*xcoords_syms)
-    return x, np.array(special_xcoords), syms
+    xcoords = [0]
+    for i1, i2 in zip(indices[:-1], indices[1:]):
+        if i1 + 1 == i2:
+            length = 0
+        else:
+            diff = points[i2] - points[i1]
+            length = np.linalg.norm(kpoint_convert(cell, skpts_kc=diff))
+        xcoords.extend(np.linspace(0, length, i2 - i1 + 1)[1:] + xcoords[-1])
+
+    xcoords = np.array(xcoords)
+    return xcoords, xcoords[indices], labels
 
 
 special_points = {
@@ -221,17 +226,13 @@ special_points = {
 
 
 special_paths = {
-    'cubic': [['G', 'X', 'M', 'G', 'R', 'X'], ['M', 'R']],
-    'fcc': [['G', 'X', 'W', 'K', 'G', 'L', 'U', 'W', 'L', 'K'], ['U', 'X']],
-    'bcc': [['G', 'H', 'N', 'G', 'P', 'H'], ['P', 'N']],
-    'tetragonal': [['G', 'X', 'M', 'G', 'Z', 'R', 'A', 'Z'], ['X', 'R'],
-                   ['M', 'A']],
-    'orthorhombic': [['G', 'X', 'S', 'Y', 'G', 'Z', 'U', 'R', 'T', 'Z'],
-                     ['Y', 'T'], ['U', 'X'], ['S', 'R']],
-    'hexagonal': [['G', 'M', 'K', 'G', 'A', 'L', 'H', 'A'], ['L', 'M'],
-                  ['K', 'H']],
-    'monoclinic': [['G', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1'],
-                   ['M', 'D', 'Z'], ['Y', 'D']]}
+    'cubic': 'GXMGRX,MR',
+    'fcc': 'GXWKGLUWLK,UX',
+    'bcc': 'GHNGPH,PN',
+    'tetragonal': 'GXMGZRAZXR,MA',
+    'orthorhombic': 'GXSYGZURTZ,YT,UX,SR',
+    'hexagonal': 'GMKGALHA,LM,KH',
+    'monoclinic': 'GYHCEM1AXH1,MDZ,YD'}
 
 
 def get_special_points(lattice, cell, eps=1e-4):
