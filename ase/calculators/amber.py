@@ -27,7 +27,8 @@ def map(atoms, top):
 class SANDER(Calculator):
     implemented_properties=['energy', 'forces']
 
-    def __init__(self, atoms=None, label=None, top=None, crd=None, mm_options=None, qm_options=None, permutation=None, **kwargs):
+    def __init__(self, atoms=None, label=None, top=None, crd=None, 
+                 mm_options=None, qm_options=None, permutation=None, **kwargs):
         Calculator.__init__(self, label, atoms)
         self.permutation = permutation
         if qm_options is not None:
@@ -44,27 +45,31 @@ class SANDER(Calculator):
                 del self.results['forces']
         if 'energy' not in self.results:
             if self.permutation is None:
-                crd=np.reshape(atoms.get_positions(),(1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions(),(1,len(atoms),3))
             else:
-                crd=np.reshape(atoms.get_positions()[self.permutation[0,:]],(1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions()
+                                 [self.permutation[0,:]],(1,len(atoms),3))
             sander.set_positions(crd)
             e, f = sander.energy_forces()
-            self.results['energy']=e.tot*kcal/mol
+            self.results['energy'] = e.tot * kcal/mol
             if self.permutation is None:
-                self.results['forces']=np.reshape(np.array(f), (len(atoms),3))*kcal/mol
+                self.results['forces'] = ( np.reshape(np.array(f), (len(atoms),3))
+                                          * kcal/mol )
             else:
-                ff = np.reshape(np.array(f), (len(atoms),3))*kcal/mol
-                self.results['forces']=ff[self.permutation[1,:]]
+                ff = np.reshape(np.array(f), (len(atoms),3)) * kcal/mol
+                self.results['forces'] = ff[self.permutation[1,:]]
         if 'forces' not in self.results:
             if self.permutation is None:
-                crd=np.reshape(atoms.get_positions(),(1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions(),(1,len(atoms),3))
             else:
-                crd=np.reshape(atoms.get_positions()[self.permutation[0,:]],(1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions()[self.permutation[0,:]],
+                                 (1,len(atoms),3))
             sander.set_positions(crd)
             e, f = sander.energy_forces()
-            self.results['energy']=e.tot*kcal/mol
+            self.results['energy'] = e.tot * kcal/mol
             if self.permutation is None:
-                self.results['forces']=np.reshape(np.array(f), (len(atoms),3))*kcal/mol
+                self.results['forces'] = ( np.reshape(np.array(f), (len(atoms),3))
+                                          * kcal/mol )
             else:
-                ff = np.reshape(np.array(f), (len(atoms),3))*kcal/mol
+                ff = np.reshape(np.array(f), (len(atoms),3)) * kcal/mol
                 self.results['forces']=ff[self.permutation[1,:]]
