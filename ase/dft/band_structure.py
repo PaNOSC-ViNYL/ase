@@ -1,8 +1,9 @@
 import pickle
+import sys
 
 import numpy as np
 
-from ase.dft.kpoints import xaxis_from_kpts
+from ase.dft.kpoints import labels_from_kpts
 from ase.parallel import paropen
 
 
@@ -32,11 +33,14 @@ class BandStructure:
                 ['cell', 'kpts', 'energies', 'fermilevel', 'labels',
                  'xcoords', 'label_xcoords']}
         with paropen(filename, 'wb') as f:
-            pickle.dump(data, f, protocol=2)  # Python 2+3 compatible?
+            pickle.dump(data, f, protocol=2)  # Python 2+3 compatible
 
     def read(self, filename):
         with paropen(filename, 'rb') as f:
-            data = pickle.load(f)
+            if sys.version_info[0] == 2:
+                data = pickle.load(f)
+            else:
+                data = pickle.load(f, encoding='latin1')
         self.__dict__.update(data)
 
     def plot(self, spin=None, emax=None, filename=None, ax=None, show=True):

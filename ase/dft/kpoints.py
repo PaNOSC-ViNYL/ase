@@ -129,7 +129,7 @@ def bandpath(path, cell, npoints=50):
 get_bandpath = bandpath  # old name
 
 
-def xaxis_from_kpts(kpts, cell, crystal_structure=None, eps=1e-6):
+def labels_from_kpts(kpts, cell, crystal_structure=None, eps=1e-6):
     """Get an x-axis to be used when plotting a band structure.
 
     The first of the returned lists can be used as a x-axis when plotting
