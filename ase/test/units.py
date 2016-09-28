@@ -1,18 +1,10 @@
-import numpy as np
-
-def installed():
-    try:
-        import scipy
-        return True
-    except ImportError:
-        raise NotAvailable()
-
-
 # This test cross-checks our implementation of CODATA against the
 # implementation that SCIPY brings with it
 
 def test_units():
-    installed()
+    import numpy as np
+    from ase.units import CODATA
+    import scipy.constants.codata
 
     name_map = {'_c' : 'speed of light in vacuum',
                 '_mu0' : 'mag. const.',
@@ -25,8 +17,6 @@ def test_units():
                 '_k' : 'Boltzmann constant',
                 '_amu' : 'atomic mass unit-kilogram relationship'}
 
-    from ase.units import CODATA
-    import scipy.constants.codata
     for version in sorted(CODATA.keys()):
         print('Checking CODATA version "{}"'.format(version))
 
@@ -39,7 +29,6 @@ def test_units():
         for unit, scipyname in name_map.items():
             aseval = CODATA[version][unit]
             try:
-                # 2002 in scipy contains too little data
                 scipyval = scipy_CODATA[name_map[unit]][0]
                 msg = 'Unit "{}" : '.format(name_map[unit])
                 ok = True
@@ -53,6 +42,5 @@ def test_units():
                     raise AssertionError
 
             except KeyError:
+                # 2002 in scipy contains too little data
                 continue
-if __name__ == '__main__':
-    test_units()
