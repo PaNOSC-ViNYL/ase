@@ -1,3 +1,4 @@
+import numpy as np
 from ase.atoms import Atoms
 
 
@@ -6,11 +7,9 @@ def read_dftb(filename='dftb_in.hsd'):
     additionally read information about fixed atoms
     and periodic boundary condition
     """
-    from ase import Atoms
+    with open(filename, 'r') as myfile:
+        lines = myfile.readlines()
 
-    myfile = open(filename)
-
-    lines = myfile.readlines()
     atoms_pos = []
     atom_symbols = []
     type_names = []
@@ -20,6 +19,23 @@ def read_dftb(filename='dftb_in.hsd'):
     for iline, line in enumerate(lines):
         if (line.strip().startswith('#')):
             pass
+        elif ('genformat') in line.lower():
+            natoms = int(lines[iline + 1].split()[0])
+            if lines[iline + 1].split()[1].lower() == 's':
+                my_pbc = True
+            symbols = lines[iline + 2].split()
+            for i in range(natoms):
+                index = iline + 3 + i
+                aindex = int(lines[index].split()[1]) - 1
+                atom_symbols.append(symbols[aindex])
+
+                position = [float(p) for p in lines[index].split()[2:]]
+                atoms_pos.append(position)
+            if my_pbc:
+                for i in range(3):
+                    index = iline + 4 + natoms + i
+                    cell = [float(c) for c in lines[index].split()]
+                    mycell.append(cell)
         else:
             if ('TypeNames' in line):
                 col = line.split()
@@ -36,6 +52,9 @@ def read_dftb(filename='dftb_in.hsd'):
                         [float(cols[0]), float(cols[1]), float(cols[2])])
             else:
                 pass
+
+    if not my_pbc:
+        mycell = [1.0, 1.0, 1.0]
 
     start_reading_coords = False
     stop_reading_coords = False
@@ -55,9 +74,6 @@ def read_dftb(filename='dftb_in.hsd'):
                 symbol = type_names[typeindex-1]
                 atom_symbols.append(symbol)
                 atoms_pos.append([float(xxx), float(yyy), float(zzz)])
-
-    if isinstance(filename, str):
-        myfile.close()
 
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols,
                   cell = mycell, pbc = my_pbc)
