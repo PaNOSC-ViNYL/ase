@@ -1,6 +1,3 @@
-import pickle
-import sys
-
 import numpy as np
 
 from ase.dft.kpoints import labels_from_kpts
