@@ -74,6 +74,19 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
 
 
 def parse_path_string(s):
+    """Parse compact string representation of BZ path.
+
+    A path string can have several non-contiguous sections separated by
+    commas. The return value is a list of sections where each section is a
+    list of labels.
+
+    Examples:
+
+    >>> parse_path_string('GX')
+    [['G', 'X']]
+    >>> parse_path_string('GX,M1A')
+    [['G', 'X'], ['M1', 'A']]
+    """
     paths = []
     for path in s.split(','):
         names = [name if name != 'Gamma' else 'G'
