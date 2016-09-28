@@ -25,13 +25,34 @@ Git master branch
 
 * :func:`ase.io.write` can now write XSD files.
 
-* Interface for deMon and ONETEP added.
+* Interfaces for deMon and ONETEP added.
 
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
+
+* New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify
+  special points and create nice plots.
+
+* Calculators that inherit from :class:`ase.calculators.calculator.Calculator`
+  will now have a :meth:`~ase.calculators.calculator.Calculator.band_structure`
+  method that creates a :class:`~ase.dft.band_structure.BandStructure` object.
+
+* Addition to :mod:`~ase.geometry` module:
+  :func:`~ase.geometry.crystal_structure_from_cell`.
+
+* New functions in :mod:`ase.dft.kpoints` module:
+  :func:`~ase.dft.kpoints.parse_path_string`,
+  :func:`~ase.dft.kpoints.labels_from_kpts` and
+  :func:`~ase.dft.kpoints.bandpath`.
+
+* Helper function for generation of Monkhors-Pack samplings and BZ-paths:
+  :func:`ase.calculators.calculator.kpts2ndarray`.
+
+* Useful class for testing band-structure stuff:
+  :class:`ase.calculators.test.FreeElectrons`.
 
 
 Version 3.11.0

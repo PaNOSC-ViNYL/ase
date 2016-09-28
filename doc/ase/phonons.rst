@@ -24,21 +24,21 @@ using a 7x7x7 supercell within effective medium theory::
 
   from ase.lattice import bulk
   from ase.calculators.emt import EMT
-  from ase.dft.kpoints import ibz_points, get_bandpath
+  from ase.dft.kpoints import ibz_points, bandpath
   from ase.phonons import Phonons
-  
+
   # Setup crystal and EMT calculator
   atoms = bulk('Al', 'fcc', a=4.05)
   calc = EMT()
-  
+
   # Phonon calculator
   N = 7
   ph = Phonons(atoms, calc, supercell=(N, N, N), delta=0.05)
   ph.run()
-  
+
   # Read forces and assemble the dynamical matrix
   ph.read(acoustic=True)
-  
+
   # High-symmetry points in the Brillouin zone
   points = ibz_points['fcc']
   G = points['Gamma']
@@ -52,7 +52,7 @@ using a 7x7x7 supercell within effective medium theory::
   path = [G, X, U, L, G, K]
 
   # Band structure in meV
-  path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
+  path_kc, q, Q = bandpath(path, atoms.cell, 100)
   omega_kn = 1000 * ph.band_structure(path_kc)
 
   # Calculate phonon DOS
@@ -60,8 +60,8 @@ using a 7x7x7 supercell within effective medium theory::
   omega_e *= 1000
 
   # Plot the band structure and DOS
-  import pylab as plt
-  plt.figure(1, (8, 6))   
+  import matplotlib.pyplot as plt
+  plt.figure(1, (8, 6))
   plt.axes([.1, .07, .67, .85])
   for n in range(len(omega_kn[0])):
       omega_n = omega_kn[:, n]
@@ -84,8 +84,8 @@ using a 7x7x7 supercell within effective medium theory::
 .. image:: Al_phonon.png
 
 Mode inspection using ase-gui::
-  
-  # Write modes for specific q-vector to trajectory files  
+
+  # Write modes for specific q-vector to trajectory files
   ph.write_modes([l/2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4)
 
 .. image:: Al_mode.*

@@ -59,7 +59,7 @@ The calculators can be divided in four groups:
 4) Calculators that wrap others, included in the ASE package:
    :class:`ase.calculators.checkpoint.CheckpointCalculator` and
    the :ref:`Grimme-D3 <grimme>` potential.
-   
+
 
 ==================================  ===========================================
 name                                description
@@ -96,7 +96,7 @@ morse                               Morse potential
 .. _grimme:
 
 .. note::
-    
+
     A Fortran implemetation of the Grimme-D3 potential, that can be used as
     an add-on to any ASE calculator, can be found here:
     https://gitlab.com/ehermes/ased3/tree/master.
@@ -207,11 +207,12 @@ the :meth:`set` method:
    qmmm
    checkpointing
    others
+   test
    ase_qmmm_manyqm
 
 
 .. _calculator interface:
-    
+
 Calculator interface
 ====================
 

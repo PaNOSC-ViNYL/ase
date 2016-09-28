@@ -1,8 +1,9 @@
 # creates: Al_phonon.png Al_mode.gif Al_mode.pdf
+import matplotlib.pyplot as plt
 
 from ase.build import bulk
 from ase.calculators.emt import EMT
-from ase.dft.kpoints import ibz_points, get_bandpath
+from ase.dft.kpoints import ibz_points, bandpath
 from ase.phonons import Phonons
 
 # Setup crystal and EMT calculator
@@ -28,7 +29,7 @@ U = points['U']
 
 point_names = ['$\Gamma$', 'X', 'U', 'L', '$\Gamma$', 'K']
 path = [G, X, U, L, G, K]
-path_kc, q, Q = get_bandpath(path, atoms.cell, 100)
+path_kc, q, Q = bandpath(path, atoms.cell, 100)
 omega_kn = 1000 * ph.band_structure(path_kc)
 
 # DOS
@@ -36,8 +37,6 @@ omega_e, dos_e = ph.dos(kpts=(50, 50, 50), npts=5000, delta=1e-4)
 omega_e *= 1000
 
 # Plot phonon dispersion
-import pylab as plt
-
 plt.figure(1, (8, 6))
 plt.axes([.1, .07, .67, .85])
 for n in range(len(omega_kn[0])):
@@ -60,7 +59,7 @@ plt.xlabel("DOS", fontsize=18)
 plt.savefig('Al_phonon.png')
 
 # Write modes for specific q-vector to trajectory files
-ph.write_modes([l/2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4,
+ph.write_modes([l / 2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4,
                center=True)
 
 # Generate png animation
@@ -71,17 +70,14 @@ trajfile = 'phonon.mode.2.traj'
 trajectory = Trajectory(trajfile, 'r')
 
 for i, atoms in enumerate(trajectory):
-    write('picture%02i.png' %i, atoms, show_unit_cell=2,
+    write('picture%02i.png' % i, atoms, show_unit_cell=2,
           rotation='-36x,26.5y,-25z')
     # Flatten images for better quality
-    call(['convert', '-flatten', 'picture%02i.png' %i, 'picture%02i.png' %i])
+    call(['convert', '-flatten', 'picture%02i.png' % i, 'picture%02i.png' % i])
 
 # Make static pdf image for pdflatex
 call(['convert', 'picture00.png', 'Al_mode.pdf'])
 
 # Concatenate to gif animation
-call(['convert', '-delay', '5', '-loop', '0', '-dispose', 'Previous', 'picture*.png',
-      'Al_mode.gif'])
-
-
-
+call(['convert', '-delay', '5', '-loop', '0', '-dispose', 'Previous',
+      'picture*.png', 'Al_mode.gif'])
