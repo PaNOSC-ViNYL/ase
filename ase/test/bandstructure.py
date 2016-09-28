@@ -10,8 +10,8 @@ a.calc = FreeElectrons(nvalence=1,
 a.get_potential_energy()
 bs = a.calc.band_structure()
 print(bs.labels)
-bs.plot(emax=10, filename='bs.png')
 bs.write('hmm.json')
 bs = BandStructure(filename='hmm.json')
 print(bs.labels)
 assert ''.join(bs.labels) == 'GXWKGLUWLKUX'
+bs.plot(emax=10, filename='bs.png')
