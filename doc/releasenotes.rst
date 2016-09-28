@@ -22,7 +22,7 @@ Git master branch
 
 * Two new flawors of :class:`~ase.neb.NEB` calculations have been added:
   ``method='eb'`` and ``method='improvedtangent'``.
-  
+
 * :func:`ase.io.write` can now write XSD files.
 
 * Interface for deMon added.
@@ -33,7 +33,28 @@ Git master branch
   :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
 
-  
+* New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify
+  special points and create nice plots.
+
+* Calculators that inherit from :class:`ase.calculators.calculator.Calculator`
+  will now have a :meth:`~ase.calculators.calculator.Calculator.band_structure`
+  method that creates a :class:`~ase.dft.band_structure.BandStructure` object.
+
+* Addition to :mod:`~ase.geometry` module:
+  :func:`~ase.geometry.crystal_structure_from_cell`.
+
+* New functions in :mod:`ase.dft.kpoints` module:
+  :func:`~ase.dft.kpoints.parse_path_string`,
+  :func:`~ase.dft.kpoints.labels_from_kpts` and
+  :func:`~ase.dft.kpoints.bandpath`.
+
+* Helper function for generation of Monkhors-Pack samplings and BZ-paths:
+  :func:`ase.calculators.calculator.kpts2ndarray`.
+
+* Useful class for testing band-structure stuff:
+  :class:`ase.calculators.test.FreeElectrons`.
+
+
 Version 3.11.0
 ==============
 
@@ -50,7 +71,7 @@ Version 3.11.0
   * ``ase.utils.eos`` moved to :mod:`ase.eos`
   * ``ase.calculators.neighborlist`` moved to :mod:`ase.neighborlist`
   * ``ase.lattice.spacegroup`` moved to :mod:`ase.spacegroup`
- 
+
 * The ``InfraRed`` that used to be in the ``ase.infrared`` or
   ``ase.vibrations.infrared`` modules is now called
   :class:`~ase.vibrations.Infrared` and should be imported from the
@@ -71,7 +92,7 @@ Version 3.11.0
 
 * :class:`~ase.neb.NEB` improvement:  calculations for molecules can now be
   told to minimize ratation and translation along the path.
-    
+
 
 Version 3.10.0
 ==============
@@ -106,7 +127,7 @@ Version 3.10.0
 
 * New :func:`ase.geometry.get_duplicate_atoms` function for finding and
   removing atoms on top of each other.
-  
+
 * New: A replacement :mod:`Siesta <ase.calculators.siesta>` calculator was
   implemented. It closely follows the
   :class:`ase.calculators.calculator.FileIOCalculator` class which should
@@ -121,7 +142,7 @@ Version 3.9.1
 
 * Added function for finding maximally-reduced Niggli unit cell:
   :func:`ase.build.niggli_reduce`.
-  
+
 * Octopus interface added (experimental).
 
 
@@ -143,7 +164,7 @@ Version 3.9.0
 
 * New functions: :func:`ase.build.fcc211` and
   :func:`ase.visualize.mlab.plot`.
-  
+
 * New :class:`~ase.atoms.Atoms` methods:
   :meth:`ase.atoms.Atoms.get_distances()` and
   :meth:`ase.atoms.Atoms.get_all_distances()`.
@@ -157,7 +178,7 @@ Version 3.9.0
   added ``wrap=True`` keyword argument to
   :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
-  
+
 * New improved method for initializing NEB calculations:
   :meth:`ase.neb.NEB.interpolate`.
 
@@ -290,7 +311,7 @@ Version 3.5.0
   * Enabled user default settings via :file:`~/.ase/gui.py`.
 
 * :mod:`Database library <data>` expanded to include:
-  
+
   * The s22, s26 and s22x5 sets of van der Waals bonded dimers and
     complexes by the Hobza group.
   * The DBH24 set of gas-phase reaction barrier heights by the Truhlar

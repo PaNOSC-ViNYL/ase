@@ -1,3 +1,4 @@
+from __future__ import division
 from math import pi
 
 import numpy as np
@@ -120,6 +121,20 @@ class TestPotential(Calculator):
 
 
 class FreeElectrons(Calculator):
+    """Free-electron band calculator.
+
+    Parameters:
+
+    nvalence: int
+        Number of electrons
+    kpts: dict
+        K-point specification.
+
+    Example:
+
+    >>> calc = FreeElectrons(nvalence=1, kpts={'path': 'GXL'})
+    """
+
     implemented_properties = ['energy']
 
     def calculate(self, atoms, properties, system_changes):

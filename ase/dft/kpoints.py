@@ -76,7 +76,7 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
 def parse_path_string(s):
     """Parse compact string representation of BZ path.
 
-    A path string can have several non-contiguous sections separated by
+    A path string can have several non-connected sections separated by
     commas. The return value is a list of sections where each section is a
     list of labels.
 
@@ -99,10 +99,12 @@ def parse_path_string(s):
 def bandpath(path, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
-    points: list
-        List of special IBZ point pairs, e.g. ``points =
-        [W, L, Gamma, X, W, K]``.  These should be given in
-        scaled coordinates.
+    path: list or str
+        Can be:
+
+        * a string that parse_path_string() understands: 'GXL'
+        * a list of BZ points: [(0, 0, 0), (0.5, 0, 0)]
+        * or several lists of BZ points if the the path is not continuous.
     cell: 3x3
         Unit cell of the atoms.
     npoints: int

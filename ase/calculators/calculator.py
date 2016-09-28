@@ -571,6 +571,7 @@ class Calculator:
         return False
 
     def band_structure(self):
+        """Create band-structure object for plotting."""
         from ase.dft.band_structure import BandStructure
         return BandStructure(calc=self)
 
