@@ -127,16 +127,22 @@ def creates():
                 lines = open(path).readlines()
                 if len(lines) == 0:
                     continue
-                line = lines[0]
-                if 'coding: utf-8' in line:
-                    line = lines[1]
-                if line.startswith('# creates:'):
-                    yield dirpath, filename, [file.rstrip(',')
-                                              for file in line.split()[2:]]
+                if 'coding: utf-8' in lines[0]:
+                    lines.pop(0)
+                outnames = []
+                for line in lines:
+                    if line.startswith('# creates:'):
+                        outnames.extend([file.rstrip(',')
+                                         for file in line.split()[2:]])
+                    else:
+                        break
+                if outnames:
+                    yield dirpath, filename, outnames
+
         if 'build' in dirnames and dirpath == '.':
             dirnames.remove('build')
 
-                        
+
 def create_png_files():
     errcode = os.system('povray -h 2> /dev/null')
     if errcode:
@@ -188,7 +194,7 @@ def create_png_files():
             for outname in outnames:
                 print(dir, outname)
 
-                
+
 def clean():
     """Remove all generated files."""
     for dir, pyname, outnames in creates():
