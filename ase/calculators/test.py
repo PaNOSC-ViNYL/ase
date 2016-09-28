@@ -125,7 +125,7 @@ class FreeElectrons(Calculator):
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms)
         self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
-        icell = atoms.get_reciprocal_cell() / Bohr
+        icell = atoms.get_reciprocal_cell() * 2 * np.pi * Bohr
         n = 7
         offsets = np.indices((n, n, n)).T.reshape((n**3, 1, 3)) - n // 2
         eps = 0.5 * (np.dot(self.kpts + offsets, icell)**2).sum(2).T
@@ -138,7 +138,9 @@ class FreeElectrons(Calculator):
         return self.eigenvalues[kpt].copy()
 
     def get_fermi_level(self):
-        return 5.0
+        v = self.atoms.get_volume() / Bohr**3
+        kF = (self.parameters.nvalence / v * 2 * np.pi**2)**(1 / 3)
+        return 0.5 * kF**2 * Ha
 
     def get_ibz_k_points(self):
         return self.kpts.copy()
