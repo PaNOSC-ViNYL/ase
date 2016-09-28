@@ -22,7 +22,7 @@ class BandStructure:
                                  for k in range(len(self.kpts))])
             self.energies = np.array(energies)
             self.fermilevel = calc.get_fermi_level()
-            self.xcoords, self.label_xcoords, self.labels = xaxis_from_kpts(
+            self.xcoords, self.label_xcoords, self.labels = labels_from_kpts(
                 self.kpts, self.cell)
 
         if labels:

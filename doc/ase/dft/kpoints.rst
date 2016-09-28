@@ -52,7 +52,7 @@ Special points from [Setyawana-Curtarolo]_:
 
 .. list-table::
     :widths: 10 30 35
-    
+
     * - Cubic
       - `\Gamma`-`X`-`M`-`\Gamma`-`R`-`X`, `M`-`R`
       - .. image:: cubic.svg
@@ -87,25 +87,25 @@ Special points from [Setyawana-Curtarolo]_:
     Challenges and tools
 
     Wahyu Setyawana, Stefano Curtarolo
-    
+
     Computational Materials Science,
     Volume 49, Issue 2, August 2010, Pages 299–312
-    
+
     http://dx.doi.org/10.1016/j.commatsci.2010.05.010
 
 You can find the special points in the Brillouin zone:
 
 >>> from ase.lattice import bulk
->>> from ase.dft.kpoints import get_special_points, get_bandpath
+>>> from ase.dft.kpoints import get_special_points, bandpath
 >>> si = bulk('Si', 'diamond', a=5.459)
 >>> points = get_special_points('fcc', si.cell)
 >>> GXW = [points[k] for k in 'GXW']
->>> kpts, x, X = get_bandpath(GXW, si.cell, 100)
+>>> kpts, x, X = bandpath(GXW, si.cell, 100)
 >>> print(kpts.shape, len(x), len(X))
 (100, 3) 100 3
 
 .. autofunction:: get_special_points
-.. autofunction:: get_bandpath
+.. autofunction:: bandpath
 
 
 High symmetry paths

@@ -73,6 +73,16 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
         raise KeyError('Either scaled or cartesian coordinates must be given.')
 
 
+def parse_path_string(s):
+    paths = []
+    for path in s.split(','):
+        names = (name if name != 'Gamma' else 'G'
+                 for name in re.split(r'([A-Z][a-z0-9]*)', path)
+                 if name)
+        paths.append(names)
+    return paths
+
+
 def bandpath(path, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
@@ -91,15 +101,13 @@ def bandpath(path, cell, npoints=50):
     if isinstance(path, str):
         xtal = crystal_structure_from_cell(cell)
         special = get_special_points(xtal, cell)
-        strpaths = path
         paths = []
-        for path in strpaths.split(','):
-            names = (name if name != 'Gamma' else 'G'
-                     for name in re.split(r'([A-Z][a-z0-9]*)', path)
-                     if name)
+        for names in parse_path_string(path):
             paths.append([special[name] for name in names])
-    elif np.array(paths[0]).ndim == 1:
-        paths = [paths]
+    elif np.array(path[0]).ndim == 1:
+        paths = [path]
+    else:
+        paths = path
 
     points = np.concatenate(paths)
     dists = points[1:] - points[:-1]
