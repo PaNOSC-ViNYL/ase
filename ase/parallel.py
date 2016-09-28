@@ -93,11 +93,15 @@ class MPI4PY:
         a[:] = self.comm.bcast(a, root=rank)
 
 
+def set_world(comm):
 # Check for special MPI-enabled Python interpreters:
-if '_gpaw' in sys.builtin_module_names:
+#if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
-    from gpaw.mpi import world
-elif '_asap' in sys.builtin_module_names:
+#    from gpaw.mpi import world
+    global world
+    world = comm
+
+if '_asap' in sys.builtin_module_names:
     # Modern version of Asap
     # http://wiki.fysik.dtu.dk/asap
     # We cannot import asap3.mpi here, as that creates an import deadlock
