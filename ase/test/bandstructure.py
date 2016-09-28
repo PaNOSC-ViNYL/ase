@@ -10,7 +10,7 @@ a.calc = FreeElectrons(nvalence=1,
 a.get_potential_energy()
 bs = a.calc.band_structure()
 print(bs.labels)
-bs.plot(emax=10, filename='bs.png', show=False)
+bs.plot(emax=10, filename='bs.png')
 bs.write('hmm.pckl')
 bs = BandStructure(filename='hmm.pckl')
 print(bs.labels)

@@ -48,7 +48,7 @@ class BandStructure:
                 data = pickle.load(f, encoding='latin1')
         self.__dict__.update(data)
 
-    def plot(self, spin=None, emax=None, filename=None, ax=None, show=True):
+    def plot(self, spin=None, emax=None, filename=None, ax=None, show=None):
         """Plot band-structure.
 
         spin: int or None
@@ -109,6 +109,9 @@ class BandStructure:
 
         if filename:
             plt.savefig(filename)
+
+        if show is None:
+            show = not filename
 
         if show:
             plt.show()
