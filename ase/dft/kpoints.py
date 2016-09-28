@@ -76,9 +76,9 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
 def parse_path_string(s):
     paths = []
     for path in s.split(','):
-        names = (name if name != 'Gamma' else 'G'
+        names = [name if name != 'Gamma' else 'G'
                  for name in re.split(r'([A-Z][a-z0-9]*)', path)
-                 if name)
+                 if name]
         paths.append(names)
     return paths
 

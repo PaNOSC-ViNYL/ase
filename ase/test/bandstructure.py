@@ -5,9 +5,13 @@ from ase.dft.band_structure import BandStructure
 
 a = bulk('Cu')
 path = special_paths['fcc']
-a.calc = FreeElectrons(kpts={'path': path, 'npoints': 200})
+a.calc = FreeElectrons(nvalence=1,
+                       kpts={'path': path, 'npoints': 200})
 a.get_potential_energy()
 bs = a.calc.band_structure()
+print(bs.labels)
 bs.plot(emax=10, filename='bs.png', show=False)
 bs.write('hmm.pckl')
-bs2 = BandStructure(filename='hmm.pckl')
+bs = BandStructure(filename='hmm.pckl')
+print(bs.labels)
+assert ''.join(bs.labels) == 'GXWKGLUWLKUX'

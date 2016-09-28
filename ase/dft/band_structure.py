@@ -8,7 +8,13 @@ from ase.parallel import paropen
 
 
 class BandStructure:
-    def __init__(self, atoms=None, calc=None, filename=None, labels=None):
+    def __init__(self, atoms=None, calc=None, filename=None):
+        """Band-structure object.
+
+        Create a band-structure object from an Atoms object, a calculator or
+        from a pickle file.  Labels for special points will be automatically
+        added.
+        """
         if filename:
             self.read(filename)
         else:
@@ -25,10 +31,8 @@ class BandStructure:
             self.xcoords, self.label_xcoords, self.labels = labels_from_kpts(
                 self.kpts, self.cell)
 
-        if labels:
-            self.labels = labels
-
     def write(self, filename):
+        """Write to pickle file."""
         data = {key: getattr(self, key) for key in
                 ['cell', 'kpts', 'energies', 'fermilevel', 'labels',
                  'xcoords', 'label_xcoords']}
@@ -36,6 +40,7 @@ class BandStructure:
             pickle.dump(data, f, protocol=2)  # Python 2+3 compatible
 
     def read(self, filename):
+        """Read from pickle file."""
         with paropen(filename, 'rb') as f:
             if sys.version_info[0] == 2:
                 data = pickle.load(f)
@@ -44,6 +49,21 @@ class BandStructure:
         self.__dict__.update(data)
 
     def plot(self, spin=None, emax=None, filename=None, ax=None, show=True):
+        """Plot band-structure.
+
+        spin: int or None
+            Spin channel.  Default behaviour is to plot both spi up and down
+            for spin-polarized calculations.
+        emax: float
+            Maximum energy above fermi-level.
+        filename: str
+            Write imagee to a file.
+        ax: Axes
+            MatPlotLib Axes object.  Will be created if not supplied.
+        show: bool
+            Show the image.
+        """
+
         import matplotlib.pyplot as plt
         if ax is None:
             ax = plt.gca()
@@ -55,13 +75,14 @@ class BandStructure:
                 kpt = kpt[0] + '_' + kpt[1]
             return '$' + kpt + '$'
 
-        if emax is not None:
-            emax = emax + self.fermilevel
-
         if spin is None:
             e_skn = self.energies
         else:
-            e_skn = self.energies[spin][None]
+            e_skn = self.energies[spin, None]
+
+        emin = e_skn.min()
+        if emax is not None:
+            emax = emax + self.fermilevel
 
         labels = [pretty(name) for name in self.labels]
         i = 1
@@ -81,7 +102,7 @@ class BandStructure:
 
         ax.set_xticks(self.label_xcoords)
         ax.set_xticklabels(labels)
-        ax.axis(xmin=0, xmax=self.xcoords[-1], ymax=emax)
+        ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel('eigenvalues [eV]')
         ax.axhline(self.fermilevel, color='k')
         plt.tight_layout()
