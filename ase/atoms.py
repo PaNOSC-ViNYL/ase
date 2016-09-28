@@ -18,7 +18,9 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.geometry import wrap_positions, find_mic, cellpar_to_cell, cell_to_cellpar
+from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
+                          cell_to_cellpar)
+
 
 class Atoms(object):
     """Atoms object.
@@ -62,14 +64,14 @@ class Atoms(object):
         non-collinear calculations.
     charges: list of float
         Atomic charges.
-    cell: 3x3 matrix
+    cell: 3x3 matrix or length 3 or 6 vector
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells, or 6 numbers, where
-        first three are lengths of unit cell vector, and the
-        other three are angles between them, in following order:
+        first three are lengths of unit cell vectors, and the
+        other three are angles between them (in degrees), in following order:
         [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
-        First vector will lie in X - direction, second in XY - plane,
-        and the third one in Z - positive subspace.
+        First vector will lie in x-direction, second in xy-plane,
+        and the third one in z-positive subspace.
         Default value: [1, 1, 1].
     celldisp: Vector
         Unit cell displacement vector. To visualize a displaced cell
@@ -283,15 +285,15 @@ class Atoms(object):
 
         Parameters:
 
-        cell :
+        cell: 3x3 matrix or length 3 or 6 vector
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
             just three numbers for an orthorhombic cell. Another option is
             6 numbers, which describes unit cell with lengths of unit cell
-            vectors and with angles between them, in following order:
-            [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
-            First vector will lie in X - direction, second in XY - plane,
-            and the third one in Z - positive subspace.
-        scale_atoms : bool
+            vectors and with angles between them (in degrees), in following
+            order: [len(a), len(b), len(c), angle(b,c), angle(a,c),
+            angle(a,b)].  First vector will lie in x-direction, second in
+            xy-plane, and the third one in z-positive subspace.
+        scale_atoms: bool
             Fix atomic positions or move atoms with the unit cell?
             Default behavior is to *not* move the atoms (scale_atoms=False).
 
@@ -306,32 +308,27 @@ class Atoms(object):
 
         FCC unit cell:
 
-        >>> a.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+        >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
 
         Hexagonal unit cell:
 
-        >>> a.set_cell_length_and_angles([a, a, c, PI/2.0, PI/2.0, PI/3.0])
+        >>> atoms.set_cell([a, a, c, 90, 90, 120])
 
         Rhombohedral unit cell:
 
-        >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
-
-        >>> a.set_cell_length_and_angles([a, a, a, alpha, alpha, alpha])
-        >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+        >>> a.set_cell([a, a, a, alpha, alpha, alpha])
         """
 
         if fix is not None:
             raise TypeError('Please use scale_atoms=%s' % (not fix))
 
-        if isinstance(cell, (int, float)):
-            cell = cellpar_to_cell(cell)
-
         cell = np.array(cell)
-        
-        if cell.shape in ((1, ), (3, ), (6, )):
+
+        if cell.shape in ((3,), (6,)):
             cell = cellpar_to_cell(cell)
         elif cell.shape != (3, 3):
-            raise ValueError("")
+            raise ValueError('Cell must be length 3 sequence, length 6 '
+                             'sequence or 3x3 matrix!')
 
         if scale_atoms:
             M = np.linalg.solve(self._cell, cell)
@@ -350,13 +347,16 @@ class Atoms(object):
     def get_cell(self):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         return self._cell.copy()
-        
-    def get_cellpar(self):
-        """Get unit cell parameters. Sequence of 6 numbers.
-        First three are unit cell vector lengths and second three 
-        are angles between them:
 
-        [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+    def get_cell_lengths_and_angles(self):
+        """Get unit cell parameters. Sequence of 6 numbers.
+
+        First three are unit cell vector lengths and second three
+        are angles between them::
+
+            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+
+        in degrees.
         """
         return cell_to_cellpar(self._cell)
 
@@ -806,7 +806,7 @@ class Atoms(object):
         """Returns the global number of atoms in a distributed-atoms parallel simulation.
 
         DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING!
-        
+
         Equivalent to len(atoms) in the standard ASE Atoms class.  You should normally
         use len(atoms) instead.  This function's only purpose is to make compatibility
         between ASE and Asap easier to maintain by having a few places in ASE use this
