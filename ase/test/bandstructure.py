@@ -14,4 +14,6 @@ bs.write('hmm.json')
 bs = BandStructure(filename='hmm.json')
 print(bs.labels)
 assert ''.join(bs.labels) == 'GXWKGLUWLKUX'
+import matplotlib
+matplotlib.use('Agg')
 bs.plot(emax=10, filename='bs.png')
