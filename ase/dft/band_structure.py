@@ -4,6 +4,7 @@ import sys
 import numpy as np
 
 from ase.dft.kpoints import labels_from_kpts
+from ase.io.jsonio import encode, decode
 from ase.parallel import paropen
 
 
@@ -20,33 +21,37 @@ class BandStructure:
         else:
             atoms = atoms or calc.atoms
             calc = calc or atoms.calc
+
             self.cell = atoms.cell
             self.kpts = calc.get_ibz_k_points()
+            self.fermilevel = calc.get_fermi_level()
+
             energies = []
             for s in range(calc.get_number_of_spins()):
                 energies.append([calc.get_eigenvalues(kpt=k, spin=s)
                                  for k in range(len(self.kpts))])
             self.energies = np.array(energies)
-            self.fermilevel = calc.get_fermi_level()
-            self.xcoords, self.label_xcoords, self.labels = labels_from_kpts(
-                self.kpts, self.cell)
+
+            x, X, labels = labels_from_kpts(self.kpts, self.cell)
+            self.xcoords = x
+            self.label_xcoords = X
+            self.labels = labels
+
+    def todict(self):
+        return {key: getattr(self, key) for key in
+                ['cell', 'kpts', 'energies', 'fermilevel',
+                 'xcoords', 'label_xcoords', 'labels']}
 
     def write(self, filename):
-        """Write to pickle file."""
-        data = {key: getattr(self, key) for key in
-                ['cell', 'kpts', 'energies', 'fermilevel', 'labels',
-                 'xcoords', 'label_xcoords']}
-        with paropen(filename, 'wb') as f:
-            pickle.dump(data, f, protocol=2)  # Python 2+3 compatible
+        """Write to json file."""
+        with paropen(filename, 'w') as f:
+            f.write(encode(self))
 
     def read(self, filename):
-        """Read from pickle file."""
-        with paropen(filename, 'rb') as f:
-            if sys.version_info[0] == 2:
-                data = pickle.load(f)
-            else:
-                data = pickle.load(f, encoding='latin1')
-        self.__dict__.update(data)
+        """Read from json file."""
+        with open(filename, 'r') as f:
+            dct = decode(f.read())
+        self.__dict__.update(dct)
 
     def plot(self, spin=None, emax=None, filename=None, ax=None, show=None):
         """Plot band-structure.
