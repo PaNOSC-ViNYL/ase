@@ -14,7 +14,7 @@ import numpy as np
 
 from ase.data import chemical_symbols
 
-__all__ = ['_exec', 'basestring', 'import_module', 'seterr', 'plural',
+__all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
            'opencew', 'OpenLock', 'hill', 'rotate', 'irotate', 'givens',
            'hsv2rgb', 'hsv']
@@ -25,11 +25,14 @@ if sys.version_info[0] == 3:
     import builtins
     exec_ = getattr(builtins, 'exec')
     basestring = str
+    from io import StringIO
 else:
     def exec_(code, dct):
         exec('exec code in dct')
     basestring = basestring
-    
+    from StringIO import StringIO
+StringIO  # appease pyflakes
+
 if sys.version_info >= (2, 7):
     from importlib import import_module
 else:
@@ -95,7 +98,7 @@ def convert_string_to_fd(name, world=None):
         return devnull
     if name == '-':
         return sys.stdout
-    if isinstance(name, str):
+    if isinstance(name, basestring):
         return open(name, 'w')
     return name  # we assume name is already a file-descriptor
 

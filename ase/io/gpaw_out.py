@@ -6,11 +6,8 @@ from ase.calculators.singlepoint import SinglePointKPoint
 
 
 def read_gpaw_out(fileobj, index):
-    if isinstance(fileobj, str):
-        fileobj = open(fileobj, 'rU')
-
     notfound = []
-    
+
     def index_startswith(lines, string):
         if string in notfound:
             raise ValueError
@@ -40,17 +37,19 @@ def read_gpaw_out(fileobj, index):
                 raise IOError('Malformed GPAW log file: %s' % m)
         return f, i
 
-    lines = fileobj.readlines()
+    lines = [line.lower() for line in fileobj.readlines()]
     images = []
     while True:
         try:
-            i = lines.index('Unit Cell:\n')
+            i = lines.index('unit cell:\n')
         except ValueError:
             pass
         else:
+            if lines[i + 2].startswith('  -'):
+                del lines[i + 2]  # old format
             cell = []
             pbc = []
-            for line in lines[i + 3:i + 6]:
+            for line in lines[i + 2:i + 5]:
                 words = line.split()
                 if len(words) == 5:  # old format
                     cell.append(float(words[2]))
@@ -58,9 +57,9 @@ def read_gpaw_out(fileobj, index):
                 else:                # new format with GUC
                     cell.append([float(word) for word in words[3:6]])
                     pbc.append(words[2] == 'yes')
-            
+
         try:
-            i = lines.index('Positions:\n')
+            i = lines.index('positions:\n')
         except ValueError:
             break
 
@@ -71,7 +70,7 @@ def read_gpaw_out(fileobj, index):
             if len(words) != 5:
                 break
             n, symbol, x, y, z = words
-            symbols.append(symbol.split('.')[0])
+            symbols.append(symbol.split('.')[0].title())
             positions.append([float(x), float(y), float(z)])
         if len(symbols):
             atoms = Atoms(symbols=symbols, positions=positions,
@@ -80,7 +79,7 @@ def read_gpaw_out(fileobj, index):
             atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
         try:
-            ii = index_startswith(lines, 'Reference Energy:')
+            ii = index_startswith(lines, 'reference energy:')
             Eref = float(lines[ii].split()[-1])
         except ValueError:
             Eref = None
@@ -95,30 +94,19 @@ def read_gpaw_out(fileobj, index):
         except (ValueError, TypeError):
             bz_kpts = None
             ibz_kpts = None
-        ene = {
-            # key        position
-            'Kinetic:': 1,
-            'Potential:': 2,
-            'XC:': 4}
+
         try:
-            i = lines.index('-------------------------\n')
+            i = index_startswith(lines, 'energy contributions relative to')
         except ValueError:
             e = None
         else:
-            for key in ene:
-                pos = ene[key]
-                ene[key] = None
-                line = lines[i + pos]
-                try:
-                    assert line.startswith(key)
-                    ene[key] = float(line.split()[-1])
-                except ValueError:
-                    pass
-            line = lines[i + 9]
-            assert line.startswith('Zero Kelvin:')
+            line = lines[i + 10]
+            assert (line.startswith('zero kelvin:') or
+                    line.startswith('extrapolated:'))
             e = float(line.split()[-1])
+
         try:
-            ii = index_startswith(lines, 'Fermi Level')
+            ii = index_startswith(lines, 'fermi level')
         except ValueError:
             eFermi = None
         else:
@@ -126,7 +114,7 @@ def read_gpaw_out(fileobj, index):
                 eFermi = float(lines[ii].split()[2])
             except ValueError:  # we have two Fermi levels
                 fields = lines[ii].split()
-                
+
                 def strip(string):
                     for rubbish in '[],':
                         string = string.replace(rubbish, '')
@@ -136,14 +124,15 @@ def read_gpaw_out(fileobj, index):
         # read Eigenvalues and occupations
         ii1 = ii2 = 1e32
         try:
-            ii1 = index_startswith(lines, ' Band   Eigenvalues  Occupancy')
+            ii1 = index_startswith(lines, ' band   eigenvalues  occupancy')
         except ValueError:
             pass
         try:
-            ii2 = index_startswith(lines, ' Band  Eigenvalues  Occupancy')
+            ii2 = index_startswith(lines, ' band  eigenvalues  occupancy')
         except ValueError:
             pass
         ii = min(ii1, ii2)
+        spinpol = False
         if ii == 1e32:
             kpts = None
         else:
@@ -159,48 +148,55 @@ def read_gpaw_out(fileobj, index):
             kpts[0].eps_n = vals[1]
             kpts[0].f_n = vals[2]
             if vals.shape[0] > 3:
+                spinpol = True
                 kpts.append(SinglePointKPoint(1, 1, 0))
                 kpts[1].eps_n = vals[3]
                 kpts[1].f_n = vals[4]
         # read charge
         try:
-            ii = index_startswith(lines, 'Total Charge:')
+            ii = index_startswith(lines, 'total charge:')
         except ValueError:
             q = None
         else:
             q = float(lines[ii].split()[2])
         # read dipole moment
         try:
-            ii = index_startswith(lines, 'Dipole Moment:')
+            ii = index_startswith(lines, 'dipole moment:')
         except ValueError:
             dipole = None
         else:
-            line = lines[ii].replace(']', '').replace('[', '')
-            dipole = np.array([float(c) for c in line.split()[-3:]])
+            line = lines[ii]
+            for x in '()[],':
+                line = line.replace(x, '')
+            dipole = np.array([float(c) for c in line.split()[2:5]])
+
+        if spinpol:
+            try:
+                ii = index_startswith(lines, 'local magnetic moments')
+            except ValueError:
+                magmoms = None
+            else:
+                magmoms = []
+                for i in range(ii + 1, ii + 1 + len(atoms)):
+                    magmom = lines[i].split()[-1]
+                    magmoms.append(float(magmom))
+        else:
+            magmoms = None
 
         try:
-            ii = index_startswith(lines, 'Local Magnetic Moments')
-        except ValueError:
-            magmoms = None
-        else:
-            magmoms = []
-            for i in range(ii + 1, ii + 1 + len(atoms)):
-                iii, magmom = lines[i].split()[:2]
-                magmoms.append(float(magmom))
-        try:
-            ii = lines.index('Forces in eV/Ang:\n')
+            ii = lines.index('forces in ev/ang:\n')
         except ValueError:
             f = None
         else:
             f, i = read_forces(lines, ii)
 
         try:
-            ii = index_startswith(lines, 'vdW correction:')
+            ii = index_startswith(lines, 'vdw correction:')
         except ValueError:
             pass
         else:
             line = lines[ii + 1]
-            assert line.startswith('Energy:')
+            assert line.startswith('energy:')
             e = float(line.split()[-1])
             f, i = read_forces(lines, ii + 3)
 
@@ -210,6 +206,8 @@ def read_gpaw_out(fileobj, index):
         if q is not None and len(atoms) > 0:
             n = len(atoms)
             atoms.set_initial_charges([q / n] * n)
+        if magmoms is not None:
+            atoms.set_initial_magnetic_moments(magmoms)
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
@@ -219,13 +217,11 @@ def read_gpaw_out(fileobj, index):
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
-        if magmoms is not None:
-            atoms.set_initial_magnetic_moments(magmoms)
 
         images.append(atoms)
         lines = lines[i:]
 
     if len(images) == 0:
         raise IOError('Corrupted GPAW-text file!')
-    
+
     return images[index]

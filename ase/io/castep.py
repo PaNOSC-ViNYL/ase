@@ -10,6 +10,7 @@ import re
 import numpy as np
 
 import ase
+from ase.spacegroup import Spacegroup
 from ase.constraints import FixAtoms, FixCartesian, FixedLine
 from ase.parallel import paropen
 
@@ -149,23 +150,29 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     else:
         _spin_pol = True
 
-    if atoms.get_initial_magnetic_moments().any() and _spin_pol:
-        pos_block = [('%s %8.6f %8.6f %8.6f SPIN=%4.2f' %
-                      (x, y[0], y[1], y[2], m)) for (x, y, m)
-                     in zip(atoms.get_chemical_symbols(),
-                            positions,
-                            atoms.get_initial_magnetic_moments())]
+    # Gather the data that will be used to generate the block
+    pos_block_data = []
+    pos_block_format = '%s %8.6f %8.6f %8.6f'
+    if atoms.has('castep_custom_species'):
+        pos_block_data.append(atoms.get_array('castep_custom_species'))
     else:
-        pos_block = [('%s %8.6f %8.6f %8.6f' %
-                      (x, y[0], y[1], y[2])) for (x, y)
-                     in zip(atoms.get_chemical_symbols(),
-                            positions)]
+        pos_block_data.append(atoms.get_chemical_symbols())
+    pos_block_data += [xlist for xlist in zip(*positions)]
+    if atoms.get_initial_magnetic_moments().any() and _spin_pol:
+        pos_block_data.append(atoms.get_initial_magnetic_moments())
+        pos_block_format += ' SPIN=%4.2f'
+
+    pos_block = [(pos_block_format %
+                  line_data) for line_data
+                 in zip(*pos_block_data)]
 
     # Adding the CASTEP labels output
     if atoms.has('castep_labels'):
         labels = atoms.get_array('castep_labels')
         for l_i, label in enumerate(labels):
-            pos_block[l_i] += ' LABEL=%s' % label if label != 'NULL' else ''
+            # avoid empty labels that crash CASTEP runs
+            if label and label != 'NULL':
+                pos_block[l_i] += ' LABEL=%s' % label
 
     fd.write('%%BLOCK %s\n' % keyword)
     for line in pos_block:
@@ -284,13 +291,14 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     for option in castep_cell._options.values():
         if option.value is not None:
-#            print(option.value)
+            #            print(option.value)
             if option.type == 'Block':
                 fd.write('%%BLOCK %s\n' % option.keyword.upper())
                 fd.write(option.value)
-                fd.write('\n%%ENDBLOCK %s\n' % option.keyword.upper())
+                fd.write('\n%%ENDBLOCK %s\n\n' % option.keyword.upper())
             else:
-                fd.write('%s : %s\n' % (option.keyword.upper(), option.value))
+                fd.write('%s : %s\n\n' % (option.keyword.upper(),
+                                          option.value))
 
 #    fd.close()
     return True
@@ -343,24 +351,27 @@ def read_castep_cell(fd, index=None):
     # fd will be closed by embracing read() routine
     lines = fd.readlines()
 
-    def get_tokens(lines, l, maxsplit=0):
+    def get_tokens(lines, l, maxsplit=0, has_species=False):
         """Tokenizes one line of a *cell file."""
         comment_chars = '#!;'
         separator_re = '[\s=:]+'
         while l < len(lines):
             line = lines[l].strip()
-            if len(line) == 0:
-                l += 1
-                continue
-            elif any([line.startswith(comment_char)
-                      for comment_char in comment_chars]):
+            if len(line) == 0 or line[0] in comment_chars:
                 l += 1
                 continue
             else:
                 # Remove comments
                 line = re.split('[{0}]+'.format(comment_chars), line, 1)[0]
                 # Tokenize
-                tokens = re.split(separator_re, line.strip(), maxsplit)
+                # If we expect a species symbol to be in there, we take it out
+                # first:
+                if has_species:
+                    species, line = line.split(None, 1)
+                    tokens = [species]
+                else:
+                    tokens = []
+                tokens += re.split(separator_re, line.strip(), maxsplit)
                 return tokens, l + 1
         tokens = ''
 
@@ -382,6 +393,12 @@ def read_castep_cell(fd, index=None):
         'LABEL': str,
     }
     add_info_arrays = dict((k, []) for k in add_info)
+
+    # Array for custom species (a CASTEP special thing)
+    # Usually left unused
+    custom_species = None
+    # Spacegroup, only if SYMMETRY_OPS is found
+    atoms_spg = None
 
     # A convenient function that extracts this info from a line fragment
     def get_add_info(ai_arrays, line=''):
@@ -416,7 +433,10 @@ def read_castep_cell(fd, index=None):
         if not tokens:
             continue
         elif tokens[0].upper() == '%BLOCK':
-            if tokens[1].upper() == 'LATTICE_CART' and not have_lat:
+
+            block_name = tokens[1].upper()
+
+            if block_name == 'LATTICE_CART' and not have_lat:
                 tokens, l = get_tokens(lines, l)
                 if len(tokens) == 1:
                     print('read_cell: Warning - ignoring unit specifier in')
@@ -432,7 +452,7 @@ def read_castep_cell(fd, index=None):
                     print('%s ...' % tokens[0].upper())
                 have_lat = True
 
-            elif tokens[1].upper() == 'LATTICE_ABC' and not have_lat:
+            elif block_name == 'LATTICE_ABC' and not have_lat:
                 tokens, l = get_tokens(lines, l)
                 if len(tokens) == 1:
                     print('read_cell: Warning - ignoring unit specifier in')
@@ -456,50 +476,50 @@ def read_castep_cell(fd, index=None):
                 lat = [lat_a, lat_b, lat_c]
                 have_lat = True
 
-            elif tokens[1].upper() == 'POSITIONS_ABS' and not have_pos:
-                tokens, l = get_tokens(lines, l)
-                if len(tokens) == 1:
-                    print('read_cell: Warning - ignoring unit specifier in')
-                    print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
-                    tokens, l = get_tokens(lines, l, maxsplit=4)
+            elif block_name in ('POSITIONS_ABS',
+                                'POSITIONS_FRAC') and not have_pos:
+                pos_frac = (block_name == 'POSITIONS_FRAC')
+                if not pos_frac:
+                    # Check for units
+                    l_start = l
+                    tokens, l = get_tokens(lines, l)
+                    if len(tokens) == 1:
+                        print('read_cell: Warning - ignoring unit specifier in')
+                        print('%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
+                    else:
+                        l = l_start
                 # fix to be able to read initial spin assigned on the atoms
+                tokens, l = get_tokens(lines, l, maxsplit=4, has_species=True)
                 while len(tokens) >= 4:
-                    spec.append(tokens[0])
+                    # Now, process the whole 'species' thing
+                    spec_custom = tokens[0].split(':', 1)
+                    elem = spec_custom[0]
+                    if len(spec_custom) > 1 and custom_species is None:
+                        # Add it to the custom info!
+                        custom_species = list(spec)
+                    spec.append(elem)
+                    if custom_species is not None:
+                        custom_species.append(tokens[0])
                     pos.append([float(p) for p in tokens[1:4]])
                     if len(tokens) > 4:
                         get_add_info(add_info_arrays, tokens[4])
                     else:
                         get_add_info(add_info_arrays)
-                    tokens, l = get_tokens(lines, l, maxsplit=4)
+                    tokens, l = get_tokens(lines, l, maxsplit=4,
+                                           has_species=True)
                 if tokens[0].upper() != '%ENDBLOCK':
                     print('read_cell: Warning - ignoring invalid lines in')
-                    print('%%BLOCK POSITIONS_ABS:\n\t %s' % tokens)
+                    print('%%BLOCK %s:\n\t %s' % (block_name, tokens))
                 have_pos = True
 
-            elif tokens[1].upper() == 'POSITIONS_FRAC' and not have_pos:
-                pos_frac = True
-                tokens, l = get_tokens(lines, l, maxsplit=4)
-                # fix to be able to read initial spin assigned on the atoms
-                while len(tokens) >= 4:
-                    spec.append(tokens[0])
-                    pos.append([float(p) for p in tokens[1:4]])
-                    if len(tokens) > 4:
-                        get_add_info(add_info_arrays, tokens[4])
-                    else:
-                        get_add_info(add_info_arrays)
-                    tokens, l = get_tokens(lines, l, maxsplit=4)
-                if tokens[0].upper() != '%ENDBLOCK':
-                    print('read_cell: Warning - ignoring invalid lines')
-                    print('%%BLOCK POSITIONS_FRAC:\n\t %s' % tokens)
-                have_pos = True
-            elif tokens[1].upper() == 'SPECIES_POT':
+            elif block_name == 'SPECIES_POT':
                 if not _fallback:
-                    tokens, l = get_tokens(lines, l)
+                    tokens, l = get_tokens(lines, l, has_species=True)
                     while tokens and not tokens[0].upper() == '%ENDBLOCK':
                         if len(tokens) == 2:
                             calc.cell.species_pot = tuple(tokens)
-                        tokens, l = get_tokens(lines, l)
-            elif tokens[1].upper() == 'IONIC_CONSTRAINTS':
+                        tokens, l = get_tokens(lines, l, has_species=True)
+            elif block_name == 'IONIC_CONSTRAINTS':
 
                 while True:
                     if tokens and tokens[0].upper() == '%ENDBLOCK':
@@ -518,12 +538,67 @@ def read_castep_cell(fd, index=None):
                         raw_constraints[(species, nic)] = []
                     raw_constraints[(species, nic)].append(np.array(
                                                            [x, y, z]))
+            elif block_name == 'SYMMETRY_OPS':
+                # Parse the symmetry operations, create a spacegroup
+                rotations = []
+                translations = []
+                while tokens[0].upper() != '%ENDBLOCK':                    
+                    # Read in blocks of four
+                    for i in range(4):
+                        tokens, l = get_tokens(lines, l)
+                        if tokens[0].upper() == '%ENDBLOCK':
+                            break
+                        if i == 0:
+                            rotations.append([])
+                        if i < 3:
+                            rotations[-1].append([float(x)
+                                                  for x in tokens[:3]])
+                        else:
+                            translations.append([float(x)
+                                                 for x in tokens[:3]])
+
+                rotations = np.sort(rotations, axis=0)
+                translations = np.sort(translations, axis=0)
+                if rotations.shape[1:] != (3,3) or \
+                   translations.shape[1:] != (3,):
+                    print ('Warning: could not parse SYMMETRY_OPS'
+                           ' block properly, skipping')
+                    continue
+
+                # Now on to find the actual symmetry!
+                for spg_n in range(1, 231):
+                    test_spg = Spacegroup(spg_n)
+                    test_symops = test_spg.get_op()
+                    test_symops[0].sort(axis=0)
+                    test_symops[1].sort(axis=0)
+                    # And test!
+                    try:
+                        found = np.allclose(test_symops[0], rotations) and \
+                                np.allclose(test_symops[1], translations)
+                    except ValueError:
+                        found = False
+                    if found:
+                        # We got it!
+                        atoms_spg = test_spg
+                if atoms_spg is None:
+                    # All failed...
+                    print('Could not identify Spacegroup from SYMMETRY_OPS,'
+                          ' skipping')
+                else:
+                    calc.__setattr__(block_name, (rotations, translations))
 
             else:
-                print('Warning: the keyword %s is not' % tokens[1].upper())
+                print('Warning: the keyword %s is not' % block_name)
                 print('         interpreted in cell files')
-                while not tokens[0].upper() == '%ENDBLOCK':
+                # Just collect all lines
+                block_lines = []
+                while l < len(lines):
                     tokens, l = get_tokens(lines, l)
+                    if tokens[0].upper() == '%ENDBLOCK':
+                        break
+                    else:
+                        block_lines.append(lines[l-1].strip())
+                calc.__setattr__(block_name, block_lines)
                 # raise UserWarning
         else:
             key = tokens[0]
@@ -558,7 +633,13 @@ def read_castep_cell(fd, index=None):
             symbols=spec,
             magmoms=magmom)
 
+    # Spacegroup...
+    if atoms_spg is not None:
+        atoms.info['spacegroup'] = atoms_spg
+
     atoms.new_array('castep_labels', labels)
+    if custom_species is not None:
+        atoms.new_array('castep_custom_species', np.array(custom_species))
 
     fixed_atoms = []
     for (species, nic), value in raw_constraints.items():
@@ -769,7 +850,8 @@ def read_castep_geom(fd, index=None, units=units_CODATA2002):
                                    (geom_stop - geom_start)]])
             image = ase.Atoms(species, geom, cell=cell, pbc=True)
             image.set_calculator(
-                SinglePointCalculator(energy, forces, None, None, image))
+                SinglePointCalculator(atoms=image, energy=energy,
+                                      forces=forces))
             traj.append(image)
 
     if index is None:
@@ -993,11 +1075,12 @@ def read_castep_md(fd, index=None, return_scalars=False,
                 atoms.set_velocities(velocities)
                 if len(stress) == 0:
                     atoms.set_calculator(
-                        SinglePointCalculator(Epot, forces, None, None, atoms))
+                        SinglePointCalculator(atoms=atoms, energy=Epot,
+                                              forces=forces))
                 else:
                     atoms.set_calculator(
-                        SinglePointCalculator(Epot, forces, stress, None,
-                                              atoms))
+                        SinglePointCalculator(atoms=atoms, energy=Epot,
+                                              forces=forces, stress=stress))
                 traj.append(atoms)
             symbols = []
             positions = []

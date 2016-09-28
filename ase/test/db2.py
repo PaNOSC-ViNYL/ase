@@ -57,3 +57,8 @@ for name in ['y2.json', 'y2.db']:
         
     with must_raise(ValueError):
         c.write(Atoms(), pi='3.14')
+
+    # Make sure deleting a single sey works:
+    id = c.write(Atoms(), key=7)
+    c.update(id, delete_keys=['key'])
+    assert 'key' not in c[id]

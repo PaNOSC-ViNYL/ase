@@ -1,8 +1,8 @@
 .. module:: ase.build
 
-==============
-Builing things
-==============
+================
+Building things
+================
 
 Quick links:
     
@@ -36,8 +36,11 @@ Quick links:
 * Other tools: :func:`~ase.build.cut`, :func:`~ase.build.stack`,
   :func:`~ase.build.sort`, :func:`~ase.build.minimize_tilt`,
   :func:`~ase.build.niggli_reduce`, :func:`~ase.build.rotate`,
-  :func:`~ase.build.minimize_rotation_and_translation`
-
+  :func:`~ase.build.minimize_rotation_and_translation`,
+  :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape`,
+  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
+  :func:`~ase.build.make_supercell`
 
 .. seealso::
 
@@ -72,10 +75,10 @@ Example::
 >>> from ase.build import molecule
 >>> atoms = molecule('H2O')
 
-The list of available molecules is those from the :data:`ase.collection.g2`
+The list of available molecules is those from the :data:`ase.collections.g2`
 database:
 
->>> from ase.collection import g2
+>>> from ase.collections import g2
 >>> g2.names
 ['PH3', 'P2', 'CH3CHO', 'H2COH', 'CS', 'OCHCHO', 'C3H9C', 'CH3COF',
  'CH3CH2OCH3', 'HCOOH', 'HCCl3', 'HOCl', 'H2', 'SH2', 'C2H2',

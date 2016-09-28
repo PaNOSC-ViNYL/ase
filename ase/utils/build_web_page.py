@@ -5,27 +5,38 @@ import os
 import shutil
 import subprocess
 import sys
+import time
 
 
 def git_pull(name='ase'):
     os.chdir(name)
     try:
-        output = subprocess.check_output(
-            'GIT_HTTP_LOW_SPEED_LIMIT=1000 '
-            'GIT_HTTP_LOW_SPEED_TIME=20 '  # make sure we get a timeout
-            'git pull 2>> pull.err', shell=True)
+        sleep = 1  # 1 minute
+        while True:
+            try:
+                output = subprocess.check_output(
+                    'GIT_HTTP_LOW_SPEED_LIMIT=1000 '
+                    'GIT_HTTP_LOW_SPEED_TIME=20 '  # make sure we get a timeout
+                    'git pull 2>> pull.err', shell=True)
+            except subprocess.CalledProcessError:
+                if sleep > 16:
+                    raise
+                time.sleep(sleep * 60)
+                sleep *= 2
+            else:
+                break
     finally:
         os.chdir('..')
     lastline = output.splitlines()[-1]
     return not lastline.startswith('Already up-to-date')
 
-        
+
 def build(force_build, name='ase', env=''):
     if not force_build:
         return
-        
+
     home = os.getcwd()
-    
+
     os.chdir(name)
 
     # Clean up:
@@ -47,38 +58,24 @@ def build(force_build, name='ase', env=''):
                           '{0}/lib/python:{0}/lib64/python:$PYTHONPATH '
                           'PATH={0}/bin:$PATH '.format(home) +
                           'make html', shell=True)
-           
+
     # Use https for mathjax:
     subprocess.check_call(
         'find build -name "*.html" | '
         'xargs sed -i "s|http://cdn.mathjax.org|https://cdn.mathjax.org|"',
         shell=True)
-        
+
     tar = glob.glob('../dist/*.tar.gz')[0].split('/')[-1]
     os.rename('../dist/' + tar, 'build/html/' + tar)
-    
+
     # Set correct version of snapshot tar-file:
     subprocess.check_call(
         'find build/html -name install.html | '
         'xargs sed -i s/snapshot.tar.gz/{}/g'.format(tar),
         shell=True)
-    
+
     os.chdir('..')
-    
-    if name == 'ase':
-        output = subprocess.check_output(
-            'epydoc --docformat restructuredtext --parse-only '
-            '--name {0} --url http://wiki.fysik.dtu.dk/{1} '
-            '--show-imports --no-frames -v {1}'.format(name.upper(), name),
-            shell=True)
-        
-        # Check for warnings:
-        for line in output.splitlines():
-            if line.startswith('|'):
-                print(line)
-    
-        os.rename('html', 'doc/build/html/epydoc')
-    
+
     os.chdir('doc/build')
     dir = name + '-web-page'
     os.rename('html', dir)
@@ -96,7 +93,7 @@ def build(force_build, name='ase', env=''):
 
 def main(build=build):
     """Build web-page if there are changes in the source.
-    
+
     The optional build function is used by GPAW to build its web-page.
     """
     if os.path.isfile('build-web-page.lock'):
@@ -105,7 +102,7 @@ def main(build=build):
     try:
         home = os.getcwd()
         open('build-web-page.lock', 'w').close()
-            
+
         parser = optparse.OptionParser(usage='Usage: %prog [-f]',
                                        description='Build web-page')
         parser.add_option('-f', '--force-build', action='store_true',
@@ -118,6 +115,6 @@ def main(build=build):
     finally:
         os.remove(os.path.join(home, 'build-web-page.lock'))
 
-        
+
 if __name__ == '__main__':
     main()

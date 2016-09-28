@@ -19,7 +19,7 @@ YEAR = 31557600.0  # 365.25 days
 def now():
     """Return time since January 1. 2000 in years."""
     return (time() - T2000) / YEAR
-        
+
 
 seconds = {'s': 1,
            'm': 60,
@@ -50,7 +50,7 @@ word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
 reserved_keys = set(all_properties + all_changes +
                     ['id', 'unique_id', 'ctime', 'mtime', 'user',
-                     'momenta', 'constraints',
+                     'momenta', 'constraints', 'natoms', 'formula', 'age',
                      'calculator', 'calculator_parameters',
                      'key_value_pairs', 'data'])
 
@@ -66,15 +66,16 @@ def check(key_value_pairs):
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):
-                    raise ValueError('Value ' + value + ' is put in as string ' +
-                                     'but can be interpreted as ' +
-                                     '{0}! Please convert '.format(t.__name__) +
-                                     'to {0} using '.format(t.__name__) +
-                                     '{0}(value) before '.format(t.__name__) +
-                                     'writing to the database OR change ' +
-                                     'to a different string.')
-            
-            
+                    raise ValueError(
+                        'Value ' + value + ' is put in as string ' +
+                        'but can be interpreted as ' +
+                        '{0}! Please convert '.format(t.__name__) +
+                        'to {0} using '.format(t.__name__) +
+                        '{0}(value) before '.format(t.__name__) +
+                        'writing to the database OR change ' +
+                        'to a different string.')
+
+
 def str_represents(value, t=int):
     try:
         t(value)
@@ -82,11 +83,11 @@ def str_represents(value, t=int):
         return False
     return True
 
-            
+
 def connect(name, type='extract_from_name', create_indices=True,
             use_lock_file=True, append=True, serial=False):
     """Create connection to database.
-    
+
     name: str
         Filename or address of database.
     type: str
@@ -99,11 +100,11 @@ def connect(name, type='extract_from_name', create_indices=True,
     append: bool
         Use append=False to start a new database.
     """
-    
+
     if type == 'extract_from_name':
         if name is None:
             type = None
-        elif not isinstance(name, str):
+        elif not isinstance(name, basestring):
             type = 'json'
         elif name.startswith('pg://'):
             type = 'postgresql'
@@ -115,7 +116,7 @@ def connect(name, type='extract_from_name', create_indices=True,
 
     if not append and world.rank == 0 and os.path.isfile(name):
         os.remove(name)
-        
+
     if type == 'json':
         from ase.db.jsondb import JSONDatabase
         return JSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
@@ -140,22 +141,25 @@ def lock(method):
                 return method(self, *args, **kwargs)
     return new_method
 
-    
-def convert_str_to_float_or_str(value):
+
+def convert_str_to_int_float_or_str(value):
     """Safe eval()"""
     try:
-        value = float(value)
+        return int(value)
     except ValueError:
-        value = {'True': 1.0, 'False': 0.0}.get(value, value)
-    return value
-    
+        try:
+            value = float(value)
+        except ValueError:
+            value = {'True': 1.0, 'False': 0.0}.get(value, value)
+        return value
+
 
 class Database:
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False, serial=False):
         """Database object.
-        
+
         serial: bool
             Let someone else handle parallelization.  Default behavior is
             to interact with the database on the master only and then
@@ -170,12 +174,12 @@ class Database:
         else:
             self.lock = None
         self.serial = serial
-            
+
     @parallel_function
     @lock
     def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
         """Write atoms to database with key-value pairs.
-        
+
         atoms: Atoms object
             Write atomic numbers, positions, unit cell and boundary
             conditions.  If a calculator is attached, write also already
@@ -184,23 +188,23 @@ class Database:
             Dictionary of key-value pairs.  Values must be strings or numbers.
         data: dict
             Extra stuff (not for searching).
-            
+
         Key-value pairs can also be set using keyword arguments::
-            
+
             connection.write(atoms, name='ABC', frequency=42.0)
-            
+
         Returns integer id of the new row.
         """
-        
+
         if atoms is None:
             atoms = Atoms()
-        
+
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
-        
+
         id = self._write(atoms, kvp, data)
         return id
-        
+
     def _write(self, atoms, key_value_pairs, data):
         check(key_value_pairs)
         return 1
@@ -209,52 +213,52 @@ class Database:
     @lock
     def reserve(self, **key_value_pairs):
         """Write empty row if not already present.
-        
+
         Usage::
-            
+
             id = conn.reserve(key1=value1, key2=value2, ...)
-        
+
         Write an empty row with the given key-value pairs and
         return the integer id.  If such a row already exists, don't write
         anything and return None.
         """
-        
+
         for dct in self._select([],
                                 [(key, '=', value)
                                  for key, value in key_value_pairs.items()]):
             return None
 
         atoms = Atoms()
-        
+
         calc_name = key_value_pairs.pop('calculator', None)
-        
+
         if calc_name:
             # Allow use of calculator key
             assert calc_name.lower() == calc_name
-            
+
             # Fake calculator class:
             class Fake:
                 name = calc_name
-                
+
                 def todict(self):
                     return {}
-                
+
                 def check_state(self, atoms):
                     return ['positions']
-            
+
             atoms.calc = Fake()
-            
+
         id = self._write(atoms, key_value_pairs, {})
-        
+
         return id
-        
+
     def __delitem__(self, id):
         self.delete([id])
-        
+
     def get_atoms(self, selection=None, attach_calculator=False,
                   add_additional_information=False, **kwargs):
         """Get Atoms object.
-        
+
         selection: int, str or list
             See the select() method.
         attach_calculator: bool
@@ -262,11 +266,11 @@ class Database:
             False).
         add_additional_information: bool
             Put key-value pairs and data into Atoms.info dictionary.
-        
+
         In addition, one can use keyword arguments to select specific
         key-value pairs.
         """
-            
+
         row = self.get(selection, **kwargs)
         return row.toatoms(attach_calculator, add_additional_information)
 
@@ -275,7 +279,7 @@ class Database:
 
     def get(self, selection=None, **kwargs):
         """Select a single row and return it as a dictionary.
-        
+
         selection: int, str or list
             See the select() method.
         """
@@ -325,7 +329,7 @@ class Database:
         cmps = []
         for key, value in kwargs.items():
             comparisons.append((key, '=', value))
-            
+
         for key, op, value in comparisons:
             if key == 'age':
                 key = 'ctime'
@@ -344,28 +348,28 @@ class Database:
                 key = atomic_numbers[key]
                 value = int(value)
             elif isinstance(value, basestring):
-                value = convert_str_to_float_or_str(value)
+                value = convert_str_to_int_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
-            
+
         return keys, cmps
 
     @parallel_generator
     def select(self, selection=None, filter=None, explain=False,
                verbosity=1, limit=None, offset=0, sort=None, **kwargs):
         """Select rows.
-        
+
         Return AtomsRow iterator with results.  Selection is done
         using key-value pairs and the special keys:
-            
+
             formula, age, user, calculator, natoms, energy, magmom
             and/or charge.
-        
+
         selection: int, str or list
             Can be:
-            
+
             * an integer id
             * a string like 'key=value', where '=' can also be one of
               '<=', '<', '>', '>=' or '!='.
@@ -381,7 +385,7 @@ class Database:
         limit: int or None
             Limit selection.
         """
-        
+
         if sort:
             if sort == 'age':
                 sort = '-ctime'
@@ -389,17 +393,17 @@ class Database:
                 sort = 'ctime'
             elif sort.lstrip('-') == 'user':
                 sort += 'name'
-            
+
         keys, cmps = self.parse_selection(selection, **kwargs)
         for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
                                 limit=limit, offset=offset, sort=sort):
             if filter is None or filter(row):
                 yield row
-                
+
     def count(self, selection=None, **kwargs):
         """Count rows.
-        
+
         See the select() method for the selection syntax.  Use db.count() or
         len(db) to count all rows.
         """
@@ -407,32 +411,32 @@ class Database:
         for row in self.select(selection, **kwargs):
             n += 1
         return n
-        
+
     def __len__(self):
         return self.count()
-        
+
     @parallel_function
     @lock
     def update(self, ids, delete_keys=[], block_size=1000,
                **add_key_value_pairs):
         """Update and/or delete key-value pairs of row(s).
-        
+
         ids: int or list of int
             ID's of rows to update.
         delete_keys: list of str
             Keys to remove.
         block_size: int
             Block-size for each transaction.
-            
+
         Use keyword arguments to add new key-value pairs.
-            
+
         Returns number of key-value pairs added and removed.
         """
         check(add_key_value_pairs)
 
         if isinstance(ids, int):
             ids = [ids]
-            
+
         B = block_size
         nblocks = (len(ids) - 1) // B + 1
         M = 0
@@ -448,7 +452,7 @@ class Database:
         """Delete rows."""
         raise NotImplementedError
 
-        
+
 def time_string_to_float(s):
     if isinstance(s, (float, int)):
         return s

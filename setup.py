@@ -44,7 +44,7 @@ for dirname, dirnames, filenames in os.walk('ase'):
 package_dir = {'ase': 'ase'}
 
 package_data = {'ase': ['spacegroup/spacegroup.dat',
-                        'collection/*.json',
+                        'collections/*.json',
                         'db/templates/*',
                         'db/static/*']}
 

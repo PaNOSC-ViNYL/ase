@@ -22,7 +22,8 @@ def h2(name, par):
 parameters = {
     'abinit': dict(ecut=200, toldfe=0.0001),
     'aims': dict(sc_accuracy_rho=5.e-3, sc_accuracy_forces=1e-4, xc='LDA'),
-    'gpaw': dict(mode='lcao', basis='sz(dzp)', realspace=False),
+    'gpaw': dict(mode={'name': 'lcao', 'interpolation': 'fft'},
+                 basis='sz(dzp)'),
     'elk': dict(tasks=0, rgkmax=5.0, epsengy=1.0, epspot=1.0, tforce=True,
                 pbc=True),
     'jacapo': dict(pbc=True),

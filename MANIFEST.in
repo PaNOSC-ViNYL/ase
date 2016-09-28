@@ -1,7 +1,7 @@
 include MANIFEST.in
 include COPYING* LICENSE README.rst requirements.txt
 include ase/spacegroup/spacegroup.dat
-include ase/collection/*.json
+include ase/collections/*.json
 include ase/db/static/*
 include ase/db/templates/*
 include ase/gui/po/ag.pot

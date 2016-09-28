@@ -1,5 +1,5 @@
 from ase.atoms import Atoms
-from ase.collection import g2
+from ase.collections import g2
 
 
 def molecule(name, **kwargs):

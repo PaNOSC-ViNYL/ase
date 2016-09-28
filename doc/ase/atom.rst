@@ -109,9 +109,6 @@ array([[ 0.      ,  0.      ,  0.      ],
 
 .. seealso::
 
-   :epydoc:`atom.Atom`:
-     All the details!
-
    :mod:`ase.atoms`:
      More information about how to use collections of atoms.
 

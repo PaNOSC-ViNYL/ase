@@ -24,9 +24,9 @@ def pc(array):
         return 'rgb <%.2f>*3' % array
     if len(array) == 3:
         return 'rgb <%.2f, %.2f, %.2f>' % tuple(array)
-    if len(array) == 4: # filter
+    if len(array) == 4:  # filter
         return 'rgbf <%.2f, %.2f, %.2f, %.2f>' % tuple(array)
-    if len(array) == 5: # filter and transmit
+    if len(array) == 5:  # filter and transmit
         return 'rgbft <%.2f, %.2f, %.2f, %.2f, %.2f>' % tuple(array)
 
 
@@ -47,7 +47,7 @@ def get_bondpairs(atoms, radius=1.1):
 
     where c1, c2 and c3 are the unit cell vectors and i1, i2, i3 are
     integers."""
-    
+
     from ase.data import covalent_radii
     from ase.neighborlist import NeighborList
     cutoffs = radius * covalent_radii[atoms.numbers]
@@ -64,24 +64,28 @@ def get_bondpairs(atoms, radius=1.1):
 class POVRAY(EPS):
     default_settings = {
         # x, y is the image plane, z is *out* of the screen
-        'display'        : True, # Display while rendering
-        'pause'          : True, # Pause when done rendering (only if display)
-        'transparent'    : True, # Transparent background
-        'canvas_width'   : None, # Width of canvas in pixels
-        'canvas_height'  : None, # Height of canvas in pixels
-        'camera_dist'    : 50.,  # Distance from camera to front atom
-        'image_plane'    : None, # Distance from front atom to image plane
-        'camera_type'    : 'orthographic', # perspective, ultra_wide_angle
-        'point_lights'   : [],             # [[loc1, color1], [loc2, color2],...]
-        'area_light'     : [(2., 3., 40.), # location
-                            'White',       # color
-                            .7, .7, 3, 3], # width, height, Nlamps_x, Nlamps_y
-        'background'     : 'White',        # color
-        'textures'       : None, # Length of atoms list of texture names
-        'celllinewidth'  : 0.05, # Radius of the cylinders representing the cell
-        'bondlinewidth'  : 0.10, # Radius of the cylinders representing the bonds
-        'bondatoms'      : [],   # [[atom1, atom2], ... ] pairs of bonding atoms
-        'exportconstraints' : False}  # honour FixAtom requests and mark relevant atoms?
+        'display': True,  # display while rendering
+        'pause': True,  # pause when done rendering (only if display)
+        'transparent': True,  # transparent background
+        'canvas_width': None,  # width of canvas in pixels
+        'canvas_height': None,  # height of canvas in pixels
+        'camera_dist': 50.,  # distance from camera to front atom
+        'image_plane': None,  # distance from front atom to image plane
+        'camera_type': 'orthographic',  # perspective, ultra_wide_angle
+        'point_lights': [],  # [[loc1, color1], [loc2, color2],...]
+        'area_light': [(2., 3., 40.),  # location
+                       'White',  # color
+                       .7, .7, 3, 3],  # width, height, Nlamps_x, Nlamps_y
+        'background': 'White',  # color
+        'textures': None,  # length of atoms list of texture names
+        'transmittances': None,  # transmittance of the atoms
+        # use with care - in particular adjust the camera_distance to be closer
+        'depth_cueing': False,  # fog a.k.a. depth cueing
+        'cue_density': 5e-3,  # fog a.k.a. depth cueing
+        'celllinewidth': 0.05,  # radius of the cylinders representing the cell
+        'bondlinewidth': 0.10,  # radius of the cylinders representing bonds
+        'bondatoms': [],  # [[atom1, atom2], ... ] pairs of bonding atoms
+        'exportconstraints': False}  # honour FixAtoms and mark relevant atoms?
 
     def __init__(self, atoms, scale=1.0, **parameters):
         for k, v in self.default_settings.items():
@@ -90,9 +94,10 @@ class POVRAY(EPS):
         constr = atoms.constraints
         self.constrainatoms = []
         for c in constr:
-            if isinstance(c,FixAtoms):
-                for n,i in enumerate(c.index):
-                    if i: self.constrainatoms += [n]
+            if isinstance(c, FixAtoms):
+                for n, i in enumerate(c.index):
+                    if i:
+                        self.constrainatoms += [n]
 
     def cell_to_lines(self, A):
         return np.empty((0, 3)), None, None
@@ -157,6 +162,17 @@ class POVRAY(EPS):
                 width, height, nx, ny))
             w('  adaptive 1 jitter}\n')
 
+        # the depth cueing
+        if self.depth_cueing and (self.cue_density >= 1e-4):
+            # same way vmd does it
+            if self.cue_density > 1e4:
+                # larger does not make any sense
+                dist = 1e-4
+            else:
+                dist = 1. / self.cue_density
+            w('fog {fog_type 1 distance %.4f color %s}' %
+              (dist, pc(self.background)))
+
         w('\n')
         w('#declare simple = finish {phong 0.7}\n')
         w('#declare pale = finish {'
@@ -202,19 +218,28 @@ class POVRAY(EPS):
           'diffuse .3 '
           'specular 1. '
           'roughness .001}\n')
+        w('#declare glass2 = finish {'
+          'ambient .0 '
+          'diffuse .3 '
+          'specular 1. '
+          'reflection .25 '
+          'roughness .001}\n')
         w('#declare Rcell = %.3f;\n' % self.celllinewidth)
         w('#declare Rbond = %.3f;\n' % self.bondlinewidth)
         w('\n')
-        w('#macro atom(LOC, R, COL, FIN)\n')
-        w('  sphere{LOC, R texture{pigment{COL} finish{FIN}}}\n')
+        w('#macro atom(LOC, R, COL, TRANS, FIN)\n')
+        w('  sphere{LOC, R texture{pigment{color COL transmit TRANS} '
+          'finish{FIN}}}\n')
         w('#end\n')
-        w('#macro constrain(LOC, R, COL, FIN)\n')
-        w('union{torus{R, Rcell rotate 45*z texture{pigment{COL} finish{FIN}}}\n')
-        w('      torus{R, Rcell rotate -45*z texture{pigment{COL} finish{FIN}}}\n')
+        w('#macro constrain(LOC, R, COL, TRANS FIN)\n')
+        w('union{torus{R, Rcell rotate 45*z '
+          'texture{pigment{color COL transmit TRANS} finish{FIN}}}\n')
+        w('      torus{R, Rcell rotate -45*z '
+          'texture{pigment{color COL transmit TRANS} finish{FIN}}}\n')
         w('      translate LOC}\n')
         w('#end\n')
         w('\n')
-        
+
         z0 = self.X[:, 2].max()
         self.X -= (self.w / 2, self.h / 2, z0)
 
@@ -235,10 +260,13 @@ class POVRAY(EPS):
         a = 0
         for loc, dia, color in zip(self.X, self.d, self.colors):
             tex = 'ase3'
+            trans = 0.
             if self.textures is not None:
                 tex = self.textures[a]
-            w('atom(%s, %.2f, %s, %s) // #%i \n' % (
-                pa(loc), dia / 2., pc(color), tex, a))
+            if self.transmittances is not None:
+                trans = self.transmittances[a]
+            w('atom(%s, %.2f, %s, %s, %s) // #%i \n' % (
+                pa(loc), dia / 2., pc(color), trans, tex, a))
             a += 1
 
         # Draw atom bonds
@@ -256,18 +284,31 @@ class POVRAY(EPS):
                 texb = self.textures[b]
             else:
                 texa = texb = 'ase3'
-            w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
-                pa(self.X[a]), pa(mida), pc(self.colors[a]), texa))
-            w('cylinder {%s, %s, Rbond texture{pigment {%s} finish{%s}}}\n' % (
-                pa(self.X[b]), pa(midb), pc(self.colors[b]), texb))
-            
+
+            if self.transmittances is not None:
+                transa = self.transmittances[a]
+                transb = self.transmittances[b]
+            else:
+                transa = transb = 0.
+
+            fmt = ('cylinder {%s, %s, Rbond texture{pigment '
+                   '{color %s transmit %s} finish{%s}}}\n')
+            w(fmt %
+              (pa(self.X[a]), pa(mida), pc(self.colors[a]), transa, texa))
+            w(fmt %
+              (pa(self.X[b]), pa(midb), pc(self.colors[b]), transb, texb))
+
         # Draw constraints if requested
         if self.exportconstraints:
             for a in self.constrainatoms:
-                dia    = self.d[a]
-                loc    = self.X[a]
-                w('constrain(%s, %.2f, Black, %s) // #%i \n' % (
-                    pa(loc), dia / 2., tex, a))
+                dia = self.d[a]
+                loc = self.X[a]
+                trans = 0.0
+                if self.transmittances is not None:
+                    trans = self.transmittances[a]
+                w('constrain(%s, %.2f, Black, %s, %s) // #%i \n' % (
+                    pa(loc), dia / 2., tex, a, trans))
+
 
 def write_pov(filename, atoms, run_povray=False, **parameters):
     if isinstance(atoms, list):

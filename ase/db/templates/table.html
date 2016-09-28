@@ -57,7 +57,7 @@ Row {{ row1 }}-{{ row2 }}:
     </tr>
 {% for row in t.rows -%}
     <tr class="click {{ loop.cycle('even', 'odd') }}"
-        onclick="open_row(this, {{ row.dct.id }}, {{ cid }});">
+        onclick="document.location.href = '/id/{{ row.dct.id }}';">
     {%- autoescape false -%}
     {%- for s in row.strings -%}
         {% if t.right[loop.index0] -%}

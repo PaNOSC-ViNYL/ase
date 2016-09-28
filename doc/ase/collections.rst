@@ -1,4 +1,4 @@
-.. module:: ase.collection
+.. module:: ase.collections
 
 ===========
 Collections
@@ -6,7 +6,7 @@ Collections
 
 :data:`s22`, :data:`g2`
 
-.. autoclass:: ase.collection.collection.Collection
+.. autoclass:: ase.collections.collection.Collection
 
 
 S22 database of weakly interacting dimers and complexes

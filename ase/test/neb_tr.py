@@ -1,5 +1,5 @@
 from ase.calculators.lj import LennardJones
-from ase.optimize import FIRE
+from ase.optimize import FIRE, BFGS
 from ase.neb import NEB, NEBtools
 from ase import Atoms
 
@@ -40,7 +40,10 @@ for remove_rotation_and_translation in [True, False]:
     # and rotational degrees of freedom
     neb = NEB(images,
               remove_rotation_and_translation=remove_rotation_and_translation)
-    neb.interpolate(method='idpp')
+    neb.interpolate()
+    # Test used these old defaults which are not optimial, but work in this particular system
+    neb.idpp_interpolate(fmax=0.1, optimizer=BFGS)
+
     
     qn = FIRE(neb, dt=0.005, maxmove=0.05, dtmax=0.1)
     qn.run(steps=20)

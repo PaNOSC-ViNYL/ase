@@ -104,7 +104,7 @@ def main():
 
     # run a cell optimization, see if it finds back original crystal structure
     opt = MDMin(UnitCellFilter(a), dt=0.01, logfile=None)
-    opt.run(fmax=0.5)
+    opt.run(fmax=0.1)
     # print(a.cell)
     for i in range(3):
         for j in range(3):

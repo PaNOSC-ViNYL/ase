@@ -15,37 +15,36 @@ Quick links:
     - :mod:`~ase.atoms`
     - :mod:`~ase.build`
     - :mod:`~ase.calculators`
-  * - :mod:`~ase.collection`
+  * - :mod:`~ase.collections`
     - :mod:`~ase.constraints`
     - :mod:`~ase.db`
     - :mod:`~ase.dft`
   * - :mod:`~ase.data`
     - :mod:`~ase.ga`
+    - :mod:`~ase.geometry`
     - :mod:`~ase.gui`
-    - :mod:`~ase.io`
-  * - :mod:`~ase.lattice`
+  * - :mod:`~ase.io`
+    - :mod:`~ase.lattice`
     - :mod:`~ase.md`
     - :mod:`~ase.neb`
-    - :mod:`~ase.neighborlist`
-  * - :mod:`~ase.optimize`
+  * - :mod:`~ase.neighborlist`
+    - :mod:`~ase.optimize`
     - :mod:`~ase.parallel`
     - :mod:`~ase.phasediagram`
-    - :mod:`~ase.phonons`
-  * - :mod:`~ase.spacegroup`
+  * - :mod:`~ase.phonons`
+    - :mod:`~ase.spacegroup`
     - :mod:`~ase.transport`
     - :mod:`~ase.thermochemistry`
-    - :mod:`~ase.units`
-  * - :mod:`~ase.utils`
+  * - :mod:`~ase.units`
+    - :mod:`~ase.utils`
     - :mod:`~ase.vibrations`
     - :mod:`~ase.visualize`
-    -
 
 
 .. seealso::
 
    * :ref:`tutorials`
    * :ref:`cli`
-   * :epydoc:`Automatically generated documentation <ase>` (API)
    * :git:`Source code <>`
    * Presentation about ASE: :download:`ase-talk.pdf`
 
@@ -60,7 +59,7 @@ List of all modules:
    io/io
    build/build
    eos
-   collection
+   collections
    data
    optimize
    md

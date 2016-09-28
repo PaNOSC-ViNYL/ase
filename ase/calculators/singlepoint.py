@@ -13,29 +13,15 @@ class SinglePointCalculator(Calculator):
     
     name = 'unknown'
     
-    def __init__(self, *args, **results):
+    def __init__(self, atoms, **results):
         """Save energy, forces, stress, ... for the current configuration."""
-        if args and isinstance(args[0], float):
-            # Old interface:
-            assert not results
-            for key, value in zip(['energy', 'forces', 'stress', 'magmoms'],
-                                  args):
-                if value is not None:
-                    results[key] = value
-            atoms = args[-1]
-        else:
-            if args:
-                atoms = args[0]
-            else:
-                atoms = results.pop('atoms')
-            
         Calculator.__init__(self)
         self.results = {}
         for property, value in results.items():
             assert property in all_properties
             if value is None:
                 continue
-            if property in ['energy', 'magmom']:
+            if property in ['energy', 'magmom', 'free_energy']:
                 self.results[property] = value
             else:
                 self.results[property] = np.array(value, float)
@@ -159,17 +145,23 @@ class SinglePointDFTCalculator(SinglePointCalculator):
         return np.array(eHs).max(), np.array(eLs).min()
         
     def get_homo_lumo_by_spin(self, spin=0):
-        """Return HOMO and LUMO energies for a give spin."""
+        """Return HOMO and LUMO energies for a given spin."""
         if self.kpts is None:
             raise RuntimeError('No kpts')
         for kpt in self.kpts:
             if kpt.s == spin:
-                eH = -1.e32
-                eL = 1.e32
-                for e, f in zip(kpt.eps_n, kpt.f_n):
+                break
+        else:
+            raise RuntimeError('No k-point with spin {0}'.format(spin))
+        if self.eFermi is None:
+            raise RuntimeError('Fermi level is not available')
+        eH = -1.e32
+        eL = 1.e32
+        for kpt in self.kpts:
+            if kpt.s == spin:
+                for e in kpt.eps_n:
                     if e <= self.eFermi:
                         eH = max(eH, e)
                     else:
                         eL = min(eL, e)
-                return eH, eL
-        raise RuntimeError('No kpt with spin {0}'.format(spin))
+        return eH, eL

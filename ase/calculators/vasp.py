@@ -22,6 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 import os
 import sys
 import re
+import warnings
 from .general import Calculator
 from os.path import join, isfile, islink
 
@@ -46,6 +47,7 @@ float_keys = [
     'amix_mag',   #
     'bmix',       # tags for mixing
     'bmix_mag',   #
+    'cshift',     # Complex shift for dielectric tensor calculation (LOPTICS)
     'deper',      # relative stopping criterion for optimization of eigenvalue
     'ebreak',     # absolute stopping criterion for optimization of eigenvalues
                   # (EDIFF/N-BANDS/4)
@@ -125,7 +127,7 @@ exp_keys = [
 
 string_keys = [
     'algo',       # algorithm: Normal (Davidson) | Fast | Very_Fast (RMM-DIIS)
-    'gga',        # xc-type: PW PB LM or 91
+    'gga',        # xc-type: PW PB LM or 91 (LDA if not set)
     'metagga',    #
     'prec',       # Precission of calculation (Low, Normal, Accurate)
     'system',     # name of System
@@ -316,6 +318,43 @@ keys = [
 class Vasp(Calculator):
     name = 'Vasp'
 
+    # Parameters corresponding to 'xc' settings.  This may be modified
+    # by the user in-between loading calculators.vasp submodule and
+    # instantiating the calculator object with calculators.vasp.Vasp()
+    xc_defaults = {
+        'lda': {'pp': 'LDA'},
+        # GGAs
+        'pw91': {'pp': 'GGA', 'gga': '91'},
+        'pbe': {'pp': 'PBE', 'gga': 'PE'},
+        'pbesol': {'gga': 'PS'},
+        'revpbe': {'gga': 'RE'},
+        'rpbe': {'gga': 'RP'},
+        'am05': {'gga': 'AM'},
+        # Meta-GGAs
+        'tpss': {'metagga': 'TPSS'},
+        'revtpss': {'metagga': 'RTPSS'},
+        'm06l': {'metagga': 'M06L'},
+        # vdW-DFs
+        'vdw-df': {'gga': 'RE', 'luse_vdw': True, 'aggac': 0.},
+        'optpbe-vdw': {'gga': 'OR', 'luse_vdw': True, 'aggac': 0.0},
+        'optb88-vdw': {'gga': 'BO', 'luse_vdw': True, 'aggac': 0.0,
+                       'param1': 1.1 / 6.0, 'param2': 0.22},
+        'optb86b-vdw': {'gga': 'MK', 'luse_vdw': True, 'aggac': 0.0,
+                        'param1': 0.1234, 'param2': 1.0},
+        'vdw-df2': {'gga': 'ML', 'luse_vdw': True, 'aggac': 0.0,
+                    'zab_vdw': -1.8867},
+        'beef-vdw': {'gga': 'BF', 'luse_vdw': True,
+                     'zab_vdw': -1.8867},
+        # Hartree-Fock and hybrids
+        'hf': {'lhfcalc': True, 'aexx': 1.0, 'aldac': 0.0,
+               'aggac': 0.0},
+        'b3lyp': {'gga': 'B3', 'lhfcalc': True, 'aexx': 0.2,
+                  'aggax': 0.72, 'aggac': 0.81, 'aldac': 0.19},
+        'pbe0': {'gga': 'PE', 'lhfcalc': True},
+        'hse03': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.3},
+        'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
+        'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
+
     def __init__(self, restart=None,
                  output_template='vasp',
                  track_output=False,
@@ -345,21 +384,11 @@ class Vasp(Calculator):
         for key in dict_keys:
             self.dict_params[key] = None
 
-        # self.string_params['prec'] = 'Normal'
-
-        if kwargs.get('xc', None):
-            if kwargs['xc'] not in ['PW91', 'LDA', 'PBE']:
-                raise ValueError(
-                    '%s not supported for xc! use one of: PW91, LDA or PBE.' %
-                    kwargs['xc'])
-            # exchange correlation functional
-            self.input_params = {'xc': kwargs['xc']}
-
-        else:
-            # exchange correlation functional
-            self.input_params = {'xc': 'PW91'}
-
-        self.input_params.update({
+        # Initialize internal dictionary of input parameters which are
+        # not regular VASP keys
+        self.input_params = {
+            'xc': None,  # Exchange-correlation recipe (e.g. 'B3LYP')
+            'pp': None,  # Pseudopotential file (e.g. 'PW91')
             'setups': None,  # Special setups (e.g pv, sv, ...)
             'txt': '-',  # Where to send information
             'kpts': (1, 1, 1),  # k-points
@@ -369,7 +398,7 @@ class Vasp(Calculator):
             'kpts_nintersections': None,
             # Option to write explicit k-points in units
             # of reciprocal lattice vectors:
-            'reciprocal': False})
+            'reciprocal': False}
 
         self.restart = restart
         self.track_output = track_output
@@ -378,15 +407,27 @@ class Vasp(Calculator):
             self.restart_load()
             return
 
-        if (('ldauu' in kwargs) and
-            ('ldaul' in kwargs) and
-            ('ldauj' in kwargs) and
-            ('ldau_luj' in kwargs)):
+        # If no XC combination, GGA functional or POTCAR type is specified,
+        # default to PW91. This is mostly chosen for backwards compatiblity.
+        if kwargs.get('xc', None):
+            pass
+        elif not (kwargs.get('gga', None) or kwargs.get('pp', None)):
+            self.input_params.update({'xc': 'PW91'})
+        # A null value of xc is permitted; custom recipes can be
+        # used by explicitly setting the pseudopotential set and
+        # INCAR keys
+        else:
+            self.input_params.update({'xc': None})
+
+        if ((('ldauu' in kwargs) and
+             ('ldaul' in kwargs) and
+             ('ldauj' in kwargs) and
+             ('ldau_luj' in kwargs))):
             raise NotImplementedError(
-                'You can either specify ldaul, ldauu, and ldauj OR ldau_luj.'
-                'ldau_luj is not a VASP keyword. It is a dictionary that'
-                ' specifies'
-                'L, U and J for each chemical species in the atoms object. '
+                'You can either specify ldaul, ldauu, and ldauj OR '
+                'ldau_luj. ldau_luj is not a VASP keyword. It is a '
+                'dictionary that specifies L, U and J for each '
+                'chemical species in the atoms object. '
                 'For example for a water molecule:'
                 '''ldau_luj={'H':{'L':2, 'U':4.0, 'J':0.9},
                       'O':{'L':2, 'U':4.0, 'J':0.9}}''')
@@ -397,7 +438,25 @@ class Vasp(Calculator):
         self.run_counts = 0
         self.set(**kwargs)
 
+    def set_xc_params(self, xc):
+        """Set parameters corresponding to XC functional"""
+        xc = xc.lower()
+        if xc is None:
+            pass
+        elif xc not in Vasp.xc_defaults:
+            xc_allowed = ', '.join(Vasp.xc_defaults.keys())
+            raise ValueError(
+                '{0} is not supported for xc! Supported xc values'
+                'are: {1}'.format(xc, xc_allowed))
+        else:
+            # XC defaults to PBE pseudopotentials
+            if 'pp' not in Vasp.xc_defaults[xc]:
+                self.set(pp='PBE')
+            self.set(**Vasp.xc_defaults[xc])
+
     def set(self, **kwargs):
+        if 'xc' in kwargs:
+            self.set_xc_params(kwargs['xc'])
         for key in kwargs:
             if key in self.float_params:
                 self.float_params[key] = kwargs[key]
@@ -422,12 +481,26 @@ class Vasp(Calculator):
 
     def update(self, atoms):
         if self.calculation_required(atoms, ['energy']):
-            if (self.atoms is None or
-                self.atoms.positions.shape != atoms.positions.shape):
+            if (((self.atoms is None) or
+                 (self.atoms.positions.shape != atoms.positions.shape)
+                 )):
                 # Completely new calculation just reusing the same
                 # calculator, so delete any old VASP files found.
                 self.clean()
             self.calculate(atoms)
+
+    _potcar_unguessable_string = (
+        "Unable to guess the desired set of pseudopotential"
+        "(POTCAR) files. Please do one of the following: \n"
+        "1. Use the 'xc' parameter to define your XC functional."
+        "These 'recipes' determine the pseudopotential file as "
+        "well as setting the INCAR parameters.\n"
+        "2. Use the 'gga' settings None (default), 'PE' or '91'; "
+        "these correspond to LDA, PBE and PW91 respectively.\n"
+        "3. Set the POTCAR explicitly with the 'pp' flag. The "
+        "value should be the name of a folder on the VASP_PP_PATH"
+        ", and the aliases 'LDA', 'PBE' and 'PW91' are also"
+        "accepted.\n")
 
     def initialize(self, atoms):
         """Initialize a VASP calculation
@@ -442,11 +515,35 @@ class Vasp(Calculator):
         PW91: $VASP_PP_PATH/potpaw_GGA/
 
         if your pseudopotentials are somewhere else, or named
-        differently you should make symlinks at the paths above that
-        point to the right place.
+        differently you may make symlinks at the paths above that
+        point to the right place. Alternatively, you may pass the full
+        name of a folder on the VASP_PP_PATH to the 'pp' parameter.
         """
 
         p = self.input_params
+
+        # There is no way to correctly guess the desired
+        # set of pseudopotentials without 'pp' being set.
+        # Usually, 'pp' will be set by 'xc'.
+        if 'pp' not in p or p['pp'] is None:
+            if self.string_params['gga'] is None:
+                p.update({'pp': 'lda'})
+            elif self.string_params['gga'] == '91':
+                p.update({'pp': 'pw91'})
+            elif self.string_params['gga'] == 'PE':
+                p.update({'pp': 'pbe'})
+            else:
+                raise NotImplementedError(
+                    self._potcar_unguessable_string)
+
+        if (p['xc'] is not None
+                and p['xc'].lower() == 'lda'
+                and p['pp'].lower() != 'lda'):
+            warnings.warn("XC is set to LDA, but PP is set to "
+                          "{0}. \nThis calculation is using the {0} "
+                          "POTCAR set. \n Please check that this is "
+                          "really what you intended!"
+                          "\n".format(p['pp'].upper()))
 
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
@@ -501,12 +598,16 @@ class Vasp(Calculator):
             self.symbol_count.append([m, symbolcount[m]])
 
         sys.stdout.flush()
-        xc = '/'
 
-        if p['xc'] == 'PW91':
-            xc = '_gga/'
-        elif p['xc'] == 'PBE':
-            xc = '_pbe/'
+        # Potpaw folders may be identified by an alias or full name
+        for pp_alias, pp_folder in (('lda', 'potpaw'),
+                                    ('pw91', 'potpaw_GGA'),
+                                    ('pbe', 'potpaw_PBE')):
+            if p['pp'].lower() == pp_alias:
+                break
+        else:
+            pp_folder = p['pp']
+
         if 'VASP_PP_PATH' in os.environ:
             pppaths = os.environ['VASP_PP_PATH'].split(':')
         else:
@@ -515,47 +616,50 @@ class Vasp(Calculator):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            name = 'potpaw' + xc.upper() + p['setups'][str(m)] + '/POTCAR'
-            found = False
+            if m in p['setups']:
+                special_setup_index = m
+            elif str(m) in p['setups']:
+                special_setup_index = str(m)
+            else:
+                raise Exception("Having trouble with special setup index {0}."
+                                " Please use an int.".format(m))
+            potcar = join(pp_folder,
+                          p['setups'][special_setup_index],
+                          'POTCAR')
             for path in pppaths:
-                filename = join(path, name)
+                filename = join(path, potcar)
 
                 if isfile(filename) or islink(filename):
-                    found = True
                     self.ppp_list.append(filename)
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
-                    found = True
                     self.ppp_list.append(filename + '.Z')
                     break
-            if not found:
-                print('Looking for %s' % name)
+            else:
+                print('Looking for %s' % potcar)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
 
         for symbol in symbols:
             try:
-                name = 'potpaw' + xc.upper() + symbol + p['setups'][symbol]
+                potcar = join(pp_folder, symbol + p['setups'][symbol],
+                              'POTCAR')
             except (TypeError, KeyError):
-                name = 'potpaw' + xc.upper() + symbol
-            name += '/POTCAR'
-            found = False
+                potcar = join(pp_folder, symbol, 'POTCAR')
             for path in pppaths:
-                filename = join(path, name)
+                filename = join(path, potcar)
 
                 if isfile(filename) or islink(filename):
-                    found = True
                     self.ppp_list.append(filename)
                     break
                 elif isfile(filename + '.Z') or islink(filename + '.Z'):
-                    found = True
                     self.ppp_list.append(filename + '.Z')
                     break
-            if not found:
+            else:
                 print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
                 PBE:  $VASP_PP_PATH/potpaw_PBE/
-                PW91: $VASP_PP_PATH/potpaw_GGA/''' % name)
+                PW91: $VASP_PP_PATH/potpaw_GGA/''' % potcar)
                 raise RuntimeError('No pseudopotential for %s!' % symbol)
         self.converged = None
         self.setups_changed = None
@@ -823,17 +927,17 @@ class Vasp(Calculator):
         return ldau, ldauprint, ldautype, ldau_luj
 
     def calculation_required(self, atoms, quantities):
-        if (self.positions is None or
-            (self.atoms != atoms) or
-            (self.float_params != self.old_float_params) or
-            (self.exp_params != self.old_exp_params) or
-            (self.string_params != self.old_string_params) or
-            (self.int_params != self.old_int_params) or
-            (self.bool_params != self.old_bool_params) or
-            (self.list_params != self.old_list_params) or
-            (self.input_params != self.old_input_params) or
-            (self.dict_params != self.old_dict_params) or
-            not self.converged):
+        if (((self.positions is None) or
+             (self.atoms != atoms) or
+             (self.float_params != self.old_float_params) or
+             (self.exp_params != self.old_exp_params) or
+             (self.string_params != self.old_string_params) or
+             (self.int_params != self.old_int_params) or
+             (self.bool_params != self.old_bool_params) or
+             (self.list_params != self.old_list_params) or
+             (self.input_params != self.old_input_params) or
+             (self.dict_params != self.old_dict_params) or
+             not self.converged)):
             return True
         if 'magmom' in quantities:
             return not hasattr(self, 'magnetic_moment')
@@ -904,7 +1008,19 @@ class Vasp(Calculator):
         return self.dipole
 
     def get_xc_functional(self):
-        return self.input_params['xc']
+        """Returns the XC functional or the pseudopotential type
+
+        If a XC recipe is set explicitly with 'xc', this is returned.
+        Otherwise, the XC functional associated with the
+        pseudopotentials (LDA, PW91 or PBE) is returned.
+        The string is always cast to uppercase for consistency
+        in checks."""
+        if self.input_params.get('xc', None):
+            return self.input_params['xc'].upper()
+        elif self.input_params.get('pp', None):
+            return self.input_params['pp'].upper()
+        else:
+            raise ValueError('No xc or pp found.')
 
     def write_incar(self, atoms, **kwargs):
         """Writes the INCAR file."""
@@ -1010,6 +1126,9 @@ class Vasp(Calculator):
                 incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
             magmom = atoms.get_initial_magnetic_moments()[self.sort]
+            # unpack magmom array if three components specified
+            if magmom.ndim > 1:
+                magmom = [item for sublist in magmom for item in sublist]
             list = [[1, magmom[0]]]
             for n in range(1, len(magmom)):
                 if magmom[n] == magmom[n - 1]:
@@ -1023,13 +1142,31 @@ class Vasp(Calculator):
 
     def write_kpoints(self, **kwargs):
         """Writes the KPOINTS file."""
+
+        # Don't write anything if KSPACING is being used
+        if self.float_params['kspacing'] is not None:
+            if self.float_params['kspacing'] > 0:
+                return
+            else:
+                raise ValueError("KSPACING value {0} is not allowable. "
+                                 "Please use None or a positive number."
+                                 "".format(self.float_params['kspacing']))
+
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
         shape = np.array(p['kpts']).shape
+
+        # Wrap scalar in list if necessary
+        if shape == ():
+            p['kpts'] = [p['kpts']]
+            shape = (1, )
+
         if len(shape) == 1:
             kpoints.write('0\n')
-            if p['gamma']:
+            if shape == (1, ):
+                kpoints.write('Auto\n')
+            elif p['gamma']:
                 kpoints.write('Gamma\n')
             else:
                 kpoints.write('Monkhorst-Pack\n')
@@ -1208,8 +1345,8 @@ class Vasp(Calculator):
                     continue
         # Then if ibrion in [1,2,3] check whether ionic relaxation
         # condition been fulfilled
-        if (self.int_params['ibrion'] in [1, 2, 3] and
-            self.int_params['nsw'] not in [0]):
+        if ((self.int_params['ibrion'] in [1, 2, 3] and
+             self.int_params['nsw'] not in [0])):
             if not self.read_relaxed():
                 converged = False
             else:
@@ -1418,20 +1555,25 @@ class Vasp(Calculator):
         lines = file.readlines()
         file.close()
         ktype = lines[2].split()[0].lower()[0]
-        if ktype in ['g', 'm']:
+        if ktype in ['g', 'm', 'a']:
             if ktype == 'g':
                 self.set(gamma=True)
-            kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
+                kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
+            elif ktype == 'a':
+                kpts = np.array([int(lines[3].split()[i]) for i in range(1)])
+            elif ktype == 'm':
+                kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
             self.set(kpts=kpts)
-        elif ktype in ['c', 'k']:
-            raise NotImplementedError('Only Monkhorst-Pack and gamma centered'
-                                      ' grid supported for restart.')
         else:
-            raise NotImplementedError('Only Monkhorst-Pack and gamma centered '
-                                      'grid supported for restart.')
+            if ktype in ['c', 'k']:
+                self.set(reciprocal=False)
+            else:
+                self.set(reciprocal=True)
+            kpts = np.array([map(float, line.split()) for line in lines[3:]])
+            self.set(kpts=kpts)
 
     def read_potcar(self):
-        """ Method that reads the Exchange Correlation functional from POTCAR file.
+        """ Read the pseudopotential XC functional from POTCAR file.
         """
         file = open('POTCAR', 'r')
         lines = file.readlines()
@@ -1455,11 +1597,11 @@ class Vasp(Calculator):
             raise ValueError('Unknown xc-functional flag found in POTCAR,'
                              ' LEXCH=%s' % xc_flag)
 
-        self.input_params['xc'] = xc_dict[xc_flag]
+        self.input_params['pp'] = xc_dict[xc_flag]
 
     def read_vib_freq(self):
         """Read vibrational frequencies.
-        
+
         Returns list of real and list of imaginary frequencies."""
         freq = []
         i_freq = []

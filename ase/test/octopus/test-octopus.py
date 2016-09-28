@@ -12,7 +12,6 @@ def getkwargs(**kwargs):
                    RestartWrite=False,
                    BoxShape='parallelepiped',
                    stdout='"stdout.txt"',
-                   stderr='"stderr.txt"',
                    Spacing=0.15)
     kwargs0.update(kwargs)
     return kwargs0
