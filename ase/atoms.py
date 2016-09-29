@@ -312,7 +312,8 @@ class Atoms(object):
 
         Rhombohedral unit cell:
 
-        >>> a.set_cell([a, a, a, alpha, alpha, alpha])
+        >>> alpha = 77
+        >>> atoms.set_cell([a, a, a, alpha, alpha, alpha])
         """
 
         if fix is not None:
