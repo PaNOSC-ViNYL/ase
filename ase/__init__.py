@@ -15,7 +15,8 @@ __version__ = '3.12.0b1'
 
 # import ase.parallel early to avoid circular import problems when
 # ase.parallel does "from gpaw.mpi import world":
-import ase.parallel
+import ase.parallel  # noqa
+ase.parallel  # silence pyflakes
 
 if LooseVersion(np.__version__) < '1.9':
     # Make isinstance(x, numbers.Integral) work also for np.intxx:
