@@ -321,7 +321,9 @@ class Atoms(object):
 
         cell = np.array(cell)
 
-        if cell.shape in ((3,), (6,)):
+        if cell.shape == (3,):
+            cell = np.diag(cell)
+        elif cell.shape == (6,):
             cell = cellpar_to_cell(cell)
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 sequence, length 6 '
