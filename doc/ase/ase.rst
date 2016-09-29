@@ -1,6 +1,3 @@
-.. module:: ase
-   :synopsis: ASE module
-
 .. _ase:
 
 =======
@@ -11,8 +8,8 @@ Quick links:
 
 .. list-table::
 
-  * - :mod:`ase (Atoms) <ase>`
-    - :mod:`~ase.atom`
+  * - :mod:`ase (Atom) <ase.atom>`
+    - :mod:`ase (Atoms) <ase.atoms>`
     - :mod:`~ase.build`
     - :mod:`~ase.calculators`
   * - :mod:`~ase.collections`

@@ -58,7 +58,7 @@ Git master branch
   keyword for the :class:`~ase.Atoms` constructor and the
   :meth:`~ase.Atoms.set_cell` method now accepts unit cells given ase
   ``[a, b, c, alpha, beta, gamma]``, where the three angles are in degrees.
-  There is also a corresponding :meth:`~ase.Atoms.get_cell_legths_and_angles`
+  There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
   method.
 
 

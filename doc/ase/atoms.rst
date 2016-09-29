@@ -1,3 +1,4 @@
+.. module:: ase.atoms
 .. module:: ase
 
 ================
