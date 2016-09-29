@@ -116,6 +116,8 @@ common to all the atoms or defined for the collection of atoms:
     - :meth:`~Atoms.set_calculator`
   * - :meth:`~Atoms.get_cell`
     - :meth:`~Atoms.set_cell`
+  * - :meth:`~Atoms.get_cell_lengths_and_angles`
+    -
   * - :meth:`~Atoms.get_center_of_mass`
     -
   * - :meth:`~Atoms.get_kinetic_energy`
@@ -178,6 +180,7 @@ boundary conditions in *x* and *y* directions and free boundary
 conditions in the *z* direction is obtained through
 
 >>> a.set_pbc((True, True, False))
+
 
 .. _atoms_special_attributes:
 
@@ -330,5 +333,3 @@ List of all Methods
 
 .. autoclass:: Atoms
    :members:
-
-
