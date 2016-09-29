@@ -640,6 +640,17 @@ class FF(Precon):
         self.angles = angles
         self.dihedrals = dihedrals
 
+    def make_precon(self, atoms):
+
+        start_time = time.time()
+
+        # Create the preconditioner:
+        self._make_sparse_precon(atoms, force_stab=self.force_stab)
+
+        logger.info("--- Precon created in %s seconds ---",
+                    time.time()-start_time)
+        return self.P
+
     def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
         """ """
 
