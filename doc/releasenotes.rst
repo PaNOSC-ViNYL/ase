@@ -172,18 +172,18 @@ Version 3.9.0
 * New functions: :func:`ase.build.fcc211` and
   :func:`ase.visualize.mlab.plot`.
 
-* New :class:`~ase.atoms.Atoms` methods:
-  :meth:`ase.atoms.Atoms.get_distances()` and
-  :meth:`ase.atoms.Atoms.get_all_distances()`.
+* New :class:`~ase.Atoms` methods:
+  :meth:`ase.Atoms.get_distances()` and
+  :meth:`ase.Atoms.get_all_distances()`.
 
 * :ref:`bash completion` can now be enabled.
 
 * Preliminary support for Python 3.
 
-* Wrapping: new :meth:`ase.atoms.Atoms.wrap` method and
+* Wrapping: new :meth:`ase.Atoms.wrap` method and
   :func:`ase.geometry.wrap_positions` function.  Also
   added ``wrap=True`` keyword argument to
-  :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
+  :meth:`ase.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
 
 * New improved method for initializing NEB calculations:
@@ -233,9 +233,9 @@ Version 3.7.0
 
 * Mopac, NWChem and Gaussian interfaces and EAM potential added.
 
-* New :meth:`~ase.atoms.Atoms.set_initial_charges` and
-  :meth:`~ase.atoms.Atoms.get_initial_charges` methods.  The
-  :meth:`~ase.atoms.Atoms.get_charges` method will now ask the
+* New :meth:`~ase.Atoms.set_initial_charges` and
+  :meth:`~ase.Atoms.get_initial_charges` methods.  The
+  :meth:`~ase.Atoms.get_charges` method will now ask the
   calculator to calculate the atomic charges.
 
 * The :ref:`aep1` has been implemented and 6 ASE calculators are now
@@ -275,7 +275,7 @@ Version 3.6.0
 
 * Cleaned up some name-spaces:
 
-  * ``ase`` now contains only :class:`~ase.atoms.Atoms` and
+  * ``ase`` now contains only :class:`~ase.Atoms` and
     :class:`~ase.atom.Atom`
   * ``ase.calculators`` is now empty
 

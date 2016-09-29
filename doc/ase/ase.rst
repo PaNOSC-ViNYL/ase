@@ -11,8 +11,8 @@ Quick links:
 
 .. list-table::
 
-  * - :mod:`~ase.atom`
-    - :mod:`~ase.atoms`
+  * - :mod:`ase (Atoms) <ase>`
+    - :mod:`~ase.atom`
     - :mod:`~ase.build`
     - :mod:`~ase.calculators`
   * - :mod:`~ase.collections`

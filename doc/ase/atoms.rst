@@ -1,4 +1,4 @@
-.. module:: ase.atoms
+.. module:: ase
 
 ================
 The Atoms object
