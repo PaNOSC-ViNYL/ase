@@ -319,7 +319,7 @@ class Atoms(object):
         if fix is not None:
             raise TypeError('Please use scale_atoms=%s' % (not fix))
 
-        cell = np.array(cell)
+        cell = np.array(cell, float)
 
         if cell.shape == (3,):
             cell = np.diag(cell)
