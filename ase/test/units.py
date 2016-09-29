@@ -20,11 +20,11 @@ def test_units():
                 '_amu': 'atomic mass unit-kilogram relationship'}
 
     for version in sorted(CODATA.keys()):
-        print('Checking CODATA version "{}"'.format(version))
+        print('Checking CODATA version "{0}"'.format(version))
 
         try:
             scipy_CODATA = getattr(scipy.constants.codata,
-                                   '_physical_constants_{}'.format(version))
+                                   '_physical_constants_{0}'.format(version))
         except AttributeError:
             print('\tNot available through scipy, skipping')
             continue
@@ -33,7 +33,7 @@ def test_units():
             aseval = CODATA[version][unit]
             try:
                 scipyval = scipy_CODATA[name_map[unit]][0]
-                msg = 'Unit "{}" : '.format(name_map[unit])
+                msg = 'Unit "{0}" : '.format(name_map[unit])
                 ok = True
                 if np.isclose(aseval, scipyval):
                     msg += '[OK]'
