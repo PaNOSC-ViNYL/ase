@@ -54,6 +54,13 @@ Git master branch
 * Useful class for testing band-structure stuff:
   :class:`ase.calculators.test.FreeElectrons`.
 
+* The ``cell`` attribute of an :class:`~ase.Atoms` object and the ``cell``
+  keyword for the :class:`~ase.Atoms` constructor and the
+  :meth:`~ase.Atoms.set_cell` method now accepts unit cells given ase
+  ``[a, b, c, alpha, beta, gamma]``, where the three angles are in degrees.
+  There is also a corresponding :meth:`~ase.Atoms.get_cell_legths_and_angles`
+  method.
+
 
 Version 3.11.0
 ==============
