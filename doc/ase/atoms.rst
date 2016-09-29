@@ -35,8 +35,9 @@ Here, two more optional keyword arguments were used:
 ``cell``: Unit cell size
   This can be a sequence of three numbers for
   an orthorhombic unit cell or three by three numbers for a general
-  unit cell (a sequence of three sequences of three numbers).  The
-  default value is *[1.0, 1.0, 1.0]*.
+  unit cell (a sequence of three sequences of three numbers) or six numbers
+  (three legths and three angles in degrees).  The default value is
+  *[1.0, 1.0, 1.0]*.
 
 ``pbc``: Periodic boundary conditions
   The default value is *False* - a value of *True* would give
@@ -219,6 +220,10 @@ False
 >>> a.pbc[2] = 1
 >>> a.pbc
 array([False, False,  True], dtype=bool)
+
+Hexagonal unit cell:
+
+>>> a.cell = [2.5, 2.5, 15, 90, 90, 120]
 
 
 Adding a calculator
