@@ -799,6 +799,56 @@ class Exp_FF(Exp, FF):
         self.angles = angles
         self.dihedrals = dihedrals
 
+    def make_precon(self, atoms, recalc_mu=None):
+
+        if self.r_NN is None:
+            self.r_NN = estimate_nearest_neighbour_distance(atoms)
+
+        if self.r_cut is None:
+            # This is the first time this function has been called, and no
+            # cutoff radius has been specified, so calculate it automatically.
+            self.r_cut = 2.0 * self.r_NN
+        elif self.r_cut < self.r_NN:
+            warning = ('WARNING: r_cut (%.2f) < r_NN (%.2f), '
+                       'increasing to 1.1*r_NN = %.2f' % (self.r_cut, self.r_NN,
+                                                          1.1*self.r_NN))
+            logger.info(warning)
+            print(warning)
+            self.r_cut = 1.1*self.r_NN
+
+        if recalc_mu is None:
+            # The caller has not specified whether or not to recalculate mu,
+            # so the Precon's setting is used.
+            recalc_mu = self.recalc_mu
+
+        if self.mu is None:
+            # Regardless of what the caller has specified, if we don't
+            # currently have a value of mu, then we need one.
+            recalc_mu = True
+
+        if recalc_mu:
+            self.estimate_mu(atoms)
+
+        if self.P is not None:
+            real_atoms = atoms
+            if isinstance(atoms, Filter):
+                real_atoms = atoms.atoms
+            displacement = undo_pbc_jumps(real_atoms)
+            max_abs_displacement = abs(displacement).max()
+            logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
+                max_abs_displacement, max_abs_displacement/self.r_NN)
+            if max_abs_displacement < 0.5*self.r_NN:
+                return self.P
+
+        start_time = time.time()
+
+        # Create the preconditioner:
+        self._make_sparse_precon(atoms, force_stab=self.force_stab)
+
+        logger.info("--- Precon created in %s seconds ---",
+                    time.time()-start_time)
+        return self.P
+
     def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
         """Create a sparse preconditioner matrix based on the passed atoms.
 
