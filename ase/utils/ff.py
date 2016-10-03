@@ -410,7 +410,7 @@ def get_angle_potential_gradient(atoms, angle):
     if angle.cos:
         gr[0:3] = angle.k*da/dij*np.dot(Qij,ekj)
         gr[3:6] = angle.k*da/dkj*np.dot(Qkj,eij)
-    else:
+    elif np.abs(sina) > 0.001:
         gr[0:3] = -angle.k*da/sina/dij*np.dot(Qij,ekj)
         gr[3:6] = -angle.k*da/sina/dkj*np.dot(Qkj,eij)
 
@@ -470,7 +470,7 @@ def get_angle_potential_hessian(atoms, angle, morses=None, spectral=False):
     QkjPijQkj = np.dot(Qkj, np.dot(Pij, Qkj))
 
     Hr = np.zeros((6,6))
-    if angle.cos:
+    if angle.cos and np.abs(sina) > 0.001:
         factor = 1.0-2.0*cosa*cosa+cosa*cosa0
         Hr[0:3,0:3] = ( angle.k*(factor*QijPkjQij/sina 
                        - sina*da*(-ctga*QijPkjQij/sina+np.dot(Qij, Pki)
@@ -483,7 +483,7 @@ def get_angle_potential_hessian(atoms, angle, morses=None, spectral=False):
                        - sina*da*(-ctga*QkjPijQkj/sina
                        +np.dot(Qkj, Pik)-np.dot(Pkj, Pik)
                        *2.0+(Pki+P)))/sina/dkj2 )
-    else:
+    elif np.abs(sina) > 0.001:
         Hr[0:3,0:3] = ( angle.k*(QijPkjQij/sina 
                        + da*(-ctga*QijPkjQij/sina+np.dot(Qij, Pki)
                        -np.dot(Pij, Pki)*2.0+(Pik+P)))/sina/dij2 )
@@ -511,7 +511,7 @@ def get_angle_potential_hessian(atoms, angle, morses=None, spectral=False):
                    morses[m].atomj == k ):
                 Hr *= get_morse_potential_eta(atoms, morses[m])
 
-    Hx=np.dot(Ax.T, np.dot(Hr, Ax))
+    Hx = np.dot(Ax.T, np.dot(Hr, Ax))
 
     if spectral:
         eigvals, eigvecs = linalg.eigh(Hx)
@@ -560,17 +560,18 @@ def get_angle_potential_reduced_hessian(atoms, angle, morses=None):
     Pki = np.tensordot(ekj,eij,axes=0)
 
     Hr = np.zeros((6,6))
-    Hr[0:3,0:3] = np.dot(Qij, np.dot(Pkj, Qij))/dij2
-    Hr[0:3,3:6] = np.dot(Qij, np.dot(Pki, Qkj))/dijdkj
-    Hr[3:6,0:3] = Hr[0:3,3:6].T
-    Hr[3:6,3:6] = np.dot(Qkj, np.dot(Pij, Qkj))/dkj2
+    if np.abs(sina) > 0.001:
+        Hr[0:3,0:3] = np.dot(Qij, np.dot(Pkj, Qij))/dij2
+        Hr[0:3,3:6] = np.dot(Qij, np.dot(Pki, Qkj))/dijdkj
+        Hr[3:6,0:3] = Hr[0:3,3:6].T
+        Hr[3:6,3:6] = np.dot(Qkj, np.dot(Pij, Qkj))/dkj2
 
-    if angle.cos:
+    if angle.cos and np.abs(sina) > 0.001:
         cosa = np.cos(a)
         cosa0 = np.cos(angle.a0)
         factor = np.abs(1.0-2.0*cosa*cosa+cosa*cosa0)
         Hr = Hr*factor*angle.k/sina2
-    else:
+    elif np.abs(sina) > 0.001:
         Hr = Hr*angle.k/sina2
 
     if angle.alpha is not None:
