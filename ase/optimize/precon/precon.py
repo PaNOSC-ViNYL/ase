@@ -971,7 +971,10 @@ class Exp_FF(Exp, FF):
 
         row.extend(range(self.dim*N))
         col.extend(range(self.dim*N))
-        data.extend([self.mu*self.c_stab]*self.dim*N)
+        if initial_assembly:
+            data.extend([self.mu*self.c_stab]*self.dim*N)
+        else:
+            data.extend([self.c_stab]*self.dim*N)
 
         # create the matrix
         start_time = time.time()
