@@ -8,7 +8,7 @@ import sys
 import time
 import functools
 
-    
+
 def function_timer(func, *args, **kwargs):
     out = kwargs.pop('timeout', sys.stdout)
     t1 = time.time()
@@ -17,34 +17,34 @@ def function_timer(func, *args, **kwargs):
     print(t2 - t1, file=out)
     return r
 
-    
+
 class Timer:
     """Timer object.
-    
+
     Use like this::
-    
+
         timer = Timer()
         timer.start('description')
         # do something
         timer.stop()
-        
+
     or::
-        
+
         with timer('description'):
             # do something
-            
+
     To get a summary call::
-        
+
         timer.write()
 
     """
-    
+
     def __init__(self, print_levels=1000):
         self.timers = {}
         self.t0 = time.time()
         self.running = []
         self.print_levels = print_levels
-    
+
     def print_info(self, calc):
         """Override to get to write info during calculator's initialize()."""
         pass
@@ -53,7 +53,7 @@ class Timer:
         names = tuple(self.running + [name])
         self.timers[names] = self.timers.get(names, 0.0) - time.time()
         self.running.append(name)
-        
+
     def stop(self, name=None):
         if name is None:
             name = self.running[-1]
@@ -68,29 +68,29 @@ class Timer:
 
     def __call__(self, name):
         """Context manager for timing a block of code.
-        
+
         Example (t is a timer object)::
 
             with t('Add two numbers'):
                 x = 2 + 2
-                
+
             # same as this:
-            t.start(Add two numbers')
+            t.start('Add two numbers')
             x = 2 + 2
             t.stop()
         """
         self.start(name)
         return self
-        
+
     def __enter__(self):
         pass
-        
+
     def __exit__(self, *args):
         self.stop()
-            
+
     def get_time(self, *names):
         return self.timers[names]
-                
+
     def write(self, out=sys.stdout):
         were_running = list(self.running)
         while self.running:
@@ -106,7 +106,7 @@ class Timer:
         out.write('%-*s    incl.     excl.\n' % (n, 'Timing:'))
         out.write(line)
         tother = tot
-        
+
         inclusive = self.timers.copy()
         exclusive = self.timers.copy()
         keys = sorted(exclusive.keys())
@@ -138,7 +138,7 @@ class Timer:
                       (n, name, tinclusive, t, p, bar))
         out.write(line)
         out.write('%-*s%9.3f %5.1f%%\n\n' % (n + 10, 'Total:', tot, 100.0))
-        
+
         for name in were_running:
             self.start(name)
 
@@ -146,10 +146,10 @@ class Timer:
         for name, t in timer.timers.items():
             self.timers[name] = self.timers.get(name, 0.0) + t
 
-            
+
 class timer:
     """Decorator for timing a method call.
-    
+
     Example::
 
         from ase.utils.timing import timer, Timer
@@ -157,15 +157,15 @@ class timer:
         class A:
             def __init__(self):
                 self.timer = Timer()
-                
+
             @timer('Add two numbers')
             def add(self, x, y):
                 return x + y
-                
+
         """
     def __init__(self, name):
         self.name = name
-    
+
     def __call__(self, method):
         @functools.wraps(method)
         def new_method(slf, *args, **kwargs):
