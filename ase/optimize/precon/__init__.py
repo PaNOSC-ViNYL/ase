@@ -61,8 +61,6 @@ def get_neighbours(atoms, r_cut, self_interaction=False):
         fixed_atoms: indices of any fixed atoms
     """
 
-    global have_matscipy
-
     if isinstance(atoms, Filter):
         atoms = atoms.atoms
 
@@ -169,7 +167,7 @@ def estimate_nearest_neighbour_distance(atoms):
     return r_NN
 
 from ase.optimize.precon.precon import Precon, Exp, C1, Pfrommer, FF, Exp_FF
-from ase.optimize.precon.lbfgs import LBFGS
-from ase.optimize.precon.fire import FIRE
+from ase.optimize.precon.lbfgs import PreconLBFGS
+from ase.optimize.precon.fire import PreconFIRE
 
-__all__ = ['Precon', 'Exp', 'C1', 'Pfrommer', 'FF', 'Exp_FF', 'LBFGS', 'FIRE']
+__all__ = ['Precon', 'Exp', 'C1', 'Pfrommer', 'FF', 'Exp_FF', 'PreconLBFGS', 'PreconFIRE']
