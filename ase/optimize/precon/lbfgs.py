@@ -24,6 +24,8 @@ class PreconLBFGS(Optimizer):
     Hessian is represented only as a diagonal matrix to save memory.
 
     By default, the ase.optimize.precon.Exp preconditioner is applied.
+
+    In time this implementation is expected to replace ase.optimize.lbfgs.LBFGS.
     """
 
     ###CO : added parameters rigid_units and rotation_factors
