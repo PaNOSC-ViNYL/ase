@@ -299,30 +299,42 @@ method.
 
 Usage is very similar to the standard optimizers. The example below compares
 unpreconditioned LBGFS with the default `Exp` preconditioner for a 3x3x3 bulk
-cube of copper.
-
+cube of copper containing a vacancy.
+    
     import numpy as np
     from ase.build import bulk
-    from ase.calculators.lj import LennardJones
+    from ase.calculators.emt import EMT
     from ase.optimize.precon import Exp, PreconLBFGS
     
-    N = 3
-    a0 = bulk('Cu', cubic=True)
-    a0 *= (N, N, N)
+    from ase.calculators.loggingcalc import LoggingCalculator
+    import matplotlib as mpl
+    mpl.use('Agg')
+    import matplotlib.pyplot as plt
     
-    # perturb the atoms
-    s = a0.get_scaled_positions()
-    s[:, 0] *= 0.995
-    a0.set_scaled_positions(s)
+    a0 = bulk('Cu', cubic=True)
+    a0 *= [3, 3, 3]
+    del a0[0]
+    a0.rattle(0.1)
     
     nsteps = []
     energies = []
-    for precon in [None, Exp(A=3)]:
-       atoms = a0.copy()
-       atoms.set_calculator(LennardJones())
-       opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
-       opt.run(fmax=1e-4)
+    log_calc = LoggingCalculator(EMT())
     
+    for precon, label in zip([None, Exp(A=3)],
+                             ['None', 'Exp(A=3)']):
+       log_calc.label = label
+       atoms = a0.copy()
+       atoms.set_calculator(log_calc)
+       opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
+       opt.run(fmax=1e-3)
+    
+    log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
+    plt.savefig("precon.png")
+    
+The :class:`ase.calculators.loggingcalc.LoggingCalculator` provides
+a convenient tool for plotting convergence and walltime.
+
+  .. image:: precon.png
 
 Global optimization
 ===================
