@@ -287,19 +287,19 @@ L-BFGS over standard L-BFGS, and the gain grows with system
 size. Precomputations are performed to automatically estimate all
 parameters required. A linesearch based on enforcing only the first
 Wolff condition (i.e. the Armijo sufficient descent condition) is also
-provided in `ase.utils.linesearcharmijo`; this typically leads to a
+provided in :mod:`ase.utils.linesearcharmijo`; this typically leads to a
 further speed up when used in conjunction with the preconditioner.
 
 The preconditioned L-BFGS method implemented in ASE does not require
-external dependencies, but the `scipy.sparse` module can be used for
-efficient sparse linear algebra, and the `matscipy` package is used for
-fast computation of neighbour lists if available. `PyAMG` can be
+external dependencies, but the :mod:`scipy.sparse` module can be used for
+efficient sparse linear algebra, and the :mod:`matscipy` package is used for
+fast computation of neighbour lists if available. The PyAMG package can be
 used to efficiently invert the preconditioner using an adaptive multigrid
 method.
 
 Usage is very similar to the standard optimizers. The example below compares
 unpreconditioned LBGFS with the default `Exp` preconditioner for a 3x3x3 bulk
-cube of copper containing a vacancy.
+cube of copper containing a vacancy::
     
     import numpy as np
     from ase.build import bulk
