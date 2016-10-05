@@ -36,7 +36,7 @@ class PreconFIRE(Optimizer):
         variable_cell: bool
             If True, wrap atoms in UnitCellFilter to relax cell and positions.
 
-        In time this implementation is expected to replace ase.optimize.lbfgs.LBFGS.
+        In time this implementation is expected to replace ase.optimize.fire.FIRE.
         """
         if variable_cell:
             atoms = UnitCellFilter(atoms)
