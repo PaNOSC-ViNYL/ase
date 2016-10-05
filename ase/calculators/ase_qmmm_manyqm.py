@@ -110,7 +110,7 @@ def get_neighbor_list(system):
         print('Reading qm/mm neighbor list from file:')
         print('neighbor_list_for_ase_qmmm.txt')
 
-        myfile = open(NEIGHBOR_FILE, 'r')
+        myfile = open(NEIGHBOR_FILE, 'rb')
         neighbor_list = pickle.load(myfile)
     else:
         cut = [covalent_radii[atom.number] for atom in system]
@@ -119,7 +119,7 @@ def get_neighbor_list(system):
         neighbor_list = NeighborList(cut, skin, \
                                          self_interaction=False, bothways=True)
         neighbor_list.update(system)
-        file = open(NEIGHBOR_FILE, 'w')
+        file = open(NEIGHBOR_FILE, 'wb')
         pickle.dump(neighbor_list, file)
         file.close()
 

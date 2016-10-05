@@ -73,7 +73,7 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
 * Use 'single quotes' for string literals, and """triple double
   quotes""" for :term:`docstring`\ s.  Double quotes are OK for
   something like ``"don't"``.
-  
+
 .. _Style Guide for Python Code:
 .. _PEP8: http://www.python.org/peps/pep-0008.html
 .. _Docstring Conventions: http://www.python.org/peps/pep-0257.html
@@ -114,10 +114,10 @@ Run pep8 and pyflakes on your code
 It's a good ide to run both the `pep8
 <http://pep8.readthedocs.org/en/latest/index.html>`__ and pyflakes_ tools on
 your code (or use a text editor that does it automatically)::
-    
+
     $ pep8 --ignore W293,E129 filename.py
     $ pyflakes filename.py
-    
+
 or equivalently::
 
     $ alias check="python -m ase.utils.stylecheck"
@@ -126,8 +126,8 @@ or equivalently::
 Install ``pep8`` and ``pyflakes`` like this: ``pip install pep8 pyflakes``.
 
 .. _pyflakes: https://github.com/pyflakes/pyflakes
-    
-  
+
+
 .. _autopep8py:
 
 Run autopep8.py on your code
@@ -149,7 +149,7 @@ should be retested after cleaning it. Try::
    2014-October/005075.html>`_ to autopep8 has been effective to prevent
    this change.
 
-   
+
 .. _pylint:
 
 Using pylint to check your code
@@ -157,13 +157,3 @@ Using pylint to check your code
 
 A pylintrc trying to follow ASE :ref:`coding conventions` can be found here:
 :download:`pylintrc`.
-
-
-.. _epydoc:
-
-Run epydoc on your code
-=======================
-
-Run::
-
-  $ epydoc --docformat restructuredtext --parse-only --show-imports -v dir

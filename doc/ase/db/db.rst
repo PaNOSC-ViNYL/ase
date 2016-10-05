@@ -36,7 +36,7 @@ What's in the database?
 
 Every row in the database contains:
 
-* all the information stored in the :class:`~ase.atoms.Atoms` object
+* all the information stored in the :class:`~ase.Atoms` object
   (positions, atomic numbers, ...)
 * calculator name and parameters (if a calculator is present)
 * already calculated properties such as energy and forces
@@ -314,7 +314,7 @@ calculator_parameters  Calculator parameters              dict
 Extracting Atoms objects from the database
 ------------------------------------------
 
-If you want an :class:`~ase.atoms.Atoms` object insted of an
+If you want an :class:`~ase.Atoms` object insted of an
 :class:`~ase.db.row.AtomsRow` object, you should use the
 :meth:`~Database.get_atoms` method:
 

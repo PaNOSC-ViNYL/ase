@@ -175,7 +175,7 @@ Now we can wrap the atoms into the cell
 .. image:: WL_wrap.png
     :scale: 35
 
-The :meth:`~ase.atoms.Atoms.wrap` method only works if periodic boundary
+The :meth:`~ase.Atoms.wrap` method only works if periodic boundary
 conditions are enabled. We have a 2 percent lattice mismatch between Ni(111)
 and the water, so we scale the water in the plane to match the cell of the
 slab:

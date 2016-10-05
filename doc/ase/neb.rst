@@ -113,7 +113,7 @@ calculators attached.
 
   If there are `M` images and each image has `N` atoms, then the NEB
   object behaves like one big Atoms object with `MN` atoms, so its
-  :meth:`~ase.atoms.Atoms.get_positions` method will return a `MN \times 3`
+  :meth:`~ase.Atoms.get_positions` method will return a `MN \times 3`
   array.
 
 

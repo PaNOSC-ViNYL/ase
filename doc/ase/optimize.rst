@@ -227,11 +227,6 @@ as::
 .. autoclass:: ase.optimize.sciopt.SciPyFminBFGS
 .. autoclass:: ase.optimize.sciopt.SciPyFminCG
 
-.. seealso::
-
-  :epydoc:`optimize.sciopt.SciPyFminBFGS`,
-  :epydoc:`optimize.sciopt.SciPyFminCG`
-
 
 BFGSLineSearch
 --------------
