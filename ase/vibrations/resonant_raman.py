@@ -485,7 +485,7 @@ class ResonantRaman(Vibrations):
 
     def get_cross_sections(self, omega, gamma=0.1):
         I_r = self.get_intensities(omega, gamma)
-        pre = 1. / 16 / np.pi**2 / units.eps0**2 / units.c**4
+        pre = 1. / 16 / np.pi**2 / units._eps0**2 / units._c**4
         # frequency of scattered light
         omS_r = omega - self.hnu
         return pre * omega * omS_r**3 * I_r
