@@ -42,7 +42,7 @@ all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
     'aims-output': ('FHI-aims output', '+S'),
-    'bundletrajectory': ('ASE bundle trajectory', '1S'),
+    'bundletrajectory': ('ASE bundle trajectory', '+S'),
     'castep-castep': ('CASTEP output file', '+F'),
     'castep-cell': ('CASTEP geom file', '1F'),
     'castep-geom': ('CASTEP trajectory file', '+F'),
