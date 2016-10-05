@@ -5,7 +5,7 @@ from ase.build import molecule
 from ase.utils.ff import Morse, Angle, Dihedral, VdW, rel_pos_pbc
 from ase.calculators.ff import ForceField
 
-from ase.optimize.precon.lbfgs import LBFGS
+from ase.optimize.precon.lbfgs import PreconLBFGS
 from ase.optimize.precon import FF
 
 a = molecule('C60')
@@ -68,7 +68,7 @@ a1.set_calculator(calc)
 a1.rattle(0.05)
 
 # geometry optimisation without preconditioner
-opt = LBFGS(a1, use_armijo=True, precon='ID')
+opt = PreconLBFGS(a1, use_armijo=True, precon='ID')
 opt.run(fmax=0.0001)
 e1 = a1.get_potential_energy()
 
@@ -79,7 +79,7 @@ a2.rattle(0.05)
 # geometry optimisation with FF based preconditioner
 precon = FF(morses=morses, angles=angles, dihedrals=dihedrals)
 
-opt = LBFGS(a2, use_armijo=True, precon=precon)
+opt = PreconLBFGS(a2, use_armijo=True, precon=precon)
 opt.run(fmax=0.0001)
 e2 = a2.get_potential_energy()
 
