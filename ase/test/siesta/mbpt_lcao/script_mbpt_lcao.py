@@ -74,6 +74,6 @@ freq, pol = siesta.get_polarizability(mbpt_inp,
                                       units='nm**2')
 
 # plot polarizability
-plt.plot(freq, pol[:, 0, 0])
+plt.plot(freq, pol[:, 0, 0].im)
 
 plt.show()

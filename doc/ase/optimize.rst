@@ -227,11 +227,6 @@ as::
 .. autoclass:: ase.optimize.sciopt.SciPyFminBFGS
 .. autoclass:: ase.optimize.sciopt.SciPyFminCG
 
-.. seealso::
-
-  :epydoc:`optimize.sciopt.SciPyFminBFGS`,
-  :epydoc:`optimize.sciopt.SciPyFminCG`
-
 
 BFGSLineSearch
 --------------
@@ -260,6 +255,86 @@ optimization and the information needed to generate the Hessian Matrix.
 The BFGSLineSearch algorithm is not compatible with nudged elastic band
 calculations.
 
+Preconditioned optimizers
+=========================
+
+.. module:: ase.optimize.precon
+
+Preconditioners can speed up optimization approaches by incorporating
+information about the local bonding topology into a redefined metric
+through a coordinate transformation. Preconditioners are problem
+dependent, but the general purpose-implementation in ASE provides a
+basis that can be adapted to achieve optimized performance for
+specific applications. 
+
+While the approach is general, the implementation is specific to a
+given optimizer: currently LBFGS and FIRE can be preconditioned using
+the :class:`ase.optimize.precon.lbfgs.PreconLBFGS` and
+:class:`ase.optimize.precon.fire.PreconFIRE` classes, respectively.
+
+You can read more about the theory and implementation here:
+
+  | D. Packwood, J.R. Kermode; L. Mones, N. Bernstein, J. Woolley, N. Gould, C. Ortner and G. Csányi
+  | `A universal preconditioner for simulating condensed phase materials`__ 
+  | J. Chem. Phys. *144*, 164109 (2016).
+
+__ http://dx.doi.org/10.1103/PhysRevLett.97.170201
+
+Tests with a variety of solid-state systems using both DFT and
+classical interatomic potentials driven though ASE calculators show
+speedup factors of up to an order of magnitude for preconditioned
+L-BFGS over standard L-BFGS, and the gain grows with system
+size. Precomputations are performed to automatically estimate all
+parameters required. A linesearch based on enforcing only the first
+Wolff condition (i.e. the Armijo sufficient descent condition) is also
+provided in `ase.utils.linesearcharmijo`; this typically leads to a
+further speed up when used in conjunction with the preconditioner.
+
+The preconditioned L-BFGS method implemented in ASE does not require
+external dependencies, but the `scipy.sparse` module can be used for
+efficient sparse linear algebra, and the `matscipy` package is used for
+fast computation of neighbour lists if available. `PyAMG` can be
+used to efficiently invert the preconditioner using an adaptive multigrid
+method.
+
+Usage is very similar to the standard optimizers. The example below compares
+unpreconditioned LBGFS with the default `Exp` preconditioner for a 3x3x3 bulk
+cube of copper containing a vacancy.
+    
+    import numpy as np
+    from ase.build import bulk
+    from ase.calculators.emt import EMT
+    from ase.optimize.precon import Exp, PreconLBFGS
+    
+    from ase.calculators.loggingcalc import LoggingCalculator
+    import matplotlib as mpl
+    mpl.use('Agg')
+    import matplotlib.pyplot as plt
+    
+    a0 = bulk('Cu', cubic=True)
+    a0 *= [3, 3, 3]
+    del a0[0]
+    a0.rattle(0.1)
+    
+    nsteps = []
+    energies = []
+    log_calc = LoggingCalculator(EMT())
+    
+    for precon, label in zip([None, Exp(A=3)],
+                             ['None', 'Exp(A=3)']):
+       log_calc.label = label
+       atoms = a0.copy()
+       atoms.set_calculator(log_calc)
+       opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
+       opt.run(fmax=1e-3)
+    
+    log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
+    plt.savefig("precon.png")
+    
+The :class:`ase.calculators.loggingcalc.LoggingCalculator` provides
+a convenient tool for plotting convergence and walltime.
+
+  .. image:: precon.png
 
 Global optimization
 ===================

@@ -18,9 +18,9 @@ Installing Docutils and Sphinx
 .. highlight:: bash
 
 If you do::
-    
+
     $ pip install sphinx_rtd_theme --user
-    
+
 and add ``~/.local/bin`` to you :envvar:`PATH` environment variable, then
 you should be ready to go.  You may need the following installed, but they
 are not required: scipy, matplotlib, povray, dvipng, pdflatex, bibtex,
@@ -80,20 +80,12 @@ We have a couple of extensions to Sphinx:
    ``:git:`ase/atoms.py```, you
    will get: :git:`ase/atoms.py`.
 
-**:epydoc:**
-
-   A role for creating a link to the API-documentation generated with
-   epydoc_.  If you
-   write ``:epydoc:`ase.atoms.Atoms```, you will get:
-   :epydoc:`ase.atoms.Atoms`.
-
 **:math:**
 
    This role is for inline LaTeX-style math.  Example:
    ``:math:`\sin(x_n^2)``` gives you :math:`\sin(x_n^2)`.  This role
    is actually the default for ASE's documentation, so you should leave
    out the ``:math:`` part like here: ```\sin(x_n^2)```.
-
 
 **.. math::**
 
@@ -104,9 +96,6 @@ We have a couple of extensions to Sphinx:
    gives you:
 
    .. math:: \frac{1}{1+x^2}
-
-
-.. _epydoc:  http://epydoc.sourceforge.net/
 
 
 .. _generated:

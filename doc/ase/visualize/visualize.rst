@@ -13,7 +13,7 @@ is:
 >>> from ase.visualize import view
 >>> view(atoms)
 
-where ``atoms`` is any :class:`~ase.atoms.Atoms` object.  Alternative viewers
+where ``atoms`` is any :class:`~ase.Atoms` object.  Alternative viewers
 can be used by specifying the optional keyword ``viewer=...`` - use one of
 'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD and Avogadro viewers can
 take an optional ``data`` argument to show 3D data, such as charge density:

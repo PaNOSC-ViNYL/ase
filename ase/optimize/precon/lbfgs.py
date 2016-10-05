@@ -21,7 +21,7 @@ from ase.optimize.precon import C1, Exp, Pfrommer, logger
 from ase.utils.linesearch import LineSearch
 from ase.utils.linesearcharmijo import LineSearchArmijo
 
-class LBFGS(Optimizer):
+class PreconLBFGS(Optimizer):
     """Preconditioned version of the Limited memory BFGS optimizer.
 
     See this article for full details: D. Packwood, J. R. Kermode, L. Mones,
@@ -34,6 +34,8 @@ class LBFGS(Optimizer):
     Hessian is represented only as a diagonal matrix to save memory.
 
     By default, the ase.optimize.precon.Exp preconditioner is applied.
+
+    In time this implementation is expected to replace ase.optimize.lbfgs.LBFGS.
     """
 
     ###CO : added parameters rigid_units and rotation_factors
@@ -41,7 +43,7 @@ class LBFGS(Optimizer):
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
                  master=None, precon='Exp',
                  use_armijo=True, c1=0.23, c2=0.46, variable_cell=False,
-                 rigid_units=None, rotation_factors=None):
+                 rigid_units=None, rotation_factors=None, Hinv=None):
         """Parameters:
 
         atoms: Atoms object
@@ -131,6 +133,7 @@ class LBFGS(Optimizer):
         self.H0 = 1. / alpha  # Initial approximation of inverse Hessian
                               # 1./70. is to emulate the behaviour of BFGS
                               # Note that this is never changed!
+        self.Hinv = Hinv
         self.damping = damping
         self.p = None
 
@@ -207,7 +210,10 @@ class LBFGS(Optimizer):
             q -= a[i] * y[i]
 
         if self.precon is None:
-            z = H0 * q
+            if self.Hinv is not None:
+                z = np.dot(self.Hinv, q)
+            else:
+                z = H0 * q
         else:
             self.precon.make_precon(self.atoms)
             z = self.precon.solve(q)

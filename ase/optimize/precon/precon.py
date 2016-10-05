@@ -2,13 +2,13 @@
 Implementation of the Precon abstract base class and subclasses
 """
 import time
-import itertools
 
 import numpy as np
 
-from ase.constraints import Filter
+from ase.constraints import Filter, FixAtoms
 from ase.utils import sum128, dot128
 from ase.geometry import undo_pbc_jumps
+import ase.utils.ff as ff
 
 import ase.units as units
 THz = 1e12*1./units.s
@@ -33,10 +33,9 @@ class Precon(object):
     def __init__(self, r_cut=None, r_NN=None,
                  mu=None, mu_c=None,
                  dim=3, c_stab=0.1, force_stab=False,
-                 sparse=True,
                  recalc_mu=False, array_convention="C",
                  use_pyamg=True, solve_tol=1e-8,
-                 apply_positions=True, apply_cell=True):
+                 apply_positions=True, apply_cell=True, estimate_mu_eigmode=False):
 
         """Initialise a preconditioner object based on passed parameters.
 
@@ -54,6 +53,10 @@ class Precon(object):
                 is precomputed using finite difference derivatives.
             mu_c: float
                 energy scale for cell degreees of freedom. Also precomputed if None.
+            estimate_mu_eigmode:
+                If True, estimates mu based on the lowest eigenmodes of
+                unstabilised preconditioner. If False it uses the sine based
+                approach.
             dim: int; dimensions of the problem
             c_stab: float. The diagonal of the preconditioner matrix will have
                 a stabilisation constant added, which will be the value of
@@ -61,8 +64,6 @@ class Precon(object):
             force_stab:
                 If True, always add the stabilisation to diagnonal, regardless
                 of the presence of fixed atoms.
-            sparse: True if the preconditioner matrix should be returned as a
-                scipy.sparse matrix (rather than a dense numpy array)
             recalc_mu: if True, the value of mu will be recalculated every time
                 self.make_precon is called. This can be overridden in specific
                 cases with recalc_mu argument in self.make_precon. If recalc_mu
@@ -89,9 +90,9 @@ class Precon(object):
         self.r_cut = r_cut
         self.mu = mu
         self.mu_c = mu_c
+        self.estimate_mu_eigmode = estimate_mu_eigmode
         self.c_stab = c_stab
         self.force_stab = force_stab
-        self.sparse = sparse
         self.array_convention = array_convention
         self.recalc_mu = recalc_mu
         self.P = None
@@ -125,14 +126,7 @@ class Precon(object):
 
         global have_scipy
         if not have_scipy:
-            logger.warning("Unable to import scipy. Sparse option will not be "
-                           "available.")
-            if self.sparse:
-                print("WARNING: Unable to import scipy. Preconditioner will "
-                      "be unable to use sparse matrices. For large problems "
-                      "the program will run much slower or may run out of "
-                      "memory altogether.")
-            self.sparse = False
+            raise NotImplementedError("scipy must be available for sparse matrix.")
 
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
@@ -153,10 +147,7 @@ class Precon(object):
 
         Returns:
             A two-element tuple:
-                P: A d*N x d*N matrix (where N is the number of atoms, d is the
-                    value of self.dim), which will either be a dense numpy
-                    matrix or a sparse scipy csr_matrix, depending on how the
-                    precon object's 'sparse' flag is set. BE AWARE that using
+                P: A sparse scipy csr_matrix. BE AWARE that using
                     numpy.dot() with sparse matrices will result in
                     errors/incorrect results - use the .dot method directly
                     on the matrix instead.
@@ -204,95 +195,10 @@ class Precon(object):
         start_time = time.time()
 
         # Create the preconditioner:
-        if self.sparse:
-            self._make_sparse_precon(atoms, force_stab=self.force_stab)
-        else:
-            self._make_dense_precon(atoms, force_stab=self.force_stab)
+        self._make_sparse_precon(atoms, force_stab=self.force_stab)
 
         logger.info("--- Precon created in %s seconds ---",
                     time.time()-start_time)
-        return self.P
-
-    def _make_dense_precon(self, atoms, initial_assembly=False, force_stab=False):
-        """Create a dense preconditioner matrix based on the passed atoms.
-
-        Creates a general-purpose preconditioner for use with optimization
-        algorithms, based on examining distances between pairs of atoms in the
-        lattice. The matrix will be stored in the attribute self.P and
-        returned. Note that this function will use self.mu, whatever it is.
-
-        Args:
-            atoms: the Atoms object used to create the preconditioner.
-
-        Returns:
-            A two-dimensional numpy array which is a d*N by d*N matrix (where
-            N is the number of atoms, and d is the value of self.dim).
-
-        """
-
-        N = len(atoms)
-
-        # csc_P is smaller than P, and holds the coefficients which will
-        # eventually make up self.P, the complete preconditioning matrix.
-
-        if self.apply_positions:
-            csc_P = np.zeros((N, N))
-            i_list, j_list, rij_list, fixed_atoms = get_neighbours(atoms, self.r_cut)
-
-            if force_stab or len(fixed_atoms) == 0:
-                for i in range(N):
-                    csc_P[i,i] += self.mu * self.c_stab
-        else:
-            csc_P = np.eye(N)
-
-        # P_ii is mu_c for cell DoF
-        if isinstance(atoms, Filter):
-            if self.apply_cell:
-                csc_P[N-3,N-3] = self.mu_c
-                csc_P[N-2,N-2] = self.mu_c
-                csc_P[N-1,N-1] = self.mu_c
-            else:
-                csc_P[N-3,N-3] = 1.0
-                csc_P[N-2,N-2] = 1.0
-                csc_P[N-1,N-1] = 1.0
-
-        if self.apply_positions:
-            for i, j, rij in zip(i_list, j_list, rij_list):
-                if i == j:
-                    continue
-                Cij = self.get_coeff(rij)
-                csc_P[i,i] -= Cij
-                csc_P[i,j] = Cij
-
-            if not initial_assembly:
-                for i in fixed_atoms:
-                    csc_P[:,i] = 0.0
-                    csc_P[i,:] = 0.0
-                    csc_P[i,i] = 1.0
-
-        self.csc_P = csc_P
-        self.P = np.zeros((self.dim*N, self.dim*N))
-
-        if self.dim == 1:
-            self.P = csc_P
-
-        # Now create the complete self.P matrix based on csc_P.
-        elif self.array_convention == "F":
-            # Build a matrix using csc_P as blocks.
-            self.P = np.zeros((self.dim*N, self.dim*N))
-            for i in range(self.dim):
-                j = i*N
-                k = (i+1)*N
-                self.P[j:k, j:k] = csc_P
-        else:
-            # array_convention assumed to be "C". Here each element in csc_P is
-            # 'expanded' into a scalar matrix.
-            for i, j in itertools.product(range(N), range(N)):
-                k = self.dim*i
-                l = self.dim*j
-                np.fill_diagonal(self.P[k:k+self.dim, l:l+self.dim],
-                                 csc_P[i, j])
-
         return self.P
 
     def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
@@ -431,36 +337,16 @@ class Precon(object):
         Solve the (sparse) linear system P x = y and return y
         """
         start_time = time.time()
-        if self.sparse and self.use_pyamg and have_pyamg:
+        if self.use_pyamg and have_pyamg:
             y = self.ml.solve(x, x0=rand(self.P.shape[0]),
                               tol=self.solve_tol,
                               accel="cg",
                               maxiter=300,
                               cycle="W")
-        elif self.sparse:
+        else:
             y = spsolve(self.P, x)
-        else:
-            y = np.linalg.solve(self.P, x)
         logger.info("--- Precon applied in %s seconds ---",
                     time.time()-start_time)
-        return y
-
-    def half(self, x):
-        """
-        Return the product of P^{1/2} x
-        """
-        start_time = time.time()
-
-        if self.sparse and self.use_pyamg and have_pyamg:
-            raise NotImplementedError("Cholesky decomposition is not implemented for PyAMG")
-        if self.sparse:
-            raise NotImplementedError("Cholesky decomposition is not implemented for sparse")
-        else:
-            y = np.dot(np.linalg.cholesky(self.P), x)
-
-        logger.info("--- Precon applied in %s seconds ---",
-                    time.time()-start_time)
-
         return y
 
     def get_coeff(self, r):
@@ -475,6 +361,10 @@ class Precon(object):
             [dE(p+v) -  dE(p)] \cdot v = \mu < P1 v, v >
 
         with perturbation
+
+            v(x,y,z) = H P_lowest_nonzero_eigvec(x, y, z)
+
+            or
 
             v(x,y,z) = H (sin(x / Lx), sin(y / Ly), sin(z / Lz))
 
@@ -508,23 +398,47 @@ class Precon(object):
 
         # compute perturbation
         p = atoms.get_positions()
-        Lx, Ly, Lz = [ p[:, i].max() - p[:, i].min() for i in range(3) ]
-        logger.debug('estimate_mu(): Lx=%.1f Ly=%.1f Lz=%.1f',
-                     Lx, Ly, Lz)
 
-        x, y, z = p.T
-        # sine_vr = [np.sin(x/Lx), np.sin(y/Ly), np.sin(z/Lz)], but we need
-        # to take into account the possibility that one of Lx/Ly/Lz is zero.
-        sine_vr = [x, y, z]
+        if self.estimate_mu_eigmode:
+            self.mu = 1.0
+            self.mu_c = 1.0
+            c_stab = self.c_stab
+            self.c_stab = 0.0
 
-        for i, L in enumerate([Lx, Ly, Lz]):
-            if L == 0:
-                logger.warning("Cell length L[%d] == 0. Setting H[%d,%d] = 0." % (i,i,i))
-                H[i,i] = 0.0
-            else:
-                sine_vr[i] = np.sin(sine_vr[i]/L)
+            P0 = self._make_sparse_precon(atoms, initial_assembly=True)
+            eigvals, eigvecs = sparse.linalg.eigsh(P0, k=4, which='SM')
 
-        v = np.dot(H, sine_vr).T
+            logger.debug('estimate_mu(): lowest 4 eigvals = %f %f %f %f'
+                         % (eigvals[0], eigvals[1], eigvals[2], eigvals[3]))
+            # check eigenvalues
+            if any(eigvals[0:3] > 1e-6):
+                raise ValueError("First 3 eigenvalues of preconditioner matrix"
+                                 "do not correspond to translational modes.")
+            elif eigvals[3] < 1e-6:
+                raise ValueError("Fourth smallest eigenvalue of preconditioner matrix"
+                                 "is too small, increase r_cut.")
+
+            v = np.dot(H, eigvecs[:,3].reshape((-1,3)).T).T
+
+            self.c_stab = c_stab
+        else:
+            Lx, Ly, Lz = [ p[:, i].max() - p[:, i].min() for i in range(3) ]
+            logger.debug('estimate_mu(): Lx=%.1f Ly=%.1f Lz=%.1f',
+                         Lx, Ly, Lz)
+
+            x, y, z = p.T
+            # sine_vr = [np.sin(x/Lx), np.sin(y/Ly), np.sin(z/Lz)], but we need
+            # to take into account the possibility that one of Lx/Ly/Lz is zero.
+            sine_vr = [x, y, z]
+
+            for i, L in enumerate([Lx, Ly, Lz]):
+                if L == 0:
+                    logger.warning("Cell length L[%d] == 0. Setting H[%d,%d] = 0." % (i,i,i))
+                    H[i,i] = 0.0
+                else:
+                    sine_vr[i] = np.sin(sine_vr[i]/L)
+
+            v = np.dot(H, sine_vr).T
 
         natoms = len(atoms)
         if isinstance(atoms, Filter):
@@ -551,10 +465,8 @@ class Precon(object):
         # assemble P with \mu = 1
         self.mu = 1.0
         self.mu_c = 1.0
-        if self.sparse:
-            P1 = self._make_sparse_precon(atoms, initial_assembly=True)
-        else:
-            P1 = self._make_dense_precon(atoms, initial_assembly=True)
+
+        P1 = self._make_sparse_precon(atoms, initial_assembly=True)
 
         # compute right hand side
         RHS = P1.dot(v1) * v1
@@ -637,26 +549,20 @@ class Pfrommer(object):
         y = self.H0.dot(x)
         return y
 
-    def half(self, x):
-        """
-        Return the product of P^{1/2} x
-        """
-        raise NotImplementedError
-
 
 class C1(Precon):
     """Creates matrix by inserting a constant whenever r_ij is less than r_cut.
     """
 
     def __init__(self, r_cut=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
-                 force_stab=False, sparse=True,
+                 force_stab=False,
                  recalc_mu=False, array_convention="C",
                  use_pyamg=True, solve_tol=1e-9,
                  apply_positions=True, apply_cell=True):
         Precon.__init__(self, r_cut=r_cut, mu=mu, mu_c=mu_c,
                         dim=dim, c_stab=c_stab,
                         force_stab=force_stab,
-                        sparse=sparse, recalc_mu=recalc_mu,
+                        recalc_mu=recalc_mu,
                         array_convention=array_convention,
                         use_pyamg=use_pyamg, solve_tol=solve_tol,
                         apply_positions=apply_positions,
@@ -671,9 +577,9 @@ class Exp(Precon):
     """
 
     def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
-                 force_stab=False, sparse=True, recalc_mu=False, array_convention="C",
+                 force_stab=False, recalc_mu=False, array_convention="C",
                  use_pyamg=True, solve_tol=1e-9,
-                 apply_positions=True, apply_cell=True):
+                 apply_positions=True, apply_cell=True, estimate_mu_eigmode=False):
         """Initialise an Exp preconditioner with given parameters.
 
         Args:
@@ -684,14 +590,421 @@ class Exp(Precon):
         Precon.__init__(self, r_cut=r_cut, r_NN=r_NN,
                         mu=mu, mu_c=mu_c, dim=dim, c_stab=c_stab,
                         force_stab=force_stab,
-                        sparse=sparse, recalc_mu=recalc_mu,
+                        recalc_mu=recalc_mu,
+                        array_convention=array_convention,
+                        use_pyamg=use_pyamg,
+                        solve_tol=solve_tol,
+                        apply_positions=apply_positions,
+                        apply_cell=apply_cell,
+                        estimate_mu_eigmode=estimate_mu_eigmode)
+
+        self.A = A
+
+    def get_coeff(self, r):
+        return -self.mu * np.exp(-self.A*(r/self.r_NN - 1))
+
+class FF(Precon):
+    """Creates matrix using morse/bond/angle/dihedral force field parameters.
+    """
+
+    def __init__(self, dim=3, c_stab=0.1, force_stab=False,
+                 array_convention="C", use_pyamg=True, solve_tol=1e-9,
+                 apply_positions=True, apply_cell=True,
+                 hessian="reduced", morses=None, bonds=None, angles=None, dihedrals=None):
+        """Initialise an FF preconditioner with given parameters.
+
+        Args:
+             dim, c_stab, force_stab, array_convention: see
+             precon.__init__(), use_pyamg, solve_tol
+             morses: class Morse
+             bonds: class Bond
+             angles: class Angle
+             dihedrals: class Dihedral
+        """
+
+        if morses is None and bonds is None and angles is None and dihedrals is None:
+            raise ImportError('At least one of morses, bonds, angles or dihedrals must be defined!')
+
+        Precon.__init__(self,
+                        dim=dim, c_stab=c_stab,
+                        force_stab=force_stab,
                         array_convention=array_convention,
                         use_pyamg=use_pyamg,
                         solve_tol=solve_tol,
                         apply_positions=apply_positions,
                         apply_cell=apply_cell)
 
-        self.A = A
+        self.hessian = hessian
+        self.morses = morses
+        self.bonds = bonds
+        self.angles = angles
+        self.dihedrals = dihedrals
 
-    def get_coeff(self, r):
-        return -self.mu * np.exp(-self.A*(r/self.r_NN - 1))
+    def make_precon(self, atoms):
+
+        start_time = time.time()
+
+        # Create the preconditioner:
+        self._make_sparse_precon(atoms, force_stab=self.force_stab)
+
+        logger.info("--- Precon created in %s seconds ---",
+                    time.time()-start_time)
+        return self.P
+
+    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+        """ """
+
+        start_time = time.time()
+
+        N = len(atoms)
+
+        row=[]
+        col=[]
+        data=[]
+
+        if self.morses is not None:
+
+           for n in range(len(self.morses)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_morse_potential_reduced_hessian(atoms, self.morses[n])
+                elif self.hessian == 'spectral':
+                    i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2]
+                row.extend(np.repeat(x,6))
+                col.extend(np.tile(x,6))
+                data.extend(Hx.flatten())
+
+        if self.bonds is not None:
+
+           for n in range(len(self.bonds)):
+                if self.hessian == 'reduced':
+                    i, j, Hx = ff.get_bond_potential_reduced_hessian(atoms, self.bonds[n], self.morses)
+                elif self.hessian == 'spectral':
+                    i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2]
+                row.extend(np.repeat(x,6))
+                col.extend(np.tile(x,6))
+                data.extend(Hx.flatten())
+
+        if self.angles is not None:
+
+            for n in range(len(self.angles)):
+                if self.hessian == 'reduced':
+                    i, j, k, Hx = ff.get_angle_potential_reduced_hessian(atoms, self.angles[n], self.morses)
+                elif self.hessian == 'spectral':
+                    i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2]
+                row.extend(np.repeat(x,9))
+                col.extend(np.tile(x,9))
+                data.extend(Hx.flatten())
+
+        if self.dihedrals is not None:
+
+            for n in range(len(self.dihedrals)):
+                if self.hessian == 'reduced':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(atoms, self.dihedrals[n], self.morses)
+                elif self.hessian == 'spectral':
+                    i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=True)
+                else:
+                    raise NotImplementedError("Not implemented hessian")
+                x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2, 3*l, 3*l+1, 3*l+2]
+                row.extend(np.repeat(x,12))
+                col.extend(np.tile(x,12))
+                data.extend(Hx.flatten())
+
+        row.extend(range(self.dim*N))
+        col.extend(range(self.dim*N))
+        data.extend([self.c_stab]*self.dim*N)
+
+        # create the matrix
+        start_time = time.time()
+        self.P = sparse.csc_matrix((data, (row,col)), shape=(self.dim*N,self.dim*N))
+        logger.info('--- created CSC matrix in %s s ---' % (time.time() - start_time))
+
+        fixed_atoms = []
+        for constraint in atoms.constraints:
+            if isinstance(constraint, FixAtoms):
+                fixed_atoms.extend(list(constraint.index))
+            else:
+                raise TypeError('only FixAtoms constraints are supported by Precon class')
+        if len(fixed_atoms) != 0:
+            self.P.tolil()
+        for i in fixed_atoms:
+            self.P[i,:] = 0.0
+            self.P[:,i] = 0.0
+            self.P[i,i] = 1.0
+
+        self.P = self.P.tocsr()
+
+        logger.info('--- N-dim precon created in %s s ---' % (time.time() - start_time))
+
+        # Create solver
+        if self.use_pyamg and have_pyamg:
+            start_time = time.time()
+            self.ml = smoothed_aggregation_solver(self.P, B=None,
+                    strength=('symmetric', {'theta': 0.0}),
+                    smooth=('jacobi', {'filter': True, 'weighting': 'local'}),
+                    improve_candidates=[('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 4}),
+                    None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+                    aggregate="standard",
+                    presmoother=('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 1}),
+                    postsmoother=('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 1}),
+                    max_levels=15,
+                    max_coarse=300,
+                    coarse_solver="pinv")
+            logger.info('--- multi grid solver created in %s s ---' % (time.time() - start_time))
+
+        return self.P
+
+class Exp_FF(Exp, FF):
+    """Creates matrix with values decreasing exponentially with distance.
+    """
+
+    def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
+                 force_stab=False, recalc_mu=False, array_convention="C",
+                 use_pyamg=True, solve_tol=1e-9,
+                 apply_positions=True, apply_cell=True, estimate_mu_eigmode=False,
+                 hessian="reduced", morses=None, bonds=None, angles=None, dihedrals=None):
+        """Initialise an Exp+FF preconditioner with given parameters.
+
+        Args:
+            r_cut, mu, c_stab, dim, recalc_mu, array_convention: see
+                precon.__init__()
+            A: coefficient in exp(-A*r/r_NN). Default is A=3.0.
+        """
+        if morses is None and bonds is None and angles is None and dihedrals is None:
+            raise ImportError('At least one of morses, bonds, angles or dihedrals must be defined!')
+
+        Precon.__init__(self, r_cut=r_cut, r_NN=r_NN,
+                        mu=mu, mu_c=mu_c, dim=dim, c_stab=c_stab,
+                        force_stab=force_stab,
+                        recalc_mu=recalc_mu,
+                        array_convention=array_convention,
+                        use_pyamg=use_pyamg,
+                        solve_tol=solve_tol,
+                        apply_positions=apply_positions,
+                        apply_cell=apply_cell,
+                        estimate_mu_eigmode=estimate_mu_eigmode)
+
+        self.A = A
+        self.hessian = hessian
+        self.morses = morses
+        self.bonds = bonds
+        self.angles = angles
+        self.dihedrals = dihedrals
+
+    def make_precon(self, atoms, recalc_mu=None):
+
+        if self.r_NN is None:
+            self.r_NN = estimate_nearest_neighbour_distance(atoms)
+
+        if self.r_cut is None:
+            # This is the first time this function has been called, and no
+            # cutoff radius has been specified, so calculate it automatically.
+            self.r_cut = 2.0 * self.r_NN
+        elif self.r_cut < self.r_NN:
+            warning = ('WARNING: r_cut (%.2f) < r_NN (%.2f), '
+                       'increasing to 1.1*r_NN = %.2f' % (self.r_cut, self.r_NN,
+                                                          1.1*self.r_NN))
+            logger.info(warning)
+            print(warning)
+            self.r_cut = 1.1*self.r_NN
+
+        if recalc_mu is None:
+            # The caller has not specified whether or not to recalculate mu,
+            # so the Precon's setting is used.
+            recalc_mu = self.recalc_mu
+
+        if self.mu is None:
+            # Regardless of what the caller has specified, if we don't
+            # currently have a value of mu, then we need one.
+            recalc_mu = True
+
+        if recalc_mu:
+            self.estimate_mu(atoms)
+
+        if self.P is not None:
+            real_atoms = atoms
+            if isinstance(atoms, Filter):
+                real_atoms = atoms.atoms
+            displacement = undo_pbc_jumps(real_atoms)
+            max_abs_displacement = abs(displacement).max()
+            logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
+                max_abs_displacement, max_abs_displacement/self.r_NN)
+            if max_abs_displacement < 0.5*self.r_NN:
+                return self.P
+
+        start_time = time.time()
+
+        # Create the preconditioner:
+        self._make_sparse_precon(atoms, force_stab=self.force_stab)
+
+        logger.info("--- Precon created in %s seconds ---",
+                    time.time()-start_time)
+        return self.P
+
+    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+        """Create a sparse preconditioner matrix based on the passed atoms.
+
+        Args:
+            atoms: the Atoms object used to create the preconditioner.
+
+        Returns:
+            A scipy.sparse.csr_matrix object, representing a d*N by d*N matrix
+            (where N is the number of atoms, and d is the value of self.dim).
+            BE AWARE that using numpy.dot() with this object will result in
+            errors/incorrect results - use the .dot method directly on the
+            sparse matrix instead.
+
+        """
+        logger.info('creating sparse precon: initial_assembly=%r, force_stab=%r, apply_positions=%r, apply_cell=%r',
+                    initial_assembly, force_stab, self.apply_positions, self.apply_cell)
+
+        N = len(atoms)
+        start_time = time.time()
+        if self.apply_positions:
+            # compute neighbour list
+            i_list, j_list, rij_list, fixed_atoms = get_neighbours(atoms, self.r_cut)
+            logger.info('--- neighbour list created in %s s ---' % (time.time() - start_time))
+
+        row=[]
+        col=[]
+        data=[]
+
+        # precon is mu_c*identity for cell DoF
+        if isinstance(atoms, Filter):
+            i = N - 3
+            j = N - 2
+            k = N - 1
+            x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2]
+            row.extend(x)
+            col.extend(x)
+            if self.apply_cell:
+                data.extend(np.repeat(self.mu_c,9))
+            else:
+                data.extend(np.repeat(self.mu_c,9))
+        logger.info('--- computed triplet format in %s s ---' % (time.time() - start_time))
+
+        conn = sparse.lil_matrix((N, N), dtype=bool)
+
+        if self.apply_positions and not initial_assembly:
+
+            if self.morses is not None:
+
+               for n in range(len(self.morses)):
+                    if self.hessian == 'reduced':
+                        i, j, Hx = ff.get_morse_potential_reduced_hessian(atoms, self.morses[n])
+                    elif self.hessian == 'spectral':
+                        i, j, Hx = ff.get_morse_potential_hessian(atoms, self.morses[n], spectral=True)
+                    else:
+                        raise NotImplementedError("Not implemented hessian")
+                    x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2]
+                    row.extend(np.repeat(x,6))
+                    col.extend(np.tile(x,6))
+                    data.extend(Hx.flatten())
+                    conn[i, j] = True
+                    conn[j, i] = True
+
+            if self.bonds is not None:
+
+               for n in range(len(self.bonds)):
+                    if self.hessian == 'reduced':
+                        i, j, Hx = ff.get_bond_potential_reduced_hessian(atoms, self.bonds[n], self.morses)
+                    elif self.hessian == 'spectral':
+                        i, j, Hx = ff.get_bond_potential_hessian(atoms, self.bonds[n], self.morses, spectral=True)
+                    else:
+                        raise NotImplementedError("Not implemented hessian")
+                    x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2]
+                    row.extend(np.repeat(x,6))
+                    col.extend(np.tile(x,6))
+                    data.extend(Hx.flatten())
+                    conn[i, j] = True
+                    conn[j, i] = True
+
+            if self.angles is not None:
+
+                for n in range(len(self.angles)):
+                    if self.hessian == 'reduced':
+                        i, j, k, Hx = ff.get_angle_potential_reduced_hessian(atoms, self.angles[n], self.morses)
+                    elif self.hessian == 'spectral':
+                        i, j, k, Hx = ff.get_angle_potential_hessian(atoms, self.angles[n], self.morses, spectral=True)
+                    else:
+                        raise NotImplementedError("Not implemented hessian")
+                    x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2]
+                    row.extend(np.repeat(x,9))
+                    col.extend(np.tile(x,9))
+                    data.extend(Hx.flatten())
+                    conn[i, j] = conn[i, k] = conn[j, k] = True
+                    conn[j, i] = conn[k, i] = conn[k, j] = True
+
+            if self.dihedrals is not None:
+
+                for n in range(len(self.dihedrals)):
+                    if self.hessian == 'reduced':
+                        i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(atoms, self.dihedrals[n], self.morses)
+                    elif self.hessian == 'spectral':
+                        i, j, k, l, Hx = ff.get_dihedral_potential_hessian(atoms, self.dihedrals[n], self.morses, spectral=True)
+                    else:
+                        raise NotImplementedError("Not implemented hessian")
+                    x = [3*i, 3*i+1, 3*i+2, 3*j, 3*j+1, 3*j+2, 3*k, 3*k+1, 3*k+2, 3*l, 3*l+1, 3*l+2]
+                    row.extend(np.repeat(x,12))
+                    col.extend(np.tile(x,12))
+                    data.extend(Hx.flatten())
+                    conn[i, j] = conn[i, k] = conn[i, l] = conn[j, k] = conn[j, l] = conn[k, l] = True
+                    conn[j, i] = conn[k, i] = conn[l, i] = conn[k, j] = conn[l, j] = conn[l, k] = True
+
+        if self.apply_positions:
+            for i, j, rij in zip(i_list, j_list, rij_list):
+                if not conn[i, j]:
+                    coeff = self.get_coeff(rij)
+                    x = [3*i, 3*i+1, 3*i+2]
+                    y = [3*j, 3*j+1, 3*j+2]
+                    row.extend(x+x)
+                    col.extend(x+y)
+                    data.extend(3*[-coeff]+3*[coeff])
+
+        row.extend(range(self.dim*N))
+        col.extend(range(self.dim*N))
+        if initial_assembly:
+            data.extend([self.mu*self.c_stab]*self.dim*N)
+        else:
+            data.extend([self.c_stab]*self.dim*N)
+
+        # create the matrix
+        start_time = time.time()
+        self.P = sparse.csc_matrix((data, (row,col)), shape=(self.dim*N,self.dim*N))
+        logger.info('--- created CSC matrix in %s s ---' % (time.time() - start_time))
+
+        if not initial_assembly:
+            if len(fixed_atoms) != 0:
+                self.P.tolil()
+            for i in fixed_atoms:
+                self.P[i,:] = 0.0
+                self.P[:,i] = 0.0
+                self.P[i,i] = 1.0
+
+        self.P = self.P.tocsr()
+
+        # Create solver
+        if self.use_pyamg and have_pyamg:
+            start_time = time.time()
+            self.ml = smoothed_aggregation_solver(self.P, B=None,
+                    strength=('symmetric', {'theta': 0.0}),
+                    smooth=('jacobi', {'filter': True, 'weighting': 'local'}),
+                    improve_candidates=[('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 4}),
+                    None, None, None, None, None, None, None, None, None, None, None, None, None, None],
+                    aggregate="standard",
+                    presmoother=('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 1}),
+                    postsmoother=('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 1}),
+                    max_levels=15,
+                    max_coarse=300,
+                    coarse_solver="pinv")
+            logger.info('--- multi grid solver created in %s s ---' % (time.time() - start_time))
+
+        return self.P

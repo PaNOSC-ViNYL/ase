@@ -211,6 +211,8 @@ def parse_input_file(fd):
 def kwargs2cell(kwargs):
     # kwargs -> cell + remaining kwargs
     # cell will be None if not ASE-compatible.
+    #
+    # Returns numbers verbatim; caller must convert units.
     kwargs = normalize_keywords(kwargs)
 
     if boxshape_is_ase_compatible(kwargs):
@@ -244,6 +246,7 @@ def kwargs2atoms(kwargs, directory=None):
 
     # XXX the other 'units' keywords: input, output.
     units = kwargs.pop('units', 'atomic').lower()
+    units = kwargs.pop('unitsinput', units).lower()
     if units not in ['ev_angstrom', 'atomic']:
         raise OctopusKeywordError('Units not supported by ASE-Octopus '
                                   'interface: %s' % units)

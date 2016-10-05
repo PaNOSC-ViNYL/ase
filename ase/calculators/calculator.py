@@ -5,6 +5,8 @@ from math import pi, sqrt
 
 import numpy as np
 
+from ase.dft.kpoints import bandpath, monkhorst_pack
+
 
 class ReadError(Exception):
     pass
@@ -22,7 +24,7 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'demon', 'dftb', 'eam',
          'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs',
          'hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
-         'nwchem', 'octopus', 'siesta', 'tip3p', 'turbomole', 'vasp']
+         'nwchem', 'octopus', 'onetep', 'siesta', 'tip3p', 'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
@@ -66,6 +68,10 @@ def equal(a, b, tol=None):
             return np.allclose(a, b, rtol=tol, atol=tol)
     if isinstance(b, np.ndarray):
         return equal(b, a, tol)
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return False
+        return all(equal(a[key], b[key], tol) for key in a.keys())
     if tol is None:
         return a == b
     return abs(a - b) < tol * abs(b) + tol
@@ -103,6 +109,61 @@ def kpts2mp(atoms, kpts, even=False):
         return kptdensity2monkhorstpack(atoms, kpts, even)
     else:
         return kpts
+
+
+def kpts2sizeandoffsets(size=None, density=None, gamma=None, even=None,
+                        atoms=None):
+    """Helper function for selecting k-points.
+
+    Use either size or density.
+
+    size: 3 ints
+        Number of k-points.
+    density: float
+        K-point density in units of k-points per Ang^-1.
+    gamma: None or bool
+        Should the Gamma-point be included?  Yes / no / don't care:
+        True / False / None.
+    even: None or bool
+        Should the number of k-points be even?  Yes / no / don't care:
+        True / False / None.
+    atoms: Atoms object
+        Needed for calculating k-point density.
+
+    """
+
+    if size is None:
+        if density is None:
+            size = [1, 1, 1]
+        else:
+            size = kptdensity2monkhorstpack(atoms, density, even)
+
+    offsets = [0, 0, 0]
+
+    if gamma is not None:
+        for i, s in enumerate(size):
+            if atoms.pbc[i] and s % 2 != bool(gamma):
+                offsets[i] = 0.5 / s
+
+    return size, offsets
+
+
+def kpts2ndarray(kpts, atoms=None):
+    """Convert kpts keyword to 2-d ndarray of scaled k-points."""
+
+    if kpts is None:
+        return np.zeros((1, 3))
+
+    if isinstance(kpts, dict):
+        if 'path' in kpts:
+            return bandpath(cell=atoms.cell, **kpts)[0]
+        size, offsets = kpts2sizeandoffsets(atoms=atoms, **kpts)
+        return monkhorst_pack(size) + offsets
+
+    if isinstance(kpts[0], int):
+        return monkhorst_pack(kpts)
+
+    return np.array(kpts)
 
 
 class Parameters(dict):
@@ -405,6 +466,11 @@ class Calculator:
         if name == 'magmoms' and 'magmoms' not in self.results:
             return np.zeros(len(atoms))
 
+        if name not in self.results:
+            # For some reason the calculator was not able to do what we want,
+            # and that is OK.
+            raise NotImplementedError
+
         result = self.results[name]
         if isinstance(result, np.ndarray):
             result = result.copy()
@@ -503,6 +569,11 @@ class Calculator:
 
     def get_spin_polarized(self):
         return False
+
+    def band_structure(self):
+        """Create band-structure object for plotting."""
+        from ase.dft.band_structure import BandStructure
+        return BandStructure(calc=self)
 
 
 class FileIOCalculator(Calculator):

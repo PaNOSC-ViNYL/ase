@@ -4,7 +4,7 @@ from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
 from ase.utils import sum128
 
-class FIRE(Optimizer):
+class PreconFIRE(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  dt=0.1, maxmove=0.2, dtmax=1.0, Nmin=5, finc=1.1, fdec=0.5,
                  astart=0.1, fa=0.99, a=0.1, theta=0.1, master=None,
@@ -35,6 +35,8 @@ class FIRE(Optimizer):
 
         variable_cell: bool
             If True, wrap atoms in UnitCellFilter to relax cell and positions.
+
+        In time this implementation is expected to replace ase.optimize.lbfgs.LBFGS.
         """
         if variable_cell:
             atoms = UnitCellFilter(atoms)

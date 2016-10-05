@@ -188,19 +188,19 @@ class GoodOldQuasiNewton(Optimizer):
 
     def read_hessian(self,filename):
         import pickle
-        f = open(filename,'r')
+        f = open(filename,'rb')
         self.set_hessian(pickle.load(f))
         f.close()
 
     def write_hessian(self,filename):
         import pickle
-        f = paropen(filename,'w')
+        f = paropen(filename,'wb')
         pickle.dump(self.get_hessian(),f)
         f.close()
 
     def write_to_restartfile(self):
         import pickle
-        f = paropen(self.restartfile,'w')
+        f = paropen(self.restartfile,'wb')
         pickle.dump((self.oldpos,
                       self.oldG,
                       self.oldenergy,

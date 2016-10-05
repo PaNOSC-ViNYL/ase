@@ -1,4 +1,5 @@
 .. module:: ase.atoms
+.. module:: ase
 
 ================
 The Atoms object
@@ -34,8 +35,9 @@ Here, two more optional keyword arguments were used:
 ``cell``: Unit cell size
   This can be a sequence of three numbers for
   an orthorhombic unit cell or three by three numbers for a general
-  unit cell (a sequence of three sequences of three numbers).  The
-  default value is *[1.0, 1.0, 1.0]*.
+  unit cell (a sequence of three sequences of three numbers) or six numbers
+  (three legths and three angles in degrees).  The default value is
+  *[1.0, 1.0, 1.0]*.
 
 ``pbc``: Periodic boundary conditions
   The default value is *False* - a value of *True* would give
@@ -116,6 +118,8 @@ common to all the atoms or defined for the collection of atoms:
     - :meth:`~Atoms.set_calculator`
   * - :meth:`~Atoms.get_cell`
     - :meth:`~Atoms.set_cell`
+  * - :meth:`~Atoms.get_cell_lengths_and_angles`
+    -
   * - :meth:`~Atoms.get_center_of_mass`
     -
   * - :meth:`~Atoms.get_kinetic_energy`
@@ -179,6 +183,7 @@ conditions in the *z* direction is obtained through
 
 >>> a.set_pbc((True, True, False))
 
+
 .. _atoms_special_attributes:
 
 Special attributes
@@ -215,6 +220,10 @@ False
 >>> a.pbc[2] = 1
 >>> a.pbc
 array([False, False,  True], dtype=bool)
+
+Hexagonal unit cell:
+
+>>> a.cell = [2.5, 2.5, 15, 90, 90, 120]
 
 
 Adding a calculator
@@ -330,5 +339,3 @@ List of all Methods
 
 .. autoclass:: Atoms
    :members:
-
-
