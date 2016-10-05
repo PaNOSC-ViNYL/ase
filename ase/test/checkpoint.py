@@ -11,7 +11,7 @@ import ase
 from ase.lattice.cubic import Diamond
 
 from ase.calculators.checkpoint import Checkpoint, CheckpointCalculator
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.calculators.lj import LennardJones
 
 
