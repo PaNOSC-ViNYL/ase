@@ -137,7 +137,6 @@ def write_dftb(filename, atoms):
     """Method to write atom structure in DFTB+ format
        (gen format)
     """
-    import numpy as np
 
     #sort
     atoms.set_masses()
