@@ -51,7 +51,7 @@ class Dftb(FileIOCalculator):
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='dftb', atoms=None, kpts=None,
-                 run_manyDftb_steps = False,
+                 run_manyDftb_steps=False,
                  **kwargs):
         """Construct a DFTB+ calculator.
         """
@@ -66,7 +66,7 @@ class Dftb(FileIOCalculator):
         # to run Dftb as energy and force calculator use
         # Driver_MaxSteps=0,
         if run_manyDftb_steps:
-            #minimisation of molecular dynamics is run by native DFTB+
+            # minimisation of molecular dynamics is run by native DFTB+
             self.default_parameters = dict(
                 Hamiltonian_='DFTB',
                 Hamiltonian_SlaterKosterFiles_='Type2FileNames',
@@ -75,7 +75,8 @@ class Dftb(FileIOCalculator):
                 Hamiltonian_SlaterKosterFiles_Suffix='".skf"'
                 )
         else:
-            #using ase to get forces and energy only (single point calculation)
+            # using ase to get forces and energy only
+            # (single point calculation)
             self.default_parameters = dict(
                 Hamiltonian_='DFTB',
                 Driver_='ConjugateGradient',
@@ -87,13 +88,12 @@ class Dftb(FileIOCalculator):
                 Hamiltonian_SlaterKosterFiles_Suffix='".skf"'
             )
 
-
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
 
         self.kpts = kpts
         # kpoint stuff by ase
-        if self.kpts != None:
+        if self.kpts is None:
             mpgrid = kpts2mp(atoms, self.kpts)
             mp = monkhorst_pack(mpgrid)
             initkey = 'Hamiltonian_KPointsAndWeights'
@@ -102,8 +102,8 @@ class Dftb(FileIOCalculator):
                 key = initkey + '_empty' + str(i)
                 self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
 
-        #the input file written only once
-        if restart == None:
+        # the input file written only once
+        if restart is None:
             self.write_dftb_in()
         else:
             if os.path.exists(restart):
@@ -111,7 +111,7 @@ class Dftb(FileIOCalculator):
             if not os.path.exists('dftb_in.hsd'):
                 raise IOError('No file "dftb_in.hsd", use restart=None')
 
-        #indexes for the result file
+        # indexes for the result file
         self.first_time = True
         self.index_energy = None
         self.index_force_begin = None
@@ -128,19 +128,19 @@ class Dftb(FileIOCalculator):
         outfile.write('} \n')
         outfile.write(' \n')
 
-        #--------MAIN KEYWORDS-------
+        # --------MAIN KEYWORDS-------
         previous_key = 'dummy_'
         myspace = ' '
         for key, value in sorted(self.parameters.items()):
             current_depth = key.rstrip('_').count('_')
             previous_depth = previous_key.rstrip('_').count('_')
-            for my_backsclash in reversed(
-                range(previous_depth - current_depth)):
+            for my_backsclash in reversed(range(previous_depth -
+                                                current_depth)):
                 outfile.write(3 * (1 + my_backsclash) * myspace + '} \n')
             outfile.write(3 * current_depth * myspace)
             if key.endswith('_'):
-                outfile.write(key.rstrip('_').rsplit('_')[-1] + \
-                                  ' = ' + str(value) + '{ \n')
+                outfile.write(key.rstrip('_').rsplit('_')[-1] +
+                              ' = ' + str(value) + '{ \n')
             elif key.count('_empty') == 1:
                 outfile.write(str(value) + ' \n')
             else:
@@ -149,7 +149,7 @@ class Dftb(FileIOCalculator):
         current_depth = key.rstrip('_').count('_')
         for my_backsclash in reversed(range(current_depth)):
             outfile.write(3 * my_backsclash * myspace + '} \n')
-        #output to 'results.tag' file (which has proper formatting)
+        # output to 'results.tag' file (which has proper formatting)
         outfile.write('Options { \n')
         outfile.write('   WriteResultsTag = Yes  \n')
         outfile.write('} \n')
@@ -167,8 +167,7 @@ class Dftb(FileIOCalculator):
 
     def write_input(self, atoms, properties=None, system_changes=None):
         from ase.io import write
-        FileIOCalculator.write_input(\
-            self, atoms, properties, system_changes)
+        FileIOCalculator.write_input(self, atoms, properties, system_changes)
         self.write_dftb_in()
         write('geo_end.gen', atoms)
 
@@ -192,11 +191,9 @@ class Dftb(FileIOCalculator):
             if estring in line:
                 energy = float(self.lines[iline + 1].split()[0]) * Hartree
             elif fstring in line:
-                natoms = len(self.atoms)
                 start = iline + 3
                 end = start + len(self.atoms)
                 for i in range(start, end):
-                    #print self.lines[i]
                     force = [float(x) for x in self.lines[i].split()]
                     forces.append(force)
             elif sstring in line:
@@ -216,10 +213,8 @@ class Dftb(FileIOCalculator):
         self.results['energy'] = energy
         self.results['forces'] = forces
         self.results['stress'] = stress
-#        self.read_energy()
-#        self.read_forces()
         os.remove('results.tag')
-            
+
     def read_energy(self):
         """Read Energy from dftb output file (results.tag)."""
 

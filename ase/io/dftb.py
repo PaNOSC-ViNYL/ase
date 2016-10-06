@@ -67,21 +67,20 @@ def read_dftb(filename='dftb_in.hsd'):
             if start_reading_coords:
                 if ('}' in line):
                     stop_reading_coords = True
-            if (start_reading_coords and not(stop_reading_coords)
-            and not 'TypesAndCoordinates' in line):
+            if (start_reading_coords and not (stop_reading_coords)
+               and 'TypesAndCoordinates' not in line):
                 typeindexstr, xxx, yyy, zzz = line.split()[:4]
                 typeindex = int(typeindexstr)
                 symbol = type_names[typeindex-1]
                 atom_symbols.append(symbol)
                 atoms_pos.append([float(xxx), float(yyy), float(zzz)])
 
-    atoms = Atoms(positions = atoms_pos, symbols = atom_symbols,
-                  cell = mycell, pbc = my_pbc)
-
+    atoms = Atoms(positions=atoms_pos, symbols=atom_symbols,
+                  cell=mycell, pbc=my_pbc)
 
     return atoms
 
-    
+
 def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     """Method to read velocities (AA/ps) from DFTB+ output file geo_end.xyz
     """
@@ -92,12 +91,12 @@ def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     myfile = open(filename)
 
     lines = myfile.readlines()
-    #remove empty lines
+    # remove empty lines
     lines_ok = []
     for line in lines:
         if line.rstrip():
             lines_ok.append(line)
-    
+
     velocities = []
     natoms = len(atoms)
     last_lines = lines_ok[-natoms:]
@@ -110,6 +109,7 @@ def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     atoms.set_velocities(velocities)
     return atoms
 
+
 def write_dftb_velocities(atoms, filename='velocities.txt'):
     """Method to write velocities (in atomic units) from ASE
        to a file to be read by dftb+
@@ -120,16 +120,17 @@ def write_dftb_velocities(atoms, filename='velocities.txt'):
 
     if isinstance(filename, str):
         myfile = open(filename, 'w')
-    else: # Assume it's a 'file-like object'
+    else:
+        # Assume it's a 'file-like object'
         myfile = filename
-    
+
     velocities = atoms.get_velocities()
     for velocity in velocities:
         myfile.write(' %19.16f %19.16f %19.16f \n'
-                %(  velocity[0] / ASE2au,
-                    velocity[1] / ASE2au,
-                    velocity[2] / ASE2au))
-                     
+                     % (velocity[0] / ASE2au,
+                        velocity[1] / ASE2au,
+                        velocity[2] / ASE2au))
+
     return
 
 
@@ -138,7 +139,7 @@ def write_dftb(filename, atoms):
        (gen format)
     """
 
-    #sort
+    # sort
     atoms.set_masses()
     masses = atoms.get_masses()
     indexes = np.argsort(masses)
@@ -148,16 +149,17 @@ def write_dftb(filename, atoms):
 
     if isinstance(filename, str):
         myfile = open(filename, 'w')
-    else: # Assume it's a 'file-like object'
+    else:
+        # Assume it's a 'file-like object'
         myfile = filename
 
     ispbc = atoms.get_pbc()
     box = atoms.get_cell()
-    
+
     if (any(ispbc)):
-        myfile.write('%8d %2s \n' %(len(atoms), 'S'))
+        myfile.write('%8d %2s \n' % (len(atoms), 'S'))
     else:
-        myfile.write('%8d %2s \n' %(len(atoms), 'C'))
+        myfile.write('%8d %2s \n' % (len(atoms), 'C'))
 
     chemsym = atomsnew.get_chemical_symbols()
     allchem = ''
@@ -172,19 +174,19 @@ def write_dftb(filename, atoms):
         if iatom > 0:
             if chemsym[iatom] != chemsym[iatom-1]:
                 itype = itype+1
-        myfile.write('%5i%5i  %19.16f %19.16f %19.16f \n' \
-                    %(iatom+1, itype,
-                      coords[iatom][0], coords[iatom][1], coords[iatom][2]))
+        myfile.write('%5i%5i  %19.16f %19.16f %19.16f \n'
+                     % (iatom+1, itype,
+                        coords[iatom][0], coords[iatom][1], coords[iatom][2]))
     # write box
     if (any(ispbc)):
-        #dftb dummy
-        myfile.write(' %19.16f %19.16f %19.16f \n' %(0, 0, 0))
+        # dftb dummy
+        myfile.write(' %19.16f %19.16f %19.16f \n' % (0, 0, 0))
         myfile.write(' %19.16f %19.16f %19.16f \n'
-                %( box[0][0], box[0][1], box[0][2]))
+                     % (box[0][0], box[0][1], box[0][2]))
         myfile.write(' %19.16f %19.16f %19.16f \n'
-                %( box[1][0], box[1][1], box[1][2]))
+                     % (box[1][0], box[1][1], box[1][2]))
         myfile.write(' %19.16f %19.16f %19.16f \n'
-                %( box[2][0], box[2][1], box[2][2]))
+                     % (box[2][0], box[2][1], box[2][2]))
 
     if isinstance(filename, str):
         myfile.close()
