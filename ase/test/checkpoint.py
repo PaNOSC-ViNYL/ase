@@ -94,5 +94,8 @@ class TestCheckpointCalculator(unittest.TestCase):
         self.rattle_calc(atoms, calc)
 
 
-if 1:
-    unittest.main()
+suite = unittest.TestSuite()
+for test_class in [TestCheckpoint, TestCheckpointCalculator]:
+    tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+    suite.addTests(tests)
+unittest.TextTestRunner().run(suite)
