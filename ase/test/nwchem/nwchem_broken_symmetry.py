@@ -44,5 +44,5 @@ def main():
     e_tot = e_dimer - fragment_energies.sum()
     assert abs(e_tot - e_literature) < 0.01
 
-if __name__ == '__main__':
+if 1:
     main()
