@@ -220,7 +220,7 @@ class HinderedThermo(ThermoChem):
             if inertia:
                 self.inertia = inertia * units._amu / units.m**2
             elif atoms:
-                self.inertia = (rotationalinertia(atoms)[2] *
+                self.inertia = (atoms.get_moments_of_inertia()[2] *
                                 units._amu / units.m**2)
         else:
             raise RuntimeError('Either mass and inertia of the '
