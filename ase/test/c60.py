@@ -30,7 +30,7 @@ angles = []
 dihedrals = []
 vdws = []
 
-# create neighbor list 
+# create neighbor list
 i_list, j_list, d_list, fixed_atoms = get_neighbours(atoms=a, r_cut=cutoff)
 for i, j in zip(i_list, j_list):
     neighbor_list[i].append(j)
