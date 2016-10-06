@@ -329,7 +329,70 @@ cube of copper containing a vacancy::
        opt.run(fmax=1e-3)
     
     log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
-    plt.savefig("precon.png")
+    plt.savefig("precon_exp.png")
+
+For molecular systems in gas phase the force field based `FF` preconditioner
+can be applied. An example below compares the effect of FF preconditioner to
+the unpreconditioned LBFGS for Buckminsterfullerene. Parameters are taken from
+Z. Berkai at al. Energy Procedia, 74, 2015, 59-64. and the underlying potential
+is computed using a standalone force field calculator::
+
+    import numpy as np
+    from ase.build import molecule
+    from ase.utils.ff import Morse, Angle, Dihedral, VdW, rel_pos_pbc
+    from ase.calculators.ff import ForceField
+    from ase.optimize.precon import get_neighbours, FF, PreconLBFGS
+
+    from ase.calculators.loggingcalc import LoggingCalculator
+    import matplotlib as mpl
+    mpl.use('Agg')
+    import matplotlib.pyplot as plt
+
+    a0 = molecule('C60')
+    a0.set_cell(50.0*np.identity(3))
+    neighbor_list = [[] for _ in range(len(a0))]
+    vdw_list = np.ones((len(a0), len(a0)), dtype=bool)
+    morses = []; angles = []; dihedrals = []; vdws = []
+
+    i_list, j_list, d_list, fixed_atoms = get_neighbours(atoms=a0, r_cut=1.5)
+    for i, j in zip(i_list, j_list):
+        neighbor_list[i].append(j)
+    for i in range(len(neighbor_list)):
+        neighbor_list[i].sort()
+
+    for i in range(len(a0)):
+        for jj in range(len(neighbor_list[i])):
+            j = neighbor_list[i][jj]
+            if j > i:
+                morses.append(Morse(atomi=i, atomj=j, D=6.1322, alpha=1.8502, r0=1.4322))
+            vdw_list[i, j] = vdw_list[j, i] = False
+            for kk in range(jj+1, len(neighbor_list[i])):
+                k = neighbor_list[i][kk]
+                angles.append(Angle(atomi=j, atomj=i, atomk=k, k=10.0, a0=np.deg2rad(120.0), cos=True))
+                vdw_list[j, k] = vdw_list[k, j] = False
+                for ll in range(kk+1, len(neighbor_list[i])):
+                    l = neighbor_list[i][ll]
+                    dihedrals.append(Dihedral(atomi=j, atomj=i, atomk=k, atoml=l, k=0.346))
+    for i in range(len(a0)):
+        for j in range(i+1, len(a0)):
+            if vdw_list[i, j]:
+                vdws.append(VdW(atomi=i, atomj=j, epsilonij=0.0115, rminij=3.4681))
+
+    log_calc = LoggingCalculator(ForceField(morses=morses, angles=angles, dihedrals=dihedrals, vdws=vdws))
+
+    for precon, label in zip([None, FF(morses=morses, angles=angles, dihedrals=dihedrals)],
+                             ['None', 'FF']):
+        log_calc.label = label
+        atoms = a0.copy()
+        atoms.set_calculator(log_calc)
+        opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
+        opt.run(fmax=1e-4)
+
+    log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
+    plt.savefig("precon_ff.png")
+
+For molecular crystals the `Exp_FF` preconditioner is recommended, which is a
+synthesis of `Exp` and `FF` preconditioners.
     
 The :class:`ase.calculators.loggingcalc.LoggingCalculator` provides
 a convenient tool for plotting convergence and walltime.
