@@ -94,8 +94,10 @@ class TestCheckpointCalculator(unittest.TestCase):
         self.rattle_calc(atoms, calc)
 
 
+# run tests manually, as calling unittest.main() interferes with ase.test.test()
 suite = unittest.TestSuite()
 for test_class in [TestCheckpoint, TestCheckpointCalculator]:
     tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
     suite.addTests(tests)
-unittest.TextTestRunner().run(suite)
+result = unittest.TextTestRunner().run(suite)
+assert len(result.failures) == 0
