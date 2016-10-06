@@ -444,7 +444,7 @@ class ResonantRaman(Vibrations):
         if not self.observation:  # XXXX remove
             """Simple sum, maybe too simple"""
             return m2(alpha_rcc).sum(axis=1).sum(axis=1)
-        # XXX enable when appropraiate
+        # XXX enable when appropriate
         #        if self.observation['orientation'].lower() != 'random':
         #            raise NotImplementedError('not yet')
 
@@ -484,10 +484,11 @@ class ResonantRaman(Vibrations):
             raise NotImplementedError
 
     def get_cross_sections(self, omega, gamma=0.1):
+        """Returns Raman cross sections for each vibration."""
         I_r = self.get_intensities(omega, gamma)
         pre = 1. / 16 / np.pi**2 / units._eps0**2 / units._c**4
         # frequency of scattered light
-        omS_r = omega - self.hnu
+        omS_r = omega - self.hnu.real
         return pre * omega * omS_r**3 * I_r
 
     def get_spectrum(self, omega, gamma=0.1,
