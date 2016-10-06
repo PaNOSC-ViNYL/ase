@@ -12,7 +12,7 @@ attaching constraint object(s) directly to the atoms object.
 Important: setting constraints will freeze the corresponding atom positions.
 Changing such atom positions can be achieved:
 
-- by directly setting the :attr:`~ase.atoms.Atoms.positions` attribute
+- by directly setting the :attr:`~ase.Atoms.positions` attribute
   (see example of setting :ref:`atoms_special_attributes`),
 
 - alternatively, by removing the constraints first::
@@ -23,7 +23,7 @@ Changing such atom positions can be achieved:
 
     atoms.set_constraint()
 
-  and using the :meth:`~ase.atoms.Atoms.set_positions` method.
+  and using the :meth:`~ase.Atoms.set_positions` method.
 
 
 The FixAtoms class
@@ -266,7 +266,7 @@ fixed while relaxing it on a fixed ruthenium surface::
   >>> atoms.set_constraint([fa, fb])
 
 When applying more than one constraint they are passed as a list in
-the :meth:`~ase.atoms.Atoms.set_constraint` method, and they will be applied
+the :meth:`~ase.Atoms.set_constraint` method, and they will be applied
 one after the other.
 
 Important: If wanting to fix the length of more than one bond in the

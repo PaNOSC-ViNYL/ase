@@ -35,9 +35,10 @@ class BandStructure:
             self.labels = labels
 
     def todict(self):
-        return {key: getattr(self, key) for key in
-                ['cell', 'kpts', 'energies', 'fermilevel',
-                 'xcoords', 'label_xcoords', 'labels']}
+        return dict((key, getattr(self, key))
+                    for key in
+                    ['cell', 'kpts', 'energies', 'fermilevel',
+                     'xcoords', 'label_xcoords', 'labels'])
 
     def write(self, filename):
         """Write to json file."""

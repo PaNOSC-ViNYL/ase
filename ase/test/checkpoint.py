@@ -11,7 +11,7 @@ import ase
 from ase.lattice.cubic import Diamond
 
 from ase.calculators.checkpoint import Checkpoint, CheckpointCalculator
-from ase.lattice import bulk
+from ase.build import bulk
 from ase.calculators.lj import LennardJones
 
 
@@ -49,7 +49,7 @@ class TestCheckpoint(unittest.TestCase):
         self.assertEqual(a, op2a)
         self.assert_(np.abs(ra - op2ra).max() < 1e-5)
 
-        
+
 class TestCheckpointCalculator(unittest.TestCase):
 
     def rattle_calc(self, atoms, calc):
@@ -94,5 +94,10 @@ class TestCheckpointCalculator(unittest.TestCase):
         self.rattle_calc(atoms, calc)
 
 
-if __name__ == '__main__':
-    unittest.main()
+# run tests manually, as calling unittest.main() interferes with ase.test.test()
+suite = unittest.TestSuite()
+for test_class in [TestCheckpoint, TestCheckpointCalculator]:
+    tests = unittest.TestLoader().loadTestsFromTestCase(test_class)
+    suite.addTests(tests)
+result = unittest.TextTestRunner().run(suite)
+assert len(result.failures) == 0

@@ -56,7 +56,7 @@ Further reading
 
 For more details:
 
-* Look at the documentation for the individual :mod:`modules <ase>`.
+* Look at the documentation for the individual :ref:`modules <ase>`.
 * Browse the :git:`source code <>` online.
 
 
