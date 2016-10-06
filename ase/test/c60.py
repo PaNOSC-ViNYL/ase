@@ -2,7 +2,7 @@ import numpy as np
 
 from ase.build import molecule
 
-from ase.utils.ff import Morse, Angle, Dihedral, VdW, rel_pos_pbc
+from ase.utils.ff import Morse, Angle, Dihedral, VdW
 from ase.calculators.ff import ForceField
 
 from ase.optimize.precon import get_neighbours
@@ -30,7 +30,7 @@ angles = []
 dihedrals = []
 vdws = []
 
-# create neighbor list 
+# create neighbor list
 i_list, j_list, d_list, fixed_atoms = get_neighbours(atoms=a, r_cut=cutoff)
 for i, j in zip(i_list, j_list):
     neighbor_list[i].append(j)
