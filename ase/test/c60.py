@@ -2,7 +2,7 @@ import numpy as np
 
 from ase.build import molecule
 
-from ase.utils.ff import Morse, Angle, Dihedral, VdW, rel_pos_pbc
+from ase.utils.ff import Morse, Angle, Dihedral, VdW
 from ase.calculators.ff import ForceField
 
 from ase.optimize.precon import get_neighbours
