@@ -12,7 +12,7 @@ mask = [atom.tag > 0 for atom in atoms]
 atoms.set_constraint(FixAtoms(mask = mask))
 
 # Calculate using EMT
-atoms.set_calculator(EMT())
+atoms.set_calculator(EMT(fixed_cutoff=True))
 relaxed_energy = atoms.get_potential_energy()
 
 # Set up the dimer
