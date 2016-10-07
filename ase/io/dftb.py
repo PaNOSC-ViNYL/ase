@@ -14,6 +14,7 @@ def read_dftb(filename='dftb_in.hsd'):
     atom_symbols = []
     type_names = []
     my_pbc = False
+    fractional = False
     mycell = []
 
     for iline, line in enumerate(lines):
@@ -23,6 +24,9 @@ def read_dftb(filename='dftb_in.hsd'):
             natoms = int(lines[iline + 1].split()[0])
             if lines[iline + 1].split()[1].lower() == 's':
                 my_pbc = True
+            elif lines[iline + 1].split()[1].lower() == 'f':
+                my_pbc = True
+                fractional = True
             symbols = lines[iline + 2].split()
             for i in range(natoms):
                 index = iline + 3 + i
@@ -75,8 +79,12 @@ def read_dftb(filename='dftb_in.hsd'):
                 atom_symbols.append(symbol)
                 atoms_pos.append([float(xxx), float(yyy), float(zzz)])
 
-    atoms = Atoms(positions=atoms_pos, symbols=atom_symbols,
-                  cell=mycell, pbc=my_pbc)
+    if fractional:
+        atoms = Atoms(scaled_positions=atoms_pos, symbols=atom_symbols,
+                      cell=mycell, pbc=my_pbc)
+    elif not fractional:
+        atoms = Atoms(positions=atoms_pos, symbols=atom_symbols,
+                      cell=mycell, pbc=my_pbc)
 
     return atoms
 

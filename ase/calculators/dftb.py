@@ -206,7 +206,7 @@ class Dftb(FileIOCalculator):
 
         forces = np.array(forces) * Hartree / Bohr
         if have_stress:
-            stress = np.array(stress) * Hartree / Bohr**3
+            stress = -np.array(stress) * Hartree / Bohr**3
         elif not have_stress:
             stress = np.zeros((3, 3))
 
