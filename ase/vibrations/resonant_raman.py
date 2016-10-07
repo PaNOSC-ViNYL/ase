@@ -107,6 +107,22 @@ class ResonantRaman(Vibrations):
         excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
+    def read_excitationsPlaczek(self):
+        self.timer.start('read excitations')
+        self.exm_r = []
+        self.exp_r = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
+                self.log('reading ' + exname)
+                self.exm_r.append(self.exobj(exname, **self.exkwargs))
+                exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
+                self.log('reading ' + exname)
+                self.exp_r.append(self.exobj(exname, **self.exkwargs))
+                r += 1
+        self.timer.stop('read excitations')
+
     def read_excitations(self):
         self.timer.start('read excitations')
         self.timer.start('really read')
