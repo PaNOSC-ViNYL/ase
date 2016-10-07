@@ -9,7 +9,7 @@ from scipy.spatial import ConvexHull
 import ase.units as units
 from ase.atoms import string2symbols
 from ase.utils import hill
-    
+
 _solvated = []
 
 
@@ -25,7 +25,7 @@ def parse_formula(formula):
         count[symbol] = count.get(symbol, 0) + 1
     return count, charge, aq
 
-    
+
 def float2str(x):
     f = fractions.Fraction(x).limit_denominator(100)
     n = f.numerator
@@ -37,15 +37,15 @@ def float2str(x):
     if f.denominator == 1:
         return str(n)
     return '{0}/{1}'.format(f.numerator, f.denominator)
-    
-    
+
+
 def solvated(symbols):
     """Extract solvation energies from database.
-    
+
     symbols: str
         Extract only those molecules that contain the chemical elements
         given by the symbols string (plus water and H+).
-        
+
     Data from:
 
         Johnson JW, Oelkers EH, Helgeson HC (1992)
@@ -58,7 +58,7 @@ def solvated(symbols):
         Atlas of electrochemical equilibria in aqueous solutions.
         No. v. 1 in Atlas of Electrochemical Equilibria in Aqueous Solutions.
         Pergamon Press, New York.
-        
+
     Returns list of (name, energy) tuples.
     """
 
@@ -80,7 +80,7 @@ def solvated(symbols):
             references.append((name, energy))
     return references
 
-    
+
 def bisect(A, X, Y, f):
     a = []
     for i in [0, -1]:
@@ -88,7 +88,7 @@ def bisect(A, X, Y, f):
             if A[i, j] == -1:
                 A[i, j] = f(X[i], Y[j])
             a.append(A[i, j])
-            
+
     if np.ptp(a) == 0:
         A[:] = a[0]
         return
@@ -109,7 +109,7 @@ def bisect(A, X, Y, f):
     bisect(A[i:, :j + 1], X[i:], Y[:j + 1], f)
     bisect(A[i:, j:], X[i:], Y[j:], f)
 
-    
+
 def print_results(results):
     total_energy = 0.0
     print('reference    coefficient      energy')
@@ -123,11 +123,11 @@ def print_results(results):
     print('Total energy: {0:22.3f}'.format(total_energy))
     print('------------------------------------')
 
-    
+
 class Pourbaix:
     def __init__(self, references, formula=None, T=300.0, **kwargs):
         """Pourbaix object.
-        
+
         references: list of (name, energy) tuples
             Examples of names: ZnO2, H+(aq), H2O(aq), Zn++(aq), ...
         formula: str
@@ -136,7 +136,7 @@ class Pourbaix:
         T: float
             Temperature in Kelvin.
         """
-        
+
         if formula:
             assert not kwargs
             kwargs = parse_formula(formula)[0]
@@ -156,22 +156,22 @@ class Pourbaix:
                         break
             else:
                 self.references.append((count, charge, aq, energy, name))
-                
+
         self.references.append(({}, -1, False, 0.0, 'e-'))  # an electron
 
         self.count = kwargs
-        
+
         if 'O' not in self.count:
             self.count['O'] = 0
-        
+
         self.N = {'e-': 0, 'H': 1}
         for symbol in kwargs:
             if symbol not in self.N:
                 self.N[symbol] = len(self.N)
-                
+
     def decompose(self, U, pH, verbose=True, concentration=1e-6):
         """Decompose material.
-        
+
         U: float
             Potential in V.
         pH: float
@@ -180,13 +180,13 @@ class Pourbaix:
             Default is True.
         concentration: float
             Concentration of solvated references.
-        
+
         Returns optimal coefficients and energy.
         """
-        
+
         alpha = np.log(10) * self.kT
         entropy = -np.log(concentration) * self.kT
-        
+
         # We want to minimize np.dot(energies, x) under the constraints:
         #
         #     np.dot(x, eq2) == eq1
@@ -195,7 +195,7 @@ class Pourbaix:
         #
         # First two equations are charge and number of hydrogens, and
         # the rest are the remaining species.
-        
+
         eq1 = [0, 0] + list(self.count.values())
         eq2 = []
         energies = []
@@ -222,16 +222,16 @@ class Pourbaix:
                                                      name, energy))
             energies.append(energy)
             names.append(name)
-            
+
         try:
             from scipy.optimize import linprog
         except ImportError:
             from ase.utils._linprog import linprog
         result = linprog(energies, None, None, np.transpose(eq2), eq1, bounds)
-        
+
         if verbose:
             print_results(zip(names, result.x, energies))
-                    
+
         return result.x, result.fun
 
     def diagram(self, U, pH, plot=True, show=True, ax=None):
@@ -304,12 +304,12 @@ class Pourbaix:
             color = len(colors)
             colors[indices] = color
         return color
-        
+
 
 class PhaseDiagram:
     def __init__(self, references, filter='', verbose=True):
         """Phase-diagram.
-        
+
         references: list of (name, energy) tuples
             List of references.  The energy must be the total energy and not
             energy per atom.  The names can also be dicts like
@@ -325,7 +325,7 @@ class PhaseDiagram:
         filter = parse_formula(filter)[0]
 
         self.verbose = verbose
-        
+
         self.species = {}
         self.references = []
         for name, energy in references:
@@ -334,10 +334,10 @@ class PhaseDiagram:
             else:
                 count = name
                 name = hill(count)
-               
+
             if filter and any(symbol not in filter for symbol in count):
                 continue
-                    
+
             natoms = 0
             for symbol, n in count.items():
                 natoms += n
@@ -348,7 +348,7 @@ class PhaseDiagram:
         self.symbols = [None] * len(self.species)
         for symbol, id in self.species.items():
             self.symbols[id] = symbol
-        
+
         if verbose:
             print('Species:', ', '.join(self.symbols))
             print('References:', len(self.references))
@@ -360,35 +360,35 @@ class PhaseDiagram:
             for symbol, n in count.items():
                 self.points[s, self.species[symbol]] = n / natoms
             self.points[s, -1] = energy / natoms
-        
+
         hull = ConvexHull(self.points[:, 1:])
-        
+
         # Find relevant simplices:
         ok = hull.equations[:, -2] < 0
         self.simplices = hull.simplices[ok]
-        
+
         # Create a mask for those points that are on the convex hull:
         self.hull = np.zeros(len(self.points), bool)
         for simplex in self.simplices:
             self.hull[simplex] = True
-        
+
         if verbose:
             print('Simplices:', len(self.simplices))
-            
+
     def decompose(self, formula=None, **kwargs):
         """Find the combination of the references with the lowest energy.
-        
+
         formula: str
             Stoichiometry.  Example: ``'ZnO'``.  Can also be given as
             keyword arguments: ``decompose(Zn=1, O=1)``.
-        
+
         Example::
-            
+
             pd = PhaseDiagram(...)
             pd.decompose(Zn=1, O=3)
-            
+
         Returns energy, indices of references and coefficients."""
-        
+
         if formula:
             assert not kwargs
             kwargs = parse_formula(formula)[0]
@@ -398,7 +398,7 @@ class PhaseDiagram:
         for symbol, n in kwargs.items():
             point[self.species[symbol]] = n
             N += n
-            
+
         # Find coordinates within each simplex:
         X = self.points[self.simplices, 1:-1] - point[1:] / N
 
@@ -413,15 +413,15 @@ class PhaseDiagram:
                 break
         else:
             assert False, X
-                
+
         indices = self.simplices[i]
         points = self.points[indices]
-        
+
         scaledcoefs = [1 - x.sum()]
         scaledcoefs.extend(x)
-        
+
         energy = N * np.dot(scaledcoefs, points[:, -1])
-        
+
         coefs = []
         results = []
         for coef, s in zip(scaledcoefs, indices):
@@ -432,7 +432,7 @@ class PhaseDiagram:
 
         if self.verbose:
             print_results(results)
-            
+
         return energy, indices, np.array(coefs)
 
     def plot(self, ax=None, dims=None, show=True):
@@ -485,14 +485,14 @@ class PhaseDiagram:
 
     def plot2d2(self, ax):
         x, e = self.points[:, 1:].T
+        for i, j in self.simplices:
+            ax.plot(x[[i, j]], e[[i, j]], '-b')
         ax.plot(x[self.hull], e[self.hull], 'og')
         ax.plot(x[~self.hull], e[~self.hull], 'sr')
         for a, b, ref in zip(x, e, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
-        for i, j in self.simplices:
-            ax.plot(x[[i, j]], e[[i, j]], '-b')
 
         ax.set_xlabel(self.symbols[1])
         ax.set_ylabel('energy [eV/atom]')
@@ -501,14 +501,14 @@ class PhaseDiagram:
         x, y = self.points[:, 1:-1].T.copy()
         x += y / 2
         y *= 3**0.5 / 2
+        for i, j, k in self.simplices:
+            ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
         ax.plot(x[self.hull], y[self.hull], 'og')
         ax.plot(x[~self.hull], y[~self.hull], 'sr')
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,
                      horizontalalignment='center', verticalalignment='bottom')
-        for i, j, k in self.simplices:
-            ax.plot(x[[i, j, k, i]], y[[i, j, k, i]], '-b')
 
     def plot3d3(self, ax):
         x, y, e = self.points[:, 1:].T

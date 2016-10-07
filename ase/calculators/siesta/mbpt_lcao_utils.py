@@ -264,3 +264,23 @@ def pol2cross_sec(p, omg):
     sigma = sigma * (0.052917725)**2  # nm**2
 
     return sigma
+
+
+def interpolate(x, y, nb_pts):
+    """
+    perform a 1D spline interpolation.
+    INPUT PARAMETERS
+    ----------------
+    x (1D np array) : the original abscisse
+    y (1D np array) : the original data
+    nb_pts (integer): the number of points for the interpolation
+    OUTPUT PARAMETERS
+    -----------------
+    xnew (1D np array) : the spline abscisse
+    ynew (1D np array) : the spline approximations
+    """
+    from scipy import interpolate
+    tck = interpolate.splrep(x, y, s=0)
+    xnew = np.linspace(x[0], x[x.shape[0] - 1], nb_pts)
+    ynew = interpolate.splev(xnew, tck, der=0)
+    return xnew, ynew

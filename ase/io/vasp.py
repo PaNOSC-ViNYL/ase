@@ -32,12 +32,12 @@ def get_atomtypes(fname):
 
 def atomtypes_outpot(posfname, numsyms):
     """Try to retrieve chemical symbols from OUTCAR or POTCAR
-    
+
     If getting atomtypes from the first line in POSCAR/CONTCAR fails, it might
     be possible to find the data in OUTCAR or POTCAR, if these files exist.
 
     posfname -- The filename of the POSCAR/CONTCAR file we're trying to read
-    
+
     numsyms -- The number of symbols we must find
 
     """
@@ -99,7 +99,7 @@ def read_vasp(filename='CONTCAR'):
     file and tries to read atom types from POSCAR/CONTCAR header, if this fails
     the atom types are read from OUTCAR or POTCAR file.
     """
- 
+
     from ase import Atoms
     from ase.constraints import FixAtoms, FixScaled
     from ase.data import chemical_symbols
@@ -154,7 +154,7 @@ def read_vasp(filename='CONTCAR'):
 
     if not vasp5:
         atomtypes = line1.split()
-       
+
         numsyms = len(numofatoms)
         if len(atomtypes) < numsyms:
             # First line in POSCAR/CONTCAR didn't contain enough symbols.
@@ -224,7 +224,7 @@ def read_vasp(filename='CONTCAR'):
     return atoms
 
 
-def read_vasp_out(filename='OUTCAR', index=-1):
+def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -280,7 +280,13 @@ def read_vasp_out(filename='OUTCAR', index=-1):
                 cell += [[float(temp[0]), float(temp[1]), float(temp[2])]]
             atoms.set_cell(cell)
         if 'FREE ENERGIE OF THE ION-ELECTRON SYSTEM' in line:
-            energy = float(data[n + 4].split()[6])
+            # choose between energy wigh smearing extrapolated to zero
+            # or free energy (latter is consistent with forces)
+            energy_zero = float(data[n + 4].split()[6])
+            energy_free = float(data[n + 2].split()[4])
+            energy = energy_zero
+            if force_consistent:
+                energy = energy_free
             if ecount < poscount:
                 # reset energy for LAST set of atoms, not current one -
                 # VASP 5.11? and up
@@ -353,47 +359,76 @@ def read_vasp_xdatcar(filename, index=-1):
 
     images = list()
 
+    cell = np.eye(3)
+    atomic_formula = str()
+
     with open(filename, 'r') as xdatcar:
-        xdatcar.readline()
-        xdatcar.readline()
 
-        xx = [float(x) for x in xdatcar.readline().split()]
-        yy = [float(y) for y in xdatcar.readline().split()]
-        zz = [float(z) for z in xdatcar.readline().split()]
-        cell = np.array([xx, yy, zz])
+        while True:
+            comment_line = xdatcar.readline()
+            if "Direct configuration=" not in comment_line:
+                try:
+                    lattice_constant = float(xdatcar.readline())
+                except:
+                    break
 
-        symbols = xdatcar.readline().split()
-        numbers = [int(n) for n in xdatcar.readline().split()]
-        total = sum(numbers)
+                xx = [float(x) for x in xdatcar.readline().split()]
+                yy = [float(y) for y in xdatcar.readline().split()]
+                zz = [float(z) for z in xdatcar.readline().split()]
+                cell = np.array([xx, yy, zz]) * lattice_constant
 
-        atomic_formula = str()
-        for n, sym in enumerate(symbols):
-            atomic_formula += '%s%s' % (sym, numbers[n])
+                symbols = xdatcar.readline().split()
+                numbers = [int(n) for n in xdatcar.readline().split()]
+                total = sum(numbers)
 
-        count = 0
-        nimage = 0
-        coords = list()
+                atomic_formula = str()
+                for n, sym in enumerate(symbols):
+                    atomic_formula += '%s%s' % (sym, numbers[n])
 
-        for line in xdatcar:
-            if 'Direct configuration=' in line:
-                nimage += 1
-            else:
-                coord = [float(x) for x in line.split()]
-                coords.append(coord)
-                count += 1
+                xdatcar.readline()
 
-            if count == total:
-                image = Atoms(atomic_formula, cell=cell, pbc=True)
-                image.set_scaled_positions(coords)
-                images.append(image)
+            coords = [np.array(xdatcar.readline().split(), np.float)
+                      for ii in range(total)]
 
-                count = 0
-                coords = list()
+            image = Atoms(atomic_formula, cell=cell, pbc=True)
+            image.set_scaled_positions(np.array(coords))
+            images.append(image)
 
     if not index:
         return images
     else:
         return images[index]
+
+
+def __get_xml_parameter(par):
+    """An auxillary function that enables convenient extraction of
+    parameter values from a vasprun.xml file with proper type
+    handling.
+
+    """
+
+    def to_bool(b):
+        if b == 'T':
+            return True
+        else:
+            return False
+
+    to_type = {'int': int,
+               'logical': to_bool,
+               'string': str,
+               'float': float}
+
+    text = par.text
+    if text is None:
+        text = ''
+
+    # Float parameters do not have a 'type' attrib
+    var_type = to_type[par.attrib.get('type', 'float')]
+
+    if par.tag == 'v':
+        return map(var_type, text.split())
+    else:
+        return var_type(text.strip())
 
 
 def read_vasp_xml(filename='vasprun.xml', index=-1):
@@ -410,22 +445,39 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from ase.calculators.singlepoint import (SinglePointDFTCalculator,
                                              SinglePointKPoint)
     from ase.units import GPa
+    from collections import OrderedDict
 
     tree = ET.iterparse(filename, events=['start', 'end'])
 
     atoms_init = None
     calculation = []
     ibz_kpts = None
+    parameters = OrderedDict()
 
     try:
         for event, elem in tree:
+
             if event == 'end':
                 if elem.tag == 'kpoints':
+                    for subelem in elem.iter(tag='generation'):
+                        kpts_params = OrderedDict()
+                        parameters['kpoints_generation'] = kpts_params
+                        for par in subelem.iter():
+                            if par.tag in ['v', 'i']:
+                                parname = par.attrib['name'].lower()
+                                kpts_params[parname] = __get_xml_parameter(par)
+
                     kpts = elem.findall("varray[@name='kpointlist']/v")
                     ibz_kpts = np.zeros((len(kpts), 3))
 
                     for i, kpt in enumerate(kpts):
                         ibz_kpts[i] = [float(val) for val in kpt.text.split()]
+
+                elif elem.tag == 'parameters':
+                    for par in elem.iter():
+                        if par.tag in ['v', 'i']:
+                            parname = par.attrib['name'].lower()
+                            parameters[parname] = __get_xml_parameter(par)
 
                 elif elem.tag == 'atominfo':
                     species = []
@@ -537,22 +589,24 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if efermi is not None:
             efermi = float(efermi.text)
 
-        kpoints = None
-        kblocks = step.findall(
-                'eigenvalues/array/set/set/set[@comment="kpoint 1"]')
-        if kblocks is not None:
-            kpoints = []
-            for i, kpoint in enumerate(kblocks):
-                eigenvals = kpoint.findall('r')
-                eps_n = np.zeros(len(eigenvals))
-                f_n = np.zeros(len(eigenvals))
-                for j, val in enumerate(eigenvals):
-                    val = val.text.split()
-                    eps_n[j] = float(val[0])
-                    f_n[j] = float(val[1])
-                if len(kblocks) == 1:
-                    f_n *= 2
-                kpoints.append(SinglePointKPoint(1, i, 0, eps_n, f_n))
+        kpoints = []
+        for ikpt in range(1, len(ibz_kpts) + 1):
+            kblocks = step.findall(
+                'eigenvalues/array/set/set/set[@comment="kpoint %d"]' % ikpt)
+            if kblocks is not None:
+                for i, kpoint in enumerate(kblocks):
+                    eigenvals = kpoint.findall('r')
+                    eps_n = np.zeros(len(eigenvals))
+                    f_n = np.zeros(len(eigenvals))
+                    for j, val in enumerate(eigenvals):
+                        val = val.text.split()
+                        eps_n[j] = float(val[0])
+                        f_n[j] = float(val[1])
+                    if len(kblocks) == 1:
+                        f_n *= 2
+                    kpoints.append(SinglePointKPoint(1, 0, ikpt, eps_n, f_n))
+        if len(kpoints) == 0:
+            kpoints = None
 
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
@@ -563,6 +617,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                      ibz_kpts=ibz_kpts, eFermi=efermi))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
+        atoms.calc.parameters = parameters
         yield atoms
 
 
@@ -575,7 +630,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     to file. Cartesian coordiantes is default and default label is the
     atomic species, e.g. 'C N H Cu'.
     """
-    
+
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
@@ -583,7 +638,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
-    
+
     if isinstance(atoms, (list, tuple)):
         if len(atoms) > 1:
             raise RuntimeError('Don\'t know how to save more than ' +
@@ -605,7 +660,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
             elif isinstance(constr, FixAtoms):
                 sflags[constr.index] = [True, True, True]
             elif isinstance(constr, FixedPlane):
-                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5, 
+                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
                               axis=1)
                 if sum(mask) != 1:
                     raise RuntimeError(
@@ -613,7 +668,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                         'constraints is parallel with one of the cell axis')
                 sflags[constr.a] = mask
             elif isinstance(constr, FixedLine):
-                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5, 
+                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
                               axis=1)
                 if sum(mask) != 1:
                     raise RuntimeError(

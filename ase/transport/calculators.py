@@ -67,7 +67,7 @@ class TransportCalculator:
             The total density of states of the central region.
         box: XXX
             YYY
-            
+
         If hc1/hc2 are None, they are assumed to be identical to
         the coupling matrix elements between neareste neighbor
         principal layers in lead1/lead2.
@@ -82,7 +82,7 @@ class TransportCalculator:
         >>> T = calc.get_transmission()
 
         """
-        
+
         # The default values for all extra keywords
         self.input_parameters = {'energies': None,
                                  'h': None,
@@ -128,10 +128,10 @@ class TransportCalculator:
             class Trash:
                 def write(self, s):
                     pass
-                    
+
                 def flush(self):
                     pass
-                    
+
             self.log = Trash()
         elif log == '-':
             from sys import stdout
@@ -146,22 +146,22 @@ class TransportCalculator:
         print('# Initializing calculator...', file=self.log)
 
         p = self.input_parameters
-        if p['s'] == None:
+        if p['s'] is None:
             p['s'] = np.identity(len(p['h']))
-        
+
         identical_leads = False
-        if p['h2'] == None:
+        if p['h2'] is None:
             p['h2'] = p['h1']  # Lead2 is idendical to lead1
             identical_leads = True
- 
-        if p['s1'] == None:
+
+        if p['s1'] is None:
             p['s1'] = np.identity(len(p['h1']))
-       
-        if p['s2'] == None and not identical_leads:
+
+        if p['s2'] is None and not identical_leads:
             p['s2'] = np.identity(len(p['h2']))  # Orthonormal basis for lead 2
         else:  # Lead2 is idendical to lead1
             p['s2'] = p['s1']
-           
+
         h_mm = p['h']
         s_mm = p['s']
         pl1 = len(p['h1']) // 2
@@ -174,7 +174,7 @@ class TransportCalculator:
         h2_ij = p['h2'][pl2: 2 * pl2, :pl2]
         s2_ii = p['s2'][:pl2, :pl2]
         s2_ij = p['s2'][pl2: 2 * pl2, :pl2]
-        
+
         if p['hc1'] is None:
             nbf = len(h_mm)
             h1_im = np.zeros((pl1, nbf), complex)
@@ -231,7 +231,7 @@ class TransportCalculator:
             self.selfenergies.append(
                 BoxProbe(eta=box[0], a=box[1], b=box[2], energies=box[3],
                          S=s_mm, T=0.3))
-        
+
         # setup scattering green function
         self.greenfunction = GreenFunction(selfenergies=self.selfenergies,
                                            H=h_mm,
@@ -239,11 +239,11 @@ class TransportCalculator:
                                            eta=p['eta'])
 
         self.initialized = True
-    
+
     def update(self):
         if self.uptodate:
             return
-        
+
         p = self.input_parameters
         self.energies = p['energies']
         nepts = len(self.energies)
@@ -280,13 +280,13 @@ class TransportCalculator:
             if pdos != []:
                 self.pdos_ne[:, e] = np.take(self.greenfunction.pdos(energy),
                                              pdos)
-        
+
         self.uptodate = True
 
     def print_pl_convergence(self):
         self.initialize()
         pl1 = len(self.input_parameters['h1']) // 2
-        
+
         h_ii = self.selfenergies[0].h_ii
         s_ii = self.selfenergies[0].s_ii
         ha_ii = self.greenfunction.H[:pl1, :pl1]
@@ -345,10 +345,10 @@ class TransportCalculator:
             for alpha, sigma in enumerate(self.selfenergies):
                 sigma.h_im[:] = np.dot(sigma.h_im, c_mm)
                 sigma.s_im[:] = np.dot(sigma.s_im, c_mm)
-        
+
         c_mm = np.take(c_mm, bfs, axis=0)
         c_mm = np.take(c_mm, bfs, axis=1)
-        return ht_mm, st_mm, e_m, c_mm
+        return ht_mm, st_mm, e_m.real, c_mm
 
     def cutcoupling_bfs(self, bfs, apply=False):
         self.initialize()
@@ -406,7 +406,7 @@ class TransportCalculator:
         m_ii = 2 * np.pi * np.dot(np.dot(dagger(ut_ii), lambdab_r_ii), ut_ii)
         T_i, c_in = linalg.eig(m_ii)
         T_i = np.abs(T_i)
-        
+
         channels = np.argsort(-T_i)[:nchan]
         c_in = np.take(c_in, channels, axis=1)
         T_n = np.take(T_i, channels)

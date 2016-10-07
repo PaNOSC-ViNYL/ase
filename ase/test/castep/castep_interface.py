@@ -20,6 +20,7 @@ def test_castep_interface():
         Castep = castep_calc.Castep
         CastepParam = castep_calc.CastepParam
         create_castep_keywords = castep_calc.create_castep_keywords
+        castep_keywords = castep_calc.import_castep_keywords()
 
     except Exception as e:
         traceback.print_exc()
@@ -96,8 +97,8 @@ def test_castep_interface():
 
     # check if the CastepOpt, CastepCell comparison mechanism works
 
-    p1 = CastepParam()
-    p2 = CastepParam()
+    p1 = CastepParam(castep_keywords)
+    p2 = CastepParam(castep_keywords)
 
     if not p1._options == p2._options:
         raise AssertionError("Print two newly created CastepParams are not the same")

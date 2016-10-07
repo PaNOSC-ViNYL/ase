@@ -23,7 +23,7 @@ Manual checkpointing
 
 The class :class:`Checkpoint` takes care of storing and retrieving
 information from the database. This information *always* includes an
-:class:`~ase.atoms.Atoms` object, and it can include attached information on
+:class:`~ase.Atoms` object, and it can include attached information on
 the internal state of the script.
 
 .. autoclass:: ase.calculators.checkpoint.Checkpoint
@@ -50,7 +50,7 @@ been executed in a previous run of the script. The :meth:`~Checkpoint.save`
 statement stores all of its parameters to the database.
 
 This is not yet much shorter than the above example. The checkpointing object
-can, however, store arbitrary information along the :class:`~ase.atoms.Atoms`
+can, however, store arbitrary information along the :class:`~ase.Atoms`
 object. Imagine we have computed elastic constants and don't want to recompute
 them. We can then use::
 
@@ -61,7 +61,7 @@ them. We can then use::
       CP.save(a, C)
 
 Note that one parameter to :meth:`~Checkpoint.save` needs to be an
-:class:`~ase.atoms.Atoms` object, the others can be arbitrary. The
+:class:`~ase.Atoms` object, the others can be arbitrary. The
 :meth:`~Checkpoint.load` statement returns these parameters in the order they
 were stored upon save. In the above example, the elastic constants are stored
 attached to the atomic configuration. If the script is executed again after the

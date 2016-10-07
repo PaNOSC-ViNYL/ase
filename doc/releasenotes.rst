@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* New :class:`ase.constraints.ExternalForce` constraint.
+
 * Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
   for older versions of CODATA was added such that the respective units can
   be created by the user when needed (e.g. interfacing codes with different
@@ -20,10 +22,10 @@ Git master branch
 
 * Two new flawors of :class:`~ase.neb.NEB` calculations have been added:
   ``method='eb'`` and ``method='improvedtangent'``.
-  
+
 * :func:`ase.io.write` can now write XSD files.
 
-* Interface for deMon added.
+* Interfaces for deMon and ONETEP added.
 
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
@@ -31,7 +33,35 @@ Git master branch
   :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
 
-  
+* New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify
+  special points and create nice plots.
+
+* Calculators that inherit from :class:`ase.calculators.calculator.Calculator`
+  will now have a :meth:`~ase.calculators.calculator.Calculator.band_structure`
+  method that creates a :class:`~ase.dft.band_structure.BandStructure` object.
+
+* Addition to :mod:`~ase.geometry` module:
+  :func:`~ase.geometry.crystal_structure_from_cell`.
+
+* New functions in :mod:`ase.dft.kpoints` module:
+  :func:`~ase.dft.kpoints.parse_path_string`,
+  :func:`~ase.dft.kpoints.labels_from_kpts` and
+  :func:`~ase.dft.kpoints.bandpath`.
+
+* Helper function for generation of Monkhors-Pack samplings and BZ-paths:
+  :func:`ase.calculators.calculator.kpts2ndarray`.
+
+* Useful class for testing band-structure stuff:
+  :class:`ase.calculators.test.FreeElectrons`.
+
+* The ``cell`` attribute of an :class:`~ase.Atoms` object and the ``cell``
+  keyword for the :class:`~ase.Atoms` constructor and the
+  :meth:`~ase.Atoms.set_cell` method now accepts unit cells given ase
+  ``[a, b, c, alpha, beta, gamma]``, where the three angles are in degrees.
+  There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
+  method.
+
+
 Version 3.11.0
 ==============
 
@@ -48,7 +78,7 @@ Version 3.11.0
   * ``ase.utils.eos`` moved to :mod:`ase.eos`
   * ``ase.calculators.neighborlist`` moved to :mod:`ase.neighborlist`
   * ``ase.lattice.spacegroup`` moved to :mod:`ase.spacegroup`
- 
+
 * The ``InfraRed`` that used to be in the ``ase.infrared`` or
   ``ase.vibrations.infrared`` modules is now called
   :class:`~ase.vibrations.Infrared` and should be imported from the
@@ -69,7 +99,7 @@ Version 3.11.0
 
 * :class:`~ase.neb.NEB` improvement:  calculations for molecules can now be
   told to minimize ratation and translation along the path.
-    
+
 
 Version 3.10.0
 ==============
@@ -104,7 +134,7 @@ Version 3.10.0
 
 * New :func:`ase.geometry.get_duplicate_atoms` function for finding and
   removing atoms on top of each other.
-  
+
 * New: A replacement :mod:`Siesta <ase.calculators.siesta>` calculator was
   implemented. It closely follows the
   :class:`ase.calculators.calculator.FileIOCalculator` class which should
@@ -119,7 +149,7 @@ Version 3.9.1
 
 * Added function for finding maximally-reduced Niggli unit cell:
   :func:`ase.build.niggli_reduce`.
-  
+
 * Octopus interface added (experimental).
 
 
@@ -141,21 +171,21 @@ Version 3.9.0
 
 * New functions: :func:`ase.build.fcc211` and
   :func:`ase.visualize.mlab.plot`.
-  
-* New :class:`~ase.atoms.Atoms` methods:
-  :meth:`ase.atoms.Atoms.get_distances()` and
-  :meth:`ase.atoms.Atoms.get_all_distances()`.
+
+* New :class:`~ase.Atoms` methods:
+  :meth:`ase.Atoms.get_distances()` and
+  :meth:`ase.Atoms.get_all_distances()`.
 
 * :ref:`bash completion` can now be enabled.
 
 * Preliminary support for Python 3.
 
-* Wrapping: new :meth:`ase.atoms.Atoms.wrap` method and
+* Wrapping: new :meth:`ase.Atoms.wrap` method and
   :func:`ase.geometry.wrap_positions` function.  Also
   added ``wrap=True`` keyword argument to
-  :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
+  :meth:`ase.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
-  
+
 * New improved method for initializing NEB calculations:
   :meth:`ase.neb.NEB.interpolate`.
 
@@ -203,9 +233,9 @@ Version 3.7.0
 
 * Mopac, NWChem and Gaussian interfaces and EAM potential added.
 
-* New :meth:`~ase.atoms.Atoms.set_initial_charges` and
-  :meth:`~ase.atoms.Atoms.get_initial_charges` methods.  The
-  :meth:`~ase.atoms.Atoms.get_charges` method will now ask the
+* New :meth:`~ase.Atoms.set_initial_charges` and
+  :meth:`~ase.Atoms.get_initial_charges` methods.  The
+  :meth:`~ase.Atoms.get_charges` method will now ask the
   calculator to calculate the atomic charges.
 
 * The :ref:`aep1` has been implemented and 6 ASE calculators are now
@@ -245,7 +275,7 @@ Version 3.6.0
 
 * Cleaned up some name-spaces:
 
-  * ``ase`` now contains only :class:`~ase.atoms.Atoms` and
+  * ``ase`` now contains only :class:`~ase.Atoms` and
     :class:`~ase.atom.Atom`
   * ``ase.calculators`` is now empty
 
@@ -288,7 +318,7 @@ Version 3.5.0
   * Enabled user default settings via :file:`~/.ase/gui.py`.
 
 * :mod:`Database library <data>` expanded to include:
-  
+
   * The s22, s26 and s22x5 sets of van der Waals bonded dimers and
     complexes by the Hobza group.
   * The DBH24 set of gas-phase reaction barrier heights by the Truhlar

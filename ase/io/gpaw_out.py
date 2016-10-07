@@ -7,7 +7,7 @@ from ase.calculators.singlepoint import SinglePointKPoint
 
 def read_gpaw_out(fileobj, index):
     notfound = []
-    
+
     def index_startswith(lines, string):
         if string in notfound:
             raise ValueError
@@ -45,9 +45,11 @@ def read_gpaw_out(fileobj, index):
         except ValueError:
             pass
         else:
+            if lines[i + 2].startswith('  -'):
+                del lines[i + 2]  # old format
             cell = []
             pbc = []
-            for line in lines[i + 3:i + 6]:
+            for line in lines[i + 2:i + 5]:
                 words = line.split()
                 if len(words) == 5:  # old format
                     cell.append(float(words[2]))
@@ -55,7 +57,7 @@ def read_gpaw_out(fileobj, index):
                 else:                # new format with GUC
                     cell.append([float(word) for word in words[3:6]])
                     pbc.append(words[2] == 'yes')
-            
+
         try:
             i = lines.index('positions:\n')
         except ValueError:
@@ -112,7 +114,7 @@ def read_gpaw_out(fileobj, index):
                 eFermi = float(lines[ii].split()[2])
             except ValueError:  # we have two Fermi levels
                 fields = lines[ii].split()
-                
+
                 def strip(string):
                     for rubbish in '[],':
                         string = string.replace(rubbish, '')
@@ -130,6 +132,7 @@ def read_gpaw_out(fileobj, index):
         except ValueError:
             pass
         ii = min(ii1, ii2)
+        spinpol = False
         if ii == 1e32:
             kpts = None
         else:
@@ -145,6 +148,7 @@ def read_gpaw_out(fileobj, index):
             kpts[0].eps_n = vals[1]
             kpts[0].f_n = vals[2]
             if vals.shape[0] > 3:
+                spinpol = True
                 kpts.append(SinglePointKPoint(1, 1, 0))
                 kpts[1].eps_n = vals[3]
                 kpts[1].f_n = vals[4]
@@ -166,15 +170,19 @@ def read_gpaw_out(fileobj, index):
                 line = line.replace(x, '')
             dipole = np.array([float(c) for c in line.split()[2:5]])
 
-        try:
-            ii = index_startswith(lines, 'local magnetic moments')
-        except ValueError:
-            magmoms = None
+        if spinpol:
+            try:
+                ii = index_startswith(lines, 'local magnetic moments')
+            except ValueError:
+                magmoms = None
+            else:
+                magmoms = []
+                for i in range(ii + 1, ii + 1 + len(atoms)):
+                    magmom = lines[i].split()[-1]
+                    magmoms.append(float(magmom))
         else:
-            magmoms = []
-            for i in range(ii + 1, ii + 1 + len(atoms)):
-                iii, magmom = lines[i].split()[:2]
-                magmoms.append(float(magmom))
+            magmoms = None
+
         try:
             ii = lines.index('forces in ev/ang:\n')
         except ValueError:
@@ -198,6 +206,8 @@ def read_gpaw_out(fileobj, index):
         if q is not None and len(atoms) > 0:
             n = len(atoms)
             atoms.set_initial_charges([q / n] * n)
+        if magmoms is not None:
+            atoms.set_initial_magnetic_moments(magmoms)
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
@@ -207,13 +217,11 @@ def read_gpaw_out(fileobj, index):
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
-        if magmoms is not None:
-            atoms.set_initial_magnetic_moments(magmoms)
 
         images.append(atoms)
         lines = lines[i:]
 
     if len(images) == 0:
         raise IOError('Corrupted GPAW-text file!')
-    
+
     return images[index]

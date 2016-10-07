@@ -22,7 +22,7 @@ above documentation may occur, and the documentation is no longer maintained.
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 
 Jacapo calculator
-================= 
+=================
 
 The Jacapo interface is automatically installed with ase and can be imported using::
 
@@ -31,7 +31,7 @@ The Jacapo interface is automatically installed with ase and can be imported usi
 (You will need to have a working installation of Dacapo, however.)
 
 .. class:: Jacapo()
-    
+
 Here is a list of available keywords to initialize the calculator:
 
 ============== ============ =====================================
@@ -39,7 +39,7 @@ keyword        type         description
 ============== ============ =====================================
 ``nc``         ``str``      Output NetCDF file, or input file if nc already exists.
 ``outnc``      ``str``      Output file. By default equal to nc.
-``atoms``      ``object``   ase atoms object
+``atoms``      ``object``   Atoms object
 ``pw``         ``float``    Planewave cutoff in eV
 ``dw``         ``float``    Density cutoff in eV
 ``xc``         ``str``      Exchange-correlation functional. One of ['PZ','VWN','PW91','PBE','RPBE','revPBE']
@@ -67,7 +67,7 @@ Here is an example of how to calculate the total energy of a H atom.
 .. literalinclude:: ../../../ase/test/jacapo/jacapo.py
    :start-after: os
    :end-before: os.system
-        
+
 Note that all calculator parameters should be set in the calculator definition
 itself. Do not attempt to use the calc.set_* commands as they are intended to
 be internal to the calculator. Note also that Dacapo can only operate with
@@ -90,7 +90,7 @@ like this::
   dyn.run(fmax=0.05)
 
 Note, that the stay_alive flag is not stored in the .nc file and must be set
-when the calculator instance is created.  
+when the calculator instance is created.
 
 Atom-projected density of states
 ================================

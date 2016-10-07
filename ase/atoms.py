@@ -18,7 +18,8 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.geometry import wrap_positions, find_mic
+from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
+                          cell_to_cellpar)
 
 
 class Atoms(object):
@@ -28,7 +29,6 @@ class Atoms(object):
     periodically repeated structure.  It has a unit cell and
     there may be periodic boundary conditions along any of the three
     unit cell axes.
-
     Information about the atoms (atomic numbers and position) is
     stored in ndarrays.  Optionally, there can be information about
     tags, momenta, masses, magnetic moments and charges.
@@ -63,9 +63,15 @@ class Atoms(object):
         non-collinear calculations.
     charges: list of float
         Atomic charges.
-    cell: 3x3 matrix
+    cell: 3x3 matrix or length 3 or 6 vector
         Unit cell vectors.  Can also be given as just three
-        numbers for orthorhombic cells.  Default value: [1, 1, 1].
+        numbers for orthorhombic cells, or 6 numbers, where
+        first three are lengths of unit cell vectors, and the
+        other three are angles between them (in degrees), in following order:
+        [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
+        First vector will lie in x-direction, second in xy-plane,
+        and the third one in z-positive subspace.
+        Default value: [1, 1, 1].
     celldisp: Vector
         Unit cell displacement vector. To visualize a displaced cell
         around the center of mass of a Systems of atoms. Default value
@@ -275,10 +281,15 @@ class Atoms(object):
 
         Parameters:
 
-        cell :
+        cell: 3x3 matrix or length 3 or 6 vector
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
-            just three numbers for an orthorhombic cell.
-        scale_atoms : bool
+            just three numbers for an orthorhombic cell. Another option is
+            6 numbers, which describes unit cell with lengths of unit cell
+            vectors and with angles between them (in degrees), in following
+            order: [len(a), len(b), len(c), angle(b,c), angle(a,c),
+            angle(a,b)].  First vector will lie in x-direction, second in
+            xy-plane, and the third one in z-positive subspace.
+        scale_atoms: bool
             Fix atomic positions or move atoms with the unit cell?
             Default behavior is to *not* move the atoms (scale_atoms=False).
 
@@ -294,17 +305,30 @@ class Atoms(object):
         FCC unit cell:
 
         >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+
+        Hexagonal unit cell:
+
+        >>> atoms.set_cell([a, a, c, 90, 90, 120])
+
+        Rhombohedral unit cell:
+
+        >>> alpha = 77
+        >>> atoms.set_cell([a, a, a, alpha, alpha, alpha])
         """
 
         if fix is not None:
             raise TypeError('Please use scale_atoms=%s' % (not fix))
 
         cell = np.array(cell, float)
+
         if cell.shape == (3,):
             cell = np.diag(cell)
+        elif cell.shape == (6,):
+            cell = cellpar_to_cell(cell)
         elif cell.shape != (3, 3):
-            raise ValueError('Cell must be length 3 sequence or '
-                             '3x3 matrix!')
+            raise ValueError('Cell must be length 3 sequence, length 6 '
+                             'sequence or 3x3 matrix!')
+
         if scale_atoms:
             M = np.linalg.solve(self._cell, cell)
             self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
@@ -322,6 +346,18 @@ class Atoms(object):
     def get_cell(self):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         return self._cell.copy()
+
+    def get_cell_lengths_and_angles(self):
+        """Get unit cell parameters. Sequence of 6 numbers.
+
+        First three are unit cell vector lengths and second three
+        are angles between them::
+
+            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+
+        in degrees.
+        """
+        return cell_to_cellpar(self._cell)
 
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray.
@@ -872,7 +908,7 @@ class Atoms(object):
             return Atom(atoms=self, index=i)
 
         import copy
-        from ase.constraints import FixConstraint
+        from ase.constraints import FixConstraint, FixBondLengths
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
@@ -887,7 +923,7 @@ class Atoms(object):
         atoms.constraints = copy.deepcopy(self.constraints)
         condel = []
         for con in atoms.constraints:
-            if isinstance(con, FixConstraint):
+            if isinstance(con, (FixConstraint, FixBondLengths)):
                 try:
                     con.index_shuffle(self, i)
                 except IndexError:
@@ -898,19 +934,27 @@ class Atoms(object):
 
     def __delitem__(self, i):
         from ase.constraints import FixAtoms
-        check_constraint = np.array([isinstance(c, FixAtoms)
-                                     for c in self._constraints])
-        if (len(self._constraints) > 0 and (not check_constraint.all() or
-                                            isinstance(i, list))):
-            raise RuntimeError('Remove constraint using set_constraint() '
-                               'before deleting atoms.')
+        for c in self._constraints:
+            if not isinstance(c, FixAtoms):
+                raise RuntimeError('Remove constraint using set_constraint() '
+                                   'before deleting atoms.')
+
+        if len(self._constraints) > 0:
+            n = len(self)
+            i = np.arange(n)[i]
+            if isinstance(i, int):
+                i = [i]
+            constraints = []
+            for c in self._constraints:
+                c = c.delete_atoms(i, n)
+                if c is not None:
+                    constraints.append(c)
+            self.constraints = constraints
+
         mask = np.ones(len(self), bool)
         mask[i] = False
         for name, a in self.arrays.items():
             self.arrays[name] = a[mask]
-        if len(self._constraints) > 0:
-            for n in range(len(self._constraints)):
-                self._constraints[n].delete_atom(range(len(mask))[i])
 
     def pop(self, i=-1):
         """Remove and return atom at index *i* (default last)."""
@@ -1506,8 +1550,11 @@ class Atoms(object):
 
     def get_temperature(self):
         """Get the temperature in Kelvin."""
-        ekin = self.get_kinetic_energy() / len(self)
-        return ekin / (1.5 * units.kB)
+        dof = len(self) * 3
+        for constraint in self._constraints:
+            dof -= constraint.removed_dof
+        ekin = self.get_kinetic_energy()
+        return 2 * ekin / (dof * units.kB)
 
     def __eq__(self, other):
         """Check for identity of two atoms objects.

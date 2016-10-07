@@ -1,0 +1,53 @@
+environment:
+  matrix:
+    # For Python versions available on Appveyor, see
+    # http://www.appveyor.com/docs/installed-software#python
+    # Use Anaconda as SciPy is a headache with Windows.
+      # 2.7
+    - PYTHON: "C:\\Miniconda"
+      # 2.7 64-bit
+    - PYTHON: "C:\\Miniconda-x64"
+      # 3.4
+    - PYTHON: "C:\\Miniconda3"
+      # 3.4 64-bit
+    - PYTHON: "C:\\Miniconda3-x64"
+      # 3.5
+    - PYTHON: "C:\\Miniconda35"
+      # 3.5 64-bit
+    - PYTHON: "C:\\Miniconda35-x64"
+
+install:
+  # Prepend chosen Python to the PATH of this build
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  # Check that we have the expected version and architecture for Python
+  - "python --version"
+  - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
+  # Install the conda supplied packages; msvc_runtime needed for py34
+  - "conda update -y conda"
+  - "conda install -y pip wheel numpy scipy pyflakes msvc_runtime"
+  # install ase into the current python
+  - "echo %cd%"
+  - "where pip"
+  - "pip install ."
+
+build: off
+
+test_script:
+  # run tests from temp dir so source tree doesn't interfere
+  - "cd %TEMP%"
+  - "python -m ase.test"
+
+after_test:
+  # This step builds distribution.
+  - "cd %APPVEYOR_BUILD_FOLDER%"
+  # use pip as distutils doesn't implemet bdist_wheel
+  - "pip wheel -w dist ."
+
+artifacts:
+  # bdist_wheel puts your built wheel in the dist directory
+  - path: dist\*
+
+#on_success:
+#  You can use this step to upload your artifacts to a public website.
+#  See Appveyor's documentation for more details. Or you can simply
+#  access your wheels from the Appveyor "artifacts" tab for your build.
