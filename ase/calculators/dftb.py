@@ -93,7 +93,7 @@ class Dftb(FileIOCalculator):
 
         self.kpts = kpts
         # kpoint stuff by ase
-        if self.kpts is None:
+        if self.kpts is not None:
             mpgrid = kpts2mp(atoms, self.kpts)
             mp = monkhorst_pack(mpgrid)
             initkey = 'Hamiltonian_KPointsAndWeights'
