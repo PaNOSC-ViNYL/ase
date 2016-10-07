@@ -616,7 +616,7 @@ class Placzek(ResonantRaman):
         kwargs['approximation'] = None
         ResonantRaman.__init__(*args, **kwargs)
 
-    def read_excitationsPlaczek(self):
+    def read_excitations(self):
         self.timer.start('read excitations')
         self.exm_r = []
         self.exp_r = []
@@ -630,6 +630,7 @@ class Placzek(ResonantRaman):
                 self.log('reading ' + exname)
                 self.exp_r.append(self.exobj(exname, **self.exkwargs))
                 r += 1
+        self.ndof = 3 * len(self.indices)
         self.timer.stop('read excitations')
 
     def get_matrix_element(self, omega, gamma=0):
