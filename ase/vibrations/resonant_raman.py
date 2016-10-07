@@ -107,22 +107,6 @@ class ResonantRaman(Vibrations):
         excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
-    def read_excitationsPlaczek(self):
-        self.timer.start('read excitations')
-        self.exm_r = []
-        self.exp_r = []
-        r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
-                self.log('reading ' + exname)
-                self.exm_r.append(self.exobj(exname, **self.exkwargs))
-                exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
-                self.log('reading ' + exname)
-                self.exp_r.append(self.exobj(exname, **self.exkwargs))
-                r += 1
-        self.timer.stop('read excitations')
-
     def read_excitations(self):
         self.timer.start('read excitations')
         self.timer.start('really read')
@@ -632,6 +616,22 @@ class Placzek(ResonantRaman):
         kwargs['approximation'] = None
         ResonantRaman.__init__(*args, **kwargs)
 
+    def read_excitationsPlaczek(self):
+        self.timer.start('read excitations')
+        self.exm_r = []
+        self.exp_r = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
+                self.log('reading ' + exname)
+                self.exm_r.append(self.exobj(exname, **self.exkwargs))
+                exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
+                self.log('reading ' + exname)
+                self.exp_r.append(self.exobj(exname, **self.exkwargs))
+                r += 1
+        self.timer.stop('read excitations')
+
     def get_matrix_element(self, omega, gamma=0):
         self.read()
         
@@ -649,8 +649,8 @@ class Placzek(ResonantRaman):
         for a in self.indices:
             for i in 'xyz':
                 V_rcc[r] = pre * (
-                    polarizability(self.expm_rpc[r], omega, tensor=True) -
-                    polarizability(self.exmm_rpc[r], omega, tensor=True))
+                    polarizability(self.exp_r[r], omega, tensor=True) -
+                    polarizability(self.exm_r[r], omega, tensor=True))
                 r += 1
         self.timer.stop('alpha derivatives')
 
