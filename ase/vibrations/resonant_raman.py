@@ -16,6 +16,9 @@ from ase.vibrations.franck_condon import FranckCondonOverlap
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd
 
+# XXX remove gpaw dependence
+from gpaw.lrtddft.spectrum import polarizability
+
 
 class ResonantRaman(Vibrations):
     """Class for calculating vibrational modes and
@@ -38,7 +41,8 @@ class ResonantRaman(Vibrations):
 
         Excitations should work like a list of ex obejects, where:
             ex.get_dipole_me(form='v'):
-                gives the dipole matrix element in |e| * Angstrom
+                gives the velocity form dipole matrix element in 
+                units |e| * Angstrom
             ex.energy:
                 is the transition energy in Hartrees
     """
@@ -384,7 +388,7 @@ class ResonantRaman(Vibrations):
                         kappa(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
                 r += 1
         self.timer.stop('kappa')
-        # print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
+        print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
 
         self.timer.stop('amplitudes')
 
@@ -433,7 +437,7 @@ class ResonantRaman(Vibrations):
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
                     self.approximation) +
-                'Please use "Profeta", "Albrecht A/B/C/BC", ' +
+                'Please use "Profeta", "Placzek", "Albrecht A/B/C/BC", ' +
                 'or "Albrecht".')
 
         return V_rcc
@@ -452,6 +456,7 @@ class ResonantRaman(Vibrations):
         # Woodward & Long,
         # Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
         m2 = ResonantRaman.m2
+        print('alpha_rcc[-1,:,:]=', alpha_rcc[-1,:,:])
         alpha2_r = m2(alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] +
                       alpha_rcc[:, 2, 2]) / 9.
         delta2_r = 3 / 4. * (
@@ -466,6 +471,7 @@ class ResonantRaman(Vibrations):
                      m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
 
         if self.observation['geometry'] == '-Z(XX)Z':  # Porto's notation
+            print(alpha2_r[-1], delta2_r[-1], gamma2_r[-1])
             return (45 * alpha2_r + 5 * delta2_r + 4 * gamma2_r) / 45.
         elif self.observation['geometry'] == '-Z(XY)Z':  # Porto's notation
             return gamma2_r / 15.
@@ -603,6 +609,36 @@ class ResonantRaman(Vibrations):
     def __del__(self):
         self.timer.write(self.txt)
 
+
+class Placzek(ResonantRaman):
+    def __init__(*args, **kwargs):
+        # XXX check for approximation
+        kwargs['approximation'] = None
+        ResonantRaman.__init__(*args, **kwargs)
+
+    def get_matrix_element(self, omega, gamma=0):
+        self.read()
+        
+        self.timer.start('init')
+        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        pre = 1. / (2 * self.delta)
+        self.timer.stop('init')
+
+        om = omega
+        if gamma:
+            om += 1j * gamma
+        
+        self.timer.start('alpha derivatives')
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                V_rcc[r] = pre * (
+                    polarizability(self.expm_rpc[r], omega, tensor=True) -
+                    polarizability(self.exmm_rpc[r], omega, tensor=True))
+                r += 1
+        self.timer.stop('alpha derivatives')
+
+        return V_rcc
 
 class LrResonantRaman(ResonantRaman):
     """Resonant Raman for linear response
