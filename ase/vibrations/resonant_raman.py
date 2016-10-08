@@ -185,11 +185,15 @@ class ResonantRaman(Vibrations):
                 expm_rpc.append(
                     [ex.get_dipole_me(form='v') for ex in exp[r]])
                 r += 1
+        # indicees: r=coordinate, p=excitation
+        # energies in eV
         self.exmE_rp = np.array(exmE_rp) * eu
         self.expE_rp = np.array(expE_rp) * eu
+        # forces in eV / Angstrom
         self.exF_rp = np.array(exF_rp) * eu / 2 / self.delta
-        self.exmm_rpc = np.array(exmm_rpc)
-        self.expm_rpc = np.array(expm_rpc)
+        # matrix elements in e * Angstrom
+        self.exmm_rpc = np.array(exmm_rpc) * units.Bohr
+        self.expm_rpc = np.array(expm_rpc) * units.Bohr
 
         self.timer.stop('me and energy')
 
@@ -202,7 +206,7 @@ class ResonantRaman(Vibrations):
             # self.H     : Hessian matrix
             # self.im    : 1./sqrt(masses)
             # self.modes : Eigenmodes of the mass weighted H
-            self.om_r = self.hnu.real    # energies in eV
+            self.om_Q = self.hnu.real    # energies in eV
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0E_p'):
             self.read_excitations()
@@ -221,7 +225,7 @@ class ResonantRaman(Vibrations):
         # Huang-Rhys factors S
         s = 1.e-20 / units.kg / units.C / units._hbar**2  # SI units
         self.timer.stop('Huang-Rhys')
-        return s * d_r**2 * self.om_r / 2.
+        return s * d_r**2 * self.om_Q / 2.
 
     def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
@@ -249,11 +253,11 @@ class ResonantRaman(Vibrations):
                 self.timer.stop('0mm1')
                 self.timer.start('einsum')
                 m_rcc += np.einsum('a,bc->abc',
-                                   fco_r / (energy + m * self.om_r - omega -
+                                   fco_r / (energy + m * self.om_Q - omega -
                                             1j * gamma),
                                    me_cc)
                 m_rcc += np.einsum('a,bc->abc',
-                                   fco_r / (energy + (m - 1) * self.om_r +
+                                   fco_r / (energy + (m - 1) * self.om_Q +
                                             omega + 1j * gamma),
                                    me_cc)
                 self.timer.stop('einsum')
@@ -315,7 +319,7 @@ class ResonantRaman(Vibrations):
                     if 'B' in term:
                         # XXXX
                         denom = (1. /
-                                 (energy + m * 0 * self.om_r[r] -
+                                 (energy + m * 0 * self.om_Q[r] -
                                   omega - 1j * gamma))
                         # ok print('denom=', denom)
                         m_rcc[r] += (np.outer(dm_rc[r],
@@ -328,7 +332,7 @@ class ResonantRaman(Vibrations):
                                      fc0mm02_r[r] * denom)
                     if 'C' in term:
                         denom = (1. /
-                                 (energy + (m - 1) * self.om_r[r] +
+                                 (energy + (m - 1) * self.om_Q[r] +
                                   omega + 1j * gamma))
                         m_rcc[r] += (np.outer(self.ex0m_pc[p],
                                               dm_rc[r].conj()) *
@@ -341,8 +345,8 @@ class ResonantRaman(Vibrations):
 
         self.timer.start('pre_r')
         with np.errstate(divide='ignore'):
-            pre_r = np.where(self.om_r > 0,
-                             np.sqrt(units._hbar**2 / 2. / self.om_r), 0)
+            pre_r = np.where(self.om_Q > 0,
+                             np.sqrt(units._hbar**2 / 2. / self.om_Q), 0)
             # print('BC: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             m_rcc[r] *= p
@@ -375,36 +379,44 @@ class ResonantRaman(Vibrations):
             return kappa_ccp.sum(2)
 
         self.timer.start('kappa')
+##        print('energy_derivative', energy_derivative)
         r = 0
         for a in self.indices:
             for i in 'xyz':
                 if not energy_derivative < 0:
-                    V_rcc[r] = pre * self.im[r] * (
+                    V_rcc[r] += pre * self.im[r] * (
                         kappa(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
                         kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
+##                if r == 5:
+##                    print('1: V_rcc[-1]=', V_rcc[-1].diagonal())
                 if energy_derivative:
                     V_rcc[r] += pre * self.im[r] * (
                         kappa(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
                         kappa(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
+##                if r == 5:
+##                    print('1: V_rcc[-1]=', V_rcc[-1].diagonal())
                 r += 1
         self.timer.stop('kappa')
-        print('V_rcc[2], V_rcc[5]=', V_rcc[2,2,2], V_rcc[5,2,2])
+##        print('V_rcc[2], V_rcc[5]=', V_rcc[-1].diagonal())
 
+        # V_rcc is now e^2 * Angstrom / eV -> get to Angstrom^2
+        V_rcc *= units.Hartree * units.Bohr
+##        print('rr V_rcc[-1]', V_rcc[-1].diagonal())
+        
         self.timer.stop('amplitudes')
 
         # map to modes
         self.timer.start('pre_r')
-        with np.errstate(divide='ignore'):
-            pre_r = np.where(self.om_r > 0,
-                             np.sqrt(units._hbar**2 / 2. / self.om_r), 0)
-        V_rcc = np.dot(V_rcc.T, self.modes.T).T
-        # looks ok        print('self.modes.T[-1]',self.modes.T)
-        # looks ok       print('V_rcc[-1]=', V_rcc[-1][2,2])
-        # ok       print('Profeta: pre_r=', pre_r)
-        for r, p in enumerate(pre_r):
-            V_rcc[r] *= p
+        V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
+        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
+        # XXX reactivate and add to Placzek XXX
+##        with np.errstate(divide='ignore'):
+##            pre_Q = np.where(self.om_Q > 0,
+##                             np.sqrt(units._hbar**2 / 2. / self.om_Q), 0)
+##        for r, p in enumerate(pre_r):
+##            V_rcc[r] *= p
         self.timer.stop('pre_r')
-        return V_rcc
+        return V_Qcc
 
     def get_matrix_element(self, omega, gamma):
         self.read()
@@ -655,6 +667,7 @@ class Placzek(ResonantRaman):
                     polarizability(self.exm_r[r], omega, tensor=True))
                 r += 1
         self.timer.stop('alpha derivatives')
+##        print('pz V_rcc[-1]', V_rcc[-1].diagonal())
 
         # map to modes
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
