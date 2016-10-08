@@ -444,10 +444,10 @@ class ResonantRaman(Vibrations):
 
     def get_intensities(self, omega, gamma=0.1):
         m2 = ResonantRaman.m2
-        alpha_rcc = self.get_matrix_element(omega, gamma)
+        alpha_Qcc = self.get_matrix_element(omega, gamma)
         if not self.observation:  # XXXX remove
             """Simple sum, maybe too simple"""
-            return m2(alpha_rcc).sum(axis=1).sum(axis=1)
+            return m2(alpha_Qcc).sum(axis=1).sum(axis=1)
         # XXX enable when appropriate
         #        if self.observation['orientation'].lower() != 'random':
         #            raise NotImplementedError('not yet')
@@ -456,22 +456,22 @@ class ResonantRaman(Vibrations):
         # Woodward & Long,
         # Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
         m2 = ResonantRaman.m2
-        print('alpha_rcc[-1,:,:]=', alpha_rcc[-1,:,:])
-        alpha2_r = m2(alpha_rcc[:, 0, 0] + alpha_rcc[:, 1, 1] +
-                      alpha_rcc[:, 2, 2]) / 9.
+##        print('alpha_Qcc[-1,:,:]=', alpha_Qcc[-1,:,:].diagonal().sum()/3)
+        alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
+                      alpha_Qcc[:, 2, 2]) / 9.
+##        print('alpha2_r**1/2=', np.sqrt(alpha2_r))
         delta2_r = 3 / 4. * (
-            m2(alpha_rcc[:, 0, 1] - alpha_rcc[:, 1, 0]) +
-            m2(alpha_rcc[:, 0, 2] - alpha_rcc[:, 2, 0]) +
-            m2(alpha_rcc[:, 1, 2] - alpha_rcc[:, 2, 1]))
-        gamma2_r = (3 / 4. * (m2(alpha_rcc[:, 0, 1] + alpha_rcc[:, 1, 0]) +
-                              m2(alpha_rcc[:, 0, 2] + alpha_rcc[:, 2, 0]) +
-                              m2(alpha_rcc[:, 1, 2] + alpha_rcc[:, 2, 1])) +
-                    (m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 1, 1]) +
-                     m2(alpha_rcc[:, 0, 0] - alpha_rcc[:, 2, 2]) +
-                     m2(alpha_rcc[:, 1, 1] - alpha_rcc[:, 2, 2])) / 2)
+            m2(alpha_Qcc[:, 0, 1] - alpha_Qcc[:, 1, 0]) +
+            m2(alpha_Qcc[:, 0, 2] - alpha_Qcc[:, 2, 0]) +
+            m2(alpha_Qcc[:, 1, 2] - alpha_Qcc[:, 2, 1]))
+        gamma2_r = (3 / 4. * (m2(alpha_Qcc[:, 0, 1] + alpha_Qcc[:, 1, 0]) +
+                              m2(alpha_Qcc[:, 0, 2] + alpha_Qcc[:, 2, 0]) +
+                              m2(alpha_Qcc[:, 1, 2] + alpha_Qcc[:, 2, 1])) +
+                    (m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 1, 1]) +
+                     m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 2, 2]) +
+                     m2(alpha_Qcc[:, 1, 1] - alpha_Qcc[:, 2, 2])) / 2)
 
         if self.observation['geometry'] == '-Z(XX)Z':  # Porto's notation
-            print(alpha2_r[-1], delta2_r[-1], gamma2_r[-1])
             return (45 * alpha2_r + 5 * delta2_r + 4 * gamma2_r) / 45.
         elif self.observation['geometry'] == '-Z(XY)Z':  # Porto's notation
             return gamma2_r / 15.
@@ -639,11 +639,12 @@ class Placzek(ResonantRaman):
         self.timer.start('init')
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
-        self.timer.stop('init')
+        pre *= units.Hartree * units.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
 
         om = omega
         if gamma:
             om += 1j * gamma
+        self.timer.stop('init')
         
         self.timer.start('alpha derivatives')
         r = 0
@@ -655,7 +656,11 @@ class Placzek(ResonantRaman):
                 r += 1
         self.timer.stop('alpha derivatives')
 
-        return V_rcc
+        # map to modes
+        V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
+        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
+        return V_Qcc
+
 
 class LrResonantRaman(ResonantRaman):
     """Resonant Raman for linear response
