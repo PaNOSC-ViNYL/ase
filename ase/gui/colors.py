@@ -592,7 +592,7 @@ class ColorWindow(gtk.Window):
             # Blue - White - Red
              scale = self.new_color_scale([[0, [0,0,1]],
                                           [0.5, [1,1,1]],
-                                          [2, [1,0,0]]], n)
+                                          [1, [1,0,0]]], n)
         elif s == 5:
             # Hues
             hues = np.linspace(0.0, 1.0, n, endpoint=False)
