@@ -74,8 +74,8 @@ class ColorWindow(gtk.Window):
         # Now fill in the box for additional information in case the force is used.
         self.force_label = gtk.Label(_("This should not be displayed in forces!"))
         pack(self.force_box, [self.force_label])
-        self.min = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
-        self.max = gtk.Adjustment(0.0, 0.0, 100.0, 0.05)
+        self.min = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
+        self.max = gtk.Adjustment(0.0, -100.0, 100.0, 0.05)
         self.steps = gtk.Adjustment(10, 2, 500, 1)
         force_apply = gtk.Button(_('Update'))
         force_apply.connect('clicked', self.set_min_max_colors, 'force')
