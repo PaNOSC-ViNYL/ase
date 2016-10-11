@@ -51,7 +51,7 @@ class EMT(Calculator):
 
     nolabel = True
 
-    def __init__(self, fixed_cutoff=False):
+    def __init__(self, fixed_cutoff=True):
         Calculator.__init__(self)
         self.fixed_cutoff = fixed_cutoff
 

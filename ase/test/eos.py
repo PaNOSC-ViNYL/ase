@@ -6,7 +6,7 @@ from ase.eos import EquationOfState as EOS, eos_names
 scipy  # silence pyflakes
 
 b = bulk('Al', 'fcc', a=4.0, orthorhombic=True)
-b.set_calculator(EMT(fixed_cutoff=True))
+b.set_calculator(EMT())
 cell = b.get_cell()
 
 volumes = []
