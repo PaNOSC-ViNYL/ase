@@ -76,20 +76,6 @@ def build(force_build, name='ase', env=''):
 
     os.chdir('..')
 
-    if name == 'ase':
-        output = subprocess.check_output(
-            'epydoc --docformat restructuredtext --parse-only '
-            '--name {0} --url http://wiki.fysik.dtu.dk/{1} '
-            '--show-imports --no-frames -v {1}'.format(name.upper(), name),
-            shell=True)
-
-        # Check for warnings:
-        for line in output.splitlines():
-            if line.startswith('|'):
-                print(line)
-
-        os.rename('html', 'doc/build/html/epydoc')
-
     os.chdir('doc/build')
     dir = name + '-web-page'
     os.rename('html', dir)

@@ -336,7 +336,7 @@ class NetCDFTrajectory:
                     # data remains consistent.
                     if np.any(self._get_variable(array) != data):
                         raise ValueError('Trying to write Atoms object with '
-                                         'incompatible data for the {} '
+                                         'incompatible data for the {0} '
                                          'array.'.format(array))
                 else:
                     self._add_array(atoms, array, data.dtype, data.shape)
@@ -361,7 +361,7 @@ class NetCDFTrajectory:
                 # data remains consistent.
                 if np.any(self._get_variable(array) != data):
                     raise ValueError('Trying to write Atoms object with '
-                                     'incompatible data for the {} '
+                                     'incompatible data for the {0} '
                                      'array.'.format(array))
             else:
                 self._add_array(atoms, array, data.dtype, data.shape)

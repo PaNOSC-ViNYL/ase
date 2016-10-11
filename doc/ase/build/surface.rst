@@ -37,8 +37,8 @@ position 1.5 Å above the top layer::
 
 Note that in this case is is probably not meaningful to use the vacuum
 keyword to fcc111, as we want to leave 10 Å of vacuum *after* the
-adsorbate has been added. Instead, the :meth:`~ase.atoms.Atoms.center` method
-of the :class:`~ase.atoms.Atoms` is used
+adsorbate has been added. Instead, the :meth:`~ase.Atoms.center` method
+of the :class:`~ase.Atoms` is used
 to add the vacuum and center the system.
 
 The atoms in the slab will have tags set to the layer number: First layer

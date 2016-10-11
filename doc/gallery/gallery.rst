@@ -40,6 +40,16 @@ Brillouin zones
 :download:`bz.py <../ase/dft/bz.py>`
 
 
+Band-structure
+==============
+
+.. image:: ../ase/dft/cu.png
+   :width: 10cm
+
+:mod:`ase.dft.kpoints`
+:download:`bs.py <../ase/dft/bs.py>`
+
+
 Nudged elastic band calculations
 ================================
 

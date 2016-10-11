@@ -42,7 +42,7 @@ all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
     'aims-output': ('FHI-aims output', '+S'),
-    'bundletrajectory': ('ASE bundle trajectory', '1S'),
+    'bundletrajectory': ('ASE bundle trajectory', '+S'),
     'castep-castep': ('CASTEP output file', '+F'),
     'castep-cell': ('CASTEP geom file', '1F'),
     'castep-geom': ('CASTEP trajectory file', '+F'),
@@ -433,7 +433,7 @@ def filetype(filename, read=True):
 
         if '.' in basename:
             ext = filename.rsplit('.', 1)[-1].lower()
-            if ext in ['xyz', 'cube', 'json']:
+            if ext in ['xyz', 'cube', 'json', 'cif']:
                 return ext
 
         if 'POSCAR' in basename or 'CONTCAR' in basename:

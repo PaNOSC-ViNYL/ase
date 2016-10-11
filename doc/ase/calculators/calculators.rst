@@ -6,7 +6,7 @@ Calculators
 ===========
 
 For ASE, a calculator is a black box that can take atomic numbers and
-atomic positions from an :class:`~ase.atoms.Atoms` object and calculate the
+atomic positions from an :class:`~ase.Atoms` object and calculate the
 energy and forces and sometimes also stresses.
 
 In order to calculate forces and energies, you need to attach a
@@ -16,7 +16,7 @@ calculator object to your atoms object:
 >>> e = a.get_potential_energy()
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "/home/jjmo/ase/ase/atoms.py", line 399, in get_potential_energy
+  File "/home/jjmo/ase/atoms/ase.py", line 399, in get_potential_energy
     raise RuntimeError('Atoms object has no calculator.')
 RuntimeError: Atoms object has no calculator.
 >>> from ase.calculators.abinit import Abinit
@@ -26,7 +26,7 @@ RuntimeError: Atoms object has no calculator.
 >>> print(e)
 -42.0
 
-Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
+Here, we used the :meth:`~ase.Atoms.set_calculator` method to attach
 an instance of the :mod:`ase.calculators.abinit` class and then
 we asked for the energy.
 
@@ -59,7 +59,7 @@ The calculators can be divided in four groups:
 4) Calculators that wrap others, included in the ASE package:
    :class:`ase.calculators.checkpoint.CheckpointCalculator` and
    the :ref:`Grimme-D3 <grimme>` potential.
-   
+
 
 ==================================  ===========================================
 name                                description
@@ -96,7 +96,7 @@ morse                               Morse potential
 .. _grimme:
 
 .. note::
-    
+
     A Fortran implemetation of the Grimme-D3 potential, that can be used as
     an add-on to any ASE calculator, can be found here:
     https://gitlab.com/ehermes/ased3/tree/master.
@@ -207,11 +207,12 @@ the :meth:`set` method:
    qmmm
    checkpointing
    others
+   test
    ase_qmmm_manyqm
 
 
 .. _calculator interface:
-    
+
 Calculator interface
 ====================
 

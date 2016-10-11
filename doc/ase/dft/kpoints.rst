@@ -52,33 +52,33 @@ Special points from [Setyawana-Curtarolo]_:
 
 .. list-table::
     :widths: 10 30 35
-    
+
     * - Cubic
-      - `\Gamma`-`X`-`M`-`\Gamma`-`R`-`X`, `M`-`R`
+      - GXMGRX,MR
       - .. image:: cubic.svg
             :width: 25 %
     * - FCC
-      - `\Gamma`-`X`-`W`-`K`-`\Gamma`-`L`-`U`-`W`-`L`-`K`, `U`-`X`
+      - GXWKGLUWLK,UX
       - .. image:: fcc.svg
             :width: 25 %
     * - BCC
-      - `\Gamma`-`H`-`N`-`\Gamma`-`P`-`H`, `P`-`N`
+      - GHNGPH,PN
       - .. image:: bcc.svg
             :width: 25 %
     * - Tetragonal
-      - `\Gamma`-`X`-`M`-`\Gamma`-`Z`-`R`-`A`-`Z`, `X`-`R`, `M`-`A`
+      - GXMGZRAZ,XR,MA
       - .. image:: tetragonal.svg
             :width: 25 %
     * - Orthorhombic
-      - `\Gamma`-`X`-`S`-`Y`-`\Gamma`-`Z`-`U`-`R`-`T`-`Z`, `Y`-`T`, `U`-`X`, `S`-`R`
+      - GXSYGZURTZ,YT,UX,SR
       - .. image:: orthorhombic.svg
             :width: 25 %
     * - Hexagonal
-      - `\Gamma`-`M`-`K`-`\Gamma`-`A`-`L`-`H`-`A`, `L`-`M`, `K`-`H`
+      - GMKGALHA,LM,KH
       - .. image:: hexagonal.svg
             :width: 25 %
     * - Monoclinic
-      - `\Gamma`-`Y`-`H`-`C`-`E`-`M_1`-`A`-`X`-`H_1`, `M`-`D`-`Z`, `Y`-`D`
+      - GYHCEM1AXH1,MDZ,YD
       - .. image:: monoclinic.svg
             :width: 25 %
 
@@ -87,25 +87,39 @@ Special points from [Setyawana-Curtarolo]_:
     Challenges and tools
 
     Wahyu Setyawana, Stefano Curtarolo
-    
+
     Computational Materials Science,
     Volume 49, Issue 2, August 2010, Pages 299–312
-    
+
     http://dx.doi.org/10.1016/j.commatsci.2010.05.010
 
 You can find the special points in the Brillouin zone:
 
 >>> from ase.lattice import bulk
->>> from ase.dft.kpoints import get_special_points, get_bandpath
+>>> from ase.dft.kpoints import get_special_points, bandpath
 >>> si = bulk('Si', 'diamond', a=5.459)
 >>> points = get_special_points('fcc', si.cell)
 >>> GXW = [points[k] for k in 'GXW']
->>> kpts, x, X = get_bandpath(GXW, si.cell, 100)
+>>> kpts, x, X = bandpath(GXW, si.cell, 100)
 >>> print(kpts.shape, len(x), len(X))
 (100, 3) 100 3
 
 .. autofunction:: get_special_points
-.. autofunction:: get_bandpath
+.. autofunction:: bandpath
+.. autofunction:: parse_path_string
+
+
+Band structure
+--------------
+
+.. autoclass:: ase.dft.band_structure.BandStructure
+   :members:
+
+Free electron example:
+
+.. literalinclude:: bs.py
+
+.. image:: cu.png
 
 
 High symmetry paths
@@ -116,16 +130,21 @@ High symmetry paths
 The ``special_paths`` dictionary contains suggestions for high symmetry
 paths in the BZ from the [Setyawana-Curtarolo]_ paper.
 
->>> from ase.dft.kpoints import special_paths
->>> paths = special_paths['bcc']
+>>> from ase.dft.kpoints (import special_paths, special_points,
+...                       parse_path_string)
+>>> special_paths['bcc']
+'GHNGPH,PN'
+>>> paths = parse_path_string(special_paths['bcc'])
 >>> paths
 [['G', 'H', 'N', 'G', 'P', 'H'], ['P', 'N']],
->>> points = get_special_points('bcc', [[-1, 1, 1], [1, -1, 1], [1, 1, -1]])
+>>> points = special_points['bcc']
 >>> points
-{'H': [0.5, -0.5, 0.5], 'N': [0, 0, 0.5], 'P': [0.25, 0.25, 0.25], 'G': [0, 0, 0]}
+{'H': [0.5, -0.5, 0.5], 'N': [0, 0, 0.5], 'P': [0.25, 0.25, 0.25],
+ 'G': [0, 0, 0]}
 >>> kpts = [points[k] for k in paths[0]]  # G-H-N-G-P-H
 >>> kpts
-[[0, 0, 0], [0.5, -0.5, 0.5], [0, 0, 0.5], [0, 0, 0], [0.25, 0.25, 0.25], [0.5, -0.5, 0.5]]
+[[0, 0, 0], [0.5, -0.5, 0.5], [0, 0, 0.5], [0, 0, 0], [0.25, 0.25, 0.25],
+ [0.5, -0.5, 0.5]]
 
 
 Chadi-Cohen

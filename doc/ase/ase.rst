@@ -1,6 +1,3 @@
-.. module:: ase
-   :synopsis: ASE module
-
 .. _ase:
 
 =======
@@ -11,8 +8,8 @@ Quick links:
 
 .. list-table::
 
-  * - :mod:`~ase.atom`
-    - :mod:`~ase.atoms`
+  * - :mod:`ase (Atom) <ase.atom>`
+    - :mod:`ase (Atoms) <ase.atoms>`
     - :mod:`~ase.build`
     - :mod:`~ase.calculators`
   * - :mod:`~ase.collections`
@@ -45,7 +42,6 @@ Quick links:
 
    * :ref:`tutorials`
    * :ref:`cli`
-   * :epydoc:`Automatically generated documentation <ase>` (API)
    * :git:`Source code <>`
    * Presentation about ASE: :download:`ase-talk.pdf`
 
