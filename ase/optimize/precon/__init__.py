@@ -30,8 +30,6 @@ from __future__ import print_function
 import logging
 logger = logging.getLogger(__name__)
 
-from ase.optimize.precon.neighbors import (get_neighbours,
-                                           estimate_nearest_neighbour_distance)
 from ase.optimize.precon.precon import Precon, Exp, C1, Pfrommer, FF, Exp_FF
 from ase.optimize.precon.lbfgs import PreconLBFGS
 from ase.optimize.precon.fire import PreconFIRE
