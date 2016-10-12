@@ -16,7 +16,6 @@ from ase.utils import dot128
 
 logger = logging.getLogger(__name__)
 
-
 ###CO <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 class LinearPath:
     """Describes a linear search path of the form t -> t g
@@ -259,7 +258,7 @@ class LineSearchArmijo:
                               func_prime_start)
 
         # DEBUG
-        # print("a1(auto) = ", a1)
+        logger.debug("a1(auto) = ", a1)
 
         if abs(a1 - 1.0) <= 0.5:
             a1 = 1.0
@@ -391,7 +390,7 @@ class LineSearchArmijo:
                 # equation 3.60
                 a1 = 2*(self.func_start - self.func_old)/self.phi_prime_start
                 logger.debug("Interpolated quadratic, obtained a1 = %e", a1)
-        if a1 > a_max:
+        if a1 is None or a1 > a_max:
             logger.debug("a1 greater than a_max. Reverting to default value "
                            "a1 = 1.0")
             a1 = 1.0
@@ -409,5 +408,3 @@ class LineSearchArmijo:
         logger.debug("a1 = %e, a_max = %e", a1, a_max)
 
         return a1
-
-

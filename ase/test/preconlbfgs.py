@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
 import numpy as np
 
@@ -34,8 +34,8 @@ for variable_cell in [False, True]:
 
 # fixed cell cases
 assert np.abs(
-    np.array(energies[:len(energies) / 2]) - -0.92612723).max() < 1e-4
+    np.array(energies[:len(energies) // 2]) - -0.92612723).max() < 1e-4
 
 # variable cell cases
 assert np.abs(
-    np.array(energies[len(energies) / 2:]) - -31.7516156).max() < 1e-4
+    np.array(energies[len(energies) // 2:]) - -31.7516156).max() < 1e-4
