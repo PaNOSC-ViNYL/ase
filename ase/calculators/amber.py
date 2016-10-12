@@ -14,6 +14,7 @@ from ase.calculators.calculator import Calculator, FileIOCalculator
 import ase.units as units
 from scipy.io import netcdf
 
+
 class Amber(FileIOCalculator):
     """Class for doing Amber classical MM calculations.
 
@@ -242,7 +243,7 @@ class Amber(FileIOCalculator):
             gamma = fin.variables['cell_angles'][2]
 
             if (all(angle > 89.99 for angle in [alpha, beta, gamma]) and
-                all(angle < 90.01 for angle in [alpha, beta, gamma])):
+                    all(angle < 90.01 for angle in [alpha, beta, gamma])):
                 atoms.set_cell(
                     np.array([[a, 0, 0],
                               [0, b, 0],
@@ -298,7 +299,7 @@ class Amber(FileIOCalculator):
 
 
 def map(atoms, top):
-    p = np.zeros((2,len(atoms)), dtype="int")
+    p = np.zeros((2, len(atoms)), dtype="int")
 
     elements = atoms.get_chemical_symbols()
     unique_elements = np.unique(atoms.get_chemical_symbols())
@@ -308,11 +309,11 @@ def map(atoms, top):
         for j in range(len(atoms)):
             if elements[j] == unique_elements[i]:
                 idx += 1
-                symbol = unique_elements[i]+np.str(idx)
+                symbol = unique_elements[i] + np.str(idx)
                 for k in range(len(atoms)):
                     if top.atoms[k].name == symbol:
-                        p[0,k] = j
-                        p[1,j] = k
+                        p[0, k] = j
+                        p[1, j] = k
                         break
     return p
 
@@ -322,15 +323,16 @@ try:
 except ImportError:
     have_sander = False
 
+
 class SANDER(Calculator):
     """
     Interface to SANDER using Python interface
 
     Requires sander Python bindings from http://ambermd.org/
     """
-    implemented_properties=['energy', 'forces']
+    implemented_properties = ['energy', 'forces']
 
-    def __init__(self, atoms=None, label=None, top=None, crd=None, 
+    def __init__(self, atoms=None, label=None, top=None, crd=None,
                  mm_options=None, qm_options=None, permutation=None, **kwargs):
         if not have_sander:
             raise RuntimeError("sander Python module could not be imported!")
@@ -350,32 +352,33 @@ class SANDER(Calculator):
                 del self.results['forces']
         if 'energy' not in self.results:
             if self.permutation is None:
-                crd = np.reshape(atoms.get_positions(),(1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions(), (1, len(atoms), 3))
             else:
                 crd = np.reshape(atoms.get_positions()
-                                 [self.permutation[0,:]],(1,len(atoms),3))
+                                 [self.permutation[0, :]], (1, len(atoms), 3))
             sander.set_positions(crd)
             e, f = sander.energy_forces()
-            self.results['energy'] = e.tot * units.kcal/units.mol
+            self.results['energy'] = e.tot * units.kcal / units.mol
             if self.permutation is None:
-                self.results['forces'] = ( np.reshape(np.array(f), (len(atoms),3))
-                                          * units.kcal/units.mol )
+                self.results['forces'] = (np.reshape(np.array(f), (len(atoms), 3))
+                                          * units.kcal / units.mol)
             else:
-                ff = np.reshape(np.array(f), (len(atoms),3)) * units.kcal/units.mol
-                self.results['forces'] = ff[self.permutation[1,:]]
+                ff = np.reshape(np.array(f), (len(atoms), 3)) * \
+                    units.kcal / units.mol
+                self.results['forces'] = ff[self.permutation[1, :]]
         if 'forces' not in self.results:
             if self.permutation is None:
-                crd = np.reshape(atoms.get_positions(),(1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions(), (1, len(atoms), 3))
             else:
-                crd = np.reshape(atoms.get_positions()[self.permutation[0,:]],
-                                 (1,len(atoms),3))
+                crd = np.reshape(atoms.get_positions()[self.permutation[0, :]],
+                                 (1, len(atoms), 3))
             sander.set_positions(crd)
             e, f = sander.energy_forces()
-            self.results['energy'] = e.tot * units.kcal/units.mol
+            self.results['energy'] = e.tot * units.kcal / units.mol
             if self.permutation is None:
-                self.results['forces'] = ( np.reshape(np.array(f), (len(atoms),3))
-                                          * units.kcal/units.mol )
+                self.results['forces'] = (np.reshape(np.array(f), (len(atoms), 3))
+                                          * units.kcal / units.mol)
             else:
-                ff = np.reshape(np.array(f), (len(atoms),3)) * units.kcal/units.mol
-                self.results['forces']=ff[self.permutation[1,:]]
-
+                ff = np.reshape(np.array(f), (len(atoms), 3)) * \
+                    units.kcal / units.mol
+                self.results['forces'] = ff[self.permutation[1, :]]

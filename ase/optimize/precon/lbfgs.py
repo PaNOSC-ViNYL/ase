@@ -7,7 +7,6 @@
 # @License: f90wrap - F90 to Python interface generator with derived type support
 
 
-
 import time
 
 from math import sqrt
@@ -20,6 +19,7 @@ from ase.optimize.precon import C1, Exp, Pfrommer, logger
 
 from ase.utils.linesearch import LineSearch
 from ase.utils.linesearcharmijo import LineSearchArmijo
+
 
 class PreconLBFGS(Optimizer):
     """Preconditioned version of the Limited memory BFGS optimizer.
@@ -38,7 +38,7 @@ class PreconLBFGS(Optimizer):
     In time this implementation is expected to replace ase.optimize.lbfgs.LBFGS.
     """
 
-    ###CO : added parameters rigid_units and rotation_factors
+    # CO : added parameters rigid_units and rotation_factors
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
                  master=None, precon='Exp',
@@ -131,8 +131,8 @@ class PreconLBFGS(Optimizer):
 
         self.memory = memory
         self.H0 = 1. / alpha  # Initial approximation of inverse Hessian
-                              # 1./70. is to emulate the behaviour of BFGS
-                              # Note that this is never changed!
+        # 1./70. is to emulate the behaviour of BFGS
+        # Note that this is never changed!
         self.Hinv = Hinv
         self.damping = damping
         self.p = None
@@ -154,7 +154,7 @@ class PreconLBFGS(Optimizer):
         self.c1 = c1
         self.c2 = c2
 
-        ###CO
+        # CO
         self.rigid_units = rigid_units
         self.rotation_factors = rotation_factors
 
@@ -166,7 +166,7 @@ class PreconLBFGS(Optimizer):
         self.s = []
         self.y = []
         self.rho = []  # Store also rho, to avoid calculationg the dot product
-                       # again and again
+        # again and again
 
     def initialize(self):
         """Initalize everything so no checks have to be done in step"""
@@ -182,7 +182,7 @@ class PreconLBFGS(Optimizer):
     def read(self):
         """Load saved arrays to reconstruct the Hessian"""
         self.iteration, self.s, self.y, self.rho, \
-        self.r0, self.f0, self.e0, self.task = self.load()
+            self.r0, self.f0, self.e0, self.task = self.load()
         self.load_restart = True
 
     def step(self, f):
@@ -203,7 +203,7 @@ class PreconLBFGS(Optimizer):
         loopmax = np.min([self.memory, len(self.y)])
         a = np.empty((loopmax,), dtype=np.float64)
 
-        ### The algorithm itself:
+        # The algorithm itself:
         q = -f.reshape(-1)
         for i in range(loopmax - 1, -1, -1):
             a[i] = rho[i] * np.dot(s[i], q)
@@ -300,7 +300,7 @@ class PreconLBFGS(Optimizer):
 
     def line_search(self, r, g, e, previously_reset_hessian):
         self.p = self.p.ravel()
-        p_size = np.sqrt((self.p **2).sum())
+        p_size = np.sqrt((self.p ** 2).sum())
         if p_size <= np.sqrt(len(self.atoms) * 1e-10):
             self.p /= (p_size / np.sqrt(len(self.atoms) * 1e-10))
         g = g.ravel()
@@ -308,7 +308,7 @@ class PreconLBFGS(Optimizer):
 
         if self.use_armijo:
             try:
-                ###CO: modified call to ls.run
+                # CO: modified call to ls.run
                 # TODO: pass also the old slope to the linesearch
                 #    so that the RumPath can extract a better starting guess?
                 #    alternatively: we can adjust the rotation_factors
@@ -318,25 +318,27 @@ class PreconLBFGS(Optimizer):
                                                    func_prime_start=g,
                                                    func_old=self.e0,
                                                    rigid_units=self.rigid_units,
-                                        rotation_factors=self.rotation_factors)
+                                                   rotation_factors=self.rotation_factors)
                 self.e0 = e
                 self.e1 = func_val
                 self.alpha_k = step
             except (ValueError, RuntimeError):
                 if not previously_reset_hessian:
-                    logger.warning('Armijo linesearch failed, resetting Hessian and trying again')
+                    logger.warning(
+                        'Armijo linesearch failed, resetting Hessian and trying again')
                     self.reset_hessian()
                     self.alpha_k = 0.0
                 else:
-                    logger.error('Armijo linesearch failed after reset of Hessian, aborting')
+                    logger.error(
+                        'Armijo linesearch failed after reset of Hessian, aborting')
                     raise
 
         else:
             ls = LineSearch()
             self.alpha_k, e, self.e0, self.no_update = \
-               ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
-                               maxstep=self.maxstep, c1=self.c1,
-                               c2=self.c2, stpmax=50.)
+                ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
+                                maxstep=self.maxstep, c1=self.c1,
+                                c2=self.c2, stpmax=50.)
             self.e1 = e
             if self.alpha_k is None:
                 raise RuntimeError('Wolff lineSearch failed!')
