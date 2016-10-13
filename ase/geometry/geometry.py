@@ -66,19 +66,17 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     return np.dot(fractional, cell)
 
 
-def undo_pbc_jumps(atoms):
+def undo_pbc_jumps(atoms, old_positions):
     """
     Return change in atomic positions since last call, correcting for jumps across PBC
+
+    Usage is `displacement, old_positions = undo_pbc_jumps(atoms, old_positions)`.
     """
-    if 'old_positions' not in atoms.arrays:
-        atoms.new_array('old_positions', atoms.positions.copy())
-    p = atoms.get_array('old_positions')
     g = np.linalg.inv(atoms.cell.T)
-    f = np.floor(np.dot(g, (atoms.positions - p).T) + 0.5)
+    f = np.floor(np.dot(g, (atoms.positions - old_positions).T) + 0.5)
     p -= np.dot(atoms.cell.T, f).T
-    d = (atoms.positions - p).copy()
-    atoms.set_array('old_positions', atoms.positions)
-    return d
+    d = (atoms.positions - old_positions).copy()
+    return (d, atoms.positions.copy())
 
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs

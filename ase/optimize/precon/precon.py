@@ -14,7 +14,7 @@ import ase.units as units
 THz = 1e12 * 1. / units.s
 
 from ase.optimize.precon import logger
-from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy, 
+from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
                                            estimate_nearest_neighbour_distance)
 
 try:
@@ -98,6 +98,7 @@ class Precon(object):
         self.array_convention = array_convention
         self.recalc_mu = recalc_mu
         self.P = None
+        self.old_positions = None
 
         global have_pyamg
         if use_pyamg and not have_pyamg:
@@ -188,7 +189,9 @@ class Precon(object):
             real_atoms = atoms
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
-            displacement = undo_pbc_jumps(real_atoms)
+            if self.old_positions is None:
+                self.old_positions = real_atoms.get_positions()
+            displacement, self.old_positions = undo_pbc_jumps(real_atoms, self.old_positions)
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
                         max_abs_displacement, max_abs_displacement / self.r_NN)
@@ -874,7 +877,9 @@ class Exp_FF(Exp, FF):
             real_atoms = atoms
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
-            displacement = undo_pbc_jumps(real_atoms)
+            if self.old_positions is None:
+                self.old_positions = real_atoms.get_positions()
+            displacement, self.old_positions = undo_pbc_jumps(real_atoms, self.old_positions)
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
                         max_abs_displacement, max_abs_displacement / self.r_NN)
