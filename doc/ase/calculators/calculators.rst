@@ -62,37 +62,37 @@ The calculators can be divided in four groups:
    the :ref:`Grimme-D3 <grimme>` potential.
 
 
-==================================   ===========================================
-name                                 description
-==================================   ===========================================
-Asap_                                Highly efficient EMT code
-GPAW_                                Real-space/plane-wave/LCAO PAW code
-Hotbit_                              DFT based tight binding
-:mod:`~ase.calculators.abinit`       Plane-wave pseudopotential code
-:mod:`~ase.calculators.castep`       Plane-wave pseudopotential code
-:mod:`~ase.calculators.cp2k`         DFT and classical potentials
-:mod:`~ase.calculators.dftb`         DFT based tight binding
-:mod:`~ase.calculators.eam`          Embedded Atom Method
-elk                                  Full Potential LAPW code
-:mod:`~ase.calculators.exciting`     Full Potential LAPW code
-:mod:`~ase.calculators.aims`         Numeric atomic orbital, full potential code
-:mod:`~ase.calculators.fleur`        Full Potential LAPW code
-gaussian                             Gaussian based electronic structure code
-:mod:`~ase.calculators.gromacs`      Classical molecular dynamics code
-:mod:`~ase.calculators.jacapo`       Plane-wave ultra-soft pseudopotential code
-:mod:`~ase.calculators.lammps`       Classical molecular dynamics code
-mopac                                ...
-:mod:`~ase.calculators.nwchem`       Gaussian based electronic structure code
-:mod:`~ase.calculators.octopus`      Real-space pseudopotential code
-:mod:`~ase.calculators.siesta`       LCAO pseudopotential code
-:mod:`~ase.calculators.turbomole`    Fast atom orbital code
-:mod:`~ase.calculators.vasp`         Plane-wave PAW code
-:mod:`~ase.calculators.emt`          Effective Medium Theory calculator
-lj                                   Lennard-Jones potential
-morse                                Morse potential
-:mod:`~ase.calculators.checkpoint`   Checkpoint calculator
-:mod:`~ase.calculators.loggingcalc`  Logging calculator
-===================================  ===========================================
+=================================== ===========================================
+name                                description
+=================================== ===========================================
+Asap_                               Highly efficient EMT code
+GPAW_                               Real-space/plane-wave/LCAO PAW code
+Hotbit_                             DFT based tight binding
+:mod:`~ase.calculators.abinit`      Plane-wave pseudopotential code
+:mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
+:mod:`~ase.calculators.cp2k`        DFT and classical potentials
+:mod:`~ase.calculators.dftb`        DFT based tight binding
+:mod:`~ase.calculators.eam`         Embedded Atom Method
+elk                                 Full Potential LAPW code
+:mod:`~ase.calculators.exciting`    Full Potential LAPW code
+:mod:`~ase.calculators.aims`        Numeric atomic orbital, full potential code
+:mod:`~ase.calculators.fleur`       Full Potential LAPW code
+gaussian                            Gaussian based electronic structure code
+:mod:`~ase.calculators.gromacs`     Classical molecular dynamics code
+:mod:`~ase.calculators.jacapo`      Plane-wave ultra-soft pseudopotential code
+:mod:`~ase.calculators.lammps`      Classical molecular dynamics code
+mopac                               ...
+:mod:`~ase.calculators.nwchem`      Gaussian based electronic structure code
+:mod:`~ase.calculators.octopus`     Real-space pseudopotential code
+:mod:`~ase.calculators.siesta`      LCAO pseudopotential code
+:mod:`~ase.calculators.turbomole`   Fast atom orbital code
+:mod:`~ase.calculators.vasp`        Plane-wave PAW code
+:mod:`~ase.calculators.emt`         Effective Medium Theory calculator
+lj                                  Lennard-Jones potential
+morse                               Morse potential
+:mod:`~ase.calculators.checkpoint`  Checkpoint calculator
+:mod:`~ase.calculators.loggingcalc` Logging calculator
+=================================== ===========================================
 
 .. index:: D3, Grimme
 .. _grimme:
@@ -208,6 +208,7 @@ the :meth:`set` method:
    vasp
    qmmm
    checkpointing
+   loggingcalc
    others
    test
    ase_qmmm_manyqm
