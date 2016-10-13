@@ -4,6 +4,7 @@ from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms
 from ase.optimize import BFGS, QuasiNewton
 from ase.neb import NEB
+from ase.io import Trajectory
 
 # Distance between Cu atoms on a (111) surface:
 a = 3.6
@@ -70,3 +71,10 @@ if locals().get('display'):
     import os
     error = os.system('ase-gui mep.traj@-7:')
     assert error == 0
+
+# Trying to read description of optimization from trajectory
+traj = Trajectory('mep.traj')
+assert traj.description['optimizer'] == 'BFGS'
+for key, value in traj.description.items():
+    print(key, value)
+print(traj.ase_version)
