@@ -72,8 +72,9 @@ def undo_pbc_jumps(atoms, old_positions):
 
     Usage is `displacement, old_positions = undo_pbc_jumps(atoms, old_positions)`.
     """
+    p = old_positions.copy()
     g = np.linalg.inv(atoms.cell.T)
-    f = np.floor(np.dot(g, (atoms.positions - old_positions).T) + 0.5)
+    f = np.floor(np.dot(g, (atoms.positions - p).T) + 0.5)
     p -= np.dot(atoms.cell.T, f).T
     d = (atoms.positions - old_positions).copy()
     return (d, atoms.positions.copy())
