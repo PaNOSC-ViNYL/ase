@@ -405,7 +405,11 @@ class Precon(object):
             c_stab = self.c_stab
             self.c_stab = 0.0
 
-            P0 = self._make_sparse_precon(atoms, initial_assembly=True)
+            if isinstance(atoms, Filter):
+                n = len(atoms.atoms)
+            else:
+                n = len(atoms)
+            P0 = self._make_sparse_precon(atoms, initial_assembly=True)[:3*n,:3*n]
             eigvals, eigvecs = sparse.linalg.eigsh(P0, k=4, which='SM')
 
             logger.debug('estimate_mu(): lowest 4 eigvals = %f %f %f %f'
@@ -418,7 +422,20 @@ class Precon(object):
                 raise ValueError("Fourth smallest eigenvalue of preconditioner matrix"
                                  "is too small, increase r_cut.")
 
-            v = np.dot(H, eigvecs[:,3].reshape((-1,3)).T).T
+            x = np.zeros(n)
+            for i in range(n):
+                x[i] = eigvecs[:,3][3*i]
+            x = x / np.linalg.norm(x)
+            if x[0] < 0:
+                x = -x
+
+            v = np.zeros(3*len(atoms))
+            for i in range(n):
+                v[3*i] = x[i]
+                v[3*i+1] = x[i]
+                v[3*i+2] = x[i]
+            v = v / np.linalg.norm(v)
+            v = v.reshape((-1,3))
 
             self.c_stab = c_stab
         else:
