@@ -35,13 +35,19 @@ class BFGS(Optimizer):
             Defaults to None, which causes only rank 0 to save files.  If
             set to true,  this rank will save files.
         """
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
-
         if maxstep is not None:
             if maxstep > 1.0:
                 raise ValueError('You are using a much too large value for ' +
                                  'the maximum step size: %.1f Å' % maxstep)
             self.maxstep = maxstep
+
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
+
+    def todict(self):
+        d = Optimizer.todict(self)
+        if hasattr(self, 'maxstep'):
+            d.update(maxstep=self.maxstep)
+        return d
 
     def initialize(self):
         self.H = None

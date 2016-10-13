@@ -55,6 +55,13 @@ class Langevin(MolecularDynamics):
         self.communicator = communicator
         self.updatevars()
 
+    def todict(self):
+        d = MolecularDynamics.todict(self)
+        d.update({'temperature': self.temp,
+                  'friction': self.fr,
+                  'fix-cm': self.fixcm})
+        return d
+
     def set_temperature(self, temperature):
         self.temp = temperature
         self.updatevars()

@@ -12,7 +12,7 @@ class BasinHopping(Dynamics):
 
     After Wales and Doye, J. Phys. Chem. A, vol 101 (1997) 5111-5116
 
-    and 
+    and
 
     David J. Wales and Harold A. Scheraga, Science, Vol. 285, 1368 (1999)
     """
@@ -22,7 +22,7 @@ class BasinHopping(Dynamics):
                  optimizer=FIRE,
                  fmax=0.1,
                  dr=0.1,
-                 logfile='-', 
+                 logfile='-',
                  trajectory='lowest.traj',
                  optimizer_logfile='-',
                  local_minima_trajectory='local_minima.traj',
@@ -39,7 +39,6 @@ class BasinHopping(Dynamics):
             If *logfile* is a string, a file with that name will be opened.
             Use '-' for stdout.
         """
-        Dynamics.__init__(self, atoms, logfile, trajectory)
         self.kT = temperature
         self.optimizer = optimizer
         self.fmax = fmax
@@ -53,9 +52,19 @@ class BasinHopping(Dynamics):
         self.lm_trajectory = local_minima_trajectory
         if isinstance(local_minima_trajectory, str):
             self.lm_trajectory = Trajectory(local_minima_trajectory,
-                                                  'w', atoms)
+                                            'w', atoms)
 
+        Dynamics.__init__(self, atoms, logfile, trajectory)
         self.initialize()
+
+    def todict(self):
+        d = {'type': 'optimization',
+             'optimizer': self.__class__.__name__,
+             'local-minima-optimizer': self.optimizer.__name__,
+             'temperature': self.kT,
+             'max-force': self.fmax,
+             'maximal-step-width': self.dr}
+        return d
 
     def initialize(self):
         self.positions = 0.0 * self.atoms.get_positions()
@@ -64,13 +73,13 @@ class BasinHopping(Dynamics):
         self.positions = self.atoms.get_positions()
         self.call_observers()
         self.log(-1, self.Emin, self.Emin)
-                
+
     def run(self, steps):
         """Hop the basins for defined number of steps."""
 
         ro = self.positions
         Eo = self.get_energy(ro)
- 
+
         for step in range(steps):
             En = None
             while En is None:
@@ -123,9 +132,9 @@ class BasinHopping(Dynamics):
         if np.sometrue(self.positions != positions):
             self.positions = positions
             self.atoms.set_positions(positions)
- 
+
             try:
-                opt = self.optimizer(self.atoms, 
+                opt = self.optimizer(self.atoms,
                                      logfile=self.optimizer_logfile)
                 opt.run(fmax=self.fmax)
                 if self.lm_trajectory is not None:
@@ -136,5 +145,5 @@ class BasinHopping(Dynamics):
                 # Something went wrong.
                 # In GPAW the atoms are probably to near to each other.
                 return None
-            
+
         return self.energy

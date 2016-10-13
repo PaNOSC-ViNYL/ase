@@ -46,7 +46,7 @@ class Dynamics:
             else:
                 logfile = open(logfile, 'a')
         self.logfile = logfile
-        
+
         self.observers = []
         self.nsteps = 0
 
@@ -76,6 +76,10 @@ class Dynamics:
         arguments *args* and keyword arguments *kwargs*.  This is
         currently zero indexed."""
 
+        if hasattr(function, 'set_description'):
+            d = self.todict()
+            d.update(interval=interval)
+            function.set_description(d)
         if not hasattr(function, '__call__'):
             function = function.write
         self.observers.append((function, interval, args, kwargs))
@@ -130,6 +134,11 @@ class Optimizer(Dynamics):
             self.read()
             barrier()
 
+    def todict(self):
+        description = {'type': 'optimization',
+                       'optimizer': self.__class__.__name__}
+        return description
+ 
     def initialize(self):
         pass
 
