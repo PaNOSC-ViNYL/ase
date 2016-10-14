@@ -45,7 +45,7 @@ class Status:
         ordered_indices = self.images.selected_ordered
         n = len(indices)
         self.nselected = n
-        
+
         if n == 0:
             self.label.set_text('')
             return
@@ -54,14 +54,14 @@ class Status:
         R = self.R[indices]
 
         if n == 1:
-            tag = self.images.T[self.frame,indices][0]
+            tag = self.images.T[self.frame, indices][0]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
             text += _(' tag=%(tag)s') % dict(tag=tag)
             if self.images.M.any():
                 # TRANSLATORS: mom refers to magnetic moment
                 text += _(' mom={0:1.2f}'.format(
-                    self.images.M[self.frame][indices]))
+                    self.images.M[self.frame][indices][0]))
             if self.images.q.any():
                 text += _(' q={0:1.2f}'.format(
                     self.images.q[self.frame][indices][0]))
@@ -108,9 +108,9 @@ class Status:
                     % tuple([_('dihedral')] + [symbols[z] for z in Z]+[angle]))
         else:
             text = ' ' + formula(Z)
-            
+
         self.label.set_markup(text)
-        
+
 if __name__ == '__main__':
     import os
     os.system('python gui.py')
