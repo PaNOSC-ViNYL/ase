@@ -7,7 +7,7 @@ import numpy as np
 
 from ase.constraints import Filter, FixAtoms
 from ase.utils import sum128, dot128
-from ase.geometry import undo_pbc_jumps
+from ase.geometry import wrap_positions
 import ase.utils.ff as ff
 
 import ase.units as units
@@ -190,8 +190,9 @@ class Precon(object):
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
             if self.old_positions is None:
-                self.old_positions = real_atoms.get_positions()
-            displacement, self.old_positions = undo_pbc_jumps(real_atoms, self.old_positions)
+                self.old_positions = wrap_positions(real_atoms.positions)
+            displacement = wrap_positions(real_atoms.positions) - self.old_positions
+            self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
                         max_abs_displacement, max_abs_displacement / self.r_NN)
@@ -895,8 +896,9 @@ class Exp_FF(Exp, FF):
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
             if self.old_positions is None:
-                self.old_positions = real_atoms.get_positions()
-            displacement, self.old_positions = undo_pbc_jumps(real_atoms, self.old_positions)
+                self.old_positions = wrap_positions(real_atoms.positions)
+            displacement = wrap_positions(real_atoms.positions) - self.old_positions
+            self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
                         max_abs_displacement, max_abs_displacement / self.r_NN)
