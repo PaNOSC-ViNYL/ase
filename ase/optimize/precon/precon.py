@@ -190,8 +190,8 @@ class Precon(object):
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
             if self.old_positions is None:
-                self.old_positions = wrap_positions(real_atoms.positions)
-            displacement = wrap_positions(real_atoms.positions) - self.old_positions
+                self.old_positions = wrap_positions(real_atoms.positions, real_atoms.cell)
+            displacement = wrap_positions(real_atoms.positions, real_atoms.cell) - self.old_positions
             self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
@@ -896,8 +896,8 @@ class Exp_FF(Exp, FF):
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
             if self.old_positions is None:
-                self.old_positions = wrap_positions(real_atoms.positions)
-            displacement = wrap_positions(real_atoms.positions) - self.old_positions
+                self.old_positions = wrap_positions(real_atoms.positions, real_atoms.cell)
+            displacement = wrap_positions(real_atoms.positions, real_atoms.cell) - self.old_positions
             self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
