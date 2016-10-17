@@ -61,6 +61,8 @@ Git master branch
   There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
   method.
 
+* Galician translation of ASE's GUI
+
 
 Version 3.11.0
 ==============
