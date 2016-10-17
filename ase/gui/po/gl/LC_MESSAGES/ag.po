@@ -8,17 +8,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2016-10-17 16:36+0200\n"
-"PO-Revision-Date: 2016-10-17 16:42+0200\n"
+"POT-Creation-Date: 2016-10-17 16:24+0200\n"
+"PO-Revision-Date: 2016-10-17 17:55+0200\n"
 "Last-Translator: Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>\n"
 "Language-Team: Galician\n"
-"Language: gl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: gl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../ag.py:135
+#: ../ag.py:141
 msgid "To get a full traceback, use: ase-gui --verbose"
 msgstr "Para ollar o traceback completo, use ase-gui --verbose"
 
@@ -757,7 +757,7 @@ msgstr "Negro - verde - blanco"
 
 #: ../colors.py:145
 msgid "Black - blue - cyan"
-msgstr "Negro - azul - cián"
+msgstr "Negro - azul - ciano"
 
 #: ../colors.py:146
 msgid "Blue - white - red"
@@ -877,7 +877,7 @@ msgstr "  y: "
 msgid "  z: "
 msgstr "  z: "
 
-#: ../crystal.py:80 ../surfaceslab.py:128 ../surfaceslab.py:130
+#: ../crystal.py:80 ../surfaceslab.py:127 ../surfaceslab.py:129
 msgid " unit cells"
 msgstr " celdas unidades"
 
@@ -982,12 +982,12 @@ msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conxunto consistente de átomos."
 
 #: ../crystal.py:348 ../graphene.py:253 ../nanoparticle.py:614
-#: ../nanotube.py:160 ../surfaceslab.py:250
+#: ../nanotube.py:160 ../surfaceslab.py:248
 msgid "No valid atoms."
 msgstr "Os átomos no son válidos."
 
 #: ../crystal.py:349 ../graphene.py:254 ../nanoparticle.py:615
-#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:251
+#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:249
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "Aínda non especificou un conxunto consistente de parámetros."
 
@@ -1201,7 +1201,7 @@ msgstr "Grafeno"
 #. Choose the surface structure
 #: ../graphene.py:39 ../nanoparticle.py:139 ../surfaceslab.py:78
 msgid "Structure: "
-msgstr "Estructura: "
+msgstr "Estrutura: "
 
 #: ../graphene.py:41
 msgid "Infinite sheet"
@@ -1440,7 +1440,7 @@ msgstr "_Invertir selección"
 
 #: ../gui.py:208
 msgid "Select _constrained atoms"
-msgstr "Seleccionar os átomos _restrinxidos"
+msgstr "Seleccionar átomos _restrinxidos"
 
 #: ../gui.py:210
 msgid "Select _immobile atoms"
@@ -1537,7 +1537,7 @@ msgstr "Enfocar"
 
 #: ../gui.py:244
 msgid "Zoom in"
-msgstr "Ampriar"
+msgstr "Ampliar"
 
 #: ../gui.py:245
 msgid "Zoom out"
@@ -1633,7 +1633,7 @@ msgstr "Modo experto ..."
 
 #: ../gui.py:274
 msgid "Constraints ..."
-msgstr "Restricciones ..."
+msgstr "Restriccións ..."
 
 #: ../gui.py:276
 msgid "Render scene ..."
@@ -1701,7 +1701,7 @@ msgstr "Calcular enerxía e forzas"
 
 #: ../gui.py:297
 msgid "Energy _Minimization"
-msgstr "_Minimización de enerxía"
+msgstr "_Minimización enerxética"
 
 #: ../gui.py:298
 msgid "Minimize the energy"
@@ -1709,7 +1709,7 @@ msgstr "Minimize a enerxía"
 
 #: ../gui.py:299
 msgid "Scale system"
-msgstr "Escale o sistema"
+msgstr "Escalar sistema"
 
 #: ../gui.py:300
 msgid "Deform system by scaling it"
@@ -1729,27 +1729,27 @@ msgstr "Depurar..."
 
 #: ../gui.py:306
 msgid "Show _unit cell"
-msgstr "Mostrar a celda _unidade"
+msgstr "Mostrar celda _unidade"
 
 #: ../gui.py:308
 msgid "Show _axes"
-msgstr "Mostrar os _eixes"
+msgstr "Mostrar _eixes"
 
 #: ../gui.py:310
 msgid "Show _bonds"
-msgstr "Mostrar os _enlaces"
+msgstr "Mostrar _enlaces"
 
 #: ../gui.py:312
 msgid "Show _velocities"
-msgstr "Mostrar as _velocidades"
+msgstr "Mostrar _velocidades"
 
 #: ../gui.py:314
 msgid "Show _forces"
-msgstr "Mostrar as _forzas"
+msgstr "Mostrar _forzas"
 
 #: ../gui.py:317
 msgid "_Move atoms"
-msgstr "_Mover os átomos"
+msgstr "_Mover átomos"
 
 #: ../gui.py:319
 msgid "_Rotate atoms"
@@ -1757,7 +1757,7 @@ msgstr "_Xirar átomos"
 
 #: ../gui.py:321
 msgid "Orien_t atoms"
-msgstr "Orien_tar os átomos"
+msgstr "Orien_tar átomos"
 
 #: ../gui.py:326
 msgid "_None"
@@ -1765,7 +1765,7 @@ msgstr "_Ningún"
 
 #: ../gui.py:327
 msgid "Atom _Index"
-msgstr "_Índice do Atom"
+msgstr "_Índice do Átomo"
 
 #: ../gui.py:328
 msgid "_Magnetic Moments"
@@ -1793,7 +1793,7 @@ msgstr "Pegar"
 
 #: ../gui.py:759
 msgid "Insert atom or molecule"
-msgstr "Insertar átomo o molécula"
+msgstr "Engadir átomo ou molécula"
 
 #: ../gui.py:760 ../gui.py:882
 msgid "Tag"
@@ -1876,7 +1876,7 @@ msgstr "Paso de pseudotempo: "
 
 #: ../minimize.py:59
 msgid "Energy minimization"
-msgstr "Minimización da enerxía"
+msgstr "Minimización enerxética"
 
 #: ../minimize.py:63
 msgid "Minimize the energy with respect to the positions."
@@ -1946,12 +1946,11 @@ msgstr ""
 "Crear unha nanopartícula especificando o número de capas,\n"
 "ou utilizando a construcción de Wulff. Por favor, presione\n"
 "o boton de axuda para ler as instruccións sobre cómo\n"
-"especificar as direccions.\n"
-"¡ADVERTENCIA: Nesta versión, a construcción de Wulff \n"
+"especificar as direccións.\n"
+"¡ADVERTENCIA: nesta versión, a construcción de Wulff \n"
 "sólo funciona para cristais cúbicos!\n"
 
 #: ../nanoparticle.py:27
-#, python-brace-format
 msgid ""
 "\n"
 "The nanoparticle module sets up a nano-particle or a cluster with a given\n"
@@ -2048,7 +2047,7 @@ msgstr "Elemento: "
 
 #: ../nanoparticle.py:131
 msgid "Get structure"
-msgstr "Obter a estructura"
+msgstr "Obter estrutura"
 
 #: ../nanoparticle.py:155
 msgid "Lattice constant:  a ="
@@ -2168,13 +2167,13 @@ msgstr "O menos un índice debe ser distinto de cero"
 msgid "Invalid hexagonal indices"
 msgstr "Índices hexagonales inválidos"
 
-#: ../nanoparticle.py:477 ../surfaceslab.py:220
+#: ../nanoparticle.py:477 ../surfaceslab.py:218
 msgid "Invalid element."
 msgstr "Elemento inválido."
 
 #: ../nanoparticle.py:487
 msgid "Unsupported or unknown structure"
-msgstr "Estructura non soportada ou descoñecida"
+msgstr "Estrutura non soportada ou descoñecida"
 
 #: ../nanoparticle.py:604
 #, python-format
@@ -2198,11 +2197,11 @@ msgstr ""
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
+"(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: %"
+"(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
@@ -2453,7 +2452,7 @@ msgstr "Renderizando %d átomos."
 
 #: ../render.py:42
 msgid "Render constraints"
-msgstr "Mostra restriccións"
+msgstr "Mostrar restriccións"
 
 #: ../render.py:45
 msgid "Width"
@@ -2465,7 +2464,7 @@ msgstr "     Altura"
 
 #: ../render.py:53
 msgid "Render unit cell"
-msgstr "Renderiza celda unidade"
+msgstr "Renderizar celda unidade"
 
 #: ../render.py:62
 msgid "Line width"
@@ -2497,7 +2496,7 @@ msgstr "    transparencia: "
 
 #: ../render.py:91
 msgid "Define atom selection for new texture:"
-msgstr "Definir a selección do átomo para nova textura:"
+msgstr "Definir a selección do átomo para a nova textura:"
 
 #: ../render.py:93
 msgid "Select"
@@ -2570,7 +2569,7 @@ msgstr "Fixar celda unidade"
 
 #: ../rotate.py:14
 msgid "Rotate"
-msgstr "Rotar"
+msgstr "Xirar"
 
 #: ../rotate.py:16
 msgid "Rotation angles:"
@@ -2600,8 +2599,8 @@ msgid ""
 "of images.\n"
 "You can leave out \"start\" and \"stop\" so that \"name@:\" will give you "
 "all images.\n"
-"Negative numbers count from the last image (\"name@-1\": last image, "
-"\"name@-2:\": last two)."
+"Negative numbers count from the last image (\"name@-1\": last image, \"name@-"
+"2:\": last two)."
 msgstr ""
 "Engada \"@n\" o nome para escribir a imáxe número \"n\" en vez da imaxe "
 "actual.\n"
@@ -2679,7 +2678,7 @@ msgstr "Número de pasos: "
 
 #: ../scaling.py:107
 msgid "Only positive deformation"
-msgstr "Sólo deformaciones positivas"
+msgstr "Sólo deformacións positivas"
 
 #. Atomic relaxations
 #: ../scaling.py:112
@@ -2688,11 +2687,11 @@ msgstr "Relaxacións atómicas:"
 
 #: ../scaling.py:116
 msgid "On   "
-msgstr "Encendido   "
+msgstr "Activo   "
 
 #: ../scaling.py:117
 msgid "Off"
-msgstr "Apagado"
+msgstr "Inactivo"
 
 #. Results
 #: ../scaling.py:128
@@ -2709,7 +2708,7 @@ msgstr "Cargala configuración óptima"
 
 #: ../scaling.py:134
 msgid "Load all configurations"
-msgstr "Cargar tódalas configuracions"
+msgstr "Cargar tódalas configuracións"
 
 #: ../scaling.py:143
 msgid "Strain\t\tEnergy [eV]"
@@ -2881,23 +2880,14 @@ msgstr "No hai un calculador. Use Calcular/Fixar Calculador no menú."
 msgid "Tip for status box ..."
 msgstr "Consello para a ventá de estado ..."
 
-#: ../status.py:60
-#, python-format
-msgid " tag=%(tag)s"
+#. TRANSLATORS: mom refers to magnetic moment
+#: ../status.py:62
+#, fuzzy, python-format
+#| msgid " tag=%(tag)s"
+msgid " tag=%(tag)s mom=%(mom)1.2f"
 msgstr " etiqueta=%(tag)s"
 
-#. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:63
-#, python-brace-format
-msgid " mom={0:1.2f}"
-msgstr " mom={0:1.2f}"
-
-#: ../status.py:66
-#, python-brace-format
-msgid " q={0:1.2f}"
-msgstr " q={0:1.2f}"
-
-#: ../status.py:108
+#: ../status.py:103
 msgid "dihedral"
 msgstr "diedro"
 
@@ -2920,7 +2910,7 @@ msgstr ""
 "togonal ou non ortogonal. Lembre que a celda unidade non ortogonal\n"
 "conterá menos átomos.\n"
 "\n"
-"  Se a estructura coincide coa experimental, pode mirar a constante de "
+"  Se a estrutura coincide coa experimental, pode mirar a constante de "
 "rede \n"
 "na base de datos de ASE, se non terá que especificala."
 
@@ -3011,50 +3001,50 @@ msgstr "Constante de rede: "
 msgid "a:"
 msgstr "a:"
 
-#: ../surfaceslab.py:110
+#: ../surfaceslab.py:109
 #, python-format
 msgid "(%.1f %% of ideal)"
 msgstr "(%.1f %% de ideal)"
 
-#: ../surfaceslab.py:127
+#: ../surfaceslab.py:126
 msgid "Size: \tx: "
 msgstr "Tamaño\tx: "
 
-#: ../surfaceslab.py:129
+#: ../surfaceslab.py:128
 msgid "\t\ty: "
 msgstr "\t\ty: "
 
-#: ../surfaceslab.py:131
+#: ../surfaceslab.py:130
 msgid "      \t\tz: "
 msgstr "      \t\tz: "
 
-#: ../surfaceslab.py:132
+#: ../surfaceslab.py:131
 msgid " layers,  "
 msgstr " capas,  "
 
-#: ../surfaceslab.py:133
+#: ../surfaceslab.py:132
 msgid " Å vacuum"
 msgstr " vacío en Å"
 
-#: ../surfaceslab.py:134
+#: ../surfaceslab.py:133
 msgid "\t\tNo size information yet."
 msgstr "\t\tAínda non hai información sobre o tamaño."
 
 #. Buttons
-#: ../surfaceslab.py:143
+#: ../surfaceslab.py:142
 msgid "Creating a surface slab."
 msgstr "Creando unha peza de superficie."
 
-#: ../surfaceslab.py:214
+#: ../surfaceslab.py:212
 #, python-format
 msgid "%i atoms."
 msgstr "Átomos %i."
 
-#: ../surfaceslab.py:226
+#: ../surfaceslab.py:224
 msgid "No structure specified!"
 msgstr "¡Non se especificou a estrutura!"
 
-#: ../surfaceslab.py:235
+#: ../surfaceslab.py:233
 #, python-format
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr ""
@@ -3067,3 +3057,9 @@ msgstr "Axuda"
 #: ../widgets.py:104
 msgid "Clear constraint"
 msgstr "Borrar restricción"
+
+#~ msgid " mom={0:1.2f}"
+#~ msgstr " mom={0:1.2f}"
+
+#~ msgid " q={0:1.2f}"
+#~ msgstr " q={0:1.2f}"
