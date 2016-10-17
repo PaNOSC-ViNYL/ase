@@ -195,7 +195,7 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-@parallel_function
+
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 
@@ -226,6 +226,11 @@ def write(filename, images, format=None, **kwargs):
 
     io = get_ioformat(format)
 
+    _write(filename, fd, format, io, images, **kwargs)
+
+
+@parallel_function
+def _write(filename, fd, format, io, images, **kwargs):
     if isinstance(images, Atoms):
         images = [images]
 
