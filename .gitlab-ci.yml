@@ -15,7 +15,8 @@ python_2_6_tests:
     - echo $PYTHONPATH
     # tests
     - python --version
-    - python -m ase.test
+    # module can't be executed as script on py 2.6
+    - python -m ase.test.__main__
 
 python_2_7_tests:
   script:
