@@ -195,7 +195,6 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-@parallel_function
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 
@@ -226,6 +225,11 @@ def write(filename, images, format=None, **kwargs):
 
     io = get_ioformat(format)
 
+    _write(filename, fd, format, io, images, **kwargs)
+
+
+@parallel_function
+def _write(filename, fd, format, io, images, **kwargs):
     if isinstance(images, Atoms):
         images = [images]
 
@@ -287,10 +291,12 @@ def read(filename, index=None, format=None, **kwargs):
     filename, index = parse_filename(filename, index)
     if index is None:
         index = -1
+    format = format or filetype(filename)
+    io = get_ioformat(format)
     if isinstance(index, (slice, basestring)):
-        return list(_iread(filename, index, format, **kwargs))
+        return list(_iread(filename, index, format, io, **kwargs))
     else:
-        return next(_iread(filename, slice(index, None), format, **kwargs))
+        return next(_iread(filename, slice(index, None), format, io, **kwargs))
 
 
 def iread(filename, index=None, format=None, **kwargs):
@@ -310,12 +316,15 @@ def iread(filename, index=None, format=None, **kwargs):
     if not isinstance(index, (slice, basestring)):
         index = slice(index, (index + 1) or None)
 
-    for atoms in _iread(filename, index, format, **kwargs):
+    format = format or filetype(filename)
+    io = get_ioformat(format)
+
+    for atoms in _iread(filename, index, format, io, **kwargs):
         yield atoms
 
 
 @parallel_generator
-def _iread(filename, index, format, full_output=False, **kwargs):
+def _iread(filename, index, format, io, full_output=False, **kwargs):
     compression = None
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
@@ -325,11 +334,6 @@ def _iread(filename, index, format, full_output=False, **kwargs):
         elif filename.endswith('.bz2'):
             compression = 'bz2'
             filename = filename[:-4]
-
-    if format is None:
-        format = filetype(filename)
-
-    io = get_ioformat(format)
 
     if not io.read:
         raise ValueError("Can't read from {0}-format".format(format))
