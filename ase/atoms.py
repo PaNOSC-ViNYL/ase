@@ -95,8 +95,8 @@ class Atoms(object):
           - adsorbate_info:
 
         Items in the info attribute survives copy and slicing and can
-        be store to and retrieved from trajectory files given that the
-        key is a string, the value is picklable and, if the value is a
+        be stored in and retrieved from trajectory files given that the
+        key is a string, the value is JSON-compatible and, if the value is a
         user-defined object, its base class is importable.  One should
         not make any assumptions about the existence of keys.
 
@@ -817,31 +817,40 @@ class Atoms(object):
         return len(self)
 
     def __repr__(self):
-        num = self.get_atomic_numbers()
-        N = len(num)
-        if N == 0:
-            symbols = ''
-        elif N <= 60:
+        tokens = []
+
+        N = len(self)
+        if N <= 60:
             symbols = self.get_chemical_formula('reduce')
         else:
             symbols = self.get_chemical_formula('hill')
-        s = "%s(symbols='%s', " % (self.__class__.__name__, symbols)
-        for name in self.arrays:
+        tokens.append("symbols='{}'".format(symbols))
+
+        tokens.append('pbc={}'.format(self._pbc.tolist()))
+
+        if (self._cell - np.diag(self._cell.diagonal())).any():
+            cell = self._cell.tolist()
+        else:
+            cell = self._cell.diagonal().tolist()
+        tokens.append('cell={}'.format(cell))
+
+        for name in sorted(self.arrays):
             if name == 'numbers':
                 continue
-            s += '%s=..., ' % name
-        if (self._cell - np.diag(self._cell.diagonal())).any():
-            s += 'cell=%s, ' % self._cell.tolist()
-        else:
-            s += 'cell=%s, ' % self._cell.diagonal().tolist()
-        s += 'pbc=%s, ' % self._pbc.tolist()
-        if len(self.constraints) == 1:
-            s += 'constraint=%s, ' % repr(self.constraints[0])
-        if len(self.constraints) > 1:
-            s += 'constraint=%s, ' % repr(self.constraints)
+            tokens.append('{}=...'.format(name))
+
+        if self.constraints:
+            if len(self.constraints) == 1:
+                constraint = self.constraints[0]
+            else:
+                constraint = self.constraints
+            tokens.append('constraint={}'.format(repr(constraint)))
+
         if self._calc is not None:
-            s += 'calculator=%s(...), ' % self._calc.__class__.__name__
-        return s[:-2] + ')'
+            tokens.append('calculator={}(...)'
+                          .format(self._calc.__class__.__name__))
+
+        return '{}({})'.format(self.__class__.__name__, ', '.join(tokens))
 
     def __add__(self, other):
         atoms = self.copy()
