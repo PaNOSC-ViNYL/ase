@@ -51,15 +51,16 @@ class EMT(Calculator):
 
     nolabel = True
 
-    def __init__(self, fixed_cutoff=True):
-        Calculator.__init__(self)
-        self.fixed_cutoff = fixed_cutoff
+    default_parameters = {'fixed_cutoff': True}
+
+    def __init__(self, **kwargs):
+        Calculator.__init__(self, **kwargs)
 
     def initialize(self, atoms):
         self.par = {}
         self.rc = 0.0
         self.numbers = atoms.get_atomic_numbers()
-        if self.fixed_cutoff:
+        if self.parameters.fixed_cutoff:
             relevant_pars = parameters
         else:
             relevant_pars = {}
