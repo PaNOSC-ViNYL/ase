@@ -1,4 +1,23 @@
 
+python_2_6_tests:
+  image: centos:6
+  script:
+    - yum -y update && yum clean all
+    - yum -y install scipy numpy
+    - pwd
+    - echo $HOME
+    - cd ..
+    - echo $PWD
+    # using 'install from source' instructions
+    - export PATH=$PATH:$CI_PROJECT_DIR/tools
+    - echo $PATH
+    - export PYTHONPATH=$CI_PROJECT_DIR
+    - echo $PYTHONPATH
+    # tests
+    - python --version
+    # module can't be executed as script on py 2.6
+    - python -m ase.test.__main__
+
 python_2_7_tests:
   script:
     - apt-get update -qy
