@@ -7,14 +7,14 @@ import numpy as np
 
 from ase.constraints import Filter, FixAtoms
 from ase.utils import sum128, dot128
-from ase.geometry import undo_pbc_jumps
+from ase.geometry import wrap_positions
 import ase.utils.ff as ff
 
 import ase.units as units
 THz = 1e12 * 1. / units.s
 
 from ase.optimize.precon import logger
-from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy, 
+from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
                                            estimate_nearest_neighbour_distance)
 
 try:
@@ -98,6 +98,7 @@ class Precon(object):
         self.array_convention = array_convention
         self.recalc_mu = recalc_mu
         self.P = None
+        self.old_positions = None
 
         global have_pyamg
         if use_pyamg and not have_pyamg:
@@ -188,7 +189,10 @@ class Precon(object):
             real_atoms = atoms
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
-            displacement = undo_pbc_jumps(real_atoms)
+            if self.old_positions is None:
+                self.old_positions = wrap_positions(real_atoms.positions, real_atoms.cell)
+            displacement = wrap_positions(real_atoms.positions, real_atoms.cell) - self.old_positions
+            self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
                         max_abs_displacement, max_abs_displacement / self.r_NN)
@@ -419,7 +423,11 @@ class Precon(object):
             c_stab = self.c_stab
             self.c_stab = 0.0
 
-            P0 = self._make_sparse_precon(atoms, initial_assembly=True)
+            if isinstance(atoms, Filter):
+                n = len(atoms.atoms)
+            else:
+                n = len(atoms)
+            P0 = self._make_sparse_precon(atoms, initial_assembly=True)[:3*n,:3*n]
             eigvals, eigvecs = sparse.linalg.eigsh(P0, k=4, which='SM')
 
             logger.debug('estimate_mu(): lowest 4 eigvals = %f %f %f %f'
@@ -432,7 +440,20 @@ class Precon(object):
                 raise ValueError("Fourth smallest eigenvalue of preconditioner matrix"
                                  "is too small, increase r_cut.")
 
-            v = np.dot(H, eigvecs[:, 3].reshape((-1, 3)).T).T
+            x = np.zeros(n)
+            for i in range(n):
+                x[i] = eigvecs[:,3][3*i]
+            x = x / np.linalg.norm(x)
+            if x[0] < 0:
+                x = -x
+
+            v = np.zeros(3*len(atoms))
+            for i in range(n):
+                v[3*i] = x[i]
+                v[3*i+1] = x[i]
+                v[3*i+2] = x[i]
+            v = v / np.linalg.norm(v)
+            v = v.reshape((-1,3))
 
             self.c_stab = c_stab
         else:
@@ -874,7 +895,10 @@ class Exp_FF(Exp, FF):
             real_atoms = atoms
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
-            displacement = undo_pbc_jumps(real_atoms)
+            if self.old_positions is None:
+                self.old_positions = wrap_positions(real_atoms.positions, real_atoms.cell)
+            displacement = wrap_positions(real_atoms.positions, real_atoms.cell) - self.old_positions
+            self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
                         max_abs_displacement, max_abs_displacement / self.r_NN)
