@@ -48,7 +48,7 @@ Git master branch
   :func:`~ase.dft.kpoints.labels_from_kpts` and
   :func:`~ase.dft.kpoints.bandpath`.
 
-* Helper function for generation of Monkhors-Pack samplings and BZ-paths:
+* Helper function for generation of Monkhorst-Pack samplings and BZ-paths:
   :func:`ase.calculators.calculator.kpts2ndarray`.
 
 * Useful class for testing band-structure stuff:
@@ -60,6 +60,8 @@ Git master branch
   ``[a, b, c, alpha, beta, gamma]``, where the three angles are in degrees.
   There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
   method.
+
+* Galician translation of ASE's GUI
 
 
 Version 3.11.0

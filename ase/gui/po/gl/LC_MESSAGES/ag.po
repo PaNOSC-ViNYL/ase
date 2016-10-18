@@ -1,27 +1,26 @@
-# Danish translations for ASE package
-# Danske oversættelser for pakken ASE.
-# Copyright (C) 2011-2016 ASE developers
+# Galician translations for ase package.
+# Copyright (C) 2016 ASE developers
 # This file is distributed under the same license as the ASE package.
 #
-# Ask Hjorth Larsen <asklarsen@gmail.com>, 2011-2016.
+# Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>, 2016.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: ase-3.5.2\n"
+"Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2016-10-17 18:07+0200\n"
-"PO-Revision-Date: 2016-10-18 00:43+0200\n"
-"Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
-"Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
-"Language: da\n"
+"POT-Creation-Date: 2016-10-17 16:24+0200\n"
+"PO-Revision-Date: 2016-10-17 17:55+0200\n"
+"Last-Translator: Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>\n"
+"Language-Team: Galician\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Language: gl\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../ag.py:135
+#: ../ag.py:141
 msgid "To get a full traceback, use: ase-gui --verbose"
-msgstr "Kør ase-gui --verbose for at se det fulde traceback"
+msgstr "Para ollar o traceback completo, use ase-gui --verbose"
 
 #. Asap and GPAW may be imported if selected.
 #: ../calculator.py:18
@@ -31,10 +30,6 @@ msgid ""
 "different elements, and implementing different physical models for the\n"
 "interatomic interactions."
 msgstr ""
-"For at kunne foretage de fleste typer atomare beregninger, skal der\n"
-"først tilknyttes et beregnerobject (Calculator).  ASE tilbyder\n"
-"adskillige beregnere, som understøtter forskellige grundstoffer, og\n"
-"implementerer forskellige fysiske modeller for atomernes vekselvirkning."
 
 #. Informational text about the calculators
 #: ../calculator.py:26
@@ -46,12 +41,6 @@ msgid ""
 "Interactions are described by an interaction length and an\n"
 "interaction strength."
 msgstr ""
-"Lennard-Jones-parpotentialet er en af de simpleste mulige modeller for\n"
-"atomare interaktioner, og er især nyttigt til ædelgasser og\n"
-"modelsystemer.\n"
-"\n"
-"Interaktionerne beskrives ved en interaktionslængde og en\n"
-"interaktionsstyrke."
 
 #: ../calculator.py:35
 msgid ""
@@ -88,39 +77,6 @@ msgid ""
 "CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
 "J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
 msgstr ""
-"EMT-potentialet er et mangepartikelpotential, som giver en god\n"
-"beskrivelse af de sene overgangsmetaller som danner FCC-strukturer.\n"
-"Grundstofferne som beskrives af hoveddelen af EMT-parametrene er Al,\n"
-"Ni, Cu, Pd, Ag, Pt og Au.  Dog er Al-potentialet ikke egnet til\n"
-"anvendelse i materialevidenskab, da energien for fejl i krystalstrukturen\n"
-"er forkert.\n"
-"\n"
-"Der medfølger en række standardparametre.\n"
-"\n"
-"<b>Standardparametre:</b>\n"
-"\n"
-"Standardparametrene som udgivet i K. W. Jacobsen,\n"
-"P. Stoltze og J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
-"\n"
-"<b>Alternativ Cu, Ag og Au:</b>\n"
-"\n"
-"Et alternativt sæt parametre for Cu, Ag og Au, genoptimeret til\n"
-"eksperimentelle data inklusive energier for krystalfejl af Torben\n"
-"Rasmussen (delvis upubliceret).\n"
-"\n"
-"<b>Ruthenium:</b>\n"
-"\n"
-"Parametre for ruthenium som udgivet i  J. Gavnholt og\n"
-"J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
-"\n"
-"<b>Metalglas:</b>\n"
-"\n"
-"Parametre for MgCu- og CuZr-metalglas. MgCu-parametrene findes i\n"
-"N. P. Bailey, J. Schiøtz anog K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</"
-"b>, \n"
-"144205 (2004).\n"
-"CuZr findes i A. Paduraru, A. Kenoufi, N. P. Bailey og\n"
-"J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
 
 #: ../calculator.py:70
 msgid ""
@@ -137,16 +93,6 @@ msgid ""
 "implementation is mainly to make EMT available when ASAP is\n"
 "not installed.\n"
 msgstr ""
-"EMT-potentialet er et mangepartikelpotential, som giver en god\n"
-"beskrivelse af de sene overgangsmetaller som danner FCC-strukturer.\n"
-"Grundstofferne som beskrives af hoveddelen af EMT-parametrene er Al,\n"
-"Ni, Cu, Pd, Ag, Pt og Au.  Yderligere tillader denne implementation\n"
-"brugen af H-, N-, O- og C-adatomer, selvom beskrivelsen af disse\n"
-"sandsynligvis er dårlig.\n"
-"\n"
-"<b>Dette er ASE's implementation af EMT.</b> For støre simulationer er\n"
-"ASAP-implementationen bedre; denne implementation bruges hovedsageligt\n"
-"for at tilbyde en EMT-beskrivelse når ASAP ikke er installeret.\n"
 
 #: ../calculator.py:85
 msgid ""
@@ -176,30 +122,6 @@ msgid ""
 "new EAM/ADP poentials by matching results using ab\n"
 "initio.\n"
 msgstr ""
-"EAM/ADP potentialet er ee mangelegme-potential\n"
-"implementering af Embedded Atom Method og\n"
-"equipotential plus Angular Dependent Potential,\n"
-"hvilket er en udvidelse til EAM de inkluderer\n"
-"retningsafhængige bindinger. EAM er velegnet til FCC metalliske\n"
-"bindinger og ADP er velegnet til metalliske bindinger\n"
-"med nogen grad af retningsafhængighed.\n"
-"\n"
-"For EAM se M.S. Daw and M.I. Baskes,\n"
-"Phys. Rev. Letters 50 (1983) 1285.\n"
-"\n"
-"For ADP se Y. Mishin, M.J. Mehl, and\n"
-"D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
-"4029--4041.\n"
-"\n"
-"Data for potentialet er indeholdt i en fil i enten LAMMPS Alloy\n"
-"eller ADP formatet som skal indlæses før brug. Interatomic\n"
-"Potentials Repository Project (http://www.ctcms.nist.gov/potentials/)\n"
-"indeholder mange passende potential filer.\n"
-"\n"
-"For store simulationer er LAMMPS beregneren mere\n"
-"passende; denne implementation er hovedsageligis inkluderet for at\n"
-"gøre EAM tilgængelig når LAMMPS ikke er installeret eller for at udvikle\n"
-"nye EAM/ADP poentialer ved at matche ab initio resultater.\n"
 
 #: ../calculator.py:113
 msgid ""
@@ -222,23 +144,6 @@ msgid ""
 "  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
 "  doi: 10.1088/0953-8984/14/4/312\n"
 msgstr ""
-"Brennerpotentialet er et reaktivt bindingsordenspotential til kulstof og "
-"kulbrinter.  Som et bindingsordenspotential tager det højde for at "
-"kulstoforbitaler kan hybridisere på forskellige måder, og at kulstof kan "
-"danne enkelt- dobbelt- og tripelbindinger.  At potentialet er reaktivt "
-"betyder, at det kan beskrive gradvise ændringer i bindingsorden efterhånden "
-"som kemiske bindinger dannes eller brydes.\n"
-"\n"
-"Brennerpotentialet er implementeret i ASAP baseret på en C-implementation "
-"publiceret på siden http://www.rahul.net/pcm/brenner/ .\n"
-"\n"
-"Potentialet dokumenteres her:\n"
-"  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
-"  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
-"  \"A second-generation reactive empirical bond order (REBO)\n"
-"  potential energy expression for hydrocarbons\",\n"
-"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
-"  doi: 10.1088/0953-8984/14/4/312\n"
 
 #: ../calculator.py:135
 msgid ""
@@ -247,10 +152,6 @@ msgid ""
 "functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
 "method for handling the core regions.\n"
 msgstr ""
-"GPAW implementerer tæthedsfunktionalteori med en <b>G</b>itterbaseret\n"
-"repræsentation af bølgefunktioner i det reelle rum, samt\n"
-"<b>P</b>rojector <b>A</b>ugmented <b>W</b>ave-metoden til behandling\n"
-"af regionen omkring atomkerner.\n"
 
 #: ../calculator.py:142
 msgid ""
@@ -262,12 +163,6 @@ msgid ""
 "documentation contains information on the keywords and\n"
 "functionalities available within this interface.\n"
 msgstr ""
-"FHI-aims er en ekstern pakke, der implementerer tæthedsfunktionalteori\n"
-"og kvantekemiske metoder ved brug af \"all-electron\"-metoder og et\n"
-"numerisk lokaliseret atomart basissæt. De fulde detaljer kan findes på\n"
-"http://www.fhi-berlin.mpg.de/aims/ eller i Comp. Phys. Comm. v180 2175\n"
-"(2009). ASE-dokumentationen indeholder oplysninger om nøgleord og\n"
-"funktioner, som er tilgængelige i denne grænseflade.\n"
 
 #: ../calculator.py:152
 msgid ""
@@ -277,10 +172,6 @@ msgid ""
 "really what you want to compute. Assuming full\n"
 "3D periodicity for this calculator."
 msgstr ""
-"ADVARSEL:\n"
-"Dit system skal have flere end nul men mindre end tre periodiske\n"
-"dimensioner.  Kontrollér venligst at dette virkelig er hvad du godt\n"
-"vil beregne. Antager fuld 3D-periodicitet for denne beregner."
 
 #: ../calculator.py:159
 msgid ""
@@ -290,363 +181,390 @@ msgid ""
 "with a plane wave basis set. For full details, see\n"
 "http://cms.mpi.univie.ac.at/vasp/vasp/\n"
 msgstr ""
-"VASP er en ekstern pakke, der implementerer tæthedsfunktionalteori med\n"
-"pseudopotentialer eller PAW-metoden (projector augmented wave method)\n"
-"sammen med en planbølgebasis. De fulde detaljer kan findes på\n"
-"http://cms.mpi.univie.ac.at/vasp/vasp/\n"
 
 #: ../calculator.py:168
 msgid "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
-msgstr "Standard (Al, Ni, Cu, Pd, Ag, Pt, Au)"
+msgstr ""
 
 #: ../calculator.py:169
 msgid "Alternative Cu, Ag and Au"
-msgstr "Alternativ Cu, Ag og Au"
+msgstr ""
 
 #: ../calculator.py:170
 msgid "Ruthenium"
-msgstr "Ruthenium"
+msgstr ""
 
 #: ../calculator.py:171
 msgid "CuMg and CuZr metallic glass"
-msgstr "Metallisk glas med CuMg og CuZr"
+msgstr ""
 
 #: ../calculator.py:189
+#, fuzzy
+#| msgid "Set _Calculator"
 msgid "Select calculator"
-msgstr "Vælg beregner"
+msgstr "Fixar _calculador"
 
 #: ../calculator.py:195
+#, fuzzy
+#| msgid "Set _Calculator"
 msgid "Calculator:"
-msgstr "Beregner:"
+msgstr "Fixar _calculador"
 
 #. No calculator (the default)
 #: ../calculator.py:198
+#, fuzzy
+#| msgid "_None"
 msgid "None"
-msgstr "Ingen"
+msgstr "_Ningún"
 
 #: ../calculator.py:203
 msgid "Lennard-Jones (ASAP)"
-msgstr "Lennard-Jones (ASAP)"
+msgstr ""
 
 #: ../calculator.py:204 ../calculator.py:231 ../calculator.py:246
 #: ../calculator.py:255 ../calculator.py:264
+#, fuzzy
+#| msgid "_Setup"
 msgid "Setup"
-msgstr "Opsætning"
+msgstr "_Configurar"
 
 #: ../calculator.py:211
 msgid "EMT - Effective Medium Theory (ASAP)"
-msgstr "EMT - Effective Medium Theory (ASAP)"
+msgstr ""
 
 #: ../calculator.py:223
 msgid "EMT - Effective Medium Theory (ASE)"
-msgstr "EMT - Effective Medium Theory (ASE)"
+msgstr ""
 
 #: ../calculator.py:230
 msgid "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
-msgstr "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
+msgstr ""
 
 #: ../calculator.py:238
 msgid "Brenner Potential (ASAP)"
-msgstr "Brenner-potentialet (ASAP)"
+msgstr ""
 
 #: ../calculator.py:244
 msgid "Density Functional Theory (GPAW)"
-msgstr "Tæthedsfunktionalteori (GPAW)"
+msgstr ""
 
 #: ../calculator.py:253
 msgid "Density Functional Theory (FHI-aims)"
-msgstr "Tæthedsfunktionalteori (FHI-aims)"
+msgstr ""
 
 #: ../calculator.py:262
 msgid "Density Functional Theory (VASP)"
-msgstr "Tæthedsfunktionalteori (VASP)"
+msgstr ""
 
 #: ../calculator.py:275
 msgid "Check that the calculator is reasonable."
-msgstr "Kontrollér at beregneren er rimelig."
+msgstr ""
 
 #: ../calculator.py:345 ../simulation.py:114
+#, fuzzy
+#| msgid "No atoms loaded."
 msgid "No atoms present"
-msgstr "Ingen atomer til stede"
+msgstr "Non hai átomos seleccionados."
 
 #: ../calculator.py:439 ../calculator.py:474 ../calculator.py:522
 msgid "ASAP is not installed. (Failed to import asap3)"
-msgstr "ASAP er ikke installeret. (Kunne ikke importere asap3)"
+msgstr ""
 
 #: ../calculator.py:442
 msgid "You must set up the Lennard-Jones parameters"
-msgstr "Du skal indstille Lennard-Jones-parametrene"
+msgstr ""
 
 #: ../calculator.py:447
 msgid "Could not create useful Lennard-Jones calculator."
-msgstr "Kunne ikke oprette en nyttig Lennard-Jones-beregner."
+msgstr ""
 
 #: ../calculator.py:482
 msgid "Could not attach EMT calculator to the atoms."
-msgstr "Kunne ikke knytte EMT-beregner til atomerne."
+msgstr ""
 
 #: ../calculator.py:503
 msgid "You must set up the EAM parameters"
-msgstr "Du skal angive EAM-parametrene"
+msgstr ""
 
 #: ../calculator.py:541 ../calculator.py:553
 msgid "GPAW is not installed. (Failed to import gpaw)"
-msgstr "GPAW er ikke installeret. (Kunne ikke importere gpaw)"
+msgstr ""
 
 #: ../calculator.py:544
 msgid "You must set up the GPAW parameters"
-msgstr "Du skal angive GPAW-parametrene"
+msgstr ""
 
 #: ../calculator.py:586
 msgid "You must set up the FHI-aims parameters"
-msgstr "Du skal angive FHI-aims-parametrene"
+msgstr ""
 
 #: ../calculator.py:601
 msgid "You must set up the VASP parameters"
-msgstr "Du skal angive VASP-parametrene"
+msgstr ""
 
 #: ../calculator.py:626
 #, python-format
 msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
-msgstr "Grundstoffet %(sym)s tillades ikke af \"%(name)s\"-beregneren"
+msgstr ""
 
 #: ../calculator.py:634
 msgid "Info"
-msgstr "Info"
+msgstr ""
 
 #: ../calculator.py:650
+#, fuzzy
+#| msgid "Lattice parameters"
 msgid "Lennard-Jones parameters"
-msgstr "Lennard-Jones-parametre"
+msgstr "Parámetros de rede"
 
 #: ../calculator.py:662
 msgid "Specify the Lennard-Jones parameters here"
-msgstr "Angiv Lennard-Jones-parametrene her"
+msgstr ""
 
 #: ../calculator.py:665
 msgid "Epsilon (eV):"
-msgstr "Epsilon (eV):"
+msgstr ""
 
 #: ../calculator.py:669
 msgid "Sigma (Å):"
-msgstr "Sigma (Å):"
+msgstr ""
 
 #. TRANSLATORS: Shift roughly means adjust (about a potential)
 #: ../calculator.py:673
 msgid "Shift to make smooth at cutoff"
-msgstr "Skift for at blødgøre ved afskæring"
+msgstr ""
 
 #: ../calculator.py:752
+#, fuzzy
+#| msgid "Lattice parameters"
 msgid "EAM parameters"
-msgstr "EAM-parametre"
+msgstr "Parámetros de rede"
 
 #: ../calculator.py:766
 msgid "Import Potential"
-msgstr "Importér potential"
+msgstr ""
 
 #: ../calculator.py:789
 msgid "You need to import the potential file"
-msgstr "Du skal importere en potential fil"
+msgstr ""
 
 #: ../calculator.py:797
 msgid "Import .alloy or .adp potential file ... "
-msgstr "Importér .alloy eller .adp potential-fil ... "
+msgstr ""
 
 #: ../calculator.py:820
+#, fuzzy
+#| msgid "Lattice parameters"
 msgid "GPAW parameters"
-msgstr "GPAW-parametre"
+msgstr "Parámetros de rede"
 
 #. label = gtk.Label("Specify the GPAW parameters here")
 #. pack(vbox, [label])
 #. Print some info
 #: ../calculator.py:835 ../calculator.py:1125 ../calculator.py:1614
-#, python-format
+#, fuzzy, python-format
+#| msgid "%i atoms."
 msgid "%i atoms.\n"
-msgstr "%i atomer.\n"
+msgstr "Átomos %i."
 
 #: ../calculator.py:837
 #, python-format
 msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
-msgstr "Ortogonal enhedscelle: %.2f x %.2f x %.2f Å."
+msgstr ""
 
 #: ../calculator.py:839
 msgid "Non-orthogonal unit cell:\n"
-msgstr "Ikke-ortogonal enhedscelle:\n"
+msgstr ""
 
 #: ../calculator.py:849 ../calculator.py:1141 ../calculator.py:1629
 msgid "Exchange-correlation functional: "
-msgstr "Udvekslings- og korrelationsfunktional: "
+msgstr ""
 
 #. Grid spacing
 #: ../calculator.py:853
 msgid "Grid spacing"
-msgstr "Gitterafstand"
+msgstr ""
 
 #: ../calculator.py:857 ../graphene.py:66 ../graphene.py:77 ../graphene.py:100
 #: ../nanotube.py:49 ../surfaceslab.py:97
+#, fuzzy
+#| msgid "Å³"
 msgid "Å"
-msgstr "Å"
+msgstr "Å³"
 
 #: ../calculator.py:858
 msgid "Grid points"
-msgstr "Gitterpunkter"
+msgstr ""
 
 #: ../calculator.py:867
 #, python-format
 msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
-msgstr "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
+msgstr ""
 
 #: ../calculator.py:893 ../calculator.py:1156 ../calculator.py:1665
 msgid "k-points  k = ("
-msgstr "k-punkter  k = ("
+msgstr ""
 
 #: ../calculator.py:897 ../calculator.py:1160
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
-msgstr "k-punkter x størrelse:  (%.1f, %.1f, %.1f) Å"
+msgstr ""
 
 #. Spin polarized
 #: ../calculator.py:902 ../calculator.py:1627
 msgid "Spin polarized"
-msgstr "Spinpolariseret"
+msgstr ""
 
 #: ../calculator.py:908
 msgid "FD - Finite Difference (grid) mode"
-msgstr "FD - Finite Difference-tilstand (gitter)"
+msgstr ""
 
 #: ../calculator.py:909
 msgid "LCAO - Linear Combination of Atomic Orbitals"
-msgstr "LCAO - linearkombination af atomare orbitaler"
+msgstr ""
 
 #: ../calculator.py:912
 msgid "Mode: "
-msgstr "Tilstand: "
+msgstr ""
 
 #: ../calculator.py:914
 msgid "sz - Single Zeta"
-msgstr "sz - Enkelt-zeta"
+msgstr ""
 
 #: ../calculator.py:915
 msgid "szp - Single Zeta polarized"
-msgstr "szp - Enkelt-zeta polariseret"
+msgstr ""
 
 #: ../calculator.py:916
 msgid "dzp - Double Zeta polarized"
-msgstr "dzp - dobbelt-zeta polariseret"
+msgstr ""
 
 #. dzp
 #: ../calculator.py:918
+#, fuzzy
+#| msgid "Wave functions: "
 msgid "Basis functions: "
-msgstr "Basisfunktioner: "
+msgstr "Funcións de onda: "
 
 #. Mixer
 #: ../calculator.py:924
 msgid "Non-standard mixer parameters"
-msgstr "Særlige mikserparametre"
+msgstr ""
 
 #: ../calculator.py:1121
+#, fuzzy
+#| msgid "Lattice parameters"
 msgid "FHI-aims parameters"
-msgstr "FHI-aims-parametre"
+msgstr "Parámetros de rede"
 
 #: ../calculator.py:1128
 msgid "Periodic geometry, unit cell is:\n"
-msgstr "Periodisk geometri; enhedscellen er:\n"
+msgstr ""
 
 #: ../calculator.py:1133
 msgid "Non-periodic geometry.\n"
-msgstr "Ikke-periodisk geometri.\n"
+msgstr ""
 
-# XXX ikke Hirschfeld?
 #: ../calculator.py:1140
 msgid "Hirshfeld-based dispersion correction"
-msgstr "Hirshfeld-baseret dispersionskorrektion"
+msgstr ""
 
 #. Spin polarized, charge, relativity
 #: ../calculator.py:1166
 msgid "Spin / initial moment "
-msgstr "Spin / startmoment "
+msgstr ""
 
 #: ../calculator.py:1184
+#, fuzzy
+#| msgid "By charge"
 msgid "   Charge"
-msgstr "   Ladning"
+msgstr "Por carga"
 
 #: ../calculator.py:1186
 msgid "   Relativity"
-msgstr "   Relativitet"
+msgstr ""
 
 #: ../calculator.py:1188
 msgid " Threshold"
-msgstr " Tærskel"
+msgstr ""
 
 #. self-consistency criteria
 #: ../calculator.py:1193
+#, fuzzy
+#| msgid "Self-consistency loop"
 msgid "Self-consistency convergence:"
-msgstr "Selfkonsistenskonvergens:"
+msgstr "Bucle de auto consistencia"
 
 #: ../calculator.py:1206
+#, fuzzy
+#| msgid "Calculating forces"
 msgid "Compute forces"
-msgstr "Beregn kræfter"
+msgstr "Calculando forzas"
 
 #. XXX: use gtk table for layout.  Spaces will not work well otherwise
 #. (depend on fonts, widget style, ...)
 #. TRANSLATORS: Don't care too much about these, just get approximately
 #. the same string lengths
 #: ../calculator.py:1217
+#, fuzzy
+#| msgid "               Filename: "
 msgid "Energy:                 "
-msgstr "Energi:                 "
+msgstr "               Nome do arquivo: "
 
 #: ../calculator.py:1219
 msgid " eV   Sum of eigenvalues:  "
-msgstr " eV   Sum af egenværdier:  "
+msgstr ""
 
 #: ../calculator.py:1221 ../calculator.py:1700
 msgid " eV"
-msgstr " eV"
+msgstr ""
 
 #: ../calculator.py:1222
 msgid "Electron density: "
-msgstr "Elektrontæthed: "
+msgstr ""
 
 #: ../calculator.py:1224
 msgid "        Force convergence:  "
-msgstr "        Kraftkonvergens:  "
+msgstr ""
 
 #: ../calculator.py:1226
 msgid " eV/Ang  "
-msgstr " eV/Å  "
+msgstr ""
 
 #: ../calculator.py:1239 ../calculator.py:1711
 msgid "Additional keywords: "
-msgstr "Yderligere nøgleord: "
+msgstr ""
 
 #. run command and species defaults:
 #: ../calculator.py:1253
 msgid "FHI-aims execution command: "
-msgstr "Kørselskommando til FHI-aims: "
+msgstr ""
 
-# ??
 #: ../calculator.py:1255 ../calculator.py:1728
 msgid "Directory for species defaults: "
-msgstr "Mappe for grundstofstandarder: "
+msgstr ""
 
 #: ../calculator.py:1267 ../calculator.py:1736
 msgid "Set Defaults"
-msgstr "Brug standardværdier"
+msgstr ""
 
 #: ../calculator.py:1269
 msgid "Import control.in"
-msgstr "Importér control.in"
+msgstr ""
 
 #: ../calculator.py:1271
 msgid "Export control.in"
-msgstr "Eksportér control.in"
+msgstr ""
 
 #: ../calculator.py:1458
+#, fuzzy
+#| msgid "Expert mode ..."
 msgid "Export parameters ... "
-msgstr "Eksportér parametre ... "
+msgstr "Modo experto ..."
 
 #: ../calculator.py:1478
 msgid "Import control.in file ... "
-msgstr "Importér control.in-fil ... "
+msgstr ""
 
 #: ../calculator.py:1534 ../calculator.py:2043
 #, python-format
@@ -654,7 +572,6 @@ msgid ""
 "Please use the facilities provided in this window to manipulate the keyword: "
 "%s!"
 msgstr ""
-"Brug venligst faciliteterne i dette vindue til at manipulere nøgleordet: %s!"
 
 #: ../calculator.py:1537
 #, python-format
@@ -666,75 +583,74 @@ msgid ""
 "If you really think it should be available, please add it to the top of ase/"
 "calculators/aims.py."
 msgstr ""
-"Kender ikke dette nøgleord: %s\n"
-"\n"
-"Kontrollér venligst!\n"
-"\n"
-"Hvis du virkelig mener det børe være tilgængeligt, så tilføj det venligst "
-"øverst i ase/calculators/aims.py."
 
 #: ../calculator.py:1610
+#, fuzzy
+#| msgid "Lattice parameters"
 msgid "VASP parameters"
-msgstr "VASP-parametre"
+msgstr "Parámetros de rede"
 
 #: ../calculator.py:1616
 msgid "Periodic geometry, unit cell is: \n"
-msgstr "Periodisk geometri; enhedscelle er: \n"
+msgstr ""
 
 #: ../calculator.py:1668
 msgid ")    Cutoff: "
-msgstr ")    Afskæring: "
+msgstr ""
 
 #: ../calculator.py:1669
 msgid "    Precision: "
-msgstr "    Præcision: "
+msgstr ""
 
 #: ../calculator.py:1671
 #, python-format
 msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
-msgstr "k-punkter x størrelse:  (%.1f, %.1f, %.1f) Å       "
+msgstr ""
 
 #: ../calculator.py:1687
 msgid "Smearing: "
-msgstr "Udjævning: "
+msgstr ""
 
 #: ../calculator.py:1689
 msgid " order: "
-msgstr " orden: "
+msgstr ""
 
 #: ../calculator.py:1691
+#, fuzzy
+#| msgid "Width: "
 msgid " width: "
-msgstr " bredde: "
+msgstr "Ancho: "
 
 #: ../calculator.py:1698
+#, fuzzy
+#| msgid "Self-consistency loop"
 msgid "Self-consistency convergence: "
-msgstr "Selfkonsistenskonvergens: "
+msgstr "Bucle de auto consistencia"
 
 #. run command and location of POTCAR files:
 #: ../calculator.py:1724
 msgid "VASP execution command: "
-msgstr "Kørselskommando til VASP: "
+msgstr ""
 
 #: ../calculator.py:1738
 msgid "Import VASP files"
-msgstr "Importér VASP-filer"
+msgstr ""
 
 #: ../calculator.py:1740
 msgid "Export VASP files"
-msgstr "Eksportér VASP-filer"
+msgstr ""
 
 #: ../calculator.py:1947
 msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
 msgstr ""
-"<b>ADVARSEL:</b> afskæringsenergi er lavere end det anbefalede minimum!"
 
 #: ../calculator.py:1999
 msgid "Import VASP input files: choose directory ... "
-msgstr "Importér VASP-inputfiler: vælg mappe ... "
+msgstr ""
 
 #: ../calculator.py:2013
 msgid "Export VASP input files: choose directory ... "
-msgstr "Eksportér VASP-inputfiler: vælg mappe ... "
+msgstr ""
 
 #: ../calculator.py:2046
 #, python-format
@@ -745,169 +661,164 @@ msgid ""
 "If you really think it should be available, please add it to the top of ase/"
 "calculators/vasp.py."
 msgstr ""
-"Kender ikke dette nøgleord:: %s\n"
-"Kontrollér venligst!\n"
-"\n"
-"Hvis du virkelig tror det bør være tilgængeligt, så tilføj det venligst "
-"øverst i ase/calculators/vasp.py."
 
 #: ../colors.py:27
 msgid "Colors"
-msgstr "Farver"
+msgstr "Cores"
 
 #. Upper left: Choose how the atoms are colored.
 #: ../colors.py:44
 msgid "Choose how the atoms are colored:"
-msgstr "Vælg hvordan atomerne farves:"
+msgstr "Elixa a cor dos átomos:"
 
 #: ../colors.py:46
 msgid "By atomic number, default \"jmol\" colors"
-msgstr "Efter atomnummer; \"jmol\"-farver som standard"
+msgstr "Por número atómico, cores de \"jmol\" por defecto"
 
 #: ../colors.py:48
 msgid "By atomic number, user specified"
-msgstr "Efter atomnummer, brugerdefineret"
+msgstr "Por número atómico, especificado polo usuario"
 
 #: ../colors.py:49
 msgid "By tag"
-msgstr "Efter mærke"
+msgstr "Por etiqueta"
 
 #: ../colors.py:50
 msgid "By force"
-msgstr "Efter kraft"
+msgstr "Por forza"
 
 #: ../colors.py:51
 msgid "By velocity"
-msgstr "Efter hastighed"
+msgstr "Por velocidade"
 
 #: ../colors.py:52
 msgid "By charge"
-msgstr "Efter ladning"
+msgstr "Por carga"
 
 #: ../colors.py:54
 msgid "By magnetic moment"
-msgstr "Efter magnetisk moment"
+msgstr "Por momento magnético"
 
 #: ../colors.py:56
 msgid "By coordination"
-msgstr "Efter koordination"
+msgstr "Por coordinación"
 
 #: ../colors.py:57
 msgid "Manually specified"
-msgstr "Manuelt angivet"
+msgstr "Especificado manualmente"
 
 #: ../colors.py:58
 msgid "All the same color"
-msgstr "Alle med samme farve"
+msgstr "Todos da mesma cor"
 
 #. Now fill in the box for additional information in case the force is used.
 #: ../colors.py:75
 msgid "This should not be displayed in forces!"
-msgstr "Dette bør ikke blive vist ved kræfter!"
+msgstr "¡Isto non debería mostrarse en forzas!"
 
 #: ../colors.py:80 ../colors.py:94 ../colors.py:109 ../colors.py:125
 #: ../rotate.py:24
 msgid "Update"
-msgstr "Opdatér"
+msgstr "Actualizar"
 
 #: ../colors.py:82 ../colors.py:96 ../colors.py:111 ../colors.py:128
 msgid "Min: "
-msgstr "Min: "
+msgstr "Mín: "
 
 #: ../colors.py:84 ../colors.py:98 ../colors.py:113 ../colors.py:130
 msgid "  Max: "
-msgstr "  Maks: "
+msgstr "  Máx: "
 
 #: ../colors.py:86 ../colors.py:100 ../colors.py:115 ../colors.py:132
 msgid "  Steps: "
-msgstr "  Trin: "
+msgstr "  Pasos: "
 
 #. Now fill in the box for additional information in case
 #. the charge is used.
 #: ../colors.py:107 ../colors.py:123
 msgid "This should not be displayed!"
-msgstr "Dette bør ikke blive vist!"
+msgstr "¡Isto non debería mostrarse!"
 
 #: ../colors.py:139
 msgid "Create a color scale:"
-msgstr "Opret en farveskala:"
+msgstr "Crear unha escala de cores:"
 
 #: ../colors.py:142
 msgid "Black - white"
-msgstr "Sort - hvid"
+msgstr "Negro - branco"
 
 #: ../colors.py:143
 msgid "Black - red - yellow - white"
-msgstr "Sort - rød - gul - hvid"
+msgstr "Negro - vermello - amarelo - branco"
 
 #: ../colors.py:144
 msgid "Black - green - white"
-msgstr "Sort - grøn - hvid"
+msgstr "Negro - verde - blanco"
 
 #: ../colors.py:145
 msgid "Black - blue - cyan"
-msgstr "Sort - blå - cyan"
+msgstr "Negro - azul - ciano"
 
 #: ../colors.py:146
 msgid "Blue - white - red"
-msgstr "Blå - hvid - rød"
+msgstr "Azul - branco - vermello"
 
 #: ../colors.py:147
 msgid "Hue"
-msgstr "Farvetone"
+msgstr "Tonalidade"
 
 #: ../colors.py:148
 msgid "Named colors"
-msgstr "Navngivne farver"
+msgstr "Cores con nome"
 
 #: ../colors.py:154
 msgid "Create"
-msgstr "Opret"
+msgstr "Crear"
 
 #: ../colors.py:518
 msgid "ERROR"
-msgstr "FEJL"
+msgstr "ERRO"
 
 #: ../colors.py:547
 msgid "ERR"
-msgstr "FEJL"
+msgstr "ERR"
 
 #: ../colors.py:639
 msgid "Incorrect color specification"
-msgstr "Forkert farveangivelse"
+msgstr "Especificación da cor incorrecta"
 
 #: ../constraints.py:10 ../widgets.py:96
 msgid "Constraints"
-msgstr "Begrænsninger"
+msgstr "Restriccións"
 
 #: ../constraints.py:12 ../constraints.py:15 ../settings.py:16
 #: ../widgets.py:98 ../widgets.py:101
 msgid "Constrain"
-msgstr "Begræns"
+msgstr "Restricción"
 
 #: ../constraints.py:13 ../settings.py:19 ../settings.py:34 ../widgets.py:99
 msgid " selected atoms"
-msgstr " markerede atomer"
+msgstr "  átomos seleccionados"
 
 #: ../constraints.py:16 ../widgets.py:102
 msgid " immobile atoms:"
-msgstr " immobile atomer:"
+msgstr " átomos fixos:"
 
 #: ../constraints.py:18
 msgid "Unconstrain"
-msgstr "Fjern begrænsninger"
+msgstr "Liberar restricccións"
 
 #: ../constraints.py:19
 msgid " selected atoms:"
-msgstr " markerede atomer:"
+msgstr " átomos seleccionados:"
 
 #: ../constraints.py:21
 msgid "Clear constraints"
-msgstr "Ryd begrænsninger"
+msgstr "Quitar as restriccións"
 
 #: ../constraints.py:23 ../settings.py:52 ../widgets.py:65 ../widgets.py:106
 msgid "Close"
-msgstr "Luk"
+msgstr "Pechar"
 
 #: ../crystal.py:16
 msgid ""
@@ -921,40 +832,42 @@ msgid ""
 "specify it\n"
 "  yourself.  "
 msgstr ""
-"  Brug denne dialog til at oprette krystalstrukturer. Vælg først "
-"strukturen,\n"
-"  enten fra en samling almindelige krystalstrukturer eller ud fra en\n"
-"  rumgruppebeskrivelse. Tilføj så alle andre gitterparametre.\n"
+" Utilice este diálogo para crear estruturas cristalinas.\n"
+" Seleccione primeiro a estrutura, desde un conxunto común\n"
+" de estruturas cristalinas ou ben desde a descripción do grupo\n"
+" espacial.\n"
+" Logo engada tódolos parámetros de rede.\n"
 "\n"
-"  Hvis der er en eksperimentel krystalstruktur tilgængelig for at\n"
-"  atom, kan du slå krystaltypen samt gitterkonstanten op - ellers skal\n"
-"  du angive den selv.  "
+" Se dispón dunha estrutura cristalina experimental para un\n"
+" átomo, pode buscar o tipo de cristal e a constante de rede,\n"
+" doutro xeito terá que especificalas."
 
 #: ../crystal.py:33 ../graphene.py:26
 #, python-format
 msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
-msgstr " %(natoms)i atomer: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
+msgstr " %(natoms)i átomos: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
 
+# Crear cristal por grupo espacial
 #: ../crystal.py:58
 msgid "Create Bulk Crystal by Spacegroup"
-msgstr "Opret krystalstruktur fra rumgruppe"
+msgstr "Crear cristal polo grupo espacial"
 
 #: ../crystal.py:72
 msgid "Number: 1"
-msgstr "Nummer: 1"
+msgstr "Número: 1"
 
-# slice ~ opdel
 #: ../crystal.py:73
 msgid "Lattice: "
-msgstr "Gitter: "
+msgstr "Rede: "
 
 #: ../crystal.py:73
 msgid "\tSpace group: "
-msgstr "\tRumgruppe: "
+msgstr "\tGrupo espacial: "
 
+# Tamaño: x:
 #: ../crystal.py:77
 msgid "Size: x: "
-msgstr "Størrelse: x: "
+msgstr "Tamaño: x: "
 
 #: ../crystal.py:78 ../crystal.py:138
 msgid "  y: "
@@ -964,47 +877,47 @@ msgstr "  y: "
 msgid "  z: "
 msgstr "  z: "
 
-#: ../crystal.py:80 ../surfaceslab.py:128 ../surfaceslab.py:130
+#: ../crystal.py:80 ../surfaceslab.py:127 ../surfaceslab.py:129
 msgid " unit cells"
-msgstr " enhedsceller"
+msgstr " celdas unidades"
 
 #: ../crystal.py:92 ../crystal.py:96 ../crystal.py:100 ../crystal.py:104
 #: ../crystal.py:108 ../crystal.py:112
 msgid "free"
-msgstr "fri"
+msgstr "libre"
 
 #: ../crystal.py:93 ../crystal.py:102
 msgid "equals b"
-msgstr "lig med b"
+msgstr "igual a b"
 
 #: ../crystal.py:94 ../crystal.py:98
 msgid "equals c"
-msgstr "lig med c"
+msgstr "igual a c"
 
 #: ../crystal.py:95 ../crystal.py:99 ../crystal.py:103 ../crystal.py:107
 #: ../crystal.py:111 ../crystal.py:115
 msgid "fixed"
-msgstr "fast"
+msgstr "fixo"
 
 #: ../crystal.py:97 ../crystal.py:101
 msgid "equals a"
-msgstr "lig med a"
+msgstr "igual a a"
 
 #: ../crystal.py:105 ../crystal.py:114
 msgid "equals beta"
-msgstr "lig med beta"
+msgstr "igual a beta"
 
 #: ../crystal.py:106 ../crystal.py:110
 msgid "equals gamma"
-msgstr "lig med gamma"
+msgstr "igual a gama"
 
 #: ../crystal.py:109 ../crystal.py:113
 msgid "equals alpha"
-msgstr "lig med alfa"
+msgstr "igual a alfa"
 
 #: ../crystal.py:119
 msgid "Lattice parameters"
-msgstr "Gitterparametre"
+msgstr "Parámetros de rede"
 
 #: ../crystal.py:120
 msgid "\t\ta:\t"
@@ -1028,19 +941,19 @@ msgstr "\t\tc:\t"
 
 #: ../crystal.py:125
 msgid "\tgamma:\t"
-msgstr "\tgamma:\t"
+msgstr "\tgama:\t"
 
 #: ../crystal.py:126 ../surfaceslab.py:99
 msgid "Get from database"
-msgstr "Hent fra database"
+msgstr "Obter desde a base de datos"
 
 #: ../crystal.py:131
 msgid "Basis: "
-msgstr "Basis: "
+msgstr "Base: "
 
 #: ../crystal.py:137
 msgid "  Element:\t"
-msgstr "  Grundstof:\t"
+msgstr "  Elemento:%t"
 
 #: ../crystal.py:137
 msgid "\tx: "
@@ -1048,67 +961,67 @@ msgstr "\tx: "
 
 #: ../crystal.py:157
 msgid "Creating a crystal."
-msgstr "Oprettelse af krystal."
+msgstr "Creando un cristal."
 
 #: ../crystal.py:202
 #, python-format
 msgid "Symbol: %s"
-msgstr "Symbol: %s"
+msgstr "Símbolo: %s"
 
 #: ../crystal.py:207
 #, python-format
 msgid "Number: %s"
-msgstr "Nummer: %s"
+msgstr "Número: %s"
 
 #: ../crystal.py:210
 msgid "Invalid Spacegroup!"
-msgstr "Ugyldig rumgruppe!"
+msgstr "¡Grupo espacial inválido!"
 
 #: ../crystal.py:336 ../crystal.py:339
 msgid "Please specify a consistent set of atoms."
-msgstr "Angiv venligst en konsistent samling atomer."
+msgstr "Por favor, especifique un conxunto consistente de átomos."
 
 #: ../crystal.py:348 ../graphene.py:253 ../nanoparticle.py:614
-#: ../nanotube.py:160 ../surfaceslab.py:250
+#: ../nanotube.py:160 ../surfaceslab.py:248
 msgid "No valid atoms."
-msgstr "Ingen gyldige atomer."
+msgstr "Os átomos no son válidos."
 
 #: ../crystal.py:349 ../graphene.py:254 ../nanoparticle.py:615
-#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:251
+#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:249
 msgid "You have not (yet) specified a consistent set of parameters."
-msgstr "Du har (endnu) ikke angivet konsistente parametre."
+msgstr "Aínda non especificou un conxunto consistente de parámetros."
 
 #: ../crystal.py:465
 msgid "Can't find lattice definition!"
-msgstr "Kan ikke finde gitterdefinition!"
+msgstr "¡Non podo atopar a definición de rede!"
 
 #: ../debug.py:12
 msgid "Debug"
-msgstr "Fejlsøgning"
+msgstr "Depurar"
 
 #: ../energyforces.py:12
 msgid "Output:"
-msgstr "Uddata:"
+msgstr "Saída:"
 
 #: ../energyforces.py:41
 msgid "Save output"
-msgstr "Gem uddata"
+msgstr "Gardar saída"
 
 #: ../energyforces.py:58
 msgid "Potential energy and forces"
-msgstr "Potentiel energi og kræfter"
+msgstr "Enerxía potencial e forzas"
 
 #: ../energyforces.py:62
 msgid "Calculate potential energy and the force on all atoms"
-msgstr "Beregn potentiel energi og kræfter på alle atomer"
+msgstr "Calcular a enerxía potencial e a forza en tódolos átomos"
 
 #: ../energyforces.py:66
 msgid "Write forces on the atoms"
-msgstr "Skriv kræfter på atomerne"
+msgstr "Escribir forzas nos átomos"
 
 #: ../energyforces.py:83
 msgid "Potential Energy:\n"
-msgstr "Potentiel energi:\n"
+msgstr "Enerxía potencial:\n"
 
 #: ../energyforces.py:84
 #, python-format
@@ -1121,12 +1034,12 @@ msgid ""
 "  %8.4f eV/atom\n"
 "\n"
 msgstr ""
-"  %8.4f eV/atom\n"
+"  %8.4f eV/átomo\n"
 "\n"
 
 #: ../energyforces.py:87
 msgid "Forces:\n"
-msgstr "Kræfter:\n"
+msgstr "Forzas:\n"
 
 #: ../execute.py:24
 msgid ""
@@ -1172,156 +1085,157 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Globale kommandoer virker på alle billeder, eller kun på nuværende "
-"billede\n"
-"    - Tildeling af en global variabel refererer måske ikke til en lokal\n"
-"    - brug \"Nuværende billede\"-knappen til at slå anvendelse på alle "
-"billeder\n"
-"      til eller fra\n"
-"    <c>e</c>:\t\ttotalenergi af et billede\n"
-"    <c>fmax</c>:\tmaksimal kraft i et billede\n"
-"    <c>A</c>:\tenhedscelle\n"
-"    <c>E</c>:\t\ttotalenergi som array for alle billeder\n"
-"    <c>F</c>:\t\talle kræfter i et billede\n"
-"    <c>M</c>:\talle magnetiske momenter\n"
-"    <c>R</c>:\t\talle atompositioner\n"
-"    <c>S</c>:\talle markerede atoms (boolesk array)\n"
-"    <c>D</c>:\talle dynamiske atomer (boolesk array)\n"
-"    eksempler: <c>billede = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+"   Os comandos globales funcionan tanto en tódolos cadros como\n"
+"   no cadro actual.\n"
+"   -  A asignación dunha variable global pode non ser referenciada\n"
+"      a unha local.\n"
+"   -  Utilice a opción 'Cadro actual' para pechar a aplicación\n"
+"      en tódolos cadros.\n"
+"      <c>e</c>: enerxía total dun cadro\n"
+"      <c>fmáx</c>: forza máxima dun cadro\n"
+"      <c>A</c>: celda unidade\n"
+"      <c>E</c>: arreglo coas enerxías totales en tódolos cadros\n"
+"      <c>F</c>: tódalas forzas nun cadro\n"
+"      <c>M</c>: tódolos momentos magnéticos\n"
+"      <c>R</c>: tódalas posicions atómicas\n"
+"      <c>S</c>: arreglo booleano, tódolos átomos seleccionados\n"
+"      <c>D</c>: arreglo booleano, tódolos átomos dinámicos\n"
+"      Exemplos: <c>cadro = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
 "\n"
-"    Atomkommandoer virker på hvert atom (eller en markering) enkeltvis\n"
-"    - disse kan bruge globale kommandoer på højresiden af en ligning\n"
-"    - brug \"kun markerede atomer\" for at begrænse anvendelsen af en "
-"kommando\n"
-"    <c>x,y,z</c>:\tatomkoordinater\n"
-"    <c>r,g,b</c>:\tatomvisningsfarve; interval er [0..1]\n"
-"    <c>rad</c>:\tatomradius (grafisk)\n"
-"    <c>s</c>:\t\tatom er markeret\n"
-"    <c>d</c>:\t\tatom kan flyttes\n"
-"    <c>f</c>:\t\tkraft\n"
-"    <c>Z</c>:\tatomnummer\n"
-"    <c>m</c>:\tmagnetisk moment\n"
-"    eksempler: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+"      Os comandos atómicos funcionan nunha selección ou en cada un dos\n"
+"       átomos.\n"
+"      - Éstos poden usar comandos globales no lado dereito dunha\n"
+"        ecuación.\n"
+"      - Utilice 'Sólo os átomos seleccionados' para restrinxir a\n"
+"        aplicación do comando.\n"
+"        <c>x,y,z</c>: coordenadas atómicas\n"
+"        <c>r,g,b</c>: color do átomo, o rango é [0..1]\n"
+"        <c>rad</c>: radio atómico a mostrar\n"
+"        <c>s</c>: átomo é seleccionado\n"
+"        <c>d</c>: átomo é movible\n"
+"        <c>f</c>: forza\n"
+"        <c>Z</c>: número atómico\n"
+"        <c>m</c>: momento magnético\n"
+"        exemplos: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
 "\n"
-"    Specialkommandoer og objekter:\n"
-"    <c>sa,cf</c>:\tslå begrænsning til markerede atomer/nuværende atomer \n"
-"                        til eller fra\n"
-"    <c>frame</c>:\tbillednummer\n"
-"    <c>center</c>:\tcentrerer systemet i dets eksisterende enhedscelle\n"
-"    <c>del S</c>:\tfjern markering\n"
-"    <c>CM</c>:\tmassemidtpunkt\n"
-"    <c>ans[-i]</c>:\ti'te sidst udregnede resultat\n"
-"    <c>exec file</c>: kører kommandoerne i en fil\n"
-"    <c>cov[Z]</c>:(skrivebeskyttet): kovalent radius for atomnummer Z\n"
-"    <c>gui</c>:\tavanceret: python-objekt for ag-vinduet\n"
-"    <c>img</c>:\tavanceret: ag-billeder som objekt\n"
+"      Comandos especiais e obxectos:\n"
+"      <c>sa,cf</c>:restrinxir (ou non) ós átomos seleccionados/cadro actual\n"
+"      <c>cadro</c>: número do cadro\n"
+"      <c>centrar</c>: centra o sistema con respecto a súa celda unidade\n"
+"      <c>borra S</c>: borra a selección\n"
+"      <c>CM</c>: centro de masa\n"
+"      <c>ans[-i]</c>: o i-ésimo resultado calculado\n"
+"      <c>exec archivo</c>: executa o comando listado no arquivo\n"
+"      <c>cov[Z]</c>:(sólo lectura): radio covalente do número atómico Z\n"
+"      <c>gui</c>:avanzado: obxecto de Python, ventá de ag\n"
+"      <c>img</c>:avanzado: obxecto imaxes de ag\n"
 "    "
 
 #: ../execute.py:68
 msgid "Expert user mode"
-msgstr "Eksperttilstand"
+msgstr "Modo de usuario experto"
 
 #: ../execute.py:81
 msgid "Welcome to the ASE Expert user mode"
-msgstr "Velkommen til ASE's eksperttilstand"
+msgstr "Benvido ó modo de usuario experto de ASE"
 
 #: ../execute.py:88
 msgid "Only selected atoms (sa)   "
-msgstr "Kun markerede atomer (sa)   "
+msgstr "Soamente átomos seleccionados (sa)   "
 
 #: ../execute.py:90
 msgid "Only current frame (cf)  "
-msgstr "Kun nuværende billede (cf)  "
+msgstr "Soamente o cadro actual (cf)  "
 
 #: ../execute.py:100
 msgid ""
 "Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, z, "
 "Z     "
 msgstr ""
-"Globalt: Brug A, D, E, M, N, R, S, n, frame; Atomer: Brug a, f, m, s, x, y, "
-"z, Z     "
+"Global: utilice os cadros A, D, E, M, N, R, S y n; Átomos: utilice a, f, m, "
+"s, x, y, z y Z"
 
 #: ../execute.py:199
 #, python-format
 msgid "*** WARNING: file does not exist - %s"
-msgstr "*** ADVARSEL: filen findes ikke - %s"
+msgstr "*** ADVERTENCIA: o arquivo non existe - %s"
 
 #: ../execute.py:204
 msgid "*** WARNING: No atoms selected to work with"
-msgstr "*** ADVARSEL: Ingen atomer markeret til at arbejde på"
+msgstr "***ADVERTENCIA: Non hai átomos seleccionados para traballar"
 
 #: ../execute.py:278
 msgid "*** Only working on selected atoms"
-msgstr "*** Arbejder kun på markerede atomer"
+msgstr "*** Traballando soamente cos átomos seleccionados"
 
 #: ../execute.py:280
 msgid "*** Working on all atoms"
-msgstr "*** Arbejder på alle atomer"
+msgstr "*** Traballando en tódolos átomos"
 
 #: ../execute.py:284
 msgid "*** Only working on current image"
-msgstr "*** Arbejder kun på nuværende billede"
+msgstr "*** Traballando únicamente na imaxe actual"
 
 #: ../execute.py:286
 msgid "*** Working on all images"
-msgstr "*** Arbejder på alle billeder"
+msgstr "*** Traballando en tódalas imaxes"
 
 #: ../execute.py:302
 msgid "Save Terminal text ..."
-msgstr "Gem terminaltekst ..."
+msgstr "Garde texto da Terminal ..."
 
 #: ../graphene.py:15
 msgid ""
 "Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may\n"
 "optionally be saturated with hydrogen (or another element)."
 msgstr ""
-"Konstruér et grafénlag eller et grafénnanobånd.  Et nanobånd kan eventuelt\n"
-"mættes med hydrogen (eller et andet grundstof)."
+"Faga unha folla de grafeno ou unha nanocinta. Opcionalmente,\n"
+"a nanocinta pode estar saturada con hidróxeno u outro elemento."
 
 #: ../graphene.py:32 ../gui.py:290
 msgid "Graphene"
-msgstr "Grafén"
+msgstr "Grafeno"
 
 #. Choose structure
 #. The structure and lattice constant
 #. Choose the surface structure
 #: ../graphene.py:39 ../nanoparticle.py:139 ../surfaceslab.py:78
 msgid "Structure: "
-msgstr "Struktur: "
+msgstr "Estrutura: "
 
 #: ../graphene.py:41
 msgid "Infinite sheet"
-msgstr "Uendeligt lag"
+msgstr "Folla infinita"
 
 #: ../graphene.py:41
 msgid "Unsaturated ribbon"
-msgstr "Umættet bånd"
+msgstr "Cinta no saturada"
 
 #: ../graphene.py:42
 msgid "Saturated ribbon"
-msgstr "Mættet bånd"
+msgstr "Cinta saturada"
 
 #. Orientation
 #: ../graphene.py:49
 msgid "Orientation: "
-msgstr "Orientering: "
+msgstr "Orientación: "
 
 #: ../graphene.py:52
 msgid "zigzag"
-msgstr "zigzag"
+msgstr "Zigzag"
 
 #: ../graphene.py:52
 msgid "armchair"
-msgstr "lænestol"
+msgstr "armchair"
 
 #: ../graphene.py:65 ../graphene.py:76 ../nanotube.py:48
 msgid "  Bond length: "
-msgstr "  Bindingslængde: "
+msgstr "  Lonxitude do enlace: "
 
 #. Choose the saturation element and bond length
 #: ../graphene.py:71
 msgid "Saturation: "
-msgstr "Mætning: "
+msgstr "Saturación: "
 
 #: ../graphene.py:74
 msgid "H"
@@ -1330,24 +1244,24 @@ msgstr "H"
 #. Size
 #: ../graphene.py:89
 msgid "Width: "
-msgstr "Bredde: "
+msgstr "Ancho: "
 
 #: ../graphene.py:90 ../nanotube.py:67
 msgid "  Length: "
-msgstr "  Længde: "
+msgstr "  Lonxitude: "
 
 #. Vacuum
 #: ../graphene.py:98
 msgid "Vacuum: "
-msgstr "Vakuum: "
+msgstr "Vacío: "
 
 #: ../graphene.py:147 ../nanotube.py:107 ../setupwindow.py:33
 msgid "  No element specified!"
-msgstr "  Intet grundstof angivet!"
+msgstr "  ¡Non especificou o elemento!"
 
 #: ../graphene.py:193
 msgid "Please specify a consistent set of atoms. "
-msgstr "Angiv venligst en konsistent samling atomer. "
+msgstr "Por favor, especifique un conxunto consistente de átomos. "
 
 #: ../graphs.py:9
 msgid ""
@@ -1375,66 +1289,65 @@ msgid ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>:\t\t\t\ttemperature (K)"
 msgstr ""
-"Hjælp til plot ...\n"
+"Axuda para graficar ...\n"
 "\n"
-"Symboler:\n"
-"<c>e</c>:\t\t\t\ttotal energi\n"
-"<c>epot</c>:\t\t\tpotentiel energi\n"
-"<c>ekin</c>:\t\t\tkinetisk energi\n"
-"<c>fmax</c>:\t\t\tmaximum kræft\n"
-"<c>fave</c>:\t\t\tmiddel kræft\n"
-"<c>R[n,0-2]</c>:\t\t\tposition af atom nummer <c>n</c>\n"
-"<c>d(n<sub>1</sub>,n<sub>1</sub>)</c>:\t\t\tafstand mellem to atomer "
-"<c>n<sub>1</sub></c> og <c>n<sub>2</sub></c>\n"
-"<c>i</c>:\t\t\t\tnuværende billede nummer\n"
-"<c>E[i]</c>:\t\t\t\tenergi af billede nummer <c>i</c>\n"
-"<c>F[n,0-2]</c>:\t\t\tkræft på atom nummer <c>n</c>\n"
-"<c>V[n,0-2]</c>:\t\t\thastighed af atom nummer <c>n</c>\n"
-"<c>M[n]</c>:\t\t\tmagnetiskt moment af atom nummer <c>n</c>\n"
-"<c>A[0-2,0-2]</c>:\t\tenhedscelle vektorer\n"
-"<c>s</c>:\t\t\t\tvejlængde\n"
-"<c>a(n1,n2,n3)</c>:\t\tvinkel mellem atomerne <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centeret på <c>n<sub>2</sub></"
+"<c>e</c>:\t\t\t\tenerxía total\n"
+"<c>epot</c>:\t\t\tenerxía potencial\n"
+"<c>ekin</c>:\t\t\tenerxía cinética\n"
+"<c>fmax</c>:\t\t\tforza máxima\n"
+"<c>fave</c>:\t\t\tforza media\n"
+"<c>R[n,0-2]</c>:\t\t\tposición do átomo de número <c>n</c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>:\t\t\tdistancia entre dous átomos "
+"<c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
+"<c>i</c>:\t\t\t\tnúmero da imaxe actual\n"
+"<c>E[i]</c>:\t\t\t\tenerxía da imaxe número <c>i</c>\n"
+"<c>F[n,0-2]</c>:\t\t\tforza do átomo número <c>n</c>\n"
+"<c>V[n,0-2]</c>:\t\t\tvelocidade do átomo número <c>n</c>\n"
+"<c>M[n]</c>:\t\t\tmomento magnético do átomo número <c>n</c>\n"
+"<c>A[0-2,0-2]</c>:\t\tvectores base da celda unidade\n"
+"<c>s</c>:\t\t\t\tlonxitude da traxectoria\n"
+"<c>a(n1,n2,n3)</c>:\t\tángulo entre os átomos <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></"
 "c>\n"
-"<c>dih(n1,n2,n3,n4)</c>:\tdihedral vinkel mellem <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> og <c>n<sub>4</sub></c>\n"
-"<c>T</c>:\t\t\t\ttemperatur (K)"
+"<c>dih(n1,n2,n3,n4)</c>:\tángulo diedro entre <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
+"<c>T</c>:\t\t\t\ttemperatura (K)"
 
 #: ../graphs.py:50 ../graphs.py:53
 msgid "Plot"
-msgstr "Graf"
+msgstr "Graficar"
 
 #: ../graphs.py:58
 msgid "clear"
-msgstr "ryd"
+msgstr "Limpar"
 
 #: ../graphs.py:88
 msgid "Save data to file ... "
-msgstr "Gem data til fil ... "
+msgstr "Garde os datos nun arquivo ..."
 
 #: ../gtkexcepthook.py:118
 msgid "Bug Detected"
-msgstr "Fejl fundet"
+msgstr "Erro atopado"
 
 #: ../gtkexcepthook.py:122
 msgid "A programming error has been detected."
-msgstr "Der blev fundet en programmeringsfejl."
+msgstr "Atopouse un erro de programación."
 
 #: ../gtkexcepthook.py:125
 msgid ""
 "It probably isn't fatal, but the details should be reported to the "
 "developers nonetheless."
 msgstr ""
-"Den er nok ikke fatal, men detaljerne bør alligevel rapporteres til "
-"udviklerne."
+"Probablemente non é fatal. Sen embargo, os detalles deberían\n"
+"enviarse os desenvolvedores."
 
 #: ../gtkexcepthook.py:141
 msgid "Report..."
-msgstr "Rapportér..."
+msgstr "Reporte..."
 
 #: ../gtkexcepthook.py:145
 msgid "Details..."
-msgstr "Detaljer..."
+msgstr "Detalles..."
 
 #: ../gtkexcepthook.py:161
 #, python-format
@@ -1445,250 +1358,250 @@ msgid ""
 "\n"
 "%s"
 msgstr ""
-"Fra: fejlagtigt_program\"\n"
-"Til: dårlig_programmør\n"
-"Emne: Exception feedback\n"
+"Desde:  buggy_application\"\n"
+"A: bad_programmer\n"
+"Asunto: Retroalimentación dun erro\n"
 "\n"
 "%s"
 
 #. Show details...
 #: ../gtkexcepthook.py:174
 msgid "Bug Details"
-msgstr "Detaljer om fejl"
+msgstr "Detalles do erro"
 
 #: ../gui.py:189
 msgid "_File"
-msgstr "_Fil"
+msgstr "_Arquivo"
 
 #: ../gui.py:190
 msgid "_Edit"
-msgstr "_Redigér"
+msgstr "_Editar"
 
 #: ../gui.py:191
 msgid "_View"
-msgstr "_Vis"
+msgstr "_Ver"
 
 #: ../gui.py:192
 msgid "_Tools"
-msgstr "_Værktøjer"
+msgstr "_Ferramentas"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
 #: ../gui.py:194
 msgid "_Setup"
-msgstr "_Byg"
+msgstr "_Configurar"
 
 #: ../gui.py:195
 msgid "_Calculate"
-msgstr "_Beregn"
+msgstr "_Calcular"
 
 #: ../gui.py:196
 msgid "_Help"
-msgstr "_Hjælp"
+msgstr "_Axuda"
 
 #: ../gui.py:197
 msgid "_Open"
-msgstr "_Åbn"
+msgstr "_Abrir"
 
 #: ../gui.py:198
 msgid "Create a new file"
-msgstr "Opret en ny fil"
+msgstr "Crear un arquivo novo"
 
 #: ../gui.py:199
 msgid "_New"
-msgstr "_Ny"
+msgstr "_Novo"
 
 #: ../gui.py:200
 msgid "New ase.gui window"
-msgstr "Nyt ase.gui-vindue"
+msgstr "Nova ventá ase.gui"
 
 #: ../gui.py:201
 msgid "_Save"
-msgstr "_Gem"
+msgstr "_Gardar"
 
 #: ../gui.py:202
 msgid "Save current file"
-msgstr "Gem den aktuelle fil"
+msgstr "Gardar arquivo actual"
 
 #: ../gui.py:203
 msgid "_Quit"
-msgstr "_Afslut"
+msgstr "_Saír"
 
 #: ../gui.py:203
 msgid "Quit"
-msgstr "Afslut"
+msgstr "Saír"
 
 #: ../gui.py:205
 msgid "Select _all"
-msgstr "Vælg _alle"
+msgstr "Seleccionar _todo"
 
 #: ../gui.py:206
 msgid "_Invert selection"
-msgstr "_Omvend markering"
+msgstr "_Invertir selección"
 
 #: ../gui.py:208
 msgid "Select _constrained atoms"
-msgstr "Vælg _fastgjorte atomer"
+msgstr "Seleccionar átomos _restrinxidos"
 
 #: ../gui.py:210
 msgid "Select _immobile atoms"
-msgstr "Vælg _immobile atomer"
+msgstr "Seleccionar átomos _inamovibles"
 
 #: ../gui.py:212
 msgid "_Copy"
-msgstr "_Kopiér"
+msgstr "_Copiar"
 
 #: ../gui.py:213
 msgid "Copy current selection and its orientation to clipboard"
-msgstr "Kopiér nuværende markering og dens orientering til udklipsholderen"
+msgstr "Copiar a selección actual e súa orientación"
 
 #: ../gui.py:215
 msgid "_Paste"
-msgstr "_Indsæt"
+msgstr "_Pegar"
 
 #: ../gui.py:216
 msgid "Insert current clipboard selection"
-msgstr "Indsæt nuværende markering fra udklipsholderen"
+msgstr "Insertar selección actual"
 
 #: ../gui.py:217
 msgid "_Modify"
-msgstr "_Ændr"
+msgstr "_Modificar"
 
 #: ../gui.py:218
 msgid "Change tags, moments and atom types of the selected atoms"
-msgstr "Ændr mærker, impuls og atomnummer for de valgte atomer"
+msgstr "Cambiar etiquetas, momentos magnéticos e tipo dos átomos seleccionados"
 
 #: ../gui.py:220
 msgid "_Add atoms"
-msgstr "_Tilføj atomer"
+msgstr "_Engadir átomos"
 
 #: ../gui.py:221
 msgid "Insert or import atoms and molecules"
-msgstr "Indsæt eller importér atomer og molekyler"
+msgstr "Insertar ou importar átomos e moléculas"
 
 #: ../gui.py:222
 msgid "_Delete selected atoms"
-msgstr "_Slet markerede atomer"
+msgstr "_Borrar átomos seleccionados"
 
 #: ../gui.py:223
 msgid "Delete the selected atoms"
-msgstr "Slet de markerede atomer"
+msgstr "Borrar os átomos seleccionados"
 
 #: ../gui.py:224
 msgid "_First image"
-msgstr "_Første billede"
+msgstr "_Primeira imaxe"
 
 #: ../gui.py:226
 msgid "_Previous image"
-msgstr "_Forrige billede"
+msgstr "_Imaxe previa"
 
 #: ../gui.py:228
 msgid "_Next image"
-msgstr "_Næste billede"
+msgstr "_Próxima imaxe"
 
 #: ../gui.py:230
 msgid "_Last image"
-msgstr "_Sidste billede"
+msgstr "Última imaxe"
 
 #: ../gui.py:232
 msgid "Show _Labels"
-msgstr "Vis _Etiketter"
+msgstr "Mostrar _etiquetas"
 
 #: ../gui.py:233
 msgid "Hide selected atoms"
-msgstr "Skjul markerede atomer"
+msgstr "Ocultar átomos seleccionados"
 
 #: ../gui.py:235
 msgid "Show selected atoms"
-msgstr "Vis markerede atomer"
+msgstr "Mostrar átomos seleccionados"
 
 #: ../gui.py:237
 msgid "Quick Info ..."
-msgstr "Hurtig info ..."
+msgstr "Información rápida ..."
 
 #: ../gui.py:239
 msgid "Repeat ..."
-msgstr "Gentag ..."
+msgstr "Repetir ..."
 
 #: ../gui.py:240
 msgid "Rotate ..."
-msgstr "Rotér ..."
+msgstr "Xirar ..."
 
 #: ../gui.py:241
 msgid "Colors ..."
-msgstr "Farver ..."
+msgstr "Cores ..."
 
 #. TRANSLATORS: verb
 #: ../gui.py:243
 msgid "Focus"
-msgstr "Fokusér"
+msgstr "Enfocar"
 
 #: ../gui.py:244
 msgid "Zoom in"
-msgstr "Zoom ind"
+msgstr "Ampliar"
 
 #: ../gui.py:245
 msgid "Zoom out"
-msgstr "Zoom ud"
+msgstr "Afastar"
 
 #: ../gui.py:247
 msgid "Change View"
-msgstr "Skift perspektiv"
+msgstr "Cambiar de vista"
 
 #: ../gui.py:248
 msgid "Reset View"
-msgstr "Nulstil perspektiv"
+msgstr "Reiniciar Vista"
 
 #: ../gui.py:249
 msgid "'xy' Plane"
-msgstr "'xy'-plan"
+msgstr "Plano 'xy'"
 
 #: ../gui.py:250
 msgid "'yz' Plane"
-msgstr "'yz'-plan"
+msgstr "Plano 'yz'"
 
 #: ../gui.py:251
 msgid "'zx' Plane"
-msgstr "'zx'-plan"
+msgstr "Plano 'zx'"
 
 #: ../gui.py:252
 msgid "'yx' Plane"
-msgstr "'yx'-plan"
+msgstr "Plano 'yx'"
 
 #: ../gui.py:253
 msgid "'zy' Plane"
-msgstr "'zy'-plan"
+msgstr "Plano 'zy'"
 
 #: ../gui.py:254
 msgid "'xz' Plane"
-msgstr "'xz'-plan"
+msgstr "Plano 'xz'"
 
 #: ../gui.py:255
 msgid "'a2 a3' Plane"
-msgstr "'a2 a3'-plan"
+msgstr "Plano 'a2 a3'"
 
 #: ../gui.py:256
 msgid "'a3 a1' Plane"
-msgstr "'a3 a1'-plan"
+msgstr "Plano 'a3 a1'"
 
 #: ../gui.py:257
 msgid "'a1 a2' Plane"
-msgstr "'a1 a2'-plan"
+msgstr "Plano 'a1 a2'"
 
 #: ../gui.py:258
 msgid "'a3 a2' Plane"
-msgstr "'a3 a2'-plan"
+msgstr "Plano 'a3 a2'"
 
 #: ../gui.py:260
 msgid "'a1 a3' Plane"
-msgstr "'a1 a3'-plan"
+msgstr "Plano 'a1 a3'"
 
 #: ../gui.py:262
 msgid "'a2 a1' Plane"
-msgstr "'a2 a1'-plan"
+msgstr "Plano 'a2 a1'"
 
 #: ../gui.py:264
 msgid "Settings ..."
-msgstr "Indstillinger ..."
+msgstr "Axustes ..."
 
 #: ../gui.py:266
 msgid "VMD"
@@ -1708,24 +1621,23 @@ msgstr "avogadro"
 
 #: ../gui.py:270
 msgid "Graphs ..."
-msgstr "Grafer ..."
+msgstr "Gráficos ..."
 
 #: ../gui.py:271
 msgid "Movie ..."
-msgstr "Film ..."
+msgstr "Película ..."
 
 #: ../gui.py:272
 msgid "Expert mode ..."
-msgstr "Eksperttilstand ..."
+msgstr "Modo experto ..."
 
 #: ../gui.py:274
 msgid "Constraints ..."
-msgstr "Begrænsninger ..."
+msgstr "Restriccións ..."
 
-# gemmer et billede af atomerne
 #: ../gui.py:276
 msgid "Render scene ..."
-msgstr "Tegn struktur ..."
+msgstr "Debuxar escena ..."
 
 #: ../gui.py:278
 msgid "NE_B"
@@ -1733,294 +1645,294 @@ msgstr "NE_B"
 
 #: ../gui.py:279
 msgid "B_ulk Modulus"
-msgstr "K_ompressibilitetsmodul"
+msgstr "Módulo E_nteiro"
 
 #: ../gui.py:281
 msgid "_Bulk Crystal"
-msgstr "_Krystal"
+msgstr "Cristal _Enteiro"
 
 #: ../gui.py:282
 msgid "Create a bulk crystal with arbitrary orientation"
-msgstr "Opret en krystalstruktur med arbitrær orientering"
+msgstr "Crear un cristal cunha orientación arbitraria"
 
 #: ../gui.py:284
 msgid "_Surface slab"
-msgstr "_Overflade"
+msgstr "Peza de _superficie"
 
 #: ../gui.py:285
 msgid "Create the most common surfaces"
-msgstr "Opret de mest almindelige overflader"
+msgstr "Crear as superficies máis comunes"
 
 #: ../gui.py:286
 msgid "_Nanoparticle"
-msgstr "_Nanopartikel"
+msgstr "_Nanopartícula"
 
 #: ../gui.py:287
 msgid "Create a crystalline nanoparticle"
-msgstr "Opret en krystallinsk nanopartikel"
+msgstr "Crear unha nanoparticula cristalina"
 
 #: ../gui.py:288
 msgid "Nano_tube"
-msgstr "Nano_rør"
+msgstr "Nano_tubo"
 
 #: ../gui.py:288
 msgid "Create a nanotube"
-msgstr "Opret et nanorør"
+msgstr "Crear un nanotubo"
 
 #: ../gui.py:291
 msgid "Create a graphene sheet or nanoribbon"
-msgstr "Opret et lag eller bånd af grafén"
+msgstr "Crear unha folla de grafeno o unha nanocinta"
 
 #: ../gui.py:292
 msgid "Set _Calculator"
-msgstr "Angiv _beregner"
+msgstr "Fixar _calculador"
 
 #: ../gui.py:293
 msgid "Set a calculator used in all calculation modules"
-msgstr "Angiv en beregner der skal bruges i alle beregningsmoduler"
+msgstr "Fixar un calculador para tódolos módulos de cálculo"
 
 #: ../gui.py:295
 msgid "_Energy and Forces"
-msgstr "_Energi og kræfter"
+msgstr "_Enerxía e Forzas"
 
 #: ../gui.py:296
 msgid "Calculate energy and forces"
-msgstr "Beregn energi og kræfter"
+msgstr "Calcular enerxía e forzas"
 
 #: ../gui.py:297
 msgid "Energy _Minimization"
-msgstr "Energi_minimering"
+msgstr "_Minimización enerxética"
 
 #: ../gui.py:298
 msgid "Minimize the energy"
-msgstr "Minimér energien"
+msgstr "Minimize a enerxía"
 
 #: ../gui.py:299
 msgid "Scale system"
-msgstr "Skalér systemet"
+msgstr "Escalar sistema"
 
 #: ../gui.py:300
 msgid "Deform system by scaling it"
-msgstr "Deformér systemet ved skalering"
+msgstr "Deforme o sistema escalándolo"
 
 #: ../gui.py:301
 msgid "_About"
-msgstr "_Om"
+msgstr "_Acerca de ag"
 
 #: ../gui.py:302
 msgid "Webpage ..."
-msgstr "Webside ..."
+msgstr "Páxina web ..."
 
 #: ../gui.py:303
 msgid "Debug ..."
-msgstr "Fejlsøgning ..."
+msgstr "Depurar..."
 
 #: ../gui.py:306
 msgid "Show _unit cell"
-msgstr "Vis _enhedscelle"
+msgstr "Mostrar celda _unidade"
 
 #: ../gui.py:308
 msgid "Show _axes"
-msgstr "Vis _akser"
+msgstr "Mostrar _eixes"
 
 #: ../gui.py:310
 msgid "Show _bonds"
-msgstr "Vis _bindinger"
+msgstr "Mostrar _enlaces"
 
 #: ../gui.py:312
 msgid "Show _velocities"
-msgstr "Vis _hastigheder"
+msgstr "Mostrar _velocidades"
 
 #: ../gui.py:314
 msgid "Show _forces"
-msgstr "Vis _kræfter"
+msgstr "Mostrar _forzas"
 
 #: ../gui.py:317
 msgid "_Move atoms"
-msgstr "_Flyt atomer"
+msgstr "_Mover átomos"
 
 #: ../gui.py:319
 msgid "_Rotate atoms"
-msgstr "_Rotér atomer"
+msgstr "_Xirar átomos"
 
 #: ../gui.py:321
 msgid "Orien_t atoms"
-msgstr "Orien_tér atomer"
+msgstr "Orien_tar átomos"
 
 #: ../gui.py:326
 msgid "_None"
-msgstr "_Ingen"
+msgstr "_Ningún"
 
 #: ../gui.py:327
 msgid "Atom _Index"
-msgstr "Atom _Indeks"
+msgstr "_Índice do Átomo"
 
 #: ../gui.py:328
 msgid "_Magnetic Moments"
-msgstr "_Magnetiske Momenter"
+msgstr "Momentos _Magnéticos"
 
 #: ../gui.py:329
 msgid "_Element Symbol"
-msgstr "_Kemisk symbol"
+msgstr "Símbolo _Químico"
 
 #: ../gui.py:611 ../gui.py:1029 ../gui.py:1064
 msgid "Open ..."
-msgstr "Åbn ..."
+msgstr "Abrir ..."
 
 #: ../gui.py:615 ../gui.py:1032
 msgid "<<filename>>"
-msgstr "<<filnavn>>"
+msgstr "<<Nombre de archivo>>"
 
 #: ../gui.py:750
 msgid "Add atoms"
-msgstr "Tilføj atomer"
+msgstr "Engadir átomos"
 
 #: ../gui.py:753
 msgid "Paste"
-msgstr "Indsæt"
+msgstr "Pegar"
 
 #: ../gui.py:759
 msgid "Insert atom or molecule"
-msgstr "Indsæt atom eller molekyle"
+msgstr "Engadir átomo ou molécula"
 
 #: ../gui.py:760 ../gui.py:882
 msgid "Tag"
-msgstr "Mærke"
+msgstr "Etiqueta"
 
 #: ../gui.py:760 ../gui.py:883
 msgid "Moment"
-msgstr "Moment"
+msgstr "Momento magnético"
 
 #: ../gui.py:760
 msgid "Position"
-msgstr "Position"
+msgstr "Posición"
 
 #: ../gui.py:786
 msgid "_Load molecule"
-msgstr "_Indlæs molekyle"
+msgstr "_Cargar molécula"
 
 #: ../gui.py:790 ../gui.py:898
 msgid "_OK"
-msgstr "_O.k."
+msgstr "_OK"
 
 #: ../gui.py:794 ../gui.py:902
 msgid "_Cancel"
-msgstr "_Annullér"
+msgstr "_Cancelar"
 
 #: ../gui.py:876
 msgid "Modify"
-msgstr "Ændr"
+msgstr "Modificar"
 
 #: ../gui.py:882
 msgid "Atom"
-msgstr "Atom"
+msgstr "Átomo"
 
 #: ../gui.py:926
 msgid "Confirmation"
-msgstr "Bekræftelse"
+msgstr "Confirmación"
 
 #: ../gui.py:930
 msgid "Delete selected atom?"
 msgid_plural "Delete selected atoms?"
-msgstr[0] "Slet det valgte atom?"
-msgstr[1] "Slet de valgte atomer?"
+msgstr[0] "¿Borrar átomo seleccionado?"
+msgstr[1] "¿Borrar os átomos seleccionados?"
 
 #: ../gui.py:937
 msgid "Cancel"
-msgstr "Annullér"
+msgstr "Cancelar"
 
 #: ../gui.py:1017
 msgid "Automatic"
-msgstr "Automatisk"
+msgstr "Automático"
 
 #: ../gui.py:1043
 msgid "File type:"
-msgstr "Filtype:"
+msgstr "Tipo de arquivo:"
 
 #: ../gui.py:1164
 msgid "Not implemented!"
-msgstr "Ikke implementeret!"
+msgstr "Non implementado!"
 
 #: ../gui.py:1165
 msgid "do you really need it?"
-msgstr "har du virkelig brug for dette?"
+msgstr "¿realmente necesita isto?"
 
 #: ../minimize.py:24
 msgid "Algorithm: "
-msgstr "Algoritme: "
+msgstr "Algoritmo: "
 
 #: ../minimize.py:29 ../progress.py:70
 msgid "Convergence criterion: F<sub>max</sub> = "
-msgstr "Konvergenskriterium: F<sub>max</sub> = "
+msgstr "Criterio de converxencia: F<sub>máx</sub> = "
 
 #: ../minimize.py:34 ../progress.py:73
 msgid "Max. number of steps: "
-msgstr "Maksimalt antal trin: "
+msgstr "Número máximo de pasos: "
 
 #. Special stuff for MDMin
 #: ../minimize.py:37
 msgid "Pseudo time step: "
-msgstr "Pseudotidsskridt: "
+msgstr "Paso de pseudotempo: "
 
 #: ../minimize.py:59
 msgid "Energy minimization"
-msgstr "Energiminimering"
+msgstr "Minimización enerxética"
 
 #: ../minimize.py:63
 msgid "Minimize the energy with respect to the positions."
-msgstr "Minimér energien med hensyn til positionerne."
+msgstr "Minimize a enerxía con respecto as posicións."
 
 #. Don't catch errors in the function.
 #. Display status message
 #: ../minimize.py:95 ../scaling.py:301
 msgid "Running ..."
-msgstr "Kører ..."
+msgstr "Calculando ..."
 
 #. Update display to reflect cancellation of simulation.
 #: ../minimize.py:112
 #, python-format
 msgid "Minimization CANCELLED after %i steps."
-msgstr "Minimering AFBRUDT efter %i trin."
+msgstr "Minimización CANCELADA despois de %i iteracións."
 
 #: ../minimize.py:118 ../scaling.py:352
 msgid "Out of memory, consider using LBFGS instead"
-msgstr "Løbet tør for hukommelse; overvej at bruge LBFGS i stedet"
+msgstr "Non hai máis memoria, considere usar o algoritmo LBFGS"
 
 #. Update display to reflect successful end of simulation.
 #: ../minimize.py:125
 #, python-format
 msgid "Minimization completed in %i steps."
-msgstr "Minimering fuldført på %i trin."
+msgstr "Minimización feita en %i pasos."
 
 #: ../movie.py:15
 msgid "Movie"
-msgstr "Film"
+msgstr "Película"
 
 #: ../movie.py:17
 msgid "Image number:"
-msgstr "Billednummer:"
+msgstr "Imaxe número:"
 
 #: ../movie.py:39
 msgid "Play"
-msgstr "Afspil"
+msgstr "Reproducir"
 
 #: ../movie.py:41
 msgid "Stop"
-msgstr "Stop"
+msgstr "Detener"
 
 #. TRANSLATORS: This function plays an animation forwards and backwards
 #. alternatingly, e.g. for displaying vibrational movement
 #: ../movie.py:45
 msgid "Rock"
-msgstr "Pendul"
+msgstr "Repetir cadro"
 
 #: ../movie.py:62
 msgid " Frame rate: "
-msgstr " Billedrate: "
+msgstr "Velocidade do cadro: "
 
 #: ../movie.py:63
 msgid " Skip frames: "
-msgstr " Overspring billeder: "
+msgstr "Saltar os cadros: "
 
 #: ../nanoparticle.py:20
 msgid ""
@@ -2031,15 +1943,14 @@ msgid ""
 "specify the directions.\n"
 "WARNING: The Wulff construction currently only works with cubic crystals!\n"
 msgstr ""
-"Opret en nanopartikel enten ved at angive antallet af lag, eller ved\n"
-"brug af Wulffkonstruktion.  Tryk på knappen [Hjælp] for at få\n"
-"instruktioner om hvordan retninger angives.\n"
-"\n"
-"ADVARSEL: Wulffkonstruktion fungerer i øjeblikket kun med kubiske "
-"krystaller!\n"
+"Crear unha nanopartícula especificando o número de capas,\n"
+"ou utilizando a construcción de Wulff. Por favor, presione\n"
+"o boton de axuda para ler as instruccións sobre cómo\n"
+"especificar as direccións.\n"
+"¡ADVERTENCIA: nesta versión, a construcción de Wulff \n"
+"sólo funciona para cristais cúbicos!\n"
 
 #: ../nanoparticle.py:27
-#, python-brace-format
 msgid ""
 "\n"
 "The nanoparticle module sets up a nano-particle or a cluster with a given\n"
@@ -2074,111 +1985,114 @@ msgid ""
 "the whole family of directions.\n"
 msgstr ""
 "\n"
-"Nanopartikelmodulet konstruerer en nanopartikel eller klynge med en\n"
-"given krystalstruktur.\n"
+"Este módulo crea unha nanopartícula ou un agregado dada unha\n"
+"estructura cristalina.\n"
 "\n"
-"1) Vælg grundstoffet, krystalstrukturen og gitterkonstanterne.\n"
-"   Knappen [Hent struktur] vil finde data for et givet grundstof.\n"
+"1) Escolla un elemento, a estructura cristalina e a(s)\n"
+"   constante(s) de rede. O botón \"Obter estructura\" \n"
+"   encontrará os datos para o elemento seleccionado.\n"
 "\n"
-"2) Vælg om du vil angive antallet af lag i hver retning, eller om du\n"
-"   vil benytte en Wulffkonstruktion.  I sidstnævnte tilfælde skal du\n"
-"   angive overfladeenergier for hver retning samt klyngens størrelse.\n"
+"2) Escolla se desexa especificar o número de capas en cada \n"
+"   dirección, ou se desexa empregar a construcción de Wulff.\n"
+"   Neste último caso, debe especificalas enerxías de \n"
+"   superficie en cada dirección, e o tamaño do agregado.\n"
 "\n"
-"Hvordan retninger angives\n"
-"-------------------------\n"
+"Cómo especificar as direccións:\n"
+"---------------------------------\n"
 "\n"
-"Første gang en retning dukker op, fortolkes den som en hel familie af\n"
-"retninger - f.eks. dækker (0,0,1) også (1,0,0), (-1,0,0) osv.  Hvis en af\n"
-"disse retninger angives igen, vil anden specifikation særligt gælde\n"
-"denne specifikke retning.  Derfor er rækkefølgen ikke ligegyldig, og du kan\n"
-"omarrangere retningerne med knapperne [Op] og [Ned].  Du kan også tilføje in "
-"ny retning - husk at trykke [Tilføj], eller den vil ikke blive inkluderet.\n"
+"A primeira vez unha dirección aparece, a cal é interpretada\n"
+"como a familia completa das direccións, é dicir, (0,0,1)\n"
+"tamén cubre a dirección (1,0,0), (-1,0,0) etc. Se unha destas\n"
+"direccións é especificada novamente, a segunda especificación\n"
+"reemplaza esa dirección en específico. Debido a isto, o orden\n"
+"importa e pódese rearreglar a dirección cos botones Arriba e\n"
+"Abaixo. Tamén pódese engadir unha nova dirección: lembre presionar\n"
+"o botón Engadir ou ésta non será incluida.\n"
 "\n"
-"Eksempel: (1,0,0), (1,1,1), (0,0,1) ville angive familien {100} af "
-"retninger,\n"
-"{111}-familien og så (001) retningen, der tilsidesætter værdien givet til\n"
-"selve familien af retninger.\n"
+"Exemplo: (1,0,0) (1,1,1), (0,0,1) especificará a familia {100} de\n"
+"direccions, a familia {111} e logo a dirección (001), \n"
+"sobreescribindo o valor dado por tódala familia de direccions.\n"
 
 #. Structures:  Abbreviation, name, 4-index (boolean), two lattice const (bool), factory
 #: ../nanoparticle.py:84
 msgid "Face centered cubic (fcc)"
-msgstr "Face centered cubic (fcc)"
+msgstr "Cúbico centrado nas caras (fcc)"
 
 #: ../nanoparticle.py:85
 msgid "Body centered cubic (bcc)"
-msgstr "Body centered cubic (bcc)"
+msgstr "Cúbico centrado no corpo (bcc)"
 
 #: ../nanoparticle.py:86
 msgid "Simple cubic (sc)"
-msgstr "Simpel kubisk (sc)"
+msgstr "Cúbico simple (sc)"
 
 #: ../nanoparticle.py:87
 msgid "Hexagonal closed-packed (hcp)"
-msgstr "Heksagonal tætpakket (hcp)"
+msgstr "Empacamento hexagonal pechado (hcp)"
 
 #: ../nanoparticle.py:88
 msgid "Graphite"
-msgstr "Grafit"
+msgstr "Grafito"
 
 #: ../nanoparticle.py:117
 msgid "Nanoparticle"
-msgstr "Nanopartikel"
+msgstr "Nanopartícula"
 
 #. Choose the element
 #. Choose the element and bond length
 #. Choose the element
 #: ../nanoparticle.py:127 ../nanotube.py:42 ../surfaceslab.py:69
 msgid "Element: "
-msgstr "Grundstof: "
+msgstr "Elemento: "
 
 #: ../nanoparticle.py:131
 msgid "Get structure"
-msgstr "Hent struktur"
+msgstr "Obter estrutura"
 
 #: ../nanoparticle.py:155
 msgid "Lattice constant:  a ="
-msgstr "Gitterkonstant:  a ="
+msgstr "Constante de rede: a ="
 
 #. Choose specification method
 #: ../nanoparticle.py:172
 msgid "Method: "
-msgstr "Metode: "
+msgstr "Método: "
 
 #: ../nanoparticle.py:174
 msgid "Layer specification"
-msgstr "Lagspecifikation"
+msgstr "Especificación de capas"
 
 #: ../nanoparticle.py:174
 msgid "Wulff construction"
-msgstr "Wulffkonstruktion"
+msgstr "Construcción de Wulff"
 
 #: ../nanoparticle.py:194
 msgid "Dummy placeholder object"
-msgstr "Stedfortræderobjekt"
+msgstr "Objeto marcador de posición ficticia"
 
 #: ../nanoparticle.py:196
 msgid "Add new direction:"
-msgstr "Tilføj ny retning:"
+msgstr "Engadir nova dirección:"
 
 #: ../nanoparticle.py:212
 msgid "Add"
-msgstr "Tilføj"
+msgstr "Engadir"
 
 #: ../nanoparticle.py:220
 msgid "Set all directions to default values"
-msgstr "Sæt alle retninger til standardværdier"
+msgstr "Fixar en todalas direccións os valores por defecto"
 
 #: ../nanoparticle.py:228
 msgid "Particle size: "
-msgstr "Partikelstørrelse: "
+msgstr "Tamaño da partícula: "
 
 #: ../nanoparticle.py:229 ../nanoparticle.py:266 ../progress.py:199
 msgid "Number of atoms: "
-msgstr "Antal atomer: "
+msgstr "Número de átomos: "
 
 #: ../nanoparticle.py:234
 msgid "Volume: "
-msgstr "Volumen: "
+msgstr "Volume: "
 
 #: ../nanoparticle.py:239
 msgid "Å³"
@@ -2186,80 +2100,80 @@ msgstr "Å³"
 
 #: ../nanoparticle.py:244
 msgid "Rounding: If exact size is not possible, choose the size"
-msgstr "Afrunding: Hvis eksakt størrelse ikke kan opnås, så vælg størrelsen"
+msgstr "Redondear: se o tamaño exacto non é posible, elexir o tamaño"
 
 #: ../nanoparticle.py:247
 msgid "above  "
-msgstr "over  "
+msgstr "sobre  "
 
 #: ../nanoparticle.py:248
 msgid "below  "
-msgstr "under  "
+msgstr "abajo  "
 
 #: ../nanoparticle.py:249
 msgid "closest  "
-msgstr "tættest på  "
+msgstr "máis cercano  "
 
 #: ../nanoparticle.py:252
 msgid "Smaller"
-msgstr "Mindre"
+msgstr "Máis pequeno"
 
 #: ../nanoparticle.py:253
 msgid "Larger"
-msgstr "Større"
+msgstr "Máis longo"
 
 #: ../nanoparticle.py:268
 msgid "   Approx. diameter: "
-msgstr "   Diameter omtrent: "
+msgstr "   Diámetro aproximado: "
 
 #: ../nanoparticle.py:272
 msgid "Information about the created cluster:"
-msgstr "Information om den konstruerede klynge:"
+msgstr "Información sobre o agregado creado:"
 
 #. Buttons
 #: ../nanoparticle.py:278 ../nanotube.py:81
 msgid "Creating a nanoparticle."
-msgstr "Konstruktion af nanopartikel."
+msgstr "Creando unha nanopartícula."
 
 #: ../nanoparticle.py:285
 msgid "Automatic Apply"
-msgstr "Anvend automatisk"
+msgstr "Aplicar automáticamente"
 
 #: ../nanoparticle.py:333
 msgid "Up"
-msgstr "Op"
+msgstr "Arriba"
 
 #: ../nanoparticle.py:338
 msgid "Down"
-msgstr "Ned"
+msgstr "Abaixo"
 
 #: ../nanoparticle.py:343
 msgid "Delete"
-msgstr "Slet"
+msgstr "Borrar"
 
 #: ../nanoparticle.py:384
 msgid "Surface energies (as energy/area, NOT per atom):"
-msgstr "Overfladeenergier (som energi/areal, IKKE per atom):"
+msgstr "Enerxía de superficie (enerxía por área, NON por átomo):"
 
 #: ../nanoparticle.py:390
 msgid "Number of layers:"
-msgstr "Antal lag:"
+msgstr "Número de capas:"
 
 #: ../nanoparticle.py:419
 msgid "At least one index must be non-zero"
-msgstr "Mindst et indeks skal være forskelligt fra nul"
+msgstr "O menos un índice debe ser distinto de cero"
 
 #: ../nanoparticle.py:422
 msgid "Invalid hexagonal indices"
-msgstr "Ugyldige heksagonale indeks"
+msgstr "Índices hexagonales inválidos"
 
-#: ../nanoparticle.py:477 ../surfaceslab.py:220
+#: ../nanoparticle.py:477 ../surfaceslab.py:218
 msgid "Invalid element."
-msgstr "Ugyldigt grundstof."
+msgstr "Elemento inválido."
 
 #: ../nanoparticle.py:487
 msgid "Unsupported or unknown structure"
-msgstr "Uunderstøttet eller ukendt struktur"
+msgstr "Estrutura non soportada ou descoñecida"
 
 #: ../nanoparticle.py:604
 #, python-format
@@ -2274,128 +2188,128 @@ msgid ""
 "Nanotubes of other elements can be made by specifying the element\n"
 "and bond length."
 msgstr ""
-"Byg et kulstofnanorør ved at angive uprulningsvektoren (n, m).\n"
-"Bemærk at m <= n.\n"
+"Configure un nanotubo de carbono specificando o vector de roll-up.\n"
+"Teña en conta que m <= n.\n"
 "\n"
-"Nanorør af andre grundstoffer kan bygges ved at angive hvilket grundstof,\n"
-"samt bindingslængde."
+"Nanotubos doutros elementos pódense construir especificando o elemento e a "
+"lonxitude do enlace."
 
 #: ../nanotube.py:29
 #, python-format
 msgid ""
-" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: %"
+"(volume).3f Å<sup>3</sup>"
 msgstr ""
-" %(natoms)i atomer: %(symbols)s, diameter: %(diameter).3f Å, cellevolumen: "
-"%(volume).3f Å<sup>3</sup>"
+" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: %"
+"(volume).3f Å<sup>3</sup>"
 
 #: ../nanotube.py:35
 msgid "Nanotube"
-msgstr "Nanorør"
+msgstr "Nanotubo"
 
 #. Choose the structure.
 #: ../nanotube.py:59
 msgid "Select roll-up vector (n,m) and tube length:"
-msgstr "Vælg oprulningsvektor (n,m) og rørlængde:"
+msgstr "Seleccione o vector de roll-up (n,m) e a lonxitude do tubo:"
 
 #: ../progress.py:28
 msgid "Progress"
-msgstr "Fremgang"
+msgstr "Progreso"
 
 #: ../progress.py:35
 msgid "Scaling deformation:"
-msgstr "Skaleringsdeformation:"
+msgstr "Escala de deformación:"
 
 #: ../progress.py:41
 #, python-format
 msgid "Step number %s of %s."
-msgstr "Trin nummer %s af %s."
+msgstr "Paso número %s de %s."
 
 #. Minimization progress frame
 #. Box containing frame and spacing
 #: ../progress.py:56
 msgid "Energy minimization:"
-msgstr "Energiminimering:"
+msgstr "Minimización de enerxía:"
 
 #: ../progress.py:63
 msgid "Step number: "
-msgstr "Trinnummer: "
+msgstr "Paso número: "
 
 #: ../progress.py:65
 msgid "F<sub>max</sub>: "
-msgstr "F<sub>max</sub>: "
+msgstr "F<sub>máx</sub>: "
 
 #: ../progress.py:105
 msgid "unknown"
-msgstr "ukendt"
+msgstr "descoñecido"
 
 #: ../progress.py:182
 msgid "Status: "
-msgstr "Status: "
+msgstr "Estado: "
 
 #: ../progress.py:184
 msgid "Iteration: "
-msgstr "Iteration: "
+msgstr "Iteración: "
 
 #: ../progress.py:187
 msgid "log<sub>10</sub>(change):"
-msgstr "log<sub>10</sub>(skift):"
+msgstr "log<sub>10</sub> (cambio):"
 
 #: ../progress.py:190
 msgid "Wave functions: "
-msgstr "Bølgefunktioner: "
+msgstr "Funcións de onda: "
 
 #: ../progress.py:192
 msgid "Density: "
-msgstr "Tæthed: "
+msgstr "Densidade: "
 
 #: ../progress.py:194
 msgid "Energy: "
-msgstr "Energi: "
+msgstr "Enerxía: "
 
 #: ../progress.py:197
 msgid "GPAW version: "
-msgstr "GPAW-version: "
+msgstr "Versión de GPAW: "
 
 #: ../progress.py:200
 msgid "N/A"
-msgstr "-"
+msgstr "Non disponible"
 
 #: ../progress.py:201
 msgid "Memory estimate: "
-msgstr "Hukommelsesestimat: "
+msgstr "Memoria estimada: "
 
 #: ../progress.py:236
 msgid "No info"
-msgstr "Ingen info"
+msgstr "No hai información"
 
 #: ../progress.py:246
 msgid "Initializing"
-msgstr "Klargør"
+msgstr "Iniciando"
 
 #: ../progress.py:247
 msgid "Positions:"
-msgstr "Positioner:"
+msgstr "Posicións:"
 
 #: ../progress.py:251
 msgid "Starting calculation"
-msgstr "Starter beregning"
+msgstr "Comenzando o cálculo"
 
 #: ../progress.py:288
 msgid "unchanged"
-msgstr "uændret"
+msgstr "sen cambios"
 
 #: ../progress.py:298
 msgid "Self-consistency loop"
-msgstr "Selvkonsistensløkke"
+msgstr "Bucle de auto consistencia"
 
 #: ../progress.py:303
 msgid "Calculating forces"
-msgstr "Beregner kræfter"
+msgstr "Calculando forzas"
 
 #: ../progress.py:304
 msgid " (converged)"
-msgstr " (konvergeret)"
+msgstr " (converxido)"
 
 #: ../pybutton.py:37
 msgid "Python"
@@ -2403,7 +2317,7 @@ msgstr "Python"
 
 #: ../pybutton.py:48
 msgid "No Python code"
-msgstr "Ingen Pythonkode"
+msgstr "Non é código de Python"
 
 #: ../pybutton.py:52
 #, python-format
@@ -2413,37 +2327,37 @@ msgid ""
 "Time: %(time)s\n"
 msgstr ""
 "\n"
-"Titel: %(title)s\n"
-"Tid: %(time)s\n"
+"Título: %(title)s\n"
+"Tempo:  %(time)s\n"
 
 #: ../pybutton.py:61
 msgid "ag: Python code"
-msgstr "ag: Pythonkode"
+msgstr "ag: código en Python"
 
 #: ../pybutton.py:65
 msgid "Information:"
-msgstr "Information:"
+msgstr "Información:"
 
 #: ../pybutton.py:72
 msgid "Python code:"
-msgstr "Pythonkode:"
+msgstr "Código en Python:"
 
 #: ../quickinfo.py:9
 msgid "Single image loaded."
-msgstr "Enkelt billede indlæst."
+msgstr "Unha imaxe cargada."
 
 #: ../quickinfo.py:10
 #, python-format
 msgid "Image %d loaded (0 - %d)."
-msgstr "Billede %d indlæst (0 - %d)."
+msgstr "Imaxe %d cargada (0 - %d)."
 
 #: ../quickinfo.py:11
 msgid "Unit cell is fixed."
-msgstr "Enhedscelle fastholdes."
+msgstr "Celda unidade está fixa."
 
 #: ../quickinfo.py:12
 msgid "Unit cell varies."
-msgstr "Enhedscelle varierer."
+msgstr "A celda unidade varía."
 
 #: ../quickinfo.py:14
 #, python-format
@@ -2462,9 +2376,9 @@ msgid ""
 msgstr ""
 "%s\n"
 "\n"
-"Antal atomer: %d.\n"
+"Número de átomos: %d.\n"
 "\n"
-"Enhedscelle:\n"
+"Celda unidade:\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
@@ -2474,25 +2388,25 @@ msgstr ""
 
 #: ../quickinfo.py:31
 msgid "Quick Info"
-msgstr "Hurtig info"
+msgstr "Información rápida"
 
 #: ../quickinfo.py:35
 msgid "No atoms loaded."
-msgstr "Ingen atomer indlæst."
+msgstr "Non hai átomos seleccionados."
 
 #: ../quickinfo.py:56
 msgid "no"
-msgstr "nej"
+msgstr "no"
 
 #: ../quickinfo.py:56
 msgid "yes"
-msgstr "ja"
+msgstr "sí"
 
 #. TRANSLATORS: This has the form Periodic: no, no, yes
 #: ../quickinfo.py:60
 #, python-format
 msgid "Periodic: %s, %s, %s"
-msgstr "Periodisk: %s, %s, %s"
+msgstr "Periódico: %s, %s, %s"
 
 #: ../render.py:15
 msgid ""
@@ -2511,153 +2425,155 @@ msgid ""
 "    to change the attributes of the current selection.\n"
 "    "
 msgstr ""
-"    Teksturer kan bruges til at fremhæve forskellige dele af en\n"
-"    atomar struktur. Dette vindue anvender standardteksturen på hele\n"
-"    strukturen, og anvender valgfrit en anden tekstur til bestemte\n"
-"    atomer som kan markeres med musen.\n"
-"    En alternativ markeringsmetode baseret på booleske udtryk\n"
-"    i et tekstfelt kan bruges med variabelnavnene x, y, z eller Z.\n"
-"    For eksempel vil udtrykket Z == 11 and x > 10 and y > 10\n"
-"    markere alle natriumatomer med x- eller y-koordinater\n"
-"    større end 10. I begge tilfælde vil knappen med teksten\n"
-"    \"Opret ny tekstur fra markering\" tillade ændring af\n"
-"    attributterne for den nuværende markering.\n"
+"    As texturas pódense empregar para destacar diferentes partes\n"
+"    dunha estructura atómica. Esta ventá aprica a textura por defecto\n"
+"    á estructura completa. Opcionalmente, aprica unha textura distinta\n"
+"    á subconxuntos de átomos, os cales pódense seleccionar empregando o "
+"ratón.\n"
+"    Además, nesta versión de ASE, implementouse un método de\n"
+"    selección alternativo, o cal está basado en expresións\n"
+"    booleanas. Éstas pódense especificar na caixa de entrada, empregando\n"
+"    as variables x, y, z ou Z. Por exemplo, a expresión: \n"
+"    Z == 11 and x > 10 and y > 10\n"
+"    marcará tódolos átomos de sodio\n"
+"    con x ou coordenadas superiores a dez. En calquera caso, o botón\n"
+"    'Crear nova estructura desde a selección' activará os cambios os\n"
+"    atributos da selección actual.\n"
 "    "
 
-# gemmer et billede af atomerne
 #: ../render.py:33
 msgid "Render current view in povray ... "
-msgstr "Tegn nuværende struktur i povray ... "
+msgstr "Renderiza vista actual en povray ... "
 
 #: ../render.py:37
 #, python-format
 msgid "Rendering %d atoms."
-msgstr "Tegner %d atomer."
+msgstr "Renderizando %d átomos."
 
 #: ../render.py:42
 msgid "Render constraints"
-msgstr "Tegn begrænsninger"
+msgstr "Mostrar restriccións"
 
 #: ../render.py:45
 msgid "Width"
-msgstr "Bredde"
+msgstr "Ancho"
 
 #: ../render.py:46
 msgid "     Height"
-msgstr "     Højde"
+msgstr "     Altura"
 
 #: ../render.py:53
 msgid "Render unit cell"
-msgstr "Tegn _enhedscelle"
+msgstr "Renderizar celda unidade"
 
 #: ../render.py:62
 msgid "Line width"
-msgstr "Linjebredde"
+msgstr "Ancho da línea"
 
 #: ../render.py:64
 msgid "Angstrom           "
-msgstr "Ångström           "
+msgstr "Angstrom           "
 
 #: ../render.py:74
 msgid "Set"
-msgstr "Angiv"
+msgstr "Fixar"
 
 #: ../render.py:76
 msgid "Output basename: "
-msgstr "Basisnavn for output: "
+msgstr "Nome base para o arquivo de saída: "
 
 #: ../render.py:78
 msgid "               Filename: "
-msgstr "               Filnavn: "
+msgstr "               Nome do arquivo: "
 
 #: ../render.py:89
 msgid " Default texture for atoms: "
-msgstr " Standardtekstur for atomer: "
+msgstr " Textura por defecto para os átomos: "
 
 #: ../render.py:90
 msgid "    transparency: "
-msgstr "    gennemsigtighed: "
+msgstr "    transparencia: "
 
 #: ../render.py:91
 msgid "Define atom selection for new texture:"
-msgstr "Definér atommarkering til ny tekstur:"
+msgstr "Definir a selección do átomo para a nova textura:"
 
 #: ../render.py:93
 msgid "Select"
-msgstr "Vælg"
+msgstr "Seleccionar"
 
 #: ../render.py:97
 msgid "Create new texture from selection"
-msgstr "Opret ny tekstur fra markering"
+msgstr "Crear nova textura desde selección"
 
 #: ../render.py:99
 msgid "Help on textures"
-msgstr "Hjælp til teksturer"
+msgstr "Axuda en texturas"
 
 #: ../render.py:112
 msgid "Camera type: "
-msgstr "Kameratype: "
+msgstr "Tipo de cámara: "
 
 #: ../render.py:113
 msgid "     Camera distance"
-msgstr "     Kameraafstand"
+msgstr "     Distancia á cámara"
 
 #: ../render.py:114
 msgid "Render current frame"
-msgstr "Tegn det aktuelle billede"
+msgstr "Debuxar o cuadro actual"
 
 #: ../render.py:118
 #, python-format
 msgid "Render all %d frames"
-msgstr "Tegn alle %d billeder"
+msgstr "Debuxar tódolos %d cadros"
 
 #: ../render.py:123
 msgid "Transparent background"
-msgstr "Gennemsigtig baggrund"
+msgstr "Fondo transparente"
 
 #: ../render.py:126
 msgid "Run povray       "
-msgstr "Kør povray       "
+msgstr "Executar povray       "
 
 #: ../render.py:129
 msgid "Keep povray files       "
-msgstr "Behold povray-filer       "
+msgstr "Manter os archivos povray       "
 
 #: ../render.py:132
 msgid "Show output window"
-msgstr "Vis outputvindue"
+msgstr "Mostrar ventá de saída"
 
 #: ../render.py:211
 msgid "  transparency: "
-msgstr "  gennemsigtighed: "
+msgstr "  transparencia: "
 
 #: ../render.py:217
 msgid ""
 "Can not create new texture! Must have some atoms selected to create a new "
 "material!"
 msgstr ""
-"Kan ikke oprette ny tekstur! Der skal være atomer markeret for at kunne "
-"oprette nyt materiale!"
+"¡Non pode crearse a nova textura! ¡Débese seleccionar alguns átomos para "
+"crear un novo material!"
 
 #: ../repeat.py:12
 msgid "Repeat"
-msgstr "Gentag"
+msgstr "Repetir"
 
 #: ../repeat.py:14
 msgid "Repeat atoms:"
-msgstr "Gentag atomer:"
+msgstr "Repetir átomos:"
 
 #: ../repeat.py:19
 msgid "Set unit cell"
-msgstr "Angiv enhedscelle"
+msgstr "Fixar celda unidade"
 
 #: ../rotate.py:14
 msgid "Rotate"
-msgstr "Rotér"
+msgstr "Xirar"
 
 #: ../rotate.py:16
 msgid "Rotation angles:"
-msgstr "Rotationsvinkler:"
+msgstr "Ángulos de rotación:"
 
 #: ../rotate.py:26
 msgid ""
@@ -2666,14 +2582,14 @@ msgid ""
 "with the mouse, by holding\n"
 "down mouse button 2."
 msgstr ""
-"Bemærk:\n"
-"Du kan frit rotere med\n"
-"musen ved at holde\n"
-"musetast 2 nede."
+"Nota:\n"
+"Pode rotar libremente\n"
+"co ratón, presionando o\n"
+"botón número 2 do ratón."
 
 #: ../save.py:13
 msgid "Save ..."
-msgstr "Gem ..."
+msgstr "Gardar ..."
 
 #: ../save.py:20
 msgid ""
@@ -2683,150 +2599,150 @@ msgid ""
 "of images.\n"
 "You can leave out \"start\" and \"stop\" so that \"name@:\" will give you "
 "all images.\n"
-"Negative numbers count from the last image (\"name@-1\": last image, "
-"\"name@-2:\": last two)."
+"Negative numbers count from the last image (\"name@-1\": last image, \"name@-"
+"2:\": last two)."
 msgstr ""
-"Tilføj \"@n\" i navnet for at skrive billede nummer \"n\" frem for nuværende "
-"billede.\n"
-"Tilføj \"@start:stop\" eller \"@start:stop:trin\" hvis du vil skrive et "
-"interval af billeder.\n"
-"Du kan udelade \"start\" og \"stop\", så \"navn@:\" vil give dig alle "
-"billeder.\n"
-"Negative tal regnes fra sidste billede (\"navn@-1\": sidste billede, "
-"\"name@-2:\": de to sidste)."
+"Engada \"@n\" o nome para escribir a imáxe número \"n\" en vez da imaxe "
+"actual.\n"
+"Engada \"@principio:fin\" o \"@principio:fin:paso\" para escribir unha "
+"secuencia de imaxes.\n"
+"Pode omitir \"principio\" e \"fin\" e así \"nome@:\" incluirá tódalas "
+"imaxes.\n"
+"Números negativos cóntanse desde a última imaxe (\"nome@-1\": última, "
+"\"nome@-2:\": as dúas últimas)."
 
 #: ../scaling.py:49
 msgid "Homogeneous scaling"
-msgstr "Homogen skalering"
+msgstr "Escala uniforme"
 
 #: ../scaling.py:59
 msgid "3D deformation   "
-msgstr "3D-deformation   "
+msgstr "Deformación en tres dimensións   "
 
 #: ../scaling.py:60
 msgid "2D deformation   "
-msgstr "2D-deformation   "
+msgstr "Deformación en dúas dimensións   "
 
 #: ../scaling.py:61
 msgid "1D deformation   "
-msgstr "1D-deformation   "
+msgstr "Deformación nunha dimensión   "
 
 #: ../scaling.py:64
 msgid "Bulk"
-msgstr "Krystal"
+msgstr "Enteiro"
 
 #: ../scaling.py:66
 msgid "xy-plane"
-msgstr "xy-plan"
+msgstr "plano xy"
 
 #: ../scaling.py:68
 msgid "xz-plane"
-msgstr "xz-plan"
+msgstr "plano xz"
 
 #: ../scaling.py:70
 msgid "yz-plane"
-msgstr "yz-plan"
+msgstr "plano yz"
 
 #: ../scaling.py:72
 msgid "x-axis"
-msgstr "x-akse"
+msgstr "eixe x"
 
 #: ../scaling.py:74
 msgid "y-axis"
-msgstr "y-akse"
+msgstr "eixe y"
 
 #: ../scaling.py:76
 msgid "z-axis"
-msgstr "z-akse"
+msgstr "eixe z"
 
 #: ../scaling.py:89
 msgid "Allow deformation along non-periodic directions."
-msgstr "Tillad deformation langs ikke-periodiske retninger."
+msgstr "Permitir deformacións ó longo de direccións non periódicas."
 
 #. Parameters for the deformation
 #: ../scaling.py:94
 msgid "Deformation:"
-msgstr "Deformation:"
+msgstr "Deformación:"
 
 #: ../scaling.py:100
 msgid "Maximal scale factor: "
-msgstr "Maksimal skaleringsfaktor: "
+msgstr "Factor de escala máximo: "
 
 #: ../scaling.py:103
 msgid "Scale offset: "
-msgstr "Forskydning ved skalering: "
+msgstr "Compensación de escala: "
 
 #: ../scaling.py:106
 msgid "Number of steps: "
-msgstr "Antal trin: "
+msgstr "Número de pasos: "
 
 #: ../scaling.py:107
 msgid "Only positive deformation"
-msgstr "Kun positiv deformation"
+msgstr "Sólo deformacións positivas"
 
 #. Atomic relaxations
 #: ../scaling.py:112
 msgid "Atomic relaxations:"
-msgstr "Atomrelakseringer:"
+msgstr "Relaxacións atómicas:"
 
 #: ../scaling.py:116
 msgid "On   "
-msgstr "Til  "
+msgstr "Activo   "
 
 #: ../scaling.py:117
 msgid "Off"
-msgstr "Fra"
+msgstr "Inactivo"
 
 #. Results
 #: ../scaling.py:128
 msgid "Results:"
-msgstr "Resultater:"
+msgstr "Resultados:"
 
 #: ../scaling.py:130
 msgid "Keep original configuration"
-msgstr "Behold oprindelig konfiguration"
+msgstr "Manter a configuración orixinal"
 
 #: ../scaling.py:132
 msgid "Load optimal configuration"
-msgstr "Indlæs optimal konfiguration"
+msgstr "Cargala configuración óptima"
 
 #: ../scaling.py:134
 msgid "Load all configurations"
-msgstr "Indlæs alle konfigurationer"
+msgstr "Cargar tódalas configuracións"
 
 #: ../scaling.py:143
 msgid "Strain\t\tEnergy [eV]"
-msgstr "Spænding\t\tEnergi [eV]"
+msgstr "Enerxía de deformación [eV]"
 
 #: ../scaling.py:144
 msgid "Fit:"
-msgstr "Fit:"
+msgstr "Axuste:"
 
 #: ../scaling.py:150
 msgid "2nd"
-msgstr "2."
+msgstr "Segundo"
 
 #: ../scaling.py:151
 msgid "3rd"
-msgstr "3."
+msgstr "Terceiro"
 
 #: ../scaling.py:155
 msgid "Order of fit: "
-msgstr "Orden for fit: "
+msgstr "Grado do axuste: "
 
 #. Update display to reflect cancellation of simulation.
 #: ../scaling.py:348
 msgid "Calculation CANCELLED."
-msgstr "Beregning AFBRUDT."
+msgstr "Cálculo CANCELADO."
 
 #. Update display to reflect successful end of simulation.
 #: ../scaling.py:359
 msgid "Calculation completed."
-msgstr "Beregning fuldført."
+msgstr "Cálculo rematado."
 
 #: ../scaling.py:382
 msgid "No trustworthy minimum: Old configuration kept."
-msgstr "Intet troværdigt minimum: Gammel konfiguration beholdt."
+msgstr "O mínimo non é de fiar: mantense a configuración anterior."
 
 #: ../scaling.py:422
 #, python-format
@@ -2834,8 +2750,8 @@ msgid ""
 "Insufficent data for a fit\n"
 "(only %i data points)\n"
 msgstr ""
-"Utilstrækkelige data til fit\n"
-"(kun %i datapunkter)\n"
+"Datos insuficentes para un axuste\n"
+"(sólo hai %i puntos)\n"
 
 #: ../scaling.py:426
 msgid ""
@@ -2843,13 +2759,13 @@ msgid ""
 "(only 3 data points)\n"
 "\n"
 msgstr ""
-"GÅR NED TIL ANDENORDENS FIT\n"
-"(kun 3 datapunkter)\n"
+"VOLVENDO A UN AXUSTE DE SEGUNDO ORDEN\n"
+"(sólo con 3 puntos)\n"
 "\n"
 
 #: ../scaling.py:442
 msgid "No minimum found!"
-msgstr "Intet minimum fundet!"
+msgstr "¡Non se atopou o mínimo!"
 
 #: ../scaling.py:456
 msgid ""
@@ -2857,52 +2773,51 @@ msgid ""
 "WARNING: Minimum is outside interval\n"
 msgstr ""
 "\n"
-"ADVARSEL: Minimum ligger uden for interval\n"
+"ADVERTENCIA: O mínimo está fora do intervalo\n"
 
 #: ../scaling.py:457
 msgid "It is UNRELIABLE!\n"
-msgstr "Det er UTILREGNELIGT!\n"
+msgstr "¡Isto NON é seguro!\n"
 
 #: ../settings.py:15
 msgid "Constraints:"
-msgstr "Begrænsninger:"
+msgstr "Restriccións:"
 
 #: ../settings.py:18
 msgid "release"
-msgstr "frigiv"
+msgstr "Soltar"
 
-# I dette tilfælde er constrain = fastgøre
 #: ../settings.py:22
 msgid "Constrain immobile atoms"
-msgstr "Fastgør immobile atomer"
+msgstr "Restrinxir átomos inamovibles"
 
 #: ../settings.py:24
 msgid "Clear all constraints"
-msgstr "Ryd alle begrænsninger"
+msgstr "Eliminar tódalas restriccións"
 
 #: ../settings.py:30
 msgid "Visibility:"
-msgstr "Synlighed:"
+msgstr "Visibilidade:"
 
 #: ../settings.py:31
 msgid "Hide"
-msgstr "Skjul"
+msgstr "Ocultar"
 
 #: ../settings.py:33
 msgid "show"
-msgstr "vis"
+msgstr "Mostrar"
 
 #: ../settings.py:37
 msgid "View all atoms"
-msgstr "Vis alle atomer"
+msgstr "Ver tódolos átomos"
 
 #: ../settings.py:43
 msgid "Miscellaneous:"
-msgstr "Diverse:"
+msgstr "Miscelánea:"
 
 #: ../settings.py:46
 msgid "Scale atomic radii:"
-msgstr "Skalér atomradier:"
+msgstr "Escale o radio atómico:"
 
 #. A close button
 #: ../settings.py:51
@@ -2911,78 +2826,70 @@ msgstr "\n"
 
 #: ../setupwindow.py:52
 msgid "No crystal structure data"
-msgstr "Ingen data for krystalstruktur"
+msgstr "No existen datos da estructura cristalina"
 
 #: ../setupwindow.py:63
 msgid "  ERROR: Invalid element!"
-msgstr "  FEJL: ugyldigt grundstof!"
+msgstr "  ERRO: ¡elemento inválido!"
 
 #: ../simulation.py:24
 msgid " (rerun simulation)"
-msgstr " (kør simulation igen)"
+msgstr " (recalcular simulación)"
 
 #: ../simulation.py:25
 msgid " (continue simulation)"
-msgstr " (fortsæt simulation)"
+msgstr " (continuar simulación)"
 
 #: ../simulation.py:27
 msgid "Select starting configuration:"
-msgstr "Vælg startkonfiguration:"
+msgstr "Seleccione configuración inicial:"
 
 #: ../simulation.py:32
 #, python-format
 msgid "There are currently %i configurations loaded."
-msgstr "Der er i øjeblikket indlæst %i konfigurationer."
+msgstr "Actualmente hai %i configuracións cargadas."
 
+# Elegir cual será utilizada como la configuración inicial
 #: ../simulation.py:36
 msgid "Choose which one to use as the initial configuration"
-msgstr "Vælg hvilken, der skal bruges som begyndelseskonfiguration"
+msgstr "Elexir cal será empregada como configuración inicial"
 
 #: ../simulation.py:40
 #, python-format
 msgid "The first configuration %s."
-msgstr "Første konfiguration %s."
+msgstr "Primeira configuración %s."
 
 #: ../simulation.py:43
 msgid "Configuration number "
-msgstr "Konfiguration nummer "
+msgstr "Configuración número "
 
 #: ../simulation.py:49
 #, python-format
 msgid "The last configuration %s."
-msgstr "Sidste konfiguration %s."
+msgstr "A última configuración %s."
 
 #: ../simulation.py:85
 msgid "Run"
-msgstr "Kør"
+msgstr "Calcular"
 
 #: ../simulation.py:105
 msgid "No calculator: Use Calculate/Set Calculator on the menu."
-msgstr "Ingen beregner: Brug Beregn/Angiv beregner i menuen."
+msgstr "No hai un calculador. Use Calcular/Fixar Calculador no menú."
 
 #: ../status.py:36 ../status.py:38
 msgid "Tip for status box ..."
-msgstr "Fif til statusboks ..."
-
-#: ../status.py:60
-#, python-format
-msgid " tag=%(tag)s"
-msgstr " mærke=%(tag)s"
+msgstr "Consello para a ventá de estado ..."
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:63
-#, python-brace-format
-msgid " mom={0:1.2f}"
-msgstr " mom={0:1.2f}"
+#: ../status.py:62
+#, fuzzy, python-format
+#| msgid " tag=%(tag)s"
+msgid " tag=%(tag)s mom=%(mom)1.2f"
+msgstr " etiqueta=%(tag)s"
 
-#: ../status.py:66
-#, python-brace-format
-msgid " q={0:1.2f}"
-msgstr " q={0:1.2f}"
-
-#: ../status.py:108
+#: ../status.py:103
 msgid "dihedral"
-msgstr "dihedral"
+msgstr "diedro"
 
 #: ../surfaceslab.py:14
 msgid ""
@@ -2996,14 +2903,16 @@ msgid ""
 "look up the lattice constant, otherwise you have to specify it\n"
 "yourself."
 msgstr ""
-"  Brug denne dialog til at oprette overflader.  Vælg grundstoffet ved at \n"
-"skrive det kemiske symbol eller atomnummeret i boksen. Vælg så den ønskede\n"
-"overfladestruktur.  Bemærk at visse strukturer kan oprettes med både en\n"
-"ortogonal og en ikke-ortogonal enhedscelle; i disse tilfælde vil\n"
-"den ikke-ortogonale enhedscelle indeholde færre atomer.\n"
+"Use este diálogo para crear unha peza de superficie. Seleccione\n"
+"o elemento escribindo o símbolo químico ou número atómico na caixa.\n"
+"Logo, seleccione a estrutura da superficie desexada.\n"
+"Algunhas estruturas poden ser creadas cunha celda unidade or-\n"
+"togonal ou non ortogonal. Lembre que a celda unidade non ortogonal\n"
+"conterá menos átomos.\n"
 "\n"
-"  Hvis strukturen svarer til den eksperimentelle krystalstruktur, kan\n"
-"du slå gitterkonstanten op. Ellers skal du angive den selv."
+"  Se a estrutura coincide coa experimental, pode mirar a constante de "
+"rede \n"
+"na base de datos de ASE, se non terá que especificala."
 
 #. Name, structure, orthogonal, support-nonorthogonal, function
 #: ../surfaceslab.py:26
@@ -3021,11 +2930,11 @@ msgstr "FCC(110)"
 
 #: ../surfaceslab.py:28
 msgid "FCC(111) non-orthogonal"
-msgstr "FCC(111) ikke-ortogonal"
+msgstr "FCC (111) non ortogonal"
 
 #: ../surfaceslab.py:30
 msgid "FCC(111) orthogonal"
-msgstr "FCC(111) ortogonal"
+msgstr "FCC (111) ortogonal"
 
 #: ../surfaceslab.py:31
 msgid "BCC(100)"
@@ -3038,23 +2947,23 @@ msgstr "bcc"
 
 #: ../surfaceslab.py:32
 msgid "BCC(110) non-orthogonal"
-msgstr "BCC(110) ikke-ortogonal"
+msgstr "BCC (110) non ortogonal"
 
 #: ../surfaceslab.py:34
 msgid "BCC(110) orthogonal"
-msgstr "BCC(110) ortogonal"
+msgstr "BCC (110) ortogonal"
 
 #: ../surfaceslab.py:35
 msgid "BCC(111) non-orthogonal"
-msgstr "BCC(111) ikke-ortogonal"
+msgstr "BCC (111) non ortogonal"
 
 #: ../surfaceslab.py:37
 msgid "BCC(111) orthogonal"
-msgstr "BCC(111) ortogonal"
+msgstr "BCC (111) ortogonal"
 
 #: ../surfaceslab.py:38
 msgid "HCP(0001) non-orthogonal"
-msgstr "HCP(0001) ikke-ortogonal"
+msgstr "HCP (0001) non ortogonal"
 
 #: ../surfaceslab.py:38 ../surfaceslab.py:40 ../surfaceslab.py:41
 msgid "hcp"
@@ -3062,355 +2971,95 @@ msgstr "hcp"
 
 #: ../surfaceslab.py:40
 msgid "HCP(0001) orthogonal"
-msgstr "HCP(0001) ortogonal"
+msgstr "HCP (0001) ortogonal"
 
 #: ../surfaceslab.py:41
 msgid "HCP(10-10) orthogonal"
-msgstr "HCP(10-10) ortogonal"
+msgstr "HCP (10-10) ortogonal"
 
 #: ../surfaceslab.py:43
 msgid "DIAMOND(100) orthogonal"
-msgstr "DIAMOND(100) ortogonal"
+msgstr "Diamante (100) ortogonal"
 
 #: ../surfaceslab.py:43 ../surfaceslab.py:45
 msgid "diamond"
-msgstr "diamant"
+msgstr "diamante"
 
 #: ../surfaceslab.py:45
 msgid "DIAMOND(111) non-orthogonal"
-msgstr "DIAMANT(111) ikke-ortogonal"
+msgstr "Diamante (111) non ortogonal"
 
 #: ../surfaceslab.py:60
 msgid "Surface"
-msgstr "Overflade"
+msgstr "Superficie"
 
 #: ../surfaceslab.py:90
 msgid "Lattice constant: "
-msgstr "Gitterkonstant: "
+msgstr "Constante de rede: "
 
 #: ../surfaceslab.py:97
 msgid "a:"
 msgstr "a:"
 
-#: ../surfaceslab.py:110
+#: ../surfaceslab.py:109
 #, python-format
 msgid "(%.1f %% of ideal)"
-msgstr "(%.1f %% af ideel)"
+msgstr "(%.1f %% de ideal)"
 
-#: ../surfaceslab.py:127
+#: ../surfaceslab.py:126
 msgid "Size: \tx: "
-msgstr "Størr.:\tx: "
+msgstr "Tamaño\tx: "
 
-#: ../surfaceslab.py:129
+#: ../surfaceslab.py:128
 msgid "\t\ty: "
 msgstr "\t\ty: "
 
-#: ../surfaceslab.py:131
+#: ../surfaceslab.py:130
 msgid "      \t\tz: "
 msgstr "      \t\tz: "
 
-#: ../surfaceslab.py:132
+#: ../surfaceslab.py:131
 msgid " layers,  "
-msgstr " lag,     "
+msgstr " capas,  "
+
+#: ../surfaceslab.py:132
+msgid " Å vacuum"
+msgstr " vacío en Å"
 
 #: ../surfaceslab.py:133
-msgid " Å vacuum"
-msgstr " Å vakuum"
-
-#: ../surfaceslab.py:134
 msgid "\t\tNo size information yet."
-msgstr "\t\tEndnu ingen størrelsesoplysninger."
+msgstr "\t\tAínda non hai información sobre o tamaño."
 
 #. Buttons
-#: ../surfaceslab.py:143
+#: ../surfaceslab.py:142
 msgid "Creating a surface slab."
-msgstr "Oprettelse af overflade."
+msgstr "Creando unha peza de superficie."
 
-#: ../surfaceslab.py:214
+#: ../surfaceslab.py:212
 #, python-format
 msgid "%i atoms."
-msgstr "%i atomer."
+msgstr "Átomos %i."
 
-#: ../surfaceslab.py:226
+#: ../surfaceslab.py:224
 msgid "No structure specified!"
-msgstr "Ingen struktur angivet!"
+msgstr "¡Non se especificou a estrutura!"
 
-# %s ~ BCC
-#: ../surfaceslab.py:235
+#: ../surfaceslab.py:233
 #, python-format
 msgid "%(struct)s lattice constant unknown for %(element)s."
-msgstr "%(struct)s-gitterkonstant ukendt for %(element)s."
+msgstr ""
+"A constante de rede %(struct)s é descoñecida para o elemento %(element)s."
 
 #: ../widgets.py:58 ../widgets.py:87
 msgid "Help"
-msgstr "Hjælp"
+msgstr "Axuda"
 
 #: ../widgets.py:104
 msgid "Clear constraint"
-msgstr "Ryd begrænsninger"
+msgstr "Borrar restricción"
 
-#~ msgid "DFT"
-#~ msgstr "DFT"
+#~ msgid " mom={0:1.2f}"
+#~ msgstr " mom={0:1.2f}"
 
-#~ msgid "XC-functional: "
-#~ msgstr "XC-funktional: "
-
-#~ msgid "DFT ..."
-#~ msgstr "DFT ..."
-
-#~ msgid "building menus failed: %s"
-#~ msgstr "bygning af menuer mislykkedes: %s"
-
-#~ msgid "Dacapo netCDF output file"
-#~ msgstr "netCDF-uddatafil fra Dacapo"
-
-#~ msgid "Virtual Nano Lab file"
-#~ msgstr "Virtual Nano Lab-fil"
-
-#~ msgid "ASE pickle trajectory"
-#~ msgstr "Pickletrajectory fra ASE"
-
-#~ msgid "ASE bundle trajectory"
-#~ msgstr "Bundletrajectory fra ASE"
-
-#~ msgid "GPAW text output"
-#~ msgstr "Textudskrift fra GPAW"
-
-#~ msgid "CUBE file"
-#~ msgstr "CUBE-fil"
-
-#~ msgid "XCrySDen Structure File"
-#~ msgstr "XCrySDen-strukturfil"
-
-#~ msgid "Dacapo text output"
-#~ msgstr "Tekstudskrift fra Dacapo"
-
-#~ msgid "XYZ-file"
-#~ msgstr "XYZ-fil"
-
-#~ msgid "VASP POSCAR/CONTCAR file"
-#~ msgstr "POSCAR/CONTCAR-fil fra VASP"
-
-#~ msgid "VASP OUTCAR file"
-#~ msgstr "OUTCAR-fil fra VASP"
-
-#~ msgid "Protein Data Bank"
-#~ msgstr "Proteindatabank"
-
-#~ msgid "CIF-file"
-#~ msgstr "CIF-fil"
-
-#~ msgid "FHI-aims geometry file"
-#~ msgstr "FHI-aims-geometrifil"
-
-#~ msgid "FHI-aims output file"
-#~ msgstr "Uddatafil fra FHI-aims"
-
-#~ msgid "TURBOMOLE coord file"
-#~ msgstr "TURBOMOLE-koordinatfil"
-
-# exciting er et program
-#~ msgid "exciting input"
-#~ msgstr "exciting-inddata"
-
-#~ msgid "WIEN2k structure file"
-#~ msgstr "WIEN2k-strukturfil"
-
-#~ msgid "DftbPlus input file"
-#~ msgstr "DftbPlus-inddatafil"
-
-#~ msgid "ETSF format"
-#~ msgstr "ETSF-format"
-
-#~ msgid "CASTEP geom file"
-#~ msgstr "CASTEP-geom-fil"
-
-#~ msgid "CASTEP output file"
-#~ msgstr "Uddatafil fra CASTEP"
-
-#~ msgid "CASTEP trajectory file"
-#~ msgstr "Trajectory-fil fra CASTEP"
-
-#~ msgid "DFTBPlus GEN format"
-#~ msgstr "GEN-format fra DFTBPlus"
-
-#~ msgid ""
-#~ "\n"
-#~ "An exception occurred!  Please report the issue to\n"
-#~ "ase-developers@listserv.fysik.dtu.dk - thanks!  Please also report this "
-#~ "if\n"
-#~ "it was a user error, so that a better error message can be provided\n"
-#~ "next time."
-#~ msgstr ""
-#~ "\n"
-#~ "Der opstod en undtagelse!  Rapportér venligst dette problem til \n"
-#~ "ase-developers@listserv.fysik.dtu.dk - mange tak!  Rapportér også gerne "
-#~ "dette\n"
-#~ "hvis det var en brugerfejl, så der kan gives en bedre fejlmeddelelse "
-#~ "næste\n"
-#~ "gang."
-
-#~ msgid "Max force: %.2f (this frame), %.2f (all frames)"
-#~ msgstr "Maks. kraft: %.2f (dette billede), %.2f (alle billeder)"
-
-#~ msgid "Max force: %.2f."
-#~ msgstr "Maks. kraft: %.2f."
-
-#~ msgid "Max velocity: %.2f (this frame), %.2f (all frames)"
-#~ msgstr "Maks. hastighed: %.2f (dette billede), %.2f (alle billeder)"
-
-#~ msgid "Max velocity: %.2f."
-#~ msgstr "Maks. hastighed: %.2f."
-
-#~ msgid "Min, max charge: %.2f, %.2f (this frame),"
-#~ msgstr "Min., maks. ladning: %.2f, %.2f (dette billede),"
-
-#~ msgid "Min, max charge: %.2f, %.2f."
-#~ msgstr "Min., maks. ladning: %.2f, %.2f."
-
-#~ msgid "XYZ file"
-#~ msgstr "XYZ-fil"
-
-#~ msgid "ASE trajectory"
-#~ msgstr "Trajectory fra ASE"
-
-#~ msgid "PDB file"
-#~ msgstr "PDB-fil"
-
-#~ msgid "Gaussian cube file"
-#~ msgstr "Cube-fil fra Gaussian"
-
-#~ msgid "Python script"
-#~ msgstr "Pythonscript"
-
-#~ msgid "VNL file"
-#~ msgstr "VNL-fil"
-
-#~ msgid "Portable Network Graphics"
-#~ msgstr "Portable Network Graphics"
-
-#~ msgid "Persistence of Vision"
-#~ msgstr "Persistence of Vision"
-
-#~ msgid "Encapsulated PostScript"
-#~ msgstr "Encapsulated PostScript"
-
-#~ msgid "FHI-aims geometry input"
-#~ msgstr "Geometriinddata til FHI-aims"
-
-#~ msgid "VASP geometry input"
-#~ msgstr "Geometriinddata til VASP"
-
-#~ msgid "cif file"
-#~ msgstr "cif-fil"
-
-#~ msgid "Save current image only (#%d)"
-#~ msgstr "Gem kun nuværende billede (#%d)"
-
-# slice ~ opdel
-#~ msgid "Slice: "
-#~ msgstr "Del: "
-
-#~ msgid "Help for slice ..."
-#~ msgstr "Hjælp til opdeling ..."
-
-#~ msgid "ase-gui INTERNAL ERROR: strange response in Save,"
-#~ msgstr "INTERN FEJL I ase-gui: mystisk svar i Save,"
-
-#~ msgid "Unknown output format!"
-#~ msgstr "Ukendt uddataformat!"
-
-#~ msgid "Use one of: %s"
-#~ msgstr "Brug et af: %s"
-
-#~ msgid "  %8.3f, %8.3f, %8.3f eV/Å\n"
-#~ msgstr "  %8.3f, %8.3f, %8.3f eV/Å\n"
-
-#~ msgid "%s (a=%.3f Å)"
-#~ msgstr "%s (a=%.3f Å)"
-
-#~ msgid "  %s: %s, Z=%i, %s"
-#~ msgstr "  %s: %s, Z=%i, %s"
-
-#~ msgid " #%d %s (%s): %.3f Å, %.3f Å, %.3f Å "
-#~ msgstr " #%d %s (%s): %.3f Å, %.3f Å, %.3f Å "
-
-#~ msgid " %s-%s: %.3f Å"
-#~ msgstr " %s-%s: %.3f Å"
-
-#~ msgid " %s-%s-%s: %.1f°, %.1f°, %.1f°"
-#~ msgstr " %s-%s-%s: %.1f°, %.1f°, %.1f°"
-
-#~ msgid "dihedral %s->%s->%s->%s: %.1f°"
-#~ msgstr "dihedral %s->%s->%s->%s: %.1f°"
-
-#~ msgid "c:"
-#~ msgstr "c:"
-
-#~ msgid "\t\t%.2f Å x %.2f Å x %.2f Å,  %i atoms."
-#~ msgstr "\t\t%.2f Å x %.2f Å x %.2f Å,  %i atomer."
-
-#~ msgid "FILE"
-#~ msgstr "FIL"
-
-#~ msgid "%prog [options] [file[, file2, ...]]"
-#~ msgstr "%prog [tilvalg] [fil[, fil2, ...]]"
-
-#~ msgid "NUMBER"
-#~ msgstr "NUMMER"
-
-#~ msgid ""
-#~ "Pick image(s) from trajectory.  NUMBER can be a single number (use a "
-#~ "negative number to count from the back) or a range: start:stop:step, "
-#~ "where the \":step\" part can be left out - default values are 0:nimages:1."
-#~ msgstr ""
-#~ "Vælg billeder fra traj-fil.  NUMMER kan være et enkelt tal (brug et "
-#~ "negativt tal til at tælle bagfra) eller et interval på formen start:stop:"
-#~ "trin, hvor elementet \":trin\" kan udelades.  Standardværdi er 0:"
-#~ "antalbilleder:1."
-
-#~ msgid "I"
-#~ msgstr "I"
-
-#~ msgid ""
-#~ "0: Don't show unit cell.  1: Show unit cell.  2: Show all of unit cell."
-#~ msgstr ""
-#~ "0: Vis ikke enhedscellen.  1: Vis enhedscellen.  2: Vis hele enhedscellen."
-
-#~ msgid "Repeat unit cell.  Use \"-r 2\" or \"-r 2,3,1\"."
-#~ msgstr "Gentag enhedscellen.  Brug \"-r 2\" eller \"-r 2,3,1\"."
-
-#~ msgid "Examples: \"-R -90x\", \"-R 90z,-30x\"."
-#~ msgstr "Eksempler: \"-R -90x\", \"-R 90z,-30x\"."
-
-#~ msgid "Write configurations to FILE."
-#~ msgstr "Skriv konfigurationer til FIL."
-
-#~ msgid "EXPR"
-#~ msgstr "UDTRYK"
-
-#~ msgid ""
-#~ "Plot x,y1,y2,... graph from configurations or write data to sdtout in "
-#~ "terminal mode.  Use the symbols: i, s, d, fmax, e, ekin, A, R, E and F.  "
-#~ "See https://wiki.fysik.dtu.dk/ase/ase/gui.html#plotting-data for more "
-#~ "details."
-#~ msgstr ""
-#~ "Tegn graf for x,y1,y2,... fra konfigurationer, eller skriv data til "
-#~ "stdout i teksttilstand.  Brug symbolerne i, s, d, fmax, e, ekin, A, R, E "
-#~ "og F.  Yderligere detaljer kan findes på https://wiki.fysik.dtu.dk/ase/"
-#~ "ase/gui.html#plotting-data for more details."
-
-#~ msgid "Run in terminal window - no GUI."
-#~ msgstr "Kør i terminalvindue - uden grafisk grænseflade."
-
-#~ msgid "Read ANEB data."
-#~ msgstr "Læs ANEB-data."
-
-#~ msgid "N"
-#~ msgstr "N"
-
-#~ msgid "Interpolate N images between 2 given images."
-#~ msgstr "Interpolér N billeder mellem to givne billeder."
-
-#~ msgid "Draw bonds between atoms."
-#~ msgstr "Tegn bindinger mellem atomer."
+#~ msgid " q={0:1.2f}"
+#~ msgstr " q={0:1.2f}"

@@ -1,5 +1,5 @@
 # Spanish translations for ASE package.
-# Copyright (C) 2012-2016 CAMD
+# Copyright (C) 2012-2016 ASE developers
 # This file is distributed under the same license as the ASE package.
 # Max Ramirez <m.ramirez@mx.uni-saarland.de>, 2012.
 # Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-16.
@@ -7,9 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
-"Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2016-03-21 18:33+0100\n"
-"PO-Revision-Date: 2016-03-21 18:56+0100\n"
+"Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
+"POT-Creation-Date: 2016-10-17 18:07+0200\n"
+"PO-Revision-Date: 2016-10-18 00:43+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../ag.py:141
+#: ../ag.py:135
 msgid "To get a full traceback, use: ase-gui --verbose"
 msgstr "Para ver el traceback entero, use ase-gui --verbose"
 
@@ -995,7 +995,7 @@ msgstr "  y: "
 msgid "  z: "
 msgstr "  z: "
 
-#: ../crystal.py:80 ../surfaceslab.py:127 ../surfaceslab.py:129
+#: ../crystal.py:80 ../surfaceslab.py:128 ../surfaceslab.py:130
 msgid " unit cells"
 msgstr " celdas unitarias"
 
@@ -1100,12 +1100,12 @@ msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conjunto consistente de átomos."
 
 #: ../crystal.py:348 ../graphene.py:253 ../nanoparticle.py:614
-#: ../nanotube.py:160 ../surfaceslab.py:248
+#: ../nanotube.py:160 ../surfaceslab.py:250
 msgid "No valid atoms."
 msgstr "Los átomos no son válidos."
 
 #: ../crystal.py:349 ../graphene.py:254 ../nanoparticle.py:615
-#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:249
+#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:251
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "No ha especificado aún un conjunto consistente de parámetros."
 
@@ -2287,7 +2287,7 @@ msgstr "Al menos un índice debe ser distinto de cero"
 msgid "Invalid hexagonal indices"
 msgstr "Índices hexagonales inválidos"
 
-#: ../nanoparticle.py:477 ../surfaceslab.py:218
+#: ../nanoparticle.py:477 ../surfaceslab.py:220
 msgid "Invalid element."
 msgstr "Elemento inválido."
 
@@ -2722,10 +2722,14 @@ msgid ""
 "Negative numbers count from the last image (\"name@-1\": last image, "
 "\"name@-2:\": last two)."
 msgstr ""
-"Agregue \"@n\" al nombre para escribir imágen número \"n\" en vez de la imágen actual.\n"
-"Agregue \"@principio:fin\" o \"@principio:fin:paso\" para escribir una secuencia de imágenes.\n"
-"Puede omitir \"principio\" y \"fin\" y así \"nombre@:\" incluirá todas las imágenes.\n"
-"Números negativos se cuentan desde la última imágen (\"nombre@-1\": última, \"nombre@-2:\": las dos últimas)."
+"Agregue \"@n\" al nombre para escribir imágen número \"n\" en vez de la "
+"imágen actual.\n"
+"Agregue \"@principio:fin\" o \"@principio:fin:paso\" para escribir una "
+"secuencia de imágenes.\n"
+"Puede omitir \"principio\" y \"fin\" y así \"nombre@:\" incluirá todas las "
+"imágenes.\n"
+"Números negativos se cuentan desde la última imágen (\"nombre@-1\": última, "
+"\"nombre@-2:\": las dos últimas)."
 
 #: ../scaling.py:49
 msgid "Homogeneous scaling"
@@ -2996,13 +3000,23 @@ msgstr "No hay un calculador. Use Calcular/Fijar Calculador en el menú."
 msgid "Tip for status box ..."
 msgstr "Consejo para la ventana de estado ..."
 
-#. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:62
+#: ../status.py:60
 #, python-format
-msgid " tag=%(tag)s mom=%(mom)1.2f"
-msgstr " etiqueta=%(tag)s momento magnético=%(mom)1.2f"
+msgid " tag=%(tag)s"
+msgstr " etiqueta=%(tag)s"
 
-#: ../status.py:103
+#. TRANSLATORS: mom refers to magnetic moment
+#: ../status.py:63
+#, python-brace-format
+msgid " mom={0:1.2f}"
+msgstr " mom={0:1.2f}"
+
+#: ../status.py:66
+#, python-brace-format
+msgid " q={0:1.2f}"
+msgstr " q={0:1.2f}"
+
+#: ../status.py:108
 msgid "dihedral"
 msgstr "diedral"
 
@@ -3116,50 +3130,50 @@ msgstr "Constante de red: "
 msgid "a:"
 msgstr "a:"
 
-#: ../surfaceslab.py:109
+#: ../surfaceslab.py:110
 #, python-format
 msgid "(%.1f %% of ideal)"
 msgstr "(%.1f %% de ideal)"
 
-#: ../surfaceslab.py:126
+#: ../surfaceslab.py:127
 msgid "Size: \tx: "
 msgstr "Tamaño en\tx:"
 
-#: ../surfaceslab.py:128
+#: ../surfaceslab.py:129
 msgid "\t\ty: "
 msgstr "\t\ty: "
 
-#: ../surfaceslab.py:130
+#: ../surfaceslab.py:131
 msgid "      \t\tz: "
 msgstr "      \t\tz: "
 
-#: ../surfaceslab.py:131
+#: ../surfaceslab.py:132
 msgid " layers,  "
 msgstr " capas,  "
 
-#: ../surfaceslab.py:132
+#: ../surfaceslab.py:133
 msgid " Å vacuum"
 msgstr " vacío en Å"
 
-#: ../surfaceslab.py:133
+#: ../surfaceslab.py:134
 msgid "\t\tNo size information yet."
 msgstr "\t\tNo hay información sobre el tamaño aún."
 
 #. Buttons
-#: ../surfaceslab.py:142
+#: ../surfaceslab.py:143
 msgid "Creating a surface slab."
 msgstr "Creando un trozo de superficie."
 
-#: ../surfaceslab.py:212
+#: ../surfaceslab.py:214
 #, python-format
 msgid "%i atoms."
 msgstr "Átomos %i."
 
-#: ../surfaceslab.py:224
+#: ../surfaceslab.py:226
 msgid "No structure specified!"
 msgstr "¡No se especificó la estructura!"
 
-#: ../surfaceslab.py:233
+#: ../surfaceslab.py:235
 #, python-format
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr ""
