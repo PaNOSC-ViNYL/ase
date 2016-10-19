@@ -12,7 +12,8 @@ from ase.io import read
 from ase.neb import NEB
 
 
-all_optimizers = ase.optimize.__all__
+all_optimizers = ['MDMin', 'FIRE', 'LBFGS',
+                  'LBFGSLineSearch', 'BFGSLineSearch', 'BFGS']
 
 
 def get_optimizer(name):
@@ -25,9 +26,16 @@ def get_atoms_and_name(atoms):
         if name.endswith('.py'):
             dct = {}
             exec(compile(open(name).read(), name, 'exec'), dct)
-            for atoms in dct.values():
-                if isinstance(atoms, (Atoms, NEB)):
+            atoms_objects = []
+            for thing in dct.values():
+                if isinstance(thing, NEB):
+                    atoms = thing
                     break
+                if isinstance(thing, Atoms):
+                    atoms_objects.append(thing)
+            else:
+                assert len(atoms_objects) == 1, name
+                atoms = atoms_objects[0]
         else:
             atoms = read(name)
     else:
@@ -74,15 +82,19 @@ def run(atoms, name, optimizer, db, fmax=0.05):
 
     tincl = -time()
     try:
-        relax.run(fmax=fmax, steps=100)
+        relax.run(fmax=fmax, steps=100, fail=True)
     except Exception:
         traceback.print_exc()
-        tincl = np.int
-        texcl = np.int
+        tincl = np.inf
+        texcl = np.inf
     else:
         tincl += time()
         texcl = max(wrapper.e[-1][0], wrapper.f[-1][0])
 
+    if isinstance(atoms, NEB):
+        n = len(atoms.images)
+        atoms = atoms.images[n // 2]
+        
     db.write(atoms,
              optimizer=optimizer,
              test=name,
@@ -112,21 +124,31 @@ def main():
             summary(list(db.select(test=test, sort='t')))
     else:
         if args.optimizers is None:
-            args.optimizers = all_optimizers
+            args.optimizers = ','.join(all_optimizers)
         for test in args.tests:
+            print(test + ':', end=' ')
             atoms, name = get_atoms_and_name(test)
-            p0 = atoms.get_positons()
+            p0 = atoms.get_positions()
             for opt in args.optimizers.split(','):
-                atoms.positions = p0
+                print(opt, end=' ', flush=True)
+                atoms.set_positions(p0)
                 if not isinstance(atoms, NEB):
                     atoms.calc = EMT()
                 run(atoms, name, opt, db)
+            print()
 
 
 def summary(rows):
-    print(rows[0].test)
-    for row in rows:
-        print(row.optimizer, row.t)
+    print(rows[0].test + ':')
+    e0 = min(row.get('energy', np.inf) for row in rows)
+    table = sorted((row.get('energy', np.inf) > e0 + 0.005, row.t,
+                    row.optimizer, row.T,
+                    row.nenergy, row.nforce,
+                    row.get('energy', np.inf) - e0)
+                   for row in rows)
+    for _, t, opt, T, ne, nf, de in table:
+        print('{:20}{:12.6f}{:12.6f}{:4}{:4}{:12.6f}'.
+              format(opt, t, T, ne, nf, de))
 
 
 class Plotter:

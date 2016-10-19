@@ -142,7 +142,7 @@ class Optimizer(Dynamics):
     def initialize(self):
         pass
 
-    def run(self, fmax=0.05, steps=100000000):
+    def run(self, fmax=0.05, steps=100000000, fail=False):
         """Run structure optimization algorithm.
 
         This method will return when the forces on all individual
@@ -160,6 +160,8 @@ class Optimizer(Dynamics):
             self.step(f)
             self.nsteps += 1
             step += 1
+        if fail:
+            raise RuntimeError
 
     def converged(self, forces=None):
         """Did the optimization converge?"""
