@@ -226,7 +226,7 @@ class FixBondLengths(FixConstraint):
             converged = True
             for a, b in self.pairs:
                 r0 = old[a] - old[b]
-                d0 = find_mic([r0], atoms._cell, atoms._pbc)[0][0]
+                d0 = find_mic([r0], atoms.cell, atoms._pbc)[0][0]
                 d1 = new[a] - new[b] - r0 + d0
                 m = 1 / (1 / masses[a] + 1 / masses[b])
                 x = 0.5 * (np.dot(d0, d0) - np.dot(d1, d1)) / np.dot(d0, d1)
@@ -246,7 +246,7 @@ class FixBondLengths(FixConstraint):
             converged = True
             for a, b in self.pairs:
                 d = old[a] - old[b]
-                d = find_mic([d], atoms._cell, atoms._pbc)[0][0]
+                d = find_mic([d], atoms.cell, atoms._pbc)[0][0]
                 dv = p[a] / masses[a] - p[b] / masses[b]
                 m = 1 / (1 / masses[a] + 1 / masses[b])
                 x = -np.dot(dv, d) / np.dot(d, d)
