@@ -1,5 +1,3 @@
-#PBS -l nodes=4:ppn=8
-#PBS -l walltime=13:00:00
 from ase.optimize import QuasiNewton
 from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
@@ -61,11 +59,11 @@ def get_atoms():
 
     return neb
 
-    
+
 def get_calculator_emt():
     return EMT()
 
-    
+
 def get_calculator_gpaw():
     if mpi.parallel:
         assert mpi.size % 3 == 0
