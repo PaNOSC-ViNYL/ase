@@ -3,8 +3,6 @@ from __future__ import print_function, division
 import numpy as np
 
 from ase.build import bulk
-from ase.constraints import UnitCellFilter
-from ase.calculators.lj import LennardJones
 from ase.calculators.emt import EMT
 from ase.optimize.precon import Exp, PreconLBFGS, PreconFIRE
 
