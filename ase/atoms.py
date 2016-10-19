@@ -824,33 +824,33 @@ class Atoms(object):
             symbols = self.get_chemical_formula('reduce')
         else:
             symbols = self.get_chemical_formula('hill')
-        tokens.append("symbols='{}'".format(symbols))
+        tokens.append("symbols='{0}'".format(symbols))
 
-        tokens.append('pbc={}'.format(self._pbc.tolist()))
+        tokens.append('pbc={0}'.format(self._pbc.tolist()))
 
         if (self._cell - np.diag(self._cell.diagonal())).any():
             cell = self._cell.tolist()
         else:
             cell = self._cell.diagonal().tolist()
-        tokens.append('cell={}'.format(cell))
+        tokens.append('cell={0}'.format(cell))
 
         for name in sorted(self.arrays):
             if name == 'numbers':
                 continue
-            tokens.append('{}=...'.format(name))
+            tokens.append('{0}=...'.format(name))
 
         if self.constraints:
             if len(self.constraints) == 1:
                 constraint = self.constraints[0]
             else:
                 constraint = self.constraints
-            tokens.append('constraint={}'.format(repr(constraint)))
+            tokens.append('constraint={0}'.format(repr(constraint)))
 
         if self._calc is not None:
-            tokens.append('calculator={}(...)'
+            tokens.append('calculator={0}(...)'
                           .format(self._calc.__class__.__name__))
 
-        return '{}({})'.format(self.__class__.__name__, ', '.join(tokens))
+        return '{0}({1})'.format(self.__class__.__name__, ', '.join(tokens))
 
     def __add__(self, other):
         atoms = self.copy()
