@@ -72,9 +72,9 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
     logeps = int(-log10(eps))
     atoms = primitive_slab.copy()
 
-    xscale = np.linalg.norm(atoms._cell[0][0:2])
-    xx, xy = atoms._cell[0][0:2] / xscale
-    yx, yy = atoms._cell[1][0:2] / xscale
+    xscale = np.linalg.norm(atoms.cell[0][0:2])
+    xx, xy = atoms.cell[0][0:2] / xscale
+    yx, yy = atoms.cell[1][0:2] / xscale
     cell_vectors = [[xx, xy], [yx, yy]]
 
     # Make (0, 0) corner's angle flip from acute to obtuse or
@@ -121,7 +121,7 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
     cell = [np.dot(x, root_rotation) * cell_scale for x in cell_vectors]
 
     def pretrim(atoms):
-        cell = atoms._cell
+        cell = atoms.cell
         pos = atoms.positions
 
         vertices = np.array([[0, 0],
@@ -158,11 +158,11 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
             atoms.translate(shift_vector * -1)
 
     atoms_cell_mag = [np.linalg.norm(x)
-                      for x in np.array(atoms._cell[0:2, 0:2])]
+                      for x in np.array(atoms.cell[0:2, 0:2])]
     cell_vect_mag = [np.linalg.norm(x) for x in np.array(cell_vectors)]
     cell_scale = np.divide(atoms_cell_mag, cell_vect_mag)
     atoms *= (cell_search[0], cell_search[1], 1)
-    atoms._cell[0:2, 0:2] = cell * cell_scale
+    atoms.cell[0:2, 0:2] = cell * cell_scale
     atoms.center()
     pretrim(atoms)
     remove_doubles(atoms, shift=False)
@@ -171,9 +171,9 @@ def root_surface(primitive_slab, root, swap_alpha=False, eps=1e-8):
     def rot(vector, angle):
         return [(vector[0] * cos(angle)) - (vector[1] * sin(angle)),
                 (vector[0] * sin(angle)) + (vector[1] * cos(angle))]
-    angle = -atan2(atoms._cell[0][1], atoms._cell[0][0])
-    atoms._cell[0][0:2] = rot(atoms._cell[0][0:2], angle)
-    atoms._cell[1][0:2] = rot(atoms._cell[1][0:2], angle)
+    angle = -atan2(atoms.cell[0][1], atoms.cell[0][0])
+    atoms.cell[0][0:2] = rot(atoms.cell[0][0:2], angle)
+    atoms.cell[1][0:2] = rot(atoms.cell[1][0:2], angle)
     for atom in atoms:
         atom.position[0:2] = rot(atom.position[0:2], angle)
     atoms.center()
@@ -201,9 +201,9 @@ def root_surface_analysis(primitive_slab, root, allow_above=False, eps=1e-8):
     atoms = primitive_slab
     # Normalize the x axis to a distance of 1, and use the cell
     # We ignore the z axis because this code cannot handle it
-    xscale = np.linalg.norm(atoms._cell[0][0:2])
-    xx, xy = atoms._cell[0][0:2] / xscale
-    yx, yy = atoms._cell[1][0:2] / xscale
+    xscale = np.linalg.norm(atoms.cell[0][0:2])
+    xx, xy = atoms.cell[0][0:2] / xscale
+    yx, yy = atoms.cell[1][0:2] / xscale
     cell_vectors = [[xx, xy], [yx, yy]]
 
     # Manipulate the cell vectors to find the best search zone and
