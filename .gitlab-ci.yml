@@ -4,6 +4,9 @@ python_2_6_tests:
   script:
     - yum -y update && yum clean all
     - yum -y install scipy numpy
+    # some tests fail with numpy-1.4, use a newer version
+    - easy_install pip wheel
+    - pip install numpy==1.6.2
     - pwd
     - echo $HOME
     - cd ..
