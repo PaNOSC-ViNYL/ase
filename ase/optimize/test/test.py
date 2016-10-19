@@ -50,12 +50,16 @@ class Wrapper:
         self.e = []
         self.f = []
         self.atoms = atoms
-
+        self.old_positions = np.zeros_like(atoms.get_positions())
+        self.n = 0
     def __len__(self):
         return len(self.atoms)
 
     def get_potential_energy(self):
         self.t = -time()
+        if (self.atoms.get_positions() != self.old_positions).any():
+            self.n += 1
+        self.old_positions = self.atoms.get_positions()
         e = self.atoms.get_potential_energy()
         self.t += time()
         self.e.append((self.t, e))
@@ -63,6 +67,9 @@ class Wrapper:
 
     def get_forces(self):
         self.t = -time()
+        if (self.atoms.get_positions() != self.old_positions).any():
+            self.n += 1
+        self.old_positions = self.atoms.get_positions()
         f = self.atoms.get_forces()
         self.t += time()
         self.f.append((self.t, (f**2).sum(1).max()))
@@ -99,7 +106,7 @@ def run(atoms, name, optimizer, db, fmax=0.05):
              optimizer=optimizer,
              test=name,
              nenergy=len(wrapper.e), nforce=len(wrapper.f),
-             t=texcl, T=tincl,
+             t=texcl, T=tincl, n=wrapper.n,
              data={'e': np.array(wrapper.e).T,
                    'f': np.array(wrapper.f).T})
 
@@ -121,7 +128,7 @@ def main():
 
     if args.summary:
         for test in args.tests:
-            summary(list(db.select(test=test, sort='t')))
+            summary(list(db.select(test=test, sort='n')))
     else:
         if args.optimizers is None:
             args.optimizers = ','.join(all_optimizers)
@@ -141,14 +148,14 @@ def main():
 def summary(rows):
     print(rows[0].test + ':')
     e0 = min(row.get('energy', np.inf) for row in rows)
-    table = sorted((row.get('energy', np.inf) > e0 + 0.005, row.t,
+    table = sorted((row.get('energy', np.inf) > e0 + 0.005, row.n, row.t,
                     row.optimizer, row.T,
                     row.nenergy, row.nforce,
                     row.get('energy', np.inf) - e0)
                    for row in rows)
-    for _, t, opt, T, ne, nf, de in table:
-        print('{:20}{:12.6f}{:12.6f}{:4}{:4}{:12.6f}'.
-              format(opt, t, T, ne, nf, de))
+    for _, n, t, opt, T, ne, nf, de in table:
+        print('{:20}{:4}{:12.6f}{:12.6f}{:4}{:4}{:12.6f}'.
+              format(opt, n, t, T, ne, nf, de))
 
 
 class Plotter:
