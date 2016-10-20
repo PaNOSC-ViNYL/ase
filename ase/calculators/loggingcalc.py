@@ -127,7 +127,7 @@ class LoggingCalculator(Calculator):
 
         if labels is not None:
             fmax_values = [ v for (k, v) in sorted(zip(self.fmax.keys(), self.fmax.values())) ]
-            self.fmax = { k : v for (k, v) in zip(labels, fmax_values) }
+            self.fmax = dict(zip(labels, fmax_values))
 
             energy_count_values = [ v for (k, v) in sorted(zip(self.energy_count.keys(), self.energy_count.values())) ]
             self.energy_count = { k : v for (k, v) in zip(labels, energy_count_values) }
