@@ -9,12 +9,9 @@ from ase.constraints import Filter, FixAtoms
 from ase.utils import sum128, dot128
 from ase.geometry import wrap_positions
 import ase.utils.ff as ff
-
 import ase.units as units
-THz = 1e12 * 1. / units.s
-
 from ase.optimize.precon import logger
-from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
+from ase.optimize.precon.neighbors import (get_neighbours,
                                            estimate_nearest_neighbour_distance)
 
 try:
@@ -30,15 +27,18 @@ try:
 except ImportError:
     have_pyamg = False
 
+THz = 1e12 * 1. / units.s
+
 
 class Precon(object):
 
     def __init__(self, r_cut=None, r_NN=None,
                  mu=None, mu_c=None,
                  dim=3, c_stab=0.1, force_stab=False,
-                 recalc_mu=False, array_convention="C",
+                 recalc_mu=False, array_convention='C',
                  use_pyamg=True, solve_tol=1e-8,
-                 apply_positions=True, apply_cell=True, estimate_mu_eigmode=False):
+                 apply_positions=True, apply_cell=True,
+                 estimate_mu_eigmode=False):
         """Initialise a preconditioner object based on passed parameters.
 
         Args:
@@ -48,13 +48,15 @@ class Precon(object):
                 usually taken somewhere between the first- and second-nearest
                 neighbour distance. If r_cut is not provided, default is
                 2 * r_NN (see below)
-            r_NN: nearest neighbour distance. If not provided, this is calculated
+            r_NN: nearest neighbour distance. If not provided, this is
+                  calculated
                 from input structure.
             mu: float
                 energy scale for position degreees of freedom. If `None`, mu
                 is precomputed using finite difference derivatives.
             mu_c: float
-                energy scale for cell degreees of freedom. Also precomputed if None.
+                energy scale for cell degreees of freedom. Also precomputed
+                if None.
             estimate_mu_eigmode:
                 If True, estimates mu based on the lowest eigenmodes of
                 unstabilised preconditioner. If False it uses the sine based
@@ -79,7 +81,8 @@ class Precon(object):
                 while the F convention assumes it will be arranged component
                 by component (ie [x1, x2, ..., y1, y2, ...]).
             use_pyamg: use PyAMG to solve P x = y, if available.
-            solve_tol: tolerance used for PyAMG sparse linear solver, if available.
+            solve_tol: tolerance used for PyAMG sparse linear solver,
+            if available.
             apply_positions: if True, apply preconditioner to position DoF
             apply_cell: if True, apply preconditioner to cell DoF
 
@@ -103,12 +106,9 @@ class Precon(object):
         global have_pyamg
         if use_pyamg and not have_pyamg:
             use_pyamg = False
-            logger.warning('use_pyamg=True but PyAMG cannot be imported!'
-                           'falling back on direct inversion of preconditioner, '
-                           'may be slow for large systems')
-            print('use_pyamg=True but PyAMG cannot be imported!'
-                  'falling back on direct inversion of preconditioner, '
-                  'may be slow for large systems')
+            logger.warning('use_pyamg=True but PyAMG cannot be imported! '
+                           'falling back on direct inversion of '
+                           'preconditioner, may be slow for large systems')
 
         self.use_pyamg = use_pyamg
         self.solve_tol = solve_tol
@@ -123,9 +123,6 @@ class Precon(object):
         if not have_matscipy:
             logger.warning("Unable to import Matscipy. Neighbour list "
                            "calculations may be very slow.")
-            print("WARNING: Unable to import Matscipy. Reverting to the "
-                  "neighbourlist module in the ASE; this may make "
-                  "preconditioning very slow.")
 
         global have_scipy
         if not have_scipy:
@@ -166,7 +163,8 @@ class Precon(object):
             self.r_cut = 2.0 * self.r_NN
         elif self.r_cut < self.r_NN:
             warning = ('WARNING: r_cut (%.2f) < r_NN (%.2f), '
-                       'increasing to 1.1*r_NN = %.2f' % (self.r_cut, self.r_NN,
+                       'increasing to 1.1*r_NN = %.2f' % (self.r_cut,
+                                                          self.r_NN,
                                                           1.1 * self.r_NN))
             logger.info(warning)
             print(warning)
@@ -190,8 +188,10 @@ class Precon(object):
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
             if self.old_positions is None:
-                self.old_positions = wrap_positions(real_atoms.positions, real_atoms.cell)
-            displacement = wrap_positions(real_atoms.positions, real_atoms.cell) - self.old_positions
+                self.old_positions = wrap_positions(real_atoms.positions,
+                                                    real_atoms.cell)
+            displacement = wrap_positions(real_atoms.positions,
+                                          real_atoms.cell) - self.old_positions
             self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
@@ -208,7 +208,8 @@ class Precon(object):
                     time.time() - start_time)
         return self.P
 
-    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+    def _make_sparse_precon(self, atoms, initial_assembly=False,
+                            force_stab=False):
         """Create a sparse preconditioner matrix based on the passed atoms.
 
         Creates a general-purpose preconditioner for use with optimization
@@ -227,8 +228,10 @@ class Precon(object):
             sparse matrix instead.
 
         """
-        logger.info('creating sparse precon: initial_assembly=%r, force_stab=%r, apply_positions=%r, apply_cell=%r',
-                    initial_assembly, force_stab, self.apply_positions, self.apply_cell)
+        logger.info('creating sparse precon: initial_assembly=%r, '
+                    'force_stab=%r, apply_positions=%r, apply_cell=%r',
+                    initial_assembly, force_stab, self.apply_positions,
+                    self.apply_cell)
 
         N = len(atoms)
         diag_i = np.arange(N, dtype=int)
@@ -322,21 +325,23 @@ class Precon(object):
         # Create solver
         if self.use_pyamg and have_pyamg:
             start_time = time.time()
-            self.ml = smoothed_aggregation_solver(self.P, B=None,
-                                                  strength=('symmetric', {
-                                                            'theta': 0.0}),
-                                                  smooth=(
-                                                      'jacobi', {'filter': True, 'weighting': 'local'}),
-                                                  improve_candidates=[('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 4}),
-                                                                      None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                                                  aggregate="standard",
-                                                  presmoother=('block_gauss_seidel', {
-                                                      'sweep': 'symmetric', 'iterations': 1}),
-                                                  postsmoother=('block_gauss_seidel', {
-                                                      'sweep': 'symmetric', 'iterations': 1}),
-                                                  max_levels=15,
-                                                  max_coarse=300,
-                                                  coarse_solver="pinv")
+            self.ml = smoothed_aggregation_solver(
+                self.P, B=None,
+                strength=('symmetric', {'theta': 0.0}),
+                smooth=(
+                    'jacobi', {'filter': True, 'weighting': 'local'}),
+                improve_candidates=[('block_gauss_seidel',
+                                     {'sweep': 'symmetric', 'iterations': 4}),
+                                    None, None, None, None, None, None, None,
+                                    None, None, None, None, None, None, None],
+                aggregate="standard",
+                presmoother=('block_gauss_seidel',
+                             {'sweep': 'symmetric', 'iterations': 1}),
+                postsmoother=('block_gauss_seidel',
+                              {'sweep': 'symmetric', 'iterations': 1}),
+                max_levels=15,
+                max_coarse=300,
+                coarse_solver="pinv")
             logger.info('--- multi grid solver created in %s s ---' %
                         (time.time() - start_time))
 
@@ -395,7 +400,8 @@ class Precon(object):
             atoms: Atoms object for initial system
 
             H: 3x3 array or None
-                Magnitude of deformation to apply. Default is 1e-2*rNN*np.eye(3)
+                Magnitude of deformation to apply.
+                Default is 1e-2*rNN*np.eye(3)
 
         Returns:
             mu   : float
@@ -427,7 +433,9 @@ class Precon(object):
                 n = len(atoms.atoms)
             else:
                 n = len(atoms)
-            P0 = self._make_sparse_precon(atoms, initial_assembly=True)[:3*n,:3*n]
+            P0 = self._make_sparse_precon(atoms,
+                                          initial_assembly=True)[:3 * n,
+                                                                 :3 * n]
             eigvals, eigvecs = sparse.linalg.eigsh(P0, k=4, which='SM')
 
             logger.debug('estimate_mu(): lowest 4 eigvals = %f %f %f %f'
@@ -437,23 +445,24 @@ class Precon(object):
                 raise ValueError("First 3 eigenvalues of preconditioner matrix"
                                  "do not correspond to translational modes.")
             elif eigvals[3] < 1e-6:
-                raise ValueError("Fourth smallest eigenvalue of preconditioner matrix"
+                raise ValueError("Fourth smallest eigenvalue of "
+                                 'preconditioner matrix '
                                  "is too small, increase r_cut.")
 
             x = np.zeros(n)
             for i in range(n):
-                x[i] = eigvecs[:,3][3*i]
+                x[i] = eigvecs[:, 3][3 * i]
             x = x / np.linalg.norm(x)
             if x[0] < 0:
                 x = -x
 
-            v = np.zeros(3*len(atoms))
+            v = np.zeros(3 * len(atoms))
             for i in range(n):
-                v[3*i] = x[i]
-                v[3*i+1] = x[i]
-                v[3*i+2] = x[i]
+                v[3 * i] = x[i]
+                v[3 * i + 1] = x[i]
+                v[3 * i + 2] = x[i]
             v = v / np.linalg.norm(v)
-            v = v.reshape((-1,3))
+            v = v.reshape((-1, 3))
 
             self.c_stab = c_stab
         else:
@@ -470,7 +479,8 @@ class Precon(object):
             for i, L in enumerate([Lx, Ly, Lz]):
                 if L == 0:
                     logger.warning(
-                        "Cell length L[%d] == 0. Setting H[%d,%d] = 0." % (i, i, i))
+                        "Cell length L[%d] == 0. Setting H[%d,%d] = 0." %
+                        (i, i, i))
                     H[i, i] = 0.0
                 else:
                     sine_vr[i] = np.sin(sine_vr[i] / L)
@@ -529,8 +539,8 @@ class Precon(object):
 
 
 class Pfrommer(object):
-    """
-    Use initial guess for inverse Hessian from Pfrommer et al. as a simple preconditioner
+    """Use initial guess for inverse Hessian from Pfrommer et al. as a
+    simple preconditioner
 
     J. Comput. Phys. vol 131 p233-240 (1997)
     """
@@ -615,10 +625,12 @@ class Exp(Precon):
     """Creates matrix with values decreasing exponentially with distance.
     """
 
-    def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
+    def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None,
+                 dim=3, c_stab=0.1,
                  force_stab=False, recalc_mu=False, array_convention="C",
                  use_pyamg=True, solve_tol=1e-9,
-                 apply_positions=True, apply_cell=True, estimate_mu_eigmode=False):
+                 apply_positions=True, apply_cell=True,
+                 estimate_mu_eigmode=False):
         """Initialise an Exp preconditioner with given parameters.
 
         Args:
@@ -650,7 +662,8 @@ class FF(Precon):
     def __init__(self, dim=3, c_stab=0.1, force_stab=False,
                  array_convention="C", use_pyamg=True, solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
-                 hessian="reduced", morses=None, bonds=None, angles=None, dihedrals=None):
+                 hessian="reduced", morses=None, bonds=None, angles=None,
+                 dihedrals=None):
         """Initialise an FF preconditioner with given parameters.
 
         Args:
@@ -662,9 +675,11 @@ class FF(Precon):
              dihedrals: class Dihedral
         """
 
-        if morses is None and bonds is None and angles is None and dihedrals is None:
+        if (morses is None and bonds is None and angles is None and
+            dihedrals is None):
             raise ImportError(
-                'At least one of morses, bonds, angles or dihedrals must be defined!')
+                'At least one of morses, bonds, angles or dihedrals must be '
+                'defined!')
 
         Precon.__init__(self,
                         dim=dim, c_stab=c_stab,
@@ -692,7 +707,8 @@ class FF(Precon):
                     time.time() - start_time)
         return self.P
 
-    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+    def _make_sparse_precon(self, atoms, initial_assembly=False,
+                            force_stab=False):
         """ """
 
         start_time = time.time()
@@ -756,15 +772,17 @@ class FF(Precon):
 
             for n in range(len(self.dihedrals)):
                 if self.hessian == 'reduced':
-                    i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(
-                        atoms, self.dihedrals[n], self.morses)
+                    i, j, k, l, Hx = \
+                        ff.get_dihedral_potential_reduced_hessian(
+                            atoms, self.dihedrals[n], self.morses)
                 elif self.hessian == 'spectral':
                     i, j, k, l, Hx = ff.get_dihedral_potential_hessian(
                         atoms, self.dihedrals[n], self.morses, spectral=True)
                 else:
                     raise NotImplementedError("Not implemented hessian")
                 x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 * j + 1, 3 * j +
-                     2, 3 * k, 3 * k + 1, 3 * k + 2, 3 * l, 3 * l + 1, 3 * l + 2]
+                     2, 3 * k, 3 * k + 1, 3 * k + 2, 3 * l, 3 * l + 1,
+                     3 * l + 2]
                 row.extend(np.repeat(x, 12))
                 col.extend(np.tile(x, 12))
                 data.extend(Hx.flatten())
@@ -802,21 +820,23 @@ class FF(Precon):
         # Create solver
         if self.use_pyamg and have_pyamg:
             start_time = time.time()
-            self.ml = smoothed_aggregation_solver(self.P, B=None,
-                                                  strength=('symmetric', {
-                                                            'theta': 0.0}),
-                                                  smooth=(
-                                                      'jacobi', {'filter': True, 'weighting': 'local'}),
-                                                  improve_candidates=[('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 4}),
-                                                                      None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                                                  aggregate="standard",
-                                                  presmoother=('block_gauss_seidel', {
-                                                      'sweep': 'symmetric', 'iterations': 1}),
-                                                  postsmoother=('block_gauss_seidel', {
-                                                      'sweep': 'symmetric', 'iterations': 1}),
-                                                  max_levels=15,
-                                                  max_coarse=300,
-                                                  coarse_solver="pinv")
+            self.ml = smoothed_aggregation_solver(
+                self.P, B=None,
+                strength=('symmetric', {'theta': 0.0}),
+                smooth=(
+                    'jacobi', {'filter': True, 'weighting': 'local'}),
+                improve_candidates=[('block_gauss_seidel',
+                                     {'sweep': 'symmetric', 'iterations': 4}),
+                                    None, None, None, None, None, None, None,
+                                    None, None, None, None, None, None, None],
+                aggregate="standard",
+                presmoother=('block_gauss_seidel',
+                             {'sweep': 'symmetric', 'iterations': 1}),
+                postsmoother=('block_gauss_seidel',
+                              {'sweep': 'symmetric', 'iterations': 1}),
+                max_levels=15,
+                max_coarse=300,
+                coarse_solver="pinv")
             logger.info('--- multi grid solver created in %s s ---' %
                         (time.time() - start_time))
 
@@ -827,11 +847,14 @@ class Exp_FF(Exp, FF):
     """Creates matrix with values decreasing exponentially with distance.
     """
 
-    def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
+    def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None,
+                 dim=3, c_stab=0.1,
                  force_stab=False, recalc_mu=False, array_convention="C",
                  use_pyamg=True, solve_tol=1e-9,
-                 apply_positions=True, apply_cell=True, estimate_mu_eigmode=False,
-                 hessian="reduced", morses=None, bonds=None, angles=None, dihedrals=None):
+                 apply_positions=True, apply_cell=True,
+                 estimate_mu_eigmode=False,
+                 hessian="reduced", morses=None, bonds=None, angles=None,
+                 dihedrals=None):
         """Initialise an Exp+FF preconditioner with given parameters.
 
         Args:
@@ -839,9 +862,11 @@ class Exp_FF(Exp, FF):
                 precon.__init__()
             A: coefficient in exp(-A*r/r_NN). Default is A=3.0.
         """
-        if morses is None and bonds is None and angles is None and dihedrals is None:
+        if (morses is None and bonds is None and angles is None and
+            dihedrals is None):
             raise ImportError(
-                'At least one of morses, bonds, angles or dihedrals must be defined!')
+                'At least one of morses, bonds, angles or dihedrals must '
+                'be defined!')
 
         Precon.__init__(self, r_cut=r_cut, r_NN=r_NN,
                         mu=mu, mu_c=mu_c, dim=dim, c_stab=c_stab,
@@ -872,7 +897,8 @@ class Exp_FF(Exp, FF):
             self.r_cut = 2.0 * self.r_NN
         elif self.r_cut < self.r_NN:
             warning = ('WARNING: r_cut (%.2f) < r_NN (%.2f), '
-                       'increasing to 1.1*r_NN = %.2f' % (self.r_cut, self.r_NN,
+                       'increasing to 1.1*r_NN = %.2f' % (self.r_cut,
+                                                          self.r_NN,
                                                           1.1 * self.r_NN))
             logger.info(warning)
             print(warning)
@@ -896,12 +922,15 @@ class Exp_FF(Exp, FF):
             if isinstance(atoms, Filter):
                 real_atoms = atoms.atoms
             if self.old_positions is None:
-                self.old_positions = wrap_positions(real_atoms.positions, real_atoms.cell)
-            displacement = wrap_positions(real_atoms.positions, real_atoms.cell) - self.old_positions
+                self.old_positions = wrap_positions(real_atoms.positions,
+                                                    real_atoms.cell)
+            displacement = wrap_positions(real_atoms.positions,
+                                          real_atoms.cell) - self.old_positions
             self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
             logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
-                        max_abs_displacement, max_abs_displacement / self.r_NN)
+                        max_abs_displacement,
+                        max_abs_displacement / self.r_NN)
             if max_abs_displacement < 0.5 * self.r_NN:
                 return self.P
 
@@ -914,7 +943,8 @@ class Exp_FF(Exp, FF):
                     time.time() - start_time)
         return self.P
 
-    def _make_sparse_precon(self, atoms, initial_assembly=False, force_stab=False):
+    def _make_sparse_precon(self, atoms, initial_assembly=False,
+                            force_stab=False):
         """Create a sparse preconditioner matrix based on the passed atoms.
 
         Args:
@@ -928,8 +958,10 @@ class Exp_FF(Exp, FF):
             sparse matrix instead.
 
         """
-        logger.info('creating sparse precon: initial_assembly=%r, force_stab=%r, apply_positions=%r, apply_cell=%r',
-                    initial_assembly, force_stab, self.apply_positions, self.apply_cell)
+        logger.info('creating sparse precon: initial_assembly=%r, '
+                    'force_stab=%r, apply_positions=%r, apply_cell=%r',
+                    initial_assembly, force_stab, self.apply_positions,
+                    self.apply_cell)
 
         N = len(atoms)
         start_time = time.time()
@@ -1025,15 +1057,19 @@ class Exp_FF(Exp, FF):
 
                 for n in range(len(self.dihedrals)):
                     if self.hessian == 'reduced':
-                        i, j, k, l, Hx = ff.get_dihedral_potential_reduced_hessian(
-                            atoms, self.dihedrals[n], self.morses)
+                        i, j, k, l, Hx = \
+                            ff.get_dihedral_potential_reduced_hessian(
+                                atoms, self.dihedrals[n], self.morses)
                     elif self.hessian == 'spectral':
                         i, j, k, l, Hx = ff.get_dihedral_potential_hessian(
-                            atoms, self.dihedrals[n], self.morses, spectral=True)
+                            atoms, self.dihedrals[n], self.morses,
+                            spectral=True)
                     else:
                         raise NotImplementedError("Not implemented hessian")
-                    x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 * j + 1, 3 * j +
-                         2, 3 * k, 3 * k + 1, 3 * k + 2, 3 * l, 3 * l + 1, 3 * l + 2]
+                    x = [3 * i, 3 * i + 1, 3 * i + 2,
+                         3 * j, 3 * j + 1, 3 * j + 2,
+                         3 * k, 3 * k + 1, 3 * k + 2,
+                         3 * l, 3 * l + 1, 3 * l + 2]
                     row.extend(np.repeat(x, 12))
                     col.extend(np.tile(x, 12))
                     data.extend(Hx.flatten())
@@ -1079,21 +1115,23 @@ class Exp_FF(Exp, FF):
         # Create solver
         if self.use_pyamg and have_pyamg:
             start_time = time.time()
-            self.ml = smoothed_aggregation_solver(self.P, B=None,
-                                                  strength=('symmetric', {
-                                                            'theta': 0.0}),
-                                                  smooth=(
-                                                      'jacobi', {'filter': True, 'weighting': 'local'}),
-                                                  improve_candidates=[('block_gauss_seidel', {'sweep': 'symmetric', 'iterations': 4}),
-                                                                      None, None, None, None, None, None, None, None, None, None, None, None, None, None],
-                                                  aggregate="standard",
-                                                  presmoother=('block_gauss_seidel', {
-                                                      'sweep': 'symmetric', 'iterations': 1}),
-                                                  postsmoother=('block_gauss_seidel', {
-                                                      'sweep': 'symmetric', 'iterations': 1}),
-                                                  max_levels=15,
-                                                  max_coarse=300,
-                                                  coarse_solver="pinv")
+            self.ml = smoothed_aggregation_solver(
+                self.P, B=None,
+                strength=('symmetric', {'theta': 0.0}),
+                smooth=(
+                    'jacobi', {'filter': True, 'weighting': 'local'}),
+                improve_candidates=[('block_gauss_seidel',
+                                     {'sweep': 'symmetric', 'iterations': 4}),
+                                    None, None, None, None, None, None, None,
+                                    None, None, None, None, None, None, None],
+                aggregate="standard",
+                presmoother=('block_gauss_seidel',
+                             {'sweep': 'symmetric', 'iterations': 1}),
+                postsmoother=('block_gauss_seidel',
+                              {'sweep': 'symmetric', 'iterations': 1}),
+                max_levels=15,
+                max_coarse=300,
+                coarse_solver="pinv")
             logger.info('--- multi grid solver created in %s s ---' %
                         (time.time() - start_time))
 
