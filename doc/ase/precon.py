@@ -5,8 +5,6 @@ from ase.calculators.emt import EMT
 from ase.optimize.precon import Exp, PreconLBFGS
 
 from ase.calculators.loggingcalc import LoggingCalculator
-import matplotlib as mpl
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 a0 = bulk('Cu', cubic=True)
@@ -18,14 +16,12 @@ nsteps = []
 energies = []
 log_calc = LoggingCalculator(EMT())
 
-for precon, label in zip([None, Exp(A=3)],
-                         ['None', 'Exp(A=3)']):
-   log_calc.label = label
-   atoms = a0.copy()
-   atoms.set_calculator(log_calc)
-   opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
-   opt.run(fmax=1e-3)
+for precon, label in [(None, 'None'), (Exp(A=3), 'Exp(A=3)')]:
+    log_calc.label = label
+    atoms = a0.copy()
+    atoms.set_calculator(log_calc)
+    opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
+    opt.run(fmax=1e-3)
 
 log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
-plt.savefig("precon.png")
-
+plt.savefig('precon.png')
