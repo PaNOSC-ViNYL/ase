@@ -11,7 +11,7 @@ from ase.geometry import wrap_positions
 import ase.utils.ff as ff
 import ase.units as units
 from ase.optimize.precon import logger
-from ase.optimize.precon.neighbors import (get_neighbours,
+from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
                                            estimate_nearest_neighbour_distance)
 
 try:
@@ -103,7 +103,6 @@ class Precon(object):
         self.P = None
         self.old_positions = None
 
-        global have_pyamg
         if use_pyamg and not have_pyamg:
             use_pyamg = False
             logger.warning('use_pyamg=True but PyAMG cannot be imported! '
@@ -119,12 +118,10 @@ class Precon(object):
             raise ValueError("Dimension must be at least 1")
         self.dim = dim
 
-        global have_matscipy
         if not have_matscipy:
-            logger.warning("Unable to import Matscipy. Neighbour list "
-                           "calculations may be very slow.")
+            logger.info("Unable to import Matscipy. Neighbour list "
+                        "calculations may be very slow.")
 
-        global have_scipy
         if not have_scipy:
             raise NotImplementedError(
                 "scipy must be available for sparse matrix.")

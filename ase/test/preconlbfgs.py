@@ -16,7 +16,7 @@ a0.set_scaled_positions(s)
 nsteps = []
 energies = []
 for OPT in [PreconLBFGS, PreconFIRE]:
-    for precon in [None, Exp(A=3)]:
+    for precon in [None, Exp(A=3, use_pyamg=False)]:
         atoms = a0.copy()
         atoms.set_calculator(EMT())
         opt = OPT(atoms, precon=precon, use_armijo=True)
