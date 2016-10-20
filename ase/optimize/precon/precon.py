@@ -74,7 +74,7 @@ class Precon(object):
                 is set to True here, the value passed for mu will be
                 irrelevant unless recalc_mu is set False the first time
                 make_precon is called.
-            array_convention: Either "C" or "F" for Fortran; this will change
+            array_convention: Either 'C' or 'F' for Fortran; this will change
                 the preconditioner to reflect the ordering of the indices in
                 the vector it will operate on. The C convention assumes the
                 vector will be arranged atom-by-atom (ie [x1, y1, z1, x2, ...])
@@ -115,16 +115,16 @@ class Precon(object):
         self.apply_cell = apply_cell
 
         if dim < 1:
-            raise ValueError("Dimension must be at least 1")
+            raise ValueError('Dimension must be at least 1')
         self.dim = dim
 
         if not have_matscipy:
-            logger.info("Unable to import Matscipy. Neighbour list "
-                        "calculations may be very slow.")
+            logger.info('Unable to import Matscipy. Neighbour list '
+                        'calculations may be very slow.')
 
         if not have_scipy:
             raise NotImplementedError(
-                "scipy must be available for sparse matrix.")
+                'scipy must be available for sparse matrix.')
 
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
@@ -201,7 +201,7 @@ class Precon(object):
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
 
-        logger.info("--- Precon created in %s seconds ---",
+        logger.info('--- Precon created in %s seconds ---',
                     time.time() - start_time)
         return self.P
 
@@ -297,7 +297,7 @@ class Precon(object):
         start_time = time.time()
         if self.dim == 1:
             self.P = csc_P
-        elif self.array_convention == "F":
+        elif self.array_convention == 'F':
             csc_P = csc_P.tocsr()
             self.P = csc_P
             for i in range(self.dim - 1):
@@ -331,14 +331,14 @@ class Precon(object):
                                      {'sweep': 'symmetric', 'iterations': 4}),
                                     None, None, None, None, None, None, None,
                                     None, None, None, None, None, None, None],
-                aggregate="standard",
+                aggregate='standard',
                 presmoother=('block_gauss_seidel',
                              {'sweep': 'symmetric', 'iterations': 1}),
                 postsmoother=('block_gauss_seidel',
                               {'sweep': 'symmetric', 'iterations': 1}),
                 max_levels=15,
                 max_coarse=300,
-                coarse_solver="pinv")
+                coarse_solver='pinv')
             logger.info('--- multi grid solver created in %s s ---' %
                         (time.time() - start_time))
 
@@ -360,17 +360,17 @@ class Precon(object):
         if self.use_pyamg and have_pyamg:
             y = self.ml.solve(x, x0=rand(self.P.shape[0]),
                               tol=self.solve_tol,
-                              accel="cg",
+                              accel='cg',
                               maxiter=300,
-                              cycle="W")
+                              cycle='W')
         else:
             y = spsolve(self.P, x)
-        logger.info("--- Precon applied in %s seconds ---",
+        logger.info('--- Precon applied in %s seconds ---',
                     time.time() - start_time)
         return y
 
     def get_coeff(self, r):
-        raise NotImplementedError("Must be overridden by subclasses")
+        raise NotImplementedError('Must be overridden by subclasses')
 
     def estimate_mu(self, atoms, H=None):
         """
@@ -406,9 +406,9 @@ class Precon(object):
         """
 
         if self.dim != 3:
-            raise ValueError("Automatic calculation of mu only possible for "
-                             "three-dimensional preconditioners. Try setting "
-                             "mu manually instead.")
+            raise ValueError('Automatic calculation of mu only possible for '
+                             'three-dimensional preconditioners. Try setting '
+                             'mu manually instead.')
 
         if self.r_NN is None:
             self.r_NN = estimate_nearest_neighbour_distance(atoms)
@@ -439,12 +439,12 @@ class Precon(object):
                          % (eigvals[0], eigvals[1], eigvals[2], eigvals[3]))
             # check eigenvalues
             if any(eigvals[0:3] > 1e-6):
-                raise ValueError("First 3 eigenvalues of preconditioner matrix"
-                                 "do not correspond to translational modes.")
+                raise ValueError('First 3 eigenvalues of preconditioner matrix'
+                                 'do not correspond to translational modes.')
             elif eigvals[3] < 1e-6:
-                raise ValueError("Fourth smallest eigenvalue of "
+                raise ValueError('Fourth smallest eigenvalue of '
                                  'preconditioner matrix '
-                                 "is too small, increase r_cut.")
+                                 'is too small, increase r_cut.')
 
             x = np.zeros(n)
             for i in range(n):
@@ -476,7 +476,7 @@ class Precon(object):
             for i, L in enumerate([Lx, Ly, Lz]):
                 if L == 0:
                     logger.warning(
-                        "Cell length L[%d] == 0. Setting H[%d,%d] = 0." %
+                        'Cell length L[%d] == 0. Setting H[%d,%d] = 0.' %
                         (i, i, i))
                     H[i, i] = 0.0
                 else:
@@ -602,7 +602,7 @@ class C1(Precon):
 
     def __init__(self, r_cut=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
                  force_stab=False,
-                 recalc_mu=False, array_convention="C",
+                 recalc_mu=False, array_convention='C',
                  use_pyamg=True, solve_tol=1e-9,
                  apply_positions=True, apply_cell=True):
         Precon.__init__(self, r_cut=r_cut, mu=mu, mu_c=mu_c,
@@ -624,7 +624,7 @@ class Exp(Precon):
 
     def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None,
                  dim=3, c_stab=0.1,
-                 force_stab=False, recalc_mu=False, array_convention="C",
+                 force_stab=False, recalc_mu=False, array_convention='C',
                  use_pyamg=True, solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False):
@@ -657,9 +657,9 @@ class FF(Precon):
     """
 
     def __init__(self, dim=3, c_stab=0.1, force_stab=False,
-                 array_convention="C", use_pyamg=True, solve_tol=1e-9,
+                 array_convention='C', use_pyamg=True, solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
-                 hessian="reduced", morses=None, bonds=None, angles=None,
+                 hessian='reduced', morses=None, bonds=None, angles=None,
                  dihedrals=None):
         """Initialise an FF preconditioner with given parameters.
 
@@ -700,7 +700,7 @@ class FF(Precon):
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
 
-        logger.info("--- Precon created in %s seconds ---",
+        logger.info('--- Precon created in %s seconds ---',
                     time.time() - start_time)
         return self.P
 
@@ -726,7 +726,7 @@ class FF(Precon):
                     i, j, Hx = ff.get_morse_potential_hessian(
                         atoms, self.morses[n], spectral=True)
                 else:
-                    raise NotImplementedError("Not implemented hessian")
+                    raise NotImplementedError('Not implemented hessian')
                 x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 * j + 1, 3 * j + 2]
                 row.extend(np.repeat(x, 6))
                 col.extend(np.tile(x, 6))
@@ -742,7 +742,7 @@ class FF(Precon):
                     i, j, Hx = ff.get_bond_potential_hessian(
                         atoms, self.bonds[n], self.morses, spectral=True)
                 else:
-                    raise NotImplementedError("Not implemented hessian")
+                    raise NotImplementedError('Not implemented hessian')
                 x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 * j + 1, 3 * j + 2]
                 row.extend(np.repeat(x, 6))
                 col.extend(np.tile(x, 6))
@@ -758,7 +758,7 @@ class FF(Precon):
                     i, j, k, Hx = ff.get_angle_potential_hessian(
                         atoms, self.angles[n], self.morses, spectral=True)
                 else:
-                    raise NotImplementedError("Not implemented hessian")
+                    raise NotImplementedError('Not implemented hessian')
                 x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 *
                      j + 1, 3 * j + 2, 3 * k, 3 * k + 1, 3 * k + 2]
                 row.extend(np.repeat(x, 9))
@@ -776,7 +776,7 @@ class FF(Precon):
                     i, j, k, l, Hx = ff.get_dihedral_potential_hessian(
                         atoms, self.dihedrals[n], self.morses, spectral=True)
                 else:
-                    raise NotImplementedError("Not implemented hessian")
+                    raise NotImplementedError('Not implemented hessian')
                 x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 * j + 1, 3 * j +
                      2, 3 * k, 3 * k + 1, 3 * k + 2, 3 * l, 3 * l + 1,
                      3 * l + 2]
@@ -826,14 +826,14 @@ class FF(Precon):
                                      {'sweep': 'symmetric', 'iterations': 4}),
                                     None, None, None, None, None, None, None,
                                     None, None, None, None, None, None, None],
-                aggregate="standard",
+                aggregate='standard',
                 presmoother=('block_gauss_seidel',
                              {'sweep': 'symmetric', 'iterations': 1}),
                 postsmoother=('block_gauss_seidel',
                               {'sweep': 'symmetric', 'iterations': 1}),
                 max_levels=15,
                 max_coarse=300,
-                coarse_solver="pinv")
+                coarse_solver='pinv')
             logger.info('--- multi grid solver created in %s s ---' %
                         (time.time() - start_time))
 
@@ -846,11 +846,11 @@ class Exp_FF(Exp, FF):
 
     def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None,
                  dim=3, c_stab=0.1,
-                 force_stab=False, recalc_mu=False, array_convention="C",
+                 force_stab=False, recalc_mu=False, array_convention='C',
                  use_pyamg=True, solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False,
-                 hessian="reduced", morses=None, bonds=None, angles=None,
+                 hessian='reduced', morses=None, bonds=None, angles=None,
                  dihedrals=None):
         """Initialise an Exp+FF preconditioner with given parameters.
 
@@ -936,7 +936,7 @@ class Exp_FF(Exp, FF):
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
 
-        logger.info("--- Precon created in %s seconds ---",
+        logger.info('--- Precon created in %s seconds ---',
                     time.time() - start_time)
         return self.P
 
@@ -1003,7 +1003,7 @@ class Exp_FF(Exp, FF):
                         i, j, Hx = ff.get_morse_potential_hessian(
                             atoms, self.morses[n], spectral=True)
                     else:
-                        raise NotImplementedError("Not implemented hessian")
+                        raise NotImplementedError('Not implemented hessian')
                     x = [3 * i, 3 * i + 1, 3 * i + 2,
                          3 * j, 3 * j + 1, 3 * j + 2]
                     row.extend(np.repeat(x, 6))
@@ -1022,7 +1022,7 @@ class Exp_FF(Exp, FF):
                         i, j, Hx = ff.get_bond_potential_hessian(
                             atoms, self.bonds[n], self.morses, spectral=True)
                     else:
-                        raise NotImplementedError("Not implemented hessian")
+                        raise NotImplementedError('Not implemented hessian')
                     x = [3 * i, 3 * i + 1, 3 * i + 2,
                          3 * j, 3 * j + 1, 3 * j + 2]
                     row.extend(np.repeat(x, 6))
@@ -1041,7 +1041,7 @@ class Exp_FF(Exp, FF):
                         i, j, k, Hx = ff.get_angle_potential_hessian(
                             atoms, self.angles[n], self.morses, spectral=True)
                     else:
-                        raise NotImplementedError("Not implemented hessian")
+                        raise NotImplementedError('Not implemented hessian')
                     x = [3 * i, 3 * i + 1, 3 * i + 2, 3 * j, 3 *
                          j + 1, 3 * j + 2, 3 * k, 3 * k + 1, 3 * k + 2]
                     row.extend(np.repeat(x, 9))
@@ -1062,7 +1062,7 @@ class Exp_FF(Exp, FF):
                             atoms, self.dihedrals[n], self.morses,
                             spectral=True)
                     else:
-                        raise NotImplementedError("Not implemented hessian")
+                        raise NotImplementedError('Not implemented hessian')
                     x = [3 * i, 3 * i + 1, 3 * i + 2,
                          3 * j, 3 * j + 1, 3 * j + 2,
                          3 * k, 3 * k + 1, 3 * k + 2,
@@ -1121,14 +1121,14 @@ class Exp_FF(Exp, FF):
                                      {'sweep': 'symmetric', 'iterations': 4}),
                                     None, None, None, None, None, None, None,
                                     None, None, None, None, None, None, None],
-                aggregate="standard",
+                aggregate='standard',
                 presmoother=('block_gauss_seidel',
                              {'sweep': 'symmetric', 'iterations': 1}),
                 postsmoother=('block_gauss_seidel',
                               {'sweep': 'symmetric', 'iterations': 1}),
                 max_levels=15,
                 max_coarse=300,
-                coarse_solver="pinv")
+                coarse_solver='pinv')
             logger.info('--- multi grid solver created in %s s ---' %
                         (time.time() - start_time))
 
