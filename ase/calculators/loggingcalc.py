@@ -13,9 +13,10 @@ from ase.calculators.calculator import Calculator, all_properties
 
 logger = logging.getLogger(__name__)
 
+
 class LoggingCalculator(Calculator):
-    """
-    Calculator wrapper to record and plot history of energy and function evaluations
+    """Calculator wrapper to record and plot history of energy and function
+    evaluations
     """
     implemented_properties = all_properties
     default_parameters = {}
@@ -44,7 +45,8 @@ class LoggingCalculator(Calculator):
         Calculator.calculate(self, atoms, properties, system_changes)
 
         if isinstance(self.calculator, Calculator):
-            results = [self.calculator.get_property(prop, atoms) for prop in properties]
+            results = [self.calculator.get_property(prop, atoms)
+                       for prop in properties]
         else:
             results = []
             for prop in properties:
@@ -59,7 +61,8 @@ class LoggingCalculator(Calculator):
                 energy = results[properties.index('energy')]
             except IndexError:
                 energy = sum(results[properties.index('energies')])
-            logger.info('energy call count=%d energy=%.3f', self.energy_evals[self.label], energy)
+            logger.info('energy call count=%d energy=%.3f',
+                        self.energy_evals[self.label], energy)
         self.results = dict(zip(properties, results))
 
         if 'forces' in self.results:
@@ -109,31 +112,38 @@ class LoggingCalculator(Calculator):
         fmt1 = '%-10s %10s %10s %8s'
         title = fmt1 % ('Label', '# Force', '# Energy', 'Walltime/s')
         print(title)
-        print('-'*len(title))
+        print('-' * len(title))
         fmt2 = '%-10s %10d %10d %8.2f'
         for label in sorted(self.fmax.keys()):
-            print(fmt2 % (label, len(self.fmax[label]), len(self.energy_count[label]),
-                            self.walltime[label][-1] - self.walltime[label][0]))
+            print(fmt2 % (label, len(self.fmax[label]),
+                          len(self.energy_count[label]),
+                          self.walltime[label][-1] - self.walltime[label][0]))
 
-    def plot(self, fmaxlim=(1e-2, 1e2), forces=True, energy=True, walltime=True,
-            markers=None, labels=None, **kwargs):
+    def plot(self, fmaxlim=(1e-2, 1e2), forces=True, energy=True,
+             walltime=True,
+             markers=None, labels=None, **kwargs):
         import matplotlib.pyplot as plt
 
         if markers is None:
             markers = [c + s for c in ['r', 'g', 'b', 'c', 'm', 'y', 'k']
-                            for s in ['.-', '.--']]
-        nsub  = sum([forces, energy, walltime])
+                       for s in ['.-', '.--']]
+        nsub = sum([forces, energy, walltime])
         nplot = 0
 
         if labels is not None:
-            fmax_values = [ v for (k, v) in sorted(zip(self.fmax.keys(), self.fmax.values())) ]
+            fmax_values = [v for (k, v) in sorted(zip(self.fmax.keys(),
+                                                      self.fmax.values()))]
             self.fmax = dict(zip(labels, fmax_values))
 
-            energy_count_values = [ v for (k, v) in sorted(zip(self.energy_count.keys(), self.energy_count.values())) ]
-            self.energy_count = { k : v for (k, v) in zip(labels, energy_count_values) }
+            energy_count_values = [v for (k, v) in
+                                   sorted(zip(self.energy_count.keys(),
+                                              self.energy_count.values()))]
+            self.energy_count = dict(zip(labels, energy_count_values))
 
-            walltime_values =  [ v for (k, v) in sorted(zip(self.walltime.keys(), self.walltime.values())) ]
-            self.walltime = { k : v for (k, v) in zip(labels, walltime_values) }
+            walltime_values = [v for (k, v) in
+                               sorted(zip(self.walltime.keys(),
+                                          self.walltime.values()))]
+            self.walltime = dict(zip(labels, walltime_values))
 
         if forces:
             nplot += 1
