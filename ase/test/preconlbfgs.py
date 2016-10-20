@@ -1,5 +1,3 @@
-from __future__ import print_function, division
-
 import numpy as np
 
 from ase.build import bulk
@@ -28,4 +26,3 @@ for OPT in [PreconLBFGS, PreconFIRE]:
 
 # check we get the expected energy for all methods
 assert np.abs(np.array(energies) - -0.022726045433998365).max() < 1e-4
-
