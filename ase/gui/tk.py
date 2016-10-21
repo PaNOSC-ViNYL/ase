@@ -14,6 +14,11 @@ from functools import partial
 
 import numpy as np
 
+__all__ = [
+    'oops', 'ask_question',
+    'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
+    'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
+    'SpinBox', 'Text']
 
 font = ('Helvetica', 10)
 
@@ -328,8 +333,7 @@ class MenuItem:
                                  var=var)
         elif self.choices:
             submenu = tk.Menu(menu)
-            menu.add_cascade(label=self.label,
-                             menu=submenu)
+            menu.add_cascade(label=self.label, menu=submenu)
             var = tk.IntVar()
             var.set(0)
             stuff[self.callback.__name__.replace('_', '-')] = var
