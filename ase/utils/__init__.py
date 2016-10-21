@@ -316,20 +316,7 @@ def hsv(array, s=.9, v=.9):
 #     rgba = getattr(pylab.cm, name)(a)
 #     return rgba[:-1] # return rgb only (not alpha)
 
-def sum128(x):
-    """
-    128-bit floating point sum
-    """
-    return np.asarray(x, dtype=np.float128).sum()
 
-def dot128(x,y):
-    """
-    128-bit floating point dot product
-    """
-    return sum128(x*y)
-
-def norm128(x):
-    """
-    128-bit floating point vector norm
-    """
-    return np.sqrt(dot128(x,x))
+def longsum(x):
+    """128-bit floating point sum."""
+    return float(np.asarray(x, dtype=np.longdouble).sum())

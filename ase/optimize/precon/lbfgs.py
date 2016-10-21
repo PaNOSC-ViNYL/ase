@@ -4,7 +4,8 @@
 # @Project: f90wrap
 # @Last modified by:   jameskermode
 # @Last modified time: 2016-09-15T11:07:36+01:00
-# @License: f90wrap - F90 to Python interface generator with derived type support
+# @License: f90wrap - F90 to Python interface generator with derived type
+#           support
 
 
 import time
@@ -12,7 +13,7 @@ import time
 from math import sqrt
 import numpy as np
 
-from ase.utils import sum128, basestring
+from ase.utils import basestring
 from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
 from ase.optimize.precon import C1, Exp, Pfrommer, logger
@@ -35,7 +36,8 @@ class PreconLBFGS(Optimizer):
 
     By default, the ase.optimize.precon.Exp preconditioner is applied.
 
-    In time this implementation is expected to replace ase.optimize.lbfgs.LBFGS.
+    In time this implementation is expected to replace
+    ase.optimize.lbfgs.LBFGS.
     """
 
     # CO : added parameters rigid_units and rotation_factors
@@ -286,10 +288,7 @@ class PreconLBFGS(Optimizer):
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
-        try:
-            potl = sum128(self.atoms.get_potential_energies())
-        except (AttributeError, RuntimeError):
-            potl = self.atoms.get_potential_energy()
+        potl = self.atoms.get_potential_energy()
         return potl
 
     def fprime(self, x):
@@ -314,29 +313,33 @@ class PreconLBFGS(Optimizer):
                 #    alternatively: we can adjust the rotation_factors
                 #    out using some extrapolation tricks?
                 ls = LineSearchArmijo(self.func, c1=self.c1, tol=1e-14)
-                step, func_val, no_update = ls.run(r, self.p, func_start=e,
-                                                   func_prime_start=g,
-                                                   func_old=self.e0,
-                                                   rigid_units=self.rigid_units,
-                                                   rotation_factors=self.rotation_factors)
+                step, func_val, no_update = ls.run(
+                    r, self.p, func_start=e,
+                    func_prime_start=g,
+                    func_old=self.e0,
+                    rigid_units=self.rigid_units,
+                    rotation_factors=self.rotation_factors)
                 self.e0 = e
                 self.e1 = func_val
                 self.alpha_k = step
             except (ValueError, RuntimeError):
                 if not previously_reset_hessian:
                     logger.warning(
-                        'Armijo linesearch failed, resetting Hessian and trying again')
+                        'Armijo linesearch failed, resetting Hessian and '
+                        'trying again')
                     self.reset_hessian()
                     self.alpha_k = 0.0
                 else:
                     logger.error(
-                        'Armijo linesearch failed after reset of Hessian, aborting')
+                        'Armijo linesearch failed after reset of Hessian, '
+                        'aborting')
                     raise
 
         else:
             ls = LineSearch()
             self.alpha_k, e, self.e0, self.no_update = \
-                ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
+                ls._line_search(self.func, self.fprime, r, self.p, g,
+                                e, self.e0,
                                 maxstep=self.maxstep, c1=self.c1,
                                 c2=self.c2, stpmax=50.)
             self.e1 = e
@@ -366,12 +369,14 @@ class PreconLBFGS(Optimizer):
         if self.logfile is not None:
             name = self.__class__.__name__
             if isinstance(self.atoms, UnitCellFilter):
-                self.logfile.write('%s: %3d  %02d:%02d:%02d %15.6f %12.4f %12.4f\n' %
-                                   (name, self.nsteps, T[3], T[4], T[5], e, fmax, smax))
+                self.logfile.write(
+                    '%s: %3d  %02d:%02d:%02d %15.6f %12.4f %12.4f\n' %
+                    (name, self.nsteps, T[3], T[4], T[5], e, fmax, smax))
 
             else:
-                self.logfile.write('%s: %3d  %02d:%02d:%02d %15.6f %12.4f\n' %
-                                   (name, self.nsteps, T[3], T[4], T[5], e, fmax))
+                self.logfile.write(
+                    '%s: %3d  %02d:%02d:%02d %15.6f %12.4f\n' %
+                    (name, self.nsteps, T[3], T[4], T[5], e, fmax))
             self.logfile.flush()
 
     def converged(self, forces=None):

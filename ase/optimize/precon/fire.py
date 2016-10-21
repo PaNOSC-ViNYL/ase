@@ -2,7 +2,6 @@ import numpy as np
 
 from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
-from ase.utils import sum128
 
 
 class PreconFIRE(Optimizer):
@@ -38,7 +37,8 @@ class PreconFIRE(Optimizer):
         variable_cell: bool
             If True, wrap atoms in UnitCellFilter to relax cell and positions.
 
-        In time this implementation is expected to replace ase.optimize.fire.FIRE.
+        In time this implementation is expected to replace
+        ase.optimize.fire.FIRE.
         """
         if variable_cell:
             atoms = UnitCellFilter(atoms)
@@ -87,7 +87,8 @@ class PreconFIRE(Optimizer):
                 r_test = r + self.dt * v_test
 
                 self.skip_flag = False
-                if self.func(r_test) > self.func(r) - self.theta * self.dt * np.vdot(v_test, f):
+                if (self.func(r_test) > self.func(r) -
+                    self.theta * self.dt * np.vdot(v_test, f)):
                     self.v[:] *= 0.0
                     self.a = self.astart
                     self.dt *= self.fdec
@@ -103,10 +104,13 @@ class PreconFIRE(Optimizer):
                             np.sqrt(np.vdot(f, f)) * \
                             np.sqrt(np.vdot(self.v, self.v))
                     else:
-                        self.v = (1.0 - self.a) * self.v + self.a * (np.sqrt(self.precon.dot(self.v.reshape(-1),
-                                                                                             self.v.reshape(-1))) /
-                                                                     np.sqrt(np.dot(f.reshape(-1),
-                                                                                    invP_f.reshape(-1))) * invP_f)
+                        self.v = (
+                            (1.0 - self.a) * self.v +
+                            self.a *
+                            (np.sqrt(self.precon.dot(self.v.reshape(-1),
+                                                     self.v.reshape(-1))) /
+                             np.sqrt(np.dot(f.reshape(-1),
+                                            invP_f.reshape(-1))) * invP_f))
                     if self.Nsteps > self.Nmin:
                         self.dt = min(self.dt * self.finc, self.dtmax)
                         self.a *= self.fa
@@ -131,8 +135,5 @@ class PreconFIRE(Optimizer):
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
-        try:
-            potl = sum128(self.atoms.get_potential_energies())
-        except (AttributeError, RuntimeError):
-            potl = self.atoms.get_potential_energy()
+        potl = self.atoms.get_potential_energy()
         return potl

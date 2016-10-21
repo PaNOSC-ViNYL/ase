@@ -12,7 +12,7 @@ except ImportError:
     have_scipy = False
 #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-from ase.utils import dot128
+from ase.utils import longsum
 
 logger = logging.getLogger(__name__)
 
@@ -375,7 +375,7 @@ class LineSearchArmijo:
             logger.debug("Setting func_start")
             self.func_start = self.func(x_start)
 
-        self.phi_prime_start = dot128(self.func_prime_start, self.dirn)
+        self.phi_prime_start = longsum(self.func_prime_start * self.dirn)
         if self.phi_prime_start >= 0:
             logger.error("Passed direction which is not downhill. Aborting...")
             raise ValueError("Direction is not downhill.")

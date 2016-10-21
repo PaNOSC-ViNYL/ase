@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 from ase.constraints import Filter, FixAtoms
-from ase.utils import sum128, dot128
+from ase.utils import longsum
 from ase.geometry import wrap_positions
 import ase.utils.ff as ff
 import ase.units as units
@@ -350,7 +350,7 @@ class Precon(object):
 
         Uses 128-bit floating point math for vector dot products
         """
-        return dot128(self.P.dot(x), y)
+        return longsum(self.P.dot(x) * y)
 
     def solve(self, x):
         """
@@ -516,14 +516,13 @@ class Precon(object):
         RHS = P1.dot(v1) * v1
 
         # use partial sums to compute separate mu for positions and cell DoFs
-        self.mu = float(sum128(LHS[:3 * natoms]) / sum128(RHS[:3 * natoms]))
+        self.mu = longsum(LHS[:3 * natoms]) / longsum(RHS[:3 * natoms])
         if self.mu < 1.0:
             logger.info('mu (%.3f) < 1.0, capping at mu=1.0', self.mu)
             self.mu = 1.0
 
         if isinstance(atoms, Filter):
-            self.mu_c = float(
-                sum128(LHS[3 * natoms:]) / sum128(RHS[3 * natoms:]))
+            self.mu_c = longsum(LHS[3 * natoms:]) / longsum(RHS[3 * natoms:])
             if self.mu_c < 1.0:
                 logger.info(
                     'mu_c (%.3f) < 1.0, capping at mu_c=1.0', self.mu_c)
