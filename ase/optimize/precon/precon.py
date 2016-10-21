@@ -4,6 +4,8 @@ Implementation of the Precon abstract base class and subclasses
 import time
 
 import numpy as np
+from scipy import sparse, rand
+from scipy.sparse.linalg import spsolve
 
 from ase.constraints import Filter, FixAtoms
 from ase.utils import longsum
@@ -13,14 +15,6 @@ import ase.units as units
 from ase.optimize.precon import logger
 from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
                                            estimate_nearest_neighbour_distance)
-
-try:
-    from scipy import sparse, rand
-    from scipy.sparse.linalg import spsolve
-    have_scipy = True
-except ImportError:
-    have_scipy = False
-
 try:
     from pyamg import smoothed_aggregation_solver
     have_pyamg = True
@@ -121,10 +115,6 @@ class Precon(object):
         if not have_matscipy:
             logger.info('Unable to import Matscipy. Neighbour list '
                         'calculations may be very slow.')
-
-        if not have_scipy:
-            raise NotImplementedError(
-                'scipy must be available for sparse matrix.')
 
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
