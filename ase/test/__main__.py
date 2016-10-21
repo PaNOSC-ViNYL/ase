@@ -5,7 +5,7 @@ from ase.test import test
 
 
 parser = optparse.OptionParser(
-    usage='Usage: python -m ase.test [-c calc1,calc2,...]',
+    usage='Usage: python -m ase.test [-c calc1,calc2,...] [test1,test2,...]',
     description='Test ASE')
 
 parser.add_option('-c', '--calculators',
@@ -24,5 +24,6 @@ else:
 
 results = test(display=opts.test_also_gui,
                verbosity=opts.verbosity,
-               calculators=calculators)
+               calculators=calculators,
+               files=args)
 sys.exit(len(results.errors + results.failures))
