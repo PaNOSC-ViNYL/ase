@@ -3,10 +3,9 @@ import sys
 
 from ase.test import test
 
-
-parser = optparse.OptionParser(
-    usage='Usage: python -m ase.test [-c calc1,calc2,...] [test1,test2,...]',
-    description='Test ASE')
+usage = ('Usage: python -m ase.test [-c calc1,calc2,...] '
+         '[test1.py test2.py ...]')
+parser = optparse.OptionParser(usage=usage, description='Test ASE')
 
 parser.add_option('-c', '--calculators',
                   help='Comma-separated list of calculators to test.')
