@@ -10,6 +10,12 @@ Git master branch
 
 :git:`master <>`.
 
+
+Version 3.12.0
+==============
+
+24 October 2016: :git:`3.12.0 <../3.12.0>`.
+
 * New :class:`ase.constraints.ExternalForce` constraint.
 
 * Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
@@ -61,7 +67,7 @@ Git master branch
   There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
   method.
 
-* Galician translation of ASE's GUI
+* Galician translation of ASE's GUI.
 
 
 Version 3.11.0
