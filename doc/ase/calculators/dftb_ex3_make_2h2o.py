@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# fun collision of:  2 H2 + O2 -> 2 H2O 
 import os
 
 from ase.calculators.dftb import Dftb
@@ -55,8 +55,8 @@ Driver_Steps = 500,
 Driver_KeepStationary = 'Yes',
 Driver_TimeStep = 8.26,
 Driver_Thermostat_ = 'Berendsen',
-#Driver_Thermostat_Temperature = 0.00339845142, # 800 deg Celcius
-Driver_Thermostat_Temperature = 0.0, # 0 deg Kelvin
+Driver_Thermostat_Temperature = 0.00339845142, # 800 deg Celcius
+#Driver_Thermostat_Temperature = 0.0, # 0 deg Kelvin
 Driver_Thermostat_CouplingStrength = 0.01,
 )
 
@@ -88,7 +88,6 @@ os.system("mv md.out md.out.NVT")
 os.system("mv geo_end.xyz geo_end_NVT.xyz")
 write_dftb_velocities(test, 'velocities.txt')
 
-# to get a movie of the full collision:
-# cat geo_end_NVE.xyz geo_end_NVT.xyz > all.xyz
-# and:
-#  ag all.xyz
+os.system("cat geo_end_NVE.xyz geo_end_NVT.xyz > all.xyz")
+# to watch:
+#  ase-gui all.xyz
