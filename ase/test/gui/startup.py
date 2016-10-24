@@ -4,7 +4,6 @@ import ase.gui.ui as ui
 from ase.gui.gui import GUI
 
 
-
 class OOPS:
     has_been_called = False
 
@@ -13,7 +12,8 @@ class OOPS:
         self.has_been_called = True
 
     def called(self, title=None):
-        result = self.has_been_called and (title is None or title == self.title)
+        result = self.has_been_called and (title is None or
+                                           title == self.title)
         self.has_been_called = False
         return result
 
