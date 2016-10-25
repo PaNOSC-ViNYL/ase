@@ -34,7 +34,7 @@ Please read below what the script does.
 Atoms
 -----
 
-The :class:`~ase.atoms.Atoms` object is a collection of atoms.  Here
+The :class:`~ase.Atoms` object is a collection of atoms.  Here
 is how to define a N2 molecule by directly specifying the position of
 two nitrogen atoms::
 
@@ -43,7 +43,7 @@ two nitrogen atoms::
   molecule = Atoms('2N', positions=[(0., 0., 0.), (0., 0., d)])
 
 You can also build crystals using, for example, the lattice module
-which returns :class:`~ase.atoms.Atoms` objects corresponding to
+which returns :class:`~ase.Atoms` objects corresponding to
 common crystal structures. Let us make a Cu (111) surface::
 
   from ase.build import fcc111
@@ -70,15 +70,15 @@ In this overview we use the effective medium theory (EMT) calculator,
 as it is very fast and hence useful for getting started.
 
 We can attach a calculator to the previously created
-:class:`~ase.atoms.Atoms` objects::
+:class:`~ase.Atoms` objects::
 
   from ase.calculators.emt import EMT
   slab.set_calculator(EMT())
   molecule.set_calculator(EMT()) 
 
 and use it to calculate the total energies for the systems by using
-the :meth:`~ase.atoms.Atoms.get_potential_energy` method from the
-:class:`~ase.atoms.Atoms` class::
+the :meth:`~ase.Atoms.get_potential_energy` method from the
+:class:`~ase.Atoms` class::
 
   e_slab = slab.get_potential_energy()
   e_N2 = molecule.get_potential_energy()

@@ -1,6 +1,7 @@
 from __future__ import print_function
 import warnings
 
+from ase import __version__
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
@@ -81,12 +82,15 @@ class TrajectoryWriter:
         self.master = master
         self.atoms = atoms
         self.properties = properties
-        
+
+        self.description = {}
         self.numbers = None
         self.pbc = None
         self.masses = None
-
         self._open(filename, mode)
+
+    def set_description(self, description):
+        self.description.update(description)
 
     def _open(self, filename, mode):
         if mode not in 'aw':
@@ -128,7 +132,9 @@ class TrajectoryWriter:
             atoms = atoms.atoms_for_saving
 
         if len(b) == 0:
-            b.write(version=1)
+            b.write(version=1, ase_version=__version__)
+            if self.description:
+                b.write(description=self.description)
             # Atomic numbers and periodic boundary conditions are only
             # written once - in the header.  Store them here so that we can
             # check that they are the same for all images:
@@ -154,6 +160,10 @@ class TrajectoryWriter:
                 calc = OldCalculatorWrapper(calc)
             c = b.child('calculator')
             c.write(name=calc.name)
+            if hasattr(calc, 'todict'):
+                d = calc.todict()
+                if d:
+                    c.write(parameters=d)
             for prop in all_properties:
                 if prop in kwargs:
                     x = kwargs[prop]
@@ -232,6 +242,9 @@ class TrajectoryReader:
             self.numbers = b.numbers
             self.masses = b.get('masses')
             self.constraints = b.get('constraints', '[]')
+            self.description = b.get('description')
+            self.version = b.version
+            self.ase_version = b.get('ase_version')
 
     def close(self):
         """Close the trajectory file."""

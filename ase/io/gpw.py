@@ -12,7 +12,7 @@ def read_gpw(filename):
     except aff.InvalidAFFError:
         return read_old_gpw(filename)
     return read_atoms(reader.atoms)
-    
+
 
 def read_old_gpw(filename):
     from gpaw.io.tar import Reader
@@ -39,11 +39,15 @@ def read_old_gpw(filename):
 
     if magmoms.any():
         atoms.set_initial_magnetic_moments(magmoms)
+        magmom = magmoms.sum()
     else:
         magmoms = None
+        magmom = None
 
     atoms.calc = SinglePointDFTCalculator(atoms, energy=energy,
-                                          forces=forces, magmoms=magmoms)
+                                          forces=forces,
+                                          magmoms=magmoms,
+                                          magmom=magmom)
     kpts = []
     if r.has_array('IBZKPoints'):
         for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'),

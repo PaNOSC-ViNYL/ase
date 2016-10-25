@@ -43,7 +43,7 @@ Each calculator will have its own default values for these parameters
 --- see recommendations below.  In addition, calculators will
 typically have many other parameters.  The units are eV and Å.
 
-Initial magnetic moments are taken from the :class:`~ase.atoms.Atoms`
+Initial magnetic moments are taken from the :class:`~ase.Atoms`
 object.
 
 :xc:

@@ -1,19 +1,19 @@
 """WSGI Flask-app for browsing a database.
 
 You can launch Flask's local webserver like this::
-    
+
     $ ase-db abc.db -w
-    
+
 For a real webserver, you need to set the $ASE_DB_APP_CONFIG environment
 variable to point to a configuration file like this::
-    
+
     ASE_DB_NAME = '/path/to/db-file/abc.db'
     ASE_DB_HOMEPAGE = '<a href="https://home.page.dk">HOME</a> ::'
-    
+
 Start with something like::
-    
+
     twistd web --wsgi=ase.db.app.app --port=8000
-    
+
 """
 
 import collections
@@ -27,7 +27,7 @@ from flask import Flask, render_template, request, send_from_directory
 
 try:
     import matplotlib
-    matplotlib.use('Agg')
+    matplotlib.use('Agg', warn=False)
 except ImportError:
     pass
 
@@ -69,7 +69,7 @@ tmpdir = tempfile.mkdtemp()  # used to cache png-files
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
 
-                
+
 @app.route('/')
 def index():
     global next_con_id
@@ -122,10 +122,10 @@ def index():
                         page = 0
                 else:
                     columns.append(column)
-        
+
     if nrows is None:
         nrows = db.count(query)
-        
+
     table = Table(db)
     table.select(query, columns, sort, limit, offset=page * limit)
     con = Connection(query, nrows, page, columns, sort, limit, opened)
@@ -141,7 +141,7 @@ def index():
                            row1=page * limit + 1,
                            row2=min((page + 1) * limit, nrows))
 
-    
+
 @app.route('/open_row/<int:id>')
 def open_row(id):
     con_id = int(request.args['x'])
@@ -152,8 +152,8 @@ def open_row(id):
     opened.add(id)
     return render_template('more.html',
                            dct=db.get(id), id=id, cid=con_id)
-    
-    
+
+
 @app.route('/image/<name>')
 def image(name):
     path = os.path.join(tmpdir, name)
@@ -161,7 +161,7 @@ def image(name):
         id = int(name[:-4])
         atoms = db.get_atoms(id)
         atoms2png(atoms, path)
-    
+
     return send_from_directory(tmpdir, name)
 
 
@@ -172,24 +172,24 @@ def plot(png):
         name, id = png[:-4].split('-')
         dct = db[int(id)].data
         dct2plot(dct, name, path, show=False)
-        
+
     return send_from_directory(tmpdir, png)
-    
-    
+
+
 @app.route('/gui/<int:id>')
 def gui(id):
     if open_ase_gui:
         atoms = db.get_atoms(id)
         view(atoms)
     return '', 204, []
-        
-        
+
+
 @app.route('/id/<int:id>')
 def summary(id):
     s = Summary(db.get(id), SUBSCRIPT)
     return render_template('summary.html', s=s, home=home)
 
-    
+
 def tofile(query, type, limit=0):
     fd, name = tempfile.mkstemp(suffix='.' + type)
     con = ase.db.connect(name, use_lock_file=False)
@@ -201,7 +201,7 @@ def tofile(query, type, limit=0):
     data = open(name).read()
     os.unlink(name)
     return data
-    
+
 
 def download(f):
     @functools.wraps(f)
@@ -212,8 +212,8 @@ def download(f):
                    ]  # ('Content-type', 'application/sqlite3')]
         return text, 200, headers
     return ff
-    
-    
+
+
 @app.route('/xyz/<int:id>')
 @download
 def xyz(id):
@@ -223,7 +223,7 @@ def xyz(id):
     data = fd.getvalue()
     return data, '{0}.xyz'.format(id)
 
-    
+
 @app.route('/json')
 @download
 def jsonall():
@@ -248,7 +248,7 @@ def sqliteall():
     data = tofile(con.query, 'db', con.limit)
     return data, 'selection.db'
 
-    
+
 @app.route('/sqlite/<int:id>')
 @download
 def sqlite(id):

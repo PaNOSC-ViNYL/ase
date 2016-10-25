@@ -4,7 +4,7 @@ from math import sqrt, exp, log
 
 import numpy as np
 
-from ase.data import chemical_symbols
+from ase.data import chemical_symbols, atomic_numbers
 from ase.units import Bohr
 from ase.neighborlist import NeighborList
 from ase.calculators.calculator import Calculator, all_changes
@@ -30,18 +30,44 @@ beta = 1.809  # (16 * pi / 3)**(1.0 / 3) / 2**0.5, preserve historical rounding
 
 
 class EMT(Calculator):
+    """Python implementation of the Effective Medium Potential.
+
+    Supports the following standard EMT metals:
+    Al, Cu, Ag, Au, Ni, Pd and Pt.
+
+    In addition, the following elements are supported.
+    They are NOT well described by EMT, and the parameters
+    are not for any serious use:
+    H, C, N, O
+
+    The potential takes a single argument, ``fixed_cutoff``
+    (default: False).  If set to False, the global cutoff
+    is chosen from the largest atom present in the simulation,
+    if True it is chosen from the largest atom in the parameter
+    table.  False gives the behaviour of the Asap code and
+    older EMT implementations.
+    """
     implemented_properties = ['energy', 'forces']
 
     nolabel = True
 
-    def __init__(self):
-        Calculator.__init__(self)
+    default_parameters = {'fixed_cutoff': True}
+
+    def __init__(self, **kwargs):
+        Calculator.__init__(self, **kwargs)
 
     def initialize(self, atoms):
         self.par = {}
         self.rc = 0.0
         self.numbers = atoms.get_atomic_numbers()
-        maxseq = max(par[1] for par in parameters.values()) * Bohr
+        if self.parameters.fixed_cutoff:
+            relevant_pars = parameters
+        else:
+            relevant_pars = {}
+            for symb, p in parameters.items():
+                if atomic_numbers[symb] in self.numbers:
+                    relevant_pars[symb] = p
+        maxseq = max(par[1] for par in relevant_pars.values()) * Bohr
         rc = self.rc = beta * maxseq * 0.5 * (sqrt(3) + sqrt(4))
         rr = rc * 2 * sqrt(4) / (sqrt(3) + sqrt(4))
         self.acut = np.log(9999.0) / (rr - rc)

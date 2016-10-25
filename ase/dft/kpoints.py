@@ -1,10 +1,11 @@
 from __future__ import division
+import re
 import warnings
 from math import sin, cos, pi
 
 import numpy as np
 
-from ase.geometry import cell_to_cellpar
+from ase.geometry import cell_to_cellpar, crystal_structure_from_cell
 
 
 def monkhorst_pack(size):
@@ -21,12 +22,12 @@ def get_monkhorst_pack_size_and_offset(kpts):
     Returns (size, offset), where::
 
         kpts = monkhorst_pack(size) + offset.
-    
+
     The set of k-points must not have been symmetry reduced."""
 
     if len(kpts) == 1:
         return np.ones(3, int), np.array(kpts[0], dtype=float)
-    
+
     size = np.zeros(3, int)
     for c in range(3):
         # Determine increment between k-points along current axis
@@ -45,7 +46,7 @@ def get_monkhorst_pack_size_and_offset(kpts):
         # All offsets must be identical:
         if (offsets.ptp(axis=0) < 1e-9).all():
             return size, offsets[0].copy()
-    
+
     raise ValueError('Not an ASE-style Monkhorst-Pack grid!')
 
 
@@ -72,13 +73,38 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
         raise KeyError('Either scaled or cartesian coordinates must be given.')
 
 
-def get_bandpath(points, cell, npoints=50):
+def parse_path_string(s):
+    """Parse compact string representation of BZ path.
+
+    A path string can have several non-connected sections separated by
+    commas. The return value is a list of sections where each section is a
+    list of labels.
+
+    Examples:
+
+    >>> parse_path_string('GX')
+    [['G', 'X']]
+    >>> parse_path_string('GX,M1A')
+    [['G', 'X'], ['M1', 'A']]
+    """
+    paths = []
+    for path in s.split(','):
+        names = [name if name != 'Gamma' else 'G'
+                 for name in re.split(r'([A-Z][a-z0-9]*)', path)
+                 if name]
+        paths.append(names)
+    return paths
+
+
+def bandpath(path, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
-    points: list
-        List of special IBZ point pairs, e.g. ``points =
-        [W, L, Gamma, X, W, K]``.  These should be given in
-        scaled coordinates.
+    path: list or str
+        Can be:
+
+        * a string that parse_path_string() understands: 'GXL'
+        * a list of BZ points: [(0, 0, 0), (0.5, 0, 0)]
+        * or several lists of BZ points if the the path is not continuous.
     cell: 3x3
         Unit cell of the atoms.
     npoints: int
@@ -87,17 +113,33 @@ def get_bandpath(points, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
-    points = np.asarray(points)
+    if isinstance(path, str):
+        xtal = crystal_structure_from_cell(cell)
+        special = get_special_points(xtal, cell)
+        paths = []
+        for names in parse_path_string(path):
+            paths.append([special[name] for name in names])
+    elif np.array(path[0]).ndim == 1:
+        paths = [path]
+    else:
+        paths = path
+
+    points = np.concatenate(paths)
     dists = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
+    i = 0
+    for path in paths[:-1]:
+        i += len(path)
+        lengths[i - 1] = 0
+
     length = sum(lengths)
     kpts = []
     x0 = 0
     x = []
     X = [0]
     for P, d, L in zip(points[:-1], dists, lengths):
-        n = int(round(L * (npoints - 1 - len(x)) / (length - x0)))
-        for t in np.linspace(0, 1, n, endpoint=False):
+        n = max(2, int(round(L * (npoints - len(x)) / (length - x0))))
+        for t in np.linspace(0, 1, n)[:-1]:
             kpts.append(P + t * d)
             x.append(x0 + t * L)
         x0 += L
@@ -105,6 +147,68 @@ def get_bandpath(points, cell, npoints=50):
     kpts.append(points[-1])
     x.append(x0)
     return np.array(kpts), np.array(x), np.array(X)
+
+
+get_bandpath = bandpath  # old name
+
+
+def labels_from_kpts(kpts, cell, crystal_structure=None, eps=1e-6):
+    """Get an x-axis to be used when plotting a band structure.
+
+    The first of the returned lists can be used as a x-axis when plotting
+    the band structure. The second list can be used as xticks, and the third
+    as xticklabels.
+
+    Parameters:
+
+    kpts: list
+        List of scaled k-points.
+
+    cell: list
+        Unit cell of the atomic structure.
+
+    crystal_structure: str
+        Crystal structure of the atoms. If None is provided the crystal
+        structure is determined from the cell.
+
+    Returns:
+
+    Three arrays; the first is a list of cumulative distances between kpoints,
+    the second is x coordinates of the special points,
+    the third is the special points as strings.
+     """
+    if crystal_structure is None:
+        crystal_structure = crystal_structure_from_cell(cell)
+
+    points = np.asarray(kpts)
+    diffs = points[1:] - points[:-1]
+    kinks = abs(diffs[1:] - diffs[:-1]).sum(1) > eps
+    N = len(points)
+    indices = [0]
+    indices.extend(np.arange(1, N - 1)[kinks])
+    indices.append(N - 1)
+
+    special = get_special_points(crystal_structure, cell)
+    labels = []
+    for kpt in points[indices]:
+        for label, k in special.items():
+            if abs(kpt - k).sum() < eps:
+                break
+        else:
+            label = '?'
+        labels.append(label)
+
+    xcoords = [0]
+    for i1, i2 in zip(indices[:-1], indices[1:]):
+        if i1 + 1 == i2:
+            length = 0
+        else:
+            diff = points[i2] - points[i1]
+            length = np.linalg.norm(kpoint_convert(cell, skpts_kc=diff))
+        xcoords.extend(np.linspace(0, length, i2 - i1 + 1)[1:] + xcoords[-1])
+
+    xcoords = np.array(xcoords)
+    return xcoords, xcoords[indices], labels
 
 
 special_points = {
@@ -143,29 +247,25 @@ special_points = {
                   'L': [1 / 2, 0, 1 / 2],
                   'M': [1 / 2, 0, 0]}}
 
-        
+
 special_paths = {
-    'cubic': [['G', 'X', 'M', 'G', 'R', 'X'], ['M', 'R']],
-    'fcc': [['G', 'X', 'W', 'K', 'G', 'L', 'U', 'W', 'L', 'K'], ['U', 'X']],
-    'bcc': [['G', 'H', 'N', 'G', 'P', 'H'], ['P', 'N']],
-    'tetragonal': [['G', 'X', 'M', 'G', 'Z', 'R', 'A', 'Z'], ['X', 'R'],
-                   ['M', 'A']],
-    'orthorhombic': [['G', 'X', 'S', 'Y', 'G', 'Z', 'U', 'R', 'T', 'Z'],
-                     ['Y', 'T'], ['U', 'X'], ['S', 'R']],
-    'hexagonal': [['G', 'M', 'K', 'G', 'A', 'L', 'H', 'A'], ['L', 'M'],
-                  ['K', 'H']],
-    'monoclinic': [['G', 'Y', 'H', 'C', 'E', 'M1', 'A', 'X', 'H1'],
-                   ['M', 'D', 'Z'], ['Y', 'D']]}
+    'cubic': 'GXMGRX,MR',
+    'fcc': 'GXWKGLUWLK,UX',
+    'bcc': 'GHNGPH,PN',
+    'tetragonal': 'GXMGZRAZXR,MA',
+    'orthorhombic': 'GXSYGZURTZ,YT,UX,SR',
+    'hexagonal': 'GMKGALHA,LM,KH',
+    'monoclinic': 'GYHCEM1AXH1,MDZ,YD'}
 
 
 def get_special_points(lattice, cell, eps=1e-4):
     """Return dict of special points.
-    
+
     The definitions are from a paper by Wahyu Setyawana and Stefano
     Curtarolo::
-        
+
         http://dx.doi.org/10.1016/j.commatsci.2010.05.010
-    
+
     lattice: str
         One of the following: cubic, fcc, bcc, orthorhombic, tetragonal,
         hexagonal or monoclinic.
@@ -174,15 +274,15 @@ def get_special_points(lattice, cell, eps=1e-4):
     eps: float
         Tolerance for cell-check.
     """
-    
+
     lattice = lattice.lower()
-    
+
     cellpar = cell_to_cellpar(cell=cell)
     abc = cellpar[:3]
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
     alpha, beta, gamma = angles
-    
+
     # Check that the unit-cells are as in the Setyawana-Curtarolo paper:
     if lattice == 'cubic':
         assert abc.ptp() < eps and abs(angles - pi / 2).max() < eps
@@ -202,10 +302,10 @@ def get_special_points(lattice, cell, eps=1e-4):
     elif lattice == 'monoclinic':
         assert c >= a and c >= b
         assert alpha < pi / 2 and abs(angles[1:] - pi / 2).max() < eps
-        
+
     if lattice != 'monoclinic':
         return special_points[lattice]
-    
+
     # Here, we need the cell:
     eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
     nu = 1 / 2 - eta * c * cos(alpha) / b
@@ -225,8 +325,8 @@ def get_special_points(lattice, cell, eps=1e-4):
             'Y': [0, 0, 1 / 2],
             'Y1': [0, 0, -1 / 2],
             'Z': [1 / 2, 0, 0]}
-        
-    
+
+
 # ChadiCohen k point grids. The k point grids are given in units of the
 # reciprocal unit cell. The variables are named after the following
 # convention: cc+'<Nkpoints>'+_+'shape'. For example an 18 k point
