@@ -46,7 +46,7 @@ class Dftb(FileIOCalculator):
     else:
         command = 'dftb+ > PREFIX.out'
 
-    implemented_properties = ['energy', 'forces', 'charges']
+    implemented_properties = ['energy', 'forces', 'charges', 'stress']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='dftb', atoms=None, kpts=None,
@@ -216,6 +216,25 @@ class Dftb(FileIOCalculator):
         self.results['energy'] = energy
         self.results['forces'] = forces
         self.mmpositions = None
+        # stress stuff begins
+        sstring = 'stress'
+        have_stress = False
+        stress = list()
+        for iline, line in enumerate(self.lines):
+            if sstring in line:
+                have_stress = True
+                start = iline + 1
+                end = start + 3
+                for i in range(start, end):
+                    cell = [float(x) for x in self.lines[i].split()]
+                    stress.append(cell)
+        if have_stress:
+            stress = -np.array(stress) * Hartree / Bohr**3
+        elif not have_stress:
+            stress = np.zeros((3, 3))
+        self.results['stress'] = stress
+        # stress stuff ends
+
         # calculation was carried out with atoms written in write_input
         os.remove(os.path.join(self.directory, 'results.tag'))
             
