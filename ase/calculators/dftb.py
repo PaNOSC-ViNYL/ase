@@ -201,6 +201,7 @@ class Dftb(FileIOCalculator):
         """ all results are read from results.tag file
             It will be destroyed after it is read to avoid
             reading it once again after some runtime error """
+        from ase.units import Hartree, Bohr
 
         myfile = open(os.path.join(self.directory, 'results.tag'), 'r')
         self.lines = myfile.readlines()
