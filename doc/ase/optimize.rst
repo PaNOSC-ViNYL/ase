@@ -255,17 +255,18 @@ optimization and the information needed to generate the Hessian Matrix.
 The BFGSLineSearch algorithm is not compatible with nudged elastic band
 calculations.
 
-Preconditioned optimizers
-=========================
 
 .. module:: ase.optimize.precon
+
+Preconditioned optimizers
+=========================
 
 Preconditioners can speed up optimization approaches by incorporating
 information about the local bonding topology into a redefined metric
 through a coordinate transformation. Preconditioners are problem
 dependent, but the general purpose-implementation in ASE provides a
 basis that can be adapted to achieve optimized performance for
-specific applications. 
+specific applications.
 
 While the approach is general, the implementation is specific to a
 given optimizer: currently LBFGS and FIRE can be preconditioned using
@@ -275,7 +276,7 @@ the :class:`ase.optimize.precon.lbfgs.PreconLBFGS` and
 You can read more about the theory and implementation here:
 
   | D. Packwood, J.R. Kermode; L. Mones, N. Bernstein, J. Woolley, N. Gould, C. Ortner and G. Csányi
-  | `A universal preconditioner for simulating condensed phase materials`__ 
+  | `A universal preconditioner for simulating condensed phase materials`__
   | J. Chem. Phys. *144*, 164109 (2016).
 
 __ http://dx.doi.org/10.1103/PhysRevLett.97.170201
@@ -300,26 +301,26 @@ method.
 Usage is very similar to the standard optimizers. The example below compares
 unpreconditioned LBGFS with the default `Exp` preconditioner for a 3x3x3 bulk
 cube of copper containing a vacancy::
-    
+
     import numpy as np
     from ase.build import bulk
     from ase.calculators.emt import EMT
     from ase.optimize.precon import Exp, PreconLBFGS
-    
+
     from ase.calculators.loggingcalc import LoggingCalculator
     import matplotlib as mpl
     mpl.use('Agg')
     import matplotlib.pyplot as plt
-    
+
     a0 = bulk('Cu', cubic=True)
     a0 *= [3, 3, 3]
     del a0[0]
     a0.rattle(0.1)
-    
+
     nsteps = []
     energies = []
     log_calc = LoggingCalculator(EMT())
-    
+
     for precon, label in zip([None, Exp(A=3)],
                              ['None', 'Exp(A=3)']):
        log_calc.label = label
@@ -327,7 +328,7 @@ cube of copper containing a vacancy::
        atoms.set_calculator(log_calc)
        opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
        opt.run(fmax=1e-3)
-    
+
     log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
     plt.savefig("precon_exp.png")
 
@@ -393,7 +394,7 @@ is computed using a standalone force field calculator::
 
 For molecular crystals the `Exp_FF` preconditioner is recommended, which is a
 synthesis of `Exp` and `FF` preconditioners.
-    
+
 The :class:`ase.calculators.loggingcalc.LoggingCalculator` provides
 a convenient tool for plotting convergence and walltime.
 

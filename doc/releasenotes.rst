@@ -69,6 +69,12 @@ Version 3.12.0
 
 * Galician translation of ASE's GUI.
 
+* Two new preconditioned structure optimizers available.  See
+  :mod:`ase.optimize.precon`.
+
+* Trajectory files now contain information about the calculator and also
+  information from an optimizer that wrote the trajectory.
+
 
 Version 3.11.0
 ==============
