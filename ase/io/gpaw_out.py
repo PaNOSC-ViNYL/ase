@@ -17,6 +17,7 @@ def read_gpaw_out(fileobj, index):
                 except ValueError:
                     pass
             raise ValueError
+
         if string in notfound:
             raise ValueError
         for i, line in enumerate(lines):
@@ -114,22 +115,21 @@ def read_gpaw_out(fileobj, index):
             e = float(line.split()[-1])
 
         try:
-            ii = index_startswith(lines, ['fermi level',
-                                          'fixed fermi level'])
+            ii = index_pattern(lines, '(fixed )?fermi level(s)?:')
         except ValueError:
             eFermi = None
         else:
+            fields = lines[ii].split()
             try:
-                eFermi = float(lines[ii].split()[2])
-            except ValueError:  # we have two Fermi levels
-                fields = lines[ii].split()
-
                 def strip(string):
                     for rubbish in '[],':
                         string = string.replace(rubbish, '')
                     return string
                 eFermi = [float(strip(fields[-2])),
                           float(strip(fields[-1]))]
+            except ValueError:
+                eFermi = float(fields[-1])
+
         # read Eigenvalues and occupations
         ii1 = ii2 = 1e32
         try:
