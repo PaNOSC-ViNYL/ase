@@ -34,7 +34,8 @@ class Onetep(FileIOCalculator):
     # the onetep input file in the standard <key> : <value> format
     # for example the NGWF radius is used in the species block and isn't
     # written elsewhere in the input file
-    _dummy_parameters = ['ngwf_radius', 'xc']
+    _dummy_parameters = ["ngwf_radius", "xc", "species_ngwf_radius", 
+                         "species_ngwf_number", "species_solver"]
 
     default_parameters = {'cutoff_energy': '1000 eV',
                           'kernel_cutoff': '1000 bohr',
@@ -263,10 +264,20 @@ class Onetep(FileIOCalculator):
 
         self.species = []
         atoms = self.atoms
-        ngwf_radius = self.parameters['ngwf_radius']
+        default_ngwf_radius = self.parameters['ngwf_radius']
+        species_ngwf_radius = self.parameters['species_ngwf_radius']
+        species_ngwf_number = self.parameters['species_ngwf_number']
         for sp in set(zip(atoms.get_atomic_numbers(),
                           atoms.get_chemical_symbols())):
-            self.species.append((sp[1], sp[1], sp[0], -1, ngwf_radius))
+            if sp[1] in species_ngwf_radius:
+                ngrad = species_ngwf_radius[sp[1]]
+            else:
+                ngrad = default_ngwf_radius
+            if sp[1] in species_ngwf_number:
+                ngnum = species_ngwf_number[sp[1]]
+            else:
+                ngnum = -1
+            self.species.append((sp[1], sp[1], sp[0], ngnum, ngrad))
 
     def set_pseudos(self, pots):
         """ Sets the pseudopotential files used in this dat file
@@ -372,6 +383,17 @@ class Onetep(FileIOCalculator):
         fd.write('%%BLOCK %s\n' % keyword)
         for sp in self.pseudos:
             fd.write('    %s "%s"\n' % (sp[0], sp[1]))
+        fd.write('%%ENDBLOCK %s\n\n' % keyword)
+
+        keyword = "SPECIES_ATOMIC_SET"
+        fd.write('%%BLOCK %s\n' % keyword)
+        for sym in set(self.atoms.get_chemical_symbols()):
+            try:
+                atomic_string = parameters['species_solver'][sym]
+            except KeyError:
+                atomic_string = "SOLVE"
+
+            fd.write('    %s \"%s\"\n' % (sym, atomic_string))
         fd.write('%%ENDBLOCK %s\n\n' % keyword)
 
         for p in parameters:
