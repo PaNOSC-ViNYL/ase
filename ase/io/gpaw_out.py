@@ -99,7 +99,7 @@ def read_gpaw_out(fileobj, index):
             kz = int(word[6])
             bz_kpts = (kx, ky, kz)
             ibz_kpts = int(lines[ii + 1].split()[0])
-        except (ValueError, TypeError):
+        except (ValueError, TypeError, IndexError):
             bz_kpts = None
             ibz_kpts = None
 
