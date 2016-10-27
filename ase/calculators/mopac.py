@@ -77,6 +77,7 @@ class MOPAC(FileIOCalculator):
             lines = f.readlines()
             
         for i, line in enumerate(lines):
+            print(line)
             if line.find('TOTAL ENERGY') != -1:
                 self.results['energy'] = float(line.split()[3])
             elif line.find('EIGENVALUES') != -1:
@@ -87,6 +88,7 @@ class MOPAC(FileIOCalculator):
                         eigs_alpha += [float(e) for e in lines[j].split()]
                         j += 1
                 elif line.find('BETA') != -1:
+                    assert 0
                     j = i + 1
                     eigs_beta = []
                     while lines[j].strip():
