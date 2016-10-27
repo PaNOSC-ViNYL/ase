@@ -79,9 +79,34 @@ class MOPAC(FileIOCalculator):
         for i, line in enumerate(lines):
             if line.find('TOTAL ENERGY') != -1:
                 self.results['energy'] = float(line.split()[3])
+            elif line.find('EIGENVALUES') != -1:
+                if line.find('ALPHA') != -1:
+                    j = i + 1
+                    eigs_alpha = []
+                    while lines[j].strip():
+                        eigs_alpha += [float(e) for e in lines[j].split()]
+                        j += 1
+                elif line.find('BETA') != -1:
+                    j = i + 1
+                    eigs_beta = []
+                    while lines[j].strip():
+                        eigs_beta += [float(e) for e in lines[j].split()]
+                        j += 1
+                    eigs = np.array([eigs_alpha, eigs_beta]).reshape(2, 1, -1)
+                else:
+                    eigs = []
+                    j = i + 1
+                    while lines[j].strip():
+                        eigs += [float(e) for e in lines[j].split()]
+                        j += 1
+                    eigs = np.array(eigs).reshape(1, 1, -1)
+                self.eigenvalues = eigs
             elif line.find('FINAL  POINT  AND  DERIVATIVES') != -1:
                 forces = [-float(line.split()[6])
                           for line in lines[i + 3:i + 3 + 3 * len(self.atoms)]]
                 forces = np.array(forces).reshape((-1, 3)) * kcal / mol
                 self.results['forces'] = forces
-                break
+
+    def get_eigenvalues(self, spin=0):
+        kpt = 0
+        return self.eigenvalues[spin, kpt]
