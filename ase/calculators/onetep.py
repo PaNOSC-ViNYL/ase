@@ -39,7 +39,8 @@ class Onetep(FileIOCalculator):
 
     default_parameters = {'cutoff_energy': '1000 eV',
                           'kernel_cutoff': '1000 bohr',
-                          'ngwf_radius': 12.0}
+                          'ngwf_radius': 12.0
+                         }
 
     name = 'onetep'
 
@@ -262,20 +263,20 @@ class Onetep(FileIOCalculator):
         if len(self.species) == len(self.atoms.get_chemical_symbols()):
             return
 
+        parameters = self.parameters
+
         self.species = []
         atoms = self.atoms
         default_ngwf_radius = self.parameters['ngwf_radius']
-        species_ngwf_radius = self.parameters['species_ngwf_radius']
-        species_ngwf_number = self.parameters['species_ngwf_number']
         for sp in set(zip(atoms.get_atomic_numbers(),
                           atoms.get_chemical_symbols())):
-            if sp[1] in species_ngwf_radius:
-                ngrad = species_ngwf_radius[sp[1]]
-            else:
+            try:
+                ngrad = parameters['species_ngwf_radius'][sp[1]]
+            except KeyError:
                 ngrad = default_ngwf_radius
-            if sp[1] in species_ngwf_number:
-                ngnum = species_ngwf_number[sp[1]]
-            else:
+            try:
+                ngnum = parameters['species_ngwf_number'][sp[1]]
+            except KeyError:
                 ngnum = -1
             self.species.append((sp[1], sp[1], sp[0], ngnum, ngrad))
 
