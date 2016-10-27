@@ -34,13 +34,12 @@ class Onetep(FileIOCalculator):
     # the onetep input file in the standard <key> : <value> format
     # for example the NGWF radius is used in the species block and isn't
     # written elsewhere in the input file
-    _dummy_parameters = ["ngwf_radius", "xc", "species_ngwf_radius", 
+    _dummy_parameters = ["ngwf_radius", "xc", "species_ngwf_radius",
                          "species_ngwf_number", "species_solver"]
 
     default_parameters = {'cutoff_energy': '1000 eV',
                           'kernel_cutoff': '1000 bohr',
-                          'ngwf_radius': 12.0
-                         }
+                          'ngwf_radius': 12.0}
 
     name = 'onetep'
 
