@@ -51,9 +51,9 @@ from ase.units import Bohr, Angstrom, Hartree, eV, Debye
 #     Octopus input file -> Atoms object + dict of keyword arguments
 # Below we detail some conventions and compatibility issues.
 #
-# 1) ASE always passes some parameters by default (Units=eV_Angstrom,
-#    etc.).  They can be overridden by the user but the resulting
-#    behaviour is undefined.
+# 1) ASE always passes some parameters by default (always write
+#    forces, etc.).  They can be overridden by the user, but the
+#    resulting behaviour is undefined.
 #
 # 2) Atoms object is used to establish some parameters: Coordinates,
 #    Lsize, etc.  All those parameters can be overridden by passing
@@ -72,6 +72,11 @@ from ase.units import Bohr, Angstrom, Hartree, eV, Debye
 #
 # 4) OctopusKeywordError is raised from Python for keywords that are
 #    not valid according to oct-help.
+
+
+def is_orthorhombic(cell):
+    return (np.diag(np.diag(cell)) == cell).all()
+
 
 class OctopusKeywordError(ValueError):
     pass  # Unhandled keywords
@@ -244,9 +249,10 @@ def kwargs2atoms(kwargs, directory=None):
     example when running 'ase-gui somedir/inp'."""
     kwargs = normalize_keywords(kwargs)
 
-    # XXX the other 'units' keywords: input, output.
-    units = kwargs.pop('units', 'atomic').lower()
-    units = kwargs.pop('unitsinput', units).lower()
+    # Only input units accepted nowadays are 'atomic'.
+    # But if we are loading an old file, and it specifies something else,
+    # we can be sure that the user wanted that back then.
+    units = kwargs.get('unitsinput', kwargs.get('units', 'atomic')).lower()
     if units not in ['ev_angstrom', 'atomic']:
         raise OctopusKeywordError('Units not supported by ASE-Octopus '
                                   'interface: %s' % units)
@@ -405,30 +411,27 @@ def kwargs2atoms(kwargs, directory=None):
 def atoms2kwargs(atoms, use_ase_cell):
     kwargs = {}
 
-    kwargs['units'] = 'ev_angstrom'
-    # XXXX will always extract cell.  But probably we should leave that
-    # to the user, i.e., the user should probably specify BoxShape before
-    # anything is done.  We can set Lsize either way....
-    # kwargs['boxshape'] = 'parallelepiped'
+    positions = atoms.positions / Bohr
 
     # TODO LatticeVectors parameter for non-orthogonal cells
     if use_ase_cell:
-        Lsize = 0.5 * np.diag(atoms.cell).copy()
-        kwargs['lsize'] = [[repr(size) for size in Lsize]]
-
-        # ASE uses (0...cell) while Octopus uses -L/2...L/2.
-        # Lsize is really cell / 2, and we have to adjust our
-        # positions by subtracting Lsize (see construction of the coords
-        # block) in non-periodic directions.
-        nonpbc = (atoms.pbc == 0)
-        positions = atoms.positions.copy()
-        positions[:, nonpbc] -= Lsize[None, nonpbc]
-    else:
-        positions = atoms.positions
+        cell = atoms.cell / Bohr
+        if is_orthorhombic(cell):
+            Lsize = 0.5 * np.diag(cell)
+            kwargs['lsize'] = [[repr(size) for size in Lsize]]
+            # ASE uses (0...cell) while Octopus uses -L/2...L/2.
+            # Lsize is really cell / 2, and we have to adjust our
+            # positions by subtracting Lsize (see construction of the coords
+            # block) in non-periodic directions.
+            nonpbc = (atoms.pbc == 0)
+            positions[:, nonpbc] -= Lsize[None, nonpbc]
+        else:
+            kwargs['latticevectors'] = cell.tolist()
 
     coord_block = [[repr(sym)] + list(map(repr, pos))
                    for sym, pos in zip(atoms.get_chemical_symbols(),
                                        positions)]
+
     kwargs['coordinates'] = coord_block
     npbc = sum(atoms.pbc)
     for c in range(npbc):
@@ -463,12 +466,12 @@ def generate_input(atoms, kwargs, normalized2pretty):
         prettykey = normalized2pretty[key]
         append('%s = %s' % (prettykey, var))
 
-    if 'units' in kwargs:
-        if kwargs['units'] != 'ev_angstrom':
-            raise ValueError('Sorry, but we decide the units in the ASE '
-                             'interface for now.')
-    else:
-        setvar('units', 'ev_angstrom')
+    #if 'units' in kwargs:
+    #    if kwargs['units'] != 'ev_angstrom':
+    #        raise ValueError('Sorry, but we decide the units in the ASE '
+    #                         'interface for now.')
+    #else:
+    #    setvar('units', 'ev_angstrom')
 
     assert 'lsize' not in kwargs
 
@@ -478,8 +481,12 @@ def generate_input(atoms, kwargs, normalized2pretty):
     atomskwargs = atoms2kwargs(atoms, use_ase_cell)
 
     if use_ase_cell:
-        lsizeblock = list2block('LSize', atomskwargs['lsize'])
-        extend(lsizeblock)
+        if 'lsize' in atomskwargs:
+            block = list2block('LSize', atomskwargs['lsize'])
+        elif 'latticevectors' in atomskwargs:
+            extend(list2block('LatticeParameters', [[1., 1., 1.]]))
+            block = list2block('LatticeVectors', atomskwargs['latticevectors'])
+        extend(block)
 
     # Allow override or issue errors?
     pdim = 'periodicdimensions'
