@@ -55,6 +55,21 @@ class DataConnection(object):
             a.info['data'] = {}
         return a
 
+    def get_all_unrelaxed_candidates(self):
+        """Return all unrelaxed candidates,
+        useful if they can all be evaluated quickly."""
+        to_get = self.__get_ids_of_all_unrelaxed_candidates__()
+        if len(to_get) == 0:
+            return []
+        res = []
+        for confid in to_get:
+            a = self.__get_latest_traj_for_confid__(confid)
+            a.info['confid'] = confid
+            if 'data' not in a.info:
+                a.info['data'] = {}
+            res.append(a)
+        return res
+    
     def __get_ids_of_all_unrelaxed_candidates__(self):
         """ Helper method used by the two above methods. """
 
@@ -120,6 +135,22 @@ class DataConnection(object):
 #             raise ValueError('Wrong stoichiometry')
 
 #         self.c.write(a, gaid=gaid, relaxed=1)
+
+    def add_more_relaxed_steps(self, a_list):
+        """Add more relaxed steps quickly"""
+        for a in a_list:
+            try:
+                a.info['key_value_pairs']['raw_score']
+            except KeyError:
+                print("raw_score not put in atoms.info['key_value_pairs']")
+            
+        with self.c as con:
+            for a in a_list:
+                relax_id = con.write(a, gaid=a.info['confid'], relaxed=1,
+                                     key_value_pairs=a.info['key_value_pairs'],
+                                     data=a.info['data'])
+                a.info['relax_id'] = relax_id
+                
 
     def add_unrelaxed_candidate(self, candidate, description):
         """ Adds a new candidate which needs to be relaxed. """
