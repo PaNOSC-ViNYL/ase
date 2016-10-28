@@ -77,7 +77,6 @@ class MOPAC(FileIOCalculator):
             lines = f.readlines()
             
         for i, line in enumerate(lines):
-            print(line)
             if line.find('TOTAL ENERGY') != -1:
                 self.results['energy'] = float(line.split()[3])
             elif line.find('EIGENVALUES') != -1:
