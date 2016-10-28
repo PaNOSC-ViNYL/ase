@@ -531,7 +531,7 @@ class FitnessSharingPopulation(Population):
             # unique candidates.
             i = 0
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
-                c = all_cand[i]
+                c = all_sorted[i]
                 i += 1
                 eq = False
                 for a in self.pop:
