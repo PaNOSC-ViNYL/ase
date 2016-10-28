@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2016-10-17 18:07+0200\n"
-"PO-Revision-Date: 2016-10-18 00:43+0200\n"
+"PO-Revision-Date: 2016-10-27 18:53+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -855,7 +855,7 @@ msgstr "  Pasos: "
 #. the charge is used.
 #: ../colors.py:107 ../colors.py:123
 msgid "This should not be displayed!"
-msgstr "¡Esto no debería ser desplegado!"
+msgstr "¡Esto no debería ser mostrado!"
 
 #: ../colors.py:139
 msgid "Create a color scale:"
@@ -924,7 +924,7 @@ msgstr " átomos inamovibles:"
 
 #: ../constraints.py:18
 msgid "Unconstrain"
-msgstr "Liberar restriccciones"
+msgstr "Liberar restricciones"
 
 #: ../constraints.py:19
 msgid " selected atoms:"
@@ -951,9 +951,9 @@ msgid ""
 "  yourself.  "
 msgstr ""
 "  Utilice este diálogo para crear estructuras cristalinas.\n"
-"  Seleccione primero la estructura, desde un conjunto común\n"
-"  de estructuras cristalinas ó desde la descripción del grupo\n"
-"  espacial.\n"
+"  Seleccione primero la estructura, desde un conjunto de\n"
+"  estructuras cristalinas básicas ó desde la descripción del\n"
+"  grupo espacial.\n"
 "  Luego añada todos los parámetros de red.\n"
 "\n"
 "  Si dispone de una estructura cristalina experimental para un\n"
@@ -1245,7 +1245,7 @@ msgstr ""
 "      <c>ans[-i]</c>: el i-ésimo resultado calculado\n"
 "      <c>exec archivo</c>: ejecuta el comando listado en archivo\n"
 "      <c>cov[Z]</c>:(sólo lectura): radio covalente del número atómico Z\n"
-"      <c>gui</c>:avanzado: objeto de Pythom, ventana de ag\n"
+"      <c>gui</c>:avanzado: objeto de Python, ventana de ag\n"
 "      <c>img</c>:avanzado: objeto de imágenes de ag\n"
 "    "
 
