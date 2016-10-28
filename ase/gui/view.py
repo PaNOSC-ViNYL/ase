@@ -93,21 +93,11 @@ class View:
 
     def set_colors(self):
         self.colormode = 'jmol'
-        self.set_jmol_colors()
-
-    def set_jmol_colors(self):
-        self.colors = [None] * (len(jmol_colors) + 1)
-        self.colordata = []
+        self.colors = []
         for z in self.images.Z:
-            if self.colors[z] is None:
-                cpk = jmol_colors[z]
-                self.colors[z] = '#{0:02X}{1:02X}{2:02X}'.format(
-                    *(int(x * 255) for x in cpk))
-        hasfound = {}
-        for z in self.images.Z:
-            if z not in hasfound:
-                hasfound[z] = True
-                self.colordata.append([z, jmol_colors[z]])
+            rgb = jmol_colors[z]
+            self.colors.append('#{0:02X}{1:02X}{2:02X}'
+                               .format(*(int(x * 255) for x in rgb)))
 
     def plot_cell(self):
         V = self.images.A[0]
@@ -343,7 +333,7 @@ class View:
         Rotate(self)
 
     def colors_window(self):
-        ColorWindow(self)
+        return ColorWindow(self)
 
     def focus(self, x=None):
         if self.images.natoms == 0 and not self.window['toggle-show-unit-cell']:
@@ -416,34 +406,23 @@ class View:
         self.set_coordinates()
 
     def get_colors(self, rgb=False):
-        Z = self.images.Z
         if rgb:
-            # Create a shape that is equivalent to self.colors,
-            # but contains rgb data instead ui.gdk.GCX11 objects.
-            # The rgb data may be three numbers, or a named color.  As
-            # the type of data is unknown, we cannot create an array
-            # beforehand with sensible default values, but need to
-            # create unused elements on the fly.  The type of unused
-            # elements is important to prevent trouble when converting
-            # to numpy arrays.
-            colarray = []
-            for z, c in self.colordata:
-                if z >= len(colarray):
-                    # Allocate unused elements as well.
-                    colarray.extend([c] * (1 + z - len(colarray)))
-                colarray[z] = c
-        else:
-            colarray = self.colors
+            return self.get_colors()
         if self.colormode == 'jmol' or self.colormode == 'atno':
-            colors = np.array(colarray)[Z]
-        elif self.colormode == 'tags':
-            colors = np.array(colarray)[self.images.T[self.frame]]
-        elif self.colormode == 'force':
-            F = self.images.F[self.frame]
-            F = np.sqrt(((F*self.images.dynamic[:,np.newaxis])**2).sum(axis=-1))  # The absolute force
-            nF = (F - self.colormode_data[0]) * self.colormode_data[1]
-            nF = np.clip(nF.astype(int), 0, len(self.colors)-1)
-            colors = np.array(colarray)[nF]
+            return self.colors
+
+        scalars = self.get_color_scalars()
+        colorscale, cmin, cmax = self.colormode_data
+        i = scalars - cmin) / (cmax - cmin) *
+
+    def get_color_scalars(self, frame=None):
+        i = frame or self.frame
+
+        if self.colormode == 'tag':
+            return self.images.T[i]
+        if self.colormode == 'force':
+            f = (self.images.F[i]**2).sum(1)**0.5
+            return f * self.images.dynamic
         elif self.colormode == 'velocity':
             V = self.images.V[self.frame]
             V = np.sqrt((V*V).sum(axis=-1))  # The absolute velocity
@@ -470,9 +449,6 @@ class View:
             colors = colarray
         elif self.colormode == 'same':
             colors = [colarray[0]] * self.images.natoms
-        else:
-            raise RuntimeError('Unknown color mode: %s' % (self.colormode,))
-        return colors
 
     def repeat_colors(self, repeat):
         natoms = self.images.natoms

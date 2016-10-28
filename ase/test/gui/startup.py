@@ -1,7 +1,10 @@
 from ase.gui.i18n import enable_localization
 enable_localization()
 import ase.gui.ui as ui
+from ase import Atoms
 from ase.gui.gui import GUI
+from ase.gui.images import Images
+from ase.calculators.singlepoint import SinglePointCalculator
 
 
 class OOPS:
@@ -37,5 +40,16 @@ def nt(gui):
     #gui.exit()
 
 
-gui = GUI()
-gui.run(test=nt(gui))
+def color(gui):
+    c = gui.color_window()
+    yield
+
+
+if 0:
+    gui = GUI()
+    gui.run(test=nt(gui))
+
+h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
+h2.calc = SinglePointCalculator(h2, forces=[(0, 0, 0), (0, 0, 1)])
+gui = GUI(Images([h2]))
+gui.run(test=color(gui))
