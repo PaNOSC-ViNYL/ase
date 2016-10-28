@@ -12,7 +12,7 @@ import re
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, ReadError
+from ase.calculators.calculator import FileIOCalculator, ReadError, Parameters
 from ase.units import kcal, mol
 
 
@@ -25,9 +25,41 @@ class MOPAC(FileIOCalculator):
         task='1SCF GRADIENTS',
         relscf=0.0001)
 
+    methods = ['AM1', 'MNDO', 'MNDOD', 'PM3', 'PM6', 'PM6-D3', 'PM6-DH+',
+               'PM6-DH2', 'PM6-DH2X', 'PM6-D3H4', 'PM6-D3H4X', 'PMEP', 'PM7',
+               'PM7-TS', 'RM1']
+
+    tasks = ['1SCF', 'RHF', 'UHF', 'SINGLET', 'DOUBLET', 'TRIPLET', ]
+
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='mopac', atoms=None, **kwargs):
-        """Construct MOPAC-calculator object."""
+        """Construct MOPAC-calculator object.
+
+        Parameters
+        ==========
+        label: str
+            Prefix for filenames (label.mop, label.out, ...)
+
+        Examples
+        ========
+        Use default values to do a single SCF calculation and print
+        the forces (task='1SCF GRADIENTS')
+
+        >>> from ase.build import molecule
+        >>> from ase.calculators.mopac import MOPAC
+        >>> atoms = molecule('O2')
+        >>> atoms.calc = MOPAC('label'='O2')
+        >>> atoms.get_potential_energy()
+        >>> eigs = calc.get_eigenvalues()
+        >>> somos = calc.get_somo_levels()
+        >>> homo, lumo = calc.get_homo_lumo_levels()
+
+        Use the internal geometry optimization of Mopac
+        >>> calc = MOPAC(label='H2', task='GRADIENTS')
+        >>> atoms.set_calculator(calc)
+        >>> atoms.get_potential_energy()
+
+        """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
 
@@ -65,9 +97,71 @@ class MOPAC(FileIOCalculator):
         for v, p in zip(atoms.cell, atoms.pbc):
             if p:
                 s += 'Tv {0} {1} {2}\n'.format(*v)
-        
+
         with open(self.label + '.mop', 'w') as f:
             f.write(s)
+
+    def read(self, label):
+        FileIOCalculator.read(self, label)
+        if not os.path.isfile(self.label + '.out'):
+            raise ReadError
+
+        with open(self.label + '.out') as f:
+            lines = f.readlines()
+
+        self.parameters = Parameters(task='', method='')
+        p = self.parameters
+        parm_line = self.read_parameters(lines)
+        for keyword in parm_line.split():
+            if 'RELSCF' in keyword:
+                p.relscf = float(keyword.split('=')[-1])
+            elif keyword in self.methods:
+                p.method = keyword
+            else:
+                p.task += keyword + ' '
+
+        p.task.rstrip()
+        # atoms
+#        self.atoms =
+#        self.parameters = {'task': , 'method': }
+#        self.read_results()
+
+    def get_index(self, lines, pattern):
+        for i, line in enumerate(lines):
+            if line.find(pattern) != -1:
+                return i
+
+    def read_atoms_from_file(self, lines):
+        # first try to read from final point (last image)
+        read_it = False
+        i = self.get_index(lines, 'FINAL  POINT  AND  DERIVATIVES')
+        if i is None:
+            assert 0, 'Not implemented'
+
+        i = self.get_index(lines[i:], 'CARTESIAN COORDINATES')
+        j = i + 2
+        symbols = []
+        positions = []
+        while line[j].strip():
+            l = line.split()
+            symbols += l[1]
+            positions += [float(c) for c in l[2:]]
+
+        atoms = Atoms(symbols=symbols, positions=positions)
+
+    def read_parameters(self, lines):
+        """Read the single line that defines a Mopac calculation
+           lines:
+        """
+        for i, line in enumerate(lines):
+            if line.find('CALCULATION DONE:') != -1:
+                istart = i
+                break
+
+        lines1 = lines[istart:]
+        for i, line in enumerate(lines1):
+            if line.find('****') != -1:
+                return lines1[i + 1]
 
     def read_results(self):
         FileIOCalculator.read(self, self.label)
@@ -77,18 +171,11 @@ class MOPAC(FileIOCalculator):
         with open(self.label + '.out') as f:
             lines = f.readlines()
 
-        p = re.compile(r"Empirical Formula:\s*.*=\s*(?P<na>[0-9]+)\s*atoms")
-        for line in lines:
-            m = re.search(p, line)
-            if m:
-                natoms = int(m.group('na'))
-                break
-
         for i, line in enumerate(lines):
             if line.find('TOTAL ENERGY') != -1:
                 self.results['energy'] = float(line.split()[3])
             elif line.find('FINAL HEAT OF FORMATION') != -1:
-                self.final_hof = float(line.split()[5]) * kcal /  mol
+                self.final_hof = float(line.split()[5]) * kcal / mol
             elif line.find('NO. OF FILLED LEVELS') != -1:
                 self.no_occ_levels = int(line.split()[-1])
             elif line.find('NO. OF ALPHA ELECTRON') != -1:
