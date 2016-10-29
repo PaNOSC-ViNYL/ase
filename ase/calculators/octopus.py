@@ -12,12 +12,13 @@ from subprocess import Popen, PIPE
 import numpy as np
 
 from ase import Atoms
-from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
 from ase.io import read
 from ase.io.xsf import read_xsf
 from ase.units import Bohr, Angstrom, Hartree, eV, Debye
+
 
 # Representation of parameters from highest to lowest level of abstraction:
 #
@@ -72,6 +73,36 @@ from ase.units import Bohr, Angstrom, Hartree, eV, Debye
 #
 # 4) OctopusKeywordError is raised from Python for keywords that are
 #    not valid according to oct-help.
+
+def process_special_kwargs(atoms, kwargs):
+    kwargs = kwargs.copy()
+    kpts = kwargs.pop('kpts', None)
+    if kpts is not None:
+        for kw in ['kpoints', 'reducedkpoints', 'kpointsgrid']:
+            if kw in kwargs:
+                raise ValueError('k-points specified multiple times')
+
+        kptsarray = kpts2ndarray(kpts, atoms)
+        shape = np.shape(kpts)
+        if shape == (3,):
+            kwargs['kpointsgrid'] = [list(kpts)]
+        else:
+            nkpts = shape[0]
+            fullarray = np.empty((nkpts, 4))
+            fullarray[:, 0] = 1.0 / nkpts  # weights
+            fullarray[:, 1:4] = kptsarray
+            # XXX kpoints or kpointsreduced?
+            # XXXX this may not be working
+            kwargs['kpointsreduced'] = fullarray.tolist()
+
+    # TODO xc=LDA/PBE etc.
+
+    # The idea is to get rid of the special keywords, since the rest
+    # will be passed to Octopus
+    # XXX do a better check of this
+    for kw in Octopus.special_ase_keywords:
+        assert kw not in kwargs
+    return kwargs
 
 
 def is_orthorhombic(cell):
@@ -707,6 +738,8 @@ class Octopus(FileIOCalculator):
                                 'xsfcoordinatesanimstep',
                                 'reducedcoordinates'])
 
+    special_ase_keywords = set(['kpts'])
+
     def __init__(self,
                  restart=None,
                  label=None,
@@ -794,7 +827,8 @@ class Octopus(FileIOCalculator):
     def check_keywords_exist(self, kwargs):
         keywords = list(kwargs.keys())
         for keyword in keywords:
-            if keyword not in self.octopus_keywords:
+            if (keyword not in self.octopus_keywords
+                and keyword not in self.special_ase_keywords):
                 if self._autofix_outputformats:
                     if (keyword == 'outputhow' and 'outputformat'
                             in self.octopus_keywords):
@@ -1016,7 +1050,8 @@ class Octopus(FileIOCalculator):
         if octopus_keywords is None:
             # Will not do automatic pretty capitalization
             octopus_keywords = self.kwargs
-        txt = generate_input(atoms, self.kwargs, octopus_keywords)
+        txt = generate_input(atoms, process_special_kwargs(atoms, self.kwargs),
+                             octopus_keywords)
         fd = open(self._getpath('inp'), 'w')
         fd.write(txt)
         fd.close()
