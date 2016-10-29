@@ -78,6 +78,13 @@ def is_orthorhombic(cell):
     return (np.diag(np.diag(cell)) == cell).all()
 
 
+def get_input_units(kwargs):
+    units = kwargs.get('unitsinput', kwargs.get('units', 'atomic')).lower()
+    if units not in ['ev_angstrom', 'atomic']:
+        raise OctopusKeywordError('Units not supported by ASE-Octopus '
+                                  'interface: %s' % units)
+    return units
+
 class OctopusKeywordError(ValueError):
     pass  # Unhandled keywords
 
@@ -222,12 +229,19 @@ def kwargs2cell(kwargs):
 
     if boxshape_is_ase_compatible(kwargs):
         kwargs.pop('boxshape', None)
-        Lsize = kwargs.pop('lsize')
-        if not isinstance(Lsize, list):
-            Lsize = [[Lsize] * 3]
-        assert len(Lsize) == 1
-        cell = np.array([2 * float(l) for l in Lsize[0]])
-        # TODO support LatticeVectors
+        if 'lsize' in kwargs:
+            Lsize = kwargs.pop('lsize')
+            if not isinstance(Lsize, list):
+                Lsize = [[Lsize] * 3]
+            assert len(Lsize) == 1
+            cell = np.array([2 * float(l) for l in Lsize[0]])
+        elif 'latticeparameters' in kwargs:
+            # Eval latparam and latvec
+            latparam = np.array(kwargs.pop('latticeparameters'), float).T
+            cell = np.array(kwargs.pop('latticevectors', np.eye(3)), float)
+            for a, vec in zip(latparam, cell):
+                vec *= a
+            assert cell.shape == (3, 3)
     else:
         cell = None
     return cell, kwargs
@@ -252,10 +266,7 @@ def kwargs2atoms(kwargs, directory=None):
     # Only input units accepted nowadays are 'atomic'.
     # But if we are loading an old file, and it specifies something else,
     # we can be sure that the user wanted that back then.
-    units = kwargs.get('unitsinput', kwargs.get('units', 'atomic')).lower()
-    if units not in ['ev_angstrom', 'atomic']:
-        raise OctopusKeywordError('Units not supported by ASE-Octopus '
-                                  'interface: %s' % units)
+    units = get_input_units(kwargs)
     atomic_units = (units == 'atomic')
     if atomic_units:
         length_unit = Bohr
@@ -401,7 +412,8 @@ def kwargs2atoms(kwargs, directory=None):
         pbc[:pdims] = True
         atoms.pbc = pbc
 
-    if cell is not None and adjust_positions_by_half_cell:
+    if (cell is not None and cell.shape == (3,)
+        and adjust_positions_by_half_cell):
         nonpbc = (atoms.pbc == 0)
         atoms.positions[:, nonpbc] += np.array(cell)[None, nonpbc] / 2.0
 
@@ -466,14 +478,8 @@ def generate_input(atoms, kwargs, normalized2pretty):
         prettykey = normalized2pretty[key]
         append('%s = %s' % (prettykey, var))
 
-    #if 'units' in kwargs:
-    #    if kwargs['units'] != 'ev_angstrom':
-    #        raise ValueError('Sorry, but we decide the units in the ASE '
-    #                         'interface for now.')
-    #else:
-    #    setvar('units', 'ev_angstrom')
-
-    assert 'lsize' not in kwargs
+    for kw in ['lsize', 'latticevectors', 'latticeparameters']:
+        assert kw not in kwargs
 
     defaultboxshape = 'parallelepiped' if atoms.pbc.any() else 'minimum'
     boxshape = kwargs.get('boxshape', defaultboxshape).lower()
