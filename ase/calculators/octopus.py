@@ -7,6 +7,7 @@ Carlos de Armas
 http://tddft.org/programs/octopus/
 """
 import os
+import re
 from subprocess import Popen, PIPE
 
 import numpy as np
@@ -74,6 +75,62 @@ from ase.units import Bohr, Angstrom, Hartree, eV, Debye
 # 4) OctopusKeywordError is raised from Python for keywords that are
 #    not valid according to oct-help.
 
+
+def read_eigenvalues_file(fd):
+    unit = None
+
+    for line in fd:
+        m = re.match('Eigenvalues\s*\[(.+?)\]', line)
+        if m is not None:
+            unit = m.group(1)
+            break
+    line = next(fd)
+    assert line.strip().startswith('#st'), line
+
+    kpts = []
+    eigs = []
+    occs = []
+
+    for line in fd:
+        m = re.match(r'#k.*?\(\s*(.+?),\s*(.+?),\s*(.+?)\)', line)
+        if m:
+            k = m.group(1, 2, 3)
+            kpts.append(np.array(k, float))
+            eigs.append({})
+            occs.append({})
+        else:
+            m = re.match(r'\s*\d+\s*(\S+)\s*(\S+)\s*(\S+)', line)
+            assert m is not None
+            spin, eig, occ = m.group(1, 2, 3)
+            eigs[-1].setdefault(spin, []).append(float(eig))
+            occs[-1].setdefault(spin, []).append(float(occ))
+
+
+    nkpts = len(kpts)
+    nspins = len(eigs[0])
+    nbands = len(eigs[0][spin])
+
+    kptsarr = np.array(kpts)
+    eigsarr = np.empty((nkpts, nspins, nbands))
+    occsarr = np.empty((nkpts, nspins, nbands))
+
+    arrs = [eigsarr, occsarr]
+
+    for arr in arrs:
+        arr.fill(np.nan)
+
+    for k in range(nkpts):
+        for arr, lst in [(eigsarr, eigs), (occsarr, occs)]:
+            arr[k, :, :] = [lst[k][spin] for spin
+                            in (['--'] if nspins == 1 else ['up', 'dn'])]
+
+    for arr in arrs:
+        assert not np.isnan(arr).any()
+
+    eigsarr *= {'H': Hartree, 'eV': eV}[unit]
+    return kptsarr, eigsarr, occsarr
+
+
 def process_special_kwargs(atoms, kwargs):
     kwargs = kwargs.copy()
     kpts = kwargs.pop('kpts', None)
@@ -83,17 +140,18 @@ def process_special_kwargs(atoms, kwargs):
                 raise ValueError('k-points specified multiple times')
 
         kptsarray = kpts2ndarray(kpts, atoms)
-        shape = np.shape(kpts)
-        if shape == (3,):
-            kwargs['kpointsgrid'] = [list(kpts)]
-        else:
-            nkpts = shape[0]
+        #shape = np.shape(kpts)
+        #if shape == (3,):
+        #    kwargs['kpointsgrid'] = [list(kpts)]
+        if 1:#else:
+            nkpts = len(kptsarray)
             fullarray = np.empty((nkpts, 4))
             fullarray[:, 0] = 1.0 / nkpts  # weights
             fullarray[:, 1:4] = kptsarray
             # XXX kpoints or kpointsreduced?
             # XXXX this may not be working
             kwargs['kpointsreduced'] = fullarray.tolist()
+            #kwargs['kpointsusesymmetries'] = False  # XXXXXXXXXXXXXXXXXXXXXXX
 
     # TODO xc=LDA/PBE etc.
 
@@ -1026,7 +1084,7 @@ class Octopus(FileIOCalculator):
         return self.results['occupations'][spin, kpt].copy()
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        return self.results['eigenvalues'][spin, kpt].copy()
+        return self.results['eigenvalues'][kpt, spin].copy()
 
     def _getpath(self, path, check=False):
         path = os.path.join(self.directory, path)
@@ -1042,6 +1100,22 @@ class Octopus(FileIOCalculator):
         """Read octopus output files and extract data."""
         fd = open(self._getpath('static/info', check=True))
         self.results.update(read_static_info(fd))
+
+        # If the eigenvalues file exists, we get the eigs/occs from that one.
+        # This probably means someone ran Octopus in 'unocc' mode to
+        # get eigenvalues (e.g. for band structures), and the values in
+        # static/info will be the old (selfconsistent) ones.
+        try:
+            eigpath = self._getpath('static/eigenvalues', check=True)
+        except OctopusIOError:
+            pass
+        else:
+            with open(eigpath) as fd:
+                kpts, eigs, occs = read_eigenvalues_file(fd)
+                kpt_weights = np.ones(len(kpts))  # XXX ?  Or 1 / len(kpts) ?
+            self.results.update(eigenvalues=eigs, occupations=occs,
+                                ibz_k_points=kpts,
+                                k_point_weights=kpt_weights)
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
