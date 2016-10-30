@@ -633,10 +633,6 @@ def generate_input(atoms, kwargs, normalized2pretty):
 
 def read_static_info_kpoints(fd):
     for line in fd:
-        if line.startswith('Number of symmetry-reduced'):
-            break
-    nkpts = int(line.split('=')[-1].strip())
-    for line in fd:
         if line.startswith('List of k-points'):
             break
 
@@ -645,14 +641,21 @@ def read_static_info_kpoints(fd):
     bar = next(fd)
     assert bar.startswith('---')
 
-    ibz_k_points = np.zeros((nkpts, 3))
-    k_point_weights = np.zeros(nkpts)
+    kpts = []
+    weights = []
 
-    for kpt in range(nkpts):
-        _ik, k_x, k_y, k_z, weight = [float(n) for n in next(fd).split()]
-        ibz_k_points[kpt, :] = [k_x, k_y, k_z]
-        k_point_weights[kpt] = weight
+    for line in fd:
+        # Format:        index   kx      ky      kz     weight
+        m = re.match(r'\s*\d+\s*(\S+)\s*(\S+)\s*(\S+)\s*(\S+)', line)
+        if m is None:
+            break
+        kxyz = m.group(1, 2, 3)
+        weight = m.group(4)
+        kpts.append(kxyz)
+        weights.append(weight)
 
+    ibz_k_points = np.array(kpts)
+    k_point_weights = np.array(weights)
     return dict(ibz_k_points=ibz_k_points, k_point_weights=k_point_weights)
 
 
@@ -880,6 +883,7 @@ class Octopus(FileIOCalculator):
 
         FileIOCalculator.set(self, **kwargs)
         self.kwargs.update(kwargs)
+        self.results.clear()
         # XXX should use 'Parameters' but don't know how
 
     def check_keywords_exist(self, kwargs):
