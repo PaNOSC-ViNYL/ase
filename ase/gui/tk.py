@@ -15,7 +15,7 @@ from functools import partial
 import numpy as np
 
 __all__ = [
-    'oops', 'ask_question',
+    'oops', 'ask_question', 'MainWindow',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
     'SpinBox', 'Text']
@@ -217,7 +217,7 @@ class Scale(Widget):
 
 
 class RadioButtons(Widget):
-    def __init__(self, labels, values=None, toggle=None):
+    def __init__(self, labels, values=None, toggle=None, vertical=True):
         self.var = tk.IntVar()
 
         if toggle:
@@ -233,7 +233,7 @@ class RadioButtons(Widget):
     def create(self, parrent):
         frame = tk.Frame(parrent)
         for button in self.buttons:
-            button.create(frame).pack(side='left')
+            button.create(frame).pack(side='top')  # 'left')
         return frame
 
     @property

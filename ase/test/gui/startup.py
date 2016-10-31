@@ -41,7 +41,9 @@ def nt(gui):
 
 
 def color(gui):
-    c = gui.color_window()
+    yield
+    c = gui.colors_window()
+    c.toggle('force')
     yield
 
 

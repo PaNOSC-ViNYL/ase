@@ -407,13 +407,20 @@ class View:
 
     def get_colors(self, rgb=False):
         if rgb:
-            return self.get_colors()
-        if self.colormode == 'jmol' or self.colormode == 'atno':
-            return self.colors
+            return [tuple(int('0x' + rgb[i:i + 2])
+                          for i in range(1, 7, 2))
+                    for rgb in self.get_colors()]
+
+        if self.colormode == 'jmol':
+            return [self.colors[Z] for Z in self.images.Z]
 
         scalars = self.get_color_scalars()
         colorscale, cmin, cmax = self.colormode_data
-        i = scalars - cmin) / (cmax - cmin) *
+        N = len(colorscale)
+        indices = np.clip(((scalars - cmin) / (cmax - cmin) * N +
+                           0.5).astype(int),
+                          0, N - 1)
+        return [colorscale[i] for i in indices]
 
     def get_color_scalars(self, frame=None):
         i = frame or self.frame
