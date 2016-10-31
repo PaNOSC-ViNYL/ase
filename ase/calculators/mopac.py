@@ -46,19 +46,19 @@ class MOPAC(FileIOCalculator):
         >>> from ase.build import molecule
         >>> from ase.calculators.mopac import MOPAC
         >>> atoms = molecule('O2')
-        >>> atoms.calc = MOPAC('label'='O2')
+        >>> atoms.calc = MOPAC(label='O2')
         >>> atoms.get_potential_energy()
-        >>> eigs = calc.get_eigenvalues()
-        >>> somos = calc.get_somo_levels()
-        >>> homo, lumo = calc.get_homo_lumo_levels()
+        >>> eigs = atoms.calc.get_eigenvalues()
+        >>> somos = atoms.calc.get_somo_levels()
+        >>> homo, lumo = atoms.calc.get_homo_lumo_levels()
 
         Use the internal geometry optimization of Mopac
-        >>> calc = MOPAC(label='H2', task='GRADIENTS')
-        >>> atoms.set_calculator(calc)
+        >>> atoms = molecule('H2')
+        >>> atoms.calc = MOPAC(label='H2', task='GRADIENTS')
         >>> atoms.get_potential_energy()
 
         Read in and start from output file
-        >>> atoms = MOPAC.rad_atoms('H2')
+        >>> atoms = MOPAC.read_atoms('H2')
         >>> atoms.calc.get_homo_lumo_levels()
 
         """
