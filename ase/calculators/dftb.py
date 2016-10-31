@@ -166,7 +166,7 @@ class Dftb(FileIOCalculator):
         outfile.write('ParserOptions { \n')
         outfile.write('   IgnoreUnprocessedNodes = Yes  \n')
         outfile.write('} \n')
-        
+
         outfile.close()
 
     def set(self, **kwargs):
@@ -196,7 +196,7 @@ class Dftb(FileIOCalculator):
         self.atoms = None
         if self.pcpot:
             self.pcpot.write_mmcharges('dftb_external_charges.dat')
-        
+
     def read_results(self):
         """ all results are read from results.tag file
             It will be destroyed after it is read to avoid
@@ -238,7 +238,7 @@ class Dftb(FileIOCalculator):
 
         # calculation was carried out with atoms written in write_input
         os.remove(os.path.join(self.directory, 'results.tag'))
-            
+
     def read_energy(self):
         """Read Energy from dftb output file (results.tag)."""
         from ase.units import Hartree
@@ -276,7 +276,7 @@ class Dftb(FileIOCalculator):
             raise RuntimeError('Problem in reading forces')
 
     def read_charges(self):
-        """ Get partial charges on atoms 
+        """Get partial charges on atoms
             in case we cannot find charges they are set to None
         """
         infile = open(os.path.join(self.directory, 'detailed.out'), 'r')
@@ -295,7 +295,7 @@ class Dftb(FileIOCalculator):
         lines1 = lines[chargestart:(chargestart + len(self.atoms))]
         for line in lines1:
             qm_charges.append(float(line.split()[-1]))
-        
+
         return np.array(qm_charges)
 
     def get_charges(self, atoms):
@@ -312,7 +312,7 @@ class Dftb(FileIOCalculator):
         self.pcpot = PointChargePotential(mmcharges, self.directory)
         return self.pcpot
 
-    
+
 class PointChargePotential:
     def __init__(self, mmcharges, directory='./'):
         """Point-charge potential for DFTB+.
@@ -321,13 +321,13 @@ class PointChargePotential:
         self.directory = directory
         self.mmpositions = None
         self.mmforces = None
-        
+
     def set_positions(self, mmpositions):
         self.mmpositions = mmpositions
 
     def set_charges(self, mmcharges):
         self.mmcharges = mmcharges
-    
+
     def write_mmcharges(self, filename='dftb_external_charges.dat'):
         """ mok all
         write external charges as monopoles for dftb+.

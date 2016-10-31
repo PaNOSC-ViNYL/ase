@@ -1,5 +1,4 @@
 from ase.calculators.dftb import Dftb
-from ase.optimize import QuasiNewton
 from ase.io import write, read
 
 from ase.build import molecule
@@ -16,4 +15,3 @@ system.set_calculator(calc)
 calc.calculate(system)
 final = read('geo_end.gen')
 write('test.final.xyz', final)
-
