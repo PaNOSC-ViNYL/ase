@@ -24,7 +24,7 @@ __all__ = ['Onetep']
 
 
 class Onetep(FileIOCalculator):
-    """ Implements the calculator for the onetep linear
+    """Implements the calculator for the onetep linear
     scaling DFT code. Recomended ASE_ONETEP_COMMAND format
     is "onetep_executable_name PREFIX.dat > PREFIX.out 2> PREFIX.err" """
 
@@ -34,8 +34,8 @@ class Onetep(FileIOCalculator):
     # the onetep input file in the standard <key> : <value> format
     # for example the NGWF radius is used in the species block and isn't
     # written elsewhere in the input file
-    _dummy_parameters = ["ngwf_radius", "xc", "species_ngwf_radius",
-                         "species_ngwf_number", "species_solver"]
+    _dummy_parameters = ['ngwf_radius', 'xc', 'species_ngwf_radius',
+                         'species_ngwf_number', 'species_solver']
 
     default_parameters = {'cutoff_energy': '1000 eV',
                           'kernel_cutoff': '1000 bohr',
@@ -385,15 +385,15 @@ class Onetep(FileIOCalculator):
             fd.write('    %s "%s"\n' % (sp[0], sp[1]))
         fd.write('%%ENDBLOCK %s\n\n' % keyword)
 
-        keyword = "SPECIES_ATOMIC_SET"
+        keyword = 'SPECIES_ATOMIC_SET'
         fd.write('%%BLOCK %s\n' % keyword)
         for sym in set(self.atoms.get_chemical_symbols()):
             try:
                 atomic_string = parameters['species_solver'][sym]
             except KeyError:
-                atomic_string = "SOLVE"
+                atomic_string = 'SOLVE'
 
-            fd.write('    %s \"%s\"\n' % (sym, atomic_string))
+            fd.write('    %s "%s"\n' % (sym, atomic_string))
         fd.write('%%ENDBLOCK %s\n\n' % keyword)
 
         for p in parameters:

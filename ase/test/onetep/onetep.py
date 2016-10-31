@@ -17,7 +17,7 @@ if not (isfile(h_path) and isfile(o_path)):
         for suitable data. ONETEP takes PAW data sets in the
         abinit format. I need H.abinit and O.abinit""")
 calc.set_pseudos([('H', h_path), ('O', o_path)])
-calc.set(paw=True, xc='PBE', cutoff_energy="400 eV")
+calc.set(paw=True, xc='PBE', cutoff_energy='400 eV')
 mol.set_calculator(calc)
 
 energy = mol.get_total_energy()
