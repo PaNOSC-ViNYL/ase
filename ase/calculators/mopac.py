@@ -29,8 +29,6 @@ class MOPAC(FileIOCalculator):
                'PM6-DH2', 'PM6-DH2X', 'PM6-D3H4', 'PM6-D3H4X', 'PMEP', 'PM7',
                'PM7-TS', 'RM1']
 
-    tasks = ['1SCF', 'RHF', 'UHF', 'SINGLET', 'DOUBLET', 'TRIPLET', ]
-
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='mopac', atoms=None, **kwargs):
         """Construct MOPAC-calculator object.
@@ -104,7 +102,6 @@ class MOPAC(FileIOCalculator):
 
         with open(self.label + '.mop', 'w') as f:
             f.write(s)
-
 
     def get_spin_polarized(self):
         return self.nspins == 2
