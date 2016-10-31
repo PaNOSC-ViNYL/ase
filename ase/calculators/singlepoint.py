@@ -97,8 +97,10 @@ class SinglePointDFTCalculator(SinglePointCalculator):
 
         Spin-paired calculations: 1, spin-polarized calculation: 2."""
         if self.kpts is not None:
-            # we assume that only the gamma point is defined
-            return len(self.kpts)
+            nspin = set()
+            for kpt in self.kpts:
+                nspin.add(kpt.s)
+            return len(nspin)
         return None
 
     def get_spin_polarized(self):
@@ -112,24 +114,28 @@ class SinglePointDFTCalculator(SinglePointCalculator):
         """Return k-points in the irreducible part of the Brillouin zone."""
         return self.ibz_kpts
 
+    def get_kpt(self, kpt=0, spin=0):
+        if self.kpts is not None:
+            counter = 0
+            for kpoint in self.kpts:
+                if kpoint.s == spin:
+                    if kpt == counter:
+                        return kpoint
+                    counter += 1
+        return None
+
     def get_occupation_numbers(self, kpt=0, spin=0):
         """Return occupation number array."""
-        # we assume that only the gamma point is defined
-        assert(kpt == 0)
-        if self.kpts is not None:
-            for kpt in self.kpts:
-                if kpt.s == spin:
-                    return kpt.f_n
+        kpoint = self.get_kpt(kpt, spin)
+        if kpoint is not None:
+            return kpoint.f_n
         return None
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalue array."""
-        # we assume that only the gamma point is defined
-        assert(kpt == 0)
-        if self.kpts is not None:
-            for kpt in self.kpts:
-                if kpt.s == spin:
-                    return kpt.eps_n
+        kpoint = self.get_kpt(kpt, spin)
+        if kpoint is not None:
+            return kpoint.eps_n
         return None
 
     def get_homo_lumo(self):
