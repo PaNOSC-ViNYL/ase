@@ -140,18 +140,11 @@ def process_special_kwargs(atoms, kwargs):
                 raise ValueError('k-points specified multiple times')
 
         kptsarray = kpts2ndarray(kpts, atoms)
-        #shape = np.shape(kpts)
-        #if shape == (3,):
-        #    kwargs['kpointsgrid'] = [list(kpts)]
-        if 1:#else:
-            nkpts = len(kptsarray)
-            fullarray = np.empty((nkpts, 4))
-            fullarray[:, 0] = 1.0 / nkpts  # weights
-            fullarray[:, 1:4] = kptsarray
-            # XXX kpoints or kpointsreduced?
-            # XXXX this may not be working
-            kwargs['kpointsreduced'] = fullarray.tolist()
-            #kwargs['kpointsusesymmetries'] = False  # XXXXXXXXXXXXXXXXXXXXXXX
+        nkpts = len(kptsarray)
+        fullarray = np.empty((nkpts, 4))
+        fullarray[:, 0] = 1.0 / nkpts  # weights
+        fullarray[:, 1:4] = kptsarray
+        kwargs['kpointsreduced'] = fullarray.tolist()
 
     # TODO xc=LDA/PBE etc.
 
