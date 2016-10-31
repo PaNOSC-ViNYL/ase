@@ -15,3 +15,10 @@ ea = 2 * e1 - e2
 print(d, ea)
 assert abs(d - 0.759) < 0.001
 assert abs(ea - 5.907) < 0.001
+
+calc = MOPAC('h2')
+atoms = calc.get_atoms()
+print('PM7 homo lumo:', calc.get_homo_lumo_levels())
+calc.set(method='AM1')
+atoms.get_potential_energy()
+print('AM1 homo lumo:', calc.get_homo_lumo_levels())
