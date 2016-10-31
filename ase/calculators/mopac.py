@@ -1,17 +1,17 @@
 """This module defines an ASE interface to MOPAC.
 
 Set $ASE_MOPAC_COMMAND to something like::
-    
+
     LD_LIBRARY_PATH=/path/to/lib/ \
     MOPAC_LICENSE=/path/to/license \
     /path/to/MOPAC2012.exe PREFIX.mop 2> /dev/null
 
 """
 import os
-import re
 
 import numpy as np
 
+from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError, Parameters
 from ase.units import kcal, mol
 
@@ -59,6 +59,10 @@ class MOPAC(FileIOCalculator):
         >>> atoms.set_calculator(calc)
         >>> atoms.get_potential_energy()
 
+        Read in and start from output file
+        >>> calc = MOPAC('H2')
+        >>> calc.get_homo_lumo_levels()
+
         """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
@@ -74,20 +78,20 @@ class MOPAC(FileIOCalculator):
 
         # Build string to hold .mop input file:
         s = p.method + ' ' + p.task + ' '
-                
+
         if p.relscf:
             s += 'RELSCF={0} '.format(p.relscf)
-            
+
         # Write charge:
         charge = atoms.get_initial_charges().sum()
         if charge != 0:
             s += 'CHARGE={0} '.format(int(round(charge)))
-        
+
         magmom = int(round(abs(atoms.get_initial_magnetic_moments().sum())))
         if magmom:
             s += (['DOUBLET', 'TRIPLET', 'QUARTET', 'QUINTET'][magmom - 1] +
                   ' UHF ')
-            
+
         s += '\nTitle: ASE calculation\n\n'
 
         # Write coordinates:
@@ -101,6 +105,15 @@ class MOPAC(FileIOCalculator):
         with open(self.label + '.mop', 'w') as f:
             f.write(s)
 
+
+    def get_spin_polarized(self):
+        return self.nspins == 2
+
+    def get_index(self, lines, pattern):
+        for i, line in enumerate(lines):
+            if line.find(pattern) != -1:
+                return i
+
     def read(self, label):
         FileIOCalculator.read(self, label)
         if not os.path.isfile(self.label + '.out'):
@@ -111,7 +124,7 @@ class MOPAC(FileIOCalculator):
 
         self.parameters = Parameters(task='', method='')
         p = self.parameters
-        parm_line = self.read_parameters(lines)
+        parm_line = self.read_parameters_from_file(lines)
         for keyword in parm_line.split():
             if 'RELSCF' in keyword:
                 p.relscf = float(keyword.split('=')[-1])
@@ -121,49 +134,52 @@ class MOPAC(FileIOCalculator):
                 p.task += keyword + ' '
 
         p.task.rstrip()
-        # atoms
-#        self.atoms =
-#        self.parameters = {'task': , 'method': }
-#        self.read_results()
-
-    def get_index(self, lines, pattern):
-        for i, line in enumerate(lines):
-            if line.find(pattern) != -1:
-                return i
+        self.atoms = self.read_atoms_from_file(lines)
+        self.read_results()
 
     def read_atoms_from_file(self, lines):
+        """Read the Atoms from the output file stored as list of str in lines.
+        Parameters:
+
+            lines: list of str
+        """
         # first try to read from final point (last image)
-        read_it = False
         i = self.get_index(lines, 'FINAL  POINT  AND  DERIVATIVES')
-        if i is None:
+        if i is None:  # XXX should we read it from the input file?
             assert 0, 'Not implemented'
 
-        i = self.get_index(lines[i:], 'CARTESIAN COORDINATES')
+        lines1 = lines[i:]
+        i = self.get_index(lines1, 'CARTESIAN COORDINATES')
         j = i + 2
         symbols = []
         positions = []
-        while line[j].strip():
-            l = line.split()
+        while not lines1[j].isspace():  # continue until we hit a blank line
+            l = lines1[j].split()
             symbols += l[1]
-            positions += [float(c) for c in l[2:]]
+            positions += [[float(c) for c in l[2: 2 + 3]]]
+            j += 1
 
-        atoms = Atoms(symbols=symbols, positions=positions)
+        return Atoms(symbols=symbols, positions=positions)
 
-    def read_parameters(self, lines):
-        """Read the single line that defines a Mopac calculation
-           lines:
+    def read_parameters_from_file(self, lines):
+        """Find and return the line that defines a Mopac calculation
+
+        Parameters:
+
+            lines: list of str
         """
         for i, line in enumerate(lines):
             if line.find('CALCULATION DONE:') != -1:
-                istart = i
                 break
 
-        lines1 = lines[istart:]
+        lines1 = lines[i:]
         for i, line in enumerate(lines1):
             if line.find('****') != -1:
                 return lines1[i + 1]
 
     def read_results(self):
+        """Read the results, such as energy, forces, eigenvalues, etc.
+        """
         FileIOCalculator.read(self, self.label)
         if not os.path.isfile(self.label + '.out'):
             raise ReadError
@@ -177,62 +193,70 @@ class MOPAC(FileIOCalculator):
             elif line.find('FINAL HEAT OF FORMATION') != -1:
                 self.final_hof = float(line.split()[5]) * kcal / mol
             elif line.find('NO. OF FILLED LEVELS') != -1:
+                self.nspins = 1
                 self.no_occ_levels = int(line.split()[-1])
             elif line.find('NO. OF ALPHA ELECTRON') != -1:
+                self.nspins = 2
                 self.no_alpha_electrons = int(line.split()[-1])
                 self.no_beta_electrons = int(lines[i+1].split()[-1])
             elif line.find('FINAL  POINT  AND  DERIVATIVES') != -1:
                 forces = [-float(line.split()[6])
                           for line in lines[i + 3:i + 3 + 3 * len(self.atoms)]]
-                forces = np.array(forces).reshape((-1, 3)) * kcal / mol
-                self.results['forces'] = forces
+                self.results['forces'] = np.array(
+                    forces).reshape((-1, 3)) * kcal / mol
             elif line.find('EIGENVALUES') != -1:
                 if line.find('ALPHA') != -1:
-                    self.nspins = 2
                     j = i + 1
                     eigs_alpha = []
-                    while lines[j].strip():
-                        eigs_alpha += [float(e) for e in lines[j].split()]
+                    while not lines[j].isspace():
+                        eigs_alpha += [float(eps) for eps in lines[j].split()]
                         j += 1
                 elif line.find('BETA') != -1:
                     j = i + 1
                     eigs_beta = []
-                    while lines[j].strip():
-                        eigs_beta += [float(e) for e in lines[j].split()]
+                    while not lines[j].isspace():
+                        eigs_beta += [float(eps) for eps in lines[j].split()]
                         j += 1
                     eigs = np.array([eigs_alpha, eigs_beta]).reshape(2, 1, -1)
                     self.eigenvalues = eigs
                 else:
-                    self.nspins = 1
                     eigs = []
                     j = i + 1
-                    while lines[j].strip():
+                    while not lines[j].isspace():
                         eigs += [float(e) for e in lines[j].split()]
                         j += 1
                     self.eigenvalues = np.array(eigs).reshape(1, 1, -1)
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        print (self.eigenvalues.shape)
         return self.eigenvalues[spin, kpt]
 
     def get_homo_lumo_levels(self):
+        eigs = self.eigenvalues
         if self.nspins == 1:
-            n = self.no_occ_levels
-            eigs = self.eigenvalues
-            return np.array([eigs[0, 0, n - 1], eigs[0, 0, n]])
+            nocc = self.no_occ_levels
+            return np.array([eigs[0, 0, nocc - 1], eigs[0, 0, nocc]])
         else:
             na = self.no_alpha_electrons
             nb = self.no_beta_electrons
-            eigs = self.eigenvalues
-            eah, eal = eigs[0, 0, na - 1: na + 1]
-            ebh, ebl = eigs[1, 0, nb - 1: nb + 1]
-            return np.array([max(eah, ebh), min(eal, ebl)])
+            if na == 0:
+                return None, self.eigenvalues[1, 0, nb - 1]
+            elif nb == 0:
+                return self.eigenvalues[0, 0, na - 1], None
+            else:
+                eah, eal = eigs[0, 0, na - 1: na + 1]
+                ebh, ebl = eigs[1, 0, nb - 1: nb + 1]
+                return np.array([max(eah, ebh), min(eal, ebl)])
 
     def get_somo_levels(self):
         assert self.nspins == 2
-        eigs = self.eigenvalues
         na, nb = self.no_alpha_electrons, self.no_beta_electrons
-        return np.array([eigs[0, 0, na - 1], eigs[1, 0, nb - 1]])
+        if na == 0:
+            return None, self.eigenvalues[1, 0, nb - 1]
+        elif nb == 0:
+            return self.eigenvalues[0, 0, na - 1], None
+        else:
+            return np.array([self.eigenvalues[0, 0, na - 1],
+                             self.eigenvalues[1, 0, nb - 1]])
 
     def get_final_heat_of_formation(self):
         return self.final_hof
