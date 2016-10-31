@@ -15,10 +15,14 @@ ea = 2 * e1 - e2
 print(d, ea)
 assert abs(d - 0.759) < 0.001
 assert abs(ea - 5.907) < 0.001
-
-calc = MOPAC('h2')
-atoms = calc.get_atoms()
-print('PM7 homo lumo:', calc.get_homo_lumo_levels())
-calc.set(method='AM1')
+h2o = molecule('H2O', calculator=MOPAC(label='h2o', tasks='GRADIENTS'))
+h2o.get_potential_energy()
+print('dipole:', h2o.get_dipole_moment())
+atoms = MOPAC.read_atoms('h2')
+print('magmom:', atoms.calc.get_magnetic_moment())
+print('PM7 homo lumo:', atoms.calc.get_homo_lumo_levels())
+atoms.calc.set(method='AM1')
 atoms.get_potential_energy()
-print('AM1 homo lumo:', calc.get_homo_lumo_levels())
+print('AM1 homo lumo:', atoms.calc.get_homo_lumo_levels())
+calc = MOPAC(restart='h1')
+print('magmom:', calc.get_magnetic_moment())
