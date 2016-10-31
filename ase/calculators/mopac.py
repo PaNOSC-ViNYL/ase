@@ -13,11 +13,11 @@ import numpy as np
 
 from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator, ReadError, Parameters
-from ase.units import kcal, mol
+from ase.units import kcal, mol, Debye
 
 
 class MOPAC(FileIOCalculator):
-    implemented_properties = ['energy', 'forces']
+    implemented_properties = ['energy', 'forces', 'dipole', 'magmom']
     command = 'mopac PREFIX.mop 2> /dev/null'
 
     default_parameters = dict(
@@ -58,8 +58,8 @@ class MOPAC(FileIOCalculator):
         >>> atoms.get_potential_energy()
 
         Read in and start from output file
-        >>> calc = MOPAC('H2')
-        >>> calc.get_homo_lumo_levels()
+        >>> atoms = MOPAC.rad_atoms('H2')
+        >>> atoms.calc.get_homo_lumo_levels()
 
         """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
@@ -152,8 +152,8 @@ class MOPAC(FileIOCalculator):
         positions = []
         while not lines1[j].isspace():  # continue until we hit a blank line
             l = lines1[j].split()
-            symbols += l[1]
-            positions += [[float(c) for c in l[2: 2 + 3]]]
+            symbols.append(l[1])
+            positions.append([float(c) for c in l[2: 2 + 3]])
             j += 1
 
         return Atoms(symbols=symbols, positions=positions)
@@ -196,6 +196,8 @@ class MOPAC(FileIOCalculator):
                 self.nspins = 2
                 self.no_alpha_electrons = int(line.split()[-1])
                 self.no_beta_electrons = int(lines[i+1].split()[-1])
+                self.results['magmom'] = abs(self.no_alpha_electrons -
+                                             self.no_beta_electrons)
             elif line.find('FINAL  POINT  AND  DERIVATIVES') != -1:
                 forces = [-float(line.split()[6])
                           for line in lines[i + 3:i + 3 + 3 * len(self.atoms)]]
@@ -223,6 +225,9 @@ class MOPAC(FileIOCalculator):
                         eigs += [float(e) for e in lines[j].split()]
                         j += 1
                     self.eigenvalues = np.array(eigs).reshape(1, 1, -1)
+            elif line.find('DIPOLE   ') != -1:
+                self.results['dipole'] = np.array(
+                    lines[i + 3].split()[1:1 + 3], float) * Debye
 
     def get_eigenvalues(self, kpt=0, spin=0):
         return self.eigenvalues[spin, kpt]
@@ -256,4 +261,6 @@ class MOPAC(FileIOCalculator):
                              self.eigenvalues[1, 0, nb - 1]])
 
     def get_final_heat_of_formation(self):
+        """Final heat of formation as reported in the Mopac output file
+        """
         return self.final_hof
