@@ -14,8 +14,9 @@ from warnings import warn
 from subprocess import Popen, PIPE
 import numpy as np
 import ase.io
-from ase.units import Rydberg
-from ase.calculators.calculator import Calculator, all_changes, Parameters
+from ase.units import Rydberg, Bohr
+from ase.calculators.calculator import Calculator, all_changes, Parameters, kpts2ndarray
+from ase.calculators.singlepoint import SinglePointKPoint
 
 
 class CP2K(Calculator):
@@ -139,7 +140,9 @@ class CP2K(Calculator):
         stress_tensor=True,
         uks=False,
         poisson_solver='auto',
-        xc='LDA')
+        xc='LDA',
+        kpts=None,
+        band_structure=None)
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cp2k', atoms=None, command=None,
@@ -204,6 +207,69 @@ class CP2K(Calculator):
         self.parameters = Parameters.read(label + '_params.ase')
         results_txt = open(label + '_results.ase').read()
         self.results = eval(results_txt, {'array': np.array})
+
+    def read_band_structure(self):
+        self.kpts = []
+        with open(self.label + '.band_structure', 'r') as f:
+            header = f.readline()
+            nkpts = int(header.split()[-1])
+            self.bz_kpts = np.zeros((nkpts, 3), dtype=float)
+            self.ibz_kpts = np.zeros((nkpts, 3), dtype=float)
+            for i in range(nkpts):
+                # Skip the initial k-point definitions, they are not accurate enough
+                f.readline()
+
+            for line in f:
+                line = line.split()
+                kpt = int(line[1]) - 1
+                spin = int(line[3]) - 1
+                self.ibz_kpts[kpt] = np.array([float(x) for x in line[-3:]])
+#                self.ibz_kpts[kpt] = np.dot(self.bz_kpts[kpt], self.atoms.cell)
+                nbands = int(f.next())
+                eps_n = np.zeros(nbands, dtype=float)
+                nlines = int(nbands / 4)
+                if nbands % 4 != 0:
+                    nlines += 1
+                for i in range(nlines):
+                    eps_n[4*i:min(4*i + 4, nbands)] = np.array([float(x) for x in f.next().split()])
+                self.kpts.append(SinglePointKPoint(1, spin, kpt, eps_n))
+
+    # Temporarily hard-coding stuff for BandStructure
+    def get_ibz_k_points(self):
+        return self.ibz_kpts
+
+    def get_fermi_level(self):
+        # CP2K does not print the Fermi level anywhere!
+        # Temporary hack
+        return 5.
+
+    def get_number_of_spins(self):
+        """Return the number of spins in the calculation.
+
+        Spin-paired calculations: 1, spin-polarized calculation: 2."""
+        if self.kpts is not None:
+            nspin = set()
+            for kpt in self.kpts:
+                nspin.add(kpt.s)
+            return len(nspin)
+        return None
+
+    def get_kpt(self, kpt=0, spin=0):
+        if self.kpts is not None:
+            counter = 0
+            for kpoint in self.kpts:
+                if kpoint.s == spin:
+                    if kpt == counter:
+                        return kpoint
+                    counter += 1
+        return None
+
+    def get_eigenvalues(self, kpt=0, spin=0):
+        """Return eigenvalue array."""
+        kpoint = self.get_kpt(kpt, spin)
+        if kpoint is not None:
+            return kpoint.eps_n
+        return None
 
     def calculate(self, atoms=None, properties=None,
                   system_changes=all_changes):
@@ -360,6 +426,37 @@ class CP2K(Calculator):
 
         if p.charge and p.charge != 0:
             root.add_keyword('FORCE_EVAL/DFT', 'CHARGE %d' % p.charge)
+
+        if p.kpts:
+            kpts = kpts2ndarray(p.kpts, self.atoms)
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS', 'SCHEME GENERAL')
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS', 'FULL_GRID TRUE')
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS', 'UNITS B_VECTOR')
+            for kpt in kpts:
+                root.add_keyword('FORCE_EVAL/DFT/KPOINTS',
+                                 'KPOINT {} {} {} 1.0'.format(*kpt),
+                                 unique=False)
+            # CP2K's default WFN extrapolation does not work with k-point
+            # sampling, so it must be changed.
+            root.add_keyword('FORCE_EVAL/DFT/QS', 'EXTRAPOLATION USE_GUESS')
+
+        if p.band_structure:
+            kpts = kpts2ndarray(p.band_structure, self.atoms)
+            npoints = len(kpts)
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE',
+                             'ADDED_MOS 12')
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE',
+                             'FILE_NAME {}.band_structure'.format(self.label))
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE/KPOINT_SET',
+                             'NPOINTS 1')
+            root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE/KPOINT_SET',
+                             'UNITS CART_BOHR')
+            for kpt in kpts:
+#                kpt = np.dot(kpt, self.atoms.cell) / Bohr
+#                kpt = np.linalg.solve(self.atoms.cell, kpt)
+                root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE/KPOINT_SET',
+                                 'SPECIAL_POINT {} {} {}'.format(*kpt),
+                                 unique=False)
 
         # add Poisson solver if needed
         if p.poisson_solver == 'auto' and not any(self.atoms.get_pbc()):
