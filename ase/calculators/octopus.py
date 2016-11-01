@@ -110,7 +110,7 @@ def read_eigenvalues_file(fd):
     nspins = len(eigs[0])
     nbands = len(eigs[0][spin])
 
-    kptsarr = np.array(kpts)
+    kptsarr = np.array(kpts, float)
     eigsarr = np.empty((nkpts, nspins, nbands))
     occsarr = np.empty((nkpts, nspins, nbands))
 
@@ -296,7 +296,6 @@ class OctNamespace:
                        'false': False}
 
     def evaluate(self, value):
-        orig = value
         value = value.strip()
 
         for char in '"', "'":  # String literal
@@ -723,8 +722,8 @@ def read_static_info_kpoints(fd):
         kpts.append(kxyz)
         weights.append(weight)
 
-    ibz_k_points = np.array(kpts)
-    k_point_weights = np.array(weights)
+    ibz_k_points = np.array(kpts, float)
+    k_point_weights = np.array(weights, float)
     return dict(ibz_k_points=ibz_k_points, k_point_weights=k_point_weights)
 
 
@@ -751,12 +750,14 @@ def read_static_info_eigenvalues(fd, energy_unit):
         val = [values_sknx['--']]
     else:
         val = [values_sknx['up'], values_sknx['dn']]
-    val = np.array(val)
+    val = np.array(val, float)
     nkpts, remainder = divmod(len(val[0]), nbands)
     assert remainder == 0
 
-    eps_skn = val[:, :, 0].reshape(nspins, nkpts, nbands).copy()
-    occ_skn = val[:, :, 1].reshape(nspins, nkpts, nbands).copy()
+    eps_skn = val[:, :, 0].reshape(nspins, nkpts, nbands)
+    occ_skn = val[:, :, 1].reshape(nspins, nkpts, nbands)
+    eps_skn = eps_skn.transpose(1, 0, 2).copy()
+    occ_skn = occ_skn.transpose(1, 0, 2).copy()
     assert eps_skn.flags.contiguous
     return dict(nspins=nspins,
                 nkpts=nkpts,
@@ -789,24 +790,25 @@ def read_static_info(fd):
             unit = get_energy_unit(line)
             results.update(read_static_info_energy(fd, unit))
         elif line.startswith('Total Magnetic Moment'):
-            line = next(fd)
-            values = line.split()
-            results['magmom'] = float(values[-1])
-
-            line = next(fd)
-            assert line.startswith('Local Magnetic Moments')
-            line = next(fd)
-            assert line.split() == ['Ion', 'mz']
-            # Reading  Local Magnetic Moments
-            mag_moment = []
-            for line in fd:
-                if line == '\n':
-                    break  # there is no more thing to search for
-                line = line.replace('\n', ' ')
+            if 0:
+                line = next(fd)
                 values = line.split()
-                mag_moment.append(float(values[-1]))
+                results['magmom'] = float(values[-1])
 
-            results['magmoms'] = np.array(mag_moment)
+                line = next(fd)
+                assert line.startswith('Local Magnetic Moments')
+                line = next(fd)
+                assert line.split() == ['Ion', 'mz']
+                # Reading  Local Magnetic Moments
+                mag_moment = []
+                for line in fd:
+                    if line == '\n':
+                        break  # there is no more thing to search for
+                    line = line.replace('\n', ' ')
+                    values = line.split()
+                    mag_moment.append(float(values[-1]))
+
+                results['magmoms'] = np.array(mag_moment)
         elif line.startswith('Dipole'):
             assert line.split()[-1] == '[Debye]'
             dipole = [float(next(fd).split()[-1]) for i in range(3)]
@@ -950,9 +952,10 @@ class Octopus(FileIOCalculator):
                        'to override this.' % keyword)
                 raise OctopusKeywordError(msg)
 
-        FileIOCalculator.set(self, **kwargs)
+        changes = FileIOCalculator.set(self, **kwargs)
+        if changes:
+            self.results.clear()
         self.kwargs.update(kwargs)
-        self.results.clear()
         # XXX should use 'Parameters' but don't know how
 
     def check_keywords_exist(self, kwargs):
@@ -1154,7 +1157,7 @@ class Octopus(FileIOCalculator):
         return self.results['magmom']
 
     def get_occupation_numbers(self, kpt=0, spin=0):
-        return self.results['occupations'][spin, kpt].copy()
+        return self.results['occupations'][kpt, spin].copy()
 
     def get_eigenvalues(self, kpt=0, spin=0):
         return self.results['eigenvalues'][kpt, spin].copy()
