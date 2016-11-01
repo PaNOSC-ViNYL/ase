@@ -144,13 +144,19 @@ class DataConnection(object):
             except KeyError:
                 print("raw_score not put in atoms.info['key_value_pairs']")
             
+        g = self.get_generation_number()
+        
         with self.c as con:
             for a in a_list:
+                if 'generation' not in a.info['key_value_pairs']:
+                    a.info['key_value_pairs']['generation'] = g
                 relax_id = con.write(a, gaid=a.info['confid'], relaxed=1,
                                      key_value_pairs=a.info['key_value_pairs'],
                                      data=a.info['data'])
                 a.info['relax_id'] = relax_id
                 
+    def get_largest_in_db(self, var):
+        return self.c.select(sort='-{0}'.format(var)).next().get(var)
 
     def add_unrelaxed_candidate(self, candidate, description):
         """ Adds a new candidate which needs to be relaxed. """
