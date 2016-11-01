@@ -451,7 +451,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
     atoms_init = None
     calculation = []
-    bz_kpts = None
+    ibz_kpts = None
     parameters = OrderedDict()
 
     try:
@@ -468,10 +468,10 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                 kpts_params[parname] = __get_xml_parameter(par)
 
                     kpts = elem.findall("varray[@name='kpointlist']/v")
-                    bz_kpts = np.zeros((len(kpts), 3))
+                    ibz_kpts = np.zeros((len(kpts), 3))
 
                     for i, kpt in enumerate(kpts):
-                        bz_kpts[i] = [float(val) for val in kpt.text.split()]
+                        ibz_kpts[i] = [float(val) for val in kpt.text.split()]
 
                 elif elem.tag == 'parameters':
                     for par in elem.iter():
@@ -590,7 +590,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             efermi = float(efermi.text)
 
         kpoints = []
-        for ikpt in range(1, len(bz_kpts) + 1):
+        for ikpt in range(1, len(ibz_kpts) + 1):
             kblocks = step.findall(
                 'eigenvalues/array/set/set/set[@comment="kpoint %d"]' % ikpt)
             if kblocks is not None:
@@ -608,8 +608,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if len(kpoints) == 0:
             kpoints = None
 
-        if bz_kpts is not None:
-            ibz_kpts = np.linalg.solve(cell, bz_kpts.T).T
+        if ibz_kpts is not None:
+            bz_kpts = np.dot(ibz_kpts, cell)
 
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
