@@ -457,7 +457,8 @@ def kwargs2atoms(kwargs, directory=None):
             assert len(row) in [ndims + 1, ndims + 2]
             row = row[:ndims + 1]
             sym = row[0]
-            assert sym.startswith("'") and sym.endswith("'")
+            assert sym.startswith('"') or sym.startswith("'")
+            assert sym[0] == sym[-1]
             sym = sym[1:-1]
             pos0 = np.zeros(3)
             ndim = int(kwargs.get('dimensions', 3))
