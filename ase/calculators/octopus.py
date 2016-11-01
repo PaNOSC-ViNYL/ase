@@ -264,26 +264,100 @@ def input_line_iter(lines):
         yield line
 
 
-def block2list(lines, header=None):
+def block2list(namespace, lines, header=None):
     """Parse lines of block and return list of lists of strings."""
     lines = iter(lines)
     block = []
     if header is None:
         header = next(lines)
     assert header.startswith('%'), header
-    name = header[1:]
+    name = header[1:].strip().lower()
     for line in lines:
         if line.startswith('%'):  # Could also say line == '%' most likely.
             break
-        tokens = [token.strip() for token in line.strip().split('|')]
+        tokens = [namespace.evaluate(token)
+                  for token in line.strip().split('|')]
+        # XXX will fail for string literals containing '|'
         block.append(tokens)
     return name, block
 
+class OctNamespace:
+    def __init__(self):
+        self.names = {}
+        self.consts = {'pi': np.pi,
+                       'angstrom': 1. / Bohr,
+                       'ev': 1. / Hartree,
+                       'yes': True,
+                       'no': False,
+                       't': True,
+                       'f': False,
+                       'i': 1j,  # This will probably cause trouble
+                       'true': True,
+                       'false': False}
+
+    def evaluate(self, value):
+        orig = value
+        value = value.strip()
+
+        for char in '"', "'":  # String literal
+            if value.startswith(char):
+                assert value.endswith(char)
+                return value
+
+        value = value.lower()
+
+        if value in self.consts:  # boolean or other constant
+            return self.consts[value]
+
+        if value in self.names:  # existing variable
+            return self.names[value]
+
+        try:  # literal integer
+            v = int(value)
+        except ValueError:
+            pass
+        else:
+            if v == float(v):
+                return v
+
+        try:  # literal float
+            return float(value)
+        except ValueError:
+            pass
+
+        if ('*' in value or '/' in value
+            and not any(char in value for char in '()+')):
+            floatvalue = 1.0
+            op = '*'
+            for token in re.split(r'([\*/])', value):
+                if token in '*/':
+                    op = token
+                    continue
+
+                v = self.evaluate(token)
+                try:
+                    v = float(v)
+                except ValueError:
+                    break  # Cannot evaluate expression
+                else:
+                    if op == '*':
+                        floatvalue *= v
+                    else:
+                        assert op == '/', op
+                        floatvalue /= v
+            else:  # Loop completed successfully
+                return floatvalue
+        return value  # unknown name, or complex arithmetic expression
+
+    def add(self, name, value):
+        value = self.evaluate(value)
+        self.names[name.lower().strip()] = value
+
 
 def parse_input_file(fd):
-    names = []
-    values = []
+    namespace = OctNamespace()
     lines = input_line_iter(fd)
+    blocks = {}
     while True:
         try:
             line = next(lines)
@@ -291,15 +365,16 @@ def parse_input_file(fd):
             break
         else:
             if line.startswith('%'):
-                name, value = block2list(lines, header=line)
+                name, value = block2list(namespace, lines, header=line)
+                blocks[name] = value
             else:
-                tokens = line.split('=')
+                tokens = line.split('=', 1)
                 assert len(tokens) == 2, tokens
-                name = tokens[0].strip()
-                value = tokens[1].strip()
-            names.append(name)
-            values.append(value)
-    return names, values
+                name, value = tokens
+                namespace.add(name, value)
+
+    namespace.names.update(blocks)
+    return namespace.names
 
 
 def kwargs2cell(kwargs):
@@ -1137,8 +1212,7 @@ class Octopus(FileIOCalculator):
         FileIOCalculator.read(self, label)
         inp_path = self._getpath('inp')
         fd = open(inp_path)
-        names, values = parse_input_file(fd)
-        kwargs = normalize_keywords(dict(zip(names, values)))
+        kwargs = parse_input_file(fd)
         if self.octopus_keywords is not None:
             self.check_keywords_exist(kwargs)
 
