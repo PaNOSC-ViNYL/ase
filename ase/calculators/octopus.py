@@ -121,7 +121,7 @@ def read_eigenvalues_file(fd):
 
     for k in range(nkpts):
         for arr, lst in [(eigsarr, eigs), (occsarr, occs)]:
-            arr[k, :, :] = [lst[k][spin] for spin
+            arr[k, :, :] = [lst[k][sp] for sp
                             in (['--'] if nspins == 1 else ['up', 'dn'])]
 
     for arr in arrs:
