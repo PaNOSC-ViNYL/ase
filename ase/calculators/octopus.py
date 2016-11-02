@@ -105,7 +105,6 @@ def read_eigenvalues_file(fd):
             eigs[-1].setdefault(spin, []).append(float(eig))
             occs[-1].setdefault(spin, []).append(float(occ))
 
-
     nkpts = len(kpts)
     nspins = len(eigs[0])
     nbands = len(eigs[0][spin])
@@ -166,6 +165,7 @@ def get_input_units(kwargs):
         raise OctopusKeywordError('Units not supported by ASE-Octopus '
                                   'interface: %s' % units)
     return units
+
 
 class OctopusKeywordError(ValueError):
     pass  # Unhandled keywords
@@ -280,6 +280,7 @@ def block2list(namespace, lines, header=None):
         # XXX will fail for string literals containing '|'
         block.append(tokens)
     return name, block
+
 
 class OctNamespace:
     def __init__(self):
@@ -452,6 +453,8 @@ def kwargs2atoms(kwargs, directory=None):
         block = kwargs.pop(keyword)
         positions = []
         numbers = []
+        tags = []
+        types = {}
         for row in block:
             assert len(row) in [ndims + 1, ndims + 2]
             row = row[:ndims + 1]
@@ -462,11 +465,28 @@ def kwargs2atoms(kwargs, directory=None):
             pos0 = np.zeros(3)
             ndim = int(kwargs.get('dimensions', 3))
             pos0[:ndim] = [float(element) for element in row[1:]]
-            number = atomic_numbers[sym]  # Use 0 ~ 'X' for unknown?
+            number = atomic_numbers.get(sym)  # Use 0 ~ 'X' for unknown?
+            tag = 0
+            if number is None:
+                if sym not in types:
+                    tag = len(types) + 1
+                    types[sym] = tag
+                number = 0
+                tag = types[sym]
+            tags.append(tag)
             numbers.append(number)
             positions.append(pos0)
         positions = np.array(positions)
-        return numbers, positions
+        tags = np.array(tags, int)
+        if types:
+            ase_types = {}
+            for sym, tag in types.items():
+                ase_types[('X', tag)] = sym
+            info = {'types': ase_types}  # 'info' dict for Atoms object
+        else:
+            tags = None
+            info = None
+        return numbers, positions, tags, info
 
     def read_atoms_from_file(fname, fmt):
         assert fname.startswith('"') or fname.startswith("'")
@@ -545,17 +565,20 @@ def kwargs2atoms(kwargs, directory=None):
 
     coords = kwargs.get('coordinates')
     if coords is not None:
-        numbers, positions = get_positions_from_block('coordinates')
-        positions *= length_unit
+        numbers, pos, tags, info = get_positions_from_block('coordinates')
+        pos *= length_unit
         adjust_positions_by_half_cell = True
-        atoms = Atoms(cell=cell, numbers=numbers, positions=positions)
+        atoms = Atoms(cell=cell, numbers=numbers, positions=pos,
+                      tags=tags, info=info)
     rcoords = kwargs.get('reducedcoordinates')
     if rcoords is not None:
-        numbers, rpositions = get_positions_from_block('reducedcoordinates')
+        numbers, spos, tags, info = get_positions_from_block(
+            'reducedcoordinates')
         if cell is None:
             raise ValueError('Cannot figure out what the cell is, '
                              'and thus cannot interpret reduced coordinates.')
-        atoms = Atoms(cell=cell, numbers=numbers, scaled_positions=rpositions)
+        atoms = Atoms(cell=cell, numbers=numbers, scaled_positions=spos,
+                      tags=tags, info=info)
     if atoms is None:
         raise OctopusParseError('Apparently there are no atoms.')
 
@@ -597,9 +620,17 @@ def atoms2kwargs(atoms, use_ase_cell):
         else:
             kwargs['latticevectors'] = cell.tolist()
 
-    coord_block = [[repr(sym)] + list(map(repr, pos))
-                   for sym, pos in zip(atoms.get_chemical_symbols(),
-                                       positions)]
+    types = atoms.info.get('types', {})
+
+    coord_block = []
+    for sym, pos, tag in zip(atoms.get_chemical_symbols(),
+                             atoms.positions, atoms.get_tags()):
+        if sym == 'X':
+            sym = types.get((sym, tag))
+            if sym is None:
+                raise ValueError('Cannot represent atom X without tags and '
+                                 'species info in atoms.info')
+        coord_block.append([repr(sym)] + [repr(x) for x in pos])
 
     kwargs['coordinates'] = coord_block
     npbc = sum(atoms.pbc)
