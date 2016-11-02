@@ -9,7 +9,7 @@ import ase.gui.ui as ui
 class ColorWindow:
     """A window for selecting how to color the atoms."""
     def __init__(self, gui):
-        self.win = ui.Window(_("Colors"))
+        self.win = ui.Window(_('Colors'))
         self.gui = gui
         self.win.add(ui.Label(_('Choose how the atoms are colored:')))
         values = ['jmol', 'tag', 'force', 'velocity', 'charge', 'magmom']
@@ -19,24 +19,19 @@ class ColorWindow:
                   _('By velocity'),
                   _('By charge'),
                   _('By magnetic moment')]
-        radio = ui.RadioButtons(labels, values, self.toggle)
-        radio.value = gui.colormode
-        self.win.add(radio)
-        self.deactivate(radio)
-        self.radio = radio  # stored for testing puposes
+        self.radio = ui.RadioButtons(labels, values, self.toggle)
+        self.radio.value = gui.colormode
+        self.win.add(self.radio)
+        self.deactivate()
 
-    def deactivate(self, radio):
+    def activate(self):
         images = self.gui.images
-        if not images.T.any():
-            radio['tag'].active = False
-        if not np.isfinite(images.F).all():
-            radio['force'].active = False
-        if not np.isfinite(images.V).all():
-            radio['velocity'].active = False
-        if not images.q.any():
-            radio['charge'].active = False
-        if not images.M.any():
-            radio['magmom'].active = False
+        radio = self.radio
+        radio['tag'].active = images.T.any()
+        radio['force'].active = np.isfinite(images.F).all()
+        radio['velocity'].active = np.isfinite(images.V).all()
+        radio['charge'].active = images.q.any()
+        radio['magmom'].active = images.M.any()
 
     def toggle(self, value):
         if value == 'jmol':
@@ -50,8 +45,13 @@ class ColorWindow:
             colorscale = ['#{0:02X}AA00'.format(red)
                           for red in range(0, 240, 10)]
             self.gui.colormode_data = colorscale, mn, mx
+        self.radio.value = value
         self.gui.draw()
 
     def notify_atoms_changed(self):
         "Called by gui object when the atoms have changed."
-        self.win.close()
+        self.activate()
+        mode = self.gui.colormode
+        if not self.radio[mode].active:
+            mode = 'jmol'
+        self.toggle(mode)

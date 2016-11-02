@@ -333,7 +333,9 @@ class View:
         Rotate(self)
 
     def colors_window(self):
-        return ColorWindow(self)
+        win = ColorWindow(self)
+        self.register_vulnerable(win)
+        return win
 
     def focus(self, x=None):
         if self.images.natoms == 0 and not self.window['toggle-show-unit-cell']:
