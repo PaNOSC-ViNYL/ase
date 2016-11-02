@@ -1,4 +1,3 @@
-from __future__ import print_function
 """Simple and efficient pythonic file-format.
 
 Stores ndarrays as binary data and Python's built-in datatypes (int, float,
@@ -6,7 +5,7 @@ bool, str, dict, list) as json.
 
 File layout when there is only a single item::
 
-    0: "of Ulm.\n" (magic prefix, ascii)
+    0: "of Ulm.\\n" (magic prefix, ascii)
     8: "                " (tag, ascii)
     24: version (int64)
     32: nitems (int64)
@@ -50,9 +49,11 @@ Versions:
 2) Added support for big endian machines.  Json data may now have
    _little_endian=False item.
 
-3) Changed magic string from "AFFormat" to "of Ulm.\n".
+3) Changed magic string from "AFFormat" to "of Ulm.\\n".
+
 """
 
+from __future__ import print_function
 import optparse
 import os
 
