@@ -5,7 +5,6 @@ from ase import __version__
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
 from ase.atoms import Atoms
-from ase.io.ulm import ulmopen, DummyWriter, InvalidULMFileError
 from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
 from ase.parallel import world
@@ -93,6 +92,7 @@ class TrajectoryWriter:
         self.description.update(description)
 
     def _open(self, filename, mode):
+        from ase.io.ulm import ulmopen, DummyWriter
         if mode not in 'aw':
             raise ValueError('mode must be "w" or "a".')
         if self.master:
@@ -221,6 +221,7 @@ class TrajectoryReader:
         self._open(filename)
 
     def _open(self, filename):
+        from ase.io.ulm import ulmopen, InvalidULMFileError
         try:
             self.backend = ulmopen(filename, 'r')
         except InvalidULMFileError:
