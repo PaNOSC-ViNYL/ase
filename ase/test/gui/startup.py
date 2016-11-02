@@ -45,6 +45,7 @@ def color(gui):
     c = gui.colors_window()
     c.toggle('force')
     yield
+    assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 0]
 
 
 if 0:

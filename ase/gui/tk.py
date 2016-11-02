@@ -240,6 +240,13 @@ class RadioButtons(Widget):
     def value(self):
         return self.values[self.var.get()]
 
+    @value.setter
+    def value(self, value):
+        self.var.set(self.values.index(value))
+
+    def __getitem__(self, value):
+        return self.buttons[self.values.index(value)]
+
 
 class RadioButton(Widget):
     def __init__(self, label, i, var, callback):
@@ -248,6 +255,14 @@ class RadioButton(Widget):
                                var=var,
                                value=i,
                                command=callback)
+
+    @property
+    def active(self):
+        return self.widget['state'] == 'normal'
+
+    @active.setter
+    def active(self, value):
+        self.widget['state'] = ['disabled', 'normal'][bool(value)]
 
 
 class ComboBox(Widget):

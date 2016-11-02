@@ -431,47 +431,11 @@ class View:
             f = (self.images.F[i]**2).sum(1)**0.5
             return f * self.images.dynamic
         elif self.colormode == 'velocity':
-            V = self.images.V[self.frame]
-            V = np.sqrt((V*V).sum(axis=-1))  # The absolute velocity
-            nV = (V - self.colormode_data[0]) * self.colormode_data[1]
-            nV = np.clip(nV.astype(int), 0, len(self.colors)-1)
-            colors = np.array(colarray)[nV]
+            return (self.images.V[i]**2).sum(1)**0.5
         elif self.colormode == 'charge':
-            Q = self.images.q[self.frame]
-            nq = ((Q - self.colormode_data[0]) *
-                  self.colormode_data[1]        )
-            nq = np.clip(nq.astype(int), 0, len(self.colors)-1)
-            colors = np.array(colarray)[nq]
-        elif self.colormode == 'magnetic moment':
-            M = self.images.M[self.frame]
-            nm = ((M - self.colormode_data[0]) *
-                  self.colormode_data[1]        )
-            nm = np.clip(nm.astype(int), 0, len(self.colors)-1)
-            colors = np.array(colarray)[nm]
-        elif self.colormode == 'coordination':
-            if not hasattr(self, 'coordination'):
-                self.bind(self.frame)
-            colors = np.array(colarray)[self.coordination]
-        elif self.colormode == 'manual':
-            colors = colarray
-        elif self.colormode == 'same':
-            colors = [colarray[0]] * self.images.natoms
-
-    def repeat_colors(self, repeat):
-        natoms = self.images.natoms
-        if self.colormode == 'manual':
-            a0 = 0
-            colors = self.colors
-            colordata = self.colordata
-            for i0 in range(repeat[0]):
-                for i1 in range(repeat[1]):
-                    for i2 in range(repeat[2]):
-                        a1 = a0 + natoms
-                        colors[a0:a1] = self.colors[:natoms]
-                        colordata[a0:a1] = self.colordata[:natoms]
-                        a0 = a1
-            self.colors = colors
-            self.colordata = colordata
+            return self.images.q[i]
+        elif self.colormode == 'magmom':
+            return self.images.M[i]
 
     def my_arc(self, gc, fill, j, X, r, n, A, d):
 
