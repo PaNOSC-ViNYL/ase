@@ -475,7 +475,9 @@ def filetype(filename, read=True):
     if len(data) == 0:
         raise IOError('Empty file: ' + filename)
 
-    for format, magic in [('traj', b'AFFormatASE-Trajectory'),
+    for format, magic in [('traj', b'of Ulm.\nASE-Trajectory'),
+                          ('traj', b'AFFormatASE-Trajectory'),
+                          ('gpw', b'of Ulm.\nGPAW'),
                           ('gpw', b'AFFormatGPAW'),
                           ('trj', b'PickleTrajectory'),
                           ('etsf', b'CDF'),

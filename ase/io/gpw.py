@@ -2,14 +2,14 @@ from ase import Atoms
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 from ase.units import Bohr, Hartree
-import ase.io.aff as aff
+import ase.io.ulm as ulm
 from ase.io.trajectory import read_atoms
 
 
 def read_gpw(filename):
     try:
-        reader = aff.affopen(filename)
-    except aff.InvalidAFFError:
+        reader = ulm.ulmopen(filename)
+    except ulm.InvalidULMFileError:
         return read_old_gpw(filename)
     return read_atoms(reader.atoms)
 
