@@ -28,7 +28,7 @@ Reading:
 
 >>> r = ulmopen('x.ulm')
 >>> print(r.c)
-'abc'
+abc
 
 To see what's inside 'x.ulm' do this::
 
