@@ -157,10 +157,11 @@ class TransportCalculator:
         if p['s1'] is None:
             p['s1'] = np.identity(len(p['h1']))
 
-        if p['s2'] is None and not identical_leads:
-            p['s2'] = np.identity(len(p['h2']))  # Orthonormal basis for lead 2
-        else:  # Lead2 is idendical to lead1
+        if identical_leads:
             p['s2'] = p['s1']
+        else:
+            if p['s2'] is None:
+                p['s2'] = np.identity(len(p['h2']))
 
         h_mm = p['h']
         s_mm = p['s']
