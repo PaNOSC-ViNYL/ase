@@ -6,4 +6,4 @@ from ase.io.ulm import (ulmopen as affopen,
 __all__ = ['affopen', 'InvalidAFFError',
            'Reader', 'Writer', 'DummyWriter']
 
-warnings.warn('Please use ase.io.ulm instead.')
+# warnings.warn('Please use ase.io.ulm instead.')
