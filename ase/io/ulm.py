@@ -5,7 +5,7 @@ bool, str, dict, list) as json.
 
 File layout when there is only a single item::
 
-    0: "of Ulm.\\n" (magic prefix, ascii)
+    0: "- of Ulm" (magic prefix, ascii)
     8: "                " (tag, ascii)
     24: version (int64)
     32: nitems (int64)
@@ -49,7 +49,7 @@ Versions:
 2) Added support for big endian machines.  Json data may now have
    _little_endian=False item.
 
-3) Changed magic string from "AFFormat" to "of Ulm.\\n".
+3) Changed magic string from "AFFormat" to "- of Ulm".
 
 """
 
@@ -138,7 +138,7 @@ class Writer:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
                 if not np.little_endian:
                     a.byteswap(True)
-                self.header = ('of Ulm.\n{0:16}'.format(tag).encode('ascii') +
+                self.header = ('- of Ulm{0:16}'.format(tag).encode('ascii') +
                                a.tostring() +
                                self.offsets.tostring())
             else:
@@ -306,7 +306,7 @@ class DummyWriter:
 
 def read_header(fd):
     fd.seek(0)
-    if fd.read(8) not in [b'of Ulm.\n', b'AFFormat']:
+    if fd.read(8) not in [b'- of Ulm', b'AFFormat']:
         raise InvalidULMFileError('This is not an ULM formatted file.')
     tag = fd.read(16).decode('ascii').rstrip()
     version, nitems, pos0 = readints(fd, 3)
