@@ -2,7 +2,7 @@
 
 from optparse import OptionParser
 from ase.io.formats import filetype
-from ase.io.aff import print_aff_info
+from ase.io.ulm import print_ulm_info
 from ase.io.pickletrajectory import print_trajectory_info
 from ase.io.bundletrajectory import print_bundletrajectory_info
 
@@ -22,7 +22,7 @@ def main():
         ft = filetype(f)
         print("File type of '{0}' appears to be of type '{1}'".format(f, ft))
         if ft == 'traj':
-            print_aff_info(f)
+            print_ulm_info(f)
         elif ft == 'trj':
             print_trajectory_info(f)
         elif ft == 'bundle':

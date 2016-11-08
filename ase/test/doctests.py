@@ -11,9 +11,9 @@ from ase.collections import collection
 from ase.spacegroup import spacegroup, findsym, xtal
 from ase.geometry import geometry, cell
 from ase.build import tools
-from ase.io import aff
+from ase.io import ulm
 
-modules = [xtal, spacegroup, cell, findsym, aff, atoms]
+modules = [xtal, spacegroup, cell, findsym, ulm, atoms]
 
 if scipy:
     modules.extend([geometry, tools])
