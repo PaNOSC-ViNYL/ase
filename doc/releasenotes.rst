@@ -10,6 +10,12 @@ Git master branch
 
 :git:`master <>`.
 
+
+Version 3.12.0
+==============
+
+24 October 2016: :git:`3.12.0 <../3.12.0>`.
+
 * New :class:`ase.constraints.ExternalForce` constraint.
 
 * Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
@@ -48,7 +54,7 @@ Git master branch
   :func:`~ase.dft.kpoints.labels_from_kpts` and
   :func:`~ase.dft.kpoints.bandpath`.
 
-* Helper function for generation of Monkhors-Pack samplings and BZ-paths:
+* Helper function for generation of Monkhorst-Pack samplings and BZ-paths:
   :func:`ase.calculators.calculator.kpts2ndarray`.
 
 * Useful class for testing band-structure stuff:
@@ -60,6 +66,14 @@ Git master branch
   ``[a, b, c, alpha, beta, gamma]``, where the three angles are in degrees.
   There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
   method.
+
+* Galician translation of ASE's GUI.
+
+* Two new preconditioned structure optimizers available.  See
+  :mod:`ase.optimize.precon`.
+
+* Trajectory files now contain information about the calculator and also
+  information from an optimizer that wrote the trajectory.
 
 
 Version 3.11.0

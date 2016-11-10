@@ -608,13 +608,17 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if len(kpoints) == 0:
             kpoints = None
 
+        if ibz_kpts is not None:
+            bz_kpts = np.dot(ibz_kpts, cell)
+
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointDFTCalculator(atoms, energy=energy, forces=forces,
                                      stress=stress, free_energy=free_energy,
-                                     ibz_kpts=ibz_kpts, eFermi=efermi))
+                                     bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
+                                     eFermi=efermi))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
         atoms.calc.parameters = parameters

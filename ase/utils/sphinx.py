@@ -11,7 +11,7 @@ from docutils.parsers.rst.roles import set_classes
 from ase.utils import exec_
 
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg', warn=False)
 
 
 def mol_role(role, rawtext, text, lineno, inliner, options={}, content=[]):

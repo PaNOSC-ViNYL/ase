@@ -1,37 +1,28 @@
 from ase import Atoms
 from ase.io import Trajectory
 
-class Foo(object):
-    def __init__(self, value):
-        self.value = value
-    def __cmp__(self, other):
-        return int(self.value - other.value)
+# Create a molecule with an info attribute
+info = dict(creation_date='2011-06-27',
+            chemical_name='Hydrogen',
+            # custom classes also works provided that it is
+            # imported and pickleable...
+            foo={'seven': 7})
 
+molecule = Atoms('H2', positions=[(0., 0., 0.), (0., 0., 1.1)], info=info)
+assert molecule.info == info
 
-if __name__ == '__main__':
-    from . import info  # import ourselves to make info.Foo reachable
+# Copy molecule
+atoms = molecule.copy()
+assert atoms.info == info
 
-    # Create a molecule with an info attribute
-    info = dict(creation_date='2011-06-27', 
-                chemical_name='Hydrogen',
-                # custom classes also works provided that it is
-                # imported and pickleable...
-                foo=info.Foo(7),  
-                )
-    molecule = Atoms('H2', positions=[(0., 0., 0.), (0., 0., 1.1)], info=info)
-    assert molecule.info == info
+# Save molecule to trajectory
+traj = Trajectory('info.traj', 'w', atoms=molecule)
+traj.write()
+del traj
 
-    # Copy molecule
-    atoms = molecule.copy()
-    assert atoms.info == info
+# Load molecule from trajectory
+t = Trajectory('info.traj')
+atoms = t[-1]
 
-    # Save molecule to trajectory
-    traj = Trajectory('info.traj', 'w', atoms=molecule)
-    traj.write()
-    del traj
-
-    # Load molecule from trajectory 
-    t = Trajectory('info.traj')
-    atoms = t[-1]
-    assert atoms.info == info
-
+print(atoms.info)
+assert atoms.info == info

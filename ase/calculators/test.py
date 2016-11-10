@@ -192,8 +192,8 @@ def gradient_test(atoms, indices=None):
     print('{0:>16} {1:>20}'.format('eps', 'max(abs(df))'))
     for eps in np.logspace(-1, -8, 8):
         fn = np.zeros((len(indices), 3))
-        for i in indices:
+        for idx, i in enumerate(indices):
             for j in range(3):
-                fn[i, j] = numeric_force(atoms, i, j, eps)
+                fn[idx,j] = numeric_force(atoms, i, j, eps)
         print('{0:16.12f} {1:20.12f}'.format(eps, abs(fn - f).max()))
     return f, fn

@@ -65,7 +65,6 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
 
     return np.dot(fractional, cell)
 
-
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
     to and the distance between the layers and origo.

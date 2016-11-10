@@ -56,7 +56,7 @@ class ScriptTestCase(unittest.TestCase):
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                          'flask', 'gpaw']:
+                          'flask', 'gpaw', 'GPAW']:
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
@@ -77,12 +77,15 @@ class ScriptTestCase(unittest.TestCase):
 
 
 def test(verbosity=1, calculators=[],
-         testdir=None, display=True, stream=sys.stdout):
+         testdir=None, display=True, stream=sys.stdout, files=None):
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
     ts = unittest.TestSuite()
-    files = glob(__path__[0] + '/*')
+    if files:
+        files = [os.path.join(__path__[0], f) for f in files]
+    else:
+        files = glob(__path__[0] + '/*')
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:

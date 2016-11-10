@@ -233,7 +233,7 @@ Example of use::
   >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
   >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1),
   ...              dihedral_indices1]
-  >>> c = FixInternals(bonds=[bonds1], angles=[angles1],
+  >>> c = FixInternals(bonds=[bond1], angles=[angle1],
   ...                  dihedrals=[dihedral1])
   >>> atoms.set_constraint(c)
 

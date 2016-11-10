@@ -57,13 +57,14 @@ The calculators can be divided in four groups:
    Lennard-Jones and Morse.
 
 4) Calculators that wrap others, included in the ASE package:
-   :class:`ase.calculators.checkpoint.CheckpointCalculator` and
+   :class:`ase.calculators.checkpoint.CheckpointCalculator`,
+   the :class:`ase.calculators.loggingcalc.LoggingCalculator` and
    the :ref:`Grimme-D3 <grimme>` potential.
 
 
-==================================  ===========================================
+=================================== ===========================================
 name                                description
-==================================  ===========================================
+=================================== ===========================================
 Asap_                               Highly efficient EMT code
 GPAW_                               Real-space/plane-wave/LCAO PAW code
 Hotbit_                             DFT based tight binding
@@ -90,7 +91,8 @@ mopac                               ...
 lj                                  Lennard-Jones potential
 morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
-==================================  ===========================================
+:mod:`~ase.calculators.loggingcalc` Logging calculator
+=================================== ===========================================
 
 .. index:: D3, Grimme
 .. _grimme:
@@ -206,6 +208,7 @@ the :meth:`set` method:
    vasp
    qmmm
    checkpointing
+   loggingcalc
    others
    test
    ase_qmmm_manyqm

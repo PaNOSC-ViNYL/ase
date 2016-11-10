@@ -1513,7 +1513,7 @@ End CASTEP Interface Documentation
                     i += 1
                     if line.upper() == '%ENDBLOCK DEVEL_CODE':
                         break
-                    value += '\n{}'.format(line)
+                    value += '\n{0}'.format(line)
                 value = value.strip()
 
                 if (not overwrite and

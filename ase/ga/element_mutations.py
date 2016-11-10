@@ -171,12 +171,19 @@ def mendeleiev_table():
 
 
 def get_row_column(element):
-    """Returns the row and column of the element in the periodic table"""
+    """Returns the row and column of the element in the periodic table.
+    Note that Lanthanides and Actinides are defined to be group (column)
+    3 elements"""
     t = mendeleiev_table()
-    for r in range(len(t)):
-        en = (element, atomic_numbers[element])
-        if en in t[r]:
-            return r, t[r].index(en)
+    en = (element, atomic_numbers[element])
+    for i in range(len(t)):
+        for j in range(len(t[i])):
+            if en == t[i][j]:
+                return i, j
+            elif isinstance(t[i][j], list):
+                # Lanthanide or Actinide
+                if en in t[i][j]:
+                    return i, 3
 
 
 class MoveDownMutation(ElementMutation):

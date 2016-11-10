@@ -32,6 +32,7 @@ import ase
 import ase.io
 from ase.utils import devnull
 
+from ase.calculators.calculator import kpts2ndarray
 from ase.calculators.singlepoint import SinglePointCalculator
 
 # Parameters that can be set in INCAR. The values which are None
@@ -1155,6 +1156,11 @@ class Vasp(Calculator):
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
+
+        if isinstance(p['kpts'], dict):
+            p['kpts'] = kpts2ndarray(p['kpts'], atoms=self.atoms)
+            p['reciprocal'] = True
+
         shape = np.array(p['kpts']).shape
 
         # Wrap scalar in list if necessary
