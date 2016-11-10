@@ -11,7 +11,7 @@ def write_xsf(fileobj, images, data=None):
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     is_anim = len(images) > 1
