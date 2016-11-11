@@ -30,7 +30,7 @@ where the ``tleap.in`` file contains::
     saveamberparm mol 2h2o.top h2o.inpcrd
     quit
 
-You need a file ``mm.in`` with instructions for the simulation::::
+You need a file ``mm.in`` with instructions for the simulation::
 
     zero step md to get energy and force
     &cntrl
@@ -40,7 +40,7 @@ You need a file ``mm.in`` with instructions for the simulation::::
     &end
     END
 
-Here is you example Python script::
+Here is your example Python script::
 
     from ase import Atoms
     from ase.calculator.amber import Amber
