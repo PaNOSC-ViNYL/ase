@@ -14,14 +14,50 @@ fileIO.
 .. _Amber: http://ambermd.org
 
 
-Example
--------
+Water example
+-------------
 
-You need input files (instructions for md, structure and topology,
-respectively): :download:`mm.in <../../../ase/test/amber/mm.in>`,
-:download:`2h2o.pdb <../../../ase/test/amber/2h2o.pdb>`, :download:`mm.top
-<../../../ase/test/amber/2h2o.top>`.
+Generate topology file::
 
-The actual ase-amber script:
+    $ tleap -f tleap.in
 
-.. literalinclude:: ../../../ase/test/amber/amber.py
+where the ``tleap.in`` file contains::
+
+    source leaprc.protein.ff14SB
+    source leaprc.gaff
+    source leaprc.water.tip3p
+    mol = loadpdb 2h2o.pdb
+    saveamberparm mol 2h2o.top h2o.inpcrd
+    quit
+
+You need a file ``mm.in`` with instructions for the simulation::::
+
+    zero step md to get energy and force
+    &cntrl
+    imin=0, nstlim=0,  ntx=1 !0 step md
+    cut=100, ntb=0,          !non-periodic
+    ntpr=1,ntwf=1,ntwe=1,ntwx=1 ! (output frequencies)
+    &end
+    END
+
+Here is you example Python script::
+
+    from ase import Atoms
+    from ase.calculator.amber import Amber
+
+    atoms = Atoms('OH2OH2',
+                  [[-0.956, -0.121, 0],
+                   [-1.308, 0.770, 0],
+                   [0.000, 0.000, 0],
+                   [3.903, 0.000, 0],
+                   [4.215, -0.497, -0.759],
+                   [4.215, -0.497, 0.759]])
+
+    calc = Amber(amber_exe='sander -O ',
+                 infile='mm.in',
+                 outfile='mm.out',
+                 topologyfile='2h2o.top',
+                 incoordfile='mm.crd')
+    calc.write_coordinates(atoms, 'mm.crd')
+    atoms.set_calculator(calc)
+    f = atoms.get_forces()
