@@ -10,7 +10,7 @@ Trajectory files
 The :mod:`ase.io.trajectory` module defines Trajectory objects, that is
 objects storing the temporal evolution of a simulation or the path
 taken during an optimization.  A Trajectory file
-contains one or more :class:`~ase.atoms.Atoms` objects, usually to be
+contains one or more :class:`~ase.Atoms` objects, usually to be
 interpreted as a time series, although that is not a requirement.
 
 The main Trajectory object writes in a file format, which is compatible
@@ -91,7 +91,7 @@ writer have a few additional methods, that can be useful.
 Note that there is apparently no methods for reading the trajectory.
 Reading is instead done by indexing the trajectory, or by iterating
 over the trajectory: ``traj[0]`` and ``traj[-1]`` return the first and
-last :class:`~ase.atoms.Atoms` object in the trajectory.
+last :class:`~ase.Atoms` object in the trajectory.
 
 .. autoclass:: ase.io.trajectory.TrajectoryWriter
    :members:
@@ -155,9 +155,9 @@ See also
 ========
 
 * The function :func:`ase.io.write` can write a single
-  :class:`~ase.atoms.Atoms` object to a Trajectory file.
+  :class:`~ase.Atoms` object to a Trajectory file.
 
-* The function :func:`ase.io.read` can read an :class:`~ase.atoms.Atoms`
+* The function :func:`ase.io.read` can read an :class:`~ase.Atoms`
   object from a Trajectory file, per default it reads the last one.
 
 * The database modue :mod:`ase.db`.

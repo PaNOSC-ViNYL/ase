@@ -65,7 +65,6 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
 
     return np.dot(fractional, cell)
 
-
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
     to and the distance between the layers and origo.
@@ -98,8 +97,8 @@ def get_layers(atoms, miller, tolerance=0.001):
            [ 0.   ,  2.025,  2.025],
            [ 2.025,  0.   ,  2.025],
            [ 2.025,  2.025,  0.   ]])
-    >>> get_layers(atoms, (0,0,1))
-    (array([0, 1, 1, 0]), array([ 0.   ,  2.025]))
+    >>> get_layers(atoms, (0,0,1))  # doctest: +ELLIPSIS
+    (array([0, 1, 1, 0]...), array([ 0.   ,  2.025]))
     """
     miller = np.asarray(miller)
 

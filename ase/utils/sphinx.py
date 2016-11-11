@@ -11,7 +11,7 @@ from docutils.parsers.rst.roles import set_classes
 from ase.utils import exec_
 
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg', warn=False)
 
 
 def mol_role(role, rawtext, text, lineno, inliner, options={}, content=[]):
@@ -74,50 +74,6 @@ def trac_role_tmpl(urlroot,
     return [node], []
 
 
-def epydoc_role_tmpl(package_name, urlroot,
-                     role,
-                     rawtext, text, lineno, inliner, options={}, content=[]):
-    name = None
-    if text[-1] == '>':
-        i = text.index('<')
-        name = text[:i - 1]
-        text = text[i + 1:-1]
-
-    components = text.split('.')
-    if components[0] != package_name:
-        components.insert(0, package_name)
-
-    if name is None:
-        name = components[-1]
-
-    try:
-        module = None
-        for n in range(2, len(components) + 1):
-            module = __import__('.'.join(components[:n]))
-    except ImportError:
-        if module is None:
-            print('epydoc: could not process: %s' % str(components))
-            raise
-        for component in components[1:n]:
-            module = getattr(module, component)
-            ref = '.'.join(components[:n])
-            if isinstance(module, type):
-                ref += '-class.html'
-            else:
-                ref += '-module.html'
-        if n < len(components):
-            ref += '#' + components[-1]
-    else:
-        ref = '.'.join(components) + '-module.html'
-
-    ref = urlroot + ref
-    set_classes(options)
-    node = nodes.reference(rawtext, name,
-                           refuri=ref,
-                           **options)
-    return [node], []
-
-
 def creates():
     """Generator for Python scripts and their output filenames."""
     for dirpath, dirnames, filenames in os.walk('.'):
@@ -127,16 +83,22 @@ def creates():
                 lines = open(path).readlines()
                 if len(lines) == 0:
                     continue
-                line = lines[0]
-                if 'coding: utf-8' in line:
-                    line = lines[1]
-                if line.startswith('# creates:'):
-                    yield dirpath, filename, [file.rstrip(',')
-                                              for file in line.split()[2:]]
+                if 'coding: utf-8' in lines[0]:
+                    lines.pop(0)
+                outnames = []
+                for line in lines:
+                    if line.startswith('# creates:'):
+                        outnames.extend([file.rstrip(',')
+                                         for file in line.split()[2:]])
+                    else:
+                        break
+                if outnames:
+                    yield dirpath, filename, outnames
+
         if 'build' in dirnames and dirpath == '.':
             dirnames.remove('build')
 
-                        
+
 def create_png_files():
     errcode = os.system('povray -h 2> /dev/null')
     if errcode:
@@ -188,7 +150,7 @@ def create_png_files():
             for outname in outnames:
                 print(dir, outname)
 
-                
+
 def clean():
     """Remove all generated files."""
     for dir, pyname, outnames in creates():

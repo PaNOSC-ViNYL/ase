@@ -21,5 +21,11 @@ Pd, Ag, Pt and Au.  The EMT parameters for the metals are quite
 realistic for many purposes, whereas the H, C, N and O parameters are
 just for fun!
 
+The potential takes a single argument, ``fixed_cutoff``
+(default: True).  If set to False, the global cutoff
+is chosen from the largest atom present in the simulation,
+if True it is chosen from the largest atom in the parameter
+table.  False gives the behaviour of the Asap code and
+older EMT implementations.
 
 .. _ASAP: http://wiki.fysik.dtu.dk/asap

@@ -20,9 +20,9 @@ if not os.path.exists(pseudo_path):
     os.makedirs(pseudo_path)
 if not os.path.exists(run_path):
     os.makedirs(run_path)
-os.system('touch %s/H.lda.psf' % pseudo_path)
-os.system('touch %s/C.lda.psf' % pseudo_path)
-os.system('touch %s/O.lda.psf' % pseudo_path)
+for symbol in 'HCO':
+    with open('{0}/{1}.lda.psf'.format(pseudo_path, symbol), 'w') as fd:
+        fd.close()
 
 h = Atoms('H', [(0.0, 0.0, 0.0)])
 co2 = Atoms('CO2', [(0.0, 0.0, 0.0), (-1.178, 0.0, 0.0), (1.178, 0.0, 0.0)])

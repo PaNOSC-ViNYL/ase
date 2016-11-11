@@ -18,7 +18,8 @@ import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
-from ase.geometry import wrap_positions, find_mic
+from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
+                          cell_to_cellpar)
 
 
 class Atoms(object):
@@ -62,9 +63,15 @@ class Atoms(object):
         non-collinear calculations.
     charges: list of float
         Atomic charges.
-    cell: 3x3 matrix
+    cell: 3x3 matrix or length 3 or 6 vector
         Unit cell vectors.  Can also be given as just three
-        numbers for orthorhombic cells.  Default value: [1, 1, 1].
+        numbers for orthorhombic cells, or 6 numbers, where
+        first three are lengths of unit cell vectors, and the
+        other three are angles between them (in degrees), in following order:
+        [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
+        First vector will lie in x-direction, second in xy-plane,
+        and the third one in z-positive subspace.
+        Default value: [1, 1, 1].
     celldisp: Vector
         Unit cell displacement vector. To visualize a displaced cell
         around the center of mass of a Systems of atoms. Default value
@@ -88,8 +95,8 @@ class Atoms(object):
           - adsorbate_info:
 
         Items in the info attribute survives copy and slicing and can
-        be store to and retrieved from trajectory files given that the
-        key is a string, the value is picklable and, if the value is a
+        be stored in and retrieved from trajectory files given that the
+        key is a string, the value is JSON-compatible and, if the value is a
         user-defined object, its base class is importable.  One should
         not make any assumptions about the existence of keys.
 
@@ -274,10 +281,15 @@ class Atoms(object):
 
         Parameters:
 
-        cell :
+        cell: 3x3 matrix or length 3 or 6 vector
             Unit cell.  A 3x3 matrix (the three unit cell vectors) or
-            just three numbers for an orthorhombic cell.
-        scale_atoms : bool
+            just three numbers for an orthorhombic cell. Another option is
+            6 numbers, which describes unit cell with lengths of unit cell
+            vectors and with angles between them (in degrees), in following
+            order: [len(a), len(b), len(c), angle(b,c), angle(a,c),
+            angle(a,b)].  First vector will lie in x-direction, second in
+            xy-plane, and the third one in z-positive subspace.
+        scale_atoms: bool
             Fix atomic positions or move atoms with the unit cell?
             Default behavior is to *not* move the atoms (scale_atoms=False).
 
@@ -293,17 +305,30 @@ class Atoms(object):
         FCC unit cell:
 
         >>> atoms.set_cell([(0, b, b), (b, 0, b), (b, b, 0)])
+
+        Hexagonal unit cell:
+
+        >>> atoms.set_cell([a, a, c, 90, 90, 120])
+
+        Rhombohedral unit cell:
+
+        >>> alpha = 77
+        >>> atoms.set_cell([a, a, a, alpha, alpha, alpha])
         """
 
         if fix is not None:
             raise TypeError('Please use scale_atoms=%s' % (not fix))
 
         cell = np.array(cell, float)
+
         if cell.shape == (3,):
             cell = np.diag(cell)
+        elif cell.shape == (6,):
+            cell = cellpar_to_cell(cell)
         elif cell.shape != (3, 3):
-            raise ValueError('Cell must be length 3 sequence or '
-                             '3x3 matrix!')
+            raise ValueError('Cell must be length 3 sequence, length 6 '
+                             'sequence or 3x3 matrix!')
+
         if scale_atoms:
             M = np.linalg.solve(self._cell, cell)
             self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
@@ -321,6 +346,18 @@ class Atoms(object):
     def get_cell(self):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         return self._cell.copy()
+
+    def get_cell_lengths_and_angles(self):
+        """Get unit cell parameters. Sequence of 6 numbers.
+
+        First three are unit cell vector lengths and second three
+        are angles between them::
+
+            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+
+        in degrees.
+        """
+        return cell_to_cellpar(self._cell)
 
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray.
@@ -780,31 +817,40 @@ class Atoms(object):
         return len(self)
 
     def __repr__(self):
-        num = self.get_atomic_numbers()
-        N = len(num)
-        if N == 0:
-            symbols = ''
-        elif N <= 60:
+        tokens = []
+
+        N = len(self)
+        if N <= 60:
             symbols = self.get_chemical_formula('reduce')
         else:
             symbols = self.get_chemical_formula('hill')
-        s = "%s(symbols='%s', " % (self.__class__.__name__, symbols)
-        for name in self.arrays:
+        tokens.append("symbols='{0}'".format(symbols))
+
+        tokens.append('pbc={0}'.format(self._pbc.tolist()))
+
+        if (self._cell - np.diag(self._cell.diagonal())).any():
+            cell = self._cell.tolist()
+        else:
+            cell = self._cell.diagonal().tolist()
+        tokens.append('cell={0}'.format(cell))
+
+        for name in sorted(self.arrays):
             if name == 'numbers':
                 continue
-            s += '%s=..., ' % name
-        if (self._cell - np.diag(self._cell.diagonal())).any():
-            s += 'cell=%s, ' % self._cell.tolist()
-        else:
-            s += 'cell=%s, ' % self._cell.diagonal().tolist()
-        s += 'pbc=%s, ' % self._pbc.tolist()
-        if len(self.constraints) == 1:
-            s += 'constraint=%s, ' % repr(self.constraints[0])
-        if len(self.constraints) > 1:
-            s += 'constraint=%s, ' % repr(self.constraints)
+            tokens.append('{0}=...'.format(name))
+
+        if self.constraints:
+            if len(self.constraints) == 1:
+                constraint = self.constraints[0]
+            else:
+                constraint = self.constraints
+            tokens.append('constraint={0}'.format(repr(constraint)))
+
         if self._calc is not None:
-            s += 'calculator=%s(...), ' % self._calc.__class__.__name__
-        return s[:-2] + ')'
+            tokens.append('calculator={0}(...)'
+                          .format(self._calc.__class__.__name__))
+
+        return '{0}({1})'.format(self.__class__.__name__, ', '.join(tokens))
 
     def __add__(self, other):
         atoms = self.copy()

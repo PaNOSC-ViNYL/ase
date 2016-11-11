@@ -6,7 +6,7 @@ def read_octopus(fileobj, get_kwargs=False):
     if isinstance(fileobj, str):  # This could be solved with decorators...
         fileobj = open(fileobj)
 
-    names, values = parse_input_file(fileobj)
+    kwargs = parse_input_file(fileobj)
 
     # input files may contain internal references to other files such
     # as xyz or xsf.  We need to know the directory where the file
@@ -24,7 +24,6 @@ def read_octopus(fileobj, get_kwargs=False):
     else:
         directory = os.path.split(fname)[0]
 
-    kwargs = dict(zip(names, values))
     atoms, remaining_kwargs = kwargs2atoms(kwargs, directory=directory)
     if get_kwargs:
         return atoms, remaining_kwargs

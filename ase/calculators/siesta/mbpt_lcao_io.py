@@ -8,11 +8,6 @@ import ase.io as aio
 import numpy as np
 
 
-#############################################
-#                                           #
-#       Class of the plot_lib library       #
-#                                           #
-#############################################
 """
   class read_mbpt_lcao_output: Main class of the library
           use to load the data from the TDDFT code
@@ -219,55 +214,56 @@ class read_hdf5_data:
             keys = ['dr', 'origin', 'ibox']
             dico = {}
 
-        for i, k in enumerate(keys):
-            dico[k] = self.group[keys_f[i]].value
+            for i, k in enumerate(keys):
+                dico[k] = self.group[keys_f[i]].value
 
-        self.dr = dico['dr']
-        self.origin = dico['origin']
-        self.lbound = dico['ibox'][:, 0]
-        self.ubound = dico['ibox'][:, 1]
+            self.dr = dico['dr']
+            self.origin = dico['origin']
+            self.lbound = dico['ibox'][:, 0]
+            self.ubound = dico['ibox'][:, 1]
 
-        if args_p.time == 0:
-            keys_f.append(self.dname)
+            if args_p.time == 0:
+                keys_f.append(self.dname)
 
-            dico['Array'] = self.group[keys_f[3]].value
+                dico['Array'] = self.group[keys_f[3]].value
 
-            dim = dico['Array'].shape[::-1]
-            if args_p.quantity == 'Efield':
-                self.Array = dico['Array'].ravel('F').reshape(
-                    dim[0], dim[1], dim[2], dim[3])
+                dim = dico['Array'].shape[::-1]
+                if args_p.quantity == 'Efield':
+                    self.Array = dico['Array'].ravel('F').reshape(
+                        dim[0], dim[1], dim[2], dim[3])
+                else:
+                    self.Array = dico['Array'].T
+
             else:
-                self.Array = dico['Array'].T
+                sh = self.group[self.dname[0]].value.shape
+                self.t = self.group['t'].value
+                if args_p.quantity == 'Efield':
+                    self.Array = np.array(
+                        (self.t.shape[0], sh[0], sh[1], sh[2], sh[3]),
+                        dtype=float)
+                    for i in range(len(self.dname)):
+                        self.Array[i] = self.group[self.dname[i]].value
+                else:
+                    self.Array = np.zeros(
+                        (self.t.shape[0], sh[0], sh[1], sh[2]), dtype=float)
+                    for i in range(len(self.dname)):
+                        print('array ', self.Array.shape)
+                        print('sum(data) ',
+                              np.sum(abs(self.group[self.dname[i]].value)))
+                        self.Array[i] = self.group[self.dname[i]].value
 
-        else:
-            sh = self.group[self.dname[0]].value.shape
-            self.t = self.group['t'].value
-            if args_p.quantity == 'Efield':
-                self.Array = np.array(
-                    (self.t.shape[0], sh[0], sh[1], sh[2], sh[3]), dtype=float)
-                for i in range(len(self.dname)):
-                    self.Array[i, :, :, :, :] = self.group[self.dname[i]].value
-            else:
-                self.Array = np.zeros(
-                    (self.t.shape[0], sh[0], sh[1], sh[2]), dtype=float)
-                for i in range(len(self.dname)):
-                    print('array ', self.Array.shape)
-                    print('sum(data) ',
-                          np.sum(abs(self.group[self.dname[i]].value)))
-                    self.Array[i, :, :, :] = self.group[self.dname[i]].value
+            self.determine_box()
+            self.mesh3D()
+            self.mesh2D()
 
-        self.determine_box()
-        self.mesh3D()
-        self.mesh2D()
+            self.xy_prof = self.xy_mesh[:, int(self.xy_mesh.shape[1] / 2)]
+            self.xz_prof = self.xz_mesh[int(self.xz_mesh.shape[0] / 2), :]
 
-        self.xy_prof = self.xy_mesh[:, int(self.xy_mesh.shape[1] / 2)]
-        self.xz_prof = self.xz_mesh[int(self.xz_mesh.shape[0] / 2), :]
+            self.yx_prof = self.yx_mesh[:, int(self.yx_mesh.shape[1] / 2)]
+            self.yz_prof = self.yz_mesh[int(self.yz_mesh.shape[0] / 2), :]
 
-        self.yx_prof = self.yx_mesh[:, int(self.yx_mesh.shape[1] / 2)]
-        self.yz_prof = self.yz_mesh[int(self.yz_mesh.shape[0] / 2), :]
-
-        self.zx_prof = self.zx_mesh[:, int(self.zx_mesh.shape[1] / 2)]
-        self.zy_prof = self.zy_mesh[int(self.zy_mesh.shape[0] / 2), :]
+            self.zx_prof = self.zx_mesh[:, int(self.zx_mesh.shape[1] / 2)]
+            self.zy_prof = self.zy_mesh[int(self.zy_mesh.shape[0] / 2), :]
 
     def check_file_iter(self, args_p):
         if args_p.quantity == 'polarizability':
@@ -364,36 +360,36 @@ class read_hdf5_data:
                     '_' +
                     args_p.ReIm]
 
-        keys = ['dr', 'origin', 'ibox', 'Array']
-        dico = {}
+            keys = ['dr', 'origin', 'ibox', 'Array']
+            dico = {}
 
-        for i, k in enumerate(keys):
-            dico[k] = self.group[keys_f[i]].value
+            for i, k in enumerate(keys):
+                dico[k] = self.group[keys_f[i]].value
 
-        self.dr = dico['dr']
-        self.origin = dico['origin']
-        self.lbound = dico['ibox'][:, 0]
-        self.ubound = dico['ibox'][:, 1]
+            self.dr = dico['dr']
+            self.origin = dico['origin']
+            self.lbound = dico['ibox'][:, 0]
+            self.ubound = dico['ibox'][:, 1]
 
-        dim = dico['Array'].shape[::-1]
-        if args_p.quantity == 'Efield':
-            self.Array = dico['Array'].ravel('F').reshape(
-                dim[0], dim[1], dim[2], dim[3])
-        else:
-            self.Array = dico['Array'].T
+            dim = dico['Array'].shape[::-1]
+            if args_p.quantity == 'Efield':
+                self.Array = dico['Array'].ravel('F').reshape(
+                    dim[0], dim[1], dim[2], dim[3])
+            else:
+                self.Array = dico['Array'].T
 
-        self.determine_box()
-        self.mesh3D()
-        self.mesh2D()
+            self.determine_box()
+            self.mesh3D()
+            self.mesh2D()
 
-        self.xy_prof = self.xy_mesh[:, int(self.xy_mesh.shape[1] / 2)]
-        self.xz_prof = self.xz_mesh[int(self.xz_mesh.shape[0] / 2), :]
+            self.xy_prof = self.xy_mesh[:, int(self.xy_mesh.shape[1] / 2)]
+            self.xz_prof = self.xz_mesh[int(self.xz_mesh.shape[0] / 2), :]
 
-        self.yx_prof = self.yx_mesh[:, int(self.yx_mesh.shape[1] / 2)]
-        self.yz_prof = self.yz_mesh[int(self.yz_mesh.shape[0] / 2), :]
+            self.yx_prof = self.yx_mesh[:, int(self.yx_mesh.shape[1] / 2)]
+            self.yz_prof = self.yz_mesh[int(self.yz_mesh.shape[0] / 2), :]
 
-        self.zx_prof = self.zx_mesh[:, int(self.zx_mesh.shape[1] / 2)]
-        self.zy_prof = self.zy_mesh[int(self.zy_mesh.shape[0] / 2), :]
+            self.zx_prof = self.zx_mesh[:, int(self.zx_mesh.shape[1] / 2)]
+            self.zy_prof = self.zy_mesh[int(self.zy_mesh.shape[0] / 2), :]
 
     def determine_box(self):
         box = list()
@@ -910,8 +906,8 @@ class MBPT_LCAO_Properties_figure:
         self.bohr_rad = 0.52917721
         self.figname = 'default'
         self.cmap = cm.jet
-        self.units = 'au'   # for the moment only the polarizability
-                            # can be modify in nm**2
+        self.units = 'au'
+        # for the moment only the polarizability can be modify in nm**2
         self.vmin = None
         self.vmax = None
         # to save a mayavi scrennshot in order to perform subplot with
@@ -932,7 +928,6 @@ class MBPT_LCAO_Properties_figure:
             'magnification': 1}
         self.maya_cam = {
             'distance': None,
-            'focalpoint': None,
             'azimuth': None,
             'elevation': None,
             'roll': None,

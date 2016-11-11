@@ -42,16 +42,18 @@ Supported :mod:`Calculators <ase.calculators>`:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |siesta| |turbomole| |vasp|
+|octopus| |onetep| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
+Gaussian_ Grimme-D3_ Mopac_
 :mod:`~ase.calculators.tip3p`
-Gaussian_ Mopac_ Grimme-D3_
 
 
 .. _news:
 
 News
 ====
+
+* :ref:`ASE version 3.12.0 <releasenotes>` released (24 October 2016).
 
 * :ref:`ASE version 3.11.0 <releasenotes>` released (10 May 2016).
 
@@ -183,6 +185,9 @@ Contents
    :align: middle
 .. |octopus| image:: static/octopus.png
    :target: ase/calculators/octopus.html
+   :align: middle
+.. |onetep| image:: static/onetep.png
+   :target: http://www.onetep.org/
    :align: middle
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
