@@ -106,14 +106,12 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                         fromfile = os.path.join(inbundle, "F0", name)
                         tofile = os.path.join(outdir, name)
                         os.link(fromfile, tofile)
-                        n_from_first += 1
             elif must_resort:
                 # Must read and rewrite data
                 # First we read the ID's from frame 0 and N
                 if split_data:
                     f0_id_names = [os.path.join(inbundle, "F0", "ID_{0}.pickle".format(i)) for i in range(fragments0)]
                     f0_id = [load_second(open(i, "rb")) for i in f0_id_names]
-                    f0_sizes = [len(i) for i in f0_id]
                     f0_id = np.concatenate(f0_id)
                     fn_id_names = [os.path.join(indir, "ID_{0}.pickle".format(i)) for i in range(fragments1)]
                     fn_id = [load_second(open(i, "rb")) for i in fn_id_names]
@@ -167,7 +165,7 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                         continue
                     if name not in names:
                         # We need to load this array
-                        arrrayname = name.split('_')[0]
+                        arrayname = name.split('_')[0]
                         print("    Reading", arrayname)
                         f0_data_names = [os.path.join(inbundle, "F0", arrayname+"_{0}.pickle".format(i)) for i in range(fragments0)]
                         f0_data = np.concatenate([load_second(open(i, "rb")) for i in f0_data_names])
@@ -177,14 +175,14 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                             outsizes = [pickle.load(open(i, "rb"))[0][0] for i in fn_pos_names]
                         print("    Reading re-segmented", arrayname)
                         pointer = 0
-                        for i, s in enumerate(out_sizes):
+                        for i, s in enumerate(outsizes):
                             segment = f0_data[pointer:pointer+s]
                             pointer += s
                             arrayoutname = os.path.join(outdir, arrayname+"_{0}.pickle".format(i))
                             arrayoutfile = open(arrayoutname, "wb")
                             pickle.dump((segment.shape, str(segment.dtype)), arrayoutfile, -1)
                             pickle.dump(segment, arrayoutfile, -1)
-                            close(arrayoutfile)
+                            arrayoutfile.close()
     # Finally, write the number of frames
     f = open(os.path.join(outbundle, 'frames'), 'w')
     f.write(str(len(frames)) + '\n')
