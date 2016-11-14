@@ -519,7 +519,7 @@ def write_trajectory(filename, images):
 
     traj = PickleTrajectory(filename, mode='w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     for atoms in images:
