@@ -19,17 +19,14 @@ class Amber(FileIOCalculator):
     """Class for doing Amber classical MM calculations.
 
     Example:
-    mm.in:
 
-    Minimization with Cartesian restraints
-    &cntrl
-    imin=1, maxcyc=200, (invoke minimization)
-    ntpr=5, (print frequency)
-    &end
+    mm.in::
 
-
-
-
+        Minimization with Cartesian restraints
+        &cntrl
+        imin=1, maxcyc=200, (invoke minimization)
+        ntpr=5, (print frequency)
+        &end
     """
 
     implemented_properties = ['energy', 'forces']
@@ -69,34 +66,6 @@ class Amber(FileIOCalculator):
             this file is not used in case minisation/dynamics is done by ase.
             It is only relevant
             if you run MD/optimisation many steps with amber.
-
-        Examples (optimise 2 water molecules in vacuum)
-        ========
-        You need three input files for this (with the names given):
-        1) MD instructions for amber
-        mm.in:
-
-        2) atom coordinates
-        2h2o.pdb:
-
-        3) topology file
-        2h2o.top:
-
-    from ase.calculators.amber import Amber
-    from ase.optimize import BFGS
-    import ase.io as io
-
-    atoms = io.read('2h2o.pdb')
-    calc = Amber(amber_exe='sander -O ',
-        infile = 'mm.in', outfile = 'mm.out',
-        topologyfile = 'mm.top', incoordfile='mm.crd')
-    calc.write_coordinates(atoms, 'mm.crd')
-    atoms.set_calculator(calc)
-    dyn = BFGS(atoms, trajectory='mm.traj')
-    dyn.run(fmax=0.005)
-    e = atoms.get_potential_energy()
-    print ("FINAL ENERGY: "+ str(e) + " [eV]")
-
 
         """
 
@@ -360,8 +329,9 @@ class SANDER(Calculator):
             e, f = sander.energy_forces()
             self.results['energy'] = e.tot * units.kcal / units.mol
             if self.permutation is None:
-                self.results['forces'] = (np.reshape(np.array(f), (len(atoms), 3))
-                                          * units.kcal / units.mol)
+                self.results['forces'] = (np.reshape(np.array(f),
+                                                     (len(atoms), 3)) *
+                                          units.kcal / units.mol)
             else:
                 ff = np.reshape(np.array(f), (len(atoms), 3)) * \
                     units.kcal / units.mol
@@ -376,8 +346,9 @@ class SANDER(Calculator):
             e, f = sander.energy_forces()
             self.results['energy'] = e.tot * units.kcal / units.mol
             if self.permutation is None:
-                self.results['forces'] = (np.reshape(np.array(f), (len(atoms), 3))
-                                          * units.kcal / units.mol)
+                self.results['forces'] = (np.reshape(np.array(f),
+                                                     (len(atoms), 3)) *
+                                          units.kcal / units.mol)
             else:
                 ff = np.reshape(np.array(f), (len(atoms), 3)) * \
                     units.kcal / units.mol

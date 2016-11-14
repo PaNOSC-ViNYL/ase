@@ -149,17 +149,17 @@ class Vibrations:
             freq, pol = self.get_polarizability()
         if rank == 0:
             if self.ir and self.ram:
-                pickle.dump([forces, dipole, freq, pol], fd, protocol=0)
+                pickle.dump([forces, dipole, freq, pol], fd, protocol=2)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
             elif self.ir and not self.ram:
-                pickle.dump([forces, dipole], fd, protocol=0)
+                pickle.dump([forces, dipole], fd, protocol=2)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
             else:
-                pickle.dump(forces, fd, protocol=0)
+                pickle.dump(forces, fd, protocol=2)
                 sys.stdout.write('Writing %s\n' % filename)
             fd.close()
         sys.stdout.flush()

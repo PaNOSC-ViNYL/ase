@@ -453,7 +453,7 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     for atoms in images:

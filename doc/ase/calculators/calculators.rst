@@ -48,7 +48,7 @@ The calculators can be divided in four groups:
 
 1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
 
-2) ABINIT, CP2K, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
+2) ABINIT, AMBER, CP2K, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
    Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, SIESTA, TURBOMOLE and VASP,
    have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
@@ -69,6 +69,7 @@ Asap_                               Highly efficient EMT code
 GPAW_                               Real-space/plane-wave/LCAO PAW code
 Hotbit_                             DFT based tight binding
 :mod:`~ase.calculators.abinit`      Plane-wave pseudopotential code
+:mod:`~ase.calculators.amber`       Classical molecular dynamics code 
 :mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
 :mod:`~ase.calculators.cp2k`        DFT and classical potentials
 :mod:`~ase.calculators.dftb`        DFT based tight binding
@@ -191,6 +192,7 @@ the :meth:`set` method:
    eam
    emt
    abinit
+   amber
    castep
    cp2k
    dftb

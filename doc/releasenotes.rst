@@ -31,7 +31,7 @@ Version 3.12.0
 
 * :func:`ase.io.write` can now write XSD files.
 
-* Interfaces for deMon and ONETEP added.
+* Interfaces for deMon, Amber and ONETEP added.
 
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
