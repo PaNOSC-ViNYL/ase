@@ -633,10 +633,6 @@ class GUI(View, Status):
 
             self.draw()
 
-    def debug(self, x):
-        from ase.gui.debug import Debug
-        Debug(self)
-
     def execute(self, widget=None):
         from ase.gui.execute import Execute
         Execute(self)
@@ -987,8 +983,7 @@ class GUI(View, Status):
 
             (_('_Help'),
              [M(_('_About'), self.about),
-              M(_('Webpage ...'), webpage),
-              M(_('Debug ...'), self.debug)])]
+              M(_('Webpage ...'), webpage)])]
 
 
 def webpage(widget):
