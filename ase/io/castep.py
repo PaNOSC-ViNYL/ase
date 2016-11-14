@@ -602,7 +602,7 @@ def read_castep_cell(fd, index=None):
                     try:
                         calc.__setattr__(block_name, block_lines)
                     except:
-                        print('Problem setting calc.cell.%s = %s' % (key, value))
+                        print('Problem setting calc.cell.%s' % (block_name))
                         raise
         else:
             key = tokens[0]
