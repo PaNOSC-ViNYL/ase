@@ -333,7 +333,7 @@ class TransportCalculator:
        Examples:
 
        >> import numpy as np
-       >> pylab as plt
+       >> import pylab as plt
        >> from ase import units
        >>
        >> bias = np.arange(0, 2, .1)
@@ -347,7 +347,7 @@ class TransportCalculator:
        if E is not None:
            if T_e is None:
                self.energies = E
-               self.self.uptodate = False
+               self.uptodate = False
                T_e = self.get_transmission().copy()
        else:
            assert self.uptodate, 'Energy grid and transmission function not defined.'
