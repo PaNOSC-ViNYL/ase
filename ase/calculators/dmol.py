@@ -99,7 +99,7 @@ import os
 import re
 from datetime import datetime
 import numpy as np
-
+from ase.io.dmol import write_dmol_car, write_dmol_incoor
 from ase.units import Hartree, Bohr
 from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
 
@@ -143,9 +143,9 @@ class DMol3(FileIOCalculator):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         if np.all(atoms.pbc):
-            write_incoor(self.label + '.incoor', atoms)
+            write_dmol_incoor(self.label + '.incoor', atoms)
         elif not np.any(atoms.pbc):
-            write_car(self.label + '.car', atoms)
+            write_dmol_car(self.label + '.car', atoms)
             
         self.write_input_file()
         self.parameters.write(os.path.join(self.directory, 'parameters.ase'))
