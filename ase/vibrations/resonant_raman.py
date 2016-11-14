@@ -501,6 +501,30 @@ class ResonantRaman(Vibrations):
         else:
             raise NotImplementedError
 
+    def get_absolute_intensity(self, omega, gamma=0.1):
+        """Absolute Raman intensity or Raman scattering factor
+
+        Unit: Ang**4/amu
+        """
+        m2 = ResonantRaman.m2
+        alpha_Qcc = self.get_matrix_element(omega, gamma)
+        alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
+                      alpha_Qcc[:, 2, 2]) / 9.
+##        print('alpha2_r**1/2=', np.sqrt(alpha2_r))
+        delta2_r = 3 / 4. * (
+            m2(alpha_Qcc[:, 0, 1] - alpha_Qcc[:, 1, 0]) +
+            m2(alpha_Qcc[:, 0, 2] - alpha_Qcc[:, 2, 0]) +
+            m2(alpha_Qcc[:, 1, 2] - alpha_Qcc[:, 2, 1]))
+        gamma2_r = (3 / 4. * (m2(alpha_Qcc[:, 0, 1] + alpha_Qcc[:, 1, 0]) +
+                              m2(alpha_Qcc[:, 0, 2] + alpha_Qcc[:, 2, 0]) +
+                              m2(alpha_Qcc[:, 1, 2] + alpha_Qcc[:, 2, 1])) +
+                    (m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 1, 1]) +
+                     m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 2, 2]) +
+                     m2(alpha_Qcc[:, 1, 1] - alpha_Qcc[:, 2, 2])) / 2)
+
+        return 45 * alpha2_r + 0. * delta2_r + 7 * gamma2_r
+        
+
     def get_cross_sections(self, omega, gamma=0.1):
         """Returns Raman cross sections for each vibration."""
         I_r = self.get_intensities(omega, gamma)
@@ -667,11 +691,16 @@ class Placzek(ResonantRaman):
                     polarizability(self.exm_r[r], omega, tensor=True))
                 r += 1
         self.timer.stop('alpha derivatives')
-##        print('pz V_rcc[-1]', V_rcc[-1].diagonal())
+        vv =  V_rcc[-1].diagonal().sum() / 3
+        ## print('pz vv(r)=', vv, 'Ang**2 =', vv / units.Bohr**2, 'Bohr**2')
 
         # map to modes
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
         V_Qcc = np.dot(V_qcc.T, self.modes.T).T
+        ## print(self.modes.T)
+        vv = np.array([V_cc.diagonal().sum() / 3 for V_cc in V_Qcc])
+        ## print('pz vv(Q)=', vv, 'Ang**2/amu**0.5 =',
+        ##       vv / units.Bohr**2, 'Bohr**2/amu**0.5')
         return V_Qcc
 
 
