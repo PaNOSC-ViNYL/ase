@@ -63,10 +63,10 @@ def read_dmol_car(filename):
 
         if lines[1][4:6] == 'ON':
             start_line += 1
-            cell_data = np.array([ float(fld) for fld in lines[4].split()[1:7] ])
+            cell_data = np.array([ float(fld) for fld in lines[4].split()[1:7]])
             cell = cellpar_to_cell(cell_data)
             atoms.cell = cell
-            atoms.pbc = [1,1,1]
+            atoms.pbc = [True, True, True]
 
         for line in lines[start_line:]:
             if line.startswith('end'):  
@@ -152,3 +152,98 @@ def read_dmol_incoor(filename, bohr=True):
         atoms.positions = atoms.positions * Bohr
     return atoms
 
+
+
+def read_dmol_arc(filename, index=-1):
+    """ Read a dmol arc-file and return a series of Atoms objects (images). """
+
+    try:
+        lines = open(filename, 'r').readlines()
+        images = []
+
+        if lines[1].startswith('PBC=ON'):
+            pbc = True
+        elif lines[1].startswith('PBC=OFF'):
+            pbc = False
+        else:
+            print lines[1]
+            raise RuntimeError('Could not read pbc from second line in %s' \
+                                % filename)
+        i = 0
+        while i < len(lines):
+            image = Atoms() 
+            # parse single image
+            if lines[i].startswith('!DATE'):
+                # read cell
+                if pbc: 
+                    cell_data = np.array([ float(fld) for fld in lines[i+1].split()[1:7]])
+                    image.cell = cellpar_to_cell(cell_data)
+                    image.pbc = [True, True, True]
+                    i += 1
+                i += 1
+                # read atoms
+                while not lines[i].startswith('end'):
+                    flds = lines[i].split()
+                    image.append(Atom(flds[7], flds[1:4]))
+                    i += 1
+                images.append(image)
+            if len(images) == index:
+                return images[-1]
+            i += 1
+    except IOError:
+        print 'Could not read arc file %s'%filename
+
+    # return requested images, code borrowed from ase/io/trajectory.py
+    if isinstance(index, int):
+        return images[index]
+    else:
+        step = index.step or 1
+        if step > 0:
+            start = index.start or 0
+            if start < 0:
+                start += len(images)
+            stop = index.stop or len(images)
+            if stop < 0:
+                stop += len(images)
+        else:
+            if index.start is None:
+                start = len(images) - 1
+            else:
+                start = index.start
+                if start < 0:
+                    start += len(images)
+            if index.stop is None:
+                stop = -1
+            else:
+                stop = index.stop
+                if stop < 0:
+                    stop += len(images)
+        return [images[i] for i in range(start, stop, step)]
+
+def write_dmol_arc(filename, images):
+    """ Writes all images to file filename in arc format. """
+
+    f = open(filename,'w')
+    f.write('!BIOSYM archive 3\n')
+    if np.all(images[0].pbc):
+        f.write('PBC=ON\n\n')
+    elif not np.any(images[0].pbc):
+        f.write('PBC=OFF\n\n')
+    else:
+        raise RuntimeError('PBC must be all true or all false')
+    for atoms in images:
+        dt = datetime.now()
+        if np.all(atoms.pbc):    
+            a,b,c,alpha,beta,gamma = cell_to_cellpar(atoms.get_cell())
+            f.write('!DATE     %s\n'% dt.strftime('%b %d %H:%m:%S %Y') )
+            f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n'%(a,b,c,alpha,beta,gamma))
+        elif not np.any(atoms.pbc): # [False,False,False]
+            f.write('!DATE     %s\n'% dt.strftime('%b %d %H:%m:%S %Y') )
+        else:
+            raise RuntimeError('PBC must be all true or all false')
+        for i,a in enumerate(atoms):
+            f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  0.000\n'%(
+                   a.symbol+str(i+1),a.x, a.y, a.z, a.symbol))
+        f.write('end\nend\n')
+        f.write('\n')
+    f.close()

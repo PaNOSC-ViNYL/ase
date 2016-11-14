@@ -76,21 +76,13 @@ TODO NOTES
 Important:
 
 * Restarting? read() function, remove?
-* export Accelrys stuff?
-* Check that rotation works for both molecule and periodic
 * Integrate with ase
-    * IO
     * doc
     * examples [eigenvalues, grd2cube]
 * grd files with rotation!
 
-
-Minor:
-
 * Write all docstrings in the same format (numpy formatting),
     which functions do we need to comment better/more?
-* Prolly we need better error handling for files and stuff, also
-    basically all RunTimeErrors could be replaced with something better?
 
 
 """

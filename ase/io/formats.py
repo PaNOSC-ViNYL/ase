@@ -56,6 +56,7 @@ all_formats = {
     'dacapo-text': ('Dacapo text output', '1F'),
     'db': ('ASE SQLite database file', '+S'),
     'dftb': ('DftbPlus input file', '1S'),
+    'dmol-arc': ('DMol3 arc file','+S'),
     'dmol-car': ('DMol3 structure file','1S'),
     'dmol-incoor': ('DMol3 structure file','1S'),
     'elk': ('ELK atoms definition', '1S'),
@@ -111,6 +112,7 @@ all_formats = {
 # Special cases:
 format2modulename = {
     'aims-output': 'aims',
+    'dmol-arc': 'dmol',
     'dmol-car': 'dmol',
     'dmol-incoor': 'dmol',
     'castep-castep': 'castep',
