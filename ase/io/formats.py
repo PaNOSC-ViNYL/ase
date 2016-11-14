@@ -56,6 +56,8 @@ all_formats = {
     'dacapo-text': ('Dacapo text output', '1F'),
     'db': ('ASE SQLite database file', '+S'),
     'dftb': ('DftbPlus input file', '1S'),
+    'dmol-car': ('DMol3 structure file','1S'),
+    'dmol-incoor': ('DMol3 structure file','1S'),
     'elk': ('ELK atoms definition', '1S'),
     'eon': ('EON reactant.con file', '1F'),
     'eps': ('Encapsulated Postscript', '1S'),
@@ -109,6 +111,8 @@ all_formats = {
 # Special cases:
 format2modulename = {
     'aims-output': 'aims',
+    'dmol-car': 'dmol',
+    'dmol-incoor': 'dmol',
     'castep-castep': 'castep',
     'castep-cell': 'castep',
     'castep-geom': 'castep',
@@ -135,6 +139,7 @@ format2modulename = {
 
 extension2format = {
     'ascii': 'v-sim',
+    'car': 'dmol-car',
     'castep': 'castep-castep',
     'cell': 'castep-cell',
     'com': 'gaussian',
@@ -161,6 +166,7 @@ def initialize(format):
 
     _format = format.replace('-', '_')
     module_name = format2modulename.get(format, _format)
+
     try:
         module = import_module('ase.io.' + module_name)
     except ImportError as err:
