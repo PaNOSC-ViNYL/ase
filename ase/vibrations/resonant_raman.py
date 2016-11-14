@@ -92,7 +92,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('Ground state')
         forces = self.atoms.get_forces()
         if rank == 0:
-            pickle.dump(forces, fd)
+            pickle.dump(forces, fd, protocol=2)
             fd.close()
         self.timer.stop('Ground state')
 

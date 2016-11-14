@@ -149,17 +149,17 @@ class Vibrations:
             freq, pol = self.get_polarizability()
         if rank == 0:
             if self.ir and self.ram:
-                pickle.dump([forces, dipole, freq, pol], fd)
+                pickle.dump([forces, dipole, freq, pol], fd, protocol=2)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
             elif self.ir and not self.ram:
-                pickle.dump([forces, dipole], fd)
+                pickle.dump([forces, dipole], fd, protocol=2)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
             else:
-                pickle.dump(forces, fd)
+                pickle.dump(forces, fd, protocol=2)
                 sys.stdout.write('Writing %s\n' % filename)
             fd.close()
         sys.stdout.flush()
@@ -191,7 +191,11 @@ class Vibrations:
         assert self.direction in ['central', 'forward', 'backward']
 
         def load(fname):
-            f = pickle.load(open(fname, 'rb'))
+            with open(fname, 'rb') as fl:
+                try:
+                    f = pickle.load(fl, encoding='bytes')
+                except TypeError:  # python2 does not know about encoding
+                    f = pickle.load(fl)
             if not hasattr(f, 'shape'):
                 # output from InfraRed
                 return f[0]
