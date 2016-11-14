@@ -195,6 +195,50 @@ def parse_properties(prop_str):
     return properties, properties_list, dtype, converters
 
 
+class XYZError(IOError):
+    pass
+
+
+def iterchunks(fd):
+    """Yield unprocessed chunks (header, lines) for each xyz image."""
+    while True:
+        line = next(fd).strip()  # Raises StopIteration on empty file
+        try:
+            natoms = int(line)
+        except ValueError:
+            raise XYZError('Expected integer, found "{0}"'.format(line))
+        try:
+            header = next(fd)
+            lines = [next(fd) for _ in range(natoms)]
+        except StopIteration:
+            raise XYZError('Incomplete XYZ chunk')
+        yield header, lines
+
+
+def chunk2atoms(header, lines):
+    """Convert unprocessed chunk into Atoms."""
+    symbols = []
+    positions = []
+
+    for line in lines:
+        tokens = line.split()
+        symbols.append(tokens[0])
+        positions.append([float(x) for x in tokens[1:]])
+
+    if len(symbols) > 0 and symbols[0].isdigit():
+        numbers = symbols
+        symbols = None
+    else:
+        numbers = None
+    return Atoms(symbols=symbols, numbers=numbers, positions=positions)
+
+
+def iread_xyz(fd):
+    """Yield all images from file."""
+    for header, lines in iterchunks(fd):
+        yield chunk2atoms(header, lines)
+
+
 def read_xyz(fileobj, index=-1):
     """
     Read from a file in Extended XYZ format
