@@ -166,7 +166,7 @@ class ResonantRaman(Vibrations):
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
         self.ex0m_pc = np.array(
-            [ex.get_dipole_me(form='v') for ex in ex0])
+            [ex.get_dipole_me(form='v') for ex in ex0]) * units.Bohr
         exmE_rp = []
         expE_rp = []
         exF_rp = []
@@ -370,11 +370,11 @@ class ResonantRaman(Vibrations):
         def kappa_cc(me_pc, e_p, omega, gamma, form='v'):
             """Kappa tensor after Profeta and Mauri
             PRB 63 (2001) 245415"""
-            k_cc = np.empty((3, 3), dtype=complex)
+            k_cc = np.zeros((3, 3), dtype=complex)
             for p, me_c in enumerate(me_pc):
-                me_cc = np.outer(me_pc[p], me_pc[p].conj())
-                k_cc += (me_cc / (e_p - omega - 1j * gamma) +
-                         me_cc.conj() / (e_p + omega + 1j * gamma))
+                me_cc = np.outer(me_c, me_c.conj())
+                k_cc += (me_cc / (e_p[p] - omega - 1j * gamma) +
+                         me_cc.conj() / (e_p[p] + omega + 1j * gamma))
             return k_cc
         
         self.timer.start('kappa')
@@ -382,17 +382,17 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 if not energy_derivative < 0:
-                    V_rcc[r] += pre * self.im[r] * (
+                    V_rcc[r] += pre * (
                         kappa_cc(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
                         kappa_cc(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
                 if energy_derivative:
-                    V_rcc[r] += pre * self.im[r] * (
+                    V_rcc[r] += pre * (
                         kappa_cc(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
                         kappa_cc(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
                 r += 1
         self.timer.stop('kappa')
         self.timer.stop('amplitudes')
-
+        
         # map to modes
         self.timer.start('pre_r')
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
@@ -679,16 +679,10 @@ class Placzek(ResonantRaman):
                     polarizability(self.exm_r[r], omega, tensor=True))
                 r += 1
         self.timer.stop('alpha derivatives')
-        vv =  V_rcc[-1].diagonal().sum() / 3
-        ## print('pz vv(r)=', vv, 'Ang**2 =', vv / units.Bohr**2, 'Bohr**2')
-
+ 
         # map to modes
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
         V_Qcc = np.dot(V_qcc.T, self.modes.T).T
-        ## print(self.modes.T)
-        vv = np.array([V_cc.diagonal().sum() / 3 for V_cc in V_Qcc])
-        ## print('pz vv(Q)=', vv, 'Ang**2/amu**0.5 =',
-        ##       vv / units.Bohr**2, 'Bohr**2/amu**0.5')
         return V_Qcc
 
 
@@ -760,7 +754,7 @@ class LrResonantRaman(ResonantRaman):
 #        self.exmE_p = np.array([ex.energy * eu for ex in exm])
 #        self.expE_p = np.array([ex.energy * eu for ex in exp])
         self.ex0m_pc = np.array(
-            [ex.get_dipole_me(form='v') for ex in ex0])
+            [ex.get_dipole_me(form='v') for ex in ex0]) * units.Bohr
         self.exF_rp = []
         exmE_rp = []
         expE_rp = []
@@ -782,7 +776,7 @@ class LrResonantRaman(ResonantRaman):
         self.exmE_rp = np.array(exmE_rp) * eu
         self.expE_rp = np.array(expE_rp) * eu
         self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
-        self.exmm_rpc = np.array(exmm_rpc)
-        self.expm_rpc = np.array(expm_rpc)
+        self.exmm_rpc = np.array(exmm_rpc) * units.Bohr
+        self.expm_rpc = np.array(expm_rpc) * units.Bohr
 
         self.timer.stop('me and energy')
