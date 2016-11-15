@@ -82,9 +82,6 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             if split_data:
                 fragments0 = data0['fragments']
                 fragments1 = data1['fragments']
-                split_changed = fragments0 != fragments1
-            else:
-                split_changed = False
 
             data0.update(data1)  # Data in frame overrides data from frame 0.
             smallname = os.path.join(outdir, "smalldata.pickle")
@@ -93,11 +90,10 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             pickle.dump(data0, f, -1)
             f.close()
 
-            # Now we should check if there is an ID array, in that case stuff must
+            # If data is written in split mode, it must be resorted
             # be reordered
             firstnames = os.listdir(os.path.join(inbundle, "F0"))
-            must_resort = ('ID_0.pickle' in firstnames) or ('ID.pickle' in firstnames)
-            if not split_changed and not must_resort:
+            if not split_data:
                 # Simple linking
                 for name in firstnames:
                     if name not in names:
@@ -106,59 +102,17 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                         fromfile = os.path.join(inbundle, "F0", name)
                         tofile = os.path.join(outdir, name)
                         os.link(fromfile, tofile)
-            elif must_resort:
+            else:
                 # Must read and rewrite data
                 # First we read the ID's from frame 0 and N
-                if split_data:
-                    f0_id_names = [os.path.join(inbundle, "F0", "ID_{0}.pickle".format(i)) for i in range(fragments0)]
-                    f0_id = [load_second(open(i, "rb")) for i in f0_id_names]
-                    f0_id = np.concatenate(f0_id)
-                    fn_id_names = [os.path.join(indir, "ID_{0}.pickle".format(i)) for i in range(fragments1)]
-                    fn_id = [load_second(open(i, "rb")) for i in fn_id_names]
-                    fn_sizes = [len(i) for i in fn_id]
-                    fn_id = np.concatenate(fn_id)
-                else:
-                    f0_id = load_second(os.path.join(inbundle, "F0", "ID.pickle"))
-                    fn_id = load_second(os.path.join(indir, "ID.pickle"))
-                for name in firstnames:
-                    # Only look at each array, not each file
-                    if '_0.pickle' not in name:
-                        continue
-                    if name not in names:
-                        if split_data:
-                            # We need to load this array
-                            arrayname = name.split('_')[0]
-                            print("    Reading", arrayname)
-                            f0_data_names = [os.path.join(inbundle, "F0", arrayname+"_{0}.pickle".format(i))
-                                             for i in range(fragments0)]
-                            f0_data = np.concatenate([load_second(open(i, "rb")) for i in f0_data_names])
-                        else:
-                            print("    Reading", name)
-                            f0_data = load_second(open(os.path.join(inbundle, "F0", name), "rb"))
-                        # Sort data
-                        f0_data[f0_id] = np.array(f0_data)
-                        # Unsort with new ordering
-                        f0_data = f0_data[fn_id]
-                        # Write it
-                        if split_data:
-                            print("    Writing reshuffled", arrayname)
-                            pointer = 0
-                            for i, s in enumerate(fn_sizes):
-                                segment = f0_data[pointer:pointer+s]
-                                pointer += s
-                                arrayoutname = os.path.join(outdir, arrayname+"_{0}.pickle".format(i))
-                                arrayoutfile = open(arrayoutname, "wb")
-                                pickle.dump((segment.shape, str(segment.dtype)), arrayoutfile, -1)
-                                pickle.dump(segment, arrayoutfile, -1)
-                                arrayoutfile.close()
-                        else:
-                            arrayoutfile = open(os.path.join(outdir, name), "w")
-                            pickle.dump((f0_data.shape, str(f0_data.dtype)), arrayoutfile, -1)
-                            pickle.dump(f0_data, arrayoutfile, -1)
-                            arrayoutfile.close()
-            else:
-                # Split has changed, but no resorting needed.
-                outsizes = None
+                assert 'ID_0.pickle' in firstnames and 'ID_0.pickle' in names
+                f0_id_names = [os.path.join(inbundle, "F0", "ID_{0}.pickle".format(i)) for i in range(fragments0)]
+                f0_id = [load_second(open(i, "rb")) for i in f0_id_names]
+                f0_id = np.concatenate(f0_id)
+                fn_id_names = [os.path.join(indir, "ID_{0}.pickle".format(i)) for i in range(fragments1)]
+                fn_id = [load_second(open(i, "rb")) for i in fn_id_names]
+                fn_sizes = [len(i) for i in fn_id]
+                fn_id = np.concatenate(fn_id)
                 for name in firstnames:
                     # Only look at each array, not each file
                     if '_0.pickle' not in name:
@@ -167,15 +121,17 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                         # We need to load this array
                         arrayname = name.split('_')[0]
                         print("    Reading", arrayname)
-                        f0_data_names = [os.path.join(inbundle, "F0", arrayname+"_{0}.pickle".format(i)) for i in range(fragments0)]
+                        f0_data_names = [os.path.join(inbundle, "F0", arrayname+"_{0}.pickle".format(i))
+                                         for i in range(fragments0)]
                         f0_data = np.concatenate([load_second(open(i, "rb")) for i in f0_data_names])
-                        # We need to find out how big the chuncks are when writing the first array
-                        if outsizes is None:
-                            fn_pos_names = [os.path.join(indir, "positions_{0}.pickle".format(i)) for i in range(fragments1)]
-                            outsizes = [pickle.load(open(i, "rb"))[0][0] for i in fn_pos_names]
-                        print("    Reading re-segmented", arrayname)
+                        # Sort data
+                        f0_data[f0_id] = np.array(f0_data)
+                        # Unsort with new ordering
+                        f0_data = f0_data[fn_id]
+                        # Write it
+                        print("    Writing reshuffled", arrayname)
                         pointer = 0
-                        for i, s in enumerate(outsizes):
+                        for i, s in enumerate(fn_sizes):
                             segment = f0_data[pointer:pointer+s]
                             pointer += s
                             arrayoutname = os.path.join(outdir, arrayname+"_{0}.pickle".format(i))
