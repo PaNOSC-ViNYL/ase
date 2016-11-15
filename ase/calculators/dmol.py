@@ -77,12 +77,11 @@ Important:
 
 * Restarting? read() function, remove?
 * Integrate with ase
-    * doc
     * examples [eigenvalues, grd2cube]
-* grd files with rotation!
 
 * Write all docstrings in the same format (numpy formatting),
     which functions do we need to comment better/more?
+* PEP8
 
 
 """
@@ -576,13 +575,13 @@ def find_transformation(atoms1, atoms2, verbose = False, only_cell = False):
 
 
 
-from ase.io import write
 
 def grd_to_cube(atoms, grd_file, cube_file, rot_mat=None):
     """ Reads grd_file and converts data to cube 
     format and writes to cube_file.
     """
-    
+    from ase.io import write
+
     atoms_copy = atoms.copy()
     data, cell, origin = read_grd(grd_file)
     atoms_copy.cell = cell
@@ -597,6 +596,8 @@ def read_grd(filename, rot_mat=None):
           Not clear how this works with .rot file
             
     """
+    from ase.geometry.cell import cell_to_cellpar, cellpar_to_cell
+
     lines = open(filename, 'r').readlines()
     
     cell_data = np.array([float(fld) for fld in lines[2].split()])
