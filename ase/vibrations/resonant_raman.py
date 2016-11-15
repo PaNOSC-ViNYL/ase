@@ -205,7 +205,7 @@ class ResonantRaman(Vibrations):
             # we now have:
             # self.H     : Hessian matrix
             # self.im    : 1./sqrt(masses)
-            # self.modes : Eigenmodes of the mass weighted H
+            # self.modes : Eigenmodes of the mass weighted Hessian
             self.om_Q = self.hnu.real    # energies in eV
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0E_p'):
@@ -364,45 +364,33 @@ class ResonantRaman(Vibrations):
         self.timer.start('init')
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
+        pre *= units.Hartree * units.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
         self.timer.stop('init')
 
-        def kappa(me_pc, e_p, omega, gamma, form='v'):
+        def kappa_cc(me_pc, e_p, omega, gamma, form='v'):
             """Kappa tensor after Profeta and Mauri
             PRB 63 (2001) 245415"""
-            me_ccp = np.empty((3, 3, len(e_p)), dtype=complex)
+            k_cc = np.empty((3, 3), dtype=complex)
             for p, me_c in enumerate(me_pc):
-                me_ccp[:, :, p] = np.outer(me_pc[p], me_pc[p].conj())
-                # print('kappa: me_ccp=', me_ccp[2,2,0])
-                # ok print('kappa: den=', 1./(e_p - omega - 1j * gamma))
-            kappa_ccp = (me_ccp / (e_p - omega - 1j * gamma) +
-                         me_ccp.conj() / (e_p + omega + 1j * gamma))
-            return kappa_ccp.sum(2)
-
+                me_cc = np.outer(me_pc[p], me_pc[p].conj())
+                k_cc += (me_cc / (e_p - omega - 1j * gamma) +
+                         me_cc.conj() / (e_p + omega + 1j * gamma))
+            return k_cc
+        
         self.timer.start('kappa')
-##        print('energy_derivative', energy_derivative)
         r = 0
         for a in self.indices:
             for i in 'xyz':
                 if not energy_derivative < 0:
                     V_rcc[r] += pre * self.im[r] * (
-                        kappa(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
-                        kappa(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
-##                if r == 5:
-##                    print('1: V_rcc[-1]=', V_rcc[-1].diagonal())
+                        kappa_cc(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
+                        kappa_cc(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
                 if energy_derivative:
                     V_rcc[r] += pre * self.im[r] * (
-                        kappa(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
-                        kappa(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
-##                if r == 5:
-##                    print('1: V_rcc[-1]=', V_rcc[-1].diagonal())
+                        kappa_cc(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
+                        kappa_cc(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
                 r += 1
         self.timer.stop('kappa')
-##        print('V_rcc[2], V_rcc[5]=', V_rcc[-1].diagonal())
-
-        # V_rcc is now e^2 * Angstrom / eV -> get to Angstrom^2
-        V_rcc *= units.Hartree * units.Bohr
-##        print('rr V_rcc[-1]', V_rcc[-1].diagonal())
-        
         self.timer.stop('amplitudes')
 
         # map to modes
