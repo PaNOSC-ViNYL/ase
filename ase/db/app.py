@@ -165,6 +165,16 @@ def image(name):
     return send_from_directory(tmpdir, name)
 
 
+@app.route('/cif/<name>')
+def cif(name):
+    path = os.path.join(tmpdir, name)
+    if not os.path.isfile(path):
+        id = int(name[:-4])
+        atoms = db.get_atoms(id)
+        atoms.write(path)
+    return send_from_directory(tmpdir, name)
+
+
 @app.route('/plot/<png>')
 def plot(png):
     path = os.path.join(tmpdir, png)
