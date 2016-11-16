@@ -17,7 +17,7 @@ jmol_isReady = function(applet) {
 
 var Info = {
     width: 400,
-    height: 200,
+    height: 400,
     debug: false,
     color: "0xFFFFFF",
     addSelectionOptions: false,
@@ -29,6 +29,17 @@ var Info = {
     disableInitialConsole: true,
     allowJavaScript: false
 };
+
+var s = 1;
+function repeatCell() {
+    if (s == 1) {
+        Jmol.script(jmolApplet0, 'load "" {2 2 2}');
+        s = 0;
+    } else {
+        Jmol.script(jmolApplet0, 'load "" {1 1 1}');
+        s = 1;
+    }
+}
 
 $(document).ready(function() {
 $("#appdiv").html(Jmol.getAppletHtml("jmolApplet0", Info))})
@@ -46,6 +57,7 @@ Download:
 <br>
 {% endif %}
 <div id="appdiv"></div>
+<button onclick="repeatCell()">Switch repeated</button>
 <br>
 {% for name in s.plots %}
 <img src="/plot/{{ name }}-{{ d.id }}.png"><br>
