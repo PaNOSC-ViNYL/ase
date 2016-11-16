@@ -20,7 +20,6 @@ from ase.gui.minimize import Minimize
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
 from ase.gui.save import save_dialog
-from ase.gui.scaling import HomogeneousDeformation
 from ase.gui.settings import Settings
 from ase.gui.status import Status
 from ase.gui.surfaceslab import SetupSurfaceSlab
@@ -633,10 +632,6 @@ class GUI(View, Status):
 
             self.draw()
 
-    def debug(self, x):
-        from ase.gui.debug import Debug
-        Debug(self)
-
     def execute(self, widget=None):
         from ase.gui.execute import Execute
         Execute(self)
@@ -793,9 +788,6 @@ class GUI(View, Status):
 
     def energy_minimize_window(self, menuitem):
         Minimize(self)
-
-    def scaling_window(self, menuitem):
-        HomogeneousDeformation(self)
 
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
@@ -981,14 +973,11 @@ class GUI(View, Status):
               M(_('_Energy and Forces'),
                 self.energy_window),
               M(_('Energy Minimization'),
-                self.energy_minimize_window),
-              M(_('Scale system'),
-                self.scaling_window)]),
+                self.energy_minimize_window)]),
 
             (_('_Help'),
              [M(_('_About'), self.about),
-              M(_('Webpage ...'), webpage),
-              M(_('Debug ...'), self.debug)])]
+              M(_('Webpage ...'), webpage)])]
 
 
 def webpage(widget):

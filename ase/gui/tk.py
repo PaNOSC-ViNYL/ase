@@ -118,11 +118,10 @@ class Text(Widget):
 
 class Button(Widget):
     def __init__(self, text, on_press, *args, **kwargs):
-        self.text = text
-        self.on_press = partial(on_press, *args, **kwargs)
-
-    def create(self, parent):
-        return tk.Button(parent, text=self.text, command=self.on_press)
+        callback = partial(on_press, *args, **kwargs)
+        self.creator = partial(tk.Button,
+                               text=text,
+                               command=callback)
 
 
 class CheckButton(Widget):
@@ -266,18 +265,19 @@ class RadioButton(Widget):
 
 
 class ComboBox(Widget):
-    def __init__(self, labels, selected=None):
+    def __init__(self, labels, values=None, callback=None):
         self.var = tk.StringVar()
-        self.selected = selected
+        self.values = values or list(range(len(labels)))
+        self.callback = callback
         self.creator = partial(ttk.Combobox,
                                textvariable=self.var, values=labels)
 
     def create(self, parrent):
         widget = Widget.create(self, parrent)
         widget.current(0)
-        if self.selected:
+        if self.callback:
             def callback(event):
-                self.selected(self.value)
+                self.callback(self.value)
             widget.bind('<<ComboboxSelected>>', callback)
         return widget
 
