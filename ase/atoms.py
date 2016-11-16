@@ -71,7 +71,7 @@ class Atoms(object):
         [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
         First vector will lie in x-direction, second in xy-plane,
         and the third one in z-positive subspace.
-        Default value: [1, 1, 1].
+        Default value: [0, 0, 0].
     celldisp: Vector
         Unit cell displacement vector. To visualize a displaced cell
         around the center of mass of a Systems of atoms. Default value
@@ -120,9 +120,8 @@ class Atoms(object):
     Hydrogen wire:
 
     >>> d = 0.9  # H-H distance
-    >>> L = 7.0
-    >>> h = Atoms('H', positions=[(0, L / 2, L / 2)],
-    ...           cell=(d, L, L),
+    >>> h = Atoms('H', positions=[(0, 0, 0)],
+    ...           cell=(d, 0, 0),
     ...           pbc=(1, 0, 0))
     """
 
@@ -202,7 +201,7 @@ class Atoms(object):
                 self.new_array('numbers', symbols2numbers(symbols), int)
 
         if cell is None:
-            cell = np.eye(3)
+            cell = np.zeros((3, 3))
         self.set_cell(cell)
 
         if celldisp is None:
@@ -1597,6 +1596,8 @@ class Atoms(object):
 
     def get_volume(self):
         """Get volume of unit cell."""
+        if not self._cell.any(1).all():
+            1/0
         return abs(np.linalg.det(self._cell))
 
     def _get_positions(self):
@@ -1650,7 +1651,7 @@ class Atoms(object):
         Conflicts leading to undesirable behaviour might arise
         when matplotlib has been pre-imported with certain
         incompatible backends and while trying to use the
-        plot feature inside the interactive ag. To circumvent,
+        plot feature inside the interactive ase-gui. To circumvent,
         please set matplotlib.use('gtk') before calling this
         method.
         """
