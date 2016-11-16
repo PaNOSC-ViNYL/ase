@@ -392,19 +392,8 @@ class ResonantRaman(Vibrations):
                 r += 1
         self.timer.stop('kappa')
         self.timer.stop('amplitudes')
-        
-        # map to modes
-        self.timer.start('pre_r')
-        V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
-        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
-        # XXX reactivate and add to Placzek XXX
-##        with np.errstate(divide='ignore'):
-##            pre_Q = np.where(self.om_Q > 0,
-##                             np.sqrt(units._hbar**2 / 2. / self.om_Q), 0)
-##        for r, p in enumerate(pre_r):
-##            V_rcc[r] *= p
-        self.timer.stop('pre_r')
-        return V_Qcc
+
+        return V_rcc
 
     def get_matrix_element(self, omega, gamma):
         self.read()
@@ -440,7 +429,19 @@ class ResonantRaman(Vibrations):
                 'Please use "Profeta", "Placzek", "Albrecht A/B/C/BC", ' +
                 'or "Albrecht".')
 
-        return V_rcc
+        # map to modes
+        self.timer.start('map R2Q')
+        V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
+        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
+        # XXX reactivate and add to Placzek XXX
+##        with np.errstate(divide='ignore'):
+##            pre_Q = np.where(self.om_Q > 0,
+##                             np.sqrt(units._hbar**2 / 2. / self.om_Q), 0)
+##        for r, p in enumerate(pre_r):
+##            V_rcc[r] *= p
+        self.timer.stop('map R2Q')
+
+        return V_Qcc
 
     def get_intensities(self, omega, gamma=0.1):
         m2 = ResonantRaman.m2
@@ -511,7 +512,6 @@ class ResonantRaman(Vibrations):
                      m2(alpha_Qcc[:, 1, 1] - alpha_Qcc[:, 2, 2])) / 2)
 
         return 45 * alpha2_r + 0. * delta2_r + 7 * gamma2_r
-        
 
     def get_cross_sections(self, omega, gamma=0.1):
         """Returns Raman cross sections for each vibration."""
@@ -675,8 +675,8 @@ class Placzek(ResonantRaman):
         for a in self.indices:
             for i in 'xyz':
                 V_rcc[r] = pre * (
-                    polarizability(self.exp_r[r], omega, tensor=True) -
-                    polarizability(self.exm_r[r], omega, tensor=True))
+                    polarizability(self.exp_r[r], om, tensor=True) -
+                    polarizability(self.exm_r[r], om, tensor=True))
                 r += 1
         self.timer.stop('alpha derivatives')
  
