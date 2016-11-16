@@ -1,5 +1,5 @@
 # encoding: utf-8
-"""nanotube.py - Window for setting up Carbon nanotubes and similar tubes.
+"""Window for setting up Carbon nanotubes and similar tubes.
 """
 from gettext import gettext as _
 
