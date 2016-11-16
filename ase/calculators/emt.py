@@ -102,11 +102,11 @@ class EMT(Calculator):
             self.ksi[s1] = {}
             for s2, p2 in self.par.items():
                 self.ksi[s1][s2] = p2['n0'] / p1['n0']
-                
+
         self.forces = np.empty((len(atoms), 3))
         self.sigma1 = np.empty(len(atoms))
         self.deds = np.empty(len(atoms))
-                    
+
         self.nl = NeighborList([0.5 * self.rc + 0.25] * len(atoms),
                                self_interaction=False)
 
@@ -120,9 +120,9 @@ class EMT(Calculator):
         positions = self.atoms.positions
         numbers = self.atoms.numbers
         cell = self.atoms.cell
-        
+
         self.nl.update(self.atoms)
-        
+
         self.energy = 0.0
         self.sigma1[:] = 0.0
         self.forces[:] = 0.0
@@ -142,7 +142,7 @@ class EMT(Calculator):
                     Z2 = numbers[a2]
                     p2 = self.par[Z2]
                     self.interact1(a1, a2, d, r, p1, p2, ksi[Z2])
-                                
+
         for a in range(natoms):
             Z = numbers[a]
             p = self.par[Z]
