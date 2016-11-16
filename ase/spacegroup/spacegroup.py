@@ -295,12 +295,12 @@ class Spacegroup(object):
         uvw = np.array(uvw, ndmin=2)
         rot = self.get_rotations()
         n, nrot = len(uvw), len(rot)
-        directions = np.dot(uvw, rot).reshape((n*nrot, 3))
+        directions = np.dot(uvw, rot).reshape((n * nrot, 3))
         ind = np.lexsort(directions.T)
         directions = directions[ind]
         diff = np.diff(directions, axis=0)
         mask = np.any(diff, axis=1)
-        return np.vstack((directions[mask], directions[-1,:]))
+        return np.vstack((directions[:-1][mask], directions[-1:]))
 
     def symmetry_normalised_reflections(self, hkl):
         """Returns an array of same size as *hkl*, containing the
