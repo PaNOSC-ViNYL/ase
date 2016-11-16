@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from ase.io import Trajectory
@@ -104,9 +103,12 @@ class AutoNEB(object):
        ase-gui -n -1 iter prefix???.traj
     """
 
-    def __init__(self, attach_calculators, prefix, n_simul, n_max, iter_folder='AutoNEB_iter',
-                 fmax=0.025, maxsteps=10000, k=0.1, climb=True, method='eb', optimizer='FIRE',
-                 remove_rotation_and_translation=False, space_energy_ratio=0.5, world=None,
+    def __init__(self, attach_calculators, prefix, n_simul, n_max,
+                 iter_folder='AutoNEB_iter',
+                 fmax=0.025, maxsteps=10000, k=0.1, climb=True, method='eb',
+                 optimizer='FIRE',
+                 remove_rotation_and_translation=False, space_energy_ratio=0.5,
+                 world=None,
                  parallel=True, smooth_curve=False, interpolate_method='IDPP'):
         self.attach_calculators = attach_calculators
         self.prefix = prefix
@@ -154,7 +156,7 @@ class AutoNEB(object):
                     filename = '%s%03d.traj' % (self.prefix, i)
                     self.all_images[i].write(filename)
                     filename_ref = self.iter_folder + \
-                        '/%s%03diter%03d.traj' % (self.prefix, i, 
+                        '/%s%03diter%03d.traj' % (self.prefix, i,
                                                   self.iteration)
                     if os.path.isfile(filename):
                         shutil.copy2(filename, filename_ref)
@@ -166,14 +168,15 @@ class AutoNEB(object):
                   k=[self.k[i] for i in to_run[0:-1]],
                   method=self.method,
                   parallel=self.parallel,
-                  remove_rotation_and_translation=self.remove_rotation_and_translation,
+                  remove_rotation_and_translation=self
+                  .remove_rotation_and_translation,
                   climb=climb)
 
         # Do the actual NEB calculation
         qn = self.optimizer(neb,
-                            logfile=self.iter_folder + \
-                                '/%s_log_iter%03d.log' % (self.prefix,
-                                                          self.iteration))
+                            logfile=self.iter_folder +
+                            '/%s_log_iter%03d.log' % (self.prefix,
+                                                      self.iteration))
         
         # Find the ranks which are masters for each their calculation
         if self.parallel:
@@ -188,7 +191,7 @@ class AutoNEB(object):
             filename_ref = self.iter_folder + \
                 '/%s%03diter%03d.traj' % (self.prefix,
                                           j + nneb, self.iteration)
-            trajhist = Trajectory(filename_ref, 'w', 
+            trajhist = Trajectory(filename_ref, 'w',
                                   self.all_images[j + nneb],
                                   master=(self.world.rank % n == 0))
             qn.attach(traj)
@@ -382,7 +385,7 @@ class AutoNEB(object):
             assert climb_safe, 'climb_safe should be true at this point!'
             self.execute_one_neb(n_cur, to_run, climb=True, many_steps=True)
         
-        if self.smooth_curve == False:
+        if not self.smooth_curve:
             return self.all_images
             
         # If a smooth_curve is requsted ajust the springs to follow two
@@ -403,13 +406,13 @@ class AutoNEB(object):
         for i in range(peak):
             v = (self.all_images[i].get_positions() +
                  self.all_images[i + 1].get_positions()) / 2 - \
-                 self.all_images[0].get_positions()
+                self.all_images[0].get_positions()
             x1.append(np.linalg.norm(v))
         
         for i in range(peak, len(self.all_images) - 1):
             v = (self.all_images[i].get_positions() +
                  self.all_images[i + 1].get_positions()) / 2 - \
-                 self.all_images[0].get_positions()
+                self.all_images[0].get_positions()
             x2.append(np.linalg.norm(v))
         k_tmp = []
         for x in x1:
@@ -446,14 +449,14 @@ class AutoNEB(object):
                           'was found. Should contain initial image')
             
         # Find the images that exist
-        index_exists = [i for i in range(self.n_max) if \
-                            os.path.isfile('%s%03d.traj' % (self.prefix, i))]
+        index_exists = [i for i in range(self.n_max) if
+                        os.path.isfile('%s%03d.traj' % (self.prefix, i))]
 
         n_cur = index_exists[-1] + 1
 
         if self.world.rank == 0:
             print('The NEB initially has %d images ' % len(index_exists),
-                   '(including the end-points)')
+                  '(including the end-points)')
         if len(index_exists) == 1:
             raise Exception('Only a start point exists')
 
