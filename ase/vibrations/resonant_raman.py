@@ -20,6 +20,22 @@ from ase.utils import convert_string_to_fd
 from gpaw.lrtddft.spectrum import polarizability
 
 
+def overlap(calc1, calc2):
+    """GPAW overlaps"""
+    n1 = calc1.get_number_of_bands()
+    spin1 = calc1.get_number_of_spins() == 2
+    n2 = calc2.get_number_of_bands()
+    spin2 = calc2.get_number_of_spins() == 2
+    overlap_nn = np.zeros((n1, n2), dtype=float) 
+    for i1 in range(n1):
+        psi1 = calc1.wfs.kpt_u[0].psit_nG[i1]
+        for i2 in range(n2):
+            psi2 = calc2.wfs.kpt_u[0].psit_nG[i2]
+            overlap_nn[i1, i2] = calc1.wfs.gd.integrate(psi1 * psi2)
+            parprint(i1, i2, '{0:7.2f}'.format(overlap_nn[i1, i2]))
+    return overlap_nn
+            
+
 class ResonantRaman(Vibrations):
     """Class for calculating vibrational modes and
     resonant Raman intensities using finite difference.
@@ -58,7 +74,9 @@ class ResonantRaman(Vibrations):
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
                  txt='-',
-                 verbose=False,):
+                 verbose=False,
+                 overlap=False,
+    ):
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
@@ -81,7 +99,8 @@ class ResonantRaman(Vibrations):
         self.txt = convert_string_to_fd(txt)
 
         self.verbose = verbose
-
+        self.overlap = overlap
+        
     @staticmethod
     def m2(z):
         return (z * z.conj()).real
@@ -91,13 +110,26 @@ class ResonantRaman(Vibrations):
             self.txt.write(pre + message + end)
             self.txt.flush()
 
+    def run(self):
+        if self.overlap:
+            # XXXX stupid way to make a copy
+            self.atoms.get_potential_energy()
+            self.eq_calculator = self.atoms.get_calculator()
+            fname = 'eq.gpw'
+            self.eq_calculator.write(fname, 'all')
+            self.eq_calculator = self.eq_calculator.__class__(fname)
+        Vibrations.run(self)
+
     def calculate(self, filename, fd):
         """Call ground and excited state calculation"""
         self.timer.start('Ground state')
-        forces = self.atoms.get_forces()
+        forces = self.atoms.get_potential_energy()
         if rank == 0:
             pickle.dump(forces, fd, protocol=2)
             fd.close()
+        if self.overlap:
+            ov_nn = overlap(self.atoms.get_calculator(), self.eq_calculator)
+            np.save(filename + '.ov', ov_nn)
         self.timer.stop('Ground state')
 
         self.timer.start('Excitations')
