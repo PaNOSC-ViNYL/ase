@@ -44,15 +44,9 @@ class BaseWindow:
     def add(self, stuff, anchor='center'):
         if isinstance(stuff, str):
             stuff = Label(stuff)
-        if isinstance(stuff, list):
-            frame = tk.Frame(self.win)
-            for thing in stuff:
-                if isinstance(thing, str):
-                    thing = Label(thing)
-                thing.pack(frame, 'left')
-            frame.pack(anchor=anchor)
-        else:
-            stuff.pack(self.win, anchor=anchor)
+        elif isinstance(stuff, list):
+            stuff = Row(stuff)
+        stuff.pack(self.win, anchor=anchor)
         self.things.append(stuff)
 
 
@@ -67,7 +61,7 @@ class Widget(object):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
         if not isinstance(self, (Rows, RadioButtons)):
-            widget['font'] = font
+            pass  # widget['font'] = font
 
     def grid(self, parent):
         widget = self.create(parent)
@@ -76,6 +70,19 @@ class Widget(object):
 
     def create(self, parent):
         self.widget = self.creator(parent)
+        return self.widget
+
+
+class Row(Widget):
+    def __init__(self, things):
+        self.things = things
+
+    def create(self, parent):
+        self.widget = tk.Frame(parent)
+        for thing in self.things:
+            if isinstance(thing, str):
+                thing = Label(thing)
+            thing.pack(self.widget, 'left')
         return self.widget
 
 
@@ -117,11 +124,11 @@ class Text(Widget):
 
 
 class Button(Widget):
-    def __init__(self, text, on_press, *args, **kwargs):
-        callback = partial(on_press, *args, **kwargs)
+    def __init__(self, text, callback, *args, **kwargs):
+        self.callback = partial(callback, *args, **kwargs)
         self.creator = partial(tk.Button,
                                text=text,
-                               command=callback)
+                               command=self.callback)
 
 
 class CheckButton(Widget):
@@ -302,9 +309,10 @@ class Rows(Widget):
     def add(self, row):
         if isinstance(row, str):
             row = Label(row)
+        elif isinstance(row, list):
+            row = Row(row)
         row.grid(self.widget)
         self.rows.append(row)
-        print(self.rows)
 
     def __delitem__(self, i):
         widget = self.rows.pop(i).widget

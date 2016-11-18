@@ -40,6 +40,11 @@ def nt(gui):
     #gui.exit()
 
 
+def np(gui):
+    np = gui.nanoparticle_window()
+    yield
+
+
 def color(gui):
     yield
     c = gui.colors_window()
@@ -48,11 +53,13 @@ def color(gui):
     assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 0]
 
 
-if 0:
+if 1:
     gui = GUI()
-    gui.run(test=nt(gui))
+    # gui.run(test=nt(gui))
+    gui.run(test=np(gui))
 
-h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
-h2.calc = SinglePointCalculator(h2, forces=[(0, 0, 0), (0, 0, 1)])
-gui = GUI(Images([h2]))
-gui.run(test=color(gui))
+if 0:
+    h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
+    h2.calc = SinglePointCalculator(h2, forces=[(0, 0, 0), (0, 0, 1)])
+    gui = GUI(Images([h2]))
+    gui.run(test=color(gui))

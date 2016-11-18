@@ -45,9 +45,9 @@ def run():
 
 
 def test(w):
-    w.things[1].on_press()
+    w.things[1].callback()
     yield
-    w.things[1].on_press()
+    w.things[1].callback()
 
 
 run()
