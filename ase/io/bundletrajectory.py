@@ -21,11 +21,13 @@ following structure::
 import ase.parallel
 from ase.parallel import paropen
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.io.ulm import ulmopen
 import numpy as np
 import os
 import sys
 import shutil
 import time
+import json
 try:
     import cPickle as pickle   # Need efficient pickle if using Python 2
 except ImportError:
@@ -62,24 +64,32 @@ class BundleTrajectory:
 
     backup=True:
         Use backup=False to disable renaming of an existing file.
+
+    backend='ulm':
+        Request a backend.  Supported backends are 'pickle' and 'ulm'.
+        Only honored when writing.
+
+    singleprecision=False:
+        Store floating point data in single precision (ulm backend only).
     """
     slavelog = True  # Log from all nodes
-
-    def __init__(self, filename, mode='r', atoms=None, backup=True):
+    
+    def __init__(self, filename, mode='r', atoms=None, backup=True,
+                 backend='ulm', singleprecision=False):
         self.state = 'constructing'
         self.filename = filename
         self.pre_observers = []  # callback functions before write is performed
         self.post_observers = []  # callback functions after write is performed
         self.master = ase.parallel.rank == 0
         self.extra_data = []
+        self.singleprecision = singleprecision
         self._set_defaults()
-        self._set_backend()
         if mode == 'r':
             if atoms is not None:
                 raise ValueError("You cannot specify atoms in read mode.")
             self._open_read()
         elif mode == 'w':
-            self._open_write(atoms, backup)
+            self._open_write(atoms, backup, backend)
         elif mode == 'a':
             self._open_append(atoms)
 
@@ -87,7 +97,7 @@ class BundleTrajectory:
         "Set default values for internal parameters."
         self.version = 1
         self.subtype = 'normal'
-        self.backend_name = 'pickle'
+        #self.backend_name = 'pickle'
         self.datatypes = {'positions': True,
                           'numbers': 'once',
                           'tags': 'once',
@@ -100,12 +110,14 @@ class BundleTrajectory:
                           'magmoms': True
                           }
 
-    def _set_backend(self, backend=None):
+    def _set_backend(self, backend):
         """Set the backed doing the actual I/O."""
         if backend is not None:
             self.backend_name = backend
         if self.backend_name == 'pickle':
             self.backend = PickleBundleBackend(self.master)
+        elif self.backend_name == 'ulm':
+            self.backend = UlmBundleBackend(self.master, self.singleprecision)
         else:
             raise NotImplementedError(
                 "This version of ASE cannot use BundleTrajectory with backend '%s'"
@@ -424,8 +436,9 @@ class BundleTrajectory:
             self.logfile.flush()
             del self.logdata
 
-    def _open_write(self, atoms, backup):
+    def _open_write(self, atoms, backup, backend):
         "Open a bundle trajectory for writing."
+        self._set_backend(backend)
         self.logfile = None  # enable delayed logging
         self.atoms = atoms
         if os.path.exists(self.filename):
@@ -549,15 +562,28 @@ class BundleTrajectory:
         metadata['subtype'] = self.subtype
         metadata['backend'] = self.backend_name
         metadata['python_ver'] = tuple(sys.version_info)
+        f = paropen(os.path.join(self.filename, "metadata.json"), "w")
+        json.dump(metadata, f, indent=2)
+        f.close()
+        # Write a compatibility .pickle file - will be picked up by
+        # older versions of ASE and result in a meaningful error.
+        metadata['comment'] = "For compatibility only - see metadata.json instead."
         f = paropen(os.path.join(self.filename, "metadata"), "wb")
         pickle.dump(metadata, f, protocol=0)
+        del metadata['comment']
         f.close()
 
     def _read_metadata(self):
         """Read the metadata."""
         assert self.state == 'read'
-        f = open(os.path.join(self.filename, 'metadata'), 'rb')
-        metadata = pickle.load(f)
+        metafile = os.path.join(self.filename, 'metadata.json')
+        if os.path.exists(metafile):
+            f = open(metafile, 'r')
+            metadata = json.load(f)
+        else:
+            metafile = os.path.join(self.filename, 'metadata')
+            f = open(metafile, 'rb')
+            metadata = pickle.load(f)
         f.close()
         return metadata
 
@@ -566,12 +592,19 @@ class BundleTrajectory:
         """Check if a filename exists and is a BundleTrajectory."""
         if not os.path.isdir(filename):
             return False
-        metaname = os.path.join(filename, 'metadata')
-        if not os.path.isfile(metaname):
-            return False
-        f = open(metaname, 'rb')
-        mdata = pickle.load(f)
-        f.close()
+        metaname = os.path.join(filename, 'metadata.json')
+        if os.path.isfile(metaname):
+            f = open(metaname, 'r')
+            mdata = json.load(f)
+            f.close()
+        else:
+            metaname = os.path.join(filename, 'metadata')
+            if os.path.isfile(metaname):
+                f = open(metaname, 'rb')
+                mdata = pickle.load(f)
+                f.close()
+            else:
+                return False
         try:
             return mdata['format'] == 'BundleTrajectory'
         except KeyError:
@@ -685,6 +718,147 @@ class BundleTrajectory:
                 function(*args, **kwargs)
     
 
+class UlmBundleBackend:
+    """Backend for writing BundleTrajectories stored as ASE Ulm + json files."""
+
+    def __init__(self, master, singleprecision):
+        # Store if this backend will actually write anything
+        self.writesmall = master
+        self.writelarge = master
+        self.singleprecision = singleprecision
+
+        # Integer data may be downconverted to the following types
+        self.integral_dtypes = ['uint8', 'int8', 'uint16', 'int16',
+                                'uint32', 'int32', 'uint64', 'int64']
+        # Dict comprehensions not supported in Python 2.6 :-(
+        self.int_dtype = dict((k, getattr(np, k))
+                              for k in self.integral_dtypes)
+        self.int_minval = dict((k, np.iinfo(self.int_dtype[k]).min)
+                               for k in self.integral_dtypes)
+        self.int_maxval = dict((k, np.iinfo(self.int_dtype[k]).max)
+                               for k in self.integral_dtypes)
+        self.int_itemsize = dict((k, np.dtype(self.int_dtype[k]).itemsize)
+                                 for k in self.integral_dtypes)
+                
+    def write_small(self, framedir, smalldata):
+        "Write small data to be written jointly."
+        if self.writesmall:
+            f = ulmopen(os.path.join(framedir, "smalldata.ulm"), "w")
+            f.write(**smalldata)
+            f.close()
+
+    def write(self, framedir, name, data):
+        "Write data to separate file."
+        if self.writelarge:
+            shape = data.shape
+            dtype = str(data.dtype)
+            stored_as = dtype
+            all_identical = False
+            # Check if it a type that can be stored with less space
+            if np.issubdtype(data.dtype, np.integer):
+                # An integer type, we may want to convert
+                minval = data.min()
+                maxval = data.max()
+                all_identical = bool(minval == maxval)  # ulm cannot write np.bool_
+                if all_identical:
+                    data = int(data.flat[0])  # Convert to standard integer
+                else:
+                    for typ in self.integral_dtypes:
+                        if (minval >= self.int_minval[typ]
+                            and maxval <= self.int_maxval[typ]
+                            and data.itemsize > self.int_itemsize[typ]):
+
+                            # Convert to smaller type
+                            stored_as = typ
+                            data = data.astype(self.int_dtype[typ])
+            elif data.dtype == np.float32 or data.dtype == np.float64:
+                all_identical = bool(data.min() == data.max())
+                if all_identical:
+                    data = float(data.flat[0])  #Convert to standard float
+                elif data.dtype == np.float64 and self.singleprecision:
+                    # Downconvert double to single precision
+                    stored_as = 'float32'
+                    data = data.astype(np.float32)
+            fn = os.path.join(framedir, name + '.ulm')
+            f = ulmopen(fn, "w")
+            f.write(shape=shape,
+                    dtype=dtype,
+                    stored_as=stored_as,
+                    all_identical=all_identical,
+                    data=data)
+            f.close()
+
+    def read_small(self, framedir):
+        "Read small data."
+        f = ulmopen(os.path.join(framedir, "smalldata.ulm"), 'r')
+        data = f.asdict()
+        f.close()
+        return data
+
+    def read(self, framedir, name):
+        "Read data from separate file."
+        fn = os.path.join(framedir, name + '.ulm')
+        f = ulmopen(fn, 'r')
+        if f.all_identical:
+            # Only a single data value
+            data = np.zeros(f.shape, dtype=getattr(np, f.dtype)) + f.data
+        elif f.dtype == f.stored_as:
+            # Easy, the array can be returned as-is.
+            data = f.data
+        else:
+            # Cast the data back
+            data = f.data.astype(getattr(np, f.dtype))
+        f.close()
+        return data
+
+    def read_info(self, framedir, name, split=None):
+        "Read information about file contents without reading the data."
+        fn = os.path.join(framedir, name + '.ulm')
+        if split is None or os.path.exists(fn):
+            f = ulmopen(fn, 'r')
+            info = (f.shape, f.dtype)
+            f.close()
+            return info
+        else:
+            for i in range(split):
+                fn = os.path.join(framedir, name + '_' + str(i) + '.ulm')
+                f = ulmopen(fn, 'r')
+                if i == 0:
+                    shape = list(f.shape)
+                    dtype = f.dtype
+                else:
+                    shape[0] += f.shape[0]
+                    assert dtype == f.dtype
+                f.close()
+            return (tuple(shape), dtype)
+
+    def set_fragments(self, nfrag):
+        self.nfrag = nfrag
+        
+    def read_split(self, framedir, name):
+        """Read data from multiple files.
+        
+        Falls back to reading from single file if that is how data is stored.
+
+        Returns the data and a flag indicating if the data was really read from
+        split files.
+        """
+        data = []
+        if os.path.exists(os.path.join(framedir, name + '.ulm')):
+            # Not stored in split form!
+            return (self.read(framedir, name), False)
+        for i in range(self.nfrag):
+            suf = "_%d" % (i,)
+            data.append(self.read(framedir, name + suf))
+        return (np.concatenate(data), True)
+    
+    def close(self, log=None):
+        """Close anything that needs to be closed by the backend.
+        
+        The default backend does nothing here.
+        """
+        pass
+    
 class PickleBundleBackend:
     """Backend for writing BundleTrajectories stored as pickle files."""
     def __init__(self, master):
