@@ -197,7 +197,8 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     s = Summary(db.get(id), SUBSCRIPT)
-    return render_template('summary.html', s=s, home=home)
+    return render_template('summary.html', s=s, home=home,
+                           open_ase_gui=open_ase_gui)
 
 
 def tofile(query, type, limit=0):
