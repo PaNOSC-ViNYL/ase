@@ -5,17 +5,62 @@
 SUMMARY
 {% endblock %}
 {% block content %}
+{% if not open_ase_gui %}
+    <script src="{{ url_for('static', filename='jsmol/JSmol.min.js') }}">
+    </script>
+    <script>
+    Jmol._isAsync = false;
+    var jmolApplet0;
+    jmol_isReady = function(applet) {
+        Jmol._getElement(applet, "appletdiv").style.border="1px solid black";
+        Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif;");
+    }
+
+    var Info = {
+        width: 400,
+        height: 400,
+        debug: false,
+        color: "0xFFFFFF",
+        addSelectionOptions: false,
+        use: "HTML5",   // JAVA HTML5 WEBGL are all options
+        j2sPath: "/static/jsmol/j2s", // XXX how coded for now.
+        //serverURL: "http://chemapps.stolaf.edu/jmol/jsmol/php/jsmol.php",
+        readyFunction: jmol_isReady,
+        disableJ2SLoadMonitor: true,
+        disableInitialConsole: true,
+        allowJavaScript: false
+    };
+
+    function repeatCell(repeat) {
+        if (repeat == 2) {
+            Jmol.script(jmolApplet0, 'load "" {2 2 2}');
+        } else {
+            Jmol.script(jmolApplet0, 'load "" {1 1 1}');
+        }
+    }
+
+    $(document).ready(function() {
+    $("#appdiv").html(Jmol.getAppletHtml("jmolApplet0", Info))})
+    </script>
+{% endif %}
 Download:
 <a href="/xyz/{{ d.id }}">xyz</a>,
 <a href="/sqlite/{{ d.id }}">db</a>,
 <a href="/json/{{ d.id }}">json</a>
 <br>
 {% if d.numbers|length %}
-<a href="/gui/{{ d.id }}">
-<img src="/image/{{ d.id }}.png">
-</a>
-<br>
+    {% if open_ase_gui %}
+        <a href="/gui/{{ d.id }}">
+        <img src="/image/{{ d.id }}.png">
+        </a>
+    {% else %}
+        <div id="appdiv"></div>
+        Unitcell: <button onclick="repeatCell(1)"> Single </button>
+                  <button onclick="repeatCell(2)"> 2x2x2</button>
+
+    {% endif %}
 {% endif %}
+<br>
 <br>
 {% for name in s.plots %}
 <img src="/plot/{{ name }}-{{ d.id }}.png"><br>
