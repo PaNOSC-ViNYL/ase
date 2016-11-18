@@ -143,35 +143,51 @@ def get_distance_matrix(atoms, self_distance=1000):
     return dm
 
 
-def get_rdf(atoms, rmax, nbins, distance_matrix=None):
+def get_rdf(atoms, rmax, nbins, distance_matrix=None,
+            elements=None, no_dists=False):
     """
     Returns two numpy arrays; the radial distribution function
     and the corresponding distances of the supplied atoms object
     """
     dm = distance_matrix
     if dm is None:
-        # dm = get_distance_matrix(atoms)
         dm = atoms.get_all_distances()
     rdf = np.zeros(nbins + 1)
     dr = float(rmax / nbins)
-    for i in range(len(atoms)):
-        for j in range(i + 1, len(atoms)):
-            rij = dm[i][j]
-            index = int(math.ceil(rij / dr))
-            if index <= nbins:
-                rdf[index] += 1
+    
+    if elements is None:
+        # Coefficients to use for normalization
+        phi = len(atoms) / atoms.get_volume()
+        norm = 2.0 * math.pi * dr * phi * len(atoms)
+        
+        for i in range(len(atoms)):
+            for j in range(i + 1, len(atoms)):
+                rij = dm[i][j]
+                index = int(math.ceil(rij / dr))
+                if index <= nbins:
+                    rdf[index] += 1
+    else:
+        i_indices = np.where(atoms.numbers == elements[0])[0]
+        phi = len(i_indices) / atoms.get_volume()
+        norm = 4.0 * math.pi * dr * phi * len(atoms)
+        
+        for i in i_indices:
+            for j in np.where(atoms.numbers == elements[1])[0]:
+                rij = dm[i][j]
+                index = int(math.ceil(rij / dr))
+                if index <= nbins:
+                    rdf[index] += 1
 
-    # Normalize
-    phi = len(atoms) / atoms.get_volume()
-    norm = 2.0 * math.pi * dr * phi * len(atoms)
-
-    dists = [0]
+    dists = []
     for i in range(1, nbins + 1):
         rrr = (i - 0.5) * dr
         dists.append(rrr)
+        # Normalize
         rdf[i] /= (norm * ((rrr**2) + (dr**2) / 12.))
 
-    return rdf, np.array(dists)
+    if no_dists:
+        return rdf[1:]
+    return rdf[1:], np.array(dists)
 
 
 def get_nndist(atoms, distance_matrix):
