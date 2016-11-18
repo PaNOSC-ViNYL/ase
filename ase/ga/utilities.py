@@ -147,7 +147,28 @@ def get_rdf(atoms, rmax, nbins, distance_matrix=None,
             elements=None, no_dists=False):
     """
     Returns two numpy arrays; the radial distribution function
-    and the corresponding distances of the supplied atoms object
+    and the corresponding distances of the supplied atoms object.
+    If no_dists = True then only the first array is returned.
+
+    Parameters:
+
+    rmax : float
+        The maximum distance that will contribute to the rdf.
+
+    nbins : int
+        Number of bins to divide the rdf into.
+
+    distance_matrix : numpy.array
+        An array of distances between atoms, typically
+        obtained by atoms.get_all_distances().
+        Default None meaning that it will be calculated.
+
+    elements : list or tuple
+        List of two atomic numbers. If elements is not None the partial
+        rdf for the supplied elements will be returned.
+
+    no_dists : bool
+        If True then the second array with rdf distances will not be returned
     """
     dm = distance_matrix
     if dm is None:
