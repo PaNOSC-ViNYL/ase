@@ -7,16 +7,13 @@ from ase.io.bundletrajectory import print_bundletrajectory_info
 description = 'Print summary of information from trajectory files.'
 
 
-def main():
-    p = OptionParser(usage='%prog file.traj [file2.traj ...]',
-                     description=description)
+def add_arguments(parser):
+    parser.description = description
+    parser.add_argument('filenames', nargs='+')
 
-    opts, args = p.parse_args()
 
-    if len(args) == 0:
-        p.error('Incorrect number of arguments')
-
-    for f in args:
+def main(args):
+    for f in args.filenames:
         ft = filetype(f)
         print("File type of '{0}' appears to be of type '{1}'".format(f, ft))
         if ft == 'traj':
