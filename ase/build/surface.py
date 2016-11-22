@@ -362,7 +362,7 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     slab.cell[2] = 0.0
 
     if vacuum is not None:
-        slab.center(vacuum)
+        slab.center(vacuum, axis=2)
 
     slab.adsorbate_info['cell'] = surface_cell
     slab.adsorbate_info['sites'] = sites
@@ -406,7 +406,7 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     atoms.cell[2] = 0.0
     atoms.pbc[1] = False
     if vacuum:
-        atoms.center(vacuum)
+        atoms.center(vacuum, axis=2)
 
     # Renumber systematically from top down.
     orders = [(atom.index, round(atom.x, 3), round(atom.y, 3),
