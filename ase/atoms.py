@@ -253,6 +253,11 @@ class Atoms(object):
     calc = property(get_calculator, set_calculator, _del_calculator,
                     doc='Calculator object.')
 
+    @property
+    def number_of_lattice_vectors(self):
+        """Number of (non-zero) lattice vectors."""
+        return self._cell.any(1).sum()
+
     def set_constraint(self, constraint=None):
         """Apply one or more constrains.
 
@@ -977,6 +982,11 @@ class Atoms(object):
         if isinstance(m, int):
             m = (m, m, m)
 
+        for x, vec in zip(m, self._cell):
+            if x != 1 and not vec.any():
+                raise ValueError('Cannot repeat along undifined lattice '
+                                 'vector')
+
         M = np.product(m)
         n = len(self)
 
@@ -1037,6 +1047,7 @@ class Atoms(object):
             I.e., about=(0., 0., 0.) (or just "about=0.", interpreted
             identically), to center about the origin.
         """
+
         # Find the orientations of the faces of the unit cell
         c = self.get_cell(complete=True)
         dirs = np.zeros_like(c)
@@ -1046,11 +1057,16 @@ class Atoms(object):
             if np.dot(dirs[i], c[i]) < 0.0:
                 dirs[i] *= -1
 
-        # Now, decide how much each basis vector should be made longer
         if isinstance(axis, int):
             axes = (axis,)
         else:
             axes = axis
+
+        # if vacuum and any(self.pbc[x] for x in axes):
+        #     warnings.warn(
+        #         'You are adding vacuum along a periodic direction!')
+
+        # Now, decide how much each basis vector should be made longer
         p = self.arrays['positions']
         longer = np.zeros(3)
         shift = np.zeros(3)
@@ -1571,16 +1587,13 @@ class Atoms(object):
 
         Identity means: same positions, atomic numbers, unit cell and
         periodic boundary conditions."""
-        try:
-            a = self.arrays
-            b = other.arrays
-            return (len(self) == len(other) and
-                    (a['positions'] == b['positions']).all() and
-                    (a['numbers'] == b['numbers']).all() and
-                    (self._cell == other.cell).all() and
-                    (self._pbc == other.pbc).all())
-        except AttributeError:
-            return NotImplemented
+        a = self.arrays
+        b = other.arrays
+        return (len(self) == len(other) and
+                (a['positions'] == b['positions']).all() and
+                (a['numbers'] == b['numbers']).all() and
+                (self._cell == other.cell).all() and
+                (self._pbc == other.pbc).all())
 
     def __ne__(self, other):
         """Check if two atoms objects are not equal.
@@ -1598,8 +1611,10 @@ class Atoms(object):
 
     def get_volume(self):
         """Get volume of unit cell."""
-        if not self._cell.any(1).all():
-            1/0
+        if self.number_of_lattice_vectors != 3:
+            raise ValueError(
+                'You have {0} lattice vectors: volume not defined'
+                .format(self.number_of_lattice_vectors))
         return abs(np.linalg.det(self._cell))
 
     def _get_positions(self):

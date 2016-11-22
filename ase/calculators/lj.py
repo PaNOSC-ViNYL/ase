@@ -60,7 +60,7 @@ class LennardJones(Calculator):
             stress += np.dot(f.T, d)
 
         if 'stress' in properties:
-            if self.atoms.cell.any(axis=1).all():
+            if self.atoms.number_of_lattice_vectors == 3:
                 stress += stress.T.copy()
                 stress *= -0.5 / self.atoms.get_volume()
                 self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
