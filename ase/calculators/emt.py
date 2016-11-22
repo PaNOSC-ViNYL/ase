@@ -40,18 +40,20 @@ class EMT(Calculator):
     are not for any serious use:
     H, C, N, O
 
-    The potential takes a single argument, ``fixed_cutoff``
-    (default: False).  If set to False, the global cutoff
+    The potential takes a single argument, ``asap_cutoff``
+    (default: False).  If set to True, the cutoff mimics
+    how Asap does it; most importantly the global cutoff
     is chosen from the largest atom present in the simulation,
-    if True it is chosen from the largest atom in the parameter
-    table.  False gives the behaviour of the Asap code and
-    older EMT implementations.
+    if False it is chosen from the largest atom in the parameter
+    table.  True gives the behaviour of the Asap code and
+    older EMT implementations, although the results are not
+    bitwise identical.
     """
     implemented_properties = ['energy', 'forces']
 
     nolabel = True
 
-    default_parameters = {'fixed_cutoff': True}
+    default_parameters = {'asap_cutoff': False}
 
     def __init__(self, **kwargs):
         Calculator.__init__(self, **kwargs)
@@ -60,17 +62,21 @@ class EMT(Calculator):
         self.par = {}
         self.rc = 0.0
         self.numbers = atoms.get_atomic_numbers()
-        if self.parameters.fixed_cutoff:
-            relevant_pars = parameters
-        else:
+        if self.parameters.asap_cutoff:
             relevant_pars = {}
             for symb, p in parameters.items():
                 if atomic_numbers[symb] in self.numbers:
                     relevant_pars[symb] = p
+        else:
+            relevant_pars = parameters
         maxseq = max(par[1] for par in relevant_pars.values()) * Bohr
         rc = self.rc = beta * maxseq * 0.5 * (sqrt(3) + sqrt(4))
         rr = rc * 2 * sqrt(4) / (sqrt(3) + sqrt(4))
         self.acut = np.log(9999.0) / (rr - rc)
+        if self.parameters.asap_cutoff:
+            self.rc_list = self.rc * 1.045
+        else:
+            self.rc_list = self.rc + 0.5
         for Z in self.numbers:
             if Z not in self.par:
                 p = parameters[chemical_symbols[Z]]
@@ -107,7 +113,7 @@ class EMT(Calculator):
         self.sigma1 = np.empty(len(atoms))
         self.deds = np.empty(len(atoms))
 
-        self.nl = NeighborList([0.5 * self.rc + 0.25] * len(atoms),
+        self.nl = NeighborList([0.5 * self.rc_list] * len(atoms),
                                self_interaction=False)
 
     def calculate(self, atoms=None, properties=['energy'],
@@ -138,7 +144,7 @@ class EMT(Calculator):
             for a2, offset in zip(neighbors, offsets):
                 d = positions[a2] + offset - positions[a1]
                 r = sqrt(np.dot(d, d))
-                if r < self.rc + 0.5:
+                if r < self.rc_list:
                     Z2 = numbers[a2]
                     p2 = self.par[Z2]
                     self.interact1(a1, a2, d, r, p1, p2, ksi[Z2])
@@ -168,7 +174,7 @@ class EMT(Calculator):
             for a2, offset in zip(neighbors, offsets):
                 d = positions[a2] + offset - positions[a1]
                 r = sqrt(np.dot(d, d))
-                if r < self.rc + 0.5:
+                if r < self.rc_list:
                     Z2 = numbers[a2]
                     p2 = self.par[Z2]
                     self.interact2(a1, a2, d, r, p1, p2, ksi[Z2])
