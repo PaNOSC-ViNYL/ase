@@ -29,7 +29,7 @@ def cell_to_cellpar(cell):
     beta = 180.0 / pi * arccos(dot(vc, va) / (c * a))
     gamma = 180.0 / pi * arccos(dot(va, vb) / (a * b))
     return np.array([a, b, c, alpha, beta, gamma])
-        
+
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     """Return a 3x3 cell matrix from `cellpar` = [a, b, c, alpha,
@@ -110,7 +110,7 @@ def crystal_structure_from_cell(cell, eps=1e-4):
     way as ase.dft.kpoints.get_special_points().
 
     Parameters:
-    
+
     cell : numpy.array or list
         An array like atoms.get_cell()
 
@@ -143,4 +143,39 @@ def crystal_structure_from_cell(cell, eps=1e-4):
           abs(angles[1:] - pi / 2).max() < eps):
         return 'monoclinic'
     else:
-       raise ValueError('Cannot find crystal structure')
+        raise ValueError('Cannot find crystal structure')
+
+
+def complete_cell(cell):
+    """Calculate complete cell with missing lattice vectors.
+
+    Returns a new 3x3 ndarray.
+    """
+
+    cell = np.array(cell, dtype=float)
+    missing = np.nonzero(~cell.any(axis=1))[0]
+
+    if len(missing) == 3:
+        cell.flat[::4] = 1.0
+    if len(missing) == 2:
+        # Must decide two vectors:
+        i = 3 - missing.sum()
+        assert abs(cell[i, missing]).max() < 1e-16, "Don't do that"
+        cell[missing, missing] = 1.0
+    elif len(missing) == 1:
+        i = missing[0]
+        cell[i] = np.cross(cell[(i + 1) % 3], cell[(i + 2) % 3])
+        cell[i] /= np.linalg.norm(cell[1])
+
+    return cell
+
+
+def is_orthorhombic(cell):
+    return not (np.flatnonzero(cell) % 4).any()
+
+
+def orthorhombic(cell):
+    """Return cell as three box dimensions or raise ValueError."""
+    if not is_orthorhombic(cell):
+        raise ValueError('Not orthorhombic')
+    return cell.diagonal().copy()

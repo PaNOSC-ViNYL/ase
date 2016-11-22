@@ -19,7 +19,7 @@ from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
-                          cell_to_cellpar)
+                          cell_to_cellpar, complete_cell)
 
 
 class Atoms(object):
@@ -275,7 +275,7 @@ class Atoms(object):
     constraints = property(_get_constraints, set_constraint, _del_constraints,
                            'Constraints of the atoms.')
 
-    def set_cell(self, cell, scale_atoms=False, fix=None):
+    def set_cell(self, cell, scale_atoms=False):
         """Set unit cell vectors.
 
         Parameters:
@@ -315,9 +315,6 @@ class Atoms(object):
         >>> atoms.set_cell([a, a, a, alpha, alpha, alpha])
         """
 
-        if fix is not None:
-            raise TypeError('Please use scale_atoms=%s' % (not fix))
-
         cell = np.array(cell, float)
 
         if cell.shape == (3,):
@@ -329,8 +326,9 @@ class Atoms(object):
                              'sequence or 3x3 matrix!')
 
         if scale_atoms:
-            M = np.linalg.solve(self._cell, cell)
-            self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
+            M = np.linalg.solve(self.get_cell(complete=True),
+                                complete_cell(cell))
+            self.positions[:] = np.dot(self.positions, M)
         self._cell = cell
 
     def set_celldisp(self, celldisp):
@@ -342,9 +340,12 @@ class Atoms(object):
         """Get the unit cell displacement vectors."""
         return self._celldisp.copy()
 
-    def get_cell(self):
+    def get_cell(self, complete=False):
         """Get the three unit cell vectors as a 3x3 ndarray."""
-        return self._cell.copy()
+        if complete:
+            return complete_cell(self._cell)
+        else:
+            return self._cell.copy()
 
     def get_cell_lengths_and_angles(self):
         """Get unit cell parameters. Sequence of 6 numbers.
@@ -1037,7 +1038,7 @@ class Atoms(object):
             identically), to center about the origin.
         """
         # Find the orientations of the faces of the unit cell
-        c = self.get_cell()
+        c = self.get_cell(complete=True)
         dirs = np.zeros_like(c)
         for i in range(3):
             dirs[i] = np.cross(c[i - 1], c[i - 2])
@@ -1507,7 +1508,8 @@ class Atoms(object):
         the cell in those directions with periodic boundary conditions
         so that the scaled coordinates are between zero and one."""
 
-        fractional = np.linalg.solve(self.cell.T, self.positions.T).T
+        fractional = np.linalg.solve(self.get_cell(complete=True).T,
+                                     self.positions.T).T
 
         if wrap:
             for i, periodic in enumerate(self.pbc):
@@ -1521,7 +1523,7 @@ class Atoms(object):
 
     def set_scaled_positions(self, scaled):
         """Set positions relative to unit cell."""
-        self.arrays['positions'][:] = np.dot(scaled, self._cell)
+        self.positions[:] = np.dot(scaled, self.get_cell(complete=True))
 
     def wrap(self, center=(0.5, 0.5, 0.5), pbc=None, eps=1e-7):
         """Wrap positions to unit cell.
