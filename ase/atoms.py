@@ -1072,7 +1072,7 @@ class Atoms(object):
         translation = np.zeros(3)
         for i in axes:
             nowlen = np.sqrt(np.dot(c[i], c[i]))
-            self._cell[i] *= 1 + longer[i] / nowlen
+            self._cell[i] = c[i] * (1 + longer[i] / nowlen)
             translation += shift[i] * c[i] / nowlen
         self.arrays['positions'] += translation
 
