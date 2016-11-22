@@ -135,7 +135,8 @@ class SetupNanoparticle:
         lattice_button = ui.Button(_('Get structure'),
                                    self.set_structure_data)
         self.elementinfo = ui.Label(' ')
-        win.add([self.element, self.elementinfo])
+        win.add(self.element)
+        win.add(self.elementinfo)
         win.add(lattice_button)
 
         # The structure and lattice constant
@@ -150,9 +151,9 @@ class SetupNanoparticle:
             self.needs_4index[abbrev] = n4
             self.needs_2lat[abbrev] = c
             self.factory[abbrev] = factory
-        structure = ui.ComboBox(labels, values, self.update_structure)
+        self.structure = ui.ComboBox(labels, values, self.update_structure)
+        win.add([_('Structure:'), self.structure])
         self.structure.active = False
-        win.add([_('Structure:'), structure])
         self.fourindex = self.needs_4index[values[0]]
 
         win.add([_('Lattice constant:  a ='),
@@ -161,31 +162,20 @@ class SetupNanoparticle:
                  ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)])
 
         # Choose specification method
-        label = ui.Label(_('Method: '))
-        self.method = ui.combo_box_new_text()
-        for meth in (_('Layer specification'), _('Wulff construction')):
-            self.method.append_text(meth)
-        self.method.set_active(0)
-        self.method.connect('changed', self.update_gui_method)
-        pack(vbox, [label, self.method])
-        pack(vbox, ui.Label(''))
-        self.old_structure = None
+        self.method = ui.ComboBox(
+            [_('Layer specification'), _('Wulff construction')],
+            ['layers', 'wulff'],
+            self.update_gui_method)
+        win.add([_('Method: '), self.method])
+        self.method.active = False
 
-        frame = ui.Frame()
-        pack(vbox, frame)
-        framebox = ui.VBox()
-        frame.add(framebox)
-        framebox.show()
         self.layerlabel = ui.Label('Missing text')  # Filled in later
-        pack(framebox, [self.layerlabel])
+        win.add(self.layerlabel)
         # This box will contain a single table that is replaced when
         # the list of directions is changed.
-        self.direction_table_box = ui.VBox()
-        pack(framebox, self.direction_table_box)
-        pack(self.direction_table_box,
-             ui.Label(_('Dummy placeholder object')))
-        pack(framebox, ui.Label(''))
-        pack(framebox, [ui.Label(_('Add new direction:'))])
+        self.direction_table_box = ui.Rows()
+
+        win.add(_('Add new direction:'))
         self.newdir_label = []
         self.newdir_box = []
         self.newdir_index = []

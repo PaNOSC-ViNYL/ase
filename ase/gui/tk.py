@@ -72,6 +72,14 @@ class Widget(object):
         self.widget = self.creator(parent)
         return self.widget
 
+    @property
+    def active(self):
+        return self.widget['state'] == 'normal'
+
+    @active.setter
+    def active(self, value):
+        self.widget['state'] = ['disabled', 'normal'][bool(value)]
+
 
 class Row(Widget):
     def __init__(self, things):
@@ -262,14 +270,6 @@ class RadioButton(Widget):
                                value=i,
                                command=callback)
 
-    @property
-    def active(self):
-        return self.widget['state'] == 'normal'
-
-    @active.setter
-    def active(self, value):
-        self.widget['state'] = ['disabled', 'normal'][bool(value)]
-
 
 class ComboBox(Widget):
     def __init__(self, labels, values=None, callback=None):
@@ -294,8 +294,8 @@ class ComboBox(Widget):
 
 
 class Rows(Widget):
-    def __init__(self, rows):
-        self.rows_to_be_added = rows
+    def __init__(self, rows=None):
+        self.rows_to_be_added = rows or []
         self.creator = tk.Frame
         self.rows = []
 
