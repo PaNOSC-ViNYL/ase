@@ -496,6 +496,8 @@ class BundleTrajectory:
                 "This version of ASE cannot read BundleTrajectory subtype "
                 + metadata['subtype'])
         self.subtype = metadata['subtype']
+        if metadata['backend'] == 'ulm':
+            self.singleprecision = metadata['ulm.singleprecision']
         self._set_backend(metadata['backend'])
         self.nframes = self._read_nframes()
         if self.nframes == 0:
@@ -530,6 +532,8 @@ class BundleTrajectory:
                 "This version of ASE cannot append to BundleTrajectory subtype "
                 + metadata['subtype'])
         self.subtype = metadata['subtype']
+        if metadata['backend'] == 'ulm':
+            self.singleprecision = metadata['ulm.singleprecision']
         self._set_backend(metadata['backend'])
         self.nframes = self._read_nframes()
         self._open_log()
@@ -561,6 +565,8 @@ class BundleTrajectory:
         metadata['version'] = self.version
         metadata['subtype'] = self.subtype
         metadata['backend'] = self.backend_name
+        if self.backend_name == 'ulm':
+            metadata['ulm.singleprecision'] = self.singleprecision
         metadata['python_ver'] = tuple(sys.version_info)
         f = paropen(os.path.join(self.filename, "metadata.json"), "w")
         json.dump(metadata, f, indent=2)
@@ -719,7 +725,7 @@ class BundleTrajectory:
     
 
 class UlmBundleBackend:
-    """Backend for writing BundleTrajectories stored as ASE Ulm + json files."""
+    """Backend for BundleTrajectories stored as ASE Ulm files."""
 
     def __init__(self, master, singleprecision):
         # Store if this backend will actually write anything
@@ -840,8 +846,9 @@ class UlmBundleBackend:
         
         Falls back to reading from single file if that is how data is stored.
 
-        Returns the data and a flag indicating if the data was really read from
-        split files.
+        Returns the data and an object indicating if the data was really read from
+        split files.  The latter object is False if not read from split files, but
+        is an array of the segment length if split files were used.
         """
         data = []
         if os.path.exists(os.path.join(framedir, name + '.ulm')):
@@ -850,7 +857,8 @@ class UlmBundleBackend:
         for i in range(self.nfrag):
             suf = "_%d" % (i,)
             data.append(self.read(framedir, name + suf))
-        return (np.concatenate(data), True)
+        seglengths = [len(d) for d in data]
+        return (np.concatenate(data), seglengths)
     
     def close(self, log=None):
         """Close anything that needs to be closed by the backend.
@@ -860,7 +868,7 @@ class UlmBundleBackend:
         pass
     
 class PickleBundleBackend:
-    """Backend for writing BundleTrajectories stored as pickle files."""
+    """Backend for BundleTrajectories stored as pickle files."""
     def __init__(self, master):
         # Store if this backend will actually write anything
         self.writesmall = master
@@ -945,8 +953,9 @@ class PickleBundleBackend:
         
         Falls back to reading from single file if that is how data is stored.
 
-        Returns the data and a flag indicating if the data was really read from
-        split files.
+        Returns the data and an object indicating if the data was really read from
+        split files.  The latter object is False if not read from split files, but
+        is an array of the segment length if split files were used.
         """
         data = []
         if os.path.exists(os.path.join(framedir, name + '.pickle')):
@@ -963,7 +972,8 @@ class PickleBundleBackend:
                 pickle.load(f)  # Discarding the shape.
                 data.append(pickle.load(f))
             f.close()
-        return (np.concatenate(data), True)
+        seglengths = [len(d) for d in data]
+        return (np.concatenate(data), seglengths)
     
     def close(self, log=None):
         """Close anything that needs to be closed by the backend.
