@@ -57,7 +57,8 @@ class Summary:
             ('mass', 'au', mass),
             ('magnetic moment', 'au', row.get('magmom')),
             ('unique id', '', row.unique_id),
-            ('volume', 'Ang^3', abs(np.linalg.det(row.cell)))]
+            ('volume', 'Ang^3', row.get('volume'))]
+
         self.table = [(name, unit, value) for name, unit, value in table
                       if value is not None]
 
