@@ -37,7 +37,7 @@ class SetupNanotube(SetupWindow):
 
         # Intoductory text
         self.packtext(vbox, introtext)
-           
+
         # Choose the element and bond length
         label1 = gtk.Label(_("Element: "))
         #label.set_alignment(0.0, 0.2)
@@ -123,7 +123,7 @@ class SetupNanotube(SetupWindow):
         self.elementinfo.set_text("")
         self.legal_element = symb
         return True
-        
+
     def makeatoms(self, *args):
         self.update_element()
         if self.legal_element is None:
@@ -147,9 +147,9 @@ class SetupNanotube(SetupWindow):
                 h[i] = np.abs(np.dot(norm, uc[i]))
             label = label_template % {'natoms'   : len(self.atoms),
                                       'symbols'  : formula(self.atoms.get_atomic_numbers()),
-                                      'volume'   : self.atoms.get_volume(),
+                                      'volume'   : np.inf,
                                       'diameter' : self.atoms.get_cell()[0][0]/2.0}
-            self.status.set_markup(label)                
+            self.status.set_markup(label)
 
     def apply(self, *args):
         self.makeatoms()
@@ -165,5 +165,5 @@ class SetupNanotube(SetupWindow):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-            
+
 
