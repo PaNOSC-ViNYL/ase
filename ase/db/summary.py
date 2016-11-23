@@ -4,8 +4,6 @@ from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
 from ase.utils import hill
 
-import numpy as np
-
 
 class Summary:
     def __init__(self, row, subscript=None):
