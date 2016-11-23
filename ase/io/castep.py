@@ -598,8 +598,12 @@ def read_castep_cell(fd, index=None):
                         break
                     else:
                         block_lines.append(lines[l-1].strip())
-                calc.__setattr__(block_name, block_lines)
-                # raise UserWarning
+                if not _fallback:
+                    try:
+                        calc.__setattr__(block_name, block_lines)
+                    except:
+                        print('Problem setting calc.cell.%s' % (block_name))
+                        raise
         else:
             key = tokens[0]
             value = ' '.join(tokens[1:])

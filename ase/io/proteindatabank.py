@@ -60,7 +60,7 @@ def write_proteindatabank(fileobj, images):
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     if images[0].get_pbc().any():

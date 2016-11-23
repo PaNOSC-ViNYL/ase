@@ -63,7 +63,7 @@ class NeighborList:
         if len(self.cutoffs) != len(atoms):
             raise ValueError('Wrong number of cutoff radii: {0} != {1}'
                              .format(len(self.cutoffs), len(atoms)))
-        
+
         if len(self.cutoffs) > 0:
             rcmax = self.cutoffs.max()
         else:
@@ -126,11 +126,12 @@ class NeighborList:
                     neighbors2[b].append(a)
                     displacements2[b].append(-disp)
             for a in range(natoms):
-                # Force neighbors to be integer array
-                self.neighbors[a] = np.array(np.concatenate((self.neighbors[a],
-                                                    neighbors2[a])), int)
-                self.displacements[a] = np.array(list(self.displacements[a]) +
-                                                 displacements2[a])
+                nbs = np.concatenate((self.neighbors[a], neighbors2[a]))
+                disp = np.array(list(self.displacements[a]) +
+                                displacements2[a])
+                # Force correct type and shape for case of no neighbors:
+                self.neighbors[a] = nbs.astype(int)
+                self.displacements[a] = disp.astype(int).reshape((-1, 3))
 
         if self.sorted:
             for a, i in enumerate(self.neighbors):
@@ -142,7 +143,7 @@ class NeighborList:
                         self.neighbors[b] = np.concatenate(
                             (self.neighbors[b], [a]))
                         self.displacements[b] = np.concatenate(
-                                (self.displacements[b], [-offset]))
+                            (self.displacements[b], [-offset]))
                     mask = np.logical_not(mask)
                     self.neighbors[a] = self.neighbors[a][mask]
                     self.displacements[a] = self.displacements[a][mask]
