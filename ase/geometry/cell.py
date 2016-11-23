@@ -21,14 +21,19 @@ def angle(x, y):
 def cell_to_cellpar(cell):
     """Returns the cell parameters [a, b, c, alpha, beta, gamma] as a
     numpy array."""
-    va, vb, vc = cell
-    a = np.linalg.norm(va)
-    b = np.linalg.norm(vb)
-    c = np.linalg.norm(vc)
-    alpha = 180.0 / pi * arccos(dot(vb, vc) / (b * c))
-    beta = 180.0 / pi * arccos(dot(vc, va) / (c * a))
-    gamma = 180.0 / pi * arccos(dot(va, vb) / (a * b))
-    return np.array([a, b, c, alpha, beta, gamma])
+    lengths = np.linalg.norm(cell, axis=1)
+    angles = []
+    for i in range(3):
+        j = i - 1
+        k = i - 2
+        ll = lengths[j] * lengths[k]
+        if ll > 1e-16:
+            x = np.dot(cell[j], cell[k]) / ll
+            angle = 180.0 / pi * arccos(x)
+        else:
+            angle = np.nan
+        angles.append(angle)
+    return lengths.tolist() + angles
 
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
@@ -47,7 +52,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
 
     Example:
 
-    >>> cell = cellpar_to_cell([1, 2, 4,  10,  20, 30], (0,1,1), (1,2,3))
+    >>> cell = cellpar_to_cell([1, 2, 4, 10, 20, 30], (0, 1, 1), (1, 2, 3))
     >>> np.round(cell, 3)
     array([[ 0.816, -0.408,  0.408],
            [ 1.992, -0.13 ,  0.13 ],
