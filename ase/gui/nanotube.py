@@ -139,12 +139,6 @@ class SetupNanotube(SetupWindow):
             # XXX can this be translated?
             self.pybut.python = py_template % {'n': n, 'm':m, 'length':length,
                                                'symb':symb, 'bl':bl}
-            h = np.zeros(3)
-            uc = self.atoms.get_cell()
-            for i in range(3):
-                norm = np.cross(uc[i-1], uc[i-2])
-                norm /= np.sqrt(np.dot(norm, norm))
-                h[i] = np.abs(np.dot(norm, uc[i]))
             label = label_template % {'natoms'   : len(self.atoms),
                                       'symbols'  : formula(self.atoms.get_atomic_numbers()),
                                       'volume'   : np.inf,
