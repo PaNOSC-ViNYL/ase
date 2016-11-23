@@ -984,7 +984,7 @@ class Atoms(object):
 
         for x, vec in zip(m, self._cell):
             if x != 1 and not vec.any():
-                raise ValueError('Cannot repeat along undifined lattice '
+                raise ValueError('Cannot repeat along undefined lattice '
                                  'vector')
 
         M = np.product(m)
@@ -1587,6 +1587,8 @@ class Atoms(object):
 
         Identity means: same positions, atomic numbers, unit cell and
         periodic boundary conditions."""
+        if not isinstance(other, Atoms):
+            return False
         a = self.arrays
         b = other.arrays
         return (len(self) == len(other) and
