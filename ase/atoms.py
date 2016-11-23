@@ -370,7 +370,7 @@ class Atoms(object):
         Note that the commonly used factor of 2 pi for Fourier
         transforms is not included here."""
 
-        rec_unit_cell = np.linalg.inv(self.get_cell()).transpose()
+        rec_unit_cell = np.linalg.pinv(self.get_cell()).transpose()
         return rec_unit_cell
 
     def set_pbc(self, pbc):
