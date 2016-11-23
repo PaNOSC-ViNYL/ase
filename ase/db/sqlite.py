@@ -9,6 +9,7 @@ Versions:
 4) Got rid of keywords.
 5) Add fmax, smax, mass, volume, charge
 6) Use REAL for magmom and drop possibility for non-collinear spin
+7) Volume can be None
 """
 
 from __future__ import absolute_import, print_function
@@ -28,7 +29,7 @@ from ase.utils import basestring
 if sys.version >= '3':
     buffer = memoryview
 
-VERSION = 6
+VERSION = 7
 
 init_statements = [
     """CREATE TABLE systems (
@@ -254,7 +255,7 @@ class SQLite3Database(Database):
                    len(row.numbers),
                    float_if_not_none(row.get('fmax')),
                    float_if_not_none(row.get('smax')),
-                   float(row.volume),
+                   float_if_not_none(row.get('volume')),
                    float(row.mass),
                    float(row.charge))
 
