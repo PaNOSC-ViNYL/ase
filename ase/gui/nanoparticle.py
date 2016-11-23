@@ -107,7 +107,7 @@ class SetupNanoparticle:
         'sc': 'from ase.cluster.cubic import SimpleCubic',
         'hcp': 'from ase.cluster.hexagonal import HexagonalClosedPacked',
         'graphite': 'from ase.cluster.hexagonal import Graphite'}
-    
+
     # Default layer specifications for the different structures.
     default_layers = {'fcc': [((1, 0, 0), 6),
                               ((1, 1, 0), 9),
@@ -155,21 +155,10 @@ class SetupNanoparticle:
         win.add([_('Structure:'), structure])
         self.fourindex = self.needs_4index[values[0]]
 
-        label2 = ui.Label(_('Lattice constant:  a ='))
-        self.lattice_const_a = ui.Adjustment(3.0, 0.0, 1000.0, 0.01)
-        self.lattice_const_c = ui.Adjustment(5.0, 0.0, 1000.0, 0.01)
-        self.lattice_box_a = ui.SpinButton(self.lattice_const_a, 10.0, 3)
-        self.lattice_box_c = ui.SpinButton(self.lattice_const_c, 10.0, 3)
-        self.lattice_box_a.numeric = True
-        self.lattice_box_c.numeric = True
-        self.lattice_label_c = ui.Label(' c =')
-        pack(vbox, [label, self.structure])
-        pack(vbox, [label2, self.lattice_box_a,
-                    self.lattice_label_c, self.lattice_box_c])
-        self.lattice_label_c.hide()
-        self.lattice_box_c.hide()
-        self.lattice_const_a.connect('value-changed', self.update)
-        self.lattice_const_c.connect('value-changed', self.update)
+        win.add([_('Lattice constant:  a ='),
+                 ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update),
+                 ' c =',
+                 ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)])
 
         # Choose specification method
         label = ui.Label(_('Method: '))
