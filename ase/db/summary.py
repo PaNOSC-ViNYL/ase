@@ -8,12 +8,12 @@ import numpy as np
 
 
 class Summary:
-    def __init__(self, dct, subscript=None):
-        self.dct = dct
-        
-        self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in dct.cell]
-        
-        forces = dct.get('constrained_forces')
+    def __init__(self, row, subscript=None):
+        self.row = row
+
+        self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
+
+        forces = row.get('constrained_forces')
         if forces is None:
             fmax = None
             self.forces = None
@@ -24,67 +24,67 @@ class Summary:
             for n, f in enumerate(forces):
                 if n < 5 or n >= N - 5:
                     f = tuple('{0:10.3f}'.format(x) for x in f)
-                    symbol = chemical_symbols[dct.numbers[n]]
+                    symbol = chemical_symbols[row.numbers[n]]
                     self.forces.append((n, symbol) + f)
                 elif n == 5:
                     self.forces.append((' ...', '',
                                         '       ...',
                                         '       ...',
                                         '       ...'))
-                    
-        self.stress = dct.get('stress')
+
+        self.stress = row.get('stress')
         if self.stress is not None:
             self.stress = ', '.join('{0:.3f}'.format(s) for s in self.stress)
-            
-        if 'masses' in dct:
-            mass = dct.masses.sum()
+
+        if 'masses' in row:
+            mass = row.masses.sum()
         else:
-            mass = atomic_masses[dct.numbers].sum()
-            
-        formula = hill(dct.numbers)
+            mass = atomic_masses[row.numbers].sum()
+
+        formula = hill(row.numbers)
         if subscript:
             formula = subscript.sub(r'<sub>\1</sub>', formula)
-            
+
         table = [
-            ('id', '', dct.id),
-            ('age', '', float_to_time_string(now() - dct.ctime, True)),
+            ('id', '', row.id),
+            ('age', '', float_to_time_string(now() - row.ctime, True)),
             ('formula', '', formula),
-            ('user', '', dct.user),
-            ('calculator', '', dct.get('calculator')),
-            ('energy', 'eV', dct.get('energy')),
+            ('user', '', row.user),
+            ('calculator', '', row.get('calculator')),
+            ('energy', 'eV', row.get('energy')),
             ('fmax', 'eV/Ang', fmax),
-            ('charge', '|e|', dct.get('charge')),
+            ('charge', '|e|', row.get('charge')),
             ('mass', 'au', mass),
-            ('magnetic moment', 'au', dct.get('magmom')),
-            ('unique id', '', dct.unique_id),
-            ('volume', 'Ang^3', abs(np.linalg.det(dct.cell)))]
+            ('magnetic moment', 'au', row.get('magmom')),
+            ('unique id', '', row.unique_id),
+            ('volume', 'Ang^3', abs(np.linalg.det(row.cell)))]
         self.table = [(name, unit, value) for name, unit, value in table
                       if value is not None]
 
-        self.key_value_pairs = sorted(dct.key_value_pairs.items()) or None
+        self.key_value_pairs = sorted(row.key_value_pairs.items()) or None
 
-        self.dipole = dct.get('dipole')
+        self.dipole = row.get('dipole')
         if self.dipole is not None:
             self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
-        
+
         self.plots = []
-        self.data = dct.get('data')
+        self.data = row.get('data')
         if self.data:
             plots = []
             for name, value in self.data.items():
                 if isinstance(value, dict) and 'xlabel' in value:
                     plots.append((value.get('number'), name))
             self.plots = [name for number, name in sorted(plots)]
-            
+
             self.data = ', '.join(self.data.keys())
-                
-        self.constraints = dct.get('constraints')
+
+        self.constraints = row.get('constraints')
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)
-        
+
     def write(self):
-        dct = self.dct
-        
+        row = self.row
+
         width = max(len(name) for name, unit, value in self.table)
         print('{0:{width}}|unit  |value'.format('name', width=width))
         for name, unit, value in self.table:
@@ -94,17 +94,17 @@ class Summary:
         print('\nUnit cell in Ang:')
         print('axis|periodic|          x|          y|          z')
         c = 1
-        for p, axis in zip(dct.pbc, self.cell):
+        for p, axis in zip(row.pbc, self.cell):
             print('   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'.format(
                 c, [' no', 'yes'][p], axis))
             c += 1
-            
+
         if self.key_value_pairs:
             print('\nKey-value pairs:')
             width = max(len(key) for key, value in self.key_value_pairs)
             for key, value in self.key_value_pairs:
                 print('{0:{width}}|{1}'.format(key, value, width=width))
-                
+
         if self.forces:
             print('\nForces in ev/Ang:')
             for f in self.forces:
@@ -116,9 +116,9 @@ class Summary:
 
         if self.dipole:
             print('\nDipole moment in e*Ang: ({0})'.format(self.dipole))
-        
+
         if self.constraints:
             print('\nConstraints:', self.constraints)
-            
+
         if self.data:
             print('\nData:', self.data)
