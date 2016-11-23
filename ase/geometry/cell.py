@@ -33,7 +33,7 @@ def cell_to_cellpar(cell):
         else:
             angle = np.nan
         angles.append(angle)
-    return lengths.tolist() + angles
+    return np.array(lengths.tolist() + angles)
 
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
