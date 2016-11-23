@@ -19,8 +19,11 @@ def angle(x, y):
 
 
 def cell_to_cellpar(cell):
-    """Returns the cell parameters [a, b, c, alpha, beta, gamma] as a
-    numpy array."""
+    """Returns the cell parameters [a, b, c, alpha, beta, gamma] as a list.
+
+    If an angle is undefined, it will be returned as None.  This will happen
+    if not all there lattice vectors are defined.
+    """
     lengths = np.linalg.norm(cell, axis=1)
     angles = []
     for i in range(3):
@@ -31,9 +34,9 @@ def cell_to_cellpar(cell):
             x = np.dot(cell[j], cell[k]) / ll
             angle = 180.0 / pi * arccos(x)
         else:
-            angle = np.nan
+            angle = None
         angles.append(angle)
-    return np.array(lengths.tolist() + angles)
+    return lengths.tolist() + angles
 
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
@@ -125,7 +128,7 @@ def crystal_structure_from_cell(cell, eps=1e-4):
         'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic',
         'hexagonal' or 'monoclinic'
     """
-    cellpar = cell_to_cellpar(cell=cell)
+    cellpar = np.array(cell_to_cellpar(cell))
     abc = cellpar[:3]
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
