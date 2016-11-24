@@ -23,7 +23,7 @@ def cell_to_cellpar(cell):
 
     Angles are in degrees.
     """
-    lengths = np.linalg.norm(cell, axis=1)
+    lengths = [np.linalg.norm(v) for v in cell]
     angles = []
     for i in range(3):
         j = i - 1
@@ -35,7 +35,7 @@ def cell_to_cellpar(cell):
         else:
             angle = 90.0
         angles.append(angle)
-    return np.array(lengths.tolist() + angles)
+    return np.array(lengths + angles)
 
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
