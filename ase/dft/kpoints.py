@@ -277,7 +277,7 @@ def get_special_points(lattice, cell, eps=1e-4):
 
     lattice = lattice.lower()
 
-    cellpar = np.array(cell_to_cellpar(cell=cell))
+    cellpar = cell_to_cellpar(cell=cell)
     abc = cellpar[:3]
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
