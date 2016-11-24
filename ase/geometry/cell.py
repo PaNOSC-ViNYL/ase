@@ -181,6 +181,7 @@ def complete_cell(cell):
 
 
 def is_orthorhombic(cell):
+    """Check that cell only has stuff in the diagonal."""
     return not (np.flatnonzero(cell) % 4).any()
 
 

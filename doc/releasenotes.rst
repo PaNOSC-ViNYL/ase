@@ -23,7 +23,7 @@ Git master branch
   existing ones.  There is also a function :func:`ase.geometry.complete_cell`
   that will complete a unit cell.
 
-* :func:`~ase.build.graphen_nanoribbon` no longer adds 2.5 Å of vacuum by
+* :func:`~ase.build.graphene_nanoribbon` no longer adds 2.5 Å of vacuum by
   default.
 
 * All functions that create molecules, chains or surfaces
@@ -33,6 +33,9 @@ Git master branch
   ``[[a1,a2,0],[b1,b2,0],[0,0,0]]``.  Use the ``vacuum`` keyword that all
   of the 0-d, 1-d and 2-d functions have or equivalently, call the
   :meth:`~ase.Atoms.center` method.
+
+* New :func:`ase.geometry.is_orthorhombic` and
+  :func:`ase.geometry.orthorhombic` functions added.
 
 
 Version 3.12.0
