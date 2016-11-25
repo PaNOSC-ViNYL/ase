@@ -1,3 +1,4 @@
+import functools
 from gettext import gettext as _
 
 import ase.data
@@ -47,3 +48,35 @@ class Element(list):
         self._symbol = None
         self._Z = None
         self[2].text = text
+
+
+def helpbutton(text):
+    return ui.Button(_('Help'),
+                     helpwindow, text)
+
+
+def helpwindow(text):
+    win = ui.Windot(_('Help'))
+    win.add(ui.Text(text))
+
+
+def pybutton(title, obj, callback):
+    """A button for displaying Python code.
+
+    When pressed, it opens a window displaying some Python code, or an error
+    message if no Python code is ready.
+    """
+    return ui.Button('Python',
+                     functools.partial(pywindow, title, obj, callback))
+
+
+def pywindow(title, obj, callback):
+    callback()
+    code = obj.python
+    if code is None:
+        ui.oops(
+            _('No Python code'),
+            _('You have not (yet) specified a consistent set of parameters.'))
+    else:
+        win = ui.Window(title)
+        win.add(ui.Text(code))

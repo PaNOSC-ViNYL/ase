@@ -4,8 +4,7 @@
 from gettext import gettext as _
 
 import ase.gui.ui as ui
-from ase.gui.widgets import Element
-from ase.gui.pybutton import pybutton
+from ase.gui.widgets import Element, pybutton
 from ase.build import nanotube
 
 

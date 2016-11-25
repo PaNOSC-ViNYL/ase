@@ -66,7 +66,7 @@ class Widget(object):
     def grid(self, parent):
         widget = self.create(parent)
         widget.grid()
-        widget['font'] = font
+        # widget['font'] = font
 
     def create(self, parent):
         self.widget = self.creator(parent)
@@ -92,6 +92,9 @@ class Row(Widget):
                 thing = Label(thing)
             thing.pack(self.widget, 'left')
         return self.widget
+
+    def __getitem__(self, i):
+        return self.things[i]
 
 
 class Label(Widget):
@@ -274,7 +277,7 @@ class RadioButton(Widget):
 class ComboBox(Widget):
     def __init__(self, labels, values=None, callback=None):
         self.var = tk.StringVar()
-        self.values = values or list(range(len(labels)))
+        self.values = dict(zip(labels, values or list(range(len(labels)))))
         self.callback = callback
         self.creator = partial(ttk.Combobox,
                                textvariable=self.var, values=labels)
@@ -290,7 +293,7 @@ class ComboBox(Widget):
 
     @property
     def value(self):
-        return self.var.get()
+        return self.values[self.var.get()]
 
 
 class Rows(Widget):
@@ -313,6 +316,13 @@ class Rows(Widget):
             row = Row(row)
         row.grid(self.widget)
         self.rows.append(row)
+
+    def clear(self):
+        while self.rows:
+            del self[0]
+
+    def __getitem__(self, i):
+        return self.rows[i]
 
     def __delitem__(self, i):
         widget = self.rows.pop(i).widget

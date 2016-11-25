@@ -3,7 +3,7 @@
 """
 
 import ase.gui.ui as ui
-from ase.gui.pybutton import pybutton
+from ase.gui.widgets import pybutton
 from ase.gui.status import formula
 from ase.spacegroup import crystal, Spacegroup
 
