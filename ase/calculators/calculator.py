@@ -548,7 +548,7 @@ class Calculator:
             stress[i, i] = (eplus - eminus) / (2 * d * V)
             x[i, i] += d
 
-            j = (i + 1) % 3
+            j = i - 2
             x[i, j] = d
             x[j, i] = d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
