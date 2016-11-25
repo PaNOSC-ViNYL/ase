@@ -167,21 +167,21 @@ class SpinBox(Widget):
         self.initial = str(value)
 
     def create(self, parent):
-        self.spin = self.creator(parent)
+        self.widget = self.creator(parent)
         self.value = self.initial
-        return self.spin
+        return self.widget
 
     @property
     def value(self):
-        x = self.spin.get().replace(',', '.')
+        x = self.widget.get().replace(',', '.')
         if '.' in x:
             return float(x)
         return int(x)
 
     @value.setter
     def value(self, x):
-        self.spin.delete(0, 'end')
-        self.spin.insert(0, x)
+        self.widget.delete(0, 'end')
+        self.widget.insert(0, x)
 
 
 class Entry(Widget):

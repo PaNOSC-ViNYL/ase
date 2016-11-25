@@ -126,6 +126,7 @@ class SetupNanoparticle:
         self.atoms = None
         self.no_update = True
         self.legal_element = False
+        self.old_structure = 'undefined'
 
         win = self.win = ui.Window(_('Nanoparticle'))
         win.add(ui.Text(introtext))
@@ -155,10 +156,11 @@ class SetupNanoparticle:
         self.structure.active = False
         self.fourindex = self.needs_4index[values[0]]
 
+        self.c = ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)
         win.add([_('Lattice constant:  a ='),
                  ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update),
                  ' c =',
-                 ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)])
+                 self.c])
 
         # Choose specification method
         self.method = ui.ComboBox(
@@ -202,17 +204,20 @@ class SetupNanoparticle:
         self.gui = gui
         self.python = None
 
-    def default_direction_table(self, widget=None):
+    def default_direction_table(self):
         'Set default directions and values for the current crystal structure.'
         self.direction_table = []
-        self.direction_table_rows.clear()
         struct = self.structure.value
         for direction, layers in self.default_layers[struct]:
-            self.add_direction(direction, layers, 1.0)
+            self.direction_table.append((direction, layers, 1.0))
+
+    def update_direction_table(self):
+        self.direction_table_rows.clear()
+        for direction, layers, energy in self.direction_table:
+            self.add_direction(direction, layers, energy)
 
     def add_direction(self, direction, layers, energy):
         i = len(self.direction_table)
-        self.direction_table.append((direction, layers, energy))
 
         if self.method.value == 'wulff':
             spin = ui.SpinBox(energy, 0.0, 1000.0, 0.1, self.update)
@@ -237,14 +242,14 @@ class SetupNanoparticle:
         self.update()
 
     def update_new_direction_and_size_stuff(self):
-        if self.structure.value in ['hcp', 'graphite']:
+        if self.needs_4index[self.structure.value]:
             n = 4
         else:
             n = 3
 
         self.new_direction_and_size_rows.clear()
 
-        row = ['(']
+        self.new_direction = row = ['(']
         for i in range(n):
             if i > 0:
                 row.append(',')
@@ -303,7 +308,7 @@ class SetupNanoparticle:
         pack(self.wulffbox, buts, end=True)
         """
 
-    def update_structure(self, widget=None):
+    def update_structure(self):
         'Called when the user changes the structure.'
         s = self.structure.value
         if s != self.old_structure:
@@ -313,34 +318,20 @@ class SetupNanoparticle:
                 # The table of directions is invalid.
                 self.default_direction_table()
             self.old_structure = s
-            if self.needs_2lat[s]:
-                self.lattice_label_c.show()
-                self.lattice_box_c.show()
-            else:
-                self.lattice_label_c.hide()
-                self.lattice_box_c.hide()
-            if self.fourindex:
-                self.newdir_label[3].show()
-                self.newdir_box[3].show()
-            else:
-                self.newdir_label[3].hide()
-                self.newdir_box[3].hide()
+            self.c.active = self.needs_2lat[s]
+
         self.update()
 
-    def update_gui_method(self, widget=None):
+    def update_gui_method(self):
         'Switch between layer specification and Wulff construction.'
         self.update_direction_table()
+        self.update_new_direction_and_size_stuff()
         if self.method.value == 'wulff':
-            self.wulffbox.show()
-            self.layerlabel.set_text(_('Surface energies (as energy/area, '
-                                       'NOT per atom):'))
-            self.newdir_layers_box.hide()
-            self.newdir_esurf_box.show()
+            self.layerlabel.text = _('Surface energies (as energy/area, '
+                                     'NOT per atom):')
         else:
-            self.wulffbox.hide()
-            self.layerlabel.set_text(_('Number of layers:'))
-            self.newdir_layers_box.show()
-            self.newdir_esurf_box.hide()
+            self.layerlabel.text = _('Number of layers:')
+
         self.update()
 
     def wulff_smaller(self, widget=None):
@@ -365,28 +356,29 @@ class SetupNanoparticle:
             n = 4
         else:
             n = 3
-        idx = tuple( [int(a.value) for a in self.newdir_index[:n]] )
-        if not np.array(idx).any():
+        idx = tuple(a.value for a in self.new_direction[1:1 + 2 * n:2])
+        if not any(idx):
             oops(_('At least one index must be non-zero'))
             return
-        if n == 4 and np.array(idx)[:3].sum() != 0:
+        if n == 4 and sum(idx) != 0:
             oops(_('Invalid hexagonal indices',
                  'The sum of the first three numbers must be zero'))
             return
-        adj1 = ui.Adjustment(self.newdir_layers.value, -100, 100, 1)
-        adj2 = ui.Adjustment(self.newdir_esurf.value, -1000.0, 1000.0, 0.1)
-        adj1.connect('value-changed', self.update)
-        adj2.connect('value-changed', self.update)
-        self.direction_table.append([idx, adj1, adj2])
-        self.update_direction_table()
+        new = [idx, 5, 1.0]
+        if self.method.value == 'wulff':
+            new[2] = self.new_direction[-2].value
+        else:
+            new[2] = self.new_direction[-2].value
+        self.direction_table.append(new)
+        self.add_direction(*new)
 
     def row_delete(self, row):
         del self.direction_table[row]
         self.update_direction_table()
 
-    def row_swap_next(self, widget, row):
+    def row_swap_next(self, row):
         dt = self.direction_table
-        dt[row], dt[row+1] = dt[row+1], dt[row]
+        dt[row], dt[row + 1] = dt[row + 1], dt[row]
         self.update_direction_table()
 
     def update_gui_size(self, widget=None):
@@ -414,7 +406,7 @@ class SetupNanoparticle:
         if self.no_update:
             return
         self.update_element()
-        if self.auto.get_active():
+        if self.auto.value:
             self.makeatoms()
             if self.atoms is not None:
                 self.gui.new_atoms(self.atoms)
