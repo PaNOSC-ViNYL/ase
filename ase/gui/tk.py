@@ -329,6 +329,9 @@ class Rows(Widget):
         widget.grid_remove()
         widget.destroy()
 
+    def __len__(self):
+        return len(self.rows)
+
 
 class MenuItem:
     def __init__(self, label, callback=None, key=None,

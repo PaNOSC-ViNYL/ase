@@ -1,7 +1,7 @@
 # encoding: utf-8
 """nanoparticle.py - Window for setting up crystalline nanoparticles.
 """
-
+from __future__ import division
 from copy import copy
 from gettext import gettext as _
 
@@ -125,7 +125,6 @@ class SetupNanoparticle:
     def __init__(self, gui):
         self.atoms = None
         self.no_update = True
-        self.legal_element = False
         self.old_structure = 'undefined'
 
         win = self.win = ui.Window(_('Nanoparticle'))
@@ -156,11 +155,9 @@ class SetupNanoparticle:
         self.structure.active = False
         self.fourindex = self.needs_4index[values[0]]
 
+        self.a = ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)
         self.c = ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)
-        win.add([_('Lattice constant:  a ='),
-                 ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update),
-                 ' c =',
-                 self.c])
+        win.add([_('Lattice constant:  a ='), self.a, ' c =', self.c])
 
         # Choose specification method
         self.method = ui.ComboBox(
@@ -196,13 +193,12 @@ class SetupNanoparticle:
         self.auto = ui.CheckButton(_('Automatic Apply'))
         win.add(self.auto)
 
-        win.add([pybutton(_('Creating a nanoparticle.'), self, self.makeatoms),
+        win.add([pybutton(_('Creating a nanoparticle.'), self.makeatoms),
                  helpbutton(helptext),
                  ui.Button(_('Apply'), self.apply),
                  ui.Button(_('OK'), self.ok)])
 
         self.gui = gui
-        self.python = None
 
     def default_direction_table(self):
         'Set default directions and values for the current crystal structure.'
@@ -217,7 +213,7 @@ class SetupNanoparticle:
             self.add_direction(direction, layers, energy)
 
     def add_direction(self, direction, layers, energy):
-        i = len(self.direction_table)
+        i = len(self.direction_table_rows)
 
         if self.method.value == 'wulff':
             spin = ui.SpinBox(energy, 0.0, 1000.0, 0.1, self.update)
@@ -358,11 +354,11 @@ class SetupNanoparticle:
             n = 3
         idx = tuple(a.value for a in self.new_direction[1:1 + 2 * n:2])
         if not any(idx):
-            oops(_('At least one index must be non-zero'))
+            ui.oops(_('At least one index must be non-zero'))
             return
         if n == 4 and sum(idx) != 0:
-            oops(_('Invalid hexagonal indices',
-                 'The sum of the first three numbers must be zero'))
+            ui.oops(_('Invalid hexagonal indices',
+                      'The sum of the first three numbers must be zero'))
             return
         new = [idx, 5, 1.0]
         if self.method.value == 'wulff':
@@ -405,7 +401,7 @@ class SetupNanoparticle:
     def update(self, *args):
         if self.no_update:
             return
-        self.update_element()
+        self.element.check()
         if self.auto.value:
             self.makeatoms()
             if self.atoms is not None:
@@ -416,74 +412,53 @@ class SetupNanoparticle:
 
     def set_structure_data(self, *args):
         'Called when the user presses [Get structure].'
-        if not self.update_element():
-            oops(_('Invalid element.'))
+        if not self.element.check():
             return
-        z = ase.data.atomic_numbers[self.legal_element]
+        z = self.element.Z
         ref = ase.data.reference_states[z]
         if ref is None:
             structure = None
         else:
             structure = ref['symmetry']
 
-        if ref is None or not structure in self.list_of_structures:
-            oops(_('Unsupported or unknown structure',
-                   'Element = %s,  structure = %s' % (self.legal_element,
-                                                      structure)))
+        if ref is None or structure not in [s[0]
+                                            for s in  self.list_of_structures]:
+            ui.oops(_('Unsupported or unknown structure',
+                      'Element = %s,  structure = %s' % (self.element.symbol,
+                                                         structure)))
             return
-        for i, s in enumerate(self.list_of_structures):
-            if structure == s:
-                self.structure.set_active(i)
+
+        self.structure.value = s
+
         a = ref['a']
-        self.lattice_const_a.set_value(a)
+        self.a.value = a
         self.fourindex = self.needs_4index[structure]
         if self.fourindex:
             try:
                 c = ref['c']
             except KeyError:
                 c = ref['c/a'] * a
-            self.lattice_const_c.set_value(c)
-            self.lattice_label_c.show()
-            self.lattice_box_c.show()
-        else:
-            self.lattice_label_c.hide()
-            self.lattice_box_c.hide()
+            self.c.value = c
 
     def makeatoms(self, *args):
         'Make the atoms according to the current specification.'
-        if not self.update_element():
+        if not self.element.check():
             self.clearatoms()
             self.makeinfo()
             return False
-        assert self.legal_element is not None
-        struct = self.list_of_structures[self.structure.get_active()]
+        struct = self.structure.value
         if self.needs_2lat[struct]:
             # a and c lattice constants
-            lc = {'a': self.lattice_const_a.value,
-                  'c': self.lattice_const_c.value}
+            lc = {'a': self.a.value,
+                  'c': self.c.value}
             lc_str = str(lc)
         else:
-            lc = self.lattice_const_a.value
+            lc = self.a.value
             lc_str = '%.5f' % (lc,)
-        if self.method.get_active() == 0:
-            # Layer-by-layer specification
-            surfaces = [x[0] for x in self.direction_table]
-            layers = [int(x[1].value) for x in self.direction_table]
-            self.atoms = self.factory[struct](self.legal_element, copy(surfaces),
-                                              layers, latticeconstant=lc)
-            imp = self.import_names[struct]
-            self.pybut.python = py_template_layers % {'import': imp,
-                                                      'element': self.legal_element,
-                                                      'surfaces': str(surfaces),
-                                                      'layers': str(layers),
-                                                      'latconst': lc_str,
-                                                      'factory': imp.split()[-1]
-                                                      }
-        else:
+        if self.method.value == 'wulff':
             # Wulff construction
-            assert self.method.get_active() == 1
             surfaces = [x[0] for x in self.direction_table]
-            surfaceenergies = [x[2].value for x in self.direction_table]
+            surfaceenergies = [x[2] for x in self.direction_table]
             self.update_size_dia()
             if self.round_above.get_active():
                 rounding = 'above'
@@ -498,24 +473,38 @@ class SetupNanoparticle:
                                             self.size_n_adj.value,
                                             self.factory[struct],
                                             rounding, lc)
-            self.pybut.python = py_template_wulff % {'element': self.legal_element,
-                                                     'surfaces': str(surfaces),
-                                                     'energies': str(surfaceenergies),
-                                                     'latconst': lc_str,
-                                                     'natoms': self.size_n_adj.value,
-                                                     'structure': struct,
-                                                     'rounding': rounding
-                                                      }
+            python = py_template_wulff % {'element': self.legal_element,
+                                          'surfaces': str(surfaces),
+                                          'energies': str(surfaceenergies),
+                                          'latconst': lc_str,
+                                          'natoms': self.size_n_adj.value,
+                                          'structure': struct,
+                                          'rounding': rounding}
+        else:
+            # Layer-by-layer specification
+            surfaces = [x[0] for x in self.direction_table]
+            layers = [x[1] for x in self.direction_table]
+            self.atoms = self.factory[struct](self.element.symbol,
+                                              copy(surfaces),
+                                              layers, latticeconstant=lc)
+            imp = self.import_names[struct]
+            python = py_template_layers % {'import': imp,
+                                           'element': self.element.symbol,
+                                           'surfaces': str(surfaces),
+                                           'layers': str(layers),
+                                           'latconst': lc_str,
+                                           'factory': imp.split()[-1]}
         self.makeinfo()
+
+        return python
 
     def clearatoms(self):
         self.atoms = None
-        self.pybut.python = None
 
     def get_atomic_volume(self):
-        s = self.list_of_structures[self.structure.get_active()]
-        a = self.lattice_const_a.value
-        c = self.lattice_const_c.value
+        s = self.structure.value
+        a = self.a.value
+        c = self.c.value
         if s == 'fcc':
             return a**3 / 4
         elif s == 'bcc':
@@ -523,11 +512,9 @@ class SetupNanoparticle:
         elif s == 'sc':
             return a**3
         elif s == 'hcp':
-            return np.sqrt(3.0)/2 * a * a * c / 2
+            return np.sqrt(3.0) / 2 * a * a * c / 2
         elif s == 'graphite':
-            return np.sqrt(3.0)/2 * a * a * c / 4
-        else:
-            raise RuntimeError('Unknown structure: '+s)
+            return np.sqrt(3.0) / 2 * a * a * c / 4
 
     def makeinfo(self):
         """Fill in information field about the atoms.
@@ -543,22 +530,22 @@ class SetupNanoparticle:
         else:
             self.natoms_label.set_label(str(len(self.atoms)))
             at_vol = self.get_atomic_volume()
-            dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1.0/3.0)
+            dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1 / 3)
             self.dia1_label.set_label(_(u'%.1f Å') % (dia,))
             self.smaller_button.set_sensitive(True)
             self.larger_button.set_sensitive(True)
 
-    def apply(self, *args):
+    def apply(self):
         self.makeatoms()
         if self.atoms is not None:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(_('No valid atoms.'),
-                 _('You have not (yet) specified a consistent set of '
-                   'parameters.'))
+            ui.oops(_('No valid atoms.'),
+                    _('You have not (yet) specified a consistent set of '
+                      'parameters.'))
             return False
 
-    def ok(self, *args):
+    def ok(self):
         if self.apply():
-            self.destroy()
+            self.win.destroy()
