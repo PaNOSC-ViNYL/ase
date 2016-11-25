@@ -55,7 +55,7 @@ def helpbutton(text):
 
 
 def helpwindow(text):
-    win = ui.Windot(_('Help'))
+    win = ui.Window(_('Help'))
     win.add(ui.Text(text))
 
 

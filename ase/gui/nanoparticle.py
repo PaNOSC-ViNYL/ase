@@ -130,7 +130,7 @@ class SetupNanoparticle:
         win = self.win = ui.Window(_('Nanoparticle'))
         win.add(ui.Text(introtext))
 
-        self.element = Element('C', self.update)
+        self.element = Element('', self.update)
         lattice_button = ui.Button(_('Get structure'),
                                    self.set_structure_data)
         self.elementinfo = ui.Label(' ')
@@ -152,7 +152,6 @@ class SetupNanoparticle:
             self.factory[abbrev] = factory
         self.structure = ui.ComboBox(labels, values, self.update_structure)
         win.add([_('Structure:'), self.structure])
-        self.structure.active = False
         self.fourindex = self.needs_4index[values[0]]
 
         self.a = ui.SpinBox(3.0, 0.0, 1000.0, 0.01, self.update)
@@ -186,7 +185,7 @@ class SetupNanoparticle:
         win.add(self.info)
 
         # Finalize setup
-        self.update_structure()
+        self.update_structure('fcc')
         self.update_gui_method()
         self.no_update = False
 
@@ -304,9 +303,9 @@ class SetupNanoparticle:
         pack(self.wulffbox, buts, end=True)
         """
 
-    def update_structure(self):
+    def update_structure(self, s):
         'Called when the user changes the structure.'
-        s = self.structure.value
+        #s = self.structure.value
         if s != self.old_structure:
             old4 = self.fourindex
             self.fourindex = self.needs_4index[s]
@@ -354,7 +353,7 @@ class SetupNanoparticle:
             n = 3
         idx = tuple(a.value for a in self.new_direction[1:1 + 2 * n:2])
         if not any(idx):
-            ui.oops(_('At least one index must be non-zero'))
+            ui.oops(_('At least one index must be non-zero'), '')
             return
         if n == 4 and sum(idx) != 0:
             ui.oops(_('Invalid hexagonal indices',
@@ -422,13 +421,13 @@ class SetupNanoparticle:
             structure = ref['symmetry']
 
         if ref is None or structure not in [s[0]
-                                            for s in  self.list_of_structures]:
-            ui.oops(_('Unsupported or unknown structure',
-                      'Element = %s,  structure = %s' % (self.element.symbol,
-                                                         structure)))
+                                            for s in self.structure_data]:
+            ui.oops(_('Unsupported or unknown structure'),
+                    'Element = %s,  structure = %s' % (self.element.symbol,
+                                                       structure))
             return
 
-        self.structure.value = s
+        self.structure.value = structure
 
         a = ref['a']
         self.a.value = a
@@ -523,17 +522,16 @@ class SetupNanoparticle:
         [Smaller] on and off.
         """
         if self.atoms is None:
-            self.natoms_label.set_label('-')
-            self.dia1_label.set_label('-')
-            self.smaller_button.set_sensitive(False)
-            self.larger_button.set_sensitive(False)
+            self.info[1].text = '-'
+            self.info[3].text = '-'
         else:
-            self.natoms_label.set_label(str(len(self.atoms)))
             at_vol = self.get_atomic_volume()
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1 / 3)
-            self.dia1_label.set_label(_(u'%.1f Å') % (dia,))
-            self.smaller_button.set_sensitive(True)
-            self.larger_button.set_sensitive(True)
+            self.info[1].text = str(len(self.atoms))
+            self.info[3].text = u'{0:.1f} Å'.format(dia)
+        if self.method.value == 'wulff':
+            self.smaller_button.active = self.atoms is not None
+            self.larger_button.active = self.atoms is not None
 
     def apply(self):
         self.makeatoms()
@@ -548,4 +546,4 @@ class SetupNanoparticle:
 
     def ok(self):
         if self.apply():
-            self.win.destroy()
+            self.win.close()

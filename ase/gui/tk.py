@@ -109,7 +109,7 @@ class Label(Widget):
 
 class Text(Widget):
     def __init__(self, text):
-        self.creator = partial(tk.Text, height=5)
+        self.creator = partial(tk.Text, height=text.count('\n') + 1)
         s = re.split('<(.*?)>', text)
         self.text = [(s[0], ())]
         i = 1
@@ -294,6 +294,10 @@ class ComboBox(Widget):
     @property
     def value(self):
         return self.values[self.var.get()]
+
+    @value.setter
+    def value(self, x):
+        self.var.set()
 
 
 class Rows(Widget):
