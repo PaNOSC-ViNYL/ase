@@ -2,6 +2,8 @@
 """surfaceslab.py - Window for setting up surfaces
 """
 from __future__ import division
+from gettext import gettext as _
+
 import ase.gui.ui as ui
 from ase.gui.widgets import pybutton
 import ase.build as build

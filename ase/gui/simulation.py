@@ -1,5 +1,7 @@
 "Base class for simulation windows"
 
+from gettext import gettext as _
+
 import ase.gui.ui as ui
 from ase import Atoms
 from ase.constraints import FixAtoms

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from gettext import gettext as _
 import ase.gui.ui as ui
 from ase.io.pov import write_pov
 from ase.gui.status import formula
