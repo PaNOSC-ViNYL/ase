@@ -350,8 +350,16 @@ class MenuItem:
                     'Page-Down': '<Next>',
                     'Backspace': '<BackSpace>'}.get(key, key.lower())
 
+        if key:
+            def callback2(event=None):
+                callback(key)
+
+            callback2.__name__ = callback.__name__
+            self.callback = callback2
+        else:
+            self.callback = callback
+
         self.key = key
-        self.callback = callback
         self.value = value
         self.choices = choices
         self.submenu = submenu
