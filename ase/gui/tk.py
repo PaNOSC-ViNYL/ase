@@ -41,7 +41,7 @@ class BaseWindow:
 
     title = property(None, title)
 
-    def add(self, stuff, anchor='center'):
+    def add(self, stuff, anchor='w'):  # 'center'):
         if isinstance(stuff, str):
             stuff = Label(stuff)
         elif isinstance(stuff, list):
@@ -130,7 +130,7 @@ class Text(Widget):
         widget.tag_configure('c', foreground='blue')
         for text, tags in self.text:
             widget.insert('insert', text, tags)
-        widget.configure(state='disabled')
+        widget.configure(state='disabled', background=parent['bg'])
         return widget
 
 

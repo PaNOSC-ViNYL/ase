@@ -1,10 +1,10 @@
 from ase.gui.i18n import enable_localization
-enable_localization()
 import ase.gui.ui as ui
 from ase import Atoms
 from ase.gui.gui import GUI
 from ase.gui.images import Images
 from ase.calculators.singlepoint import SinglePointCalculator
+enable_localization()
 
 
 class OOPS:
@@ -27,17 +27,17 @@ ui.oops = OOPS()
 def nt(gui):
     yield
     nt = gui.nanotube_window()
-    #yield
+    # yield
     nt.apply()
-    #yield
+    # yield
     nt.element[1].value = '?'
     nt.apply()
-    #yield
+    # yield
     assert ui.oops.called('No valid atoms.')
     nt.element[1].value = 'C'
     nt.ok()
     assert gui.images.natoms == 20
-    #gui.exit()
+    # gui.exit()
 
 
 def np(gui):
@@ -55,8 +55,8 @@ def color(gui):
 
 if 1:
     gui = GUI()
-    # gui.run(test=nt(gui))
-    gui.run(test=np(gui))
+    gui.run(test=nt(gui))
+    # gui.run(test=np(gui))
 
 if 0:
     h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
