@@ -106,6 +106,7 @@ class AtomsRow:
     def __str__(self):
         return '<AtomsRow: formula={0}, keys={1}>'.format(
             self.formula, ','.join(self._keys))
+
     @property
     def constraints(self):
         """List of constraints."""
