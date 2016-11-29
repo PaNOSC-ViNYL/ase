@@ -412,7 +412,11 @@ def write_magres(filename, image):
         indices = [labels[:i + 1].count(labels[i]) for i in range(len(labels))]
 
     # Iterate over atoms
-    atom_info = list(zip(image.get_chemical_symbols(),
+    symbols = (image.get_array('castep_custom_species')
+               if image.has('castep_custom_species')
+               else image.get_chemical_symbols())
+
+    atom_info = list(zip(symbols,
                          image.get_positions()))
     if len(atom_info) > 0:
         image_data['atoms']['units'].append(['atom', 'Angstrom'])
@@ -438,7 +442,7 @@ def write_magres(filename, image):
             'ms': ('sigma', False),
             'efg': ('V', False),
             'isc': ('K', True)}
-        
+
         for u in image.info['magres_units']:
             # Get the type
             p = u.split('_')[0]
