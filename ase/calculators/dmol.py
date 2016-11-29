@@ -603,9 +603,9 @@ def read_grd(filename, rot_mat=None):
         grid[0], grid[1] = grid[1], grid[0]
 
     dummy_counter = 5
-    for i in xrange(grid[2]):
-        for j in xrange(grid[1]):
-            for k in xrange(grid[0]):  # Fastest index
+    for i in range(grid[2]):
+        for j in range(grid[1]):
+            for k in range(grid[0]):  # Fastest index
                 if fastest_index == 1:
                     data[k, j, i] = float(lines[dummy_counter])
                 elif fastest_index == 3:
