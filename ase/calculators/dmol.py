@@ -86,6 +86,7 @@ Important:
 
 """
 
+from __future__ import print_function
 import os
 import re
 import numpy as np
@@ -548,20 +549,20 @@ def find_transformation(atoms1, atoms2, verbose=False, only_cell=False):
 
     # Print comparision between A, B and Ax
     if verbose:
-        print '%17s %33s %35s %24s' % ('A', 'B', 'Ax', '|Ax-b|')
+        print('%17s %33s %35s %24s' % ('A', 'B', 'Ax', '|Ax-b|'))
         for a, b in zip(A, B):
             ax = np.dot(a, x)
             loss = np.linalg.norm(ax - b)
-            print '(',
+            print('(', end='')
             for a_i in a:
-                print '%8.5f' % a_i,
-            print ')   (',
+                print('%8.5f' % a_i, end='')
+            print(')   (', end='')
             for b_i in b:
-                print '%8.5f ' % b_i,
-            print ')   (',
+                print('%8.5f ' % b_i, end='')
+            print(')   (', end='')
             for ax_i in ax:
-                print '%8.5f ' % ax_i,
-            print ')   %8.5f' % loss
+                print('%8.5f ' % ax_i, end='')
+            print(')   %8.5f' % loss)
 
     return x, error
 
@@ -621,4 +622,4 @@ if __name__ == '__main__':
     calc = DMol3()
     atoms.set_calculator(calc)
     # ~ 60 sec calculation
-    print 'Potential energy %5.5f eV' % atoms.get_potential_energy()
+    print('Potential energy %5.5f eV' % atoms.get_potential_energy())
