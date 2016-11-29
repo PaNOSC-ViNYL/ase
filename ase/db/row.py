@@ -23,7 +23,7 @@ class FancyDict(dict):
 
     def __dir__(self):
         return self.keys()  # for tab-completion
-        
+
 
 def atoms2dict(atoms):
     dct = {
@@ -57,8 +57,8 @@ def atoms2dict(atoms):
                     if x is not None:
                         dct[prop] = x
     return dct
-    
-    
+
+
 class AtomsRow:
     def __init__(self, dct):
         if isinstance(dct, dict):
@@ -71,38 +71,41 @@ class AtomsRow:
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
-        
+
     def __contains__(self, key):
         return key in self.__dict__
-        
+
     def __iter__(self):
         return (key for key in self.__dict__ if key[0] != '_')
-        
+
     def get(self, key, default=None):
         """Return value of key if present or default if not."""
         return getattr(self, key, default)
-        
+
     @property
     def key_value_pairs(self):
         """Return dict of key-value pairs."""
         return dict((key, self.get(key)) for key in self._keys)
-        
+
     def count_atoms(self):
         """Count atoms.
-        
+
         Return dict mapping chemical symbol strings to number of atoms.
         """
         count = {}
         for symbol in self.symbols:
             count[symbol] = count.get(symbol, 0) + 1
         return count
-        
+
     def __getitem__(self, key):
         return getattr(self, key)
-        
+
     def __setitem__(self, key, value):
         setattr(self, key, value)
-        
+
+    def __str__(self):
+        return '<AtomsRow: formula={0}, keys={1}>'.format(
+            self.formula, ','.join(self._keys))
     @property
     def constraints(self):
         """List of constraints."""
@@ -119,7 +122,7 @@ class AtomsRow:
                     c['name'] = c['name'].rsplit('.', 1)[1]
                 self._constraints.append(c)
         return [dict2constraint(d) for d in self._constraints]
-        
+
     @property
     def data(self):
         """Data dict."""
@@ -128,28 +131,28 @@ class AtomsRow:
         if not isinstance(self._data, dict):
             self._data = decode(self._data)  # lazy decoding
         return FancyDict(self._data)
-        
+
     @property
     def natoms(self):
         """Number of atoms."""
         return len(self.numbers)
-        
+
     @property
     def formula(self):
         """Chemical formula string."""
         return hill(self.numbers)
-    
+
     @property
     def symbols(self):
         """List of chemical symbols."""
         return [chemical_symbols[Z] for Z in self.numbers]
-        
+
     @property
     def fmax(self):
         """Maximum atomic force."""
         forces = self.constrained_forces
         return (forces**2).sum(1).max()**0.5
-        
+
     @property
     def constrained_forces(self):
         """Forces after applying constraints."""
@@ -159,7 +162,7 @@ class AtomsRow:
             forces = forces.copy()
             for constraint in constraints:
                 constraint.adjust_forces(self.positions, forces)
-            
+
         return forces
 
     @property
@@ -200,7 +203,7 @@ class AtomsRow:
                       masses=self.get('masses'),
                       momenta=self.get('momenta'),
                       constraint=self.constraints)
-    
+
         if attach_calculator:
             params = decode(self.get('calculator_parameters', '{}'))
             atoms.calc = get_calculator(self.calculator)(**params)
@@ -221,5 +224,5 @@ class AtomsRow:
             data = self.get('data')
             if data:
                 atoms.info['data'] = data
-                    
+
         return atoms
