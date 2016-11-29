@@ -65,6 +65,11 @@ for format in sorted(all_formats):
         # Standalone test used as not compatible with 1D periodicity
         continue
 
+    if format in ['dmol-arc', 'dmol-car', 'dmol-incoor']:
+        # We need to make our own tests because these format does not support
+        # all kinds of pbc conditions
+        continue
+
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
         continue
