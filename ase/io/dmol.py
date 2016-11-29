@@ -6,15 +6,15 @@ The formats follow some very strict formatting
 
 Car
 ----
-col: 1-5     atom name    
+col: 1-5     atom name
 col: 7-20    x Cartesian coordinate of atom  in A
 col: 22-35   y Cartesian coordinate of atom  in A
 col: 37-50   z Cartesian coordinate of atom  in A
-col: 52-55   type of residue containing atom      
-col: 57-63   residue sequence name   relative to beginning of current molecule, 
+col: 52-55   type of residue containing atom
+col: 57-63   residue sequence name   relative to beginning of current molecule,
                 left justified
 col: 64-70   potential type of atom  left justified
-col: 72-73   element symbol   
+col: 72-73   element symbol
 col: 75-80   partial charge on atom
 
 Incoor
@@ -40,36 +40,37 @@ from ase.units import Hartree, Bohr
 
 def write_dmol_car(filename, atoms):
     """ Write a dmol car-file from an Atoms object
-    
+
     Notes
     -----
     Can not handle multiple images.
     Only allows for pbc 111 or 000.
     """
 
-    f = open(filename,'w')
+    f = open(filename, 'w')
     f.write('!BIOSYM archive 3\n')
 
     dt = datetime.now()
-    if np.all(atoms.pbc):    
-        a,b,c,alpha,beta,gamma = cell_to_cellpar(atoms.get_cell())
+    if np.all(atoms.pbc):
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
         f.write('PBC=ON\n\n')
-        f.write('!DATE     %s\n'% dt.strftime('%b %d %H:%m:%S %Y') )
-        f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n'%(a,b,c,alpha,beta,gamma))
-    elif not np.any(atoms.pbc): # [False,False,False]
+        f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
+        f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n' %
+                (a, b, c, alpha, beta, gamma))
+    elif not np.any(atoms.pbc):  # [False,False,False]
         f.write('PBC=OFF\n\n')
-        f.write('!DATE     %s\n'% dt.strftime('%b %d %H:%m:%S %Y') )
+        f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
     else:
         raise ValueError('PBC must be all true or all false for .car format')
-    for i,a in enumerate(atoms):
-        f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  0.000\n'%(
-               a.symbol+str(i+1),a.x, a.y, a.z, a.symbol))
+    for i, a in enumerate(atoms):
+        f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  '
+                '0.000\n' % (a.symbol + str(i+1), a.x, a.y, a.z, a.symbol))
     f.write('end\nend\n')
     f.close()
 
 
 def read_dmol_car(filename):
-    """ Read a dmol car-file and return an Atoms object. 
+    """ Read a dmol car-file and return an Atoms object.
 
     Notes
     -----
@@ -78,30 +79,30 @@ def read_dmol_car(filename):
 
     try:
         lines = open(filename, 'r').readlines()
-        atoms = Atoms()    
+        atoms = Atoms()
 
         start_line = 4
 
         if lines[1][4:6] == 'ON':
             start_line += 1
-            cell_data = np.array([ float(fld) for fld in lines[4].split()[1:7]])
-            cell = cellpar_to_cell(cell_data)
+            cell_dat = np.array([float(fld) for fld in lines[4].split()[1:7]])
+            cell = cellpar_to_cell(cell_dat)
             atoms.cell = cell
             atoms.pbc = [True, True, True]
 
         for line in lines[start_line:]:
-            if line.startswith('end'):  
-                break        
+            if line.startswith('end'):
+                break
             flds = line.split()
-            atoms.append(Atom(flds[7], flds[1:4]))        
+            atoms.append(Atom(flds[7], flds[1:4]))
         return atoms
     except IOError:
-        print 'Could not read car file %s'%filename
+        print 'Could not read car file %s' % filename
 
 
 def write_dmol_incoor(filename, atoms, bohr=True):
     """ Write a dmol incoor-file from an Atoms object
-    
+
     Notes
     -----
     Only used for pbc 111.
@@ -109,7 +110,7 @@ def write_dmol_incoor(filename, atoms, bohr=True):
     DMol3 expect data in .incoor files to be in bohr, if bohr is false however
     the data is written in Angstroms.
     """
-    
+
     if not np.all(atoms.pbc):
         raise ValueError('PBC must be all true for .incoor format')
 
@@ -120,51 +121,51 @@ def write_dmol_incoor(filename, atoms, bohr=True):
         cell = atoms.cell
         positions = atoms.positions
 
-    f = open(filename,'w')
+    f = open(filename, 'w')
     f.write('$cell vectors\n')
-    f.write('            %18.14f  %18.14f  %18.14f\n'%(
-           cell[0,0], cell[0,1],cell[0,2]))
-    f.write('            %18.14f  %18.14f  %18.14f\n'%(
-           cell[1,0], cell[1,1],cell[1,2]))
-    f.write('            %18.14f  %18.14f  %18.14f\n'%(
-           cell[2,0], cell[2,1],cell[2,2]))
-    
+    f.write('            %18.14f  %18.14f  %18.14f\n' % (
+        cell[0, 0], cell[0, 1], cell[0, 2]))
+    f.write('            %18.14f  %18.14f  %18.14f\n' % (
+        cell[1, 0], cell[1, 1], cell[1, 2]))
+    f.write('            %18.14f  %18.14f  %18.14f\n' % (
+        cell[2, 0], cell[2, 1], cell[2, 2]))
+
     f.write('$coordinates\n')
     for a, pos in zip(atoms, positions):
-        f.write('%-12s%18.14f  %18.14f  %18.14f \n'%(
-               a.symbol,pos[0], pos[1], pos[2]))
+        f.write('%-12s%18.14f  %18.14f  %18.14f \n' % (
+            a.symbol, pos[0], pos[1], pos[2]))
     f.write('$end\n')
     f.close()
 
 
 def read_dmol_incoor(filename, bohr=True):
     """ Reads an incoor file and returns an atoms object.
-    
+
     Notes
     -----
     If bohr is True then incoor is assumed to be in bohr and the data
     is rescaled to Angstrom.
     """
-    
+
     try:
         lines = open(filename, 'r').readlines()
         atoms = Atoms()
-        for i,line in enumerate(lines):
+        for i, line in enumerate(lines):
             if line.startswith('$cell vectors'):
-                cell = np.zeros((3,3))
-                for j,line in enumerate(lines[i + 1:i + 4]):
+                cell = np.zeros((3, 3))
+                for j, line in enumerate(lines[i + 1:i + 4]):
                     cell[j, :] = [float(fld) for fld in line.split()]
                 atoms.cell = cell
             if line.startswith('$coordinates'):
-                j = i + 1                
+                j = i + 1
                 while True:
                     if lines[j].startswith('$end'):
                         break
                     flds = lines[j].split()
-                    atoms.append(Atom(flds[0], flds[1:4]))  
-                    j += 1      
+                    atoms.append(Atom(flds[0], flds[1:4]))
+                    j += 1
     except IOError:
-        print 'Could not read incoor file %s'%filename
+        print 'Could not read incoor file %s' % filename
     if bohr:
         atoms.cell = atoms.cell * Bohr
         atoms.positions = atoms.positions * Bohr
@@ -172,12 +173,12 @@ def read_dmol_incoor(filename, bohr=True):
 
 
 def write_dmol_arc(filename, images):
-    """ Writes all images to file filename in arc format. 
+    """ Writes all images to file filename in arc format.
 
     Similar to the .car format only pbc 111 or 000 is supported.
     """
 
-    f = open(filename,'w')
+    f = open(filename, 'w')
     f.write('!BIOSYM archive 3\n')
     if np.all(images[0].pbc):
         f.write('PBC=ON\n\n')
@@ -187,17 +188,19 @@ def write_dmol_arc(filename, images):
         raise ValueError('PBC must be all true or all false for .arc format')
     for atoms in images:
         dt = datetime.now()
-        if np.all(atoms.pbc):    
-            a,b,c,alpha,beta,gamma = cell_to_cellpar(atoms.get_cell())
-            f.write('!DATE     %s\n'% dt.strftime('%b %d %H:%m:%S %Y') )
-            f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n'%(a,b,c,alpha,beta,gamma))
-        elif not np.any(atoms.pbc): # [False,False,False]
-            f.write('!DATE     %s\n'% dt.strftime('%b %d %H:%m:%S %Y') )
+        if np.all(atoms.pbc):
+            a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
+            f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
+            f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n' %
+                    (a, b, c, alpha, beta, gamma))
+        elif not np.any(atoms.pbc):  # [False,False,False]
+            f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
         else:
-            raise ValueError('PBC must be all true or all false for .arc format')
-        for i,a in enumerate(atoms):
-            f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  0.000\n'%(
-                   a.symbol+str(i+1),a.x, a.y, a.z, a.symbol))
+            raise ValueError(
+                'PBC must be all true or all false for .arc format')
+        for i, a in enumerate(atoms):
+            f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  '
+                    '0.000\n' % (a.symbol + str(i+1), a.x, a.y, a.z, a.symbol))
         f.write('end\nend\n')
         f.write('\n')
     f.close()
@@ -216,17 +219,18 @@ def read_dmol_arc(filename, index=-1):
             pbc = False
         else:
             print lines[1]
-            raise RuntimeError('Could not read pbc from second line in %s' \
-                                % filename)
+            raise RuntimeError('Could not read pbc from second line in %s'
+                               % filename)
         i = 0
         while i < len(lines):
-            image = Atoms() 
+            image = Atoms()
             # parse single image
             if lines[i].startswith('!DATE'):
                 # read cell
-                if pbc: 
-                    cell_data = np.array([ float(fld) for fld in lines[i+1].split()[1:7]])
-                    image.cell = cellpar_to_cell(cell_data)
+                if pbc:
+                    cell_dat = np.array([float(fld)
+                                         for fld in lines[i + 1].split()[1:7]])
+                    image.cell = cellpar_to_cell(cell_dat)
                     image.pbc = [True, True, True]
                     i += 1
                 i += 1
@@ -240,7 +244,7 @@ def read_dmol_arc(filename, index=-1):
                 return images[-1]
             i += 1
     except IOError:
-        print 'Could not read arc file %s'%filename
+        print 'Could not read arc file %s' % filename
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
