@@ -35,7 +35,7 @@ import numpy as np
 
 from ase import Atom, Atoms
 from ase.geometry.cell import cell_to_cellpar, cellpar_to_cell
-from ase.units import Hartree, Bohr
+from ase.units import Bohr
 
 
 def write_dmol_car(filename, atoms):
@@ -271,4 +271,4 @@ def read_dmol_arc(filename, index=-1):
                 stop = index.stop
                 if stop < 0:
                     stop += len(images)
-        return [images[i] for i in range(start, stop, step)]
+        return [images[j] for j in range(start, stop, step)]
