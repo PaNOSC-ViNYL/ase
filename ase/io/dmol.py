@@ -30,6 +30,7 @@ $end
 
 """
 
+from __future__ import print_function
 from datetime import datetime
 import numpy as np
 
@@ -97,7 +98,7 @@ def read_dmol_car(filename):
             atoms.append(Atom(flds[7], flds[1:4]))
         return atoms
     except IOError:
-        print 'Could not read car file %s' % filename
+        print('Could not read car file %s' % filename)
 
 
 def write_dmol_incoor(filename, atoms, bohr=True):
@@ -165,7 +166,7 @@ def read_dmol_incoor(filename, bohr=True):
                     atoms.append(Atom(flds[0], flds[1:4]))
                     j += 1
     except IOError:
-        print 'Could not read incoor file %s' % filename
+        print('Could not read incoor file %s' % filename)
     if bohr:
         atoms.cell = atoms.cell * Bohr
         atoms.positions = atoms.positions * Bohr
@@ -218,7 +219,6 @@ def read_dmol_arc(filename, index=-1):
         elif lines[1].startswith('PBC=OFF'):
             pbc = False
         else:
-            print lines[1]
             raise RuntimeError('Could not read pbc from second line in %s'
                                % filename)
         i = 0
@@ -244,7 +244,7 @@ def read_dmol_arc(filename, index=-1):
                 return images[-1]
             i += 1
     except IOError:
-        print 'Could not read arc file %s' % filename
+        print('Could not read arc file %s' % filename)
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
