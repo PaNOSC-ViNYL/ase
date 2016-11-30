@@ -1,15 +1,9 @@
-import sys
-
 from ase.calculators.emt import EMT
 from ase.constraints import FixInternals
 from ase.optimize.bfgs import BFGS
 from ase.build import molecule
-from ase.test import NotAvailable
 
 
-if sys.version_info[0] == 3:
-    raise NotAvailable
-    
 system = molecule('CH3CH2OH')
 system.center(vacuum=5.0)
 system.rattle(stdev=0.3)
