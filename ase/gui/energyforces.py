@@ -2,6 +2,8 @@
 
 "Module for calculating energies and forces."
 
+from gettext import gettext as _
+
 import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 

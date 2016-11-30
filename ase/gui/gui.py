@@ -82,11 +82,11 @@ class GUI(View, Status):
         else:
             self.window.run()
 
-    def step(self, action):
-        d = {'First': -10000000,
-             'Previous': -1,
-             'Next': 1,
-             'Last': 10000000}[action.get_name()]
+    def step(self, key):
+        d = {'Home': -10000000,
+             'Page-Up': -1,
+             'Page-Down': 1,
+             'End': 10000000}[key]
         i = max(0, min(self.images.nimages - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
@@ -97,9 +97,9 @@ class GUI(View, Status):
         self.scale *= x
         self.draw()
 
-    def zoom(self, action):
+    def zoom(self, key):
         """Zoom in/out on keypress or clicking menu item"""
-        x = {'ZoomIn': 1.2, 'ZoomOut': 1 / 1.2}[action.get_name()]
+        x = {'+': 1.2, '-': 1 / 1.2}[key]
         self._do_zoom(x)
 
     def scroll_event(self, event):
@@ -113,7 +113,7 @@ class GUI(View, Status):
             x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 
-    def settings(self, menuitem):
+    def settings(self):
         Settings(self)
 
     def scroll(self, event):

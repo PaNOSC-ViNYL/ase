@@ -2,6 +2,8 @@
 """nanotube.py - Window for setting up Graphene sheets and ribbons.
 """
 
+from gettext import gettext as _
+
 import ase.gui.ui as ui
 from ase.gui.status import formula
 from ase.build import graphene_nanoribbon

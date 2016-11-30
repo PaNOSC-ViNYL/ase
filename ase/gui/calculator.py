@@ -1,6 +1,8 @@
 # encoding: utf-8
 """calculator.py - module for choosing a calculator."""
 
+from gettext import gettext as _
+
 import ase.gui.ui as ui
 import os
 import numpy as np

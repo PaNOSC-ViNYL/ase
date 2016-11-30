@@ -2,6 +2,8 @@
 """crystal.py - Window for setting up arbitrary crystal lattices
 """
 
+from gettext import gettext as _
+
 import ase.gui.ui as ui
 from ase.gui.widgets import pybutton
 from ase.gui.status import formula
