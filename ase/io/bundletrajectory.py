@@ -33,7 +33,11 @@ try:
 except ImportError:
     import pickle              # Python 3 pickle is efficient.
 import collections
-
+# We would like to use an OrderedDict for nice printing
+try:
+    from collections import OrderedDict as odict
+except ImportError:
+    odict = dict
 
 class BundleTrajectory:
     """Reads and writes atoms into a .bundle directory.
@@ -818,25 +822,38 @@ class UlmBundleBackend:
         return data
 
     def read_info(self, framedir, name, split=None):
-        "Read information about file contents without reading the data."
+        """Read information about file contents without reading the data.
+
+        Information is a dictionary containing as aminimum the shape and 
+        type.
+        """
         fn = os.path.join(framedir, name + '.ulm')
         if split is None or os.path.exists(fn):
             f = ulmopen(fn, 'r')
-            info = (f.shape, f.dtype)
+            info = odict()
+            info['shape'] = f.shape
+            info['type'] = f.dtype
+            info['stored_as'] = f.stored_as
+            info['identical'] = f.all_identical
             f.close()
             return info
         else:
+            info = odict()
             for i in range(split):
                 fn = os.path.join(framedir, name + '_' + str(i) + '.ulm')
                 f = ulmopen(fn, 'r')
                 if i == 0:
-                    shape = list(f.shape)
-                    dtype = f.dtype
+                    info['shape'] = list(f.shape)
+                    info['type'] = f.dtype
+                    info['stored_as'] = f.stored_as
+                    info['identical'] = f.all_identical
                 else:
-                    shape[0] += f.shape[0]
-                    assert dtype == f.dtype
+                    info['shape'][0] += f.shape[0]
+                    assert info['type'] == f.dtype
+                    info['identical'] = info['identical'] and f.all_identical
                 f.close()
-            return (tuple(shape), dtype)
+            info['shape'] = tuple(info['shape'])
+            return info
 
     def set_fragments(self, nfrag):
         self.nfrag = nfrag
@@ -873,6 +890,7 @@ class PickleBundleBackend:
         # Store if this backend will actually write anything
         self.writesmall = master
         self.writelarge = master
+        self.readpy2 = False  # To be overwritten after the backend is initialized.
         
     def write_small(self, framedir, smalldata):
         "Write small data to be written jointly."
@@ -927,7 +945,10 @@ class PickleBundleBackend:
             else:
                 info = pickle.load(f)
             f.close()
-            return info
+            result = odict()
+            result['shape'] = info[0]
+            result['type'] = info[1]
+            return result
         else:
             for i in range(split):
                 fn = os.path.join(framedir, name + '_' + str(i) + '.pickle')
@@ -943,7 +964,10 @@ class PickleBundleBackend:
                 else:
                     shape[0] += info[0][0]
                     assert dtype == info[1]
-            return (tuple(shape), dtype)
+            result = odict()
+            result['shape'] = info[0]
+            result['type'] = info[1]
+            return result
 
     def set_fragments(self, nfrag):
         self.nfrag = nfrag
@@ -1063,8 +1087,14 @@ def print_bundletrajectory_info(filename):
         print(filename, 'is an empty BundleTrajectory.')
         return
     # Read the metadata
-    f = open(os.path.join(filename, 'metadata'), 'rb')
-    metadata = pickle.load(f)
+    fn = os.path.join(filename, 'metadata.json')
+    if os.path.exists(fn):
+        f = open(fn, 'r')
+        metadata = json.load(f)
+    else:
+        fn = os.path.join(filename, 'metadata')
+        f = open(fn, 'rb')
+        metadata = pickle.load(f)
     f.close()
     print("Metadata information of BundleTrajectory '%s':" % (filename,))
     for k, v in metadata.items():
@@ -1082,6 +1112,8 @@ def print_bundletrajectory_info(filename):
     # Look at first frame
     if metadata['backend'] == 'pickle':
         backend = PickleBundleBackend(True)
+    elif metadata['backend'] == 'ulm':
+        backend = UlmBundleBackend(True, False)
     else:
         raise NotImplementedError("Backend %s not supported."
                                   % (metadata['backend'],))
@@ -1100,25 +1132,37 @@ def print_bundletrajectory_info(filename):
             print("  Number of atoms: %i" % (v,))
         elif hasattr(v, 'shape'):
             print("  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype)))
+            if k == 'cell':
+                print("        [[%12.6f, %12.6f, %12.6f]," % tuple(v[0]))
+                print("         [%12.6f, %12.6f, %12.6f]," % tuple(v[1]))
+                print("         [%12.6f, %12.6f, %12.6f]]" % tuple(v[2]))
         else:
             print("  %s: %s" % (k, str(v)))
     # Read info from separate files.
+    if metadata['subtype'] == 'split':
+        nsplit = small['fragments']
+    else:
+        nsplit = False
     for k, v in metadata['datatypes'].items():
         if v and k not in small:
-            info = backend.read_info(frame, k)
-            if info and isinstance(info[0], tuple):
-                shape, dtype = info
-            else:
-                shape = info
-                dtype = 'unknown'
-            print("  %s: shape = %s, type = %s" % (k, str(shape), dtype))
+            info = backend.read_info(frame, k, nsplit)
+            infoline = "  %s: " % (k,)
+            for k, v in info.items():
+                infoline += "%s = %s, " % (k, str(v))
+            infoline = infoline[:-2] + "."  # Fix punctuation.
+            print(infoline)
                 
-        
+
+def main():
+    import optparse
+    parser = optparse.OptionParser(usage='python -m ase.io.bundletrajectory '
+                                   'a.bundle [b.bundle ...]',
+                                   description='Print information about '
+                                   'the contents of one or more bundletrajectories.')
+    opts, args = parser.parse_args()
+    for name in args:
+        print_bundletrajectory_info(name)
+
+
 if __name__ == '__main__':
-    from ase.lattice.cubic import FaceCenteredCubic
-    from ase.io import read, write
-    atoms = FaceCenteredCubic(size=(5, 5, 5), symbol='Au')
-    write('test.bundle', atoms)
-    atoms2 = read('test.bundle')
-    assert (atoms.get_positions() == atoms2.get_positions()).all()
-    assert (atoms.get_atomic_numbers() == atoms2.get_atomic_numbers()).all()
+    main()
