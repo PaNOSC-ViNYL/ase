@@ -108,10 +108,10 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
         if header:
             field = None
             val = None
-	    # m = re.match(header_fields_re+"\s+=\s*(.*)", line)
-	    # if m is not None: # got a header line
-	       # field=m.group(1).lstrip().rstrip()
-	       # val=m.group(2).lstrip().rstrip()
+            # m = re.match(header_fields_re+"\s+=\s*(.*)", line)
+            # if m is not None: # got a header line
+               # field=m.group(1).lstrip().rstrip()
+               # val=m.group(2).lstrip().rstrip()
             # else: # try other format
                 # m = re.match("(.*)\s+"+header_fields_re, line)
                 # if m is not None:
@@ -122,42 +122,42 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
                 field = m.group(2).lstrip().rstrip()
                 val = m.group(1).lstrip().rstrip()
             if field is not None and val is not None:
-	       if field == "atoms":
-		  N = int(val)
-	       if field == "atom types":
-		  N_types = int(val)
-	       elif field == "xlo xhi":
-		  (xlo, xhi) = [ float(x) for x in val.split() ]
-	       elif field == "ylo yhi":
-		  (ylo, yhi) = [ float(x) for x in val.split() ]
-	       elif field == "zlo zhi":
-		  (zlo, zhi) = [ float(x) for x in val.split() ]
-	       elif field == "xy xz yz":
-		  (xy, xz, yz) = [ float(x) for x in val.split() ]
+                if field == "atoms":
+                    N = int(val)
+                if field == "atom types":
+                    N_types = int(val)
+                elif field == "xlo xhi":
+                    (xlo, xhi) = [ float(x) for x in val.split() ]
+                elif field == "ylo yhi":
+                    (ylo, yhi) = [ float(x) for x in val.split() ]
+                elif field == "zlo zhi":
+                    (zlo, zhi) = [ float(x) for x in val.split() ]
+                elif field == "xy xz yz":
+                    (xy, xz, yz) = [ float(x) for x in val.split() ]
 
         if section is not None:
-	    fields = line.split()
-	    if section == "Atoms": # id *
-               id = int(fields[0])
-               if style == 'full' and (len(fields) == 7 or len(fields) == 10): # id mol-id type q x y z [tx ty tz]
-                   pos_in[id] = (int(fields[2]), float(fields[4]), float(fields[5]), float(fields[6]))
-                   mol_id_in[id] = int(fields[1])
-                   if len(fields) == 10:
-                      travel_in[id] = (int(fields[7]), int(fields[8]), int(fields[9]))
-               elif style == 'atomic' and (len(fields) == 5 or len(fields) == 8): # id type x y z [tx ty tz]
-                   pos_in[id] = (int(fields[1]), float(fields[2]), float(fields[3]), float(fields[4]))
-                   if len(fields) == 8:
-                      travel_in[id] = (int(fields[5]), int(fields[6]), int(fields[7]))
-               else:
-                  raise RuntimeError("Style '%s' not supported or invalid number of fields %d" % (style, len(fields)))
-	    elif section == "Velocities": # id vx vy vz
-	       vel_in[int(fields[0])] = (float(fields[1]), float(fields[2]), float(fields[3]))
-	    elif section == "Masses":
-               mass_in[int(fields[0])] = float(fields[1])
-	    elif section == "Bonds": # id type atom1 atom2
-               bonds_in.append((int(fields[1]), int(fields[2]), int(fields[3])))
-	    elif section == "Angles": # id type atom1 atom2 atom3
-               angles_in.append((int(fields[1]), int(fields[2]), int(fields[3]), int(fields[4])))
+            fields = line.split()
+            if section == "Atoms": # id *
+                id = int(fields[0])
+                if style == 'full' and (len(fields) == 7 or len(fields) == 10): # id mol-id type q x y z [tx ty tz]
+                    pos_in[id] = (int(fields[2]), float(fields[4]), float(fields[5]), float(fields[6]))
+                    mol_id_in[id] = int(fields[1])
+                    if len(fields) == 10:
+                        travel_in[id] = (int(fields[7]), int(fields[8]), int(fields[9]))
+                elif style == 'atomic' and (len(fields) == 5 or len(fields) == 8): # id type x y z [tx ty tz]
+                    pos_in[id] = (int(fields[1]), float(fields[2]), float(fields[3]), float(fields[4]))
+                    if len(fields) == 8:
+                        travel_in[id] = (int(fields[5]), int(fields[6]), int(fields[7]))
+                else:
+                    raise RuntimeError("Style '%s' not supported or invalid number of fields %d" % (style, len(fields)))
+            elif section == "Velocities": # id vx vy vz
+                vel_in[int(fields[0])] = (float(fields[1]), float(fields[2]), float(fields[3]))
+            elif section == "Masses":
+                mass_in[int(fields[0])] = float(fields[1])
+            elif section == "Bonds": # id type atom1 atom2
+                bonds_in.append((int(fields[1]), int(fields[2]), int(fields[3])))
+            elif section == "Angles": # id type atom1 atom2 atom3
+                angles_in.append((int(fields[1]), int(fields[2]), int(fields[3]), int(fields[4])))
 
     # set cell
     cell = np.zeros((3,3))
