@@ -70,7 +70,7 @@ atomic_names = [
 # range the "conventional" weights are taken from Table 3 and the ranges are
 # given in the comments.
 atomic_masses = np.array([
-    0.0,  # X
+    1.0,  # X
     1.008,  # H [1.00784, 1.00811]
     4.002602,  # He
     6.94,  # Li [6.938, 6.997]
