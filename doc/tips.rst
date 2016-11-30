@@ -2,6 +2,11 @@
 Tips and tricks
 ===============
 
+https://www.python.org/
+https://docs.scipy.org/doc/numpy/
+https://docs.scipy.org/doc/scipy/reference/
+
+
 Atoms objects
 =============
 
@@ -16,8 +21,8 @@ Species
 {...}
 
 
-Indexing
---------
+Delete all helium atoms
+-----------------------
 
 Indexing with lists of booleans:
 
@@ -54,5 +59,11 @@ Append one trajectory to the end of another
 >>> t1.close()
 
 
-combine two to one
-------------------
+Input/output
+============
+
+Convert from one format to another
+----------------------------------
+
+>>> from ase.io import read, write
+>>> write('abc.xyz', read('abc.traj'))
