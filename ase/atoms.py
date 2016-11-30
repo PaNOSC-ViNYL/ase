@@ -1281,18 +1281,24 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self, list):
+    def get_dihedral(self, i0, i1=None, i2=None, i3=None):
         """Calculate dihedral angle.
 
-        Calculate dihedral angle between the vectors list[0]->list[1]
-        and list[2]->list[3], where list contains the atomic indexes
-        in question.
+        Calculate dihedral angle (in degrees) between the vectors i0->i1
+        and i2->i3.
         """
 
+        if i1 is None:
+            assert i2 is None and i3 is None
+            i0, i1, i2, i3 = i0
+            f = 180 / np.pi
+        else:
+            f = 1
+
         # vector 0->1, 1->2, 2->3 and their normalized cross products:
-        a = self.positions[list[1]] - self.positions[list[0]]
-        b = self.positions[list[2]] - self.positions[list[1]]
-        c = self.positions[list[3]] - self.positions[list[2]]
+        a = self.positions[i1] - self.positions[i0]
+        b = self.positions[i2] - self.positions[i1]
+        c = self.positions[i3] - self.positions[i2]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
@@ -1303,10 +1309,10 @@ class Atoms(object):
             angle = -1
         if angle > 1:
             angle = 1
-        angle = np.arccos(angle)
+        angle = np.arccos(angle) * 180 / np.pi
         if np.vdot(bxa, c) > 0:
-            angle = 2 * np.pi - angle
-        return angle
+            angle = 360 - angle
+        return angle * f
 
     def _masked_rotate(self, center, axis, diff, mask):
         # do rotation of subgroup by copying it to temporary atoms object
