@@ -1289,9 +1289,10 @@ class Atoms(object):
         """
 
         if i1 is None:
+            # Old way - use radians
             assert i2 is None and i3 is None
             i0, i1, i2, i3 = i0
-            f = 180 / np.pi
+            f = np.pi / 180
         else:
             f = 1
 
