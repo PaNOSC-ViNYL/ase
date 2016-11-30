@@ -56,111 +56,124 @@ atomic_names = [
     'Einsteinium', 'Fermium', 'Mendelevium', 'Nobelium',
     'Lawrencium', 'Unnilquadium', 'Unnilpentium', 'Unnilhexium']
 
+# Atomic masses are based on:
+#
+#   Meija, J., Coplen, T., Berglund, M., et al. (2016). Atomic weights of
+#   the elements 2013 (IUPAC Technical Report). Pure and Applied Chemistry,
+#   88(3), pp. 265-291. Retrieved 30 Nov. 2016,
+#   from doi:10.1515/pac-2015-0305
+#
+# Standard atomic weights are taken from Table 1: "Standard atomic weights
+# 2013", with the uncertainties ignored.
+# For hydrogen, helium, boron, carbon, nitrogen, oxygen, magnesium, silicon,
+# sulfur, chlorine, bromine and thallium, where the weights are given as a
+# range the "conventional" weights are taken from Table 3 and the ranges are
+# given in the comments.
 atomic_masses = np.array([
-   1.00000, # X
-   1.00794, # H
-   4.00260, # He
-   6.94100, # Li
-   9.01218, # Be
-  10.81100, # B
-  12.01100, # C
-  14.00670, # N
-  15.99940, # O
-  18.99840, # F
-  20.17970, # Ne
-  22.98977, # Na
-  24.30500, # Mg
-  26.98154, # Al
-  28.08550, # Si
-  30.97376, # P
-  32.06600, # S
-  35.45270, # Cl
-  39.94800, # Ar
-  39.09830, # K
-  40.07800, # Ca
-  44.95590, # Sc
-  47.88000, # Ti
-  50.94150, # V
-  51.99600, # Cr
-  54.93800, # Mn
-  55.84700, # Fe
-  58.93320, # Co
-  58.69340, # Ni
-  63.54600, # Cu
-  65.39000, # Zn
-  69.72300, # Ga
-  72.61000, # Ge
-  74.92160, # As
-  78.96000, # Se
-  79.90400, # Br
-  83.80000, # Kr
-  85.46780, # Rb
-  87.62000, # Sr
-  88.90590, # Y
-  91.22400, # Zr
-  92.90640, # Nb
-  95.94000, # Mo
-    np.nan, # Tc
- 101.07000, # Ru
- 102.90550, # Rh
- 106.42000, # Pd
- 107.86800, # Ag
- 112.41000, # Cd
- 114.82000, # In
- 118.71000, # Sn
- 121.75700, # Sb
- 127.60000, # Te
- 126.90450, # I
- 131.29000, # Xe
- 132.90540, # Cs
- 137.33000, # Ba
- 138.90550, # La
- 140.12000, # Ce
- 140.90770, # Pr
- 144.24000, # Nd
-    np.nan, # Pm
- 150.36000, # Sm
- 151.96500, # Eu
- 157.25000, # Gd
- 158.92530, # Tb
- 162.50000, # Dy
- 164.93030, # Ho
- 167.26000, # Er
- 168.93420, # Tm
- 173.04000, # Yb
- 174.96700, # Lu
- 178.49000, # Hf
- 180.94790, # Ta
- 183.85000, # W
- 186.20700, # Re
- 190.20000, # Os
- 192.22000, # Ir
- 195.08000, # Pt
- 196.96650, # Au
- 200.59000, # Hg
- 204.38300, # Tl
- 207.20000, # Pb
- 208.98040, # Bi
-    np.nan, # Po
-    np.nan, # At
-    np.nan, # Rn
-    np.nan, # Fr
- 226.02540, # Ra
-    np.nan, # Ac
- 232.03810, # Th
- 231.03590, # Pa
- 238.02900, # U
- 237.04820, # Np
-    np.nan, # Pu
-    np.nan, # Am
-    np.nan, # Cm
-    np.nan, # Bk
-    np.nan, # Cf
-    np.nan, # Es
-    np.nan, # Fm
-    np.nan, # Md
-    np.nan, # No
-    np.nan])# Lw
+    0.0,  # X
+    1.008,  # H [1.00784, 1.00811]
+    4.002602,  # He
+    6.94,  # Li [6.938, 6.997]
+    9.0121831,  # Be
+    10.81,  # B [10.806, 10.821]
+    12.011,  # C [12.0096, 12.0116]
+    14.007,  # N [14.00643, 14.00728]
+    15.999,  # O [15.99903, 15.99977]
+    18.998403163,  # F
+    20.1797,  # Ne
+    22.98976928,  # Na
+    24.305,  # Mg [24.304, 24.307]
+    26.9815385,  # Al
+    28.085,  # Si [28.084, 28.086]
+    30.973761998,  # P
+    32.06,  # S [32.059, 32.076]
+    35.45,  # Cl [35.446, 35.457]
+    39.948,  # Ar
+    39.0983,  # K
+    40.078,  # Ca
+    44.955908,  # Sc
+    47.867,  # Ti
+    50.9415,  # V
+    51.9961,  # Cr
+    54.938044,  # Mn
+    55.845,  # Fe
+    58.933194,  # Co
+    58.6934,  # Ni
+    63.546,  # Cu
+    65.38,  # Zn
+    69.723,  # Ga
+    72.630,  # Ge
+    74.921595,  # As
+    78.971,  # Se
+    79.904,  # Br [79.901, 79.907]
+    83.798,  # Kr
+    85.4678,  # Rb
+    87.62,  # Sr
+    88.90584,  # Y
+    91.224,  # Zr
+    92.90637,  # Nb
+    95.95,  # Mo
+    np.nan,  # Tc
+    101.07,  # Ru
+    102.90550,  # Rh
+    106.42,  # Pd
+    107.8682,  # Ag
+    112.414,  # Cd
+    114.818,  # In
+    118.710,  # Sn
+    121.760,  # Sb
+    127.60,  # Te
+    126.90447,  # I
+    131.293,  # Xe
+    132.90545196,  # Cs
+    137.327,  # Ba
+    138.90547,  # La
+    140.116,  # Ce
+    140.90766,  # Pr
+    144.242,  # Nd
+    np.nan,  # Pm
+    150.36,  # Sm
+    151.964,  # Eu
+    157.25,  # Gd
+    158.92535,  # Tb
+    162.500,  # Dy
+    164.93033,  # Ho
+    167.259,  # Er
+    168.93422,  # Tm
+    173.054,  # Yb
+    174.9668,  # Lu
+    178.49,  # Hf
+    180.94788,  # Ta
+    183.84,  # W
+    186.207,  # Re
+    190.23,  # Os
+    192.217,  # Ir
+    195.084,  # Pt
+    196.966569,  # Au
+    200.592,  # Hg
+    204.38,  # Tl [204.382, 204.385]
+    207.2,  # Pb
+    208.98040,  # Bi
+    np.nan,  # Po
+    np.nan,  # At
+    np.nan,  # Rn
+    np.nan,  # Fr
+    np.nan,  # Ra
+    np.nan,  # Ac
+    232.0377,  # Th
+    231.03588,  # Pa
+    238.02891,  # U
+    np.nan,  # Np
+    np.nan,  # Pu
+    np.nan,  # Am
+    np.nan,  # Cm
+    np.nan,  # Bk
+    np.nan,  # Cf
+    np.nan,  # Es
+    np.nan,  # Fm
+    np.nan,  # Md
+    np.nan,  # No
+    np.nan])  # Lw
 
 # Covalent radii from:
 #
