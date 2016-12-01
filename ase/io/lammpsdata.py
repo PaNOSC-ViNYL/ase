@@ -19,7 +19,7 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
     #### begin read_lammps_data
     comment = None
     N = None
-    N_types = None
+    # N_types = None
     xlo = None
     xhi = None
     ylo = None
@@ -124,8 +124,8 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
             if field is not None and val is not None:
                 if field == "atoms":
                     N = int(val)
-                elif field == "atom types":
-                    N_types = int(val)
+                # elif field == "atom types":
+                #     N_types = int(val)
                 elif field == "xlo xhi":
                     (xlo, xhi) = [ float(x) for x in val.split() ]
                 elif field == "ylo yhi":
