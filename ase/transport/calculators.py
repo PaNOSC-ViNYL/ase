@@ -354,13 +354,13 @@ class TransportCalculator:
            E = self.energies.copy()
            T_e = self.T_e.copy()
  
-       if not isinstance(bias, float):
+       if not isinstance(bias, (int,float)):
            bias = bias[np.newaxis]
            E = E[:, np.newaxis]
            T_e = T_e[:, np.newaxis]
 
-       fl = fermidistribution(E - bias, kB * T)
-       fr = fermidistribution(E + bias, kB * T)
+       fl = fermidistribution(E - bias/2., kB * T)
+       fr = fermidistribution(E + bias/2., kB * T)
 
        if spinpol:
            return .5 * np.trapz((fl - fr) * T_e, x=E, axis=0)
