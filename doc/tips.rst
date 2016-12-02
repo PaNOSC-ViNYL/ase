@@ -13,12 +13,14 @@ Atoms objects
 Species
 -------
 
->>> from ase import Atoms
->>> atoms = Atoms('CH4')
->>> len(set(atoms.numbers))  # number of species
-2
->>> set(atoms.get_chemical_symbols())
-{...}
+.. doctest::
+
+    >>> from ase import Atoms
+    >>> atoms = Atoms('CH4')
+    >>> len(set(atoms.numbers))  # number of species
+    2
+    >>> set(atoms.get_chemical_symbols())
+    {...}
 
 
 Delete all helium atoms
