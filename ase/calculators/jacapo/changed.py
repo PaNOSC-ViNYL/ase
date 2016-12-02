@@ -40,7 +40,7 @@ def kpts_changed(calc, x):
         raise Exception('apparent invalid setting for kpts')
 
     grid = calc.get_kpts()
-    
+
     if grid.shape != listofkpts.shape:
         return True
 
@@ -114,7 +114,7 @@ def charge_mixing_changed(calc, x):
         return False
     else:
         return True
-        
+
     for key in x:
         if x[key] != cm[key]:
             return True
@@ -165,7 +165,13 @@ def fftgrid_changed(calc, x):
     else:
         return True
 
-
+def ncoutput_changed(calc, x):
+    ncout = calc.get_ncoutput()
+    for key in x:
+        if x[key] != ncout[key]:
+            return True
+    return False
+    
 def nbands_changed(calc, x):
     if calc.get_nbands() == x:
         return False
@@ -195,7 +201,7 @@ def ft_changed(calc, x):
         return False
     else:
         return True
-    
+
 def mdos_changed(calc,x):
 
     myx = calc.get_mdos()
