@@ -269,23 +269,38 @@ class BaseSiesta(FileIOCalculator):
         kwargs['xc'] = (functional, authors)
 
         # Check fdf_arguments.
-        if 'fdf_arguments' in kwargs.keys():
-            fdf_arguments = kwargs['fdf_arguments']
-            if fdf_arguments is not None:
-                # Type checking.
-                if not isinstance(fdf_arguments, dict):
-                    raise TypeError("fdf_arguments must be a dictionary.")
-
-                # Check if keywords are allowed.
-                fdf_keys = set(fdf_arguments.keys())
-                allowed_keys = set(self.allowed_fdf_keywords)
-                if not fdf_keys.issubset(allowed_keys):
-                    offending_keys = fdf_keys.difference(allowed_keys)
-                    raise ValueError("The 'fdf_arguments' dictionary " +
-                                     "argument does not allow " +
-                                     "the keywords: %s" % str(offending_keys))
+        fdf_arguments = kwargs.get('fdf_arguments')
+        self.validate_fdf_arguments(fdf_arguments)
 
         FileIOCalculator.set(self, **kwargs)
+
+    def set_fdf_arguments(self, fdf_arguments):
+        """ Set the fdf_arguments after the initialization of the
+            calculator.
+        """
+        self.validate_fdf_arguments(fdf_arguments)
+        FileIOCalculator.set(self, fdf_arguments=fdf_arguments)
+
+    def validate_fdf_arguments(self, fdf_arguments):
+        """ Raises error if the fdf_argument input is not a
+            dictionary of allowed keys.
+        """
+        # None is valid
+        if fdf_arguments is None:
+            return
+
+        # Type checking.
+        if not isinstance(fdf_arguments, dict):
+            raise TypeError("fdf_arguments must be a dictionary.")
+
+        # Check if keywords are allowed.
+        fdf_keys = set(fdf_arguments.keys())
+        allowed_keys = set(self.allowed_fdf_keywords)
+        if not fdf_keys.issubset(allowed_keys):
+            offending_keys = fdf_keys.difference(allowed_keys)
+            raise ValueError("The 'fdf_arguments' dictionary " +
+                             "argument does not allow " +
+                             "the keywords: %s" % str(offending_keys))
 
     def calculate(self,
                   atoms=None,
@@ -391,7 +406,7 @@ class BaseSiesta(FileIOCalculator):
 
         for key, value in fdf_arguments.iteritems():
             if key in self.unit_fdf_keywords.keys():
-                value = ('%.8f ' % value, self.unit_fdf_keywords[key])
+                value = '%.8f %s' % (value, self.unit_fdf_keywords[key])
                 f.write(format_fdf(key, value))
             elif key in self.allowed_fdf_keywords:
                 f.write(format_fdf(key, value))

@@ -3,7 +3,7 @@ from __future__ import print_function
 import os
 import numpy as np
 
-from ase.units import Ry
+from ase.units import Ry, eV
 from ase.calculators.siesta.siesta import Siesta
 from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
 from ase.calculators.calculator import FileIOCalculator
@@ -84,6 +84,7 @@ assert 'DM.Tolerance  0.001\n' == lines[0]
 
 siesta = Siesta(
     label='test_label',
+    mesh_cutoff=3000 * eV,
     fdf_arguments={
         'DM.Tolerance': 1e-3,
         'ON.eta': 5 * Ry})
@@ -96,8 +97,20 @@ atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
 with open('test_label.fdf', 'r') as f:
     lines = f.readlines()
+assert 'MeshCutoff  3000.0000 eV\n' in lines
 assert 'DM.Tolerance  0.001\n' in lines
-assert 'ON.eta  68.02848914 \teV\n' in lines
+assert 'ON.eta  68.02846506 eV\n' in lines
+siesta.set_fdf_arguments(
+        {'DM.Tolerance': 1e-2,
+         'ON.eta': 2 * Ry})
+
+siesta.write_input(atoms, properties=['energy'])
+with open('test_label.fdf', 'r') as f:
+    lines = f.readlines()
+assert 'MeshCutoff  3000.0000 eV\n' in lines
+assert 'DM.Tolerance  0.01\n' in lines
+assert 'ON.eta  27.21138602 eV\n' in lines
+
 
 # Remove the test directory.
 os.chdir('../..')
