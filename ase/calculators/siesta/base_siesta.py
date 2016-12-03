@@ -7,6 +7,7 @@ import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
+import shutil
 from ase.units import Ry, eV, Bohr
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
@@ -17,6 +18,26 @@ from ase.calculators.siesta.parameters import format_fdf
 
 meV = 0.001 * eV
 
+def get_valence_charge(filename):
+    with open(filename, 'r') as f:
+        f.readline()
+        f.readline()
+        f.readline()
+        valence = -float(f.readline().split()[-1])
+
+    return valence
+
+def read_vca_synth_block(filename, species_number=None):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+    lines = lines[1:-1]
+
+    if not species_number is None:
+        lines[0] = '%d\n' % species_number
+
+    block = ''.join(lines).strip()
+
+    return block
 
 class SiestaParameters(Parameters):
     """Parameters class for the calculator.
@@ -70,10 +91,10 @@ class BaseSiesta(FileIOCalculator):
 
         Parameters:
             -label        : The base head of all created files.
-            -mesh_cutoff  : tuple of (value, energy_unit)
+            -mesh_cutoff  : Energy in eV.
                             The mesh cutoff energy for determining number of
                             grid points.
-            -energy_shift : tuple of (value, energy_unit)
+            -energy_shift : Energy in eVV
                             The confining energy of the basis sets.
             -kpts         : Tuple of 3 integers, the k-points in different
                             directions.
@@ -205,29 +226,35 @@ class BaseSiesta(FileIOCalculator):
                 -kwargs  : Dictionary containing the keywords defined in
                            SiestaParameters.
         """
-        # Put in the default arguments.
-        kwargs = self.default_parameters.__class__(**kwargs)
+        # Find not allowed keys.
+        offending_keys = set(kwargs) - set(self.__class__.default_parameters.keys())
+        if len(offending_keys) > 0:
+            raise ValueError("'set' does not take the keywords: %s " % list(offending_keys))
 
         # Check energy inputs.
         for arg in ['mesh_cutoff', 'energy_shift']:
             value = kwargs.get(arg)
+            if value is None:
+                continue
             if not (isinstance(value, (float, int)) and value > 0):
                 mess = "'%s' must be a positive number(in eV), \
                     got '%s'" % (arg, value)
                 raise ValueError(mess)
 
         # Check the basis set input.
-        basis_set = kwargs.get('basis_set')
-        allowed = self.allowed_basis_names
-        if not (isinstance(basis_set, PAOBasisBlock) or basis_set in allowed):
-            mess = "Basis must be either %s, got %s" % (allowed, basis_set)
-            raise Exception(mess)
+        if 'basis_set' in kwargs.keys():
+            basis_set = kwargs['basis_set']
+            allowed = self.allowed_basis_names
+            if not (isinstance(basis_set, PAOBasisBlock) or basis_set in allowed):
+                mess = "Basis must be either %s, got %s" % (allowed, basis_set)
+                raise Exception(mess)
 
         # Check the spin input.
-        spin = kwargs.get('spin')
-        if spin is not None and (spin not in self.allowed_spins):
-            mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
-            raise Exception(mess)
+        if 'spin' in kwargs.keys():
+            spin = kwargs['spin']
+            if spin is not None and (spin not in self.allowed_spins):
+                mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
+                raise Exception(mess)
 
         # Check the functional input.
         xc = kwargs.get('xc')
@@ -257,20 +284,21 @@ class BaseSiesta(FileIOCalculator):
         kwargs['xc'] = (functional, authors)
 
         # Check fdf_arguments.
-        fdf_arguments = kwargs['fdf_arguments']
-        if fdf_arguments is not None:
-            # Type checking.
-            if not isinstance(fdf_arguments, dict):
-                raise TypeError("fdf_arguments must be a dictionary.")
+        if 'fdf_arguments' in kwargs.keys():
+            fdf_arguments = kwargs['fdf_arguments']
+            if fdf_arguments is not None:
+                # Type checking.
+                if not isinstance(fdf_arguments, dict):
+                    raise TypeError("fdf_arguments must be a dictionary.")
 
-            # Check if keywords are allowed.
-            fdf_keys = set(fdf_arguments.keys())
-            allowed_keys = set(self.allowed_fdf_keywords)
-            if not fdf_keys.issubset(allowed_keys):
-                offending_keys = fdf_keys.difference(allowed_keys)
-                raise ValueError("The 'fdf_arguments' dictionary " +
-                                 "argument does not allow " +
-                                 "the keywords: %s" % str(offending_keys))
+                # Check if keywords are allowed.
+                fdf_keys = set(fdf_arguments.keys())
+                allowed_keys = set(self.allowed_fdf_keywords)
+                if not fdf_keys.issubset(allowed_keys):
+                    offending_keys = fdf_keys.difference(allowed_keys)
+                    raise ValueError("The 'fdf_arguments' dictionary " +
+                                     "argument does not allow " +
+                                     "the keywords: %s" % str(offending_keys))
 
         FileIOCalculator.set(self, **kwargs)
 
@@ -532,6 +560,7 @@ class BaseSiesta(FileIOCalculator):
         pao_basis = []
         chemical_labels = []
         basis_sizes = []
+        synth_blocks = []
         for species_number, specie in enumerate(species):
             species_number += 1
             symbol = specie['symbol']
@@ -569,6 +598,31 @@ class BaseSiesta(FileIOCalculator):
                     os.remove(name)
                 os.symlink(pseudopotential, name)
 
+            if not specie['excess_charge'] is None:
+                atomic_number += 200
+                #print(species_number)
+                n_atoms = sum(np.array(species_numbers) == species_number)
+                excess_charge_pr_atom = float(specie['excess_charge'])/n_atoms
+                valence_charge = get_valence_charge(pseudopotential)
+                fraction = (valence_charge + excess_charge_pr_atom)/valence_charge
+                pseudo_head = name[:-4]
+                fractional_command = os.environ['SIESTA_UTIL_FRACTIONAL']
+                cmd = '%s %s %.7f' % (fractional_command, pseudo_head, fraction)
+                os.system(cmd)
+
+                synth_pseudo = pseudo_head + '-Fraction-%.5f.psf' % fraction
+                synth_block_filename = pseudo_head + '-Fraction-%.5f.synth' % fraction
+                os.remove(name)
+                shutil.copyfile(synth_pseudo, name)
+                synth_block = read_vca_synth_block(
+                        synth_block_filename,
+                        species_number=species_number,
+                        )
+                synth_blocks.append(synth_block)
+
+            if len(synth_blocks) > 0:
+                f.write(format_fdf('SyntheticAtoms', list(synth_blocks)))
+
             label = '.'.join(np.array(name.split('.'))[:-1])
             string = '    %d %d %s' % (species_number, atomic_number, label)
             chemical_labels.append(string)
@@ -581,6 +635,8 @@ class BaseSiesta(FileIOCalculator):
         f.write((format_fdf('PAO.Basis', pao_basis)))
         f.write((format_fdf('PAO.BasisSizes', basis_sizes)))
         f.write('\n')
+        #if len(synth_blocks) > 0:
+        #    eeeeeeeeee
 
     def pseudo_qualifier(self):
         """Get the extra string used in the middle of the pseudopotential.

@@ -51,7 +51,9 @@ class Specie(Parameters):
                  basis_set='DZP',
                  pseudopotential=None,
                  tag=None,
-                 ghost=False):
+                 ghost=False,
+                 excess_charge=None,
+                 ):
         kwargs = locals()
         kwargs.pop('self')
         Parameters.__init__(self, **kwargs)
@@ -71,7 +73,7 @@ def format_fdf(key, value):
     key = format_key(key)
     new_value = format_value(value)
 
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         string = '%block ' + key + '\n' +\
             new_value + '\n' + \
             '%endblock ' + key + '\n'
