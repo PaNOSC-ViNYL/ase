@@ -1,6 +1,10 @@
 from __future__ import print_function
 """This module defines an ASE interface to SIESTA.
 
+Written by Mads Engelund
+http://www.mads-engelund.net
+
+Home of the SIESTA package:
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 from ase.calculators.siesta.base_siesta import BaseSiesta
