@@ -604,7 +604,7 @@ class BaseSiesta(FileIOCalculator):
 
                 paec = float(specie['excess_charge']) / n_atoms
                 vc = get_valence_charge(pseudopotential)
-                fraction = (vc + paec) / valence_charge
+                fraction = float(vc + paec) / vc
                 pseudo_head = name[:-4]
                 fractional_command = os.environ['SIESTA_UTIL_FRACTIONAL']
                 cmd = '%s %s %.7f' % (fractional_command,
