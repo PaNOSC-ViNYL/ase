@@ -136,15 +136,6 @@ lines = [line.split() for line in lines]
 assert ['%block', 'PAO.Basis'] in lines
 assert ['%endblock', 'PAO.Basis'] in lines
 
-# Test if excess charge can be set on a Specie.
-specie = Specie(symbol='H', excess_charge=1)
-siesta = Siesta(label='test_label', species=[specie])
-siesta.write_input(atoms, properties=['energy'])
-with open('test_label.fdf', 'r') as f:
-    lines = f.readlines()
-lines = [line.split() for line in lines]
-assert ['%block', 'PAO.Basis'] in lines
-assert ['%endblock', 'PAO.Basis'] in lines
 
 # Remove the test directory.
 os.chdir('../..')

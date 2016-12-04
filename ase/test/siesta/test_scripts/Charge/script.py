@@ -1,3 +1,7 @@
+# In this script the Virtual Crystal approximation is used to model
+# a stronger affinity for positive charge on the H atoms.
+# This could model interaction with other molecules not explicitly
+# handled.
 import numpy as np
 from ase.calculators.siesta import Siesta
 from ase.calculators.siesta.parameters import Specie
