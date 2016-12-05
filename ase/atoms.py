@@ -925,6 +925,10 @@ class Atoms(object):
                 raise IndexError('Index out of range.')
 
             return Atom(atoms=self, index=i)
+        elif isinstance(i, list) and len(i) > 0:
+            # Make sure a list of booleans will work correctly and not be
+            # interpreted at 0 and 1 indices.
+            i = np.array(i)
 
         import copy
         from ase.constraints import FixConstraint, FixBondLengths
@@ -957,6 +961,11 @@ class Atoms(object):
             if not isinstance(c, FixAtoms):
                 raise RuntimeError('Remove constraint using set_constraint() '
                                    'before deleting atoms.')
+
+        if isinstance(i, list) and len(i) > 0:
+            # Make sure a list of booleans will work correctly and not be
+            # interpreted at 0 and 1 indices.
+            i = np.array(i)
 
         if len(self._constraints) > 0:
             n = len(self)
