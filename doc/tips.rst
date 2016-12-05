@@ -2,8 +2,14 @@
 Tips and tricks
 ===============
 
-https://www.python.org/
-https://docs.scipy.org/doc/numpy/
+In order to get the most out out the tips below (and ASE in general), it
+is a good idea to get to know the Python language and the NumPy library well.
+See:
+
+* https://www.python.org/
+* https://docs.scipy.org/doc/numpy/
+
+.. contents::
 
 
 Atoms objects
@@ -16,29 +22,32 @@ Species
 >>> atoms = Atoms('CH4')
 >>> len(set(atoms.numbers))  # number of species
 2
->>> set(atoms.get_chemical_symbols())
-set(['H', 'C'])
+>>> set(atoms.get_chemical_symbols())  # set of species
+{'C', 'H'}
 
 
 Indexing
 --------
 
 >>> atoms
-Atoms('CH4')
+Atoms(symbols='CH4', pbc=[False, False, False], positions=...)
 >>> [atom.index for atom in atoms if atom.symbol == 'H']
 [1, 2, 3, 4]
 >>> atoms[[atom.index for atom in atoms if atom.symbol == 'H']]
-Atoms('H4')
+Atoms(symbols='H4', pbc=[False, False, False], positions=...)
 
 Indexing with lists of booleans:
 
 >>> atoms.numbers == 1
+array([False,  True,  True,  True,  True], dtype=bool)
 >>> atoms[atoms.numbers == 1]
->>> del atoms[[atom.symbol == 'He' for atom in atoms]]
+Atoms(symbols='H4', pbc=[False, False, False], positions=...)
 
+Three equivalent ways to delete carbon atoms:
 
-Alternative solution using ``atoms.numbers``
-(``numpy.ndarray`` of atomic numbers):
+>>> del atoms[atoms.numbers == 6]
+>>> del atoms[[atom.index for atom in atoms if atom.symbol == 'C']]
+>>> del atoms[[atom.symbol == 'C' for atom in atoms]]
 
 
 Trajectories
@@ -70,4 +79,4 @@ Convert from one format to another
 ----------------------------------
 
 >>> from ase.io import read, write
->>> write('abc.traj', read('abc.traj'))
+>>> write('abc.xyz', read('abc.traj'))
