@@ -30,8 +30,9 @@ Git master branch
   (see the :mod:`ase.build` module) will no longer add "dummy" lattice
   vectors along the non-periodic directions.  As an example, the surface
   functions will generate unit cells of the type
-  ``[[a1,a2,0],[b1,b2,0],[0,0,0]]``.  Use the ``vacuum`` keyword that all
-  of the 0-d, 1-d and 2-d functions have or equivalently, call the
+  ``[[a1,a2,0],[b1,b2,0],[0,0,0]]``.  In order to define all three lattice
+  vectors, use the ``vacuum`` keyword that all
+  of the 0-d, 1-d and 2-d functions have or, equivalently, call the
   :meth:`~ase.Atoms.center` method.
 
 * New :func:`ase.geometry.is_orthorhombic` and
