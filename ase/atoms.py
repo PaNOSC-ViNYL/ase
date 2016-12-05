@@ -19,7 +19,7 @@ from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
-                          cell_to_cellpar, complete_cell)
+                          cell_to_cellpar, complete_cell, is_orthorhombic)
 
 
 class Atoms(object):
@@ -832,16 +832,20 @@ class Atoms(object):
             symbols = self.get_chemical_formula('hill')
         tokens.append("symbols='{0}'".format(symbols))
 
-        tokens.append('pbc={0}'.format(self._pbc.tolist()))
-
-        if (self._cell - np.diag(self._cell.diagonal())).any():
-            cell = self._cell.tolist()
+        if self.pbc.ptp():
+            tokens.append('pbc={0}'.format(self._pbc.tolist()))
         else:
-            cell = self._cell.diagonal().tolist()
-        tokens.append('cell={0}'.format(cell))
+            tokens.append('pbc={0}'.format(self._pbc[0]))
+
+        if self._cell.any():
+            if is_orthorhombic(self._cell):
+                cell = self._cell.diagonal().tolist()
+            else:
+                cell = self._cell.tolist()
+            tokens.append('cell={0}'.format(cell))
 
         for name in sorted(self.arrays):
-            if name == 'numbers':
+            if name in ['numbers', 'positions']:
                 continue
             tokens.append('{0}=...'.format(name))
 
@@ -921,6 +925,10 @@ class Atoms(object):
                 raise IndexError('Index out of range.')
 
             return Atom(atoms=self, index=i)
+        elif isinstance(i, list) and len(i) > 0:
+            # Make sure a list of booleans will work correctly and not be
+            # interpreted at 0 and 1 indices.
+            i = np.array(i)
 
         import copy
         from ase.constraints import FixConstraint, FixBondLengths
@@ -953,6 +961,11 @@ class Atoms(object):
             if not isinstance(c, FixAtoms):
                 raise RuntimeError('Remove constraint using set_constraint() '
                                    'before deleting atoms.')
+
+        if isinstance(i, list) and len(i) > 0:
+            # Make sure a list of booleans will work correctly and not be
+            # interpreted at 0 and 1 indices.
+            i = np.array(i)
 
         if len(self._constraints) > 0:
             n = len(self)

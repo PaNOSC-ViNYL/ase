@@ -5,26 +5,26 @@ Building things
 ================
 
 Quick links:
-    
+
 * Simple bulk crystals: :func:`~ase.build.bulk`
 
 * Simple molecules: :func:`~ase.build.molecule`
 
 * Special surfaces:
-    
+
   * fcc: :func:`~ase.build.fcc100`, :func:`~ase.build.fcc110`,
     :func:`~ase.build.fcc111`, :func:`~ase.build.fcc211`,
     :func:`~ase.build.fcc111_root`
-    
+
   * bcc: :func:`~ase.build.bcc100`, :func:`~ase.build.bcc110`,
     :func:`~ase.build.bcc111`
     * - :func:`~ase.build.bcc111_root`
-    
+
   * hcp: :func:`~ase.build.hcp0001`, :func:`~ase.build.hcp10m10`,
     :func:`~ase.build.hcp0001_root`
-    
+
   * diamond: :func:`~ase.build.diamond100`, :func:`~ase.build.diamond111`
-  
+
 * `MX_2` (2H or 1T): :func:`~ase.build.mx2`
 
 * Other surface tools: :func:`~ase.build.surface`,
@@ -52,17 +52,17 @@ Quick links:
      be created.
 
    * The :mod:`ase.spacegroup` module
-   
+
    * The :mod:`ase.geometry` module
 
-   
+
 .. toctree::
    :maxdepth: 2
 
    surface
    tools
-   
-   
+
+
 Molecules
 =========
 
@@ -116,7 +116,7 @@ Common bulk crystals
 
 examples:
 
->>> from ase.lattice import bulk
+>>> from ase.build import bulk
 >>> a1 = bulk('Cu', 'fcc', a=3.6)
 >>> a2 = bulk('Cu', 'fcc', a=3.6, orthorhombic=True)
 >>> a3 = bulk('Cu', 'fcc', a=3.6, cubic=True)
