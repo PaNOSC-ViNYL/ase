@@ -119,6 +119,7 @@ Contents
     tutorials/tutorials
     ase/ase
     cmdline
+    tips
     gallery/gallery
     releasenotes
     contact
