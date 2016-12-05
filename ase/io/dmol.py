@@ -1,10 +1,19 @@
 """
 IO functions for DMol3 file formats.
 
+read/write functionality for car, incoor and arc file formats
+only car format is added to known ase file extensions
+use format='dmol-arc' or 'dmol-incoor' for others
 
-The formats follow some very strict formatting
+car    structure file - Angstrom and cellpar description of cell.
+incoor structure file - Bohr and cellvector describption of cell.
+                        Note: incoor file not used if car file present.
+arc    multiple-structure file - Angstrom and cellpar description of cell.
 
-Car
+
+The formats follow strict formatting
+
+car
 ----
 col: 1-5     atom name
 col: 7-20    x Cartesian coordinate of atom  in A
@@ -17,8 +26,9 @@ col: 64-70   potential type of atom  left justified
 col: 72-73   element symbol
 col: 75-80   partial charge on atom
 
-Incoor
-------
+
+incoor
+-------
 $cell vectors
              37.83609647462165    0.00000000000000    0.00000000000000
               0.00000000000000   37.60366016124745    0.00000000000000
@@ -27,6 +37,12 @@ $coordinates
 Si           15.94182672614820    1.85274838936809   16.01426481346124
 Si            4.45559370448989    2.68957177851318   -0.05326937257442
 $end
+
+
+arc
+----
+multiple images of car format separated with $end
+
 
 """
 

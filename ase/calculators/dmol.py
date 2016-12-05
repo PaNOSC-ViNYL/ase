@@ -2,14 +2,16 @@
 
 Contacts
 --------
-Anders Hellman <anders.hellman@chalmers.se>
 Adam Arvidsson <adam.arvidsson@chalmers.se>
 Erik Fransson  <erikfr@chalmers.se>
+Anders Hellman <anders.hellman@chalmers.se>
 
 
 DMol3 environment variables
 ----------------------------
-DMOL_COMMAND should point to the RunDmol script
+DMOL_COMMAND should point to the RunDmol script and specify the number of cores
+to prallelize over
+
 export DMOL_COMMAND="./RunDmol.sh -np 16"
 
 
@@ -21,7 +23,7 @@ Example
 >>> atoms = bulk('Al','fcc')
 >>> calc = DMol3()
 >>> atoms.set_calculator(calc)
->>> print 'Potential energy %5.5f eV'%atoms.get_potential_energy()
+>>> print 'Potential energy %5.5f eV' % atoms.get_potential_energy()
 
 
 DMol3 calculator functionality
@@ -39,7 +41,7 @@ Be careful with kpts and their directions (see internal coordinates below).
 
 Outputting the full electron density or specific bands to .grd files can be
 acheived with the plot command. The .grd files can be converted to the cube
-format using grd_to_cube(). TODO <insert text how to solve internal coords>
+format using grd_to_cube().
 
 
 DMol3 internal coordinates
@@ -60,23 +62,14 @@ DMol_atoms * rot_mat = ase_atoms
 
 DMol3 files
 ------------
-TODO: write this
+The supported DMol3 file formats are:
 
-car    Angstrom and cellpar description of cell.
-incoor Bohr
-outmol Bohr or angstrom in cell vectors and positions?
-grad   forces in Hartree/Bohr?
-grd    Distances in Angstrom?
-
-
-
-TODO NOTES
------------
-
-Important:
-
-* Restarting? read() function, remove?
-* Write all docstrings in the same format (numpy formatting)
+car    structure file - Angstrom and cellpar description of cell.
+incoor structure file - Bohr and cellvector describption of cell.
+                        Note: incoor file not used if car file present.
+outmol outfile from DMol3 - atomic units (Bohr and Hartree)
+grad   outfile for forces from DMol3 - forces in Hartree/Bohr
+grd    outfile for orbitals from DMol3 - cellpar in Angstrom
 
 """
 
@@ -156,10 +149,6 @@ class DMol3(FileIOCalculator):
                 f.write('%-32s %r\n' % (key, value))
 
     def read(self, label):
-        """ This is used for restarting geomtry opts.
-
-        TODO: What do we use this for?
-        """
         FileIOCalculator.read(self, label)
         geometry = self.label + '.car'
         output = self.label + '.outmol'
@@ -189,10 +178,9 @@ class DMol3(FileIOCalculator):
 
         Returns
         -------
-        finished: bool
-            True if job completed, False if something went wrong
-        message: str
-            If job failed message contains parsed errors, else its empty str
+        finished (bool): True if job completed, False if something went wrong
+        message (str): If job failed message contains parsed errors, else empty
+
         """
         finished = False
         message = ""
@@ -207,7 +195,6 @@ class DMol3(FileIOCalculator):
         """Finds rotation matrix that takes us from DMol internal
         coordinates to ase coordinates.
 
-
         For pbc = [False, False, False]  the rotation matrix is parsed from
         the .rot file, if this file doesnt exist no rotation is needed.
 
@@ -221,8 +208,7 @@ class DMol3(FileIOCalculator):
 
         Parameters
         ----------
-        tol : float
-            tolerance for check if positions and cell are the same
+        tol (float): tolerance for check if positions and cell are the same
         """
 
         if np.all(self.atoms.pbc):  # [True, True, True]
@@ -271,7 +257,7 @@ class DMol3(FileIOCalculator):
 
         Returns
         -------
-        atoms: Atoms object
+        atoms (Atoms object): read atoms object
         """
 
         lines = open(self.label + '.outmol', 'r').readlines()
@@ -503,23 +489,18 @@ def find_transformation(atoms1, atoms2, verbose=False, only_cell=False):
 
     Parameters
     ----------
-    atoms1: Atoms object
-        First atoms object (A)
-    atoms2: Atoms object
-        Second atoms object (B)
-    only_cell: bool
-        If True only cell in used, otherwise cell and positions.
-    verbose: bool
-        If True prints for each i A[i], B[i], Ax[i]
+    atoms1 (Atoms object): First atoms object (A)
+    atoms2 (Atoms object): Second atoms object (B)
+    verbose (bool): If True prints for each i A[i], B[i], Ax[i]
+    only_cell (bool): If True only cell in used, otherwise cell and positions.
 
     Returns
     -------
-    x: np.array((3,3))
-       least square solution to Ax = B
-    error: float
-        The error, np.linalg.norm(Ax-b)
+    x (np.array((3,3))): Least square solution to Ax = B
+    error (float): The error calculated as np.linalg.norm(Ax-b)
 
     """
+
     if only_cell:
         N = 3
     elif atoms1.get_number_of_atoms() != atoms2.get_number_of_atoms():
@@ -573,8 +554,15 @@ def grd_to_cube(atoms, grd_file, cube_file, rot_mat=None):
     write(cube_file, atoms_copy, data=data)
 
 
-def read_grd(filename, rot_mat=None):
-    """ Reads .grd file """
+def read_grd(filename):
+    """ Reads .grd file
+
+    Notes
+    -----
+    origin_xyz is offset with half a grid point in all directions to be
+        compatible with the cube format
+    Periodic systems is not guaranteed to be oriented correctly
+    """
     from ase.geometry.cell import cellpar_to_cell
 
     lines = open(filename, 'r').readlines()
@@ -585,9 +573,9 @@ def read_grd(filename, rot_mat=None):
     data = np.empty(grid)
 
     origin_data = [int(fld) for fld in lines[4].split()[1:]]
-    origin_xyz = cell[0] * (-float(origin_data[0])) / (grid[0] - 1) + \
-        cell[1] * (-float(origin_data[2])) / (grid[1] - 1) + \
-        cell[2] * (-float(origin_data[4])) / (grid[2] - 1)
+    origin_xyz = cell[0] * (-float(origin_data[0])-0.5) / (grid[0] - 1) + \
+        cell[1] * (-float(origin_data[2])-0.5) / (grid[1] - 1) + \
+        cell[2] * (-float(origin_data[4])-0.5) / (grid[2] - 1)
 
     # Fastest index describes which index ( x or y ) varies fastest
     # 1: x  , 3: y
