@@ -641,9 +641,10 @@ class Atoms(object):
         except AttributeError:
             raise NotImplementedError
 
-    def set_positions(self, newpositions):
-        """Set positions, honoring any constraints."""
-        if self.constraints:
+    def set_positions(self, newpositions, apply_constraint=True):
+        """Set positions, honoring any constraints. To ignore constraints,
+        use *apply_constraint=False*."""
+        if self.constraints and apply_constraint:
             newpositions = np.array(newpositions, float)
             for constraint in self.constraints:
                 constraint.adjust_positions(self, newpositions)

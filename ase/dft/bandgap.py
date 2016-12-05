@@ -7,9 +7,9 @@ import numpy as np
 
 def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
     """Calculates the band-gap.
-    
+
     Parameters:
-        
+
     calc: Calculator object
         Electronic structure calculator object.
     direct: bool
@@ -23,9 +23,9 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
     Rerurns a (gap, k1, k2) tuple where k1 and k2 are the indices of the
     valence and conduction k-points.  For the spin-polarized case, a
     (gap, (s1, k1), (s2, k2)) tuple is returned.
-    
+
     Example:
-        
+
     >>> gap, k1, k2 = get_band_gap(silicon.calc)
     Gap: 1.2 eV
     Transition (v -> c):
@@ -38,7 +38,7 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
     >>> print(gap, k1, k2)
     3.4 0 0
     """
-    
+
     kpts_kc = calc.get_ibz_k_points()
     nk = len(kpts_kc)
     ns = calc.get_number_of_spins()
@@ -52,12 +52,11 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
                       for s in range(ns)])
     ev_sk = e_skn[:, :, 0]  # valence band
     ec_sk = e_skn[:, :, 1]  # conduction band
-    
+
     if ns == 1:
-        gap, k1, k2 = find_gap(N_sk[0], ev_sk[0], ec_sk[0], direct)
+        gap, k1, k2 = find_gap(N_sk, ev_sk[0], ec_sk[0], direct)
     elif spin is None:
-        gap, k1, k2 = find_gap(N_sk.ravel(), ev_sk.ravel(), ec_sk.ravel(),
-                               direct)
+        gap, k1, k2 = find_gap(N_sk, ev_sk.ravel(), ec_sk.ravel(), direct)
         if gap > 0.0:
             k1 = divmod(k1, nk)
             k2 = divmod(k2, nk)
@@ -65,7 +64,8 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
             k1 = (None, None)
             k2 = (None, None)
     else:
-        gap, k1, k2 = find_gap(N_sk[spin], ev_sk[spin], ec_sk[spin], direct)
+        gap, k1, k2 = find_gap(N_sk[spin:spin + 1], ev_sk[spin], ec_sk[spin],
+                               direct)
 
     if output is not None:
         def sk(k):
@@ -74,7 +74,7 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
                 s, k = k
                 return '(spin={0}, {1})'.format(s, sk(k))
             return '[{0:.3f}, {1:.3f}, {2:.3f}]'.format(*kpts_kc[k])
-            
+
         p = functools.partial(print, file=output)
         if spin is not None:
             p('spin={0}: '.format(spin), end='')
@@ -87,13 +87,14 @@ def get_band_gap(calc, direct=False, spin=None, output=sys.stdout):
             p('Gap: {0:.3f} eV'.format(gap))
             p('Transition (v -> c):')
             p('   ', sk(k1), '->', sk(k2))
-    
+
     return gap, k1, k2
 
-    
-def find_gap(N_k, ev_k, ec_k, direct):
+
+def find_gap(N_sk, ev_k, ec_k, direct):
     """Helper function."""
-    if N_k.ptp() > 0:
+    if (N_sk.ptp(axis=1) > 0).any():
+        # Some band must be crossing the fermi-level
         return 0.0, None, None
     if direct:
         gap_k = ec_k - ev_k
