@@ -45,9 +45,9 @@ format using grd_to_cube(). TODO <insert text how to solve internal coords>
 DMol3 internal coordinates
 ---------------------------
 DMol3 may change the atomic positions / cell vectors in order to satisfy
-certain criterion ( molecule symmetry axis along z ). Specifically this
-happens when using Symmetry on. This means the forces read from .grad will
-be in a different coordinates system compared to the atoms object used.
+certain criterion ( e.g. molecule symmetry axis along z ). Specifically this
+happens when using Symmetry on/auto. This means the forces read from .grad
+will be in a different coordinates system compared to the atoms object used.
 To solve this the rotation matrix that converts the dmol coordinate system
 to the ase coordinate system is found and applied to the forces.
 
@@ -76,13 +76,7 @@ TODO NOTES
 Important:
 
 * Restarting? read() function, remove?
-* Integrate with ase
-    * examples [eigenvalues, grd2cube]
-
-* Write all docstrings in the same format (numpy formatting),
-    which functions do we need to comment better/more?
-* PEP8
-
+* Write all docstrings in the same format (numpy formatting)
 
 """
 
