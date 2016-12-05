@@ -10,6 +10,8 @@ different orientations.
 
 import numpy as np
 
+from ase.geometry import complete_cell
+
 
 def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
                    eps=1e-7):
@@ -55,7 +57,10 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     # Don't change coordinates when pbc is False
     shift[np.logical_not(pbc)] = 0.0
 
-    fractional = np.linalg.solve(np.asarray(cell).T,
+    assert np.asarray(cell)[np.asarray(pbc)].any(axis=1).all(), (cell, pbc)
+
+    cell = complete_cell(cell)
+    fractional = np.linalg.solve(cell.T,
                                  np.asarray(positions).T).T - shift
 
     for i, periodic in enumerate(pbc):
@@ -64,6 +69,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
             fractional[:, i] += shift[i]
 
     return np.dot(fractional, cell)
+
 
 def get_layers(atoms, miller, tolerance=0.001):
     """Returns two arrays describing which layer each atom belongs
@@ -120,6 +126,8 @@ def get_layers(atoms, miller, tolerance=0.001):
 
 def find_mic(D, cell, pbc=True):
     """Finds the minimum-image representation of vector(s) D"""
+
+    cell = complete_cell(cell)
     # Calculate the 4 unique unit cell diagonal lengths
     diags = np.sqrt((np.dot([[1, 1, 1],
                              [-1, 1, 1],

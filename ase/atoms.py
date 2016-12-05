@@ -19,7 +19,7 @@ from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
-                          cell_to_cellpar)
+                          cell_to_cellpar, complete_cell)
 
 
 class Atoms(object):
@@ -71,7 +71,7 @@ class Atoms(object):
         [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)].
         First vector will lie in x-direction, second in xy-plane,
         and the third one in z-positive subspace.
-        Default value: [1, 1, 1].
+        Default value: [0, 0, 0].
     celldisp: Vector
         Unit cell displacement vector. To visualize a displaced cell
         around the center of mass of a Systems of atoms. Default value
@@ -120,9 +120,8 @@ class Atoms(object):
     Hydrogen wire:
 
     >>> d = 0.9  # H-H distance
-    >>> L = 7.0
-    >>> h = Atoms('H', positions=[(0, L / 2, L / 2)],
-    ...           cell=(d, L, L),
+    >>> h = Atoms('H', positions=[(0, 0, 0)],
+    ...           cell=(d, 0, 0),
     ...           pbc=(1, 0, 0))
     """
 
@@ -202,7 +201,7 @@ class Atoms(object):
                 self.new_array('numbers', symbols2numbers(symbols), int)
 
         if cell is None:
-            cell = np.eye(3)
+            cell = np.zeros((3, 3))
         self.set_cell(cell)
 
         if celldisp is None:
@@ -254,6 +253,11 @@ class Atoms(object):
     calc = property(get_calculator, set_calculator, _del_calculator,
                     doc='Calculator object.')
 
+    @property
+    def number_of_lattice_vectors(self):
+        """Number of (non-zero) lattice vectors."""
+        return self._cell.any(1).sum()
+
     def set_constraint(self, constraint=None):
         """Apply one or more constrains.
 
@@ -276,7 +280,7 @@ class Atoms(object):
     constraints = property(_get_constraints, set_constraint, _del_constraints,
                            'Constraints of the atoms.')
 
-    def set_cell(self, cell, scale_atoms=False, fix=None):
+    def set_cell(self, cell, scale_atoms=False):
         """Set unit cell vectors.
 
         Parameters:
@@ -316,9 +320,6 @@ class Atoms(object):
         >>> atoms.set_cell([a, a, a, alpha, alpha, alpha])
         """
 
-        if fix is not None:
-            raise TypeError('Please use scale_atoms=%s' % (not fix))
-
         cell = np.array(cell, float)
 
         if cell.shape == (3,):
@@ -330,8 +331,9 @@ class Atoms(object):
                              'sequence or 3x3 matrix!')
 
         if scale_atoms:
-            M = np.linalg.solve(self._cell, cell)
-            self.arrays['positions'][:] = np.dot(self.arrays['positions'], M)
+            M = np.linalg.solve(self.get_cell(complete=True),
+                                complete_cell(cell))
+            self.positions[:] = np.dot(self.positions, M)
         self._cell = cell
 
     def set_celldisp(self, celldisp):
@@ -343,9 +345,12 @@ class Atoms(object):
         """Get the unit cell displacement vectors."""
         return self._celldisp.copy()
 
-    def get_cell(self):
+    def get_cell(self, complete=False):
         """Get the three unit cell vectors as a 3x3 ndarray."""
-        return self._cell.copy()
+        if complete:
+            return complete_cell(self._cell)
+        else:
+            return self._cell.copy()
 
     def get_cell_lengths_and_angles(self):
         """Get unit cell parameters. Sequence of 6 numbers.
@@ -365,7 +370,7 @@ class Atoms(object):
         Note that the commonly used factor of 2 pi for Fourier
         transforms is not included here."""
 
-        rec_unit_cell = np.linalg.inv(self.get_cell()).transpose()
+        rec_unit_cell = np.linalg.pinv(self.get_cell()).transpose()
         return rec_unit_cell
 
     def set_pbc(self, pbc):
@@ -978,6 +983,11 @@ class Atoms(object):
         if isinstance(m, int):
             m = (m, m, m)
 
+        for x, vec in zip(m, self._cell):
+            if x != 1 and not vec.any():
+                raise ValueError('Cannot repeat along undefined lattice '
+                                 'vector')
+
         M = np.product(m)
         n = len(self)
 
@@ -1038,8 +1048,9 @@ class Atoms(object):
             I.e., about=(0., 0., 0.) (or just "about=0.", interpreted
             identically), to center about the origin.
         """
+
         # Find the orientations of the faces of the unit cell
-        c = self.get_cell()
+        c = self.get_cell(complete=True)
         dirs = np.zeros_like(c)
         for i in range(3):
             dirs[i] = np.cross(c[i - 1], c[i - 2])
@@ -1047,11 +1058,16 @@ class Atoms(object):
             if np.dot(dirs[i], c[i]) < 0.0:
                 dirs[i] *= -1
 
-        # Now, decide how much each basis vector should be made longer
         if isinstance(axis, int):
             axes = (axis,)
         else:
             axes = axis
+
+        # if vacuum and any(self.pbc[x] for x in axes):
+        #     warnings.warn(
+        #         'You are adding vacuum along a periodic direction!')
+
+        # Now, decide how much each basis vector should be made longer
         p = self.arrays['positions']
         longer = np.zeros(3)
         shift = np.zeros(3)
@@ -1073,7 +1089,7 @@ class Atoms(object):
         translation = np.zeros(3)
         for i in axes:
             nowlen = np.sqrt(np.dot(c[i], c[i]))
-            self._cell[i] *= 1 + longer[i] / nowlen
+            self._cell[i] = c[i] * (1 + longer[i] / nowlen)
             translation += shift[i] * c[i] / nowlen
         self.arrays['positions'] += translation
 
@@ -1509,7 +1525,8 @@ class Atoms(object):
         the cell in those directions with periodic boundary conditions
         so that the scaled coordinates are between zero and one."""
 
-        fractional = np.linalg.solve(self.cell.T, self.positions.T).T
+        fractional = np.linalg.solve(self.get_cell(complete=True).T,
+                                     self.positions.T).T
 
         if wrap:
             for i, periodic in enumerate(self.pbc):
@@ -1523,7 +1540,7 @@ class Atoms(object):
 
     def set_scaled_positions(self, scaled):
         """Set positions relative to unit cell."""
-        self.arrays['positions'][:] = np.dot(scaled, self._cell)
+        self.positions[:] = np.dot(scaled, self.get_cell(complete=True))
 
     def wrap(self, center=(0.5, 0.5, 0.5), pbc=None, eps=1e-7):
         """Wrap positions to unit cell.
@@ -1571,16 +1588,15 @@ class Atoms(object):
 
         Identity means: same positions, atomic numbers, unit cell and
         periodic boundary conditions."""
-        try:
-            a = self.arrays
-            b = other.arrays
-            return (len(self) == len(other) and
-                    (a['positions'] == b['positions']).all() and
-                    (a['numbers'] == b['numbers']).all() and
-                    (self._cell == other.cell).all() and
-                    (self._pbc == other.pbc).all())
-        except AttributeError:
-            return NotImplemented
+        if not isinstance(other, Atoms):
+            return False
+        a = self.arrays
+        b = other.arrays
+        return (len(self) == len(other) and
+                (a['positions'] == b['positions']).all() and
+                (a['numbers'] == b['numbers']).all() and
+                (self._cell == other.cell).all() and
+                (self._pbc == other.pbc).all())
 
     def __ne__(self, other):
         """Check if two atoms objects are not equal.
@@ -1598,6 +1614,10 @@ class Atoms(object):
 
     def get_volume(self):
         """Get volume of unit cell."""
+        if self.number_of_lattice_vectors != 3:
+            raise ValueError(
+                'You have {0} lattice vectors: volume not defined'
+                .format(self.number_of_lattice_vectors))
         return abs(np.linalg.det(self._cell))
 
     def _get_positions(self):
@@ -1651,7 +1671,7 @@ class Atoms(object):
         Conflicts leading to undesirable behaviour might arise
         when matplotlib has been pre-imported with certain
         incompatible backends and while trying to use the
-        plot feature inside the interactive ag. To circumvent,
+        plot feature inside the interactive ase-gui. To circumvent,
         please set matplotlib.use('gtk') before calling this
         method.
         """

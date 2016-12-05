@@ -28,17 +28,17 @@ class LennardJones(Calculator):
         rc = self.parameters.rc
         if rc is None:
             rc = 3 * sigma
-        
+
         if 'numbers' in system_changes:
             self.nl = NeighborList([rc / 2] * natoms, self_interaction=False)
 
         self.nl.update(self.atoms)
-        
+
         positions = self.atoms.positions
         cell = self.atoms.cell
-        
+
         e0 = 4 * epsilon * ((sigma / rc)**12 - (sigma / rc)**6)
-        
+
         energy = 0.0
         forces = np.zeros((natoms, 3))
         stress = np.zeros((3, 3))
@@ -58,10 +58,14 @@ class LennardJones(Calculator):
             for a2, f2 in zip(neighbors, f):
                 forces[a2] += f2
             stress += np.dot(f.T, d)
-        
-        stress += stress.T.copy()
-        stress *= -0.5 / self.atoms.get_volume()
-        
+
+        if 'stress' in properties:
+            if self.atoms.number_of_lattice_vectors == 3:
+                stress += stress.T.copy()
+                stress *= -0.5 / self.atoms.get_volume()
+                self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
+            else:
+                raise NotImplementedError
+
         self.results['energy'] = energy
         self.results['forces'] = forces
-        self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
