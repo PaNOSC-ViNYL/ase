@@ -38,9 +38,4 @@ assert all(abs(AuAu[-2:] - [0.12126445, 0.]) < eps)
 
 bulk = L1_2(['Au', 'Cu'], size=(2, 2, 2), latticeconstant=4.2)
 dm = bulk.get_all_distances(mic=True)
-print get_rdf(bulk, rmax, nbins, distance_matrix=dm)
-
-    
-    
-
-
+print(get_rdf(bulk, rmax, nbins, distance_matrix=dm))
