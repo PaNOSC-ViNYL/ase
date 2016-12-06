@@ -174,8 +174,8 @@ def complete_cell(cell):
         cell[missing, missing] = 1.0
     elif len(missing) == 1:
         i = missing[0]
-        cell[i] = np.cross(cell[(i + 1) % 3], cell[(i + 2) % 3])
-        cell[i] /= np.linalg.norm(cell[1])
+        cell[i] = np.cross(cell[i - 2], cell[i - 1])
+        cell[i] /= np.linalg.norm(cell[i])
 
     return cell
 
