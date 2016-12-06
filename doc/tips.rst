@@ -30,18 +30,18 @@ Indexing
 --------
 
 >>> atoms
-Atoms(symbols='CH4', pbc=[False, False, False], positions=...)
+Atoms(symbols='CH4', pbc=False)
 >>> [atom.index for atom in atoms if atom.symbol == 'H']
 [1, 2, 3, 4]
 >>> atoms[[atom.index for atom in atoms if atom.symbol == 'H']]
-Atoms(symbols='H4', pbc=[False, False, False], positions=...)
+Atoms(symbols='H4', pbc=False)
 
 Indexing with lists of booleans:
 
 >>> atoms.numbers == 1
 array([False,  True,  True,  True,  True], dtype=bool)
 >>> atoms[atoms.numbers == 1]
-Atoms(symbols='H4', pbc=[False, False, False], positions=...)
+Atoms(symbols='H4', pbc=False)
 
 Three equivalent ways to delete carbon atoms:
 
