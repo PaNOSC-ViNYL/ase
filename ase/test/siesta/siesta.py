@@ -136,7 +136,6 @@ lines = [line.split() for line in lines]
 assert ['%block', 'PAO.Basis'] in lines
 assert ['%endblock', 'PAO.Basis'] in lines
 
-
 # Remove the test directory.
 os.chdir('../..')
 os.system('rm -rf %s' % test_path)

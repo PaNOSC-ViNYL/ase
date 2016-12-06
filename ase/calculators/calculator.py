@@ -388,9 +388,6 @@ class Calculator:
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                if isinstance(oldvalue, dict) and isinstance(value, dict):
-                    oldvalue.update(value)
-                    value = oldvalue
                 changed_parameters[key] = value
                 self.parameters[key] = value
 

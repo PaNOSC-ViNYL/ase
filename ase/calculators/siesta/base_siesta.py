@@ -657,6 +657,7 @@ class BaseSiesta(FileIOCalculator):
     def read_results(self):
         """Read the results.
         """
+        self.read_number_of_grid_points()
         self.read_energy()
         self.read_forces_stress()
         self.read_eigenvalues()
@@ -670,29 +671,38 @@ class BaseSiesta(FileIOCalculator):
         if isfile(filename):
             self.results['density'] = read_rho(filename)
 
+    def read_number_of_grid_points(self):
+        """Read number of grid points from SIESTA's text-output file.
+        """
+        with open(self.label + '.out', 'r') as f:
+            for line in f:
+                line = line.strip().lower()
+                if line.startswith('initmesh: mesh ='):
+                    n_points = [int(word) for word in line.split()[3:8:2]]
+                    self.results['n_grid_point'] = n_points
+                    break
+            else:
+                raise RuntimeError
+
     def read_energy(self):
         """Read energy from SIESTA's text-output file.
         """
         with open(self.label + '.out', 'r') as f:
             text = f.read().lower()
 
-        assert 'error' not in text
+        assert 'final energy' in text
         lines = iter(text.split('\n'))
 
-        # Get the number of grid points used:
+        # Get the energy and free energy the last time it appears
         for line in lines:
-            if line.startswith('initmesh: mesh ='):
-                n_points = [int(word) for word in line.split()[3:8:2]]
-                self.results['n_grid_point'] = n_points
-                break
-
-        for line in lines:
-            if line.startswith('siesta: etot    ='):
+            has_energy = line.startswith('siesta: etot    =')
+            if has_energy:
                 self.results['energy'] = float(line.split()[-1])
                 line = lines.next()
                 self.results['free_energy'] = float(line.split()[-1])
-                break
-        else:
+
+        if not 'energy' in self.results or \
+                not 'free_energy' in self.results:
             raise RuntimeError
 
     def read_forces_stress(self):

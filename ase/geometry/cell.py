@@ -19,21 +19,31 @@ def angle(x, y):
 
 
 def cell_to_cellpar(cell):
-    """Returns the cell parameters [a, b, c, alpha, beta, gamma] as a
-    numpy array."""
-    va, vb, vc = cell
-    a = np.linalg.norm(va)
-    b = np.linalg.norm(vb)
-    c = np.linalg.norm(vc)
-    alpha = 180.0 / pi * arccos(dot(vb, vc) / (b * c))
-    beta = 180.0 / pi * arccos(dot(vc, va) / (c * a))
-    gamma = 180.0 / pi * arccos(dot(va, vb) / (a * b))
-    return np.array([a, b, c, alpha, beta, gamma])
-        
+    """Returns the cell parameters [a, b, c, alpha, beta, gamma].
+
+    Angles are in degrees.
+    """
+    lengths = [np.linalg.norm(v) for v in cell]
+    angles = []
+    for i in range(3):
+        j = i - 1
+        k = i - 2
+        ll = lengths[j] * lengths[k]
+        if ll > 1e-16:
+            x = np.dot(cell[j], cell[k]) / ll
+            angle = 180.0 / pi * arccos(x)
+        else:
+            angle = 90.0
+        angles.append(angle)
+    return np.array(lengths + angles)
+
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
-    """Return a 3x3 cell matrix from `cellpar` = [a, b, c, alpha,
-    beta, gamma].  The returned cell is orientated such that a and b
+    """Return a 3x3 cell matrix from cellpar=[a,b,c,alpha,beta,gamma].
+
+    Angles must be in degrees.
+
+    The returned cell is orientated such that a and b
     are normal to `ab_normal` and a is parallel to the projection of
     `a_direction` in the a-b plane.
 
@@ -47,7 +57,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
 
     Example:
 
-    >>> cell = cellpar_to_cell([1, 2, 4,  10,  20, 30], (0,1,1), (1,2,3))
+    >>> cell = cellpar_to_cell([1, 2, 4, 10, 20, 30], (0, 1, 1), (1, 2, 3))
     >>> np.round(cell, 3)
     array([[ 0.816, -0.408,  0.408],
            [ 1.992, -0.13 ,  0.13 ],
@@ -110,7 +120,7 @@ def crystal_structure_from_cell(cell, eps=1e-4):
     way as ase.dft.kpoints.get_special_points().
 
     Parameters:
-    
+
     cell : numpy.array or list
         An array like atoms.get_cell()
 
@@ -120,7 +130,7 @@ def crystal_structure_from_cell(cell, eps=1e-4):
         'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic',
         'hexagonal' or 'monoclinic'
     """
-    cellpar = cell_to_cellpar(cell=cell)
+    cellpar = cell_to_cellpar(cell)
     abc = cellpar[:3]
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
@@ -143,4 +153,40 @@ def crystal_structure_from_cell(cell, eps=1e-4):
           abs(angles[1:] - pi / 2).max() < eps):
         return 'monoclinic'
     else:
-       raise ValueError('Cannot find crystal structure')
+        raise ValueError('Cannot find crystal structure')
+
+
+def complete_cell(cell):
+    """Calculate complete cell with missing lattice vectors.
+
+    Returns a new 3x3 ndarray.
+    """
+
+    cell = np.array(cell, dtype=float)
+    missing = np.nonzero(~cell.any(axis=1))[0]
+
+    if len(missing) == 3:
+        cell.flat[::4] = 1.0
+    if len(missing) == 2:
+        # Must decide two vectors:
+        i = 3 - missing.sum()
+        assert abs(cell[i, missing]).max() < 1e-16, "Don't do that"
+        cell[missing, missing] = 1.0
+    elif len(missing) == 1:
+        i = missing[0]
+        cell[i] = np.cross(cell[i - 2], cell[i - 1])
+        cell[i] /= np.linalg.norm(cell[i])
+
+    return cell
+
+
+def is_orthorhombic(cell):
+    """Check that cell only has stuff in the diagonal."""
+    return not (np.flatnonzero(cell) % 4).any()
+
+
+def orthorhombic(cell):
+    """Return cell as three box dimensions or raise ValueError."""
+    if not is_orthorhombic(cell):
+        raise ValueError('Not orthorhombic')
+    return cell.diagonal().copy()
