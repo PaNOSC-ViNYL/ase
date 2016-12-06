@@ -440,8 +440,10 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
 
     cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 0]]
 
-    atoms = Atoms(formula, cell=cell, scaled_positions=basis, pbc=(1, 1, 0))
-    atoms.center(vacuum, axis=2)
+    atoms = Atoms(formula, cell=cell, pbc=(1, 1, 0))
+    atoms.set_scaled_positions(basis)
+    if vacuum is not None:
+        atoms.center(vacuum, axis=2)
     atoms = atoms.repeat(size)
 
     return atoms
