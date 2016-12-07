@@ -153,7 +153,11 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     using *offset* instead.
 
     """
-    info = slab.adsorbate_info
+    if 'adsorbate_info' not in slab.info:
+        raise KeyError('No adsorbate_info in atoms.info. The atoms ' +
+                        'does not seem to be made by an ' +
+                        'ase.build function.')
+    info = slab.info['adsorbate_info']
     if 'cell' not in info:
         info['cell'] = slab.get_cell()[:2, :2]
 
@@ -364,8 +368,11 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     if vacuum is not None:
         slab.center(vacuum, axis=2)
 
-    slab.adsorbate_info['cell'] = surface_cell
-    slab.adsorbate_info['sites'] = sites
+    if 'adsorbate_info' not in slab.info:
+        slab.info.update({'adsorbate_info': {}})
+
+    slab.info['adsorbate_info']['cell'] = surface_cell
+    slab.info['adsorbate_info']['sites'] = sites
 
     return slab
 
