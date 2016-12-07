@@ -5,6 +5,7 @@ import numpy as np
 from ase import Atoms
 from ase.constraints import dict2constraint
 from ase.calculators.calculator import get_calculator, all_properties
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.data import chemical_symbols, atomic_masses
 from ase.io.jsonio import decode
@@ -52,7 +53,7 @@ def atoms2dict(atoms):
             for prop in all_properties:
                 try:
                     x = atoms.calc.get_property(prop, atoms, False)
-                except NotImplementedError:
+                except PropertyNotImplementedError:
                     pass
                 else:
                     if x is not None:

@@ -21,6 +21,7 @@ import exceptions, glob, os, pickle, string
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
+from ase.calculators.calculator import PropertyNotImplementedError
 
 from . import validate
 from . import changed
@@ -2507,9 +2508,10 @@ than density cutoff %i' % (pw, dw))
         nc.close()
 
         if stress == None:
-            raise NotImplementedError('For stress in Jacapo, first set '
-                                      'calculate_stress=True on '
-                                      'initialization.')
+            raise PropertyNotImplementedError(
+                'For stress in Jacapo, first set '
+                'calculate_stress=True on '
+                'initialization.')
 
         return stress
 

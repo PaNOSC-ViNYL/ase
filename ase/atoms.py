@@ -640,7 +640,8 @@ class Atoms(object):
         try:
             return self._calc.get_charges(self)
         except AttributeError:
-            raise NotImplementedError
+            from ase.calculators.calculator import PropertyNotImplementedError
+            raise PropertyNotImplementedError
 
     def set_positions(self, newpositions, apply_constraint=True):
         """Set positions, honoring any constraints. To ignore constraints,

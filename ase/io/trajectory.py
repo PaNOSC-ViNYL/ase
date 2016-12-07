@@ -4,6 +4,7 @@ import warnings
 from ase import __version__
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.atoms import Atoms
 from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
@@ -177,7 +178,7 @@ class TrajectoryWriter:
                         try:
                             x = calc.get_property(prop, atoms,
                                                   allow_calculation=False)
-                        except (NotImplementedError, KeyError):
+                        except (PropertyNotImplementedError, KeyError):
                             # KeyError is needed for Jacapo.
                             x = None
                 if x is not None:
@@ -364,7 +365,7 @@ class OldCalculatorWrapper:
         try:
             result = getattr(self.calc, method)(atoms)
         except AttributeError:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return result
 
 

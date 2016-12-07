@@ -34,6 +34,7 @@ from ase.utils import devnull
 
 from ase.calculators.calculator import kpts2ndarray
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import PropertyNotImplementedError
 
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
@@ -887,7 +888,7 @@ class Vasp(Calculator):
     def get_stress(self, atoms):
         self.update(atoms)
         if self.stress is None:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return self.stress
 
     def read_stress(self):

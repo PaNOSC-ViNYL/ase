@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 from math import sqrt
 from ase.geometry import find_mic
+from ase.calculators.calculator import PropertyNotImplementedError
 
 import numpy as np
 
@@ -1461,7 +1462,7 @@ class UnitCellFilter(Filter):
         return self.atoms.get_potential_energy()
 
     def get_stress(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def has(self, x):
         return self.atoms.has(x)

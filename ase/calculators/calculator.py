@@ -7,8 +7,10 @@ import numpy as np
 
 from ase.dft.kpoints import bandpath, monkhorst_pack
 
-
 class ReadError(Exception):
+    pass
+
+class PropertyNotImplementedError(NotImplementedError):
     pass
 
 
@@ -216,10 +218,10 @@ class Parameters(dict):
 class Calculator:
     """Base-class for all ASE calculators.
 
-    A calculator must raise NotImplementedError if asked for a
+    A calculator must raise PropertyNotImplementedError if asked for a
     property that it can't calculate.  So, if calculation of the
     stress tensor has not been implemented, get_stress(atoms) should
-    raise NotImplementedError.  This can be achieved simply by not
+    raise PropertyNotImplementedError.  This can be achieved simply by not
     including the string 'stress' in the list implemented_properties
     which is a class member.  These are the names of the standard
     properties: 'energy', 'forces', 'stress', 'dipole', 'charges',
@@ -444,7 +446,7 @@ class Calculator:
 
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
 
         if atoms is None:
             atoms = self.atoms
@@ -467,7 +469,7 @@ class Calculator:
         if name not in self.results:
             # For some reason the calculator was not able to do what we want,
             # and that is OK.
-            raise NotImplementedError
+            raise PropertyNotImplementedError
 
         result = self.results[name]
         if isinstance(result, np.ndarray):
