@@ -41,7 +41,3 @@ dm = bulk.get_all_distances(mic=True)
 rdf = get_rdf(bulk, 5., 3, distance_matrix=dm)[0]
 calc_rdf = [0.54694216, 0.08334357, 0.]
 assert all(abs(rdf - calc_rdf) < eps)
-
-
-
-
