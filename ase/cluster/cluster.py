@@ -126,5 +126,4 @@ class Cluster(Atoms, ClusterBase):
         self.set_cell(d['cell'])
         self.set_pbc(d['pbc'])
         self.set_constraint()
-        self.adsorbate_info = {}
         self.calc = None
