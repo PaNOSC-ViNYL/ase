@@ -20,7 +20,7 @@ following structure::
 
 import ase.parallel
 from ase.parallel import paropen
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointCalculator, PropertyNotImplementedError
 from ase.io.ulm import ulmopen
 import numpy as np
 import os
@@ -185,12 +185,12 @@ class BundleTrajectory:
         if datatypes.get('energy'):
             try:
                 smalldata['energy'] = atoms.get_potential_energy()
-            except (RuntimeError, NotImplementedError):
+            except (RuntimeError, PropertyNotImplementedError):
                 self.datatypes['energy'] = False
         if datatypes.get('stress'):
             try:
                 smalldata['stress'] = atoms.get_stress()
-            except NotImplementedError:
+            except PropertyNotImplementedError:
                 self.datatypes['stress'] = False
         self.backend.write_small(framedir, smalldata)
         
@@ -222,7 +222,7 @@ class BundleTrajectory:
         if datatypes.get('forces'):
             try:
                 x = atoms.get_forces()
-            except (RuntimeError, NotImplementedError):
+            except (RuntimeError, PropertyNotImplementedError):
                 self.datatypes['forces'] = False
             else:
                 self.backend.write(framedir, 'forces', x)
@@ -230,7 +230,7 @@ class BundleTrajectory:
         if datatypes.get('energies'):
             try:
                 x = atoms.get_potential_energies()
-            except (RuntimeError, NotImplementedError):
+            except (RuntimeError, PropertyNotImplementedError):
                 self.datatypes['energies'] = False
             else:
                 self.backend.write(framedir, 'energies', x)

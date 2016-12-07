@@ -14,6 +14,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import PropertyNotImplementedError
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
 from ase.io import read
@@ -1020,13 +1021,13 @@ class Octopus(FileIOCalculator):
         raise NotImplementedError
 
     def get_charges(self, atoms=None):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_fermi_level(self):
         return self.results['efermi']
 
     def get_potential_energies(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_dipole_moment(self, atoms=None):
         if 'dipole' not in self.results:
@@ -1036,7 +1037,7 @@ class Octopus(FileIOCalculator):
         return self.results['dipole']
 
     def get_stresses(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def _read_array(self, fname, outputkeyword=None):
         path = self._getpath('static/%s' % fname)

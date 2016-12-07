@@ -4,6 +4,7 @@ import numpy as np
 
 from ase.neighborlist import NeighborList
 from ase.calculators.calculator import Calculator, all_changes
+from ase.calculators.calculator import PropertyNotImplementedError
 
 
 class LennardJones(Calculator):
@@ -65,7 +66,7 @@ class LennardJones(Calculator):
                 stress *= -0.5 / self.atoms.get_volume()
                 self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
             else:
-                raise NotImplementedError
+                raise PropertyNotImplementedError
 
         self.results['energy'] = energy
         self.results['forces'] = forces
