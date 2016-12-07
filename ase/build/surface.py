@@ -359,9 +359,10 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     slab.set_positions(positions.reshape((-1, 3)))
 
     slab.set_cell([a * v * n for v, n in zip(cell, size)], scale_atoms=True)
+    slab.cell[2] = 0.0
 
     if vacuum is not None:
-        slab.center(vacuum=vacuum, axis=2)
+        slab.center(vacuum, axis=2)
 
     slab.adsorbate_info['cell'] = surface_cell
     slab.adsorbate_info['sites'] = sites
@@ -401,7 +402,12 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
         dz = atoms[0].z
         atoms.translate((0., 0., -dz))
         atoms.cell[2][2] -= dz
-    atoms.center(vacuum=vacuum, axis=2)
+
+    atoms.cell[2] = 0.0
+    atoms.pbc[1] = False
+    if vacuum:
+        atoms.center(vacuum, axis=2)
+
     # Renumber systematically from top down.
     orders = [(atom.index, round(atom.x, 3), round(atom.y, 3),
                -round(atom.z, 3), atom.index) for atom in atoms]
@@ -413,7 +419,7 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
 
 
 def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
-        size=(1, 1, 1), vacuum=7.5):
+        size=(1, 1, 1), vacuum=None):
     """Create three-layer 2D materials with hexagonal structure.
 
     For metal dichalcogenites, etc.
@@ -430,12 +436,14 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
                  (2 / 3, 1 / 3, 0.5 * thickness),
                  (1 / 3, 2 / 3, -0.5 * thickness)]
     else:
-        raise ValueError('Structure not recognized')
+        raise ValueError('Structure not recognized:', kind)
 
-    cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 1]]
+    cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 0]]
 
-    atoms = Atoms(formula, cell=cell, scaled_positions=basis, pbc=(1, 1, 0))
+    atoms = Atoms(formula, cell=cell, pbc=(1, 1, 0))
+    atoms.set_scaled_positions(basis)
+    if vacuum is not None:
+        atoms.center(vacuum, axis=2)
     atoms = atoms.repeat(size)
-    atoms.center(vacuum=vacuum, axis=2)
 
     return atoms

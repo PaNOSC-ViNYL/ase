@@ -95,7 +95,7 @@ Special points from [Setyawana-Curtarolo]_:
 
 You can find the special points in the Brillouin zone:
 
->>> from ase.lattice import bulk
+>>> from ase.build import bulk
 >>> from ase.dft.kpoints import get_special_points, bandpath
 >>> si = bulk('Si', 'diamond', a=5.459)
 >>> points = get_special_points('fcc', si.cell)

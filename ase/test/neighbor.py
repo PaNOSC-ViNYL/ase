@@ -28,7 +28,7 @@ for sorted in [False, True]:
     for p1 in range(2):
         for p2 in range(2):
             for p3 in range(2):
-                print(p1, p2, p3)
+                # print(p1, p2, p3)
                 atoms.set_pbc((p1, p2, p3))
                 nl = NeighborList(atoms.numbers * 0.2 + 0.5,
                                   skin=0.0, sorted=sorted)
@@ -41,8 +41,8 @@ for sorted in [False, True]:
                 d2, c2 = count(nl2, atoms2)
                 c2.shape = (-1, 10)
                 dd = d * (p1 + 1) * (p2 + 1) * (p3 + 1) - d2
-                print(dd)
-                print(c2 - c)
+                # print(dd)
+                # print(c2 - c)
                 assert abs(dd) < 1e-10
                 assert not (c2 - c).any()
 
@@ -60,6 +60,12 @@ h2[1].z += 0.09
 assert nl.update(h2)
 assert (nl.get_neighbors(0)[0] == []).all()
 assert nl.nupdates == 2
+
+h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
+nl = NeighborList([0.1, 0.1], skin=0.1, bothways=True, self_interaction=False)
+assert nl.update(h2)
+assert nl.get_neighbors(0)[1].shape == (0, 3)
+assert nl.get_neighbors(0)[1].dtype == int
 
 x = bulk('X', 'fcc', a=2**0.5)
 print(x)

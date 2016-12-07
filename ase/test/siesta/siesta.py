@@ -97,7 +97,7 @@ siesta.write_input(atoms, properties=['energy'])
 with open('test_label.fdf', 'r') as f:
     lines = f.readlines()
 assert 'DM.Tolerance  0.001\n' in lines
-assert 'ON.eta  68.02848914 \teV\n' in lines
+assert 'ON.eta  68.02846506 \teV\n' in lines
 
 # Remove the test directory.
 os.chdir('../..')

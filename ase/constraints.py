@@ -290,7 +290,6 @@ def FixBondLength(a1, a2):
     return FixBondLengths([(a1, a2)])
 
 
-
 class FixedMode(FixConstraint):
     """Constrain atoms to move along directions orthogonal to
     a given mode only."""
@@ -1069,11 +1068,11 @@ class Filter:
         'Return the positions of the visible atoms.'
         return self.atoms.get_positions()[self.index]
 
-    def set_positions(self, positions):
+    def set_positions(self, positions, **kwargs):
         'Set the positions of the visible atoms.'
         pos = self.atoms.get_positions()
         pos[self.index] = positions
-        self.atoms.set_positions(pos)
+        self.atoms.set_positions(pos, **kwargs)
 
     positions = property(get_positions, set_positions,
                          doc='Positions of the atoms')
@@ -1400,7 +1399,7 @@ class UnitCellFilter(Filter):
         pos[natoms:] = self.cell_factor * self.deform_grad
         return pos
 
-    def set_positions(self, new):
+    def set_positions(self, new, **kwargs):
         '''
         new is an array with shape (natoms+3,3).
 
@@ -1415,7 +1414,7 @@ class UnitCellFilter(Filter):
         natoms = len(self.atoms)
         self.atom_positions[:] = new[:natoms]
         self.deform_grad = new[natoms:] / self.cell_factor
-        self.atoms.set_positions(self.atom_positions)
+        self.atoms.set_positions(self.atom_positions, **kwargs)
         self.atoms.set_cell(self.orig_cell, scale_atoms=False)
         self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
                             scale_atoms=True)

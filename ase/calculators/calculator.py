@@ -388,9 +388,6 @@ class Calculator:
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                if isinstance(oldvalue, dict) and isinstance(value, dict):
-                    oldvalue.update(value)
-                    value = oldvalue
                 changed_parameters[key] = value
                 self.parameters[key] = value
 
@@ -548,7 +545,7 @@ class Calculator:
             stress[i, i] = (eplus - eminus) / (2 * d * V)
             x[i, i] += d
 
-            j = (i + 1) % 3
+            j = i - 2
             x[i, j] = d
             x[j, i] = d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)

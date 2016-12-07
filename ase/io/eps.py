@@ -128,7 +128,7 @@ class EPS:
             T[n1:] = c
             for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
                 n2 = n1 + n
-                X[n1:n2] = P + i * A[(c + 1) % 3] + j * A[(c + 2) % 3]
+                X[n1:n2] = P + i * A[c - 2] + j * A[c - 1]
                 n1 = n2
 
         return X, T, D
