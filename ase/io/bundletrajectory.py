@@ -27,7 +27,9 @@ import os
 import sys
 import shutil
 import time
-import json
+# The system json module causes memory leaks!  Use ase's own.
+#import json
+from ase.io import jsonio
 try:
     import cPickle as pickle   # Need efficient pickle if using Python 2
 except ImportError:
@@ -573,7 +575,8 @@ class BundleTrajectory:
             metadata['ulm.singleprecision'] = self.singleprecision
         metadata['python_ver'] = tuple(sys.version_info)
         f = paropen(os.path.join(self.filename, "metadata.json"), "w")
-        json.dump(metadata, f, indent=2)
+        fido = jsonio.encode(metadata)
+        f.write(fido)
         f.close()
         # Write a compatibility .pickle file - will be picked up by
         # older versions of ASE and result in a meaningful error.
@@ -589,7 +592,7 @@ class BundleTrajectory:
         metafile = os.path.join(self.filename, 'metadata.json')
         if os.path.exists(metafile):
             f = open(metafile, 'r')
-            metadata = json.load(f)
+            metadata = jsonio.decode(f.read())
         else:
             metafile = os.path.join(self.filename, 'metadata')
             f = open(metafile, 'rb')
@@ -605,7 +608,7 @@ class BundleTrajectory:
         metaname = os.path.join(filename, 'metadata.json')
         if os.path.isfile(metaname):
             f = open(metaname, 'r')
-            mdata = json.load(f)
+            mdata = jsonio.decode(f.read())
             f.close()
         else:
             metaname = os.path.join(filename, 'metadata')
@@ -1090,7 +1093,7 @@ def print_bundletrajectory_info(filename):
     fn = os.path.join(filename, 'metadata.json')
     if os.path.exists(fn):
         f = open(fn, 'r')
-        metadata = json.load(f)
+        metadata = jsonio.decode(f.read())
     else:
         fn = os.path.join(filename, 'metadata')
         f = open(fn, 'rb')
