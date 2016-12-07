@@ -36,6 +36,8 @@ AuAu = get_rdf(atoms, rmax, nbins, elements=(79, 79),
                distance_matrix=dm, no_dists=True)
 assert all(abs(AuAu[-2:] - [0.12126445, 0.]) < eps)
 
-bulk = L1_2(['Au', 'Cu'], size=(2, 2, 2), latticeconstant=4.2)
+bulk = L1_2(['Au', 'Cu'], size=(2, 2, 2), latticeconstant=np.sqrt(2))
 dm = bulk.get_all_distances(mic=True)
-print(get_rdf(bulk, rmax, nbins, distance_matrix=dm))
+rdf = get_rdf(bulk, 5., 3, distance_matrix=dm)[0]
+calc_rdf = [0.54694216, 0.08334357, 0.]
+assert all(abs(rdf - calc_rdf) < eps)
