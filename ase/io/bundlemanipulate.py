@@ -15,8 +15,10 @@ python -m ase.io.bundlemanipulate inbundle outbundle [start [end [step]]]
 """
 
 from __future__ import print_function
+from ase.io.bundletrajectory import PickleBundleBackend, UlmBundleBackend
 import os
 import pickle
+import json
 import numpy as np
 
 
@@ -28,6 +30,15 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             isinstance(step, int)):
         raise TypeError("copy_frames: start, end and step must be integers.")
     metadata, nframes = read_bundle_info(inbundle)
+    if metadata['backend'] == 'ulm':
+        ulm = True
+        backend = UlmBundleBackend(True, metadata['ulm.singleprecision'])
+    else:
+        ulm = False
+        assert(metadata['backend'] == 'pickle')
+        backend = PickleBundleBackend(True)
+        backend.readpy2 = False
+        
     if start < 0:
         start += nframes
     if end is None:
@@ -46,15 +57,9 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
     
     # Make the new bundle directory
     os.mkdir(outbundle)
-    f = open(os.path.join(outbundle, 'metadata'), 'wb')
-    pickle.dump(metadata, f, -1)
-    f.close()
+    with open(os.path.join(outbundle, 'metadata.json'), 'w') as f:
+        json.dump(metadata, f, indent=2)
 
-    # Local helper function
-    def load_second(f):
-        pickle.load(f)
-        return pickle.load(f)
-    
     for nout, nin in enumerate(frames):
         if verbose:
             print("F%i -> F%i" % (nin, nout))
@@ -72,25 +77,17 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             # The smalldata.pickle stuff must be updated.
             # At the same time, check if the number of fragments
             # has not changed.
-            assert metadata['backend'] == "pickle"
-            f = open(os.path.join(inbundle, "F0", "smalldata.pickle"), 'rb')
-            data0 = pickle.load(f)
-            f = open(os.path.join(indir, "smalldata.pickle"), 'rb')
-            data1 = pickle.load(f)
+            data0 = backend.read_small(os.path.join(inbundle, "F0"))
+            data1 = backend.read_small(indir)
             split_data = (metadata['subtype'] == 'split')
             if split_data:
                 fragments0 = data0['fragments']
                 fragments1 = data1['fragments']
 
             data0.update(data1)  # Data in frame overrides data from frame 0.
-            smallname = os.path.join(outdir, "smalldata.pickle")
-            os.unlink(smallname)
-            f = open(smallname, "wb")
-            pickle.dump(data0, f, -1)
-            f.close()
+            backend.write_small(outdir, data0)
 
-            # If data is written in split mode, it must be resorted
-            # be reordered
+            # If data is written in split mode, it must be reordered
             firstnames = os.listdir(os.path.join(inbundle, "F0"))
             if not split_data:
                 # Simple linking
@@ -104,25 +101,24 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             else:
                 # Must read and rewrite data
                 # First we read the ID's from frame 0 and N
-                assert 'ID_0.pickle' in firstnames and 'ID_0.pickle' in names
-                f0_id_names = [os.path.join(inbundle, "F0", "ID_{0}.pickle".format(i)) for i in range(fragments0)]
-                f0_id = [load_second(open(i, "rb")) for i in f0_id_names]
-                f0_id = np.concatenate(f0_id)
-                fn_id_names = [os.path.join(indir, "ID_{0}.pickle".format(i)) for i in range(fragments1)]
-                fn_id = [load_second(open(i, "rb")) for i in fn_id_names]
-                fn_sizes = [len(i) for i in fn_id]
-                fn_id = np.concatenate(fn_id)
+                if ulm:
+                    assert 'ID_0.ulm' in firstnames and 'ID_0.ulm' in names
+                else:
+                    assert 'ID_0.pickle' in firstnames and 'ID_0.pickle' in names
+                backend.nfrag = fragments0
+                f0_id, dummy = backend.read_split(os.path.join(inbundle, "F0"), "ID")
+                backend.nfrag = fragments1
+                fn_id, fn_sizes = backend.read_split(indir, "ID")
                 for name in firstnames:
                     # Only look at each array, not each file
-                    if '_0.pickle' not in name:
+                    if '_0.' not in name:
                         continue
                     if name not in names:
                         # We need to load this array
                         arrayname = name.split('_')[0]
                         print("    Reading", arrayname)
-                        f0_data_names = [os.path.join(inbundle, "F0", arrayname+"_{0}.pickle".format(i))
-                                         for i in range(fragments0)]
-                        f0_data = np.concatenate([load_second(open(i, "rb")) for i in f0_data_names])
+                        backend.nfrag = fragments0
+                        f0_data, dummy = backend.read_split(os.path.join(inbundle, "F0"), arrayname)
                         # Sort data
                         f0_data[f0_id] = np.array(f0_data)
                         # Unsort with new ordering
@@ -130,14 +126,11 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
                         # Write it
                         print("    Writing reshuffled", arrayname)
                         pointer = 0
+                        backend.nfrag = fragments1
                         for i, s in enumerate(fn_sizes):
                             segment = f0_data[pointer:pointer+s]
                             pointer += s
-                            arrayoutname = os.path.join(outdir, arrayname+"_{0}.pickle".format(i))
-                            arrayoutfile = open(arrayoutname, "wb")
-                            pickle.dump((segment.shape, str(segment.dtype)), arrayoutfile, -1)
-                            pickle.dump(segment, arrayoutfile, -1)
-                            arrayoutfile.close()
+                            backend.write(outdir, arrayname+"_{0}".format(i), segment)
     # Finally, write the number of frames
     f = open(os.path.join(outbundle, 'frames'), 'w')
     f.write(str(len(frames)) + '\n')
@@ -151,14 +144,19 @@ def read_bundle_info(name):
     Returns (metadata, nframes)
     """
     if not os.path.isdir(name):
-        raise IOError("No directory (bundle) named '%' found." % (name,))
-    metaname = os.path.join(name, 'metadata')
-    if not os.path.isfile(metaname):
-        raise IOError("'%s' does not appear to be a BundleTrajectory (no %s)"
-                      % (name, metaname))
-    f = open(metaname, 'rb')
-    mdata = pickle.load(f)
-    f.close()
+        raise IOError("No directory (bundle) named '%s' found." % (name,))
+    metaname = bestmetaname = os.path.join(name, 'metadata.json')
+    if os.path.isfile(metaname):
+        with open(metaname) as f:
+            mdata = json.load(f)
+    else:
+        metaname = os.path.join(name, 'metadata')
+        if os.path.isfile(metaname):
+            with open(metaname, "rb") as f:
+                mdata = pickle.load(f)
+        else:
+            raise IOError("'%s' does not appear to be a BundleTrajectory (no %s)"
+                        % (name, bestmetaname))
     if 'format' not in mdata or mdata['format'] != 'BundleTrajectory':
         raise IOError("'%s' does not appear to be a BundleTrajectory" %
                       (name,))
