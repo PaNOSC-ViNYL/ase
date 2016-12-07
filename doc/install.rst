@@ -176,10 +176,13 @@ or your :file:`~/.cshrc` file::
    :file:`~/.bashrc`. Either put any ``export`` commands into
    :file:`~/.bash_profile` or source :file:`~/.bashrc` in all Bash
    sessions by adding
+
    ::
+
       if [ -f ${HOME}/.bashrc ]; then
       source ${HOME}/.bashrc
       fi
+
    to your :file:`~/.bash_profile`.
 
 
