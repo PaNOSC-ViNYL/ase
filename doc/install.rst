@@ -169,6 +169,19 @@ or your :file:`~/.cshrc` file::
     $ setenv PYTHONPATH <path-to-ase-package>:${PYTHONPATH}
     $ setenv PATH <path-to-ase-command-line-tools>:${PATH}
 
+.. note::
+
+   If running on Mac OSX: be aware that terminal sessions will
+   source :file:`~/.bash_profile` by default and not
+   :file:`~/.bashrc`. Either put any ``export`` commands into
+   :file:`~/.bash_profile` or source :file:`~/.bashrc` in all Bash
+   sessions by adding
+   ::
+      if [ -f ${HOME}/.bashrc ]; then
+      source ${HOME}/.bashrc
+      fi
+   to your :file:`~/.bash_profile`.
+
 
 .. index:: test
 .. _running tests:
