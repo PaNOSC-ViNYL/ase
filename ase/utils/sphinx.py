@@ -76,7 +76,7 @@ def trac_role_tmpl(urlroot,
 
 def creates():
     """Generator for Python scripts and their output filenames."""
-    for dirpath, dirnames, filenames in os.walk('.'):
+    for dirpath, dirnames, filenames in sorted(os.walk('.')):
         for filename in filenames:
             if filename.endswith('.py'):
                 path = join(dirpath, filename)
