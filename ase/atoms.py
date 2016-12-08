@@ -92,7 +92,7 @@ class Atoms(object):
 
           - spacegroup: Spacegroup instance
           - unit_cell: 'conventional' | 'primitive' | int | 3 ints
-          - adsorbate_info:
+          - adsorbate_info: Information about special adsorption sites
 
         Items in the info attribute survives copy and slicing and can
         be stored in and retrieved from trajectory files given that the
@@ -233,8 +233,6 @@ class Atoms(object):
             self.info = {}
         else:
             self.info = dict(info)
-
-        self.adsorbate_info = {}
 
         self.set_calculator(calculator)
 
@@ -803,7 +801,6 @@ class Atoms(object):
         for name, a in self.arrays.items():
             atoms.arrays[name] = a.copy()
         atoms.constraints = copy.deepcopy(self.constraints)
-        atoms.adsorbate_info = copy.deepcopy(self.adsorbate_info)
         return atoms
 
     def __len__(self):
@@ -937,7 +934,6 @@ class Atoms(object):
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
-        atoms.adsorbate_info = self.adsorbate_info
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
@@ -1647,6 +1643,25 @@ class Atoms(object):
                          doc='Attribute for direct ' +
                          'manipulation of the positions.')
 
+    @property
+    def adsorbate_info(self):
+        """Return the adsorbate information set by one of the surface
+        builder functions. This function is only supplied in order to give
+        a warning if this attribute (atoms.adsorbate_info) is asked for.
+        The dictionary with adsorbate information has been moved to the
+        info dictionary, i.e. atoms.info['adsorbate_info']."""
+        warnings.warn("The adsorbate_info dictionary has been moved" +
+                      " inside the info dictionary, i.e. atoms." +
+                      "info['adsorbate_info']", FutureWarning)
+        return self.info['adsorbate_info']
+    
+    @adsorbate_info.setter
+    def adsorbate_info(self, dct):
+        warnings.warn("The adsorbate_info dictionary has been moved" +
+                      " inside the info dictionary, i.e. atoms." +
+                      "info['adsorbate_info']", FutureWarning)
+        self.info['adsorbate_info'] = dct
+    
     def _get_atomic_numbers(self):
         """Return reference to atomic numbers for in-place
         manipulations."""
