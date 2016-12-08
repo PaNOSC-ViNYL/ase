@@ -42,7 +42,7 @@ class SetupGraphene(SetupWindow):
                   _("Saturated ribbon")):
             self.struct.append_text(s)
         self.struct.set_active(0)
-    
+
         pack(vbox, [label, self.struct])
 
         # Orientation
@@ -141,7 +141,7 @@ class SetupGraphene(SetupWindow):
             elements = (self.element.get_text(), self.element2.get_text())
         else:
             elements = (self.element.get_text(), )
-            
+
         for elem in elements:
             if not elem:
                 self.invalid_element(_("  No element specified!"))
@@ -167,7 +167,7 @@ class SetupGraphene(SetupWindow):
         else:
             self.legal_element2 = None
         return True
-        
+
     def update_gui(self, *args):
         # Saturation element is only relevant for saturated nanoribbons
         satur = self.struct.get_active() == 2
@@ -182,7 +182,7 @@ class SetupGraphene(SetupWindow):
         else:
             self.n.lower = 1
             self.n.step_increment = 1
-        
+
     def makeatoms(self, *args):
         self.update_element()
         self.update_gui()
@@ -232,16 +232,9 @@ class SetupGraphene(SetupWindow):
         self.atoms.set_cell(cell)
         self.atoms.set_positions(pos)
         self.atoms.set_pbc([pbc[0], pbc[2], pbc[1]])
-        # Find the heights of the unit cell
-        h = np.zeros(3)
-        uc = self.atoms.get_cell()
-        for i in range(3):
-            norm = np.cross(uc[i-1], uc[i-2])
-            norm /= np.sqrt(np.dot(norm, norm))
-            h[i] = np.abs(np.dot(norm, uc[i]))
         label = label_template % {'natoms'  : len(self.atoms),
                                   'symbols' : formula(self.atoms.get_atomic_numbers()),
-                                  'volume'  : self.atoms.get_volume()}
+                                  'volume'  : np.inf}
         self.status.set_markup(label)
 
     def apply(self, *args):
@@ -258,6 +251,6 @@ class SetupGraphene(SetupWindow):
     def ok(self, *args):
         if self.apply():
             self.destroy()
-            
-            
-                                                 
+
+
+

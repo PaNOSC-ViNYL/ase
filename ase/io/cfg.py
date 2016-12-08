@@ -21,7 +21,7 @@ def write_cfg(f, a):
 
     f.write('Number of particles = %i\n' % len(a))
     f.write('A = 1.0 Angstrom\n')
-    cell = a.get_cell()
+    cell = a.get_cell(complete=True)
     for i in range(3):
         for j in range(3):
             f.write('H0(%1.1i,%1.1i) = %f A\n' % (i + 1, j + 1, cell[i, j]))
