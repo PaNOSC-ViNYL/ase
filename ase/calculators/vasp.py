@@ -674,6 +674,12 @@ class Vasp(Calculator):
         etc. are read from the VASP output.
         """
 
+        # Check if there is only a zero unit cell
+        if not atoms.cell.any():
+            raise ValueError("The lattice vectors are zero! "
+                             "This is the default value - please specify a "
+                             "unit cell.")
+
         # Initialize calculations
         self.initialize(atoms)
 
