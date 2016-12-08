@@ -126,10 +126,6 @@ class RSPC(Calculator):
                 # c_energy += (k_c * q_all[m*apm+i] * q / d).sum()  # no cut
                 e = k_c * q_all[m*apm+i] * q / d
                 c_energy += np.dot(all_cut, e)
-                # For some reasons this does not work:
-                # f = - ((e / d2) * all_cut + e * all_dcutdd
-                #       )[:, np.newaxis] * D / d[:, np.newaxis]
-                # following TIP3P instead (generality problems?):
                 F = (e.reshape(nmol-1-m, apm) / d2.reshape(nmol-1-m, apm) *
                      cm_cut[:, np.newaxis])[:, :, np.newaxis] * \
                     D.reshape(nmol-1-m, apm, 3)
@@ -164,7 +160,6 @@ class RSPC(Calculator):
         molcoms = np.zeros((nmols, 3))
         for mol in range(nmols):
             molcoms[mol] = self.atoms[mol*apm:(mol+1)*apm].get_center_of_mass()
-            # molcoms[mol] = self.atoms[mol*apm].position
         return molcoms
 
     def check_state(self, atoms, tol=1e-15):
