@@ -17,6 +17,7 @@ from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.calculator import equal
 import ase.io
+from ase.calculators.demon.demon_io import parse_xray
 
 m_e_to_amu = 1822.88839
 
@@ -397,10 +398,11 @@ class Demon(FileIOCalculator):
         if not op.exists(restart_path + '/deMon.inp'):
             raise ReadError('The restart_path file {0} does not exist'
                             .format(restart_path))
-        
-        parameters = pickle.load(open(restart_path +
-                                      '/deMon_parameters.pckl', 'r'))
-        self.parameters = parameters
+
+        if op.exists(restart_path + '/deMon_parameters.pckl'):
+            parameters = pickle.load(open(restart_path +
+                                          '/deMon_parameters.pckl', 'r'))
+            self.parameters = parameters
 
         self.atoms = self.deMon_inp_to_atoms(restart_path + '/deMon.inp')
         
@@ -671,35 +673,62 @@ class Demon(FileIOCalculator):
     def read_xray(self):
         """Read deMon.xry if present."""
 
-        filename = self.label + '/deMon.xry'
+
+        # try to read core IP from, .out file
+        filename = self.label + '/deMon.out'
+        core_IP = None
         if op.isfile(filename):
             with open(filename, 'r') as f:
                 lines = f.readlines()
-                
-            mode = lines[0].split()[0]
-            ntrans = int(lines[0].split()[1])
+            
+            for i in range(len(lines)):
+                if lines[i].rfind('IONIZATION POTENTIAL') > -1:
+                    core_IP = float(lines[i].split()[3])
+                    
+                    
+        #filename = self.label + '/deMon.xry'
+        #if op.isfile(filename):
+        #    with open(filename, 'r') as f:
+        #        lines = f.readlines()
+        #        
+        #    mode = lines[0].split()[0]
+        #    ntrans = int(lines[0].split()[1])
+        #
+        #    E_trans = []
+        #    osc_strength = []
+        #    trans_dip = []
+        #    for i in range(1, ntrans + 1):
+        #        E_trans.append(float(lines[i].split()[0]))
+        #        osc_strength.append(
+        #            float(lines[i].split()[1].replace('D', 'e')))
+        #        
+        #        dip1 = float(lines[i].split()[3].replace('D', 'e'))
+        #        dip2 = float(lines[i].split()[4].replace('D', 'e'))
+        #        dip3 = float(lines[i].split()[5].replace('D', 'e'))
+        #        trans_dip.append([dip1, dip2, dip3])
+        #
+        #    xray_results = {'xray_mode': mode,
+        #                    'ntrans': ntrans,
+        #                    'E_trans': np.array(E_trans) * Hartree,
+        #                    'osc_strength': np.array(osc_strength),  # units?
+        #                    'trans_dip': np.array(trans_dip), # units?
+        #                    'core_IP':core_IP}
 
-            E_trans = []
-            osc_strength = []
-            trans_dip = []
-            for i in range(1, ntrans + 1):
-                E_trans.append(float(lines[i].split()[0]))
-                osc_strength.append(
-                    float(lines[i].split()[1].replace('D', 'e')))
-                
-                dip1 = float(lines[i].split()[3].replace('D', 'e'))
-                dip2 = float(lines[i].split()[4].replace('D', 'e'))
-                dip3 = float(lines[i].split()[5].replace('D', 'e'))
-                trans_dip.append([dip1, dip2, dip3])
-                
+        try:
+            mode, ntrans, E_trans, osc_strength, trans_dip = parse_xray(self.label + '/deMon.xry')
+            
             xray_results = {'xray_mode': mode,
                             'ntrans': ntrans,
-                            'E_trans': np.array(E_trans) * Hartree,
-                            'osc_strength': np.array(osc_strength),  # units?
-                            'trans_dip': np.array(trans_dip)}  # units?
-
+                            'E_trans': E_trans,
+                            'osc_strength': osc_strength,  # units?
+                            'trans_dip': trans_dip, # units?
+                            'core_IP':core_IP}  
+            
             self.results['xray'] = xray_results
+        except:
+            pass
 
+            
     def deMon_inp_to_atoms(self, filename):
         """Routine to read deMon.inp and convert it to an atoms object."""
         with open(filename, 'r') as f:
