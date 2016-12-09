@@ -123,7 +123,8 @@ def key_val_dict_to_str(d, sep=' '):
     s = ''
     for key in d.keys():
         val = d[key]
-
+        if isinstance(val, dict):
+            continue
         if hasattr(val, '__iter__'):
             val = np.array(val)
             val = ' '.join(str(type_val_map.get((type(x), x), x))
