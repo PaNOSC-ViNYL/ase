@@ -7,7 +7,7 @@ Installation
 Requirements
 ============
 
-* Python_ 2.6-3.5
+* Python_ 2.6, 2.7, 3.4, 3.5
 * NumPy_ (base N-dimensional array package)
 
 Optional:
