@@ -1,4 +1,5 @@
 from __future__ import division
+from ase.utils import basestring
 import re
 import warnings
 from math import sin, cos, pi
@@ -113,7 +114,7 @@ def bandpath(path, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
-    if isinstance(path, str):
+    if isinstance(path, basestring):
         xtal = crystal_structure_from_cell(cell)
         special = get_special_points(xtal, cell)
         paths = []
