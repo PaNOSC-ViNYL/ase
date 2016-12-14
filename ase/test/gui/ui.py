@@ -20,7 +20,7 @@ def window():
     def abc(x):
         print(x, r.rows)
 
-    cb = ui.ComboBox(['Aa', 'Bb', 'Cc'], abc)
+    cb = ui.ComboBox(['Aa', 'Bb', 'Cc'], callback=abc)
     win.add(cb)
 
     rb = ui.RadioButtons(['A', 'B', 'C'], 'ABC', abc)

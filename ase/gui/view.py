@@ -332,7 +332,7 @@ class View:
     def rotate_window(self):
         Rotate(self)
 
-    def colors_window(self):
+    def colors_window(self, key=None):
         return ColorWindow(self)
 
     def focus(self, x=None):

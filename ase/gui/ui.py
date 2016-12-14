@@ -456,7 +456,7 @@ class MainWindow(BaseWindow):
             else:
                 self.win.after_idle(callback)
 
-        self.win.after_idle(callback)
+        self.win.after_idle(test)#callback)
         self.run()
 
     def __getitem__(self, name):

@@ -1,9 +1,13 @@
+import argparse
+
+import numpy as np
+
 from ase.gui.i18n import enable_localization
 import ase.gui.ui as ui
 from ase import Atoms
 from ase.gui.gui import GUI
-from ase.gui.images import Images
 from ase.calculators.singlepoint import SinglePointCalculator
+
 enable_localization()
 
 
@@ -23,43 +27,61 @@ class OOPS:
 
 ui.oops = OOPS()
 
+tests = []
 
+
+def test(f):
+    tests.append(f.__name__)
+    return f
+
+
+@test
 def nt(gui):
-    yield
     nt = gui.nanotube_window()
-    # yield
     nt.apply()
-    # yield
     nt.element[1].value = '?'
     nt.apply()
-    # yield
     assert ui.oops.called('No valid atoms.')
     nt.element[1].value = 'C'
     nt.ok()
     assert gui.images.natoms == 20
-    # gui.exit()
 
 
-def np(gui):
-    np = gui.nanoparticle_window()
-    yield
+@test
+def nanopartickle(gui):
+    gui.nanoparticle_window()
 
 
+@test
 def color(gui):
-    yield
+    a = Atoms('C10')
+    a.positions[:] = np.linspace(0, 9, 10)[:, None]
+    a.calc = SinglePointCalculator(a, forces=a.positions)
+    gui.new_atoms(a)
     c = gui.colors_window()
     c.toggle('force')
-    yield
     assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 0]
 
 
-if 1:
-    gui = GUI()
-    gui.run(test=nt(gui))
-    # gui.run(test=np(gui))
+if __name__ == '__main__':
+    p = argparse.ArgumentParser()
+    p.add_argument('tests', nargs='*')
+    p.add_argument('-p', '--pause', action='store_true')
+    args = p.parse_args()
+    print([k for k in globals() if k.islower()])
+    for name in args.tests or tests:
+        for n in tests:
+            if n.startswith(name):
+                name = n
+                break
+        else:
+            1 / 0
+        print(name)
+        test = globals()[name]
+        gui = GUI()
 
-if 0:
-    h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
-    h2.calc = SinglePointCalculator(h2, forces=[(0, 0, 0), (0, 0, 1)])
-    gui = GUI(Images([h2]))
-    gui.run(test=color(gui))
+        def f():
+            test(gui)
+            if not args.pause:
+                gui.exit()
+        gui.run(test=f)
