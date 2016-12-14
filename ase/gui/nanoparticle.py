@@ -17,7 +17,7 @@ import ase.gui.ui as ui
 from ase.cluster.cubic import FaceCenteredCubic, BodyCenteredCubic, SimpleCubic
 from ase.cluster.hexagonal import HexagonalClosedPacked, Graphite
 from ase.cluster import wulff_construction
-from ase.gui.widgets import Element, pybutton, helpbutton
+from ase.gui.widgets import Element, pybutton
 
 
 introtext = _("""\
@@ -193,7 +193,7 @@ class SetupNanoparticle:
         win.add(self.auto)
 
         win.add([pybutton(_('Creating a nanoparticle.'), self.makeatoms),
-                 helpbutton(helptext),
+                 ui.helpbutton(helptext),
                  ui.Button(_('Apply'), self.apply),
                  ui.Button(_('OK'), self.ok)])
 

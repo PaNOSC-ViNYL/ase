@@ -31,8 +31,7 @@ class Graphs:
     def __init__(self, gui):
         win = ui.Window('Graphs')
         self.expr = ui.Entry('', 50, self.plot)
-        win.add([self.expr, ui.Button(_('Help'), ui.help,
-                                      _('Help for plot'), graph_help_text)])
+        win.add([self.expr, ui.helpbutton(graph_help_text)])
 
         win.add([ui.Button(_('Plot'), self.plot, 'xy'), ' x, y1, y2, ...'], 'w')
         win.add([ui.Button(_('Plot'), self.plot, 'y'), ' y1, y2, ...'], 'w')

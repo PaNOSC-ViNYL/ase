@@ -50,15 +50,6 @@ class Element(list):
         self[2].text = text
 
 
-def helpbutton(text):
-    return ui.Button(_('Help'), helpwindow, text)
-
-
-def helpwindow(text):
-    win = ui.Window(_('Help'))
-    win.add(ui.Text(text))
-
-
 def pybutton(title, callback):
     """A button for displaying Python code.
 

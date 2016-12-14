@@ -36,6 +36,15 @@ def about(name, version, webpage):
     win.add(Text('\n'.join(text)))
 
 
+def helpbutton(text):
+    return Button(_('Help'), helpwindow, text)
+
+
+def helpwindow(text):
+    win = Window(_('Help'))
+    win.add(Text(text))
+
+
 class BaseWindow:
     def __init__(self, title, close=None):
         self.title = title
@@ -111,7 +120,7 @@ class Row(Widget):
 
 
 class Label(Widget):
-    def __init__(self, text, color=None):
+    def __init__(self, text='', color=None):
         self.creator = partial(tk.Label, text=text, fg=color)
 
     def text(self, new):

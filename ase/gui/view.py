@@ -93,11 +93,11 @@ class View:
 
     def set_colors(self):
         self.colormode = 'jmol'
-        self.colors = []
-        for z in self.images.Z:
+        self.colors = {}
+        for z in np.unique(self.images.Z):
             rgb = jmol_colors[z]
-            self.colors.append('#{0:02X}{1:02X}{2:02X}'
-                               .format(*(int(x * 255) for x in rgb)))
+            self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'
+                              .format(*(int(x * 255) for x in rgb)))
 
     def plot_cell(self):
         V = self.images.A[0]

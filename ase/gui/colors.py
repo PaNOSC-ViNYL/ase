@@ -24,6 +24,8 @@ class ColorWindow:
         self.win.add(radio)
         self.deactivate(radio)
         self.radio = radio  # stored for testing puposes
+        self.label = ui.Label()
+        self.win.add(self.label)
 
     def deactivate(self, radio):
         images = self.gui.images
@@ -41,6 +43,7 @@ class ColorWindow:
     def toggle(self, value):
         if value == 'jmol':
             self.gui.set_colors()
+            text = ''
         else:
             self.gui.colormode = value
             scalars = np.array([self.gui.get_color_scalars(i)
@@ -50,6 +53,16 @@ class ColorWindow:
             colorscale = ['#{0:02X}AA00'.format(red)
                           for red in range(0, 240, 10)]
             self.gui.colormode_data = colorscale, mn, mx
+
+            unit = {'tag': '',
+                    'force': 'eV/Ang',
+                    'velocity': '??',
+                    'charge': '|e|',
+                    'magmom': 'muB'}[value]
+            text = '[{},{}]: [{},{}] {}'.format(
+                _('Green'), _('Yellow'), mn, mx, unit)
+
+        self.label.text = text
         self.gui.draw()
 
     def notify_atoms_changed(self):
