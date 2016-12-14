@@ -68,7 +68,6 @@ if __name__ == '__main__':
     p.add_argument('tests', nargs='*')
     p.add_argument('-p', '--pause', action='store_true')
     args = p.parse_args()
-    print([k for k in globals() if k.islower()])
     for name in args.tests or tests:
         for n in tests:
             if n.startswith(name):
