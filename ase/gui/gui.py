@@ -4,6 +4,7 @@ import sys
 import weakref
 import pickle
 import subprocess
+from functools import partial
 from gettext import gettext as _
 
 import numpy as np
@@ -82,11 +83,11 @@ class GUI(View, Status):
         else:
             self.window.run()
 
-    def step(self, action):
-        d = {'First': -10000000,
-             'Previous': -1,
-             'Next': 1,
-             'Last': 10000000}[action.get_name()]
+    def step(self, key):
+        d = {'Home': -10000000,
+             'Page-Up': -1,
+             'Page-Down': 1,
+             'End': 10000000}[key]
         i = max(0, min(self.images.nimages - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
@@ -97,14 +98,13 @@ class GUI(View, Status):
         self.scale *= x
         self.draw()
 
-    def zoom(self, action):
+    def zoom(self, key):
         """Zoom in/out on keypress or clicking menu item"""
-        x = {'ZoomIn': 1.2, 'ZoomOut': 1 / 1.2}[action.get_name()]
+        x = {'+': 1.2, '-': 1 / 1.2}[key]
         self._do_zoom(x)
 
     def scroll_event(self, event):
         """Zoom in/out when using mouse wheel"""
-        print(event)
         SHIFT = event.modifier == 'shift'
         x = 1.0
         if event.button == 4:
@@ -113,33 +113,27 @@ class GUI(View, Status):
             x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 
-    def settings(self, menuitem):
+    def settings(self):
         Settings(self)
 
     def scroll(self, event):
         from copy import copy
         CTRL = event.modifier == 'ctrl'
         SHIFT = event.modifier == 'shift'
-        print(event.key)
-        dxdydz = {
-            '+': ('zoom', 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01, 0),
-            '-': ('zoom', 1 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01), 0),
-            'up': (0, 1 - CTRL, CTRL),
-            'down': (0, -1 + CTRL, -CTRL),
-            'right': (1, 0, 0),
-            'left': (-1, 0, 0)}.get(event.key, None)
+        dxdydz = {'up': (0, 1 - CTRL, CTRL),
+                  'down': (0, -1 + CTRL, -CTRL),
+                  'right': (1, 0, 0),
+                  'left': (-1, 0, 0)}.get(event.key, None)
+
+        if dxdydz is None:
+            return
 
         sel = []
 
         atom_move = self.window['toggle-move-mode']
         atom_rotate = self.window['toggle-rotate-mode']
         atom_orient = self.window['toggle-orient-mode']
-        if dxdydz is None:
-            return
         dx, dy, dz = dxdydz
-        if dx == 'zoom':
-            self._do_zoom(dy)
-            return
 
         tvec = np.array([dx, dy, dz])
 
@@ -632,34 +626,34 @@ class GUI(View, Status):
 
             self.draw()
 
-    def execute(self, widget=None):
+    def execute(self):
         from ase.gui.execute import Execute
         Execute(self)
 
-    def constraints_window(self, widget=None):
+    def constraints_window(self):
         from ase.gui.constraints import Constraints
         Constraints(self)
 
-    def select_all(self, widget):
+    def select_all(self):
         self.images.selected[:] = True
         self.draw()
 
-    def invert_selection(self, widget):
+    def invert_selection(self):
         self.images.selected[:] = ~self.images.selected
         self.draw()
 
-    def select_constrained_atoms(self, widget):
+    def select_constrained_atoms(self):
         self.images.selected[:] = ~self.images.dynamic
         self.draw()
 
-    def select_immobile_atoms(self, widget):
+    def select_immobile_atoms(self):
         if self.images.nimages > 1:
             R0 = self.images.P[0]
             for R in self.images.P[1:]:
                 self.images.selected[:] = ~(np.abs(R - R0) > 1.0e-10).any(1)
         self.draw()
 
-    def movie(self, widget=None):
+    def movie(self):
         from ase.gui.movie import Movie
         self.movie_window = Movie(self)
 
@@ -683,11 +677,11 @@ class GUI(View, Status):
         self.graph_wref = new_wref
         return found
 
-    def neb(self, action):
+    def neb(self):
         from ase.gui.neb import NudgedElasticBand
         NudgedElasticBand(self.images)
 
-    def bulk_modulus(self, action):
+    def bulk_modulus(self):
         process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
@@ -743,29 +737,11 @@ class GUI(View, Status):
         self.set_colors()
         self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def import_atoms(self, button=None, filenames=None):
-        if filenames is None:
-            chooser = ui.FileChooserDialog(
-                _('Open ...'), None, ui.FILE_CHOOSER_ACTION_OPEN,
-                ('Cancel', ui.RESPONSE_CANCEL, 'Open',
-                 ui.RESPONSE_OK))
-            ok = chooser.run()
-            if ok == ui.RESPONSE_OK:
-                filenames = [chooser.get_filename()]
-            chooser.destroy()
-
-            if not ok:
-                return
-
-        self.images.import_atoms(filenames, self.frame)
-        self.set_colors()
-        self.set_coordinates(self.images.nimages - 1, focus=True)
-
     def quick_info_window(self):
         from ase.gui.quickinfo import info
         ui.Window('Quick Info').add(info(self))
 
-    def bulk_window(self, menuitem):
+    def bulk_window(self):
         SetupBulkCrystal(self)
 
     def surface_window(self, menuitem):
@@ -839,24 +815,6 @@ class GUI(View, Status):
         for process in self.graphs:
             process.terminate()
         self.window.close()
-
-    def xxx(self,
-            x=None,
-            message1=_('Not implemented!'),
-            message2=_('do you really need it?')):
-        oops(message1, message2)
-
-    def about(self, action):
-        try:
-            dialog = ui.AboutDialog()
-            dialog.set_version(__version__)
-            dialog.set_website(
-                'https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')
-        except AttributeError:
-            self.xxx()
-        else:
-            dialog.run()
-            dialog.destroy()
 
     def new(self):
         os.system('ase-gui &')
@@ -976,10 +934,13 @@ class GUI(View, Status):
                 self.energy_minimize_window)]),
 
             (_('_Help'),
-             [M(_('_About'), self.about),
+             [M(_('_About'), partial(ui.about, 'ASE-GUI',
+                                     version=__version__,
+                                     webpage='https://wiki.fysik.dtu.dk/'
+                                     'ase/ase/gui/gui.html')),
               M(_('Webpage ...'), webpage)])]
 
 
-def webpage(widget):
+def webpage():
     import webbrowser
     webbrowser.open('https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html')

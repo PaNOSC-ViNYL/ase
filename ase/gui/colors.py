@@ -19,10 +19,13 @@ class ColorWindow:
                   _('By velocity'),
                   _('By charge'),
                   _('By magnetic moment')]
+
         self.radio = ui.RadioButtons(labels, values, self.toggle)
         self.radio.value = gui.colormode
         self.win.add(self.radio)
-        self.deactivate()
+        self.activate()
+        self.label = ui.Label()
+        self.win.add(self.label)
 
     def activate(self):
         images = self.gui.images
@@ -36,6 +39,7 @@ class ColorWindow:
     def toggle(self, value):
         if value == 'jmol':
             self.gui.set_colors()
+            text = ''
         else:
             self.gui.colormode = value
             scalars = np.array([self.gui.get_color_scalars(i)
@@ -45,6 +49,16 @@ class ColorWindow:
             colorscale = ['#{0:02X}AA00'.format(red)
                           for red in range(0, 240, 10)]
             self.gui.colormode_data = colorscale, mn, mx
+
+            unit = {'tag': '',
+                    'force': 'eV/Ang',
+                    'velocity': '??',
+                    'charge': '|e|',
+                    'magmom': 'muB'}[value]
+            text = '[{},{}]: [{},{}] {}'.format(
+                _('Green'), _('Yellow'), mn, mx, unit)
+
+        self.label.text = text
         self.radio.value = value
         self.gui.draw()
 

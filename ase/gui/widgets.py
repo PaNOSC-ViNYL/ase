@@ -28,16 +28,17 @@ class Element(list):
         self._symbol = self[1].value
         if not self._symbol:
             self.error(_('No element specified!'))
-            return
+            return False
         self._Z = ase.data.atomic_numbers.get(self._symbol)
         if self._Z is None:
             try:
                 self._Z = int(self._symbol)
             except ValueError:
                 self.error()
-                return
+                return False
             self._symbol = ase.data.chemical_symbols[self._Z]
         self[2].text = ''
+        return True
 
     def enter(self):
         self.check()
@@ -47,3 +48,23 @@ class Element(list):
         self._symbol = None
         self._Z = None
         self[2].text = text
+
+
+def pybutton(title, callback):
+    """A button for displaying Python code.
+
+    When pressed, it opens a window displaying some Python code, or an error
+    message if no Python code is ready.
+    """
+    return ui.Button('Python', pywindow, title, callback)
+
+
+def pywindow(title, callback):
+    code = callback()
+    if code is None:
+        ui.oops(
+            _('No Python code'),
+            _('You have not (yet) specified a consistent set of parameters.'))
+    else:
+        win = ui.Window(title)
+        win.add(ui.Text(code))

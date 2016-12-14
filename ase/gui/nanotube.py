@@ -4,8 +4,7 @@
 from gettext import gettext as _
 
 import ase.gui.ui as ui
-from ase.gui.widgets import Element
-from ase.gui.pybutton import pybutton
+from ase.gui.widgets import Element, pybutton
 from ase.build import nanotube
 
 
@@ -27,7 +26,7 @@ label_template = _('{natoms} atoms, diameter: {diameter:.3f} Å, '
 
 
 class SetupNanotube:
-    "Window for setting up a (Carbon) nanotube."
+    """Window for setting up a (Carbon) nanotube."""
     def __init__(self, gui):
         self.element = Element('C', self.make)
         self.bondlength = ui.SpinBox(1.42, 0.0, 10.0, 0.01, self.make)
@@ -47,13 +46,12 @@ class SetupNanotube:
                  'm:', self.m,
                  _('Length:'), self.length])
         win.add(self.description)
-        win.add([pybutton(_('Creating a nanoparticle.'), self, self.make),
+        win.add([pybutton(_('Creating a nanoparticle.'), self.make),
                  ui.Button(_('Apply'), self.apply),
                  ui.Button(_('OK'), self.ok)])
 
         self.gui = gui
         self.atoms = None
-        self.python = None
 
     def make(self):
         symbol = self.element.symbol
@@ -68,13 +66,12 @@ class SetupNanotube:
         length = self.length.value
         bl = self.bondlength.value
         self.atoms = nanotube(n, m, length=length, bond=bl, symbol=symbol)
-        self.python = py_template.format(n=n, m=m, length=length,
-                                         symb=symbol, bl=bl)
         label = label_template.format(
             natoms=len(self.atoms),
             total_length=self.atoms.cell[2, 2],
             diameter=self.atoms.cell[0, 0] / 2)
         self.description.text = label
+        return py_template.format(n=n, m=m, length=length, symb=symbol, bl=bl)
 
     def apply(self):
         self.make()
