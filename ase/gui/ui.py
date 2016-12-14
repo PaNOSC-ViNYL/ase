@@ -7,10 +7,12 @@ try:
 except ImportError:
     # Python 2
     import Tkinter as tk
+    import ttk
     from tkMessageBox import askokcancel as ask_question
 
 import re
 from functools import partial
+from gettext import gettext as _
 
 import numpy as np
 
@@ -21,6 +23,15 @@ __all__ = [
     'SpinBox', 'Text']
 
 font = ('Helvetica', 10)
+
+
+def about(name, version, webpage):
+    text = [name,
+            '',
+            _('Version') + ': ' + version,
+            _('Web-page') + ': ' + webpage]
+    win = Window(_('About'))
+    win.add(Text('\n'.join(text)))
 
 
 class BaseWindow:
@@ -487,8 +498,8 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<B1-Motion>', bind(move))
         self.canvas.bind('<B3-Motion>', bind(move))
         self.canvas.bind('<ButtonRelease>', bind(release))
-        self.canvas.bind('<Control-ButtonRelease>',
-                         bind(release, 'ctrl'))
+        self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
+        self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))

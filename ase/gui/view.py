@@ -613,6 +613,10 @@ class View:
                          anchor='SE')
 
     def release(self, event):
+        if event.button in [4, 5]:
+            self.scroll_event(event)
+            return
+
         if event.button != 1:
             return
 

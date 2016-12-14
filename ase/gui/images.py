@@ -193,14 +193,6 @@ class Images:
                 self.set_radii(image.info['radii'])
                 break
 
-    def import_atoms(self, filename, cur_frame):
-        if filename:
-            filename = filename[0]
-            old_a = self.get_atoms(cur_frame)
-            imp_a = read(filename, -1)
-            new_a = old_a + imp_a
-            self.initialize([new_a], [filename])
-
     def repeat_images(self, repeat):
         n = self.repeat.prod()
         repeat = np.array(repeat)

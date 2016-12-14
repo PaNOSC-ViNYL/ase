@@ -262,7 +262,7 @@ class SetupNanoparticle:
 
         if self.method.value == 'wulff':
             # Extra widgets for the Wulff construction
-            ...
+            1 / 0
 
         """
         self.wulffbox = ui.VBox()
@@ -341,7 +341,7 @@ class SetupNanoparticle:
         'Make a larger Wulff construction.'
         n = len(self.atoms)
         self.size_n_radio.set_active(True)
-        self.size_n_adj.value = n+1
+        self.size_n_adj.value = n + 1
         self.round_above.set_active(True)
         self.apply()
 
