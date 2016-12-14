@@ -54,13 +54,15 @@ def nanopartickle(gui):
 
 @test
 def color(gui):
-    a = Atoms('C10')
+    a = Atoms('C10', magmoms=np.linspace(1, -1, 10))
     a.positions[:] = np.linspace(0, 9, 10)[:, None]
     a.calc = SinglePointCalculator(a, forces=a.positions)
     gui.new_atoms(a)
     c = gui.colors_window()
     c.toggle('force')
-    assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 0]
+    text = c.toggle('magmom')
+    assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 1]
+    assert text.rsplit('[', 1)[1].startswith('-1.0,1.0]')
 
 
 if __name__ == '__main__':

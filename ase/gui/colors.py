@@ -54,13 +54,14 @@ class ColorWindow:
                     'force': 'eV/Ang',
                     'velocity': '??',
                     'charge': '|e|',
-                    'magmom': 'muB'}[value]
+                    'magmom': 'μB'}[value]
             text = '[{},{}]: [{},{}] {}'.format(
                 _('Green'), _('Yellow'), mn, mx, unit)
 
         self.label.text = text
         self.radio.value = value
         self.gui.draw()
+        return text  # for testing
 
     def notify_atoms_changed(self):
         "Called by gui object when the atoms have changed."
