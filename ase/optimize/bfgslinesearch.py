@@ -116,9 +116,9 @@ class BFGSLineSearch(Optimizer):
             self.p /= (p_size / np.sqrt(len(atoms)*1e-10))
         ls = LineSearch()
         self.alpha_k, e, self.e0, self.no_update = \
-           ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
-                           maxstep=self.maxstep, c1=self.c1,
-                           c2=self.c2, stpmax=self.stpmax)
+            ls._line_search(self.func, self.fprime, r, self.p, g, e, self.e0,
+                            maxstep=self.maxstep, c1=self.c1,
+                            c2=self.c2, stpmax=self.stpmax)
         if self.alpha_k is None:
             raise RuntimeError("LineSearch failed!")
 
@@ -160,6 +160,16 @@ class BFGSLineSearch(Optimizer):
                       rhok * dr[:, np.newaxis] * dr[np.newaxis, :])
             # self.B = np.linalg.inv(self.H)
 
+    def set_force_consistent(self):
+        """Automatically sets force_consistent to True if force_consistent
+        energies are supported by calculator; else False."""
+        try:
+            self.atoms.get_potential_energy(force_consistent=True)
+        except KeyError:
+            self.force_consistent = False
+        else:
+            self.force_consistent = True
+
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
@@ -197,33 +207,21 @@ class BFGSLineSearch(Optimizer):
 
     def log(self, forces):
         fmax = sqrt((forces**2).sum(axis=1).max())
+        if self.force_consistent is None:
+            self.set_force_consistent()
         e = self.atoms.get_potential_energy(
             force_consistent=self.force_consistent)
         T = time.localtime()
         if self.logfile is not None:
+            if (self.nsteps == 0) and (self.force_consistent):
+                self.logfile.write(
+                    'Force-consistent energies used in optimization.\n')
+                self.logfile.flush()
             name = self.__class__.__name__
             self.logfile.write('%s: %3d[%3d]  %02d:%02d:%02d %15.6f %12.4f\n'
                                % (name, self.nsteps, self.force_calls,
                                   T[3], T[4], T[5], e, fmax))
             self.logfile.flush()
-
-    def run(self, fmax=0.05, steps=100000000):
-        """Run structure optimization algorithm.
-
-        This method will return when the forces on all individual
-        atoms are less than *fmax* or when the number of steps exceeds
-        *steps*."""
-        if self.force_consistent is None:
-            self.force_consistent = True
-            try:
-                self.atoms.get_potential_energy(force_consistent=True)
-            except KeyError:
-                self.force_consistent = False
-        Optimizer.run(self, fmax=fmax, steps=steps)
-        if self.force_consistent and self.logfile is not None:
-            self.logfile.write(
-                'The energies above are force-consistent, and '
-                'differ from atoms.get_potential_energy().\n')
 
 
 def wrap_function(function, args):
