@@ -389,8 +389,10 @@ class View:
         S = 1.3 * (P2 - P1)
         if S[0] * self.height < S[1] * self.width:
             self.scale = self.height / S[1]
-        else:
+        elif S[0] > 0.0001:
             self.scale = self.width / S[0]
+        else:
+            self.scale = 1.0
         self.draw()
 
     def reset_view(self, menuitem):
