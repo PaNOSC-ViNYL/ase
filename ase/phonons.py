@@ -30,7 +30,7 @@ class Displacement:
 
     Derived classes must overwrite the ``__call__`` member function which is
     called for each atomic displacement.
-    
+
     """
 
     def __init__(self, atoms, calc=None, supercell=(1, 1, 1), name=None,
@@ -60,7 +60,7 @@ class Displacement:
         # Store atoms and calculator
         self.atoms = atoms
         self.calc = calc
-        
+
         # Displace all atoms in the unit cell by default
         self.indices = np.arange(len(atoms))
         self.name = name
@@ -82,7 +82,7 @@ class Displacement:
         """Member function called in the ``run`` function."""
 
         raise NotImplementedError("Implement in derived classes!.")
-    
+
     def set_atoms(self, atoms):
         """Set the atoms to vibrate.
 
@@ -90,12 +90,12 @@ class Displacement:
 
         atoms: list
             Can be either a list of strings, ints or ...
-            
+
         """
-        
+
         assert isinstance(atoms, list)
         assert len(atoms) <= len(self.atoms)
-        
+
         if isinstance(atoms[0], str):
             assert np.all([isinstance(atom, str) for atom in atoms])
             sym_a = self.atoms.get_chemical_symbols()
@@ -122,7 +122,7 @@ class Displacement:
         R_cN -= N_c // 2
 
         return R_cN
-    
+
     def run(self):
         """Run the calculations for the required displacements.
 
@@ -137,11 +137,11 @@ class Displacement:
         # Atoms in the supercell -- repeated in the lattice vector directions
         # beginning with the last
         atoms_N = self.atoms * self.N_c
-        
+
         # Set calculator if provided
         assert self.calc is not None, "Provide calculator in __init__ method"
         atoms_N.set_calculator(self.calc)
-        
+
         # Do calculation on equilibrium structure
         filename = self.name + '.eq.pckl'
 
@@ -160,7 +160,7 @@ class Displacement:
         natoms = len(self.atoms)
         offset = natoms * self.offset
         pos = atoms_N.positions[offset: offset + natoms].copy()
-        
+
         # Loop over all displacements
         for a in self.indices:
             for i in range(3):
@@ -178,7 +178,7 @@ class Displacement:
                     # Update atomic positions
                     atoms_N.positions[offset + a, i] = \
                         pos[a, i] + sign * self.delta
-                    
+
                     # Call derived class implementation of __call__
                     output = self.__call__(atoms_N)
                     # Write output to file
@@ -189,13 +189,13 @@ class Displacement:
                     sys.stdout.flush()
                     # Return to initial positions
                     atoms_N.positions[offset + a, i] = pos[a, i]
-        
+
     def clean(self):
         """Delete generated pickle files."""
-        
+
         if isfile(self.name + '.eq.pckl'):
             remove(self.name + '.eq.pckl')
-        
+
         for a in self.indices:
             for i in 'xyz':
                 for sign in '-+':
@@ -209,7 +209,7 @@ class Phonons(Displacement):
 
     The matrix of force constants is calculated from the finite difference
     approximation to the first-order derivative of the atomic forces as::
-    
+
                             2             nbj   nbj
                 nbj        d E           F-  - F+
                C     = ------------ ~  -------------  ,
@@ -238,12 +238,12 @@ class Phonons(Displacement):
                           (m, b)
                             !=
                           (0, a)
-                        
+
     Ordering of the unit cells illustrated here for a 1-dimensional system (in
     case ``refcell=None`` in constructor!):
-    
+
     ::
-    
+
                m = 0        m = 1        m = -2        m = -1
            -----------------------------------------------------
            |            |            |            |            |
@@ -252,7 +252,7 @@ class Phonons(Displacement):
            |   * a      |   *        |   *        |   *        |
            |            |            |            |            |
            -----------------------------------------------------
-       
+
     Example:
 
     >>> from ase.build import bulk
@@ -273,17 +273,17 @@ class Phonons(Displacement):
 
         if 'name' not in kwargs.keys():
             kwargs['name'] = "phonon"
-            
+
         Displacement.__init__(self, *args, **kwargs)
-        
+
         # Attributes for force constants and dynamical matrix in real space
         self.C_N = None  # in units of eV / Ang**2
         self.D_N = None  # in units of eV / Ang**2 / amu
-        
+
         # Attributes for born charges and static dielectric tensor
         self.Z_avv = None
         self.eps_vv = None
-   
+
     def __call__(self, atoms_N):
         """Calculate forces on atoms in supercell."""
 
@@ -304,18 +304,18 @@ class Phonons(Displacement):
         i_max = np.where(feq_av == fmax)
 
         return fmin, fmax, i_min, i_max
-    
+
     def read_born_charges(self, name=None, neutrality=True):
         """Read Born charges and dieletric tensor from pickle file.
 
         The charge neutrality sum-rule::
-    
+
                    _ _
                    \    a
                     )  Z   = 0
                    /__  ij
                     a
-                              
+
         Parameters:
 
         neutrality: bool
@@ -330,7 +330,7 @@ class Phonons(Displacement):
             filename = '%s.born.pckl' % self.name
         else:
             filename = name
-            
+
         with open(filename, 'rb') as fd:
             Z_avv, eps_vv = pickle.load(fd)
 
@@ -338,16 +338,16 @@ class Phonons(Displacement):
         if neutrality:
             Z_mean = Z_avv.sum(0) / len(Z_avv)
             Z_avv -= Z_mean
-        
+
         self.Z_avv = Z_avv[self.indices]
         self.eps_vv = eps_vv
-        
+
     def read(self, method='Frederiksen', symmetrize=3, acoustic=True,
              cutoff=None, born=False, **kwargs):
         """Read forces from pickle files and calculate force constants.
 
         Extra keyword arguments will be passed to ``read_born_charges``.
-        
+
         Parameters:
 
         method: str
@@ -366,18 +366,18 @@ class Phonons(Displacement):
         born: bool
             Read in Born effective charge tensor and high-frequency static
             dielelctric tensor from file.
-            
+
         """
 
         method = method.lower()
         assert method in ['standard', 'frederiksen']
         if cutoff is not None:
             cutoff = float(cutoff)
-            
+
         # Read Born effective charges and optical dielectric tensor
         if born:
             self.read_born_charges(**kwargs)
-        
+
         # Number of atoms
         natoms = len(self.indices)
         # Number of unit cells
@@ -393,11 +393,11 @@ class Phonons(Displacement):
                 basename = '%s.%d%s' % (self.name, a, v)
                 fminus_av = pickle.load(open(basename + '-.pckl', 'rb'))
                 fplus_av = pickle.load(open(basename + '+.pckl', 'rb'))
-                
+
                 if method == 'frederiksen':
                     fminus_av[a] -= fminus_av.sum(0)
                     fplus_av[a] -= fplus_av.sum(0)
-                    
+
                 # Finite difference derivative
                 C_av = fminus_av - fplus_av
                 C_av /= 2 * self.delta
@@ -413,7 +413,7 @@ class Phonons(Displacement):
         # Cut off before symmetry and acoustic sum rule are imposed
         if cutoff is not None:
             self.apply_cutoff(C_N, cutoff)
-            
+
         # Symmetrize force constants
         if symmetrize:
             for i in range(symmetrize):
@@ -424,11 +424,11 @@ class Phonons(Displacement):
                     self.acoustic(C_N)
                 else:
                     break
-             
+
         # Store force constants and dynamical matrix
         self.C_N = C_N
         self.D_N = C_N.copy()
-        
+
         # Add mass prefactor
         m_a = self.atoms.get_masses()
         print(m_a.shape, self.indices)
@@ -464,7 +464,7 @@ class Phonons(Displacement):
         C_N = C_lmn.reshape((N, 3 * natoms, 3 * natoms))
 
         return C_N
-       
+
     def acoustic(self, C_N):
         """Restore acoustic sumrule on force constants."""
 
@@ -472,7 +472,7 @@ class Phonons(Displacement):
         natoms = len(self.indices)
         # Copy force constants
         C_N_temp = C_N.copy()
-        
+
         # Correct atomic diagonals of R_m = (0, 0, 0) matrix
         for C in C_N_temp:
             for a in range(natoms):
@@ -481,7 +481,7 @@ class Phonons(Displacement):
                         3 * a: 3 * a + 3,
                         3 * a: 3 * a + 3] -= C[3 * a: 3 * a + 3,
                                                3 * a_: 3 * a_ + 3]
-                    
+
     def apply_cutoff(self, D_N, r_c):
         """Zero elements for interatomic distances larger than the cutoff.
 
@@ -506,7 +506,7 @@ class Phonons(Displacement):
         cell_vc = self.atoms.cell.transpose()
         # Atomic positions in reference cell
         pos_av = self.atoms.get_positions()
-        
+
         # Zero elements with a distance to atoms in the reference cell
         # larger than the cutoff
         for n in range(N):
@@ -522,14 +522,14 @@ class Phonons(Displacement):
                 # Zero elements
                 D_Navav[n, i, :, i_a, :] = 0.0
             # print ""
-            
+
     def get_force_constant(self):
         """Return matrix of force constants."""
 
         assert self.C_N is not None
-        
+
         return self.C_N
-    
+
     def band_structure(self, path_kc, modes=False, born=False, verbose=True):
         """Calculate phonon dispersion along a path in the Brillouin zone.
 
@@ -538,7 +538,7 @@ class Phonons(Displacement):
         eigenvalues (squared frequency), the corresponding negative frequency
         is returned.
 
-        Eigenvalues and modes are in units of eV and Ang/sqrt(amu),
+        Frequencies and modes are in units of eV and Ang/sqrt(amu),
         respectively.
 
         Parameters:
@@ -556,7 +556,7 @@ class Phonons(Displacement):
             between the LO and TO branches for q -> 0.
         verbose: bool
             Print warnings when imaginary frequncies are detected.
-        
+
         """
 
         assert self.D_N is not None
@@ -569,7 +569,7 @@ class Phonons(Displacement):
 
         # Dynamical matrix in real-space
         D_N = self.D_N
-        
+
         # Lists for frequencies and modes along path
         omega_kl = []
         u_kl = []
@@ -580,7 +580,7 @@ class Phonons(Displacement):
         vol = abs(la.det(self.atoms.cell)) / units.Bohr**3
 
         for q_c in path_kc:
-           
+
             # Add non-analytic part
             if born:
                 # q-vector in cartesian coordinates
@@ -630,7 +630,7 @@ class Phonons(Displacement):
                           'q = (% 5.2f, % 5.2f, % 5.2f) ; (omega_q =% 5.3e*i)'
                           % (len(indices), q_c[0], q_c[1], q_c[2],
                              omega_l[indices][0].imag))
-                
+
                 omega_l[indices] = -1 * np.sqrt(np.abs(omega2_l[indices].real))
 
             omega_kl.append(omega_l.real)
@@ -638,10 +638,10 @@ class Phonons(Displacement):
         # Conversion factor: sqrt(eV / Ang^2 / amu) -> eV
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         omega_kl = s * np.asarray(omega_kl)
-        
+
         if modes:
             return omega_kl, np.asarray(u_kl)
-        
+
         return omega_kl
 
     def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
@@ -658,7 +658,7 @@ class Phonons(Displacement):
         indices: list
             If indices is not None, the atomic-partial dos for the specified
             atoms will be calculated.
-            
+
         """
 
         # Monkhorst-Pack grid
@@ -669,7 +669,7 @@ class Phonons(Displacement):
         # Energy axis and dos
         omega_e = np.linspace(0., np.amax(omega_kl) + 5e-3, num=npts)
         dos_e = np.zeros_like(omega_e)
-       
+
         # Sum up contribution from all q-points and branches
         for omega_l in omega_kl:
             diff_el = (omega_e[:, np.newaxis] - omega_l[np.newaxis, :])**2
@@ -677,9 +677,9 @@ class Phonons(Displacement):
             dos_e += dos_el.sum(axis=1)
 
         dos_e *= 1. / (N * pi) * 0.5 * delta
-        
+
         return omega_e, dos_e
-    
+
     def write_modes(self, q_c, branches=0, kT=units.kB * 300, born=False,
                     repeat=(1, 1, 1), nimages=30, center=False):
         """Write modes to trajectory file.
@@ -703,7 +703,7 @@ class Phonons(Displacement):
             Number of images in an oscillation.
         center: bool
             Center atoms in unit cell if True (default: False).
-            
+
         """
 
         if isinstance(branches, int):
@@ -718,7 +718,7 @@ class Phonons(Displacement):
         # Center
         if center:
             atoms.center()
-        
+
         # Here ``Na`` refers to a composite unit cell/atom dimension
         pos_Nav = atoms.get_positions()
         # Total number of unit cells
@@ -731,7 +731,7 @@ class Phonons(Displacement):
         phase_Na = phase_N.repeat(len(self.atoms))
 
         for l in branch_l:
-            
+
             omega = omega_l[0, l]
             u_av = u_l[0, l]
 
@@ -743,12 +743,12 @@ class Phonons(Displacement):
             mode_av[self.indices] = u_av
             # Repeat and multiply by Bloch phase factor
             mode_Nav = np.vstack(N * [mode_av]) * phase_Na[:, np.newaxis]
-            
+
             traj = Trajectory('%s.mode.%d.traj' % (self.name, l), 'w')
-            
+
             for x in np.linspace(0, 2 * pi, nimages, endpoint=False):
                 atoms.set_positions((pos_Nav + np.exp(1.j * x) *
                                      mode_Nav).real)
                 traj.write(atoms)
-                
+
             traj.close()

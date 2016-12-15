@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Convert a selection of unit cells, both reasonable and unreasonable,
 # into their Niggli unit cell, and compare against the pre-computed values.
 # The tests and pre-computed values come from the program cctbx, in which

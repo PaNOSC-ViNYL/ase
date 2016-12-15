@@ -930,7 +930,7 @@
     1  0  0     0 -1  0     0  0  1    0.0  0.0  0.0
    -1  0  0     0  1  0     0  0  1    0.0  0.0  0.0
 
-39    A b m 2
+39    A e m 2
   setting 1
   centrosymmetric 0
   primitive cell
@@ -970,7 +970,7 @@
     1  0  0     0 -1  0     0  0  1    1/2  0.0  0.0
    -1  0  0     0  1  0     0  0  1    1/2  0.0  0.0
 
-41    A b a 2
+41    A e a 2
   setting 1
   centrosymmetric 0
   primitive cell
@@ -1487,7 +1487,7 @@
    -1  0  0     0  1  0     0  0 -1    0.0  0.0  1/2
     1  0  0     0 -1  0     0  0 -1    0.0  0.0  0.0
 
-64    C m c a
+64    C m c e
   setting 1
   centrosymmetric 1
   primitive cell
@@ -1547,7 +1547,7 @@
    -1  0  0     0  1  0     0  0 -1    0.0  0.0  1/2
     1  0  0     0 -1  0     0  0 -1    0.0  0.0  1/2
 
-67    C m m a
+67    C m m e
   setting 1
   centrosymmetric 1
   primitive cell
@@ -1567,7 +1567,7 @@
    -1  0  0     0  1  0     0  0 -1    0.0  1/2  0.0
     1  0  0     0 -1  0     0  0 -1    0.0  0.0  0.0
 
-68    C c c a
+68    C c c e
   setting 1
   centrosymmetric 0
   primitive cell
@@ -2357,7 +2357,7 @@
     0 -1  0    -1  0  0     0  0  1    0.0  0.0  0.0
     0  1  0     1  0  0     0  0  1    0.0  0.0  0.0
 
-100   P 4 b n
+100   P 4 b m
   setting 1
   centrosymmetric 0
   primitive cell

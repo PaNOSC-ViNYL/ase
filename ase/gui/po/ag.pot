@@ -1,5 +1,5 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR CAMD
+# Copyright (C) YEAR ASE developers
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
-"Report-Msgid-Bugs-To: ase-developers@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2016-03-21 18:33+0100\n"
+"Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
+"POT-Creation-Date: 2016-10-17 18:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../ag.py:141
+#: ../ag.py:135
 msgid "To get a full traceback, use: ase-gui --verbose"
 msgstr ""
 
@@ -827,7 +827,7 @@ msgstr ""
 msgid "  z: "
 msgstr ""
 
-#: ../crystal.py:80 ../surfaceslab.py:127 ../surfaceslab.py:129
+#: ../crystal.py:80 ../surfaceslab.py:128 ../surfaceslab.py:130
 msgid " unit cells"
 msgstr ""
 
@@ -932,12 +932,12 @@ msgid "Please specify a consistent set of atoms."
 msgstr ""
 
 #: ../crystal.py:348 ../graphene.py:253 ../nanoparticle.py:614
-#: ../nanotube.py:160 ../surfaceslab.py:248
+#: ../nanotube.py:160 ../surfaceslab.py:250
 msgid "No valid atoms."
 msgstr ""
 
 #: ../crystal.py:349 ../graphene.py:254 ../nanoparticle.py:615
-#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:249
+#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:251
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr ""
 
@@ -2002,7 +2002,7 @@ msgstr ""
 msgid "Invalid hexagonal indices"
 msgstr ""
 
-#: ../nanoparticle.py:477 ../surfaceslab.py:218
+#: ../nanoparticle.py:477 ../surfaceslab.py:220
 msgid "Invalid element."
 msgstr ""
 
@@ -2657,13 +2657,23 @@ msgstr ""
 msgid "Tip for status box ..."
 msgstr ""
 
-#. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:62
+#: ../status.py:60
 #, python-format
-msgid " tag=%(tag)s mom=%(mom)1.2f"
+msgid " tag=%(tag)s"
 msgstr ""
 
-#: ../status.py:103
+#. TRANSLATORS: mom refers to magnetic moment
+#: ../status.py:63
+#, python-brace-format
+msgid " mom={0:1.2f}"
+msgstr ""
+
+#: ../status.py:66
+#, python-brace-format
+msgid " q={0:1.2f}"
+msgstr ""
+
+#: ../status.py:108
 msgid "dihedral"
 msgstr ""
 
@@ -2767,50 +2777,50 @@ msgstr ""
 msgid "a:"
 msgstr ""
 
-#: ../surfaceslab.py:109
+#: ../surfaceslab.py:110
 #, python-format
 msgid "(%.1f %% of ideal)"
 msgstr ""
 
-#: ../surfaceslab.py:126
+#: ../surfaceslab.py:127
 msgid "Size: \tx: "
 msgstr ""
 
-#: ../surfaceslab.py:128
+#: ../surfaceslab.py:129
 msgid "\t\ty: "
 msgstr ""
 
-#: ../surfaceslab.py:130
+#: ../surfaceslab.py:131
 msgid "      \t\tz: "
 msgstr ""
 
-#: ../surfaceslab.py:131
+#: ../surfaceslab.py:132
 msgid " layers,  "
 msgstr ""
 
-#: ../surfaceslab.py:132
+#: ../surfaceslab.py:133
 msgid " Å vacuum"
 msgstr ""
 
-#: ../surfaceslab.py:133
+#: ../surfaceslab.py:134
 msgid "\t\tNo size information yet."
 msgstr ""
 
 #. Buttons
-#: ../surfaceslab.py:142
+#: ../surfaceslab.py:143
 msgid "Creating a surface slab."
 msgstr ""
 
-#: ../surfaceslab.py:212
+#: ../surfaceslab.py:214
 #, python-format
 msgid "%i atoms."
 msgstr ""
 
-#: ../surfaceslab.py:224
+#: ../surfaceslab.py:226
 msgid "No structure specified!"
 msgstr ""
 
-#: ../surfaceslab.py:233
+#: ../surfaceslab.py:235
 #, python-format
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr ""

@@ -1,5 +1,6 @@
 from ase.test import NotAvailable
 
+import numpy as np
 import ase.io.netcdftrajectory as netcdftrajectory
 
 if not netcdftrajectory.have_nc:
@@ -100,5 +101,12 @@ t = NetCDFTrajectory(fname)
 a = t[-1]
 assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
 assert abs(a.get_distance(0, 1) - d) < 1e-6
+del t
+# Append something in Voigt notation
+t = NetCDFTrajectory(fname, 'a')
+for frame, a in enumerate(t):
+    test = np.random.random([len(a), 6])
+    a.set_array('test', test)
+    t.write_arrays(a, frame, ['test'])
 del t
 os.remove(fname)

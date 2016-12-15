@@ -123,7 +123,8 @@ def key_val_dict_to_str(d, sep=' '):
     s = ''
     for key in d.keys():
         val = d[key]
-
+        if isinstance(val, dict):
+            continue
         if hasattr(val, '__iter__'):
             val = np.array(val)
             val = ' '.join(str(type_val_map.get((type(x), x), x))
@@ -453,7 +454,7 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     for atoms in images:

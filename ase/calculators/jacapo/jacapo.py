@@ -21,6 +21,7 @@ import exceptions, glob, os, pickle, string
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
+from ase.calculators.calculator import PropertyNotImplementedError
 
 from . import validate
 from . import changed
@@ -436,7 +437,7 @@ class Jacapo:
         log.debug('Updating parameters')
 
         for key in self.default_input:
-            getf = getattr(self, 'get_%' % key)
+            getf = getattr(self, 'get_%s' % key)
             log.debug('getting key: %s' % key)
             self.pars[key] = getf()
             self.pars_uptodate[key] = True
@@ -2507,9 +2508,10 @@ than density cutoff %i' % (pw, dw))
         nc.close()
 
         if stress == None:
-            raise NotImplementedError('For stress in Jacapo, first set '
-                                      'calculate_stress=True on '
-                                      'initialization.')
+            raise PropertyNotImplementedError(
+                'For stress in Jacapo, first set '
+                'calculate_stress=True on '
+                'initialization.')
 
         return stress
 

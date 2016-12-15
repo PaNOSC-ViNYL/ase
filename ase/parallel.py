@@ -52,7 +52,7 @@ class DummyMPI:
             pass
         else:
             return a
-    
+
     def barrier(self):
         pass
 
@@ -70,7 +70,7 @@ class MPI4PY:
 
     def sum(self, a):
         return self.comm.allreduce(a)
-    
+
     def split(self, split_size=None):
         """Divide the communicator."""
         # color - subgroup id
@@ -168,7 +168,7 @@ def parallel_generator(generator):
     """Decorator for broadcasting yields from master to slaves using MPI."""
     if world.size == 1:
         return generator
-        
+
     @functools.wraps(generator)
     def new_generator(*args, **kwargs):
         # Hook to disable.  Use self.serial = True
@@ -179,13 +179,12 @@ def parallel_generator(generator):
         if world.rank == 0:
             try:
                 for result in generator(*args, **kwargs):
-                    ex, result = broadcast((None, result))
+                    broadcast((None, result))
                     yield result
             except Exception as ex:
-                pass
-            broadcast((ex, None))
-            if ex is not None:
+                broadcast((ex, None))
                 raise ex
+            broadcast((None, None))
         else:
             ex, result = broadcast((None, None))
             if ex is not None:
@@ -202,7 +201,7 @@ def register_parallel_cleanup_function():
     """Call MPI_Abort if python crashes.
 
     This will terminate the processes on the other nodes."""
-        
+
     if size == 1:
         return
 
@@ -220,7 +219,7 @@ def register_parallel_cleanup_function():
 
     atexit.register(cleanup)
 
-    
+
 def distribute_cpus(size, comm):
     """Distribute cpus to tasks and calculators.
 
@@ -231,7 +230,7 @@ def distribute_cpus(size, comm):
     Output:
     communicator for this rank, number of calculators, index for this rank
     """
-    
+
     assert size <= comm.size
     assert comm.size % size == 0
 

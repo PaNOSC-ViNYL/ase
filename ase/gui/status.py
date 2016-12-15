@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+from gettext import gettext as _
 from math import sqrt, pi, acos
 
 import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
-import ase.gui.ui as ui
 
 try:
     chr = unichr
@@ -51,11 +51,16 @@ class Status:
 
         if n == 1:
             tag = self.images.T[self.frame, indices][0]
-            mom = self.images.M[self.frame][indices]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
-            # TRANSLATORS: mom refers to magnetic moment
-            text += _(' tag=%(tag)s mom=%(mom)1.2f') % dict(tag=tag, mom=mom)
+            text += _(' tag=%(tag)s') % dict(tag=tag)
+            if self.images.M.any():
+                # TRANSLATORS: mom refers to magnetic moment
+                text += _(' mom={0:1.2f}'.format(
+                    self.images.M[self.frame][indices][0]))
+            if self.images.q.any():
+                text += _(' q={0:1.2f}'.format(
+                    self.images.q[self.frame][indices][0]))
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))

@@ -230,16 +230,9 @@ class SetupGraphene:
         self.atoms.set_cell(cell)
         self.atoms.set_positions(pos)
         self.atoms.set_pbc([pbc[0], pbc[2], pbc[1]])
-        # Find the heights of the unit cell
-        h = np.zeros(3)
-        uc = self.atoms.get_cell()
-        for i in range(3):
-            norm = np.cross(uc[i-1], uc[i-2])
-            norm /= np.sqrt(np.dot(norm, norm))
-            h[i] = np.abs(np.dot(norm, uc[i]))
         label = label_template % {'natoms'  : len(self.atoms),
                                   'symbols' : formula(self.atoms.get_atomic_numbers()),
-                                  'volume'  : self.atoms.get_volume()}
+                                  'volume'  : np.inf}
         self.status.set_markup(label)
 
     def apply(self, *args):
