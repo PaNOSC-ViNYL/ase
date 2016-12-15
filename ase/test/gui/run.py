@@ -2,8 +2,14 @@ import argparse
 
 import numpy as np
 
-from ase.gui.i18n import enable_localization
-import ase.gui.ui as ui
+from ase.test import NotAvailable
+
+try:
+    from ase.gui.i18n import enable_localization
+    import ase.gui.ui as ui
+except ImportError:
+    raise NotAvailable
+
 from ase import Atoms
 from ase.gui.gui import GUI
 from ase.calculators.singlepoint import SinglePointCalculator

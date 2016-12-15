@@ -1,4 +1,9 @@
-import ase.gui.ui as ui
+from ase.test import NotAvailable
+
+try:
+    import ase.gui.ui as ui
+except ImportError:
+    raise NotAvailable
 
 
 def window():
