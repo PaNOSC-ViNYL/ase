@@ -12,6 +12,8 @@ class MyEncoder(json.JSONEncoder):
                 return {'__complex_ndarray__': (obj.real.tolist(),
                                                 obj.imag.tolist())}
             return obj.tolist()
+        if isinstance(obj, np.integer):
+            return int(obj)
         if isinstance(obj, datetime.datetime):
             return {'__datetime__': obj.isoformat()}
         if hasattr(obj, 'todict'):
