@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """colors.py - select how to color the atoms in the GUI."""
 from gettext import gettext as _
 
@@ -54,7 +55,7 @@ class ColorWindow:
                     'force': 'eV/Ang',
                     'velocity': '??',
                     'charge': '|e|',
-                    'magmom': 'μB'}[value]
+                    u'magmom': 'μB'}[value]
             text = '[{},{}]: [{},{}] {}'.format(
                 _('Green'), _('Yellow'), mn, mx, unit)
 
