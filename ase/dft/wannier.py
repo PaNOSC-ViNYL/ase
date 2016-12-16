@@ -653,7 +653,7 @@ class Wannier:
         wanniergrid /= np.sqrt(self.Nk)
         return wanniergrid
 
-    def write_cube(self, index, fname, repeat=None, real=True):
+    def write_cube(self, index, file_obj, repeat=None, real=True):
         """Dump specified Wannier function to a cube file"""
         from ase.io.cube import write_cube
 
@@ -672,13 +672,14 @@ class Wannier:
             else:
                 func = abs(func)
         else:
-            phase_fname = fname.split('.')
+            phase_fname = file_obj.name.split('.')
             phase_fname.insert(1, 'phase')
             phase_fname = '.'.join(phase_fname)
-            write_cube(phase_fname, atoms, data=np.angle(func))
+            with open(phase_fname, 'w') as f:
+                write_cube(f, atoms, data=np.angle(func))
             func = abs(func)
 
-        write_cube(fname, atoms, data=func)
+        write_cube(file_obj, atoms, data=func)
 
     def localize(self, step=0.25, tolerance=1e-08,
                  updaterot=True, updatecoeff=True):
