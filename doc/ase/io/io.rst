@@ -43,9 +43,11 @@ multiple configurations):
     loop variable names to be on separate lines.
 
 .. note::
+
     Ase read and write functions are automatically parallelized if a
     suitable MPI library is found. This requires to call read and write
-    with same input on all cores. For more information, see :ref:`parallel`.
+    with same input on all cores. For more information, see
+    :mod:`ase.parallel`.
 
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
