@@ -113,7 +113,7 @@ calculators attached.
 
   If there are `M` images and each image has `N` atoms, then the NEB
   object behaves like one big Atoms object with `MN` atoms, so its
-  :meth:`~ase.atoms.Atoms.get_positions` method will return a `MN \times 3`
+  :meth:`~ase.Atoms.get_positions` method will return a `MN \times 3`
   array.
 
 
@@ -123,7 +123,7 @@ Trajectories
 The code::
 
   from ase.optimize import BFGS
-  optimizer = BFGS(neb, trajectory='A2B.traj')
+  opt = BFGS(neb, trajectory='A2B.traj')
 
 will write all images to one file.  The Trajectory object knows about
 NEB calculations, so it will write `M` images with `N` atoms at every
@@ -136,7 +136,7 @@ For the example above, you can write the images to individual
 trajectory files like this::
 
   for i in range(1, 4):
-      qn.attach(io.Trajectory('A2B-%d.traj' % i, 'w', images[i]))
+      opt.attach(io.Trajectory('A2B-%d.traj' % i, 'w', images[i]))
 
 The result of the latest iteration can be analysed like this:
 

@@ -39,8 +39,8 @@ class FIRE(Optimizer):
 
         position_reset_callback: function(atoms, r, e, e_last)
             Function that takes current *atoms* object, an array of position
-            *r* that the optimizer will revert to, current energy *e* and energy
-            of last step *e_last*. This is only called if e > e_last.
+            *r* that the optimizer will revert to, current energy *e* and
+            energy of last step *e_last*. This is only called if e > e_last.
         """
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
@@ -63,7 +63,7 @@ class FIRE(Optimizer):
     def read(self):
         self.v, self.dt = self.load()
 
-    def step(self,f):
+    def step(self, f):
         atoms = self.atoms
         if self.v is None:
             self.v = np.zeros((len(atoms), 3))

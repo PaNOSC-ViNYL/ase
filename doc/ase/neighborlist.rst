@@ -1,3 +1,5 @@
+.. module:: ase.neighborlist
+
 Building neighbor-lists
 =======================
 

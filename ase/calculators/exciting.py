@@ -6,7 +6,7 @@ from lxml import etree as ET
 
 from ase.io.exciting import atoms2etree
 from ase.units import Bohr, Hartree
-
+from ase.calculators.calculator import PropertyNotImplementedError
 
 class Exciting:
     def __init__(self, dir='calc', paramdict=None,
@@ -77,7 +77,7 @@ class Exciting:
         return self.forces.copy()
 
     def get_stress(self, atoms):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def calculate(self, atoms):
         self.positions = atoms.get_positions().copy()

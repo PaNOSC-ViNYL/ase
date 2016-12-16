@@ -20,9 +20,9 @@ if not os.path.exists(pseudo_path):
     os.makedirs(pseudo_path)
 if not os.path.exists(run_path):
     os.makedirs(run_path)
-os.system('touch %s/H.lda.psf' % pseudo_path)
-os.system('touch %s/C.lda.psf' % pseudo_path)
-os.system('touch %s/O.lda.psf' % pseudo_path)
+for symbol in 'HCO':
+    with open('{0}/{1}.lda.psf'.format(pseudo_path, symbol), 'w') as fd:
+        fd.close()
 
 h = Atoms('H', [(0.0, 0.0, 0.0)])
 co2 = Atoms('CO2', [(0.0, 0.0, 0.0), (-1.178, 0.0, 0.0), (1.178, 0.0, 0.0)])
@@ -97,7 +97,7 @@ siesta.write_input(atoms, properties=['energy'])
 with open('test_label.fdf', 'r') as f:
     lines = f.readlines()
 assert 'DM.Tolerance  0.001\n' in lines
-assert 'ON.eta  68.02848914 \teV\n' in lines
+assert 'ON.eta  68.02846506 \teV\n' in lines
 
 # Remove the test directory.
 os.chdir('../..')

@@ -96,7 +96,7 @@ class Cluster(Atoms, ClusterBase):
              'cell': self.get_cell(),
              'pbc': self.get_pbc()}
 
-        f = open(filename, 'w')
+        f = open(filename, 'wb')
         f.write('Cluster')
         pickle.dump(d, f)
         pickle.dump(self.arrays, f)
@@ -106,7 +106,7 @@ class Cluster(Atoms, ClusterBase):
         if not os.path.isfile(filename):
             raise Warning('The file specified do not exist.')
 
-        f = open(filename, 'r')
+        f = open(filename, 'rb')
 
         try:
             if f.read(len('Cluster')) != 'Cluster':
@@ -126,5 +126,4 @@ class Cluster(Atoms, ClusterBase):
         self.set_cell(d['cell'])
         self.set_pbc(d['pbc'])
         self.set_constraint()
-        self.adsorbate_info = {}
         self.calc = None
