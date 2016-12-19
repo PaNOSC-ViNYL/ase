@@ -177,7 +177,7 @@ def cli(command, calculator_name=None):
     proc = subprocess.Popen(' '.join(command.split('\n')),
                             shell=True,
                             stdout=subprocess.PIPE)
-    print(proc.stdout.read())
+    print(proc.stdout.read().decode())
     proc.wait()
     if proc.returncode != 0:
         raise RuntimeError('Failed running a shell command.  '
