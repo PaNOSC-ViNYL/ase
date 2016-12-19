@@ -317,7 +317,7 @@ class ComboBox(Widget):
 
     @property
     def value(self):
-        return self.values[self.var.get()]
+        return self.values[self.var.get().encode('utf-8')]
 
 
 class Rows(Widget):

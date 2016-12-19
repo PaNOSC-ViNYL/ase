@@ -1,5 +1,5 @@
 import argparse
-
+from gettext import gettext as _
 import numpy as np
 
 from ase.build import molecule
@@ -27,7 +27,7 @@ class OOPS:
 
     def called(self, title=None):
         result = self.has_been_called and (title is None or
-                                           title == self.title)
+                                           _(title) == self.title)
         self.has_been_called = False
         return result
 
