@@ -1,3 +1,5 @@
+from functools import partial
+
 from ase.test import NotAvailable
 
 try:
@@ -45,14 +47,12 @@ def window():
 
 def run():
     win = window()
-    t = test(win)
-    win.test(t)
+    win.test(partial(test, win))
 
 
-def test(w):
-    w.things[1].callback()
-    yield
-    w.things[1].callback()
-
+def test(win):
+    win.things[1].callback()
+    win.things[1].callback()
+    win.close()
 
 run()
