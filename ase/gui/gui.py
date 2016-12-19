@@ -926,12 +926,10 @@ class GUI(View, Status):
                 self.graphene_window)]),
 
             (_('_Calculate'),
-             [M(_('Set _Calculator'),
-                self.calculator_window),
-              M(_('_Energy and Forces'),
-                self.energy_window),
-              M(_('Energy Minimization'),
-                self.energy_minimize_window)]),
+             [M(_('Set _Calculator'), self.calculator_window, disabled=True),
+              M(_('_Energy and Forces'), self.energy_window, disabled=True),
+              M(_('Energy Minimization'), self.energy_minimize_window,
+                disabled=True)]),
 
             (_('_Help'),
              [M(_('_About'), partial(ui.about, 'ASE-GUI',

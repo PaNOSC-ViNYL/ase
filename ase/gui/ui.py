@@ -359,7 +359,7 @@ class Rows(Widget):
 
 class MenuItem:
     def __init__(self, label, callback=None, key=None,
-                 value=None, choices=None, submenu=None):
+                 value=None, choices=None, submenu=None, disabled=False):
         self.underline = label.find('_')
         self.label = label.replace('_', '')
 
@@ -387,6 +387,7 @@ class MenuItem:
         self.value = value
         self.choices = choices
         self.submenu = submenu
+        self.disabled = disabled
 
     def addto(self, menu, window, stuff=None):
         if self.label == '---':
@@ -418,10 +419,14 @@ class MenuItem:
             for thing in self.submenu:
                 thing.addto(submenu, window)
         else:
+            state = 'normal'
+            if self.disabled:
+                state = 'disabled'
             menu.add_command(label=self.label,
                              underline=self.underline,
                              command=self.callback,
-                             accelerator=self.key)
+                             accelerator=self.key,
+                             state=state)
         if self.key:
             window.bind(self.keyname, self.callback)
 
