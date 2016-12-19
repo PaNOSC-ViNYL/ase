@@ -6,6 +6,9 @@ import ase.gui.ui as ui
 from ase import Atoms
 from ase.constraints import FixAtoms
 
+
+pack = oops = 42
+
 class Simulation:
     def __init__(self, gui):
         ui.Window.__init__(self)

@@ -8,6 +8,9 @@ import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 
 
+pack = 42
+
+
 class OutputFieldMixin:
     def makeoutputfield(self, box, label=_("Output:"), heading=None):
         frame = ui.Frame(label)

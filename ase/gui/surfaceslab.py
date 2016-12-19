@@ -5,11 +5,12 @@ from __future__ import division
 from gettext import gettext as _
 
 import ase.gui.ui as ui
-from ase.gui.widgets import pybutton
 import ase.build as build
 import ase
 import numpy as np
 
+
+pack = oops = cancel_apply_ok = PyButton = SetupWindow = 42
 
 introtext = _("""\
   Use this dialog to create surface slabs.  Select the element by

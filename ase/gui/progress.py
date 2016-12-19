@@ -8,6 +8,9 @@ import re
 import time
 
 
+_ = pack = AseGuiCancelException = 42
+
+
 class DummyProgressIndicator:
     def begin(self, **kwargs):
         pass
@@ -354,5 +357,3 @@ def fraction(value, maximum):
         return 1.0
     else:
         return p
-
-

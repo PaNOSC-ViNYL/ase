@@ -2,6 +2,7 @@
 # CAMd (see accompanying license files for details).
 from __future__ import print_function
 import sys
+from gettext import gettext as _
 from optparse import OptionParser
 
 from ase.gui.i18n import enable_localization

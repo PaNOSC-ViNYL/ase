@@ -9,6 +9,9 @@ import ase.optimize
 import numpy as np
 
 
+pack = _ = AseGuiCancelException = 42
+
+
 class MinimizeMixin:
     minimizers = ('BFGS', 'BFGSLineSearch', 'LBFGS', 'LBFGSLineSearch',
                   'MDMin', 'FIRE')

@@ -12,6 +12,8 @@ from ase import Atoms
 from ase.data import chemical_symbols
 import ase
 
+pack = oops = cancel_apply_ok = SetupWindow = 42
+
 # Asap and GPAW may be imported if selected.
 
 introtext = _("""\
