@@ -51,7 +51,7 @@ class FixConstraint:
         ind -- List or tuple of indices.
 
         """
-        raise NotImplementedError
+        # raise NotImplementedError
 
     def repeat(self, m, n):
         """ basic method to multiply by m, needs to know the length
