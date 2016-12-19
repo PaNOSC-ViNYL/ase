@@ -174,8 +174,12 @@ def cli(command, calculator_name=None):
     if (calculator_name is not None and
         calculator_name not in test_calculator_names):
         return
-    error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    if error != 0:
+    proc = subprocess.Popen(' '.join(command.split('\n')),
+                            shell=True,
+                            stdout=subprocess.PIPE)
+    print(proc.stdout.read())
+    proc.wait()
+    if proc.returncode != 0:
         raise RuntimeError('Failed running a shell command.  '
                            'Please set you $PATH environment variable!')
 
