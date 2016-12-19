@@ -2,6 +2,7 @@ import argparse
 
 import numpy as np
 
+from ase.build import molecule
 from ase.test import NotAvailable
 
 try:
@@ -69,6 +70,14 @@ def color(gui):
     text = c.toggle('magmom')
     assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 1]
     assert text.rsplit('[', 1)[1].startswith('-1.0,1.0]')
+
+
+@test
+def settings(gui):
+    gui.new_atoms(molecule('H2O'))
+    s = gui.settings()
+    s.scale.value = 1.9
+    s.scale_radii()
 
 
 if __name__ == '__main__':

@@ -114,7 +114,7 @@ class GUI(View, Status):
         self._do_zoom(x)
 
     def settings(self):
-        Settings(self)
+        return Settings(self)
 
     def scroll(self, event):
         from copy import copy

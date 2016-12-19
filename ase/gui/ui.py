@@ -179,17 +179,19 @@ class CheckButton(Widget):
 
 
 class SpinBox(Widget):
-    def __init__(self, value, start, end, step, on_change=None):
+    def __init__(self, value, start, end, step, callback=None):
+        self.callback = callback
         self.creator = partial(tk.Spinbox,
                                from_=start,
                                to=end,
                                increment=step,
-                               command=on_change,
+                               command=callback,
                                width=6)
         self.initial = str(value)
 
     def create(self, parent):
         self.widget = self.creator(parent)
+        self.widget.bind('<Return>', lambda event: self.callback())
         self.value = self.initial
         return self.widget
 
