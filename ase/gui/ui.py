@@ -301,10 +301,10 @@ class RadioButton(Widget):
 class ComboBox(Widget):
     def __init__(self, labels, values=None, callback=None):
         self.var = tk.StringVar()
-        self.values = dict(zip(labels, values or list(range(len(labels)))))
+        self.values = values or list(range(len(labels)))
         self.callback = callback
         self.creator = partial(ttk.Combobox,
-                               textvariable=self.var, values=labels)
+                               values=labels)
 
     def create(self, parrent):
         widget = Widget.create(self, parrent)
@@ -317,7 +317,7 @@ class ComboBox(Widget):
 
     @property
     def value(self):
-        return self.values[self.var.get().encode('utf-8')]
+        return self.values[self.widget.current()]
 
 
 class Rows(Widget):

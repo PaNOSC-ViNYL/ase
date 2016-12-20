@@ -19,6 +19,7 @@ enable_localization()
 
 
 class OOPS:
+    """Fake window for testing puposes."""
     has_been_called = False
 
     def __call__(self, title, text):
@@ -26,10 +27,13 @@ class OOPS:
         self.has_been_called = True
 
     def called(self, title=None):
-        result = self.has_been_called and (title is None or
-                                           _(title) == self.title)
-        self.has_been_called = False
-        return result
+        """Check that an oops-window was opened with correct title."""
+        if not self.has_been_called:
+            return False
+
+        self.has_been_called = False  # ready for next call
+
+        return title is None or title == self.title
 
 
 ui.oops = OOPS()
@@ -38,17 +42,18 @@ tests = []
 
 
 def test(f):
+    """Decorator for marking tests."""
     tests.append(f.__name__)
     return f
 
 
 @test
-def nt(gui):
+def nanotube(gui):
     nt = gui.nanotube_window()
     nt.apply()
     nt.element[1].value = '?'
     nt.apply()
-    assert ui.oops.called('No valid atoms.')
+    assert ui.oops.called(_('No valid atoms.'))
     nt.element[1].value = 'C'
     nt.ok()
     assert gui.images.natoms == 20
