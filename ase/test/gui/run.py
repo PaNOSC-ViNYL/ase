@@ -91,6 +91,12 @@ def rotate(gui):
     gui.rotate_window()
 
 
+# @test not ready yet!
+def open(gui):
+    molecule('H2O').write('h2o.json')
+    gui.open()
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('tests', nargs='*')

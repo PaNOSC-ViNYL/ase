@@ -693,7 +693,9 @@ class GUI(View, Status):
 
     def open(self, button=None):
         from ase.io.formats import all_formats, get_ioformat
-        formats = [(_('Automatic'), None)]
+
+        labels = [_('Automatic')]
+        values = [None]
 
         def key(item):
             return item[1][0]
@@ -702,40 +704,25 @@ class GUI(View, Status):
                                                   key=key):
             io = get_ioformat(format)
             if io.read and description != '?':
-                formats.append((_(description), format))
+                labels.append(_(description))
+                values.append(format)
 
-        chooser = ui.FileChooserDialog(
-            _('Open ...'), None, ui.FILE_CHOOSER_ACTION_OPEN,
-            ('Cancel', ui.RESPONSE_CANCEL, 'Open',
-             ui.RESPONSE_OK))
-        chooser.set_filename(_("<<filename>>"))
+        format = [None]
 
-        # Add a file type filter
-        name_to_format = {}
-        types = ui.combo_box_new_text()
-        for name, format in formats:
-            types.append_text(name)
-            name_to_format[name] = format
+        def callback(value):
+            format[0] = value
 
-        types.set_active(0)
-        img_vbox = ui.VBox()
-        pack(img_vbox, [ui.Label(_('File type:')), types])
-        img_vbox.show()
-        chooser.set_extra_widget(img_vbox)
+        chooser = ui.LoadFileDialog(self.window.win, _('Open ...'))
+        ui.Label(_('Choose parser:')).pack(chooser.top)
+        formats = ui.ComboBox(labels, values, callback)
+        formats.pack(chooser.top)
 
-        ok = chooser.run() == ui.RESPONSE_OK
-        if ok:
-            filenames = [chooser.get_filename()]
-            filetype = types.get_active_text()
-        chooser.destroy()
-
-        if not ok:
-            return
-
-        self.reset_tools_modes()
-        self.images.read(filenames, slice(None), name_to_format[filetype])
-        self.set_colors()
-        self.set_coordinates(self.images.nimages - 1, focus=True)
+        filename = chooser.go()
+        if filename:
+            self.reset_tools_modes()
+            self.images.read([filename], slice(None), format[0])
+            self.set_colors()
+            self.set_coordinates(self.images.nimages - 1, focus=True)
 
     def quick_info_window(self):
         from ase.gui.quickinfo import info

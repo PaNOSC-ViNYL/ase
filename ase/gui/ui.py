@@ -4,6 +4,7 @@ try:
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
     from tkinter.messagebox import showerror as oops
+    from tkinter.filedialog import LoadFileDialog
 except ImportError:
     # Python 2
     import Tkinter as tk
@@ -300,7 +301,6 @@ class RadioButton(Widget):
 
 class ComboBox(Widget):
     def __init__(self, labels, values=None, callback=None):
-        self.var = tk.StringVar()
         self.values = values or list(range(len(labels)))
         self.callback = callback
         self.creator = partial(ttk.Combobox,
