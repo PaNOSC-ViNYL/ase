@@ -423,8 +423,8 @@ class SetupNanoparticle:
         if ref is None or structure not in [s[0]
                                             for s in self.structure_data]:
             ui.oops(_('Unsupported or unknown structure'),
-                    'Element = %s,  structure = %s' % (self.element.symbol,
-                                                       structure))
+                    _('Element = {0}, structure = {1}')
+                    .format(self.element.symbol, structure))
             return
 
         self.structure.value = structure
