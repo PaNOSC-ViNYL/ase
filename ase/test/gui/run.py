@@ -85,6 +85,12 @@ def settings(gui):
     s.scale_radii()
 
 
+@test
+def rotate(gui):
+    gui.new_atoms(molecule('H2O'))
+    gui.rotate_window()
+
+
 if __name__ == '__main__':
     p = argparse.ArgumentParser()
     p.add_argument('tests', nargs='*')

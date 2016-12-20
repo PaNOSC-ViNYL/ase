@@ -330,7 +330,7 @@ class View:
         Repeat(self)
 
     def rotate_window(self):
-        Rotate(self)
+        return Rotate(self)
 
     def colors_window(self, key=None):
         win = ColorWindow(self)
