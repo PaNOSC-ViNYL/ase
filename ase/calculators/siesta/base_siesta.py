@@ -1,23 +1,15 @@
 from __future__ import print_function
-"""
-This module defines the ASE interface to SIESTA.
+"""This module defines an ASE interface to SIESTA.
 
-Written by Mads Engelund
-http://www.mads-engelund.net
-
-Home of the SIESTA package:
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 import os
 from os.path import join, isfile, islink
 import string
 import numpy as np
-import shutil
 from ase.units import Ry, eV, Bohr
 from ase.data import atomic_numbers
 from ase.calculators.siesta.import_functions import read_rho, xv_to_atoms
-from ase.calculators.siesta.import_functions import \
-    get_valence_charge, read_vca_synth_block
 from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.siesta.parameters import PAOBasisBlock, Specie
@@ -78,10 +70,10 @@ class BaseSiesta(FileIOCalculator):
 
         Parameters:
             -label        : The base head of all created files.
-            -mesh_cutoff  : Energy in eV.
+            -mesh_cutoff  : tuple of (value, energy_unit)
                             The mesh cutoff energy for determining number of
                             grid points.
-            -energy_shift : Energy in eVV
+            -energy_shift : tuple of (value, energy_unit)
                             The confining energy of the basis sets.
             -kpts         : Tuple of 3 integers, the k-points in different
                             directions.
@@ -213,38 +205,29 @@ class BaseSiesta(FileIOCalculator):
                 -kwargs  : Dictionary containing the keywords defined in
                            SiestaParameters.
         """
-        # Find not allowed keys.
-        default_keys = self.__class__.default_parameters.keys()
-        offending_keys = set(kwargs) - set(default_keys)
-        if len(offending_keys) > 0:
-            mess = "'set' does not take the keywords: %s "
-            raise ValueError(mess % list(offending_keys))
+        # Put in the default arguments.
+        kwargs = self.default_parameters.__class__(**kwargs)
 
         # Check energy inputs.
         for arg in ['mesh_cutoff', 'energy_shift']:
             value = kwargs.get(arg)
-            if value is None:
-                continue
             if not (isinstance(value, (float, int)) and value > 0):
                 mess = "'%s' must be a positive number(in eV), \
                     got '%s'" % (arg, value)
                 raise ValueError(mess)
 
         # Check the basis set input.
-        if 'basis_set' in kwargs.keys():
-            basis_set = kwargs['basis_set']
-            allowed = self.allowed_basis_names
-            if not (isinstance(basis_set, PAOBasisBlock) or
-                    basis_set in allowed):
-                mess = "Basis must be either %s, got %s" % (allowed, basis_set)
-                raise Exception(mess)
+        basis_set = kwargs.get('basis_set')
+        allowed = self.allowed_basis_names
+        if not (isinstance(basis_set, PAOBasisBlock) or basis_set in allowed):
+            mess = "Basis must be either %s, got %s" % (allowed, basis_set)
+            raise Exception(mess)
 
         # Check the spin input.
-        if 'spin' in kwargs.keys():
-            spin = kwargs['spin']
-            if spin is not None and (spin not in self.allowed_spins):
-                mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
-                raise Exception(mess)
+        spin = kwargs.get('spin')
+        if spin is not None and (spin not in self.allowed_spins):
+            mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
+            raise Exception(mess)
 
         # Check the functional input.
         xc = kwargs.get('xc')
@@ -274,38 +257,22 @@ class BaseSiesta(FileIOCalculator):
         kwargs['xc'] = (functional, authors)
 
         # Check fdf_arguments.
-        fdf_arguments = kwargs.get('fdf_arguments')
-        self.validate_fdf_arguments(fdf_arguments)
+        fdf_arguments = kwargs['fdf_arguments']
+        if fdf_arguments is not None:
+            # Type checking.
+            if not isinstance(fdf_arguments, dict):
+                raise TypeError("fdf_arguments must be a dictionary.")
+
+            # Check if keywords are allowed.
+            fdf_keys = set(fdf_arguments.keys())
+            allowed_keys = set(self.allowed_fdf_keywords)
+            if not fdf_keys.issubset(allowed_keys):
+                offending_keys = fdf_keys.difference(allowed_keys)
+                raise ValueError("The 'fdf_arguments' dictionary " +
+                                 "argument does not allow " +
+                                 "the keywords: %s" % str(offending_keys))
 
         FileIOCalculator.set(self, **kwargs)
-
-    def set_fdf_arguments(self, fdf_arguments):
-        """ Set the fdf_arguments after the initialization of the
-            calculator.
-        """
-        self.validate_fdf_arguments(fdf_arguments)
-        FileIOCalculator.set(self, fdf_arguments=fdf_arguments)
-
-    def validate_fdf_arguments(self, fdf_arguments):
-        """ Raises error if the fdf_argument input is not a
-            dictionary of allowed keys.
-        """
-        # None is valid
-        if fdf_arguments is None:
-            return
-
-        # Type checking.
-        if not isinstance(fdf_arguments, dict):
-            raise TypeError("fdf_arguments must be a dictionary.")
-
-        # Check if keywords are allowed.
-        fdf_keys = set(fdf_arguments.keys())
-        allowed_keys = set(self.allowed_fdf_keywords)
-        if not fdf_keys.issubset(allowed_keys):
-            offending_keys = fdf_keys.difference(allowed_keys)
-            raise ValueError("The 'fdf_arguments' dictionary " +
-                             "argument does not allow " +
-                             "the keywords: %s" % str(offending_keys))
 
     def calculate(self,
                   atoms=None,
@@ -411,7 +378,7 @@ class BaseSiesta(FileIOCalculator):
 
         for key, value in fdf_arguments.iteritems():
             if key in self.unit_fdf_keywords.keys():
-                value = '%.8f %s' % (value, self.unit_fdf_keywords[key])
+                value = ('%.8f ' % value, self.unit_fdf_keywords[key])
                 f.write(format_fdf(key, value))
             elif key in self.allowed_fdf_keywords:
                 f.write(format_fdf(key, value))
@@ -565,7 +532,6 @@ class BaseSiesta(FileIOCalculator):
         pao_basis = []
         chemical_labels = []
         basis_sizes = []
-        synth_blocks = []
         for species_number, specie in enumerate(species):
             species_number += 1
             symbol = specie['symbol']
@@ -603,33 +569,6 @@ class BaseSiesta(FileIOCalculator):
                     os.remove(name)
                 os.symlink(pseudopotential, name)
 
-            if not specie['excess_charge'] is None:
-                atomic_number += 200
-                n_atoms = sum(np.array(species_numbers) == species_number)
-
-                paec = float(specie['excess_charge']) / n_atoms
-                vc = get_valence_charge(pseudopotential)
-                fraction = float(vc + paec) / vc
-                pseudo_head = name[:-4]
-                fractional_command = os.environ['SIESTA_UTIL_FRACTIONAL']
-                cmd = '%s %s %.7f' % (fractional_command,
-                                      pseudo_head,
-                                      fraction)
-                os.system(cmd)
-
-                pseudo_head += '-Fraction-%.5f' % fraction
-                synth_pseudo = pseudo_head + '.psf'
-                synth_block_filename = pseudo_head + '.synth'
-                os.remove(name)
-                shutil.copyfile(synth_pseudo, name)
-                synth_block = read_vca_synth_block(
-                    synth_block_filename,
-                    species_number=species_number)
-                synth_blocks.append(synth_block)
-
-            if len(synth_blocks) > 0:
-                f.write(format_fdf('SyntheticAtoms', list(synth_blocks)))
-
             label = '.'.join(np.array(name.split('.'))[:-1])
             string = '    %d %d %s' % (species_number, atomic_number, label)
             chemical_labels.append(string)
@@ -657,7 +596,6 @@ class BaseSiesta(FileIOCalculator):
     def read_results(self):
         """Read the results.
         """
-        self.read_number_of_grid_points()
         self.read_energy()
         self.read_forces_stress()
         self.read_eigenvalues()
@@ -671,38 +609,29 @@ class BaseSiesta(FileIOCalculator):
         if isfile(filename):
             self.results['density'] = read_rho(filename)
 
-    def read_number_of_grid_points(self):
-        """Read number of grid points from SIESTA's text-output file.
-        """
-        with open(self.label + '.out', 'r') as f:
-            for line in f:
-                line = line.strip().lower()
-                if line.startswith('initmesh: mesh ='):
-                    n_points = [int(word) for word in line.split()[3:8:2]]
-                    self.results['n_grid_point'] = n_points
-                    break
-            else:
-                raise RuntimeError
-
     def read_energy(self):
         """Read energy from SIESTA's text-output file.
         """
         with open(self.label + '.out', 'r') as f:
             text = f.read().lower()
 
-        assert 'final energy' in text
+        assert 'error' not in text
         lines = iter(text.split('\n'))
 
-        # Get the energy and free energy the last time it appears
+        # Get the number of grid points used:
         for line in lines:
-            has_energy = line.startswith('siesta: etot    =')
-            if has_energy:
+            if line.startswith('initmesh: mesh ='):
+                n_points = [int(word) for word in line.split()[3:8:2]]
+                self.results['n_grid_point'] = n_points
+                break
+
+        for line in lines:
+            if line.startswith('siesta: etot    ='):
                 self.results['energy'] = float(line.split()[-1])
                 line = lines.next()
                 self.results['free_energy'] = float(line.split()[-1])
-
-        if ('energy' not in self.results or
-            'free_energy' not in self.results):
+                break
+        else:
             raise RuntimeError
 
     def read_forces_stress(self):
