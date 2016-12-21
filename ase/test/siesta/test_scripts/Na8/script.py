@@ -20,8 +20,6 @@ Na8 = Atoms('Na8',
 siesta = Siesta(
     mesh_cutoff=150 * Ry,
     basis_set='DZP',
-    pseudo_path=os.getcwd(),
-    pseudo_qualifier='',
     energy_shift=(10 * 10**-3) * eV,
     fdf_arguments={
         'SCFMustConverge': False,
@@ -35,3 +33,11 @@ siesta = Siesta(
 
 Na8.set_calculator(siesta)
 print(Na8.get_potential_energy())
+
+print(siesta.results['fermi_energy'])
+print(siesta.results['dim'].natoms_interacting)
+print(siesta.results['pld'].cell)
+print(siesta.results['wfsx'].norbitals)
+
+for key in siesta.results['ion'].keys():
+    print(key, siesta.results['ion'][key].keys())

@@ -1,6 +1,10 @@
 from __future__ import print_function
 """This module defines an ASE interface to SIESTA.
 
+Written by Mads Engelund
+http://www.mads-engelund.net
+
+Home of the SIESTA package:
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 """
 from ase.calculators.siesta.base_siesta import BaseSiesta
@@ -12,7 +16,7 @@ class Siesta3_2(BaseSiesta):
         'LDA': ['PZ', 'CA', 'PW92'],
         'GGA': ['PBE', 'revPBE', 'RPBE',
                 'WC', 'PBEsol', 'LYP']}
-    
+
     unit_fdf_keywords = {
         'BasisPressure': 'eV/Ang**3',
         'LatticeConstant': 'Ang',
@@ -52,8 +56,10 @@ class Siesta3_2(BaseSiesta):
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
         'MD.FCDispl': 'Ang'}
-    
+
     allowed_fdf_keywords = [
+        'MD.UseSaveXV',
+        'MD.UseSaveCG',
         'LongOutput',
         'SystemName',
         'SystemLabel',
@@ -350,8 +356,10 @@ class SiestaTrunk462(BaseSiesta):
         'MD.TauRelax': 's',
         'MD.BulkModulus': 'eV/Ang**3',
         'MD.FCDispl': 'Ang'}
-    
+
     allowed_fdf_keywords = [
+        'MD.UseSaveXV',
+        'MD.UseSaveCG',
         'LongOutput',
         'SystemName',
         'SystemLabel',
