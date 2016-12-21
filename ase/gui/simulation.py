@@ -6,8 +6,8 @@ import ase.gui.ui as ui
 from ase import Atoms
 from ase.constraints import FixAtoms
 
-
 pack = oops = 42
+
 
 class Simulation:
     def __init__(self, gui):
@@ -24,7 +24,9 @@ class Simulation:
         pack(vbox, txtframe)
         pack(vbox, ui.Label(""))
 
-    def packimageselection(self, outerbox, txt1=_(" (rerun simulation)"),
+    def packimageselection(self,
+                           outerbox,
+                           txt1=_(" (rerun simulation)"),
                            txt2=_(" (continue simulation)")):
         "Make the frame for selecting starting config if more than one."
         self.startframe = ui.Frame(_("Select starting configuration:"))
@@ -36,20 +38,21 @@ class Simulation:
                                   "configurations loaded.")
         self.numconfig_label = ui.Label("")
         pack(vbox, [self.numconfig_label])
-        lbl = ui.Label(_("Choose which one to use as the "
-                          "initial configuration"))
+        lbl = ui.Label(
+            _("Choose which one to use as the "
+              "initial configuration"))
         pack(vbox, [lbl])
         self.start_radio_first = ui.RadioButton(
             None, _("The first configuration %s.") % txt1)
         pack(vbox, [self.start_radio_first])
         self.start_radio_nth = ui.RadioButton(self.start_radio_first,
-                                               _("Configuration number "))
+                                              _("Configuration number "))
         self.start_nth_adj = ui.Adjustment(0, 0, 1, 1)
         self.start_nth_spin = ui.SpinButton(self.start_nth_adj, 0, 0)
         self.start_nth_spin.set_sensitive(False)
         pack(vbox, [self.start_radio_nth, self.start_nth_spin])
-        self.start_radio_last = ui.RadioButton(self.start_radio_first,
-            _("The last configuration %s.") % txt2)
+        self.start_radio_last = ui.RadioButton(
+            self.start_radio_first, _("The last configuration %s.") % txt2)
         self.start_radio_last.set_active(True)
         pack(vbox, self.start_radio_last)
         self.start_radio_nth.connect("toggled", self.start_radio_nth_toggled)
@@ -66,9 +69,9 @@ class Simulation:
         else:
             self.startframe.show()
             if self.start_nth_adj.value >= n:
-                self.start_nth_adj.value = n-1
-            self.start_nth_adj.upper = n-1
-            self.numconfig_label.set_text(self.numconfig_format % (n,))
+                self.start_nth_adj.value = n - 1
+            self.start_nth_adj.upper = n - 1
+            self.numconfig_label.set_text(self.numconfig_format % (n, ))
 
     def getimagenumber(self):
         "Get the image number selected in the start image frame."
@@ -81,7 +84,7 @@ class Simulation:
             return self.start_nth_adj.value
         else:
             assert self.start_radio_last.get_active()
-            return nmax-1
+            return nmax - 1
 
     def makebutbox(self, vbox, helptext=None):
         self.buttons = ui.HButtonBox()
@@ -120,14 +123,15 @@ class Simulation:
         natoms = len(images.P[n]) // images.repeat.prod()
         constraint = None
         if not images.dynamic.all():
-            constraint = FixAtoms(mask=1-images.dynamic)
-        return Atoms(positions=images.P[n,:natoms],
-                     symbols=images.Z[:natoms],
-                     cell=images.A[n],
-                     magmoms=images.M[n,:natoms],
-                     tags=images.T[n,:natoms],
-                     pbc=images.pbc,
-                     constraint=constraint)
+            constraint = FixAtoms(mask=1 - images.dynamic)
+        return Atoms(
+            positions=images.P[n, :natoms],
+            symbols=images.Z[:natoms],
+            cell=images.A[n],
+            magmoms=images.M[n, :natoms],
+            tags=images.T[n, :natoms],
+            pbc=images.pbc,
+            constraint=constraint)
 
     def begin(self, **kwargs):
         if 'progress' in self.gui.simulation:
@@ -146,4 +150,3 @@ class Simulation:
         "Observes the minimization and stores the atoms in the gui."
         self.gui.append_atoms(self.atoms)
         self.count_steps += 1
-

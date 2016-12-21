@@ -7,7 +7,6 @@ import sys
 import re
 import time
 
-
 _ = pack = AseGuiCancelException = 42
 
 
@@ -22,7 +21,7 @@ class DummyProgressIndicator:
 class DefaultProgressIndicator:
     "Window for reporting progress."
     waittime = 3  # Time (in sec) after which a progress bar appears.
-    updatetime = 0.1   # Minimum time (in sec) between updates of the progress bars.
+    updatetime = 0.1  # Minimum time (in sec) between updates of the progress bars.
 
     def __init__(self):
         ui.Window.__init__(self)
@@ -40,12 +39,11 @@ class DefaultProgressIndicator:
         pack(self.scalebox, ui.Label(""))
 
         self.label_scale_stepno_format = _("Step number %s of %s.")
-        self.label_scale_stepno = ui.Label(
-            self.label_scale_stepno_format % ("-" , "-"))
+        self.label_scale_stepno = ui.Label(self.label_scale_stepno_format %
+                                           ("-", "-"))
         pack(vbox, [self.label_scale_stepno])
         self.scale_progress = ui.ProgressBar()
-        self.scale_progress.modify_bg(ui.STATE_PRELIGHT,
-                                      '#00AA00')
+        self.scale_progress.modify_bg(ui.STATE_PRELIGHT, '#00AA00')
         pack(vbox, [self.scale_progress])
 
         vbox.show()
@@ -55,7 +53,7 @@ class DefaultProgressIndicator:
         # Minimization progress frame
         self.minbox = ui.VBox()  # Box containing frame and spacing
         self.minframe = ui.Frame(_("Energy minimization:"))
-        vbox = ui.VBox()         # Box containing the frames content.
+        vbox = ui.VBox()  # Box containing the frames content.
         self.minframe.add(vbox)
         pack(self.minbox, [self.minframe])
         pack(self.minbox, ui.Label(""))
@@ -71,8 +69,8 @@ class DefaultProgressIndicator:
         lbl.set_markup(_("Convergence criterion: F<sub>max</sub> = "))
         pack(vbox, [lbl, self.label_min_fmax])
         self.label_min_maxsteps = ui.Label("-")
-        pack(vbox, [ui.Label(_("Max. number of steps: ")),
-                    self.label_min_maxsteps])
+        pack(vbox,
+             [ui.Label(_("Max. number of steps: ")), self.label_min_maxsteps])
 
         vbox.show()
         self.minframe.show()
@@ -85,7 +83,11 @@ class DefaultProgressIndicator:
         self.cancelbut.connect('clicked', self.cancel)
         pack(self.globalbox, [self.cancelbut], end=True, bottom=True)
 
-    def begin(self, mode=None, algo=None, fmax=None, steps=None,
+    def begin(self,
+              mode=None,
+              algo=None,
+              fmax=None,
+              steps=None,
               scalesteps=None):
         self.mode = mode
         # Hide all mode-specific boxes
@@ -100,7 +102,7 @@ class DefaultProgressIndicator:
             # It is a minimization.
             self.minbox.show()
             self.label_min_stepno.set_text("-")
-            self.label_min_fmax.set_text("%.3f" % (fmax,))
+            self.label_min_fmax.set_text("%.3f" % (fmax, ))
             self.label_min_maxsteps.set_text(str(int(steps)))
             self.minimize_progress.set_fraction(0)
             self.minimize_progress.set_text(_("unknown"))
@@ -115,7 +117,8 @@ class DefaultProgressIndicator:
 
     def activity(self):
         "Register that activity occurred."
-        if self.active is None and time.time() > self.starttime + self.waittime:
+        if self.active is None and time.time(
+        ) > self.starttime + self.waittime:
             # This has taken so long that a progress bar is needed.
             self.show()
             self.active = True
@@ -136,11 +139,11 @@ class DefaultProgressIndicator:
 
     def set_scale_progress(self, step, init=False):
         "Set the step number in scaling deformation."
-        self.label_scale_stepno.set_text(
-            self.label_scale_stepno_format % (step, self.scalesteps))
+        self.label_scale_stepno.set_text(self.label_scale_stepno_format %
+                                         (step, self.scalesteps))
         percent = 1.0 * step / self.scalesteps
         self.scale_progress.set_fraction(percent)
-        self.scale_progress.set_text("%i%%" % (round(100*percent),))
+        self.scale_progress.set_text("%i%%" % (round(100 * percent), ))
         if not init:
             self.activity()
 
@@ -210,7 +213,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         self.tablerows += 1
         self.table.resize(self.tablerows, 2)
         for i, w in enumerate(widgets):
-            self.table.attach(w, i, i+1, self.tablerows-1, self.tablerows)
+            self.table.attach(w, i, i + 1, self.tablerows - 1, self.tablerows)
             if hasattr(w, "set_alignment"):
                 w.set_alignment(0, 0.5)
             w.show()
@@ -257,7 +260,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         elif self.poscount:
             # Count atoms.
             w = txt.split()
-            assert(len(w) == 5)
+            assert (len(w) == 5)
             self.natoms = int(w[0]) + 1
             self.natomslabel.set_text(str(self.natoms))
         elif txt.startswith("iter:"):
@@ -280,7 +283,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
                     de = abs(self.oldenergy - float(energy))
                     self.oldenergy = float(energy)
                     if de > 1e-10:
-                        de = np.log10(de/self.natoms)
+                        de = np.log10(de / self.natoms)
                         p = fraction(de, -3.0)
                         self.energy_progress.set_fraction(p)
                         self.energy_progress.set_text("%.1f" % de)
@@ -289,8 +292,8 @@ class GpawProgressIndicator(DefaultProgressIndicator):
                         self.energy_progress.set_text(_("unchanged"))
             words = txt.split()
             self.iteration.set_text(words[1])
-        elif (-1 < txt.find("WFS") < txt.find("Density") < txt.find("Energy")
-               < txt.find("Fermi")):
+        elif (-1 < txt.find("WFS") < txt.find("Density") < txt.find("Energy") <
+              txt.find("Fermi")):
             # Found header of convergence table
             self.wfs_idx = txt.find("WFS")
             self.density_idx = txt.find("Density")
@@ -306,7 +309,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         elif -1 < txt.find("Calculator") < txt.find("MiB"):
             # Memory estimate
             words = txt.split()
-            self.memorylabel.set_text(words[1]+" "+words[2])
+            self.memorylabel.set_text(words[1] + " " + words[2])
         self.activity()
 
     def get_gpaw_stream(self):
@@ -315,6 +318,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
 
 class LoggerStream:
     "A file-like object feeding minimizer logs to GpawProgressWindow."
+
     def __init__(self, progresswindow):
         self.window = progresswindow
 
@@ -327,6 +331,7 @@ class LoggerStream:
 
 class GpawStream:
     "A file-like object feeding GPAWs txt file to GpawProgressWindow."
+
     def __init__(self, progresswindow):
         self.window = progresswindow
 
@@ -339,10 +344,10 @@ class GpawStream:
         lines = txt.split("\n")
         if endline:
             for l in lines:
-                self.window.gpaw_write(l+'\n')
+                self.window.gpaw_write(l + '\n')
         else:
             for l in lines[:-1]:
-                self.window.gpaw_write(l+'\n')
+                self.window.gpaw_write(l + '\n')
             self.window.gpaw_write(lines[-1])
 
     def flush(self):

@@ -132,7 +132,6 @@ The potential is documented here:
   doi: 10.1088/0953-8984/14/4/312
 """)
 
-
 gpaw_info_txt = _("""\
 GPAW implements Density Functional Theory using a
 <b>G</b>rid-based real-space representation of the wave
@@ -169,19 +168,21 @@ emt_parameters = (
     (_("Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"), None),
     (_("Alternative Cu, Ag and Au"), "EMTRasmussenParameters"),
     (_("Ruthenium"), "EMThcpParameters"),
-    (_("CuMg and CuZr metallic glass"), "EMTMetalGlassParameters")
-    )
+    (_("CuMg and CuZr metallic glass"), "EMTMetalGlassParameters"))
 
 
 class SetCalculator:
     "Window for selecting a calculator."
 
     # List the names of the radio button attributes
-    radios = ("none", "lj", "emt", "aseemt", "eam", "brenner",
-              "gpaw", "aims", "vasp")
+    radios = ("none", "lj", "emt", "aseemt", "eam", "brenner", "gpaw", "aims",
+              "vasp")
     # List the names of the parameter dictionaries
-    paramdicts = ("lj_parameters", "eam_parameters", "gpaw_parameters",
-                  "aims_parameters",)
+    paramdicts = (
+        "lj_parameters",
+        "eam_parameters",
+        "gpaw_parameters",
+        "aims_parameters", )
     # The name used to store parameters on the gui object
     classname = "SetCalculator"
 
@@ -201,7 +202,7 @@ class SetCalculator:
 
         # Lennard-Jones
         self.lj_radio = ui.RadioButton(self.none_radio,
-                                        _("Lennard-Jones (ASAP)"))
+                                       _("Lennard-Jones (ASAP)"))
         self.lj_setup = ui.Button(_("Setup"))
         self.lj_info = InfoButton(lj_info_txt)
         self.lj_setup.connect("clicked", self.lj_setup_window)
@@ -235,15 +236,14 @@ class SetCalculator:
         self.pack_line(vbox, self.eam_radio, self.eam_setup, self.eam_info)
 
         # Brenner potential
-        self.brenner_radio = ui.RadioButton(
-            self.none_radio, _("Brenner Potential (ASAP)"))
+        self.brenner_radio = ui.RadioButton(self.none_radio,
+                                            _("Brenner Potential (ASAP)"))
         self.brenner_info = InfoButton(brenner_info_txt)
         self.pack_line(vbox, self.brenner_radio, None, self.brenner_info)
 
         # GPAW
         self.gpaw_radio = ui.RadioButton(self.none_radio,
-                                          _("Density Functional Theory (GPAW)")
-                                          )
+                                         _("Density Functional Theory (GPAW)"))
         self.gpaw_setup = ui.Button(_("Setup"))
         self.gpaw_info = InfoButton(gpaw_info_txt)
         self.gpaw_setup.connect("clicked", self.gpaw_setup_window)
@@ -251,8 +251,8 @@ class SetCalculator:
 
         # FHI-aims
         self.aims_radio = ui.RadioButton(self.none_radio,
-                                          _("Density Functional Theory "
-                                            "(FHI-aims)"))
+                                         _("Density Functional Theory "
+                                           "(FHI-aims)"))
         self.aims_setup = ui.Button(_("Setup"))
         self.aims_info = InfoButton(aims_info_txt)
         self.aims_setup.connect("clicked", self.aims_setup_window)
@@ -260,8 +260,8 @@ class SetCalculator:
 
         # VASP
         self.vasp_radio = ui.RadioButton(self.none_radio,
-                                          _("Density Functional Theory "
-                                            "(VASP)"))
+                                         _("Density Functional Theory "
+                                           "(VASP)"))
         self.vasp_setup = ui.Button(_("Setup"))
         self.vasp_info = InfoButton(vasp_info_txt)
         self.vasp_setup.connect("clicked", self.vasp_setup_window)
@@ -269,12 +269,12 @@ class SetCalculator:
 
         # Buttons etc.
         pack(vbox, ui.Label(""))
-        buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
-                               apply=self.apply,
-                               ok=self.ok)
+        buts = cancel_apply_ok(
+            cancel=lambda widget: self.destroy(), apply=self.apply, ok=self.ok)
         pack(vbox, [buts], end=True, bottom=True)
-        self.check = ui.CheckButton(_("Check that the calculator is "
-                                       "reasonable."))
+        self.check = ui.CheckButton(
+            _("Check that the calculator is "
+              "reasonable."))
         self.check.set_active(True)
         fr = ui.Frame()
         fr.add(self.check)
@@ -345,11 +345,12 @@ class SetCalculator:
         if images.natoms < 1:
             oops(_("No atoms present"))
             return False
-        self.atoms = Atoms(positions=images.P[frame],
-                           symbols=images.Z,
-                           cell=images.A[frame],
-                           pbc=images.pbc,
-                           magmoms=images.M[frame])
+        self.atoms = Atoms(
+            positions=images.P[frame],
+            symbols=images.Z,
+            cell=images.A[frame],
+            pbc=images.pbc,
+            magmoms=images.M[frame])
         if not images.dynamic.all():
             from ase.constraints import FixAtoms
             self.atoms.set_constraint(FixAtoms(mask=1 - images.dynamic))
@@ -445,8 +446,8 @@ class SetCalculator:
         try:
             self.atoms.set_calculator(asap3.LennardJones(**self.lj_parameters))
         except (asap3.AsapError, TypeError, ValueError) as e:
-            oops(_("Could not create useful Lennard-Jones calculator."),
-                 str(e))
+            oops(
+                _("Could not create useful Lennard-Jones calculator."), str(e))
             return False
         return True
 
@@ -456,6 +457,7 @@ class SetCalculator:
 
         def lj_factory(p=self.lj_parameters, lj=asap3.LennardJones):
             return lj(**p)
+
         self.gui.simulation["calc"] = lj_factory
 
     def emt_get(self):
@@ -480,8 +482,7 @@ class SetCalculator:
             else:
                 self.atoms.set_calculator(emt())
         except (asap3.AsapError, TypeError, ValueError) as e:
-            oops(_("Could not attach EMT calculator to the atoms."),
-                 str(e))
+            oops(_("Could not attach EMT calculator to the atoms."), str(e))
             return False
         return True
 
@@ -490,13 +491,16 @@ class SetCalculator:
         if provider is None:
             emt_factory = emt
         else:
+
             def emt_factory(emt=emt, prov=provider):
                 return emt(prov())
+
         self.gui.simulation["calc"] = emt_factory
 
     def aseemt_check(self):
-        return self.element_check("ASE EMT", ['H', 'Al', 'Cu', 'Ag', 'Au',
-                                              'Ni', 'Pd', 'Pt', 'C', 'N', 'O'])
+        return self.element_check("ASE EMT", [
+            'H', 'Al', 'Cu', 'Ag', 'Au', 'Ni', 'Pd', 'Pt', 'C', 'N', 'O'
+        ])
 
     def eam_check(self):
         from ase.calculators.eam import EAM
@@ -513,6 +517,7 @@ class SetCalculator:
         def eam_factory(p=self.eam_parameters):
             calc = EAM(**p)
             return calc
+
         self.gui.simulation["calc"] = eam_factory
 
     def brenner_check(self):
@@ -580,6 +585,7 @@ class SetCalculator:
 
         def gpaw_factory(calc=gpaw_calc):
             return calc
+
         self.gui.simulation["calc"] = gpaw_factory
 
     def aims_check(self):
@@ -595,6 +601,7 @@ class SetCalculator:
 
         def aims_factory(calc=calc_aims):
             return calc
+
         self.gui.simulation["calc"] = aims_factory
 
     def vasp_check(self):
@@ -610,6 +617,7 @@ class SetCalculator:
 
         def vasp_factory(calc=calc_vasp):
             return calc
+
         self.gui.simulation["calc"] = vasp_factory
 
     def element_check(self, name, elements):
@@ -624,8 +632,10 @@ class SetCalculator:
             for e in self.atoms.get_atomic_numbers():
                 elements_dict[e]
         except KeyError:
-            oops(_("Element %(sym)s not allowed by the '%(name)s' calculator")
-                 % dict(sym=ase.data.chemical_symbols[e], name=name))
+            oops(
+                _("Element %(sym)s not allowed by the '%(name)s' calculator") %
+                dict(
+                    sym=ase.data.chemical_symbols[e], name=name))
             return False
         return True
 
@@ -637,9 +647,10 @@ class InfoButton:
         self.connect('clicked', self.run)
 
     def run(self, widget):
-        dialog = ui.MessageDialog(flags=ui.DIALOG_MODAL,
-                                   type=ui.MESSAGE_INFO,
-                                   buttons=ui.BUTTONS_CLOSE)
+        dialog = ui.MessageDialog(
+            flags=ui.DIALOG_MODAL,
+            type=ui.MESSAGE_INFO,
+            buttons=ui.BUTTONS_CLOSE)
         dialog.set_markup(self.txt)
         dialog.connect('response', lambda x, y: dialog.destroy())
         dialog.show()
@@ -705,8 +716,8 @@ class LJ_Window:
             s = chemical_symbols[present[i]]
             tbl.attach(ui.Label(" " + str(present[i])), 0, 1, i, i + 1)
             tbl.attach(ui.Label("  " + s + " "), 1, 2, i, i + 1)
-            tbl.attach(ui.Label(str(present[i])),
-                       i + 2, i + 3, 1 + nelem, 2 + nelem)
+            tbl.attach(
+                ui.Label(str(present[i])), i + 2, i + 3, 1 + nelem, 2 + nelem)
             tbl.attach(ui.Label(s), i + 2, i + 3, nelem, 1 + nelem)
             for j in range(i + 1):
                 adj = ui.Adjustment(1.0, 0.0, 100.0, 0.1)
@@ -795,10 +806,9 @@ class EAM_Window:
         dirname = "."
         filename = "Al99.eam.alloy"
         chooser = ui.FileChooserDialog(
-            _('Import .alloy or .adp potential file ... '),
-            None, ui.FILE_CHOOSER_ACTION_OPEN,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Open', ui.RESPONSE_OK))
+            _('Import .alloy or .adp potential file ... '), None,
+            ui.FILE_CHOOSER_ACTION_OPEN, ('Cancel', ui.RESPONSE_CANCEL, 'Open',
+                                          ui.RESPONSE_OK))
 
         chooser.set_filename(dirname + filename)
         openr = chooser.run()
@@ -833,9 +843,10 @@ class GPAW_Window:
         #pack(vbox, [label])
 
         # Print some info
-        txt = _("%i atoms.\n") % (self.natoms,)
+        txt = _("%i atoms.\n") % (self.natoms, )
         if self.orthogonal:
-            txt += _(u"Orthogonal unit cell: %.2f x %.2f x %.2f Å.") % self.size
+            txt += _(
+                u"Orthogonal unit cell: %.2f x %.2f x %.2f Å.") % self.size
         else:
             txt += _("Non-orthogonal unit cell:\n")
             txt += str(self.ucell)
@@ -847,15 +858,14 @@ class GPAW_Window:
             self.xc.append_text(x)
             if x == self.gpaw_xc_default:
                 self.xc.set_active(i)
-        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),
-                    self.xc])
+        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")), self.xc])
 
         # Grid spacing
         self.radio_h = ui.RadioButton(None, _("Grid spacing"))
         self.h = ui.Adjustment(0.18, 0.0, 1.0, 0.01)
         self.h_spin = ui.SpinButton(self.h, 0, 2)
-        pack(vbox, [self.radio_h, ui.Label(" h = "), self.h_spin,
-                    ui.Label(_(u"Å"))])
+        pack(vbox,
+             [self.radio_h, ui.Label(" h = "), self.h_spin, ui.Label(_(u"Å"))])
         self.radio_gpts = ui.RadioButton(self.radio_h, _("Grid points"))
         self.gpts = []
         self.gpts_spin = []
@@ -866,9 +876,11 @@ class GPAW_Window:
             self.gpts_spin.append(s)
         self.gpts_hlabel = ui.Label("")
         self.gpts_hlabel_format = _(u"h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å")
-        pack(vbox, [self.radio_gpts, ui.Label(" gpts = ("), self.gpts_spin[0],
-                    ui.Label(", "), self.gpts_spin[1], ui.Label(", "),
-                    self.gpts_spin[2], ui.Label(")  "), self.gpts_hlabel])
+        pack(vbox, [
+            self.radio_gpts, ui.Label(" gpts = ("), self.gpts_spin[0],
+            ui.Label(", "), self.gpts_spin[1], ui.Label(", "),
+            self.gpts_spin[2], ui.Label(")  "), self.gpts_hlabel
+        ])
         self.radio_h.connect("toggled", self.radio_grid_toggled)
         self.radio_gpts.connect("toggled", self.radio_grid_toggled)
         self.radio_grid_toggled(None)
@@ -891,9 +903,10 @@ class GPAW_Window:
             if not self.pbc[i]:
                 s.set_sensitive(False)
             g.connect("value-changed", self.k_changed)
-        pack(vbox, [ui.Label(_("k-points  k = (")), self.kpts_spin[0],
-                    ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
-                    self.kpts_spin[2], ui.Label(")")])
+        pack(vbox, [
+            ui.Label(_("k-points  k = (")), self.kpts_spin[0], ui.Label(", "),
+            self.kpts_spin[1], ui.Label(", "), self.kpts_spin[2], ui.Label(")")
+        ])
         self.kpts_label = ui.Label("")
         self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
         pack(vbox, [self.kpts_label])
@@ -907,8 +920,9 @@ class GPAW_Window:
         # Mode and basis functions
         self.mode = ui.combo_box_new_text()
         self.mode.append_text(_("FD - Finite Difference (grid) mode"))
-        self.mode.append_text(_("LCAO - Linear Combination of Atomic "
-                                "Orbitals"))
+        self.mode.append_text(
+            _("LCAO - Linear Combination of Atomic "
+              "Orbitals"))
         self.mode.set_active(0)
         pack(vbox, [ui.Label(_("Mode: ")), self.mode])
         self.basis = ui.combo_box_new_text()
@@ -927,26 +941,29 @@ class GPAW_Window:
         self.radio_mixer = ui.RadioButton(None, "Mixer   ")
         self.radio_mixersum = ui.RadioButton(self.radio_mixer, "MixerSum   ")
         self.radio_mixerdiff = ui.RadioButton(self.radio_mixer, "MixerDiff")
-        pack(vbox, [self.radio_mixer, self.radio_mixersum,
-                    self.radio_mixerdiff])
+        pack(vbox,
+             [self.radio_mixer, self.radio_mixersum, self.radio_mixerdiff])
         self.beta_adj = ui.Adjustment(0.25, 0.0, 1.0, 0.05)
         self.beta_spin = ui.SpinButton(self.beta_adj, 0, 2)
         self.nmaxold_adj = ui.Adjustment(3, 1, 10, 1)
         self.nmaxold_spin = ui.SpinButton(self.nmaxold_adj, 0, 0)
         self.weight_adj = ui.Adjustment(50, 1, 500, 1)
         self.weight_spin = ui.SpinButton(self.weight_adj, 0, 0)
-        pack(vbox, [ui.Label("beta = "), self.beta_spin,
-                    ui.Label("  nmaxold = "), self.nmaxold_spin,
-                    ui.Label("  weight = "), self.weight_spin])
+        pack(vbox, [
+            ui.Label("beta = "), self.beta_spin, ui.Label("  nmaxold = "),
+            self.nmaxold_spin, ui.Label("  weight = "), self.weight_spin
+        ])
         self.beta_m_adj = ui.Adjustment(0.70, 0.0, 1.0, 0.05)
         self.beta_m_spin = ui.SpinButton(self.beta_m_adj, 0, 2)
         self.nmaxold_m_adj = ui.Adjustment(2, 1, 10, 1)
         self.nmaxold_m_spin = ui.SpinButton(self.nmaxold_m_adj, 0, 0)
         self.weight_m_adj = ui.Adjustment(10, 1, 500, 1)
         self.weight_m_spin = ui.SpinButton(self.weight_m_adj, 0, 0)
-        pack(vbox, [ui.Label("beta_m = "), self.beta_m_spin,
-                    ui.Label("  nmaxold_m = "), self.nmaxold_m_spin,
-                    ui.Label("  weight_m = "), self.weight_m_spin])
+        pack(vbox, [
+            ui.Label("beta_m = "), self.beta_m_spin,
+            ui.Label("  nmaxold_m = "), self.nmaxold_m_spin,
+            ui.Label("  weight_m = "), self.weight_m_spin
+        ])
         for but in (self.spinpol, self.use_mixer, self.radio_mixer,
                     self.radio_mixersum, self.radio_mixerdiff):
             but.connect("clicked", self.mixer_changed)
@@ -1015,9 +1032,10 @@ class GPAW_Window:
             self.gpts[i].value = g
 
     def k_changed(self, *args):
-        size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],
-                                                     self.ucell[i]))
-                for i in range(3)]
+        size = [
+            self.kpts[i].value *
+            np.sqrt(np.vdot(self.ucell[i], self.ucell[i])) for i in range(3)
+        ]
         self.kpts_label.set_text(self.kpts_label_format % tuple(size))
 
     def mode_changed(self, *args):
@@ -1093,16 +1111,22 @@ class GPAW_Window:
 
 
 class AIMS_Window:
-    aims_xc_cluster = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
-                    'blyp','am05','b3lyp','hse03','hse06','pbe0','pbesol0',
-                    'hf','mp2']
-    aims_xc_periodic = ['pw-lda','pz-lda','pbe','pbesol','rpbe','revpbe',
-                        'blyp','am05']
+    aims_xc_cluster = [
+        'pw-lda', 'pz-lda', 'pbe', 'pbesol', 'rpbe', 'revpbe', 'blyp', 'am05',
+        'b3lyp', 'hse03', 'hse06', 'pbe0', 'pbesol0', 'hf', 'mp2'
+    ]
+    aims_xc_periodic = [
+        'pw-lda', 'pz-lda', 'pbe', 'pbesol', 'rpbe', 'revpbe', 'blyp', 'am05'
+    ]
     aims_xc_default = 'pbe'
-    aims_relativity_list = ['none','atomic_zora','zora']
-    aims_keyword_gui_list = ['xc','vdw_correction_hirshfeld','k_grid','spin','charge','relativistic',
-                             'sc_accuracy_etot','sc_accuracy_eev','sc_accuracy_rho','sc_accuracy_forces',
-                             'compute_forces','run_command','species_dir','default_initial_moment']
+    aims_relativity_list = ['none', 'atomic_zora', 'zora']
+    aims_keyword_gui_list = [
+        'xc', 'vdw_correction_hirshfeld', 'k_grid', 'spin', 'charge',
+        'relativistic', 'sc_accuracy_etot', 'sc_accuracy_eev',
+        'sc_accuracy_rho', 'sc_accuracy_forces', 'compute_forces',
+        'run_command', 'species_dir', 'default_initial_moment'
+    ]
+
     def __init__(self, owner, param, attrname):
         self.owner = owner
         self.attrname = attrname
@@ -1113,8 +1137,8 @@ class AIMS_Window:
             self.periodic = True
         else:
             aims_periodic_warning = False
-        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,input_keys
-        self.aims_keyword_list =float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+input_keys
+        from ase.calculators.aims import float_keys, exp_keys, string_keys, int_keys, bool_keys, list_keys, input_keys
+        self.aims_keyword_list = float_keys + exp_keys + string_keys + int_keys + bool_keys + list_keys + input_keys
         self.expert_keywords = []
 
         natoms = len(atoms)
@@ -1128,7 +1152,8 @@ class AIMS_Window:
             self.ucell = atoms.get_cell()
             txt += _("Periodic geometry, unit cell is:\n")
             for i in range(3):
-                txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
+                txt += "(%8.3f %8.3f %8.3f)\n" % (
+                    self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
             self.xc_list = self.aims_xc_periodic
         else:
             txt += _("Non-periodic geometry.\n")
@@ -1139,7 +1164,7 @@ class AIMS_Window:
         self.xc = ui.combo_box_new_text()
         self.xc_setup = False
         self.TS = ui.CheckButton(_("Hirshfeld-based dispersion correction"))
-        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),self.xc])
+        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")), self.xc])
         pack(vbox, [self.TS])
         pack(vbox, [ui.Label("")])
 
@@ -1148,56 +1173,59 @@ class AIMS_Window:
             self.kpts = []
             self.kpts_spin = []
             for i in range(3):
-                default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+                default = np.ceil(
+                    20.0 / np.sqrt(np.vdot(self.ucell[i], self.ucell[i])))
                 g = ui.Adjustment(default, 1, 100, 1)
                 s = ui.SpinButton(g, 0, 0)
                 self.kpts.append(g)
                 self.kpts_spin.append(s)
                 g.connect("value-changed", self.k_changed)
-            pack(vbox, [ui.Label(_("k-points  k = (")), self.kpts_spin[0],
-                        ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
-                        self.kpts_spin[2], ui.Label(")")])
+            pack(vbox, [
+                ui.Label(_("k-points  k = (")), self.kpts_spin[0],
+                ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
+                self.kpts_spin[2], ui.Label(")")
+            ])
             self.kpts_label = ui.Label("")
-            self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å")
+            self.kpts_label_format = _(
+                u"k-points x size:  (%.1f, %.1f, %.1f) Å")
             pack(vbox, [self.kpts_label])
             self.k_changed()
             pack(vbox, ui.Label(""))
 
         # Spin polarized, charge, relativity
         self.spinpol = ui.CheckButton(_("Spin / initial moment "))
-        self.spinpol.connect('toggled',self.spinpol_changed)
-        self.moment = ui.Adjustment(0,-100,100,0.1)
+        self.spinpol.connect('toggled', self.spinpol_changed)
+        self.moment = ui.Adjustment(0, -100, 100, 0.1)
         self.moment_spin = ui.SpinButton(self.moment, 0, 0)
         self.moment_spin.set_digits(2)
         self.moment_spin.set_sensitive(False)
-        self.charge = ui.Adjustment(0,-100,100,0.1)
+        self.charge = ui.Adjustment(0, -100, 100, 0.1)
         self.charge_spin = ui.SpinButton(self.charge, 0, 0)
         self.charge_spin.set_digits(2)
         self.relativity_type = ui.combo_box_new_text()
         for i, x in enumerate(self.aims_relativity_list):
             self.relativity_type.append_text(x)
-        self.relativity_type.connect('changed',self.relativity_changed)
+        self.relativity_type.connect('changed', self.relativity_changed)
         self.relativity_threshold = ui.Entry(max=8)
         self.relativity_threshold.set_text('1.00e-12')
         self.relativity_threshold.set_sensitive(False)
-        pack(vbox, [self.spinpol,
-                    self.moment_spin,
-                    ui.Label(_("   Charge")),
-                    self.charge_spin,
-                    ui.Label(_("   Relativity")),
-                    self.relativity_type,
-                    ui.Label(_(" Threshold")),
-                    self.relativity_threshold])
+        pack(vbox, [
+            self.spinpol, self.moment_spin, ui.Label(_("   Charge")),
+            self.charge_spin, ui.Label(_("   Relativity")),
+            self.relativity_type, ui.Label(_(" Threshold")),
+            self.relativity_threshold
+        ])
         pack(vbox, ui.Label(""))
 
         # self-consistency criteria
-        pack(vbox,[ui.Label(_("Self-consistency convergence:"))])
+        pack(vbox, [ui.Label(_("Self-consistency convergence:"))])
         self.sc_tot_energy = ui.Adjustment(1e-6, 1e-6, 1e0, 1e-6)
         self.sc_tot_energy_spin = ui.SpinButton(self.sc_tot_energy, 0, 0)
         self.sc_tot_energy_spin.set_digits(6)
         self.sc_tot_energy_spin.set_numeric(True)
         self.sc_sum_eigenvalue = ui.Adjustment(1e-3, 1e-6, 1e0, 1e-6)
-        self.sc_sum_eigenvalue_spin = ui.SpinButton(self.sc_sum_eigenvalue, 0, 0)
+        self.sc_sum_eigenvalue_spin = ui.SpinButton(self.sc_sum_eigenvalue, 0,
+                                                    0)
         self.sc_sum_eigenvalue_spin.set_digits(6)
         self.sc_sum_eigenvalue_spin.set_numeric(True)
         self.sc_density = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
@@ -1206,7 +1234,7 @@ class AIMS_Window:
         self.sc_density_spin.set_numeric(True)
         self.compute_forces = ui.CheckButton(_("Compute forces"))
         self.compute_forces.set_active(True)
-        self.compute_forces.connect("toggled", self.compute_forces_toggled,"")
+        self.compute_forces.connect("toggled", self.compute_forces_toggled, "")
         self.sc_forces = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-6)
         self.sc_forces_spin = ui.SpinButton(self.sc_forces, 0, 0)
         self.sc_forces_spin.set_numeric(True)
@@ -1215,16 +1243,16 @@ class AIMS_Window:
         # (depend on fonts, widget style, ...)
         # TRANSLATORS: Don't care too much about these, just get approximately
         # the same string lengths
-        pack(vbox, [ui.Label(_("Energy:                 ")),
-                    self.sc_tot_energy_spin,
-                    ui.Label(_(" eV   Sum of eigenvalues:  ")),
-                    self.sc_sum_eigenvalue_spin,
-                    ui.Label(_(" eV"))])
-        pack(vbox, [ui.Label(_("Electron density: ")),
-                    self.sc_density_spin,
-                    ui.Label(_("        Force convergence:  ")),
-                    self.sc_forces_spin,
-                    ui.Label(_(" eV/Ang  "))])
+        pack(vbox, [
+            ui.Label(_("Energy:                 ")), self.sc_tot_energy_spin,
+            ui.Label(_(" eV   Sum of eigenvalues:  ")),
+            self.sc_sum_eigenvalue_spin, ui.Label(_(" eV"))
+        ])
+        pack(vbox, [
+            ui.Label(_("Electron density: ")), self.sc_density_spin,
+            ui.Label(_("        Force convergence:  ")), self.sc_forces_spin,
+            ui.Label(_(" eV/Ang  "))
+        ])
 
         pack(vbox, [self.compute_forces])
         pack(vbox, ui.Label(""))
@@ -1237,9 +1265,10 @@ class AIMS_Window:
         self.expert_keyword_add = ui.Button('Add')
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
         self.expert_keyword_set.connect("activate", self.expert_keyword_import)
-        pack(vbox,[ui.Label(_("Additional keywords: ")),
-                   self.expert_keyword_set,
-                   self.expert_keyword_add])
+        pack(vbox, [
+            ui.Label(_("Additional keywords: ")), self.expert_keyword_set,
+            self.expert_keyword_add
+        ])
 
         self.expert_vbox = ui.VBox()
         vbox.pack_start(swin, True, True, 0)
@@ -1266,9 +1295,9 @@ class AIMS_Window:
         pack(vbox, ui.Label(""))
         butbox = ui.HButtonBox()
         default_but = ui.Button(_("Set Defaults"))
-        default_but.connect("clicked",self.set_defaults)
+        default_but.connect("clicked", self.set_defaults)
         import_control_but = ui.Button(_("Import control.in"))
-        import_control_but.connect("clicked",self.import_control)
+        import_control_but.connect("clicked", self.import_control)
         export_control_but = ui.Button(_("Export control.in"))
         export_control_but.connect("clicked", self.export_control)
         cancel_but = ui.Button('Cancel')
@@ -1303,7 +1332,8 @@ class AIMS_Window:
         if self.periodic:
             self.ucell = atoms.get_cell()
             for i in range(3):
-                default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+                default = np.ceil(
+                    20.0 / np.sqrt(np.vdot(self.ucell[i], self.ucell[i])))
                 self.kpts_spin[i].set_value(default)
         self.spinpol.set_active(False)
         self.moment.set_value(0)
@@ -1357,7 +1387,9 @@ class AIMS_Window:
         if param["relativistic"] == 'atomic_zora':
             param["relativistic"] += " scalar "
         if param["relativistic"] == 'zora':
-            param["relativistic"] += " scalar "+self.relativity_threshold.get_text()
+            param[
+                "relativistic"] += " scalar " + self.relativity_threshold.get_text(
+                )
         param["sc_accuracy_etot"] = self.sc_tot_energy.value
         param["sc_accuracy_eev"] = self.sc_sum_eigenvalue.value
         param["sc_accuracy_rho"] = self.sc_density.value
@@ -1365,9 +1397,10 @@ class AIMS_Window:
         param["sc_accuracy_forces"] = self.sc_forces.value
         param["run_command"] = self.run_command.get_text()
         param["species_dir"] = self.species_defaults.get_text()
-        from ase.calculators.aims import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,input_keys
+        from ase.calculators.aims import float_keys, exp_keys, string_keys, int_keys, bool_keys, list_keys, input_keys
         for option in self.expert_keywords:
-            if option[3]:   # set type of parameter according to which list it is in
+            if option[
+                    3]:  # set type of parameter according to which list it is in
                 key = option[0].get_text().strip()
                 val = option[1].get_text().strip()
                 if key == 'output':
@@ -1390,7 +1423,7 @@ class AIMS_Window:
             for i, x in enumerate(self.xc_list):
                 if x == param["xc"]:
                     self.xc.set_active(i)
-        if isinstance(param["vdw_correction_hirshfeld"],bool):
+        if isinstance(param["vdw_correction_hirshfeld"], bool):
             self.TS.set_active(param["vdw_correction_hirshfeld"])
         if self.periodic and param["k_grid"] is not None:
             self.kpts[0].value = int(param["k_grid"][0])
@@ -1404,7 +1437,7 @@ class AIMS_Window:
         if param["charge"] is not None:
             self.charge.value = param["charge"]
         if param["relativistic"] is not None:
-            if isinstance(param["relativistic"],(tuple,list)):
+            if isinstance(param["relativistic"], (tuple, list)):
                 rel = param["relativistic"]
             else:
                 rel = param["relativistic"].split()
@@ -1431,22 +1464,22 @@ class AIMS_Window:
             self.run_command.set_text(param["run_command"])
         if param["species_dir"] is not None:
             self.species_defaults.set_text(param["species_dir"])
-        for (key,val) in param.items():
+        for (key, val) in param.items():
             if key in self.aims_keyword_list and key not in self.aims_keyword_gui_list:
                 if val is not None:  # = existing "expert keyword"
                     if key == 'output':  # 'output' can be used more than once
                         options = val
-                        if isinstance(options,str):
+                        if isinstance(options, str):
                             options = [options]
                         for arg in options:
-                            self.expert_keyword_create([key]+[arg])
+                            self.expert_keyword_create([key] + [arg])
                     else:
-                        if isinstance(val,str):
-                            arg = [key]+val.split()
-                        elif isinstance(val,(tuple,list)):
-                            arg = [key]+[str(a) for a in val]
+                        if isinstance(val, str):
+                            arg = [key] + val.split()
+                        elif isinstance(val, (tuple, list)):
+                            arg = [key] + [str(a) for a in val]
                         else:
-                            arg = [key]+[str(val)]
+                            arg = [key] + [str(val)]
                         self.expert_keyword_create(arg)
 
     def ok(self, *args):
@@ -1457,8 +1490,7 @@ class AIMS_Window:
         filename = "control.in"
         chooser = ui.FileChooserDialog(
             _('Export parameters ... '), None, ui.FILE_CHOOSER_ACTION_SAVE,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Save', ui.RESPONSE_OK))
+            ('Cancel', ui.RESPONSE_CANCEL, 'Save', ui.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
         if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
@@ -1477,15 +1509,14 @@ class AIMS_Window:
         filename = "control.in"
         chooser = ui.FileChooserDialog(
             _('Import control.in file ... '), None,
-            ui.FILE_CHOOSER_ACTION_SAVE,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Save', ui.RESPONSE_OK))
+            ui.FILE_CHOOSER_ACTION_SAVE, ('Cancel', ui.RESPONSE_CANCEL, 'Save',
+                                          ui.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
         if save == ui.RESPONSE_OK:
             self.set_defaults()
             filename = chooser.get_filename()
-            control = open(filename,'r')
+            control = open(filename, 'r')
             while True:
                 line = control.readline()
                 if not line:
@@ -1515,31 +1546,39 @@ class AIMS_Window:
         chooser.destroy()
 
     def k_changed(self, *args):
-        size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
+        size = [
+            self.kpts[i].value *
+            np.sqrt(np.vdot(self.ucell[i], self.ucell[i])) for i in range(3)
+        ]
         self.kpts_label.set_text(self.kpts_label_format % tuple(size))
 
     def compute_forces_toggled(self, *args):
         self.sc_forces_spin.set_sensitive(self.compute_forces.get_active())
 
     def relativity_changed(self, *args):
-        self.relativity_threshold.set_sensitive(self.relativity_type.get_active() == 2)
+        self.relativity_threshold.set_sensitive(
+            self.relativity_type.get_active() == 2)
 
     def spinpol_changed(self, *args):
         self.moment_spin.set_sensitive(self.spinpol.get_active())
 
     def expert_keyword_import(self, *args):
         command = self.expert_keyword_set.get_text().split()
-        if len(command) > 0 and command[0] in self.aims_keyword_list and not command[0] in self.aims_keyword_gui_list:
+        if len(command) > 0 and command[
+                0] in self.aims_keyword_list and not command[
+                    0] in self.aims_keyword_gui_list:
             self.expert_keyword_create(command)
         elif command[0] in self.aims_keyword_gui_list:
-            oops(_("Please use the facilities provided in this window to "
-                   "manipulate the keyword: %s!") % command[0])
+            oops(
+                _("Please use the facilities provided in this window to "
+                  "manipulate the keyword: %s!") % command[0])
         else:
-            oops(_("Don't know this keyword: %s\n"
-                   "\nPlease check!\n\n"
-                   "If you really think it should be available, "
-                   "please add it to the top of ase/calculators/aims.py.")
-                 % command[0])
+            oops(
+                _("Don't know this keyword: %s\n"
+                  "\nPlease check!\n\n"
+                  "If you really think it should be available, "
+                  "please add it to the top of ase/calculators/aims.py.") %
+                command[0])
         self.expert_keyword_set.set_text("")
 
     def expert_keyword_create(self, command):
@@ -1547,14 +1586,15 @@ class AIMS_Window:
         argument = command[1]
         if len(command) > 2:
             for a in command[2:]:
-                argument += ' '+a
+                argument += ' ' + a
         index = len(self.expert_keywords)
-        self.expert_keywords += [[ui.Label("    " +key+"  "),
-                                  ui.Entry(max=45),
-                                  ExpertDeleteButton(index),
-                                  True]]
+        self.expert_keywords += [[
+            ui.Label("    " + key + "  "), ui.Entry(max=45),
+            ExpertDeleteButton(index), True
+        ]]
         self.expert_keywords[index][1].set_text(argument)
-        self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
+        self.expert_keywords[index][2].connect('clicked',
+                                               self.expert_keyword_delete)
         if not self.expert_vbox.get_children():
             table = ui.Table(1, 3)
             table.attach(self.expert_keywords[index][0], 0, 1, 0, 1, 0)
@@ -1566,18 +1606,21 @@ class AIMS_Window:
             table = self.expert_vbox.get_children()[0]
             nrows = table.get_property('n-rows')
             table.resize(nrows + 1, 3)
-            table.attach(self.expert_keywords[index][0], 0, 1, nrows, nrows + 1, 0)
-            table.attach(self.expert_keywords[index][1], 1, 2, nrows, nrows + 1, 0)
-            table.attach(self.expert_keywords[index][2], 2, 3, nrows, nrows + 1, 0)
+            table.attach(self.expert_keywords[index][0], 0, 1, nrows,
+                         nrows + 1, 0)
+            table.attach(self.expert_keywords[index][1], 1, 2, nrows,
+                         nrows + 1, 0)
+            table.attach(self.expert_keywords[index][2], 2, 3, nrows,
+                         nrows + 1, 0)
             table.show_all()
 
     def expert_keyword_delete(self, button, *args):
-        index = button.index   # which one to kill
-        for i in [0,1,2]:
+        index = button.index  # which one to kill
+        for i in [0, 1, 2]:
             self.expert_keywords[index][i].destroy()
         table = self.expert_vbox.get_children()[0]
         nrows = table.get_property('n-rows')
-        table.resize(nrows-1, 3)
+        table.resize(nrows - 1, 3)
         self.expert_keywords[index][3] = False
 
 
@@ -1597,14 +1640,17 @@ class VASP_Window:
     vasp_xc_list = ['PW91', 'PBE', 'LDA']
     vasp_xc_default = 'PBE'
     vasp_prec_default = 'Normal'
+
     def __init__(self, owner, param, attrname):
         self.owner = owner
         self.attrname = attrname
         atoms = owner.atoms
         self.periodic = atoms.get_pbc().all()
-        self.vasp_keyword_gui_list = ['ediff','encut', 'ismear', 'ispin', 'prec', 'sigma']
-        from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
-        self.vasp_keyword_list = float_keys+exp_keys+string_keys+int_keys+bool_keys+list_keys+special_keys
+        self.vasp_keyword_gui_list = [
+            'ediff', 'encut', 'ismear', 'ispin', 'prec', 'sigma'
+        ]
+        from ase.calculators.vasp import float_keys, exp_keys, string_keys, int_keys, bool_keys, list_keys, special_keys
+        self.vasp_keyword_list = float_keys + exp_keys + string_keys + int_keys + bool_keys + list_keys + special_keys
         self.expert_keywords = []
         natoms = len(atoms)
         ui.Window.__init__(self)
@@ -1616,7 +1662,8 @@ class VASP_Window:
         self.ucell = atoms.get_cell()
         txt += _("Periodic geometry, unit cell is: \n")
         for i in range(3):
-            txt += "(%8.3f %8.3f %8.3f)\n" % (self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
+            txt += "(%8.3f %8.3f %8.3f)\n" % (
+                self.ucell[i][0], self.ucell[i][1], self.ucell[i][2])
         pack(vbox, [ui.Label(txt)])
 
         # XC functional ()
@@ -1627,17 +1674,18 @@ class VASP_Window:
         # Spin polarized
         self.spinpol = ui.CheckButton(_("Spin polarized"))
 
-        pack(vbox, [ui.Label(_("Exchange-correlation functional: ")),
-                    self.xc,
-                    ui.Label("    "),
-                    self.spinpol])
+        pack(vbox, [
+            ui.Label(_("Exchange-correlation functional: ")), self.xc,
+            ui.Label("    "), self.spinpol
+        ])
         pack(vbox, ui.Label(""))
 
         # k-grid
         self.kpts = []
         self.kpts_spin = []
         for i in range(3):
-            default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+            default = np.ceil(20.0 /
+                              np.sqrt(np.vdot(self.ucell[i], self.ucell[i])))
             g = ui.Adjustment(default, 1, 100, 1)
             s = ui.SpinButton(g, 0, 0)
             self.kpts.append(g)
@@ -1653,23 +1701,26 @@ class VASP_Window:
 
         # cutoff energy
         if 'VASP_PP_PATH' in os.environ:
-            self.encut_min_default, self.encut_max_default = self.get_min_max_cutoff()
+            self.encut_min_default, self.encut_max_default = self.get_min_max_cutoff(
+            )
         else:
             self.encut_max_default = 400.0
             self.encut_min_default = 100.0
         self.encut = ui.Adjustment(self.encut_max_default, 0, 9999, 10)
         self.encut_spin = ui.SpinButton(self.encut, 0, 0)
         self.encut_spin.set_digits(2)
-        self.encut_spin.connect("value-changed",self.check_encut_warning)
+        self.encut_spin.connect("value-changed", self.check_encut_warning)
         self.encut_warning = ui.Label("")
 
-        pack(vbox, [ui.Label(_("k-points  k = (")), self.kpts_spin[0],
-                    ui.Label(", "), self.kpts_spin[1], ui.Label(", "),
-                    self.kpts_spin[2],
-                    ui.Label(_(")    Cutoff: ")),self.encut_spin,
-                    ui.Label(_("    Precision: ")),self.prec])
+        pack(vbox, [
+            ui.Label(_("k-points  k = (")), self.kpts_spin[0], ui.Label(", "),
+            self.kpts_spin[1], ui.Label(", "), self.kpts_spin[2],
+            ui.Label(_(")    Cutoff: ")), self.encut_spin,
+            ui.Label(_("    Precision: ")), self.prec
+        ])
         self.kpts_label = ui.Label("")
-        self.kpts_label_format = _(u"k-points x size:  (%.1f, %.1f, %.1f) Å       ")
+        self.kpts_label_format = _(
+            u"k-points x size:  (%.1f, %.1f, %.1f) Å       ")
         pack(vbox, [self.kpts_label, self.encut_warning])
         self.k_changed()
         pack(vbox, ui.Label(""))
@@ -1678,28 +1729,27 @@ class VASP_Window:
         for x in ['Fermi', 'Gauss', 'Methfessel-Paxton']:
             self.ismear.append_text(x)
         self.ismear.set_active(2)
-        self.smearing_order = ui.Adjustment(2,0,9,1)
-        self.smearing_order_spin = ui.SpinButton(self.smearing_order,0,0)
+        self.smearing_order = ui.Adjustment(2, 0, 9, 1)
+        self.smearing_order_spin = ui.SpinButton(self.smearing_order, 0, 0)
         self.smearing_order_spin.set_digits(0)
         self.ismear.connect("changed", self.check_ismear_changed)
         self.sigma = ui.Adjustment(0.1, 0.001, 9.0, 0.1)
-        self.sigma_spin = ui.SpinButton(self.sigma,0,0)
+        self.sigma_spin = ui.SpinButton(self.sigma, 0, 0)
         self.sigma_spin.set_digits(3)
-        pack(vbox, [ui.Label(_("Smearing: ")),
-                    self.ismear,
-                    ui.Label(_(" order: ")),
-                    self.smearing_order_spin,
-                    ui.Label(_(" width: ")),
-                    self.sigma_spin])
+        pack(vbox, [
+            ui.Label(_("Smearing: ")), self.ismear, ui.Label(_(" order: ")),
+            self.smearing_order_spin, ui.Label(_(" width: ")), self.sigma_spin
+        ])
         pack(vbox, ui.Label(""))
 
         self.ediff = ui.Adjustment(1e-4, 1e-6, 1e0, 1e-4)
         self.ediff_spin = ui.SpinButton(self.ediff, 0, 0)
         self.ediff_spin.set_digits(6)
-        pack(vbox,[ui.Label(_("Self-consistency convergence: ")),
-                   self.ediff_spin,
-                   ui.Label(_(" eV"))])
-        pack(vbox,ui.Label(""))
+        pack(vbox, [
+            ui.Label(_("Self-consistency convergence: ")), self.ediff_spin,
+            ui.Label(_(" eV"))
+        ])
+        pack(vbox, ui.Label(""))
 
         swin = ui.ScrolledWindow()
         swin.set_border_width(0)
@@ -1709,9 +1759,10 @@ class VASP_Window:
         self.expert_keyword_add = ui.Button('Add')
         self.expert_keyword_add.connect("clicked", self.expert_keyword_import)
         self.expert_keyword_set.connect("activate", self.expert_keyword_import)
-        pack(vbox,[ui.Label(_("Additional keywords: ")),
-                   self.expert_keyword_set,
-                   self.expert_keyword_add])
+        pack(vbox, [
+            ui.Label(_("Additional keywords: ")), self.expert_keyword_set,
+            self.expert_keyword_add
+        ])
         self.expert_vbox = ui.VBox()
         vbox.pack_start(swin, True, True, 0)
         swin.add_with_viewport(self.expert_vbox)
@@ -1869,8 +1920,7 @@ class VASP_Window:
         self.param = {}
         self.param["xc"] = self.xc.get_active_text()
         self.param["prec"] = self.prec.get_active_text()
-        self.param["kpts"] = (int(self.kpts[0].value),
-                              int(self.kpts[1].value),
+        self.param["kpts"] = (int(self.kpts[0].value), int(self.kpts[1].value),
                               int(self.kpts[2].value))
         self.param["encut"] = self.encut.value
         self.param["ediff"] = self.ediff.value
@@ -1880,9 +1930,10 @@ class VASP_Window:
             self.param["ispin"] = 2
         else:
             self.param["ispin"] = 1
-        from ase.calculators.vasp import float_keys,exp_keys,string_keys,int_keys,bool_keys,list_keys,special_keys
+        from ase.calculators.vasp import float_keys, exp_keys, string_keys, int_keys, bool_keys, list_keys, special_keys
         for option in self.expert_keywords:
-            if option[3]:   # set type of parameter accoding to which list it is in
+            if option[
+                    3]:  # set type of parameter accoding to which list it is in
                 key = option[0].get_text().split()[0].strip()
                 val = option[1].get_text().strip()
                 if key in float_keys or key in exp_keys:
@@ -1931,31 +1982,36 @@ class VASP_Window:
         calc_temp.write_potcar(suffix='.check_energy_cutoff')
         enmin = -1e6
         enmax = -1e6
-        for line in open("POTCAR.check_energy_cutoff",'r').readlines():
+        for line in open("POTCAR.check_energy_cutoff", 'r').readlines():
             if "ENMIN" in line:
-                enmax = max(enmax,float(line.split()[2].split(';')[0]))
-                enmin = max(enmin,float(line.split()[5]))
+                enmax = max(enmax, float(line.split()[2].split(';')[0]))
+                enmin = max(enmin, float(line.split()[5]))
         from os import system
         system("rm POTCAR.check_energy_cutoff")
         return enmin, enmax
 
     def k_changed(self, *args):
-        size = [self.kpts[i].value * np.sqrt(np.vdot(self.ucell[i],self.ucell[i])) for i in range(3)]
+        size = [
+            self.kpts[i].value *
+            np.sqrt(np.vdot(self.ucell[i], self.ucell[i])) for i in range(3)
+        ]
         self.kpts_label.set_text(self.kpts_label_format % tuple(size))
 
-    def check_encut_warning(self,*args):
+    def check_encut_warning(self, *args):
         if self.encut.value < self.encut_min_default:
-            self.encut_warning.set_markup(_("<b>WARNING:</b> cutoff energy is lower than recommended minimum!"))
+            self.encut_warning.set_markup(
+                _("<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
+                  ))
         else:
             self.encut_warning.set_markup("")
 
-    def check_ismear_changed(self,*args):
+    def check_ismear_changed(self, *args):
         if self.ismear.get_active_text() == 'Methfessel-Paxton':
             self.smearing_order_spin.set_sensitive(True)
         else:
             self.smearing_order_spin.set_sensitive(False)
 
-    def get_ismear(self,*args):
+    def get_ismear(self, *args):
         type = self.ismear.get_active_text()
         if type == 'Methfessel-Paxton':
             ismear_value = self.smearing_order.value
@@ -1970,7 +2026,7 @@ class VASP_Window:
         ui.Window.destroy(self)
 
     def set_defaults(self, *args):
-         # Reset fields to what they were
+        # Reset fields to what they were
         self.spinpol.set_active(False)
 
         for i, x in enumerate(['Low', 'Normal', 'Accurate']):
@@ -1987,20 +2043,20 @@ class VASP_Window:
             self.expert_vbox.remove(child)
 
         for i, x in enumerate(self.vasp_xc_list):
-                if x == self.vasp_xc_default:
-                    self.xc.set_active(i)
+            if x == self.vasp_xc_default:
+                self.xc.set_active(i)
 
-        default = np.ceil(20.0 / np.sqrt(np.vdot(self.ucell[i],self.ucell[i])))
+        default = np.ceil(20.0 /
+                          np.sqrt(np.vdot(self.ucell[i], self.ucell[i])))
         for i in range(3):
             self.kpts_spin[i].set_value(default)
 
     def import_vasp_files(self, *args):
         dirname = ""
         chooser = ui.FileChooserDialog(
-            _('Import VASP input files: choose directory ... '),
-            None, ui.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Open', ui.RESPONSE_OK))
+            _('Import VASP input files: choose directory ... '), None,
+            ui.FILE_CHOOSER_ACTION_SELECT_FOLDER, (
+                'Cancel', ui.RESPONSE_CANCEL, 'Open', ui.RESPONSE_OK))
         chooser.set_filename(dirname)
         openr = chooser.run()
         if openr == ui.RESPONSE_OK or openr == ui.RESPONSE_SAVE:
@@ -2011,10 +2067,9 @@ class VASP_Window:
     def export_vasp_files(self, *args):
         filename = ""
         chooser = ui.FileChooserDialog(
-            _('Export VASP input files: choose directory ... '),
-            None, ui.FILE_CHOOSER_ACTION_SELECT_FOLDER,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Save', ui.RESPONSE_OK))
+            _('Export VASP input files: choose directory ... '), None,
+            ui.FILE_CHOOSER_ACTION_SELECT_FOLDER, (
+                'Cancel', ui.RESPONSE_CANCEL, 'Save', ui.RESPONSE_OK))
         chooser.set_filename(filename)
         save = chooser.run()
         if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
@@ -2033,22 +2088,29 @@ class VASP_Window:
             calc_temp.write_kpoints()
             calc_temp.write_sort_file()
             from ase.io.vasp import write_vasp
-            write_vasp('POSCAR', calc_temp.atoms_sorted, symbol_count=calc_temp.symbol_count)
+            write_vasp(
+                'POSCAR',
+                calc_temp.atoms_sorted,
+                symbol_count=calc_temp.symbol_count)
         chooser.destroy()
 
     def expert_keyword_import(self, *args):
         command = self.expert_keyword_set.get_text().split()
-        if len(command) > 0 and command[0] in self.vasp_keyword_list and not command[0] in self.vasp_keyword_gui_list:
+        if len(command) > 0 and command[
+                0] in self.vasp_keyword_list and not command[
+                    0] in self.vasp_keyword_gui_list:
             self.expert_keyword_create(command)
         elif command[0] in self.vasp_keyword_gui_list:
-            oops(_("Please use the facilities provided in this window to "
-                   "manipulate the keyword: %s!") % command[0])
+            oops(
+                _("Please use the facilities provided in this window to "
+                  "manipulate the keyword: %s!") % command[0])
         else:
-            oops(_("Don't know this keyword: %s"
-                   "\nPlease check!\n\n"
-                   "If you really think it should be available, "
-                   "please add it to the top of ase/calculators/vasp.py.")
-                 % command[0])
+            oops(
+                _("Don't know this keyword: %s"
+                  "\nPlease check!\n\n"
+                  "If you really think it should be available, "
+                  "please add it to the top of ase/calculators/vasp.py.") %
+                command[0])
         self.expert_keyword_set.set_text("")
 
     def expert_keyword_create(self, command):
@@ -2058,14 +2120,15 @@ class VASP_Window:
         argument = command[1]
         if len(command) > 2:
             for a in command[2:]:
-                argument += ' '+a
+                argument += ' ' + a
         index = len(self.expert_keywords)
-        self.expert_keywords += [[ui.Label("    " +key+" = "),
-                                  ui.Entry(max=55),
-                                  ExpertDeleteButton(index),
-                                  True]]
+        self.expert_keywords += [[
+            ui.Label("    " + key + " = "), ui.Entry(max=55),
+            ExpertDeleteButton(index), True
+        ]]
         self.expert_keywords[index][1].set_text(argument)
-        self.expert_keywords[index][2].connect('clicked',self.expert_keyword_delete)
+        self.expert_keywords[index][2].connect('clicked',
+                                               self.expert_keyword_delete)
         if not self.expert_vbox.get_children():
             table = ui.Table(1, 3)
             table.attach(self.expert_keywords[index][0], 0, 1, 0, 1, 0)
@@ -2077,16 +2140,19 @@ class VASP_Window:
             table = self.expert_vbox.get_children()[0]
             nrows = table.get_property('n-rows')
             table.resize(nrows + 1, 3)
-            table.attach(self.expert_keywords[index][0], 0, 1, nrows, nrows + 1, 0)
-            table.attach(self.expert_keywords[index][1], 1, 2, nrows, nrows + 1, 0)
-            table.attach(self.expert_keywords[index][2], 2, 3, nrows, nrows + 1, 0)
+            table.attach(self.expert_keywords[index][0], 0, 1, nrows,
+                         nrows + 1, 0)
+            table.attach(self.expert_keywords[index][1], 1, 2, nrows,
+                         nrows + 1, 0)
+            table.attach(self.expert_keywords[index][2], 2, 3, nrows,
+                         nrows + 1, 0)
             table.show_all()
 
     def expert_keyword_delete(self, button, *args):
-        index = button.index   # which one to kill
-        for i in [0,1,2]:
+        index = button.index  # which one to kill
+        for i in [0, 1, 2]:
             self.expert_keywords[index][i].destroy()
         table = self.expert_vbox.get_children()[0]
         nrows = table.get_property('n-rows')
-        table.resize(nrows-1, 3)
+        table.resize(nrows - 1, 3)
         self.expert_keywords[index][3] = False

@@ -7,8 +7,8 @@ from ase.gui.widgets import pack, Help
 from ase.data.colors import jmol_colors
 from ase.atoms import Atoms
 
-
 _ = 42
+
 
 class Execute(ui.Window):
     """The Execute class provides an expert-user window for modification
@@ -22,7 +22,7 @@ class Execute(ui.Window):
 
     Please do not mix global and atom commands."""
 
-    terminal_help_txt=_("""
+    terminal_help_txt = _("""
     Global commands work on all frames or only on the current frame
     - Assignment of a global variable may not reference a local one
     - use 'Current frame' switch to switch off application to all frames
@@ -76,37 +76,42 @@ class Execute(ui.Window):
         self.textview.set_editable(False)
         self.textview.set_cursor_visible(False)
         self.sw.add(self.textview)
-        pack(vbox, self.sw, expand=True, padding = 5)
+        pack(vbox, self.sw, expand=True, padding=5)
         self.sw.set_size_request(540, 150)
         self.textview.show()
         self.add_text(_('Welcome to the ASE Expert user mode'))
         self.cmd = ui.Entry(60)
         self.cmd.connect('activate', self.execute)
         self.cmd.connect('key-press-event', self.update_command_buffer)
-        pack(vbox, [ui.Label('>>>'),self.cmd])
-        self.cmd_buffer = getattr(gui,'expert_mode_buffer',[''])
-        self.cmd_position = len(self.cmd_buffer)-1
+        pack(vbox, [ui.Label('>>>'), self.cmd])
+        self.cmd_buffer = getattr(gui, 'expert_mode_buffer', [''])
+        self.cmd_position = len(self.cmd_buffer) - 1
         self.selected = ui.CheckButton(_('Only selected atoms (sa)   '))
-        self.selected.connect('toggled',self.selected_changed)
+        self.selected.connect('toggled', self.selected_changed)
         self.images_only = ui.CheckButton(_('Only current frame (cf)  '))
-        self.images_only.connect('toggled',self.images_changed)
+        self.images_only.connect('toggled', self.images_changed)
         pack(vbox, [self.selected, self.images_only])
         save_button = ui.Button('Save')
-        save_button.connect('clicked',self.save_output)
+        save_button.connect('clicked', self.save_output)
         help_button = ui.Button('Help')
-        help_button.connect('clicked',self.terminal_help,"")
+        help_button.connect('clicked', self.terminal_help, "")
         stop_button = ui.Button('Stop')
-        stop_button.connect('clicked',self.stop_execution)
+        stop_button.connect('clicked', self.stop_execution)
         self.stop = False
-        pack(vbox, [ui.Label(_('Global: Use A, D, E, M, N, R, S, n, frame;'
-                                ' Atoms: Use a, f, m, s, x, y, z, Z     ')),
-                    stop_button, help_button, save_button], end = True)
+        pack(
+            vbox, [
+                ui.Label(
+                    _('Global: Use A, D, E, M, N, R, S, n, frame;'
+                      ' Atoms: Use a, f, m, s, x, y, z, Z     ')), stop_button,
+                help_button, save_button
+            ],
+            end=True)
         self.add(vbox)
         vbox.show()
         self.show()
         # set color mode to manual when opening this window for rgb manipulation
         self.colors = self.gui.get_colors()
-        rgb_data = self.gui.get_colors(rgb = True)
+        rgb_data = self.gui.get_colors(rgb=True)
         self.rgb_data = []  # ensure proper format of rgb_data
         for i, rgb in enumerate(rgb_data):
             self.rgb_data += [[i, rgb]]
@@ -115,9 +120,11 @@ class Execute(ui.Window):
         self.gui.colormode = 'manual'
         self.cmd.grab_focus()
 
-    def execute(self, widget=None, cmd = None):
+    def execute(self, widget=None, cmd=None):
         # global_commands = ['A','Col','D','e','E','F','frame','M','n','N','R','S']  # explicitly 'implemented' commands for use on whole system or entire single frame
-        index_commands  = ['a','b','d','f','g','m','r','rad','s','x','y','z','Z']  # commands for use on all (possibly selected) atoms
+        index_commands = [
+            'a', 'b', 'd', 'f', 'g', 'm', 'r', 'rad', 's', 'x', 'y', 'z', 'Z'
+        ]  # commands for use on all (possibly selected) atoms
 
         new = self.gui.drawing_area.window.new_gc
         alloc = self.gui.colormap.alloc_color
@@ -127,14 +134,14 @@ class Execute(ui.Window):
             cmd = self.cmd.get_text().strip()
             if len(cmd) == 0:
                 return
-            self.add_text('>>> '+cmd)
+            self.add_text('>>> ' + cmd)
             self.cmd_buffer[-1] = cmd
             self.cmd_buffer += ['']
-            setattr(self.gui,'expert_mode_buffer', self.cmd_buffer)
-            self.cmd_position = len(self.cmd_buffer)-1
+            setattr(self.gui, 'expert_mode_buffer', self.cmd_buffer)
+            self.cmd_position = len(self.cmd_buffer) - 1
             self.cmd.set_text('')
         else:
-            self.add_text('--> '+cmd)
+            self.add_text('--> ' + cmd)
 
         gui = self.gui
         img = gui.images
@@ -149,7 +156,7 @@ class Execute(ui.Window):
         else:
             indices = list(range(n))
 
-        ans = getattr(gui,'expert_mode_answers',[])
+        ans = getattr(gui, 'expert_mode_answers', [])
 
         loop_images = range(N)
         if self.images_only.get_active():
@@ -159,9 +166,11 @@ class Execute(ui.Window):
         # it is global or index based, this includes things such as 4*z and z*4
         index_based = False
         first_command = cmd.split()[0]
-        special = ['=',',','+','-','/','*',';','.','[',']','(',')',
-                   '{','}','0','1','2','3','4','5','6','7','8','9']
-        while first_command[0] in special and len(first_command)>1:
+        special = [
+            '=', ',', '+', '-', '/', '*', ';', '.', '[', ']', '(', ')', '{',
+            '}', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+        ]
+        while first_command[0] in special and len(first_command) > 1:
             first_command = first_command[1:]
         for c in special:
             if c in first_command:
@@ -170,38 +179,40 @@ class Execute(ui.Window):
             if c == first_command:
                 index_based = True
 
-        name = os.path.expanduser('~/.ase/'+cmd)
+        name = os.path.expanduser('~/.ase/' + cmd)
         # check various special commands:
-        if os.path.exists(name):   # run script from default directory
+        if os.path.exists(name):  # run script from default directory
             self.run_script(name)
-        elif cmd == 'del S':       # delete selection
+        elif cmd == 'del S':  # delete selection
             gui.delete_selected_atoms()
-        elif cmd == 'sa':          # selected atoms only
+        elif cmd == 'sa':  # selected atoms only
             self.selected.set_active(not self.selected.get_active())
-        elif cmd == 'cf':          # current frame only
+        elif cmd == 'cf':  # current frame only
             self.images_only.set_active(not self.images_only.get_active())
-        elif cmd == 'center':      # center system
+        elif cmd == 'center':  # center system
             img.center()
-        elif cmd == 'CM':          # calculate center of mass
+        elif cmd == 'CM':  # calculate center of mass
             for i in loop_images:
                 if self.stop:
                     break
-                atoms = Atoms(positions=img.P[i][indices],
-                              numbers=img.Z[indices])
+                atoms = Atoms(
+                    positions=img.P[i][indices], numbers=img.Z[indices])
                 self.add_text(repr(atoms.get_center_of_mass()))
                 ans += [atoms.get_center_of_mass()]
-        elif first_command == 'exec': # execute script
+        elif first_command == 'exec':  # execute script
             name = cmd.split()[1]
             if '~' in name:
                 name = os.path.expanduser(name)
             if os.path.exists(name):
                 self.run_script(name)
             else:
-                self.add_text(_('*** WARNING: file does not exist - %s') % name)
+                self.add_text(
+                    _('*** WARNING: file does not exist - %s') % name)
         else:
             code = compile(cmd + '\n', 'execute.py', 'single',
                            __future__.CO_FUTURE_DIVISION)
-            if index_based and len(indices) == 0 and self.selected.get_active():
+            if index_based and len(indices) == 0 and self.selected.get_active(
+            ):
                 self.add_text(_("*** WARNING: No atoms selected to work with"))
             for i in loop_images:
                 if self.stop:
@@ -230,18 +241,18 @@ class Execute(ui.Window):
                     gui.set_frame(frame)
                     if gui.movie_window is not None:
                         gui.movie_window.frame_number.value = frame
-                    img.selected      = S
-                    img.A[i]          = A
+                    img.selected = S
+                    img.A[i] = A
                     img.P[i][indices] = R
                     img.M[i][indices] = M
                 else:
-                    for n,a in enumerate(indices):
+                    for n, a in enumerate(indices):
                         if self.stop:
                             break
                         x, y, z = R[n]
                         r, g, b = Col[n][1]
                         d = D[a]
-                        f = np.vdot(F[n]*d,F[n]*d)**0.5
+                        f = np.vdot(F[n] * d, F[n] * d)**0.5
                         s = S[a]
                         Z = img.Z[a]
                         Zold = Z
@@ -260,17 +271,17 @@ class Execute(ui.Window):
                         img.dynamic[a] = d
                         if Z != Zold:
                             img.r[a] = cov[Z] * 0.89
-                            r,g,b = jmol_colors[Z]
-                        gui.colordata[a] = [a,[r,g,b]]
-                        color = tuple([int(65535*x) for x in [r,g,b]])
+                            r, g, b = jmol_colors[Z]
+                        gui.colordata[a] = [a, [r, g, b]]
+                        color = tuple([int(65535 * x) for x in [r, g, b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m
-        setattr(self.gui,'expert_mode_answers', ans)
-        gui.set_frame(frame,init=True)
+        setattr(self.gui, 'expert_mode_answers', ans)
+        gui.set_frame(frame, init=True)
 
-    def add_text(self,val):
+    def add_text(self, val):
         text_end = self.textbuffer.get_end_iter()
-        self.textbuffer.insert(text_end,val+'\n');
+        self.textbuffer.insert(text_end, val + '\n')
         if self.sw.get_vscrollbar() is not None:
             scroll = self.sw.get_vscrollbar().get_adjustment()
             scroll.set_value(scroll.get_upper())
@@ -291,8 +302,9 @@ class Execute(ui.Window):
         arrow = {ui.keysyms.Up: -1, ui.keysyms.Down: 1}.get(event.keyval, None)
         if arrow is not None:
             self.cmd_position += arrow
-            self.cmd_position = max(self.cmd_position,0)
-            self.cmd_position = min(self.cmd_position,len(self.cmd_buffer)-1)
+            self.cmd_position = max(self.cmd_position, 0)
+            self.cmd_position = min(self.cmd_position,
+                                    len(self.cmd_buffer) - 1)
             cmd = self.cmd_buffer[self.cmd_position]
             self.cmd.set_text(cmd)
             return True
@@ -302,28 +314,27 @@ class Execute(ui.Window):
     def save_output(self, *args):
         chooser = ui.FileChooserDialog(
             _('Save Terminal text ...'), None, ui.FILE_CHOOSER_ACTION_SAVE,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Save', ui.RESPONSE_OK))
+            ('Cancel', ui.RESPONSE_CANCEL, 'Save', ui.RESPONSE_OK))
         save = chooser.run()
         if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
             filename = chooser.get_filename()
             text = self.textbuffer.get_text(self.textbuffer.get_start_iter(),
                                             self.textbuffer.get_end_iter())
-            fd = open(filename,'w')
+            fd = open(filename, 'w')
             fd.write(text)
             fd.close()
             chooser.destroy()
 
     def run_script(self, name):
-        commands = open(name,'r').readlines()
+        commands = open(name, 'r').readlines()
         for c_parse in commands:
             c = c_parse.strip()
             if '#' in c:
                 c = c[:c.find('#')].strip()
             if len(c) > 0:
-                self.execute(cmd = c.strip())
+                self.execute(cmd=c.strip())
 
-    def terminal_help(self,*args):
+    def terminal_help(self, *args):
         Help(self.terminal_help_txt)
 
     def stop_execution(self, *args):

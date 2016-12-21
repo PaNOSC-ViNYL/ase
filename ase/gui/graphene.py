@@ -10,7 +10,6 @@ from ase.build import graphene_nanoribbon
 import ase
 import numpy as np
 
-
 pack = oops = cancel_apply_ok = SetupWindow = 42
 
 introtext = _("""\
@@ -24,10 +23,13 @@ from ase.build import nanotube
 atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol=%(symb)s)
 """
 
-label_template = _(""" %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
+label_template = _(
+    """ %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
+
 
 class SetupGraphene:
     "Window for setting up a graphene sheet or nanoribbon."
+
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Graphene"))
@@ -77,12 +79,13 @@ class SetupGraphene:
         self.sat_label2 = ui.Label(_("  Bond length: "))
         self.sat_label3 = ui.Label(_(u"Å"))
         self.bond_box = ui.SpinButton(self.bondlength2, 10.0, 3)
-        pack(vbox, [self.sat_label1, self.element2, self.sat_label2,
-                    self.bond_box, self.sat_label3])
+        pack(vbox, [
+            self.sat_label1, self.element2, self.sat_label2, self.bond_box,
+            self.sat_label3
+        ])
 
         self.elementinfo = ui.Label("")
-        self.elementinfo.modify_fg(ui.STATE_NORMAL,
-                                   '#FF0000')
+        self.elementinfo.modify_fg(ui.STATE_NORMAL, '#FF0000')
         pack(vbox, [self.elementinfo])
         pack(vbox, ui.Label(""))
 
@@ -104,13 +107,12 @@ class SetupGraphene:
         pack(vbox, ui.Label(""))
 
         self.status = ui.Label("")
-        pack(vbox,[self.status])
-        pack(vbox,[ui.Label("")])
+        pack(vbox, [self.status])
+        pack(vbox, [ui.Label("")])
 
         # Buttons
-        buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
-                               apply=self.apply,
-                               ok=self.ok)
+        buts = cancel_apply_ok(
+            cancel=lambda widget: self.destroy(), apply=self.apply, ok=self.ok)
         pack(vbox, [buts], end=True, bottom=True)
 
         # Finalize setup
@@ -191,7 +193,8 @@ class SetupGraphene:
                                           self.legal_element2 is None):
             self.atoms = None
             self.pybut.python = None
-            self.status.set_markup(_("Please specify a consistent set of atoms. "))
+            self.status.set_markup(
+                _("Please specify a consistent set of atoms. "))
         else:
             n = int(self.n.value)
             m = int(self.m.value)
@@ -201,23 +204,31 @@ class SetupGraphene:
             elem = self.legal_element
             if self.struct.get_active() == 0:
                 # Extended sheet
-                self.atoms = graphene_nanoribbon(n, m, type=orient, C_C=CC,
-                                                 vacc=vacuum, sheet=True,
-                                                 main_element=elem)
+                self.atoms = graphene_nanoribbon(
+                    n,
+                    m,
+                    type=orient,
+                    C_C=CC,
+                    vacc=vacuum,
+                    sheet=True,
+                    main_element=elem)
             elif self.struct.get_active() == 1:
                 # Unsaturated nanoribbon
-                self.atoms = graphene_nanoribbon(n, m, type=orient, C_C=CC,
-                                                 vacc=vacuum,
-                                                 main_element=elem)
+                self.atoms = graphene_nanoribbon(
+                    n, m, type=orient, C_C=CC, vacc=vacuum, main_element=elem)
             elif self.struct.get_active() == 2:
                 # Saturated nanoribbon
                 elem2 = self.legal_element2
-                self.atoms = graphene_nanoribbon(n, m, type=orient, C_C=CC,
-                                                 C_H=self.bondlength2.value,
-                                                 vacuum=vacuum,
-                                                 saturated=True,
-                                                 main_element=elem,
-                                                 saturate_element=elem2)
+                self.atoms = graphene_nanoribbon(
+                    n,
+                    m,
+                    type=orient,
+                    C_C=CC,
+                    C_H=self.bondlength2.value,
+                    vacuum=vacuum,
+                    saturated=True,
+                    main_element=elem,
+                    saturate_element=elem2)
             else:
                 raise RuntimeError("Unknown structure in SetupGraphene!")
 
@@ -225,17 +236,19 @@ class SetupGraphene:
         pos = self.atoms.get_positions()
         cell = self.atoms.get_cell()
         pbc = self.atoms.get_pbc()
-        cell[1,1], cell[2,2] = cell[2,2], cell[1,1]
-        x = pos[:,1].copy()
-        z = pos[:,2].copy()
-        pos[:,1] = z
-        pos[:,2] = x
+        cell[1, 1], cell[2, 2] = cell[2, 2], cell[1, 1]
+        x = pos[:, 1].copy()
+        z = pos[:, 2].copy()
+        pos[:, 1] = z
+        pos[:, 2] = x
         self.atoms.set_cell(cell)
         self.atoms.set_positions(pos)
         self.atoms.set_pbc([pbc[0], pbc[2], pbc[1]])
-        label = label_template % {'natoms'  : len(self.atoms),
-                                  'symbols' : formula(self.atoms.get_atomic_numbers()),
-                                  'volume'  : np.inf}
+        label = label_template % {
+            'natoms': len(self.atoms),
+            'symbols': formula(self.atoms.get_atomic_numbers()),
+            'volume': np.inf
+        }
         self.status.set_markup(label)
 
     def apply(self, *args):
@@ -244,9 +257,10 @@ class SetupGraphene:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(_("No valid atoms."),
-                 _("You have not (yet) specified a consistent set of "
-                   "parameters."))
+            oops(
+                _("No valid atoms."),
+                _("You have not (yet) specified a consistent set of "
+                  "parameters."))
             return False
 
     def ok(self, *args):
