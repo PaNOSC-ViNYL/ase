@@ -891,7 +891,7 @@ class GUI(View, Status):
             (_('_Tools'),
              [M(_('Graphs ...'), self.plot_graphs),
               M(_('Movie ...'), self.movie),
-              M(_('Expert mode ...'), self.execute, 'Ctrl+E'),
+              M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
               M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M', False),
@@ -902,15 +902,12 @@ class GUI(View, Status):
 
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             (_('_Setup'),
-             [M(_('_Bulk Crystal'),
-                self.bulk_window),
-              M(_('_Surface slab'),
-                self.surface_window),
+             [M(_('_Bulk Crystal'), self.bulk_window, disabled=True),
+              M(_('_Surface slab'), self.surface_window, disabled=True),
               M(_('_Nanoparticle'),
                 self.nanoparticle_window),
               M(_('Nano_tube'), self.nanotube_window),
-              M(_('Graphene'),
-                self.graphene_window)]),
+              M(_('Graphene'), self.graphene_window, disabled=True)]),
 
             (_('_Calculate'),
              [M(_('Set _Calculator'), self.calculator_window, disabled=True),

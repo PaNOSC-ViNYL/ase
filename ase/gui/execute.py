@@ -1,5 +1,4 @@
 import __future__
-import gtk
 import ase.gui.ui as ui
 import os.path
 import numpy as np
@@ -9,18 +8,20 @@ from ase.data.colors import jmol_colors
 from ase.atoms import Atoms
 
 
+_ = 42
+
 class Execute(ui.Window):
     """The Execute class provides an expert-user window for modification
     and evaluation of system properties with a simple one-line command
     structure.
-    
+
     There are two types of commands, one set only applies to the global image
     and one set applies to all atoms. If the command line contains any of the
     atom commands, then it is executed separately for all atoms and for all
     images. Otherwise it is executed only once per image.
 
     Please do not mix global and atom commands."""
-    
+
     terminal_help_txt=_("""
     Global commands work on all frames or only on the current frame
     - Assignment of a global variable may not reference a local one
@@ -61,7 +62,7 @@ class Execute(ui.Window):
     <c>gui</c>:\tadvanced: ase-gui window python object
     <c>img</c>:\tadvanced: ase-gui images object
     """)
-    
+
     def __init__(self, gui):
         ui.Window.__init__(self)
         self.gui = gui
@@ -115,7 +116,7 @@ class Execute(ui.Window):
         self.cmd.grab_focus()
 
     def execute(self, widget=None, cmd = None):
-        global_commands = ['A','Col','D','e','E','F','frame','M','n','N','R','S']  # explicitly 'implemented' commands for use on whole system or entire single frame
+        # global_commands = ['A','Col','D','e','E','F','frame','M','n','N','R','S']  # explicitly 'implemented' commands for use on whole system or entire single frame
         index_commands  = ['a','b','d','f','g','m','r','rad','s','x','y','z','Z']  # commands for use on all (possibly selected) atoms
 
         new = self.gui.drawing_area.window.new_gc
@@ -219,7 +220,7 @@ class Execute(ui.Window):
                 else:
                     fmax = None
                 frame = gui.frame
-            
+
                 if not index_based:
                     try:
                         self.add_text(repr(eval(cmd)))
@@ -246,6 +247,7 @@ class Execute(ui.Window):
                         Zold = Z
                         m = M[n]
                         rad = img.r[a]
+                        e, f, fmax, E  # silence pyflakes
                         try:
                             self.add_text(repr(eval(cmd)))
                             ans += [eval(cmd)]
@@ -272,7 +274,7 @@ class Execute(ui.Window):
         if self.sw.get_vscrollbar() is not None:
             scroll = self.sw.get_vscrollbar().get_adjustment()
             scroll.set_value(scroll.get_upper())
-        
+
     def selected_changed(self, *args):
         if self.selected.get_active():
             self.add_text(_('*** Only working on selected atoms'))
@@ -320,11 +322,11 @@ class Execute(ui.Window):
                 c = c[:c.find('#')].strip()
             if len(c) > 0:
                 self.execute(cmd = c.strip())
-            
+
     def terminal_help(self,*args):
         Help(self.terminal_help_txt)
 
     def stop_execution(self, *args):
         self.stop = True
-        
+
     python = execute

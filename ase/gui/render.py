@@ -8,6 +8,9 @@ from os import system
 import numpy as np
 
 
+pack = oops = Help = 42
+
+
 class Render:
     finish_list = ['ase2','ase3','glass','simple','pale','intermediate','vmd','jmol']
     cameras = ['orthographic','perspective','ultra_wide_angle']

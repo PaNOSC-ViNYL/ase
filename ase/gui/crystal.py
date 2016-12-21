@@ -5,12 +5,12 @@
 from gettext import gettext as _
 
 import ase.gui.ui as ui
-from ase.gui.widgets import pybutton
 from ase.gui.status import formula
 from ase.spacegroup import crystal, Spacegroup
 
 import ase
 
+pack = oops = cancel_apply_ok = PyButton = SetupWindow = 42
 
 introtext = _("""\
   Use this dialog to create crystal lattices. First select the structure,

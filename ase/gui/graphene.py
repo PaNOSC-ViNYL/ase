@@ -10,6 +10,9 @@ from ase.build import graphene_nanoribbon
 import ase
 import numpy as np
 
+
+pack = oops = cancel_apply_ok = SetupWindow = 42
+
 introtext = _("""\
 Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may
 optionally be saturated with hydrogen (or another element).\
