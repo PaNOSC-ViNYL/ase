@@ -113,7 +113,7 @@ def read_vca_synth_block(filename, species_number=None):
         lines = f.readlines()
     lines = lines[1:-1]
 
-    if not species_number is None:
+    if species_number is not None:
         lines[0] = '%d\n' % species_number
 
     block = ''.join(lines).strip()

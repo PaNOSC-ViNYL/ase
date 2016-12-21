@@ -19,9 +19,9 @@ Environment variables
 =====================
 
 The environment variable :envvar:`SIESTA_COMMAND` must hold the command
-to invoke the siesta calculation. The variable must be a python format 
+to invoke the siesta calculation. The variable must be a python format
 string with exactly two string fields for the input and output files.
-Examples: "siesta < %s > %s", "mpirun -np 4 /bin/siesta3.2 < %s > %s".
+Examples: ``siesta < %s > %s``, ``mpirun -np 4 /bin/siesta3.2 < %s > %s``.
 
 A default directory holding pseudopotential files :file:`.vps/.psf` can be
 defined to avoid defining this every time the calculator is used.
@@ -34,12 +34,12 @@ Set both environment variables in your shell configuration file:
 
 ::
 
-  $ export SIESTA_COMMAND="siesta < ./%s > ./%s
+  $ export SIESTA_COMMAND="siesta < ./%s > ./%s"
   $ export SIESTA_PP_PATH=$HOME/mypps
 
 .. highlight:: python
 
-Alternatively, the path to the pseudopotentials can be given in 
+Alternatively, the path to the pseudopotentials can be given in
 the calculator initialization.
 
 ===================== ========= ============= =====================================
@@ -52,7 +52,7 @@ keyword               type      default value description
 SIESTA Calculator
 =================
 
-These parameters are set explicitly and overrides the native values if different.  
+These parameters are set explicitly and overrides the native values if different.
 
 ==================== ========= ============= =====================================
 keyword              type      default value description
@@ -150,7 +150,7 @@ element and the tag set on the atom.
 For instance if we wish to investigate a H2 molecule and put a ghost atom
 (the basis set corresponding to an atom but without the actual atom) in the middle
 with a special type of basis you would write:
-    
+
 >>> from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
 >>> from ase import Atoms
 >>> from ase.calculators.siesta import Siesta
@@ -173,9 +173,9 @@ with a special type of basis you would write:
 >>>         Specie(symbol='H', tag=1, basis_set=basis_set, ghost=True)])
 >>>
 >>> atoms.set_calculator(siesta)
- 
-When more species are defined, species defined with a tag has the highest priority. 
-General species with ``tag=None`` has a lower priority. 
+
+When more species are defined, species defined with a tag has the highest priority.
+General species with ``tag=None`` has a lower priority.
 Finally, if no species apply
 to an atom, the general calculator keywords are used.
 
@@ -185,7 +185,7 @@ Pseudopotentials
 
 Pseudopotential files in the ``.psf`` or ``.vps`` formats are needed.
 Pseudopotentials generated from the ABINIT code and converted to
-the SIESTA format are available in the `SIESTA`_ website. 
+the SIESTA format are available in the `SIESTA`_ website.
 A database of user contributed pseudopotentials is also available there.
 
 You can also find an on-line pseudopotential generator_ from the
@@ -198,9 +198,9 @@ Species can also be used to specify pseudopotentials:
 
 >>> specie = Specie(symbol='H', tag=1, pseudopotential='H.example.psf')
 
-When specifying the pseudopotential in this manner, both absolute 
+When specifying the pseudopotential in this manner, both absolute
 and relative paths can be given.
-Relative paths are considered relative to the default 
+Relative paths are considered relative to the default
 pseudopotential path.
 
 Restarting from an old Calculation

@@ -701,8 +701,8 @@ class BaseSiesta(FileIOCalculator):
                 line = lines.next()
                 self.results['free_energy'] = float(line.split()[-1])
 
-        if not 'energy' in self.results or \
-                not 'free_energy' in self.results:
+        if ('energy' not in self.results or
+            'free_energy' not in self.results):
             raise RuntimeError
 
     def read_forces_stress(self):
