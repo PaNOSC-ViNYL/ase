@@ -1,6 +1,3 @@
-import pickle
-import subprocess
-import sys
 from gettext import gettext as _
 
 import ase.gui.ui as ui
