@@ -2,11 +2,17 @@
 
 from __future__ import print_function
 
+import os
+
 from ase import Atom
 from ase.build import bulk
 from ase.calculators.lammpslib import LAMMPSlib
 
-cmds = ["pair_style eam/alloy", "pair_coeff * * NiAlH_jea.eam.alloy Ni H"]
+potential_path = os.environ.get('LAMMPS_POTENTIALS_PATH', '.')
+
+cmds = ["pair_style eam/alloy",
+        "pair_coeff * * {path}/NiAlH_jea.eam.alloy Ni H"
+        "".format(path=potential_path)]
 
 nickel = bulk('Ni', cubic=True)
 nickel += Atom('H', position=nickel.cell.diagonal()/2)

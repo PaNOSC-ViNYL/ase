@@ -7,7 +7,6 @@ import operator
 import re
 
 import numpy as np
-from lammps import lammps
 from numpy.linalg import norm
 
 import ase.units
@@ -569,6 +568,10 @@ End LAMMPSlib Interface Documentation
         self.initialise_lammps(atoms)
 
     def start_lammps(self):
+        # Only import lammps when running a calculation
+        # so it is not required to use other parts of the
+        # module
+        from lammps import lammps
         # start lammps process
         if self.parameters.log_file is None:
             cmd_args = ['-echo', 'log', '-log', 'none', '-screen', 'none',
