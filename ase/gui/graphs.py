@@ -33,9 +33,10 @@ class Graphs:
         self.expr = ui.Entry('', 50, self.plot)
         win.add([self.expr, ui.helpbutton(graph_help_text)])
 
-        win.add([ui.Button(_('Plot'), self.plot, 'xy'), ' x, y1, y2, ...'], 'w')
-        win.add([ui.Button(_('Plot'), self.plot, 'y'), ' y1, y2, ...'], 'w')
-
+        win.add([ui.Button(_('Plot'), self.plot, 'xy'),
+                 ' x, y1, y2, ...'], 'w')
+        win.add([ui.Button(_('Plot'), self.plot, 'y'),
+                 ' y1, y2, ...'], 'w')
         win.add([ui.Button(_('Save'), self.save),
                  ui.Button(_('Clear'), self.clear)], 'w')
 
@@ -49,14 +50,8 @@ class Graphs:
 
         data = self.gui.images.graph(expr)
 
-        import matplotlib
-        matplotlib.use('TkAgg')
-
-        process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
-                                   stdin=subprocess.PIPE)
-        pickle.dump((data, self.gui.frame, expr, type), process.stdin)
-        process.stdin.close()
-        self.gui.graphs.append(process)
+        fig = make_plot(data, self.gui.frame, expr, type)
+        self.gui.graphs.append(fig)
 
     def save(self, filename):
         chooser = ui.FileChooserDialog(
@@ -80,15 +75,16 @@ class Graphs:
         chooser.destroy()
 
     def clear(self):
-        for process in self.gui.graphs:
-            process.terminate()
+        import matplotlib.pyplot as plt
+        for fig in self.gui.graphs:
+            plt.close(fig)
         self.gui.graphs = []
 
 
 def make_plot(data, i, expr, type):
     import matplotlib.pyplot as plt
     x = 4
-    plt.figure(figsize=(x * 2.5**0.5, x))
+    fig = plt.figure(figsize=(x * 2.5**0.5, x))
     m = len(data)
 
     if type is None:
@@ -107,10 +103,4 @@ def make_plot(data, i, expr, type):
             plt.plot([data[0, i]], [data[j, i]], 'o')
     plt.title(expr)
     plt.show()
-
-
-if __name__ == '__main__':
-    fd = sys.stdin
-    if sys.version_info[0] > 2:
-        fd = fd.buffer
-    make_plot(*pickle.load(fd))
+    return fig

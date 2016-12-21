@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from ase.neb import NEBtools
 
 
