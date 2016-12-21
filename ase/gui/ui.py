@@ -4,12 +4,13 @@ try:
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
     from tkinter.messagebox import showerror as oops
-    from tkinter.filedialog import LoadFileDialog
+    from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
     import Tkinter as tk
     import ttk
     from tkMessageBox import askokcancel as ask_question
+    from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
 from functools import partial
@@ -20,7 +21,7 @@ import numpy as np
 from ase.utils import basestring
 
 __all__ = [
-    'oops', 'ask_question', 'MainWindow',
+    'oops', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
     'SpinBox', 'Text']

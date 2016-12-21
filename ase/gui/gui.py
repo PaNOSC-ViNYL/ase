@@ -806,8 +806,8 @@ class GUI(View, Status):
     def new(self):
         os.system('ase-gui &')
 
-    def save(self):
-        save_dialog(self)
+    def save(self, key=None):
+        return save_dialog(self)
 
     def get_menu_data(self, show_unit_cell, show_bonds):
         M = ui.MenuItem

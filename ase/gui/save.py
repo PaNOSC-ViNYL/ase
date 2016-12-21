@@ -1,38 +1,32 @@
 """Dialog for saving one or more configurations."""
-import os
+
+from gettext import gettext as _
 
 import numpy as np
-import ase.gui.ui as ui
 
+import ase.gui.ui as ui
 from ase.io.formats import (write, parse_filename, get_ioformat, string2index,
                             filetype)
 
 
+text = _("""\
+Append name with "@n" in order to write image
+number "n" instead of the current image. Append
+"@start:stop" or "@start:stop:step" if you want
+to write a range of images. You can leave out
+"start" and "stop" so that "name@:" will give
+you all images. Negative numbers count from the
+last image. Examples: "name@-1": last image,
+"name@-2:": last two.""")
+
+
 def save_dialog(gui):
-    dialog = ui.FileChooserDialog(_('Save ...'),
-                                   None,
-                                   ui.FILE_CHOOSER_ACTION_SAVE,
-                                   ('Save', ui.RESPONSE_OK,
-                                    'Cancel', ui.RESPONSE_CANCEL))
-    dialog.set_current_name('')
-    dialog.set_current_folder(os.getcwd())
-    text = _('Append name with "@n" in order to write image number "n" '
-             'instead of the current image.\n'
-             'Append "@start:stop" or "@start:stop:step" if you want to write '
-             'a range of images.\n'
-             'You can leave out "start" and "stop" so that "name@:" will '
-             'give you all images.\n'
-             'Negative numbers count from the last image '
-             '("name@-1": last image, "name@-2:": last two).')
-    dialog.set_extra_widget(ui.Label(text))
-    response = dialog.run()
-    if response == ui.RESPONSE_OK:
-        filename = dialog.get_filename()
-        dialog.destroy()
-    else:
-        dialog.destroy()
+    dialog = ui.SaveFileDialog(gui.window.win, _('Save ...'))
+    ui.Text(text).pack(dialog)
+    filename = dialog.go()
+    if not filename:
         return
-        
+
     filename, index = parse_filename(filename)
     if index is None:
         index = slice(gui.frame, gui.frame + 1)
@@ -40,7 +34,7 @@ def save_dialog(gui):
         index = string2index(index)
     format = filetype(filename, read=False)
     io = get_ioformat(format)
-    
+
     extra = {}
     remove_hidden = False
     if format in ['png', 'eps', 'pov']:
@@ -57,7 +51,7 @@ def save_dialog(gui):
 
     images = [gui.images.get_atoms(i, remove_hidden=remove_hidden)
               for i in range(*index.indices(gui.images.nimages))]
-    
+
     if len(images) > 1 and io.single:
         # We want to write multiple images, but the file format does not
         # support it.  The solution is to write multiple files, inserting

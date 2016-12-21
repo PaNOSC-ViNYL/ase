@@ -574,8 +574,9 @@ class View:
                         self.arrow(X[a], X[a] + V[a])
 
                 if self.light_green_markings and self.atoms_to_rotate_0[a]:
-                    arc(self.green, False, A[a, 0] + 2, A[a, 1] + 2,
-                        ra - 4, ra - 4, 0, 23040)
+                    circle(self.green, False,
+                           A[a, 0] + 1, A[a, 1] + 1,
+                           A[a, 0] + ra - 1, A[a, 1] + ra - 1)
             else:
                 # Draw unit cell and/or bonds:
                 a -= n
