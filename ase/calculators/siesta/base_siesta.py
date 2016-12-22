@@ -723,7 +723,6 @@ class BaseSiesta(FileIOCalculator):
         'H_sparse', 'S_sparse', 'aB2RaB_sparse', 'total_elec_charge', 'temp'
         """
 
-        import collections
         import warnings
         from import_functions import readHSX
 
@@ -744,7 +743,6 @@ class BaseSiesta(FileIOCalculator):
         'nnonzero', 'natoms_interacting'
         """
 
-        import collections
         import warnings
         from import_functions import readDIM
 
@@ -765,7 +763,6 @@ class BaseSiesta(FileIOCalculator):
         'atm2shift', 'coord_sc', 'cell', 'nunit_cells'
         """
 
-        import collections
         import warnings
         from import_functions import readPLD
 
@@ -784,7 +781,6 @@ class BaseSiesta(FileIOCalculator):
         Return a namedtuple with the following arguments:
         """
 
-        import collections
         import warnings
         from import_functions import readWFSX
 
