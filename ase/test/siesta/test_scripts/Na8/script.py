@@ -1,7 +1,6 @@
 """Example, in order to run you must place a pseudopotential 'Na.psf' in
 the folder"""
 
-import os
 from ase.units import Ry, eV
 from ase.calculators.siesta import Siesta
 from ase import Atoms
