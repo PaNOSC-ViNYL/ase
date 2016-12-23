@@ -461,14 +461,6 @@ class Atoms(object):
     def set_chemical_symbols(self, symbols):
         """Set chemical symbols."""
         self.set_array('numbers', symbols2numbers(symbols), int, ())
-        
-    def get_number_species(self):
-        """Get the number of species"""
-        species = []
-        for Z in self.arrays['numbers']:
-            if chemical_symbols[Z] not in species:
-                species.append(chemical_symbols[Z])
-        return len(species)
 
     def get_chemical_formula(self, mode='hill'):
         """Get the chemial formula as a string based on the chemical symbols.
