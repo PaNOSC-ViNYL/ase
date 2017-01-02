@@ -678,18 +678,23 @@ class GUI(View, Status):
         return found
 
     def neb(self):
-        from ase.gui.neb import NudgedElasticBand
-        NudgedElasticBand(self.images)
+        from ase.neb import NEBtools
+        nebtools = NEBtools(self.images)
+        fig = nebtools.plot_band()
+        fig.show()
+        self.graphs.append(fig)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
-                                    '--plot', '-'],
-                                   stdin=subprocess.PIPE)
-        v = np.array([abs(np.linalg.det(A)) for A in self.images.A])
+        import matplotlib.pyplot as plt
+        from ase.eos import EquationOfState as EOS
+        v = [abs(np.linalg.det(A)) for A in self.images.A]
         e = self.images.E
-        pickle.dump((v, e), process.stdin)
-        process.stdin.close()
-        self.graphs.append(process)
+        eos = EOS(v, e)
+        fig = plt.figure(figsize=(9, 5))
+        ax = fig.add_subplot(111)
+        eos.plot(show=True, ax=ax)
+        self.graphs.append(fig)
+        return eos
 
     def open(self, button=None):
         from ase.io.formats import all_formats, get_ioformat
@@ -799,8 +804,9 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, event=None):
-        for process in self.graphs:
-            process.terminate()
+        import matplotlib.pyplot as plt
+        for graph in self.graphs:
+            plt.close(graph)
         self.window.close()
 
     def new(self):
