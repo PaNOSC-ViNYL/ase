@@ -61,7 +61,11 @@ def nanotube(gui):
 
 @test
 def nanopartickle(gui):
-    gui.nanoparticle_window()
+    n = gui.nanoparticle_window()
+    n.element.symbol = 'Cu'
+    n.apply()
+    n.set_structure_data()
+    assert gui.images.natoms == 675
 
 
 @test

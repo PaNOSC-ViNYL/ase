@@ -739,7 +739,7 @@ class GUI(View, Status):
         SetupSurfaceSlab(self)
 
     def nanoparticle_window(self):
-        SetupNanoparticle(self)
+        return SetupNanoparticle(self)
 
     def graphene_window(self, menuitem):
         SetupGraphene(self)

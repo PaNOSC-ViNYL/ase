@@ -19,6 +19,10 @@ class Element(list):
         self.check()
         return self._symbol
 
+    @symbol.setter
+    def symbol(self, value):
+        self[1].value = value
+
     @property
     def Z(self):
         self.check()

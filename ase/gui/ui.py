@@ -320,6 +320,10 @@ class ComboBox(Widget):
     def value(self):
         return self.values[self.widget.current()]
 
+    @value.setter
+    def value(self, val):
+        self.widget.current(self.values.index(val))
+
 
 class Rows(Widget):
     def __init__(self, rows=None):
