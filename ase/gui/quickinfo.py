@@ -45,10 +45,10 @@ def info(gui):
             imgtxt = singleimage
         else:
             imgtxt = multiimage % (img, nimg - 1)
-        
+
         periodic = [[_('no'), _('yes')][periodic]
                     for periodic in images.pbc]
-        
+
         # TRANSLATORS: This has the form Periodic: no, no, yes
         pbcstring = _('Periodic: %s, %s, %s') % tuple(periodic)
         txt = format % ((imgtxt, natoms) + tuple(uc.flat) +

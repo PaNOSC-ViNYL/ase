@@ -20,7 +20,8 @@ optionally be saturated with hydrogen (or another element).\
 py_template = """
 from ase.build import nanotube
 
-atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, symbol=%(symb)s)
+atoms = nanotube(%(n)i, %(m)i, length=%(length)i, bond=%(bl).3f, \
+symbol=%(symb)s)
 """
 
 label_template = _(
@@ -61,7 +62,7 @@ class SetupGraphene:
 
         # Choose the element and bond length
         label1 = ui.Label("Element: ")
-        #label.set_alignment(0.0, 0.2)
+        # label.set_alignment(0.0, 0.2)
         self.element = ui.Entry(max=3)
         self.element.set_text("C")
         self.bondlength = ui.Adjustment(1.42, 0.0, 1000.0, 0.01)
@@ -72,7 +73,7 @@ class SetupGraphene:
 
         # Choose the saturation element and bond length
         self.sat_label1 = ui.Label(_("Saturation: "))
-        #label.set_alignment(0.0, 0.2)
+        # label.set_alignment(0.0, 0.2)
         self.element2 = ui.Entry(max=3)
         self.element2.set_text(_("H"))
         self.bondlength2 = ui.Adjustment(1.12, 0.0, 1000.0, 0.01)

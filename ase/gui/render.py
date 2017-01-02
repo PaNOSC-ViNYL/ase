@@ -243,9 +243,8 @@ class Render:
                 self.materials[-1][6], self.materials[-1][7]
             ])
         else:
-            oops(
-                _("Can not create new texture! Must have some atoms selected to create a new material!"
-                  ))
+            oops(_('Can not create new texture! Must have some atoms selected '
+                   'to create a new material!'))
 
     def delete_material(self, button, index, *args):
         n = index["n"]

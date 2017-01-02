@@ -109,7 +109,8 @@ class Execute(ui.Window):
         self.add(vbox)
         vbox.show()
         self.show()
-        # set color mode to manual when opening this window for rgb manipulation
+        # set color mode to manual when opening this window for rgb
+        # manipulation
         self.colors = self.gui.get_colors()
         rgb_data = self.gui.get_colors(rgb=True)
         self.rgb_data = []  # ensure proper format of rgb_data
@@ -121,7 +122,10 @@ class Execute(ui.Window):
         self.cmd.grab_focus()
 
     def execute(self, widget=None, cmd=None):
-        # global_commands = ['A','Col','D','e','E','F','frame','M','n','N','R','S']  # explicitly 'implemented' commands for use on whole system or entire single frame
+        # global_commands = ['A','Col','D','e','E','F','frame','M','n',
+        #                    'N','R','S']
+        # explicitly 'implemented' commands for use on whole system or
+        # entire single frame
         index_commands = [
             'a', 'b', 'd', 'f', 'g', 'm', 'r', 'rad', 's', 'x', 'y', 'z', 'Z'
         ]  # commands for use on all (possibly selected) atoms

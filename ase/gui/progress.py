@@ -20,8 +20,8 @@ class DummyProgressIndicator:
 
 class DefaultProgressIndicator:
     "Window for reporting progress."
-    waittime = 3  # Time (in sec) after which a progress bar appears.
-    updatetime = 0.1  # Minimum time (in sec) between updates of the progress bars.
+    waittime = 3  # time (in sec) after which a progress bar appears
+    updatetime = 0.1  # min time (in sec) between updates of the progress bars
 
     def __init__(self):
         ui.Window.__init__(self)
@@ -240,7 +240,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
             bar.set_text(_("No info"))
 
     def gpaw_write(self, txt):
-        #if not self.active:
+        # if not self.active:
         #    self.begin()
         sys.stdout.write(txt)
         versearch = re.search("\|[ |_.]+([0-9]+\.[0-9]+\.[0-9]+)", txt)

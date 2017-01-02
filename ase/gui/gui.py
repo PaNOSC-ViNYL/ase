@@ -3,7 +3,6 @@ import os
 import sys
 import weakref
 import pickle
-import subprocess
 from functools import partial
 from gettext import gettext as _
 

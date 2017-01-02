@@ -839,7 +839,7 @@ class GPAW_Window:
         self.natoms = len(atoms)
 
         vbox = ui.VBox()
-        #label = ui.Label("Specify the GPAW parameters here")
+        # label = ui.Label("Specify the GPAW parameters here")
         #pack(vbox, [label])
 
         # Print some info
@@ -1137,8 +1137,12 @@ class AIMS_Window:
             self.periodic = True
         else:
             aims_periodic_warning = False
-        from ase.calculators.aims import float_keys, exp_keys, string_keys, int_keys, bool_keys, list_keys, input_keys
-        self.aims_keyword_list = float_keys + exp_keys + string_keys + int_keys + bool_keys + list_keys + input_keys
+        from ase.calculators.aims import (float_keys, exp_keys, string_keys,
+                                          int_keys, bool_keys, list_keys,
+                                          input_keys)
+        self.aims_keyword_list = (float_keys + exp_keys + string_keys +
+                                  int_keys + bool_keys + list_keys +
+                                  input_keys)
         self.expert_keywords = []
 
         natoms = len(atoms)
@@ -1387,9 +1391,8 @@ class AIMS_Window:
         if param["relativistic"] == 'atomic_zora':
             param["relativistic"] += " scalar "
         if param["relativistic"] == 'zora':
-            param[
-                "relativistic"] += " scalar " + self.relativity_threshold.get_text(
-                )
+            param["relativistic"] += (" scalar " +
+                                      self.relativity_threshold.get_text())
         param["sc_accuracy_etot"] = self.sc_tot_energy.value
         param["sc_accuracy_eev"] = self.sc_sum_eigenvalue.value
         param["sc_accuracy_rho"] = self.sc_density.value
@@ -1397,10 +1400,12 @@ class AIMS_Window:
         param["sc_accuracy_forces"] = self.sc_forces.value
         param["run_command"] = self.run_command.get_text()
         param["species_dir"] = self.species_defaults.get_text()
-        from ase.calculators.aims import float_keys, exp_keys, string_keys, int_keys, bool_keys, list_keys, input_keys
+        from ase.calculators.aims import (float_keys, exp_keys, string_keys,
+                                          int_keys, bool_keys, list_keys,
+                                          input_keys)
         for option in self.expert_keywords:
-            if option[
-                    3]:  # set type of parameter according to which list it is in
+            if option[3]:
+                # Set type of parameter according to which list it is in
                 key = option[0].get_text().strip()
                 val = option[1].get_text().strip()
                 if key == 'output':

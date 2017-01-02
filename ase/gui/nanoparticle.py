@@ -305,7 +305,7 @@ class SetupNanoparticle:
 
     def update_structure(self, s):
         'Called when the user changes the structure.'
-        #s = self.structure.value
+        # s = self.structure.value
         if s != self.old_structure:
             old4 = self.fourindex
             self.fourindex = self.needs_4index[s]

@@ -310,7 +310,7 @@ class View:
         self.set_coordinates()
 
     def toggle_show_velocities(self):
-        self.show_vectors(10 * self.images.V) # XXX hard coded scale is ugly
+        self.show_vectors(10 * self.images.V)  # XXX hard coded scale is ugly
         self.draw()
 
     def toggle_show_forces(self):
@@ -489,7 +489,7 @@ class View:
                 # XXX there must be a better way
                 tupl = [tuple(i) for i in tupl]
 
-                return self.pixmap.draw_polygon( gc, fill, tupl)
+                return self.pixmap.draw_polygon(gc, fill, tupl)
             else:
                 return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], d[j],
                                             d[j], 0, 23040)

@@ -21,7 +21,7 @@ class Movie:
 
         play = ui.Button('Play', self.play)
         stop = ui.Button('Stop', self.stop)
-        
+
         # TRANSLATORS: This function plays an animation forwards and backwards
         # alternatingly, e.g. for displaying vibrational movement
         self.rock = ui.CheckButton('Rock')

@@ -18,7 +18,7 @@ class Repeat:
         self.gui.images.repeat_images(repeat)
         self.gui.repeat_colors(repeat)
         self.gui.set_coordinates()
-        
+
     def set_unit_cell(self):
         self.gui.images.A *= self.gui.images.repeat.reshape((3, 1))
         self.gui.images.E *= self.gui.images.repeat.prod()
