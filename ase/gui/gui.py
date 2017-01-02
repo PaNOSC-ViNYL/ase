@@ -71,7 +71,7 @@ class GUI(View, Status):
         if self.images.nimages > 1:
             self.movie()
 
-        if expr is None and not np.isnan(self.images.E[0]):
+        if expr is None:
             expr = self.config['gui_graphs_string']
 
         if expr is not None and expr != '' and self.images.nimages > 1:
