@@ -370,7 +370,7 @@ class MenuItem:
 
         if key:
             if key[:4] == 'Ctrl':
-                self.keyname = '<Control-{}>'.format(key[-1].lower())
+                self.keyname = '<Control-{0}>'.format(key[-1].lower())
             else:
                 self.keyname = {
                     'Home': '<Home>',
@@ -395,16 +395,23 @@ class MenuItem:
         self.disabled = disabled
 
     def addto(self, menu, window, stuff=None):
+        callback = self.callback
         if self.label == '---':
             menu.add_separator()
         elif self.value is not None:
             var = tk.BooleanVar(value=self.value)
             stuff[self.callback.__name__.replace('_', '-')] = var
+
             menu.add_checkbutton(label=self.label,
                                  underline=self.underline,
                                  command=self.callback,
                                  accelerator=self.key,
                                  var=var)
+
+            def callback(key):
+                var.set(not var.get())
+                self.callback()
+
         elif self.choices:
             submenu = tk.Menu(menu)
             menu.add_cascade(label=self.label, menu=submenu)
@@ -433,8 +440,7 @@ class MenuItem:
                              accelerator=self.key,
                              state=state)
         if self.key:
-            print(self.keyname, self.callback.__name__)
-            window.bind(self.keyname, self.callback)
+            window.bind(self.keyname, callback)
 
 
 class MainWindow(BaseWindow):

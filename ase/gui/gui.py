@@ -1,8 +1,6 @@
-from __future__ import print_function
 import os
 import sys
 import weakref
-import pickle
 from functools import partial
 from gettext import gettext as _
 
@@ -116,7 +114,6 @@ class GUI(View, Status):
         return Settings(self)
 
     def scroll(self, event):
-        print(event)
         CTRL = event.modifier == 'ctrl'
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
@@ -264,19 +261,19 @@ class GUI(View, Status):
         from ase.gui.constraints import Constraints
         Constraints(self)
 
-    def select_all(self):
+    def select_all(self, key=None):
         self.images.selected[:] = True
         self.draw()
 
-    def invert_selection(self):
+    def invert_selection(self, key=None):
         self.images.selected[:] = ~self.images.selected
         self.draw()
 
-    def select_constrained_atoms(self):
+    def select_constrained_atoms(self, key=None):
         self.images.selected[:] = ~self.images.dynamic
         self.draw()
 
-    def select_immobile_atoms(self):
+    def select_immobile_atoms(self, key=None):
         if self.images.nimages > 1:
             R0 = self.images.P[0]
             for R in self.images.P[1:]:
@@ -354,7 +351,6 @@ class GUI(View, Status):
 
         filename = chooser.go()
         if filename:
-            self.reset_tools_modes()
             self.images.read([filename], slice(None), format[0])
             self.set_colors()
             self.set_coordinates(self.images.nimages - 1, focus=True)
@@ -389,8 +385,6 @@ class GUI(View, Status):
 
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
-        self.reset_tools_modes()
-
         rpt = getattr(self.images, 'repeat', None)
         self.images.repeat_images(np.ones(3, int))
         self.images.initialize([atoms], init_magmom=init_magmom)

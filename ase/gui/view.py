@@ -205,16 +205,15 @@ class View:
         self.show_vectors(self.images.F)
         self.draw()
 
-    def hide_selected(self, button):
+    def hide_selected(self):
         self.images.visible[self.images.selected] = False
         self.draw()
 
-    def show_selected(self, button):
+    def show_selected(self):
         self.images.visible[self.images.selected] = True
         self.draw()
 
     def repeat_window(self):
-        self.reset_tools_modes()
         Repeat(self)
 
     def rotate_window(self):
@@ -351,7 +350,7 @@ class View:
         vectors = (self.window['toggle-show-velocities'] or
                    self.window['toggle-show-forces'])
         if vectors:
-            V = np.dot(self.vectors[self.frame], axes) + X
+            V = np.dot(self.vectors[self.frame], axes) + X[:n]
 
         colors = self.get_colors()
         circle = self.window.circle
