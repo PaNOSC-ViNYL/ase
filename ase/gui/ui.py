@@ -370,7 +370,7 @@ class MenuItem:
 
         if key:
             if key[:4] == 'Ctrl':
-                self.keyname = '<Control-{0}>'.format(key[-1].lower())
+                self.keyname = '<Control-{}>'.format(key[-1].lower())
             else:
                 self.keyname = {
                     'Home': '<Home>',
@@ -433,6 +433,7 @@ class MenuItem:
                              accelerator=self.key,
                              state=state)
         if self.key:
+            print(self.keyname, self.callback.__name__)
             window.bind(self.keyname, self.callback)
 
 

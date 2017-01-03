@@ -116,9 +116,8 @@ class GUI(View, Status):
         return Settings(self)
 
     def scroll(self, event):
-        from copy import copy
+        print(event)
         CTRL = event.modifier == 'ctrl'
-        SHIFT = event.modifier == 'shift'
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
@@ -127,379 +126,11 @@ class GUI(View, Status):
         if dxdydz is None:
             return
 
-        sel = []
-
-        atom_move = self.window['toggle-move-mode']
-        atom_rotate = self.window['toggle-rotate-mode']
-        atom_orient = self.window['toggle-orient-mode']
         dx, dy, dz = dxdydz
 
-        tvec = np.array([dx, dy, dz])
-
-        dir_vec = np.dot(self.axes, tvec)
-        if (atom_move):
-            rotmat = self.axes
-            s = 0.1
-            if SHIFT:
-                s = 0.01
-            add = s * dir_vec
-            for i in range(len(self.R)):
-                if self.atoms_to_rotate_0[i]:
-                    self.R[i] += add
-                    for jx in range(self.images.nimages):
-                        self.images.P[jx][i] += add
-        elif atom_rotate:
-            from .rot_tools import rotate_about_vec, rotate_vec
-            sel = self.images.selected
-            if sum(sel) == 0:
-                sel = self.atoms_to_rotate_0
-            nsel = sum(sel)
-            # this is the first one to get instatiated
-            if nsel != 2:
-                self.rot_vec = dir_vec
-
-            change = False
-            z_axis = np.dot(self.axes, np.array([0, 0, 1]))
-            if self.atoms_to_rotate is None:
-                change = True
-                self.z_axis_old = z_axis.copy()
-                self.dx_change = [0, 0]
-                self.atoms_to_rotate = self.atoms_to_rotate_0.copy()
-                self.atoms_selected = sel.copy()
-                self.rot_vec = dir_vec
-
-            if nsel != 2 or sum(self.atoms_to_rotate) == 2:
-                self.dx_change = [0, 0]
-
-            for i in range(len(sel)):
-                if sel[i] != self.atoms_selected[i]:
-                    change = True
-            cz = [dx, dy + dz]
-
-            if cz[0] or cz[1]:
-                change = False
-            if not (cz[0] * (self.dx_change[1])):
-                change = True
-            for i in range(2):
-                if cz[i] and self.dx_change[i]:
-                    self.rot_vec = self.rot_vec * cz[i] * self.dx_change[i]
-                    if cz[1]:
-                        change = False
-
-            if np.prod(self.z_axis_old != z_axis):
-                change = True
-            self.z_axis_old = z_axis.copy()
-            self.dx_change = copy(cz)
-            dihedral_rotation = len(self.images.selected_ordered) == 4
-
-            if change:
-                self.atoms_selected = sel.copy()
-
-                if nsel == 2 and sum(self.atoms_to_rotate) != 2:
-                    asel = []
-                    for i, j in enumerate(sel):
-                        if j:
-                            asel.append(i)
-                    a1, a2 = asel
-
-                    rvx = (self.images.P[self.frame][a1] -
-                           self.images.P[self.frame][a2])
-
-                    rvy = np.cross(rvx, np.dot(self.axes, np.array([0, 0, 1])))
-                    self.rot_vec = rvx * dx + rvy * (dy + dz)
-                    self.dx_change = [dx, dy + dz]
-
-                    # dihedral rotation?
-                if dihedral_rotation:
-                    sel = self.images.selected_ordered
-                    self.rot_vec = (dx + dy + dz) * (
-                        self.R[sel[2]] - self.R[sel[1]])
-
-            rot_cen = np.array([0.0, 0.0, 0.0])
-            if dihedral_rotation:
-                sel = self.images.selected_ordered
-                rot_cen = self.R[sel[1]].copy()
-            elif nsel:
-                for i, b in enumerate(sel):
-                    if b:
-                        rot_cen += self.R[i]
-                rot_cen /= float(nsel)
-
-            degrees = 5 * (1 - SHIFT) + SHIFT
-            degrees = abs(sum(dxdydz)) * 3.1415 / 360.0 * degrees
-            rotmat = rotate_about_vec(self.rot_vec, degrees)
-
-            # now rotate the atoms that are to be rotated
-            for i in range(len(self.R)):
-                if self.atoms_to_rotate[i]:
-                    self.R[i] -= rot_cen
-                    for jx in range(self.images.nimages):
-                        self.images.P[jx][i] -= rot_cen
-
-                    self.R[i] = rotate_vec(rotmat, self.R[i])
-                    for jx in range(self.images.nimages):
-                        self.images.P[jx][i] = rotate_vec(rotmat,
-                                                          self.images.P[jx][i])
-
-                    self.R[i] += rot_cen
-                    for jx in range(self.images.nimages):
-                        self.images.P[jx][i] += rot_cen
-        elif atom_orient:
-            to_vec = np.array([dx, dy, dz])
-
-            from .rot_tools import rotate_vec_into_newvec
-            rot_mat = rotate_vec_into_newvec(self.orient_normal, to_vec)
-            self.axes = rot_mat
-
-            self.set_coordinates()
-        else:
-            self.center -= (
-                dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
+        self.center -= (
+            dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
         self.draw()
-
-    def copy_atoms(self, widget):
-        "Copies selected atoms to a clipboard."
-
-        clip = ui.clipboard_get(ui.gdk.SELECTION_CLIPBOARD)
-
-        if self.images.selected.any():
-            atoms = self.images.get_atoms(self.frame)
-            lena = len(atoms)
-            for i in range(len(atoms)):
-                li = lena - 1 - i
-                if not self.images.selected[li]:
-                    del (atoms[li])
-            for i in atoms:
-                i.position = np.dot(self.axes.T, i.position)
-            ref = atoms[0].position
-            for i in atoms:
-                if i.position[2] < ref[2]:
-                    ref = i.position
-            atoms.reference_position = ref
-            clip.set_text(pickle.dumps(atoms, 0))
-
-    def paste_atoms(self, widget):
-        """Inserts clipboard selection into the current frame using the
-        add_atoms window."""
-        clip = ui.clipboard_get(ui.gdk.SELECTION_CLIPBOARD)
-        try:
-            atoms = pickle.loads(clip.wait_for_text())
-        except TypeError:
-            pass
-        else:
-            self.add_atoms(widget, data='Paste', paste=atoms)
-
-    def add_atoms(self, widget, data=None, paste=None):
-        """Presents a dialogbox to the user, that allows him to add
-        atoms/molecule to the current slab or to paste the clipboard.
-
-        The molecule/atom is rotated using the current rotation of the
-        coordinate system.
-
-        The molecule/atom can be added at a specified position - if the
-        keyword auto+Z is used, the COM of the selected atoms will be used
-        as COM for the moleculed. The COM is furthermore
-        translated Z ang towards the user.
-
-        If no molecules are selected, the COM of all the atoms will be used
-        for the x-y components of the active coordinate system, while the
-        z-direction will be chosen from the nearest atom position
-        along this direction.
-
-        Note: If this option is used, all frames except the active one are
-        deleted.
-        """
-
-        if data == 'load':
-            chooser = ui.FileChooserDialog(
-                _('Open ...'), None, ui.FILE_CHOOSER_ACTION_OPEN,
-                ('Cancel', ui.RESPONSE_CANCEL, 'Open',
-                 ui.RESPONSE_OK))
-
-            chooser.set_filename(_("<<filename>>"))
-            ok = chooser.run()
-            if ok == ui.RESPONSE_OK:
-                filename = chooser.get_filename()
-                chooser.destroy()
-            else:
-                chooser.destroy()
-                return
-
-        if data == 'OK' or data == 'load':
-            import ase
-            if data == 'load':
-                molecule = filename
-            else:
-                molecule = self.add_entries[1].get_text()
-            tag = self.add_entries[2].get_text()
-            mom = self.add_entries[3].get_text()
-            pos = self.add_entries[4].get_text().lower()
-
-            if paste is not None:
-                a = paste.copy()
-            else:
-                a = None
-
-            if a is None:
-                try:
-                    a = ase.Atoms([ase.Atom(molecule)])
-                except:
-                    try:
-                        import ase.build
-                        a = ase.build.molecule(molecule)
-                    except:
-                        try:
-                            a = ase.io.read(molecule, -1)
-                        except:
-                            self.add_entries[1].set_text('?' + molecule)
-                            return ()
-
-            directions = np.transpose(self.axes)
-            if a is not None:
-                for i in a:
-                    try:
-                        i.set('tag', int(tag))
-                    except:
-                        self.add_entries[2].set_text('?' + tag)
-                        return ()
-                    try:
-                        i.magmom = float(mom)
-                    except:
-                        self.add_entries[3].set_text('?' + mom)
-                        return ()
-                if self.origin_radio.get_active() and paste:
-                    a.translate(-paste.reference_position)
-                # apply the current rotation matrix to A
-                for i in a:
-                    i.position = np.dot(self.axes, i.position)
-                # find the extent of the molecule in the local coordinate
-                # system
-                if self.centre_radio.get_active():
-                    a_cen_pos = np.array([0.0, 0.0, 0.0])
-                    m_cen_pos = 0.0
-                    for i in a.positions:
-                        a_cen_pos[0] += np.dot(directions[0], i)
-                        a_cen_pos[1] += np.dot(directions[1], i)
-                        a_cen_pos[2] += np.dot(directions[2], i)
-                        m_cen_pos = max(np.dot(-directions[2], i), m_cen_pos)
-
-                    a_cen_pos[0] /= len(a.positions)
-                    a_cen_pos[1] /= len(a.positions)
-                    a_cen_pos[2] /= len(a.positions)
-                    a_cen_pos[2] -= m_cen_pos
-                else:
-                    a_cen_pos = np.array([0.0, 0.0, 0.0])
-
-                # now find the position
-                cen_pos = np.array([0.0, 0.0, 0.0])
-                if sum(self.images.selected) > 0:
-                    for i in range(len(self.R)):
-                        if self.images.selected[i]:
-                            cen_pos += self.R[i]
-                    cen_pos /= sum(self.images.selected)
-                elif len(self.R) > 0:
-                    px = 0.0
-                    py = 0.0
-                    pz = -1e6
-
-                    for i in range(len(self.R)):
-                        px += np.dot(directions[0], self.R[i])
-                        py += np.dot(directions[1], self.R[i])
-                        pz = max(np.dot(directions[2], self.R[i]), pz)
-                    px = (px / float(len(self.R)))
-                    py = (py / float(len(self.R)))
-                    cen_pos = (directions[0] * px +
-                               directions[1] * py +
-                               directions[2] * pz)
-
-                if 'auto' in pos:
-                    pos = pos.replace('auto', '')
-                    import re
-                    pos = re.sub('\s', '', pos)
-                    if '(' in pos:
-                        sign = eval('%s1' % pos[0])
-                        a_cen_pos -= sign * np.array(eval(pos[1:]), float)
-                    else:
-                        a_cen_pos -= float(pos) * directions[2]
-                else:
-                    cen_pos = np.array(eval(pos))
-                for i in a:
-                    i.position += cen_pos - a_cen_pos
-
-            # and them to the molecule
-                atoms = self.images.get_atoms(self.frame)
-                atoms = atoms + a
-                self.new_atoms(atoms, init_magmom=True)
-
-                # and finally select the new molecule for easy moving and
-                # rotation
-                for i in range(len(a)):
-                    self.images.selected[len(atoms) - i - 1] = True
-
-                self.draw()
-            self.add_entries[0].destroy()
-
-        if data == 'Cancel':
-            self.add_entries[0].destroy()
-
-        if data is None or data == 'Paste':
-            from ase.gui.widgets import pack
-            molecule = ''
-            tag = '0'
-            mom = '0'
-            pos = 'auto+1'
-            self.add_entries = []
-            window = ui.Window(ui.WINDOW_TOPLEVEL)
-            self.add_entries.append(window)
-            window.set_title(_('Add atoms'))
-            if data == 'Paste':
-                molecule = paste.get_chemical_formula()
-                window.set_title(_('Paste'))
-
-            vbox = ui.VBox(False, 0)
-            window.add(vbox)
-            vbox.show()
-            packed = False
-            for i, j in [[_('Insert atom or molecule'), molecule],
-                         [_('Tag'), tag], [_('Moment'), mom], [_('Position'),
-                                                               pos]]:
-
-                label = ui.Label(i)
-                if not packed:
-                    vbox.pack_start(label, True, True, 0)
-                else:
-                    packed = True
-                    vbox.add(label)
-                label.show()
-
-                entry = ui.Entry()
-                entry.set_text(j)
-                self.add_entries.append(entry)
-                entry.set_max_length(50)
-                entry.show()
-                vbox.add(entry)
-
-            pack(vbox, [ui.Label('atom/molecule reference:')])
-            self.centre_radio = ui.RadioButton(None, "centre ")
-            self.origin_radio = ui.RadioButton(self.centre_radio, "origin")
-            pack(vbox, [self.centre_radio, self.origin_radio])
-            if data == 'Paste':
-                self.origin_radio.set_active(True)
-                self.add_entries[1].set_sensitive(False)
-            if data is None:
-                button = ui.Button(_('_Load molecule'))
-                button.connect('clicked', self.add_atoms, 'load')
-                button.show()
-                vbox.add(button)
-            button = ui.Button(_('_OK'))
-            button.connect('clicked', self.add_atoms, 'OK', paste)
-            button.show()
-            vbox.add(button)
-            button = ui.Button(_('_Cancel'))
-            button.connect('clicked', self.add_atoms, 'Cancel')
-            button.show()
-            vbox.add(button)
-            window.show()
 
     def modify_atoms(self, widget, data=None):
         """Presents a dialog box where the user is able to change the
@@ -831,14 +462,14 @@ class GUI(View, Status):
               M(_('Select _immobile atoms'), self.select_immobile_atoms,
                 key='Ctrl+I'),
               M('---'),
-              M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
-              M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
+              # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
+              # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
               M('---'),
               M(_('Hide selected atoms'), self.hide_selected),
               M(_('Show selected atoms'), self.show_selected),
               M('---'),
               M(_('_Modify'), self.modify_atoms, 'Ctrl+Y'),
-              M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
+              # M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
               M(_('_Delete selected atoms'), self.delete_selected_atoms,
                 'Backspace'),
               M('---'),
@@ -898,10 +529,7 @@ class GUI(View, Status):
               M(_('Movie ...'), self.movie),
               M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
-              M(_('Render scene ...'), self.render_window),
-              M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M', False),
-              M(_('_Rotate atoms'), self.toggle_rotate_mode, 'Ctrl+R', False),
-              M(_('Orien_t atoms'), self.toggle_orient_mode, 'Ctrl+T', False),
+              M(_('Render scene ...'), self.render_window, disabled=True),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),
 

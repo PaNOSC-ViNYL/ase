@@ -1,18 +1,18 @@
 import os
 import tempfile
-from math import cos, sin, sqrt, atan, atan2
+from math import cos, sin, sqrt
 from os.path import basename
 
 import numpy as np
 
 from ase.data import chemical_symbols
 from ase.data.colors import jmol_colors
+from ase.geometry import complete_cell
 from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
 from ase.utils import rotate
-from ase.quaternions import Quaternion
 
 
 class View:
@@ -22,12 +22,6 @@ class View:
         self.labels = None
         self.light_green_markings = 0
         self.axes = rotate(rotations)
-        # this is a hack, in order to be able to toggle menu actions off/on
-        # without getting into an infinte loop
-        self.menu_change = 0
-
-        self.atoms_to_rotate = None
-
         self.configured = False
         self.frame = None
 
@@ -179,114 +173,8 @@ class View:
         self.bonds[n2:, 1] = self.bonds[i, 0]
         self.bonds[n2:, 2:] = -self.bonds[i, 2:]
 
-    def toggle_show_unit_cell(self):
+    def toggle_show_unit_cell(self, key=None):
         self.set_coordinates()
-
-    def reset_tools_modes(self):
-        self.menu_change = 1
-        self.atoms_to_rotate = None
-        for c_mode in ['rotate', 'orient', 'move']:
-            self.window['toggle-' + c_mode + '-mode'] = False
-        self.light_green_markings = 0
-        self.menu_change = 0
-        self.draw()
-
-    def toggle_mode(self, mode):
-        self.menu_change = 1
-        i_sum = 0
-        for c_mode in ['Rotate', 'Orient', 'Move']:
-            i_sum += self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
-                                        c_mode).get_active()
-        if i_sum == 0 or (i_sum == 1 and sum(self.images.selected) == 0):
-            self.reset_tools_modes()
-            return()
-
-        if i_sum == 2:
-            try:
-                self.images.selected = self.atoms_to_rotate_0.copy()
-            except:
-                self.atoms_to_rotate_0 = self.images.selected.copy()
-        if i_sum == 1:
-            self.atoms_to_rotate_0 = self.images.selected.copy()
-
-        for c_mode in ['Rotate', 'Orient', 'Move']:
-            if c_mode != mode:
-                self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
-                                   c_mode).set_active(False)
-
-        if self.ui.get_widget('/MenuBar/ToolsMenu/%sAtoms' %
-                              mode).get_active():
-            self.atoms_to_rotate_0 = self.images.selected.copy()
-            for i in range(len(self.images.selected)):
-                self.images.selected[i] = False
-            self.light_green_markings = 1
-        else:
-            try:
-                atr = self.atoms_to_rotate_0
-                for i in range(len(self.images.selected)):
-                    self.images.selected[i] = atr[i]
-            except:
-                pass
-
-        self.menu_change = 0
-        self.draw()
-
-    def toggle_move_mode(self, action):
-        """
-        Toggles the move mode, where the selected atoms
-        can be moved with the arrow
-        keys and pg up/dn. If the shift key is pressed,
-        the movement will be reduced.
-
-        The movement will be relative to the current
-        rotation of the coordinate system.
-
-        The implementation of the move mode is found in the gui.scroll
-        """
-        if not (self.menu_change):
-            self.toggle_mode('Move')
-
-    def toggle_rotate_mode(self, action):
-        """
-        Toggles the rotate mode, where the selected atoms can be rotated with the arrow keys
-        and pg up/dn. If the shift key is pressed, the rotation angle will be reduced.
-
-        The atoms to be rotated will be marked with light green - and the COM of the selected
-        atoms will be used as the COM of the rotation. This can be changed while rotating the
-        selected atoms.
-
-        If only two atoms are seleceted, and the number of atoms to be rotated is different from
-        two, the selected atoms will define the axis of rotation.
-
-        The implementation of the rotate mode is found in the gui.scroll
-        """
-        if not (self.menu_change):
-            self.toggle_mode('Rotate')
-
-    def toggle_orient_mode(self):
-        """
-        Toggle the orientation mode - the orientation of the atoms will be changed
-        according to the arrow keys selected.
-
-        If nothing is selected, standard directions are x, y and z
-        if two atoms are selected, the standard directions are along their displacement vector
-        if three atoms are selected, the orientation is changed according to the normal of these
-        three vectors.
-        """
-        if not (self.menu_change):
-            self.toggle_mode('Orient')
-        self.orient_normal = np.array([1.0, 0.0, 0.0])
-        sel_pos = []
-        for i, j in enumerate(self.atoms_to_rotate_0):
-            if j:
-                sel_pos.append(self.R[i])
-        if len(sel_pos) == 2:
-            self.orient_normal = sel_pos[0] - sel_pos[1]
-        if len(sel_pos) == 3:
-            v1 = sel_pos[1] - sel_pos[0]
-            v2 = sel_pos[1] - sel_pos[2]
-            self.orient_normal = np.cross(v1, v2)
-        self.orient_normal /= sum(self.orient_normal ** 2) ** 0.5
 
     def show_labels(self):
         index = self.window['show-labels']
@@ -303,17 +191,17 @@ class View:
 
         self.draw()
 
-    def toggle_show_axes(self):
+    def toggle_show_axes(self, key=None):
         self.draw()
 
-    def toggle_show_bonds(self):
+    def toggle_show_bonds(self, key=None):
         self.set_coordinates()
 
-    def toggle_show_velocities(self):
+    def toggle_show_velocities(self, key=None):
         self.show_vectors(10 * self.images.V)  # XXX hard coded scale is ugly
         self.draw()
 
-    def toggle_show_forces(self):
+    def toggle_show_forces(self, key=None):
         self.show_vectors(self.images.F)
         self.draw()
 
@@ -338,7 +226,8 @@ class View:
         return win
 
     def focus(self, x=None):
-        if self.images.natoms == 0 and not self.window['toggle-show-unit-cell']:
+        if (self.images.natoms == 0 and
+            not self.window['toggle-show-unit-cell']):
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
@@ -366,37 +255,36 @@ class View:
         self.set_coordinates()
         self.focus(self)
 
-    def set_view(self, menuitem):
-        plane_rotation = menuitem.get_name()
-
-        if plane_rotation == 'xyPlane':
+    def set_view(self, key):
+        if key == 'Z':
             self.axes = rotate('0.0x,0.0y,0.0z')
-        elif plane_rotation == 'yzPlane':
+        elif key == 'X':
             self.axes = rotate('-90.0x,-90.0y,0.0z')
-        elif plane_rotation == 'zxPlane':
+        elif key == 'Y':
             self.axes = rotate('90.0x,0.0y,90.0z')
-        elif plane_rotation == 'yxPlane':
+        elif key == 'Alt+Z':
             self.axes = rotate('180.0x,0.0y,90.0z')
-        elif plane_rotation == 'zyPlane':
+        elif key == 'Alt+X':
             self.axes = rotate('0.0x,90.0y,0.0z')
-        elif plane_rotation == 'xzPlane':
+        elif key == 'Alt+Y':
             self.axes = rotate('-90.0x,0.0y,0.0z')
         else:
-            if plane_rotation == 'a1a2Plane':
+            if key == '3':
                 i, j = 0, 1
-            elif plane_rotation == 'a2a3Plane':
+            elif key == '1':
                 i, j = 1, 2
-            elif plane_rotation == 'a3a1Plane':
+            elif key == '2':
                 i, j = 2, 0
-            elif plane_rotation == 'a2a1Plane':
+            elif key == 'Alt+3':
                 i, j = 1, 0
-            elif plane_rotation == 'a3a2Plane':
+            elif key == 'Alt+1':
                 i, j = 2, 1
-            elif plane_rotation == 'a1a3Plane':
+            elif key == 'Alt+2':
                 i, j = 0, 2
 
-            x1 = self.images.A[self.frame, i]
-            x2 = self.images.A[self.frame, j]
+            A = complete_cell(self.images.A[self.frame])
+            x1 = A[i]
+            x2 = A[j]
 
             norm = np.linalg.norm
 
@@ -441,80 +329,6 @@ class View:
         elif self.colormode == 'magmom':
             return self.images.M[i]
 
-    def my_arc(self, gc, fill, j, X, r, n, A, d):
-
-        if self.images.shapes is not None:
-            rx = (self.images.shapes[j, 0]).round().astype(int)
-            ry = (self.images.shapes[j, 1]).round().astype(int)
-            rz = (self.images.shapes[j, 2]).round().astype(int)
-            circle = rx == ry and ry == rz
-
-            if not circle:
-                Q = Quaternion(self.images.Q[self.frame][j])
-                Ellipsoid = np.array([[1. / (rx*rx), 0, 0],
-                                      [0, 1. / (ry*ry), 0],
-                                      [0, 0, 1. / (rz*rz)]
-                                      ])
-                # Ellipsoid rotated by quaternion as Matrix X' = R X R_transpose
-                El_r = np.dot(Q.rotation_matrix(),
-                              np.dot(Ellipsoid,
-                                     np.transpose(Q.rotation_matrix())))
-                # Ellipsoid rotated by quaternion and axes as
-                # Matrix X' =  R_axes X' R_axes
-                El_v = np.dot(np.transpose(self.axes), np.dot(El_r, self.axes))
-                # Projection of rotated ellipsoid on xy plane
-                El_p = np.array(
-                    [[El_v[0][0] - El_v[0][2] * El_v[0][2] / El_v[2][2],
-                      El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2]],
-                     [El_v[0][1] - El_v[0][2] * El_v[1][2] / El_v[2][2],
-                      El_v[1][1] - El_v[1][2] * El_v[1][2] / El_v[2][2]]])
-                # diagonal matrix der Ellipse gibt halbachsen
-                El_p_diag = np.linalg.eig(El_p)
-                # Winkel mit dem Ellipse in xy gedreht ist aus
-                # eigenvektor der diagonal matrix
-                phi = atan(El_p_diag[1][0][1] / El_p_diag[1][0][0])
-                tupl = []
-                alpha = np.arange(16) * 2 * np.pi / 16
-                El_xy = np.array([sqrt(1. / (El_p_diag[0][0])) *
-                                  np.cos(alpha)*np.cos(phi)
-                                  - sqrt(1./(El_p_diag[0][1])) *
-                                  np.sin(alpha) * np.sin(phi),
-                                  sqrt(1./(El_p_diag[0][0])) *
-                                  np.cos(alpha)*np.sin(phi)
-                                  + sqrt(1./(El_p_diag[0][1])) *
-                                  np.sin(alpha) * np.cos(phi)])
-
-                tupl = (El_xy.transpose() * self.scale +
-                        X[j][:2]).round().astype(int)
-                # XXX there must be a better way
-                tupl = [tuple(i) for i in tupl]
-
-                return self.pixmap.draw_polygon(gc, fill, tupl)
-            else:
-                return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], d[j],
-                                            d[j], 0, 23040)
-        else:
-            return self.pixmap.draw_arc(gc, fill, A[j, 0], A[j, 1], d[j], d[j],
-                                        0, 23040)
-
-    def arrow(self, begin, end):
-        vec = end - begin
-        length = np.sqrt((vec[:2]**2).sum())
-        length = min(length, 0.3 * self.scale)
-
-        line = self.pixmap.draw_line
-        beg = begin.round().astype(int)
-        en = end.round().astype(int)
-        line(self.foreground_gc, beg[0], beg[1], en[0], en[1])
-
-        angle = atan2(en[1] - beg[1], en[0] - beg[0]) + np.pi
-        x1 = (end[0] + length * cos(angle - 0.3)).round().astype(int)
-        y1 = (end[1] + length * sin(angle - 0.3)).round().astype(int)
-        x2 = (end[0] + length * cos(angle + 0.3)).round().astype(int)
-        y2 = (end[1] + length * sin(angle + 0.3)).round().astype(int)
-        line(self.foreground_gc, x1, y1, en[0], en[1])
-        line(self.foreground_gc, x2, y2, en[0], en[1])
-
     def draw(self, status=True):
         self.window.clear()
         axes = self.scale * self.axes * (1, -1, 1)
@@ -537,7 +351,7 @@ class View:
         vectors = (self.window['toggle-show-velocities'] or
                    self.window['toggle-show-forces'])
         if vectors:
-            V = np.dot(self.vectors[self.frame], axes)
+            V = np.dot(self.vectors[self.frame], axes) + X
 
         colors = self.get_colors()
         circle = self.window.circle
@@ -571,7 +385,7 @@ class View:
 
                     # Draw velocities or forces
                     if vectors:
-                        self.arrow(X[a], X[a] + V[a])
+                        line((X[a, 0], X[a, 1], V[a, 0], V[a, 1]), width=2)
 
                 if self.light_green_markings and self.atoms_to_rotate_0[a]:
                     circle(self.green, False,
