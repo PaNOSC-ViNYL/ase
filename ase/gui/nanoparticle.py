@@ -160,8 +160,8 @@ class SetupNanoparticle:
 
         # Choose specification method
         self.method = ui.ComboBox(
-            [_('Layer specification'), _('Wulff construction')],
-            ['layers', 'wulff'],
+            [_('Layer specification')],  # _('Wulff construction')],
+            ['layers'],  # 'wulff'],
             self.update_gui_method)
         win.add([_('Method: '), self.method])
 
@@ -242,7 +242,9 @@ class SetupNanoparticle:
         else:
             n = 3
 
-        self.new_direction_and_size_rows.clear()
+        rows = self.new_direction_and_size_rows
+
+        rows.clear()
 
         self.new_direction = row = ['(']
         for i in range(n):
@@ -258,50 +260,26 @@ class SetupNanoparticle:
 
         row.append(ui.Button(_('Add'), self.row_add))
 
-        self.new_direction_and_size_rows.add(row)
+        rows.add(row)
 
         if self.method.value == 'wulff':
             # Extra widgets for the Wulff construction
-            1 / 0
-
-        """
-        self.wulffbox = ui.VBox()
-        pack(vbox, self.wulffbox)
-        label = ui.Label(_('Particle size: '))
-        self.size_n_radio = ui.RadioButton(None, _('Number of atoms: '))
-        self.size_n_radio.set_active(True)
-        self.size_n_adj = ui.Adjustment(100, 1, 100000, 1)
-        self.size_n_spin = ui.SpinButton(self.size_n_adj, 0, 0)
-        self.size_dia_radio = ui.RadioButton(self.size_n_radio,
-                                              _('Volume: '))
-        self.size_dia_adj = ui.Adjustment(1.0, 0, 100.0, 0.1)
-        self.size_dia_spin = ui.SpinButton(self.size_dia_adj, 10.0, 2)
-        pack(self.wulffbox, [label, self.size_n_radio, self.size_n_spin,
-                    ui.Label('   '), self.size_dia_radio, self.size_dia_spin,
-                    ui.Label(_(u'Å³'))])
-        self.size_n_radio.connect('toggled', self.update_gui_size)
-        self.size_dia_radio.connect('toggled', self.update_gui_size)
-        self.size_n_adj.connect('value-changed', self.update_size_n)
-        self.size_dia_adj.connect('value-changed', self.update_size_dia)
-        label = ui.Label(_('Rounding: If exact size is not possible, '
-                            'choose the size'))
-        pack(self.wulffbox, [label])
-        self.round_above = ui.RadioButton(None, _('above  '))
-        self.round_below = ui.RadioButton(self.round_above, _('below  '))
-        self.round_closest = ui.RadioButton(self.round_above, _('closest  '))
-        self.round_closest.set_active(True)
-        butbox = ui.HButtonBox()
-        self.smaller_button = ui.Button(_('Smaller'))
-        self.larger_button = ui.Button(_('Larger'))
-        self.smaller_button.connect('clicked', self.wulff_smaller)
-        self.larger_button.connect('clicked', self.wulff_larger)
-        pack(butbox, [self.smaller_button, self.larger_button])
-        buts = [self.round_above, self.round_below, self.round_closest]
-        for b in buts:
-            b.connect('toggled', self.update)
-        buts.append(butbox)
-        pack(self.wulffbox, buts, end=True)
-        """
+            rows.add(ui.RadioButtons([_('Number of atoms:'), _('Volume:')],
+                                     ['natoms', 'volume'],
+                                     self.update_gui_size))
+            rows.add([ui.SpinButton(100, 1, 100000, 1, self.update_size_n),
+                      _('atoms'),
+                      ui.SpinButton(1.0, 0, 100.0, 0.1, self.update_size_dia),
+                      _(u'Å³')])
+            rows.add(
+                _('Rounding: If exact size is not possible, choose the size'))
+            rows.add(ui.RadioButtons([_('above  '),
+                                      _('below  '),
+                                      _('closest  ')],
+                                     callback=self.update))
+            self.smaller_button = ui.Button(_('Smaller'), self.wulff_smaller)
+            self.larger_button = ui.Button(_('Larger'), self.wulff_larger)
+            rows.add([self.smaller_button, self._larger_button])
 
     def update_structure(self, s):
         'Called when the user changes the structure.'
@@ -317,13 +295,13 @@ class SetupNanoparticle:
 
         self.update()
 
-    def update_gui_method(self):
+    def update_gui_method(self, *args):
         'Switch between layer specification and Wulff construction.'
         self.update_direction_table()
         self.update_new_direction_and_size_stuff()
         if self.method.value == 'wulff':
-            self.layerlabel.text = _('Surface energies (as energy/area, '
-                                     'NOT per atom):')
+            self.layerlabel.text = _(
+                'Surface energies (as energy/area, NOT per atom):')
         else:
             self.layerlabel.text = _('Number of layers:')
 
@@ -333,7 +311,7 @@ class SetupNanoparticle:
         'Make a smaller Wulff construction.'
         n = len(self.atoms)
         self.size_n_radio.set_active(True)
-        self.size_n_adj.value = n-1
+        self.size_n_adj.value = n - 1
         self.round_below.set_active(True)
         self.apply()
 
