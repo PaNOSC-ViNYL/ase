@@ -22,7 +22,7 @@ last image. Examples: "name@-1": last image,
 
 def save_dialog(gui):
     dialog = ui.SaveFileDialog(gui.window.win, _('Save ...'))
-    ui.Text(text).pack(dialog)
+    ui.Text(text).pack(dialog.top)
     filename = dialog.go()
     if not filename:
         return

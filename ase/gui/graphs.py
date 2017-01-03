@@ -1,5 +1,7 @@
 from gettext import gettext as _
 
+import numpy as np
+
 import ase.gui.ui as ui
 
 graph_help_text = _("""\
@@ -53,26 +55,14 @@ class Graphs:
         fig = make_plot(data, self.gui.frame, expr, type)
         self.gui.graphs.append(fig)
 
-    def save(self, filename):
-        chooser = ui.FileChooserDialog(
-            _('Save data to file ... '), None, ui.FILE_CHOOSER_ACTION_SAVE,
-            ('Cancel', ui.RESPONSE_CANCEL,
-             'Save', ui.RESPONSE_OK))
-        save = chooser.run()
-        if save == ui.RESPONSE_OK:
-            filename = chooser.get_filename()
-            expr = self.expr.get_text()
+    def save(self):
+        dialog = ui.SaveFileDialog(self.gui.window.win,
+                                   _('Save data to file ... '))
+        filename = dialog.go()
+        if filename:
+            expr = self.expr.value
             data = self.gui.images.graph(expr)
-            expr = '# ' + expr
-            fd = open(filename, 'w')
-            fd.write("%s \n" % (expr))
-            for s in range(len(data[0])):
-                for i in range(len(data)):
-                    val = data[i, s]
-                    fd.write("%12.8e\t" % (val))
-                fd.write("\n")
-            fd.close()
-        chooser.destroy()
+            np.savetxt(filename, data.T, header=expr)
 
     def clear(self):
         import matplotlib.pyplot as plt
