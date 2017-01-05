@@ -499,6 +499,7 @@ class View:
         if self.button == 1:
             x0 = int(round(x0))
             y0 = int(round(y0))
+            self.draw()
             self.window.canvas.create_rectangle((x, y, x0, y0))
             return
         if self.button == 2:
