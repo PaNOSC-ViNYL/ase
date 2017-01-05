@@ -62,7 +62,7 @@ Angles
 at = ase.io.read(input, format="lammps-data")
 
 expected_output = [line.strip() for line in """8
-Lattice="102.3776 0.0 0.0 0.0 102.3776 0.0 0.0 0.0 102.3776" Properties=species:S:1:pos:R:3:bonds:S:1:masses:R:1:mol-id:I:1:Z:I:1:angles:S:1:momenta:R:3:type:I:1:id:I:1:travel:I:3 comment="LAMMPS data file via write_data, version 7 Sep 2016, timestep = 1000000" pbc="T T T"
+Lattice="102.3776 0.0 0.0 0.0 102.3776 0.0 0.0 0.0 102.3776" Properties=species:S:1:pos:R:3:bonds:S:1:masses:R:1:mol-id:I:1:Z:I:1:angles:S:1:momenta:R:3:type:I:1:id:I:1:travel:I:3 pbc="T T T"
 H     -7.06540129      -0.47737244     -51.10245267 1(1)     56.00000000        1        1 _     -0.71750717      -0.10137357       0.49670793        1        1        2       -1        6
 H     -8.12378444      -1.33406959      47.65830228 2(1)     56.00000000        1        1 0-2(1)      0.43169222      -0.03144355       0.76421658        1        2        2       -1        5
 H    -12.09052522      -3.23153540      47.36343710 3(1)     56.00000000        1        1 1-3(1)     -0.19671990       0.06926505       0.54577652        1        3        2       -1        5
@@ -74,7 +74,20 @@ H     -5.57124378      47.66022553      38.84723587 _     56.00000000        2  
 """.split("\n")]
 
 buf = StringIO()
-ase.io.write(buf, at, format="extxyz")
+ase.io.write(buf, at, format="extxyz", 
+             columns=["symbols", 
+                      "positions", 
+                      "bonds", 
+                      "masses", 
+                      "mol-id", 
+                      "numbers", 
+                      "angles", 
+                      "momenta", 
+                      "type", 
+                      "id", 
+                      "travel"], 
+             write_info=False)
+
 lines = [line.strip() for line in buf.getvalue().split("\n")]
 
 assert lines == expected_output
