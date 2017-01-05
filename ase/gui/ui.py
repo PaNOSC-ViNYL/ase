@@ -260,23 +260,25 @@ class Scale(Widget):
 
 
 class RadioButtons(Widget):
-    def __init__(self, labels, values=None, toggle=None, vertical=True):
+    def __init__(self, labels, values=None, callback=None, vertical=True):
         self.var = tk.IntVar()
 
-        if toggle:
-            def callback():
-                toggle(self.value)
+        if callback:
+            def callback2():
+                callback(self.value)
         else:
-            callback = None
+            callback2 = None
 
         self.values = values or list(range(len(labels)))
-        self.buttons = [RadioButton(label, i, self.var, callback)
+        self.buttons = [RadioButton(label, i, self.var, callback2)
                         for i, label in enumerate(labels)]
+        self.vertical = vertical
 
     def create(self, parrent):
         frame = tk.Frame(parrent)
+        side = 'left' if self.vertical else 'top'
         for button in self.buttons:
-            button.create(frame).pack(side='top')  # 'left')
+            button.create(frame).pack(side=side)
         return frame
 
     @property
@@ -520,9 +522,7 @@ class ASEGUIWindow(MainWindow):
                                 bg='white')
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        self.status = tk.Label(self.win, text='',  # bd=1,
-                               # relief=tk.SUNKEN,
-                               anchor=tk.W)
+        self.status = tk.Label(self.win, text='', anchor=tk.W)
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.canvas.bind('<ButtonPress>', bind(press))
@@ -534,12 +534,6 @@ class ASEGUIWindow(MainWindow):
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
-        # self.canvas.bind('<B4>', bind(scroll_event))
-        # self.canvas.bind('<Shift-MouseWheel>', bind(scroll_event, 'shift'))
-        # self.win.bind('<Configure>', configure_event)
-        # self.drawing_area.connect('expose_event', self.expose_event)
-
-        #    self.eventbox.set_tooltip_text(_('Tip for status box ...'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']

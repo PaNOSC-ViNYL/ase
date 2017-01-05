@@ -160,8 +160,8 @@ class SetupNanoparticle:
 
         # Choose specification method
         self.method = ui.ComboBox(
-            [_('Layer specification')],  # _('Wulff construction')],
-            ['layers'],  # 'wulff'],
+            [_('Layer specification'), _('Wulff construction')],
+            ['layers', 'wulff'],
             self.update_gui_method)
         win.add([_('Method: '), self.method])
 
@@ -198,6 +198,8 @@ class SetupNanoparticle:
                  ui.Button(_('OK'), self.ok)])
 
         self.gui = gui
+        self.smaller_button = None
+        self.largeer_button = None
 
     def default_direction_table(self):
         'Set default directions and values for the current crystal structure.'
@@ -264,22 +266,29 @@ class SetupNanoparticle:
 
         if self.method.value == 'wulff':
             # Extra widgets for the Wulff construction
-            rows.add(ui.RadioButtons([_('Number of atoms:'), _('Volume:')],
-                                     ['natoms', 'volume'],
-                                     self.update_gui_size))
-            rows.add([ui.SpinButton(100, 1, 100000, 1, self.update_size_n),
-                      _('atoms'),
-                      ui.SpinButton(1.0, 0, 100.0, 0.1, self.update_size_dia),
-                      _(u'Å³')])
-            rows.add(
-                _('Rounding: If exact size is not possible, choose the size'))
-            rows.add(ui.RadioButtons([_('above  '),
-                                      _('below  '),
-                                      _('closest  ')],
-                                     callback=self.update))
+            self.size_radio = ui.RadioButtons(
+                [_('Number of atoms'), _('Diameter')],
+                ['natoms', 'diameter'],
+                self.update_gui_size)
+            self.size_natoms = ui.SpinBox(100, 1, 100000, 1,
+                                          self.update_size_natoms)
+            self.size_diameter = ui.SpinBox(5.0, 0, 100.0, 0.1,
+                                            self.update_size_diameter)
+            self.round_radio = ui.RadioButtons(
+                [_('above  '), _('below  '), _('closest  ')],
+                ['above', 'below', 'closest'],
+                callback=self.update)
             self.smaller_button = ui.Button(_('Smaller'), self.wulff_smaller)
             self.larger_button = ui.Button(_('Larger'), self.wulff_larger)
-            rows.add([self.smaller_button, self._larger_button])
+            rows.add(_('Choose size using:'))
+            rows.add(self.size_radio)
+            rows.add([_('atoms'), self.size_natoms,
+                      _(u'Å³'), self.size_diameter])
+            rows.add(
+                _('Rounding: If exact size is not possible, choose the size:'))
+            rows.add(self.round_radio)
+            rows.add([self.smaller_button, self.larger_button])
+            self.update_gui_size()
 
     def update_structure(self, s):
         'Called when the user changes the structure.'
@@ -310,17 +319,17 @@ class SetupNanoparticle:
     def wulff_smaller(self, widget=None):
         'Make a smaller Wulff construction.'
         n = len(self.atoms)
-        self.size_n_radio.set_active(True)
-        self.size_n_adj.value = n - 1
-        self.round_below.set_active(True)
+        self.size_radio.value = 'natoms'
+        self.size_natoms.value = n - 1
+        self.round_radio.value = 'below'
         self.apply()
 
     def wulff_larger(self, widget=None):
         'Make a larger Wulff construction.'
         n = len(self.atoms)
-        self.size_n_radio.set_active(True)
-        self.size_n_adj.value = n + 1
-        self.round_above.set_active(True)
+        self.size_radio.value = 'natoms'
+        self.size_natoms.value = n + 1
+        self.round_radio.value = 'above'
         self.apply()
 
     def row_add(self, widget=None):
@@ -356,23 +365,20 @@ class SetupNanoparticle:
 
     def update_gui_size(self, widget=None):
         'Update gui when the cluster size specification changes.'
-        self.size_n_spin.set_sensitive(self.size_n_radio.get_active())
-        self.size_dia_spin.set_sensitive(self.size_dia_radio.get_active())
+        self.size_natoms.active = self.size_radio.value == 'natoms'
+        self.size_diameter.active = self.size_radio.value == 'diameter'
 
-    def update_size_n(self, widget=None):
-        if not self.size_n_radio.get_active():
-            return
+    def update_size_natoms(self, widget=None):
         at_vol = self.get_atomic_volume()
-        dia = 2.0 * (3 * self.size_n_adj.value * at_vol / (4 * np.pi))**(1.0/3)
-        self.size_dia_adj.value = dia
+        dia = 2.0 * (3 * self.size_natoms.value * at_vol /
+                     (4 * np.pi))**(1 / 3)
+        self.size_diameter.value = dia
         self.update()
 
-    def update_size_dia(self, widget=None):
-        if not self.size_dia_radio.get_active():
-            return
+    def update_size_diameter(self, widget=None):
         at_vol = self.get_atomic_volume()
-        n = round(np.pi / 6 * self.size_dia_adj.value**3 / at_vol)
-        self.size_n_adj.value = n
+        n = round(np.pi / 6 * self.size_diameter.value**3 / at_vol)
+        self.size_natoms.value = int(n)
         self.update()
 
     def update(self, *args):
@@ -436,25 +442,19 @@ class SetupNanoparticle:
             # Wulff construction
             surfaces = [x[0] for x in self.direction_table]
             surfaceenergies = [x[2] for x in self.direction_table]
-            self.update_size_dia()
-            if self.round_above.get_active():
-                rounding = 'above'
-            elif self.round_below.get_active():
-                rounding = 'below'
-            elif self.round_closest.get_active():
-                rounding = 'closest'
-            else:
-                raise RuntimeError('No rounding!')
-            self.atoms = wulff_construction(self.legal_element, surfaces,
+            self.update_size_diameter()
+            rounding = self.round_radio.value
+            self.atoms = wulff_construction(self.element.symbol,
+                                            surfaces,
                                             surfaceenergies,
-                                            self.size_n_adj.value,
+                                            self.size_natoms.value,
                                             self.factory[struct],
                                             rounding, lc)
-            python = py_template_wulff % {'element': self.legal_element,
+            python = py_template_wulff % {'element': self.element.symbol,
                                           'surfaces': str(surfaces),
                                           'energies': str(surfaceenergies),
                                           'latconst': lc_str,
-                                          'natoms': self.size_n_adj.value,
+                                          'natoms': self.size_natoms.value,
                                           'structure': struct,
                                           'rounding': rounding}
         else:
@@ -508,8 +508,9 @@ class SetupNanoparticle:
             self.info[1].text = str(len(self.atoms))
             self.info[3].text = u'{0:.1f} Å'.format(dia)
         if self.method.value == 'wulff':
-            self.smaller_button.active = self.atoms is not None
-            self.larger_button.active = self.atoms is not None
+            if self.smaller_button is not None:
+                self.smaller_button.active = self.atoms is not None
+                self.larger_button.active = self.atoms is not None
 
     def apply(self):
         self.makeatoms()

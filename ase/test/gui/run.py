@@ -66,6 +66,9 @@ def nanopartickle(gui):
     n.apply()
     n.set_structure_data()
     assert gui.images.natoms == 675
+    n.method.value = 'wulff'
+    n.update_gui_method()
+    n.apply()
 
 
 @test
