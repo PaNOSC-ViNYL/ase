@@ -663,6 +663,140 @@ class BaseSiesta(FileIOCalculator):
         self.read_eigenvalues()
         self.read_dipole()
         self.read_pseudo_density()
+        self.read_hsx()
+        self.read_dim()
+        if self.results['hsx'] is not None:
+            self.read_pld(self.results['hsx'].norbitals,
+                          self.atoms.get_number_of_atoms())
+            self.atoms.cell = self.results['pld'].cell * Bohr
+        else:
+            self.results['pld'] = None
+
+        self.read_wfsx()
+        self.read_ion(self.atoms)
+
+    def read_ion(self, atoms):
+        """Read the ion.xml file of each specie
+        """
+        from import_ion_xml import get_ion
+
+        species, species_numbers = self.species(atoms)
+
+        self.results['ion'] = {}
+        for species_number, specie in enumerate(species):
+            species_number += 1
+            if specie not in self.results['ion'].keys():
+                symbol = specie['symbol']
+                atomic_number = atomic_numbers[symbol]
+
+                if specie['pseudopotential'] is None:
+                    if self.pseudo_qualifier() == '':
+                        label = symbol
+                        pseudopotential = label + '.psf'
+                    else:
+                        label = '.'.join([symbol, self.pseudo_qualifier()])
+                        pseudopotential = label + '.psf'
+                else:
+                    pseudopotential = specie['pseudopotential']
+                    label = os.path.basename(pseudopotential)
+                    label = '.'.join(label.split('.')[:-1])
+
+                name = os.path.basename(pseudopotential)
+                name = name.split('.')
+                name.insert(-1, str(species_number))
+                if specie['ghost']:
+                    name.insert(-1, 'ghost')
+                    atomic_number = -atomic_number
+                name = '.'.join(name)
+
+                label = '.'.join(np.array(name.split('.'))[:-1])
+
+                fname = label + '.ion.xml'
+                self.results['ion'][label] = get_ion(fname)
+
+    def read_hsx(self):
+        """
+        Read the siesta HSX file.
+        return a namedtuple with the following arguments:
+        'norbitals', 'norbitals_sc', 'nspin', 'nonzero',
+        'is_gamma', 'sc_orb2uc_orb', 'row2nnzero', 'sparse_ind2column',
+        'H_sparse', 'S_sparse', 'aB2RaB_sparse', 'total_elec_charge', 'temp'
+        """
+
+        import warnings
+        from import_functions import readHSX
+
+        filename = self.label + '.HSX'
+        if isfile(filename):
+            self.results['hsx'] = readHSX(filename)
+        else:
+            warnings.warn(filename + """ does not exist =>
+                                     sieta.results["hsx"]=None""",
+                                     UserWarning)
+            self.results['hsx'] = None
+
+    def read_dim(self):
+        """
+        Read the siesta DIM file
+        Retrun a namedtuple with the following arguments:
+        'natoms_sc', 'norbitals_sc', 'norbitals', 'nspin',
+        'nnonzero', 'natoms_interacting'
+        """
+
+        import warnings
+        from import_functions import readDIM
+
+        filename = self.label + '.DIM'
+        if isfile(filename):
+            self.results['dim'] = readDIM(filename)
+        else:
+            warnings.warn(filename + """does not exist =>
+                                     sieta.results["dim"]=None""",
+                                     UserWarning)
+            self.results['dim'] = None
+
+    def read_pld(self, norb, natms):
+        """
+        Read the siesta PLD file
+        Return a namedtuple with the following arguments:
+        'max_rcut', 'orb2ao', 'orb2uorb', 'orb2occ', 'atm2sp',
+        'atm2shift', 'coord_sc', 'cell', 'nunit_cells'
+        """
+
+        import warnings
+        from import_functions import readPLD
+
+        filename = self.label + '.PLD'
+        if isfile(filename):
+            self.results['pld'] = readPLD(filename, norb, natms)
+        else:
+            warnings.warn(filename + """ does not exist =>
+                                     sieta.results["pld"]=None""",
+                                     UserWarning)
+            self.results['pld'] = None
+
+    def read_wfsx(self):
+        """
+        Read the siesta WFSX file
+        Return a namedtuple with the following arguments:
+        """
+
+        import warnings
+        from import_functions import readWFSX
+
+        if isfile(self.label + '.WFSX'):
+            filename = self.label + '.WFSX'
+            self.results['wfsx'] = readWFSX(filename)
+        elif isfile(self.label + '.fullBZ.WFSX'):
+            filename = self.label + '.fullBZ.WFSX'
+            readWFSX(filename)
+            self.results['wfsx'] = readWFSX(filename)
+        else:
+            filename = self.label + '.WFSX or ' + self.label + '.fullBZ.WFSX'
+            warnings.warn(filename + """ does not exist =>
+                                     sieta.results["wfsx"]=None""",
+                                     UserWarning)
+            self.results['wfsx'] = None
 
     def read_pseudo_density(self):
         """Read the density if it is there.
