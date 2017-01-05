@@ -73,7 +73,7 @@ H     -9.75442821      49.86975598      36.36228789 7(1)     56.00000000        
 H     -5.57124378      47.66022553      38.84723587 _     56.00000000        2        1 _      0.42041445       0.33263157       0.40961149        1        8        6       -7       -2
 """.split("\n")]
 
-buf = StringIO.StringIO()
+buf = StringIO()
 ase.io.write(buf, at, format="extxyz")
 lines = [line.strip() for line in buf.getvalue().split("\n")]
 
