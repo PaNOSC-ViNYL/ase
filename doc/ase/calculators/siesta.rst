@@ -19,9 +19,9 @@ Environment variables
 =====================
 
 The environment variable :envvar:`SIESTA_COMMAND` must hold the command
-to invoke the siesta calculation. The variable must be a python format 
+to invoke the siesta calculation. The variable must be a python format
 string with exactly two string fields for the input and output files.
-Examples: "siesta < %s > %s", "mpirun -np 4 /bin/siesta3.2 < %s > %s".
+Examples: ``siesta < %s > %s``, ``mpirun -np 4 /bin/siesta3.2 < %s > %s``.
 
 A default directory holding pseudopotential files :file:`.vps/.psf` can be
 defined to avoid defining this every time the calculator is used.
@@ -34,30 +34,25 @@ Set both environment variables in your shell configuration file:
 
 ::
 
-  $ export SIESTA_COMMAND="siesta < ./%s > ./%s
+  $ export SIESTA_COMMAND="siesta < ./%s > ./%s"
   $ export SIESTA_PP_PATH=$HOME/mypps
 
 .. highlight:: python
 
-Both of these environment variables can be overwritten by setting:
+Alternatively, the path to the pseudopotentials can be given in
+the calculator initialization.
 
 ===================== ========= ============= =====================================
 keyword               type      default value description
 ===================== ========= ============= =====================================
 ``pseudo_path``       ``str``   ``None``      Directory for pseudopotentials to use
                                               None means using $SIESTA_PP_PATH
-``siesta_executable`` ``str``   ``None``      Path to a Siesta executable. None
-                                              means using the $SIESTA variable
 ===================== ========= ============= =====================================
-
-For parallel calculations with four nodes set the keyword ``n_nodes=4``.
-
 
 SIESTA Calculator
 =================
 
-The default parameters are very close to those that the SIESTA Fortran
-code uses.  These are the exceptions:
+These parameters are set explicitly and overrides the native values if different.
 
 ==================== ========= ============= =====================================
 keyword              type      default value description
@@ -86,53 +81,7 @@ keyword              type      default value description
                                              is used, i.e. ``H.lda.psf``
 ==================== ========= ============= =====================================
 
-
-Defining Custom Species
-=======================
-Standard basis sets can be set by the keyword ``basis_set`` directly, but for
-anything more complex than one standard basis size for all elements,
-a list of ``species`` must be defined. Each specie is identified by atomic
-element and the tag set on the atom.
-
-For instance if we wish to investigate a H2 and put ghost atom in the middle
-with a special type of basis you would write:
-    
->>> from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
->>> from ase import Atoms
->>> from ase.calculators.siesta import Siesta
->>> atoms = Atoms(
->>>     '3H',
->>>     [(0.0, 0.0, 0.0),
->>>      (0.0, 0.0, 0.5),
->>>      (0.0, 0.0, 1.0)],
->>>     cell=[10, 10, 10])
->>> atoms.set_tags([0, 1, 0])
->>>
->>> basis_set = PAOBasisBlock(
->>> """1
->>> 0  2 S 0.2
->>> 0.0 0.0""")
->>>
->>> siesta = Siesta(
->>>     species=[
->>>         Specie(symbol='H', tag=None, basis_set='SZ'),
->>>         Specie(symbol='H', tag=1, basis_set=basis_set, ghost=True)])
->>>
->>> atoms.set_calculator(siesta)
- 
-The priority order of which description is used is that species
-defined with a tag has the highest priority. Then general species
-with ``tag=None`` has a lower priority. Finally, if no species apply
-to an atom, the general calculator keywords are used.
-
-Species can also be used to specify pseudopotentials:
-
->>>         Specie(symbol='H', pseudopotential='H.example.psf'),
-
-Both absolute and relative paths can be given.
-Relative paths are considered relative to the default pseudopotential
-path.
-
+Most other parameters are set to the default values of the native interface.
 
 Extra FDF parameters
 ====================
@@ -148,26 +97,11 @@ For example, the ``DM.MixingWeight`` can be set using
 >>> Siesta(fdf_arguments={'DM.MixingWeight': 0.01})
 
 The explicit fdf arguments will always override those given by other
-keywords, even if it will break calculator functionality.
+keywords, even if it breaks calculator functionality.
 The complete list of the FDF entries can be found in the official `SIESTA
 manual`_.
 
 .. _SIESTA manual: http://departments.icmab.es/leem/siesta/Documentation/Manuals/manuals.html
-
-
-Pseudopotentials
-================
-
-Pseudopotential files in the ``.psf`` or ``.vps`` formats are needed.
-Pseudopotentials generated from the ABINIT code and converted to
-the SIESTA format are available in the `SIESTA`_ website . A database of user
-contributed pseudopotentials is also available there.
-
-You can also find an on-line pseudopotential generator_ from the
-OCTOPUS code.
-
-.. _generator: http://www.tddft.org/programs/octopus/wiki/index.php/Pseudopotentials
-
 
 Example
 =======
@@ -206,13 +140,75 @@ should result in an energy shift of 0.01 Rydberg (the
 ``energy_shift=0.01 * Ry`` keyword). Sometimes it can be necessary to specify
 more information on the basis set.
 
+Defining Custom Species
+=======================
+Standard basis sets can be set by the keyword ``basis_set`` directly, but for
+anything more complex than one standard basis size for all elements,
+a list of ``species`` must be defined. Each specie is identified by atomic
+element and the tag set on the atom.
+
+For instance if we wish to investigate a H2 molecule and put a ghost atom
+(the basis set corresponding to an atom but without the actual atom) in the middle
+with a special type of basis you would write:
+
+>>> from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
+>>> from ase import Atoms
+>>> from ase.calculators.siesta import Siesta
+>>> atoms = Atoms(
+>>>     '3H',
+>>>     [(0.0, 0.0, 0.0),
+>>>      (0.0, 0.0, 0.5),
+>>>      (0.0, 0.0, 1.0)],
+>>>     cell=[10, 10, 10])
+>>> atoms.set_tags([0, 1, 0])
+>>>
+>>> basis_set = PAOBasisBlock(
+>>> """1
+>>> 0  2 S 0.2
+>>> 0.0 0.0""")
+>>>
+>>> siesta = Siesta(
+>>>     species=[
+>>>         Specie(symbol='H', tag=None, basis_set='SZ'),
+>>>         Specie(symbol='H', tag=1, basis_set=basis_set, ghost=True)])
+>>>
+>>> atoms.set_calculator(siesta)
+
+When more species are defined, species defined with a tag has the highest priority.
+General species with ``tag=None`` has a lower priority.
+Finally, if no species apply
+to an atom, the general calculator keywords are used.
+
+
+Pseudopotentials
+================
+
+Pseudopotential files in the ``.psf`` or ``.vps`` formats are needed.
+Pseudopotentials generated from the ABINIT code and converted to
+the SIESTA format are available in the `SIESTA`_ website.
+A database of user contributed pseudopotentials is also available there.
+
+You can also find an on-line pseudopotential generator_ from the
+OCTOPUS code.
+
+.. _generator: http://www.tddft.org/programs/octopus/wiki/index.php/Pseudopotentials
+
+
+Species can also be used to specify pseudopotentials:
+
+>>> specie = Specie(symbol='H', tag=1, pseudopotential='H.example.psf')
+
+When specifying the pseudopotential in this manner, both absolute
+and relative paths can be given.
+Relative paths are considered relative to the default
+pseudopotential path.
 
 Restarting from an old Calculation
 ==================================
 
-If you want to rerun an old SIESTA calculation, made using the ASE
+If you want to rerun an old SIESTA calculation, whether made using the ASE
 interface or not, you can set the keyword ``restart`` to the siesta ``.XV``
-files. The keyword ``ignore_bad_restart`` (True/False) will decide whether
+file. The keyword ``ignore_bad_restart`` (True/False) will decide whether
 a broken file will result in an error(False) or the whether the calculator
 will simply continue without the restart file.
 

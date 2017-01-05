@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2016-10-17 18:07+0200\n"
-"PO-Revision-Date: 2016-10-27 18:53+0200\n"
+"POT-Creation-Date: 2016-12-15 20:22+0100\n"
+"PO-Revision-Date: 2016-12-15 20:31+0100\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -694,10 +694,9 @@ msgstr ""
 "\n"
 "Por favor, compruebe que la palabra clave esté correcta!\n"
 "\n"
-"Si usted realmente piensa que debería estar disponible, por favor agrégela "
-"al inicio de\n"
+"Si usted realmente piensa que debería estar disponible, por favor agrégela al inicio de\n"
 "\n"
-"ase/calculators/aims.py"
+"ase/calculators/aims.py."
 
 #: ../calculator.py:1610
 msgid "VASP parameters"
@@ -752,9 +751,7 @@ msgstr "Exportar archivos de VASP"
 
 #: ../calculator.py:1947
 msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
-msgstr ""
-"<b>ADVERTENCIA:</b> ¡La energía de corte es más baja que el mínimo "
-"recomendado! "
+msgstr "<b>ADVERTENCIA:</b> ¡La energía de corte es más baja que el mínimo recomendado!"
 
 #: ../calculator.py:1999
 msgid "Import VASP input files: choose directory ... "
@@ -778,7 +775,7 @@ msgstr ""
 "\n"
 "Si usted realmente cree que debería estar disponible, por favor\n"
 "agrégela al inicio del archivo\n"
-"calculators/vasp.py"
+"calculators/vasp.py."
 
 #: ../colors.py:27
 msgid "Colors"
@@ -1099,13 +1096,13 @@ msgstr "¡Grupo espacial inválido!"
 msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conjunto consistente de átomos."
 
-#: ../crystal.py:348 ../graphene.py:253 ../nanoparticle.py:614
-#: ../nanotube.py:160 ../surfaceslab.py:250
+#: ../crystal.py:348 ../graphene.py:246 ../nanoparticle.py:614
+#: ../nanotube.py:154 ../surfaceslab.py:250
 msgid "No valid atoms."
 msgstr "Los átomos no son válidos."
 
-#: ../crystal.py:349 ../graphene.py:254 ../nanoparticle.py:615
-#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:251
+#: ../crystal.py:349 ../graphene.py:247 ../nanoparticle.py:615
+#: ../nanotube.py:155 ../pybutton.py:49 ../surfaceslab.py:251
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "No ha especificado aún un conjunto consistente de parámetros."
 
@@ -1756,7 +1753,7 @@ msgstr "Restricciones ..."
 
 #: ../gui.py:276
 msgid "Render scene ..."
-msgstr "Dibujar escena ... "
+msgstr "Dibujar escena ..."
 
 #: ../gui.py:278
 msgid "NE_B"
@@ -1844,7 +1841,7 @@ msgstr "Página web ..."
 
 #: ../gui.py:303
 msgid "Debug ..."
-msgstr "Quitar errores"
+msgstr "Quitar errores ..."
 
 #: ../gui.py:306
 msgid "Show _unit cell"

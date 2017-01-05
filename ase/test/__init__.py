@@ -123,11 +123,14 @@ def test(verbosity=1, calculators=[],
             versions.append((name + '-' + module.__version__,
                             module.__file__.rsplit('/', 1)[0] + '/'))
 
-    for a, b in versions:
-        print('{0:16}{1}'.format(a, b))
+    if verbosity:
+        for a, b in versions:
+            print('{0:16}{1}'.format(a, b))
 
     sys.stdout = devnull
 
+    if verbosity == 0:
+        stream = devnull
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
 
     origcwd = os.getcwd()
@@ -139,7 +142,8 @@ def test(verbosity=1, calculators=[],
             shutil.rmtree(testdir)  # clean before running tests!
         os.mkdir(testdir)
     os.chdir(testdir)
-    print('test-dir       ', testdir, '\n', file=sys.__stdout__)
+    if verbosity:
+        print('test-dir       ', testdir, '\n', file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:
@@ -174,8 +178,12 @@ def cli(command, calculator_name=None):
     if (calculator_name is not None and
         calculator_name not in test_calculator_names):
         return
-    error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    if error != 0:
+    proc = subprocess.Popen(' '.join(command.split('\n')),
+                            shell=True,
+                            stdout=subprocess.PIPE)
+    print(proc.stdout.read().decode())
+    proc.wait()
+    if proc.returncode != 0:
         raise RuntimeError('Failed running a shell command.  '
                            'Please set you $PATH environment variable!')
 

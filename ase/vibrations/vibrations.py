@@ -13,7 +13,7 @@ import numpy as np
 import ase.units as units
 from ase.io.trajectory import Trajectory
 from ase.parallel import rank, paropen
-from ase.utils import opencew
+from ase.utils import opencew, pickleload
 
 
 class Vibrations:
@@ -192,10 +192,7 @@ class Vibrations:
 
         def load(fname):
             with open(fname, 'rb') as fl:
-                try:
-                    f = pickle.load(fl, encoding='bytes')
-                except TypeError:  # python2 does not know about encoding
-                    f = pickle.load(fl)
+                f = pickleload(fl)
             if not hasattr(f, 'shape'):
                 # output from InfraRed
                 return f[0]

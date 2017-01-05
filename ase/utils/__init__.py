@@ -1,5 +1,7 @@
 import errno
+import functools
 import os
+import pickle
 import sys
 import time
 from math import sin, cos, radians, atan2, degrees
@@ -17,7 +19,7 @@ from ase.data import chemical_symbols
 __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
            'opencew', 'OpenLock', 'hill', 'rotate', 'irotate', 'givens',
-           'hsv2rgb', 'hsv']
+           'hsv2rgb', 'hsv', 'pickleload']
 
 
 # Python 2+3 compatibility stuff:
@@ -26,11 +28,13 @@ if sys.version_info[0] > 2:
     exec_ = getattr(builtins, 'exec')
     basestring = str
     from io import StringIO
+    pickleload = functools.partial(pickle.load, encoding='bytes')
 else:
     def exec_(code, dct):
         exec('exec code in dct')
     basestring = basestring
     from StringIO import StringIO
+    pickleload = pickle.load
 StringIO  # appease pyflakes
 
 if sys.version_info >= (2, 7):

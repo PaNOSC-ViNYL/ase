@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2016-10-17 18:07+0200\n"
-"PO-Revision-Date: 2016-10-18 00:43+0200\n"
+"POT-Creation-Date: 2016-12-15 20:22+0100\n"
+"PO-Revision-Date: 2016-12-15 20:30+0100\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -1068,13 +1068,13 @@ msgstr "Ugyldig rumgruppe!"
 msgid "Please specify a consistent set of atoms."
 msgstr "Angiv venligst en konsistent samling atomer."
 
-#: ../crystal.py:348 ../graphene.py:253 ../nanoparticle.py:614
-#: ../nanotube.py:160 ../surfaceslab.py:250
+#: ../crystal.py:348 ../graphene.py:246 ../nanoparticle.py:614
+#: ../nanotube.py:154 ../surfaceslab.py:250
 msgid "No valid atoms."
 msgstr "Ingen gyldige atomer."
 
-#: ../crystal.py:349 ../graphene.py:254 ../nanoparticle.py:615
-#: ../nanotube.py:161 ../pybutton.py:49 ../surfaceslab.py:251
+#: ../crystal.py:349 ../graphene.py:247 ../nanoparticle.py:615
+#: ../nanotube.py:155 ../pybutton.py:49 ../surfaceslab.py:251
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "Du har (endnu) ikke angivet konsistente parametre."
 
@@ -1381,23 +1381,19 @@ msgstr ""
 "<c>e</c>:\t\t\t\ttotal energi\n"
 "<c>epot</c>:\t\t\tpotentiel energi\n"
 "<c>ekin</c>:\t\t\tkinetisk energi\n"
-"<c>fmax</c>:\t\t\tmaximum kræft\n"
-"<c>fave</c>:\t\t\tmiddel kræft\n"
+"<c>fmax</c>:\t\t\tmaksimal kraft\n"
+"<c>fave</c>:\t\t\tgennemsnitlig kraft\n"
 "<c>R[n,0-2]</c>:\t\t\tposition af atom nummer <c>n</c>\n"
-"<c>d(n<sub>1</sub>,n<sub>1</sub>)</c>:\t\t\tafstand mellem to atomer "
-"<c>n<sub>1</sub></c> og <c>n<sub>2</sub></c>\n"
-"<c>i</c>:\t\t\t\tnuværende billede nummer\n"
+"<c>d(n<sub>1</sub>,n<sub>1</sub>)</c>:\t\t\tafstand mellem to atomer <c>n<sub>1</sub></c> og <c>n<sub>2</sub></c>\n"
+"<c>i</c>:\t\t\t\tnuværende billedes nummer\n"
 "<c>E[i]</c>:\t\t\t\tenergi af billede nummer <c>i</c>\n"
-"<c>F[n,0-2]</c>:\t\t\tkræft på atom nummer <c>n</c>\n"
+"<c>F[n,0-2]</c>:\t\t\tkraft på atom nummer <c>n</c>\n"
 "<c>V[n,0-2]</c>:\t\t\thastighed af atom nummer <c>n</c>\n"
-"<c>M[n]</c>:\t\t\tmagnetiskt moment af atom nummer <c>n</c>\n"
-"<c>A[0-2,0-2]</c>:\t\tenhedscelle vektorer\n"
+"<c>M[n]</c>:\t\t\tmagnetisk moment af atom nummer <c>n</c>\n"
+"<c>A[0-2,0-2]</c>:\t\tenhedscellevektorer\n"
 "<c>s</c>:\t\t\t\tvejlængde\n"
-"<c>a(n1,n2,n3)</c>:\t\tvinkel mellem atomerne <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centeret på <c>n<sub>2</sub></"
-"c>\n"
-"<c>dih(n1,n2,n3,n4)</c>:\tdihedral vinkel mellem <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> og <c>n<sub>4</sub></c>\n"
+"<c>a(n1,n2,n3)</c>:\t\tvinkel mellem atomerne <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centreret på <c>n<sub>2</sub></c>\n"
+"<c>dih(n1,n2,n3,n4)</c>:\tdihedral vinkel mellem <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> og <c>n<sub>4</sub></c>\n"
 "<c>T</c>:\t\t\t\ttemperatur (K)"
 
 #: ../graphs.py:50 ../graphs.py:53
@@ -1591,7 +1587,7 @@ msgstr "_Sidste billede"
 
 #: ../gui.py:232
 msgid "Show _Labels"
-msgstr "Vis _Etiketter"
+msgstr "Vis _etiketter"
 
 #: ../gui.py:233
 msgid "Hide selected atoms"
@@ -1853,11 +1849,11 @@ msgstr "_Ingen"
 
 #: ../gui.py:327
 msgid "Atom _Index"
-msgstr "Atom _Indeks"
+msgstr "Atom_indeks"
 
 #: ../gui.py:328
 msgid "_Magnetic Moments"
-msgstr "_Magnetiske Momenter"
+msgstr "_Magnetiske momenter"
 
 #: ../gui.py:329
 msgid "_Element Symbol"
@@ -1901,7 +1897,7 @@ msgstr "_Indlæs molekyle"
 
 #: ../gui.py:790 ../gui.py:898
 msgid "_OK"
-msgstr "_O.k."
+msgstr "_OK"
 
 #: ../gui.py:794 ../gui.py:902
 msgid "_Cancel"
