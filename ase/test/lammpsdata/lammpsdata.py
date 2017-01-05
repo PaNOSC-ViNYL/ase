@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import ase.io
-import StringIO
+from ase.utils import StringIO
 
 input = StringIO.StringIO("""LAMMPS data file via write_data, version 7 Sep 2016, timestep = 1000000
 
