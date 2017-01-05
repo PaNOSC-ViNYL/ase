@@ -20,6 +20,7 @@ class TIP4P:
         self.energy = None
         self.forces = None
         self.name = 'TIP4P'
+        self.rc = 9.
         nm = 4
         self.nm = nm
         LJ = np.zeros((2, nm))
@@ -139,7 +140,7 @@ class TIP4P:
         xatoms = mol.copy()
         for i in range(nummols-1):
             xatoms += mol
-        xatoms.set_pbc((1, 1, 1))
+        xatoms.set_pbc(atoms.get_pbc())
         xatoms.set_cell(atoms.get_cell())
         xatoms.set_positions(xatomspos)
         charges = np.zeros(len(xatoms))
