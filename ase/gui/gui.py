@@ -260,9 +260,9 @@ class GUI(View, Status):
             self.set_colors()
             self.set_coordinates(self.images.nimages - 1, focus=True)
 
-    def modify_atoms(self):
-        from ase.gui.modify import modify
-        modify(self)
+    def modify_atoms(self, key=None):
+        from ase.gui.modify import ModifyAtoms
+        ModifyAtoms(self)
 
     def add_atoms(self):
         from ase.gui.add import add

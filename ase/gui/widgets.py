@@ -28,6 +28,10 @@ class Element(list):
         self.check()
         return self._Z
 
+    @Z.setter
+    def Z(self, value):
+        self.symbol = ase.data.chemical_symbols[value]
+
     def check(self):
         self._symbol = self[1].value
         if not self._symbol:
@@ -46,7 +50,7 @@ class Element(list):
 
     def enter(self):
         self.check()
-        self.callback()
+        self.callback(self)
 
     def error(self, text=_('ERROR: Invalid element!')):
         self._symbol = None
