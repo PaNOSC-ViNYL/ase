@@ -196,6 +196,8 @@ class GUI(View, Status):
         return found
 
     def neb(self):
+        if len(self.images) <= 1:
+            return
         from ase.neb import NEBtools
         nebtools = NEBtools(self.images)
         fig = nebtools.plot_band()
@@ -434,7 +436,7 @@ class GUI(View, Status):
                 disabled=True)]),
 
             (_('_Help'),
-             [M(_('_About'), partial(ui.about, 'ASE-GUI',
+             [M(_('_About'), partial(ui.about, 'ASE-GUI (work in progress)',
                                      version=__version__,
                                      webpage='https://wiki.fysik.dtu.dk/'
                                      'ase/ase/gui/gui.html')),
