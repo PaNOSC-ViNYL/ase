@@ -198,11 +198,12 @@ class View:
         self.set_coordinates()
 
     def toggle_show_velocities(self, key=None):
-        self.show_vectors(10 * self.images.V)  # XXX hard coded scale is ugly
+        # XXX hard coded scale is ugly
+        self.show_vectors(10 * np.nan_to_num(self.images.V))
         self.draw()
 
     def toggle_show_forces(self, key=None):
-        self.show_vectors(self.images.F)
+        self.show_vectors(np.nan_to_num(self.images.F))
         self.draw()
 
     def hide_selected(self):
