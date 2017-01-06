@@ -1,9 +1,9 @@
 # encoding: utf-8
 """nanoparticle.py - Window for setting up crystalline nanoparticles.
 """
-from __future__ import division
+from __future__ import division, unicode_literals
 from copy import copy
-from gettext import gettext as _
+from ase.gui.i18n import _
 
 import numpy as np
 

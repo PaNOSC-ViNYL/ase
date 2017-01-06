@@ -1,8 +1,10 @@
 # encoding: utf-8
+
 """nanotube.py - Window for setting up Graphene sheets and ribbons.
 """
 
-from gettext import gettext as _
+from __future__ import unicode_literals
+from ase.gui.i18n import _
 
 import ase.gui.ui as ui
 from ase.gui.status import formula
