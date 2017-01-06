@@ -1,16 +1,33 @@
-""" A not so general classical interpotential class. Input are the
-    Lennard-Jones parameters and nm of the no. atoms per
-    classical molecule. This calculator is attached to an
-    atoms object were the classical charges are set beforehand
-    (atoms.set_charges(#ARRAY)). """
+""" TIP4P potential for water.
+    http://dx.doi.org/10.1063/1.445869
+
+    Requires an atoms object of OHH,OHH, ... sequence
+    Correct TIP4P charges and LJ parameters set automatically.
+
+    Virtual interaction sites implemented in the following scheme:
+    Original atoms object has no virtual sites.
+    When energy/forces are requested:
+        - virtual sites added to temporary xatoms object
+        - energy / forces calculated
+        - forces redistributed from virtual sites to actual atoms object
+    This means you do not get into trouble when propagating your system with MD
+    while having to skip / account for massless virtual sites.
+
+    This also means that if using for QM/MM MD with GPAW, the EmbedTIP4P class
+    must be used.
+    """
 
 import numpy as np
 import ase.units as unit
 from ase import Atoms
 import warnings
 
-# Electrostatic constant:
+# Electrostatic constant and parameters:
 k_c = 332.1 * unit.kcal / unit.mol
+sigma0 = 3.15365
+epsilon0 = 0.6480 * unit.kJ / unit.mol
+rOH = 0.9572
+thetaHOH = 104.52
 
 
 class TIP4P:
@@ -24,13 +41,9 @@ class TIP4P:
         nm = 4
         self.nm = nm
         LJ = np.zeros((2, nm))
-        LJ[0, 0] += 0.6480 * unit.kJ / unit.mol
-        LJ[1, 0] += 3.15365
+        LJ[0, 0] += epsilon0
+        LJ[1, 0] += sigma0
         self.LJ = LJ
-
-        """ Form of the LJ parameters should be : array((2,nm))
-            where (0,:) are the epsilon values and (1,:) the sigma
-            values. """
 
     def calculate(self, atoms):
         self.atoms = atoms
@@ -135,7 +148,7 @@ class TIP4P:
             molct += 1
 
         nummols = len(atoms)/3
-        # lol ase max recursion depth BS...
+        # ase max recursion depth...
         mol = Atoms('OHHH')
         xatoms = mol.copy()
         for i in range(nummols-1):
