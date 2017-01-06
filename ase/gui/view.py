@@ -15,12 +15,14 @@ from ase.gui.colors import ColorWindow
 from ase.utils import rotate
 
 
+GREEN = '#DDFFDD'
+
+
 class View:
     def __init__(self, rotations):
         self.colormode = 'jmol'  # The default colors
         self.nselected = 0
         self.labels = None
-        self.light_green_markings = 0
         self.axes = rotate(rotations)
         self.configured = False
         self.frame = None
@@ -366,6 +368,11 @@ class View:
                 ra = d[a]
                 if visible[a]:
                     # Draw the atoms
+                    if self.moving and selected[a]:
+                        circle(GREEN, False,
+                               A[a, 0] - 4, A[a, 1] - 4,
+                               A[a, 0] + ra + 4, A[a, 1] + ra + 4)
+
                     circle(colors[a], selected[a],
                            A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
 
@@ -386,11 +393,6 @@ class View:
                     # Draw velocities or forces
                     if vectors:
                         line((X[a, 0], X[a, 1], V[a, 0], V[a, 1]), width=2)
-
-                if self.light_green_markings and self.atoms_to_rotate_0[a]:
-                    circle(self.green, False,
-                           A[a, 0] + 1, A[a, 1] + 1,
-                           A[a, 0] + ra - 1, A[a, 1] + ra - 1)
             else:
                 # Draw unit cell and/or bonds:
                 a -= n

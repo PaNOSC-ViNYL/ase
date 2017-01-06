@@ -61,6 +61,7 @@ class GUI(View, Status):
         self.vulnerable_windows = []
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
+        self.moving = False
 
     def run(self, expr=None, test=None):
         self.set_colors()
@@ -79,6 +80,10 @@ class GUI(View, Status):
             self.window.test(test)
         else:
             self.window.run()
+
+    def toggle_move_mode(self, key=None):
+        self.moving ^= True
+        self.draw()
 
     def step(self, key):
         d = {'Home': -10000000,
@@ -123,11 +128,18 @@ class GUI(View, Status):
         if dxdydz is None:
             return
 
-        dx, dy, dz = dxdydz
+        vec = 0.1 * np.dot(self.axes, dxdydz)
+        if event.modifier == 'shift':
+            vec *= 0.1
 
-        self.center -= (
-            dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
-        self.draw()
+        if self.moving:
+            self.images.P[:, self.images.selected] += vec
+            self.set_frame()
+        else:
+            self.center -= vec
+            # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
+
+            self.draw()
 
     def delete_selected_atoms(self, widget=None, data=None):
         import ase.gui.ui as ui
@@ -248,6 +260,14 @@ class GUI(View, Status):
             self.set_colors()
             self.set_coordinates(self.images.nimages - 1, focus=True)
 
+    def modify_atoms(self):
+        from ase.gui.modify import modify
+        modify(self)
+
+    def add_atoms(self):
+        from ase.gui.add import add
+        add(self)
+
     def quick_info_window(self):
         from ase.gui.quickinfo import info
         ui.Window('Quick Info').add(info(self))
@@ -355,8 +375,8 @@ class GUI(View, Status):
               M(_('Hide selected atoms'), self.hide_selected),
               M(_('Show selected atoms'), self.show_selected),
               M('---'),
-              # M(_('_Modify'), self.modify_atoms, 'Ctrl+Y'),
-              # M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
+              M(_('_Modify'), self.modify_atoms, 'Ctrl+Y'),
+              M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
               M(_('_Delete selected atoms'), self.delete_selected_atoms,
                 'Backspace'),
               M('---'),
@@ -417,6 +437,7 @@ class GUI(View, Status):
               M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
               M(_('Render scene ...'), self.render_window, disabled=True),
+              M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),
 
