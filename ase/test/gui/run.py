@@ -1,21 +1,20 @@
+from __future__ import unicode_literals
 import argparse
-from gettext import gettext as _
+
 import numpy as np
 
+from ase import Atoms
+from ase.calculators.singlepoint import SinglePointCalculator
 from ase.build import molecule
+from ase.gui.i18n import _
 from ase.test import NotAvailable
 
 try:
-    from ase.gui.i18n import enable_localization
     import ase.gui.ui as ui
 except ImportError:
     raise NotAvailable
 
-from ase import Atoms
 from ase.gui.gui import GUI
-from ase.calculators.singlepoint import SinglePointCalculator
-
-enable_localization()
 
 
 class OOPS:

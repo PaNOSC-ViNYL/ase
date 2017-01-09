@@ -3,11 +3,11 @@
 """
 
 from __future__ import unicode_literals
-from ase.gui.i18n import _
 
 import ase.gui.ui as ui
-from ase.gui.widgets import Element, pybutton
 from ase.build import nanotube
+from ase.gui.i18n import _
+from ase.gui.widgets import Element, pybutton
 
 
 introtext = _("""\
