@@ -215,13 +215,17 @@ class Entry(Widget):
     def __init__(self, value='', width=20, callback=None):
         self.creator = partial(tk.Entry,
                                width=width)
-        self.callback = lambda event: callback()
+        if callback is not None:
+            self.callback = lambda event: callback()
+        else:
+            self.callback = None
         self.initial = value
 
     def create(self, parent):
         self.entry = self.creator(parent)
         self.value = self.initial
-        self.entry.bind('<Return>', self.callback)
+        if self.callback:
+            self.entry.bind('<Return>', self.callback)
         return self.entry
 
     @property

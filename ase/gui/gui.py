@@ -266,9 +266,9 @@ class GUI(View, Status):
         from ase.gui.modify import ModifyAtoms
         ModifyAtoms(self)
 
-    def add_atoms(self):
-        from ase.gui.add import add
-        add(self)
+    def add_atoms(self, key=None):
+        from ase.gui.add import AddAtoms
+        AddAtoms(self)
 
     def quick_info_window(self):
         from ase.gui.quickinfo import info
