@@ -1,11 +1,10 @@
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import sys
-from gettext import gettext as _
 from optparse import OptionParser
 
-from ase.gui.i18n import enable_localization
+from ase.gui.i18n import _
 
 
 # Grrr, older versions (pre-python2.7) of optparse have a bug
@@ -65,7 +64,6 @@ def build_parser():
 
 
 def main():
-    enable_localization()
     parser = build_parser()
     opt, args = parser.parse_args()
 

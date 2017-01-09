@@ -1,6 +1,7 @@
 "Module for displaying information about the system."
 
-from gettext import gettext as _
+from __future__ import unicode_literals
+from ase.gui.i18n import _
 
 singleimage = _('Single image loaded.')
 multiimage = _('Image %d loaded (0 - %d).')

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 try:
     # Python 3
     import tkinter as tk
@@ -14,7 +15,7 @@ except ImportError:
 
 import re
 from functools import partial
-from gettext import gettext as _
+from ase.gui.i18n import _
 
 import numpy as np
 
