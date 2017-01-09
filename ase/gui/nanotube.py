@@ -53,7 +53,7 @@ class SetupNanotube:
         self.gui = gui
         self.atoms = None
 
-    def make(self):
+    def make(self, element=None):
         symbol = self.element.symbol
         if symbol is None:
             self.atoms = None
