@@ -11,12 +11,16 @@ class Repeat:
                        for r in gui.images.repeat]
         win.add(self.repeat)
         win.add(ui.Button('Set unit cell', self.set_unit_cell))
+
+        for sb, vec in zip(self.repeat, gui.images.A[gui.frame]):
+            if not vec.any():
+                sb.active = False
+
         self.gui = gui
 
     def change(self):
         repeat = [int(r.value) for r in self.repeat]
         self.gui.images.repeat_images(repeat)
-        self.gui.repeat_colors(repeat)
         self.gui.set_coordinates()
 
     def set_unit_cell(self):

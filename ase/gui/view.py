@@ -216,7 +216,7 @@ class View:
         self.images.visible[self.images.selected] = True
         self.draw()
 
-    def repeat_window(self):
+    def repeat_window(self, key=None):
         Repeat(self)
 
     def rotate_window(self):

@@ -402,7 +402,7 @@ class GUI(View, Status):
                          _('_Element Symbol')]),
               M('---'),
               M(_('Quick Info ...'), self.quick_info_window),
-              M(_('Repeat ...'), self.repeat_window),
+              M(_('Repeat ...'), self.repeat_window, 'R'),
               M(_('Rotate ...'), self.rotate_window),
               M(_('Colors ...'), self.colors_window, 'C'),
               # TRANSLATORS: verb
