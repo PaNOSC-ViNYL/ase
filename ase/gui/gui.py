@@ -1,8 +1,10 @@
+from __future__ import unicode_literals
+
 import os
 import sys
 import weakref
 from functools import partial
-from gettext import gettext as _
+from ase.gui.i18n import _
 
 import numpy as np
 

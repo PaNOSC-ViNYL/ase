@@ -1,8 +1,8 @@
 # encoding: utf-8
-
 "Module for calculating energies and forces."
 
-from gettext import gettext as _
+from __future__ import unicode_literals
+from ase.gui.i18n import _
 
 import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
