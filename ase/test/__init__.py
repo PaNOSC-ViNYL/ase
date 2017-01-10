@@ -212,8 +212,7 @@ if __name__ == '__main__':
     lines = []
     for line in output.splitlines():
         # Ignore these:
-        for txt in ['jacapo', 'tasks', 'execute.py',
-                    'list comprehension redefines']:
+        for txt in ['jacapo', 'list comprehension redefines']:
             if txt in line:
                 break
         else:

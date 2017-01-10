@@ -30,6 +30,7 @@ if sys.version_info[0] > 2:
     from io import StringIO
     pickleload = functools.partial(pickle.load, encoding='bytes')
 else:
+    # Legacy Python:
     def exec_(code, dct):
         exec('exec code in dct')
     basestring = basestring
