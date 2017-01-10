@@ -50,29 +50,6 @@ def git_role_tmpl(urlroot,
                            **options)
     return [node], []
 
-svn_role_tmpl = git_role_tmpl
-
-
-def trac_role_tmpl(urlroot,
-                   role,
-                   rawtext, text, lineno, inliner, options={}, content=[]):
-    if text[-1] == '>':
-        i = text.index('<')
-        name = text[:i - 1]
-        text = text[i + 1:-1]
-    else:
-        name = text
-        if name[0] == '~':
-            name = name.split('/')[-1]
-            text = text[1:]
-        if '?' in name:
-            name = name[:name.index('?')]
-    ref = urlroot + text
-    set_classes(options)
-    node = nodes.reference(rawtext, name, refuri=ref,
-                           **options)
-    return [node], []
-
 
 def creates():
     """Generator for Python scripts and their output filenames."""
