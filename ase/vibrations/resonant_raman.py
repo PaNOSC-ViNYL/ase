@@ -629,13 +629,13 @@ class ResonantRaman(Vibrations):
                      (row[0], row[1]))
         fd.close()
 
-    def summary(self, omega, gamma=0.1,
+    def summary(self, omega=0, gamma=0,
                 method='standard', direction='central',
                 log=sys.stdout):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
         s = 0.01 * units._e / units._c / units._hplanck
-        intensities = self.get_intensities(omega, gamma)
+        intensities = self.get_absolute_intensity(omega, gamma)
 
         if isinstance(log, str):
             log = paropen(log, 'a')
@@ -644,9 +644,8 @@ class ResonantRaman(Vibrations):
         parprint(' excitation at ' + str(omega) + ' eV', file=log)
         parprint(' gamma ' + str(gamma) + ' eV', file=log)
         parprint(' approximation:', self.approximation, file=log)
-        parprint(' observation:', self.observation, '\n', file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
-        parprint('  #    meV     cm^-1      [e^4A^4/eV^2]', file=log)
+        parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
         parprint('-------------------------------------', file=log)
         for n, e in enumerate(hnu):
             if e.imag != 0:
@@ -655,7 +654,7 @@ class ResonantRaman(Vibrations):
             else:
                 c = ' '
                 e = e.real
-            parprint('%3d %6.1f%s  %7.1f%s  %9.3g' %
+            parprint('%3d %6.1f%s  %7.1f%s  %9.1f' %
                      (n, 1000 * e, c, s * e, c, intensities[n]),
                      file=log)
         parprint('-------------------------------------', file=log)
@@ -667,6 +666,7 @@ class ResonantRaman(Vibrations):
 
 
 class Placzek(ResonantRaman):
+    """Raman spectra within the Placzek approximation."""
     def __init__(*args, **kwargs):
         # XXX check for approximation
         kwargs['approximation'] = None
