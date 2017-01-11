@@ -140,7 +140,8 @@ class View:
                               self.images.A[frame]),
                         pbc=self.images.pbc))
         nb = nl.nneighbors + nl.npbcneighbors
-        self.bonds = np.empty((nb, 5), int)
+
+        bonds = np.empty((nb, 5), int)
         self.coordination = np.zeros((self.images.natoms), dtype=int)
         if nb == 0:
             return
@@ -152,15 +153,17 @@ class View:
             for a2 in indices:
                 self.coordination[a2] += 1
             n2 = n1 + len(indices)
-            self.bonds[n1:n2, 0] = a
-            self.bonds[n1:n2, 1] = indices
-            self.bonds[n1:n2, 2:] = offsets
+            bonds[n1:n2, 0] = a
+            bonds[n1:n2, 1] = indices
+            bonds[n1:n2, 2:] = offsets
             n1 = n2
 
-        i = self.bonds[:n2, 2:].any(1)
-        self.bonds[n2:, 0] = self.bonds[i, 1]
-        self.bonds[n2:, 1] = self.bonds[i, 0]
-        self.bonds[n2:, 2:] = -self.bonds[i, 2:]
+        i = bonds[:n2, 2:].any(1)
+        pbcbonds = bonds[:n2][i]
+        bonds[n2:, 0] = pbcbonds[:, 1]
+        bonds[n2:, 1] = pbcbonds[:, 0]
+        bonds[n2:, 2:] = -pbcbonds[:, 2:]
+        self.bonds = bonds
 
     def toggle_show_unit_cell(self, key=None):
         self.set_coordinates()
