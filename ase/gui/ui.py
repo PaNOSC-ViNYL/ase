@@ -14,6 +14,7 @@ except ImportError:
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
+import sys
 from functools import partial
 from ase.gui.i18n import _
 
@@ -28,6 +29,12 @@ __all__ = [
     'SpinBox', 'Text']
 
 font = ('Helvetica', 10)
+
+
+if sys.platform == 'darwin':
+    mouse_buttons = {2: 3, 3: 2}
+else:
+    mouse_buttons = {}
 
 
 def about(name, version, webpage):
@@ -506,7 +513,7 @@ class MainWindow(BaseWindow):
 
 def bind(callback, modifier=None):
     def handle(event):
-        event.button = event.num
+        event.button = mouse_buttons.get(event.num, event.num)
         event.key = event.keysym.lower()
         event.modifier = modifier
         callback(event)
@@ -530,9 +537,10 @@ class ASEGUIWindow(MainWindow):
         self.status = tk.Label(self.win, text='', anchor=tk.W)
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
 
+        right = mouse_buttons.get(3, 3)
         self.canvas.bind('<ButtonPress>', bind(press))
         self.canvas.bind('<B1-Motion>', bind(move))
-        self.canvas.bind('<B3-Motion>', bind(move))
+        self.canvas.bind('<B{right}-Motion>'.format(right=right), bind(move))
         self.canvas.bind('<ButtonRelease>', bind(release))
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))

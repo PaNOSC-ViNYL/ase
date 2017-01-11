@@ -505,8 +505,7 @@ class View:
             self.draw()
             self.window.canvas.create_rectangle((x, y, x0, y0))
             return
-        if self.button == 2:
-            return
+
         if event.modifier == 'shift':
             self.center = (self.center0 -
                            np.dot(self.axes, (x - x0, y0 - y, 0)) / self.scale)
