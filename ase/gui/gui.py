@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import os
 import sys
+import tempfile
 import weakref
 from functools import partial
 from ase.gui.i18n import _
@@ -355,6 +356,15 @@ class GUI(View, Status):
     def save(self, key=None):
         return save_dialog(self)
 
+    def external_viewer(self, name):
+        command = {'xmakemol': 'xmakemol -f',
+                   'rasmol': 'rasmol -xyz'}.get(name, name)
+        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
+        os.close(fd)
+        self.images.write(filename)
+        os.system('(%s %s &); (sleep 60; rm %s) &' %
+                  (command, filename, filename))
+
     def get_menu_data(self, show_unit_cell, show_bonds):
         M = ui.MenuItem
         return [
@@ -429,10 +439,10 @@ class GUI(View, Status):
                     M(_('a2,a1-plane'), self.set_view, 'Alt+3')]),
               M(_('Settings ...'), self.settings),
               M('---'),
-              M(_('VMD'), self.external_viewer),
-              M(_('RasMol'), self.external_viewer),
-              M(_('xmakemol'), self.external_viewer),
-              M(_('avogadro'), self.external_viewer)]),
+              M(_('VMD'), partial(self.external_viewer, 'vmd')),
+              M(_('RasMol'), partial(self.external_viewer, 'rasmol')),
+              M(_('xmakemol'), partial(self.external_viewer, 'xmakemol')),
+              M(_('avogadro'), partial(self.external_viewer, 'avogadro'))]),
 
             (_('_Tools'),
              [M(_('Graphs ...'), self.plot_graphs),
