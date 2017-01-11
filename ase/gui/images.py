@@ -16,9 +16,12 @@ class Images:
 
         if images is not None:
             self.initialize(images)
-    
+
+    def __len__(self):
+        return len(self.P)
+
     def initialize(self, images, filenames=None, init_magmom=False):
-        
+
         self.natoms = len(images[0])
         self.nimages = len(images)
         if filenames is None:
@@ -43,7 +46,7 @@ class Images:
                     print('shape file has wrong format')
             else:
                 print('no shapesfile found: default shapes were used!')
-                  
+
         else:
             self.shapes = None
         self.P = np.empty((self.nimages, self.natoms, 3))
@@ -99,7 +102,7 @@ class Images:
             except (RuntimeError, AttributeError):
                 self.M[i] = atoms.get_initial_magnetic_moments()
             self.q[i] = atoms.get_initial_charges()
-            
+
             # added support for tags
             try:
                 self.T[i] = atoms.get_tags()
@@ -108,7 +111,7 @@ class Images:
 
         if warning:
             print('WARNING: Not all images have the same boundary conditions!')
-            
+
         self.selected = np.zeros(self.natoms, bool)
         self.selected_ordered = []
         self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
@@ -117,11 +120,11 @@ class Images:
         self.set_dynamic(constraints=images[0].constraints)
         self.repeat = np.ones(3, int)
         self.set_radii(config['radii_scale'])
-        
+
     def prepare_new_atoms(self):
         "Marks that the next call to append_atoms should clear the images."
         self.next_append_clears = True
-        
+
     def append_atoms(self, atoms, filename=None):
         "Append an atoms object to the images already stored."
         assert len(atoms) == self.natoms
@@ -165,39 +168,31 @@ class Images:
         self.filenames.append(filename)
         self.set_dynamic()
         return self.nimages
-        
+
     def set_radii(self, scale):
         if self.shapes is None:
             self.r = self.covalent_radii[self.Z] * scale
         else:
             self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
-                
+
     def read(self, filenames, index=-1, filetype=None):
         images = []
         names = []
         for filename in filenames:
             i = read(filename, index, filetype)
-            
+
             if not isinstance(i, list):
                 i = [i]
             images.extend(i)
             names.extend([filename] * len(i))
-            
+
         self.initialize(images, names)
 
         for image in images:
             if 'radii' in image.info:
                 self.set_radii(image.info['radii'])
                 break
-    
-    def import_atoms(self, filename, cur_frame):
-        if filename:
-            filename = filename[0]
-            old_a = self.get_atoms(cur_frame)
-            imp_a = read(filename, -1)
-            new_a = old_a + imp_a
-            self.initialize([new_a], [filename])
-    
+
     def repeat_images(self, repeat):
         n = self.repeat.prod()
         repeat = np.array(repeat)
@@ -247,7 +242,7 @@ class Images:
         cell constant."""
         c = self.A.sum(axis=1) / 2.0 - self.P.mean(axis=1)
         self.P += c[:, np.newaxis, :]
-            
+
     def graph(self, expr):
         """Routine to create the data in ase-gui graphs, defined by the
         string expr."""
@@ -255,10 +250,10 @@ class Images:
         code = compile(expr + ',', 'atoms.py', 'eval')
 
         n = self.nimages
-        
+
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
-            
+
         def a(n1, n2, n3):
             v1 = R[n1] - R[n2]
             v2 = R[n3] - R[n2]
@@ -268,7 +263,7 @@ class Images:
             if arg < -1.0:
                 arg = -1.0
             return 180.0 * np.arccos(arg) / np.pi
-            
+
         def dih(n1, n2, n3, n4):
             # vector 0->1, 1->2, 2->3 and their normalized cross products:
             a = R[n2] - R[n1]
@@ -288,18 +283,18 @@ class Images:
             if np.vdot(bxa, c) > 0:
                 angle = 2 * np.pi - angle
             return angle * 180.0 / np.pi
-            
+
         # get number of mobile atoms for temperature calculation
         ndynamic = self.dynamic.sum()
 
         D = self.dynamic[:, np.newaxis]
         E = self.E
         s = 0.0
-        
+
         # Namespace for eval:
         ns = {'E': E,
               'd': d, 'a': a, 'dih': dih}
-        
+
         data = []
         for i in range(n):
             ns['i'] = i
@@ -365,11 +360,11 @@ class Images:
 
         if not np.isnan(self.V).any():
             atoms.set_velocities(self.V[frame])
-        
+
         # check for constrained atoms and add them accordingly:
         if not self.dynamic.all():
             atoms.set_constraint(FixAtoms(mask=1 - self.dynamic))
-        
+
         # Remove hidden atoms if applicable
         if remove_hidden:
             atoms = atoms[self.visible]
@@ -380,7 +375,7 @@ class Images:
                                                    energy=self.E[frame],
                                                    forces=f))
         return atoms
-                           
+
     def delete(self, i):
         self.nimages -= 1
         P = np.empty((self.nimages, self.natoms, 3))

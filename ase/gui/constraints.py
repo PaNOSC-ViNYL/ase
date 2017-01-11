@@ -1,45 +1,30 @@
-import gtk
-from gettext import gettext as _
-
-from ase.gui.widgets import pack
+import ase.gui.ui as ui
 
 
-class Constraints(gtk.Window):
+class Constraints:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
-        self.set_title(_('Constraints'))
-        vbox = gtk.VBox()
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' selected atoms'))])[0]
-        b.connect('clicked', self.selected)
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' immobile atoms:'))])[0]
-        b.connect('clicked', self.immobile)
-        b = pack(vbox, [gtk.Button(_('Unconstrain')),
-                        gtk.Label(_(' selected atoms:'))])[0]
-        b.connect('clicked', self.unconstrain)
-        b = pack(vbox, gtk.Button(_('Clear constraints')))
-        b.connect('clicked', self.clear)
-        close = pack(vbox, gtk.Button(_('Close')))
-        close.connect('clicked', lambda widget: self.destroy())
-        self.add(vbox)
-        vbox.show()
-        self.show()
+        win = ui.Window('Constraints')
+        win.add([ui.Button('Constrain', self.selected),
+                 'selected atoms'])
+        win.add([ui.Button('Constrain', self.immobile),
+                 'immobile atoms'])
+        win.add([ui.Button('Unconstrain', self.unconstrain),
+                 'selected atoms'])
+        win.add(ui.Button('Clear constraints', self.clear))
         self.gui = gui
 
-    def selected(self, button):
+    def selected(self):
         self.gui.images.dynamic[self.gui.images.selected] = False
         self.gui.draw()
 
-    def unconstrain(self, button):
+    def unconstrain(self):
         self.gui.images.dynamic[self.gui.images.selected] = True
         self.gui.draw()
-        
-    def immobile(self, button):
+
+    def immobile(self):
         self.gui.images.set_dynamic()
         self.gui.draw()
 
-    def clear(self, button):
+    def clear(self):
         self.gui.images.dynamic[:] = True
         self.gui.draw()
-

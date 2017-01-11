@@ -2,16 +2,16 @@
 """crystal.py - Window for setting up arbitrary crystal lattices
 """
 
-import gtk
-from gettext import gettext as _
-from ase.gui.widgets import pack, cancel_apply_ok, oops
-from ase.gui.pybutton import PyButton
-from ase.gui.setupwindow import SetupWindow
+from __future__ import unicode_literals
+from ase.gui.i18n import _
+
+import ase.gui.ui as ui
 from ase.gui.status import formula
 from ase.spacegroup import crystal, Spacegroup
 
 import ase
 
+pack = oops = cancel_apply_ok = PyButton = SetupWindow = 42
 
 introtext = _("""\
   Use this dialog to create crystal lattices. First select the structure,
@@ -30,65 +30,91 @@ atoms = crystal(spacegroup=%(spacegroup)d,
                 basis=%(basis)s,
                 cellpar=%(cellpar)s)
 """
-label_template = _(""" %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
+label_template = _(
+    """ %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>""")
 
 # all predefined crystals go into tuples here:
 # (selection name, spacegroup, group_active, [repeats], [a,b,c,alpha,beta,gamma],[lattice constraints],[constraints_active],basis)
-crystal_definitions = [('Spacegroup',   1,  True, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
-                        [0,0,0,0,0,0], [ True, True, True, True, True, True], [['','','','']]),
-                       ('fcc',        225, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
-                        [0,1,1,3,3,3], [False,False,False,False,False,False], [['','','','']]),
-                       ('bcc',        229, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
-                        [0,1,1,3,3,3], [False,False,False,False,False,False], [['','','','']]),
-                       ('diamond',    227, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
-                        [0,1,1,3,3,3], [False,False,False,False,False,False], [['','','','']]),
-                       ('hcp',        194, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0, 120.0],
-                        [0,1,0,3,3,3], [False,False,False,False,False,False], [['','1./3.','2./3.','3./4.']]),
-                       ('graphite',   186, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0, 120.0],
-                        [0,1,0,3,3,3], [False,False,False,False,False,False], [['','0','0','0'],['','1./3.','2./3.','0']]),
-                       ('rocksalt',   225, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
-                        [0,1,1,3,3,3], [False,False,False,False,False,False], [['','0','0','0'],['','0.5','0.5','0.5']]),
-                       ('rutile',     136, False, [1,1,1], [3.0, 3.0, 3.0, 90.0, 90.0,  90.0],
-                        [0,1,0,3,3,3], [False,False,False,False,False,False], [['','0','0','0'],['O','0.3','0.3','0'  ]])]
+crystal_definitions = [
+    ('Spacegroup', 1, True, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 90.0],
+     [0, 0, 0, 0, 0, 0], [True, True, True, True, True, True],
+     [['', '', '', '']]),
+    ('fcc', 225, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 90.0],
+     [0, 1, 1, 3, 3, 3], [False, False, False, False, False, False],
+     [['', '', '', '']]),
+    ('bcc', 229, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 90.0],
+     [0, 1, 1, 3, 3, 3], [False, False, False, False, False, False],
+     [['', '', '', '']]), (
+         'diamond', 227, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 90.0],
+         [0, 1, 1, 3, 3, 3], [False, False, False, False, False, False],
+         [['', '', '', '']]),
+    ('hcp', 194, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 120.0],
+     [0, 1, 0, 3, 3, 3], [False, False, False, False, False, False],
+     [['', '1./3.', '2./3.', '3./4.']]), (
+         'graphite', 186, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 120.0],
+         [0, 1, 0, 3, 3, 3], [False, False, False, False, False, False],
+         [['', '0', '0', '0'], ['', '1./3.', '2./3.', '0']]),
+    ('rocksalt', 225, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 90.0],
+     [0, 1, 1, 3, 3, 3], [False, False, False, False, False, False],
+     [['', '0', '0', '0'], ['', '0.5', '0.5', '0.5']]), (
+         'rutile', 136, False, [1, 1, 1], [3.0, 3.0, 3.0, 90.0, 90.0, 90.0],
+         [0, 1, 0, 3, 3, 3], [False, False, False, False, False, False],
+         [['', '0', '0', '0'], ['O', '0.3', '0.3', '0']])
+]
 
-class SetupBulkCrystal(SetupWindow):
+
+class SetupBulkCrystal:
     """Window for setting up a surface."""
+
     def __init__(self, gui):
         SetupWindow.__init__(self)
         self.set_title(_("Create Bulk Crystal by Spacegroup"))
         self.atoms = None
-        vbox = gtk.VBox()
+        vbox = ui.VBox()
         self.packtext(vbox, introtext)
-        self.structinfo = gtk.combo_box_new_text()
+        self.structinfo = ui.combo_box_new_text()
         self.structures = {}
         for c in crystal_definitions:
             self.structinfo.append_text(c[0])
             self.structures[c[0]] = c
         self.structinfo.set_active(0)
-        self.structinfo.connect("changed",self.set_lattice_type)
-        self.spacegroup = gtk.Entry(max=14)
+        self.structinfo.connect("changed", self.set_lattice_type)
+        self.spacegroup = ui.Entry(max=14)
         self.spacegroup.set_text('P 1')
-        self.elementinfo = gtk.Label("")
-        self.spacegroupinfo = gtk.Label(_('Number: 1'))
-        pack(vbox,[gtk.Label(_("Lattice: ")),self.structinfo,gtk.Label(_("\tSpace group: ")),self.spacegroup,gtk.Label('  '),self.spacegroupinfo,gtk.Label('  '),self.elementinfo])
-        pack(vbox,[gtk.Label("")])
-        self.size = [gtk.Adjustment(1, 1, 100, 1) for i in range(3)]
-        buttons = [gtk.SpinButton(s, 0, 0) for s in self.size]
-        pack(vbox, [gtk.Label(_("Size: x: ")), buttons[0],
-                    gtk.Label(_("  y: ")), buttons[1],
-                    gtk.Label(_("  z: ")), buttons[2],
-                    gtk.Label(_(" unit cells"))])
-        pack(vbox,[gtk.Label("")])
-        self.lattice_lengths = [gtk.Adjustment(3.0, 0.0, 1000.0, 0.01) for i in range(3)]
-        self.lattice_angles  = [gtk.Adjustment(90.0,0.0, 180.0, 1) for i in range(3)]
-        self.lattice_lbuts = [gtk.SpinButton(self.lattice_lengths[i], 0, 0) for i in range(3)]
-        self.lattice_abuts = [gtk.SpinButton(self.lattice_angles[i] , 0, 0) for i in range(3)]
+        self.elementinfo = ui.Label("")
+        self.spacegroupinfo = ui.Label(_('Number: 1'))
+        pack(vbox, [
+            ui.Label(_("Lattice: ")), self.structinfo,
+            ui.Label(_("\tSpace group: ")), self.spacegroup, ui.Label('  '),
+            self.spacegroupinfo, ui.Label('  '), self.elementinfo
+        ])
+        pack(vbox, [ui.Label("")])
+        self.size = [ui.Adjustment(1, 1, 100, 1) for i in range(3)]
+        buttons = [ui.SpinButton(s, 0, 0) for s in self.size]
+        pack(vbox, [
+            ui.Label(_("Size: x: ")), buttons[0], ui.Label(_("  y: ")),
+            buttons[1], ui.Label(_("  z: ")), buttons[2],
+            ui.Label(_(" unit cells"))
+        ])
+        pack(vbox, [ui.Label("")])
+        self.lattice_lengths = [
+            ui.Adjustment(3.0, 0.0, 1000.0, 0.01) for i in range(3)
+        ]
+        self.lattice_angles = [
+            ui.Adjustment(90.0, 0.0, 180.0, 1) for i in range(3)
+        ]
+        self.lattice_lbuts = [
+            ui.SpinButton(self.lattice_lengths[i], 0, 0) for i in range(3)
+        ]
+        self.lattice_abuts = [
+            ui.SpinButton(self.lattice_angles[i], 0, 0) for i in range(3)
+        ]
         for i in self.lattice_lbuts:
             i.set_digits(5)
         for i in self.lattice_abuts:
             i.set_digits(3)
-        self.lattice_lequals = [gtk.combo_box_new_text() for i in range(3)]
-        self.lattice_aequals = [gtk.combo_box_new_text() for i in range(3)]
+        self.lattice_lequals = [ui.combo_box_new_text() for i in range(3)]
+        self.lattice_aequals = [ui.combo_box_new_text() for i in range(3)]
         self.lattice_lequals[0].append_text(_('free'))
         self.lattice_lequals[0].append_text(_('equals b'))
         self.lattice_lequals[0].append_text(_('equals c'))
@@ -116,57 +142,71 @@ class SetupBulkCrystal(SetupWindow):
         for i in range(3):
             self.lattice_lequals[i].set_active(0)
             self.lattice_aequals[i].set_active(0)
-        pack(vbox,[gtk.Label(_('Lattice parameters'))])
-        pack(vbox,[gtk.Label(_('\t\ta:\t'))  , self.lattice_lbuts[0],gtk.Label('  '),self.lattice_lequals[0],
-                   gtk.Label(_('\talpha:\t')), self.lattice_abuts[0],gtk.Label('  '),self.lattice_aequals[0]])
-        pack(vbox,[gtk.Label(_('\t\tb:\t'))  , self.lattice_lbuts[1],gtk.Label('  '),self.lattice_lequals[1],
-                   gtk.Label(_('\tbeta:\t')) , self.lattice_abuts[1],gtk.Label('  '),self.lattice_aequals[1]])
-        pack(vbox,[gtk.Label(_('\t\tc:\t'))  , self.lattice_lbuts[2],gtk.Label('  '),self.lattice_lequals[2],
-                   gtk.Label(_('\tgamma:\t')), self.lattice_abuts[2],gtk.Label('  '),self.lattice_aequals[2]])
-        self.get_data = gtk.Button(_("Get from database"))
+        pack(vbox, [ui.Label(_('Lattice parameters'))])
+        pack(vbox, [
+            ui.Label(_('\t\ta:\t')), self.lattice_lbuts[0], ui.Label('  '),
+            self.lattice_lequals[0], ui.Label(_('\talpha:\t')),
+            self.lattice_abuts[0], ui.Label('  '), self.lattice_aequals[0]
+        ])
+        pack(vbox, [
+            ui.Label(_('\t\tb:\t')), self.lattice_lbuts[1], ui.Label('  '),
+            self.lattice_lequals[1], ui.Label(_('\tbeta:\t')),
+            self.lattice_abuts[1], ui.Label('  '), self.lattice_aequals[1]
+        ])
+        pack(vbox, [
+            ui.Label(_('\t\tc:\t')), self.lattice_lbuts[2], ui.Label('  '),
+            self.lattice_lequals[2], ui.Label(_('\tgamma:\t')),
+            self.lattice_abuts[2], ui.Label('  '), self.lattice_aequals[2]
+        ])
+        self.get_data = ui.Button(_("Get from database"))
         self.get_data.connect("clicked", self.get_from_database)
         self.get_data.set_sensitive(False)
-        pack(vbox,[gtk.Label("     "),self.get_data])
-        pack(vbox,[gtk.Label("")])
-        pack(vbox,[gtk.Label(_("Basis: "))])
-        self.elements = [[gtk.Entry(max=3),gtk.Entry(max=8),gtk.Entry(max=8),gtk.Entry(max=8),True]]
+        pack(vbox, [ui.Label("     "), self.get_data])
+        pack(vbox, [ui.Label("")])
+        pack(vbox, [ui.Label(_("Basis: "))])
+        self.elements = [[
+            ui.Entry(max=3), ui.Entry(max=8), ui.Entry(max=8), ui.Entry(max=8),
+            True
+        ]]
         self.element = self.elements[0][0]
-        add_atom = gtk.Button(stock = gtk.STOCK_ADD)
-        add_atom.connect("clicked",self.add_basis_atom)
-        add_atom.connect("activate",self.add_basis_atom)
-        pack(vbox,[gtk.Label(_('  Element:\t')),self.elements[0][0],gtk.Label(_('\tx: ')),
-                   self.elements[0][1],gtk.Label(_('  y: ')),self.elements[0][2],
-                   gtk.Label(_('  z: ')),self.elements[0][3],gtk.Label('\t'),add_atom])
-        self.vbox_basis = gtk.VBox()
-        swin = gtk.ScrolledWindow()
+        add_atom = ui.Button(stock='Add')
+        add_atom.connect("clicked", self.add_basis_atom)
+        add_atom.connect("activate", self.add_basis_atom)
+        pack(vbox, [
+            ui.Label(_('  Element:\t')), self.elements[0][0],
+            ui.Label(_('\tx: ')), self.elements[0][1], ui.Label(_('  y: ')),
+            self.elements[0][2], ui.Label(_('  z: ')), self.elements[0][3],
+            ui.Label('\t'), add_atom
+        ])
+        self.vbox_basis = ui.VBox()
+        swin = ui.ScrolledWindow()
         swin.set_border_width(0)
-        swin.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        swin.set_policy(ui.POLICY_AUTOMATIC, ui.POLICY_AUTOMATIC)
         vbox.pack_start(swin, True, True, 0)
         swin.add_with_viewport(self.vbox_basis)
-        self.vbox_basis.get_parent().set_shadow_type(gtk.SHADOW_NONE)
+        self.vbox_basis.get_parent().set_shadow_type(ui.SHADOW_NONE)
         self.vbox_basis.get_parent().set_size_request(-1, 100)
         swin.show()
 
-        pack(self.vbox_basis,[gtk.Label('')])
-        pack(vbox,[self.vbox_basis])
+        pack(self.vbox_basis, [ui.Label('')])
+        pack(vbox, [self.vbox_basis])
         self.vbox_basis.show()
-        pack(vbox,[gtk.Label("")])
-        self.status = gtk.Label("")
-        pack(vbox,[self.status])
-        pack(vbox,[gtk.Label("")])
+        pack(vbox, [ui.Label("")])
+        self.status = ui.Label("")
+        pack(vbox, [self.status])
+        pack(vbox, [ui.Label("")])
         self.pybut = PyButton(_("Creating a crystal."))
         self.pybut.connect('clicked', self.update)
 
-        clear = gtk.Button(stock = gtk.STOCK_CLEAR)
+        clear = ui.Button(stock='Clear')
         clear.connect("clicked", self.clear)
-        buts = cancel_apply_ok(cancel=lambda widget: self.destroy(),
-                               apply=self.apply,
-                               ok=self.ok)
+        buts = cancel_apply_ok(
+            cancel=lambda widget: self.destroy(), apply=self.apply, ok=self.ok)
         pack(vbox, [self.pybut, clear, buts], end=True, bottom=True)
         self.structinfo.connect("changed", self.update)
         self.spacegroup.connect("activate", self.update)
         for s in self.size:
-            s.connect("value-changed",self.update)
+            s.connect("value-changed", self.update)
         for el in self.elements:
             if el[-1]:
                 for i in el[:-1]:
@@ -192,7 +232,7 @@ class SetupBulkCrystal(SetupWindow):
         b_equals = self.lattice_lequals[1].get_active()
         c_equals = self.lattice_lequals[2].get_active()
         alpha_equals = self.lattice_aequals[0].get_active()
-        beta_equals  = self.lattice_aequals[1].get_active()
+        beta_equals = self.lattice_aequals[1].get_active()
         gamma_equals = self.lattice_aequals[2].get_active()
         sym = self.spacegroup.get_text()
         valid = True
@@ -209,7 +249,7 @@ class SetupBulkCrystal(SetupWindow):
             except:
                 self.spacegroupinfo.set_label(_('Invalid Spacegroup!'))
                 valid = False
-                
+
         if a_equals == 0:
             self.lattice_lbuts[0].set_sensitive(True)
         elif a_equals == 1:
@@ -270,9 +310,10 @@ class SetupBulkCrystal(SetupWindow):
             self.lattice_abuts[2].set_value(self.lattice_abuts[1].get_value())
         else:
             self.lattice_abuts[2].set_sensitive(False)
-            
+
         valid = len(self.elements[0][0].get_text()) and valid
-        self.get_data.set_sensitive(valid and self.get_n_elements() == 1 and self.update_element())
+        self.get_data.set_sensitive(valid and self.get_n_elements() == 1 and
+                                    self.update_element())
         self.atoms = None
         if valid:
             basis_count = -1
@@ -290,53 +331,70 @@ class SetupBulkCrystal(SetupWindow):
                 basis = None
             for el in self.elements:
                 if el[-1]:
-                    symbol_str += "'"+el[0].get_text()+"'"
+                    symbol_str += "'" + el[0].get_text() + "'"
                     if basis_count:
                         symbol_str += ','
                         symbol += [el[0].get_text()]
-                        exec('basis += [[float('+el[1].get_text()+'),float('+el[2].get_text()+'),float('+el[3].get_text()+')]]')
+                        exec('basis += [[float(' + el[1].get_text(
+                        ) + '),float(' + el[2].get_text() + '),float(' + el[3]
+                             .get_text() + ')]]')
                     else:
                         symbol = el[0].get_text()
-                        exec('basis = [[float('+el[1].get_text()+'),float('+el[2].get_text()+'),float('+el[3].get_text()+')]]')
-                    basis_str += '['+el[1].get_text()+','+el[2].get_text()+','+el[3].get_text()+'],'
+                        exec('basis = [[float(' + el[1].get_text() + '),float('
+                             + el[2].get_text() + '),float(' + el[3].get_text(
+                             ) + ')]]')
+                    basis_str += '[' + el[1].get_text() + ',' + el[2].get_text(
+                    ) + ',' + el[3].get_text() + '],'
             basis_str = basis_str[:-1]
             if basis_count:
-                symbol_str = symbol_str[:-1]+']'
+                symbol_str = symbol_str[:-1] + ']'
                 basis_str += ']'
-            size_str = '('+str(int(self.size[0].get_value()))+','+str(int(self.size[1].get_value()))+','+str(int(self.size[2].get_value()))+')'
-            size = (int(self.size[0].get_value()),int(self.size[1].get_value()),int(self.size[2].get_value()))
+            size_str = '(' + str(int(self.size[0].get_value())) + ',' + str(
+                int(self.size[1].get_value())) + ',' + str(
+                    int(self.size[2].get_value())) + ')'
+            size = (int(self.size[0].get_value()),
+                    int(self.size[1].get_value()),
+                    int(self.size[2].get_value()))
             cellpar_str = ''
             cellpar = []
             for i in self.lattice_lbuts:
-                cellpar_str += str(i.get_value())+','
+                cellpar_str += str(i.get_value()) + ','
                 cellpar += [i.get_value()]
             for i in self.lattice_abuts:
-                cellpar_str += str(i.get_value())+','
+                cellpar_str += str(i.get_value()) + ','
                 cellpar += [i.get_value()]
-            cellpar_str = '['+cellpar_str[:-1]+']'
-            args = {'symbols' : symbol,
-                    'basis'  : basis,
-                    'size'   : size,
-                    'spacegroup' : spg,
-                    'cellpar' : cellpar}
-            args_str = {'symbols' : symbol_str,
-                        'basis'   : basis_str,
-                        'size'    : size_str,
-                        'spacegroup' : spg,
-                        'cellpar' : cellpar_str}
+            cellpar_str = '[' + cellpar_str[:-1] + ']'
+            args = {
+                'symbols': symbol,
+                'basis': basis,
+                'size': size,
+                'spacegroup': spg,
+                'cellpar': cellpar
+            }
+            args_str = {
+                'symbols': symbol_str,
+                'basis': basis_str,
+                'size': size_str,
+                'spacegroup': spg,
+                'cellpar': cellpar_str
+            }
             self.pybut.python = py_template % args_str
             try:
                 self.atoms = crystal(**args)
-                label = label_template % {'natoms'  : len(self.atoms),
-                                          'symbols' : formula(self.atoms.get_atomic_numbers()),
-                                          'volume'  : self.atoms.get_volume()}
+                label = label_template % {
+                    'natoms': len(self.atoms),
+                    'symbols': formula(self.atoms.get_atomic_numbers()),
+                    'volume': self.atoms.get_volume()
+                }
                 self.status.set_label(label)
             except:
                 self.atoms = None
-                self.status.set_markup(_("Please specify a consistent set of atoms."))
+                self.status.set_markup(
+                    _("Please specify a consistent set of atoms."))
         else:
             self.atoms = None
-            self.status.set_markup(_("Please specify a consistent set of atoms."))
+            self.status.set_markup(
+                _("Please specify a consistent set of atoms."))
 
     def apply(self, *args):
         """ create gui atoms from currently active atoms"""
@@ -345,27 +403,32 @@ class SetupBulkCrystal(SetupWindow):
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(_('No valid atoms.'),
-                 _('You have not (yet) specified a consistent set of '
-                   'parameters.'))
+            oops(
+                _('No valid atoms.'),
+                _('You have not (yet) specified a consistent set of '
+                  'parameters.'))
             return False
 
     def ok(self, *args):
         if self.apply():
             self.destroy()
-        
-    def add_basis_atom(self,*args):
+
+    def add_basis_atom(self, *args):
         """ add an atom to the customizable basis """
         n = len(self.elements)
-        self.elements += [[gtk.Entry(max=3),gtk.Entry(max=8),gtk.Entry(max=8),gtk.Entry(max=8),
-                           gtk.Label('\t\t\t'),gtk.Label('\tx: '),gtk.Label('  y: '),
-                           gtk.Label('  z: '),gtk.Label(' '),
-                           gtk.Button(stock=gtk.STOCK_DELETE),True]]
-        self.elements[n][-2].connect("clicked",self.delete_basis_atom,{'n':n})
-        pack(self.vbox_basis,[self.elements[n][4],self.elements[n][0],self.elements[n][5],
-                              self.elements[n][1],self.elements[n][6],self.elements[n][2],
-                              self.elements[n][7],self.elements[n][3],self.elements[n][8],
-                              self.elements[n][9]])
+        self.elements += [[
+            ui.Entry(max=3), ui.Entry(max=8), ui.Entry(max=8), ui.Entry(max=8),
+            ui.Label('\t\t\t'), ui.Label('\tx: '), ui.Label('  y: '),
+            ui.Label('  z: '), ui.Label(' '), ui.Button('Delete'), True
+        ]]
+        self.elements[n][-2].connect("clicked", self.delete_basis_atom,
+                                     {'n': n})
+        pack(self.vbox_basis, [
+            self.elements[n][4], self.elements[n][0], self.elements[n][5],
+            self.elements[n][1], self.elements[n][6], self.elements[n][2],
+            self.elements[n][7], self.elements[n][3], self.elements[n][8],
+            self.elements[n][9]
+        ])
         self.update()
 
     def delete_basis_atom(self, button, index, *args):
@@ -392,15 +455,15 @@ class SetupBulkCrystal(SetupWindow):
         self.set_lattice_type()
         self.clearing_in_process = False
         self.update()
-        
+
     def clear_lattice(self, *args):
         """ delete all custom settings """
         self.atoms = None
         if len(self.elements) > 1:
             for n, el in enumerate(self.elements[1:]):
-                self.elements[n+1][-1] = False
+                self.elements[n + 1][-1] = False
                 for i in range(10):
-                    self.elements[n+1][i].destroy()
+                    self.elements[n + 1][i].destroy()
         for i in range(4):
             self.elements[0][i].set_text("")
         self.spacegroup.set_sensitive(True)
@@ -423,7 +486,7 @@ class SetupBulkCrystal(SetupWindow):
         lattice = crystal_definitions[self.structinfo.get_active()]
         self.spacegroup.set_text(str(lattice[1]))
         self.spacegroup.set_sensitive(lattice[2])
-        for s, i in zip(self.size,lattice[3]):
+        for s, i in zip(self.size, lattice[3]):
             s.set_value(i)
         self.lattice_lbuts[0].set_value(lattice[4][0])
         self.lattice_lbuts[1].set_value(lattice[4][1])
@@ -459,7 +522,8 @@ class SetupBulkCrystal(SetupWindow):
         ref = ase.data.reference_states[z]
         lattice = ref['symmetry']
         index = 0
-        while index < len(crystal_definitions) and crystal_definitions[index][0] != lattice:
+        while index < len(crystal_definitions) and crystal_definitions[index][
+                0] != lattice:
             index += 1
         if index == len(crystal_definitions) or not self.legal_element:
             oops(_("Can't find lattice definition!"))
@@ -467,10 +531,9 @@ class SetupBulkCrystal(SetupWindow):
         self.structinfo.set_active(index)
         self.lattice_lbuts[0].set_value(ref['a'])
         if lattice == 'hcp':
-            self.lattice_lbuts[2].set_value(ref['c/a']*ref['a'])
+            self.lattice_lbuts[2].set_value(ref['c/a'] * ref['a'])
         self.elements[0][0].set_text(element)
         if lattice in ['fcc', 'bcc', 'diamond']:
             self.elements[0][1].set_text('0')
             self.elements[0][2].set_text('0')
             self.elements[0][3].set_text('0')
-

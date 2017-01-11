@@ -23,13 +23,14 @@ __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
 
 
 # Python 2+3 compatibility stuff:
-if sys.version_info[0] == 3:
+if sys.version_info[0] > 2:
     import builtins
     exec_ = getattr(builtins, 'exec')
     basestring = str
     from io import StringIO
     pickleload = functools.partial(pickle.load, encoding='bytes')
 else:
+    # Legacy Python:
     def exec_(code, dct):
         exec('exec code in dct')
     basestring = basestring

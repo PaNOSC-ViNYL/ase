@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
+from ase.gui.i18n import _
 from math import sqrt, pi, acos
 
-import gtk
 import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
-from ase.gui.widgets import pack
-from gettext import gettext as _
+
+try:
+    chr = unichr
+except NameError:
+    pass
+
 
 def formula(Z):
     hist = {}
@@ -23,20 +27,12 @@ def formula(Z):
         text += symbols[z]
         n = hist[z]
         if n > 1:
-            text += '<sub>%d</sub>' % n
+            text += ''.join(chr(0x2080 + int(x)) for x in str(n))
     return text
 
+
 class Status:
-    def __init__(self, vbox):
-        self.eventbox = gtk.EventBox()
-        self.label = gtk.Label()
-        self.eventbox.add(self.label)
-        self.label.show()
-        if gtk.pygtk_version < (2, 12):
-            self.set_tip(self.eventbox, _('Tip for status box ...'))
-        else:
-            self.eventbox.set_tooltip_text(_('Tip for status box ...'))
-        pack(vbox, self.eventbox)
+    def __init__(self):
         self.ordered_indices = []
 
     def status(self):
@@ -47,7 +43,7 @@ class Status:
         self.nselected = n
 
         if n == 0:
-            self.label.set_text('')
+            self.window.update_status_line('')
             return
 
         Z = self.images.Z[indices]
@@ -91,26 +87,25 @@ class Status:
         elif len(ordered_indices) == 4:
             R = self.R[ordered_indices]
             Z = self.images.Z[ordered_indices]
-            a    = R[1]-R[0]
-            b    = R[2]-R[1]
-            c    = R[3]-R[2]
-            bxa  = np.cross(b,a)
-            bxa /= np.sqrt(np.vdot(bxa,bxa))
-            cxb  = np.cross(c,b)
-            cxb /= np.sqrt(np.vdot(cxb,cxb))
-            angle = np.vdot(bxa,cxb)
-            if angle < -1: angle = -1
-            if angle >  1: angle =  1
+            a = R[1] - R[0]
+            b = R[2] - R[1]
+            c = R[3] - R[2]
+            bxa = np.cross(b, a)
+            bxa /= np.sqrt(np.vdot(bxa, bxa))
+            cxb = np.cross(c, b)
+            cxb /= np.sqrt(np.vdot(cxb, cxb))
+            angle = np.vdot(bxa, cxb)
+            if angle < -1:
+                angle = -1
+            if angle > 1:
+                angle = 1
             angle = np.arccos(angle)
-            if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
-            angle = angle*180.0/np.pi
-            text = (u'%s %s->%s->%s->%s: %.1f°'
-                    % tuple([_('dihedral')] + [symbols[z] for z in Z]+[angle]))
+            if (np.vdot(bxa, c)) > 0:
+                angle = 2 * np.pi - angle
+            angle = angle * 180.0 / np.pi
+            text = (u'%s %s->%s->%s->%s: %.1f°' %
+                    tuple([_('dihedral')] + [symbols[z] for z in Z] + [angle]))
         else:
             text = ' ' + formula(Z)
 
-        self.label.set_markup(text)
-
-if __name__ == '__main__':
-    import os
-    os.system('python gui.py')
+        self.window.update_status_line(text)
