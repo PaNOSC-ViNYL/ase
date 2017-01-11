@@ -1,6 +1,4 @@
 from __future__ import division
-import os
-import tempfile
 from math import cos, sin, sqrt
 from os.path import basename
 
@@ -96,21 +94,6 @@ class View:
             self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'
                               .format(*(int(x * 255) for x in rgb)))
 
-    def plot_cell(self):
-        V = self.images.A[0]
-        R1 = []
-        R2 = []
-        for c in range(3):
-            v = V[c]
-            d = sqrt(np.dot(v, v))
-            n = max(2, int(d / 0.3))
-            h = v / (2 * n - 1)
-            R = np.arange(n)[:, None] * (2 * h)
-            for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                R1.append(R + i * V[(c + 1) % 3] + j * V[(c + 2) % 3])
-                R2.append(R1[-1] + h)
-        return np.concatenate(R1), np.concatenate(R2)
-
     def make_box(self):
         if not self.window['toggle-show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
@@ -121,7 +104,10 @@ class View:
         for c in range(3):
             v = V[c]
             d = sqrt(np.dot(v, v))
-            n = max(2, int(d / 0.3))
+            if d < 1e-12:
+                n = 0
+            else:
+                n = max(2, int(d / 0.3))
             nn.append(n)
         self.B1 = np.zeros((2, 2, sum(nn), 3))
         self.B2 = np.zeros((2, 2, sum(nn), 3))
@@ -229,8 +215,9 @@ class View:
         return win
 
     def focus(self, x=None):
-        if (self.images.natoms == 0 and
-            not self.window['toggle-show-unit-cell']):
+        cell = (self.window['toggle-show-unit-cell'] and
+                self.images.A[0].any())
+        if (self.images.natoms == 0 and not cell):
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
@@ -534,17 +521,6 @@ class View:
             self.center = com - np.dot(com - self.center0,
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
-
-    def external_viewer(self, action):
-        name = action.get_name()
-        command = {'Avogadro': 'xmakemol -f',
-                   'RasMol': 'rasmol -xyz',
-                   'VMD': 'vmd'}[name]
-        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
-        os.close(fd)
-        self.images.write(filename)
-        os.system('(%s %s &); (sleep 60; rm %s) &' %
-                  (command, filename, filename))
 
     def render_window(self, action):
         Render(self)
