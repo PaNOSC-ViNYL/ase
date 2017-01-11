@@ -1,3 +1,4 @@
+from __future__ import division
 import os
 import tempfile
 from math import cos, sin, sqrt
@@ -550,3 +551,9 @@ class View:
 
     def show_vectors(self, vectors):
         self.vectors = vectors
+
+    def resize(self, event):
+        w, h = self.window.size
+        self.scale *= (event.width * event.height / (w * h))**0.5
+        self.window.size[:] = [event.width, event.height]
+        self.draw()

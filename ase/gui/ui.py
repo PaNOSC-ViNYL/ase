@@ -523,7 +523,7 @@ def bind(callback, modifier=None):
 class ASEGUIWindow(MainWindow):
     def __init__(self, close, menu, config,
                  scroll, scroll_event,
-                 press, move, release):
+                 press, move, release, resize):
         MainWindow.__init__(self, 'ASE-GUI', close, menu)
 
         self.size = np.array([450, 450])
@@ -531,7 +531,8 @@ class ASEGUIWindow(MainWindow):
         self.canvas = tk.Canvas(self.win,
                                 width=self.size[0],
                                 height=self.size[1],
-                                bg='white')
+                                bg='white',
+                                highlightthickness=0)
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         self.status = tk.Label(self.win, text='', anchor=tk.W)
@@ -544,6 +545,7 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<ButtonRelease>', bind(release))
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
+        self.canvas.bind('<Configure>', resize)
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))

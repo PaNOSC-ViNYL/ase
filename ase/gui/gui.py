@@ -52,7 +52,8 @@ class GUI(View, Status):
         self.window = ui.ASEGUIWindow(self.exit, menu, self.config,
                                       self.scroll,
                                       self.scroll_event,
-                                      self.press, self.move, self.release)
+                                      self.press, self.move, self.release,
+                                      self.resize)
 
         View.__init__(self, rotations)
         Status.__init__(self)
