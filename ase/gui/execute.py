@@ -91,11 +91,11 @@ class Execute(ui.Window):
         self.images_only = ui.CheckButton(_('Only current frame (cf)  '))
         self.images_only.connect('toggled', self.images_changed)
         pack(vbox, [self.selected, self.images_only])
-        save_button = ui.Button('Save')
+        save_button = ui.Button(_('Save'))
         save_button.connect('clicked', self.save_output)
-        help_button = ui.Button('Help')
+        help_button = ui.Button(_('Help'))
         help_button.connect('clicked', self.terminal_help, "")
-        stop_button = ui.Button('Stop')
+        stop_button = ui.Button(_('Stop'))
         stop_button.connect('clicked', self.stop_execution)
         self.stop = False
         pack(
@@ -318,7 +318,7 @@ class Execute(ui.Window):
     def save_output(self, *args):
         chooser = ui.FileChooserDialog(
             _('Save Terminal text ...'), None, ui.FILE_CHOOSER_ACTION_SAVE,
-            ('Cancel', ui.RESPONSE_CANCEL, 'Save', ui.RESPONSE_OK))
+            (_('Cancel'), ui.RESPONSE_CANCEL, _('Save'), ui.RESPONSE_OK))
         save = chooser.run()
         if save == ui.RESPONSE_OK or save == ui.RESPONSE_SAVE:
             filename = chooser.get_filename()
