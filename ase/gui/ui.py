@@ -272,7 +272,7 @@ class Scale(Widget):
 
 
 class RadioButtons(Widget):
-    def __init__(self, labels, values=None, callback=None, vertical=True):
+    def __init__(self, labels, values=None, callback=None, vertical=False):
         self.var = tk.IntVar()
 
         if callback:
@@ -288,7 +288,7 @@ class RadioButtons(Widget):
 
     def create(self, parrent):
         frame = tk.Frame(parrent)
-        side = 'left' if self.vertical else 'top'
+        side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
         return frame
