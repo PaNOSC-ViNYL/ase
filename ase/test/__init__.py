@@ -41,16 +41,14 @@ class CustomTextTestRunner(unittest.TextTestRunner):
 
 
 class ScriptTestCase(unittest.TestCase):
-    def __init__(self, methodname='testfile', filename=None, display=True):
+    def __init__(self, methodname='testfile', filename=None):
         unittest.TestCase.__init__(self, methodname)
         self.filename = filename
-        self.display = display
 
     def testfile(self):
         try:
             with open(self.filename) as fd:
-                exec(compile(fd.read(), self.filename, 'exec'),
-                     {'display': self.display})
+                exec(compile(fd.read(), self.filename, 'exec'), {})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
@@ -77,7 +75,7 @@ class ScriptTestCase(unittest.TestCase):
 
 
 def test(verbosity=1, calculators=[],
-         testdir=None, display=True, stream=sys.stdout, files=None):
+         testdir=None, stream=sys.stdout, files=None):
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
@@ -99,18 +97,10 @@ def test(verbosity=1, calculators=[],
     tests.sort()
     sdirtests.sort()
     tests.extend(sdirtests)  # run test subdirectories at the end
-    lasttest = None  # is COCu111.py in the current set
     for test in tests:
         if test.endswith('__.py'):
             continue
-        if test.endswith('COCu111.py'):
-            lasttest = test
-            continue
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(test),
-                                  display=display))
-    if lasttest:
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(lasttest),
-                                  display=display))
+        ts.addTest(ScriptTestCase(filename=os.path.abspath(test)))
 
     versions = [('platform', platform.platform()),
                 ('python-' + sys.version.split()[0], sys.executable)]
