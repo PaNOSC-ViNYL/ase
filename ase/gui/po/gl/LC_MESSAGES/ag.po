@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2017-01-11 12:26+0100\n"
-"PO-Revision-Date: 2017-01-11 13:53+0100\n"
+"PO-Revision-Date: 2017-01-12 15:04+0100\n"
 "Last-Translator: Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -234,10 +234,8 @@ msgstr "Fixar _calculador"
 
 #. No calculator (the default)
 #: ../calculator.py:201
-#, fuzzy
-#| msgid "_None"
 msgid "None"
-msgstr "_Ningún"
+msgstr "Ningún"
 
 #: ../calculator.py:206
 msgid "Lennard-Jones (ASAP)"
@@ -245,10 +243,8 @@ msgstr ""
 
 #: ../calculator.py:207 ../calculator.py:234 ../calculator.py:248
 #: ../calculator.py:257 ../calculator.py:266
-#, fuzzy
-#| msgid "_Setup"
 msgid "Setup"
-msgstr "_Configurar"
+msgstr "Configurar"
 
 #: ../calculator.py:214
 msgid "EMT - Effective Medium Theory (ASAP)"
@@ -409,10 +405,8 @@ msgstr ""
 
 #: ../calculator.py:869 ../graphene.py:72 ../graphene.py:83 ../graphene.py:107
 #: ../nanotube.py:45 ../surfaceslab.py:98
-#, fuzzy
-#| msgid "Å³"
 msgid "Å"
-msgstr "Å³"
+msgstr "Å"
 
 #: ../calculator.py:870
 msgid "Grid points"
@@ -634,10 +628,8 @@ msgid " order: "
 msgstr ""
 
 #: ../calculator.py:1747
-#, fuzzy
-#| msgid "Width: "
 msgid " width: "
-msgstr "Ancho: "
+msgstr " ancho: "
 
 #: ../calculator.py:1755
 #, fuzzy
@@ -729,16 +721,12 @@ msgid "Constrain"
 msgstr "Restricción"
 
 #: ../constraints.py:9 ../constraints.py:13
-#, fuzzy
-#| msgid " selected atoms"
 msgid "selected atoms"
-msgstr "  átomos seleccionados"
+msgstr "átomos seleccionados"
 
 #: ../constraints.py:11
-#, fuzzy
-#| msgid " immobile atoms:"
 msgid "immobile atoms"
-msgstr " átomos fixos:"
+msgstr "átomos fixos"
 
 #: ../constraints.py:12
 msgid "Unconstrain"
@@ -1072,10 +1060,8 @@ msgid "Only current frame (cf)  "
 msgstr "Soamente o cadro actual (cf)  "
 
 #: ../execute.py:94 ../execute.py:321 ../graphs.py:43
-#, fuzzy
-#| msgid "_Save"
 msgid "Save"
-msgstr "_Gardar"
+msgstr "Gardar"
 
 #: ../execute.py:96 ../ui.py:50 ../ui.py:54
 msgid "Help"
@@ -1206,31 +1192,6 @@ msgstr "Por favor, especifique un conxunto consistente de átomos. "
 
 #: ../graphs.py:8
 #, fuzzy
-#| msgid ""
-#| "Help for plot ...\n"
-#| "\n"
-#| "Symbols:\n"
-#| "<c>e</c>:\t\t\t\ttotal energy\n"
-#| "<c>epot</c>:\t\t\tpotential energy\n"
-#| "<c>ekin</c>:\t\t\tkinetic energy\n"
-#| "<c>fmax</c>:\t\t\tmaximum force\n"
-#| "<c>fave</c>:\t\t\taverage force\n"
-#| "<c>R[n,0-2]</c>:\t\t\tposition of atom number <c>n</c>\n"
-#| "<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>:\t\t\tdistance between two atoms "
-#| "<c>n<sub>1</sub></c> and <c>n<sub>2</sub></c>\n"
-#| "<c>i</c>:\t\t\t\tcurrent image number\n"
-#| "<c>E[i]</c>:\t\t\t\tenergy of image number <c>i</c>\n"
-#| "<c>F[n,0-2]</c>:\t\t\tforce on atom number <c>n</c>\n"
-#| "<c>V[n,0-2]</c>:\t\t\tvelocity of atom number <c>n</c>\n"
-#| "<c>M[n]</c>:\t\t\tmagnetic moment of atom number <c>n</c>\n"
-#| "<c>A[0-2,0-2]</c>:\t\tunit-cell basis vectors\n"
-#| "<c>s</c>:\t\t\t\tpath length\n"
-#| "<c>a(n1,n2,n3)</c>:\t\tangle between atoms <c>n<sub>1</sub></c>, "
-#| "<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</"
-#| "sub></c>\n"
-#| "<c>dih(n1,n2,n3,n4)</c>:\tdihedral angle between <c>n<sub>1</sub></c>, "
-#| "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
-#| "<c>T</c>:\t\t\t\ttemperature (K)"
 msgid ""
 "Symbols:\n"
 "<c>e</c>: total energy\n"
@@ -1254,37 +1215,29 @@ msgid ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 msgstr ""
-"Axuda para graficar ...\n"
-"\n"
-"<c>e</c>:\t\t\t\tenerxía total\n"
-"<c>epot</c>:\t\t\tenerxía potencial\n"
-"<c>ekin</c>:\t\t\tenerxía cinética\n"
-"<c>fmax</c>:\t\t\tforza máxima\n"
-"<c>fave</c>:\t\t\tforza media\n"
-"<c>R[n,0-2]</c>:\t\t\tposición do átomo de número <c>n</c>\n"
-"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>:\t\t\tdistancia entre dous átomos "
-"<c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
-"<c>i</c>:\t\t\t\tnúmero da imaxe actual\n"
-"<c>E[i]</c>:\t\t\t\tenerxía da imaxe número <c>i</c>\n"
-"<c>F[n,0-2]</c>:\t\t\tforza do átomo número <c>n</c>\n"
-"<c>V[n,0-2]</c>:\t\t\tvelocidade do átomo número <c>n</c>\n"
-"<c>M[n]</c>:\t\t\tmomento magnético do átomo número <c>n</c>\n"
-"<c>A[0-2,0-2]</c>:\t\tvectores base da celda unidade\n"
-"<c>s</c>:\t\t\t\tlonxitude da traxectoria\n"
-"<c>a(n1,n2,n3)</c>:\t\tángulo entre os átomos <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></"
-"c>\n"
-"<c>dih(n1,n2,n3,n4)</c>:\tángulo diedro entre <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
-"<c>T</c>:\t\t\t\ttemperatura (K)"
+"<c>e</c>: enerxía total\n"
+"<c>epot</c>: enerxía potencial\n"
+"<c>ekin</c>: enerxía cinética\n"
+"<c>fmax</c>: forza máxima\n"
+"<c>fave</c>: forza media\n"
+"<c>R[n,0-2]</c>: posición do átomo de número <c>n</c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distancia entre dous átomos <c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
+"<c>i</c>: número da imaxe actual\n"
+"<c>E[i]</c>: enerxía da imaxe número <c>i</c>\n"
+"<c>F[n,0-2]</c>: forza do átomo número <c>n</c>\n"
+"<c>V[n,0-2]</c>: velocidade do átomo número <c>n</c>\n"
+"<c>M[n]</c>: momento magnético do átomo número <c>n</c>\n"
+"<c>A[0-2,0-2]</c>: vectores base da celda unidade\n"
+"<c>s</c>: lonxitude da traxectoria\n"
+"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></c>\n"
+"<c>dih(n1,n2,n3,n4)</c>: ángulo diedro entre <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
+"<c>T</c>: temperatura (K)"
 
 #: ../graphs.py:39 ../graphs.py:41
 msgid "Plot"
 msgstr "Graficar"
 
 #: ../graphs.py:44
-#, fuzzy
-#| msgid "clear"
 msgid "Clear"
 msgstr "Limpar"
 
@@ -1470,62 +1423,44 @@ msgid "yz-plane"
 msgstr "plano yz"
 
 #: ../gui.py:420
-#, fuzzy
-#| msgid "xy-plane"
 msgid "zx-plane"
-msgstr "plano xy"
+msgstr "plano zx"
 
 #: ../gui.py:421
-#, fuzzy
-#| msgid "xy-plane"
 msgid "yx-plane"
-msgstr "plano xy"
+msgstr "plano yx"
 
 #: ../gui.py:422
-#, fuzzy
-#| msgid "xy-plane"
 msgid "zy-plane"
-msgstr "plano xy"
+msgstr "plano zy"
 
 #: ../gui.py:423
 msgid "xz-plane"
 msgstr "plano xz"
 
 #: ../gui.py:424
-#, fuzzy
-#| msgid "'a2 a3' Plane"
 msgid "a2,a3-plane"
-msgstr "Plano 'a2 a3'"
+msgstr "Plano a2,a3"
 
 #: ../gui.py:425
-#, fuzzy
-#| msgid "'a3 a1' Plane"
 msgid "a3,a1-plane"
-msgstr "Plano 'a3 a1'"
+msgstr "Plano a3,a1"
 
 #: ../gui.py:426
-#, fuzzy
-#| msgid "'a1 a2' Plane"
 msgid "a1,a2-plane"
-msgstr "Plano 'a1 a2'"
+msgstr "Plano a1,a2"
 
 #: ../gui.py:427
-#, fuzzy
-#| msgid "'a3 a2' Plane"
 msgid "a3,a2-plane"
-msgstr "Plano 'a3 a2'"
+msgstr "Plano a3,a2"
 
 #: ../gui.py:428
-#, fuzzy
-#| msgid "'a1 a3' Plane"
 msgid "a1,a3-plane"
-msgstr "Plano 'a1 a3'"
+msgstr "Plano a1,a3"
 
 #: ../gui.py:429
-#, fuzzy
-#| msgid "'a2 a1' Plane"
 msgid "a2,a1-plane"
-msgstr "Plano 'a2 a1'"
+msgstr "Plano a2,a1"
 
 #: ../gui.py:430
 msgid "Settings ..."
@@ -1617,10 +1552,8 @@ msgid "_Energy and Forces"
 msgstr "_Enerxía e Forzas"
 
 #: ../gui.py:459
-#, fuzzy
-#| msgid "Energy _Minimization"
 msgid "Energy Minimization"
-msgstr "_Minimización enerxética"
+msgstr "Minimización enerxética"
 
 #: ../gui.py:462
 msgid "_Help"
@@ -1851,10 +1784,8 @@ msgid "Get structure"
 msgstr "Obter estrutura"
 
 #: ../nanoparticle.py:154
-#, fuzzy
-#| msgid "Structure: "
 msgid "Structure:"
-msgstr "Estrutura: "
+msgstr "Estrutura:"
 
 #: ../nanoparticle.py:159
 msgid "Lattice constant:  a ="
@@ -1902,10 +1833,8 @@ msgid "Apply"
 msgstr ""
 
 #: ../nanoparticle.py:198 ../nanotube.py:53
-#, fuzzy
-#| msgid "_OK"
 msgid "OK"
-msgstr "_OK"
+msgstr "OK"
 
 #: ../nanoparticle.py:224
 msgid "Up"
@@ -1920,10 +1849,8 @@ msgid "Delete"
 msgstr "Borrar"
 
 #: ../nanoparticle.py:270
-#, fuzzy
-#| msgid "Number of atoms: "
 msgid "Number of atoms"
-msgstr "Número de átomos: "
+msgstr "Número de átomos"
 
 #: ../nanoparticle.py:270
 msgid "Diameter"
@@ -1964,10 +1891,8 @@ msgid "Å³"
 msgstr "Å³"
 
 #: ../nanoparticle.py:288
-#, fuzzy
-#| msgid "Rounding: If exact size is not possible, choose the size"
 msgid "Rounding: If exact size is not possible, choose the size:"
-msgstr "Redondear: se o tamaño exacto non é posible, elexir o tamaño"
+msgstr "Redondear: se o tamaño exacto non é posible, elexir o tamaño:"
 
 #: ../nanoparticle.py:313
 msgid "Surface energies (as energy/area, NOT per atom):"
@@ -2025,20 +1950,16 @@ msgid "Nanotube"
 msgstr "Nanotubo"
 
 #: ../nanotube.py:43
-#, fuzzy
-#| msgid "  Bond length: "
 msgid "Bond length: "
-msgstr "  Lonxitude do enlace: "
+msgstr "Lonxitude do enlace: "
 
 #: ../nanotube.py:46
 msgid "Select roll-up vector (n,m) and tube length:"
 msgstr "Seleccione o vector de roll-up (n,m) e a lonxitude do tubo:"
 
 #: ../nanotube.py:49
-#, fuzzy
-#| msgid "  Length: "
 msgid "Length:"
-msgstr "  Lonxitude: "
+msgstr "Lonxitude:"
 
 #: ../progress.py:28
 msgid "Progress"
@@ -2419,10 +2340,8 @@ msgid "Save ..."
 msgstr "Gardar ..."
 
 #: ../settings.py:10
-#, fuzzy
-#| msgid "Settings ..."
 msgid "Settings"
-msgstr "Axustes ..."
+msgstr "Axustes"
 
 #. Constraints
 #: ../settings.py:13
@@ -2516,8 +2435,7 @@ msgid "No calculator: Use Calculate/Set Calculator on the menu."
 msgstr "No hai un calculador. Use Calcular/Fixar Calculador no menú."
 
 #: ../status.py:56
-#, fuzzy, python-format
-#| msgid " tag=%(tag)s"
+#, python-format
 msgid " tag=%(tag)s"
 msgstr " etiqueta=%(tag)s"
 
@@ -2708,34 +2626,24 @@ msgid "Version"
 msgstr ""
 
 #: ../ui.py:44
-#, fuzzy
-#| msgid "Webpage ..."
 msgid "Web-page"
-msgstr "Páxina web ..."
+msgstr "Páxina web"
 
 #: ../ui.py:45
-#, fuzzy
-#| msgid "_About"
 msgid "About"
-msgstr "_Acerca de ag"
+msgstr "Acerca de ase-gui"
 
 #: ../widgets.py:11
-#, fuzzy
-#| msgid "Element: "
 msgid "Element:"
-msgstr "Elemento: "
+msgstr "Elemento:"
 
 #: ../widgets.py:39
-#, fuzzy
-#| msgid "  No element specified!"
 msgid "No element specified!"
-msgstr "  ¡Non especificou o elemento!"
+msgstr "¡Non especificou o elemento!"
 
 #: ../widgets.py:56
-#, fuzzy
-#| msgid "  ERROR: Invalid element!"
 msgid "ERROR: Invalid element!"
-msgstr "  ERRO: ¡elemento inválido!"
+msgstr "ERRO: ¡elemento inválido!"
 
 #: ../widgets.py:75
 msgid "No Python code"
