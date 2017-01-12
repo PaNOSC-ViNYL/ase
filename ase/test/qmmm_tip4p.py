@@ -6,10 +6,9 @@ import numpy as np
 import ase.units as units
 from ase import Atoms
 from ase.calculators.tip4p import (TIP4P, epsilon0, sigma0, rOH, thetaHOH)
-from ase.calculators.qmmm import (SimpleQMMM, EIQMMM, LJInteractions)
+from ase.calculators.qmmm import (SimpleQMMM, LJInteractions)
 from ase.constraints import FixBondLengths
 from ase.optimize import BFGS
-from ase.data import s22
 
 r = rOH
 a = thetaHOH
