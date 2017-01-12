@@ -1,16 +1,17 @@
+from __future__ import unicode_literals
 import ase.gui.ui as ui
-
+from ase.gui.i18n import _
 
 class Constraints:
     def __init__(self, gui):
-        win = ui.Window('Constraints')
-        win.add([ui.Button('Constrain', self.selected),
-                 'selected atoms'])
-        win.add([ui.Button('Constrain', self.immobile),
-                 'immobile atoms'])
-        win.add([ui.Button('Unconstrain', self.unconstrain),
-                 'selected atoms'])
-        win.add(ui.Button('Clear constraints', self.clear))
+        win = ui.Window(_('Constraints'))
+        win.add([ui.Button(_('Constrain'), self.selected),
+                 _('selected atoms')])
+        win.add([ui.Button(_('Constrain'), self.immobile),
+                 _('immobile atoms')])
+        win.add([ui.Button(_('Unconstrain'), self.unconstrain),
+                 _('selected atoms')])
+        win.add(ui.Button(_('Clear constraints'), self.clear))
         self.gui = gui
 
     def selected(self):

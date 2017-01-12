@@ -1,30 +1,32 @@
+from __future__ import unicode_literals
 import threading
 
 import numpy as np
 
 import ase.gui.ui as ui
+from ase.gui.i18n import _
 
 
 class Movie:
     def __init__(self, gui):
-        self.win = win = ui.Window('Movie', self.close)
-        win.add('Image number:')
+        self.win = win = ui.Window(_('Movie'), self.close)
+        win.add(_('Image number:'))
         self.frame_number = ui.Scale(gui.frame, 0,
                                      gui.images.nimages - 1,
                                      callback=self.new_frame)
         win.add(self.frame_number)
 
-        win.add([ui.Button('First', self.click, -1, True),
-                 ui.Button('Back', self.click, -1),
-                 ui.Button('Forward', self.click, 1),
-                 ui.Button('Last', self.click, 1, True)])
+        win.add([ui.Button(_('First'), self.click, -1, True),
+                 ui.Button(_('Back'), self.click, -1),
+                 ui.Button(_('Forward'), self.click, 1),
+                 ui.Button(_('Last'), self.click, 1, True)])
 
-        play = ui.Button('Play', self.play)
-        stop = ui.Button('Stop', self.stop)
+        play = ui.Button(_('Play'), self.play)
+        stop = ui.Button(_('Stop'), self.stop)
 
         # TRANSLATORS: This function plays an animation forwards and backwards
         # alternatingly, e.g. for displaying vibrational movement
-        self.rock = ui.CheckButton('Rock')
+        self.rock = ui.CheckButton(_('Rock'))
 
         win.add([play, stop, self.rock])
 
@@ -37,7 +39,8 @@ class Movie:
             tdefault = min(max(gui.images.nimages / 5.0, 1.0), 30)
         self.time = ui.SpinBox(tdefault, 1.0, 99, 0.1)
         self.skip = ui.SpinBox(skipdefault, 0, 99, 1)
-        win.add([' Frame rate: ', self.time, ' Skip frames: ', self.skip])
+        win.add([_(' Frame rate: '), self.time, _(' Skip frames: '),
+                 self.skip])
 
         self.gui = gui
         self.direction = 1

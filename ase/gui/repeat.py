@@ -1,16 +1,18 @@
+from __future__ import unicode_literals
 import numpy as np
 
 import ase.gui.ui as ui
+from ase.gui.i18n import _
 
 
 class Repeat:
     def __init__(self, gui):
-        win = ui.Window('Repeat')
-        win.add('Repeat atoms:')
+        win = ui.Window(_('Repeat'))
+        win.add(_('Repeat atoms:'))
         self.repeat = [ui.SpinBox(r, 1, 9, 1, self.change)
                        for r in gui.images.repeat]
         win.add(self.repeat)
-        win.add(ui.Button('Set unit cell', self.set_unit_cell))
+        win.add(ui.Button(_('Set unit cell'), self.set_unit_cell))
 
         for sb, vec in zip(self.repeat, gui.images.A[gui.frame]):
             if not vec.any():
