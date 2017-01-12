@@ -1654,14 +1654,14 @@ class Atoms(object):
                       " inside the info dictionary, i.e. atoms." +
                       "info['adsorbate_info']", FutureWarning)
         return self.info['adsorbate_info']
-    
+
     @adsorbate_info.setter
     def adsorbate_info(self, dct):
         warnings.warn("The adsorbate_info dictionary has been moved" +
                       " inside the info dictionary, i.e. atoms." +
                       "info['adsorbate_info']", FutureWarning)
         self.info['adsorbate_info'] = dct
-    
+
     def _get_atomic_numbers(self):
         """Return reference to atomic numbers for in-place
         manipulations."""
@@ -1776,7 +1776,7 @@ def string2symbols(s):
 
 
 def symbols2numbers(symbols):
-    if isinstance(symbols, str):
+    if isinstance(symbols, basestring):
         symbols = string2symbols(symbols)
     numbers = []
     for s in symbols:
