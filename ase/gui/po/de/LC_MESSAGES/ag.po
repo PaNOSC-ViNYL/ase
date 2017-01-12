@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2017-01-12 15:06+0100\n"
-"PO-Revision-Date: 2017-01-06 16:13+0100\n"
+"PO-Revision-Date: 2017-01-12 15:38+0100\n"
 "Last-Translator: Lukas Deuchler <deuchler@theo-physik.uni-kiel.de>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -766,16 +766,12 @@ msgid "Constrain"
 msgstr ""
 
 #: ../constraints.py:9 ../constraints.py:13
-#, fuzzy
-#| msgid " selected atoms"
 msgid "selected atoms"
-msgstr " gewählte Atome"
+msgstr "gewählte Atome"
 
 #: ../constraints.py:11
-#, fuzzy
-#| msgid " immobile atoms:"
 msgid "immobile atoms"
-msgstr " unbewegliche Atome:"
+msgstr "unbewegliche Atome"
 
 #: ../constraints.py:12
 msgid "Unconstrain"
@@ -1050,10 +1046,8 @@ msgid "Only current frame (cf)  "
 msgstr "Nur dieser frame (cf)"
 
 #: ../execute.py:94 ../execute.py:321 ../graphs.py:43
-#, fuzzy
-#| msgid "_Save"
 msgid "Save"
-msgstr "_Speichern"
+msgstr "Speichern"
 
 #: ../execute.py:96 ../ui.py:50 ../ui.py:54
 msgid "Help"
@@ -1212,10 +1206,8 @@ msgid "Plot"
 msgstr ""
 
 #: ../graphs.py:44
-#, fuzzy
-#| msgid "clear"
 msgid "Clear"
-msgstr "löschen"
+msgstr "Löschen"
 
 #: ../graphs.py:61
 msgid "Save data to file ... "
@@ -1399,62 +1391,44 @@ msgid "yz-plane"
 msgstr "yz-Ebene"
 
 #: ../gui.py:420
-#, fuzzy
-#| msgid "xy-plane"
 msgid "zx-plane"
-msgstr "xy-Ebene"
+msgstr "zx-Ebene"
 
 #: ../gui.py:421
-#, fuzzy
-#| msgid "xy-plane"
 msgid "yx-plane"
-msgstr "xy-Ebene"
+msgstr "yx-Ebene"
 
 #: ../gui.py:422
-#, fuzzy
-#| msgid "xy-plane"
 msgid "zy-plane"
-msgstr "xy-Ebene"
+msgstr "zy-Ebene"
 
 #: ../gui.py:423
 msgid "xz-plane"
 msgstr "xz-Ebene"
 
 #: ../gui.py:424
-#, fuzzy
-#| msgid "'a2 a3' Plane"
 msgid "a2,a3-plane"
-msgstr "'a2 a3' Ebene"
+msgstr "a2,a3-Ebene"
 
 #: ../gui.py:425
-#, fuzzy
-#| msgid "'a3 a1' Plane"
 msgid "a3,a1-plane"
-msgstr "'a3 a1' Ebene"
+msgstr "a3,a1-Ebene"
 
 #: ../gui.py:426
-#, fuzzy
-#| msgid "'a1 a2' Plane"
 msgid "a1,a2-plane"
-msgstr "'a1 a2' Ebene"
+msgstr "a1,a2-Ebene"
 
 #: ../gui.py:427
-#, fuzzy
-#| msgid "'a3 a2' Plane"
 msgid "a3,a2-plane"
-msgstr "'a3 a2' Ebene"
+msgstr "a3,a2-Ebene"
 
 #: ../gui.py:428
-#, fuzzy
-#| msgid "'a1 a3' Plane"
 msgid "a1,a3-plane"
-msgstr "'a1 a3' Ebene"
+msgstr "a1,a3-Ebene"
 
 #: ../gui.py:429
-#, fuzzy
-#| msgid "'a2 a1' Plane"
 msgid "a2,a1-plane"
-msgstr "'a2 a1' Ebene"
+msgstr "a2,a1-Ebene"
 
 #: ../gui.py:430
 msgid "Settings ..."
@@ -1546,10 +1520,8 @@ msgid "_Energy and Forces"
 msgstr "_Energie und Kräfte"
 
 #: ../gui.py:459
-#, fuzzy
-#| msgid "Energy _Minimization"
 msgid "Energy Minimization"
-msgstr "Energie_minimierung"
+msgstr "Energieminimierung"
 
 #: ../gui.py:462
 msgid "_Help"
@@ -1746,10 +1718,8 @@ msgid "Get structure"
 msgstr "Lade Struktur"
 
 #: ../nanoparticle.py:154
-#, fuzzy
-#| msgid "Structure: "
 msgid "Structure:"
-msgstr "Struktur: "
+msgstr "Struktur:"
 
 #: ../nanoparticle.py:159
 msgid "Lattice constant:  a ="
@@ -1813,10 +1783,8 @@ msgid "Delete"
 msgstr "Lösche"
 
 #: ../nanoparticle.py:270
-#, fuzzy
-#| msgid "Number of atoms: "
 msgid "Number of atoms"
-msgstr "Anzahl der Atome: "
+msgstr "Anzahl der Atome"
 
 #: ../nanoparticle.py:270
 msgid "Diameter"
@@ -1857,10 +1825,8 @@ msgid "Å³"
 msgstr ""
 
 #: ../nanoparticle.py:288
-#, fuzzy
-#| msgid "Rounding: If exact size is not possible, choose the size"
 msgid "Rounding: If exact size is not possible, choose the size:"
-msgstr "Runden: Wenn exakte Größe nicht möglich, dann wähle Größe"
+msgstr "Runden: Wenn exakte Größe nicht möglich, dann wähle Größe:"
 
 #: ../nanoparticle.py:313
 msgid "Surface energies (as energy/area, NOT per atom):"
@@ -1908,20 +1874,16 @@ msgid "Nanotube"
 msgstr ""
 
 #: ../nanotube.py:43
-#, fuzzy
-#| msgid "  Bond length: "
 msgid "Bond length: "
-msgstr "  Bindungslänge: "
+msgstr "Bindungslänge: "
 
 #: ../nanotube.py:46
 msgid "Select roll-up vector (n,m) and tube length:"
 msgstr ""
 
 #: ../nanotube.py:49
-#, fuzzy
-#| msgid "  Length: "
 msgid "Length:"
-msgstr "  Länge: "
+msgstr "Länge:"
 
 #: ../progress.py:28
 msgid "Progress"
@@ -2269,10 +2231,8 @@ msgid "Save ..."
 msgstr "Speichern ..."
 
 #: ../settings.py:10
-#, fuzzy
-#| msgid "Settings ..."
 msgid "Settings"
-msgstr "Einstellungen ..."
+msgstr "Einstellungen"
 
 #. Constraints
 #: ../settings.py:13
@@ -2560,34 +2520,24 @@ msgid "Version"
 msgstr ""
 
 #: ../ui.py:44
-#, fuzzy
-#| msgid "Webpage ..."
 msgid "Web-page"
-msgstr "Webseite ..."
+msgstr "Webseite"
 
 #: ../ui.py:45
-#, fuzzy
-#| msgid "_About"
 msgid "About"
-msgstr "_Info"
+msgstr "Info"
 
 #: ../widgets.py:11
-#, fuzzy
-#| msgid "_Element Symbol"
 msgid "Element:"
-msgstr "_Elementsymbol"
+msgstr "Element:"
 
 #: ../widgets.py:39
-#, fuzzy
-#| msgid "  No element specified!"
 msgid "No element specified!"
-msgstr "  Kein Element spezifiziert!"
+msgstr "Kein Element spezifiziert!"
 
 #: ../widgets.py:56
-#, fuzzy
-#| msgid "  ERROR: Invalid element!"
 msgid "ERROR: Invalid element!"
-msgstr "  FEHLER: Ungültiges Element!"
+msgstr "FEHLER: Ungültiges Element!"
 
 #: ../widgets.py:75
 msgid "No Python code"
