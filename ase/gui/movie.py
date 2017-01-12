@@ -1,5 +1,4 @@
 from __future__ import unicode_literals, division
-import threading
 
 import numpy as np
 
@@ -73,11 +72,9 @@ class Movie:
         self.gui.set_coordinates(value)
 
     def play(self):
-        if self.timer is not None:
-            self.timer.cancel()
+        self.stop()
         t = 1 / self.time.value
-        self.timer = threading.Timer(t, self.step)
-        self.timer.start()
+        self.timer = self.gui.window.after(t, self.step)
 
     def stop(self):
         if self.timer is not None:

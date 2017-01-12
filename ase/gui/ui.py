@@ -15,6 +15,7 @@ except ImportError:
 
 import re
 import sys
+from collections import namedtuple
 from functools import partial
 from ase.gui.i18n import _
 
@@ -585,3 +586,8 @@ class ASEGUIWindow(MainWindow):
         anchor = {'SE': tk.SE}.get(anchor, anchor)
         self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color,
                                 font=font)
+
+    def after(self, time, callback):
+        id = self.win.after(int(time * 1000), callback)
+        # Quick'n'dirty object with a cancel() method:
+        return namedtuple('Timer', 'cancel')(lambda: self.win.after_cancel(id))
