@@ -603,8 +603,8 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
 
     floats = {'0.0': 0.0, '1.0': 1.0, '0': 0.0, '1': 1.0, '-1': -1.0}
     for n, d in [(1, 2), (1, 3), (2, 3), (1, 4), (3, 4), (1, 6), (5, 6)]:
-        floats['{0}/{1}'.format(n, d)] = n / float(d)
-        floats['-{0}/{1}'.format(n, d)] = -n / float(d)
+        floats['{0}/{1}'.format(n, d)] = n / d
+        floats['-{0}/{1}'.format(n, d)] = -n / d
 
     spg._no = no
     spg._symbol = symbol.strip()
