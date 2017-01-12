@@ -253,6 +253,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     energy = 0
     species = []
     species_num = []
+    stress = None
     symbols = []
     ecount = 0
     poscount = 0
@@ -297,6 +298,10 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
             magnetization = []
             for i in range(natoms):
                 magnetization += [float(data[n + 4 + i].split()[4])]
+        if 'in kB ' in line:
+            stress = [float(ss) for ii, ss in enumerate(line.split()) if ii>1]
+            # Convert from kbar to eV/A
+            stress = np.array(stress) / 1602.1766
         if 'POSITION          ' in line:
             forces = []
             positions = []
@@ -308,7 +313,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
                 positions += [[float(temp[0]), float(temp[1]), float(temp[2])]]
                 atoms.set_calculator(SinglePointCalculator(atoms,
                                                            energy=energy,
-                                                           forces=forces))
+                                                           forces=forces,
+                                                           stress=stress))
             images += [atoms]
             if len(magnetization) > 0:
                 images[-1].calc.magmoms = np.array(magnetization, float)
