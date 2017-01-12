@@ -258,7 +258,7 @@ class Embedding:
 
 class EmbedTIP4P:
     def __init__(self, molecule_size=4, **parameters):
-        """Point-charge embedding."""
+        """TIP4P embedding."""
         self.qmatoms = None
         self.mmatoms = None
         self.molecule_size = molecule_size

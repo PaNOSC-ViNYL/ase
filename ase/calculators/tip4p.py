@@ -27,7 +27,7 @@ k_c = 332.1 * unit.kcal / unit.mol
 sigma0 = 3.15365
 epsilon0 = 0.6480 * unit.kJ / unit.mol
 rOH = 0.9572
-thetaHOH = 104.52
+thetaHOH = 104.52 / 180 * np.pi
 
 
 class TIP4P:
