@@ -501,7 +501,7 @@ class MainWindow(BaseWindow):
             else:
                 self.win.after_idle(callback)
 
-        test.__name__ = '?'
+        test.__name__ = str('?')
         self.win.after_idle(test)  # callback)
         self.run()
 
