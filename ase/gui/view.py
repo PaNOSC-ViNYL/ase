@@ -1,6 +1,4 @@
 from __future__ import division
-import os
-import tempfile
 from math import cos, sin, sqrt
 from os.path import basename
 
@@ -96,21 +94,6 @@ class View:
             self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'
                               .format(*(int(x * 255) for x in rgb)))
 
-    def plot_cell(self):
-        V = self.images.A[0]
-        R1 = []
-        R2 = []
-        for c in range(3):
-            v = V[c]
-            d = sqrt(np.dot(v, v))
-            n = max(2, int(d / 0.3))
-            h = v / (2 * n - 1)
-            R = np.arange(n)[:, None] * (2 * h)
-            for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                R1.append(R + i * V[(c + 1) % 3] + j * V[(c + 2) % 3])
-                R2.append(R1[-1] + h)
-        return np.concatenate(R1), np.concatenate(R2)
-
     def make_box(self):
         if not self.window['toggle-show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
@@ -121,7 +104,10 @@ class View:
         for c in range(3):
             v = V[c]
             d = sqrt(np.dot(v, v))
-            n = max(2, int(d / 0.3))
+            if d < 1e-12:
+                n = 0
+            else:
+                n = max(2, int(d / 0.3))
             nn.append(n)
         self.B1 = np.zeros((2, 2, sum(nn), 3))
         self.B2 = np.zeros((2, 2, sum(nn), 3))
@@ -154,7 +140,8 @@ class View:
                               self.images.A[frame]),
                         pbc=self.images.pbc))
         nb = nl.nneighbors + nl.npbcneighbors
-        self.bonds = np.empty((nb, 5), int)
+
+        bonds = np.empty((nb, 5), int)
         self.coordination = np.zeros((self.images.natoms), dtype=int)
         if nb == 0:
             return
@@ -166,15 +153,17 @@ class View:
             for a2 in indices:
                 self.coordination[a2] += 1
             n2 = n1 + len(indices)
-            self.bonds[n1:n2, 0] = a
-            self.bonds[n1:n2, 1] = indices
-            self.bonds[n1:n2, 2:] = offsets
+            bonds[n1:n2, 0] = a
+            bonds[n1:n2, 1] = indices
+            bonds[n1:n2, 2:] = offsets
             n1 = n2
 
-        i = self.bonds[:n2, 2:].any(1)
-        self.bonds[n2:, 0] = self.bonds[i, 1]
-        self.bonds[n2:, 1] = self.bonds[i, 0]
-        self.bonds[n2:, 2:] = -self.bonds[i, 2:]
+        i = bonds[:n2, 2:].any(1)
+        pbcbonds = bonds[:n2][i]
+        bonds[n2:, 0] = pbcbonds[:, 1]
+        bonds[n2:, 1] = pbcbonds[:, 0]
+        bonds[n2:, 2:] = -pbcbonds[:, 2:]
+        self.bonds = bonds
 
     def toggle_show_unit_cell(self, key=None):
         self.set_coordinates()
@@ -229,8 +218,9 @@ class View:
         return win
 
     def focus(self, x=None):
-        if (self.images.natoms == 0 and
-            not self.window['toggle-show-unit-cell']):
+        cell = (self.window['toggle-show-unit-cell'] and
+                self.images.A[0].any())
+        if (self.images.natoms == 0 and not cell):
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
@@ -534,17 +524,6 @@ class View:
             self.center = com - np.dot(com - self.center0,
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
-
-    def external_viewer(self, action):
-        name = action.get_name()
-        command = {'Avogadro': 'xmakemol -f',
-                   'RasMol': 'rasmol -xyz',
-                   'VMD': 'vmd'}[name]
-        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
-        os.close(fd)
-        self.images.write(filename)
-        os.system('(%s %s &); (sleep 60; rm %s) &' %
-                  (command, filename, filename))
 
     def render_window(self, action):
         Render(self)

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import argparse
+import os
 
 import numpy as np
 
@@ -15,6 +16,10 @@ except ImportError:
     raise NotAvailable
 
 from ase.gui.gui import GUI
+
+
+if not os.environ.get('DISPLAY'):
+    raise NotAvailable
 
 
 class OOPS:
@@ -103,24 +108,25 @@ def open(gui):
     gui.open()
 
 
-if __name__ == '__main__':
-    p = argparse.ArgumentParser()
-    p.add_argument('tests', nargs='*')
-    p.add_argument('-p', '--pause', action='store_true')
-    args = p.parse_args()
-    for name in args.tests or tests:
-        for n in tests:
-            if n.startswith(name):
-                name = n
-                break
-        else:
-            1 / 0
-        print(name)
-        test = globals()[name]
-        gui = GUI()
+p = argparse.ArgumentParser()
+p.add_argument('tests', nargs='*')
+p.add_argument('-p', '--pause', action='store_true')
+args = p.parse_args()
+if __name__ != '__main__':
+    args.tests = []
+for name in args.tests or tests:
+    for n in tests:
+        if n.startswith(name):
+            name = n
+            break
+    else:
+        1 / 0
+    print(name)
+    test = globals()[name]
+    gui = GUI()
 
-        def f():
-            test(gui)
-            if not args.pause:
-                gui.exit()
-        gui.run(test=f)
+    def f():
+        test(gui)
+        if not args.pause:
+            gui.exit()
+    gui.run(test=f)

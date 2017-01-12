@@ -1,3 +1,4 @@
+import os
 from functools import partial
 
 from ase.test import NotAvailable
@@ -5,6 +6,10 @@ from ase.test import NotAvailable
 try:
     import ase.gui.ui as ui
 except ImportError:
+    raise NotAvailable
+
+
+if not os.environ.get('DISPLAY'):
     raise NotAvailable
 
 

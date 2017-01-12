@@ -63,9 +63,9 @@ def build_parser():
     return parser
 
 
-def main():
+def main(args=None):
     parser = build_parser()
-    opt, args = parser.parse_args()
+    opt, args = parser.parse_args(args)
 
     from ase.gui.images import Images
     from ase.atoms import Atoms
