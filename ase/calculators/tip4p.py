@@ -66,8 +66,6 @@ class TIP4P:
         # assert ((cell >= 2 * self.rc) | ~pbc).all(), 'cutoff too large'
         if not ((cell >= 2 * self.rc) | ~pbc).all():
             warnings.warn('Cutoff too large.')
-        if not atoms.constraints:  # Only warn so single point calcs will run
-            warnings.warn('No constraints set.')
 
         # Get dx,dy,dz from first atom of each mol to same atom of all other
         # and find min. distance. Everything moves according to this analysis.
@@ -130,7 +128,7 @@ class TIP4P:
         b = 0.15
         a = 0.5
         pos = atoms.get_positions()
-        xatomspos = np.zeros(((4./3)*len(atoms), 3))
+        xatomspos = np.zeros((int((4./3)*len(atoms)), 3))
         molct = 0
         for w in range(0, len(atoms), 3):
             r_i = pos[w]    # O pos
@@ -148,6 +146,9 @@ class TIP4P:
             molct += 1
 
         nummols = len(atoms)/3
+        assert(nummols - int(nummols) == 0)
+        nummols = int(nummols)
+
         # ase max recursion depth...
         mol = Atoms('OHHH')
         xatoms = mol.copy()
