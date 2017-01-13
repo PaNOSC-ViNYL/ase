@@ -831,7 +831,7 @@ class Atoms(object):
             symbols = self.get_chemical_formula('hill')
         tokens.append("symbols='{0}'".format(symbols))
 
-        if self.pbc.ptp():
+        if self.pbc.any() and not self.pbc.all():
             tokens.append('pbc={0}'.format(self._pbc.tolist()))
         else:
             tokens.append('pbc={0}'.format(self._pbc[0]))
