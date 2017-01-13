@@ -15,11 +15,6 @@ from math import log
 from math import exp
 
 
-# XXX 'num' this somehow is used as a global variable when running in the
-# special serial mode.  This should definitely be done in a different way.
-num = None
-
-
 class AutoNEB(object):
     """AutoNEB object.
 
@@ -27,7 +22,7 @@ class AutoNEB(object):
     calculations following the algorithm described in:
 
     E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
-    submitted (june 2016)
+    145, 094107, 2016. (doi: 10.1063/1.4961868)
 
     The user supplies at minimum the two end-points and possibly also some
     intermediate images.
@@ -197,18 +192,18 @@ class AutoNEB(object):
             qn.attach(traj)
             qn.attach(trajhist)
         else:
-            global num
             num = 1
             for i, j in enumerate(to_run[1: -1]):
                 filename_ref = self.iter_folder + \
                     '/%s%03diter%03d.traj' % (self.prefix, j, self.iteration)
                 trajhist = Trajectory(filename_ref, 'w', self.all_images[j])
-                qn.attach(seriel_writer(trajhist, i, add=False).write)
+                qn.attach(seriel_writer(trajhist, i, num).write)
 
                 traj = Trajectory('%s%03d.traj' % (self.prefix, j), 'w',
                                   self.all_images[j])
-                qn.attach(seriel_writer(traj, i, add=True).write)
-
+                qn.attach(seriel_writer(traj, i, num).write)
+                num += 1
+                
         if isinstance(self.maxsteps, (list, tuple)) and many_steps:
             steps = self.maxsteps[1]
         elif isinstance(self.maxsteps, (list, tuple)) and not many_steps:
@@ -557,17 +552,15 @@ class AutoNEB(object):
 
 
 class seriel_writer:
-    def __init__(self, traj, i, add=False):
+    def __init__(self, traj, i, num):
         self.traj = traj
         self.i = i
-        self.add = add
+        self.num = num
 
     def write(self):
-        global num
-        if num % (self.i + 1) == 0:
+        if self.num % (self.i + 1) == 0:
             self.traj.write()
-            if self.add:
-                num += 1
+
 
 
 def store_E_and_F_in_spc(self):
@@ -592,10 +585,7 @@ def store_E_and_F_in_spc(self):
             self.world.broadcast(forces, root)
             # On all nodes, remove the calculator, keep only energy
             # and force in single point calculator
-            image = self.images[i]
             self.images[i].set_calculator(
-                SinglePointCalculator(energy[0],
-                                      forces,
-                                      None,
-                                      None,
-                                      image))
+                SinglePointCalculator(self.images[i],
+                                      energy=energy[0],
+                                      forces=forces))

@@ -1,18 +1,19 @@
+"""Module to read and write atoms in PDB file format.
+
+See::
+
+    http://www.wwpdb.org/documentation/file-format
+"""
 import numpy as np
 
 from ase.atoms import Atom, Atoms
 from ase.parallel import paropen
 from ase.geometry import cellpar_to_cell
 
-"""Module to read and write atoms in PDB file format"""
-
 
 def read_proteindatabank(fileobj, index=-1):
-    """Read PDB files.
+    """Read PDB files."""
 
-    The format is assumed to follow the description given in
-    http://www.wwpdb.org/documentation/format32/sect8.html and
-    http://www.wwpdb.org/documentation/format32/sect9.html."""
     if isinstance(fileobj, str):
         fileobj = open(fileobj)
 
@@ -53,10 +54,7 @@ def read_proteindatabank(fileobj, index=-1):
 
 
 def write_proteindatabank(fileobj, images):
-    """Write images to PDB-file.
-
-    The format is assumed to follow the description given in
-    http://www.wwpdb.org/documentation/format32/sect9.html."""
+    """Write images to PDB-file."""
     if isinstance(fileobj, str):
         fileobj = paropen(fileobj, 'w')
 
@@ -88,5 +86,5 @@ def write_proteindatabank(fileobj, images):
         for a in range(natoms):
             x, y, z = p[a]
             fileobj.write(format % (a % MAXNUM, symbols[a],
-                                    x, y, z, symbols[a].rjust(2)))
+                                    x, y, z, symbols[a].upper()))
         fileobj.write('ENDMDL\n')

@@ -38,6 +38,8 @@ Git master branch
 * New :func:`ase.geometry.is_orthorhombic` and
   :func:`ase.geometry.orthorhombic` functions added.
 
+* :mod:`ase.gui` now works on Python 3.
+
 
 Version 3.12.0
 ==============
@@ -249,7 +251,7 @@ Version 3.8.0
 
 22 October 2013: :git:`3.8.0 <../3.8.0>`.
 
-* ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
+* ASE's :mod:`gui <ase.gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
 * The old :func:`ase.build.bulk` function is now deprecated.

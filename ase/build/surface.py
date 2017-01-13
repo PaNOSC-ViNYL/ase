@@ -153,13 +153,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     using *offset* instead.
 
     """
-    if 'adsorbate_info' not in slab.info:
-        raise KeyError('No adsorbate_info in atoms.info. The atoms ' +
-                        'does not seem to be made by an ' +
-                        'ase.build function.')
-    info = slab.info['adsorbate_info']
-    if 'cell' not in info:
-        info['cell'] = slab.get_cell()[:2, :2]
+    info = slab.info.get('adsorbate_info', {})
 
     pos = np.array([0.0, 0.0])  # (x, y) part
     spos = np.array([0.0, 0.0])  # part relative to unit cell
@@ -178,7 +172,12 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     else:
         pos += position
 
-    pos += np.dot(spos, info['cell'])
+    if 'cell' in info:
+        cell = info['cell']
+    else:
+        cell = slab.get_cell()[:2, :2]
+
+    pos += np.dot(spos, cell)
 
     # Convert the adsorbate to an Atoms object
     if isinstance(adsorbate, Atoms):
@@ -194,7 +193,6 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
         a = info['top layer atom index']
     except KeyError:
         a = slab.positions[:, 2].argmax()
-        info['top layer atom index'] = a
     z = slab.positions[a, 2] + height
 
     # Move adsorbate into position

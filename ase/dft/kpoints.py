@@ -66,7 +66,7 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
     i.e. the dimension k can be empty or multidimensional.
     """
     if ckpts_kv is None:
-        icell_cv = 2 * np.pi * np.linalg.inv(cell_cv).T
+        icell_cv = 2 * np.pi * np.linalg.pinv(cell_cv).T
         return np.dot(skpts_kc, icell_cv)
     elif skpts_kc is None:
         return np.dot(ckpts_kv, cell_cv.T) / (2 * np.pi)
