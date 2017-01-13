@@ -213,14 +213,16 @@ class BFGSLineSearch(Optimizer):
             force_consistent=self.force_consistent)
         T = time.localtime()
         if self.logfile is not None:
-            if (self.nsteps == 0) and (self.force_consistent):
-                self.logfile.write(
-                    'Force-consistent energies used in optimization.\n')
-                self.logfile.flush()
             name = self.__class__.__name__
-            self.logfile.write('%s: %3d[%3d]  %02d:%02d:%02d %15.6f %12.4f\n'
-                               % (name, self.nsteps, self.force_calls,
-                                  T[3], T[4], T[5], e, fmax))
+            w = self.logfile.write
+            if self.nsteps == 0:
+                w('%s  %4s[%3s] %8s %15s  %12s\n' %
+                  (' '*len(name), 'Step', 'FC', 'Time', 'Energy', 'fmax'))
+                if self.force_consistent:
+                    w('*Force-consistent energies used in optimization.\n')
+            w('%s:  %3d[%3d] %02d:%02d:%02d %15.6f%1s %12.4f\n'
+                % (name, self.nsteps, self.force_calls, T[3], T[4], T[5], e,
+                   {1: '*', 0: ''}[self.force_consistent], fmax))
             self.logfile.flush()
 
 

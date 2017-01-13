@@ -108,14 +108,14 @@ class Optimizer(Dynamics):
 
         atoms: Atoms object
             The Atoms object to relax.
-        
+
         restart: str
             Filename for restart file.  Default value is *None*.
-        
+
         logfile: file object or str
             If *logfile* is a string, a file with that name will be opened.
             Use '-' for stdout.
-        
+
         trajectory: Trajectory object or str
             Attach trajectory object.  If *trajectory* is a string a
             Trajectory will be constructed.  Use *None* for no
@@ -138,7 +138,7 @@ class Optimizer(Dynamics):
         description = {'type': 'optimization',
                        'optimizer': self.__class__.__name__}
         return description
- 
+
     def initialize(self):
         pass
 
@@ -176,10 +176,14 @@ class Optimizer(Dynamics):
         T = time.localtime()
         if self.logfile is not None:
             name = self.__class__.__name__
-            self.logfile.write('%s: %3d  %02d:%02d:%02d %15.6f %12.4f\n' %
+            if self.nsteps == 0:
+                self.logfile.write(
+                    '%s  %4s %8s %15s %12s\n' %
+                    (' '*len(name), 'Step', 'Time', 'Energy', 'fmax'))
+            self.logfile.write('%s:  %3d %02d:%02d:%02d %15.6f %12.4f\n' %
                                (name, self.nsteps, T[3], T[4], T[5], e, fmax))
             self.logfile.flush()
-        
+
     def dump(self, data):
         if rank == 0 and self.restart is not None:
             pickle.dump(data, open(self.restart, 'wb'), protocol=2)
