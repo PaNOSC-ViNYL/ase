@@ -5,6 +5,7 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
+from ase.units import Pascal
 
 
 def get_atomtypes(fname):
@@ -301,7 +302,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         if 'in kB ' in line:
             stress = [float(ss) for ii, ss in enumerate(line.split()) if ii>1]
             # Convert from kbar to eV/A
-            stress = np.array(stress) / 1602.1766
+            stress = np.array(stress) * 10**8 * Pascal
         if 'POSITION          ' in line:
             forces = []
             positions = []
