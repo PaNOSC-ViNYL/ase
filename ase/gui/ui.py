@@ -94,12 +94,11 @@ class Widget(object):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
         if not isinstance(self, (Rows, RadioButtons)):
-            pass  # widget['font'] = font
+            pass
 
     def grid(self, parent):
         widget = self.create(parent)
         widget.grid()
-        # widget['font'] = font
 
     def create(self, parent):
         self.widget = self.creator(parent)
@@ -472,11 +471,11 @@ class MainWindow(BaseWindow):
             self.create_menu(menu)
 
     def create_menu(self, menu_description):
-        menu = tk.Menu(self.win, font=font)
+        menu = tk.Menu(self.win)
         self.win.config(menu=menu)
 
         for label, things in menu_description:
-            submenu = tk.Menu(menu, font=font)
+            submenu = tk.Menu(menu)
             menu.add_cascade(label=label.replace('_', ''),
                              underline=label.find('_'),
                              menu=submenu)
@@ -584,8 +583,7 @@ class ASEGUIWindow(MainWindow):
 
     def text(self, x, y, txt, anchor=tk.CENTER, color='black'):
         anchor = {'SE': tk.SE}.get(anchor, anchor)
-        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color,
-                                font=font)
+        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color)
 
     def after(self, time, callback):
         id = self.win.after(int(time * 1000), callback)
