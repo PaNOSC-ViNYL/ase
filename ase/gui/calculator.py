@@ -13,7 +13,7 @@ from ase import Atoms
 from ase.data import chemical_symbols
 import ase
 
-pack = oops = cancel_apply_ok = SetupWindow = 42
+pack = error = cancel_apply_ok = SetupWindow = 42
 
 # Asap and GPAW may be imported if selected.
 
@@ -344,7 +344,7 @@ class SetCalculator:
         images = self.gui.images
         frame = self.gui.frame
         if images.natoms < 1:
-            oops(_("No atoms present"))
+            error(_("No atoms present"))
             return False
         self.atoms = Atoms(
             positions=images.P[frame],
@@ -439,15 +439,15 @@ class SetCalculator:
         try:
             import asap3
         except ImportError:
-            oops(_("ASAP is not installed. (Failed to import asap3)"))
+            error(_("ASAP is not installed. (Failed to import asap3)"))
             return False
         if not hasattr(self, "lj_parameters"):
-            oops(_("You must set up the Lennard-Jones parameters"))
+            error(_("You must set up the Lennard-Jones parameters"))
             return False
         try:
             self.atoms.set_calculator(asap3.LennardJones(**self.lj_parameters))
         except (asap3.AsapError, TypeError, ValueError) as e:
-            oops(
+            error(
                 _("Could not create useful Lennard-Jones calculator."), str(e))
             return False
         return True
@@ -475,7 +475,7 @@ class SetCalculator:
         try:
             emt, provider, asap3 = self.emt_get()
         except ImportError:
-            oops(_("ASAP is not installed. (Failed to import asap3)"))
+            error(_("ASAP is not installed. (Failed to import asap3)"))
             return False
         try:
             if provider is not None:
@@ -483,7 +483,7 @@ class SetCalculator:
             else:
                 self.atoms.set_calculator(emt())
         except (asap3.AsapError, TypeError, ValueError) as e:
-            oops(_("Could not attach EMT calculator to the atoms."), str(e))
+            error(_("Could not attach EMT calculator to the atoms."), str(e))
             return False
         return True
 
@@ -506,7 +506,7 @@ class SetCalculator:
     def eam_check(self):
         from ase.calculators.eam import EAM
         if not hasattr(self, "eam_parameters"):
-            oops(_("You must set up the EAM parameters"))
+            error(_("You must set up the EAM parameters"))
             return False
 
         self.atoms.set_calculator(EAM(**self.eam_parameters))
@@ -526,7 +526,7 @@ class SetCalculator:
             import asap3
             asap3  # silence pyflakes
         except ImportError:
-            oops(_("ASAP is not installed. (Failed to import asap3)"))
+            error(_("ASAP is not installed. (Failed to import asap3)"))
             return False
         return self.element_check("Brenner potential", ['H', 'C', 'Si'])
 
@@ -545,10 +545,10 @@ class SetCalculator:
             import gpaw
             gpaw  # silence pyflakes
         except ImportError:
-            oops(_("GPAW is not installed. (Failed to import gpaw)"))
+            error(_("GPAW is not installed. (Failed to import gpaw)"))
             return False
         if not hasattr(self, "gpaw_parameters"):
-            oops(_("You must set up the GPAW parameters"))
+            error(_("You must set up the GPAW parameters"))
             return False
         return True
 
@@ -557,7 +557,7 @@ class SetCalculator:
         try:
             import gpaw
         except ImportError:
-            oops(_("GPAW is not installed. (Failed to import gpaw)"))
+            error(_("GPAW is not installed. (Failed to import gpaw)"))
             return False
         p = self.gpaw_parameters
         use = ["xc", "kpts", "mode"]
@@ -591,7 +591,7 @@ class SetCalculator:
 
     def aims_check(self):
         if not hasattr(self, "aims_parameters"):
-            oops(_("You must set up the FHI-aims parameters"))
+            error(_("You must set up the FHI-aims parameters"))
             return False
         return True
 
@@ -607,7 +607,7 @@ class SetCalculator:
 
     def vasp_check(self):
         if not hasattr(self, "vasp_parameters"):
-            oops(_("You must set up the VASP parameters"))
+            error(_("You must set up the VASP parameters"))
             return False
         return True
 
@@ -633,7 +633,7 @@ class SetCalculator:
             for e in self.atoms.get_atomic_numbers():
                 elements_dict[e]
         except KeyError:
-            oops(
+            error(
                 _("Element %(sym)s not allowed by the '%(name)s' calculator") %
                 dict(
                     sym=ase.data.chemical_symbols[e], name=name))
@@ -799,7 +799,7 @@ class EAM_Window:
 
     def ok(self, *args):
         if not hasattr(self.owner, "eam_parameters"):
-            oops(_("You need to import the potential file"))
+            error(_("You need to import the potential file"))
 
         self.destroy()
 
@@ -1322,7 +1322,7 @@ class AIMS_Window:
         self.show()
         self.grab_add()
         if aims_periodic_warning:
-            oops(aims_pbc_warning_text)
+            error(aims_pbc_warning_text)
 
     def set_defaults(self, *args):
         atoms = self.owner.atoms.copy()
@@ -1575,11 +1575,11 @@ class AIMS_Window:
                     0] in self.aims_keyword_gui_list:
             self.expert_keyword_create(command)
         elif command[0] in self.aims_keyword_gui_list:
-            oops(
+            error(
                 _("Please use the facilities provided in this window to "
                   "manipulate the keyword: %s!") % command[0])
         else:
-            oops(
+            error(
                 _("Don't know this keyword: %s\n"
                   "\nPlease check!\n\n"
                   "If you really think it should be available, "
@@ -2107,11 +2107,11 @@ class VASP_Window:
                     0] in self.vasp_keyword_gui_list:
             self.expert_keyword_create(command)
         elif command[0] in self.vasp_keyword_gui_list:
-            oops(
+            error(
                 _("Please use the facilities provided in this window to "
                   "manipulate the keyword: %s!") % command[0])
         else:
-            oops(
+            error(
                 _("Don't know this keyword: %s"
                   "\nPlease check!\n\n"
                   "If you really think it should be available, "

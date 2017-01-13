@@ -340,11 +340,11 @@ class SetupNanoparticle:
             n = 3
         idx = tuple(a.value for a in self.new_direction[1:1 + 2 * n:2])
         if not any(idx):
-            ui.oops(_('At least one index must be non-zero'), '')
+            ui.error(_('At least one index must be non-zero'), '')
             return
         if n == 4 and sum(idx) != 0:
-            ui.oops(_('Invalid hexagonal indices',
-                      'The sum of the first three numbers must be zero'))
+            ui.error(_('Invalid hexagonal indices',
+                       'The sum of the first three numbers must be zero'))
             return
         new = [idx, 5, 1.0]
         if self.method.value == 'wulff':
@@ -406,9 +406,9 @@ class SetupNanoparticle:
 
         if ref is None or structure not in [s[0]
                                             for s in self.structure_data]:
-            ui.oops(_('Unsupported or unknown structure'),
-                    _('Element = {0}, structure = {1}')
-                    .format(self.element.symbol, structure))
+            ui.error(_('Unsupported or unknown structure'),
+                     _('Element = {0}, structure = {1}')
+                     .format(self.element.symbol, structure))
             return
 
         self.structure.value = structure
@@ -518,9 +518,9 @@ class SetupNanoparticle:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            ui.oops(_('No valid atoms.'),
-                    _('You have not (yet) specified a consistent set of '
-                      'parameters.'))
+            ui.error(_('No valid atoms.'),
+                     _('You have not (yet) specified a consistent set of '
+                       'parameters.'))
             return False
 
     def ok(self):

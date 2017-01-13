@@ -22,25 +22,25 @@ if not os.environ.get('DISPLAY'):
     raise NotAvailable
 
 
-class OOPS:
+class Error:
     """Fake window for testing puposes."""
     has_been_called = False
 
-    def __call__(self, title, text):
-        self.title = title
+    def __call__(self, title, text=None):
+        self.text = text or title
         self.has_been_called = True
 
-    def called(self, title=None):
+    def called(self, text=None):
         """Check that an oops-window was opened with correct title."""
         if not self.has_been_called:
             return False
 
         self.has_been_called = False  # ready for next call
 
-        return title is None or title == self.title
+        return text is None or text == self.text
 
 
-ui.oops = OOPS()
+ui.error = Error()
 
 tests = []
 
@@ -57,7 +57,9 @@ def nanotube(gui):
     nt.apply()
     nt.element[1].value = '?'
     nt.apply()
-    assert ui.oops.called(_('No valid atoms.'))
+    assert ui.error.called(
+        _('You have not (yet) specified a consistent set of parameters.'))
+
     nt.element[1].value = 'C'
     nt.ok()
     assert gui.images.natoms == 20

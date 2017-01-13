@@ -11,7 +11,7 @@ from ase.spacegroup import crystal, Spacegroup
 
 import ase
 
-pack = oops = cancel_apply_ok = PyButton = SetupWindow = 42
+pack = error = cancel_apply_ok = PyButton = SetupWindow = 42
 
 introtext = _("""\
   Use this dialog to create crystal lattices. First select the structure,
@@ -403,7 +403,7 @@ class SetupBulkCrystal:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(
+            error(
                 _('No valid atoms.'),
                 _('You have not (yet) specified a consistent set of '
                   'parameters.'))
@@ -526,7 +526,7 @@ class SetupBulkCrystal:
                 0] != lattice:
             index += 1
         if index == len(crystal_definitions) or not self.legal_element:
-            oops(_("Can't find lattice definition!"))
+            error(_("Can't find lattice definition!"))
             return False
         self.structinfo.set_active(index)
         self.lattice_lbuts[0].set_value(ref['a'])

@@ -7,7 +7,7 @@ from os.path import basename
 from os import system
 import numpy as np
 
-pack = oops = Help = 42
+pack = error = Help = 42
 
 
 class Render:
@@ -243,7 +243,7 @@ class Render:
                 self.materials[-1][6], self.materials[-1][7]
             ])
         else:
-            oops(_('Can not create new texture! Must have some atoms selected '
+            error(_('Can not create new texture! Must have some atoms selected '
                    'to create a new material!'))
 
     def delete_material(self, button, index, *args):

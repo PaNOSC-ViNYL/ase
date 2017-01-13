@@ -22,7 +22,8 @@ class ColorWindow:
                   _('By charge'),
                   _('By magnetic moment')]
 
-        self.radio = ui.RadioButtons(labels, values, self.toggle, vertical=True)
+        self.radio = ui.RadioButtons(labels, values, self.toggle,
+                                     vertical=True)
         self.radio.value = gui.colormode
         self.win.add(self.radio)
         self.activate()

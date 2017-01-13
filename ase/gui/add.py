@@ -9,7 +9,7 @@ def txt2pos(txt):
     try:
         x, y, z = (float(x) for x in txt.split(','))
     except ValueError as ex:
-        ui.oops(_('Bad position'), ex)
+        ui.error(_('Bad position'), ex)
     else:
         return x, y, z
 

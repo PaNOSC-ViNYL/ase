@@ -10,7 +10,7 @@ import ase
 import numpy as np
 
 
-pack = oops = cancel_apply_ok = PyButton = SetupWindow = 42
+pack = error = cancel_apply_ok = PyButton = SetupWindow = 42
 
 introtext = _("""\
   Use this dialog to create surface slabs.  Select the element by
@@ -218,13 +218,13 @@ class SetupSurfaceSlab:
 
     def get_lattice_const(self, *args):
         if not self.update_element():
-            oops(_('Invalid element.'))
+            error(_('Invalid element.'))
             return
         z = ase.data.atomic_numbers[self.legal_element]
         ref = ase.data.reference_states[z]
         surface = self.structchoice.get_active_text()
         if not surface:
-            oops(_('No structure specified!'))
+            error(_('No structure specified!'))
             return
         struct = self.surfinfo[surface][1]
         if ref is None or ref['symmetry'] != struct:
@@ -233,7 +233,7 @@ class SetupSurfaceSlab:
             if alt and alt['symmetry'] == struct:
                 ref = alt
             else:
-                oops(_('%(struct)s lattice constant unknown for %(element)s.')
+                error(_('%(struct)s lattice constant unknown for %(element)s.')
                      % dict(struct=struct.upper(), element=self.legal_element))
 
         a = ref['a']
@@ -248,7 +248,7 @@ class SetupSurfaceSlab:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(_('No valid atoms.'),
+            error(_('No valid atoms.'),
                  _('You have not (yet) specified '
                    'a consistent set of parameters.'))
             return False

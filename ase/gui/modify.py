@@ -1,4 +1,6 @@
 from __future__ import unicode_literals
+from functools import partial
+
 from ase.gui.i18n import _
 
 import ase.gui.ui as ui
@@ -12,12 +14,14 @@ class ModifyAtoms:
     def __init__(self, gui):
         selected = gui.images.selected
         if not selected.any():
-            ui.oops(_('No atoms selected!'))
+            ui.error(_('No atoms selected!'))
             return
 
         win = ui.Window(_('Modify'))
         element = Element(callback=self.set_element)
         win.add(element)
+        win.add(ui.Button(_('Change element'),
+                          partial(self.set_element, element)))
         self.tag = ui.SpinBox(0, -1000, 1000, 1, self.set_tag)
         win.add([_('Tag'), self.tag])
         self.magmom = ui.SpinBox(0.0, -10, 10, 0.1, self.set_magmom)
@@ -54,4 +58,5 @@ class ModifyAtoms:
 
     def update_gui(self):
         self.gui.set_colors()
+        self.gui.images.set_radii()
         self.gui.draw()

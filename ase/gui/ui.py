@@ -4,13 +4,13 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror as oops
+    from tkinter.messagebox import showerror
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
     import Tkinter as tk
     import ttk
-    from tkMessageBox import askokcancel as ask_question
+    from tkMessageBox import askokcancel as ask_question, showerror
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -24,7 +24,7 @@ import numpy as np
 from ase.utils import basestring
 
 __all__ = [
-    'oops', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
+    'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
     'SpinBox', 'Text']
@@ -36,6 +36,13 @@ if sys.platform == 'darwin':
     mouse_buttons = {2: 3, 3: 2}
 else:
     mouse_buttons = {}
+
+
+def error(title, message=None):
+    if message is None:
+        message = title
+        title = _('Error')
+    return showerror(title, message)
 
 
 def about(name, version, webpage):
