@@ -80,9 +80,9 @@ class BFGSLineSearch(Optimizer):
         self.alpha_k = None
         self.no_update = False
         self.replay = False
-        self.force_consistent = force_consistent
 
-        Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
+        Optimizer.__init__(self, atoms, restart, logfile, trajectory,
+                           master, force_consistent=force_consistent)
 
     def read(self):
         self.r0, self.g0, self.e0, self.task, self.H = self.load()
@@ -160,16 +160,6 @@ class BFGSLineSearch(Optimizer):
                       rhok * dr[:, np.newaxis] * dr[np.newaxis, :])
             # self.B = np.linalg.inv(self.H)
 
-    def set_force_consistent(self):
-        """Automatically sets force_consistent to True if force_consistent
-        energies are supported by calculator; else False."""
-        try:
-            self.atoms.get_potential_energy(force_consistent=True)
-        except KeyError:
-            self.force_consistent = False
-        else:
-            self.force_consistent = True
-
     def func(self, x):
         """Objective function for use of the optimizers"""
         self.atoms.set_positions(x.reshape(-1, 3))
@@ -207,8 +197,6 @@ class BFGSLineSearch(Optimizer):
 
     def log(self, forces):
         fmax = sqrt((forces**2).sum(axis=1).max())
-        if self.force_consistent is None:
-            self.set_force_consistent()
         e = self.atoms.get_potential_energy(
             force_consistent=self.force_consistent)
         T = time.localtime()

@@ -101,7 +101,8 @@ class Dynamics:
 
 class Optimizer(Dynamics):
     """Base-class for all structure optimization classes."""
-    def __init__(self, atoms, restart, logfile, trajectory, master=None):
+    def __init__(self, atoms, restart, logfile, trajectory, master=None,
+                 force_consistent=False):
         """Structure optimizer object.
 
         Parameters:
@@ -124,8 +125,15 @@ class Optimizer(Dynamics):
         master: boolean
             Defaults to None, which causes only rank 0 to save files.  If
             set to true,  this rank will save files.
+
+        force_consistent: boolean or None
+            Use force-consistent energy calls (as opposed to the energy
+            extrapolated to 0 K).  If force_consistent=None, uses
+            force-consistent energies if available in the calculator, but
+            falls back to force_consistent=False if not.
         """
         Dynamics.__init__(self, atoms, logfile, trajectory, master)
+        self.force_consistent = force_consistent
         self.restart = restart
 
         if restart is None or not isfile(restart):
@@ -149,6 +157,8 @@ class Optimizer(Dynamics):
         atoms are less than *fmax* or when the number of steps exceeds
         *steps*."""
 
+        if self.force_consistent is None:
+            self.set_force_consistent()
         self.fmax = fmax
         step = 0
         while step < steps:
@@ -180,6 +190,9 @@ class Optimizer(Dynamics):
                 self.logfile.write(
                     '%s  %4s %8s %15s %12s\n' %
                     (' '*len(name), 'Step', 'Time', 'Energy', 'fmax'))
+                if self.force_consistent:
+                    self.logfile.write(
+                        '*Force-consistent energies used in optimization.\n')
             self.logfile.write('%s:  %3d %02d:%02d:%02d %15.6f %12.4f\n' %
                                (name, self.nsteps, T[3], T[4], T[5], e, fmax))
             self.logfile.flush()
@@ -190,3 +203,13 @@ class Optimizer(Dynamics):
 
     def load(self):
         return pickle.load(open(self.restart, 'rb'))
+
+    def set_force_consistent(self):
+        """Automatically sets force_consistent to True if force_consistent
+        energies are supported by calculator; else False."""
+        try:
+            self.atoms.get_potential_energy(force_consistent=True)
+        except KeyError:
+            self.force_consistent = False
+        else:
+            self.force_consistent = True
