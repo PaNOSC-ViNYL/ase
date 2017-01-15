@@ -5,8 +5,7 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
-from ase.units import Pascal
-
+import ase.units
 
 def get_atomtypes(fname):
     """Given a file name, get the atomic symbols.
@@ -300,9 +299,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
             for i in range(natoms):
                 magnetization += [float(data[n + 4 + i].split()[4])]
         if 'in kB ' in line:
-            stress = [float(ss) for ii, ss in enumerate(line.split()) if ii>1]
-            # Convert from kbar to eV/A
-            stress = np.array(stress) * 10**8 * Pascal
+            stress = -np.array([float(a) for a in line.split()[2:]])
+            stress = stress[[0, 1, 2, 4, 5, 3]] * 1e-1 * ase.units.GPa
         if 'POSITION          ' in line:
             forces = []
             positions = []
