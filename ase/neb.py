@@ -18,18 +18,18 @@ class NEB:
                  remove_rotation_and_translation=False, world=None,
                  method='aseneb'):
         """Nudged elastic band.
-        
+
         Paper I:
-            
+
             G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
-            
+
         Paper II:
-            
+
             G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
             113, 9901 (2000).
-            
+
         Paper III:
-            
+
             E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
             submitted (2016)
 
@@ -47,7 +47,7 @@ class NEB:
             systems
         method: string of method
             Choice betweeen three method:
-                
+
             * aseneb: standard ase NEB implementation
             * improvedtangent: Paper I NEB implementation
             * eb: Paper III full spring force implementation
@@ -69,7 +69,7 @@ class NEB:
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
         self.k = list(k)
-        
+
         if world is None:
             world = mpi.world
         self.world = world
@@ -105,7 +105,6 @@ class NEB:
         for image, calc in zip(self.images, old):
             image.calc = calc
 
-
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
@@ -127,13 +126,13 @@ class NEB:
                 image.get_calculator().set_atoms(image)
             except AttributeError:
                 pass
-    
+
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages)
-        
+
         if self.remove_rotation_and_translation:
             # Remove translation and rotation between
             # images before computing forces:
@@ -238,7 +237,7 @@ class NEB:
 
             f = forces[i - 1]
             ft = np.vdot(f, tangent)
-            
+
             if i == imax and self.climb:
                 # imax not affected by the spring forces. The full force
                 # with component along the elestic band converted
@@ -275,7 +274,10 @@ class NEB:
 
         return forces.reshape((-1, 3))
 
-    def get_potential_energy(self):
+    def get_potential_energy(self, force_consistent=False):
+        """Return the maximum potential energy along the band.
+        Note that the force_consistent keyword is ignored and is only
+        present for compatibility with ase.Atoms.get_potential_energy."""
         return self.emax
 
     def __len__(self):
