@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import os
+import pickle
+import subprocess
 import sys
 import tempfile
 import weakref
@@ -214,23 +216,28 @@ class GUI(View, Status):
     def neb(self):
         if len(self.images) <= 1:
             return
-        from ase.neb import NEBtools
-        nebtools = NEBtools(self.images)
-        fig = nebtools.plot_band()
-        fig.show()
-        self.graphs.append(fig)
+        N = self.images.repeat.prod()
+        natoms = self.images.natoms // N
+        R = self.images.P[:, :natoms]
+        E = self.images.E
+        F = self.images.F[:, :natoms]
+        A = self.images.A[0]
+        pbc = self.images.pbc
+        process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
+                                   stdin=subprocess.PIPE)
+        pickle.dump((E, F, R, A, pbc), process.stdin, pickle.HIGHEST_PROTOCOL)
+        process.stdin.close()
+        self.graphs.append(process)
 
     def bulk_modulus(self):
-        import matplotlib.pyplot as plt
-        from ase.eos import EquationOfState as EOS
+        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
+                                    '--plot', '-'],
+                                   stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(A)) for A in self.images.A]
         e = self.images.E
-        eos = EOS(v, e)
-        fig = plt.figure(figsize=(9, 5))
-        ax = fig.add_subplot(111)
-        eos.plot(show=True, ax=ax)
-        self.graphs.append(fig)
-        return eos
+        pickle.dump((v, e), process.stdin, pickle.HIGHEST_PROTOCOL)
+        process.stdin.close()
+        self.graphs.append(process)
 
     def open(self, button=None):
         from ase.io.formats import all_formats, get_ioformat
@@ -345,9 +352,8 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, event=None):
-        import matplotlib.pyplot as plt
-        for graph in self.graphs:
-            plt.close(graph)
+        for process in self.graphs:
+            process.terminate()
         self.window.close()
 
     def new(self):
