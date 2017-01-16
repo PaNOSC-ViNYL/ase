@@ -32,8 +32,6 @@ __all__ = [
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
     'SpinBox', 'Text']
 
-font = ('Helvetica', 10)
-
 
 if sys.platform == 'darwin':
     mouse_buttons = {2: 3, 3: 2}
@@ -324,29 +322,34 @@ class RadioButton(Widget):
                                command=callback)
 
 
-class ComboBox(Widget):
-    def __init__(self, labels, values=None, callback=None):
-        self.values = values or list(range(len(labels)))
-        self.callback = callback
-        self.creator = partial(ttk.Combobox,
-                               values=labels)
+if ttk is not None:
+    class ComboBox(Widget):
+        def __init__(self, labels, values=None, callback=None):
+            self.values = values or list(range(len(labels)))
+            self.callback = callback
+            self.creator = partial(ttk.Combobox,
+                                   values=labels)
 
-    def create(self, parrent):
-        widget = Widget.create(self, parrent)
-        widget.current(0)
-        if self.callback:
-            def callback(event):
-                self.callback(self.value)
-            widget.bind('<<ComboboxSelected>>', callback)
-        return widget
+        def create(self, parrent):
+            widget = Widget.create(self, parrent)
+            widget.current(0)
+            if self.callback:
+                def callback(event):
+                    self.callback(self.value)
+                widget.bind('<<ComboboxSelected>>', callback)
+            return widget
 
-    @property
-    def value(self):
-        return self.values[self.widget.current()]
+        @property
+        def value(self):
+            return self.values[self.widget.current()]
 
-    @value.setter
-    def value(self, val):
-        self.widget.current(self.values.index(val))
+        @value.setter
+        def value(self, val):
+            self.widget.current(self.values.index(val))
+else:
+    # Use Entry object when there is no ttk:
+    def ComboBox(labels, values, callback):
+        return Entry(values[0], callback=callback)
 
 
 class Rows(Widget):
@@ -599,9 +602,3 @@ class ASEGUIWindow(MainWindow):
         id = self.win.after(int(time * 1000), callback)
         # Quick'n'dirty object with a cancel() method:
         return namedtuple('Timer', 'cancel')(lambda: self.win.after_cancel(id))
-
-
-if ttk is None:
-    # Use Entry object when there is no ttk:
-    def ComboBox(labels, values, callback):
-        return Entry(values[0], callback=callback)
