@@ -21,6 +21,7 @@ import numpy as np
 import ase.units as unit
 from ase import Atoms
 import warnings
+from ase.calculators.calculator import Calculator, all_changes
 
 # Electrostatic constant and parameters:
 k_c = 332.1 * unit.kcal / unit.mol
@@ -30,8 +31,9 @@ rOH = 0.9572
 thetaHOH = 104.52 / 180 * np.pi
 
 
-class TIP4P:
+class TIP4P(Calculator):
     implemented_properties = ['energy', 'forces']
+    pcpot = None
 
     def __init__(self):
         self.energy = None
@@ -44,8 +46,9 @@ class TIP4P:
         LJ[0, 0] += epsilon0
         LJ[1, 0] += sigma0
         self.LJ = LJ
+        Calculator.__init__(self)
 
-    def calculate(self, atoms):
+    def update(self, atoms):
         self.atoms = atoms
         self.cell = atoms.get_cell()
         self.pbc = atoms.get_pbc()
@@ -81,6 +84,16 @@ class TIP4P:
                 position_list[j::N] += self.positions[(a+1)*N+j::N] - n*C
 
             self.energy_and_forces(a, position_list, q_v, nmol)
+
+        if self.pcpot:
+            e, f = self.pcpot.calculate(np.tile(
+                                    self.atoms.get_initial_charges(), nmol),
+                                    self.positions)
+            self.energy += e
+            self.forces += f
+
+        self.results['energy'] = self.energy
+        self.results['forces'] = self.forces
 
     def energy_and_forces(self, a, position_list, q_v, nmol):
         """ The combination rules for the LJ terms follow Waldman-Hagler:
@@ -196,18 +209,65 @@ class TIP4P:
         self.forces = f
 
     def get_potential_energy(self, atoms):
-        self.update(atoms)
+        self.calculate(atoms)
         return self.energy
 
     def get_forces(self, atoms):
-        self.update(atoms)
+        self.calculate(atoms)
         return self.forces
 
     def get_stress(self, atoms):
         raise NotImplementedError
 
-    def update(self, atoms):
+    def calculate(self, atoms=None,
+                  properties=['energy', 'forces'],
+                  system_changes=all_changes):
+        Calculator.calculate(self, atoms, properties, system_changes)
+
         self.realpositions = atoms.get_positions()
         xatoms = self.add_virtual_sites(atoms)
-        self.calculate(xatoms)
+        self.update(xatoms)
         self.redistribute_forces(xatoms)
+
+    def embed(self, charges):
+        """Embed atoms in point-charges."""
+        self.pcpot = PointChargePotential(charges)
+        return self.pcpot
+
+    def check_state(self, atoms, tol=1e-15):
+        system_changes = Calculator.check_state(self, atoms, tol)
+        if self.pcpot and self.pcpot.mmpositions is not None:
+            system_changes.append('positions')
+        return system_changes
+
+
+class PointChargePotential:
+    def __init__(self, mmcharges):
+        """Point-charge potential for TIP4P.
+
+        Only used for testing QMMM.
+        """
+        self.mmcharges = mmcharges
+        self.mmpositions = None
+        self.mmforces = None
+
+    def set_positions(self, mmpositions):
+        self.mmpositions = mmpositions
+
+    def calculate(self, qmcharges, qmpositions):
+        energy = 0.0
+        self.mmforces = np.zeros_like(self.mmpositions)
+        qmforces = np.zeros_like(qmpositions)
+        for C, R, F in zip(self.mmcharges, self.mmpositions, self.mmforces):
+            d = qmpositions - R
+            r2 = (d**2).sum(1)
+            e = unit.Hartree * unit.Bohr * C * r2**-0.5 * qmcharges
+            energy += e.sum()
+            f = (e / r2)[:, np.newaxis] * d
+            qmforces += f
+            F -= f.sum(0)
+        # self.mmpositions = None
+        return energy, qmforces
+
+    def get_forces(self, calc):
+        return self.mmforces

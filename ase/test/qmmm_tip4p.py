@@ -6,7 +6,8 @@ import numpy as np
 import ase.units as units
 from ase import Atoms
 from ase.calculators.tip4p import (TIP4P, epsilon0, sigma0, rOH, thetaHOH)
-from ase.calculators.qmmm import (SimpleQMMM, LJInteractions)
+from ase.calculators.qmmm import (SimpleQMMM, LJInteractions, EIQMMM, 
+                                  EmbedTIP4P)
 from ase.constraints import FixBondLengths
 from ase.optimize import BFGS
 
@@ -20,11 +21,10 @@ aexp = 46
 
 D = np.linspace(2.5, 3.5, 30)
 
-i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
-
 for calc in [TIP4P(),
              SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P()),
              SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P(), vacuum=3.0)]:
+
     dimer = Atoms('OH2OH2',
                   [(0, 0, 0),
                    (r * cos(a), 0, r * sin(a)),
@@ -56,6 +56,9 @@ for calc in [TIP4P(),
                trajectory=calc.name + '.traj', logfile=calc.name + 'd.log')
     opt.run(0.001)
 
+    if calc.name == 'TIP4P':  # save optimized geom for EIQMMM test
+        tip4pdimer = dimer.copy()
+
     e0 = dimer.get_potential_energy()
     d0 = dimer.get_distance(0, 3)
     R = dimer.positions
@@ -63,12 +66,30 @@ for calc in [TIP4P(),
     v2 = R[3] - (R[4] + R[5]) / 2
     a0 = np.arccos(np.dot(v1, v2) /
                    (np.dot(v1, v1) * np.dot(v2, v2))**0.5) / np.pi * 180
-    fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.3f} {4:.1f}'
+    fmt = '{0:>25}: {1:.3f} {2:.3f} {3:.3f} {4:.1f}'
     print(fmt.format(calc.name, -min(E), -e0, d0, a0))
     assert abs(e0 + eexp) < 0.002
     assert abs(d0 - dexp) < 0.006
     assert abs(a0 - aexp) < 2.5
     
-print(fmt.format('reference', 9.999, eexp, dexp, aexp))
-    
 # plt.show()
+
+print(fmt.format('reference', 9.999, eexp, dexp, aexp))
+
+i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
+
+fmt = '{0:>25}: {1:.3f}'
+for calc in [EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P()),
+             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(), 
+                    vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(), 
+                    vacuum=3.0)]:
+    dimer = tip4pdimer.copy()
+    dimer.translate([1,0,0])
+    dimer.calc = calc
+    e0 = dimer.get_potential_energy()
+    print(fmt.format('EIQMMM '+calc.name+' '+str(dimer.calc.selection)+' '
+                     +str(dimer.calc.vacuum), -e0))
+    assert abs(e0 + eexp) < 0.002
+    
+
