@@ -82,7 +82,7 @@ class BFGSLineSearch(Optimizer):
         self.replay = False
 
         Optimizer.__init__(self, atoms, restart, logfile, trajectory,
-                           master, force_consistent=force_consistent)
+                           master, force_consistent)
 
     def read(self):
         self.r0, self.g0, self.e0, self.task, self.H = self.load()
@@ -196,22 +196,23 @@ class BFGSLineSearch(Optimizer):
         self.g0 = g0
 
     def log(self, forces):
+        if self.logfile is None:
+            return
         fmax = sqrt((forces**2).sum(axis=1).max())
         e = self.atoms.get_potential_energy(
             force_consistent=self.force_consistent)
         T = time.localtime()
-        if self.logfile is not None:
-            name = self.__class__.__name__
-            w = self.logfile.write
-            if self.nsteps == 0:
-                w('%s  %4s[%3s] %8s %15s  %12s\n' %
-                  (' '*len(name), 'Step', 'FC', 'Time', 'Energy', 'fmax'))
-                if self.force_consistent:
-                    w('*Force-consistent energies used in optimization.\n')
-            w('%s:  %3d[%3d] %02d:%02d:%02d %15.6f%1s %12.4f\n'
-                % (name, self.nsteps, self.force_calls, T[3], T[4], T[5], e,
-                   {1: '*', 0: ''}[self.force_consistent], fmax))
-            self.logfile.flush()
+        name = self.__class__.__name__
+        w = self.logfile.write
+        if self.nsteps == 0:
+            w('%s  %4s[%3s] %8s %15s  %12s\n' %
+              (' '*len(name), 'Step', 'FC', 'Time', 'Energy', 'fmax'))
+            if self.force_consistent:
+                w('*Force-consistent energies used in optimization.\n')
+        w('%s:  %3d[%3d] %02d:%02d:%02d %15.6f%1s %12.4f\n'
+            % (name, self.nsteps, self.force_calls, T[3], T[4], T[5], e,
+               {1: '*', 0: ''}[self.force_consistent], fmax))
+        self.logfile.flush()
 
 
 def wrap_function(function, args):
