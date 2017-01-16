@@ -243,7 +243,7 @@ class GUI(View, Status):
         from ase.io.formats import all_formats, get_ioformat
 
         labels = [_('Automatic')]
-        values = [None]
+        values = ['']
 
         def key(item):
             return item[1][0]

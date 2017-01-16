@@ -9,7 +9,10 @@ try:
 except ImportError:
     # Python 2
     import Tkinter as tk
-    import ttk
+    try:
+        import ttk
+    except ImportError:
+        ttk = None
     from tkMessageBox import askokcancel as ask_question, showerror
     from FileDialog import LoadFileDialog, SaveFileDialog
 
@@ -596,3 +599,9 @@ class ASEGUIWindow(MainWindow):
         id = self.win.after(int(time * 1000), callback)
         # Quick'n'dirty object with a cancel() method:
         return namedtuple('Timer', 'cancel')(lambda: self.win.after_cancel(id))
+
+
+if ttk is None:
+    # Use Entry object when there is no ttk:
+    def ComboBox(labels, values, callback):
+        return Entry(values[0], callback=callback)
