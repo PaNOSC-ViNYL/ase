@@ -6,7 +6,7 @@ import numpy as np
 import ase.units as units
 from ase import Atoms
 from ase.calculators.tip4p import (TIP4P, epsilon0, sigma0, rOH, thetaHOH)
-from ase.calculators.qmmm import (SimpleQMMM, LJInteractions, EIQMMM, 
+from ase.calculators.qmmm import (SimpleQMMM, LJInteractions, EIQMMM,
                                   EmbedTIP4P)
 from ase.constraints import FixBondLengths
 from ase.optimize import BFGS
@@ -71,7 +71,7 @@ for calc in [TIP4P(),
     assert abs(e0 + eexp) < 0.002
     assert abs(d0 - dexp) < 0.006
     assert abs(a0 - aexp) < 2.5
-    
+
 # plt.show()
 
 print(fmt.format('reference', 9.999, eexp, dexp, aexp))
@@ -80,16 +80,14 @@ i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
 fmt = '{0:>25}: {1:.3f}'
 for calc in [EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P()),
-             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(), 
+             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(),
                     vacuum=3.0),
-             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(), 
+             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(),
                     vacuum=3.0)]:
     dimer = tip4pdimer.copy()
-    dimer.translate([1,0,0])
+    dimer.translate([1, 0, 0])
     dimer.calc = calc
     e0 = dimer.get_potential_energy()
     print(fmt.format('EIQMMM '+calc.name+' '+str(dimer.calc.selection)+' '
-                     +str(dimer.calc.vacuum), -e0))
+                     + str(dimer.calc.vacuum), -e0))
     assert abs(e0 + eexp) < 0.002
-    
-
