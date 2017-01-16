@@ -21,14 +21,13 @@ def formula(Z):
             hist[z] += 1
         else:
             hist[z] = 1
-    text = ''
     Z = sorted(hist.keys())
+    strings = []
     for z in Z:
-        text += symbols[z]
         n = hist[z]
-        if n > 1:
-            text += ''.join(chr(0x2080 + int(x)) for x in str(n))
-    return text
+        s = ('' if n == 1 else str(n)) + symbols[z]
+        strings.append(s)
+    return '+'.join(strings)
 
 
 class Status:
