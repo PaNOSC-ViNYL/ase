@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import pickle
+import sys
 import threading
 from math import sqrt
 
 import numpy as np
 
 import ase.parallel as mpi
+from ase import Atoms
 from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -516,7 +519,7 @@ def fit0(E, F, R, cell=None, pbc=None):
     return s, E, Sfit, Efit, lines
 
 
-class NEBtools:
+class NEBTools:
     """Class to make many of the common tools for NEB analysis available to
     the user. Useful for scripting the output of many jobs. Initialize with
     list of images which make up a single band."""
@@ -545,8 +548,8 @@ class NEBtools:
         """Plots the NEB band on matplotlib axes object 'ax'. If ax=None
         returns a new figure object."""
         if not ax:
-            from matplotlib import pyplot
-            fig = pyplot.figure()
+            import matplotlib.pyplot as plt
+            fig = plt.figure()
             ax = fig.add_subplot(111)
         else:
             fig = None
@@ -575,16 +578,16 @@ class NEBtools:
     def get_fit(self):
         """Returns the parameters for fitting images to band."""
         images = self._images
-        if not hasattr(images, 'repeat'):
-            from ase.gui.images import Images
-            images = Images(images)
-        N = images.repeat.prod()
-        natoms = images.natoms // N
-        R = images.P[:, :natoms]
-        E = images.E
-        F = images.F[:, :natoms]
-        s, E, Sfit, Efit, lines = fit0(E, F, R, images.A[0], images.pbc)
+        R = [atoms.positions for atoms in images]
+        E = [atoms.get_potential_energy() for atoms in images]
+        F = [atoms.get_forces() for atoms in images]
+        A = images[0].cell
+        pbc = images[0].pbc
+        s, E, Sfit, Efit, lines = fit0(E, F, R, A, pbc)
         return s, E, Sfit, Efit, lines
+
+
+NEBtools = NEBTools  # backwards compatibility
 
 
 def interpolate(images, mic=False):
@@ -603,3 +606,18 @@ def interpolate(images, mic=False):
             images[i].get_calculator().set_atoms(images[i])
         except AttributeError:
             pass
+
+
+if __name__ == '__main__':
+    # This stuff is used by ASE's GUI
+    import matplotlib.pyplot as plt
+    E, F, R, A, pbc = pickle.load(sys.stdin)
+    symbols = 'X' * len(R[0])
+    images = []
+    for e, r, f in zip(E, R, F):
+        atoms = Atoms(symbols, r, cell=A, pbc=pbc)
+        atoms.calc = SinglePointCalculator(atoms, energy=e, forces=f)
+        images.append(atoms)
+    nebtools = NEBtools(images)
+    fig = nebtools.plot_band()
+    plt.show()

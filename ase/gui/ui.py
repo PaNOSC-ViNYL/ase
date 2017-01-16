@@ -9,7 +9,10 @@ try:
 except ImportError:
     # Python 2
     import Tkinter as tk
-    import ttk
+    try:
+        import ttk
+    except ImportError:
+        ttk = None
     from tkMessageBox import askokcancel as ask_question, showerror
     from FileDialog import LoadFileDialog, SaveFileDialog
 
@@ -28,8 +31,6 @@ __all__ = [
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
     'SpinBox', 'Text']
-
-font = ('Helvetica', 10)
 
 
 if sys.platform == 'darwin':
@@ -321,29 +322,34 @@ class RadioButton(Widget):
                                command=callback)
 
 
-class ComboBox(Widget):
-    def __init__(self, labels, values=None, callback=None):
-        self.values = values or list(range(len(labels)))
-        self.callback = callback
-        self.creator = partial(ttk.Combobox,
-                               values=labels)
+if ttk is not None:
+    class ComboBox(Widget):
+        def __init__(self, labels, values=None, callback=None):
+            self.values = values or list(range(len(labels)))
+            self.callback = callback
+            self.creator = partial(ttk.Combobox,
+                                   values=labels)
 
-    def create(self, parrent):
-        widget = Widget.create(self, parrent)
-        widget.current(0)
-        if self.callback:
-            def callback(event):
-                self.callback(self.value)
-            widget.bind('<<ComboboxSelected>>', callback)
-        return widget
+        def create(self, parrent):
+            widget = Widget.create(self, parrent)
+            widget.current(0)
+            if self.callback:
+                def callback(event):
+                    self.callback(self.value)
+                widget.bind('<<ComboboxSelected>>', callback)
+            return widget
 
-    @property
-    def value(self):
-        return self.values[self.widget.current()]
+        @property
+        def value(self):
+            return self.values[self.widget.current()]
 
-    @value.setter
-    def value(self, val):
-        self.widget.current(self.values.index(val))
+        @value.setter
+        def value(self, val):
+            self.widget.current(self.values.index(val))
+else:
+    # Use Entry object when there is no ttk:
+    def ComboBox(labels, values, callback):
+        return Entry(values[0], callback=callback)
 
 
 class Rows(Widget):

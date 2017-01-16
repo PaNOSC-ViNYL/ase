@@ -40,6 +40,8 @@ Git master branch
 
 * :mod:`ase.gui` now works on Python 3.
 
+* NEB-tools class has been renamed to :class:`~ase.neb.NEBTools`.
+
 
 Version 3.12.0
 ==============

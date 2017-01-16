@@ -26,7 +26,7 @@ Relevant literature References:
 3. 'A Climbing-Image NEB Method for Finding Saddle Points and Minimum
    Energy Paths', G. Henkelman, B. P. Uberuaga and H.
    Jonsson, J. Chem. Phys. 113, 9901 (2000)
-   
+
 4. 'Improved initial guess for minimum energy path calculations.',
    S. Smidstrup, A. Pedersen, K. Stokbro and H. Jonsson,
    J. Chem. Phys. 140, 214106 (2014)
@@ -81,9 +81,9 @@ Interpolation
 
    From a linear interpolation, create an improved path
    from initial to final state using the IDPP approach [4].
-   
+
 .. method:: NEB.idpp_interpolate()
-   
+
    Generate an idpp pathway from a set of images. This differs
    from above in that an initial guess for the IDPP, other than
    linear interpolation can be provided.
@@ -221,5 +221,5 @@ Analysis of output
 A class exists to help in automating the analysis of NEB jobs. See the
 :ref:`Diffusion Tutorial <diffusion tutorial>` for some examples of its use.
 
-.. autoclass:: NEBtools
+.. autoclass:: NEBTools
    :members:
