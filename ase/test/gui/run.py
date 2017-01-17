@@ -42,12 +42,12 @@ class Error:
 
 ui.error = Error()
 
-tests = []
+alltests = []
 
 
 def test(f):
     """Decorator for marking tests."""
-    tests.append(f.__name__)
+    alltests.append(f.__name__)
     return f
 
 
@@ -113,11 +113,15 @@ def open(gui):
 p = argparse.ArgumentParser()
 p.add_argument('tests', nargs='*')
 p.add_argument('-p', '--pause', action='store_true')
-args = p.parse_args()
-if __name__ != '__main__':
-    args.tests = []
-for name in args.tests or tests:
-    for n in tests:
+
+if __name__ == '__main__':
+    args = p.parse_args()
+else:
+    # We are running inside the test framework: ignore sys.args
+    args = p.parse_args([])
+
+for name in args.tests or alltests:
+    for n in alltests:
         if n.startswith(name):
             name = n
             break
