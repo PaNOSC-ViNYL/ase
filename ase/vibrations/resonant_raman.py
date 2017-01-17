@@ -71,6 +71,7 @@ class ResonantRaman(Vibrations):
                  directions=None,
                  approximation='Profeta',
                  observation={'geometry': '-Z(XX)Z'},
+                 form='v',         # form of the dipole operator
                  exkwargs={},      # kwargs to be passed to Excitations
                  exext='.ex.gz',   # extension for Excitation names
                  txt='-',
@@ -94,6 +95,7 @@ class ResonantRaman(Vibrations):
         self.observation = observation
         self.exobj = Excitations
         self.exkwargs = exkwargs
+        self.dipole_form = form
 
         self.timer = Timer()
         self.txt = convert_string_to_fd(txt)
@@ -707,8 +709,10 @@ class Placzek(ResonantRaman):
         for a in self.indices:
             for i in 'xyz':
                 V_rcc[r] = pre * (
-                    polarizability(self.exp_r[r], om, tensor=True) -
-                    polarizability(self.exm_r[r], om, tensor=True))
+                    polarizability(self.exp_r[r], om,
+                                   form=self.dipole_form, tensor=True) -
+                    polarizability(self.exm_r[r], om,
+                                   form=self.dipole_form, tensor=True))
                 r += 1
         self.timer.stop('alpha derivatives')
  
