@@ -58,7 +58,7 @@ class ColorWindow:
                     'velocity': '??',
                     'charge': '|e|',
                     u'magmom': 'μB'}[value]
-            text = '[{},{}]: [{},{}] {}'.format(
+            text = '[{0},{1}]: [{2:.6f},{3:.6f}] {4}'.format(
                 _('Green'), _('Yellow'), mn, mx, unit)
 
         self.label.text = text
