@@ -42,6 +42,9 @@ Git master branch
 
 * NEB-tools class has been renamed to :class:`~ase.neb.NEBTools`.
 
+* :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
+  possible (instead of energies extrapolated to 0.0 K).
+
 
 Version 3.12.0
 ==============
