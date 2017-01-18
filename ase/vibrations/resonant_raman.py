@@ -23,10 +23,10 @@ from gpaw.lrtddft.spectrum import polarizability
 def overlap(calc1, calc2):
     """GPAW overlaps"""
     n1 = calc1.get_number_of_bands()
-    spin1 = calc1.get_number_of_spins() == 2
+#    spin1 = calc1.get_number_of_spins() == 2
     n2 = calc2.get_number_of_bands()
-    spin2 = calc2.get_number_of_spins() == 2
-    overlap_nn = np.zeros((n1, n2), dtype=float) 
+#    spin2 = calc2.get_number_of_spins() == 2
+    overlap_nn = np.zeros((n1, n2), dtype=float)
     for i1 in range(n1):
         psi1 = calc1.wfs.kpt_u[0].psit_nG[i1]
         for i2 in range(n2):
@@ -57,7 +57,7 @@ class ResonantRaman(Vibrations):
 
         Excitations should work like a list of ex obejects, where:
             ex.get_dipole_me(form='v'):
-                gives the velocity form dipole matrix element in 
+                gives the velocity form dipole matrix element in
                 units |e| * Angstrom
             ex.energy:
                 is the transition energy in Hartrees
