@@ -187,7 +187,8 @@ class EPS:
                 r = self.d[a] / 2
                 if ((xy[1] + r > 0) and (xy[1] - r < self.h) and
                     (xy[0] + r > 0) and (xy[0] - r < self.w)):
-                    circle = Circle(xy, r, facecolor=self.colors[a])
+                    circle = Circle(xy, r, facecolor=self.colors[a],
+                                    edgecolor='black')
                     circle.draw(self.renderer)
             else:
                 a -= self.natoms
