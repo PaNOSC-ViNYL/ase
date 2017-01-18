@@ -15,7 +15,7 @@ import ase.units as units
 from ase.parallel import rank
 from ase.dft import monkhorst_pack
 from ase.io.trajectory import Trajectory
-from ase.utils import opencew
+from ase.utils import opencew, pickleload
 
 
 class Displacement:
@@ -151,7 +151,7 @@ class Displacement:
             output = self.__call__(atoms_N)
             # Write output to file
             if rank == 0:
-                pickle.dump(output, fd)
+                pickle.dump(output, fd, protocol=2)
                 sys.stdout.write('Writing %s\n' % filename)
                 fd.close()
             sys.stdout.flush()
@@ -183,7 +183,7 @@ class Displacement:
                     output = self.__call__(atoms_N)
                     # Write output to file
                     if rank == 0:
-                        pickle.dump(output, fd)
+                        pickle.dump(output, fd, protocol=2)
                         sys.stdout.write('Writing %s\n' % filename)
                         fd.close()
                     sys.stdout.flush()
@@ -296,7 +296,7 @@ class Phonons(Displacement):
         """Check maximum size of forces in the equilibrium structure."""
 
         fname = '%s.eq.pckl' % self.name
-        feq_av = pickle.load(open(fname, 'rb'))
+        feq_av = pickleload(open(fname, 'rb'))
 
         fmin = feq_av.max()
         fmax = feq_av.min()
@@ -332,7 +332,7 @@ class Phonons(Displacement):
             filename = name
 
         with open(filename, 'rb') as fd:
-            Z_avv, eps_vv = pickle.load(fd)
+            Z_avv, eps_vv = pickleload(fd)
 
         # Neutrality sum-rule
         if neutrality:
@@ -391,8 +391,8 @@ class Phonons(Displacement):
             for j, v in enumerate('xyz'):
                 # Atomic forces for a displacement of atom a in direction v
                 basename = '%s.%d%s' % (self.name, a, v)
-                fminus_av = pickle.load(open(basename + '-.pckl', 'rb'))
-                fplus_av = pickle.load(open(basename + '+.pckl', 'rb'))
+                fminus_av = pickleload(open(basename + '-.pckl', 'rb'))
+                fplus_av = pickleload(open(basename + '+.pckl', 'rb'))
 
                 if method == 'frederiksen':
                     fminus_av[a] -= fminus_av.sum(0)
