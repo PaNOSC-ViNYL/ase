@@ -251,15 +251,14 @@ class ResonantRaman(Vibrations):
         assert(len(forces_r.flat) == self.ndof)
 
         # solve the matrix equation for the equilibrium displacements
-        # XXX why are the forces mass weighted ???
-        X_r = np.linalg.solve(self.im[:, None] * self.H * self.im,
+        X_q = np.linalg.solve(self.im[:, None] * self.H * self.im,
                               forces_r.flat * self.im)
-        d_r = np.dot(self.modes, X_r)
+        d_Q = np.dot(self.modes, X_q)
 
         # Huang-Rhys factors S
         s = 1.e-20 / units.kg / units.C / units._hbar**2  # SI units
         self.timer.stop('Huang-Rhys')
-        return s * d_r**2 * self.om_Q / 2.
+        return s * d_Q**2 * self.om_Q / 2.
 
     def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
@@ -276,28 +275,28 @@ class ResonantRaman(Vibrations):
         # excited state forces
         F_pr = self.exF_rp.T
 
-        m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
-            S_r = self.get_Huang_Rhys_factors(F_pr[p])
+            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
             for m in ml:
                 self.timer.start('0mm1')
-                fco_r = self.fco.direct0mm1(m, S_r)
+                fco_Q = self.fco.direct0mm1(m, S_Q)
                 self.timer.stop('0mm1')
                 self.timer.start('einsum')
-                m_rcc += np.einsum('a,bc->abc',
-                                   fco_r / (energy + m * self.om_Q - omega -
+                m_Qcc += np.einsum('a,bc->abc',
+                                   fco_Q / (energy + m * self.om_Q - omega -
                                             1j * gamma),
                                    me_cc)
-                m_rcc += np.einsum('a,bc->abc',
-                                   fco_r / (energy + (m - 1) * self.om_Q +
+                m_Qcc += np.einsum('a,bc->abc',
+                                   fco_Q / (energy + (m - 1) * self.om_Q +
                                             omega + 1j * gamma),
                                    me_cc)
                 self.timer.stop('einsum')
 
         self.timer.stop('AlbrechtA')
-        return m_rcc
+        return m_Qcc
 
     def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml=[1],
                                       term='BC'):
