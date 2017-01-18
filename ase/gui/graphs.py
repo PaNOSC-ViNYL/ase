@@ -54,7 +54,11 @@ class Graphs:
         else:
             self.expr.value = expr
 
-        data = self.gui.images.graph(expr)
+        try:
+            data = self.gui.images.graph(expr)
+        except (SyntaxError, NameError) as ex:
+            ui.error(ex)
+            return
 
         process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
                                    stdin=subprocess.PIPE)

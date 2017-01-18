@@ -249,7 +249,7 @@ class Images:
         """Routine to create the data in ase-gui graphs, defined by the
         string expr."""
         import ase.units as units
-        code = compile(expr + ',', 'atoms.py', 'eval')
+        code = compile(expr + ',', '<input>', 'eval')
 
         n = self.nimages
 
