@@ -58,7 +58,8 @@ class Graphs:
 
         process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
                                    stdin=subprocess.PIPE)
-        pickle.dump((data, self.gui.frame, expr, type), process.stdin)
+        pickle.dump((data, self.gui.frame, expr, type), process.stdin,
+                    protocol=0)
         process.stdin.close()
         self.gui.graphs.append(process)
 
@@ -104,4 +105,7 @@ def make_plot(data, i, expr, type):
 
 
 if __name__ == '__main__':
-    make_plot(*pickle.load(sys.stdin))
+    if sys.version_info[0] == 2:
+        make_plot(*pickle.load(sys.stdin))
+    else:
+        make_plot(*pickle.load(sys.stdin.buffer))

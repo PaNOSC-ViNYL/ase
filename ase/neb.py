@@ -611,7 +611,10 @@ def interpolate(images, mic=False):
 if __name__ == '__main__':
     # This stuff is used by ASE's GUI
     import matplotlib.pyplot as plt
-    E, F, R, A, pbc = pickle.load(sys.stdin)
+    if sys.version_info[0] == 2:
+        E, F, R, A, pbc = pickle.load(sys.stdin)
+    else:
+        E, F, R, A, pbc = pickle.load(sys.stdin.buffer)
     symbols = 'X' * len(R[0])
     images = []
     for e, r, f in zip(E, R, F):

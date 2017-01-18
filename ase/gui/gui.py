@@ -225,7 +225,7 @@ class GUI(View, Status):
         pbc = self.images.pbc
         process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
                                    stdin=subprocess.PIPE)
-        pickle.dump((E, F, R, A, pbc), process.stdin, pickle.HIGHEST_PROTOCOL)
+        pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
         process.stdin.close()
         self.graphs.append(process)
 
@@ -235,7 +235,7 @@ class GUI(View, Status):
                                    stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(A)) for A in self.images.A]
         e = self.images.E
-        pickle.dump((v, e), process.stdin, pickle.HIGHEST_PROTOCOL)
+        pickle.dump((v, e), process.stdin, protocol=0)
         process.stdin.close()
         self.graphs.append(process)
 
