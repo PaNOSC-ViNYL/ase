@@ -263,7 +263,7 @@ class ResonantRaman(Vibrations):
     def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
 
-        Unit: |e|^2Angstrom^2/eV
+        Unit: 1/eV
         """
         self.read()
 
@@ -387,8 +387,8 @@ class ResonantRaman(Vibrations):
         self.timer.stop('AlbrechtBC')
         return m_rcc
 
-    def get_matrix_element_Profeta(self, omega, gamma=0.1,
-                                   energy_derivative=False):
+    def electronic_me_profeta_rcc(self, omega, gamma=0.1,
+                                  energy_derivative=False):
         """Evaluate Albrecht B+C term in Profeta and Mauri approximation"""
         self.read()
 
@@ -427,6 +427,27 @@ class ResonantRaman(Vibrations):
         self.timer.stop('amplitudes')
 
         return V_rcc
+
+    def electronic_me_Qcc(self, omega, gamma):
+        self.read()
+        Vel_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        if self.approximation.lower() == 'profeta':
+            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
+        elif self.approximation.lower() == 'placzek':
+            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
+        else:
+            raise NotImplementedError(
+                'Approximation {0} not implemented. '.format(
+                    self.approximation) +
+                'Please use "Profeta" or "Placzek".')
+        
+        # map to modes
+        self.timer.start('map R2Q')
+        V_qcc = (Vel_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
+        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
+        self.timer.stop('map R2Q')
+
+        return V_Qcc
 
     def get_matrix_element(self, omega, gamma):
         self.read()
@@ -529,7 +550,7 @@ class ResonantRaman(Vibrations):
         Unit: Ang**4/amu
         """
         m2 = ResonantRaman.m2
-        alpha_Qcc = self.get_matrix_element(omega, gamma)
+        alpha_Qcc = self.electronic_me_Qcc(omega, gamma)
         alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
                       alpha_Qcc[:, 2, 2]) / 9.
 ##        print('alpha2_r**1/2=', np.sqrt(alpha2_r))
@@ -690,7 +711,7 @@ class Placzek(ResonantRaman):
         self.ndof = 3 * len(self.indices)
         self.timer.stop('read excitations')
 
-    def get_matrix_element(self, omega, gamma=0):
+    def electronic_me_Qcc(self, omega, gamma=0):
         self.read()
         
         self.timer.start('init')
