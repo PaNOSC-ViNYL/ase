@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-01-11 12:26+0100\n"
-"PO-Revision-Date: 2017-01-11 13:34+0100\n"
+"POT-Creation-Date: 2017-01-18 23:18+0100\n"
+"PO-Revision-Date: 2017-01-18 23:20+0100\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: English (British) <ase-users@listserv.fysik.dtu.dk>\n"
 "Language: en_GB\n"
@@ -802,35 +802,35 @@ msgstr "By charge"
 msgid "By magnetic moment"
 msgstr "By magnetic moment"
 
-#: ../colors.py:61
+#: ../colors.py:62
 msgid "Green"
 msgstr "Green"
 
-#: ../colors.py:61
+#: ../colors.py:62
 msgid "Yellow"
 msgstr "Yellow"
 
-#: ../constraints.py:7
+#: ../constraints.py:8
 msgid "Constraints"
 msgstr "Constraints"
 
-#: ../constraints.py:8 ../constraints.py:10 ../settings.py:14
+#: ../constraints.py:9 ../constraints.py:11 ../settings.py:14
 msgid "Constrain"
 msgstr "Constrain"
 
-#: ../constraints.py:9 ../constraints.py:13
+#: ../constraints.py:10 ../constraints.py:14
 msgid "selected atoms"
 msgstr "selected atoms"
 
-#: ../constraints.py:11
+#: ../constraints.py:12
 msgid "immobile atoms"
 msgstr "immobile atoms"
 
-#: ../constraints.py:12
+#: ../constraints.py:13
 msgid "Unconstrain"
 msgstr "Unconstrain"
 
-#: ../constraints.py:14
+#: ../constraints.py:15
 msgid "Clear constraints"
 msgstr "Clear constraints"
 
@@ -993,12 +993,12 @@ msgstr "Invalid Spacegroup!"
 msgid "Please specify a consistent set of atoms."
 msgstr "Please specify a consistent set of atoms."
 
-#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:521
+#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:522
 #: ../nanotube.py:84 ../surfaceslab.py:251
 msgid "No valid atoms."
 msgstr "No valid atoms."
 
-#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:522
+#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:523
 #: ../nanotube.py:85 ../surfaceslab.py:252 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "You have not (yet) specified a consistent set of parameters."
@@ -1149,15 +1149,15 @@ msgstr "Only selected atoms (sa)   "
 msgid "Only current frame (cf)  "
 msgstr "Only current frame (cf)  "
 
-#: ../execute.py:94 ../execute.py:321 ../graphs.py:43
+#: ../execute.py:94 ../execute.py:321 ../graphs.py:46
 msgid "Save"
 msgstr "Save"
 
-#: ../execute.py:96 ../ui.py:50 ../ui.py:54
+#: ../execute.py:96 ../ui.py:59 ../ui.py:63
 msgid "Help"
 msgstr "Help"
 
-#: ../execute.py:98 ../movie.py:25
+#: ../execute.py:98 ../movie.py:24
 msgid "Stop"
 msgstr "Stop"
 
@@ -1210,7 +1210,7 @@ msgstr ""
 "Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may\n"
 "optionally be saturated with hydrogen (or another element)."
 
-#: ../graphene.py:38 ../gui.py:454
+#: ../graphene.py:38 ../gui.py:470
 msgid "Graphene"
 msgstr "Graphene"
 
@@ -1280,7 +1280,7 @@ msgstr "  No element specified!"
 msgid "Please specify a consistent set of atoms. "
 msgstr "Please specify a consistent set of atoms. "
 
-#: ../graphs.py:8
+#: ../graphs.py:11
 msgid ""
 "Symbols:\n"
 "<c>e</c>: total energy\n"
@@ -1311,7 +1311,8 @@ msgstr ""
 "<c>fmax</c>: maximum force\n"
 "<c>fave</c>: average force\n"
 "<c>R[n,0-2]</c>: position of atom number <c>n</c>\n"
-"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distance between two atoms <c>n<sub>1</sub></c> and <c>n<sub>2</sub></c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distance between two atoms "
+"<c>n<sub>1</sub></c> and <c>n<sub>2</sub></c>\n"
 "<c>i</c>: current image number\n"
 "<c>E[i]</c>: energy of image number <c>i</c>\n"
 "<c>F[n,0-2]</c>: force on atom number <c>n</c>\n"
@@ -1319,341 +1320,343 @@ msgstr ""
 "<c>M[n]</c>: magnetic moment of atom number <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: unit-cell basis vectors\n"
 "<c>s</c>: path length\n"
-"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>\n"
-"<c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</"
+"sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>\n"
+"<c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 
-#: ../graphs.py:39 ../graphs.py:41
+#: ../graphs.py:42 ../graphs.py:44
 msgid "Plot"
 msgstr "Plot"
 
-#: ../graphs.py:44
+#: ../graphs.py:47
 msgid "Clear"
 msgstr "Clear"
 
-#: ../graphs.py:61
+#: ../graphs.py:72
 msgid "Save data to file ... "
 msgstr "Save data to file ... "
 
-#: ../gui.py:237
+#: ../gui.py:245
 msgid "Automatic"
 msgstr "Automatic"
 
-#: ../gui.py:255
+#: ../gui.py:263
 msgid "Open ..."
 msgstr "Open ..."
 
-#: ../gui.py:256
+#: ../gui.py:264
 msgid "Choose parser:"
 msgstr "Choose parser:"
 
-#: ../gui.py:361
+#: ../gui.py:377
 msgid "_File"
 msgstr "_File"
 
-#: ../gui.py:362
+#: ../gui.py:378
 msgid "_Open"
 msgstr "_Open"
 
-#: ../gui.py:363
+#: ../gui.py:379
 msgid "_New"
 msgstr "_New"
 
-#: ../gui.py:364
+#: ../gui.py:380
 msgid "_Save"
 msgstr "_Save"
 
-#: ../gui.py:366
+#: ../gui.py:382
 msgid "_Quit"
 msgstr "_Quit"
 
-#: ../gui.py:368
+#: ../gui.py:384
 msgid "_Edit"
 msgstr "_Edit"
 
-#: ../gui.py:369
+#: ../gui.py:385
 msgid "Select _all"
 msgstr "Select _all"
 
-#: ../gui.py:370
+#: ../gui.py:386
 msgid "_Invert selection"
 msgstr "_Invert selection"
 
-#: ../gui.py:371
+#: ../gui.py:387
 msgid "Select _constrained atoms"
 msgstr "Select _constrained atoms"
 
-#: ../gui.py:372
+#: ../gui.py:388
 msgid "Select _immobile atoms"
 msgstr "Select _immobile atoms"
 
-#: ../gui.py:378
+#: ../gui.py:394
 msgid "Hide selected atoms"
 msgstr "Hide selected atoms"
 
-#: ../gui.py:379
+#: ../gui.py:395
 msgid "Show selected atoms"
 msgstr "Show selected atoms"
 
-#: ../gui.py:381
+#: ../gui.py:397
 msgid "_Modify"
 msgstr "_Modify"
 
-#: ../gui.py:382
+#: ../gui.py:398
 msgid "_Add atoms"
 msgstr "_Add atoms"
 
-#: ../gui.py:383
+#: ../gui.py:399
 msgid "_Delete selected atoms"
 msgstr "_Delete selected atoms"
 
-#: ../gui.py:386
+#: ../gui.py:402
 msgid "_First image"
 msgstr "_First image"
 
-#: ../gui.py:387
+#: ../gui.py:403
 msgid "_Previous image"
 msgstr "_Previous image"
 
-#: ../gui.py:388
+#: ../gui.py:404
 msgid "_Next image"
 msgstr "_Next image"
 
-#: ../gui.py:389
+#: ../gui.py:405
 msgid "_Last image"
 msgstr "_Last image"
 
-#: ../gui.py:391
+#: ../gui.py:407
 msgid "_View"
 msgstr "_View"
 
-#: ../gui.py:392
+#: ../gui.py:408
 msgid "Show _unit cell"
 msgstr "Show _unit cell"
 
-#: ../gui.py:394
+#: ../gui.py:410
 msgid "Show _axes"
 msgstr "Show _axes"
 
-#: ../gui.py:395
+#: ../gui.py:411
 msgid "Show _bonds"
 msgstr "Show _bonds"
 
-#: ../gui.py:397
+#: ../gui.py:413
 msgid "Show _velocities"
 msgstr "Show _velocities"
 
-#: ../gui.py:399
+#: ../gui.py:415
 msgid "Show _forces"
 msgstr "Show _forces"
 
-#: ../gui.py:401
+#: ../gui.py:417
 msgid "Show _Labels"
 msgstr "Show _Labels"
 
-#: ../gui.py:402
+#: ../gui.py:418
 msgid "_None"
 msgstr "_None"
 
-#: ../gui.py:403
+#: ../gui.py:419
 msgid "Atom _Index"
 msgstr "Atom _Index"
 
-#: ../gui.py:404
+#: ../gui.py:420
 msgid "_Magnetic Moments"
 msgstr "_Magnetic Moments"
 
-#: ../gui.py:405
+#: ../gui.py:421
 msgid "_Element Symbol"
 msgstr "_Element Symbol"
 
-#: ../gui.py:407
+#: ../gui.py:423
 msgid "Quick Info ..."
 msgstr "Quick Info ..."
 
-#: ../gui.py:408
+#: ../gui.py:424
 msgid "Repeat ..."
 msgstr "Repeat ..."
 
-#: ../gui.py:409
+#: ../gui.py:425
 msgid "Rotate ..."
 msgstr "Rotate ..."
 
-#: ../gui.py:410
+#: ../gui.py:426
 msgid "Colors ..."
 msgstr "Colours ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:412
+#: ../gui.py:428
 msgid "Focus"
 msgstr "Focus"
 
-#: ../gui.py:413
+#: ../gui.py:429
 msgid "Zoom in"
 msgstr "Zoom in"
 
-#: ../gui.py:414
+#: ../gui.py:430
 msgid "Zoom out"
 msgstr "Zoom out"
 
-#: ../gui.py:415
+#: ../gui.py:431
 msgid "Change View"
 msgstr "Change View"
 
-#: ../gui.py:417
+#: ../gui.py:433
 msgid "Reset View"
 msgstr "Reset View"
 
-#: ../gui.py:418
+#: ../gui.py:434
 msgid "xy-plane"
 msgstr "xy-plane"
 
-#: ../gui.py:419
+#: ../gui.py:435
 msgid "yz-plane"
 msgstr "yz-plane"
 
-#: ../gui.py:420
+#: ../gui.py:436
 msgid "zx-plane"
 msgstr "zx-plane"
 
-#: ../gui.py:421
+#: ../gui.py:437
 msgid "yx-plane"
 msgstr "yx-plane"
 
-#: ../gui.py:422
+#: ../gui.py:438
 msgid "zy-plane"
 msgstr "zy-plane"
 
-#: ../gui.py:423
+#: ../gui.py:439
 msgid "xz-plane"
 msgstr "xz-plane"
 
-#: ../gui.py:424
+#: ../gui.py:440
 msgid "a2,a3-plane"
 msgstr "a2,a3-plane"
 
-#: ../gui.py:425
+#: ../gui.py:441
 msgid "a3,a1-plane"
 msgstr "a3,a1-plane"
 
-#: ../gui.py:426
+#: ../gui.py:442
 msgid "a1,a2-plane"
 msgstr "a1,a2-plane"
 
-#: ../gui.py:427
+#: ../gui.py:443
 msgid "a3,a2-plane"
 msgstr "a3,a2-plane"
 
-#: ../gui.py:428
+#: ../gui.py:444
 msgid "a1,a3-plane"
 msgstr "a1,a3-plane"
 
-#: ../gui.py:429
+#: ../gui.py:445
 msgid "a2,a1-plane"
 msgstr "a2,a1-plane"
 
-#: ../gui.py:430
+#: ../gui.py:446
 msgid "Settings ..."
 msgstr "Settings ..."
 
-#: ../gui.py:432
+#: ../gui.py:448
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:433
+#: ../gui.py:449
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:434
+#: ../gui.py:450
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:435
+#: ../gui.py:451
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:437
+#: ../gui.py:453
 msgid "_Tools"
 msgstr "_Tools"
 
-#: ../gui.py:438
+#: ../gui.py:454
 msgid "Graphs ..."
 msgstr "Graphs ..."
 
-#: ../gui.py:439
+#: ../gui.py:455
 msgid "Movie ..."
 msgstr "Film ..."
 
-#: ../gui.py:440
+#: ../gui.py:456
 msgid "Expert mode ..."
 msgstr "Expert mode ..."
 
-#: ../gui.py:441
+#: ../gui.py:457
 msgid "Constraints ..."
 msgstr "Constraints ..."
 
-#: ../gui.py:442
+#: ../gui.py:458
 msgid "Render scene ..."
 msgstr "Render scene ..."
 
-#: ../gui.py:443
+#: ../gui.py:459
 msgid "_Move atoms"
 msgstr "_Move atoms"
 
-#: ../gui.py:444
+#: ../gui.py:460
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:445
+#: ../gui.py:461
 msgid "B_ulk Modulus"
 msgstr "B_ulk Modulus"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:448
+#: ../gui.py:464
 msgid "_Setup"
 msgstr "_Setup"
 
-#: ../gui.py:449
+#: ../gui.py:465
 msgid "_Bulk Crystal"
 msgstr "_Bulk Crystal"
 
-#: ../gui.py:450
+#: ../gui.py:466
 msgid "_Surface slab"
 msgstr "_Surface slab"
 
-#: ../gui.py:451
+#: ../gui.py:467
 msgid "_Nanoparticle"
 msgstr "_Nanoparticle"
 
-#: ../gui.py:453
+#: ../gui.py:469
 msgid "Nano_tube"
 msgstr "Nano_tube"
 
-#: ../gui.py:456
+#: ../gui.py:472
 msgid "_Calculate"
 msgstr "_Calculate"
 
-#: ../gui.py:457
+#: ../gui.py:473
 msgid "Set _Calculator"
 msgstr "Set _Calculator"
 
-#: ../gui.py:458
+#: ../gui.py:474
 msgid "_Energy and Forces"
 msgstr "_Energy and Forces"
 
-#: ../gui.py:459
+#: ../gui.py:475
 msgid "Energy Minimization"
 msgstr "Energy Minimization"
 
-#: ../gui.py:462
+#: ../gui.py:478
 msgid "_Help"
 msgstr "_Help"
 
-#: ../gui.py:463
+#: ../gui.py:479
 msgid "_About"
 msgstr "_About"
 
-#: ../gui.py:467
+#: ../gui.py:483
 msgid "Webpage ..."
 msgstr "Webpage ..."
 
@@ -1704,61 +1707,65 @@ msgstr "Out of memory, consider using LBFGS instead"
 msgid "Minimization completed in %i steps."
 msgstr "Minimisation completed in %i steps."
 
-#: ../modify.py:15
+#: ../modify.py:17
 msgid "No atoms selected!"
 msgstr "No atoms selected!"
 
-#: ../modify.py:18
+#: ../modify.py:20
 msgid "Modify"
 msgstr "Modify"
 
-#: ../modify.py:22
+#: ../modify.py:23
+msgid "Change element"
+msgstr "Change element"
+
+#: ../modify.py:26
 msgid "Tag"
 msgstr "Tag"
 
-#: ../modify.py:24
+#: ../modify.py:28
 msgid "Moment"
 msgstr "Moment"
 
-#: ../movie.py:12
+#: ../movie.py:11
 msgid "Movie"
 msgstr "Film"
 
-#: ../movie.py:13
+#: ../movie.py:12
 msgid "Image number:"
 msgstr "Image number:"
 
-#: ../movie.py:19
+#: ../movie.py:18
 msgid "First"
 msgstr "First"
 
-#: ../movie.py:20
+#: ../movie.py:19
 msgid "Back"
 msgstr "Back"
 
-#: ../movie.py:21
+#: ../movie.py:20
 msgid "Forward"
 msgstr "Forward"
 
-#: ../movie.py:22
+#: ../movie.py:21
 msgid "Last"
 msgstr "Last"
 
-#: ../movie.py:24
+#: ../movie.py:23
 msgid "Play"
 msgstr "Play"
 
 #. TRANSLATORS: This function plays an animation forwards and backwards
 #. alternatingly, e.g. for displaying vibrational movement
-#: ../movie.py:29
+#: ../movie.py:28
 msgid "Rock"
 msgstr "Rock"
 
-#: ../movie.py:42
+#: ../movie.py:41
 msgid " Frame rate: "
 msgstr " Frame rate: "
 
-#: ../movie.py:42
+#: ../movie.py:41
 msgid " Skip frames: "
 msgstr " Skip frames: "
 
@@ -1819,7 +1826,8 @@ msgstr ""
 "1) Select the element, the crystal structure and the lattice constant(s).\n"
 "   The [Get structure] button will find the data for a given element.\n"
 "\n"
-"2) Choose if you want to specify the number of layers in each direction, or if\n"
+"2) Choose if you want to specify the number of layers in each direction, or "
+"if\n"
 "   you want to use the Wulff construction.  In the latter case, you must\n"
 "   specify surface energies in each direction, and the size of the cluster.\n"
 "\n"
@@ -1827,14 +1835,19 @@ msgstr ""
 "------------------------------\n"
 "\n"
 "First time a direction appears, it is interpreted as the entire family of\n"
-"directions, i.e. (0,0,1) also covers (1,0,0), (-1,0,0) etc.  If one of these\n"
-"directions is specified again, the second specification overrules that specific\n"
+"directions, i.e. (0,0,1) also covers (1,0,0), (-1,0,0) etc.  If one of "
+"these\n"
+"directions is specified again, the second specification overrules that "
+"specific\n"
 "direction.  For this reason, the order matters and you can rearrange the\n"
-"directions with the [Up] and [Down] keys.  You can also add a new direction,\n"
+"directions with the [Up] and [Down] keys.  You can also add a new "
+"direction,\n"
 "remember to press [Add] or it will not be included.\n"
 "\n"
-"Example: (1,0,0) (1,1,1), (0,0,1) would specify the {100} family of directions,\n"
-"the {111} family and then the (001) direction, overruling the value given for\n"
+"Example: (1,0,0) (1,1,1), (0,0,1) would specify the {100} family of "
+"directions,\n"
+"the {111} family and then the (001) direction, overruling the value given "
+"for\n"
 "the whole family of directions.\n"
 
 #. Structures:  Abbreviation, name,
@@ -2020,7 +2033,9 @@ msgstr ""
 msgid ""
 "{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} "
 "Å"
-msgstr "{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} Å"
+msgstr ""
+"{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} "
+"Å"
 
 #: ../nanotube.py:40
 msgid "Nanotube"
@@ -2499,23 +2514,23 @@ msgstr "Run"
 msgid "No calculator: Use Calculate/Set Calculator on the menu."
 msgstr "No calculator: Use Calculate/Set Calculator on the menu."
 
-#: ../status.py:56
+#: ../status.py:55
 #, python-format
 msgid " tag=%(tag)s"
 msgstr " tag=%(tag)s"
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:59
+#: ../status.py:58
 #, python-brace-format
 msgid " mom={0:1.2f}"
 msgstr " mom={0:1.2f}"
 
-#: ../status.py:62
+#: ../status.py:61
 #, python-brace-format
 msgid " q={0:1.2f}"
 msgstr " q={0:1.2f}"
 
-#: ../status.py:107
+#: ../status.py:106
 msgid "dihedral"
 msgstr "dihedral"
 
@@ -2685,15 +2700,19 @@ msgstr "No structure specified!"
 msgid "%(struct)s lattice constant unknown for %(element)s."
 msgstr "%(struct)s lattice constant unknown for %(element)s."
 
-#: ../ui.py:43
+#: ../ui.py:45
+msgid "Error"
+msgstr "Error"
+
+#: ../ui.py:52
 msgid "Version"
 msgstr "Version"
 
-#: ../ui.py:44
+#: ../ui.py:53
 msgid "Web-page"
 msgstr "Web-page"
 
-#: ../ui.py:45
+#: ../ui.py:54
 msgid "About"
 msgstr "About"
 
