@@ -348,7 +348,7 @@ class SetupNanoparticle:
             return
         new = [idx, 5, 1.0]
         if self.method.value == 'wulff':
-            new[2] = self.new_direction[-2].value
+            new[1] = self.new_direction[-2].value
         else:
             new[2] = self.new_direction[-2].value
         self.direction_table.append(new)
@@ -441,7 +441,8 @@ class SetupNanoparticle:
         if self.method.value == 'wulff':
             # Wulff construction
             surfaces = [x[0] for x in self.direction_table]
-            surfaceenergies = [x[2] for x in self.direction_table]
+            surfaceenergies = [x[1].value
+                               for x in self.direction_table_rows.rows]
             self.update_size_diameter()
             rounding = self.round_radio.value
             self.atoms = wulff_construction(self.element.symbol,
@@ -460,7 +461,7 @@ class SetupNanoparticle:
         else:
             # Layer-by-layer specification
             surfaces = [x[0] for x in self.direction_table]
-            layers = [x[1] for x in self.direction_table]
+            layers = [x[1].value for x in self.direction_table_rows.rows]
             self.atoms = self.factory[struct](self.element.symbol,
                                               copy(surfaces),
                                               layers, latticeconstant=lc)
