@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2017-01-11 12:26+0100\n"
-"PO-Revision-Date: 2017-01-11 12:56+0100\n"
+"PO-Revision-Date: 2017-01-12 17:17+0100\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -66,7 +66,7 @@ msgid ""
 "Interactions are described by an interaction length and an\n"
 "interaction strength."
 msgstr ""
-"Lennard-Jones-parpotentialet er en af de simpleste mulige modeller for\n"
+"Lennard–Jones-parpotentialet er en af de simpleste mulige modeller for\n"
 "atomare interaktioner, og er især nyttigt til ædelgasser og\n"
 "modelsystemer.\n"
 "\n"
@@ -209,7 +209,7 @@ msgstr ""
 "\n"
 "For ADP se Y. Mishin, M.J. Mehl, and\n"
 "D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
-"4029--4041.\n"
+"4029–4041.\n"
 "\n"
 "Data for potentialet er indeholdt i en fil i enten LAMMPS Alloy\n"
 "eller ADP formatet som skal indlæses før brug. Interatomic\n"
@@ -242,22 +242,16 @@ msgid ""
 "  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
 "  doi: 10.1088/0953-8984/14/4/312\n"
 msgstr ""
-"Brennerpotentialet er et reaktivt bindingsordenspotential til kulstof og "
-"kulbrinter.  Som et bindingsordenspotential tager det højde for at "
-"kulstoforbitaler kan hybridisere på forskellige måder, og at kulstof kan "
-"danne enkelt- dobbelt- og tripelbindinger.  At potentialet er reaktivt "
-"betyder, at det kan beskrive gradvise ændringer i bindingsorden efterhånden "
-"som kemiske bindinger dannes eller brydes.\n"
+"Brennerpotentialet er et reaktivt bindingsordenspotential til kulstof og kulbrinter.  Som et bindingsordenspotential tager det højde for at kulstoforbitaler kan hybridisere på forskellige måder, og at kulstof kan danne enkelt- dobbelt- og tripelbindinger.  At potentialet er reaktivt betyder, at det kan beskrive gradvise ændringer i bindingsorden efterhånden som kemiske bindinger dannes eller brydes.\n"
 "\n"
-"Brennerpotentialet er implementeret i ASAP baseret på en C-implementation "
-"publiceret på siden http://www.rahul.net/pcm/brenner/ .\n"
+"Brennerpotentialet er implementeret i ASAP baseret på en C-implementation publiceret på siden http://www.rahul.net/pcm/brenner/ .\n"
 "\n"
 "Potentialet dokumenteres her:\n"
 "  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
 "  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
 "  \"A second-generation reactive empirical bond order (REBO)\n"
 "  potential energy expression for hydrocarbons\",\n"
-"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
+"  J. Phys.: Condens. Matter 14 (2002) 783–802.\n"
 "  doi: 10.1088/0953-8984/14/4/312\n"
 
 #: ../calculator.py:136
@@ -346,7 +340,7 @@ msgstr "Ingen"
 
 #: ../calculator.py:206
 msgid "Lennard-Jones (ASAP)"
-msgstr "Lennard-Jones (ASAP)"
+msgstr "Lennard–Jones (ASAP)"
 
 #: ../calculator.py:207 ../calculator.py:234 ../calculator.py:248
 #: ../calculator.py:257 ../calculator.py:266
@@ -355,15 +349,15 @@ msgstr "Opsætning"
 
 #: ../calculator.py:214
 msgid "EMT - Effective Medium Theory (ASAP)"
-msgstr "EMT - Effective Medium Theory (ASAP)"
+msgstr "EMT – Effective Medium Theory (ASAP)"
 
 #: ../calculator.py:226
 msgid "EMT - Effective Medium Theory (ASE)"
-msgstr "EMT - Effective Medium Theory (ASE)"
+msgstr "EMT – Effective Medium Theory (ASE)"
 
 #: ../calculator.py:233
 msgid "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
-msgstr "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
+msgstr "EAM – Embedded Atom Method/Angular Dependent Potential (ASE)"
 
 #: ../calculator.py:241
 msgid "Brenner Potential (ASAP)"
@@ -395,11 +389,11 @@ msgstr "ASAP er ikke installeret. (Kunne ikke importere asap3)"
 
 #: ../calculator.py:445
 msgid "You must set up the Lennard-Jones parameters"
-msgstr "Du skal indstille Lennard-Jones-parametrene"
+msgstr "Du skal indstille Lennard–Jones-parametrene"
 
 #: ../calculator.py:451
 msgid "Could not create useful Lennard-Jones calculator."
-msgstr "Kunne ikke oprette en nyttig Lennard-Jones-beregner."
+msgstr "Kunne ikke oprette en nyttig Lennard–Jones-beregner."
 
 #: ../calculator.py:486
 msgid "Could not attach EMT calculator to the atoms."
@@ -436,11 +430,11 @@ msgstr "Info"
 
 #: ../calculator.py:663
 msgid "Lennard-Jones parameters"
-msgstr "Lennard-Jones-parametre"
+msgstr "Lennard–Jones-parametre"
 
 #: ../calculator.py:675
 msgid "Specify the Lennard-Jones parameters here"
-msgstr "Angiv Lennard-Jones-parametrene her"
+msgstr "Angiv Lennard–Jones-parametrene her"
 
 #: ../calculator.py:678
 msgid "Epsilon (eV):"
@@ -465,11 +459,11 @@ msgstr "Importér potential"
 
 #: ../calculator.py:802
 msgid "You need to import the potential file"
-msgstr "Du skal importere en potential fil"
+msgstr "Du skal importere potentialfilen"
 
 #: ../calculator.py:810
 msgid "Import .alloy or .adp potential file ... "
-msgstr "Importér .alloy eller .adp potential-fil ... "
+msgstr "Importér .alloy- eller .adp-potentialfil …"
 
 #: ../calculator.py:832
 msgid "GPAW parameters"
@@ -531,11 +525,11 @@ msgstr "Spinpolariseret"
 
 #: ../calculator.py:923
 msgid "FD - Finite Difference (grid) mode"
-msgstr "FD - Finite Difference-tilstand (gitter)"
+msgstr "FD – finite difference-tilstand (gitter)"
 
 #: ../calculator.py:925
 msgid "LCAO - Linear Combination of Atomic Orbitals"
-msgstr "LCAO - linearkombination af atomare orbitaler"
+msgstr "LCAO – linearkombination af atomare orbitaler"
 
 #: ../calculator.py:928
 msgid "Mode: "
@@ -543,15 +537,15 @@ msgstr "Tilstand: "
 
 #: ../calculator.py:930
 msgid "sz - Single Zeta"
-msgstr "sz - Enkelt-zeta"
+msgstr "sz – enkelt-zeta"
 
 #: ../calculator.py:931
 msgid "szp - Single Zeta polarized"
-msgstr "szp - Enkelt-zeta polariseret"
+msgstr "szp – enkelt-zeta polariseret"
 
 #: ../calculator.py:932
 msgid "dzp - Double Zeta polarized"
-msgstr "dzp - dobbelt-zeta polariseret"
+msgstr "dzp – dobbelt-zeta polariseret"
 
 #. dzp
 #: ../calculator.py:934
@@ -658,11 +652,11 @@ msgstr "Eksportér control.in"
 
 #: ../calculator.py:1498
 msgid "Export parameters ... "
-msgstr "Eksportér parametre ... "
+msgstr "Eksportér parametre …"
 
 #: ../calculator.py:1517
 msgid "Import control.in file ... "
-msgstr "Importér control.in-fil ... "
+msgstr "Importér control.in-fil …"
 
 #: ../calculator.py:1579 ../calculator.py:2111
 #, python-format
@@ -746,11 +740,11 @@ msgstr ""
 
 #: ../calculator.py:2063
 msgid "Import VASP input files: choose directory ... "
-msgstr "Importér VASP-inputfiler: vælg mappe ... "
+msgstr "Importér VASP-inputfiler: vælg mappe …"
 
 #: ../calculator.py:2076
 msgid "Export VASP input files: choose directory ... "
-msgstr "Eksportér VASP-inputfiler: vælg mappe ... "
+msgstr "Eksportér VASP-inputfiler: vælg mappe …"
 
 #: ../calculator.py:2115
 #, python-format
@@ -843,13 +837,12 @@ msgid ""
 "specify it\n"
 "  yourself.  "
 msgstr ""
-"  Brug denne dialog til at oprette krystalstrukturer. Vælg først "
-"strukturen,\n"
+"  Brug denne dialog til at oprette krystalstrukturer. Vælg først strukturen,\n"
 "  enten fra en samling almindelige krystalstrukturer eller ud fra en\n"
 "  rumgruppebeskrivelse. Tilføj så alle andre gitterparametre.\n"
 "\n"
 "  Hvis der er en eksperimentel krystalstruktur tilgængelig for at\n"
-"  atom, kan du slå krystaltypen samt gitterkonstanten op - ellers skal\n"
+"  atom, kan du slå krystaltypen samt gitterkonstanten op – ellers skal\n"
 "  du angive den selv.  "
 
 #: ../crystal.py:34 ../graphene.py:30
@@ -1090,11 +1083,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Globale kommandoer virker på alle billeder, eller kun på nuværende "
-"billede\n"
-"    - Tildeling af en global variabel refererer måske ikke til en lokal\n"
-"    - brug \"Nuværende billede\"-knappen til at slå anvendelse på alle "
-"billeder\n"
+"    Globale kommandoer virker på alle billeder, eller kun på nuværende billede\n"
+"    – tildeling af en global variabel refererer måske ikke til en lokal\n"
+"    – brug \"Nuværende billede\"-knappen til at slå anvendelse på alle billeder\n"
 "      til eller fra\n"
 "    <c>e</c>:\t\ttotalenergi af et billede\n"
 "    <c>fmax</c>:\tmaksimal kraft i et billede\n"
@@ -1108,9 +1099,8 @@ msgstr ""
 "    eksempler: <c>billede = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
 "\n"
 "    Atomkommandoer virker på hvert atom (eller en markering) enkeltvis\n"
-"    - disse kan bruge globale kommandoer på højresiden af en ligning\n"
-"    - brug \"kun markerede atomer\" for at begrænse anvendelsen af en "
-"kommando\n"
+"    – disse kan bruge globale kommandoer på højresiden af en ligning\n"
+"    – brug \"kun markerede atomer\" for at begrænse anvendelsen af en kommando\n"
 "    <c>x,y,z</c>:\tatomkoordinater\n"
 "    <c>r,g,b</c>:\tatomvisningsfarve; interval er [0..1]\n"
 "    <c>rad</c>:\tatomradius (grafisk)\n"
@@ -1122,7 +1112,7 @@ msgstr ""
 "    eksempler: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
 "\n"
 "    Specialkommandoer og objekter:\n"
-"    <c>sa,cf</c>:\tslå begrænsning til markerede atomer/nuværende atomer \n"
+"    <c>sa,cf</c>:\tslå begrænsning til markerede atomer/nuværende atomer\n"
 "                        til eller fra\n"
 "    <c>frame</c>:\tbillednummer\n"
 "    <c>center</c>:\tcentrerer systemet i dets eksisterende enhedscelle\n"
@@ -1174,7 +1164,7 @@ msgstr ""
 #: ../execute.py:214
 #, python-format
 msgid "*** WARNING: file does not exist - %s"
-msgstr "*** ADVARSEL: filen findes ikke - %s"
+msgstr "*** ADVARSEL: filen findes ikke – %s"
 
 #: ../execute.py:220
 msgid "*** WARNING: No atoms selected to work with"
@@ -1198,7 +1188,7 @@ msgstr "*** Arbejder på alle billeder"
 
 #: ../execute.py:320
 msgid "Save Terminal text ..."
-msgstr "Gem terminaltekst ..."
+msgstr "Gem terminaltekst …"
 
 #: ../execute.py:321
 msgid "Cancel"
@@ -1335,7 +1325,7 @@ msgstr "Ryd"
 
 #: ../graphs.py:61
 msgid "Save data to file ... "
-msgstr "Gem data til fil ... "
+msgstr "Gem data til fil …"
 
 #: ../gui.py:237
 msgid "Automatic"
@@ -1343,7 +1333,7 @@ msgstr "Automatisk"
 
 #: ../gui.py:255
 msgid "Open ..."
-msgstr "Åbn ..."
+msgstr "Åbn …"
 
 #: ../gui.py:256
 msgid "Choose parser:"
@@ -1471,19 +1461,19 @@ msgstr "_Kemisk symbol"
 
 #: ../gui.py:407
 msgid "Quick Info ..."
-msgstr "Hurtig info ..."
+msgstr "Hurtig info …"
 
 #: ../gui.py:408
 msgid "Repeat ..."
-msgstr "Gentag ..."
+msgstr "Gentag …"
 
 #: ../gui.py:409
 msgid "Rotate ..."
-msgstr "Rotér ..."
+msgstr "Rotér …"
 
 #: ../gui.py:410
 msgid "Colors ..."
-msgstr "Farver ..."
+msgstr "Farver …"
 
 #. TRANSLATORS: verb
 #: ../gui.py:412
@@ -1556,7 +1546,7 @@ msgstr "a2,a1-plan"
 
 #: ../gui.py:430
 msgid "Settings ..."
-msgstr "Indstillinger ..."
+msgstr "Indstillinger …"
 
 #: ../gui.py:432
 msgid "VMD"
@@ -1580,24 +1570,24 @@ msgstr "_Værktøjer"
 
 #: ../gui.py:438
 msgid "Graphs ..."
-msgstr "Grafer ..."
+msgstr "Grafer …"
 
 #: ../gui.py:439
 msgid "Movie ..."
-msgstr "Film ..."
+msgstr "Film …"
 
 #: ../gui.py:440
 msgid "Expert mode ..."
-msgstr "Eksperttilstand ..."
+msgstr "Eksperttilstand …"
 
 #: ../gui.py:441
 msgid "Constraints ..."
-msgstr "Begrænsninger ..."
+msgstr "Begrænsninger …"
 
 # gemmer et billede af atomerne
 #: ../gui.py:442
 msgid "Render scene ..."
-msgstr "Tegn struktur ..."
+msgstr "Tegn struktur …"
 
 #: ../gui.py:443
 msgid "_Move atoms"
@@ -1658,7 +1648,7 @@ msgstr "_Om"
 
 #: ../gui.py:467
 msgid "Webpage ..."
-msgstr "Webside ..."
+msgstr "Webside …"
 
 #: ../minimize.py:25
 msgid "Algorithm: "
@@ -1689,7 +1679,7 @@ msgstr "Minimér energien med hensyn til positionerne."
 #. Display status message
 #: ../minimize.py:96
 msgid "Running ..."
-msgstr "Kører ..."
+msgstr "Kører …"
 
 #. Update display to reflect cancellation of simulation.
 #: ../minimize.py:113
@@ -1830,14 +1820,12 @@ msgstr ""
 "-------------------------\n"
 "\n"
 "Første gang en retning dukker op, fortolkes den som en hel familie af\n"
-"retninger - f.eks. dækker (0,0,1) også (1,0,0), (-1,0,0) osv.  Hvis en af\n"
+"retninger – f.eks. dækker (0,0,1) også (1,0,0), (-1,0,0) osv.  Hvis en af\n"
 "disse retninger angives igen, vil anden specifikation særligt gælde\n"
 "denne specifikke retning.  Derfor er rækkefølgen ikke ligegyldig, og du kan\n"
-"omarrangere retningerne med knapperne [Op] og [Ned].  Du kan også tilføje in "
-"ny retning - husk at trykke [Tilføj], eller den vil ikke blive inkluderet.\n"
+"omarrangere retningerne med knapperne [Op] og [Ned].  Du kan også tilføje in ny retning – husk at trykke [Tilføj], eller den vil ikke blive inkluderet.\n"
 "\n"
-"Eksempel: (1,0,0), (1,1,1), (0,0,1) ville angive familien {100} af "
-"retninger,\n"
+"Eksempel: (1,0,0), (1,1,1), (0,0,1) ville angive familien {100} af retninger,\n"
 "{111}-familien og så (001) retningen, der tilsidesætter værdien givet til\n"
 "selve familien af retninger.\n"
 
@@ -2103,7 +2091,7 @@ msgstr "GPAW-version: "
 
 #: ../progress.py:204
 msgid "N/A"
-msgstr "-"
+msgstr "–"
 
 #: ../progress.py:205
 msgid "Memory estimate: "
@@ -2148,7 +2136,7 @@ msgstr "Enkelt billede indlæst."
 #: ../quickinfo.py:7
 #, python-format
 msgid "Image %d loaded (0 - %d)."
-msgstr "Billede %d indlæst (0 - %d)."
+msgstr "Billede %d indlæst (0 – %d)."
 
 #: ../quickinfo.py:8
 msgid "Unit cell is fixed."
@@ -2236,7 +2224,7 @@ msgstr ""
 # gemmer et billede af atomerne
 #: ../render.py:38
 msgid "Render current view in povray ... "
-msgstr "Tegn nuværende struktur i povray ... "
+msgstr "Tegn nuværende struktur i povray …"
 
 #: ../render.py:42
 #, python-format
@@ -2404,7 +2392,7 @@ msgstr ""
 
 #: ../save.py:25
 msgid "Save ..."
-msgstr "Gem ..."
+msgstr "Gem …"
 
 #: ../settings.py:10
 msgid "Settings"
@@ -2603,7 +2591,7 @@ msgstr "HCP(0001) ortogonal"
 
 #: ../surfaceslab.py:42
 msgid "HCP(10-10) orthogonal"
-msgstr "HCP(10-10) ortogonal"
+msgstr "HCP(10–10) ortogonal"
 
 #: ../surfaceslab.py:44
 msgid "DIAMOND(100) orthogonal"
@@ -2746,19 +2734,19 @@ msgstr "Ingen Pythonkode"
 #~ msgstr "Opret en farveskala:"
 
 #~ msgid "Black - white"
-#~ msgstr "Sort - hvid"
+#~ msgstr "Sort – hvid"
 
 #~ msgid "Black - red - yellow - white"
-#~ msgstr "Sort - rød - gul - hvid"
+#~ msgstr "Sort – rød – gul – hvid"
 
 #~ msgid "Black - green - white"
-#~ msgstr "Sort - grøn - hvid"
+#~ msgstr "Sort – grøn – hvid"
 
 #~ msgid "Black - blue - cyan"
-#~ msgstr "Sort - blå - cyan"
+#~ msgstr "Sort – blå – cyan"
 
 #~ msgid "Blue - white - red"
-#~ msgstr "Blå - hvid - rød"
+#~ msgstr "Blå – hvid – rød"
 
 #~ msgid "Hue"
 #~ msgstr "Farvetone"
@@ -2799,12 +2787,6 @@ msgstr "Ingen Pythonkode"
 #~ msgstr ""
 #~ "Den er nok ikke fatal, men detaljerne bør alligevel rapporteres til "
 #~ "udviklerne."
-
-#~ msgid "Report..."
-#~ msgstr "Rapportér..."
-
-#~ msgid "Details..."
-#~ msgstr "Detaljer..."
 
 #~ msgid ""
 #~ "From: buggy_application\"\n"
@@ -2902,9 +2884,6 @@ msgstr "Ingen Pythonkode"
 
 #~ msgid "Deform system by scaling it"
 #~ msgstr "Deformér systemet ved skalering"
-
-#~ msgid "Debug ..."
-#~ msgstr "Fejlsøgning ..."
 
 #~ msgid "_Rotate atoms"
 #~ msgstr "_Rotér atomer"
