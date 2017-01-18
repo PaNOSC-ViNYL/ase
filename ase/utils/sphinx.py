@@ -148,7 +148,7 @@ def visual_inspection():
             ext = path.rsplit('.', 1)[1]
             if ext == 'pdf':
                 pdf.append(path)
-            elif ext in ['csv', 'txt', 'out', 'css', 'LDA']:
+            elif ext in ['csv', 'txt', 'out', 'css', 'LDA', 'rst']:
                 text.append(path)
             else:
                 images.append(path)
