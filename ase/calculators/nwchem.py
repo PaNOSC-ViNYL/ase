@@ -185,6 +185,9 @@ class NWChem(FileIOCalculator):
         self.read_energy()
         if self.parameters.task.find('gradient') > -1:
             self.read_forces()
+        if self.parameters.task.find('optimize') > -1:
+            self.read_coordinates()
+            self.read_forces()
         self.niter = self.read_number_of_iterations()
         self.nelect = self.read_number_of_electrons()
         self.nvector = self.read_number_of_bands()
@@ -275,7 +278,6 @@ class NWChem(FileIOCalculator):
         for line in lines:
             if line.find(estring) >= 0:
                 energy = float(line.split()[-1])
-                break
         self.results['energy'] = energy * Hartree
 
         # Eigenstates
@@ -316,6 +318,21 @@ class NWChem(FileIOCalculator):
                     gradients.append([float(word[k]) for k in range(5, 8)])
 
         self.results['forces'] = -np.array(gradients) * Hartree / Bohr
+
+    def read_coordinates(self):
+        """Read updated coordinates from nwchem output file."""
+        file = open(self.label + '.out', 'r')
+        lines = file.readlines()
+        file.close()
+
+        for i, line in enumerate(lines):
+            if line.find('ENERGY GRADIENTS') >= 0:
+                positions = []
+                for j in range(i + 4, i + 4 + len(self.atoms)):
+                    word = lines[j].split()
+                    positions.append([float(word[k]) for k in range(2, 5)])
+
+        self.atoms.set_positions(np.array(positions) * Bohr)
 
     def get_eigenvalues(self, kpt=0, spin=0):
         """Return eigenvalue array."""
