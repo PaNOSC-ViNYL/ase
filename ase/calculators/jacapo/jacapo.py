@@ -436,7 +436,7 @@ class Jacapo:
         log.debug('Updating parameters')
 
         for key in self.default_input:
-            getf = getattr(self, 'get_%' % key)
+            getf = getattr(self, 'get_%s' % key)
             log.debug('getting key: %s' % key)
             self.pars[key] = getf()
             self.pars_uptodate[key] = True
