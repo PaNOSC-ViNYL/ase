@@ -35,6 +35,13 @@ Git master branch
   of the 0-d, 1-d and 2-d functions have or, equivalently, call the
   :meth:`~ase.Atoms.center` method.
 
+* Many of the :ref:`surface generating functions <surfaces>` have changed
+  their behavior when called with ``vacuum=None`` (the default).  Before, a
+  vacuum layer equal to the interlayer spacing would be added on the upper
+  surface of the slab. Now, the third axis perpendicular to the surface will be
+  undefined (``[0, 0, 0]``).  Use ``vacuum=<half-the-interlater-distance>`` to
+  get something similar to the old behavior.
+
 * New :func:`ase.geometry.is_orthorhombic` and
   :func:`ase.geometry.orthorhombic` functions added.
 
