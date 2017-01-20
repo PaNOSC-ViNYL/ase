@@ -48,7 +48,7 @@ class ResonantRaman(Vibrations):
 
             Excitations(atoms.get_calculator())
 
-        or by reading from a file as::
+        or by reading form a file as::
 
             Excitations('filename', **exkwargs)
 
@@ -244,6 +244,12 @@ class ResonantRaman(Vibrations):
             # self.im    : 1./sqrt(masses)
             # self.modes : Eigenmodes of the mass weighted Hessian
             self.om_Q = self.hnu.real    # energies in eV
+            # pre-factors for one vibrational excitation
+            with np.errstate(divide='ignore'):
+                self.vib01_Q = np.where(self.om_Q > 0,
+                                        1. / np.sqrt(self.om_Q), 0)
+            # -> sqrt(amu) * Angstrom
+            self.vib01_Q *= np.sqrt(u._me * u.kg * u.Ha) * u.Bohr
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0E_p'):
             self.read_excitations()
@@ -442,6 +448,8 @@ class ResonantRaman(Vibrations):
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
         elif self.approximation.lower() == 'placzek':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
+        elif self.approximation.lower() == 'p-p':
+            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
         else:
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
@@ -456,33 +464,31 @@ class ResonantRaman(Vibrations):
 
         return V_Qcc
 
-    def get_matrix_element(self, omega, gamma):
+    def matrix_element(self, omega, gamma):
         self.read()
-        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        if self.approximation.lower() == 'profeta':
-            V_rcc += self.get_matrix_element_Profeta(omega, gamma)
-        elif self.approximation.lower() == 'placzek':
-            V_rcc += self.get_matrix_element_Profeta(omega, gamma, True)
-        elif self.approximation.lower() == 'p-p':
-            V_rcc += self.get_matrix_element_Profeta(omega, gamma, -1)
+        V_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        if self.approximation.lower() in ['profeta', 'placzek', 'p-p']:
+            me_Qcc = electronic_me_Qcc(omega, gamma)
+            for Q, vib01 in enumerate(self.vib01_Q):
+                V_Qcc[Q] = me_Qcc[Q] * vib01
         elif self.approximation.lower() == 'albrecht a':
-            V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+            V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
             raise NotImplementedError('not working')
-            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='B')
+            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='B')
         elif self.approximation.lower() == 'albrecht c':
             raise NotImplementedError('not working')
-            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='C')
+            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='C')
         elif self.approximation.lower() == 'albrecht bc':
             raise NotImplementedError('not working')
-            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
+            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht':
             raise NotImplementedError('not working')
-            V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+            V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
             V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht+profeta':
-            V_rcc += self.get_matrix_element_AlbrechtA(omega, gamma)
-            V_rcc += self.get_matrix_element_Profeta(omega, gamma)
+            V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+            V_Qcc += self.get_matrix_element_Profeta(omega, gamma)
         else:
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
@@ -506,7 +512,7 @@ class ResonantRaman(Vibrations):
 
     def get_intensities(self, omega, gamma=0.1):
         m2 = ResonantRaman.m2
-        alpha_Qcc = self.get_matrix_element(omega, gamma)
+        alpha_Qcc = self.matrix_element(omega, gamma)
         if not self.observation:  # XXXX remove
             """Simple sum, maybe too simple"""
             return m2(alpha_Qcc).sum(axis=1).sum(axis=1)
@@ -551,7 +557,7 @@ class ResonantRaman(Vibrations):
         else:
             raise NotImplementedError
 
-    def get_absolute_intensity(self, omega, gamma=0.1):
+    def absolute_intensity(self, omega, gamma=0.1):
         """Absolute Raman intensity or Raman scattering factor
 
         Unit: Ang**4/amu
