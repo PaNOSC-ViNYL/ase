@@ -468,7 +468,7 @@ class ResonantRaman(Vibrations):
         self.read()
         V_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         if self.approximation.lower() in ['profeta', 'placzek', 'p-p']:
-            me_Qcc = electronic_me_Qcc(omega, gamma)
+            me_Qcc = self.electronic_me_Qcc(omega, gamma)
             for Q, vib01 in enumerate(self.vib01_Q):
                 V_Qcc[Q] = me_Qcc[Q] * vib01
         elif self.approximation.lower() == 'albrecht a':
@@ -485,7 +485,7 @@ class ResonantRaman(Vibrations):
         elif self.approximation.lower() == 'albrecht':
             raise NotImplementedError('not working')
             V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
-            V_rcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
+            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht+profeta':
             V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
             V_Qcc += self.get_matrix_element_Profeta(omega, gamma)
@@ -495,18 +495,6 @@ class ResonantRaman(Vibrations):
                     self.approximation) +
                 'Please use "Profeta", "Placzek", "Albrecht A/B/C/BC", ' +
                 'or "Albrecht".')
-
-        # map to modes
-        self.timer.start('map R2Q')
-        V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
-        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
-        # XXX reactivate and add to Placzek XXX
-##        with np.errstate(divide='ignore'):
-##            pre_Q = np.where(self.om_Q > 0,
-##                             np.sqrt(units._hbar**2 / 2. / self.om_Q), 0)
-##        for r, p in enumerate(pre_r):
-##            V_rcc[r] *= p
-        self.timer.stop('map R2Q')
 
         return V_Qcc
 
