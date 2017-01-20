@@ -27,7 +27,7 @@ class EPS:
 
         natoms = len(atoms)
 
-        if isinstance(rotation, str):
+        if hasattr(rotation, 'swapcase'):
             rotation = rotate(rotation)
 
         A = atoms.get_cell()
