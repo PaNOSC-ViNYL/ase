@@ -9,7 +9,7 @@ import sys
 
 import numpy as np
 
-import ase.units as units
+import ase.units as u
 from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.vibrations.franck_condon import FranckCondonOverlap
@@ -197,11 +197,11 @@ class ResonantRaman(Vibrations):
 
         self.timer.start('me and energy')
 
-        eu = units.Hartree
+        eu = u.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
         self.ex0m_pc = (np.array(
             [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
-            * units.Bohr)
+            * u.Bohr)
         exmE_rp = []
         expE_rp = []
         exF_rp = []
@@ -229,8 +229,8 @@ class ResonantRaman(Vibrations):
         # forces in eV / Angstrom
         self.exF_rp = np.array(exF_rp) * eu / 2 / self.delta
         # matrix elements in e * Angstrom
-        self.exmm_rpc = np.array(exmm_rpc) * units.Bohr
-        self.expm_rpc = np.array(expm_rpc) * units.Bohr
+        self.exmm_rpc = np.array(exmm_rpc) * u.Bohr
+        self.expm_rpc = np.array(expm_rpc) * u.Bohr
 
         self.timer.stop('me and energy')
 
@@ -259,7 +259,7 @@ class ResonantRaman(Vibrations):
         d_Q = np.dot(self.modes, X_q)
 
         # Huang-Rhys factors S
-        s = 1.e-20 / units.kg / units.C / units._hbar**2  # SI units
+        s = 1.e-20 / u.kg / u.C / u._hbar**2  # SI units
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
 
@@ -382,7 +382,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('pre_r')
         with np.errstate(divide='ignore'):
             pre_r = np.where(self.om_Q > 0,
-                             np.sqrt(units._hbar**2 / 2. / self.om_Q), 0)
+                             np.sqrt(u._hbar**2 / 2. / self.om_Q), 0)
             # print('BC: pre_r=', pre_r)
         for r, p in enumerate(pre_r):
             m_rcc[r] *= p
@@ -400,7 +400,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('init')
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
-        pre *= units.Hartree * units.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
+        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
         self.timer.stop('init')
 
         def kappa_cc(me_pc, e_p, omega, gamma, form='v'):
@@ -577,7 +577,7 @@ class ResonantRaman(Vibrations):
     def get_cross_sections(self, omega, gamma=0.1):
         """Returns Raman cross sections for each vibration."""
         I_r = self.get_intensities(omega, gamma)
-        pre = 1. / 16 / np.pi**2 / units._eps0**2 / units._c**4
+        pre = 1. / 16 / np.pi**2 / u._eps0**2 / u._c**4
         # frequency of scattered light
         omS_r = omega - self.hnu.real
         return pre * omega * omS_r**3 * I_r
@@ -663,7 +663,7 @@ class ResonantRaman(Vibrations):
                 log=sys.stdout):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
-        s = 0.01 * units._e / units._c / units._hplanck
+        s = 0.01 * u._e / u._c / u._hplanck
         intensities = self.get_absolute_intensity(omega, gamma)
 
         if isinstance(log, str):
@@ -724,7 +724,7 @@ class Placzek(ResonantRaman):
         self.timer.start('init')
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
-        pre *= units.Hartree * units.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
+        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
 
         om = omega
         if gamma:
@@ -812,13 +812,13 @@ class LrResonantRaman(ResonantRaman):
 
         self.timer.start('me and energy')
 
-        eu = units.Hartree
+        eu = u.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
 #        self.exmE_p = np.array([ex.energy * eu for ex in exm])
 #        self.expE_p = np.array([ex.energy * eu for ex in exp])
         self.ex0m_pc = (np.array(
             [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
-            * units.Bohr)
+            * u.Bohr)
         self.exF_rp = []
         exmE_rp = []
         expE_rp = []
@@ -840,7 +840,7 @@ class LrResonantRaman(ResonantRaman):
         self.exmE_rp = np.array(exmE_rp) * eu
         self.expE_rp = np.array(expE_rp) * eu
         self.exF_rp = np.array(self.exF_rp) * eu / 2 / self.delta
-        self.exmm_rpc = np.array(exmm_rpc) * units.Bohr
-        self.expm_rpc = np.array(expm_rpc) * units.Bohr
+        self.exmm_rpc = np.array(exmm_rpc) * u.Bohr
+        self.expm_rpc = np.array(expm_rpc) * u.Bohr
 
         self.timer.stop('me and energy')
