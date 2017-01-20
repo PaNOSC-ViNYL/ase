@@ -213,7 +213,7 @@ class ResonantRaman(Vibrations):
                 exmE_rp.append([em.energy for em in exm[r]])
                 expE_rp.append([ep.energy for ep in exp[r]])
                 exF_rp.append(
-                    [(ep.energy - em.energy)
+                    [(em.energy - ep.energy)
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(
                     [ex.get_dipole_me(form=self.dipole_form)
@@ -824,7 +824,7 @@ class LrResonantRaman(ResonantRaman):
                 exmE_rp.append([em.energy for em in exm[r]])
                 expE_rp.append([ep.energy for ep in exp[r]])
                 self.exF_rp.append(
-                    [(ep.energy - em.energy)
+                    [(em.energy - ep.energy)
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(
                     [ex.get_dipole_me(form=self.dipole_form) for ex in exm[r]])
