@@ -48,7 +48,7 @@ class ResonantRaman(Vibrations):
 
             Excitations(atoms.get_calculator())
 
-        or by reading form a file as::
+        or by reading from a file as::
 
             Excitations('filename', **exkwargs)
 
@@ -199,8 +199,9 @@ class ResonantRaman(Vibrations):
 
         eu = units.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
-        self.ex0m_pc = np.array(
-            [ex.get_dipole_me(form='v') for ex in ex0]) * units.Bohr
+        self.ex0m_pc = (np.array(
+            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
+            * units.Bohr)
         exmE_rp = []
         expE_rp = []
         exF_rp = []
@@ -215,9 +216,11 @@ class ResonantRaman(Vibrations):
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(
-                    [ex.get_dipole_me(form='v') for ex in exm[r]])
+                    [ex.get_dipole_me(form=self.dipole_form)
+                     for ex in exm[r]])
                 expm_rpc.append(
-                    [ex.get_dipole_me(form='v') for ex in exp[r]])
+                    [ex.get_dipole_me(form=self.dipole_form)
+                     for ex in exp[r]])
                 r += 1
         # indicees: r=coordinate, p=excitation
         # energies in eV
@@ -416,12 +419,16 @@ class ResonantRaman(Vibrations):
             for i in 'xyz':
                 if not energy_derivative < 0:
                     V_rcc[r] += pre * (
-                        kappa_cc(self.expm_rpc[r], self.ex0E_p, omega, gamma) -
-                        kappa_cc(self.exmm_rpc[r], self.ex0E_p, omega, gamma))
+                        kappa_cc(self.expm_rpc[r], self.ex0E_p,
+                                 omega, gamma, self.dipole_form) -
+                        kappa_cc(self.exmm_rpc[r], self.ex0E_p,
+                                 omega, gamma, self.dipole_form))
                 if energy_derivative:
                     V_rcc[r] += pre * (
-                        kappa_cc(self.ex0m_pc, self.expE_rp[r], omega, gamma) -
-                        kappa_cc(self.ex0m_pc, self.exmE_rp[r], omega, gamma))
+                        kappa_cc(self.ex0m_pc, self.expE_rp[r],
+                                 omega, gamma, self.dipole_form) -
+                        kappa_cc(self.ex0m_pc, self.exmE_rp[r],
+                                 omega, gamma, self.dipole_form))
                 r += 1
         self.timer.stop('kappa')
         self.timer.stop('amplitudes')
@@ -809,8 +816,9 @@ class LrResonantRaman(ResonantRaman):
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
 #        self.exmE_p = np.array([ex.energy * eu for ex in exm])
 #        self.expE_p = np.array([ex.energy * eu for ex in exp])
-        self.ex0m_pc = np.array(
-            [ex.get_dipole_me(form='v') for ex in ex0]) * units.Bohr
+        self.ex0m_pc = (np.array(
+            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
+            * units.Bohr)
         self.exF_rp = []
         exmE_rp = []
         expE_rp = []
@@ -825,9 +833,9 @@ class LrResonantRaman(ResonantRaman):
                     [(ep.energy - em.energy)
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(
-                    [ex.get_dipole_me(form='v') for ex in exm[r]])
+                    [ex.get_dipole_me(form=self.dipole_form) for ex in exm[r]])
                 expm_rpc.append(
-                    [ex.get_dipole_me(form='v') for ex in exp[r]])
+                    [ex.get_dipole_me(form=self.dipole_form) for ex in exp[r]])
                 r += 1
         self.exmE_rp = np.array(exmE_rp) * eu
         self.expE_rp = np.array(expE_rp) * eu
