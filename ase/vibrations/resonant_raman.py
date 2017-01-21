@@ -658,7 +658,7 @@ class ResonantRaman(Vibrations):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
         s = 0.01 * u._e / u._c / u._hplanck
-        intensities = self.get_absolute_intensity(omega, gamma)
+        intensities = self.absolute_intensity(omega, gamma)
 
         if isinstance(log, str):
             log = paropen(log, 'a')
