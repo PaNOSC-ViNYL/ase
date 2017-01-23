@@ -1,8 +1,7 @@
 import numpy as np
-from ase.utils import basestring
+
 
 fast = False
-
 
 def write_vti(filename, atoms, data=None):
     from vtk import vtkStructuredPoints, vtkDoubleArray, vtkXMLImageDataWriter
