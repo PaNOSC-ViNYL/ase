@@ -7,6 +7,7 @@ import numpy as np
 from ase.utils import rotate
 from ase.data import covalent_radii
 from ase.data.colors import jmol_colors
+from ase.utils import basestring
 
 
 class EPS:
@@ -27,7 +28,7 @@ class EPS:
 
         natoms = len(atoms)
 
-        if hasattr(rotation, 'swapcase'):
+        if isinstance(rotation, basestring):
             rotation = rotate(rotation)
 
         A = atoms.get_cell()
