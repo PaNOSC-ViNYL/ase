@@ -5,6 +5,8 @@ from ase.data import atomic_numbers as ref_atomic_numbers
 from ase.spacegroup import Spacegroup
 from ase.cluster.base import ClusterBase
 from ase.cluster.cluster import Cluster
+from ase.utils import basestring
+
 
 class ClusterFactory(ClusterBase):
     directions = [[1, 0, 0],
@@ -14,7 +16,7 @@ class ClusterFactory(ClusterBase):
     atomic_basis = np.array([[0., 0., 0.]])
 
     element_basis = None
-    
+
     Cluster = Cluster   # Make it possible to change the class of the object returned.
 
     def __call__(self, symbols, surfaces, layers, latticeconstant=None,
@@ -108,7 +110,7 @@ class ClusterFactory(ClusterBase):
         # The types that can be elements: integers and strings
         atomic_numbers = []
         if self.element_basis is None:
-            if isinstance(symbols, str):
+            if isinstance(symbols, basestring):
                 atomic_numbers.append(ref_atomic_numbers[symbols])
             elif isinstance(symbols, int):
                 atomic_numbers.append(symbols)
@@ -129,7 +131,7 @@ class ClusterFactory(ClusterBase):
                                 " (one for each kind of lattice position")
 
             for s in symbols:
-                if isinstance(s, str):
+                if isinstance(s, basestring):
                     atomic_numbers.append(ref_atomic_numbers[s])
                 elif isinstance(s, int):
                     atomic_numbers.append(s)
@@ -216,7 +218,7 @@ def cross(a, b):
                      a[2]*b[0] - b[2]*a[0],
                      a[0]*b[1] - b[0]*a[1]])
 
-    
+
 def GCD(a,b):
     """Greatest Common Divisor of a and b."""
     #print "--"
@@ -226,7 +228,7 @@ def GCD(a,b):
         #print a,b
     return b
 
-    
+
 def reduce_miller(hkl):
     """Reduce Miller index to the lowest equivalent integers."""
     hkl = np.array(hkl)

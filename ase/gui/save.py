@@ -8,6 +8,7 @@ import numpy as np
 import ase.gui.ui as ui
 from ase.io.formats import (write, parse_filename, get_ioformat, string2index,
                             filetype)
+from ase.utils import basestring
 
 
 text = _("""\
@@ -31,7 +32,7 @@ def save_dialog(gui):
     filename, index = parse_filename(filename)
     if index is None:
         index = slice(gui.frame, gui.frame + 1)
-    if isinstance(index, str):
+    if isinstance(index, basestring):
         index = string2index(index)
     format = filetype(filename, read=False)
     io = get_ioformat(format)

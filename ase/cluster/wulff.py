@@ -1,5 +1,6 @@
 from __future__ import print_function
 import numpy as np
+from ase.utils import basestring
 
 
 delta = 1e-10
@@ -30,7 +31,7 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     structure: The desired crystal structure.  Either one of the strings
     "fcc", "bcc", "sc", "hcp", "graphite"; or one of the cluster factory
     objects from the ase.cluster.XXX modules.
-    
+
     rounding (optional): Specifies what should be done if no Wulff
     construction corresponds to exactly the requested number of atoms.
     Should be a string, either "above", "below" or "closest" (the
@@ -50,12 +51,12 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     if debug:
         print('Wulff: Aiming for cluster with %i atoms (%s)' %
               (size, rounding))
-        
+
         if rounding not in ['above', 'below', 'closest']:
             raise ValueError('Invalid rounding: %s' % rounding)
-    
+
     # Interpret structure, if it is a string.
-    if isinstance(structure, str):
+    if isinstance(structure, basestring):
         if structure == 'fcc':
             from ase.cluster.cubic import FaceCenteredCubic as structure
         elif structure == 'bcc':
