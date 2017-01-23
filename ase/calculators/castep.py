@@ -30,6 +30,7 @@ import ase.units as units
 from ase.calculators.general import Calculator
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
+from ase.utils import basestring
 
 __all__ = [
     'Castep',
@@ -451,7 +452,7 @@ End CASTEP Interface Documentation
 
         returns (record_start, record_end, end_found, last_record_complete)
         """
-        if isinstance(castep_file, str):
+        if isinstance(castep_file, basestring):
             castep_file = paropen(castep_file, 'r')
             file_opened = True
         else:
@@ -525,7 +526,7 @@ End CASTEP Interface Documentation
             if not os.path.exists(castep_file):
                 print('No CASTEP file found')
 
-        elif isinstance(castep_file, str):
+        elif isinstance(castep_file, basestring):
             out = paropen(castep_file, 'r')
 
         else:
@@ -934,7 +935,7 @@ End CASTEP Interface Documentation
         if castep_castep is None:
             castep_castep = self._seed + '.castep'
 
-        if isinstance(castep_castep, str):
+        if isinstance(castep_castep, basestring):
             if not os.path.isfile(castep_castep):
                 print('Warning: CASTEP file %s not found!' % castep_castep)
             f = paropen(castep_castep, 'a')
@@ -1444,7 +1445,7 @@ End CASTEP Interface Documentation
                     self.param.__setattr__(key, option.value)
             return
 
-        elif isinstance(param, str):
+        elif isinstance(param, basestring):
             param_file = open(param, 'r')
             _close = True
 
@@ -1942,7 +1943,7 @@ class CastepParam(object):
                 raise UserWarning('Option "%s" is not known!' % attr)
         attr = attr.lower()
         opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, str):
+        if not opt.type == 'Block' and isinstance(value, basestring):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             if False:
@@ -1998,10 +1999,10 @@ class CastepParam(object):
         # Newly added "Vector" options
         elif opt.type == 'Integer Vector':
             # crashes if value is not a string
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if ',' in value:
                     value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
                 except:
@@ -2013,7 +2014,7 @@ class CastepParam(object):
         elif opt.type == 'Real Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [float(x) for x in value.split()]
                 except:
@@ -2032,7 +2033,7 @@ class CastepParam(object):
             # However if a unit is present it will be dealt with
 
             # this crashes if non-string types are passed
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if len(value.split()) > 1:
                     value = value.split(' ', 1)[0]
             try:
@@ -2095,7 +2096,7 @@ class CastepCell(object):
             self._options[attr].type = 'Integer Vector'
 
         opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, str):
+        if not opt.type == 'Block' and isinstance(value, basestring):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             try:
@@ -2128,7 +2129,7 @@ class CastepCell(object):
         elif opt.type == 'Integer Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
                 except:
@@ -2140,7 +2141,7 @@ class CastepCell(object):
         elif opt.type == 'Real Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [float(x) for x in value.split()]
                 except:
@@ -2159,7 +2160,7 @@ class CastepCell(object):
             # However if a unit is present it will be dealt with
 
             # this crashes if non-string types are passed
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if len(value.split()) > 1:
                     value = value.split(' ', 1)[0]
             try:

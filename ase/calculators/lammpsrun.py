@@ -35,6 +35,8 @@ import decimal as dec
 from ase import Atoms
 from ase.parallel import paropen
 from ase.units import GPa
+from ase.utils import basestring
+
 
 __all__ = ['LAMMPS', 'write_lammps_data']
 
@@ -301,7 +303,7 @@ class LAMMPS:
                         lammps_data=None):
         """Write a LAMMPS in_ file with run parameters and settings."""
 
-        if isinstance(lammps_in, str):
+        if isinstance(lammps_in, basestring):
             f = paropen(lammps_in, 'wb')
             close_in_file = True
         else:
@@ -432,7 +434,7 @@ class LAMMPS:
         if lammps_log is None:
             lammps_log = self.label + '.log'
 
-        if isinstance(lammps_log, str):
+        if isinstance(lammps_log, basestring):
             f = paropen(lammps_log, 'wb')
             close_log_file = True
         else:
@@ -779,7 +781,7 @@ class Prism(object):
 def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
                       prismobj=None, velocities=False):
     """Write atomic structure data to a LAMMPS data_ file."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         f = paropen(fileobj, 'wb')
         close_file = True
     else:

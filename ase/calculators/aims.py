@@ -13,6 +13,7 @@ from ase.io.aims import write_aims, read_aims
 from ase.data import atomic_numbers
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
     ReadError, PropertyNotImplementedError
+from ase.utils import basestring
 
 
 float_keys = [
@@ -231,7 +232,7 @@ class Aims(FileIOCalculator):
             elif isinstance(value, (tuple, list)):
                 output.write('%-35s%s\n' %
                              (key, ' '.join(str(x) for x in value)))
-            elif isinstance(value, str):
+            elif isinstance(value, basestring):
                 output.write('%-35s%s\n' % (key, value))
             else:
                 output.write('%-35s%r\n' % (key, value))
