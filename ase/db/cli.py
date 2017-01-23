@@ -34,7 +34,7 @@ examples = ['calculator=nwchem',
 
 
 def main(args=sys.argv[1:]):
-    if isinstance(args, str):
+    if isinstance(args, basestring):
         args = args.split(' ')
     parser = optparse.OptionParser(
         usage='Usage: %prog db-name [selection] [options]',

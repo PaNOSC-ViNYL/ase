@@ -1,4 +1,5 @@
 import numpy as np
+from ase.utils import basestring
 
 fast = False
 
@@ -6,9 +7,9 @@ fast = False
 def write_vti(filename, atoms, data=None):
     from vtk import vtkStructuredPoints, vtkDoubleArray, vtkXMLImageDataWriter
 
-    #if isinstance(fileobj, str):
+    #if isinstance(fileobj, basestring):
     #    fileobj = paropen(fileobj, 'w')
-        
+
     if isinstance(atoms, list):
         if len(atoms) > 1:
             raise ValueError('Can only write one configuration to a VTI file!')
@@ -84,9 +85,9 @@ def write_vti(filename, atoms, data=None):
 
 def write_vtu(filename, atoms, data=None):
     from vtk import vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
-    #if isinstance(fileobj, str):
+    #if isinstance(fileobj, basestring):
     #    fileobj = paropen(fileobj, 'w')
-        
+
     if isinstance(atoms, list):
         if len(atoms) > 1:
             raise ValueError('Can only write one configuration to a VTI file!')
