@@ -73,8 +73,9 @@ class SimpleCubicFactory(Bravais):
     def find_ortho(self, idx):
         "Replace keyword 'ortho' or 'orthogonal' with a direction."
         for i in range(3):
-            if isinstance(idx[i], basestr) and (idx[i].lower() == "ortho" or
-                                                idx[i].lower() == "orthogonal"):
+            if (isinstance(idx[i], basestring)
+                and (idx[i].lower() == "ortho" or
+                     idx[i].lower() == "orthogonal")):
                 if self.debug:
                     print("Calculating orthogonal direction", i)
                     print(idx[i-2], "X", idx[i-1], end=' ')
