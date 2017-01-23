@@ -62,7 +62,7 @@ assert atoms[9].z < 15.0
 assert max(energies.energies) - min(energies.energies) < 0.01
 
 # Make sure that index shuffle works.
-neworder = range(len(atoms))
+neworder = list(range(len(atoms)))
 neworder[8] = 9  # Swap two atoms.
 neworder[9] = 8
 atoms = atoms[neworder]
