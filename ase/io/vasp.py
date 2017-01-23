@@ -5,6 +5,7 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
+from ase.utils import basestring
 
 
 def get_atomtypes(fname):
@@ -105,7 +106,7 @@ def read_vasp(filename='CONTCAR'):
     from ase.data import chemical_symbols
     import numpy as np
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -200,7 +201,7 @@ def read_vasp(filename='CONTCAR'):
                 curflag.append(flag == 'F')
             selective_flags[atom] = curflag
     # Done with all reading
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
     if cartesian:
         atoms_pos *= lattice_constant
@@ -242,7 +243,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         except Exception:
             constr = None
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -638,7 +639,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
@@ -762,5 +763,5 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                 f.write('%4s' % s)
         f.write('\n')
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()

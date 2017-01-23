@@ -94,7 +94,7 @@ def key_val_str_to_dict(s):
 
             # Parse boolean values: 'T' -> True, 'F' -> False,
             #                       'T T F' -> [True, True, False]
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 str_to_bool = {'T': True, 'F': False}
 
                 if len(value.split()) > 1:
@@ -202,7 +202,7 @@ def read_xyz(fileobj, index=-1):
 
     index is the frame to read, default is last frame (index=-1).
     """
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
     if not isinstance(index, int) and not isinstance(index, slice):
@@ -451,7 +451,7 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
     XYZ comment line (default is True) and the results of any
     calculator attached to this Atoms.
     """
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if hasattr(images, 'get_positions'):

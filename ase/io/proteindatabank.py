@@ -9,12 +9,13 @@ import numpy as np
 from ase.atoms import Atom, Atoms
 from ase.parallel import paropen
 from ase.geometry import cellpar_to_cell
+from ase.utils import basestring
 
 
 def read_proteindatabank(fileobj, index=-1):
     """Read PDB files."""
 
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
     images = []
@@ -55,7 +56,7 @@ def read_proteindatabank(fileobj, index=-1):
 
 def write_proteindatabank(fileobj, images):
     """Write images to PDB-file."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if hasattr(images, 'get_positions'):
