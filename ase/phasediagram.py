@@ -8,7 +8,7 @@ from scipy.spatial import ConvexHull
 
 import ase.units as units
 from ase.atoms import string2symbols
-from ase.utils import hill
+from ase.utils import hill, basestring
 
 _solvated = []
 
@@ -62,7 +62,7 @@ def solvated(symbols):
     Returns list of (name, energy) tuples.
     """
 
-    if isinstance(symbols, str):
+    if isinstance(symbols, basestring):
         symbols = set(string2symbols(symbols))
     if len(_solvated) == 0:
         for line in _aqueous.splitlines():
@@ -329,7 +329,7 @@ class PhaseDiagram:
         self.species = {}
         self.references = []
         for name, energy in references:
-            if isinstance(name, str):
+            if isinstance(name, basestring):
                 count = parse_formula(name)[0]
             else:
                 count = name

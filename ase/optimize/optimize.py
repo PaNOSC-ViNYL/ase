@@ -8,6 +8,7 @@ from os.path import isfile
 
 from ase.parallel import rank, barrier
 from ase.io.trajectory import Trajectory
+from ase.utils import basestring
 import collections
 
 
@@ -40,7 +41,7 @@ class Dynamics:
             master = rank == 0
         if not master:
             logfile = None
-        elif isinstance(logfile, str):
+        elif isinstance(logfile, basestring):
             if logfile == '-':
                 logfile = sys.stdout
             else:
@@ -51,7 +52,7 @@ class Dynamics:
         self.nsteps = 0
 
         if trajectory is not None:
-            if isinstance(trajectory, str):
+            if isinstance(trajectory, basestring):
                 trajectory = Trajectory(trajectory, mode='w',
                                         atoms=atoms, master=master)
             self.attach(trajectory)

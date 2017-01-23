@@ -5,6 +5,7 @@ import numpy as np
 from numpy.linalg import eigh
 
 from ase.optimize.optimize import Optimizer
+from ase.utils import basestring
 
 
 class BFGS(Optimizer):
@@ -102,7 +103,7 @@ class BFGS(Optimizer):
 
     def replay_trajectory(self, traj):
         """Initialize hessian from old trajectory."""
-        if isinstance(traj, str):
+        if isinstance(traj, basestring):
             from ase.io.trajectory import Trajectory
             traj = Trajectory(traj, 'r')
         self.H = None

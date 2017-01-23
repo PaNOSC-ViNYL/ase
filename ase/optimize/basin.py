@@ -5,6 +5,7 @@ from ase.optimize.fire import FIRE
 from ase.units import kB
 from ase.parallel import world
 from ase.io.trajectory import Trajectory
+from ase.utils import basestring
 
 
 class BasinHopping(Dynamics):
@@ -50,7 +51,7 @@ class BasinHopping(Dynamics):
 
         self.optimizer_logfile = optimizer_logfile
         self.lm_trajectory = local_minima_trajectory
-        if isinstance(local_minima_trajectory, str):
+        if isinstance(local_minima_trajectory, basestring):
             self.lm_trajectory = Trajectory(local_minima_trajectory,
                                             'w', atoms)
 
