@@ -60,3 +60,12 @@ assert atoms[9].z < 15.0
 
 # Test that energy was conserved.
 assert max(energies.energies) - min(energies.energies) < 0.01
+
+# Make sure that index shuffle works.
+neworder = range(len(atoms))
+neworder[8] = 9  # Swap two atoms.
+neworder[9] = 8
+atoms = atoms[neworder]
+assert atoms.constraints[1].indices[0] == 9
+assert atoms.constraints[1].indices[1] == 8
+assert atoms.constraints[2].index == 9
