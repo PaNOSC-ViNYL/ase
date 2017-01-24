@@ -292,8 +292,7 @@ class View:
 
     def get_colors(self, rgb=False):
         if rgb:
-            return [tuple(int('0x' + rgb[i:i + 2])
-                          for i in range(1, 7, 2))
+            return [tuple(int(rgb[i:i + 2], 16) / 255 for i in range(1, 7, 2))
                     for rgb in self.get_colors()]
 
         if self.colormode == 'jmol':

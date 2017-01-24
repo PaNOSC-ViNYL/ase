@@ -40,14 +40,16 @@ def save_dialog(gui):
     remove_hidden = False
     if format in ['png', 'eps', 'pov']:
         bbox = np.empty(4)
-        size = np.array([gui.width, gui.height]) / gui.scale
+        size = gui.window.size / gui.scale
         bbox[0:2] = np.dot(gui.center, gui.axes[:, :2]) - size / 2
         bbox[2:] = bbox[:2] + size
         extra['rotation'] = gui.axes
-        extra['show_unit_cell'] = gui.ui.get_widget(
-            '/MenuBar/ViewMenu/ShowUnitCell').get_active()
+        extra['show_unit_cell'] = gui.window['toggle-show-unit-cell']
         extra['bbox'] = bbox
-        extra['colors'] = gui.get_colors(rgb=True)[gui.images.visible]
+        colors = gui.get_colors(rgb=True)
+        extra['colors'] = [rgb for rgb, visible
+                           in zip(colors, gui.images.visible)
+                           if visible]
         remove_hidden = True
 
     images = [gui.images.get_atoms(i, remove_hidden=remove_hidden)
