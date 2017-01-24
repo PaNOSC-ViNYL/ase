@@ -15,7 +15,7 @@ import ase.units as units
 from ase.parallel import rank
 from ase.dft import monkhorst_pack
 from ase.io.trajectory import Trajectory
-from ase.utils import opencew, pickleload
+from ase.utils import opencew, pickleload, basestring
 
 
 class Displacement:
@@ -96,8 +96,8 @@ class Displacement:
         assert isinstance(atoms, list)
         assert len(atoms) <= len(self.atoms)
 
-        if isinstance(atoms[0], str):
-            assert np.all([isinstance(atom, str) for atom in atoms])
+        if isinstance(atoms[0], basestring):
+            assert np.all([isinstance(atom, basestring) for atom in atoms])
             sym_a = self.atoms.get_chemical_symbols()
             # List for atomic indices
             indices = []

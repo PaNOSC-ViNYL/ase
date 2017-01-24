@@ -11,7 +11,7 @@ try:
     unicode
 except NameError:
     unicode = str
-    
+
 # pass for WindowsError on non-Win platforms
 try:
     WindowsError
@@ -442,7 +442,7 @@ def stringnify_info(info):
     unpicklable values are dropped and a warning is issued."""
     stringnified = {}
     for k, v in info.items():
-        if not isinstance(k, str):
+        if not isinstance(k, basestring):
             warnings.warn('Non-string info-dict key is not stored in ' +
                           'trajectory: ' + repr(k), UserWarning)
             continue

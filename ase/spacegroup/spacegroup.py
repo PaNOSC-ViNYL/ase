@@ -11,6 +11,7 @@ import os
 import warnings
 
 import numpy as np
+from ase.utils import basestring
 
 __all__ = ['Spacegroup']
 
@@ -640,7 +641,7 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
 def _read_datafile(spg, spacegroup, setting, f):
     if isinstance(spacegroup, int):
         pass
-    elif isinstance(spacegroup, str):
+    elif isinstance(spacegroup, basestring):
         spacegroup = ' '.join(spacegroup.strip().split())
         compact_spacegroup = ''.join(spacegroup.split())
     else:
@@ -653,7 +654,7 @@ def _read_datafile(spg, spacegroup, setting, f):
         _setting = int(line2.strip().split()[1])
         _no = int(_no)
         if ((isinstance(spacegroup, int) and _no == spacegroup) or
-            (isinstance(spacegroup, str) and
+            (isinstance(spacegroup, basestring) and
              compact_symbol == compact_spacegroup)) and _setting == setting:
             _read_datafile_entry(spg, _no, _symbol, _setting, f)
             break

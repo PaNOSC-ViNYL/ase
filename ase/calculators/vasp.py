@@ -30,7 +30,7 @@ import numpy as np
 
 import ase
 import ase.io
-from ase.utils import devnull
+from ase.utils import devnull, basestring
 
 from ase.calculators.calculator import kpts2ndarray
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -744,7 +744,7 @@ class Vasp(Calculator):
             sys.stderr = devnull
         elif p['txt'] == '-':
             pass
-        elif isinstance(p['txt'], str):
+        elif isinstance(p['txt'], basestring):
             sys.stderr = open(p['txt'], 'w')
         if 'VASP_COMMAND' in os.environ:
             vasp = os.environ['VASP_COMMAND']
@@ -1108,7 +1108,7 @@ class Vasp(Calculator):
             if val is not None:
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
-                    if isinstance(val, str):
+                    if isinstance(val, basestring):
                         incar.write(val + '\n')
                     elif isinstance(val, bool):
                         if val:

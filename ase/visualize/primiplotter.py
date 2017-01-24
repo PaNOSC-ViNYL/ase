@@ -15,6 +15,7 @@ import numpy as np
 
 from ase.visualize.colortable import color_table
 import ase.data
+from ase.utils import basestring
 
 
 class PrimiPlotterBase:
@@ -22,11 +23,11 @@ class PrimiPlotterBase:
     #def set_dimensions(self, dims):
     #    "Set the size of the canvas (a 2-tuple)."
     #    self.dims = dims
-        
+
     def set_rotation(self, rotation):
         "Set the rotation angles (in degrees)."
         self.angles[:] = np.array(rotation) * (pi/180)
-        
+
     def set_radii(self, radii):
         """Set the atomic radii.  Give an array or a single number."""
         self.radius = radii
@@ -919,7 +920,7 @@ def _colorsfromdict(dict, cls):
     isgray, isrgb = 0, 0
     for k in dict.keys():
         v = dict[k]
-        if isinstance(v, type("string")):
+        if isinstance(v, basestring):
             v = color_table[v]
             dict[k] = v
         try:

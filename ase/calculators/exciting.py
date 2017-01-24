@@ -7,6 +7,7 @@ from lxml import etree as ET
 from ase.io.exciting import atoms2etree
 from ase.units import Bohr, Hartree
 from ase.calculators.calculator import PropertyNotImplementedError
+from ase.utils import basestring
 
 class Exciting:
     def __init__(self, dir='calc', paramdict=None,
@@ -115,12 +116,12 @@ class Exciting:
             fd.write(ET.tostring(root, method='xml', pretty_print=True,
                                  xml_declaration=True, encoding='UTF-8'))
             fd.close()
-            
+
     def dicttoxml(self, pdict, element):
         for key, value in pdict.items():
-            if (isinstance(value, str) and key == 'text()'):
+            if (isinstance(value, basestring) and key == 'text()'):
                 element.text = value
-            elif (isinstance(value, str)):
+            elif (isinstance(value, basestring)):
                 element.attrib[key] = value
             elif (isinstance(value, list)):
                 for item in value:
@@ -132,13 +133,13 @@ class Exciting:
                     self.dicttoxml(value, element.findall(key)[0])
             else:
                 print('cannot deal with', key, '=', value)
-               
+
     def read(self):
         """
         reads Total energy and forces from info.xml
         """
         INFO_file = '%s/info.xml' % self.dir
-   
+
         try:
             fd = open(INFO_file)
         except IOError:

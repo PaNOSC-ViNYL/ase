@@ -8,10 +8,12 @@ import ase.gui.ui as ui
 import os
 import numpy as np
 from copy import copy
+
+import ase
 from ase.gui.progress import DefaultProgressIndicator, GpawProgressIndicator
 from ase import Atoms
 from ase.data import chemical_symbols
-import ase
+from ase.utils import basestring
 
 pack = error = cancel_apply_ok = SetupWindow = 42
 
@@ -1475,12 +1477,12 @@ class AIMS_Window:
                 if val is not None:  # = existing "expert keyword"
                     if key == 'output':  # 'output' can be used more than once
                         options = val
-                        if isinstance(options, str):
+                        if isinstance(options, basestring):
                             options = [options]
                         for arg in options:
                             self.expert_keyword_create([key] + [arg])
                     else:
-                        if isinstance(val, str):
+                        if isinstance(val, basestring):
                             arg = [key] + val.split()
                         elif isinstance(val, (tuple, list)):
                             arg = [key] + [str(a) for a in val]

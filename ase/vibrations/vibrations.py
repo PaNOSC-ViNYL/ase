@@ -13,7 +13,7 @@ import numpy as np
 import ase.units as units
 from ase.io.trajectory import Trajectory
 from ase.parallel import rank, paropen
-from ase.utils import opencew, pickleload
+from ase.utils import opencew, pickleload, basestring
 
 
 class Vibrations:
@@ -281,7 +281,7 @@ class Vibrations:
             file to create.
         """
 
-        if isinstance(log, str):
+        if isinstance(log, basestring):
             log = paropen(log, 'a')
         write = log.write
 

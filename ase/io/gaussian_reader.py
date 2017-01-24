@@ -1,4 +1,6 @@
 from __future__ import print_function
+from ase.utils import basestring
+
 # Copyright (C) 2010 by CAMd, DTU
 # Please see the accompanying LICENSE file for further information.
 
@@ -41,7 +43,7 @@ class GaussianReader:
 
     def __init__(self, filename):
         """filename is optional; if not set, use parse to set the content"""
-        if isinstance(filename, str):
+        if isinstance(filename, basestring):
             fileobj = open(filename, 'r')
         else:
             fileobj = filename

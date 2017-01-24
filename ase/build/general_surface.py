@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import norm, solve
 
-from ase.utils import gcd
+from ase.utils import gcd, basestring
 from ase.build import bulk
 
 
@@ -26,7 +26,7 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
     if indices.shape != (3,) or not indices.any() or indices.dtype != int:
         raise ValueError('%s is an invalid surface type' % indices)
 
-    if isinstance(lattice, str):
+    if isinstance(lattice, basestring):
         lattice = bulk(lattice, cubic=True)
 
     h, k, l = indices

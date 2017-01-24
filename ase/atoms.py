@@ -566,7 +566,7 @@ class Atoms(object):
         the masses argument is not given or for those elements of the
         masses list that are None, standard values are set."""
 
-        if isinstance(masses, str) and masses == 'defaults':
+        if isinstance(masses, basestring) and masses == 'defaults':
             masses = atomic_masses[self.arrays['numbers']]
         elif isinstance(masses, (list, tuple)):
             newmasses = []
@@ -1230,7 +1230,7 @@ class Atoms(object):
             elif s > 0:
                 v /= s
 
-        if isinstance(center, str):
+        if isinstance(center, basestring):
             if center.lower() == 'com':
                 center = self.get_center_of_mass()
             elif center.lower() == 'cop':
@@ -1273,7 +1273,7 @@ class Atoms(object):
             2nd rotation around the z axis.
 
         """
-        if isinstance(center, str):
+        if isinstance(center, basestring):
             if center.lower() == 'com':
                 center = self.get_center_of_mass()
             elif center.lower() == 'cop':
@@ -1788,7 +1788,7 @@ def symbols2numbers(symbols):
 
 
 def string2vector(v):
-    if isinstance(v, str):
+    if isinstance(v, basestring):
         if v[0] == '-':
             return -string2vector(v[1:])
         w = np.zeros(3)
