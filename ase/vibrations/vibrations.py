@@ -14,6 +14,7 @@ import ase.units as units
 from ase.io.trajectory import Trajectory
 from ase.parallel import rank, paropen
 from ase.utils import opencew
+from ase.calculators.singlepoint import SinglePointCalculator
 
 
 class Vibrations:
@@ -341,6 +342,12 @@ class Vibrations:
         self.atoms.set_positions(p)
         self.atoms.set_calculator(calc)
         traj.close()
+
+    def show_as_force(self, n):
+        mode = self.get_mode(n)
+        calc = SinglePointCalculator(self.atoms, forces=mode)
+        self.atoms.set_calculator(calc)
+        self.atoms.edit()
 
     def write_jmol(self):
         """Writes file for viewing of the modes with jmol."""
