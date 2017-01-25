@@ -1180,14 +1180,13 @@ class Atoms(object):
         if not isinstance(a, (float, int)):
             # old API maybe?
             if isinstance(v, (float, int)):
-                print(a,v)
                 a, v = v * 180 / pi, a
-                print('b',a,v)
             elif v is None:
                 v = a
                 a = None
             else:
                 assert a is not None
+                a, v = v, a
         else:
             assert a is not None
 
