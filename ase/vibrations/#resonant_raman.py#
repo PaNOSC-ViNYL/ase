@@ -467,8 +467,7 @@ class ResonantRaman(Vibrations):
     def matrix_element(self, omega, gamma):
         self.read()
         V_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        if self.approximation.lower() in ['profeta', 'placzek',
-                                          'p-p', 'placzekalpha']:
+        if self.approximation.lower() in ['profeta', 'placzek', 'p-p']:
             me_Qcc = self.electronic_me_Qcc(omega, gamma)
             for Q, vib01 in enumerate(self.vib01_Q):
                 V_Qcc[Q] = me_Qcc[Q] * vib01
@@ -646,7 +645,7 @@ class ResonantRaman(Vibrations):
         fd.write('# Resonant Raman spectrum\n')
         fd.write('# omega={0:g} eV, gamma={1:g} eV\n'.format(omega, gamma))
         fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
-        fd.write('# [cm^-1]  [a.u.]\n')
+        fd.write('# [cm^-Fr1]  [a.u.]\n')
 
         for row in outdata:
             fd.write('%.3f  %15.5g\n' %
@@ -693,7 +692,7 @@ class Placzek(ResonantRaman):
     """Raman spectra within the Placzek approximation."""
     def __init__(*args, **kwargs):
         # XXX check for approximation
-        kwargs['approximation'] = 'PlaczekAlpha'
+        kwargs['approximation'] = None
         ResonantRaman.__init__(*args, **kwargs)
 
     def read_excitations(self):
