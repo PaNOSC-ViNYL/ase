@@ -1335,9 +1335,11 @@ class Atoms(object):
                 self.positions[i] = group[j].position
                 j += 1
 
-    def set_dihedral(self, list, angle, mask=None, indices=None):
-        """Set the dihedral angle between vectors list[0]->list[1] and
-        list[2]->list[3] by changing the atom indexed by list[3]
+    # def set_dihedral(self, list, angle, mask=None, indices=None):
+    def set_dihedral(self, a1, a2=None, a3=None, a4=None, angle=None,
+                     mask=None, indices=None):
+        """Set the dihedral angle (degrees) between vectors a1->a2 and
+        a3->a4 by changing the atom indexed by a4
         if mask is not None, all the atoms described in mask
         (read: the entire subgroup) are moved. Alternatively to the mask,
         the indices of the atoms to be rotated can be supplied.
@@ -1348,22 +1350,35 @@ class Atoms(object):
         >>> from math import pi
         >>> atoms = Atoms('HHCCHH', [[-1, 1, 0], [-1, -1, 0], [0, 0, 0],
         ...                          [1, 0, 0], [2, 1, 0], [2, -1, 0]])
-        >>> atoms.set_dihedral([1, 2, 3, 4], 7 * pi / 6,
-        ...                    mask=[0, 0, 0, 1, 1, 1])
+        >>> atoms.set_dihedral(1, 2, 3, 4, 210, mask=[0, 0, 0, 1, 1, 1])
         """
+
+        if isinstance(a1, int):
+            angle *= pi / 180
+        else:
+            if angle is None:
+                angle = a2
+                if mask is None:
+                    mask = a3
+                    if indices is None:
+                        indices = a4
+            else:
+                assert a2 is a3 is a4 is None
+            a1, a2, a3, a4 = a1
+
         # if not provided, set mask to the last atom in the
         # dihedral description
         if mask is None and indices is None:
             mask = np.zeros(len(self))
-            mask[list[3]] = 1
+            mask[a4] = 1
         elif indices:
             mask = [index in indices for index in range(len(self))]
 
         # compute necessary in dihedral change, from current value
-        current = self.get_dihedral(list)
+        current = self.get_dihedral(a1, a2, a3, a4) * pi / 180
         diff = angle - current
-        axis = self.positions[list[2]] - self.positions[list[1]]
-        center = self.positions[list[2]]
+        axis = self.positions[a3] - self.positions[a2]
+        center = self.positions[a3]
         self._masked_rotate(center, axis, diff, mask)
 
     def rotate_dihedral(self, list, angle, mask=None):
@@ -1383,7 +1398,7 @@ class Atoms(object):
         a2->a3."""
 
         if a2 is None:
-            # old way: use radians
+            # old API (uses radians)
             assert a3 is None
             a1, a2, a3 = a1
             f = 1
@@ -1391,8 +1406,8 @@ class Atoms(object):
             f = 180 / pi
 
         # normalized vector 1->0, 1->2:
-        v10 = self.positions[list[0]] - self.positions[list[1]]
-        v12 = self.positions[list[2]] - self.positions[list[1]]
+        v10 = self.positions[a1] - self.positions[a2]
+        v12 = self.positions[a3] - self.positions[a2]
         v10 /= np.linalg.norm(v10)
         v12 /= np.linalg.norm(v12)
         angle = np.vdot(v10, v12)
