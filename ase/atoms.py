@@ -1433,7 +1433,7 @@ class Atoms(object):
                 a1, a2, a3 = a1
             else:
                 assert a2 is None and a3 is None
-            f = pi / 180
+            angle *= 180 / pi
 
         # If not provided, set mask to the last atom in the angle description
         if mask is None:
@@ -1441,7 +1441,7 @@ class Atoms(object):
             mask[a3] = 1
         # Compute necessary in angle change, from current value
         current = self.get_angle(a1, a2, a3)
-        diff = (angle - current) * f
+        diff = (angle - current) * pi / 180
         # Do rotation of subgroup by copying it to temporary atoms object and
         # then rotating that
         v10 = self.positions[a1] - self.positions[a2]
