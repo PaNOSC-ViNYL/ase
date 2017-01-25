@@ -282,16 +282,29 @@ def read_magres(filename, include_unrecognised=False):
         except KeyError:
             raise RuntimeError('No units detected in file for atom positions')
         u = magres_units[u]
+        # Now we have to account for the possibility of there being CASTEP
+        # 'custom' species amongst the symbols
+        custom_species = None
         for a in data_dict['atoms']['atom']:
-            symbols.append(a['species'])
+            spec_custom = a['species'].split(':', 1)
+            if len(spec_custom) > 1 and custom_species is None:
+                # Add it to the custom info!
+                custom_species = list(symbols)
+            symbols.append(spec_custom[0])
             positions.append(a['position'])
             indices.append(a['index'])
             labels.append(a['label'])
+            if custom_species is not None:
+                custom_species.append(a['species'])
 
     atoms = Atoms(cell=cell,
                   pbc=pbc,
                   symbols=symbols,
                   positions=positions)
+
+    # Add custom species if present
+    if custom_species is not None:
+        atoms.new_array('castep_custom_species', np.array(custom_species))
 
     # Add the spacegroup, if present and recognizable
     if 'symmetry' in data_dict['atoms']:
@@ -399,7 +412,11 @@ def write_magres(filename, image):
         indices = [labels[:i + 1].count(labels[i]) for i in range(len(labels))]
 
     # Iterate over atoms
-    atom_info = list(zip(image.get_chemical_symbols(),
+    symbols = (image.get_array('castep_custom_species')
+               if image.has('castep_custom_species')
+               else image.get_chemical_symbols())
+
+    atom_info = list(zip(symbols,
                          image.get_positions()))
     if len(atom_info) > 0:
         image_data['atoms']['units'].append(['atom', 'Angstrom'])
@@ -425,7 +442,7 @@ def write_magres(filename, image):
             'ms': ('sigma', False),
             'efg': ('V', False),
             'isc': ('K', True)}
-        
+
         for u in image.info['magres_units']:
             # Get the type
             p = u.split('_')[0]

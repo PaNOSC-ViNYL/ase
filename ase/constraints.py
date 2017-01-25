@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 from math import sqrt
 from ase.geometry import find_mic
+from ase.calculators.calculator import PropertyNotImplementedError
 
 import numpy as np
 
@@ -1215,9 +1216,6 @@ class StrainFilter(Filter):
         stress = self.atoms.get_stress()
         return -self.atoms.get_volume() * (stress * self.mask).reshape((2, 3))
 
-    def get_potential_energy(self):
-        return self.atoms.get_potential_energy()
-
     def has(self, x):
         return self.atoms.has(x)
 
@@ -1457,11 +1455,8 @@ class UnitCellFilter(Filter):
         forces[natoms:] = virial / self.cell_factor
         return forces
 
-    def get_potential_energy(self):
-        return self.atoms.get_potential_energy()
-
     def get_stress(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def has(self, x):
         return self.atoms.has(x)

@@ -165,11 +165,11 @@ class Database:
             to interact with the database on the master only and then
             distribute results to all slaves.
         """
-        if isinstance(filename, str):
+        if isinstance(filename, basestring):
             filename = os.path.expanduser(filename)
         self.filename = filename
         self.create_indices = create_indices
-        if use_lock_file and isinstance(filename, str):
+        if use_lock_file and isinstance(filename, basestring):
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None

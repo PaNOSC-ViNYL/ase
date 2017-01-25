@@ -1,6 +1,5 @@
 from __future__ import print_function
-import os, string, tempfile, shutil
-from subprocess import Popen
+import os, string, tempfile, shutil, subprocess
 from ase.io import write
 from ase.units import Bohr
 
@@ -85,11 +84,10 @@ class Bader:
             os.chdir(tempdir)
             cmd = 'bader %s' % abscubefile
 
-            process = Popen(cmd)
-            status = Popen.wait()
+            status = subprocess.call(cmd, shell=True)
             
             if status != 0:
-                print(process)
+                print(" '%s' not successful" %cmd)
 
             shutil.copy2('ACF.dat', os.path.join(cwd, acf_file))
             

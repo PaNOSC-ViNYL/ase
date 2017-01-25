@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% set d = s.dct %}
+{% set d = s.row %}
 {% block title %}Summary{% endblock %}
 {% block bar1 %}
 SUMMARY
@@ -97,7 +97,7 @@ Key-value pairs:
 {% endfor %}
 </table>
 {% endif %}
-        
+
 {% if s.forces %}
 Forces in ev/Ang:
 <table>
@@ -121,11 +121,11 @@ Stress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang<sup>3</sup>:<br>
 {% if s.dipole %}
 Dipole moment in e*Ang: ({{ s.dipole }})
 {% endif %}
-        
+
 {% if s.constraints %}
 Constraints: {{ s.constraints }}
 {% endif %}
-            
+
 {% if s.data %}
 Data keys: {{ s.data }}
 {% endif %}

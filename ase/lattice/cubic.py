@@ -11,6 +11,7 @@ The following lattice creators are defined:
 from ase.lattice.bravais import Bravais, reduceindex
 import numpy as np
 from ase.data import reference_states as _refstate
+from ase.utils import basestring
 
 
 class SimpleCubicFactory(Bravais):
@@ -33,7 +34,7 @@ class SimpleCubicFactory(Bravais):
 
     # For checking the basis volume
     atoms_in_unit_cell = 1
-    
+
     def get_lattice_constant(self):
         "Get the lattice constant of an element with cubic crystal structure."
         if _refstate[self.atomicnumber]['symmetry'] != self.xtal_name:
@@ -68,19 +69,20 @@ class SimpleCubicFactory(Bravais):
         self.find_ortho(directions)
         self.find_ortho(miller)
         Bravais.find_directions(self, directions, miller)
-        
+
     def find_ortho(self, idx):
         "Replace keyword 'ortho' or 'orthogonal' with a direction."
         for i in range(3):
-            if isinstance(idx[i], str) and (idx[i].lower() == "ortho" or
-                                            idx[i].lower() == "orthogonal"):
+            if (isinstance(idx[i], basestring)
+                and (idx[i].lower() == "ortho" or
+                     idx[i].lower() == "orthogonal")):
                 if self.debug:
                     print("Calculating orthogonal direction", i)
                     print(idx[i-2], "X", idx[i-1], end=' ')
                 idx[i] = reduceindex(np.cross(idx[i-2], idx[i-1]))
                 if self.debug:
                     print("=", idx[i])
-                
+
 
 SimpleCubic = SimpleCubicFactory()
 
@@ -98,7 +100,7 @@ class FaceCenteredCubicFactory(SimpleCubicFactory):
     inverse_basis_factor = 1.0
 
     atoms_in_unit_cell = 4
-    
+
 FaceCenteredCubic = FaceCenteredCubicFactory()
 
 class BodyCenteredCubicFactory(SimpleCubicFactory):
@@ -115,13 +117,12 @@ class BodyCenteredCubicFactory(SimpleCubicFactory):
     inverse_basis_factor = 1.0
 
     atoms_in_unit_cell = 2
-    
+
 BodyCenteredCubic = BodyCenteredCubicFactory()
 
 class DiamondFactory(FaceCenteredCubicFactory):
     "A factory for creating diamond lattices."
     xtal_name = "diamond"
     bravais_basis = [[0,0,0], [0.25, 0.25, 0.25]]
-    
-Diamond = DiamondFactory()
 
+Diamond = DiamondFactory()

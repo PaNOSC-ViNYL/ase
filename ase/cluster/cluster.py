@@ -5,6 +5,7 @@ import pickle
 
 from ase import Atoms
 from ase.cluster.base import ClusterBase
+from ase.utils import basestring
 
 
 class Cluster(Atoms, ClusterBase):
@@ -82,7 +83,7 @@ class Cluster(Atoms, ClusterBase):
 
     # Functions to store the cluster
     def write(self, filename=None):
-        if not isinstance(filename, str):
+        if not isinstance(filename, basestring):
             raise Warning('You must specify a valid filename.')
 
         if os.path.isfile(filename):
@@ -126,5 +127,4 @@ class Cluster(Atoms, ClusterBase):
         self.set_cell(d['cell'])
         self.set_pbc(d['pbc'])
         self.set_constraint()
-        self.adsorbate_info = {}
         self.calc = None

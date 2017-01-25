@@ -22,20 +22,20 @@ Environment in the Python language."""
 if sys.version_info < (2, 6, 0, 'final', 0):
     raise SystemExit('Python 2.6 or later is required!')
 
-    
+
 class sdist(_sdist):
     """Fix distutils.
-    
+
     Distutils insists that there should be a README or README.txt,
     but GitLab.com needs README.rst in order to parse it as reStructureText."""
-    
+
     def warn(self, msg):
         if msg.startswith('standard file not found: should have one of'):
             self.filelist.append('README.rst')
         else:
             _sdist.warn(self, msg)
-            
-    
+
+
 packages = []
 for dirname, dirnames, filenames in os.walk('ase'):
     if '__init__.py' in filenames:
@@ -76,16 +76,17 @@ class build_py(_build_py):
     def get_outputs(self, *args, **kwargs):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
+
 # Get the current version number:
 with open('ase/__init__.py') as fd:
     version = re.search("__version__ = '(.*)'", fd.read()).group(1)
-    
+
 name = 'ase'  # PyPI name
 
 # Linux-distributions may want to change the name:
 if 0:
     name = 'python-ase'
-    
+
 scripts = ['tools/ase-gui', 'tools/ase-db', 'tools/ase-info',
            'tools/ase-build', 'tools/ase-run']
 # provide bat executables in the tarball and always for Win
@@ -119,4 +120,5 @@ setup(name=name,
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
+          'Programming Language :: Python :: 3.6',
           'Topic :: Scientific/Engineering :: Physics'])

@@ -2,6 +2,7 @@
 
 Manipulating atoms
 ------------------
+
 We will set up a one layer slab of Ni atoms with one Ag adatom.
 
 Define the slab atoms:
@@ -10,7 +11,8 @@ Define the slab atoms:
 >>> atoms = Atoms('Ni4', [(0, 0, 0),
 ...                       (0.45, 0, 0),
 ...                       (0, 0.5, 0),
-...                       (0.5, 0.5, 0)])
+...                       (0.5, 0.5, 0)]
+...               cell=[1, 1, 1])
 
 Have a look at the individual atoms:
 

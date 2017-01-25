@@ -16,7 +16,8 @@ ase-db y.json -v "H>0" --delete-keys foo"""
 def count(n, *args, **kwargs):
     m = len(list(con.select(*args, **kwargs)))
     assert m == n, (m, n)
-    
+
+
 for name in ['y.json', 'y.db']:
     cli(cmd.replace('y.json', name))
     con = connect(name)
