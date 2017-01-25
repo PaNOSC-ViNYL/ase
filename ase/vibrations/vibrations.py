@@ -343,8 +343,8 @@ class Vibrations:
         self.atoms.set_calculator(calc)
         traj.close()
 
-    def show_as_force(self, n):
-        mode = self.get_mode(n)
+    def show_as_force(self, n, scale=0.2):
+        mode = self.get_mode(n) * len(self.hnu) * scale
         calc = SinglePointCalculator(self.atoms, forces=mode)
         self.atoms.set_calculator(calc)
         self.atoms.edit()
