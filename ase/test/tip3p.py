@@ -1,11 +1,11 @@
 """Test TIP3P forces."""
-from math import cos, sin
+from math import cos, sin, pi
 
 from ase import Atoms
-from ase.calculators.tip3p import TIP3P, rOH, thetaHOH, set_tip3p_charges
+from ase.calculators.tip3p import TIP3P, rOH, thetaH2O, set_tip3p_charges
 
 r = rOH
-a = thetaHOH
+a = thetaH2O * pi / 180
 
 dimer = Atoms('H2OH2O',
               [(r * cos(a), 0, r * sin(a)),

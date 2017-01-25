@@ -1,18 +1,18 @@
-from math import cos, sin
+from math import cos, sin, pi
 
 import numpy as np
 # import matplotlib.pyplot as plt
 
 import ase.units as units
 from ase import Atoms
-from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaHOH,
+from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaH2O,
                                    set_tip3p_charges)
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
 r = rOH
-a = thetaHOH
+a = thetaH2O * pi / 180
 
 # From http://dx.doi.org/10.1063/1.445869
 eexp = 6.50 * units.kcal / units.mol
@@ -49,7 +49,7 @@ for calc in [TIP3P(),
     F = np.array(F)
 
     # plt.plot(D, E)
-    
+
     F1 = np.polyval(np.polyder(np.polyfit(D, E, 7)), D)
     F2 = F[:, :3, 0].sum(1)
     error = abs(F1 - F2).max()
@@ -74,7 +74,7 @@ for calc in [TIP3P(),
     assert abs(e0 + eexp) < 0.002
     assert abs(d0 - dexp) < 0.006
     assert abs(a0 - aexp) < 2
-    
+
 print(fmt.format('reference', 9.999, eexp, dexp, aexp))
-    
+
 # plt.show()

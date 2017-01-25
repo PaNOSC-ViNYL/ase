@@ -23,7 +23,7 @@ from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
 
 
 def deprecate_use_of_radians():
-    pass#1 / 0
+    1 / 0
 
 
 class Atoms(object):
@@ -1169,21 +1169,20 @@ class Atoms(object):
         positions -= com  # translate center of mass to origin
         return np.cross(positions, self.get_momenta()).sum(0)
 
-    #def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
+    # def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
     def rotate(self, a, v=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms based on a vector and an angle, or two vectors.
 
         Parameters:
 
+        a = None:
+            Angle that the atoms is rotated around the vecor 'v'. The
+            angle can also be a vector and then 'a' is rotated
+            into 'v'.
+
         v:
             Vector to rotate the atoms around. Vectors can be given as
             strings: 'x', '-x', 'y', ... .
-
-        a = None:
-            Angle that the atoms is rotated around the vecor 'v'. If an angle
-            is not specified, the length of 'v' is used as the angle
-            (default). The angle can also be a vector and then 'v' is rotated
-            into 'a'.
 
         center = (0, 0, 0):
             The center is kept fixed under the rotation. Use 'COM' to fix
@@ -1199,12 +1198,10 @@ class Atoms(object):
         rotated into the y-axis:
 
         >>> from math import pi
-        >>> a = pi / 2
         >>> atoms = Atoms()
-        >>> atoms.rotate('z', a)
-        >>> atoms.rotate((0, 0, 1), a)
-        >>> atoms.rotate('-z', -a)
-        >>> atoms.rotate((0, 0, a))
+        >>> atoms.rotate(90, 'z')
+        >>> atoms.rotate(90, (0, 0, 1))
+        >>> atoms.rotate(-90, '-z')
         >>> atoms.rotate('x', 'y')
         """
 
@@ -1384,7 +1381,7 @@ class Atoms(object):
             if mask[i]:
                 group += self[i]
         group.translate(-center)
-        group.rotate(axis, diff)
+        group.rotate(diff * 180 / pi, axis)
         group.translate(center)
         # set positions in original atoms object
         j = 0
