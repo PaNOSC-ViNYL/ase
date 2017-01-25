@@ -1428,9 +1428,9 @@ class Atoms(object):
             # old API (uses radians)
             if angle is None:
                 angle = a2
-                a1, a2, a3 = a1
                 if mask is None:
                     mask = a3
+                a1, a2, a3 = a1
             else:
                 assert a2 is None and a3 is None
             f = pi / 180
