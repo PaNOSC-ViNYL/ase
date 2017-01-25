@@ -1422,9 +1422,7 @@ class Atoms(object):
 
         Same usage as in set_dihedral()."""
 
-        if isinstance(a1, int):
-            f = 1
-        else:
+        if not isinstance(a1, int):
             # old API (uses radians)
             if angle is None:
                 angle = a2
