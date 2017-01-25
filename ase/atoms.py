@@ -9,7 +9,7 @@ object.
 
 import numbers
 import warnings
-from math import cos, sin
+from math import cos, sin, pi
 import copy
 
 import numpy as np
@@ -1292,7 +1292,7 @@ class Atoms(object):
             # Old way - use radians
             assert i2 is None and i3 is None
             i0, i1, i2, i3 = i0
-            f = np.pi / 180
+            f = pi / 180
         else:
             f = 1
 
@@ -1310,7 +1310,7 @@ class Atoms(object):
             angle = -1
         if angle > 1:
             angle = 1
-        angle = np.arccos(angle) * 180 / np.pi
+        angle = np.arccos(angle) * 180 / pi
         if np.vdot(bxa, c) > 0:
             angle = 360 - angle
         return angle * f
@@ -1376,12 +1376,20 @@ class Atoms(object):
         start = self.get_dihedral(list)
         self.set_dihedral(list, angle + start, mask)
 
-    def get_angle(self, list):
+    def get_angle(self, a1, a2=None, a3=None):
         """Get angle formed by three atoms.
 
-        calculate angle between the vectors list[1]->list[0] and
-        list[1]->list[2], where list contains the atomic indexes in
-        question."""
+        calculate angle in degrees between the vectors a2->a1 and
+        a2->a3."""
+
+        if a2 is None:
+            # old way: use radians
+            assert a3 is None
+            a1, a2, a3 = a1
+            f = 1
+        else:
+            f = 180 / pi
+
         # normalized vector 1->0, 1->2:
         v10 = self.positions[list[0]] - self.positions[list[1]]
         v12 = self.positions[list[2]] - self.positions[list[1]]
@@ -1389,30 +1397,44 @@ class Atoms(object):
         v12 /= np.linalg.norm(v12)
         angle = np.vdot(v10, v12)
         angle = np.arccos(angle)
-        return angle
+        return angle * f
 
-    def set_angle(self, list, angle, mask=None):
-        """Set angle formed by three atoms.
+    # def set_angle(self, list, angle, mask=None):
+    def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None):
+        """Set angle (in degrees) formed by three atoms.
 
-        Sets the angle between vectors list[1]->list[0] and
-        list[1]->list[2].
+        Sets the angle between vectors a2->a1 and a2->a3.
 
-        Same usage as in set_dihedral."""
+        Same usage as in set_dihedral()."""
+
+        if isinstance(a1, int):
+            f = 1
+        else:
+            # old API (uses radians)
+            if angle is None:
+                angle = a2
+                a1, a2, a3 = a1
+                if mask is None:
+                    mask = a3
+            else:
+                assert a2 is None and a3 is None
+            f = pi / 180
+
         # If not provided, set mask to the last atom in the angle description
         if mask is None:
             mask = np.zeros(len(self))
-            mask[list[2]] = 1
+            mask[a3] = 1
         # Compute necessary in angle change, from current value
-        current = self.get_angle(list)
-        diff = angle - current
+        current = self.get_angle(a1, a2, a3)
+        diff = (angle - current) * f
         # Do rotation of subgroup by copying it to temporary atoms object and
         # then rotating that
-        v10 = self.positions[list[0]] - self.positions[list[1]]
-        v12 = self.positions[list[2]] - self.positions[list[1]]
+        v10 = self.positions[a1] - self.positions[a2]
+        v12 = self.positions[a3] - self.positions[a2]
         v10 /= np.linalg.norm(v10)
         v12 /= np.linalg.norm(v12)
         axis = np.cross(v10, v12)
-        center = self.positions[list[1]]
+        center = self.positions[a2]
         self._masked_rotate(center, axis, diff, mask)
 
     def rattle(self, stdev=0.001, seed=42):
