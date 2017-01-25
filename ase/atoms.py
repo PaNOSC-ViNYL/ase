@@ -1138,7 +1138,8 @@ class Atoms(object):
         positions -= com  # translate center of mass to origin
         return np.cross(positions, self.get_momenta()).sum(0)
 
-    def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
+    #def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
+    def rotate(self, a, v=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms based on a vector and an angle, or two vectors.
 
         Parameters:
@@ -1176,11 +1177,26 @@ class Atoms(object):
         >>> atoms.rotate('x', 'y')
         """
 
+        if not isinstance(a, (float, int)):
+            # old API maybe?
+            if isinstance(v, (float, int)):
+                print(a,v)
+                a, v = v * 180 / pi, a
+                print('b',a,v)
+            elif v is None:
+                v = a
+                a = None
+            else:
+                assert a is not None
+        else:
+            assert a is not None
+
         norm = np.linalg.norm
         v = string2vector(v)
         if a is None:
             a = norm(v)
         if isinstance(a, (float, int)):
+            a *= pi / 180
             v /= norm(v)
             c = cos(a)
             s = sin(a)
@@ -1228,6 +1244,10 @@ class Atoms(object):
             self.set_cell(rotcell)
 
     def rotate_euler(self, center=(0, 0, 0), phi=0.0, theta=0.0, psi=0.0):
+        self.euler_rotate(phi * 180 / pi, theta * 180 / pi, psi * 180 / pi,
+                          center)
+
+    def euler_rotate(self, phi=0.0, theta=0.0, psi=0.0, center=(0, 0, 0)):
         """Rotate atoms via Euler angles.
 
         See e.g http://mathworld.wolfram.com/EulerAngles.html for explanation.
@@ -1257,6 +1277,10 @@ class Atoms(object):
                 raise ValueError('Cannot interpret center')
         else:
             center = np.array(center)
+
+        phi *= pi / 180
+        theta *= pi / 180
+        psi *= pi / 180
 
         # First move the molecule to the origin In contrast to MATLAB,
         # numpy broadcasts the smaller array to the larger row-wise,
@@ -1363,7 +1387,7 @@ class Atoms(object):
                     if indices is None:
                         indices = a4
             else:
-                assert a2 is a3 is a4 is None
+                assert a2 is None and a3 is None and a4 is None
             a1, a2, a3, a4 = a1
 
         # if not provided, set mask to the last atom in the
@@ -1381,15 +1405,26 @@ class Atoms(object):
         center = self.positions[a3]
         self._masked_rotate(center, axis, diff, mask)
 
-    def rotate_dihedral(self, list, angle, mask=None):
+    def rotate_dihedral(self, a1, a2=None, a3=None, a4=None,
+                        angle=None, mask=None):
         """Rotate dihedral angle.
 
         Complementing the two routines above: rotate a group by a
         predefined dihedral angle, starting from its current
         configuration
         """
-        start = self.get_dihedral(list)
-        self.set_dihedral(list, angle + start, mask)
+        if isinstance(a1, int):
+            start = self.get_dihedral(a1, a2, a3, a4)
+            self.set_dihedral(a1, a2, a3, a4, angle + start, mask)
+        else:
+            if angle is None:
+                angle = a2
+                if mask is None:
+                    mask = a3
+            else:
+                assert a2 is None and a3 is None and a4 is None
+            start = self.get_dihedral(a1)
+            self.set_dihedral(a1, angle + start, mask)
 
     def get_angle(self, a1, a2=None, a3=None):
         """Get angle formed by three atoms.
