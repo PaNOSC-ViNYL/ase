@@ -333,7 +333,6 @@ def get_angles_distribution(atoms, ang_grid=9):
     in bins (default 9) with bonds defined from
     the get_neighbor_list().
     """
-    from math import pi
     conn = get_neighbor_list(atoms)
 
     if conn is None:
