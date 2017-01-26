@@ -52,6 +52,21 @@ Git master branch
 * :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
   possible (instead of energies extrapolated to 0.0 K).
 
+* All methods of the :class:`~ase.Atoms` object that deal with angles now
+  have new API's that use degrees instead of radians as the unit of angle
+  (:meth:`~ase.Atoms.get_angle`, :meth:`~ase.Atoms.set_angle`,
+  :meth:`~ase.Atoms.get_dihedral`, :meth:`~ase.Atoms.set_dihedral`,
+  :meth:`~ase.Atoms.rotate_dihedral`, :meth:`~ase.Atoms.rotate`,
+  :meth:`~ase.Atoms.euler_rotate`).
+
+  The old way of calling these methods works as always, but will start to
+  produce warnings in some future release of ASE.  Example:
+
+  >>> water.get_angle(0, 1, 2)  # new API
+  104.52
+  >>> water.get_angle([0, 1, 2])  # old API
+  1.8242181341844732
+
 
 Version 3.12.0
 ==============

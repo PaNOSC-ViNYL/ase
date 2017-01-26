@@ -22,8 +22,7 @@ from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic)
 
 
-def deprecate_use_of_radians():
-    1 / 0
+OLD_ANGLE_API_WARNING = False  # some day we'll turn this on
 
 
 class Atoms(object):
@@ -1169,7 +1168,6 @@ class Atoms(object):
         positions -= com  # translate center of mass to origin
         return np.cross(positions, self.get_momenta()).sum(0)
 
-    # def rotate(self, v, a=None, center=(0, 0, 0), rotate_cell=False):
     def rotate(self, a, v=None, center=(0, 0, 0), rotate_cell=False):
         """Rotate atoms based on a vector and an angle, or two vectors.
 
@@ -1208,10 +1206,12 @@ class Atoms(object):
         if not isinstance(a, (float, int)):
             # old API maybe?
             if isinstance(v, (float, int)):
-                deprecate_use_of_radians()
+                if OLD_ANGLE_API_WARNING:
+                    warnings.warn('Please use new API')
                 a, v = v * 180 / pi, a
             elif v is None:
-                deprecate_use_of_radians()
+                if OLD_ANGLE_API_WARNING:
+                    warnings.warn('Please use new API')
                 v = a
                 a = None
             else:
@@ -1273,7 +1273,8 @@ class Atoms(object):
             self.set_cell(rotcell)
 
     def rotate_euler(self, center=(0, 0, 0), phi=0.0, theta=0.0, psi=0.0):
-        deprecate_use_of_radians()
+        if OLD_ANGLE_API_WARNING:
+            warnings.warn('Please use new API: euler_rotate()')
         self.euler_rotate(phi * 180 / pi, theta * 180 / pi, psi * 180 / pi,
                           center)
 
@@ -1335,26 +1336,27 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self, i0, i1=None, i2=None, i3=None):
+    def get_dihedral(self, a0, a1=None, a2=None, a3=None):
         """Calculate dihedral angle.
 
-        Calculate dihedral angle (in degrees) between the vectors i0->i1
-        and i2->i3.
+        Calculate dihedral angle (in degrees) between the vectors a0->a1
+        and a2->a3.
         """
 
-        if i1 is None:
+        if a1 is None:
             # Old way - use radians
-            deprecate_use_of_radians()
-            assert i2 is None and i3 is None
-            i0, i1, i2, i3 = i0
+            if OLD_ANGLE_API_WARNING:
+                warnings.warn('Please use new API')
+            assert a2 is None and a3 is None and a4 is None
+            a0, a1, a2, a3 = a0
             f = pi / 180
         else:
             f = 1
 
         # vector 0->1, 1->2, 2->3 and their normalized cross products:
-        a = self.positions[i1] - self.positions[i0]
-        b = self.positions[i2] - self.positions[i1]
-        c = self.positions[i3] - self.positions[i2]
+        a = self.positions[a1] - self.positions[a0]
+        b = self.positions[a2] - self.positions[a1]
+        c = self.positions[a3] - self.positions[a2]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
@@ -1390,7 +1392,6 @@ class Atoms(object):
                 self.positions[i] = group[j].position
                 j += 1
 
-    # def set_dihedral(self, list, angle, mask=None, indices=None):
     def set_dihedral(self, a1, a2=None, a3=None, a4=None, angle=None,
                      mask=None, indices=None):
         """Set the dihedral angle (degrees) between vectors a1->a2 and
@@ -1411,7 +1412,8 @@ class Atoms(object):
         if isinstance(a1, int):
             angle *= pi / 180
         else:
-            deprecate_use_of_radians()
+            if OLD_ANGLE_API_WARNING:
+                warnings.warn('Please use new API')
             if angle is None:
                 angle = a2
                 if mask is None:
@@ -1449,7 +1451,8 @@ class Atoms(object):
             start = self.get_dihedral(a1, a2, a3, a4)
             self.set_dihedral(a1, a2, a3, a4, angle + start, mask)
         else:
-            deprecate_use_of_radians()
+            if OLD_ANGLE_API_WARNING:
+                warnings.warn('Please use new API')
             if angle is None:
                 angle = a2
                 if mask is None:
@@ -1467,7 +1470,8 @@ class Atoms(object):
 
         if a2 is None:
             # old API (uses radians)
-            deprecate_use_of_radians()
+            if OLD_ANGLE_API_WARNING:
+                warnings.warn('Please use new API')
             assert a3 is None
             a1, a2, a3 = a1
             f = 1
@@ -1483,7 +1487,6 @@ class Atoms(object):
         angle = np.arccos(angle)
         return angle * f
 
-    # def set_angle(self, list, angle, mask=None):
     def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None):
         """Set angle (in degrees) formed by three atoms.
 
@@ -1493,7 +1496,8 @@ class Atoms(object):
 
         if not isinstance(a1, int):
             # old API (uses radians)
-            deprecate_use_of_radians()
+            if OLD_ANGLE_API_WARNING:
+                warnings.warn('Please use new API')
             if angle is None:
                 angle = a2
                 if mask is None:
