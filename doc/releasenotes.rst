@@ -59,8 +59,8 @@ Git master branch
   :meth:`~ase.Atoms.rotate_dihedral`, :meth:`~ase.Atoms.rotate`,
   :meth:`~ase.Atoms.euler_rotate`).
 
-  The old way of calling these methods works as always, but will start to
-  produce warnings in some future release of ASE.  Example:
+  The old way of calling these methods works as always, but will give
+  you a warning.  Example:
 
   >>> water.get_angle(0, 1, 2)  # new API
   104.52

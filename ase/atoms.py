@@ -22,7 +22,7 @@ from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic)
 
 
-OLD_ANGLE_API_WARNING = False  # some day we'll turn this on
+OLD_ANGLE_API_WARNING = True
 
 
 class Atoms(object):
