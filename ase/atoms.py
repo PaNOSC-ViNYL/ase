@@ -1336,27 +1336,27 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self, a0, a1=None, a2=None, a3=None):
+    def get_dihedral(self, a1, a2=None, a3=None, a4=None):
         """Calculate dihedral angle.
 
-        Calculate dihedral angle (in degrees) between the vectors a0->a1
-        and a2->a3.
+        Calculate dihedral angle (in degrees) between the vectors a1->a2
+        and a3->a4.
         """
 
-        if a1 is None:
+        if a2 is None:
             # Old way - use radians
             if OLD_ANGLE_API_WARNING:
                 warnings.warn('Please use new API')
-            assert a2 is None and a3 is None and a4 is None
-            a0, a1, a2, a3 = a0
+            assert a3 is None and a4 is None
+            a1, a2, a3, a4 = a1
             f = pi / 180
         else:
             f = 1
 
-        # vector 0->1, 1->2, 2->3 and their normalized cross products:
-        a = self.positions[a1] - self.positions[a0]
-        b = self.positions[a2] - self.positions[a1]
-        c = self.positions[a3] - self.positions[a2]
+        # vector 1->2, 2->3, 3->4 and their normalized cross products:
+        a = self.positions[a2] - self.positions[a1]
+        b = self.positions[a3] - self.positions[a2]
+        c = self.positions[a4] - self.positions[a3]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
