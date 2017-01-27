@@ -65,7 +65,34 @@ Git master branch
   >>> water.get_angle(0, 1, 2)  # new API
   104.52
   >>> water.get_angle([0, 1, 2])  # old API
+  /home/jensj/ase/ase/atoms.py:1474: UserWarning: Please use new API:
+      atoms_object.get_angle(0, 1, 2) * pi / 180
+  warnings.warn(...)
   1.8242181341844732
+
+  Here are the changes you need to make in order to get rid of warnings:
+
+  Old API:
+
+  >>> a1 = atoms.get_angle([0, 1, 2])
+  >>> atoms.set_angle([0, 1, 2], pi / 2)
+  >>> a2 = atoms.get_dihedral([0, 1, 2, 3])
+  >>> atoms.set_dihedral([0, 1, 2, 4], pi / 6)
+  >>> atoms.rotate_dihedral([0, 1, 2, 4], 10.5 * pi / 180)
+  >>> atoms.rotate('z', pi / 4)
+  >>> atoms.rotate_euler(phi=phi, theta=theta, psi=psi)
+
+  New API:
+
+  >>> a1 = atoms.get_angle(0, 1, 2) * pi / 180
+  >>> atoms.set_angle(0, 1, 2, angle=90)
+  >>> a2 = atoms.get_dihedral(0, 1, 2, 3) * pi / 180
+  >>> atoms.set_dihedral(0, 1, 2, 4, angle=30)
+  >>> atoms.rotate_dihedral(0, 1, 2, 4, angle=10.5)
+  >>> atoms.rotate(45, 'z')
+  >>> atoms.euler_rotate(phi=phi * 180 / pi,
+                         theta=theta * 180 / pi,
+                         psi=psi * 180 / pi)
 
 
 Version 3.12.0
