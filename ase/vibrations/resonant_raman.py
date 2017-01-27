@@ -269,7 +269,7 @@ class ResonantRaman(Vibrations):
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
 
-    def get_matrix_element_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
+    def me_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
 
         Unit: 1/eV
@@ -444,25 +444,33 @@ class ResonantRaman(Vibrations):
     def electronic_me_Qcc(self, omega, gamma):
         self.read()
         Vel_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        Vel_Qcc = None
         if self.approximation.lower() == 'profeta':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
         elif self.approximation.lower() == 'placzek':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
         elif self.approximation.lower() == 'p-p':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
+        elif self.approximation.lower() == 'albrecht a':
+            Vel_Qcc = self.me_AlbrechtA(omega, gamma)
+            # divide through pre-factor
+            with np.errstate(divide='ignore'):
+                Vel_Qcc *= np.where(self.vib01_Q > 0,
+                                    1. / self.vib01_Q, 0)[:, None, None]
         else:
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
                     self.approximation) +
                 'Please use "Profeta" or "Placzek".')
         
-        # map to modes
-        self.timer.start('map R2Q')
-        V_qcc = (Vel_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
-        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
-        self.timer.stop('map R2Q')
+        # map to modes if needed
+        if Vel_Qcc is None:
+            self.timer.start('map R2Q')
+            V_qcc = (Vel_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
+            Vel_Qcc = np.dot(V_qcc.T, self.modes.T).T
+            self.timer.stop('map R2Q')
 
-        return V_Qcc
+        return Vel_Qcc
 
     def matrix_element(self, omega, gamma):
         self.read()
