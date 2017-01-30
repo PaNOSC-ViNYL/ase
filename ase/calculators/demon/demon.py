@@ -17,7 +17,8 @@ from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.calculator import equal
 import ase.io
-from ase.calculators.demon.demon_io import parse_xray
+#from ase.calculators.demon.demon_io import parse_xray
+from .demon_io import parse_xray
 
 m_e_to_amu = 1822.88839
 
@@ -660,7 +661,7 @@ class Demon(FileIOCalculator):
             lines = f.readlines()
 
             for i in range(len(lines)):
-                if lines[i].rfind('DIPOLE') > -1:
+                if lines[i].rfind('DIPOLE') > -1 and lines[i].rfind('XAS') == -1:
                     dipole[0] = float(lines[i + 1].split()[3])
                     dipole[1] = float(lines[i + 2].split()[3])
                     dipole[2] = float(lines[i + 3].split()[3])

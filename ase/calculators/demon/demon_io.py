@@ -1,8 +1,7 @@
 from ase.calculators.calculator import ReadError
-import os
 import os.path as op
 import numpy as np
-from ase.units import Bohr, Hartree
+from ase.units import Hartree
 
 def parse_xray(filename):
     #filename = self.label + '/deMon.xry'
