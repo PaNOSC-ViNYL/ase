@@ -52,6 +52,13 @@ Git master branch
 * :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
   possible (instead of energies extrapolated to 0.0 K).
 
+* :data:`ase.data.atomic_masses` has been updated to IUPAC values from
+  2016. Several elements will now have different weights which will affect
+  dynamic calculations. The old values can be recovered by overwriting the
+  array ``ase.data.atomic_masses[:104] = ase.data.atomic_masses_legacy``.
+
+* :data:`ase.data.isotopes` contains individual isotope masses compiled by
+  NIST.
 
 Version 3.12.0
 ==============
