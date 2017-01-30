@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import numpy as np
+
+from ase.data.isotope import isotopes
 from ase.data.vdw import vdw_radii
 
 __all__ = ['vdw_radii', 'chemical_symbols', 'ground_state_magnetic_moments',
            'reference_states', 'atomic_names', 'atomic_masses',
-           'atomic_numbers']
+           'atomic_numbers', 'isotopes']
 
 chemical_symbols = [
     # 0
@@ -77,7 +79,10 @@ atomic_names = [
 # sulfur, chlorine, bromine and thallium, where the weights are given as a
 # range the "conventional" weights are taken from Table 3 and the ranges are
 # given in the comments.
-atomic_masses = np.array([
+# The mass of the most stable isotope (in Table 4) is used for elements
+# where there the element has no stable isotopes (to avoid NaNs): Tc, Pm,
+# Po, At, Rn, Fr, Ra, Ac, everything after Np
+atomic_masses_iupac2016 = np.array([
     1.0,  # X
     1.008,  # H [1.00784, 1.00811]
     4.002602,  # He
@@ -121,7 +126,7 @@ atomic_masses = np.array([
     91.224,  # Zr
     92.90637,  # Nb
     95.95,  # Mo
-    np.nan,  # Tc
+    97.90721,  # 98Tc
     101.07,  # Ru
     102.90550,  # Rh
     106.42,  # Pd
@@ -139,7 +144,7 @@ atomic_masses = np.array([
     140.116,  # Ce
     140.90766,  # Pr
     144.242,  # Nd
-    np.nan,  # Pm
+    144.91276,  # 145Pm
     150.36,  # Sm
     151.964,  # Eu
     157.25,  # Gd
@@ -162,16 +167,138 @@ atomic_masses = np.array([
     204.38,  # Tl [204.382, 204.385]
     207.2,  # Pb
     208.98040,  # Bi
+    208.98243,  # 209Po
+    209.98715,  # 210At
+    222.01758,  # 222Rn
+    223.01974,  # 223Fr
+    226.02541,  # 226Ra
+    227.02775,  # 227Ac
+    232.0377,  # Th
+    231.03588,  # Pa
+    238.02891,  # U
+    237.04817,  # 237Np
+    244.06421,  # 244Pu
+    243.06138,  # 243Am
+    247.07035,  # 247Cm
+    247.07031,  # 247Bk
+    251.07959,  # 251Cf
+    252.0830,  # 252Es
+    257.09511,  # 257Fm
+    258.09843,  # 258Md
+    259.1010,  # 259No
+    262.110,  # 262Lr
+    267.122,  # 267Rf
+    268.126,  # 268Db
+    271.134,  # 271Sg
+    270.133,  # 270Bh
+    269.1338,  # 269Hs
+    278.156,  # 278Mt
+    281.165,  # 281Ds
+    281.166,  # 281Rg
+    285.177,  # 285Cn
+    286.182,  # 286Nh
+    289.190,  # 289Fl
+    289.194,  # 289Mc
+    293.204,  # 293Lv
+    293.208,  # 293Ts
+    294.214,  # 294Og
+])
+
+atomic_masses_legacy = np.array([
+    1.00000,  # X
+    1.00794,  # H
+    4.00260,  # He
+    6.94100,  # Li
+    9.01218,  # Be
+    10.81100,  # B
+    12.01100,  # C
+    14.00670,  # N
+    15.99940,  # O
+    18.99840,  # F
+    20.17970,  # Ne
+    22.98977,  # Na
+    24.30500,  # Mg
+    26.98154,  # Al
+    28.08550,  # Si
+    30.97376,  # P
+    32.06600,  # S
+    35.45270,  # Cl
+    39.94800,  # Ar
+    39.09830,  # K
+    40.07800,  # Ca
+    44.95590,  # Sc
+    47.88000,  # Ti
+    50.94150,  # V
+    51.99600,  # Cr
+    54.93800,  # Mn
+    55.84700,  # Fe
+    58.93320,  # Co
+    58.69340,  # Ni
+    63.54600,  # Cu
+    65.39000,  # Zn
+    69.72300,  # Ga
+    72.61000,  # Ge
+    74.92160,  # As
+    78.96000,  # Se
+    79.90400,  # Br
+    83.80000,  # Kr
+    85.46780,  # Rb
+    87.62000,  # Sr
+    88.90590,  # Y
+    91.22400,  # Zr
+    92.90640,  # Nb
+    95.94000,  # Mo
+    np.nan,  # Tc
+    101.07000,  # Ru
+    102.90550,  # Rh
+    106.42000,  # Pd
+    107.86800,  # Ag
+    112.41000,  # Cd
+    114.82000,  # In
+    118.71000,  # Sn
+    121.75700,  # Sb
+    127.60000,  # Te
+    126.90450,  # I
+    131.29000,  # Xe
+    132.90540,  # Cs
+    137.33000,  # Ba
+    138.90550,  # La
+    140.12000,  # Ce
+    140.90770,  # Pr
+    144.24000,  # Nd
+    np.nan,  # Pm
+    150.36000,  # Sm
+    151.96500,  # Eu
+    157.25000,  # Gd
+    158.92530,  # Tb
+    162.50000,  # Dy
+    164.93030,  # Ho
+    167.26000,  # Er
+    168.93420,  # Tm
+    173.04000,  # Yb
+    174.96700,  # Lu
+    178.49000,  # Hf
+    180.94790,  # Ta
+    183.85000,  # W
+    186.20700,  # Re
+    190.20000,  # Os
+    192.22000,  # Ir
+    195.08000,  # Pt
+    196.96650,  # Au
+    200.59000,  # Hg
+    204.38300,  # Tl
+    207.20000,  # Pb
+    208.98040,  # Bi
     np.nan,  # Po
     np.nan,  # At
     np.nan,  # Rn
     np.nan,  # Fr
-    np.nan,  # Ra
+    226.02540,  # Ra
     np.nan,  # Ac
-    232.0377,  # Th
-    231.03588,  # Pa
-    238.02891,  # U
-    np.nan,  # Np
+    232.03810,  # Th
+    231.03590,  # Pa
+    238.02900,  # U
+    237.04820,  # Np
     np.nan,  # Pu
     np.nan,  # Am
     np.nan,  # Cm
@@ -181,23 +308,12 @@ atomic_masses = np.array([
     np.nan,  # Fm
     np.nan,  # Md
     np.nan,  # No
-    np.nan,  # Lr
-    np.nan,  # Rf
-    np.nan,  # Db
-    np.nan,  # Sg
-    np.nan,  # Bh
-    np.nan,  # Hs
-    np.nan,  # Mt
-    np.nan,  # Ds
-    np.nan,  # Rg
-    np.nan,  # Cn
-    np.nan,  # Nh
-    np.nan,  # Fl
-    np.nan,  # Mc
-    np.nan,  # Lv
-    np.nan,  # Ts
-    np.nan,  # Og
+    np.nan  # Lw
 ])
+
+# set atomic_masses to most recent version
+atomic_masses = atomic_masses_iupac2016.copy()
+
 
 # Covalent radii from:
 #
