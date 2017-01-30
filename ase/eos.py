@@ -385,7 +385,10 @@ def main():
             # Special case - used by ase-gui:
             import pickle
             import sys
-            v, e = pickle.load(sys.stdin)
+            if sys.version_info[0] == 2:
+                v, e = pickle.load(sys.stdin)
+            else:
+                v, e = pickle.load(sys.stdin.buffer)
         else:
             if '@' in name:
                 index = None

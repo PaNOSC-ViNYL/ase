@@ -4,6 +4,7 @@ import os
 from ase import Atom, Atoms
 from ase.io import Trajectory, read
 from ase.constraints import FixBondLength
+from ase.calculators.calculator import PropertyNotImplementedError
 
 co = Atoms([Atom('C', (0, 0, 0)),
             Atom('O', (0, 0, 1.2))])
@@ -64,7 +65,7 @@ t.write(a)
 b = read('only-energy.traj')
 e = b.get_potential_energy()
 assert e + 42 == 0
-with must_raise(NotImplementedError):
+with must_raise(PropertyNotImplementedError):
     f = b.get_forces()
 
 # Make sure constraints play well with momenta:

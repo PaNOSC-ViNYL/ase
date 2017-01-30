@@ -11,6 +11,7 @@ import numpy as np
 import ase.units as units
 from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
+from ase.utils import basestring
 
 
 class Infrared(Vibrations):
@@ -253,7 +254,7 @@ class Infrared(Vibrations):
         elif intensity_unit == 'km/mol':
             iu_string = '   ' + iu_string
             iu_format = ' %7.1f'
-        if isinstance(log, str):
+        if isinstance(log, basestring):
             log = paropen(log, 'a')
 
         parprint('-------------------------------------', file=log)

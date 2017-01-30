@@ -8,7 +8,7 @@ from ase.io.trajectory import read_atoms
 
 def read_gpw(filename):
     try:
-        reader = ulm.ulmopen(filename)
+        reader = ulm.open(filename)
     except ulm.InvalidULMFileError:
         return read_old_gpw(filename)
     return read_atoms(reader.atoms)

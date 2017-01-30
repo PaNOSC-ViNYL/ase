@@ -14,7 +14,7 @@ from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.vibrations.franck_condon import FranckCondonOverlap
 from ase.utils.timing import Timer
-from ase.utils import convert_string_to_fd
+from ase.utils import convert_string_to_fd, basestring
 
 
 class ResonantRaman(Vibrations):
@@ -574,7 +574,7 @@ class ResonantRaman(Vibrations):
         s = 0.01 * units._e / units._c / units._hplanck
         intensities = self.get_intensities(omega, gamma)
 
-        if isinstance(log, str):
+        if isinstance(log, basestring):
             log = paropen(log, 'a')
 
         parprint('-------------------------------------', file=log)

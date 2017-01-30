@@ -69,7 +69,7 @@ class NeighborList:
         else:
             rcmax = 0.0
 
-        icell = np.linalg.inv(self.cell)
+        icell = np.linalg.pinv(self.cell)
         scaled = np.dot(self.positions, icell)
         scaled0 = scaled.copy()
 
@@ -85,7 +85,7 @@ class NeighborList:
             N.append(n)
 
         offsets = (scaled0 - scaled).round().astype(int)
-        positions0 = np.dot(scaled0, self.cell)
+        positions0 = atoms.positions + np.dot(offsets, self.cell)
         natoms = len(atoms)
         indices = np.arange(natoms)
 

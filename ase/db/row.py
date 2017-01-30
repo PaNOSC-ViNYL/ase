@@ -5,6 +5,7 @@ import numpy as np
 from ase import Atoms
 from ase.constraints import dict2constraint
 from ase.calculators.calculator import get_calculator, all_properties
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.data import chemical_symbols, atomic_masses
 from ase.io.jsonio import decode
@@ -28,10 +29,11 @@ class FancyDict(dict):
 def atoms2dict(atoms):
     dct = {
         'numbers': atoms.numbers,
-        'pbc': atoms.pbc,
-        'cell': atoms.cell,
         'positions': atoms.positions,
         'unique_id': '%x' % randint(16**31, 16**32 - 1)}
+    if atoms.cell.any():
+        dct['pbc'] = atoms.pbc
+        dct['cell'] = atoms.cell
     if atoms.has('magmoms'):
         dct['initial_magmoms'] = atoms.get_initial_magnetic_moments()
     if atoms.has('charges'):
@@ -51,7 +53,7 @@ def atoms2dict(atoms):
             for prop in all_properties:
                 try:
                     x = atoms.calc.get_property(prop, atoms, False)
-                except NotImplementedError:
+                except PropertyNotImplementedError:
                     pass
                 else:
                     if x is not None:
@@ -71,6 +73,9 @@ class AtomsRow:
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
         self.__dict__.update(dct)
+        if 'cell' not in dct:
+            self.cell = np.zeros((3, 3))
+            self.pbc = np.zeros(3, bool)
 
     def __contains__(self, key):
         return key in self.__dict__
@@ -181,7 +186,10 @@ class AtomsRow:
     @property
     def volume(self):
         """Volume of unit cell."""
-        return abs(np.linalg.det(self.cell))
+        vol = abs(np.linalg.det(self.cell))
+        if vol == 0.0:
+            raise AttributeError
+        return vol
 
     @property
     def charge(self):

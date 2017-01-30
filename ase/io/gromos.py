@@ -6,6 +6,7 @@ its procedure src/gmxlib/confio.c (write_g96_conf)
 """
 
 from ase.parallel import paropen
+from ase.utils import basestring
 
 
 def read_gromos(fileobj, index=-1):
@@ -20,7 +21,7 @@ def read_gromos(fileobj, index=-1):
     from ase.data import chemical_symbols
     import sys
 
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'r')
 
     if (index != -1):
@@ -85,7 +86,7 @@ def write_gromos(fileobj, images):
 
     from ase import units
 
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if not isinstance(images, (list, tuple)):

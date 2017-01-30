@@ -1,4 +1,5 @@
 from __future__ import division
+from ase.utils import basestring
 import re
 import warnings
 from math import sin, cos, pi
@@ -65,7 +66,7 @@ def kpoint_convert(cell_cv, skpts_kc=None, ckpts_kv=None):
     i.e. the dimension k can be empty or multidimensional.
     """
     if ckpts_kv is None:
-        icell_cv = 2 * np.pi * np.linalg.inv(cell_cv).T
+        icell_cv = 2 * np.pi * np.linalg.pinv(cell_cv).T
         return np.dot(skpts_kc, icell_cv)
     elif skpts_kc is None:
         return np.dot(ckpts_kv, cell_cv.T) / (2 * np.pi)
@@ -113,7 +114,7 @@ def bandpath(path, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
-    if isinstance(path, str):
+    if isinstance(path, basestring):
         xtal = crystal_structure_from_cell(cell)
         special = get_special_points(xtal, cell)
         paths = []

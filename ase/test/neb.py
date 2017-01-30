@@ -1,7 +1,7 @@
 from ase import Atoms
 from ase.constraints import FixAtoms
 from ase.io import Trajectory, read
-from ase.neb import NEB, NEBtools
+from ase.neb import NEB, NEBTools
 from ase.calculators.morse import MorsePotential
 from ase.optimize import BFGS, QuasiNewton
 
@@ -27,9 +27,6 @@ print(atoms)
 del atoms[5]
 print(atoms)
 assert len(atoms.constraints[0].index) == 5
-
-
-
 
 fmax = 0.05
 nimages = 3
@@ -60,7 +57,7 @@ dyn.run(fmax=fmax)
 
 # Check NEB tools.
 nt_images = read('mep.traj@-4:')
-nebtools = NEBtools(nt_images)
+nebtools = NEBTools(nt_images)
 nt_fmax = nebtools.get_fmax(climb=True)
 Ef, dE = nebtools.get_barrier()
 print(Ef, dE, fmax, nt_fmax)

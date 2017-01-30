@@ -18,15 +18,15 @@ File layout when there is only a single item::
 
 Writing:
 
->>> from ase.io.ulm import ulmopen
->>> w = ulmopen('x.ulm', 'w')
+>>> import ase.io.ulm as ulm
+>>> w = ulm.open('x.ulm', 'w')
 >>> w.write(a=np.ones(7), b=42, c='abc')
 >>> w.write(d=3.14)
 >>> w.close()
 
 Reading:
 
->>> r = ulmopen('x.ulm')
+>>> r = ulm.open('x.ulm')
 >>> print(r.c)
 abc
 
@@ -57,6 +57,11 @@ from __future__ import print_function
 import optparse
 import os
 
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
+
 import numpy as np
 
 from ase.io.jsonio import encode, decode
@@ -67,7 +72,7 @@ VERSION = 3
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
 
 
-def ulmopen(filename, mode='r', index=None, tag=''):
+def open(filename, mode='r', index=None, tag=''):
     """Open ulm-file."""
     if mode == 'r':
         return Reader(filename, index or 0)
@@ -75,6 +80,9 @@ def ulmopen(filename, mode='r', index=None, tag=''):
         2 / 0
     assert index is None
     return Writer(filename, mode, tag)
+
+
+ulmopen = open
 
 
 def align(fd):
@@ -132,7 +140,7 @@ class Writer:
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
-                fd = open(fd, 'wb')
+                fd = builtins.open(fd, 'wb')
 
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
@@ -142,7 +150,7 @@ class Writer:
                                a.tostring() +
                                self.offsets.tostring())
             else:
-                fd = open(fd, 'r+b')
+                fd = builtins.open(fd, 'r+b')
 
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
                 assert version == VERSION
@@ -324,7 +332,7 @@ class Reader:
         """Create reader."""
 
         if isinstance(fd, basestring):
-            fd = open(fd, 'rb')
+            fd = builtins.open(fd, 'rb')
 
         self._fd = fd
         self._index = index

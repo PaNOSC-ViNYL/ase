@@ -1,5 +1,6 @@
 import numpy as np
 from ase.atoms import Atoms
+from ase.utils import basestring
 
 
 def read_dftb(filename='dftb_in.hsd'):
@@ -126,7 +127,7 @@ def write_dftb_velocities(atoms, filename='velocities.txt'):
     # ase units -> atomic units
     ASE2au = Bohr / AUT
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         myfile = open(filename, 'w')
     else:
         # Assume it's a 'file-like object'
@@ -155,7 +156,7 @@ def write_dftb(filename, atoms):
     for i in indexes:
         atomsnew = atomsnew + atoms[i]
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         myfile = open(filename, 'w')
     else:
         # Assume it's a 'file-like object'
@@ -196,5 +197,5 @@ def write_dftb(filename, atoms):
         myfile.write(' %19.16f %19.16f %19.16f \n'
                      % (box[2][0], box[2][1], box[2][2]))
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         myfile.close()

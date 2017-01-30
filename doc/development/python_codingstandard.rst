@@ -74,6 +74,10 @@ Conventions`_ PEPs, summarized, clarified, and extended as follows:
   quotes""" for :term:`docstring`\ s.  Double quotes are OK for
   something like ``"don't"``.
 
+* Parentheses, ] and } must never be left alone, sad and lonesome on
+  their own line.
+
+
 .. _Style Guide for Python Code:
 .. _PEP8: http://www.python.org/peps/pep-0008.html
 .. _Docstring Conventions: http://www.python.org/peps/pep-0257.html

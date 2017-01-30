@@ -7,6 +7,7 @@ import numpy as np
 from ase.utils import rotate
 from ase.data import covalent_radii
 from ase.data.colors import jmol_colors
+from ase.utils import basestring
 
 
 class EPS:
@@ -27,7 +28,7 @@ class EPS:
 
         natoms = len(atoms)
 
-        if isinstance(rotation, str):
+        if isinstance(rotation, basestring):
             rotation = rotate(rotation)
 
         A = atoms.get_cell()
@@ -187,7 +188,8 @@ class EPS:
                 r = self.d[a] / 2
                 if ((xy[1] + r > 0) and (xy[1] - r < self.h) and
                     (xy[0] + r > 0) and (xy[0] - r < self.w)):
-                    circle = Circle(xy, r, facecolor=self.colors[a])
+                    circle = Circle(xy, r, facecolor=self.colors[a],
+                                    edgecolor='black')
                     circle.draw(self.renderer)
             else:
                 a -= self.natoms

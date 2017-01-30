@@ -5,6 +5,7 @@ from ase.optimize.fire import FIRE
 from ase.units import kB
 from ase.parallel import world
 from ase.io.trajectory import Trajectory
+from ase.utils import basestring
 
 
 class BasinHopping(Dynamics):
@@ -50,7 +51,7 @@ class BasinHopping(Dynamics):
 
         self.optimizer_logfile = optimizer_logfile
         self.lm_trajectory = local_minima_trajectory
-        if isinstance(local_minima_trajectory, str):
+        if isinstance(local_minima_trajectory, basestring):
             self.lm_trajectory = Trajectory(local_minima_trajectory,
                                             'w', atoms)
 
@@ -133,17 +134,12 @@ class BasinHopping(Dynamics):
             self.positions = positions
             self.atoms.set_positions(positions)
 
-            try:
-                opt = self.optimizer(self.atoms,
-                                     logfile=self.optimizer_logfile)
-                opt.run(fmax=self.fmax)
-                if self.lm_trajectory is not None:
-                    self.lm_trajectory.write(self.atoms)
+            opt = self.optimizer(self.atoms,
+                                 logfile=self.optimizer_logfile)
+            opt.run(fmax=self.fmax)
+            if self.lm_trajectory is not None:
+                self.lm_trajectory.write(self.atoms)
 
-                self.energy = self.atoms.get_potential_energy()
-            except:
-                # Something went wrong.
-                # In GPAW the atoms are probably to near to each other.
-                return None
+            self.energy = self.atoms.get_potential_energy()
 
         return self.energy

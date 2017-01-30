@@ -67,7 +67,7 @@ def read_elk(filename):
         if len(bfcmt[n]) > 0:
             # how to handle cases of magmoms being one or three dim array?
             magmoms += [m[-1] for m in bfcmt[n]]
-    atoms = Atoms(symbols, scaled_positions=positions)
+    atoms = Atoms(symbols, scaled_positions=positions, cell=[1, 1, 1])
     if len(magmoms) > 0:
         atoms.set_initial_magnetic_moments(magmoms)
     # final cell scale

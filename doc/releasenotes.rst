@@ -10,6 +10,48 @@ Git master branch
 
 :git:`master <>`.
 
+* The default unit-cell when you create an :class:`~ase.Atoms` object has
+  been changed from ``[[1,0,0],[0,1,0],[0,0,1]]`` to
+  ``[[0,0,0],[0,0,0],[0,0,0]]``.
+
+* New :attr:`ase.Atoms.number_of_lattice_vectors` attribute equal to,
+  big surprise, the number of non-zero lattice vectors.
+
+* The :meth:`ase.Atoms.get_cell` method has a new keyword argument
+  ``complete``.  Use ``atoms.get_cell(complete=True)`` to get a complete
+  unit cell with missing lattice vectors added at right angles to the
+  existing ones.  There is also a function :func:`ase.geometry.complete_cell`
+  that will complete a unit cell.
+
+* :func:`~ase.build.graphene_nanoribbon` no longer adds 2.5 Å of vacuum by
+  default.
+
+* All functions that create molecules, chains or surfaces
+  (see the :mod:`ase.build` module) will no longer add "dummy" lattice
+  vectors along the non-periodic directions.  As an example, the surface
+  functions will generate unit cells of the type
+  ``[[a1,a2,0],[b1,b2,0],[0,0,0]]``.  In order to define all three lattice
+  vectors, use the ``vacuum`` keyword that all
+  of the 0-d, 1-d and 2-d functions have or, equivalently, call the
+  :meth:`~ase.Atoms.center` method.
+
+* Many of the :ref:`surface generating functions <surfaces>` have changed
+  their behavior when called with ``vacuum=None`` (the default).  Before, a
+  vacuum layer equal to the interlayer spacing would be added on the upper
+  surface of the slab. Now, the third axis perpendicular to the surface will be
+  undefined (``[0, 0, 0]``).  Use ``vacuum=<half-the-interlater-distance>`` to
+  get something similar to the old behavior.
+
+* New :func:`ase.geometry.is_orthorhombic` and
+  :func:`ase.geometry.orthorhombic` functions added.
+
+* :mod:`ase.gui` now works on Python 3.
+
+* NEB-tools class has been renamed to :class:`~ase.neb.NEBTools`.
+
+* :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
+  possible (instead of energies extrapolated to 0.0 K).
+
 
 Version 3.12.0
 ==============
@@ -221,7 +263,7 @@ Version 3.8.0
 
 22 October 2013: :git:`3.8.0 <../3.8.0>`.
 
-* ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
+* ASE's :mod:`gui <ase.gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
 * The old :func:`ase.build.bulk` function is now deprecated.
