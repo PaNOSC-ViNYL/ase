@@ -57,11 +57,6 @@ from __future__ import print_function
 import optparse
 import os
 
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
-
 import numpy as np
 
 from ase.io.jsonio import encode, decode
@@ -70,6 +65,7 @@ from ase.utils import plural, basestring
 
 VERSION = 3
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
+builtin_open = open
 
 
 def open(filename, mode='r', index=None, tag=''):
@@ -140,7 +136,7 @@ class Writer:
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
-                fd = builtins.open(fd, 'wb')
+                fd = builtin_open(fd, 'wb')
 
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
@@ -150,7 +146,7 @@ class Writer:
                                a.tostring() +
                                self.offsets.tostring())
             else:
-                fd = builtins.open(fd, 'r+b')
+                fd = builtin_open(fd, 'r+b')
 
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
                 assert version == VERSION
@@ -202,7 +198,6 @@ class Writer:
         assert a.shape[1:] == self.shape[len(self.shape) - a.ndim + 1:]
         self.nmissing -= a.size
         assert self.nmissing >= 0
-
         a.tofile(self.fd)
 
     def sync(self):
@@ -332,7 +327,7 @@ class Reader:
         """Create reader."""
 
         if isinstance(fd, basestring):
-            fd = builtins.open(fd, 'rb')
+            fd = builtin_open(fd, 'rb')
 
         self._fd = fd
         self._index = index
