@@ -29,10 +29,14 @@ def overlap(calc1, calc2):
     overlap_nn = np.zeros((n1, n2), dtype=float)
     for i1 in range(n1):
         psi1 = calc1.wfs.kpt_u[0].psit_nG[i1]
+        norm1 = calc1.wfs.gd.integrate(psi1 * psi1)
         for i2 in range(n2):
             psi2 = calc2.wfs.kpt_u[0].psit_nG[i2]
-            overlap_nn[i1, i2] = calc1.wfs.gd.integrate(psi1 * psi2)
-            parprint(i1, i2, '{0:7.2f}'.format(overlap_nn[i1, i2]))
+            norm2 = calc2.wfs.gd.integrate(psi2 * psi2)
+            overlap_nn[i1, i2] = (calc1.wfs.gd.integrate(psi1 * psi2) /
+                                  np.sqrt(norm1 * norm2))
+            if abs(overlap_nn[i1, i2]) > 0.5:
+                parprint(i1, i2, '{0:7.2f} ({1:4.2f} {2:4.2f})'.format(overlap_nn[i1, i2], norm1, norm2))
     return overlap_nn
             
 
@@ -130,8 +134,11 @@ class ResonantRaman(Vibrations):
             pickle.dump(forces, fd, protocol=2)
             fd.close()
         if self.overlap:
+            self.timer.start('Overlap')
             ov_nn = overlap(self.atoms.get_calculator(), self.eq_calculator)
-            np.save(filename + '.ov', ov_nn)
+            if rank == 0:
+                np.save(filename + '.ov', ov_nn)
+            self.timer.stop('Overlap')
         self.timer.stop('Ground state')
 
         self.timer.start('Excitations')
@@ -139,9 +146,23 @@ class ResonantRaman(Vibrations):
         excitations = self.exobj(
             self.atoms.get_calculator(), **self.exkwargs)
         excitations.write(basename + self.exext)
+        if self.overlap:
+            # KSSingles
+            self.timer.start('Overlap')
+            zp = len(excitations)
+            ov_pp = np.zeros((zp, zp), dtype=float) # XXX molecules
+            for p1, ex1 in enumerate(excitations):
+                for p2, ex2 in enumerate(excitations):
+                    if abs(ov_nn[ex2.i, ex1.i]) > 0.5 and abs(ov_nn[ex2.j, ex1.j]) > 0.5:
+                        print('mov {3:2d} {4:2d} {5:2d} {6:2d} {0:5.2f} {1:5.2f} -> {2:5.2f}'.format(ov_nn[ex2.i, ex1.i], ov_nn[ex2.j, ex1.j], ov_nn[ex2.i, ex1.i] * ov_nn[ex2.j, ex1.j], ex1.i, ex1.j, ex2.i, ex2.j))
+                    ov_pp[p1, p2] = ov_nn[ex2.i, ex1.i] * ov_nn[ex2.j, ex1.j]
+            if rank == 0:
+                np.save(filename + '.mov', ov_pp)
+            self.timer.stop('Overlap')
         self.timer.stop('Excitations')
 
     def read_excitations(self):
+        """Read all finite difference excitations and select matching."""
         self.timer.start('read excitations')
         self.timer.start('really read')
         self.log('reading ' + self.exname + '.eq' + self.exext)
@@ -234,6 +255,87 @@ class ResonantRaman(Vibrations):
 
         self.timer.stop('me and energy')
 
+    def read_excitations_overlap(self):
+        """Read all finite difference excitations and wf overlaps."""
+        self.timer.start('read excitations')
+        self.timer.start('really read')
+        self.log('reading ' + self.exname + '.eq' + self.exext)
+        ex0_object = self.exobj(self.exname + '.eq' + self.exext,
+                                **self.exkwargs)
+        self.timer.stop('really read')
+
+        def append(lst, exname, matching):
+            self.timer.start('really read')
+            self.log('reading ' + exname, end=' ')
+            exo = self.exobj(exname, **self.exkwargs)
+            lst.append(exo)
+            self.timer.stop('really read')
+            self.timer.start('index')
+            matching = matching.intersection(exo)
+            self.log('len={0}, matching={1}'.format(len(exo),
+                                                    len(matching)), pre='')
+            self.timer.stop('index')
+            return matching
+
+        exm = []
+        ovm = []
+        exp = []
+        ovp = []
+        for a in self.indices:
+            for i in 'xyz':
+                name = '%s.%d%s' % (self.exname, a, i)
+                self.log('reading ' + self.exname + '-' + self.exext)
+                exm.append(self.exobj(exname + '-' + self.exext,
+                                      **self.exkwargs))
+                self.log('reading ' + self.exname + '-' + '.ov')
+                ovm.append(np.load(exname + '-' + '.ov'))
+                self.log('reading ' + self.exname + '+' + self.exext)
+                exp.append(self.exobj(exname + '+' + self.exext,
+                                      **self.exkwargs))
+                self.log('reading ' + self.exname + '+' + '.ov')
+                ovp.append(np.load(exname + '+' + '.ov'))
+        self.ndof = 3 * len(self.indices)
+        self.timer.stop('read excitations')
+
+        self.timer.start('me and energy')
+
+        eu = u.Hartree
+        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
+        self.ex0m_pc = (np.array(
+            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
+            * u.Bohr)
+        exmE_rp = []
+        expE_rp = []
+        exF_rp = []
+        exmm_rpc = []
+        expm_rpc = []
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                exmE_rp.append([em.energy for em in exm[r]])
+                expE_rp.append([ep.energy for ep in exp[r]])
+                exF_rp.append(
+                    [(em.energy - ep.energy)
+                     for ep, em in zip(exp[r], exm[r])])
+                exmm_rpc.append(
+                    [ex.get_dipole_me(form=self.dipole_form)
+                     for ex in exm[r]])
+                expm_rpc.append(
+                    [ex.get_dipole_me(form=self.dipole_form)
+                     for ex in exp[r]])
+                r += 1
+        # indicees: r=coordinate, p=excitation
+        # energies in eV
+        self.exmE_rp = np.array(exmE_rp) * eu
+        self.expE_rp = np.array(expE_rp) * eu
+        # forces in eV / Angstrom
+        self.exF_rp = np.array(exF_rp) * eu / 2 / self.delta
+        # matrix elements in e * Angstrom
+        self.exmm_rpc = np.array(exmm_rpc) * u.Bohr
+        self.expm_rpc = np.array(expm_rpc) * u.Bohr
+
+        self.timer.stop('me and energy')
+
     def read(self, method='standard', direction='central'):
         """Read data from a pre-performed calculation."""
         if not hasattr(self, 'modes'):
@@ -252,7 +354,10 @@ class ResonantRaman(Vibrations):
             self.vib01_Q *= np.sqrt(u._me * u.kg * u.Ha) * u.Bohr
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0E_p'):
-            self.read_excitations()
+            if self.overlap:
+                self.read_excitations_overlap()
+            else:
+                self.read_excitations()
 
     def get_Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
