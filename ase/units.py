@@ -1,14 +1,13 @@
-from math import pi, sqrt
+"""ase.units
 
-# Define all the expected symbols so that introspection will know that
-# they exist when the module is imported.
-__all__ = ['__codata_version__', 'create_units', 'CODATA',
-           '_Grav', '_Nav', '_amu', '_auf', '_aup', '_aut', '_auv', '_c',
-           '_e', '_eps0', '_hbar', '_hplanck', '_k', '_me', '_mp', '_mu0',
-           'A', 'AUT', 'Ang', 'Angstrom', 'Bohr', 'C', 'Debye', 'GPa',
-           'Ha', 'Hartree', 'J', 'Pascal', 'Ry', 'Rydberg',
-           'alpha', 'eV', 'fs', 'invcm', 'kB', 'kJ', 'kcal', 'kg', 'm',
-           'mol', 'nm', 's', 'second']
+Physical constants and units derived from CODATA for converting
+to and from ase internal units.
+
+
+"""
+
+
+from math import pi, sqrt
 
 
 # the version we actually use
@@ -203,6 +202,15 @@ def create_units(codata_version):
 
     return u
 
+
+# Define all the expected symbols with dummy values so that introspection
+# will know that they exist when the module is imported, even though their
+# values are immediately overwritten.
+# pylint: disable=invalid-name
+(_Grav, _Nav, _amu, _auf, _aup, _aut, _auv, _c, _e, _eps0,
+ _hbar, _hplanck, _k, _me, _mp, _mu0, alpha, eV, fs, invcm,
+ kB, kJ, kcal, kg, m, mol, nm, s, second, A, AUT, Ang, Angstrom,
+ Bohr, C, Debye, GPa, Ha, Hartree, J, Pascal, Ry, Rydberg) = [0.0] * 43
 
 # Now update the module scope:
 globals().update(create_units(__codata_version__))
