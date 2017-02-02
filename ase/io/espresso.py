@@ -137,7 +137,11 @@ def make_atoms(index, lines, key, cell, alat=None):
         forceline = min([n for n in forcelines if n > index])
         # In QE 5.3 the 'negative rho' has moved above the forceline
         # so need to start 2 lines down.
-        for line in lines[forceline + 2:]:
+        if not lines[forceline + 2].strip():
+            offset = 4
+        else:
+            offset = 2
+        for line in lines[forceline + offset:]:
             words = line.split()
             if 'force =' in line:
                 fx = float(words[-3])
@@ -172,13 +176,33 @@ def make_atoms(index, lines, key, cell, alat=None):
 
 
 def read_espresso_in(fileobj):
-    """Reads espresso input files."""
+    """Parse a Quantum ESPRESSO input files, '.in', '.pwi'.
+
+    ESPRESSO inputs are generally a fortran-namelist format with custom
+    blocks of data. The namelist is parsed as a dict and an atoms object
+    is constructed from the included information.
+
+    Parameters
+    ----------
+    fileobj : file | str
+        A file-like object that supports line iteration with the contents
+        of the input file.
+
+    Returns
+    -------
+    atoms : Atoms
+        Structure defined in the input file.
+
+    """
+    # TODO: use ase opening mechanisms
     if isinstance(fileobj, basestring):
         fileobj = open(fileobj, 'rU')
-    data, extralines = read_fortran_namelist(fileobj)
-    positions, method = get_atomic_positions(extralines,
+    # parse namelist section
+    data, extra_lines = read_fortran_namelist(fileobj)
+
+    positions, method = get_atomic_positions(extra_lines,
                                              n_atoms=data['system']['nat'])
-    cell = get_cell_parameters(extralines)
+    cell = get_cell_parameters(extra_lines)
     if data['system']['ibrav'] == 0:
         atoms = build_atoms(positions, method, cell,
                             data['system']['celldm(1)'])
@@ -204,6 +228,7 @@ def build_atoms(positions, method, cell, alat):
 def get_atomic_positions(lines, n_atoms):
     """Returns the atomic positions of the atoms as an (ordered) list from
     the lines of text of the espresso input file."""
+
     # FIXME: assumes angstrom units
     atomic_positions = []
     line = [n for (n, l) in enumerate(lines) if 'ATOMIC_POSITIONS' in l]
@@ -241,21 +266,57 @@ def get_cell_parameters(lines):
 
 
 def str_to_value(string):
-    """Convert string into int, float, or bool, if possible, else return it."""
-    for datatype in [int, float]:
-        try:
-            return datatype(string)
-        except ValueError:
-            pass
-    return {'.true.': True,
-            '.false.': False}.get(string.lower(), string.strip("'"))
+    """Attempt to convert string into int, float (including fortran double),
+    or bool, in that order, otherwise return the string.
+    Valid (case-insensitive) bool values are: '.true.', '.t.', 'true'
+    and 't' (or false equivalents).
+
+    Parameters
+    ----------
+    string : str
+        Test to parse for a datatype
+
+    Returns
+    -------
+    value : any
+        Parsed string as the most appropriate datatype of int, float,
+        bool or string.
+
+    """
+
+    # Just an integer
+    try:
+        return int(string)
+    except ValueError:
+        pass
+    # Standard float
+    try:
+        return float(string)
+    except ValueError:
+        pass
+    # Fortran double
+    try:
+        return float(string.lower().replace('d', 'e'))
+    except ValueError:
+        pass
+
+    # possible bool, else just the raw string
+    if string.lower() in ('.true.', '.t.', 'true', 't'):
+        return True
+    elif string.lower() in ('.false.', '.f.', 'false', 'f'):
+        return False
+    else:
+        return string.strip("'")
 
 
 def read_fortran_namelist(fileobj):
-    """Takes a fortran-namelist formatted file and returns appropriate
-    dictionaries, followed by lines of text that do not fit this pattern.
+    """Takes a fortran-namelist formatted file and returns nested
+    dictionaries of sections and key-value data, followed by a list
+    of lines of text that do not fit the specifications.
 
-    Behaviour taken from Quantum ESPRESSO 5.3:
+    Behaviour is taken from Quantum ESPRESSO 5.3. Parses fairly
+    convoluted files the same way that QE should, but may not get
+    all the MANDATORY rules and edge cases for very non-standard files:
         Ignores anything after '!' in a namelist, split pairs on ','
         to include multiple key=values on a line, read values on section
         start and end lines, section terminating character, '/', can appear
@@ -276,6 +337,7 @@ def read_fortran_namelist(fileobj):
         Any lines not used to create the data.
 
     """
+    # TODO: ignore repeated sections
     # ensure whole file is considered
     fileobj.seek(0)
 
