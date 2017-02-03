@@ -282,19 +282,6 @@ class ResonantRaman(Vibrations):
                          **self.exkwargs)
         self.timer.stop('really read')
 
-        def append(lst, exname, matching):
-            self.timer.start('really read')
-            self.log('reading ' + self.exname, end=' ')
-            exo = self.exobj(self.exname, **self.exkwargs)
-            lst.append(exo)
-            self.timer.stop('really read')
-            self.timer.start('index')
-            matching = matching.intersection(exo)
-            self.log('len={0}, matching={1}'.format(len(exo),
-                                                    len(matching)), pre='')
-            self.timer.stop('index')
-            return matching
-
         def load(name, pm):
             self.log('reading ' + name + pm + self.exext)
             ex_p = self.exobj(name + pm + self.exext, **self.exkwargs)
@@ -438,10 +425,12 @@ class ResonantRaman(Vibrations):
         self.timer.stop('AlbrechtA')
         return m_Qcc
 
-    def get_matrix_element_AlbrechtBC(self, omega, gamma=0.1, ml=[1],
-                                      term='BC'):
+    def me_AlbrechtBC(self, omega, gamma=0.1, ml=[1],
+                      term='BC'):
         """Evaluate Albrecht B and/or C term(s)."""
         self.read()
+        # we need the overlaps
+        assert(self.overlap)
 
         self.timer.start('AlbrechtBC')
 
