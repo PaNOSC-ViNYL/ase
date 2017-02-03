@@ -354,6 +354,9 @@ class Vasp(Calculator):
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
 
+    implemented_properties = ['energy', 'forces', 'dipole', 'fermi', 'stress', 
+                                'magmom', 'magmoms']
+
     def __init__(self, restart=None,
                  output_template='vasp',
                  track_output=False,
@@ -1617,6 +1620,94 @@ class Vasp(Calculator):
             xc = np.append(xc, l_)
         assert len(xc) == 32
         return xc
+
+    def check_state(self, atoms, tol=1e-15):
+        """Check for system changes since last calculation."""
+        from ase.calculators.calculator import all_changes, equal
+        if self.atoms is None:
+            system_changes = all_changes[:]
+        else:
+            system_changes = []
+            if not equal(self.atoms.positions, atoms.positions, tol):
+                system_changes.append('positions')
+            if not equal(self.atoms.numbers, atoms.numbers):
+                system_changes.append('numbers')
+            if not equal(self.atoms.cell, atoms.cell, tol):
+                system_changes.append('cell')
+            if not equal(self.atoms.pbc, atoms.pbc):
+                system_changes.append('pbc')
+            if not equal(self.atoms.get_initial_magnetic_moments(),
+                         atoms.get_initial_magnetic_moments(), tol):
+                system_changes.append('initial_magmoms')
+            if not equal(self.atoms.get_initial_charges(),
+                         atoms.get_initial_charges(), tol):
+                system_changes.append('initial_charges')
+
+        return system_changes
+
+    def get_property(self, name, atoms=None, allow_calculation=True):
+        """Returns the value of a property"""
+
+        if name not in self.implemented_properties:
+            raise NotImplementedError
+
+        if atoms is None:
+            atoms = self.atoms
+
+        saved_property = {
+            'energy': 'energy_zero',
+            'forces': 'forces',
+            'dipole': 'dipole',
+            'fermi': 'fermi',
+            'stress': 'stress',
+            'magmom': 'magnetic_moment',
+            'magmoms': 'magnetic_moments'
+        }
+        property_getter = {
+            'energy':  {'function': 'get_potential_energy', 'args': [atoms]}, 
+            'forces':  {'function': 'get_forces',           'args': [atoms]},
+            'dipole':  {'function': 'get_dipole_moment',    'args': [atoms]},
+            'fermi':   {'function': 'get_fermi_level',      'args': []},
+            'stress':  {'function': 'get_stress',           'args': [atoms]},
+            'magmom':  {'function': 'get_magnetic_moment',  'args': [atoms]},
+            'magmoms': {'function': 'get_magnetic_moments', 'args': [atoms]}
+        }
+
+        if allow_calculation:
+            function = property_getter[name]['function']
+            args = property_getter[name]['args']
+            result = getattr(self, function)(*args)
+        else:
+            if hasattr(self, saved_property[name]):
+                result = getattr(self, saved_property[name])
+            else:
+                result = None
+
+        if isinstance(result, np.ndarray):
+            result = result.copy()
+        return result
+
+    def todict(self):
+        """Returns a dictionary of all parameters 
+        that can be used to construct a new calculator object"""
+        dict_list = [ 
+            'float_params',
+            'exp_params',
+            'string_params',
+            'int_params',
+            'bool_params',
+            'list_params',
+            'special_params',
+            'dict_params',
+            'input_params'
+        ]
+        dct = {}
+        for item in dict_list:
+            dct.update(getattr(self,item))
+        for key in dct.keys():
+            if dct[key] is None:
+                del(dct[key])
+        return dct
 
 
 class VaspChargeDensity(object):
