@@ -29,43 +29,20 @@ def overlap(calc1, calc2):
     overlap_nn = np.zeros((n1, n2), dtype=float)
     for i1 in range(n1):
         psi1 = calc1.wfs.kpt_u[0].psit_nG[i1]
-        norm1 = calc1.wfs.gd.integrate(psi1 * psi1)
+        norm1 = calc1.wfs.gd.integrate(psi1.conj() * psi1)
         for i2 in range(n2):
             psi2 = calc2.wfs.kpt_u[0].psit_nG[i2]
-            norm2 = calc2.wfs.gd.integrate(psi2 * psi2)
-            overlap_nn[i1, i2] = (calc1.wfs.gd.integrate(psi1 * psi2) /
+            norm2 = calc2.wfs.gd.integrate(psi2.conj() * psi2)
+            overlap_nn[i1, i2] = (calc1.wfs.gd.integrate(psi1.conj() * psi2) /
                                   np.sqrt(norm1 * norm2))
-            if abs(overlap_nn[i1, i2]) > 0.5:
+            if 0 and abs(overlap_nn[i1, i2]) > 0.5:
                 parprint(i1, i2, '{0:7.2f} ({1:4.2f} {2:4.2f})'.format(overlap_nn[i1, i2], norm1, norm2))
     return overlap_nn
             
 
 class ResonantRaman(Vibrations):
-    """Class for calculating vibrational modes and
-    resonant Raman intensities using finite difference.
+    """Resonant Raman intensities using finite differences."""
 
-    atoms:
-        Atoms object
-    Excitations:
-        Class to calculate the excitations. The class object is
-        initialized as::
-
-            Excitations(atoms.get_calculator())
-
-        or by reading form a file as::
-
-            Excitations('filename', **exkwargs)
-
-        The file is written by calling the method
-        Excitations.write('filename').
-
-        Excitations should work like a list of ex obejects, where:
-            ex.get_dipole_me(form='v'):
-                gives the velocity form dipole matrix element in
-                units |e| * Angstrom
-            ex.energy:
-                is the transition energy in Hartrees
-    """
     def __init__(self, atoms, Excitations,
                  indices=None,
                  gsname='rraman',  # name for ground state calculations
@@ -81,7 +58,60 @@ class ResonantRaman(Vibrations):
                  txt='-',
                  verbose=False,
                  overlap=False,
+                 minoverlap=0.1,
     ):
+        """
+        Parameters
+        ----------
+        atoms: ase Atoms object
+        Excitations: class
+            Type of the excitation list object. The class object is
+            initialized as::
+
+                Excitations(atoms.get_calculator())
+
+            or by reading form a file as::
+
+                Excitations('filename', **exkwargs)
+
+            The file is written by calling the method
+            Excitations.write('filename').
+
+            Excitations should work like a list of ex obejects, where:
+                ex.get_dipole_me(form='v'):
+                    gives the velocity form dipole matrix element in
+                    units |e| * Angstrom
+                ex.energy:
+                    is the transition energy in Hartrees
+        indices: list
+        gsname: string
+            name for ground state calculations
+        exname: string
+            name for excited state calculations
+        delta: float
+            Finite difference displacement in Angstrom.
+        nfree: float
+        directions:
+        approximation: string
+            Level of approximation used.
+        observation: dict
+            Polarization settings
+        form: string
+            Form of the dipole operator, 'v' for velocity form (default) 
+            and 'r' for length form.
+        exkwargs: dict
+            Arguments given to the Excitations objects in reading.
+        exext: string
+            Extension for filenames of Excitation lists.
+        txt: 
+            Output stream
+        verbose:
+            Verbosity level of output
+        overlap: bool/float
+            Use wavefunction overlaps.
+        minoverlap: float
+            Minimal absolute overlap to consider. 
+        """
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
         self.name = gsname + '-d%.3f' % delta
@@ -106,6 +136,7 @@ class ResonantRaman(Vibrations):
 
         self.verbose = verbose
         self.overlap = overlap
+        self.minoverlap = minoverlap
         
     @staticmethod
     def m2(z):
@@ -146,19 +177,6 @@ class ResonantRaman(Vibrations):
         excitations = self.exobj(
             self.atoms.get_calculator(), **self.exkwargs)
         excitations.write(basename + self.exext)
-        if self.overlap:
-            # KSSingles
-            self.timer.start('Overlap')
-            zp = len(excitations)
-            ov_pp = np.zeros((zp, zp), dtype=float) # XXX molecules
-            for p1, ex1 in enumerate(excitations):
-                for p2, ex2 in enumerate(excitations):
-                    if abs(ov_nn[ex2.i, ex1.i]) > 0.5 and abs(ov_nn[ex2.j, ex1.j]) > 0.5:
-                        print('mov {3:2d} {4:2d} {5:2d} {6:2d} {0:5.2f} {1:5.2f} -> {2:5.2f}'.format(ov_nn[ex2.i, ex1.i], ov_nn[ex2.j, ex1.j], ov_nn[ex2.i, ex1.i] * ov_nn[ex2.j, ex1.j], ex1.i, ex1.j, ex2.i, ex2.j))
-                    ov_pp[p1, p2] = ov_nn[ex2.i, ex1.i] * ov_nn[ex2.j, ex1.j]
-            if rank == 0:
-                np.save(filename + '.mov', ov_pp)
-            self.timer.stop('Overlap')
         self.timer.stop('Excitations')
 
     def read_excitations(self):
@@ -260,14 +278,14 @@ class ResonantRaman(Vibrations):
         self.timer.start('read excitations')
         self.timer.start('really read')
         self.log('reading ' + self.exname + '.eq' + self.exext)
-        ex0_object = self.exobj(self.exname + '.eq' + self.exext,
-                                **self.exkwargs)
+        ex0 = self.exobj(self.exname + '.eq' + self.exext,
+                         **self.exkwargs)
         self.timer.stop('really read')
 
         def append(lst, exname, matching):
             self.timer.start('really read')
-            self.log('reading ' + exname, end=' ')
-            exo = self.exobj(exname, **self.exkwargs)
+            self.log('reading ' + self.exname, end=' ')
+            exo = self.exobj(self.exname, **self.exkwargs)
             lst.append(exo)
             self.timer.stop('really read')
             self.timer.start('index')
@@ -277,6 +295,16 @@ class ResonantRaman(Vibrations):
             self.timer.stop('index')
             return matching
 
+        def load(name, pm):
+            self.log('reading ' + name + pm + self.exext)
+            ex_p = self.exobj(name + pm + self.exext, **self.exkwargs)
+            self.log('reading ' + name + pm + '.pckl.ov.npy')
+            ov_nn = np.load(name + '+' + '.pckl.ov.npy')
+            # remove numerical garbage
+            ov_nn = np.where(np.abs(ov_nn) > self.minoverlap, ov_nn, 0)
+            ov_pp = ex_p.overlap(ov_nn.T)
+            return ex_p, ov_pp
+            
         exm = []
         ovm = []
         exp = []
@@ -284,16 +312,12 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.exname, a, i)
-                self.log('reading ' + self.exname + '-' + self.exext)
-                exm.append(self.exobj(exname + '-' + self.exext,
-                                      **self.exkwargs))
-                self.log('reading ' + self.exname + '-' + '.ov')
-                ovm.append(np.load(exname + '-' + '.ov'))
-                self.log('reading ' + self.exname + '+' + self.exext)
-                exp.append(self.exobj(exname + '+' + self.exext,
-                                      **self.exkwargs))
-                self.log('reading ' + self.exname + '+' + '.ov')
-                ovp.append(np.load(exname + '+' + '.ov'))
+                ex, ov = load(name, '-')
+                exm.append(ex)
+                ovm.append(ov)
+                ex, ov = load(name, '+')
+                exp.append(ex)
+                ovp.append(ov)
         self.ndof = 3 * len(self.indices)
         self.timer.stop('read excitations')
 
@@ -304,6 +328,12 @@ class ResonantRaman(Vibrations):
         self.ex0m_pc = (np.array(
             [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
             * u.Bohr)
+
+        def rotate(ex_p, ov_pp):
+            em_p = np.array(
+                [ex.get_dipole_me(form=self.dipole_form) for ex in ex_p])
+            return ov_pp.dot(em_p)
+
         exmE_rp = []
         expE_rp = []
         exF_rp = []
@@ -317,12 +347,8 @@ class ResonantRaman(Vibrations):
                 exF_rp.append(
                     [(em.energy - ep.energy)
                      for ep, em in zip(exp[r], exm[r])])
-                exmm_rpc.append(
-                    [ex.get_dipole_me(form=self.dipole_form)
-                     for ex in exm[r]])
-                expm_rpc.append(
-                    [ex.get_dipole_me(form=self.dipole_form)
-                     for ex in exp[r]])
+                exmm_rpc.append(rotate(exm[r], ovm[r]))
+                expm_rpc.append(rotate(exp[r], ovp[r]))
                 r += 1
         # indicees: r=coordinate, p=excitation
         # energies in eV
