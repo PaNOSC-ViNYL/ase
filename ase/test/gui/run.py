@@ -8,6 +8,7 @@ from ase import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.build import molecule
 from ase.gui.i18n import _
+from ase.gui.save import save_dialog
 from ase.test import NotAvailable
 
 try:
@@ -104,10 +105,13 @@ def rotate(gui):
     gui.rotate_window()
 
 
-# @test not ready yet!
-def open(gui):
-    molecule('H2O').write('h2o.json')
-    gui.open()
+@test
+def open_and_save(gui):
+    mol = molecule('H2O')
+    for i in range(3):
+        mol.write('h2o.json')
+    gui.open(filename='h2o.json')
+    save_dialog(gui, 'h2o.cif@-1')
 
 
 p = argparse.ArgumentParser()
