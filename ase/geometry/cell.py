@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
@@ -19,21 +19,31 @@ def angle(x, y):
 
 
 def cell_to_cellpar(cell):
-    """Returns the cell parameters [a, b, c, alpha, beta, gamma] as a
-    numpy array."""
-    va, vb, vc = cell
-    a = np.linalg.norm(va)
-    b = np.linalg.norm(vb)
-    c = np.linalg.norm(vc)
-    alpha = 180.0 / pi * arccos(dot(vb, vc) / (b * c))
-    beta = 180.0 / pi * arccos(dot(vc, va) / (c * a))
-    gamma = 180.0 / pi * arccos(dot(va, vb) / (a * b))
-    return np.array([a, b, c, alpha, beta, gamma])
-        
+    """Returns the cell parameters [a, b, c, alpha, beta, gamma].
+
+    Angles are in degrees.
+    """
+    lengths = [np.linalg.norm(v) for v in cell]
+    angles = []
+    for i in range(3):
+        j = i - 1
+        k = i - 2
+        ll = lengths[j] * lengths[k]
+        if ll > 1e-16:
+            x = np.dot(cell[j], cell[k]) / ll
+            angle = 180.0 / pi * arccos(x)
+        else:
+            angle = 90.0
+        angles.append(angle)
+    return np.array(lengths + angles)
+
 
 def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
-    """Return a 3x3 cell matrix from `cellpar` = [a, b, c, alpha,
-    beta, gamma].  The returned cell is orientated such that a and b
+    """Return a 3x3 cell matrix from cellpar=[a,b,c,alpha,beta,gamma].
+
+    Angles must be in degrees.
+
+    The returned cell is orientated such that a and b
     are normal to `ab_normal` and a is parallel to the projection of
     `a_direction` in the a-b plane.
 
@@ -47,7 +57,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
 
     Example:
 
-    >>> cell = cellpar_to_cell([1, 2, 4,  10,  20, 30], (0,1,1), (1,2,3))
+    >>> cell = cellpar_to_cell([1, 2, 4, 10, 20, 30], (0, 1, 1), (1, 2, 3))
     >>> np.round(cell, 3)
     array([[ 0.816, -0.408,  0.408],
            [ 1.992, -0.13 ,  0.13 ],
@@ -100,3 +110,83 @@ def metric_from_cell(cell):
     Cartesian system."""
     cell = np.asarray(cell, dtype=float)
     return np.dot(cell, cell.T)
+
+
+def crystal_structure_from_cell(cell, eps=1e-4):
+    """Return the crystal structure as a string calculated from the cell.
+
+    Supply a cell (from atoms.get_cell()) and get a string representing
+    the crystal structure returned. Works exactly the opposite
+    way as ase.dft.kpoints.get_special_points().
+
+    Parameters:
+
+    cell : numpy.array or list
+        An array like atoms.get_cell()
+
+    Returns:
+
+    crystal structure : str
+        'cubic', 'fcc', 'bcc', 'tetragonal', 'orthorhombic',
+        'hexagonal' or 'monoclinic'
+    """
+    cellpar = cell_to_cellpar(cell)
+    abc = cellpar[:3]
+    angles = cellpar[3:] / 180 * pi
+    a, b, c = abc
+    alpha, beta, gamma = angles
+    if abc.ptp() < eps and abs(angles - pi / 2).max() < eps:
+        return 'cubic'
+    elif abc.ptp() < eps and abs(angles - pi / 3).max() < eps:
+        return 'fcc'
+    elif abc.ptp() < eps and abs(angles - np.arccos(-1 / 3)).max() < eps:
+        return 'bcc'
+    elif abs(a - b) < eps and abs(angles - pi / 2).max() < eps:
+        return 'tetragonal'
+    elif abs(angles - pi / 2).max() < eps:
+        return 'orthorhombic'
+    elif (abs(a - b) < eps and
+          abs(gamma - pi / 3 * 2) < eps and
+          abs(angles[:2] - pi / 2).max() < eps):
+        return 'hexagonal'
+    elif (c >= a and c >= b and alpha < pi / 2 and
+          abs(angles[1:] - pi / 2).max() < eps):
+        return 'monoclinic'
+    else:
+        raise ValueError('Cannot find crystal structure')
+
+
+def complete_cell(cell):
+    """Calculate complete cell with missing lattice vectors.
+
+    Returns a new 3x3 ndarray.
+    """
+
+    cell = np.array(cell, dtype=float)
+    missing = np.nonzero(~cell.any(axis=1))[0]
+
+    if len(missing) == 3:
+        cell.flat[::4] = 1.0
+    if len(missing) == 2:
+        # Must decide two vectors:
+        i = 3 - missing.sum()
+        assert abs(cell[i, missing]).max() < 1e-16, "Don't do that"
+        cell[missing, missing] = 1.0
+    elif len(missing) == 1:
+        i = missing[0]
+        cell[i] = np.cross(cell[i - 2], cell[i - 1])
+        cell[i] /= np.linalg.norm(cell[i])
+
+    return cell
+
+
+def is_orthorhombic(cell):
+    """Check that cell only has stuff in the diagonal."""
+    return not (np.flatnonzero(cell) % 4).any()
+
+
+def orthorhombic(cell):
+    """Return cell as three box dimensions or raise ValueError."""
+    if not is_orthorhombic(cell):
+        raise ValueError('Not orthorhombic')
+    return cell.diagonal().copy()

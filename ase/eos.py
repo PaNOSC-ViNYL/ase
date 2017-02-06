@@ -67,7 +67,11 @@ def birch(V, E0, B0, BP, V0):
 
 
 def birchmurnaghan(V, E0, B0, BP, V0):
-    'BirchMurnaghan equation from PRB 70, 224107'
+    """
+    BirchMurnaghan equation from PRB 70, 224107
+    Eq. (3) in the paper. Note that there's a typo in the paper and it uses
+    inversed expression for eta.
+    """
 
     eta = (V0 / V)**(1 / 3)
     E = E0 + 9 * B0 * V0 / 16 * (eta**2 - 1)**2 * (
@@ -381,7 +385,10 @@ def main():
             # Special case - used by ase-gui:
             import pickle
             import sys
-            v, e = pickle.load(sys.stdin)
+            if sys.version_info[0] == 2:
+                v, e = pickle.load(sys.stdin)
+            else:
+                v, e = pickle.load(sys.stdin.buffer)
         else:
             if '@' in name:
                 index = None

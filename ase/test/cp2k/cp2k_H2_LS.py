@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 """Test suit for the CP2K ASE calulator.
@@ -37,4 +36,3 @@ def main():
 
 
 main()
-# EOF

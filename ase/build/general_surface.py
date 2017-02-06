@@ -1,13 +1,13 @@
 import numpy as np
 from numpy.linalg import norm, solve
 
-from ase.utils import gcd
+from ase.utils import gcd, basestring
 from ase.build import bulk
 
 
 def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
     """Create surface from a given lattice and Miller indices.
-    
+
     lattice: Atoms object or str
         Bulk lattice structure of alloy or pure metal.  Note that the
         unit-cell must be the conventional cell - not the primitive cell.
@@ -26,7 +26,7 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
     if indices.shape != (3,) or not indices.any() or indices.dtype != int:
         raise ValueError('%s is an invalid surface type' % indices)
 
-    if isinstance(lattice, str):
+    if isinstance(lattice, basestring):
         lattice = bulk(lattice, cubic=True)
 
     h, k, l = indices
@@ -41,7 +41,7 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
     else:
         p, q = ext_gcd(k, l)
         a1, a2, a3 = lattice.cell
-        
+
         # constants describing the dot product of basis c1 and c2:
         # dot(c1,c2) = k1+i*k2, i in Z
         k1 = np.dot(p * (k * a1 - h * a2) + q * (l * a1 - h * a3),
@@ -52,7 +52,7 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
         if abs(k2) > tol:
             i = -int(round(k1 / k2))  # i corresponding to the optimal basis
             p, q = p + i * l, q - i * k
-            
+
         a, b = ext_gcd(p * k + q * l, h)
 
         c1 = (p * k + q * l, -p * h, -q * h)
@@ -77,7 +77,7 @@ def build(lattice, basis, layers, tol):
     surf.set_cell([a1, a2,
                    np.cross(a1, a2) * np.dot(a3, np.cross(a1, a2)) /
                    norm(np.cross(a1, a2))**2])
-    
+
     # Change unit cell to have the x-axis parallel with a surface vector
     # and z perpendicular to the surface:
     a1, a2, a3 = surf.cell
@@ -93,6 +93,8 @@ def build(lattice, basis, layers, tol):
     scaled = surf.get_scaled_positions()
     scaled[:, :2] %= 1
     surf.set_scaled_positions(scaled)
+
+    surf.cell[2] = 0.0
 
     return surf
 

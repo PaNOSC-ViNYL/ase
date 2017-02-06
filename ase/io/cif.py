@@ -303,10 +303,10 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
 
 def write_cif(fileobj, images):
     """Write *images* to CIF file."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     for i, atoms in enumerate(images):

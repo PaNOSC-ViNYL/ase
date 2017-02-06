@@ -7,15 +7,16 @@ Note: GEN format only supports single snapshot.
 
 from ase.atoms import Atoms
 from ase.parallel import paropen
+from ase.utils import basestring
 
 
 def read_gen(fileobj):
     """Read structure in GEN format (refer to DFTB+ manual).
        Multiple snapshot are not allowed. """
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
-    image = Atoms()    
+    image = Atoms()
     lines = fileobj.readlines()
     line = lines[0].split()
     natoms = int(line[0])
@@ -67,7 +68,7 @@ def read_gen(fileobj):
 def write_gen(fileobj, images):
     """Write structure in GEN format (refer to DFTB+ manual).
        Multiple snapshots are not allowed. """
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if not isinstance(images, (list, tuple)):

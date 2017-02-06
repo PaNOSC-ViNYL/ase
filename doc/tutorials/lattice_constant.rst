@@ -37,7 +37,7 @@ Analysis
 
 Now, we need to extract the data from the trajectory.  Try this:
 
->>> from ase.lattice import bulk
+>>> from ase.build import bulk
 >>> ni = bulk('Ni', 'hcp', a=2.5, c=4.0)
 >>> ni.cell
 array([[ 2.5       ,  0.        ,  0.        ],

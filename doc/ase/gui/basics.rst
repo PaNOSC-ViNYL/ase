@@ -26,25 +26,6 @@ four atoms, selected sequentially Measures the dihedral angle,
 more than four atoms              chemical composition of selection.
 ================================= ======================================
 
-ase-gui can save the following file formats:
-
-=========== =================================
-File format Comment
-=========== =================================
-xyz         XYZ file
-traj        ASE trajectory
-pdb         PDB file
-cube        Gaussian cube file
-py          Python script
-vnl         VNL file
-png         Portable Network Graphics
-pov         Persistence of Vision
-eps         Encapsulated PostScript
-in          FHI-aims geometry input
-POSCAR      VASP geometry input
-bundle      ASE bundle trajectory
-cif         Crystallographic Information File
-=========== =================================
 
 Files
 -----
@@ -53,13 +34,13 @@ The :ref:`ase-gui` program can read all the file formats the ASE's
 :func:`~ase.io.read` function can understand.
 
 ::
-  
+
   $ ase-gui N2Fe110-path.traj
 
 
 Selecting part of a trajectory
 ------------------------------
-  
+
 A Python-like syntax for selecting a subset of configurations can be
 used.  Instead of the Python syntax ``list[start:stop:step]``, you use
 :file:`filaname@start:stop:step`::
@@ -94,6 +75,7 @@ Possible formats are: ``traj``, ``xyz``, ``cube``, ``pdb``, ``eps``,
 ``png``, and ``pov``.  For details, see the :mod:`~ase.io` module
 documentation.
 
+
 Interactive use
 ---------------
 
@@ -119,7 +101,7 @@ NEB calculations
 Use :menuselection:`Tools --> NEB` to plot energy barrier.
 
 ::
-  
+
   $ ase-gui --interpolate 3 initial.xyz final.xyz -o interpolated_path.traj
 
 

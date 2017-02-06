@@ -21,6 +21,8 @@ import exceptions, glob, os, pickle, string
 from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import numpy as np
 import subprocess as sp
+from ase.calculators.calculator import PropertyNotImplementedError
+from ase.utils import basestring
 
 from . import validate
 from . import changed
@@ -436,7 +438,7 @@ class Jacapo:
         log.debug('Updating parameters')
 
         for key in self.default_input:
-            getf = getattr(self, 'get_%' % key)
+            getf = getattr(self, 'get_%s' % key)
             log.debug('getting key: %s' % key)
             self.pars[key] = getf()
             self.pars_uptodate[key] = True
@@ -927,7 +929,7 @@ than density cutoff %i' % (pw, dw))
         '''
 
         #chadi-cohen
-        if isinstance(kpts, str):
+        if isinstance(kpts, basestring):
             listofkpts = getattr(ase.dft.kpoints, kpts)
             gridtype = kpts #stored in ncfile
             #uc = self.get_atoms().get_cell()
@@ -2265,7 +2267,7 @@ than density cutoff %i' % (pw, dw))
 
         if (isinstance(pw, int)
             or isinstance(pw, float)
-            or isinstance(pw,np.int32)):
+            or isinstance(pw, np.int32)):
             return pw
         elif pw is None:
             return None
@@ -2507,9 +2509,10 @@ than density cutoff %i' % (pw, dw))
         nc.close()
 
         if stress == None:
-            raise NotImplementedError('For stress in Jacapo, first set '
-                                      'calculate_stress=True on '
-                                      'initialization.')
+            raise PropertyNotImplementedError(
+                'For stress in Jacapo, first set '
+                'calculate_stress=True on '
+                'initialization.')
 
         return stress
 

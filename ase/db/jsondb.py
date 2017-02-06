@@ -7,23 +7,25 @@ from ase.db.core import Database, ops, lock, now
 from ase.db.row import AtomsRow
 from ase.io.jsonio import encode, read_json
 from ase.parallel import world, parallel_function
+from ase.utils import basestring
 
 
 class JSONDatabase(Database):
     def __enter__(self):
         return self
-        
+
     def __exit__(self, exc_type, exc_value, tb):
         pass
-        
+
     def _write(self, atoms, key_value_pairs, data):
         Database._write(self, atoms, key_value_pairs, data)
-        
+
         bigdct = {}
         ids = []
         nextid = 1
 
-        if isinstance(self.filename, str) and os.path.isfile(self.filename):
+        if (isinstance(self.filename, basestring)
+            and os.path.isfile(self.filename)):
             try:
                 bigdct, ids, nextid = self._read_json()
             except (SyntaxError, ValueError):
@@ -63,28 +65,28 @@ class JSONDatabase(Database):
         constraints = row.get('constraints')
         if constraints:
             dct['constraints'] = constraints
-        
+
         if id is None:
             id = nextid
             ids.append(id)
             nextid += 1
-            
+
         bigdct[id] = dct
         self._write_json(bigdct, ids, nextid)
         return id
-        
+
     def _read_json(self):
         bigdct = read_json(self.filename)
         ids = bigdct['ids']
         if not isinstance(ids, list):
             ids = ids.tolist()
         return bigdct, ids, bigdct['nextid']
-        
+
     def _write_json(self, bigdct, ids, nextid):
         if world.rank > 0:
             return
-            
-        if isinstance(self.filename, str):
+
+        if isinstance(self.filename, basestring):
             fd = open(self.filename, 'w')
         else:
             fd = self.filename

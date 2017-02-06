@@ -2,17 +2,17 @@ from ase import Atoms
 from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.singlepoint import SinglePointKPoint
 from ase.units import Bohr, Hartree
-import ase.io.aff as aff
+import ase.io.ulm as ulm
 from ase.io.trajectory import read_atoms
 
 
 def read_gpw(filename):
     try:
-        reader = aff.affopen(filename)
-    except aff.InvalidAFFError:
+        reader = ulm.open(filename)
+    except ulm.InvalidULMFileError:
         return read_old_gpw(filename)
     return read_atoms(reader.atoms)
-    
+
 
 def read_old_gpw(filename):
     from gpaw.io.tar import Reader
@@ -39,11 +39,15 @@ def read_old_gpw(filename):
 
     if magmoms.any():
         atoms.set_initial_magnetic_moments(magmoms)
+        magmom = magmoms.sum()
     else:
         magmoms = None
+        magmom = None
 
     atoms.calc = SinglePointDFTCalculator(atoms, energy=energy,
-                                          forces=forces, magmoms=magmoms)
+                                          forces=forces,
+                                          magmoms=magmoms,
+                                          magmom=magmom)
     kpts = []
     if r.has_array('IBZKPoints'):
         for w, kpt, eps_n, f_n in zip(r.get('IBZKPointWeights'),

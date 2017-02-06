@@ -14,6 +14,3 @@ test.set_calculator(Dftb(label='h2o',
 dyn = QuasiNewton(test, trajectory='test.traj')
 dyn.run(fmax=0.01)
 write('test.final.xyz', test)
-
-
-

@@ -254,8 +254,7 @@ follows::
    from ase.build import make_supercell
    conf = bulk('Au')
    P = find_optimal_cell_shape(conf.cell, 495, 'sc')
-   from ase.build import make_supercell
-   supercell = make_supercell(P, conf)
+   supercell = make_supercell(conf, P)
 
 
    

@@ -1,23 +1,25 @@
-.. module:: calculate
-
 =========
 Calculate
 =========
 
+(currently disabled)
+
 Set calculator
 --------------
 
-Allows :mod:`gui` to choose a calculator for internal computations (see
+Allows :mod:`ase.gui` to choose a calculator for internal computations (see
 below). Different density functional codes and force fields, as well
 as the EMT calculator are available. For the FHI-aims and VASP
 calculators, it is also possible to export an entire set of input
-files. 
+files.
+
 
 Energy and forces
 -----------------
 
 Invokes the currently set calculator and provides energies and
-optional forces for all atoms. 
+optional forces for all atoms.
+
 
 Energy minimization
 -------------------
@@ -25,9 +27,4 @@ Energy minimization
 Runs an ASE relaxation using the currently selected calculator with a
 choice of relaxation algorithm and convergence criteria. Great for
 quickly (pre-)relaxing a molecule before placing it into a bigger
-system. 
-
-Scale system
-------------
-
-Stub
+system.

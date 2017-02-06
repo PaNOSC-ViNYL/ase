@@ -10,7 +10,7 @@ Webpage: http://wiki.fysik.dtu.dk/ase
 Requirements
 ------------
 
-* Python_ 2.6-3.5
+* Python_ 2.6, 2.7, 3.4, 3.5
 * NumPy_ (base N-dimensional array package)
 
 Optional:
@@ -39,7 +39,7 @@ and send us the output if there are failing tests.
 Contact
 -------
 
-* Mailing lists: ase-users_ and ase-developers_
+* Mailing list: ase-users_
 * IRC_: #ase on freenode.net
 
 Please send us bug-reports, patches, code, ideas and questions.
@@ -65,7 +65,7 @@ BFGS:   1  19:10:50    -31.490773     0.3740
 BFGS:   2  19:10:50    -31.492791     0.0630
 BFGS:   3  19:10:51    -31.492848     0.0023
 >>> write('H2.xyz', h2)
->>> h2.get_potential_energy()  # ASE's units are eV and Å
+>>> h2.get_potential_energy()  # ASE's units are eV and Ang
 -31.492847800329216
 
 ::
@@ -79,5 +79,4 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 .. _Matplotlib: http://matplotlib.org/
 .. _pygtk: http://www.pygtk.org/
 .. _ase-users: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
-.. _ase-developers: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-developers
 .. _IRC: http://webchat.freenode.net/?randomnick=0&channels=ase

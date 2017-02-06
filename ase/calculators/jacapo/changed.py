@@ -5,6 +5,8 @@ import logging
 log = logging.getLogger('Jacapo')
 
 import ase.dft.kpoints
+from ase.utils import basestring
+
 
 '''
 provides functions to determine if an input parameter has changed.
@@ -26,7 +28,7 @@ def kpts_changed(calc, x):
     grids.
     '''
     #chadi-cohen
-    if isinstance(x, str):
+    if isinstance(x, basestring):
         listofkpts = getattr(ase.dft.kpoints, x)
     #monkhorst-pack grid
     elif np.array(x).shape == (3,):
@@ -40,7 +42,7 @@ def kpts_changed(calc, x):
         raise Exception('apparent invalid setting for kpts')
 
     grid = calc.get_kpts()
-    
+
     if grid.shape != listofkpts.shape:
         return True
 
@@ -114,7 +116,7 @@ def charge_mixing_changed(calc, x):
         return False
     else:
         return True
-        
+
     for key in x:
         if x[key] != cm[key]:
             return True
@@ -132,12 +134,15 @@ def dipole_changed(calc, x):
     pars = calc.get_dipole() #pars stored in calculator
 
     # pars = False if no dipole variables exist
+    # XXX fix the "logic" below.   "if not pars and not x"
+    # or can it be very different types?  This is very difficult to read
     if (pars is False and x is False):
         return False #no change
     elif (pars is False and x is not False):
         return True
 
     # both x and pars is a dictionary
+    # XXX wtf?  type(dict) == dict.  If x is a dict then type(x) is at least
     if (isinstance(pars, type(dict)) and
         isinstance(pars, type(x))):
         for key in x:
@@ -165,7 +170,13 @@ def fftgrid_changed(calc, x):
     else:
         return True
 
-
+def ncoutput_changed(calc, x):
+    ncout = calc.get_ncoutput()
+    for key in x:
+        if x[key] != ncout[key]:
+            return True
+    return False
+    
 def nbands_changed(calc, x):
     if calc.get_nbands() == x:
         return False
@@ -195,7 +206,7 @@ def ft_changed(calc, x):
         return False
     else:
         return True
-    
+
 def mdos_changed(calc,x):
 
     myx = calc.get_mdos()

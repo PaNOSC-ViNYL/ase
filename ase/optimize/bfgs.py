@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
+import warnings
+
 import numpy as np
 from numpy.linalg import eigh
 
 from ase.optimize.optimize import Optimizer
+from ase.utils import basestring
 
 
 class BFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 maxstep=None, master=None):
+                 maxstep=0.04, master=None):
         """BFGS optimizer.
 
         Parameters:
@@ -16,38 +19,42 @@ class BFGS(Optimizer):
             The Atoms object to relax.
 
         restart: string
-            Pickle file used to store hessian matrix. If set, file with 
+            Pickle file used to store hessian matrix. If set, file with
             such a name will be searched and hessian matrix stored will
             be used, if the file exists.
-        
+
         trajectory: string
             Pickle file used to store trajectory of atomic movement.
 
         logfile: file object or str
             If *logfile* is a string, a file with that name will be opened.
             Use '-' for stdout.
- 
+
         maxstep: float
             Used to set the maximum distance an atom can move per
             iteration (default value is 0.04 Å).
-        
+
         master: boolean
             Defaults to None, which causes only rank 0 to save files.  If
             set to true,  this rank will save files.
         """
+        if maxstep > 1.0:
+            warnings.warn('You are using a much too large value for '
+                          'the maximum step size: %.1f Å' % maxstep)
+        self.maxstep = maxstep
+
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
 
-        if maxstep is not None:
-            if maxstep > 1.0:
-                raise ValueError('You are using a much too large value for ' +
-                                 'the maximum step size: %.1f Å' % maxstep)
-            self.maxstep = maxstep
+    def todict(self):
+        d = Optimizer.todict(self)
+        if hasattr(self, 'maxstep'):
+            d.update(maxstep=self.maxstep)
+        return d
 
     def initialize(self):
         self.H = None
         self.r0 = None
         self.f0 = None
-        self.maxstep = 0.04
 
     def read(self):
         self.H, self.r0, self.f0, self.maxstep = self.load()
@@ -68,14 +75,14 @@ class BFGS(Optimizer):
 
     def determine_step(self, dr, steplengths):
         """Determine step to take according to maxstep
-        
+
         Normalize all steps as the largest step. This way
         we still move along the eigendirection.
         """
         maxsteplength = np.max(steplengths)
         if maxsteplength >= self.maxstep:
             dr *= self.maxstep / maxsteplength
-        
+
         return dr
 
     def update(self, r, f, r0, f0):
@@ -96,7 +103,7 @@ class BFGS(Optimizer):
 
     def replay_trajectory(self, traj):
         """Initialize hessian from old trajectory."""
-        if isinstance(traj, str):
+        if isinstance(traj, basestring):
             from ase.io.trajectory import Trajectory
             traj = Trajectory(traj, 'r')
         self.H = None
@@ -112,6 +119,7 @@ class BFGS(Optimizer):
 
         self.r0 = r0
         self.f0 = f0
+
 
 class oldBFGS(BFGS):
     def determine_step(self, dr, steplengths):

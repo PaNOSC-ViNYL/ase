@@ -2,6 +2,8 @@ import numpy as np
 
 from ase import Atoms
 from ase.data import atomic_numbers, reference_states
+from ase.utils import basestring
+
 
 def Decahedron(symbol, p, q, r, latticeconstant=None):
     """
@@ -13,7 +15,7 @@ def Decahedron(symbol, p, q, r, latticeconstant=None):
 
     p: Number of atoms on the (100) facets perpendicular to the five
     fold axis.
-    
+
     q: Number of atoms on the (100) facets parallel to the five fold
     axis. q = 1 corresponds to no visible (100) facets.
 
@@ -25,7 +27,7 @@ def Decahedron(symbol, p, q, r, latticeconstant=None):
     """
 
     # Interpret symbol
-    if isinstance(symbol, str):
+    if isinstance(symbol, basestring):
         atomic_number = atomic_numbers[symbol]
     else:
         atomic_number = symbol
