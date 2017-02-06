@@ -12,12 +12,8 @@ import numpy as np
 import ase.units as u
 from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
-from ase.vibrations.franck_condon import FranckCondonOverlap
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd
-
-# XXX remove gpaw dependence
-from gpaw.lrtddft.spectrum import polarizability
 
 
 def overlap(calc1, calc2):
@@ -372,150 +368,6 @@ class ResonantRaman(Vibrations):
             else:
                 self.read_excitations()
 
-    def get_Huang_Rhys_factors(self, forces_r):
-        """Evaluate Huang-Rhys factors derived from forces."""
-        self.timer.start('Huang-Rhys')
-        assert(len(forces_r.flat) == self.ndof)
-
-        # solve the matrix equation for the equilibrium displacements
-        X_q = np.linalg.solve(self.im[:, None] * self.H * self.im,
-                              forces_r.flat * self.im)
-        d_Q = np.dot(self.modes, X_q)
-
-        # Huang-Rhys factors S
-        s = 1.e-20 / u.kg / u.C / u._hbar**2  # SI units
-        self.timer.stop('Huang-Rhys')
-        return s * d_Q**2 * self.om_Q / 2.
-
-    def me_AlbrechtA(self, omega, gamma=0.1, ml=range(16)):
-        """Evaluate Albrecht A term.
-
-        Unit: 1/eV
-        """
-        self.read()
-
-        self.timer.start('AlbrechtA')
-
-        if not hasattr(self, 'fco'):
-            self.fco = FranckCondonOverlap()
-
-        # excited state forces
-        F_pr = self.exF_rp.T
-
-        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        for p, energy in enumerate(self.ex0E_p):
-            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
-            me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
-
-            for m in ml:
-                self.timer.start('0mm1')
-                fco_Q = self.fco.direct0mm1(m, S_Q)
-                self.timer.stop('0mm1')
-                self.timer.start('einsum')
-                m_Qcc += np.einsum('a,bc->abc',
-                                   fco_Q / (energy + m * self.om_Q - omega -
-                                            1j * gamma),
-                                   me_cc)
-                m_Qcc += np.einsum('a,bc->abc',
-                                   fco_Q / (energy + (m - 1) * self.om_Q +
-                                            omega + 1j * gamma),
-                                   me_cc)
-                self.timer.stop('einsum')
-
-        self.timer.stop('AlbrechtA')
-        return m_Qcc
-
-    def me_AlbrechtBC(self, omega, gamma=0.1, ml=[1],
-                      term='BC'):
-        """Evaluate Albrecht B and/or C term(s)."""
-        self.read()
-        # we need the overlaps
-        assert(self.overlap)
-
-        self.timer.start('AlbrechtBC')
-
-        if not hasattr(self, 'fco'):
-            self.fco = FranckCondonOverlap()
-
-        # excited state forces
-        F_pr = self.exF_rp.T
-
-        m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        for p, energy in enumerate(self.ex0E_p):
-            S_r = self.get_Huang_Rhys_factors(F_pr[p])
-
-            for m in ml:
-                self.timer.start('Franck-Condon overlaps')
-                fc1mm1_r = self.fco.direct(1, m, S_r)
-                fc0mm02_r = self.fco.direct(0, m, S_r)
-                fc0mm02_r += np.sqrt(2) * self.fco.direct0mm2(m, S_r)
-                # XXXXX
-                fc1mm1_r[-1] = 1
-                fc0mm02_r[-1] = 1
-                print(m, fc1mm1_r[-1], fc0mm02_r[-1])
-                self.timer.stop('Franck-Condon overlaps')
-
-                self.timer.start('me dervivatives')
-                dm_rc = []
-                r = 0
-                for a in self.indices:
-                    for i in 'xyz':
-                        dm_rc.append(
-                            (self.expm_rpc[r, p] - self.exmm_rpc[r, p]) *
-                            self.im[r])
-                        print('pm=', self.expm_rpc[r, p], self.exmm_rpc[r, p])
-                        r += 1
-                dm_rc = np.array(dm_rc) / (2 * self.delta)
-                self.timer.stop('me dervivatives')
-
-                self.timer.start('map to modes')
-                # print('dm_rc[2], dm_rc[5]', dm_rc[2], dm_rc[5])
-                print('dm_rc=', dm_rc)
-                dm_rc = np.dot(dm_rc.T, self.modes.T).T
-                print('dm_rc[-1][2]', dm_rc[-1][2])
-                self.timer.stop('map to modes')
-
-                self.timer.start('multiply')
-                # me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
-                for r in range(self.ndof):
-                    if 'B' in term:
-                        # XXXX
-                        denom = (1. /
-                                 (energy + m * 0 * self.om_Q[r] -
-                                  omega - 1j * gamma))
-                        # ok print('denom=', denom)
-                        m_rcc[r] += (np.outer(dm_rc[r],
-                                              self.ex0m_pc[p].conj()) *
-                                     fc1mm1_r[r] * denom)
-                        if r == 5:
-                            print('m_rcc[r]=', m_rcc[r][2, 2])
-                        m_rcc[r] += (np.outer(self.ex0m_pc[p],
-                                              dm_rc[r].conj()) *
-                                     fc0mm02_r[r] * denom)
-                    if 'C' in term:
-                        denom = (1. /
-                                 (energy + (m - 1) * self.om_Q[r] +
-                                  omega + 1j * gamma))
-                        m_rcc[r] += (np.outer(self.ex0m_pc[p],
-                                              dm_rc[r].conj()) *
-                                     fc1mm1_r[r] * denom)
-                        m_rcc[r] += (np.outer(dm_rc[r],
-                                              self.ex0m_pc[p].conj()) *
-                                     fc0mm02_r[r] * denom)
-                self.timer.stop('multiply')
-        print('m_rcc[-1]=', m_rcc[-1][2, 2])
-
-        self.timer.start('pre_r')
-        with np.errstate(divide='ignore'):
-            pre_r = np.where(self.om_Q > 0,
-                             np.sqrt(u._hbar**2 / 2. / self.om_Q), 0)
-            # print('BC: pre_r=', pre_r)
-        for r, p in enumerate(pre_r):
-            m_rcc[r] *= p
-        self.timer.stop('pre_r')
-        self.timer.stop('AlbrechtBC')
-        return m_rcc
-
     def electronic_me_profeta_rcc(self, omega, gamma=0.1,
                                   energy_derivative=False):
         """Evaluate Albrecht B+C term in Profeta and Mauri approximation"""
@@ -819,62 +671,6 @@ class ResonantRaman(Vibrations):
 
     def __del__(self):
         self.timer.write(self.txt)
-
-
-class Placzek(ResonantRaman):
-    """Raman spectra within the Placzek approximation."""
-    def __init__(*args, **kwargs):
-        # XXX check for approximation
-        kwargs['approximation'] = 'PlaczekAlpha'
-        ResonantRaman.__init__(*args, **kwargs)
-
-    def read_excitations(self):
-        self.timer.start('read excitations')
-        self.exm_r = []
-        self.exp_r = []
-        r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
-                self.log('reading ' + exname)
-                self.exm_r.append(self.exobj(exname, **self.exkwargs))
-                exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
-                self.log('reading ' + exname)
-                self.exp_r.append(self.exobj(exname, **self.exkwargs))
-                r += 1
-        self.ndof = 3 * len(self.indices)
-        self.timer.stop('read excitations')
-
-    def electronic_me_Qcc(self, omega, gamma=0):
-        self.read()
-        
-        self.timer.start('init')
-        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        pre = 1. / (2 * self.delta)
-        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
-
-        om = omega
-        if gamma:
-            om += 1j * gamma
-        self.timer.stop('init')
-        
-        self.timer.start('alpha derivatives')
-        r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                V_rcc[r] = pre * (
-                    polarizability(self.exp_r[r], om,
-                                   form=self.dipole_form, tensor=True) -
-                    polarizability(self.exm_r[r], om,
-                                   form=self.dipole_form, tensor=True))
-                r += 1
-        self.timer.stop('alpha derivatives')
- 
-        # map to modes
-        V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
-        V_Qcc = np.dot(V_qcc.T, self.modes.T).T
-        return V_Qcc
-
 
 class LrResonantRaman(ResonantRaman):
     """Resonant Raman for linear response
