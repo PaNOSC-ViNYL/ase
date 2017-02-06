@@ -571,8 +571,15 @@ class ResonantRaman(Vibrations):
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
         elif self.approximation.lower() == 'p-p':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
-        elif self.approximation.lower() == 'albrecht a':
-            Vel_Qcc = self.me_AlbrechtA(omega, gamma)
+        elif 'albrecht' in self.approximation.lower():
+            if self.approximation.lower() == 'albrecht a':
+                Vel_Qcc = self.me_AlbrechtA(omega, gamma)
+            elif self.approximation.lower() == 'albrecht bc':
+                Vel_Qcc = self.me_AlbrechtBC(omega, gamma)
+            elif self.approximation.lower() == 'albrecht b':
+                Vel_Qcc = self.me_AlbrechtBC(omega, gamma, term='B')
+            elif self.approximation.lower() == 'albrecht c':
+                Vel_Qcc = self.me_AlbrechtBC(omega, gamma, term='C')
             # divide through pre-factor
             with np.errstate(divide='ignore'):
                 Vel_Qcc *= np.where(self.vib01_Q > 0,
@@ -601,21 +608,18 @@ class ResonantRaman(Vibrations):
             for Q, vib01 in enumerate(self.vib01_Q):
                 V_Qcc[Q] = me_Qcc[Q] * vib01
         elif self.approximation.lower() == 'albrecht a':
-            V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
+            V_Qcc += self.me_AlbrechtA(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
-            raise NotImplementedError('not working')
-            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='B')
+            V_Qcc += self.me_AlbrechtBC(omega, gamma, term='B')
         elif self.approximation.lower() == 'albrecht c':
-            raise NotImplementedError('not working')
-            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma, term='C')
+            V_Qcc += self.me_AlbrechtBC(omega, gamma, term='C')
         elif self.approximation.lower() == 'albrecht bc':
-            raise NotImplementedError('not working')
-            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
+            V_Qcc += self.me_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht':
-            raise NotImplementedError('not working')
-            V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
-            V_Qcc += self.get_matrix_element_AlbrechtBC(omega, gamma)
+            V_Qcc += self.me_AlbrechtA(omega, gamma)
+            V_Qcc += self.me_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht+profeta':
+            raise NotImplementedError('not useful')
             V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
             V_Qcc += self.get_matrix_element_Profeta(omega, gamma)
         else:
