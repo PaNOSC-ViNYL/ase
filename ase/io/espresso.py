@@ -2,6 +2,7 @@
 for typical output of input files made with ASE -- that is, ibrav=0."""
 
 import warnings
+import operator as op
 from collections import OrderedDict
 
 import numpy as np
@@ -186,7 +187,7 @@ def read_espresso_in(fileobj):
     ----------
     fileobj : file | str
         A file-like object that supports line iteration with the contents
-        of the input file.
+        of the input file, or a filename.
 
     Returns
     -------
@@ -197,72 +198,179 @@ def read_espresso_in(fileobj):
     # TODO: use ase opening mechanisms
     if isinstance(fileobj, basestring):
         fileobj = open(fileobj, 'rU')
-    # parse namelist section
-    data, extra_lines = read_fortran_namelist(fileobj)
 
-    positions, method = get_atomic_positions(extra_lines,
-                                             n_atoms=data['system']['nat'])
-    cell = get_cell_parameters(extra_lines)
+    # parse namelist section and extract remaining lines
+    data, card_lines = read_fortran_namelist(fileobj)
+
+    # TODO: implemet other ibrav settings
+    # get the cell if ibrav=0
     if data['system']['ibrav'] == 0:
-        atoms = build_atoms(positions, method, cell,
-                            data['system']['celldm(1)'])
+        # celldm(1) is in Bohr, A is in angstrom. celldm(1) will be
+        # used even if A is also specified.
+        if 'celldm(1)' in data['system']:
+            alat = data['system']['celldm(1)']*units['Bohr']
+        elif 'A' in data['system']:
+            alat = data['system']['A']
+        else:
+            alat = None
+        cell = get_cell_parameters(card_lines, alat=alat)
     else:
-        raise NotImplementedError('ibrav=%i not implemented.' %
-                                  data['system']['ibrav'])
+        raise NotImplementedError('ibrav =/= 0 is not implemented')
+
+    positions_card = get_atomic_positions(
+        card_lines, n_atoms=data['system']['nat'], cell=cell, alat=alat)
+
+    symbols = [label_to_symbol(position[0]) for position in positions_card]
+    positions = [position[1] for position in positions_card]
+
+    # TODO: put more info into the atoms object
+    # e.g magmom, force constraints
+    atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=True)
+
     return atoms
 
 
-def build_atoms(positions, method, cell, alat):
-    """Creates the atoms for a quantum espresso in file."""
-    if method != 'crystal':
-        raise NotImplementedError('Only supported for crystal method of '
-                                  'ATOMIC_POSITIONS, not %s.' % method)
-    atoms = Atoms()
-    for el, (x, y, z) in positions:
-        atoms.append(Atom(el, (x, y, z)))
-    cell *= alat * units['Bohr']
-    atoms.set_cell(cell, scale_atoms=True)
-    return atoms
+def get_atomic_positions(lines, n_atoms, cell=None, alat=None):
+    """Parse atom positions from ATOMIC_POSITIONS card.
+
+    Parameters
+    ----------
+    lines : list[str]
+        A list of lines containing the ATOMIC_POSITIONS card.
+    n_atoms : int
+        Expected number of atoms. Only this many lines will be parsed.
+    cell : np.array
+        Unit cell of the crystal. Only used with crystal coordinates.
+    alat : float
+        Lattice parameter for atomic coordinated. Only used for alat.
+
+    Returns
+    -------
+    positions : list[(str, (float, float, float), (float, float, float))]
+        A list of the ordered atomic positions in the format:
+        label, (x, y, z), (if_x, if_y, if_z)
+        Force multipliers are set to None if not present.
+
+    Raises
+    ------
+    ValueError
+        Any problems parsing the data result in ValueError
+
+    """
+
+    positions = None
+    # no blanks or comment lines, can the consume n_atoms lines for positions
+    trimmed_lines = (line for line in lines
+                     if line.strip() and not line[0] == '#')
+
+    for line in trimmed_lines:
+        if line.strip().startswith('ATOMIC_POSITIONS'):
+            if positions is not None:
+                raise ValueError('Multiple ATOMIC_POSITIONS specified')
+            # Priority and behaviour tested with QE 5.3
+            if 'crystal_sg' in line.lower():
+                raise NotImplementedError('CRYSTAL_SG not implemented')
+            elif 'crystal' in line.lower():
+                cell = cell
+            elif 'bohr' in line.lower():
+                cell = np.identity(3) * units['Bohr']
+            elif 'angstrom' in line.lower():
+                cell = np.identity(3)
+            #elif 'alat' in line.lower():
+            #    cell = np.identity(3) * alat
+            else:
+                if alat is None:
+                    raise ValueError('Set lattice parameter in &SYSTEM for '
+                                     'alat coordinates')
+                # Always the default, will be DEPRECATED as mandatory
+                # in future
+                cell = np.identity(3) * alat
+
+            positions = []
+            for _atom_idx in range(n_atoms):
+                split_line = next(trimmed_lines).split()
+                # These can be fractions and other expressions
+                position = np.dot((infix_float(split_line[1]),
+                                   infix_float(split_line[2]),
+                                   infix_float(split_line[3])), cell)
+                if len(split_line) > 4:
+                    force_mult = (float(split_line[4]),
+                                  float(split_line[5]),
+                                  float(split_line[6]))
+                else:
+                    force_mult = None
+
+                positions.append((split_line[0], position, force_mult))
+
+    return positions
 
 
-def get_atomic_positions(lines, n_atoms):
-    """Returns the atomic positions of the atoms as an (ordered) list from
-    the lines of text of the espresso input file."""
+def get_cell_parameters(lines, alat=None):
+    """Parse unit cell from CELL_PARAMETERS card.
 
-    # FIXME: assumes angstrom units
-    atomic_positions = []
-    line = [n for (n, l) in enumerate(lines) if 'ATOMIC_POSITIONS' in l]
-    if len(line) == 0:
-        return None
-    if len(line) > 1:
-        raise RuntimeError('More than one ATOMIC_POSITIONS section?')
-    line_no = line[0]
-    for line in lines[line_no + 1:line_no + n_atoms + 1]:
-        el, x, y, z = line.split()[:4]
-        atomic_positions.append([el, (f2f(x), f2f(y), f2f(z))])
-    line = lines[line_no]
-    if '{' in line:
-        method = line[line.find('{') + 1:line.find('}')]
-    elif '(' in line:
-        method = line[line.find('(') + 1:line.find(')')]
-    else:
-        method = None
-    return atomic_positions, method
+    Parameters
+    ----------
+    lines : list[str]
+        A list with lines containing the CELL_PARAMETERS card.
+    alat : float | None
+        Unit of lattice vectors in Angstrom. Only used if the card is
+        given in units of alat. alat must be None if CELL_PARAMETERS card
+        is in Bohr or Angstrom.
 
+    Returns
+    -------
+    cell : np.array | None
+        Cell parameters as a 3x3 array in Angstrom. If no cell is found
+        None will be returned instead.
 
-def get_cell_parameters(lines):
-    """Returns the cell parameters as a matrix."""
-    cell_parameters = np.zeros((3, 3))
-    line = [n for (n, l) in enumerate(lines) if 'CELL_PARAMETERS' in l]
-    if len(line) == 0:
-        return None
-    if len(line) > 1:
-        raise RuntimeError('More than one CELL_PARAMETERS section?')
-    line_no = line[0]
-    for vector, line in enumerate(lines[line_no + 1:line_no + 4]):
-        x, y, z = line.split()
-        cell_parameters[vector] = (f2f(x), f2f(y), f2f(z))
-    return cell_parameters
+    Raises
+    ------
+    ValueError
+        If CELL_PARAMETERS are given in units of bohr or angstrom
+        and alat is not
+    """
+
+    cell = None
+    # no blanks or comment lines, can take three lines for cell
+    trimmed_lines = (line for line in lines
+                     if line.strip() and not line[0] == '#')
+
+    for line in trimmed_lines:
+        if line.strip().startswith('CELL_PARAMETERS'):
+            if cell is not None:
+                # multiple definitions
+                raise ValueError('CELL_PARAMETERS specified multiple times')
+            # Priority and behaviour tested with QE 5.3
+            if 'bohr' in line.lower():
+                if alat is not None:
+                    raise ValueError('Lattice parameters given in '
+                                     '&SYSTEM celldm/A and CELL_PARAMETERS '
+                                     'bohr')
+                cell_units = units['Bohr']
+            elif 'angstrom' in line.lower():
+                if alat is not None:
+                    raise ValueError('Lattice parameters given in '
+                                     '&SYSTEM celldm/A and CELL_PARAMETERS '
+                                     'angstrom')
+                cell_units = 1.0
+            elif 'alat' in line.lower():
+                if alat is None:
+                    raise ValueError('Lattice parameters must be set in '
+                                     '&SYSTEM for alat units')
+                cell_units = alat
+            elif alat is None:
+                # may be DEPRECATED in future
+                cell_units = units['Bohr']
+            else:
+                # may be DEPRECATED in future
+                cell_units = alat
+            # Grab the parameters; blank lines have been removed
+            cell = [[ffloat(x) for x in next(trimmed_lines).split()[:3]],
+                    [ffloat(x) for x in next(trimmed_lines).split()[:3]],
+                    [ffloat(x) for x in next(trimmed_lines).split()[:3]]]
+            cell = np.array(cell) * cell_units
+
+    return cell
 
 
 def str_to_value(string):
@@ -296,7 +404,7 @@ def str_to_value(string):
         pass
     # Fortran double
     try:
-        return float(string.lower().replace('d', 'e'))
+        return ffloat(string)
     except ValueError:
         pass
 
@@ -333,8 +441,9 @@ def read_fortran_namelist(fileobj):
     data : dict of dict
         Dictionary for each section in the namelist with key = value
         pairs of data.
-    extra_lines : list of str
-        Any lines not used to create the data.
+    card_lines : list of str
+        Any lines not used to create the data, assumed to belong to 'cards'
+        in the input file.
 
     """
     # TODO: ignore repeated sections
@@ -343,7 +452,7 @@ def read_fortran_namelist(fileobj):
 
     # Espresso requires the correct order
     data = OrderedDict()
-    extra_lines = []
+    card_lines = []
     in_namelist = False
     section = 'none'  # can't be in a section without changing this
 
@@ -357,7 +466,7 @@ def read_fortran_namelist(fileobj):
             in_namelist = True
         if not in_namelist and line:
             # TODO, strip comments
-            extra_lines.append(line)
+            card_lines.append(line)
         if in_namelist:
             # parse k, v from line:
             key = []
@@ -390,15 +499,38 @@ def read_fortran_namelist(fileobj):
                 data[section][''.join(key).strip()] = str_to_value(
                     ''.join(value).strip())
 
-    return data, extra_lines
+    return data, card_lines
 
 
-def f2f(value):
-    """Converts a fortran-formatted double precision number (e.g., 2.323d2)
-    to a python float. value should be a string."""
-    value = value.replace('d', 'e')
-    value = value.replace('D', 'e')
-    return float(value)
+def ffloat(string):
+    """Parse float from fortran compatible float definitions.
+
+    In fortran exponents can be defined with 'd' or 'q' to symbolise
+    double or quad precision numbers. Double precision numbers are
+    converted to python floats and quad precision values are interpreted
+    as numpy longdouble values (platform specific precision).
+
+    Parameters
+    ----------
+    string : str
+        A string containing a number in fortran real format
+
+    Returns
+    -------
+    value : float | np.longdouble
+        Parsed value of the string.
+
+    Raises
+    ------
+    ValueError
+        Unable to parse a float value.
+
+    """
+
+    if 'q' in string.lower():
+        return np.longdouble(string.lower().replace('q', 'e'))
+    else:
+        return float(string.lower().replace('d', 'e'))
 
 
 def label_to_symbol(label):
@@ -442,3 +574,57 @@ def label_to_symbol(label):
     else:
         raise KeyError('Could not parse species from label {0}.'
                        ''.format(label))
+
+
+def infix_float(text):
+    """Parse simple infix maths into a float for compatibility with
+    Quantum ESPRESSO ATOMIC_POSITIONS cards. Note: this works with the
+    example, and most simple expressions, but the capabilities of
+    the two parsers are not identical. Will also parse a normal float
+    value properly, but slowly.
+
+    >>> infix_float('1/2*3^(-1/2)')
+    0.28867513459481287
+
+    Parameters
+    ----------
+    text : str
+        An arithmetic expression using +, -, *, / and ^, including brackets.
+
+    Returns
+    -------
+    value : float
+        Result of the mathematical expression.
+
+    """
+
+    def middle_brackets(full_text):
+        """Extract text from innermost brackets."""
+        start, end = 0, len(full_text)
+        for (idx, char) in enumerate(full_text):
+            if char == '(':
+                start = idx
+            if char == ')':
+                end = idx + 1
+                break
+        return full_text[start:end]
+
+    def eval_no_bracket_expr(full_text):
+        """Calculate value of a mathematical expression, no brackets."""
+        exprs = [('+', op.add), ('*', op.mul), ('/', op.div), ('^', op.pow)]
+        full_text = full_text.lstrip('(').rstrip(')')
+        try:
+            return float(full_text)
+        except ValueError:
+            for symbol, func in exprs:
+                if symbol in full_text:
+                    left, right = full_text.split(symbol, 1)  # single split
+                    return func(eval_no_bracket_expr(left),
+                                eval_no_bracket_expr(right))
+
+    while '(' in text:
+        middle = middle_brackets(text)
+        text = text.replace(middle, '{}'.format(eval_no_bracket_expr(middle)))
+
+    return float(eval_no_bracket_expr(text))
+
