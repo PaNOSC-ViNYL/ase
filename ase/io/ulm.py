@@ -56,17 +56,17 @@ Versions:
 from __future__ import print_function
 import optparse
 import os
-
-try:
-    import builtins
-except ImportError:
-    import __builtin__ as builtins
+import sys
 
 import numpy as np
 
 from ase.io.jsonio import encode, decode
 from ase.utils import plural, basestring
 
+if sys.version_info[0] >= 3:
+    import builtins
+else:
+    import __builtin__ as builtins
 
 VERSION = 3
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
