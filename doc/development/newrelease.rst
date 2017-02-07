@@ -21,4 +21,4 @@ New release
 
   Number of commits since last relese::
 
-      $ git shortlog -s -n --all 3.13.0..
+      $ git shortlog -s -n 3.13.0..
