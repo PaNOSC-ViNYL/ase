@@ -48,6 +48,7 @@ class TIP4P(Calculator):
         LJ[1, 0] += sigma0
         self.LJ = LJ
         Calculator.__init__(self)
+        self.checked = False
 
     def update(self, atoms):
         self.atoms = atoms
@@ -245,6 +246,14 @@ class TIP4P(Calculator):
     def calculate(self, atoms=None,
                   properties=['energy', 'forces'],
                   system_changes=all_changes):
+        if not self.checked:
+                    syms = ''.join(atoms.get_chemical_symbols())
+                    seq = 'OHH'
+                    assert(np.all([k == seq for k in
+                           map(''.join, zip(*[iter(syms)]*len(seq)))])), \
+                        'atoms sequence must be OHHOHH...'
+                    self.checked = True
+
         Calculator.calculate(self, atoms, properties, system_changes)
 
         self.realpositions = atoms.get_positions()
