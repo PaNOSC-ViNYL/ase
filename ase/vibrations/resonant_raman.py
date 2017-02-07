@@ -370,7 +370,12 @@ class ResonantRaman(Vibrations):
 
     def electronic_me_profeta_rcc(self, omega, gamma=0.1,
                                   energy_derivative=False):
-        """Evaluate Albrecht B+C term in Profeta and Mauri approximation"""
+        """Evaluate Profeta and Mauri approximation
+
+        Returns
+        -------
+        Electronic matrix element, unit Angstrom^2
+        """
         self.read()
 
         self.timer.start('amplitudes')
@@ -378,7 +383,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('init')
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
-        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
+        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2 / eV -> Angstrom^3
         self.timer.stop('init')
 
         def kappa_cc(me_pc, e_p, omega, gamma, form='v'):

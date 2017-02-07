@@ -40,7 +40,7 @@ class Placzek(ResonantRaman):
         self.timer.start('init')
         V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         pre = 1. / (2 * self.delta)
-        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2/Ha -> Angstrom^3
+        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2 / eV -> Angstrom^3
 
         om = omega
         if gamma:

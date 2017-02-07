@@ -32,7 +32,9 @@ class Albrecht(ResonantRaman):
     def meA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
 
-        Unit: 1/eV
+        Returns
+        -------
+        Full Albrecht A matrix element. Unit: e^2 Angstrom^2 / eV
         """
         self.read()
 
@@ -70,8 +72,8 @@ class Albrecht(ResonantRaman):
         self.timer.stop('AlbrechtA')
         return m_Qcc
 
-    def me_AlbrechtBC(self, omega, gamma=0.1, ml=[1],
-                      term='BC'):
+    def meBC(self, omega, gamma=0.1, ml=[1],
+             term='BC'):
         """Evaluate Albrecht B and/or C term(s)."""
         self.read()
         # we need the overlaps
@@ -164,7 +166,7 @@ class Albrecht(ResonantRaman):
     def electronic_me_Qcc(self, omega, gamma):
         """Evaluate an electronic matric element."""
         if self.approximation.lower() == 'albrecht a':
-            Vel_Qcc = self.me_AlbrechtA(omega, gamma)
+            Vel_Qcc = self.meA(omega, gamma)
         elif self.approximation.lower() == 'albrecht bc':
             Vel_Qcc = self.me_AlbrechtBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
@@ -177,6 +179,7 @@ class Albrecht(ResonantRaman):
                     self.approximation) +
                 'Please use "Albrecht A/B/C".')
 
+        Vel_Qcc *= u.Hartree * u.Bohr  # e^2Angstrom^2 / eV -> Angstrom^3
         # divide through pre-factor
         with np.errstate(divide='ignore'):
             Vel_Qcc *= np.where(self.vib01_Q > 0,
