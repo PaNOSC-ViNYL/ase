@@ -86,7 +86,7 @@ class TIP4P(Calculator):
 
             # Make the smooth cutoff:
             pbcRoo = position_list[::self.nm]-self.positions[a]
-            pbcDoo = np.linalg.norm(pbcRoo, axis=1)
+            pbcDoo = np.sum(np.abs(pbcRoo)**2, axis=-1)**(1./2)
             x1 = pbcDoo > self.rc - self.width
             x2 = pbcDoo < self.rc
             x12 = np.logical_and(x1, x2)
