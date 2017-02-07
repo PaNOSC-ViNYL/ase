@@ -191,12 +191,13 @@ class Optimizer(Dynamics):
             if self.nsteps == 0:
                 self.logfile.write(
                     '%s  %4s %8s %15s %12s\n' %
-                    (' '*len(name), 'Step', 'Time', 'Energy', 'fmax'))
+                    (' ' * len(name), 'Step', 'Time', 'Energy', 'fmax'))
                 if self.force_consistent:
                     self.logfile.write(
                         '*Force-consistent energies used in optimization.\n')
-            self.logfile.write('%s:  %3d %02d:%02d:%02d %15.6f %12.4f\n' %
-                               (name, self.nsteps, T[3], T[4], T[5], e, fmax))
+            self.logfile.write('%s:  %3d %02d:%02d:%02d %15.6f%1s %12.4f\n' %
+                               (name, self.nsteps, T[3], T[4], T[5], e,
+                                {1: '*', 0: ''}[self.force_consistent], fmax))
             self.logfile.flush()
 
     def dump(self, data):
