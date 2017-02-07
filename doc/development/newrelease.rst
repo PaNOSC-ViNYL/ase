@@ -18,3 +18,7 @@ New release
 * Increase the version number and push.
 
 * Send announcement email to the ``ase-users`` mailing list.
+
+  Number of commits since last relese::
+
+      $ git shortlog -s -n --all 3.13.0..
