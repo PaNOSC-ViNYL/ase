@@ -86,7 +86,7 @@ class TIP4P(Calculator):
                 position_list[j::N] += self.positions[(a+1)*N+j::N] - n*C
 
             # Make the smooth cutoff:
-            pbcRoo = position_list[::self.nm]-self.positions[a]
+            pbcRoo = position_list[::self.nm]-self.positions[a*N]
             pbcDoo = np.sum(np.abs(pbcRoo)**2, axis=-1)**(1./2)
             x1 = pbcDoo > self.rc - self.width
             x2 = pbcDoo < self.rc
