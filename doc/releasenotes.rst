@@ -10,6 +10,12 @@ Git master branch
 
 :git:`master <>`.
 
+
+Version 3.13.0
+==============
+
+7 February 2017: :git:`3.13.0 <../3.13.0>`.
+
 * The default unit-cell when you create an :class:`~ase.Atoms` object has
   been changed from ``[[1,0,0],[0,1,0],[0,0,1]]`` to
   ``[[0,0,0],[0,0,0],[0,0,0]]``.
