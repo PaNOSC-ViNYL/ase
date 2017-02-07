@@ -85,9 +85,9 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
         a = b = c = cellpar[0]
     elif len(cellpar) == 3:
         a, b, c = cellpar
-        alpha, beta, gamma = 90., 90., 90.
     else:
         a, b, c, alpha, beta, gamma = cellpar
+
     alpha *= pi / 180.0
     beta *= pi / 180.0
     gamma *= pi / 180.0
@@ -102,6 +102,10 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     abc = np.vstack((va, vb, vc))
     T = np.vstack((X, Y, Z))
     cell = dot(abc, T)
+
+    # Zero out rounding errors
+    # cos(90.00000000000001) ~ 1e-15
+    cell[np.abs(cell)<1e-15] = 0.0
     return cell
 
 
