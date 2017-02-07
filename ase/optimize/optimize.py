@@ -182,24 +182,23 @@ class Optimizer(Dynamics):
         return (forces**2).sum(axis=1).max() < self.fmax**2
 
     def log(self, forces):
-        if self.logfile is None:
-            return
         fmax = sqrt((forces**2).sum(axis=1).max())
         e = self.atoms.get_potential_energy(
             force_consistent=self.force_consistent)
         T = time.localtime()
-        name = self.__class__.__name__
-        if self.nsteps == 0:
-            self.logfile.write(
-                '%s  %4s %8s %15s  %12s\n' %
-                (' '*len(name), 'Step', 'Time', 'Energy', 'fmax'))
-            if self.force_consistent:
+        if self.logfile is not None:
+            name = self.__class__.__name__
+            if self.nsteps == 0:
                 self.logfile.write(
-                    '*Force-consistent energies used in optimization.\n')
-        self.logfile.write('%s:  %3d %02d:%02d:%02d %15.6f%1s %12.4f\n' %
-                           (name, self.nsteps, T[3], T[4], T[5], e,
-                            {1: '*', 0: ''}[self.force_consistent], fmax))
-        self.logfile.flush()
+                    '%s  %4s %8s %15s %12s\n' %
+                    (' ' * len(name), 'Step', 'Time', 'Energy', 'fmax'))
+                if self.force_consistent:
+                    self.logfile.write(
+                        '*Force-consistent energies used in optimization.\n')
+            self.logfile.write('%s:  %3d %02d:%02d:%02d %15.6f%1s %12.4f\n' %
+                               (name, self.nsteps, T[3], T[4], T[5], e,
+                                {1: '*', 0: ''}[self.force_consistent], fmax))
+            self.logfile.flush()
 
     def dump(self, data):
         if rank == 0 and self.restart is not None:
