@@ -35,11 +35,12 @@ class TIP4P(Calculator):
     implemented_properties = ['energy', 'forces']
     pcpot = None
 
-    def __init__(self):
+    def __init__(self, rc=7.0, width=1.0):
         self.energy = None
         self.forces = None
         self.name = 'TIP4P'
-        self.rc = 9.
+        self.rc = rc
+        self.width = width
         nm = 4
         self.nm = nm
         LJ = np.zeros((2, nm))
@@ -83,7 +84,19 @@ class TIP4P(Calculator):
             for j in range(N):
                 position_list[j::N] += self.positions[(a+1)*N+j::N] - n*C
 
-            self.energy_and_forces(a, position_list, q_v, nmol)
+            # Make the smooth cutoff:
+            pbcRoo = position_list[::self.nm]-self.positions[a]
+            pbcDoo = np.linalg.norm(pbcRoo, axis=1)
+            x1 = pbcDoo > self.rc - self.width
+            x2 = pbcDoo < self.rc
+            x12 = np.logical_and(x1, x2)
+            y = (pbcDoo[x12] - self.rc + self.width) / self.width
+            t = np.zeros(len(pbcDoo))
+            t[x2] = 1.0
+            t[x12] -= y**2 * (3.0 - 2.0 * y)
+            dtdd = np.zeros(len(pbcDoo))
+            dtdd[x12] -= 6.0 / self.width * y * (1.0 - y) / pbcDoo[x12]
+            self.energy_and_forces(a, position_list, q_v, nmol, t, dtdd)
 
         if self.pcpot:
             e, f = self.pcpot.calculate(np.tile(
@@ -95,15 +108,24 @@ class TIP4P(Calculator):
         self.results['energy'] = self.energy
         self.results['forces'] = self.forces
 
-    def energy_and_forces(self, a, position_list, q_v, nmol):
+    def energy_and_forces(self, a, position_list, q_v, nmol, t, dtdd):
         """ The combination rules for the LJ terms follow Waldman-Hagler:
             J. Comp. Chem. 14, 1077 (1993)
         """
         N = self.nm
         LJ = self.LJ
+        cut = np.repeat(t, N)
+        dcut = np.repeat(dtdd, N)
+        # since dcut is dt/dr_OO dcut should be zero for all hydrogens
+        # and the charge site. So therefore:
+        dcut[1::4] = 0.0
+        dcut[2::4] = 0.0
+        dcut[3::4] = 0.0
         for i in range(N):
             D = position_list - self.positions[a*N+i]
-            d = (D**2).sum(axis=1)
+            d2 = (D**2).sum(axis=1)
+            d = np.sqrt(d2)
+            d_unit = D/d[:, np.newaxis]
 
             # Create arrays to hold on to epsilon and sigma
             epsilon = np.zeros(N)
@@ -122,15 +144,16 @@ class TIP4P(Calculator):
             # Create list of same length as position_list
             epsilon_list = np.tile(epsilon, (nmol-1-a))
             sigma_list = np.tile(sigma, (nmol-1-a))
-
-            self.energy += (k_c * q_v[i] * q_v / d**0.5 + 4 * epsilon_list *
-                            (sigma_list**12 / d**6 -
-                             sigma_list**6 / d**3)).sum()
-
-            F = ((k_c * q_v[i] * q_v / d**0.5 + 4 * epsilon_list *
-                 (12 * sigma_list**12 / d**6 - 6 * sigma_list**6 / d**3))
-                 / d)[:, np.newaxis] * D
-
+            e_elec = k_c * q_v[i] * q_v / d
+            e_lj = 4 * epsilon_list * (sigma_list**12 / d**12
+                                       - sigma_list**6 / d**6)
+            e = e_elec + e_lj
+            self.energy += (e * cut).sum()
+            f_elec = (e_elec/d * cut - e_elec * dcut)[:, np.newaxis] * d_unit
+            f_lj = (4 * epsilon_list * (12 * sigma_list**12 / d**13
+                                        - 6 * sigma_list**6 / d**7) * cut
+                    - e_lj * dcut)[:, np.newaxis] * d_unit
+            F = f_elec + f_lj
             self.forces[a*N+i] -= F.sum(axis=0)
             self.forces[(a+1)*N:] += F
 
