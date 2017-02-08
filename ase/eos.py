@@ -387,8 +387,9 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
     >>> a.calc = EMT()
     >>> eos = calculate_eos(a, trajectory='Cu.traj')
     >>> v, e, B = eos.fit()
-    >>> (4 * v)**(1 / 3.0)
-    3.5898256433103191
+    >>> a = (4 * v)**(1 / 3.0)
+    >>> print('{0:.6f}'.format(a))
+    3.589826
 
     """
     p0 = atoms.get_positions()
