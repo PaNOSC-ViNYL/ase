@@ -9,10 +9,48 @@ from ase.vibrations.franck_condon import FranckCondonOverlap
 
 
 class Albrecht(ResonantRaman):
+    def __init__(self, *args, **kwargs):
+        """
+        Parameters
+        ----------
+        all from ResonantRaman.__init__
+        combinations: int
+            Combinations to consider for multiple excitations.
+            Default is 1, possible 2
+        skip: int
+            Number of first transitions to exclude. Default 0,
+            recommended: 5 for linear molecules, 6 for other molecules
+        """
+        self.combinations = kwargs.pop('combinations', 1)
+        self.skip = kwargs.pop('skip', 0)
+        ResonantRaman.__init__(self, *args, **kwargs)
+        
     def read(self, method='standard', direction='central'):
         ResonantRaman.read(self, method, direction)
-        # doubles
-        self.om2_Q = 2 * self.om_Q
+
+        # single transitions and their occupation
+        om_Q = self.om_Q[self.skip:]
+        om_v = om_Q
+        ndof = len(om_Q)
+        n_vQ = np.eye(ndof, dtype=int)
+        if self.combinations > 1:
+            # double transitions and their occupation
+            om_v = list(om_v)
+            n_vQ = list(n_vQ)
+            for i in range(ndof):
+                n_Q = np.zeros(ndof, dtype=int)
+                n_Q[i] = 1
+                for j in range(i, ndof):
+                    n_vQ.append(n_Q.copy())
+                    n_vQ[-1][j] += 1
+                    om_v.append(np.dot(n_vQ[-1], om_Q))
+            om_v = np.array(om_v)
+            n_vQ = np.array(n_vQ)
+            
+        self.om_v = om_v
+##        print('self.om_v', self.om_v)
+        self.n_vQ = n_vQ
+##        print('self.n_vQ', self.n_vQ)
 
     def get_Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
@@ -72,6 +110,56 @@ class Albrecht(ResonantRaman):
         self.timer.stop('AlbrechtA')
         return m_Qcc
 
+    def meA_2(self, omega, gamma=0.1, ml=range(16)):
+        """Evaluate Albrecht A term.
+
+        Returns
+        -------
+        Full Albrecht A matrix element. Unit: e^2 Angstrom^2 / eV
+        """
+        self.read()
+
+        self.timer.start('AlbrechtA')
+
+        if not hasattr(self, 'fco'):
+            self.fco = FranckCondonOverlap()
+
+        om = omega + 1j * gamma
+        # excited state forces
+        F_pr = self.exF_rp.T
+
+        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        for p, energy in enumerate(self.ex0E_p):
+            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
+            # scattered light
+            omS_v = om - self.om_v
+            # relaxed excited state energy
+            n_vQ = np.where(self.n_vQ > 0, 1, 0)
+            energy_v = energy - n_vQ.dot(self.om_Q * S_Q)
+            
+            me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
+
+            wm_Q = np.zeros((self.ndof), dtype=complex)
+            wp_Q = np.zeros((self.ndof), dtype=complex)
+            for m in ml:
+                self.timer.start('0mm1/2')
+                fco1_Q = self.fco.direct0mm2(m, S_Q)
+                if (self.n_vQ > 1).any():
+                    fco2_Q = self.fco.direct0mm2(m, S_Q)
+                self.timer.stop('0mm1/2')
+                
+                self.timer.start('weight_Q')
+                wm_Q += fco_Q / (energy_Q + m * self.om_Q - om)
+                wp_Q += fco_Q / (energy_Q + (m - 1) * self.om_Q + om)
+                self.timer.stop('weight_Q')
+            self.timer.start('einsum')
+            m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
+            m_Qcc += np.einsum('a,bc->abc', wp_Q, me_cc.T.conj())
+            self.timer.stop('einsum')
+                
+        self.timer.stop('AlbrechtA')
+        return m_Qcc
+
     def meBC(self, omega, gamma=0.1, ml=[1],
              term='BC'):
         """Evaluate Albrecht B and/or C term(s)."""
@@ -96,9 +184,6 @@ class Albrecht(ResonantRaman):
                 fc1mm1_r = self.fco.direct(1, m, S_r)
                 fc0mm02_r = self.fco.direct(0, m, S_r)
                 fc0mm02_r += np.sqrt(2) * self.fco.direct0mm2(m, S_r)
-                # XXXXX
-                fc1mm1_r[-1] = 1
-                fc0mm02_r[-1] = 1
                 print(m, fc1mm1_r[-1], fc0mm02_r[-1])
                 self.timer.stop('Franck-Condon overlaps')
 
@@ -168,11 +253,11 @@ class Albrecht(ResonantRaman):
         if self.approximation.lower() == 'albrecht a':
             Vel_Qcc = self.meA(omega, gamma)
         elif self.approximation.lower() == 'albrecht bc':
-            Vel_Qcc = self.me_AlbrechtBC(omega, gamma)
+            Vel_Qcc = self.meBC(omega, gamma)
         elif self.approximation.lower() == 'albrecht b':
-            Vel_Qcc = self.me_AlbrechtBC(omega, gamma, term='B')
+            Vel_Qcc = self.meBC(omega, gamma, term='B')
         elif self.approximation.lower() == 'albrecht c':
-            Vel_Qcc = self.me_AlbrechtBC(omega, gamma, term='C')
+            Vel_Qcc = self.meBC(omega, gamma, term='C')
         else:
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
