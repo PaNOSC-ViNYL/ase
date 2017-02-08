@@ -390,13 +390,16 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
     >>> a = (4 * v)**(1 / 3.0)
     >>> print('{0:.6f}'.format(a))
     3.589826
-
     """
+
+    # Save original positions and cell:
     p0 = atoms.get_positions()
     c0 = atoms.get_cell()
+
     if isinstance(trajectory, basestring):
         from ase.io import Trajectory
         trajectory = Trajectory(trajectory, 'w', atoms)
+
     try:
         x1 = (1 - 0.01 * eps)**(1 / 3)
         x2 = (1 + 0.01 * eps)**(1 / 3)
