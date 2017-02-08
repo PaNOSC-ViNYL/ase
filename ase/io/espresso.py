@@ -1,12 +1,21 @@
-"""Reads quantum espresso files. Tested for output on PWSCF v.5.0.2, only
-for typical output of input files made with ASE -- that is, ibrav=0."""
+"""Reads Quantum ESPRESSO files.
 
-import warnings
+Read multiple structures and results from pw.x output files. Read
+structures from pw.x input files.
+
+Built for PWSCF v.5.3.0 but should work with earlier and later versions.
+Can deal with most major functionality, but might fail with ibrav =/= 0
+or crystal_sg positions.
+
+Units are converted using CODATA 2006, as used internally by Quantum
+ESPRESSO.
+"""
+
 import operator as op
 from collections import OrderedDict
 
 import numpy as np
-from ase.atoms import Atoms, Atom
+from ase.atoms import Atoms
 from ase.units import create_units
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.utils import basestring, chemical_symbols
@@ -14,166 +23,252 @@ from ase.utils import basestring, chemical_symbols
 # Quantum ESPRESSO uses CODATA 2006 internally
 units = create_units('2006')
 
+# Section identifiers
+_PW_START = 'Program PWSCF'
+_PW_END = 'End of self-consistent calculation'
+_PW_CELL = 'CELL_PARAMETERS'
+_PW_POS = 'ATOMIC_POSITIONS'
+_PW_MAGMOM = 'Magnetic moment per site'
+_PW_FORCE = 'Forces acting on atoms'
+_PW_TOTEN = '!    total energy'
+_PW_STRESS = 'total   stress'
+
 
 def read_espresso_out(fileobj, index=-1):
-    """Reads quantum espresso output text files."""
+    """Reads Quantum ESPRESSO output files.
+
+    The atomistic configurations as well as results (energy, force, stress,
+    magnetic moments) of the calculation are read for all configurations
+    within the output file.
+
+    Will probably raise errors for broken or incomplete files.
+
+    Parameters
+    ----------
+    fileobj : file|str
+        A file like object or filename
+    index : slice
+        The index of configurations to extract.
+
+    Yields
+    ------
+    structure : Atoms
+        The next structure from the index slice. The Atoms has a
+        SinglePointCalculator attached with any results parsed from
+        the file.
+
+
+    """
     if isinstance(fileobj, basestring):
         fileobj = open(fileobj, 'rU')
-    lines = fileobj.readlines()
-    images = []
 
-    # Get unit cell info.
-    bl_line = [line for line in lines if 'bravais-lattice index' in line]
-    if len(bl_line) != 1:
-        raise NotImplementedError('Unsupported: unit cell changing.')
-    bl_line = bl_line[0].strip()
-    brav_latt_index = bl_line.split('=')[1].strip()
-    if brav_latt_index != '0':
-        raise NotImplementedError('Supported only for Bravais-lattice '
-                                  'index of 0 (free).')
-    # get alat=celldm(1); use celldm it has more decimal places.
-    lp_line = [line for line in lines if 'celldm(1)' in line]
-    # TODO: implement changing cell shape
-    if len(lp_line) != 1:
-        raise NotImplementedError('Unsupported: unit cell changing.')
-    lp_line = lp_line[0].split()[1]
-    lattice_parameter = float(lp_line) * units['Bohr']
-    ca_line_no = [number for (number, line) in enumerate(lines) if
-                  'crystal axes: (cart. coord. in units of alat)' in line]
-    if len(ca_line_no) != 1:
-        raise NotImplementedError('Unsupported: unit cell changing.')
-    ca_line_no = int(ca_line_no[0])
-    cell = np.zeros((3, 3))
-    for number, line in enumerate(lines[ca_line_no + 1: ca_line_no + 4]):
-        line = line.split('=')[1].strip()[1:-1]
-        values = [float(value) for value in line.split()]
-        cell[number, 0] = values[0]
-        cell[number, 1] = values[1]
-        cell[number, 2] = values[2]
-    cell *= lattice_parameter
+    # work with a copy in memory for faster random access
+    pwo_lines = fileobj.readlines()
 
-    # Find atomic positions and add to images.
-    for number, line in enumerate(lines):
-        key = 'Begin final coordinates'  # these just reprint last posn.
-        if key in line:
-            break
-        key = 'Cartesian axes'
-        if key in line:
-            atoms = make_atoms(number, lines, key, cell, lattice_parameter)
-            images.append(atoms)
-        key = 'ATOMIC_POSITIONS'
-        if key in line:
-            atoms = make_atoms(number, lines, key, cell, lattice_parameter)
-            images.append(atoms)
+    # TODO: index -1 special case
+    # TODO: final coordinates
+    # Index all the interesting points
+    indexes = {
+        _PW_START: [],
+        _PW_END: [],
+        _PW_CELL: [],
+        _PW_POS: [],
+        _PW_MAGMOM: [],
+        _PW_FORCE: [],
+        _PW_TOTEN: [],
+        _PW_STRESS: []
+    }
 
-    if index is None:
-        return images
-    else:
-        return images[index]
+    for idx, line in enumerate(pwo_lines):
+        for identifier in indexes:
+            if identifier in line:
+                indexes[identifier].append(idx)
 
+    # Configurations are either at the start, or defined in ATOMIC_POSITIONS
+    # in a subsequent step. Can deal with concatenated output files.
+    all_config_indexes = sorted(indexes[_PW_START] +
+                                indexes[_PW_POS])
+    # Slice only what is needed
+    image_indexes = all_config_indexes[index]
 
-def make_atoms(index, lines, key, cell, alat=None):
-    """Scan through lines to get the atomic positions."""
-    atoms = Atoms()
-    if key == 'Cartesian axes':
-        # initial coordinates are given in terms of 'alat'
-        if alat is None:
-            warnings.warn("alat expected in make_atoms with cartesian axes")
-            alat = 1.0
-        for line in lines[index + 3:]:
-            entries = line.split()
-            if len(entries) == 0:
-                break
-            symbol = label_to_symbol(entries[1])
-            x = float(entries[6])*alat
-            y = float(entries[7])*alat
-            z = float(entries[8])*alat
-            atoms.append(Atom(symbol, (x, y, z)))
-        atoms.set_cell(cell)
-    elif key == 'ATOMIC_POSITIONS':
-        # decide on scale factor based on how the positions
-        # are given, choose from:
-        # alat, bohr, angstrom, crystal, crystal_sg
-        if 'alat' in lines[index]:
-            position_scale = alat
-            crystal_scale = False
-        elif 'bohr' in lines[index]:
-            position_scale = units['Bohr']
-            crystal_scale = False
-        elif 'angstrom' in lines[index]:
-            position_scale = 1.0
-            crystal_scale = False
-        elif 'crystal_sg' in lines[index]:
-            raise NotImplementedError('crystal_sg parsing not implemented')
-        elif 'crystal' in lines[index]:
-            position_scale = 1.0
-            crystal_scale = True
+    # Extract initialisation information each time PWSCF starts
+    # to add to subsequent configurations. Use None so slices know
+    # when to fill in the blanks.
+    pwscf_start_info = dict((idx, None) for idx in indexes[_PW_START])
+
+    for image_index in image_indexes:
+        # Find the nearest calculation start to parse info. Needed in,
+        # for example, relaxation where cell is only printed at the
+        # start.
+        if image_index in indexes[_PW_START]:
+            prev_start_index = image_index
         else:
-            raise NotImplementedError('{0}'.format(lines[index]))
-        for line in lines[index + 1:]:
-            entries = line.split()
-            if len(entries) == 0 or (entries[0] == 'End'):
+            # The greatest start index before this structure
+            prev_start_index = [idx for idx in indexes[_PW_START]
+                                if idx < image_index][-1]
+
+        # add structure to reference if not there
+        if pwscf_start_info[prev_start_index] is None:
+            pwscf_start_info[prev_start_index] = parse_pwo_start(
+                pwo_lines, prev_start_index)
+
+        # Get the bounds for information for this structure. Any associated
+        # values will be between the image_index and the following one,
+        # EXCEPT for cell, which will be 4 lines before if it exists.
+        for next_index in all_config_indexes:
+            if next_index > image_index:
                 break
-            symbol = label_to_symbol(entries[0])
-            x = float(entries[1])*position_scale
-            y = float(entries[2])*position_scale
-            z = float(entries[3])*position_scale
-            atoms.append(Atom(symbol, (x, y, z)))
-        atoms.set_cell(cell, scale_atoms=crystal_scale)
-    # Energy is located after positions.
-    energylines = [number for number, line in enumerate(lines) if
-                   ('!' in line and 'total energy' in line
-                    and number > index)]
-    if energylines:
-        energyline = min([n for n in energylines if n > index])
-        energy = float(lines[energyline].split()[-2]) * units['Ry']
-    else:
-        energy = None
-    # Forces are located after positions.
-    forces = np.zeros((len(atoms), 3))
-    forcelines = [number for number, line in enumerate(lines) if
-                  'Forces acting on atoms (Ry/au):' in line
-                  and number > index]
-    if forcelines:
-        forceline = min([n for n in forcelines if n > index])
-        # In QE 5.3 the 'negative rho' has moved above the forceline
-        # so need to start 2 lines down.
-        if not lines[forceline + 2].strip():
-            offset = 4
         else:
-            offset = 2
-        for line in lines[forceline + offset:]:
-            words = line.split()
-            if 'force =' in line:
-                fx = float(words[-3])
-                fy = float(words[-2])
-                fz = float(words[-1])
-                atom_number = int(words[1]) - 1
-                forces[atom_number] = (fx, fy, fz)
-            elif len(words) == 0 or 'non-local' in words:
-                # 'non-local' line is found with 'high' verbosity
-                break
+            # right to the end of the file
+            next_index = len(pwo_lines)
+
+        # Get the structure
+        # Use this for any missing data
+        prev_structure = pwscf_start_info[prev_start_index]['atoms']
+        if image_index in indexes[_PW_START]:
+            structure = prev_structure.copy()  # parsed from start info
+        else:
+            if _PW_CELL in pwo_lines[image_index - 5]:
+                # CELL_PARAMETERS would be just before positions if present
+                cell = get_cell_parameters(
+                    pwo_lines[image_index - 5:image_index])
             else:
-                continue
-        forces *= units['Ry'] / units['Bohr']
-    else:
+                cell = prev_structure.cell
+
+            # give at least enough lines to parse the positions
+            # should be same format as input card
+            n_atoms = len(prev_structure)
+            positions_card = get_atomic_positions(
+                pwo_lines[image_index:image_index + n_atoms + 1],
+                n_atoms=n_atoms, cell=cell)
+
+            # convert to Atoms object
+            symbols = [label_to_symbol(position[0]) for position in
+                       positions_card]
+            positions = [position[1] for position in positions_card]
+
+            structure = Atoms(symbols=symbols, positions=positions, cell=cell,
+                              pbc=True)
+
+        # Extract calculation results
+        # Energy
+        energy = None
+        for energy_index in indexes[_PW_TOTEN]:
+            if image_index < energy_index < next_index:
+                energy = float(
+                    pwo_lines[energy_index].split()[-2]) * units['Ry']
+
+        # Forces
         forces = None
-    # Stresses are not always present
-    stresslines = [number for number, line in enumerate(lines) if
-                   'total   stress  (Ry/bohr**3)' in line and number > index]
-    if stresslines:
-        stressline = min([n for n in stresslines if n > index])
-        xx, xy, xz = lines[stressline + 1].split()[:3]
-        yx, yy, yz = lines[stressline + 2].split()[:3]
-        zx, zy, zz = lines[stressline + 3].split()[:3]
-        stress = np.array([xx, yy, zz, yz, xz, xy], dtype=float)
-        stress *= units['Ry'] / (units['Bohr']**3)
-    else:
+        for force_index in indexes[_PW_FORCE]:
+            if image_index < force_index < next_index:
+                # Before QE 5.3 'negative rho' added 2 lines before forces
+                # Use exact lines to stop before 'non-local' forces
+                # in high verbosity
+                if not pwo_lines[force_index + 2].strip():
+                    force_index += 4
+                else:
+                    force_index += 2
+                # assume contiguous
+                forces = [
+                    [float(x) for x in force_line.split()[-3:]] for force_line
+                    in pwo_lines[force_index:force_index + len(structure)]]
+                forces = np.array(forces) * units['Ry'] / units['Bohr']
+
+        # Stress
         stress = None
-    calc = SinglePointCalculator(atoms, energy=energy, forces=forces,
-                                 stress=stress)
-    atoms.set_calculator(calc)
-    return atoms
+        for stress_index in indexes[_PW_STRESS]:
+            if image_index < stress_index < next_index:
+                sxx, sxy, sxz = pwo_lines[stress_index + 1].split()[:3]
+                syx, syy, syz = pwo_lines[stress_index + 2].split()[:3]
+                szx, szy, szz = pwo_lines[stress_index + 3].split()[:3]
+                stress = np.array([sxx, syy, szz, syz, sxz, sxy], dtype=float)
+                stress *= units['Ry'] / (units['Bohr'] ** 3)
+
+        # Magmoms
+        magmoms = None
+        for magmoms_index in indexes[_PW_MAGMOM]:
+            if image_index < magmoms_index < next_index:
+                magmoms = [
+                    float(mag_line.split()[5]) for mag_line
+                    in pwo_lines[magmoms_index + 1:
+                                 magmoms_index + 1 + len(structure)]]
+
+        # Put everything together
+        calc = SinglePointCalculator(structure, energy=energy, forces=forces,
+                                     stress=stress, magmoms=magmoms)
+        structure.set_calculator(calc)
+
+        yield structure
+
+
+def parse_pwo_start(lines, index=0):
+    """Parse Quantum ESPRESSO calculation info from lines,
+    starting from index. Return a dictionary containing extracted
+    information.
+
+    - `celldm(1)`: lattice parameters (alat)
+    - `cell`: unit cell in Angstrom
+    - `symbols`: element symbols for the structure
+    - `positions`: cartesian coordinates of atoms in Angstrom
+    - `atoms`: an `ase.Atoms` object constructed from the extracted data
+
+    Parameters
+    ----------
+    lines : list[str]
+        Contents of PWSCF output file.
+    index : int
+        Line number to begin parsing. Only first calculation will
+        be read.
+
+    Returns
+    -------
+    info : dict
+        Dictionary of calculation parameters, including `celldm(1)`, `cell`,
+        `symbols`, `positions`, `atoms`.
+
+    Raises
+    ------
+    KeyError
+        If interdependent values cannot be found (especially celldm(1))
+        an error will be raised as other quantities cannot then be
+        calculated (e.g. cell and positions).
+    """
+    # TODO: extend with extra DFT info?
+
+    info = {}
+
+    for idx, line in enumerate(lines[index:], start=index):
+        if 'celldm(1)' in line:
+            # celldm(1) has more digits than alat!!
+            info['celldm(1)'] = float(line.split()[1]) * units['Bohr']
+        elif 'number of atoms/cell' in line:
+            info['nat'] = int(line.split()[-1])
+        elif 'number of atomic types' in line:
+            info['ntyp'] = int(line.split()[-1])
+        elif 'crystal axes:' in line:
+            info['cell'] = info['celldm(1)'] * np.array([
+                [float(x) for x in lines[idx + 1].split()[3:6]],
+                [float(x) for x in lines[idx + 2].split()[3:6]],
+                [float(x) for x in lines[idx + 3].split()[3:6]]])
+        elif 'positions (alat units)' in line:
+            info['symbols'] = [
+                label_to_symbol(at_line.split()[1])
+                for at_line in lines[idx + 1:idx + 1 + info['nat']]]
+            info['positions'] = [
+                [float(x) * info['celldm(1)'] for x in at_line.split()[6:9]]
+                for at_line in lines[idx + 1:idx + 1 + info['nat']]]
+            # This should be the end of interesting info.
+            # Break here to avoid dealing with large lists of kpoints.
+            # Will need to be extended for DFTCalculator info.
+            break
+
+    # Make atoms for convenience
+    info['atoms'] = Atoms(symbols=info['symbols'],
+                          positions=info['positions'],
+                          cell=info['cell'], pbc=True)
+
+    return info
 
 
 def read_espresso_in(fileobj):
@@ -208,7 +303,7 @@ def read_espresso_in(fileobj):
         # celldm(1) is in Bohr, A is in angstrom. celldm(1) will be
         # used even if A is also specified.
         if 'celldm(1)' in data['system']:
-            alat = data['system']['celldm(1)']*units['Bohr']
+            alat = data['system']['celldm(1)'] * units['Bohr']
         elif 'A' in data['system']:
             alat = data['system']['A']
         else:
@@ -242,7 +337,7 @@ def get_atomic_positions(lines, n_atoms, cell=None, alat=None):
     cell : np.array
         Unit cell of the crystal. Only used with crystal coordinates.
     alat : float
-        Lattice parameter for atomic coordinated. Only used for alat.
+        Lattice parameter for atomic coordinates. Only used for alat case.
 
     Returns
     -------
@@ -276,8 +371,8 @@ def get_atomic_positions(lines, n_atoms, cell=None, alat=None):
                 cell = np.identity(3) * units['Bohr']
             elif 'angstrom' in line.lower():
                 cell = np.identity(3)
-            #elif 'alat' in line.lower():
-            #    cell = np.identity(3) * alat
+            # elif 'alat' in line.lower():
+            #     cell = np.identity(3) * alat
             else:
                 if alat is None:
                     raise ValueError('Set lattice parameter in &SYSTEM for '
@@ -315,7 +410,8 @@ def get_cell_parameters(lines, alat=None):
     alat : float | None
         Unit of lattice vectors in Angstrom. Only used if the card is
         given in units of alat. alat must be None if CELL_PARAMETERS card
-        is in Bohr or Angstrom.
+        is in Bohr or Angstrom. For output files, alat will be parsed from
+        the card header and used in preference to this value.
 
     Returns
     -------
@@ -354,7 +450,10 @@ def get_cell_parameters(lines, alat=None):
                                      'angstrom')
                 cell_units = 1.0
             elif 'alat' in line.lower():
-                if alat is None:
+                # Output file has (alat = value)
+                if '=' in line:
+                    alat = float(line.strip(')').split()[-1])
+                elif alat is None:
                     raise ValueError('Lattice parameters must be set in '
                                      '&SYSTEM for alat units')
                 cell_units = alat
@@ -627,4 +726,3 @@ def infix_float(text):
         text = text.replace(middle, '{}'.format(eval_no_bracket_expr(middle)))
 
     return float(eval_no_bracket_expr(text))
-
