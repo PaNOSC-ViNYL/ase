@@ -647,7 +647,6 @@ class ResonantRaman(Vibrations):
                 log=sys.stdout):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
-        s = 0.01 * u._e / u._c / u._hplanck
         intensities = self.absolute_intensity(omega, gamma)
 
         if isinstance(log, str):
@@ -668,7 +667,7 @@ class ResonantRaman(Vibrations):
                 c = ' '
                 e = e.real
             parprint('%3d %6.1f%s  %7.1f%s  %9.1f' %
-                     (n, 1000 * e, c, s * e, c, intensities[n]),
+                     (n, 1000 * e, c, e / u.invcm, c, intensities[n]),
                      file=log)
         parprint('-------------------------------------', file=log)
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
