@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 from ase.units import kJ
+from ase.utils import basestring
 
 import numpy as np
 
@@ -364,6 +365,60 @@ class EquationOfState:
         self.fit0 = fit0
 
         return self.v0, self.e0, self.B
+
+
+def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
+    """Calculate equation-of-state.
+
+    atoms: Atoms object
+        System to calculate EOS for.  Must have a calculator attached.
+    npoints: int
+        Number of points.
+    eps: float
+        Variation in volume from (1-eps)*v0 to (1+eps)*v0.
+    trajectory: Trjectory object or str
+        Write configurations to a trajectory file.
+    callback: function
+        Called after every energy calculation.
+
+    >>> from ase.build import bulk
+    >>> from ase.calculators.emt import EMT
+    >>> a = bulk('Cu', 'fcc', a=3.6)
+    >>> a.calc = EMT()
+    >>> eos = calculate_eos(a, trajectory='Cu.traj')
+    >>> v, e, B = eos.fit()
+    >>> a = (4 * v)**(1 / 3.0)
+    >>> print('{0:.6f}'.format(a))
+    3.589826
+    """
+
+    # Save original positions and cell:
+    p0 = atoms.get_positions()
+    c0 = atoms.get_cell()
+
+    if isinstance(trajectory, basestring):
+        from ase.io import Trajectory
+        trajectory = Trajectory(trajectory, 'w', atoms)
+
+    try:
+        x1 = (1 - 0.01 * eps)**(1 / 3)
+        x2 = (1 + 0.01 * eps)**(1 / 3)
+        energies = []
+        volumes = []
+        for x in np.linspace(x1, x2, npoints):
+            atoms.set_cell(x * c0, scale_atoms=True)
+            volumes.append(atoms.get_volume())
+            energies.append(atoms.get_potential_energy())
+            if callback:
+                callback()
+            if trajectory is not None:
+                trajectory.write()
+        return EquationOfState(volumes, energies)
+    finally:
+        atoms.cell = c0
+        atoms.positions = p0
+        if trajectory is not None:
+            trajectory.close()
 
 
 def main():
