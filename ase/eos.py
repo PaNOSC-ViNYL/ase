@@ -375,7 +375,7 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
     npoints: int
         Number of points.
     eps: float
-        Variation in volume from (1-eps)*v0 to (1+eps)*v0.
+        Variation in volume from v * (1-eps)**3 to v * (1+eps)**3.
     trajectory: Trjectory object or str
         Write configurations to a trajectory file.
     callback: function
@@ -389,7 +389,7 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
     >>> v, e, B = eos.fit()
     >>> a = (4 * v)**(1 / 3.0)
     >>> print('{0:.6f}'.format(a))
-    3.589826
+    3.589825
     """
 
     # Save original positions and cell:
@@ -400,12 +400,15 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
         from ase.io import Trajectory
         trajectory = Trajectory(trajectory, 'w', atoms)
 
+    if trajectory is not None:
+        trajectory.set_description({'type': 'eos',
+                                    'npoints': npoints,
+                                    'eps': eps})
+
     try:
-        x1 = (1 - 0.01 * eps)**(1 / 3)
-        x2 = (1 + 0.01 * eps)**(1 / 3)
         energies = []
         volumes = []
-        for x in np.linspace(x1, x2, npoints):
+        for x in np.linspace(1 - eps, 1 + eps, npoints):
             atoms.set_cell(x * c0, scale_atoms=True)
             volumes.append(atoms.get_volume())
             energies.append(atoms.get_potential_energy())
