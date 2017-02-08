@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* New :func:`ase.eos.calculate_eos` helper function added.
+
 
 Version 3.13.0
 ==============
