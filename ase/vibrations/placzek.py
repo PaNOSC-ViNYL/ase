@@ -63,3 +63,79 @@ class Placzek(ResonantRaman):
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
         V_Qcc = np.dot(V_qcc.T, self.modes.T).T
         return V_Qcc
+
+
+class Profeta(ResonantRaman):
+    """Profeta type approximations."""
+    def electronic_me_profeta_rcc(self, omega, gamma=0.1,
+                                  energy_derivative=False):
+        """Evaluate Profeta and Mauri approximation
+
+        Returns
+        -------
+        Electronic matrix element, unit Angstrom^2
+        """
+        self.read()
+
+        self.timer.start('amplitudes')
+
+        self.timer.start('init')
+        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        pre = 1. / (2 * self.delta)
+        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2 / eV -> Angstrom^3
+        self.timer.stop('init')
+
+        def kappa_cc(me_pc, e_p, omega, gamma, form='v'):
+            """Kappa tensor after Profeta and Mauri
+            PRB 63 (2001) 245415"""
+            k_cc = np.zeros((3, 3), dtype=complex)
+            for p, me_c in enumerate(me_pc):
+                me_cc = np.outer(me_c, me_c.conj())
+                k_cc += (me_cc / (e_p[p] - omega - 1j * gamma) +
+                         me_cc.conj() / (e_p[p] + omega + 1j * gamma))
+            return k_cc
+
+        self.timer.start('kappa')
+        r = 0
+        for a in self.indices:
+            for i in 'xyz':
+                if not energy_derivative < 0:
+                    V_rcc[r] += pre * (
+                        kappa_cc(self.expm_rpc[r], self.ex0E_p,
+                                 omega, gamma, self.dipole_form) -
+                        kappa_cc(self.exmm_rpc[r], self.ex0E_p,
+                                 omega, gamma, self.dipole_form))
+                if energy_derivative:
+                    V_rcc[r] += pre * (
+                        kappa_cc(self.ex0m_pc, self.expE_rp[r],
+                                 omega, gamma, self.dipole_form) -
+                        kappa_cc(self.ex0m_pc, self.exmE_rp[r],
+                                 omega, gamma, self.dipole_form))
+                r += 1
+        self.timer.stop('kappa')
+        self.timer.stop('amplitudes')
+
+        return V_rcc
+
+    def electronic_me_Qcc(self, omega, gamma):
+        self.read()
+        Vel_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        if self.approximation.lower() == 'profeta':
+            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
+        elif self.approximation.lower() == 'placzek':
+            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
+        elif self.approximation.lower() == 'p-p':
+            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
+        else:
+            raise NotImplementedError(
+                'Approximation {0} not implemented. '.format(
+                    self.approximation) +
+                'Please use "Profeta" or "Placzek".')
+
+        # map to modes
+        self.timer.start('map R2Q')
+        V_qcc = (Vel_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
+        Vel_Qcc = np.dot(V_qcc.T, self.modes.T).T
+        self.timer.stop('map R2Q')
+
+        return Vel_Qcc

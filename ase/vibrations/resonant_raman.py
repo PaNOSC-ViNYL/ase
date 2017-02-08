@@ -368,94 +368,6 @@ class ResonantRaman(Vibrations):
             else:
                 self.read_excitations()
 
-    def electronic_me_profeta_rcc(self, omega, gamma=0.1,
-                                  energy_derivative=False):
-        """Evaluate Profeta and Mauri approximation
-
-        Returns
-        -------
-        Electronic matrix element, unit Angstrom^2
-        """
-        self.read()
-
-        self.timer.start('amplitudes')
-
-        self.timer.start('init')
-        V_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        pre = 1. / (2 * self.delta)
-        pre *= u.Hartree * u.Bohr  # e^2Angstrom^2 / eV -> Angstrom^3
-        self.timer.stop('init')
-
-        def kappa_cc(me_pc, e_p, omega, gamma, form='v'):
-            """Kappa tensor after Profeta and Mauri
-            PRB 63 (2001) 245415"""
-            k_cc = np.zeros((3, 3), dtype=complex)
-            for p, me_c in enumerate(me_pc):
-                me_cc = np.outer(me_c, me_c.conj())
-                k_cc += (me_cc / (e_p[p] - omega - 1j * gamma) +
-                         me_cc.conj() / (e_p[p] + omega + 1j * gamma))
-            return k_cc
-        
-        self.timer.start('kappa')
-        r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                if not energy_derivative < 0:
-                    V_rcc[r] += pre * (
-                        kappa_cc(self.expm_rpc[r], self.ex0E_p,
-                                 omega, gamma, self.dipole_form) -
-                        kappa_cc(self.exmm_rpc[r], self.ex0E_p,
-                                 omega, gamma, self.dipole_form))
-                if energy_derivative:
-                    V_rcc[r] += pre * (
-                        kappa_cc(self.ex0m_pc, self.expE_rp[r],
-                                 omega, gamma, self.dipole_form) -
-                        kappa_cc(self.ex0m_pc, self.exmE_rp[r],
-                                 omega, gamma, self.dipole_form))
-                r += 1
-        self.timer.stop('kappa')
-        self.timer.stop('amplitudes')
-
-        return V_rcc
-
-    def electronic_me_Qcc(self, omega, gamma):
-        self.read()
-        Vel_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        Vel_Qcc = None
-        if self.approximation.lower() == 'profeta':
-            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
-        elif self.approximation.lower() == 'placzek':
-            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
-        elif self.approximation.lower() == 'p-p':
-            Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
-        elif 'albrecht' in self.approximation.lower():
-            if self.approximation.lower() == 'albrecht a':
-                Vel_Qcc = self.me_AlbrechtA(omega, gamma)
-            elif self.approximation.lower() == 'albrecht bc':
-                Vel_Qcc = self.me_AlbrechtBC(omega, gamma)
-            elif self.approximation.lower() == 'albrecht b':
-                Vel_Qcc = self.me_AlbrechtBC(omega, gamma, term='B')
-            elif self.approximation.lower() == 'albrecht c':
-                Vel_Qcc = self.me_AlbrechtBC(omega, gamma, term='C')
-            # divide through pre-factor
-            with np.errstate(divide='ignore'):
-                Vel_Qcc *= np.where(self.vib01_Q > 0,
-                                    1. / self.vib01_Q, 0)[:, None, None]
-        else:
-            raise NotImplementedError(
-                'Approximation {0} not implemented. '.format(
-                    self.approximation) +
-                'Please use "Profeta" or "Placzek".')
-        
-        # map to modes if needed
-        if Vel_Qcc is None:
-            self.timer.start('map R2Q')
-            V_qcc = (Vel_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
-            Vel_Qcc = np.dot(V_qcc.T, self.modes.T).T
-            self.timer.stop('map R2Q')
-
-        return Vel_Qcc
-
     def matrix_element(self, omega, gamma):
         self.read()
         V_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
@@ -676,6 +588,7 @@ class ResonantRaman(Vibrations):
     def __del__(self):
         self.timer.write(self.txt)
 
+
 class LrResonantRaman(ResonantRaman):
     """Resonant Raman for linear response
 
@@ -744,8 +657,8 @@ class LrResonantRaman(ResonantRaman):
 #        self.exmE_p = np.array([ex.energy * eu for ex in exm])
 #        self.expE_p = np.array([ex.energy * eu for ex in exp])
         self.ex0m_pc = (np.array(
-            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
-            * u.Bohr)
+            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0]) *
+            u.Bohr)
         self.exF_rp = []
         exmE_rp = []
         expE_rp = []
