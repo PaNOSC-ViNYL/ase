@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division
+import sys
 import numpy as np
 
 import ase.units as u
+from ase.parallel import rank, parprint, paropen
 from ase.vibrations.resonant_raman import ResonantRaman
 from ase.vibrations.franck_condon import FranckCondonOverlap
 
@@ -52,7 +54,7 @@ class Albrecht(ResonantRaman):
         self.n_vQ = n_vQ
 ##        print('self.n_vQ', self.n_vQ)
 
-    def get_Huang_Rhys_factors(self, forces_r):
+    def Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
         self.timer.start('Huang-Rhys')
         assert(len(forces_r.flat) == self.ndof)
@@ -87,7 +89,7 @@ class Albrecht(ResonantRaman):
 
         m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
-            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
+            S_Q = self.Huang_Rhys_factors(F_pr[p])
             energy_Q = energy - self.om_Q * S_Q
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
@@ -177,14 +179,14 @@ class Albrecht(ResonantRaman):
 
         m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
-            S_r = self.get_Huang_Rhys_factors(F_pr[p])
+            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
 
             for m in ml:
                 self.timer.start('Franck-Condon overlaps')
-                fc1mm1_r = self.fco.direct(1, m, S_r)
-                fc0mm02_r = self.fco.direct(0, m, S_r)
-                fc0mm02_r += np.sqrt(2) * self.fco.direct0mm2(m, S_r)
-                print(m, fc1mm1_r[-1], fc0mm02_r[-1])
+                fc1mm1_Q = self.fco.direct(1, m, S_Q)
+                fc0mm02_Q = self.fco.direct(0, m, S_Q)
+                fc0mm02_Q += np.sqrt(2) * self.fco.direct0mm2(m, S_Q)
+##                print(m, fc1mm1_r[-1], fc0mm02_r[-1])
                 self.timer.stop('Franck-Condon overlaps')
 
                 self.timer.start('me dervivatives')
@@ -303,3 +305,34 @@ class Albrecht(ResonantRaman):
                 'or "Albrecht".')
 
         return V_Qcc
+    
+    def summary(self, omega=0, gamma=0,
+                method='standard', direction='central',
+                log=sys.stdout):
+        """Print summary for given omega [eV]"""
+        hnu = self.get_energies(method, direction)
+        intensities = self.absolute_intensity(omega, gamma)
+
+        if isinstance(log, str):
+            log = paropen(log, 'a')
+
+        parprint('-------------------------------------', file=log)
+        parprint(' excitation at ' + str(omega) + ' eV', file=log)
+        parprint(' gamma ' + str(gamma) + ' eV', file=log)
+        parprint(' approximation:', self.approximation, file=log)
+        parprint(' Mode    Frequency        Intensity', file=log)
+        parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
+        parprint('-------------------------------------', file=log)
+        for n, e in enumerate(self.om_v):
+            if e.imag != 0:
+                c = 'i'
+                e = e.imag
+            else:
+                c = ' '
+                e = e.real
+            parprint('%3d %6.1f%s  %7.1f%s  %9.1f' %
+                     (n, 1000 * e, c, e / u.invcm, c, intensities[n]),
+                     file=log)
+        parprint('-------------------------------------', file=log)
+        parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
+                 file=log)
