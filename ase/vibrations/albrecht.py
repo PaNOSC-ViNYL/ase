@@ -310,8 +310,7 @@ class Albrecht(ResonantRaman):
                 method='standard', direction='central',
                 log=sys.stdout):
         """Print summary for given omega [eV]"""
-        hnu = self.get_energies(method, direction)
-        intensities = self.absolute_intensity(omega, gamma)
+        intensities = self.absolute_intensity(omega, gamma)[self.skip:]
 
         if isinstance(log, str):
             log = paropen(log, 'a')
@@ -330,8 +329,8 @@ class Albrecht(ResonantRaman):
             else:
                 c = ' '
                 e = e.real
-            parprint('%3d %6.1f%s  %7.1f%s  %9.1f' %
-                     (n, 1000 * e, c, e / u.invcm, c, intensities[n]),
+            parprint('%3d %6.1f   %7.1f%s  %9.1f' %
+                     (n, 1000 * e, e / u.invcm, c, intensities[n]),
                      file=log)
         parprint('-------------------------------------', file=log)
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
