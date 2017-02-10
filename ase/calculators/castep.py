@@ -640,6 +640,7 @@ End CASTEP Interface Documentation
                             break
                 elif 'Fractional coordinates of atoms' in line:
                     species = []
+                    custom_species = None # A CASTEP special thing
                     positions_frac = []
                     # positions_cart = []
                     while True:
@@ -648,7 +649,14 @@ End CASTEP Interface Documentation
                         if len(fields) == 7:
                             break
                     for n in range(n_atoms):
-                        species.append(fields[1])
+                        spec_custom = fields[1].split(':', 1)
+                        elem = spec_custom[0]
+                        if len(spec_custom) > 1 and custom_species is None:
+                            # Add it to the custom info!
+                            custom_species = list(species)
+                        species.append(elem)
+                        if custom_species is not None:
+                            custom_species.append(fields[1])
                         positions_frac.append([float(s) for s in fields[3:6]])
                         line = out.readline()
                         fields = line.split()
@@ -916,6 +924,10 @@ End CASTEP Interface Documentation
                                     pbc=True,
                                     scaled_positions=positions_frac,
                                     )
+            if custom_species is not None:
+                atoms.new_array('castep_custom_species',
+                                np.array(custom_species))
+
             if self.param.spin_polarized:
                 # only set magnetic moments if this was a spin polarized
                 # calculation
