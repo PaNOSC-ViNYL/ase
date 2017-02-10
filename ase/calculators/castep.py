@@ -717,6 +717,9 @@ End CASTEP Interface Documentation
                      '************** Constrained Symmetrised Forces ****'\
                      '**********'\
                      in line or\
+                     '******************** Constrained Forces **********'\
+                     '**********'\
+                     in line or\
                      '******************* Unconstrained Forces *********'\
                      '**********'\
                      in line:
