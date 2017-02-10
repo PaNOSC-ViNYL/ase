@@ -47,6 +47,20 @@ _tf_table = {
     'False': False}
 
 
+def _self_getter(getf):
+    # A decorator that makes it so that if no 'atoms' argument is passed to a
+    # getter function, self.atoms is used instead
+
+    def decor_getf(self, atoms=None, *args, **kwargs):
+
+        if atoms is None:
+            atoms = self.atoms
+
+        return getf(self, atoms, *args, **kwargs)
+
+    return decor_getf
+
+
 class Castep(Calculator):
 
     r"""
@@ -640,7 +654,7 @@ End CASTEP Interface Documentation
                             break
                 elif 'Fractional coordinates of atoms' in line:
                     species = []
-                    custom_species = None # A CASTEP special thing
+                    custom_species = None  # A CASTEP special thing
                     positions_frac = []
                     # positions_cart = []
                     while True:
@@ -1081,28 +1095,33 @@ End CASTEP Interface Documentation
                 continue
             self.cell.species_pot = (elem, '%s_%s.%s' % (elem, pspot, suffix))
 
+    @_self_getter
     def get_forces(self, atoms):
         """Run CASTEP calculation if needed and return forces."""
         self.update(atoms)
         return np.array(self._forces)
 
+    @_self_getter
     def get_total_energy(self, atoms):
         """Run CASTEP calculation if needed and return total energy."""
         self.update(atoms)
         return self._energy_total
 
+    @_self_getter
     def get_free_energy(self, atoms):
         """Run CASTEP calculation if needed and return free energy.
            Only defined with smearing."""
         self.update(atoms)
         return self._energy_free
 
+    @_self_getter
     def get_0K_energy(self, atoms):
         """Run CASTEP calculation if needed and return 0K energy.
            Only defined with smearing."""
         self.update(atoms)
         return self._energy_0K
 
+    @_self_getter
     def get_potential_energy(self, atoms, force_consistent=False):
         # here for compatibility with ase/calculators/general.py
         # but accessing only _name variables
@@ -1127,26 +1146,30 @@ End CASTEP Interface Documentation
                 else:
                     return self._energy_total
 
+    @_self_getter
     def get_stress(self, atoms):
         """Return the stress."""
         self.update(atoms)
         return self._stress
 
+    @_self_getter
     def get_unit_cell(self, atoms):
         """Return the unit cell."""
         self.update(atoms)
         return self._unit_cell
 
+    @_self_getter
     def get_kpoints(self, atoms):
         """Return the kpoints."""
         self.update(atoms)
         return self._kpoints
 
+    @_self_getter
     def get_number_cell_constraints(self, atoms):
         """Return the number of cell constraints."""
         self.update(atoms)
         return self._number_of_cell_constraints
-
+    
     def set_atoms(self, atoms):
         """Sets the atoms for the calculator and vice versa."""
         atoms.pbc = [True, True, True]
