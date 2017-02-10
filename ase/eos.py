@@ -367,7 +367,7 @@ class EquationOfState:
         return self.v0, self.e0, self.B
 
 
-def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
+def calculate_eos(atoms, npoints=5, eps=0.04, trajectory=None, callback=None):
     """Calculate equation-of-state.
 
     atoms: Atoms object
@@ -375,7 +375,7 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
     npoints: int
         Number of points.
     eps: float
-        Variation in volume from v * (1-eps)**3 to v * (1+eps)**3.
+        Variation in volume from v0*(1-eps) to v0*(1+eps).
     trajectory: Trjectory object or str
         Write configurations to a trajectory file.
     callback: function
@@ -408,7 +408,7 @@ def calculate_eos(atoms, npoints=5, eps=0.02, trajectory=None, callback=None):
     try:
         energies = []
         volumes = []
-        for x in np.linspace(1 - eps, 1 + eps, npoints):
+        for x in np.linspace(1 - eps, 1 + eps, npoints)**(1 / 3):
             atoms.set_cell(x * c0, scale_atoms=True)
             volumes.append(atoms.get_volume())
             energies.append(atoms.get_potential_energy())
