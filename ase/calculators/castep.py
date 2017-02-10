@@ -713,6 +713,12 @@ End CASTEP Interface Documentation
                 elif '******************** Forces *********************'\
                      in line or\
                      '************** Symmetrised Forces ***************'\
+                     in line or\
+                     '************** Constrained Symmetrised Forces ****'\
+                     '**********'\
+                     in line or\
+                     '******************* Unconstrained Forces *********'\
+                     '**********'\
                      in line:
                     fix = []
                     fix_cart = []
@@ -2217,7 +2223,7 @@ class CastepCell(object):
             elif attr == 'symmetry_ops':
                 if not isinstance(value, tuple) \
                    or not len(value) == 2 \
-                   or not value[0].shape[1:] == (3,3) \
+                   or not value[0].shape[1:] == (3, 3) \
                    or not value[1].shape[1:] == (3,) \
                    or not value[0].shape[0] == value[1].shape[0]:
                     print('Invalid symmetry_ops block, skipping')
@@ -2225,11 +2231,11 @@ class CastepCell(object):
                 # Now on to print...
                 text_block = ''
                 for op_i, (op_rot, op_tranls) in enumerate(zip(*value)):
-                  text_block += '\n'.join([' '.join([str(x) for x in row])
-                                           for row in op_rot])
-                  text_block += '\n'
-                  text_block += ' '.join([str(x) for x in op_tranls])
-                  text_block += '\n'
+                    text_block += '\n'.join([' '.join([str(x) for x in row])
+                                             for row in op_rot])
+                    text_block += '\n'
+                    text_block += ' '.join([str(x) for x in op_tranls])
+                    text_block += '\n'
                 value = text_block
 
             elif attr in ['positions_abs_intermediate',
