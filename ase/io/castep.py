@@ -66,7 +66,7 @@ __all__ = [
     # routines for the generic io function
     'read_castep',
     'read_castep_castep',
-    'read_castep_new',
+    'read_castep_castep_old',
     'read_cell',
     'read_castep_cell',
     'read_geom',
@@ -737,10 +737,10 @@ def read_castep_castep(fd, index=None):
         calc = Castep()
     except Exception as e:
         # No CASTEP keywords found?
-        print('WARNING:\n{0}'.format(e))
+        print('WARNING:\n{0}\nUsing fallback .castep reader...'.format(e))
         # Fall back on the old method
         return read_castep_castep_old(fd, index)
-        
+
     calc.read(castep_file=fd)
 
     # now we trick the calculator instance such that we can savely extract
