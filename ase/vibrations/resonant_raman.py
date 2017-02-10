@@ -54,8 +54,7 @@ class ResonantRaman(Vibrations):
                  txt='-',
                  verbose=False,
                  overlap=False,
-                 minoverlap=0.1,
-    ):
+                 minoverlap=0.1):
         """
         Parameters
         ----------
@@ -93,20 +92,21 @@ class ResonantRaman(Vibrations):
         observation: dict
             Polarization settings
         form: string
-            Form of the dipole operator, 'v' for velocity form (default) 
+            Form of the dipole operator, 'v' for velocity form (default)
             and 'r' for length form.
         exkwargs: dict
             Arguments given to the Excitations objects in reading.
         exext: string
             Extension for filenames of Excitation lists.
-        txt: 
+        txt:
             Output stream
         verbose:
             Verbosity level of output
         overlap: bool/float
             Use wavefunction overlaps.
         minoverlap: float
-            Minimal absolute overlap to consider. 
+            Minimal absolute overlap to consider. Defaults to 0.1 to avoid
+            numerical garbage.
         """
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
@@ -235,8 +235,8 @@ class ResonantRaman(Vibrations):
         eu = u.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
         self.ex0m_pc = (np.array(
-            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
-            * u.Bohr)
+            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0]) *
+            u.Bohr)
         exmE_rp = []
         expE_rp = []
         exF_rp = []
@@ -309,8 +309,8 @@ class ResonantRaman(Vibrations):
         eu = u.Hartree
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
         self.ex0m_pc = (np.array(
-            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0])
-            * u.Bohr)
+            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0]) *
+            u.Bohr)
 
         def rotate(ex_p, ov_pp):
             em_p = np.array(
@@ -322,6 +322,7 @@ class ResonantRaman(Vibrations):
         exF_rp = []
         exmm_rpc = []
         expm_rpc = []
+        exdmdr_rpc = []
         r = 0
         for a in self.indices:
             for i in 'xyz':
@@ -332,6 +333,7 @@ class ResonantRaman(Vibrations):
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(rotate(exm[r], ovm[r]))
                 expm_rpc.append(rotate(exp[r], ovp[r]))
+                exdmdr_rpc.append(expm_rpc[-1] - exmm_rpc[-1])
                 r += 1
         # indicees: r=coordinate, p=excitation
         # energies in eV
@@ -342,6 +344,8 @@ class ResonantRaman(Vibrations):
         # matrix elements in e * Angstrom
         self.exmm_rpc = np.array(exmm_rpc) * u.Bohr
         self.expm_rpc = np.array(expm_rpc) * u.Bohr
+        # matrix element derivatives in e
+        self.exdmdr_rpc = np.array(exdmdr_rpc) * u.Bohr / 2 / self.delta
 
         self.timer.stop('me and energy')
 
