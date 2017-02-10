@@ -733,7 +733,14 @@ def read_castep_castep(fd, index=None):
 
     from ase.calculators.castep import Castep
 
-    calc = Castep()
+    try:
+        calc = Castep()
+    except Exception as e:
+        # No CASTEP keywords found?
+        print('WARNING:\n{0}'.format(e))
+        # Fall back on the old method
+        return read_castep_castep_old(fd, index)
+        
     calc.read(castep_file=fd)
 
     # now we trick the calculator instance such that we can savely extract
@@ -754,7 +761,8 @@ def read_castep_castep_old(fd, index=None):
     """
     DEPRECATED
     Now replaced by ase.calculators.castep.Castep.read(). Left in for future
-    reference and backwards compatibility needs.
+    reference and backwards compatibility needs, as well as a fallback for 
+    when castep_keywords.py can't be created.
 
     Reads a .castep file and returns an atoms  object.
     The calculator information will be stored in the calc attribute.
