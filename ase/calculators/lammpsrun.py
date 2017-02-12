@@ -312,6 +312,9 @@ class LAMMPS:
                 ).format(lammps_trj, lammps_data).encode('utf-8'))
 
         parameters = self.parameters
+        if 'package' in parameters:
+            f.write(('\n'.join(['package {0}'.format(p) for p in  parameters['package'] ])+'\n').encode('utf-8') )
+        
         pbc = self.atoms.get_pbc()
         f.write('units metal \n'.encode('utf-8'))
         if ('boundary' in parameters):
@@ -410,7 +413,7 @@ class LAMMPS:
         if not (('minimize' in parameters) or ('run' in parameters)):
             f.write('run 0\n'.encode('utf-8'))
 
-        f.write('print("{0}")\n'.format(CALCULATION_END_MARK).encode('utf-8'))
+        f.write('print "{0}" \n'.format(CALCULATION_END_MARK).encode('utf-8'))
         f.write('log /dev/stdout\n'.encode('utf-8')) # Force LAMMPS to flush log
 
         f.flush()
