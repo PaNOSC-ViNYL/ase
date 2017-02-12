@@ -12,7 +12,7 @@ attaching constraint object(s) directly to the atoms object.
 Important: setting constraints will freeze the corresponding atom positions.
 Changing such atom positions can be achieved:
 
-- by directly setting the :attr:`~ase.atoms.Atoms.positions` attribute
+- by directly setting the :attr:`~ase.Atoms.positions` attribute
   (see example of setting :ref:`atoms_special_attributes`),
 
 - alternatively, by removing the constraints first::
@@ -23,7 +23,7 @@ Changing such atom positions can be achieved:
 
     atoms.set_constraint()
 
-  and using the :meth:`~ase.atoms.Atoms.set_positions` method.
+  and using the :meth:`~ase.Atoms.set_positions` method.
 
 
 The FixAtoms class
@@ -182,7 +182,34 @@ For an example of use, see the :ref:`mhtutorial` tutorial.
 
   In previous versions of ASE, this was known as the BondSpring constraint.
 
-  
+
+The ExternalForce class
+=======================
+
+This class can be used to simulate a constant external force
+(e.g. the force of atomic force microscope).
+One can set the absolute value of the force *f_ext* (in eV/Ang) and two
+atom indices *a1* and *a2* to define on which atoms the force should act.
+If the sign of the force is positive, the two atoms will be pulled apart.
+The external forces which acts on both atoms are parallel to the
+connecting line of the two atoms.
+
+.. class:: ExternalForce(a1, a2, f_ext)
+
+Example of use::
+
+  >>> c = ExternalForce(0, 1, 0.5)
+  >>> atoms.set_constraint(c)
+
+One can combine this constraint with :class:`FixBondLength` but one has to
+consider the correct ordering when setting both constraints. :class:`ExternalForce`
+must come first in the list as shown in the following example.
+
+  >>> c1 = ExternalForce(0, 1, 0.5)
+  >>> c2 = FixBondLength(1, 2)
+  >>> atoms.set_constraint([c1, c2])
+
+
 The FixInternals class
 ======================
 
@@ -206,7 +233,7 @@ Example of use::
   >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
   >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1),
   ...              dihedral_indices1]
-  >>> c = FixInternals(bonds=[bonds1], angles=[angles1],
+  >>> c = FixInternals(bonds=[bond1], angles=[angle1],
   ...                  dihedrals=[dihedral1])
   >>> atoms.set_constraint(c)
 
@@ -239,7 +266,7 @@ fixed while relaxing it on a fixed ruthenium surface::
   >>> atoms.set_constraint([fa, fb])
 
 When applying more than one constraint they are passed as a list in
-the :meth:`~ase.atoms.Atoms.set_constraint` method, and they will be applied
+the :meth:`~ase.Atoms.set_constraint` method, and they will be applied
 one after the other.
 
 Important: If wanting to fix the length of more than one bond in the

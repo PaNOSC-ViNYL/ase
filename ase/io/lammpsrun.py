@@ -2,6 +2,7 @@ from ase.atoms import Atoms
 from ase.quaternions import Quaternions
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.parallel import paropen
+from ase.utils import basestring
 
 
 def read_lammps_dump(fileobj, index=-1, order=True, atomsobj=Atoms):
@@ -10,7 +11,7 @@ def read_lammps_dump(fileobj, index=-1, order=True, atomsobj=Atoms):
     order: Order the particles according to their id. Might be faster to
     switch it off.
     """
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         f = paropen(fileobj)
     else:
         f = fileobj
@@ -143,8 +144,8 @@ def read_lammps_dump(fileobj, index=-1, order=True, atomsobj=Atoms):
             if len(velocities):
                 images[-1].set_velocities(velocities)
             if len(forces):
-                calculator = SinglePointCalculator(0.0, forces,
-                                                   None, None, images[-1])
+                calculator = SinglePointCalculator(images[-1],
+                                                   energy=0.0, forces=forces)
                 images[-1].set_calculator(calculator)
 
     return images[index]

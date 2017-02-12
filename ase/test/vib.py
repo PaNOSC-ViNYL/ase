@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.optimize import QuasiNewton

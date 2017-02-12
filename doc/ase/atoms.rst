@@ -1,4 +1,5 @@
 .. module:: ase.atoms
+.. module:: ase
 
 ================
 The Atoms object
@@ -23,9 +24,9 @@ Here is how you could make an infinite gold wire with a bond length of
   d = 2.9
   L = 10.0
   wire = Atoms('Au',
-               positions=[(0, L / 2, L / 2)],
-               cell=(d, L, L),
-               pbc=(1, 0, 0))
+               positions=[[0, L / 2, L / 2]],
+               cell=[d, L, L],
+               pbc=[1, 0, 0])
 
 .. image:: Au-wire.png
 
@@ -34,8 +35,11 @@ Here, two more optional keyword arguments were used:
 ``cell``: Unit cell size
   This can be a sequence of three numbers for
   an orthorhombic unit cell or three by three numbers for a general
-  unit cell (a sequence of three sequences of three numbers).  The
-  default value is *[1.0, 1.0, 1.0]*.
+  unit cell (a sequence of three sequences of three numbers) or six numbers
+  (three legths and three angles in degrees).  The default value is
+  *[0,0,0]* which is the same as
+  *[[0,0,0],[0,0,0],[0,0,0]]* or *[0,0,0,90,90,90]* meaning that none of the
+  three lattice vectors are defined.
 
 ``pbc``: Periodic boundary conditions
   The default value is *False* - a value of *True* would give
@@ -116,6 +120,8 @@ common to all the atoms or defined for the collection of atoms:
     - :meth:`~Atoms.set_calculator`
   * - :meth:`~Atoms.get_cell`
     - :meth:`~Atoms.set_cell`
+  * - :meth:`~Atoms.get_cell_lengths_and_angles`
+    -
   * - :meth:`~Atoms.get_center_of_mass`
     -
   * - :meth:`~Atoms.get_kinetic_energy`
@@ -139,14 +145,13 @@ common to all the atoms or defined for the collection of atoms:
 Unit cell and boundary conditions
 =================================
 
-The :class:`Atoms` object holds a unit cell which by
-default is the 3x3 unit matrix as can be seen from
+The :class:`Atoms` object holds a unit cell which is a 3x3 matrix as can be
+seen from
 
 >>> a.get_cell()
-array([[ 1.,  0.,  0.],
-       [ 0.,  1.,  0.],
-       [ 0.,  0.,  1.]])
-
+array([[ 0.,  0.,  0.],
+       [ 0.,  0.,  0.],
+       [ 0.,  0.,  0.]])
 
 The cell can be defined or changed using the
 :meth:`~Atoms.set_cell` method. Changing the unit cell
@@ -178,6 +183,11 @@ boundary conditions in *x* and *y* directions and free boundary
 conditions in the *z* direction is obtained through
 
 >>> a.set_pbc((True, True, False))
+
+or
+
+>>> a.pbc = (True, True, False)
+
 
 .. _atoms_special_attributes:
 
@@ -215,6 +225,10 @@ False
 >>> a.pbc[2] = 1
 >>> a.pbc
 array([False, False,  True], dtype=bool)
+
+Hexagonal unit cell:
+
+>>> a.cell = [2.5, 2.5, 15, 90, 90, 120]
 
 
 Adding a calculator
@@ -330,5 +344,3 @@ List of all Methods
 
 .. autoclass:: Atoms
    :members:
-
-

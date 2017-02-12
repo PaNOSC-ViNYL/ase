@@ -12,8 +12,7 @@ dimer.positions[:] += 0.1
 print(dimer.positions)
 dimer.positions[:, 2] += 5.1
 print(dimer.positions)
-dimer.positions[:] = [(1,2,3),(4,5,6)]
+dimer.positions[:] = [(1, 2, 3), (4, 5, 6)]
 print(dimer.positions)
-dimer.set_positions([(1,2,3),(4,5,6.2)])
+dimer.set_positions([(1, 2, 3), (4, 5, 6.2)])
 print(dimer.positions)
-

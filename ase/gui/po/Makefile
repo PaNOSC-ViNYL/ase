@@ -28,7 +28,7 @@ i18n: ag.pot update-po compile
 # This will update the English template (ag.pot) with English messages from
 # the Python source code.
 ag.pot: ${TRANSLATIONFILES}
-	xgettext --add-comments --language=Python --keyword=_ --output=ag.pot --msgid-bugs-address=ase-developers@listserv.fysik.dtu.dk --copyright-holder=CAMD --package-name=ase ${TRANSLATIONFILES}
+	xgettext --add-comments --language=Python --keyword=_ --output=ag.pot --msgid-bugs-address=ase-users@listserv.fysik.dtu.dk --copyright-holder="ASE developers" --package-name=ase ${TRANSLATIONFILES}
 
 # This will create an empty translation file ($LANG.po, where $LANG is
 # an environment variable) from the English template ag.pot.
@@ -54,7 +54,7 @@ compile: */LC_MESSAGES/ag.po
 	done
 
 gitrevert:
-	git checkout -- ag.pot */LC_MESSAGES/ag.po
+	git checkout -- ag.pot '*/LC_MESSAGES/ag.po'
 
 clean:
 	rm -f ./*/LC_MESSAGES/ag.mo

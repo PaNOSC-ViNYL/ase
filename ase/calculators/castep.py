@@ -30,6 +30,7 @@ import ase.units as units
 from ase.calculators.general import Calculator
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
+from ase.utils import basestring
 
 __all__ = [
     'Castep',
@@ -41,6 +42,7 @@ contact_email = 'simon.rittmeyer@tum.de'
 
 # A convenient table to avoid the previously used "eval"
 _tf_table = {
+    '': True,  # Just the keyword is equivalent to True
     'True': True,
     'False': False}
 
@@ -450,7 +452,7 @@ End CASTEP Interface Documentation
 
         returns (record_start, record_end, end_found, last_record_complete)
         """
-        if isinstance(castep_file, str):
+        if isinstance(castep_file, basestring):
             castep_file = paropen(castep_file, 'r')
             file_opened = True
         else:
@@ -524,7 +526,7 @@ End CASTEP Interface Documentation
             if not os.path.exists(castep_file):
                 print('No CASTEP file found')
 
-        elif isinstance(castep_file, str):
+        elif isinstance(castep_file, basestring):
             out = paropen(castep_file, 'r')
 
         else:
@@ -933,7 +935,7 @@ End CASTEP Interface Documentation
         if castep_castep is None:
             castep_castep = self._seed + '.castep'
 
-        if isinstance(castep_castep, str):
+        if isinstance(castep_castep, basestring):
             if not os.path.isfile(castep_castep):
                 print('Warning: CASTEP file %s not found!' % castep_castep)
             f = paropen(castep_castep, 'a')
@@ -1443,7 +1445,7 @@ End CASTEP Interface Documentation
                     self.param.__setattr__(key, option.value)
             return
 
-        elif isinstance(param, str):
+        elif isinstance(param, basestring):
             param_file = open(param, 'r')
             _close = True
 
@@ -1512,11 +1514,11 @@ End CASTEP Interface Documentation
                     i += 1
                     if line.upper() == '%ENDBLOCK DEVEL_CODE':
                         break
-                    value += '\n{}'.format(line)
+                    value += '\n{0}'.format(line)
                 value = value.strip()
 
                 if (not overwrite and
-                    getattr(self.param, key).value is not None):
+                        getattr(self.param, key).value is not None):
                     continue
 
                 self.__setattr__(key, value)
@@ -1683,6 +1685,7 @@ def get_castep_version(castep_command):
     temp_dir = tempfile.mkdtemp()
     jname = 'dummy_jobname'
     stdout, stderr = '', ''
+    fallback_version = 16.  # CASTEP 16.0 and 16.1 report version wrongly
     try:
         stdout, stderr = subprocess.Popen(
             castep_command.split() + ['--version'],
@@ -1715,7 +1718,11 @@ def get_castep_version(castep_command):
     shutil.rmtree(temp_dir)
     for line in output_txt:
         if 'CASTEP version' in line:
-            return float(version_re.findall(line)[0])
+            try:
+                return float(version_re.findall(line)[0])
+            except ValueError:
+                # Fallback for buggy --version on CASTEP 16.0, 16.1
+                return fallback_version
 
 
 def create_castep_keywords(castep_command, filename='castep_keywords.py',
@@ -1936,7 +1943,7 @@ class CastepParam(object):
                 raise UserWarning('Option "%s" is not known!' % attr)
         attr = attr.lower()
         opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, str):
+        if not opt.type == 'Block' and isinstance(value, basestring):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             if False:
@@ -1992,10 +1999,10 @@ class CastepParam(object):
         # Newly added "Vector" options
         elif opt.type == 'Integer Vector':
             # crashes if value is not a string
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if ',' in value:
                     value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
                 except:
@@ -2007,7 +2014,7 @@ class CastepParam(object):
         elif opt.type == 'Real Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [float(x) for x in value.split()]
                 except:
@@ -2026,7 +2033,7 @@ class CastepParam(object):
             # However if a unit is present it will be dealt with
 
             # this crashes if non-string types are passed
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if len(value.split()) > 1:
                     value = value.split(' ', 1)[0]
             try:
@@ -2082,8 +2089,14 @@ class CastepCell(object):
         if 'kpoint_' in attr:
             if attr.replace('kpoint_', 'kpoints_') in self._options:
                 attr = attr.replace('kpoint_', 'kpoints_')
+
+        # CASTEP < 16 lists kpoints_mp_grid as type "Integer" -> convert to
+        # "Integer Vector"
+        if attr == 'kpoints_mp_grid':
+            self._options[attr].type = 'Integer Vector'
+
         opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, str):
+        if not opt.type == 'Block' and isinstance(value, basestring):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             try:
@@ -2116,7 +2129,7 @@ class CastepCell(object):
         elif opt.type == 'Integer Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
                 except:
@@ -2128,7 +2141,7 @@ class CastepCell(object):
         elif opt.type == 'Real Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [float(x) for x in value.split()]
                 except:
@@ -2146,8 +2159,10 @@ class CastepCell(object):
 
             # However if a unit is present it will be dealt with
 
-            if len(value.split()) > 1:
-                value = value.split(' ', 1)[0]
+            # this crashes if non-string types are passed
+            if isinstance(value, basestring):
+                if len(value.split()) > 1:
+                    value = value.split(' ', 1)[0]
             try:
                 value = float(value)
             except:
@@ -2176,7 +2191,7 @@ class CastepCell(object):
 
                     # sort based on atomic numbers
                     pspots.sort(key=lambda x: ase.data.atomic_numbers[
-                        x.split()[0]])
+                        re.split('[\s:]', x, 1)[0]])
 
                     # rejoin; the first blank-line
                     # makes the print(calc) output look prettier
@@ -2200,26 +2215,23 @@ class CastepCell(object):
 #                    return
 
             elif attr == 'symmetry_ops':
-                if (not isinstance(value, dict) or
-                        'rotation' not in value or
-                        len(value['rotation']) != 3 or
-                        len(value['displacement']) != 3 or
-                        'displacement' not in value):
-                    print('Cannot process your symmetry_op %s' % value)
-                    print('It has statet like {"rotation":[a, b, c], ')
-                    print('                    "displacement": [x, y, z]}')
+                if not isinstance(value, tuple) \
+                   or not len(value) == 2 \
+                   or not value[0].shape[1:] == (3,3) \
+                   or not value[1].shape[1:] == (3,) \
+                   or not value[0].shape[0] == value[1].shape[0]:
+                    print('Invalid symmetry_ops block, skipping')
                     return
-                if self.__dict__['symmetry_ops'].value is None:
-                    self.__dict__['symmetry_ops'].value = ''
-                n = (len(self.__dict__['symmetry_ops'].value.split('\n')) /
-                     4) + 1
-                for i in range(3):
-                    self.__dict__['symmetry_ops'].value += \
-                        (('%9.6f ' * 3 + '! rotation     %5d\n') %
-                         (tuple(value['rotation'][i] + (n, ))))
-                self.__dict__['symmetry_ops'].value\
-                    += (('%9.6f ' * 3 + '! displacement %5d \n') %
-                        (tuple(value['displacement'] + (n, ))))
+                # Now on to print...
+                text_block = ''
+                for op_i, (op_rot, op_tranls) in enumerate(zip(*value)):
+                  text_block += '\n'.join([' '.join([str(x) for x in row])
+                                           for row in op_rot])
+                  text_block += '\n'
+                  text_block += ' '.join([str(x) for x in op_tranls])
+                  text_block += '\n'
+                value = text_block
+
             elif attr in ['positions_abs_intermediate',
                           'positions_abs_product']:
                 if not isinstance(value, ase.atoms.Atoms):
@@ -2234,19 +2246,10 @@ class CastepCell(object):
                                                                   pos[1],
                                                                   pos[2]))
                 return
-            elif attr in ['cell_constraints']:
-                # put block type options here, that don't need special care
-                try:
-                    value = str(value)
-                except:
-                    raise ConversionError('str', attr, value)
             else:
-                print('Not implemented')
-                print('The option %s is of block type, which usually' % attr)
-                print('needs some special care to get the formattings right.')
-                print('Please feel free to add it and send the')
-                print('patch to %s, so we can all benefit.' % contact_email)
-                raise
+                # For generic, non-implemented blocks all we want is to
+                # store the lines and reprint them without any changes later
+                value = '\n'.join(value)
             self._options[attr].value = value
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'

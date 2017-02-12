@@ -417,7 +417,7 @@ class Cp2kShell(object):
         """Construct CP2K-shell object"""
 
         self.isready = False
-        self.version = None
+        self.version = 1.0  # assume oldest possible version until verified
         self._child = None
         self._debug = debug
 

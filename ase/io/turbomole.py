@@ -82,7 +82,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
     # Interpret $grad section
     from ase import Atoms, Atom
     from ase.calculators.singlepoint import SinglePointCalculator
-    from ase.units import Bohr
+    from ase.units import Bohr, Hartree
     images = []
     while len(lines): # loop over optimization cycles
         # header line
@@ -90,7 +90,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
         fields = lines[0].split('=')
         try:
             # cycle = int(fields[1].split()[0])
-            energy = float(fields[2].split()[0])
+            energy = float(fields[2].split()[0]) * Hartree
             # gradient = float(fields[3].split()[0])
         except (IndexError, ValueError):
             formatError()
@@ -111,7 +111,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
             elif len(fields) == 3: # gradients
                 #  -.51654903354681D-07  -.51654903206651D-07  0.51654903169644D-07
                 try:
-                    grad = [float(x.replace('D', 'E')) * Bohr for x in fields[0:3] ]
+                    grad = [-float(x.replace('D', 'E')) * Hartree / Bohr for x in fields[0:3] ]
                 except ValueError:
                     formatError()
                 forces.append(grad)

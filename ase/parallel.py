@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 import atexit
 import functools
 import pickle
@@ -32,14 +32,14 @@ def paropen(name, mode='r', buffering=-1):
     append mode, the file is opened on the master only, and /dev/null
     is opened on all other nodes.
     """
-    if rank > 0 and mode[0] != 'r':
+    if world.rank > 0 and mode[0] != 'r':
         name = '/dev/null'
     return open(name, mode, buffering)
 
 
 def parprint(*args, **kwargs):
     """MPI-safe print - prints only from master. """
-    if rank == 0:
+    if world.rank == 0:
         print(*args, **kwargs)
 
 
@@ -52,7 +52,7 @@ class DummyMPI:
             pass
         else:
             return a
-    
+
     def barrier(self):
         pass
 
@@ -63,13 +63,26 @@ class DummyMPI:
 class MPI4PY:
     def __init__(self):
         from mpi4py import MPI
-        self.comm = MPI.COMM_WORLD
+        self.comm_world = MPI.COMM_WORLD
+        self.comm = self.comm_world
         self.rank = self.comm.rank
         self.size = self.comm.size
 
     def sum(self, a):
         return self.comm.allreduce(a)
-    
+
+    def split(self, split_size=None):
+        """Divide the communicator."""
+        # color - subgroup id
+        # key - new subgroup rank
+        if not split_size:
+            split_size = self.size
+        color = int(self.rank // (self.size / split_size))
+        key = int(self.rank % (self.size / split_size))
+        self.comm = self.comm.Split(color, key)
+        self.rank = self.comm.rank
+        self.size = self.comm.size
+
     def barrier(self):
         self.comm.barrier()
 
@@ -77,16 +90,21 @@ class MPI4PY:
         self.comm.Abort(code)
 
     def broadcast(self, a, rank):
-        a[:] = self.comm.bcast(a, rank)
+        a[:] = self.comm.bcast(a, root=rank)
 
 
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
     from gpaw.mpi import world
-elif 'asapparallel3' in sys.modules:
-    # http://wiki.fysik.dtu.dk/Asap
+elif '_asap' in sys.builtin_module_names:
+    # Modern version of Asap
+    # http://wiki.fysik.dtu.dk/asap
     # We cannot import asap3.mpi here, as that creates an import deadlock
+    import _asap
+    world = _asap.Communicator()
+elif 'asapparallel3' in sys.modules:
+    # Older version of Asap
     import asapparallel3
     world = asapparallel3.Communicator()
 elif 'Scientific_mpi' in sys.modules:
@@ -106,7 +124,7 @@ def broadcast(obj, root=0, comm=world):
     """Broadcast a Python object across an MPI communicator and return it."""
     if comm.rank == root:
         string = pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)
-        n = np.array(len(string), int)
+        n = np.array([len(string)], int)
     else:
         string = None
         n = np.empty(1, int)
@@ -126,7 +144,7 @@ def parallel_function(func):
     """Decorator for broadcasting from master to slaves using MPI."""
     if world.size == 1:
         return func
-        
+
     @functools.wraps(func)
     def new_func(*args, **kwargs):
         # Hook to disable.  Use self.serial = True
@@ -150,7 +168,7 @@ def parallel_generator(generator):
     """Decorator for broadcasting yields from master to slaves using MPI."""
     if world.size == 1:
         return generator
-        
+
     @functools.wraps(generator)
     def new_generator(*args, **kwargs):
         # Hook to disable.  Use self.serial = True
@@ -161,13 +179,12 @@ def parallel_generator(generator):
         if world.rank == 0:
             try:
                 for result in generator(*args, **kwargs):
-                    ex, result = broadcast((None, result))
+                    broadcast((None, result))
                     yield result
             except Exception as ex:
-                pass
-            broadcast((ex, None))
-            if ex is not None:
+                broadcast((ex, None))
                 raise ex
+            broadcast((None, None))
         else:
             ex, result = broadcast((None, None))
             if ex is not None:
@@ -184,7 +201,7 @@ def register_parallel_cleanup_function():
     """Call MPI_Abort if python crashes.
 
     This will terminate the processes on the other nodes."""
-        
+
     if size == 1:
         return
 
@@ -202,7 +219,7 @@ def register_parallel_cleanup_function():
 
     atexit.register(cleanup)
 
-    
+
 def distribute_cpus(size, comm):
     """Distribute cpus to tasks and calculators.
 
@@ -213,7 +230,7 @@ def distribute_cpus(size, comm):
     Output:
     communicator for this rank, number of calculators, index for this rank
     """
-    
+
     assert size <= comm.size
     assert comm.size % size == 0
 

@@ -6,16 +6,17 @@ File input and output
 =====================
 
 .. seealso::
-    
+
     * :mod:`ase.io.trajectory`
-    
+
 .. toctree::
     :hidden:
-    
+
     trajectory
+    ulm
     opls
-    
-    
+
+
 The :mod:`ase.io` module has three basic functions: :func:`read`,
 :func:`iread` and :func:`write`. The methods are described here:
 
@@ -29,7 +30,7 @@ multiple configurations):
 .. csv-table::
     :file: io.csv
     :header-rows: 1
-    
+
 .. note::
 
     Even though that ASE does a good job reading the above listed
@@ -40,6 +41,13 @@ multiple configurations):
     nested loops and multi-data values are not supported.  Furthermore,
     ASE currently assumes the ``loop_`` identifier, and the following
     loop variable names to be on separate lines.
+
+.. note::
+
+    Ase read and write functions are automatically parallelized if a
+    suitable MPI library is found. This requires to call read and write
+    with same input on all cores. For more information, see
+    :mod:`ase.parallel`.
 
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:

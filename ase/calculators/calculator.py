@@ -5,13 +5,17 @@ from math import pi, sqrt
 
 import numpy as np
 
+from ase.dft.kpoints import bandpath, monkhorst_pack
 
 class ReadError(Exception):
     pass
 
+class PropertyNotImplementedError(NotImplementedError):
+    pass
+
 
 all_properties = ['energy', 'forces', 'stress', 'dipole',
-                  'charges', 'magmom', 'magmoms']
+                  'charges', 'magmom', 'magmoms', 'free_energy']
 
 
 all_changes = ['positions', 'numbers', 'cell', 'pbc',
@@ -19,10 +23,11 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 
 # Recognized names of calculators sorted alphabetically:
-names = ['abinit', 'aims', 'asap', 'castep', 'cp2k', 'dftb', 'eam', 'elk',
-         'emt', 'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'hotbit',
-         'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac', 'morse',
-         'nwchem', 'octopus', 'siesta', 'tip3p', 'turbomole', 'vasp']
+names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'demon', 'dftb',
+         'eam', 'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw',
+         'gromacs', 'hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac',
+         'morse', 'nwchem', 'octopus', 'onetep', 'siesta', 'tip3p',
+         'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
@@ -66,6 +71,10 @@ def equal(a, b, tol=None):
             return np.allclose(a, b, rtol=tol, atol=tol)
     if isinstance(b, np.ndarray):
         return equal(b, a, tol)
+    if isinstance(a, dict) and isinstance(b, dict):
+        if a.keys() != b.keys():
+            return False
+        return all(equal(a[key], b[key], tol) for key in a.keys())
     if tol is None:
         return a == b
     return abs(a - b) < tol * abs(b) + tol
@@ -105,6 +114,61 @@ def kpts2mp(atoms, kpts, even=False):
         return kpts
 
 
+def kpts2sizeandoffsets(size=None, density=None, gamma=None, even=None,
+                        atoms=None):
+    """Helper function for selecting k-points.
+
+    Use either size or density.
+
+    size: 3 ints
+        Number of k-points.
+    density: float
+        K-point density in units of k-points per Ang^-1.
+    gamma: None or bool
+        Should the Gamma-point be included?  Yes / no / don't care:
+        True / False / None.
+    even: None or bool
+        Should the number of k-points be even?  Yes / no / don't care:
+        True / False / None.
+    atoms: Atoms object
+        Needed for calculating k-point density.
+
+    """
+
+    if size is None:
+        if density is None:
+            size = [1, 1, 1]
+        else:
+            size = kptdensity2monkhorstpack(atoms, density, even)
+
+    offsets = [0, 0, 0]
+
+    if gamma is not None:
+        for i, s in enumerate(size):
+            if atoms.pbc[i] and s % 2 != bool(gamma):
+                offsets[i] = 0.5 / s
+
+    return size, offsets
+
+
+def kpts2ndarray(kpts, atoms=None):
+    """Convert kpts keyword to 2-d ndarray of scaled k-points."""
+
+    if kpts is None:
+        return np.zeros((1, 3))
+
+    if isinstance(kpts, dict):
+        if 'path' in kpts:
+            return bandpath(cell=atoms.cell, **kpts)[0]
+        size, offsets = kpts2sizeandoffsets(atoms=atoms, **kpts)
+        return monkhorst_pack(size) + offsets
+
+    if isinstance(kpts[0], int):
+        return monkhorst_pack(kpts)
+
+    return np.array(kpts)
+
+
 class Parameters(dict):
     """Dictionary for parameters.
 
@@ -120,6 +184,18 @@ class Parameters(dict):
     def __setattr__(self, key, value):
         self[key] = value
 
+    def update(self, other=None, **kwargs):
+        if isinstance(other, dict):
+            self.update(other.items())
+        else:
+            for key, value in other:
+                if isinstance(value, dict) and isinstance(self[key], dict):
+                    self[key].update(value)
+                else:
+                    self[key] = value
+        if kwargs:
+            self.update(kwargs)
+
     @classmethod
     def read(cls, filename):
         """Read parameters from file."""
@@ -129,7 +205,7 @@ class Parameters(dict):
         return parameters
 
     def tostring(self):
-        keys = sorted(self.keys())
+        keys = sorted(self)
         return 'dict(' + ',\n     '.join(
             '%s=%r' % (key, self[key]) for key in keys) + ')\n'
 
@@ -142,10 +218,10 @@ class Parameters(dict):
 class Calculator:
     """Base-class for all ASE calculators.
 
-    A calculator must raise NotImplementedError if asked for a
+    A calculator must raise PropertyNotImplementedError if asked for a
     property that it can't calculate.  So, if calculation of the
     stress tensor has not been implemented, get_stress(atoms) should
-    raise NotImplementedError.  This can be achieved simply by not
+    raise PropertyNotImplementedError.  This can be achieved simply by not
     including the string 'stress' in the list implemented_properties
     which is a class member.  These are the names of the standard
     properties: 'energy', 'forces', 'stress', 'dipole', 'charges',
@@ -238,11 +314,18 @@ class Calculator:
     def get_default_parameters(self):
         return Parameters(copy.deepcopy(self.default_parameters))
 
-    def todict(self):
-        default = self.get_default_parameters()
-        return dict((key, value)
-                    for key, value in self.parameters.items()
-                    if key not in default or value != default[key])
+    def todict(self, skip_default=True):
+        defaults = self.get_default_parameters()
+        dct = {}
+        for key, value in self.parameters.items():
+            if hasattr(value, 'todict'):
+                value = value.todict()
+            if skip_default:
+                default = defaults.get(key, '_no_default_')
+                if default != '_no_default_' and equal(value, default):
+                    continue
+            dct[key] = value
+        return dct
 
     def reset(self):
         """Clear all information from old calculation."""
@@ -307,15 +390,6 @@ class Calculator:
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                if isinstance(oldvalue, dict):
-                    # Special treatment for dictionary parameters:
-                    for name in value:
-                        if name not in oldvalue:
-                            raise KeyError(
-                                'Unknown subparameter "%s" in '
-                                'dictionary parameter "%s"' % (name, key))
-                    oldvalue.update(value)
-                    value = oldvalue
                 changed_parameters[key] = value
                 self.parameters[key] = value
 
@@ -324,7 +398,7 @@ class Calculator:
     def check_state(self, atoms, tol=1e-15):
         """Check for system changes since last calculation."""
         if self.atoms is None:
-            system_changes = all_changes
+            system_changes = all_changes[:]
         else:
             system_changes = []
             if not equal(self.atoms.positions, atoms.positions, tol):
@@ -347,7 +421,7 @@ class Calculator:
     def get_potential_energy(self, atoms=None, force_consistent=False):
         energy = self.get_property('energy', atoms)
         if force_consistent:
-            return self.results.get('free_energy', energy)
+            return self.results['free_energy']
         else:
             return energy
 
@@ -367,11 +441,12 @@ class Calculator:
         return self.get_property('magmom', atoms)
 
     def get_magnetic_moments(self, atoms=None):
+        """Calculate magnetic moments projected onto atoms."""
         return self.get_property('magmoms', atoms)
 
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
 
         if atoms is None:
             atoms = self.atoms
@@ -383,17 +458,18 @@ class Calculator:
         if name not in self.results:
             if not allow_calculation:
                 return None
-            try:
-                self.calculate(atoms, [name], system_changes)
-            except Exception:
-                self.reset()
-                raise
+            self.calculate(atoms, [name], system_changes)
 
         if name == 'magmom' and 'magmom' not in self.results:
             return 0.0
 
         if name == 'magmoms' and 'magmoms' not in self.results:
             return np.zeros(len(atoms))
+
+        if name not in self.results:
+            # For some reason the calculator was not able to do what we want,
+            # and that is OK.
+            raise PropertyNotImplementedError
 
         result = self.results[name]
         if isinstance(result, np.ndarray):
@@ -419,7 +495,7 @@ class Calculator:
             and 'magmoms'.
         system_changes: list of str
             List of what has changed since last calculation.  Can be
-            any combination of these five: 'positions', 'numbers', 'cell',
+            any combination of these six: 'positions', 'numbers', 'cell',
             'pbc', 'initial_charges' and 'initial_magmoms'.
 
         Subclasses need to implement this, but can ignore properties
@@ -471,7 +547,7 @@ class Calculator:
             stress[i, i] = (eplus - eminus) / (2 * d * V)
             x[i, i] += d
 
-            j = (i + 1) % 3
+            j = i - 2
             x[i, j] = d
             x[j, i] = d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
@@ -493,6 +569,11 @@ class Calculator:
 
     def get_spin_polarized(self):
         return False
+
+    def band_structure(self):
+        """Create band-structure object for plotting."""
+        from ase.dft.band_structure import BandStructure
+        return BandStructure(calc=self)
 
 
 class FileIOCalculator(Calculator):

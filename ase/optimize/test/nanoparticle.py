@@ -33,7 +33,6 @@ def get_calculator():
                 mixer=Mixer(beta=0.1, nmaxold=5, weight=50.0),
                 poissonsolver=PoissonSolver(nn='M', relax='GS'),
                 convergence={'energy': 1e-4, 'bands': -3},
-                stencils=(3, 3),
                 txt='nanoparticle.txt')
     return calc
 
