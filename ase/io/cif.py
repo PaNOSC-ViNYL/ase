@@ -17,6 +17,9 @@ from ase.spacegroup.spacegroup import spacegroup_from_data
 from ase.utils import basestring
 
 
+old = {'Cmca': 'Cmce'}
+
+
 def convert_value(value):
     """Convert CIF value string to corresponding python type."""
     value = value.strip()
@@ -217,6 +220,8 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         symbolHM = tags['_space_group.patterson_name_h-m']
     elif '_symmetry_space_group_name_h-m' in tags:
         symbolHM = tags['_symmetry_space_group_name_h-m']
+
+    symbolHM = old.get(symbolHM.strip(), symbolHM)
 
     for name in ['_space_group_symop_operation_xyz',
                  '_space_group_symop.operation_xyz',
