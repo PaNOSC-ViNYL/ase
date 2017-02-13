@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 import ase.units as u
-from ase.parallel import rank, parprint, paropen
+from ase.parallel import parprint, paropen
 from ase.vibrations.resonant_raman import ResonantRaman
 from ase.vibrations.franck_condon import FranckCondonOverlap
 
@@ -50,9 +50,7 @@ class Albrecht(ResonantRaman):
             n_vQ = np.array(n_vQ)
             
         self.om_v = om_v
-##        print('self.om_v', self.om_v)
         self.n_vQ = n_vQ
-##        print('self.n_vQ', self.n_vQ)
 
     def Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
@@ -68,6 +66,11 @@ class Albrecht(ResonantRaman):
         s = 1.e-20 / u.kg / u.C / u._hbar**2  # SI units
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
+
+    def omegaLS(self,  omega, gamma):
+        omL = omega + 1j * gamma
+        omS_Q = omL - self.om_Q
+        return omL, omS_Q
 
     def meA(self, omega, gamma=0.1, ml=range(16)):
         """Evaluate Albrecht A term.
@@ -112,150 +115,92 @@ class Albrecht(ResonantRaman):
         self.timer.stop('AlbrechtA')
         return m_Qcc
 
-    def meA_2(self, omega, gamma=0.1, ml=range(16)):
-        """Evaluate Albrecht A term.
+    def meBC(self, omega, gamma=0.1, ml=range(16),
+             term='BC'):
+        """Evaluate Albrecht BC term.
 
         Returns
         -------
-        Full Albrecht A matrix element. Unit: e^2 Angstrom^2 / eV
+        Full Albrecht BC matrix element.
+        Unit: e^2 Angstrom / eV / sqrt(amu)
         """
         self.read()
-
-        self.timer.start('AlbrechtA')
-
-        if not hasattr(self, 'fco'):
-            self.fco = FranckCondonOverlap()
-
-        om = omega + 1j * gamma
-        # excited state forces
-        F_pr = self.exF_rp.T
-
-        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        for p, energy in enumerate(self.ex0E_p):
-            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
-            # scattered light
-            omS_v = om - self.om_v
-            # relaxed excited state energy
-            n_vQ = np.where(self.n_vQ > 0, 1, 0)
-            energy_v = energy - n_vQ.dot(self.om_Q * S_Q)
-            
-            me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
-
-            wm_Q = np.zeros((self.ndof), dtype=complex)
-            wp_Q = np.zeros((self.ndof), dtype=complex)
-            for m in ml:
-                self.timer.start('0mm1/2')
-                fco1_Q = self.fco.direct0mm2(m, S_Q)
-                if (self.n_vQ > 1).any():
-                    fco2_Q = self.fco.direct0mm2(m, S_Q)
-                self.timer.stop('0mm1/2')
-                
-                self.timer.start('weight_Q')
-                wm_Q += fco_Q / (energy_Q + m * self.om_Q - om)
-                wp_Q += fco_Q / (energy_Q + (m - 1) * self.om_Q + om)
-                self.timer.stop('weight_Q')
-            self.timer.start('einsum')
-            m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
-            m_Qcc += np.einsum('a,bc->abc', wp_Q, me_cc.T.conj())
-            self.timer.stop('einsum')
-                
-        self.timer.stop('AlbrechtA')
-        return m_Qcc
-
-    def meBC(self, omega, gamma=0.1, ml=[1],
-             term='BC'):
-        """Evaluate Albrecht B and/or C term(s)."""
-        self.read()
-        # we need the overlaps
-        assert(self.overlap)
 
         self.timer.start('AlbrechtBC')
 
         if not hasattr(self, 'fco'):
             self.fco = FranckCondonOverlap()
 
+        omL = omega + 1j * gamma
+        omS_Q = omL - self.om_Q
+
         # excited state forces
         F_pr = self.exF_rp.T
+        # derivatives after normal coordinates
+        dmdq_qpc = (self.exdmdr_rpc.T * self.im).T  # unit e / sqrt(amu)
+        dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T # unit e / sqrt(amu)
+##        print('dmdQ_Qpc', dmdQ_Qpc[-1])
 
-        m_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
+        me_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
-            S_Q = self.get_Huang_Rhys_factors(F_pr[p])
+            S_Q = self.Huang_Rhys_factors(F_pr[p])
+            # relaxed excited state energy
+##            n_vQ = np.where(self.n_vQ > 0, 1, 0)
+##            energy_v = energy - n_vQ.dot(self.om_Q * S_Q)
+            energy_Q = energy - self.om_Q * S_Q
+            
+            ##me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
+            m_c = self.ex0m_pc[p]
+            dmdQ_Qc = dmdQ_Qpc[:, p]
 
+            wBLS_Q = np.zeros((self.ndof), dtype=complex)
+            wBSL_Q = np.zeros((self.ndof), dtype=complex)
+            wCLS_Q = np.zeros((self.ndof), dtype=complex)
+            wCSL_Q = np.zeros((self.ndof), dtype=complex)
             for m in ml:
-                self.timer.start('Franck-Condon overlaps')
-                fc1mm1_Q = self.fco.direct(1, m, S_Q)
-                fc0mm02_Q = self.fco.direct(0, m, S_Q)
-                fc0mm02_Q += np.sqrt(2) * self.fco.direct0mm2(m, S_Q)
-##                print(m, fc1mm1_r[-1], fc0mm02_r[-1])
-                self.timer.stop('Franck-Condon overlaps')
-
-                self.timer.start('me dervivatives')
-                dm_rc = []
-                r = 0
-                for a in self.indices:
-                    for i in 'xyz':
-                        dm_rc.append(
-                            (self.expm_rpc[r, p] - self.exmm_rpc[r, p]) *
-                            self.im[r])
-                        print('pm=', self.expm_rpc[r, p], self.exmm_rpc[r, p])
-                        r += 1
-                dm_rc = np.array(dm_rc) / (2 * self.delta)
-                self.timer.stop('me dervivatives')
-
-                self.timer.start('map to modes')
-                # print('dm_rc[2], dm_rc[5]', dm_rc[2], dm_rc[5])
-                print('dm_rc=', dm_rc)
-                dm_rc = np.dot(dm_rc.T, self.modes.T).T
-                print('dm_rc[-1][2]', dm_rc[-1][2])
-                self.timer.stop('map to modes')
-
-                self.timer.start('multiply')
-                # me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
-                for r in range(self.ndof):
-                    if 'B' in term:
-                        # XXXX
-                        denom = (1. /
-                                 (energy + m * 0 * self.om_Q[r] -
-                                  omega - 1j * gamma))
-                        # ok print('denom=', denom)
-                        m_rcc[r] += (np.outer(dm_rc[r],
-                                              self.ex0m_pc[p].conj()) *
-                                     fc1mm1_r[r] * denom)
-                        if r == 5:
-                            print('m_rcc[r]=', m_rcc[r][2, 2])
-                        m_rcc[r] += (np.outer(self.ex0m_pc[p],
-                                              dm_rc[r].conj()) *
-                                     fc0mm02_r[r] * denom)
-                    if 'C' in term:
-                        denom = (1. /
-                                 (energy + (m - 1) * self.om_Q[r] +
-                                  omega + 1j * gamma))
-                        m_rcc[r] += (np.outer(self.ex0m_pc[p],
-                                              dm_rc[r].conj()) *
-                                     fc1mm1_r[r] * denom)
-                        m_rcc[r] += (np.outer(dm_rc[r],
-                                              self.ex0m_pc[p].conj()) *
-                                     fc0mm02_r[r] * denom)
-                self.timer.stop('multiply')
-        print('m_rcc[-1]=', m_rcc[-1][2, 2])
-
-        self.timer.start('pre_r')
-        with np.errstate(divide='ignore'):
-            pre_r = np.where(self.om_Q > 0,
-                             np.sqrt(u._hbar**2 / 2. / self.om_Q), 0)
-            # print('BC: pre_r=', pre_r)
-        for r, p in enumerate(pre_r):
-            m_rcc[r] *= p
-        self.timer.stop('pre_r')
+                self.timer.start('0mm1/2')
+                f0mmQ1_Q = (self.fco.directT0(m, S_Q) +
+                            np.sqrt(2) * self.fco.direct0mm2(m, S_Q))
+                f0Qmm1_Q = self.fco.direct(1, m, S_Q)
+##                if (self.n_vQ > 1).any():
+##                    fco2_Q = self.fco.direct0mm2(m, S_Q)
+                self.timer.stop('0mm1/2')
+                
+                self.timer.start('weight_Q')
+                em_Q = energy_Q + m * self.om_Q
+                wBLS_Q += f0mmQ1_Q / (em_Q - omL)
+                wBSL_Q += f0Qmm1_Q / (em_Q - omL)
+                wCLS_Q += f0mmQ1_Q / (em_Q + omS_Q)
+                wCSL_Q += f0Qmm1_Q / (em_Q + omS_Q)
+                self.timer.stop('weight_Q')
+            self.timer.start('einsum')
+            # unit e^2 Angstrom / sqrt(amu)
+            mdmdQ_Qcc = np.einsum('a,bc->bac', m_c, dmdQ_Qc.conj())
+            dmdQm_Qcc = np.einsum('ab,c->abc', dmdQ_Qc, m_c.conj())
+            if 'B' in term:
+                me_Qcc += np.multiply(wBLS_Q, mdmdQ_Qcc.T).T
+                me_Qcc += np.multiply(wBSL_Q, dmdQm_Qcc.T).T
+            if 'C' in term:
+                me_Qcc += np.multiply(wCLS_Q, mdmdQ_Qcc.T).T
+                me_Qcc += np.multiply(wCSL_Q, dmdQm_Qcc.T).T
+            self.timer.stop('einsum')
+                
         self.timer.stop('AlbrechtBC')
-        return m_rcc
+        return me_Qcc  # unit e^2 Angstrom / eV / sqrt(amu)
 
     def electronic_me_Qcc(self, omega, gamma):
         """Evaluate an electronic matric element."""
         if self.approximation.lower() == 'albrecht a':
-            Vel_Qcc = self.meA(omega, gamma)
+            Vel_Qcc = self.meA(omega, gamma)  # e^2 Angstrom^2 / eV 
+##            print('A Vel_Qcc=', Vel_Qcc[-1])
+            # divide through pre-factor
+            with np.errstate(divide='ignore'):
+                Vel_Qcc *= np.where(self.vib01_Q > 0,
+                                    1. / np.sqrt(self.vib01_Q), 0)[:, None, None]
+            # -> e^2 Angstrom / eV / sqrt(amu)
         elif self.approximation.lower() == 'albrecht bc':
-            Vel_Qcc = self.meBC(omega, gamma)
+            Vel_Qcc = self.meBC(omega, gamma)  # e^2 Angstrom / eV / sqrt(amu)
+##            print('BC Vel_Qcc=', Vel_Qcc[-1])
         elif self.approximation.lower() == 'albrecht b':
             Vel_Qcc = self.meBC(omega, gamma, term='B')
         elif self.approximation.lower() == 'albrecht c':
@@ -266,13 +211,9 @@ class Albrecht(ResonantRaman):
                     self.approximation) +
                 'Please use "Albrecht A/B/C".')
 
-        Vel_Qcc *= u.Hartree * u.Bohr  # e^2Angstrom^2 / eV -> Angstrom^3
-        # divide through pre-factor
-        with np.errstate(divide='ignore'):
-            Vel_Qcc *= np.where(self.vib01_Q > 0,
-                                1. / self.vib01_Q, 0)[:, None, None]
+        Vel_Qcc *= u.Hartree * u.Bohr  # e^2 Angstrom^2 / eV -> Angstrom^3
 
-        return Vel_Qcc
+        return Vel_Qcc  # Angstrom^2 / sqrt(amu)
 
     def matrix_element(self, omega, gamma):
         self.read()
@@ -301,7 +242,7 @@ class Albrecht(ResonantRaman):
             raise NotImplementedError(
                 'Approximation {0} not implemented. '.format(
                     self.approximation) +
-                'Please use "Profeta", "Placzek", "Albrecht A/B/C/BC", ' +
+                'Please use "Albrecht A/B/C/BC" ' +
                 'or "Albrecht".')
 
         return V_Qcc
