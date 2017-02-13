@@ -4,7 +4,6 @@ import ase.db
 from ase import Atoms
 from ase.build import niggli_reduce
 from ase.io import read
-from ase.spacegroup.spacegroup import SpacegroupNotFoundError
 
 
 def dcdft():
