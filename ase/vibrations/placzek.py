@@ -66,15 +66,21 @@ class Placzek(ResonantRaman):
 
 
 class Profeta(ResonantRaman):
-    """Profeta type approximations."""
+    """Profeta type approximations.
+
+    Reference
+    ---------
+    Mickael Profeta and Francesco Mauri
+    Phys. Rev. B 63 (2000) 245415
+    """
     def electronic_me_profeta_rcc(self, omega, gamma=0.1,
                                   energy_derivative=False):
-        """Evaluate Profeta and Mauri approximation
+        """Raman spectra in Profeta and Mauri approximation
 
         Returns
         -------
         Electronic matrix element, unit Angstrom^2
-        """
+         """
         self.read()
 
         self.timer.start('amplitudes')
