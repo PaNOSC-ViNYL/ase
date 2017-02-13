@@ -423,9 +423,9 @@ class Calculator:
         if force_consistent:
             if 'free_energy' not in self.results:
                 name = self.__class__.__name__
-                raise NotImplementedError('Force consistent/free energy '
-                                          'not provided by {} '
-                                          'calculator'.format(name))
+                raise PropertyNotImplementedError(
+                    'Force consistent/free energy not provided by {} '
+                    'calculator'.format(name))
             return self.results['free_energy']
         else:
             return energy

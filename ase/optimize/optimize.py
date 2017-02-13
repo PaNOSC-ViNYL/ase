@@ -6,6 +6,7 @@ import time
 from math import sqrt
 from os.path import isfile
 
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.parallel import rank, barrier
 from ase.io.trajectory import Trajectory
 from ase.utils import basestring
@@ -212,7 +213,7 @@ class Optimizer(Dynamics):
         energies are supported by calculator; else False."""
         try:
             self.atoms.get_potential_energy(force_consistent=True)
-        except KeyError:
+        except PropertyNotImplementedError:
             self.force_consistent = False
         else:
             self.force_consistent = True
