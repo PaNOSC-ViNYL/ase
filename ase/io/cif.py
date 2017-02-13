@@ -17,7 +17,12 @@ from ase.spacegroup.spacegroup import spacegroup_from_data
 from ase.utils import basestring
 
 
-old = {'Cmca': 'Cmce'}
+# Old conventions:
+old_spacegroup_names = {'Abm2': 'Aem2',
+                        'Aba2': 'Aea2',
+                        'Cmca': 'Cmce',
+                        'Cmma': 'Cmme',
+                        'Ccca': 'Ccc1'}
 
 
 def convert_value(value):
@@ -221,7 +226,8 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     elif '_symmetry_space_group_name_h-m' in tags:
         symbolHM = tags['_symmetry_space_group_name_h-m']
 
-    symbolHM = old.get(symbolHM.strip(), symbolHM)
+    if symbolHM is not None:
+        symbolHM = old_spacegroup_names.get(symbolHM.strip(), symbolHM)
 
     for name in ['_space_group_symop_operation_xyz',
                  '_space_group_symop.operation_xyz',
