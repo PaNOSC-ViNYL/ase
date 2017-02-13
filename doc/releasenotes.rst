@@ -10,6 +10,10 @@ Git master branch
 
 :git:`master <>`.
 
+* New :func:`ase.eos.calculate_eos` helper function added.
+
+* Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
+
 
 Version 3.13.0
 ==============
