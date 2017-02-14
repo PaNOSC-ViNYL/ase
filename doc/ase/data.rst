@@ -20,7 +20,7 @@ This module defines the following variables:
 
 All of these are lists that should be indexed with an atomic number:
 
->>> from ase.data import *
+>>> from ase.data import atomic_numbers, atomic_names, atomic_masses, covalent_radii
 >>> atomic_names[92]
 'Uranium'
 >>> atomic_masses[2]
@@ -67,10 +67,10 @@ Example:
 
 >>> from ase.data.g2 import get_atomization_energy
 >>> get_atomization_energy('H2O')
-232.57990000000001
+232.5799
 >>> from ase.units import kcal,mol
 >>> get_atomization_energy('H2O')*kcal/mol
-10.08562144637833
+10.08561894878958
 
 where the last line converts the experimental atomization energy of H2O
 from units of kcal/mol to eV.
