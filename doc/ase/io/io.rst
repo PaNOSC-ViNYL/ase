@@ -64,14 +64,14 @@ which will return a ``(data, atoms)`` tuple::
 Examples
 ========
 
-::
-
-    from ase.build import *
-    adsorbate = Atoms('CO')
-    adsorbate[1].z = 1.1
-    a = 3.61
-    slab = fcc111('Cu', (2, 2, 3), a=a, vacuum=7.0)
-    add_adsorbate(slab, adsorbate, 1.8, 'ontop')
+>>> from ase import Atoms
+>>> from ase.build import fcc111
+>>> from ase.io import read, write
+>>> adsorbate = Atoms('CO')
+>>> adsorbate[1].z = 1.1
+>>> a = 3.61
+>>> slab = fcc111('Cu', (2, 2, 3), a=a, vacuum=7.0)
+>>> add_adsorbate(slab, adsorbate, 1.8, 'ontop')
 
 Write PNG image::
 
@@ -99,6 +99,7 @@ Here is an example using ``bbox``::
 
 Note that the XYZ-format does not contain information about the unic cell:
 
+>>> from ase.io import read, write
 >>> write('slab.xyz', slab)
 >>> a = read('slab.xyz')
 >>> a.get_cell()
