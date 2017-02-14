@@ -543,11 +543,11 @@ class Calculator:
             x = np.eye(3)
             x[i, i] += d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eplus = atoms.get_potential_energy()
+            eplus = atoms.get_potential_energy(force_consistent=True)
 
             x[i, i] -= 2 * d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eminus = atoms.get_potential_energy()
+            eminus = atoms.get_potential_energy(force_consistent=True)
 
             stress[i, i] = (eplus - eminus) / (2 * d * V)
             x[i, i] += d
@@ -556,12 +556,12 @@ class Calculator:
             x[i, j] = d
             x[j, i] = d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eplus = atoms.get_potential_energy()
+            eplus = atoms.get_potential_energy(force_consistent=True)
 
             x[i, j] = -d
             x[j, i] = -d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eminus = atoms.get_potential_energy()
+            eminus = atoms.get_potential_energy(force_consistent=True)
 
             stress[i, j] = (eplus - eminus) / (4 * d * V)
             stress[j, i] = stress[i, j]
