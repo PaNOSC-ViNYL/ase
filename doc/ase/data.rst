@@ -35,7 +35,7 @@ it up in the :data:`atomic_numbers` dictionary:
 >>> atomic_numbers['Cu']
 29
 >>> covalent_radii[29]
-1.1699999999999999
+1.3200000000000001
 
 The covalent radii are taken from [Cordeo08]_.
 The source of the van der Waals radii is given in vdw.py_.
