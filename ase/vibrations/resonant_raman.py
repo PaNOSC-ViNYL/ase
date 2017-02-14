@@ -282,7 +282,7 @@ class ResonantRaman(Vibrations):
             self.log('reading ' + name + pm + self.exext)
             ex_p = self.exobj(name + pm + self.exext, **self.exkwargs)
             self.log('reading ' + name + pm + '.pckl.ov.npy')
-            ov_nn = np.load(name + '+' + '.pckl.ov.npy')
+            ov_nn = np.load(name + pm + '.pckl.ov.npy')
             # remove numerical garbage
             ov_nn = np.where(np.abs(ov_nn) > self.minoverlap, ov_nn, 0)
             ov_pp = ex_p.overlap(ov_nn.T)
