@@ -11,7 +11,7 @@ Define the slab atoms:
 >>> atoms = Atoms('Ni4', [(0, 0, 0),
 ...                       (0.45, 0, 0),
 ...                       (0, 0.5, 0),
-...                       (0.5, 0.5, 0)]
+...                       (0.5, 0.5, 0)],
 ...               cell=[1, 1, 1])
 
 Have a look at the individual atoms:
@@ -62,9 +62,7 @@ Here, *a* is the fcc lattice constant, the cell is 10 layers high:
 ...         (1/sqrt(2.)*a, sqrt(3./2.)*a, 0),
 ...         (0, 0, 10*sqrt(3.)/3.*a)]
 >>> cell
-[(5.0204581464244864, 0, 0),
-(2.5102290732122432, 4.3478442934401409, 0),
-(0, 0, 20.495934556231713)]
+[(5.0204581464244864, 0, 0), (2.5102290732122432, 4.3478442934401409, 0), (0, 0, 20.495934556231713)]
 >>> atoms.set_cell(cell, scale_atoms=True)
 
 The argument *scale_atoms=True* indicates that the atomic positions should be
@@ -165,6 +163,7 @@ Lets rotate the cell
 
 Let's also rotate the molecules:
 
+>>> import numpy as np
 >>> W.rotate('z', np.pi / 2, center=(0, 0, 0))
 
 .. image:: WL_rot_a.png

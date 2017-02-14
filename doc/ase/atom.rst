@@ -26,7 +26,7 @@ More examples:
 >>> b = Atom(8, charge=-2)
 >>> c = Atom('H', (1, 2, 3), magmom=1)
 >>> print(a.charge, a.position)
--2 [ 0. 0. 0.]
+-2 [ 0.  0.  0.]
 >>> c.x = 0.0
 >>> c.position
 array([ 0.,  2.,  3.])
