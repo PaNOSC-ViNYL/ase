@@ -1,3 +1,26 @@
+.. _testsetup:
+>>> # WL.py
+>>> import numpy as np
+>>> from ase import Atoms
+>>> p = np.array(
+...     [[0.27802511, -0.07732213, 13.46649107],
+...      [0.91833251, -1.02565868, 13.41456626],
+...      [0.91865997, 0.87076761, 13.41228287],
+...      [1.85572027, 2.37336781, 13.56440907],
+...      [3.13987926, 2.3633134, 13.4327577],
+...      [1.77566079, 2.37150862, 14.66528237],
+...      [4.52240322, 2.35264513, 13.37435864],
+...      [5.16892729, 1.40357034, 13.42661052],
+...      [5.15567324, 3.30068395, 13.4305779],
+...      [6.10183518, -0.0738656, 13.27945071],
+...      [7.3856151, -0.07438536, 13.40814585],
+...      [6.01881192, -0.08627583, 12.1789428]])
+>>> c = np.array([[8.490373, 0., 0.],
+...               [0., 4.901919, 0.],
+...               [0., 0., 26.93236]])
+>>> W = Atoms('4(OH2)', positions=p, cell=c, pbc=[1, 1, 0])
+>>> W.write('WL.traj')
+
 .. _atommanip:
 
 Manipulating atoms
@@ -17,13 +40,13 @@ Define the slab atoms:
 Have a look at the individual atoms:
 
 >>> atoms[0]
-Atom('Ni', [0.0, 0.0, 0.0], atoms=..., index=0)
+Atom('Ni', [0.0, 0.0, 0.0], index=0)
 >>> atoms[1]
-Atom('Ni', [0.45, 0.0, 0.0], atoms=..., index=1)
+Atom('Ni', [0.45, 0.0, 0.0], index=1)
 >>> atoms[2]
-Atom('Ni', [0.0, 0.5, 0.0], atoms=..., index=2)
+Atom('Ni', [0.0, 0.5, 0.0], index=2)
 >>> atoms[3]
-Atom('Ni', [0.5, 0.5, 0.0], atoms=..., index=3)
+Atom('Ni', [0.5, 0.5, 0.0], index=3)
 
 Let us assume we forgot how many atoms we set up:
 
@@ -129,10 +152,10 @@ Lets take a look at the structure using view.
 and let's look at the unit cell.
 
 >>> cellW = W.get_cell()
->>> print(cellW)
-array([[  8.490373   0.         0.      ]
-       [  0.         4.901919   0.      ]
-       [  0.         0.        26.93236 ]])
+>>> cellW
+array([[  8.490373,   0.      ,   0.      ],
+       [  0.      ,   4.901919,   0.      ],
+       [  0.      ,   0.      ,  26.93236 ]])
 
 We will need at Ni(111) slab which matches the water as closely as possible.
 A 2x4 orthogonal fcc111 supercell should be good enough.
@@ -144,10 +167,10 @@ A 2x4 orthogonal fcc111 supercell should be good enough.
 .. image:: Ni111slab2x2.png
     :scale: 35
 
->>> print(cell)
-array([[ 5.02045815  0.          0.        ]
-       [ 0.          8.69568859  0.        ]
-       [ 0.          0.          6.14878037]]
+>>> cell
+array([[ 5.02045815,  0.        ,  0.        ]
+       [ 0.        ,  8.69568859,  0.        ]
+       [ 0.        ,  0.        ,  6.14878037]]
 
 Looking at the two unit cells, we can see that they match with around 2
 percent difference, if we rotate one of the cells 90 degrees in the plane.
