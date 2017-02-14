@@ -35,7 +35,7 @@ it up in the :data:`atomic_numbers` dictionary:
 >>> atomic_numbers['Cu']
 29
 >>> covalent_radii[29]
-1.1699999999999999
+1.3200000000000001
 
 Atomic masses are based on [Meija2016]_ (same array as
 :data:`atomic_masses_iupac2016`).
