@@ -78,6 +78,9 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
         raise ValueError('The energies array should contain %d values.'
                          % (nsurf,))
 
+    # Copy energies array so it is safe to modify it
+    energies = np.array(energies)
+
     # We should check that for each direction, the surface energy plus
     # the energy in the opposite direction is positive.  But this is
     # very difficult in the general case!
