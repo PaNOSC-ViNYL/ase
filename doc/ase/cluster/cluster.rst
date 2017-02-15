@@ -1,10 +1,11 @@
+.. module:: ase.cluster 
+
+.. _cluster:
+
 ==========================
 Nanoparticles and clusters
 ==========================
 
-.. currentmodule:: ase.cluster
-
-.. _clusters:
 
 There are modules for creating nanoparticles (clusters) with a given crystal structure by specifying either the number of layers in different directions, or by making a Wulff construction.
 
@@ -111,5 +112,31 @@ arguments:
 
   ``latticeconstant=None``:  The lattice constant of the lattice.  If
   not specified, the experimental value from :mod:`ase.data` is used.
+
+
+Possible crystal structures
+---------------------------
+
+You select the crystal structure by selecting the right function for
+creating the nanoparticle.  Currently, these modules only work for the
+three cubic crystal structures: FaceCenteredCubic, BodyCenteredCubic,
+and SimpleCubic.  Other structures are implemented, but do currently
+not work correctly.
+
+
+Wulff constructions
+===================
+
+As an alternative to specifying the number of layers, a Wulff
+construction can be used to create a nanoparticle (with cubic
+symmetry).  The function can be imported as::
+
+  from ase.cluster import wulff_construction
+
+.. autofunction:: ase.cluster.wulff_construction
+	       
+
+  
+
 
 
