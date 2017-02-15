@@ -214,17 +214,17 @@ class LAMMPS:
 
         # setup file names for LAMMPS calculation
         label = '{0}{1:>06}'.format(self.label, self.calls)
-        lammps_in = uns_mktemp(prefix='in_'+label, dir=self.tmp_dir)
-        lammps_log = uns_mktemp(prefix='log_'+label, dir=self.tmp_dir)
+        lammps_in = uns_mktemp(prefix='in_' + label, dir=self.tmp_dir)
+        lammps_log = uns_mktemp(prefix='log_' + label, dir=self.tmp_dir)
         lammps_trj_fd = NamedTemporaryFile(
-            prefix='trj_'+label, dir=self.tmp_dir,
+            prefix='trj_' + label, dir=self.tmp_dir,
             delete=(not self.keep_tmp_files))
         lammps_trj = lammps_trj_fd.name
         if self.no_data_file:
             lammps_data = None
         else:
             lammps_data_fd = NamedTemporaryFile(
-                prefix='data_'+label, dir=self.tmp_dir,
+                prefix='data_' + label, dir=self.tmp_dir,
                 delete=(not self.keep_tmp_files))
             self.write_lammps_data(lammps_data=lammps_data_fd)
             lammps_data = lammps_data_fd.name
@@ -234,7 +234,7 @@ class LAMMPS:
         if not self._lmp_alive():
             # Attempt to (re)start lammps
             self._lmp_handle = Popen(
-                lammps_cmd_line+lammps_options+['-log', '/dev/stdout'],
+                lammps_cmd_line + lammps_options + ['-log', '/dev/stdout'],
                 stdin=PIPE, stdout=PIPE)
         lmp_handle = self._lmp_handle
 
@@ -322,8 +322,10 @@ class LAMMPS:
 
         parameters = self.parameters
         if 'package' in parameters:
-            f.write(('\n'.join(['package {0}'.format(p) for p in  parameters['package'] ])+'\n').encode('utf-8') )
-        
+            f.write(('\n'.join(['package {0}'.format(p)
+                                for p in parameters['package']]) +
+                     '\n').encode('utf-8'))
+
         pbc = self.atoms.get_pbc()
         f.write('units metal \n'.encode('utf-8'))
         if 'boundary' in parameters:
@@ -705,9 +707,9 @@ class Prism(object):
             n = (np.mod(x, p) - x) / p
             return [float(self.f2qdec(a)) for a in (vec + n * pvec)]
 
-        Apre[1,:] = fold(Apre[1,:], Apre[0,:], 0)
-        Apre[2,:] = fold(Apre[2,:], Apre[1,:], 1)
-        Apre[2,:] = fold(Apre[2,:], Apre[0,:], 0)
+        Apre[1, :] = fold(Apre[1, :], Apre[0, :], 0)
+        Apre[2, :] = fold(Apre[2, :], Apre[1, :], 1)
+        Apre[2, :] = fold(Apre[2, :], Apre[0, :], 0)
 
         self.A = Apre
         self.Ainv = np.linalg.inv(self.A)
@@ -763,7 +765,8 @@ class Prism(object):
         Returns tuple of str.
         """
         rot_positions = np.dot(positions, self.R)
-        return [tuple([self.f2s(x) for x in position]) for position in rot_positions]
+        return [tuple([self.f2s(x) for x in position])
+                for position in rot_positions]
 
     def pos_to_lammps_fold_str(self, position):
         """Rotate and fold an ase-cell position into the lammps cell
