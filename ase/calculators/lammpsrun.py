@@ -606,12 +606,9 @@ class LAMMPS:
             rotation_lammps2ase = np.linalg.inv(self.prism.R)
 
             type_atoms = self.atoms.get_atomic_numbers()
-            positions_atoms = np.array(
-                [np.dot(np.array(r), rotation_lammps2ase) for r in positions])
-            # velocities_atoms = np.array(
-            #     [np.dot(np.array(v), rotation_lammps2ase) for v in velocities])
-            forces_atoms = np.array(
-                [np.dot(np.array(f), rotation_lammps2ase) for f in forces])
+            positions_atoms = np.dot(positions, rotation_lammps2ase)
+            # velocities_atoms = np.dot(velocities, rotation_lammps2ase)
+            forces_atoms = np.dot(forces, rotation_lammps2ase)
 
         if set_atoms:
             # assume periodic boundary conditions here (as in write_lammps)
@@ -760,12 +757,13 @@ class Prism(object):
         p = self.get_lammps_prism()
         return tuple([self.f2s(x) for x in p])
 
-    def pos_to_lammps_str(self, position):
+    def positions_to_lammps_strs(self, positions):
         """Rotate an ase-cell position to the lammps cell orientation
 
         Returns tuple of str.
         """
-        return tuple([self.f2s(x) for x in np.dot(position, self.R)])
+        rot_positions = np.dot(positions, self.R)
+        return [tuple([self.f2s(x) for x in position]) for position in rot_positions]
 
     def pos_to_lammps_fold_str(self, position):
         """Rotate and fold an ase-cell position into the lammps cell
@@ -830,8 +828,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
     f.write('\n\n'.encode('utf-8'))
 
     f.write('Atoms \n\n'.encode('utf-8'))
-    for i, r in enumerate(map(p.pos_to_lammps_str,
-                              atoms.get_positions())):
+    for i, r in enumerate(p.positions_to_lammps_strs(atoms.get_positions())):
         s = species.index(symbols[i]) + 1
         f.write('{0:>6} {1:>3} {2} {3} {4}\n'.format(
                 *(i + 1, s) + tuple(r)).encode('utf-8'))
