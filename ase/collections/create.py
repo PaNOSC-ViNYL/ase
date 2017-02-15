@@ -4,7 +4,6 @@ import ase.db
 from ase import Atoms
 from ase.build import niggli_reduce
 from ase.io import read
-from ase.spacegroup.spacegroup import SpacegroupNotFoundError
 
 
 def dcdft():
@@ -28,13 +27,7 @@ def dcdft():
         symbol = words.pop(0)
         vol, B, Bp = (float(x) for x in words)
         filename = 'primCIFs/' + symbol + '.cif'
-        try:
-            atoms = read(filename)
-        except SpacegroupNotFoundError:
-            with open(symbol + '.cif', 'w') as fout:
-                with open(filename) as fin:
-                    fout.write(fin.read().replace('Cmca', 'Cmce'))
-            atoms = read(symbol + '.cif')
+        atoms = read(filename)
         if symbol in ['Li', 'Na']:
             niggli_reduce(atoms)
         M = {'Fe': 2.3,
