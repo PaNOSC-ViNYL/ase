@@ -53,12 +53,12 @@ common crystal structures. Let us make a Cu (111) surface::
 
 -----------
 Calculators
------------ 
+-----------
 
 Many :mod:`ase.calculators` can be used with ASE, including
 :mod:`~ase.calculators.emt`, Asap_, Dacapo_, GPAW_, Abinit_, Vasp_.
 See the ASE home page for the full list.
-  
+
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
@@ -74,7 +74,7 @@ We can attach a calculator to the previously created
 
 >>> from ase.calculators.emt import EMT
 >>> slab.set_calculator(EMT())
->>> molecule.set_calculator(EMT()) 
+>>> molecule.set_calculator(EMT())
 
 and use it to calculate the total energies for the systems by using
 the :meth:`~ase.Atoms.get_potential_energy` method from the
@@ -91,7 +91,7 @@ Structure relaxation
 Let's use the :mod:`QuasiNewton <ase.optimize.qn>` minimizer to optimize the
 structure of the N2 molecule adsorbed on the Cu surface. First add the
 adsorbate to the Cu slab, for example in the on-top position::
-  
+
 >>> h = 1.85
 >>> add_adsorbate(slab, molecule, h, 'ontop')
 
@@ -188,7 +188,7 @@ algorithm. We first create the :class:`VelocityVerlet
 <ase.md.verlet.VelocityVerlet>` object giving it the molecule and the time
 step for the integration of Newton's law. We then perform the dynamics
 by calling its :meth:`run` method and giving it the number of steps to
-take::
+take:
 
 >>> from ase.md.verlet import VelocityVerlet
 >>> from ase import units
