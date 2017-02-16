@@ -4,6 +4,10 @@
 New release
 ===========
 
+* Make sure all tests pass.
+
+* Build the web-page and check the generated images with ``make inspect``.
+
 * Update ``__version__`` in :git:`ase/__init__.py`.
 
 * Upload to PyPI::
