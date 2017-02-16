@@ -96,15 +96,10 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     else:
         cos_alpha = cos(alpha * pi / 180.0)
     ## beta
-    if abs(beta - 90) < eps:
+    if abs(abs(beta) - 90) < eps:
         cos_beta = 0.0
-        sin_beta = 1.0
-    elif abs(beta + 90) < eps:
-        cos_beta = 0.0
-        sin_beta = -1.0
     else:
         cos_beta = cos(beta * pi / 180.0)
-        sin_beta = sin(beta * pi / 180.0)
     ## gamma
     if abs(gamma - 90) < eps:
         cos_gamma = 0.0
