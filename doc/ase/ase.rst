@@ -69,6 +69,7 @@ List of all modules:
    ga
    gui/gui
    lattice
+   cluster/cluster
    visualize/visualize
    calculators/calculators
    dft/dft
