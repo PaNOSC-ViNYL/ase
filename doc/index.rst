@@ -53,6 +53,8 @@ Gaussian_ Grimme-D3_ Mopac_
 News
 ====
 
+* :ref:`ASE version 3.13.0 <releasenotes>` released (7 February 2017).
+
 * Psi-k *Scientifc Highlight Of The Month*:
   `The Atomic Simulation Environment | A Python library for working with
   atoms <http://psi-k.net/download/highlights/Highlight_134.pdf>`__

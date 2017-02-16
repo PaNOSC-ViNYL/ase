@@ -190,10 +190,13 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
         ads = Atoms([Atom(adsorbate)])
 
     # Get the z-coordinate:
-    try:
+    if 'top layer atom index' in info:
         a = info['top layer atom index']
-    except KeyError:
+    else:
         a = slab.positions[:, 2].argmax()
+        if 'adsorbate_info' not in slab.info:
+            slab.info['adsorbate_info'] = {}
+        slab.info['adsorbate_info']['top layer atom index'] = a
     z = slab.positions[a, 2] + height
 
     # Move adsorbate into position

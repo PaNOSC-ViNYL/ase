@@ -13,13 +13,12 @@ Requirements
 Optional:
 
 * For extra functionality: SciPy_ (library for scientific computing)
-* For :mod:`ase.gui`: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
+* For :mod:`ase.gui`: Matplotlib_ (2D Plotting)
 
 .. _Python: http://www.python.org/
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
 .. _Matplotlib: http://matplotlib.org/
-.. _pygtk: http://www.pygtk.org/
 .. _PyPI: https://pypi.python.org/pypi/ase
 .. _PIP: https://pip.pypa.io/en/stable/
 
@@ -42,16 +41,9 @@ dependencies and make ASE available for all users.
 Max OSX (Homebrew)
 ------------------
 
-Mac users may be familiar with Homebrew_; while there is not a
-specific ASE package, Homebrew can be used to install the pyGTK
-dependency of :mod:`ase.gui`
-::
-
-    $ brew install pygtk
-
-before installing ASE with pip_ as described in the next section.
-Homebrew's ``python`` package provides an up-to-date version of Python
-2.7.x and sets up ``pip`` for you::
+Mac users may be familiar with Homebrew_.  Before installing ASE with pip_ as
+described in the next section. Homebrew's ``python`` package provides an up-
+to-date version of Python 2.7.x and sets up ``pip`` for you::
 
   $ brew install python
 
@@ -110,20 +102,20 @@ from Git.
 :Tar-file:
 
     You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-    latest stable release (ase-3.12.0.tar.gz_) or the latest
+    latest stable release (ase-3.13.0.tar.gz_) or the latest
     development snapshot (`<snapshot.tar.gz>`_).
 
     Unpack and make a soft link::
 
-        $ tar -xf ase-3.12.0.tar.gz
-        $ ln -s ase-3.12.0 ase
+        $ tar -xf ase-3.13.0.tar.gz
+        $ ln -s ase-3.13.0 ase
 
 :Git clone:
 
     Alternatively, you can get the source for the latest stable release from
     https://gitlab.com/ase/ase like this::
 
-        $ git clone -b 3.12.0 https://gitlab.com/ase/ase.git
+        $ git clone -b 3.13.0 https://gitlab.com/ase/ase.git
 
     or if you want the development version::
 
@@ -143,9 +135,9 @@ Finally, please `run the tests`_.
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
 
-.. _ase-3.12.0.tar.gz: https://pypi.python.org/packages/ab/d4/
-    4fb1a390d6ca8c4b190285eaecbb0349d3989befd5e670dc14751c715575/
-    ase-3.12.0.tar.gz
+.. _ase-3.13.0.tar.gz: https://pypi.python.org/packages/84/a8/
+    664c99fc94510163b5289c8e475660182f0f6ba098c549879bc5d36c17fd/
+    ase-3.13.0.tar.gz
 
 
 Environment variables

@@ -171,6 +171,7 @@ class Text(Widget):
         for text, tags in self.text:
             widget.insert('insert', text, tags)
         widget.configure(state='disabled', background=parent['bg'])
+        widget.bind("<1>", lambda event: widget.focus_set())
         return widget
 
 
