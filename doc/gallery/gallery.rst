@@ -67,5 +67,5 @@ Nanoparticle
    :width: 10cm
 
 :mod:`ase.cluster`
-:download:`cluster.py <../ase/cluster/structure.py>`
+:download:`cluster.py <../ase/cluster/cluster.py>`
 
