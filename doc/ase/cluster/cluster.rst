@@ -1,7 +1,5 @@
 .. module:: ase.cluster 
 
-.. _cluster:
-
 ==========================
 Nanoparticles and clusters
 ==========================
