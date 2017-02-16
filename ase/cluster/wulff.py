@@ -17,7 +17,6 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     surface energy of the cluster.
 
     Parameters:
-    -----------
 
     symbol: The chemical symbol (or atomic number) of the desired element.
 
@@ -28,9 +27,8 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
 
     size: The desired number of atoms.
 
-    structure: The desired crystal structure.  Either one of the strings
-    "fcc", "bcc", "sc", "hcp", "graphite"; or one of the cluster factory
-    objects from the ase.cluster.XXX modules.
+    structure: The desired crystal structure.  One of the strings
+    "fcc", "bcc", or "sc".
 
     rounding (optional): Specifies what should be done if no Wulff
     construction corresponds to exactly the requested number of atoms.
@@ -77,6 +75,9 @@ def wulff_construction(symbol, surfaces, energies, size, structure,
     if len(energies) != nsurf:
         raise ValueError('The energies array should contain %d values.'
                          % (nsurf,))
+
+    # Copy energies array so it is safe to modify it
+    energies = np.array(energies)
 
     # We should check that for each direction, the surface energy plus
     # the energy in the opposite direction is positive.  But this is

@@ -60,7 +60,7 @@ class BandStructure:
         emax: float
             Maximum energy above fermi-level.
         filename: str
-            Write imagee to a file.
+            Write image to a file.
         ax: Axes
             MatPlotLib Axes object.  Will be created if not supplied.
         show: bool
