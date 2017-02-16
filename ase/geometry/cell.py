@@ -88,13 +88,39 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     else:
         a, b, c, alpha, beta, gamma = cellpar
 
-    alpha *= pi / 180.0
-    beta *= pi / 180.0
-    gamma *= pi / 180.0
+    # Handle orthorhombic cells separately to avoid rounding errors
+    eps = 2 * np.spacing(90.0, dtype=np.float32) # around 1.5e-5
+    ## alpha
+    if abs(abs(alpha) - 90) < eps:
+        cos_alpha = 0.0
+    else:
+        cos_alpha = cos(alpha * pi / 180.0)
+    ## beta
+    if abs(beta - 90) < eps:
+        cos_beta = 0.0
+        sin_beta = 1.0
+    elif abs(beta + 90) < eps:
+        cos_beta = 0.0
+        sin_beta = -1.0
+    else:
+        cos_beta = cos(beta * pi / 180.0)
+        sin_beta = sin(beta * pi / 180.0)
+    ## gamma
+    if abs(gamma - 90) < eps:
+        cos_gamma = 0.0
+        sin_gamma = 1.0
+    elif abs(gamma + 90) < eps:
+        cos_gamma = 0.0
+        sin_gamma = -1.0
+    else:
+        cos_gamma = cos(gamma * pi / 180.0)
+        sin_gamma = sin(gamma * pi / 180.0)
+
+    # Build the cell vectors
     va = a * np.array([1, 0, 0])
-    vb = b * np.array([cos(gamma), sin(gamma), 0])
-    cx = cos(beta)
-    cy = (cos(alpha) - cos(beta) * cos(gamma)) / sin(gamma)
+    vb = b * np.array([cos_gamma, sin_gamma, 0])
+    cx = cos_beta
+    cy = (cos_alpha - cos_beta * cos_gamma) / sin_gamma
     cz = sqrt(1. - cx * cx - cy * cy)
     vc = c * np.array([cx, cy, cz])
 
@@ -103,9 +129,6 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
     T = np.vstack((X, Y, Z))
     cell = dot(abc, T)
 
-    # Zero out rounding errors
-    # cos(90.00000000000001) ~ 1e-15
-    cell[np.abs(cell)<1e-15] = 0.0
     return cell
 
 
