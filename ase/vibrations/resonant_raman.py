@@ -286,6 +286,7 @@ class ResonantRaman(Vibrations):
             # remove numerical garbage
             ov_nn = np.where(np.abs(ov_nn) > self.minoverlap, ov_nn, 0)
             ov_pp = ex_p.overlap(ov_nn.T)
+#            print(ov_pp)
             return ex_p, ov_pp
             
         exm = []
@@ -317,6 +318,9 @@ class ResonantRaman(Vibrations):
                 [ex.get_dipole_me(form=self.dipole_form) for ex in ex_p])
             return ov_pp.dot(em_p)
 
+        def z(arr):
+            return np.where(abs(arr) > 0.05, arr, 0)
+
         exmE_rp = []
         expE_rp = []
         exF_rp = []
@@ -333,6 +337,7 @@ class ResonantRaman(Vibrations):
                      for ep, em in zip(exp[r], exm[r])])
                 exmm_rpc.append(rotate(exm[r], ovm[r]))
                 expm_rpc.append(rotate(exp[r], ovp[r]))
+#                print('m,p=', z(expm_rpc[-1]), z(exmm_rpc[-1]))
                 exdmdr_rpc.append(expm_rpc[-1] - exmm_rpc[-1])
                 r += 1
         # indicees: r=coordinate, p=excitation
@@ -362,9 +367,9 @@ class ResonantRaman(Vibrations):
             # pre-factors for one vibrational excitation
             with np.errstate(divide='ignore'):
                 self.vib01_Q = np.where(self.om_Q > 0,
-                                        1. / np.sqrt(self.om_Q), 0)
+                                        1. / np.sqrt(2 * self.om_Q), 0)
             # -> sqrt(amu) * Angstrom
-            self.vib01_Q *= np.sqrt(u._me * u.kg * u.Ha) * u.Bohr
+            self.vib01_Q *= np.sqrt(u.Ha * u._me / u._amu) * u.Bohr
             self.timer.stop('read vibrations')
         if not hasattr(self, 'ex0E_p'):
             if self.overlap:
@@ -418,10 +423,8 @@ class ResonantRaman(Vibrations):
         # Woodward & Long,
         # Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
         m2 = ResonantRaman.m2
-##        print('alpha_Qcc[-1,:,:]=', alpha_Qcc[-1,:,:].diagonal().sum()/3)
         alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
                       alpha_Qcc[:, 2, 2]) / 9.
-##        print('alpha2_r**1/2=', np.sqrt(alpha2_r))
         delta2_r = 3 / 4. * (
             m2(alpha_Qcc[:, 0, 1] - alpha_Qcc[:, 1, 0]) +
             m2(alpha_Qcc[:, 0, 2] - alpha_Qcc[:, 2, 0]) +
@@ -460,7 +463,6 @@ class ResonantRaman(Vibrations):
         alpha_Qcc = self.electronic_me_Qcc(omega, gamma)
         alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
                       alpha_Qcc[:, 2, 2]) / 9.
-##        print('alpha2_r**1/2=', np.sqrt(alpha2_r))
         delta2_r = 3 / 4. * (
             m2(alpha_Qcc[:, 0, 1] - alpha_Qcc[:, 1, 0]) +
             m2(alpha_Qcc[:, 0, 2] - alpha_Qcc[:, 2, 0]) +

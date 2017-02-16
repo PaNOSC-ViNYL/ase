@@ -22,9 +22,12 @@ class Albrecht(ResonantRaman):
         skip: int
             Number of first transitions to exclude. Default 0,
             recommended: 5 for linear molecules, 6 for other molecules
+        nm: int
+            Number of intermediate m levels to consider, default 13
         """
         self.combinations = kwargs.pop('combinations', 1)
         self.skip = kwargs.pop('skip', 0)
+        self.nm = kwargs.pop('nm', 13)
         ResonantRaman.__init__(self, *args, **kwargs)
         
     def read(self, method='standard', direction='central'):
@@ -67,12 +70,12 @@ class Albrecht(ResonantRaman):
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
 
-    def omegaLS(self,  omega, gamma):
+    def omegaLS(self, omega, gamma):
         omL = omega + 1j * gamma
         omS_Q = omL - self.om_Q
         return omL, omS_Q
 
-    def meA(self, omega, gamma=0.1, ml=range(16)):
+    def meA(self, omega, gamma=0.1):
         """Evaluate Albrecht A term.
 
         Returns
@@ -86,7 +89,9 @@ class Albrecht(ResonantRaman):
         if not hasattr(self, 'fco'):
             self.fco = FranckCondonOverlap()
 
-        om = omega + 1j * gamma
+        omL = omega + 1j * gamma
+        omS_Q = omL - self.om_Q
+        
         # excited state forces
         F_pr = self.exF_rp.T
 
@@ -98,24 +103,24 @@ class Albrecht(ResonantRaman):
 
             wm_Q = np.zeros((self.ndof), dtype=complex)
             wp_Q = np.zeros((self.ndof), dtype=complex)
-            for m in ml:
+            for m in range(self.nm):
                 self.timer.start('0mm1')
                 fco_Q = self.fco.direct0mm1(m, S_Q)
                 self.timer.stop('0mm1')
                 
                 self.timer.start('weight_Q')
-                wm_Q += fco_Q / (energy_Q + m * self.om_Q - om)
-                wp_Q += fco_Q / (energy_Q + (m - 1) * self.om_Q + om)
+                wm_Q += fco_Q / (energy_Q + m * self.om_Q - omL)
+                wp_Q += fco_Q / (energy_Q + m * self.om_Q + omS_Q)
                 self.timer.stop('weight_Q')
             self.timer.start('einsum')
             m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
-            m_Qcc += np.einsum('a,bc->abc', wp_Q, me_cc.T.conj())
+            m_Qcc += np.einsum('a,bc->abc', wp_Q, me_cc.conj())
             self.timer.stop('einsum')
                 
         self.timer.stop('AlbrechtA')
-        return m_Qcc
+        return m_Qcc  # e^2 Angstrom^2 / eV
 
-    def meBC(self, omega, gamma=0.1, ml=range(16),
+    def meBC(self, omega, gamma=0.1,
              term='BC'):
         """Evaluate Albrecht BC term.
 
@@ -138,8 +143,7 @@ class Albrecht(ResonantRaman):
         F_pr = self.exF_rp.T
         # derivatives after normal coordinates
         dmdq_qpc = (self.exdmdr_rpc.T * self.im).T  # unit e / sqrt(amu)
-        dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T # unit e / sqrt(amu)
-##        print('dmdQ_Qpc', dmdQ_Qpc[-1])
+        dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T  # unit e / sqrt(amu)
 
         me_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
@@ -150,14 +154,14 @@ class Albrecht(ResonantRaman):
             energy_Q = energy - self.om_Q * S_Q
             
             ##me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
-            m_c = self.ex0m_pc[p]
-            dmdQ_Qc = dmdQ_Qpc[:, p]
+            m_c = self.ex0m_pc[p]  # e Angstrom
+            dmdQ_Qc = dmdQ_Qpc[:, p]  # e / sqrt(amu)
 
             wBLS_Q = np.zeros((self.ndof), dtype=complex)
             wBSL_Q = np.zeros((self.ndof), dtype=complex)
             wCLS_Q = np.zeros((self.ndof), dtype=complex)
             wCSL_Q = np.zeros((self.ndof), dtype=complex)
-            for m in ml:
+            for m in range(self.nm):
                 self.timer.start('0mm1/2')
                 f0mmQ1_Q = (self.fco.directT0(m, S_Q) +
                             np.sqrt(2) * self.fco.direct0mm2(m, S_Q))
@@ -196,7 +200,7 @@ class Albrecht(ResonantRaman):
             # divide through pre-factor
             with np.errstate(divide='ignore'):
                 Vel_Qcc *= np.where(self.vib01_Q > 0,
-                                    1. / np.sqrt(self.vib01_Q), 0)[:, None, None]
+                                    1. / self.vib01_Q, 0)[:, None, None]
             # -> e^2 Angstrom / eV / sqrt(amu)
         elif self.approximation.lower() == 'albrecht bc':
             Vel_Qcc = self.meBC(omega, gamma)  # e^2 Angstrom / eV / sqrt(amu)
