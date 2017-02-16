@@ -194,26 +194,23 @@ class Albrecht(ResonantRaman):
 
     def electronic_me_Qcc(self, omega, gamma):
         """Evaluate an electronic matric element."""
-        if self.approximation.lower() == 'albrecht a':
-            Vel_Qcc = self.meA(omega, gamma)  # e^2 Angstrom^2 / eV 
-##            print('A Vel_Qcc=', Vel_Qcc[-1])
+        self.read()
+        approx = self.approximation.lower()
+        # XXXX check for wrong approx somewhere else
+        Vel_Qcc = np.zeros((len(self.om_Q), 3, 3), dtype=complex)
+        if approx == 'albrecht a' or approx == 'albrecht':
+            Vel_Qcc += self.meA(omega, gamma)  # e^2 Angstrom^2 / eV 
             # divide through pre-factor
             with np.errstate(divide='ignore'):
                 Vel_Qcc *= np.where(self.vib01_Q > 0,
                                     1. / self.vib01_Q, 0)[:, None, None]
             # -> e^2 Angstrom / eV / sqrt(amu)
-        elif self.approximation.lower() == 'albrecht bc':
-            Vel_Qcc = self.meBC(omega, gamma)  # e^2 Angstrom / eV / sqrt(amu)
-##            print('BC Vel_Qcc=', Vel_Qcc[-1])
-        elif self.approximation.lower() == 'albrecht b':
-            Vel_Qcc = self.meBC(omega, gamma, term='B')
-        elif self.approximation.lower() == 'albrecht c':
+        if approx == 'albrecht bc' or approx == 'albrecht':
+            Vel_Qcc += self.meBC(omega, gamma)  # e^2 Angstrom / eV / sqrt(amu)
+        if approx == 'albrecht b':
+            Vel_Qcc += self.meBC(omega, gamma, term='B')
+        if approx == 'albrecht c':
             Vel_Qcc = self.meBC(omega, gamma, term='C')
-        else:
-            raise NotImplementedError(
-                'Approximation {0} not implemented. '.format(
-                    self.approximation) +
-                'Please use "Albrecht A/B/C".')
 
         Vel_Qcc *= u.Hartree * u.Bohr  # e^2 Angstrom^2 / eV -> Angstrom^3
 
