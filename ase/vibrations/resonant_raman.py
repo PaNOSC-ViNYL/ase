@@ -292,7 +292,7 @@ class ResonantRaman(Vibrations):
             ov_nn = np.load(name + pm + '.pckl.ov.npy')
             # remove numerical garbage
             ov_nn = np.where(np.abs(ov_nn) > self.minoverlap, ov_nn, 0)
-            ov_pp = ex_p.overlap(ov_nn.T)
+            ov_pp = ex_p.overlap(ov_nn)
 #            print(ov_pp)
             return ex_p, ov_pp
             
