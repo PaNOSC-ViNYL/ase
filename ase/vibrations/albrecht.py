@@ -28,7 +28,20 @@ class Albrecht(ResonantRaman):
         self.combinations = kwargs.pop('combinations', 1)
         self.skip = kwargs.pop('skip', 0)
         self.nm = kwargs.pop('nm', 13)
+        approximation = kwargs.pop('approximation', 'Albrecht')
+
         ResonantRaman.__init__(self, *args, **kwargs)
+
+        self.check_approximation(approximation)
+
+    def check_approximation(self, value):
+        approx = value.lower()
+        if approx in ['albrecht', 'albrecht b', 'albrecht c', 'albrecht bc']:
+            if not self.overlap:
+                raise ValueError('Overlaps are needed')
+        elif not approx == 'albrecht a':
+            raise ValueError('Please use "Albrecht" or "Albrecht A/B/C/BC"')
+        self._approx = value
         
     def read(self, method='standard', direction='central'):
         ResonantRaman.read(self, method, direction)

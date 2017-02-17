@@ -46,7 +46,6 @@ class ResonantRaman(Vibrations):
                  delta=0.01,
                  nfree=2,
                  directions=None,
-                 approximation='Profeta',
                  observation={'geometry': '-Z(XX)Z'},
                  form='v',         # form of the dipole operator
                  exkwargs={},      # kwargs to be passed to Excitations
@@ -121,7 +120,6 @@ class ResonantRaman(Vibrations):
         else:
             self.directions = np.array(directions)
 
-        self.approximation = approximation
         self.observation = observation
         self.exobj = Excitations
         self.exkwargs = exkwargs
@@ -134,6 +132,15 @@ class ResonantRaman(Vibrations):
         self.overlap = overlap
         self.minoverlap = minoverlap
         
+    @property
+    def approximation(self):
+        return self._approx
+
+    @approximation.setter
+    def approximation(self, value):
+        self.check_approximation(value)
+        approx = value.lower()
+
     @staticmethod
     def m2(z):
         return (z * z.conj()).real

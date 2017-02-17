@@ -12,10 +12,12 @@ from gpaw.lrtddft.spectrum import polarizability
 
 class Placzek(ResonantRaman):
     """Raman spectra within the Placzek approximation."""
-    def __init__(*args, **kwargs):
-        # XXX check for approximation
-        kwargs['approximation'] = 'PlaczekAlpha'
-        ResonantRaman.__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        self._approx = 'PlaczekAlpha'
+        ResonantRaman.__init__(self, *args, **kwargs)
+
+    def check_approximation(self, value):
+        raise ValueError('Approximation can not be set.')
 
     def read_excitations(self):
         self.timer.start('read excitations')
@@ -73,6 +75,17 @@ class Profeta(ResonantRaman):
     Mickael Profeta and Francesco Mauri
     Phys. Rev. B 63 (2000) 245415
     """
+    def __init__(self, *args, **kwargs):
+        self.check_approximation(kwargs.pop('approximation', 'Profeta'))
+        ResonantRaman.__init__(self, *args, **kwargs)
+
+    def check_approximation(self, value):
+        approx = value.lower()
+        if approx in ['profeta', 'placzek', 'p-p']:
+            self._approx = value
+        else:
+            raise ValueError('Please use "Profeta", "Placzek" or "P-P".')
+        
     def electronic_me_profeta_rcc(self, omega, gamma=0.1,
                                   energy_derivative=False):
         """Raman spectra in Profeta and Mauri approximation
