@@ -2,12 +2,12 @@ from __future__ import print_function
 import os
 
 import numpy as np
-from lxml import etree as ET
 
 from ase.io.exciting import atoms2etree
 from ase.units import Bohr, Hartree
 from ase.calculators.calculator import PropertyNotImplementedError
 from ase.utils import basestring
+
 
 class Exciting:
     def __init__(self, dir='calc', paramdict=None,
@@ -34,11 +34,11 @@ class Exciting:
             Bla bla?
         kwargs: dictionary like
             list of key value pairs to be converted into groundstate attributes
-        
+
         """
         self.dir = dir
         self.energy = None
-        
+
         self.paramdict = paramdict
         if speciespath is None:
             speciespath = os.environ['EXCITINGROOT'] + '/species'
@@ -47,9 +47,9 @@ class Exciting:
         self.excitingbinary = bin
         self.autormt = autormt
         self.groundstate_attributes = kwargs
-        if  (not 'ngridk' in kwargs.keys() and (not (self.paramdict))):
+        if ('ngridk' not in kwargs.keys() and (not (self.paramdict))):
             self.groundstate_attributes['ngridk'] = ' '.join(map(str, kpts))
- 
+
     def update(self, atoms):
         if (not self.converged or
             len(self.numbers) != len(atoms) or
@@ -93,6 +93,7 @@ class Exciting:
         self.read()
 
     def write(self, atoms):
+        from lxml import etree as ET
         if not os.path.isdir(self.dir):
             os.mkdir(self.dir)
         root = atoms2etree(atoms)
@@ -118,6 +119,7 @@ class Exciting:
             fd.close()
 
     def dicttoxml(self, pdict, element):
+        from lxml import etree as ET
         for key, value in pdict.items():
             if (isinstance(value, basestring) and key == 'text()'):
                 element.text = value
@@ -138,6 +140,8 @@ class Exciting:
         """
         reads Total energy and forces from info.xml
         """
+        from lxml import etree as ET
+
         INFO_file = '%s/info.xml' % self.dir
 
         try:
@@ -152,7 +156,7 @@ class Exciting:
         for force in forcesnodes:
             forces.append(np.array(float(force)))
         self.forces = np.reshape(forces, (-1, 3)) * Hartree / Bohr
-        
+
         if str(info.xpath('//groundstate/@status')[0]) == 'finished':
             self.converged = True
         else:
