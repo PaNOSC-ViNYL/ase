@@ -1,7 +1,7 @@
 """Simple and efficient pythonic file-format.
 
-Stores ndarrays as binary data and Python's built-in datatypes (int, float,
-bool, str, dict, list) as json.
+Stores ndarrays as binary data and Python's built-in datatypes
+(bool, int, float, complex, str, dict, list, tuple, None) as json.
 
 File layout when there is only a single item::
 
@@ -170,7 +170,11 @@ class Writer:
         self.dtype = None
 
     def add_array(self, name, shape, dtype=float):
-        """Add ndarray object."""
+        """Add ndarray object.
+
+        Set name, shape and dtype for array and fill in the data in chunks
+        later with the fill() method.
+        """
 
         self._write_header()
 
@@ -198,6 +202,7 @@ class Writer:
             self.header = b''
 
     def fill(self, a):
+        """Fill in ndarray chunks for array currently beeing written."""
         assert a.dtype == self.dtype
         assert a.shape[1:] == self.shape[len(self.shape) - a.ndim + 1:]
         self.nmissing -= a.size
@@ -249,7 +254,11 @@ class Writer:
 
             writer.write('n', 7)
             writer.write(n=7)
-            writer.write(n=7, s='abc', a=np.zeros(3), density=density)
+            writer.write(n=7, s='abc', a=np.zeros(3), abc=obj)
+
+        If obj is not one of the supported data types (bool, int, float,
+        complex, tupl, list, dict, None or ndarray) then it must have a
+        obj.write(childwriter) method.
         """
 
         if args:
@@ -270,11 +279,13 @@ class Writer:
                 value.write(self.child(name))
 
     def child(self, name):
+        """Create child-writer object."""
         self._write_header()
         dct = self.data[name + '.'] = {}
         return Writer(self.fd, data=dct)
 
     def close(self):
+        """Close file."""
         n = int('_little_endian' in self.data)
         if len(self.data) > n:
             # There is more than the "_little_endian" key.
@@ -407,6 +418,7 @@ class Reader:
             yield self
 
     def get(self, attr, value=None):
+        """Get attr or value if no such attr."""
         try:
             return self.__getattr__(attr)
         except KeyError:

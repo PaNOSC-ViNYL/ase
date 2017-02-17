@@ -2,7 +2,7 @@ ULM files
 =========
 
 .. automodule:: ase.io.ulm
-    :members: ulmopen
+    :members: open
 
 .. autoclass:: Writer
     :members:
