@@ -10,25 +10,39 @@ from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
 
 
-class FranckCondonOverlap:
-    """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
-    def factorial(self, n):
+class Factorial:
+    def __init__(self):
+        self._fac = [1]
+        self._inv = [1.]
+
+    def __call__(self, n):
         try:
             return self._fac[n]
-        except AttributeError:
-            self._fac = [1]
-            return self.factorial(n)
         except IndexError:
             for i in range(len(self._fac), n + 1):
                 self._fac.append(i * self._fac[i - 1])
+                try:
+                    self._inv.append(float(1. / self._fac[-1]))
+                except OverflowError:
+                    self._inv.append(0.)
             return self._fac[n]
+
+    def inv(self, n):
+        self(n)
+        return self._inv[n]
+
+
+class FranckCondonOverlap:
+    """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
+    def __init__(self):
+        self.factorial = Factorial()
 
     def directT0(self, n, S):
         """|<0|n>|^2
 
         Direct squared Franck-Condon overlap corresponding to T=0.
         """
-        return np.exp(-S) * S**n / self.factorial(n)
+        return np.exp(-S) * S**n * self.factorial.inv(n)
 
     def direct(self, n, m, S_in):
         """|<n|m>|^2
@@ -58,7 +72,7 @@ class FranckCondonOverlap:
         sum = S**m
         if m:
             sum -= m * S**(m - 1)
-        return np.exp(-S) * np.sqrt(S) * sum / self.factorial(m)
+        return np.exp(-S) * np.sqrt(S) * sum * self.factorial.inv(m)
 
     def direct0mm2(self, m, S):
         """<0|m><m|2>"""
@@ -67,7 +81,7 @@ class FranckCondonOverlap:
             sum -= 2 * m * S**m
         if m >= 2:
             sum += m * (m - 1) * S**(m - 1)
-        return np.exp(-S) / np.sqrt(2) * sum / self.factorial(m)
+        return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
 
 
 class FranckCondon:
