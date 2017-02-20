@@ -362,21 +362,22 @@ class ResonantRaman(Vibrations):
 
     def read(self, method='standard', direction='central'):
         """Read data from a pre-performed calculation."""
-        if not hasattr(self, 'modes'):
-            self.timer.start('read vibrations')
-            Vibrations.read(self, method, direction)
-            # we now have:
-            # self.H     : Hessian matrix
-            # self.im    : 1./sqrt(masses)
-            # self.modes : Eigenmodes of the mass weighted Hessian
-            self.om_Q = self.hnu.real    # energies in eV
-            # pre-factors for one vibrational excitation
-            with np.errstate(divide='ignore'):
-                self.vib01_Q = np.where(self.om_Q > 0,
-                                        1. / np.sqrt(2 * self.om_Q), 0)
-            # -> sqrt(amu) * Angstrom
-            self.vib01_Q *= np.sqrt(u.Ha * u._me / u._amu) * u.Bohr
-            self.timer.stop('read vibrations')
+
+        self.timer.start('read vibrations')
+        Vibrations.read(self, method, direction)
+        # we now have:
+        # self.H     : Hessian matrix
+        # self.im    : 1./sqrt(masses)
+        # self.modes : Eigenmodes of the mass weighted Hessian
+        self.om_Q = self.hnu.real    # energies in eV
+        # pre-factors for one vibrational excitation
+        with np.errstate(divide='ignore'):
+            self.vib01_Q = np.where(self.om_Q > 0,
+                                    1. / np.sqrt(2 * self.om_Q), 0)
+        # -> sqrt(amu) * Angstrom
+        self.vib01_Q *= np.sqrt(u.Ha * u._me / u._amu) * u.Bohr
+        self.timer.stop('read vibrations')
+
         if not hasattr(self, 'ex0E_p'):
             if self.overlap:
                 self.read_excitations_overlap()
