@@ -115,7 +115,7 @@ class FranckCondonRecursive:
             
     def direct0mm1(self, m, delta):
         """direct and fast <0|m><m|1>"""
-        S = delta**2 / 2
+        S = delta**2 / 2.
         sum = S**m
         if m:
             sum -= m * S**(m - 1)
@@ -134,13 +134,14 @@ class FranckCondonRecursive:
 
     def direct0mm2(self, m, delta):
         """direct and fast <0|m><m|2>"""
-        S = delta**2 / 2
+        S = delta**2 / 2.
         sum = S**(m + 1)
         if m >= 1:
             sum -= 2 * m * S**m
         if m >= 2:
             sum += m * (m - 1) * S**(m - 1)
         return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
+
 
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=-np.inf, maxfreq=np.inf):
