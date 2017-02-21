@@ -6,8 +6,10 @@ import numpy as np
 
 import ase.units as u
 from ase.parallel import parprint, paropen
+from ase.vibrations import Vibrations
 from ase.vibrations.resonant_raman import ResonantRaman
 from ase.vibrations.franck_condon import FranckCondonOverlap
+from ase.vibrations.franck_condon import FranckCondonRecursive
 
 
 class Albrecht(ResonantRaman):
@@ -23,11 +25,11 @@ class Albrecht(ResonantRaman):
             Number of first transitions to exclude. Default 0,
             recommended: 5 for linear molecules, 6 for other molecules
         nm: int
-            Number of intermediate m levels to consider, default 13
+            Number of intermediate m levels to consider, default 20
         """
         self.combinations = kwargs.pop('combinations', 1)
         self.skip = kwargs.pop('skip', 0)
-        self.nm = kwargs.pop('nm', 13)
+        self.nm = kwargs.pop('nm', 20)
         approximation = kwargs.pop('approximation', 'Albrecht')
 
         ResonantRaman.__init__(self, *args, **kwargs)
@@ -42,9 +44,9 @@ class Albrecht(ResonantRaman):
         elif not approx == 'albrecht a':
             raise ValueError('Please use "Albrecht" or "Albrecht A/B/C/BC"')
         self._approx = value
-        
-    def read(self, method='standard', direction='central'):
-        ResonantRaman.read(self, method, direction)
+
+    def get_energies(self, method='standard', direction='central'):
+        Vibrations.get_energies(self, method, direction)
 
         # single transitions and their occupation
         om_Q = self.om_Q[self.skip:]
@@ -66,7 +68,10 @@ class Albrecht(ResonantRaman):
             n_vQ = np.array(n_vQ)
             
         self.om_v = om_v
-        self.n_vQ = n_vQ
+        self.n_vQ = n_vQ  # how many of each
+        self.d_vQ = np.where(n_vQ > 0, 1, 0)  # do we have them ?
+
+        return self.om_v
 
     def Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
@@ -79,9 +84,23 @@ class Albrecht(ResonantRaman):
         d_Q = np.dot(self.modes, X_q)
 
         # Huang-Rhys factors S
-        s = 1.e-20 / u.kg / u.C / u._hbar**2  # SI units
+        s = 1.e-20 / u.kg / u.C / u._hbar**2
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
+
+    def displacements(self, forces_r):
+        """Evaluate unitless displacements from forces"""
+        self.timer.start('displacements')
+        assert(len(forces_r.flat) == self.ndof)
+
+        # solve the matrix equation for the equilibrium displacements
+        X_q = np.linalg.solve(self.im[:, None] * self.H * self.im,
+                              forces_r.flat * self.im)
+        d_Q = np.dot(self.modes, X_q)  # unit eV / sqrt(amu) / Angstrom
+        self.timer.stop('displacements')
+
+        s = 1.e-20 / u.kg / u.C / u._hbar**2
+        return d_Q * np.sqrt(s * self.om_Q)
 
     def omegaLS(self, omega, gamma):
         omL = omega + 1j * gamma
@@ -99,8 +118,9 @@ class Albrecht(ResonantRaman):
 
         self.timer.start('AlbrechtA')
 
-        if not hasattr(self, 'fco'):
+        if not hasattr(self, 'fcr'):
             self.fco = FranckCondonOverlap()
+            self.fcr = FranckCondonRecursive()
 
         omL = omega + 1j * gamma
         omS_Q = omL - self.om_Q
@@ -110,20 +130,81 @@ class Albrecht(ResonantRaman):
 
         m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
-            S_Q = self.Huang_Rhys_factors(F_pr[p])
-            energy_Q = energy - self.om_Q * S_Q
+            d_Q = self.displacements(F_pr[p])
+            energy_Q = energy - self.om_Q * d_Q**2 / 2.
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
             wm_Q = np.zeros((self.ndof), dtype=complex)
             wp_Q = np.zeros((self.ndof), dtype=complex)
             for m in range(self.nm):
                 self.timer.start('0mm1')
-                fco_Q = self.fco.direct0mm1(m, S_Q)
+                fco_Q = self.fcr.ov0mm1(m, d_Q)
                 self.timer.stop('0mm1')
                 
                 self.timer.start('weight_Q')
                 wm_Q += fco_Q / (energy_Q + m * self.om_Q - omL)
                 wp_Q += fco_Q / (energy_Q + m * self.om_Q + omS_Q)
+                self.timer.stop('weight_Q')
+            self.timer.start('einsum')
+            m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
+            m_Qcc += np.einsum('a,bc->abc', wp_Q, me_cc.conj())
+            self.timer.stop('einsum')
+                
+        self.timer.stop('AlbrechtA')
+        return m_Qcc  # e^2 Angstrom^2 / eV
+
+    def meAnew(self, omega, gamma=0.1):
+        """Evaluate Albrecht A term.
+
+        Returns
+        -------
+        Full Albrecht A matrix element. Unit: e^2 Angstrom^2 / eV
+        """
+        self.read()
+
+        self.timer.start('AlbrechtA')
+
+        if not hasattr(self, 'fco'):
+            self.fco = FranckCondonOverlap()
+
+        omL = omega + 1j * gamma
+        omS_v = omL - self.om_v
+        nv = len(self.om_v)
+        
+        print('self.n_vQ', self.n_vQ)
+        print('self.d_vQ', self.d_vQ)
+        
+        # excited state forces
+        F_pr = self.exF_rp.T
+
+        m_vcc = np.zeros((nv, 3, 3), dtype=complex)
+        for p, energy in enumerate(self.ex0E_p):
+            S_Q = self.Huang_Rhys_factors(F_pr[p])
+            energy_v = energy - self.d_vQ.dot(self.om_Q * S_Q)
+            me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
+
+            wm_v = np.zeros((nv), dtype=complex)
+            wp_v = np.zeros((nv), dtype=complex)
+            fco1_mQ = np.zeros((self.nm, self.ndof), dtype=float)
+            fco1_mQ = np.zeros((self.nm, self.ndof), dtype=float)
+            for m in range(self.nm):
+                self.timer.start('0mmn')
+                fco1_Q = self.fco.direct0mm1(m,  S_Q)
+                fco2_Q = self.fco.direct0mm2(m,  S_Q)
+                fco_vQ = np.zeros(self.n_vQ.shape, dtype=float)
+                fco_vQ += np.where(self.n_vQ == 1, self.d_vQ * fco1_Q, 0)
+                fco_vQ += np.where(self.n_vQ == 2, self.d_vQ * fco2_Q, 0)
+                fco_vQ = np.where(fco_vQ == 0, 1., fco_vQ)
+                fco_v = fco_vQ.prod(axis=1)
+                self.timer.stop('0mmn')
+                
+                self.timer.start('weight_Q')
+                em_v = energy_v + m * self.om_Q
+                for n in range(self.nm):
+                    fco_v = 1
+                    emn_v = energy_v + m * self.om_Q + n * self.om_Q
+                    wm_Q += fco_v / (energy_v + m * self.om_Q - omL)
+                    wp_Q += fco_v / (energy_v + m * self.om_Q + omS_Q)
                 self.timer.stop('weight_Q')
             self.timer.start('einsum')
             m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
@@ -265,6 +346,7 @@ class Albrecht(ResonantRaman):
                 method='standard', direction='central',
                 log=sys.stdout):
         """Print summary for given omega [eV]"""
+        om_v = self.get_energies(method, direction)
         intensities = self.absolute_intensity(omega, gamma)[self.skip:]
 
         if isinstance(log, str):
