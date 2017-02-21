@@ -2,7 +2,7 @@ from __future__ import print_function
 import sys
 import numpy as np
 
-from ase.vibrations.franck_condon import FranckCondonOverlap
+from ase.vibrations.franck_condon import FranckCondonOverlap, FranckCondonRecursive
 from math import factorial
 
 
@@ -20,11 +20,13 @@ def equal(x, y, tolerance=0, fail=True, msg=''):
 # FCOverlap
 
 fco = FranckCondonOverlap()
+fcr = FranckCondonRecursive()
 
 # check factorial
 assert(fco.factorial(8) == factorial(8))
 # the second test is useful according to the implementation
 assert(fco.factorial(5) == factorial(5))
+assert(fco.factorial.inv(5) == 1. / factorial(5))
 
 # check T=0 and n=0 equality
 S = np.array([1, 2.1, 34])
@@ -40,8 +42,11 @@ assert(fco.direct(n, m, S) == fco.direct(m, n, S))
 # ---------------------------
 # specials
 S = 1.5
+delta = np.sqrt(2 * S)
 for m in [2, 7]:
     equal(fco.direct0mm1(m, S)**2,
           fco.direct(1, m, S) * fco.direct(m, 0, S), 1.e-17)
+    equal(fco.direct0mm1(m, S), fcr.ov0mm1(m, delta), 1.e-15)
     equal(fco.direct0mm2(m, S)**2,
           fco.direct(2, m, S) * fco.direct(m, 0, S), 1.e-17)
+    equal(fco.direct0mm2(m, S), fcr.ov0mm2(m, delta), 1.e-15)

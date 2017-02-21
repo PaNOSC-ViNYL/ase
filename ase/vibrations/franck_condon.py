@@ -84,6 +84,44 @@ class FranckCondonOverlap:
         return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
 
 
+class FranckCondonRecursive:
+    """Recursive implementation of Franck-Condon overlaps
+
+    Notes
+    -----
+    The ovelaps are signed according to the sign of the displacements.
+
+    Reference
+    ---------
+    Julien Guthmuller
+    The Journal of Chemical Physics 144, 064106 (2016); doi: 10.1063/1.4941449
+    """
+    def ov0m(self, m, delta):
+        if m == 0:
+            return np.exp(-0.25 * delta**2)
+        else:
+            assert(m > 0)
+            return - delta / np.sqrt(2 * m) * self.ov0m(m - 1, delta)
+            
+    def ov0mm1(self, m, delta):
+        if m == 0:
+            return delta / np.sqrt(2) * self.ov0m(m, delta)**2
+        else:
+            return delta / np.sqrt(2) * (
+                self.ov0m(m, delta)**2 - self.ov0m(m - 1, delta)**2)
+            
+    def ov0mm2(self, m, delta):
+        if m == 0:
+            return delta**2 / np.sqrt(8) * self.ov0m(m, delta)**2
+        elif m == 1:
+            return delta**2 / np.sqrt(8) * (
+                self.ov0m(m, delta)**2 - 2 * self.ov0m(m - 1, delta)**2)
+        else:
+            return delta**2 / np.sqrt(8) * (
+                self.ov0m(m, delta)**2 - 2 * self.ov0m(m - 1, delta)**2 +
+                self.ov0m(m - 2, delta)**2)
+
+
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=-np.inf, maxfreq=np.inf):
         """Input is a atoms object and the corresponding vibrations.
