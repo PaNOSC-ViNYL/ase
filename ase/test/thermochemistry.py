@@ -60,6 +60,9 @@ ph.run()
 ph.read(acoustic=True)
 phonon_energies, phonon_DOS = ph.dos(kpts=(4, 4, 4), npts=30,
                                      delta=5e-4)
+# test that writing to json works
+ph.write_as_json('phonon_dispersion.json', [(0, 0, 0)])
+
 
 thermo = CrystalThermo(phonon_energies=phonon_energies,
                        phonon_DOS=phonon_DOS,
