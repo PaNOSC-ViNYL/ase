@@ -96,6 +96,9 @@ class FranckCondonRecursive:
     Julien Guthmuller
     The Journal of Chemical Physics 144, 064106 (2016); doi: 10.1063/1.4941449
     """
+    def __init__(self):
+        self.factorial = Factorial()
+
     def ov0m(self, m, delta):
         if m == 0:
             return np.exp(-0.25 * delta**2)
@@ -110,6 +113,14 @@ class FranckCondonRecursive:
             return delta / np.sqrt(2) * (
                 self.ov0m(m, delta)**2 - self.ov0m(m - 1, delta)**2)
             
+    def direct0mm1(self, m, delta):
+        """direct and fast <0|m><m|1>"""
+        S = delta**2 / 2
+        sum = S**m
+        if m:
+            sum -= m * S**(m - 1)
+        return np.exp(-S) * delta / np.sqrt(2) * sum * self.factorial.inv(m)
+
     def ov0mm2(self, m, delta):
         if m == 0:
             return delta**2 / np.sqrt(8) * self.ov0m(m, delta)**2
@@ -121,6 +132,15 @@ class FranckCondonRecursive:
                 self.ov0m(m, delta)**2 - 2 * self.ov0m(m - 1, delta)**2 +
                 self.ov0m(m - 2, delta)**2)
 
+    def direct0mm2(self, m, delta):
+        """direct and fast <0|m><m|2>"""
+        S = delta**2 / 2
+        sum = S**(m + 1)
+        if m >= 1:
+            sum -= 2 * m * S**m
+        if m >= 2:
+            sum += m * (m - 1) * S**(m - 1)
+        return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
 
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=-np.inf, maxfreq=np.inf):
