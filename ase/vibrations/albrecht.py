@@ -119,7 +119,6 @@ class Albrecht(ResonantRaman):
         self.timer.start('AlbrechtA')
 
         if not hasattr(self, 'fcr'):
-            self.fco = FranckCondonOverlap()
             self.fcr = FranckCondonRecursive()
 
         omL = omega + 1j * gamma
@@ -138,7 +137,7 @@ class Albrecht(ResonantRaman):
             wp_Q = np.zeros((self.ndof), dtype=complex)
             for m in range(self.nm):
                 self.timer.start('0mm1')
-                fco_Q = self.fcr.ov0mm1(m, d_Q)
+                fco_Q = self.fcr.direct0mm1(m, d_Q)
                 self.timer.stop('0mm1')
                 
                 self.timer.start('weight_Q')
