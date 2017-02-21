@@ -655,9 +655,8 @@ class Phonons(Displacement):
     
     def write_as_json(self, path_kc, filename, modes=False, born=False):
         """
-        
-        Usage:
-        >>> 
+        Write k vectors and associated energies to a json file. 
+        modes is currently not used
         """
         energies = self.band_structure(path_kc, modes=modes, born=born) 
         with open(filename, 'w') as f:
