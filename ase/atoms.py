@@ -388,7 +388,7 @@ class Atoms(object):
         If *shape* is not *None*, the shape of *a* will be checked."""
 
         if dtype is not None:
-            a = np.array(a, dtype)
+            a = np.array(a, dtype, order='C')
             if len(a) == 0 and shape is not None:
                 a.shape = (-1,) + shape
         else:
