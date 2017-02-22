@@ -243,7 +243,7 @@ def _read_xyz_frame(lines, natoms):
             value = data[name]
         else:
             value = np.vstack([data[name + str(c)]
-                              for c in range(cols)]).T)
+                              for c in range(cols)]).T
         arrays[ase_name] = value
 
     symbols = None
