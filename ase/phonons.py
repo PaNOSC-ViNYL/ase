@@ -438,7 +438,6 @@ class Phonons(Displacement):
         for D in self.D_N:
             D *= M_inv
 
-
     def symmetrize(self, C_N):
         """Symmetrize force constant matrix."""
 
@@ -558,13 +557,7 @@ class Phonons(Displacement):
             between the LO and TO branches for q -> 0.
         verbose: bool
             Print warnings when imaginary frequncies are detected.
-        filename: string
-            If different from None, write results to file with file name 'filename'
-        file_format: string
-            Specifies the file format to be used for writing out to file. Default json
-            Formats enabled:
-                json
-            
+
         """
 
         assert self.D_N is not None
@@ -652,19 +645,17 @@ class Phonons(Displacement):
 
         return omega_kl
 
-    
-    def write_as_json(self, path_kc, filename, modes=False, born=False):
-        """
-        Write k vectors and associated energies to a json file. 
+    def write_as_json(self, filename, path_kc, modes=False, born=False):
+        """Write k vectors and associated energies to a json file.
+
         modes is currently not used
         """
-        energies = self.band_structure(path_kc, modes=modes, born=born) 
+        energies = self.band_structure(path_kc, modes=modes, born=born)
         with open(filename, 'w') as f:
-            f.write( 
-                jsonio.encode({'k_vectors': path_kc, 'energies': energies, 
-               'units' : {'k_vectors': '', 'energies': 'eV'}})
-            )
-
+            f.write(
+                jsonio.encode({'k_vectors': path_kc,
+                               'energies': energies,
+                               'units': {'k_vectors': '', 'energies': 'eV'}}))
 
     def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
         """Calculate phonon dos as a function of energy.
