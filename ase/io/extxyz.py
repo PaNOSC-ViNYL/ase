@@ -242,8 +242,8 @@ def _read_xyz_frame(lines, natoms):
         if cols == 1:
             value = data[name]
         else:
-            value = np.ascontiguousarray(np.vstack([data[name + str(c)]
-                                                    for c in range(cols)]).T)
+            value = np.vstack([data[name + str(c)]
+                              for c in range(cols)]).T)
         arrays[ase_name] = value
 
     symbols = None

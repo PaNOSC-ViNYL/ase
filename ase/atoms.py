@@ -392,7 +392,10 @@ class Atoms(object):
             if len(a) == 0 and shape is not None:
                 a.shape = (-1,) + shape
         else:
-            a = a.copy()
+            if not a.flags['C_CONTIGUOUS']:
+                a = np.ascontiguousarray(a)
+            else:
+                a = a.copy()
 
         if name in self.arrays:
             raise RuntimeError
