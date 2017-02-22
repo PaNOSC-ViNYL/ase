@@ -47,9 +47,22 @@ for m in [2, 7]:
     equal(fco.direct0mm1(m, S)**2,
           fco.direct(1, m, S) * fco.direct(m, 0, S), 1.e-17)
     equal(fco.direct0mm1(m, S), fcr.ov0mm1(m, delta), 1.e-15)
+    equal(fcr.ov0mm1(m, delta),
+          fcr.ov0m(m, delta) * fcr.ov1m(m, delta), 1.e-15)
     equal(fcr.ov0mm1(m, -delta), fcr.direct0mm1(m, -delta), 1.e-15)
     equal(fcr.ov0mm1(m, delta), - fcr.direct0mm1(m, -delta), 1.e-15)
+
     equal(fco.direct0mm2(m, S)**2,
           fco.direct(2, m, S) * fco.direct(m, 0, S), 1.e-17)
     equal(fco.direct0mm2(m, S), fcr.ov0mm2(m, delta), 1.e-15)
+    equal(fcr.ov0mm2(m, delta),
+          fcr.ov0m(m, delta) * fcr.ov2m(m, delta), 1.e-15)
     equal(fco.direct0mm2(m, S), fcr.direct0mm2(m, delta), 1.e-15)
+
+    equal(fcr.direct0mm3(m, delta),
+          fcr.ov0m(m, delta) * fcr.ov3m(m, delta), 1.e-15)
+    
+    equal(fcr.ov1mm2(m, delta),
+          fcr.ov1m(m, delta) * fcr.ov2m(m, delta), 1.e-15)
+    equal(fcr.direct1mm2(m, delta), fcr.ov1mm2(m, delta), 1.e-15)
+

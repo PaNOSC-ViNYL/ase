@@ -106,6 +106,30 @@ class FranckCondonRecursive:
             assert(m > 0)
             return - delta / np.sqrt(2 * m) * self.ov0m(m - 1, delta)
             
+    def ov1m(self, m, delta):
+        sum = delta * self.ov0m(m, delta) / np.sqrt(2.)
+        if m == 0:
+            return sum
+        else:
+            assert(m > 0)
+            return sum + np.sqrt(m) * self.ov0m(m - 1, delta)
+            
+    def ov2m(self, m, delta):
+        sum = delta * self.ov1m(m, delta) / 2
+        if m == 0:
+            return sum
+        else:
+            assert(m > 0)
+            return sum + np.sqrt(m / 2.) * self.ov1m(m - 1, delta)
+            
+    def ov3m(self, m, delta):
+        sum = delta * self.ov2m(m, delta) / np.sqrt(6.)
+        if m == 0:
+            return sum
+        else:
+            assert(m > 0)
+            return sum + np.sqrt(m / 3.) * self.ov2m(m - 1, delta)
+            
     def ov0mm1(self, m, delta):
         if m == 0:
             return delta / np.sqrt(2) * self.ov0m(m, delta)**2
@@ -142,6 +166,33 @@ class FranckCondonRecursive:
             sum += m * (m - 1) * S**(m - 1)
         return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
 
+    def ov1mm2(self, m, delta):
+        p1 = delta**3 / 4.
+        sum = p1 * self.ov0m(m, delta)**2
+        if m == 0:
+            return sum
+        p2 = delta - 3. * delta**3 / 4
+        sum += p2 * self.ov0m(m - 1, delta)**2
+        if m == 1:
+            return sum
+        sum -= p2 * self.ov0m(m - 2, delta)**2
+        if m == 2:
+            return sum
+        return sum - p1 * self.ov0m(m - 3, delta)**2
+
+    def direct1mm2(self, m, delta):
+        S = delta**2 / 2.
+        return (np.exp(-S) * S**(m - 1) / delta * (S - m) *
+                (S**2 - 2 * m * S + m * (m - 1)) *
+                self.factorial.inv(m))
+
+    def direct0mm3(self, m, delta):
+        S = delta**2 / 2.
+        return (np.exp(-S) * S**(m - 1) / delta * np.sqrt(12.) *
+                (S**3 / 6. - m * S**2 / 2 +
+                 m * (m - 1) * S / 2. - m * (m - 1) * (m - 2) / 6) *
+                self.factorial.inv(m))
+    
 
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=-np.inf, maxfreq=np.inf):
