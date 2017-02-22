@@ -41,7 +41,7 @@ assert(fco.direct(n, m, S) == fco.direct(m, n, S))
 
 # ---------------------------
 # specials
-S = 1.5
+S = np.array([0, 1.5])
 delta = np.sqrt(2 * S)
 for m in [2, 7]:
     equal(fco.direct0mm1(m, S)**2,

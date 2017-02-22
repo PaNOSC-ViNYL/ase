@@ -143,7 +143,9 @@ class FranckCondonRecursive:
         sum = S**m
         if m:
             sum -= m * S**(m - 1)
-        return np.exp(-S) * delta / np.sqrt(2) * sum * self.factorial.inv(m)
+        return np.where(S == 0, 0,
+                        (np.exp(-S) * delta / np.sqrt(2) * sum *
+                         self.factorial.inv(m)))
 
     def ov0mm2(self, m, delta):
         if m == 0:
@@ -182,17 +184,25 @@ class FranckCondonRecursive:
 
     def direct1mm2(self, m, delta):
         S = delta**2 / 2.
-        return (np.exp(-S) * S**(m - 1) / delta * (S - m) *
-                (S**2 - 2 * m * S + m * (m - 1)) *
-                self.factorial.inv(m))
+        sum = S**2
+        if m > 0:
+            sum -= 2 * m * S
+        if m > 1:
+            sum += m * (m - 1)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(S == 0, 0,
+                (np.exp(-S) * S**(m - 1) / delta * (S - m) * sum *
+                 self.factorial.inv(m)))
 
     def direct0mm3(self, m, delta):
         S = delta**2 / 2.
-        return (np.exp(-S) * S**(m - 1) / delta * np.sqrt(12.) *
-                (S**3 / 6. - m * S**2 / 2 +
-                 m * (m - 1) * S / 2. - m * (m - 1) * (m - 2) / 6) *
-                self.factorial.inv(m))
-    
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(S == 0, 0,
+                (np.exp(-S) * S**(m - 1) / delta * np.sqrt(12.) *
+                 (S**3 / 6. - m * S**2 / 2 +
+                  m * (m - 1) * S / 2. - m * (m - 1) * (m - 2) / 6) *
+                 self.factorial.inv(m)))
+
 
 class FranckCondon:
     def __init__(self, atoms, vibname, minfreq=-np.inf, maxfreq=np.inf):
