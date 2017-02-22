@@ -34,6 +34,21 @@ _PW_TOTEN = '!    total energy'
 _PW_STRESS = 'total   stress'
 
 
+class Namelist(OrderedDict):
+    """Case insensitive dict that emulates Fortran Namelists."""
+    def __contains__(self, key):
+        return super(Namelist, self).__contains__(key.lower())
+
+    def __delitem__(self, key):
+        return super(Namelist, self).__delitem__(key.lower())
+
+    def __getitem__(self, key):
+        return super(Namelist, self).__getitem__(key.lower())
+
+    def __setitem__(self, key, value):
+        super(Namelist, self).__setitem__(key.lower(), value)
+
+
 def read_espresso_out(fileobj, index=-1):
     """Reads Quantum ESPRESSO output files.
 
@@ -180,8 +195,8 @@ def read_espresso_out(fileobj, index=-1):
         for stress_index in indexes[_PW_STRESS]:
             if image_index < stress_index < next_index:
                 sxx, sxy, sxz = pwo_lines[stress_index + 1].split()[:3]
-                syx, syy, syz = pwo_lines[stress_index + 2].split()[:3]
-                szx, szy, szz = pwo_lines[stress_index + 3].split()[:3]
+                _, syy, syz = pwo_lines[stress_index + 2].split()[:3]
+                _, _, szz = pwo_lines[stress_index + 3].split()[:3]
                 stress = np.array([sxx, syy, szz, syz, sxz, sxy], dtype=float)
                 stress *= units['Ry'] / (units['Bohr'] ** 3)
 
@@ -309,8 +324,40 @@ def read_espresso_in(fileobj):
         else:
             alat = None
         cell = get_cell_parameters(card_lines, alat=alat)
+    elif 'celldm(1)' in data['system'] and 'a' in data['system']:
+        raise KeyError('do not specify both celldm and a,b,c!')
+    elif 'celldm(1)' in data['system']:
+        if data['system']['ibrav'] == 1:
+            alat = data['system']['celldm(1)'] * units['Bohr']
+            cell = np.identity(3) * alat
+        elif data['system']['ibrav'] == 2:
+            alat = data['system']['celldm(1)'] * units['Bohr']
+            cell = np.array([[-1.0, 0.0, 1.0],
+                             [0.0, 1.0, 1.0],
+                             [-1.0, 1.0, 0.0]]) * alat / 2
+        elif data['system']['ibrav'] == 3:
+            alat = data['system']['celldm(1)'] * units['Bohr']
+            cell = np.array([[1.0, 1.0, 1.0],
+                             [-1.0, 1.0, 1.0],
+                             [-1.0, -1.0, 1.0]]) * alat / 2
+        elif data['system']['ibrav'] == 3:
+            alat = data['system']['celldm(1)'] * units['Bohr']
+            c_over_a = data['system']['celldm(3)'] * units['Bohr']
+            cell = np.array([[1.0, 0.0, 0.0],
+                             [-0.5, 0.5*3**0.5, 0.0],
+                             [0.0, 0.0, 0.0]]) * alat / 2
+            cell[2][2] = c_over_a
+
+    elif 'a' in data['system']:
+        pass
     else:
-        raise NotImplementedError('ibrav =/= 0 is not implemented')
+        # celldm(x) in bohr
+        # a, b, c, cosAB, cosAC, cosBC in Angstrom
+        #
+        #      redundant data for cell parameters
+
+        raise NotImplementedError('ibrav = {0} is not implemented'
+                                  ''.format(data['system']['ibrav']))
 
     positions_card = get_atomic_positions(
         card_lines, n_atoms=data['system']['nat'], cell=cell, alat=alat)
@@ -382,7 +429,7 @@ def get_atomic_positions(lines, n_atoms, cell=None, alat=None):
                 cell = np.identity(3) * alat
 
             positions = []
-            for _atom_idx in range(n_atoms):
+            for _dummy in range(n_atoms):
                 split_line = next(trimmed_lines).split()
                 # These can be fractions and other expressions
                 position = np.dot((infix_float(split_line[1]),
@@ -545,12 +592,8 @@ def read_fortran_namelist(fileobj):
         in the input file.
 
     """
-    # TODO: ignore repeated sections
-    # ensure whole file is considered
-    fileobj.seek(0)
-
     # Espresso requires the correct order
-    data = OrderedDict()
+    data = Namelist()
     card_lines = []
     in_namelist = False
     section = 'none'  # can't be in a section without changing this
@@ -561,11 +604,16 @@ def read_fortran_namelist(fileobj):
         if line.startswith('&'):
             # inside a namelist
             section = line.split()[0][1:].lower()  # case insensitive
-            data[section] = OrderedDict()
+            if section in data:
+                # Repeated sections are completely ignored.
+                # (Note that repeated keys overwrite within a section)
+                section = "_ignored"
+            data[section] = Namelist()
             in_namelist = True
         if not in_namelist and line:
-            # TODO, strip comments
-            card_lines.append(line)
+            # Stripped line is Truthy, so safe to index first character
+            if line[0] not in ('!', '#'):
+                card_lines.append(line)
         if in_namelist:
             # parse k, v from line:
             key = []
@@ -710,7 +758,8 @@ def infix_float(text):
 
     def eval_no_bracket_expr(full_text):
         """Calculate value of a mathematical expression, no brackets."""
-        exprs = [('+', op.add), ('*', op.mul), ('/', op.div), ('^', op.pow)]
+        exprs = [('+', op.add), ('*', op.mul),
+                 ('/', op.truediv), ('^', op.pow)]
         full_text = full_text.lstrip('(').rstrip(')')
         try:
             return float(full_text)
