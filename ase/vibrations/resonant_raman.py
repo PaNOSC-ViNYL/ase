@@ -32,7 +32,9 @@ def overlap(calc1, calc2):
             overlap_nn[i1, i2] = (calc1.wfs.gd.integrate(psi1.conj() * psi2) /
                                   np.sqrt(norm1 * norm2))
             if 0 and abs(overlap_nn[i1, i2]) > 0.5:
-                parprint(i1, i2, '{0:7.2f} ({1:4.2f} {2:4.2f})'.format(overlap_nn[i1, i2], norm1, norm2))
+                parprint(i1, i2,
+                         '{0:7.2f} ({1:4.2f} {2:4.2f})'.format(
+                             overlap_nn[i1, i2], norm1, norm2))
     return overlap_nn
             
 
@@ -384,39 +386,12 @@ class ResonantRaman(Vibrations):
             else:
                 self.read_excitations()
 
-    def matrix_element(self, omega, gamma):
-        self.read()
-        V_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        if self.approximation.lower() in ['profeta', 'placzek',
-                                          'p-p', 'placzekalpha']:
-            me_Qcc = self.electronic_me_Qcc(omega, gamma)
-            for Q, vib01 in enumerate(self.vib01_Q):
-                V_Qcc[Q] = me_Qcc[Q] * vib01
-        elif self.approximation.lower() == 'albrecht a':
-            V_Qcc += self.me_AlbrechtA(omega, gamma)
-        elif self.approximation.lower() == 'albrecht b':
-            V_Qcc += self.me_AlbrechtBC(omega, gamma, term='B')
-        elif self.approximation.lower() == 'albrecht c':
-            V_Qcc += self.me_AlbrechtBC(omega, gamma, term='C')
-        elif self.approximation.lower() == 'albrecht bc':
-            V_Qcc += self.me_AlbrechtBC(omega, gamma)
-        elif self.approximation.lower() == 'albrecht':
-            V_Qcc += self.me_AlbrechtA(omega, gamma)
-            V_Qcc += self.me_AlbrechtBC(omega, gamma)
-        elif self.approximation.lower() == 'albrecht+profeta':
-            raise NotImplementedError('not useful')
-            V_Qcc += self.get_matrix_element_AlbrechtA(omega, gamma)
-            V_Qcc += self.get_matrix_element_Profeta(omega, gamma)
-        else:
-            raise NotImplementedError(
-                'Approximation {0} not implemented. '.format(
-                    self.approximation) +
-                'Please use "Profeta", "Placzek", "Albrecht A/B/C/BC", ' +
-                'or "Albrecht".')
+    def intensity(self, omega, gamma=0.1):
+        """Raman intensity
 
-        return V_Qcc
-
-    def get_intensities(self, omega, gamma=0.1):
+        Returns
+        -------
+        unit e^4 Angstrom^4 / eV^2"""
         m2 = ResonantRaman.m2
         alpha_Qcc = self.matrix_element(omega, gamma)
         if not self.observation:  # XXXX remove
@@ -485,7 +460,7 @@ class ResonantRaman(Vibrations):
 
     def get_cross_sections(self, omega, gamma=0.1):
         """Returns Raman cross sections for each vibration."""
-        I_r = self.get_intensities(omega, gamma)
+        I_r = self.intensity(omega, gamma)
         pre = 1. / 16 / np.pi**2 / u._eps0**2 / u._c**4
         # frequency of scattered light
         omS_r = omega - self.hnu.real
