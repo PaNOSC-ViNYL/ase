@@ -242,8 +242,8 @@ def _read_xyz_frame(lines, natoms):
         if cols == 1:
             value = data[name]
         else:
-            value = np.vstack([data[name + str(c)]
-                               for c in range(cols)]).T
+            value = np.ascontiguousarray(np.vstack([data[name + str(c)]
+                                                    for c in range(cols)]).T)
         arrays[ase_name] = value
 
     symbols = None
@@ -317,6 +317,7 @@ class XYZChunk:
         """Convert unprocessed chunk into Atoms."""
         return _read_xyz_frame(iter(self.lines), self.natoms)
 
+
 def ixyzchunks(fd):
     """Yield unprocessed chunks (header, lines) for each xyz image."""
     while True:
@@ -326,7 +327,7 @@ def ixyzchunks(fd):
         except ValueError:
             raise XYZError('Expected integer, found "{0}"'.format(line))
         try:
-            lines = [next(fd) for _ in range(1+natoms)]
+            lines = [next(fd) for _ in range(1 + natoms)]
         except StopIteration:
             raise XYZError('Incomplete XYZ chunk')
         yield XYZChunk(lines, natoms)
@@ -507,7 +508,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, append=False):
+              write_results=True, append=False, plain=False):
     """
     Write output in extended XYZ format
 
@@ -535,6 +536,11 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                        [key for key in atoms.arrays.keys() if
                         key not in ['symbols', 'positions',
                                     'species', 'pos']])
+
+        if plain:
+            fr_cols = ['symbols', 'positions']
+            write_info = False
+            write_results = False
 
         per_frame_results = {}
         per_atom_results = {}
@@ -603,7 +609,7 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                                                        arrays,
                                                        write_info,
                                                        per_frame_results)
-        if comment != '':
+        if plain or comment != '':
             # override key/value pairs with user-speficied comment string
             comm = comment
 
