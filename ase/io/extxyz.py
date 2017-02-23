@@ -317,6 +317,7 @@ class XYZChunk:
         """Convert unprocessed chunk into Atoms."""
         return _read_xyz_frame(iter(self.lines), self.natoms)
 
+
 def ixyzchunks(fd):
     """Yield unprocessed chunks (header, lines) for each xyz image."""
     while True:
@@ -326,7 +327,7 @@ def ixyzchunks(fd):
         except ValueError:
             raise XYZError('Expected integer, found "{0}"'.format(line))
         try:
-            lines = [next(fd) for _ in range(1+natoms)]
+            lines = [next(fd) for _ in range(1 + natoms)]
         except StopIteration:
             raise XYZError('Incomplete XYZ chunk')
         yield XYZChunk(lines, natoms)
