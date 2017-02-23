@@ -46,8 +46,8 @@ class Albrecht(ResonantRaman):
             raise ValueError('Please use "Albrecht" or "Albrecht A/B/C/BC"')
         self._approx = value
 
-    def get_energies(self, method='standard', direction='central'):
-        Vibrations.get_energies(self, method, direction)
+    def read(self, method='standard', direction='central'):
+        ResonantRaman.read(self, method, direction)
 
         # single transitions and their occupation
         om_Q = self.om_Q[self.skip:]
@@ -78,6 +78,8 @@ class Albrecht(ResonantRaman):
         self.n_vQ = n_vQ  # how many of each
         self.d_vQ = np.where(n_vQ > 0, 1, 0)  # do we have them ?
 
+    def get_energies(self, method='standard', direction='central'):
+        Vibrations.get_energies(self, method, direction)
         return self.om_v
 
     def Huang_Rhys_factors(self, forces_r):
