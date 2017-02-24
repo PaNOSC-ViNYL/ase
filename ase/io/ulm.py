@@ -18,6 +18,7 @@ File layout when there is only a single item::
 
 Writing:
 
+>>> import numpy as np
 >>> import ase.io.ulm as ulm
 >>> w = ulm.open('x.ulm', 'w')
 >>> w.write(a=np.ones(7), b=42, c='abc')
