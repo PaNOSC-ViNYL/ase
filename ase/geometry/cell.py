@@ -89,7 +89,7 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
         a, b, c, alpha, beta, gamma = cellpar
 
     # Handle orthorhombic cells separately to avoid rounding errors
-    eps = 2 * np.spacing(90.0, dtype=np.float32) # around 1.5e-5
+    eps = 2 * np.spacing(90.0, dtype=np.float64) # around 1.4e-14
     ## alpha
     if abs(abs(alpha) - 90) < eps:
         cos_alpha = 0.0
