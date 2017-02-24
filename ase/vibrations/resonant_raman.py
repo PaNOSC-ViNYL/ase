@@ -386,6 +386,11 @@ class ResonantRaman(Vibrations):
             else:
                 self.read_excitations()
 
+    def matrix_element(self, omega, gamma):
+        """Full matrix element"""
+        elme_Qcc = self.electronic_me_Qcc(omega, gamma)
+        return elme_Qcc * self.vib01_Q[:, None, None]
+
     def intensity(self, omega, gamma=0.1):
         """Raman intensity
 
