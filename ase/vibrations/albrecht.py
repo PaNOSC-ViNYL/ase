@@ -305,13 +305,11 @@ class Albrecht(ResonantRaman):
         """Evaluate an electronic matric element."""
         self.read()
         approx = self.approximation.lower()
+        assert(self.combinations == 1)
         # XXXX check for wrong approx somewhere else
         Vel_Qcc = np.zeros((len(self.om_Q), 3, 3), dtype=complex)
         if approx == 'albrecht a' or approx == 'albrecht':
-            if self.combinations == 1:
-                Vel_Qcc += self.meA(omega, gamma)  # e^2 Angstrom^2 / eV
-            else:
-                Vel_Qcc += self.meAmult(omega, gamma)
+            Vel_Qcc += self.meA(omega, gamma)  # e^2 Angstrom^2 / eV
             # divide through pre-factor
             with np.errstate(divide='ignore'):
                 Vel_Qcc *= np.where(self.vib01_Q > 0,
@@ -328,7 +326,8 @@ class Albrecht(ResonantRaman):
 
         return Vel_Qcc  # Angstrom^2 / sqrt(amu)
 
-    def matrix_element(self, omega, gamma):
+    def me_Qcc(self, omega, gamma):
+        """Full matrix element"""
         self.read()
         approx = self.approximation.lower()
         nv = len(self.om_v)
@@ -339,14 +338,14 @@ class Albrecht(ResonantRaman):
             else:
                 V_vcc += self.meAmult(omega, gamma)
         if approx == 'albrecht bc' or approx == 'albrecht':
-            v_vcc = self.meBC(omega, gamma)  # e^2 Angstrom / eV / sqrt(amu)
-            V_vcc += self.vib01_Q * v_vcc  # e^2 Angstrom^2 / eV
-        if approx == 'albrecht b':
-            v_vcc += self.meBC(omega, gamma, term='B')
-            V_vcc += self.vib01_Q * v_vcc  # e^2 Angstrom^2 / eV
+            vel_vcc = self.meBC(omega, gamma)
+            V_vcc += vel_vcc * self.vib01_Q[:, None, None]
+        elif approx == 'albrecht b':
+            vel_vcc = self.meBC(omega, gamma, term='B')
+            V_vcc = vel_vcc * self.vib01_Q[:, None, None]
         if approx == 'albrecht c':
-            v_vcc = self.meBC(omega, gamma, term='C')
-            V_vcc += self.vib01_Q * v_vcc
+            vel_vcc = self.meBC(omega, gamma, term='C')
+            V_vcc = vel_vcc * self.vib01_Q[:, None, None]
 
         return V_vcc  # e^2 Angstrom^2 / eV
     
