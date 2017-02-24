@@ -21,6 +21,7 @@ class Placzek(ResonantRaman):
 
     def read_excitations(self):
         self.timer.start('read excitations')
+        self.ex0E_p = None  # mark as read
         self.exm_r = []
         self.exp_r = []
         r = 0
