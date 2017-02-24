@@ -697,11 +697,15 @@ class Vasp(Calculator):
         self.run()
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
-            # Update atomic positions and unit cell with the ones read
-            # from CONTCAR.
-            atoms.positions = atoms_sorted[self.resort].positions
-            atoms.cell = atoms_sorted.cell
+
+        if (self.int_params['ibrion'] is not None and
+            self.int_params['nsw'] is not None):
+            if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
+                # Update atomic positions and unit cell with the ones read
+                # from CONTCAR.
+                atoms.positions = atoms_sorted[self.resort].positions
+                atoms.cell = atoms_sorted.cell
+
         self.converged = self.read_convergence()
         self.set_results(atoms)
 
@@ -709,9 +713,9 @@ class Vasp(Calculator):
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if (self.int_params['lorbit'] >= 10 or
-                (self.int_params['lorbit'] is not None and
-                 self.list_params['rwigs'])):
+            if (self.int_params['lorbit'] is not None and
+                   (self.int_params['lorbit'] >= 10 or
+                    self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
                 self.magnetic_moments = None
@@ -1202,7 +1206,7 @@ class Vasp(Calculator):
     def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR' + suffix, 'wb')
+        potfile = open('POTCAR' + suffix, 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):
