@@ -20,12 +20,14 @@ aexp = 46
 
 D = np.linspace(2.5, 3.5, 30)
 
-i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
+inter = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
 for calc in [TIP4P(),
-             #SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P()),
-             #SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P(), vacuum=3.0),
-             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, output=None)]:
+             SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P()),
+             SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P(), vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), inter),
+             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), inter, vacuum=3.0),
+             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), inter, vacuum=3.0)]:
     dimer = Atoms('OH2OH2',
                   [(0, 0, 0),
                    (r * cos(a), 0, r * sin(a)),
@@ -49,7 +51,7 @@ for calc in [TIP4P(),
     F1 = np.polyval(np.polyder(np.polyfit(D, E, 7)), D)
     F2 = F[:, :3, 0].sum(1)
     error = abs(F1 - F2).max()
-    print(E, error)
+
     dimer.constraints = FixBondLengths([(3 * i + j, 3 * i + (j + 1) % 3)
                                        for i in range(2)
                                         for j in [0, 1, 2]])
@@ -76,15 +78,3 @@ for calc in [TIP4P(),
 # plt.show()
 
 print(fmt.format('reference', 9.999, eexp, dexp, aexp))
-
-fmt = '{0:>25}: {1:.3f}'
-for calc in [EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i),
-             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), i, vacuum=3.0),
-             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, vacuum=3.0)]:
-    dimer = tip4pdimer.copy()
-    dimer.translate([1, 0, 0])
-    dimer.calc = calc
-    e0 = dimer.get_potential_energy()
-    print(fmt.format('EIQMMM '+calc.name+' '+str(dimer.calc.selection)+' '
-                     + str(dimer.calc.vacuum), -e0))
-    assert abs(e0 + eexp) < 0.002
