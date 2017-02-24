@@ -5,9 +5,8 @@ import numpy as np
 
 import ase.units as units
 from ase import Atoms
-from ase.calculators.tip4p import (TIP4P, epsilon0, sigma0, rOH, thetaHOH)
-from ase.calculators.qmmm import (SimpleQMMM, LJInteractions, EIQMMM,
-                                  EmbedTIP4P)
+from ase.calculators.tip4p import TIP4P, epsilon0, sigma0, rOH, thetaHOH
+from ase.calculators.qmmm import SimpleQMMM, LJInteractions, EIQMMM
 from ase.constraints import FixBondLengths
 from ase.optimize import BFGS
 
@@ -21,10 +20,12 @@ aexp = 46
 
 D = np.linspace(2.5, 3.5, 30)
 
-for calc in [TIP4P(),
-             SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P()),
-             SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P(), vacuum=3.0)]:
+i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
+for calc in [TIP4P(),
+             #SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P()),
+             #SimpleQMMM([0, 1, 2], TIP4P(), TIP4P(), TIP4P(), vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, output=None)]:
     dimer = Atoms('OH2OH2',
                   [(0, 0, 0),
                    (r * cos(a), 0, r * sin(a)),
@@ -48,7 +49,7 @@ for calc in [TIP4P(),
     F1 = np.polyval(np.polyder(np.polyfit(D, E, 7)), D)
     F2 = F[:, :3, 0].sum(1)
     error = abs(F1 - F2).max()
-
+    print(E, error)
     dimer.constraints = FixBondLengths([(3 * i + j, 3 * i + (j + 1) % 3)
                                        for i in range(2)
                                         for j in [0, 1, 2]])
@@ -56,7 +57,7 @@ for calc in [TIP4P(),
                trajectory=calc.name + '.traj', logfile=calc.name + 'd.log')
     opt.run(0.001)
 
-    if calc.name == 'TIP4P':  # save optimized geom for EIQMMM test
+    if calc.name == 'tip4p':  # save optimized geom for EIQMMM test
         tip4pdimer = dimer.copy()
 
     e0 = dimer.get_potential_energy()
@@ -76,14 +77,10 @@ for calc in [TIP4P(),
 
 print(fmt.format('reference', 9.999, eexp, dexp, aexp))
 
-i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
-
 fmt = '{0:>25}: {1:.3f}'
-for calc in [EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P()),
-             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(),
-                    vacuum=3.0),
-             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, embedding=EmbedTIP4P(),
-                    vacuum=3.0)]:
+for calc in [EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i),
+             EIQMMM([3, 4, 5], TIP4P(), TIP4P(), i, vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP4P(), TIP4P(), i, vacuum=3.0)]:
     dimer = tip4pdimer.copy()
     dimer.translate([1, 0, 0])
     dimer.calc = calc

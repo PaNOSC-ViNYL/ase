@@ -14,13 +14,13 @@ class SimpleQMMM(Calculator):
         """SimpleQMMM object.
 
         The energy is calculated as::
-    
+
                     _          _          _
             E = E  (R  ) - E  (R  ) + E  (R   )
                  QM  QM     MM  QM     MM  all
-         
+
         parameters:
-    
+
         selection: list of int, slice object or list of bool
             Selection out of all the atoms that belong to the QM part.
         qmcalc: Calculator object
@@ -32,7 +32,7 @@ class SimpleQMMM(Calculator):
         vacuum: float or None
             Amount of vacuum to add around QM atoms.  Use None if QM
             calculator doesn't need a box.
-    
+
         """
         self.selection = selection
         self.qmcalc = qmcalc
@@ -56,18 +56,18 @@ class SimpleQMMM(Calculator):
         if self.vacuum:
             self.qmatoms.center(vacuum=self.vacuum)
             self.center = self.qmatoms.positions.mean(axis=0)
-    
+
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
 
         if self.qmatoms is None:
             self.initialize_qm(atoms)
-    
+
         self.qmatoms.positions = atoms.positions[self.selection]
         if self.vacuum:
             self.qmatoms.positions += (self.center -
                                        self.qmatoms.positions.mean(axis=0))
-    
+
         energy = self.mmcalc2.get_potential_energy(atoms)
         forces = self.mmcalc2.get_forces(atoms)
 
@@ -93,13 +93,13 @@ class EIQMMM(Calculator):
         """EIQMMM object.
 
         The energy is calculated as::
-    
+
                     _          _         _    _
             E = E  (R  ) + E  (R  ) + E (R  , R  )
                  QM  QM     MM  MM     I  QM   MM
-         
+
         parameters:
-    
+
         selection: list of int, slice object or list of bool
             Selection out of all the atoms that belong to the QM part.
         qmcalc: Calculator object
@@ -116,7 +116,7 @@ class EIQMMM(Calculator):
             default one.
         output: None, '-', str or file-descriptor.
             File for logging information - default is no logging (None).
-    
+
         """
 
         self.selection = selection
@@ -157,22 +157,22 @@ class EIQMMM(Calculator):
             self.center = self.qmatoms.positions.mean(axis=0)
             print('Size of QM-cell after centering:',
                   self.qmatoms.cell.diagonal(), file=self.output)
-    
+
         self.qmatoms.calc = self.qmcalc
         self.mmatoms.calc = self.mmcalc
 
         if self.embedding is None:
             self.embedding = Embedding()
-    
+
         self.embedding.initialize(self.qmatoms, self.mmatoms)
         print('Embedding:', self.embedding, file=self.output)
-                
+
     def calculate(self, atoms, properties, system_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
 
         if self.qmatoms is None:
             self.initialize(atoms)
-    
+
         self.mmatoms.set_positions(atoms.positions[~self.mask])
         self.qmatoms.set_positions(atoms.positions[self.mask])
 
@@ -181,7 +181,7 @@ class EIQMMM(Calculator):
             self.qmatoms.positions += shift
         else:
             shift = (0, 0, 0)
-    
+
         self.embedding.update(shift)
 
         ienergy, iqmforces, immforces = self.interaction.calculate(
@@ -228,11 +228,11 @@ class Embedding:
         return 'Embedding(molecule_size={0})'.format(self.molecule_size)
 
     def initialize(self, qmatoms, mmatoms):
-        """Hook up embedding object to QM and MM atomsd objects."""
+        """Hook up embedding object to QM and MM atoms objects."""
         self.qmatoms = qmatoms
         self.mmatoms = mmatoms
-        self.pcpot = qmatoms.calc.embed(mmatoms.get_initial_charges(),
-                                        **self.parameters)
+        charges = mmatoms.calc.get_virtual_charges(mmatoms)
+        self.pcpot = qmatoms.calc.embed(charges, **self.parameters)
 
     def update(self, shift):
         """Update point-charge positions."""
@@ -249,60 +249,14 @@ class Embedding:
         wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
         offsets = distances - positions[:, 0]
         positions += offsets[:, np.newaxis] + qmcenter
-        self.pcpot.set_positions(positions.reshape((-1, 3)))
+        positions.shape = (-1, 3)
+        positions = self.mmatoms.calc.add_virtual_sites(positions)
+        self.pcpot.set_positions(positions)
 
     def get_mm_forces(self):
         """Calculate the forces on the MM-atoms from the QM-part."""
-        return self.pcpot.get_forces(self.qmatoms.calc)
-
-
-class EmbedTIP4P:
-    def __init__(self, molecule_size=4, **parameters):
-        """TIP4P embedding."""
-        self.qmatoms = None
-        self.mmatoms = None
-        self.molecule_size = molecule_size
-        self.parameters = parameters
-
-    def __repr__(self):
-        return 'EmbedTIP4P(molecule_size={0})'.format(self.molecule_size)
-
-    def initialize(self, qmatoms, mmatoms):
-        """Hook up embedding object to QM and MM atoms objects."""
-        self.qmatoms = qmatoms
-        self.mmatoms = mmatoms
-        from ase.calculators.tip4p import TIP4P
-        tip4 = TIP4P()
-        xmm = tip4.add_virtual_sites(mmatoms)
-        self.xmm = xmm
-        self.tip4 = tip4
-        self.pcpot = qmatoms.calc.embed(xmm.get_initial_charges(),
-                                        **self.parameters)
-
-    def update(self, shift):
-        """Update point-charge positions."""
-        # Wrap point-charge positions to the MM-cell closest to the
-        # center of the the QM box, but avoid ripping molecules apart:
-        qmcenter = self.qmatoms.cell.diagonal() / 2
-        n = self.molecule_size
-    
-        # make mm atoms object with virtual sites for embedding:
-        positions = self.xmm.positions.reshape((-1, n, 3)) + shift
-
-        # Distances from the center of the QM box to the first atom of
-        # each molecule:
-        distances = positions[:, 0] - qmcenter
-
-        wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
-        offsets = distances - positions[:, 0]
-        positions += offsets[:, np.newaxis] + qmcenter
-        self.pcpot.set_positions(positions.reshape((-1, 3)))
-
-    def get_mm_forces(self):
-        """Calculate the forces on the MM-atoms from the QM-part."""
-        self.tip4.forces = self.pcpot.get_forces(self.qmatoms.calc)
-        self.tip4.redistribute_forces(self.xmm)
-        return self.tip4.forces
+        f = self.pcpot.get_forces(self.qmatoms.calc)
+        return self.mmatoms.calc.redistribute_forces(f)
 
 
 class LJInteractions:
@@ -314,11 +268,11 @@ class LJInteractions:
         parameters: dict
             Mapping from pair of atoms to tuple containing epsilon and sigma
             for that pair.
-    
+
         Example:
-    
+
             lj = LJInteractions({('O', 'O'): (eps, sigma)})
-    
+
         """
         self.parameters = {}
         for (symbol1, symbol2), (epsilon, sigma) in parameters.items():
