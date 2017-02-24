@@ -179,15 +179,33 @@ class Albrecht(ResonantRaman):
         omS_v = omL - self.om_v
         nv = len(self.om_v)
         om_Q = self.om_Q[self.skip:]
-        
+        nQ = len(om_Q)
+
+        # n_v:
+        #     how many FC factors are involved
+        # nvib_ov:
+        #     delta functions to switch contributions depending on order o
+        # ind_ov:
+        #     Q indicees
+        # n_ov:
+        #     # of vibrational excitations
         n_v = self.d_vQ.sum(axis=1)  # multiplicity
-        # needed ? nvib1_v = np.array(n_v == 1, dtype=int)
-        om1_v = np.array([om_Q[wt[0]] for wt in self.ind_v])
-        nvib2_v = np.array(n_v == 2, dtype=int)
-        om2_v = np.zeros((nv), dtype=float)
-        for i, use in enumerate(nvib2_v):
-            if use:
-                om2_v[i] = om_Q[self.ind_v[i][1]]
+        
+        nvib_ov = np.empty((self.combinations, nv), dtype=int)
+        om_ov = np.zeros((self.combinations, nv), dtype=float)
+        n_ov = np.zeros((self.combinations, nv), dtype=int)
+        d_ovQ = np.zeros((self.combinations, nv, nQ), dtype=int)
+        for o in range(self.combinations):
+            nvib_ov[o] = np.array(n_v == (o + 1))
+            for v in range(nv):
+                try:
+                    om_ov[o, v] = om_Q[self.ind_v[v][o]]
+                    d_ovQ[o, v, self.ind_v[v][o]] = 1
+                except IndexError:
+                    pass
+        # XXXX change
+        n_ov[0] = self.n_vQ.max(axis=1)
+        n_ov[1] = nvib_ov[1]
         
         # excited state forces
         F_pr = self.exF_rp.T
@@ -199,27 +217,39 @@ class Albrecht(ResonantRaman):
             energy_v = energy - self.d_vQ.dot(om_Q * S_Q)
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
+            # Franck-Condon factors
+            self.timer.start('0mm1/2')
+            fco1_mQ = np.empty((self.nm, nQ), dtype=float)
+            fco2_mQ = np.empty((self.nm, nQ), dtype=float)
+            for m in range(self.nm):
+                fco1_mQ[m] = self.fcr.direct0mm1(m, d_Q)
+                fco2_mQ[m] = self.fcr.direct0mm2(m, d_Q)
+            self.timer.stop('0mm1/2')
+
             wm_v = np.zeros((nv), dtype=complex)
             wp_v = np.zeros((nv), dtype=complex)
             for m in range(self.nm):
                 self.timer.start('0mm1/2')
-                fco1_Q = self.fcr.direct0mm1(m, d_Q)
-                fco2_Q = self.fcr.direct0mm2(m, d_Q)
-                fco_vQ = np.ones(self.n_vQ.shape, dtype=float)
-                fco_vQ = np.where(self.n_vQ == 1, self.d_vQ * fco1_Q, fco_vQ)
-                fco_vQ = np.where(self.n_vQ == 2, self.d_vQ * fco2_Q, fco_vQ)
-                fco_v = fco_vQ.prod(axis=1)
+                fco1_v = np.where(n_ov[0] == 2,
+                                  d_ovQ[0].dot(fco2_mQ[m]),
+                                  d_ovQ[0].dot(fco1_mQ[m]))
                 self.timer.stop('0mm1/2')
 
                 self.timer.start('weight_Q')
-                em_v = energy_v + m * om1_v
-                nn = 1
-                if nvib2_v.any():
-                    nn = self.nm
-                for n in range(nn):
-                    e_v = em_v + n * om2_v
-                    wm_v += fco_v / (e_v - omL)
-                    wp_v += fco_v / (e_v + omS_v)
+                em_v = energy_v + m * om_ov[0]
+                # multiples of same kind
+                fco_v = nvib_ov[0] * fco1_v
+                wm_v += fco_v / (em_v - omL)
+                wp_v += fco_v / (em_v + omS_v)
+                if nvib_ov[1].any():
+                    # multiples of mixed type
+                    for n in range(self.nm):
+                        fco2_v = d_ovQ[1].dot(fco1_mQ[n])
+                        e_v = em_v + n * om_ov[1]
+                        ## print('e_v', e_v[:3])
+                        fco_v = nvib_ov[1] * fco1_v * fco2_v
+                        wm_v += fco_v / (e_v - omL)
+                        wp_v += fco_v / (e_v + omS_v)
                 self.timer.stop('weight_Q')
             self.timer.start('einsum')
             m_vcc += np.einsum('a,bc->abc', wm_v, me_cc)
@@ -334,7 +364,8 @@ class Albrecht(ResonantRaman):
         V_vcc = np.zeros((nv, 3, 3), dtype=complex)
         if approx == 'albrecht a' or approx == 'albrecht':
             if self.combinations == 1:
-                V_vcc += self.meA(omega, gamma)  # e^2 Angstrom^2 / eV
+                # e^2 Angstrom^2 / eV
+                V_vcc += self.meA(omega, gamma)[self.skip:]
             else:
                 V_vcc += self.meAmult(omega, gamma)
         if approx == 'albrecht bc' or approx == 'albrecht':
@@ -403,7 +434,7 @@ class Albrecht(ResonantRaman):
         parprint('-------------------------------------', file=log)
         for v, e in enumerate(om_v):
             parprint(self.ind_v[v], '{0:6.1f}   {1:7.1f} {2:9.1f}'.format(
-                1000 * e, e / u.invcm, 1e6 * intens_v[v]),
+                1000 * e, e / u.invcm, 1e9 * intens_v[v]),
                 file=log)
         parprint('-------------------------------------', file=log)
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),
