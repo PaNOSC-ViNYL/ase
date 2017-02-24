@@ -386,9 +386,17 @@ class ResonantRaman(Vibrations):
             else:
                 self.read_excitations()
 
-    def matrix_element(self, omega, gamma):
-        """Full matrix element"""
+    def me_Qcc(self, omega, gamma):
+        """Full matrix element
+
+        Returns
+        -------
+        Matrix element in e^2 Angstrom^2 / eV
+        """
+        # Angstrom^2 / sqrt(amu)
         elme_Qcc = self.electronic_me_Qcc(omega, gamma)
+        # Angstrom^3 -> e^2 Angstrom^2 / eV
+        elme_Qcc /= u.Hartree * u.Bohr  # e^2 Angstrom / eV / sqrt(amu)
         return elme_Qcc * self.vib01_Q[:, None, None]
 
     def intensity(self, omega, gamma=0.1):
@@ -398,7 +406,7 @@ class ResonantRaman(Vibrations):
         -------
         unit e^4 Angstrom^4 / eV^2"""
         m2 = ResonantRaman.m2
-        alpha_Qcc = self.matrix_element(omega, gamma)
+        alpha_Qcc = self.me_Qcc(omega, gamma)
         if not self.observation:  # XXXX remove
             """Simple sum, maybe too simple"""
             return m2(alpha_Qcc).sum(axis=1).sum(axis=1)
