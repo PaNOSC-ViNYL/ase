@@ -1,6 +1,5 @@
 import ase.units as units
-from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaHOH,
-                                   set_tip3p_charges)
+from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, thetaHOH
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.data.s22 import create_s22_system as s22
 from ase.md.verlet import VelocityVerlet
@@ -21,7 +20,6 @@ for calc in [TIP3P(),
     bonds = [(m + i, m + (i + 1) % 3) for m in [0, 3] for i in [0, 1, 2]]
     dimer.constraints = FixBondLengths(bonds)
 
-    set_tip3p_charges(dimer)
     dimer.calc = calc
 
     e = dimer.get_potential_energy()
