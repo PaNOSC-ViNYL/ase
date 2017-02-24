@@ -538,9 +538,9 @@ class Vasp(Calculator):
                 raise NotImplementedError(
                     self._potcar_unguessable_string)
 
-        if (p['xc'] is not None
-                and p['xc'].lower() == 'lda'
-                and p['pp'].lower() != 'lda'):
+        if (p['xc'] is not None and
+                p['xc'].lower() == 'lda' and
+                p['pp'].lower() != 'lda'):
             warnings.warn("XC is set to LDA, but PP is set to "
                           "{0}. \nThis calculation is using the {0} "
                           "POTCAR set. \n Please check that this is "
@@ -699,7 +699,7 @@ class Vasp(Calculator):
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
 
         if (self.int_params['ibrion'] is not None and
-            self.int_params['nsw'] is not None):
+                self.int_params['nsw'] is not None):
             if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
                 # Update atomic positions and unit cell with the ones read
                 # from CONTCAR.
@@ -714,8 +714,8 @@ class Vasp(Calculator):
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
             if (self.int_params['lorbit'] is not None and
-                   (self.int_params['lorbit'] >= 10 or
-                    self.list_params['rwigs'])):
+                (self.int_params['lorbit'] >= 10 or
+                 self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
                 self.magnetic_moments = None
