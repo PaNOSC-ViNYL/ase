@@ -1008,7 +1008,9 @@ class Vasp(Calculator):
         return self.magnetic_moment
 
     def get_magnetic_moments(self, atoms):
-        if self.int_params['lorbit'] >= 10 or self.list_params['rwigs']:
+        if ((self.int_params['lorbit'] is not None and
+             self.int_params['lorbit'] >= 10) or
+                self.list_params['rwigs']):
             self.update(atoms)
             return self.magnetic_moments
         else:
