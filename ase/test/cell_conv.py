@@ -1,8 +1,7 @@
 import numpy as np
-from ase.build import bulk
 from ase.geometry import cell_to_cellpar as c2p, cellpar_to_cell as p2c
 
-eps = 2 * np.spacing(90., dtype=np.float64)
+eps = 4 * np.spacing(90., dtype=np.float64)
 def nearly_equal(a, b):
     return np.all(np.abs(b-a) < eps)
 
