@@ -1,9 +1,18 @@
 import numpy as np
 from ase.geometry import cell_to_cellpar as c2p, cellpar_to_cell as p2c
 
-eps = 4 * np.spacing(90., dtype=np.float64)
+eps = 2 * np.spacing(90., dtype=np.float64)
 def nearly_equal(a, b):
     return np.all(np.abs(b-a) < eps)
+
+def assert_equal(a, b):
+    if not nearly_equal(a, b):
+        msg  = "this:\n"
+        msg += repr(a)
+        msg += "\nand that:\n"
+        msg += repr(b)
+        msg += "\nwere supposed to be equal but are not."
+        raise AssertionError(msg)
 
 # Constants
 a = 5.43
@@ -43,16 +52,16 @@ si_cubic_m =  np.array([[a, 0.0, 0.0],
                        [0.0, 0.0, a]])
 
 # Cell matrix -> cell parameters
-assert nearly_equal(c2p(si_prim_m), si_prim_p)
-assert nearly_equal(c2p(si_prim_m2), si_prim_p)
-assert nearly_equal(c2p(si_ortho_m), si_ortho_p)
-assert nearly_equal(c2p(si_cubic_m), si_cubic_p)
+assert_equal(c2p(si_prim_m), si_prim_p)
+assert_equal(c2p(si_prim_m2), si_prim_p)
+assert_equal(c2p(si_ortho_m), si_ortho_p)
+assert_equal(c2p(si_cubic_m), si_cubic_p)
 assert not nearly_equal(c2p(si_prim_m), si_ortho_p)
 
 # Cell parameters -> cell matrix
-assert nearly_equal(p2c(si_prim_p), si_prim_m2)
-assert nearly_equal(p2c(si_ortho_p), si_ortho_m)
-assert nearly_equal(p2c(si_cubic_p), si_cubic_m)
+assert_equal(p2c(si_prim_p), si_prim_m2)
+assert_equal(p2c(si_ortho_p), si_ortho_m)
+assert_equal(p2c(si_cubic_p), si_cubic_m)
 assert not nearly_equal(p2c(si_prim_p), si_ortho_m)
 
 # Idempotency (provided everything is provided in the default basis)
@@ -64,6 +73,6 @@ for i in range(20):
     ref2[:] = p2c(c2p(ref2))
     ref3[:] = p2c(c2p(ref3))
 
-assert nearly_equal(ref1, si_prim_m2)
-assert nearly_equal(ref2, si_ortho_m)
-assert nearly_equal(ref3, si_cubic_m)
+assert_equal(ref1, si_prim_m2)
+assert_equal(ref2, si_ortho_m)
+assert_equal(ref3, si_cubic_m)
