@@ -153,7 +153,7 @@ def bandpath(path, cell, npoints=50):
 get_bandpath = bandpath  # old name
 
 
-def labels_from_kpts(kpts, cell, crystal_structure=None, eps=1e-5):
+def labels_from_kpts(kpts, cell, eps=1e-5):
     """Get an x-axis to be used when plotting a band structure.
 
     The first of the returned lists can be used as a x-axis when plotting
@@ -168,18 +168,19 @@ def labels_from_kpts(kpts, cell, crystal_structure=None, eps=1e-5):
     cell: list
         Unit cell of the atomic structure.
 
-    crystal_structure: str
-        Crystal structure of the atoms. If None is provided the crystal
-        structure is determined from the cell.
-
     Returns:
 
     Three arrays; the first is a list of cumulative distances between kpoints,
     the second is x coordinates of the special points,
     the third is the special points as strings.
      """
-    if crystal_structure is None:
+    try:
         crystal_structure = crystal_structure_from_cell(cell)
+    except ValueError:
+        warnings.warn('Can not recognize your crystal!')
+        special_points = {}
+    else:
+        special_points = get_special_points(crystal_structure, cell)
 
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
@@ -189,10 +190,9 @@ def labels_from_kpts(kpts, cell, crystal_structure=None, eps=1e-5):
     indices.extend(np.arange(1, N - 1)[kinks])
     indices.append(N - 1)
 
-    special = get_special_points(crystal_structure, cell)
     labels = []
     for kpt in points[indices]:
-        for label, k in special.items():
+        for label, k in special_points.items():
             if abs(kpt - k).sum() < eps:
                 break
         else:

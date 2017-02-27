@@ -239,7 +239,7 @@ class GUI(View, Status):
         process.stdin.close()
         self.graphs.append(process)
 
-    def open(self, button=None):
+    def open(self, button=None, filename=None):
         from ase.io.formats import all_formats, get_ioformat
 
         labels = [_('Automatic')]
@@ -265,7 +265,7 @@ class GUI(View, Status):
         formats = ui.ComboBox(labels, values, callback)
         formats.pack(chooser.top)
 
-        filename = chooser.go()
+        filename = filename or chooser.go()
         if filename:
             self.images.read([filename], slice(None), format[0])
             self.set_colors()

@@ -12,7 +12,7 @@ def view(atoms, data=None, viewer='ase-gui', repeat=None, block=False):
         return
 
     vwr = viewer.lower()
-    
+
     if vwr == 'ase-gui':
         format = 'traj'
         if repeat is None:
@@ -50,8 +50,8 @@ def view(atoms, data=None, viewer='ase-gui', repeat=None, block=False):
     else:
         write(filename, atoms, format=format, data=data)
     if block:
-        subprocess.call([command, filename])
+        subprocess.call(command.split() + [filename])
         os.remove(filename)
     else:
-        subprocess.Popen([command, filename])
+        subprocess.Popen(command.split() + [filename])
         subprocess.Popen(['sleep 60; rm {0}'.format(filename)], shell=True)

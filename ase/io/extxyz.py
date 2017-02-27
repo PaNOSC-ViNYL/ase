@@ -13,6 +13,7 @@ Contributed by James Kermode <james.kermode@gmail.com>
 
 from __future__ import print_function
 
+from itertools import islice
 import re
 import numpy as np
 
@@ -22,7 +23,7 @@ from ase.calculators.singlepoint import SinglePointCalculator
 from ase.parallel import paropen
 from ase.utils import basestring
 
-__all__ = ['read_xyz', 'write_xyz']
+__all__ = ['read_xyz', 'write_xyz', 'iread_xyz']
 
 PROPERTY_NAME_MAP = {'positions': 'pos',
                      'numbers': 'Z',
@@ -196,6 +197,177 @@ def parse_properties(prop_str):
     return properties, properties_list, dtype, converters
 
 
+def _read_xyz_frame(lines, natoms):
+    # comment line
+    line = next(lines)
+    info = key_val_str_to_dict(line)
+
+    pbc = None
+    if 'pbc' in info:
+        pbc = info['pbc']
+        del info['pbc']
+    elif 'Lattice' in info:
+        # default pbc for extxyz file containing Lattice
+        # is True in all directions
+        pbc = [True, True, True]
+
+    cell = None
+    if 'Lattice' in info:
+        # NB: ASE cell is transpose of extended XYZ lattice
+        cell = info['Lattice'].T
+        del info['Lattice']
+
+    if 'Properties' not in info:
+        # Default set of properties is atomic symbols and positions only
+        info['Properties'] = 'species:S:1:pos:R:3'
+    properties, names, dtype, convs = parse_properties(info['Properties'])
+    del info['Properties']
+
+    data = []
+    for ln in range(natoms):
+        line = next(lines)
+        vals = line.split()
+        row = tuple([conv(val) for conv, val in zip(convs, vals)])
+        data.append(row)
+
+    try:
+        data = np.array(data, dtype)
+    except TypeError:
+        raise IOError('Badly formatted data, ' +
+                      'or end of file reached before end of frame')
+
+    arrays = {}
+    for name in names:
+        ase_name, cols = properties[name]
+        if cols == 1:
+            value = data[name]
+        else:
+            value = np.vstack([data[name + str(c)]
+                              for c in range(cols)]).T
+        arrays[ase_name] = value
+
+    symbols = None
+    if 'symbols' in arrays:
+        symbols = arrays['symbols']
+        del arrays['symbols']
+
+    numbers = None
+    duplicate_numbers = None
+    if 'numbers' in arrays:
+        if symbols is None:
+            numbers = arrays['numbers']
+        else:
+            duplicate_numbers = arrays['numbers']
+        del arrays['numbers']
+
+    positions = None
+    if 'positions' in arrays:
+        positions = arrays['positions']
+        del arrays['positions']
+
+    atoms = Atoms(symbols=symbols,
+                  positions=positions,
+                  numbers=numbers,
+                  cell=cell,
+                  pbc=pbc,
+                  info=info)
+
+    for name, array in arrays.items():
+        atoms.new_array(name, array)
+
+    if duplicate_numbers is not None:
+        atoms.set_atomic_numbers(duplicate_numbers)
+
+    # Load results of previous calculations into SinglePointCalculator
+    results = {}
+    for key in list(atoms.info.keys()):
+        if key in all_properties:
+            results[key] = atoms.info[key]
+            # special case for stress- convert to Voigt 6-element form
+            if key.startswith('stress') and results[key].shape == (3, 3):
+                stress = results[key]
+                stress = np.array([stress[0, 0],
+                                   stress[1, 1],
+                                   stress[2, 2],
+                                   stress[1, 2],
+                                   stress[0, 2],
+                                   stress[0, 1]])
+                results[key] = stress
+            del atoms.info[key]
+    for key in list(atoms.arrays.keys()):
+        if key in all_properties:
+            results[key] = atoms.arrays[key]
+            del atoms.arrays[key]
+    if results != {}:
+        calculator = SinglePointCalculator(atoms, **results)
+        atoms.set_calculator(calculator)
+    return atoms
+
+
+class XYZError(IOError):
+    pass
+
+
+class XYZChunk:
+    def __init__(self, lines, natoms):
+        self.lines = lines
+        self.natoms = natoms
+
+    def build(self):
+        """Convert unprocessed chunk into Atoms."""
+        return _read_xyz_frame(iter(self.lines), self.natoms)
+
+
+def ixyzchunks(fd):
+    """Yield unprocessed chunks (header, lines) for each xyz image."""
+    while True:
+        line = next(fd).strip()  # Raises StopIteration on empty file
+        try:
+            natoms = int(line)
+        except ValueError:
+            raise XYZError('Expected integer, found "{0}"'.format(line))
+        try:
+            lines = [next(fd) for _ in range(1 + natoms)]
+        except StopIteration:
+            raise XYZError('Incomplete XYZ chunk')
+        yield XYZChunk(lines, natoms)
+
+
+class ImageIterator:
+    """"""
+    def __init__(self, ichunks):
+        self.ichunks = ichunks
+
+    def __call__(self, fd, indices=-1):
+        if not hasattr(indices, 'start'):
+            if indices < 0:
+                indices = slice(indices - 1, indices)
+            else:
+                indices = slice(indices, indices + 1)
+
+        for chunk in self._getslice(fd, indices):
+            yield chunk.build()
+
+    def _getslice(self, fd, indices):
+        try:
+            iterator = islice(self.ichunks(fd), indices.start, indices.stop,
+                              indices.step)
+        except ValueError:
+            # Negative indices.  Go through the whole thing to get the length,
+            # which allows us to evaluate the slice, and then read it again
+            startpos = fd.tell()
+            nchunks = 0
+            for chunk in self.ichunks(fd):
+                nchunks += 1
+            fd.seek(startpos)
+            indices_tuple = indices.indices(nchunks)
+            iterator = islice(self.ichunks(fd), *indices_tuple)
+        return iterator
+
+
+iread_xyz = ImageIterator(ixyzchunks)
+
+
 def read_xyz(fileobj, index=-1):
     """
     Read from a file in Extended XYZ format
@@ -263,115 +435,9 @@ def read_xyz(fileobj, index=-1):
     for index in trbl:
         frame_pos, natoms = frames[index]
         fileobj.seek(frame_pos)
-
         # check for consistency with frame index table
         assert int(fileobj.readline()) == natoms
-
-        # comment line
-        line = fileobj.readline()
-        info = key_val_str_to_dict(line)
-
-        pbc = None
-        if 'pbc' in info:
-            pbc = info['pbc']
-            del info['pbc']
-        elif 'Lattice' in info:
-            # default pbc for extxyz file containing Lattice
-            # is True in all directions
-            pbc = [True, True, True]
-
-        cell = None
-        if 'Lattice' in info:
-            # NB: ASE cell is transpose of extended XYZ lattice
-            cell = info['Lattice'].T
-            del info['Lattice']
-
-        if 'Properties' not in info:
-            # Default set of properties is atomic symbols and positions only
-            info['Properties'] = 'species:S:1:pos:R:3'
-        properties, names, dtype, convs = parse_properties(info['Properties'])
-        del info['Properties']
-
-        data = []
-        for ln in range(natoms):
-            line = fileobj.readline()
-            vals = line.split()
-            row = tuple([conv(val) for conv, val in zip(convs, vals)])
-            data.append(row)
-
-        try:
-            data = np.array(data, dtype)
-        except TypeError:
-            raise IOError('Badly formatted data, ' +
-                          'or end of file reached before end of frame')
-
-        arrays = {}
-        for name in names:
-            ase_name, cols = properties[name]
-            if cols == 1:
-                value = data[name]
-            else:
-                value = np.vstack([data[name + str(c)]
-                                   for c in range(cols)]).T
-            arrays[ase_name] = value
-
-        symbols = None
-        if 'symbols' in arrays:
-            symbols = arrays['symbols']
-            del arrays['symbols']
-
-        numbers = None
-        duplicate_numbers = None
-        if 'numbers' in arrays:
-            if symbols is None:
-                numbers = arrays['numbers']
-            else:
-                duplicate_numbers = arrays['numbers']
-            del arrays['numbers']
-
-        positions = None
-        if 'positions' in arrays:
-            positions = arrays['positions']
-            del arrays['positions']
-
-        atoms = Atoms(symbols=symbols,
-                      positions=positions,
-                      numbers=numbers,
-                      cell=cell,
-                      pbc=pbc,
-                      info=info)
-
-        for name, array in arrays.items():
-            atoms.new_array(name, array)
-
-        if duplicate_numbers is not None:
-            atoms.set_atomic_numbers(duplicate_numbers)
-
-        # Load results of previous calculations into SinglePointCalculator
-        results = {}
-        for key in list(atoms.info.keys()):
-            if key in all_properties:
-                results[key] = atoms.info[key]
-                # special case for stress- convert to Voigt 6-element form
-                if key.startswith('stress') and results[key].shape == (3, 3):
-                    stress = results[key]
-                    stress = np.array([stress[0, 0],
-                                       stress[1, 1],
-                                       stress[2, 2],
-                                       stress[1, 2],
-                                       stress[0, 2],
-                                       stress[0, 1]])
-                    results[key] = stress
-                del atoms.info[key]
-        for key in list(atoms.arrays.keys()):
-            if key in all_properties:
-                results[key] = atoms.arrays[key]
-                del atoms.arrays[key]
-        if results != {}:
-            calculator = SinglePointCalculator(atoms, **results)
-            atoms.set_calculator(calculator)
-
-        yield atoms
+        yield _read_xyz_frame(fileobj, natoms)
 
 
 def output_column_format(atoms, columns, arrays,
@@ -442,7 +508,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, append=False):
+              write_results=True, append=False, plain=False):
     """
     Write output in extended XYZ format
 
@@ -470,6 +536,11 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                        [key for key in atoms.arrays.keys() if
                         key not in ['symbols', 'positions',
                                     'species', 'pos']])
+
+        if plain:
+            fr_cols = ['symbols', 'positions']
+            write_info = False
+            write_results = False
 
         per_frame_results = {}
         per_atom_results = {}
@@ -538,7 +609,7 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                                                        arrays,
                                                        write_info,
                                                        per_frame_results)
-        if comment != '':
+        if plain or comment != '':
             # override key/value pairs with user-speficied comment string
             comm = comment
 

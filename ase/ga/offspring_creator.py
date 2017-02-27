@@ -49,6 +49,13 @@ class OffspringCreator(object):
         # data for lists and the like
         indi.info['data'] = {}
 
+        # Inherit the confid from the parent
+        # This will be overwritten in add_unrelaxed_candidate but carry
+        # through in add_unrelaxed_step
+        pconfid = parent.info.get('confid')
+        if pconfid is not None:
+            indi.info['confid'] = pconfid
+        
         return indi
 
 
