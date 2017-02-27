@@ -7,8 +7,10 @@ import numpy as np
 
 from ase.dft.kpoints import bandpath, monkhorst_pack
 
+
 class ReadError(Exception):
     pass
+
 
 class PropertyNotImplementedError(NotImplementedError):
     pass
