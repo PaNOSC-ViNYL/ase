@@ -85,7 +85,7 @@ The source of the van der Waals radii is given in vdw.py_.
 How to extract isotope data from NIST
 -------------------------------------
 
-.. autofunc:: ase.data.isotopes.extract_isotope_data
+.. autofunction:: ase.data.isotopes.extract_isotope_data
 
 Relative atomic masses of individual isotopes their abundance (mole
 fraction) are compiled into a dictionary. Individual items can be indexed
