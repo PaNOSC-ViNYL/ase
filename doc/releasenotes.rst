@@ -10,6 +10,15 @@ Git master branch
 
 :git:`master <>`.
 
+* :data:`ase.data.atomic_masses` has been updated to IUPAC values from
+  2016. Several elements will now have different weights which will affect
+  dynamic calculations. The old values can be recovered like this::
+
+      atoms.set_masses(ase.data.atomic_masses_legacy[atoms.numbers])
+
+* :data:`ase.data.isotopes` contains individual isotope masses compiled by
+  NIST.
+
 * New :func:`ase.eos.calculate_eos` helper function added.
 
 * Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
@@ -62,13 +71,6 @@ Version 3.13.0
 * :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
   possible (instead of energies extrapolated to 0.0 K).
 
-* :data:`ase.data.atomic_masses` has been updated to IUPAC values from
-  2016. Several elements will now have different weights which will affect
-  dynamic calculations. The old values can be recovered by overwriting the
-  array ``ase.data.atomic_masses[:104] = ase.data.atomic_masses_legacy``.
-
-* :data:`ase.data.isotopes` contains individual isotope masses compiled by
-  NIST.
 
 Version 3.12.0
 ==============

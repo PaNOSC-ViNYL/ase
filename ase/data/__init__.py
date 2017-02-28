@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 
-from ase.data.isotope import isotopes
 from ase.data.vdw import vdw_radii
 
 __all__ = ['vdw_radii', 'chemical_symbols', 'ground_state_magnetic_moments',
            'reference_states', 'atomic_names', 'atomic_masses',
-           'atomic_numbers', 'isotopes']
+           'atomic_numbers']
 
 chemical_symbols = [
     # 0
@@ -204,6 +203,9 @@ atomic_masses_iupac2016 = np.array([
     294.214,  # 294Og
 ])
 
+# set atomic_masses to most recent version
+atomic_masses = atomic_masses_iupac2016
+
 atomic_masses_legacy = np.array([
     1.00000,  # X
     1.00794,  # H
@@ -310,9 +312,6 @@ atomic_masses_legacy = np.array([
     np.nan,  # No
     np.nan  # Lw
 ])
-
-# set atomic_masses to most recent version
-atomic_masses = atomic_masses_iupac2016.copy()
 
 
 # Covalent radii from:

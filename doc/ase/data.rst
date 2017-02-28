@@ -37,7 +37,7 @@ it up in the :data:`atomic_numbers` dictionary:
 >>> covalent_radii[29]
 1.1699999999999999
 
-Atomic masses are based on [Meija2016]_ (a copy of
+Atomic masses are based on [Meija2016]_ (same array as
 :data:`atomic_masses_iupac2016`).
 
 Standard atomic weights are taken from Table 1: "Standard atomic weights
@@ -52,17 +52,22 @@ The mass of the most stable isotope (in Table 4) is used for elements
 where there the element has no stable isotopes (to avoid NaNs): Tc, Pm,
 Po, At, Rn, Fr, Ra, Ac, everything after Np
 
-Atomic masses provided by ase before 2017 can be accessed in the
-:data:`atomic_masses_legacy` member. To recover legacy behaviour the
-contents of the array must be replaced:
+Atomic masses provided by ASE before 2017 can be accessed in the
+:data:`atomic_masses_legacy` member.  To recover legacy behaviour an
+Atoms object can be modified as:
 
->>> ase.data.atomic_masses[:104] = ase.data.atomic_masses_legacy
+>>> from ase.data import atomic_masses_legacy
+>>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
+
+.. seealso::
+
+    :ref:`isotopes`
 
 The covalent radii are taken from [Cordeo08]_.
 
 The source of the van der Waals radii is given in vdw.py_.
 
-.. [Meija2016]_  *Atomic weights of the elements 2013
+.. [Meija2016] *Atomic weights of the elements 2013
     (IUPAC Technical Report).* Meija, J., Coplen, T., Berglund, M., et al.
     (2016).  Pure and Applied Chemistry, 88(3), pp. 265-291.
     Retrieved 30 Nov. 2016, from doi:10.1515/pac-2015-0305
@@ -74,15 +79,23 @@ The source of the van der Waals radii is given in vdw.py_.
 
 .. _vdw.py: https://gitlab.com/ase/ase/blob/master/ase/data/vdw.py
 
-.. data:: isotopes
+
+.. _isotopes:
+
+How to extract isotope data from NIST
+-------------------------------------
+
+.. autofunc:: ase.data.isotopes.extract_isotope_data
 
 Relative atomic masses of individual isotopes their abundance (mole
 fraction) are compiled into a dictionary. Individual items can be indexed
 by the atomic number and mass number, e.g. titanium-48:
 
->>> ase.data.isotopes[22][48]['mass']
+>>> from ase.data.isotopes import extract_isotope_data
+>>> isotopes = extract_isotope_data()
+>>> isotopes[22][48]['mass']
 47.94794198
->>> ase.data.isotopes[22][48]['composition']
+>>> isotopes[22][48]['composition']
 0.7372
 
 
