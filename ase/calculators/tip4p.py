@@ -17,6 +17,7 @@
     must be used.
     """
 
+from __future__ import division
 import numpy as np
 
 import ase.units as unit
@@ -34,8 +35,6 @@ epsilon0 = 0.6480 * unit.kJ / unit.mol
 class TIP4P(TIP3P):
     def __init__(self, rc=7.0, width=1.0):
         TIP3P.__init__(self, rc, width)
-        self.LJ = np.zeros((2, 4))
-        self.LJ[:, 0] = [epsilon0, sigma0]
         self.energy = None
         self.forces = None
 
@@ -66,20 +65,20 @@ class TIP4P(TIP3P):
 
         # Get dx,dy,dz from first atom of each mol to same atom of all other
         # and find min. distance. Everything moves according to this analysis.
-        for a in range(nmol-1):
-            D = xpos[(a+1)*4::4] - xpos[a*4]
+        for a in range(nmol - 1):
+            D = xpos[(a + 1) * 4::4] - xpos[a * 4]
             n = np.rint(D / C) * pbc
-            q_v = xcharges[(a+1)*4:]
+            q_v = xcharges[(a + 1) * 4:]
 
             # Min. img. position list as seen for molecule !a!
-            position_list = np.zeros(((nmol-1-a)*4, 3))
+            position_list = np.zeros(((nmol - 1 - a) * 4, 3))
 
             for j in range(4):
-                position_list[j::4] += xpos[(a+1)*4+j::4] - n*C
+                position_list[j::4] += xpos[(a + 1) * 4 + j::4] - n * C
 
             # Make the smooth cutoff:
-            pbcRoo = position_list[::4]-xpos[a*4]
-            pbcDoo = np.sum(np.abs(pbcRoo)**2, axis=-1)**(1./2)
+            pbcRoo = position_list[::4] - xpos[a * 4]
+            pbcDoo = np.sum(np.abs(pbcRoo)**2, axis=-1)**(1 / 2)
             x1 = pbcDoo > self.rc - self.width
             x2 = pbcDoo < self.rc
             x12 = np.logical_and(x1, x2)
@@ -88,7 +87,7 @@ class TIP4P(TIP3P):
             t[x2] = 1.0
             t[x12] -= y**2 * (3.0 - 2.0 * y)
             dtdd = np.zeros(len(pbcDoo))
-            dtdd[x12] -= 6.0 / self.width * y * (1.0 - y) / pbcDoo[x12]
+            dtdd[x12] -= 6.0 / self.width * y * (1.0 - y)
             self.energy_and_forces(a, xpos, position_list, q_v, nmol, t, dtdd)
 
         if self.pcpot:
@@ -102,53 +101,41 @@ class TIP4P(TIP3P):
         self.results['forces'] = f
 
     def energy_and_forces(self, a, xpos, position_list, q_v, nmol, t, dtdd):
-        """ The combination rules for the LJ terms follow Waldman-Hagler:
-            J. Comp. Chem. 14, 1077 (1993)
-        """
-        N = 4
-        LJ = self.LJ
-        cut = np.repeat(t, N)
-        dcut = np.repeat(dtdd, N)
-        # since dcut is dt/dr_OO dcut should be zero for all hydrogens
-        # and the charge site. So therefore:
-        dcut[1::4] = 0.0
-        dcut[2::4] = 0.0
-        dcut[3::4] = 0.0
-        for i in range(N):
-            D = position_list - xpos[a*N+i]
-            d2 = (D**2).sum(axis=1)
-            d = np.sqrt(d2)
-            d_unit = D/d[:, np.newaxis]
+        """ energy and forces on molecule a from all other molecules.
+            cutoff is based on O-O Distance. """
 
-            # Create arrays to hold on to epsilon and sigma
-            epsilon = np.zeros(N)
-            sigma = np.zeros(N)
+        # LJ part - only O-O interactions
+        epsil = np.tile([epsilon0], nmol - 1 - a)
+        sigma = np.tile([sigma0], nmol - 1 - a)
+        DOO = position_list[::4] - xpos[a * 4]
+        d2 = (DOO**2).sum(1)
+        d = np.sqrt(d2)
+        e_lj = 4 * epsil * (sigma**12 / d**12 - sigma**6 / d**6)
+        f_lj = (4 * epsil * (12 * sigma**12 / d**13 -
+                             6 * sigma**6 / d**7) * t -
+                e_lj * dtdd)[:, np.newaxis] * DOO / d[:, np.newaxis]
 
-            for j in range(N):
-                if self.LJ[1, i] * self.LJ[1, j] == 0:
-                    epsilon[j] = 0
-                else:
-                    epsilon[j] = 2 * LJ[1, i]**3 * LJ[1, j]**3 \
-                              * np.sqrt(LJ[0, i] * LJ[0, j]) \
-                              / (LJ[1, i]**6 + LJ[1, j]**6)
+        self.forces[a * 4] -= f_lj.sum(0)
+        self.forces[(a + 1) * 4::4] += f_lj
 
-                sigma[j] = ((LJ[1, i]**6 + LJ[1, j]**6) / 2)**(1./6)
+        # Electrostatics
+        e_elec = 0
+        all_cut = np.repeat(t, 4)
+        for i in range(4):
+            D = position_list - xpos[a * 4 + i]
+            d2_all = (D**2).sum(axis=1)
+            d_all = np.sqrt(d2_all)
+            e = k_c * q_v[i] * q_v / d_all
+            e_elec += np.dot(all_cut, e).sum()
+            e_f = e.reshape(nmol - a - 1, 4).sum(1)
+            F = (e / d_all * all_cut)[:, np.newaxis] * D / d_all[:, np.newaxis]
+            FOO = -(e_f * dtdd)[:, np.newaxis] * DOO / d[:, np.newaxis]
+            self.forces[(a + 1) * 4 + 0::4] += FOO
+            self.forces[a * 4] -= FOO.sum(0)
+            self.forces[(a + 1) * 4:] += F
+            self.forces[a * 4 + i] -= F.sum(0)
 
-            # Create list of same length as position_list
-            epsilon_list = np.tile(epsilon, (nmol-1-a))
-            sigma_list = np.tile(sigma, (nmol-1-a))
-            e_elec = k_c * q_v[i] * q_v / d
-            e_lj = 4 * epsilon_list * (sigma_list**12 / d**12
-                                       - sigma_list**6 / d**6)
-            e = e_elec + e_lj
-            self.energy += (e * cut).sum()
-            f_elec = (e_elec/d * cut - e_elec * dcut)[:, np.newaxis] * d_unit
-            f_lj = (4 * epsilon_list * (12 * sigma_list**12 / d**13
-                                        - 6 * sigma_list**6 / d**7) * cut
-                    - e_lj * dcut)[:, np.newaxis] * d_unit
-            F = f_elec + f_lj
-            self.forces[a*N+i] -= F.sum(axis=0)
-            self.forces[(a+1)*N:] += F
+        self.energy += np.dot(e_lj, t) + e_elec
 
     def add_virtual_sites(self, pos):
         # Order: OHHM,OHHM,...
@@ -156,9 +143,9 @@ class TIP4P(TIP3P):
         b = 0.15
         xatomspos = np.zeros((4 * len(pos) // 3, 3))
         for w in range(0, len(pos), 3):
-            r_i = pos[w]    # O pos
-            r_j = pos[w+1]  # H1 pos
-            r_k = pos[w+2]  # H2 pos
+            r_i = pos[w]  # O pos
+            r_j = pos[w + 1]  # H1 pos
+            r_k = pos[w + 2]  # H2 pos
             n = (r_j + r_k) / 2 - r_i
             n /= np.linalg.norm(n)
             r_d = r_i + b * n
@@ -190,20 +177,20 @@ class TIP4P(TIP3P):
             r_k = pos[w + 2]  # H2 pos
             r_ij = r_j - r_i
             r_jk = r_k - r_j
-            r_d = r_i + b*(r_ij + a * r_jk) / np.linalg.norm(r_ij + a * r_jk)
+            r_d = r_i + b * (r_ij + a * r_jk) / np.linalg.norm(r_ij + a * r_jk)
             r_id = r_d - r_i
             gamma = b / np.linalg.norm(r_ij + a * r_jk)
 
             x = w * 4 // 3
             Fd = f[x + 3]  # force on M
             F1 = (np.dot(r_id, Fd) / np.dot(r_id, r_id)) * r_id
-            Fi = Fd - gamma*(Fd - F1)  # Force from M on O
-            Fj = (1-a)*gamma*(Fd - F1)  # Force from M on H1
-            Fk = a*gamma*(Fd-F1)       # Force from M on H2
+            Fi = Fd - gamma * (Fd - F1)  # Force from M on O
+            Fj = (1 - a) * gamma * (Fd - F1)  # Force from M on H1
+            Fk = a * gamma * (Fd - F1)  # Force from M on H2
 
             f[x] += Fi
-            f[x+1] += Fj
-            f[x+2] += Fk
+            f[x + 1] += Fj
+            f[x + 2] += Fk
 
         # remove virtual sites from force array
         f = np.delete(f, list(range(3, f.shape[0], 4)), axis=0)
