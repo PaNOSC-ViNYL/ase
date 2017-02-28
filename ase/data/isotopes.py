@@ -28,15 +28,19 @@ The relative atomic masses of the isotopes data were published in:
 """
 
 
-def extract_isotope_data():
-    """Isotope data extracted from NIST public website.
+def download_isotope_data():
+    """Download isotope data from NIST public website.
 
-    Relative atomic masses of individual isotopes their abundance (mole
-    fraction) are compiled into a dictionary. Individual items can be indexed::
+    Relative atomic masses of individual isotopes their abundance
+    (mole fraction) are compiled into a dictionary. Individual items can be
+    indexed by the atomic number and mass number, e.g. titanium-48:
 
-        isotopes[atomic_number][mass_number]['mass']
-        isotopes[atomic_number][mass_number]['composition']
-
+    >>> from ase.data.isotopes import extract_isotope_data
+    >>> isotopes = extract_isotope_data()
+    >>> isotopes[22][48]['mass']
+    47.94794198
+    >>> isotopes[22][48]['composition']
+    0.7372
     """
     import requests
 

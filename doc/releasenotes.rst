@@ -12,12 +12,13 @@ Git master branch
 
 * :data:`ase.data.atomic_masses` has been updated to IUPAC values from
   2016. Several elements will now have different weights which will affect
-  dynamic calculations. The old values can be recovered like this::
+  dynamic calculations. The old values can be recovered like this:
 
-      atoms.set_masses(ase.data.atomic_masses_legacy[atoms.numbers])
+  >>> from ase.data import atomic_masses_legacy
+  >>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
 
-* :data:`ase.data.isotopes` contains individual isotope masses compiled by
-  NIST.
+* New :func:`ase.data.isotopes.download_isotope_data` function for getting
+  individual isotope masses from NIST.
 
 * New :func:`ase.eos.calculate_eos` helper function added.
 

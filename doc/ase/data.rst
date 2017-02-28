@@ -59,10 +59,6 @@ Atoms object can be modified as:
 >>> from ase.data import atomic_masses_legacy
 >>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
 
-.. seealso::
-
-    :ref:`isotopes`
-
 The covalent radii are taken from [Cordeo08]_.
 
 The source of the van der Waals radii is given in vdw.py_.
@@ -80,23 +76,10 @@ The source of the van der Waals radii is given in vdw.py_.
 .. _vdw.py: https://gitlab.com/ase/ase/blob/master/ase/data/vdw.py
 
 
-.. _isotopes:
-
 How to extract isotope data from NIST
 -------------------------------------
 
-.. autofunction:: ase.data.isotopes.extract_isotope_data
-
-Relative atomic masses of individual isotopes their abundance (mole
-fraction) are compiled into a dictionary. Individual items can be indexed
-by the atomic number and mass number, e.g. titanium-48:
-
->>> from ase.data.isotopes import extract_isotope_data
->>> isotopes = extract_isotope_data()
->>> isotopes[22][48]['mass']
-47.94794198
->>> isotopes[22][48]['composition']
-0.7372
+.. autofunction:: ase.data.isotopes.download_isotope_data
 
 
 .. _molecular-data:
