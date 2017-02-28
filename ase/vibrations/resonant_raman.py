@@ -156,7 +156,7 @@ class ResonantRaman(Vibrations):
             # XXXX stupid way to make a copy
             self.atoms.get_potential_energy()
             self.eq_calculator = self.atoms.get_calculator()
-            fname = 'eq.gpw'
+            fname = self.exname + '.eq.gpw'
             self.eq_calculator.write(fname, 'all')
             self.eq_calculator = self.eq_calculator.__class__(fname)
         Vibrations.run(self)
