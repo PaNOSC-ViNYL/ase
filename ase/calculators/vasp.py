@@ -1648,8 +1648,8 @@ class Vasp(Calculator):
     def get_property(self, name, atoms=None, allow_calculation=True):
         """Returns the value of a property"""
 
-        if name not in self.implemented_properties:
-            raise NotImplementedError
+        if name not in Vasp.implemented_properties:
+            raise PropertyNotImplementedError
 
         if atoms is None:
             atoms = self.atoms
@@ -1704,7 +1704,7 @@ class Vasp(Calculator):
         dct = {}
         for item in dict_list:
             dct.update(getattr(self,item))
-        for key in dct.keys():
+        for key in list(dct.keys()):
             if dct[key] is None:
                 del(dct[key])
         return dct
