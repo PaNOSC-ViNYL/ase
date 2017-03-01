@@ -61,20 +61,23 @@ class TIP4P(TIP3P):
 
         C = cell.diagonal()
         assert (cell == np.diag(C)).all(), 'not orthorhombic'
-        assert ((C >= 2 * self.rc) | ~pbc).all(), 'cutoff too large'  # ???
+        assert ((C >= 2 * self.rc) | ~pbc).all(), 'cutoff too large'
 
         # Get dx,dy,dz from first atom of each mol to same atom of all other
         # and find min. distance. Everything moves according to this analysis.
         for a in range(nmol - 1):
             D = xpos[(a + 1) * 4::4] - xpos[a * 4]
-            n = np.rint(D / C) * pbc
+            shift = np.zeros_like(D)
+            for i, periodic in enumerate(pbc):
+                if periodic:
+                    shift[:, i] = np.rint(D[:, i] / C[i]) * C[i]
             q_v = xcharges[(a + 1) * 4:]
 
             # Min. img. position list as seen for molecule !a!
             position_list = np.zeros(((nmol - 1 - a) * 4, 3))
 
             for j in range(4):
-                position_list[j::4] += xpos[(a + 1) * 4 + j::4] - n * C
+                position_list[j::4] += xpos[(a + 1) * 4 + j::4] - shift
 
             # Make the smooth cutoff:
             pbcRoo = position_list[::4] - xpos[a * 4]
