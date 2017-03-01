@@ -22,5 +22,5 @@ def main():
         energies.append(cr_atom.get_potential_energy())
     assert abs(energies[0] - energies[1]) < 1e-9
 
-if __name__ == '__main__':
+if 1:
     main()

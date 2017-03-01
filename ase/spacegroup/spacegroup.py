@@ -11,6 +11,7 @@ import os
 import warnings
 
 import numpy as np
+from ase.utils import basestring
 
 __all__ = ['Spacegroup']
 
@@ -19,12 +20,12 @@ class SpacegroupError(Exception):
     """Base exception for the spacegroup module."""
     pass
 
-    
+
 class SpacegroupNotFoundError(SpacegroupError):
     """Raised when given space group cannot be found in data base."""
     pass
 
-    
+
 class SpacegroupValueError(SpacegroupError):
     """Raised when arguments have invalid value."""
     pass
@@ -32,12 +33,12 @@ class SpacegroupValueError(SpacegroupError):
 
 class Spacegroup(object):
     """A space group class.
-    
+
     The instances of Spacegroup describes the symmetry operations for
     the given space group.
 
     Example:
-    
+
     >>> from ase.spacegroup import Spacegroup
     >>>
     >>> sg = Spacegroup(225)
@@ -86,7 +87,7 @@ class Spacegroup(object):
     nsubtrans = property(
         lambda self: len(self._subtrans),
         doc='Number of cell-subtranslation vectors.')
-    
+
     def _get_nsymop(self):
         """Returns total number of symmetry operations."""
         if self.centrosymmetric:
@@ -139,7 +140,7 @@ class Spacegroup(object):
 
     def todict(self):
         return {'number': self.no, 'setting': self.setting}
-    
+
     def __str__(self):
         """Return a string representation of the space group data in
         the same format as found the database."""
@@ -271,6 +272,37 @@ class Spacegroup(object):
         mask = np.any(diff, axis=1)
         return np.vstack((refl[:-1][mask], refl[-1, :]))
 
+    def equivalent_lattice_points(self, uvw):
+        """Return all lattice points equivalent to any of the lattice points
+        in `uvw` with respect to rotations only.
+
+        Only equivalent lattice points that conserves the distance to
+        origo are included in the output (making this a kind of real
+        space version of the equivalent_reflections() method).
+
+        Example:
+
+        >>> from ase.spacegroup import Spacegroup
+        >>> sg = Spacegroup(225)  # fcc
+        >>> sg.equivalent_lattice_points([[0, 0, 2]])
+        array([[ 0,  0, -2],
+               [ 0, -2,  0],
+               [-2,  0,  0],
+               [ 2,  0,  0],
+               [ 0,  2,  0],
+               [ 0,  0,  2]])
+
+        """
+        uvw = np.array(uvw, ndmin=2)
+        rot = self.get_rotations()
+        n, nrot = len(uvw), len(rot)
+        directions = np.dot(uvw, rot).reshape((n * nrot, 3))
+        ind = np.lexsort(directions.T)
+        directions = directions[ind]
+        diff = np.diff(directions, axis=0)
+        mask = np.any(diff, axis=1)
+        return np.vstack((directions[:-1][mask], directions[-1:]))
+
     def symmetry_normalised_reflections(self, hkl):
         """Returns an array of same size as *hkl*, containing the
         corresponding symmetry-equivalent reflections of lowest
@@ -316,7 +348,7 @@ class Spacegroup(object):
         mask = np.concatenate(([True], xmask))
         imask = mask[iperm]
         return hkl[imask]
-            
+
     def equivalent_sites(self, scaled_positions, onduplicates='error',
                          symprec=1e-3):
         """Returns the scaled positions and all their equivalent sites.
@@ -328,7 +360,7 @@ class Spacegroup(object):
         onduplicates : 'keep' | 'replace' | 'warn' | 'error'
             Action if `scaled_positions` contain symmetry-equivalent
             positions:
-            
+
             'keep'
                ignore additional symmetry-equivalent positions
             'replace'
@@ -337,7 +369,7 @@ class Spacegroup(object):
                 like 'keep', but issue an UserWarning
             'error'
                 raises a SpacegroupValueError
-                    
+
         symprec: float
             Minimum "distance" betweed two sites in scaled coordinates
             before they are counted as the same site.
@@ -502,7 +534,7 @@ class Spacegroup(object):
             mask &= ~m
             i += 1
         return tags
-    
+
 
 def get_datafile():
     """Return default path to datafile."""
@@ -569,12 +601,12 @@ def _skip_to_nonblank(f, spacegroup, setting):
 
 def _read_datafile_entry(spg, no, symbol, setting, f):
     """Read space group data from f to spg."""
-    
+
     floats = {'0.0': 0.0, '1.0': 1.0, '0': 0.0, '1': 1.0, '-1': -1.0}
     for n, d in [(1, 2), (1, 3), (2, 3), (1, 4), (3, 4), (1, 6), (5, 6)]:
         floats['{0}/{1}'.format(n, d)] = n / d
         floats['-{0}/{1}'.format(n, d)] = -n / d
-        
+
     spg._no = no
     spg._symbol = symbol.strip()
     spg._setting = setting
@@ -609,7 +641,7 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
 def _read_datafile(spg, spacegroup, setting, f):
     if isinstance(spacegroup, int):
         pass
-    elif isinstance(spacegroup, str):
+    elif isinstance(spacegroup, basestring):
         spacegroup = ' '.join(spacegroup.strip().split())
         compact_spacegroup = ''.join(spacegroup.split())
     else:
@@ -622,13 +654,13 @@ def _read_datafile(spg, spacegroup, setting, f):
         _setting = int(line2.strip().split()[1])
         _no = int(_no)
         if ((isinstance(spacegroup, int) and _no == spacegroup) or
-            (isinstance(spacegroup, str) and
+            (isinstance(spacegroup, basestring) and
              compact_symbol == compact_spacegroup)) and _setting == setting:
             _read_datafile_entry(spg, _no, _symbol, _setting, f)
             break
         else:
             _skip_to_blank(f, spacegroup, setting)
-                
+
 
 def parse_sitesym(symlist, sep=','):
     """Parses a sequence of site symmetries in the form used by
@@ -692,7 +724,7 @@ def parse_sitesym(symlist, sep=','):
                         'Error parsing %r. Invalid site symmetry: %s' %
                         (s, sym))
     return rot, trans
-                
+
 
 def spacegroup_from_data(no=None, symbol=None, setting=1,
                          centrosymmetric=None, scaled_primitive_cell=None,

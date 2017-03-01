@@ -15,6 +15,7 @@ from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
+from ase.utils import basestring
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -153,16 +154,14 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     using *offset* instead.
 
     """
-    info = slab.adsorbate_info
-    if 'cell' not in info:
-        info['cell'] = slab.get_cell()[:2, :2]
+    info = slab.info.get('adsorbate_info', {})
 
     pos = np.array([0.0, 0.0])  # (x, y) part
     spos = np.array([0.0, 0.0])  # part relative to unit cell
     if offset is not None:
         spos += np.asarray(offset, float)
 
-    if isinstance(position, str):
+    if isinstance(position, basestring):
         # A site-name:
         if 'sites' not in info:
             raise TypeError('If the atoms are not made by an ' +
@@ -174,7 +173,12 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     else:
         pos += position
 
-    pos += np.dot(spos, info['cell'])
+    if 'cell' in info:
+        cell = info['cell']
+    else:
+        cell = slab.get_cell()[:2, :2]
+
+    pos += np.dot(spos, cell)
 
     # Convert the adsorbate to an Atoms object
     if isinstance(adsorbate, Atoms):
@@ -186,11 +190,13 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
         ads = Atoms([Atom(adsorbate)])
 
     # Get the z-coordinate:
-    try:
+    if 'top layer atom index' in info:
         a = info['top layer atom index']
-    except KeyError:
+    else:
         a = slab.positions[:, 2].argmax()
-        info['top layer atom index'] = a
+        if 'adsorbate_info' not in slab.info:
+            slab.info['adsorbate_info'] = {}
+        slab.info['adsorbate_info']['top layer atom index'] = a
     z = slab.positions[a, 2] + height
 
     # Move adsorbate into position
@@ -359,12 +365,16 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     slab.set_positions(positions.reshape((-1, 3)))
 
     slab.set_cell([a * v * n for v, n in zip(cell, size)], scale_atoms=True)
+    slab.cell[2] = 0.0
 
     if vacuum is not None:
-        slab.center(vacuum=vacuum, axis=2)
+        slab.center(vacuum, axis=2)
 
-    slab.adsorbate_info['cell'] = surface_cell
-    slab.adsorbate_info['sites'] = sites
+    if 'adsorbate_info' not in slab.info:
+        slab.info.update({'adsorbate_info': {}})
+
+    slab.info['adsorbate_info']['cell'] = surface_cell
+    slab.info['adsorbate_info']['sites'] = sites
 
     return slab
 
@@ -401,7 +411,12 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
         dz = atoms[0].z
         atoms.translate((0., 0., -dz))
         atoms.cell[2][2] -= dz
-    atoms.center(vacuum=vacuum, axis=2)
+
+    atoms.cell[2] = 0.0
+    atoms.pbc[1] = False
+    if vacuum:
+        atoms.center(vacuum, axis=2)
+
     # Renumber systematically from top down.
     orders = [(atom.index, round(atom.x, 3), round(atom.y, 3),
                -round(atom.z, 3), atom.index) for atom in atoms]
@@ -413,7 +428,7 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
 
 
 def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
-        size=(1, 1, 1), vacuum=7.5):
+        size=(1, 1, 1), vacuum=None):
     """Create three-layer 2D materials with hexagonal structure.
 
     For metal dichalcogenites, etc.
@@ -430,12 +445,14 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
                  (2 / 3, 1 / 3, 0.5 * thickness),
                  (1 / 3, 2 / 3, -0.5 * thickness)]
     else:
-        raise ValueError('Structure not recognized')
+        raise ValueError('Structure not recognized:', kind)
 
-    cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 1]]
+    cell = [[a, 0, 0], [-a / 2, a * 3**0.5 / 2, 0], [0, 0, 0]]
 
-    atoms = Atoms(formula, cell=cell, scaled_positions=basis, pbc=(1, 1, 0))
+    atoms = Atoms(formula, cell=cell, pbc=(1, 1, 0))
+    atoms.set_scaled_positions(basis)
+    if vacuum is not None:
+        atoms.center(vacuum, axis=2)
     atoms = atoms.repeat(size)
-    atoms.center(vacuum=vacuum, axis=2)
 
     return atoms

@@ -1,15 +1,10 @@
-import sys
-
-from ase.test import NotAvailable, must_raise
-
-if sys.platform in ['win32']:
-    raise NotAvailable('Fails on Windows '
-                       'https://trac.fysik.dtu.dk/projects/ase/ticket/62')
+from ase.test import must_raise
 
 import os
 from ase import Atom, Atoms
 from ase.io import Trajectory, read
 from ase.constraints import FixBondLength
+from ase.calculators.calculator import PropertyNotImplementedError
 
 co = Atoms([Atom('C', (0, 0, 0)),
             Atom('O', (0, 0, 1.2))])
@@ -53,6 +48,7 @@ fname = '2.traj'
 if os.path.isfile(fname):
     os.remove(fname)
 t = Trajectory(fname, 'a', co)
+t.close()
 os.remove(fname)
 
 t = Trajectory('empty.traj', 'w')
@@ -69,7 +65,7 @@ t.write(a)
 b = read('only-energy.traj')
 e = b.get_potential_energy()
 assert e + 42 == 0
-with must_raise(NotImplementedError):
+with must_raise(PropertyNotImplementedError):
     f = b.get_forces()
 
 # Make sure constraints play well with momenta:

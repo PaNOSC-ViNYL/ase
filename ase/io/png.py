@@ -36,7 +36,7 @@ class PNG(EPS):
                 x = renderer.buffer_rgba()
                 try:
                     _png.write_png(x, self.w, self.h, self.filename, 72)
-                except TypeError:
+                except (TypeError, ValueError):
                     x = np.frombuffer(x, np.uint8).reshape(
                         (int(self.h), int(self.w), 4))
                     _png.write_png(x, self.filename, 72)

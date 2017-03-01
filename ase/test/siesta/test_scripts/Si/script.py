@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ase import Atoms
 from ase.calculators.siesta import Siesta
 from ase.units import Ry
@@ -16,9 +17,12 @@ calc = Siesta(label='Si',
               mesh_cutoff=200 * Ry,
               energy_shift=0.01 * Ry,
               basis_set='DZ',
-              kpts=[10, 10, 10],
+              kpts=[1, 2, 3],
               fdf_arguments={'DM.MixingWeight': 0.10,
-                             'MaxSCFIterations': 100},
+                             'MaxSCFIterations': 10,
+                             'DM.Tolerance': 0.1,
+                             },
               )
 bulk.set_calculator(calc)
 e = bulk.get_potential_energy()
+print(e)

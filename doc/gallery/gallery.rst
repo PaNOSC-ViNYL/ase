@@ -40,6 +40,16 @@ Brillouin zones
 :download:`bz.py <../ase/dft/bz.py>`
 
 
+Band-structure
+==============
+
+.. image:: ../ase/dft/cu.png
+   :width: 10cm
+
+:mod:`ase.dft.kpoints`
+:download:`bs.py <../ase/dft/bs.py>`
+
+
 Nudged elastic band calculations
 ================================
 
@@ -48,3 +58,14 @@ Nudged elastic band calculations
 
 :mod:`ase.neb`
 :download:`barrier.py <../tutorials/neb/diffusion5.py>`
+
+
+Nanoparticle
+============
+
+.. image:: ../ase/cluster/culayer.png
+   :width: 10cm
+
+:mod:`ase.cluster`
+:download:`cluster.py <../ase/cluster/cluster.py>`
+

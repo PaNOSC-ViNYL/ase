@@ -10,6 +10,74 @@ Git master branch
 
 :git:`master <>`.
 
+* :data:`ase.data.atomic_masses` has been updated to IUPAC values from
+  2016. Several elements will now have different weights which will affect
+  dynamic calculations. The old values can be recovered like this:
+
+  >>> from ase.data import atomic_masses_legacy
+  >>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
+
+* New :func:`ase.data.isotopes.download_isotope_data` function for getting
+  individual isotope masses from NIST.
+
+* New :func:`ase.eos.calculate_eos` helper function added.
+
+* Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
+
+
+Version 3.13.0
+==============
+
+7 February 2017: :git:`3.13.0 <../3.13.0>`.
+
+* The default unit-cell when you create an :class:`~ase.Atoms` object has
+  been changed from ``[[1,0,0],[0,1,0],[0,0,1]]`` to
+  ``[[0,0,0],[0,0,0],[0,0,0]]``.
+
+* New :attr:`ase.Atoms.number_of_lattice_vectors` attribute equal to,
+  big surprise, the number of non-zero lattice vectors.
+
+* The :meth:`ase.Atoms.get_cell` method has a new keyword argument
+  ``complete``.  Use ``atoms.get_cell(complete=True)`` to get a complete
+  unit cell with missing lattice vectors added at right angles to the
+  existing ones.  There is also a function :func:`ase.geometry.complete_cell`
+  that will complete a unit cell.
+
+* :func:`~ase.build.graphene_nanoribbon` no longer adds 2.5 Å of vacuum by
+  default.
+
+* All functions that create molecules, chains or surfaces
+  (see the :mod:`ase.build` module) will no longer add "dummy" lattice
+  vectors along the non-periodic directions.  As an example, the surface
+  functions will generate unit cells of the type
+  ``[[a1,a2,0],[b1,b2,0],[0,0,0]]``.  In order to define all three lattice
+  vectors, use the ``vacuum`` keyword that all
+  of the 0-d, 1-d and 2-d functions have or, equivalently, call the
+  :meth:`~ase.Atoms.center` method.
+
+* Many of the :ref:`surface generating functions <surfaces>` have changed
+  their behavior when called with ``vacuum=None`` (the default).  Before, a
+  vacuum layer equal to the interlayer spacing would be added on the upper
+  surface of the slab. Now, the third axis perpendicular to the surface will be
+  undefined (``[0, 0, 0]``).  Use ``vacuum=<half-the-interlater-distance>`` to
+  get something similar to the old behavior.
+
+* New :func:`ase.geometry.is_orthorhombic` and
+  :func:`ase.geometry.orthorhombic` functions added.
+
+* :mod:`ase.gui` now works on Python 3.
+
+* NEB-tools class has been renamed to :class:`~ase.neb.NEBTools`.
+
+* :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
+  possible (instead of energies extrapolated to 0.0 K).
+
+
+Version 3.12.0
+==============
+
+24 October 2016: :git:`3.12.0 <../3.12.0>`.
+
 * New :class:`ase.constraints.ExternalForce` constraint.
 
 * Updated :mod:`ase.units` definition to CODATA 2014. Additionally, support
@@ -22,10 +90,10 @@ Git master branch
 
 * Two new flawors of :class:`~ase.neb.NEB` calculations have been added:
   ``method='eb'`` and ``method='improvedtangent'``.
-  
+
 * :func:`ase.io.write` can now write XSD files.
 
-* Interface for deMon added.
+* Interfaces for deMon, Amber and ONETEP added.
 
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
@@ -33,7 +101,43 @@ Git master branch
   :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
 
-  
+* New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify
+  special points and create nice plots.
+
+* Calculators that inherit from :class:`ase.calculators.calculator.Calculator`
+  will now have a :meth:`~ase.calculators.calculator.Calculator.band_structure`
+  method that creates a :class:`~ase.dft.band_structure.BandStructure` object.
+
+* Addition to :mod:`~ase.geometry` module:
+  :func:`~ase.geometry.crystal_structure_from_cell`.
+
+* New functions in :mod:`ase.dft.kpoints` module:
+  :func:`~ase.dft.kpoints.parse_path_string`,
+  :func:`~ase.dft.kpoints.labels_from_kpts` and
+  :func:`~ase.dft.kpoints.bandpath`.
+
+* Helper function for generation of Monkhorst-Pack samplings and BZ-paths:
+  :func:`ase.calculators.calculator.kpts2ndarray`.
+
+* Useful class for testing band-structure stuff:
+  :class:`ase.calculators.test.FreeElectrons`.
+
+* The ``cell`` attribute of an :class:`~ase.Atoms` object and the ``cell``
+  keyword for the :class:`~ase.Atoms` constructor and the
+  :meth:`~ase.Atoms.set_cell` method now accepts unit cells given ase
+  ``[a, b, c, alpha, beta, gamma]``, where the three angles are in degrees.
+  There is also a corresponding :meth:`~ase.Atoms.get_cell_lengths_and_angles`
+  method.
+
+* Galician translation of ASE's GUI.
+
+* Two new preconditioned structure optimizers available.  See
+  :mod:`ase.optimize.precon`.
+
+* Trajectory files now contain information about the calculator and also
+  information from an optimizer that wrote the trajectory.
+
+
 Version 3.11.0
 ==============
 
@@ -50,7 +154,7 @@ Version 3.11.0
   * ``ase.utils.eos`` moved to :mod:`ase.eos`
   * ``ase.calculators.neighborlist`` moved to :mod:`ase.neighborlist`
   * ``ase.lattice.spacegroup`` moved to :mod:`ase.spacegroup`
- 
+
 * The ``InfraRed`` that used to be in the ``ase.infrared`` or
   ``ase.vibrations.infrared`` modules is now called
   :class:`~ase.vibrations.Infrared` and should be imported from the
@@ -71,7 +175,7 @@ Version 3.11.0
 
 * :class:`~ase.neb.NEB` improvement:  calculations for molecules can now be
   told to minimize ratation and translation along the path.
-    
+
 
 Version 3.10.0
 ==============
@@ -106,7 +210,7 @@ Version 3.10.0
 
 * New :func:`ase.geometry.get_duplicate_atoms` function for finding and
   removing atoms on top of each other.
-  
+
 * New: A replacement :mod:`Siesta <ase.calculators.siesta>` calculator was
   implemented. It closely follows the
   :class:`ase.calculators.calculator.FileIOCalculator` class which should
@@ -121,7 +225,7 @@ Version 3.9.1
 
 * Added function for finding maximally-reduced Niggli unit cell:
   :func:`ase.build.niggli_reduce`.
-  
+
 * Octopus interface added (experimental).
 
 
@@ -143,21 +247,21 @@ Version 3.9.0
 
 * New functions: :func:`ase.build.fcc211` and
   :func:`ase.visualize.mlab.plot`.
-  
-* New :class:`~ase.atoms.Atoms` methods:
-  :meth:`ase.atoms.Atoms.get_distances()` and
-  :meth:`ase.atoms.Atoms.get_all_distances()`.
+
+* New :class:`~ase.Atoms` methods:
+  :meth:`ase.Atoms.get_distances()` and
+  :meth:`ase.Atoms.get_all_distances()`.
 
 * :ref:`bash completion` can now be enabled.
 
 * Preliminary support for Python 3.
 
-* Wrapping: new :meth:`ase.atoms.Atoms.wrap` method and
+* Wrapping: new :meth:`ase.Atoms.wrap` method and
   :func:`ase.geometry.wrap_positions` function.  Also
   added ``wrap=True`` keyword argument to
-  :meth:`ase.atoms.Atoms.get_scaled_positions` that can be used to turn
+  :meth:`ase.Atoms.get_scaled_positions` that can be used to turn
   off wrapping.
-  
+
 * New improved method for initializing NEB calculations:
   :meth:`ase.neb.NEB.interpolate`.
 
@@ -179,7 +283,7 @@ Version 3.8.0
 
 22 October 2013: :git:`3.8.0 <../3.8.0>`.
 
-* ASE's :mod:`gui <gui>` renamed from ``ag`` to ``ase-gui``.
+* ASE's :mod:`gui <ase.gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
 * The old :func:`ase.build.bulk` function is now deprecated.
@@ -205,9 +309,9 @@ Version 3.7.0
 
 * Mopac, NWChem and Gaussian interfaces and EAM potential added.
 
-* New :meth:`~ase.atoms.Atoms.set_initial_charges` and
-  :meth:`~ase.atoms.Atoms.get_initial_charges` methods.  The
-  :meth:`~ase.atoms.Atoms.get_charges` method will now ask the
+* New :meth:`~ase.Atoms.set_initial_charges` and
+  :meth:`~ase.Atoms.get_initial_charges` methods.  The
+  :meth:`~ase.Atoms.get_charges` method will now ask the
   calculator to calculate the atomic charges.
 
 * The :ref:`aep1` has been implemented and 6 ASE calculators are now
@@ -247,7 +351,7 @@ Version 3.6.0
 
 * Cleaned up some name-spaces:
 
-  * ``ase`` now contains only :class:`~ase.atoms.Atoms` and
+  * ``ase`` now contains only :class:`~ase.Atoms` and
     :class:`~ase.atom.Atom`
   * ``ase.calculators`` is now empty
 
@@ -290,7 +394,7 @@ Version 3.5.0
   * Enabled user default settings via :file:`~/.ase/gui.py`.
 
 * :mod:`Database library <data>` expanded to include:
-  
+
   * The s22, s26 and s22x5 sets of van der Waals bonded dimers and
     complexes by the Hobza group.
   * The DBH24 set of gas-phase reaction barrier heights by the Truhlar

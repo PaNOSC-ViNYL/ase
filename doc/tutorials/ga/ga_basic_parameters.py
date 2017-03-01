@@ -83,7 +83,7 @@ comp = InteratomicDistanceComparator(n_top=n_to_optimize,
                                      dE=0.02,
                                      mic=False)
 pairing = CutAndSplicePairing(slab, n_to_optimize, blmin)
-mutations = OperationSelector([1., 1., 0.],
+mutations = OperationSelector([1., 1., 1.],
                               [MirrorMutation(blmin, n_to_optimize),
                                RattleMutation(blmin, n_to_optimize),
                                PermutationMutation(n_to_optimize)])

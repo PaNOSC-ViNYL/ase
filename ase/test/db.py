@@ -1,10 +1,5 @@
-import sys
-from ase.test import cli, NotAvailable
+from ase.test import cli
 from ase.db import connect
-
-if sys.platform == 'win32':
-    raise NotAvailable('Fails on Windows!')
-
 
 cmd = """
 ase-build H | ase-run emt -d y.json &&
@@ -21,7 +16,8 @@ ase-db y.json -v "H>0" --delete-keys foo"""
 def count(n, *args, **kwargs):
     m = len(list(con.select(*args, **kwargs)))
     assert m == n, (m, n)
-    
+
+
 for name in ['y.json', 'y.db']:
     cli(cmd.replace('y.json', name))
     con = connect(name)

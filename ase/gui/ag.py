@@ -1,11 +1,10 @@
-from __future__ import print_function
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import sys
 from optparse import OptionParser
 
-from ase.gui.i18n import enable_localization
+from ase.gui.i18n import _
 
 
 # Grrr, older versions (pre-python2.7) of optparse have a bug
@@ -49,10 +48,6 @@ def build_parser():
                       action='store_true',
                       default=False,
                       help='Run in terminal window - no GUI.')
-    parser.add_option('--aneb',
-                      action='store_true',
-                      default=False,
-                      help='Read ANEB data.')
     parser.add_option('--interpolate',
                       type='int', metavar='N',
                       help='Interpolate N images between 2 given images.')
@@ -68,20 +63,15 @@ def build_parser():
     return parser
 
 
-def main():
-    enable_localization()
-    from gettext import gettext as _
+def main(args=None):
     parser = build_parser()
-    opt, args = parser.parse_args()
+    opt, args = parser.parse_args(args)
 
     from ase.gui.images import Images
     from ase.atoms import Atoms
 
     def run(opt, args):
         images = Images()
-
-        if opt.aneb:
-            opt.image_number = '-1'
 
         if len(args) > 0:
             from ase.io import string2index
@@ -91,9 +81,6 @@ def main():
 
         if opt.interpolate:
             images.interpolate(opt.interpolate)
-
-        if opt.aneb:
-            images.aneb()
 
         if opt.repeat != '1':
             r = opt.repeat.split(',')
@@ -118,8 +105,6 @@ def main():
                     print()
         else:
             from ase.gui.gui import GUI
-            import ase.gui.gtkexcepthook
-            ase
             gui = GUI(images, opt.rotations, opt.show_unit_cell, opt.bonds)
             gui.run(opt.graph)
 
