@@ -1206,8 +1206,9 @@ class Atoms(object):
         if not isinstance(a, (float, int)):
             # old API maybe?
             if isinstance(v, (float, int)):
-                if OLD_ANGLE_API_WARNING:
-                    warnings.warn('Please use new API')
+                warnings.warn(
+                    'Please use new API: '
+                    'atoms_obj.rotate(...)')
                 a, v = v * 180 / pi, a
             elif v is None:
                 if OLD_ANGLE_API_WARNING:
