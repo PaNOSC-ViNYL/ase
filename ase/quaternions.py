@@ -3,6 +3,7 @@ from ase.atoms import Atoms
 
 
 class Quaternions(Atoms):
+
     def __init__(self, *args, **kwargs):
         quaternions = None
         if 'quaternions' in kwargs:
@@ -26,8 +27,9 @@ class Quaternions(Atoms):
     def get_quaternions(self):
         return self.get_array('quaternions').copy()
 
-        
+
 class Quaternion:
+
     def __init__(self, qin=[1, 0, 0, 0]):
         assert(len(qin) == 4)
         self.q = np.array(qin)
@@ -50,7 +52,7 @@ class Quaternion:
         """Apply the rotation matrix to a vector."""
         qw, qx, qy, qz = self.q[0], self.q[1], self.q[2], self.q[3]
         x, y, z = vector[0], vector[1], vector[2]
-        
+
         ww = qw * qw
         xx = qx * qx
         yy = qy * qy
@@ -61,7 +63,7 @@ class Quaternion:
         xy = qx * qy
         xz = qx * qz
         yz = qy * qz
-        
+
         return np.array(
             [(ww + xx - yy - zz) * x + 2 * ((xy - wz) * y + (xz + wy) * z),
              (ww - xx + yy - zz) * y + 2 * ((xy + wz) * x + (yz - wx) * z),
@@ -70,7 +72,7 @@ class Quaternion:
     def rotation_matrix(self):
 
         qw, qx, qy, qz = self.q[0], self.q[1], self.q[2], self.q[3]
-        
+
         ww = qw * qw
         xx = qx * qx
         yy = qy * qy
@@ -97,7 +99,7 @@ class Quaternion:
         """Apply the rotation matrix to a vector."""
         qw, qx, qy, qz = q[0], q[1], q[2], q[3]
         x, y, z = vector[0], vector[1], vector[2]
-        
+
         ww = qw * qw
         xx = qx * qx
         yy = qy * qy
@@ -108,12 +110,12 @@ class Quaternion:
         xy = qx * qy
         xz = qx * qz
         yz = qy * qz
-        
+
         return np.array(
             [(ww + xx - yy - zz) * x + 2 * ((xy - wz) * y + (xz + wy) * z),
              (ww - xx + yy - zz) * y + 2 * ((xy + wz) * x + (yz - wx) * z),
              (ww - xx - yy + zz) * z + 2 * ((xz - wy) * x + (yz + wx) * y)])
-    
+
     @staticmethod
     def from_matrix(matrix):
         """Build quaternion from rotation matrix."""
@@ -165,3 +167,20 @@ class Quaternion:
         n = np.array(n).astype(np.float)/np.linalg.norm(n)
         return Quaternion(np.concatenate([[np.cos(theta/2.0)],
                                           np.sin(theta/2.0)*n]))
+
+    @staticmethod
+    def from_euler_angles(a, b, c, mode='zyz'):
+        """Build quaternion from Euler angles, given in radians. Default
+        mode is ZYZ, but it can be set to ZXZ as well."""
+
+        q_a = Quaternion.from_axis_angle([0, 0, 1], a)
+        q_c = Quaternion.from_axis_angle([0, 0, 1], c)
+
+        if mode == 'zyz':
+            q_b = Quaternion.from_axis_angle([0, 1, 0], b)
+        elif mode == 'zxz':
+            q_b = Quaternion.from_axis_angle([1, 0, 0], b)
+        else:
+            raise ValueError('Invalid Euler angles mode {0}'.format(mode))
+
+        return q_a*q_b*q_c
