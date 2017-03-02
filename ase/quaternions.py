@@ -138,7 +138,7 @@ class Quaternion:
         else:
             raise ValueError('Invalid Euler angles mode {0}'.format(mode))
 
-        return a, b, c
+        return np.array([a, b, c])
 
     def arc_distance(self, other):
         """Gives a metric of the distance between two quaternions,
@@ -235,4 +235,4 @@ class Quaternion:
         else:
             raise ValueError('Invalid Euler angles mode {0}'.format(mode))
 
-        return q_a*q_b*q_c
+        return q_c*q_b*q_a
