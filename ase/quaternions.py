@@ -36,8 +36,8 @@ class Quaternion:
         return self.q.__str__()
 
     def __mul__(self, other):
-        sw, sx, sy, sz = self.q[0], self.q[1], self.q[2], self.q[3]
-        ow, ox, oy, oz = other.q[0], other.q[1], other.q[2], other.q[3]
+        sw, sx, sy, sz = self.q
+        ow, ox, oy, oz = other.q
         return Quaternion([sw * ow - sx * ox - sy * oy - sz * oz,
                            sw * ox + sx * ow + sy * oz - sz * oy,
                            sw * oy + sy * ow + sz * ox - sx * oz,
