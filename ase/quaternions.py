@@ -99,6 +99,47 @@ class Quaternion:
 
         return n, theta
 
+    def euler_angles(self, mode='zyz'):
+        """Return three Euler angles describing the rotation, in radianses.
+        Mode can be zyz or zxz. Default is zyz."""
+
+        if mode == 'zyz':
+            apc = np.arctan2(self.q[3], self.q[0])*2
+            amc = np.arctan2(-self.q[1], self.q[2])*2
+
+            a, c = (apc+amc)/2, (apc-amc)/2
+            cos_amc2 = np.cos(amc/2)
+            if cos_amc2 != 0:
+                sinb2 = self.q[2]/cos_amc2
+            else:
+                sinb2 = -self.q[1]/np.sin(amc/2)
+            cos_apc2 = np.cos(apc/2)
+            if cos_apc2 != 0:
+                cosb2 = self.q[0]/cos_apc2
+            else:
+                cosb2 = self.q[3]/np.sin(apc/2)
+            b = np.arctan2(sinb2, cosb2)*2
+        elif mode == 'zxz':
+            apc = np.arctan2(self.q[3], self.q[0])*2
+            amc = np.arctan2(self.q[2], self.q[1])*2
+
+            a, c = (apc+amc)/2, (apc-amc)/2
+            cos_amc2 = np.cos(amc/2)
+            if cos_amc2 != 0:
+                sinb2 = self.q[1]/cos_amc2
+            else:
+                sinb2 = self.q[2]/np.sin(amc/2)
+            cos_apc2 = np.cos(apc/2)
+            if cos_apc2 != 0:
+                cosb2 = self.q[0]/cos_apc2
+            else:
+                cosb2 = self.q[3]/np.sin(apc/2)
+            b = np.arctan2(sinb2, cosb2)*2
+        else:
+            raise ValueError('Invalid Euler angles mode {0}'.format(mode))
+
+        return a, b, c
+
     def arc_distance(self, other):
         """Gives a metric of the distance between two quaternions,
         expressed as 1-|q1.q2|"""
