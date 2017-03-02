@@ -156,3 +156,12 @@ class Quaternion:
                 qz = (m[1, 0] - m[0, 1]) * fac
 
         return Quaternion(np.array([qw, qx, qy, qz]))
+
+    @staticmethod
+    def from_axis_angle(n, theta):
+        """Build quaternion from axis (n, vector of 3 components) and angle
+        (theta, in radianses)."""
+
+        n = np.array(n).astype(np.float)/np.linalg.norm(n)
+        return Quaternion(np.concatenate([[np.cos(theta/2.0)],
+                                          np.sin(theta/2.0)*n]))
