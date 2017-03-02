@@ -186,18 +186,6 @@ class Parameters(dict):
     def __setattr__(self, key, value):
         self[key] = value
 
-    def update(self, other=None, **kwargs):
-        if isinstance(other, dict):
-            self.update(other.items())
-        else:
-            for key, value in other:
-                if isinstance(value, dict) and isinstance(self[key], dict):
-                    self[key].update(value)
-                else:
-                    self[key] = value
-        if kwargs:
-            self.update(kwargs)
-
     @classmethod
     def read(cls, filename):
         """Read parameters from file."""
