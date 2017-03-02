@@ -88,6 +88,17 @@ class Quaternion:
                          [2 * (xy - wz), ww - xx + yy - zz, 2 * (yz + wx)],
                          [2 * (xz + wy), 2 * (yz - wx), ww - xx - yy + zz]])
 
+    def axis_angle(self):
+        """Returns axis and angle (in radianses) for the rotation described
+        by this Quaternion"""
+
+        sinth_2 = np.linalg.norm(self.q[1:])
+        theta = np.arctan2(sinth_2, self.q[0])*2
+
+        n = self.q[1:]/sinth_2
+
+        return n, theta
+
     def arc_distance(self, other):
         """Gives a metric of the distance between two quaternions,
         expressed as 1-|q1.q2|"""
