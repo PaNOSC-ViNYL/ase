@@ -150,7 +150,7 @@ def convert_str_to_int_float_or_str(value):
         try:
             value = float(value)
         except ValueError:
-            value = {'True': 1.0, 'False': 0.0}.get(value, value)
+            value = {'True': True, 'False': False}.get(value, value)
         return value
 
 
