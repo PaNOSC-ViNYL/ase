@@ -5,13 +5,13 @@ import numpy as np
 
 import ase.units as units
 from ase import Atoms
-from ase.calculators.tip4p import TIP4P, epsilon0, sigma0, rOH, thetaHOH
+from ase.calculators.tip4p import TIP4P, epsilon0, sigma0, rOH, angleHOH
 from ase.calculators.qmmm import SimpleQMMM, LJInteractions, EIQMMM
 from ase.constraints import FixBondLengths
 from ase.optimize import BFGS
 
 r = rOH
-a = thetaHOH
+a = angleHOH * np.pi / 180
 
 # From http://dx.doi.org/10.1063/1.445869
 eexp = 6.24 * units.kcal / units.mol
