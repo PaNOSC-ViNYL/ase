@@ -48,6 +48,9 @@ class Namelist(OrderedDict):
     def __setitem__(self, key, value):
         super(Namelist, self).__setitem__(key.lower(), value)
 
+    def get(self, key, default=None):
+        return super(Namelist, self).get(key.lower(), default)
+
 
 def read_espresso_out(fileobj, index=-1):
     """Reads Quantum ESPRESSO output files.
@@ -80,8 +83,7 @@ def read_espresso_out(fileobj, index=-1):
     # work with a copy in memory for faster random access
     pwo_lines = fileobj.readlines()
 
-    # TODO: index -1 special case
-    # TODO: final coordinates
+    # TODO: index -1 special case?
     # Index all the interesting points
     indexes = {
         _PW_START: [],
@@ -145,17 +147,18 @@ def read_espresso_out(fileobj, index=-1):
         else:
             if _PW_CELL in pwo_lines[image_index - 5]:
                 # CELL_PARAMETERS would be just before positions if present
-                cell = get_cell_parameters(
+                cell, cell_alat = get_cell_parameters(
                     pwo_lines[image_index - 5:image_index])
             else:
                 cell = prev_structure.cell
+                cell_alat = pwscf_start_info[prev_start_index]['alat']
 
             # give at least enough lines to parse the positions
             # should be same format as input card
             n_atoms = len(prev_structure)
             positions_card = get_atomic_positions(
                 pwo_lines[image_index:image_index + n_atoms + 1],
-                n_atoms=n_atoms, cell=cell)
+                n_atoms=n_atoms, cell=cell, alat=cell_alat)
 
             # convert to Atoms object
             symbols = [label_to_symbol(position[0]) for position in
@@ -257,6 +260,7 @@ def parse_pwo_start(lines, index=0):
         if 'celldm(1)' in line:
             # celldm(1) has more digits than alat!!
             info['celldm(1)'] = float(line.split()[1]) * units['Bohr']
+            info['alat'] = info['celldm(1)']
         elif 'number of atoms/cell' in line:
             info['nat'] = int(line.split()[-1])
         elif 'number of atomic types' in line:
@@ -304,6 +308,10 @@ def read_espresso_in(fileobj):
     atoms : Atoms
         Structure defined in the input file.
 
+    Raises
+    ------
+    KeyError
+        Raised for missing keys that are required to process the file
     """
     # TODO: use ase opening mechanisms
     if isinstance(fileobj, basestring):
@@ -312,9 +320,12 @@ def read_espresso_in(fileobj):
     # parse namelist section and extract remaining lines
     data, card_lines = read_fortran_namelist(fileobj)
 
-    # TODO: implemet other ibrav settings
     # get the cell if ibrav=0
-    if data['system']['ibrav'] == 0:
+    if 'system' not in data:
+        raise KeyError('Required section &SYSTEM not found.')
+    elif 'ibrav' not in data['system']:
+        raise KeyError('ibrav is required in &SYSTEM')
+    elif data['system']['ibrav'] == 0:
         # celldm(1) is in Bohr, A is in angstrom. celldm(1) will be
         # used even if A is also specified.
         if 'celldm(1)' in data['system']:
@@ -323,41 +334,9 @@ def read_espresso_in(fileobj):
             alat = data['system']['A']
         else:
             alat = None
-        cell = get_cell_parameters(card_lines, alat=alat)
-    elif 'celldm(1)' in data['system'] and 'a' in data['system']:
-        raise KeyError('do not specify both celldm and a,b,c!')
-    elif 'celldm(1)' in data['system']:
-        if data['system']['ibrav'] == 1:
-            alat = data['system']['celldm(1)'] * units['Bohr']
-            cell = np.identity(3) * alat
-        elif data['system']['ibrav'] == 2:
-            alat = data['system']['celldm(1)'] * units['Bohr']
-            cell = np.array([[-1.0, 0.0, 1.0],
-                             [0.0, 1.0, 1.0],
-                             [-1.0, 1.0, 0.0]]) * alat / 2
-        elif data['system']['ibrav'] == 3:
-            alat = data['system']['celldm(1)'] * units['Bohr']
-            cell = np.array([[1.0, 1.0, 1.0],
-                             [-1.0, 1.0, 1.0],
-                             [-1.0, -1.0, 1.0]]) * alat / 2
-        elif data['system']['ibrav'] == 3:
-            alat = data['system']['celldm(1)'] * units['Bohr']
-            c_over_a = data['system']['celldm(3)'] * units['Bohr']
-            cell = np.array([[1.0, 0.0, 0.0],
-                             [-0.5, 0.5*3**0.5, 0.0],
-                             [0.0, 0.0, 0.0]]) * alat / 2
-            cell[2][2] = c_over_a
-
-    elif 'a' in data['system']:
-        pass
+        cell, cell_alat = get_cell_parameters(card_lines, alat=alat)
     else:
-        # celldm(x) in bohr
-        # a, b, c, cosAB, cosAC, cosBC in Angstrom
-        #
-        #      redundant data for cell parameters
-
-        raise NotImplementedError('ibrav = {0} is not implemented'
-                                  ''.format(data['system']['ibrav']))
+        alat, cell = ibrav_to_cell(data['system'])
 
     positions_card = get_atomic_positions(
         card_lines, n_atoms=data['system']['nat'], cell=cell, alat=alat)
@@ -370,6 +349,147 @@ def read_espresso_in(fileobj):
     atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=True)
 
     return atoms
+
+
+def ibrav_to_cell(system):
+    """
+    Convert a value of ibrav to a cell. Any unspecified lattice dimension
+    is set to 0.0, but will not necessarily raise an error. Also return the
+    lattice parameter.
+
+    Parameters
+    ----------
+    system : dict
+        The &SYSTEM section of the input file, containing the 'ibrav' setting,
+        and either celldm(1)..(6) or a, b, c, cosAB, cosAC, cosBC.
+
+    Returns
+    -------
+    alat : float
+        Cell parameter in Angstrom
+    cell : np.array
+        The 3x3 array representation of the cell.
+
+    Raises
+    ------
+    KeyError
+        Raise an error if any required keys are missing.
+    NotImplementedError
+        Only a limited number of ibrav settings can be parsed. An error
+        is raised if the ibrav interpretation is not implemented.
+    """
+    if 'celldm(1)' in system and 'a' in system:
+        raise KeyError('do not specify both celldm and a,b,c!')
+    elif 'celldm(1)' in system:
+        # celldm(x) in bohr
+        alat = system['celldm(1)'] * units['Bohr']
+        b_over_a = system.get('celldm(2)', 0.0)
+        c_over_a = system.get('celldm(3)', 0.0)
+        cosab = system.get('celldm(4)', 0.0)
+        cosac = system.get('celldm(5)', 0.0)
+        cosbc = 0.0
+        if system['ibrav'] == 14:
+            cosbc = system.get('celldm(4)', 0.0)
+            cosac = system.get('celldm(5)', 0.0)
+            cosab = system.get('celldm(6)', 0.0)
+    elif 'a' in system:
+        # a, b, c, cosAB, cosAC, cosBC in Angstrom
+        alat = system['a']
+        b_over_a = system.get('b', 0.0) / alat
+        c_over_a = system.get('c', 0.0) / alat
+        cosab = system.get('cosab', 0.0)
+        cosac = system.get('cosac', 0.0)
+        cosbc = system.get('cosbc', 0.0)
+    else:
+        raise KeyError("Missing celldm(1) or a cell parameter.")
+
+    if system['ibrav'] == 1:
+        cell = np.identity(3) * alat
+    elif system['ibrav'] == 2:
+        cell = np.array([[-1.0, 0.0, 1.0],
+                         [0.0, 1.0, 1.0],
+                         [-1.0, 1.0, 0.0]]) * (alat / 2)
+    elif system['ibrav'] == 3:
+        cell = np.array([[1.0, 1.0, 1.0],
+                         [-1.0, 1.0, 1.0],
+                         [-1.0, -1.0, 1.0]]) * (alat / 2)
+    elif system['ibrav'] == 4:
+        cell = np.array([[1.0, 0.0, 0.0],
+                         [-0.5, 0.5*3**0.5, 0.0],
+                         [0.0, 0.0, c_over_a]]) * alat
+    elif system['ibrav'] == 5:
+        tx = ((1.0 - cosab) / 2.0)**0.5
+        ty = ((1.0 - cosab) / 6.0)**0.5
+        tz = ((1 + 2 * cosab) / 3.0)**0.5
+        cell = np.array([[tx, -ty, tz],
+                         [0, 2*ty, tz],
+                         [-tx, -ty, tz]]) * alat
+    elif system['ibrav'] == -5:
+        ty = ((1.0 - cosab) / 6.0)**0.5
+        tz = ((1 + 2 * cosab) / 3.0)**0.5
+        a_prime = alat / 3**0.5
+        u = tz - 2 * 2**0.5 * ty
+        v = tz + 2**0.5 * ty
+        cell = np.array([[u, v, v],
+                         [v, u, v],
+                         [v, v, u]]) * a_prime
+    elif system['ibrav'] == 6:
+        cell = np.array([[1.0, 0.0, 0.0],
+                         [0.0, 1.0, 0.0],
+                         [0.0, 0.0, c_over_a]]) * alat
+    elif system['ibrav'] == 7:
+        cell = np.array([[1.0, -1.0, c_over_a],
+                         [1.0, 1.0, c_over_a],
+                         [-1.0, -1.0, c_over_a]]) * (alat / 2)
+    elif system['ibrav'] == 8:
+        cell = np.array([[1.0, 0.0, 0.0],
+                         [0.0, b_over_a, 0.0],
+                         [0.0, 0.0, c_over_a]]) * alat
+    elif system['ibrav'] == 9:
+        cell = np.array([[1.0 / 2.0, b_over_a / 2.0, 0.0],
+                         [-1.0 / 2.0, b_over_a / 2.0, 0.0],
+                         [0.0, 0.0, c_over_a]]) * alat
+    elif system['ibrav'] == -9:
+        cell = np.array([[1.0 / 2.0, -b_over_a / 2.0, 0.0],
+                         [1.0 / 2.0, b_over_a / 2.0, 0.0],
+                         [0.0, 0.0, c_over_a]]) * alat
+    elif system['ibrav'] == 10:
+        cell = np.array([[1.0 / 2.0, 0.0, c_over_a/2.0],
+                         [1.0 / 2.0, b_over_a / 2.0, 0.0],
+                         [0.0, b_over_a / 2.0, c_over_a / 2.0]]) * alat
+    elif system['ibrav'] == 11:
+        cell = np.array([[1.0 / 2.0, b_over_a / 2.0, c_over_a / 2.0],
+                         [-1.0 / 2.0, b_over_a / 2.0, c_over_a / 2.0],
+                         [-1.0, 2.0, -b_over_a / 2.0, c_over_a / 2.0]]) * alat
+    elif system['ibrav'] == 12:
+        sinab = (1.0 - cosab**2)**0.5
+        cell = np.array([[1.0, 0.0, 0.0],
+                         [b_over_a * sinab, b_over_a * cosab, 0.0],
+                         [0.0, 0.0, c_over_a]]) * alat
+    elif system['ibrav'] == -12:
+        sinac = (1.0 - cosac**2)**0.5
+        cell = np.array([[1.0, 0.0, 0.0],
+                         [0.0, b_over_a, 0.0],
+                         [c_over_a * cosac, 0.0, c_over_a * sinac]]) * alat
+    elif system['ibrav'] == 13:
+        sinab = (1.0 - cosab**2)**0.5
+        cell = np.array([[1.0 / 2.0, 0.0, -c_over_a / 2.0],
+                         [b_over_a * cosab, b_over_a * sinab, 0.0],
+                         [1.0 / 2.0, 0.0, c_over_a / 2.0]]) * alat
+    elif system['ibrav'] == 14:
+        sinab = (1.0 - cosab**2)**0.5
+        v3 = [c_over_a * cosac,
+              c_over_a * (cosbc - cosac * cosab) / sinab,
+              c_over_a * ((1 + 2 * cosbc * cosac * cosab
+                           - cosbc**2 - cosac**2 - cosab**2)**0.5) / sinab]
+        cell = np.array([[1.0, 0.0, 0.0],
+                         [b_over_a * cosab, b_over_a * sinab, 0.0],
+                         v3]) * alat
+    else:
+        raise NotImplementedError('ibrav = {0} is not implemented'
+                                  ''.format(system['ibrav']))
+
+    return alat, cell
 
 
 def get_atomic_positions(lines, n_atoms, cell=None, alat=None):
@@ -465,6 +585,9 @@ def get_cell_parameters(lines, alat=None):
     cell : np.array | None
         Cell parameters as a 3x3 array in Angstrom. If no cell is found
         None will be returned instead.
+    cell_alat : float | None
+        If a value for alat is given in the card header, this is also
+        returned, otherwise this will be None.
 
     Raises
     ------
@@ -474,6 +597,7 @@ def get_cell_parameters(lines, alat=None):
     """
 
     cell = None
+    cell_alat = None
     # no blanks or comment lines, can take three lines for cell
     trimmed_lines = (line for line in lines
                      if line.strip() and not line[0] == '#')
@@ -500,6 +624,7 @@ def get_cell_parameters(lines, alat=None):
                 # Output file has (alat = value)
                 if '=' in line:
                     alat = float(line.strip(')').split()[-1])
+                    cell_alat = alat
                 elif alat is None:
                     raise ValueError('Lattice parameters must be set in '
                                      '&SYSTEM for alat units')
@@ -516,7 +641,7 @@ def get_cell_parameters(lines, alat=None):
                     [ffloat(x) for x in next(trimmed_lines).split()[:3]]]
             cell = np.array(cell) * cell_units
 
-    return cell
+    return cell, cell_alat
 
 
 def str_to_value(string):
