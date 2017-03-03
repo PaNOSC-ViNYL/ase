@@ -22,9 +22,6 @@ from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic)
 
 
-OLD_ANGLE_API_WARNING = True
-
-
 class Atoms(object):
     """Atoms object.
 
@@ -1208,14 +1205,15 @@ class Atoms(object):
 
         if not isinstance(a, (float, int)):
             # old API maybe?
+            warning = ('Please use new API: '
+                       'atoms_obj.rotate(v, a) '
+                       'where v is a vector to rotate around and '
+                       'a is the angle in degrees.')
             if isinstance(v, (float, int)):
-                warnings.warn(
-                    'Please use new API: '
-                    'atoms_obj.rotate(...)')
+                warnings.warn(warning)
                 a, v = v * 180 / pi, a
             elif v is None:
-                if OLD_ANGLE_API_WARNING:
-                    warnings.warn('Please use new API')
+                warnings.warn(warning)
                 v = a
                 a = None
             else:
@@ -1277,13 +1275,15 @@ class Atoms(object):
             self.set_cell(rotcell)
 
     def rotate_euler(self, center=(0, 0, 0), phi=0.0, theta=0.0, psi=0.0):
-        if OLD_ANGLE_API_WARNING:
-            warnings.warn('Please use new API: euler_rotate()')
+        warnings.warn(
+            'Please use new API: '
+            'euler_rotate(phi=0, theta=0, psi=0, center=(0, 0, 0)) '
+            'where the angles are given in degrees')
         self.euler_rotate(phi * 180 / pi, theta * 180 / pi, psi * 180 / pi,
                           center)
 
     def euler_rotate(self, phi=0.0, theta=0.0, psi=0.0, center=(0, 0, 0)):
-        """Rotate atoms via Euler angles.
+        """Rotate atoms via Euler angles (in degrees).
 
         See e.g http://mathworld.wolfram.com/EulerAngles.html for explanation.
 
@@ -1349,8 +1349,10 @@ class Atoms(object):
 
         if a2 is None:
             # Old way - use radians
-            if OLD_ANGLE_API_WARNING:
-                warnings.warn('Please use new API')
+            warnings.warn(
+                'Please use new API (which will return the angle in degrees): '
+                'atoms_obj.get_dihedral(a1,a2,a3,a4)*pi/180 instead of '
+                'atoms_obj.get_dihedral([a1,a2,a3,a4])')
             assert a3 is None and a4 is None
             a1, a2, a3, a4 = a1
             f = pi / 180
@@ -1416,8 +1418,10 @@ class Atoms(object):
         if isinstance(a1, int):
             angle *= pi / 180
         else:
-            if OLD_ANGLE_API_WARNING:
-                warnings.warn('Please use new API')
+            warnings.warn(
+                'Please use new API: '
+                'atoms_obj.set_dihedral(a1,a2,a3,a4,angle) '
+                'where angle is given in degrees')
             if angle is None:
                 angle = a2
                 if mask is None:
@@ -1455,8 +1459,10 @@ class Atoms(object):
             start = self.get_dihedral(a1, a2, a3, a4)
             self.set_dihedral(a1, a2, a3, a4, angle + start, mask)
         else:
-            if OLD_ANGLE_API_WARNING:
-                warnings.warn('Please use new API')
+            warnings.warn(
+                'Please use new API: '
+                'atoms_obj.rotate_dihedral(a1,a2,a3,a4,angle) '
+                'where angle is given in degrees')
             if angle is None:
                 angle = a2
                 if mask is None:
@@ -1474,8 +1480,10 @@ class Atoms(object):
 
         if a2 is None:
             # old API (uses radians)
-            if OLD_ANGLE_API_WARNING:
-                warnings.warn('Please use new API')
+            warnings.warn(
+                'Please use new API (which will return the angle in degrees): '
+                'atoms_obj.get_angle(a1,a2,a3)*pi/180 instead of '
+                'atoms_obj.get_angle([a1,a2,a3])')
             assert a3 is None
             a1, a2, a3 = a1
             f = 1
@@ -1500,8 +1508,10 @@ class Atoms(object):
 
         if not isinstance(a1, int):
             # old API (uses radians)
-            if OLD_ANGLE_API_WARNING:
-                warnings.warn('Please use new API')
+            warnings.warn(
+                'Please use new API: '
+                'atoms_obj.set_angle(a1,a2,a3,angle) '
+                'where angle is given in degrees')
             if angle is None:
                 angle = a2
                 if mask is None:
