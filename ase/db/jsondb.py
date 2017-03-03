@@ -24,8 +24,8 @@ class JSONDatabase(Database):
         ids = []
         nextid = 1
 
-        if (isinstance(self.filename, basestring)
-            and os.path.isfile(self.filename)):
+        if (isinstance(self.filename, basestring) and
+            os.path.isfile(self.filename)):
             try:
                 bigdct, ids, nextid = self._read_json()
             except (SyntaxError, ValueError):
@@ -53,15 +53,15 @@ class JSONDatabase(Database):
             dct[key] = row[key]
 
         dct['mtime'] = mtime
-        
+
         kvp = key_value_pairs or row.key_value_pairs
         if kvp:
             dct['key_value_pairs'] = kvp
-        
+
         data = data or row.get('data')
         if data:
             dct['data'] = data
-            
+
         constraints = row.get('constraints')
         if constraints:
             dct['constraints'] = constraints
@@ -125,17 +125,17 @@ class JSONDatabase(Database):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return
-            
+
         if sort:
             if sort[0] == '-':
                 reverse = True
                 sort = sort[1:]
             else:
                 reverse = False
-            
+
             def f(row):
                 return row[sort]
-                
+
             rows = sorted(self._select(keys + [sort], cmps),
                           key=f, reverse=reverse)
             if limit:
@@ -143,15 +143,15 @@ class JSONDatabase(Database):
             for row in rows:
                 yield row
             return
-            
+
         try:
             bigdct, ids, nextid = self._read_json()
         except IOError:
             return
-            
+
         if not limit:
             limit = -offset - 1
-            
+
         cmps = [(key, ops[op], val) for key, op, val in cmps]
         n = 0
         for id in ids:
@@ -180,9 +180,9 @@ class JSONDatabase(Database):
 
     def _update(self, ids, delete_keys, add_key_value_pairs):
         bigdct, myids, nextid = self._read_json()
-        
+
         t = now()
-        
+
         m = 0
         n = 0
         for id in ids:
@@ -198,6 +198,6 @@ class JSONDatabase(Database):
             if kvp:
                 dct['key_value_pairs'] = kvp
             dct['mtime'] = t
-            
+
         self._write_json(bigdct, myids, nextid)
         return m, n

@@ -16,6 +16,7 @@ except ImportError:
     raise NotAvailable
 
 from ase.gui.gui import GUI
+from ase.gui.save import save_dialog
 
 
 if not os.environ.get('DISPLAY'):
@@ -104,10 +105,13 @@ def rotate(gui):
     gui.rotate_window()
 
 
-# @test not ready yet!
-def open(gui):
-    molecule('H2O').write('h2o.json')
-    gui.open()
+@test
+def open_and_save(gui):
+    mol = molecule('H2O')
+    for i in range(3):
+        mol.write('h2o.json')
+    gui.open(filename='h2o.json')
+    save_dialog(gui, 'h2o.cif@-1')
 
 
 p = argparse.ArgumentParser()

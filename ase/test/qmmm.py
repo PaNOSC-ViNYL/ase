@@ -5,14 +5,13 @@ import numpy as np
 
 import ase.units as units
 from ase import Atoms
-from ase.calculators.tip3p import (TIP3P, epsilon0, sigma0, rOH, thetaH2O,
-                                   set_tip3p_charges)
+from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
 r = rOH
-a = thetaH2O * pi / 180
+a = angleHOH * pi / 180
 
 # From http://dx.doi.org/10.1063/1.445869
 eexp = 6.50 * units.kcal / units.mol
@@ -36,7 +35,6 @@ for calc in [TIP3P(),
                    (r * cos(a / 2), r * sin(a / 2), 0),
                    (r * cos(a / 2), -r * sin(a / 2), 0),
                    (0, 0, 0)])
-    set_tip3p_charges(dimer)
     dimer.calc = calc
 
     E = []

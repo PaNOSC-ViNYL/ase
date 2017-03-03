@@ -10,6 +10,26 @@ Git master branch
 
 :git:`master <>`.
 
+* :data:`ase.data.atomic_masses` has been updated to IUPAC values from
+  2016. Several elements will now have different weights which will affect
+  dynamic calculations. The old values can be recovered like this:
+
+  >>> from ase.data import atomic_masses_legacy
+  >>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
+
+* New :func:`ase.data.isotopes.download_isotope_data` function for getting
+  individual isotope masses from NIST.
+
+* New :func:`ase.eos.calculate_eos` helper function added.
+
+* Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
+
+
+Version 3.13.0
+==============
+
+7 February 2017: :git:`3.13.0 <../3.13.0>`.
+
 * The default unit-cell when you create an :class:`~ase.Atoms` object has
   been changed from ``[[1,0,0],[0,1,0],[0,0,1]]`` to
   ``[[0,0,0],[0,0,0],[0,0,0]]``.

@@ -22,18 +22,22 @@ last image. Examples: "name@-1": last image,
 "name@-2:": last two.""")
 
 
-def save_dialog(gui):
+def save_dialog(gui, filename=None):
     dialog = ui.SaveFileDialog(gui.window.win, _('Save ...'))
     ui.Text(text).pack(dialog.top)
-    filename = dialog.go()
+    filename = filename or dialog.go()
     if not filename:
         return
 
     filename, index = parse_filename(filename)
     if index is None:
         index = slice(gui.frame, gui.frame + 1)
-    if isinstance(index, basestring):
+    elif isinstance(index, basestring):
         index = string2index(index)
+    else:
+        if index < 0:
+            index += gui.images.nimages
+        index = slice(index, index + 1)
     format = filetype(filename, read=False)
     io = get_ioformat(format)
 

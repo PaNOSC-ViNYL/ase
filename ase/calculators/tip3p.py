@@ -14,16 +14,6 @@ thetaH2O = 104.52
 thetaHOH = 104.52 / 180 * np.pi  # we keep this for backwards compatibility
 
 
-def set_tip3p_charges(atoms):
-    charges = np.empty(len(atoms))
-    charges[:] = qH
-    if atoms.numbers[0] == 8:
-        charges[::3] = -2 * qH
-    else:
-        charges[2::3] = -2 * qH
-    atoms.set_initial_charges(charges)
-
-
 class TIP3P(Calculator):
     implemented_properties = ['energy', 'forces']
     nolabel = True
@@ -128,6 +118,21 @@ class TIP3P(Calculator):
         if self.pcpot and self.pcpot.mmpositions is not None:
             system_changes.append('positions')
         return system_changes
+
+    def add_virtual_sites(self, positions):
+        return positions  # no virtual sites
+
+    def redistribute_forces(self, forces):
+        return forces
+
+    def get_virtual_charges(self, atoms):
+        charges = np.empty(len(atoms))
+        charges[:] = qH
+        if atoms.numbers[0] == 8:
+            charges[::3] = -2 * qH
+        else:
+            charges[2::3] = -2 * qH
+        return charges
 
 
 class PointChargePotential:

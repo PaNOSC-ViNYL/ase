@@ -54,6 +54,10 @@ def git_role_tmpl(urlroot,
 def creates():
     """Generator for Python scripts and their output filenames."""
     for dirpath, dirnames, filenames in sorted(os.walk('.')):
+        if dirpath.startswith('./build'):
+            # Skip files in the build/ folder
+            continue
+
         for filename in filenames:
             if filename.endswith('.py'):
                 path = join(dirpath, filename)
@@ -71,9 +75,6 @@ def creates():
                         break
                 if outnames:
                     yield dirpath, filename, outnames
-
-        if 'build' in dirnames and dirpath == '.':
-            dirnames.remove('build')
 
 
 def create_png_files():

@@ -42,6 +42,14 @@ Quick links:
   :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`
 
+
+
+.. toctree::
+   :maxdepth: 2
+
+   surface
+   tools
+   
 .. seealso::
 
    * The :mod:`ase.lattice` module.  The module contains functions for
@@ -51,16 +59,13 @@ Quick links:
      this specification is created.  Both bulk crystals and surfaces can
      be created.
 
+   * The :mod:`ase.cluster` module.  Useful for creating nanoparticles
+     and clusters.
+     
    * The :mod:`ase.spacegroup` module
 
    * The :mod:`ase.geometry` module
 
-
-.. toctree::
-   :maxdepth: 2
-
-   surface
-   tools
 
 
 Molecules
