@@ -259,6 +259,11 @@ def _read_xyz_frame(lines, natoms):
         else:
             duplicate_numbers = arrays['numbers']
         del arrays['numbers']
+		
+    charges = None
+    if 'charges' in arrays:
+        charges = arrays['charges']
+        del arrays['charges']
 
     positions = None
     if 'positions' in arrays:
@@ -268,6 +273,7 @@ def _read_xyz_frame(lines, natoms):
     atoms = Atoms(symbols=symbols,
                   positions=positions,
                   numbers=numbers,
+                  charges = charges,
                   cell=cell,
                   pbc=pbc,
                   info=info)
