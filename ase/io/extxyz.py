@@ -259,7 +259,7 @@ def _read_xyz_frame(lines, natoms):
         else:
             duplicate_numbers = arrays['numbers']
         del arrays['numbers']
-		
+
     charges = None
     if 'charges' in arrays:
         charges = arrays['charges']
