@@ -29,12 +29,9 @@ def overlap(calc1, calc2):
         for i2 in range(n2):
             psi2 = calc2.wfs.kpt_u[0].psit_nG[i2]
             norm2 = calc2.wfs.gd.integrate(psi2.conj() * psi2)
-            overlap_nn[i1, i2] = (calc1.wfs.gd.integrate(psi1.conj() * psi2) /
-                                  np.sqrt(norm1 * norm2))
-            if 0 and abs(overlap_nn[i1, i2]) > 0.5:
-                parprint(i1, i2,
-                         '{0:7.2f} ({1:4.2f} {2:4.2f})'.format(
-                             overlap_nn[i1, i2], norm1, norm2))
+            overlap_nn[i1, i2] = (
+                calc1.wfs.gd.integrate(psi1.conj() * psi2) /
+                np.sqrt(norm1 * norm2))
     return overlap_nn
             
 
@@ -55,7 +52,9 @@ class ResonantRaman(Vibrations):
                  txt='-',
                  verbose=False,
                  overlap=False,
-                 minoverlap=0.1):
+                 minoverlap=0.1,
+                 minrep= 0.8,
+    ):
         """
         Parameters
         ----------
@@ -108,6 +107,8 @@ class ResonantRaman(Vibrations):
         minoverlap: float
             Minimal absolute overlap to consider. Defaults to 0.1 to avoid
             numerical garbage.
+        minrep: float
+            Minimal represention to consider derivative, defaults to 0.8
         """
         assert(nfree == 2)
         Vibrations.__init__(self, atoms, indices, gsname, delta, nfree)
@@ -133,6 +134,7 @@ class ResonantRaman(Vibrations):
         self.verbose = verbose
         self.overlap = overlap
         self.minoverlap = minoverlap
+        self.minrep = minrep
         
     @property
     def approximation(self):
@@ -284,17 +286,19 @@ class ResonantRaman(Vibrations):
         self.log('reading ' + self.exname + '.eq' + self.exext)
         ex0 = self.exobj(self.exname + '.eq' + self.exext,
                          **self.exkwargs)
-        self.timer.stop('really read')
+        rep0_p = np.ones((len(ex0)), dtype=float)
 
-        def load(name, pm):
+        def load(name, pm, rep0_p):
             self.log('reading ' + name + pm + self.exext)
             ex_p = self.exobj(name + pm + self.exext, **self.exkwargs)
             self.log('reading ' + name + pm + '.pckl.ov.npy')
             ov_nn = np.load(name + pm + '.pckl.ov.npy')
             # remove numerical garbage
             ov_nn = np.where(np.abs(ov_nn) > self.minoverlap, ov_nn, 0)
-            ov_pp = ex_p.overlap(ov_nn)
-#            print(ov_pp)
+            self.timer.start('ex overlap')
+            ov_pp = ex_p.overlap(ov_nn, ex0)
+            rep0_p *= (ov_pp**2).sum(axis=0)
+            self.timer.stop('ex overlap')
             return ex_p, ov_pp
             
         exm = []
@@ -304,27 +308,33 @@ class ResonantRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.exname, a, i)
-                ex, ov = load(name, '-')
+                ex, ov = load(name, '-', rep0_p)
                 exm.append(ex)
                 ovm.append(ov)
-                ex, ov = load(name, '+')
+                ex, ov = load(name, '+', rep0_p)
                 exp.append(ex)
                 ovp.append(ov)
         self.ndof = 3 * len(self.indices)
-        self.timer.stop('read excitations')
+        self.timer.stop('really read')
 
         self.timer.start('me and energy')
 
+        # select only excitations that are sufficiently represented
+        select = np.where(rep0_p > self.minrep)
+
         eu = u.Hartree
-        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])
+        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])[select]
         self.ex0m_pc = (np.array(
-            [ex.get_dipole_me(form=self.dipole_form) for ex in ex0]) *
-            u.Bohr)
+            [ex.get_dipole_me(form=self.dipole_form)
+             for ex in ex0])[select] *
+                        u.Bohr)
 
         def rotate(ex_p, ov_pp):
-            em_p = np.array(
+            e_p = np.array([ex.energy for ex in ex_p])
+            m_pc = np.array(
                 [ex.get_dipole_me(form=self.dipole_form) for ex in ex_p])
-            return ov_pp.dot(em_p)
+            r_pp = ov_pp.T
+            return (r_pp**2).dot(e_p)[select], r_pp.dot(m_pc)[select]
 
         def z(arr):
             return np.where(abs(arr) > 0.05, arr, 0)
@@ -338,15 +348,14 @@ class ResonantRaman(Vibrations):
         r = 0
         for a in self.indices:
             for i in 'xyz':
-                exmE_rp.append([em.energy for em in exm[r]])
-                expE_rp.append([ep.energy for ep in exp[r]])
-                exF_rp.append(
-                    [(em.energy - ep.energy)
-                     for ep, em in zip(exp[r], exm[r])])
-                exmm_rpc.append(rotate(exm[r], ovm[r]))
-                expm_rpc.append(rotate(exp[r], ovp[r]))
-#                print('m,p=', z(expm_rpc[-1]), z(exmm_rpc[-1]))
-                exdmdr_rpc.append(expm_rpc[-1] - exmm_rpc[-1])
+                exmE_p, exmm_pc = rotate(exm[r], ovm[r])
+                expE_p, expm_pc = rotate(exp[r], ovp[r])
+                exmE_rp.append(exmE_p)
+                expE_rp.append(expE_p)
+                exF_rp.append(exmE_p - expE_p)
+                exmm_rpc.append(exmm_pc)
+                expm_rpc.append(expm_pc)
+                exdmdr_rpc.append(expm_pc - exmm_pc)
                 r += 1
         # indicees: r=coordinate, p=excitation
         # energies in eV
@@ -361,6 +370,7 @@ class ResonantRaman(Vibrations):
         self.exdmdr_rpc = np.array(exdmdr_rpc) * u.Bohr / 2 / self.delta
 
         self.timer.stop('me and energy')
+        self.timer.stop('read excitations')
 
     def read(self, method='standard', direction='central'):
         """Read data from a pre-performed calculation."""
