@@ -14,7 +14,7 @@ from warnings import warn
 from subprocess import Popen, PIPE
 import numpy as np
 import ase.io
-from ase.units import Rydberg, Bohr
+from ase.units import Rydberg
 from ase.calculators.calculator import Calculator, all_changes, Parameters, kpts2ndarray
 from ase.calculators.singlepoint import SinglePointKPoint
 
@@ -442,7 +442,6 @@ class CP2K(Calculator):
 
         if p.band_structure:
             kpts = kpts2ndarray(p.band_structure, self.atoms)
-            npoints = len(kpts)
             root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE',
                              'ADDED_MOS 12')
             root.add_keyword('FORCE_EVAL/DFT/KPOINTS/BAND_STRUCTURE',
