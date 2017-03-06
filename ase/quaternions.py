@@ -89,7 +89,7 @@ class Quaternion:
                          [2 * (xz + wy), 2 * (yz - wx), ww - xx - yy + zz]])
 
     def axis_angle(self):
-        """Returns axis and angle (in radianses) for the rotation described
+        """Returns axis and angle (in radians) for the rotation described
         by this Quaternion"""
 
         sinth_2 = np.linalg.norm(self.q[1:])
@@ -100,40 +100,42 @@ class Quaternion:
         return n, theta
 
     def euler_angles(self, mode='zyz'):
-        """Return three Euler angles describing the rotation, in radianses.
+        """Return three Euler angles describing the rotation, in radians.
         Mode can be zyz or zxz. Default is zyz."""
 
         if mode == 'zyz':
-            apc = np.arctan2(self.q[3], self.q[0])*2
-            amc = np.arctan2(-self.q[1], self.q[2])*2
+            # These are (a+c)/2 and (a-c)/2 respectively
+            apc = np.arctan2(self.q[3], self.q[0])
+            amc = np.arctan2(-self.q[1], self.q[2])
 
-            a, c = (apc+amc)/2, (apc-amc)/2
-            cos_amc2 = np.cos(amc/2)
-            if cos_amc2 != 0:
-                sinb2 = self.q[2]/cos_amc2
+            a, c = (apc+amc), (apc-amc)
+            cos_amc = np.cos(amc)
+            if cos_amc != 0:
+                sinb2 = self.q[2]/cos_amc
             else:
-                sinb2 = -self.q[1]/np.sin(amc/2)
-            cos_apc2 = np.cos(apc/2)
-            if cos_apc2 != 0:
-                cosb2 = self.q[0]/cos_apc2
+                sinb2 = -self.q[1]/np.sin(amc)
+            cos_apc = np.cos(apc)
+            if cos_apc != 0:
+                cosb2 = self.q[0]/cos_apc
             else:
-                cosb2 = self.q[3]/np.sin(apc/2)
+                cosb2 = self.q[3]/np.sin(apc)
             b = np.arctan2(sinb2, cosb2)*2
         elif mode == 'zxz':
-            apc = np.arctan2(self.q[3], self.q[0])*2
-            amc = np.arctan2(self.q[2], self.q[1])*2
+            # These are (a+c)/2 and (a-c)/2 respectively
+            apc = np.arctan2(self.q[3], self.q[0])
+            amc = np.arctan2(self.q[2], self.q[1])
 
-            a, c = (apc+amc)/2, (apc-amc)/2
-            cos_amc2 = np.cos(amc/2)
-            if cos_amc2 != 0:
-                sinb2 = self.q[1]/cos_amc2
+            a, c = (apc+amc), (apc-amc)
+            cos_amc = np.cos(amc)
+            if cos_amc != 0:
+                sinb2 = self.q[1]/cos_amc
             else:
-                sinb2 = self.q[2]/np.sin(amc/2)
-            cos_apc2 = np.cos(apc/2)
-            if cos_apc2 != 0:
-                cosb2 = self.q[0]/cos_apc2
+                sinb2 = self.q[2]/np.sin(amc)
+            cos_apc = np.cos(apc)
+            if cos_apc != 0:
+                cosb2 = self.q[0]/cos_apc
             else:
-                cosb2 = self.q[3]/np.sin(apc/2)
+                cosb2 = self.q[3]/np.sin(apc)
             b = np.arctan2(sinb2, cosb2)*2
         else:
             raise ValueError('Invalid Euler angles mode {0}'.format(mode))
@@ -216,7 +218,7 @@ class Quaternion:
         """Build quaternion from axis (n, vector of 3 components) and angle
         (theta, in radianses)."""
 
-        n = np.array(n).astype(np.float)/np.linalg.norm(n)
+        n = np.array(n, float)/np.linalg.norm(n)
         return Quaternion(np.concatenate([[np.cos(theta/2.0)],
                                           np.sin(theta/2.0)*n]))
 

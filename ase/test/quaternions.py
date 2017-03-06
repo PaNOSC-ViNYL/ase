@@ -4,7 +4,7 @@ from ase.quaternions import Quaternion
 
 def axang_rotm(u, theta):
 
-    u = np.array(u).astype(np.float)
+    u = np.array(u, float)
     u /= np.linalg.norm(u)
 
     # Cross product matrix for u
@@ -17,10 +17,10 @@ def axang_rotm(u, theta):
     return rotm
 
 
-def rand_rotm():
+def rand_rotm(rndstate=np.random.RandomState(0)):
     """Axis & angle rotations."""
-    u = np.random.random(3)
-    theta = np.random.random() * np.pi * 2
+    u = rndstate.rand(3)
+    theta = rndstate.rand() * np.pi * 2
 
     return axang_rotm(u, theta)
 
@@ -37,16 +37,20 @@ def eulang_rotm(a, b, c, mode='zyz'):
 
     return np.dot(rotc, np.dot(rotb, rota))
 
-# First: test that rotations DO work
-for i in range(10):
-    # 10 random tests
+# Random state for testing
+rndstate = np.random.RandomState(0)
+test_n = 200
 
-    rotm = rand_rotm()
+# First: test that rotations DO work
+for i in range(test_n):
+    # n random tests
+
+    rotm = rand_rotm(rndstate)
 
     q = Quaternion.from_matrix(rotm)
 
     # Now test this with a vector
-    v = np.random.random(3)
+    v = rndstate.rand(3)
 
     vrotM = np.dot(rotm, v)
     vrotQ = q.rotate(v)
@@ -63,16 +67,16 @@ q = Quaternion.from_matrix(rotm)
 assert not np.isnan(q.q).any()
 
 # Third: test compound rotations and operator overload
-for i in range(10):
+for i in range(test_n):
 
-    rotm1 = rand_rotm()
-    rotm2 = rand_rotm()
+    rotm1 = rand_rotm(rndstate)
+    rotm2 = rand_rotm(rndstate)
 
     q1 = Quaternion.from_matrix(rotm1)
     q2 = Quaternion.from_matrix(rotm2)
 
     # Now test this with a vector
-    v = np.random.random(3)
+    v = rndstate.rand(3)
 
     vrotM = np.dot(rotm2, np.dot(rotm1, v))
     vrotQ = (q2 * q1).rotate(v)
@@ -81,10 +85,10 @@ for i in range(10):
 
 # Fourth: test Euler angles
 for mode in ['zyz', 'zxz']:
-    for i in range(10):
+    for i in range(test_n):
 
-        abc = np.random.random(3)*2*np.pi
-        v2 = np.random.random((2, 3))  # Two random vectors to rotate rigidly
+        abc = rndstate.rand(3)*2*np.pi
+        v2 = rndstate.rand(2, 3)  # Two random vectors to rotate rigidly
 
         q_eul = Quaternion.from_euler_angles(*abc, mode=mode)
         rot_eul = eulang_rotm(*abc, mode=mode)
