@@ -2,17 +2,19 @@ from __future__ import print_function
 import numpy as np
 import sys
 from ase.parallel import paropen
+from ase.utils import basestring
+
 
 def extrapolate(x, y, n=-1.5, plot=0, reg=0, txt=None):
     '''Extrapolation tool. Mainly intended for RPA correlation energies,
-    but could be useful for other purposes. Fits a straight line to an 
+    but could be useful for other purposes. Fits a straight line to an
     expression of the form: y=b + alpha*x**n and extrapolates the result
     to infinite x. reg=N gives linear regression using the last N points in
     x. reg should be larger than 2'''
-    
+
     if txt is None:
         f = sys.stdout
-    elif isinstance(txt, str):
+    elif isinstance(txt, basestring):
         f = paropen(txt, 'a')
     else:
         f = txt
@@ -40,7 +42,7 @@ def extrapolate(x, y, n=-1.5, plot=0, reg=0, txt=None):
         B = (N * np.sum(a*b) - np.sum(a) * np.sum(b)) / delta
         sigma_y = (1./(N-2.) * np.sum((b - A - B * a)**2))**0.5
         sigma_A = sigma_y * (np.sum(a**2) / delta)**0.5
-        
+
         print('Linear regression using last %s points:' % N, file=f)
         print('    Extrapolated result:', A, file=f)
         print('    Uncertainty:', sigma_A, file=f)

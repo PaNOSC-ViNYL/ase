@@ -30,6 +30,7 @@ import ase.units as units
 from ase.calculators.general import Calculator
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
+from ase.utils import basestring
 
 __all__ = [
     'Castep',
@@ -44,6 +45,20 @@ _tf_table = {
     '': True,  # Just the keyword is equivalent to True
     'True': True,
     'False': False}
+
+
+def _self_getter(getf):
+    # A decorator that makes it so that if no 'atoms' argument is passed to a
+    # getter function, self.atoms is used instead
+
+    def decor_getf(self, atoms=None, *args, **kwargs):
+
+        if atoms is None:
+            atoms = self.atoms
+
+        return getf(self, atoms, *args, **kwargs)
+
+    return decor_getf
 
 
 class Castep(Calculator):
@@ -451,7 +466,7 @@ End CASTEP Interface Documentation
 
         returns (record_start, record_end, end_found, last_record_complete)
         """
-        if isinstance(castep_file, str):
+        if isinstance(castep_file, basestring):
             castep_file = paropen(castep_file, 'r')
             file_opened = True
         else:
@@ -525,7 +540,7 @@ End CASTEP Interface Documentation
             if not os.path.exists(castep_file):
                 print('No CASTEP file found')
 
-        elif isinstance(castep_file, str):
+        elif isinstance(castep_file, basestring):
             out = paropen(castep_file, 'r')
 
         else:
@@ -639,6 +654,7 @@ End CASTEP Interface Documentation
                             break
                 elif 'Fractional coordinates of atoms' in line:
                     species = []
+                    custom_species = None  # A CASTEP special thing
                     positions_frac = []
                     # positions_cart = []
                     while True:
@@ -647,7 +663,14 @@ End CASTEP Interface Documentation
                         if len(fields) == 7:
                             break
                     for n in range(n_atoms):
-                        species.append(fields[1])
+                        spec_custom = fields[1].split(':', 1)
+                        elem = spec_custom[0]
+                        if len(spec_custom) > 1 and custom_species is None:
+                            # Add it to the custom info!
+                            custom_species = list(species)
+                        species.append(elem)
+                        if custom_species is not None:
+                            custom_species.append(fields[1])
                         positions_frac.append([float(s) for s in fields[3:6]])
                         line = out.readline()
                         fields = line.split()
@@ -712,6 +735,15 @@ End CASTEP Interface Documentation
                 elif '******************** Forces *********************'\
                      in line or\
                      '************** Symmetrised Forces ***************'\
+                     in line or\
+                     '************** Constrained Symmetrised Forces ****'\
+                     '**********'\
+                     in line or\
+                     '******************** Constrained Forces **********'\
+                     '**********'\
+                     in line or\
+                     '******************* Unconstrained Forces *********'\
+                     '**********'\
                      in line:
                     fix = []
                     fix_cart = []
@@ -906,6 +938,10 @@ End CASTEP Interface Documentation
                                     pbc=True,
                                     scaled_positions=positions_frac,
                                     )
+            if custom_species is not None:
+                atoms.new_array('castep_custom_species',
+                                np.array(custom_species))
+
             if self.param.spin_polarized:
                 # only set magnetic moments if this was a spin polarized
                 # calculation
@@ -934,7 +970,7 @@ End CASTEP Interface Documentation
         if castep_castep is None:
             castep_castep = self._seed + '.castep'
 
-        if isinstance(castep_castep, str):
+        if isinstance(castep_castep, basestring):
             if not os.path.isfile(castep_castep):
                 print('Warning: CASTEP file %s not found!' % castep_castep)
             f = paropen(castep_castep, 'a')
@@ -1059,28 +1095,33 @@ End CASTEP Interface Documentation
                 continue
             self.cell.species_pot = (elem, '%s_%s.%s' % (elem, pspot, suffix))
 
+    @_self_getter
     def get_forces(self, atoms):
         """Run CASTEP calculation if needed and return forces."""
         self.update(atoms)
         return np.array(self._forces)
 
+    @_self_getter
     def get_total_energy(self, atoms):
         """Run CASTEP calculation if needed and return total energy."""
         self.update(atoms)
         return self._energy_total
 
+    @_self_getter
     def get_free_energy(self, atoms):
         """Run CASTEP calculation if needed and return free energy.
            Only defined with smearing."""
         self.update(atoms)
         return self._energy_free
 
+    @_self_getter
     def get_0K_energy(self, atoms):
         """Run CASTEP calculation if needed and return 0K energy.
            Only defined with smearing."""
         self.update(atoms)
         return self._energy_0K
 
+    @_self_getter
     def get_potential_energy(self, atoms, force_consistent=False):
         # here for compatibility with ase/calculators/general.py
         # but accessing only _name variables
@@ -1105,26 +1146,30 @@ End CASTEP Interface Documentation
                 else:
                     return self._energy_total
 
+    @_self_getter
     def get_stress(self, atoms):
         """Return the stress."""
         self.update(atoms)
         return self._stress
 
+    @_self_getter
     def get_unit_cell(self, atoms):
         """Return the unit cell."""
         self.update(atoms)
         return self._unit_cell
 
+    @_self_getter
     def get_kpoints(self, atoms):
         """Return the kpoints."""
         self.update(atoms)
         return self._kpoints
 
+    @_self_getter
     def get_number_cell_constraints(self, atoms):
         """Return the number of cell constraints."""
         self.update(atoms)
         return self._number_of_cell_constraints
-
+    
     def set_atoms(self, atoms):
         """Sets the atoms for the calculator and vice versa."""
         atoms.pbc = [True, True, True]
@@ -1444,7 +1489,7 @@ End CASTEP Interface Documentation
                     self.param.__setattr__(key, option.value)
             return
 
-        elif isinstance(param, str):
+        elif isinstance(param, basestring):
             param_file = open(param, 'r')
             _close = True
 
@@ -1942,7 +1987,7 @@ class CastepParam(object):
                 raise UserWarning('Option "%s" is not known!' % attr)
         attr = attr.lower()
         opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, str):
+        if not opt.type == 'Block' and isinstance(value, basestring):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             if False:
@@ -1998,10 +2043,10 @@ class CastepParam(object):
         # Newly added "Vector" options
         elif opt.type == 'Integer Vector':
             # crashes if value is not a string
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if ',' in value:
                     value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
                 except:
@@ -2013,7 +2058,7 @@ class CastepParam(object):
         elif opt.type == 'Real Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [float(x) for x in value.split()]
                 except:
@@ -2032,7 +2077,7 @@ class CastepParam(object):
             # However if a unit is present it will be dealt with
 
             # this crashes if non-string types are passed
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if len(value.split()) > 1:
                     value = value.split(' ', 1)[0]
             try:
@@ -2095,7 +2140,7 @@ class CastepCell(object):
             self._options[attr].type = 'Integer Vector'
 
         opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, str):
+        if not opt.type == 'Block' and isinstance(value, basestring):
             value = value.replace(':', ' ')
         if opt.type in ['Boolean (Logical)', 'Defined']:
             try:
@@ -2128,7 +2173,7 @@ class CastepCell(object):
         elif opt.type == 'Integer Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [int(x) for x in value.split()]
                 except:
@@ -2140,7 +2185,7 @@ class CastepCell(object):
         elif opt.type == 'Real Vector':
             if ',' in value:
                 value = value.replace(',', ' ')
-            if isinstance(value, str) and len(value.split()) == 3:
+            if isinstance(value, basestring) and len(value.split()) == 3:
                 try:
                     [float(x) for x in value.split()]
                 except:
@@ -2159,7 +2204,7 @@ class CastepCell(object):
             # However if a unit is present it will be dealt with
 
             # this crashes if non-string types are passed
-            if isinstance(value, str):
+            if isinstance(value, basestring):
                 if len(value.split()) > 1:
                     value = value.split(' ', 1)[0]
             try:
@@ -2216,7 +2261,7 @@ class CastepCell(object):
             elif attr == 'symmetry_ops':
                 if not isinstance(value, tuple) \
                    or not len(value) == 2 \
-                   or not value[0].shape[1:] == (3,3) \
+                   or not value[0].shape[1:] == (3, 3) \
                    or not value[1].shape[1:] == (3,) \
                    or not value[0].shape[0] == value[1].shape[0]:
                     print('Invalid symmetry_ops block, skipping')
@@ -2224,11 +2269,11 @@ class CastepCell(object):
                 # Now on to print...
                 text_block = ''
                 for op_i, (op_rot, op_tranls) in enumerate(zip(*value)):
-                  text_block += '\n'.join([' '.join([str(x) for x in row])
-                                           for row in op_rot])
-                  text_block += '\n'
-                  text_block += ' '.join([str(x) for x in op_tranls])
-                  text_block += '\n'
+                    text_block += '\n'.join([' '.join([str(x) for x in row])
+                                             for row in op_rot])
+                    text_block += '\n'
+                    text_block += ' '.join([str(x) for x in op_tranls])
+                    text_block += '\n'
                 value = text_block
 
             elif attr in ['positions_abs_intermediate',

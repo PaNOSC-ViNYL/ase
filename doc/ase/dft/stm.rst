@@ -11,6 +11,16 @@ resolve conflicting possibilities and point to an underlying atomistic
 model. ASE includes python modules for generating
 Tersoff-Hamann STM topographs.
 
+The calculated tunneling current will be proportional to:
+
+.. math::
+
+    \int_{\epsilon_F}^{\epsilon_F+eV} \sum_{kn}
+    w_{\mathbf k} |\Psi_{\mathbf k n}(\mathbf r)|^2
+    \delta(\epsilon - \epsilon_{\mathbf k n}) d\epsilon,
+
+where `V` is the bias voltage, `w_{\mathbf k}` is the `\mathbf k`-point weight
+and `\Psi_{\mathbf k n}(\mathbf r)` is the wave function.
 
 .. seealso::
 

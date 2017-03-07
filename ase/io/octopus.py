@@ -1,9 +1,10 @@
 import os
 from ase.calculators.octopus import parse_input_file, kwargs2atoms
+from ase.utils import basestring
 
 
 def read_octopus(fileobj, get_kwargs=False):
-    if isinstance(fileobj, str):  # This could be solved with decorators...
+    if isinstance(fileobj, basestring):  # This could be solved with decorators...
         fileobj = open(fileobj)
 
     kwargs = parse_input_file(fileobj)

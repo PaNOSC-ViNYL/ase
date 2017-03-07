@@ -58,7 +58,7 @@ class FranckCondonOverlap:
         S[mask] = 1  # hide zeros
         s = 0
         for k in range(n + 1):
-            s += (-1)**(n - k) * S**(-k) / (
+            s += (-1)**(n - k) * S**float(-k) / (
                 self.factorial(k) *
                 self.factorial(n - k) * self.factorial(m - k))
         res = np.exp(-S) * S**(n + m) * s**2 * (

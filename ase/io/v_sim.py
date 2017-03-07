@@ -5,6 +5,7 @@ Atoms object in V_Sim 3.5+ ascii format.
 """
 
 import numpy as np
+from ase.utils import basestring
 
 
 def read_v_sim(filename='demo.ascii'):
@@ -17,7 +18,7 @@ def read_v_sim(filename='demo.ascii'):
     from ase.geometry import cellpar_to_cell
     import re
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -98,7 +99,7 @@ def write_v_sim(filename, atoms):
     """
     from ase.geometry import cellpar_to_cell, cell_to_cellpar
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename

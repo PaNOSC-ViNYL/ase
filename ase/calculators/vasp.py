@@ -30,10 +30,11 @@ import numpy as np
 
 import ase
 import ase.io
-from ase.utils import devnull
+from ase.utils import devnull, basestring
 
 from ase.calculators.calculator import kpts2ndarray
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import PropertyNotImplementedError
 
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
@@ -537,9 +538,9 @@ class Vasp(Calculator):
                 raise NotImplementedError(
                     self._potcar_unguessable_string)
 
-        if (p['xc'] is not None
-                and p['xc'].lower() == 'lda'
-                and p['pp'].lower() != 'lda'):
+        if (p['xc'] is not None and
+                p['xc'].lower() == 'lda' and
+                p['pp'].lower() != 'lda'):
             warnings.warn("XC is set to LDA, but PP is set to "
                           "{0}. \nThis calculation is using the {0} "
                           "POTCAR set. \n Please check that this is "
@@ -673,6 +674,12 @@ class Vasp(Calculator):
         etc. are read from the VASP output.
         """
 
+        # Check if there is only a zero unit cell
+        if not atoms.cell.any():
+            raise ValueError("The lattice vectors are zero! "
+                             "This is the default value - please specify a "
+                             "unit cell.")
+
         # Initialize calculations
         self.initialize(atoms)
 
@@ -690,11 +697,15 @@ class Vasp(Calculator):
         self.run()
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
-            # Update atomic positions and unit cell with the ones read
-            # from CONTCAR.
-            atoms.positions = atoms_sorted[self.resort].positions
-            atoms.cell = atoms_sorted.cell
+
+        if (self.int_params['ibrion'] is not None and
+                self.int_params['nsw'] is not None):
+            if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
+                # Update atomic positions and unit cell with the ones read
+                # from CONTCAR.
+                atoms.positions = atoms_sorted[self.resort].positions
+                atoms.cell = atoms_sorted.cell
+
         self.converged = self.read_convergence()
         self.set_results(atoms)
 
@@ -702,8 +713,8 @@ class Vasp(Calculator):
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if (self.int_params['lorbit'] >= 10 or
-                (self.int_params['lorbit'] is not None and
+            if (self.int_params['lorbit'] is not None and
+                (self.int_params['lorbit'] >= 10 or
                  self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
@@ -737,7 +748,7 @@ class Vasp(Calculator):
             sys.stderr = devnull
         elif p['txt'] == '-':
             pass
-        elif isinstance(p['txt'], str):
+        elif isinstance(p['txt'], basestring):
             sys.stderr = open(p['txt'], 'w')
         if 'VASP_COMMAND' in os.environ:
             vasp = os.environ['VASP_COMMAND']
@@ -887,7 +898,7 @@ class Vasp(Calculator):
     def get_stress(self, atoms):
         self.update(atoms)
         if self.stress is None:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return self.stress
 
     def read_stress(self):
@@ -997,7 +1008,9 @@ class Vasp(Calculator):
         return self.magnetic_moment
 
     def get_magnetic_moments(self, atoms):
-        if self.int_params['lorbit'] >= 10 or self.list_params['rwigs']:
+        if ((self.int_params['lorbit'] is not None and
+             self.int_params['lorbit'] >= 10) or
+                self.list_params['rwigs']):
             self.update(atoms)
             return self.magnetic_moments
         else:
@@ -1101,7 +1114,7 @@ class Vasp(Calculator):
             if val is not None:
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
-                    if isinstance(val, str):
+                    if isinstance(val, basestring):
                         incar.write(val + '\n')
                     elif isinstance(val, bool):
                         if val:
@@ -1195,7 +1208,7 @@ class Vasp(Calculator):
     def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR' + suffix, 'wb')
+        potfile = open('POTCAR' + suffix, 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):

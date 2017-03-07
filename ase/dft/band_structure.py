@@ -60,7 +60,7 @@ class BandStructure:
         emax: float
             Maximum energy above fermi-level.
         filename: str
-            Write imagee to a file.
+            Write image to a file.
         ax: Axes
             MatPlotLib Axes object.  Will be created if not supplied.
         show: bool
@@ -108,8 +108,10 @@ class BandStructure:
         ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel('eigenvalues [eV]')
         ax.axhline(self.fermilevel, color='k')
-        plt.tight_layout()
-
+        try:
+            plt.tight_layout()
+        except AttributeError:
+            pass
         if filename:
             plt.savefig(filename)
 

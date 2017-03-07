@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 from math import sqrt
 from ase.geometry import find_mic
+from ase.calculators.calculator import PropertyNotImplementedError
 
 import numpy as np
 
@@ -288,7 +289,6 @@ class FixBondLengths(FixConstraint):
 def FixBondLength(a1, a2):
     """Fix distance between atoms with indices a1 and a2."""
     return FixBondLengths([(a1, a2)])
-
 
 
 class FixedMode(FixConstraint):
@@ -943,12 +943,23 @@ class Hookean(FixConstraint):
     def index_shuffle(self, atoms, ind):
         # See docstring of superclass
         if self._type == 'two atoms':
-            self.indices = [ind.index(self.indices[0]),
-                            ind.index(self.indices[1])]
-        elif self._type == 'point':
-            self.index = ind.index(self.index)
-        elif self._type == 'plane':
-            self.index = ind.index(self.index)
+            newa = [-1, -1]  # Signal error
+            for new, old in slice2enlist(ind, len(atoms)):
+                for i, a in enumerate(self.indices):
+                    if old == a:
+                        newa[i] = new
+            if newa[0] == -1 or newa[1] == -1:
+                raise IndexError('Constraint not part of slice')
+            self.indices = newa
+        elif (self._type == 'point') or (self._type == 'plane'):
+            newa = -1   # Signal error
+            for new, old in slice2enlist(ind, len(atoms)):
+                if old == self.index:
+                    newa = new
+                    break
+            if newa == -1:
+                raise IndexError('Constraint not part of slice')
+            self.index = newa
 
     def __repr__(self):
         if self._type == 'two atoms':
@@ -1069,11 +1080,11 @@ class Filter:
         'Return the positions of the visible atoms.'
         return self.atoms.get_positions()[self.index]
 
-    def set_positions(self, positions):
+    def set_positions(self, positions, **kwargs):
         'Set the positions of the visible atoms.'
         pos = self.atoms.get_positions()
         pos[self.index] = positions
-        self.atoms.set_positions(pos)
+        self.atoms.set_positions(pos, **kwargs)
 
     positions = property(get_positions, set_positions,
                          doc='Positions of the atoms')
@@ -1215,9 +1226,6 @@ class StrainFilter(Filter):
     def get_forces(self):
         stress = self.atoms.get_stress()
         return -self.atoms.get_volume() * (stress * self.mask).reshape((2, 3))
-
-    def get_potential_energy(self):
-        return self.atoms.get_potential_energy()
 
     def has(self, x):
         return self.atoms.has(x)
@@ -1400,7 +1408,7 @@ class UnitCellFilter(Filter):
         pos[natoms:] = self.cell_factor * self.deform_grad
         return pos
 
-    def set_positions(self, new):
+    def set_positions(self, new, **kwargs):
         '''
         new is an array with shape (natoms+3,3).
 
@@ -1415,7 +1423,7 @@ class UnitCellFilter(Filter):
         natoms = len(self.atoms)
         self.atom_positions[:] = new[:natoms]
         self.deform_grad = new[natoms:] / self.cell_factor
-        self.atoms.set_positions(self.atom_positions)
+        self.atoms.set_positions(self.atom_positions, **kwargs)
         self.atoms.set_cell(self.orig_cell, scale_atoms=False)
         self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
                             scale_atoms=True)
@@ -1458,11 +1466,8 @@ class UnitCellFilter(Filter):
         forces[natoms:] = virial / self.cell_factor
         return forces
 
-    def get_potential_energy(self):
-        return self.atoms.get_potential_energy()
-
     def get_stress(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def has(self, x):
         return self.atoms.has(x)

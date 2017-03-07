@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from optparse import OptionParser
 from ase.io.formats import filetype
 from ase.io.ulm import print_ulm_info
@@ -25,7 +23,9 @@ def main():
             print_ulm_info(f)
         elif ft == 'trj':
             print_trajectory_info(f)
-        elif ft == 'bundle':
+        elif ft == 'bundletrajectory':
             print_bundletrajectory_info(f)
         else:
-            p.error('%s is of type %s; cannot print info about this type of file' % f)
+            p.error(
+                '%s is of type %s; cannot print info about this type of file' %
+                (f, ft))

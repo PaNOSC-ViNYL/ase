@@ -10,13 +10,13 @@ Webpage: http://wiki.fysik.dtu.dk/ase
 Requirements
 ------------
 
-* Python_ 2.6-3.5
+* Python_ 2.6, 2.7, 3.4, 3.5
 * NumPy_ (base N-dimensional array package)
 
 Optional:
 
 * SciPy_ (library for scientific computing)
-* For ``ase-gui``: PyGTK_ (GTK+ for Python) and Matplotlib_ (2D Plotting)
+* For ``ase-gui``: Matplotlib_ (2D Plotting)
 
 
 Installation
@@ -77,6 +77,5 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
 .. _Matplotlib: http://matplotlib.org/
-.. _pygtk: http://www.pygtk.org/
 .. _ase-users: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
 .. _IRC: http://webchat.freenode.net/?randomnick=0&channels=ase

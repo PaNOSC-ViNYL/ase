@@ -23,6 +23,7 @@ def jtg(job_name, traj_file):
     s += 'python calc.py {0}\n'.format(traj_file)
     return s
 
+
 population_size = 20
 mutation_probability = 0.3
 

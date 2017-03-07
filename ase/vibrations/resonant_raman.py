@@ -13,7 +13,7 @@ import ase.units as u
 from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
-from ase.utils import convert_string_to_fd
+from ase.utils import convert_string_to_fd, basestring
 
 
 def overlap(calc1, calc2):
@@ -572,7 +572,7 @@ class ResonantRaman(Vibrations):
         hnu = self.get_energies(method, direction)
         intensities = self.absolute_intensity(omega, gamma)
 
-        if isinstance(log, str):
+        if isinstance(log, basestring):
             log = paropen(log, 'a')
 
         parprint('-------------------------------------', file=log)

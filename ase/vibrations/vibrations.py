@@ -13,7 +13,8 @@ import numpy as np
 import ase.units as units
 from ase.io.trajectory import Trajectory
 from ase.parallel import rank, paropen
-from ase.utils import opencew
+
+from ase.utils import opencew, pickleload, basestring
 from ase.calculators.singlepoint import SinglePointCalculator
 
 
@@ -193,10 +194,7 @@ class Vibrations:
 
         def load(fname):
             with open(fname, 'rb') as fl:
-                try:
-                    f = pickle.load(fl, encoding='bytes')
-                except TypeError:  # python2 does not know about encoding
-                    f = pickle.load(fl)
+                f = pickleload(fl)
             if not hasattr(f, 'shape'):
                 # output from InfraRed
                 return f[0]
@@ -285,7 +283,7 @@ class Vibrations:
             file to create.
         """
 
-        if isinstance(log, str):
+        if isinstance(log, basestring):
             log = paropen(log, 'a')
         write = log.write
 

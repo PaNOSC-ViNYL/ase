@@ -1,3 +1,4 @@
+from ase.utils import basestring
 """
 This module contains functionality for reading an ASE
 Atoms object in ABINIT input format.
@@ -12,7 +13,7 @@ def read_abinit(filename='abinit.in'):
 
     from ase import Atoms, units
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else: # Assume it's a file-like object
         f = filename
@@ -23,7 +24,7 @@ def read_abinit(filename='abinit.in'):
         lines.append(meat)
     tokens = ' '.join(lines).lower().split()
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
 
     # note that the file can not be scanned sequentially
@@ -120,7 +121,7 @@ def write_abinit(filename, atoms, cartesian=False, long_format=True):
     import numpy as np
     from ase import data
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename, 'w')
     else: # Assume it's a 'file-like object'
         f = filename
@@ -207,5 +208,5 @@ def write_abinit(filename, atoms, cartesian=False, long_format=True):
             f.write(cform % dcoord)
         f.write('\n')
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()

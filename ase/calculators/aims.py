@@ -12,7 +12,8 @@ from ase.units import Hartree
 from ase.io.aims import write_aims, read_aims
 from ase.data import atomic_numbers
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    ReadError
+    ReadError, PropertyNotImplementedError
+from ase.utils import basestring
 
 
 float_keys = [
@@ -231,7 +232,7 @@ class Aims(FileIOCalculator):
             elif isinstance(value, (tuple, list)):
                 output.write('%-35s%s\n' %
                              (key, ' '.join(str(x) for x in value)))
-            elif isinstance(value, str):
+            elif isinstance(value, basestring):
                 output.write('%-35s%s\n' % (key, value))
             else:
                 output.write('%-35s%r\n' % (key, value))
@@ -369,19 +370,19 @@ class Aims(FileIOCalculator):
     def get_dipole_moment(self, atoms):
         if ('dipole' not in self.parameters.get('output', []) or
             atoms.pbc.any()):
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return FileIOCalculator.get_dipole_moment(self, atoms)
 
     def get_stress(self, atoms):
         if ('compute_numerical_stress' not in self.parameters and
             'compute_analytical_stress' not in self.parameters):
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return FileIOCalculator.get_stress(self, atoms)
 
     def get_forces(self, atoms):
         if ('compute_forces' not in self.parameters and
             'sc_accuracy_forces' not in self.parameters):
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return FileIOCalculator.get_forces(self, atoms)
 
     def read_dipole(self):

@@ -7,7 +7,8 @@ from ase.atoms import Atoms
 from ase.utils import gcd
 
 
-def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
+def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False,
+             vacuum=None):
     if n < m:
         m, n = n, m
         sign = -1
@@ -141,10 +142,13 @@ def nanotube(n, m, length=1, bond=1.42, symbol='C', verbose=False):
     diameter = rs * 2
     chiralangle = np.arctan((sq3 * n) / (2 * m + n)) / np.pi * 180
 
-    cell = [diameter * 2, diameter * 2, length * t]
-    atoms = Atoms(symbol + str(numatom), positions=X, cell=cell,
+    cell = [[0, 0, 0], [0, 0, 0], [0, 0, length * t]]
+    atoms = Atoms(symbol + str(numatom),
+                  positions=X,
+                  cell=cell,
                   pbc=[False, False, True])
-    atoms.center()
+    if vacuum:
+        atoms.center(vacuum, axis=(0, 1))
     if verbose:
         print('translation vector =', transvec)
         print('diameter = ', diameter)

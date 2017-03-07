@@ -12,6 +12,10 @@ class ReadError(Exception):
     pass
 
 
+class PropertyNotImplementedError(NotImplementedError):
+    pass
+
+
 all_properties = ['energy', 'forces', 'stress', 'dipole',
                   'charges', 'magmom', 'magmoms', 'free_energy']
 
@@ -182,18 +186,6 @@ class Parameters(dict):
     def __setattr__(self, key, value):
         self[key] = value
 
-    def update(self, other=None, **kwargs):
-        if isinstance(other, dict):
-            self.update(other.items())
-        else:
-            for key, value in other:
-                if isinstance(value, dict) and isinstance(self[key], dict):
-                    self[key].update(value)
-                else:
-                    self[key] = value
-        if kwargs:
-            self.update(kwargs)
-
     @classmethod
     def read(cls, filename):
         """Read parameters from file."""
@@ -216,10 +208,10 @@ class Parameters(dict):
 class Calculator:
     """Base-class for all ASE calculators.
 
-    A calculator must raise NotImplementedError if asked for a
+    A calculator must raise PropertyNotImplementedError if asked for a
     property that it can't calculate.  So, if calculation of the
     stress tensor has not been implemented, get_stress(atoms) should
-    raise NotImplementedError.  This can be achieved simply by not
+    raise PropertyNotImplementedError.  This can be achieved simply by not
     including the string 'stress' in the list implemented_properties
     which is a class member.  These are the names of the standard
     properties: 'energy', 'forces', 'stress', 'dipole', 'charges',
@@ -388,9 +380,6 @@ class Calculator:
         for key, value in kwargs.items():
             oldvalue = self.parameters.get(key)
             if key not in self.parameters or not equal(value, oldvalue):
-                if isinstance(oldvalue, dict) and isinstance(value, dict):
-                    oldvalue.update(value)
-                    value = oldvalue
                 changed_parameters[key] = value
                 self.parameters[key] = value
 
@@ -422,7 +411,12 @@ class Calculator:
     def get_potential_energy(self, atoms=None, force_consistent=False):
         energy = self.get_property('energy', atoms)
         if force_consistent:
-            return self.results.get('free_energy', energy)
+            if 'free_energy' not in self.results:
+                name = self.__class__.__name__
+                raise PropertyNotImplementedError(
+                    'Force consistent/free energy not provided by {0} '
+                    'calculator'.format(name))
+            return self.results['free_energy']
         else:
             return energy
 
@@ -447,7 +441,7 @@ class Calculator:
 
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
 
         if atoms is None:
             atoms = self.atoms
@@ -470,7 +464,7 @@ class Calculator:
         if name not in self.results:
             # For some reason the calculator was not able to do what we want,
             # and that is OK.
-            raise NotImplementedError
+            raise PropertyNotImplementedError
 
         result = self.results[name]
         if isinstance(result, np.ndarray):
@@ -539,25 +533,25 @@ class Calculator:
             x = np.eye(3)
             x[i, i] += d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eplus = atoms.get_potential_energy()
+            eplus = atoms.get_potential_energy(force_consistent=True)
 
             x[i, i] -= 2 * d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eminus = atoms.get_potential_energy()
+            eminus = atoms.get_potential_energy(force_consistent=True)
 
             stress[i, i] = (eplus - eminus) / (2 * d * V)
             x[i, i] += d
 
-            j = (i + 1) % 3
+            j = i - 2
             x[i, j] = d
             x[j, i] = d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eplus = atoms.get_potential_energy()
+            eplus = atoms.get_potential_energy(force_consistent=True)
 
             x[i, j] = -d
             x[j, i] = -d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eminus = atoms.get_potential_energy()
+            eminus = atoms.get_potential_energy(force_consistent=True)
 
             stress[i, j] = (eplus - eminus) / (4 * d * V)
             stress[j, i] = stress[i, j]

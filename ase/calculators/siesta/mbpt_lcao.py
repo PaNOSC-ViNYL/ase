@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import os
+from ase.utils import basestring
 
 
 class MBPT_LCAO:
@@ -42,7 +43,7 @@ class MBPT_LCAO:
         for k, v in self.param.items():
             if isinstance(v, np.ndarray):
                 f.write(k + '  {0}  {1}  {2}\n'.format(v[0], v[1], v[2]))
-            elif isinstance(v, str):
+            elif isinstance(v, basestring):
                 f.write(k + '      ' + v + '\n')
             elif k == 'group_species' or k == 'species_iter':
                 gp = '{'

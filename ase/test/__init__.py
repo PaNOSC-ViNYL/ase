@@ -41,22 +41,20 @@ class CustomTextTestRunner(unittest.TextTestRunner):
 
 
 class ScriptTestCase(unittest.TestCase):
-    def __init__(self, methodname='testfile', filename=None, display=True):
+    def __init__(self, methodname='testfile', filename=None):
         unittest.TestCase.__init__(self, methodname)
         self.filename = filename
-        self.display = display
 
     def testfile(self):
         try:
             with open(self.filename) as fd:
-                exec(compile(fd.read(), self.filename, 'exec'),
-                     {'display': self.display})
+                exec(compile(fd.read(), self.filename, 'exec'), {})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                          'flask', 'gpaw', 'GPAW']:
+                          'flask', 'gpaw', 'GPAW', 'argparse']:
                 sys.__stdout__.write('skipped (no {0} module) '.format(module))
             else:
                 raise
@@ -77,7 +75,7 @@ class ScriptTestCase(unittest.TestCase):
 
 
 def test(verbosity=1, calculators=[],
-         testdir=None, display=True, stream=sys.stdout, files=None):
+         testdir=None, stream=sys.stdout, files=None):
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
@@ -99,18 +97,10 @@ def test(verbosity=1, calculators=[],
     tests.sort()
     sdirtests.sort()
     tests.extend(sdirtests)  # run test subdirectories at the end
-    lasttest = None  # is COCu111.py in the current set
     for test in tests:
         if test.endswith('__.py'):
             continue
-        if test.endswith('COCu111.py'):
-            lasttest = test
-            continue
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(test),
-                                  display=display))
-    if lasttest:
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(lasttest),
-                                  display=display))
+        ts.addTest(ScriptTestCase(filename=os.path.abspath(test)))
 
     versions = [('platform', platform.platform()),
                 ('python-' + sys.version.split()[0], sys.executable)]
@@ -123,11 +113,14 @@ def test(verbosity=1, calculators=[],
             versions.append((name + '-' + module.__version__,
                             module.__file__.rsplit('/', 1)[0] + '/'))
 
-    for a, b in versions:
-        print('{0:16}{1}'.format(a, b))
+    if verbosity:
+        for a, b in versions:
+            print('{0:16}{1}'.format(a, b))
 
     sys.stdout = devnull
 
+    if verbosity == 0:
+        stream = devnull
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
 
     origcwd = os.getcwd()
@@ -139,7 +132,8 @@ def test(verbosity=1, calculators=[],
             shutil.rmtree(testdir)  # clean before running tests!
         os.mkdir(testdir)
     os.chdir(testdir)
-    print('test-dir       ', testdir, '\n', file=sys.__stdout__)
+    if verbosity:
+        print('test-dir       ', testdir, '\n', file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:
@@ -174,8 +168,12 @@ def cli(command, calculator_name=None):
     if (calculator_name is not None and
         calculator_name not in test_calculator_names):
         return
-    error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    if error != 0:
+    proc = subprocess.Popen(' '.join(command.split('\n')),
+                            shell=True,
+                            stdout=subprocess.PIPE)
+    print(proc.stdout.read().decode())
+    proc.wait()
+    if proc.returncode != 0:
         raise RuntimeError('Failed running a shell command.  '
                            'Please set you $PATH environment variable!')
 
@@ -204,8 +202,7 @@ if __name__ == '__main__':
     lines = []
     for line in output.splitlines():
         # Ignore these:
-        for txt in ['jacapo', 'tasks', 'execute.py',
-                    'list comprehension redefines']:
+        for txt in ['jacapo', 'list comprehension redefines']:
             if txt in line:
                 break
         else:

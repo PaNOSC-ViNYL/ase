@@ -4,6 +4,8 @@ Surfaces
 
 .. currentmodule:: ase.build
 
+.. _surfaces:
+
 Common surfaces
 ===============
 
@@ -35,7 +37,7 @@ position 1.5 Å above the top layer::
   add_adsorbate(slab, 'H', 1.5, 'ontop')
   slab.center(vacuum=10.0, axis=2)
 
-Note that in this case is is probably not meaningful to use the vacuum
+Note that in this case it is probably not meaningful to use the vacuum
 keyword to fcc111, as we want to leave 10 Å of vacuum *after* the
 adsorbate has been added. Instead, the :meth:`~ase.Atoms.center` method
 of the :class:`~ase.Atoms` is used
@@ -78,9 +80,10 @@ All the functions setting up surfaces take the same arguments.
 *vacuum*:
   The thickness of the vacuum layer.  The specified amount of
   vacuum appears on both sides of the slab.  Default value is None,
-  meaning not to add any vacuum.  In that case a "vacuum" layer equal
-  to the interlayer spacing will be present on the upper surface of
-  the slab.  Specify ``vacuum=0.0`` to remove it.
+  meaning not to add any vacuum.  In that case the third axis perpendicular to
+  the surface will be undefined (``[0, 0, 0]``).  Some calculators can work
+  with undefined axes as long as the :attr:`~ase.Atoms.pbc` flag is set to
+  ``False`` along that direction.
 
 *orthogonal*:
   (optional, not supported by all functions). If specified and true,
