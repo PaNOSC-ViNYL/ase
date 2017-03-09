@@ -150,8 +150,9 @@ class Albrecht(ResonantRaman):
                 self.timer.stop('0mm1')
                 
                 self.timer.start('weight_Q')
-                wm_Q += fco_Q / (energy_Q + m * self.om_Q - omL)
-                wp_Q += fco_Q / (energy_Q + m * self.om_Q + omS_Q)
+                e_Q = energy_Q + m * self.om_Q
+                wm_Q += fco_Q / (e_Q - omL)
+                wp_Q += fco_Q / (e_Q + omS_Q)
                 self.timer.stop('weight_Q')
             self.timer.start('einsum')
             m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
@@ -369,12 +370,18 @@ class Albrecht(ResonantRaman):
             else:
                 V_vcc += self.meAmult(omega, gamma)
         if approx == 'albrecht bc' or approx == 'albrecht':
-            vel_vcc = self.meBC(omega, gamma)
-            V_vcc += vel_vcc * self.vib01_Q[:, None, None]
+            if self.combinations == 1:
+                vel_vcc = self.meBC(omega, gamma)
+                V_vcc += vel_vcc * self.vib01_Q[:, None, None]
+            else:
+                vel_vcc = self.meBCmult(omega, gamma)
+                V_vcc = 0 
         elif approx == 'albrecht b':
+            assert(self.combinations == 1)
             vel_vcc = self.meBC(omega, gamma, term='B')
             V_vcc = vel_vcc * self.vib01_Q[:, None, None]
         if approx == 'albrecht c':
+            assert(self.combinations == 1)
             vel_vcc = self.meBC(omega, gamma, term='C')
             V_vcc = vel_vcc * self.vib01_Q[:, None, None]
 

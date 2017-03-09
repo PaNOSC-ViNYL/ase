@@ -53,7 +53,7 @@ class ResonantRaman(Vibrations):
                  verbose=False,
                  overlap=False,
                  minoverlap=0.1,
-                 minrep= 0.8,
+                 minrep=0.8,
     ):
         """
         Parameters
@@ -326,8 +326,7 @@ class ResonantRaman(Vibrations):
         self.ex0E_p = np.array([ex.energy * eu for ex in ex0])[select]
         self.ex0m_pc = (np.array(
             [ex.get_dipole_me(form=self.dipole_form)
-             for ex in ex0])[select] *
-                        u.Bohr)
+             for ex in ex0])[select] * u.Bohr)
 
         def rotate(ex_p, ov_pp):
             e_p = np.array([ex.energy for ex in ex_p])
@@ -382,6 +381,7 @@ class ResonantRaman(Vibrations):
         # self.im    : 1./sqrt(masses)
         # self.modes : Eigenmodes of the mass weighted Hessian
         self.om_Q = self.hnu.real    # energies in eV
+        self.om_v = self.om_Q
         # pre-factors for one vibrational excitation
         with np.errstate(divide='ignore'):
             self.vib01_Q = np.where(self.om_Q > 0,
@@ -483,14 +483,14 @@ class ResonantRaman(Vibrations):
 
     def get_cross_sections(self, omega, gamma=0.1):
         """Returns Raman cross sections for each vibration."""
-        I_r = self.intensity(omega, gamma)
+        I_v = self.intensity(omega, gamma)
         pre = 1. / 16 / np.pi**2 / u._eps0**2 / u._c**4
         # frequency of scattered light
-        omS_r = omega - self.hnu.real
-        return pre * omega * omS_r**3 * I_r
+        omS_v = omega - self.om_v
+        return pre * omega * omS_v**3 * I_v
 
     def get_spectrum(self, omega, gamma=0.1,
-                     start=200.0, end=4000.0, npts=None, width=4.0,
+                     start=None, end=None, npts=None, width=20,
                      type='Gaussian', method='standard', direction='central',
                      intensity_unit='????', normalize=False):
         """Get resonant Raman spectrum.
@@ -504,10 +504,17 @@ class ResonantRaman(Vibrations):
         self.type = type.lower()
         assert self.type in ['gaussian', 'lorentzian']
 
-        if not npts:
-            npts = int((end - start) / width * 10 + 1)
         frequencies = self.get_frequencies(method, direction).real
         intensities = self.get_cross_sections(omega, gamma)
+
+        if start is None:
+            start = min(self.om_v) / u.invcm - 3 * width
+        if end is None:
+            end = max(self.om_v) / u.invcm + 3 * width
+
+        if not npts:
+            npts = int((end - start) / width * 10 + 1)
+
         prefactor = 1
         if type == 'lorentzian':
             intensities = intensities * width * np.pi / 2.
