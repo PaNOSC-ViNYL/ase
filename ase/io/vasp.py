@@ -551,6 +551,10 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         # e_0_energy - e_fr_energy from calculation/scstep/energy, then
         # apply that correction to e_fr_energy from calculation/energy.
         lastscf = step.findall('scstep/energy')[-1]
+        try:
+            lastdipole = step.findall('scstep/dipole')[-1]
+        except:
+            lastdipole = None
 
         de = (float(lastscf.find('i[@name="e_0_energy"]').text) -
               float(lastscf.find('i[@name="e_fr_energy"]').text))
@@ -585,7 +589,14 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                       for val in vector.text.split()])
             stress *= -0.1 * GPa
             stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
-
+        
+        dipole = None
+        if lastdipole is not None:
+            dblock = lastdipole.find('v[@name="dipole"]')
+            if dblock is not None:
+                dipole = np.zeros((1,3), dtype=float)
+                dipole = np.array([float(val) for val in dblock.text.split()])
+        
         efermi = step.find('dos/i[@name="efermi"]')
         if efermi is not None:
             efermi = float(efermi.text)
@@ -619,7 +630,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             SinglePointDFTCalculator(atoms, energy=energy, forces=forces,
                                      stress=stress, free_energy=free_energy,
                                      bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
-                                     eFermi=efermi))
+                                     eFermi=efermi, dipole=dipole))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
         atoms.calc.parameters = parameters
