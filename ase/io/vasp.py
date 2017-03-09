@@ -531,7 +531,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                         dipole = np.array([float(val) for val in dblock.text.split()])
 	    	
 	    
-	    elif event == 'start' and elem.tag == 'calculation':
+            elif event == 'start' and elem.tag == 'calculation':
                 calculation.append(elem)
 
     except ET.ParseError as parse_error:
@@ -609,7 +609,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             dipole = np.zeros((1,3), dtype=float)
             dipole = np.array([float(val) for val in dblock.text.split()])
 	
-	efermi = step.find('dos/i[@name="efermi"]')
+        efermi = step.find('dos/i[@name="efermi"]')
         if efermi is not None:
             efermi = float(efermi.text)
 
