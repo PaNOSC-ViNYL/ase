@@ -455,9 +455,6 @@ class GenerateVaspInput(object):
 
         p = self.input_params
 
-        if not p['xc'] and not (p['gga'] or p['pp']):
-            self.set({'xc': 'PW91'})
-
         # There is no way to correctly guess the desired
         # set of pseudopotentials without 'pp' being set.
         # Usually, 'pp' will be set by 'xc'.

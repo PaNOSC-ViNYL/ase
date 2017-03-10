@@ -57,6 +57,19 @@ class Vasp(GenerateVaspInput, Calculator):
         self.atoms = None
         self.positions = None
         self.run_counts = 0
+
+        # If no XC combination, GGA functional or POTCAR type is specified,
+        # default to PW91. This is mostly chosen for backwards compatiblity.
+        if kwargs.get('xc', None):
+            pass
+        elif not (kwargs.get('gga', None) or kwargs.get('pp', None)):
+            self.input_params.update({'xc': 'PW91'})
+        # A null value of xc is permitted; custom recipes can be
+        # used by explicitly setting the pseudopotential set and
+        # INCAR keys
+        else:
+            self.input_params.update({'xc': None})
+
         self.set(**kwargs)
 
     def update(self, atoms):
