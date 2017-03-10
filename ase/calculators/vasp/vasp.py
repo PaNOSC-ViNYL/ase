@@ -27,14 +27,18 @@ from ase.calculators.general import Calculator
 import numpy as np
 
 import ase.io
-from ase.utils import devnull
+from ase.utils import devnull, basestring
 
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import PropertyNotImplementedError
 from .create_input import GenerateVaspInput
 
 
 class Vasp(GenerateVaspInput, Calculator):
     name = 'Vasp'
+
+    implemented_properties = ['energy', 'forces', 'dipole', 'fermi', 'stress'
+                                'magmom', 'magmoms']
 
     def __init__(self, restart=None,
                  output_template='vasp',
@@ -73,6 +77,12 @@ class Vasp(GenerateVaspInput, Calculator):
         etc. are read from the VASP output.
         """
 
+        # Check if there is only a zero unit cell
+        if not atoms.cell.any():
+            raise ValueError("The lattice vectors are zero! "
+                    "This is the default value - please specify a "
+                    "unit cell.")
+
         # Initialize calculations
         self.initialize(atoms)
 
@@ -83,11 +93,15 @@ class Vasp(GenerateVaspInput, Calculator):
         self.run()
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
-            # Update atomic positions and unit cell with the ones read
-            # from CONTCAR.
-            atoms.positions = atoms_sorted[self.resort].positions
-            atoms.cell = atoms_sorted.cell
+
+        if (self.int_params['ibrion'] is not None and
+                self.int_params['nsw'] is not None):
+            if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
+                # Update atomic positions and unit cell with the ones read
+                # from CONTCAR.
+                atoms.positions = atoms_sorted[self.resort].positions
+                atoms.cell = atoms_sorted.cell
+
         self.converged = self.read_convergence()
         self.set_results(atoms)
 
@@ -95,8 +109,8 @@ class Vasp(GenerateVaspInput, Calculator):
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if (self.int_params['lorbit'] >= 10 or
-                (self.int_params['lorbit'] is not None and
+            if (self.int_params['lorbit'] is not None and
+                (self.int_params['lorbit'] >= 10 or
                  self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
@@ -130,7 +144,7 @@ class Vasp(GenerateVaspInput, Calculator):
             sys.stderr = devnull
         elif p['txt'] == '-':
             pass
-        elif isinstance(p['txt'], str):
+        elif isinstance(p['txt'], basestring):
             sys.stderr = open(p['txt'], 'w')
         if 'VASP_COMMAND' in os.environ:
             vasp = os.environ['VASP_COMMAND']
@@ -262,7 +276,7 @@ class Vasp(GenerateVaspInput, Calculator):
     def get_stress(self, atoms):
         self.update(atoms)
         if self.stress is None:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return self.stress
 
     def read_stress(self):
@@ -372,7 +386,9 @@ class Vasp(GenerateVaspInput, Calculator):
         return self.magnetic_moment
 
     def get_magnetic_moments(self, atoms):
-        if self.int_params['lorbit'] >= 10 or self.list_params['rwigs']:
+        if ((self.int_params['lorbit'] is not None and
+             self.int_params['lorbit'] >= 10) or
+                self.list_params['rwigs']):
             self.update(atoms)
             return self.magnetic_moments
         else:
@@ -676,6 +692,94 @@ class Vasp(GenerateVaspInput, Calculator):
             xc = np.append(xc, l_)
         assert len(xc) == 32
         return xc
+
+    def check_state(self, atoms, tol=1e-15):
+        """Check for system changes since last calculation."""
+        from ase.calculators.calculator import all_changes, equal
+        if self.atoms is None:
+            system_changes = all_changes[:]
+        else:
+            system_changes = []
+            if not equal(self.atoms.positions, atoms.positions, tol):
+                system_changes.append('positions')
+            if not equal(self.atoms.numbers, atoms.numbers):
+                system_changes.append('numbers')
+            if not equal(self.atoms.cell, atoms.cell, tol):
+                system_changes.append('cell')
+            if not equal(self.atoms.pbc, atoms.pbc):
+                system_changes.append('pbc')
+            if not equal(self.atoms.get_initial_magnetic_moments(),
+                         atoms.get_initial_magnetic_moments(), tol):
+                system_changes.append('initial_magmoms')
+            if not equal(self.atoms.get_initial_charges(),
+                         atoms.get_initial_charges(), tol):
+                system_changes.append('initial_charges')
+
+        return system_changes
+
+    def get_property(self, name, atoms=None, allow_calculation=True):
+        """Returns the value of a property"""
+
+        if name not in Vasp.implemented_properties:
+            raise PropertyNotImplementedError
+
+        if atoms is None:
+            atoms = self.atoms
+
+        saved_property = {
+            'energy': 'energy_zero',
+            'forces': 'forces',
+            'dipole': 'dipole',
+            'fermi': 'fermi',
+            'stress': 'stress',
+            'magmom': 'magnetic_moment',
+            'magmoms': 'magnetic_moments'
+        }
+        property_getter = {
+            'energy':  {'function': 'get_potential_energy', 'args': [atoms]}, 
+            'forces':  {'function': 'get_forces',           'args': [atoms]},
+            'dipole':  {'function': 'get_dipole_moment',    'args': [atoms]},
+            'fermi':   {'function': 'get_fermi_level',      'args': []},
+            'stress':  {'function': 'get_stress',           'args': [atoms]},
+            'magmom':  {'function': 'get_magnetic_moment',  'args': [atoms]},
+            'magmoms': {'function': 'get_magnetic_moments', 'args': [atoms]}
+        }
+
+        if allow_calculation:
+            function = property_getter[name]['function']
+            args = property_getter[name]['args']
+            result = getattr(self, function)(*args)
+        else:
+            if hasattr(self, saved_property[name]):
+                result = getattr(self, saved_property[name])
+            else:
+                result = None
+
+        if isinstance(result, np.ndarray):
+            result = result.copy()
+        return result
+
+    def todict(self):
+        """Returns a dictionary of all parameters 
+        that can be used to construct a new calculator object"""
+        dict_list = [ 
+            'float_params',
+            'exp_params',
+            'string_params',
+            'int_params',
+            'bool_params',
+            'list_params',
+            'special_params',
+            'dict_params',
+            'input_params'
+        ]
+        dct = {}
+        for item in dict_list:
+            dct.update(getattr(self,item))
+        for key in list(dct.keys()):
+            if dct[key] is None:
+                del(dct[key])
+        return dct
 
 
 class VaspChargeDensity(object):

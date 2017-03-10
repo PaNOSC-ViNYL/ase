@@ -6,7 +6,7 @@ from random import randint
 
 import ase.io
 from ase.db import connect
-from ase.db.core import convert_str_to_float_or_str
+from ase.db.core import convert_str_to_int_float_or_str
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.calculators.calculator import get_calculator
@@ -34,13 +34,13 @@ examples = ['calculator=nwchem',
 
 
 def main(args=sys.argv[1:]):
-    if isinstance(args, str):
+    if isinstance(args, basestring):
         args = args.split(' ')
     parser = optparse.OptionParser(
         usage='Usage: %prog db-name [selection] [options]',
         description=description,
         epilog='Selection examples: ' + ', '.join(examples) + '.')
-    
+
     add = parser.add_option
     add('-v', '--verbose', action='store_true', default=False)
     add('-q', '--quiet', action='store_true', default=False)
@@ -111,19 +111,19 @@ def main(args=sys.argv[1:]):
         else:
             raise
 
-        
+
 def run(opts, args, verbosity):
     filename = args.pop(0)
     query = ','.join(args)
 
     if query.isdigit():
         query = int(query)
-    
+
     add_key_value_pairs = {}
     if opts.add_key_value_pairs:
         for pair in opts.add_key_value_pairs.split(','):
             key, value = pair.split('=')
-            add_key_value_pairs[key] = convert_str_to_float_or_str(value)
+            add_key_value_pairs[key] = convert_str_to_int_float_or_str(value)
 
     if opts.delete_keys:
         delete_keys = opts.delete_keys.split(',')
@@ -131,15 +131,15 @@ def run(opts, args, verbosity):
         delete_keys = []
 
     con = connect(filename, use_lock_file=not opts.no_lock_file)
-    
+
     def out(*args):
         if verbosity > 0:
             print(*args)
-         
+
     if opts.analyse:
         con.analyse()
         return
-        
+
     if opts.add_from_file:
         filename = opts.add_from_file
         if ':' in filename:
@@ -151,17 +151,17 @@ def run(opts, args, verbosity):
         out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
                                         filename))
         return
-        
+
     if opts.count:
         n = con.count(query)
         print('%s' % plural(n, 'row'))
         return
 
     if opts.explain:
-        for dct in con.select(query, explain=True,
+        for row in con.select(query, explain=True,
                               verbosity=verbosity,
                               limit=opts.limit, offset=opts.offset):
-            print(dct['explain'])
+            print(row['explain'])
         return
 
     if opts.insert_into:
@@ -169,16 +169,16 @@ def run(opts, args, verbosity):
         nrows = 0
         with connect(opts.insert_into,
                      use_lock_file=not opts.no_lock_file) as con2:
-            for dct in con.select(query):
-                kvp = dct.get('key_value_pairs', {})
+            for row in con.select(query):
+                kvp = row.get('key_value_pairs', {})
                 nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
                 if opts.unique:
-                    dct['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
-                con2.write(dct, data=dct.get('data'), **kvp)
+                    row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
+                con2.write(row, data=row.get('data'), **kvp)
                 nrows += 1
-            
+
         out('Added %s (%s updated)' %
             (plural(nkvp, 'key-value pair'),
              plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
@@ -186,7 +186,7 @@ def run(opts, args, verbosity):
         return
 
     if add_key_value_pairs or delete_keys:
-        ids = [dct['id'] for dct in con.select(query)]
+        ids = [row['id'] for row in con.select(query)]
         m, n = con.update(ids, delete_keys, **add_key_value_pairs)
         out('Added %s (%s updated)' %
             (plural(m, 'key-value pair'),
@@ -196,7 +196,7 @@ def run(opts, args, verbosity):
         return
 
     if opts.delete:
-        ids = [dct['id'] for dct in con.select(query)]
+        ids = [row['id'] for row in con.select(query)]
         if ids and not opts.yes:
             msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
             if input(msg).lower() != 'yes':
@@ -244,14 +244,14 @@ def run(opts, args, verbosity):
         return
 
     if opts.long:
-        dct = con.get(query)
-        summary = Summary(dct)
+        row = con.get(query)
+        summary = Summary(row)
         summary.write()
     elif opts.json:
-        dct = con.get(query)
+        row = con.get(query)
         con2 = connect(sys.stdout, 'json', use_lock_file=False)
-        kvp = dct.get('key_value_pairs', {})
-        con2.write(dct, data=dct.get('data'), **kvp)
+        kvp = row.get('key_value_pairs', {})
+        con2.write(row, data=row.get('data'), **kvp)
     else:
         if opts.open_web_browser:
             import ase.db.app as app
@@ -280,7 +280,7 @@ def run(opts, args, verbosity):
                         columns.remove(col[1:])
                     else:
                         columns.append(col.lstrip('+'))
-        
+
             table = Table(con, verbosity, opts.cut)
             table.select(query, columns, opts.sort, opts.limit, opts.offset)
             if opts.csv:

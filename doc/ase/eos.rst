@@ -10,5 +10,8 @@ equilibrium volume, energy, and bulk modulus for solids:
 .. autoclass:: ase.eos.EquationOfState
   :members: fit, plot
 
+Convenient helper function:
+
+.. autofunction:: ase.eos.calculate_eos
 
 .. seealso::  The :ref:`eos` tutorial.

@@ -9,43 +9,6 @@ import numpy as np
 from ase import units
 
 
-def rotationalinertia(atoms):
-    """Calculates the three principle moments of inertia for an ASE atoms
-    object. This uses the atomic masses from ASE, which (if not explicitly
-    specified by the user) gives an inexact approximation of an isotopically
-    averaged result. Units are in amu*angstroms**2."""
-
-    # Calculate the center of mass.
-    xcm, ycm, zcm = atoms.get_center_of_mass()
-    masses = atoms.get_masses()
-
-    # Calculate moments of inertia in the current frame of reference.
-    Ixx = 0.
-    Iyy = 0.
-    Izz = 0.
-    Ixy = 0.
-    Ixz = 0.
-    Iyz = 0.
-    for index, atom in enumerate(atoms):
-        m = masses[index]
-        x = atom.x - xcm
-        y = atom.y - ycm
-        z = atom.z - zcm
-        Ixx += m * (y**2. + z**2.)
-        Iyy += m * (x**2. + z**2.)
-        Izz += m * (x**2. + y**2.)
-        Ixy += m * x * y
-        Ixz += m * x * z
-        Iyz += m * y * z
-    # Create the inertia tensor in the current frame of reference.
-    I_ = np.matrix([[Ixx, -Ixy, -Ixz],
-                    [-Ixy, Iyy, -Iyz],
-                    [-Ixz, -Iyz, Izz]])
-    # Find the eigenvalues, which are the principle moments of inertia.
-    I = np.linalg.eigvals(I_)
-    return I
-
-
 class ThermoChem:
     """Base class containing common methods used in thermochemistry
     calculations."""
@@ -257,7 +220,7 @@ class HinderedThermo(ThermoChem):
             if inertia:
                 self.inertia = inertia * units._amu / units.m**2
             elif atoms:
-                self.inertia = (rotationalinertia(atoms)[2] *
+                self.inertia = (atoms.get_moments_of_inertia()[2] *
                                 units._amu / units.m**2)
         else:
             raise RuntimeError('Either mass and inertia of the '
@@ -569,14 +532,14 @@ class IdealGasThermo(ThermoChem):
         if self.geometry == 'monatomic':
             S_r = 0.0
         elif self.geometry == 'nonlinear':
-            inertias = (rotationalinertia(self.atoms) * units._amu /
+            inertias = (self.atoms.get_moments_of_inertia() * units._amu /
                         (10.0**10)**2)  # kg m^2
             S_r = np.sqrt(np.pi * np.product(inertias)) / self.sigma
             S_r *= (8.0 * np.pi**2 * units._k * temperature /
                     units._hplanck**2)**(3.0 / 2.0)
             S_r = units.kB * (np.log(S_r) + 3.0 / 2.0)
         elif self.geometry == 'linear':
-            inertias = (rotationalinertia(self.atoms) * units._amu /
+            inertias = (self.atoms.get_moments_of_inertia() * units._amu /
                         (10.0**10)**2)  # kg m^2
             inertia = max(inertias)  # should be two identical and one zero
             S_r = (8 * np.pi**2 * inertia * units._k * temperature /

@@ -1,9 +1,12 @@
 """Test the ase.geometry module and ase.build.cut() function."""
 
+from __future__ import division
+
 import numpy as np
 
-from ase.build import cut
-from ase.geometry import get_layers, wrap_positions
+from ase.build import cut, bulk
+from ase.geometry import (get_layers, wrap_positions,
+                          crystal_structure_from_cell)
 from ase.spacegroup import crystal
 
 al = crystal('Al', [(0, 0, 0)], spacegroup=225, cellpar=4.05)
@@ -146,3 +149,18 @@ correct_pos = [[4.7425, 1.2575, 8.7425],
                [2.0275, -1.4575, 8.7425],
                [0.67, -0.1, 10.1]]
 assert np.allclose(correct_pos, result_positions)
+
+# Get the correct crystal structure from a range of different cells
+assert crystal_structure_from_cell(bulk('Al').get_cell()) == 'fcc'
+assert crystal_structure_from_cell(bulk('Fe').get_cell()) == 'bcc'
+assert crystal_structure_from_cell(bulk('Zn').get_cell()) == 'hexagonal'
+cell = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+assert crystal_structure_from_cell(cell) == 'cubic'
+cell = [[1, 0, 0], [0, 1, 0], [0, 0, 2]]
+assert crystal_structure_from_cell(cell) == 'tetragonal'
+cell = [[1, 0, 0], [0, 2, 0], [0, 0, 3]]
+assert crystal_structure_from_cell(cell) == 'orthorhombic'
+cell = [[1, 0, 0], [0, 2, 0], [0, 1, 3]]
+assert crystal_structure_from_cell(cell) == 'monoclinic'
+
+

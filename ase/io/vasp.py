@@ -5,6 +5,7 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
+from ase.utils import basestring
 
 
 def get_atomtypes(fname):
@@ -105,7 +106,7 @@ def read_vasp(filename='CONTCAR'):
     from ase.data import chemical_symbols
     import numpy as np
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -200,7 +201,7 @@ def read_vasp(filename='CONTCAR'):
                 curflag.append(flag == 'F')
             selective_flags[atom] = curflag
     # Done with all reading
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
     if cartesian:
         atoms_pos *= lattice_constant
@@ -242,7 +243,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         except Exception:
             constr = None
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -268,7 +269,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         if 'ions per type' in line:
             species = species[:len(species) // 2]
             temp = line.split()
-            for ispecies in range(len(species)):
+            ntypes = min(len(temp)-4, len(species))
+            for ispecies in range(ntypes):
                 species_num += [int(temp[ispecies + 4])]
                 natoms += species_num[-1]
                 for iatom in range(species_num[-1]):
@@ -363,7 +365,7 @@ def read_vasp_xdatcar(filename, index=-1):
     atomic_formula = str()
 
     with open(filename, 'r') as xdatcar:
-        
+
         while True:
             comment_line = xdatcar.readline()
             if "Direct configuration=" not in comment_line:
@@ -371,7 +373,7 @@ def read_vasp_xdatcar(filename, index=-1):
                     lattice_constant = float(xdatcar.readline())
                 except:
                     break
-                
+
                 xx = [float(x) for x in xdatcar.readline().split()]
                 yy = [float(y) for y in xdatcar.readline().split()]
                 zz = [float(z) for z in xdatcar.readline().split()]
@@ -387,7 +389,8 @@ def read_vasp_xdatcar(filename, index=-1):
 
                 xdatcar.readline()
 
-            coords = [ np.array(xdatcar.readline().split(), np.float) for ii in range(total) ]
+            coords = [np.array(xdatcar.readline().split(), np.float)
+                      for ii in range(total)]
 
             image = Atoms(atomic_formula, cell=cell, pbc=True)
             image.set_scaled_positions(np.array(coords))
@@ -397,6 +400,37 @@ def read_vasp_xdatcar(filename, index=-1):
         return images
     else:
         return images[index]
+
+
+def __get_xml_parameter(par):
+    """An auxillary function that enables convenient extraction of
+    parameter values from a vasprun.xml file with proper type
+    handling.
+
+    """
+
+    def to_bool(b):
+        if b == 'T':
+            return True
+        else:
+            return False
+
+    to_type = {'int': int,
+               'logical': to_bool,
+               'string': str,
+               'float': float}
+
+    text = par.text
+    if text is None:
+        text = ''
+
+    # Float parameters do not have a 'type' attrib
+    var_type = to_type[par.attrib.get('type', 'float')]
+
+    if par.tag == 'v':
+        return map(var_type, text.split())
+    else:
+        return var_type(text.strip())
 
 
 def read_vasp_xml(filename='vasprun.xml', index=-1):
@@ -413,22 +447,39 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from ase.calculators.singlepoint import (SinglePointDFTCalculator,
                                              SinglePointKPoint)
     from ase.units import GPa
+    from collections import OrderedDict
 
     tree = ET.iterparse(filename, events=['start', 'end'])
 
     atoms_init = None
     calculation = []
     ibz_kpts = None
+    parameters = OrderedDict()
 
     try:
         for event, elem in tree:
+
             if event == 'end':
                 if elem.tag == 'kpoints':
+                    for subelem in elem.iter(tag='generation'):
+                        kpts_params = OrderedDict()
+                        parameters['kpoints_generation'] = kpts_params
+                        for par in subelem.iter():
+                            if par.tag in ['v', 'i']:
+                                parname = par.attrib['name'].lower()
+                                kpts_params[parname] = __get_xml_parameter(par)
+
                     kpts = elem.findall("varray[@name='kpointlist']/v")
                     ibz_kpts = np.zeros((len(kpts), 3))
 
                     for i, kpt in enumerate(kpts):
                         ibz_kpts[i] = [float(val) for val in kpt.text.split()]
+
+                elif elem.tag == 'parameters':
+                    for par in elem.iter():
+                        if par.tag in ['v', 'i']:
+                            parname = par.attrib['name'].lower()
+                            parameters[parname] = __get_xml_parameter(par)
 
                 elif elem.tag == 'atominfo':
                     species = []
@@ -540,22 +591,27 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if efermi is not None:
             efermi = float(efermi.text)
 
-        kpoints = None
-        kblocks = step.findall(
-                'eigenvalues/array/set/set/set[@comment="kpoint 1"]')
-        if kblocks is not None:
-            kpoints = []
-            for i, kpoint in enumerate(kblocks):
-                eigenvals = kpoint.findall('r')
-                eps_n = np.zeros(len(eigenvals))
-                f_n = np.zeros(len(eigenvals))
-                for j, val in enumerate(eigenvals):
-                    val = val.text.split()
-                    eps_n[j] = float(val[0])
-                    f_n[j] = float(val[1])
-                if len(kblocks) == 1:
-                    f_n *= 2
-                kpoints.append(SinglePointKPoint(1, i, 0, eps_n, f_n))
+        kpoints = []
+        for ikpt in range(1, len(ibz_kpts) + 1):
+            kblocks = step.findall(
+                'eigenvalues/array/set/set/set[@comment="kpoint %d"]' % ikpt)
+            if kblocks is not None:
+                for i, kpoint in enumerate(kblocks):
+                    eigenvals = kpoint.findall('r')
+                    eps_n = np.zeros(len(eigenvals))
+                    f_n = np.zeros(len(eigenvals))
+                    for j, val in enumerate(eigenvals):
+                        val = val.text.split()
+                        eps_n[j] = float(val[0])
+                        f_n[j] = float(val[1])
+                    if len(kblocks) == 1:
+                        f_n *= 2
+                    kpoints.append(SinglePointKPoint(1, 0, ikpt, eps_n, f_n))
+        if len(kpoints) == 0:
+            kpoints = None
+
+        if ibz_kpts is not None:
+            bz_kpts = np.dot(ibz_kpts, cell)
 
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
@@ -563,9 +619,11 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         atoms.set_calculator(
             SinglePointDFTCalculator(atoms, energy=energy, forces=forces,
                                      stress=stress, free_energy=free_energy,
-                                     ibz_kpts=ibz_kpts, eFermi=efermi))
+                                     bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
+                                     eFermi=efermi))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
+        atoms.calc.parameters = parameters
         yield atoms
 
 
@@ -582,7 +640,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
@@ -706,5 +764,5 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                 f.write('%4s' % s)
         f.write('\n')
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()

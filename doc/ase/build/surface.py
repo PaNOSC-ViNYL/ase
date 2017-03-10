@@ -31,7 +31,7 @@ for name in surfaces:
         except (TypeError, NotImplementedError):
             continue
         try:
-            for site in slab.adsorbate_info['sites']:
+            for site in slab.info['adsorbate_info']['sites']:
                 if site.endswith('bridge'):
                     h = 1.5
                 else:

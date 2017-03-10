@@ -42,14 +42,25 @@ Supported :mod:`Calculators <ase.calculators>`:
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
-:mod:`~ase.calculators.tip3p` Grimme-D3_
+|octopus| |onetep| |siesta| |turbomole| |vasp|
+:mod:`~ase.calculators.amber`
+Gaussian_ Grimme-D3_ Mopac_
+:mod:`~ase.calculators.tip3p`
 
 
 .. _news:
 
 News
 ====
+
+* :ref:`ASE version 3.13.0 <releasenotes>` released (7 February 2017).
+
+* Psi-k *Scientifc Highlight Of The Month*:
+  `The Atomic Simulation Environment | A Python library for working with
+  atoms <http://psi-k.net/download/highlights/Highlight_134.pdf>`__
+  (20 January 2017).
+
+* :ref:`ASE version 3.12.0 <releasenotes>` released (24 October 2016).
 
 * :ref:`ASE version 3.11.0 <releasenotes>` released (10 May 2016).
 
@@ -115,6 +126,7 @@ Contents
     tutorials/tutorials
     ase/ase
     cmdline
+    tips
     gallery/gallery
     releasenotes
     contact
@@ -182,6 +194,9 @@ Contents
 .. |octopus| image:: static/octopus.png
    :target: ase/calculators/octopus.html
    :align: middle
+.. |onetep| image:: static/onetep.png
+   :target: http://www.onetep.org/
+   :align: middle
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
    :align: middle
@@ -191,6 +206,7 @@ Contents
 .. |vasp| image:: static/vasp.png
    :target: ase/calculators/vasp.html
    :align: middle
+
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/

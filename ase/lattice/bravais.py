@@ -9,7 +9,7 @@ import math
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.utils import gcd
+from ase.utils import gcd, basestring
 import ase.data
 
 
@@ -191,7 +191,7 @@ class Bravais:
         "Extract atomic number from element"
         # The types that can be elements: integers and strings
         if self.element_basis is None:
-            if isinstance(element, type("string")):
+            if isinstance(element, basestring):
                 self.atomicnumber = ase.data.atomic_numbers[element]
             elif isinstance(element, int):
                 self.atomicnumber = element
@@ -212,7 +212,7 @@ class Bravais:
                          +" (one for each kind of lattice position")
                         % (max(self.element_basis)+1,))
             for e in element:
-                if isinstance(e, type("string")):
+                if isinstance(e, basestring):
                     atomicnumber.append(ase.data.atomic_numbers[e])
                 elif isinstance(e, int):
                     atomicnumber.append(e)

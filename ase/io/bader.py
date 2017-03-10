@@ -1,10 +1,11 @@
 from __future__ import print_function
 import numpy as np
 from ase.units import Bohr
+from ase.utils import basestring
 
 def attach_charges(atoms, fileobj='ACF.dat', displacement=1e-4):
     """Attach the charges from the fileobj to the Atoms."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
     sep = '---------------'

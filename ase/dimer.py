@@ -14,6 +14,7 @@ from ase.optimize.optimize import Optimizer
 from math import cos, sin, atan, tan, degrees, pi, sqrt
 from ase.parallel import rank, size, world
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.utils import basestring
 
 # Handy vector methods
 norm = np.linalg.norm
@@ -23,7 +24,7 @@ def normalize(vector):
     """Create a unit vector along *vector*"""
     return vector / norm(vector)
 
-    
+
 def parallel_vector(vector, base):
     """Extract the components of *vector* that are parallel to *base*"""
     return np.vdot(vector, base) * base
@@ -329,7 +330,7 @@ class MinModeControl:
         # Set up the regular logfile
         if rank != 0:
             logfile = None
-        elif isinstance(logfile, str):
+        elif isinstance(logfile, basestring):
             if logfile == '-':
                 logfile = sys.stdout
             else:
@@ -340,7 +341,7 @@ class MinModeControl:
         if eigenmode_logfile:
             if rank != 0:
                 eigenmode_logfile = None
-            elif isinstance(eigenmode_logfile, str):
+            elif isinstance(eigenmode_logfile, basestring):
                 if eigenmode_logfile == '-':
                     eigenmode_logfile = sys.stdout
                 else:
@@ -1121,7 +1122,7 @@ def read_eigenmode(mlog, index = -1):
     To access the pre optimization eigenmode set index = 'null'.
 
     """
-    if isinstance(mlog, str):
+    if isinstance(mlog, basestring):
         f = open(mlog, 'r')
     else:
         f = mlog
@@ -1136,7 +1137,7 @@ def read_eigenmode(mlog, index = -1):
     n_itr = (len(lines) // (n + 1)) - 2
 
     # Locate the correct image.
-    if isinstance(index, str):
+    if isinstance(index, basestring):
         if index.lower() == 'null':
             i = 0
         else:

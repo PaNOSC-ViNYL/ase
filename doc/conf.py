@@ -7,6 +7,7 @@ assert sys.version_info >= (2, 7)
 extensions = ['ext',
               'images',
               'sphinx.ext.autodoc',
+              'sphinx.ext.doctest',
               'sphinx.ext.mathjax',
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx']

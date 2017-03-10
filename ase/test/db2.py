@@ -17,7 +17,7 @@ for name in ['y2.json', 'y2.db']:
     c.delete([d.id for d in c.select(abc=7)])
     id = c.reserve(abc=7)
     assert c[id].abc == 7
-    
+
     a = c.get_atoms(id)
     c.write(Atoms())
     ch4 = molecule('CH4', calculator=EMT())
@@ -25,7 +25,7 @@ for name in ['y2.json', 'y2.db']:
                        FixBondLength(0, 2)]
     f1 = ch4.get_forces()
     print(f1)
-    
+
     c.delete([d.id for d in c.select(C=1)])
     chi = np.array([1 + 0.5j, 0.5])
     id = c.write(ch4, data={'1-butyne': 'bla-bla', 'chi': chi})
@@ -33,7 +33,7 @@ for name in ['y2.json', 'y2.db']:
     row = c.get(id)
     print(row.data['1-butyne'], row.data.chi)
     assert (row.data.chi == chi).all()
-    
+
     assert len(c.get_atoms(C=1).constraints) == 2
 
     f2 = c.get(C=1).forces
@@ -51,10 +51,11 @@ for name in ['y2.json', 'y2.db']:
     row = c.get(C=1)
     assert row.id == id
     assert (row.data.chi == chi).all()
+    print(row)
 
     with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])
-        
+
     with must_raise(ValueError):
         c.write(Atoms(), pi='3.14')
 

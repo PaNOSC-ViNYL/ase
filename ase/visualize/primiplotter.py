@@ -15,6 +15,7 @@ import numpy as np
 
 from ase.visualize.colortable import color_table
 import ase.data
+from ase.utils import basestring
 
 
 class PrimiPlotterBase:
@@ -22,11 +23,11 @@ class PrimiPlotterBase:
     #def set_dimensions(self, dims):
     #    "Set the size of the canvas (a 2-tuple)."
     #    self.dims = dims
-        
+
     def set_rotation(self, rotation):
         "Set the rotation angles (in degrees)."
         self.angles[:] = np.array(rotation) * (pi/180)
-        
+
     def set_radii(self, radii):
         """Set the atomic radii.  Give an array or a single number."""
         self.radius = radii
@@ -844,14 +845,14 @@ class PostScriptFile(_PostScriptToFile):
         plotmethod(*(file, n)+args, **kargs)
         file.close()
 
-class _PS_via_PnmFile(_PostScriptToFile):
-    gscmd = "gs -q -sDEVICE=pnmraw -sOutputFile=- -dDEVICEWIDTH=%d -dDEVICEHEIGHT=%d - "
+class _PS_to_bitmap(_PostScriptToFile):
+    gscmd = "gs -q -sDEVICE={0} -sOutputFile=- -dDEVICEWIDTH=%d -dDEVICEHEIGHT=%d - "
     # Inherits __init__
 
     def Doplot(self, plotmethod, n, *args, **kargs):
         filename = self.filenames % (n,)
         self.owner.log("Output to bitmapped file " + filename)
-        cmd = self.gscmd + self.converter
+        cmd = self.gscmd.format(self.devicename)
         if self.compress:
             cmd = cmd + "| gzip "
             
@@ -860,19 +861,27 @@ class _PS_via_PnmFile(_PostScriptToFile):
         plotmethod(*(file, n)+args, **kargs)
         file.close()
 
-class PnmFile(_PS_via_PnmFile):
+class PnmFile(_PS_to_bitmap):
     suffix = ".pnm"
+    devicename = "pnmraw"
     compr_suffix = ".gz"
-    converter = ""
 
-class GifFile(_PS_via_PnmFile):
-    suffix = ".gif"
-    converter = "| ppmquant -floyd 256 2>/dev/null | ppmtogif 2>/dev/null"
+#class GifFile(_PS_via_PnmFile):
+#    suffix = ".gif"
+#    converter = "| ppmquant -floyd 256 2>/dev/null | ppmtogif 2>/dev/null"
 
-class JpegFile(_PS_via_PnmFile):
+class JpegFile(_PS_to_bitmap):
     suffix = ".jpeg"
-    converter = "| ppmtojpeg --smooth=5"
-    
+    devicename = "jpeg"
+
+class PngFile(_PS_to_bitmap):
+    suffix = ".png"
+    devicename = "png16m"
+
+class Png256File(_PS_to_bitmap):
+    suffix = ".png"
+    devicename = "png256"
+
 class X11Window(_PostScriptDevice):
     """Shows the plot in an X11 window."""
     #Inherits __init__
@@ -911,7 +920,7 @@ def _colorsfromdict(dict, cls):
     isgray, isrgb = 0, 0
     for k in dict.keys():
         v = dict[k]
-        if isinstance(v, type("string")):
+        if isinstance(v, basestring):
             v = color_table[v]
             dict[k] = v
         try:

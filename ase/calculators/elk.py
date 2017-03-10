@@ -5,7 +5,7 @@ import numpy as np
 from ase.units import Bohr, Hartree
 from ase.io.elk import read_elk
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    ReadError
+    ReadError, PropertyNotImplementedError
 
 elk_parameters = {'swidth': Hartree}
 
@@ -254,7 +254,7 @@ class ELK(FileIOCalculator):
 
     def get_forces(self, atoms):
         if not self.parameters.get('tforce'):
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return FileIOCalculator.get_forces(self, atoms)
 
     def read_energy(self):

@@ -209,7 +209,9 @@ def find_optimal_cell_shape(cell, target_size, target_shape,
     weave.inline(code, ['search_range', 'norm_cell', 'best_score',
                         'optimal_P', 'target_metric', 'target_size',
                         'starting_P'])
-    search_range -= 1.0
+
+    # This is done to satisfy pyflakes/pep8.
+    search_range -= 1
 
     # Finalize.
     if verbose:
