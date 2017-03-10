@@ -780,8 +780,8 @@ class GenerateVaspInput(object):
         """Writes the KPOINTS file."""
 
         # Don't write anything if KSPACING is being used
-        if self.float_params['kspacing'] is not NOne:
-            if slef.float_params['kspacing'] > 0:
+        if self.float_params['kspacing'] is not None:
+            if self.float_params['kspacing'] > 0:
                 return
             else:
                 raise ValueError("KSPACING value {0} is not allowable. "
