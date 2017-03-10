@@ -262,6 +262,7 @@ bool_keys = [
     'lsorbit',    # Enable spin-orbit coupling
     'lsol',       # turn on solvation for Vaspsol
     'lautoscale',  # automatically calculate inverse curvature for VTST LBFGS
+    'interactive', # Enables interactive calculation for VaspInteractive
 ]
 
 list_keys = [
