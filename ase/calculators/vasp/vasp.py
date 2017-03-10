@@ -27,9 +27,10 @@ from ase.calculators.general import Calculator
 import numpy as np
 
 import ase.io
-from ase.utils import devnull
+from ase.utils import devnull, basestring
 
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import PropertyNotImplementedError
 from .create_input import GenerateVaspInput
 
 
@@ -73,6 +74,12 @@ class Vasp(GenerateVaspInput, Calculator):
         etc. are read from the VASP output.
         """
 
+        # Check if there is only a zero unit cell
+        if not atoms.cell.any():
+            raise ValueError("The lattice vectors are zero! "
+                    "This is the default value - please specify a "
+                    "unit cell.")
+
         # Initialize calculations
         self.initialize(atoms)
 
@@ -83,11 +90,15 @@ class Vasp(GenerateVaspInput, Calculator):
         self.run()
         # Read output
         atoms_sorted = ase.io.read('CONTCAR', format='vasp')
-        if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
-            # Update atomic positions and unit cell with the ones read
-            # from CONTCAR.
-            atoms.positions = atoms_sorted[self.resort].positions
-            atoms.cell = atoms_sorted.cell
+
+        if (self.int_params['ibrion'] is not None and
+                self.int_params['nsw'] is not None):
+            if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
+                # Update atomic positions and unit cell with the ones read
+                # from CONTCAR.
+                atoms.positions = atoms_sorted[self.resort].positions
+                atoms.cell = atoms_sorted.cell
+
         self.converged = self.read_convergence()
         self.set_results(atoms)
 
@@ -95,8 +106,8 @@ class Vasp(GenerateVaspInput, Calculator):
         self.read(atoms)
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if (self.int_params['lorbit'] >= 10 or
-                (self.int_params['lorbit'] is not None and
+            if (self.int_params['lorbit'] is not None and
+                (self.int_params['lorbit'] >= 10 or
                  self.list_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
@@ -130,7 +141,7 @@ class Vasp(GenerateVaspInput, Calculator):
             sys.stderr = devnull
         elif p['txt'] == '-':
             pass
-        elif isinstance(p['txt'], str):
+        elif isinstance(p['txt'], basestring):
             sys.stderr = open(p['txt'], 'w')
         if 'VASP_COMMAND' in os.environ:
             vasp = os.environ['VASP_COMMAND']
@@ -262,7 +273,7 @@ class Vasp(GenerateVaspInput, Calculator):
     def get_stress(self, atoms):
         self.update(atoms)
         if self.stress is None:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return self.stress
 
     def read_stress(self):
@@ -372,7 +383,9 @@ class Vasp(GenerateVaspInput, Calculator):
         return self.magnetic_moment
 
     def get_magnetic_moments(self, atoms):
-        if self.int_params['lorbit'] >= 10 or self.list_params['rwigs']:
+        if ((self.int_params['lorbit'] is not None and
+             self.int_params['lorbit'] >= 10) or
+                self.list_params['rwigs']):
             self.update(atoms)
             return self.magnetic_moments
         else:

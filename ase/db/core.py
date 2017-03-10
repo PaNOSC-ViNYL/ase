@@ -142,13 +142,16 @@ def lock(method):
     return new_method
 
 
-def convert_str_to_float_or_str(value):
+def convert_str_to_int_float_or_str(value):
     """Safe eval()"""
     try:
-        value = float(value)
+        return int(value)
     except ValueError:
-        value = {'True': 1.0, 'False': 0.0}.get(value, value)
-    return value
+        try:
+            value = float(value)
+        except ValueError:
+            value = {'True': True, 'False': False}.get(value, value)
+        return value
 
 
 class Database:
@@ -162,11 +165,11 @@ class Database:
             to interact with the database on the master only and then
             distribute results to all slaves.
         """
-        if isinstance(filename, str):
+        if isinstance(filename, basestring):
             filename = os.path.expanduser(filename)
         self.filename = filename
         self.create_indices = create_indices
-        if use_lock_file and isinstance(filename, str):
+        if use_lock_file and isinstance(filename, basestring):
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
@@ -345,7 +348,7 @@ class Database:
                 key = atomic_numbers[key]
                 value = int(value)
             elif isinstance(value, basestring):
-                value = convert_str_to_float_or_str(value)
+                value = convert_str_to_int_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
                 msg = 'Wrong type for "{0}{1}{2}" - must be a number'
                 raise ValueError(msg.format(key, op, value))

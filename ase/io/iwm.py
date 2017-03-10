@@ -2,6 +2,8 @@ import numpy as np
 
 from ase.data import chemical_symbols
 from ase.atoms import Atoms
+from ase.utils import basestring
+
 
 iwm_symbols = {'1': 'C',
                '2': 'Au',
@@ -9,7 +11,7 @@ iwm_symbols = {'1': 'C',
 
 
 def read_iwm(fileobj, index=-1):
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
     lines = fileobj.readlines()

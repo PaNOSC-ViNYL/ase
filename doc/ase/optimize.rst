@@ -227,11 +227,6 @@ as::
 .. autoclass:: ase.optimize.sciopt.SciPyFminBFGS
 .. autoclass:: ase.optimize.sciopt.SciPyFminCG
 
-.. seealso::
-
-  :epydoc:`optimize.sciopt.SciPyFminBFGS`,
-  :epydoc:`optimize.sciopt.SciPyFminCG`
-
 
 BFGSLineSearch
 --------------
@@ -260,6 +255,150 @@ optimization and the information needed to generate the Hessian Matrix.
 The BFGSLineSearch algorithm is not compatible with nudged elastic band
 calculations.
 
+
+.. module:: ase.optimize.precon
+
+Preconditioned optimizers
+=========================
+
+Preconditioners can speed up optimization approaches by incorporating
+information about the local bonding topology into a redefined metric
+through a coordinate transformation. Preconditioners are problem
+dependent, but the general purpose-implementation in ASE provides a
+basis that can be adapted to achieve optimized performance for
+specific applications.
+
+While the approach is general, the implementation is specific to a
+given optimizer: currently LBFGS and FIRE can be preconditioned using
+the :class:`ase.optimize.precon.lbfgs.PreconLBFGS` and
+:class:`ase.optimize.precon.fire.PreconFIRE` classes, respectively.
+
+You can read more about the theory and implementation here:
+
+  | D. Packwood, J.R. Kermode; L. Mones, N. Bernstein, J. Woolley, N. Gould, C. Ortner and G. Csányi
+  | `A universal preconditioner for simulating condensed phase materials`__
+  | J. Chem. Phys. *144*, 164109 (2016).
+
+__ http://dx.doi.org/10.1103/PhysRevLett.97.170201
+
+Tests with a variety of solid-state systems using both DFT and
+classical interatomic potentials driven though ASE calculators show
+speedup factors of up to an order of magnitude for preconditioned
+L-BFGS over standard L-BFGS, and the gain grows with system
+size. Precomputations are performed to automatically estimate all
+parameters required. A linesearch based on enforcing only the first
+Wolff condition (i.e. the Armijo sufficient descent condition) is also
+provided in :mod:`ase.utils.linesearcharmijo`; this typically leads to a
+further speed up when used in conjunction with the preconditioner.
+
+The preconditioned L-BFGS method implemented in ASE does not require
+external dependencies, but the :mod:`scipy.sparse` module can be used for
+efficient sparse linear algebra, and the :mod:`matscipy` package is used for
+fast computation of neighbour lists if available. The PyAMG package can be
+used to efficiently invert the preconditioner using an adaptive multigrid
+method.
+
+Usage is very similar to the standard optimizers. The example below compares
+unpreconditioned LBGFS with the default `Exp` preconditioner for a 3x3x3 bulk
+cube of copper containing a vacancy::
+
+    import numpy as np
+    from ase.build import bulk
+    from ase.calculators.emt import EMT
+    from ase.optimize.precon import Exp, PreconLBFGS
+
+    from ase.calculators.loggingcalc import LoggingCalculator
+    import matplotlib as mpl
+    mpl.use('Agg')
+    import matplotlib.pyplot as plt
+
+    a0 = bulk('Cu', cubic=True)
+    a0 *= [3, 3, 3]
+    del a0[0]
+    a0.rattle(0.1)
+
+    nsteps = []
+    energies = []
+    log_calc = LoggingCalculator(EMT())
+
+    for precon, label in zip([None, Exp(A=3)],
+                             ['None', 'Exp(A=3)']):
+       log_calc.label = label
+       atoms = a0.copy()
+       atoms.set_calculator(log_calc)
+       opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
+       opt.run(fmax=1e-3)
+
+    log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
+    plt.savefig("precon_exp.png")
+
+For molecular systems in gas phase the force field based `FF` preconditioner
+can be applied. An example below compares the effect of FF preconditioner to
+the unpreconditioned LBFGS for Buckminsterfullerene. Parameters are taken from
+Z. Berkai at al. Energy Procedia, 74, 2015, 59-64. and the underlying potential
+is computed using a standalone force field calculator::
+
+    import numpy as np
+    from ase.build import molecule
+    from ase.utils.ff import Morse, Angle, Dihedral, VdW
+    from ase.calculators.ff import ForceField
+    from ase.optimize.precon import get_neighbours, FF, PreconLBFGS
+
+    from ase.calculators.loggingcalc import LoggingCalculator
+    import matplotlib as mpl
+    mpl.use('Agg')
+    import matplotlib.pyplot as plt
+
+    a0 = molecule('C60')
+    a0.set_cell(50.0*np.identity(3))
+    neighbor_list = [[] for _ in range(len(a0))]
+    vdw_list = np.ones((len(a0), len(a0)), dtype=bool)
+    morses = []; angles = []; dihedrals = []; vdws = []
+
+    i_list, j_list, d_list, fixed_atoms = get_neighbours(atoms=a0, r_cut=1.5)
+    for i, j in zip(i_list, j_list):
+        neighbor_list[i].append(j)
+    for i in range(len(neighbor_list)):
+        neighbor_list[i].sort()
+
+    for i in range(len(a0)):
+        for jj in range(len(neighbor_list[i])):
+            j = neighbor_list[i][jj]
+            if j > i:
+                morses.append(Morse(atomi=i, atomj=j, D=6.1322, alpha=1.8502, r0=1.4322))
+            vdw_list[i, j] = vdw_list[j, i] = False
+            for kk in range(jj+1, len(neighbor_list[i])):
+                k = neighbor_list[i][kk]
+                angles.append(Angle(atomi=j, atomj=i, atomk=k, k=10.0, a0=np.deg2rad(120.0), cos=True))
+                vdw_list[j, k] = vdw_list[k, j] = False
+                for ll in range(kk+1, len(neighbor_list[i])):
+                    l = neighbor_list[i][ll]
+                    dihedrals.append(Dihedral(atomi=j, atomj=i, atomk=k, atoml=l, k=0.346))
+    for i in range(len(a0)):
+        for j in range(i+1, len(a0)):
+            if vdw_list[i, j]:
+                vdws.append(VdW(atomi=i, atomj=j, epsilonij=0.0115, rminij=3.4681))
+
+    log_calc = LoggingCalculator(ForceField(morses=morses, angles=angles, dihedrals=dihedrals, vdws=vdws))
+
+    for precon, label in zip([None, FF(morses=morses, angles=angles, dihedrals=dihedrals)],
+                             ['None', 'FF']):
+        log_calc.label = label
+        atoms = a0.copy()
+        atoms.set_calculator(log_calc)
+        opt = PreconLBFGS(atoms, precon=precon, use_armijo=True)
+        opt.run(fmax=1e-4)
+
+    log_calc.plot(markers=['r-', 'b-'], energy=False, lw=2)
+    plt.savefig("precon_ff.png")
+
+For molecular crystals the `Exp_FF` preconditioner is recommended, which is a
+synthesis of `Exp` and `FF` preconditioners.
+
+The :class:`ase.calculators.loggingcalc.LoggingCalculator` provides
+a convenient tool for plotting convergence and walltime.
+
+  .. image:: precon.png
 
 Global optimization
 ===================

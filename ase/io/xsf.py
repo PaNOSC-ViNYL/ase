@@ -5,13 +5,14 @@ from ase.units import Hartree
 from ase.parallel import paropen
 from ase.data import atomic_numbers
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.utils import basestring
 
 
 def write_xsf(fileobj, images, data=None):
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     is_anim = len(images) > 1
@@ -127,7 +128,7 @@ def iread_xsf(fileobj, read_data=False):
     Images are Atoms objects and data is a numpy array.
 
     Presently supports only a single 3D datagrid."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
     def _line_generator_func():

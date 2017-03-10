@@ -37,15 +37,50 @@ it up in the :data:`atomic_numbers` dictionary:
 >>> covalent_radii[29]
 1.1699999999999999
 
+Atomic masses are based on [Meija2016]_ (same array as
+:data:`atomic_masses_iupac2016`).
+
+Standard atomic weights are taken from Table 1: "Standard atomic weights
+2013", with the uncertainties ignored.
+
+For hydrogen, helium, boron, carbon, nitrogen, oxygen, magnesium, silicon,
+sulfur, chlorine, bromine and thallium, where the weights are given as a
+range the "conventional" weights are taken from Table 3, and the ranges are
+given in the source code comments.
+
+The mass of the most stable isotope (in Table 4) is used for elements
+where there the element has no stable isotopes (to avoid NaNs): Tc, Pm,
+Po, At, Rn, Fr, Ra, Ac, everything after Np
+
+Atomic masses provided by ASE before 2017 can be accessed in the
+:data:`atomic_masses_legacy` member.  To recover legacy behaviour an
+Atoms object can be modified as:
+
+>>> from ase.data import atomic_masses_legacy
+>>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
+
 The covalent radii are taken from [Cordeo08]_.
+
 The source of the van der Waals radii is given in vdw.py_.
+
+.. [Meija2016] *Atomic weights of the elements 2013
+    (IUPAC Technical Report).* Meija, J., Coplen, T., Berglund, M., et al.
+    (2016).  Pure and Applied Chemistry, 88(3), pp. 265-291.
+    Retrieved 30 Nov. 2016, from doi:10.1515/pac-2015-0305
 
 .. [Cordeo08] *Covalent radii revisited*,
     Beatriz Cordero, Verónica Gómez, Ana E. Platero-Prats, Marc Revés,
     Jorge Echeverría, Eduard Cremades, Flavia Barragán and Santiago Alvarez,
     Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J
 
-.. _vdw.py: https://trac.fysik.dtu.dk/projects/ase/browser/trunk/ase/data/vdw.py
+.. _vdw.py: https://gitlab.com/ase/ase/blob/master/ase/data/vdw.py
+
+
+How to extract isotope data from NIST
+-------------------------------------
+
+.. autofunction:: ase.data.isotopes.download_isotope_data
+
 
 .. _molecular-data:
 

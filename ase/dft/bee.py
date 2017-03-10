@@ -6,13 +6,14 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.parallel import rank
+from ase.utils import pickleload
 
 
 def ensemble(energy, contributions, xc, verbose=False):
     """Returns an array of ensemble total energies."""
     ensemble = BEEFEnsemble(None, energy, contributions, xc, verbose)
     return ensemble.get_ensemble_energies()
-    
+
 
 class BEEFEnsemble:
     """BEEF type ensemble error estimation"""
@@ -127,14 +128,14 @@ class BEEFEnsemble:
                 os.rename(fname, fname + '.old')
             obj = [self.e, self.de, self.contribs, self.seed, self.xc]
             with open(fname, 'wb') as f:
-                pickle.dump(obj, f)
+                pickle.dump(obj, f, protocol=2)
 
 
 def readbee(fname, all=False):
     if not fname.endswith('.bee'):
         fname += '.bee'
     with open(fname, 'rb') as f:
-        e, de, contribs, seed, xc = pickle.load(f)
+        e, de, contribs, seed, xc = pickleload(f)
     if all:
         return e, de, contribs, seed, xc
     else:

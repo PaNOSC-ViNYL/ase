@@ -37,4 +37,4 @@ assert len(atoms1) == len(atoms2) == 14
 assert (atoms1.positions == atoms2.positions).all()
 
 # Same cell
-assert (atoms1._cell == atoms2._cell).all()
+assert (atoms1.cell == atoms2.cell).all()

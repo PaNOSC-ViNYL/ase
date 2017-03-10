@@ -1,5 +1,7 @@
+from ase.calculators.calculator import PropertyNotImplementedError
 
 class Calculator:
+    "Deprecated!!!!"
     def __init__(self):
         return
 
@@ -35,7 +37,7 @@ class Calculator:
         if self.stress is not None:
             return self.stress
         else:
-            raise NotImplementedError
+            raise PropertyNotImplementedError
 
     def initialize(self, atoms):
         """Prepare the input files required to
@@ -55,5 +57,5 @@ class Calculator:
             pass
         try:
             self.stress = self.read_stress()
-        except NotImplementedError:
+        except PropertyNotImplementedError:
             self.stress = None

@@ -1,9 +1,11 @@
+from __future__ import division
 from math import pi
 
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.calculators.calculator import Calculator
+from ase.calculators.calculator import Calculator, kpts2ndarray
+from ase.units import Bohr, Ha
 
 
 def make_test_dft_calculation():
@@ -118,20 +120,65 @@ class TestPotential(Calculator):
         self.results = {'energy': energy, 'forces': F}
 
 
-def numeric_force(atoms, a, i, d=0.001):
+class FreeElectrons(Calculator):
+    """Free-electron band calculator.
+
+    Parameters:
+
+    nvalence: int
+        Number of electrons
+    kpts: dict
+        K-point specification.
+
+    Example:
+
+    >>> calc = FreeElectrons(nvalence=1, kpts={'path': 'GXL'})
     """
-    Compute numeric force on atom with index a, Cartesian component i, with finite step of size d
+
+    implemented_properties = ['energy']
+
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms)
+        self.kpts = kpts2ndarray(self.parameters.kpts, atoms)
+        icell = atoms.get_reciprocal_cell() * 2 * np.pi * Bohr
+        n = 7
+        offsets = np.indices((n, n, n)).T.reshape((n**3, 1, 3)) - n // 2
+        eps = 0.5 * (np.dot(self.kpts + offsets, icell)**2).sum(2).T
+        eps.sort()
+        self.eigenvalues = eps[:, :20] * Ha
+        self.results = {'energy': 0.0}
+
+    def get_eigenvalues(self, kpt, spin=0):
+        assert spin == 0
+        return self.eigenvalues[kpt].copy()
+
+    def get_fermi_level(self):
+        v = self.atoms.get_volume() / Bohr**3
+        kF = (self.parameters.nvalence / v * 2 * np.pi**2)**(1 / 3)
+        return 0.5 * kF**2 * Ha
+
+    def get_ibz_k_points(self):
+        return self.kpts.copy()
+
+    def get_number_of_spins(self):
+        return 1
+
+
+def numeric_force(atoms, a, i, d=0.001):
+    """Compute numeric force on atom with index a, Cartesian component i,
+    with finite step of size d
     """
     p0 = atoms.get_positions()
     p = p0.copy()
     p[a, i] += d
-    atoms.set_positions(p)
+    atoms.set_positions(p, apply_constraint=False)
     eplus = atoms.get_potential_energy()
     p[a, i] -= 2 * d
-    atoms.set_positions(p)
+    atoms.set_positions(p, apply_constraint=False)
     eminus = atoms.get_potential_energy()
-    atoms.set_positions(p0)
+    atoms.set_positions(p0, apply_constraint=False)
     return (eminus - eplus) / (2 * d)
+
 
 def gradient_test(atoms, indices=None):
     """
@@ -142,11 +189,11 @@ def gradient_test(atoms, indices=None):
     if indices is None:
         indices = range(len(atoms))
     f = atoms.get_forces()[indices]
-    print('{:>16} {:>20}'.format('eps', 'max(abs(df))'))
-    for eps in np.logspace(-1,-8,8):
+    print('{0:>16} {1:>20}'.format('eps', 'max(abs(df))'))
+    for eps in np.logspace(-1, -8, 8):
         fn = np.zeros((len(indices), 3))
-        for i in indices:
+        for idx, i in enumerate(indices):
             for j in range(3):
-                fn[i,j] = numeric_force(atoms, i, j, eps)
+                fn[idx, j] = numeric_force(atoms, i, j, eps)
         print('{0:16.12f} {1:20.12f}'.format(eps, abs(fn - f).max()))
     return f, fn

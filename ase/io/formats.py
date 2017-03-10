@@ -42,7 +42,7 @@ all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
     'aims-output': ('FHI-aims output', '+S'),
-    'bundletrajectory': ('ASE bundle trajectory', '1S'),
+    'bundletrajectory': ('ASE bundle trajectory', '+S'),
     'castep-castep': ('CASTEP output file', '+F'),
     'castep-cell': ('CASTEP geom file', '1F'),
     'castep-geom': ('CASTEP trajectory file', '+F'),
@@ -60,7 +60,7 @@ all_formats = {
     'eon': ('EON reactant.con file', '1F'),
     'eps': ('Encapsulated Postscript', '1S'),
     'espresso-in': ('Quantum espresso in file', '1F'),
-    'espresso-out': ('Quantum espresso out file', '1F'),
+    'espresso-out': ('Quantum espresso out file', '+F'),
     'etsf': ('ETSF format', '1S'),
     'exciting': ('exciting input', '1S'),
     'extxyz': ('Extended XYZ file', '+F'),
@@ -77,12 +77,13 @@ all_formats = {
     'json': ('ASE JSON database file', '+S'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '1F'),
+    'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
-    'png': ('Portable Network Graphics', '1F'),
+    'png': ('Portable Network Graphics', '1S'),
     'postgresql': ('ASE PostgreSQL database file', '+S'),
     'pov': ('Persistance of Vision', '1S'),
     'py': ('Python file', '+F'),
@@ -121,6 +122,7 @@ format2modulename = {
     'html': 'x3d',
     'json': 'db',
     'lammps-dump': 'lammpsrun',
+    'lammps-data': 'lammpsdata',
     'postgresql': 'db',
     'struct': 'wien2k',
     'struct_out': 'siesta',
@@ -195,7 +197,6 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-@parallel_function
 def write(filename, images, format=None, **kwargs):
     """Write Atoms object(s) to file.
 
@@ -226,6 +227,11 @@ def write(filename, images, format=None, **kwargs):
 
     io = get_ioformat(format)
 
+    _write(filename, fd, format, io, images, **kwargs)
+
+
+@parallel_function
+def _write(filename, fd, format, io, images, **kwargs):
     if isinstance(images, Atoms):
         images = [images]
 
@@ -287,12 +293,14 @@ def read(filename, index=None, format=None, **kwargs):
     filename, index = parse_filename(filename, index)
     if index is None:
         index = -1
+    format = format or filetype(filename)
+    io = get_ioformat(format)
     if isinstance(index, (slice, basestring)):
-        return list(_iread(filename, index, format, **kwargs))
+        return list(_iread(filename, index, format, io, **kwargs))
     else:
-        return next(_iread(filename, slice(index, None), format, **kwargs))
+        return next(_iread(filename, slice(index, None), format, io, **kwargs))
 
-        
+
 def iread(filename, index=None, format=None, **kwargs):
     """Iterator for reading Atoms objects from file.
 
@@ -310,12 +318,15 @@ def iread(filename, index=None, format=None, **kwargs):
     if not isinstance(index, (slice, basestring)):
         index = slice(index, (index + 1) or None)
 
-    for atoms in _iread(filename, index, format, **kwargs):
+    format = format or filetype(filename)
+    io = get_ioformat(format)
+
+    for atoms in _iread(filename, index, format, io, **kwargs):
         yield atoms
 
 
 @parallel_generator
-def _iread(filename, index, format, full_output=False, **kwargs):
+def _iread(filename, index, format, io, full_output=False, **kwargs):
     compression = None
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
@@ -325,11 +336,6 @@ def _iread(filename, index, format, full_output=False, **kwargs):
         elif filename.endswith('.bz2'):
             compression = 'bz2'
             filename = filename[:-4]
-
-    if format is None:
-        format = filetype(filename)
-
-    io = get_ioformat(format)
 
     if not io.read:
         raise ValueError("Can't read from {0}-format".format(format))
@@ -433,7 +439,7 @@ def filetype(filename, read=True):
 
         if '.' in basename:
             ext = filename.rsplit('.', 1)[-1].lower()
-            if ext in ['xyz', 'cube', 'json']:
+            if ext in ['xyz', 'cube', 'json', 'cif']:
                 return ext
 
         if 'POSCAR' in basename or 'CONTCAR' in basename:
@@ -471,7 +477,9 @@ def filetype(filename, read=True):
     if len(data) == 0:
         raise IOError('Empty file: ' + filename)
 
-    for format, magic in [('traj', b'AFFormatASE-Trajectory'),
+    for format, magic in [('traj', b'- of UlmASE-Trajectory'),
+                          ('traj', b'AFFormatASE-Trajectory'),
+                          ('gpw', b'- of UlmGPAW'),
                           ('gpw', b'AFFormatGPAW'),
                           ('trj', b'PickleTrajectory'),
                           ('etsf', b'CDF'),
@@ -484,6 +492,7 @@ def filetype(filename, read=True):
     for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _'),
                           ('espresso-in', b'\n&system'),
                           ('espresso-in', b'\n&SYSTEM'),
+                          ('espresso-out', b'Program PWSCF'),
                           ('aims-output', b'Invoking FHI-aims ...'),
                           ('lammps-dump', b'\nITEM: TIMESTEP\n'),
                           ('xsf', b'\nANIMSTEPS'),

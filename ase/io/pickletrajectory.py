@@ -11,7 +11,7 @@ try:
     unicode
 except NameError:
     unicode = str
-    
+
 # pass for WindowsError on non-Win platforms
 try:
     WindowsError
@@ -23,6 +23,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.constraints import FixAtoms
 from ase.parallel import rank, barrier
 from ase.utils import devnull, basestring
@@ -225,24 +226,24 @@ class PickleTrajectory:
                 assert self.write_energy
                 try:
                     d['forces'] = atoms.get_forces(apply_constraint=False)
-                except NotImplementedError:
+                except PropertyNotImplementedError:
                     pass
             if self.write_stress:
                 assert self.write_energy
                 try:
                     d['stress'] = atoms.get_stress()
-                except NotImplementedError:
+                except PropertyNotImplementedError:
                     pass
             if self.write_charges:
                 try:
                     d['charges'] = atoms.get_charges()
-                except NotImplementedError:
+                except PropertyNotImplementedError:
                     pass
             if self.write_magmoms:
                 try:
                     if atoms.calc.get_spin_polarized():
                         d['magmoms'] = atoms.get_magnetic_moments()
-                except (NotImplementedError, AttributeError):
+                except (PropertyNotImplementedError, AttributeError):
                     pass
 
         if 'magmoms' not in d and atoms.has('magmoms'):
@@ -441,7 +442,7 @@ def stringnify_info(info):
     unpicklable values are dropped and a warning is issued."""
     stringnified = {}
     for k, v in info.items():
-        if not isinstance(k, str):
+        if not isinstance(k, basestring):
             warnings.warn('Non-string info-dict key is not stored in ' +
                           'trajectory: ' + repr(k), UserWarning)
             continue
@@ -519,7 +520,7 @@ def write_trajectory(filename, images):
 
     traj = PickleTrajectory(filename, mode='w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
 
     for atoms in images:
@@ -577,7 +578,7 @@ def print_trajectory_info(filename):
 
     Mainly intended to be called from a command line tool.
     """
-    f = open(filename)
+    f = open(filename, 'rb')
     hdr = 'PickleTrajectory'
     x = f.read(len(hdr))
     if x != hdr:

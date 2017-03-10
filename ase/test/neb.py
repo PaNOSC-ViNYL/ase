@@ -1,8 +1,32 @@
+from ase import Atoms
+from ase.constraints import FixAtoms
 from ase.io import Trajectory, read
-from ase.neb import NEB, NEBtools
+from ase.neb import NEB, NEBTools
 from ase.calculators.morse import MorsePotential
-from ase.optimize import BFGS
+from ase.optimize import BFGS, QuasiNewton
 
+atoms = Atoms('H7',
+              positions=[(0, 0, 0),
+                         (1, 0, 0),
+                         (0, 1, 0),
+                         (1, 1, 0),
+                         (0, 2, 0),
+                         (1, 2, 0),
+                         (0.5, 0.5, 1)],
+              constraint=[FixAtoms(range(6))],
+              calculator=MorsePotential())
+
+traj = Trajectory('H.traj', 'w', atoms)
+dyn = QuasiNewton(atoms, maxstep=0.2)
+dyn.attach(traj.write)
+dyn.run(fmax=0.01, steps=100)
+
+print(atoms)
+del atoms[-1]
+print(atoms)
+del atoms[5]
+print(atoms)
+assert len(atoms.constraints[0].index) == 5
 
 fmax = 0.05
 nimages = 3
@@ -33,7 +57,7 @@ dyn.run(fmax=fmax)
 
 # Check NEB tools.
 nt_images = read('mep.traj@-4:')
-nebtools = NEBtools(nt_images)
+nebtools = NEBTools(nt_images)
 nt_fmax = nebtools.get_fmax(climb=True)
 Ef, dE = nebtools.get_barrier()
 print(Ef, dE, fmax, nt_fmax)

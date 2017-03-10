@@ -9,6 +9,7 @@ import numpy as np
 
 from ase.io.eps import EPS
 from ase.constraints import FixAtoms
+from ase.utils import basestring
 
 
 def pa(array):
@@ -18,7 +19,7 @@ def pa(array):
 
 def pc(array):
     """Povray color syntax"""
-    if isinstance(array, str):
+    if isinstance(array, basestring):
         return 'color ' + array
     if isinstance(array, float):
         return 'rgb <%.2f>*3' % array

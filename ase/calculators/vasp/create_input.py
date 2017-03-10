@@ -26,6 +26,9 @@ from os.path import join, isfile, islink
 
 import numpy as np
 
+from ase.calculators.calculator import kpts2ndarray
+from ase.utils import basestring
+
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
 
@@ -39,6 +42,7 @@ float_keys = [
     'amix_mag',   #
     'bmix',       # tags for mixing
     'bmix_mag',   #
+    'cshift',     # Complex shift for dielectric tensor calculation (LOPTICS)
     'deper',      # relative stopping criterion for optimization of eigenvalue
     'ebreak',     # absolute stopping criterion for optimization of eigenvalues
                   # (EDIFF/N-BANDS/4)
@@ -732,7 +736,7 @@ class GenerateVaspInput(object):
             if val is not None:
                 incar.write(' %s = ' % key.upper())
                 if key == 'lreal':
-                    if isinstance(val, str):
+                    if isinstance(val, basestring):
                         incar.write(val + '\n')
                     elif isinstance(val, bool):
                         if val:
@@ -774,16 +778,38 @@ class GenerateVaspInput(object):
 
     def write_kpoints(self, **kwargs):
         """Writes the KPOINTS file."""
+
+        # Don't write anything if KSPACING is being used
+        if self.float_params['kspacing'] is not NOne:
+            if slef.float_params['kspacing'] > 0:
+                return
+            else:
+                raise ValueError("KSPACING value {0} is not allowable. "
+                                 "Please use None or a positive number."
+                                 "".format(self.float_params['kspacing']))
+
+
         p = self.input_params
         kpoints = open('KPOINTS', 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
+
+        if isinstance(p['kpts'], dict):
+            p['kpts'] = kpts2ndarray(p['kpts'], atoms=self.atoms)
+            p['reciprocal'] = True
+
         shape = np.array(p['kpts']).shape
+
+        # Wrap scalar in list if necessary
+        if shape == ():
+            p['kpts'] = [p['kpts']]
+            shape = (1, )
+
         if len(shape) == 1:
             kpoints.write('0\n')
-            if p['gamma']:
-                kpoints.write('Gamma\n')
-            elif shape == (1, ):
+            if shape == (1, ):
                 kpoints.write('Auto\n')
+            elif p['gamma']:
+                kpoints.write('Gamma\n')
             else:
                 kpoints.write('Monkhorst-Pack\n')
             [kpoints.write('%i ' % kpt) for kpt in p['kpts']]
@@ -805,7 +831,7 @@ class GenerateVaspInput(object):
     def write_potcar(self, suffix=""):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR' + suffix, 'wb')
+        potfile = open('POTCAR' + suffix, 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):

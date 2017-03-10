@@ -18,6 +18,7 @@ from ase.optimize import LBFGS
 from ase.io.trajectory import Trajectory
 from ase.eos import EquationOfState
 from ase.calculators.calculator import get_calculator, names as calcnames
+from ase.calculators.calculator import PropertyNotImplementedError
 import ase.db as db
 
 
@@ -236,7 +237,7 @@ class Runner:
                                 'm': ('magmoms', 'get_magnetic_moments')}[p]
             try:
                 getattr(atoms, method)()
-            except NotImplementedError:
+            except PropertyNotImplementedError:
                 pass
 
         data = {}

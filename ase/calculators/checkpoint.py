@@ -114,11 +114,11 @@ class Checkpoint(object):
     def _mangled_checkpoint_id(self):
         """
         Returns a mangled checkpoint id string:
-            c_1:c_2:c_3:...
+            check_c_1:c_2:c_3:...
         E.g. if checkpoint is nested and id is [3,2,6] it returns:
-            '3:2:6'
+            'check3:2:6'
         """
-        return ':'.join(str(id) for id in self.checkpoint_id)
+        return 'check'+':'.join(str(id) for id in self.checkpoint_id)
 
     def load(self, atoms=None):
         """

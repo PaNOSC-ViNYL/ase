@@ -69,7 +69,7 @@ array([ 1. ,  0. ,  2.5])
 
 That last line will set the initial magnetic moment that some
 calculators use (similar to the
-:meth:`~ase.atoms.Atoms.set_initial_magnetic_moments` method).
+:meth:`~ase.Atoms.set_initial_magnetic_moments` method).
 
 
 .. note::
@@ -83,8 +83,8 @@ calculators use (similar to the
 Getting an Atom from an Atoms object
 ------------------------------------
 
-Indexing an :class:`~ase.atoms.Atoms` object returns an :class:`Atom` object
-still remembering that it belongs to the collective :class:`~ase.atoms.Atoms`:
+Indexing an :class:`~ase.Atoms` object returns an :class:`Atom` object
+still remembering that it belongs to the collective :class:`~ase.Atoms`:
 Modifying it will also change the atoms object:
 
 >>> from ase.builds import molecule
@@ -109,10 +109,7 @@ array([[ 0.      ,  0.      ,  0.      ],
 
 .. seealso::
 
-   :epydoc:`atom.Atom`:
-     All the details!
-
-   :mod:`ase.atoms`:
+   :mod:`ase`:
      More information about how to use collections of atoms.
 
    :mod:`ase.calculators`:
