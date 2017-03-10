@@ -269,7 +269,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         if 'ions per type' in line:
             species = species[:len(species) // 2]
             temp = line.split()
-            for ispecies in range(len(species)):
+            ntypes = min(len(temp)-4, len(species))
+            for ispecies in range(ntypes):
                 species_num += [int(temp[ispecies + 4])]
                 natoms += species_num[-1]
                 for iatom in range(species_num[-1]):
