@@ -34,7 +34,7 @@ import numpy as np
 import decimal as dec
 from ase import Atoms
 from ase.parallel import paropen
-from ase.units import GPa
+from ase.units import GPa,Ang,fs
 from ase.utils import basestring
 
 
@@ -89,6 +89,7 @@ class LAMMPS:
         self.no_data_file = no_data_file
         self.write_velocities = False
         self.trajectory_out = None
+        self.dump_period = 1
         if tmp_dir is not None:
             # If tmp_dir is pointing somewhere, don't remove stuff!
             self.keep_tmp_files = True
@@ -414,16 +415,19 @@ class LAMMPS:
                                 for p in parameters['group']]) +
                      '\n').encode('utf-8'))
         
+
+        f.write(
+            '\n### run\n'
+            'fix fix_nve all nve\n'.encode('utf-8'))
+
         if 'fix' in parameters:
             f.write(('\n'.join(['fix {0}'.format(p)
                                 for p in parameters['fix']]) +
                      '\n').encode('utf-8'))
-
-        f.write(
-            '\n### run\n'
-            'fix fix_nve all nve\n'
-            'dump dump_all all custom 1 {0} id type x y z vx vy vz fx fy fz\n'
-            ''.format(lammps_trj).encode('utf-8'))
+            
+        f.write(            
+            'dump dump_all all custom {1} {0} id type x y z vx vy vz fx fy fz\n'
+            ''.format(lammps_trj, self.dump_period).encode('utf-8'))
         f.write('thermo_style custom {0}\n'
                 'thermo_modify flush yes\n'
                 'thermo 1\n'.format(
@@ -858,7 +862,7 @@ def write_lammps_data(fileobj, atoms, specorder=None, force_skew=False,
 
     if velocities and atoms.get_velocities() is not None:
         f.write('\n\nVelocities \n\n'.encode('utf-8'))
-        for i, v in enumerate(atoms.get_velocities()):
+        for i, v in enumerate(atoms.get_velocities() / (Ang/(fs*1000.) ) ):
             f.write('{0:>6} {1} {2} {3}\n'.format(
                     *(i + 1,) + tuple(v)).encode('utf-8'))
 
