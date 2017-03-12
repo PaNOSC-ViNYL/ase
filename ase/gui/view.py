@@ -307,8 +307,8 @@ class View:
 
     def get_colors(self, rgb=False):
         if rgb:
-            return [tuple(int(rgb[i:i + 2], 16) / 255 for i in range(1, 7, 2))
-                    for rgb in self.get_colors()]
+            return [tuple(int(_rgb[i:i + 2], 16) / 255 for i in range(1, 7, 2))
+                    for _rgb in self.get_colors()]
 
         if self.colormode == 'jmol':
             return [self.colors[Z] for Z in self.images.Z[self.frame]]
@@ -419,7 +419,7 @@ class View:
         self.window.update()
 
         if status:
-            self.status(self.images.images[self.frame])
+            self.status(self.images[self.frame])
 
     def arrow(self, coords, width):
         line = self.window.line

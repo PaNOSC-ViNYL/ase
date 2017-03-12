@@ -277,7 +277,7 @@ class Execute(ui.Window):
                             img.r[a] = cov[Z] * 0.89
                             r, g, b = jmol_colors[Z]
                         gui.colordata[a] = [a, [r, g, b]]
-                        color = tuple([int(65535 * x) for x in [r, g, b]])
+                        color = tuple([int(65535 * _x) for _x in [r, g, b]])
                         gui.colors[a] = new(alloc(*color))
                         img.M[i][a] = m
         setattr(self.gui, 'expert_mode_answers', ans)

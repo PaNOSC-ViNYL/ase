@@ -7,7 +7,7 @@ from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
-from ase.gui.defaults import read_defaults
+#from ase.gui.defaults import read_defaults
 from ase.io import read, write, string2index
 
 
@@ -17,10 +17,10 @@ class Images:
             self.initialize(images)
 
     def __len__(self):
-        return len(self.images)
+        return len(self._images)
 
     def __getitem__(self, index):
-        return self.images[index]
+        return self._images[index]
 
     def initialize(self, images, filenames=None, init_magmom=False):
 
@@ -65,17 +65,12 @@ class Images:
             def __getitem__(self, item):
                 if isinstance(item, tuple):
                     print(item)
-                    sdkjfsdkjf
-                return self.getter(self.enclosing_images_obj.images[item])
+                    raise ValueError(item)
+                return self.getter(self.enclosing_images_obj[item])
 
             def __setitem__(self, item, value):
-                print(item, value)
-                sdfksdfkj
+                raise ValueError(item, value)
 
-        self.P = IndexHack(lambda a: a.get_positions())
-        #self.P = np.empty((self.nimages, self.natoms, 3))
-        # XXXXXXXXXXXXX replace below
-        self.V = IndexHack(lambda a: a.get_velocities())
         def get_energy(atoms):
             try:
                 e =  atoms.get_potential_energy()
@@ -83,9 +78,6 @@ class Images:
                 e = np.nan
             return e
 
-        self.E = IndexHack(get_energy)
-        self.K = IndexHack(lambda a: a.get_kinetic_energy())
-        #self.F = np.empty((self.nimages, self.natoms, 3))
         def get_forces(atoms):
             try:
                 F = atoms.get_forces(apply_constraint=False)
@@ -93,7 +85,6 @@ class Images:
                 F = np.empty_like(atoms.positions)
                 F.fill(np.nan)
             return F
-        self.F = IndexHack(get_forces)
 
         def get_magmoms(atoms):
             try:
@@ -106,8 +97,20 @@ class Images:
             except (RuntimeError, AttributeError):
                 M = atoms.get_initial_magnetic_moments()
             return M
-        self.M = IndexHack(get_magmoms)
 
+        def get_constrained(atoms):
+            constrained = np.zeros(len(atoms), bool)
+            for constraint in atoms.constraints:
+                if isinstance(constraint, FixAtoms):
+                    constrained[constraint.index] = True
+            return constrained
+
+        self.P = IndexHack(lambda a: a.get_positions())
+        self.V = IndexHack(lambda a: a.get_velocities())
+        self.E = IndexHack(get_energy)
+        self.K = IndexHack(lambda a: a.get_kinetic_energy())
+        self.F = IndexHack(get_forces)
+        self.M = IndexHack(get_magmoms)
         self.T = IndexHack(lambda a: a.get_tags())
         self.A = IndexHack(lambda a: a.get_cell())
         self.D = IndexHack(lambda a: a.get_celldisp().reshape((3,)))
@@ -115,17 +118,12 @@ class Images:
         self.q = IndexHack(lambda a: a.get_initial_charges())
         self.pbc = IndexHack(lambda a: a.get_pbc())
         self.natoms = IndexHack(lambda a: len(a))
-        def get_constrained(atoms):
-            constrained = np.zeros(len(atoms), bool)
-            for constraint in atoms.constraints:
-                if isinstance(constraint, FixAtoms):
-                    constrained[constraint.index] = True
-            return constrained
         self.constrained = IndexHack(lambda a: get_constrained(a))
 
         #self.pbc = images[0].get_pbc()
         self.covalent_radii = covalent_radii
-        config = read_defaults()
+        #config = read_defaults()
+        # XXX config?
 
         self.r = IndexHack(lambda a: np.array([self.covalent_radii[z]
                                                for z in a.numbers]))
@@ -134,13 +132,13 @@ class Images:
         #        self.covalent_radii[data[0]] = data[1]
         warning = False
 
-        self.images = []
+        self._images = []
 
         # Whether length or chemical composition changes:
         self.have_varying_species = False
         for i, atoms in enumerate(images):
-            self.images.append(atoms.copy())
-            self.have_varying_species |= np.any(self.images[0].numbers
+            self._images.append(atoms.copy())
+            self.have_varying_species |= np.any(self._images[0].numbers
                                                 != atoms.numbers)
             if hasattr(self, 'Q'):
                 assert False # XXX askhl fix quaternions
@@ -152,7 +150,7 @@ class Images:
             import warnings
             warnings.warn('Not all images have the same boundary conditions!')
 
-        self.maxnatoms = max(len(atoms) for atoms in self.images)
+        self.maxnatoms = max(len(atoms) for atoms in self._images)
         self.selected = np.zeros(self.maxnatoms, bool)
         self.selected_ordered = []
         #XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
@@ -208,15 +206,15 @@ class Images:
         self.filenames.append(filename)
         return self.nimages
 
-    def set_radii(self, scale=None):
-        skjfsdkjfsdfkj
-        scale = scale or self.scale_radii
-        if self.shapes is None:
-            self.r = self.covalent_radii[self.Z] * scale
-        else:
-            #  XXX fix 'shapes'
-            self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
-        self.scale_radii = scale
+    #def set_radii(self, scale=None):
+    #    skjfsdkjfsdfkj
+    #    scale = scale or self.scale_radii
+    #    if self.shapes is None:
+    #        self.r = self.covalent_radii[self.Z] * scale
+    #    else:
+    #        #  XXX fix 'shapes'
+    #        self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
+    #    self.scale_radii = scale
 
     def read(self, filenames, index=-1, filetype=None):
         images = []
