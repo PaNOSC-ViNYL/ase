@@ -31,15 +31,18 @@ class View:
             frame = self.frame
         self.make_box()
         self.bind(frame)
-        n = self.images.natoms
-        self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
+        n = self.images.natoms[frame]
+        #self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
+        self.X_pos = np.empty((n, 3))
+        self.X_B1 = np.empty((len(self.B1), 3))
+        self.X_bonds = np.empty((len(self.bonds), 3))
         self.set_frame(frame, focus=focus, init=True)
 
     def set_frame(self, frame=None, focus=False, init=False):
         if frame is None:
             frame = self.frame
 
-        n = self.images.natoms
+        n = self.images.natoms[frame]
 
         if self.frame is not None and self.frame > self.images.nimages:
             self.frame = self.images.nimages - 1
@@ -50,7 +53,8 @@ class View:
             nb = len(self.bonds)
 
             if init or (A[frame] != A[self.frame]).any():
-                self.X[n:n + nc] = np.dot(self.B1, A[frame])
+                #self.X[n:n + nc] = np.dot(self.B1, A[frame])
+                self.X_B1 = np.dot(self.B1, A[frame])
                 self.B = np.empty((nc + nb, 3))
                 self.B[:nc] = np.dot(self.B2, A[frame])
 
@@ -60,13 +64,14 @@ class View:
                 a = P[self.bonds[:, 0]]
                 b = P[self.bonds[:, 1]] + np.dot(self.bonds[:, 2:], Af) - a
                 d = (b**2).sum(1)**0.5
-                r = 0.65 * self.images.r
+                r = 0.65 * self.images.r[frame]
                 x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
                 x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
-                self.X[n + nc:] = a + b * x0
+                #self.X[n + nc:] = a + b * x0
+                self.X_B1 = a + b * x0
                 b *= 1.0 - x0 - x1
                 b[self.bonds[:, 2:].any(1)] *= 0.5
-                self.B[nc:] = self.X[n + nc:] + b
+                self.B[nc:] = self.X_B1 + b
 
             filenames = self.images.filenames
             filename = filenames[frame]
@@ -79,8 +84,9 @@ class View:
             self.window.title = filename
 
         self.frame = frame
-        self.X[:n] = self.images.P[frame]
-        self.R = self.X[:n]
+        self.X_pos = self.images.P[frame]
+        #self.X[:n] = self.images.P[frame]
+        self.R = self.X_pos[:n]
         if focus:
             self.focus()
         else:
@@ -89,10 +95,14 @@ class View:
     def set_colors(self):
         self.colormode = 'jmol'
         self.colors = {}
-        for z in np.unique(self.images.Z):
-            rgb = jmol_colors[z]
-            self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'
+
+        for i, rgb in enumerate(jmol_colors):
+            self.colors[i] = ('#{0:02X}{1:02X}{2:02X}'
                               .format(*(int(x * 255) for x in rgb)))
+        #for z in np.unique(self.images.Z):
+        #    rgb = jmol_colors[z]
+        #    self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'
+        #                      .format(*(int(x * 255) for x in rgb)))
 
     def make_box(self):
         if not self.window['toggle-show-unit-cell']:
@@ -134,7 +144,8 @@ class View:
 
         from ase.atoms import Atoms
         from ase.neighborlist import NeighborList
-        nl = NeighborList(self.images.r * 1.5, skin=0, self_interaction=False)
+        nl = NeighborList(self.images.r[frame] * 1.5,
+                          skin=0, self_interaction=False)
         nl.update(Atoms(positions=self.images.P[frame],
                         cell=(self.images.repeat[:, np.newaxis] *
                               self.images.A[frame]),
@@ -142,12 +153,12 @@ class View:
         nb = nl.nneighbors + nl.npbcneighbors
 
         bonds = np.empty((nb, 5), int)
-        self.coordination = np.zeros((self.images.natoms), dtype=int)
+        self.coordination = np.zeros((self.images.natoms[frame]), dtype=int)
         if nb == 0:
             return
 
         n1 = 0
-        for a in range(self.images.natoms):
+        for a in range(self.images.natoms[frame]):
             indices, offsets = nl.get_neighbors(a)
             self.coordination[a] += len(indices)
             for a2 in indices:
@@ -173,13 +184,14 @@ class View:
         if index == 0:
             self.labels = None
         elif index == 1:
-            self.labels = ([list(range(self.images.natoms))] *
+            self.labels = ([list(range(self.images.natoms[self.frame]))] *
                            self.images.nimages)
         elif index == 2:
             self.labels = self.images.M
         else:
             self.labels = [[chemical_symbols[x]
-                            for x in self.images.Z]] * self.images.nimages
+                            for x in
+                            self.images.Z[self.frame]]] * self.images.nimages
 
         self.draw()
 
@@ -217,20 +229,23 @@ class View:
         self.register_vulnerable(win)
         return win
 
+    def getX(self):
+        return np.concatenate([self.X_pos, self.X_B1, self.X_bonds], axis=0)
+
     def focus(self, x=None):
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images.A[0].any())
-        if (self.images.natoms == 0 and not cell):
+        if (self.images.natoms[self.frame] == 0 and not cell):
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
             return
 
-        P = np.dot(self.X, self.axes)
-        n = self.images.natoms
-        P[:n] -= self.images.r[:, None]
+        P = np.dot(self.getX(), self.axes)
+        n = self.images.natoms[self.frame]
+        P[:n] -= self.images.r[self.frame][:, None]
         P1 = P.min(0)
-        P[:n] += 2 * self.images.r[:, None]
+        P[:n] += 2 * self.images.r[self.frame][:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
         S = 1.3 * (P2 - P1)
@@ -296,7 +311,7 @@ class View:
                     for rgb in self.get_colors()]
 
         if self.colormode == 'jmol':
-            return [self.colors[Z] for Z in self.images.Z]
+            return [self.colors[Z] for Z in self.images.Z[self.frame]]
 
         scalars = self.get_color_scalars()
         colorscale, cmin, cmax = self.colormode_data
@@ -326,13 +341,13 @@ class View:
         axes = self.scale * self.axes * (1, -1, 1)
         offset = np.dot(self.center, axes)
         offset[:2] -= 0.5 * self.window.size
-        X = np.dot(self.X, axes) - offset
-        n = self.images.natoms
+        X = np.dot(self.getX(), axes) - offset
+        n = self.images.natoms[self.frame]
         self.indices = X[:, 2].argsort()
         if self.window['toggle-show-bonds']:
-            r = self.images.r * (0.65 * self.scale)
+            r = self.images.r[self.frame] * (0.65 * self.scale)
         else:
-            r = self.images.r * self.scale
+            r = self.images.r[self.frame] * self.scale
         P = self.P = X[:n, :2]
         A = (P - r[:, None]).round().astype(int)
         X1 = X[n:, :2].round().astype(int)
@@ -348,7 +363,8 @@ class View:
         colors = self.get_colors()
         circle = self.window.circle
         line = self.window.line
-        dynamic = self.images.dynamic
+        constrained = self.images.constrained[self.frame]
+        #dynamic = self.images.dynamic
         selected = self.images.selected
         visible = self.images.visible
         ncell = len(self.B1)
@@ -372,7 +388,7 @@ class View:
                                          str(self.labels[self.frame][a]))
 
                     # Draw cross on constrained atoms
-                    if not dynamic[a]:
+                    if constrained[a]:
                         R1 = int(0.14644 * ra)
                         R2 = int(0.85355 * ra)
                         line((A[a, 0] + R1, A[a, 1] + R1,
@@ -403,7 +419,7 @@ class View:
         self.window.update()
 
         if status:
-            self.status()
+            self.status(self.images.images[self.frame])
 
     def arrow(self, coords, width):
         line = self.window.line
@@ -455,9 +471,10 @@ class View:
 
         if event.time < self.t0 + 200:  # 200 ms
             d = self.P - self.xy
-            hit = np.less((d**2).sum(1), (self.scale * self.images.r)**2)
+            hit = np.less((d**2).sum(1), (self.scale
+                                          * self.images.r[self.frame])**2)
             for a in self.indices[::-1]:
-                if a < self.images.natoms and hit[a]:
+                if a < self.images.natoms[self.frame] and hit[a]:
                     if event.modifier == 'ctrl':
                         selected[a] = not selected[a]
                         if selected[a]:
@@ -492,7 +509,8 @@ class View:
                 selected_ordered = []
             self.draw()
 
-        indices = np.arange(self.images.natoms)[self.images.selected]
+        # XXX check bounds
+        indices = np.arange(self.images.natoms[self.frame])[self.images.selected[:self.images.natoms[self.frame]]]
         if len(indices) != len(selected_ordered):
             selected_ordered = []
         self.images.selected_ordered = selected_ordered
@@ -535,8 +553,8 @@ class View:
                                  ((c - 1) * a * b, c * b * b + a * a, s * b),
                                  (-s * a, -s * b, c)])
             self.axes = np.dot(self.axes0, rotation)
-            if self.images.natoms > 0:
-                com = self.X[:self.images.natoms].mean(0)
+            if self.images.natoms[self.frame] > 0:
+                com = self.getX()[:self.images.natoms[self.frame]].mean(0)
             else:
                 com = self.images.A[self.frame].mean(0)
             self.center = com - np.dot(com - self.center0,

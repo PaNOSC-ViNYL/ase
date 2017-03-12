@@ -30,13 +30,14 @@ def formula(Z):
     return '+'.join(strings)
 
 
-class Status:
+class Status:  # Status is used as a mixin in GUI
     def __init__(self):
         self.ordered_indices = []
 
-    def status(self):
+    def status(self, atoms):
         # use where here:  XXX
-        indices = np.arange(self.images.natoms)[self.images.selected]
+        natoms = len(atoms)
+        indices = np.arange(natoms)[self.images.selected[:natoms]]
         ordered_indices = self.images.selected_ordered
         n = len(indices)
         self.nselected = n
@@ -45,19 +46,20 @@ class Status:
             self.window.update_status_line('')
             return
 
-        Z = self.images.Z[indices]
+        Z = atoms.numbers[indices]#self.images.Z[indices]
         R = self.R[indices]
 
         if n == 1:
-            tag = self.images.T[self.frame, indices][0]
+            #tag = self.images.T[self.frame, indices][0]
+            tag = self.images.T[self.frame][indices][0]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
             text += _(' tag=%(tag)s') % dict(tag=tag)
-            if self.images.M.any():
+            if self.images.M[self.frame].any():
                 # TRANSLATORS: mom refers to magnetic moment
                 text += _(' mom={0:1.2f}'.format(
                     self.images.M[self.frame][indices][0]))
-            if self.images.q.any():
+            if self.images.q[self.frame].any():
                 text += _(' q={0:1.2f}'.format(
                     self.images.q[self.frame][indices][0]))
         elif n == 2:

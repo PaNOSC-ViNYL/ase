@@ -13,22 +13,25 @@ from ase.io import read, write, string2index
 
 class Images:
     def __init__(self, images=None):
-
         if images is not None:
             self.initialize(images)
 
     def __len__(self):
-        return len(self.P)
+        return len(self.images)
+
+    def __getitem__(self, index):
+        return self.images[index]
 
     def initialize(self, images, filenames=None, init_magmom=False):
 
-        self.natoms = len(images[0])
+        #self.natoms = len(images[0])
         self.nimages = len(images)
         if filenames is None:
             filenames = [None] * self.nimages
         self.filenames = filenames
 
-        if hasattr(images[0], 'get_shapes'):
+        #  The below seems to be about "quaternions"
+        if 0: # XXXXXXXXXXXXXXXXXXXX hasattr(images[0], 'get_shapes'):
             self.Q = np.empty((self.nimages, self.natoms, 4))
             self.shapes = images[0].get_shapes()
             import os as os
@@ -49,77 +52,114 @@ class Images:
 
         else:
             self.shapes = None
-        self.P = np.empty((self.nimages, self.natoms, 3))
-        self.V = np.empty((self.nimages, self.natoms, 3))
-        self.E = np.empty(self.nimages)
-        self.K = np.empty(self.nimages)
-        self.F = np.empty((self.nimages, self.natoms, 3))
-        self.M = np.empty((self.nimages, self.natoms))
-        self.T = np.empty((self.nimages, self.natoms), int)
-        self.A = np.empty((self.nimages, 3, 3))
-        self.D = np.empty((self.nimages, 3))
-        self.Z = images[0].get_atomic_numbers()
-        self.q = np.empty((self.nimages, self.natoms))
-        self.pbc = images[0].get_pbc()
-        self.covalent_radii = covalent_radii
-        config = read_defaults()
-        if config['covalent_radii'] is not None:
-            for data in config['covalent_radii']:
-                self.covalent_radii[data[0]] = data[1]
-        warning = False
-        for i, atoms in enumerate(images):
-            natomsi = len(atoms)
-            if (natomsi != self.natoms or
-                (atoms.get_atomic_numbers() != self.Z).any()):
-                raise RuntimeError('Can not handle different images with ' +
-                                   'different numbers of atoms or different ' +
-                                   'kinds of atoms!')
-            self.P[i] = atoms.get_positions()
-            self.V[i] = atoms.get_velocities()
-            if hasattr(self, 'Q'):
-                self.Q[i] = atoms.get_quaternions()
-            self.A[i] = atoms.get_cell()
-            self.D[i] = atoms.get_celldisp().reshape((3,))
-            if (atoms.get_pbc() != self.pbc).any():
-                warning = True
+
+        # Temporary hack for using atoms as backend instead of distinct arrays
+        # This should probably be replaced by a more clean mechanism if we
+        # decide to go this way
+        class IndexHack:
+            enclosing_images_obj = self
+
+            def __init__(self, getter):
+                self.getter = getter
+
+            def __getitem__(self, item):
+                if isinstance(item, tuple):
+                    print(item)
+                    sdkjfsdkjf
+                return self.getter(self.enclosing_images_obj.images[item])
+
+            def __setitem__(self, item, value):
+                print(item, value)
+                sdfksdfkj
+
+        self.P = IndexHack(lambda a: a.get_positions())
+        #self.P = np.empty((self.nimages, self.natoms, 3))
+        # XXXXXXXXXXXXX replace below
+        self.V = IndexHack(lambda a: a.get_velocities())
+        def get_energy(atoms):
             try:
-                self.E[i] = atoms.get_potential_energy()
+                e =  atoms.get_potential_energy()
             except RuntimeError:
-                self.E[i] = np.nan
-            self.K[i] = atoms.get_kinetic_energy()
+                e = np.nan
+            return e
+
+        self.E = IndexHack(get_energy)
+        self.K = IndexHack(lambda a: a.get_kinetic_energy())
+        #self.F = np.empty((self.nimages, self.natoms, 3))
+        def get_forces(atoms):
             try:
-                self.F[i] = atoms.get_forces(apply_constraint=False)
+                F = atoms.get_forces(apply_constraint=False)
             except RuntimeError:
-                self.F[i] = np.nan
+                F = np.empty_like(atoms.positions)
+                F.fill(np.nan)
+            return F
+        self.F = IndexHack(get_forces)
+
+        def get_magmoms(atoms):
             try:
                 if init_magmom:
-                    self.M[i] = atoms.get_initial_magnetic_moments()
+                    M = atoms.get_initial_magnetic_moments()
                 else:
                     M = atoms.get_magnetic_moments()
                     if M.ndim == 2:
                         M = M[:, 2]
-                    self.M[i] = M
             except (RuntimeError, AttributeError):
-                self.M[i] = atoms.get_initial_magnetic_moments()
-            self.q[i] = atoms.get_initial_charges()
+                M = atoms.get_initial_magnetic_moments()
+            return M
+        self.M = IndexHack(get_magmoms)
 
-            # added support for tags
-            try:
-                self.T[i] = atoms.get_tags()
-            except RuntimeError:
-                self.T[i] = 0
+        self.T = IndexHack(lambda a: a.get_tags())
+        self.A = IndexHack(lambda a: a.get_cell())
+        self.D = IndexHack(lambda a: a.get_celldisp().reshape((3,)))
+        self.Z = IndexHack(lambda a: a.get_atomic_numbers())
+        self.q = IndexHack(lambda a: a.get_initial_charges())
+        self.pbc = IndexHack(lambda a: a.get_pbc())
+        self.natoms = IndexHack(lambda a: len(a))
+        def get_constrained(atoms):
+            constrained = np.zeros(len(atoms), bool)
+            for constraint in atoms.constraints:
+                if isinstance(constraint, FixAtoms):
+                    constrained[constraint.index] = True
+            return constrained
+        self.constrained = IndexHack(lambda a: get_constrained(a))
+
+        #self.pbc = images[0].get_pbc()
+        self.covalent_radii = covalent_radii
+        config = read_defaults()
+
+        self.r = IndexHack(lambda a: np.array([self.covalent_radii[z]
+                                               for z in a.numbers]))
+        #if config['covalent_radii'] is not None:
+        #    for data in config['covalent_radii']:
+        #        self.covalent_radii[data[0]] = data[1]
+        warning = False
+
+        self.images = []
+
+        # Whether length or chemical composition changes:
+        self.have_varying_species = False
+        for i, atoms in enumerate(images):
+            self.images.append(atoms.copy())
+            self.have_varying_species |= np.any(self.images[0].numbers
+                                                != atoms.numbers)
+            if hasattr(self, 'Q'):
+                assert False # XXX askhl fix quaternions
+                self.Q[i] = atoms.get_quaternions()
+            if (atoms.get_pbc() != self.pbc[0]).any():
+                warning = True
 
         if warning:
-            print('WARNING: Not all images have the same boundary conditions!')
+            import warnings
+            warnings.warn('Not all images have the same boundary conditions!')
 
-        self.selected = np.zeros(self.natoms, bool)
+        self.maxnatoms = max(len(atoms) for atoms in self.images)
+        self.selected = np.zeros(self.maxnatoms, bool)
         self.selected_ordered = []
-        self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
-        self.visible = np.ones(self.natoms, bool)
+        #XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
+        self.visible = np.ones(self.maxnatoms, bool)
         self.nselected = 0
-        self.set_dynamic(constraints=images[0].constraints)
         self.repeat = np.ones(3, int)
-        self.set_radii(config['radii_scale'])
+        #XXX disabled askhl self.set_radii(config['radii_scale'])
 
     def prepare_new_atoms(self):
         "Marks that the next call to append_atoms should clear the images."
@@ -166,14 +206,15 @@ class Images:
                 self.T[i] = self.T[i - 1]
         self.nimages = i + 1
         self.filenames.append(filename)
-        self.set_dynamic()
         return self.nimages
 
     def set_radii(self, scale=None):
+        skjfsdkjfsdfkj
         scale = scale or self.scale_radii
         if self.shapes is None:
             self.r = self.covalent_radii[self.Z] * scale
         else:
+            #  XXX fix 'shapes'
             self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
         self.scale_radii = scale
 
@@ -235,7 +276,7 @@ class Images:
         self.dynamic = dynamic
         self.natoms = natoms * N
         self.selected = np.zeros(natoms * N, bool)
-        self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
+        # XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
         self.visible = np.ones(natoms * N, bool)
         self.nselected = 0
 
@@ -287,9 +328,10 @@ class Images:
             return angle * 180.0 / np.pi
 
         # get number of mobile atoms for temperature calculation
-        ndynamic = self.dynamic.sum()
+        #ndynamic = self.dynamic.sum()
+        #self.constrained[
 
-        D = self.dynamic[:, np.newaxis]
+        #D = self.dynamic[:, np.newaxis]
         E = self.E
         s = 0.0
 
@@ -306,28 +348,26 @@ class Images:
             ns['F'] = F = self.F[i]
             ns['A'] = self.A[i]
             ns['M'] = self.M[i]
-            ns['f'] = f = ((F * D)**2).sum(1)**.5
+            # XXX askhl verify:
+            constrained = self.constrained[i]
+            dynamic = ~constrained
+            #print(dynamic[None].shape)
+            ns['f'] = f = ((F * dynamic[:, None])**2).sum(1)**.5
             ns['fmax'] = max(f)
             ns['fave'] = f.mean()
             ns['epot'] = epot = E[i]
             ns['ekin'] = ekin = self.K[i]
             ns['e'] = epot + ekin
+            ndynamic = dynamic.sum()
             ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code, ns)
             if i == 0:
                 m = len(data)
                 xy = np.empty((m, n))
             xy[:, i] = data
-            if i + 1 < n:
+            if i + 1 < n and not self.have_varying_species:
                 s += sqrt(((self.P[i + 1] - R)**2).sum())
         return xy
-
-    def set_dynamic(self, constraints=None):
-        self.dynamic = np.ones(self.natoms, bool)
-        if constraints is not None:
-            for con in constraints:
-                if isinstance(con, FixAtoms):
-                    self.dynamic[con.index] = False
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None,
               **kwargs):
