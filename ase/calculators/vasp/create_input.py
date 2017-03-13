@@ -993,3 +993,25 @@ class GenerateVaspInput(object):
                              ' LEXCH=%s' % xc_flag)
 
         self.input_params['pp'] = xc_dict[xc_flag]
+
+    def todict(self):
+        """Returns a dictionary of all parameters 
+        that can be used to construct a new calculator object"""
+        dict_list = [ 
+            'float_params',
+            'exp_params',
+            'string_params',
+            'int_params',
+            'bool_params',
+            'list_params',
+            'special_params',
+            'dict_params',
+            'input_params'
+        ]
+        dct = {}
+        for item in dict_list:
+            dct.update(getattr(self, item))
+        for key, val in list(dct.items()):
+            if val is None:
+                del(dct[key])
+        return dct

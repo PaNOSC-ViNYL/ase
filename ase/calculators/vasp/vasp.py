@@ -772,28 +772,6 @@ class Vasp(GenerateVaspInput, Calculator):
             result = result.copy()
         return result
 
-    def todict(self):
-        """Returns a dictionary of all parameters 
-        that can be used to construct a new calculator object"""
-        dict_list = [ 
-            'float_params',
-            'exp_params',
-            'string_params',
-            'int_params',
-            'bool_params',
-            'list_params',
-            'special_params',
-            'dict_params',
-            'input_params'
-        ]
-        dct = {}
-        for item in dict_list:
-            dct.update(getattr(self,item))
-        for key in list(dct.keys()):
-            if dct[key] is None:
-                del(dct[key])
-        return dct
-
 
 class VaspChargeDensity(object):
     """Class for representing VASP charge density"""
