@@ -3,7 +3,7 @@ from __future__ import print_function
 from subprocess import Popen, PIPE
 
 from ase.calculators.calculator import Calculator
-from ase.io import read, write
+from ase.io import read
 
 from .create_input import GenerateVaspInput
 
@@ -87,8 +87,6 @@ class VaspInteractive(GenerateVaspInput, Calculator):
             self._stdout("Writing VASP input files\n")
             self.initialize(atoms)
             self.write_input(atoms, directory=self.path)
-#            self._stdout("Writing Initial POSCAR\n")
-#            write(os.path.join(self.path, "POSCAR"), atoms)
             self._stdout("Starting VASP for initial step...\n")
             self.process = Popen(self.command, stdout=PIPE,
                                  stdin=PIPE, stderr=PIPE, cwd=self.path)
