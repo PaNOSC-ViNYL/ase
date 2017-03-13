@@ -23,7 +23,7 @@ class VaspInteractive(GenerateVaspInput, Calculator):
     default_input = {'nsw': 2000,
                      }
 
-    def __init__(self, txt="interactive.log", print_log=True, process=None,
+    def __init__(self, txt="interactive.log", print_log=False, process=None,
                  command=None, path="./", **kwargs):
         
         GenerateVaspInput.__init__(self)
