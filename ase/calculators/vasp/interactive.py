@@ -81,8 +81,9 @@ class VaspInteractive(GenerateVaspInput, Calculator):
 
     def _run_vasp(self, atoms):
         if self.process is None:
-            if os.path.isfile('STOPCAR'):
-                os.remove('STOPCAR')
+            stopcar = os.path.join(self.path, 'STOPCAR')
+            if os.path.isfile(stopcar):
+                os.remove(stopcar)
             self._stdout("Writing VASP input files\n")
             self.initialize(atoms)
             self.write_input(atoms, directory=self.path)
