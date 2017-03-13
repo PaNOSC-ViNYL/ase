@@ -169,11 +169,13 @@ class Images:
         self.set_dynamic()
         return self.nimages
 
-    def set_radii(self, scale):
+    def set_radii(self, scale=None):
+        scale = scale or self.scale_radii
         if self.shapes is None:
             self.r = self.covalent_radii[self.Z] * scale
         else:
             self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
+        self.scale_radii = scale
 
     def read(self, filenames, index=-1, filetype=None):
         images = []
@@ -247,7 +249,7 @@ class Images:
         """Routine to create the data in ase-gui graphs, defined by the
         string expr."""
         import ase.units as units
-        code = compile(expr + ',', 'atoms.py', 'eval')
+        code = compile(expr + ',', '<input>', 'eval')
 
         n = self.nimages
 

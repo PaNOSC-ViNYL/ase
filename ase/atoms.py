@@ -388,11 +388,14 @@ class Atoms(object):
         If *shape* is not *None*, the shape of *a* will be checked."""
 
         if dtype is not None:
-            a = np.array(a, dtype)
+            a = np.array(a, dtype, order='C')
             if len(a) == 0 and shape is not None:
                 a.shape = (-1,) + shape
         else:
-            a = a.copy()
+            if not a.flags['C_CONTIGUOUS']:
+                a = np.ascontiguousarray(a)
+            else:
+                a = a.copy()
 
         if name in self.arrays:
             raise RuntimeError
@@ -566,7 +569,7 @@ class Atoms(object):
         the masses argument is not given or for those elements of the
         masses list that are None, standard values are set."""
 
-        if isinstance(masses, str) and masses == 'defaults':
+        if isinstance(masses, basestring) and masses == 'defaults':
             masses = atomic_masses[self.arrays['numbers']]
         elif isinstance(masses, (list, tuple)):
             newmasses = []
@@ -831,7 +834,7 @@ class Atoms(object):
             symbols = self.get_chemical_formula('hill')
         tokens.append("symbols='{0}'".format(symbols))
 
-        if self.pbc.ptp():
+        if self.pbc.any() and not self.pbc.all():
             tokens.append('pbc={0}'.format(self._pbc.tolist()))
         else:
             tokens.append('pbc={0}'.format(self._pbc[0]))
@@ -1230,7 +1233,7 @@ class Atoms(object):
             elif s > 0:
                 v /= s
 
-        if isinstance(center, str):
+        if isinstance(center, basestring):
             if center.lower() == 'com':
                 center = self.get_center_of_mass()
             elif center.lower() == 'cop':
@@ -1273,7 +1276,7 @@ class Atoms(object):
             2nd rotation around the z axis.
 
         """
-        if isinstance(center, str):
+        if isinstance(center, basestring):
             if center.lower() == 'com':
                 center = self.get_center_of_mass()
             elif center.lower() == 'cop':
@@ -1654,14 +1657,14 @@ class Atoms(object):
                       " inside the info dictionary, i.e. atoms." +
                       "info['adsorbate_info']", FutureWarning)
         return self.info['adsorbate_info']
-    
+
     @adsorbate_info.setter
     def adsorbate_info(self, dct):
         warnings.warn("The adsorbate_info dictionary has been moved" +
                       " inside the info dictionary, i.e. atoms." +
                       "info['adsorbate_info']", FutureWarning)
         self.info['adsorbate_info'] = dct
-    
+
     def _get_atomic_numbers(self):
         """Return reference to atomic numbers for in-place
         manipulations."""
@@ -1776,7 +1779,7 @@ def string2symbols(s):
 
 
 def symbols2numbers(symbols):
-    if isinstance(symbols, str):
+    if isinstance(symbols, basestring):
         symbols = string2symbols(symbols)
     numbers = []
     for s in symbols:
@@ -1788,7 +1791,7 @@ def symbols2numbers(symbols):
 
 
 def string2vector(v):
-    if isinstance(v, str):
+    if isinstance(v, basestring):
         if v[0] == '-':
             return -string2vector(v[1:])
         w = np.zeros(3)

@@ -27,6 +27,7 @@ import weakref
 import numpy as np
 
 from ase.md.md import MolecularDynamics
+from ase.utils import basestring
 
 linalg = np.linalg
 
@@ -487,7 +488,7 @@ class NPT(MolecularDynamics):
         atoms (optional, internal use only)
             Pre-read atoms.  Do not use.
         """
-        if isinstance(trajectory, str):
+        if isinstance(trajectory, basestring):
             if trajectory.endswith('/'):
                 trajectory = trajectory[:-1]
             if trajectory.endswith('.bundle'):

@@ -1,8 +1,11 @@
 from __future__ import unicode_literals
-from ase.gui.i18n import _
+import pickle
+import subprocess
+import sys
 
 import numpy as np
 
+from ase.gui.i18n import _
 import ase.gui.ui as ui
 
 graph_help_text = _("""\
@@ -51,10 +54,18 @@ class Graphs:
         else:
             self.expr.value = expr
 
-        data = self.gui.images.graph(expr)
+        try:
+            data = self.gui.images.graph(expr)
+        except (SyntaxError, NameError) as ex:
+            ui.error(ex)
+            return
 
-        fig = make_plot(data, self.gui.frame, expr, type)
-        self.gui.graphs.append(fig)
+        process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
+                                   stdin=subprocess.PIPE)
+        pickle.dump((data, self.gui.frame, expr, type), process.stdin,
+                    protocol=0)
+        process.stdin.close()
+        self.gui.graphs.append(process)
 
     def save(self):
         dialog = ui.SaveFileDialog(self.gui.window.win,
@@ -76,7 +87,7 @@ def make_plot(data, i, expr, type):
     import matplotlib.pyplot as plt
 
     x = 4
-    fig = plt.figure(figsize=(x * 2.5**0.5, x))
+    plt.figure(figsize=(x * 2.5**0.5, x))
     m = len(data)
 
     if type is None:
@@ -94,6 +105,11 @@ def make_plot(data, i, expr, type):
             plt.plot(data[0], data[j])
             plt.plot([data[0, i]], [data[j, i]], 'o')
     plt.title(expr)
-    plt.ion()
     plt.show()
-    return fig
+
+
+if __name__ == '__main__':
+    if sys.version_info[0] == 2:
+        make_plot(*pickle.load(sys.stdin))
+    else:
+        make_plot(*pickle.load(sys.stdin.buffer))

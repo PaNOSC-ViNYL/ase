@@ -8,6 +8,7 @@ from ase.calculators.siesta.siesta import Siesta
 from ase.calculators.siesta.parameters import Specie, PAOBasisBlock
 from ase.calculators.calculator import FileIOCalculator
 from ase import Atoms
+from ase.utils import basestring
 
 # Create temporary directory for running tests.
 test_path = 'tmp_siesta'
@@ -47,7 +48,7 @@ siesta = Siesta()
 assert isinstance(siesta, FileIOCalculator)
 assert isinstance(siesta.implemented_properties, tuple)
 assert isinstance(siesta.default_parameters, dict)
-assert isinstance(siesta.name, str)
+assert isinstance(siesta.name, basestring)
 assert isinstance(siesta.default_parameters, dict)
 
 # Test simple fdf-argument case.

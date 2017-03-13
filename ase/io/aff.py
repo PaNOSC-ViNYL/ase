@@ -1,4 +1,4 @@
-from ase.io.ulm import (ulmopen as affopen,
+from ase.io.ulm import (open as affopen,
                         InvalidULMFileError as InvalidAFFError,
                         Reader, Writer, DummyWriter)
 

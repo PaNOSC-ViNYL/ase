@@ -16,38 +16,39 @@ except ImportError:
     raise NotAvailable
 
 from ase.gui.gui import GUI
+from ase.gui.save import save_dialog
 
 
 if not os.environ.get('DISPLAY'):
     raise NotAvailable
 
 
-class OOPS:
+class Error:
     """Fake window for testing puposes."""
     has_been_called = False
 
-    def __call__(self, title, text):
-        self.title = title
+    def __call__(self, title, text=None):
+        self.text = text or title
         self.has_been_called = True
 
-    def called(self, title=None):
+    def called(self, text=None):
         """Check that an oops-window was opened with correct title."""
         if not self.has_been_called:
             return False
 
         self.has_been_called = False  # ready for next call
 
-        return title is None or title == self.title
+        return text is None or text == self.text
 
 
-ui.oops = OOPS()
+ui.error = Error()
 
-tests = []
+alltests = []
 
 
 def test(f):
     """Decorator for marking tests."""
-    tests.append(f.__name__)
+    alltests.append(f.__name__)
     return f
 
 
@@ -57,7 +58,9 @@ def nanotube(gui):
     nt.apply()
     nt.element[1].value = '?'
     nt.apply()
-    assert ui.oops.called(_('No valid atoms.'))
+    assert ui.error.called(
+        _('You have not (yet) specified a consistent set of parameters.'))
+
     nt.element[1].value = 'C'
     nt.ok()
     assert gui.images.natoms == 20
@@ -85,7 +88,7 @@ def color(gui):
     c.toggle('force')
     text = c.toggle('magmom')
     assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 1]
-    assert text.rsplit('[', 1)[1].startswith('-1.0,1.0]')
+    assert text.rsplit('[', 1)[1].startswith('-1.000000,1.000000]')
 
 
 @test
@@ -102,20 +105,27 @@ def rotate(gui):
     gui.rotate_window()
 
 
-# @test not ready yet!
-def open(gui):
-    molecule('H2O').write('h2o.json')
-    gui.open()
+@test
+def open_and_save(gui):
+    mol = molecule('H2O')
+    for i in range(3):
+        mol.write('h2o.json')
+    gui.open(filename='h2o.json')
+    save_dialog(gui, 'h2o.cif@-1')
 
 
 p = argparse.ArgumentParser()
 p.add_argument('tests', nargs='*')
 p.add_argument('-p', '--pause', action='store_true')
-args = p.parse_args()
-if __name__ != '__main__':
-    args.tests = []
-for name in args.tests or tests:
-    for n in tests:
+
+if __name__ == '__main__':
+    args = p.parse_args()
+else:
+    # We are running inside the test framework: ignore sys.args
+    args = p.parse_args([])
+
+for name in args.tests or alltests:
+    for n in alltests:
         if n.startswith(name):
             name = n
             break

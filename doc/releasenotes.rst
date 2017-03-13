@@ -10,6 +10,26 @@ Git master branch
 
 :git:`master <>`.
 
+* :data:`ase.data.atomic_masses` has been updated to IUPAC values from
+  2016. Several elements will now have different weights which will affect
+  dynamic calculations. The old values can be recovered like this:
+
+  >>> from ase.data import atomic_masses_legacy
+  >>> atoms.set_masses(atomic_masses_legacy[atoms.numbers])
+
+* New :func:`ase.data.isotopes.download_isotope_data` function for getting
+  individual isotope masses from NIST.
+
+* New :func:`ase.eos.calculate_eos` helper function added.
+
+* Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
+
+
+Version 3.13.0
+==============
+
+7 February 2017: :git:`3.13.0 <../3.13.0>`.
+
 * The default unit-cell when you create an :class:`~ase.Atoms` object has
   been changed from ``[[1,0,0],[0,1,0],[0,0,1]]`` to
   ``[[0,0,0],[0,0,0],[0,0,0]]``.
@@ -35,10 +55,22 @@ Git master branch
   of the 0-d, 1-d and 2-d functions have or, equivalently, call the
   :meth:`~ase.Atoms.center` method.
 
+* Many of the :ref:`surface generating functions <surfaces>` have changed
+  their behavior when called with ``vacuum=None`` (the default).  Before, a
+  vacuum layer equal to the interlayer spacing would be added on the upper
+  surface of the slab. Now, the third axis perpendicular to the surface will be
+  undefined (``[0, 0, 0]``).  Use ``vacuum=<half-the-interlater-distance>`` to
+  get something similar to the old behavior.
+
 * New :func:`ase.geometry.is_orthorhombic` and
   :func:`ase.geometry.orthorhombic` functions added.
 
 * :mod:`ase.gui` now works on Python 3.
+
+* NEB-tools class has been renamed to :class:`~ase.neb.NEBTools`.
+
+* :mod:`Optimizers <ase.optimize>` now try force-consistent energies if
+  possible (instead of energies extrapolated to 0.0 K).
 
 
 Version 3.12.0

@@ -943,12 +943,23 @@ class Hookean(FixConstraint):
     def index_shuffle(self, atoms, ind):
         # See docstring of superclass
         if self._type == 'two atoms':
-            self.indices = [ind.index(self.indices[0]),
-                            ind.index(self.indices[1])]
-        elif self._type == 'point':
-            self.index = ind.index(self.index)
-        elif self._type == 'plane':
-            self.index = ind.index(self.index)
+            newa = [-1, -1]  # Signal error
+            for new, old in slice2enlist(ind, len(atoms)):
+                for i, a in enumerate(self.indices):
+                    if old == a:
+                        newa[i] = new
+            if newa[0] == -1 or newa[1] == -1:
+                raise IndexError('Constraint not part of slice')
+            self.indices = newa
+        elif (self._type == 'point') or (self._type == 'plane'):
+            newa = -1   # Signal error
+            for new, old in slice2enlist(ind, len(atoms)):
+                if old == self.index:
+                    newa = new
+                    break
+            if newa == -1:
+                raise IndexError('Constraint not part of slice')
+            self.index = newa
 
     def __repr__(self):
         if self._type == 'two atoms':
@@ -1216,9 +1227,6 @@ class StrainFilter(Filter):
         stress = self.atoms.get_stress()
         return -self.atoms.get_volume() * (stress * self.mask).reshape((2, 3))
 
-    def get_potential_energy(self):
-        return self.atoms.get_potential_energy()
-
     def has(self, x):
         return self.atoms.has(x)
 
@@ -1457,9 +1465,6 @@ class UnitCellFilter(Filter):
         forces[:natoms] = atoms_forces
         forces[natoms:] = virial / self.cell_factor
         return forces
-
-    def get_potential_energy(self):
-        return self.atoms.get_potential_energy()
 
     def get_stress(self):
         raise PropertyNotImplementedError

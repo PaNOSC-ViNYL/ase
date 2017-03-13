@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import ase.gui.ui as ui
 from ase.gui.i18n import _
 
+
 class Constraints:
     def __init__(self, gui):
         win = ui.Window(_('Constraints'))

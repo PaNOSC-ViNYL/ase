@@ -3,6 +3,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.parallel import paropen
+from ase.utils import basestring
 
 
 def read_lammps_data(fileobj, Z_of_type=None, style='full'):
@@ -11,7 +12,7 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
     order: Order the particles according to their id. Might be faster to
     switch it off.
     """
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         f = paropen(fileobj)
     else:
         f = fileobj

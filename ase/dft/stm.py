@@ -1,7 +1,7 @@
 import pickle
 
 import numpy as np
-
+from ase.utils import basestring
 
 class STM:
     def __init__(self, atoms, symmetries=None, use_density=False):
@@ -17,14 +17,14 @@ class STM:
 
                  [-1  0]   [ 1  0]   [ 0  1]
                  [ 0  1]   [ 0 -1]   [ 1  0]
-                 
+
         use_density: bool
             Use the electron density instead of the LDOS.
         """
 
         self.use_density = use_density
-        
-        if isinstance(atoms, str):
+
+        if isinstance(atoms, basestring):
             with open(atoms, 'rb') as f:
                 self.ldos, self.bias, self.cell = pickle.load(f)
             self.atoms = None

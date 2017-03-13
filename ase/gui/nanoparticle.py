@@ -212,6 +212,7 @@ class SetupNanoparticle:
         self.direction_table_rows.clear()
         for direction, layers, energy in self.direction_table:
             self.add_direction(direction, layers, energy)
+        self.update()
 
     def add_direction(self, direction, layers, energy):
         i = len(self.direction_table_rows)
@@ -235,8 +236,6 @@ class SetupNanoparticle:
             down, delete = self.direction_table_rows[-2][3:]
             down.active = True
             delete.active = True
-
-        self.update()
 
     def update_new_direction_and_size_stuff(self):
         if self.needs_4index[self.structure.value]:
@@ -289,6 +288,9 @@ class SetupNanoparticle:
             rows.add(self.round_radio)
             rows.add([self.smaller_button, self.larger_button])
             self.update_gui_size()
+        else:
+            self.smaller_button = None
+            self.larger_button = None
 
     def update_structure(self, s):
         'Called when the user changes the structure.'
@@ -340,19 +342,20 @@ class SetupNanoparticle:
             n = 3
         idx = tuple(a.value for a in self.new_direction[1:1 + 2 * n:2])
         if not any(idx):
-            ui.oops(_('At least one index must be non-zero'), '')
+            ui.error(_('At least one index must be non-zero'), '')
             return
         if n == 4 and sum(idx) != 0:
-            ui.oops(_('Invalid hexagonal indices',
-                      'The sum of the first three numbers must be zero'))
+            ui.error(_('Invalid hexagonal indices',
+                       'The sum of the first three numbers must be zero'))
             return
         new = [idx, 5, 1.0]
         if self.method.value == 'wulff':
-            new[2] = self.new_direction[-2].value
+            new[1] = self.new_direction[-2].value
         else:
             new[2] = self.new_direction[-2].value
         self.direction_table.append(new)
         self.add_direction(*new)
+        self.update()
 
     def row_delete(self, row):
         del self.direction_table[row]
@@ -375,11 +378,13 @@ class SetupNanoparticle:
         self.size_diameter.value = dia
         self.update()
 
-    def update_size_diameter(self, widget=None):
-        at_vol = self.get_atomic_volume()
-        n = round(np.pi / 6 * self.size_diameter.value**3 / at_vol)
-        self.size_natoms.value = int(n)
-        self.update()
+    def update_size_diameter(self, widget=None, update=True):
+        if self.size_diameter.active:
+            at_vol = self.get_atomic_volume()
+            n = round(np.pi / 6 * self.size_diameter.value**3 / at_vol)
+            self.size_natoms.value = int(n)
+            if update:
+                self.update()
 
     def update(self, *args):
         if self.no_update:
@@ -406,9 +411,9 @@ class SetupNanoparticle:
 
         if ref is None or structure not in [s[0]
                                             for s in self.structure_data]:
-            ui.oops(_('Unsupported or unknown structure'),
-                    _('Element = {0}, structure = {1}')
-                    .format(self.element.symbol, structure))
+            ui.error(_('Unsupported or unknown structure'),
+                     _('Element = {0}, structure = {1}')
+                     .format(self.element.symbol, structure))
             return
 
         self.structure.value = structure
@@ -441,8 +446,9 @@ class SetupNanoparticle:
         if self.method.value == 'wulff':
             # Wulff construction
             surfaces = [x[0] for x in self.direction_table]
-            surfaceenergies = [x[2] for x in self.direction_table]
-            self.update_size_diameter()
+            surfaceenergies = [x[1].value
+                               for x in self.direction_table_rows.rows]
+            self.update_size_diameter(update=False)
             rounding = self.round_radio.value
             self.atoms = wulff_construction(self.element.symbol,
                                             surfaces,
@@ -460,7 +466,7 @@ class SetupNanoparticle:
         else:
             # Layer-by-layer specification
             surfaces = [x[0] for x in self.direction_table]
-            layers = [x[1] for x in self.direction_table]
+            layers = [x[1].value for x in self.direction_table_rows.rows]
             self.atoms = self.factory[struct](self.element.symbol,
                                               copy(surfaces),
                                               layers, latticeconstant=lc)
@@ -507,6 +513,7 @@ class SetupNanoparticle:
             dia = 2 * (3 * len(self.atoms) * at_vol / (4 * np.pi))**(1 / 3)
             self.info[1].text = str(len(self.atoms))
             self.info[3].text = u'{0:.1f} Å'.format(dia)
+
         if self.method.value == 'wulff':
             if self.smaller_button is not None:
                 self.smaller_button.active = self.atoms is not None
@@ -518,9 +525,9 @@ class SetupNanoparticle:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            ui.oops(_('No valid atoms.'),
-                    _('You have not (yet) specified a consistent set of '
-                      'parameters.'))
+            ui.error(_('No valid atoms.'),
+                     _('You have not (yet) specified a consistent set of '
+                       'parameters.'))
             return False
 
     def ok(self):

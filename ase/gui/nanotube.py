@@ -81,9 +81,9 @@ class SetupNanotube:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            ui.oops(_('No valid atoms.'),
-                    _('You have not (yet) specified a consistent '
-                      'set of parameters.'))
+            ui.error(_('No valid atoms.'),
+                     _('You have not (yet) specified a consistent '
+                       'set of parameters.'))
             return False
 
     def ok(self, *args):

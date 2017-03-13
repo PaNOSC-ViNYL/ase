@@ -7,8 +7,10 @@ import numpy as np
 
 from ase.dft.kpoints import bandpath, monkhorst_pack
 
+
 class ReadError(Exception):
     pass
+
 
 class PropertyNotImplementedError(NotImplementedError):
     pass
@@ -183,18 +185,6 @@ class Parameters(dict):
 
     def __setattr__(self, key, value):
         self[key] = value
-
-    def update(self, other=None, **kwargs):
-        if isinstance(other, dict):
-            self.update(other.items())
-        else:
-            for key, value in other:
-                if isinstance(value, dict) and isinstance(self[key], dict):
-                    self[key].update(value)
-                else:
-                    self[key] = value
-        if kwargs:
-            self.update(kwargs)
 
     @classmethod
     def read(cls, filename):
@@ -421,7 +411,12 @@ class Calculator:
     def get_potential_energy(self, atoms=None, force_consistent=False):
         energy = self.get_property('energy', atoms)
         if force_consistent:
-            return self.results.get('free_energy', energy)
+            if 'free_energy' not in self.results:
+                name = self.__class__.__name__
+                raise PropertyNotImplementedError(
+                    'Force consistent/free energy not provided by {0} '
+                    'calculator'.format(name))
+            return self.results['free_energy']
         else:
             return energy
 
@@ -538,11 +533,11 @@ class Calculator:
             x = np.eye(3)
             x[i, i] += d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eplus = atoms.get_potential_energy()
+            eplus = atoms.get_potential_energy(force_consistent=True)
 
             x[i, i] -= 2 * d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eminus = atoms.get_potential_energy()
+            eminus = atoms.get_potential_energy(force_consistent=True)
 
             stress[i, i] = (eplus - eminus) / (2 * d * V)
             x[i, i] += d
@@ -551,12 +546,12 @@ class Calculator:
             x[i, j] = d
             x[j, i] = d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eplus = atoms.get_potential_energy()
+            eplus = atoms.get_potential_energy(force_consistent=True)
 
             x[i, j] = -d
             x[j, i] = -d
             atoms.set_cell(np.dot(cell, x), scale_atoms=True)
-            eminus = atoms.get_potential_energy()
+            eminus = atoms.get_potential_energy(force_consistent=True)
 
             stress[i, j] = (eplus - eminus) / (4 * d * V)
             stress[j, i] = stress[i, j]

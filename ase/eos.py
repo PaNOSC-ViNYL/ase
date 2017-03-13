@@ -2,6 +2,7 @@
 from __future__ import print_function, division
 
 from ase.units import kJ
+from ase.utils import basestring
 
 import numpy as np
 
@@ -366,6 +367,63 @@ class EquationOfState:
         return self.v0, self.e0, self.B
 
 
+def calculate_eos(atoms, npoints=5, eps=0.04, trajectory=None, callback=None):
+    """Calculate equation-of-state.
+
+    atoms: Atoms object
+        System to calculate EOS for.  Must have a calculator attached.
+    npoints: int
+        Number of points.
+    eps: float
+        Variation in volume from v0*(1-eps) to v0*(1+eps).
+    trajectory: Trjectory object or str
+        Write configurations to a trajectory file.
+    callback: function
+        Called after every energy calculation.
+
+    >>> from ase.build import bulk
+    >>> from ase.calculators.emt import EMT
+    >>> a = bulk('Cu', 'fcc', a=3.6)
+    >>> a.calc = EMT()
+    >>> eos = calculate_eos(a, trajectory='Cu.traj')
+    >>> v, e, B = eos.fit()
+    >>> a = (4 * v)**(1 / 3.0)
+    >>> print('{0:.6f}'.format(a))
+    3.589825
+    """
+
+    # Save original positions and cell:
+    p0 = atoms.get_positions()
+    c0 = atoms.get_cell()
+
+    if isinstance(trajectory, basestring):
+        from ase.io import Trajectory
+        trajectory = Trajectory(trajectory, 'w', atoms)
+
+    if trajectory is not None:
+        trajectory.set_description({'type': 'eos',
+                                    'npoints': npoints,
+                                    'eps': eps})
+
+    try:
+        energies = []
+        volumes = []
+        for x in np.linspace(1 - eps, 1 + eps, npoints)**(1 / 3):
+            atoms.set_cell(x * c0, scale_atoms=True)
+            volumes.append(atoms.get_volume())
+            energies.append(atoms.get_potential_energy())
+            if callback:
+                callback()
+            if trajectory is not None:
+                trajectory.write()
+        return EquationOfState(volumes, energies)
+    finally:
+        atoms.cell = c0
+        atoms.positions = p0
+        if trajectory is not None:
+            trajectory.close()
+
+
 def main():
     import optparse
     from ase.io import read
@@ -385,7 +443,10 @@ def main():
             # Special case - used by ase-gui:
             import pickle
             import sys
-            v, e = pickle.load(sys.stdin)
+            if sys.version_info[0] == 2:
+                v, e = pickle.load(sys.stdin)
+            else:
+                v, e = pickle.load(sys.stdin.buffer)
         else:
             if '@' in name:
                 index = None

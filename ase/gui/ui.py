@@ -4,13 +4,16 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror as oops
+    from tkinter.messagebox import showerror
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
     import Tkinter as tk
-    import ttk
-    from tkMessageBox import askokcancel as ask_question
+    try:
+        import ttk
+    except ImportError:
+        ttk = None
+    from tkMessageBox import askokcancel as ask_question, showerror
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -24,18 +27,23 @@ import numpy as np
 from ase.utils import basestring
 
 __all__ = [
-    'oops', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
+    'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
     'SpinBox', 'Text']
-
-font = ('Helvetica', 10)
 
 
 if sys.platform == 'darwin':
     mouse_buttons = {2: 3, 3: 2}
 else:
     mouse_buttons = {}
+
+
+def error(title, message=None):
+    if message is None:
+        message = title
+        title = _('Error')
+    return showerror(title, message)
 
 
 def about(name, version, webpage):
@@ -94,12 +102,11 @@ class Widget(object):
         widget = self.create(parent)
         widget.pack(side=side, anchor=anchor)
         if not isinstance(self, (Rows, RadioButtons)):
-            pass  # widget['font'] = font
+            pass
 
     def grid(self, parent):
         widget = self.create(parent)
         widget.grid()
-        # widget['font'] = font
 
     def create(self, parent):
         self.widget = self.creator(parent)
@@ -164,6 +171,7 @@ class Text(Widget):
         for text, tags in self.text:
             widget.insert('insert', text, tags)
         widget.configure(state='disabled', background=parent['bg'])
+        widget.bind("<1>", lambda event: widget.focus_set())
         return widget
 
 
@@ -288,7 +296,7 @@ class RadioButtons(Widget):
         self.vertical = vertical
 
     def create(self, parrent):
-        frame = tk.Frame(parrent)
+        self.widget = frame = tk.Frame(parrent)
         side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
@@ -315,29 +323,34 @@ class RadioButton(Widget):
                                command=callback)
 
 
-class ComboBox(Widget):
-    def __init__(self, labels, values=None, callback=None):
-        self.values = values or list(range(len(labels)))
-        self.callback = callback
-        self.creator = partial(ttk.Combobox,
-                               values=labels)
+if ttk is not None:
+    class ComboBox(Widget):
+        def __init__(self, labels, values=None, callback=None):
+            self.values = values or list(range(len(labels)))
+            self.callback = callback
+            self.creator = partial(ttk.Combobox,
+                                   values=labels)
 
-    def create(self, parrent):
-        widget = Widget.create(self, parrent)
-        widget.current(0)
-        if self.callback:
-            def callback(event):
-                self.callback(self.value)
-            widget.bind('<<ComboboxSelected>>', callback)
-        return widget
+        def create(self, parrent):
+            widget = Widget.create(self, parrent)
+            widget.current(0)
+            if self.callback:
+                def callback(event):
+                    self.callback(self.value)
+                widget.bind('<<ComboboxSelected>>', callback)
+            return widget
 
-    @property
-    def value(self):
-        return self.values[self.widget.current()]
+        @property
+        def value(self):
+            return self.values[self.widget.current()]
 
-    @value.setter
-    def value(self, val):
-        self.widget.current(self.values.index(val))
+        @value.setter
+        def value(self, val):
+            self.widget.current(self.values.index(val))
+else:
+    # Use Entry object when there is no ttk:
+    def ComboBox(labels, values, callback):
+        return Entry(values[0], callback=callback)
 
 
 class Rows(Widget):
@@ -472,11 +485,11 @@ class MainWindow(BaseWindow):
             self.create_menu(menu)
 
     def create_menu(self, menu_description):
-        menu = tk.Menu(self.win, font=font)
+        menu = tk.Menu(self.win)
         self.win.config(menu=menu)
 
         for label, things in menu_description:
-            submenu = tk.Menu(menu, font=font)
+            submenu = tk.Menu(menu)
             menu.add_cascade(label=label.replace('_', ''),
                              underline=label.find('_'),
                              menu=submenu)
@@ -584,8 +597,7 @@ class ASEGUIWindow(MainWindow):
 
     def text(self, x, y, txt, anchor=tk.CENTER, color='black'):
         anchor = {'SE': tk.SE}.get(anchor, anchor)
-        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color,
-                                font=font)
+        self.canvas.create_text((x, y), text=txt, anchor=anchor, fill=color)
 
     def after(self, time, callback):
         id = self.win.after(int(time * 1000), callback)

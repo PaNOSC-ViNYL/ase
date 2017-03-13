@@ -105,10 +105,16 @@ class RandomMutation(Mutation):
     def get_new_individual(self, parents):
         f = parents[0]
 
-        indi = self.mutate(f)
-        indi = self.initialize_individual(f, indi)
+        indi = self.initialize_individual(f)
         indi.info['data']['parents'] = [f.info['confid']]
 
+        to_mut = f.copy()
+        for _ in range(self.num_muts):
+            to_mut = self.mutate(to_mut)
+
+        for atom in to_mut:
+            indi.append(atom)
+            
         return (self.finalize_individual(indi),
                 self.descriptor + ':Parent {0}'.format(f.info['confid']))
 

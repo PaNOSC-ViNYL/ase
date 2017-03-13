@@ -7,7 +7,7 @@ import ase.gui.ui as ui
 from ase import Atoms
 from ase.constraints import FixAtoms
 
-pack = oops = 42
+pack = error = 42
 
 
 class Simulation:
@@ -109,7 +109,7 @@ class Simulation:
         try:
             self.calculator = self.gui.simulation['calc']
         except KeyError:
-            oops(_("No calculator: Use Calculate/Set Calculator on the menu."))
+            error(_("No calculator: Use Calculate/Set Calculator on the menu."))
             return False
         self.atoms.set_calculator(self.calculator())
         return True
@@ -118,7 +118,7 @@ class Simulation:
         "Make an atoms object from the active image"
         images = self.gui.images
         if images.natoms < 1:
-            oops(_("No atoms present"))
+            error(_("No atoms present"))
             return None
         n = self.getimagenumber()
         natoms = len(images.P[n]) // images.repeat.prod()

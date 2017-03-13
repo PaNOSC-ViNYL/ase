@@ -71,7 +71,7 @@ def pybutton(title, callback):
 def pywindow(title, callback):
     code = callback()
     if code is None:
-        ui.oops(
+        ui.error(
             _('No Python code'),
             _('You have not (yet) specified a consistent set of parameters.'))
     else:

@@ -15,6 +15,7 @@ from ase.atom import Atom
 from ase.atoms import Atoms
 from ase.data import reference_states, atomic_numbers
 from ase.lattice.cubic import FaceCenteredCubic
+from ase.utils import basestring
 
 
 def fcc100(symbol, size, a=None, vacuum=None):
@@ -160,7 +161,7 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
     if offset is not None:
         spos += np.asarray(offset, float)
 
-    if isinstance(position, str):
+    if isinstance(position, basestring):
         # A site-name:
         if 'sites' not in info:
             raise TypeError('If the atoms are not made by an ' +
@@ -189,10 +190,13 @@ def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
         ads = Atoms([Atom(adsorbate)])
 
     # Get the z-coordinate:
-    try:
+    if 'top layer atom index' in info:
         a = info['top layer atom index']
-    except KeyError:
+    else:
         a = slab.positions[:, 2].argmax()
+        if 'adsorbate_info' not in slab.info:
+            slab.info['adsorbate_info'] = {}
+        slab.info['adsorbate_info']['top layer atom index'] = a
     z = slab.positions[a, 2] + height
 
     # Move adsorbate into position

@@ -150,7 +150,7 @@ def convert_str_to_int_float_or_str(value):
         try:
             value = float(value)
         except ValueError:
-            value = {'True': 1.0, 'False': 0.0}.get(value, value)
+            value = {'True': True, 'False': False}.get(value, value)
         return value
 
 
@@ -165,11 +165,11 @@ class Database:
             to interact with the database on the master only and then
             distribute results to all slaves.
         """
-        if isinstance(filename, str):
+        if isinstance(filename, basestring):
             filename = os.path.expanduser(filename)
         self.filename = filename
         self.create_indices = create_indices
-        if use_lock_file and isinstance(filename, str):
+        if use_lock_file and isinstance(filename, basestring):
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None

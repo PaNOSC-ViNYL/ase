@@ -22,7 +22,8 @@ class ColorWindow:
                   _('By charge'),
                   _('By magnetic moment')]
 
-        self.radio = ui.RadioButtons(labels, values, self.toggle, vertical=True)
+        self.radio = ui.RadioButtons(labels, values, self.toggle,
+                                     vertical=True)
         self.radio.value = gui.colormode
         self.win.add(self.radio)
         self.activate()
@@ -57,7 +58,7 @@ class ColorWindow:
                     'velocity': '??',
                     'charge': '|e|',
                     u'magmom': 'μB'}[value]
-            text = '[{},{}]: [{},{}] {}'.format(
+            text = '[{0},{1}]: [{2:.6f},{3:.6f}] {4}'.format(
                 _('Green'), _('Yellow'), mn, mx, unit)
 
         self.label.text = text

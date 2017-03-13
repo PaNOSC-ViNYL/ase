@@ -19,7 +19,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-.PHONY: help doctest clean html latex linkcheck browse
+.PHONY: help doctest clean inspect html latex linkcheck browse
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -36,6 +36,7 @@ help:
 	@echo "  latexpdf   to make LaTeX files and run them through pdflatex"
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  clean      to clean up"
+	@echo "  inspect    to check generated images and other stuff"
 	@echo "  browse     to open browser"
 
 latex:
@@ -47,6 +48,9 @@ latex:
 clean:
 	rm -rf $(BUILDDIR)/*
 	python -m ase.utils.sphinx clean
+
+inspect:
+	python -m ase.utils.sphinx inspect
 
 linkcheck:
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) $(BUILDDIR)/linkcheck

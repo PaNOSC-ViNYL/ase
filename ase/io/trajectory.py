@@ -93,17 +93,17 @@ class TrajectoryWriter:
         self.description.update(description)
 
     def _open(self, filename, mode):
-        from ase.io.ulm import ulmopen, DummyWriter
+        import ase.io.ulm as ulm
         if mode not in 'aw':
             raise ValueError('mode must be "w" or "a".')
         if self.master:
-            self.backend = ulmopen(filename, mode, tag='ASE-Trajectory')
+            self.backend = ulm.open(filename, mode, tag='ASE-Trajectory')
             if len(self.backend) > 0:
-                r = ulmopen(filename)
+                r = ulm.open(filename)
                 self.numbers = r.numbers
                 self.pbc = r.pbc
         else:
-            self.backend = DummyWriter()
+            self.backend = ulm.DummyWriter()
 
     def write(self, atoms=None, **kwargs):
         """Write the atoms to the file.
@@ -222,10 +222,10 @@ class TrajectoryReader:
         self._open(filename)
 
     def _open(self, filename):
-        from ase.io.ulm import ulmopen, InvalidULMFileError
+        import ase.io.ulm as ulm
         try:
-            self.backend = ulmopen(filename, 'r')
-        except InvalidULMFileError:
+            self.backend = ulm.open(filename, 'r')
+        except ulm.InvalidULMFileError:
             raise RuntimeError('This is not a valid ASE trajectory file. '
                                'If this is an old-format (version <3.9) '
                                'PickleTrajectory file you can convert it '

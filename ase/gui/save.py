@@ -8,6 +8,7 @@ import numpy as np
 import ase.gui.ui as ui
 from ase.io.formats import (write, parse_filename, get_ioformat, string2index,
                             filetype)
+from ase.utils import basestring
 
 
 text = _("""\
@@ -21,18 +22,22 @@ last image. Examples: "name@-1": last image,
 "name@-2:": last two.""")
 
 
-def save_dialog(gui):
+def save_dialog(gui, filename=None):
     dialog = ui.SaveFileDialog(gui.window.win, _('Save ...'))
     ui.Text(text).pack(dialog.top)
-    filename = dialog.go()
+    filename = filename or dialog.go()
     if not filename:
         return
 
     filename, index = parse_filename(filename)
     if index is None:
         index = slice(gui.frame, gui.frame + 1)
-    if isinstance(index, str):
+    elif isinstance(index, basestring):
         index = string2index(index)
+    else:
+        if index < 0:
+            index += gui.images.nimages
+        index = slice(index, index + 1)
     format = filetype(filename, read=False)
     io = get_ioformat(format)
 
@@ -40,14 +45,16 @@ def save_dialog(gui):
     remove_hidden = False
     if format in ['png', 'eps', 'pov']:
         bbox = np.empty(4)
-        size = np.array([gui.width, gui.height]) / gui.scale
+        size = gui.window.size / gui.scale
         bbox[0:2] = np.dot(gui.center, gui.axes[:, :2]) - size / 2
         bbox[2:] = bbox[:2] + size
         extra['rotation'] = gui.axes
-        extra['show_unit_cell'] = gui.ui.get_widget(
-            '/MenuBar/ViewMenu/ShowUnitCell').get_active()
+        extra['show_unit_cell'] = gui.window['toggle-show-unit-cell']
         extra['bbox'] = bbox
-        extra['colors'] = gui.get_colors(rgb=True)[gui.images.visible]
+        colors = gui.get_colors(rgb=True)
+        extra['colors'] = [rgb for rgb, visible
+                           in zip(colors, gui.images.visible)
+                           if visible]
         remove_hidden = True
 
     images = [gui.images.get_atoms(i, remove_hidden=remove_hidden)

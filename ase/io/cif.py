@@ -17,6 +17,14 @@ from ase.spacegroup.spacegroup import spacegroup_from_data
 from ase.utils import basestring
 
 
+# Old conventions:
+old_spacegroup_names = {'Abm2': 'Aem2',
+                        'Aba2': 'Aea2',
+                        'Cmca': 'Cmce',
+                        'Cmma': 'Cmme',
+                        'Ccca': 'Ccc1'}
+
+
 def convert_value(value):
     """Convert CIF value string to corresponding python type."""
     value = value.strip()
@@ -218,6 +226,9 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     elif '_symmetry_space_group_name_h-m' in tags:
         symbolHM = tags['_symmetry_space_group_name_h-m']
 
+    if symbolHM is not None:
+        symbolHM = old_spacegroup_names.get(symbolHM.strip(), symbolHM)
+
     for name in ['_space_group_symop_operation_xyz',
                  '_space_group_symop.operation_xyz',
                  '_symmetry_equiv_pos_as_xyz']:
@@ -226,7 +237,7 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
             break
     else:
         sitesym = None
-        
+
     spacegroup = 1
     if sitesym is not None:
         subtrans = [(0.0, 0.0, 0.0)] if subtrans_included else None
@@ -249,7 +260,7 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         symbols = [symbol if symbol != 'D' else 'H' for symbol in symbols]
     else:
         deuterium = False
-        
+
     atoms = crystal(symbols, basis=scaled_positions,
                     cellpar=[a, b, c, alpha, beta, gamma],
                     spacegroup=spacegroup, primitive_cell=primitive_cell,
@@ -259,9 +270,9 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         masses[atoms.numbers == 1] = 1.00783
         masses[deuterium] = 2.01355
         atoms.set_masses(masses)
-        
+
     return atoms
-    
+
 
 def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
              subtrans_included=True):
@@ -275,7 +286,7 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     If *store_tags* is true, the *info* attribute of the returned
     Atoms object will be populated with all tags in the corresponding
     cif data block.
-    
+
     If *primitive_cell* is true, the primitive cell will be built instead
     of the conventional cell.
 
@@ -303,7 +314,7 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
 
 def write_cif(fileobj, images):
     """Write *images* to CIF file."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if hasattr(images, 'get_positions'):
@@ -312,17 +323,7 @@ def write_cif(fileobj, images):
     for i, atoms in enumerate(images):
         fileobj.write('data_image%d\n' % i)
 
-        from numpy import arccos, pi, dot
-        from numpy.linalg import norm
-
-        cell = atoms.cell
-        a = norm(cell[0])
-        b = norm(cell[1])
-        c = norm(cell[2])
-        alpha = arccos(dot(cell[1], cell[2]) / (b * c)) * 180 / pi
-        beta = arccos(dot(cell[0], cell[2]) / (a * c)) * 180 / pi
-        gamma = arccos(dot(cell[0], cell[1]) / (a * b)) * 180 / pi
-
+        a, b, c, alpha, beta, gamma = atoms.get_cell_lengths_and_angles()
         fileobj.write('_cell_length_a       %g\n' % a)
         fileobj.write('_cell_length_b       %g\n' % b)
         fileobj.write('_cell_length_c       %g\n' % c)

@@ -12,7 +12,7 @@ from ase.build import graphene_nanoribbon
 import ase
 import numpy as np
 
-pack = oops = cancel_apply_ok = SetupWindow = 42
+pack = error = cancel_apply_ok = SetupWindow = 42
 
 introtext = _("""\
 Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may
@@ -260,7 +260,7 @@ class SetupGraphene:
             self.gui.new_atoms(self.atoms)
             return True
         else:
-            oops(
+            error(
                 _("No valid atoms."),
                 _("You have not (yet) specified a consistent set of "
                   "parameters."))
