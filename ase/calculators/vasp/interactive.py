@@ -85,9 +85,9 @@ class VaspInteractive(GenerateVaspInput, Calculator):
                 os.remove('STOPCAR')
             self._stdout("Writing VASP input files\n")
             self.initialize(atoms)
-            self.write_input(atoms)
-            self._stdout("Writing Initial POSCAR\n")
-            write(os.path.join(self.path, "POSCAR"), atoms)
+            self.write_input(atoms, directory=self.path)
+#            self._stdout("Writing Initial POSCAR\n")
+#            write(os.path.join(self.path, "POSCAR"), atoms)
             self._stdout("Starting VASP for initial step...\n")
             self.process = Popen(self.command, stdout=PIPE,
                                  stdin=PIPE, stderr=PIPE, cwd=self.path)

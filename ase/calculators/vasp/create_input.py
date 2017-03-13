@@ -628,15 +628,15 @@ class GenerateVaspInput(object):
         self.converged = None
         self.setups_changed = None
 
-    def write_input(self, atoms):
+    def write_input(self, atoms, directory='./'):
         from ase.io.vasp import write_vasp
-        write_vasp('POSCAR',
+        write_vasp(join(directory, 'POSCAR'),
                    self.atoms_sorted,
                    symbol_count=self.symbol_count)
-        self.write_incar(atoms)
-        self.write_potcar()
-        self.write_kpoints()
-        self.write_sort_file()
+        self.write_incar(atoms, directory=directory)
+        self.write_potcar(directory=directory)
+        self.write_kpoints(directory=directory)
+        self.write_sort_file(directory=directory)
 
     def clean(self):
         """Method which cleans up after a calculation.
@@ -656,14 +656,14 @@ class GenerateVaspInput(object):
             except OSError:
                 pass
 
-    def write_incar(self, atoms, **kwargs):
+    def write_incar(self, atoms, directory='./', **kwargs):
         """Writes the INCAR file."""
         # jrk 1/23/2015 I added this flag because this function has
         # two places where magmoms get written. There is some
         # complication when restarting that often leads to magmom
         # getting written twice. this flag prevents that issue.
         magmom_written = False
-        incar = open('INCAR', 'w')
+        incar = open(join(directory, 'INCAR'), 'w')
         incar.write('INCAR created by Atomic Simulation Environment\n')
         for key, val in self.float_params.items():
             if val is not None:
@@ -774,7 +774,7 @@ class GenerateVaspInput(object):
             incar.write('\n')
         incar.close()
 
-    def write_kpoints(self, **kwargs):
+    def write_kpoints(self, directory='./', **kwargs):
         """Writes the KPOINTS file."""
 
         # Don't write anything if KSPACING is being used
@@ -788,7 +788,7 @@ class GenerateVaspInput(object):
 
 
         p = self.input_params
-        kpoints = open('KPOINTS', 'w')
+        kpoints = open(join(directory, 'KPOINTS'), 'w')
         kpoints.write('KPOINTS created by Atomic Simulation Environment\n')
 
         if isinstance(p['kpts'], dict):
@@ -826,10 +826,10 @@ class GenerateVaspInput(object):
                     kpoints.write('1.0 \n')
         kpoints.close()
 
-    def write_potcar(self, suffix=""):
+    def write_potcar(self, suffix="", directory='./'):
         """Writes the POTCAR file."""
         import tempfile
-        potfile = open('POTCAR' + suffix, 'w')
+        potfile = open(join(directory, 'POTCAR' + suffix), 'w')
         for filename in self.ppp_list:
             if filename.endswith('R'):
                 for line in open(filename, 'r'):
@@ -842,7 +842,7 @@ class GenerateVaspInput(object):
                 file_tmp.close()
         potfile.close()
 
-    def write_sort_file(self):
+    def write_sort_file(self, directory='./'):
         """Writes a sortings file.
 
         This file contains information about how the atoms are sorted in
@@ -850,7 +850,7 @@ class GenerateVaspInput(object):
         column. It is used for restart purposes to get sorting right
         when reading in an old calculation to ASE."""
 
-        file = open('ase-sort.dat', 'w')
+        file = open(join(directory, 'ase-sort.dat'), 'w')
         for n in range(len(self.sort)):
             file.write('%5i %5i \n' % (self.sort[n], self.resort[n]))
 
