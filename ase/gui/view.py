@@ -213,11 +213,19 @@ class View:
 
     def toggle_show_velocities(self, key=None):
         # XXX hard coded scale is ugly
-        self.show_vectors(10 * np.nan_to_num(self.images.V))
+        self.show_vectors(10 * np.nan_to_num(self.atoms.get_velocities()))
         self.draw()
 
+    def get_forces(self):
+        try:
+            F = self.atoms.get_forces()
+        except RuntimeError:
+            F = np.empty_like(self.atoms.positions)
+            F.fill(np.nan)
+        return F
+
     def toggle_show_forces(self, key=None):
-        self.show_vectors(np.nan_to_num(self.images.F))
+        self.show_vectors(np.nan_to_num(self.get_forces()))
         self.draw()
 
     def hide_selected(self):
@@ -254,9 +262,13 @@ class View:
 
         P = np.dot(self.getX(), self.axes)
         n = len(self.atoms)
-        P[:n] -= self.images.r[self.frame][:, None]
+        covalent_radii = self.get_covalent_radii()
+        #np.array([self.images.covalent_radii[z]
+                                   #for z in self.atoms.numbers])
+        P[:n] -= covalent_radii[:, None] #self.images.r[self.frame][:, None]
         P1 = P.min(0)
-        P[:n] += 2 * self.images.r[self.frame][:, None]
+        P[:n] += 2 * covalent_radii[:, None]
+        #self.images.r[self.frame][:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
         S = 1.3 * (P2 - P1)
@@ -336,16 +348,25 @@ class View:
         i = frame or self.frame
 
         if self.colormode == 'tag':
-            return self.images.T[i]
+            return self.atoms.get_tags()
         if self.colormode == 'force':
-            f = (self.images.F[i]**2).sum(1)**0.5
-            return f * self.images.dynamic
+            f = (self.get_forces()**2).sum(1)**0.5
+            return f * ~self.images.get_constrained(self.atoms)
         elif self.colormode == 'velocity':
-            return (self.images.V[i]**2).sum(1)**0.5
+            return (self.atoms.get_velocities()**2).sum(1)**0.5
         elif self.colormode == 'charge':
-            return self.images.q[i]
+            return self.atoms.get_charges()
         elif self.colormode == 'magmom':
-            return self.images.M[i]
+            # XXXXXXXXXXXXXXXXXXXXXXXXXXXX initial magmoms?
+            try:
+                magmoms = self.atoms.get_magnetic_moments()
+            except RuntimeError:
+                magmoms = self.atoms.get_initial_magnetic_moments()
+            return magmoms
+
+    def get_covalent_radii(self):
+        return np.array([self.images.covalent_radii[z]
+                         for z in self.atoms.numbers])
 
     def draw(self, status=True):
         self.window.clear()
@@ -355,10 +376,12 @@ class View:
         X = np.dot(self.getX(), axes) - offset
         n = len(self.atoms)
         self.indices = X[:, 2].argsort()
+        r = self.get_covalent_radii() * self.scale
         if self.window['toggle-show-bonds']:
-            r = self.images.r[self.frame] * (0.65 * self.scale)
-        else:
-            r = self.images.r[self.frame] * self.scale
+            r *= 0.65# * self.scale
+            #r = self.images.r[self.frame] * (0.65 * self.scale)
+        #else:
+        #    r = self.images.r[self.frame] * self.scale
         P = self.P = X[:n, :2]
         A = (P - r[:, None]).round().astype(int)
         X1 = X[n:, :2].round().astype(int)
@@ -375,7 +398,15 @@ class View:
         colors = self.get_colors()
         circle = self.window.circle
         line = self.window.line
-        constrained = self.images.constrained[self.frame]
+        #constrained = self.images.constrained[self.frame]
+
+        #def get_constrained(atoms):
+        constrained = np.zeros(len(self.atoms), bool)
+        for constraint in self.atoms.constraints:
+            if isinstance(constraint, FixAtoms):
+                constrained[constraint.index] = True
+            #return constrained
+
         #dynamic = self.images.dynamic
         selected = self.images.selected
         visible = self.images.visible
@@ -483,8 +514,8 @@ class View:
 
         if event.time < self.t0 + 200:  # 200 ms
             d = self.P - self.xy
-            hit = np.less((d**2).sum(1), (self.scale
-                                          * self.images.r[self.frame])**2)
+            r = self.get_covalent_radii()
+            hit = np.less((d**2).sum(1), (self.scale * r)**2)
             for a in self.indices[::-1]:
                 if a < len(self.atoms) and hit[a]:
                     if event.modifier == 'ctrl':

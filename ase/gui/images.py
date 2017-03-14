@@ -25,6 +25,14 @@ class Images:
     def __iter__(self):
         return iter(self._images)
 
+    # XXXXXXX hack
+    def get_constrained(self, atoms):
+        constrained = np.zeros(len(atoms), bool)
+        for constraint in atoms.constraints:
+            if isinstance(constraint, FixAtoms):
+                constrained[constraint.index] = True
+        return constrained
+
     def initialize(self, images, filenames=None, init_magmom=False):
 
         #self.natoms = len(images[0])
@@ -101,7 +109,7 @@ class Images:
                 M = atoms.get_initial_magnetic_moments()
             return M
 
-        def get_constrained(atoms):
+        def _get_constrained(atoms):
             constrained = np.zeros(len(atoms), bool)
             for constraint in atoms.constraints:
                 if isinstance(constraint, FixAtoms):
@@ -121,15 +129,15 @@ class Images:
         #self.q = IndexHack(lambda a: a.get_initial_charges())
         #self.pbc = IndexHack(lambda a: a.get_pbc())
         #self.natoms = IndexHack(lambda a: len(a))
-        self.constrained = IndexHack(lambda a: get_constrained(a))
+        #self.constrained = IndexHack(lambda a: get_constrained(a))
 
         #self.pbc = images[0].get_pbc()
         self.covalent_radii = covalent_radii
         #config = read_defaults()
         # XXX config?
 
-        self.r = IndexHack(lambda a: np.array([self.covalent_radii[z]
-                                               for z in a.numbers]))
+        #self.r = IndexHack(lambda a: np.array([self.covalent_radii[z]
+        #                                       for z in a.numbers]))
         #if config['covalent_radii'] is not None:
         #    for data in config['covalent_radii']:
         #        self.covalent_radii[data[0]] = data[1]
@@ -168,6 +176,7 @@ class Images:
 
     def append_atoms(self, atoms, filename=None):
         "Append an atoms object to the images already stored."
+        sdjkfskdjfsdkjf
         assert len(atoms) == self.natoms
         if self.next_append_clears:
             i = 0
@@ -238,6 +247,18 @@ class Images:
                 break
 
     def repeat_images(self, repeat):
+        images = [image.repeat(repeat) for image in self]
+        self.initialize(images)
+        #self.repeat = repeat
+        #repeat.prod()
+        #self.selected = np.zeros(natoms * N, bool)
+        # XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
+        #self.visible = np.ones(natoms * N, bool)
+        #self.nselected = 0
+        return
+
+        # XXXXXXXXXXXXXX disabled repeat code below
+
         n = self.repeat.prod()
         repeat = np.array(repeat)
         self.repeat = repeat
@@ -363,7 +384,7 @@ class Images:
             ns['A'] = self[i].get_cell()
             ns['M'] = self[i].get_masses()
             # XXX askhl verify:
-            constrained = self.constrained[i]
+            constrained = self.get_constrained(self[i])
             dynamic = ~constrained
             #print(dynamic[None].shape)
             ns['f'] = f = ((F * dynamic[:, None])**2).sum(1)**.5
