@@ -155,8 +155,6 @@ def convert_str_to_int_float_or_str(value):
 
 
 class Database:
-    metadata = {}  # decription of columns and other stuff
-
     """Base class for all databases."""
     def __init__(self, filename=None, create_indices=True,
                  use_lock_file=False, serial=False):

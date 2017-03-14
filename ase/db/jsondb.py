@@ -11,6 +11,8 @@ from ase.utils import basestring
 
 
 class JSONDatabase(Database):
+    _metadata = None  # decription of columns and other stuff
+
     def __enter__(self):
         return self
 
@@ -96,6 +98,8 @@ class JSONDatabase(Database):
             txt = ',\n '.join('"{0}": {1}'.format(key, encode(dct[key]))
                               for key in sorted(dct.keys()))
             print('"{0}": {{\n {1}}},'.format(id, txt), file=fd)
+        if self._metadata is not None:
+            print('"metadata": {0},'.format(encode(self.metadata)), file=fd)
         print('"ids": {0},'.format(ids), file=fd)
         print('"nextid": {0}}}'.format(nextid), file=fd)
 
@@ -201,3 +205,16 @@ class JSONDatabase(Database):
 
         self._write_json(bigdct, myids, nextid)
         return m, n
+
+    @property
+    def metadata(self):
+        if self._metadata is None:
+            bigdct, myids, nextid = self._read_json()
+            self._metadata = bigdct['metadata']
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, dct):
+        bigdct, ids, nextid = self._read_json()
+        self._metadata = dct
+        self._write_json(bigdct, ids, nextid)
