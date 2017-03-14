@@ -127,8 +127,15 @@ def index():
 
     table = Table(db)
     table.select(query, columns, sort, limit, offset=page * limit)
+
     con = Connection(query, nrows, page, columns, sort, limit)
     connections[con_id] = con
+
+    if len(connections) > 1000:
+        # Forget old connections:
+        for cid in sorted(connections)[:200]:
+            del connections[cid]
+
     table.format(SUBSCRIPT)
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
