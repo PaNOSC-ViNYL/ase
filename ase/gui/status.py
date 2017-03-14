@@ -47,7 +47,7 @@ class Status:  # Status is used as a mixin in GUI
             return
 
         Z = atoms.numbers[indices]#self.images.Z[indices]
-        R = self.R[indices]
+        R = self.atoms.positions #R[indices]
 
         if n == 1:
             #tag = self.images.T[self.frame, indices][0]
@@ -86,7 +86,7 @@ class Status:  # Status is used as a mixin in GUI
             text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
                     tuple([symbols[z] for z in Z] + a))
         elif len(ordered_indices) == 4:
-            R = self.R[ordered_indices]
+            R = self.atoms.positions #R[ordered_indices]
             Z = self.images.Z[ordered_indices]
             a = R[1] - R[0]
             b = R[2] - R[1]

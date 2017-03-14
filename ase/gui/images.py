@@ -22,6 +22,9 @@ class Images:
     def __getitem__(self, index):
         return self._images[index]
 
+    def __iter__(self):
+        return iter(self._images)
+
     def initialize(self, images, filenames=None, init_magmom=False):
 
         #self.natoms = len(images[0])
@@ -105,18 +108,18 @@ class Images:
                     constrained[constraint.index] = True
             return constrained
 
-        self.P = IndexHack(lambda a: a.get_positions())
+        #self.P = IndexHack(lambda a: a.get_positions())
         self.V = IndexHack(lambda a: a.get_velocities())
-        self.E = IndexHack(get_energy)
+        #self.E = IndexHack(get_energy)
         self.K = IndexHack(lambda a: a.get_kinetic_energy())
         self.F = IndexHack(get_forces)
         self.M = IndexHack(get_magmoms)
         self.T = IndexHack(lambda a: a.get_tags())
-        self.A = IndexHack(lambda a: a.get_cell())
-        self.D = IndexHack(lambda a: a.get_celldisp().reshape((3,)))
-        self.Z = IndexHack(lambda a: a.get_atomic_numbers())
-        self.q = IndexHack(lambda a: a.get_initial_charges())
-        self.pbc = IndexHack(lambda a: a.get_pbc())
+        #self.A = IndexHack(lambda a: a.get_cell())
+        #self.D = IndexHack(lambda a: a.get_celldisp().reshape((3,)))
+        #self.Z = IndexHack(lambda a: a.get_atomic_numbers())
+        #self.q = IndexHack(lambda a: a.get_initial_charges())
+        #self.pbc = IndexHack(lambda a: a.get_pbc())
         self.natoms = IndexHack(lambda a: len(a))
         self.constrained = IndexHack(lambda a: get_constrained(a))
 
@@ -138,19 +141,19 @@ class Images:
         self.have_varying_species = False
         for i, atoms in enumerate(images):
             self._images.append(atoms.copy())
-            self.have_varying_species |= np.any(self._images[0].numbers
+            self.have_varying_species |= np.any(self[0].numbers
                                                 != atoms.numbers)
             if hasattr(self, 'Q'):
                 assert False # XXX askhl fix quaternions
                 self.Q[i] = atoms.get_quaternions()
-            if (atoms.get_pbc() != self.pbc[0]).any():
+            if (atoms.pbc != self[0].pbc).any():
                 warning = True
 
         if warning:
             import warnings
             warnings.warn('Not all images have the same boundary conditions!')
 
-        self.maxnatoms = max(len(atoms) for atoms in self._images)
+        self.maxnatoms = max(len(atoms) for atoms in self)
         self.selected = np.zeros(self.maxnatoms, bool)
         self.selected_ordered = []
         #XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
@@ -330,7 +333,15 @@ class Images:
         #self.constrained[
 
         #D = self.dynamic[:, np.newaxis]
-        E = self.E
+        E = []
+        for atoms in self:
+            try:
+                e0 = atoms.get_potential_energy()
+            except RuntimeError:
+                e0 = np.nan
+            E.append(e0)
+        E = np.array(E)
+
         s = 0.0
 
         # Namespace for eval:
@@ -341,10 +352,10 @@ class Images:
         for i in range(n):
             ns['i'] = i
             ns['s'] = s
-            ns['R'] = R = self.P[i]
+            ns['R'] = R = self[i].positions
             ns['V'] = self.V[i]
             ns['F'] = F = self.F[i]
-            ns['A'] = self.A[i]
+            ns['A'] = self[i].get_cell() #self.A[i]
             ns['M'] = self.M[i]
             # XXX askhl verify:
             constrained = self.constrained[i]
@@ -364,7 +375,7 @@ class Images:
                 xy = np.empty((m, n))
             xy[:, i] = data
             if i + 1 < n and not self.have_varying_species:
-                s += sqrt(((self.P[i + 1] - R)**2).sum())
+                s += sqrt(((self[i + 1].positions - R)**2).sum())
         return xy
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None,

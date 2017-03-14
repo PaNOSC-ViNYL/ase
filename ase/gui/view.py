@@ -26,6 +26,10 @@ class View:
         self.configured = False
         self.frame = None
 
+    @property
+    def atoms(self):
+        return self.images[self.frame]
+
     def set_coordinates(self, frame=None, focus=None):
         if frame is None:
             frame = self.frame
@@ -33,7 +37,7 @@ class View:
         self.bind(frame)
         n = self.images.natoms[frame]
         #self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
-        self.X_pos = np.empty((n, 3))
+        #self.X_pos = np.empty((n, 3))
         self.X_B1 = np.empty((len(self.B1), 3))
         self.X_bonds = np.empty((len(self.bonds), 3))
         self.set_frame(frame, focus=focus, init=True)
@@ -41,26 +45,29 @@ class View:
     def set_frame(self, frame=None, focus=False, init=False):
         if frame is None:
             frame = self.frame
+        atoms = self.images[frame]
 
-        n = self.images.natoms[frame]
+        n = len(atoms)
 
+        # XXX this should raise an error; caller must provide valid numbers!
         if self.frame is not None and self.frame > self.images.nimages:
             self.frame = self.images.nimages - 1
 
         if init or frame != self.frame:
-            A = self.images.A
+            #A = self.images.A
+            cell = atoms.cell
             nc = len(self.B1)
             nb = len(self.bonds)
 
             if init or (A[frame] != A[self.frame]).any():
                 #self.X[n:n + nc] = np.dot(self.B1, A[frame])
-                self.X_B1 = np.dot(self.B1, A[frame])
+                self.X_B1 = np.dot(self.B1, cell)
                 self.B = np.empty((nc + nb, 3))
-                self.B[:nc] = np.dot(self.B2, A[frame])
+                self.B[:nc] = np.dot(self.B2, cell)
 
             if nb > 0:
                 P = self.images.P[frame]
-                Af = self.images.repeat[:, np.newaxis] * A[frame]
+                Af = self.images.repeat[:, np.newaxis] * cell
                 a = P[self.bonds[:, 0]]
                 b = P[self.bonds[:, 1]] + np.dot(self.bonds[:, 2:], Af) - a
                 d = (b**2).sum(1)**0.5
@@ -84,9 +91,9 @@ class View:
             self.window.title = filename
 
         self.frame = frame
-        self.X_pos = self.images.P[frame]
+        #self.X_pos = self.images.P[frame]
         #self.X[:n] = self.images.P[frame]
-        self.R = self.X_pos[:n]
+        #self.R = self.X_pos[:n]
         if focus:
             self.focus()
         else:
@@ -109,7 +116,9 @@ class View:
             self.B1 = self.B2 = np.zeros((0, 3))
             return
 
-        V = self.images.A[0]
+        # This function uses the box of the first Atoms object!  How can this
+        # be right??
+        V = self.images[0].get_cell() #.A[0]
         nn = []
         for c in range(3):
             v = V[c]
@@ -230,11 +239,12 @@ class View:
         return win
 
     def getX(self):
-        return np.concatenate([self.X_pos, self.X_B1, self.X_bonds], axis=0)
+        return np.concatenate([self.atoms.positions, self.X_B1, self.X_bonds],
+                              axis=0)
 
     def focus(self, x=None):
         cell = (self.window['toggle-show-unit-cell'] and
-                self.images.A[0].any())
+                self.images[0].cell.any())
         if (self.images.natoms[self.frame] == 0 and not cell):
             self.scale = 1.0
             self.center = np.zeros(3)
@@ -311,7 +321,7 @@ class View:
                     for _rgb in self.get_colors()]
 
         if self.colormode == 'jmol':
-            return [self.colors[Z] for Z in self.images.Z[self.frame]]
+            return [self.colors[Z] for Z in self.atoms.numbers]
 
         scalars = self.get_color_scalars()
         colorscale, cmin, cmax = self.colormode_data
@@ -352,7 +362,8 @@ class View:
         A = (P - r[:, None]).round().astype(int)
         X1 = X[n:, :2].round().astype(int)
         X2 = (np.dot(self.B, axes) - offset).round().astype(int)
-        disp = (np.dot(self.images.D[self.frame], axes)).round().astype(int)
+        disp = (np.dot(self.atoms.get_celldisp().reshape((3,)),
+                       axes)).round().astype(int)
         d = (2 * r).round().astype(int)
 
         vectors = (self.window['toggle-show-velocities'] or
