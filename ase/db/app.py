@@ -46,9 +46,7 @@ Connection = collections.namedtuple(
      'page',  # page number
      'columns',  # what columns to show
      'sort',  # what column to sort after
-     'limit',  # number of rows per page
-     'opened'  # list of id's in the table that are open
-     ])
+     'limit'])  # number of rows per page
 
 app = Flask(__name__)
 
@@ -73,19 +71,22 @@ SUBSCRIPT = re.compile(r'(\d+)')
 @app.route('/')
 def index():
     global next_con_id
+
+    md = db.metadata
+
     con_id = int(request.args.get('x', '0'))
+
     if con_id not in connections:
         con_id = next_con_id
         next_con_id += 1
         query = ''
-        columns = list(all_columns)
+        columns = md.get('columns') or list(all_columns)
         sort = 'id'
         limit = 25
-        opened = set()
         nrows = None
         page = 0
     else:
-        query, nrows, page, columns, sort, limit, opened = connections[con_id]
+        query, nrows, page, columns, sort, limit = connections[con_id]
 
     if 'sort' in request.args:
         column = request.args['sort']
@@ -103,55 +104,46 @@ def index():
         except ValueError:
             pass
         sort = 'id'
-        opened = set()
         page = 0
         nrows = None
     elif 'page' in request.args:
         page = int(request.args['page'])
 
     if 'toggle' in request.args:
-        tcolumns = request.args['toggle'].split(',')
-        if tcolumns == ['reset']:
-            columns = list(all_columns)
+        column = request.args['toggle']
+        if column == 'reset':
+            columns = md.get('columns') or list(all_columns)
         else:
-            for column in tcolumns:
-                if column in columns:
-                    columns.remove(column)
-                    if column == sort.lstrip('-'):
-                        sort = 'id'
-                        page = 0
-                else:
-                    columns.append(column)
+            if column in columns:
+                columns.remove(column)
+                if column == sort.lstrip('-'):
+                    sort = 'id'
+                    page = 0
+            else:
+                columns.append(column)
 
     if nrows is None:
         nrows = db.count(query)
 
     table = Table(db)
     table.select(query, columns, sort, limit, offset=page * limit)
-    con = Connection(query, nrows, page, columns, sort, limit, opened)
+    con = Connection(query, nrows, page, columns, sort, limit)
     connections[con_id] = con
     table.format(SUBSCRIPT)
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
-    return render_template('table.html', t=table, con=con, cid=con_id,
-                           home=home, pages=pages(page, nrows, limit),
+    return render_template('table.html',
+                           t=table,
+                           md=md,
+                           con=con,
+                           cid=con_id,
+                           home=home,
+                           pages=pages(page, nrows, limit),
                            nrows=nrows,
                            addcolumns=addcolumns,
                            row1=page * limit + 1,
                            row2=min((page + 1) * limit, nrows))
-
-
-@app.route('/open_row/<int:id>')
-def open_row(id):
-    con_id = int(request.args['x'])
-    opened = connections[con_id].opened
-    if id in opened:
-        opened.remove(id)
-        return ''
-    opened.add(id)
-    return render_template('more.html',
-                           dct=db.get(id), id=id, cid=con_id)
 
 
 @app.route('/image/<name>')
@@ -197,7 +189,7 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     s = Summary(db.get(id), SUBSCRIPT)
-    return render_template('summary.html', s=s, home=home,
+    return render_template('summary.html', s=s, home=home, md=db.metadata,
                            open_ase_gui=open_ase_gui)
 
 
@@ -273,6 +265,7 @@ def robots():
 
 
 def pages(page, nrows, limit):
+    """Helper function for pagination stuff."""
     npages = (nrows + limit - 1) // limit
     p1 = min(5, npages)
     p2 = max(page - 4, p1)
