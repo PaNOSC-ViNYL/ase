@@ -109,18 +109,18 @@ class Images:
             return constrained
 
         #self.P = IndexHack(lambda a: a.get_positions())
-        self.V = IndexHack(lambda a: a.get_velocities())
+        #self.V = IndexHack(lambda a: a.get_velocities())
         #self.E = IndexHack(get_energy)
-        self.K = IndexHack(lambda a: a.get_kinetic_energy())
-        self.F = IndexHack(get_forces)
-        self.M = IndexHack(get_magmoms)
-        self.T = IndexHack(lambda a: a.get_tags())
+        #self.K = IndexHack(lambda a: a.get_kinetic_energy())
+        #self.F = IndexHack(get_forces)
+        #self.M = IndexHack(get_magmoms)
+        #self.T = IndexHack(lambda a: a.get_tags())
         #self.A = IndexHack(lambda a: a.get_cell())
         #self.D = IndexHack(lambda a: a.get_celldisp().reshape((3,)))
         #self.Z = IndexHack(lambda a: a.get_atomic_numbers())
         #self.q = IndexHack(lambda a: a.get_initial_charges())
         #self.pbc = IndexHack(lambda a: a.get_pbc())
-        self.natoms = IndexHack(lambda a: len(a))
+        #self.natoms = IndexHack(lambda a: len(a))
         self.constrained = IndexHack(lambda a: get_constrained(a))
 
         #self.pbc = images[0].get_pbc()
@@ -352,11 +352,16 @@ class Images:
         for i in range(n):
             ns['i'] = i
             ns['s'] = s
-            ns['R'] = R = self[i].positions
-            ns['V'] = self.V[i]
-            ns['F'] = F = self.F[i]
-            ns['A'] = self[i].get_cell() #self.A[i]
-            ns['M'] = self.M[i]
+            ns['R'] = R = self[i].get_positions()
+            ns['V'] = self[i].get_velocities()
+            try:
+                F = self[i].get_forces(apply_constraint=False)
+            except RuntimeError:
+                F = np.empty_like(self[i].positions)
+                F.fill(np.nan)
+            ns['F'] = F
+            ns['A'] = self[i].get_cell()
+            ns['M'] = self[i].get_masses()
             # XXX askhl verify:
             constrained = self.constrained[i]
             dynamic = ~constrained
@@ -365,7 +370,7 @@ class Images:
             ns['fmax'] = max(f)
             ns['fave'] = f.mean()
             ns['epot'] = epot = E[i]
-            ns['ekin'] = ekin = self.K[i]
+            ns['ekin'] = ekin = self[i].get_kinetic_energy()
             ns['e'] = epot + ekin
             ndynamic = dynamic.sum()
             ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)

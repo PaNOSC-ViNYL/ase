@@ -35,7 +35,8 @@ class View:
             frame = self.frame
         self.make_box()
         self.bind(frame)
-        n = self.images.natoms[frame]
+        atoms = self.images[frame]
+        n = len(atoms)
         #self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
         #self.X_pos = np.empty((n, 3))
         self.X_B1 = np.empty((len(self.B1), 3))
@@ -162,12 +163,12 @@ class View:
         nb = nl.nneighbors + nl.npbcneighbors
 
         bonds = np.empty((nb, 5), int)
-        self.coordination = np.zeros((self.images.natoms[frame]), dtype=int)
+        self.coordination = np.zeros(len(self.atoms), dtype=int)
         if nb == 0:
             return
 
         n1 = 0
-        for a in range(self.images.natoms[frame]):
+        for a in range(len(self.atoms)):
             indices, offsets = nl.get_neighbors(a)
             self.coordination[a] += len(indices)
             for a2 in indices:
@@ -193,7 +194,7 @@ class View:
         if index == 0:
             self.labels = None
         elif index == 1:
-            self.labels = ([list(range(self.images.natoms[self.frame]))] *
+            self.labels = ([list(range(len(self.atoms)))] *
                            self.images.nimages)
         elif index == 2:
             self.labels = self.images.M
@@ -245,14 +246,14 @@ class View:
     def focus(self, x=None):
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images[0].cell.any())
-        if (self.images.natoms[self.frame] == 0 and not cell):
+        if (len(self.atoms) == 0 and not cell):
             self.scale = 1.0
             self.center = np.zeros(3)
             self.draw()
             return
 
         P = np.dot(self.getX(), self.axes)
-        n = self.images.natoms[self.frame]
+        n = len(self.atoms)
         P[:n] -= self.images.r[self.frame][:, None]
         P1 = P.min(0)
         P[:n] += 2 * self.images.r[self.frame][:, None]
@@ -352,7 +353,7 @@ class View:
         offset = np.dot(self.center, axes)
         offset[:2] -= 0.5 * self.window.size
         X = np.dot(self.getX(), axes) - offset
-        n = self.images.natoms[self.frame]
+        n = len(self.atoms)
         self.indices = X[:, 2].argsort()
         if self.window['toggle-show-bonds']:
             r = self.images.r[self.frame] * (0.65 * self.scale)
@@ -485,7 +486,7 @@ class View:
             hit = np.less((d**2).sum(1), (self.scale
                                           * self.images.r[self.frame])**2)
             for a in self.indices[::-1]:
-                if a < self.images.natoms[self.frame] and hit[a]:
+                if a < len(self.atoms) and hit[a]:
                     if event.modifier == 'ctrl':
                         selected[a] = not selected[a]
                         if selected[a]:
@@ -521,7 +522,7 @@ class View:
             self.draw()
 
         # XXX check bounds
-        indices = np.arange(self.images.natoms[self.frame])[self.images.selected[:self.images.natoms[self.frame]]]
+        indices = np.arange(len(self.atoms))[self.images.selected[:len(self.atoms)]]
         if len(indices) != len(selected_ordered):
             selected_ordered = []
         self.images.selected_ordered = selected_ordered
@@ -564,10 +565,10 @@ class View:
                                  ((c - 1) * a * b, c * b * b + a * a, s * b),
                                  (-s * a, -s * b, c)])
             self.axes = np.dot(self.axes0, rotation)
-            if self.images.natoms[self.frame] > 0:
-                com = self.getX()[:self.images.natoms[self.frame]].mean(0)
+            if len(self.atoms) > 0:
+                com = self.getX()[:len(self.atoms)].mean(0)
             else:
-                com = self.images.A[self.frame].mean(0)
+                com = self.atoms.cell.mean(0)
             self.center = com - np.dot(com - self.center0,
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
