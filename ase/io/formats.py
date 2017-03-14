@@ -76,7 +76,7 @@ all_formats = {
     'iwm': ('?', '1F'),
     'json': ('ASE JSON database file', '+S'),
     'jsv': ('JSV file format', '1F'),
-    'lammps-dump': ('LAMMPS dump file', '1F'),
+    'lammps-dump': ('LAMMPS dump file', '+F'),
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
