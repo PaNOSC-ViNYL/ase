@@ -25,12 +25,26 @@ Proposal
 ========
 
 Introduce *labels* and *kinds*.  A label is a string and a kind is the
-combination of a chemical symbol and a label like:
+combination of these three (defaults in parenthesis):
 
-* ``'H:ghost'``
-* ``'X:methyl'`` (X is the symbol for an artificial atom with atomic number
-  zero and can be left out, so ``'X:methyl'`` can be abreviated as ``'methyl'``)
-* ``'Cu:'`` (no label, same as ``'Cu'``)
+* a chemical symbol or an atomic number (``X``, ``0`` or ``None``)
+* a label (``''`` or ``None``)
+* a mass (``None``)
+
+A *kind* can be represented as a ``tuple`` or a ``str``:
+
+* ``(Z, 'label', mass)``
+* ``('symbol', 'label', mass)``
+* ``'symbol'``
+* ``'symbol:label'``
+* ``'label'``
+
+Examples:
+
+* ``(1, 'ghost', 0.0)`` (same as ``'H:ghost'``)
+* ``('H', '', None)`` (same as ``'H'``)
+* ``('H', '', 2.0)``
+* ``'methyl'`` (same as ``(None, 'methyl', None)``)
 
 We add ``symbols``, ``labels`` and ``kinds`` list-of-string like attributes to
 the :class:`~ase.Atoms` object as well as new ``labels`` and ``kinds`` keyword
@@ -49,9 +63,11 @@ kinds.
 Examples
 ========
 
->>> a = Atoms(['N', 'C', 'methyl'])
+>>> a = Atoms(['N', 'C', (None, 'methyl', 9.0)])
+>>> a.number_of_species
+3
 >>> a.positions[:, 0] = [0, 1.2, 2.6]
->>> a.masses[a.labels == 'methyl'] = Atoms('CH3').mass
+>>> a.masses[a.labels == 'methyl'] = 10
 >>> a.numbers
 array([7, 6, 0])
 >>> a.symbols  # special list-like object tied to a
@@ -61,7 +77,7 @@ Symbols(['N', 'C', 'X'])
 >>> a.labels
 Labels(['', '', 'methyl'])
 >>> a.kinds
-Kinds(['N', 'C', 'X:methyl'])
+Kinds(['N', 'C', ('X', 'methyl', 10.0)])
 
 Here are 50 hydrogen molecules:
 
@@ -80,10 +96,10 @@ A DFT code could use the kinds to select pseudo-potentials:
 List-like objects
 =================
 
-New ``Labels``, ``Kinds`` and ``Symbols`` list-like objects will be introduced
-that can handle all the indexing operations in a storage efficient way:
-``a.symbols[0] = 'He'`` must somehow lead to ``a.numbers[0] == 2`` and other
-magic.
+New ``Labels``, ``Kinds`` and ``Symbols`` list-like objects will
+be introduced that can handle all the indexing operations in a storage
+efficient way.  A statement like ``a.symbols[0] = 'He'`` must somehow lead to
+``a.numbers[0] == 2`` and other magic.
 
 
 Atom objects?
@@ -96,3 +112,9 @@ I/O
 ===
 
 ???
+
+
+Questions
+=========
+
+Tags?
