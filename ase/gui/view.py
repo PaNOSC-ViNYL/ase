@@ -382,7 +382,8 @@ class View:
 
                     # Draw velocities or forces
                     if vectors:
-                        line((X[a, 0], X[a, 1], V[a, 0], V[a, 1]), width=2)
+                        self.arrow((X[a, 0], X[a, 1], V[a, 0], V[a, 1]),
+                                   width=2)
             else:
                 # Draw unit cell and/or bonds:
                 a -= n
@@ -403,6 +404,24 @@ class View:
 
         if status:
             self.status()
+
+    def arrow(self, coords, width):
+        line = self.window.line
+        begin = np.array((coords[0], coords[1]))
+        end = np.array((coords[2], coords[3]))
+        line(coords, width)
+
+        vec = end - begin
+        length = np.sqrt((vec[:2]**2).sum())
+        length = min(length, 0.3 * self.scale)
+
+        angle = np.arctan2(end[1] - begin[1], end[0] - begin[0]) + np.pi
+        x1 = (end[0] + length * np.cos(angle - 0.3)).round().astype(int)
+        y1 = (end[1] + length * np.sin(angle - 0.3)).round().astype(int)
+        x2 = (end[0] + length * np.cos(angle + 0.3)).round().astype(int)
+        y2 = (end[1] + length * np.sin(angle + 0.3)).round().astype(int)
+        line((x1, y1, end[0], end[1]), width)
+        line((x2, y2, end[0], end[1]), width)
 
     def draw_axes(self):
         axes_length = 15

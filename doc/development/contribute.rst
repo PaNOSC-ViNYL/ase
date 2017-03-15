@@ -134,9 +134,14 @@ machine is:
         $ git checkout master
         $ git merge upstream/master --ff-only
 
-    If the previous command fails, then it is safe to simply reset your master
-    branch to the upstream master branch with the ``--hard`` flag.  Use this
-    flag sparingly, as it is very powerful::
+    If the previous command fails, then it is safe to simply reset
+    your master branch to the upstream master branch with the
+    ``--hard`` flag.  That will delete all local changes *and*
+    extraneous commits in the current branch; so make sure (e.g.,
+    ``git status``, ``git log``) that you *did* remember to check out
+    the master branch *and* that you have not accidentally committed
+    something here that you want to save.  And use this flag
+    sparingly, as it is very powerful::
 
         $ git reset --hard upstream/master
 
@@ -155,10 +160,15 @@ machine is:
 
 2) Next you can do changes and additions.
 
-  * checkout a (new) local branch with a relevant name. I use the commit to
-    enhance the file contribute.rst as an example::
+  * checkout a (new) local branch with a relevant name. Let us
+    change the file contribute.rst as an example::
 
         $ git checkout -b add-contribute-rst
+
+    You should typically issue this command after checking out the master
+    branch
+    (the new branch will be based on current *HEAD*, i.e., whatever you
+    have checked out at the moment).
 
   * If you already have this branch from some previous work, but want to do
     new work with the same branch name then you should start by resettting it
