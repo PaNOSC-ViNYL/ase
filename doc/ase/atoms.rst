@@ -321,7 +321,7 @@ Other methods
 * :meth:`~Atoms.wrap`
 * :meth:`~Atoms.translate`
 * :meth:`~Atoms.rotate`
-* :meth:`~Atoms.rotate_euler`
+* :meth:`~Atoms.euler_rotate`
 * :meth:`~Atoms.get_dihedral`
 * :meth:`~Atoms.set_dihedral`
 * :meth:`~Atoms.rotate_dihedral`

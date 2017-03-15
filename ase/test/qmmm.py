@@ -1,17 +1,17 @@
-from math import cos, sin
+from math import cos, sin, pi
 
 import numpy as np
 # import matplotlib.pyplot as plt
 
 import ase.units as units
 from ase import Atoms
-from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, thetaHOH
+from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
 r = rOH
-a = thetaHOH
+a = angleHOH * pi / 180
 
 # From http://dx.doi.org/10.1063/1.445869
 eexp = 6.50 * units.kcal / units.mol
