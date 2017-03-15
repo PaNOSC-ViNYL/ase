@@ -1276,7 +1276,7 @@ class Atoms(object):
 
     def rotate_euler(self, center=(0, 0, 0), phi=0.0, theta=0.0, psi=0.0):
         warnings.warn(
-            'Please use new API: '
+            'Please use this method instead: '
             'euler_rotate(phi=0, theta=0, psi=0, center=(0, 0, 0)) '
             'where the angles are given in degrees')
         self.euler_rotate(phi * 180 / pi, theta * 180 / pi, psi * 180 / pi,
