@@ -186,7 +186,7 @@ class LAMMPS:
             self._lmp_handle.stdin.close()
             return self._lmp_handle.wait()
 
-    def run(self):
+    def run(self, set_atoms=False):
         """Method which explicitly runs LAMMPS."""
 
         self.calls += 1
@@ -287,7 +287,7 @@ class LAMMPS:
             # it could
             raise RuntimeError('Atoms have gone missing')
 
-        self.read_lammps_trj(lammps_trj=lammps_trj)
+        self.read_lammps_trj(lammps_trj=lammps_trj, set_atoms=set_atoms)
         lammps_trj_fd.close()
         if not self.no_data_file:
             lammps_data_fd.close()
