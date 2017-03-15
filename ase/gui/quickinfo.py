@@ -25,17 +25,20 @@ Unit cell:
 
 def info(gui):
     images = gui.images
-    if images.natoms[gui.frame] < 1:
+    nimg = len(images)
+    atoms = gui.atoms
+    natoms = len(atoms)
+
+    if len(atoms) < 1:
         txt = _('This frame has no atoms.')
     else:
         img = gui.frame
-        nimg = len(images)
-        natoms = images.natoms[img]
-        uc = images.A[img]
+
+        uc = atoms.cell
         if nimg > 1:
             equal = True
             for i in range(nimg):
-                equal = equal and (uc == images.A[i]).all()
+                equal = equal and (uc == images[i].cell).all()
             if equal:
                 uctxt = ucconst
             else:
@@ -48,7 +51,7 @@ def info(gui):
             imgtxt = multiimage % (img, nimg - 1)
 
         periodic = [[_('no'), _('yes')][periodic]
-                    for periodic in images[img].pbc]
+                    for periodic in atoms.pbc]
 
         # TRANSLATORS: This has the form Periodic: no, no, yes
         pbcstring = _('Periodic: %s, %s, %s') % tuple(periodic)

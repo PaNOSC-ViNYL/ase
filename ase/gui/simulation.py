@@ -64,7 +64,7 @@ class Simulation:
 
     def setupimageselection(self):
         "Decide if the start image selection frame should be shown."
-        n = self.gui.images.nimages
+        n = len(self.gui.images)
         if n <= 1:
             self.startframe.hide()
         else:
@@ -76,7 +76,7 @@ class Simulation:
 
     def getimagenumber(self):
         "Get the image number selected in the start image frame."
-        nmax = self.gui.images.nimages
+        nmax = len(self.gui.images)
         if nmax <= 1:
             return 0
         elif self.start_radio_first.get_active():
@@ -117,22 +117,27 @@ class Simulation:
     def get_atoms(self):
         "Make an atoms object from the active image"
         images = self.gui.images
-        if images.natoms < 1:
+        #if images.natoms < 1:
+
+        #natoms = len(images.P[n]) // images.repeat.prod()
+        #natoms = len(images[n]) // images.repeat.prod()
+        #constraint = None
+        #if not images.dynamic.all():
+        #    constraint = FixAtoms(mask=1 - images.dynamic)
+        atoms = images[self.getimagenumber()]
+        natoms = len(atoms) // images.repeat.prod()
+        if natoms < 1:
             error(_("No atoms present"))
             return None
-        n = self.getimagenumber()
-        natoms = len(images.P[n]) // images.repeat.prod()
-        constraint = None
-        if not images.dynamic.all():
-            constraint = FixAtoms(mask=1 - images.dynamic)
-        return Atoms(
-            positions=images.P[n, :natoms],
-            symbols=images.Z[:natoms],
-            cell=images.A[n],
-            magmoms=images.M[n, :natoms],
-            tags=images.T[n, :natoms],
-            pbc=images.pbc,
-            constraint=constraint)
+        return atoms[:natoms]
+        #return Atoms(
+        #    positions=images.P[n, :natoms],
+        #    symbols=images.Z[:natoms],
+        #    cell=images.A[n],
+        #    magmoms=images.M[n, :natoms],
+        #    tags=images.T[n, :natoms],
+        #    pbc=images.pbc,
+        #    constraint=constraint)
 
     def begin(self, **kwargs):
         if 'progress' in self.gui.simulation:

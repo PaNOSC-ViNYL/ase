@@ -71,15 +71,15 @@ class GUI(View, Status):
 
     def run(self, expr=None, test=None):
         self.set_colors()
-        self.set_coordinates(self.images.nimages - 1, focus=True)
+        self.set_coordinates(len(self.images) - 1, focus=True)
 
-        if self.images.nimages > 1:
+        if len(self.images) > 1:
             self.movie()
 
         if expr is None:
             expr = self.config['gui_graphs_string']
 
-        if expr is not None and expr != '' and self.images.nimages > 1:
+        if expr is not None and expr != '' and len(self.images) > 1:
             self.plot_graphs(expr=expr)
 
         if test:
@@ -96,7 +96,7 @@ class GUI(View, Status):
              'Page-Up': -1,
              'Page-Down': 1,
              'End': 10000000}[key]
-        i = max(0, min(self.images.nimages - 1, self.frame + d))
+        i = max(0, min(len(self.images) - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
             self.movie_window.frame_number.value = i
@@ -139,7 +139,10 @@ class GUI(View, Status):
             vec *= 0.1
 
         if self.moving:
-            self.images.P[:, self.images.selected] += vec
+            for atoms in self.images:
+                atoms.positions[self.images.selected] += vec
+            #self.atoms.positions[:
+            #self.images.P[:, self.images.selected] += vec
             self.set_frame()
         else:
             self.center -= vec
@@ -179,13 +182,15 @@ class GUI(View, Status):
         self.draw()
 
     def select_constrained_atoms(self, key=None):
-        self.images.selected[:] = ~self.images.dynamic
+        self.images.selected[:] = ~self.images.get_dynamic(self.atoms)
+        #~self.images.dynamic
         self.draw()
 
     def select_immobile_atoms(self, key=None):
-        if self.images.nimages > 1:
-            R0 = self.images.P[0]
-            for R in self.images.P[1:]:
+        if len(self.images) > 1:
+            R0 = self.images[0].positions
+            for atoms in self.images[1:]:
+                R = atoms.positions
                 self.images.selected[:] = ~(np.abs(R - R0) > 1.0e-10).any(1)
         self.draw()
 
@@ -217,12 +222,16 @@ class GUI(View, Status):
         if len(self.images) <= 1:
             return
         N = self.images.repeat.prod()
-        natoms = self.images.natoms // N
-        R = self.images.P[:, :natoms]
-        E = self.images.E
-        F = self.images.F[:, :natoms]
-        A = self.images.A[0]
-        pbc = self.images.pbc
+        #natoms = self.images.natoms // N
+        natoms = len(self.images[0]) // N
+        #R = self.images.P[:, :natoms]
+        R = [a.positions[:natoms] for a in self.images]
+        #E = self.images.E
+        E = [self.images.get_energy(a) for a in self.images]
+        F = [self.images.get_forces(a) for a in self.images]
+        #F = F[:, :natoms]
+        A = self.images[0].cell
+        pbc = self.images[0].pbc
         process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
                                    stdin=subprocess.PIPE)
         pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
@@ -233,7 +242,7 @@ class GUI(View, Status):
         process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
-        v = [abs(np.linalg.det(A)) for A in self.images.A]
+        v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
         e = self.images.E
         pickle.dump((v, e), process.stdin, protocol=0)
         process.stdin.close()
@@ -269,7 +278,7 @@ class GUI(View, Status):
         if filename:
             self.images.read([filename], slice(None), format[0])
             self.set_colors()
-            self.set_coordinates(self.images.nimages - 1, focus=True)
+            self.set_coordinates(len(self.images) - 1, focus=True)
 
     def modify_atoms(self, key=None):
         from ase.gui.modify import ModifyAtoms

@@ -51,11 +51,10 @@ class View:
         n = len(atoms)
 
         # XXX this should raise an error; caller must provide valid numbers!
-        if self.frame is not None and self.frame > self.images.nimages:
-            self.frame = self.images.nimages - 1
+        if self.frame is not None and self.frame > len(self.images):
+            self.frame = len(self.images) - 1
 
         if init or frame != self.frame:
-            #A = self.images.A
             cell = atoms.cell
             nc = len(self.B1)
             nb = len(self.bonds)
@@ -67,12 +66,12 @@ class View:
                 self.B[:nc] = np.dot(self.B2, cell)
 
             if nb > 0:
-                P = self.images.P[frame]
+                P = self.atoms.positions
                 Af = self.images.repeat[:, np.newaxis] * cell
                 a = P[self.bonds[:, 0]]
                 b = P[self.bonds[:, 1]] + np.dot(self.bonds[:, 2:], Af) - a
                 d = (b**2).sum(1)**0.5
-                r = 0.65 * self.images.r[frame]
+                r = 0.65 * self.get_covalent_radii()
                 x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
                 x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
                 #self.X[n + nc:] = a + b * x0
@@ -119,7 +118,7 @@ class View:
 
         # This function uses the box of the first Atoms object!  How can this
         # be right??
-        V = self.images[0].get_cell() #.A[0]
+        V = self.images[0].get_cell()
         nn = []
         for c in range(3):
             v = V[c]
@@ -154,12 +153,13 @@ class View:
 
         from ase.atoms import Atoms
         from ase.neighborlist import NeighborList
-        nl = NeighborList(self.images.r[frame] * 1.5,
+        nl = NeighborList(self.get_covalent_radii() * 1.5,
                           skin=0, self_interaction=False)
-        nl.update(Atoms(positions=self.images.P[frame],
-                        cell=(self.images.repeat[:, np.newaxis] *
-                              self.images.A[frame]),
-                        pbc=self.images.pbc))
+        nl.update(self.atoms)
+        #nl.update(Atoms(positions=self.images.P[frame],
+        #                cell=(self.images.repeat[:, np.newaxis] *
+        #                      self.images.A[frame]),
+        #                pbc=self.images.pbc))
         nb = nl.nneighbors + nl.npbcneighbors
 
         bonds = np.empty((nb, 5), int)
@@ -195,13 +195,12 @@ class View:
             self.labels = None
         elif index == 1:
             self.labels = ([list(range(len(self.atoms)))] *
-                           self.images.nimages)
+                           len(self.images))
         elif index == 2:
-            self.labels = self.images.M
+            self.labels = self.images.M  # XXX magmoms
         else:
             self.labels = [[chemical_symbols[x]
-                            for x in
-                            self.images.Z[self.frame]]] * self.images.nimages
+                            for x in self.atoms.numbers]] * len(self.images)
 
         self.draw()
 
@@ -216,13 +215,9 @@ class View:
         self.show_vectors(10 * np.nan_to_num(self.atoms.get_velocities()))
         self.draw()
 
+    # transitional compat hack
     def get_forces(self):
-        try:
-            F = self.atoms.get_forces()
-        except RuntimeError:
-            F = np.empty_like(self.atoms.positions)
-            F.fill(np.nan)
-        return F
+        return self.images.get_forces(self.atoms)
 
     def toggle_show_forces(self, key=None):
         self.show_vectors(np.nan_to_num(self.get_forces()))
@@ -313,7 +308,7 @@ class View:
             elif key == 'Alt+2':
                 i, j = 0, 2
 
-            A = complete_cell(self.images.A[self.frame])
+            A = complete_cell(self.atoms.cell)
             x1 = A[i]
             x2 = A[j]
 
@@ -351,7 +346,7 @@ class View:
             return self.atoms.get_tags()
         if self.colormode == 'force':
             f = (self.get_forces()**2).sum(1)**0.5
-            return f * ~self.images.get_constrained(self.atoms)
+            return f * self.images.get_dynamic(self.atoms)
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
         elif self.colormode == 'charge':
@@ -400,12 +395,7 @@ class View:
         line = self.window.line
         #constrained = self.images.constrained[self.frame]
 
-        #def get_constrained(atoms):
-        constrained = np.zeros(len(self.atoms), bool)
-        for constraint in self.atoms.constraints:
-            if isinstance(constraint, FixAtoms):
-                constrained[constraint.index] = True
-            #return constrained
+        constrained = ~self.images.get_dynamic(self.atoms)
 
         #dynamic = self.images.dynamic
         selected = self.images.selected
@@ -456,13 +446,13 @@ class View:
         if self.window['toggle-show-axes']:
             self.draw_axes()
 
-        if self.images.nimages > 1:
+        if len(self.images) > 1:
             self.draw_frame_number()
 
         self.window.update()
 
         if status:
-            self.status(self.images[self.frame])
+            self.status(self.atoms)
 
     def arrow(self, coords, width):
         line = self.window.line
@@ -498,8 +488,20 @@ class View:
     def draw_frame_number(self):
         x, y = self.window.size
         self.window.text(x, y, '{0}/{1}'.format(self.frame,
-                                                self.images.nimages),
+                                                len(self.images)),
                          anchor='SE')
+
+    def get_magmoms(self, init_magmom=False):
+        try:
+            if init_magmom:
+                M = self.atoms.get_initial_magnetic_moments()
+            else:
+                M = self.atoms.get_magnetic_moments()
+                if M.ndim == 2:
+                    M = M[:, 2]  # XXX
+        except (RuntimeError, AttributeError):
+            M = self.atoms.get_initial_magnetic_moments()
+        return M
 
     def release(self, event):
         if event.button in [4, 5]:

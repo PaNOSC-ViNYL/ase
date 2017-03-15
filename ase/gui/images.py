@@ -26,24 +26,61 @@ class Images:
         return iter(self._images)
 
     # XXXXXXX hack
-    def get_constrained(self, atoms):
-        constrained = np.zeros(len(atoms), bool)
+    # compatibility hacks while allowing variable number of atoms
+    def get_dynamic(self, atoms):
+        dynamic = np.ones(len(atoms), bool)
         for constraint in atoms.constraints:
             if isinstance(constraint, FixAtoms):
-                constrained[constraint.index] = True
-        return constrained
+                dynamic[constraint.index] = False
+        return dynamic
+
+    def set_dynamic(self, indices, value):
+        for atoms in self:
+            dynamic = self.get_dynamic(atoms)
+            dynamic[indices[indices < len(atoms)]] = value
+            from ase.constraints import FixAtoms
+            atoms.constraints = [c for c in atoms.constraints
+                                 if not isinstance(c, FixAtoms)]
+            atoms.constraints.append(FixAtoms(mask=~dynamic))
+
+    def get_energy(self, atoms):
+        try:
+            e =  atoms.get_potential_energy()
+        except RuntimeError:
+            e = np.nan
+        return e
+
+    def get_forces(self, atoms):
+        try:
+            F = atoms.get_forces(apply_constraint=False)
+        except RuntimeError:
+            F = np.empty_like(atoms.positions)
+            F.fill(np.nan)
+        return F
+
+    def get_magmoms(self, atoms, init_magmom=False):
+        try:
+            if init_magmom:
+                M = atoms.get_initial_magnetic_moments()
+            else:
+                M = atoms.get_magnetic_moments()
+                if M.ndim == 2:
+                    M = M[:, 2]
+        except (RuntimeError, AttributeError):
+            M = atoms.get_initial_magnetic_moments()
+        return M
 
     def initialize(self, images, filenames=None, init_magmom=False):
 
         #self.natoms = len(images[0])
-        self.nimages = len(images)
+        nimages = len(images)
         if filenames is None:
-            filenames = [None] * self.nimages
+            filenames = [None] * nimages
         self.filenames = filenames
 
         #  The below seems to be about "quaternions"
         if 0: # XXXXXXXXXXXXXXXXXXXX hasattr(images[0], 'get_shapes'):
-            self.Q = np.empty((self.nimages, self.natoms, 4))
+            self.Q = np.empty((nimages, self.natoms, 4))
             self.shapes = images[0].get_shapes()
             import os as os
             if os.path.exists('shapes'):
@@ -82,39 +119,6 @@ class Images:
             def __setitem__(self, item, value):
                 raise ValueError(item, value)
 
-        def get_energy(atoms):
-            try:
-                e =  atoms.get_potential_energy()
-            except RuntimeError:
-                e = np.nan
-            return e
-
-        def get_forces(atoms):
-            try:
-                F = atoms.get_forces(apply_constraint=False)
-            except RuntimeError:
-                F = np.empty_like(atoms.positions)
-                F.fill(np.nan)
-            return F
-
-        def get_magmoms(atoms):
-            try:
-                if init_magmom:
-                    M = atoms.get_initial_magnetic_moments()
-                else:
-                    M = atoms.get_magnetic_moments()
-                    if M.ndim == 2:
-                        M = M[:, 2]
-            except (RuntimeError, AttributeError):
-                M = atoms.get_initial_magnetic_moments()
-            return M
-
-        def _get_constrained(atoms):
-            constrained = np.zeros(len(atoms), bool)
-            for constraint in atoms.constraints:
-                if isinstance(constraint, FixAtoms):
-                    constrained[constraint.index] = True
-            return constrained
 
         #self.P = IndexHack(lambda a: a.get_positions())
         #self.V = IndexHack(lambda a: a.get_velocities())
@@ -132,7 +136,7 @@ class Images:
         #self.constrained = IndexHack(lambda a: get_constrained(a))
 
         #self.pbc = images[0].get_pbc()
-        self.covalent_radii = covalent_radii
+        self.covalent_radii = covalent_radii.copy()
         #config = read_defaults()
         # XXX config?
 
@@ -181,7 +185,7 @@ class Images:
         if self.next_append_clears:
             i = 0
         else:
-            i = self.nimages
+            i = len(self)
         for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T', 'D', 'q'):
             a = getattr(self, name)
             newa = np.empty((i + 1,) + a.shape[1:], a.dtype)
@@ -214,19 +218,15 @@ class Images:
                 self.T[i] = 0
             else:
                 self.T[i] = self.T[i - 1]
-        self.nimages = i + 1
+        #self.nimages = i + 1
         self.filenames.append(filename)
-        return self.nimages
+        #return self.nimages
 
-    #def set_radii(self, scale=None):
-    #    skjfsdkjfsdfkj
-    #    scale = scale or self.scale_radii
-    #    if self.shapes is None:
-    #        self.r = self.covalent_radii[self.Z] * scale
-    #    else:
-    #        #  XXX fix 'shapes'
-    #        self.r = np.sqrt(np.sum(self.shapes**2, axis=1)) * scale
-    #    self.scale_radii = scale
+    def set_radii(self, scale=None):
+        if scale is None:
+            self.covalent_radii = covalent_radii.copy()
+        else:
+            self.covalent_radii *= scale
 
     def read(self, filenames, index=-1, filetype=None):
         images = []
@@ -247,7 +247,12 @@ class Images:
                 break
 
     def repeat_images(self, repeat):
-        images = [image.repeat(repeat) for image in self]
+        images = []
+        for atoms in self:
+            refcell = atoms.get_cell()
+            atoms = atoms.repeat(repeat)
+            atoms.cell = refcell
+            images.append(atoms)
         self.initialize(images)
         #self.repeat = repeat
         #repeat.prod()
@@ -305,8 +310,10 @@ class Images:
     def center(self):
         """Center each image in the existing unit cell, keeping the
         cell constant."""
-        c = self.A.sum(axis=1) / 2.0 - self.P.mean(axis=1)
-        self.P += c[:, np.newaxis, :]
+        for atoms in self:
+            atoms.center()
+        #c = self.A.sum(axis=1) / 2.0 - self.P.mean(axis=1)
+        #self.P += c[:, np.newaxis, :]
 
     def graph(self, expr):
         """Routine to create the data in ase-gui graphs, defined by the
@@ -314,7 +321,7 @@ class Images:
         import ase.units as units
         code = compile(expr + ',', '<input>', 'eval')
 
-        n = self.nimages
+        n = len(self)
 
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
@@ -354,14 +361,7 @@ class Images:
         #self.constrained[
 
         #D = self.dynamic[:, np.newaxis]
-        E = []
-        for atoms in self:
-            try:
-                e0 = atoms.get_potential_energy()
-            except RuntimeError:
-                e0 = np.nan
-            E.append(e0)
-        E = np.array(E)
+        E = np.array([self.get_energy(atoms) for atoms in self])
 
         s = 0.0
 
@@ -375,17 +375,11 @@ class Images:
             ns['s'] = s
             ns['R'] = R = self[i].get_positions()
             ns['V'] = self[i].get_velocities()
-            try:
-                F = self[i].get_forces(apply_constraint=False)
-            except RuntimeError:
-                F = np.empty_like(self[i].positions)
-                F.fill(np.nan)
-            ns['F'] = F
+            ns['F'] = F = self.get_forces(self[i])
             ns['A'] = self[i].get_cell()
             ns['M'] = self[i].get_masses()
             # XXX askhl verify:
-            constrained = self.get_constrained(self[i])
-            dynamic = ~constrained
+            dynamic = self.get_dynamic(self[i])
             #print(dynamic[None].shape)
             ns['f'] = f = ((F * dynamic[:, None])**2).sum(1)**.5
             ns['fmax'] = max(f)
@@ -428,29 +422,39 @@ class Images:
             write(filename, images, **kwargs)
 
     def get_atoms(self, frame, remove_hidden=False):
-        atoms = Atoms(positions=self.P[frame],
-                      numbers=self.Z,
-                      magmoms=self.M[0],
-                      tags=self.T[frame],
-                      cell=self.A[frame],
-                      pbc=self.pbc)
-
-        if not np.isnan(self.V).any():
-            atoms.set_velocities(self.V[frame])
+        #atoms = Atoms(positions=self.P[frame],
+        #              numbers=self.Z,
+        #              magmoms=self.M[0],
+        #              tags=self.T[frame],
+        #              cell=self.A[frame],
+        #              pbc=self.pbc)
+        atoms = self[frame]
+        try:
+            E = atoms.get_potential_energy()
+        except RuntimeError:
+            E = None
+        try:
+            F = atoms.get_forces()
+        except RuntimeError:
+            F = None
+        #if not np.isnan(self.V).any():
+        #    atoms.set_velocities(self.V[frame])
 
         # check for constrained atoms and add them accordingly:
-        if not self.dynamic.all():
-            atoms.set_constraint(FixAtoms(mask=1 - self.dynamic))
+        #if not self.dynamic.all():
+        #    atoms.set_constraint(FixAtoms(mask=1 - self.dynamic))
 
         # Remove hidden atoms if applicable
         if remove_hidden:
             atoms = atoms[self.visible]
-            f = self.F[frame][self.visible]
-        else:
-            f = self.F[frame]
+            if F is not None:
+                F = F[self.visible]
+            #f = self.F[frame][self.visible]
+        #else:
+            #f = self.F[frame]
         atoms.set_calculator(SinglePointCalculator(atoms,
-                                                   energy=self.E[frame],
-                                                   forces=f))
+                                                   energy=E,
+                                                   forces=F))
         return atoms
 
     def delete(self, i):

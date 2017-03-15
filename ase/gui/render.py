@@ -132,7 +132,7 @@ class Render:
             ui.Label(_("     Camera distance")), self.camera_distance
         ])
         self.single_frame = ui.RadioButton(None, _("Render current frame"))
-        self.nimages = self.gui.images.nimages
+        self.nimages = len(self.gui.images)
         self.iframe = self.gui.frame
         self.movie = ui.RadioButton(self.single_frame,
                                     _("Render all %d frames") % self.nimages)
@@ -197,9 +197,12 @@ class Render:
         selection = np.zeros(self.natoms, bool)
         text = self.texture_selection.get_text() or 'False'
         code = compile(text, 'render.py', 'eval')
-        for n in range(self.natoms):
-            Z = self.gui.images.Z[n]
-            x, y, z = self.gui.images.P[self.iframe][n]
+        atoms = self.gui.atoms
+        for n in range(len(atoms)):
+            Z = atoms.numbers[n]
+            #Z = self.gui.images.Z[n]
+            x, y, z = atoms.positions[n]
+            #self.gui.images.P[self.iframe][n]
             dct = {'n': n, 'Z': Z, 'x': x, 'y': y, 'z': z}
             selection[n] = eval(code, dct)
         return selection
@@ -216,7 +219,7 @@ class Render:
             Z = []
             for n in range(len(selection)):
                 if selection[n]:
-                    Z += [self.gui.images.Z[n]]
+                    Z += [self.gui.atoms.Z[n]]
             name = formula(Z)
             if (box_selection == selection).all():
                 name += ': ' + self.texture_selection.get_text()
@@ -350,7 +353,8 @@ class Render:
             filename = self.outputname.get_text()
             print(" | Writing files for image", filename, "...")
             write_pov(
-                filename, atoms, radii=self.gui.images.r, **povray_settings)
+                filename, atoms, radii=self.gui.get_covalent_radii(),
+                **povray_settings)
             if not self.keep_files.get_active():
                 print(" | Deleting temporary file ", filename)
                 system("rm " + filename)

@@ -14,7 +14,7 @@ class Repeat:
         win.add(self.repeat)
         win.add(ui.Button(_('Set unit cell'), self.set_unit_cell))
 
-        for sb, vec in zip(self.repeat, gui.images.A[gui.frame]):
+        for sb, vec in zip(self.repeat, gui.atoms.cell):
             if not vec.any():
                 sb.active = False
 
@@ -26,8 +26,9 @@ class Repeat:
         self.gui.set_coordinates()
 
     def set_unit_cell(self):
-        self.gui.images.A *= self.gui.images.repeat.reshape((3, 1))
-        self.gui.images.E *= self.gui.images.repeat.prod()
+        self.gui.atoms.cell *= self.gui.images.repeat.reshape((3, 1))
+        #self.gui.images.E *= self.gui.images.repeat.prod()
+        # XXXXXXXXXXXXXXXXXXXXX askhl fixme multiply energy
         self.gui.images.repeat = np.ones(3, int)
         for r in self.repeat:
             r.value = 1

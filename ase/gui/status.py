@@ -47,21 +47,24 @@ class Status:  # Status is used as a mixin in GUI
             return
 
         Z = atoms.numbers[indices]#self.images.Z[indices]
-        R = self.atoms.positions #R[indices]
+        R = atoms.positions #R[indices]
 
         if n == 1:
             #tag = self.images.T[self.frame, indices][0]
-            tag = self.images.T[self.frame][indices][0]
+            #tag = self.images.T[self.frame][indices][0]
+            tag = atoms.get_tags()[indices][0]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
             text += _(' tag=%(tag)s') % dict(tag=tag)
-            if self.images.M[self.frame].any():
+            magmoms = self.get_magmoms()
+            if magmoms.any():
                 # TRANSLATORS: mom refers to magnetic moment
                 text += _(' mom={0:1.2f}'.format(
-                    self.images.M[self.frame][indices][0]))
-            if self.images.q[self.frame].any():
+                    magmoms[indices][0]))
+            charges = self.atoms.get_initial_charges()
+            if charges.any():
                 text += _(' q={0:1.2f}'.format(
-                    self.images.q[self.frame][indices][0]))
+                    charges[indices][0]))
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
@@ -87,7 +90,7 @@ class Status:  # Status is used as a mixin in GUI
                     tuple([symbols[z] for z in Z] + a))
         elif len(ordered_indices) == 4:
             R = self.atoms.positions #R[ordered_indices]
-            Z = self.images.Z[ordered_indices]
+            Z = self.atoms.numbers[ordered_indices]
             a = R[1] - R[0]
             b = R[2] - R[1]
             c = R[3] - R[2]
