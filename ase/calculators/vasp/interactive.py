@@ -100,7 +100,6 @@ class VaspInteractive(GenerateVaspInput, Calculator):
             self._stdout(text)
             if "POSITIONS: reading from stdin" in text:
                 return
-            time.sleep(1)
 
         # If we've reached this point, then VASP has exited without asking for
         # new positions, meaning it either exited without error unexpectedly,
