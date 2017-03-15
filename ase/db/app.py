@@ -72,6 +72,7 @@ SUBSCRIPT = re.compile(r'(\d+)')
 def index():
     global next_con_id
 
+    # pointer to metadata
     md = db.metadata
 
     con_id = int(request.args.get('x', '0'))
