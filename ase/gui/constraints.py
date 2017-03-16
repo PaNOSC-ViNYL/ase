@@ -33,7 +33,7 @@ class Constraints:
         # This clears *all* constraints.  But when we constrain, we
         # only add FixAtoms....
         for atoms in self.gui.images:
-            atoms.set_constraints([])
+            atoms.constraints = []
 
         # Also, these methods are repeated from settings.py *grumble*
         #self.gui.images.dynamic[:] = True

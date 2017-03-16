@@ -152,7 +152,10 @@ class Images:
         # Whether length or chemical composition changes:
         self.have_varying_species = False
         for i, atoms in enumerate(images):
-            self._images.append(atoms.copy())
+            # copy atoms or not?  Not copying allows back-editing,
+            # but copying actually forgets things like the attached
+            # calculator (might have forces/energies
+            self._images.append(atoms)
             self.have_varying_species |= np.any(self[0].numbers
                                                 != atoms.numbers)
             if hasattr(self, 'Q'):
@@ -250,7 +253,7 @@ class Images:
         images = []
         for atoms in self:
             refcell = atoms.get_cell()
-            atoms = atoms.repeat(repeat)
+            atoms *= repeat
             atoms.cell = refcell
             images.append(atoms)
         self.initialize(images)
@@ -380,7 +383,6 @@ class Images:
             ns['M'] = self[i].get_masses()
             # XXX askhl verify:
             dynamic = self.get_dynamic(self[i])
-            #print(dynamic[None].shape)
             ns['f'] = f = ((F * dynamic[:, None])**2).sum(1)**.5
             ns['fmax'] = max(f)
             ns['fave'] = f.mean()

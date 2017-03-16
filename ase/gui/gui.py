@@ -243,7 +243,8 @@ class GUI(View, Status):
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
-        e = self.images.E
+        #e = self.images.E
+        e = [self.images.get_energy(a) for a in self.images]
         pickle.dump((v, e), process.stdin, protocol=0)
         process.stdin.close()
         self.graphs.append(process)
