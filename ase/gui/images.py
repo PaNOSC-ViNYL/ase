@@ -45,7 +45,7 @@ class Images:
 
     def get_energy(self, atoms):
         try:
-            e =  atoms.get_potential_energy()
+            e =  atoms.get_potential_energy() * self.repeat.prod()
         except RuntimeError:
             e = np.nan
         return e
@@ -56,6 +56,7 @@ class Images:
         except RuntimeError:
             F = np.empty_like(atoms.positions)
             F.fill(np.nan)
+        F = np.tile(F.T, self.repeat.prod()).T
         return F
 
     def get_magmoms(self, atoms, init_magmom=False):
@@ -171,12 +172,9 @@ class Images:
         self.maxnatoms = max(len(atoms) for atoms in self)
         self.selected = np.zeros(self.maxnatoms, bool)
         self.selected_ordered = []
-        #XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
         self.visible = np.ones(self.maxnatoms, bool)
         self.nselected = 0
         self.repeat = np.ones(3, int)
-        #self.set_radii(config['radii_scale'])
-        #XXX disabled askhl self.set_radii(config['radii_scale'])
 
     def get_radii(self, atoms):
         radii = np.array([self.covalent_radii[z] for z in atoms.numbers])
@@ -189,6 +187,11 @@ class Images:
 
     def append_atoms(self, atoms, filename=None):
         "Append an atoms object to the images already stored."
+        self.images.append(atoms)
+        self.filenames.append(filename)
+        self.initialize(self.images, filenames=self.filenames)
+        return
+
         sdjkfskdjfsdkjf
         assert len(atoms) == self.natoms
         if self.next_append_clears:
@@ -231,11 +234,11 @@ class Images:
         self.filenames.append(filename)
         #return self.nimages
 
-    def set_radii(self, scale=None):
-        if scale is None:
-            self.covalent_radii = covalent_radii.copy()
-        else:
-            self.covalent_radii *= scale
+    #def set_radii(self, scale=None):
+    #    if scale is None:
+    #        self.covalent_radii = covalent_radii.copy()
+    #    else:
+    #        self.covalent_radii *= scale
 
     def read(self, filenames, index=-1, filetype=None):
         images = []
@@ -252,23 +255,33 @@ class Images:
 
         for image in images:
             if 'radii' in image.info:
-                self.set_radii(image.info['radii'])
+                #self.set_radii(image.info['radii'])
                 break
 
+    def repeat_unit_cell(self):
+        for atoms in self:
+            # Get quantities taking into account current repeat():
+            ref_energy = self.get_energy(atoms)
+            ref_forces = self.get_forces(atoms)
+            atoms.calc = SinglePointCalculator(atoms,
+                                               energy=ref_energy,
+                                               forces=ref_forces)
+            atoms.cell *= self.repeat.reshape((3, 1))
+        self.repeat = np.ones(3, int)
+
     def repeat_images(self, repeat):
+        repeat = np.array(repeat)
+        oldprod = self.repeat.prod()
         images = []
         for atoms in self:
             refcell = atoms.get_cell()
+            atoms = atoms[:len(atoms) // oldprod]
             atoms *= repeat
             atoms.cell = refcell
             images.append(atoms)
-        self.initialize(images)
-        #self.repeat = repeat
-        #repeat.prod()
-        #self.selected = np.zeros(natoms * N, bool)
-        # XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
-        #self.visible = np.ones(natoms * N, bool)
-        #self.nselected = 0
+        self.initialize(images, filenames=self.filenames)
+        self.repeat = repeat
+
         return
 
         # XXXXXXXXXXXXXX disabled repeat code below
@@ -466,6 +479,12 @@ class Images:
         return atoms
 
     def delete(self, i):
+        self.images.pop(i)
+        self.filenames.pop(i)
+        self.initialize(self.images, self.filenames)
+        return
+
+        sdfsdfksdflksdfdsf
         self.nimages -= 1
         P = np.empty((self.nimages, self.natoms, 3))
         V = np.empty((self.nimages, self.natoms, 3))
@@ -490,6 +509,7 @@ class Images:
         del self.filenames[i]
 
     def aneb(self):
+        skjdfsdkjfsdkfjskdjfk
         n = self.nimages
         assert n % 5 == 0
         levels = n // 5
@@ -518,6 +538,7 @@ class Images:
         self.E = E
 
     def interpolate(self, m):
+        sdkfjsdkfjsdkjf
         assert self.nimages == 2
         self.nimages = 2 + m
         P = np.empty((self.nimages, self.natoms, 3))
