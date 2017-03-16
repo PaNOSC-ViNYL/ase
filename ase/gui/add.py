@@ -16,6 +16,7 @@ def txt2pos(txt):
 
 class AddAtoms:
     def __init__(self, gui):
+        # XXXXXXXXXXX still array based, not Atoms-based.  Will crash
         win = ui.Window(_('Add atoms'))
         self.element = Element()
         win.add(self.element)
