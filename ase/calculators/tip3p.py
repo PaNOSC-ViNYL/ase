@@ -10,7 +10,8 @@ qH = 0.417
 sigma0 = 3.15061
 epsilon0 = 0.1521 * units.kcal / units.mol
 rOH = 0.9572
-thetaHOH = 104.52 / 180 * np.pi
+angleHOH = 104.52
+thetaHOH = 104.52 / 180 * np.pi  # we keep this for backwards compatibility
 
 
 class TIP3P(Calculator):

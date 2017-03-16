@@ -22,9 +22,9 @@ import numpy as np
 
 import ase.units as unit
 from ase.calculators.calculator import Calculator, all_changes
-from ase.calculators.tip3p import rOH, thetaHOH, TIP3P
+from ase.calculators.tip3p import rOH, angleHOH, TIP3P
 
-__all__ = ['rOH', 'thetaHOH', 'TIP4P', 'sigma0', 'epsilon0']
+__all__ = ['rOH', 'angleHOH', 'TIP4P', 'sigma0', 'epsilon0']
 
 # Electrostatic constant and parameters:
 k_c = 332.1 * unit.kcal / unit.mol

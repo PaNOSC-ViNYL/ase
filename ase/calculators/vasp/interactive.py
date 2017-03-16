@@ -99,7 +99,14 @@ class VaspInteractive(GenerateVaspInput, Calculator):
             text = self.process.stdout.readline()
             self._stdout(text)
             if "POSITIONS: reading from stdin" in text:
-                break
+                return
+
+        # If we've reached this point, then VASP has exited without asking for
+        # new positions, meaning it either exited without error unexpectedly,
+        # or it exited with an error. Either way, we need to raise an error.
+
+        raise RuntimeError("VASP exited unexpectedly with exit code {}"
+                           "".format(self.subprocess.poll()))
 
     def close(self):
         if self.process is None:
