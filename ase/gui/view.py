@@ -200,13 +200,11 @@ class View:
         if index == 0:
             self.labels = None
         elif index == 1:
-            self.labels = ([list(range(len(self.atoms)))] *
-                           len(self.images))
+            self.labels = list(range(len(self.atoms)))
         elif index == 2:
-            self.labels = self.images.M  # XXX magmoms
+            self.labels = list(self.images.get_magmoms(self.atoms))
         else:
-            self.labels = [[chemical_symbols[x]
-                            for x in self.atoms.numbers]] * len(self.images)
+            self.labels = self.atoms.get_chemical_symbols()
 
         self.draw()
 
@@ -218,8 +216,10 @@ class View:
 
     def toggle_show_velocities(self, key=None):
         # XXX hard coded scale is ugly
-        self.show_vectors(10 * np.nan_to_num(self.atoms.get_velocities()))
-        self.draw()
+        v = self.atoms.get_velocities()
+        if v is not None:
+            self.show_vectors(10 * v)
+            self.draw()
 
     # transitional compat hack
     def get_forces(self):
@@ -406,7 +406,7 @@ class View:
                     # Draw labels on the atoms
                     if self.labels is not None:
                         self.window.text(A[a, 0], A[a, 1],
-                                         str(self.labels[self.frame][a]))
+                                         str(self.labels[a]))
 
                     # Draw cross on constrained atoms
                     if constrained[a]:
