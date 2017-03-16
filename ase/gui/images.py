@@ -180,7 +180,7 @@ class Images:
         images = []
         for atoms in self:
             refcell = atoms.get_cell()
-            atoms = atoms[:len(atoms) // oldprod]
+            del atoms[len(atoms) // oldprod:]
             atoms *= repeat
             atoms.cell = refcell
             images.append(atoms)
