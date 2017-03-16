@@ -59,7 +59,7 @@ class View:
             nc = len(self.B1)
             nb = len(self.bonds)
 
-            if init or (A[frame] != A[self.frame]).any():
+            if init or (atoms.cell != self.atoms.cell).any():
                 #self.X[n:n + nc] = np.dot(self.B1, A[frame])
                 self.X_B1 = np.dot(self.B1, cell)
                 self.B = np.empty((nc + nb, 3))
