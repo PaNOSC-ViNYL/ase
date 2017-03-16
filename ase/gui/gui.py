@@ -70,7 +70,6 @@ class GUI(View, Status):
         self.moving = False
 
     def run(self, expr=None, test=None):
-        self.set_colors()
         self.set_coordinates(len(self.images) - 1, focus=True)
 
         if len(self.images) > 1:
@@ -278,7 +277,6 @@ class GUI(View, Status):
         filename = filename or chooser.go()
         if filename:
             self.images.read([filename], slice(None), format[0])
-            self.set_colors()
             self.set_coordinates(len(self.images) - 1, focus=True)
 
     def modify_atoms(self, key=None):
@@ -324,7 +322,6 @@ class GUI(View, Status):
         self.images.initialize([atoms], init_magmom=init_magmom)
         self.frame = 0  # Prevent crashes
         self.images.repeat_images(rpt)
-        self.set_colors()
         self.set_coordinates(frame=0, focus=True)
         self.notify_vulnerable()
 

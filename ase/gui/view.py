@@ -26,6 +26,14 @@ class View:
         self.configured = False
         self.frame = None
 
+        # XXX
+        self.colormode = 'jmol'
+        self.colors = {}
+
+        for i, rgb in enumerate(jmol_colors):
+            self.colors[i] = ('#{0:02X}{1:02X}{2:02X}'
+                              .format(*(int(x * 255) for x in rgb)))
+
     @property
     def atoms(self):
         return self.images[self.frame]
@@ -101,13 +109,7 @@ class View:
         else:
             self.draw()
 
-    def set_colors(self):
-        self.colormode = 'jmol'
-        self.colors = {}
-
-        for i, rgb in enumerate(jmol_colors):
-            self.colors[i] = ('#{0:02X}{1:02X}{2:02X}'
-                              .format(*(int(x * 255) for x in rgb)))
+    #def set_colors(self):
         #for z in np.unique(self.images.Z):
         #    rgb = jmol_colors[z]
         #    self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'

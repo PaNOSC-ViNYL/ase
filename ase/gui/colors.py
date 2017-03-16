@@ -53,7 +53,7 @@ class ColorWindow:
 
     def toggle(self, value):
         if value == 'jmol':
-            self.gui.set_colors()
+            #self.gui.set_colors()
             text = ''
         else:
             self.gui.colormode = value

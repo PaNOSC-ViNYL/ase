@@ -27,15 +27,17 @@ class ModifyAtoms:
         self.magmom = ui.SpinBox(0.0, -10, 10, 0.1, self.set_magmom)
         win.add([_('Moment'), self.magmom])
 
-        Z = gui.images.Z[selected]
+        Z = gui.atoms.numbers
+        #Z = gui.images.Z[selected]
         if Z.ptp() == 0:
             element.Z = Z[0]
 
-        tags = gui.images.T[gui.frame][selected]
+        tags = gui.atoms.get_tags()[selected]
+        #tags = gui.images.T[gui.frame][selected]
         if tags.ptp() == 0:
             self.tag.value = tags[0]
 
-        magmoms = gui.images.M[gui.frame][selected]
+        magmoms = gui.images.get_magmoms(gui.atoms)[selected]
         if magmoms.round(2).ptp() == 0.0:
             self.magmom.value = round(magmoms[0], 2)
 
@@ -43,20 +45,20 @@ class ModifyAtoms:
 
     def set_element(self, element):
         selected = self.gui.images.selected
-        self.gui.images.Z[selected] = element.Z
-        self.update_gui()
+        self.gui.atoms.numbers[selected] = element.Z
+        self.gui.draw()
 
     def set_tag(self):
         selected = self.gui.images.selected
-        self.gui.images.T[self.gui.frame][selected] = self.tag.value
-        self.update_gui()
+        tags = self.gui.atoms.get_tags()
+        tags[selected] = self.tag.value
+        self.gui.atoms.set_tags(tags)
+        self.gui.draw()
 
     def set_magmom(self):
         selected = self.gui.images.selected
-        self.gui.images.M[self.gui.frame][selected] = self.magmom.value
-        self.update_gui()
-
-    def update_gui(self):
-        self.gui.set_colors()
-        self.gui.images.set_radii()
+        atoms = self.gui.atoms
+        magmoms = self.gui.images.get_magmoms(atoms)
+        magmoms[selected] = self.magmom.value
+        atoms.set_initial_magnetic_moments(magmoms)
         self.gui.draw()
