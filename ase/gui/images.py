@@ -33,10 +33,13 @@ class Images:
                 dynamic[constraint.index] = False
         return dynamic
 
-    def set_dynamic(self, indices, value):
+    def set_dynamic(self, mask, value):
+        # Does not make much sense if different images have different
+        # atom counts.  Attempts to apply mask to all images,
+        # to the extent possible.
         for atoms in self:
             dynamic = self.get_dynamic(atoms)
-            dynamic[indices[indices < len(atoms)]] = value
+            dynamic[mask[:len(atoms)]] = value
             atoms.constraints = [c for c in atoms.constraints
                                  if not isinstance(c, FixAtoms)]
             atoms.constraints.append(FixAtoms(mask=~dynamic))
