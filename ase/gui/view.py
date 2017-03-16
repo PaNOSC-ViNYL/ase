@@ -36,11 +36,13 @@ class View:
         self.make_box()
         self.bind(frame)
         atoms = self.images[frame]
-        n = len(atoms)
-        #self.X = np.empty((n + len(self.B1) + len(self.bonds), 3))
+        natoms = len(atoms)
+        self.X = np.empty((natoms + len(self.B1) + len(self.bonds), 3))
+        self.X_pos = self.X[:natoms]
+        self.X_pos[:] = atoms.positions
         #self.X_pos = np.empty((n, 3))
-        self.X_B1 = np.empty((len(self.B1), 3))
-        self.X_bonds = np.empty((len(self.bonds), 3))
+        self.X_B1 = self.X[natoms:natoms + len(self.B1)]
+        self.X_bonds = self.X[natoms + len(self.B1):]
         self.set_frame(frame, focus=focus, init=True)
 
     def set_frame(self, frame=None, focus=False, init=False):
@@ -57,15 +59,15 @@ class View:
         if init or frame != self.frame:
             cell = atoms.cell
             nc = len(self.B1)
-            nb = len(self.bonds)
+            nbonds = len(self.bonds)
 
             if init or (atoms.cell != self.atoms.cell).any():
                 #self.X[n:n + nc] = np.dot(self.B1, A[frame])
-                self.X_B1 = np.dot(self.B1, cell)
-                self.B = np.empty((nc + nb, 3))
+                self.X_B1[:] = np.dot(self.B1, cell)
+                self.B = np.empty((nc + nbonds, 3))
                 self.B[:nc] = np.dot(self.B2, cell)
 
-            if nb > 0:
+            if nbonds > 0:
                 P = self.atoms.positions
                 Af = self.images.repeat[:, np.newaxis] * cell
                 a = P[self.bonds[:, 0]]
@@ -75,7 +77,7 @@ class View:
                 x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
                 x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
                 #self.X[n + nc:] = a + b * x0
-                self.X_B1 = a + b * x0
+                self.X_B1[:] = a + b * x0
                 b *= 1.0 - x0 - x1
                 b[self.bonds[:, 2:].any(1)] *= 0.5
                 self.B[nc:] = self.X_B1 + b
@@ -160,11 +162,11 @@ class View:
         #                cell=(self.images.repeat[:, np.newaxis] *
         #                      self.images.A[frame]),
         #                pbc=self.images.pbc))
-        nb = nl.nneighbors + nl.npbcneighbors
+        nbonds = nl.nneighbors + nl.npbcneighbors
 
-        bonds = np.empty((nb, 5), int)
+        bonds = np.empty((nbonds, 5), int)
         self.coordination = np.zeros(len(self.atoms), dtype=int)
-        if nb == 0:
+        if nbonds == 0:
             return
 
         n1 = 0
@@ -242,10 +244,6 @@ class View:
         self.register_vulnerable(win)
         return win
 
-    def getX(self):
-        return np.concatenate([self.atoms.positions, self.X_B1, self.X_bonds],
-                              axis=0)
-
     def focus(self, x=None):
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images[0].cell.any())
@@ -255,15 +253,12 @@ class View:
             self.draw()
             return
 
-        P = np.dot(self.getX(), self.axes)
+        P = np.dot(self.X, self.axes)
         n = len(self.atoms)
         covalent_radii = self.get_covalent_radii()
-        #np.array([self.images.covalent_radii[z]
-                                   #for z in self.atoms.numbers])
-        P[:n] -= covalent_radii[:, None] #self.images.r[self.frame][:, None]
+        P[:n] -= covalent_radii[:, None]
         P1 = P.min(0)
         P[:n] += 2 * covalent_radii[:, None]
-        #self.images.r[self.frame][:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
         S = 1.3 * (P2 - P1)
@@ -352,12 +347,7 @@ class View:
         elif self.colormode == 'charge':
             return self.atoms.get_charges()
         elif self.colormode == 'magmom':
-            # XXXXXXXXXXXXXXXXXXXXXXXXXXXX initial magmoms?
-            try:
-                magmoms = self.atoms.get_magnetic_moments()
-            except RuntimeError:
-                magmoms = self.atoms.get_initial_magnetic_moments()
-            return magmoms
+            return self.images.get_magmoms(self.atoms)
 
     def get_covalent_radii(self):
         return np.array([self.images.covalent_radii[z]
@@ -368,15 +358,13 @@ class View:
         axes = self.scale * self.axes * (1, -1, 1)
         offset = np.dot(self.center, axes)
         offset[:2] -= 0.5 * self.window.size
-        X = np.dot(self.getX(), axes) - offset
+        X = np.dot(self.X, axes) - offset
         n = len(self.atoms)
+        # The indices enumerate drawable objects in z order:
         self.indices = X[:, 2].argsort()
         r = self.get_covalent_radii() * self.scale
         if self.window['toggle-show-bonds']:
-            r *= 0.65# * self.scale
-            #r = self.images.r[self.frame] * (0.65 * self.scale)
-        #else:
-        #    r = self.images.r[self.frame] * self.scale
+            r *= 0.65
         P = self.P = X[:n, :2]
         A = (P - r[:, None]).round().astype(int)
         X1 = X[n:, :2].round().astype(int)
@@ -393,15 +381,12 @@ class View:
         colors = self.get_colors()
         circle = self.window.circle
         line = self.window.line
-        #constrained = self.images.constrained[self.frame]
-
         constrained = ~self.images.get_dynamic(self.atoms)
 
-        #dynamic = self.images.dynamic
         selected = self.images.selected
         visible = self.images.visible
         ncell = len(self.B1)
-        bw = self.scale * 0.15
+        bond_linewidth = self.scale * 0.15
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -441,7 +426,8 @@ class View:
                           X2[a, 0] + disp[0], X2[a, 1] + disp[1]))
                 else:
                     line((X1[a, 0] + disp[0], X1[a, 1] + disp[1],
-                          X2[a, 0] + disp[0], X2[a, 1] + disp[1]), width=bw)
+                          X2[a, 0] + disp[0], X2[a, 1] + disp[1]),
+                         width=bond_linewidth)
 
         if self.window['toggle-show-axes']:
             self.draw_axes()
@@ -599,7 +585,7 @@ class View:
                                  (-s * a, -s * b, c)])
             self.axes = np.dot(self.axes0, rotation)
             if len(self.atoms) > 0:
-                com = self.getX()[:len(self.atoms)].mean(0)
+                com = self.X_pos.mean(0)
             else:
                 com = self.atoms.cell.mean(0)
             self.center = com - np.dot(com - self.center0,
