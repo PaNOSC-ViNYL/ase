@@ -42,6 +42,12 @@ class View:
             frame = self.frame
         self.make_box()
         self.bind(frame)
+        self.set_frame(frame, focus=focus, init=True)
+
+    def set_frame(self, frame=None, focus=False, init=False):
+        self.make_box()
+        if frame is None:
+            frame = self.frame
         atoms = self.images[frame]
         natoms = len(atoms)
         self.X = np.empty((natoms + len(self.B1) + len(self.bonds), 3))
@@ -49,14 +55,8 @@ class View:
         self.X_pos[:] = atoms.positions
         self.X_B1 = self.X[natoms:natoms + len(self.B1)]
         self.X_bonds = self.X[natoms + len(self.B1):]
-        self.set_frame(frame, focus=focus, init=True)
 
-    def set_frame(self, frame=None, focus=False, init=False):
-        if frame is None:
-            frame = self.frame
-        atoms = self.images[frame]
-
-        self.X[:len(atoms)] = atoms.positions
+        self.X[:len(atoms), :] = atoms.positions
 
         # XXX this should raise an error; caller must provide valid numbers!
         if self.frame is not None and self.frame > len(self.images):

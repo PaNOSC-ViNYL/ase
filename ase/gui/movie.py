@@ -61,7 +61,7 @@ class Movie:
             i = len(self.gui.images) - 1
         else:
             i = max(0, min(len(self.gui.images) - 1, self.gui.frame + step))
-        self.gui.set_frame(i)
+
         self.frame_number.value = i
         if firstlast:
             self.direction = np.sign(-step)
