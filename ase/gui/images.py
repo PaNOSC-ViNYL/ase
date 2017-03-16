@@ -3,7 +3,6 @@ from math import sqrt
 
 import numpy as np
 
-from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
@@ -38,7 +37,6 @@ class Images:
         for atoms in self:
             dynamic = self.get_dynamic(atoms)
             dynamic[indices[indices < len(atoms)]] = value
-            from ase.constraints import FixAtoms
             atoms.constraints = [c for c in atoms.constraints
                                  if not isinstance(c, FixAtoms)]
             atoms.constraints.append(FixAtoms(mask=~dynamic))
@@ -321,7 +319,7 @@ class Images:
         self.initialize(self.images, self.filenames)
 
     def aneb(self):
-        skjdfsdkjfsdkfjskdjfk
+        raise NotImplementedError('broken at the moment')
         n = self.nimages
         assert n % 5 == 0
         levels = n // 5
@@ -350,7 +348,7 @@ class Images:
         self.E = E
 
     def interpolate(self, m):
-        sdkfjsdkfjsdkjf
+        raise NotImplementedError('broken at the moment')
         assert self.nimages == 2
         self.nimages = 2 + m
         P = np.empty((self.nimages, self.natoms, 3))

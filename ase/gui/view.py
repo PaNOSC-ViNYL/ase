@@ -4,7 +4,6 @@ from os.path import basename
 
 import numpy as np
 
-from ase.data import chemical_symbols
 from ase.data.colors import jmol_colors
 from ase.geometry import complete_cell
 from ase.gui.repeat import Repeat
@@ -143,7 +142,6 @@ class View:
             self.bonds = np.empty((0, 5), int)
             return
 
-        from ase.atoms import Atoms
         from ase.neighborlist import NeighborList
         nl = NeighborList(self.get_covalent_radii() * 1.5,
                           skin=0, self_interaction=False)
@@ -323,8 +321,6 @@ class View:
         return [colorscale[i] for i in indices]
 
     def get_color_scalars(self, frame=None):
-        i = frame or self.frame
-
         if self.colormode == 'tag':
             return self.atoms.get_tags()
         if self.colormode == 'force':

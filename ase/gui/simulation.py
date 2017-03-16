@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from ase.gui.i18n import _
 
 import ase.gui.ui as ui
-from ase import Atoms
-from ase.constraints import FixAtoms
+#from ase import Atoms
+#from ase.constraints import FixAtoms
 
 pack = error = 42
 
