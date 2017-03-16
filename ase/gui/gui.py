@@ -138,10 +138,7 @@ class GUI(View, Status):
             vec *= 0.1
 
         if self.moving:
-            for atoms in self.images:
-                atoms.positions[self.images.selected] += vec
-            #self.atoms.positions[:
-            #self.images.P[:, self.images.selected] += vec
+            self.atoms.positions[self.images.selected] += vec
             self.set_frame()
         else:
             self.center -= vec

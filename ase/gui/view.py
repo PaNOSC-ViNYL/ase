@@ -57,7 +57,7 @@ class View:
             frame = self.frame
         atoms = self.images[frame]
 
-        n = len(atoms)
+        self.X[:len(atoms)] = atoms.positions
 
         # XXX this should raise an error; caller must provide valid numbers!
         if self.frame is not None and self.frame > len(self.images):

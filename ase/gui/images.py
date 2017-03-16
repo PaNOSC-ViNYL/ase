@@ -176,9 +176,11 @@ class Images:
         self.nselected = 0
         self.repeat = np.ones(3, int)
 
+        self.atom_scale = self.config['radii_scale']
+
     def get_radii(self, atoms):
         radii = np.array([self.covalent_radii[z] for z in atoms.numbers])
-        radii *= self.config['radii_scale']
+        radii *= self.atom_scale
         return radii
 
     def prepare_new_atoms(self):

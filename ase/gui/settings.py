@@ -28,11 +28,12 @@ class Settings:
 
         # Miscellaneous
         win.add(_('Miscellaneous:'))
-        self.scale = ui.SpinBox(0.89, 0.2, 2.0, 0.1, self.scale_radii)
+        self.scale = ui.SpinBox(self.gui.images.atom_scale,
+                                0.2, 2.0, 0.1, self.scale_radii)
         win.add([_('Scale atomic radii:'), self.scale])
 
     def scale_radii(self):
-        self.gui.images.set_radii(self.scale.value)
+        self.gui.images.atom_scale = self.scale.value
         self.gui.draw()
         return True
 
@@ -50,15 +51,14 @@ class Settings:
 
     def constrain_selected(self):
         self.gui.images.set_dynamic(self.gui.images.selected, False)
-        #self.gui.images.dynamic[self.gui.images.selected] = False
         self.gui.draw()
 
     def release_selected(self):
         self.gui.images.set_dynamic(self.gui.images.selected, True)
-        #self.gui.images.dynamic[self.gui.images.selected] = True
         self.gui.draw()
 
     def immobile(self):
+        # wtf? XXX detect non-moving atoms somehow
         #self.gui.images.set_dynamic()
         self.gui.draw()
 
@@ -67,5 +67,4 @@ class Settings:
         # only add FixAtoms....
         for atoms in self.gui.images:
             atoms.constraints = []
-        #self.gui.images.dynamic[:] = True
         self.gui.draw()
