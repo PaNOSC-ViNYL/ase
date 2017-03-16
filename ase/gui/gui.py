@@ -179,7 +179,6 @@ class GUI(View, Status):
 
     def select_constrained_atoms(self, key=None):
         self.images.selected[:] = ~self.images.get_dynamic(self.atoms)
-        #~self.images.dynamic
         self.draw()
 
     def select_immobile_atoms(self, key=None):
@@ -218,14 +217,10 @@ class GUI(View, Status):
         if len(self.images) <= 1:
             return
         N = self.images.repeat.prod()
-        #natoms = self.images.natoms // N
         natoms = len(self.images[0]) // N
-        #R = self.images.P[:, :natoms]
         R = [a.positions[:natoms] for a in self.images]
-        #E = self.images.E
         E = [self.images.get_energy(a) for a in self.images]
         F = [self.images.get_forces(a) for a in self.images]
-        #F = F[:, :natoms]
         A = self.images[0].cell
         pbc = self.images[0].pbc
         process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
@@ -239,7 +234,6 @@ class GUI(View, Status):
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
-        #e = self.images.E
         e = [self.images.get_energy(a) for a in self.images]
         pickle.dump((v, e), process.stdin, protocol=0)
         process.stdin.close()

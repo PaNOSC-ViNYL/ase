@@ -38,7 +38,7 @@ class Render:
         self.set_title(_('Render current view in povray ... '))
         vbox = ui.VBox()
         vbox.set_border_width(5)
-        self.natoms = self.gui.images.natoms
+        self.natoms = len(self.gui.atoms)
         pack(vbox, [ui.Label(_("Rendering %d atoms.") % self.natoms)])
         self.size = [
             ui.Adjustment(self.gui.width, 1, 9999, 50),
@@ -47,8 +47,8 @@ class Render:
         self.width = ui.SpinButton(self.size[0], 0, 0)
         self.height = ui.SpinButton(self.size[1], 0, 0)
         self.render_constraints = ui.CheckButton(_("Render constraints"))
-        self.render_constraints.set_sensitive(not self.gui.images.dynamic.all(
-        ))
+        self.render_constraints.set_sensitive(
+            not self.gui.images.get_dynamic(self.gui.atoms).all())
         self.render_constraints.connect("toggled", self.toggle_render_lines)
         pack(vbox, [
             ui.Label(_("Width")), self.width, ui.Label(_("     Height")),
@@ -200,9 +200,7 @@ class Render:
         atoms = self.gui.atoms
         for n in range(len(atoms)):
             Z = atoms.numbers[n]
-            #Z = self.gui.images.Z[n]
             x, y, z = atoms.positions[n]
-            #self.gui.images.P[self.iframe][n]
             dct = {'n': n, 'Z': Z, 'x': x, 'y': y, 'z': z}
             selection[n] = eval(code, dct)
         return selection

@@ -117,27 +117,12 @@ class Simulation:
     def get_atoms(self):
         "Make an atoms object from the active image"
         images = self.gui.images
-        #if images.natoms < 1:
-
-        #natoms = len(images.P[n]) // images.repeat.prod()
-        #natoms = len(images[n]) // images.repeat.prod()
-        #constraint = None
-        #if not images.dynamic.all():
-        #    constraint = FixAtoms(mask=1 - images.dynamic)
         atoms = images[self.getimagenumber()]
         natoms = len(atoms) // images.repeat.prod()
         if natoms < 1:
             error(_("No atoms present"))
             return None
         return atoms[:natoms]
-        #return Atoms(
-        #    positions=images.P[n, :natoms],
-        #    symbols=images.Z[:natoms],
-        #    cell=images.A[n],
-        #    magmoms=images.M[n, :natoms],
-        #    tags=images.T[n, :natoms],
-        #    pbc=images.pbc,
-        #    constraint=constraint)
 
     def begin(self, **kwargs):
         if 'progress' in self.gui.simulation:

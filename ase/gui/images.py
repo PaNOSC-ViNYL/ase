@@ -72,8 +72,6 @@ class Images:
         return M
 
     def initialize(self, images, filenames=None, init_magmom=False):
-
-        #self.natoms = len(images[0])
         nimages = len(images)
         if filenames is None:
             filenames = [None] * nimages
@@ -102,50 +100,8 @@ class Images:
         else:
             self.shapes = None
 
-        # Temporary hack for using atoms as backend instead of distinct arrays
-        # This should probably be replaced by a more clean mechanism if we
-        # decide to go this way
-        class IndexHack:
-            enclosing_images_obj = self
-
-            def __init__(self, getter):
-                self.getter = getter
-
-            def __getitem__(self, item):
-                if isinstance(item, tuple):
-                    print(item)
-                    raise ValueError(item)
-                return self.getter(self.enclosing_images_obj[item])
-
-            def __setitem__(self, item, value):
-                raise ValueError(item, value)
-
-
-        #self.P = IndexHack(lambda a: a.get_positions())
-        #self.V = IndexHack(lambda a: a.get_velocities())
-        #self.E = IndexHack(get_energy)
-        #self.K = IndexHack(lambda a: a.get_kinetic_energy())
-        #self.F = IndexHack(get_forces)
-        #self.M = IndexHack(get_magmoms)
-        #self.T = IndexHack(lambda a: a.get_tags())
-        #self.A = IndexHack(lambda a: a.get_cell())
-        #self.D = IndexHack(lambda a: a.get_celldisp().reshape((3,)))
-        #self.Z = IndexHack(lambda a: a.get_atomic_numbers())
-        #self.q = IndexHack(lambda a: a.get_initial_charges())
-        #self.pbc = IndexHack(lambda a: a.get_pbc())
-        #self.natoms = IndexHack(lambda a: len(a))
-        #self.constrained = IndexHack(lambda a: get_constrained(a))
-
-        #self.pbc = images[0].get_pbc()
         self.covalent_radii = covalent_radii.copy()
         self.config = read_defaults()
-        # XXX config?
-
-        #self.r = IndexHack(lambda a: np.array([self.covalent_radii[z]
-        #                                       for z in a.numbers]))
-        #if config['covalent_radii'] is not None:
-        #    for data in config['covalent_radii']:
-        #        self.covalent_radii[data[0]] = data[1]
         warning = False
 
         self._images = []
@@ -194,54 +150,6 @@ class Images:
         self.initialize(self.images, filenames=self.filenames)
         return
 
-        sdjkfskdjfsdkjf
-        assert len(atoms) == self.natoms
-        if self.next_append_clears:
-            i = 0
-        else:
-            i = len(self)
-        for name in ('P', 'V', 'E', 'K', 'F', 'M', 'A', 'T', 'D', 'q'):
-            a = getattr(self, name)
-            newa = np.empty((i + 1,) + a.shape[1:], a.dtype)
-            if not self.next_append_clears:
-                newa[:-1] = a
-            setattr(self, name, newa)
-        self.next_append_clears = False
-        self.P[i] = atoms.get_positions()
-        self.V[i] = atoms.get_velocities()
-        self.A[i] = atoms.get_cell()
-        self.D[i] = atoms.get_celldisp().reshape((3,))
-        self.q[i] = atoms.get_initial_charges()
-        try:
-            self.E[i] = atoms.get_potential_energy()
-        except RuntimeError:
-            self.E[i] = np.nan
-        self.K[i] = atoms.get_kinetic_energy()
-        try:
-            self.F[i] = atoms.get_forces(apply_constraint=False)
-        except RuntimeError:
-            self.F[i] = np.nan
-        try:
-            self.M[i] = atoms.get_magnetic_moments()
-        except (RuntimeError, AttributeError):
-            self.M[i] = np.nan
-        try:
-            self.T[i] = atoms.get_tags()
-        except AttributeError:
-            if i == 0:
-                self.T[i] = 0
-            else:
-                self.T[i] = self.T[i - 1]
-        #self.nimages = i + 1
-        self.filenames.append(filename)
-        #return self.nimages
-
-    #def set_radii(self, scale=None):
-    #    if scale is None:
-    #        self.covalent_radii = covalent_radii.copy()
-    #    else:
-    #        self.covalent_radii *= scale
-
     def read(self, filenames, index=-1, filetype=None):
         images = []
         names = []
@@ -254,11 +162,6 @@ class Images:
             names.extend([filename] * len(i))
 
         self.initialize(images, names)
-
-        for image in images:
-            if 'radii' in image.info:
-                #self.set_radii(image.info['radii'])
-                break
 
     def repeat_unit_cell(self):
         for atoms in self:
@@ -284,60 +187,11 @@ class Images:
         self.initialize(images, filenames=self.filenames)
         self.repeat = repeat
 
-        return
-
-        # XXXXXXXXXXXXXX disabled repeat code below
-
-        n = self.repeat.prod()
-        repeat = np.array(repeat)
-        self.repeat = repeat
-        N = repeat.prod()
-        natoms = self.natoms // n
-        P = np.empty((self.nimages, natoms * N, 3))
-        V = np.empty((self.nimages, natoms * N, 3))
-        M = np.empty((self.nimages, natoms * N))
-        T = np.empty((self.nimages, natoms * N), int)
-        F = np.empty((self.nimages, natoms * N, 3))
-        Z = np.empty(natoms * N, int)
-        r = np.empty(natoms * N)
-        dynamic = np.empty(natoms * N, bool)
-        a0 = 0
-        for i0 in range(repeat[0]):
-            for i1 in range(repeat[1]):
-                for i2 in range(repeat[2]):
-                    a1 = a0 + natoms
-                    for i in range(self.nimages):
-                        P[i, a0:a1] = (self.P[i, :natoms] +
-                                       np.dot((i0, i1, i2), self.A[i]))
-                    V[:, a0:a1] = self.V[:, :natoms]
-                    F[:, a0:a1] = self.F[:, :natoms]
-                    M[:, a0:a1] = self.M[:, :natoms]
-                    T[:, a0:a1] = self.T[:, :natoms]
-                    Z[a0:a1] = self.Z[:natoms]
-                    r[a0:a1] = self.r[:natoms]
-                    dynamic[a0:a1] = self.dynamic[:natoms]
-                    a0 = a1
-        self.P = P
-        self.V = V
-        self.F = F
-        self.Z = Z
-        self.T = T
-        self.M = M
-        self.r = r
-        self.dynamic = dynamic
-        self.natoms = natoms * N
-        self.selected = np.zeros(natoms * N, bool)
-        # XXX disabled askhl self.atoms_to_rotate_0 = np.zeros(self.natoms, bool)
-        self.visible = np.ones(natoms * N, bool)
-        self.nselected = 0
-
     def center(self):
         """Center each image in the existing unit cell, keeping the
         cell constant."""
         for atoms in self:
             atoms.center()
-        #c = self.A.sum(axis=1) / 2.0 - self.P.mean(axis=1)
-        #self.P += c[:, np.newaxis, :]
 
     def graph(self, expr):
         """Routine to create the data in ase-gui graphs, defined by the
@@ -381,10 +235,6 @@ class Images:
             return angle * 180.0 / np.pi
 
         # get number of mobile atoms for temperature calculation
-        #ndynamic = self.dynamic.sum()
-        #self.constrained[
-
-        #D = self.dynamic[:, np.newaxis]
         E = np.array([self.get_energy(atoms) for atoms in self])
 
         s = 0.0
@@ -445,12 +295,6 @@ class Images:
             write(filename, images, **kwargs)
 
     def get_atoms(self, frame, remove_hidden=False):
-        #atoms = Atoms(positions=self.P[frame],
-        #              numbers=self.Z,
-        #              magmoms=self.M[0],
-        #              tags=self.T[frame],
-        #              cell=self.A[frame],
-        #              pbc=self.pbc)
         atoms = self[frame]
         try:
             E = atoms.get_potential_energy()
@@ -460,21 +304,12 @@ class Images:
             F = atoms.get_forces()
         except RuntimeError:
             F = None
-        #if not np.isnan(self.V).any():
-        #    atoms.set_velocities(self.V[frame])
-
-        # check for constrained atoms and add them accordingly:
-        #if not self.dynamic.all():
-        #    atoms.set_constraint(FixAtoms(mask=1 - self.dynamic))
 
         # Remove hidden atoms if applicable
         if remove_hidden:
             atoms = atoms[self.visible]
             if F is not None:
                 F = F[self.visible]
-            #f = self.F[frame][self.visible]
-        #else:
-            #f = self.F[frame]
         atoms.set_calculator(SinglePointCalculator(atoms,
                                                    energy=E,
                                                    forces=F))
@@ -484,31 +319,6 @@ class Images:
         self.images.pop(i)
         self.filenames.pop(i)
         self.initialize(self.images, self.filenames)
-        return
-
-        sdfsdfksdflksdfdsf
-        self.nimages -= 1
-        P = np.empty((self.nimages, self.natoms, 3))
-        V = np.empty((self.nimages, self.natoms, 3))
-        F = np.empty((self.nimages, self.natoms, 3))
-        A = np.empty((self.nimages, 3, 3))
-        E = np.empty(self.nimages)
-        P[:i] = self.P[:i]
-        P[i:] = self.P[i + 1:]
-        self.P = P
-        V[:i] = self.V[:i]
-        V[i:] = self.V[i + 1:]
-        self.V = V
-        F[:i] = self.F[:i]
-        F[i:] = self.F[i + 1:]
-        self.F = F
-        A[:i] = self.A[:i]
-        A[i:] = self.A[i + 1:]
-        self.A = A
-        E[:i] = self.E[:i]
-        E[i:] = self.E[i + 1:]
-        self.E = E
-        del self.filenames[i]
 
     def aneb(self):
         skjdfsdkjfsdkfjskdjfk

@@ -147,6 +147,8 @@ class Execute(ui.Window):
         else:
             self.add_text('--> ' + cmd)
 
+
+        # XXXXXX This is not supported since GUI uses atoms objects directly
         gui = self.gui
         img = gui.images
         frame = gui.frame

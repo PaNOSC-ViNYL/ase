@@ -35,25 +35,17 @@ class ColorWindow:
         atoms = self.gui.atoms
         radio = self.radio
         radio['tag'].active = atoms.has('tags')
-        #try:
-        #    atoms.get_forces()
-        #except RuntimeError:
-        #    have_forces = False
-        #else:
-        #    have_forces = True
 
         # XXX not sure how to deal with some images having forces,
         # and other images not.  Same goes for below quantities
         radio['force'].active = np.isfinite(images.get_forces(atoms)).all()
                                 #    for img in images)
         radio['velocity'].active = atoms.has('momenta')
-        #np.isfinite(images.V).all()
-        radio['charge'].active = atoms.has('charges') #images.q.any()
-        radio['magmom'].active = images.get_magmoms(atoms).any() #atoms.has('magmoms') #images.M.any()
+        radio['charge'].active = atoms.has('charges')
+        radio['magmom'].active = images.get_magmoms(atoms).any()
 
     def toggle(self, value):
         if value == 'jmol':
-            #self.gui.set_colors()
             text = ''
         else:
             self.gui.colormode = value

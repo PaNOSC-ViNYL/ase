@@ -17,16 +17,15 @@ class Constraints:
 
     def selected(self):
         self.gui.images.set_dynamic(self.gui.images.selected, False)
-        #self.gui.images.dynamic[self.gui.images.selected] = False
         self.gui.draw()
 
     def unconstrain(self):
         self.gui.images.set_dynamic(self.gui.images.selected, True)
-        #self.gui.images.dynamic[self.gui.images.selected] = True
         self.gui.draw()
 
     def immobile(self):
-        #self.gui.images.set_dynamic()
+        # XXX not working.
+        # Should constrain atoms that are not moving
         self.gui.draw()
 
     def clear(self):
@@ -36,5 +35,4 @@ class Constraints:
             atoms.constraints = []
 
         # Also, these methods are repeated from settings.py *grumble*
-        #self.gui.images.dynamic[:] = True
         self.gui.draw()

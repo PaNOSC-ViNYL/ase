@@ -46,12 +46,10 @@ class Status:  # Status is used as a mixin in GUI
             self.window.update_status_line('')
             return
 
-        Z = atoms.numbers[indices]#self.images.Z[indices]
-        R = atoms.positions #R[indices]
+        Z = atoms.numbers[indices]
+        R = atoms.positions
 
         if n == 1:
-            #tag = self.images.T[self.frame, indices][0]
-            #tag = self.images.T[self.frame][indices][0]
             tag = atoms.get_tags()[indices][0]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
@@ -89,7 +87,7 @@ class Status:  # Status is used as a mixin in GUI
             text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
                     tuple([symbols[z] for z in Z] + a))
         elif len(ordered_indices) == 4:
-            R = self.atoms.positions #R[ordered_indices]
+            R = self.atoms.positions[ordered_indices]
             Z = self.atoms.numbers[ordered_indices]
             a = R[1] - R[0]
             b = R[2] - R[1]

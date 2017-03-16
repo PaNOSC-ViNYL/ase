@@ -28,12 +28,10 @@ class ModifyAtoms:
         win.add([_('Moment'), self.magmom])
 
         Z = gui.atoms.numbers
-        #Z = gui.images.Z[selected]
         if Z.ptp() == 0:
             element.Z = Z[0]
 
         tags = gui.atoms.get_tags()[selected]
-        #tags = gui.images.T[gui.frame][selected]
         if tags.ptp() == 0:
             self.tag.value = tags[0]
 

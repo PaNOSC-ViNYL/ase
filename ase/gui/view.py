@@ -69,7 +69,6 @@ class View:
             nbonds = len(self.bonds)
 
             if init or (atoms.cell != self.atoms.cell).any():
-                #self.X[n:n + nc] = np.dot(self.B1, A[frame])
                 self.X_B1[:] = np.dot(self.B1, cell)
                 self.B = np.empty((nc + nbonds, 3))
                 self.B[:nc] = np.dot(self.B2, cell)
@@ -83,8 +82,6 @@ class View:
                 r = 0.65 * self.get_covalent_radii()
                 x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
                 x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
-                #self.X[n + nc:] = a + b * x0
-                #self.X_B1[:] = a + b * x0
                 self.X_bonds[:] = a + b * x0
                 b *= 1.0 - x0 - x1
                 b[self.bonds[:, 2:].any(1)] *= 0.5
@@ -101,19 +98,10 @@ class View:
             self.window.title = filename
 
         self.frame = frame
-        #self.X_pos = self.images.P[frame]
-        #self.X[:n] = self.images.P[frame]
-        #self.R = self.X_pos[:n]
         if focus:
             self.focus()
         else:
             self.draw()
-
-    #def set_colors(self):
-        #for z in np.unique(self.images.Z):
-        #    rgb = jmol_colors[z]
-        #    self.colors[z] = ('#{0:02X}{1:02X}{2:02X}'
-        #                      .format(*(int(x * 255) for x in rgb)))
 
     def make_box(self):
         if not self.window['toggle-show-unit-cell']:
@@ -162,10 +150,6 @@ class View:
         atomscopy = self.atoms.copy()
         atomscopy.cell *= self.images.repeat[:, np.newaxis]
         nl.update(atomscopy)
-        #nl.update(Atoms(positions=self.images.P[frame],
-        #                cell=(self.images.repeat[:, np.newaxis] *
-        #                      self.images.A[frame]),
-        #                pbc=self.images.pbc))
         nbonds = nl.nneighbors + nl.npbcneighbors
 
         bonds = np.empty((nbonds, 5), int)
