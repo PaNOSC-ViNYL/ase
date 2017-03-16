@@ -7,7 +7,7 @@ from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
-#from ase.gui.defaults import read_defaults
+from ase.gui.defaults import read_defaults
 from ase.io import read, write, string2index
 
 
@@ -137,7 +137,7 @@ class Images:
 
         #self.pbc = images[0].get_pbc()
         self.covalent_radii = covalent_radii.copy()
-        #config = read_defaults()
+        self.config = read_defaults()
         # XXX config?
 
         #self.r = IndexHack(lambda a: np.array([self.covalent_radii[z]
@@ -175,7 +175,13 @@ class Images:
         self.visible = np.ones(self.maxnatoms, bool)
         self.nselected = 0
         self.repeat = np.ones(3, int)
+        #self.set_radii(config['radii_scale'])
         #XXX disabled askhl self.set_radii(config['radii_scale'])
+
+    def get_radii(self, atoms):
+        radii = np.array([self.covalent_radii[z] for z in atoms.numbers])
+        radii *= self.config['radii_scale']
+        return radii
 
     def prepare_new_atoms(self):
         "Marks that the next call to append_atoms should clear the images."

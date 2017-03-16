@@ -40,7 +40,6 @@ class View:
         self.X = np.empty((natoms + len(self.B1) + len(self.bonds), 3))
         self.X_pos = self.X[:natoms]
         self.X_pos[:] = atoms.positions
-        #self.X_pos = np.empty((n, 3))
         self.X_B1 = self.X[natoms:natoms + len(self.B1)]
         self.X_bonds = self.X[natoms + len(self.B1):]
         self.set_frame(frame, focus=focus, init=True)
@@ -77,10 +76,11 @@ class View:
                 x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
                 x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
                 #self.X[n + nc:] = a + b * x0
-                self.X_B1[:] = a + b * x0
+                #self.X_B1[:] = a + b * x0
+                self.X_bonds[:] = a + b * x0
                 b *= 1.0 - x0 - x1
                 b[self.bonds[:, 2:].any(1)] *= 0.5
-                self.B[nc:] = self.X_B1 + b
+                self.B[nc:] = self.X_bonds + b
 
             filenames = self.images.filenames
             filename = filenames[frame]
@@ -157,7 +157,9 @@ class View:
         from ase.neighborlist import NeighborList
         nl = NeighborList(self.get_covalent_radii() * 1.5,
                           skin=0, self_interaction=False)
-        nl.update(self.atoms)
+        atomscopy = self.atoms.copy()
+        atomscopy.cell *= self.images.repeat[:, np.newaxis]
+        nl.update(atomscopy)
         #nl.update(Atoms(positions=self.images.P[frame],
         #                cell=(self.images.repeat[:, np.newaxis] *
         #                      self.images.A[frame]),
@@ -165,16 +167,16 @@ class View:
         nbonds = nl.nneighbors + nl.npbcneighbors
 
         bonds = np.empty((nbonds, 5), int)
-        self.coordination = np.zeros(len(self.atoms), dtype=int)
+        #self.coordination = np.zeros(len(self.atoms), dtype=int)
         if nbonds == 0:
             return
 
         n1 = 0
         for a in range(len(self.atoms)):
             indices, offsets = nl.get_neighbors(a)
-            self.coordination[a] += len(indices)
-            for a2 in indices:
-                self.coordination[a2] += 1
+            #self.coordination[a] += len(indices)
+            #for a2 in indices:
+            #    self.coordination[a2] += 1
             n2 = n1 + len(indices)
             bonds[n1:n2, 0] = a
             bonds[n1:n2, 1] = indices
@@ -350,8 +352,7 @@ class View:
             return self.images.get_magmoms(self.atoms)
 
     def get_covalent_radii(self):
-        return np.array([self.images.covalent_radii[z]
-                         for z in self.atoms.numbers])
+        return self.images.get_radii(self.atoms)
 
     def draw(self, status=True):
         self.window.clear()
