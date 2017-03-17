@@ -10,7 +10,7 @@ from ase.parallel import world, parallel_function
 from ase.utils import basestring
 
 
-class JSONDatabase(Database):
+class JSONDatabase(Database, object):
     _metadata = None  # decription of columns and other stuff
 
     def __enter__(self):
