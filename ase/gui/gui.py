@@ -151,14 +151,12 @@ class GUI(View, Status):
         nselected = sum(self.images.selected)
         if nselected and ui.ask_question('Delete atoms',
                                          'Delete selected atoms?'):
-            atoms = self.images.get_atoms(self.frame)
-            lena = len(atoms)
-            for i in range(len(atoms)):
-                li = lena - 1 - i
-                if self.images.selected[li]:
-                    del atoms[li]
-            self.new_atoms(atoms)
+            mask = self.images.selected[:len(self.atoms)]
+            del self.atoms[mask]
 
+            # Will remove selection in other images, too
+            self.images.selected[:] = False
+            self.set_coordinates()
             self.draw()
 
     def execute(self):
