@@ -2,7 +2,7 @@
 Labels for atoms
 ================
 
-**WIP**
+**WORK IN PROGRESS**
 
 This proposal describes how to introduce labels for the atoms in an
 :class:`~ase.Atoms` object in a backwards compatible way.
@@ -25,11 +25,12 @@ Proposal
 ========
 
 Introduce *labels* and *kinds*.  A label is a string and a kind is the
-combination of these three (defaults in parenthesis):
+combination of these three:
 
-* a chemical symbol or an atomic number (``X``, ``0`` or ``None``)
-* a label (``''`` or ``None``)
-* a mass (``None``)
+* A chemical symbol or an atomic number.  Default: ``None``
+  (same as ``'X'`` or ``0``)
+* A label.  Default ``None`` (same as ``''``)
+* A mass.  Default ``None`` (use standard value)
 
 A *kind* can be represented as a ``tuple`` or a ``str``:
 
@@ -84,6 +85,10 @@ Here are 50 hydrogen molecules:
 >>> h = Atoms('H100', positions=...)
 >>> h.labels[::2] = 'deuterium'
 >>> h.masses[h.labels == 'deuterium'] = 2.0
+
+or equivalently:
+
+>>> h.kinds[::2] = ('H', 'deuterium', 2.0)
 
 A DFT code could use the kinds to select pseudo-potentials:
 
