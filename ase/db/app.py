@@ -67,84 +67,13 @@ tmpdir = tempfile.mkdtemp()  # used to cache png-files
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
 
-temp = {}
-#temp = {'columns': ['formula', 'energy', 'mass', 'phase', 'hform', 'dir_gap', 'dir_gap_g0w0']}
-
-#temp['METAProj'] = ['Computational 2D Materials Database']
-
-'''
-temp['METAhelp'] = {
-            'phase': ['COMBO', ('H', 'T')],
-            'xc': ['COMBO', ('LDA', 'PBE', 'GLLBSC')],
-            'bandgap': ['INTERVAL', (0, 1)],
-            'dir_gap_g0w0': ['CHECK', ()]
-            }
-'''
-temp['METACol'] = {
-            'formula': ['Formula', 'Formula', 'string'], 
-            'energy': ['Energy', 'Energy', 'float'],
-            'fmax': ['Maximum Force', 'Maximum atomic force', 'float'],
-            'volume': ['Volume', 'Volume of unit cell', 'float'],
-            'charge': ['Charge', 'Total charge', 'float'],
-            'mass': ['Mass', 'Total mass', 'float'],
-            #'smax': ['Stress', 'Maximum stress tensor component', 'float'],
-            'magmom': ['magnetic moment', 'Total magnetic moment', 'float'],
-                
-            'calculator': ['Calculator', 'Calculator', 'string'],
-            'xc': ['XC', 'Exchange-correlation (XC) energy functional', 'string'],
-
-            'phase': ['Phase', 'Phase of the 2D material', 'string'],
-            'hform': ['Heat of formation', 'Heat of formation', 'float'],
-            'hform_fere': ['Heat of formation (ref.)', 'Heat of formation based on fitted elemental phase reference energies', 'float'],
-
-            'cbm': ['Con. band', 'Conduction band minimum relative to vacuum', 'float'],
-            'vbm': ['Val. band', 'Valence band maximum relative to vacuum', 'float'],
-            'dir_gap': ['Dir. band gap (DFT)', 'Direct band gap', 'float'],
-            'ind_gap': ['Ind. band gap (DFT)', 'Indirect band gap', 'float'],
-                  
-            'dir_gap_g0w0': ['Dir. band gap (G0W0)', 'Direct band gap', 'float'],
-            'ind_gap_g0w0': ['Ind. band gap (G0W0)', 'Indirect band gap', 'float'],
-            'cbm_g0w0': ['Con. band (G0W0)', 'Conduction band minimum relative to vacuum', 'float'],
-            'vbm_g0w0': ['Val. band (G0W0)', 'Valence band maximum relative to vacuum', 'float'],
-                  
-            'emass1_g0w0': ['Electron mass (1)', 'Electron mass (direction 1 - smallest)', 'float'],
-            'emass2_g0w0': ['Electron mass (2)', 'Electron mass (direction 2 - largest)', 'float'],
-            'hmass1_g0w0': ['Hole mass (1)', 'Hole mass (direction 1 - smallest)', 'float'],
-            'hmass2_g0w0': ['Hole mass (2)', 'Hole mass (direction 2 - largest)', 'float'],                
-                  
-            'q2d_macro_df_slope':  ['Dielectic func', 'Slope of macroscopic 2D static dielectric function at q=0', 'float', False]
-        }
-
-
-temp['METASections'] = [['Basic Properties', 
-                    ['Item', ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
-                    ['Stuctural Property', ['hform', 'hform_fere', 'phase']],
-                    ['STRUCTUREPLOT'],
-                    ['AXIS']
-                    ],
-                ['Calculation Details', 
-                    ['Calculator Setting', ['calculator', 'xc']],
-                    ['FORCES']
-                    ],
-                ['Electronic Properties', 
-                    ['DFT - Band Gap Property', ['cbm', 'vbm', 'dir_gap', 'ind_gap']],
-                    ['G0W0 - Band Gap Property', ['cbm_g0w0', 'vbm_g0w0', 'dir_gap_g0w0', 'ind_gap_g0w0']],
-                    ['G0W0 - Effective Masses', [ 'emass1_g0w0', 'emass2_g0w0', 'hmass1_g0w0', 'hmass2_g0w0']],
-                    ['BANDSTRUCT']
-                    ],
-                ['Dielectric Properties', 
-                    ['Item', ['q2d_macro_df_slope']]
-                    ]
-               ]
-
-
 
 @app.route('/')
 def index():
     global next_con_id
 
     # pointer to metadata
-    md = temp #db.metadata
+    md = db.metadata
 
     con_id = int(request.args.get('x', '0'))
 
@@ -268,7 +197,7 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     s = Summary(db.get(id), SUBSCRIPT)
-    return render_template('summary.html', s=s, home=home, md=temp,
+    return render_template('summary.html', s=s, home=home, md=db.metadata,
                            open_ase_gui=open_ase_gui)
 
 
