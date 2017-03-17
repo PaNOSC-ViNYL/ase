@@ -12,7 +12,8 @@ class ModifyAtoms:
     atomic type, the magnetic moment and tags of the selected atoms.
     """
     def __init__(self, gui):
-        selected = gui.images.selected
+        self.gui = gui
+        selected = self.selection()
         if not selected.any():
             ui.error(_('No atoms selected!'))
             return
@@ -27,9 +28,7 @@ class ModifyAtoms:
         self.magmom = ui.SpinBox(0.0, -10, 10, 0.1, self.set_magmom)
         win.add([_('Moment'), self.magmom])
 
-        atoms = gui.atoms
-        natoms = len(atoms)
-
+        atoms = self.gui.atoms
         Z = atoms.numbers
         if Z.ptp() == 0:
             element.Z = Z[0]
@@ -41,8 +40,6 @@ class ModifyAtoms:
         magmoms = gui.images.get_magmoms(atoms)[selected]
         if magmoms.round(2).ptp() == 0.0:
             self.magmom.value = round(magmoms[0], 2)
-
-        self.gui = gui
 
     def selection(self):
         return self.gui.images.selected[:len(self.gui.atoms)]
