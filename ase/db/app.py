@@ -67,10 +67,19 @@ tmpdir = tempfile.mkdtemp()  # used to cache png-files
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
 
-temp = {'columns': ['formula', 'energy', 'mass', 'phase', 'hform', 'dir_gap', 'dir_gap_g0w0']};
+temp = {}
+#temp = {'columns': ['formula', 'energy', 'mass', 'phase', 'hform', 'dir_gap', 'dir_gap_g0w0']}
 
-temp['METAProj'] = ['Computational 2D Materials Database']
+#temp['METAProj'] = ['Computational 2D Materials Database']
 
+'''
+temp['METAhelp'] = {
+            'phase': ['COMBO', ('H', 'T')],
+            'xc': ['COMBO', ('LDA', 'PBE', 'GLLBSC')],
+            'bandgap': ['INTERVAL', (0, 1)],
+            'dir_gap_g0w0': ['CHECK', ()]
+            }
+'''
 temp['METACol'] = {
             'formula': ['Formula', 'Formula', 'string'], 
             'energy': ['Energy', 'Energy', 'float'],
@@ -106,6 +115,7 @@ temp['METACol'] = {
             'q2d_macro_df_slope':  ['Dielectic func', 'Slope of macroscopic 2D static dielectric function at q=0', 'float', False]
         }
 
+
 temp['METASections'] = [['Basic Properties', 
                     ['Item', ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
                     ['Stuctural Property', ['hform', 'hform_fere', 'phase']],
@@ -127,12 +137,7 @@ temp['METASections'] = [['Basic Properties',
                     ]
                ]
 
-temp['METAhelp'] = {
-            'phase': ['COMBO', ('H', 'T')],
-            'xc': ['COMBO', ('LDA', 'PBE', 'GLLBSC')],
-            'bandgap': ['INTERVAL', (0, 1)],
-            'dir_gap_g0w0': ['CHECK', ()]
-            }
+
 
 @app.route('/')
 def index():

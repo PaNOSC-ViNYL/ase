@@ -1,33 +1,72 @@
-<!DOCTYPE html>
-<html>
-  <head>
+{% extends 'layout.html' %}
 
-    <title>Browse 2D Materials</title>
-    <meta name="viewport" content="width-device-width, initial-scale=1.0"> 
+{% block title %}
+Summary
+{% endblock %} 
 
-		{% include '/static2D/style2D.css' %}
-		{% include '/static2D/js.html' %}
+{% block head %}
+<!-- nothing extra here -->
+{% endblock %}
 
-</head>
-<body>
+{% block content %}
+
 
   {% set d = s.row %}
-  {% set secs = md['METASections'] %}
-  {% set meta = md['METACol'] %}
+  {% set meta = md['METACol'] or {} %}
+  {% set secs = md['METASections'] or [] %} 
+  
+  
+  {% if secs == [] %}
+    {% set nometa = true %}
+    {% set secs = [
+      ['Basic Properties', 
+        ['Item'],
+        ['AXIS'],
+        ['STRUCTUREPLOT']        
+        ],
+      ['Key Value Pairs', 
+        ['Key'],
+        ['FORCES'],
+        ['BANDSTRUCT']
+        ]
+      ]
+    %}
+  {% endif %}
+  
 
   <!-- a little setup-->
   {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT'] %}
   {% set plotband = {'plot': false} %}
 
-  {% set keyval = {} %}
+  {% set keyval1 = {} %}
+  {% set keyval2 = {} %}
 
   {% for name, unit, value in s.table %}
-  {% set _dummy = keyval.update({name : (unit, value)}) %}
+  {% set _dummy = keyval1.update({name : (unit, value)}) %}
   {% endfor %}
+  
+  {% if nometa == true %}
+  {% set _temp = [] %}
+  {% for key in keyval1 %}
+    {% set _dummy = _temp.append(key) %}
+  {% endfor%}
+  {% set _dummy = secs[0][1].append(_temp) %}
+  {% endif %}
 
   {% for key, value in s.key_value_pairs %}
-  {% set _dummy = keyval.update({key: ('eV', value)}) %}
+  {% set _dummy = keyval2.update({key: ('-', value)}) %}
   {% endfor %}
+  
+  {% if nometa == true %}
+  {% set _temp = [] %}
+  {% for key in keyval2 %}
+    {% set _dummy = _temp.append(key) %}
+  {% endfor%}
+  {% set _dummy = secs[1][1].append(_temp) %}
+  {% endif %}
+  
+  {% set keyval = keyval1 %}
+  {% set _dummy = keyval.update(keyval2) %}
 
   <div class="container">
 
@@ -85,31 +124,38 @@
                   <thead>
                     <tr>
                       <th>{{sec[index][0]}}</th>
-                      <th>Value</th>
-                      <th>Unit</th>
+                      <th class="text-center">Value</th>
+                      <th class="text-center">Unit</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for item in range(0, sec[index][1]|length) %}                    
                     {% set name = sec[index][1][item] %}                    
-                    {% if (name in meta) and (name in keyval) %}
-                    <tr>
+                    {% if name in keyval %}
+                    {% if name in meta %}
+                      <tr>
+                        <td> {{ meta[name][1] }} </td>
 
-                      <td> {{ meta[name][1] }} </td>
+                        {% if meta[name][2] == 'float' %}
+                        <td> {{ keyval[name][1] | round(3, 'common') }} </td>
+                        {% else %}
+                        <td> {{ keyval[name][1] | safe }} </td>
+                        {% endif %}
 
-                      {% if meta[name][2] == 'float' %}
-                      <td> {{ keyval[name][1] | round(3, 'common') }} </td>
-                      {% else %}
-                      <td> {{ keyval[name][1] | safe }} </td>
-                      {% endif %}
+                        {% if meta[name][2] == 'float' %}
+                        <td> eV </td>
+                        {% else %}
+                        <td> - </td>
+                        {% endif %}
 
-                      {% if meta[name][2] == 'float' %}
-                      <td> {{ keyval[name][0] }} </td>
-                      {% else %}
-                      <td> - </td>
-                      {% endif %}
-
-                    </tr>
+                      </tr>
+                    {% else%}
+                      <tr>
+                        <td> {{ name }} </td>
+                        <td class="text-right"> {{ keyval[name][1] | safe }} </td>
+                        <td class="text-center"> {{ keyval[name][0] }} </td>
+                      </tr>                    
+                    {% endif %}
                     {% endif %}
                     {% endfor %}
                   </tbody>
@@ -212,7 +258,7 @@
               <div class="col-sm-1"></div>
             </div>
             {% set _dummy = plotband.update({'plot': false}) %}
-            {% endif%}
+            {% endif %}
 
           </div> <!--END PANEL BODY-->
         </div> <!--END COLLAPSE-->
@@ -220,5 +266,4 @@
     {% endfor %}
   </div> <!--END PANEL GROUP-->
 
-</body>
-</html>
+{% endblock content %}

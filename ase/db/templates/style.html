@@ -6,32 +6,10 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
 <!-- jQuery CSS -->
-<link rel="stylesheet" href="/static2D/jquery-ui.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
 
 <!-- FontAwesome -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
-
-<style>
-
-  .myrow {
-  font-size: 0;
-  }
-  .myrow > * {
-  float: none;
-  display: inline-block;
-  font-size: 14px; /* if using LESS it's quicker to just use @font-size-base */
-  }
-  .myrow > *:nth-last-child(2) {
-  vertical-align: bottom;
-  }
-  .myrow p:nth-last-child(2) {
-  margin-bottom: 0; /* optional */
-  }
-
-  .col-centered{
-  float: none;
-  margin: 0 auto;
-  }
-
-</style>
+<!-- Custom Style -->
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">

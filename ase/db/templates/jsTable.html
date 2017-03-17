@@ -1,0 +1,29 @@
+
+<!-- Custom js scripts -->
+
+<script>
+  //window.location.reload(true)
+  window.onload = function()
+  {
+  // reset collapse if a new session id is given
+  if( sessionStorage.cid !== "{{cid}}")
+  {
+  sessionStorage.removeItem('collapseExtraSearch');
+  }
+
+  ns.Init("{{ con.query }}");
+
+  // save the session id
+  sessionStorage.cid = {{cid}};
+
+
+  document.getElementById('name-result').onchange = function()
+  {
+  ns.SetField('name', this.value);
+  };
+
+  document.getElementById("name-result").focus();
+  }
+</script>
+
+<script src="{{ url_for('static', filename='table.js') }}"></script>

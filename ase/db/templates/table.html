@@ -1,33 +1,27 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends 'layout.html' %}
 
-	<title>Materials</title>
-	<meta name="viewport" content="width-device-width, initial-scale=1.0"> 
+{% block title %}
+Browse database
+{% endblock %}
 
-		{% include '/static2D/style2D.css' %}
-		{% include '/static2D/js.html' %}
-    {% include '/static2D/table2D.js' %}
+{% block head %}
+{% include 'jsTable.html' %}
+{% endblock %}
 
-</head> 
+{% block content %}
 
-<body>
-
-{% set proj = md['METAProj']%}
 {% set columns = md['columns'] %}
-{% set meta = md['METACol'] %}
-{% set ctrl = md['METAhelp'] %}
+{% set proj = md['METAProj'] or ['Browse ASE Database'] %}
+{% set meta = md['METACol'] or { } %}
+{% set ctrl = md['METAhelp'] or { } %}
 
 <div class="container">
   
-  <div class="row">
-      
+  <div class="row">    
     <h1>{{proj[0]}}</h1>
-    
-      <!--<small class="form-text text-muted">Electronic Structure of Transition-Metal Dichalcogenides and Oxides</small>-->
-    </div>
+  </div>
 
-    <div class="row">
+  <div class="row">
 		
 		<form class="navbar-form navbar-default" role="search" action="/">
 
@@ -53,6 +47,8 @@
 			<div class="collapse" id="collapseExtraSearch">
 				<div class="well">
 					<ul class="list-group" style="margin-bottom:0px;">
+            
+            {% if ctrl|length != 0 %}
 						<li class="list-group-item">
 
               {% set colCount = {'iter': -1} %}
@@ -63,7 +59,7 @@
                 <div class="col-sm-4">
                   
                   {% if ctrl[control][0] == 'COMBO' %}                  
-                    {% include '/static2D/combo.html' %}                  
+                    {% include 'combo.html' %}                  
                   {% endif %}
 
                 </div>
@@ -82,7 +78,8 @@
                 
                 {% endfor %}
               </div>
-              
+            </li>
+            {% endif %}
 												
 						<li class="list-group-item">
 
@@ -107,7 +104,7 @@
 						
 			<div class="panel-heading">
 			
-				<!--Computational 2D Materials Database-->
+				<!-- Database Table -->
 
 				<div class="row">
 					<div class="col-xs-9 col-sm-9 col-md-9 col-lg-9">
@@ -133,7 +130,9 @@
 							<ul class="dropdown-menu">
 							{% for key in addcolumns %}
               {% if key in meta %}
-								<li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }}</a></li>
+								<li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }} ({{key}})</a></li>
+              {% else %}
+                <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a></li>
               {% endif %}                
 							{% endfor %}
 							</ul>
@@ -166,7 +165,7 @@
             {% elif con.sort == '-' + c %}&#x2191; 
 						{% endif -%}
 				
-						<a href="/?x={{ cid }}&amp;sort={{ c }}">{{ colDisplay['col'] }}</a>
+						<a href="/?x={{ cid }}&amp;sort={{ c }}" data-toggle="tooltip" title="key: {{c}}">{{ colDisplay['col'] }}</a>
 						<a href="/?x={{ cid }}&amp;toggle={{ c }}">&#x2715;</a>
 					</th>
 					{%- endfor %}
@@ -233,5 +232,4 @@
 		
 	</div>
 
-</body>
-</html>
+{% endblock content %}
