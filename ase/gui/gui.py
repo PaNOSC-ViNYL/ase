@@ -139,7 +139,7 @@ class GUI(View, Status):
 
         if self.moving:
             self.atoms.positions[self.images.selected[:len(self.atoms)]] += vec
-            self.set_frame()
+            self.set_coordinates()
         else:
             self.center -= vec
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
