@@ -12,6 +12,9 @@ from ase.io import read, write, string2index
 
 class Images:
     def __init__(self, images=None):
+        self.covalent_radii = covalent_radii.copy()
+        self.config = read_defaults()
+        self.atom_scale = self.config['radii_scale']
         if images is not None:
             self.initialize(images)
 
@@ -101,8 +104,6 @@ class Images:
         else:
             self.shapes = None
 
-        self.covalent_radii = covalent_radii.copy()
-        self.config = read_defaults()
         warning = False
 
         self._images = []
@@ -132,8 +133,6 @@ class Images:
         self.visible = np.ones(self.maxnatoms, bool)
         self.nselected = 0
         self.repeat = np.ones(3, int)
-
-        self.atom_scale = self.config['radii_scale']
 
     def get_radii(self, atoms):
         radii = np.array([self.covalent_radii[z] for z in atoms.numbers])
