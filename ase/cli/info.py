@@ -1,4 +1,3 @@
-from optparse import OptionParser
 from ase.io.formats import filetype
 from ase.io.ulm import print_ulm_info
 from ase.io.pickletrajectory import print_trajectory_info
@@ -22,7 +21,3 @@ def main(args):
             print_trajectory_info(f)
         elif ft == 'bundletrajectory':
             print_bundletrajectory_info(f)
-        else:
-            p.error(
-                '%s is of type %s; cannot print info about this type of file' %
-                (f, ft))
