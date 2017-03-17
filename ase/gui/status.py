@@ -38,7 +38,8 @@ class Status:  # Status is used as a mixin in GUI
         # use where here:  XXX
         natoms = len(atoms)
         indices = np.arange(natoms)[self.images.selected[:natoms]]
-        ordered_indices = self.images.selected_ordered
+        ordered_indices = [i for i in self.images.selected_ordered
+                           if i < len(atoms)]
         n = len(indices)
         self.nselected = n
 
@@ -47,10 +48,10 @@ class Status:  # Status is used as a mixin in GUI
             return
 
         Z = atoms.numbers[indices]
-        R = atoms.positions
+        R = atoms.positions[indices]
 
         if n == 1:
-            tag = atoms.get_tags()[indices][0]
+            tag = atoms.get_tags()[indices[0]]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
             text += _(' tag=%(tag)s') % dict(tag=tag)
