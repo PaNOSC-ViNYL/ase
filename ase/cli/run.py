@@ -7,7 +7,7 @@ import os
 import tempfile
 import time
 import traceback
-    
+
 import numpy as np
 
 from ase.io import read
@@ -22,9 +22,53 @@ from ase.calculators.calculator import PropertyNotImplementedError
 import ase.db as db
 
 
-def main():
+description = ("Run calculation with one of ASE's calculators: " +
+               ', '.join(calcnames) + '.')
+
+
+def add_arguments(parser):
+    add = parser.add_argument
+    add('calculator')
+    add('names', nargs='*')
+    add('-t', '--tag',
+        help='String tag added to filenames.')
+    add('-p', '--parameters', default='',
+        metavar='key=value,...',
+        help='Comma-separated key=value pairs of ' +
+        'calculator specific parameters.')
+    add('-d', '--database',
+        help='Use a filename with a ".db" extension for a sqlite3 ' +
+        'database or a ".json" extension for a simple json database.  ' +
+        'Default is no database')
+    add('-S', '--skip', action='store_true',
+        help='Skip calculations already done.')
+    add('--properties', default='efsdMm',
+        help='Default value is "efsdMm" meaning calculate energy, ' +
+        'forces, stress, dipole moment, total magnetic moment and ' +
+        'atomic magnetic moments.')
+    add('-f', '--maximum-force', type=float,
+        help='Relax internal coordinates.')
+    add('--constrain-tags',
+        metavar='T1,T2,...',
+        help='Constrain atoms with tags T1, T2, ...')
+    add('-s', '--maximum-stress', type=float,
+        help='Relax unit-cell and internal coordinates.')
+    add('-E', '--equation-of-state',
+        help='Use "-E 5,2.0" for 5 lattice constants ranging from '
+        '-2.0% to +2.0%.')
+    add('--eos-type', default='sjeos', help='Selects the type of eos.')
+    add('-i', '--interactive-python-session', action='store_true')
+    add('-c', '--collection')
+    add('--modify', metavar='...',
+        help='Modify atoms with Python statement.  ' +
+        'Example: --modify="atoms.positions[-1,2]+=0.1".')
+    add('--after', help='Perform operation after calculation.  ' +
+        'Example: --after="atoms.calc.write(...)"')
+
+
+def main(args):
     runner = Runner()
-    runner.parse()
+    runner.parse(args)
     if runner.errors:
         sys.exit(runner.errors)
 
@@ -32,7 +76,7 @@ def main():
 class Runner:
     def __init__(self):
         self.db = None
-        self.opts = None
+        self.args = None
         self.errors = 0
         self.names = []
         self.calculator_name = None
@@ -42,12 +86,8 @@ class Runner:
         else:
             self.logfile = devnull
 
-    def parse(self, args=None):
-        parser = self.make_parser()
-        self.add_options(parser)
-        self.opts, names = parser.parse_args(args)
-
-        if args is None and self.opts.interactive_python_session:
+    def parse(self, args):
+        if args is None and self.args.interactive_python_session:
             file = tempfile.NamedTemporaryFile()
             file.write('import os\n')
             file.write('if "PYTHONSTARTUP" in os.environ:\n')
@@ -59,93 +99,45 @@ class Runner:
             os.system('python -i %s' % file.name)
             return
 
-        if self.calculator_name is None:
-            if names:
-                self.calculator_name = names.pop(0)
-            else:
-                parser.error('Missing calculator name')
-                
-        atoms = self.run(names)
+        self.calculator_name = args.calculator
+
+        self.args = args
+        atoms = self.run()
         return atoms
-        
-    def make_parser(self):
-        parser = optparse.OptionParser(
-            usage='ase-run calculator [options] [system, ...]',
-            description="Run calculation with one of ASE's calculators: " +
-            ', '.join(calcnames) + '.')
-        return parser
-        
-    def add_options(self, parser):
-        add = parser.add_option
-        add('-t', '--tag',
-            help='String tag added to filenames.')
-        add('-p', '--parameters', default='',
-            metavar='key=value,...',
-            help='Comma-separated key=value pairs of ' +
-            'calculator specific parameters.')
-        add('-d', '--database',
-            help='Use a filename with a ".db" extension for a sqlite3 ' +
-            'database or a ".json" extension for a simple json database.  ' +
-            'Default is no database')
-        add('-S', '--skip', action='store_true',
-            help='Skip calculations already done.')
-        add('--properties', default='efsdMm',
-            help='Default value is "efsdMm" meaning calculate energy, ' +
-            'forces, stress, dipole moment, total magnetic moment and ' +
-            'atomic magnetic moments.')
-        add('-f', '--maximum-force', type=float,
-            help='Relax internal coordinates.')
-        add('--constrain-tags',
-            metavar='T1,T2,...',
-            help='Constrain atoms with tags T1, T2, ...')
-        add('-s', '--maximum-stress', type=float,
-            help='Relax unit-cell and internal coordinates.')
-        add('-E', '--equation-of-state',
-            help='Use "-E 5,2.0" for 5 lattice constants ranging from '
-            '-2.0% to +2.0%.')
-        add('--eos-type', default='sjeos', help='Selects the type of eos.')
-        add('-i', '--interactive-python-session', action='store_true')
-        add('-c', '--collection')
-        add('--modify', metavar='...',
-            help='Modify atoms with Python statement.  ' +
-            'Example: --modify="atoms.positions[-1,2]+=0.1".')
-        add('--after', help='Perform operation after calculation.  ' +
-            'Example: --after="atoms.calc.write(...)"')
 
     def log(self, *args, **kwargs):
         print(file=self.logfile, *args, **kwargs)
 
-    def run(self, names):
-        opts = self.opts
-
+    def run(self):
+        args = self args
         if self.db is None:
             # Create database connection:
-            self.db = db.connect(opts.database, use_lock_file=True)
+            self.db = db.connect(args.database, use_lock_file=True)
 
-        self.expand(names)
+        self.expand(args.names)
 
-        if not names:
-            names.insert(0, '-')
+        if not args.names:
+            args.names.insert(0, '-')
 
         atoms = None
-        for name in names:
+        for name in args.names:
             if atoms is not None:
                 del atoms.calc  # release resources from last calculation
             atoms = self.build(name)
-            if opts.modify:
-                exec(opts.modify, {'atoms': atoms, 'np': np})
+            if args.modify:
+                exec(args.modify, {'atoms': atoms, 'np': np})
 
             if name == '-':
                 name = atoms.info['key_value_pairs']['name']
 
             skip = False
             id = None
-            
-            if opts.skip:
+
+            if args.skip:
                 id = self.db.reserve(name=name)
                 if id is None:
                     skip = True
-        
+
             if not skip:
                 self.set_calculator(atoms, name)
 
@@ -165,30 +157,30 @@ class Runner:
                     tstop = time.time()
                     data['time'] = tstop - tstart
                     self.db.write(atoms, name=name, data=data)
-                
+
                 if id:
                     del self.db[id]
 
         return atoms
-    
+
     def calculate(self, atoms, name):
-        opts = self.opts
+        args = self.args
 
         data = {}
-        if opts.maximum_force or opts.maximum_stress:
+        if args.maximum_force or args.maximum_stress:
             data = self.optimize(atoms, name)
-        if opts.equation_of_state:
+        if args.equation_of_state:
             data.update(self.eos(atoms, name))
         data.update(self.calculate_once(atoms, name))
 
-        if opts.after:
-            exec(opts.after, {'atoms': atoms, 'data': data})
+        if args.after:
+            exec(args.after, {'atoms': atoms, 'data': data})
 
         return data
 
     def expand(self, names):
-        if not self.names and self.opts.collection:
-            con = db.connect(self.opts.collection)
+        if not self.names and self.args.collection:
+            con = db.connect(self.args.collection)
             self.names = [dct.id for dct in con.select()]
         if not names:
             names[:] = self.names
@@ -211,24 +203,24 @@ class Runner:
         if name == '-':
             con = db.connect(sys.stdin, 'json')
             return con.get_atoms(add_additional_information=True)
-        elif self.opts.collection:
-            con = db.connect(self.opts.collection)
+        elif self.args.collection:
+            con = db.connect(self.args.collection)
             return con.get_atoms(name)
         else:
             return read(name)
 
     def set_calculator(self, atoms, name):
         cls = get_calculator(self.calculator_name)
-        parameters = str2dict(self.opts.parameters)
+        parameters = str2dict(self.args.parameters)
         if getattr(cls, 'nolabel', False):
             atoms.calc = cls(**parameters)
         else:
             atoms.calc = cls(label=self.get_filename(name), **parameters)
 
     def calculate_once(self, atoms, name):
-        opts = self.opts
+        args = self.args
 
-        for p in opts.properties or 'efsdMm':
+        for p in args.properties or 'efsdMm':
             property, method = {'e': ('energy', 'get_potential_energy'),
                                 'f': ('forces', 'get_forces'),
                                 's': ('stress', 'get_stress'),
@@ -241,24 +233,24 @@ class Runner:
                 pass
 
         data = {}
-        
+
         return data
 
     def optimize(self, atoms, name):
-        opts = self.opts
-        if opts.constrain_tags:
-            tags = [int(t) for t in opts.constrain_tags.split(',')]
+        args = self.args
+        if args.constrain_tags:
+            tags = [int(t) for t in args.constrain_tags.split(',')]
             mask = [t in tags for t in atoms.get_tags()]
             atoms.constraints = FixAtoms(mask=mask)
-        
+
         trajectory = Trajectory(self.get_filename(name, 'traj'), 'w',
                                       atoms)
-        if opts.maximum_stress:
+        if args.maximum_stress:
             optimizer = LBFGS(UnitCellFilter(atoms), logfile=self.logfile)
-            fmax = opts.maximum_stress
+            fmax = args.maximum_stress
         else:
             optimizer = LBFGS(atoms, logfile=self.logfile)
-            fmax = opts.maximum_force
+            fmax = args.maximum_force
 
         optimizer.attach(trajectory)
         optimizer.run(fmax=fmax)
@@ -270,11 +262,11 @@ class Runner:
         return data
 
     def eos(self, atoms, name):
-        opts = self.opts
-        
+        args = self.args
+
         traj = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
-        
-        N, eps = opts.equation_of_state.split(',')
+
+        N, eps = args.equation_of_state.split(',')
         N = int(N)
         eps = float(eps) / 100
         strains = np.linspace(1 - eps, 1 + eps, N)
@@ -287,7 +279,7 @@ class Runner:
             energies.append(atoms.get_potential_energy())
             traj.write(atoms)
         traj.close()
-        eos = EquationOfState(volumes, energies, opts.eos_type)
+        eos = EquationOfState(volumes, energies, args.eos_type)
         v0, e0, B = eos.fit()
         atoms.set_cell(cell1 * (v0 / v1)**(1 / 3), scale_atoms=True)
         data = {'volumes': volumes,
@@ -295,22 +287,22 @@ class Runner:
                 'fitted_energy': e0,
                 'fitted_volume': v0,
                 'bulk_modulus': B,
-                'eos_type': opts.eos_type}
+                'eos_type': args.eos_type}
         return data
 
     def get_filename(self, name=None, ext=None):
         if name is None:
-            if self.opts.tag is None:
+            if self.args.tag is None:
                 filename = 'ase'
             else:
-                filename = self.opts.tag
+                filename = self.args.tag
         else:
             if '.' in name:
                 name = name.rsplit('.', 1)[0]
-            if self.opts.tag is None:
+            if self.args.tag is None:
                 filename = name
             else:
-                filename = name + '-' + self.opts.tag
+                filename = name + '-' + self.args.tag
 
         if ext:
             filename += '.' + ext
@@ -328,7 +320,7 @@ def str2dict(s, namespace={}, sep='='):
     >>> str2dict('a=1.2,b=True,c=ab,d=1,2,3,e={f:42,g:cd}')
     {'a': 1.2, 'c': 'ab', 'b': True, 'e': {'g': 'cd', 'f': 42}, 'd': (1, 2, 3)}
     """
-    
+
     def myeval(value):
         try:
             value = eval(value, namespace)
