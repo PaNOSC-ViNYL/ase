@@ -1,6 +1,5 @@
 from __future__ import print_function
 import collections
-import optparse
 import sys
 from random import randint
 

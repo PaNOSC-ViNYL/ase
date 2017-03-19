@@ -51,6 +51,7 @@ def update():
     lines[a + 1:b] = [txt]
     with open(__file__ + '.new', 'w') as fd:
         print(''.join(lines), end='', file=fd)
+    os.rename(__file__ + '.new', __file__)
 
 
 # Beginning of computer generated data:

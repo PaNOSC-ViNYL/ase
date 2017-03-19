@@ -14,7 +14,7 @@ commands = [
     ('run', 'ase.cli.run'),
     ('build', 'ase.cli.build'),
     ('db', 'ase.db.cli'),
-    # ('nomad-upload', 'ase.cli.nomad'),
+    ('nomad-upload', 'ase.cli.nomad'),
     ('install-completion-script', 'ase.cli.complete')]
 
 
