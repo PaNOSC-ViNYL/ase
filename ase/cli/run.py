@@ -109,7 +109,7 @@ class Runner:
         print(file=self.logfile, *args, **kwargs)
 
     def run(self):
-        args = self args
+        args = self.args
         if self.db is None:
             # Create database connection:
             self.db = db.connect(args.database, use_lock_file=True)

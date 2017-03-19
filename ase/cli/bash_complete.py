@@ -1,70 +1,78 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """Bash completion for ase-db, ase-run, ase-build, ase-info and ase-gui.
 
 Put this in your .bashrc::
-    
-    complete -o default -C _ase_bash_complete.py ase-db ase-run \
-    ase-build ase-info ase-gui
+
+    complete -o default -C /path/to/ase/cli/complete.py ase
 """
 
 import os
 import sys
 from glob import glob
 
-command, word, previous = sys.argv[1:]
-line = os.environ['COMP_LINE']
-point = int(os.environ['COMP_POINT'])
-
-
-def options(short, long):
-    return ['-' + s for s in short] + ['--' + l for l in long.split()]
-
 
 def match(word, *suffixes):
     return [w for w in glob(word + '*')
             if any(w.endswith(suffix) for suffix in suffixes)]
-    
-    
-words = []
 
-if command == 'ase-db':
-    if word[:1] == '-':
-        words = options(
-            'hvqnliakycspwLj',
-            'help verbose quiet count long insert-into add-from-file '
-            'add-key-value-pairs limit offset delete '
-            'delete-keys yes columns sort cut python csv '
-            'open-web-browser json unique analyse')
-    elif previous == 'ase-db':
-        words = match(word, '.db', '.json')
-elif command == 'ase-run':
-    if word[:1] == '-':
-        words = options(
-            'htpdSfsEic',
-            'help tag parameter database skip properties maximum-force '
-            'constrain-tags maximum-stress equation-of-state modify after')
-    elif previous == 'ase-run':
-        from ase.calculators.calculator import names as words
-elif command == 'ase-build':
-    if previous in ['-x', '--crystal-structure']:
-        words = ['sc', 'fcc', 'bcc', 'hcp', 'diamond', 'zincblende',
-                 'rocksalt', 'cesiumchloride', 'fluorite', 'wurtzite']
-    elif word[:1] == '-':
-        words = options(
-            'hMvxarg',
-            'help magnetic-moment modify vacuum unit-cell bond-length '
-            'crystal-structure lattice-constant orthorhombic cubic repeat gui')
-elif command == 'ase-info':
-    if word[:1] == '-':
-        words = options('h', 'help')
+
+def generate():
+    ...
+
+
+commands = {'test': ['-c', '--calculators']}
+
+
+def complete(word, previous, line, point):
+    for w in line[:point - len(word)].strip().split()[1:]:
+        if w[0].isalpha():
+            if w in commands:
+                command = w
+                break
+            return commands
     else:
-        words = match(word, '.traj')
-else:  # ase-gui
+        if word[:1] == '-':
+            return ['-h', '--help', '-q', '--quiet', '-v', '--verbose',
+                    '--version']
     if word[:1] == '-':
-        words = options(
-            'hnurRogtbs', 'help image-number show-unit-cell repeat verbose '
-            'rotations output graph terminal aneb interpolate bonds scale')
-        
-for w in words:
-    if w.startswith(word):
-        print(w)
+        return commands[comand]
+
+    words = []
+
+    if command == 'db':
+        if previous == 'db':
+            words = match(word, '.db', '.json')
+    elif command == 'run':
+        if previous == 'run':
+            from ase.calculators.calculator import names as words
+    elif command == 'build':
+        if previous in ['-x', '--crystal-structure']:
+            words = ['sc', 'fcc', 'bcc', 'hcp', 'diamond', 'zincblende',
+                     'rocksalt', 'cesiumchloride', 'fluorite', 'wurtzite']
+    return words
+
+
+def add_arguments(parser):
+    description = 'Add bash-completion script to ~/.bashrc.'
+    return description
+
+
+def main(args):
+    print(__path__)
+    cmd = 'complete -o default -C /path/to/ase/cli/complete.py ase'
+    with open(os.path.expanduser('~/.bashrc')) as fd:
+        if cmd in fd.readlines():
+            print('Completion script already installed!')
+            return
+    with open(os.path.expanduser('~/.bashrc'), 'a') as fd:
+        print(cmd, file=fd)
+
+
+if __name__ == '__main__':
+    word, previous = sys.argv[2:]
+    line = os.environ['COMP_LINE']
+    point = int(os.environ['COMP_POINT'])
+    words = complete(word, previous, line, point)
+    for w in words:
+        if w.startswith(word):
+            print(w)

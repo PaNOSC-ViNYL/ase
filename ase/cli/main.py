@@ -1,4 +1,7 @@
+from __future__ import print_function
+
 import argparse
+import sys
 
 from ase import __version__
 from ase.utils import import_module
@@ -10,8 +13,9 @@ commands = [
     ('gui', 'ase.gui.ag'),
     ('run', 'ase.cli.run'),
     ('build', 'ase.cli.build'),
-    ('db', 'ase.db.cli'),
-    ('nomad-upload', 'ase.')]
+    ('db', 'ase.db.cli')]
+    # ('nomad-upload', 'ase.cli.nomad'),
+    # ('install-completion-script', 'ase.cli.complete')
 
 
 def add_arguments(parser):
@@ -27,7 +31,7 @@ def main():
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(__version__))
     subparsers = parser.add_subparsers(title='Subcommands',
-                                       dest='command')  # , help='H'
+                                       dest='command')
 
     subparser = subparsers.add_parser('help',
                                       description='Help',
@@ -55,7 +59,18 @@ def main():
             parser.print_help()
         else:
             parsers[args.helpcommand].print_help()
-    elif args.command:
-        functions[args.command](args)
-    parser.print_usage()
-
+    elif args.command is None:
+        parser.print_usage()
+    else:
+        try:
+            functions[args.command](args)
+        except KeyboardInterrupt:
+            pass
+        except Exception as x:
+            if args.verbose:
+                raise
+            else:
+                print('{}: {}'.format(x.__class__.__name__, x),
+                      file=sys.stderr)
+                print('To get a full traceback, use: ase --verbose',
+                      file=sys.stderr)

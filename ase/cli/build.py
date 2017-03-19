@@ -13,10 +13,13 @@ from ase.data import ground_state_magnetic_moments
 from ase.data import atomic_numbers, covalent_radii
 
 
+description = 'Build an atom, molecule or bulk structure.'
+
+
 def add_arguments(parser):
     add = parser.add_argument
     add('name', metavar='name/input-file')
-    add('output-file')
+    add('output-file', nargs='?')
     add('-M', '--magnetic-moment',
         metavar='M1,M2,...',
         help='Magnetic moment(s).  ' +
@@ -24,7 +27,7 @@ def add_arguments(parser):
     add('--modify', metavar='...',
         help='Modify atoms with Python statement.  ' +
         'Example: --modify="atoms.positions[-1,2]+=0.1".')
-    add('-v', '--vacuum', type=float, default=3.0,
+    add('-V', '--vacuum', type=float, default=3.0,
         help='Amount of vacuum to add around isolated atoms '
         '(in Angstrom).')
     add('--unit-cell',
@@ -139,13 +142,13 @@ def build_molecule(args):
 def build_bulk(args):
     L = args.lattice_constant.replace(',', ' ').split()
     d = dict([(key, float(x)) for key, x in zip('ac', L)])
-    atoms = bulk(name, crystalstructure=args.crystal_structure,
+    atoms = bulk(args.name, crystalstructure=args.crystal_structure,
                  a=d.get('a'), c=d.get('c'),
                  orthorhombic=args.orthorhombic, cubic=args.cubic)
 
     M, X = {'Fe': (2.3, 'bcc'),
             'Co': (1.2, 'hcp'),
-            'Ni': (0.6, 'fcc')}.get(name, (None, None))
+            'Ni': (0.6, 'fcc')}.get(args.name, (None, None))
     if M is not None and args.crystal_structure == X:
         atoms.set_initial_magnetic_moments([M] * len(atoms))
 

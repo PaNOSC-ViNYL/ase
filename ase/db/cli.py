@@ -32,18 +32,13 @@ examples = ['calculator=nwchem',
             '2.2<bandgap<4.1',
             'Cu>=10']
 
+description += '  Selection examples: ' + ', '.join(examples) + '.'
 
-def main(args=sys.argv[1:]):
-    if isinstance(args, basestring):
-        args = args.split(' ')
-    parser = optparse.OptionParser(
-        usage='Usage: %prog db-name [selection] [options]',
-        description=description,
-        epilog='Selection examples: ' + ', '.join(examples) + '.')
 
-    add = parser.add_option
-    add('-v', '--verbose', action='store_true', default=False)
-    add('-q', '--quiet', action='store_true', default=False)
+def add_arguments(parser):
+    add = parser.add_argument
+    add('database')
+    add('query', nargs='*')
     add('-n', '--count', action='store_true',
         help='Count number of selected rows.')
     add('-l', '--long', action='store_true',
@@ -95,53 +90,38 @@ def main(args=sys.argv[1:]):
         help='Write json representation of selected row.')
     add('--unique', action='store_true',
         help='Give rows a new unique id when using --insert-into.')
-    opts, args = parser.parse_args(args)
-
-    if not args:
-        parser.error('No database given')
-
-    verbosity = 1 - opts.quiet + opts.verbose
-
-    try:
-        run(opts, args, verbosity)
-    except Exception as x:
-        if verbosity < 2:
-            print('{0}: {1}'.format(x.__class__.__name__, x))
-            sys.exit(1)
-        else:
-            raise
 
 
-def run(opts, args, verbosity):
-    filename = args.pop(0)
-    query = ','.join(args)
+def main(args):
+    verbosity = 1 - args.quiet + args.verbose
+    query = ','.join(args.query)
 
     if query.isdigit():
         query = int(query)
 
     add_key_value_pairs = {}
-    if opts.add_key_value_pairs:
-        for pair in opts.add_key_value_pairs.split(','):
+    if args.add_key_value_pairs:
+        for pair in args.add_key_value_pairs.split(','):
             key, value = pair.split('=')
             add_key_value_pairs[key] = convert_str_to_int_float_or_str(value)
 
-    if opts.delete_keys:
-        delete_keys = opts.delete_keys.split(',')
+    if args.delete_keys:
+        delete_keys = args.delete_keys.split(',')
     else:
         delete_keys = []
 
-    con = connect(filename, use_lock_file=not opts.no_lock_file)
+    con = connect(args.filename, use_lock_file=not args.no_lock_file)
 
     def out(*args):
         if verbosity > 0:
             print(*args)
 
-    if opts.analyse:
+    if args.analyse:
         con.analyse()
         return
 
-    if opts.add_from_file:
-        filename = opts.add_from_file
+    if args.add_from_file:
+        filename = args.add_from_file
         if ':' in filename:
             calculator_name, filename = filename.split(':')
             atoms = get_calculator(calculator_name)(filename).get_atoms()
@@ -152,29 +132,29 @@ def run(opts, args, verbosity):
                                         filename))
         return
 
-    if opts.count:
+    if args.count:
         n = con.count(query)
         print('%s' % plural(n, 'row'))
         return
 
-    if opts.explain:
+    if args.explain:
         for row in con.select(query, explain=True,
                               verbosity=verbosity,
-                              limit=opts.limit, offset=opts.offset):
+                              limit=args.limit, offset=args.offset):
             print(row['explain'])
         return
 
-    if opts.insert_into:
+    if args.insert_into:
         nkvp = 0
         nrows = 0
-        with connect(opts.insert_into,
-                     use_lock_file=not opts.no_lock_file) as con2:
+        with connect(args.insert_into,
+                     use_lock_file=not args.no_lock_file) as con2:
             for row in con.select(query):
                 kvp = row.get('key_value_pairs', {})
                 nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
-                if opts.unique:
+                if args.unique:
                     row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
                 con2.write(row, data=row.get('data'), **kvp)
                 nrows += 1
@@ -195,9 +175,9 @@ def run(opts, args, verbosity):
 
         return
 
-    if opts.delete:
+    if args.delete:
         ids = [row['id'] for row in con.select(query)]
-        if ids and not opts.yes:
+        if ids and not args.yes:
             msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
             if input(msg).lower() != 'yes':
                 return
@@ -205,23 +185,23 @@ def run(opts, args, verbosity):
         out('Deleted %s' % plural(len(ids), 'row'))
         return
 
-    if opts.plot_data:
+    if args.plot_data:
         from ase.db.plot import dct2plot
-        dct2plot(con.get(query).data, opts.plot_data)
+        dct2plot(con.get(query).data, args.plot_data)
         return
 
-    if opts.plot:
-        if ':' in opts.plot:
-            tags, keys = opts.plot.split(':')
+    if args.plot:
+        if ':' in args.plot:
+            tags, keys = args.plot.split(':')
             tags = tags.split(',')
         else:
             tags = []
-            keys = opts.plot
+            keys = args.plot
         keys = keys.split(',')
         plots = collections.defaultdict(list)
         X = {}
         labels = []
-        for row in con.select(query, sort=opts.sort):
+        for row in con.select(query, sort=args.sort):
             name = ','.join(str(row[tag]) for tag in tags)
             x = row.get(keys[0])
             if x is not None:
@@ -243,27 +223,27 @@ def run(opts, args, verbosity):
         plt.show()
         return
 
-    if opts.long:
+    if args.long:
         row = con.get(query)
         summary = Summary(row)
         summary.write()
-    elif opts.json:
+    elif args.json:
         row = con.get(query)
         con2 = connect(sys.stdout, 'json', use_lock_file=False)
         kvp = row.get('key_value_pairs', {})
         con2.write(row, data=row.get('data'), **kvp)
     else:
-        if opts.open_web_browser:
+        if args.open_web_browser:
             import ase.db.app as app
             app.db = con
             app.app.run(host='0.0.0.0', debug=True)
         else:
             columns = list(all_columns)
-            c = opts.columns
+            c = args.columns
             if c and c.startswith('++'):
                 keys = set()
                 for row in con.select(query,
-                                      limit=opts.limit, offset=opts.offset):
+                                      limit=args.limit, offset=args.offset):
                     keys.update(row._keys)
                 columns.extend(keys)
                 if c[2:3] == ',':
@@ -281,9 +261,9 @@ def run(opts, args, verbosity):
                     else:
                         columns.append(col.lstrip('+'))
 
-            table = Table(con, verbosity, opts.cut)
-            table.select(query, columns, opts.sort, opts.limit, opts.offset)
-            if opts.csv:
+            table = Table(con, verbosity, args.cut)
+            table.select(query, columns, args.sort, args.limit, args.offset)
+            if args.csv:
                 table.write_csv()
             else:
                 table.write(query)
