@@ -13,9 +13,9 @@ commands = [
     ('gui', 'ase.gui.ag'),
     ('run', 'ase.cli.run'),
     ('build', 'ase.cli.build'),
-    ('db', 'ase.db.cli')]
+    ('db', 'ase.db.cli'),
     # ('nomad-upload', 'ase.cli.nomad'),
-    # ('install-completion-script', 'ase.cli.complete')
+    ('install-completion-script', 'ase.cli.complete')]
 
 
 def add_arguments(parser):
