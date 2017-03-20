@@ -15,7 +15,7 @@ Some atoms are special:
 
 * ghost atoms
 * atoms with a core hole
-* atoms that need special basis set
+* atoms that need a special basis set
 * ...
 
 and some atoms are not atoms at all (methyl group, ...).
@@ -42,7 +42,7 @@ A *kind* can be represented as a ``tuple`` or a ``str``:
 
 Examples:
 
-* ``(1, 'ghost', 0.0)`` (same as ``'H:ghost'``)
+* ``(1, 'ghost', None)`` (same as ``'H:ghost'``)
 * ``('H', '', None)`` (same as ``'H'``)
 * ``('H', '', 2.0)``
 * ``'methyl'`` (same as ``(None, 'methyl', None)``)
@@ -65,8 +65,6 @@ Examples
 ========
 
 >>> a = Atoms(['N', 'C', (None, 'methyl', 9.0)])
->>> a.number_of_species
-3
 >>> a.positions[:, 0] = [0, 1.2, 2.6]
 >>> a.masses[a.labels == 'methyl'] = 10
 >>> a.numbers
@@ -80,7 +78,7 @@ Labels(['', '', 'methyl'])
 >>> a.kinds
 Kinds(['N', 'C', ('X', 'methyl', 10.0)])
 
-Here are 50 hydrogen molecules:
+Here are 50 H-D molecules:
 
 >>> h = Atoms('H100', positions=...)
 >>> h.labels[::2] = 'deuterium'
