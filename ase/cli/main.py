@@ -52,7 +52,6 @@ def main():
         parsers[command] = subparser
 
     args = parser.parse_args()
-    print(args)
 
     if args.command == 'help':
         if args.helpcommand is None:
@@ -74,3 +73,8 @@ def main():
                       file=sys.stderr)
                 print('To get a full traceback, use: ase --verbose',
                       file=sys.stderr)
+
+
+def old():
+    sys.argv[:1] = sys.argv[0].rsplit('-', 1)
+    main()

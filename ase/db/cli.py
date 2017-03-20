@@ -44,7 +44,7 @@ def add_arguments(parser):
         help='Long description of selected row')
     add('-i', '--insert-into', metavar='db-name',
         help='Insert selected rows into another database.')
-    add('-a', '--add-from-file', metavar='[type:]filename',
+    add('-a', '--add-from-file', metavar='filename',
         help='Add results from file.')
     add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
         help='Add key-value pairs to selected rows.  Values must be numbers '
@@ -72,7 +72,7 @@ def add_arguments(parser):
     add('--cut', type=int, default=35, help='Cut keywords and key-value '
         'columns after CUT characters.  Use --cut=0 to disable cutting. '
         'Default is 35 characters')
-    add('-p', '--plot', metavar='[a,b:]x,y1,y2,...',
+    add('-p', '--plot', metavar='x,y1,y2,...',
         help='Example: "-p x,y": plot y row against x row. Use '
         '"-p a:x,y" to make a plot for each value of a.')
     add('-P', '--plot-data', metavar='name',
