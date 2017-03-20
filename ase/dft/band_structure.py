@@ -5,53 +5,64 @@ from ase.io.jsonio import encode, decode
 from ase.parallel import paropen
 
 
+def get_band_structure(atoms=None, calc=None):
+    """Band-structure object.
+
+    Create a band-structure object from an Atoms object, a calculator or
+    from a pickle file.  Labels for special points will be automatically
+    added.
+    """
+    atoms = atoms if atoms is not None else calc.atoms
+    calc = calc if calc is not None else atoms.calc
+
+    kpts = calc.get_ibz_k_points()
+
+    energies = []
+    for s in range(calc.get_number_of_spins()):
+        energies.append([calc.get_eigenvalues(kpt=k, spin=s)
+                         for k in range(len(kpts))])
+    energies = np.array(energies)
+
+    return BandStructure(cell=atoms.cell,
+                         kpts=kpts,
+                         fermilevel=calc.get_fermi_level(),
+                         energies=energies)
+
+
 class BandStructure:
-    def __init__(self, atoms=None, calc=None, filename=None):
-        """Band-structure object.
+    def __init__(self, *args, **kwargs):
+        self.setvars(*args, **kwargs)
 
-        Create a band-structure object from an Atoms object, a calculator or
-        from a pickle file.  Labels for special points will be automatically
-        added.
-        """
-        if filename:
-            self.read(filename)
-        else:
-            atoms = atoms or calc.atoms
-            calc = calc or atoms.calc
+    def setvars(self, cell, kpts, fermilevel, energies):
+        assert cell.shape == (3, 3)
+        self.cell = cell
+        assert kpts.shape[1] == 3
+        self.kpts = kpts
+        self.fermilevel = fermilevel
+        self.energies = energies
 
-            self.cell = atoms.cell
-            self.kpts = calc.get_ibz_k_points()
-            self.fermilevel = calc.get_fermi_level()
-
-            energies = []
-            for s in range(calc.get_number_of_spins()):
-                energies.append([calc.get_eigenvalues(kpt=k, spin=s)
-                                 for k in range(len(self.kpts))])
-            self.energies = np.array(energies)
-
-            x, X, labels = labels_from_kpts(self.kpts, self.cell)
-            self.xcoords = x
-            self.label_xcoords = X
-            self.labels = labels
+    def get_labels(self):
+        return labels_from_kpts(self.kpts, self.cell)
 
     def todict(self):
         return dict((key, getattr(self, key))
                     for key in
-                    ['cell', 'kpts', 'energies', 'fermilevel',
-                     'xcoords', 'label_xcoords', 'labels'])
+                    ['cell', 'kpts', 'energies', 'fermilevel'])
 
     def write(self, filename):
         """Write to json file."""
         with paropen(filename, 'w') as f:
             f.write(encode(self))
 
-    def read(self, filename):
+    @staticmethod
+    def read(filename):
         """Read from json file."""
         with open(filename, 'r') as f:
             dct = decode(f.read())
-        self.__dict__.update(dct)
+        return BandStructure(**dct)
 
-    def plot(self, spin=None, emax=None, filename=None, ax=None, show=None):
+    def plot(self, spin=None, emax=None, filename=None, ax=None, show=None,
+             **plotkwargs):
         """Plot band-structure.
 
         spin: int or None
@@ -87,10 +98,12 @@ class BandStructure:
         if emax is not None:
             emax = emax + self.fermilevel
 
-        labels = [pretty(name) for name in self.labels]
+        xcoords, label_xcoords, orig_labels = self.get_labels()
+
+        labels = [pretty(name) for name in orig_labels]
         i = 1
         while i < len(labels):
-            if self.label_xcoords[i - 1] == self.label_xcoords[i]:
+            if label_xcoords[i - 1] == label_xcoords[i]:
                 labels[i - 1] = labels[i - 1][:-1] + ',' + labels[i][1:]
                 labels[i] = ''
             i += 1
@@ -98,14 +111,16 @@ class BandStructure:
         for spin, e_kn in enumerate(e_skn):
             color = 'br'[spin]
             for e_k in e_kn.T:
-                ax.plot(self.xcoords, e_k, color=color)
+                kwargs = dict(color=color)
+                kwargs.update(plotkwargs)
+                ax.plot(xcoords, e_k, **kwargs)
 
-        for x in self.label_xcoords[1:-1]:
+        for x in label_xcoords[1:-1]:
             ax.axvline(x, color='0.5')
 
-        ax.set_xticks(self.label_xcoords)
+        ax.set_xticks(label_xcoords)
         ax.set_xticklabels(labels)
-        ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
+        ax.axis(xmin=0, xmax=xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel('eigenvalues [eV]')
         ax.axhline(self.fermilevel, color='k')
         try:
