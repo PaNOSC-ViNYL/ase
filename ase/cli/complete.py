@@ -100,7 +100,7 @@ def complete(word, previous, line, point):
 
 
 class CLICommand:
-    short_description = 'Add tab-completion script to ~/.bashrc.'
+    short_description = 'Add tab-completion for Bash'
 
     @staticmethod
     def add_arguments(parser):

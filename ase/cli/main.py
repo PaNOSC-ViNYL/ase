@@ -31,12 +31,12 @@ def main():
         description='ASE command line tool')
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(__version__))
-    subparsers = parser.add_subparsers(title='Subcommands',
+    subparsers = parser.add_subparsers(title='Sub-commands',
                                        dest='command')
 
     subparser = subparsers.add_parser('help',
                                       description='Help',
-                                      help='Help for subcommand')
+                                      help='Help for sub-command')
     subparser.add_argument('helpcommand', nargs='?')
 
     functions = {}

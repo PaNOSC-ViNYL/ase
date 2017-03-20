@@ -425,7 +425,7 @@ def calculate_eos(atoms, npoints=5, eps=0.04, trajectory=None, callback=None):
 
 
 class CLICommand:
-    short_description = 'Calculate equation of state.'
+    short_description = 'Calculate equation of state'
 
     @staticmethod
     def add_arguments(parser):

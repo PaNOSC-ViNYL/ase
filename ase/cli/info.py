@@ -9,7 +9,7 @@ from ase.io.bundletrajectory import print_bundletrajectory_info
 
 
 class CLICommand:
-    short_description = 'Print summary of information from trajectory files.'
+    short_description = 'Print information about files or system'
 
     @staticmethod
     def add_arguments(parser):

@@ -18,7 +18,7 @@ except NameError:
 
 
 class CLICommand:
-    short_description = 'Manipulate and query ASE database.'
+    short_description = 'Manipulate and query ASE database'
 
     description = """Selecton is a comma-separated list of
     selections where each selection is of the type "ID", "key" or

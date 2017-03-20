@@ -4,7 +4,7 @@ from __future__ import print_function, unicode_literals
 
 
 class CLICommand:
-    short_description = "ASE's graphical user interface."
+    short_description = "ASE's graphical user interface"
     description = ('ASE-GUI.  See the online manual '
                    '(https://wiki.fysik.dtu.dk/ase/ase/gui/gui.html) '
                    'for more information.')
