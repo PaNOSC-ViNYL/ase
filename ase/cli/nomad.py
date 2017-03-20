@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import os.path as op
 import subprocess
@@ -6,7 +7,7 @@ description = 'Upload files to NOMAD'
 
 
 def add_arguments(parser):
-    parser.add_argument('folders', nargs='+')
+    parser.add_argument('folder', nargs='+')
     parser.add_argument('-t', '--token')
     parser.add_argument('-n', '--do-not-save-token', action='store_true')
     parser.add_argument('-0', '--dry-run', action='store_true')
@@ -28,7 +29,7 @@ def main(args):
     cmd = ('tar cf - {} | '
            'curl -XPUT -# -HX-Token:{} '
            '-N -F file=@- http://nomad-repository.eu:8000 | '
-           'xargs echo').format(' '.join(args.folders), token)
+           'xargs echo').format(' '.join(args.folder), token)
 
     if args.dry_run:
         print(cmd)

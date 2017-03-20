@@ -15,7 +15,7 @@ commands = [
     ('build', 'ase.cli.build'),
     ('db', 'ase.db.cli'),
     ('nomad-upload', 'ase.cli.nomad'),
-    ('install-completion-script', 'ase.cli.complete')]
+    ('tab-completion', 'ase.cli.complete')]
 
 
 def add_arguments(parser):
@@ -35,7 +35,7 @@ def main():
 
     subparser = subparsers.add_parser('help',
                                       description='Help',
-                                      help='hhhh')
+                                      help='Help for command')
     subparser.description = 'Help2'
     subparser.add_argument('helpcommand', nargs='?')
 

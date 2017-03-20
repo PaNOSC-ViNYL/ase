@@ -1,6 +1,5 @@
 from __future__ import print_function
 import os
-import platform
 import sys
 import shutil
 import subprocess
@@ -10,7 +9,8 @@ from glob import glob
 
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
-from ase.utils import import_module, devnull
+from ase.utils import devnull
+from ase.cli.info import print_info
 
 
 class NotAvailable(Exception):
@@ -102,20 +102,8 @@ def test(verbosity=1, calculators=[],
             continue
         ts.addTest(ScriptTestCase(filename=os.path.abspath(test)))
 
-    versions = [('platform', platform.platform()),
-                ('python-' + sys.version.split()[0], sys.executable)]
-    for name in ['ase', 'numpy', 'scipy']:
-        try:
-            module = import_module(name)
-        except ImportError:
-            versions.append((name, 'no'))
-        else:
-            versions.append((name + '-' + module.__version__,
-                            module.__file__.rsplit('/', 1)[0] + '/'))
-
-    if verbosity:
-        for a, b in versions:
-            print('{0:16}{1}'.format(a, b))
+    if verbosity > 0:
+        print_info()
 
     sys.stdout = devnull
 
@@ -207,7 +195,7 @@ def main(args):
     else:
         calculators = []
 
-    results = test(verbosity=1 + args.verbose- args.quiet,
+    results = test(verbosity=1 + args.verbose - args.quiet,
                    calculators=calculators,
                    files=args.tests)
     sys.exit(len(results.errors + results.failures))

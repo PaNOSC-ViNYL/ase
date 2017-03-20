@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Bash completion for ase-db, ase-run, ase-build, ase-info and ase-gui.
+"""Bash completion for ase.
 
 Put this in your .bashrc::
 
     complete -o default -C /path/to/ase/cli/complete.py ase
+
+or run::
+
+    $ ase tab-completion
+
 """
 
+from __future__ import print_function
 import os
 import sys
 from glob import glob
