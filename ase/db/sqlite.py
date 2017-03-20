@@ -143,6 +143,8 @@ class SQLite3Database(Database):
         if self.initialized:
             return
 
+        self._metadata = {}
+
         cur = con.execute(
             'SELECT COUNT(*) FROM sqlite_master WHERE name="systems"')
 
@@ -169,9 +171,15 @@ class SQLite3Database(Database):
                 else:
                     self.version = int(cur.fetchone()[0])
 
+                cur = con.execute(
+                    'SELECT value FROM information WHERE name="metadata"')
+                results = cur.fetchall()
+                if results:
+                    self._metadata = results[0][0]
+
         if self.version > VERSION:
             raise IOError('Can not read new ase.db format '
-                          '(version {0}).  Please update to latest ASE.'
+                          '(version {}).  Please update to latest ASE.'
                           .format(self.version))
         if self.version < 5 and not self._allow_reading_old_format:
             raise IOError('Please convert to new format. ' +
@@ -261,12 +269,12 @@ class SQLite3Database(Database):
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute('INSERT INTO systems VALUES ({0})'.format(q),
+            cur.execute('INSERT INTO systems VALUES ({})'.format(q),
                         values)
         else:
             q = ', '.join(line.split()[0].lstrip() + '=?'
                           for line in init_statements[0].splitlines()[2:])
-            cur.execute('UPDATE systems SET {0} WHERE id=?'.format(q),
+            cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
 
         if id is None:
@@ -598,6 +606,21 @@ class SQLite3Database(Database):
         for table in tables:
             cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
                             ((id,) for id in ids))
+
+    @property
+    def metadata(self):
+        if self._metadata is None:
+            self._initialize(self._connect())
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, dct):
+        self._metadata = dct
+        cur.execute('INSERT INTO systems VALUES ({})'.format(q),
+                    values)
+        cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
+                    values + (id,))
+
 
 
 def blob(array):

@@ -11,8 +11,6 @@ from ase.utils import basestring
 
 
 class JSONDatabase(Database, object):
-    _metadata = None  # decription of columns and other stuff
-
     def __enter__(self):
         return self
 
@@ -210,7 +208,7 @@ class JSONDatabase(Database, object):
     def metadata(self):
         if self._metadata is None:
             bigdct, myids, nextid = self._read_json()
-            self._metadata = bigdct['metadata']
+            self._metadata = bigdct.get('metadata', {})
         return self._metadata
 
     @metadata.setter
