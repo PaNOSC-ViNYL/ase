@@ -109,7 +109,7 @@ def main(args):
     else:
         delete_keys = []
 
-    con = connect(args.filename, use_lock_file=not args.no_lock_file)
+    con = connect(args.database, use_lock_file=not args.no_lock_file)
 
     def out(*args):
         if verbosity > 0:

@@ -65,8 +65,8 @@ def complete(word, previous, line, point):
         if word[:1] == '-':
             return ['-h', '--help', '-q', '--quiet', '-v', '--verbose',
                     '--version']
-        return commands.keys() + ['-h', '--help', '-q', '--quiet',
-                                  '-v', '--verbose']
+        return list(commands.keys()) + ['-h', '--help', '-q', '--quiet',
+                                        '-v', '--verbose']
 
     if word[:1] == '-':
         return commands[command]

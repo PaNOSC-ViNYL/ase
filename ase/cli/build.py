@@ -1,5 +1,4 @@
 import sys
-import optparse
 
 import numpy as np
 
@@ -19,7 +18,7 @@ description = 'Build an atom, molecule or bulk structure.'
 def add_arguments(parser):
     add = parser.add_argument
     add('name', metavar='name/input-file')
-    add('output-file', nargs='?')
+    add('output', nargs='?')
     add('-M', '--magnetic-moment',
         metavar='M1,M2,...',
         help='Magnetic moment(s).  ' +
@@ -78,8 +77,8 @@ def main(args):
     if args.gui:
         view(atoms)
 
-    if args.output_file:
-        write(args.output_file, atoms)
+    if args.output:
+        write(args.output, atoms)
     elif sys.stdout.isatty():
         write(args.name + '.json', atoms)
     else:

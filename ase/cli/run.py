@@ -2,7 +2,6 @@ from __future__ import division, print_function
 
 import sys
 import os.path
-import optparse
 import os
 import tempfile
 import time
@@ -55,7 +54,7 @@ def add_arguments(parser):
         help='Relax unit-cell and internal coordinates.')
     add('-E', '--equation-of-state',
         help='Use "-E 5,2.0" for 5 lattice constants ranging from '
-        '-2.0% to +2.0%.')
+        '-2.0 %% to +2.0 %%.')
     add('--eos-type', default='sjeos', help='Selects the type of eos.')
     add('-i', '--interactive-python-session', action='store_true')
     add('-c', '--collection')
@@ -243,8 +242,7 @@ class Runner:
             mask = [t in tags for t in atoms.get_tags()]
             atoms.constraints = FixAtoms(mask=mask)
 
-        trajectory = Trajectory(self.get_filename(name, 'traj'), 'w',
-                                      atoms)
+        trajectory = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
         if args.maximum_stress:
             optimizer = LBFGS(UnitCellFilter(atoms), logfile=self.logfile)
             fmax = args.maximum_stress
