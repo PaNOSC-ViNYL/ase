@@ -14,6 +14,8 @@ commands = [
     ('run', 'ase.cli.run'),
     ('build', 'ase.cli.build'),
     ('db', 'ase.db.cli'),
+    ('eos', 'ase.eos'),
+    ('ulm', 'ase.io.ulm'),
     ('nomad-upload', 'ase.cli.nomad'),
     ('tab-completion', 'ase.cli.complete')]
 
@@ -27,7 +29,6 @@ def main():
     parser = argparse.ArgumentParser(
         prog='ase',
         description='ASE command line tool')
-    #add_arguments(parser)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(__version__))
     subparsers = parser.add_subparsers(title='Subcommands',
@@ -35,20 +36,20 @@ def main():
 
     subparser = subparsers.add_parser('help',
                                       description='Help',
-                                      help='Help for command')
-    subparser.description = 'Help2'
+                                      help='Help for subcommand')
     subparser.add_argument('helpcommand', nargs='?')
 
     functions = {}
     parsers = {}
     for command, module_name in commands:
-        module = import_module(module_name)
-        subparser = subparsers.add_parser(command,
-                                          description=module.description,
-                                          help='hhhh')
+        cmd = import_module(module_name).CLICommand
+        subparser = subparsers.add_parser(
+            command,
+            help=cmd.short_description,
+            description=getattr(cmd, 'description', cmd.short_description))
         add_arguments(subparser)
-        module.add_arguments(subparser)
-        functions[command] = module.main
+        cmd.add_arguments(subparser)
+        functions[command] = cmd.run
         parsers[command] = subparser
 
     args = parser.parse_args()

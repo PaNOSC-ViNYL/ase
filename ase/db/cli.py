@@ -16,79 +16,81 @@ try:
 except NameError:
     pass
 
-description = """Selecton is a comma-separated list of
-selections where each selection is of the type "ID", "key" or
-"key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
-and  "!=" (these must be protected from the shell by using quotes).
-Special keys: id, user, calculator, age, natoms, energy, magmom,
-and charge.  Chemical symbols can also be used to select number of
-specific atomic species (H, He, Li, ...)."""
 
-examples = ['calculator=nwchem',
-            'age<1d',
-            'natoms=1',
-            'user=alice',
-            '2.2<bandgap<4.1',
-            'Cu>=10']
+class CLICommand:
+    short_description = 'Manipulate and query ASE database.'
 
-description += '  Selection examples: ' + ', '.join(examples) + '.'
+    description = """Selecton is a comma-separated list of
+    selections where each selection is of the type "ID", "key" or
+    "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
+    and  "!=" (these must be protected from the shell by using quotes).
+    Special keys: id, user, calculator, age, natoms, energy, magmom,
+    and charge.  Chemical symbols can also be used to select number of
+    specific atomic species (H, He, Li, ...).  Selection examples:
+    'calculator=nwchem', 'age<1d', 'natoms=1', 'user=alice',
+    '2.2<bandgap<4.1', 'Cu>=10'"""
 
+    @staticmethod
+    def add_arguments(parser):
+        add = parser.add_argument
+        add('database')
+        add('query', nargs='*')
+        add('-n', '--count', action='store_true',
+            help='Count number of selected rows.')
+        add('-l', '--long', action='store_true',
+            help='Long description of selected row')
+        add('-i', '--insert-into', metavar='db-name',
+            help='Insert selected rows into another database.')
+        add('-a', '--add-from-file', metavar='filename',
+            help='Add results from file.')
+        add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
+            help='Add key-value pairs to selected rows.  Values must '
+            'be numbers or strings and keys must follow the same rules as '
+            'keywords.')
+        add('-L', '--limit', type=int, default=20, metavar='N',
+            help='Show only first N rows (default is 20 rows).  Use --limit=0 '
+            'to show all.')
+        add('--offset', type=int, default=0, metavar='N',
+            help='Skip first N rows.  By default, no rows are skipped')
+        add('--delete', action='store_true',
+            help='Delete selected rows.')
+        add('--delete-keys', metavar='key1,key2,...',
+            help='Delete keys for selected rows.')
+        add('-y', '--yes', action='store_true',
+            help='Say yes.')
+        add('--explain', action='store_true',
+            help='Explain query plan.')
+        add('-c', '--columns', metavar='col1,col2,...',
+            help='Specify columns to show.  Precede the column specification '
+            'with a "+" in order to add columns to the default set of '
+            'columns.  Precede by a "-" to remove columns.  Use "++" for all.')
+        add('-s', '--sort', metavar='column', default='id',
+            help='Sort rows using column.  Use -column for a descendin sort.  '
+            'Default is to sort after id.')
+        add('--cut', type=int, default=35, help='Cut keywords and key-value '
+            'columns after CUT characters.  Use --cut=0 to disable cutting. '
+            'Default is 35 characters')
+        add('-p', '--plot', metavar='x,y1,y2,...',
+            help='Example: "-p x,y": plot y row against x row. Use '
+            '"-p a:x,y" to make a plot for each value of a.')
+        add('-P', '--plot-data', metavar='name',
+            help="Show plot from data['name'] from the selected row.")
+        add('--csv', action='store_true',
+            help='Write comma-separated-values file.')
+        add('-w', '--open-web-browser', action='store_true',
+            help='Open results in web-browser.')
+        add('--no-lock-file', action='store_true', help="Don't use lock-files")
+        add('--analyse', action='store_true',
+            help='Gathers statistics about tables and indices to help make '
+            'better query planning choices.')
+        add('-j', '--json', action='store_true',
+            help='Write json representation of selected row.')
+        add('--unique', action='store_true',
+            help='Give rows a new unique id when using --insert-into.')
 
-def add_arguments(parser):
-    add = parser.add_argument
-    add('database')
-    add('query', nargs='*')
-    add('-n', '--count', action='store_true',
-        help='Count number of selected rows.')
-    add('-l', '--long', action='store_true',
-        help='Long description of selected row')
-    add('-i', '--insert-into', metavar='db-name',
-        help='Insert selected rows into another database.')
-    add('-a', '--add-from-file', metavar='filename',
-        help='Add results from file.')
-    add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
-        help='Add key-value pairs to selected rows.  Values must be numbers '
-        'or strings and keys must follow the same rules as keywords.')
-    add('-L', '--limit', type=int, default=20, metavar='N',
-        help='Show only first N rows (default is 20 rows).  Use --limit=0 '
-        'to show all.')
-    add('--offset', type=int, default=0, metavar='N',
-        help='Skip first N rows.  By default, no rows are skipped')
-    add('--delete', action='store_true',
-        help='Delete selected rows.')
-    add('--delete-keys', metavar='key1,key2,...',
-        help='Delete keys for selected rows.')
-    add('-y', '--yes', action='store_true',
-        help='Say yes.')
-    add('--explain', action='store_true',
-        help='Explain query plan.')
-    add('-c', '--columns', metavar='col1,col2,...',
-        help='Specify columns to show.  Precede the column specification '
-        'with a "+" in order to add columns to the default set of columns.  '
-        'Precede by a "-" to remove columns.  Use "++" for all.')
-    add('-s', '--sort', metavar='column', default='id',
-        help='Sort rows using column.  Use -column for a descendin sort.  '
-        'Default is to sort after id.')
-    add('--cut', type=int, default=35, help='Cut keywords and key-value '
-        'columns after CUT characters.  Use --cut=0 to disable cutting. '
-        'Default is 35 characters')
-    add('-p', '--plot', metavar='x,y1,y2,...',
-        help='Example: "-p x,y": plot y row against x row. Use '
-        '"-p a:x,y" to make a plot for each value of a.')
-    add('-P', '--plot-data', metavar='name',
-        help="Show plot from data['name'] from the selected row.")
-    add('--csv', action='store_true',
-        help='Write comma-separated-values file.')
-    add('-w', '--open-web-browser', action='store_true',
-        help='Open results in web-browser.')
-    add('--no-lock-file', action='store_true', help="Don't use lock-files")
-    add('--analyse', action='store_true',
-        help='Gathers statistics about tables and indices to help make '
-        'better query planning choices.')
-    add('-j', '--json', action='store_true',
-        help='Write json representation of selected row.')
-    add('--unique', action='store_true',
-        help='Give rows a new unique id when using --insert-into.')
+    @staticmethod
+    def run(args):
+        main(args)
 
 
 def main(args):

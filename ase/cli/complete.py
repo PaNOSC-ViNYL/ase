@@ -99,34 +99,35 @@ def complete(word, previous, line, point):
     return words
 
 
-description = 'Add tab-completion script to ~/.bashrc.'
+class CLICommand:
+    short_description = 'Add tab-completion script to ~/.bashrc.'
 
+    @staticmethod
+    def add_arguments(parser):
+        parser.add_argument('filename', nargs='?')
+        parser.add_argument('-0', '--dry-run', action='store_true')
 
-def add_arguments(parser):
-    parser.add_argument('filename', nargs='?')
-    parser.add_argument('-0', '--dry-run', action='store_true')
-
-
-def main(args):
-    filename = args.filename or os.path.expanduser('~/.bashrc')
-    cmd = 'complete -o default -C {} ase'.format(__file__)
-    print(cmd)
-    if args.dry_run:
-        return
-    with open(filename) as fd:
-        if cmd in fd.readlines():
-            print('Completion script already installed!')
+    @staticmethod
+    def run(args):
+        filename = args.filename or os.path.expanduser('~/.bashrc')
+        cmd = 'complete -o default -C {} ase'.format(__file__)
+        print(cmd)
+        if args.dry_run:
             return
-    with open(filename, 'a') as fd:
-        print(cmd, file=fd)
+        with open(filename) as fd:
+            if cmd in fd.readlines():
+                print('Completion script already installed!')
+                return
+        with open(filename, 'a') as fd:
+            print(cmd, file=fd)
 
 
 def update():
     """Update commands dict.
 
-    ::
+    Run this when ever options are changed::
 
-        python3 -c "from ase.cli.complete import update; update()"
+        python3 -m ase.cli.complete
 
     """
 
@@ -169,10 +170,13 @@ def update():
 
 
 if __name__ == '__main__':
-    word, previous = sys.argv[2:]
-    line = os.environ['COMP_LINE']
-    point = int(os.environ['COMP_POINT'])
-    words = complete(word, previous, line, point)
-    for w in words:
-        if w.startswith(word):
-            print(w)
+    if len(sys.argv) == 1:
+        update()
+    else:
+        word, previous = sys.argv[2:]
+        line = os.environ['COMP_LINE']
+        point = int(os.environ['COMP_POINT'])
+        words = complete(word, previous, line, point)
+        for w in words:
+            if w.startswith(word):
+                print(w)

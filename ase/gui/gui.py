@@ -230,7 +230,7 @@ class GUI(View, Status):
         self.graphs.append(process)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
+        process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(A)) for A in self.images.A]

@@ -21,55 +21,56 @@ from ase.calculators.calculator import PropertyNotImplementedError
 import ase.db as db
 
 
-description = ("Run calculation with one of ASE's calculators: " +
-               ', '.join(calcnames) + '.')
+class CLICommand:
+    short_description = "Run calculation with one of ASE's calculators"
+    description = short_description + ': ' + ', '.join(calcnames) + '.'
 
+    @staticmethod
+    def add_arguments(parser):
+        add = parser.add_argument
+        add('calculator')
+        add('names', nargs='*')
+        add('-t', '--tag',
+            help='String tag added to filenames.')
+        add('-p', '--parameters', default='',
+            metavar='key=value,...',
+            help='Comma-separated key=value pairs of ' +
+            'calculator specific parameters.')
+        add('-d', '--database',
+            help='Use a filename with a ".db" extension for a sqlite3 ' +
+            'database or a ".json" extension for a simple json database.  ' +
+            'Default is no database')
+        add('-S', '--skip', action='store_true',
+            help='Skip calculations already done.')
+        add('--properties', default='efsdMm',
+            help='Default value is "efsdMm" meaning calculate energy, ' +
+            'forces, stress, dipole moment, total magnetic moment and ' +
+            'atomic magnetic moments.')
+        add('-f', '--maximum-force', type=float,
+            help='Relax internal coordinates.')
+        add('--constrain-tags',
+            metavar='T1,T2,...',
+            help='Constrain atoms with tags T1, T2, ...')
+        add('-s', '--maximum-stress', type=float,
+            help='Relax unit-cell and internal coordinates.')
+        add('-E', '--equation-of-state',
+            help='Use "-E 5,2.0" for 5 lattice constants ranging from '
+            '-2.0 %% to +2.0 %%.')
+        add('--eos-type', default='sjeos', help='Selects the type of eos.')
+        add('-i', '--interactive-python-session', action='store_true')
+        add('-c', '--collection')
+        add('--modify', metavar='...',
+            help='Modify atoms with Python statement.  ' +
+            'Example: --modify="atoms.positions[-1,2]+=0.1".')
+        add('--after', help='Perform operation after calculation.  ' +
+            'Example: --after="atoms.calc.write(...)"')
 
-def add_arguments(parser):
-    add = parser.add_argument
-    add('calculator')
-    add('names', nargs='*')
-    add('-t', '--tag',
-        help='String tag added to filenames.')
-    add('-p', '--parameters', default='',
-        metavar='key=value,...',
-        help='Comma-separated key=value pairs of ' +
-        'calculator specific parameters.')
-    add('-d', '--database',
-        help='Use a filename with a ".db" extension for a sqlite3 ' +
-        'database or a ".json" extension for a simple json database.  ' +
-        'Default is no database')
-    add('-S', '--skip', action='store_true',
-        help='Skip calculations already done.')
-    add('--properties', default='efsdMm',
-        help='Default value is "efsdMm" meaning calculate energy, ' +
-        'forces, stress, dipole moment, total magnetic moment and ' +
-        'atomic magnetic moments.')
-    add('-f', '--maximum-force', type=float,
-        help='Relax internal coordinates.')
-    add('--constrain-tags',
-        metavar='T1,T2,...',
-        help='Constrain atoms with tags T1, T2, ...')
-    add('-s', '--maximum-stress', type=float,
-        help='Relax unit-cell and internal coordinates.')
-    add('-E', '--equation-of-state',
-        help='Use "-E 5,2.0" for 5 lattice constants ranging from '
-        '-2.0 %% to +2.0 %%.')
-    add('--eos-type', default='sjeos', help='Selects the type of eos.')
-    add('-i', '--interactive-python-session', action='store_true')
-    add('-c', '--collection')
-    add('--modify', metavar='...',
-        help='Modify atoms with Python statement.  ' +
-        'Example: --modify="atoms.positions[-1,2]+=0.1".')
-    add('--after', help='Perform operation after calculation.  ' +
-        'Example: --after="atoms.calc.write(...)"')
-
-
-def main(args):
-    runner = Runner()
-    runner.parse(args)
-    if runner.errors:
-        sys.exit(runner.errors)
+    @staticmethod
+    def run(args):
+        runner = Runner()
+        runner.parse(args)
+        if runner.errors:
+            sys.exit(runner.errors)
 
 
 class Runner:

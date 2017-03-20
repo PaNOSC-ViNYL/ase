@@ -12,78 +12,78 @@ from ase.data import ground_state_magnetic_moments
 from ase.data import atomic_numbers, covalent_radii
 
 
-description = 'Build an atom, molecule or bulk structure.'
+class CLICommand:
+    short_description = 'Build an atom, molecule or bulk structure'
 
+    @staticmethod
+    def add_arguments(parser):
+        add = parser.add_argument
+        add('name', metavar='name/input-file')
+        add('output', nargs='?')
+        add('-M', '--magnetic-moment',
+            metavar='M1,M2,...',
+            help='Magnetic moment(s).  '
+            'Use "-M 1" or "-M 2.3,-2.3".')
+        add('--modify', metavar='...',
+            help='Modify atoms with Python statement.  '
+            'Example: --modify="atoms.positions[-1,2]+=0.1".')
+        add('-V', '--vacuum', type=float, default=3.0,
+            help='Amount of vacuum to add around isolated atoms '
+            '(in Angstrom).')
+        add('--unit-cell',
+            help='Unit cell.  Examples: "10.0" or "9,10,11" (in Angstrom).')
+        add('--bond-length', type=float,
+            help='Bond length of dimer in Angstrom.')
+        add('-x', '--crystal-structure',
+            help='Crystal structure.',
+            choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
+                     'zincblende', 'rocksalt', 'cesiumchloride',
+                     'fluorite', 'wurtzite'])
+        add('-a', '--lattice-constant', default='',
+            help='Lattice constant(s) in Angstrom.')
+        add('--orthorhombic', action='store_true',
+            help='Use orthorhombic unit cell.')
+        add('--cubic', action='store_true',
+            help='Use cubic unit cell.')
+        add('-r', '--repeat',
+            help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
+        add('-g', '--gui', action='store_true')
 
-def add_arguments(parser):
-    add = parser.add_argument
-    add('name', metavar='name/input-file')
-    add('output', nargs='?')
-    add('-M', '--magnetic-moment',
-        metavar='M1,M2,...',
-        help='Magnetic moment(s).  ' +
-        'Use "-M 1" or "-M 2.3,-2.3".')
-    add('--modify', metavar='...',
-        help='Modify atoms with Python statement.  ' +
-        'Example: --modify="atoms.positions[-1,2]+=0.1".')
-    add('-V', '--vacuum', type=float, default=3.0,
-        help='Amount of vacuum to add around isolated atoms '
-        '(in Angstrom).')
-    add('--unit-cell',
-        help='Unit cell.  Examples: "10.0" or "9,10,11" ' +
-        '(in Angstrom).')
-    add('--bond-length', type=float,
-        help='Bond length of dimer in Angstrom.')
-    add('-x', '--crystal-structure',
-        help='Crystal structure.',
-        choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
-                 'zincblende', 'rocksalt', 'cesiumchloride',
-                 'fluorite', 'wurtzite'])
-    add('-a', '--lattice-constant', default='',
-        help='Lattice constant(s) in Angstrom.')
-    add('--orthorhombic', action='store_true',
-        help='Use orthorhombic unit cell.')
-    add('--cubic', action='store_true',
-        help='Use cubic unit cell.')
-    add('-r', '--repeat',
-        help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
-    add('-g', '--gui', action='store_true')
+    @staticmethod
+    def run(args):
+        if '.' in args.name:
+            # Read from file:
+            atoms = read(args.name)
+        elif args.crystal_structure:
+            atoms = build_bulk(args)
+        else:
+            atoms = build_molecule(args)
 
+        if args.magnetic_moment:
+            magmoms = np.array(
+                [float(m) for m in args.magnetic_moment.split(',')])
+            atoms.set_initial_magnetic_moments(
+                np.tile(magmoms, len(atoms) // len(magmoms)))
 
-def main(args):
-    if '.' in args.name:
-        # Read from file:
-        atoms = read(args.name)
-    elif args.crystal_structure:
-        atoms = build_bulk(args)
-    else:
-        atoms = build_molecule(args)
+        if args.modify:
+            exec(args.modify, {'atoms': atoms})
 
-    if args.magnetic_moment:
-        magmoms = np.array(
-            [float(m) for m in args.magnetic_moment.split(',')])
-        atoms.set_initial_magnetic_moments(
-            np.tile(magmoms, len(atoms) // len(magmoms)))
+        if args.repeat is not None:
+            r = args.repeat.split(',')
+            if len(r) == 1:
+                r = 3 * r
+            atoms = atoms.repeat([int(c) for c in r])
 
-    if args.modify:
-        exec(args.modify, {'atoms': atoms})
+        if args.gui:
+            view(atoms)
 
-    if args.repeat is not None:
-        r = args.repeat.split(',')
-        if len(r) == 1:
-            r = 3 * r
-        atoms = atoms.repeat([int(c) for c in r])
-
-    if args.gui:
-        view(atoms)
-
-    if args.output:
-        write(args.output, atoms)
-    elif sys.stdout.isatty():
-        write(args.name + '.json', atoms)
-    else:
-        con = connect(sys.stdout, type='json')
-        con.write(atoms, name=args.name)
+        if args.output:
+            write(args.output, atoms)
+        elif sys.stdout.isatty():
+            write(args.name + '.json', atoms)
+        else:
+            con = connect(sys.stdout, type='json')
+            con.write(atoms, name=args.name)
 
 
 def build_molecule(args):

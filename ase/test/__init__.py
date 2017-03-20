@@ -180,25 +180,27 @@ class must_raise:
         return issubclass(exc_type, self.exception)
 
 
-description = 'Test ASE'
+class CLICommand:
+    short_description = 'Test ASE'
 
+    @staticmethod
+    def add_arguments(parser):
+        parser.add_argument(
+            '-c', '--calculators',
+            help='Comma-separated list of calculators to test.')
+        parser.add_argument('tests', nargs='*')
 
-def add_arguments(parser):
-    parser.add_argument('-c', '--calculators',
-                        help='Comma-separated list of calculators to test.')
-    parser.add_argument('tests', nargs='*')
+    @staticmethod
+    def run(args):
+        if args.calculators:
+            calculators = args.calculators.split(',')
+        else:
+            calculators = []
 
-
-def main(args):
-    if args.calculators:
-        calculators = args.calculators.split(',')
-    else:
-        calculators = []
-
-    results = test(verbosity=1 + args.verbose - args.quiet,
-                   calculators=calculators,
-                   files=args.tests)
-    sys.exit(len(results.errors + results.failures))
+        results = test(verbosity=1 + args.verbose - args.quiet,
+                       calculators=calculators,
+                       files=args.tests)
+        sys.exit(len(results.errors + results.failures))
 
 
 if __name__ == '__main__':
