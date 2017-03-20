@@ -1,0 +1,34 @@
+
+<div class="form-group">
+    
+    <label>
+    Filter: 
+    {%if control in meta %}
+      {{meta[control][1]}}
+    {% else %}
+      {{control}}
+    {% endif %}
+    </label>
+
+    <div class="row">
+        
+        <div class="col-xs-11">
+
+            <div class="checkbox">
+                <label><input type="checkbox" id="{{control}}-result">
+                {%if control in meta %}
+                  {{meta[control][0]}}
+                {% else %}
+                  {{control}}
+                {% endif %}                
+                </label>
+            </div>
+
+        </div>
+
+        <div class="col-xs-1">
+        </div>
+
+    </div> <!--END OF ROW-->
+
+</div> <!--END OF FORM GROUP-->

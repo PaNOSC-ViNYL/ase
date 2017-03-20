@@ -29,7 +29,7 @@ Browse database
       <input type="hidden" id="searchstr" class="form-control" placeholder="Search Query" name="query">
         
       <div class="form-group">
-				<input type="text" id="name-result" class="form-control" placeholder="Search for Composition" size="60">				
+				<input type="text" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2 or individual elements Mo,S,..." size="60">
 			</div>
 
 			<button type="submit" class="btn btn-default">
@@ -58,16 +58,14 @@ Browse database
 
                 <div class="col-sm-4">
                   
-                  {% if ctrl[control][0] == 'COMBO' %}                  
-                    {% include 'combo.html' %}                  
+                  {% if ctrl[control][0] == 'COMBO' %}
+                    {% include 'combo.html' %}
+                  {% elif ctrl[control][0] == 'CHECK' %}
+                    {% include 'checkbox.html' %}
+                  {% elif ctrl[control][0] == 'INTERVAL' %}
+                    {% include 'interval.html' %}
                   {% endif %}
 
-                </div>
-                {% endfor %}
-                
-                <!-- add additional empty columns to fill up the space -->
-                {%for i in range(colCount['iter'] % 3, 3) %}
-                <div class="col-sm-4">
                 </div>
                 
                 <!-- if end of row insert new row if there are more controls -->
@@ -76,6 +74,12 @@ Browse database
                 <div class="row">
                 {% endif %}
                 
+                {% endfor %}
+                
+                <!-- add additional empty columns to fill up the space -->
+                {%for i in range(colCount['iter'] % 3, 3) %}
+                <div class="col-sm-4">
+                </div>                
                 {% endfor %}
               </div>
             </li>
@@ -87,8 +91,8 @@ Browse database
                 <input type="hidden" name="x" value="{{ cid }}">              
                 <div class="form-group" style="margin-bottom:0px;">
 									<label for="sqlstr">Advanced Search</label>
-                  <input id="searchstr2" type="text" class="form-control" name="query" placeholder="Search Query">
-									<small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying">Queries</a></small>
+                  <input id="searchstr2" type="text" class="form-control" name="query" placeholder="">
+									<small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying">Help with constructing advanced search queries...</a></small>
 								</div>
               </form>
 						</li>
@@ -129,8 +133,10 @@ Browse database
 							</button>
 							<ul class="dropdown-menu">
 							{% for key in addcolumns %}
-              {% if key in meta %}
-								<li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }} ({{key}})</a></li>
+              {% if meta|length != 0 %}
+                {% if key in meta %}
+								  <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }} ({{key}})</a></li>
+                {% endif %}
               {% else %}
                 <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a></li>
               {% endif %}                
