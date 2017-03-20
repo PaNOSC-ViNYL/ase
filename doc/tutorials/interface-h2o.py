@@ -28,7 +28,7 @@ W.set_cell([[cellW[1, 1], 0, 0],
 write('WL_rot_c.png', W, show_unit_cell=2)
 
 # Now rotate atoms just like the unit cell
-W.rotate('z', np.pi / 2, center=(0, 0, 0))
+W.rotate(90, 'z', center=(0, 0, 0))
 write('WL_rot_a.png', W, show_unit_cell=2)
 
 # Now we can use wrap
