@@ -1,5 +1,6 @@
 from __future__ import print_function
 import collections
+import json
 import optparse
 import sys
 from random import randint
@@ -93,6 +94,10 @@ def main(args=sys.argv[1:]):
         'better query planning choices.')
     add('-j', '--json', action='store_true',
         help='Write json representation of selected row.')
+    add('-m', '--show-metadata', action='store_true',
+        help='Show metadata as json.')
+    add('--set-metadata', metavar='something.json',
+        help='Set metadata from a json file.')
     add('--unique', action='store_true',
         help='Give rows a new unique id when using --insert-into.')
     opts, args = parser.parse_args(args)
@@ -162,6 +167,15 @@ def run(opts, args, verbosity):
                               verbosity=verbosity,
                               limit=opts.limit, offset=opts.offset):
             print(row['explain'])
+        return
+
+    if opts.show_metadata:
+        print(json.dumps(con.metadata, sort_keys=True, indent=4))
+        return
+
+    if opts.set_metadata:
+        with open(opts.set_metadata) as fd:
+            con.metadata = json.load(fd)
         return
 
     if opts.insert_into:
