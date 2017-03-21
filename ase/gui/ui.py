@@ -64,7 +64,7 @@ def helpwindow(text):
     win.add(Text(text))
 
 
-class BaseWindow:
+class BaseWindow(object):
     def __init__(self, title, close=None):
         self.title = title
         if close:
