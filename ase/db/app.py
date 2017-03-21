@@ -127,7 +127,7 @@ def index():
     if 'toggle' in request.args:
         column = request.args['toggle']
         if column == 'reset':
-            columns = md.get('columns') or list(all_columns)
+            columns = md.get('default_columns') or list(all_columns)
         else:
             if column in columns:
                 columns.remove(column)
