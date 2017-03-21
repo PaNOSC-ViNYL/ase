@@ -75,9 +75,13 @@ def index():
     # pointer to metadata
     md = db.metadata
 
+    if not hasattr(db, 'formulas'):
+        db.formulas = [row.formula for row in db.select()]
+
     con_id = int(request.args.get('x', '0'))
 
     if con_id not in connections:
+        # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
         query = ''
@@ -144,6 +148,7 @@ def index():
     return render_template('table.html',
                            t=table,
                            md=md,
+                           formulas=db.formulas,
                            con=con,
                            cid=con_id,
                            home=home,
