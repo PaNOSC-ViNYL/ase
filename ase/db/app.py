@@ -50,7 +50,7 @@ Connection = collections.namedtuple(
 
 app = Flask(__name__)
 
-db = None
+databases = {}
 home = ''  # link to homepage
 open_ase_gui = True  # click image to open ase-gui
 
@@ -68,11 +68,16 @@ tmpdir = tempfile.mkdtemp()  # used to cache png-files
 SUBSCRIPT = re.compile(r'(\d+)')
 
 
+def database():
+    return databases[request.get('project', 'default')]
+
+
 @app.route('/')
 def index():
     global next_con_id
 
-    # pointer to metadata
+    db = database()
+
     md = db.metadata
 
     if not hasattr(db, 'formulas'):
@@ -164,6 +169,7 @@ def image(name):
     path = os.path.join(tmpdir, name)
     if not os.path.isfile(path):
         id = int(name[:-4])
+        db = database()
         atoms = db.get_atoms(id)
         atoms2png(atoms, path)
 
@@ -175,6 +181,7 @@ def cif(name):
     path = os.path.join(tmpdir, name)
     if not os.path.isfile(path):
         id = int(name[:-4])
+        db = database()
         atoms = db.get_atoms(id)
         atoms.write(path)
     return send_from_directory(tmpdir, name)
@@ -185,6 +192,7 @@ def plot(png):
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
         name, id = png[:-4].split('-')
+        db = database()
         dct = db[int(id)].data
         dct2plot(dct, name, path, show=False)
 
@@ -194,6 +202,7 @@ def plot(png):
 @app.route('/gui/<int:id>')
 def gui(id):
     if open_ase_gui:
+        db = database()
         atoms = db.get_atoms(id)
         view(atoms)
     return '', 204, []
@@ -201,6 +210,7 @@ def gui(id):
 
 @app.route('/id/<int:id>')
 def summary(id):
+    db = database()
     s = Summary(db.get(id), SUBSCRIPT)
     return render_template('summary.html', s=s, home=home, md=db.metadata,
                            open_ase_gui=open_ase_gui)
@@ -209,6 +219,7 @@ def summary(id):
 def tofile(query, type, limit=0):
     fd, name = tempfile.mkstemp(suffix='.' + type)
     con = ase.db.connect(name, use_lock_file=False)
+    db = database()
     for dct in db.select(query, limit=limit):
         con.write(dct,
                   data=dct.get('data', {}),
@@ -235,6 +246,7 @@ def download(f):
 def xyz(id):
     fd = io.BytesIO()
     from ase.io.xyz import write_xyz
+    db = database()
     write_xyz(fd, db.get_atoms(id))
     data = fd.getvalue()
     return data, '{0}.xyz'.format(id)

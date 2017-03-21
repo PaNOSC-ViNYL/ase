@@ -255,7 +255,7 @@ def run(opts, args, verbosity):
     else:
         if opts.open_web_browser:
             import ase.db.app as app
-            app.db = con
+            app.databases['default'] = con
             app.app.run(host='0.0.0.0', debug=True)
         else:
             columns = list(all_columns)
