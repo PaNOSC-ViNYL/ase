@@ -16,6 +16,34 @@ from ase.utils import rotate
 GREEN = '#DDFFDD'
 
 
+def get_bonds(atoms, covalent_radii):
+    from ase.neighborlist import NeighborList
+    nl = NeighborList(covalent_radii * 1.5,
+                      skin=0, self_interaction=False)
+    nl.update(atoms)
+    nbonds = nl.nneighbors + nl.npbcneighbors
+
+    bonds = np.empty((nbonds, 5), int)
+    if nbonds == 0:
+        return bonds
+
+    n1 = 0
+    for a in range(len(atoms)):
+        indices, offsets = nl.get_neighbors(a)
+        n2 = n1 + len(indices)
+        bonds[n1:n2, 0] = a
+        bonds[n1:n2, 1] = indices
+        bonds[n1:n2, 2:] = offsets
+        n1 = n2
+
+    i = bonds[:n2, 2:].any(1)
+    pbcbonds = bonds[:n2][i]
+    bonds[n2:, 0] = pbcbonds[:, 1]
+    bonds[n2:, 1] = pbcbonds[:, 0]
+    bonds[n2:, 2:] = -pbcbonds[:, 2:]
+    return bonds
+
+
 class View:
     def __init__(self, rotations):
         self.colormode = 'jmol'  # The default colors
@@ -40,16 +68,18 @@ class View:
     def set_coordinates(self, frame=None, focus=None):
         if frame is None:
             frame = self.frame
-        self.make_box()
-        self.bind(frame)
-        self.set_frame(frame, focus=focus, init=True)
+        self.set_frame(frame, focus=focus)
 
-    def set_frame(self, frame=None, focus=False, init=False):
-        self.make_box()
-        if frame is None:
-            frame = self.frame
+    def set_frame(self, frame, focus=False):
+        assert frame < len(self.images)
+        self.frame = frame
+
         atoms = self.images[frame]
         natoms = len(atoms)
+
+        self.update_box(atoms)
+        self.update_bonds(atoms)
+
         self.X = np.empty((natoms + len(self.B1) + len(self.bonds), 3))
         self.X_pos = self.X[:natoms]
         self.X_pos[:] = atoms.positions
@@ -58,22 +88,18 @@ class View:
 
         self.X[:len(atoms), :] = atoms.positions
 
-        # XXX this should raise an error; caller must provide valid numbers!
-        if self.frame is not None and self.frame > len(self.images):
-            self.frame = len(self.images) - 1
-
-        if init or frame != self.frame:
+        if 1:#if init or frame != self.frame:
             cell = atoms.cell
             nc = len(self.B1)
             nbonds = len(self.bonds)
 
-            if init or (atoms.cell != self.atoms.cell).any():
+            if 1: #init or (atoms.cell != self.atoms.cell).any():
                 self.X_B1[:] = np.dot(self.B1, cell)
                 self.B = np.empty((nc + nbonds, 3))
                 self.B[:nc] = np.dot(self.B2, cell)
 
             if nbonds > 0:
-                P = self.atoms.positions
+                P = atoms.positions
                 Af = self.images.repeat[:, np.newaxis] * cell
                 a = P[self.bonds[:, 0]]
                 b = P[self.bonds[:, 1]] + np.dot(self.bonds[:, 2:], Af) - a
@@ -86,30 +112,22 @@ class View:
                 b[self.bonds[:, 2:].any(1)] *= 0.5
                 self.B[nc:] = self.X_bonds + b
 
-            filenames = self.images.filenames
-            filename = filenames[frame]
-            if (self.frame is None or
-                filename != filenames[self.frame] or
-                filename is None):
-                if filename is None:
-                    filename = 'ase.gui'
-            filename = basename(filename)
-            self.window.title = filename
+        fname = self.images.filenames[frame]
+        self.window.title = 'ase.gui' if fname is None else basename(fname)
 
-        self.frame = frame
         if focus:
             self.focus()
         else:
             self.draw()
 
-    def make_box(self):
+    def update_box(self, atoms):
         if not self.window['toggle-show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
             return
 
         # This function uses the box of the first Atoms object!  How can this
         # be right??
-        V = self.images[0].get_cell()
+        V = atoms.get_cell() #self.images[0].get_cell()
         nn = []
         for c in range(3):
             v = V[c]
@@ -137,42 +155,14 @@ class View:
         self.B1.shape = (-1, 3)
         self.B2.shape = (-1, 3)
 
-    def bind(self, frame):
+    def update_bonds(self, atoms):
         if not self.window['toggle-show-bonds']:
             self.bonds = np.empty((0, 5), int)
             return
 
-        from ase.neighborlist import NeighborList
-        nl = NeighborList(self.get_covalent_radii() * 1.5,
-                          skin=0, self_interaction=False)
-        atomscopy = self.atoms.copy()
+        atomscopy = atoms.copy()
         atomscopy.cell *= self.images.repeat[:, np.newaxis]
-        nl.update(atomscopy)
-        nbonds = nl.nneighbors + nl.npbcneighbors
-
-        bonds = np.empty((nbonds, 5), int)
-        #self.coordination = np.zeros(len(self.atoms), dtype=int)
-        if nbonds == 0:
-            return
-
-        n1 = 0
-        for a in range(len(self.atoms)):
-            indices, offsets = nl.get_neighbors(a)
-            #self.coordination[a] += len(indices)
-            #for a2 in indices:
-            #    self.coordination[a2] += 1
-            n2 = n1 + len(indices)
-            bonds[n1:n2, 0] = a
-            bonds[n1:n2, 1] = indices
-            bonds[n1:n2, 2:] = offsets
-            n1 = n2
-
-        i = bonds[:n2, 2:].any(1)
-        pbcbonds = bonds[:n2][i]
-        bonds[n2:, 0] = pbcbonds[:, 1]
-        bonds[n2:, 1] = pbcbonds[:, 0]
-        bonds[n2:, 2:] = -pbcbonds[:, 2:]
-        self.bonds = bonds
+        self.bonds = get_bonds(atomscopy, self.get_covalent_radii(atoms))
 
     def toggle_show_unit_cell(self, key=None):
         self.set_coordinates()
@@ -333,8 +323,10 @@ class View:
         elif self.colormode == 'magmom':
             return self.images.get_magmoms(self.atoms)
 
-    def get_covalent_radii(self):
-        return self.images.get_radii(self.atoms)
+    def get_covalent_radii(self, atoms=None):
+        if atoms is None:
+            atoms = self.atoms
+        return self.images.get_radii(atoms)
 
     def draw(self, status=True):
         self.window.clear()
