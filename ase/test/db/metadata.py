@@ -20,11 +20,11 @@ for name in ['md.json', 'md.db']:
     db.write(Atoms('H2O'), answer=117, kind='molecule', data=plot)
     db.metadata = {'test': 'ok'}
     db.metadata = {
-        'default_columns': ['formula', 'answer'],
+        'default_columns': ['formula', 'answer', 'kind'],
         'special_keys': {'kind': ('COMBO', ['atom', 'molecule'])},
         'key_descriptions': {
-            'kind': ('Type', 'Type of system', 'string'),
-            'answer': ('Answer', 'Answer to question', 'int')},
+            'kind': ('Type', 'Type of system', 'string', ''),
+            'answer': ('Answer', 'Answer to question', 'int', 'eV')},
         'summary_sections': [
             ['Basic Properties',
              ['Item', ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
