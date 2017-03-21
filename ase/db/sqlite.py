@@ -13,6 +13,7 @@ Versions:
 """
 
 from __future__ import absolute_import, print_function
+import json
 import os
 import sqlite3
 import sys
@@ -175,7 +176,7 @@ class SQLite3Database(Database):
                     'SELECT value FROM information WHERE name="metadata"')
                 results = cur.fetchall()
                 if results:
-                    self._metadata = results[0][0]
+                    self._metadata = json.loads(results[0][0])
 
         if self.version > VERSION:
             raise IOError('Can not read new ase.db format '
@@ -611,16 +612,26 @@ class SQLite3Database(Database):
     def metadata(self):
         if self._metadata is None:
             self._initialize(self._connect())
-        return self._metadata
+        return self._metadata.copy()
 
     @metadata.setter
     def metadata(self, dct):
         self._metadata = dct
-        cur.execute('INSERT INTO systems VALUES ({})'.format(q),
-                    values)
-        cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
-                    values + (id,))
+        con = self._connect()
+        self._initialize(con)
+        md = json.dumps(dct)
+        cur = con.execute(
+            'SELECT count(*) FROM information WHERE name="metadata"')
 
+        if cur.fetchone()[0]:
+            print(1)
+            cur.execute(
+                'UPDATE information SET value=? WHERE name="metadata"', [md])
+        else:
+            print(2)
+            cur.execute('INSERT INTO information VALUES (?, ?)',
+                        ('metadata', md))
+        con.commit()
 
 
 def blob(array):

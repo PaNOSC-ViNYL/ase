@@ -209,7 +209,7 @@ class JSONDatabase(Database, object):
         if self._metadata is None:
             bigdct, myids, nextid = self._read_json()
             self._metadata = bigdct.get('metadata', {})
-        return self._metadata
+        return self._metadata.copy()
 
     @metadata.setter
     def metadata(self, dct):
