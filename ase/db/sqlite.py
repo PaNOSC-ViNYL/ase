@@ -118,7 +118,7 @@ def float_if_not_none(x):
         return float(x)
 
 
-class SQLite3Database(Database):
+class SQLite3Database(Database, object):
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
@@ -625,11 +625,9 @@ class SQLite3Database(Database):
             'SELECT count(*) FROM information WHERE name="metadata"')
 
         if cur.fetchone()[0]:
-            print(1)
             cur.execute(
                 'UPDATE information SET value=? WHERE name="metadata"', [md])
         else:
-            print(2)
             cur.execute('INSERT INTO information VALUES (?, ?)',
                         ('metadata', md))
         con.commit()
