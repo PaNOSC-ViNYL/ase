@@ -155,8 +155,12 @@ def index():
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
+    projects = [(proj, d.metadata.get('title', proj))
+                for proj, d in databases.items()]
+
     return render_template('table.html',
                            project=project,
+                           projects=projects,
                            t=table,
                            md=md,
                            formulas=db.formulas,
