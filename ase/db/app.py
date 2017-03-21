@@ -41,7 +41,8 @@ from ase.visualize import view
 # Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
     'Connection',
-    ['query',  # query string
+    ['project',  # project name
+     'query',  # query string
      'nrows',  # number of rows matched
      'page',  # page number
      'columns',  # what columns to show
@@ -69,19 +70,12 @@ SUBSCRIPT = re.compile(r'(\d+)')
 
 
 def database():
-    return databases[request.get('project', 'default')]
+    return databases[request.args.get('project', 'default')]
 
 
 @app.route('/')
 def index():
     global next_con_id
-
-    db = database()
-
-    md = db.metadata
-
-    if not hasattr(db, 'formulas'):
-        db.formulas = [row.formula for row in db.select()]
 
     con_id = int(request.args.get('x', '0'))
 
@@ -89,14 +83,25 @@ def index():
         # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
+        project = 'default'
         query = ''
-        columns = md.get('columns') or list(all_columns)
-        sort = 'id'
-        limit = 25
         nrows = None
         page = 0
+        columns = None
+        sort = 'id'
+        limit = 25
     else:
-        query, nrows, page, columns, sort, limit = connections[con_id]
+        project, query, nrows, page, columns, sort, limit = connections[con_id]
+
+    project = request.args.get('project', project)
+    db = databases[project]
+    md = db.metadata
+
+    if columns is None:
+        columns = md.get('default_columns') or list(all_columns)
+
+    if not hasattr(db, 'formulas'):
+        db.formulas = [row.formula for row in db.select()]
 
     if 'sort' in request.args:
         column = request.args['sort']
@@ -138,7 +143,7 @@ def index():
     table = Table(db)
     table.select(query, columns, sort, limit, offset=page * limit)
 
-    con = Connection(query, nrows, page, columns, sort, limit)
+    con = Connection(project, query, nrows, page, columns, sort, limit)
     connections[con_id] = con
 
     if len(connections) > 1000:
@@ -151,6 +156,7 @@ def index():
                   if column not in table.columns]
 
     return render_template('table.html',
+                           project=project,
                            t=table,
                            md=md,
                            formulas=db.formulas,
