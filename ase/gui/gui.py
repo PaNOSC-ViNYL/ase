@@ -70,7 +70,7 @@ class GUI(View, Status):
         self.moving = False
 
     def run(self, expr=None, test=None):
-        self.set_coordinates(len(self.images) - 1, focus=True)
+        self.set_frame(len(self.images) - 1, focus=True)
 
         if len(self.images) > 1:
             self.movie()
@@ -139,7 +139,7 @@ class GUI(View, Status):
 
         if self.moving:
             self.atoms.positions[self.images.selected[:len(self.atoms)]] += vec
-            self.set_coordinates()
+            self.set_frame()
         else:
             self.center -= vec
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
@@ -156,7 +156,7 @@ class GUI(View, Status):
 
             # Will remove selection in other images, too
             self.images.selected[:] = False
-            self.set_coordinates()
+            self.set_frame()
             self.draw()
 
     def execute(self):
@@ -266,7 +266,7 @@ class GUI(View, Status):
         filename = filename or chooser.go()
         if filename:
             self.images.read([filename], slice(None), format[0])
-            self.set_coordinates(len(self.images) - 1, focus=True)
+            self.set_frame(len(self.images) - 1, focus=True)
 
     def modify_atoms(self, key=None):
         from ase.gui.modify import ModifyAtoms
@@ -311,7 +311,7 @@ class GUI(View, Status):
         self.images.initialize([atoms], init_magmom=init_magmom)
         self.frame = 0  # Prevent crashes
         self.images.repeat_images(rpt)
-        self.set_coordinates(frame=0, focus=True)
+        self.set_frame(frame=0, focus=True)
         self.notify_vulnerable()
 
     def prepare_new_atoms(self):
@@ -322,7 +322,7 @@ class GUI(View, Status):
         "Set a new atoms object."
         # self.notify_vulnerable()   # Do this manually after last frame.
         frame = self.images.append_atoms(atoms)
-        self.set_coordinates(frame=frame - 1, focus=True)
+        self.set_frame(frame=frame - 1, focus=True)
 
     def notify_vulnerable(self):
         """Notify windows that would break when new_atoms is called.

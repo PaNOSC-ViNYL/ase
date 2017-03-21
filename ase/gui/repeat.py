@@ -23,13 +23,13 @@ class Repeat:
     def change(self):
         repeat = [int(r.value) for r in self.repeat]
         self.gui.images.repeat_images(repeat)
-        self.gui.set_coordinates()
+        self.gui.set_frame()
 
     def set_unit_cell(self):
         self.gui.images.repeat_unit_cell()
         for r in self.repeat:
             r.value = 1
-        self.gui.set_coordinates()
+        self.gui.set_frame()
 
     def set_unit_cell0(self):
         self.gui.images.A *= self.gui.images.repeat.reshape((3, 1))
@@ -37,4 +37,4 @@ class Repeat:
         self.gui.images.repeat = np.ones(3, int)
         for r in self.repeat:
             r.value = 1
-        self.gui.set_coordinates()
+        self.gui.set_frame()

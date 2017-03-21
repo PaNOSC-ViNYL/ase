@@ -57,5 +57,5 @@ class AddAtoms:
         self.gui.images.selected[:] = False
         # 'selected' array may be longer than current atoms
         self.gui.images.selected[len(atoms) - 1] = True
-        self.gui.set_coordinates()
+        self.gui.set_frame()
         self.gui.draw()

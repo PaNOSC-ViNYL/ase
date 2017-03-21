@@ -69,7 +69,7 @@ class Movie:
             self.direction = np.sign(step)
 
     def new_frame(self, value):
-        self.gui.set_coordinates(value)
+        self.gui.set_frame(value)
 
     def play(self):
         self.stop()

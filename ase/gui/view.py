@@ -65,22 +65,32 @@ class View:
     def atoms(self):
         return self.images[self.frame]
 
-    def set_coordinates(self, frame=None, focus=None):
-        if frame is None:
-            frame = self.frame
-        self.set_frame(frame, focus=focus)
-
     def set_frame(self, frame, focus=False):
         assert frame < len(self.images)
         self.frame = frame
+        self.set_atoms(self.images[frame])
 
-        atoms = self.images[frame]
+        fname = self.images.filenames[frame]
+        self.window.title = 'ase.gui' if fname is None else basename(fname)
+
+        if focus:
+            self.focus()
+        else:
+            self.draw()
+
+    def set_atoms(self, atoms):
         natoms = len(atoms)
 
         self.update_box(atoms)
-        self.update_bonds(atoms)
 
-        self.X = np.empty((natoms + len(self.B1) + len(self.bonds), 3))
+        if self.is_showing_bonds():
+            atomscopy = atoms.copy()
+            atomscopy.cell *= self.images.repeat[:, np.newaxis]
+            bonds = self.get_bonds(atomscopy, self.get_covalent_radii(atoms))
+        else:
+            bonds = np.empty((0, 5), int)
+
+        self.X = np.empty((natoms + len(self.B1) + len(bonds), 3))
         self.X_pos = self.X[:natoms]
         self.X_pos[:] = atoms.positions
         self.X_B1 = self.X[natoms:natoms + len(self.B1)]
@@ -91,7 +101,7 @@ class View:
         if 1:#if init or frame != self.frame:
             cell = atoms.cell
             nc = len(self.B1)
-            nbonds = len(self.bonds)
+            nbonds = len(bonds)
 
             if 1: #init or (atoms.cell != self.atoms.cell).any():
                 self.X_B1[:] = np.dot(self.B1, cell)
@@ -101,33 +111,24 @@ class View:
             if nbonds > 0:
                 P = atoms.positions
                 Af = self.images.repeat[:, np.newaxis] * cell
-                a = P[self.bonds[:, 0]]
-                b = P[self.bonds[:, 1]] + np.dot(self.bonds[:, 2:], Af) - a
+                a = P[bonds[:, 0]]
+                b = P[bonds[:, 1]] + np.dot(bonds[:, 2:], Af) - a
                 d = (b**2).sum(1)**0.5
                 r = 0.65 * self.get_covalent_radii()
-                x0 = (r[self.bonds[:, 0]] / d).reshape((-1, 1))
-                x1 = (r[self.bonds[:, 1]] / d).reshape((-1, 1))
+                x0 = (r[bonds[:, 0]] / d).reshape((-1, 1))
+                x1 = (r[bonds[:, 1]] / d).reshape((-1, 1))
                 self.X_bonds[:] = a + b * x0
                 b *= 1.0 - x0 - x1
-                b[self.bonds[:, 2:].any(1)] *= 0.5
+                b[bonds[:, 2:].any(1)] *= 0.5
                 self.B[nc:] = self.X_bonds + b
 
-        fname = self.images.filenames[frame]
-        self.window.title = 'ase.gui' if fname is None else basename(fname)
-
-        if focus:
-            self.focus()
-        else:
-            self.draw()
 
     def update_box(self, atoms):
         if not self.window['toggle-show-unit-cell']:
             self.B1 = self.B2 = np.zeros((0, 3))
             return
 
-        # This function uses the box of the first Atoms object!  How can this
-        # be right??
-        V = atoms.get_cell() #self.images[0].get_cell()
+        V = atoms.get_cell()
         nn = []
         for c in range(3):
             v = V[c]
@@ -155,17 +156,11 @@ class View:
         self.B1.shape = (-1, 3)
         self.B2.shape = (-1, 3)
 
-    def update_bonds(self, atoms):
-        if not self.window['toggle-show-bonds']:
-            self.bonds = np.empty((0, 5), int)
-            return
-
-        atomscopy = atoms.copy()
-        atomscopy.cell *= self.images.repeat[:, np.newaxis]
-        self.bonds = get_bonds(atomscopy, self.get_covalent_radii(atoms))
+    def is_showing_bonds(self):
+        return self.window['toggle-show-bonds']
 
     def toggle_show_unit_cell(self, key=None):
-        self.set_coordinates()
+        self.set_frame()
 
     def show_labels(self):
         index = self.window['show-labels']
@@ -184,7 +179,7 @@ class View:
         self.draw()
 
     def toggle_show_bonds(self, key=None):
-        self.set_coordinates()
+        self.set_frame()
 
     def toggle_show_velocities(self, key=None):
         # XXX hard coded scale is ugly
@@ -249,7 +244,7 @@ class View:
 
     def reset_view(self, menuitem):
         self.axes = rotate('0.0x,0.0y,0.0z')
-        self.set_coordinates()
+        self.set_frame()
         self.focus(self)
 
     def set_view(self, key):
@@ -292,7 +287,7 @@ class View:
 
             self.axes = np.array([x1, x2, x3]).T
 
-        self.set_coordinates()
+        self.set_frame()
 
     def get_colors(self, rgb=False):
         if rgb:
