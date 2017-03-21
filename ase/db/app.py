@@ -72,6 +72,7 @@ SUBSCRIPT = re.compile(r'(\d+)')
 def index():
     global next_con_id
 
+    # pointer to metadata
     md = db.metadata
 
     con_id = int(request.args.get('x', '0'))
@@ -98,7 +99,7 @@ def index():
             sort = column
         page = 0
     elif 'query' in request.args:
-        query = request.args['query'].encode()
+        query = request.args['query']
         try:
             limit = max(1, min(int(request.args.get('limit', limit)), 200))
         except ValueError:

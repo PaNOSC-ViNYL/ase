@@ -1,36 +1,19 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-<head>
-{% block head %}
-<title>{% block title %}{% endblock %}</title>
-<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
-{% endblock %}
-</head>
-<body>
-<div class="bar1">
-{% block bar1 %}
-{% endblock %}
-</div>
-<div class="bar">
-{{ home|safe }}
-<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> ::
-<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a> ::
-<a href="http://www.python.org/">Python</a> ::
-<a href="http://docs.scipy.org/doc/numpy/reference/">NumPy</a>
-</div>
-<br>
-{% block content %}
-{% endblock %}
-<br>
-<div class="bar">
-{{ home|safe }}
-<a href="https://wiki.fysik.dtu.dk/ase/">ASE</a> ::
-<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html">ase.db</a> ::
-<a href="http://www.python.org/">Python</a> ::
-<a href="http://docs.scipy.org/doc/numpy/reference/">NumPy</a>
-</div>
-<div class="footer">
-Created using <a href="http://flask.pocoo.org/">Flask</a>
-</div>
-</body>
+  <head>  
+    <meta name="viewport" content="width-device-width, initial-scale=1.0"> 
+    <title>{% block title %}{% endblock %}</title>
+
+		{% include 'js.html' %}
+    {% include 'style.html' %}
+
+    {% block head %}
+    {% endblock %}
+  </head>
+  <body>
+
+  {% block content %}
+  {% endblock %}
+  
+  </body>
 </html>

@@ -1,78 +1,241 @@
-{% extends "layout.html" %}
-{% block title %}Browse ASE database{% endblock %}
-{% block head %}
-{{ super() }}
-<script src="{{ url_for('static', filename='table.js') }}"></script>
-{% endblock %}
-{% block bar1 %}
-BROWSE DATABASE
-{% endblock %}
-{% block content %}
-<form action="/">
-Search:
-<input type=hidden name=x value={{ cid }}>
-<input type=text name=query value="{{ con.query }}" onchange="this.form.submit()" size=80>
-<a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying">help</a>
-<br>
-Rows per page:
-<input type=text name=limit value={{ con.limit }} onchange="this.form.submit()" size=6>
-</form>
-<br>
-Rows found: {{ nrows }}
-<br>
-Download:
-<a href="/sqlite?x={{ cid }}">db</a>,
-<a href="/json?x={{ cid }}">json</a>
-<br>
-<form action="/">
-Add
-<input type=hidden name=x value={{ cid }}>
-<select name=toggle onchange="this.form.submit()">
-<option value="">column</option>
-{% for key in addcolumns -%}
-<option value={{ key }}>{{ key }}</option>
-{% endfor %}
-</select>
-<a href="/?x={{ cid }}&amp;toggle=reset">Reset</a>
-</form>
-{% for page, name in pages %}
-{% if page < 0 %}
-{{ name }}
-{% else %}
-<a href="/?x={{ cid }}&amp;page={{ page }}">{{ name }}</a>
-{% endif %}
-{% endfor %}
+{% extends 'layout.html' %}
 
-<br>
-Row {{ row1 }}-{{ row2 }}:
-<table id=rows>
-    <tr>
-{%- for c in t.columns %}
-<th>
-{% if con.sort == c %}&#x2193; {% elif con.sort == '-' + c %}&#x2191; {% endif -%}
-<a href="/?x={{ cid }}&amp;sort={{ c }}">{{ c }}</a>
-<a href="/?x={{ cid }}&amp;toggle={{ c }}">&#x2715;</a>
-</th>
-{%- endfor %}
-    </tr>
-{% for row in t.rows -%}
-    <tr class="click {{ loop.cycle('even', 'odd') }}"
-        onclick="document.location.href = '/id/{{ row.dct.id }}';">
-    {%- autoescape false -%}
-    {%- for s in row.strings -%}
-        {% if t.right[loop.index0] -%}
-        <td class=right>{{ s }}</td>
-        {% else %}
-        <td>{{ s }}</td>
-        {% endif %}
-    {% endfor %}
-    {% endautoescape %}
-    </tr>
-    {% set dct=row.dct %}
-    {% set id=dct.id %}
-    {% if id in con.opened %}
-    {% include "more.html" %}
-    {% endif %}
-{% endfor %}
-</table>
+{% block title %}
+Browse database
+{% endblock %}
+
+{% block head %}
+{% include 'jsTable.html' %}
+{% endblock %}
+
+{% block content %}
+
+{% set columns = md['columns'] %}
+{% set proj = md['METAProj'] or ['Browse ASE Database'] %}
+{% set meta = md['METACol'] or { } %}
+{% set ctrl = md['METAhelp'] or { } %}
+
+<div class="container">
+  
+  <div class="row">    
+    <h1>{{proj[0]}}</h1>
+  </div>
+
+  <div class="row">
+		
+		<form class="navbar-form navbar-default" role="search" action="/">
+
+      <input type="hidden" name="x" value="{{ cid }}">
+      <input type="hidden" id="searchstr" class="form-control" placeholder="Search Query" name="query">
+        
+      <div class="form-group">
+				<input type="text" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2 or individual elements Mo,S,..." size="60">
+			</div>
+
+			<button type="submit" class="btn btn-default">
+				<i class="fa fa-search fa-1x" aria-hidden="true"></i>
+			</button>					
+						
+			<button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapseExtraSearch">
+				<i class="fa fa-angle-down" aria-hidden="true"></i>
+			</button>
+				
+		</form>
+		
+		</div>
+			
+			<div class="collapse" id="collapseExtraSearch">
+				<div class="well">
+					<ul class="list-group" style="margin-bottom:0px;">
+            
+            {% if ctrl|length != 0 %}
+						<li class="list-group-item">
+
+              {% set colCount = {'iter': -1} %}
+              <div class="row">
+                {% for control in ctrl %}
+                {% set colCount = {'iter': colCount['iter']+1} %}
+
+                <div class="col-sm-4">
+                  
+                  {% if ctrl[control][0] == 'COMBO' %}
+                    {% include 'combo.html' %}
+                  {% elif ctrl[control][0] == 'CHECK' %}
+                    {% include 'checkbox.html' %}
+                  {% elif ctrl[control][0] == 'INTERVAL' %}
+                    {% include 'interval.html' %}
+                  {% endif %}
+
+                </div>
+                
+                <!-- if end of row insert new row if there are more controls -->
+                {% if colCount['iter'] % 3 == 2 and colCount['iter'] != ctrl|length %}
+                </div>
+                <div class="row">
+                {% endif %}
+                
+                {% endfor %}
+                
+                <!-- add additional empty columns to fill up the space -->
+                {%for i in range(colCount['iter'] % 3, 3) %}
+                <div class="col-sm-4">
+                </div>                
+                {% endfor %}
+              </div>
+            </li>
+            {% endif %}
+												
+						<li class="list-group-item">
+
+              <form>
+                <input type="hidden" name="x" value="{{ cid }}">              
+                <div class="form-group" style="margin-bottom:0px;">
+									<label for="sqlstr">Advanced Search</label>
+                  <input id="searchstr2" type="text" class="form-control" name="query" placeholder="">
+									<small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying">Help with constructing advanced search queries...</a></small>
+								</div>
+              </form>
+						</li>
+
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="row">
+		
+		<div class="panel panel-default">
+						
+			<div class="panel-heading">
+			
+				<!-- Database Table -->
+
+				<div class="row">
+					<div class="col-xs-9 col-sm-9 col-md-9 col-lg-9">
+						<h5><b>Entries found: {{ nrows }}</b></h5>
+					</div>
+
+					<div class="col-xs-3 col-sm-3 col-md-3 col-lg-3">
+
+						<div class="btn-group pull-right">
+							<button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							Download <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+							<li><a href="/sqlite?x={{ cid }}">Database file</a></li>
+							<li><a href="/json?x={{ cid }}">JSON file</a></li>	
+							</ul>
+						</div>
+						
+						<div class="btn-group pull-right">
+							<button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+							Add Column <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu">
+							{% for key in addcolumns %}
+              {% if meta|length != 0 %}
+                {% if key in meta %}
+								  <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }} ({{key}})</a></li>
+                {% endif %}
+              {% else %}
+                <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a></li>
+              {% endif %}                
+							{% endfor %}
+							</ul>
+						</div>
+
+					</div>
+				</div>				
+				
+				
+			
+			</div>
+			
+			<div class="panel-body">
+				
+			</div>
+
+      <!-- Table -->
+			<table id=rows class="table table-striped">
+			
+				<tr>
+					{%- for c in t.columns %}
+					<th class="text-center">
+
+            {% set colDisplay = { 'col' : c } %}
+            {% if c in meta %}
+            {% set _dummy = colDisplay.update({'col' : meta[c][0]}) %}
+            {% endif %}
+
+            {% if con.sort == c %}&#x2193;
+            {% elif con.sort == '-' + c %}&#x2191; 
+						{% endif -%}
+				
+						<a href="/?x={{ cid }}&amp;sort={{ c }}" data-toggle="tooltip" title="key: {{c}}">{{ colDisplay['col'] }}</a>
+						<a href="/?x={{ cid }}&amp;toggle={{ c }}">&#x2715;</a>
+					</th>
+					{%- endfor %}
+				</tr>
+
+        {% for row in t.rows -%}
+
+        <tr onclick="document.location.href = '/id/{{ row.dct.id }}';">
+						{%- autoescape false -%}
+							{%- for s in row.strings -%}
+                {% if s != "" %}
+								  <td class="text-center">{{ s }}</td>
+                {% else %}
+                  <td class="text-center"> - </td>
+                {% endif %}
+							{% endfor %}
+						{% endautoescape %}
+					</tr>
+
+        {% set dct=row.dct %}
+        {% set id=dct.id %}
+
+        {% endfor %}
+      </table>
+		</div>
+
+		</div>
+
+						
+		<div class="text-center">
+			<nav aria-label="Page navigation">
+				<ul class="pagination pagination-sm">
+					
+					{% for page, name in pages %}							
+						{% set hrefstr="#" %}
+						{% if page >= 0 %}					
+							{% set hrefstr= '/?x=' + cid|string + '&page=' + page|string  %}
+						{% endif %}
+
+						{% if name=="previous" %}
+							<li>
+								<a href="{{hrefstr}}" aria-label="Previous">
+								<span aria-hidden="true">&laquo;</span>
+								</a>
+							</li>
+						{% elif name=="next" %}
+							<li>
+								<a href="{{hrefstr}}" aria-label="Next">
+								<span aria-hidden="true">&raquo;</span>
+								</a>
+							</li>
+						{% elif name=="..." %}
+							<li class="inactive"><a href="{{hrefstr}}">{{ name }}</a></li>
+						{% elif page < 0 %}
+							<li class="active"><a href="{{hrefstr}}">{{ name }}</a></li>
+						{% else %}
+							<li><a href="{{hrefstr}}">{{ name }}</a></li>
+						{% endif %}
+					{% endfor %}					
+					
+				</ul>
+			</nav>
+		</div>
+		
+	</div>
+
 {% endblock content %}

@@ -1,0 +1,32 @@
+
+
+<div class="form-group">
+    
+    <label> Interval: 
+    {%if control in meta %}
+      {{meta[control][1]}}
+    {% else %}
+      {{control}}
+    {% endif %}
+    </label>
+
+    <div class="row">
+      
+        <div class="col-xs-3">
+          <input type="text" class="form-control input-sm" id="bandgap-l">
+        </div>
+      
+        <div class="col-xs-1">
+          -
+        </div>
+        
+        <div class="col-xs-3">
+          <input type="text" class="form-control input-sm" id="bandgap-r">
+        </div>
+        
+        <div class="col-xs-5">
+        </div>
+
+    </div> <!--END OF ROW-->
+
+</div> <!--END OF FORM GROUP-->
