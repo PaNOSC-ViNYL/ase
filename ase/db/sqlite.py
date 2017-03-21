@@ -10,6 +10,7 @@ Versions:
 5) Add fmax, smax, mass, volume, charge
 6) Use REAL for magmom and drop possibility for non-collinear spin
 7) Volume can be None
+8) Added name='metadata' row to "information" table
 """
 
 from __future__ import absolute_import, print_function
@@ -30,7 +31,7 @@ from ase.utils import basestring
 if sys.version >= '3':
     buffer = memoryview
 
-VERSION = 7
+VERSION = 8
 
 init_statements = [
     """CREATE TABLE systems (
