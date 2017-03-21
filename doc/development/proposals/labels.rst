@@ -32,13 +32,14 @@ combination of these three:
 * A label.  Default ``None`` (same as ``''``)
 * A mass.  Default ``None`` (use standard value)
 
-A *kind* can be represented as a ``tuple`` or a ``str``:
+A *kind* can be represented as a ``tuple``, a ``str`` or a ``Kind`` object:
 
 * ``(Z, 'label', mass)``
 * ``('symbol', 'label', mass)``
 * ``'symbol'``
 * ``'symbol:label'``
 * ``'label'``
+* ``Kind(Z=1, mass=2.0)``
 
 Examples:
 
