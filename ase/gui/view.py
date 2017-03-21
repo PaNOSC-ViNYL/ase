@@ -16,6 +16,37 @@ from ase.utils import rotate
 GREEN = '#DDFFDD'
 
 
+def get_cell_coordinates(cell):
+    nn = []
+    for c in range(3):
+        v = cell[c]
+        d = sqrt(np.dot(v, v))
+        if d < 1e-12:
+            n = 0
+        else:
+            n = max(2, int(d / 0.3))
+        nn.append(n)
+    B1 = np.zeros((2, 2, sum(nn), 3))
+    B2 = np.zeros((2, 2, sum(nn), 3))
+    n1 = 0
+    for c, n in enumerate(nn):
+        n2 = n1 + n
+        h = 1.0 / (2 * n - 1)
+        R = np.arange(n) * (2 * h)
+
+        for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
+            B1[i, j, n1:n2, c] = R
+            B1[i, j, n1:n2, (c + 1) % 3] = i
+            B1[i, j, n1:n2, (c + 2) % 3] = j
+        B2[:, :, n1:n2] = B1[:, :, n1:n2]
+        B2[:, :, n1:n2, c] += h
+        n1 = n2
+    B1.shape = (-1, 3)
+    B2.shape = (-1, 3)
+    return B1, B2
+
+
+
 def get_bonds(atoms, covalent_radii):
     from ase.neighborlist import NeighborList
     nl = NeighborList(covalent_radii * 1.5,
@@ -65,7 +96,9 @@ class View:
     def atoms(self):
         return self.images[self.frame]
 
-    def set_frame(self, frame, focus=False):
+    def set_frame(self, frame=None, focus=False):
+        if frame is None:
+            frame = self.frame
         assert frame < len(self.images)
         self.frame = frame
         self.set_atoms(self.images[frame])
@@ -81,32 +114,33 @@ class View:
     def set_atoms(self, atoms):
         natoms = len(atoms)
 
-        self.update_box(atoms)
+        if self.showing_cell():
+            B1, B2 = get_cell_coordinates(atoms.cell)
+        else:
+            B1 = B2 = np.zeros((0, 3))
 
-        if self.is_showing_bonds():
+        if self.showing_bonds():
             atomscopy = atoms.copy()
             atomscopy.cell *= self.images.repeat[:, np.newaxis]
-            bonds = self.get_bonds(atomscopy, self.get_covalent_radii(atoms))
+            bonds = get_bonds(atomscopy, self.get_covalent_radii(atoms))
         else:
             bonds = np.empty((0, 5), int)
 
-        self.X = np.empty((natoms + len(self.B1) + len(bonds), 3))
+        self.X = np.empty((natoms + len(B1) + len(bonds), 3))
         self.X_pos = self.X[:natoms]
         self.X_pos[:] = atoms.positions
-        self.X_B1 = self.X[natoms:natoms + len(self.B1)]
-        self.X_bonds = self.X[natoms + len(self.B1):]
-
-        self.X[:len(atoms), :] = atoms.positions
+        self.X_B1 = self.X[natoms:natoms + len(B1)]
+        self.X_bonds = self.X[natoms + len(B1):]
 
         if 1:#if init or frame != self.frame:
             cell = atoms.cell
-            nc = len(self.B1)
+            nc = len(B1)
             nbonds = len(bonds)
 
             if 1: #init or (atoms.cell != self.atoms.cell).any():
-                self.X_B1[:] = np.dot(self.B1, cell)
+                self.X_B1[:] = np.dot(B1, cell)
                 self.B = np.empty((nc + nbonds, 3))
-                self.B[:nc] = np.dot(self.B2, cell)
+                self.B[:nc] = np.dot(B2, cell)
 
             if nbonds > 0:
                 P = atoms.positions
@@ -122,42 +156,11 @@ class View:
                 b[bonds[:, 2:].any(1)] *= 0.5
                 self.B[nc:] = self.X_bonds + b
 
-
-    def update_box(self, atoms):
-        if not self.window['toggle-show-unit-cell']:
-            self.B1 = self.B2 = np.zeros((0, 3))
-            return
-
-        V = atoms.get_cell()
-        nn = []
-        for c in range(3):
-            v = V[c]
-            d = sqrt(np.dot(v, v))
-            if d < 1e-12:
-                n = 0
-            else:
-                n = max(2, int(d / 0.3))
-            nn.append(n)
-        self.B1 = np.zeros((2, 2, sum(nn), 3))
-        self.B2 = np.zeros((2, 2, sum(nn), 3))
-        n1 = 0
-        for c, n in enumerate(nn):
-            n2 = n1 + n
-            h = 1.0 / (2 * n - 1)
-            R = np.arange(n) * (2 * h)
-
-            for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-                self.B1[i, j, n1:n2, c] = R
-                self.B1[i, j, n1:n2, (c + 1) % 3] = i
-                self.B1[i, j, n1:n2, (c + 2) % 3] = j
-            self.B2[:, :, n1:n2] = self.B1[:, :, n1:n2]
-            self.B2[:, :, n1:n2, c] += h
-            n1 = n2
-        self.B1.shape = (-1, 3)
-        self.B2.shape = (-1, 3)
-
-    def is_showing_bonds(self):
+    def showing_bonds(self):
         return self.window['toggle-show-bonds']
+
+    def showing_cell(self):
+        return self.window['toggle-show-unit-cell']
 
     def toggle_show_unit_cell(self, key=None):
         self.set_frame()
@@ -355,7 +358,7 @@ class View:
 
         selected = self.images.selected
         visible = self.images.visible
-        ncell = len(self.B1)
+        ncell = self.atoms.number_of_lattice_vectors
         bond_linewidth = self.scale * 0.15
         for a in self.indices:
             if a < n:
