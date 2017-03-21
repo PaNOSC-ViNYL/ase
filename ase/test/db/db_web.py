@@ -17,7 +17,7 @@ c.write(Atoms('H2O'),
               'x': x,
               't1': t1,
               't2': t2})
-app.db = c
+app.databases['default'] = c
 app.app.testing = True
 d = app.app.test_client().get('/')
 print(d)
