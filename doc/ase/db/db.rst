@@ -462,27 +462,36 @@ Running a PostgreSQL server
 With your PostgreSQL server up and running, you should run the following
 command as the ``postgres`` user::
 
-    $ python -m ase.db.postgresql password
+    $ sudo -u postgres psql
 
-This will initialize some tables, create an ``ase`` user and set a password
-(see :git:`ase/db/postgresql.py` for details).  You should now be able to
-query the database using an address like
-``pg://user:password@host:port``::
+Then you create an 'ase' user and one database for each project you have::
 
-    $ ase-db pg://ase:password@localhost:5432
+    postgres=# create user ase login password 'pw';
+    postgres=# create database project1
+    postgres=# create database project2
+    postgres=# \q
 
-If you have some data in a ``data.db`` SQLite file, then you can insert that
+You should now be able to
+query the database using a URI like
+``postgresql://user:pw@host:port/dbname``::
+
+    $ PROJ1=postgresql://ase:pw@localhost:5432/project1
+    $ ase db $PROJ1
+
+If you have some data in a ``data.db`` SQLite3 file, then you can insert that
 into the PostgreSQL database like this::
 
-    $ ase-db data.db --insert-into pg://ase:password@localhost:5432
+    $ ase db data.db --insert-into $PROJ1
 
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
 Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
 to point to a configuration file containing two lines similar to these::
 
-    ASE_DB_NAME = 'pg://ase:password@localhost:5432'
-    ASE_DB_HOMEPAGE = '<a href="https://home.page.org">HOME</a> ::'
+    ASE_DB_NAMES = ['postgresql://ase:pw@localhost:5432/project1',
+                    'postgresql://ase:pw@localhost:5432/project2',
+                    ...]
+    ASE_DB_HOMEPAGE = '<a href="https://home.page.org">HOME</a>'
 
 and then start the server with::
 

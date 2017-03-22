@@ -106,7 +106,7 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('pg://'):
+        elif name.startswith('postgresql://'):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -126,7 +126,7 @@ def connect(name, type='extract_from_name', create_indices=True,
                                serial=serial)
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
-        return PostgreSQLDatabase(name[5:])
+        return PostgreSQLDatabase(name)
     raise ValueError('Unknown database type: ' + type)
 
 

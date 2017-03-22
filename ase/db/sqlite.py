@@ -96,7 +96,7 @@ init_statements = [
     name TEXT,
     value TEXT)""",
 
-    "INSERT INTO information VALUES ('version', '{0}')".format(VERSION)]
+    "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
