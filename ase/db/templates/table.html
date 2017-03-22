@@ -10,10 +10,10 @@ Browse database
 
 {% block content %}
 
-{% set columns = md['columns'] %}
-{% set proj = md['METAProj'] or ['Browse ASE Database'] %}
-{% set meta = md['METACol'] or { } %}
-{% set ctrl = md['METAhelp'] or { } %}
+{% set columns = md['default_columns'] %}
+{% set proj = md['title'] or ['Browse ASE Database'] %}
+{% set meta = md['key_descriptions'] or { } %}
+{% set ctrl = md['special_keys'] or { } %}
 
 <div class="container">
   

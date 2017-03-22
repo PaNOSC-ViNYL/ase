@@ -1,14 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>  
-    <meta name="viewport" content="width-device-width, initial-scale=1.0"> 
-    <title>{% block title %}{% endblock %}</title>
-
-		{% include 'js.html' %}
+    <meta name="viewport" content="width-device-width, initial-scale=1.0">       
+		
+    {% include 'js.html' %}
     {% include 'style.html' %}
 
     {% block head %}
     {% endblock %}
+    
+    <title>{% block title %}{% endblock %}</title>
+
+    <div class="container">
+      <div class="row">
+        <ol class="breadcrumb">
+          <li>
+            <a href="https://cmr.fysik.dtu.dk/">CMR</a>
+          </li>
+          <li>
+            <a href="#">About</a>
+          </li>
+        </ol>
+      </div>
+    </div>
+    
   </head>
   <body>
 

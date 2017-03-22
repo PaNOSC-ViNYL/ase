@@ -12,8 +12,8 @@ Summary
 
 
   {% set d = s.row %}
-  {% set meta = md['METACol'] or {} %}
-  {% set secs = md['METASections'] or [] %} 
+  {% set meta = md['key_descriptions'] or {} %}
+  {% set secs = md['summary_sections'] or [] %} 
   
   
   {% if secs == [] %}
@@ -26,8 +26,7 @@ Summary
         ],
       ['Key Value Pairs', 
         ['Key'],
-        ['FORCES'],
-        ['BANDSTRUCT']
+        ['FORCES']        
         ]
       ]
     %}
@@ -35,8 +34,9 @@ Summary
   
 
   <!-- a little setup-->
-  {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT'] %}
-  {% set plotband = {'plot': false} %}
+  {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
+  {% set plotIs = {'plot': false} %}
+  {% set plotList = {} %}
 
   {% set keyval1 = {} %}
   {% set keyval2 = {} %}
@@ -70,7 +70,7 @@ Summary
 
   <div class="container">
 
-    <p></p>
+    
 
     {% for name, unit, value in s.table %}
     {% if name == "formula" %}
@@ -137,22 +137,22 @@ Summary
                         <td> {{ meta[name][1] }} </td>
 
                         {% if meta[name][2] == 'float' %}
-                        <td> {{ keyval[name][1] | round(3, 'common') }} </td>
+                        <td class="text-center"> {{ keyval[name][1] | round(3, 'common') }} </td>
                         {% else %}
-                        <td> {{ keyval[name][1] | safe }} </td>
+                        <td class="text-center"> {{ keyval[name][1] | safe }} </td>
                         {% endif %}
 
                         {% if meta[name][2] == 'float' %}
-                        <td> eV </td>
+                        <td class="text-center"> eV </td>
                         {% else %}
-                        <td> - </td>
+                        <td class="text-center"> - </td>
                         {% endif %}
 
                       </tr>
                     {% else%}
                       <tr>
                         <td> {{ name }} </td>
-                        <td class="text-right"> {{ keyval[name][1] | safe }} </td>
+                        <td class="text-center"> {{ keyval[name][1] | safe }} </td>
                         <td class="text-center"> {{ keyval[name][0] }} </td>
                       </tr>                    
                     {% endif %}
@@ -230,9 +230,12 @@ Summary
                     </table>
                     {% endif %}
 
-                  {% elif sec[index][0] == 'BANDSTRUCT' %}
+                  {% elif sec[index][0] == 'PLOT' %}
 
-                  {% set _dummy = plotband.update({'plot': true}) %}
+                    {% if sec[index][1] in s.plots %}
+                      {% set _dummy = plotIs.update({'plot': true}) %}
+                      {% set _dummy = plotList.update({sec[index][1]: true}) %}
+                    {% endif %}
 
                   {% endif%}
 
@@ -245,19 +248,19 @@ Summary
             </div> <!--END ROW-->
 
             <!--if there is a band structure put it here -->
-            {% if plotband['plot'] == true %}
+            {% if plotIs['plot'] == true %}
             <div class="row">
               <div class="col-sm-1"></div>
               <div class="col-sm-10">
                 <center>
-                  {% for name in s.plots %}
+                  {% for name in plotList %}
                   <img src="/plot/{{ name }}-{{ d.id }}.png">                  
                   {% endfor %}
                 </center>
               </div>
               <div class="col-sm-1"></div>
             </div>
-            {% set _dummy = plotband.update({'plot': false}) %}
+            {% set _dummy = plotIs.update({'plot': false}) %}
             {% endif %}
 
           </div> <!--END PANEL BODY-->
