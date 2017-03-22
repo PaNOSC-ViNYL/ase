@@ -106,9 +106,7 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif ( name.startswith('pg://')
-            or name.startswith('postgres://')
-            or name.startswith('postgresql://') ):
+        elif name.startswith('postgresql://'):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
