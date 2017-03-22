@@ -1,6 +1,6 @@
 from ase.db import connect
 from ase import Atoms
-db = connect('md.json')
+
 
 # Data for a plot:
 plot = {'a': [0, 1, 2],
@@ -13,21 +13,34 @@ plot = {'a': [0, 1, 2],
                    'xlabel': 'blah-blah [eV]',
                    'ylabel': 'Answers'}}
 
-db.write(Atoms('H'), answer=42, kind='atom')
-db.write(Atoms('H2O'), answer=117, kind='molecule', data=plot)
-db.metadata = {
-    'default_columns': ['formula', 'answer'],
-    'special_keys': {'kind': ('COMBO', ['atom', 'molecule'])},
-    'key_descriptions': {
-        'kind': ('Type', 'Type of system', 'string'),
-        'answer': ('Answer', 'Answer to question', 'int')},
-    'summary_sections': [
-        ['Basic Properties',
-         ['Item', ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
-         ['Things', ['answer', 'kind']],
-         ['STRUCTUREPLOT'],
-         ['AXIS'],
-         ['PLOT', 'abplot']],
-        ['Calculation Details',
-         ['Calculator Setting', ['calculator']],
-         ['FORCES']]]}
+for name in ['md.json', 'md.db']:
+    print(name)
+    db = connect(name)
+    db.write(Atoms('H'), answer=42, kind='atom')
+    db.write(Atoms('H2O'), answer=117, kind='molecule', data=plot)
+    db.metadata = {'test': 'ok'}
+    db.metadata = {
+        'default_columns': ['formula', 'answer', 'kind'],
+        'special_keys': {'kind': ('COMBO', ['atom', 'molecule'])},
+        'key_descriptions': {
+            'kind': ('Type', 'Type of system', 'string', ''),
+            'answer': ('Answer', 'Answer to question', 'int', 'eV')},
+        'summary_sections': [
+            ['Basic Properties',
+             ['Item',
+              ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
+             ['Things', ['answer', 'kind']],
+             ['STRUCTUREPLOT'],
+             ['AXIS'],
+             ['PLOT', 'abplot']],
+            ['Calculation Details',
+             ['Calculator Setting', ['calculator']],
+             ['FORCES']]]}
+
+    db = connect(name)
+    md = db.metadata
+    assert 'formula' in md['default_columns']
+    md['title'] = 'TEST'
+    db.metadata = md
+
+    assert connect(name).metadata['title'] == 'TEST'

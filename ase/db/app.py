@@ -41,7 +41,8 @@ from ase.visualize import view
 # Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
     'Connection',
-    ['query',  # query string
+    ['project',  # project name
+     'query',  # query string
      'nrows',  # number of rows matched
      'page',  # page number
      'columns',  # what columns to show
@@ -50,9 +51,12 @@ Connection = collections.namedtuple(
 
 app = Flask(__name__)
 
-db = None
+databases = {}
 home = ''  # link to homepage
 open_ase_gui = True  # click image to open ase-gui
+
+# List of (project-name, title) tuples (will be filled in at run-time):
+projects = []
 
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
@@ -68,26 +72,39 @@ tmpdir = tempfile.mkdtemp()  # used to cache png-files
 SUBSCRIPT = re.compile(r'(\d+)')
 
 
+def database():
+    return databases[request.args.get('project', 'default')]
+
+
 @app.route('/')
 def index():
     global next_con_id
 
-    # pointer to metadata
-    md = db.metadata
-
     con_id = int(request.args.get('x', '0'))
 
     if con_id not in connections:
+        # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
+        project = 'default'
         query = ''
-        columns = md.get('columns') or list(all_columns)
-        sort = 'id'
-        limit = 25
         nrows = None
         page = 0
+        columns = None
+        sort = 'id'
+        limit = 25
     else:
-        query, nrows, page, columns, sort, limit = connections[con_id]
+        project, query, nrows, page, columns, sort, limit = connections[con_id]
+
+    project = request.args.get('project', project)
+    db = databases[project]
+    md = db.metadata
+
+    if columns is None:
+        columns = md.get('default_columns') or list(all_columns)
+
+    if not hasattr(db, 'formulas'):
+        db.formulas = [row.formula for row in db.select()]
 
     if 'sort' in request.args:
         column = request.args['sort']
@@ -113,7 +130,7 @@ def index():
     if 'toggle' in request.args:
         column = request.args['toggle']
         if column == 'reset':
-            columns = md.get('columns') or list(all_columns)
+            columns = md.get('default_columns') or list(all_columns)
         else:
             if column in columns:
                 columns.remove(column)
@@ -129,7 +146,7 @@ def index():
     table = Table(db)
     table.select(query, columns, sort, limit, offset=page * limit)
 
-    con = Connection(query, nrows, page, columns, sort, limit)
+    con = Connection(project, query, nrows, page, columns, sort, limit)
     connections[con_id] = con
 
     if len(connections) > 1000:
@@ -141,9 +158,16 @@ def index():
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
+    if not projects:
+        projects[:] = [(proj, d.metadata.get('title', proj))
+                       for proj, d in databases.items()]
+
     return render_template('table.html',
+                           project=project,
+                           projects=projects,
                            t=table,
                            md=md,
+                           formulas=db.formulas,
                            con=con,
                            cid=con_id,
                            home=home,
@@ -159,6 +183,7 @@ def image(name):
     path = os.path.join(tmpdir, name)
     if not os.path.isfile(path):
         id = int(name[:-4])
+        db = database()
         atoms = db.get_atoms(id)
         atoms2png(atoms, path)
 
@@ -170,6 +195,7 @@ def cif(name):
     path = os.path.join(tmpdir, name)
     if not os.path.isfile(path):
         id = int(name[:-4])
+        db = database()
         atoms = db.get_atoms(id)
         atoms.write(path)
     return send_from_directory(tmpdir, name)
@@ -180,6 +206,7 @@ def plot(png):
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
         name, id = png[:-4].split('-')
+        db = database()
         dct = db[int(id)].data
         dct2plot(dct, name, path, show=False)
 
@@ -189,6 +216,7 @@ def plot(png):
 @app.route('/gui/<int:id>')
 def gui(id):
     if open_ase_gui:
+        db = database()
         atoms = db.get_atoms(id)
         view(atoms)
     return '', 204, []
@@ -196,6 +224,7 @@ def gui(id):
 
 @app.route('/id/<int:id>')
 def summary(id):
+    db = database()
     s = Summary(db.get(id), SUBSCRIPT)
     return render_template('summary.html', s=s, home=home, md=db.metadata,
                            open_ase_gui=open_ase_gui)
@@ -204,6 +233,7 @@ def summary(id):
 def tofile(query, type, limit=0):
     fd, name = tempfile.mkstemp(suffix='.' + type)
     con = ase.db.connect(name, use_lock_file=False)
+    db = database()
     for dct in db.select(query, limit=limit):
         con.write(dct,
                   data=dct.get('data', {}),
@@ -230,6 +260,7 @@ def download(f):
 def xyz(id):
     fd = io.BytesIO()
     from ase.io.xyz import write_xyz
+    db = database()
     write_xyz(fd, db.get_atoms(id))
     data = fd.getvalue()
     return data, '{0}.xyz'.format(id)

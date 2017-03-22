@@ -174,6 +174,7 @@ class Database:
         else:
             self.lock = None
         self.serial = serial
+        self._metadata = None  # decription of columns and other stuff
 
     @parallel_function
     @lock
