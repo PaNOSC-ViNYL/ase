@@ -13,7 +13,9 @@
     <div class="row">
       
         <div class="col-xs-3">
-          <input type="text" class="form-control input-sm" id="bandgap-l">
+          <input type="text" class="form-control input-sm" id="{{control}}-l"
+                 onchange="var rval = document.getElementById('{{control}}-r').value; 
+                 ControlFunction('INTERVAL', '{{control}}', [this.value == '' ? null : this.value, rval=='' ? null : rval]); return false;">
         </div>
       
         <div class="col-xs-1">
@@ -21,7 +23,9 @@
         </div>
         
         <div class="col-xs-3">
-          <input type="text" class="form-control input-sm" id="bandgap-r">
+          <input type="text" class="form-control input-sm" id="{{control}}-r"
+                 onchange="var lval = document.getElementById('{{control}}-l').value;
+                 ControlFunction('INTERVAL', '{{control}}', [lval=='' ? null : lval, this.value == '' ? null : this.value]); return false;">
         </div>
         
         <div class="col-xs-5">

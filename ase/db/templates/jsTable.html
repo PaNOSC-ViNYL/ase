@@ -6,36 +6,19 @@
   
   function SetupSuggestions()
   {
-    {% set colCount = {'iter': 0} %}
-    {% set colFormula = {'iter': -1} %}
-    {% for c in t.columns %}
-    {% if c == 'formula' %}
-      {% set _dummy = colFormula.update({'iter': colCount['iter']}) %}
-    {% endif %}      
-    {% set _dummy = colCount.update({'iter': colCount['iter'] + 1}) %}
-    {% endfor %}
-          
-    var formula = [];
-    var formulaVis = [];
-    {% set rowCount = {'iter': 0} %}
-    {% for row in t.rows %}
-      {% set row = row.strings[colFormula['iter']] %}
-      //formulaVis[{{rowCount['iter']}}] = '{{ row|safe }}';
-      var text = $("<div/>").html('{{ row|safe }}').text();
-      formula[{{rowCount['iter']}}] = text;
-      {% set _dummy = rowCount.update({'iter': rowCount['iter'] + 1}) %}
+    var jFormula = [];
+    {% for formula in formulas %}
+      jFormula.push('{{formula|safe}}');
     {% endfor %}
     
-    formula = uniq(formula);
-    formulaVis = uniq(formulaVis);
-      
-    //sessionStorage.setItem("formulaVis", JSON.stringify(formulaVis));
-    sessionStorage.setItem("formula", JSON.stringify(formula));
+    jFormula = uniq(jFormula);
+    
+    sessionStorage.setItem("formula", JSON.stringify(jFormula));
   }
   
   function CopyCtrl()
   {
-    {% set ctrl = md['METAhelp'] or { } %}
+    {% set ctrl = md['special_keys'] or { } %}
     
     var cList = [];
     var cType = [];

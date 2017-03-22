@@ -71,7 +71,13 @@ class inputCtrl
         this.m_key = key;
         this.m_type = type; // ['text', 'COMBO', 'INTERVAL', 'CHECK']
         this.m_access = -1;
-        this.m_value = [];
+
+        if(this.m_type === "COMBO" || this.m_type === "text")
+            this.m_value = '';
+        else if(this.m_type === "CHECK")
+            this.m_value = 0;
+        else if(this.m_type === "INTERVAL")
+            this.m_value = [null, null];
     }
 
     GetQueryString()
@@ -82,7 +88,46 @@ class inputCtrl
         }
         else if(this.m_type === "CHECK")
         {
-            return this.m_key;
+            if(this.m_value === 1)
+                return this.m_key;
+            else
+                return '';
+        }
+        else if(this.m_type === "INTERVAL")
+        {
+            var str = '';
+            if(this.m_value[0] !== null)
+                str += this.m_value[0] + '<=';
+
+            str += this.m_key;
+
+            if(this.m_value[1] !== null)
+                str += '<=' + this.m_value[1];
+
+            return str;
+        }
+        
+        return '';
+    }
+
+    IsValid()
+    {
+        if(this.m_type === "COMBO" || this.m_type === "text")
+        {
+            if(this.m_value == '')
+                return false;
+            else
+                return true;
+        }
+        else if(this.m_type === "CHECK")
+        {
+            return this.m_value;
+        }
+        else if(this.m_type === "INTERVAL")
+        {
+            if(this.m_value[0] == null && this.m_value[1] == null)
+                return false;
+            return true;
         }
     }
 
@@ -92,8 +137,7 @@ class inputCtrl
         {
             // we want a perfect match here
             var checkstr = token.substr(0, this.m_key.length + 1);
-            //var indices = ns.getIndicesOf(this.m_key + '=', token);
-				
+            				
 			if(checkstr === this.m_key + '=')
             {
                 this.m_access = tokenID;
@@ -111,21 +155,88 @@ class inputCtrl
                 return true;
             }
         }
+        else if(this.m_type === "INTERVAL")
+        {
+            // the key is inside the token
+            var keyPos = ns.getIndicesOf(this.m_key, token);
+            var indices = ns.getIndicesOf('<=', token);
+
+            if(indices.length === 1)
+            {
+                if(indices[0] < keyPos[0])
+                {
+                    // check layout
+                    var chlayout = ns.getIndicesOf('<=' + this.m_key, token);
+                
+                    if(chlayout.length === 1)
+                    {
+                        var v1 = token.substr(0, indices[0]);
+
+                        this.m_access = tokenID;
+                        this.m_value = [v1, null];
+
+                        return true;
+                    }
+                }
+                else
+                {
+                    // check layout
+                    var chlayout = ns.getIndicesOf(this.m_key + '<=', token);
+                
+                    if(chlayout.length === 1)
+                    {
+                        var pos = indices[0]+2;
+                        var v2 = token.substr(pos, token.length-pos);
+
+                        this.m_access = tokenID;
+                        this.m_value = [null, v2];
+
+                        return true;
+                    }
+                }
+            
+                return false;
+            }
+            else if(indices.length === 2)
+            {
+                // check layout
+                var chlayout = ns.getIndicesOf('<=' + this.m_key + '<=', token);
+                
+                if(chlayout.length === 1)
+                {
+                    // extract values
+                    var v1 = token.substr(0, indices[0]);
+                    var pos = indices[1]+2;
+                    var v2 = token.substr(pos, token.length-pos);
+
+                    this.m_access = tokenID;
+                    this.m_value = [v1, v2];
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
 
         return false;
     }
 
     SetOutput()
     {
-        if(this.m_access === -1)
-            return;
-
         var element = this.m_key + '-result';
 
         if(this.m_type === "text")
 			document.getElementById(element).value = this.m_value;
         else if(this.m_type === "CHECK")
 			document.getElementById(element).checked = this.m_value;
+        else if(this.m_type === "INTERVAL")
+        {
+            if(this.m_value[0] !== null)
+			    document.getElementById(this.m_key + '-l').value = this.m_value[0];
+            if(this.m_value[1] !== null)
+			    document.getElementById(this.m_key + '-r').value = this.m_value[1];
+        }
 		else
 			document.getElementById(element).innerHTML = this.m_value;
     }
@@ -200,7 +311,7 @@ var ns = (function()
 
     function CreateVariable(index, key, value)
     {
-        m_qlist.push(key + '=' + value);
+        m_qlist.push(m_control[index].GetQueryString());
         m_recognized.push(index);
 
 		m_control[index].m_value = value;
@@ -214,19 +325,20 @@ var ns = (function()
         if(index === -1)
             return;
 
+        // update the value of th field
+        m_control[index].m_value = value;
+
 		if(m_control[index].m_access !== -1)
 		{
-			// the field exists, update its value
 			// if the value is empty we remove the variable
-			if(value == '')
-                ClearVariable(index);
-            else
-                m_control[index].m_value = value;
+            if(m_control[index].IsValid() == false)
+                ClearVariable(index);    
 		}
 		else
 		{
 			// field has not been set, create it
-            CreateVariable(index, key, value);
+            if(m_control[index].IsValid() == true)
+                CreateVariable(index, key, value);
 		}
 
 		// update GUI if it is not a textfield
@@ -305,7 +417,10 @@ var ns = (function()
 
 		for(i=0; i<m_control.length; ++i)
 		{
-			m_control[i].SetOutput();			
+            if(this.m_access !== -1)
+            {
+			    m_control[i].SetOutput();
+            }
 		}
 	}
 
