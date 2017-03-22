@@ -117,9 +117,9 @@ Summary
                 {% if not sec[index][0] in SPECIAL %}
                 <table class="table table-striped">
                   <colgroup>
-                    <col class="col-md-7">
-                    <col class="col-md-3">
-                    <col class="col-md-2">
+                    <col class="col-xs-7">
+                    <col class="col-xs-3">
+                    <col class="col-xs-2">
                   </colgroup> 
                   <thead>
                     <tr>
@@ -250,15 +250,15 @@ Summary
             <!--if there is a band structure put it here -->
             {% if plotIs['plot'] == true %}
             <div class="row">
-              <div class="col-sm-1"></div>
-              <div class="col-sm-10">
+              <div class="col-xs-1"></div>
+              <div class="col-xs-10">
                 <center>
                   {% for name in plotList %}
                   <img src="/plot/{{ name }}-{{ d.id }}.png">                  
                   {% endfor %}
                 </center>
               </div>
-              <div class="col-sm-1"></div>
+              <div class="col-xs-1"></div>
             </div>
             {% set _dummy = plotIs.update({'plot': false}) %}
             {% endif %}

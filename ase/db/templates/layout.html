@@ -13,16 +13,30 @@
 
     <div class="container">
       <div class="row">
-        <ol class="breadcrumb">
-          <li>
-            <a href="https://cmr.fysik.dtu.dk/">CMR</a>
-          </li>
-          <li>
-            <a href="#">About</a>
-          </li>
-        </ol>
-      </div>
-    </div>
+        <div class="col-xs-8">
+          
+          <ol class="breadcrumb">
+            {% for proj in projects %}
+            <li>
+              <a href="/?project={{ proj[0] }}">{{proj[1]}}</a>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+        
+        <div class="col-xs-4 text-right">
+          <ol class="breadcrumb">
+            <li>
+              <a href="https://cmr.fysik.dtu.dk/">CMR</a>
+            </li>
+            <li>
+              <a href="#">About</a>
+            </li>
+          </ol>
+          
+        </div>
+      </div> <!--end of row-->
+    </div> <!--end of container-->
     
   </head>
   <body>
