@@ -64,6 +64,9 @@ Git master branch
 
 * Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
 
+* :mod:`ase.gui` can now load and display any sequence of :class:`~ase.Atoms`
+  objects; it is no longer restricted to sequences with a constant number
+  of atoms or same chemical composition.
 
 Version 3.13.0
 ==============
