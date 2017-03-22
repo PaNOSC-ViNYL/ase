@@ -7,8 +7,8 @@ You can launch Flask's local webserver like this::
 For a real webserver, you need to set the $ASE_DB_APP_CONFIG environment
 variable to point to a configuration file like this::
 
-    ASE_DB_NAME = ['/path/to/db-file/project1.db',
-                   'postgresql://user:pw@localhost:5432/project2']
+    ASE_DB_NAMES = ['/path/to/db-file/project1.db',
+                    'postgresql://user:pw@localhost:5432/project2']
     ASE_DB_HOMEPAGE = '<a href="https://home.page.dk">HOME</a> ::'
 
 Start with something like::
@@ -61,7 +61,7 @@ projects = []
 
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
-    for uri in app.config['ASE_DB_NAME'].split(','):
+    for uri in app.config['ASE_DB_NAMES']:
         if uri.startswith('postgresql://'):
             project = uri.rsplit('/', 1)[1]
         else:
