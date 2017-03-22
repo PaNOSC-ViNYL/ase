@@ -27,7 +27,8 @@ for name in ['md.json', 'md.db']:
             'answer': ('Answer', 'Answer to question', 'int', 'eV')},
         'summary_sections': [
             ['Basic Properties',
-             ['Item', ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
+             ['Item',
+              ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
              ['Things', ['answer', 'kind']],
              ['STRUCTUREPLOT'],
              ['AXIS'],

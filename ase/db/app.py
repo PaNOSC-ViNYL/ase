@@ -55,6 +55,9 @@ databases = {}
 home = ''  # link to homepage
 open_ase_gui = True  # click image to open ase-gui
 
+# List of (project-name, title) tuples (will be filled in at run-time):
+projects = []
+
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     db = ase.db.connect(app.config['ASE_DB_NAME'])
@@ -155,8 +158,9 @@ def index():
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
-    projects = [(proj, d.metadata.get('title', proj))
-                for proj, d in databases.items()]
+    if not projects:
+        projects[:] = [(proj, d.metadata.get('title', proj))
+                       for proj, d in databases.items()]
 
     return render_template('table.html',
                            project=project,
