@@ -38,6 +38,8 @@ commands = {
          '--sort', '--cut', '-p', '--plot', '-P', '--plot-data',
          '--csv', '-w', '--open-web-browser', '--no-lock-file',
          '--analyse', '-j', '--json', '--unique'],
+    'eos':
+        ['-p', '--plot', '-t', '--type'],
     'gui':
         ['-n', '--image-number', '-u', '--show-unit-cell', '-r',
          '--repeat', '-R', '--rotations', '-o', '--output', '-g',
@@ -45,8 +47,6 @@ commands = {
          '--bonds', '-s', '--scale'],
     'info':
         [''],
-    'install-completion-script':
-        ['-0', '--dry-run'],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
     'run':
@@ -56,8 +56,12 @@ commands = {
          '--equation-of-state', '--eos-type', '-i',
          '--interactive-python-session', '-c', '--collection',
          '--modify', '--after'],
+    'tab-completion':
+        ['-0', '--dry-run'],
     'test':
-        ['-c', '--calculators']}
+        ['-c', '--calculators'],
+    'ulm':
+        ['-n', '--index']}
 # End of computer generated data
 
 
@@ -148,7 +152,7 @@ def update():
 
     for command, module_name in commands:
         module = import_module(module_name)
-        module.add_arguments(Subparser(command))
+        module.CLICommand.add_arguments(Subparser(command))
 
     txt = 'commands = {'
     for command, opts in sorted(dct.items()):
