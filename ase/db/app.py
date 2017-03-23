@@ -22,6 +22,7 @@ import functools
 import io
 import os
 import re
+import sys
 import tempfile
 
 from flask import Flask, render_template, request, send_from_directory
@@ -59,14 +60,19 @@ open_ase_gui = True  # click image to open ase-gui
 # List of (project-name, title) tuples (will be filled in at run-time):
 projects = []
 
-if 'ASE_DB_APP_CONFIG' in os.environ:
-    app.config.from_envvar('ASE_DB_APP_CONFIG')
-    for uri in app.config['ASE_DB_NAMES']:
+
+def connect_databases(uris):
+    for uri in uris:
         if uri.startswith('postgresql://'):
             project = uri.rsplit('/', 1)[1]
         else:
             project = uri.rsplit('/', 1)[1].split('.')[0]
         databases[project] = ase.db.connect(uri)
+
+
+if 'ASE_DB_APP_CONFIG' in os.environ:
+    app.config.from_envvar('ASE_DB_APP_CONFIG')
+    connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
     open_ase_gui = False
 
@@ -339,4 +345,6 @@ def pages(page, nrows, limit):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        connect_databases(sys.argv[1:])
     app.run(host='0.0.0.0', debug=True)
