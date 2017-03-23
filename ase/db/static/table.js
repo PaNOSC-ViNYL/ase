@@ -1,6 +1,6 @@
 
 //
-// autocomplete
+// remove multiple instances from array
 //
 
 function uniq(a)
@@ -11,58 +11,64 @@ function uniq(a)
     })
 }
 
-$(function() 
-{
-    var availableTags = JSON.parse(sessionStorage.getItem("formula"));
-    
-    $( "#formula-result" ).autocomplete({
-        source: availableTags
-    });
-});
-
 //
-// 
+// input controls calls this function on update
 //
 
 function ControlFunction(type, element, value)
 {
-  if(value === 'Reset')
-    ns.SetField(element, '');
-  else
-    ns.SetField(element, value);
+    if(value === 'Reset')
+        ns.SetField(element, '');
+    else
+        ns.SetField(element, value);
     
-  document.getElementById("formula-result").focus(); 
+    document.getElementById("formula-result").focus(); 
 }
         
 //
-// collapse well storage
+// document ready
 //
 
 $(document).ready(function()
 {
-  // tooltips
-  $('[data-toggle="tooltip"]').tooltip();
+    //
+    // autocomplete
+    var availableTags = JSON.parse(sessionStorage.getItem("formula"));
+    $( "#formula-result" ).autocomplete(
+    {
+        source: availableTags
+    });
 
-  $(".collapse").on('shown.bs.collapse', function()
-  {
-    if (this.id) 
+    //
+    // tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
+    //
+    // collapse well storage
+    $(".collapse").on('shown.bs.collapse', function()
     {
-      sessionStorage[this.id] = 'show';
-    }
-  }).on('hidden.bs.collapse', function()
-  {
-    if (this.id) 
+        if (this.id) 
+        {
+            sessionStorage[this.id] = 'show';
+        }
+    }).on('hidden.bs.collapse', function()
     {
-      sessionStorage.removeItem(this.id);
-    }    
-  }).each(function()
-  {
-    if(this.id && sessionStorage[this.id] === 'show')
+        if (this.id) 
+        {
+            sessionStorage.removeItem(this.id);
+        }    
+    }).each(function()
     {
-        $(this).collapse('show');
-    }
-  });
+        if(this.id && sessionStorage[this.id] === 'show')
+        {
+            $(this).collapse('show');
+        }
+    });
 })
+
+//
+// class for input control
+//
 
 class inputCtrl
 {
@@ -241,6 +247,10 @@ class inputCtrl
 			document.getElementById(element).innerHTML = this.m_value;
     }
 };
+
+//
+// ns holds the functionality for the generation of the advanced search string
+//
 
 var ns = (function()
 {

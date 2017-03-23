@@ -1,7 +1,12 @@
 {% extends 'layout.html' %}
 
+{% set columns = md['default_columns'] %}
+{% set proj = md['title'] or ['Browse ASE Database'] %}
+{% set meta = md['key_descriptions'] or { } %}
+{% set ctrl = md['special_keys'] or { } %}
+
 {% block title %}
-Browse database
+{{proj}} - Search
 {% endblock %}
 
 {% block head %}
@@ -9,11 +14,6 @@ Browse database
 {% endblock %}
 
 {% block content %}
-
-{% set columns = md['default_columns'] %}
-{% set proj = md['title'] or ['Browse ASE Database'] %}
-{% set meta = md['key_descriptions'] or { } %}
-{% set ctrl = md['special_keys'] or { } %}
 
 <div class="container">
   

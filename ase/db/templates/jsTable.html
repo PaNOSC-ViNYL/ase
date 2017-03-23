@@ -7,9 +7,9 @@
   function SetupSuggestions()
   {
     var jFormula = [];
-    {% for formula in formulas %}
+    {% for formula in formulas -%}
       jFormula.push('{{formula|safe}}');
-    {% endfor %}
+    {%- endfor %}
     
     jFormula = uniq(jFormula);
     
@@ -18,18 +18,16 @@
   
   function CopyCtrl()
   {
-    {% set ctrl = md['special_keys'] or { } %}
+    {% set ctrl = md['special_keys'] or { } -%}
     
     var cList = [];
     var cType = [];
-    {% if ctrl|length != 0 %}
-		  {% set colCount = {'iter': -1} %}
+    {% if ctrl|length != 0 -%}
       {% for control in ctrl %}
-        {% set colCount = {'iter': colCount['iter']+1} %}
-        cList[{{colCount['iter']}}] = '{{ control }}';
-        cType[{{colCount['iter']}}] = '{{ ctrl[control][0] }}';
+        cList.push('{{ control }}');
+        cType.push('{{ ctrl[control][0] }}');
       {% endfor %}
-    {% endif %}
+    {%- endif %}
     
     sessionStorage.setItem("ctrlKeys", JSON.stringify(cList));
     sessionStorage.setItem("ctrlType", JSON.stringify(cType));
@@ -37,9 +35,9 @@
   
   window.onload = function()
   {
-    // reset collapse if a new session id is given
-    if( sessionStorage.cid !== "{{cid}}")
+    if(sessionStorage.cid !== "{{cid}}")
     {
+      // reset collapse if a new session id is given
       sessionStorage.removeItem('collapseExtraSearch');
       
       // 
@@ -56,7 +54,6 @@
     // save the session id
     sessionStorage.cid = {{cid}};
     
-    //$( "#formula-result" ).onchange = function()
     document.getElementById("formula-result").onchange = function()
     {
         ns.SetField('formula', this.value);
@@ -64,7 +61,7 @@
     
     document.getElementById("formula-result").focus();
   }
-
+  
 </script>
 
 <script src="{{ url_for('static', filename='table.js') }}"></script>
