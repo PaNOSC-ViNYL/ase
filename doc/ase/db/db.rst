@@ -467,8 +467,8 @@ command as the ``postgres`` user::
 Then you create an 'ase' user and one database for each project you have::
 
     postgres=# create user ase login password 'pw';
-    postgres=# create database project1
-    postgres=# create database project2
+    postgres=# create database project1;
+    postgres=# create database project2;
     postgres=# \q
 
 You should now be able to
