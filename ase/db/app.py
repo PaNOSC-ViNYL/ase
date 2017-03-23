@@ -88,6 +88,12 @@ def database():
     return databases[request.args.get('project', 'default')]
 
 
+def prefix():
+    if 'project' in request.args:
+        return request.args.project + '-'
+    return ''
+
+
 @app.route('/')
 def index():
     global next_con_id
@@ -116,7 +122,7 @@ def index():
         columns = md.get('default_columns') or list(all_columns)
 
     if not hasattr(db, 'formulas'):
-        db.formulas = [row.formula for row in db.select()]
+        db.formulas = list({row.formula for row in db.select()})
 
     if 'sort' in request.args:
         column = request.args['sort']
@@ -204,9 +210,10 @@ def image(name):
 
 @app.route('/cif/<name>')
 def cif(name):
+    id = int(name[:-4])
+    name = prefix() + name
     path = os.path.join(tmpdir, name)
     if not os.path.isfile(path):
-        id = int(name[:-4])
         db = database()
         atoms = db.get_atoms(id)
         atoms.write(path)
@@ -215,9 +222,10 @@ def cif(name):
 
 @app.route('/plot/<png>')
 def plot(png):
+    name, id = png[:-4].split('-')
+    png = prefix() + png
     path = os.path.join(tmpdir, png)
     if not os.path.isfile(path):
-        name, id = png[:-4].split('-')
         db = database()
         dct = db[int(id)].data
         dct2plot(dct, name, path, show=False)
@@ -238,18 +246,22 @@ def gui(id):
 def summary(id):
     db = database()
     s = Summary(db.get(id), SUBSCRIPT)
-    return render_template('summary.html', s=s, home=home, md=db.metadata,
+    return render_template('summary.html',
+                           project=request.args.get('project', 'default'),
+                           s=s,
+                           home=home,
+                           md=db.metadata,
                            open_ase_gui=open_ase_gui)
 
 
-def tofile(query, type, limit=0):
+def tofile(project, query, type, limit=0):
     fd, name = tempfile.mkstemp(suffix='.' + type)
     con = ase.db.connect(name, use_lock_file=False)
-    db = database()
-    for dct in db.select(query, limit=limit):
-        con.write(dct,
-                  data=dct.get('data', {}),
-                  **dct.get('key_value_pairs', {}))
+    db = databases[project]
+    for row in db.select(query, limit=limit):
+        con.write(row,
+                  data=row.get('data', {}),
+                  **row.get('key_value_pairs', {}))
     os.close(fd)
     data = open(name).read()
     os.unlink(name)
@@ -283,14 +295,15 @@ def xyz(id):
 def jsonall():
     con_id = int(request.args['x'])
     con = connections[con_id]
-    data = tofile(con.query, 'json', con.limit)
+    data = tofile(con.project, con.query, 'json', con.limit)
     return data, 'selection.json'
 
 
 @app.route('/json/<int:id>')
 @download
 def json(id):
-    data = tofile(id, 'json')
+    project = request.args.get('project', 'default')
+    data = tofile(project, id, 'json')
     return data, '{0}.json'.format(id)
 
 
@@ -299,20 +312,31 @@ def json(id):
 def sqliteall():
     con_id = int(request.args['x'])
     con = connections[con_id]
-    data = tofile(con.query, 'db', con.limit)
+    data = tofile(con.project, con.query, 'db', con.limit)
     return data, 'selection.db'
 
 
 @app.route('/sqlite/<int:id>')
 @download
 def sqlite(id):
-    data = tofile(id, 'db')
+    project = request.args.get('project', 'default')
+    data = tofile(project, id, 'db')
     return data, '{0}.db'.format(id)
 
 
 @app.route('/robots.txt')
 def robots():
     return 'User-agent: *\nDisallow: /\n', 200
+
+
+@app.route('/formulas')
+def formulas():
+    return json.dumps(database().formulas)
+
+
+@app.route('/special_keys')
+def special_keys():
+    return json.dumps(database().metadata['special_keys'])
 
 
 def pages(page, nrows, limit):
