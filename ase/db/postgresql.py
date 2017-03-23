@@ -46,6 +46,8 @@ class PostgreSQLDatabase(SQLite3Database):
         if self.initialized:
             return
 
+        self._metadata = {}
+
         cur = con.cursor()
 
         try:
@@ -66,7 +68,6 @@ class PostgreSQLDatabase(SQLite3Database):
                 cur.execute(';\n'.join(index_statements))
             con.commit()
             self.version = VERSION
-            self._metadata = {}
         else:
             for name, value in cur.fetchall():
                 if name == 'version':
