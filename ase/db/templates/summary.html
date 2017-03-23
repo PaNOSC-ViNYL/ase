@@ -1,15 +1,14 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-Summary
-{% endblock %} 
+{{proj}} - Summary
+{% endblock %}
 
 {% block head %}
 <!-- nothing extra here -->
 {% endblock %}
 
 {% block content %}
-
 
   {% set d = s.row %}
   {% set meta = md['key_descriptions'] or {} %}
