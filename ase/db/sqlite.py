@@ -621,12 +621,13 @@ class SQLite3Database(Database, object):
         con = self._connect()
         self._initialize(con)
         md = json.dumps(dct)
-        cur = con.execute(
-            'SELECT count(*) FROM information WHERE name="metadata"')
+        cur = con.cursor()
+        cur.execute(
+            "SELECT COUNT(*) FROM information WHERE name='metadata'")
 
         if cur.fetchone()[0]:
             cur.execute(
-                'UPDATE information SET value=? WHERE name="metadata"', [md])
+                "UPDATE information SET value=? WHERE name='metadata'", [md])
         else:
             cur.execute('INSERT INTO information VALUES (?, ?)',
                         ('metadata', md))
