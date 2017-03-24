@@ -4,35 +4,6 @@
 <script>
   //window.location.reload(true)
   
-  function SetupSuggestions()
-  {
-    var jFormula = [];
-    {% for formula in formulas -%}
-      jFormula.push('{{formula|safe}}');
-    {%- endfor %}
-    
-    jFormula = uniq(jFormula);
-    
-    sessionStorage.setItem("formula", JSON.stringify(jFormula));
-  }
-  
-  function CopyCtrl()
-  {
-    {% set ctrl = md['special_keys'] or { } -%}
-    
-    var cList = [];
-    var cType = [];
-    {% if ctrl|length != 0 -%}
-      {% for control in ctrl %}
-        cList.push('{{ control }}');
-        cType.push('{{ ctrl[control][0] }}');
-      {% endfor %}
-    {%- endif %}
-    
-    sessionStorage.setItem("ctrlKeys", JSON.stringify(cList));
-    sessionStorage.setItem("ctrlType", JSON.stringify(cType));
-  }
-  
   window.onload = function()
   {
     if(sessionStorage.cid !== "{{cid}}")
@@ -53,11 +24,6 @@
 
     // save the session id
     sessionStorage.cid = {{cid}};
-    
-    document.getElementById("formula-result").onchange = function()
-    {
-        ns.SetField('formula', this.value);
-    };    
     
     document.getElementById("formula-result").focus();
   }

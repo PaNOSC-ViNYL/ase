@@ -1,5 +1,59 @@
 
 //
+// Requests
+//
+
+function SetupSuggestions()
+{
+    var xhr = new XMLHttpRequest(),
+    method = "GET",
+    url = "/formulas";
+
+    xhr.open(method, url, true);
+    xhr.onload = function() 
+    {
+        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
+        {
+            //console.log(xhr.responseText);
+            sessionStorage.setItem("formula", xhr.responseText);
+        }
+    };
+
+    xhr.send();
+}
+
+function CopyCtrl()
+{
+    var xhr = new XMLHttpRequest(),
+    method = "GET",
+    url = "/special_keys";
+
+    // synchronous call
+    xhr.open(method, url, true);
+    xhr.onload = function() 
+    {
+        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
+        {
+            var ctrl = JSON.parse(xhr.responseText);
+
+            var cList = [];
+            var cType = [];
+
+            for(var control in ctrl)
+            {
+                cList.push(control);
+                cType.push(ctrl[control][0]);
+            }
+
+            sessionStorage.setItem("ctrlKeys", JSON.stringify(cList));
+            sessionStorage.setItem("ctrlType", JSON.stringify(cType));
+        }
+    };
+
+    xhr.send();   
+}
+
+//
 // remove multiple instances from array
 //
 
@@ -32,11 +86,19 @@ function ControlFunction(type, element, value)
 $(document).ready(function()
 {
     //
+    // simple search bar (ControlFunction)
+    document.getElementById("formula-result").onchange = function()
+    {
+        ns.SetField('formula', this.value);
+    };
+
+    //
     // autocomplete
-    var availableTags = JSON.parse(sessionStorage.getItem("formula"));
+    
+    var autoSuggestions = JSON.parse(sessionStorage.getItem("formula"));
     $( "#formula-result" ).autocomplete(
     {
-        source: availableTags
+        source: autoSuggestions
     });
 
     //
