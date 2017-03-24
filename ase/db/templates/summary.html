@@ -12,25 +12,25 @@
 
   {% set d = s.row %}
   {% set meta = md['key_descriptions'] or {} %}
-  {% set secs = md['summary_sections'] or [] %} 
-  
-  
+  {% set secs = md['summary_sections'] or [] %}
+
+
   {% if secs == [] %}
     {% set nometa = true %}
     {% set secs = [
-      ['Basic Properties', 
+      ['Basic Properties',
         ['Item'],
         ['AXIS'],
-        ['STRUCTUREPLOT']        
+        ['STRUCTUREPLOT']
         ],
-      ['Key Value Pairs', 
+      ['Key Value Pairs',
         ['Key'],
-        ['FORCES']        
+        ['FORCES']
         ]
       ]
     %}
   {% endif %}
-  
+
 
   <!-- a little setup-->
   {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
@@ -43,7 +43,7 @@
   {% for name, unit, value in s.table %}
   {% set _dummy = keyval1.update({name : (unit, value)}) %}
   {% endfor %}
-  
+
   {% if nometa == true %}
   {% set _temp = [] %}
   {% for key in keyval1 %}
@@ -55,7 +55,7 @@
   {% for key, value in s.key_value_pairs %}
   {% set _dummy = keyval2.update({key: ('-', value)}) %}
   {% endfor %}
-  
+
   {% if nometa == true %}
   {% set _temp = [] %}
   {% for key in keyval2 %}
@@ -63,13 +63,13 @@
   {% endfor%}
   {% set _dummy = secs[1][1].append(_temp) %}
   {% endif %}
-  
+
   {% set keyval = keyval1 %}
   {% set _dummy = keyval.update(keyval2) %}
 
   <div class="container">
 
-    
+
 
     {% for name, unit, value in s.table %}
     {% if name == "formula" %}
@@ -85,7 +85,7 @@
       {% set secCount = {'count' : 0} %}
       {% for sec in secs %}
       {% set _dummy = secCount.update({'count' : secCount['count']+1}) %}
-      
+
       <div class="panel panel-default">
         <div class="panel-heading">
           <h4 class="panel-title">
@@ -101,25 +101,25 @@
         {% endif %}
           <div class="panel-body">
             {% set half = ((sec|length)/2) | int %} <!-- careful with jinja2 parsing -->
-            
+
             <div class="row myrow">
-              
+
               <div class="col-xs-1"></div>
               <div class="col-xs-5">
                 {% for index in range(1, sec|length) %}
-                
+
                 {% if index == half+1 %}
                 </div>
                 <div class="col-xs-5">
                 {% endif %}
-                
+
                 {% if not sec[index][0] in SPECIAL %}
                 <table class="table table-striped">
                   <colgroup>
                     <col class="col-xs-7">
                     <col class="col-xs-3">
                     <col class="col-xs-2">
-                  </colgroup> 
+                  </colgroup>
                   <thead>
                     <tr>
                       <th>{{sec[index][0]}}</th>
@@ -128,8 +128,8 @@
                     </tr>
                   </thead>
                   <tbody>
-                    {% for item in range(0, sec[index][1]|length) %}                    
-                    {% set name = sec[index][1][item] %}                    
+                    {% for item in range(0, sec[index][1]|length) %}
+                    {% set name = sec[index][1][item] %}
                     {% if name in keyval %}
                     {% if name in meta %}
                       <tr>
@@ -153,7 +153,7 @@
                         <td> {{ name }} </td>
                         <td class="text-center"> {{ keyval[name][1] | safe }} </td>
                         <td class="text-center"> {{ keyval[name][0] }} </td>
-                      </tr>                    
+                      </tr>
                     {% endif %}
                     {% endif %}
                     {% endfor %}
@@ -162,11 +162,11 @@
                 {% else %}
 
                   {% if sec[index][0] == 'STRUCTUREPLOT' %}
-                  
+
                     {% if d.numbers|length %}
                     {% if open_ase_gui %}
-                    <a href="/gui/{{ d.id }}">
-                      <img src="/image/{{ d.id }}.png">
+                    <a href="/gui/{{ d.id }}?project={{ project }}">
+                      <img src="/image/{{ d.id }}.png?project={{ project }}">
                     </a>
                     {% else %}
                     <div id="appdiv"></div>
@@ -175,9 +175,9 @@
 
                     {% endif %}
                     {% endif %}
-                    
+
                   {% elif sec[index][0] == 'AXIS' %}
-                  
+
                     <table class="table table-striped">
                       <thead>
                         <tr>
@@ -241,7 +241,7 @@
                   {% endif %}
                   {% endfor %}
 
-                </div>            
+                </div>
               <div class="col-xs-1"></div>
 
             </div> <!--END ROW-->
@@ -253,7 +253,7 @@
               <div class="col-xs-10">
                 <center>
                   {% for name in plotList %}
-                  <img src="/plot/{{ name }}-{{ d.id }}.png">                  
+                  <img src="/plot/{{ name }}-{{ d.id }}.png?project={{ project }}">
                   {% endfor %}
                 </center>
               </div>

@@ -200,7 +200,7 @@
 
         {% for row in t.rows -%}
 
-        <tr onclick="document.location.href = '/id/{{ row.dct.id }}';">
+        <tr onclick="document.location.href = '/id/{{ row.dct.id }}?project={{ project }}';">
                                                 {%- autoescape false -%}
                                                         {%- for s in row.strings -%}
                 {% if s != "" %}
