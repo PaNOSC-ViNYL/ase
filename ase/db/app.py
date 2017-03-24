@@ -21,11 +21,12 @@ import collections
 import functools
 import io
 import os
+import os.path as op
 import re
 import sys
 import tempfile
 
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, flash
 
 try:
     import matplotlib
@@ -52,6 +53,8 @@ Connection = collections.namedtuple(
      'limit'])  # number of rows per page
 
 app = Flask(__name__)
+
+app.secret_key = 'asdf'
 
 databases = {}
 home = ''  # link to homepage
@@ -92,6 +95,28 @@ def prefix():
     if 'project' in request.args:
         return request.args.project + '-'
     return ''
+
+
+errors = 0
+
+
+def error(e):
+    import traceback
+    global errors
+    x = request.args.get('x', '0')
+    try:
+        cid = int(x)
+    except ValueError:
+        cid = 0
+    con = connections.get(cid)
+    with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
+        print(repr((errors, con, e, request)), file=fd)
+        traceback.print_tb(e.__traceback__, file=fd)
+    errors += 1
+    raise e
+
+
+app.register_error_handler(Exception, error)
 
 
 @app.route('/')
@@ -158,11 +183,18 @@ def index():
             else:
                 columns.append(column)
 
+    okquery = query
+
     if nrows is None:
-        nrows = db.count(query)
+        try:
+            nrows = db.count(query)
+        except (ValueError, KeyError) as e:
+            flash(', '.join(['Bad query'] + list(e.args)))
+            okquery = 'id=0'  # this will return no rows
+            nrows = db.count(okquery)
 
     table = Table(db)
-    table.select(query, columns, sort, limit, offset=page * limit)
+    table.select(okquery, columns, sort, limit, offset=page * limit)
 
     con = Connection(project, query, nrows, page, columns, sort, limit)
     connections[con_id] = con
@@ -198,8 +230,8 @@ def index():
 
 @app.route('/image/<name>')
 def image(name):
-    path = os.path.join(tmpdir, name)
-    if not os.path.isfile(path):
+    path = op.join(tmpdir, name)
+    if not op.isfile(path):
         id = int(name[:-4])
         db = database()
         atoms = db.get_atoms(id)
@@ -212,8 +244,8 @@ def image(name):
 def cif(name):
     id = int(name[:-4])
     name = prefix() + name
-    path = os.path.join(tmpdir, name)
-    if not os.path.isfile(path):
+    path = op.join(tmpdir, name)
+    if not op.isfile(path):
         db = database()
         atoms = db.get_atoms(id)
         atoms.write(path)
@@ -224,8 +256,8 @@ def cif(name):
 def plot(png):
     name, id = png[:-4].split('-')
     png = prefix() + png
-    path = os.path.join(tmpdir, png)
-    if not os.path.isfile(path):
+    path = op.join(tmpdir, png)
+    if not op.isfile(path):
         db = database()
         dct = db[int(id)].data
         dct2plot(dct, name, path, show=False)

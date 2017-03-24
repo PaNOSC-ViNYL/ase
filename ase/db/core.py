@@ -337,7 +337,8 @@ class Database:
                 op = invop[op]
                 value = now() - time_string_to_float(value)
             elif key == 'formula':
-                assert op == '='
+                if op != '=':
+                    raise ValueError('Use fomula=...')
                 numbers = symbols2numbers(value)
                 count = collections.defaultdict(int)
                 for Z in numbers:
