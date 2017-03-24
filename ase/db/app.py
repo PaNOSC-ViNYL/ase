@@ -176,6 +176,8 @@ def index():
             meta['key_descriptions'] = {}
         meta['key_descriptions'].update(default_key_descriptions)
         db.meta = meta
+    else:
+        meta = db.meta
 
     if columns is None:
         columns = meta.get('default_columns') or list(all_columns)
