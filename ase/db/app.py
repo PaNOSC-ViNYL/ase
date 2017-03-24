@@ -43,6 +43,20 @@ from ase.db.table import Table, all_columns
 from ase.visualize import view
 
 
+default_key_descriptions = {
+    'id': ('ID', 'Uniqe row ID', 'int', ''),
+    'age': ('Age', 'Time since creation', 'float', ''),
+    'formula': ('Formula', 'Chemical formula', 'str', ''),
+    'user': ('Username', 'Username', 'str', ''),
+    'calculator': ('Calculator', 'ASE-calculator name', 'str', ''),
+    'energy': ('Energy', 'Total energy', 'float', 'eV'),
+    'fmax': ('Maximum force', 'Maximum force', 'float', 'eV/Ang'),
+    'charge': ('Charge', 'Charge', 'float', '`|e|`'),
+    'mass': ('Mass', 'Mass', 'float', 'au'),
+    'magmom': ('Magnetic moment', 'Magnetic moment', 'float', 'au'),
+    'unique_id': ('Unique ID', 'Unique ID', 'float', ''),
+    'volume': ('Volume', 'Volume of unit-cell', 'float', '`Ang^3`')}
+
 # Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
     'Connection',
@@ -95,7 +109,7 @@ def database():
 
 def prefix():
     if 'project' in request.args:
-        return request.args.project + '-'
+        return request.args['project'] + '-'
     return ''
 
 
@@ -103,6 +117,7 @@ errors = 0
 
 
 def error(e):
+    """Write traceback and other stuff to 00-99.error files."""
     import traceback
     global errors
     x = request.args.get('x', '0')
@@ -125,13 +140,18 @@ app.register_error_handler(Exception, error)
 def index():
     global next_con_id
 
+    if not projects:
+        # First time: initialize list of projects
+        projects[:] = [(proj, d.metadata.get('title', proj))
+                       for proj, d in sorted(databases.items())]
+
     con_id = int(request.args.get('x', '0'))
 
     if con_id not in connections:
         # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
-        project = 'default'
+        project = projects[0][0]
         query = ''
         nrows = None
         page = 0
@@ -143,13 +163,24 @@ def index():
 
     project = request.args.get('project', project)
     db = databases[project]
-    md = db.metadata
-
-    if columns is None:
-        columns = md.get('default_columns') or list(all_columns)
 
     if not hasattr(db, 'formulas'):
-        db.formulas = list({row.formula for row in db.select()})
+        # First time we touch this database.
+        # Suggestions for formulas:
+        db.formulas = list({row.formula for row in db.select(limit=2000)})
+
+    if not hasattr(db, 'meta'):
+        # Also fill in default key-descriptions:
+        meta = db.metadata
+        if 'key_descriptions' not in meta:
+            meta['key_descriptions'] = {}
+        meta['key_descriptions'].update(default_key_descriptions)
+        db.meta = meta
+    else:
+        meta = db.meta
+
+    if columns is None:
+        columns = meta.get('default_columns') or list(all_columns)
 
     if 'sort' in request.args:
         column = request.args['sort']
@@ -175,7 +206,7 @@ def index():
     if 'toggle' in request.args:
         column = request.args['toggle']
         if column == 'reset':
-            columns = md.get('default_columns') or list(all_columns)
+            columns = meta.get('default_columns') or list(all_columns)
         else:
             if column in columns:
                 columns.remove(column)
@@ -210,15 +241,11 @@ def index():
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
-    if not projects:
-        projects[:] = [(proj, d.metadata.get('title', proj))
-                       for proj, d in databases.items()]
-
     return render_template('table.html',
                            project=project,
                            projects=projects,
                            t=table,
-                           md=md,
+                           md=meta,
                            formulas=db.formulas,
                            con=con,
                            cid=con_id,
@@ -232,9 +259,10 @@ def index():
 
 @app.route('/image/<name>')
 def image(name):
+    id = int(name[:-4])
+    name = prefix() + name
     path = op.join(tmpdir, name)
     if not op.isfile(path):
-        id = int(name[:-4])
         db = database()
         atoms = db.get_atoms(id)
         atoms2png(atoms, path)
@@ -284,7 +312,7 @@ def summary(id):
                            project=request.args.get('project', 'default'),
                            s=s,
                            home=home,
-                           md=db.metadata,
+                           md=db.meta,
                            open_ase_gui=open_ase_gui)
 
 
