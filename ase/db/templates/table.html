@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 
 {% set columns = md['default_columns'] %}
-{% set proj = md['title'] or ['Browse ASE Database'] %}
+{% set proj = md['title'] or 'Browse ASE Database' %}
 {% set meta = md['key_descriptions'] or { } %}
 {% set ctrl = md['special_keys'] or { } %}
 
@@ -58,11 +58,11 @@
 
                 <div class="col-xs-4">
 
-                  {% if ctrl[control][0] == 'COMBO' %}
+                  {% if control[1] == 'COMBO' %}
                     {% include 'combo.html' %}
-                  {% elif ctrl[control][0] == 'CHECK' %}
+                  {% elif control[1] == 'CHECK' %}
                     {% include 'checkbox.html' %}
-                  {% elif ctrl[control][0] == 'INTERVAL' %}
+                  {% elif control[1] == 'INTERVAL' %}
                     {% include 'interval.html' %}
                   {% endif %}
 
@@ -136,7 +136,7 @@
                                                         </ul>
                                                 </div>
 
-                                                <div class="btn-group pull-right">                                                    
+                                                <div class="btn-group pull-right">
                                                         <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         Add Column <span class="caret"></span>
                                                         </button>
@@ -150,7 +150,7 @@
                                                             <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a></li>
                                                           {% endif %}
                                                         {% endfor %}
-                                                        </ul>                                                    
+                                                        </ul>
                                                 </div>
 
                                                 <div class="btn-group pull-right">
@@ -200,7 +200,7 @@
 
         {% for row in t.rows -%}
 
-        <tr onclick="document.location.href = '/id/{{ row.dct.id }}';">
+        <tr onclick="document.location.href = '/id/{{ row.dct.id }}?project={{ project }}';">
                                                 {%- autoescape false -%}
                                                         {%- for s in row.strings -%}
                 {% if s != "" %}

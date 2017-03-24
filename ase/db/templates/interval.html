@@ -1,33 +1,33 @@
 
 
 <div class="form-group">
-    
-    <label> Interval: 
-    {%if control in meta %}
-      {{meta[control][1]}}
+
+    <label> Interval:
+    {%if control[0] in meta %}
+      {{meta[control[0]][1]}}
     {% else %}
-      {{control}}
+      {{control[0]}}
     {% endif %}
     </label>
 
     <div class="row">
-      
+
         <div class="col-xs-3">
-          <input type="text" class="form-control input-sm" id="{{control}}-l"
-                 onchange="var rval = document.getElementById('{{control}}-r').value; 
-                 ControlFunction('INTERVAL', '{{control}}', [this.value == '' ? null : this.value, rval=='' ? null : rval]); return false;">
+          <input type="text" class="form-control input-sm" id="{{control[0]}}-l"
+                 onchange="var rval = document.getElementById('{{control[0]}}-r').value;
+                 ControlFunction('INTERVAL', '{{control[0]}}', [this.value == '' ? null : this.value, rval=='' ? null : rval]); return false;">
         </div>
-      
+
         <div class="col-xs-1">
           -
         </div>
-        
+
         <div class="col-xs-3">
-          <input type="text" class="form-control input-sm" id="{{control}}-r"
-                 onchange="var lval = document.getElementById('{{control}}-l').value;
-                 ControlFunction('INTERVAL', '{{control}}', [lval=='' ? null : lval, this.value == '' ? null : this.value]); return false;">
+          <input type="text" class="form-control input-sm" id="{{control[0]}}-r"
+                 onchange="var lval = document.getElementById('{{control[0]}}-l').value;
+                 ControlFunction('INTERVAL', '{{control[0]}}', [lval=='' ? null : lval, this.value == '' ? null : this.value]); return false;">
         </div>
-        
+
         <div class="col-xs-5">
         </div>
 
