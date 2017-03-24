@@ -1,5 +1,33 @@
 
 //
+// On load
+//
+
+function BodyOnLoad(id, query)
+{
+    if(sessionStorage.getItem("cid") === null)
+    {
+        // create and store the session id
+        sessionStorage.cid = id;
+
+        // reset collapse if a new session id is given
+        sessionStorage.removeItem('collapseExtraSearch');
+      
+        // 
+        // setup suggestions, // no way of breaking a for loop in jinja2
+        SetupSuggestions();
+      
+        //
+        // setup controls
+        CopyCtrl();
+    }
+
+    ns.Init(query);
+    
+    document.getElementById("formula-result").focus();
+}
+
+//
 // Requests
 //
 
@@ -9,7 +37,7 @@ function SetupSuggestions()
     method = "GET",
     url = "/formulas";
 
-    xhr.open(method, url, true);
+    xhr.open(method, url, false);
     xhr.onload = function() 
     {
         if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
@@ -28,8 +56,7 @@ function CopyCtrl()
     method = "GET",
     url = "/special_keys";
 
-    // synchronous call
-    xhr.open(method, url, true);
+    xhr.open(method, url, false);
     xhr.onload = function() 
     {
         if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
@@ -94,8 +121,8 @@ $(document).ready(function()
 
     //
     // autocomplete
-    
     var autoSuggestions = JSON.parse(sessionStorage.getItem("formula"));
+    //console.log(autoSuggestions);
     $( "#formula-result" ).autocomplete(
     {
         source: autoSuggestions
@@ -427,6 +454,9 @@ var ns = (function()
         var key = JSON.parse(sessionStorage.getItem("ctrlKeys"));
         var type = JSON.parse(sessionStorage.getItem("ctrlType"));
 
+        //console.log(key);
+        //console.log(type);
+
         for(i=0; i<key.length; i++)
         {
             m_control.push(new inputCtrl(key[i], type[i], i));
@@ -489,7 +519,7 @@ var ns = (function()
 
 		for(i=0; i<m_control.length; ++i)
 		{
-            if(this.m_access !== -1)
+            if(m_control[i].m_access !== -1)
             {
 			    m_control[i].SetOutput();
             }

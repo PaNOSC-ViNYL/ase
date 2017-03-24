@@ -14,6 +14,23 @@
     <div class="container">
       <div class="row">
         <div class="col-xs-8">
+
+          <div class="dropdown">
+            <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              {{proj}}
+              <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu">
+
+              {% for proj_iter in projects %}
+              <li>
+                <a href="/?project={{ proj_iter[0] }}">{{proj_iter[1]}}</a>
+              </li>
+              {% endfor %}
+
+            </ul>
+          </div>
           
           <ol class="breadcrumb">
             {% for proj in projects %}
@@ -39,7 +56,9 @@
     </div> <!--end of container-->
     
   </head>
-  <body>
+  
+  
+  <body {% block BodySettings %}{% endblock %}>
 
   {% block content %}
   {% endblock %}

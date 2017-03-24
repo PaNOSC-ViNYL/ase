@@ -1,32 +1,8 @@
 <!-- Custom js scripts -->
 <!-- NB! needs html embedding in to access jinja2 -->
 <script>
-  //window.location.reload(true)
-  
-  window.onload = function()
-  {
-    if(sessionStorage.cid !== "{{cid}}")
-    {
-      // reset collapse if a new session id is given
-      sessionStorage.removeItem('collapseExtraSearch');
-      
-      // 
-      // setup suggestions, // no way of breaking a for loop in jinja2
-      SetupSuggestions();
-      
-      //
-      // setup controls
-      CopyCtrl();
-    }
+  //window.location.reload(true);
 
-    ns.Init("{{ con.query|safe }}");
-
-    // save the session id
-    sessionStorage.cid = {{cid}};
-    
-    document.getElementById("formula-result").focus();
-  }
-  
 </script>
 
 <script src="{{ url_for('static', filename='table.js') }}"></script>
