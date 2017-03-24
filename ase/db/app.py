@@ -17,9 +17,11 @@ Start with something like::
 
 """
 
+from __future__ import print_function
 import collections
 import functools
 import io
+import json
 import os
 import os.path as op
 import re
@@ -333,7 +335,7 @@ def jsonall():
 
 @app.route('/json/<int:id>')
 @download
-def json(id):
+def json1(id):
     project = request.args.get('project', 'default')
     data = tofile(project, id, 'json')
     return data, '{0}.json'.format(id)
@@ -350,7 +352,7 @@ def sqliteall():
 
 @app.route('/sqlite/<int:id>')
 @download
-def sqlite(id):
+def sqlite1(id):
     project = request.args.get('project', 'default')
     data = tofile(project, id, 'db')
     return data, '{0}.db'.format(id)
