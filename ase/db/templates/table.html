@@ -27,10 +27,11 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
   <div class="row">
 
-                <form class="navbar-form navbar-default" role="search" action="/">
+    <form id="mainFormID" class="navbar-form navbar-default" role="search" action="/">
 
-      <input type="hidden" name="x" value="{{ cid }}">
-      <input type="hidden" id="searchstr" class="form-control" placeholder="Search Query" name="query">
+        <input type="hidden" id="limit" name="limit" value={{con.limit}}>
+        <input type="hidden" name="x" value="{{ cid }}">
+        <input type="hidden" id="searchstr" class="form-control" placeholder="Search Query" name="query">
 
       <div class="form-group">
                                 <input type="text" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2 or individual elements Mo,S,..." size="60">
@@ -61,12 +62,12 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
                 {% set colCount = {'iter': colCount['iter']+1} %}
 
                 <div class="col-xs-4">
-
-                  {% if control[1] == 'COMBO' %}
+                  
+                  {% if ctrl[control][0] == 'COMBO' %}
                     {% include 'combo.html' %}
-                  {% elif control[1] == 'CHECK' %}
+                  {% elif ctrl[control][0] == 'CHECK' %}
                     {% include 'checkbox.html' %}
-                  {% elif control[1] == 'INTERVAL' %}
+                  {% elif ctrl[control][0] == 'INTERVAL' %}
                     {% include 'interval.html' %}
                   {% endif %}
 
@@ -125,7 +126,7 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
                                 <div class="row">
                                         <div class="col-xs-6">
-                                                <h5><b>Entries found: {{ nrows }}</b></h5>
+                                                <h5><b>Displaying rows {{ row1 }}-{{ row2 }} out of {{ nrows }}</b></h5>
                                         </div>
 
                                         <div class="col-xs-6">
@@ -159,13 +160,13 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
                                                 <div class="btn-group pull-right">
                                                         <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        #rows <span class="caret"></span>
+                                                        #Rows: {{con.limit}} <span class="caret"></span>
                                                         </button>
                                                         <ul class="dropdown-menu">
-                                                        <li><a href="">25</a></li>
-                                                        <li><a href="">50</a></li>
-                                                        <li><a href="">100</a></li>
-                                                        <li><a href="">200</a></li>
+                                                        <li onclick="$('#limit').val(25); $('#mainFormID').submit(); return false;"><a href="">25</a></li>
+                                                        <li onclick="$('#limit').val(50); $('#mainFormID').submit(); return false;"><a href="">50</a></li>
+                                                        <li onclick="$('#limit').val(100); $('#mainFormID').submit(); return false;"><a href="">100</a></li>
+                                                        <li onclick="$('#limit').val(200); $('#mainFormID').submit(); return false;"><a href="">200</a></li>
                                                         </ul>
                                                 </div>
 
