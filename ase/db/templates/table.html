@@ -90,10 +90,10 @@
               <form>
                 <input type="hidden" name="x" value="{{ cid }}">
                 <div class="form-group" style="margin-bottom:0px;">
-                                                                        <label for="sqlstr">Advanced Search</label>
-                  <input id="searchstr2" type="text" class="form-control" name="query" placeholder="">
-                                                                        <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying">Help with constructing advanced search queries...</a></small>
-                                                                </div>
+                <label for="sqlstr">Advanced Search</label>
+                    <input id="searchstr2" type="text" class="form-control" name="query" placeholder="Do a search using any key in the table e.g. key=value or 0.2<key<=1.2">
+                    <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries...</a></small>
+                </div>
               </form>
                                                 </li>
 
@@ -120,11 +120,11 @@
                                 <!-- Database Table -->
 
                                 <div class="row">
-                                        <div class="col-xs-9">
+                                        <div class="col-xs-6">
                                                 <h5><b>Entries found: {{ nrows }}</b></h5>
                                         </div>
 
-                                        <div class="col-xs-3">
+                                        <div class="col-xs-6">
 
                                                 <div class="btn-group pull-right">
                                                         <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -136,20 +136,32 @@
                                                         </ul>
                                                 </div>
 
-                                                <div class="btn-group pull-right">
+                                                <div class="btn-group pull-right">                                                    
                                                         <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                         Add Column <span class="caret"></span>
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                         {% for key in addcolumns %}
-              {% if meta|length != 0 %}
-                {% if key in meta %}
-                                                                  <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }} ({{key}})</a></li>
-                {% endif %}
-              {% else %}
-                <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a></li>
-              {% endif %}
+                                                          {% if meta|length != 0 %}
+                                                            {% if key in meta %}
+                                                                <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ meta[key][1] }} ({{key}})</a></li>
+                                                            {% endif %}
+                                                          {% else %}
+                                                            <li><a href="/?x={{ cid }}&amp;toggle={{ key }}">{{ key }}</a></li>
+                                                          {% endif %}
                                                         {% endfor %}
+                                                        </ul>                                                    
+                                                </div>
+
+                                                <div class="btn-group pull-right">
+                                                        <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                        #rows <span class="caret"></span>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                        <li><a href="">25</a></li>
+                                                        <li><a href="">50</a></li>
+                                                        <li><a href="">100</a></li>
+                                                        <li><a href="">200</a></li>
                                                         </ul>
                                                 </div>
 
