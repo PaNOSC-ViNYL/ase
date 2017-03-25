@@ -17,6 +17,7 @@ GREEN = '#DDFFDD'
 
 
 def get_cell_coordinates(cell):
+    """Get start and end points of lines segments used to draw cell."""
     nn = []
     for c in range(3):
         v = cell[c]
@@ -126,21 +127,28 @@ class View:
         else:
             bonds = np.empty((0, 5), int)
 
+        # X is all atomic coordinates, and starting points of vectors
+        # like bonds and cell segments.
+        # The reason to have them all in one big list is that we like to
+        # eventually rotate/sort it by Z-order when rendering.
+
+        # Also B are the end points of line segments.
+
         self.X = np.empty((natoms + len(B1) + len(bonds), 3))
         self.X_pos = self.X[:natoms]
         self.X_pos[:] = atoms.positions
-        self.X_B1 = self.X[natoms:natoms + len(B1)]
+        self.X_cell = self.X[natoms:natoms + len(B1)]
         self.X_bonds = self.X[natoms + len(B1):]
 
         if 1:#if init or frame != self.frame:
             cell = atoms.cell
-            nc = len(B1)
+            ncellparts = len(B1)
             nbonds = len(bonds)
 
             if 1: #init or (atoms.cell != self.atoms.cell).any():
-                self.X_B1[:] = np.dot(B1, cell)
-                self.B = np.empty((nc + nbonds, 3))
-                self.B[:nc] = np.dot(B2, cell)
+                self.X_cell[:] = np.dot(B1, cell)
+                self.B = np.empty((ncellparts + nbonds, 3))
+                self.B[:ncellparts] = np.dot(B2, cell)
 
             if nbonds > 0:
                 P = atoms.positions
@@ -154,7 +162,7 @@ class View:
                 self.X_bonds[:] = a + b * x0
                 b *= 1.0 - x0 - x1
                 b[bonds[:, 2:].any(1)] *= 0.5
-                self.B[nc:] = self.X_bonds + b
+                self.B[ncellparts:] = self.X_bonds + b
 
     def showing_bonds(self):
         return self.window['toggle-show-bonds']
@@ -358,8 +366,9 @@ class View:
 
         selected = self.images.selected
         visible = self.images.visible
-        ncell = self.atoms.number_of_lattice_vectors
+        ncell = len(self.X_cell)
         bond_linewidth = self.scale * 0.15
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
