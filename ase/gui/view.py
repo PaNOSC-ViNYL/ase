@@ -193,18 +193,13 @@ class View:
         self.set_frame()
 
     def toggle_show_velocities(self, key=None):
-        # XXX hard coded scale is ugly
-        v = self.atoms.get_velocities()
-        if v is not None:
-            self.show_vectors(10 * v)
-            self.draw()
+        self.draw()
 
     # transitional compat hack
     def get_forces(self):
         return self.images.get_forces(self.atoms)
 
     def toggle_show_forces(self, key=None):
-        self.show_vectors(np.nan_to_num(self.get_forces()))
         self.draw()
 
     def hide_selected(self):
@@ -354,10 +349,19 @@ class View:
                        axes)).round().astype(int)
         d = (2 * r).round().astype(int)
 
-        vectors = (self.window['toggle-show-velocities'] or
-                   self.window['toggle-show-forces'])
-        if vectors:
-            V = np.dot(self.vectors[self.frame], axes) + X[:n]
+        vector_arrays = []
+        if self.window['toggle-show-velocities']:
+            # Scale ugly?
+            v = self.atoms.get_velocities()
+            if v is not None:
+                vector_arrays.append(v * 10.0)
+        if self.window['toggle-show-forces']:
+            f = self.get_forces()
+            if f is not None:
+                vector_arrays.append(f)
+
+        for array in vector_arrays:
+            array[:] = np.dot(array, axes) + X[:n]
 
         colors = self.get_colors()
         circle = self.window.circle
@@ -396,9 +400,10 @@ class View:
                         line((A[a, 0] + R2, A[a, 1] + R1,
                               A[a, 0] + R1, A[a, 1] + R2))
 
-                    # Draw velocities or forces
-                    if vectors:
-                        self.arrow((X[a, 0], X[a, 1], V[a, 0], V[a, 1]),
+                    # Draw velocities and/or forces
+                    for v in vector_arrays:
+                        assert not np.isnan(v).any()
+                        self.arrow((X[a, 0], X[a, 1], v[a, 0], v[a, 1]),
                                    width=2)
             else:
                 # Draw unit cell and/or bonds:
@@ -576,9 +581,6 @@ class View:
 
     def render_window(self, action):
         Render(self)
-
-    def show_vectors(self, vectors):
-        self.vectors = vectors
 
     def resize(self, event):
         w, h = self.window.size

@@ -57,11 +57,9 @@ class Images:
     def get_forces(self, atoms):
         try:
             F = atoms.get_forces(apply_constraint=False)
+            return np.tile(F.T, self.repeat.prod()).T
         except RuntimeError:
-            F = np.empty_like(atoms.positions)
-            F.fill(np.nan)
-        F = np.tile(F.T, self.repeat.prod()).T
-        return F
+            return None
 
     def get_magmoms(self, atoms, init_magmom=False):
         try:
@@ -249,14 +247,17 @@ class Images:
             ns['s'] = s
             ns['R'] = R = self[i].get_positions()
             ns['V'] = self[i].get_velocities()
-            ns['F'] = F = self.get_forces(self[i])
+            F = self.get_forces(self[i])
+            if F is not None:
+                ns['F'] = F
             ns['A'] = self[i].get_cell()
             ns['M'] = self[i].get_masses()
             # XXX askhl verify:
             dynamic = self.get_dynamic(self[i])
-            ns['f'] = f = ((F * dynamic[:, None])**2).sum(1)**.5
-            ns['fmax'] = max(f)
-            ns['fave'] = f.mean()
+            if F is not None:
+                ns['f'] = f = ((F * dynamic[:, None])**2).sum(1)**.5
+                ns['fmax'] = max(f)
+                ns['fave'] = f.mean()
             ns['epot'] = epot = E[i]
             ns['ekin'] = ekin = self[i].get_kinetic_energy()
             ns['e'] = epot + ekin
@@ -273,7 +274,7 @@ class Images:
 
     def write(self, filename, rotations='', show_unit_cell=False, bbox=None,
               **kwargs):
-        indices = range(self.nimages)
+        indices = range(len(self))
         p = filename.rfind('@')
         if p != -1:
             try:
