@@ -45,7 +45,7 @@ from ase.visualize import view
 
 default_key_descriptions = {
     'id': ('ID', 'Uniqe row ID', 'int', ''),
-    'age': ('Age', 'Time since creation', 'float', ''),
+    'age': ('Age', 'Time since creation', 'str', ''),
     'formula': ('Formula', 'Chemical formula', 'str', ''),
     'user': ('Username', 'Username', 'str', ''),
     'calculator': ('Calculator', 'ASE-calculator name', 'str', ''),

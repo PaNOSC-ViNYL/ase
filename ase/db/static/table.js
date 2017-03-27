@@ -5,7 +5,7 @@
 
 function BodyOnLoad(id, query)
 {
-    console.log(id);
+    //console.log(id);
 
     if(sessionStorage.getItem("cid") !== id.toString())
     {
@@ -368,7 +368,6 @@ var ns = (function()
 
 		// set query in forms
 		document.getElementById('searchstr').value = query;
-		document.getElementById('searchstr2').value = query;
 
         //
         // setup supported controls
@@ -555,7 +554,6 @@ var ns = (function()
 		}
 
 		document.getElementById('searchstr').value = query;
-		document.getElementById('searchstr2').value = query;
 	}
 
     function getIndicesOf(searchStr, str, caseSensitive) 

@@ -5,71 +5,82 @@
 {% endblock %}
 
 {% block head %}
-<!-- nothing extra here -->
+{# nothing extra here #}
 {% endblock %}
 
 {% block content %}
 
-  {% set d = s.row %}
-  {% set meta = md['key_descriptions'] or {} %}
-  {% set secs = md['summary_sections'] or [] %}
+    {% set d = s.row %}
+    {% set meta = md['key_descriptions'] or {} %}
+    {% set secs = md['summary_sections'] or [] %}
 
-
-  {% if secs == [] %}
-    {% set nometa = true %}
+    {% set IsMeta = true %}
+    {% if secs == [] %}
+    {% set IsMeta = false %}
     {% set secs = [
-      ['Basic Properties',
+        ['Basic Properties',
         ['Item'],
-        ['AXIS'],
-        ['STRUCTUREPLOT']
+        ['STRUCTUREPLOT'],
+        ['AXIS']
         ],
-      ['Key Value Pairs',
+        ['Key Value Pairs',
         ['Key'],
         ['FORCES']
         ]
-      ]
+        ]
     %}
-  {% endif %}
+    {% endif %}
+    
+    {# a little setup of meta data #}
+    
+    {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
+    {% set plotIs = {'plot': false} %}
+    {% set plotList = {} %}
 
+    {% set keyval1 = {} %}
+    {% set keyval2 = {} %}
 
-  <!-- a little setup-->
-  {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
-  {% set plotIs = {'plot': false} %}
-  {% set plotList = {} %}
+    {% for name, unit, value in s.table %}
+    {% set _dummy = keyval1.update({name : (unit, value)}) %}
+    {% endfor %}
 
-  {% set keyval1 = {} %}
-  {% set keyval2 = {} %}
-
-  {% for name, unit, value in s.table %}
-  {% set _dummy = keyval1.update({name : (unit, value)}) %}
-  {% endfor %}
-
-  {% if nometa == true %}
-  {% set _temp = [] %}
-  {% for key in keyval1 %}
+    {% if IsMeta == false %}
+    {% set _temp = [] %}
+    {% for key in keyval1 %}
     {% set _dummy = _temp.append(key) %}
-  {% endfor%}
-  {% set _dummy = secs[0][1].append(_temp) %}
-  {% endif %}
+    {% endfor%}
+    {% set _dummy = secs[0][1].append(_temp) %}
+    {% endif %}
 
-  {% for key, value in s.key_value_pairs %}
-  {% set _dummy = keyval2.update({key: ('-', value)}) %}
-  {% endfor %}
+    {% for key, value in s.key_value_pairs %}
+    {% set _dummy = keyval2.update({key: ('-', value)}) %}
+    {% endfor %}
 
-  {% if nometa == true %}
-  {% set _temp = [] %}
-  {% for key in keyval2 %}
+    {% if IsMeta == false %}
+    {% set _temp = [] %}
+    {% for key in keyval2 %}
     {% set _dummy = _temp.append(key) %}
-  {% endfor%}
-  {% set _dummy = secs[1][1].append(_temp) %}
-  {% endif %}
+    {% endfor%}
+    {% set _dummy = secs[1][1].append(_temp) %}
+    {% endif %}
 
-  {% set keyval = keyval1 %}
-  {% set _dummy = keyval.update(keyval2) %}
+    {% set keyval = keyval1 %}
+    {% set _dummy = keyval.update(keyval2) %}
 
-  <div class="container">
+    {#
+    {{s.table}}
+    <br>
+    <br>
+    {{secs}}
+    <br>
+    <br>
+    {{meta}}
+    <br>
+    <br>
+    {{keyval}}
+    #}
 
-
+<div class="container">
 
     {% for name, unit, value in s.table %}
     {% if name == "formula" %}
@@ -94,13 +105,22 @@
             </a>
           </h4>
         </div>
+        
         {% if secCount['count'] == 1 %}
         <div id="collapse{{secCount['count']}}" class="panel-collapse collapse in">
         {%else%}
         <div id="collapse{{secCount['count']}}" class="panel-collapse collapse">
         {% endif %}
+
           <div class="panel-body">
-            {% set half = ((sec|length)/2) | int %} <!-- careful with jinja2 parsing -->
+            {% set tableLen = {'count': 0} %}
+            {% for index in range(1, sec|length) %}
+                {% if sec[index][0] != 'PLOT' %}
+                    {% set _dummy = tableLen.update({'count': tableLen['count'] + 1}) %}
+                {% endif %}
+            {% endfor%}
+
+            {% set half = ((tableLen['count'])/2) | int %}
 
             <div class="row myrow">
 
@@ -135,23 +155,18 @@
                       <tr>
                         <td> {{ meta[name][1] }} </td>
 
-                        {% if meta[name][2] == 'float' %}
+                        {% if meta[name][2] == 'float'  %}
                         <td class="text-center"> {{ keyval[name][1] | round(3, 'common') }} </td>
                         {% else %}
                         <td class="text-center"> {{ keyval[name][1] | safe }} </td>
                         {% endif %}
-
-                        {% if meta[name][2] == 'float' %}
-                        <td class="text-center"> eV </td>
-                        {% else %}
-                        <td class="text-center"> - </td>
-                        {% endif %}
-
+                        <td class="text-center"> {{ meta[name][3] }} </td>
+                        
                       </tr>
                     {% else%}
                       <tr>
                         <td> {{ name }} </td>
-                        <td class="text-center"> {{ keyval[name][1] | safe }} </td>
+                        <td class="text-center"> {{ keyval[name][1] }} </td>
                         <td class="text-center"> {{ keyval[name][0] }} </td>
                       </tr>
                     {% endif %}
@@ -162,19 +177,40 @@
                 {% else %}
 
                   {% if sec[index][0] == 'STRUCTUREPLOT' %}
+                    
+                    {#{{d.numbres|length}}
+                    {{open_ase_gui}}#}
 
                     {% if d.numbers|length %}
-                    {% if open_ase_gui %}
-                    <a href="/gui/{{ d.id }}?project={{ project }}">
-                      <img src="/image/{{ d.id }}.png?project={{ project }}">
-                    </a>
+                    {% if open_ase_gui %}                        
+                        <div class=row>
+                            <div class="col-xs-12">
+                            <center>
+                                <a href="/gui/{{ d.id }}?project={{ project }}">
+                                  <img src="/image/{{ d.id }}.png?project={{ project }}">
+                                </a>
+                            </div>
+                            </center>                            
+                        </div>
                     {% else %}
-                    <div id="appdiv"></div>
-                    Unitcell: <button onclick="repeatCell(1)"> Single </button>
-                    <button onclick="repeatCell(2)"> 2x2x2</button>
+                        <div id="appdiv"></div>
+                        Unitcell: <button onclick="repeatCell(1)"> Single </button>
+                        <button onclick="repeatCell(2)"> 2x2x2</button>
+                    {% endif %}
+                    {% endif %}
 
-                    {% endif %}
-                    {% endif %}
+                    <table class="table">
+                        <colgroup>
+                            <col class="col-xs-4">
+                            <col class="col-xs-4">
+                            <col class="col-xs-4">
+                        </colgroup>
+                        <tr>
+                            <td class="text-center"> <a href="/xyz/{{ d.id }}">xyz</a> </td>
+                            <td class="text-center"> <a href="/sqlite/{{ d.id }}">db</a> </td>
+                            <td class="text-center"> <a href="/json/{{ d.id }}">json</a> </td>
+                        </tr>
+                    </table>
 
                   {% elif sec[index][0] == 'AXIS' %}
 
