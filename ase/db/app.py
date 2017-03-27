@@ -118,8 +118,8 @@ errors = 0
 
 def error(e):
     """Write traceback and other stuff to 00-99.error files."""
-    import traceback
     global errors
+    import traceback
     x = request.args.get('x', '0')
     try:
         cid = int(x)
@@ -168,7 +168,7 @@ def index():
     if not hasattr(db, 'formulas'):
         # First time we touch this database.
         # Suggestions for formulas:
-        db.formulas = list({row.formula for row in db.select(limit=2000)})
+        db.formulas = list({row.formula for row in db.select(limit=200000)})
 
     if not hasattr(db, 'meta'):
         # Also fill in default key-descriptions:
@@ -177,6 +177,16 @@ def index():
             meta['key_descriptions'] = {}
         meta['key_descriptions'].update(default_key_descriptions)
         db.meta = meta
+        """['Basic Properties',
+            ['Item'],
+            ['AXIS'],
+            ['STRUCTUREPLOT']
+            ],
+        ['Key Value Pairs',
+         ['Key'],
+         ['FORCES']
+         ]
+        ]"""
     else:
         meta = db.meta
 
@@ -311,6 +321,7 @@ def summary(id):
     s = Summary(db.get(id), SUBSCRIPT)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
+                           projects=projects,
                            s=s,
                            home=home,
                            md=db.meta,
