@@ -5,7 +5,9 @@
 
 function BodyOnLoad(id, query)
 {
-    if(sessionStorage.getItem("cid") !== id)
+    console.log(id);
+
+    if(sessionStorage.getItem("cid") !== id.toString())
     {
         // create and store the session id
         sessionStorage.cid = id;
@@ -62,14 +64,15 @@ function CopyCtrl()
         if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
         {
             var ctrl = JSON.parse(xhr.responseText);
+            //console.log(ctrl);
 
             var cList = [];
             var cType = [];
 
-            for(var control in ctrl)
+            for(var iter in ctrl)
             {
-                cList.push(control);
-                cType.push(ctrl[control][0]);
+                cList.push(ctrl[iter][0]);
+                cType.push(ctrl[iter][1]);
             }
 
             sessionStorage.setItem("ctrlKeys", JSON.stringify(cList));

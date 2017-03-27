@@ -1,10 +1,5 @@
 {% extends 'layout.html' %}
 
-{% set columns = md['default_columns'] %}
-{% set proj = md['title'] or 'Browse ASE Database' %}
-{% set meta = md['key_descriptions'] or { } %}
-{% set ctrl = md['special_keys'] or { } %}
-
 {% block title %}
 {{proj}} - Search
 {% endblock %}
@@ -21,6 +16,11 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 {% endblock %}
 
 {% block content %}
+
+{% set columns = md['default_columns'] %}
+{% set proj = md['title'] or 'Browse ASE Database' %}
+{% set meta = md['key_descriptions'] or { } %}
+{% set ctrl = md['special_keys'] or { } %}
 
 <div class="container">
 
@@ -66,11 +66,11 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
                 <div class="col-xs-4">
                   
-                  {% if ctrl[control][0] == 'COMBO' %}
+                  {% if control[1] == 'COMBO' %}
                     {% include 'combo.html' %}
-                  {% elif ctrl[control][0] == 'CHECK' %}
+                  {% elif control[1] == 'CHECK' %}
                     {% include 'checkbox.html' %}
-                  {% elif ctrl[control][0] == 'INTERVAL' %}
+                  {% elif control[1] == 'INTERVAL' %}
                     {% include 'interval.html' %}
                   {% endif %}
 
