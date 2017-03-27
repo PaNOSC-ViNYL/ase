@@ -10,7 +10,10 @@
 {% endblock %}
 
 {% block head %}
-{% include 'jsTable.html' %}
+<script>
+  //window.location.reload(true);
+</script>
+<script src="{{ url_for('static', filename='table.js') }}"></script>
 {% endblock %}
 
 {% block BodySettings %}

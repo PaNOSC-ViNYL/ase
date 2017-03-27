@@ -5,7 +5,7 @@
 
 function BodyOnLoad(id, query)
 {
-    if(sessionStorage.getItem("cid") === null)
+    if(sessionStorage.getItem("cid") !== id)
     {
         // create and store the session id
         sessionStorage.cid = id;
