@@ -17,7 +17,7 @@ commands = [
     ('eos', 'ase.eos'),
     ('ulm', 'ase.io.ulm'),
     ('nomad-upload', 'ase.cli.nomad'),
-    ('tab-completion', 'ase.cli.complete')]
+    ('completion', 'ase.cli.complete')]
 
 
 def add_arguments(parser):
@@ -26,7 +26,7 @@ def add_arguments(parser):
 
 
 def main(prog='ase', description='ASE command line tool',
-         version=__version__, commands=commands):
+         version=__version__, commands=commands, hook=None):
     parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(version))
@@ -51,7 +51,10 @@ def main(prog='ase', description='ASE command line tool',
         functions[command] = cmd.run
         parsers[command] = subparser
 
-    args = parser.parse_args()
+    if hook:
+        args = hook(parser)
+    else:
+        args = parser.parse_args()
 
     if args.command == 'help':
         if args.helpcommand is None:
@@ -71,8 +74,8 @@ def main(prog='ase', description='ASE command line tool',
             else:
                 print('{}: {}'.format(x.__class__.__name__, x),
                       file=sys.stderr)
-                print('To get a full traceback, use: {} --verbose'.format(prog),
-                      file=sys.stderr)
+                print('To get a full traceback, use: {} --verbose'
+                      .format(prog), file=sys.stderr)
 
 
 def old():

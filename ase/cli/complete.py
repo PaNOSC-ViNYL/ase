@@ -7,7 +7,7 @@ Put this in your .bashrc::
 
 or run::
 
-    $ ase tab-completion
+    $ ase completion
 
 """
 
@@ -56,7 +56,7 @@ commands = {
          '--equation-of-state', '--eos-type', '-i',
          '--interactive-python-session', '-c', '--collection',
          '--modify', '--after'],
-    'tab-completion':
+    'completion':
         ['-0', '--dry-run'],
     'test':
         ['-c', '--calculators'],
