@@ -25,12 +25,11 @@ def add_arguments(parser):
     parser.add_argument('-q', '--quiet', action='store_true')
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog='ase',
-        description='ASE command line tool')
+def main(prog='ase', description='ASE command line tool',
+         version=__version__, commands=commands):
+    parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument('--version', action='version',
-                        version='%(prog)s-{}'.format(__version__))
+                        version='%(prog)s-{}'.format(version))
     subparsers = parser.add_subparsers(title='Sub-commands',
                                        dest='command')
 
@@ -72,7 +71,7 @@ def main():
             else:
                 print('{}: {}'.format(x.__class__.__name__, x),
                       file=sys.stderr)
-                print('To get a full traceback, use: ase --verbose',
+                print('To get a full traceback, use: {} --verbose'.format(prog),
                       file=sys.stderr)
 
 
