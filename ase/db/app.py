@@ -45,7 +45,7 @@ from ase.visualize import view
 
 default_key_descriptions = {
     'id': ('ID', 'Uniqe row ID', 'int', ''),
-    'age': ('Age', 'Time since creation', 'float', ''),
+    'age': ('Age', 'Time since creation', 'str', ''),
     'formula': ('Formula', 'Chemical formula', 'str', ''),
     'user': ('Username', 'Username', 'str', ''),
     'calculator': ('Calculator', 'ASE-calculator name', 'str', ''),
@@ -127,14 +127,13 @@ def error(e):
         cid = 0
     con = connections.get(cid)
     with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
-        print(repr((errors, con, e, request, dir(e))), file=fd)
-        if hasattr(e, '__traceback__'):
-            traceback.print_tb(e.__traceback__, file=fd)
+        print(repr((errors, con, e, request)), file=fd)
+        #traceback.print_tb(e.__traceback__, file=fd)
     errors += 1
     raise e
 
 
-app.register_error_handler(Exception, error)
+#app.register_error_handler(Exception, error)
 
 
 @app.route('/')

@@ -1,9 +1,6 @@
 {% extends 'layout.html' %}
 
-{% set columns = md['default_columns'] %}
 {% set proj = md['title'] or 'Browse ASE Database' %}
-{% set meta = md['key_descriptions'] or { } %}
-{% set ctrl = md['special_keys'] or { } %}
 
 {% block title %}
 {{proj}} - Search
@@ -22,42 +19,61 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
 {% block content %}
 
+{% set columns = md['default_columns'] %}
+{% set meta = md['key_descriptions'] or { } %}
+{% set ctrl = md['special_keys'] or { } %}
+
 <div class="container">
 
-  <div class="row">
-    <h1>{{proj}}</h1>
-  </div>
+    <div class="row">
+        <h1>{{proj}}</h1>
+    </div>
 
-  <div class="row">
+    <div class="row">
+        <form id="mainFormID" class="navbar-form navbar-default" role="search" action="/">
 
-    <form id="mainFormID" class="navbar-form navbar-default" role="search" action="/">
+            <input type="hidden" id="limit" name="limit" value={{con.limit}}>
+            <input type="hidden" name="x" value="{{ cid }}">
+            
+            <div class="form-group">
+                <input type="text" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2 or individual elements Mo,S,..." size="60">
+            </div>
 
-        <input type="hidden" id="limit" name="limit" value={{con.limit}}>
-        <input type="hidden" name="x" value="{{ cid }}">
-        <input type="hidden" id="searchstr" class="form-control" placeholder="Search Query" name="query">
+            <button type="submit" class="btn btn-default">
+                <i class="fa fa-search fa-1x" aria-hidden="true"></i>
+            </button>
 
-      <div class="form-group">
-                                <input type="text" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2 or individual elements Mo,S,..." size="60">
-                        </div>
+            <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapseExtraSearch">
+                <i class="fa fa-angle-down" aria-hidden="true"></i>
+            </button>
 
-                        <button type="submit" class="btn btn-default">
-                                <i class="fa fa-search fa-1x" aria-hidden="true"></i>
-                        </button>
+        </form>
+    </div>
 
-                        <button class="btn btn-default" type="button" data-toggle="collapse" data-target="#collapseExtraSearch">
-                                <i class="fa fa-angle-down" aria-hidden="true"></i>
-                        </button>
+    {##}
+    {# Flash query messages #}
+    {##}
 
-                </form>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul class="list-group">            
+        {% for message in messages %}
+            <li class="list-group-item list-group-item-warning">{{ message }}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+    {% endwith %}
 
-                </div>
+    {##}
+    {# Collapse with controls #}
+    {##}
 
-                        <div class="collapse" id="collapseExtraSearch">
-                                <div class="well">
-                                        <ul class="list-group" style="margin-bottom:0px;">
+    <div class="collapse" id="collapseExtraSearch">
+        <div class="well">
+            <ul class="list-group" style="margin-bottom:0px;">
 
             {% if ctrl|length != 0 %}
-                                                <li class="list-group-item">
+                <li class="list-group-item">
 
               {% set colCount = {'iter': -1} %}
               <div class="row">
@@ -66,11 +82,11 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
                 <div class="col-xs-4">
                   
-                  {% if ctrl[control][0] == 'COMBO' %}
+                  {% if control[1] == 'COMBO' %}
                     {% include 'combo.html' %}
-                  {% elif ctrl[control][0] == 'CHECK' %}
+                  {% elif control[1] == 'CHECK' %}
                     {% include 'checkbox.html' %}
-                  {% elif ctrl[control][0] == 'INTERVAL' %}
+                  {% elif control[1] == 'INTERVAL' %}
                     {% include 'interval.html' %}
                   {% endif %}
 
@@ -93,31 +109,20 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
             </li>
             {% endif %}
 
-                                                <li class="list-group-item">
+            <li class="list-group-item">
 
-              <form>
-                <input type="hidden" name="x" value="{{ cid }}">
+              
                 <div class="form-group" style="margin-bottom:0px;">
                 <label for="sqlstr">Advanced Search</label>
-                    <input id="searchstr2" type="text" class="form-control" name="query" placeholder="Do a search using any key in the table e.g. key=value or 0.2<key<=1.2">
+                    <input form="mainFormID" id="searchstr" type="text" class="form-control" name="query" placeholder="Do a search using any key in the table e.g. key=value or 0.2<key<=1.2">
                     <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries...</a></small>
                 </div>
-              </form>
+              
                                                 </li>
 
                                         </ul>
                                 </div>
                         </div>
-
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                    <ul class=flashes>
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                    </ul>
-                    {% endif %}
-                {% endwith %}
 
                 <div class="row">
 
