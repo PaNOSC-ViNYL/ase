@@ -16,7 +16,7 @@ function BodyOnLoad(id, query)
         sessionStorage.removeItem('collapseExtraSearch');
       
         // 
-        // setup suggestions, // no way of breaking a for loop in jinja2
+        // setup suggestions
         SetupSuggestions();
       
         //
@@ -116,6 +116,10 @@ function ControlFunction(type, element, value)
 $(document).ready(function()
 {
     //
+    // Setup auto complete
+    nsAuto.Init();
+
+    //
     // simple search bar (ControlFunction)
     document.getElementById("formula-result").onchange = function()
     {
@@ -124,11 +128,11 @@ $(document).ready(function()
 
     //
     // autocomplete
-    var autoSuggestions = JSON.parse(sessionStorage.getItem("formula"));
+    //var autoSuggestions = JSON.parse(sessionStorage.getItem("formula"));
     //console.log(autoSuggestions);
     $( "#formula-result" ).autocomplete(
     {
-        source: autoSuggestions
+        source: nsAuto.Get()
     });
 
     //
@@ -159,6 +163,31 @@ $(document).ready(function()
 })
 
 //
+// namespace for autosuggestions
+//
+
+var nsAuto = (function()
+{
+    var m_autoSuggestions;
+
+    function Init()
+    {
+        this.m_autoSuggestions = JSON.parse(sessionStorage.getItem("formula"));
+    }
+
+    function Get()
+    {
+        return this.m_autoSuggestions;
+    }
+
+    //
+    // public function interface
+    return {
+        Init : Init,
+        Get : Get
+    };
+})()
+//
 // class for input control
 //
 
@@ -180,7 +209,20 @@ class inputCtrl
 
     GetQueryString()
     {
-        if(this.m_type === "COMBO" || this.m_type === "text")
+        if(this.m_type === "text")
+        {
+            var formulas = nsAuto.Get();
+
+            if(formulas.indexOf(this.m_value) === -1)
+            {
+                return this.m_value;
+            }
+            else
+            {
+                return this.m_key + '=' + this.m_value;
+            }
+        }
+        if(this.m_type === "COMBO")
         {
             return this.m_key + '=' + this.m_value;
         }
@@ -227,6 +269,20 @@ class inputCtrl
                 return false;
             return true;
         }
+    }
+
+    ForceAssign(tokenID, token)
+    {
+        // the ForceAssign function should not be abused
+
+        if(this.m_type === "text")
+        {
+            this.m_access = tokenID;
+            this.m_value = token;
+            return true;
+        }
+
+        return false;
     }
 
     TryAssign(tokenID, token)
@@ -416,7 +472,7 @@ var ns = (function()
         m_recognized.push(index);
 
 		m_control[index].m_value = value;
-		m_control[index].m_access = m_qlist.length-1;		
+		m_control[index].m_access = m_qlist.length-1;
     }
 
 	function SetField(key, value)
@@ -459,12 +515,13 @@ var ns = (function()
         //console.log(key);
         //console.log(type);
 
+        // allways add the simple searchfield
+        m_control.push(new inputCtrl('formula', 'text', key.length));
+
         for(i=0; i<key.length; i++)
         {
             m_control.push(new inputCtrl(key[i], type[i], i));
         }
-
-        m_control.push(new inputCtrl('formula', 'text', key.length));
 
         //console.log(m_control);
     }
@@ -515,6 +572,43 @@ var ns = (function()
 				}
 			}
 		}
+
+        // 
+        // if the simple search field is not assigned to a token
+        // we collect all the unhandled/unrecognized tokens
+        // and assign them
+
+        if(m_control[0].m_access === -1)
+        {
+            var srhQ = "";
+            for(var i=0; i<m_qlist.length; i++)
+            {
+                if(m_recognized[i] === -1)
+                    srhQ += m_qlist[i] + ",";
+            }
+
+            //
+            // remove the unrecognized tokens
+            for (var i = m_qlist.length-1; i >= 0; i--)
+            {
+                if(m_recognized[i] === -1)
+                {
+                    m_qlist.splice(i, 1);
+                    m_recognized.splice(i, 1);
+                }
+            }
+
+            //
+            // add the token if it is non-empty
+            if(srhQ !== "")
+            {
+                srhQ = srhQ.substr(0, srhQ.length-1);
+                var index = m_qlist.length;
+                m_qlist.push(srhQ);
+                m_recognized.push(0);
+                m_control[0].ForceAssign(index, m_qlist[index]);                
+            }
+        }
 
         //
         // update output controls on the webpage
