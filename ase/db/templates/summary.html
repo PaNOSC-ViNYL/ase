@@ -30,9 +30,9 @@
         ]
     %}
     {% endif %}
-    
+
     {# a little setup of meta data #}
-    
+
     {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
     {% set plotIs = {'plot': false} %}
     {% set plotList = {} %}
@@ -105,7 +105,7 @@
             </a>
           </h4>
         </div>
-        
+
         {% if secCount['count'] == 1 %}
         <div id="collapse{{secCount['count']}}" class="panel-collapse collapse in">
         {%else%}
@@ -161,7 +161,7 @@
                         <td class="text-center"> {{ keyval[name][1] | safe }} </td>
                         {% endif %}
                         <td class="text-center"> {{ meta[name][3] }} </td>
-                        
+
                       </tr>
                     {% else%}
                       <tr>
@@ -177,12 +177,12 @@
                 {% else %}
 
                   {% if sec[index][0] == 'STRUCTUREPLOT' %}
-                    
+
                     {#{{d.numbres|length}}
                     {{open_ase_gui}}#}
 
                     {% if d.numbers|length %}
-                    {% if open_ase_gui %}                        
+                    {% if open_ase_gui %}
                         <div class=row>
                             <div class="col-xs-12">
                             <center>
@@ -190,7 +190,7 @@
                                   <img src="/image/{{ d.id }}.png?project={{ project }}">
                                 </a>
                             </div>
-                            </center>                            
+                            </center>
                         </div>
                     {% else %}
                         <div id="appdiv"></div>
@@ -206,9 +206,9 @@
                             <col class="col-xs-4">
                         </colgroup>
                         <tr>
-                            <td class="text-center"> <a href="/xyz/{{ d.id }}">xyz</a> </td>
-                            <td class="text-center"> <a href="/sqlite/{{ d.id }}">db</a> </td>
-                            <td class="text-center"> <a href="/json/{{ d.id }}">json</a> </td>
+                            <td class="text-center"> <a href="/xyz/{{ d.id }}?project={{project}}">xyz</a> </td>
+                            <td class="text-center"> <a href="/sqlite/{{ d.id }}?project={{project}}">db</a> </td>
+                            <td class="text-center"> <a href="/json/{{ d.id }}?project={{project}}">json</a> </td>
                         </tr>
                     </table>
 
