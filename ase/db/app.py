@@ -147,8 +147,13 @@ def index():
                        for proj, d in sorted(databases.items())]
 
     con_id = int(request.args.get('x', '0'))
+    if con_id in connections:
+        project, query, nrows, page, columns, sort, limit = connections[con_id]
+        newproject = request.args.get('project')
+        if newproject is not None and newproject != project:
+            con_id = 0
 
-    if con_id not in connections or 'project' in request.args:
+    if con_id not in connections:
         # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
@@ -159,8 +164,6 @@ def index():
         columns = None
         sort = 'id'
         limit = 25
-    else:
-        project, query, nrows, page, columns, sort, limit = connections[con_id]
 
     db = databases[project]
 
@@ -176,17 +179,6 @@ def index():
             meta['key_descriptions'] = {}
         meta['key_descriptions'].update(default_key_descriptions)
         db.meta = meta
-        """['Basic Properties',
-            ['Item'],
-              ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
-            ['AXIS'],
-            ['STRUCTUREPLOT']
-            ],
-        ['Key Value Pairs',
-         ['Key'],
-         ['FORCES']
-         ]
-        ]"""
     else:
         meta = db.meta
 
