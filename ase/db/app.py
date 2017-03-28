@@ -128,12 +128,13 @@ def error(e):
     con = connections.get(cid)
     with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
         print(repr((errors, con, e, request)), file=fd)
-        #traceback.print_tb(e.__traceback__, file=fd)
+        if hasattr(e, '__traceback__'):
+            traceback.print_tb(e.__traceback__, file=fd)
     errors += 1
     raise e
 
 
-#app.register_error_handler(Exception, error)
+app.register_error_handler(Exception, error)
 
 
 @app.route('/')
