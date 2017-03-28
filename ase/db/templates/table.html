@@ -1,7 +1,5 @@
 {% extends 'layout.html' %}
 
-{% set proj = md['title'] or 'Browse ASE Database' %}
-
 {% block title %}
 {{proj}} - Search
 {% endblock %}
@@ -75,42 +73,42 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
             {% if ctrl|length != 0 %}
                 <li class="list-group-item">
 
-              {% set colCount = {'iter': -1} %}
-              <div class="row">
-                {% for control in ctrl %}
-                {% set colCount = {'iter': colCount['iter']+1} %}
+                    {% set colCount = {'iter': -1} %}
+                    <div class="row">
+                        {% for control in ctrl %}
 
-                <div class="col-xs-4">
+                            {% set colCount = {'iter': colCount['iter']+1} %}
+
+                            <div class="col-xs-4">
                   
-                  {% if control[1] == 'COMBO' %}
-                    {% include 'combo.html' %}
-                  {% elif control[1] == 'CHECK' %}
-                    {% include 'checkbox.html' %}
-                  {% elif control[1] == 'INTERVAL' %}
-                    {% include 'interval.html' %}
-                  {% endif %}
+                                {% if control[1] == 'COMBO' %}
+                                    {% include 'combo.html' %}
+                                {% elif control[1] == 'CHECK' %}
+                                    {% include 'checkbox.html' %}
+                                {% elif control[1] == 'INTERVAL' %}
+                                    {% include 'interval.html' %}
+                                {% endif %}
 
-                </div>
+                            </div>
 
-                <!-- if end of row insert new row if there are more controls -->
-                {% if colCount['iter'] % 3 == 2 and colCount['iter'] != ctrl|length %}
-                </div>
-                <div class="row">
-                {% endif %}
+                            {# if end of row insert new row if there are more controls #}
+                            {% if colCount['iter'] % 3 == 2 and colCount['iter'] != ctrl|length %}
+                                </div>
+                                <div class="row">
+                            {% endif %}
 
-                {% endfor %}
+                        {% endfor %}
 
-                <!-- add additional empty columns to fill up the space -->
-                {%for i in range(colCount['iter'] % 3, 3) %}
-                <div class="col-xs-4">
-                </div>
-                {% endfor %}
-              </div>
-            </li>
+                        {# add additional empty columns to fill up the space #}
+                        {%for i in range(colCount['iter'] % 3, 3) %}
+                            <div class="col-xs-4">
+                            </div>
+                        {% endfor %}
+                    </div>
+                </li>
             {% endif %}
 
             <li class="list-group-item">
-
               
                 <div class="form-group" style="margin-bottom:0px;">
                 <label for="sqlstr">Advanced Search</label>
@@ -118,11 +116,11 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
                     <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries...</a></small>
                 </div>
               
-                                                </li>
+            </li>
 
-                                        </ul>
-                                </div>
-                        </div>
+            </ul>
+            </div>
+            </div>
 
                 <div class="row">
 
@@ -189,12 +187,12 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}')"
 
                         </div>
 
-      <!-- Table -->
-                        <table id=rows class="table table-striped">
+        <!-- Table -->
+        <table id=rows class="table table-striped">
 
-                                <tr>
-                                        {%- for c in t.columns %}
-                                        <th class="text-center">
+            <tr>
+            {%- for c in t.columns %}
+            <th class="text-center">
 
             {% set colDisplay = { 'col' : c } %}
             {% if c in meta %}

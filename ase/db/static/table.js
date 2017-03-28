@@ -551,6 +551,21 @@ var ns = (function()
         //console.log(m_qlist);
     }
 
+    function RemoveToken(index)
+    {
+        m_qlist.splice(index, 1);
+        m_recognized.splice(index, 1);
+
+        //
+        // update m_access
+
+        for(var i=0; i<m_control.length; ++i)
+        {
+            if(m_control[i].m_access > index)
+                m_control[i].m_access -= 1;
+        }
+    }
+
     function SetLoaded()
 	{
         //
@@ -573,31 +588,34 @@ var ns = (function()
 			}
 		}
 
-        // 
-        // if the simple search field is not assigned to a token
+        //
         // we collect all the unhandled/unrecognized tokens
-        // and assign them
+        // and remove them from the qlist
+        //
+        
+        var srhQ = "";
+        for(var i=0; i<m_qlist.length; i++)
+        {
+            if(m_recognized[i] === -1)
+                srhQ += m_qlist[i] + ",";
+        }
+
+        //
+        // remove the unrecognized tokens (running backwards)
+        for (var i = m_qlist.length-1; i >= 0; i--)
+        {
+            if(m_recognized[i] === -1)
+            {
+                RemoveToken(i);
+            }
+        }
+        
+        // 
+        // if the simple search field is not already assigned to a token
+        // we assign the unrecognized ones
 
         if(m_control[0].m_access === -1)
         {
-            var srhQ = "";
-            for(var i=0; i<m_qlist.length; i++)
-            {
-                if(m_recognized[i] === -1)
-                    srhQ += m_qlist[i] + ",";
-            }
-
-            //
-            // remove the unrecognized tokens
-            for (var i = m_qlist.length-1; i >= 0; i--)
-            {
-                if(m_recognized[i] === -1)
-                {
-                    m_qlist.splice(i, 1);
-                    m_recognized.splice(i, 1);
-                }
-            }
-
             //
             // add the token if it is non-empty
             if(srhQ !== "")
