@@ -1,8 +1,8 @@
 from __future__ import division, print_function
 
 import sys
-import os.path
 import os
+import pickle
 import tempfile
 import time
 import traceback
@@ -27,8 +27,12 @@ class CLICommand:
 
     @staticmethod
     def add_arguments(parser):
+        parser.add_argument('calculator')
+        CLICommand.add_more_arguments(parser)
+
+    @staticmethod
+    def add_more_arguments(parser):
         add = parser.add_argument
-        add('calculator')
         add('names', nargs='*')
         add('-t', '--tag',
             help='String tag added to filenames.')
@@ -57,7 +61,7 @@ class CLICommand:
             help='Use "-E 5,2.0" for 5 lattice constants ranging from '
             '-2.0 %% to +2.0 %%.')
         add('--eos-type', default='sjeos', help='Selects the type of eos.')
-        add('-i', '--interactive-python-session', action='store_true')
+        add('-i', '--interactive', action='store_true')
         add('-c', '--collection')
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  ' +
@@ -73,6 +77,17 @@ class CLICommand:
             sys.exit(runner.errors)
 
 
+interactive_script = """
+import os
+import pickle
+if "PYTHONSTARTUP" in os.environ:
+    exec(open(os.environ["PYTHONSTARTUP"]).read())
+from ase.cli.run import Runner
+args = pickle.loads({!r})
+atoms = Runner().parse(args, True)
+"""
+
+
 class Runner:
     def __init__(self):
         self.db = None
@@ -86,17 +101,12 @@ class Runner:
         else:
             self.logfile = devnull
 
-    def parse(self, args):
-        if args is None and self.args.interactive_python_session:
-            file = tempfile.NamedTemporaryFile()
-            file.write('import os\n')
-            file.write('if "PYTHONSTARTUP" in os.environ:\n')
-            file.write('    execfile(os.environ["PYTHONSTARTUP"])\n')
-            file.write('from ase.cli.run import Runner\n')
-            file.write('atoms = Runner().parse(%r)\n' %
-                       ([self.calculator_name] + sys.argv[1:]))
-            file.flush()
-            os.system('python -i %s' % file.name)
+    def parse(self, args, interactive=False):
+        if not interactive and args.interactive_python_session:
+            fd = tempfile.NamedTemporaryFile('w')
+            fd.write(interactive_script.format(pickle.dumps(args, protocol=0)))
+            fd.flush()
+            os.system('python3 -i ' + fd.name)
             return
 
         self.calculator_name = args.calculator
