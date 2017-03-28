@@ -4,95 +4,50 @@
 {{proj}} - Summary
 {% endblock %}
 
+{% set d = s.row %}
+
 {% block head %}
     {#{% if not open_ase_gui %}#}
         <script src="{{ url_for('static', filename='JSmol.min.js') }}"></script>
+
+        <script>
+            jmol_isReady = function(applet)
+            {
+                Jmol._getElement(applet, "appletdiv").style.border="1px solid black";
+                Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif;");
+            }
+        </script>
+
         <script src="{{ url_for('static', filename='summary.js') }}"></script>
     {#{% endif %}#}
 {% endblock %}
 
 {% block content %}
 
-    {% set d = s.row %}
     {% set meta = md['key_descriptions'] or {} %}
     {% set secs = md['summary_sections'] or [] %}
+    {% set keyval = s.keyval %}
 
-    {% set IsMeta = true %}
-    {% if secs == [] %}
-    {% set IsMeta = false %}
-    {% set secs = [
-        ['Basic Properties',
-        ['Item'],
-        ['STRUCTUREPLOT'],
-        ['AXIS']
-        ],
-        ['Key Value Pairs',
-        ['Key'],
-        ['FORCES']
-        ]
-        ]
-    %}
-    {% endif %}
-    
+    {# #}
     {# a little setup of meta data #}
     
     {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
     {% set plotIs = {'plot': false} %}
     {% set plotList = {} %}
 
-    {% set keyval1 = {} %}
-    {% set keyval2 = {} %}
-
-    {% for name, unit, value in s.table %}
-    {% set _dummy = keyval1.update({name : (unit, value)}) %}
-    {% endfor %}
-
-    {% if IsMeta == false %}
-    {% set _temp = [] %}
-    {% for key in keyval1 %}
-    {% set _dummy = _temp.append(key) %}
-    {% endfor%}
-    {% set _dummy = secs[0][1].append(_temp) %}
-    {% endif %}
-
-    {% for key, value in s.key_value_pairs %}
-    {% set _dummy = keyval2.update({key: ('-', value)}) %}
-    {% endfor %}
-
-    {% if IsMeta == false %}
-    {% set _temp = [] %}
-    {% for key in keyval2 %}
-    {% set _dummy = _temp.append(key) %}
-    {% endfor%}
-    {% set _dummy = secs[1][1].append(_temp) %}
-    {% endif %}
-
-    {% set keyval = keyval1 %}
-    {% set _dummy = keyval.update(keyval2) %}
-
-    {#
-    {{s.table}}
-    <br>
-    <br>
-    {{secs}}
+    {#{{secs}}
     <br>
     <br>
     {{meta}}
     <br>
     <br>
-    {{keyval}}
-    #}
+    {{keyval}}#}
 
 <div class="container">
 
-    {% for name, unit, value in s.table %}
-    {% if name == "formula" %}
-    {% set formulaStr = value|safe %}
     <h1>
-    {{ value|safe }}
-    </h1>
-    {% endif %}
-    {% endfor %}
+    {{ keyval['formula']|safe }}
+    </h1>    
 
     <div class="panel-group">
 
@@ -159,18 +114,19 @@
                         <td> {{ meta[name][1] }} </td>
 
                         {% if meta[name][2] == 'float'  %}
-                        <td class="text-center"> {{ keyval[name][1] | round(3, 'common') }} </td>
+                            <td class="text-center"> {{ keyval[name] | round(3, 'common') }} </td>
                         {% else %}
-                        <td class="text-center"> {{ keyval[name][1] | safe }} </td>
+                            <td class="text-center"> {{ keyval[name] | safe }} </td>
                         {% endif %}
+                        
                         <td class="text-center"> {{ meta[name][3] }} </td>
                         
                       </tr>
                     {% else%}
                       <tr>
                         <td> {{ name }} </td>
-                        <td class="text-center"> {{ keyval[name][1] }} </td>
-                        <td class="text-center"> {{ keyval[name][0] }} </td>
+                        <td class="text-center"> {{ keyval[name] }} </td>
+                        <td class="text-center"> {{ '' }} </td>
                       </tr>
                     {% endif %}
                     {% endif %}
@@ -210,9 +166,9 @@
                             <col class="col-xs-4">
                         </colgroup>
                         <tr>
-                            <td class="text-center"> <a href="/xyz/{{ d.id }}">xyz</a> </td>
-                            <td class="text-center"> <a href="/sqlite/{{ d.id }}">db</a> </td>
-                            <td class="text-center"> <a href="/json/{{ d.id }}">json</a> </td>
+                            <td class="text-center"> <a href="/xyz/{{ d.id }}?project={{ project }}">xyz</a> </td>
+                            <td class="text-center"> <a href="/sqlite/{{ d.id }}?project={{ project }}">db</a> </td>
+                            <td class="text-center"> <a href="/json/{{ d.id }}?project={{ project }}">json</a> </td>
                         </tr>
                     </table>
 

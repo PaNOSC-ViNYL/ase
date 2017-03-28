@@ -134,7 +134,7 @@ def error(e):
     raise e
 
 
-app.register_error_handler(Exception, error)
+#app.register_error_handler(Exception, error)
 
 
 @app.route('/')
