@@ -102,7 +102,7 @@ class Runner:
             self.logfile = devnull
 
     def parse(self, args, interactive=False):
-        if not interactive and args.interactive_python_session:
+        if not interactive and args.interactive:
             fd = tempfile.NamedTemporaryFile('w')
             fd.write(interactive_script.format(pickle.dumps(args, protocol=0)))
             fd.flush()

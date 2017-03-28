@@ -7,6 +7,7 @@ filename = __file__[:-6] + 'e.py'
 
 class CLICommand:
     short_description = 'Add tab-completion for Bash'
+    cmd = 'complete -o default -C {} ase'.format(filename)
 
     @staticmethod
     def add_arguments(parser):
@@ -16,7 +17,7 @@ class CLICommand:
     @staticmethod
     def run(args):
         filename = args.filename or os.path.expanduser('~/.bashrc')
-        cmd = 'complete -o default -C {} ase'.format(filename)
+        cmd = CLICommand.cmd
         print(cmd)
         if args.dry_run:
             return
@@ -28,7 +29,7 @@ class CLICommand:
             print(cmd, file=fd)
 
 
-def update(filename=filename):
+def update(filename, commands):
     """Update commands dict.
 
     Run this when ever options are changed::
@@ -40,7 +41,6 @@ def update(filename=filename):
     import collections
     import textwrap
     from ase.utils import import_module
-    from ase.cli.main import commands
 
     dct = collections.defaultdict(list)
 
@@ -76,4 +76,5 @@ def update(filename=filename):
 
 
 if __name__ == '__main__':
-    update()
+    from ase.cli.main import commands
+    update(filename, commands)
