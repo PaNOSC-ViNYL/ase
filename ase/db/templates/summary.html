@@ -5,7 +5,10 @@
 {% endblock %}
 
 {% block head %}
-{# nothing extra here #}
+    {#{% if not open_ase_gui %}#}
+        <script src="{{ url_for('static', filename='JSmol.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='summary.js') }}"></script>
+    {#{% endif %}#}
 {% endblock %}
 
 {% block content %}
@@ -30,9 +33,9 @@
         ]
     %}
     {% endif %}
-
+    
     {# a little setup of meta data #}
-
+    
     {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
     {% set plotIs = {'plot': false} %}
     {% set plotList = {} %}
@@ -105,7 +108,7 @@
             </a>
           </h4>
         </div>
-
+        
         {% if secCount['count'] == 1 %}
         <div id="collapse{{secCount['count']}}" class="panel-collapse collapse in">
         {%else%}
@@ -122,7 +125,7 @@
 
             {% set half = ((tableLen['count'])/2) | int %}
 
-            <div class="row myrow">
+            <div class="row">
 
               <div class="col-xs-1"></div>
               <div class="col-xs-5">
@@ -161,7 +164,7 @@
                         <td class="text-center"> {{ keyval[name][1] | safe }} </td>
                         {% endif %}
                         <td class="text-center"> {{ meta[name][3] }} </td>
-
+                        
                       </tr>
                     {% else%}
                       <tr>
@@ -178,25 +181,26 @@
 
                   {% if sec[index][0] == 'STRUCTUREPLOT' %}
 
-                    {#{{d.numbres|length}}
-                    {{open_ase_gui}}#}
-
                     {% if d.numbers|length %}
-                    {% if open_ase_gui %}
-                        <div class=row>
-                            <div class="col-xs-12">
-                            <center>
-                                <a href="/gui/{{ d.id }}?project={{ project }}">
-                                  <img src="/image/{{ d.id }}.png?project={{ project }}">
-                                </a>
-                            </div>
-                            </center>
-                        </div>
-                    {% else %}
+                    <div class=row>
+                        <div class="col-xs-12">
+                        <center>
+                        
                         <div id="appdiv"></div>
                         Unitcell: <button onclick="repeatCell(1)"> Single </button>
                         <button onclick="repeatCell(2)"> 2x2x2</button>
-                    {% endif %}
+                        
+                        {#{% if open_ase_gui %}                                                
+                            <a href="/gui/{{ d.id }}?project={{ project }}">
+                                <img src="/image/{{ d.id }}.png?project={{ project }}">
+                            </a>
+                        {% else %}                            
+                        {% endif %}#}
+
+
+                        </div>
+                        </center>                            
+                    </div>
                     {% endif %}
 
                     <table class="table">
@@ -206,9 +210,9 @@
                             <col class="col-xs-4">
                         </colgroup>
                         <tr>
-                            <td class="text-center"> <a href="/xyz/{{ d.id }}?project={{project}}">xyz</a> </td>
-                            <td class="text-center"> <a href="/sqlite/{{ d.id }}?project={{project}}">db</a> </td>
-                            <td class="text-center"> <a href="/json/{{ d.id }}?project={{project}}">json</a> </td>
+                            <td class="text-center"> <a href="/xyz/{{ d.id }}">xyz</a> </td>
+                            <td class="text-center"> <a href="/sqlite/{{ d.id }}">db</a> </td>
+                            <td class="text-center"> <a href="/json/{{ d.id }}">json</a> </td>
                         </tr>
                     </table>
 
