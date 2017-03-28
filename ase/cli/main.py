@@ -17,7 +17,7 @@ commands = [
     ('eos', 'ase.eos'),
     ('ulm', 'ase.io.ulm'),
     ('nomad-upload', 'ase.cli.nomad'),
-    ('completion', 'ase.cli.complete')]
+    ('completion', 'ase.cli.completion')]
 
 
 def add_arguments(parser):

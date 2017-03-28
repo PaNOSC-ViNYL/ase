@@ -103,84 +103,10 @@ def complete(word, previous, line, point):
     return words
 
 
-class CLICommand:
-    short_description = 'Add tab-completion for Bash'
-
-    @staticmethod
-    def add_arguments(parser):
-        parser.add_argument('filename', nargs='?')
-        parser.add_argument('-0', '--dry-run', action='store_true')
-
-    @staticmethod
-    def run(args):
-        filename = args.filename or os.path.expanduser('~/.bashrc')
-        cmd = 'complete -o default -C {} ase'.format(__file__)
-        print(cmd)
-        if args.dry_run:
-            return
-        with open(filename) as fd:
-            if cmd in fd.readlines():
-                print('Completion script already installed!')
-                return
-        with open(filename, 'a') as fd:
-            print(cmd, file=fd)
-
-
-def update():
-    """Update commands dict.
-
-    Run this when ever options are changed::
-
-        python3 -m ase.cli.complete
-
-    """
-
-    import collections
-    import textwrap
-    from ase.utils import import_module
-    from ase.cli.main import commands
-
-    dct = collections.defaultdict(list)
-
-    class Subparser:
-        def __init__(self, command):
-            self.command = command
-
-        def add_argument(self, *args, **kwargs):
-            dct[command].extend(arg for arg in args
-                                if arg.startswith('-'))
-
-    for command, module_name in commands:
-        module = import_module(module_name)
-        module.CLICommand.add_arguments(Subparser(command))
-
-    txt = 'commands = {'
-    for command, opts in sorted(dct.items()):
-        txt += "\n    '" + command + "':\n        ["
-        txt += '\n'.join(textwrap.wrap("'" + "', '".join(opts) + "'],",
-                         width=65,
-                         break_on_hyphens=False,
-                         subsequent_indent='         '))
-    txt = txt[:-1] + '}\n'
-    with open(__file__) as fd:
-        lines = fd.readlines()
-        a = lines.index('# Beginning of computer generated data:\n')
-        b = lines.index('# End of computer generated data\n')
-    lines[a + 1:b] = [txt]
-    with open(__file__ + '.new', 'w') as fd:
-        print(''.join(lines), end='', file=fd)
-    os.rename(__file__ + '.new', __file__)
-    os.chmod(__file__, 0o775)
-
-
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        update()
-    else:
-        word, previous = sys.argv[2:]
-        line = os.environ['COMP_LINE']
-        point = int(os.environ['COMP_POINT'])
-        words = complete(word, previous, line, point)
-        for w in words:
-            if w.startswith(word):
-                print(w)
+word, previous = sys.argv[2:]
+line = os.environ['COMP_LINE']
+point = int(os.environ['COMP_POINT'])
+words = complete(word, previous, line, point)
+for w in words:
+    if w.startswith(word):
+        print(w)
