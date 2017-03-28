@@ -64,8 +64,12 @@ def main(prog='ase', description='ASE command line tool',
     elif args.command is None:
         parser.print_usage()
     else:
+        f = functions[args.command]
         try:
-            functions[args.command](args)
+            if f.__code__.co_argcount == 1:
+                f(args)
+            else:
+                f(args, parsers[args.command])
         except KeyboardInterrupt:
             pass
         except Exception as x:
