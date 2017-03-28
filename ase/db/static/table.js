@@ -3,29 +3,30 @@
 // On load
 //
 
-function BodyOnLoad(id, query)
+function BodyOnLoad(id, query, project)
 {
     //console.log(id);
 
     if(sessionStorage.getItem("cid") !== id.toString())
     {
-        // create and store the session id
+        // create and store the session id and project
         sessionStorage.cid = id;
+        sessionStorage.project = project;
 
         // reset collapse if a new session id is given
         sessionStorage.removeItem('collapseExtraSearch');
-      
-        // 
+
+        //
         // setup suggestions
         SetupSuggestions();
-      
+
         //
         // setup controls
         CopyCtrl();
     }
 
     ns.Init(query);
-    
+
     document.getElementById("formula-result").focus();
 }
 
@@ -37,12 +38,12 @@ function SetupSuggestions()
 {
     var xhr = new XMLHttpRequest(),
     method = "GET",
-    url = "/formulas";
+    url = "/formulas?project=" + sessionStorage.project;
 
     xhr.open(method, url, false);
-    xhr.onload = function() 
+    xhr.onload = function()
     {
-        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
+        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200)
         {
             //console.log(xhr.responseText);
             sessionStorage.setItem("formula", xhr.responseText);
@@ -56,12 +57,12 @@ function CopyCtrl()
 {
     var xhr = new XMLHttpRequest(),
     method = "GET",
-    url = "/special_keys";
+    url = "/special_keys?project=" + sessionStorage.project;
 
     xhr.open(method, url, false);
-    xhr.onload = function() 
+    xhr.onload = function()
     {
-        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) 
+        if(xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200)
         {
             var ctrl = JSON.parse(xhr.responseText);
             //console.log(ctrl);
@@ -80,7 +81,7 @@ function CopyCtrl()
         }
     };
 
-    xhr.send();   
+    xhr.send();
 }
 
 //
@@ -89,7 +90,7 @@ function CopyCtrl()
 
 function uniq(a)
 {
-    return a.sort().filter(function(item, pos, ary) 
+    return a.sort().filter(function(item, pos, ary)
     {
         return !pos || item != ary[pos - 1];
     })
@@ -105,10 +106,10 @@ function ControlFunction(type, element, value)
         ns.SetField(element, '');
     else
         ns.SetField(element, value);
-    
-    document.getElementById("formula-result").focus(); 
+
+    document.getElementById("formula-result").focus();
 }
-        
+
 //
 // document ready
 //
@@ -143,16 +144,16 @@ $(document).ready(function()
     // collapse well storage
     $(".collapse").on('shown.bs.collapse', function()
     {
-        if (this.id) 
+        if (this.id)
         {
             sessionStorage[this.id] = 'show';
         }
     }).on('hidden.bs.collapse', function()
     {
-        if (this.id) 
+        if (this.id)
         {
             sessionStorage.removeItem(this.id);
-        }    
+        }
     }).each(function()
     {
         if(this.id && sessionStorage[this.id] === 'show')
@@ -246,7 +247,7 @@ class inputCtrl
 
             return str;
         }
-        
+
         return '';
     }
 
@@ -286,19 +287,19 @@ class inputCtrl
     }
 
     TryAssign(tokenID, token)
-    {        
+    {
         if(this.m_type === "COMBO" || this.m_type === "text")
         {
             // we want a perfect match here
             var checkstr = token.substr(0, this.m_key.length + 1);
-            				
-			if(checkstr === this.m_key + '=')
+
+                        if(checkstr === this.m_key + '=')
             {
                 this.m_access = tokenID;
                 this.m_value = token.substr(this.m_key.length + 1, token.length);
 
                 return true;
-            }        
+            }
         }
         else if(this.m_type === "CHECK")
         {
@@ -321,7 +322,7 @@ class inputCtrl
                 {
                     // check layout
                     var chlayout = ns.getIndicesOf('<=' + this.m_key, token);
-                
+
                     if(chlayout.length === 1)
                     {
                         var v1 = token.substr(0, indices[0]);
@@ -336,7 +337,7 @@ class inputCtrl
                 {
                     // check layout
                     var chlayout = ns.getIndicesOf(this.m_key + '<=', token);
-                
+
                     if(chlayout.length === 1)
                     {
                         var pos = indices[0]+2;
@@ -348,14 +349,14 @@ class inputCtrl
                         return true;
                     }
                 }
-            
+
                 return false;
             }
             else if(indices.length === 2)
             {
                 // check layout
                 var chlayout = ns.getIndicesOf('<=' + this.m_key + '<=', token);
-                
+
                 if(chlayout.length === 1)
                 {
                     // extract values
@@ -381,18 +382,18 @@ class inputCtrl
         var element = this.m_key + '-result';
 
         if(this.m_type === "text")
-			document.getElementById(element).value = this.m_value;
+                        document.getElementById(element).value = this.m_value;
         else if(this.m_type === "CHECK")
-			document.getElementById(element).checked = this.m_value;
+                        document.getElementById(element).checked = this.m_value;
         else if(this.m_type === "INTERVAL")
         {
             if(this.m_value[0] !== null)
-			    document.getElementById(this.m_key + '-l').value = this.m_value[0];
+                            document.getElementById(this.m_key + '-l').value = this.m_value[0];
             if(this.m_value[1] !== null)
-			    document.getElementById(this.m_key + '-r').value = this.m_value[1];
+                            document.getElementById(this.m_key + '-r').value = this.m_value[1];
         }
-		else
-			document.getElementById(element).innerHTML = this.m_value;
+                else
+                        document.getElementById(element).innerHTML = this.m_value;
     }
 };
 
@@ -403,27 +404,27 @@ class inputCtrl
 var ns = (function()
 {
     //
-	// local variables in namespace
+        // local variables in namespace
     //
 
     // search string
-	var m_query;
+        var m_query;
 
     // tokens
-	var m_qlist;
-	var m_recognized;
+        var m_qlist;
+        var m_recognized;
 
     // controls
     var m_control = [];
 
-	//
-	// public functions
+        //
+        // public functions
     function Init(query)
-	{
-		m_query = query;
+        {
+                m_query = query;
 
-		// set query in forms
-		document.getElementById('searchstr').value = query;
+                // set query in forms
+                document.getElementById('searchstr').value = query;
 
         //
         // setup supported controls
@@ -433,14 +434,14 @@ var ns = (function()
         // retrive tokens from search string
         ExtractTokens();
 
-		//
+                //
         // init controls as specified in the search string
-		SetLoaded();
+                SetLoaded();
 
         //
         // write query
         UpdateSearchQuery();
-	}
+        }
 
     function GetControlID(key)
     {
@@ -451,19 +452,19 @@ var ns = (function()
         }
         return -1;
     }
-    
+
     function ClearVariable(index)
     {
         m_qlist.splice(m_control[index].m_access, 1);
-		m_recognized.splice(m_control[index].m_access, 1);
+                m_recognized.splice(m_control[index].m_access, 1);
 
-		for(i=0;i<m_control.length;++i)
-		{
-			if(m_control[i].m_access > m_control[index].m_access)
-				m_control[i].m_access -= 1;
-		}
+                for(i=0;i<m_control.length;++i)
+                {
+                        if(m_control[i].m_access > m_control[index].m_access)
+                                m_control[i].m_access -= 1;
+                }
 
-		m_control[index].m_access = -1;
+                m_control[index].m_access = -1;
     }
 
     function CreateVariable(index, key, value)
@@ -471,12 +472,12 @@ var ns = (function()
         m_qlist.push(m_control[index].GetQueryString());
         m_recognized.push(index);
 
-		m_control[index].m_value = value;
-		m_control[index].m_access = m_qlist.length-1;
+                m_control[index].m_value = value;
+                m_control[index].m_access = m_qlist.length-1;
     }
 
-	function SetField(key, value)
-	{
+        function SetField(key, value)
+        {
         var index = GetControlID(key);
 
         if(index === -1)
@@ -485,27 +486,27 @@ var ns = (function()
         // update the value of th field
         m_control[index].m_value = value;
 
-		if(m_control[index].m_access !== -1)
-		{
-			// if the value is empty we remove the variable
+                if(m_control[index].m_access !== -1)
+                {
+                        // if the value is empty we remove the variable
             if(m_control[index].IsValid() == false)
-                ClearVariable(index);    
-		}
-		else
-		{
-			// field has not been set, create it
+                ClearVariable(index);
+                }
+                else
+                {
+                        // field has not been set, create it
             if(m_control[index].IsValid() == true)
                 CreateVariable(index, key, value);
-		}
+                }
 
-		// update GUI if it is not a textfield
+                // update GUI if it is not a textfield
         m_control[index].SetOutput();
 
-		UpdateSearchQuery();
-	}
+                UpdateSearchQuery();
+        }
 
-	//
-	// private functions (stays invisible)
+        //
+        // private functions (stays invisible)
 
     function SetupControls()
     {
@@ -529,24 +530,24 @@ var ns = (function()
     function ExtractTokens()
     {
         m_qlist = [];
-		m_recognized = [];
+                m_recognized = [];
 
-		var seperationIndices = getIndicesOf(",", m_query);
-		seperationIndices.unshift(-1);
-		seperationIndices.push(m_query.length);
-			
-		for(i=1; i<seperationIndices.length; i++)
-		{
-			var ss = m_query.substr(seperationIndices[i-1]+1,seperationIndices[i]-seperationIndices[i-1]-1);
+                var seperationIndices = getIndicesOf(",", m_query);
+                seperationIndices.unshift(-1);
+                seperationIndices.push(m_query.length);
+
+                for(i=1; i<seperationIndices.length; i++)
+                {
+                        var ss = m_query.substr(seperationIndices[i-1]+1,seperationIndices[i]-seperationIndices[i-1]-1);
 
             ss = ss.trim();
 
-			if(ss !== '')
-			{
-				m_qlist.push(ss);
-				m_recognized.push(-1);
-			}
-		}
+                        if(ss !== '')
+                        {
+                                m_qlist.push(ss);
+                                m_recognized.push(-1);
+                        }
+                }
 
         //console.log(m_qlist);
     }
@@ -567,32 +568,32 @@ var ns = (function()
     }
 
     function SetLoaded()
-	{
+        {
         //
         // For each control find the first appearence in qlist that matches it and try to assign it
 
-		for(j=0; j<m_control.length; j++)
-		{
-			for(i=0; i<m_qlist.length; i++)
-			{
-				var indices = getIndicesOf(m_control[j].m_key, m_qlist[i]);                
-				
-				if(indices.length === 1)
-				{
+                for(j=0; j<m_control.length; j++)
+                {
+                        for(i=0; i<m_qlist.length; i++)
+                        {
+                                var indices = getIndicesOf(m_control[j].m_key, m_qlist[i]);
+
+                                if(indices.length === 1)
+                                {
                     if(m_control[j].TryAssign(i, m_qlist[i]) == true)
                     {
-						m_recognized[i] = j;
-						break;
-					}
-				}
-			}
-		}
+                                                m_recognized[i] = j;
+                                                break;
+                                        }
+                                }
+                        }
+                }
 
         //
         // we collect all the unhandled/unrecognized tokens
         // and remove them from the qlist
         //
-        
+
         var srhQ = "";
         for(var i=0; i<m_qlist.length; i++)
         {
@@ -609,8 +610,8 @@ var ns = (function()
                 RemoveToken(i);
             }
         }
-        
-        // 
+
+        //
         // if the simple search field is not already assigned to a token
         // we assign the unrecognized ones
 
@@ -624,67 +625,67 @@ var ns = (function()
                 var index = m_qlist.length;
                 m_qlist.push(srhQ);
                 m_recognized.push(0);
-                m_control[0].ForceAssign(index, m_qlist[index]);                
+                m_control[0].ForceAssign(index, m_qlist[index]);
             }
         }
 
         //
         // update output controls on the webpage
 
-		for(i=0; i<m_control.length; ++i)
-		{
+                for(i=0; i<m_control.length; ++i)
+                {
             if(m_control[i].m_access !== -1)
             {
-			    m_control[i].SetOutput();
+                            m_control[i].SetOutput();
             }
-		}
-	}
+                }
+        }
 
-	function UpdateSearchQuery()
-	{
-		var query = '';
+        function UpdateSearchQuery()
+        {
+                var query = '';
 
-		for(i=0; i<m_qlist.length; i++)
-		{
-			if(m_recognized[i] === -1)
-			{
-				query += m_qlist[i];
-			}
-			else
-			{
-				if(m_control[m_recognized[i]].m_value === '')
-				{
-					continue;
-				}
-				query += m_control[m_recognized[i]].GetQueryString();
-			}
+                for(i=0; i<m_qlist.length; i++)
+                {
+                        if(m_recognized[i] === -1)
+                        {
+                                query += m_qlist[i];
+                        }
+                        else
+                        {
+                                if(m_control[m_recognized[i]].m_value === '')
+                                {
+                                        continue;
+                                }
+                                query += m_control[m_recognized[i]].GetQueryString();
+                        }
 
-			if(i !== m_qlist.length-1)
-			{
-				query += ',';
-			}
-		}
+                        if(i !== m_qlist.length-1)
+                        {
+                                query += ',';
+                        }
+                }
 
-		document.getElementById('searchstr').value = query;
-	}
+                document.getElementById('searchstr').value = query;
+        }
 
-    function getIndicesOf(searchStr, str, caseSensitive) 
-	{
-		var searchStrLen = searchStr.length;
-		if (searchStrLen == 0) {
-			return [];
-		}
-		var startIndex = 0, index, indices = [];
-		if (!caseSensitive) {
-			str = str.toLowerCase();
-			searchStr = searchStr.toLowerCase();
-		}
-		while ((index = str.indexOf(searchStr, startIndex)) > -1) {
-			indices.push(index);
-			startIndex = index + searchStrLen;
-		}
-		return indices;
-	}
+    function getIndicesOf(searchStr, str, caseSensitive)
+        {
+                var searchStrLen = searchStr.length;
+                if (searchStrLen == 0) {
+                        return [];
+                }
+                var startIndex = 0, index, indices = [];
+                if (!caseSensitive) {
+                        str = str.toLowerCase();
+                        searchStr = searchStr.toLowerCase();
+                }
+                while ((index = str.indexOf(searchStr, startIndex)) > -1) {
+                        indices.push(index);
+                        startIndex = index + searchStrLen;
+                }
+                return indices;
+        }
 
     //
     //

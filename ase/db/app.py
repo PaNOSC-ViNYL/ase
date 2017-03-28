@@ -148,11 +148,11 @@ def index():
 
     con_id = int(request.args.get('x', '0'))
 
-    if con_id not in connections:
+    if con_id not in connections or 'project' in request.args:
         # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
-        project = projects[0][0]
+        project = request.args.get('project', projects[0][0])
         query = ''
         nrows = None
         page = 0
@@ -162,7 +162,6 @@ def index():
     else:
         project, query, nrows, page, columns, sort, limit = connections[con_id]
 
-    project = request.args.get('project', project)
     db = databases[project]
 
     if not hasattr(db, 'formulas'):
@@ -179,6 +178,7 @@ def index():
         db.meta = meta
         """['Basic Properties',
             ['Item'],
+              ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
             ['AXIS'],
             ['STRUCTUREPLOT']
             ],
@@ -410,7 +410,7 @@ def formulas():
 
 @app.route('/special_keys')
 def special_keys():
-    return json.dumps(database().metadata['special_keys'])
+    return json.dumps(database().metadata.get('special_keys', []))
 
 
 def pages(page, nrows, limit):
