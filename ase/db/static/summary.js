@@ -3,8 +3,8 @@ Jmol._isAsync = false;
 var jmolApplet0;
         
 var Info = {
-    width: 400,         
-    height: 400,         
+    width: 450,         
+    height: 450,         
     debug: false,         
     color: "0xFFFFFF",         
     addSelectionOptions: false,         
@@ -21,7 +21,11 @@ var Info = {
         
 function repeatCell(repeat) 
 {
-    if (repeat == 2)
+    if (repeat == 221)
+    {             
+        Jmol.script(jmolApplet0, 'load "" {2 2 1}');
+    }
+    else if (repeat == 222)
     {             
         Jmol.script(jmolApplet0, 'load "" {2 2 2}');
     }

@@ -70,7 +70,7 @@ class Summary:
 
         if 'summary_sections' not in meta:
             
-            secs = [['Basic Properties', ['Key'], ['STRUCTUREPLOT'], ['AXIS']],
+            secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
                     ['Key Value Pairs', ['Key'], ['FORCES']],
                     ['Misc', ['Key']]
                     ]
@@ -81,11 +81,10 @@ class Summary:
             temp = []
             misc = []
             for (key, unit, value) in self.table:
-                if key != 'formula':
-                    if key in collectionMisc:
-                        misc.append(key)
-                    else:
-                        temp.append(key)
+                if key in collectionMisc:
+                    misc.append(key)
+                else:
+                    temp.append(key)
 
             secs[0][1].append(temp)
             secs[2][1].append(misc)
@@ -101,17 +100,32 @@ class Summary:
         else:
             
             metasec = meta['summary_sections']
+            miscSec = ['Misc', ['Key']]
             misc = []
 
-            """
+            #
+            # find all keys presented in the summary sections
+            keysPresented = []
+            for secIter in range(0, len(metasec)):
+                for tabIter in range(0, len(metasec[secIter])):
+                    if isinstance(metasec[secIter][tabIter], list) == True:
+                        if len(metasec[secIter][tabIter]) > 1:
+                            keysPresented.extend(metasec[secIter][tabIter][1])
+
+            #
+            # check that all keys in table and key_value_paris are presented
             for (key, unit, value) in self.table:
-                for secIter in metasec:
-                    for tabIter in metasec[secIter]:
-                        if key not in metasec[secIter][tabIter]:
-                            misc.append(key)
-            
-            secs[2][1].append(misc)
-            """
+                if not key in keysPresented:
+                    misc.append(key)
+            for (key, value) in self.key_value_pairs:
+                if not key in keysPresented:
+                    misc.append(key)
+
+            #
+            # add a misc section if there are missing keys
+            if misc != []:
+                miscSec[1].append(misc)
+                metasec.append(miscSec)
 
         #
         # Generate key-value dictionary for table and key_value_pairs
