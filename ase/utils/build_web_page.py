@@ -28,7 +28,7 @@ from ase import __version__
 
 
 cmds = """\
-touch build-web-page.lock
+touch ../ase-web-page.lock
 git clean -fdx
 git checkout web-page
 git pull
@@ -47,14 +47,14 @@ tar -cf web-page.tar.gz web-page""".format('ase-' + __version__ + '.tar.gz')
 
 
 def build():
-    if os.path.isfile('build-web-page.lock'):
+    if os.path.isfile('../ase-web-page.lock'):
         print('Locked', file=sys.stderr)
         return
     try:
         for cmd in cmds.splitlines():
             subprocess.check_call(cmd, shell=True)
     finally:
-        os.remove('build-web-page.lock')
+        os.remove('../ase-web-page.lock')
 
 
 if __name__ == '__main__':
