@@ -36,7 +36,7 @@ def save_dialog(gui, filename=None):
         index = string2index(index)
     else:
         if index < 0:
-            index += gui.images.nimages
+            index += len(gui.images)
         index = slice(index, index + 1)
     format = filetype(filename, read=False)
     io = get_ioformat(format)
@@ -58,7 +58,7 @@ def save_dialog(gui, filename=None):
         remove_hidden = True
 
     images = [gui.images.get_atoms(i, remove_hidden=remove_hidden)
-              for i in range(*index.indices(gui.images.nimages))]
+              for i in range(*index.indices(len(gui.images)))]
 
     if len(images) > 1 and io.single:
         # We want to write multiple images, but the file format does not

@@ -1,4 +1,3 @@
-import sys
 import psycopg2
 
 from ase.db.sqlite import init_statements, index_statements, VERSION
@@ -63,12 +62,18 @@ class PostgreSQLDatabase(SQLite3Database):
     default = 'DEFAULT'
     
     def _connect(self):
-        user, password, host, port = parse_name(self.filename)
-        if host == 'localhost':
-            host = None
-        con = psycopg2.connect(database='postgres',
-                               user=user, password=password,
-                               host=host, port=port)
+        # custom connection URI
+        if self.filename.startswith('pg://'):
+            user, password, host, port = parse_name(self.filename[5:])
+            if host == 'localhost':
+                host = None
+            con = psycopg2.connect(database='postgres',
+                                   user=user, password=password,
+                                   host=host, port=port)
+        # official PostgreSQL connection URI
+        else:
+            con = psycopg2.connect(self.filename)
+
         return Connection(con)
 
     def _initialize(self, con):
@@ -80,7 +85,7 @@ class PostgreSQLDatabase(SQLite3Database):
         return int(id)
 
 
-def reset():
+def reset(pw='ase'):
     con = psycopg2.connect(database='postgres', user='postgres')
     cur = con.cursor()
 
@@ -89,10 +94,6 @@ def reset():
         cur.execute('DROP TABLE %s CASCADE' % ', '.join(all_tables))
         cur.execute('DROP TABLE information CASCADE')
         cur.execute('DROP ROLE ase')
-    if len(sys.argv) == 2:
-        pw = sys.argv[1]
-    else:
-        pw = 'ase'
     cur.execute("CREATE ROLE ase LOGIN PASSWORD %s", (pw,))
     con.commit()
 
@@ -106,6 +107,28 @@ def reset():
     cur.execute(';\n'.join(index_statements))
     cur.execute('GRANT ALL PRIVILEGES ON %s TO ase' %
                 ', '.join(all_tables + ['systems_id_seq']))
+    con.commit()
+
+def reset_existing(connection_uri, ase_user='ase'):
+    con = psycopg2.connect(connection_uri)
+    cur = con.cursor()
+
+    cur.execute("SELECT COUNT(*) FROM pg_tables WHERE tablename='systems'")
+    if cur.fetchone()[0] == 1:
+        cur.execute('DROP TABLE %s CASCADE' % ', '.join(all_tables))
+        cur.execute('DROP TABLE information CASCADE')
+    con.commit()
+
+    sql = ';\n'.join(init_statements)
+    for a, b in [('BLOB', 'BYTEA'),
+                 ('REAL', 'DOUBLE PRECISION'),
+                 ('INTEGER PRIMARY KEY AUTOINCREMENT', 'SERIAL PRIMARY KEY')]:
+        sql = sql.replace(a, b)
+
+    cur.execute(sql)
+    cur.execute(';\n'.join(index_statements))
+    cur.execute('GRANT ALL PRIVILEGES ON %s TO %s' %
+                (', '.join(all_tables + ['systems_id_seq']), ase_user))
     con.commit()
 
 
@@ -123,4 +146,15 @@ if __name__ == '__main__':
     # su - postgres
     # psql -d postgres -U postgres -c "create role ase login password 'ase';"
     # PYTHONPATH=/path/to/ase python -m ase.db.postgresql
-    reset()
+    # ... or
+    # su - postgres
+    # createuser ase
+    # createdb ase
+    # PYTHONPATH=/path/to/ase python -m ase.db.postgresql postgres:///ase ase
+    from sys import argv
+    if len(argv) == 2:
+        reset(argv[1])
+    elif len(argv) == 3:
+        reset_existing(*argv[1:])
+    else:
+        reset()
