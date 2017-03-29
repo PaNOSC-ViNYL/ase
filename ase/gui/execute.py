@@ -59,8 +59,8 @@ class Execute(ui.Window):
     <c>ans[-i]</c>:\tith last calculated result
     <c>exec file</c>: executes commands listed in file
     <c>cov[Z]</c>:(read only): covalent radius of atomic number Z
-    <c>gui</c>:\tadvanced: ase-gui window python object
-    <c>img</c>:\tadvanced: ase-gui images object
+    <c>gui</c>:\tadvanced: gui window python object
+    <c>img</c>:\tadvanced: gui images object
     """)
 
     def __init__(self, gui):

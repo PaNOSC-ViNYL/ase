@@ -444,7 +444,7 @@ class CLICommand:
                   '          [Ang^3]      [eV]         [GPa]')
         for name in args.trajectories:
             if name == '-':
-                # Special case - used by ase-gui:
+                # Special case - used by ASE's GUI:
                 import pickle
                 import sys
                 if sys.version_info[0] == 2:

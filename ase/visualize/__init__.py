@@ -6,19 +6,19 @@ from ase.io import write
 import ase.parallel as parallel
 
 
-def view(atoms, data=None, viewer='ase-gui', repeat=None, block=False):
+def view(atoms, data=None, viewer='ase', repeat=None, block=False):
     # Ignore for parallel calculations:
     if parallel.size != 1:
         return
 
     vwr = viewer.lower()
 
-    if vwr == 'ase-gui':
+    if vwr == 'ase':
         format = 'traj'
         if repeat is None:
-            command = 'ase-gui'
+            command = 'ase gui'
         else:
-            command = 'ase-gui --repeat=%d,%d,%d' % tuple(repeat)
+            command = 'ase gui --repeat=%d,%d,%d' % tuple(repeat)
             repeat = None
     elif vwr == 'vmd':
         format = 'cube'

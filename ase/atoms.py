@@ -1799,12 +1799,12 @@ class Atoms(object):
         write(filename, self, format, **kwargs)
 
     def edit(self):
-        """Modify atoms interactively through ase-gui viewer.
+        """Modify atoms interactively through ASE's GUI viewer.
 
         Conflicts leading to undesirable behaviour might arise
         when matplotlib has been pre-imported with certain
         incompatible backends and while trying to use the
-        plot feature inside the interactive ase-gui. To circumvent,
+        plot feature inside the interactive GUI. To circumvent,
         please set matplotlib.use('gtk') before calling this
         method.
         """

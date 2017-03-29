@@ -357,7 +357,7 @@ class GUI(View, Status):
         self.window.close()
 
     def new(self):
-        os.system('ase-gui &')
+        os.system('ase gui &')
 
     def save(self, key=None):
         return save_dialog(self)
