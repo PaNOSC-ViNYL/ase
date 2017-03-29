@@ -188,6 +188,8 @@ class CLICommand:
         parser.add_argument(
             '-c', '--calculators',
             help='Comma-separated list of calculators to test.')
+        parser.add_argument('-v', '--verbose', action='store_true')
+        parser.add_argument('-q', '--quiet', action='store_true')
         parser.add_argument('tests', nargs='*')
 
     @staticmethod

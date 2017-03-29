@@ -27,9 +27,11 @@ class CLICommand:
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  '
             'Example: --modify="atoms.positions[-1,2]+=0.1".')
-        add('-V', '--vacuum', type=float, default=3.0,
+        add('-V', '--vacuum', type=float,
             help='Amount of vacuum to add around isolated atoms '
             '(in Angstrom).')
+        add('-v', '--vacuum0', type=float,
+            help='Deprecated.  Use -V or --vacuum instead.')
         add('--unit-cell',
             help='Unit cell.  Examples: "10.0" or "9,10,11" (in Angstrom).')
         add('--bond-length', type=float,
@@ -48,9 +50,13 @@ class CLICommand:
         add('-r', '--repeat',
             help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
         add('-g', '--gui', action='store_true')
+        add('--periodic', action='store_true')
 
     @staticmethod
-    def run(args):
+    def run(args, parser):
+        if args.vacuum0:
+            parser.error('Please use -V or --vacuum instead!')
+
         if '.' in args.name:
             # Read from file:
             atoms = read(args.name)
@@ -112,7 +118,10 @@ def build_molecule(args):
             atoms.set_distance(0, 1, args.bond_length)
 
     if args.unit_cell is None:
-        atoms.center(vacuum=args.vacuum)
+        if args.vacuum:
+            atoms.center(vacuum=args.vacuum)
+        else:
+            atoms.center(about=[0, 0, 0])
     else:
         a = [float(x) for x in args.unit_cell.split(',')]
         if len(a) == 1:
@@ -134,6 +143,8 @@ def build_molecule(args):
                         sinb**2 - ((cosa - cosb * cosg) / sing)**2)]]
         atoms.cell = cell
         atoms.center()
+
+    atoms.pbc = args.periodic
 
     return atoms
 

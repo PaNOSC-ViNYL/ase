@@ -549,6 +549,7 @@ class CLICommand:
         add = parser.add_argument
         add('filename')
         add('-n', '--index', type=int)
+        add('-v', '--verbose', action='store_true')
 
     @staticmethod
     def run(args):

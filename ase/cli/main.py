@@ -20,16 +20,12 @@ commands = [
     ('completion', 'ase.cli.completion')]
 
 
-def add_arguments(parser):
-    parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-q', '--quiet', action='store_true')
-
-
 def main(prog='ase', description='ASE command line tool',
          version=__version__, commands=commands, hook=None):
     parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(version))
+    parser.add_argument('-T', '--traceback', action='store_true')
     subparsers = parser.add_subparsers(title='Sub-commands',
                                        dest='command')
 
@@ -46,7 +42,6 @@ def main(prog='ase', description='ASE command line tool',
             command,
             help=cmd.short_description,
             description=getattr(cmd, 'description', cmd.short_description))
-        add_arguments(subparser)
         cmd.add_arguments(subparser)
         functions[command] = cmd.run
         parsers[command] = subparser
@@ -73,12 +68,12 @@ def main(prog='ase', description='ASE command line tool',
         except KeyboardInterrupt:
             pass
         except Exception as x:
-            if args.verbose:
+            if args.traceback:
                 raise
             else:
                 print('{}: {}'.format(x.__class__.__name__, x),
                       file=sys.stderr)
-                print('To get a full traceback, use: {} --verbose'
+                print('To get a full traceback, use: {} -T'
                       .format(prog), file=sys.stderr)
 
 

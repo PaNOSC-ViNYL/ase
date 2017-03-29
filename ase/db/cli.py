@@ -35,6 +35,8 @@ class CLICommand:
         add = parser.add_argument
         add('database')
         add('query', nargs='*')
+        add('-v', '--verbose', action='store_true')
+        add('-q', '--quiet', action='store_true')
         add('-n', '--count', action='store_true',
             help='Count number of selected rows.')
         add('-l', '--long', action='store_true',
