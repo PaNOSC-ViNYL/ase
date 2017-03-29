@@ -14,7 +14,7 @@ extensions = ['ext',
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'ASE'
-copyright = '2016, ASE-developers'
+copyright = '2017, ASE-developers'
 templates_path = ['templates']
 exclude_patterns = ['build']
 default_role = 'math'
@@ -28,6 +28,11 @@ html_style = 'ase.css'
 html_favicon = 'static/ase.ico'
 html_static_path = ['static']
 html_last_updated_fmt = '%a, %d %b %Y %H:%M:%S'
+html_context = {
+    'current_version': '3.13.0',
+    'versions':
+        [('3.14.0b1 (development)', 'https://wiki.fysik.dtu.dk/ase/dev'),
+         ('3.13.0 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
 
 latex_elements = {
     'papersize': 'a4paper',
