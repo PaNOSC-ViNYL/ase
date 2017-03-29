@@ -134,7 +134,7 @@ def error(e):
     raise e
 
 
-app.register_error_handler(Exception, error)
+#app.register_error_handler(Exception, error)
 
 
 @app.route('/')
@@ -310,7 +310,7 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
-    s = Summary(db.get(id), SUBSCRIPT)
+    s = Summary(db.get(id), db.meta, SUBSCRIPT)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,

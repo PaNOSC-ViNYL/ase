@@ -1,11 +1,6 @@
 
 Jmol._isAsync = false;
 var jmolApplet0;
-jmol_isReady = function(applet) 
-{
-    Jmol._getElement(applet, "appletdiv").style.border="1px solid black";
-    Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif;");
-}
         
 var Info = {
     width: 400,         
