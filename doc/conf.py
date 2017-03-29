@@ -1,6 +1,8 @@
 import sys
 import sphinx_rtd_theme
 
+from ase import __version__
+
 sys.path.append('.')
 assert sys.version_info >= (2, 7)
 
@@ -29,7 +31,7 @@ html_favicon = 'static/ase.ico'
 html_static_path = ['static']
 html_last_updated_fmt = '%a, %d %b %Y %H:%M:%S'
 html_context = {
-    'current_version': '3.13.0',
+    'current_version': __version__,
     'versions':
         [('3.14.0b1 (development)', 'https://wiki.fysik.dtu.dk/ase/dev'),
          ('3.13.0 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
