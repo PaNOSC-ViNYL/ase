@@ -10,6 +10,16 @@ Git master branch
 
 :git:`master <>`.
 
+* The command-line tools :program:`ase-???` have been replaced by a
+  single :program:`ase` command with sub-commands.  For help, type::
+
+      $ ase --help
+      $ ase sub-command --help
+
+* The old :program:`ase-build` command which is now called
+  :program:`ase build` will no longer add vacuum by default.  Use
+  ``ase build -V 3.0`` to get the old behavior.
+
 * All methods of the :class:`~ase.Atoms` object that deal with angles now
   have new API's that use degrees instead of radians as the unit of angle
   (:meth:`~ase.Atoms.get_angle`, :meth:`~ase.Atoms.set_angle`,

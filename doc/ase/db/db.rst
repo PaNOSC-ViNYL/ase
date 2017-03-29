@@ -53,13 +53,13 @@ Every row in the database contains:
 
 .. _ase-db:
 
-ase-db
+ase db
 ======
 
 The :ref:`ase-db` command-line tool can be used to query databases and for
 manipulating key-value pairs.  Try::
 
-    $ ase-db --help
+    $ ase db --help
 
 Example: Show all rows of SQLite database abc.db:
 
@@ -162,7 +162,7 @@ Browse database with your web-browser
 
 You can use your web-browser to look at and query databases like this::
 
-    $ ase-db abc.db -w
+    $ ase db abc.db -w
     $ firefox http://0.0.0.0:5000/
 
 Click individual rows to see details.  See the CMR_ web-page for an example of
@@ -428,7 +428,7 @@ Other jobs trying to make the same reservation will fail.  While the jobs are
 running, you can keep an eye on the ongoing (reserved) calculations by
 identifying empty rows::
 
-    $ ase-db many_results.db natoms=0
+    $ ase db many_results.db natoms=0
 
 
 More details
@@ -469,12 +469,12 @@ This will initialize some tables, create an ``ase`` user and set a password
 query the database using an address like
 ``pg://user:password@host:port``::
 
-    $ ase-db pg://ase:password@localhost:5432
+    $ ase db pg://ase:password@localhost:5432
 
 If you have some data in a ``data.db`` SQLite file, then you can insert that
 into the PostgreSQL database like this::
 
-    $ ase-db data.db --insert-into pg://ase:password@localhost:5432
+    $ ase db data.db --insert-into pg://ase:password@localhost:5432
 
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
