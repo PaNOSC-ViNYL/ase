@@ -3,20 +3,20 @@
 Initial setup::
 
     cd ~
-    python3 -m venv web-page
-    cd web-page
+    python3 -m venv ase-web-page
+    cd ase-web-page
     . bin/activate
     pip install sphinx-rtd-theme
     pip install Sphinx
     pip install matplotlib scipy
     git clone git@gitlab.com:ase/ase
     cd ase
-    pip install -e .
+    pip install .
 
 Crontab::
 
     build="python -m ase.utils.build_web_page"
-    10 19 * * * cd ~/web-page; . bin/activate; cd ase; $build > ../ase.log
+    10 19 * * * cd ~/ase-web-page; . bin/activate; cd ase; $build > ../ase.log
 
 """
 
@@ -30,13 +30,15 @@ from ase import __version__
 cmds = """\
 touch ../ase-web-page.lock
 git clean -fdx
-git checkout ase-web-page
+git checkout web-page
 git pull
+pip install .
 cd doc; sphinx-build -b html -d build/doctrees . build/html
 mv doc/build/html ase-web-page
 git clean -fdx doc
 git checkout master
 git pull
+pip install .
 cd doc; sphinx-build -b html -d build/doctrees . build/html
 mv doc/build/html ase-web-page/dev
 python setup.py sdist
