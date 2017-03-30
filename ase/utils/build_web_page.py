@@ -30,20 +30,21 @@ from ase import __version__
 cmds = """\
 touch ../ase-web-page.lock
 git clean -fdx
-git checkout web-page
+git checkout ase-web-page
 git pull
 cd doc; sphinx-build -b html -d build/doctrees . build/html
-mv doc/build/html web-page
+mv doc/build/html ase-web-page
 git clean -fdx doc
 git checkout master
 git pull
 cd doc; sphinx-build -b html -d build/doctrees . build/html
-mv doc/build/html web-page/dev
+mv doc/build/html ase-web-page/dev
 python setup.py sdist
-cp dist/ase-*.tar.gz web-page/
-cp dist/ase-*.tar.gz web-page/dev/
-find web-page -name install.html | xargs sed -i s/snapshot.tar.gz/{}/g
-tar -cf web-page.tar.gz web-page""".format('ase-' + __version__ + '.tar.gz')
+cp dist/ase-*.tar.gz ase-web-page/
+cp dist/ase-*.tar.gz ase-web-page/dev/
+find ase-web-page -name install.html | xargs sed -i s/snapshot.tar.gz/{}/g
+tar -cf ase-web-page.tar.gz ase-web-page""".format(
+    'ase-' + __version__ + '.tar.gz')
 
 
 def build():
