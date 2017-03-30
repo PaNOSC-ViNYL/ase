@@ -16,7 +16,7 @@ Initial setup::
 Crontab::
 
     build="python -m ase.utils.build_web_page"
-    10 * * * * cd ~/web-page; . bin/activate; cd ase; $build > ../ase.log
+    10 19 * * * cd ~/web-page; . bin/activate; cd ase; $build > ../ase.log
 
 """
 
