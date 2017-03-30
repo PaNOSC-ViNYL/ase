@@ -9,11 +9,13 @@ a.calc = FreeElectrons(nvalence=1,
                        kpts={'path': path, 'npoints': 200})
 a.get_potential_energy()
 bs = a.calc.band_structure()
-print(bs.labels)
+coords, labelcoords, labels = bs.get_labels()
+print(labels)
 bs.write('hmm.json')
-bs = BandStructure(filename='hmm.json')
-print(bs.labels)
-assert ''.join(bs.labels) == 'GXWKGLUWLKUX'
+bs = BandStructure.read('hmm.json')
+coords, labelcoords, labels = bs.get_labels()
+print(labels)
+assert ''.join(labels) == 'GXWKGLUWLKUX'
 import matplotlib
 matplotlib.use('Agg', warn=False)
 bs.plot(emax=10, filename='bs.png')
