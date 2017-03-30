@@ -25,12 +25,12 @@
                 <ul class="dropdown-menu">
 
                     <li>
-                        <a href="#" id="{{control[0]}}-Reset" onclick="ControlFunction('COMBO', '{{control[0]}}', 'Reset'); return false;">Reset</a>
+                        <a href="#" id="{{control[0]}}-Reset" onclick="ControlFunction('COMBO', '{{control[0]}}', 'Reset'); $('#formula-result').focus(); return false;">Reset</a>
                     </li>
 
                     {% for item in control[2] %}
                     <li>
-                        <a href="#" id="{{control[0]}}-{{item}}" onclick="ControlFunction('COMBO', '{{control[0]}}', '{{item}}'); return false;">
+                        <a href="#" id="{{control[0]}}-{{item}}" onclick="ControlFunction('COMBO', '{{control[0]}}', '{{item}}'); $('#formula-result').focus(); return false;">
                         {{item}}
                         </a>
                     </li>

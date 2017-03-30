@@ -25,6 +25,12 @@ function BodyOnLoad(id, query, project)
         CopyCtrl();
     }
 
+    //
+    // Setup auto complete
+    nsAuto.Init();
+
+    //
+    // Setup controls
     ns.Init(query);
 
     document.getElementById("formula-result").focus();
@@ -106,8 +112,6 @@ function ControlFunction(type, element, value)
         ns.SetField(element, '');
     else
         ns.SetField(element, value);
-
-    document.getElementById("formula-result").focus();
 }
 
 //
@@ -116,10 +120,6 @@ function ControlFunction(type, element, value)
 
 $(document).ready(function()
 {
-    //
-    // Setup auto complete
-    nsAuto.Init();
-
     //
     // simple search bar (ControlFunction)
     document.getElementById("formula-result").onchange = function()

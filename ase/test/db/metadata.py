@@ -37,6 +37,7 @@ for name in ['md.json', 'md.db']:
              ['PLOT', 'abplot']],
             ['Calculation Details',
              ['Calculator Setting', ['calculator']],
+             ['PLOT', 'abplot'],
              ['FORCES']]]}
 
     db = connect(name)

@@ -13,9 +13,10 @@
     <div class="row">
 
         <div class="col-xs-3">
-          <input type="text" class="form-control input-sm" id="{{control[0]}}-l"
+          <input form="mainFormID" type="text" class="form-control input-sm" id="{{control[0]}}-l"
                  onchange="var rval = document.getElementById('{{control[0]}}-r').value;
-                 ControlFunction('INTERVAL', '{{control[0]}}', [this.value == '' ? null : this.value, rval=='' ? null : rval]); return false;">
+                 ControlFunction('INTERVAL', '{{control[0]}}', [this.value == '' ? null : this.value, rval=='' ? null : rval]); return false;"
+                 onenter="$('#mainFormID').submit(); return false;">
         </div>
 
         <div class="col-xs-1">
@@ -23,9 +24,10 @@
         </div>
 
         <div class="col-xs-3">
-          <input type="text" class="form-control input-sm" id="{{control[0]}}-r"
+          <input form="mainFormID" type="text" class="form-control input-sm" id="{{control[0]}}-r"
                  onchange="var lval = document.getElementById('{{control[0]}}-l').value;
-                 ControlFunction('INTERVAL', '{{control[0]}}', [lval=='' ? null : lval, this.value == '' ? null : this.value]); return false;">
+                 ControlFunction('INTERVAL', '{{control[0]}}', [lval=='' ? null : lval, this.value == '' ? null : this.value]); return false;"
+                 onenter="$('#mainFormID').submit(); return false;">
         </div>
 
         <div class="col-xs-5">
