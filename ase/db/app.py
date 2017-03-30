@@ -182,6 +182,16 @@ def index():
     else:
         meta = db.meta
 
+    # restructure the format of the units
+    for key in meta['key_descriptions']:
+        subscr1 = re.compile(r'(.)_(.)')
+        subscr2 = re.compile(r'(.)\^(.)')
+        templst = list(meta['key_descriptions'][key])
+        templst[3] = re.sub('[`]', '', templst[3])
+        templst[3] = subscr1.sub(r'\1<Sub>\2</Sub>', templst[3])
+        templst[3] = subscr2.sub(r'\1<Sup>\2</Sup>', templst[3])
+        meta['key_descriptions'][key] = tuple(templst)
+
     if columns is None:
         columns = meta.get('default_columns') or list(all_columns)
 
