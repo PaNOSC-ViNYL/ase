@@ -30,13 +30,13 @@ from ase import __version__
 cmds = """\
 touch ../ase-web-page.lock
 git clean -fdx
-git checkout web-page
+git checkout web-page -q
 git pull
 pip install .
 cd doc; sphinx-build -b html -d build/doctrees . build/html
 mv doc/build/html ase-web-page
 git clean -fdx doc
-git checkout master
+git checkout master -q
 git pull
 pip install .
 cd doc; sphinx-build -b html -d build/doctrees . build/html
