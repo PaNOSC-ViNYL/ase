@@ -8,15 +8,15 @@ Initial setup::
     . bin/activate
     pip install sphinx-rtd-theme
     pip install Sphinx
-    pip install matplotlib scipy
-    git clone git@gitlab.com:ase/ase
+    pip install matplotlib scipy flask
+    git clone http://gitlab.com/ase/ase.git
     cd ase
-    pip install .
+    pip install -U .
 
 Crontab::
 
-    build="python -m ase.utils.build_web_page"
-    10 19 * * * cd ~/ase-web-page; . bin/activate; cd ase; $build > ../ase.log
+    cmd="python -m ase.utils.build_web_page"
+    10 19 * * * cd ~/ase-web-page; . bin/activate; cd ase; $cmd > ../ase.log
 
 """
 
