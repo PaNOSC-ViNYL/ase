@@ -15,8 +15,9 @@ Initial setup::
 
 Crontab::
 
-    cmd="python -m ase.utils.build_web_page"
-    10 19 * * * cd ~/ase-web-page; . bin/activate; cd ase; $cmd > ../ase.log
+    WEB_PAGE_FOLDER=...
+    CMD="python -m ase.utils.build_web_page"
+    10 19 * * * cd ~/ase-web-page; . bin/activate; cd ase; $CMD > ../ase.log
 
 """
 
@@ -46,10 +47,10 @@ cp dist/ase-*.tar.gz ase-web-page/
 cp dist/ase-*.tar.gz ase-web-page/dev/
 find ase-web-page -name install.html | xargs sed -i s/snapshot.tar.gz/{}/g
 tar -cf ase-web-page.tar.gz ase-web-page
-scp ase-web-page.tar.gz {}:web-pages/"""
+cp ase-web-page.tar.gz {}"""
 
 cmds = cmds.format('ase-' + __version__ + '.tar.gz',
-                   os.environ['WEB_PAGE_HOST'])
+                   os.environ['WEB_PAGE_FOLDER'])
 
 
 def build():
