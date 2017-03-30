@@ -6,12 +6,7 @@ from ase.parallel import paropen
 
 
 def get_band_structure(atoms=None, calc=None):
-    """Band-structure object.
-
-    Create a band-structure object from an Atoms object, a calculator or
-    from a pickle file.  Labels for special points will be automatically
-    added.
-    """
+    """Create band structure object from Atoms or calculator."""
     atoms = atoms if atoms is not None else calc.atoms
     calc = calc if calc is not None else atoms.calc
 
@@ -25,21 +20,22 @@ def get_band_structure(atoms=None, calc=None):
 
     return BandStructure(cell=atoms.cell,
                          kpts=kpts,
-                         fermilevel=calc.get_fermi_level(),
-                         energies=energies)
+                         energies=energies,
+                         reference=calc.get_fermi_level())
 
 
 class BandStructure:
     def __init__(self, *args, **kwargs):
+        """Create band structure object from energies and k-points."""
         self.setvars(*args, **kwargs)
 
-    def setvars(self, cell, kpts, fermilevel, energies):
+    def setvars(self, cell, kpts, energies, reference=0.0):
         assert cell.shape == (3, 3)
         self.cell = cell
         assert kpts.shape[1] == 3
         self.kpts = kpts
-        self.fermilevel = fermilevel
         self.energies = energies
+        self.reference = reference
 
     def get_labels(self):
         return labels_from_kpts(self.kpts, self.cell)
@@ -47,7 +43,7 @@ class BandStructure:
     def todict(self):
         return dict((key, getattr(self, key))
                     for key in
-                    ['cell', 'kpts', 'energies', 'fermilevel'])
+                    ['cell', 'kpts', 'energies', 'reference'])
 
     def write(self, filename):
         """Write to json file."""
@@ -69,7 +65,7 @@ class BandStructure:
             Spin channel.  Default behaviour is to plot both spi up and down
             for spin-polarized calculations.
         emax: float
-            Maximum energy above fermi-level.
+            Maximum energy above reference.
         filename: str
             Write image to a file.
         ax: Axes
@@ -96,7 +92,7 @@ class BandStructure:
 
         emin = e_skn.min()
         if emax is not None:
-            emax = emax + self.fermilevel
+            emax = emax + self.reference
 
         xcoords, label_xcoords, orig_labels = self.get_labels()
 
@@ -122,7 +118,7 @@ class BandStructure:
         ax.set_xticklabels(labels)
         ax.axis(xmin=0, xmax=xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel('eigenvalues [eV]')
-        ax.axhline(self.fermilevel, color='k')
+        ax.axhline(self.reference, color='k')
         try:
             plt.tight_layout()
         except AttributeError:
