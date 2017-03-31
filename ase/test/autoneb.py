@@ -27,6 +27,9 @@ slab[-1].y += 2.8
 qn = QuasiNewton(slab, trajectory='neb001.traj')
 qn.run(fmax=0.05)
 
+# Stops PermissionError on Win32 for access to
+# the traj file that remains open.
+del qn
 
 def attach_calculators(images):
     for i in range(len(images)):
@@ -44,5 +47,7 @@ autoneb.run()
 
 nebtools = NEBTools(autoneb.all_images)
 assert abs(nebtools.get_barrier()[0] - 0.969) < 1e-3
+
+# Cleanup
 for i in range(7):
     os.remove('neb00{0}.traj'.format(i))
