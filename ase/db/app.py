@@ -134,7 +134,7 @@ def error(e):
     raise e
 
 
-#app.register_error_handler(Exception, error)
+app.register_error_handler(Exception, error)
 
 
 @app.route('/')
@@ -339,6 +339,7 @@ def tofile(project, query, type, limit=0):
                   data=row.get('data', {}),
                   **row.get('key_value_pairs', {}))
     os.close(fd)
+    #data = open(name, 'rb').read()
     data = open(name).read()
     os.unlink(name)
     return data
