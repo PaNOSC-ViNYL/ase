@@ -33,6 +33,13 @@ function BodyOnLoad(id, query, project)
     // Setup controls
     ns.Init(query);
 
+    //
+    // autocomplete
+    $( "#formula-result" ).autocomplete(
+    {
+        source: nsAuto.Get()
+    });
+
     document.getElementById("formula-result").focus();
 }
 
@@ -120,22 +127,6 @@ function ControlFunction(type, element, value)
 
 $(document).ready(function()
 {
-    //
-    // simple search bar (ControlFunction)
-    document.getElementById("formula-result").onchange = function()
-    {
-        ns.SetField('formula', this.value);
-    };
-
-    //
-    // autocomplete
-    //var autoSuggestions = JSON.parse(sessionStorage.getItem("formula"));
-    //console.log(autoSuggestions);
-    $( "#formula-result" ).autocomplete(
-    {
-        source: nsAuto.Get()
-    });
-
     //
     // tooltips
     $('[data-toggle="tooltip"]').tooltip();
