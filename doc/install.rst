@@ -110,6 +110,8 @@ from Git.
         $ tar -xf ase-3.13.0.tar.gz
         $ ln -s ase-3.13.0 ase
 
+    Here is a `list of tarballs <https://pypi.python.org/simple/ase/>`__.
+
 :Git clone:
 
     Alternatively, you can get the source for the latest stable release from
