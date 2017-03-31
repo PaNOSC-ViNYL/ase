@@ -86,10 +86,8 @@ class TrajectoryWriter:
         self.properties = properties
 
         self.description = {}
-        self.numbers = None
-        self.pbc = None
-        self.masses = None
         self._open(filename, mode)
+        self.header_data = None
         self.multiple_headers = False
 
     def set_description(self, description):
@@ -135,7 +133,7 @@ class TrajectoryWriter:
             # save the original atoms.
             atoms = atoms.atoms_for_saving
 
-        if len(b) == 0:
+        if self.header_data is None:
             b.write(version=1, ase_version=__version__)
             if self.description:
                 b.write(description=self.description)
