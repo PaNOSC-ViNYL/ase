@@ -14,7 +14,7 @@
             jmol_isReady = function(applet)
             {
                 Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
-                Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif;");
+                Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }};");
             }
         </script>
 
@@ -30,7 +30,7 @@
 
     {# #}
     {# a little setup of meta data #}
-    
+
     {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
     {% set plotIs = {'plot': false} %}
     {% set plotList = {} %}
@@ -39,7 +39,7 @@
 
     <h1>
     {{ keyval['formula']|safe }}
-    </h1>    
+    </h1>
 
     <div class="panel-group">
 
@@ -55,7 +55,7 @@
             </a>
           </h4>
         </div>
-        
+
         {% if secCount['count'] == 1 %}
         <div id="collapse{{secCount['count']}}" class="panel-collapse collapse in">
         {%else%}
@@ -78,7 +78,7 @@
 
               <div class="col-xs-1"></div>
               <div class="col-xs-5">
-                
+
                 {% for index in range(1, secLen+1) %}
 
                 {% if index == half+1 %}
@@ -113,9 +113,9 @@
                         {% else %}
                             <td class="text-center"> {{ keyval[name] | safe }} </td>
                         {% endif %}
-                        
+
                         <td class="text-center"> {{ meta[name][3] | safe }} </td>
-                        
+
                       </tr>
                     {% else%}
                       <tr>
@@ -135,21 +135,21 @@
                     {% if d.numbers|length %}
 
                     <div class="row">
-                        
-                                <center>                        
+
+                                <center>
                                 <div id="appdiv"></div>
-                        
-                                    {#{% if open_ase_gui %}                                                
+
+                                    {#{% if open_ase_gui %}
                                         <a href="/gui/{{ d.id }}?project={{ project }}">
                                             <img src="/image/{{ d.id }}.png?project={{ project }}">
                                         </a>
-                                    {% else %}                            
+                                    {% else %}
                                     {% endif %}#}
 
                                 </div>
                                 </center>
-                            
-                            
+
+
                                 <div class="row">
                                     <div class="btn-group pull-right">
                                         <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
@@ -174,8 +174,8 @@
                                     </div>
                                 </div>
 
-                            
-                        
+
+
 
                     {% endif %}
 
