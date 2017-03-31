@@ -37,7 +37,13 @@ function BodyOnLoad(id, query, project)
     // autocomplete
     $( "#formula-result" ).autocomplete(
     {
-        source: nsAuto.Get()
+        minLength: 2,
+        matchContains: true,
+        source: function(request, response)
+        {
+            var results = $.ui.autocomplete.filter(nsAuto.Get(), request.term);        
+            response(results.slice(0, 20));
+        }
     });
 
     document.getElementById("formula-result").focus();
@@ -95,18 +101,6 @@ function CopyCtrl()
     };
 
     xhr.send();
-}
-
-//
-// remove multiple instances from array
-//
-
-function uniq(a)
-{
-    return a.sort().filter(function(item, pos, ary)
-    {
-        return !pos || item != ary[pos - 1];
-    })
 }
 
 //
