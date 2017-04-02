@@ -1,8 +1,6 @@
-from ase import Atoms
 from ase.constraints import FixAtoms
 from ase.build import molecule, bulk
 from ase.io.trajectory import Trajectory
-from ase.visualize import view
 
 a1 = molecule('H2O')
 a2 = molecule('H2O')
