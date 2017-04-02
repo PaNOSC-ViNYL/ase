@@ -34,6 +34,8 @@ def save_dialog(gui, filename=None):
         index = slice(gui.frame, gui.frame + 1)
     elif isinstance(index, basestring):
         index = string2index(index)
+    elif isinstance(index, slice):
+        pass
     else:
         if index < 0:
             index += len(gui.images)
