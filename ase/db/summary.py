@@ -60,7 +60,7 @@ class Summary:
         self.table = [(name, unit, value) for name, unit, value in table
                       if value is not None]
 
-        self.key_value_pairs = sorted(row.key_value_pairs.items()) or None
+        self.key_value_pairs = sorted(row.key_value_pairs.items())
 
         # If meta data for summary_sections does not exists a default
         # template is generated otherwise it goes through the meta
@@ -124,7 +124,7 @@ class Summary:
         # Generate key-value dictionary for table and key_value_pairs
 
         keyval = {}
-        for (key, unit, value) in table:
+        for key, unit, value in table:
             if value is not None:
                 keyval[key] = value
 

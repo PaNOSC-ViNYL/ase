@@ -7,8 +7,8 @@
 {% set d = s.row %}
 
 {% block head %}
-    {#{% if not open_ase_gui %}#}
-        <script src="{{ url_for('static', filename='JSmol.min.js') }}"></script>
+    {% if not open_ase_gui %}
+        <script src="{{ url_for('static', filename='jsmol/JSmol.min.js') }}"></script>
 
         <script>
             jmol_isReady = function(applet)
@@ -19,7 +19,7 @@
         </script>
 
         <script src="{{ url_for('static', filename='summary.js') }}"></script>
-    {#{% endif %}#}
+    {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -131,26 +131,20 @@
                 {% else %}
 
                   {% if sec[index][0] == 'STRUCTUREPLOT' %}
-
                     {% if d.numbers|length %}
-
                     <div class="row">
-
-                                <center>
-                                <div id="appdiv"></div>
-
-                                    {#{% if open_ase_gui %}
-                                        <a href="/gui/{{ d.id }}?project={{ project }}">
-                                            <img src="/image/{{ d.id }}.png?project={{ project }}">
-                                        </a>
-                                    {% else %}
-                                    {% endif %}#}
-
-                                </div>
-                                </center>
-
-
+                      <center>
+                        <div id="appdiv"></div>
+                        {% if open_ase_gui %}
+                          <img src="/image/{{ d.id }}.png?project={{ project }}">
+                        {% endif %}
+                        </div>
+                      </center>
                                 <div class="row">
+                        {% if open_ase_gui %}
+                          <a class="btn" href="/gui/{{ d.id }}?project={{ project }}">
+                          Open ASE's GUI</a>
+                        {% endif %}
                                     <div class="btn-group pull-right">
                                         <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
                                         Unit cell <span class="caret"></span>
@@ -161,7 +155,6 @@
                                         <li><a onclick="repeatCell(222);">2x2x2</a></li>
                                         </ul>
                                     </div>
-
                                     <div class="btn-group pull-right">
                                         <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
                                         Download <span class="caret"></span>
@@ -173,12 +166,7 @@
                                         </ul>
                                     </div>
                                 </div>
-
-
-
-
                     {% endif %}
-
                   {% elif sec[index][0] == 'AXIS' %}
 
                     <table class="table table-striped">
