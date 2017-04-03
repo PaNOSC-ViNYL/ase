@@ -6,7 +6,7 @@ from ase.utils import hill
 
 
 class Summary:
-    def __init__(self, row, meta, subscript=None):
+    def __init__(self, row, meta={}, subscript=None):
         self.row = row
 
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -62,26 +62,23 @@ class Summary:
 
         self.key_value_pairs = sorted(row.key_value_pairs.items()) or None
 
-        #
-        # If meta data for summary_sections does not exists a default template is generated
-        # 
-        # otherwise it goes through the meta data and checks if all keys are indeed present
-        #
+        # If meta data for summary_sections does not exists a default
+        # template is generated otherwise it goes through the meta
+        # data and checks if all keys are indeed present
 
         if 'summary_sections' not in meta:
-            
+
             secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
                     ['Key Value Pairs', ['Key'], ['FORCES']],
-                    ['Misc', ['Key']]
-                    ]
+                    ['Misc', ['Key']]]
 
             # define misc data
-            collectionMisc = {'id', 'age', 'user', 'calculator', 'unique id'}
+            collection_misc = {'id', 'age', 'user', 'calculator', 'unique id'}
 
             temp = []
             misc = []
             for (key, unit, value) in self.table:
-                if key in collectionMisc:
+                if key in collection_misc:
                     misc.append(key)
                 else:
                     temp.append(key)
@@ -91,58 +88,51 @@ class Summary:
 
             temp = []
             for (key, value) in self.key_value_pairs:
-                if value != None:
+                if value is not None:
                     temp.append(key)
             secs[1][1].append(temp)
 
             meta['summary_sections'] = secs
 
         else:
-            
+
             metasec = meta['summary_sections']
-            miscSec = ['Misc', ['Key']]
+            miscsec = ['Misc', ['Key']]
             misc = []
 
-            #
             # find all keys presented in the summary sections
-            keysPresented = []
-            for secIter in range(0, len(metasec)):
-                for tabIter in range(0, len(metasec[secIter])):
-                    if isinstance(metasec[secIter][tabIter], list) == True:
-                        if len(metasec[secIter][tabIter]) > 1:
-                            keysPresented.extend(metasec[secIter][tabIter][1])
+            keys_presented = []
+            for seciter in range(0, len(metasec)):
+                for tabiter in range(0, len(metasec[seciter])):
+                    if isinstance(metasec[seciter][tabiter], list):
+                        if len(metasec[seciter][tabiter]) > 1:
+                            keys_presented.extend(metasec[seciter][tabiter][1])
 
-            #
             # check that all keys in table and key_value_paris are presented
-            for (key, unit, value) in self.table:
-                if not key in keysPresented:
+            for key, unit, value in self.table:
+                if key not in keys_presented:
                     misc.append(key)
-            for (key, value) in self.key_value_pairs:
-                if not key in keysPresented:
+            for key, value in self.key_value_pairs:
+                if key not in keys_presented:
                     misc.append(key)
 
-            #
             # add a misc section if there are missing keys
             if misc != []:
-                miscSec[1].append(misc)
-                metasec.append(miscSec)
+                miscsec[1].append(misc)
+                metasec.append(miscsec)
 
-        #
         # Generate key-value dictionary for table and key_value_pairs
 
-        keyval = {};
+        keyval = {}
         for (key, unit, value) in table:
-            if value != None:
+            if value is not None:
                 keyval[key] = value
 
-        for (key, value) in self.key_value_pairs:
-            if value != None:
-                keyval[key] = value            
+        for key, value in self.key_value_pairs:
+            if value is not None:
+                keyval[key] = value
 
         self.keyval = keyval
-
-        #
-        # 
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:

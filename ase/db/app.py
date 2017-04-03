@@ -51,7 +51,7 @@ default_key_descriptions = {
     'calculator': ('Calculator', 'ASE-calculator name', 'str', ''),
     'energy': ('Energy', 'Total energy', 'float', 'eV'),
     'fmax': ('Maximum force', 'Maximum force', 'float', 'eV/Ang'),
-    'charge': ('Charge', 'Charge', 'float', '`|e|`'),
+    'charge': ('Charge', 'Charge', 'float', '|e|'),
     'mass': ('Mass', 'Mass', 'float', 'au'),
     'magmom': ('Magnetic moment', 'Magnetic moment', 'float', 'au'),
     'unique_id': ('Unique ID', 'Unique ID', 'float', ''),
@@ -179,18 +179,17 @@ def index():
             meta['key_descriptions'] = {}
         meta['key_descriptions'].update(default_key_descriptions)
         db.meta = meta
+
+        sub = re.compile(r'`(.)_(.)`')
+        sup = re.compile(r'`(.*)\^(.)`')
+        # Convert LaTeX to HTML:
+        for key, value in meta['key_descriptions'].items():
+            short, long, type, unit = value
+            unit = sub.sub(r'\1<sub>\2</sub>', unit)
+            unit = sup.sub(r'\1<sup>\2</sup>', unit)
+            meta['key_descriptions'][key] = (short, long, type, unit)
     else:
         meta = db.meta
-
-    # restructure the format of the units
-    for key in meta['key_descriptions']:
-        subscr1 = re.compile(r'(.)_(.)')
-        subscr2 = re.compile(r'(.)\^(.)')
-        templst = list(meta['key_descriptions'][key])
-        templst[3] = re.sub('[`]', '', templst[3])
-        templst[3] = subscr1.sub(r'\1<Sub>\2</Sub>', templst[3])
-        templst[3] = subscr2.sub(r'\1<Sup>\2</Sup>', templst[3])
-        meta['key_descriptions'][key] = tuple(templst)
 
     if columns is None:
         columns = meta.get('default_columns') or list(all_columns)
@@ -339,8 +338,7 @@ def tofile(project, query, type, limit=0):
                   data=row.get('data', {}),
                   **row.get('key_value_pairs', {}))
     os.close(fd)
-    #data = open(name, 'rb').read()
-    data = open(name).read()
+    data = open(name, 'rb').read()
     os.unlink(name)
     return data
 
