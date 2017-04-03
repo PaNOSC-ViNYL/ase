@@ -13,8 +13,7 @@ from ase.utils import devnull
 from ase.cli.info import print_info
 
 
-class NotAvailable(Exception):
-    pass
+NotAvailable = unittest.SkipTest
 
 
 test_calculator_names = []
@@ -54,15 +53,10 @@ class ScriptTestCase(unittest.TestCase):
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                          'flask', 'gpaw', 'GPAW', 'argparse']:
-                sys.__stdout__.write('skipped (no {0} module) '.format(module))
+                          'flask', 'gpaw', 'GPAW']:
+                raise unittest.SkipTest('no {} module'.format(module))
             else:
                 raise
-        except NotAvailable as notavailable:
-            sys.__stdout__.write('skipped ')
-            msg = str(notavailable)
-            if msg:
-                sys.__stdout__.write('({0}) '.format(msg))
 
     def id(self):
         return self.filename
