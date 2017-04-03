@@ -1,5 +1,6 @@
 from __future__ import print_function
 import collections
+import json
 import sys
 from random import randint
 
@@ -87,6 +88,10 @@ class CLICommand:
             'better query planning choices.')
         add('-j', '--json', action='store_true',
             help='Write json representation of selected row.')
+        add('-m', '--show-metadata', action='store_true',
+            help='Show metadata as json.')
+        add('--set-metadata', metavar='something.json',
+            help='Set metadata from a json file.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
 
@@ -145,6 +150,15 @@ def main(args):
                               verbosity=verbosity,
                               limit=args.limit, offset=args.offset):
             print(row['explain'])
+        return
+
+    if args.show_metadata:
+        print(json.dumps(con.metadata, sort_keys=True, indent=4))
+        return
+
+    if args.set_metadata:
+        with open(args.set_metadata) as fd:
+            con.metadata = json.load(fd)
         return
 
     if args.insert_into:
@@ -238,7 +252,7 @@ def main(args):
     else:
         if args.open_web_browser:
             import ase.db.app as app
-            app.db = con
+            app.databases['default'] = con
             app.app.run(host='0.0.0.0', debug=True)
         else:
             columns = list(all_columns)

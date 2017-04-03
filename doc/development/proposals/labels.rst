@@ -15,7 +15,7 @@ Some atoms are special:
 
 * ghost atoms
 * atoms with a core hole
-* atoms that need special basis set
+* atoms that need a special basis set
 * ...
 
 and some atoms are not atoms at all (methyl group, ...).
@@ -29,23 +29,26 @@ combination of these three:
 
 * A chemical symbol or an atomic number.  Default: ``None``
   (same as ``'X'`` or ``0``)
-* A label.  Default ``None`` (same as ``''``)
+* A label.  Default ``''``
 * A mass.  Default ``None`` (use standard value)
+* An integer tag.  Default ``0``
 
-A *kind* can be represented as a ``tuple`` or a ``str``:
+A *kind* can be represented as a ``Kind`` object:
 
-* ``(Z, 'label', mass)``
-* ``('symbol', 'label', mass)``
-* ``'symbol'``
-* ``'symbol:label'``
-* ``'label'``
+* ``Kind(Z=None, symbol=None, label='', mass=None, tag=0)``
+
+or as a string:
+
+* ``'symbol'`` (``Kind(symbol='symbol')``)
+* ``'symbol:label'`` (``Kind(symbol='symbol', label='label')``)
+* ``'label'`` (``Kind(label='label')``)
 
 Examples:
 
-* ``(1, 'ghost', 0.0)`` (same as ``'H:ghost'``)
-* ``('H', '', None)`` (same as ``'H'``)
-* ``('H', '', 2.0)``
-* ``'methyl'`` (same as ``(None, 'methyl', None)``)
+* ``Kind(Z=1, label='ghost')`` (same as ``'H:ghost'``)
+* ``Kind(symbol='H')`` (same as ``'H'``)
+* ``Kind(symbol='H', label='', mass=2.0)``
+* ``'methyl'`` (same as ``Kind(label='methyl')``)
 
 We add ``symbols``, ``labels`` and ``kinds`` list-of-string like attributes to
 the :class:`~ase.Atoms` object as well as new ``labels`` and ``kinds`` keyword
@@ -64,9 +67,7 @@ kinds.
 Examples
 ========
 
->>> a = Atoms(['N', 'C', (None, 'methyl', 9.0)])
->>> a.number_of_species
-3
+>>> a = Atoms(['N', 'C', Kind(label='methyl', mass=9.0)])
 >>> a.positions[:, 0] = [0, 1.2, 2.6]
 >>> a.masses[a.labels == 'methyl'] = 10
 >>> a.numbers
@@ -78,9 +79,9 @@ Symbols(['N', 'C', 'X'])
 >>> a.labels
 Labels(['', '', 'methyl'])
 >>> a.kinds
-Kinds(['N', 'C', ('X', 'methyl', 10.0)])
+Kinds(['N', 'C', Kind(label='methyl', mass=10.0)])
 
-Here are 50 hydrogen molecules:
+Here are 50 H-D molecules:
 
 >>> h = Atoms('H100', positions=...)
 >>> h.labels[::2] = 'deuterium'
@@ -88,7 +89,7 @@ Here are 50 hydrogen molecules:
 
 or equivalently:
 
->>> h.kinds[::2] = ('H', 'deuterium', 2.0)
+>>> h.kinds[::2] = Kind(symbol='H', label='deuterium', mass=2.0)
 
 A DFT code could use the kinds to select pseudo-potentials:
 
@@ -107,19 +108,13 @@ efficient way.  A statement like ``a.symbols[0] = 'He'`` must somehow lead to
 ``a.numbers[0] == 2`` and other magic.
 
 
-Atom objects?
-=============
+Atom objects
+============
 
-``Atom.label`` and ``Atom.kind``?
+Add ``Atom.label`` and ``Atom.kind``.
 
 
 I/O
 ===
 
 ???
-
-
-Questions
-=========
-
-Tags?
