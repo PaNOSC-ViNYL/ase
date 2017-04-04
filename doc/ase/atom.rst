@@ -10,7 +10,6 @@ script, atoms can be created like this:
 >>> from ase import Atom
 >>> a1 = Atom('Si', (0, 0, 0))
 >>> a2 = Atom('H', (1.3, 0, 0), mass=2)
->>> a3 = Atom(position=(0, 0, 0), Z=14)  # same is a1
 
 .. autoclass:: Atom
 
@@ -18,7 +17,7 @@ The first argument to the constructor of an :class:`Atom` object is
 the chemical symbol, and the second argument is the position in Å
 units (see :mod:`ase.units`).  The position can be any numerical sequence
 of length three.  The properties of an atom can also be set using
-keywords like it is done in the *a2* and *a3* examples above.
+keywords like it is done in the *a2* example above.
 
 More examples:
 
