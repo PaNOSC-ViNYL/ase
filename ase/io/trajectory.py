@@ -246,7 +246,6 @@ class TrajectoryReader:
             self.pbc = b.pbc
             self.numbers = b.numbers
             self.masses = b.get('masses')
-            # XXX why the string '[]' and not []?
             self.constraints = b.get('constraints', '[]')
             self.description = b.get('description')
             self.version = b.version
@@ -307,7 +306,6 @@ def read_atoms(backend, header=None):
         pbc = b.pbc
         numbers = b.numbers
         masses = b.get('masses')
-        # Why string '[]'?
         constraints = b.get('constraints', '[]')
 
     atoms = Atoms(positions=b.positions,
