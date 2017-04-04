@@ -1,3 +1,4 @@
+import numpy as np
 from ase.constraints import FixAtoms
 from ase.build import molecule, bulk
 from ase.io.trajectory import Trajectory
@@ -7,21 +8,16 @@ a2 = molecule('H2O')
 a2.center(vacuum=2.0)
 a2.rattle(stdev=0.2)
 a3 = molecule('CH3CH2OH')
-a3.set_constraint(FixAtoms([0, 1]))
-a4 = bulk('Au')
+a4 = bulk('Au').repeat((2, 2, 2))
+a5 = bulk('Cu').repeat((2, 2, 3))
 
-images = [a1, a2, a3, a4]
+images = [a1, a2, a3, a4, a5]
+for i, img in enumerate(images):
+    img.set_constraint(FixAtoms(indices=range(i)))
 
 traj = Trajectory('out.traj', 'w')
-print('a1')
-traj.write(a1)
-print('a2')
-traj.write(a2)
-print('a3')
-traj.write(a3)
-print('a4')
-traj.write(a4)
-print('done')
+for img in images:
+    traj.write(img)
 traj.close()
 
 #view(images)
