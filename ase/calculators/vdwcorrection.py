@@ -144,7 +144,7 @@ class vdWTkatchenko09prl(Calculator):
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax=10,  # maximal radius for periodic calculations
                  vdWDB_alphaC6=vdWDB_alphaC6,
-                 txt=None):
+                 txt=None, sR=None):
         """Constructor
 
         Parameters
@@ -167,11 +167,14 @@ class vdWTkatchenko09prl(Calculator):
         self.Rmax = Rmax
         self.atoms = None
 
-        try:
-            xc_name = self.calculator.hamiltonian.xc.kernel.name
-            self.sR = sR_opt[xc_name]
-        except:
-            raise ValueError('Tkatchenko-Scheffler dispersion correction not implemented for %s functional' % xc_name)
+        if sR is None:
+            try:
+                xc_name = self.calculator.hamiltonian.xc.kernel.name
+                self.sR = sR_opt[xc_name]
+            except:
+                raise ValueError('Tkatchenko-Scheffler dispersion correction not implemented for %s functional' % xc_name)
+        else:
+            self.sR = sR
         self.d = 20
 
         Calculator.__init__(self)
