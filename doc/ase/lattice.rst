@@ -19,9 +19,9 @@ Example
 To set up a slab of FCC copper with the [1,-1,0] direction along the
 x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
 
-  from ase.lattice.cubic import FaceCenteredCubic
-  atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
-                            size=(2,2,3), symbol='Cu', pbc=(1,1,0))
+>>> from ase.lattice.cubic import FaceCenteredCubic
+>>> atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
+...                           size=(2,2,3), symbol='Cu', pbc=(1,1,0))
 
 The minimal unit cell is repeated 2*2*3 times.  The lattice constant
 is taken from the database of lattice constants in :mod:`ase.data` module.
@@ -32,10 +32,10 @@ are perpendicular, a (111) surface is created.
 To set up a slab of BCC copper with [100] along the first axis, [010]
 along the second axis, and [111] along the third axis use::
 
-  from ase.lattice.cubic import BodyCenteredCubic
-  atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
-                            size=(2,2,3), symbol='Cu', pbc=(1,1,0),
-                            latticeconstant=4.0)
+>>> from ase.lattice.cubic import BodyCenteredCubic
+>>> atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
+...                           size=(2,2,3), symbol='Cu', pbc=(1,1,0),
+...                           latticeconstant=4.0)
 
 Since BCC is not the natural crystal structure for Cu, a lattice
 constant has to be specified.  Note that since the repeat directions
