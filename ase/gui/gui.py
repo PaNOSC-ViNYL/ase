@@ -68,6 +68,7 @@ class GUI(View, Status):
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
         self.moving = False
+        self.prev_pos = None
 
     def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
@@ -129,6 +130,16 @@ class GUI(View, Status):
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
                   'left': (-1, 0, 0)}.get(event.key, None)
+
+        # if event.type == '6'  # Also works
+        if event.state == 1041:  # If shift + right mouse button
+            cur_pos = np.array([event.x, -event.y])
+            if self.prev_pos is None:
+                self.prev_pos = cur_pos
+            else:
+                dxdy = cur_pos - self.prev_pos
+                dxdydz = np.append(dxdy, [0])
+                self.prev_pos = cur_pos
 
         if dxdydz is None:
             return

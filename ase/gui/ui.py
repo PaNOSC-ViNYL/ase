@@ -563,9 +563,12 @@ class ASEGUIWindow(MainWindow):
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
+        self.win.bind('<Shift-B{right}-Motion>'.format(right=right),
+                      bind(scroll))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']
+        
 
     def update_status_line(self, text):
         self.status.config(text=text)

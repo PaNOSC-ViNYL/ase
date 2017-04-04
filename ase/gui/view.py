@@ -550,6 +550,9 @@ class View:
             self.draw()
             self.window.canvas.create_rectangle((x, y, x0, y0))
             return
+        
+        if event.state == 1041:  # Shift and right-click
+            return
 
         if event.modifier == 'shift':
             self.center = (self.center0 -
