@@ -284,11 +284,10 @@ class TrajectoryReader:
 
 
 def get_header_data(atoms):
-    return {'pbc': atoms.pbc,
+    return {'pbc': atoms.pbc.copy(),
             'numbers': atoms.get_atomic_numbers(),
             'masses': atoms.get_masses() if atoms.has('masses') else None,
-            'constraints': atoms.constraints}
-
+            'constraints': list(atoms.constraints)}
 
 def headers_equal(headers1, headers2):
     eq = ((headers1['pbc'] == headers2['pbc']).all()
