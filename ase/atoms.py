@@ -1174,8 +1174,8 @@ class Atoms(object):
         Parameters:
 
         a = None:
-            Angle that the atoms is rotated around the vecor 'v'. The
-            angle can also be a vector and then 'a' is rotated
+            Angle that the atoms is rotated around the vecor 'v'. 'a'
+            can also be a vector and then 'a' is rotated
             into 'v'.
 
         v:
@@ -1206,7 +1206,7 @@ class Atoms(object):
         if not isinstance(a, (float, int)):
             # old API maybe?
             warning = ('Please use new API: '
-                       'atoms_obj.rotate(v, a) '
+                       'atoms_obj.rotate(a, v) '
                        'where v is a vector to rotate around and '
                        'a is the angle in degrees.')
             if isinstance(v, (float, int)):
