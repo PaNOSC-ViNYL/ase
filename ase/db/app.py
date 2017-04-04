@@ -89,15 +89,21 @@ def connect_databases(uris):
         databases[project] = ase.db.connect(uri)
 
 
+next_con_id = 1
+connections = {}
+
+tmpdir = tempfile.mkdtemp()  # used to cache png-files
+
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
     open_ase_gui = False
-
-next_con_id = 1
-connections = {}
-tmpdir = tempfile.mkdtemp()  # used to cache png-files
+    try:
+        os.unlink('tmpdir')
+    except FileNotFoundError:
+        pass
+    os.symlink(tmpdir, 'tmpdir')
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
