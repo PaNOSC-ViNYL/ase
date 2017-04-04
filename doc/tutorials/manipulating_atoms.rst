@@ -170,10 +170,9 @@ A 2x4 orthogonal fcc111 supercell should be good enough.
     :scale: 35
 
 >>> cell
-array([[ 5.02045815,  0.        ,  0.        ]
-       [ 0.        ,  8.69568859,  0.        ]
+array([[ 5.02045815,  0.        ,  0.        ],
+       [ 0.        ,  8.69568859,  0.        ],
        [ 0.        ,  0.        ,  6.14878037]])
->>>>>>> 898a4ecc271683aae088cc58c5736e9630e1250e
 
 Looking at the two unit cells, we can see that they match with around 2
 percent difference, if we rotate one of the cells 90 degrees in the plane.

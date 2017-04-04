@@ -87,7 +87,7 @@ Indexing an :class:`~ase.Atoms` object returns an :class:`Atom` object
 still remembering that it belongs to the collective :class:`~ase.Atoms`:
 Modifying it will also change the atoms object:
 
->>> from ase.builds import molecule
+>>> from ase.build import molecule
 >>> atoms = molecule('CH4')
 >>> atoms.get_positions()
 array([[ 0.      ,  0.      ,  0.      ],

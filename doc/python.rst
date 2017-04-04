@@ -99,7 +99,7 @@ A ``dict`` object is mapping from keys to values:
 
 >>> d = {'s': 0, 'p': 1}
 >>> d['d'] = 2
->>> sorted(d)
+>>> d
 {'p': 1, 'd': 2, 's': 0}
 >>> d['p']
 1
