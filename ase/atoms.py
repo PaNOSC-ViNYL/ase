@@ -1225,7 +1225,7 @@ class Atoms(object):
         norm = np.linalg.norm
         v = string2vector(v)
         if a is None:
-            a = norm(v)
+            a = norm(v) * 180 / pi  # old API
         if isinstance(a, (float, int)):
             a *= pi / 180
             v /= norm(v)
