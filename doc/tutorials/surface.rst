@@ -53,12 +53,12 @@ common crystal structures. Let us make a Cu (111) surface::
 
 -----------
 Calculators
------------ 
+-----------
 
 Many :mod:`ase.calculators` can be used with ASE, including
 :mod:`~ase.calculators.emt`, Asap_, Dacapo_, GPAW_, Abinit_, Vasp_.
 See the ASE home page for the full list.
-  
+
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _Dacapo: http://wiki.fysik.dtu.dk/dacapo
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
@@ -91,7 +91,7 @@ Structure relaxation
 Let's use the :mod:`QuasiNewton <ase.optimize.qn>` minimizer to optimize the
 structure of the N2 molecule adsorbed on the Cu surface. First add the
 adsorbate to the Cu slab, for example in the on-top position::
-  
+
 >>> h = 1.85
 >>> add_adsorbate(slab, molecule, h, 'ontop')
 
