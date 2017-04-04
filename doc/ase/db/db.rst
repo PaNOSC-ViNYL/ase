@@ -194,8 +194,8 @@ database:
 >>> h2 = Atoms('H2', [(0, 0, 0), (0, 0, 0.7)])
 >>> h2.calc = EMT()
 >>> h2.get_forces()
-array([[ 0.        ,  0.        , -9.80290573],
-       [ 0.        ,  0.        ,  9.80290573]])
+array([[ 0.   ,  0.   , -9.803],
+       [ 0.   ,  0.   ,  9.803]])
 
 Write a row to the database with a key-value pair (``'relaxed'``, ``False``):
 
@@ -207,7 +207,7 @@ The :meth:`~Database.write` method returns an integer id.
 Do one more calculation and write results:
 
 >>> from ase.optimize import BFGS
->>> BFGS(h2).run(fmax=0.01)
+>>> BFGS(h2).run(fmax=0.01) # doctest: +SKIP
 BFGS:   0  12:49:25        1.419427       9.8029
 BFGS:   1  12:49:25        1.070582       0.0853
 BFGS:   2  12:49:25        1.070544       0.0236
@@ -218,8 +218,7 @@ BFGS:   3  12:49:25        1.070541       0.0001
 Loop over selected rows using the :meth:`~Database.select` method:
 
 >>> for row in db.select(relaxed=True):
-...     print(row.forces[0, 2], row.relaxed)
-...
+...     print(row.forces[0, 2], row.relaxed) # doctest: +SKIP
 -9.8029057329 False
 -9.2526347333e-05 True
 
@@ -239,8 +238,7 @@ Select a single row with the :meth:`~Database.get` method:
 
 >>> row = db.get(relaxed=1, calculator='emt')
 >>> for key in row:
-...    print('{0:22}: {1}'.format(key, row[key]))
-...
+...    print('{0:22}: {1}'.format(key, row[key])) # doctest: +SKIP
 pbc                   : [False False False]
 relaxed               : True
 calculator_parameters : {}

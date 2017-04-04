@@ -23,7 +23,7 @@ Other units are (amongst others)
 
 Examples:
 
->>> from ase.units import *
+>>> from ase.units import Bohr,Rydberg,kJ,kB,fs,Hartree,mol,kcal
 >>> 2 * Bohr
 1.0583545150138329
 >>> 25 * Rydberg

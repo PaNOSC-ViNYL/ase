@@ -24,7 +24,7 @@ the command line for a number of images::
 If you have many images, it will be easier to do it using the Python
 interpreter:
 
->>> from ase import *
+>>> from ase.io import read, write
 >>> for n, image in enumerate(read('images.traj@:3')):
 ...     write('image%d.pov' % n, image, run_povray=True, pause=False,
 ...           rotation='-90x,10z')

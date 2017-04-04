@@ -42,6 +42,7 @@ If the atom object belongs to an Atoms object, then assigning
 values to the atom attributes will change the corresponding
 arrays of the atoms object:
 
+>>> from ase import Atoms
 >>> OH = Atoms('OH')
 >>> OH[0].charge = -1
 >>> OH.get_charges()
@@ -60,10 +61,10 @@ attributes (``position``, ``number``, ``tag``, ``momentum``, ``mass``,
 
 >>> a1.position = [1, 0, 0]
 >>> a1.position
-array([ 1.,  0.,  0.])
+[1, 0, 0]
 >>> a1.z = 2.5
 >>> a1.position
-array([ 1. ,  0. ,  2.5])
+[1, 0, 2.5]
 >>> a2.magmom = 1.0
 
 That last line will set the initial magnetic moment that some

@@ -96,7 +96,8 @@ Special points from [Setyawana-Curtarolo]_:
 You can find the special points in the Brillouin zone:
 
 >>> from ase.build import bulk
->>> from ase.dft.kpoints import get_special_points, bandpath
+>>> from ase.dft.kpoints import get_special_points
+>>> from ase.dft.kpoints import bandpath
 >>> si = bulk('Si', 'diamond', a=5.459)
 >>> points = get_special_points('fcc', si.cell)
 >>> GXW = [points[k] for k in 'GXW']
@@ -130,21 +131,18 @@ High symmetry paths
 The ``special_paths`` dictionary contains suggestions for high symmetry
 paths in the BZ from the [Setyawana-Curtarolo]_ paper.
 
->>> from ase.dft.kpoints (import special_paths, special_points,
-...                       parse_path_string)
->>> special_paths['bcc']
-'GHNGPH,PN'
->>> paths = parse_path_string(special_paths['bcc'])
+>>> from ase.dft.kpoints(import special_paths, special_points,
+...                      parse_path_string)
+>>> paths = special_paths['bcc']
 >>> paths
-[['G', 'H', 'N', 'G', 'P', 'H'], ['P', 'N']],
+[['G', 'H', 'N', 'G', 'P', 'H'], ['P', 'N']]
 >>> points = special_points['bcc']
 >>> points
 {'H': [0.5, -0.5, 0.5], 'N': [0, 0, 0.5], 'P': [0.25, 0.25, 0.25],
  'G': [0, 0, 0]}
 >>> kpts = [points[k] for k in paths[0]]  # G-H-N-G-P-H
 >>> kpts
-[[0, 0, 0], [0.5, -0.5, 0.5], [0, 0, 0.5], [0, 0, 0], [0.25, 0.25, 0.25],
- [0.5, -0.5, 0.5]]
+[[0, 0, 0], [0.5, -0.5, 0.5], [0, 0, 0.5], [0, 0, 0], [0.25, 0.25, 0.25], [0.5, -0.5, 0.5]]
 
 
 Chadi-Cohen
@@ -172,8 +170,8 @@ Try this:
 >>> from ase.dft.kpoints import cc162_1x1
 >>> B = [(1, 0, 0), (-0.5, 3**0.5 / 2, 0), (0, 0, 1)]
 >>> k = np.dot(cc162_1x1, B)
->>> plt.plot(k[:, 0], k[:, 1], 'o')
+>>> plt.plot(k[:, 0], k[:, 1], 'o') # doctest: +SKIP
 [<matplotlib.lines.Line2D object at 0x9b61dcc>]
->>> p.show()
+>>> plt.show()
 
 .. image:: cc.png
