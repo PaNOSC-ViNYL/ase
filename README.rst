@@ -23,7 +23,7 @@ Installation
 ------------
 
 Add ``~/ase`` to your $PYTHONPATH environment variable and add
-``~/ase/tools`` to $PATH (assuming ``~/ase`` is where your ASE folder is).
+``~/ase/bin`` to $PATH (assuming ``~/ase`` is where your ASE folder is).
 
 
 Testing
@@ -31,7 +31,7 @@ Testing
 
 Please run the tests::
 
-    $ python -m ase.test  # takes 1 min.
+    $ ase test  # takes 1 min.
 
 and send us the output if there are failing tests.
 

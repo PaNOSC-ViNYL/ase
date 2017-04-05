@@ -8,13 +8,14 @@ python_2_7_tests:
     - cd ..
     - echo $PWD
     # using 'install from source' instructions
-    - export PATH=$PATH:$CI_PROJECT_DIR/tools
+    - export PATH=$PATH:$CI_PROJECT_DIR/bin
     - echo $PATH
     - export PYTHONPATH=$CI_PROJECT_DIR
     - echo $PYTHONPATH
     # tests
     - python --version
-    - python -m ase.test
+    - ase info
+    - ase test
     # pyflakes code check
     - cd $CI_PROJECT_DIR
     - PYTHONPATH=$PWD python ase/test/__init__.py
@@ -32,7 +33,8 @@ python_3_tests:
     - mkdir -p /tmp/test/ && cd /tmp/test && echo $PWD
     # Run tests
     - python3 --version
-    - python3 -m ase.test
+    - ase info
+    - ase test -v
     # pyflakes code check
     - cd $CI_PROJECT_DIR
     - python3 ase/test/__init__.py

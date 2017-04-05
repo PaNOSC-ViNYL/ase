@@ -7,7 +7,7 @@ Installation
 Requirements
 ============
 
-* Python_ 2.6, 2.7, 3.4, 3.5
+* Python_ 2.7, 3.4-3.6
 * NumPy_ (base N-dimensional array package)
 
 Optional:
@@ -124,7 +124,7 @@ from Git.
         $ git clone https://gitlab.com/ase/ase.git
 
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
-``~/ase/tools`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
+``~/ase/bin`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
 folder is).  Alternatively, you can install the code with ``python setup.py
 install --user`` and add ``~/.local/bin`` to the front of your :envvar:`PATH`
 environment variable (if you don't already have that).
@@ -191,6 +191,6 @@ Before running the tests, make sure you have set your :envvar:`PATH`
 environment variable correctly as described in the relevant section above.
 Run the tests like this::
 
-    $ python -m ase.test  # takes 1 min.
+    $ ase test  # takes 1 min.
 
 and send us the output if there are failing tests.
