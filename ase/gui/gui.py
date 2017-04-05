@@ -126,13 +126,15 @@ class GUI(View, Status):
 
     def scroll(self, event):
         CTRL = event.modifier == 'ctrl'
+        # Get the scroll direction when pressing arrow keys
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
                   'left': (-1, 0, 0)}.get(event.key, None)
 
+        # Get scroll direction using shift + right mouse button
         # if event.type == '6'  # Also works
-        if event.state == 1041:  # If shift + right mouse button
+        if event.state == 1041:
             cur_pos = np.array([event.x, -event.y])
             if self.prev_pos is None:
                 self.prev_pos = cur_pos
