@@ -115,7 +115,7 @@ vdWDB_Grimme06jcc = {
 
 # Optimal range parameters sR for different XC functionals
 # to be used with the Tkatchenko-Scheffler scheme
-# Reference: M.A. Caro arXiv: (2017)
+# Reference: M.A. Caro arXiv:1704.00761 (2017)
 sR_opt={'PBE': 0.940,
         'RPBE': 0.590,
         'revPBE': 0.585,
