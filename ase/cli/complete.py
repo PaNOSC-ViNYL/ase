@@ -50,7 +50,7 @@ commands = {
          '--graph', '-t', '--terminal', '--interpolate', '-b',
          '--bonds', '-s', '--scale'],
     'info':
-        [''],
+        ['-v', '--verbose'],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
     'run':

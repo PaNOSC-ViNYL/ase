@@ -2,9 +2,8 @@ import platform
 import sys
 
 from ase.utils import import_module
-from ase.io.formats import filetype
+from ase.io.formats import filetype, all_formats
 from ase.io.ulm import print_ulm_info
-from ase.io.pickletrajectory import print_trajectory_info
 from ase.io.bundletrajectory import print_bundletrajectory_info
 
 
@@ -14,20 +13,35 @@ class CLICommand:
     @staticmethod
     def add_arguments(parser):
         parser.add_argument('filenames', nargs='*')
+        parser.add_argument('-v', '--verbose', action='store_true')
 
     @staticmethod
     def run(args):
-        for f in args.filenames:
-            ft = filetype(f)
-            print("File type of '{}' appears to be of type '{}'".format(f, ft))
-            if ft == 'traj':
-                print_ulm_info(f)
-            elif ft == 'trj':
-                print_trajectory_info(f)
-            elif ft == 'bundletrajectory':
-                print_bundletrajectory_info(f)
         if not args.filenames:
             print_info()
+            return
+
+        n = max(len(filename) for filename in args.filenames) + 2
+        for filename in args.filenames:
+            try:
+                format = filetype(filename)
+            except FileNotFoundError:
+                format = '?'
+                description = 'No such file'
+            else:
+                if format and format in all_formats:
+                    description, code = all_formats[format]
+                else:
+                    format = '?'
+                    description = '?'
+
+            print('{:{}}{} ({})'.format(filename + ':', n,
+                                        description, format))
+            if args.verbose:
+                if format == 'traj':
+                    print_ulm_info(filename)
+                elif format == 'bundletrajectory':
+                    print_bundletrajectory_info(filename)
 
 
 def print_info():
