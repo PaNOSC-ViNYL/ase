@@ -106,7 +106,7 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('pg://'):
+        elif name.startswith('postgresql://'):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -126,7 +126,7 @@ def connect(name, type='extract_from_name', create_indices=True,
                                serial=serial)
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
-        return PostgreSQLDatabase(name[5:])
+        return PostgreSQLDatabase(name)
     raise ValueError('Unknown database type: ' + type)
 
 
@@ -174,6 +174,7 @@ class Database:
         else:
             self.lock = None
         self.serial = serial
+        self._metadata = None  # decription of columns and other stuff
 
     @parallel_function
     @lock
@@ -336,7 +337,8 @@ class Database:
                 op = invop[op]
                 value = now() - time_string_to_float(value)
             elif key == 'formula':
-                assert op == '='
+                if op != '=':
+                    raise ValueError('Use fomula=...')
                 numbers = symbols2numbers(value)
                 count = collections.defaultdict(int)
                 for Z in numbers:

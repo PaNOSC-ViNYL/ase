@@ -514,7 +514,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, append=False, plain=False):
+              write_results=True, plain=False):
     """
     Write output in extended XYZ format
 

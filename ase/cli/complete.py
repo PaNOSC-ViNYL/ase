@@ -25,19 +25,23 @@ def match(word, *suffixes):
 # Beginning of computer generated data:
 commands = {
     'build':
-        ['-M', '--magnetic-moment', '--modify', '-V', '--vacuum',
-         '--unit-cell', '--bond-length', '-x',
+        ['-M', '--magnetic-moment', '--modify', '-V', '--vacuum', '-v',
+         '--vacuum0', '--unit-cell', '--bond-length', '-x',
          '--crystal-structure', '-a', '--lattice-constant',
          '--orthorhombic', '--cubic', '-r', '--repeat', '-g',
-         '--gui'],
+         '--gui', '--periodic'],
+    'completion':
+        ['-0', '--dry-run'],
     'db':
-        ['-n', '--count', '-l', '--long', '-i', '--insert-into', '-a',
+        ['-v', '--verbose', '-q', '--quiet', '-n', '--count', '-l',
+         '--long', '-i', '--insert-into', '-a',
          '--add-from-file', '-k', '--add-key-value-pairs', '-L',
          '--limit', '--offset', '--delete', '--delete-keys',
          '-y', '--yes', '--explain', '-c', '--columns', '-s',
          '--sort', '--cut', '-p', '--plot', '-P', '--plot-data',
          '--csv', '-w', '--open-web-browser', '--no-lock-file',
-         '--analyse', '-j', '--json', '--unique'],
+         '--analyse', '-j', '--json', '-m', '--show-metadata',
+         '--set-metadata', '--unique'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
     'gui':
@@ -54,14 +58,12 @@ commands = {
          '--skip', '--properties', '-f', '--maximum-force',
          '--constrain-tags', '-s', '--maximum-stress', '-E',
          '--equation-of-state', '--eos-type', '-i',
-         '--interactive-python-session', '-c', '--collection',
-         '--modify', '--after'],
-    'completion':
-        ['-0', '--dry-run'],
+         '--interactive', '-c', '--collection', '--modify',
+         '--after'],
     'test':
-        ['-c', '--calculators'],
+        ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet'],
     'ulm':
-        ['-n', '--index']}
+        ['-n', '--index', '-v', '--verbose']}
 # End of computer generated data
 
 
@@ -73,10 +75,8 @@ def complete(word, previous, line, point):
                 break
     else:
         if word[:1] == '-':
-            return ['-h', '--help', '-q', '--quiet', '-v', '--verbose',
-                    '--version']
-        return list(commands.keys()) + ['-h', '--help', '-q', '--quiet',
-                                        '-v', '--verbose']
+            return ['-h', '--help', '--version']
+        return list(commands.keys()) + ['-h', '--help', '--verbose']
 
     if word[:1] == '-':
         return commands[command]

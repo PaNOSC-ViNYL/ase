@@ -6,7 +6,7 @@ from ase.utils import hill
 
 
 class Summary:
-    def __init__(self, row, subscript=None):
+    def __init__(self, row, meta={}, subscript=None):
         self.row = row
 
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -53,14 +53,86 @@ class Summary:
             ('fmax', 'eV/Ang', fmax),
             ('charge', '|e|', row.get('charge')),
             ('mass', 'au', mass),
-            ('magnetic moment', 'au', row.get('magmom')),
+            ('magmom', 'au', row.get('magmom')),
             ('unique id', '', row.unique_id),
             ('volume', 'Ang^3', row.get('volume'))]
 
         self.table = [(name, unit, value) for name, unit, value in table
                       if value is not None]
 
-        self.key_value_pairs = sorted(row.key_value_pairs.items()) or None
+        self.key_value_pairs = sorted(row.key_value_pairs.items())
+
+        # If meta data for summary_sections does not exists a default
+        # template is generated otherwise it goes through the meta
+        # data and checks if all keys are indeed present
+
+        if 'summary_sections' not in meta:
+
+            secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
+                    ['Key Value Pairs', ['Key'], ['FORCES']],
+                    ['Misc', ['Key']]]
+
+            # define misc data
+            collection_misc = {'id', 'age', 'user', 'calculator', 'unique id'}
+
+            temp = []
+            misc = []
+            for (key, unit, value) in self.table:
+                if key in collection_misc:
+                    misc.append(key)
+                else:
+                    temp.append(key)
+
+            secs[0][1].append(temp)
+            secs[2][1].append(misc)
+
+            temp = []
+            for (key, value) in self.key_value_pairs:
+                if value is not None:
+                    temp.append(key)
+            secs[1][1].append(temp)
+
+            meta['summary_sections'] = secs
+
+        else:
+
+            metasec = meta['summary_sections']
+            miscsec = ['Misc', ['Key']]
+            misc = []
+
+            # find all keys presented in the summary sections
+            keys_presented = []
+            for seciter in range(0, len(metasec)):
+                for tabiter in range(0, len(metasec[seciter])):
+                    if isinstance(metasec[seciter][tabiter], list):
+                        if len(metasec[seciter][tabiter]) > 1:
+                            keys_presented.extend(metasec[seciter][tabiter][1])
+
+            # check that all keys in table and key_value_paris are presented
+            for key, unit, value in self.table:
+                if key not in keys_presented:
+                    misc.append(key)
+            for key, value in self.key_value_pairs:
+                if key not in keys_presented:
+                    misc.append(key)
+
+            # add a misc section if there are missing keys
+            if misc != []:
+                miscsec[1].append(misc)
+                metasec.append(miscsec)
+
+        # Generate key-value dictionary for table and key_value_pairs
+
+        keyval = {}
+        for key, unit, value in table:
+            if value is not None:
+                keyval[key] = value
+
+        for key, value in self.key_value_pairs:
+            if value is not None:
+                keyval[key] = value
+
+        self.keyval = keyval
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:

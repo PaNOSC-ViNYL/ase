@@ -20,6 +20,8 @@ Git master branch
   :program:`ase build` will no longer add vacuum by default.  Use
   ``ase build -V 3.0`` to get the old behavior.
 
+* Python 2.6 no longer supported.
+
 * All methods of the :class:`~ase.Atoms` object that deal with angles now
   have new API's that use degrees instead of radians as the unit of angle
   (:meth:`~ase.Atoms.get_angle`, :meth:`~ase.Atoms.set_angle`,
@@ -60,6 +62,18 @@ Git master branch
   ...                    theta=theta * 180 / pi,
   ...                    psi=psi * 180 / pi)
 
+* The web-interface to the :mod:`ase.db` module now uses Bootstrap and looks
+  much nicer.  Querying the database is also much easier.  See
+  https://cmrdb.fysik.dtu.dk for an example.
+
+* The PostgreSQL backend for :mod:`ase.db` can now contain more than one ASE
+  database.
+
+* An ASE database can now have :ref:`metadata` describing the data.
+  Metadata is a dict with any of the following keys: ``title``,
+  ``key_descriptions``, ``default_columns``, ``special_keys`` and
+  ``summary_sections``.
+
 * :data:`ase.data.atomic_masses` has been updated to IUPAC values from
   2016. Several elements will now have different weights which will affect
   dynamic calculations. The old values can be recovered like this:
@@ -74,6 +88,9 @@ Git master branch
 
 * Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
 
+* :mod:`ase.gui` can now load and display any sequence of :class:`~ase.Atoms`
+  objects; it is no longer restricted to sequences with a constant number
+  of atoms or same chemical composition.
 
 Version 3.13.0
 ==============

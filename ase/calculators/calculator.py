@@ -567,8 +567,14 @@ class Calculator:
 
     def band_structure(self):
         """Create band-structure object for plotting."""
-        from ase.dft.band_structure import BandStructure
-        return BandStructure(calc=self)
+        from ase.dft.band_structure import get_band_structure
+        # XXX This calculator is supposed to just have done a band structure
+        # calculation, but the calculator may not have the correct Fermi level
+        # if it updated the Fermi level after changing k-points.
+        # This will be a problem with some calculators (currently GPAW), and
+        # the user would have to override this by providing the Fermi level
+        # from the selfconsistent calculation.
+        return get_band_structure(calc=self)
 
 
 class FileIOCalculator(Calculator):
