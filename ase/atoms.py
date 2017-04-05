@@ -588,18 +588,19 @@ class Atoms(object):
     def set_initial_magnetic_moments(self, magmoms=None):
         """Set the initial magnetic moments.
 
-        Use either one or three numbers for every atom (collinear
+        You may try to specify "FM"/"AFM" or use explicit values
+        either one or three numbers for every atom (collinear
         or non-collinear spins)."""
 
         if magmoms is None:
             self.set_array('magmoms', None)
         elif isinstance(magmoms, str):
-            m = [1.]*len(struc)
+            m = [1.]*len(self)
             if magmoms.lower() == "fm":
-                self.set_array('magmoms', magmoms, float, m)
+                self.set_array('magmoms', m, float)
             elif magmoms.lower() == "afm":
-                m[::2] = [-1.]*int(len(struc)/2+.5)
-                self.set_array('magmoms', magmoms, float, m)
+                m[::2] = [-1.]*int(len(self)/2+.5)
+                self.set_array('magmoms', m, float)
             else:
                 raise ValueError("magmoms should be FM/AFM or a float array.")
         else:
