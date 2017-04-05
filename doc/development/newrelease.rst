@@ -23,6 +23,6 @@ New release
 
 * Send announcement email to the ``ase-users`` mailing list.
 
-  Number of commits since last relese::
+  Number of commits since last release::
 
       $ git shortlog -s -n 3.13.0..

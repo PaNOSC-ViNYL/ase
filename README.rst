@@ -10,13 +10,13 @@ Webpage: http://wiki.fysik.dtu.dk/ase
 Requirements
 ------------
 
-* Python_ 2.6, 2.7, 3.4, 3.5
+* Python_ 2.7, 3.4-3.6
 * NumPy_ (base N-dimensional array package)
 
 Optional:
 
 * SciPy_ (library for scientific computing)
-* For ``ase-gui``: Matplotlib_ (2D Plotting)
+* For ASE's GUI: Matplotlib_ (2D Plotting)
 
 
 Installation
@@ -70,7 +70,7 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 
 ::
 
-    $ ase-gui h2.traj
+    $ ase gui h2.traj
 
 
 .. _Python: http://www.python.org/

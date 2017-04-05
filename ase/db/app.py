@@ -2,7 +2,7 @@
 
 You can launch Flask's local webserver like this::
 
-    $ ase-db abc.db -w
+    $ ase db abc.db -w
 
 For a real webserver, you need to set the $ASE_DB_APP_CONFIG environment
 variable to point to a configuration file like this::
@@ -74,7 +74,7 @@ app.secret_key = 'asdf'
 
 databases = {}
 home = ''  # link to homepage
-open_ase_gui = True  # click image to open ase-gui
+open_ase_gui = True  # click image to open ASE's GUI
 
 # List of (project-name, title) tuples (will be filled in at run-time):
 projects = []
@@ -89,15 +89,21 @@ def connect_databases(uris):
         databases[project] = ase.db.connect(uri)
 
 
+next_con_id = 1
+connections = {}
+
+tmpdir = tempfile.mkdtemp()  # used to cache png-files
+
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
     open_ase_gui = False
-
-next_con_id = 1
-connections = {}
-tmpdir = tempfile.mkdtemp()  # used to cache png-files
+    try:
+        os.unlink('tmpdir')
+    except FileNotFoundError:
+        pass
+    os.symlink(tmpdir, 'tmpdir')
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')

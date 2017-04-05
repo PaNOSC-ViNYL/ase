@@ -192,7 +192,7 @@ class Images:
             atoms.center()
 
     def graph(self, expr):
-        """Routine to create the data in ase-gui graphs, defined by the
+        """Routine to create the data in graphs, defined by the
         string expr."""
         import ase.units as units
         code = compile(expr + ',', '<input>', 'eval')

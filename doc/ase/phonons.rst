@@ -83,7 +83,7 @@ using a 7x7x7 supercell within effective medium theory::
 
 .. image:: Al_phonon.png
 
-Mode inspection using ase-gui::
+Mode inspection::
 
   # Write modes for specific q-vector to trajectory files
   ph.write_modes([l/2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4)

@@ -388,7 +388,7 @@ class View:
 
                     # Draw labels on the atoms
                     if self.labels is not None:
-                        self.window.text(A[a, 0], A[a, 1],
+                        self.window.text(A[a, 0] + ra/2, A[a, 1] + ra/2,
                                          str(self.labels[a]))
 
                     # Draw cross on constrained atoms

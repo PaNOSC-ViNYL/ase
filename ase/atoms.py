@@ -1174,8 +1174,8 @@ class Atoms(object):
         Parameters:
 
         a = None:
-            Angle that the atoms is rotated around the vecor 'v'. The
-            angle can also be a vector and then 'a' is rotated
+            Angle that the atoms is rotated around the vecor 'v'. 'a'
+            can also be a vector and then 'a' is rotated
             into 'v'.
 
         v:
@@ -1206,7 +1206,7 @@ class Atoms(object):
         if not isinstance(a, (float, int)):
             # old API maybe?
             warning = ('Please use new API: '
-                       'atoms_obj.rotate(v, a) '
+                       'atoms_obj.rotate(a, v) '
                        'where v is a vector to rotate around and '
                        'a is the angle in degrees.')
             if isinstance(v, (float, int)):
@@ -1225,7 +1225,7 @@ class Atoms(object):
         norm = np.linalg.norm
         v = string2vector(v)
         if a is None:
-            a = norm(v)
+            a = norm(v) * 180 / pi  # old API
         if isinstance(a, (float, int)):
             a *= pi / 180
             v /= norm(v)
@@ -1799,12 +1799,12 @@ class Atoms(object):
         write(filename, self, format, **kwargs)
 
     def edit(self):
-        """Modify atoms interactively through ase-gui viewer.
+        """Modify atoms interactively through ASE's GUI viewer.
 
         Conflicts leading to undesirable behaviour might arise
         when matplotlib has been pre-imported with certain
         incompatible backends and while trying to use the
-        plot feature inside the interactive ase-gui. To circumvent,
+        plot feature inside the interactive GUI. To circumvent,
         please set matplotlib.use('gtk') before calling this
         method.
         """

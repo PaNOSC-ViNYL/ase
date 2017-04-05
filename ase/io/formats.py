@@ -506,24 +506,5 @@ def filetype(filename, read=True):
         if magic in data:
             return format
 
-    return extension2format.get(ext, ext)
-
-
-if __name__ == '__main__':
-    import optparse
-    parser = optparse.OptionParser(
-        usage='python -m ase.io.formats file ...',
-        description='Determine file type(s).')
-    opts, filenames = parser.parse_args()
-    if filenames:
-        n = max(len(filename) for filename in filenames) + 2
-    for filename in filenames:
-        format = filetype(filename)
-        if format and format in all_formats:
-            description, code = all_formats[format]
-        else:
-            format = '?'
-            description = '?'
-
-        print('{0:{1}}{2} ({3})'.format(filename + ':', n,
-                                        description, format))
+    format = extension2format.get(ext, ext)
+    return format
