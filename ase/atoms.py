@@ -593,6 +593,15 @@ class Atoms(object):
 
         if magmoms is None:
             self.set_array('magmoms', None)
+        elif isinstance(magmoms, str):
+            m = [1.]*len(struc)
+            if magmoms.lower() == "fm":
+                self.set_array('magmoms', magmoms, float, m)
+            elif magmoms.lower() == "afm":
+                m[::2] = [-1.]*int(len(struc)/2+.5)
+                self.set_array('magmoms', magmoms, float, m)
+            else:
+                raise ValueError("magmoms should be FM/AFM or a float array.")
         else:
             magmoms = np.asarray(magmoms)
             self.set_array('magmoms', magmoms, float, magmoms.shape[1:])
