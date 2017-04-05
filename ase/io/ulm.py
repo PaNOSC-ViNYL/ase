@@ -54,7 +54,6 @@ Versions:
 """
 
 from __future__ import print_function
-import optparse
 import os
 import sys
 
@@ -542,25 +541,16 @@ def print_ulm_info(filename, index=None, verbose=False):
         print(b[i].tostr(verbose))
 
 
-def main():
-    parser = optparse.OptionParser(
-        usage='Usage: %prog [options] ulm-file [item number]',
-        description='Show content of ulm-file')
+class CLICommand:
+    short_description = 'Show content of ulm-file'
 
-    add = parser.add_option
-    add('-v', '--verbose', action='store_true')
-    opts, args = parser.parse_args()
+    @staticmethod
+    def add_arguments(parser):
+        add = parser.add_argument
+        add('filename')
+        add('-n', '--index', type=int)
+        add('-v', '--verbose', action='store_true')
 
-    if len(args) not in [1, 2]:
-        parser.error('Wrong number of arguments')
-
-    filename = args.pop(0)
-    if args:
-        index = int(args[0])
-    else:
-        index = None
-    print_ulm_info(filename, index, verbose=opts.verbose)
-
-
-if __name__ == '__main__':
-    main()
+    @staticmethod
+    def run(args):
+        print_ulm_info(args.filename, args.index, verbose=args.verbose)

@@ -53,13 +53,13 @@ Every row in the database contains:
 
 .. _ase-db:
 
-ase-db
+ase db
 ======
 
 The :ref:`ase-db` command-line tool can be used to query databases and for
 manipulating key-value pairs.  Try::
 
-    $ ase-db --help
+    $ ase db --help
 
 Example: Show all rows of SQLite database abc.db:
 
@@ -162,7 +162,7 @@ Browse database with your web-browser
 
 You can use your web-browser to look at and query databases like this::
 
-    $ ase-db abc.db -w
+    $ ase db abc.db -w
     $ firefox http://0.0.0.0:5000/
 
 Click individual rows to see details.  See the CMR_ web-page for an example of
@@ -428,7 +428,7 @@ Other jobs trying to make the same reservation will fail.  While the jobs are
 running, you can keep an eye on the ongoing (reserved) calculations by
 identifying empty rows::
 
-    $ ase-db many_results.db natoms=0
+    $ ase db many_results.db natoms=0
 
 
 More details

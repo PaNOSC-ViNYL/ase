@@ -2,7 +2,7 @@
 
 You can launch Flask's local webserver like this::
 
-    $ ase-db abc.db -w
+    $ ase db abc.db -w
 
 For a real webserver, you need to set the $ASE_DB_APP_CONFIG environment
 variable to point to a configuration file like this::
@@ -74,7 +74,7 @@ app.secret_key = 'asdf'
 
 databases = {}
 home = ''  # link to homepage
-open_ase_gui = True  # click image to open ase-gui
+open_ase_gui = True  # click image to open ASE's GUI
 
 # List of (project-name, title) tuples (will be filled in at run-time):
 projects = []
