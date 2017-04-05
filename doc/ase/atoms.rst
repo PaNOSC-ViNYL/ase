@@ -150,16 +150,16 @@ The :class:`Atoms` object holds a unit cell which is a 3x3 matrix as can be
 seen from
 
 >>> a.get_cell()
-array([[ 1.,  0.,  0.],
-       [ 0.,  1.,  0.],
-       [ 0.,  0.,  1.]])
+array([[ 0.,  0.,  0.],
+       [ 0.,  0.,  0.],
+       [ 0.,  0.,  0.]])
 
 The cell can be defined or changed using the
 :meth:`~Atoms.set_cell` method. Changing the unit cell
 does per default not move the atoms:
 
->>> from numpy import identity
->>> a.set_cell(2 * identity(3))
+>>> import numpy as np
+>>> a.set_cell(2 * np.identity(3))
 >>> a.get_cell()
 array([[ 2.,  0.,  0.],
        [ 0.,  2.,  0.],
@@ -173,7 +173,7 @@ array([[ 2.,  0.,  0.],
 However if we set ``scale_atoms=True`` the atomic positions are scaled with
 the unit cell:
 
->>> a.set_cell(identity(3), scale_atoms=True)
+>>> a.set_cell(np.identity(3), scale_atoms=True)
 >>> a.get_positions()
 array([[ 1. ,  0. ,  0. ],
        [ 0.5,  0.5,  0. ],
