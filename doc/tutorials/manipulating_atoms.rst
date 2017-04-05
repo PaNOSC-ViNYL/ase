@@ -189,8 +189,6 @@ Lets rotate the cell
 Let's also rotate the molecules:
 
 >>> W.rotate(90, 'z', center=(0, 0, 0))
->>> import numpy as np
->>> W.rotate('z', np.pi / 2, center=(0, 0, 0))
 
 .. image:: WL_rot_a.png
     :scale: 35

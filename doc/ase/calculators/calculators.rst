@@ -13,7 +13,7 @@ In order to calculate forces and energies, you need to attach a
 calculator object to your atoms object:
 
 >>> a = read('molecule.xyz')
->>> e = a.get_potential_energy() # DOCTEST: IGNORE_EXCEPTION_DETAIL
+>>> e = a.get_potential_energy()  # doctest: IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
   File "/home/jjmo/ase/atoms/ase.py", line 399, in get_potential_energy
