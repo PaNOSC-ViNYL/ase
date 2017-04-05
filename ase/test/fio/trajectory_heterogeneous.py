@@ -1,3 +1,4 @@
+from __future__ import print_function
 #import numpy as np
 from ase.constraints import FixAtoms, FixBondLength
 from ase.build import molecule, bulk
@@ -7,6 +8,7 @@ a0 = molecule('H2O')
 a1 = a0.copy()
 a1.rattle(stdev=0.5)
 a2 = a0.copy()
+a2.set_masses()
 a2.center(vacuum=2.0)
 a2.rattle(stdev=0.2)
 a3 = molecule('CH3CH2OH')
@@ -24,7 +26,7 @@ traj = Trajectory('out.traj', 'w')
 for i, img in enumerate(images):
     traj.write(img)
     print(i, traj.multiple_headers)
-    assert traj.multiple_headers == (i >= 3)
+    assert traj.multiple_headers == (i >= 2)
 traj.close()
 
 #view(images)
@@ -37,7 +39,7 @@ for i in range(len(images)):
     assert images[i] == newimages[i], i
     h1 = get_header_data(images[i])
     h2 = get_header_data(newimages[i])
-    print(i)
+    print(i, images[i])
     print(h1)
     print(h2)
     print()
