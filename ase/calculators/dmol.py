@@ -230,10 +230,11 @@ class DMol3(FileIOCalculator):
         elif not np.any(self.atoms.pbc):  # [False,False,False]
             try:
                 data = np.loadtxt(self.label + '.rot')
-                self.internal_transformation = True
-                self.rotation_matrix = data[1:].transpose()
             except IOError:
                 self.internal_transformation = False
+            else:
+                self.internal_transformation = True
+                self.rotation_matrix = data[1:].transpose()
 
     def read_atoms_from_outmol(self):
         """ Reads atomic positions and cell from outmol file and returns atoms
