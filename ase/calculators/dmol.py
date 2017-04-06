@@ -290,11 +290,14 @@ class DMol3(FileIOCalculator):
     def read_energy(self):
         """ Find and return last occurrence of Ef in outmole file. """
         energy_regex = re.compile(r'^Ef\s+(\S+)Ha')
-        energy = float('nan')
+        found = False
         for line in open(self.label + '.outmol', 'r'):
             match = energy_regex.match(line)
             if match:
                 energy = float(match.group(1))
+                found = True
+        if not found:
+            raise RuntimeError('Could not read energy from outmol')
         self.results['energy'] = energy * Hartree
 
     def read_forces(self):
