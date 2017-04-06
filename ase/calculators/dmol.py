@@ -469,10 +469,12 @@ class DMol3(FileIOCalculator):
                            'incoor', 'kpoints', 'monitor', 'occup', 'outmol',
                            'outatom', 'rot', 'sdf', 'sym', 'tpotl', 'tpdensk',
                            'torder', 'out']
-        files = ['DMol3.log', 'stdouterr.txt', 'mpd.hosts', 'parameters.ase']
+        files_to_clean = ['DMol3.log', 'stdouterr.txt', 'mpd.hosts',
+                          'parameters.ase']
 
-        files = [self.directory + '/' + f for f in files] + \
-                [self.label + '.' + ext for ext in file_extensions]
+        files = [os.path.join(self.directory, f) for f in files_to_clean]
+        files += [''.join((self.label, '.', ext)) for ext in file_extensions]
+
         for f in files:
             try:
                 os.remove(f)
