@@ -162,21 +162,23 @@ def read_dmol_incoor(filename, bohr=True):
     """
 
     lines = open(filename, 'r').readlines()
-    atoms = Atoms()
+    symbols = []
+    positions = []
     for i, line in enumerate(lines):
         if line.startswith('$cell vectors'):
             cell = np.zeros((3, 3))
             for j, line in enumerate(lines[i + 1:i + 4]):
                 cell[j, :] = [float(fld) for fld in line.split()]
-            atoms.cell = cell
         if line.startswith('$coordinates'):
             j = i + 1
             while True:
                 if lines[j].startswith('$end'):
                     break
                 flds = lines[j].split()
-                atoms.append(Atom(flds[0], flds[1:4]))
+                symbols.append(flds[0])
+                positions.append(flds[1:4])
                 j += 1
+    atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=True)
     if bohr:
         atoms.cell = atoms.cell * Bohr
         atoms.positions = atoms.positions * Bohr
@@ -230,24 +232,28 @@ def read_dmol_arc(filename, index=-1):
     else:
         raise RuntimeError('Could not read pbc from second line in %s'
                            % filename)
+
     i = 0
     while i < len(lines):
-        image = Atoms()
+        symbols = []
+        positions = []
         # parse single image
         if lines[i].startswith('!DATE'):
             # read cell
             if pbc:
                 cell_dat = np.array([float(fld)
                                      for fld in lines[i + 1].split()[1:7]])
-                image.cell = cellpar_to_cell(cell_dat)
-                image.pbc = [True, True, True]
+                cell = cellpar_to_cell(cell_dat)
                 i += 1
             i += 1
             # read atoms
             while not lines[i].startswith('end'):
                 flds = lines[i].split()
-                image.append(Atom(flds[7], flds[1:4]))
+                symbols.append(flds[7])
+                positions.append(flds[1:4])
                 i += 1
+            image = Atoms(symbols=symbols, positions=positions, cell=cell,
+                          pbc=True)
             images.append(image)
         if len(images) == index:
             return images[-1]
