@@ -77,7 +77,7 @@ from __future__ import print_function
 import os
 import re
 import numpy as np
-from ase import Atom, Atoms
+from ase import Atoms
 from ase.io import read
 from ase.io.dmol import write_dmol_car, write_dmol_incoor
 from ase.units import Hartree, Bohr
