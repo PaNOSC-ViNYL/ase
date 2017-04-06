@@ -544,16 +544,27 @@ def find_transformation(atoms1, atoms2, verbose=False, only_cell=False):
     return x, error
 
 
-def grd_to_cube(atoms, grd_file, cube_file, rot_mat=None):
+def grd_to_file(atoms, grd_file, new_file):
     """ Reads grd_file and converts data to cube format and writes to
-    cube_file. """
+    cube_file.
+
+    Note: content of grd_file and atoms object are assumed to match with the
+          same orientation.
+
+    Parameters
+    -----------
+    atoms (Atoms object): atoms object grd_file data is for
+    grd_file (str): filename of .grd file
+    new_file (str): filename to write grd-data to, must be ASE format
+                    that supports data argument
+    """
     from ase.io import write
 
     atoms_copy = atoms.copy()
     data, cell, origin = read_grd(grd_file)
     atoms_copy.cell = cell
     atoms_copy.positions += origin
-    write(cube_file, atoms_copy, data=data)
+    write(new_file, atoms_copy, data=data)
 
 
 def read_grd(filename):
