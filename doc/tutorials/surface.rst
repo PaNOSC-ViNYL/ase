@@ -74,7 +74,7 @@ We can attach a calculator to the previously created
 
 >>> from ase.calculators.emt import EMT
 >>> slab.set_calculator(EMT())
->>> molecule.set_calculator(EMT()) 
+>>> molecule.set_calculator(EMT())
 
 and use it to calculate the total energies for the systems by using
 the :meth:`~ase.Atoms.get_potential_energy` method from the
@@ -188,7 +188,7 @@ algorithm. We first create the :class:`VelocityVerlet
 <ase.md.verlet.VelocityVerlet>` object giving it the molecule and the time
 step for the integration of Newton's law. We then perform the dynamics
 by calling its :meth:`run` method and giving it the number of steps to
-take::
+take:
 
 >>> from ase.md.verlet import VelocityVerlet
 >>> from ase import units
