@@ -360,7 +360,7 @@ class DMol3(FileIOCalculator):
 
         assert mode in ['eigenvalues', 'occupations']
         lines = open(self.label + '.outmol', 'r').readlines()
-
+        pattern_kpts = re.compile(r'Eigenvalues for kvector\s+%d' % (kpt + 1))
         for n, line in enumerate(lines):
 
             # 1. We have no kpts
@@ -384,7 +384,7 @@ class DMol3(FileIOCalculator):
                 return np.array(values)
 
             # 2. We have kpts
-            if line.startswith('Eigenvalues for kvector   %d' % (kpt + 1)):
+            if pattern_kpts.match(line):
                 val_index = 3
                 if self.get_spin_polarized():
                     if spin == 1:
@@ -428,7 +428,7 @@ class DMol3(FileIOCalculator):
                 return False
             if line.rfind('Calculation is Spin_unrestricted') > -1:
                 return True
-        return None
+        raise IOError('Could not read spin restriction from outmol')
 
     def read_fermi(self):
         """Reads the Fermi level.
@@ -437,12 +437,11 @@ class DMol3(FileIOCalculator):
         Fermi Energy:           -0.225556 Ha     -6.138 eV   xyz text
         """
         lines = open(self.label + '.outmol', 'r').readlines()
+        pattern_fermi = re.compile(r'Fermi Energy:\s+(\S+)\s+Ha')
         for line in lines:
-            if line.rfind('Fermi Energy:') > -1:
-                flds = line.split()
-                for i, fld in enumerate(flds):
-                    if fld == 'eV':
-                        return float(flds[i - 1])
+            m = pattern_fermi.match(line)
+            if m:
+                return float(m.group(1)) * Hartree
         return None
 
     def read_energy_contributions(self):
