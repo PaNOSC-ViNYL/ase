@@ -85,7 +85,7 @@ def connect_databases(uris):
         if uri.startswith('postgresql://'):
             project = uri.rsplit('/', 1)[1]
         else:
-            project = uri.rsplit('/', 1)[1].split('.')[0]
+            project = uri.rsplit('/', 1)[-1].split('.')[0]
         databases[project] = ase.db.connect(uri)
 
 
