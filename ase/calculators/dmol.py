@@ -220,7 +220,7 @@ class DMol3(FileIOCalculator):
                 R, err = find_transformation(dmol_atoms, self.atoms)
                 if abs(np.linalg.det(R) - 1.0) > tol:
                     raise RuntimeError('Error: transformation matrix does'
-                                       'not have determinant 1.0')
+                                       ' not have determinant 1.0')
                 if err < tol:
                     self.internal_transformation = True
                     self.rotation_matrix = R
@@ -260,26 +260,30 @@ class DMol3(FileIOCalculator):
         """
 
         lines = open(self.label + '.outmol', 'r').readlines()
-        atoms = Atoms()
         found_cell = False
         cell = np.zeros((3, 3))
+        symbols = []
+        positions = []
+        pattern_translation_vectors = re.compile(r'\s+translation\s+vector')
+        pattern_atomic_coordinates = re.compile(r'df\s+ATOMIC\s+COORDINATES')
+
         for i, line in enumerate(lines):
-            if line.startswith(' translation vector'):
+            if pattern_translation_vectors.match(line):
                 cell[int(line.split()[3]) - 1, :] = \
                     np.array([float(x) for x in line.split()[-3:]])
-                atoms.cell = cell
                 found_cell = True
-            if line.startswith('df              ATOMIC  COORDINATES'):
+            if pattern_atomic_coordinates.match(line):
                 for ind, j in enumerate(range(i + 2, i + 2 + len(self.atoms))):
                     flds = lines[j].split()
-                    atoms.append(Atom(flds[1], flds[2:5]))
+                    symbols.append(flds[1])
+                    positions.append(flds[2:5])
+        atoms = Atoms(symbols=symbols, positions=positions, cell=cell)
+        atoms.positions *= Bohr
+        atoms.cell *= Bohr
 
-        atoms.positions = atoms.positions * Bohr
-        atoms.cell = atoms.cell * Bohr
         if found_cell:
             atoms.pbc = [True, True, True]
         else:
-            atoms.cell = np.eye(3)
             atoms.pbc = [False, False, False]
         return atoms
 
