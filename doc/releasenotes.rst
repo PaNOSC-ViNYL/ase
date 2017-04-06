@@ -92,6 +92,10 @@ Git master branch
   objects; it is no longer restricted to sequences with a constant number
   of atoms or same chemical composition.
 
+* Trajectory files can now store any sequence of :class:`~ase.Atoms`
+  objects.  Previously, atomic numbers, masses, and constraints were
+  only saved for the first image, and had to apply for all subsequent ones.
+
 Version 3.13.0
 ==============
 
