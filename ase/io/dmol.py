@@ -94,27 +94,24 @@ def read_dmol_car(filename):
     Cell is constructed from cellpar so orientation of cell might be off.
     """
 
-    try:
-        lines = open(filename, 'r').readlines()
-        atoms = Atoms()
+    lines = open(filename, 'r').readlines()
+    atoms = Atoms()
 
-        start_line = 4
+    start_line = 4
 
-        if lines[1][4:6] == 'ON':
-            start_line += 1
-            cell_dat = np.array([float(fld) for fld in lines[4].split()[1:7]])
-            cell = cellpar_to_cell(cell_dat)
-            atoms.cell = cell
-            atoms.pbc = [True, True, True]
+    if lines[1][4:6] == 'ON':
+        start_line += 1
+        cell_dat = np.array([float(fld) for fld in lines[4].split()[1:7]])
+        cell = cellpar_to_cell(cell_dat)
+        atoms.cell = cell
+        atoms.pbc = [True, True, True]
 
-        for line in lines[start_line:]:
-            if line.startswith('end'):
-                break
-            flds = line.split()
-            atoms.append(Atom(flds[7], flds[1:4]))
-        return atoms
-    except IOError:
-        print('Could not read car file %s' % filename)
+    for line in lines[start_line:]:
+        if line.startswith('end'):
+            break
+        flds = line.split()
+        atoms.append(Atom(flds[7], flds[1:4]))
+    return atoms
 
 
 def write_dmol_incoor(filename, atoms, bohr=True):
@@ -164,25 +161,22 @@ def read_dmol_incoor(filename, bohr=True):
     is rescaled to Angstrom.
     """
 
-    try:
-        lines = open(filename, 'r').readlines()
-        atoms = Atoms()
-        for i, line in enumerate(lines):
-            if line.startswith('$cell vectors'):
-                cell = np.zeros((3, 3))
-                for j, line in enumerate(lines[i + 1:i + 4]):
-                    cell[j, :] = [float(fld) for fld in line.split()]
-                atoms.cell = cell
-            if line.startswith('$coordinates'):
-                j = i + 1
-                while True:
-                    if lines[j].startswith('$end'):
-                        break
-                    flds = lines[j].split()
-                    atoms.append(Atom(flds[0], flds[1:4]))
-                    j += 1
-    except IOError:
-        print('Could not read incoor file %s' % filename)
+    lines = open(filename, 'r').readlines()
+    atoms = Atoms()
+    for i, line in enumerate(lines):
+        if line.startswith('$cell vectors'):
+            cell = np.zeros((3, 3))
+            for j, line in enumerate(lines[i + 1:i + 4]):
+                cell[j, :] = [float(fld) for fld in line.split()]
+            atoms.cell = cell
+        if line.startswith('$coordinates'):
+            j = i + 1
+            while True:
+                if lines[j].startswith('$end'):
+                    break
+                flds = lines[j].split()
+                atoms.append(Atom(flds[0], flds[1:4]))
+                j += 1
     if bohr:
         atoms.cell = atoms.cell * Bohr
         atoms.positions = atoms.positions * Bohr
@@ -226,41 +220,38 @@ def write_dmol_arc(filename, images):
 def read_dmol_arc(filename, index=-1):
     """ Read a dmol arc-file and return a series of Atoms objects (images). """
 
-    try:
-        lines = open(filename, 'r').readlines()
-        images = []
+    lines = open(filename, 'r').readlines()
+    images = []
 
-        if lines[1].startswith('PBC=ON'):
-            pbc = True
-        elif lines[1].startswith('PBC=OFF'):
-            pbc = False
-        else:
-            raise RuntimeError('Could not read pbc from second line in %s'
-                               % filename)
-        i = 0
-        while i < len(lines):
-            image = Atoms()
-            # parse single image
-            if lines[i].startswith('!DATE'):
-                # read cell
-                if pbc:
-                    cell_dat = np.array([float(fld)
-                                         for fld in lines[i + 1].split()[1:7]])
-                    image.cell = cellpar_to_cell(cell_dat)
-                    image.pbc = [True, True, True]
-                    i += 1
+    if lines[1].startswith('PBC=ON'):
+        pbc = True
+    elif lines[1].startswith('PBC=OFF'):
+        pbc = False
+    else:
+        raise RuntimeError('Could not read pbc from second line in %s'
+                           % filename)
+    i = 0
+    while i < len(lines):
+        image = Atoms()
+        # parse single image
+        if lines[i].startswith('!DATE'):
+            # read cell
+            if pbc:
+                cell_dat = np.array([float(fld)
+                                     for fld in lines[i + 1].split()[1:7]])
+                image.cell = cellpar_to_cell(cell_dat)
+                image.pbc = [True, True, True]
                 i += 1
-                # read atoms
-                while not lines[i].startswith('end'):
-                    flds = lines[i].split()
-                    image.append(Atom(flds[7], flds[1:4]))
-                    i += 1
-                images.append(image)
-            if len(images) == index:
-                return images[-1]
             i += 1
-    except IOError:
-        print('Could not read arc file %s' % filename)
+            # read atoms
+            while not lines[i].startswith('end'):
+                flds = lines[i].split()
+                image.append(Atom(flds[7], flds[1:4]))
+                i += 1
+            images.append(image)
+        if len(images) == index:
+            return images[-1]
+        i += 1
 
     # return requested images, code borrowed from ase/io/trajectory.py
     if isinstance(index, int):
