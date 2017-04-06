@@ -231,9 +231,8 @@ class DMol3(FileIOCalculator):
             try:
                 data = np.loadtxt(self.label + '.rot')
                 self.internal_transformation = True
-                # TODO correct transpose?
                 self.rotation_matrix = data[1:].transpose()
-            except:
+            except IOError:
                 self.internal_transformation = False
 
     def read_atoms_from_outmol(self):
