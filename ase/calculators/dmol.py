@@ -128,7 +128,7 @@ class DMol3(FileIOCalculator):
             write_dmol_car(self.label + '.car', atoms)
 
         self.write_input_file()
-        self.parameters.write(os.path.join(self.directory, 'parameters.ase'))
+        self.parameters.write(self.label + '.parameters.ase')
 
     def write_input_file(self):
         """ Writes the input file. """
@@ -159,8 +159,7 @@ class DMol3(FileIOCalculator):
                 raise ReadError
 
         self.atoms = read(geometry)
-        self.parameters = Parameters.read(os.path.join(self.directory,
-                                                       'parameters.ase'))
+        self.parameters = Parameters.read(self.label + 'parameters.ase')
         self.read_results()
 
     def read_results(self):
@@ -472,9 +471,8 @@ class DMol3(FileIOCalculator):
         file_extensions = ['basis', 'car', 'err', 'grad', 'input', 'inatm',
                            'incoor', 'kpoints', 'monitor', 'occup', 'outmol',
                            'outatom', 'rot', 'sdf', 'sym', 'tpotl', 'tpdensk',
-                           'torder', 'out']
-        files_to_clean = ['DMol3.log', 'stdouterr.txt', 'mpd.hosts',
-                          'parameters.ase']
+                           'torder', 'out', 'parameters.ase']
+        files_to_clean = ['DMol3.log', 'stdouterr.txt', 'mpd.hosts']
 
         files = [os.path.join(self.directory, f) for f in files_to_clean]
         files += [''.join((self.label, '.', ext)) for ext in file_extensions]
