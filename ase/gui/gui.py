@@ -133,8 +133,9 @@ class GUI(View, Status):
                   'left': (-1, 0, 0)}.get(event.key, None)
 
         # Get scroll direction using shift + right mouse button
-        # if event.type == '6'  # Also works
-        if event.state == 1041:
+        # event.type == '6' is mouse motion, see:
+        # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/event-types.html
+        if event.type == '6':
             cur_pos = np.array([event.x, -event.y])
             if self.prev_pos is None:
                 self.prev_pos = cur_pos

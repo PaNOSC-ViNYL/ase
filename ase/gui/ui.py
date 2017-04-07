@@ -565,6 +565,10 @@ class ASEGUIWindow(MainWindow):
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
         self.win.bind('<Shift-B{right}-Motion>'.format(right=right),
                       bind(scroll))
+        self.win.bind('<KeyPress-Shift_L>', bind(press, 'shift'))
+        self.win.bind('<KeyRelease-Shift_L>', bind(release, 'shift'))
+        self.win.bind('<KeyPress-Shift_R>', bind(press, 'shift'))
+        self.win.bind('<KeyRelease-Shift_R>', bind(release, 'shift'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']

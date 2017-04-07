@@ -92,6 +92,8 @@ class View:
         for i, rgb in enumerate(jmol_colors):
             self.colors[i] = ('#{0:02X}{1:02X}{2:02X}'
                               .format(*(int(x * 255) for x in rgb)))
+            
+        self.shift_pressed = False
 
     @property
     def atoms(self):
@@ -477,6 +479,9 @@ class View:
         return M
 
     def release(self, event):
+        if event.modifier == 'shift':
+            self.shift_pressed = False
+            
         if event.button in [4, 5]:
             self.scroll_event(event)
             return
@@ -539,6 +544,8 @@ class View:
         self.t0 = event.time
         self.axes0 = self.axes
         self.center0 = self.center
+        if event.modifier == 'shift':
+            self.shift_pressed = True
 
     def move(self, event):
         x = event.x
@@ -550,8 +557,8 @@ class View:
             self.draw()
             self.window.canvas.create_rectangle((x, y, x0, y0))
             return
-        
-        if event.state == 1041:  # Shift and right-click
+
+        if event.type == '6' and self.shift_pressed:  # Shift and right-click
             return
 
         if event.modifier == 'shift':
