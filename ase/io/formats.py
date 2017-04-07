@@ -63,7 +63,7 @@ all_formats = {
     'eon': ('EON reactant.con file', '1F'),
     'eps': ('Encapsulated Postscript', '1S'),
     'espresso-in': ('Quantum espresso in file', '1F'),
-    'espresso-out': ('Quantum espresso out file', '1F'),
+    'espresso-out': ('Quantum espresso out file', '+F'),
     'etsf': ('ETSF format', '1S'),
     'exciting': ('exciting input', '1S'),
     'extxyz': ('Extended XYZ file', '+F'),
@@ -79,7 +79,8 @@ all_formats = {
     'iwm': ('?', '1F'),
     'json': ('ASE JSON database file', '+S'),
     'jsv': ('JSV file format', '1F'),
-    'lammps-dump': ('LAMMPS dump file', '1F'),
+    'lammps-dump': ('LAMMPS dump file', '+F'),
+    'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
     'nwchem': ('NWChem input file', '1F'),
@@ -127,6 +128,7 @@ format2modulename = {
     'html': 'x3d',
     'json': 'db',
     'lammps-dump': 'lammpsrun',
+    'lammps-data': 'lammpsdata',
     'postgresql': 'db',
     'struct': 'wien2k',
     'struct_out': 'siesta',
@@ -498,6 +500,7 @@ def filetype(filename, read=True):
     for format, magic in [('gpaw-out', b'  ___ ___ ___ _ _ _'),
                           ('espresso-in', b'\n&system'),
                           ('espresso-in', b'\n&SYSTEM'),
+                          ('espresso-out', b'Program PWSCF'),
                           ('aims-output', b'Invoking FHI-aims ...'),
                           ('lammps-dump', b'\nITEM: TIMESTEP\n'),
                           ('xsf', b'\nANIMSTEPS'),
@@ -511,24 +514,5 @@ def filetype(filename, read=True):
         if magic in data:
             return format
 
-    return extension2format.get(ext, ext)
-
-
-if __name__ == '__main__':
-    import optparse
-    parser = optparse.OptionParser(
-        usage='python -m ase.io.formats file ...',
-        description='Determine file type(s).')
-    opts, filenames = parser.parse_args()
-    if filenames:
-        n = max(len(filename) for filename in filenames) + 2
-    for filename in filenames:
-        format = filetype(filename)
-        if format and format in all_formats:
-            description, code = all_formats[format]
-        else:
-            format = '?'
-            description = '?'
-
-        print('{0:{1}}{2} ({3})'.format(filename + ':', n,
-                                        description, format))
+    format = extension2format.get(ext, ext)
+    return format

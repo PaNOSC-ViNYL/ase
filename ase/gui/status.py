@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals
+from ase.gui.i18n import _
 from math import sqrt, pi, acos
 
-import gtk
 import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
-from ase.gui.widgets import pack
-from gettext import gettext as _
+
+try:
+    chr = unichr
+except NameError:
+    pass
+
 
 def formula(Z):
     hist = {}
@@ -17,54 +21,49 @@ def formula(Z):
             hist[z] += 1
         else:
             hist[z] = 1
-    text = ''
     Z = sorted(hist.keys())
+    strings = []
     for z in Z:
-        text += symbols[z]
         n = hist[z]
-        if n > 1:
-            text += '<sub>%d</sub>' % n
-    return text
+        s = ('' if n == 1 else str(n)) + symbols[z]
+        strings.append(s)
+    return '+'.join(strings)
 
-class Status:
-    def __init__(self, vbox):
-        self.eventbox = gtk.EventBox()
-        self.label = gtk.Label()
-        self.eventbox.add(self.label)
-        self.label.show()
-        if gtk.pygtk_version < (2, 12):
-            self.set_tip(self.eventbox, _('Tip for status box ...'))
-        else:
-            self.eventbox.set_tooltip_text(_('Tip for status box ...'))
-        pack(vbox, self.eventbox)
+
+class Status:  # Status is used as a mixin in GUI
+    def __init__(self):
         self.ordered_indices = []
 
-    def status(self):
+    def status(self, atoms):
         # use where here:  XXX
-        indices = np.arange(self.images.natoms)[self.images.selected]
-        ordered_indices = self.images.selected_ordered
+        natoms = len(atoms)
+        indices = np.arange(natoms)[self.images.selected[:natoms]]
+        ordered_indices = [i for i in self.images.selected_ordered
+                           if i < len(atoms)]
         n = len(indices)
         self.nselected = n
 
         if n == 0:
-            self.label.set_text('')
+            self.window.update_status_line('')
             return
 
-        Z = self.images.Z[indices]
-        R = self.R[indices]
+        Z = atoms.numbers[indices]
+        R = atoms.positions[indices]
 
         if n == 1:
-            tag = self.images.T[self.frame, indices][0]
+            tag = atoms.get_tags()[indices[0]]
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
             text += _(' tag=%(tag)s') % dict(tag=tag)
-            if self.images.M.any():
+            magmoms = self.get_magmoms()
+            if magmoms.any():
                 # TRANSLATORS: mom refers to magnetic moment
                 text += _(' mom={0:1.2f}'.format(
-                    self.images.M[self.frame][indices][0]))
-            if self.images.q.any():
+                    magmoms[indices][0]))
+            charges = self.atoms.get_initial_charges()
+            if charges.any():
                 text += _(' q={0:1.2f}'.format(
-                    self.images.q[self.frame][indices][0]))
+                    charges[indices][0]))
         elif n == 2:
             D = R[0] - R[1]
             d = sqrt(np.dot(D, D))
@@ -89,28 +88,27 @@ class Status:
             text = (u' %s-%s-%s: %.1f°, %.1f°, %.1f°' %
                     tuple([symbols[z] for z in Z] + a))
         elif len(ordered_indices) == 4:
-            R = self.R[ordered_indices]
-            Z = self.images.Z[ordered_indices]
-            a    = R[1]-R[0]
-            b    = R[2]-R[1]
-            c    = R[3]-R[2]
-            bxa  = np.cross(b,a)
-            bxa /= np.sqrt(np.vdot(bxa,bxa))
-            cxb  = np.cross(c,b)
-            cxb /= np.sqrt(np.vdot(cxb,cxb))
-            angle = np.vdot(bxa,cxb)
-            if angle < -1: angle = -1
-            if angle >  1: angle =  1
+            R = self.atoms.positions[ordered_indices]
+            Z = self.atoms.numbers[ordered_indices]
+            a = R[1] - R[0]
+            b = R[2] - R[1]
+            c = R[3] - R[2]
+            bxa = np.cross(b, a)
+            bxa /= np.sqrt(np.vdot(bxa, bxa))
+            cxb = np.cross(c, b)
+            cxb /= np.sqrt(np.vdot(cxb, cxb))
+            angle = np.vdot(bxa, cxb)
+            if angle < -1:
+                angle = -1
+            if angle > 1:
+                angle = 1
             angle = np.arccos(angle)
-            if (np.vdot(bxa,c)) > 0: angle = 2*np.pi-angle
-            angle = angle*180.0/np.pi
-            text = (u'%s %s->%s->%s->%s: %.1f°'
-                    % tuple([_('dihedral')] + [symbols[z] for z in Z]+[angle]))
+            if (np.vdot(bxa, c)) > 0:
+                angle = 2 * np.pi - angle
+            angle = angle * 180.0 / np.pi
+            text = (u'%s %s->%s->%s->%s: %.1f°' %
+                    tuple([_('dihedral')] + [symbols[z] for z in Z] + [angle]))
         else:
             text = ' ' + formula(Z)
 
-        self.label.set_markup(text)
-
-if __name__ == '__main__':
-    import os
-    os.system('python gui.py')
+        self.window.update_status_line(text)

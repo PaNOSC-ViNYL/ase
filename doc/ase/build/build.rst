@@ -5,26 +5,26 @@ Building things
 ================
 
 Quick links:
-    
+
 * Simple bulk crystals: :func:`~ase.build.bulk`
 
 * Simple molecules: :func:`~ase.build.molecule`
 
 * Special surfaces:
-    
+
   * fcc: :func:`~ase.build.fcc100`, :func:`~ase.build.fcc110`,
     :func:`~ase.build.fcc111`, :func:`~ase.build.fcc211`,
     :func:`~ase.build.fcc111_root`
-    
+
   * bcc: :func:`~ase.build.bcc100`, :func:`~ase.build.bcc110`,
     :func:`~ase.build.bcc111`
     * - :func:`~ase.build.bcc111_root`
-    
+
   * hcp: :func:`~ase.build.hcp0001`, :func:`~ase.build.hcp10m10`,
     :func:`~ase.build.hcp0001_root`
-    
+
   * diamond: :func:`~ase.build.diamond100`, :func:`~ase.build.diamond111`
-  
+
 * `MX_2` (2H or 1T): :func:`~ase.build.mx2`
 
 * Other surface tools: :func:`~ase.build.surface`,
@@ -42,6 +42,14 @@ Quick links:
   :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`
 
+
+
+.. toctree::
+   :maxdepth: 2
+
+   surface
+   tools
+   
 .. seealso::
 
    * The :mod:`ase.lattice` module.  The module contains functions for
@@ -51,18 +59,15 @@ Quick links:
      this specification is created.  Both bulk crystals and surfaces can
      be created.
 
+   * The :mod:`ase.cluster` module.  Useful for creating nanoparticles
+     and clusters.
+     
    * The :mod:`ase.spacegroup` module
-   
+
    * The :mod:`ase.geometry` module
 
-   
-.. toctree::
-   :maxdepth: 2
 
-   surface
-   tools
-   
-   
+
 Molecules
 =========
 
@@ -116,7 +121,7 @@ Common bulk crystals
 
 examples:
 
->>> from ase.lattice import bulk
+>>> from ase.build import bulk
 >>> a1 = bulk('Cu', 'fcc', a=3.6)
 >>> a2 = bulk('Cu', 'fcc', a=3.6, orthorhombic=True)
 >>> a3 = bulk('Cu', 'fcc', a=3.6, cubic=True)
@@ -125,9 +130,9 @@ array([[ 0. ,  1.8,  1.8],
        [ 1.8,  0. ,  1.8],
        [ 1.8,  1.8,  0. ]])
 >>> a2.cell
-array([[ 2.54558441,  0.        ,  0.        ],
-       [ 0.        ,  2.54558441,  0.        ],
-       [ 0.        ,  0.        ,  3.6       ]])
+array([[ 2.546,  0.   ,  0.   ],
+       [ 0.   ,  2.546,  0.   ],
+       [ 0.   ,  0.   ,  3.6  ]])
 >>> a3.cell
 array([[ 3.6,  0. ,  0. ],
        [ 0. ,  3.6,  0. ],
@@ -171,8 +176,8 @@ examples:
 >>> from ase.build import graphene_nanoribbon
 >>> gnr1 = graphene_nanoribbon(3, 4, type='armchair', saturated=True)
 >>> gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
->>>                            C_H=1.1, C_C=1.4, vacuum=6.0,
->>>                            magnetic=True, initial_mag=1.12)
+...                            C_H=1.1, C_C=1.4, vacuum=6.0,
+...                            magnetic=True, initial_mag=1.12)
 
 |gnr1| |gnr2|
 

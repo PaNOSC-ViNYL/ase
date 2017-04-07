@@ -1,45 +1,38 @@
-import gtk
-from gettext import gettext as _
+from __future__ import unicode_literals
+import ase.gui.ui as ui
+from ase.gui.i18n import _
 
-from ase.gui.widgets import pack
 
-
-class Constraints(gtk.Window):
+class Constraints:
     def __init__(self, gui):
-        gtk.Window.__init__(self)
-        self.set_title(_('Constraints'))
-        vbox = gtk.VBox()
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' selected atoms'))])[0]
-        b.connect('clicked', self.selected)
-        b = pack(vbox, [gtk.Button(_('Constrain')),
-                        gtk.Label(_(' immobile atoms:'))])[0]
-        b.connect('clicked', self.immobile)
-        b = pack(vbox, [gtk.Button(_('Unconstrain')),
-                        gtk.Label(_(' selected atoms:'))])[0]
-        b.connect('clicked', self.unconstrain)
-        b = pack(vbox, gtk.Button(_('Clear constraints')))
-        b.connect('clicked', self.clear)
-        close = pack(vbox, gtk.Button(_('Close')))
-        close.connect('clicked', lambda widget: self.destroy())
-        self.add(vbox)
-        vbox.show()
-        self.show()
+        win = ui.Window(_('Constraints'))
+        win.add([ui.Button(_('Constrain'), self.selected),
+                 _('selected atoms')])
+        win.add([ui.Button(_('Constrain'), self.immobile),
+                 _('immobile atoms')])
+        win.add([ui.Button(_('Unconstrain'), self.unconstrain),
+                 _('selected atoms')])
+        win.add(ui.Button(_('Clear constraints'), self.clear))
         self.gui = gui
 
-    def selected(self, button):
-        self.gui.images.dynamic[self.gui.images.selected] = False
+    def selected(self):
+        self.gui.images.set_dynamic(self.gui.images.selected, False)
         self.gui.draw()
 
-    def unconstrain(self, button):
-        self.gui.images.dynamic[self.gui.images.selected] = True
-        self.gui.draw()
-        
-    def immobile(self, button):
-        self.gui.images.set_dynamic()
+    def unconstrain(self):
+        self.gui.images.set_dynamic(self.gui.images.selected, True)
         self.gui.draw()
 
-    def clear(self, button):
-        self.gui.images.dynamic[:] = True
+    def immobile(self):
+        # XXX not working.
+        # Should constrain atoms that are not moving
         self.gui.draw()
 
+    def clear(self):
+        # This clears *all* constraints.  But when we constrain, we
+        # only add FixAtoms....
+        for atoms in self.gui.images:
+            atoms.constraints = []
+
+        # Also, these methods are repeated from settings.py *grumble*
+        self.gui.draw()

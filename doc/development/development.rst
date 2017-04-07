@@ -21,7 +21,6 @@ Development topics:
     tests
     bugs
     licenseinfo
-    buildbot
     translate
     todo
     py3k

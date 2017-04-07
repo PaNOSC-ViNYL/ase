@@ -1,9 +1,10 @@
 import os
 from ase.calculators.octopus import parse_input_file, kwargs2atoms
+from ase.utils import basestring
 
 
 def read_octopus(fileobj, get_kwargs=False):
-    if isinstance(fileobj, str):  # This could be solved with decorators...
+    if isinstance(fileobj, basestring):  # This could be solved with decorators...
         fileobj = open(fileobj)
 
     kwargs = parse_input_file(fileobj)
@@ -16,7 +17,7 @@ def read_octopus(fileobj, get_kwargs=False):
     #
     # Maybe this is ugly; maybe it can lead to strange bugs if someone
     # wants a non-standard file-like type.  But it's probably better than
-    # failing 'ase-gui somedir/inp'
+    # failing 'ase gui somedir/inp'
     try:
         fname = fileobj.name
     except AttributeError:

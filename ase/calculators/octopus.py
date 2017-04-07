@@ -14,6 +14,7 @@ import numpy as np
 
 from ase import Atoms
 from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import PropertyNotImplementedError
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
 from ase.io import read
@@ -87,6 +88,7 @@ def read_eigenvalues_file(fd):
     line = next(fd)
     assert line.strip().startswith('#st'), line
 
+    #fermilevel = None
     kpts = []
     eigs = []
     occs = []
@@ -100,10 +102,16 @@ def read_eigenvalues_file(fd):
             occs.append({})
         else:
             m = re.match(r'\s*\d+\s*(\S+)\s*(\S+)\s*(\S+)', line)
-            assert m is not None
-            spin, eig, occ = m.group(1, 2, 3)
-            eigs[-1].setdefault(spin, []).append(float(eig))
-            occs[-1].setdefault(spin, []).append(float(occ))
+            if m is None:
+                m = re.match(r'Fermi energy\s*=\s*(\S+)\s*', line)
+                assert m is not None
+                # We can also return the fermilevel but so far we just read
+                # it from the static/info instead.
+                #fermilevel = float(m.group(1))
+            else:
+                spin, eig, occ = m.group(1, 2, 3)
+                eigs[-1].setdefault(spin, []).append(float(eig))
+                occs[-1].setdefault(spin, []).append(float(occ))
 
     nkpts = len(kpts)
     nspins = len(eigs[0])
@@ -417,7 +425,7 @@ def kwargs2atoms(kwargs, directory=None):
 
     Some keyword arguments may refer to files.  The directory keyword
     may be necessary to resolve the paths correctly, and is used for
-    example when running 'ase-gui somedir/inp'."""
+    example when running 'ase gui somedir/inp'."""
     kwargs = normalize_keywords(kwargs)
 
     # Only input units accepted nowadays are 'atomic'.
@@ -624,7 +632,7 @@ def atoms2kwargs(atoms, use_ase_cell):
 
     coord_block = []
     for sym, pos, tag in zip(atoms.get_chemical_symbols(),
-                             atoms.positions, atoms.get_tags()):
+                             positions, atoms.get_tags()):
         if sym == 'X':
             sym = types.get((sym, tag))
             if sym is None:
@@ -763,11 +771,15 @@ def read_static_info_eigenvalues(fd, energy_unit):
     values_sknx = {}
 
     nbands = 0
+    fermilevel = None
     for line in fd:
         line = line.strip()
         if line.startswith('#'):
             continue
         if not line[:1].isdigit():
+            m = re.match(r'Fermi energy\s*=\s*(\S+)', line)
+            if m is not None:
+                fermilevel = float(m.group(1)) * energy_unit
             break
 
         tokens = line.split()
@@ -790,12 +802,14 @@ def read_static_info_eigenvalues(fd, energy_unit):
     eps_skn = eps_skn.transpose(1, 0, 2).copy()
     occ_skn = occ_skn.transpose(1, 0, 2).copy()
     assert eps_skn.flags.contiguous
-    return dict(nspins=nspins,
-                nkpts=nkpts,
-                nbands=nbands,
-                eigenvalues=eps_skn,
-                occupations=occ_skn)
-
+    d = dict(nspins=nspins,
+             nkpts=nkpts,
+             nbands=nbands,
+             eigenvalues=eps_skn,
+             occupations=occ_skn)
+    if fermilevel is not None:
+        d.update(efermi=fermilevel)
+    return d
 
 def read_static_info_energy(fd, energy_unit):
     def get(name):
@@ -866,7 +880,7 @@ def read_static_info(fd):
     if 'ibz_k_points' not in results:
         results['ibz_k_points'] = np.zeros((1, 3))
         results['k_point_weights'] = np.ones(1)
-    if 'efermi' not in results:
+    if 0: #'efermi' not in results:
         # Find HOMO level.  Note: This could be a very bad
         # implementation with fractional occupations if the Fermi
         # level was not found otherwise.
@@ -1020,13 +1034,13 @@ class Octopus(FileIOCalculator):
         raise NotImplementedError
 
     def get_charges(self, atoms=None):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_fermi_level(self):
         return self.results['efermi']
 
     def get_potential_energies(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_dipole_moment(self, atoms=None):
         if 'dipole' not in self.results:
@@ -1036,7 +1050,7 @@ class Octopus(FileIOCalculator):
         return self.results['dipole']
 
     def get_stresses(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def _read_array(self, fname, outputkeyword=None):
         path = self._getpath('static/%s' % fname)

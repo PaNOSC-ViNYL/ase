@@ -18,16 +18,16 @@ Now, do the NEB calculation:
 
 Visualize the results with::
 
-   ase-gui neb.traj
+    $ ase gui neb.traj
 
 and select Tools->NEB.
 
 |ts| |barrier|
 
 You can also analyze within a python script, which can be useful particularly
-if you are analyzing the output of many NEB jobs, with the :ref:`NEBtools
-class <nebtools>`. Some examples of its use are below; the final example was
-used to make the figure you see above.
+if you are analyzing the output of many NEB jobs, with the
+:class:`ase.neb.NEBTools` class. Some examples of its use are below; the final
+example was used to make the figure you see above.
 
 .. literalinclude:: diffusion5.py
 
@@ -44,7 +44,7 @@ used to make the figure you see above.
    * :mod:`ase.constraints`
    * :ref:`constraints diffusion tutorial`
    * :func:`~ase.build.fcc100`
-   
+
 
 
 .. |initial| image:: diffusion-I.png

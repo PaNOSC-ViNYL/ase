@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
+import pickle
+import sys
 import threading
 from math import sqrt
 
 import numpy as np
 
 import ase.parallel as mpi
+from ase import Atoms
 from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.io import read
 from ase.optimize import MDMin
 from ase.geometry import find_mic
+from ase.utils import basestring
 
 
 class NEB:
@@ -18,18 +22,18 @@ class NEB:
                  remove_rotation_and_translation=False, world=None,
                  method='aseneb'):
         """Nudged elastic band.
-        
+
         Paper I:
-            
+
             G. Henkelman and H. Jonsson, Chem. Phys, 113, 9978 (2000).
-            
+
         Paper II:
-            
+
             G. Henkelman, B. P. Uberuaga, and H. Jonsson, Chem. Phys,
             113, 9901 (2000).
-            
+
         Paper III:
-            
+
             E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
             submitted (2016)
 
@@ -47,7 +51,7 @@ class NEB:
             systems
         method: string of method
             Choice betweeen three method:
-                
+
             * aseneb: standard ase NEB implementation
             * improvedtangent: Paper I NEB implementation
             * eb: Paper III full spring force implementation
@@ -69,7 +73,7 @@ class NEB:
         if isinstance(k, (float, int)):
             k = [k] * (self.nimages - 1)
         self.k = list(k)
-        
+
         if world is None:
             world = mpi.world
         self.world = world
@@ -105,7 +109,6 @@ class NEB:
         for image, calc in zip(self.images, old):
             image.calc = calc
 
-
     def get_positions(self):
         positions = np.empty(((self.nimages - 2) * self.natoms, 3))
         n1 = 0
@@ -127,13 +130,13 @@ class NEB:
                 image.get_calculator().set_atoms(image)
             except AttributeError:
                 pass
-    
+
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages)
-        
+
         if self.remove_rotation_and_translation:
             # Remove translation and rotation between
             # images before computing forces:
@@ -238,7 +241,7 @@ class NEB:
 
             f = forces[i - 1]
             ft = np.vdot(f, tangent)
-            
+
             if i == imax and self.climb:
                 # imax not affected by the spring forces. The full force
                 # with component along the elestic band converted
@@ -275,7 +278,10 @@ class NEB:
 
         return forces.reshape((-1, 3))
 
-    def get_potential_energy(self):
+    def get_potential_energy(self, force_consistent=False):
+        """Return the maximum potential energy along the band.
+        Note that the force_consistent keyword is ignored and is only
+        present for compatibility with ase.Atoms.get_potential_energy."""
         return self.emax
 
     def __len__(self):
@@ -325,7 +331,7 @@ class IDPP(Calculator):
 
 class SingleCalculatorNEB(NEB):
     def __init__(self, images, k=0.1, climb=False):
-        if isinstance(images, str):
+        if isinstance(images, basestring):
             # this is a filename
             images = read(images)
 
@@ -514,7 +520,7 @@ def fit0(E, F, R, cell=None, pbc=None):
     return s, E, Sfit, Efit, lines
 
 
-class NEBtools:
+class NEBTools:
     """Class to make many of the common tools for NEB analysis available to
     the user. Useful for scripting the output of many jobs. Initialize with
     list of images which make up a single band."""
@@ -543,8 +549,8 @@ class NEBtools:
         """Plots the NEB band on matplotlib axes object 'ax'. If ax=None
         returns a new figure object."""
         if not ax:
-            from matplotlib import pyplot
-            fig = pyplot.figure()
+            import matplotlib.pyplot as plt
+            fig = plt.figure()
             ax = fig.add_subplot(111)
         else:
             fig = None
@@ -573,16 +579,16 @@ class NEBtools:
     def get_fit(self):
         """Returns the parameters for fitting images to band."""
         images = self._images
-        if not hasattr(images, 'repeat'):
-            from ase.gui.images import Images
-            images = Images(images)
-        N = images.repeat.prod()
-        natoms = images.natoms // N
-        R = images.P[:, :natoms]
-        E = images.E
-        F = images.F[:, :natoms]
-        s, E, Sfit, Efit, lines = fit0(E, F, R, images.A[0], images.pbc)
+        R = [atoms.positions for atoms in images]
+        E = [atoms.get_potential_energy() for atoms in images]
+        F = [atoms.get_forces() for atoms in images]
+        A = images[0].cell
+        pbc = images[0].pbc
+        s, E, Sfit, Efit, lines = fit0(E, F, R, A, pbc)
         return s, E, Sfit, Efit, lines
+
+
+NEBtools = NEBTools  # backwards compatibility
 
 
 def interpolate(images, mic=False):
@@ -601,3 +607,21 @@ def interpolate(images, mic=False):
             images[i].get_calculator().set_atoms(images[i])
         except AttributeError:
             pass
+
+
+if __name__ == '__main__':
+    # This stuff is used by ASE's GUI
+    import matplotlib.pyplot as plt
+    if sys.version_info[0] == 2:
+        E, F, R, A, pbc = pickle.load(sys.stdin)
+    else:
+        E, F, R, A, pbc = pickle.load(sys.stdin.buffer)
+    symbols = 'X' * len(R[0])
+    images = []
+    for e, r, f in zip(E, R, F):
+        atoms = Atoms(symbols, r, cell=A, pbc=pbc)
+        atoms.calc = SinglePointCalculator(atoms, energy=e, forces=f)
+        images.append(atoms)
+    nebtools = NEBtools(images)
+    fig = nebtools.plot_band()
+    plt.show()

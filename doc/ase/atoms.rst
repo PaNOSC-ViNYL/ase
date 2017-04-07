@@ -24,9 +24,9 @@ Here is how you could make an infinite gold wire with a bond length of
   d = 2.9
   L = 10.0
   wire = Atoms('Au',
-               positions=[(0, L / 2, L / 2)],
-               cell=(d, L, L),
-               pbc=(1, 0, 0))
+               positions=[[0, L / 2, L / 2]],
+               cell=[d, L, L],
+               pbc=[1, 0, 0])
 
 .. image:: Au-wire.png
 
@@ -37,7 +37,9 @@ Here, two more optional keyword arguments were used:
   an orthorhombic unit cell or three by three numbers for a general
   unit cell (a sequence of three sequences of three numbers) or six numbers
   (three legths and three angles in degrees).  The default value is
-  *[1.0, 1.0, 1.0]*.
+  *[0,0,0]* which is the same as
+  *[[0,0,0],[0,0,0],[0,0,0]]* or *[0,0,0,90,90,90]* meaning that none of the
+  three lattice vectors are defined.
 
 ``pbc``: Periodic boundary conditions
   The default value is *False* - a value of *True* would give
@@ -58,6 +60,7 @@ Like with a single :class:`~ase.atom.Atom` the properties of a collection of ato
 can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 
+>>> from ase import Atoms
 >>> a = Atoms('N3', [(0, 0, 0), (1, 0, 0), (0, 0, 1)])
 >>> a.get_positions()
 array([[ 0.,  0.,  0.],
@@ -143,24 +146,25 @@ common to all the atoms or defined for the collection of atoms:
 Unit cell and boundary conditions
 =================================
 
-The :class:`Atoms` object holds a unit cell which by
-default is the 3x3 unit matrix as can be seen from
+The :class:`Atoms` object holds a unit cell which is a 3x3 matrix as can be
+seen from
 
 >>> a.get_cell()
-array([[ 1.,  0.,  0.],
-       [ 0.,  1.,  0.],
-       [ 0.,  0.,  1.]])
-
+array([[ 0.,  0.,  0.],
+       [ 0.,  0.,  0.],
+       [ 0.,  0.,  0.]])
 
 The cell can be defined or changed using the
 :meth:`~Atoms.set_cell` method. Changing the unit cell
 does per default not move the atoms:
 
->>> a.set_cell(2 * identity(3))
+>>> import numpy as np
+>>> a.set_cell(2 * np.identity(3))
 >>> a.get_cell()
 array([[ 2.,  0.,  0.],
        [ 0.,  2.,  0.],
        [ 0.,  0.,  2.]])
+>>> a.set_positions([(2, 0, 0), (1, 1, 0), (2, 2, 0)])
 >>> a.get_positions()
 array([[ 2.,  0.,  0.],
        [ 1.,  1.,  0.],
@@ -169,7 +173,7 @@ array([[ 2.,  0.,  0.],
 However if we set ``scale_atoms=True`` the atomic positions are scaled with
 the unit cell:
 
->>> a.set_cell(identity(3), scale_atoms=True)
+>>> a.set_cell(np.identity(3), scale_atoms=True)
 >>> a.get_positions()
 array([[ 1. ,  0. ,  0. ],
        [ 0.5,  0.5,  0. ],
@@ -182,6 +186,10 @@ boundary conditions in *x* and *y* directions and free boundary
 conditions in the *z* direction is obtained through
 
 >>> a.set_pbc((True, True, False))
+
+or
+
+>>> a.pbc = (True, True, False)
 
 
 .. _atoms_special_attributes:
@@ -196,15 +204,16 @@ we change the position of the 2nd atom (which has count number 1
 because Python starts counting at zero) and the type of the first
 atom:
 
+>>> a.positions *= 2
 >>> a.positions[1] = (1, 1, 0)
 >>> a.get_positions()
-array([[2., 0., 0.],
-      [1., 1., 0.],
-      [2., 2., 0.]])
+array([[ 2.,  0.,  0.],
+       [ 1.,  1.,  0.],
+       [ 2.,  2.,  0.]])
 >>> a.positions
-array([[2., 0., 0.],
-       [1., 1., 0.],
-       [2., 2., 0.]])
+array([[ 2.,  0.,  0.],
+       [ 1.,  1.,  0.],
+       [ 2.,  2.,  0.]])
 >>> a.numbers
 array([7, 7, 7])
 >>> a.numbers[0] = 13
@@ -214,12 +223,12 @@ array([7, 7, 7])
 Check for periodic boundary conditions:
 
 >>> a.pbc  # equivalent to a.get_pbc()
-array([False, False, False], dtype=bool)
+array([ True,  True, False], dtype=bool)
 >>> a.pbc.any()
-False
+True
 >>> a.pbc[2] = 1
 >>> a.pbc
-array([False, False,  True], dtype=bool)
+array([ True,  True,  True], dtype=bool)
 
 Hexagonal unit cell:
 
@@ -316,7 +325,7 @@ Other methods
 * :meth:`~Atoms.wrap`
 * :meth:`~Atoms.translate`
 * :meth:`~Atoms.rotate`
-* :meth:`~Atoms.rotate_euler`
+* :meth:`~Atoms.euler_rotate`
 * :meth:`~Atoms.get_dihedral`
 * :meth:`~Atoms.set_dihedral`
 * :meth:`~Atoms.rotate_dihedral`

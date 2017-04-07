@@ -69,6 +69,7 @@ class NetCDFTrajectory:
     _cell_spatial_dim = 'cell_spatial'
     _cell_angular_dim = 'cell_angular'
     _label_dim = 'label'
+    _Voigt_dim = 'Voigt' # For stress/strain tensors
 
     # Default field names. If it is a list, check for any of these names upon
     # opening. Upon writing, use the first name.
@@ -448,6 +449,11 @@ class NetCDFTrajectory:
                     dims += [self._atom_dim]
                 elif i == 3:
                     dims += [self._spatial_dim]
+                elif i == 6:
+                    # This can only be stress/strain tensor in Voigt notation
+                    if self._Voigt_dim not in self.nc.dimensions:
+                        self.nc.createDimension(self._Voigt_dim, 6)
+                    dims += [self._Voigt_dim]
                 else:
                     raise TypeError("Don't know how to dump array of shape {0}"
                                     " into NetCDF trajectory.".format(shape))

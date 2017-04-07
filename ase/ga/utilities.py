@@ -143,35 +143,72 @@ def get_distance_matrix(atoms, self_distance=1000):
     return dm
 
 
-def get_rdf(atoms, rmax, nbins, distance_matrix=None):
+def get_rdf(atoms, rmax, nbins, distance_matrix=None,
+            elements=None, no_dists=False):
     """
     Returns two numpy arrays; the radial distribution function
-    and the corresponding distances of the supplied atoms object
+    and the corresponding distances of the supplied atoms object.
+    If no_dists = True then only the first array is returned.
+
+    Parameters:
+
+    rmax : float
+        The maximum distance that will contribute to the rdf.
+
+    nbins : int
+        Number of bins to divide the rdf into.
+
+    distance_matrix : numpy.array
+        An array of distances between atoms, typically
+        obtained by atoms.get_all_distances().
+        Default None meaning that it will be calculated.
+
+    elements : list or tuple
+        List of two atomic numbers. If elements is not None the partial
+        rdf for the supplied elements will be returned.
+
+    no_dists : bool
+        If True then the second array with rdf distances will not be returned
     """
     dm = distance_matrix
     if dm is None:
-        # dm = get_distance_matrix(atoms)
         dm = atoms.get_all_distances()
     rdf = np.zeros(nbins + 1)
     dr = float(rmax / nbins)
-    for i in range(len(atoms)):
-        for j in range(i + 1, len(atoms)):
-            rij = dm[i][j]
-            index = int(math.ceil(rij / dr))
-            if index <= nbins:
-                rdf[index] += 1
 
-    # Normalize
-    phi = len(atoms) / atoms.get_volume()
-    norm = 2.0 * math.pi * dr * phi * len(atoms)
+    if elements is None:
+        # Coefficients to use for normalization
+        phi = len(atoms) / atoms.get_volume()
+        norm = 2.0 * math.pi * dr * phi * len(atoms)
 
-    dists = [0]
+        for i in range(len(atoms)):
+            for j in range(i + 1, len(atoms)):
+                rij = dm[i][j]
+                index = int(math.ceil(rij / dr))
+                if index <= nbins:
+                    rdf[index] += 1
+    else:
+        i_indices = np.where(atoms.numbers == elements[0])[0]
+        phi = len(i_indices) / atoms.get_volume()
+        norm = 4.0 * math.pi * dr * phi * len(atoms)
+
+        for i in i_indices:
+            for j in np.where(atoms.numbers == elements[1])[0]:
+                rij = dm[i][j]
+                index = int(math.ceil(rij / dr))
+                if index <= nbins:
+                    rdf[index] += 1
+
+    dists = []
     for i in range(1, nbins + 1):
         rrr = (i - 0.5) * dr
         dists.append(rrr)
+        # Normalize
         rdf[i] /= (norm * ((rrr**2) + (dr**2) / 12.))
 
-    return rdf, np.array(dists)
+    if no_dists:
+        return rdf[1:]
+    return rdf[1:], np.array(dists)
 
 
 def get_nndist(atoms, distance_matrix):
@@ -282,7 +319,7 @@ def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
     """
     conn_index = get_connections_index(atoms, max_conn=max_conn,
                                        no_count_types=no_count_types)
-    
+
     no_of_conn = [0] * max_conn
     for i in conn_index:
         no_of_conn[i] += len(conn_index[i])
@@ -296,7 +333,6 @@ def get_angles_distribution(atoms, ang_grid=9):
     in bins (default 9) with bonds defined from
     the get_neighbor_list().
     """
-    from math import pi
     conn = get_neighbor_list(atoms)
 
     if conn is None:
@@ -308,7 +344,7 @@ def get_angles_distribution(atoms, ang_grid=9):
         for i in conn[atom.index]:
             for j in conn[atom.index]:
                 if j != i:
-                    a = atoms.get_angle([i, atom.index, j]) * 180 / pi
+                    a = atoms.get_angle(i, atom.index, j)
                     for k in range(ang_grid):
                         if (k + 1) * 180. / ang_grid > a > k * 180. / ang_grid:
                             bins[k] += 1

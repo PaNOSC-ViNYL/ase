@@ -5,6 +5,9 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
+import ase.units
+
+from ase.utils import basestring
 
 
 def get_atomtypes(fname):
@@ -105,7 +108,7 @@ def read_vasp(filename='CONTCAR'):
     from ase.data import chemical_symbols
     import numpy as np
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -200,7 +203,7 @@ def read_vasp(filename='CONTCAR'):
                 curflag.append(flag == 'F')
             selective_flags[atom] = curflag
     # Done with all reading
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
     if cartesian:
         atoms_pos *= lattice_constant
@@ -242,7 +245,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         except Exception:
             constr = None
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     else:  # Assume it's a file-like object
         f = filename
@@ -253,6 +256,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     energy = 0
     species = []
     species_num = []
+    stress = None
     symbols = []
     ecount = 0
     poscount = 0
@@ -268,7 +272,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         if 'ions per type' in line:
             species = species[:len(species) // 2]
             temp = line.split()
-            for ispecies in range(len(species)):
+            ntypes = min(len(temp)-4, len(species))
+            for ispecies in range(ntypes):
                 species_num += [int(temp[ispecies + 4])]
                 natoms += species_num[-1]
                 for iatom in range(species_num[-1]):
@@ -297,6 +302,9 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
             magnetization = []
             for i in range(natoms):
                 magnetization += [float(data[n + 4 + i].split()[4])]
+        if 'in kB ' in line:
+            stress = -np.array([float(a) for a in line.split()[2:]])
+            stress = stress[[0, 1, 2, 4, 5, 3]] * 1e-1 * ase.units.GPa
         if 'POSITION          ' in line:
             forces = []
             positions = []
@@ -308,7 +316,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
                 positions += [[float(temp[0]), float(temp[1]), float(temp[2])]]
                 atoms.set_calculator(SinglePointCalculator(atoms,
                                                            energy=energy,
-                                                           forces=forces))
+                                                           forces=forces,
+                                                           stress=stress))
             images += [atoms]
             if len(magnetization) > 0:
                 images[-1].calc.magmoms = np.array(magnetization, float)
@@ -638,7 +647,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename
@@ -762,5 +771,5 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                 f.write('%4s' % s)
         f.write('\n')
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()

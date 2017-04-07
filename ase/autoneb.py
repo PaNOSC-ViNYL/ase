@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from ase.io import Trajectory
@@ -16,11 +15,6 @@ from math import log
 from math import exp
 
 
-# XXX 'num' this somehow is used as a global variable when running in the
-# special serial mode.  This should definitely be done in a different way.
-num = None
-
-
 class AutoNEB(object):
     """AutoNEB object.
 
@@ -28,11 +22,11 @@ class AutoNEB(object):
     calculations following the algorithm described in:
 
     E. L. Kolsbjerg, M. N. Groves, and B. Hammer, J. Chem. Phys,
-    submitted (june 2016)
+    145, 094107, 2016. (doi: 10.1063/1.4961868)
 
     The user supplies at minimum the two end-points and possibly also some
     intermediate images.
-    
+
     The stages are:
         1) Define a set of images and name them sequentially.
                 Must at least have a relaxed starting and ending image
@@ -47,7 +41,7 @@ class AutoNEB(object):
            are further relaxed to smooth the path
         6) All the images between the highest point and the ending point are
            further relaxed to smooth the path
-           
+
            Step 4 and 5-6 are optional steps!
 
     Parameters:
@@ -100,13 +94,17 @@ class AutoNEB(object):
     prefixXXXiter00i.traj exists with XXX ranging from 000 to the N images
     currently in the NEB.
 
-    The most recent NEB path can always be monitored by:
-       ase-gui -n -1 iter prefix???.traj
+    The most recent NEB path can always be monitored by::
+
+        $ ase gui -n -1 iter prefix???.traj
     """
 
-    def __init__(self, attach_calculators, prefix, n_simul, n_max, iter_folder='AutoNEB_iter',
-                 fmax=0.025, maxsteps=10000, k=0.1, climb=True, method='eb', optimizer='FIRE',
-                 remove_rotation_and_translation=False, space_energy_ratio=0.5, world=None,
+    def __init__(self, attach_calculators, prefix, n_simul, n_max,
+                 iter_folder='AutoNEB_iter',
+                 fmax=0.025, maxsteps=10000, k=0.1, climb=True, method='eb',
+                 optimizer='FIRE',
+                 remove_rotation_and_translation=False, space_energy_ratio=0.5,
+                 world=None,
                  parallel=True, smooth_curve=False, interpolate_method='IDPP'):
         self.attach_calculators = attach_calculators
         self.prefix = prefix
@@ -132,7 +130,7 @@ class AutoNEB(object):
             world = mpi.world
         self.world = world
         self.smooth_curve = smooth_curve
-        
+
         if optimizer == 'BFGS':
             self.optimizer = BFGS
         elif optimizer == 'FIRE':
@@ -154,7 +152,7 @@ class AutoNEB(object):
                     filename = '%s%03d.traj' % (self.prefix, i)
                     self.all_images[i].write(filename)
                     filename_ref = self.iter_folder + \
-                        '/%s%03diter%03d.traj' % (self.prefix, i, 
+                        '/%s%03diter%03d.traj' % (self.prefix, i,
                                                   self.iteration)
                     if os.path.isfile(filename):
                         shutil.copy2(filename, filename_ref)
@@ -166,15 +164,16 @@ class AutoNEB(object):
                   k=[self.k[i] for i in to_run[0:-1]],
                   method=self.method,
                   parallel=self.parallel,
-                  remove_rotation_and_translation=self.remove_rotation_and_translation,
+                  remove_rotation_and_translation=self
+                  .remove_rotation_and_translation,
                   climb=climb)
 
         # Do the actual NEB calculation
         qn = self.optimizer(neb,
-                            logfile=self.iter_folder + \
-                                '/%s_log_iter%03d.log' % (self.prefix,
-                                                          self.iteration))
-        
+                            logfile=self.iter_folder +
+                            '/%s_log_iter%03d.log' % (self.prefix,
+                                                      self.iteration))
+
         # Find the ranks which are masters for each their calculation
         if self.parallel:
             nneb = to_run[0]
@@ -188,23 +187,23 @@ class AutoNEB(object):
             filename_ref = self.iter_folder + \
                 '/%s%03diter%03d.traj' % (self.prefix,
                                           j + nneb, self.iteration)
-            trajhist = Trajectory(filename_ref, 'w', 
+            trajhist = Trajectory(filename_ref, 'w',
                                   self.all_images[j + nneb],
                                   master=(self.world.rank % n == 0))
             qn.attach(traj)
             qn.attach(trajhist)
         else:
-            global num
             num = 1
             for i, j in enumerate(to_run[1: -1]):
                 filename_ref = self.iter_folder + \
                     '/%s%03diter%03d.traj' % (self.prefix, j, self.iteration)
                 trajhist = Trajectory(filename_ref, 'w', self.all_images[j])
-                qn.attach(seriel_writer(trajhist, i, add=False).write)
+                qn.attach(seriel_writer(trajhist, i, num).write)
 
                 traj = Trajectory('%s%03d.traj' % (self.prefix, j), 'w',
                                   self.all_images[j])
-                qn.attach(seriel_writer(traj, i, add=True).write)
+                qn.attach(seriel_writer(traj, i, num).write)
+                num += 1
 
         if isinstance(self.maxsteps, (list, tuple)) and many_steps:
             steps = self.maxsteps[1]
@@ -226,7 +225,7 @@ class AutoNEB(object):
         # preperration for next iteration
         neb.distribute = types.MethodType(store_E_and_F_in_spc, neb)
         neb.distribute()
-        
+
     def run(self):
         '''Run the AutoNEB optimization algorithm.'''
         n_cur = self.__initialize__()
@@ -281,7 +280,7 @@ class AutoNEB(object):
         energies = self.get_energies()
 
         n_non_valid_energies = len([e for e in energies if e != e])
-            
+
         if self.world.rank == 0:
             print('Start of evaluation of the initial images')
 
@@ -295,7 +294,7 @@ class AutoNEB(object):
 
             energies = self.get_energies()
             n_non_valid_energies = len([e for e in energies if e != e])
-       
+
         if self.world.rank == 0:
             print('Finished initialisation phase.')
 
@@ -313,13 +312,13 @@ class AutoNEB(object):
                 spring_vec = self.all_images[j + 1].get_positions() - \
                     self.all_images[j].get_positions()
                 spring_lengths.append(np.linalg.norm(spring_vec))
-            
+
             total_vec = self.all_images[0].get_positions() - \
                 self.all_images[-1].get_positions()
             tl = np.linalg.norm(total_vec)
 
             fR = max(spring_lengths) / tl
-            
+
             e = self.get_energies()
             ed = []
             emin = min(e)
@@ -381,10 +380,10 @@ class AutoNEB(object):
 
             assert climb_safe, 'climb_safe should be true at this point!'
             self.execute_one_neb(n_cur, to_run, climb=True, many_steps=True)
-        
-        if self.smooth_curve == False:
+
+        if not self.smooth_curve:
             return self.all_images
-            
+
         # If a smooth_curve is requsted ajust the springs to follow two
         # gaussian distributions
         e = self.get_energies()
@@ -403,13 +402,13 @@ class AutoNEB(object):
         for i in range(peak):
             v = (self.all_images[i].get_positions() +
                  self.all_images[i + 1].get_positions()) / 2 - \
-                 self.all_images[0].get_positions()
+                self.all_images[0].get_positions()
             x1.append(np.linalg.norm(v))
-        
+
         for i in range(peak, len(self.all_images) - 1):
             v = (self.all_images[i].get_positions() +
                  self.all_images[i + 1].get_positions()) / 2 - \
-                 self.all_images[0].get_positions()
+                self.all_images[0].get_positions()
             x2.append(np.linalg.norm(v))
         k_tmp = []
         for x in x1:
@@ -444,16 +443,16 @@ class AutoNEB(object):
         if not os.path.isfile('%s000.traj' % self.prefix):
             raise IOError('No file with name %s000.traj' % self.prefix,
                           'was found. Should contain initial image')
-            
+
         # Find the images that exist
-        index_exists = [i for i in range(self.n_max) if \
-                            os.path.isfile('%s%03d.traj' % (self.prefix, i))]
+        index_exists = [i for i in range(self.n_max) if
+                        os.path.isfile('%s%03d.traj' % (self.prefix, i))]
 
         n_cur = index_exists[-1] + 1
 
         if self.world.rank == 0:
             print('The NEB initially has %d images ' % len(index_exists),
-                   '(including the end-points)')
+                  '(including the end-points)')
         if len(index_exists) == 1:
             raise Exception('Only a start point exists')
 
@@ -554,17 +553,15 @@ class AutoNEB(object):
 
 
 class seriel_writer:
-    def __init__(self, traj, i, add=False):
+    def __init__(self, traj, i, num):
         self.traj = traj
         self.i = i
-        self.add = add
+        self.num = num
 
     def write(self):
-        global num
-        if num % (self.i + 1) == 0:
+        if self.num % (self.i + 1) == 0:
             self.traj.write()
-            if self.add:
-                num += 1
+
 
 
 def store_E_and_F_in_spc(self):
@@ -589,10 +586,7 @@ def store_E_and_F_in_spc(self):
             self.world.broadcast(forces, root)
             # On all nodes, remove the calculator, keep only energy
             # and force in single point calculator
-            image = self.images[i]
             self.images[i].set_calculator(
-                SinglePointCalculator(energy[0],
-                                      forces,
-                                      None,
-                                      None,
-                                      image))
+                SinglePointCalculator(self.images[i],
+                                      energy=energy[0],
+                                      forces=forces))

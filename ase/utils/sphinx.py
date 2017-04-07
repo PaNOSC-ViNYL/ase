@@ -50,33 +50,14 @@ def git_role_tmpl(urlroot,
                            **options)
     return [node], []
 
-svn_role_tmpl = git_role_tmpl
-
-
-def trac_role_tmpl(urlroot,
-                   role,
-                   rawtext, text, lineno, inliner, options={}, content=[]):
-    if text[-1] == '>':
-        i = text.index('<')
-        name = text[:i - 1]
-        text = text[i + 1:-1]
-    else:
-        name = text
-        if name[0] == '~':
-            name = name.split('/')[-1]
-            text = text[1:]
-        if '?' in name:
-            name = name[:name.index('?')]
-    ref = urlroot + text
-    set_classes(options)
-    node = nodes.reference(rawtext, name, refuri=ref,
-                           **options)
-    return [node], []
-
 
 def creates():
     """Generator for Python scripts and their output filenames."""
-    for dirpath, dirnames, filenames in os.walk('.'):
+    for dirpath, dirnames, filenames in sorted(os.walk('.')):
+        if dirpath.startswith('./build'):
+            # Skip files in the build/ folder
+            continue
+
         for filename in filenames:
             if filename.endswith('.py'):
                 path = join(dirpath, filename)
@@ -94,9 +75,6 @@ def creates():
                         break
                 if outnames:
                     yield dirpath, filename, outnames
-
-        if 'build' in dirnames and dirpath == '.':
-            dirnames.remove('build')
 
 
 def create_png_files():
@@ -171,7 +149,7 @@ def visual_inspection():
             ext = path.rsplit('.', 1)[1]
             if ext == 'pdf':
                 pdf.append(path)
-            elif ext in ['csv', 'txt', 'out', 'css', 'LDA']:
+            elif ext in ['csv', 'txt', 'out', 'css', 'LDA', 'rst']:
                 text.append(path)
             else:
                 images.append(path)

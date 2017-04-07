@@ -100,7 +100,7 @@ A ``dict`` object is mapping from keys to values:
 >>> d = {'s': 0, 'p': 1}
 >>> d['d'] = 2
 >>> d
-{'p': 1, 's': 0, 'd': 2}
+{'p': 1, 'd': 2, 's': 0}
 >>> d['p']
 1
 
@@ -111,7 +111,7 @@ be keys).
 
 A ``list`` object is an ordered collection of arbitrary objects:
 
->>> l = [1, ('gg', 7), 'hmm']
+>>> l = [1, ('gg', 7), 'hmm', 1.2]
 >>> l[1]
 ('gg', 7)
 >>>

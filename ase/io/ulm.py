@@ -1,7 +1,7 @@
 """Simple and efficient pythonic file-format.
 
-Stores ndarrays as binary data and Python's built-in datatypes (int, float,
-bool, str, dict, list) as json.
+Stores ndarrays as binary data and Python's built-in datatypes
+(bool, int, float, complex, str, dict, list, tuple, None) as json.
 
 File layout when there is only a single item::
 
@@ -18,15 +18,16 @@ File layout when there is only a single item::
 
 Writing:
 
->>> from ase.io.ulm import ulmopen
->>> w = ulmopen('x.ulm', 'w')
+>>> import numpy as np
+>>> import ase.io.ulm as ulm
+>>> w = ulm.open('x.ulm', 'w')
 >>> w.write(a=np.ones(7), b=42, c='abc')
 >>> w.write(d=3.14)
 >>> w.close()
 
 Reading:
 
->>> r = ulmopen('x.ulm')
+>>> r = ulm.open('x.ulm')
 >>> print(r.c)
 abc
 
@@ -54,20 +55,24 @@ Versions:
 """
 
 from __future__ import print_function
-import optparse
 import os
+import sys
 
 import numpy as np
 
 from ase.io.jsonio import encode, decode
 from ase.utils import plural, basestring
 
+if sys.version_info[0] >= 3:
+    import builtins
+else:
+    import __builtin__ as builtins
 
 VERSION = 3
 N1 = 42  # block size - max number of items: 1, N1, N1*N1, N1*N1*N1, ...
 
 
-def ulmopen(filename, mode='r', index=None, tag=''):
+def open(filename, mode='r', index=None, tag=''):
     """Open ulm-file."""
     if mode == 'r':
         return Reader(filename, index or 0)
@@ -75,6 +80,9 @@ def ulmopen(filename, mode='r', index=None, tag=''):
         2 / 0
     assert index is None
     return Writer(filename, mode, tag)
+
+
+ulmopen = open
 
 
 def align(fd):
@@ -132,7 +140,7 @@ class Writer:
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
-                fd = open(fd, 'wb')
+                fd = builtins.open(fd, 'wb')
 
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
@@ -142,7 +150,7 @@ class Writer:
                                a.tostring() +
                                self.offsets.tostring())
             else:
-                fd = open(fd, 'r+b')
+                fd = builtins.open(fd, 'r+b')
 
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
                 assert version == VERSION
@@ -162,7 +170,11 @@ class Writer:
         self.dtype = None
 
     def add_array(self, name, shape, dtype=float):
-        """Add ndarray object."""
+        """Add ndarray object.
+
+        Set name, shape and dtype for array and fill in the data in chunks
+        later with the fill() method.
+        """
 
         self._write_header()
 
@@ -190,6 +202,7 @@ class Writer:
             self.header = b''
 
     def fill(self, a):
+        """Fill in ndarray chunks for array currently beeing written."""
         assert a.dtype == self.dtype
         assert a.shape[1:] == self.shape[len(self.shape) - a.ndim + 1:]
         self.nmissing -= a.size
@@ -241,7 +254,11 @@ class Writer:
 
             writer.write('n', 7)
             writer.write(n=7)
-            writer.write(n=7, s='abc', a=np.zeros(3), density=density)
+            writer.write(n=7, s='abc', a=np.zeros(3), abc=obj)
+
+        If obj is not one of the supported data types (bool, int, float,
+        complex, tupl, list, dict, None or ndarray) then it must have a
+        obj.write(childwriter) method.
         """
 
         if args:
@@ -262,11 +279,13 @@ class Writer:
                 value.write(self.child(name))
 
     def child(self, name):
+        """Create child-writer object."""
         self._write_header()
         dct = self.data[name + '.'] = {}
         return Writer(self.fd, data=dct)
 
     def close(self):
+        """Close file."""
         n = int('_little_endian' in self.data)
         if len(self.data) > n:
             # There is more than the "_little_endian" key.
@@ -324,7 +343,7 @@ class Reader:
         """Create reader."""
 
         if isinstance(fd, basestring):
-            fd = open(fd, 'rb')
+            fd = builtins.open(fd, 'rb')
 
         self._fd = fd
         self._index = index
@@ -399,6 +418,7 @@ class Reader:
             yield self
 
     def get(self, attr, value=None):
+        """Get attr or value if no such attr."""
         try:
             return self.__getattr__(attr)
         except KeyError:
@@ -522,25 +542,16 @@ def print_ulm_info(filename, index=None, verbose=False):
         print(b[i].tostr(verbose))
 
 
-def main():
-    parser = optparse.OptionParser(
-        usage='Usage: %prog [options] ulm-file [item number]',
-        description='Show content of ulm-file')
+class CLICommand:
+    short_description = 'Show content of ulm-file'
 
-    add = parser.add_option
-    add('-v', '--verbose', action='store_true')
-    opts, args = parser.parse_args()
+    @staticmethod
+    def add_arguments(parser):
+        add = parser.add_argument
+        add('filename')
+        add('-n', '--index', type=int)
+        add('-v', '--verbose', action='store_true')
 
-    if len(args) not in [1, 2]:
-        parser.error('Wrong number of arguments')
-
-    filename = args.pop(0)
-    if args:
-        index = int(args[0])
-    else:
-        index = None
-    print_ulm_info(filename, index, verbose=opts.verbose)
-
-
-if __name__ == '__main__':
-    main()
+    @staticmethod
+    def run(args):
+        print_ulm_info(args.filename, args.index, verbose=args.verbose)

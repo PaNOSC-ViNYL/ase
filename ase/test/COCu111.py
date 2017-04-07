@@ -67,10 +67,6 @@ dyn.run(fmax=0.05)
 for image in images:
     print(image.positions[-1], image.get_potential_energy())
 
-if locals().get('display'):
-    import os
-    error = os.system('ase-gui mep.traj@-7:')
-    assert error == 0
 
 # Trying to read description of optimization from trajectory
 traj = Trajectory('mep.traj')

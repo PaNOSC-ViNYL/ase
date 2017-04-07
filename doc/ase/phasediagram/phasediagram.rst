@@ -1,6 +1,6 @@
 .. module:: ase.phasediagram
 .. _phase diagrams:
-    
+
 ====================================
 Phase diagrams and Pourbaix diagrams
 ====================================
@@ -8,7 +8,8 @@ Phase diagrams and Pourbaix diagrams
 .. autoclass:: ase.phasediagram.PhaseDiagram
 
 Here is a simple example using some made up numbers for Cu-Au alloys:
-    
+
+>>> from ase.phasediagram import PhaseDiagram
 >>> refs = [('Cu', 0.0),
 ...         ('Au', 0.0),
 ...         ('CuAu', -0.5),
@@ -25,7 +26,7 @@ References: 5
 Simplices: 3
 
 The convex hull looks like this:
-    
+
 >>> pd.plot()
 
 .. image:: cuau.png
@@ -34,7 +35,7 @@ The convex hull looks like this:
 
 If you want to see what :mol:`Cu_3Au` will decompose into, you can use the
 :meth:`~PhaseDiagram.decompose` method:
-    
+
 >>> energy, indices, coefs = pd.decompose('Cu3Au')
 reference    coefficient      energy
 ------------------------------------
@@ -56,7 +57,7 @@ Here is an example (see :download:`ktao.py`) with three components using
 .. image:: ktao-2d.png
 .. image:: ktao-3d.png
 
-    
+
 Pourbaix diagrams
 =================
 
@@ -64,23 +65,23 @@ Let's create a Pourbaix diagram for ZnO from experimental numbers.
 
 >>> from ase.phasediagram import Pourbaix, solvated
 >>> refs = solvated('Zn')
->>>> print(refs)
+>>> print(refs)
 [('HZnO2-(aq)', -4.801274772854441), ('ZnO2--(aq)', -4.0454382546928365), ('ZnOH+(aq)', -3.5207324675582736), ('ZnO(aq)', -2.9236086089762137), ('H2O(aq)', -2.458311658897383), ('Zn++(aq)', -1.5264168353005447), ('H+(aq)', 0.0)]
 
 We use the :func:`solvated` function to get solvation energies for zinc
 containing molecules (plus water and a proton):
-    
+
 .. autofunction:: solvated
 
 We add two solids and one more dissolved molecule to the references and create
 a :class:`Pourbaix` object:
-    
+
 >>> refs += [('Zn', 0.0), ('ZnO', -3.323), ('ZnO2(aq)', -2.921)]
 >>> pb = Pourbaix(refs, Zn=1, O=1)
 
 To see what ZnO will :meth:`~Pourbaix.decompose` to at a potential of 1 eV
 and a pH of 9.0, we do this:
-    
+
 >>> coefs, energy = pb.decompose(1.0, 9.0)
 0    HZnO2-(aq)    -5.158
 1    ZnO2--(aq)    -4.403
@@ -109,7 +110,7 @@ Total energy:                 -3.891
          1.00000000e+00,   2.00000000e+00]), -3.8913313372636829)
 
 The full :meth:`~Pourbaix.diagram` is calculated like this:
-    
+
 >>> import numpy as np
 >>> U = np.linspace(-2, 2, 200)
 >>> pH = np.linspace(-2, 16, 300)

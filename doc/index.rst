@@ -15,8 +15,8 @@ license <license info>`.
 >>> from ase.calculators.nwchem import NWChem
 >>> from ase.io import write
 >>> h2 = Atoms('H2',
-               positions=[[0, 0, 0],
-                          [0, 0, 0.7]])
+...            positions=[[0, 0, 0],
+...                       [0, 0, 0.7]])
 >>> h2.calc = NWChem(xc='PBE')
 >>> opt = BFGS(h2)
 >>> opt.run(fmax=0.02)
@@ -52,6 +52,13 @@ Gaussian_ Grimme-D3_ Mopac_
 
 News
 ====
+
+* :ref:`ASE version 3.13.0 <releasenotes>` released (7 February 2017).
+
+* Psi-k *Scientifc Highlight Of The Month*:
+  `The Atomic Simulation Environment | A Python library for working with
+  atoms <http://psi-k.net/download/highlights/Highlight_134.pdf>`__
+  (20 January 2017).
 
 * :ref:`ASE version 3.12.0 <releasenotes>` released (24 October 2016).
 
@@ -119,6 +126,7 @@ Contents
     tutorials/tutorials
     ase/ase
     cmdline
+    tips
     gallery/gallery
     releasenotes
     contact

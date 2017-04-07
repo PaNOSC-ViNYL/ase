@@ -9,9 +9,12 @@ Versions:
 4) Got rid of keywords.
 5) Add fmax, smax, mass, volume, charge
 6) Use REAL for magmom and drop possibility for non-collinear spin
+7) Volume can be None
+8) Added name='metadata' row to "information" table
 """
 
 from __future__ import absolute_import, print_function
+import json
 import os
 import sqlite3
 import sys
@@ -28,7 +31,7 @@ from ase.utils import basestring
 if sys.version >= '3':
     buffer = memoryview
 
-VERSION = 6
+VERSION = 8
 
 init_statements = [
     """CREATE TABLE systems (
@@ -93,7 +96,7 @@ init_statements = [
     name TEXT,
     value TEXT)""",
 
-    "INSERT INTO information VALUES ('version', '{0}')".format(VERSION)]
+    "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
@@ -115,7 +118,7 @@ def float_if_not_none(x):
         return float(x)
 
 
-class SQLite3Database(Database):
+class SQLite3Database(Database, object):
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
@@ -141,6 +144,8 @@ class SQLite3Database(Database):
     def _initialize(self, con):
         if self.initialized:
             return
+
+        self._metadata = {}
 
         cur = con.execute(
             'SELECT COUNT(*) FROM sqlite_master WHERE name="systems"')
@@ -168,9 +173,15 @@ class SQLite3Database(Database):
                 else:
                     self.version = int(cur.fetchone()[0])
 
+                cur = con.execute(
+                    'SELECT value FROM information WHERE name="metadata"')
+                results = cur.fetchall()
+                if results:
+                    self._metadata = json.loads(results[0][0])
+
         if self.version > VERSION:
             raise IOError('Can not read new ase.db format '
-                          '(version {0}).  Please update to latest ASE.'
+                          '(version {}).  Please update to latest ASE.'
                           .format(self.version))
         if self.version < 5 and not self._allow_reading_old_format:
             raise IOError('Please convert to new format. ' +
@@ -254,18 +265,18 @@ class SQLite3Database(Database):
                    len(row.numbers),
                    float_if_not_none(row.get('fmax')),
                    float_if_not_none(row.get('smax')),
-                   float(row.volume),
+                   float_if_not_none(row.get('volume')),
                    float(row.mass),
                    float(row.charge))
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute('INSERT INTO systems VALUES ({0})'.format(q),
+            cur.execute('INSERT INTO systems VALUES ({})'.format(q),
                         values)
         else:
             q = ', '.join(line.split()[0].lstrip() + '=?'
                           for line in init_statements[0].splitlines()[2:])
-            cur.execute('UPDATE systems SET {0} WHERE id=?'.format(q),
+            cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
 
         if id is None:
@@ -597,6 +608,30 @@ class SQLite3Database(Database):
         for table in tables:
             cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
                             ((id,) for id in ids))
+
+    @property
+    def metadata(self):
+        if self._metadata is None:
+            self._initialize(self._connect())
+        return self._metadata.copy()
+
+    @metadata.setter
+    def metadata(self, dct):
+        self._metadata = dct
+        con = self._connect()
+        self._initialize(con)
+        md = json.dumps(dct)
+        cur = con.cursor()
+        cur.execute(
+            "SELECT COUNT(*) FROM information WHERE name='metadata'")
+
+        if cur.fetchone()[0]:
+            cur.execute(
+                "UPDATE information SET value=? WHERE name='metadata'", [md])
+        else:
+            cur.execute('INSERT INTO information VALUES (?, ?)',
+                        ('metadata', md))
+        con.commit()
 
 
 def blob(array):

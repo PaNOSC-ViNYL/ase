@@ -1,5 +1,5 @@
 import numpy as np
-from ase.io.ulm import ulmopen as open
+from ase.io.ulm import open
 
 
 class A:
