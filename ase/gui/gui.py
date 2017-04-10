@@ -283,7 +283,7 @@ class GUI(View, Status):
     def bulk_window(self):
         SetupBulkCrystal(self)
 
-    def surface_window(self, menuitem):
+    def surface_window(self):
         SetupSurfaceSlab(self)
 
     def nanoparticle_window(self):
@@ -459,7 +459,7 @@ class GUI(View, Status):
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             (_('_Setup'),
              [M(_('_Bulk Crystal'), self.bulk_window, disabled=True),
-              M(_('_Surface slab'), self.surface_window, disabled=True),
+              M(_('_Surface slab'), self.surface_window, disabled=False),
               M(_('_Nanoparticle'),
                 self.nanoparticle_window),
               M(_('Nano_tube'), self.nanotube_window),

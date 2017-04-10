@@ -219,6 +219,8 @@ class SpinBox(Widget):
         x = self.widget.get().replace(',', '.')
         if '.' in x:
             return float(x)
+        if x == 'None':
+            return None
         return int(x)
 
     @value.setter
