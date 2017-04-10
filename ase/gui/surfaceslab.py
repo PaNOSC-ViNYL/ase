@@ -38,13 +38,13 @@ surfaces = [(_('FCC(100)'), _('fcc'), 'ortho', build.fcc100),
 structures, crystal, orthogonal, functions = zip(*surfaces)
 
 label_template = _('{natoms} atoms, structure: {structure}, '
-                   'vacuum: {vacuum:.3f} Å')
+                   'vacuum: {vacuum} Å')
 
 py_template = """
 from ase.build import {func}
 
 atoms = {func}(symbol='{symbol}', size={size},
-    a={a}, {c}vacuum={a}, orthogonal={ortho})
+    a={a}, {c}vacuum={vacuum}, orthogonal={ortho})
 """
 
 
@@ -55,7 +55,7 @@ class SetupSurfaceSlab:
         self.structure = ui.ComboBox(structures, structures,
                                      self.structure_changed)
         self.structure_warn = ui.Label('', 'red')
-        self.orthogonal = ui.CheckButton('')
+        self.orthogonal = ui.CheckButton('', True, self.make)
         self.lattice_a = ui.SpinBox(3.2, 0.0, 10.0, 0.001, self.make)
         self.retrieve = ui.Button(_('Get from database'),
                                   self.structure_changed)
@@ -65,7 +65,8 @@ class SetupSurfaceSlab:
         self.y = ui.SpinBox(1, 1, 30, 1, self.make)
         self.y_warn = ui.Label('', 'red')
         self.z = ui.SpinBox(1, 1, 30, 1, self.make)
-        self.vacuum = ui.SpinBox(10, 0, 40, 0.01, self.make)
+        self.vacuum_check = ui.CheckButton('', False, self.vacuum_checked)
+        self.vacuum = ui.SpinBox(5, 0, 40, 0.01, self.make)
         self.description = ui.Label('')
 
         win = self.win = ui.Window(_('Surface'))
@@ -79,7 +80,7 @@ class SetupSurfaceSlab:
         win.add([_('Size: \tx: '), self.x, _(' unit cells'), self.x_warn])
         win.add([_('\ty: '), self.y, _(' unit cells'), self.y_warn])
         win.add([_('\tz: '), self.z, _(' unit cells')])
-        win.add([_('Vacuum: '), self.vacuum, (u'Å')])
+        win.add([_('Vacuum: '), self.vacuum_check, self.vacuum, (u'Å')])
         win.add(self.description)
         win.add([pybutton(_('Creating a surface.'), self.make),
                  ui.Button(_('Apply'), self.apply),
@@ -88,7 +89,15 @@ class SetupSurfaceSlab:
         self.gui = gui
         self.atoms = None
         self.lattice_c.active = False
+        self.vacuum.active = False
         self.structure_changed()
+
+    def vacuum_checked(self, *args):
+    	if self.vacuum_check.var.get():
+        	self.vacuum.active = True
+        else:
+        	self.vacuum.active = False
+        self.make()
 
     def get_lattice(self, *args):
         if self.element.symbol is None:
@@ -109,6 +118,7 @@ class SetupSurfaceSlab:
             elif symmetry == 'hcp':
                 self.lattice_a.value = ref['a']
                 self.lattice_c.value = ref['a'] * ref['c/a']
+        self.make()
 
     def structure_changed(self, *args):
         for surface in surfaces:
@@ -130,7 +140,6 @@ class SetupSurfaceSlab:
                     self.lattice_c.active = False
                     self.lattice_c.value = 'None'
         self.get_lattice()
-        self.make()
 
     def make(self, *args):
         symbol = self.element.symbol
@@ -149,8 +158,10 @@ class SetupSurfaceSlab:
         a = self.lattice_a.value
         c = self.lattice_c.value
         vacuum = self.vacuum.value
+        if not self.vacuum_check.var.get():
+        	vacuum = None
         ortho = self.orthogonal.var.get()
-
+        
         struct = self.structure.value
         if struct == _('BCC(111)') and (not (y % 2 == 0) and ortho):
             self.y_warn.text = _('Please enter an even value for orthogonal')
@@ -187,7 +198,7 @@ class SetupSurfaceSlab:
                 self.description.text = label
                 return py_template.format(func=surface[3].__name__, a=a,
                                           c=c_py, symbol=symbol, size=size,
-                                          ortho=ortho)
+                                          ortho=ortho, vacuum=vacuum)
 
     def apply(self, *args):
         self.make()

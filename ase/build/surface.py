@@ -23,7 +23,7 @@ def fcc100(symbol, size, a=None, vacuum=None, orthogonal=True):
 
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     if not orthogonal:
-        raise NotImplementedError("Can't do orthogonal cell yet!")
+        raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
     return _surface(symbol, 'fcc', '100', size, a, None, vacuum, orthogonal)
 
@@ -34,7 +34,7 @@ def fcc110(symbol, size, a=None, vacuum=None, orthogonal=True):
     Supported special adsorption sites: 'ontop', 'longbridge',
     'shortbridge', 'hollow'."""
     if not orthogonal:
-        raise NotImplementedError("Can't do orthogonal cell yet!")
+        raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
     return _surface(symbol, 'fcc', '110', size, a, None, vacuum, orthogonal)
 
@@ -44,7 +44,7 @@ def bcc100(symbol, size, a=None, vacuum=None, orthogonal=True):
 
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     if not orthogonal:
-        raise NotImplementedError("Can't do orthogonal cell yet!")
+        raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
     return _surface(symbol, 'bcc', '100', size, a, None, vacuum, orthogonal)
 
@@ -97,7 +97,7 @@ def hcp10m10(symbol, size, a=None, c=None, vacuum=None, orthogonal=True):
 
     Works only for size=(i,j,k) with j even."""
     if not orthogonal:
-        raise NotImplementedError("Can't do orthogonal cell yet!")
+        raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
     return _surface(symbol, 'hcp', '10m10', size, a, c, vacuum, orthogonal)
 
@@ -107,7 +107,7 @@ def diamond100(symbol, size, a=None, vacuum=None, orthogonal=True):
 
     Supported special adsorption sites: 'ontop'."""
     if not orthogonal:
-        raise NotImplementedError("Can't do orthogonal cell yet!")
+        raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
     return _surface(symbol, 'diamond', '100', size, a, None, vacuum,
                     orthogonal)
