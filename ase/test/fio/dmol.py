@@ -14,7 +14,7 @@ def check(atoms, ref_atoms, dist_tol=1e-6):
 
     # check positions
     assert abs(atoms.positions - ref_atoms.positions).max() < dist_tol, \
-        (a.positions - ref_atoms.positions)
+        (atoms.positions - ref_atoms.positions)
 
     # check symbols
     assert atoms.get_chemical_symbols() == ref_atoms.get_chemical_symbols()
