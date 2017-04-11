@@ -193,7 +193,7 @@ class SetupSurfaceSlab:
                     self.atoms = surface[3](symbol, size, a, vacuum, ortho)
 
                 if vacuum is not None:
-                    vacuumtext =_('Vacuum: {} Å.').format(vacuum))
+                    vacuumtext =_('Vacuum: {} Å.').format(vacuum)
                 else:
                     vacuumtext = ''
 
@@ -205,7 +205,7 @@ class SetupSurfaceSlab:
                     natoms).format(symbol=symbol,
                                    surf=surface[3].__name__,
                                    natoms=len(self.atoms),
-                                   vacuum=vacuumtext))
+                                   vacuum=vacuumtext)
 
                 self.description.text = label
                 return py_template.format(func=surface[3].__name__, a=a,
