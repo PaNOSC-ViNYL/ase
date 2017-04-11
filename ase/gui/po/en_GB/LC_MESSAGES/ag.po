@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-04-11 18:55+0200\n"
+"POT-Creation-Date: 2017-04-11 20:41+0200\n"
 "PO-Revision-Date: 2017-04-11 20:28+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: English (British) <ase-users@listserv.fysik.dtu.dk>\n"
@@ -38,734 +38,6 @@ msgstr "Add"
 #: ../add.py:28
 msgid "Relative to average position (of selection):"
 msgstr "Relative to average position (of selection):"
-
-#. Asap and GPAW may be imported if selected.
-#: ../calculator.py:22
-msgid ""
-"To make most calculations on the atoms, a Calculator object must first\n"
-"be associated with it.  ASE supports a number of calculators, supporting\n"
-"different elements, and implementing different physical models for the\n"
-"interatomic interactions."
-msgstr ""
-"To make most calculations on the atoms, a Calculator object must first\n"
-"be associated with it.  ASE supports a number of calculators, supporting\n"
-"different elements, and implementing different physical models for the\n"
-"interatomic interactions."
-
-#. Informational text about the calculators
-#: ../calculator.py:30
-msgid ""
-"The Lennard-Jones pair potential is one of the simplest\n"
-"possible models for interatomic interactions, mostly\n"
-"suitable for noble gasses and model systems.\n"
-"\n"
-"Interactions are described by an interaction length and an\n"
-"interaction strength."
-msgstr ""
-"The Lennard-Jones pair potential is one of the simplest\n"
-"possible models for interatomic interactions, mostly\n"
-"suitable for noble gasses and model systems.\n"
-"\n"
-"Interactions are described by an interaction length and an\n"
-"interaction strength."
-
-#: ../calculator.py:39
-msgid ""
-"The EMT potential is a many-body potential, giving a\n"
-"good description of the late transition metals crystalling\n"
-"in the FCC crystal structure.  The elements described by the\n"
-"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
-"Au, the Al potential is however not suitable for materials\n"
-"science application, as the stacking fault energy is wrong.\n"
-"\n"
-"A number of parameter sets are provided.\n"
-"\n"
-"<b>Default parameters:</b>\n"
-"\n"
-"The default EMT parameters, as published in K. W. Jacobsen,\n"
-"P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
-"\n"
-"<b>Alternative Cu, Ag and Au:</b>\n"
-"\n"
-"An alternative set of parameters for Cu, Ag and Au,\n"
-"reoptimized to experimental data including the stacking\n"
-"fault energies by Torben Rasmussen (partly unpublished).\n"
-"\n"
-"<b>Ruthenium:</b>\n"
-"\n"
-"Parameters for Ruthenium, as published in J. Gavnholt and\n"
-"J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
-"\n"
-"<b>Metallic glasses:</b>\n"
-"\n"
-"Parameters for MgCu and CuZr metallic glasses. MgCu\n"
-"parameters are in N. P. Bailey, J. Schiøtz and\n"
-"K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004).\n"
-"CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
-"J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
-msgstr ""
-"The EMT potential is a many-body potential, giving a\n"
-"good description of the late transition metals crystalling\n"
-"in the FCC crystal structure.  The elements described by the\n"
-"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
-"Au, the Al potential is however not suitable for materials\n"
-"science application, as the stacking fault energy is wrong.\n"
-"\n"
-"A number of parameter sets are provided.\n"
-"\n"
-"<b>Default parameters:</b>\n"
-"\n"
-"The default EMT parameters, as published in K. W. Jacobsen,\n"
-"P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
-"\n"
-"<b>Alternative Cu, Ag and Au:</b>\n"
-"\n"
-"An alternative set of parameters for Cu, Ag and Au,\n"
-"reoptimised to experimental data including the stacking\n"
-"fault energies by Torben Rasmussen (partly unpublished).\n"
-"\n"
-"<b>Ruthenium:</b>\n"
-"\n"
-"Parameters for Ruthenium, as published in J. Gavnholt and\n"
-"J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
-"\n"
-"<b>Metallic glasses:</b>\n"
-"\n"
-"Parameters for MgCu and CuZr metallic glasses. MgCu\n"
-"parameters are in N. P. Bailey, J. Schiøtz and\n"
-"K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004).\n"
-"CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
-"J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
-
-#: ../calculator.py:74
-msgid ""
-"The EMT potential is a many-body potential, giving a\n"
-"good description of the late transition metals crystalling\n"
-"in the FCC crystal structure.  The elements described by the\n"
-"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
-"Au.  In addition, this implementation allows for the use of\n"
-"H, N, O and C adatoms, although the description of these is\n"
-"most likely not very good.\n"
-"\n"
-"<b>This is the ASE implementation of EMT.</b> For large\n"
-"simulations the ASAP implementation is more suitable; this\n"
-"implementation is mainly to make EMT available when ASAP is\n"
-"not installed.\n"
-msgstr ""
-"The EMT potential is a many-body potential, giving a\n"
-"good description of the late transition metals crystalling\n"
-"in the FCC crystal structure.  The elements described by the\n"
-"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
-"Au.  In addition, this implementation allows for the use of\n"
-"H, N, O and C adatoms, although the description of these is\n"
-"most likely not very good.\n"
-"\n"
-"<b>This is the ASE implementation of EMT.</b> For large\n"
-"simulations the ASAP implementation is more suitable; this\n"
-"implementation is mainly to make EMT available when ASAP is\n"
-"not installed.\n"
-
-#: ../calculator.py:89
-msgid ""
-"The EAM/ADP potential is a many-body potential\n"
-"implementation of the Embedded Atom Method and\n"
-"equipotential plus the Angular Dependent Potential,\n"
-"which is an extension of the EAM to include\n"
-"directional bonds. EAM is suited for FCC metallic\n"
-"bonding while the ADP is suited for metallic bonds\n"
-"with some degree of directionality.\n"
-"\n"
-"For EAM see M.S. Daw and M.I. Baskes,\n"
-"Phys. Rev. Letters 50 (1983) 1285.\n"
-"\n"
-"For ADP see Y. Mishin, M.J. Mehl, and\n"
-"D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
-"4029--4041.\n"
-"\n"
-"Data for the potential is contained in a file in either LAMMPS Alloy\n"
-"or ADP format which need to be loaded before use. The Interatomic\n"
-"Potentials Repository Project at http://www.ctcms.nist.gov/potentials/\n"
-"contains many suitable potential files.\n"
-"\n"
-"For large simulations the LAMMPS calculator is more\n"
-"suitable; this implementation is mainly to make EAM\n"
-"available when LAMMPS is not installed or to develop\n"
-"new EAM/ADP poentials by matching results using ab\n"
-"initio.\n"
-msgstr ""
-"The EAM/ADP potential is a many-body potential\n"
-"implementation of the Embedded Atom Method and\n"
-"equipotential plus the Angular Dependent Potential,\n"
-"which is an extension of the EAM to include\n"
-"directional bonds. EAM is suited for FCC metallic\n"
-"bonding while the ADP is suited for metallic bonds\n"
-"with some degree of directionality.\n"
-"\n"
-"For EAM see M.S. Daw and M.I. Baskes,\n"
-"Phys. Rev. Letters 50 (1983) 1285.\n"
-"\n"
-"For ADP see Y. Mishin, M.J. Mehl, and\n"
-"D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
-"4029--4041.\n"
-"\n"
-"Data for the potential is contained in a file in either LAMMPS Alloy\n"
-"or ADP format which need to be loaded before use. The Interatomic\n"
-"Potentials Repository Project at http://www.ctcms.nist.gov/potentials/\n"
-"contains many suitable potential files.\n"
-"\n"
-"For large simulations the LAMMPS calculator is more\n"
-"suitable; this implementation is mainly to make EAM\n"
-"available when LAMMPS is not installed or to develop\n"
-"new EAM/ADP poentials by matching results using ab\n"
-"initio.\n"
-
-#: ../calculator.py:117
-msgid ""
-"The Brenner potential is a reactive bond-order potential for\n"
-"carbon and hydrocarbons.  As a bond-order potential, it takes\n"
-"into account that carbon orbitals can hybridize in different\n"
-"ways, and that carbon can form single, double and triple\n"
-"bonds.  That the potential is reactive means that it can\n"
-"handle gradual changes in the bond order as chemical bonds\n"
-"are formed or broken.\n"
-"\n"
-"The Brenner potential is implemented in Asap, based on a\n"
-"C implentation published at http://www.rahul.net/pcm/brenner/ .\n"
-"\n"
-"The potential is documented here:\n"
-"  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
-"  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
-"  \"A second-generation reactive empirical bond order (REBO)\n"
-"  potential energy expression for hydrocarbons\",\n"
-"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
-"  doi: 10.1088/0953-8984/14/4/312\n"
-msgstr ""
-"The Brenner potential is a reactive bond-order potential for\n"
-"carbon and hydrocarbons.  As a bond-order potential, it takes\n"
-"into account that carbon orbitals can hybridise in different\n"
-"ways, and that carbon can form single, double and triple\n"
-"bonds.  That the potential is reactive means that it can\n"
-"handle gradual changes in the bond order as chemical bonds\n"
-"are formed or broken.\n"
-"\n"
-"The Brenner potential is implemented in Asap, based on a\n"
-"C implentation published at http://www.rahul.net/pcm/brenner/ .\n"
-"\n"
-"The potential is documented here:\n"
-"  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
-"  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
-"  \"A second-generation reactive empirical bond order (REBO)\n"
-"  potential energy expression for hydrocarbons\",\n"
-"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
-"  doi: 10.1088/0953-8984/14/4/312\n"
-
-#: ../calculator.py:138
-msgid ""
-"GPAW implements Density Functional Theory using a\n"
-"<b>G</b>rid-based real-space representation of the wave\n"
-"functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
-"method for handling the core regions.\n"
-msgstr ""
-"GPAW implements Density Functional Theory using a\n"
-"<b>G</b>rid-based real-space representation of the wave\n"
-"functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
-"method for handling the core regions.\n"
-
-#: ../calculator.py:145
-msgid ""
-"FHI-aims is an external package implementing density\n"
-"functional theory and quantum chemical methods using\n"
-"all-electron methods and a numeric local orbital basis set.\n"
-"For full details, see http://www.fhi-berlin.mpg.de/aims/\n"
-"or Comp. Phys. Comm. v180 2175 (2009). The ASE\n"
-"documentation contains information on the keywords and\n"
-"functionalities available within this interface.\n"
-msgstr ""
-"FHI-aims is an external package implementing density\n"
-"functional theory and quantum chemical methods using\n"
-"all-electron methods and a numeric local orbital basis set.\n"
-"For full details, see http://www.fhi-berlin.mpg.de/aims/\n"
-"or Comp. Phys. Comm. v180 2175 (2009). The ASE\n"
-"documentation contains information on the keywords and\n"
-"functionalities available within this interface.\n"
-
-#: ../calculator.py:155
-msgid ""
-"WARNING:\n"
-"Your system seems to have more than zero but less than\n"
-"three periodic dimensions. Please check that this is\n"
-"really what you want to compute. Assuming full\n"
-"3D periodicity for this calculator."
-msgstr ""
-"WARNING:\n"
-"Your system seems to have more than zero but less than\n"
-"three periodic dimensions. Please check that this is\n"
-"really what you want to compute. Assuming full\n"
-"3D periodicity for this calculator."
-
-#: ../calculator.py:162
-msgid ""
-"VASP is an external package implementing density\n"
-"functional functional theory using pseudopotentials\n"
-"or the projector-augmented wave method together\n"
-"with a plane wave basis set. For full details, see\n"
-"http://cms.mpi.univie.ac.at/vasp/vasp/\n"
-msgstr ""
-"VASP is an external package implementing density\n"
-"functional functional theory using pseudopotentials\n"
-"or the projector-augmented wave method together\n"
-"with a plane wave basis set. For full details, see\n"
-"http://cms.mpi.univie.ac.at/vasp/vasp/\n"
-
-#: ../calculator.py:171
-msgid "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
-msgstr "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
-
-#: ../calculator.py:172
-msgid "Alternative Cu, Ag and Au"
-msgstr "Alternative Cu, Ag and Au"
-
-#: ../calculator.py:173
-msgid "Ruthenium"
-msgstr "Ruthenium"
-
-#: ../calculator.py:174
-msgid "CuMg and CuZr metallic glass"
-msgstr "CuMg and CuZr metallic glass"
-
-#: ../calculator.py:194
-msgid "Select calculator"
-msgstr "Select calculator"
-
-#: ../calculator.py:200
-msgid "Calculator:"
-msgstr "Calculator:"
-
-#. No calculator (the default)
-#: ../calculator.py:203
-msgid "None"
-msgstr "None"
-
-#: ../calculator.py:208
-msgid "Lennard-Jones (ASAP)"
-msgstr "Lennard-Jones (ASAP)"
-
-#: ../calculator.py:209 ../calculator.py:236 ../calculator.py:250
-#: ../calculator.py:259 ../calculator.py:268
-msgid "Setup"
-msgstr "Setup"
-
-#: ../calculator.py:216
-msgid "EMT - Effective Medium Theory (ASAP)"
-msgstr "EMT - Effective Medium Theory (ASAP)"
-
-#: ../calculator.py:228
-msgid "EMT - Effective Medium Theory (ASE)"
-msgstr "EMT - Effective Medium Theory (ASE)"
-
-#: ../calculator.py:235
-msgid "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
-msgstr "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
-
-#: ../calculator.py:243
-msgid "Brenner Potential (ASAP)"
-msgstr "Brenner Potential (ASAP)"
-
-#: ../calculator.py:249
-msgid "Density Functional Theory (GPAW)"
-msgstr "Density Functional Theory (GPAW)"
-
-#: ../calculator.py:257
-msgid "Density Functional Theory (FHI-aims)"
-msgstr "Density Functional Theory (FHI-aims)"
-
-#: ../calculator.py:266
-msgid "Density Functional Theory (VASP)"
-msgstr "Density Functional Theory (VASP)"
-
-#: ../calculator.py:279
-msgid "Check that the calculator is reasonable."
-msgstr "Check that the calculator is reasonable."
-
-#: ../calculator.py:349 ../simulation.py:123
-msgid "No atoms present"
-msgstr "No atoms present"
-
-#: ../calculator.py:444 ../calculator.py:480 ../calculator.py:531
-msgid "ASAP is not installed. (Failed to import asap3)"
-msgstr "ASAP is not installed. (Failed to import asap3)"
-
-#: ../calculator.py:447
-msgid "You must set up the Lennard-Jones parameters"
-msgstr "You must set up the Lennard-Jones parameters"
-
-#: ../calculator.py:453
-msgid "Could not create useful Lennard-Jones calculator."
-msgstr "Could not create useful Lennard-Jones calculator."
-
-#: ../calculator.py:488
-msgid "Could not attach EMT calculator to the atoms."
-msgstr "Could not attach EMT calculator to the atoms."
-
-#: ../calculator.py:511
-msgid "You must set up the EAM parameters"
-msgstr "You must set up the EAM parameters"
-
-#: ../calculator.py:550 ../calculator.py:562
-msgid "GPAW is not installed. (Failed to import gpaw)"
-msgstr "GPAW is not installed. (Failed to import gpaw)"
-
-#: ../calculator.py:553
-msgid "You must set up the GPAW parameters"
-msgstr "You must set up the GPAW parameters"
-
-#: ../calculator.py:596
-msgid "You must set up the FHI-aims parameters"
-msgstr "You must set up the FHI-aims parameters"
-
-#: ../calculator.py:612
-msgid "You must set up the VASP parameters"
-msgstr "You must set up the VASP parameters"
-
-#: ../calculator.py:639
-#, python-format
-msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
-msgstr "Element %(sym)s not allowed by the '%(name)s' calculator"
-
-#: ../calculator.py:648
-msgid "Info"
-msgstr "Info"
-
-#: ../calculator.py:665
-msgid "Lennard-Jones parameters"
-msgstr "Lennard-Jones parameters"
-
-#: ../calculator.py:677
-msgid "Specify the Lennard-Jones parameters here"
-msgstr "Specify the Lennard-Jones parameters here"
-
-#: ../calculator.py:680
-msgid "Epsilon (eV):"
-msgstr "Epsilon (eV):"
-
-#: ../calculator.py:684
-msgid "Sigma (Å):"
-msgstr "Sigma (Å):"
-
-#. TRANSLATORS: Shift roughly means adjust (about a potential)
-#: ../calculator.py:688
-msgid "Shift to make smooth at cutoff"
-msgstr "Shift to make smooth at cutoff"
-
-#: ../calculator.py:767
-msgid "EAM parameters"
-msgstr "EAM parameters"
-
-#: ../calculator.py:781
-msgid "Import Potential"
-msgstr "Import Potential"
-
-#: ../calculator.py:804
-msgid "You need to import the potential file"
-msgstr "You need to import the potential file"
-
-#: ../calculator.py:812
-msgid "Import .alloy or .adp potential file ... "
-msgstr "Import .alloy or .adp potential file ... "
-
-#: ../calculator.py:834
-msgid "GPAW parameters"
-msgstr "GPAW parameters"
-
-#. label = ui.Label("Specify the GPAW parameters here")
-#. pack(vbox, [label])
-#. Print some info
-#: ../calculator.py:849 ../calculator.py:1157 ../calculator.py:1669
-#, python-format
-msgid "%i atoms.\n"
-msgstr "%i atoms.\n"
-
-#: ../calculator.py:852
-#, python-format
-msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
-msgstr "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
-
-#: ../calculator.py:854
-msgid "Non-orthogonal unit cell:\n"
-msgstr "Non-orthogonal unit cell:\n"
-
-#: ../calculator.py:864 ../calculator.py:1174 ../calculator.py:1686
-msgid "Exchange-correlation functional: "
-msgstr "Exchange-correlation functional: "
-
-#. Grid spacing
-#: ../calculator.py:867
-msgid "Grid spacing"
-msgstr "Grid spacing"
-
-#: ../calculator.py:871 ../graphene.py:72 ../graphene.py:83 ../graphene.py:107
-#: ../nanotube.py:45
-msgid "Å"
-msgstr "Å"
-
-#: ../calculator.py:872
-msgid "Grid points"
-msgstr "Grid points"
-
-#: ../calculator.py:881
-#, python-format
-msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
-msgstr "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
-
-#: ../calculator.py:910 ../calculator.py:1191 ../calculator.py:1724
-msgid "k-points  k = ("
-msgstr "k-points  k = ("
-
-#: ../calculator.py:914 ../calculator.py:1197
-#, python-format
-msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
-msgstr "k-points x size:  (%.1f, %.1f, %.1f) Å"
-
-#. Spin polarized
-#: ../calculator.py:919 ../calculator.py:1683
-msgid "Spin polarized"
-msgstr "Spin polarised"
-
-#: ../calculator.py:925
-msgid "FD - Finite Difference (grid) mode"
-msgstr "FD - Finite Difference (grid) mode"
-
-#: ../calculator.py:927
-msgid "LCAO - Linear Combination of Atomic Orbitals"
-msgstr "LCAO - Linear Combination of Atomic Orbitals"
-
-#: ../calculator.py:930
-msgid "Mode: "
-msgstr "Mode: "
-
-#: ../calculator.py:932
-msgid "sz - Single Zeta"
-msgstr "sz - Single Zeta"
-
-#: ../calculator.py:933
-msgid "szp - Single Zeta polarized"
-msgstr "szp - Single Zeta polarised"
-
-#: ../calculator.py:934
-msgid "dzp - Double Zeta polarized"
-msgstr "dzp - Double Zeta polarised"
-
-#. dzp
-#: ../calculator.py:936
-msgid "Basis functions: "
-msgstr "Basis functions: "
-
-#. Mixer
-#: ../calculator.py:942
-msgid "Non-standard mixer parameters"
-msgstr "Non-standard mixer parameters"
-
-#: ../calculator.py:1153
-msgid "FHI-aims parameters"
-msgstr "FHI-aims parameters"
-
-#: ../calculator.py:1160
-msgid "Periodic geometry, unit cell is:\n"
-msgstr "Periodic geometry, unit cell is:\n"
-
-#: ../calculator.py:1166
-msgid "Non-periodic geometry.\n"
-msgstr "Non-periodic geometry.\n"
-
-#: ../calculator.py:1173
-msgid "Hirshfeld-based dispersion correction"
-msgstr "Hirshfeld-based dispersion correction"
-
-#. Spin polarized, charge, relativity
-#: ../calculator.py:1203
-msgid "Spin / initial moment "
-msgstr "Spin / initial moment "
-
-#: ../calculator.py:1220
-msgid "   Charge"
-msgstr "   Charge"
-
-#: ../calculator.py:1221
-msgid "   Relativity"
-msgstr "   Relativity"
-
-#: ../calculator.py:1222
-msgid " Threshold"
-msgstr " Threshold"
-
-#. self-consistency criteria
-#: ../calculator.py:1228
-msgid "Self-consistency convergence:"
-msgstr "Self-consistency convergence:"
-
-#: ../calculator.py:1242
-msgid "Compute forces"
-msgstr "Compute forces"
-
-#: ../calculator.py:1254
-msgid "Energy:                 "
-msgstr "Energy:                 "
-
-#: ../calculator.py:1255
-msgid " eV   Sum of eigenvalues:  "
-msgstr " eV   Sum of eigenvalues:  "
-
-#: ../calculator.py:1256 ../calculator.py:1758
-msgid " eV"
-msgstr " eV"
-
-#: ../calculator.py:1259
-msgid "Electron density: "
-msgstr "Electron density: "
-
-#: ../calculator.py:1260
-msgid "        Force convergence:  "
-msgstr "        Force convergence:  "
-
-#: ../calculator.py:1261
-msgid " eV/Ang  "
-msgstr " eV/Ang  "
-
-#: ../calculator.py:1276 ../calculator.py:1771
-msgid "Additional keywords: "
-msgstr "Additional keywords: "
-
-#. run command and species defaults:
-#: ../calculator.py:1290
-msgid "FHI-aims execution command: "
-msgstr "FHI-aims execution command: "
-
-#: ../calculator.py:1292 ../calculator.py:1788
-msgid "Directory for species defaults: "
-msgstr "Directory for species defaults: "
-
-#: ../calculator.py:1304 ../calculator.py:1796
-msgid "Set Defaults"
-msgstr "Set Defaults"
-
-#: ../calculator.py:1306
-msgid "Import control.in"
-msgstr "Import control.in"
-
-#: ../calculator.py:1308
-msgid "Export control.in"
-msgstr "Export control.in"
-
-#: ../calculator.py:1500
-msgid "Export parameters ... "
-msgstr "Export parameters ... "
-
-#: ../calculator.py:1519
-msgid "Import control.in file ... "
-msgstr "Import control.in file ... "
-
-#: ../calculator.py:1581 ../calculator.py:2113
-#, python-format
-msgid ""
-"Please use the facilities provided in this window to manipulate the keyword: "
-"%s!"
-msgstr ""
-"Please use the facilities provided in this window to manipulate the keyword: "
-"%s!"
-
-#: ../calculator.py:1585
-#, python-format
-msgid ""
-"Don't know this keyword: %s\n"
-"\n"
-"Please check!\n"
-"\n"
-"If you really think it should be available, please add it to the top of ase/"
-"calculators/aims.py."
-msgstr ""
-"Don't know this keyword: %s\n"
-"\n"
-"Please check!\n"
-"\n"
-"If you really think it should be available, please add it to the top of ase/"
-"calculators/aims.py."
-
-#: ../calculator.py:1665
-msgid "VASP parameters"
-msgstr "VASP parameters"
-
-#: ../calculator.py:1671
-msgid "Periodic geometry, unit cell is: \n"
-msgstr "Periodic geometry, unit cell is: \n"
-
-#: ../calculator.py:1726
-msgid ")    Cutoff: "
-msgstr ")    Cutoff: "
-
-#: ../calculator.py:1727
-msgid "    Precision: "
-msgstr "    Precision: "
-
-#: ../calculator.py:1731
-#, python-format
-msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
-msgstr "k-points x size:  (%.1f, %.1f, %.1f) Å       "
-
-#: ../calculator.py:1748
-msgid "Smearing: "
-msgstr "Smearing: "
-
-#: ../calculator.py:1748
-msgid " order: "
-msgstr " order: "
-
-#: ../calculator.py:1749
-msgid " width: "
-msgstr " width: "
-
-#: ../calculator.py:1757
-msgid "Self-consistency convergence: "
-msgstr "Self-consistency convergence: "
-
-#. run command and location of POTCAR files:
-#: ../calculator.py:1784
-msgid "VASP execution command: "
-msgstr "VASP execution command: "
-
-#: ../calculator.py:1798
-msgid "Import VASP files"
-msgstr "Import VASP files"
-
-#: ../calculator.py:1800
-msgid "Export VASP files"
-msgstr "Export VASP files"
-
-#: ../calculator.py:2011
-msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
-msgstr "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
-
-#: ../calculator.py:2065
-msgid "Import VASP input files: choose directory ... "
-msgstr "Import VASP input files: choose directory ... "
-
-#: ../calculator.py:2078
-msgid "Export VASP input files: choose directory ... "
-msgstr "Export VASP input files: choose directory ... "
-
-#: ../calculator.py:2117
-#, python-format
-msgid ""
-"Don't know this keyword: %s\n"
-"Please check!\n"
-"\n"
-"If you really think it should be available, please add it to the top of ase/"
-"calculators/vasp.py."
-msgstr ""
-"Don't know this keyword: %s\n"
-"Please check!\n"
-"\n"
-"If you really think it should be available, please add it to the top of ase/"
-"calculators/vasp.py."
 
 #: ../colors.py:14
 msgid "Colors"
@@ -992,12 +264,12 @@ msgid "Please specify a consistent set of atoms."
 msgstr "Please specify a consistent set of atoms."
 
 #: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:528
-#: ../nanotube.py:84 ../surfaceslab.py:220
+#: ../nanotube.py:84 ../surfaceslab.py:221
 msgid "No valid atoms."
 msgstr "No valid atoms."
 
 #: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:529
-#: ../nanotube.py:85 ../surfaceslab.py:221 ../widgets.py:76
+#: ../nanotube.py:85 ../surfaceslab.py:222 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "You have not (yet) specified a consistent set of parameters."
 
@@ -1047,159 +319,6 @@ msgstr ""
 msgid "Forces:\n"
 msgstr "Forces:\n"
 
-#: ../execute.py:25
-msgid ""
-"\n"
-"    Global commands work on all frames or only on the current frame\n"
-"    - Assignment of a global variable may not reference a local one\n"
-"    - use 'Current frame' switch to switch off application to all frames\n"
-"    <c>e</c>:\t\ttotal energy of one frame\n"
-"    <c>fmax</c>:\tmaximal force in one frame\n"
-"    <c>A</c>:\tunit cell\n"
-"    <c>E</c>:\t\ttotal energy array of all frames\n"
-"    <c>F</c>:\t\tall forces in one frame\n"
-"    <c>M</c>:\tall magnetic moments\n"
-"    <c>R</c>:\t\tall atomic positions\n"
-"    <c>S</c>:\tall selected atoms (boolean array)\n"
-"    <c>D</c>:\tall dynamic atoms (boolean array)\n"
-"    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
-"\n"
-"    Atom commands work on each atom (or a selection) individually\n"
-"    - these can use global commands on the RHS of an equation\n"
-"    - use 'selected atoms only' to restrict application of command\n"
-"    <c>x,y,z</c>:\tatomic coordinates\n"
-"    <c>r,g,b</c>:\tatom display color, range is [0..1]\n"
-"    <c>rad</c>:\tatomic radius for display\n"
-"    <c>s</c>:\t\tatom is selected\n"
-"    <c>d</c>:\t\tatom is movable\n"
-"    <c>f</c>:\t\tforce\n"
-"    <c>Z</c>:\tatomic number\n"
-"    <c>m</c>:\tmagnetic moment\n"
-"    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
-"\n"
-"    Special commands and objects:\n"
-"    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
-"    <c>frame</c>:\tframe number\n"
-"    <c>center</c>:\tcenters the system in its existing unit cell\n"
-"    <c>del S</c>:\tdelete selection\n"
-"    <c>CM</c>:\tcenter of mass\n"
-"    <c>ans[-i]</c>:\tith last calculated result\n"
-"    <c>exec file</c>: executes commands listed in file\n"
-"    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
-"    <c>gui</c>:\tadvanced: gui window python object\n"
-"    <c>img</c>:\tadvanced: gui images object\n"
-"    "
-msgstr ""
-"\n"
-"    Global commands work on all frames or only on the current frame\n"
-"    - Assignment of a global variable may not reference a local one\n"
-"    - use 'Current frame' switch to switch off application to all frames\n"
-"    <c>e</c>:\t\ttotal energy of one frame\n"
-"    <c>fmax</c>:\tmaximal force in one frame\n"
-"    <c>A</c>:\tunit cell\n"
-"    <c>E</c>:\t\ttotal energy array of all frames\n"
-"    <c>F</c>:\t\tall forces in one frame\n"
-"    <c>M</c>:\tall magnetic moments\n"
-"    <c>R</c>:\t\tall atomic positions\n"
-"    <c>S</c>:\tall selected atoms (boolean array)\n"
-"    <c>D</c>:\tall dynamic atoms (boolean array)\n"
-"    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
-"\n"
-"    Atom commands work on each atom (or a selection) individually\n"
-"    - these can use global commands on the RHS of an equation\n"
-"    - use 'selected atoms only' to restrict application of command\n"
-"    <c>x,y,z</c>:\tatomic coordinates\n"
-"    <c>r,g,b</c>:\tatom display colour, range is [0..1]\n"
-"    <c>rad</c>:\tatomic radius for display\n"
-"    <c>s</c>:\t\tatom is selected\n"
-"    <c>d</c>:\t\tatom is movable\n"
-"    <c>f</c>:\t\tforce\n"
-"    <c>Z</c>:\tatomic number\n"
-"    <c>m</c>:\tmagnetic moment\n"
-"    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
-"\n"
-"    Special commands and objects:\n"
-"    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
-"    <c>frame</c>:\tframe number\n"
-"    <c>center</c>:\tcenters the system in its existing unit cell\n"
-"    <c>del S</c>:\tdelete selection\n"
-"    <c>CM</c>:\tcentre of mass\n"
-"    <c>ans[-i]</c>:\tith last calculated result\n"
-"    <c>exec file</c>: executes commands listed in file\n"
-"    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
-"    <c>gui</c>:\tadvanced: gui window python object\n"
-"    <c>img</c>:\tadvanced: gui images object\n"
-"    "
-
-#: ../execute.py:69
-msgid "Expert user mode"
-msgstr "Expert user mode"
-
-#: ../execute.py:82
-msgid "Welcome to the ASE Expert user mode"
-msgstr "Welcome to the ASE Expert user mode"
-
-#: ../execute.py:89
-msgid "Only selected atoms (sa)   "
-msgstr "Only selected atoms (sa)   "
-
-#: ../execute.py:91
-msgid "Only current frame (cf)  "
-msgstr "Only current frame (cf)  "
-
-#: ../execute.py:94 ../execute.py:323 ../graphs.py:46
-msgid "Save"
-msgstr "Save"
-
-#: ../execute.py:96 ../ui.py:59 ../ui.py:63
-msgid "Help"
-msgstr "Help"
-
-#: ../execute.py:98 ../movie.py:24
-msgid "Stop"
-msgstr "Stop"
-
-#: ../execute.py:104
-msgid ""
-"Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, z, "
-"Z     "
-msgstr ""
-"Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, z, "
-"Z     "
-
-#: ../execute.py:216
-#, python-format
-msgid "*** WARNING: file does not exist - %s"
-msgstr "*** WARNING: file does not exist - %s"
-
-#: ../execute.py:222
-msgid "*** WARNING: No atoms selected to work with"
-msgstr "*** WARNING: No atoms selected to work with"
-
-#: ../execute.py:297
-msgid "*** Only working on selected atoms"
-msgstr "*** Only working on selected atoms"
-
-#: ../execute.py:299
-msgid "*** Working on all atoms"
-msgstr "*** Working on all atoms"
-
-#: ../execute.py:303
-msgid "*** Only working on current image"
-msgstr "*** Only working on current image"
-
-#: ../execute.py:305
-msgid "*** Working on all images"
-msgstr "*** Working on all images"
-
-#: ../execute.py:322
-msgid "Save Terminal text ..."
-msgstr "Save Terminal text ..."
-
-#: ../execute.py:323
-msgid "Cancel"
-msgstr "Cancel"
-
 #: ../graphene.py:17
 msgid ""
 "Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may\n"
@@ -1245,6 +364,10 @@ msgstr "armchair"
 #: ../graphene.py:71 ../graphene.py:82
 msgid "  Bond length: "
 msgstr "  Bond length: "
+
+#: ../graphene.py:72 ../graphene.py:83 ../graphene.py:107 ../nanotube.py:45
+msgid "Å"
+msgstr "Å"
 
 #. Choose the saturation element and bond length
 #: ../graphene.py:77
@@ -1326,6 +449,10 @@ msgstr ""
 #: ../graphs.py:42 ../graphs.py:44
 msgid "Plot"
 msgstr "Plot"
+
+#: ../graphs.py:46
+msgid "Save"
+msgstr "Save"
 
 #: ../graphs.py:47
 msgid "Clear"
@@ -1657,53 +784,6 @@ msgstr "_About"
 msgid "Webpage ..."
 msgstr "Webpage ..."
 
-#: ../minimize.py:25
-msgid "Algorithm: "
-msgstr "Algorithm: "
-
-#: ../minimize.py:30 ../progress.py:69
-msgid "Convergence criterion: F<sub>max</sub> = "
-msgstr "Convergence criterion: F<sub>max</sub> = "
-
-#: ../minimize.py:35 ../progress.py:73
-msgid "Max. number of steps: "
-msgstr "Max. number of steps: "
-
-#. Special stuff for MDMin
-#: ../minimize.py:38
-msgid "Pseudo time step: "
-msgstr "Pseudo time step: "
-
-#: ../minimize.py:60
-msgid "Energy minimization"
-msgstr "Energy minimisation"
-
-#: ../minimize.py:64
-msgid "Minimize the energy with respect to the positions."
-msgstr "Minimise the energy with respect to the positions."
-
-#. Don't catch errors in the function.
-#. Display status message
-#: ../minimize.py:96
-msgid "Running ..."
-msgstr "Running ..."
-
-#. Update display to reflect cancellation of simulation.
-#: ../minimize.py:113
-#, python-format
-msgid "Minimization CANCELLED after %i steps."
-msgstr "Minimisation CANCELLED after %i steps."
-
-#: ../minimize.py:119
-msgid "Out of memory, consider using LBFGS instead"
-msgstr "Out of memory, consider using LBFGS instead"
-
-#. Update display to reflect successful end of simulation.
-#: ../minimize.py:126
-#, python-format
-msgid "Minimization completed in %i steps."
-msgstr "Minimisation completed in %i steps."
-
 #: ../modify.py:18
 msgid "No atoms selected!"
 msgstr "No atoms selected!"
@@ -1751,6 +831,10 @@ msgstr "Last"
 #: ../movie.py:23
 msgid "Play"
 msgstr "Play"
+
+#: ../movie.py:24
+msgid "Stop"
+msgstr "Stop"
 
 #. TRANSLATORS: This function plays an animation forwards and backwards
 #. alternatingly, e.g. for displaying vibrational movement
@@ -1906,7 +990,7 @@ msgstr "Add new direction:"
 msgid "Information about the created cluster:"
 msgstr "Information about the created cluster:"
 
-#: ../nanoparticle.py:181 ../progress.py:203
+#: ../nanoparticle.py:181
 msgid "Number of atoms: "
 msgstr "Number of atoms: "
 
@@ -1922,11 +1006,11 @@ msgstr "Automatic Apply"
 msgid "Creating a nanoparticle."
 msgstr "Creating a nanoparticle."
 
-#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:83
+#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:84
 msgid "Apply"
 msgstr "Apply"
 
-#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:84
+#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:85
 msgid "OK"
 msgstr "OK"
 
@@ -2049,105 +1133,6 @@ msgstr "Select roll-up vector (n,m) and tube length:"
 #: ../nanotube.py:49
 msgid "Length:"
 msgstr "Length:"
-
-#: ../progress.py:28
-msgid "Progress"
-msgstr "Progress"
-
-#: ../progress.py:35
-msgid "Scaling deformation:"
-msgstr "Scaling deformation:"
-
-#: ../progress.py:41
-#, python-format
-msgid "Step number %s of %s."
-msgstr "Step number %s of %s."
-
-#. Minimization progress frame
-#. Box containing frame and spacing
-#: ../progress.py:55
-msgid "Energy minimization:"
-msgstr "Energy minimisation:"
-
-#: ../progress.py:62
-msgid "Step number: "
-msgstr "Step number: "
-
-#: ../progress.py:64
-msgid "F<sub>max</sub>: "
-msgstr "F<sub>max</sub>: "
-
-#: ../progress.py:108
-msgid "unknown"
-msgstr "unknown"
-
-#: ../progress.py:186
-msgid "Status: "
-msgstr "Status: "
-
-#: ../progress.py:188
-msgid "Iteration: "
-msgstr "Iteration: "
-
-#: ../progress.py:191
-msgid "log<sub>10</sub>(change):"
-msgstr "log<sub>10</sub>(change):"
-
-#: ../progress.py:194
-msgid "Wave functions: "
-msgstr "Wave functions: "
-
-#: ../progress.py:196
-msgid "Density: "
-msgstr "Density: "
-
-#: ../progress.py:198
-msgid "Energy: "
-msgstr "Energy: "
-
-#: ../progress.py:201
-msgid "GPAW version: "
-msgstr "GPAW version: "
-
-#: ../progress.py:204
-msgid "N/A"
-msgstr "N/A"
-
-#: ../progress.py:205
-msgid "Memory estimate: "
-msgstr "Memory estimate: "
-
-#: ../progress.py:240
-msgid "No info"
-msgstr "No info"
-
-#: ../progress.py:250
-msgid "Initializing"
-msgstr "Initializing"
-
-#: ../progress.py:251
-msgid "Positions:"
-msgstr "Positions:"
-
-#: ../progress.py:255
-msgid "Starting calculation"
-msgstr "Starting calculation"
-
-#: ../progress.py:292
-msgid "unchanged"
-msgstr "unchanged"
-
-#: ../progress.py:302
-msgid "Self-consistency loop"
-msgstr "Self-consistency loop"
-
-#: ../progress.py:307
-msgid "Calculating forces"
-msgstr "Calculating forces"
-
-#: ../progress.py:308
-msgid " (converged)"
-msgstr " (converged)"
 
 #: ../quickinfo.py:6
 msgid "Single image loaded."
@@ -2511,6 +1496,10 @@ msgstr "Run"
 msgid "No calculator: Use Calculate/Set Calculator on the menu."
 msgstr "No calculator: Use Calculate/Set Calculator on the menu."
 
+#: ../simulation.py:123
+msgid "No atoms present"
+msgstr "No atoms present"
+
 #: ../status.py:57
 #, python-format
 msgid " tag=%(tag)s"
@@ -2567,11 +1556,11 @@ msgstr "fcc"
 msgid "FCC(110)"
 msgstr "FCC(110)"
 
-#: ../surfaceslab.py:28 ../surfaceslab.py:171
+#: ../surfaceslab.py:28 ../surfaceslab.py:172
 msgid "FCC(111)"
 msgstr "FCC(111)"
 
-#: ../surfaceslab.py:29 ../surfaceslab.py:174
+#: ../surfaceslab.py:29 ../surfaceslab.py:175
 msgid "FCC(211)"
 msgstr "FCC(211)"
 
@@ -2583,24 +1572,24 @@ msgstr "BCC(100)"
 msgid "bcc"
 msgstr "bcc"
 
-#: ../surfaceslab.py:31 ../surfaceslab.py:168
+#: ../surfaceslab.py:31 ../surfaceslab.py:169
 msgid "BCC(110)"
 msgstr "BCC(110)"
 
-#: ../surfaceslab.py:32 ../surfaceslab.py:165
+#: ../surfaceslab.py:32 ../surfaceslab.py:166
 msgid "BCC(111)"
 msgstr "BCC(111)"
 
-#: ../surfaceslab.py:33 ../surfaceslab.py:178
+#: ../surfaceslab.py:33 ../surfaceslab.py:179
 msgid "HCP(0001)"
 msgstr "HCP(0001)"
 
-#: ../surfaceslab.py:33 ../surfaceslab.py:34 ../surfaceslab.py:132
-#: ../surfaceslab.py:188
+#: ../surfaceslab.py:33 ../surfaceslab.py:34 ../surfaceslab.py:133
+#: ../surfaceslab.py:189
 msgid "hcp"
 msgstr "hcp"
 
-#: ../surfaceslab.py:34 ../surfaceslab.py:181
+#: ../surfaceslab.py:34 ../surfaceslab.py:182
 msgid "HCP(10-10)"
 msgstr "HCP(10-10)"
 
@@ -2644,25 +1633,26 @@ msgstr "\ty: "
 msgid "\tz: "
 msgstr "\tz: "
 
-#: ../surfaceslab.py:82
+#. TRANSLATORS: This is a title of a window.
+#: ../surfaceslab.py:83
 msgid "Creating a surface."
 msgstr "Creating a surface."
 
-#: ../surfaceslab.py:162
+#: ../surfaceslab.py:163
 msgid "Please enter an even value for orthogonal cell"
 msgstr "Please enter an even value for orthogonal cell"
 
-#: ../surfaceslab.py:175
+#: ../surfaceslab.py:176
 msgid "Please enter a value divisible by 3 for orthogonal cell"
 msgstr "Please enter a value divisible by 3 for orthogonal cell"
 
-#: ../surfaceslab.py:195
+#: ../surfaceslab.py:196
 msgid "Vacuum: {} Å."
 msgstr "Vacuum: {} Å."
 
 #. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
 #. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
-#: ../surfaceslab.py:202
+#: ../surfaceslab.py:203
 #, python-brace-format
 msgid "{symbol} {surf} surface with one atom.{vacuum}"
 msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
@@ -2685,6 +1675,10 @@ msgstr "Web-page"
 msgid "About"
 msgstr "About"
 
+#: ../ui.py:59 ../ui.py:63
+msgid "Help"
+msgstr "Help"
+
 #: ../widgets.py:11
 msgid "Element:"
 msgstr "Element:"
@@ -2700,6 +1694,820 @@ msgstr "ERROR: Invalid element!"
 #: ../widgets.py:75
 msgid "No Python code"
 msgstr "No Python code"
+
+#~ msgid ""
+#~ "To make most calculations on the atoms, a Calculator object must first\n"
+#~ "be associated with it.  ASE supports a number of calculators, supporting\n"
+#~ "different elements, and implementing different physical models for the\n"
+#~ "interatomic interactions."
+#~ msgstr ""
+#~ "To make most calculations on the atoms, a Calculator object must first\n"
+#~ "be associated with it.  ASE supports a number of calculators, supporting\n"
+#~ "different elements, and implementing different physical models for the\n"
+#~ "interatomic interactions."
+
+#~ msgid ""
+#~ "The Lennard-Jones pair potential is one of the simplest\n"
+#~ "possible models for interatomic interactions, mostly\n"
+#~ "suitable for noble gasses and model systems.\n"
+#~ "\n"
+#~ "Interactions are described by an interaction length and an\n"
+#~ "interaction strength."
+#~ msgstr ""
+#~ "The Lennard-Jones pair potential is one of the simplest\n"
+#~ "possible models for interatomic interactions, mostly\n"
+#~ "suitable for noble gasses and model systems.\n"
+#~ "\n"
+#~ "Interactions are described by an interaction length and an\n"
+#~ "interaction strength."
+
+#~ msgid ""
+#~ "The EMT potential is a many-body potential, giving a\n"
+#~ "good description of the late transition metals crystalling\n"
+#~ "in the FCC crystal structure.  The elements described by the\n"
+#~ "main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
+#~ "Au, the Al potential is however not suitable for materials\n"
+#~ "science application, as the stacking fault energy is wrong.\n"
+#~ "\n"
+#~ "A number of parameter sets are provided.\n"
+#~ "\n"
+#~ "<b>Default parameters:</b>\n"
+#~ "\n"
+#~ "The default EMT parameters, as published in K. W. Jacobsen,\n"
+#~ "P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
+#~ "\n"
+#~ "<b>Alternative Cu, Ag and Au:</b>\n"
+#~ "\n"
+#~ "An alternative set of parameters for Cu, Ag and Au,\n"
+#~ "reoptimized to experimental data including the stacking\n"
+#~ "fault energies by Torben Rasmussen (partly unpublished).\n"
+#~ "\n"
+#~ "<b>Ruthenium:</b>\n"
+#~ "\n"
+#~ "Parameters for Ruthenium, as published in J. Gavnholt and\n"
+#~ "J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
+#~ "\n"
+#~ "<b>Metallic glasses:</b>\n"
+#~ "\n"
+#~ "Parameters for MgCu and CuZr metallic glasses. MgCu\n"
+#~ "parameters are in N. P. Bailey, J. Schiøtz and\n"
+#~ "K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004).\n"
+#~ "CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
+#~ "J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
+#~ msgstr ""
+#~ "The EMT potential is a many-body potential, giving a\n"
+#~ "good description of the late transition metals crystalling\n"
+#~ "in the FCC crystal structure.  The elements described by the\n"
+#~ "main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
+#~ "Au, the Al potential is however not suitable for materials\n"
+#~ "science application, as the stacking fault energy is wrong.\n"
+#~ "\n"
+#~ "A number of parameter sets are provided.\n"
+#~ "\n"
+#~ "<b>Default parameters:</b>\n"
+#~ "\n"
+#~ "The default EMT parameters, as published in K. W. Jacobsen,\n"
+#~ "P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
+#~ "\n"
+#~ "<b>Alternative Cu, Ag and Au:</b>\n"
+#~ "\n"
+#~ "An alternative set of parameters for Cu, Ag and Au,\n"
+#~ "reoptimised to experimental data including the stacking\n"
+#~ "fault energies by Torben Rasmussen (partly unpublished).\n"
+#~ "\n"
+#~ "<b>Ruthenium:</b>\n"
+#~ "\n"
+#~ "Parameters for Ruthenium, as published in J. Gavnholt and\n"
+#~ "J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
+#~ "\n"
+#~ "<b>Metallic glasses:</b>\n"
+#~ "\n"
+#~ "Parameters for MgCu and CuZr metallic glasses. MgCu\n"
+#~ "parameters are in N. P. Bailey, J. Schiøtz and\n"
+#~ "K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004).\n"
+#~ "CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
+#~ "J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
+
+#~ msgid ""
+#~ "The EMT potential is a many-body potential, giving a\n"
+#~ "good description of the late transition metals crystalling\n"
+#~ "in the FCC crystal structure.  The elements described by the\n"
+#~ "main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
+#~ "Au.  In addition, this implementation allows for the use of\n"
+#~ "H, N, O and C adatoms, although the description of these is\n"
+#~ "most likely not very good.\n"
+#~ "\n"
+#~ "<b>This is the ASE implementation of EMT.</b> For large\n"
+#~ "simulations the ASAP implementation is more suitable; this\n"
+#~ "implementation is mainly to make EMT available when ASAP is\n"
+#~ "not installed.\n"
+#~ msgstr ""
+#~ "The EMT potential is a many-body potential, giving a\n"
+#~ "good description of the late transition metals crystalling\n"
+#~ "in the FCC crystal structure.  The elements described by the\n"
+#~ "main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
+#~ "Au.  In addition, this implementation allows for the use of\n"
+#~ "H, N, O and C adatoms, although the description of these is\n"
+#~ "most likely not very good.\n"
+#~ "\n"
+#~ "<b>This is the ASE implementation of EMT.</b> For large\n"
+#~ "simulations the ASAP implementation is more suitable; this\n"
+#~ "implementation is mainly to make EMT available when ASAP is\n"
+#~ "not installed.\n"
+
+#~ msgid ""
+#~ "The EAM/ADP potential is a many-body potential\n"
+#~ "implementation of the Embedded Atom Method and\n"
+#~ "equipotential plus the Angular Dependent Potential,\n"
+#~ "which is an extension of the EAM to include\n"
+#~ "directional bonds. EAM is suited for FCC metallic\n"
+#~ "bonding while the ADP is suited for metallic bonds\n"
+#~ "with some degree of directionality.\n"
+#~ "\n"
+#~ "For EAM see M.S. Daw and M.I. Baskes,\n"
+#~ "Phys. Rev. Letters 50 (1983) 1285.\n"
+#~ "\n"
+#~ "For ADP see Y. Mishin, M.J. Mehl, and\n"
+#~ "D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
+#~ "4029--4041.\n"
+#~ "\n"
+#~ "Data for the potential is contained in a file in either LAMMPS Alloy\n"
+#~ "or ADP format which need to be loaded before use. The Interatomic\n"
+#~ "Potentials Repository Project at http://www.ctcms.nist.gov/potentials/\n"
+#~ "contains many suitable potential files.\n"
+#~ "\n"
+#~ "For large simulations the LAMMPS calculator is more\n"
+#~ "suitable; this implementation is mainly to make EAM\n"
+#~ "available when LAMMPS is not installed or to develop\n"
+#~ "new EAM/ADP poentials by matching results using ab\n"
+#~ "initio.\n"
+#~ msgstr ""
+#~ "The EAM/ADP potential is a many-body potential\n"
+#~ "implementation of the Embedded Atom Method and\n"
+#~ "equipotential plus the Angular Dependent Potential,\n"
+#~ "which is an extension of the EAM to include\n"
+#~ "directional bonds. EAM is suited for FCC metallic\n"
+#~ "bonding while the ADP is suited for metallic bonds\n"
+#~ "with some degree of directionality.\n"
+#~ "\n"
+#~ "For EAM see M.S. Daw and M.I. Baskes,\n"
+#~ "Phys. Rev. Letters 50 (1983) 1285.\n"
+#~ "\n"
+#~ "For ADP see Y. Mishin, M.J. Mehl, and\n"
+#~ "D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
+#~ "4029--4041.\n"
+#~ "\n"
+#~ "Data for the potential is contained in a file in either LAMMPS Alloy\n"
+#~ "or ADP format which need to be loaded before use. The Interatomic\n"
+#~ "Potentials Repository Project at http://www.ctcms.nist.gov/potentials/\n"
+#~ "contains many suitable potential files.\n"
+#~ "\n"
+#~ "For large simulations the LAMMPS calculator is more\n"
+#~ "suitable; this implementation is mainly to make EAM\n"
+#~ "available when LAMMPS is not installed or to develop\n"
+#~ "new EAM/ADP poentials by matching results using ab\n"
+#~ "initio.\n"
+
+#~ msgid ""
+#~ "The Brenner potential is a reactive bond-order potential for\n"
+#~ "carbon and hydrocarbons.  As a bond-order potential, it takes\n"
+#~ "into account that carbon orbitals can hybridize in different\n"
+#~ "ways, and that carbon can form single, double and triple\n"
+#~ "bonds.  That the potential is reactive means that it can\n"
+#~ "handle gradual changes in the bond order as chemical bonds\n"
+#~ "are formed or broken.\n"
+#~ "\n"
+#~ "The Brenner potential is implemented in Asap, based on a\n"
+#~ "C implentation published at http://www.rahul.net/pcm/brenner/ .\n"
+#~ "\n"
+#~ "The potential is documented here:\n"
+#~ "  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
+#~ "  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
+#~ "  \"A second-generation reactive empirical bond order (REBO)\n"
+#~ "  potential energy expression for hydrocarbons\",\n"
+#~ "  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
+#~ "  doi: 10.1088/0953-8984/14/4/312\n"
+#~ msgstr ""
+#~ "The Brenner potential is a reactive bond-order potential for\n"
+#~ "carbon and hydrocarbons.  As a bond-order potential, it takes\n"
+#~ "into account that carbon orbitals can hybridise in different\n"
+#~ "ways, and that carbon can form single, double and triple\n"
+#~ "bonds.  That the potential is reactive means that it can\n"
+#~ "handle gradual changes in the bond order as chemical bonds\n"
+#~ "are formed or broken.\n"
+#~ "\n"
+#~ "The Brenner potential is implemented in Asap, based on a\n"
+#~ "C implentation published at http://www.rahul.net/pcm/brenner/ .\n"
+#~ "\n"
+#~ "The potential is documented here:\n"
+#~ "  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
+#~ "  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
+#~ "  \"A second-generation reactive empirical bond order (REBO)\n"
+#~ "  potential energy expression for hydrocarbons\",\n"
+#~ "  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
+#~ "  doi: 10.1088/0953-8984/14/4/312\n"
+
+#~ msgid ""
+#~ "GPAW implements Density Functional Theory using a\n"
+#~ "<b>G</b>rid-based real-space representation of the wave\n"
+#~ "functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
+#~ "method for handling the core regions.\n"
+#~ msgstr ""
+#~ "GPAW implements Density Functional Theory using a\n"
+#~ "<b>G</b>rid-based real-space representation of the wave\n"
+#~ "functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
+#~ "method for handling the core regions.\n"
+
+#~ msgid ""
+#~ "FHI-aims is an external package implementing density\n"
+#~ "functional theory and quantum chemical methods using\n"
+#~ "all-electron methods and a numeric local orbital basis set.\n"
+#~ "For full details, see http://www.fhi-berlin.mpg.de/aims/\n"
+#~ "or Comp. Phys. Comm. v180 2175 (2009). The ASE\n"
+#~ "documentation contains information on the keywords and\n"
+#~ "functionalities available within this interface.\n"
+#~ msgstr ""
+#~ "FHI-aims is an external package implementing density\n"
+#~ "functional theory and quantum chemical methods using\n"
+#~ "all-electron methods and a numeric local orbital basis set.\n"
+#~ "For full details, see http://www.fhi-berlin.mpg.de/aims/\n"
+#~ "or Comp. Phys. Comm. v180 2175 (2009). The ASE\n"
+#~ "documentation contains information on the keywords and\n"
+#~ "functionalities available within this interface.\n"
+
+#~ msgid ""
+#~ "WARNING:\n"
+#~ "Your system seems to have more than zero but less than\n"
+#~ "three periodic dimensions. Please check that this is\n"
+#~ "really what you want to compute. Assuming full\n"
+#~ "3D periodicity for this calculator."
+#~ msgstr ""
+#~ "WARNING:\n"
+#~ "Your system seems to have more than zero but less than\n"
+#~ "three periodic dimensions. Please check that this is\n"
+#~ "really what you want to compute. Assuming full\n"
+#~ "3D periodicity for this calculator."
+
+#~ msgid ""
+#~ "VASP is an external package implementing density\n"
+#~ "functional functional theory using pseudopotentials\n"
+#~ "or the projector-augmented wave method together\n"
+#~ "with a plane wave basis set. For full details, see\n"
+#~ "http://cms.mpi.univie.ac.at/vasp/vasp/\n"
+#~ msgstr ""
+#~ "VASP is an external package implementing density\n"
+#~ "functional functional theory using pseudopotentials\n"
+#~ "or the projector-augmented wave method together\n"
+#~ "with a plane wave basis set. For full details, see\n"
+#~ "http://cms.mpi.univie.ac.at/vasp/vasp/\n"
+
+#~ msgid "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
+#~ msgstr "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
+
+#~ msgid "Alternative Cu, Ag and Au"
+#~ msgstr "Alternative Cu, Ag and Au"
+
+#~ msgid "Ruthenium"
+#~ msgstr "Ruthenium"
+
+#~ msgid "CuMg and CuZr metallic glass"
+#~ msgstr "CuMg and CuZr metallic glass"
+
+#~ msgid "Select calculator"
+#~ msgstr "Select calculator"
+
+#~ msgid "Calculator:"
+#~ msgstr "Calculator:"
+
+#~ msgid "None"
+#~ msgstr "None"
+
+#~ msgid "Lennard-Jones (ASAP)"
+#~ msgstr "Lennard-Jones (ASAP)"
+
+#~ msgid "Setup"
+#~ msgstr "Setup"
+
+#~ msgid "EMT - Effective Medium Theory (ASAP)"
+#~ msgstr "EMT - Effective Medium Theory (ASAP)"
+
+#~ msgid "EMT - Effective Medium Theory (ASE)"
+#~ msgstr "EMT - Effective Medium Theory (ASE)"
+
+#~ msgid "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
+#~ msgstr "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
+
+#~ msgid "Brenner Potential (ASAP)"
+#~ msgstr "Brenner Potential (ASAP)"
+
+#~ msgid "Density Functional Theory (GPAW)"
+#~ msgstr "Density Functional Theory (GPAW)"
+
+#~ msgid "Density Functional Theory (FHI-aims)"
+#~ msgstr "Density Functional Theory (FHI-aims)"
+
+#~ msgid "Density Functional Theory (VASP)"
+#~ msgstr "Density Functional Theory (VASP)"
+
+#~ msgid "Check that the calculator is reasonable."
+#~ msgstr "Check that the calculator is reasonable."
+
+#~ msgid "ASAP is not installed. (Failed to import asap3)"
+#~ msgstr "ASAP is not installed. (Failed to import asap3)"
+
+#~ msgid "You must set up the Lennard-Jones parameters"
+#~ msgstr "You must set up the Lennard-Jones parameters"
+
+#~ msgid "Could not create useful Lennard-Jones calculator."
+#~ msgstr "Could not create useful Lennard-Jones calculator."
+
+#~ msgid "Could not attach EMT calculator to the atoms."
+#~ msgstr "Could not attach EMT calculator to the atoms."
+
+#~ msgid "You must set up the EAM parameters"
+#~ msgstr "You must set up the EAM parameters"
+
+#~ msgid "GPAW is not installed. (Failed to import gpaw)"
+#~ msgstr "GPAW is not installed. (Failed to import gpaw)"
+
+#~ msgid "You must set up the GPAW parameters"
+#~ msgstr "You must set up the GPAW parameters"
+
+#~ msgid "You must set up the FHI-aims parameters"
+#~ msgstr "You must set up the FHI-aims parameters"
+
+#~ msgid "You must set up the VASP parameters"
+#~ msgstr "You must set up the VASP parameters"
+
+#~ msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
+#~ msgstr "Element %(sym)s not allowed by the '%(name)s' calculator"
+
+#~ msgid "Info"
+#~ msgstr "Info"
+
+#~ msgid "Lennard-Jones parameters"
+#~ msgstr "Lennard-Jones parameters"
+
+#~ msgid "Specify the Lennard-Jones parameters here"
+#~ msgstr "Specify the Lennard-Jones parameters here"
+
+#~ msgid "Epsilon (eV):"
+#~ msgstr "Epsilon (eV):"
+
+#~ msgid "Sigma (Å):"
+#~ msgstr "Sigma (Å):"
+
+#~ msgid "Shift to make smooth at cutoff"
+#~ msgstr "Shift to make smooth at cutoff"
+
+#~ msgid "EAM parameters"
+#~ msgstr "EAM parameters"
+
+#~ msgid "Import Potential"
+#~ msgstr "Import Potential"
+
+#~ msgid "You need to import the potential file"
+#~ msgstr "You need to import the potential file"
+
+#~ msgid "Import .alloy or .adp potential file ... "
+#~ msgstr "Import .alloy or .adp potential file ... "
+
+#~ msgid "GPAW parameters"
+#~ msgstr "GPAW parameters"
+
+#~ msgid "%i atoms.\n"
+#~ msgstr "%i atoms.\n"
+
+#~ msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
+#~ msgstr "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
+
+#~ msgid "Non-orthogonal unit cell:\n"
+#~ msgstr "Non-orthogonal unit cell:\n"
+
+#~ msgid "Exchange-correlation functional: "
+#~ msgstr "Exchange-correlation functional: "
+
+#~ msgid "Grid spacing"
+#~ msgstr "Grid spacing"
+
+#~ msgid "Grid points"
+#~ msgstr "Grid points"
+
+#~ msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
+#~ msgstr "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
+
+#~ msgid "k-points  k = ("
+#~ msgstr "k-points  k = ("
+
+#~ msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
+#~ msgstr "k-points x size:  (%.1f, %.1f, %.1f) Å"
+
+#~ msgid "Spin polarized"
+#~ msgstr "Spin polarised"
+
+#~ msgid "FD - Finite Difference (grid) mode"
+#~ msgstr "FD - Finite Difference (grid) mode"
+
+#~ msgid "LCAO - Linear Combination of Atomic Orbitals"
+#~ msgstr "LCAO - Linear Combination of Atomic Orbitals"
+
+#~ msgid "Mode: "
+#~ msgstr "Mode: "
+
+#~ msgid "sz - Single Zeta"
+#~ msgstr "sz - Single Zeta"
+
+#~ msgid "szp - Single Zeta polarized"
+#~ msgstr "szp - Single Zeta polarised"
+
+#~ msgid "dzp - Double Zeta polarized"
+#~ msgstr "dzp - Double Zeta polarised"
+
+#~ msgid "Basis functions: "
+#~ msgstr "Basis functions: "
+
+#~ msgid "Non-standard mixer parameters"
+#~ msgstr "Non-standard mixer parameters"
+
+#~ msgid "FHI-aims parameters"
+#~ msgstr "FHI-aims parameters"
+
+#~ msgid "Periodic geometry, unit cell is:\n"
+#~ msgstr "Periodic geometry, unit cell is:\n"
+
+#~ msgid "Non-periodic geometry.\n"
+#~ msgstr "Non-periodic geometry.\n"
+
+#~ msgid "Hirshfeld-based dispersion correction"
+#~ msgstr "Hirshfeld-based dispersion correction"
+
+#~ msgid "Spin / initial moment "
+#~ msgstr "Spin / initial moment "
+
+#~ msgid "   Charge"
+#~ msgstr "   Charge"
+
+#~ msgid "   Relativity"
+#~ msgstr "   Relativity"
+
+#~ msgid " Threshold"
+#~ msgstr " Threshold"
+
+#~ msgid "Self-consistency convergence:"
+#~ msgstr "Self-consistency convergence:"
+
+#~ msgid "Compute forces"
+#~ msgstr "Compute forces"
+
+#~ msgid "Energy:                 "
+#~ msgstr "Energy:                 "
+
+#~ msgid " eV   Sum of eigenvalues:  "
+#~ msgstr " eV   Sum of eigenvalues:  "
+
+#~ msgid " eV"
+#~ msgstr " eV"
+
+#~ msgid "Electron density: "
+#~ msgstr "Electron density: "
+
+#~ msgid "        Force convergence:  "
+#~ msgstr "        Force convergence:  "
+
+#~ msgid " eV/Ang  "
+#~ msgstr " eV/Ang  "
+
+#~ msgid "Additional keywords: "
+#~ msgstr "Additional keywords: "
+
+#~ msgid "FHI-aims execution command: "
+#~ msgstr "FHI-aims execution command: "
+
+#~ msgid "Directory for species defaults: "
+#~ msgstr "Directory for species defaults: "
+
+#~ msgid "Set Defaults"
+#~ msgstr "Set Defaults"
+
+#~ msgid "Import control.in"
+#~ msgstr "Import control.in"
+
+#~ msgid "Export control.in"
+#~ msgstr "Export control.in"
+
+#~ msgid "Export parameters ... "
+#~ msgstr "Export parameters ... "
+
+#~ msgid "Import control.in file ... "
+#~ msgstr "Import control.in file ... "
+
+#~ msgid ""
+#~ "Please use the facilities provided in this window to manipulate the "
+#~ "keyword: %s!"
+#~ msgstr ""
+#~ "Please use the facilities provided in this window to manipulate the "
+#~ "keyword: %s!"
+
+#~ msgid ""
+#~ "Don't know this keyword: %s\n"
+#~ "\n"
+#~ "Please check!\n"
+#~ "\n"
+#~ "If you really think it should be available, please add it to the top of "
+#~ "ase/calculators/aims.py."
+#~ msgstr ""
+#~ "Don't know this keyword: %s\n"
+#~ "\n"
+#~ "Please check!\n"
+#~ "\n"
+#~ "If you really think it should be available, please add it to the top of "
+#~ "ase/calculators/aims.py."
+
+#~ msgid "VASP parameters"
+#~ msgstr "VASP parameters"
+
+#~ msgid "Periodic geometry, unit cell is: \n"
+#~ msgstr "Periodic geometry, unit cell is: \n"
+
+#~ msgid ")    Cutoff: "
+#~ msgstr ")    Cutoff: "
+
+#~ msgid "    Precision: "
+#~ msgstr "    Precision: "
+
+#~ msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
+#~ msgstr "k-points x size:  (%.1f, %.1f, %.1f) Å       "
+
+#~ msgid "Smearing: "
+#~ msgstr "Smearing: "
+
+#~ msgid " order: "
+#~ msgstr " order: "
+
+#~ msgid " width: "
+#~ msgstr " width: "
+
+#~ msgid "Self-consistency convergence: "
+#~ msgstr "Self-consistency convergence: "
+
+#~ msgid "VASP execution command: "
+#~ msgstr "VASP execution command: "
+
+#~ msgid "Import VASP files"
+#~ msgstr "Import VASP files"
+
+#~ msgid "Export VASP files"
+#~ msgstr "Export VASP files"
+
+#~ msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
+#~ msgstr "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
+
+#~ msgid "Import VASP input files: choose directory ... "
+#~ msgstr "Import VASP input files: choose directory ... "
+
+#~ msgid "Export VASP input files: choose directory ... "
+#~ msgstr "Export VASP input files: choose directory ... "
+
+#~ msgid ""
+#~ "Don't know this keyword: %s\n"
+#~ "Please check!\n"
+#~ "\n"
+#~ "If you really think it should be available, please add it to the top of "
+#~ "ase/calculators/vasp.py."
+#~ msgstr ""
+#~ "Don't know this keyword: %s\n"
+#~ "Please check!\n"
+#~ "\n"
+#~ "If you really think it should be available, please add it to the top of "
+#~ "ase/calculators/vasp.py."
+
+#~ msgid ""
+#~ "\n"
+#~ "    Global commands work on all frames or only on the current frame\n"
+#~ "    - Assignment of a global variable may not reference a local one\n"
+#~ "    - use 'Current frame' switch to switch off application to all frames\n"
+#~ "    <c>e</c>:\t\ttotal energy of one frame\n"
+#~ "    <c>fmax</c>:\tmaximal force in one frame\n"
+#~ "    <c>A</c>:\tunit cell\n"
+#~ "    <c>E</c>:\t\ttotal energy array of all frames\n"
+#~ "    <c>F</c>:\t\tall forces in one frame\n"
+#~ "    <c>M</c>:\tall magnetic moments\n"
+#~ "    <c>R</c>:\t\tall atomic positions\n"
+#~ "    <c>S</c>:\tall selected atoms (boolean array)\n"
+#~ "    <c>D</c>:\tall dynamic atoms (boolean array)\n"
+#~ "    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+#~ "\n"
+#~ "    Atom commands work on each atom (or a selection) individually\n"
+#~ "    - these can use global commands on the RHS of an equation\n"
+#~ "    - use 'selected atoms only' to restrict application of command\n"
+#~ "    <c>x,y,z</c>:\tatomic coordinates\n"
+#~ "    <c>r,g,b</c>:\tatom display color, range is [0..1]\n"
+#~ "    <c>rad</c>:\tatomic radius for display\n"
+#~ "    <c>s</c>:\t\tatom is selected\n"
+#~ "    <c>d</c>:\t\tatom is movable\n"
+#~ "    <c>f</c>:\t\tforce\n"
+#~ "    <c>Z</c>:\tatomic number\n"
+#~ "    <c>m</c>:\tmagnetic moment\n"
+#~ "    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+#~ "\n"
+#~ "    Special commands and objects:\n"
+#~ "    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
+#~ "    <c>frame</c>:\tframe number\n"
+#~ "    <c>center</c>:\tcenters the system in its existing unit cell\n"
+#~ "    <c>del S</c>:\tdelete selection\n"
+#~ "    <c>CM</c>:\tcenter of mass\n"
+#~ "    <c>ans[-i]</c>:\tith last calculated result\n"
+#~ "    <c>exec file</c>: executes commands listed in file\n"
+#~ "    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
+#~ "    <c>gui</c>:\tadvanced: gui window python object\n"
+#~ "    <c>img</c>:\tadvanced: gui images object\n"
+#~ "    "
+#~ msgstr ""
+#~ "\n"
+#~ "    Global commands work on all frames or only on the current frame\n"
+#~ "    - Assignment of a global variable may not reference a local one\n"
+#~ "    - use 'Current frame' switch to switch off application to all frames\n"
+#~ "    <c>e</c>:\t\ttotal energy of one frame\n"
+#~ "    <c>fmax</c>:\tmaximal force in one frame\n"
+#~ "    <c>A</c>:\tunit cell\n"
+#~ "    <c>E</c>:\t\ttotal energy array of all frames\n"
+#~ "    <c>F</c>:\t\tall forces in one frame\n"
+#~ "    <c>M</c>:\tall magnetic moments\n"
+#~ "    <c>R</c>:\t\tall atomic positions\n"
+#~ "    <c>S</c>:\tall selected atoms (boolean array)\n"
+#~ "    <c>D</c>:\tall dynamic atoms (boolean array)\n"
+#~ "    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+#~ "\n"
+#~ "    Atom commands work on each atom (or a selection) individually\n"
+#~ "    - these can use global commands on the RHS of an equation\n"
+#~ "    - use 'selected atoms only' to restrict application of command\n"
+#~ "    <c>x,y,z</c>:\tatomic coordinates\n"
+#~ "    <c>r,g,b</c>:\tatom display colour, range is [0..1]\n"
+#~ "    <c>rad</c>:\tatomic radius for display\n"
+#~ "    <c>s</c>:\t\tatom is selected\n"
+#~ "    <c>d</c>:\t\tatom is movable\n"
+#~ "    <c>f</c>:\t\tforce\n"
+#~ "    <c>Z</c>:\tatomic number\n"
+#~ "    <c>m</c>:\tmagnetic moment\n"
+#~ "    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+#~ "\n"
+#~ "    Special commands and objects:\n"
+#~ "    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
+#~ "    <c>frame</c>:\tframe number\n"
+#~ "    <c>center</c>:\tcenters the system in its existing unit cell\n"
+#~ "    <c>del S</c>:\tdelete selection\n"
+#~ "    <c>CM</c>:\tcentre of mass\n"
+#~ "    <c>ans[-i]</c>:\tith last calculated result\n"
+#~ "    <c>exec file</c>: executes commands listed in file\n"
+#~ "    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
+#~ "    <c>gui</c>:\tadvanced: gui window python object\n"
+#~ "    <c>img</c>:\tadvanced: gui images object\n"
+#~ "    "
+
+#~ msgid "Expert user mode"
+#~ msgstr "Expert user mode"
+
+#~ msgid "Welcome to the ASE Expert user mode"
+#~ msgstr "Welcome to the ASE Expert user mode"
+
+#~ msgid "Only selected atoms (sa)   "
+#~ msgstr "Only selected atoms (sa)   "
+
+#~ msgid "Only current frame (cf)  "
+#~ msgstr "Only current frame (cf)  "
+
+#~ msgid ""
+#~ "Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, "
+#~ "z, Z     "
+#~ msgstr ""
+#~ "Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, "
+#~ "z, Z     "
+
+#~ msgid "*** WARNING: file does not exist - %s"
+#~ msgstr "*** WARNING: file does not exist - %s"
+
+#~ msgid "*** WARNING: No atoms selected to work with"
+#~ msgstr "*** WARNING: No atoms selected to work with"
+
+#~ msgid "*** Only working on selected atoms"
+#~ msgstr "*** Only working on selected atoms"
+
+#~ msgid "*** Working on all atoms"
+#~ msgstr "*** Working on all atoms"
+
+#~ msgid "*** Only working on current image"
+#~ msgstr "*** Only working on current image"
+
+#~ msgid "*** Working on all images"
+#~ msgstr "*** Working on all images"
+
+#~ msgid "Save Terminal text ..."
+#~ msgstr "Save Terminal text ..."
+
+#~ msgid "Cancel"
+#~ msgstr "Cancel"
+
+#~ msgid "Algorithm: "
+#~ msgstr "Algorithm: "
+
+#~ msgid "Convergence criterion: F<sub>max</sub> = "
+#~ msgstr "Convergence criterion: F<sub>max</sub> = "
+
+#~ msgid "Max. number of steps: "
+#~ msgstr "Max. number of steps: "
+
+#~ msgid "Pseudo time step: "
+#~ msgstr "Pseudo time step: "
+
+#~ msgid "Energy minimization"
+#~ msgstr "Energy minimisation"
+
+#~ msgid "Minimize the energy with respect to the positions."
+#~ msgstr "Minimise the energy with respect to the positions."
+
+#~ msgid "Running ..."
+#~ msgstr "Running ..."
+
+#~ msgid "Minimization CANCELLED after %i steps."
+#~ msgstr "Minimisation CANCELLED after %i steps."
+
+#~ msgid "Out of memory, consider using LBFGS instead"
+#~ msgstr "Out of memory, consider using LBFGS instead"
+
+#~ msgid "Minimization completed in %i steps."
+#~ msgstr "Minimisation completed in %i steps."
+
+#~ msgid "Progress"
+#~ msgstr "Progress"
+
+#~ msgid "Scaling deformation:"
+#~ msgstr "Scaling deformation:"
+
+#~ msgid "Step number %s of %s."
+#~ msgstr "Step number %s of %s."
+
+#~ msgid "Energy minimization:"
+#~ msgstr "Energy minimisation:"
+
+#~ msgid "Step number: "
+#~ msgstr "Step number: "
+
+#~ msgid "F<sub>max</sub>: "
+#~ msgstr "F<sub>max</sub>: "
+
+#~ msgid "unknown"
+#~ msgstr "unknown"
+
+#~ msgid "Status: "
+#~ msgstr "Status: "
+
+#~ msgid "Iteration: "
+#~ msgstr "Iteration: "
+
+#~ msgid "log<sub>10</sub>(change):"
+#~ msgstr "log<sub>10</sub>(change):"
+
+#~ msgid "Wave functions: "
+#~ msgstr "Wave functions: "
+
+#~ msgid "Density: "
+#~ msgstr "Density: "
+
+#~ msgid "Energy: "
+#~ msgstr "Energy: "
+
+#~ msgid "GPAW version: "
+#~ msgstr "GPAW version: "
+
+#~ msgid "N/A"
+#~ msgstr "N/A"
+
+#~ msgid "Memory estimate: "
+#~ msgstr "Memory estimate: "
+
+#~ msgid "No info"
+#~ msgstr "No info"
+
+#~ msgid "Initializing"
+#~ msgstr "Initializing"
+
+#~ msgid "Positions:"
+#~ msgstr "Positions:"
+
+#~ msgid "Starting calculation"
+#~ msgstr "Starting calculation"
+
+#~ msgid "unchanged"
+#~ msgstr "unchanged"
+
+#~ msgid "Self-consistency loop"
+#~ msgstr "Self-consistency loop"
+
+#~ msgid "Calculating forces"
+#~ msgstr "Calculating forces"
+
+#~ msgid " (converged)"
+#~ msgstr " (converged)"
 
 #~ msgid "To get a full traceback, use: ase-gui --verbose"
 #~ msgstr "To get a full traceback, use: ase-gui --verbose"
