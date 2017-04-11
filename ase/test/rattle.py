@@ -1,5 +1,5 @@
 import ase.units as units
-from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, thetaHOH
+from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
 from ase.data.s22 import create_s22_system as s22
 from ase.md.verlet import VelocityVerlet
@@ -13,7 +13,7 @@ for calc in [TIP3P(),
     dimer = s22('Water_dimer')
 
     for m in [0, 3]:
-        dimer.set_angle((m + 1, m, m + 2), thetaHOH)
+        dimer.set_angle(m + 1, m, m + 2, angleHOH)
         dimer.set_distance(m, m + 1, rOH, fix=0)
         dimer.set_distance(m, m + 2, rOH, fix=0)
 

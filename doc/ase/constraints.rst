@@ -225,13 +225,20 @@ specifies the accuracy to which the constraints are fulfilled.
 .. class:: FixInternals(bonds=[bond1, bond2],
     angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
 
+.. note::
+
+    The :class:`FixInternals` class use radians for angles!  Most other
+    places in ASE degrees are used.
+
 Example of use::
 
+  >>> from math import pi
   >>> bond1 = [1.20, [1, 2]]
   >>> angle_indices1 = [2, 3, 4]
   >>> dihedral_indices1 = [2, 3, 4, 5]
-  >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
-  >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1),
+  >>> angle1 = [atoms.get_angle(*angle_indices1) * pi / 180,
+                angle_indices1]
+  >>> dihedral1 = [atoms.get_dihedral(*dihedral_indices1) * pi / 180,
   ...              dihedral_indices1]
   >>> c = FixInternals(bonds=[bond1], angles=[angle1],
   ...                  dihedrals=[dihedral1])
