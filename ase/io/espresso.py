@@ -201,7 +201,8 @@ def read_espresso_out(fileobj, index=-1):
                 _, syy, syz = pwo_lines[stress_index + 2].split()[:3]
                 _, _, szz = pwo_lines[stress_index + 3].split()[:3]
                 stress = np.array([sxx, syy, szz, syz, sxz, sxy], dtype=float)
-                stress *= units['Ry'] / (units['Bohr'] ** 3)
+                # sign convention is opposite of ase
+                stress *= -1 * units['Ry'] / (units['Bohr'] ** 3)
 
         # Magmoms
         magmoms = None
