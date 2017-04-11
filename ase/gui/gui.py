@@ -228,7 +228,7 @@ class GUI(View, Status):
         self.graphs.append(process)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
+        process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
@@ -353,7 +353,7 @@ class GUI(View, Status):
         self.window.close()
 
     def new(self):
-        os.system('ase-gui &')
+        os.system('ase gui &')
 
     def save(self, key=None):
         return save_dialog(self)

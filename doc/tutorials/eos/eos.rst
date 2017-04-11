@@ -23,7 +23,7 @@ A quicker way to do this analysis, is to use the :mod:`ase.gui` tool:
 
 ::
 
-  $ ase-gui Ag.traj
+    $ ase gui Ag.traj
 
 And then choose :menuselection:`Tools --> Bulk modulus`.
 

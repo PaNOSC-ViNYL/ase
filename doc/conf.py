@@ -1,6 +1,8 @@
 import sys
 import sphinx_rtd_theme
 
+from ase import __version__
+
 sys.path.append('.')
 assert sys.version_info >= (2, 7)
 
@@ -14,7 +16,7 @@ extensions = ['ext',
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'ASE'
-copyright = '2016, ASE-developers'
+copyright = '2017, ASE-developers'
 templates_path = ['templates']
 exclude_patterns = ['build']
 default_role = 'math'
@@ -28,6 +30,11 @@ html_style = 'ase.css'
 html_favicon = 'static/ase.ico'
 html_static_path = ['static']
 html_last_updated_fmt = '%a, %d %b %Y %H:%M:%S'
+html_context = {
+    'current_version': __version__,
+    'versions':
+        [('3.14.0b1 (development)', 'https://wiki.fysik.dtu.dk/ase/dev'),
+         ('3.13.0 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
 
 latex_elements = {
     'papersize': 'a4paper',
@@ -38,4 +45,12 @@ latex_documents = [
     ('index', 'ASE.tex', 'ASE', 'ASE-developers', 'howto', not True)]
 
 intersphinx_mapping = {'gpaw': ('https://wiki.fysik.dtu.dk/gpaw', None),
-                       'python': ('https://docs.python.org/3.6', None)}
+                       'python': ('https://docs.python.org/2.7', None)}
+
+# Avoid GUI windows during doctest:
+doctest_global_setup = """
+import ase.visualize as visualize
+from ase import Atoms
+visualize.view = lambda atoms: None
+Atoms.edit = lambda self: None
+"""

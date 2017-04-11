@@ -16,7 +16,7 @@ nsteps = []
 energies = []
 log_calc = LoggingCalculator(EMT())
 
-for precon, label in [(None, 'None'), (Exp(A=3), 'Exp(A=3)')]:
+for precon, label in [(None, 'None'), (Exp(A=3, use_pyamg=False), 'Exp(A=3)')]:
     log_calc.label = label
     atoms = a0.copy()
     atoms.set_calculator(log_calc)

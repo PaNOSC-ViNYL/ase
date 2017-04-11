@@ -23,19 +23,19 @@ Other units are (amongst others)
 
 Examples:
 
->>> from ase.units import *
+>>> from ase.units import Bohr,Rydberg,kJ,kB,fs,Hartree,mol,kcal
 >>> 2 * Bohr
-1.0583545150138329
+1.0583544211276823
 >>> 25 * Rydberg
-340.14244569396635
+340.14232530459054
 >>> 100 * kJ/mol
-1.0364272141304978
+1.036426957471157
 >>> 300 * kB
-0.025852157076770025
+0.02585199101165164
 >>> 0.1 * fs
-0.009822693531550318
+0.009822694788464065
 >>> print('1 Hartree =', Hartree * mol / kcal, 'kcal/mol')
-1 Hartree = 627.50954059388 kcal/mol
+1 Hartree = 627.5094738898777 kcal/mol
 
 
 Changing the CODATA version

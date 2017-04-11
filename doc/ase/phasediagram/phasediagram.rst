@@ -9,6 +9,7 @@ Phase diagrams and Pourbaix diagrams
 
 Here is a simple example using some made up numbers for Cu-Au alloys:
 
+>>> from ase.phasediagram import PhaseDiagram
 >>> refs = [('Cu', 0.0),
 ...         ('Au', 0.0),
 ...         ('CuAu', -0.5),

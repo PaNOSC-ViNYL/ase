@@ -55,7 +55,7 @@ command
 
 ::
 
-  ase-gui moldyn3.traj
+  ase gui moldyn3.traj
 
 Try plotting the kinetic energy.  You will *not* see a well-defined
 melting point due to finite size effects (including surface melting),
@@ -84,11 +84,12 @@ Let us see what happens when we propagate a nanoparticle for a long time:
 .. literalinclude:: moldyn4.py
 
 After running the simulation, use :ref:`ase-gui` to compare the results
-with how it looks if you comment out either the line that says `Stationary(atoms)`, `ZeroRotation(atoms)` or both.
+with how it looks if you comment out either the line that says
+`Stationary(atoms)`, `ZeroRotation(atoms)` or both.
 
 ::
 
-  ase-gui moldyn4.traj
+  ase gui moldyn4.traj
 
 Try playing the movie with a high frame rate and set frame skipping to a
 low number. Can you spot the subtle difference?
