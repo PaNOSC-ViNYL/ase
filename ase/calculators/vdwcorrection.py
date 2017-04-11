@@ -171,7 +171,7 @@ class vdWTkatchenko09prl(Calculator):
             try:
                 xc_name = self.calculator.hamiltonian.xc.kernel.name
                 self.sR = sR_opt[xc_name]
-            except:
+            except KeyError:
                 raise ValueError('Tkatchenko-Scheffler dispersion correction not implemented for %s functional' % xc_name)
         else:
             self.sR = sR
