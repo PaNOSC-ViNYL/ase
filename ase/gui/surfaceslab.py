@@ -2,7 +2,7 @@
 '''surfaceslab.py - Window for setting up surfaces
 '''
 from __future__ import division, unicode_literals
-from ase.gui.i18n import _
+from ase.gui.i18n import _, ngettext
 
 import ase.gui.ui as ui
 import ase.build as build
@@ -36,9 +36,6 @@ surfaces = [(_('FCC(100)'), _('fcc'), 'ortho', build.fcc100),
             (_('DIAMOND(111)'), _('diamond'), 'non-ortho', build.diamond111)]
 
 structures, crystal, orthogonal, functions = zip(*surfaces)
-
-label_template = _('{natoms} atoms, structure: {structure}, '
-                   'vacuum: {vacuum} Å')
 
 py_template = """
 from ase.build import {func}
@@ -82,6 +79,7 @@ class SetupSurfaceSlab:
         win.add([_('\tz: '), self.z, _(' unit cells')])
         win.add([_('Vacuum: '), self.vacuum_check, self.vacuum, (u'Å')])
         win.add(self.description)
+        # TRANSLATORS: This is a title of a window.
         win.add([pybutton(_('Creating a surface.'), self.make),
                  ui.Button(_('Apply'), self.apply),
                  ui.Button(_('OK'), self.ok)])
@@ -161,26 +159,28 @@ class SetupSurfaceSlab:
         if not self.vacuum_check.var.get():
         	vacuum = None
         ortho = self.orthogonal.var.get()
-        
+
+        ortho_warnt_even = _('Please enter an even value for orthogonal cell')
+
         struct = self.structure.value
         if struct == _('BCC(111)') and (not (y % 2 == 0) and ortho):
-            self.y_warn.text = _('Please enter an even value for orthogonal')
+            self.y_warn.text = ortho_warn_even
             return
         if struct == _('BCC(110)') and (not (y % 2 == 0) and ortho):
-            self.y_warn.text = _('Please enter an even value for orthogonal')
+            self.y_warn.text = ortho_warn_even
             return
         if struct == _('FCC(111)') and (not (y % 2 == 0) and ortho):
-            self.y_warn.text = _('Please enter an even value for orthogonal')
+            self.y_warn.text = ortho_warn_even
             return
         if struct == _('FCC(211)') and (not (x % 3 == 0) and ortho):
-            self.x_warn.text = _('Please enter a divisible by 3'
-                                 ' value for orthogonal')
+            self.x_warn.text = _('Please enter a value divisible by 3'
+                                 ' for orthogonal cell')
             return
         if struct == _('HCP(0001)') and (not (y % 2 == 0) and ortho):
-            self.y_warn.text = _('Please enter an even value for orthogonal')
+            self.y_warn.text = ortho_warn_even
             return
         if struct == _('HCP(10-10)') and (not (y % 2 == 0) and ortho):
-            self.y_warn.text = _('Please enter an even value for orthogonal')
+            self.y_warn.text = ortho_warn_even
             return
 
         for surface in surfaces:
@@ -191,10 +191,22 @@ class SetupSurfaceSlab:
                     c_py = "{}, ".format(c)
                 else:
                     self.atoms = surface[3](symbol, size, a, vacuum, ortho)
-                label = label_template.format(
-                    natoms=len(self.atoms),
-                    structure=surface[3].__name__,
-                    vacuum=vacuum)
+
+                if vacuum is not None:
+                    vacuumtext =_('Vacuum: {} Å.').format(vacuum))
+                else:
+                    vacuumtext = ''
+
+                label = ngettext(
+                    # TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
+                    # or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
+                    '{symbol} {surf} surface with one atom.{vacuum}',
+                    '{symbol} {surf} surface with {natoms} atoms.{vacuum}',
+                    natoms).format(symbol=symbol,
+                                   surf=surface[3].__name__,
+                                   natoms=len(self.atoms),
+                                   vacuum=vacuumtext))
+
                 self.description.text = label
                 return py_template.format(func=surface[3].__name__, a=a,
                                           c=c_py, symbol=symbol, size=size,
@@ -213,4 +225,4 @@ class SetupSurfaceSlab:
 
     def ok(self, *args):
         if self.apply():
-            self.destroy()
+            self.win.close()
