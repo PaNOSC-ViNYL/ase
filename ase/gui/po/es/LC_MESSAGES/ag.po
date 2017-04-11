@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-04-11 20:41+0200\n"
-"PO-Revision-Date: 2017-04-11 20:29+0200\n"
+"POT-Creation-Date: 2017-04-11 22:54+0200\n"
+"PO-Revision-Date: 2017-04-11 22:55+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -266,12 +266,12 @@ msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conjunto consistente de átomos."
 
 #: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:528
-#: ../nanotube.py:84 ../surfaceslab.py:221
+#: ../nanotube.py:84 ../surfaceslab.py:222
 msgid "No valid atoms."
 msgstr "Los átomos no son válidos."
 
 #: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:529
-#: ../nanotube.py:85 ../surfaceslab.py:222 ../widgets.py:76
+#: ../nanotube.py:85 ../surfaceslab.py:223 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "No ha especificado aún un conjunto consistente de parámetros."
 
@@ -1651,12 +1651,12 @@ msgid "Please enter a value divisible by 3 for orthogonal cell"
 msgstr "Por favor entre un valor divisible por 3 para celda ortogonal"
 
 #: ../surfaceslab.py:196
-msgid "Vacuum: {} Å."
-msgstr "Vacío: {} Å."
+msgid " Vacuum: {} Å."
+msgstr " Vacío: {} Å."
 
 #. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
 #. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
-#: ../surfaceslab.py:203
+#: ../surfaceslab.py:204
 #, python-brace-format
 msgid "{symbol} {surf} surface with one atom.{vacuum}"
 msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
