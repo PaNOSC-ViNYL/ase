@@ -197,6 +197,7 @@ class SetupSurfaceSlab:
                 else:
                     vacuumtext = ''
 
+                natoms = len(self.atoms)
                 label = ngettext(
                     # TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
                     # or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
@@ -204,7 +205,7 @@ class SetupSurfaceSlab:
                     '{symbol} {surf} surface with {natoms} atoms.{vacuum}',
                     natoms).format(symbol=symbol,
                                    surf=surface[3].__name__,
-                                   natoms=len(self.atoms),
+                                   natoms=natoms,
                                    vacuum=vacuumtext)
 
                 self.description.text = label
