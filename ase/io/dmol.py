@@ -103,14 +103,21 @@ def read_dmol_car(filename):
         start_line += 1
         cell_dat = np.array([float(fld) for fld in lines[4].split()[1:7]])
         cell = cellpar_to_cell(cell_dat)
-        atoms.cell = cell
-        atoms.pbc = [True, True, True]
+        pbc = [True, True, True]
+    else:
+        cell = np.zeros((3, 3))
+        pbc = [False, False, False]
 
+    symbols = []
+    positions = []
     for line in lines[start_line:]:
         if line.startswith('end'):
             break
         flds = line.split()
+        symbols.append(flds[7])
+        positions.append(flds[1:4])
         atoms.append(Atom(flds[7], flds[1:4]))
+    atoms = Atoms(symbols=symbols, positions=positions, cell=cell, pbc=pbc)
     return atoms
 
 
@@ -235,6 +242,7 @@ def read_dmol_arc(filename, index=-1):
 
     i = 0
     while i < len(lines):
+        cell = np.zeros((3, 3))
         symbols = []
         positions = []
         # parse single image
@@ -253,7 +261,7 @@ def read_dmol_arc(filename, index=-1):
                 positions.append(flds[1:4])
                 i += 1
             image = Atoms(symbols=symbols, positions=positions, cell=cell,
-                          pbc=True)
+                          pbc=pbc)
             images.append(image)
         if len(images) == index:
             return images[-1]
