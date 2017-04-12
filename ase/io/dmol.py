@@ -60,28 +60,38 @@ def write_dmol_car(filename, atoms):
 
     Notes
     -----
+    The positions written to file are rotated as to allign with the cell when
+    reading (due to cellpar information)
     Can not handle multiple images.
     Only allows for pbc 111 or 000.
     """
 
     f = open(filename, 'w')
     f.write('!BIOSYM archive 3\n')
-
     dt = datetime.now()
+
+    symbols = atoms.get_chemical_symbols()
     if np.all(atoms.pbc):
-        a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
+        # Rotate positions so they will allign with cellpar cell
+        cellpar = cell_to_cellpar(atoms.cell)
+        new_cell = cellpar_to_cell(cellpar)
+        lstsq_fit = np.linalg.lstsq(atoms.cell, new_cell)
+        R = lstsq_fit[0]
+        positions = np.dot(atoms.positions, R)
+
         f.write('PBC=ON\n\n')
         f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
-        f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n' %
-                (a, b, c, alpha, beta, gamma))
+        f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n' % tuple(cellpar))
     elif not np.any(atoms.pbc):  # [False,False,False]
         f.write('PBC=OFF\n\n')
         f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
+        positions = atoms.positions
     else:
         raise ValueError('PBC must be all true or all false for .car format')
-    for i, a in enumerate(atoms):
+
+    for i, (sym, pos) in enumerate(zip(symbols, positions)):
         f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  '
-                '0.000\n' % (a.symbol + str(i+1), a.x, a.y, a.z, a.symbol))
+                '0.000\n' % (sym + str(i+1), pos[0], pos[1], pos[2], sym))
     f.write('end\nend\n')
     f.close()
 
@@ -202,25 +212,32 @@ def write_dmol_arc(filename, images):
     f.write('!BIOSYM archive 3\n')
     if np.all(images[0].pbc):
         f.write('PBC=ON\n\n')
+        # Rotate positions so they will allign with cellpar cell
     elif not np.any(images[0].pbc):
         f.write('PBC=OFF\n\n')
     else:
         raise ValueError('PBC must be all true or all false for .arc format')
     for atoms in images:
         dt = datetime.now()
+        symbols = atoms.get_chemical_symbols()
         if np.all(atoms.pbc):
-            a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
+            cellpar = cell_to_cellpar(atoms.cell)
+            new_cell = cellpar_to_cell(cellpar)
+            lstsq_fit = np.linalg.lstsq(atoms.cell, new_cell)
+            R = lstsq_fit[0]
             f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
-            f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n' %
-                    (a, b, c, alpha, beta, gamma))
+            f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n'
+                    % tuple(cellpar))
+            positions = np.dot(atoms.positions, R)
         elif not np.any(atoms.pbc):  # [False,False,False]
             f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
+            positions = atoms.positions
         else:
             raise ValueError(
                 'PBC must be all true or all false for .arc format')
-        for i, a in enumerate(atoms):
+        for i, (sym, pos) in enumerate(zip(symbols, positions)):
             f.write('%-6s  %12.8f   %12.8f   %12.8f XXXX 1      xx      %-2s  '
-                    '0.000\n' % (a.symbol + str(i+1), a.x, a.y, a.z, a.symbol))
+                    '0.000\n' % (sym + str(i+1), pos[0], pos[1], pos[2], sym))
         f.write('end\nend\n')
         f.write('\n')
     f.close()
