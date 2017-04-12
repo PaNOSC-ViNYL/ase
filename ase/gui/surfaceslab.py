@@ -91,10 +91,10 @@ class SetupSurfaceSlab:
         self.structure_changed()
 
     def vacuum_checked(self, *args):
-    	if self.vacuum_check.var.get():
-        	self.vacuum.active = True
+        if self.vacuum_check.var.get():
+            self.vacuum.active = True
         else:
-        	self.vacuum.active = False
+            self.vacuum.active = False
         self.make()
 
     def get_lattice(self, *args):
@@ -157,10 +157,10 @@ class SetupSurfaceSlab:
         c = self.lattice_c.value
         vacuum = self.vacuum.value
         if not self.vacuum_check.var.get():
-        	vacuum = None
+            vacuum = None
         ortho = self.orthogonal.var.get()
 
-        ortho_warnt_even = _('Please enter an even value for orthogonal cell')
+        ortho_warn_even = _('Please enter an even value for orthogonal cell')
 
         struct = self.structure.value
         if struct == _('BCC(111)') and (not (y % 2 == 0) and ortho):
