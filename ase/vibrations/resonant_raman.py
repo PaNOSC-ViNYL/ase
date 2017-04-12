@@ -459,10 +459,16 @@ class ResonantRaman(Vibrations):
         else:
             raise NotImplementedError
 
-    def absolute_intensity(self, omega, gamma=0.1):
-        """Absolute Raman intensity or Raman scattering factor
+    def invariants(self, omega, gamma=0.1):
+        """Raman invariants
 
-        Unit: Ang**4/amu
+        Reference
+        ---------
+        Derek A. Long, The Raman Effect, ISBN 0-471-49028-8
+
+        Returns
+        -------
+        mean polarizability, anisotropy, asymmetric anisotropy
         """
         m2 = ResonantRaman.m2
         alpha_Qcc = self.electronic_me_Qcc(omega, gamma)
@@ -478,8 +484,27 @@ class ResonantRaman(Vibrations):
                     (m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 1, 1]) +
                      m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 2, 2]) +
                      m2(alpha_Qcc[:, 1, 1] - alpha_Qcc[:, 2, 2])) / 2)
+        return alpha2_r, gamma2_r, delta2_r
+        
+    def absolute_intensity(self, omega, gamma=0.1, delta=0):
+        """Absolute Raman intensity or Raman scattering factor
 
-        return 45 * alpha2_r + 0. * delta2_r + 7 * gamma2_r
+        Parameter
+        ---------
+        delta: float
+           pre-factor for asymmetric anisotropy, default 0
+
+        References
+        ----------
+        Porezag and Pederson, PRB 54 (1996) 7830-7836 (delta=0)
+        Baiardi and Barone, JCTC 11 (2015) 3267-3280 (delta=5)
+
+        Returns
+        -------
+        raman intensity, unit Ang**4/amu
+        """
+        alpha2_r, gamma2_r, delta2_r = self.invariants(omega, gamma)
+        return 45 * alpha2_r + delta * delta2_r + 7 * gamma2_r
 
     def get_cross_sections(self, omega, gamma=0.1):
         """Returns Raman cross sections for each vibration."""
