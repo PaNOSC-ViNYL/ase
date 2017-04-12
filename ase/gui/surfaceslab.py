@@ -8,8 +8,6 @@ import ase.gui.ui as ui
 import ase.build as build
 from ase.data import reference_states
 from ase.gui.widgets import Element, pybutton
-import ase
-import numpy as np
 
 introtext = _("""\
   Use this dialog to create surface slabs.  Select the element by
