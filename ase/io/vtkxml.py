@@ -83,7 +83,9 @@ def write_vti(filename, atoms, data=None):
 
 
 def write_vtu(filename, atoms, data=None):
-    from vtk import vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
+    from vtk import VTK_MAJOR_VERSION, vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
+    from vtk.numpy_interface.dataset_adapter import numpyTovtkDataArray
+
     #if isinstance(fileobj, basestring):
     #    fileobj = paropen(fileobj, 'w')
 
@@ -102,15 +104,15 @@ def write_vtu(filename, atoms, data=None):
         data = np.abs(data)
     """
 
-    cell = atoms.get_cell()
+    # cell = atoms.get_cell()
 
-    assert np.all(cell==np.diag(cell.diagonal())), 'Unit cell must be orthogonal' #TODO bounding box with general unit cell?!
-
-    bbox = np.array(list(zip(np.zeros(3),cell.diagonal()))).ravel()
+    # assert np.all(cell==np.diag(cell.diagonal())), 'Unit cell must be orthogonal'  #TODO bounding box with general unit cell?!
+    #
+    # bbox = np.array(list(zip(np.zeros(3),cell.diagonal()))).ravel()
 
     # Create a VTK grid of structured points
     ugd = vtkUnstructuredGrid()
-    ugd.SetWholeBoundingBox(bbox)
+    # ugd.SetWholeBoundingBox(bbox)
 
     """
     # Allocate a VTK array of type double and copy data
@@ -127,14 +129,27 @@ def write_vtu(filename, atoms, data=None):
     p.SetDataTypeToDouble()
     for i,pos in enumerate(atoms.get_positions()):
         p.InsertPoint(i,pos[0],pos[1],pos[2])
-
-
     ugd.SetPoints(p)
+
+    # add atomic numbers
+    numbers = numpyTovtkDataArray(atoms.get_atomic_numbers())
+    ugd.GetPointData().AddArray(numbers)
+    numbers.SetName("atomic numbers")
+
+    # add tags
+    tags = numpyTovtkDataArray(atoms.get_tags())
+    ugd.GetPointData().AddArray(tags)
+    tags.SetName("tags")
+
+    # add covalent radii
+    from ase.data import covalent_radii
+    radii = numpyTovtkDataArray(np.array([covalent_radii[i] for i in atoms.get_atomic_numbers()]))
+    ugd.GetPointData().AddArray(radii)
+    radii.SetName("radii")
 
     # Assign the VTK array as point data of the grid
     #upd = ugd.GetPointData() # type(spd) is vtkPointData
     #upd.SetScalars(da)
-
 
     # Save the UnstructuredGrid dataset to a VTK XML file.
     w = vtkXMLUnstructuredGridWriter()
@@ -146,6 +161,10 @@ def write_vtu(filename, atoms, data=None):
         w.GetCompressor().SetCompressionLevel(0)
         w.SetDataModeToAscii()
 
-    w.SetFileName(filename)
-    w.SetInput(ugd)
+
+    w.SetFileName(filename.name)
+    if VTK_MAJOR_VERSION <= 5:
+        w.SetInput(ugd)
+    else:
+        w.SetInputData(ugd)
     w.Write()
