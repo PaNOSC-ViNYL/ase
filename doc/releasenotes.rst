@@ -10,6 +10,70 @@ Git master branch
 
 :git:`master <>`.
 
+* The command-line tools :program:`ase-???` have been replaced by a
+  single :program:`ase` command with sub-commands.  For help, type::
+
+      $ ase --help
+      $ ase sub-command --help
+
+* The old :program:`ase-build` command which is now called
+  :program:`ase build` will no longer add vacuum by default.  Use
+  ``ase build -V 3.0`` to get the old behavior.
+
+* Python 2.6 no longer supported.
+
+* All methods of the :class:`~ase.Atoms` object that deal with angles now
+  have new API's that use degrees instead of radians as the unit of angle
+  (:meth:`~ase.Atoms.get_angle`, :meth:`~ase.Atoms.set_angle`,
+  :meth:`~ase.Atoms.get_dihedral`, :meth:`~ase.Atoms.set_dihedral`,
+  :meth:`~ase.Atoms.rotate_dihedral`, :meth:`~ase.Atoms.rotate`,
+  :meth:`~ase.Atoms.euler_rotate`).
+
+  The old way of calling these methods works as always, but will give
+  you a warning.  Example:
+
+  >>> water.get_angle(0, 1, 2)  # new API
+  104.52
+  >>> water.get_angle([0, 1, 2])  # old API
+  /home/jensj/ase/ase/atoms.py:1484: UserWarning: Please use new API (which will return the angle in degrees): atoms_obj.get_angle(a1,a2,a3)*pi/180 instead of atoms_obj.get_angle([a1,a2,a3])
+  1.8242181341844732
+
+  Here are the changes you need to make in order to get rid of warnings:
+
+  Old API:
+
+  >>> a1 = atoms.get_angle([0, 1, 2])
+  >>> atoms.set_angle([0, 1, 2], pi / 2)
+  >>> a2 = atoms.get_dihedral([0, 1, 2, 3])
+  >>> atoms.set_dihedral([0, 1, 2, 3], pi / 6)
+  >>> atoms.rotate_dihedral([0, 1, 2, 3], 10.5 * pi / 180)
+  >>> atoms.rotate('z', pi / 4)
+  >>> atoms.rotate_euler(phi=phi, theta=theta, psi=psi)
+
+  New API:
+
+  >>> a1 = atoms.get_angle(0, 1, 2) * pi / 180
+  >>> atoms.set_angle(0, 1, 2, angle=90)
+  >>> a2 = atoms.get_dihedral(0, 1, 2, 3) * pi / 180
+  >>> atoms.set_dihedral(0, 1, 2, 3, angle=30)
+  >>> atoms.rotate_dihedral(0, 1, 2, 3, angle=10.5)
+  >>> atoms.rotate(45, 'z')
+  >>> atoms.euler_rotate(phi=phi * 180 / pi,
+  ...                    theta=theta * 180 / pi,
+  ...                    psi=psi * 180 / pi)
+
+* The web-interface to the :mod:`ase.db` module now uses Bootstrap and looks
+  much nicer.  Querying the database is also much easier.  See
+  https://cmrdb.fysik.dtu.dk for an example.
+
+* The PostgreSQL backend for :mod:`ase.db` can now contain more than one ASE
+  database.
+
+* An ASE database can now have :ref:`metadata` describing the data.
+  Metadata is a dict with any of the following keys: ``title``,
+  ``key_descriptions``, ``default_columns``, ``special_keys`` and
+  ``summary_sections``.
+
 * :data:`ase.data.atomic_masses` has been updated to IUPAC values from
   2016. Several elements will now have different weights which will affect
   dynamic calculations. The old values can be recovered like this:
@@ -24,6 +88,13 @@ Git master branch
 
 * Added DeltaCodesDFT data: :data:`ase.collections.dcdft`.
 
+* :mod:`ase.gui` can now load and display any sequence of :class:`~ase.Atoms`
+  objects; it is no longer restricted to sequences with a constant number
+  of atoms or same chemical composition.
+
+* Trajectory files can now store any sequence of :class:`~ase.Atoms`
+  objects.  Previously, atomic numbers, masses, and constraints were
+  only saved for the first image, and had to apply for all subsequent ones.
 
 Version 3.13.0
 ==============

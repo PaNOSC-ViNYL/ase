@@ -18,7 +18,7 @@ Now, do the NEB calculation:
 
 Visualize the results with::
 
-   ase-gui neb.traj
+    $ ase gui neb.traj
 
 and select Tools->NEB.
 

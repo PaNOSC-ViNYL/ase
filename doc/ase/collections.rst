@@ -61,7 +61,6 @@ This collection has WIEN2k and experimental data for:
 >>> dct = dcdft.data['Cu']
 >>> for key, val in sorted(dct.items()):
 ...     print('{:15}: {:.3f}'.format(key, val))
-...
 exp_B          : 144.279
 exp_Bp         : 4.880
 exp_volume     : 11.647

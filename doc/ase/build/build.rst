@@ -130,9 +130,9 @@ array([[ 0. ,  1.8,  1.8],
        [ 1.8,  0. ,  1.8],
        [ 1.8,  1.8,  0. ]])
 >>> a2.cell
-array([[ 2.54558441,  0.        ,  0.        ],
-       [ 0.        ,  2.54558441,  0.        ],
-       [ 0.        ,  0.        ,  3.6       ]])
+array([[ 2.546,  0.   ,  0.   ],
+       [ 0.   ,  2.546,  0.   ],
+       [ 0.   ,  0.   ,  3.6  ]])
 >>> a3.cell
 array([[ 3.6,  0. ,  0. ],
        [ 0. ,  3.6,  0. ],
@@ -176,8 +176,8 @@ examples:
 >>> from ase.build import graphene_nanoribbon
 >>> gnr1 = graphene_nanoribbon(3, 4, type='armchair', saturated=True)
 >>> gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
->>>                            C_H=1.1, C_C=1.4, vacuum=6.0,
->>>                            magnetic=True, initial_mag=1.12)
+...                            C_H=1.1, C_C=1.4, vacuum=6.0,
+...                            magnetic=True, initial_mag=1.12)
 
 |gnr1| |gnr2|
 

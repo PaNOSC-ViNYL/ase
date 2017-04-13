@@ -40,6 +40,7 @@ if the atoms should be kept fixed.
 For example, to fix the positions of all the Cu atoms in a simulation
 with the indices keyword:
 
+>>> from ase.constraints import FixAtoms
 >>> c = FixAtoms(indices=[atom.index for atom in atoms if atom.symbol == 'Cu'])
 >>> atoms.set_constraint(c)
 
@@ -139,6 +140,7 @@ for example to prevent the top layer of a slab from subliming during a
 high-temperature MD simulation. An example of tethering atom at index 3 to its
 original position:
 
+>>> from ase.constraints import Hookean
 >>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
 >>> atoms.set_constraint(c)
 
@@ -198,6 +200,7 @@ connecting line of the two atoms.
 
 Example of use::
 
+  >>> form ase.constraints import ExternalForce
   >>> c = ExternalForce(0, 1, 0.5)
   >>> atoms.set_constraint(c)
 
@@ -205,6 +208,7 @@ One can combine this constraint with :class:`FixBondLength` but one has to
 consider the correct ordering when setting both constraints. :class:`ExternalForce`
 must come first in the list as shown in the following example.
 
+  >>> from ase.constraints import ExternalForce, FixBondLength
   >>> c1 = ExternalForce(0, 1, 0.5)
   >>> c2 = FixBondLength(1, 2)
   >>> atoms.set_constraint([c1, c2])
@@ -225,13 +229,20 @@ specifies the accuracy to which the constraints are fulfilled.
 .. class:: FixInternals(bonds=[bond1, bond2],
     angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
 
+.. note::
+
+    The :class:`FixInternals` class use radians for angles!  Most other
+    places in ASE degrees are used.
+
 Example of use::
 
+  >>> from math import pi
   >>> bond1 = [1.20, [1, 2]]
   >>> angle_indices1 = [2, 3, 4]
   >>> dihedral_indices1 = [2, 3, 4, 5]
-  >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
-  >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1),
+  >>> angle1 = [atoms.get_angle(*angle_indices1) * pi / 180,
+                angle_indices1]
+  >>> dihedral1 = [atoms.get_dihedral(*dihedral_indices1) * pi / 180,
   ...              dihedral_indices1]
   >>> c = FixInternals(bonds=[bond1], angles=[angle1],
   ...                  dihedrals=[dihedral1])

@@ -168,10 +168,11 @@ class Optimizer(Dynamics):
             self.log(f)
             self.call_observers()
             if self.converged(f):
-                return
+                return True
             self.step(f)
             self.nsteps += 1
             step += 1
+        return False
 
     def converged(self, forces=None):
         """Did the optimization converge?"""

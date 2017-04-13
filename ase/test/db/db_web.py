@@ -12,16 +12,25 @@ x = [0, 1, 2]
 t1 = [1, 2, 0]
 t2 = [[2, 3], [1, 1], [1, 0]]
 c.write(Atoms('H2O'),
-        foo='bar',
+        foo=42.0,
+        bar='abc',
         data={'test': plot,
               'x': x,
               't1': t1,
               't2': t2})
-app.db = c
+c.metadata = {'title': 'Test title',
+              'key_descriptions':
+                  {'foo': ('FOO', 'FOO ...', 'float', '`m_e`')},
+              'default_columns': ['foo', 'formula', 'bar']}
+app.databases['default'] = c
 app.app.testing = True
-d = app.app.test_client().get('/')
-print(d)
-d = app.app.test_client().get('/id/1')
-print(d)
-d = app.app.test_client().get('/plot/test-1.png')
-print(d, app.tmpdir)
+c = app.app.test_client()
+page = c.get('/').data.decode()
+assert 'Test title' in page
+assert 'FOO' in page
+c.get('/id/1')
+c.get('/plot/test-1.png')
+c.get('json/1').data
+c.get('sqlite/1').data
+c.get('sqlite?x=1').data
+c.get('json?x=1').data
