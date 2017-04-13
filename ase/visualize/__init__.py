@@ -39,6 +39,9 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         from ase.visualize.sage import view_sage_jmol
         view_sage_jmol(atoms)
         return
+    elif vwr == 'paraview':
+        format = 'vtu'
+        command = 'paraview'
     else:
         raise RuntimeError('Unknown viewer: ' + viewer)
 
