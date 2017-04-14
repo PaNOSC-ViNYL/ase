@@ -44,6 +44,7 @@ Supported :mod:`Calculators <ase.calculators>`:
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |onetep| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
+:mod:`DMol³ <ase.calculators.dmol>`
 Gaussian_ Grimme-D3_ Mopac_
 :mod:`~ase.calculators.tip3p`
 
