@@ -96,6 +96,10 @@ Git master branch
   objects.  Previously, atomic numbers, masses, and constraints were
   only saved for the first image, and had to apply for all subsequent ones.
 
+* Interface for DMol\ :sup:`3` added.
+
+* Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
+
 Version 3.13.0
 ==============
 
