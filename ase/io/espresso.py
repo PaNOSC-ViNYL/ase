@@ -52,7 +52,7 @@ class Namelist(OrderedDict):
         return super(Namelist, self).get(key.lower(), default)
 
 
-def read_espresso_out(fileobj, index=-1):
+def read_espresso_out(fileobj, index=-1, results_required=True):
     """Reads Quantum ESPRESSO output files.
 
     The atomistic configurations as well as results (energy, force, stress,
@@ -67,6 +67,11 @@ def read_espresso_out(fileobj, index=-1):
         A file like object or filename
     index : slice
         The index of configurations to extract.
+    results_required : bool
+        If True, atomistic configurations that do not have any
+        associated results will not be yielded. This prevents double
+        printed configurations and incomplete calculations from being
+        returned as the final configuration with no results data.
 
     Yields
     ------
@@ -212,6 +217,16 @@ def read_espresso_out(fileobj, index=-1):
                     float(mag_line.split()[5]) for mag_line
                     in pwo_lines[magmoms_index + 1:
                                  magmoms_index + 1 + len(structure)]]
+
+        # setting results_required argument stops configuration-only
+        # structures from being returned. This ensures the [-1] structure
+        # is one that has results. Two cases:
+        # - SCF of last configuration is not converged, job terminated
+        #   abnormally.
+        # - 'relax' and 'vc-relax' re-prints the final configuration but
+        #   only 'vc-relax' recalculates.
+        if results_required and not any([energy, forces, stress, magmoms]):
+            continue
 
         # Put everything together
         calc = SinglePointCalculator(structure, energy=energy, forces=forces,
