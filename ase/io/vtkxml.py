@@ -83,7 +83,7 @@ def write_vti(filename, atoms, data=None):
 
 
 def write_vtu(filename, atoms, data=None):
-    from vtk import VTK_MAJOR_VERSION, vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
+    from vtk import VTK_MAJOR_VERSION, VTK_INT, vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
     from vtk.util.numpy_support import numpy_to_vtk
 
     if isinstance(atoms, list):
@@ -103,12 +103,12 @@ def write_vtu(filename, atoms, data=None):
     ugd.SetPoints(p)
 
     # add atomic numbers
-    numbers = numpy_to_vtk(atoms.get_atomic_numbers())
+    numbers = numpy_to_vtk(atoms.get_atomic_numbers(), array_type=VTK_INT)
     ugd.GetPointData().AddArray(numbers)
     numbers.SetName("atomic numbers")
 
     # add tags
-    tags = numpy_to_vtk(atoms.get_tags())
+    tags = numpy_to_vtk(atoms.get_tags(), array_type=VTK_INT)
     ugd.GetPointData().AddArray(tags)
     tags.SetName("tags")
 
@@ -117,7 +117,6 @@ def write_vtu(filename, atoms, data=None):
     radii = numpy_to_vtk(np.array([covalent_radii[i] for i in atoms.get_atomic_numbers()]))
     ugd.GetPointData().AddArray(radii)
     radii.SetName("radii")
-
 
     # Save the UnstructuredGrid dataset to a VTK XML file.
     w = vtkXMLUnstructuredGridWriter()
