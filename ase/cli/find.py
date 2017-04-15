@@ -23,29 +23,54 @@ class CLICommand:
 
 def main(args):
     # keys, cmps = parse_query(...)
+    query = 42
 
+    N = mp.cpu_count()
     paths = mp.Queue()
     results = mp.Queue()
 
+    pool = mp.Pool(N, initialize_target, [paths, results])
+    result = pool.map_async(target, [query] * N)
+
+    for path in allpaths(args):
+        paths.put(path)
+    for _ in range(N):
+        paths.put(None)
+
+    result.get()
+    pool.terminate()
+
+    while not results.empty():
+        print(results.get())
+
+
+def allpaths(args):
     for dirpath, dirnames, filenames in os.walk(args.folder):
         for name in filenames:
+            if name.endswith('.py'):
+                continue
+            if name.endswith('py'):
+                continue
             path = op.join(dirpath, name)
-            paths.put(path)
-        # Skip .git and friends:
-        dirnames[:] = (name for name in dirnames if name[0] != '.')
-
-    with mp.Pool() as pool:
-        pool.apply(check, [paths, results])
-
-    print(results)
+            yield path
+        # Skip .git, __pycache__ and friends:
+        dirnames[:] = (name for name in dirnames if name[0] not in '._')
 
 
-def check(paths, results):
-    for path in iter(paths.get, None):
-        try:
-            filetype(path)
-        except ValueError:
-            continue
-        # atoms = read(path)
-        if 1:  # check(atoms):
-            results.put(path)
+def target(query):
+    for path in iter(target.paths.get, None):
+        if check(path, query):
+            target.results.put(path)
+
+
+def check(path, query):
+    format = filetype(path, guess=False)
+    if format is None:
+        return False
+    #atoms = read(path, format=format)
+    return True
+
+
+def initialize_target(paths, results):
+    target.paths = paths
+    target.results = results
