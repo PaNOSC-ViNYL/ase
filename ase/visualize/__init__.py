@@ -40,8 +40,29 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         view_sage_jmol(atoms)
         return
     elif vwr == 'paraview':
+        # macro for showing atoms in paraview
+        macro = """\
+from paraview.simple import *
+paraview.simple._DisableFirstRenderCameraReset()
+source = GetActiveSource()
+renderView1 = GetActiveViewOrCreate('RenderView')
+atoms = Glyph(Input=source,
+              GlyphType='Sphere',
+              GlyphMode='All Points',
+              Scalars='radii',
+              ScaleMode='scalar',
+              ScaleFactor=0.8)
+RenameSource('Atoms', atoms)
+atomsDisplay = Show(atoms, renderView1)
+ColorBy(atomsDisplay, 'atomic numbers')
+atomsDisplay.SetScalarBarVisibility(renderView1, True)
+renderView1.ResetCamera()
+        """
+        script_name = os.path.join(tempfile.gettempdir(), 'draw_atoms.py')
+        with open(script_name, 'w') as f:
+            f.write(macro)
         format = 'vtu'
-        command = 'paraview'
+        command = 'paraview --script=' + script_name
     else:
         raise RuntimeError('Unknown viewer: ' + viewer)
 
