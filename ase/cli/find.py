@@ -23,16 +23,28 @@ class CLICommand:
 def main(args):
     keys, cmps = parse_query(...)
 
-    def check(atoms):
+    pool=...
+    paths = Queue()
+    result = Queue()
+
+    def check(paths):
+        path= paths.get()
+        try:
+            filetype(path, guess=False)
+        except:
+            continue
+        atoms = read(path)
+        if check(atoms):
+            print(path)
         return check_xxx(atoms, keys, cmps)
 
     for dirpath, dirnames, filenames in os.walk(args.folder):
         for name in filenames:
             path = op.join(dirpath, name)
-            try:
-                filetype(path, guess=False)
-            except:
-                continue
-            atoms = read(path)
-            if check(atoms):
-                print(path)
+            paths.put(path)
+
+        # Skip .git and friends:
+        dirnames[:] = (name for name in dirnames if name[0] != '.')
+
+    print(results)
+    
