@@ -93,28 +93,25 @@ class Turbomole(Calculator):
     }
     parameters = {}
     results = {}
+    converged = False
+    updated = False
+    atoms = None
+    forces = None
+    e_total = None
 
-    def __init__(self, restart=False, define_str=None, **kwargs):
-        parameters = kwargs
-        self.set_parameters(parameters)
-        self.verify_parameters()
-        
-        self.restart = restart # restart calculation (not implemented)
+    def __init__(self, restart=False, define_str=None, label='turbomole',
+                 calculate_energy='dscf', calculate_forces='grad',
+                 post_HF=False, **kwargs):
+        """ calculation restart not yet implemented """
+
+        self.restart = restart
         self.define_str = define_str
-        self.label = 'turbomole'
-        self.converged = False
-
-        # storage for energy and forces
-        self.e_total = None
-        self.forces = None
-        self.updated = False
-        
-        # atoms must be set
-        self.atoms = None
-        
-        # POST-HF method
-        self.post_HF = False
-
+        self.label = label
+        self.calculate_energy = calculate_energy
+        self.calculate_forces = calculate_forces
+        self.post_HF = post_HF
+        self.set_parameters(kwargs)
+        self.verify_parameters()
         self.reset()
 
     def __getitem__(self, item):
@@ -125,18 +122,11 @@ class Turbomole(Calculator):
         return obj
 
     def set_parameters(self, params):
-        for key in self.default_parameters.keys():
-            if key in params.keys():
-                self.parameters[key] = params[key]
-            else:
-                self.parameters[key] = self.default_parameters[key]
-
+        self.parameters = self.default_parameters
+        self.parameters.update(params)
         if self.parameters['use resolution of identity']:
             self.calculate_energy = 'ridft'
             self.calculate_forces = 'rdgrad'
-        else:
-            self.calculate_energy='dscf'
-            self.calculate_forces='grad'
 
     def verify_parameters(self):
         """ detect wrong or not implemented parameters """
@@ -944,7 +934,7 @@ class Turbomole(Calculator):
 
     def get_potential_energy(self, atoms, force_consistent=True):
         # update atoms
-#        self.updated = self.e_total is None
+        self.updated = self.e_total is None
         self.set_atoms(atoms)
         self.initialize()
         # if update of energy is necessary
