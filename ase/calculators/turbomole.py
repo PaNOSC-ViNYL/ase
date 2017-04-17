@@ -105,9 +105,6 @@ class Turbomole(Calculator):
         self.label = 'turbomole'
         self.converged = False
 
-        # turbomole has no stress
-        self.stress = np.empty(6)
-        
         # storage for energy and forces
         self.e_total = None
         self.forces = None
@@ -998,9 +995,6 @@ class Turbomole(Calculator):
 
         self.update_forces = False
         return self.forces.copy()
-    
-    def get_stress(self, atoms):
-        return self.stress
 
     def get_dipole_moment(self, atoms):
         # this must check the state and then perform a calc if necessary
@@ -1080,6 +1074,9 @@ class Turbomole(Calculator):
         """Returns the value of a property"""
 
         if name not in self.implemented_properties:
+            # ugly work around; the called should not expect the calc has stress
+            if name is 'stress':
+                return np.empty(6)
             raise NotImplementedError(name)
 
         if atoms is None:
