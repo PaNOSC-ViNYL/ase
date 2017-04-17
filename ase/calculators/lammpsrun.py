@@ -433,6 +433,10 @@ class LAMMPS:
                 'thermo 1\n'.format(
                     ' '.join(self._custom_thermo_args)).encode('utf-8'))
 
+        if 'timestep' in parameters:
+            f.write('timestep {0}\n'.format(
+                parameters['timestep']).encode('utf-8'))
+                
         if 'minimize' in parameters:
             f.write('minimize {0}\n'.format(
                 parameters['minimize']).encode('utf-8'))
@@ -632,6 +636,7 @@ class LAMMPS:
                     # assume periodic boundary conditions here (as in write_lammps)
                     self.atoms = Atoms(type_atoms, positions=positions_atoms,
                                        cell=cell_atoms)
+                    self.atoms.set_velocities(velocities_atoms * (Ang/(fs*1000.) ))
 
                 self.forces = forces_atoms
                 
