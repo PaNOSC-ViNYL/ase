@@ -1,7 +1,6 @@
 from __future__ import print_function
-"""This module defines an ASE interface to Turbomole
-
-http://www.turbomole.com/
+"""
+This module defines an ASE interface to Turbomole: http://www.turbomole.com/
 """
 
 import os, sys, re
@@ -17,7 +16,7 @@ from ase.calculators.general import Calculator
 class Turbomole(Calculator):
     name = 'Turbomole'
 
-    implemented_properties = ['energy', 'forces', 'dipole']
+    implemented_properties = ['energy', 'forces', 'dipole', 'free_energy']
 
     available_basis_sets = [ 
         'sto-3g hondo', 'def-SV(P)', 'def2-SV(P)', 'def-TZV(P)', 'def2-TZV(P)', 
@@ -95,13 +94,13 @@ class Turbomole(Calculator):
     parameters = {}
     results = {}
 
-    def __init__(self, restart=False, **kwargs):
+    def __init__(self, restart=False, define_str=None, **kwargs):
         parameters = kwargs
         self.set_parameters(parameters)
         self.verify_parameters()
         
         self.restart = restart # restart calculation (not implemented)
-
+        self.define_str = define_str
         self.label = 'turbomole'
         self.converged = False
 
@@ -180,23 +179,25 @@ class Turbomole(Calculator):
     def set_atoms(self, atoms):
         """ Create the self.atoms object and writes the coord file. If 
         self.atoms exists a check for changes and an update of the atoms
-        are performed. """
-
-        if self.atoms == atoms:
-            # print "two atoms obj are equal"
-            return
-
+        are performed. Note: Only positions changes are tracked in this version. 
+        """
         changes = self.check_state(atoms, tol=1e-13)
-        if 'positions' not in changes:
-            # print "two atoms obj are almost equal"
-            return
+        if self.atoms == atoms or 'positions' not in changes:
+            # print('two atoms obj are (almost) equal')
+            if (self.updated and os.path.isfile('coord')):
+                self.updated = False
+                a = read('coord').get_positions()
+                if np.allclose(a, atoms.get_positions(), rtol=0, atol=1e-13):
+                    return
+            else:
+                return
 
         changes = self.check_state(atoms, tol=1e-2)
         if 'positions' in changes:
-            # print "two atoms obj are different"
+            # print(two atoms obj are different')
             self.reset()
         else:
-            # print "two atoms obj are slightly different"
+            # print('two atoms obj are slightly different')
             if self.parameters['use redundant internals']:
                 self.reset()
 
@@ -207,16 +208,7 @@ class Turbomole(Calculator):
         self.update_geometry = True
         self.update_hessian = True
 
-    def initialize(self):
-        """ prepare turbomole control file by running module 'define' """
-        if self.initialized:
-            return
-        self.verify_parameters()
-        if not self.atoms:
-            raise RuntimeError('atoms missing during initialization')
-        if not os.path.isfile('coord'):
-            raise IOError('file coord not found')
-
+    def get_define_str(self):
         define_str_tpl = (
             '\n__title__\na coord\n__inter__\n'
             'bb all __basis_set__\n*\neht\ny\n__charge_str____occ_str__'
@@ -311,7 +303,26 @@ class Turbomole(Calculator):
         define_str = re.sub('__inter__', internals_str, define_str)
         define_str = re.sub('__scfiterlimit__', scfiter_str, define_str)
         define_str = re.sub('__fermi_str__', fermi_str, define_str)
-        # print define_str
+
+        return define_str
+
+    def initialize(self):
+        """ prepare turbomole control file by running module 'define' """
+        if self.initialized:
+            return
+        self.verify_parameters()
+        if not self.atoms:
+            raise RuntimeError('atoms missing during initialization')
+        if not os.path.isfile('coord'):
+            raise IOError('file coord not found')
+
+        if self.define_str:
+            assert isinstance(self.define_str, str)
+            define_str = self.define_str
+        else:
+            define_str = self.get_define_str()
+        # print(define_str)
+
         # run define
         try:
             command = 'define > ASE.TM.define.out'
@@ -320,27 +331,19 @@ class Turbomole(Calculator):
             if 'abnormally' in error:
                 raise OSError(error)
             print('TM command:  ' + command + ' successfully executed')
-        except OSError ('Execution failed: ') as err:
+        except OSError('define execution failed: ') as err:
             raise err
 
         # add or delete data groups
         self.execute('kdg scfdump')
-        if params['density convergence']:
+        if self.parameters['density convergence']:
             if len(self.read_data_group('denconv')) != 0:
                 self.execute('kdg denconv')
             conv = -log10(params['density convergence'])
             self.add_data_group('denconv', str(int(conv))) 
 
         self.initialized = True
-
-    """
-    def initialize(self, atoms):
-        self.numbers = atoms.get_atomic_numbers().copy()
-        self.species = []
-        for a, Z in enumerate(self.numbers):
-            self.species.append(Z)
         self.converged = False
-    """
 
     def calculation_required(self, atoms, properties):
         if self.atoms != atoms:
@@ -941,6 +944,7 @@ class Turbomole(Calculator):
 
     def get_potential_energy(self, atoms, force_consistent=True):
         # update atoms
+#        self.updated = self.e_total is None
         self.set_atoms(atoms)
         self.initialize()
         # if update of energy is necessary
@@ -957,27 +961,6 @@ class Turbomole(Calculator):
 
         self.update_energy = False
         return self.e_total
-
-    """
-    def get_potential_energy(self, atoms):
-        # update atoms
-        self.updated = self.e_total is None
-        self.set_atoms(atoms)
-        # if update of energy is necessary
-        if self.update_energy:
-            # calculate energy
-            self.execute(self.calculate_energy + ' > ASE.TM.energy.out')
-            # check for convergence of dscf cycle
-            if os.path.isfile('dscf_problem'):
-                print('Turbomole scf energy calculation did not converge')
-                raise RuntimeError(
-                    'Please run Turbomole define and come thereafter back')
-            # read energy
-            self.read_energy()
-
-        self.update_energy = False
-        return self.e_total
-    """
 
     def get_forces(self, atoms):
         # update atoms
@@ -1000,23 +983,6 @@ class Turbomole(Calculator):
         # this must check the state and then perform a calc if necessary
         return self.dipole
 
-    """        
-    def set_atoms(self, atoms):
-        if self.atoms == atoms:
-            if (self.updated and os.path.isfile('coord')):
-                self.updated = False
-                a = read('coord').get_positions()
-                if np.allclose(a, atoms.get_positions(), rtol=0, atol=1e-13):
-                    return
-            else:
-                return
-        # performs an update of the atoms
-        write('coord', atoms)
-        Calculator.set_atoms(self, atoms)
-        # energy and forces must be re-calculated
-        self.update_energy = True
-        self.update_forces = True
-    """
 
     """
     The following three functions are necessary for the atoms2dict function. 
@@ -1074,32 +1040,35 @@ class Turbomole(Calculator):
         """Returns the value of a property"""
 
         if name not in self.implemented_properties:
-            # ugly work around; the called should not expect the calc has stress
-            if name is 'stress':
-                return np.empty(6)
+            # an ugly work around; the caller should test the raised error
+            if name in ['magmom', 'magmoms', 'charges', 'stress']:
+                return None
             raise NotImplementedError(name)
 
         if atoms is None:
             atoms = self.atoms.copy()
 
         persist_property = {
-            'energy': "e_total",
-            'forces': "forces",
-            'dipole': "dipole"
+            'energy': 'e_total',
+            'forces': 'forces',
+            'dipole': 'dipole',
+            'free_energy': 'e_total'
         }
         property_getter = {
             'energy': self.get_potential_energy,
             'forces': self.get_forces,
-            'dipole': self.get_dipole_moment
+            'dipole': self.get_dipole_moment,
+            'free_energy': self.get_potential_energy
             }
         getter_args = {
-            'energy': atoms,
-            'forces': atoms,
-            'dipole': atoms
+            'energy': [atoms],
+            'forces': [atoms],
+            'dipole': [atoms],
+            'free_energy': [atoms, True]
             }
 
         if allow_calculation:
-            result = property_getter[name](getter_args[name])
+            result = property_getter[name](*getter_args[name])
         else:
             if hasattr(self, persist_property[name]):
                 result = getattr(self, persist_property[name])

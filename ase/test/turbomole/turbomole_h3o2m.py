@@ -56,21 +56,23 @@ for i in range(3):
 images.append(final.copy())
 neb = NEB(images, climb=True)
 
-# Set constraints and calculator:
-constraint = FixAtoms(indices=[1, 3])  # fix OO BUG No.1: fixes atom 0 and 1
-# constraint = FixAtoms(mask=[0,1,0,1,0]) # fix OO    #Works without patch
-for image in images:
-    image.set_calculator(Turbomole())  # BUG No.2: (Over-)writes coord file
-    image.set_constraint(constraint)
-
 # Write all commands for the define command in a string
 define_str = ('\n\na coord\n\n*\nno\nb all 3-21g '
               'hondo\n*\neht\n\n-1\nno\ns\n*\n\ndft\non\nfunc '
               'pwlda\n\n\nscf\niter\n300\n\n*')
+
+# Set constraints and calculator:
+constraint = FixAtoms(indices=[1, 3])  # fix OO BUG No.1: fixes atom 0 and 1
+# constraint = FixAtoms(mask=[0,1,0,1,0]) # fix OO    #Works without patch
+for image in images:
+    image.set_calculator(Turbomole(define_str=define_str))
+    image.set_constraint(constraint)
+
+"""
 # Run define
 p = Popen('define', stdout=PIPE, stdin=PIPE, stderr=STDOUT)
 stdout = p.communicate(input=define_str)
-
+"""
 # Relax initial and final states:
 if 1:
     dyn1 = QuasiNewton(images[0])
