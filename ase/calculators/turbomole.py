@@ -59,7 +59,7 @@ class Turbomole(Calculator):
             print('Execution failed:', e, file=sys.stderr)
             sys.exit(1)
 
-    def get_potential_energy(self, atoms):
+    def get_potential_energy(self, atoms, force_consistent=True):
         # update atoms
         self.updated = self.e_total is None
         self.set_atoms(atoms)
