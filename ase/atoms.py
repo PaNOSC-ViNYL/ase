@@ -1064,12 +1064,12 @@ class Atoms(object):
         """
 
         # Find the orientations of the faces of the unit cell
-        c = self.get_cell(complete=True)
-        dirs = np.zeros_like(c)
+        cell = self.get_cell(complete=True)
+        dirs = np.zeros_like(cell)
         for i in range(3):
-            dirs[i] = np.cross(c[i - 1], c[i - 2])
+            dirs[i] = np.cross(cell[i - 1], cell[i - 2])
             dirs[i] /= np.sqrt(np.dot(dirs[i], dirs[i]))  # normalize
-            if np.dot(dirs[i], c[i]) < 0.0:
+            if np.dot(dirs[i], cell[i]) < 0.0:
                 dirs[i] *= -1
 
         if isinstance(axis, int):
@@ -1088,23 +1088,25 @@ class Atoms(object):
         for i in axes:
             p0 = np.dot(p, dirs[i]).min()
             p1 = np.dot(p, dirs[i]).max()
-            height = np.dot(c[i], dirs[i])
+            height = np.dot(cell[i], dirs[i])
             if vacuum is not None:
                 lng = (p1 - p0 + 2 * vacuum) - height
             else:
                 lng = 0.0  # Do not change unit cell size!
             top = lng + height - p1
             shf = 0.5 * (top - p0)
-            cosphi = np.dot(c[i], dirs[i]) / np.sqrt(np.dot(c[i], c[i]))
+            cosphi = np.dot(cell[i], dirs[i]) / np.sqrt(np.dot(cell[i],
+                                                               cell[i]))
             longer[i] = lng / cosphi
             shift[i] = shf / cosphi
 
         # Now, do it!
         translation = np.zeros(3)
         for i in axes:
-            nowlen = np.sqrt(np.dot(c[i], c[i]))
-            self._cell[i] = c[i] * (1 + longer[i] / nowlen)
-            translation += shift[i] * c[i] / nowlen
+            nowlen = np.sqrt(np.dot(cell[i], cell[i]))
+            if self._cell[i].any():
+                self._cell[i] = cell[i] * (1 + longer[i] / nowlen)
+                translation += shift[i] * cell[i] / nowlen
         self.arrays['positions'] += translation
 
         # Optionally, translate to center about a point in space.
