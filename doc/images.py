@@ -9,7 +9,8 @@ url = 'http://wiki.fysik.dtu.dk/ase-files/'
 
 def setup(app):
     pass
-    
+
+
 for file in ['ase/ag.png',
              'ase/ase-talk.pdf']:
     if os.path.isfile(file):
