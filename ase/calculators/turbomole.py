@@ -318,11 +318,13 @@ class Turbomole(Calculator):
             command = 'define > ASE.TM.define.out'
             p = Popen(command, shell=True, stdin=PIPE, stderr=PIPE)
             error = p.communicate(input=define_str)[1]
-            if 'abnormally' in error:
-                raise OSError(error)
-            print('TM command:  ' + command + ' successfully executed')
-        except OSError('define execution failed: ') as err:
+#            print(error)
+            if 'command not found' in error or 'abnormally' in error:
+                raise RuntimeError(error)
+        except RuntimeError('define execution failed: ') as err:
             raise err
+        else:
+            print('TM command:  ' + command + ' successfully executed')
 
         # add or delete data groups
         self.execute('kdg scfdump')
@@ -416,8 +418,8 @@ class Turbomole(Calculator):
 
     def read_results(self):
         """ read all results and load them in the results entity """
-        import util as abcd
-        self.results['atoms'] = abcd.atoms2dict(self.atoms,plain_arrays=True)
+#        from abcd.util import atoms2dict
+#        self.results['atoms'] = atoms2dict(self.atoms, plain_arrays=True)
         self.read_energy()
         self.results['total energy'] = self.e_total
         self.read_mos()
@@ -709,12 +711,10 @@ class Turbomole(Calculator):
     def read_gradient (self):
         """ read all information in file 'gradient' """
         from ase import Atom
-        import util as abcd
+#        from abcd.util import atoms2dict
         grad_string = self.read_data_group('grad')
-#       there are units errors in the ASE method: energy in Hartree and forces 
-#       are multiplied by Bohr;
-#       update: the bug has been fixed, try to reuse ase
-#       structures = read('gradient',index=':') 
+#       try to reuse ase:
+#       structures = read('gradient', index=':') 
         lines = grad_string.split('\n')
         history = []
         image = {}
@@ -733,7 +733,7 @@ class Turbomole(Calculator):
                     image['optimization cycle'] = cycle
                     image['total energy'] = energy
                     image['gradient norm'] = norm
-                    image['atoms'] = abcd.atoms2dict(atoms,plain_arrays=True)
+#                    image['atoms'] = atoms2dict(atoms, plain_arrays=True)
                     image['energy gradient'] = gradient
                     history.append(image)
                     image = {}
@@ -774,7 +774,7 @@ class Turbomole(Calculator):
         image['optimization cycle'] = cycle
         image['total energy'] = energy
         image['gradient norm'] = norm
-        image['atoms'] = abcd.atoms2dict(atoms,plain_arrays=True)
+#        image['atoms'] = atoms2dict(atoms, plain_arrays=True)
         image['energy gradient'] = gradient
         history.append(image)
         self.results['geometry optimization history'] = history

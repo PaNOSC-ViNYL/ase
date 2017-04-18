@@ -5,19 +5,19 @@ from ase.build import molecule
 mol = molecule('H2O')
 
 params = {
-    "title": "water",
-    "task": "geometry optimization",
-    "use redundant internals": True,
-    "basis set name": "def2-SV(P)",
-    "total charge": 0,
-    "multiplicity": 1,
-    "use dft": True,
-    "density functional": "b3-lyp",
-    "use resolution of identity": True,
-    "ri memory": 1000,
-    "force convergence": 0.001,
-    "geometry iterations": 50,
-    "maximum number of scf iterations": 100
+    'title': 'water',
+    'task': 'geometry optimization',
+    'use redundant internals': True,
+    'basis set name': 'def2-SV(P)',
+    'total charge': 0,
+    'multiplicity': 1,
+    'use dft': True,
+    'density functional': 'b3-lyp',
+    'use resolution of identity': True,
+    'ri memory': 1000,
+    'force convergence': 0.001,
+    'geometry iterations': 50,
+    'maximum number of scf iterations': 100
 }
 
 calc = Turbomole(**params)
