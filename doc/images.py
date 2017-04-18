@@ -11,11 +11,12 @@ def setup(app):
     pass
 
 
-for file in ['ase/ag.png',
+for file in ['ase/gui/ag.png',
              'ase/ase-talk.pdf']:
     if os.path.isfile(file):
         continue
     try:
         urlretrieve(url + os.path.basename(file), file)
+        print('Downloaded:', file)
     except IOError:
         pass
