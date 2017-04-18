@@ -935,7 +935,9 @@ class Atoms(object):
         import copy
         from ase.constraints import FixConstraint, FixBondLengths
 
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
+                               # should be communicated to the slice as well
+                               celldisp=self._celldisp)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
 
         atoms.arrays = {}
