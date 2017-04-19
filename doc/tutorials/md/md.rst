@@ -94,10 +94,10 @@ Try playing the movie with a high frame rate and set frame skipping to a
 low number. Can you spot the subtle difference?
 
 
-.. _Equillibrating A TIPnP Water Box
+.. _TIPnP Water Box Equillibration:
 
-Equillibrating A TIPnP Water Box
-================================
+Equilibrating A TIPnP Water Box
+===============================
 
 This tutorial shows how to use the TIP3P and TIP4P force fields in
 ASE. 
