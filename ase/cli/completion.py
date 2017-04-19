@@ -2,7 +2,8 @@ from __future__ import print_function
 import os
 
 # Path of the complete.py script:
-filename = __file__[:-6] + 'e.py'
+my_dir, _ = os.path.split(os.path.realpath(__file__))
+filename = os.path.join(my_dir, 'complete.py')
 
 
 class CLICommand:

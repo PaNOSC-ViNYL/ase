@@ -22,6 +22,7 @@ try:
 except ImportError:
     Scientific = 0
 
+
 def get_atoms():
     a = 5.0
     d = 1.9
@@ -78,6 +79,10 @@ for format in sorted(all_formats):
         # Standalone test used as not compatible with 1D periodicity
         continue
 
+    if format in ['dmol-arc', 'dmol-car', 'dmol-incoor']:
+        # We have a standalone dmol test
+        continue
+
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
         continue
@@ -92,6 +97,7 @@ for format in sorted(all_formats):
         continue
 
     atoms = get_atoms()
+
     images = [atoms, atoms]
 
     io = get_ioformat(format)

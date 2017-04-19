@@ -92,6 +92,14 @@ Git master branch
   objects; it is no longer restricted to sequences with a constant number
   of atoms or same chemical composition.
 
+* Trajectory files can now store any sequence of :class:`~ase.Atoms`
+  objects.  Previously, atomic numbers, masses, and constraints were
+  only saved for the first image, and had to apply for all subsequent ones.
+
+* Interface for DMol\ :sup:`3` added.
+
+* Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
+
 Version 3.13.0
 ==============
 
