@@ -4,6 +4,7 @@ This module defines an ASE interface to Turbomole: http://www.turbomole.com/
 """
 
 import os, sys, re
+import warnings
 from math import log10
 import numpy as np
 import fortranformat as ff
@@ -33,7 +34,7 @@ class Turbomole(Calculator):
         'alpha', 'beta',  'statistics', 'GEO_OPT_CONVERGED', 'GEO_OPT_FAILED',
         'not.converged', 'nextstep', 'hessapprox', 'job.last', 'job.start',
         'optinfo', 'statistics', 'converged', 'vibspectrum', 'vib_normal_modes',
-        'hessian', 'dipgrad'
+        'hessian', 'dipgrad', 'dscf_problem'
     ]
     tm_tmp_files = [
         'errvec', 'fock', 'oldfock', 'dens', 'ddens', 'diff_densmat', 
@@ -68,7 +69,7 @@ class Turbomole(Calculator):
         'fermi annealing factor': 0.95,
         'fermi homo-lumo gap criterion': 0.1,
         'fermi stopping criterion': 0.001,
-        'maximum number of scf iterations': 60, # scfiterlimit
+        'scf iterations': 60,                   # scfiterlimit
         'scf energy convergence': None,         # scfconv
         'density convergence': None,            # denconv
         'orbital shift type': None,             # not implemented
@@ -83,11 +84,11 @@ class Turbomole(Calculator):
         'optimized excited state': None,        # not implemented
         'force convergence': None,              # jobex -gcart <int>
         'energy convergence': None,             # jobex -energy <int>
-        'number of geometry cycles': None,      # jobex -c <int>
+        'geometry optimization iterations': None,      # jobex -c <int>
         'task': 'energy',           # 'energy calculation', 'energy'
                                     # 'gradient calculation', 'gradient'
                                     # 'geometry optimization', 'optimize'
-                                    # 'harmonic mode analysis', 'frequencies'
+                                    # 'normal mode analysis', 'frequencies'
         # analysis
         # advanced
     }
@@ -118,7 +119,7 @@ class Turbomole(Calculator):
         if hasattr(self, item):
             obj = getattr(self, item)
         else:
-            obj = None
+            obj = None # actually it should return a KeyError
         return obj
 
     def set_parameters(self, params):
@@ -256,8 +257,8 @@ class Turbomole(Calculator):
         else:
             ri_str =''
 
-        if params['maximum number of scf iterations']:
-            scfmaxiter = params['maximum number of scf iterations']
+        if params['scf iterations']:
+            scfmaxiter = params['scf iterations']
             scfiter_str = 'scf\niter\n'+str(scfmaxiter)+'\n\n'
         else:
             scfiter_str = ''
@@ -331,7 +332,7 @@ class Turbomole(Calculator):
         if self.parameters['density convergence']:
             if len(self.read_data_group('denconv')) != 0:
                 self.execute('kdg denconv')
-            conv = -log10(params['density convergence'])
+            conv = -log10(self.parameters['density convergence'])
             self.add_data_group('denconv', str(int(conv))) 
 
         self.initialized = True
@@ -356,7 +357,7 @@ class Turbomole(Calculator):
             self.get_forces(atoms)
         if self.parameters['task'] in ['optimize', 'geometry optimization']:
             self.relax_geometry(atoms)
-        if self.parameters['task'] in ['frequencies', 'harmonic mode analysis']:
+        if self.parameters['task'] in ['frequencies', 'normal mode analysis']:
             self.harmonic_analysis(atoms)
         self.read_results()
 
@@ -390,23 +391,27 @@ class Turbomole(Calculator):
         if self.parameters['energy convergence']:
             conv = -log10(self.parameters['energy convergence']/Hartree)//1
             jobex_flags += ' -energy ' + str(int(conv))
+        geom_iter = self.parameters['geometry optimization iterations']
+        if geom_iter is not None:
+            assert isinstance(geom_iter, int)
+            jobex_flags += ' -c ' + str(geom_iter)
         self.converged = False
         self.execute('jobex ' + jobex_flags + ' > ASE.TM.jobex.out')
-        new_struct = read('coord')
-        atoms.set_positions(new_struct.get_positions())
-        self.atoms = atoms.copy()
-        self.read_energy()
-        if os.path.exists('GEO_OPT_CONVERGED'):
+        # check convergence
+        self.converged = self.read_convergence()
+        if self.converged:
             self.update_energy = False
             self.update_forces = False
             self.update_geometry = False
             self.update_hessian = True
-            self.converged = True
-        else:
-            raise RuntimeError('Geometry not converged!')
+        # read results
+        new_struct = read('coord')
+        atoms.set_positions(new_struct.get_positions())
+        self.atoms = atoms.copy()
+        self.read_energy()
 
     def harmonic_analysis(self, atoms):
-        """ execute harmonic mode analysis with module aoforce """
+        """ execute normal mode analysis with module aoforce """
 
         self.set_atoms(atoms)
         self.initialize()
@@ -415,6 +420,39 @@ class Turbomole(Calculator):
         if self.update_hessian:
             self.execute('aoforce > ASE.TM.aoforce.out')
             self.update_hessian = False
+
+    def read_convergence(self):
+        if self.parameters['task'] in ['optimize', 'geometry optimization']:
+            if os.path.exists('GEO_OPT_CONVERGED'):
+                return True
+            elif os.path.exists('GEO_OPT_FAILED'):
+                # check whether a failed scf convergence is the reason
+                checkfiles = []
+                for filename in os.listdir('.'):
+                    if filename.startswith('job.'):
+                        checkfiles.append(filename)
+                for filename in checkfiles:
+                    for line in open(filename):
+                        if 'SCF FAILED TO CONVERGE' in line:
+                            if filename == 'job.last':
+                                # scf did not converge in first jobex iteration
+                                raise RuntimeError('scf failed to converge')
+                            else:
+                                # scf did not converge in later jobex iteration
+                                warning = RuntimeWarning('scf failed to converge')
+                                warnings.warn(warning)
+                warning = RuntimeWarning('geometry optimization failed to converge')
+                warnings.warn(warning)
+                return False
+            else:
+                raise RuntimeError('error during geometry optimization')
+                return False
+        else:
+            if os.path.isfile('dscf_problem'):
+                raise RuntimeError('scf failed to converge')
+                return False
+            else:
+                return True
 
     def read_results(self):
         """ read all results and load them in the results entity """
@@ -425,7 +463,7 @@ class Turbomole(Calculator):
         self.read_mos()
         self.read_basis_set()
         self.read_occupation_numbers()
-        self.read_dipole_moment ()
+        self.read_dipole_moment()
         self.read_ssquare()
         self.read_calc_parameters()
         if self.parameters['task'] in ['gradient', 'optimize', 
@@ -433,7 +471,7 @@ class Turbomole(Calculator):
             self.read_gradient()
             self.read_forces()
             self.results['energy gradient'] = (-self.forces).tolist()
-        if self.parameters['task'] in ['frequencies', 'harmonic mode analysis']:
+        if self.parameters['task'] in ['frequencies', 'normal mode analysis']:
             self.read_hessian()
             self.read_vibrational_reduced_masses()
             self.read_normal_modes()
@@ -708,7 +746,7 @@ class Turbomole(Calculator):
                         {'exponent': exponent, 'coefficient': coefficient}
                     )
 
-    def read_gradient (self):
+    def read_gradient(self):
         """ read all information in file 'gradient' """
         from ase import Atom
 #        from abcd.util import atoms2dict
@@ -941,11 +979,8 @@ class Turbomole(Calculator):
         if self.update_energy:
             # calculate energy
             self.execute(self.calculate_energy + ' > ASE.TM.energy.out')
-            # check for convergence of dscf cycle
-            if os.path.isfile('dscf_problem'):
-                print('Turbomole scf energy calculation did not converge')
-                raise RuntimeError(
-                    'Please run Turbomole define and come thereafter back')
+            # check convergence
+            self.converged = self.read_convergence()
             # read energy
             self.read_energy()
 
