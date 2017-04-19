@@ -83,7 +83,7 @@ def write_vti(filename, atoms, data=None):
 
 
 def write_vtu(filename, atoms, data=None):
-    from vtk import VTK_MAJOR_VERSION, VTK_INT, vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
+    from vtk import VTK_MAJOR_VERSION, vtkUnstructuredGrid, vtkPoints, vtkXMLUnstructuredGridWriter
     from vtk.util.numpy_support import numpy_to_vtk
 
     if isinstance(atoms, list):
@@ -103,18 +103,18 @@ def write_vtu(filename, atoms, data=None):
     ugd.SetPoints(p)
 
     # add atomic numbers
-    numbers = numpy_to_vtk(atoms.get_atomic_numbers(), array_type=VTK_INT)
+    numbers = numpy_to_vtk(atoms.get_atomic_numbers(), deep=1)
     ugd.GetPointData().AddArray(numbers)
     numbers.SetName("atomic numbers")
 
     # add tags
-    tags = numpy_to_vtk(atoms.get_tags(), array_type=VTK_INT)
+    tags = numpy_to_vtk(atoms.get_tags(), deep=1)
     ugd.GetPointData().AddArray(tags)
     tags.SetName("tags")
 
     # add covalent radii
     from ase.data import covalent_radii
-    radii = numpy_to_vtk(np.array([covalent_radii[i] for i in atoms.get_atomic_numbers()]))
+    radii = numpy_to_vtk(np.array([covalent_radii[i] for i in atoms.get_atomic_numbers()]), deep=1)
     ugd.GetPointData().AddArray(radii)
     radii.SetName("radii")
 

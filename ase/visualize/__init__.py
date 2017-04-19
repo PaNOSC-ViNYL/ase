@@ -43,20 +43,28 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         # macro for showing atoms in paraview
         macro = """\
 from paraview.simple import *
-paraview.simple._DisableFirstRenderCameraReset()
+pxm = servermanager.ProxyManager()
+major, minor = pxm.GetVersionMajor(), pxm.GetVersionMinor()
 source = GetActiveSource()
-renderView1 = GetActiveViewOrCreate('RenderView')
+renderView1 = GetRenderView()
 atoms = Glyph(Input=source,
               GlyphType='Sphere',
-              GlyphMode='All Points',
+#              GlyphMode='All Points',
               Scalars='radii',
               ScaleMode='scalar',
-              ScaleFactor=0.8)
+#              ScaleFactor=0.8,
+              )
 RenameSource('Atoms', atoms)
+atoms.SetScaleFactor = 0.8
 atomsDisplay = Show(atoms, renderView1)
-ColorBy(atomsDisplay, 'atomic numbers')
-atomsDisplay.SetScalarBarVisibility(renderView1, True)
-renderView1.ResetCamera()
+atomicnumbers_PVLookupTable = GetLookupTableForArray( "atomic numbers", 1, RGB
+atomsDisplay.ColorArrayName = ('POINT_DATA', 'atomic numbers')
+atomsDisplay.LookupTable = atomicnumbers_PVLookupTable
+
+#ColorBy(atomsDisplay, 'atomic numbers')
+
+#atomsDisplay.SetScalarBarVisibility(renderView1, True)
+Render()
         """
         script_name = os.path.join(tempfile.gettempdir(), 'draw_atoms.py')
         with open(script_name, 'w') as f:
