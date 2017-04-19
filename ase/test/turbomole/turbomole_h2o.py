@@ -23,6 +23,7 @@ params = {
 calc = Turbomole(**params)
 mol.set_calculator(calc)
 calc.calculate(mol)
+assert calc.converged
 
 # use the get_property() method
 print(calc.get_property('energy', mol, False))
@@ -37,3 +38,13 @@ print(results['molecular orbitals'])
 print(calc['results']['molecular orbitals'])
 print(calc['results']['geometry optimization history'])
 
+# perform a normal mode calculation with the optimized structure
+
+params.update({
+    'task': 'normal mode analysis',
+    'density convergence': 1.0e-7
+})
+calc = Turbomole(**params)
+mol.set_calculator(calc)
+calc.calculate(mol)
+print(calc['results']['vibrational spectrum'])
