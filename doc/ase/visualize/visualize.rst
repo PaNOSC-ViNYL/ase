@@ -6,7 +6,7 @@ Visualization
 .. function:: view(atoms, data=None, viewer=None, repeat=None)
 
 This provides an interface to various visualization tools, such as
-:mod:`ase.gui`, RasMol_, VMD_, gOpenMol_, or Avogadro_. The default viewer is
+:mod:`ase.gui`, RasMol_, VMD_, gOpenMol_, Avogadro_, or ParaView_. The default viewer is
 the ase.gui, described in the :mod:`ase.gui` module. The simplest invocation
 is:
 
@@ -20,7 +20,7 @@ is:
 
 where ``atoms`` is any :class:`~ase.Atoms` object.  Alternative viewers
 can be used by specifying the optional keyword ``viewer=...`` - use one of
-'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD and Avogadro viewers can
+'ase.gui', 'gopenmol', 'vmd', 'rasmol', or 'paraview'.  The VMD and Avogadro viewers can
 take an optional ``data`` argument to show 3D data, such as charge density:
 
 >>> view(atoms, viewer='VMD', data=...)
@@ -37,6 +37,7 @@ your structure by dumping directly to a graphics file; you can use the
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
 .. _gOpenMol: http://www.csc.fi/gopenmol/
 .. _Avogadro: http://avogadro.openmolecules.net/
+.. _ParaView: http://www.paraview.org/
 
 
 .. module:: ase.visualize.mlab
