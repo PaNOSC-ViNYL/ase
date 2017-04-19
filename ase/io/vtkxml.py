@@ -128,7 +128,10 @@ def write_vtu(filename, atoms, data=None):
         w.GetCompressor().SetCompressionLevel(0)
         w.SetDataModeToAscii()
 
-    w.SetFileName(filename.name)
+    if isinstance(filename, str):
+        w.SetFileName(filename)
+    else:
+        w.SetFileName(filename.name)
     if VTK_MAJOR_VERSION <= 5:
         w.SetInput(ugd)
     else:
