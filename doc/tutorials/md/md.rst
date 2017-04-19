@@ -55,7 +55,7 @@ command
 
 ::
 
-  ase gui moldyn3.traj
+  ase-gui moldyn3.traj
 
 Try plotting the kinetic energy.  You will *not* see a well-defined
 melting point due to finite size effects (including surface melting),
@@ -84,12 +84,77 @@ Let us see what happens when we propagate a nanoparticle for a long time:
 .. literalinclude:: moldyn4.py
 
 After running the simulation, use :ref:`ase-gui` to compare the results
-with how it looks if you comment out either the line that says
-`Stationary(atoms)`, `ZeroRotation(atoms)` or both.
+with how it looks if you comment out either the line that says `Stationary(atoms)`, `ZeroRotation(atoms)` or both.
 
 ::
 
-  ase gui moldyn4.traj
+  ase-gui moldyn4.traj
 
 Try playing the movie with a high frame rate and set frame skipping to a
 low number. Can you spot the subtle difference?
+
+
+.. _Equillibrating A TIPnP Water Box
+
+Equillibrating A TIPnP Water Box
+================================
+
+This tutorial shows how to use the TIP3P and TIP4P force fields in
+ASE. 
+
+
+Since the TIPnP type water interpotentials are for rigid 
+molecules, there are no intramolecular force terms, and we need to
+constrain all internal degrees of freedom. For this, we're
+using the RATTLE-type constraints of :ref:`FixBondLengths` class to
+constrain all internal atomic distances (O-H1, O-H2, and H1-H2) for
+each molecule. 
+
+The box is equillibrated with the Langevin thermostat. 
+
+
+For efficiency, we first equillibrate a smaller box, and then repeat that 
+once more for the final equillibration. However, the potentials are not
+parallelized, and are mainly included for testing and for use with QM/MM
+tasks, so expect to let it run for some time. 
+
+
+The following is for TIP3P:
+
+.. literalinclude:: tip3p_equil.py
+
+.. note::
+
+  The temperature calculated by ASE is assuming all degrees of freedom
+  are available to the system. Since the constraints have removed the 3
+  vibrational modes from each water, the shown temperature will be 2/3
+  of the actual value. 
+
+The procedure for the TIP4P force field is the same, with the following
+exceptions:
+
+- the atomic sequence **must** be OHH, OHH, ...
+- charges are set automatically
+
+So to perform the same task using TIP4P, you simply have to import 
+that calculator instead:
+
+::
+
+    from ase.calculators.tip4p import TIP4P, rOH, thetaHOH
+
+
+And remove the following line from the above script: 
+
+::   
+   
+  set_tip3p_charges(atoms)
+
+
+More info about the TIP4P potential:
+
+.. module::  ase.calculators.tip4p
+
+.. autoclass:: TIP4P
+
+
