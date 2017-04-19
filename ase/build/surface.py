@@ -429,7 +429,7 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
         atoms.cell[2][2] -= dz
 
     atoms.cell[2] = 0.0
-    atoms.pbc[1] = False
+    atoms.pbc[2] = False
     if vacuum:
         atoms.center(vacuum, axis=2)
 
