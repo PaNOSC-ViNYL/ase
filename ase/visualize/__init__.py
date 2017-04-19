@@ -43,8 +43,7 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         # macro for showing atoms in paraview
         macro = """\
 from paraview.simple import *
-pxm = servermanager.ProxyManager()
-major, minor = pxm.GetVersionMajor(), pxm.GetVersionMinor()
+version_major = servermanager.vtkSMProxyManager.GetVersionMajor()
 source = GetActiveSource()
 renderView1 = GetRenderView()
 atoms = Glyph(Input=source,
@@ -52,18 +51,18 @@ atoms = Glyph(Input=source,
 #              GlyphMode='All Points',
               Scalars='radii',
               ScaleMode='scalar',
-#              ScaleFactor=0.8,
               )
 RenameSource('Atoms', atoms)
-atoms.SetScaleFactor = 0.8
 atomsDisplay = Show(atoms, renderView1)
-atomicnumbers_PVLookupTable = GetLookupTableForArray( "atomic numbers", 1, RGB
-atomsDisplay.ColorArrayName = ('POINT_DATA', 'atomic numbers')
-atomsDisplay.LookupTable = atomicnumbers_PVLookupTable
-
-#ColorBy(atomsDisplay, 'atomic numbers')
-
-#atomsDisplay.SetScalarBarVisibility(renderView1, True)
+if version_major <= 4:
+    atoms.SetScaleFactor = 0.8
+    atomicnumbers_PVLookupTable = GetLookupTableForArray( "atomic numbers", 1)
+    atomsDisplay.ColorArrayName = ('POINT_DATA', 'atomic numbers')
+    atomsDisplay.LookupTable = atomicnumbers_PVLookupTable
+else:
+    atoms.ScaleFactor = 0.8
+    ColorBy(atomsDisplay, 'atomic numbers')
+    atomsDisplay.SetScalarBarVisibility(renderView1, True)
 Render()
         """
         script_name = os.path.join(tempfile.gettempdir(), 'draw_atoms.py')
