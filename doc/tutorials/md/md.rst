@@ -106,7 +106,7 @@ ASE.
 Since the TIPnP type water interpotentials are for rigid 
 molecules, there are no intramolecular force terms, and we need to
 constrain all internal degrees of freedom. For this, we're
-using the RATTLE-type constraints of :ref:`FixBondLengths` class to
+using the RATTLE-type constraints of the :ref:`FixBondLengths` class to
 constrain all internal atomic distances (O-H1, O-H2, and H1-H2) for
 each molecule. 
 

@@ -38,6 +38,7 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    ga/ga_optimize
    ga/ga_fcc_alloys
    defects/defects
+   qmmm
 
 
 NumPy

@@ -9,6 +9,13 @@ TIP3P
 
 .. autoclass:: TIP3P
 
+.. module::  ase.calculators.tip4p
+
+TIP4P
+=====
+
+.. autoclass:: TIP4P
+
 
 .. module::  ase.calculators.lj
 
