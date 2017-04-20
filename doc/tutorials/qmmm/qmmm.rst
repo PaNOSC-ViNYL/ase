@@ -128,7 +128,7 @@ QM/MM MD General Strategy for A QM complex in an MM solvent:
     1. Equillibrate an MM solvent box using one of the MM potentials built into 
        ASE (see :ref:`TIPnP Water Box Equillibration` for water potentials), one
        of the compatible external MM codes, or write your own potential 
-       (see:ref:`Adding new calculators`)
+       (see :ref:`Adding new calculators`)
     2. Optimize the gas-phase structure of your QM complex in GPAW, analyze what
        level of accuracy you will need for your task.
     3. Place the relaxed structure of the QM molecule in your MM solvent box, 
@@ -149,6 +149,8 @@ and and MM cell (periodic)::
                         vacuum=4.,  # Now QM cell has walls min. 4 Å from QM atoms
                         output='qmmm.log')
 
+
+This will center the QM subsystem in the MM cell. 
 
 Current limitations
     - No QM/MM border over bonds
