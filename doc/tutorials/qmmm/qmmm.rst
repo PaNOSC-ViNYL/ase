@@ -23,8 +23,18 @@ the calculator for the QM subsystem.
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
 
-You might also be interested in the tutorial on the solvent MM potentials included in ASE. 
+You might also be interested in the solvent MM potentials included in ASE. 
 The tutorial on :ref:`TIPnP Water Box Equillibration` could be relevant to have a look at. 
+
+
+Let's first do a very simple electrostatic embedding QM/MM single point energy calculation
+on the water dimer. The necessary inputs are described in the class help text:
+
+.. autoclass:: ase.calculators.qmmm.EIQMMM
+
+
+
+.. literalinclude:: water_dimer.py
 
 Current limitations
     - No QM/MM border over bonds
