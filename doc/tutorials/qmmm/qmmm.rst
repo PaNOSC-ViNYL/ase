@@ -29,6 +29,39 @@ The tutorial on :ref:`TIPnP Water Box Equillibration` could be relevant to have 
 
 Electrostatic Embedding QM/MM
 -----------------------------
+The total energy expression for the full QM/MM system is:
+
+.. math::  E_\mathrm{TOT} = E_\mathrm{QM} + E_\mathrm{I} + E_\mathrm{MM}.
+
+The MM region is modelled using point charge force fields, with charges 
+:math:`q_i` and :math:`\tau_i` denoting their spatial coordinates, so the 
+QM/MM coupling term :math:`E_\mathrm{I}` will be
+
+.. math:: E_\mathrm{I} = \sum_{i=1}^C q_i \int \frac{n({\bf r})}{\mid\!{\bf r} -
+                         \tau_i\!\mid}\mathrm{d}{\bf r} + 
+                         \sum_{i=1}^C\sum_{\alpha=1}^A 
+                         \frac{q_i Z_{\alpha}}{\mid\!{\bf R}_\alpha - \tau_i\!\mid} + E_\mathrm{RD}
+
+where :math:`n({\bf r})` is the spatial electronic density of the quantum 
+region, :math:`Z_\alpha` and :math:`{\bf R}_\alpha` are the charge and coordinates 
+of the nuclei in the QM region, respectively, and :math:`E_\mathrm{RD}` is the term describing 
+the remaining, non-Coulomb interactions between the two subsystems.
+
+For the MM point-charge external potential in GPAW, we use the 
+total pseudo-charge density :math:`\tilde{\rho}({\bf r})` for the coupling, and since
+the Coloumb integral is evaluated numerically on the real space grid, 
+thus the coupling term ends up like this:
+
+.. math:: E_\mathrm{I} = \sum_{i=1}^C q_i \sum_{g} \frac{\tilde{\rho}({\bf r})}{\mid\!{\bf r}_g  - \tau_i\!\mid} v_g + E_\mathrm{RD}
+
+Currently, the term for :math:`E_{\mathrm{RD}}` implemented is a Lennard-Jones-type
+potential:
+
+.. math:: E_\mathrm{RD} = \sum_i^C \sum_\alpha^A 
+                          4\epsilon\left[ \left(\frac{\sigma}{\mid\!{\bf R}_\alpha 
+                          - \tau_i\!\mid}\right)^{12} 
+                          - \left(\frac{\sigma}{\mid\!{\bf R}_\alpha 
+                          - \tau_i\!\mid}\right)^{6} \right]
 
 Let's first do a very simple electrostatic embedding QM/MM single point energy calculation
 on the water dimer. The necessary inputs are described in the class help text:
