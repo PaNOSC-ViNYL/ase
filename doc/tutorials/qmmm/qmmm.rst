@@ -115,7 +115,26 @@ using the electrostatic embedding scheme::
     dyn = LBFGS(atoms=atoms, trajectory='dimer.traj')
     dyn.run(fmax=0.05)
 
-Since TIP3P is a rigid potential, we constrain all interatomic distances. 
+Since TIP3P is a rigid potential, we constrain all interatomic distances.
+QM bond lengths can be constrained too, in the same manner. 
+
+The implementation was developed with the focus of modelling ions and complexes
+in solutions, we're working on expanding its functionality to encompass surfaces.
+
+In broad strokes, the steps to performing QM/MM MD simulations for thermal sampling
+or dynamics studies, these are the steps:
+
+QM/MM MD General Strategy for A QM complex in an MM solvent:
+    1. Equillibrate an MM solvent box using one of the MM potentials built into 
+       ASE (see :ref:`TIPnP Water Box Equillibration` for water potentials), one
+       of the compatible external MM codes, or write your own potential 
+       (see:ref:`Adding new calculators`)
+    2. Optimize the gas-phase structure of your QM complex in GPAW, analyze what
+       level of accuracy you will need for your task.
+    3. Place the relaxed structure of the QM molecule in your MM solvent box, 
+       deleting overlapping MM molecules. 
+    4. Re-equillibrate the QM/MM system. 
+    5. Run production runs. 
 
 Current limitations
     - No QM/MM border over bonds

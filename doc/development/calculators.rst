@@ -1,3 +1,5 @@
+.. _write your own potential:
+
 ======================
 Adding new calculators
 ======================
