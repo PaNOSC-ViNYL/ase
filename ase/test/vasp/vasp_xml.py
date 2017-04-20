@@ -38,7 +38,8 @@ def main():
                 sigma=1.,
                 istart=0,
                 lwave=False,
-                lcharg=False)
+                lcharg=False,
+                ldipol=True)
 
     co.set_calculator(calc)
     energy = co.get_potential_energy()
@@ -51,7 +52,7 @@ def main():
     assert conf.calc.parameters['ialgo'] == 68
     assert energy - conf.get_potential_energy() == 0.0
     assert array_almost_equal(conf.get_forces(), forces, tol=1e-4)
-
+    assert array_almost_equal(conf.get_dipole_moment(), [-0.2450777, -0.014922, 3.9574469])
     # Cleanup
     calc.clean()
 
