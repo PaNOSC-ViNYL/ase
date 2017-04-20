@@ -312,26 +312,15 @@ class Turbomole(Calculator):
             define_str = self.define_str
         else:
             define_str = self.get_define_str()
-        # print(define_str)
 
         # run define
-        try:
-            command = 'define > ASE.TM.define.out'
-            p = Popen(command, shell=True, stdin=PIPE, stderr=PIPE)
-            error = p.communicate(input=define_str)[1]
-#            print(error)
-            if 'command not found' in error or 'abnormally' in error:
-                raise RuntimeError(error)
-        except RuntimeError('define execution failed: ') as err:
-            raise err
-        else:
-            print('TM command:  ' + command + ' successfully executed')
+        self.execute('define', input_str=define_str)
 
         # add or delete data groups
-        self.execute('kdg scfdump')
+        self.execute('kdg scfdump', test_errors=False)
         if self.parameters['density convergence']:
             if len(self.read_data_group('denconv')) != 0:
-                self.execute('kdg denconv')
+                self.execute('kdg denconv', test_errors=False)
             conv = -log10(self.parameters['density convergence'])
             self.add_data_group('denconv', str(int(conv))) 
 
@@ -361,19 +350,27 @@ class Turbomole(Calculator):
             self.harmonic_analysis(atoms)
         self.read_results()
 
-    def execute(self, command):
+    def execute(self, command, input_str=None, test_errors=True):
         from subprocess import Popen, PIPE
+        command = command + ' > ASE.TM.' + command.split()[0] + '.out'
         try:
             # the sub process gets started here
-            proc = Popen([command], shell=True, stderr=PIPE)
-            error = proc.communicate()[1]
-            # check the error output
-            if 'abnormally' in error:
-                raise OSError(error)
-            print('TM command: ', command, 'successfully executed')
-        except OSError as e:
-            print('Execution failed:', e, file=sys.stderr)
-            sys.exit(1)
+            proc = Popen(command, shell=True, stdin=PIPE, stderr=PIPE)
+            error = proc.communicate(input=input_str)[1]
+            message = 'TM command: "' + command + '" execution failed: '
+            # check some general errors
+            if 'command not found' in error:
+                raise RuntimeError(message + error)
+            if test_errors:
+                # check the error output of the command
+                if 'abnormally' in error:
+                    raise RuntimeError(message + error)
+                if 'ended normally' not in error:
+                    raise RuntimeError(message + error)                
+        except RuntimeError as err:
+            raise err
+        else:
+            print('TM command: "' + command + '" successfully executed')
 
     def relax_geometry(self, atoms):
         """ execute geometry optimization with script jobex """
@@ -396,7 +393,7 @@ class Turbomole(Calculator):
             assert isinstance(geom_iter, int)
             jobex_flags += ' -c ' + str(geom_iter)
         self.converged = False
-        self.execute('jobex ' + jobex_flags + ' > ASE.TM.jobex.out')
+        self.execute('jobex' + jobex_flags)
         # check convergence
         self.converged = self.read_convergence()
         if self.converged:
@@ -418,10 +415,11 @@ class Turbomole(Calculator):
         if self.update_energy:
             self.get_potential_energy(atoms)
         if self.update_hessian:
-            self.execute('aoforce > ASE.TM.aoforce.out')
+            self.execute('aoforce')
             self.update_hessian = False
 
     def read_convergence(self):
+        """ perform convergence checks """
         if self.parameters['task'] in ['optimize', 'geometry optimization']:
             if os.path.exists('GEO_OPT_CONVERGED'):
                 return True
@@ -978,7 +976,7 @@ class Turbomole(Calculator):
         # if update of energy is necessary
         if self.update_energy:
             # calculate energy
-            self.execute(self.calculate_energy + ' > ASE.TM.energy.out')
+            self.execute(self.calculate_energy)
             # check convergence
             self.converged = self.read_convergence()
             # read energy
@@ -997,7 +995,7 @@ class Turbomole(Calculator):
         # if update of forces is necessary
         if self.update_forces:
             # calculate forces
-            self.execute(self.calculate_forces + ' > ASE.TM.forces.out')
+            self.execute(self.calculate_forces)
             # read forces
             self.read_forces()
 
