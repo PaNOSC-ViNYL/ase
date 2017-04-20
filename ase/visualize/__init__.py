@@ -1,6 +1,7 @@
 import os
-import tempfile
 import subprocess
+import sys
+import tempfile
 
 from ase.io import write
 import ase.parallel as parallel
@@ -15,10 +16,9 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
 
     if vwr == 'ase':
         format = 'traj'
-        if repeat is None:
-            command = 'ase gui'
-        else:
-            command = 'ase gui --repeat=%d,%d,%d' % tuple(repeat)
+        command = sys.executable + ' -m ase gui'
+        if repeat is not None:
+            command += ' --repeat={},{},{}'.format(*repeat)
             repeat = None
     elif vwr == 'vmd':
         format = 'cube'
