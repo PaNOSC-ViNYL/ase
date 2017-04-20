@@ -524,13 +524,12 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                        scaled_positions=scpos_init,
                                        constraint=constraints,
                                        pbc=True)
-                
+
                 elif elem.tag=='dipole':
                     dblock = elem.find('v[@name="dipole"]')
                     if dblock is not None:
                         dipole = np.array([float(val) for val in dblock.text.split()])
-	    	
-	    
+
             elif event == 'start' and elem.tag == 'calculation':
                 calculation.append(elem)
 
@@ -595,20 +594,19 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                       for val in vector.text.split()])
             stress *= -0.1 * GPa
             stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
-        
+
         dipole = None        
         if lastdipole is not None:
             dblock = lastdipole.find('v[@name="dipole"]')
             if dblock is not None:
                 dipole = np.zeros((1,3), dtype=float)
                 dipole = np.array([float(val) for val in dblock.text.split()])
-        
-        
+
         dblock = step.find('dipole/v[@name="dipole"]')
         if dblock is not None:
             dipole = np.zeros((1,3), dtype=float)
             dipole = np.array([float(val) for val in dblock.text.split()])
-	
+
         efermi = step.find('dos/i[@name="efermi"]')
         if efermi is not None:
             efermi = float(efermi.text)
