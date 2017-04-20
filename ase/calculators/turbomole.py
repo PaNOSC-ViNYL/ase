@@ -12,9 +12,9 @@ from subprocess import Popen, PIPE, STDOUT
 from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
-from ase.calculators.general import Calculator
+from calculator import FileIOCalculator
 
-class Turbomole(Calculator):
+class Turbomole(FileIOCalculator):
     name = 'Turbomole'
 
     implemented_properties = ['energy', 'forces', 'dipole', 'free_energy']
@@ -53,7 +53,7 @@ class Turbomole(Calculator):
         # initial guess and occupation numbers
         'initial guess': 'eht',                 # other than 'eht' not implemented
         'total charge': 0,                      # default is neutral system
-        'multiplicity': 1,                      # no default
+        'multiplicity': None,                   # no default
         'uhf': None,                            # enforce UHF calculation
         'rohf': None,                           # enforce ROHF calculation
         # method
@@ -131,6 +131,11 @@ class Turbomole(Calculator):
 
     def verify_parameters(self):
         """ detect wrong or not implemented parameters """
+
+        # kwargs parameters are ignored if user provides define_str
+        if self.define_str:
+            assert isinstance(self.define_str, str)
+            return
 
         func_list = [x.lower() for x in self.available_functionals]
         assert self.parameters['density functional'].lower() in func_list, ( 
@@ -308,7 +313,6 @@ class Turbomole(Calculator):
             raise IOError('file coord not found')
 
         if self.define_str:
-            assert isinstance(self.define_str, str)
             define_str = self.define_str
         else:
             define_str = self.get_define_str()
@@ -1006,61 +1010,8 @@ class Turbomole(Calculator):
         # this must check the state and then perform a calc if necessary
         return self.dipole
 
-
-    """
-    The following three functions are necessary for the atoms2dict function. 
-    They cause a lot of code bloat because most of the code is identical for all 
-    calculators, so why not in the base class?
-    """
-
-    def todict(self):
-        dct = {}
-        lst = [
-            attr for attr in dir(self) if not attr.startswith('__') 
-            and not callable(getattr(self,attr))
-            ]
-        for item in lst:
-            obj = getattr(self,item)
-            if type(obj) in [bool, int, float, str, None]:
-                dct[item] = obj
-            if isinstance(obj, (list, tuple, dict)):
-                dct[item] = obj
-            elif hasattr(obj, 'todict'):
-                dct[item] = obj.todict()
-            elif obj.__class__ == np.ndarray:
-                dct[item] = obj.tolist()
-            else:
-                pass
-        return dct
-
-
-    def check_state(self, atoms, tol=1e-15):
-        """Check for system changes since last calculation."""
-        from ase.calculators.calculator import all_changes, equal
-        if self.atoms is None:
-            system_changes = all_changes[:]
-        else:
-            system_changes = []
-            if not equal(self.atoms.positions, atoms.positions, tol):
-                system_changes.append('positions')
-            if not equal(self.atoms.numbers, atoms.numbers):
-                system_changes.append('numbers')
-            if not equal(self.atoms.cell, atoms.cell, tol):
-                system_changes.append('cell')
-            if not equal(self.atoms.pbc, atoms.pbc):
-                system_changes.append('pbc')
-            if not equal(self.atoms.get_initial_magnetic_moments(),
-                         atoms.get_initial_magnetic_moments(), tol):
-                system_changes.append('initial_magmoms')
-            if not equal(self.atoms.get_initial_charges(),
-                         atoms.get_initial_charges(), tol):
-                system_changes.append('initial_charges')
-
-        return system_changes
-
-
     def get_property(self, name, atoms=None, allow_calculation=True):
-        """Returns the value of a property"""
+        """ return the value of a property """
 
         if name not in self.implemented_properties:
             # an ugly work around; the caller should test the raised error
@@ -1082,13 +1033,13 @@ class Turbomole(Calculator):
             'forces': self.get_forces,
             'dipole': self.get_dipole_moment,
             'free_energy': self.get_potential_energy
-            }
+        }
         getter_args = {
             'energy': [atoms],
             'forces': [atoms],
             'dipole': [atoms],
             'free_energy': [atoms, True]
-            }
+        }
 
         if allow_calculation:
             result = property_getter[name](*getter_args[name])
