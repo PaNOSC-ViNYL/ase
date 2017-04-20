@@ -7,10 +7,11 @@ http://www.mads-engelund.net
 
 Home of the SIESTA package:
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
+
+2017.04 - Pedro Brandimarte: changes for python 2-3 compatible
 """
 import os
 from os.path import join, isfile, islink
-import string
 import numpy as np
 import shutil
 from ase.units import Ry, eV, Bohr
@@ -214,7 +215,7 @@ class BaseSiesta(FileIOCalculator):
                            SiestaParameters.
         """
         # Find not allowed keys.
-        default_keys = self.__class__.default_parameters.keys()
+        default_keys = list(self.__class__.default_parameters)
         offending_keys = set(kwargs) - set(default_keys)
         if len(offending_keys) > 0:
             mess = "'set' does not take the keywords: %s "
@@ -231,7 +232,7 @@ class BaseSiesta(FileIOCalculator):
                 raise ValueError(mess)
 
         # Check the basis set input.
-        if 'basis_set' in kwargs.keys():
+        if 'basis_set' in list(kwargs):
             basis_set = kwargs['basis_set']
             allowed = self.allowed_basis_names
             if not (isinstance(basis_set, PAOBasisBlock) or
@@ -240,7 +241,7 @@ class BaseSiesta(FileIOCalculator):
                 raise Exception(mess)
 
         # Check the spin input.
-        if 'spin' in kwargs.keys():
+        if 'spin' in list(kwargs):
             spin = kwargs['spin']
             if spin is not None and (spin not in self.allowed_spins):
                 mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
@@ -262,7 +263,7 @@ class BaseSiesta(FileIOCalculator):
             authors = self.allowed_xc[xc][0]
         else:
             found = False
-            for key, value in self.allowed_xc.iteritems():
+            for key, value in self.allowed_xc.items():
                 if xc in value:
                     found = True
                     functional = key
@@ -299,7 +300,7 @@ class BaseSiesta(FileIOCalculator):
             raise TypeError("fdf_arguments must be a dictionary.")
 
         # Check if keywords are allowed.
-        fdf_keys = set(fdf_arguments.keys())
+        fdf_keys = set(list(fdf_arguments))
         allowed_keys = set(self.allowed_fdf_keywords)
         if not fdf_keys.issubset(allowed_keys):
             offending_keys = fdf_keys.difference(allowed_keys)
@@ -409,8 +410,8 @@ class BaseSiesta(FileIOCalculator):
         if fdf_arguments is None:
             return
 
-        for key, value in fdf_arguments.iteritems():
-            if key in self.unit_fdf_keywords.keys():
+        for key, value in fdf_arguments.items():
+            if key in list(self.unit_fdf_keywords):
                 value = '%.8f %s' % (value, self.unit_fdf_keywords[key])
                 f.write(format_fdf(key, value))
             elif key in self.allowed_fdf_keywords:
@@ -443,7 +444,7 @@ class BaseSiesta(FileIOCalculator):
             f.write('%block LatticeVectors\n')
             for i in range(3):
                 for j in range(3):
-                    s = string.rjust('    %.15f' % unit_cell[i, j], 16) + ' '
+                    s = str.rjust('    %.15f' % unit_cell[i, j], 16) + ' '
                     f.write(s)
                 f.write('\n')
             f.write('%endblock LatticeVectors\n')
@@ -479,9 +480,9 @@ class BaseSiesta(FileIOCalculator):
         f.write('%block AtomicCoordinatesAndAtomicSpecies\n')
         for atom, number in zip(atoms, species_numbers):
             xyz = atom.position
-            line = string.rjust('    %.9f' % xyz[0], 16) + ' '
-            line += string.rjust('    %.9f' % xyz[1], 16) + ' '
-            line += string.rjust('    %.9f' % xyz[2], 16) + ' '
+            line = str.rjust('    %.9f' % xyz[0], 16) + ' '
+            line += str.rjust('    %.9f' % xyz[1], 16) + ' '
+            line += str.rjust('    %.9f' % xyz[2], 16) + ' '
             line += str(number) + '\n'
             f.write(line)
         f.write('%endblock AtomicCoordinatesAndAtomicSpecies\n')
@@ -678,14 +679,14 @@ class BaseSiesta(FileIOCalculator):
     def read_ion(self, atoms):
         """Read the ion.xml file of each specie
         """
-        from import_ion_xml import get_ion
+        from ase.calculators.siesta.import_ion_xml import get_ion
 
         species, species_numbers = self.species(atoms)
 
         self.results['ion'] = {}
         for species_number, specie in enumerate(species):
             species_number += 1
-            if specie not in self.results['ion'].keys():
+            if specie not in list(self.results['ion']):
                 symbol = specie['symbol']
                 atomic_number = atomic_numbers[symbol]
 
@@ -724,7 +725,7 @@ class BaseSiesta(FileIOCalculator):
         """
 
         import warnings
-        from import_functions import readHSX
+        from ase.calculators.siesta.import_functions import readHSX
 
         filename = self.label + '.HSX'
         if isfile(filename):
@@ -744,7 +745,7 @@ class BaseSiesta(FileIOCalculator):
         """
 
         import warnings
-        from import_functions import readDIM
+        from ase.calculators.siesta.import_functions import readDIM
 
         filename = self.label + '.DIM'
         if isfile(filename):
@@ -764,7 +765,7 @@ class BaseSiesta(FileIOCalculator):
         """
 
         import warnings
-        from import_functions import readPLD
+        from ase.calculators.siesta.import_functions import readPLD
 
         filename = self.label + '.PLD'
         if isfile(filename):
@@ -782,7 +783,7 @@ class BaseSiesta(FileIOCalculator):
         """
 
         import warnings
-        from import_functions import readWFSX
+        from ase.calculators.siesta.import_functions import readWFSX
 
         if isfile(self.label + '.WFSX'):
             filename = self.label + '.WFSX'
@@ -832,7 +833,7 @@ class BaseSiesta(FileIOCalculator):
             has_energy = line.startswith('siesta: etot    =')
             if has_energy:
                 self.results['energy'] = float(line.split()[-1])
-                line = lines.next()
+                line = next(lines)
                 self.results['free_energy'] = float(line.split()[-1])
 
         if ('energy' not in self.results or
@@ -850,7 +851,7 @@ class BaseSiesta(FileIOCalculator):
         for i in range(3):
             line = stress_lines[i].strip().split(' ')
             line = [s for s in line if len(s) > 0]
-            stress[i] = map(float, line)
+            stress[i] = list(map(float, line))
 
         self.results['stress'] = np.array(
             [stress[0, 0], stress[1, 1], stress[2, 2],
@@ -862,7 +863,7 @@ class BaseSiesta(FileIOCalculator):
         self.results['forces'] = np.zeros((len(lines) - start, 3), float)
         for i in range(start, len(lines)):
             line = [s for s in lines[i].strip().split(' ') if len(s) > 0]
-            self.results['forces'][i - start] = map(float, line[2:5])
+            self.results['forces'][i - start] = list(map(float, line[2:5]))
 
         self.results['forces'] *= Ry / Bohr
 
@@ -896,7 +897,7 @@ class BaseSiesta(FileIOCalculator):
                          int((self.n_bands * n_spin_bands) % 10 != 0))
         eig = dict()
         for i in range(len(self.weights)):
-            tmp = lines[i * lines_per_kpt:(i + 1) * lines_per_kpt]
+            tmp = lines[int(i * lines_per_kpt):int((i + 1) * lines_per_kpt)]
             v = [float(v) for v in tmp[0].split()[1:]]
             for l in tmp[1:]:
                 v.extend([float(t) for t in l.split()])
