@@ -102,7 +102,20 @@ This will (somewhat redundantly) yield::
      ('A', 'B'): (epsAB, sigAB),
      ('B', 'A'): (epsAB, sigAB),
      ('B', 'B'): (epsBB, sigBB)}
- 
+
+
+It is also possible to run structural relaxations and molecular dynamics
+using the electrostatic embedding scheme::
+
+    from ase.constraints import FixBondLengths
+    from ase.optimize import LBFGS
+
+    mm_bonds = [(3, 4), (4, 5), (5, 3)]
+    atoms.constraints = FixBondLengths(mm_bonds)
+    dyn = LBFGS(atoms=atoms, trajectory='dimer.traj')
+    dyn.run(fmax=0.05)
+
+Since TIP3P is a rigid potential, we constrain all interatomic distances. 
 
 Current limitations
     - No QM/MM border over bonds
