@@ -425,15 +425,15 @@ class Abinit(FileIOCalculator):
                         # warning: see download.sh in
                         # abinit-pseudopotentials*tar.gz for additional
                         # information!
-                        filenames = max(filenames)  # Semicore or hard
+                        filenames[0] = max(filenames)  # Semicore or hard
                     elif pps == 'hgh':
-                        filenames = min(filenames)  # Lowest valence electron count
+                        filenames[0] = min(filenames)  # Lowest valence electron count
                     elif pps == 'hgh.k':
-                        filenames = max(filenames)  # Semicore - highest electron count
+                        filenames[0] = max(filenames)  # Semicore - highest electron count
                     elif pps == 'tm':
-                        filenames = max(filenames)  # Semicore - highest electron count
+                        filenames[0] = max(filenames)  # Semicore - highest electron count
                     elif pps == 'hgh.sc':
-                        filenames = max(filenames)  # Semicore - highest electron count
+                        filenames[0] = max(filenames)  # Semicore - highest electron count
 
                     if filenames:
                         found = True
