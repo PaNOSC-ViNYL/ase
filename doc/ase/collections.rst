@@ -8,6 +8,7 @@ Collections
 
 .. autoclass:: ase.collections.collection.Collection
 
+.. _s22:
 
 S22 database of weakly interacting dimers and complexes
 =======================================================
