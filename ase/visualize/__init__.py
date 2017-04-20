@@ -39,6 +39,37 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         from ase.visualize.sage import view_sage_jmol
         view_sage_jmol(atoms)
         return
+    elif vwr == 'paraview':
+        # macro for showing atoms in paraview
+        macro = """\
+from paraview.simple import *
+version_major = servermanager.vtkSMProxyManager.GetVersionMajor()
+source = GetActiveSource()
+renderView1 = GetRenderView()
+atoms = Glyph(Input=source,
+              GlyphType='Sphere',
+#              GlyphMode='All Points',
+              Scalars='radii',
+              ScaleMode='scalar',
+              )
+RenameSource('Atoms', atoms)
+atomsDisplay = Show(atoms, renderView1)
+if version_major <= 4:
+    atoms.SetScaleFactor = 0.8
+    atomicnumbers_PVLookupTable = GetLookupTableForArray( "atomic numbers", 1)
+    atomsDisplay.ColorArrayName = ('POINT_DATA', 'atomic numbers')
+    atomsDisplay.LookupTable = atomicnumbers_PVLookupTable
+else:
+    atoms.ScaleFactor = 0.8
+    ColorBy(atomsDisplay, 'atomic numbers')
+    atomsDisplay.SetScalarBarVisibility(renderView1, True)
+Render()
+        """
+        script_name = os.path.join(tempfile.gettempdir(), 'draw_atoms.py')
+        with open(script_name, 'w') as f:
+            f.write(macro)
+        format = 'vtu'
+        command = 'paraview --script=' + script_name
     else:
         raise RuntimeError('Unknown viewer: ' + viewer)
 

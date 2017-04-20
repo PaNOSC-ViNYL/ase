@@ -96,7 +96,8 @@ class MPI4PY:
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
-    from gpaw.mpi import world
+    import _gpaw
+    world = _gpaw.Communicator()
 elif '_asap' in sys.builtin_module_names:
     # Modern version of Asap
     # http://wiki.fysik.dtu.dk/asap

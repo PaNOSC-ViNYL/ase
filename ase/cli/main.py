@@ -78,5 +78,7 @@ def main(prog='ase', description='ASE command line tool',
 
 
 def old():
-    sys.argv[:1] = sys.argv[0].rsplit('-', 1)
+    cmd = sys.argv[0].split('-')[-1]
+    print('Please use "ase {cmd}" instead of "ase-{cmd}"'.format(cmd=cmd))
+    sys.argv[:1] = ['ase', cmd]
     main()
