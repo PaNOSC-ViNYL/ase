@@ -136,6 +136,20 @@ QM/MM MD General Strategy for A QM complex in an MM solvent:
     4. Re-equillibrate the QM/MM system. 
     5. Run production runs. 
 
+For these types of simulations, you'd probably want two cells: a QM (non-periodic) 
+and and MM cell (periodic)::
+
+    atoms.set_pbc(True)
+    # Set up calculator
+    atoms.calc = EIQMMM(qm_idx,
+                        GPAW(txt='qm.out'),
+                        TIP3P(),
+                        interaction,
+                        embedding=embedding,
+                        vacuum=4.,  # Now QM cell has walls min. 4 Å from QM atoms
+                        output='qmmm.log')
+
+
 Current limitations
     - No QM/MM border over bonds
     - No QM PBCs

@@ -1,4 +1,4 @@
-.. _write your own potential:
+.. _Adding new calculators:
 
 ======================
 Adding new calculators
