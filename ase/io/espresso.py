@@ -69,7 +69,7 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
         The index of configurations to extract.
     results_required : bool
         If True, atomistic configurations that do not have any
-        associated results will not be yielded. This prevents double
+        associated results will not be included. This prevents double
         printed configurations and incomplete calculations from being
         returned as the final configuration with no results data.
 
@@ -110,8 +110,33 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
     # in a subsequent step. Can deal with concatenated output files.
     all_config_indexes = sorted(indexes[_PW_START] +
                                 indexes[_PW_POS])
-    # Slice only what is needed
-    image_indexes = all_config_indexes[index]
+
+    # Slice only requested indexes
+    # setting results_required argument stops configuration-only
+    # structures from being returned. This ensures the [-1] structure
+    # is one that has results. Two cases:
+    # - SCF of last configuration is not converged, job terminated
+    #   abnormally.
+    # - 'relax' and 'vc-relax' re-prints the final configuration but
+    #   only 'vc-relax' recalculates.
+    if results_required:
+        results_indexes = sorted(indexes[_PW_TOTEN] + indexes[_PW_FORCE] +
+                                 indexes[_PW_STRESS] + indexes[_PW_MAGMOM])
+
+        # Prune to only configurations with results data before the next
+        # configuration
+        results_config_indexes = []
+        for config_index, config_index_next in zip(
+                all_config_indexes,
+                all_config_indexes[1:] + [len(pwo_lines)]):
+            if any([config_index < results_index < config_index_next
+                    for results_index in results_indexes]):
+                results_config_indexes.append(config_index)
+
+        # slice from the subset
+        image_indexes = results_config_indexes[index]
+    else:
+        image_indexes = all_config_indexes[index]
 
     # Extract initialisation information each time PWSCF starts
     # to add to subsequent configurations. Use None so slices know
@@ -217,16 +242,6 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                     float(mag_line.split()[5]) for mag_line
                     in pwo_lines[magmoms_index + 1:
                                  magmoms_index + 1 + len(structure)]]
-
-        # setting results_required argument stops configuration-only
-        # structures from being returned. This ensures the [-1] structure
-        # is one that has results. Two cases:
-        # - SCF of last configuration is not converged, job terminated
-        #   abnormally.
-        # - 'relax' and 'vc-relax' re-prints the final configuration but
-        #   only 'vc-relax' recalculates.
-        if results_required and not any([energy, forces, stress, magmoms]):
-            continue
 
         # Put everything together
         calc = SinglePointCalculator(structure, energy=energy, forces=forces,

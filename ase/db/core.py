@@ -1,11 +1,12 @@
 import collections
 import functools
+import numbers
 import operator
 import os
 import re
 from time import time
 
-from ase.atoms import Atoms, symbols2numbers
+from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
@@ -61,7 +62,7 @@ def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
-        if not isinstance(value, (int, float, basestring)):
+        if not isinstance(value, (numbers.Real, basestring)):
             raise ValueError('Bad value: {0}'.format(value))
         if isinstance(value, basestring):
             for t in [int, float]:
@@ -322,7 +323,14 @@ class Database:
                 if expression in atomic_numbers:
                     comparisons.append((expression, '>', 0))
                 else:
-                    keys.append(expression)
+                    try:
+                        symbols = string2symbols(expression)
+                    except ValueError:
+                        keys.append(expression)
+                    else:
+                        count = collections.Counter(symbols)
+                        comparisons.extend((symbol, '>', n - 1)
+                                           for symbol, n in count.items())
                 continue
             key, value = expression.split(op)
             comparisons.append((key, op, value))
