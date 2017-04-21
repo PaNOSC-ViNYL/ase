@@ -1,5 +1,6 @@
 import collections
 import functools
+import numbers
 import operator
 import os
 import re
@@ -61,7 +62,7 @@ def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
-        if not isinstance(value, (int, float, basestring)):
+        if not isinstance(value, (numbers.Real, basestring)):
             raise ValueError('Bad value: {0}'.format(value))
         if isinstance(value, basestring):
             for t in [int, float]:
