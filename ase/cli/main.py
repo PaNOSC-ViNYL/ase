@@ -73,8 +73,8 @@ def main(prog='ase', description='ASE command line tool',
             else:
                 print('{}: {}'.format(x.__class__.__name__, x),
                       file=sys.stderr)
-                print('To get a full traceback, use: {} -T'
-                      .format(prog), file=sys.stderr)
+                print('To get a full traceback, use: {} -T {} ...'
+                      .format(prog, args.command), file=sys.stderr)
 
 
 def old():
