@@ -1,5 +1,6 @@
 from ase import Atoms
-from ase.calculators.singlepoint import SinglePointDFTCalculator
+from ase.calculators.singlepoint import (SinglePointDFTCalculator,
+                                         SinglePointCalculator)
 from ase.calculators.singlepoint import SinglePointKPoint
 from ase.units import Bohr, Hartree
 import ase.io.ulm as ulm
@@ -11,7 +12,9 @@ def read_gpw(filename):
         reader = ulm.open(filename)
     except ulm.InvalidULMFileError:
         return read_old_gpw(filename)
-    return read_atoms(reader.atoms)
+    atoms = read_atoms(reader.atoms)
+    atoms.calc = SinglePointCalculator(atoms, **reader.results.asdict())
+    return atoms
 
 
 def read_old_gpw(filename):
