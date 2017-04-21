@@ -35,24 +35,13 @@ The following is for TIP3P:
   of the actual value.
 
 The procedure for the TIP4P force field is the same, with the following
-exceptions:
-
-- the atomic sequence **must** be OHH, OHH, ...
-- charges are set automatically
+exception: the atomic sequence **must** be OHH, OHH, ... .
 
 So to perform the same task using TIP4P, you simply have to import
 that calculator instead:
 
 ::
 
-    from ase.calculators.tip4p import TIP4P, rOH, thetaHOH
-
-
-And remove the following line from the above script:
-
-::
-
-  set_tip3p_charges(atoms)
-
+    from ase.calculators.tip4p import TIP4P, rOH, angleHOH
 
 More info about the TIP4P potential: :mod:`ase.calculators.tip4p`
