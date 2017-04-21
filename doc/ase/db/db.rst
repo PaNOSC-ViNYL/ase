@@ -88,6 +88,10 @@ Here are some example query strings:
       - less than 3 hydrogen atoms
     * - Cu,H<3
       - contains copper and has less than 3 hydrogen atoms
+    * - H2O
+      - At least two hydrogens and at least one oxygen
+    * - formula=H2O
+      - Exactly two hydrogens and one oxygen
     * - v3
       - has 'v3' key
     * - abc=bla-bla
@@ -100,8 +104,6 @@ Here are some example query strings:
       - 'bandgap' key has value between 2.2 and 3.0
     * - natoms>=10
       - 10 or more atoms
-    * - formula=H2O
-      - Exactly two hydrogens and one oxygen
     * - id=2345
       - specific id
     * - age<1h
