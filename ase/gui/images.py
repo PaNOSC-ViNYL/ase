@@ -57,9 +57,10 @@ class Images:
     def get_forces(self, atoms):
         try:
             F = atoms.get_forces(apply_constraint=False)
-            return np.tile(F.T, self.repeat.prod()).T
         except RuntimeError:
             return None
+        else:
+            return np.tile(F.T, self.repeat.prod()).T
 
     def get_magmoms(self, atoms, init_magmom=False):
         try:

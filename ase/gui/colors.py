@@ -38,7 +38,8 @@ class ColorWindow:
 
         # XXX not sure how to deal with some images having forces,
         # and other images not.  Same goes for below quantities
-        radio['force'].active = np.isfinite(images.get_forces(atoms)).all()
+        F = images.get_forces(atoms)
+        radio['force'].active = F is not None
         radio['velocity'].active = atoms.has('momenta')
         radio['charge'].active = atoms.has('charges')
         radio['magmom'].active = images.get_magmoms(atoms).any()
