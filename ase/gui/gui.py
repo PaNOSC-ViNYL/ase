@@ -352,7 +352,7 @@ class GUI(View, Status):
             process.terminate()
         self.window.close()
 
-    def new(self):
+    def new(self, key=None):
         os.system('ase gui &')
 
     def save(self, key=None):
