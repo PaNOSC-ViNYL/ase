@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 
 import os
 import pickle
@@ -8,6 +8,7 @@ import tempfile
 import weakref
 from functools import partial
 from ase.gui.i18n import _
+from time import time
 
 import numpy as np
 
@@ -69,6 +70,8 @@ class GUI(View, Status):
         self.module_state = {}  # Used by modules to store their state.
         self.moving = False
         self.prev_pos = None
+        self.last_scroll_time = time()
+        self.original_size = self.window.size.copy()
 
     def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
@@ -137,12 +140,14 @@ class GUI(View, Status):
         # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/event-types.html
         if event.type == '6':
             cur_pos = np.array([event.x, -event.y])
-            if self.prev_pos is None:
+            if self.prev_pos is None or time() - self.last_scroll_time > .5:
                 self.prev_pos = cur_pos
+                self.last_scroll_time = time()
             else:
                 dxdy = cur_pos - self.prev_pos
                 dxdydz = np.append(dxdy, [0])
                 self.prev_pos = cur_pos
+                self.last_scroll_time = time()
 
         if dxdydz is None:
             return
@@ -155,7 +160,11 @@ class GUI(View, Status):
             self.atoms.positions[self.images.selected[:len(self.atoms)]] += vec
             self.set_frame()
         else:
-            self.center -= vec
+            # The displacement vector is scaled oppositely the atom size
+            # scale so that the cursor follows the structure, this is not
+            # given after a resize event for example
+            scale = np.append((self.original_size / self.window.size), [0])
+            self.center -= vec * scale
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
 
             self.draw()
