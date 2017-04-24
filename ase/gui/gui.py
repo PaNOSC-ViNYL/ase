@@ -160,8 +160,8 @@ class GUI(View, Status):
             self.atoms.positions[self.images.selected[:len(self.atoms)]] += vec
             self.set_frame()
         else:
-            # The displacement vector is scaled oppositely the atom size
-            # scale so that the cursor follows the structure, this is not
+            # The displacement vector is scaled relative to the window size
+            # so that the cursor follows the structure, this is not
             # given after a resize event for example
             scale = np.append((self.original_size / self.window.size), [0])
             self.center -= vec * scale
