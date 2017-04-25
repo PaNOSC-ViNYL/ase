@@ -8,13 +8,18 @@ import warnings
 from math import log10
 import numpy as np
 import fortranformat as ff
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import Popen, PIPE
 from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
 from calculator import FileIOCalculator
 
+class NoDataFoundError(RuntimeError):
+    pass
+
 class Turbomole(FileIOCalculator):
+
+    """ constants """
     name = 'Turbomole'
 
     implemented_properties = ['energy', 'forces', 'dipole', 'free_energy']
@@ -47,51 +52,308 @@ class Turbomole(FileIOCalculator):
         'point group': 'c1',
         'use redundant internals': False,
         # basis set
-        'use basis set library': True,          # case False not implemented
-        'basis set name': 'def-SV(P)',          # use the define default basis set
-        'basis set definition': None,           # not implemented
+        'use basis set library': True,
+        'basis set name': 'def-SV(P)',
+        'basis set definition': None,
         # initial guess and occupation numbers
-        'initial guess': 'eht',                 # other than 'eht' not implemented
-        'total charge': 0,                      # default is neutral system
-        'multiplicity': None,                   # no default
-        'uhf': None,                            # enforce UHF calculation
-        'rohf': None,                           # enforce ROHF calculation
+        'initial guess': 'eht',
+        'total charge': 0,
+        'multiplicity': None,
+        'uhf': None,
+        'rohf': None,
         # method
-        'use dft': True,                        # dft on/off
-        'density functional': 'b-p',            # func
-        'grid size': 'm3',                      # gridsize
-        'use resolution of identity': False,    # ri on/off
-        'ri memory': 1000,                      # m <int>
+        'use dft': True,
+        'density functional': 'b-p',
+        'grid size': 'm3',
+        'use resolution of identity': False,
+        'ri memory': 1000,
         # scf parameters
-        'use fermi smearing': False,            # fermi on/off
+        'use fermi smearing': False,
         'fermi initial temperature': 300,
         'fermi final temperature': 300,
         'fermi annealing factor': 0.95,
         'fermi homo-lumo gap criterion': 0.1,
         'fermi stopping criterion': 0.001,
-        'scf iterations': 60,                   # scfiterlimit
-        'scf energy convergence': None,         # scfconv
-        'density convergence': None,            # denconv
-        'orbital shift type': None,             # not implemented
-        'orbital shift energy': None,           # not implemented
-        'initial damping': None,                # not implemented
-        'minimal damping': None,                # not implemented
-        'damping adjustment step': None,        # not implemented
+        'scf iterations': 60,
+        'scf energy convergence': None,
+        'density convergence': None,
+        'orbital shift type': None,
+        'orbital shift energy': None,
+        'initial damping': None,
+        'minimal damping': None,
+        'damping adjustment step': None,
         # task
         'ground state': True,
-        'excited state': False,                 # not implemented
-        'number of excited states': None,       # not implemented
-        'optimized excited state': None,        # not implemented
-        'force convergence': None,              # jobex -gcart <int>
-        'energy convergence': None,             # jobex -energy <int>
-        'geometry optimization iterations': None,      # jobex -c <int>
-        'task': 'energy',           # 'energy calculation', 'energy'
-                                    # 'gradient calculation', 'gradient'
-                                    # 'geometry optimization', 'optimize'
-                                    # 'normal mode analysis', 'frequencies'
-        # analysis
-        # advanced
+        'excited state': False,
+        'number of excited states': None,
+        'optimized excited state': None,
+        'force convergence': None,
+        'energy convergence': None,
+        'geometry optimization iterations': None,
+        'task': 'energy',
     }
+    parameter_comment = {
+        # general and geometry
+        'title': None,
+        'point group': 'only c1 supported',
+        'use redundant internals': None,
+        # basis set
+        'use basis set library': 'only true implemented',
+        'basis set name': 'as in the turbomole basis set library',
+        'basis set definition': 'not implemented',
+        # initial guess and occupation numbers
+        'initial guess': 'other than "eht" not implemented',
+        'total charge': None,
+        'multiplicity': None,
+        'uhf': None,
+        'rohf': 'not implemented',
+        # method
+        'use dft': None,
+        'density functional': None,
+        'grid size': None,
+        'use resolution of identity': None,
+        'ri memory': None,
+        # scf parameters
+        'use fermi smearing': None,
+        'fermi initial temperature': None,
+        'fermi final temperature': None,
+        'fermi annealing factor': None,
+        'fermi homo-lumo gap criterion': None,
+        'fermi stopping criterion': None,
+        'scf iterations': None,
+        'scf energy convergence': None,
+        'density convergence': None,
+        'orbital shift type': 'not implemented',
+        'orbital shift energy': 'not implemented',
+        'initial damping': 'not implemented',
+        'minimal damping': 'not implemented',
+        'damping adjustment step': 'not implemented',
+        # task
+        'ground state': 'only this is currently supported',
+        'excited state': 'not implemented',
+        'number of excited states': 'not implemented',
+        'optimized excited state': 'not implemented',
+        'force convergence': 'jobex -gcart <int>',
+        'energy convergence': 'jobex -energy <int>',
+        'geometry optimization iterations': 'jobex -c <int>',
+        'task': ('"energy calculation" = "energy", ' 
+                 '"gradient calculation" = "gradient", ' 
+                 '"geometry optimization" = "optimize", ' 
+                 '"normal mode analysis" = "frequencies" ')
+    }
+    parameter_updateable = {
+        'title': False,
+        'point group': False,
+        'use redundant internals': False,
+        'use basis set library': False,
+        'basis set name': False,
+        'basis set definition': False,
+        'initial guess': False,
+        'total charge': False,
+        'multiplicity': False,
+        'uhf': False,
+        'rohf': False,
+        'use dft': False,
+        'density functional': True,
+        'grid size': True,
+        'use resolution of identity': False,
+        'ri memory': True,
+        'use fermi smearing': True,
+        'fermi initial temperature': True,
+        'fermi final temperature': True,
+        'fermi annealing factor': True,
+        'fermi homo-lumo gap criterion': True,
+        'fermi stopping criterion': True,
+        'scf iterations': True,
+        'scf energy convergence': True,
+        'density convergence': True,
+        'orbital shift type': True,
+        'orbital shift energy': True,
+        'initial damping': True,
+        'minimal damping': True,
+        'damping adjustment step': True,
+        'ground state': False,
+        'excited state': False,
+        'number of excited states': False,
+        'optimized excited state': False,
+        'force convergence': True,
+        'energy convergence': True,
+        'geometry optimization iterations': True,
+        'task': True
+    }
+    parameter_type = {
+        'title': str,
+        'point group': str,
+        'use redundant internals': bool,
+        'use basis set library': bool,
+        'basis set name': str,
+        'basis set definition': dict,
+        'initial guess': str,
+        'total charge': int,
+        'multiplicity': int,
+        'uhf': bool,
+        'rohf': bool,
+        'use dft': bool,
+        'density functional': str,
+        'grid size': str,
+        'use resolution of identity': bool,
+        'ri memory': int,
+        'use fermi smearing': bool,
+        'fermi initial temperature': float,
+        'fermi final temperature': float,
+        'fermi annealing factor': float,
+        'fermi homo-lumo gap criterion': float,
+        'fermi stopping criterion': float,
+        'scf iterations': int,
+        'scf energy convergence': float,
+        'density convergence': float,
+        'orbital shift type': str,
+        'orbital shift energy': float,
+        'initial damping': float,
+        'minimal damping': float,
+        'damping adjustment step': float,
+        'ground state': bool,
+        'excited state': bool,
+        'number of excited states': int,
+        'optimized excited state': int,
+        'force convergence': float,
+        'energy convergence': float,
+        'geometry optimization iterations': int,
+        'task': str,
+    }
+    parameter_key = {
+        'title': 'title',
+        'point group': 'symmetry',
+        'use redundant internals': None,
+        'use basis set library': None,
+        'basis set name': None,
+        'basis set definition': None,
+        'initial guess': None,
+        'total charge': None,
+        'multiplicity': None,
+        'uhf': 'uhf',
+        'rohf': None,
+        'use dft': 'dft',
+        'density functional': 'functional',
+        'grid size': 'gridsize',
+        'use resolution of identity': 'rij',
+        'ri memory': 'ricore',
+        'use fermi smearing': 'fermi',
+        'fermi initial temperature': 'tmstrt',
+        'fermi final temperature': 'tmend',
+        'fermi annealing factor': 'tmfac',
+        'fermi homo-lumo gap criterion': 'hlcrt',
+        'fermi stopping criterion': 'stop',
+        'scf iterations': 'scfiterlimit',
+        'scf energy convergence': 'scfconv',
+        'density convergence': 'denconv',
+        'orbital shift type': None,
+        'orbital shift energy': 'automatic',
+        'initial damping': 'start',
+        'minimal damping': 'min',
+        'damping adjustment step': 'step', 
+        'ground state': None,
+        'excited state': None,
+        'number of excited states': None,
+        'optimized excited state': None,
+        'force convergence': None,
+        'energy convergence': None,
+        'geometry optimization iterations': None,
+        'task': None,
+    }
+    parameter_group = {
+        'title': 'title',
+        'point group': 'symmetry',
+        'use redundant internals': 'redundant',
+        'use basis set library': 'basis',
+        'basis set name': 'basis',
+        'basis set definition': 'basis',
+        'initial guess': None,
+        'total charge': None,
+        'multiplicity': None,
+        'uhf': 'uhf',
+        'rohf': None,
+        'use dft': 'dft',
+        'density functional': 'dft',
+        'grid size': 'dft',
+        'use resolution of identity': 'rij',
+        'ri memory': 'ricore',
+        'use fermi smearing': 'fermi',
+        'fermi initial temperature': 'fermi',
+        'fermi final temperature': 'fermi',
+        'fermi annealing factor': 'fermi',
+        'fermi homo-lumo gap criterion': 'fermi',
+        'fermi stopping criterion': 'fermi',
+        'scf iterations': 'scfiterlimit',
+        'scf energy convergence': 'scfconv',
+        'density convergence': 'denconv',
+        'orbital shift type': 'scforbitalshift',
+        'orbital shift energy': 'scforbitalshift',
+        'initial damping': 'scfdamp',
+        'minimal damping': 'scfdamp',
+        'damping adjustment step': 'scfdamp',
+        'ground state': None,
+        'excited state': None,
+        'number of excited states': None,
+        'optimized excited state': None,
+        'force convergence': None,
+        'energy convergence': None,
+        'geometry optimization iterations': None,
+        'task': None,
+    }
+    parameter_units = {
+        'title': None,
+        'point group': None,
+        'use redundant internals': None,
+        'use basis set library': None,
+        'basis set name': None,
+        'basis set definition': None,
+        'initial guess': None,
+        'total charge': None,
+        'multiplicity': None,
+        'uhf': None,
+        'rohf': None,
+        'use dft': None,
+        'density functional': None,
+        'grid size': None,
+        'use resolution of identity': None,
+        'ri memory': 'Megabyte',
+        'use fermi smearing': None,
+        'fermi initial temperature': 'Kelvin',
+        'fermi final temperature': 'Kelvin',
+        'fermi annealing factor': '?',
+        'fermi homo-lumo gap criterion': 'eV',
+        'fermi stopping criterion': '?',
+        'scf iterations': None,
+        'scf energy convergence': 'eV',
+        'density convergence': None,
+        'orbital shift type': None,
+        'orbital shift energy': 'eV',
+        'initial damping': '?',
+        'minimal damping': '?',
+        'damping adjustment step': '?',
+        'ground state': None,
+        'excited state': None,
+        'number of excited states': None,
+        'optimized excited state': None,
+        'force convergence': 'eV/Angstrom',
+        'energy convergence': 'eV',
+        'geometry optimization iterations': None,
+        'task': None,
+    }
+    parameter_mapping = {
+        'scf energy convergence': {
+            'to_control': lambda a: int(-log10(a/Hartree)//1),
+            'from_control': lambda a: 10**(-a)*Hartree        
+        },
+        'density convergence': {
+            'to_control': lambda a: int(-log10(a)),
+            'from_control': lambda a: 10**(-a)
+        },
+    }    
+
+    """ initial values """
+
     parameters = {}
     results = {}
     converged = False
@@ -111,6 +373,9 @@ class Turbomole(FileIOCalculator):
         self.calculate_energy = calculate_energy
         self.calculate_forces = calculate_forces
         self.post_HF = post_HF
+        if self.restart:
+            self.set_restart(kwargs)
+            return
         self.set_parameters(kwargs)
         self.verify_parameters()
         self.reset()
@@ -122,8 +387,76 @@ class Turbomole(FileIOCalculator):
             obj = None # actually it should return a KeyError
         return obj
 
+    def set_restart(self, params_update):
+        self.read_restart()
+        params_old = self.read_parameters()
+
+        # construct a list of data groups to update        
+        grps = []
+        for p in list(params_update.keys()):
+            if not self.parameter_updateable[p]:
+                del(params_update[p])
+                warnings.warn('parameter ' + p + ' cannot be changed')
+            else:
+                if self.parameter_group[p] is not None:
+                    grps.append(self.parameter_group[p])
+
+        # construct a dictionary of data groups and update params        
+        dgs = {}
+        for g in grps:
+            dgs[g] = {}
+            for p in list(self.parameter_key.keys()):
+                if g == self.parameter_group[p]:
+                    if self.parameter_group[p] == self.parameter_key[p]:
+                        if p in list(params_update.keys()):
+                            val = params_update[p]
+                            if p in list(self.parameter_mapping.keys()):
+                                fun = self.parameter_mapping[p]['to_control']
+                                val = fun(params_update[p])
+                            dgs[g] = val
+                    else:
+                        if p in list(params_old.keys()):
+                            val = params_old[p]
+                            if p in list(self.parameter_mapping.keys()):
+                                fun = self.parameter_mapping[p]['to_control']
+                                val = fun(params_old[p])
+                            dgs[g][self.parameter_key[p]] = val
+                        if p in list(params_update.keys()):
+                            val = params_update[p]
+                            if p in list(self.parameter_mapping.keys()):
+                                fun = self.parameter_mapping[p]['to_control']
+                                val = fun(params_update[p])
+                            dgs[g][self.parameter_key[p]] = val
+
+        # write dgs dictionary to a data group
+        for g in list(dgs.keys()):
+            self.delete_data_group(g)
+            if isinstance(dgs[g], dict):
+                string = ''
+                for key in (dgs[g].keys()):
+                    string += ' ' + key + '=' + dgs[g][key]
+                self.add_data_group(g, string=string)
+            else:
+                if isinstance(dgs[g], bool):
+                    if dgs[g]:
+                        self.add_data_group(g, string='')
+                else:
+                    self.add_data_group(g, string=str(dgs[g]))
+
+        # update params
+        params_new = params_old
+        params_new.update(params_update)
+        self.set_parameters(params_new)
+        self.verify_parameters()
+        self.initialized = True
+        # more precise convergence tests are necessary to set these flags:
+        self.update_energy = True
+        self.update_forces = True
+        self.update_geometry = True
+        self.update_hessian = True
+
     def set_parameters(self, params):
-        self.parameters = self.default_parameters
+        self.parameters = self.default_parameters.copy()
         self.parameters.update(params)
         if self.parameters['use resolution of identity']:
             self.calculate_energy = 'ridft'
@@ -137,10 +470,11 @@ class Turbomole(FileIOCalculator):
             assert isinstance(self.define_str, str)
             return
 
-        func_list = [x.lower() for x in self.available_functionals]
-        assert self.parameters['density functional'].lower() in func_list, ( 
-            'density functional not available / not supported'
-        )
+        if self.parameters['use dft']:
+            func_list = [x.lower() for x in self.available_functionals]
+            assert self.parameters['density functional'].lower() in func_list, ( 
+                'density functional not available / not supported'
+            )
 
         bas_list = [x.lower() for x in self.available_basis_sets]
         assert self.parameters['basis set name'].lower() in bas_list, (
@@ -321,10 +655,10 @@ class Turbomole(FileIOCalculator):
         self.execute('define', input_str=define_str)
 
         # add or delete data groups
-        self.execute('kdg scfdump', test_errors=False)
+        self.delete_data_group('scfdump')
         if self.parameters['density convergence']:
             if len(self.read_data_group('denconv')) != 0:
-                self.execute('kdg denconv', test_errors=False)
+                self.delete_data_group('denconv')
             conv = -log10(self.parameters['density convergence'])
             self.add_data_group('denconv', str(int(conv))) 
 
@@ -354,18 +688,25 @@ class Turbomole(FileIOCalculator):
             self.harmonic_analysis(atoms)
         self.read_results()
 
-    def execute(self, command, input_str=None, test_errors=True):
-        from subprocess import Popen, PIPE
-        command = command + ' > ASE.TM.' + command.split()[0] + '.out'
+    def execute(self, args, input_str=None, error_test=True, stdout_tofile=True):
+        """ executes a turbomole executable and process the outputs """
+
+        if isinstance(args, str):
+            args = args.split()
+
+        if stdout_tofile:
+            stdout = open('ASE.TM.' + args[0] + '.out', 'w')
+        else:
+            stdout = PIPE
+
+        message = 'TM command: "' + args[0] + '" execution failed'
         try:
             # the sub process gets started here
-            proc = Popen(command, shell=True, stdin=PIPE, stderr=PIPE)
-            error = proc.communicate(input=input_str)[1]
-            message = 'TM command: "' + command + '" execution failed: '
+            proc = Popen(args, stdin=PIPE, stderr=PIPE, stdout=stdout)
+            res = proc.communicate(input=input_str)
             # check some general errors
-            if 'command not found' in error:
-                raise RuntimeError(message + error)
-            if test_errors:
+            if error_test:
+                error = res[1]
                 # check the error output of the command
                 if 'abnormally' in error:
                     raise RuntimeError(message + error)
@@ -373,8 +714,13 @@ class Turbomole(FileIOCalculator):
                     raise RuntimeError(message + error)                
         except RuntimeError as err:
             raise err
+        except OSError as err:
+            raise OSError(err[1]+'\n'+message)
         else:
-            print('TM command: "' + command + '" successfully executed')
+            print('TM command: "' + args[0] + '" successfully executed')
+
+        if not stdout_tofile:
+            return res[0]
 
     def relax_geometry(self, atoms):
         """ execute geometry optimization with script jobex """
@@ -422,8 +768,145 @@ class Turbomole(FileIOCalculator):
             self.execute('aoforce')
             self.update_hessian = False
 
+    def read_restart(self):
+        """ read a previous calculation from control file """
+        self.atoms = read('coord')
+        read_methods = [
+            self.read_energy,
+            self.read_gradient,
+            self.read_forces,
+            self.read_basis_set,
+            self.read_mos,
+            self.read_occupation_numbers,
+            self.read_dipole_moment,
+            self.read_ssquare,
+            self.read_hessian,
+            self.read_vibrational_reduced_masses,
+            self.read_normal_modes,
+            self.read_vibrational_spectrum,
+            self.read_run_parameters
+        ]
+        for method in read_methods:
+            try:
+                method()
+            except NoDataFoundError as err:
+                warnings.warn(err[0])
+        self.converged = self.read_convergence()
+
+    def read_parameters(self):
+        """ read parameters from control file """
+
+        def parse_data_group(dg, dg_name):
+            if len(dg) == 0: return None
+            lsep = None
+            ksep = None
+            ndg = dg.replace('$'+dg_name, '').strip()
+            if '\n' in ndg: lsep = '\n'
+            if '=' in ndg: ksep = '='
+            if not lsep and not ksep: return ndg
+            result = {}
+            lines = ndg.split(lsep)
+            for line in lines:
+                [key, val] = line.strip().split(ksep)
+                result[key] = val
+            return result
+
+        params = {}
+        pdgs = {}
+        for p in list(self.parameter_group.keys()):
+            if self.parameter_group[p] and self.parameter_key[p]:
+                pdgs[p] = parse_data_group(
+                    self.read_data_group(self.parameter_group[p]), 
+                    self.parameter_group[p]
+                )
+
+        for p in list(self.parameter_key.keys()):
+            if self.parameter_key[p]:
+                if self.parameter_key[p] == self.parameter_group[p]:
+                    if pdgs[p] is None:
+                        if self.parameter_type[p] is bool:
+                            params[p] = False
+                        else:
+                            params[p] = None
+                    else:
+                        if self.parameter_type[p] is bool:
+                            params[p] = True
+                        else:
+                            typ = self.parameter_type[p]
+                            val = typ(pdgs[p])
+                            if p in list(self.parameter_mapping.keys()):
+                                fun = self.parameter_mapping[p]['from_control']
+                                val = fun(val)
+                            params[p] = val
+                else:
+                    if pdgs[p] is None:
+                        params[p] = None
+                    else:
+                        typ = self.parameter_type[p]
+                        val = typ(pdgs[p][self.parameter_key[p]])
+                        if p in list(self.parameter_mapping.keys()):
+                            fun = self.parameter_mapping[p]['from_control']
+                            val = fun(val)
+                        params[p] = val
+
+#        print(params)
+        """ special parameters - no-group or no-key parameters """
+
+        # per-element or per-atom basis sets not implemented in calculator
+        basis_sets = set([bs['nickname'] for bs in self.results['basis set']])
+        assert len(basis_sets) == 1
+        params['basis set name'] = list(basis_sets)[0]
+        params['basis set definition'] = self.results['basis set']
+
+        # rohf, multiplicity and total charge
+        orbs = self.results['molecular orbitals']
+        params['rohf'] = (bool(len(self.read_data_group('rohf'))) or
+                    bool(len(self.read_data_group('roothaan'))))
+        if params['uhf']:
+            alpha_occ = [o['occupancy'] for o in orbs if o['spin'] == 'alpha']
+            beta_occ = [o['occupancy'] for o in orbs if o['spin'] == 'beta']
+            spin = (np.sum(alpha_occ)-np.sum(beta_occ))*0.5
+            params['multiplicity'] = int(2*spin+1)
+            nuclear_charge = np.sum(self.atoms.numbers)
+            electron_charge = -int(np.sum(alpha_occ) + np.sum(beta_occ))
+            params['total charge'] = nuclear_charge + electron_charge
+#            print(params['multiplicity'])
+        elif not params['rohf']: # restricted HF (closed shell)
+            params['multiplicity'] = 1
+            nuclear_charge = np.sum(self.atoms.numbers)
+            electron_charge = -int(np.sum([o['occupancy'] for o in orbs]))
+            params['total charge'] = nuclear_charge + electron_charge
+        else:
+            raise NotImplementedError('ROHF not implemented')
+
+        # task
+        if os.path.exists('job.start'):
+            with open('job.start', 'r') as log:
+                lines = log.readlines()
+            for line in lines:
+                if 'CRITERION FOR TOTAL SCF-ENERGY' in line:
+                    en = int(re.search('10\*{2}\(-(\d+)\)', line).group(1))
+                    params['energy convergence'] = en
+                if 'CRITERION FOR MAXIMUM NORM OF SCF-ENERGY GRADIENT' in line:
+                    gr = int(re.search('10\*{2}\(-(\d+)\)', line).group(1))
+                    params['force convergence'] = gr
+                if 'AN OPTIMIZATION WITH MAX' in line:
+                    cy = int(re.search('MAX. (\d+) CYCLES', line).group(1))
+                    params['geometry optimization iterations'] = cy
+#        print(params)
+        return params
+
     def read_convergence(self):
         """ perform convergence checks """
+        if self.restart:
+            if bool(len(self.read_data_group('restart'))):
+                return False
+            if bool(len(self.read_data_group('actual'))):
+                return False
+            if os.path.exists('job.start') and os.path.exists('GEO_OPT_FAILED'):
+                return False
+            return True
+
         if self.parameters['task'] in ['optimize', 'geometry optimization']:
             if os.path.exists('GEO_OPT_CONVERGED'):
                 return True
@@ -461,18 +944,16 @@ class Turbomole(FileIOCalculator):
 #        from abcd.util import atoms2dict
 #        self.results['atoms'] = atoms2dict(self.atoms, plain_arrays=True)
         self.read_energy()
-        self.results['total energy'] = self.e_total
         self.read_mos()
         self.read_basis_set()
         self.read_occupation_numbers()
         self.read_dipole_moment()
         self.read_ssquare()
-        self.read_calc_parameters()
+        self.read_run_parameters()
         if self.parameters['task'] in ['gradient', 'optimize', 
                 'gradient calculation', 'geometry optimization']:
             self.read_gradient()
             self.read_forces()
-            self.results['energy gradient'] = (-self.forces).tolist()
         if self.parameters['task'] in ['frequencies', 'normal mode analysis']:
             self.read_hessian()
             self.read_vibrational_reduced_masses()
@@ -484,10 +965,11 @@ class Turbomole(FileIOCalculator):
     def read_data_group(self, data_group):
         """ read a turbomole data group from control file """
         args = ['sdg', data_group]
-        FNULL = open(os.devnull, 'w')
-        p = Popen(args, stdout=PIPE, stdin=None, stderr=FNULL)
-        return p.communicate()[0].strip('\n')
+        return self.execute(args, error_test=False, stdout_tofile=False).strip()
 
+    def delete_data_group(self, data_group):
+        """ delete a turbomole data group from control file """
+        self.execute(['kdg', data_group], error_test=False, stdout_tofile=False)
 
     def add_data_group(self, data_group, string=None, raw=False):
         """ write a turbomole data group to control file """
@@ -508,12 +990,14 @@ class Turbomole(FileIOCalculator):
 
     """ data reader methods """
 
-    def read_calc_parameters(self):
-        """ put things like symmetry, number of electrons etc. here """
+    def read_run_parameters(self):
+        """ read parameters set by define and not in self.parameters """
+
         if 'calculation parameters' not in self.results.keys():
             self.results['calculation parameters'] = {}
         parameters = self.results['calculation parameters']
-        parameters['point group'] = str(self.read_data_group('symmetry').split()[1])
+        dg = self.read_data_group('symmetry')
+        parameters['point group'] = str(dg.split()[1])
         if '$uhf' in self.read_data_group('uhf'):
             parameters['uhf'] = True
         else:
@@ -536,11 +1020,17 @@ class Turbomole(FileIOCalculator):
             parameters['nuclear degrees of freedom'] = int(nvibro.split()[1])
 
     def read_energy(self):
-        """Read Energy from Turbomole energy file."""
-        text = open('energy', 'r').read().lower()
+        """ Read energy from Turbomole energy file. """
+        try:
+            with open('energy', 'r') as enf:
+                text = enf.read().lower()
+        except IOError:
+            raise NoDataFoundError('failed to read energy file')
+        if text == '':
+            raise NoDataFoundError('empty energy file')
+
         lines = iter(text.split('\n'))
 
-        # Energy:
         for line in lines:
             if line.startswith('$end'):
                 break
@@ -552,9 +1042,12 @@ class Turbomole(FileIOCalculator):
                     energy_tmp += float(line.split()[4])
         # update energy units
         self.e_total = energy_tmp * Hartree
+        self.results['total energy'] = self.e_total
 
     def read_forces(self):
         """Read Forces from Turbomole gradient file."""
+        dg = self.read_data_group('grad')
+        if len(dg) == 0: return
         file = open('gradient', 'r')
         lines = file.readlines()
         file.close()
@@ -582,6 +1075,7 @@ class Turbomole(FileIOCalculator):
             forces = np.concatenate((forces, tmp))
         # Note the '-' sign for turbomole, to get forces
         self.forces = (-np.delete(forces, np.s_[0:1], axis=0)) * Hartree / Bohr
+        self.results['energy gradient'] = (-self.forces).tolist()
 
     def read_occupation_numbers(self):
         """ read occupation numbers with module 'eiger' """
@@ -589,9 +1083,8 @@ class Turbomole(FileIOCalculator):
             return
         mos = self.results['molecular orbitals']
         args = ['eiger', '--all', '--pview']
-        p = Popen(args, stdout=PIPE, stdin=None, stderr=None)
-        stdout = p.communicate()
-        lines = stdout[0].split('\n')
+        output = self.execute(args, error_test=False, stdout_tofile=False)
+        lines = output.split('\n')
         for line in lines:
             regex = (
                 '^\s+(\d+)\.*\s+(\w*)\s+(\d+)\s+(\S+)'
@@ -753,6 +1246,7 @@ class Turbomole(FileIOCalculator):
         from ase import Atom
 #        from abcd.util import atoms2dict
         grad_string = self.read_data_group('grad')
+        if len(grad_string) == 0: return
 #       try to reuse ase:
 #       structures = read('gradient', index=':') 
         lines = grad_string.split('\n')
@@ -827,7 +1321,9 @@ class Turbomole(FileIOCalculator):
         self.results['hessian matrix']['units'] = '?'
         self.results['hessian matrix']['projected'] = True
         self.results['hessian matrix']['mass weighted'] = True
-        nvibro = int(self.read_data_group('nvibro').split()[1])
+        dg = self.read_data_group('nvibro')
+        if len(dg) == 0: return
+        nvibro = int(dg.split()[1])
         self.results['hessian matrix']['dimension'] = nvibro
         row = []
         key = 'hessian'
@@ -854,7 +1350,9 @@ class Turbomole(FileIOCalculator):
         self.results['normal modes']['projected'] = True
         self.results['normal modes']['mass weighted'] = True
         self.results['normal modes']['units'] = '?'
-        nvibro = int(self.read_data_group('nvibro').split()[1])
+        dg = self.read_data_group('nvibro')
+        if len(dg) == 0: return
+        nvibro = int(dg.split()[1])
         self.results['normal modes']['dimension'] = nvibro
         row = []
         key = 'vibrational normal modes'
@@ -877,9 +1375,13 @@ class Turbomole(FileIOCalculator):
 
     def read_vibrational_reduced_masses(self):
         """ Read vibrational reduced masses """
-        nvibro = int(self.read_data_group('nvibro').split()[1])
+        dg = self.read_data_group('nvibro')
+        if len(dg) == 0: return
+        nvibro = int(dg.split()[1])
         self.results['vibrational reduced masses'] = []
-        lines = self.read_data_group('vibrational reduced masses').split('\n')
+        dg = self.read_data_group('vibrational reduced masses')
+        if len(dg) == 0: return
+        lines = dg.split('\n')
         for line in lines:
             if '$vibrational' in line:
                 continue
@@ -983,6 +1485,7 @@ class Turbomole(FileIOCalculator):
             self.execute(self.calculate_energy)
             # check convergence
             self.converged = self.read_convergence()
+            if not self.converged: return None
             # read energy
             self.read_energy()
 
@@ -1017,7 +1520,7 @@ class Turbomole(FileIOCalculator):
             # an ugly work around; the caller should test the raised error
             if name in ['magmom', 'magmoms', 'charges', 'stress']:
                 return None
-            raise NotImplementedError(name)
+            raise PropertyNotImplementedError(name)
 
         if atoms is None:
             atoms = self.atoms.copy()
