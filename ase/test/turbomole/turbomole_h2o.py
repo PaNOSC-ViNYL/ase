@@ -44,7 +44,10 @@ params.update({
     'task': 'normal mode analysis',
     'density convergence': 1.0e-7
 })
+
 calc = Turbomole(**params)
 mol.set_calculator(calc)
 calc.calculate(mol)
+
 print(calc['results']['vibrational spectrum'])
+print(calc.todict(skip_default=False))
