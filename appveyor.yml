@@ -24,7 +24,7 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   # Install the conda supplied packages; msvc_runtime needed for py34
   - "conda update -y conda"
-  - "conda install -y pip wheel numpy scipy pyflakes msvc_runtime"
+  - "conda install -y pip wheel numpy scipy pyflakes msvc_runtime fortranformat"
   # install ase into the current python
   - "echo %cd%"
   - "where pip"

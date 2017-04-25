@@ -17,7 +17,7 @@ Optional:
 
 * SciPy_ (library for scientific computing)
 * For ``ase-gui``: Matplotlib_ (2D Plotting)
-
+* For ``turbomole`` calculator: FORTRAN format interpreter for Python
 
 Installation
 ------------
