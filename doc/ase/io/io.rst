@@ -129,6 +129,39 @@ can be found here: :download:`save_pov.py`
 An other example showing how to change colors and textures in pov can
 be found here: :download:`../../tutorials/saving_graphics.py`.
 
+.. _matplotlib_plotting:
+
+Matplotlib
+==========
+
+>>> import matplotlib.pyplot as plt
+>>> from ase.io.matplotlib import write_matplotlib
+>>> from ase.lattice.cubic import FaceCenteredCubic
+>>> slab = FaceCenteredCubic('Au', size=(2, 2, 2))
+>>> fig, ax = plt.subplots()
+>>> write_matplotlib(slab, ax, radii=0.3, rotation=('90x,45y,0z'))
+>>> fig.savefig("ase_slab.png")
+
+.. image:: iomatplotlib1.png
+
+The data is plotted directly to a Matplotlib subplot object, giving a large
+degree of customizability.
+
+>>> import matplotlib.pyplot as plt
+>>> from ase.io.matplotlib import write_matplotlib
+>>> from ase.lattice.cubic import FaceCenteredCubic
+>>> slab = FaceCenteredCubic('Au', size=(2, 2, 2))
+>>> fig, axarr = plt.subplots(4, 1, figsize=(15, 5))
+>>> write_matplotlib(slab, axarr[0], radii=0.3, rotation=('0x,0y,0z'))
+>>> write_matplotlib(slab, axarr[1], radii=0.3, rotation=('45x,0y,0z'))
+>>> write_matplotlib(slab, axarr[2], radii=0.3, rotation=('45x,45y,0z'))
+>>> write_matplotlib(slab, axarr[3], radii=0.3, rotation=('0x,0y,0z'))
+>>> axarr[3].set_xlim(2, 4)
+>>> axarr[3].set_ylim(2, 4)
+>>> fig.savefig("ase_slab_multiple.png")
+
+.. image:: iomatplotlib2.png
+
 
 Adding a new file-format to ASE
 ===============================

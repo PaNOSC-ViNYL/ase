@@ -33,6 +33,9 @@ your structure by dumping directly to a graphics file; you can use the
 >>> from ase.io import write
 >>> write('image.png', atoms)
 
+It is also possible to plot directly to a Matplotlib subplot object, which allows for
+a large degree of customisability. :ref:`More information <matplotlib_plotting>`.
+
 .. _RasMol: http://openrasmol.org/
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
 .. _gOpenMol: http://www.csc.fi/gopenmol/
