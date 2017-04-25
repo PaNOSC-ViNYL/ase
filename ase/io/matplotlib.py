@@ -1,9 +1,5 @@
-import time
 from math import sqrt
-from distutils.version import LooseVersion
-
 import numpy as np
-
 from ase.utils import rotate
 from ase.data import covalent_radii
 from ase.data.colors import jmol_colors
@@ -81,7 +77,7 @@ class MATPLOTLIB:
         X -= offset
 
         self.xlim = 0, w
-        self.ylim = 0, h 
+        self.ylim = 0, h
 
         if nlines > 0:
             D = np.dot(D, rotation)[:, :2]
@@ -145,8 +141,8 @@ class MATPLOTLIB:
             xy = self.X[a, :2]
             if a < self.natoms:
                 r = self.d[a] / 2
-                circle = Circle(xy, r, facecolor=self.colors[a],
-                        edgecolor='black')
+                fc, ec = self.colors[a], 'black'
+                circle = Circle(xy, r, facecolor=fc, edgecolor=ec)
                 self.ax.add_patch(circle)
             else:
                 a -= self.natoms
@@ -158,6 +154,7 @@ class MATPLOTLIB:
                     else:
                         line = PathPatch(Path((xy + hxy, xy - hxy)))
                     self.ax.add_patch(line)
+
 
 def write_matplotlib(atoms, ax, **parameters):
     if isinstance(atoms, list):
