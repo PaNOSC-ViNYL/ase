@@ -18,6 +18,7 @@ class MATPLOTLIB:
         self.figure = ax.figure
         self.numbers = atoms.get_atomic_numbers()
         self.colors = colors
+        self.ax.set_aspect('equal')
         if colors is None:
             self.colors = jmol_colors[self.numbers]
 
