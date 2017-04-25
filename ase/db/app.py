@@ -28,7 +28,8 @@ import re
 import sys
 import tempfile
 
-from flask import Flask, render_template, request, send_from_directory, flash
+from flask import (Flask, make_response, render_template, request,
+                   send_from_directory, flash)
 
 try:
     import matplotlib
@@ -57,17 +58,6 @@ default_key_descriptions = {
     'unique_id': ('Unique ID', 'Unique ID', 'float', ''),
     'volume': ('Volume', 'Volume of unit-cell', 'float', '`Ang^3`')}
 
-# Every client-connetions gets one of these tuples:
-Connection = collections.namedtuple(
-    'Connection',
-    ['project',  # project name
-     'query',  # query string
-     'nrows',  # number of rows matched
-     'page',  # page number
-     'columns',  # what columns to show
-     'sort',  # what column to sort after
-     'limit'])  # number of rows per page
-
 app = Flask(__name__)
 
 app.secret_key = 'asdf'
@@ -88,9 +78,6 @@ def connect_databases(uris):
             project = uri.rsplit('/', 1)[-1].split('.')[0]
         databases[project] = ase.db.connect(uri)
 
-
-next_con_id = 1
-connections = {}
 
 tmpdir = tempfile.mkdtemp()  # used to cache png-files
 
@@ -126,14 +113,9 @@ def error(e):
     """Write traceback and other stuff to 00-99.error files."""
     global errors
     import traceback
-    x = request.args.get('x', '0')
-    try:
-        cid = int(x)
-    except ValueError:
-        cid = 0
-    con = connections.get(cid)
+    x = request.cookies.get('things')
     with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
-        print(repr((errors, con, e, request)), file=fd)
+        print(repr((errors, x, e, request)), file=fd)
         if hasattr(e, '__traceback__'):
             traceback.print_tb(e.__traceback__, file=fd)
     errors += 1
@@ -145,24 +127,24 @@ app.register_error_handler(Exception, error)
 
 @app.route('/')
 def index():
-    global next_con_id
-
     if not projects:
         # First time: initialize list of projects
         projects[:] = [(proj, d.metadata.get('title', proj))
                        for proj, d in sorted(databases.items())]
 
-    con_id = int(request.args.get('x', '0'))
-    if con_id in connections:
-        project, query, nrows, page, columns, sort, limit = connections[con_id]
+    cookie = request.cookies.get('things')
+    if cookie:
+        project, query, nrows, page, columns, sort, limit = cookie.split(',')
+        nrows = int(nrows)
+        page = int(page)
+        columns = columns.split(';')
+        limit = int(limit)
         newproject = request.args.get('project')
         if newproject is not None and newproject != project:
-            con_id = 0
+            cookie = None
 
-    if con_id not in connections:
+    if not cookie:
         # Give this connetion a new id:
-        con_id = next_con_id
-        next_con_id += 1
         project = request.args.get('project', projects[0][0])
         query = ''
         nrows = None
@@ -245,34 +227,35 @@ def index():
             nrows = db.count(okquery)
 
     table = Table(db)
+    #print(okquery,page, limit)
     table.select(okquery, columns, sort, limit, offset=page * limit)
-
-    con = Connection(project, query, nrows, page, columns, sort, limit)
-    connections[con_id] = con
-
-    if len(connections) > 1000:
-        # Forget old connections:
-        for cid in sorted(connections)[:200]:
-            del connections[cid]
 
     table.format(SUBSCRIPT)
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
-    return render_template('table.html',
-                           project=project,
-                           projects=projects,
-                           t=table,
-                           md=meta,
-                           formulas=db.formulas,
-                           con=con,
-                           cid=con_id,
-                           home=home,
-                           pages=pages(page, nrows, limit),
-                           nrows=nrows,
-                           addcolumns=addcolumns,
-                           row1=page * limit + 1,
-                           row2=min((page + 1) * limit, nrows))
+    response = make_response(
+        render_template('table.html',
+                        project=project,
+                        projects=projects,
+                        t=table,
+                        md=meta,
+                        formulas=db.formulas,
+                        limit=limit,
+                        sort=sort,
+                        home=home,
+                        pages=pages(page, nrows, limit),
+                        nrows=nrows,
+                        addcolumns=addcolumns,
+                        row1=page * limit + 1,
+                        row2=min((page + 1) * limit, nrows)))
+
+    newcookie = '{},{},{},{},{},{},{}'.format(project, query, nrows, page,
+                                              ';'.join(columns), sort, limit)
+    if newcookie != cookie:
+        response.set_cookie('things', newcookie)
+
+    return response
 
 
 @app.route('/image/<name>')

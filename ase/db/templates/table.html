@@ -4,16 +4,6 @@
 {{proj}} - Search
 {% endblock %}
 
-{% block head %}
-<script>
-  //window.location.reload(true);
-</script>
-<script src="{{ url_for('static', filename='table.js') }}"></script>
-{% endblock %}
-
-{% block BodySettings %}
-onload="BodyOnLoad({{cid}}, '{{con.query}}', '{{ project }}')"
-{% endblock %}
 
 {% block content %}
 
@@ -30,7 +20,7 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}', '{{ project }}')"
     <div class="row">
         <form id="mainFormID" class="navbar-form navbar-default" role="search" action="/">
 
-            <input type="hidden" id="limit" name="limit" value={{con.limit}}>
+            <input type="hidden" id="limit" name="limit" value={{limit}}>
             <input type="hidden" name="x" value="{{ cid }}">
 
             <div class="form-group">
@@ -166,7 +156,7 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}', '{{ project }}')"
 
                                                 <div class="btn-group pull-right">
                                                         <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                        #Rows: {{con.limit}} <span class="caret"></span>
+                                                        Rows: {{limit}} <span class="caret"></span>
                                                         </button>
                                                         <ul class="dropdown-menu">
                                                         <li onclick="$('#limit').val(10); $('#mainFormID').submit(); return false;"><a href="">10</a></li>
@@ -200,8 +190,8 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}', '{{ project }}')"
             {% set _dummy = colDisplay.update({'col' : meta[c][0]}) %}
             {% endif %}
 
-            {% if con.sort == c %}&#x2193;
-            {% elif con.sort == '-' + c %}&#x2191;
+            {% if sort == c %}&#x2193;
+            {% elif sort == '-' + c %}&#x2191;
                                                 {% endif -%}
 
                                                 <a href="/?x={{ cid }}&amp;sort={{ c }}" data-toggle="tooltip" title="key: {{c}}">{{ colDisplay['col'] }}</a>
@@ -234,41 +224,40 @@ onload="BodyOnLoad({{cid}}, '{{con.query}}', '{{ project }}')"
                 </div>
 
 
-                <div class="text-center">
-                        <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm">
+<div class="text-center">
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-sm">
 
-                                        {% for page, name in pages %}
-                                                {% set hrefstr="#" %}
-                                                {% if page >= 0 %}
-                                                        {% set hrefstr= '/?x=' + cid|string + '&page=' + page|string  %}
-                                                {% endif %}
+{% for page, name in pages %}
+    {% set hrefstr="#" %}
+    {% if page >= 0 %}
+        {% set hrefstr= '/?x=' + cid|string + '&page=' + page|string  %}
+    {% endif %}
+    {% if name=="previous" %}
+        <li>
+            <a href="{{hrefstr}}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+    {% elif name=="next" %}
+        <li>
+            <a href="{{hrefstr}}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    {% elif name=="..." %}
+        <li class="inactive"><a href="{{hrefstr}}">{{ name }}</a></li>
+    {% elif page < 0 %}
+        <li class="active"><a href="{{hrefstr}}">{{ name }}</a></li>
+    {% else %}
+        <li><a href="{{hrefstr}}">{{ name }}</a></li>
+    {% endif %}
+{% endfor %}
 
-                                                {% if name=="previous" %}
-                                                        <li>
-                                                                <a href="{{hrefstr}}" aria-label="Previous">
-                                                                <span aria-hidden="true">&laquo;</span>
-                                                                </a>
-                                                        </li>
-                                                {% elif name=="next" %}
-                                                        <li>
-                                                                <a href="{{hrefstr}}" aria-label="Next">
-                                                                <span aria-hidden="true">&raquo;</span>
-                                                                </a>
-                                                        </li>
-                                                {% elif name=="..." %}
-                                                        <li class="inactive"><a href="{{hrefstr}}">{{ name }}</a></li>
-                                                {% elif page < 0 %}
-                                                        <li class="active"><a href="{{hrefstr}}">{{ name }}</a></li>
-                                                {% else %}
-                                                        <li><a href="{{hrefstr}}">{{ name }}</a></li>
-                                                {% endif %}
-                                        {% endfor %}
+        </ul>
+    </nav>
+</div>
 
-                                </ul>
-                        </nav>
-                </div>
-
-        </div>
+</div>
 
 {% endblock content %}
