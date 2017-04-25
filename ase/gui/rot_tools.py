@@ -1,29 +1,31 @@
 # Gives the rotation matrix which rotates theta degrees about
 # vecU
 
-#  Generates the rotation matrix that rotate theta degrees about the vecU
+
 def rotate_about_vec(vecU, theta):
+    "Generates the rotation matrix that rotate theta degrees about the vecU"
     import numpy as np
     vecU = np.array(vecU)
-    vecU = vecU / (sum(vecU ** 2) ** 0.5)
+    vecU = vecU / (sum(vecU**2)**0.5)
     ux, uy, uz = vecU
     st = np.sin(theta)
     ct = np.cos(theta)
-    mat = np.array([[ux ** 2 + ct * (1 - ux ** 2), 
-                     ux * uy * (1 - ct) - uz * st, 
+    mat = np.array([[ux**2 + ct * (1 - ux**2),
+                     ux * uy * (1 - ct) - uz * st,
                      uz * ux * (1 - ct) + uy * st],
-                    [ux * uy * (1 - ct) + uz * st, 
-                     uy ** 2 + ct * (1 - uy ** 2),
+                    [ux * uy * (1 - ct) + uz * st,
+                     uy**2 + ct * (1 - uy**2),
                      uy * uz * (1 - ct) - ux * st],
                     [uz * ux * (1 - ct) - uy * st,
                      uy * uz * (1 - ct) + ux * st,
-                     uz ** 2 + ct * (1 - uz **2)]])
+                     uz**2 + ct * (1 - uz**2)]])
     return (mat)
 
-# Generates the rotation matrix which rotates aVec into intoVec
+
 def rotate_vec_into_newvec(aVec, intoVec):
+    """Generates the rotation matrix which rotates aVec into intoVec"""
     def length(v):
-        return((sum(v ** 2)) ** 0.5)
+        return((sum(v**2))**0.5)
 
     import numpy as np
     from math import acos
@@ -40,8 +42,9 @@ def rotate_vec_into_newvec(aVec, intoVec):
         fac = -1
     return(fac * rotate_about_vec(nor, theta))
 
-# Applies the rotation matrix to the vector and returns the rotated vector
-def rotate_vec (rot_mat, vec):
+
+def rotate_vec(rot_mat, vec):
+    "Applies the rotation matrix to the vector and returns the rotated vector"
     import numpy as np
     rot_vec = np.dot(rot_mat, vec)
 

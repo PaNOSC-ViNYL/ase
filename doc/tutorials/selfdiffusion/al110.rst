@@ -1,5 +1,5 @@
 .. _selfdiffusion:
-    
+
 Self-diffusion on the Al(110) surface (NEB + Dimer method exercise)
 -------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ understand, and run the script.
 * Make sure you understand what is going on (make a good sketch of the
   110 surface).
 
-* View the profile of the NEB path in ase-gui. How is the shape
+* View the profile of the NEB path in ASE's GUI. How is the shape
   (symmetric/asymmetric) and does this make sense for this process
   (when looking at the moving adatom in the simulation)?
 
@@ -49,7 +49,7 @@ understand, and run the script.
 
 .. hint::
 
-  When opening a trajectory in :program:`ase-gui` with calculated energies, the
+  When opening a trajectory with :program:`ase gui` with calculated energies, the
   default plot window shows the energy versus frame number.  To get a
   better feel of the energy barrier in an NEB calculation; choose
   :menuselection:`Tools --> NEB`. This will give a smooth curve
@@ -68,10 +68,10 @@ The template script :download:`dimer_along.py` will find the transition-state
 image of the jump along the row. Again, read, understand and run the script.
 
 * Make sure you understand what is going on. For instance, see the trajectory
-  file in ase-gui.
+  file in the GUI.
 
-* Compare the transition-state images of the NEB and Dimer as viewed in ase-
-  gui. Are they identical?
+* Compare the transition-state images of the NEB and Dimer as viewed in the
+  GUI. Are they identical?
 
 * What is the energy barrier? How does it compare to the one found in the NEB
   calculation?

@@ -1,4 +1,5 @@
 import numpy as np
+from ase.utils import basestring
 
 
 def cut(atoms, a=(1, 0, 0), b=(0, 1, 0), c=None, clength=None,
@@ -369,7 +370,7 @@ def rotate(atoms, a1, a2, b1, b2, rotate_cell=True, center=(0, 0, 0)):
     will rotate the atoms out of the cell, even if *rotate_cell* is
     True.
     """
-    if isinstance(center, str) and center.lower() == 'com':
+    if isinstance(center, basestring) and center.lower() == 'com':
         center = atoms.get_center_of_mass()
 
     R = rotation_matrix(a1, a2, b1, b2)

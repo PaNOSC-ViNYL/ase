@@ -26,7 +26,7 @@ Relevant literature References:
 3. 'A Climbing-Image NEB Method for Finding Saddle Points and Minimum
    Energy Paths', G. Henkelman, B. P. Uberuaga and H.
    Jonsson, J. Chem. Phys. 113, 9901 (2000)
-   
+
 4. 'Improved initial guess for minimum energy path calculations.',
    S. Smidstrup, A. Pedersen, K. Stokbro and H. Jonsson,
    J. Chem. Phys. 140, 214106 (2014)
@@ -81,9 +81,9 @@ Interpolation
 
    From a linear interpolation, create an improved path
    from initial to final state using the IDPP approach [4].
-   
+
 .. method:: NEB.idpp_interpolate()
-   
+
    Generate an idpp pathway from a set of images. This differs
    from above in that an initial guess for the IDPP, other than
    linear interpolation can be provided.
@@ -113,7 +113,7 @@ calculators attached.
 
   If there are `M` images and each image has `N` atoms, then the NEB
   object behaves like one big Atoms object with `MN` atoms, so its
-  :meth:`~ase.atoms.Atoms.get_positions` method will return a `MN \times 3`
+  :meth:`~ase.Atoms.get_positions` method will return a `MN \times 3`
   array.
 
 
@@ -123,20 +123,20 @@ Trajectories
 The code::
 
   from ase.optimize import BFGS
-  optimizer = BFGS(neb, trajectory='A2B.traj')
+  opt = BFGS(neb, trajectory='A2B.traj')
 
 will write all images to one file.  The Trajectory object knows about
 NEB calculations, so it will write `M` images with `N` atoms at every
 iteration and not one big configuration containing `MN` atoms.
 
 The result of the latest iteration can now be analysed with this
-command: :command:`ase-gui A2B.traj@-5:`.
+command: :command:`ase gui A2B.traj@-5:`.
 
 For the example above, you can write the images to individual
 trajectory files like this::
 
   for i in range(1, 4):
-      qn.attach(io.Trajectory('A2B-%d.traj' % i, 'w', images[i]))
+      opt.attach(io.Trajectory('A2B-%d.traj' % i, 'w', images[i]))
 
 The result of the latest iteration can be analysed like this:
 
@@ -144,7 +144,7 @@ The result of the latest iteration can be analysed like this:
 
 ::
 
-  $ ase-gui A.traj A2B-?.traj B.traj -n -1
+  $ ase gui A.traj A2B-?.traj B.traj -n -1
 
 .. highlight:: python
 
@@ -221,5 +221,5 @@ Analysis of output
 A class exists to help in automating the analysis of NEB jobs. See the
 :ref:`Diffusion Tutorial <diffusion tutorial>` for some examples of its use.
 
-.. autoclass:: NEBtools
+.. autoclass:: NEBTools
    :members:

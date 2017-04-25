@@ -120,7 +120,7 @@ class Population(object):
             ue = self.use_extinct
             new_cand = self.dc.get_all_relaxed_candidates(only_new=True,
                                                           use_extinct=ue)
-            
+
         for a in new_cand:
             self.__add_candidate__(a)
             self.all_cand.append(a)
@@ -268,10 +268,10 @@ class Population(object):
         """
         if len(self.pop) < 1:
             self.update()
-            
+
         if len(self.pop) < 1:
             return None
-        
+
         fit = self.__get_fitness__(range(len(self.pop)), with_history)
         fmax = max(fit)
         nnf = True
@@ -280,9 +280,9 @@ class Population(object):
             if fit[t] > random() * fmax:
                 c1 = self.pop[t]
                 nnf = False
-                
+
         return c1.copy()
-        
+
     def _write_log(self):
         """Writes the population to a logfile.
 
@@ -303,17 +303,17 @@ class Population(object):
                                                         pop=','.join(ids),
                                                         gen=max_gen))
                 f.close()
-                
+
     def is_uniform(self, func, min_std, pop=None):
         """Tests whether the current population is uniform or diverse.
         Returns True if uniform, False otherwise.
-        
+
         Parameters:
-        
+
         func: function
             that takes one argument an atoms object and returns a value that
             will be used for testing against the rest of the population.
-        
+
         min_std: int or float
             The minimum standard deviation, if the population has a lower
             std dev it is uniform.
@@ -328,7 +328,7 @@ class Population(object):
         if stddev < min_std:
             return True
         return False
-        
+
     def mass_extinction(self, ids):
         """Kills every candidate in the database with gaid in the
         supplied list of ids. Typically used on the main part of the current
@@ -338,7 +338,7 @@ class Population(object):
 
         ids: list
             list of ids of candidates to be killed.
-        
+
         """
         for confid in ids:
             self.dc.kill_candidate(confid)
@@ -353,7 +353,7 @@ class RandomPopulation(Population):
         self.bad_candidates = bad_candidates
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
-        
+
     def __initialize_pop__(self):
         """ Private method that initalizes the population when
             the population is created. """
@@ -411,15 +411,15 @@ class RandomPopulation(Population):
         """Returns one candidates at random."""
         if len(self.pop) < 1:
             self.update()
-            
+
         if len(self.pop) < 1:
             return None
 
         t = randrange(0, len(self.pop), 1)
         c = self.pop[t]
-        
+
         return c.copy()
-        
+
     def get_two_candidates(self):
         """Returns two candidates at random."""
         if len(self.pop) < 2:
@@ -460,7 +460,7 @@ class FitnessSharingPopulation(Population):
     alpha_sh: float or int
         Determines the shape of the sharing function.
         Default is 1, which gives a linear sharing function.
-    
+
     """
     def __init__(self, data_connection, population_size,
                  comp_key, threshold, alpha_sh=1.,
@@ -469,12 +469,12 @@ class FitnessSharingPopulation(Population):
         self.dt = threshold  # dissimilarity threshold
         self.alpha_sh = alpha_sh
         self.fit_scaling = 1.
-        
+
         self.sh_cache = dict()
-        
+
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
-        
+
     def __get_fitness__(self, candidates):
         """Input should be sorted according to raw_score."""
         max_s = get_raw_score(candidates[0])
@@ -500,7 +500,7 @@ class FitnessSharingPopulation(Population):
                         else:
                             self.sh_cache[name] = 0
                     m += self.sh_cache[name]
-                        
+
             shf = (obj_fit ** self.fit_scaling) / m
             shared_fit.append(shf)
         return shared_fit
@@ -524,14 +524,14 @@ class FitnessSharingPopulation(Population):
 
         if len(all_cand) > 0:
             shared_fit = self.__get_fitness__(all_cand)
-            all_sorted = zip(*sorted(zip(shared_fit, all_cand),
-                                     reverse=True))[1]
+            all_sorted = list(zip(*sorted(zip(shared_fit, all_cand),
+                                          reverse=True)))[1]
 
             # Fill up the population with the self.pop_size most stable
             # unique candidates.
             i = 0
             while i < len(all_sorted) and len(self.pop) < self.pop_size:
-                c = all_cand[i]
+                c = all_sorted[i]
                 i += 1
                 eq = False
                 for a in self.pop:
@@ -545,7 +545,7 @@ class FitnessSharingPopulation(Population):
                 a.info['looks_like'] = count_looks_like(a, all_cand,
                                                         self.comparator)
         self.all_cand = all_cand
-            
+
     def get_two_candidates(self):
         """ Returns two candidates for pairing employing the
             fitness criteria from
@@ -586,17 +586,17 @@ class RankFitnessPopulation(Population):
     """ Ranks the fitness relative to set variable to flatten the surface
         in a certain direction such that mating across variable is equally
         likely irrespective of raw_score.
-    
+
         Parameters:
 
         variable_function: function
             A function that takes as input an Atoms object and returns
             the variable that differentiates the ranks.
-    
+
         exp_function: boolean
             If True use an exponential function for ranking the fitness.
             If False use the same as in Population. Default True.
-    
+
         exp_prefactor: float
             The prefactor used in the exponential fitness scaling function.
             Default 0.5
@@ -609,14 +609,14 @@ class RankFitnessPopulation(Population):
         self.vf = variable_function
         # The current fitness is set at each update of the population
         self.current_fitness = None
-        
+
         Population.__init__(self, data_connection, population_size,
                             comparator, logfile, use_extinct)
 
     def get_rank(self, rcand, key=None):
         # Set the initial order of the candidates, will need to
         # be returned in this order at the end of ranking.
-        ordered = zip(range(len(rcand)), rcand)
+        ordered = list(zip(range(len(rcand)), rcand))
 
         # Niche and rank candidates.
         rec_nic = []
@@ -648,8 +648,8 @@ class RankFitnessPopulation(Population):
                     cor += 1
         # The original order is reformed
         rank_fit.sort(key=itemgetter(0), reverse=False)
-        return np.array(zip(*rank_fit)[2])
-    
+        return np.array(list(zip(*rank_fit))[2])
+
     def __get_fitness__(self, candidates):
         expf = self.exp_function
         rfit = self.get_rank(candidates, key='raw_score')
@@ -668,7 +668,7 @@ class RankFitnessPopulation(Population):
             return 0.5 * (1. - np.tanh(2. * (rfit - rmax) / T - 1.))
         else:
             return self.exp_prefactor ** (-rfit - 1)
-    
+
     def update(self):
         """ The update method in Population will add to the end of
         the population, that can't be used here since the fitness
@@ -689,7 +689,7 @@ class RankFitnessPopulation(Population):
 
         if len(all_cand) > 0:
             fitf = self.__get_fitness__(all_cand)
-            all_sorted = zip(fitf, all_cand)
+            all_sorted = list(zip(fitf, all_cand))
             all_sorted.sort(key=itemgetter(0), reverse=True)
             sort_cand = []
             for _, t2 in all_sorted:
@@ -717,14 +717,14 @@ class RankFitnessPopulation(Population):
                 if not eq:
                     self.pop.append(c)
         self.all_cand = all_cand
-            
+
     def get_two_candidates(self):
         """ Returns two candidates for pairing employing the
             roulete wheel selection scheme described in
             R.L. Johnston Dalton Transactions,
             Vol. 22, No. 22. (2003), pp. 4193-4207
         """
-        
+
         if len(self.pop) < 2:
             self.update()
 
@@ -789,11 +789,11 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                  exp_function=True, exp_prefactor=0.5):
         # The current fitness is set at each update of the population
         self.current_fitness = None
-        
+
         if rank_data is None:
             rank_data = []
         self.rank_data = rank_data
-        
+
         if abs_data is None:
             abs_data = []
         self.abs_data = abs_data
@@ -827,7 +827,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
             used.add(rd)
             # Build ranked fitness based on rd
             all_fitnesses.append(self.get_rank(candidates, key=rd))
-            
+
         for d in self.abs_data:
             if d not in used:
                 used.add(d)
@@ -836,7 +836,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
         # Set the initial order of the ranks, will need to
         # be returned in this order at the end.
-        fordered = zip(range(len(all_fitnesses[0])), *all_fitnesses)
+        fordered = list(zip(range(len(all_fitnesses[0])), *all_fitnesses))
         mvf_rank = -1  # Start multi variable rank at -1.
         rec_vrc = []  # A record of already ranked candidates.
         mvf_list = []  # A list for all candidate ranks.
@@ -856,7 +856,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                 for b in fordered:
                     border, brest = b[0], b[1:]
                     if border not in rec_vrc:
-                        if any(np.array(brest) >= np.array(rest)):
+                        if np.any(np.array(brest) >= np.array(rest)):
                             pff.append((border, brest))
                 # Remove any candidate from pff list that is dominated
                 # by another in the list.
@@ -866,7 +866,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                     for nb in pff:
                         nborder, nbrest = nb[0], nb[1:]
                         if norder != nborder:
-                            if all(np.array(nbrest) > np.array(nrest)):
+                            if np.all(np.array(nbrest) > np.array(nrest)):
                                 dom = True
                     if not dom:
                         pff2.append((norder, nrest))
@@ -878,7 +878,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
                 mvf_rank = mvf_rank - 1
         # The original order is reformed
         mvf_list.sort(key=itemgetter(0), reverse=False)
-        rfro = np.array(zip(*mvf_list)[1])
+        rfro = np.array(list(zip(*mvf_list))[1])
 
         if not expf:
             rmax = max(rfro)
@@ -903,7 +903,7 @@ class MultiObjectivePopulation(RankFitnessPopulation):
 
         if len(all_cand) > 0:
             fitf = self.__get_fitness__(all_cand)
-            all_sorted = zip(fitf, all_cand)
+            all_sorted = list(zip(fitf, all_cand))
             all_sorted.sort(key=itemgetter(0), reverse=True)
             sort_cand = []
             for _, t2 in all_sorted:

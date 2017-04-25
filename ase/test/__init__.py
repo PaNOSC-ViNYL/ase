@@ -1,6 +1,5 @@
 from __future__ import print_function
 import os
-import platform
 import sys
 import shutil
 import subprocess
@@ -10,11 +9,11 @@ from glob import glob
 
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
-from ase.utils import import_module, devnull
+from ase.utils import devnull
+from ase.cli.info import print_info
 
 
-class NotAvailable(Exception):
-    pass
+NotAvailable = unittest.SkipTest
 
 
 test_calculator_names = []
@@ -22,8 +21,8 @@ test_calculator_names = []
 
 def require(calcname):
     if calcname not in test_calculator_names:
-        raise NotAvailable
-        
+        raise NotAvailable('use --calculators={0} to enable'.format(calcname))
+
 
 class CustomTextTestRunner(unittest.TextTestRunner):
     def __init__(self, logname, descriptions=1, verbosity=1):
@@ -41,26 +40,23 @@ class CustomTextTestRunner(unittest.TextTestRunner):
 
 
 class ScriptTestCase(unittest.TestCase):
-    def __init__(self, methodname='testfile', filename=None, display=True):
+    def __init__(self, methodname='testfile', filename=None):
         unittest.TestCase.__init__(self, methodname)
         self.filename = filename
-        self.display = display
 
     def testfile(self):
         try:
             with open(self.filename) as fd:
-                exec(compile(fd.read(), self.filename, 'exec'),
-                     {'display': self.display})
+                exec(compile(fd.read(), self.filename, 'exec'), {})
         except KeyboardInterrupt:
             raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
-            if module in ['scipy', 'Scientific', 'lxml', 'flask']:
-                sys.__stdout__.write('skipped (no {0} module) '.format(module))
+            if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
+                          'flask', 'gpaw', 'GPAW']:
+                raise unittest.SkipTest('no {} module'.format(module))
             else:
                 raise
-        except NotAvailable:
-            sys.__stdout__.write('skipped ')
 
     def id(self):
         return self.filename
@@ -73,12 +69,15 @@ class ScriptTestCase(unittest.TestCase):
 
 
 def test(verbosity=1, calculators=[],
-         testdir=None, display=True, stream=sys.stdout):
+         testdir=None, stream=sys.stdout, files=None):
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
     ts = unittest.TestSuite()
-    files = glob(__path__[0] + '/*')
+    if files:
+        files = [os.path.join(__path__[0], f) for f in files]
+    else:
+        files = glob(__path__[0] + '/*')
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
@@ -92,39 +91,22 @@ def test(verbosity=1, calculators=[],
     tests.sort()
     sdirtests.sort()
     tests.extend(sdirtests)  # run test subdirectories at the end
-    lasttest = None  # is COCu111.py in the current set
     for test in tests:
         if test.endswith('__.py'):
             continue
-        if test.endswith('COCu111.py'):
-            lasttest = test
-            continue
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(test),
-                                  display=display))
-    if lasttest:
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(lasttest),
-                                  display=display))
+        ts.addTest(ScriptTestCase(filename=os.path.abspath(test)))
 
-    versions = [('platform', platform.platform()),
-                ('python-' + sys.version.split()[0], sys.executable)]
-    for name in ['ase', 'numpy', 'scipy']:
-        try:
-            module = import_module(name)
-        except ImportError:
-            versions.append((name, 'no'))
-        else:
-            versions.append((name + '-' + module.__version__,
-                            module.__file__.rsplit('/', 1)[0] + '/'))
+    if verbosity > 0:
+        print_info()
 
-    for a, b in versions:
-        print('{0:16}{1}'.format(a, b))
-        
     sys.stdout = devnull
 
+    if verbosity == 0:
+        stream = devnull
     ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
 
     origcwd = os.getcwd()
-    
+
     if testdir is None:
         testdir = tempfile.mkdtemp(prefix='ase-test-')
     else:
@@ -132,7 +114,8 @@ def test(verbosity=1, calculators=[],
             shutil.rmtree(testdir)  # clean before running tests!
         os.mkdir(testdir)
     os.chdir(testdir)
-    print('test-dir       ', testdir, '\n', file=sys.__stdout__)
+    if verbosity:
+        print('test-dir       ', testdir, '\n', file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:
@@ -143,12 +126,6 @@ def test(verbosity=1, calculators=[],
 
 
 def disable_calculators(names):
-    def __init__(self, *args, **kwargs):
-        raise NotAvailable
-
-    def __del__(self):
-        pass
-        
     for name in names:
         if name in ['emt', 'lj', 'eam', 'morse', 'tip3p']:
             continue
@@ -157,32 +134,71 @@ def disable_calculators(names):
         except ImportError:
             pass
         else:
-            cls.__init__ = __init__
-            cls.__del__ = __del__
+            def get_mock_init(name):
+                def mock_init(obj, *args, **kwargs):
+                    raise NotAvailable('use --calculators={0} to enable'
+                                       .format(name))
+                return mock_init
+
+            def mock_del(obj):
+                pass
+            cls.__init__ = get_mock_init(name)
+            cls.__del__ = mock_del
 
 
 def cli(command, calculator_name=None):
     if (calculator_name is not None and
         calculator_name not in test_calculator_names):
         return
-    error = subprocess.call(' '.join(command.split('\n')), shell=True)
-    assert error == 0
-    
+    proc = subprocess.Popen(' '.join(command.split('\n')),
+                            shell=True,
+                            stdout=subprocess.PIPE)
+    print(proc.stdout.read().decode())
+    proc.wait()
+    if proc.returncode != 0:
+        raise RuntimeError('Failed running a shell command.  '
+                           'Please set you $PATH environment variable!')
+
 
 class must_raise:
     """Context manager for checking raising of exceptions."""
     def __init__(self, exception):
         self.exception = exception
-        
+
     def __enter__(self):
         pass
-        
+
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is None:
             raise RuntimeError('Failed to fail: ' + str(self.exception))
         return issubclass(exc_type, self.exception)
 
-            
+
+class CLICommand:
+    short_description = 'Test ASE'
+
+    @staticmethod
+    def add_arguments(parser):
+        parser.add_argument(
+            '-c', '--calculators',
+            help='Comma-separated list of calculators to test.')
+        parser.add_argument('-v', '--verbose', action='store_true')
+        parser.add_argument('-q', '--quiet', action='store_true')
+        parser.add_argument('tests', nargs='*')
+
+    @staticmethod
+    def run(args):
+        if args.calculators:
+            calculators = args.calculators.split(',')
+        else:
+            calculators = []
+
+        results = test(verbosity=1 + args.verbose - args.quiet,
+                       calculators=calculators,
+                       files=args.tests)
+        sys.exit(len(results.errors + results.failures))
+
+
 if __name__ == '__main__':
     # Run pyflakes3 on all code in ASE:
     try:
@@ -193,8 +209,7 @@ if __name__ == '__main__':
     lines = []
     for line in output.splitlines():
         # Ignore these:
-        for txt in ['jacapo', 'tasks', 'execute.py',
-                    'list comprehension redefines']:
+        for txt in ['jacapo', 'list comprehension redefines']:
             if txt in line:
                 break
         else:

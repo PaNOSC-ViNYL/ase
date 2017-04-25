@@ -1,6 +1,8 @@
 """Helper functions for read_fdf."""
 from os import fstat
 from re import compile
+from ase.utils import basestring
+
 
 _label_strip_re = compile(r'[\s._-]')
 
@@ -9,7 +11,7 @@ def _labelize(raw_label):
     # Labels are case insensitive and -_. should be ignored, lower and strip it
     return _label_strip_re.sub('', raw_label).lower()
 
-    
+
 def _is_block(val):
     # Tell whether value is a block-value or an ordinary value.
     # A block is represented as a list of lists of strings,
@@ -20,16 +22,16 @@ def _is_block(val):
         return True
     return False
 
-    
+
 def _get_stripped_lines(fd):
     # Remove comments, leading blanks, and empty lines
     return [_f for _f in [L.split('#')[0].strip() for L in fd] if _f]
 
-    
+
 def _read_fdf_lines(file, inodes=[]):
     # Read lines and resolve includes
 
-    if isinstance(file, str):
+    if isinstance(file, basestring):
         file = open(file, 'r')
     fst = fstat(file.fileno())
     inode = (fst.st_dev, fst.st_ino)
@@ -83,7 +85,7 @@ def _read_fdf_lines(file, inodes=[]):
             lines.append(L)
     return lines
 
-    
+
 # The reason for creating a separate _read_fdf is simply to hide the
 # inodes-argument
 def _read_fdf(fname, inodes=[]):

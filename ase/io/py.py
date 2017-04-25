@@ -4,7 +4,7 @@ def write_py(fileobj, images):
     fileobj.write('from ase import Atoms\n\n')
     fileobj.write('import numpy as np\n\n')
     
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
     fileobj.write('images = [\n')
 

@@ -12,7 +12,7 @@ attaching constraint object(s) directly to the atoms object.
 Important: setting constraints will freeze the corresponding atom positions.
 Changing such atom positions can be achieved:
 
-- by directly setting the :attr:`~ase.atoms.Atoms.positions` attribute
+- by directly setting the :attr:`~ase.Atoms.positions` attribute
   (see example of setting :ref:`atoms_special_attributes`),
 
 - alternatively, by removing the constraints first::
@@ -23,7 +23,7 @@ Changing such atom positions can be achieved:
 
     atoms.set_constraint()
 
-  and using the :meth:`~ase.atoms.Atoms.set_positions` method.
+  and using the :meth:`~ase.Atoms.set_positions` method.
 
 
 The FixAtoms class
@@ -40,6 +40,7 @@ if the atoms should be kept fixed.
 For example, to fix the positions of all the Cu atoms in a simulation
 with the indices keyword:
 
+>>> from ase.constraints import FixAtoms
 >>> c = FixAtoms(indices=[atom.index for atom in atoms if atom.symbol == 'Cu'])
 >>> atoms.set_constraint(c)
 
@@ -73,25 +74,26 @@ length (see the :ref:`mep2` tutorial).
 Important: If fixing multiple bond lengths, use the FixBondLengths class
 below, particularly if the same atom is fixed to multiple partners.
 
+.. _FixBondLengths:
 
 The FixBondLengths class
 ========================
 
-More than one bond length can be fixed by using this class. Especially
-for cases in which more than one bond length constraint is applied on
-the same atom. It is done by specifying the indices of the two atoms
-forming the bond in pairs.
+RATTLE-type holonomic constraints. More than one bond length can be fixed by
+using this class. Especially for cases in which more than one bond length
+constraint is applied on the same atom. It is done by specifying the indices
+of the two atoms forming the bond in pairs.
 
 .. class:: FixBondLengths(pairs)
 
 Example of use::
 
   >>> c = FixBondLengths([[0, 1], [0, 2]])
-  >>> atoms.set_constraint(c)
+    >>> atoms.set_constraint(c)
 
-Here the distances between atoms with indices 0 and 1 and atoms with
-indices 0 and 2 will be fixed. The constraint is for the same purpose
-as the FixBondLength class.
+    Here the distances between atoms with indices 0 and 1 and atoms with
+    indices 0 and 2 will be fixed. The constraint is for the same purpose
+    as the FixBondLength class.
 
 
 The FixedLine class
@@ -139,6 +141,7 @@ for example to prevent the top layer of a slab from subliming during a
 high-temperature MD simulation. An example of tethering atom at index 3 to its
 original position:
 
+>>> from ase.constraints import Hookean
 >>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
 >>> atoms.set_constraint(c)
 
@@ -182,7 +185,36 @@ For an example of use, see the :ref:`mhtutorial` tutorial.
 
   In previous versions of ASE, this was known as the BondSpring constraint.
 
-  
+
+The ExternalForce class
+=======================
+
+This class can be used to simulate a constant external force
+(e.g. the force of atomic force microscope).
+One can set the absolute value of the force *f_ext* (in eV/Ang) and two
+atom indices *a1* and *a2* to define on which atoms the force should act.
+If the sign of the force is positive, the two atoms will be pulled apart.
+The external forces which acts on both atoms are parallel to the
+connecting line of the two atoms.
+
+.. class:: ExternalForce(a1, a2, f_ext)
+
+Example of use::
+
+  >>> form ase.constraints import ExternalForce
+  >>> c = ExternalForce(0, 1, 0.5)
+  >>> atoms.set_constraint(c)
+
+One can combine this constraint with :class:`FixBondLength` but one has to
+consider the correct ordering when setting both constraints. :class:`ExternalForce`
+must come first in the list as shown in the following example.
+
+  >>> from ase.constraints import ExternalForce, FixBondLength
+  >>> c1 = ExternalForce(0, 1, 0.5)
+  >>> c2 = FixBondLength(1, 2)
+  >>> atoms.set_constraint([c1, c2])
+
+
 The FixInternals class
 ======================
 
@@ -198,15 +230,22 @@ specifies the accuracy to which the constraints are fulfilled.
 .. class:: FixInternals(bonds=[bond1, bond2],
     angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
 
+.. note::
+
+    The :class:`FixInternals` class use radians for angles!  Most other
+    places in ASE degrees are used.
+
 Example of use::
 
+  >>> from math import pi
   >>> bond1 = [1.20, [1, 2]]
   >>> angle_indices1 = [2, 3, 4]
   >>> dihedral_indices1 = [2, 3, 4, 5]
-  >>> angle1 = [atoms.get_angle(angle_indices1), angle_indices1]
-  >>> dihedral1 = [atoms.get_dihedral(dihedral_indices1),
+  >>> angle1 = [atoms.get_angle(*angle_indices1) * pi / 180,
+                angle_indices1]
+  >>> dihedral1 = [atoms.get_dihedral(*dihedral_indices1) * pi / 180,
   ...              dihedral_indices1]
-  >>> c = FixInternals(bonds=[bonds1], angles=[angles1],
+  >>> c = FixInternals(bonds=[bond1], angles=[angle1],
   ...                  dihedrals=[dihedral1])
   >>> atoms.set_constraint(c)
 
@@ -239,7 +278,7 @@ fixed while relaxing it on a fixed ruthenium surface::
   >>> atoms.set_constraint([fa, fb])
 
 When applying more than one constraint they are passed as a list in
-the :meth:`~ase.atoms.Atoms.set_constraint` method, and they will be applied
+the :meth:`~ase.Atoms.set_constraint` method, and they will be applied
 one after the other.
 
 Important: If wanting to fix the length of more than one bond in the

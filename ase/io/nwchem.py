@@ -1,15 +1,13 @@
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import StringIO
+from ase.utils import StringIO
 from ase.io import read
+from ase.utils import basestring
 
 
 def read_nwchem_output(filename):
     """Method to read geometry from a nwchem output."""
 
     f = filename
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
 
     lines = f.readlines()
@@ -31,7 +29,7 @@ def read_nwchem_output(filename):
         else:
             i += 1
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f.close()
 
     return atoms
@@ -40,7 +38,7 @@ def read_nwchem_output(filename):
 def read_nwchem(filename):
     """Method to read geometry from an NWChem input file."""
     f = filename
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename)
     lines = f.readlines()
 
@@ -70,7 +68,7 @@ def write_nwchem(filename, atoms, geometry=None):
     """Method to write nwchem coord file
     """
 
-    if isinstance(filename, str):
+    if isinstance(filename, basestring):
         f = open(filename, 'w')
     else:  # Assume it's a 'file-like object'
         f = filename

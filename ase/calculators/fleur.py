@@ -13,6 +13,7 @@ import re
 import numpy as np
 
 from ase.units import Hartree, Bohr
+from ase.calculators.calculator import PropertyNotImplementedError
 
 class FLEUR:
     """Class for doing FLEUR calculations.
@@ -255,11 +256,11 @@ class FLEUR:
         return np.array((0.0, 0.0, 0.0))
 
     def get_stress(self, atoms):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_dipole_moment(self, atoms):
         """Returns total dipole moment of the system."""
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def calculate(self, atoms):
         """Converge a FLEUR calculation to self-consistency.

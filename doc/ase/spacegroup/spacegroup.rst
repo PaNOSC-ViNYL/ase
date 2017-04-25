@@ -165,6 +165,8 @@ space group, do
     0  0  1     0 -1  0     1  0  0    0.0000000000  0.0000000000  0.0000000000
     0  0 -1     0  1  0     1  0  0    0.0000000000  0.0000000000  0.0000000000
     0  0 -1     0 -1  0    -1  0  0    0.0000000000  0.0000000000  0.0000000000
+<BLANKLINE>
+<BLANKLINE>
 
 Or, if you want to figure out what sites in the unit cell are
 equivalent to (0, 0, 0.5), simply do

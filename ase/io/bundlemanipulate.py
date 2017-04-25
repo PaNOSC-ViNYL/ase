@@ -1,4 +1,3 @@
-from __future__ import print_function
 """Functions for in-place manipulation of bundletrajectories.
 
 This module defines a number of functions that can be used to
@@ -9,10 +8,18 @@ In stead, data is either directly deleted in-place; or copies
 are made by creating a new directory structure, but hardlinking
 the data files.  Hard links makes it possible to delete the
 original data without invalidating the copy.
+
+Usage from command line:
+
+python -m ase.io.bundlemanipulate inbundle outbundle [start [end [step]]]
 """
 
+from __future__ import print_function
+from ase.io.bundletrajectory import PickleBundleBackend, UlmBundleBackend
 import os
 import pickle
+import json
+import numpy as np
 
 
 def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
@@ -23,6 +30,15 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
             isinstance(step, int)):
         raise TypeError("copy_frames: start, end and step must be integers.")
     metadata, nframes = read_bundle_info(inbundle)
+    if metadata['backend'] == 'ulm':
+        ulm = True
+        backend = UlmBundleBackend(True, metadata['ulm.singleprecision'])
+    else:
+        ulm = False
+        assert(metadata['backend'] == 'pickle')
+        backend = PickleBundleBackend(True)
+        backend.readpy2 = False
+        
     if start < 0:
         start += nframes
     if end is None:
@@ -41,10 +57,9 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
     
     # Make the new bundle directory
     os.mkdir(outbundle)
-    f = open(os.path.join(outbundle, 'metadata'), 'w')
-    pickle.dump(metadata, f, -1)
-    f.close()
-    
+    with open(os.path.join(outbundle, 'metadata.json'), 'w') as f:
+        json.dump(metadata, f, indent=2)
+
     for nout, nin in enumerate(frames):
         if verbose:
             print("F%i -> F%i" % (nin, nout))
@@ -59,39 +74,63 @@ def copy_frames(inbundle, outbundle, start=0, end=None, step=1,
         if nout == 0 and nin != 0:
             if verbose:
                 print("F0 -> F0 (supplemental)")
-            # Data for first frame must be supplemented with
-            # data from the first frame of the source bundle.
-            firstnames = os.listdir(os.path.join(inbundle, "F0"))
-            n_from_first = 0
-            for name in firstnames:
-                if name not in names:
-                    if verbose:
-                        print("   ", name)
-                    fromfile = os.path.join(inbundle, "F0", name)
-                    tofile = os.path.join(outdir, name)
-                    os.link(fromfile, tofile)
-                    n_from_first += 1
-            # Also, the smalldata.pickle stuff must be updated.
-            # At the same time, check that the number of fragments
-            # has not changed, if the data is written in a fragmented
-            # way AND it looks like we got such data from F0
-            assert metadata['backend'] == "pickle"
-            f = open(os.path.join(inbundle, "F0", "smalldata.pickle"))
-            data0 = pickle.load(f)
-            f = open(os.path.join(indir, "smalldata.pickle"))
-            data1 = pickle.load(f)
-            if (metadata['subtype'] == 'split' and
-                n_from_first >= data0['fragments']):
-                if data0['fragments'] != data1['fragments']:
-                    raise RuntimeError(
-                        'Cannot combine data from F0 and F%i since the '
-                        'number of fragments has changed' % (nin,))
+            # The smalldata.pickle stuff must be updated.
+            # At the same time, check if the number of fragments
+            # has not changed.
+            data0 = backend.read_small(os.path.join(inbundle, "F0"))
+            data1 = backend.read_small(indir)
+            split_data = (metadata['subtype'] == 'split')
+            if split_data:
+                fragments0 = data0['fragments']
+                fragments1 = data1['fragments']
+
             data0.update(data1)  # Data in frame overrides data from frame 0.
-            smallname = os.path.join(outdir, "smalldata.pickle")
-            os.unlink(smallname)
-            f = open(smallname, "w")
-            pickle.dump(data0, f, -1)
-            f.close()
+            backend.write_small(outdir, data0)
+
+            # If data is written in split mode, it must be reordered
+            firstnames = os.listdir(os.path.join(inbundle, "F0"))
+            if not split_data:
+                # Simple linking
+                for name in firstnames:
+                    if name not in names:
+                        if verbose:
+                            print("   ", name, "  (linking)")
+                        fromfile = os.path.join(inbundle, "F0", name)
+                        tofile = os.path.join(outdir, name)
+                        os.link(fromfile, tofile)
+            else:
+                # Must read and rewrite data
+                # First we read the ID's from frame 0 and N
+                if ulm:
+                    assert 'ID_0.ulm' in firstnames and 'ID_0.ulm' in names
+                else:
+                    assert 'ID_0.pickle' in firstnames and 'ID_0.pickle' in names
+                backend.nfrag = fragments0
+                f0_id, dummy = backend.read_split(os.path.join(inbundle, "F0"), "ID")
+                backend.nfrag = fragments1
+                fn_id, fn_sizes = backend.read_split(indir, "ID")
+                for name in firstnames:
+                    # Only look at each array, not each file
+                    if '_0.' not in name:
+                        continue
+                    if name not in names:
+                        # We need to load this array
+                        arrayname = name.split('_')[0]
+                        print("    Reading", arrayname)
+                        backend.nfrag = fragments0
+                        f0_data, dummy = backend.read_split(os.path.join(inbundle, "F0"), arrayname)
+                        # Sort data
+                        f0_data[f0_id] = np.array(f0_data)
+                        # Unsort with new ordering
+                        f0_data = f0_data[fn_id]
+                        # Write it
+                        print("    Writing reshuffled", arrayname)
+                        pointer = 0
+                        backend.nfrag = fragments1
+                        for i, s in enumerate(fn_sizes):
+                            segment = f0_data[pointer:pointer+s]
+                            pointer += s
+                            backend.write(outdir, arrayname+"_{0}".format(i), segment)
     # Finally, write the number of frames
     f = open(os.path.join(outbundle, 'frames'), 'w')
     f.write(str(len(frames)) + '\n')
@@ -105,14 +144,19 @@ def read_bundle_info(name):
     Returns (metadata, nframes)
     """
     if not os.path.isdir(name):
-        raise IOError("No directory (bundle) named '%' found." % (name,))
-    metaname = os.path.join(name, 'metadata')
-    if not os.path.isfile(metaname):
-        raise IOError("'%s' does not appear to be a BundleTrajectory (no %s)"
-                      % (name, metaname))
-    f = open(metaname)
-    mdata = pickle.load(f)
-    f.close()
+        raise IOError("No directory (bundle) named '%s' found." % (name,))
+    metaname = bestmetaname = os.path.join(name, 'metadata.json')
+    if os.path.isfile(metaname):
+        with open(metaname) as f:
+            mdata = json.load(f)
+    else:
+        metaname = os.path.join(name, 'metadata')
+        if os.path.isfile(metaname):
+            with open(metaname, "rb") as f:
+                mdata = pickle.load(f)
+        else:
+            raise IOError("'%s' does not appear to be a BundleTrajectory (no %s)"
+                        % (name, bestmetaname))
     if 'format' not in mdata or mdata['format'] != 'BundleTrajectory':
         raise IOError("'%s' does not appear to be a BundleTrajectory" %
                       (name,))
@@ -128,6 +172,9 @@ def read_bundle_info(name):
 
 if __name__ == '__main__':
     import sys
+    if len(sys.argv) < 3:
+        print(__doc__)
+        sys.exit()
     inname, outname = sys.argv[1:3]
     if len(sys.argv) > 3:
         start = int(sys.argv[3])
@@ -136,7 +183,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 4:
         end = int(sys.argv[4])
     else:
-        end = -1
+        end = None
     if len(sys.argv) > 5:
         step = int(sys.argv[5])
     else:

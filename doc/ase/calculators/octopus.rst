@@ -75,7 +75,7 @@ Hints
 -----
 
 Octopus input files can be loaded by the ASE GUI.  You can visualize
-an Octopus input file by running ``ase-gui inp``.
+an Octopus input file by running ``ase gui inp``.
 
 Bugs and misbehaviour
 ---------------------

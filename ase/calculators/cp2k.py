@@ -122,7 +122,7 @@ class CP2K(Calculator):
 
     """
 
-    implemented_properties = ['energy', 'forces', 'stress']
+    implemented_properties = ['energy', 'free_energy', 'forces', 'stress']
     command = None
 
     default_parameters = dict(
@@ -248,6 +248,7 @@ class CP2K(Calculator):
 
         self._shell.send('GET_E %d' % self._force_env_id)
         self.results['energy'] = float(self._shell.recv())
+        self.results['free_energy'] = self.results['energy']
         assert self._shell.recv() == '* READY'
 
         forces = np.zeros(shape=(n_atoms, 3))
@@ -417,7 +418,7 @@ class Cp2kShell(object):
         """Construct CP2K-shell object"""
 
         self.isready = False
-        self.version = None
+        self.version = 1.0  # assume oldest possible version until verified
         self._child = None
         self._debug = debug
 
