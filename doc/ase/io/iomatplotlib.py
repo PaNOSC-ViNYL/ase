@@ -1,3 +1,5 @@
+# creates: iomatplotlib1.png, iomatplotlib2.png
+
 import matplotlib.pyplot as plt
 from ase.io.matplotlib import write_matplotlib
 from ase.lattice.cubic import FaceCenteredCubic
