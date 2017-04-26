@@ -96,6 +96,11 @@ def main():
     system.set_calculator(DFTD3(xc='revpbe'))
     close(system.get_potential_energy(), -1.5274869363442936)
 
+    # Custom damping parameters
+    system.set_calculator(DFTD3(s6=1.1, sr6=1.1, s8=0.6, sr8=0.9,
+                                alpha6=13.0))
+    close(system.get_potential_energy(), -0.32214689149895603)
+
     # A couple of combinations, but not comprehensive
 
     # D3(BJ, ABC)
