@@ -250,8 +250,8 @@ class Embedding:
         offsets = distances - positions[:, 0]
         positions += offsets[:, np.newaxis] + qmcenter
 
-        # COM position for each mm mol for LR cut
-        m = self.mmatoms.get_masses().reshape((-1, n))
+        # Center of mass position for each mm mol for LR cut
+        m = self.mmatoms.get_center_of_mass().reshape((-1, n))
         com = np.array([np.dot(x, p) / x.sum() for x, p in zip(m, positions)])
         com_pv = np.repeat(com, n, axis=0)  # need per atom for c code
 
