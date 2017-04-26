@@ -194,6 +194,11 @@ def index():
         page = 0
     elif 'query' in request.args:
         query = request.args['query']
+        for special in meta['special_keys']:
+            key = special[0]
+            value = request.args['select_' + key]
+            if value:
+                query += ',{}={}'.format(key, value)
         sort = 'id'
         page = 0
         nrows = None
@@ -283,7 +288,6 @@ def cif(name):
 
 @app.route('/plot/<png>')
 def plot(png):
-    name, id = png[:-4].split('-')
     png = prefix() + png
     return send_from_directory(tmpdir, png)
 
@@ -301,7 +305,7 @@ def gui(id):
 def summary(id):
     db = database()
     prfx = prefix() + str(id)
-    s = Summary(db.get(id), db.meta, SUBSCRIPT, tmpdir, prfx)
+    s = Summary(db.get(id), db.meta, SUBSCRIPT, prfx, tmpdir)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,

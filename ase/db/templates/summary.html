@@ -27,7 +27,7 @@ jmol_isReady = function(applet)
 <div class="container">
 
 <h1>
-{{ s.formula }}
+{{ s.formula|safe }}
 </h1>
 
 <div class="panel-group">
@@ -37,13 +37,13 @@ jmol_isReady = function(applet)
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
-        <a class="btn-block" data-toggle="collapse" href="#collapse{{secCount['count']}}">
+        <a class="btn-block" data-toggle="collapse" href="#collapse{{ loop.index0 }}">
         {{ title }}
         </a>
         </h4>
     </div>
 
-    <div id="collapse{{secCount['count']}}" class="panel-collapse collapse in">
+    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse in">
         <div class="panel-body">
             <div class="row">
                 <div class="col-xs-1"></div>
@@ -132,7 +132,8 @@ jmol_isReady = function(applet)
             {% endfor %}
 </tbody>
 </table>
-        {% elif len(thing) == 2 %}
+        {% elif thing is none %}
+        {% elif thing|length == 2 %}
             {% set subtitle, rows = thing %}
 <table class="table table-striped">
 <colgroup>
@@ -151,14 +152,14 @@ jmol_isReady = function(applet)
             {% for key, value, unit in rows %}
 <tr>
 <td> {{ key }} </td>
-<td class="text-center"> {{ value }} </td>
-<td class="text-center"> {{ unit }} </td>
+<td class="text-center"> {{ value|safe }} </td>
+<td class="text-center"> {{ unit|safe }} </td>
 </tr>
             {% endfor %}
 </tbody>
 </table>
         {% else %}
-<img src="/plot/{{ thing }}-{{ d.id }}.png?project={{ project }}">
+<img src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}">
         {% endif%}
     {% endfor %}
                 </div>

@@ -46,7 +46,7 @@
                 <div class="col-xs-4">
 
         {% if control[1] == 'SELECT' %}
-                {{ control[0] }}:<select name="combo_{{ control[0] }}">
+                {{ control[0] }}:<select name="select_{{ control[0] }}">
             <option value=""></option>
             {% for val in control[2] %}
             <option value="{{ val }}">{{ val }}</option>

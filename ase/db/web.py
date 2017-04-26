@@ -8,17 +8,20 @@ functions = []
 
 def creates(*filenames):
     def decorator(func):
-
-        def newfunc(prefix, row):
+        def newfunc(prefix, tmpdir, row):
             with Lock('ase.db.web.lock'):
                 for filename in filenames:
-                    os.remove(filename)
+                    try:
+                        os.remove(filename)
+                    except FileNotFoundError:
+                        pass
                 func(row)
                 for filename in filenames:
+                    path = os.path.join(tmpdir, prefix + '-' + filename)
                     if os.path.isfile(filename):
-                        os.rename(filename, prefix + '-' + filename)
+                        os.rename(filename, path)
                     else:
-                        with open(prefix + '-' + filename):
+                        with open(path, 'w'):
                             pass
 
         functions.append(newfunc)

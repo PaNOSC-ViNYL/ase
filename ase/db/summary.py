@@ -68,26 +68,32 @@ class Summary:
         # template is generated otherwise it goes through the meta
         # data and checks if all keys are indeed present
 
+        kd = meta.get('key_descriptions', {})
+
         self.layout = []
         for headline, blocks in meta['layout']:
             newblocks = []
+            print(blocks)
             for block in blocks:
-                if isinstance(block, tuple):
+                if block is None:
+                    pass
+                elif isinstance(block, tuple):
                     title, keys = block
                     rows = []
                     for key in keys:
                         value = table.pop(key, None)
                         if value is not None:
-                            rows.append((key, 'unit', value))
+                            desc, unit = kd.get(key, [0, key, 0, ''])[1::2]
+                            rows.append((desc, value, unit))
                     block = (title, rows)
                 elif block.endswith('.png'):
-                    name = prefix + '-' + block
+                    name = op.join(tmpdir, prefix + '-' + block)
                     if op.isfile(name):
                         if op.getsize(name) == 0:
                             block = None
                     else:
                         for func in meta['functions']:
-                            func(prefix, row, tmpdir)
+                            func(prefix, tmpdir, row)
 
                 newblocks.append(block)
             self.layout.append((headline, newblocks))
@@ -95,7 +101,8 @@ class Summary:
         if table:
             rows = []
             for key, value in sorted(table.items()):
-                rows.append((key, 'eV', value))
+                desc, unit = kd.get(key, [0, key, 0, ''])[1::2]
+                rows.append((desc, value, unit))
             self.layout.append(('Other stuff', [('Things', rows)]))
 
         self.dipole = row.get('dipole')
