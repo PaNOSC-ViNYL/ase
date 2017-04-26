@@ -300,7 +300,8 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
-    s = Summary(db.get(id), db.meta, SUBSCRIPT, tmpdir)
+    prfx = prefix() + str(id)
+    s = Summary(db.get(id), db.meta, SUBSCRIPT, tmpdir, prfx)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,
@@ -446,12 +447,11 @@ def build_metadata(db):
     meta['special_keys'] = sk
 
     if not meta['layout']:
+        keys = ['id', 'formula', 'age']
         meta['layout'] = [
-            ('...', ['ATOMS', 'CELL'])]
-
-#            secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
-#                    ['Key Value Pairs', ['Key'], ['FORCES']],
-#                    ['Misc', ['Key']]]
+            ('Basic properties',
+             ['ATOMS', 'CELL'
+              ('Key Value Pairs', keys), 'FORCES'])]
 
     if mod:
         meta['functions'] = ase.db.web.functions[:]
