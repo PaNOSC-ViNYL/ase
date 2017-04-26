@@ -12,7 +12,7 @@ from subprocess import Popen, PIPE
 from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
-from calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator
 
 class NoDataFoundError(RuntimeError):
     pass
