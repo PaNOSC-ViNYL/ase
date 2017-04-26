@@ -15,7 +15,7 @@ def close(val, reference, releps=releps, abseps=abseps):
 def array_close(val, reference, releps=releps, abseps=abseps):
     valflat = val.flatten()
     refflat = reference.flatten()
-    for i, vali in enumerate(val.flatten()):
+    for i, vali in enumerate(valflat):
         close(vali, refflat[i], releps, abseps)
 
 def main():
