@@ -46,6 +46,7 @@ class DFTD3(FileIOCalculator):
                  atoms=None,
                  **kwargs):
 
+        self.calculator = None
         FileIOCalculator.__init__(self, restart=None,
                                   ignore_bad_restart_file=False,
                                   label=label,
@@ -69,6 +70,7 @@ class DFTD3(FileIOCalculator):
             self.command = self.command.split()
 
     def set(self, **kwargs):
+        changed_parameters = {}
         # Convert from 'func' keyword to 'xc'. Internally, we only store
         # 'xc', but 'func' is also allowed since it is consistent with the
         # CLI dftd3 interface.
@@ -80,6 +82,8 @@ class DFTD3(FileIOCalculator):
                                    'is "xc"; "func" is allowed for '
                                    'consistency with the CLI dftd3 '
                                    'interface.')
+            if kwargs['func'] != self.parameters['xc']:
+                changed_parameters['xc'] = kwargs['func']
             self.parameters['xc'] = kwargs['func']
 
         # dftd3 only implements energy, forces, and stresses (for periodic
@@ -87,6 +91,8 @@ class DFTD3(FileIOCalculator):
         # implements more properties, we will expose those properties too.
         if 'calculator' in kwargs:
             calculator = kwargs.pop('calculator')
+            if calculator is not self.calculator:
+                changed_parameters['calculator'] = calculator
             if calculator is None:
                 self.implemented_properties = self.dftd3_implemented_properties
             else:
@@ -100,7 +106,7 @@ class DFTD3(FileIOCalculator):
             warn('WARNING: Ignoring the following unknown keywords: {}'
                  ''.format(', '.join(unknown_kwargs)))
 
-        FileIOCalculator.set(self, **kwargs)
+        changed_parameters.update(FileIOCalculator.set(self, **kwargs))
 
         # Ensure damping method is valid (zero, bj, zerom, bjm).
         if self.parameters['damping'] is not None:
@@ -188,6 +194,10 @@ class DFTD3(FileIOCalculator):
                 warn('WARNING: Custom damping parameters will be used '
                      'instead of those parameterized for {}!'
                      ''.format(self.parameters['xc']))
+
+        if changed_parameters:
+            self.results.clear()
+        return changed_parameters
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
