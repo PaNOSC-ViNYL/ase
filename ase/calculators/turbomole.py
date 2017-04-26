@@ -3,7 +3,7 @@ from __future__ import print_function
 This module defines an ASE interface to Turbomole: http://www.turbomole.com/
 """
 
-import os, sys, re
+import os, re
 import warnings
 from math import log10
 import numpy as np
@@ -13,6 +13,7 @@ from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
 from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import PropertyNotImplementedError
 
 class NoDataFoundError(RuntimeError):
     pass
@@ -1096,7 +1097,6 @@ class Turbomole(FileIOCalculator):
                 '\s+(\d*\.*\d*)\s+([-+]?\d+\.\d*)'
             )
             match = re.search(regex, line)
-            properties = {}
             if match:
                 orb_index = int(match.group(3))
                 if match.group(2) == 'a':
@@ -1259,6 +1259,7 @@ class Turbomole(FileIOCalculator):
         image = {}
         gradient = []
         atoms = Atoms()
+        (cycle, energy, norm) = (None, None, None)
         for line in lines:
             # cycle lines
             regex = (
@@ -1380,9 +1381,6 @@ class Turbomole(FileIOCalculator):
 
     def read_vibrational_reduced_masses(self):
         """ Read vibrational reduced masses """
-        dg = self.read_data_group('nvibro')
-        if len(dg) == 0: return
-        nvibro = int(dg.split()[1])
         self.results['vibrational reduced masses'] = []
         dg = self.read_data_group('vibrational reduced masses')
         if len(dg) == 0: return
