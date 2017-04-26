@@ -103,6 +103,9 @@ setup(name=name,
       license='LGPLv2.1+',
       platforms=['unix'],
       packages=packages,
+      install_requires=[
+          'fortranformat'
+      ],
       package_dir=package_dir,
       package_data=package_data,
       scripts=scripts,
