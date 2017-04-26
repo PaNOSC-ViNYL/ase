@@ -143,37 +143,39 @@ class DFTD3(FileIOCalculator):
         self.custom_damp = False
         damping = self.parameters['damping']
         damppars = set(kwargs) & all_damppars
-        if damping == 'zero':
-            valid_damppars = zero_damppars
-        elif damping in ['bj', 'bjm']:
-            valid_damppars = bj_damppars
-        elif damping == 'zerom':
-            valid_damppars = zerom_damppars
-
-        # If some but not all damping parameters are provided for the
-        # selected damping method, raise an error. We don't have "default"
-        # values for damping parameters, since those are stored in the dftd3
-        # executable & depend on XC functional.
-        missing_damppars = valid_damppars - damppars
-        if missing_damppars and missing_damppars != valid_damppars:
-            raise ValueError('An incomplete set of custom damping parameters '
-                             'for the {} damping method was provided! '
-                             'Expected: {}; got: {}'
-                             ''.format(damping,
-                                       ', '.join(valid_damppars),
-                                       ', '.join(damppars)))
-
-        # If a user provides damping parameters that are not used in the
-        # selected damping method, let them know that we're ignoring them.
-        # If the user accidentally provided the *wrong* set of parameters,
-        # (e.g., the BJ parameters when they are using zero damping), then
-        # the previous check will raise an error, so we don't need to worry
-        # about that here.
-        if damppars - valid_damppars:
-            warn('WARNING: The following damping parameters are not valid '
-                 'for the {} damping method and will be ignored: {}'
-                 ''.format(damping,
-                           ', '.join(damppars)))
+        if damppars:
+            self.custom_damp = True
+            if damping == 'zero':
+                valid_damppars = zero_damppars
+            elif damping in ['bj', 'bjm']:
+                valid_damppars = bj_damppars
+            elif damping == 'zerom':
+                valid_damppars = zerom_damppars
+    
+            # If some but not all damping parameters are provided for the
+            # selected damping method, raise an error. We don't have "default"
+            # values for damping parameters, since those are stored in the
+            # dftd3 executable & depend on XC functional.
+            missing_damppars = valid_damppars - damppars
+            if missing_damppars and missing_damppars != valid_damppars:
+                raise ValueError('An incomplete set of custom damping '
+                                 'parameters for the {} damping method was '
+                                 'provided! Expected: {}; got: {}'
+                                 ''.format(damping,
+                                           ', '.join(valid_damppars),
+                                           ', '.join(damppars)))
+    
+            # If a user provides damping parameters that are not used in the
+            # selected damping method, let them know that we're ignoring them.
+            # If the user accidentally provided the *wrong* set of parameters,
+            # (e.g., the BJ parameters when they are using zero damping), then
+            # the previous check will raise an error, so we don't need to
+            # worry about that here.
+            if damppars - valid_damppars:
+                warn('WARNING: The following damping parameters are not '
+                     'valid for the {} damping method and will be ignored: {}'
+                     ''.format(damping,
+                               ', '.join(damppars)))
 
         # The default XC functional is PBE, but this is only set if the user
         # did not provide their own value for xc or any custom damping
@@ -359,7 +361,7 @@ class DFTD3(FileIOCalculator):
         else:
             command.append(self.label + '.xyz')
 
-        if self.parameters.get('xc'):
+        if not self.custom_damp and self.parameters.get('xc'):
             command += ['-func', self.parameters['xc']]
 
         for arg in self.dftd3_flags:
