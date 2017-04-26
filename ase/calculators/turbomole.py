@@ -699,14 +699,19 @@ class Turbomole(FileIOCalculator):
         else:
             stdout = PIPE
 
+        if input_str:
+            stdin = input_str.encode()
+        else:
+            stdin = None
+
         message = 'TM command: "' + args[0] + '" execution failed'
         try:
             # the sub process gets started here
             proc = Popen(args, stdin=PIPE, stderr=PIPE, stdout=stdout)
-            res = proc.communicate(input=input_str)
+            res = proc.communicate(input=stdin)
             # check some general errors
             if error_test:
-                error = res[1]
+                error = res[1].decode()
                 # check the error output of the command
                 if 'abnormally' in error:
                     raise RuntimeError(message + error)
@@ -715,12 +720,12 @@ class Turbomole(FileIOCalculator):
         except RuntimeError as err:
             raise err
         except OSError as err:
-            raise OSError(err[1]+'\n'+message)
+            raise OSError(err.args[1] + '\n' + message)
         else:
             print('TM command: "' + args[0] + '" successfully executed')
 
         if not stdout_tofile:
-            return res[0]
+            return res[0].decode()
 
     def relax_geometry(self, atoms):
         """ execute geometry optimization with script jobex """
@@ -980,7 +985,7 @@ class Turbomole(FileIOCalculator):
             if string:
                 data += ' ' + string
             data += '\n'
-        f = open('control', 'rw+')
+        f = open('control', 'r+')
         lines = f.readlines()
         f.seek(0)
         f.truncate()
@@ -1163,7 +1168,7 @@ class Turbomole(FileIOCalculator):
                         mo['eigenvector'] = orbitals_coefficients_line
                         mos.append(mo)
                     break
-                fort_str = str(len(line.rstrip())/f_width) + f_string
+                fort_str = str(int(len(line.rstrip())/f_width)) + f_string
                 r = ff.FortranRecordReader(fort_str)
                 orbitals_coefficients_line += r.read(line)
 
