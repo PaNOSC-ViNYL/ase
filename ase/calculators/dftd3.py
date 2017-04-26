@@ -151,7 +151,7 @@ class DFTD3(FileIOCalculator):
                 valid_damppars = bj_damppars
             elif damping == 'zerom':
                 valid_damppars = zerom_damppars
-    
+
             # If some but not all damping parameters are provided for the
             # selected damping method, raise an error. We don't have "default"
             # values for damping parameters, since those are stored in the
@@ -164,7 +164,7 @@ class DFTD3(FileIOCalculator):
                                  ''.format(damping,
                                            ', '.join(valid_damppars),
                                            ', '.join(damppars)))
-    
+
             # If a user provides damping parameters that are not used in the
             # selected damping method, let them know that we're ignoring them.
             # If the user accidentally provided the *wrong* set of parameters,
@@ -373,7 +373,7 @@ class DFTD3(FileIOCalculator):
 
         command += ['-cnthr', str(self.parameters['cnthr'] / Bohr)]
         command += ['-cutoff', str(self.parameters['cutoff'] / Bohr)]
-        
+
         if not self.parameters['old']:
             command.append('-' + self.parameters['damping'])
 
