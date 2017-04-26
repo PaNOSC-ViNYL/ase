@@ -21,15 +21,13 @@ from __future__ import print_function
 import collections
 import functools
 import io
-import json
 import os
 import os.path as op
 import re
 import sys
 import tempfile
 
-from flask import (Flask, make_response, render_template, request,
-                   send_from_directory, flash)
+from flask import Flask, render_template, request, send_from_directory, flash
 
 try:
     import matplotlib
@@ -38,7 +36,8 @@ except ImportError:
     pass
 
 import ase.db
-from ase.db.plot import atoms2png, dct2plot
+import ase.db.web
+from ase.db.plot import atoms2png
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.visualize import view
@@ -57,6 +56,17 @@ default_key_descriptions = {
     'magmom': ('Magnetic moment', 'Magnetic moment', 'float', 'au'),
     'unique_id': ('Unique ID', 'Unique ID', 'float', ''),
     'volume': ('Volume', 'Volume of unit-cell', 'float', '`Ang^3`')}
+
+# Every client-connetions gets one of these tuples:
+Connection = collections.namedtuple(
+    'Connection',
+    ['project',  # project name
+     'query',  # query string
+     'nrows',  # number of rows matched
+     'page',  # page number
+     'columns',  # what columns to show
+     'sort',  # what column to sort after
+     'limit'])  # number of rows per page
 
 app = Flask(__name__)
 
@@ -78,6 +88,9 @@ def connect_databases(uris):
             project = uri.rsplit('/', 1)[-1].split('.')[0]
         databases[project] = ase.db.connect(uri)
 
+
+next_con_id = 1
+connections = {}
 
 tmpdir = tempfile.mkdtemp()  # used to cache png-files
 
@@ -113,9 +126,14 @@ def error(e):
     """Write traceback and other stuff to 00-99.error files."""
     global errors
     import traceback
-    x = request.cookies.get('things')
+    x = request.args.get('x', '0')
+    try:
+        cid = int(x)
+    except ValueError:
+        cid = 0
+    con = connections.get(cid)
     with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
-        print(repr((errors, x, e, request)), file=fd)
+        print(repr((errors, con, e, request)), file=fd)
         if hasattr(e, '__traceback__'):
             traceback.print_tb(e.__traceback__, file=fd)
     errors += 1
@@ -127,24 +145,24 @@ app.register_error_handler(Exception, error)
 
 @app.route('/')
 def index():
+    global next_con_id
+
     if not projects:
         # First time: initialize list of projects
         projects[:] = [(proj, d.metadata.get('title', proj))
                        for proj, d in sorted(databases.items())]
 
-    cookie = request.cookies.get('things')
-    if cookie:
-        project, query, nrows, page, columns, sort, limit = cookie.split(',')
-        nrows = int(nrows)
-        page = int(page)
-        columns = columns.split(';')
-        limit = int(limit)
+    con_id = int(request.args.get('x', '0'))
+    if con_id in connections:
+        project, query, nrows, page, columns, sort, limit = connections[con_id]
         newproject = request.args.get('project')
         if newproject is not None and newproject != project:
-            cookie = None
+            con_id = 0
 
-    if not cookie:
+    if con_id not in connections:
         # Give this connetion a new id:
+        con_id = next_con_id
+        next_con_id += 1
         project = request.args.get('project', projects[0][0])
         query = ''
         nrows = None
@@ -155,33 +173,16 @@ def index():
 
     db = databases[project]
 
-    if not hasattr(db, 'formulas'):
-        # First time we touch this database.
-        # Suggestions for formulas:
-        db.formulas = list({row.formula for row in db.select(limit=200000)})
-
     if not hasattr(db, 'meta'):
-        # Also fill in default key-descriptions:
-        meta = db.metadata
-        if 'key_descriptions' not in meta:
-            meta['key_descriptions'] = {}
-        meta['key_descriptions'].update(default_key_descriptions)
+        meta = build_metadata(db)
         db.meta = meta
-
-        sub = re.compile(r'`(.)_(.)`')
-        sup = re.compile(r'`(.*)\^(.)`')
-        # Convert LaTeX to HTML:
-        for key, value in meta['key_descriptions'].items():
-            short, long, type, unit = value
-            unit = sub.sub(r'\1<sub>\2</sub>', unit)
-            unit = sup.sub(r'\1<sup>\2</sup>', unit)
-            meta['key_descriptions'][key] = (short, long, type, unit)
     else:
         meta = db.meta
 
     if columns is None:
         columns = meta.get('default_columns') or list(all_columns)
 
+    print(request.args)
     if 'sort' in request.args:
         column = request.args['sort']
         if column == sort:
@@ -193,13 +194,12 @@ def index():
         page = 0
     elif 'query' in request.args:
         query = request.args['query']
-        try:
-            limit = max(1, min(int(request.args.get('limit', limit)), 200))
-        except ValueError:
-            pass
         sort = 'id'
         page = 0
         nrows = None
+    elif 'limit' in request.args:
+        limit = int(request.args['limit'])
+        page = 0
     elif 'page' in request.args:
         page = int(request.args['page'])
 
@@ -227,35 +227,33 @@ def index():
             nrows = db.count(okquery)
 
     table = Table(db)
-    #print(okquery,page, limit)
     table.select(okquery, columns, sort, limit, offset=page * limit)
+
+    con = Connection(project, query, nrows, page, columns, sort, limit)
+    connections[con_id] = con
+
+    if len(connections) > 1000:
+        # Forget old connections:
+        for cid in sorted(connections)[:200]:
+            del connections[cid]
 
     table.format(SUBSCRIPT)
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
-    response = make_response(
-        render_template('table.html',
-                        project=project,
-                        projects=projects,
-                        t=table,
-                        md=meta,
-                        formulas=db.formulas,
-                        limit=limit,
-                        sort=sort,
-                        home=home,
-                        pages=pages(page, nrows, limit),
-                        nrows=nrows,
-                        addcolumns=addcolumns,
-                        row1=page * limit + 1,
-                        row2=min((page + 1) * limit, nrows)))
-
-    newcookie = '{},{},{},{},{},{},{}'.format(project, query, nrows, page,
-                                              ';'.join(columns), sort, limit)
-    if newcookie != cookie:
-        response.set_cookie('things', newcookie)
-
-    return response
+    return render_template('table.html',
+                           project=project,
+                           projects=projects,
+                           t=table,
+                           md=meta,
+                           con=con,
+                           x=con_id,
+                           home=home,
+                           pages=pages(page, nrows, limit),
+                           nrows=nrows,
+                           addcolumns=addcolumns,
+                           row1=page * limit + 1,
+                           row2=min((page + 1) * limit, nrows))
 
 
 @app.route('/image/<name>')
@@ -287,12 +285,6 @@ def cif(name):
 def plot(png):
     name, id = png[:-4].split('-')
     png = prefix() + png
-    path = op.join(tmpdir, png)
-    if not op.isfile(path):
-        db = database()
-        dct = db[int(id)].data
-        dct2plot(dct, name, path, show=False)
-
     return send_from_directory(tmpdir, png)
 
 
@@ -308,7 +300,7 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
-    s = Summary(db.get(id), db.meta, SUBSCRIPT)
+    s = Summary(db.get(id), db.meta, SUBSCRIPT, tmpdir)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,
@@ -393,16 +385,6 @@ def robots():
     return 'User-agent: *\nDisallow: /\n', 200
 
 
-@app.route('/formulas')
-def formulas():
-    return json.dumps(database().formulas)
-
-
-@app.route('/special_keys')
-def special_keys():
-    return json.dumps(database().metadata.get('special_keys', []))
-
-
 def pages(page, nrows, limit):
     """Helper function for pagination stuff."""
     npages = (nrows + limit - 1) // limit
@@ -430,6 +412,62 @@ def pages(page, nrows, limit):
         nxt = -1
     pages.append((nxt, 'next'))
     return pages
+
+
+def build_metadata(db):
+    meta = db.metadata
+
+    mod = {}
+    if db.python:
+        with open(db.python) as fd:
+            exec(compile(fd.read(), db.python, 'exec'), mod)
+
+    for key, default in [('title', 'ASE database'),
+                         ('default_columns', []),
+                         ('special_keys', []),
+                         ('key_descriptions', {}),
+                         ('layout', [])]:
+        meta[key] = mod.get(key, meta.get(key, default))
+
+    if not meta['default_columns']:
+        meta['default_columns'] = ['id', 'formula']
+
+    # Also fill in default key-descriptions:
+    kd = default_key_descriptions.copy()
+    kd.update(meta['key_descriptions'])
+    meta['key_descriptions'] = kd
+
+    sk = []
+    for key in meta['special_keys']:
+        choises = {row.get(key) for row in db.select(key)}
+        if key not in kd:
+            kd[key] = (key, key, 'string', '')
+        sk.append((key, 'SELECT', sorted(choises)))
+    meta['special_keys'] = sk
+
+    if not meta['layout']:
+        meta['layout'] = [
+            ('...', ['ATOMS', 'CELL'])]
+
+#            secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
+#                    ['Key Value Pairs', ['Key'], ['FORCES']],
+#                    ['Misc', ['Key']]]
+
+    if mod:
+        meta['functions'] = ase.db.web.functions[:]
+        ase.db.web.functions[:] = []
+
+    sub = re.compile(r'`(.)_(.)`')
+    sup = re.compile(r'`(.*)\^(.)`')
+    # Convert LaTeX to HTML:
+    for key, value in meta['key_descriptions'].items():
+        short, long, type, unit = value
+        unit = sub.sub(r'\1<sub>\2</sub>', unit)
+        unit = sup.sub(r'\1<sup>\2</sup>', unit)
+        meta['key_descriptions'][key] = (short, long, type, unit)
+
+    print(meta)
+    return meta
 
 
 if __name__ == '__main__':

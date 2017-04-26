@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os.path as op
 
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
@@ -6,7 +7,7 @@ from ase.utils import hill
 
 
 class Summary:
-    def __init__(self, row, meta={}, subscript=None):
+    def __init__(self, row, meta={}, subscript=None, prefix=None, tmpdir=None):
         self.row = row
 
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -66,11 +67,22 @@ class Summary:
         # template is generated otherwise it goes through the meta
         # data and checks if all keys are indeed present
 
-        if 'summary_sections' not in meta:
+        if meta is not None:
+            self.layout = []
+            for headline, blocks in meta['layout']:
+                newblocks = []
+                for block in blocks:
+                    if block.endswith('.png'):
+                        name = prefix + '-' + block
+                        if op.isfile(name):
+                            if op.getsize(name) == 0:
+                                block = None
+                        else:
+                            for func in meta['functions']:
+                                func(prefix, row, tmpdir)
 
-            secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
-                    ['Key Value Pairs', ['Key'], ['FORCES']],
-                    ['Misc', ['Key']]]
+                    newblocks.append(block)
+                self.layout.append((headline, newblocks))
 
             # define misc data
             collection_misc = {'id', 'age', 'user', 'calculator', 'unique id'}

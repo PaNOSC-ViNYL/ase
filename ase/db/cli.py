@@ -92,6 +92,8 @@ class CLICommand:
             help='Show metadata as json.')
         add('--set-metadata', metavar='something.json',
             help='Set metadata from a json file.')
+        add('-M', '--metadata-from-python-script', metavar='something.py',
+            help='Use metadata from a Python file.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
 
@@ -252,6 +254,7 @@ def main(args):
     else:
         if args.open_web_browser:
             import ase.db.app as app
+            con.python = args.metadata_from_python_script
             app.databases['default'] = con
             app.app.run(host='0.0.0.0', debug=True)
         else:

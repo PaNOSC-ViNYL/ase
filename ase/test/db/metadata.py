@@ -27,18 +27,7 @@ for name in ['md.json', 'md.db']:
         'key_descriptions': {
             'kind': ('Type', 'Type of system', 'string', ''),
             'answer': ('Answer', 'Answer to question', 'int', 'eV')},
-        'summary_sections': [
-            ['Basic Properties',
-             ['Item',
-              ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
-             ['Things', ['answer', 'kind']],
-             ['STRUCTUREPLOT'],
-             ['AXIS'],
-             ['PLOT', 'abplot']],
-            ['Calculation Details',
-             ['Calculator Setting', ['calculator']],
-             ['PLOT', 'abplot'],
-             ['FORCES']]]}
+}
 
     db = connect(name)
     md = db.metadata
