@@ -42,17 +42,17 @@ class DFTD3(FileIOCalculator):
     def __init__(self,
                  label='ase_dftd3',  # Label for dftd3 output files
                  command=None,  # Command for running dftd3
-                 calculator=None,  # DFT calculator
+                 dft=None,  # DFT calculator
                  atoms=None,
                  **kwargs):
 
-        self.calculator = None
+        self.dft = None
         FileIOCalculator.__init__(self, restart=None,
                                   ignore_bad_restart_file=False,
                                   label=label,
                                   atoms=atoms,
                                   command=command,
-                                  calculator=calculator,
+                                  dft=dft,
                                   **kwargs)
 
         # If the user is running DFTD3 with another DFT calculator, such as
@@ -89,24 +89,24 @@ class DFTD3(FileIOCalculator):
         # dftd3 only implements energy, forces, and stresses (for periodic
         # systems). But, if a DFT calculator is attached, and that calculator
         # implements more properties, we will expose those properties too.
-        if 'calculator' in kwargs:
-            calculator = kwargs.pop('calculator')
-            if calculator is not self.calculator:
-                changed_parameters['calculator'] = calculator
-            if calculator is None:
+        if 'dft' in kwargs:
+            dft = kwargs.pop('dft')
+            if dft is not self.dft:
+                changed_parameters['dft'] = dft
+            if dft is None:
                 self.implemented_properties = self.dftd3_implemented_properties
             else:
-                self.implemented_properties = calculator.implemented_properties
-            self.calculator = calculator
+                self.implemented_properties = dft.implemented_properties
+            self.dft = dft
 
         # If the user did not supply an XC functional, but did attach a
         # DFT calculator that has XC set, then we will use that. Note that
         # DFTD3's spelling convention is different from most, so in general
         # you will have to explicitly set XC for both the DFT calculator and
         # for DFTD3 (and DFTD3's will likely be spelled differently...)
-        if self.parameters['xc'] is None and self.calculator is not None:
-            if self.calculator.parameters.get('xc'):
-                self.parameters['xc'] = self.calculator.parameters['xc']
+        if self.parameters['xc'] is None and self.dft is not None:
+            if self.dft.parameters.get('xc'):
+                self.parameters['xc'] = self.dft.parameters['xc']
 
         # Check for unknown arguments. Don't raise an error, just let the
         # user know that we don't understand what they're asking for.
@@ -318,9 +318,9 @@ class DFTD3(FileIOCalculator):
         # though it does calculate it. So, we are going to add in the DFT
         # free energy to our own results if it is present in the attached
         # calculator. TODO: Fix the Calculator interface!!!
-        if self.calculator is not None:
+        if self.dft is not None:
             try:
-                efree = self.calculator.get_potential_energy(
+                efree = self.dft.get_potential_energy(
                     force_consistent=True)
                 self.results['free_energy'] += efree
             except PropertyNotImplementedError:
@@ -348,8 +348,8 @@ class DFTD3(FileIOCalculator):
                 self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
 
     def get_property(self, name, atoms=None, allow_calculation=True):
-        if self.calculator is not None:
-            dft_result = self.calculator.get_property(name,
+        if self.dft is not None:
+            dft_result = self.dft.get_property(name,
                                                       atoms,
                                                       allow_calculation)
 
@@ -359,11 +359,11 @@ class DFTD3(FileIOCalculator):
                                                          atoms,
                                                          allow_calculation)
         except PropertyNotImplementedError as e:
-            if self.calculator is None:
+            if self.dft is None:
                 raise e
             dftd3_result = 0
 
-        if self.calculator is not None:
+        if self.dft is not None:
             return dft_result + dftd3_result
         else:
             return dftd3_result
