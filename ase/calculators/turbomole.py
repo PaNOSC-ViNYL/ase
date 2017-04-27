@@ -13,10 +13,8 @@ from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
 from ase.calculators.calculator import FileIOCalculator
-from ase.calculators.calculator import PropertyNotImplementedError
+from ase.calculators.calculator import PropertyNotImplementedError, ReadError
 
-class NoDataFoundError(RuntimeError):
-    pass
 
 class Turbomole(FileIOCalculator):
 
@@ -382,11 +380,7 @@ class Turbomole(FileIOCalculator):
         self.reset()
 
     def __getitem__(self, item):
-        if hasattr(self, item):
-            obj = getattr(self, item)
-        else:
-            obj = None # actually it should return a KeyError
-        return obj
+        return getattr(self, item)
 
     def set_restart(self, params_update):
         self.read_restart()
@@ -795,7 +789,7 @@ class Turbomole(FileIOCalculator):
         for method in read_methods:
             try:
                 method()
-            except NoDataFoundError as err:
+            except ReadError as err:
                 warnings.warn(err[0])
         self.converged = self.read_convergence()
 
@@ -1031,9 +1025,9 @@ class Turbomole(FileIOCalculator):
             with open('energy', 'r') as enf:
                 text = enf.read().lower()
         except IOError:
-            raise NoDataFoundError('failed to read energy file')
+            raise ReadError('failed to read energy file')
         if text == '':
-            raise NoDataFoundError('empty energy file')
+            raise ReadError('empty energy file')
 
         lines = iter(text.split('\n'))
 
