@@ -99,6 +99,15 @@ class DFTD3(FileIOCalculator):
                 self.implemented_properties = calculator.implemented_properties
             self.calculator = calculator
 
+        # If the user did not supply an XC functional, but did attach a
+        # DFT calculator that has XC set, then we will use that. Note that
+        # DFTD3's spelling convention is different from most, so in general
+        # you will have to explicitly set XC for both the DFT calculator and
+        # for DFTD3 (and DFTD3's will likely be spelled differently...)
+        if self.parameters['xc'] is None and self.calculator is not None:
+            if self.calculator.parameters.get('xc'):
+                self.parameters['xc'] = self.calculator.parameters['xc']
+
         # Check for unknown arguments. Don't raise an error, just let the
         # user know that we don't understand what they're asking for.
         unknown_kwargs = set(kwargs) - set(self.default_parameters)
@@ -186,14 +195,10 @@ class DFTD3(FileIOCalculator):
         # The default XC functional is PBE, but this is only set if the user
         # did not provide their own value for xc or any custom damping
         # parameters.
-        if self.parameters['xc'] is None:
-            if not self.custom_damp:
-                self.parameters['xc'] = 'pbe'
-        else:
-            if self.custom_damp:
-                warn('WARNING: Custom damping parameters will be used '
-                     'instead of those parameterized for {}!'
-                     ''.format(self.parameters['xc']))
+        if self.parameters['xc'] and self.custom_damp:
+            warn('WARNING: Custom damping parameters will be used '
+                 'instead of those parameterized for {}!'
+                 ''.format(self.parameters['xc']))
 
         if changed_parameters:
             self.results.clear()
@@ -372,7 +377,10 @@ class DFTD3(FileIOCalculator):
             command.append(self.label + '.xyz')
 
         if not self.custom_damp and self.parameters.get('xc'):
-            command += ['-func', self.parameters['xc']]
+            command += ['-func', self.parameters['xc'].lower()]
+
+        if not self.parameters.get('xc'):
+            command += ['-func', 'pbe']
 
         for arg in self.dftd3_flags:
             if self.parameters.get(arg):
