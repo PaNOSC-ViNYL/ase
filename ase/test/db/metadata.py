@@ -24,7 +24,7 @@ for name in ['md.json', 'md.db']:
         'special_keys': [
             ('SELECT', 'kind'),
             ('BOOL', 'foo'),
-            ('RANGE', 'Answer', [('ANS', 'answer')])],
+            ('RANGE', 'ans', 'Answer', [('ANS', 'answer')])],
         'key_descriptions': {
             'kind': ('Type', 'Type of system', 'string', ''),
             'answer': ('Answer', 'Answer to question', 'int', 'eV')}}

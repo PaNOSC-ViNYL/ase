@@ -30,10 +30,10 @@ things = ('Things', ['answer', 'kind'])
 calc = ('Calculator Setting', ['calculator'])
 
 layout = [
-    ('Basic Properties',
-     [stuff, things,
-      'ATOMS', 'CELL']),
-    ('Calculation Details',
-     [calc, 'FORCES',
-      'xy.png', None,
-      'abc.png', None])]
+    ('Basic properties',
+     [stuff, 'ATOMS',
+      things, 'CELL']),
+    ('Calculation details',
+     [calc, None,
+      'FORCES', None,
+      'xy.png', 'abc.png'])]
