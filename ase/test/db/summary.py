@@ -4,7 +4,10 @@ title = 'TEST'
 
 default_columns = ['formula', 'answer', 'kind']
 
-special_keys = ['kind', 'foo']
+special_keys = [('SELECT', 'kind'),
+                ('BOOL', 'foo'),
+                ('RANGE', 'ans', 'Answer', [('A1', 'answer'),
+                                            ('B2', 'answer')])]
 
 key_descriptions = {
     'kind': ('Type', 'Type of system', 'string', ''),

@@ -182,7 +182,8 @@ def index():
     if columns is None:
         columns = meta.get('default_columns') or list(all_columns)
 
-    print(request.args)
+    origquery = query
+
     if 'sort' in request.args:
         column = request.args['sort']
         if column == sort:
@@ -194,11 +195,33 @@ def index():
         page = 0
     elif 'query' in request.args:
         query = request.args['query']
+        origquery = query
         for special in meta['special_keys']:
-            key = special[0]
-            value = request.args['select_' + key]
-            if value:
-                query += ',{}={}'.format(key, value)
+            kind, key = special[:2]
+            if kind == 'SELECT':
+                value = request.args['select_' + key]
+                special[-1] = value
+                if value:
+                    query += ',{}={}'.format(key, value)
+            elif kind == 'BOOL':
+                value = request.args['bool_' + key]
+                special[-1] = value
+                if value:
+                    query += ',{}={}'.format(key, value)
+            else:
+                v1 = request.args['from_' + key]
+                v2 = request.args['to_' + key]
+                var = request.args['range_' + key]
+                special[-3:] = [v1, v2, var]
+                if v1 or v2:
+                    var = request.args['range_' + key]
+                    if v1:
+                        query += ',{}<={}'.format(v1, var)
+                    else:
+                        query += ',{}'.format(var)
+                    if v2:
+                        query += '<={}'.format(v2)
+        query = query.lstrip(',')
         sort = 'id'
         page = 0
         nrows = None
@@ -234,7 +257,7 @@ def index():
     table = Table(db)
     table.select(okquery, columns, sort, limit, offset=page * limit)
 
-    con = Connection(project, query, nrows, page, columns, sort, limit)
+    con = Connection(project, origquery, nrows, page, columns, sort, limit)
     connections[con_id] = con
 
     if len(connections) > 1000:
@@ -443,11 +466,27 @@ def build_metadata(db):
     meta['key_descriptions'] = kd
 
     sk = []
-    for key in meta['special_keys']:
-        choises = {row.get(key) for row in db.select(key)}
-        if key not in kd:
-            kd[key] = (key, key, 'string', '')
-        sk.append((key, 'SELECT', sorted(choises)))
+    for special in meta['special_keys']:
+        kind = special[0]
+        if kind == 'SELECT':
+            key = special[1]
+            choises = sorted({row.get(key) for row in db.select(key)})
+            if key in kd:
+                longkey = kd[key][0]
+            else:
+                longkey = key
+            special = ['SELECT', key, longkey, choises, choises[0]]
+        elif kind == 'BOOL':
+            key = special[1]
+            if key in kd:
+                longkey = kd[key][0]
+            else:
+                longkey = key
+            special = ['BOOL', key, longkey, '']
+        else:
+            # RANGE
+            special = list(special) + ['', '', special[3][0][1]]
+        sk.append(special)
     meta['special_keys'] = sk
 
     if not meta['layout']:
