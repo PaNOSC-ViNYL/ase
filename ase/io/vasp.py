@@ -314,10 +314,10 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
                               [float(temp[0]), float(temp[1]), float(temp[2])])
                 forces += [[float(temp[3]), float(temp[4]), float(temp[5])]]
                 positions += [[float(temp[0]), float(temp[1]), float(temp[2])]]
-                atoms.set_calculator(SinglePointCalculator(atoms,
-                                                           energy=energy,
-                                                           forces=forces,
-                                                           stress=stress))
+            atoms.set_calculator(SinglePointCalculator(atoms,
+                                                       energy=energy,
+                                                       forces=forces,
+                                                       stress=stress))
             images += [atoms]
             if len(magnetization) > 0:
                 images[-1].calc.magmoms = np.array(magnetization, float)
