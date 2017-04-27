@@ -8,7 +8,7 @@ DFT-D3
 Introduction
 ============
 
-The DFTD3 calculator class wraps the 'dftd3' command line utility by
+The DFTD3_ calculator class wraps the 'dftd3' command line utility by
 the research group of Stefan Grimme. This can be used to calculate classical
 vdW dispersion corrections to a large number of common DFT functionals. This
 calculator can be used in conjunction with other DFT calculators such as
