@@ -360,6 +360,8 @@ class DFTD3(FileIOCalculator):
                 self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
 
     def get_property(self, name, atoms=None, allow_calculation=True):
+        dft_result = None
+        dftd3_result = None
         if self.dft is not None:
             dft_result = self.dft.get_property(name,
                                                atoms,
@@ -375,10 +377,11 @@ class DFTD3(FileIOCalculator):
                 raise e
             dftd3_result = 0
 
-        if self.dft is not None:
-            return dft_result + dftd3_result
-        else:
-            return dftd3_result
+        if dft_result is None and dftd3_result is None:
+            raise PropertyNotImplementedError
+        if dftd3_result is None:
+            return dft_result
+        return dft_result + dftd3_result
 
     def _generate_command(self):
         command = self.command
