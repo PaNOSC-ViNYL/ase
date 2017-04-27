@@ -257,7 +257,12 @@ class Embedding:
 
         positions.shape = (-1, 3)
         positions = self.mmatoms.calc.add_virtual_sites(positions)
-        self.pcpot.set_positions(positions, com_pv=com_pv)
+
+        # compatibility with gpaw versions w/o LR cut in PointChargePotential
+        if 'rc2' in self.parameters:
+            self.pcpot.set_positions(positions, com_pv=com_pv)
+        else:
+            self.pcpot.set_positions(positions)
 
     def get_mm_forces(self):
         """Calculate the forces on the MM-atoms from the QM-part."""
