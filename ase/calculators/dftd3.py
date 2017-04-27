@@ -303,6 +303,18 @@ class DFTD3(FileIOCalculator):
         outname = os.path.join(self.directory, self.label + '.out')
         with open(outname, 'r') as f:
             for line in f:
+                if line.startswith(' program stopped'):
+                    if 'functional name unknown' in line:
+                        raise RuntimeError('Unknown DFTD3 functional name '
+                                           '"{}". Please check the dftd3.f '
+                                           'source file for the list of '
+                                           'known functionals and their '
+                                           'spelling.'
+                                           ''.format(self.parameters['xc']))
+                    raise RuntimeError('dftd3 failed! Please check the {} '
+                                       'output file and report any errors '
+                                       'to the ASE developers.'
+                                       ''.format(outname))
                 if line.startswith(' Edisp'):
                     e_dftd3 = float(line.split()[3]) * Hartree
                     self.results['energy'] = e_dftd3
@@ -350,8 +362,8 @@ class DFTD3(FileIOCalculator):
     def get_property(self, name, atoms=None, allow_calculation=True):
         if self.dft is not None:
             dft_result = self.dft.get_property(name,
-                                                      atoms,
-                                                      allow_calculation)
+                                               atoms,
+                                               allow_calculation)
 
         try:
             dftd3_result = FileIOCalculator.get_property(self,
@@ -376,11 +388,11 @@ class DFTD3(FileIOCalculator):
         else:
             command.append(self.label + '.xyz')
 
-        if not self.custom_damp and self.parameters.get('xc'):
-            command += ['-func', self.parameters['xc'].lower()]
-
-        if not self.parameters.get('xc'):
-            command += ['-func', 'pbe']
+        if not self.custom_damp:
+            xc = self.parameters.get('xc')
+            if xc is None:
+                xc = 'pbe'
+            command += ['-func', xc.lower()]
 
         for arg in self.dftd3_flags:
             if self.parameters.get(arg):
