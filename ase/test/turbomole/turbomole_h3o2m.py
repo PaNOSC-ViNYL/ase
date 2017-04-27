@@ -1,6 +1,3 @@
-import os
-# from subprocess import Popen, PIPE, STDOUT
-
 from math import radians, sin, cos
 
 from ase import Atoms
@@ -10,21 +7,6 @@ from ase.optimize import QuasiNewton, BFGS
 from ase.visualize import view
 
 from ase.calculators.turbomole import Turbomole
-
-# Delete old coord, control, ... files, if exist
-for f in ['coord',
-          'basis',
-          'energy',
-          'gradients',
-          'alpha',
-          'beta',
-          'mos',
-          'forceapprox',
-          'statistics',
-          'dscf_problem',
-          'control']:
-    if os.path.exists(f):
-        os.remove(f)
 
 # http://jcp.aip.org/resource/1/jcpsa6/v97/i10/p7507_s1
 doo = 2.74
@@ -68,11 +50,6 @@ for image in images:
     image.set_calculator(Turbomole(define_str=define_str))
     image.set_constraint(constraint)
 
-"""
-# Run define
-p = Popen('define', stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-stdout = p.communicate(input=define_str)
-"""
 # Relax initial and final states:
 if 1:
     dyn1 = QuasiNewton(images[0])
