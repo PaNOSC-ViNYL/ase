@@ -20,8 +20,6 @@
 
 <div class="well">
         <form id="mainFormID" class="navbar-form navbar-default" role="search" action="/">
-    <div class="row">
-
             <input type="hidden" name="x" value="{{ x }}">
 
             <div class="form-group">
@@ -32,74 +30,27 @@
                 <i class="fa fa-search fa-1x" aria-hidden="true"></i>
             </button>
 
-    </div>
-    <ul class="list-group" style="margin-bottom:0px;">
-
-{% if ctrl|length != 0 %}
-        <li class="list-group-item">
-
-    {% set colCount = {'iter': -1} %}
             <div class="row">
     {% for control in ctrl %}
-        {% set colCount = {'iter': colCount['iter']+1} %}
-
-                <div class="col-xs-4">
+                <div class="col-md-4">
 
         {% if control[0] == 'SELECT' %}
-            {% set key, text, choises, choise = control[1:] %}
-            {{ text }}:<select name="select_{{ key }}">
-            <option value=""></option>
-            {% for val in choises %}
-            <option value="{{ val }}"
-            {% if val == choise %} selected {% endif %}
-            >{{ val }}</option>
-            {% endfor %}
-            </select>
+            {{ select(control) }}
         {% elif control[0] == 'BOOL' %}
-            {% set key, text, choise = control[1:] %}
-                {{ text }}:<select name="bool_{{ key }}">
-            <option value="" {% if '' == choise %} selected {% endif %}></option>
-            <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
-            <option value="0" {% if '0' == choise %} selected {% endif %}>No</option>
-            </select>
+            {{ boolean(control) }}
         {% elif control[0] == 'RANGE' %}
-            {% set id, text, choises, v1, v2, var = control[1:] %}
-                {{ text }}:
-                <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="9"> -
-                <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="9"><br/>
-                <select name="range_{{ id }}">
-            {% for txt, key in choises %}
-                <option value="{{ key }}" {% if key == var %} selected {% endif %}>{{ txt }}</option>
-            {% endfor %}
-                </select>
+            {{ myrange(control) }}
         {% endif %}
 
                 </div>
 
-        {# if end of row insert new row if there are more controls #}
-        {% if colCount['iter'] % 3 == 2 and colCount['iter'] != ctrl|length %}
-            </div>
-            <div class="row">
-        {% endif %}
-
-    {% endfor %}
-
-    {# add additional empty columns to fill up the space #}
-    {% for i in range(colCount['iter'] % 3, 3) %}
-                <div class="col-xs-4">
-                </div>
     {% endfor %}
             </div>
-        </li>
-{% endif %}
 
-        <li class="list-group-item">
             <div class="form-group" style="margin-bottom:0px;">
-                <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries...</a></small>
+                <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries ...</a></small>
             </div>
-        </li>
 
-    </ul>
 {# Flash query messages #}
 {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -110,7 +61,7 @@
     </ul>
     {% endif %}
 {% endwith %}
-        </form>
+</form>
 </div>
 
 <div class="row">
@@ -260,3 +211,36 @@
 </div> <!-- class="container" -->
 
 {% endblock content %}
+
+{% macro select(control) %}
+            {% set key, text, choises, choise = control[1:] %}
+            {{ text }}:<select name="select_{{ key }}">
+            <option value=""></option>
+            {% for val in choises %}
+            <option value="{{ val }}"
+            {% if val == choise %} selected {% endif %}
+            >{{ val }}</option>
+            {% endfor %}
+            </select>
+{% endmacro %}
+
+{% macro boolean(control) %}
+            {% set key, text, choise = control[1:] %}
+                {{ text }}:<select name="bool_{{ key }}">
+            <option value="" {% if '' == choise %} selected {% endif %}></option>
+            <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
+            <option value="0" {% if '0' == choise %} selected {% endif %}>No</option>
+            </select>
+{% endmacro %}
+
+{% macro myrange(control) %}
+            {% set id, text, choises, v1, v2, var = control[1:] %}
+                {{ text }}:
+                <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
+                <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6"><br/>
+                <select name="range_{{ id }}">
+            {% for txt, key in choises %}
+                <option value="{{ key }}" {% if key == var %} selected {% endif %}>{{ txt }}</option>
+            {% endfor %}
+                </select>
+{% endmacro %}
