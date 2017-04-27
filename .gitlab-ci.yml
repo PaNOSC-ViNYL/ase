@@ -7,6 +7,7 @@ python_2_6_tests:
     # some tests fail with numpy-1.4, use a newer version
     - easy_install pip wheel
     - pip install numpy==1.6.2
+    - pip install fortranformat
     - pwd
     - echo $HOME
     - cd ..
@@ -25,6 +26,7 @@ python_2_7_tests:
   script:
     - apt-get update -qy
     - apt-get install -qy python-numpy python-scipy pyflakes
+    - pip install --user fortranformat
     - pwd
     - echo $HOME
     - cd ..
