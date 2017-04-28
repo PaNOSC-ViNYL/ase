@@ -4,11 +4,12 @@ from ase.io.utils import generate_writer_variables, make_patch_list
 class MATPLOTLIB:
     def __init__(self, atoms, ax,
                  rotation='', show_unit_cell=False, radii=None,
-                 colors=None, scale=1):
+                 colors=None, scale=1, offset=(0, 0)):
         generate_writer_variables(
             self, atoms, rotation=rotation,
             show_unit_cell=show_unit_cell,
-            radii=radii, bbox=None, colors=colors, scale=scale)
+            radii=radii, bbox=None, colors=colors, scale=scale,
+            extra_offset=offset)
 
         self.ax = ax
         self.figure = ax.figure
