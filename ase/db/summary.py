@@ -87,13 +87,13 @@ class Summary:
                             rows.append((desc, value, unit))
                     block = (title, rows)
                 elif block.endswith('.png'):
-                    name = op.join(tmpdir, prefix + '-' + block)
+                    name = op.join(tmpdir, prefix + block)
                     if op.isfile(name):
                         if op.getsize(name) == 0:
                             block = None
                     else:
                         for func in meta['functions']:
-                            func(prefix, tmpdir, row)
+                            func(row, prefix, tmpdir)
 
                 newblocks.append(block)
             self.layout.append((headline, newblocks))

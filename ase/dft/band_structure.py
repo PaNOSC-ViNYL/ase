@@ -34,7 +34,7 @@ class BandStructure:
         self.cell = cell
         assert kpts.shape[1] == 3
         self.kpts = kpts
-        self.energies = energies
+        self.energies = np.asarray(energies)
         self.reference = reference
 
     def get_labels(self):

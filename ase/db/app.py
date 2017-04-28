@@ -341,7 +341,7 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
-    prfx = prefix() + str(id)
+    prfx = prefix() + str(id) + '-'
     s = Summary(db.get(id), db.meta, SUBSCRIPT, prfx, tmpdir)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
@@ -462,7 +462,10 @@ def build_metadata(db):
     mod = {}
     if db.python:
         with open(db.python) as fd:
-            exec(compile(fd.read(), db.python, 'exec'), mod)
+            code = fd.read()
+        path = os.path.dirname(db.python)
+        code = 'import sys; sys.path[:0] = ["{}"]\n{}'.format(path, code)
+        exec(compile(code, db.python, 'exec'), mod)
 
     for key, default in [('title', 'ASE database'),
                          ('default_columns', []),
