@@ -374,6 +374,9 @@ class Turbomole(FileIOCalculator):
             'to_control': lambda a: a/Hartree,
             'from_control': lambda a: a*Hartree
         },
+    }
+    parameter_no_define = {
+        'density convergence': True,
     }    
 
     """ initial values """
@@ -386,17 +389,19 @@ class Turbomole(FileIOCalculator):
     forces = None
     e_total = None
 
-    def __init__(self, restart=False, define_str=None, label='turbomole',
-                 calculate_energy='dscf', calculate_forces='grad',
-                 post_HF=False, **kwargs):
-        """ calculation restart not yet implemented """
+    def __init__(self, label=None, calculate_energy='dscf',
+            calculate_forces='grad', post_HF=False, restart=False,
+            define_str=None, control_kdg=None, control_input=None, **kwargs):
 
-        self.restart = restart
-        self.define_str = define_str
         self.label = label
         self.calculate_energy = calculate_energy
         self.calculate_forces = calculate_forces
         self.post_HF = post_HF
+        self.restart = restart
+        self.define_str = define_str
+        self.control_kdg = control_kdg
+        self.control_input = control_input
+
         if self.restart:
             self.set_restart(kwargs)
             return
@@ -408,18 +413,34 @@ class Turbomole(FileIOCalculator):
         return getattr(self, item)
 
     def set_restart(self, params_update):
+        """ this function constructs atoms, parameters and results from a 
+        previous calculation """
+
+        # read results, key parameters and non-key parameters
         self.read_restart()
         params_old = self.read_parameters()
+
+        # filter out non-updateable parameters
+        for p in list(params_update.keys()):
+            if not self.parameter_updateable[p]:
+                del(params_update[p])
+                warnings.warn('"' + p + '"' + ' cannot be changed')
+
+        # update and verify parameters
+        params_new = params_old
+        params_new.update(params_update)
+        self.set_parameters(params_new)
+        self.verify_parameters()
+
+        # if a define string is specified then run define
+        if self.define_str:
+            self.execute('define', input_str=define_str)
 
         # construct a list of data groups to update        
         grps = []
         for p in list(params_update.keys()):
-            if not self.parameter_updateable[p]:
-                del(params_update[p])
-                warnings.warn('parameter ' + p + ' cannot be changed')
-            else:
-                if self.parameter_group[p] is not None:
-                    grps.append(self.parameter_group[p])
+            if self.parameter_group[p] is not None:
+                grps.append(self.parameter_group[p])
 
         # construct a dictionary of data groups and update params        
         dgs = {}
@@ -472,17 +493,40 @@ class Turbomole(FileIOCalculator):
                 else:
                     self.add_data_group(g, string=str(dgs[g]))
 
-        # update params
-        params_new = params_old
-        params_new.update(params_update)
-        self.set_parameters(params_new)
-        self.verify_parameters()
+        self.set_post_define()
         self.initialized = True
         # more precise convergence tests are necessary to set these flags:
         self.update_energy = True
         self.update_forces = True
         self.update_geometry = True
         self.update_hessian = True
+
+    def set_post_define(self):
+        """ non-define keys, user-specified changes in the control file """
+        # process key parameters that are not written with define
+        for p in list(self.parameters.keys()):
+            if p in list(self.parameter_no_define.keys()):
+                if self.parameter_no_define[p]:
+                    if self.parameters[p]:
+                        if p in list(self.parameter_mapping.keys()):
+                            fun = self.parameter_mapping[p]['to_control']
+                            val = fun(self.parameters[p])
+                        else:
+                            val = self.parameters[p]
+                        self.delete_data_group(self.parameter_group[p])
+                        self.add_data_group(self.parameter_group[p], str(val))
+                    else:
+                        self.delete_data_group(self.parameter_group[p])
+
+        # delete user-specified data groups
+        if self.control_kdg:
+            for dg in self.control_kdg:
+                self.delete_data_group(dg)
+
+        # append user-defined input to define
+        if self.control_input:
+            for inp in self.control_input:
+                self.add_data_group(inp, raw=True)
 
     def set_parameters(self, params):
         self.parameters = self.default_parameters.copy()
@@ -682,14 +726,7 @@ class Turbomole(FileIOCalculator):
 
         # run define
         self.execute('define', input_str=define_str)
-
-        # add or delete data groups
-        self.delete_data_group('scfdump')
-        if self.parameters['density convergence']:
-            if len(self.read_data_group('denconv')) != 0:
-                self.delete_data_group('denconv')
-            conv = -log10(self.parameters['density convergence'])
-            self.add_data_group('denconv', str(int(conv))) 
+        self.set_post_define()
 
         self.initialized = True
         self.converged = False
