@@ -23,7 +23,7 @@
             <input type="hidden" name="x" value="{{ x }}">
 
             <div class="form-group">
-                <input type="text" name="query" value="{{ con.query }}" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2" size="60">
+                <input type="text" name="query" value="{{ con.query[0] }}" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2" size="60">
             </div>
 
             <button type="submit" class="btn btn-default">
@@ -213,19 +213,21 @@
 {% endblock content %}
 
 {% macro select(control) %}
-            {% set key, text, choises, choise = control[1:] %}
+            {% set key, text, choises = control[1:] %}
+            {% set choise = con.query[1][key] %}
             {{ text }}:<select name="select_{{ key }}">
             <option value=""></option>
             {% for val in choises %}
             <option value="{{ val }}"
-            {% if val == choise %} selected {% endif %}
+            {% if val == con.query[1][key] %} selected {% endif %}
             >{{ val }}</option>
             {% endfor %}
             </select>
 {% endmacro %}
 
 {% macro boolean(control) %}
-            {% set key, text, choise = control[1:] %}
+            {% set key, text = control[1:] %}
+            {% set choise = con.query[1][key] %}
                 {{ text }}:<select name="bool_{{ key }}">
             <option value="" {% if '' == choise %} selected {% endif %}></option>
             <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
@@ -234,7 +236,8 @@
 {% endmacro %}
 
 {% macro myrange(control) %}
-            {% set id, text, choises, v1, v2, var = control[1:] %}
+            {% set id, text, choises = control[1:] %}
+            {% set v1, v2, var = con.query[1].get(id, ['', '', '']) %}
                 {{ text }}:
                 <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
                 <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6"><br/>

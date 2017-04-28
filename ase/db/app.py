@@ -81,12 +81,23 @@ projects = []
 
 
 def connect_databases(uris):
+    python_configs = []
+    dbs = []
     for uri in uris:
+        if uri.endswith('.py'):
+            python_configs.append(uri)
+            continue
         if uri.startswith('postgresql://'):
             project = uri.rsplit('/', 1)[1]
         else:
             project = uri.rsplit('/', 1)[-1].split('.')[0]
-        databases[project] = ase.db.connect(uri)
+        db = ase.db.connect(uri)
+        db.python = None
+        databases[project] = db
+        dbs.append(db)
+
+    for py, db in zip(python_configs, dbs):
+        db.python = py
 
 
 next_con_id = 1
@@ -164,7 +175,7 @@ def index():
         con_id = next_con_id
         next_con_id += 1
         project = request.args.get('project', projects[0][0])
-        query = ''
+        query = ['', {}, '']
         nrows = None
         page = 0
         columns = None
@@ -182,8 +193,6 @@ def index():
     if columns is None:
         columns = meta.get('default_columns') or list(all_columns)
 
-    origquery = query
-
     if 'sort' in request.args:
         column = request.args['sort']
         if column == sort:
@@ -194,34 +203,36 @@ def index():
             sort = column
         page = 0
     elif 'query' in request.args:
-        query = request.args['query']
-        origquery = query
+        dct = {}
+        query = [request.args['query']]
+        q = query[0]
         for special in meta['special_keys']:
             kind, key = special[:2]
             if kind == 'SELECT':
                 value = request.args['select_' + key]
-                special[-1] = value
+                dct[key] = value
                 if value:
-                    query += ',{}={}'.format(key, value)
+                    q += ',{}={}'.format(key, value)
             elif kind == 'BOOL':
                 value = request.args['bool_' + key]
-                special[-1] = value
+                dct[key] = value
                 if value:
-                    query += ',{}={}'.format(key, value)
+                    q += ',{}={}'.format(key, value)
             else:
                 v1 = request.args['from_' + key]
                 v2 = request.args['to_' + key]
                 var = request.args['range_' + key]
-                special[-3:] = [v1, v2, var]
+                dct[key] = (v1, v2, var)
                 if v1 or v2:
                     var = request.args['range_' + key]
                     if v1:
-                        query += ',{}<={}'.format(v1, var)
+                        q += ',{}<={}'.format(v1, var)
                     else:
-                        query += ',{}'.format(var)
+                        q += ',{}'.format(var)
                     if v2:
-                        query += '<={}'.format(v2)
-        query = query.lstrip(',')
+                        q += '<={}'.format(v2)
+        q = q.lstrip(',')
+        query += [dct, q]
         sort = 'id'
         page = 0
         nrows = None
@@ -248,16 +259,17 @@ def index():
 
     if nrows is None:
         try:
-            nrows = db.count(query)
+            nrows = db.count(query[2])
         except (ValueError, KeyError) as e:
             flash(', '.join(['Bad query'] + list(e.args)))
-            okquery = 'id=0'  # this will return no rows
-            nrows = db.count(okquery)
+            okquery = ('', {}, 'id=0')  # this will return no rows
+            nrows = 0
 
     table = Table(db)
-    table.select(okquery, columns, sort, limit, offset=page * limit)
+    print(okquery, columns, sort, limit, page * limit)
+    table.select(okquery[2], columns, sort, limit, offset=page * limit)
 
-    con = Connection(project, origquery, nrows, page, columns, sort, limit)
+    con = Connection(project, query, nrows, page, columns, sort, limit)
     connections[con_id] = con
 
     if len(connections) > 1000:
@@ -443,7 +455,7 @@ def pages(page, nrows, limit):
 
 
 def build_metadata(db):
-    meta = db.metadata
+    meta = {}  # db.metadata
 
     mod = {}
     if db.python:
@@ -475,17 +487,17 @@ def build_metadata(db):
                 longkey = kd[key][0]
             else:
                 longkey = key
-            special = ['SELECT', key, longkey, choises, choises[0]]
+            special = ['SELECT', key, longkey, choises]
         elif kind == 'BOOL':
             key = special[1]
             if key in kd:
                 longkey = kd[key][0]
             else:
                 longkey = key
-            special = ['BOOL', key, longkey, '']
+            special = ['BOOL', key, longkey]
         else:
             # RANGE
-            special = list(special) + ['', '', special[3][0][1]]
+            pass
         sk.append(special)
     meta['special_keys'] = sk
 
@@ -493,7 +505,7 @@ def build_metadata(db):
         keys = ['id', 'formula', 'age']
         meta['layout'] = [
             ('Basic properties',
-             ['ATOMS', 'CELL'
+             ['ATOMS', 'CELL',
               ('Key Value Pairs', keys), 'FORCES'])]
 
     if mod:
@@ -516,4 +528,5 @@ def build_metadata(db):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         connect_databases(sys.argv[1:])
+    open_ase_gui = False
     app.run(host='0.0.0.0', debug=True)

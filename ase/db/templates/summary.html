@@ -10,6 +10,8 @@
     {% endif %}
     </center>
     <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-4">
         {% if open_ase_gui %}
         <a class="btn" href="/gui/{{ d.id }}?project={{ project }}">
         Open ASE's GUI</a>
@@ -33,6 +35,8 @@
                 <li><a href="/json/{{ d.id }}?project={{ project }}">json</a></li>
             </ul>
         </div>
+      </div>
+      <div class="col-md-1"></div>
     </div>
 </div>
 {% endif %}
@@ -177,7 +181,7 @@ jmol_isReady = function(applet)
             {{ table(thing) }}
         {% else %}
                     <img
-                    src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}">
+                    src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%">
         {% endif %}
                 </div>
         {% if loop.index is divisibleby 2 %}
