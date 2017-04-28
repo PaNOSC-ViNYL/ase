@@ -76,8 +76,9 @@ class Turbomole(FileIOCalculator):
         'scf iterations': 60,
         'scf energy convergence': None,
         'density convergence': None,
-        'orbital shift type': None,
-        'orbital shift energy': None,
+        'non-automatic orbital shift': False,
+        'automatic orbital shift': 0.1,
+        'closed-shell orbital shift': None,
         'initial damping': None,
         'minimal damping': None,
         'damping adjustment step': None,
@@ -92,27 +93,22 @@ class Turbomole(FileIOCalculator):
         'task': 'energy',
     }
     parameter_comment = {
-        # general and geometry
         'title': None,
         'point group': 'only c1 supported',
         'use redundant internals': None,
-        # basis set
         'use basis set library': 'only true implemented',
         'basis set name': 'as in the turbomole basis set library',
         'basis set definition': 'not implemented',
-        # initial guess and occupation numbers
         'initial guess': 'other than "eht" not implemented',
         'total charge': None,
         'multiplicity': None,
         'uhf': None,
         'rohf': 'not implemented',
-        # method
         'use dft': None,
         'density functional': None,
         'grid size': None,
         'use resolution of identity': None,
         'ri memory': None,
-        # scf parameters
         'use fermi smearing': None,
         'fermi initial temperature': None,
         'fermi final temperature': None,
@@ -122,12 +118,12 @@ class Turbomole(FileIOCalculator):
         'scf iterations': None,
         'scf energy convergence': None,
         'density convergence': None,
-        'orbital shift type': 'not implemented',
-        'orbital shift energy': 'not implemented',
+        'non-automatic orbital shift': None,
+        'automatic orbital shift': None,
+        'closed-shell orbital shift': 'does not work with automatic',
         'initial damping': 'not implemented',
         'minimal damping': 'not implemented',
         'damping adjustment step': 'not implemented',
-        # task
         'ground state': 'only this is currently supported',
         'excited state': 'not implemented',
         'number of excited states': 'not implemented',
@@ -166,8 +162,9 @@ class Turbomole(FileIOCalculator):
         'scf iterations': True,
         'scf energy convergence': True,
         'density convergence': True,
-        'orbital shift type': True,
-        'orbital shift energy': True,
+        'non-automatic orbital shift': True,
+        'automatic orbital shift': True,
+        'closed-shell orbital shift': True,
         'initial damping': True,
         'minimal damping': True,
         'damping adjustment step': True,
@@ -206,8 +203,9 @@ class Turbomole(FileIOCalculator):
         'scf iterations': int,
         'scf energy convergence': float,
         'density convergence': float,
-        'orbital shift type': str,
-        'orbital shift energy': float,
+        'non-automatic orbital shift': bool,
+        'automatic orbital shift': float,
+        'closed-shell orbital shift': float,
         'initial damping': float,
         'minimal damping': float,
         'damping adjustment step': float,
@@ -246,8 +244,9 @@ class Turbomole(FileIOCalculator):
         'scf iterations': 'scfiterlimit',
         'scf energy convergence': 'scfconv',
         'density convergence': 'denconv',
-        'orbital shift type': None,
-        'orbital shift energy': 'automatic',
+        'non-automatic orbital shift': 'noautomatic',
+        'automatic orbital shift': 'automatic',
+        'closed-shell orbital shift': 'closedshell',
         'initial damping': 'start',
         'minimal damping': 'min',
         'damping adjustment step': 'step', 
@@ -286,8 +285,9 @@ class Turbomole(FileIOCalculator):
         'scf iterations': 'scfiterlimit',
         'scf energy convergence': 'scfconv',
         'density convergence': 'denconv',
-        'orbital shift type': 'scforbitalshift',
-        'orbital shift energy': 'scforbitalshift',
+        'non-automatic orbital shift': 'scforbitalshift',
+        'automatic orbital shift': 'scforbitalshift',
+        'closed-shell orbital shift': 'scforbitalshift',
         'initial damping': 'scfdamp',
         'minimal damping': 'scfdamp',
         'damping adjustment step': 'scfdamp',
@@ -320,17 +320,18 @@ class Turbomole(FileIOCalculator):
         'use fermi smearing': None,
         'fermi initial temperature': 'Kelvin',
         'fermi final temperature': 'Kelvin',
-        'fermi annealing factor': '?',
+        'fermi annealing factor': None,
         'fermi homo-lumo gap criterion': 'eV',
-        'fermi stopping criterion': '?',
+        'fermi stopping criterion': 'eV',
         'scf iterations': None,
         'scf energy convergence': 'eV',
         'density convergence': None,
-        'orbital shift type': None,
-        'orbital shift energy': 'eV',
-        'initial damping': '?',
-        'minimal damping': '?',
-        'damping adjustment step': '?',
+        'non-automatic orbital shift': None,
+        'automatic orbital shift': 'eV',
+        'closed-shell orbital shift': 'eV',
+        'initial damping': None,
+        'minimal damping': None,
+        'damping adjustment step': None,
         'ground state': None,
         'excited state': None,
         'number of excited states': None,
@@ -341,13 +342,37 @@ class Turbomole(FileIOCalculator):
         'task': None,
     }
     parameter_mapping = {
+        'fermi homo-lumo gap criterion': {
+            'to_control': lambda a: a/Hartree,
+            'from_control': lambda a: a*Hartree
+        },
+        'fermi stopping criterion': {
+            'to_control': lambda a: a/Hartree,
+            'from_control': lambda a: a*Hartree
+        },
         'scf energy convergence': {
             'to_control': lambda a: int(-log10(a/Hartree)//1),
-            'from_control': lambda a: 10**(-a)*Hartree        
+            'from_control': lambda a: 10**(-a)*Hartree
         },
         'density convergence': {
             'to_control': lambda a: int(-log10(a)),
             'from_control': lambda a: 10**(-a)
+        },
+        'automatic orbital shift': {
+            'to_control': lambda a: a/Hartree,
+            'from_control': lambda a: a*Hartree
+        },
+        'closed-shell orbital shift': {
+            'to_control': lambda a: a/Hartree,
+            'from_control': lambda a: a*Hartree
+        },
+        'force convergence': {
+            'to_control': lambda a: a/Hartree*Bohr,
+            'from_control': lambda a: a*Hartree/Bohr
+        },
+        'energy convergence': {
+            'to_control': lambda a: a/Hartree,
+            'from_control': lambda a: a*Hartree
         },
     }    
 
@@ -405,20 +430,23 @@ class Turbomole(FileIOCalculator):
                     if self.parameter_group[p] == self.parameter_key[p]:
                         if p in list(params_update.keys()):
                             val = params_update[p]
-                            if p in list(self.parameter_mapping.keys()):
+                            pmap = list(self.parameter_mapping.keys())
+                            if val is not None and p in pmap:
                                 fun = self.parameter_mapping[p]['to_control']
                                 val = fun(params_update[p])
                             dgs[g] = val
                     else:
                         if p in list(params_old.keys()):
                             val = params_old[p]
-                            if p in list(self.parameter_mapping.keys()):
+                            pmap = list(self.parameter_mapping.keys())
+                            if val is not None and p in pmap:
                                 fun = self.parameter_mapping[p]['to_control']
                                 val = fun(params_old[p])
                             dgs[g][self.parameter_key[p]] = val
                         if p in list(params_update.keys()):
                             val = params_update[p]
-                            if p in list(self.parameter_mapping.keys()):
+                            pmap = list(self.parameter_mapping.keys())
+                            if val is not None and p in pmap:
                                 fun = self.parameter_mapping[p]['to_control']
                                 val = fun(params_update[p])
                             dgs[g][self.parameter_key[p]] = val
@@ -429,7 +457,13 @@ class Turbomole(FileIOCalculator):
             if isinstance(dgs[g], dict):
                 string = ''
                 for key in (dgs[g].keys()):
-                    string += ' ' + key + '=' + dgs[g][key]
+                    if dgs[g][key] is None:
+                        continue
+                    elif isinstance(dgs[g][key], bool):
+                        if dgs[g][key]:
+                            string += ' ' + key
+                    else:
+                        string += ' ' + key + '=' + str(dgs[g][key])
                 self.add_data_group(g, string=string)
             else:
                 if isinstance(dgs[g], bool):
@@ -807,8 +841,11 @@ class Turbomole(FileIOCalculator):
             result = {}
             lines = ndg.split(lsep)
             for line in lines:
-                [key, val] = line.strip().split(ksep)
-                result[key] = val
+                fields = line.strip().split(ksep)
+                if len(fields) == 2:
+                    result[fields[0]] = fields[1]
+                elif len(fields) == 1:
+                    result[fields[0]] = True
             return result
 
         params = {}
@@ -841,15 +878,23 @@ class Turbomole(FileIOCalculator):
                 else:
                     if pdgs[p] is None:
                         params[p] = None
+                    elif type(pdgs[p]) is str:
+                        if self.parameter_type[p] is bool:
+                            params[p] = (pdgs[p] == self.parameter_key[p])
                     else:
-                        typ = self.parameter_type[p]
-                        val = typ(pdgs[p][self.parameter_key[p]])
-                        if p in list(self.parameter_mapping.keys()):
-                            fun = self.parameter_mapping[p]['from_control']
-                            val = fun(val)
-                        params[p] = val
+                        if self.parameter_key[p] not in list(pdgs[p].keys()):
+                            if self.parameter_type[p] is bool:
+                                params[p] = False
+                            else:
+                                params[p] = None
+                        else:
+                            typ = self.parameter_type[p]
+                            val = typ(pdgs[p][self.parameter_key[p]])
+                            if p in list(self.parameter_mapping.keys()):
+                                fun = self.parameter_mapping[p]['from_control']
+                                val = fun(val)
+                            params[p] = val
 
-#        print(params)
         """ special parameters - no-group or no-key parameters """
 
         # per-element or per-atom basis sets not implemented in calculator
@@ -870,7 +915,6 @@ class Turbomole(FileIOCalculator):
             nuclear_charge = np.sum(self.atoms.numbers)
             electron_charge = -int(np.sum(alpha_occ) + np.sum(beta_occ))
             params['total charge'] = nuclear_charge + electron_charge
-#            print(params['multiplicity'])
         elif not params['rohf']: # restricted HF (closed shell)
             params['multiplicity'] = 1
             nuclear_charge = np.sum(self.atoms.numbers)
@@ -893,7 +937,6 @@ class Turbomole(FileIOCalculator):
                 if 'AN OPTIMIZATION WITH MAX' in line:
                     cy = int(re.search('MAX. (\d+) CYCLES', line).group(1))
                     params['geometry optimization iterations'] = cy
-#        print(params)
         return params
 
     def read_convergence(self):
