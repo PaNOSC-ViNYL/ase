@@ -425,7 +425,7 @@ def kwargs2atoms(kwargs, directory=None):
 
     Some keyword arguments may refer to files.  The directory keyword
     may be necessary to resolve the paths correctly, and is used for
-    example when running 'ase-gui somedir/inp'."""
+    example when running 'ase gui somedir/inp'."""
     kwargs = normalize_keywords(kwargs)
 
     # Only input units accepted nowadays are 'atomic'.

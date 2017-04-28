@@ -15,7 +15,7 @@ Ef, dE = nebtools.get_barrier(fit=False)
 # Get the actual maximum force at this point in the simulation.
 max_force = nebtools.get_fmax()
 
-# Create a figure like that coming from ase-gui.
+# Create a figure like that coming from ASE-GUI.
 fig = nebtools.plot_band()
 fig.savefig('diffusion-barrier.png')
 

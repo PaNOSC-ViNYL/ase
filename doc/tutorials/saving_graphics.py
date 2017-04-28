@@ -7,9 +7,9 @@ from ase.io import write
 
 atoms = Atoms('Ag', cell=(2.7, 2.7, 2.7), pbc=True) * (18, 8, 8)
 
-# view with ase-gui
+# view with ASE-GUI
 #view(atoms)
-rotation = '-70x, -20y, -2z' # found using ase-gui menu 'view -> rotate'
+rotation = '-70x, -20y, -2z' # found using ASE-GUI menu 'view -> rotate'
 
 #Make colors
 from ase.utils import hsv
@@ -32,7 +32,7 @@ extra_kwargs = { # For povray files only
 'pause'        : False, # Pause when done rendering (only if display)
 'transparent'  : False, # Transparent background
 'canvas_width' : None,  # Width of canvas in pixels
-'canvas_height': None,  # Height of canvas in pixels 
+'canvas_height': None,  # Height of canvas in pixels
 'camera_dist'  : 50.,   # Distance from camera to front atom
 'image_plane'  : None,  # Distance from front atom to image plane
                         # (focal depth for perspective)

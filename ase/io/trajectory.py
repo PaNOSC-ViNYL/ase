@@ -1,6 +1,8 @@
 from __future__ import print_function
 import warnings
 
+import numpy as np
+
 from ase import __version__
 from ase.calculators.singlepoint import SinglePointCalculator, all_properties
 from ase.constraints import dict2constraint
@@ -84,10 +86,9 @@ class TrajectoryWriter:
         self.properties = properties
 
         self.description = {}
-        self.numbers = None
-        self.pbc = None
-        self.masses = None
         self._open(filename, mode)
+        self.header_data = None
+        self.multiple_headers = False
 
     def set_description(self, description):
         self.description.update(description)
@@ -132,24 +133,26 @@ class TrajectoryWriter:
             # save the original atoms.
             atoms = atoms.atoms_for_saving
 
-        if len(b) == 0:
+        if self.header_data is None:
             b.write(version=1, ase_version=__version__)
             if self.description:
                 b.write(description=self.description)
-            # Atomic numbers and periodic boundary conditions are only
-            # written once - in the header.  Store them here so that we can
-            # check that they are the same for all images:
-            self.numbers = atoms.get_atomic_numbers()
-            self.pbc = atoms.get_pbc()
+            # Atomic numbers and periodic boundary conditions are written
+            # in the header in the beginning.
+            #
+            # If an image later on has other numbers/pbc, we write a new
+            # header.  All subsequent images will then have their own header
+            # whether or not their numbers/pbc change.
+            self.header_data = get_header_data(atoms)
+            write_header = True
         else:
-            if (atoms.pbc != self.pbc).any():
-                raise ValueError('Bad periodic boundary conditions!')
-            elif len(atoms) != len(self.numbers):
-                raise ValueError('Bad number of atoms!')
-            elif (atoms.numbers != self.numbers).any():
-                raise ValueError('Bad atomic numbers!')
+            if not self.multiple_headers:
+                header_data = get_header_data(atoms)
+                self.multiple_headers = not headers_equal(self.header_data,
+                                                          header_data)
+            write_header = self.multiple_headers
 
-        write_atoms(b, atoms, write_header=(len(b) == 0))
+        write_atoms(b, atoms, write_header=write_header)
 
         calc = atoms.get_calculator()
 
@@ -254,8 +257,13 @@ class TrajectoryReader:
 
     def __getitem__(self, i=-1):
         b = self.backend[i]
-        atoms = read_atoms(b, header=[self.pbc, self.numbers, self.masses,
-                                      self.constraints])
+        if 'numbers' in b:
+            # numbers and other header info was written alongside the image:
+            atoms = read_atoms(b)
+        else:
+            # header info was not written because they are the same:
+            atoms = read_atoms(b, header=[self.pbc, self.numbers, self.masses,
+                                          self.constraints])
         if 'calculator' in b:
             results = {}
             c = b.calculator
@@ -273,6 +281,23 @@ class TrajectoryReader:
     def __iter__(self):
         for i in range(len(self)):
             yield self[i]
+
+
+def get_header_data(atoms):
+    return {'pbc': atoms.pbc.copy(),
+            'numbers': atoms.get_atomic_numbers(),
+            'masses': atoms.get_masses() if atoms.has('masses') else None,
+            'constraints': list(atoms.constraints)}
+
+
+def headers_equal(headers1, headers2):
+    eq = ((headers1['pbc'] == headers2['pbc']).all() and
+          np.all(headers1['numbers'] == headers2['numbers']) and
+          # Short-circuit to avoid elementwise comparisons to None:
+          (headers1['masses'] is None) == (headers2['masses'] is None) and
+          np.all(headers1['masses'] == headers2['masses']) and
+          headers1['constraints'] == headers2['constraints'])
+    return eq
 
 
 def read_atoms(backend, header=None):

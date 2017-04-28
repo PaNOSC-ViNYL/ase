@@ -33,11 +33,13 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    neb/idpp
    dissociation
    md/md
+   tipnp_equil/tipnp_equil
    wannier/wannier
    minimahopping/minimahopping
    ga/ga_optimize
    ga/ga_fcc_alloys
    defects/defects
+   qmmm/qmmm
 
 
 NumPy

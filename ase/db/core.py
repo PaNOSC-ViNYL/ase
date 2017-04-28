@@ -1,11 +1,12 @@
 import collections
 import functools
+import numbers
 import operator
 import os
 import re
 from time import time
 
-from ase.atoms import Atoms, symbols2numbers
+from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
@@ -61,7 +62,7 @@ def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
             raise ValueError('Bad key: {0}'.format(key))
-        if not isinstance(value, (int, float, basestring)):
+        if not isinstance(value, (numbers.Real, basestring)):
             raise ValueError('Bad value: {0}'.format(value))
         if isinstance(value, basestring):
             for t in [int, float]:
@@ -106,7 +107,7 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('pg://'):
+        elif name.startswith('postgresql://'):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -126,7 +127,7 @@ def connect(name, type='extract_from_name', create_indices=True,
                                serial=serial)
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
-        return PostgreSQLDatabase(name[5:])
+        return PostgreSQLDatabase(name)
     raise ValueError('Unknown database type: ' + type)
 
 
@@ -174,6 +175,7 @@ class Database:
         else:
             self.lock = None
         self.serial = serial
+        self._metadata = None  # decription of columns and other stuff
 
     @parallel_function
     @lock
@@ -321,7 +323,14 @@ class Database:
                 if expression in atomic_numbers:
                     comparisons.append((expression, '>', 0))
                 else:
-                    keys.append(expression)
+                    try:
+                        symbols = string2symbols(expression)
+                    except ValueError:
+                        keys.append(expression)
+                    else:
+                        count = collections.Counter(symbols)
+                        comparisons.extend((symbol, '>', n - 1)
+                                           for symbol, n in count.items())
                 continue
             key, value = expression.split(op)
             comparisons.append((key, op, value))
@@ -336,7 +345,8 @@ class Database:
                 op = invop[op]
                 value = now() - time_string_to_float(value)
             elif key == 'formula':
-                assert op == '='
+                if op != '=':
+                    raise ValueError('Use fomula=...')
                 numbers = symbols2numbers(value)
                 count = collections.defaultdict(int)
                 for Z in numbers:

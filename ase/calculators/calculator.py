@@ -26,13 +26,14 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'demon', 'dftb',
-         'eam', 'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw',
+         'dmol', 'eam', 'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw',
          'gromacs', 'hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac',
          'morse', 'nwchem', 'octopus', 'onetep', 'siesta', 'tip3p',
          'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
+           'dmol': 'DMol3',
            'eam': 'EAM',
            'elk': 'ELK',
            'emt': 'EMT',
@@ -567,8 +568,14 @@ class Calculator:
 
     def band_structure(self):
         """Create band-structure object for plotting."""
-        from ase.dft.band_structure import BandStructure
-        return BandStructure(calc=self)
+        from ase.dft.band_structure import get_band_structure
+        # XXX This calculator is supposed to just have done a band structure
+        # calculation, but the calculator may not have the correct Fermi level
+        # if it updated the Fermi level after changing k-points.
+        # This will be a problem with some calculators (currently GPAW), and
+        # the user would have to override this by providing the Fermi level
+        # from the selfconsistent calculation.
+        return get_band_structure(calc=self)
 
 
 class FileIOCalculator(Calculator):

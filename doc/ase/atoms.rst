@@ -60,6 +60,7 @@ Like with a single :class:`~ase.atom.Atom` the properties of a collection of ato
 can be accessed and changed with get- and set-methods. For example
 the positions of the atoms can be addressed as
 
+>>> from ase import Atoms
 >>> a = Atoms('N3', [(0, 0, 0), (1, 0, 0), (0, 0, 1)])
 >>> a.get_positions()
 array([[ 0.,  0.,  0.],
@@ -157,11 +158,13 @@ The cell can be defined or changed using the
 :meth:`~Atoms.set_cell` method. Changing the unit cell
 does per default not move the atoms:
 
->>> a.set_cell(2 * identity(3))
+>>> import numpy as np
+>>> a.set_cell(2 * np.identity(3))
 >>> a.get_cell()
 array([[ 2.,  0.,  0.],
        [ 0.,  2.,  0.],
        [ 0.,  0.,  2.]])
+>>> a.set_positions([(2, 0, 0), (1, 1, 0), (2, 2, 0)])
 >>> a.get_positions()
 array([[ 2.,  0.,  0.],
        [ 1.,  1.,  0.],
@@ -170,7 +173,7 @@ array([[ 2.,  0.,  0.],
 However if we set ``scale_atoms=True`` the atomic positions are scaled with
 the unit cell:
 
->>> a.set_cell(identity(3), scale_atoms=True)
+>>> a.set_cell(np.identity(3), scale_atoms=True)
 >>> a.get_positions()
 array([[ 1. ,  0. ,  0. ],
        [ 0.5,  0.5,  0. ],
@@ -201,15 +204,16 @@ we change the position of the 2nd atom (which has count number 1
 because Python starts counting at zero) and the type of the first
 atom:
 
+>>> a.positions *= 2
 >>> a.positions[1] = (1, 1, 0)
 >>> a.get_positions()
-array([[2., 0., 0.],
-      [1., 1., 0.],
-      [2., 2., 0.]])
+array([[ 2.,  0.,  0.],
+       [ 1.,  1.,  0.],
+       [ 2.,  2.,  0.]])
 >>> a.positions
-array([[2., 0., 0.],
-       [1., 1., 0.],
-       [2., 2., 0.]])
+array([[ 2.,  0.,  0.],
+       [ 1.,  1.,  0.],
+       [ 2.,  2.,  0.]])
 >>> a.numbers
 array([7, 7, 7])
 >>> a.numbers[0] = 13
@@ -219,12 +223,12 @@ array([7, 7, 7])
 Check for periodic boundary conditions:
 
 >>> a.pbc  # equivalent to a.get_pbc()
-array([False, False, False], dtype=bool)
+array([ True,  True, False], dtype=bool)
 >>> a.pbc.any()
-False
+True
 >>> a.pbc[2] = 1
 >>> a.pbc
-array([False, False,  True], dtype=bool)
+array([ True,  True,  True], dtype=bool)
 
 Hexagonal unit cell:
 
@@ -321,7 +325,7 @@ Other methods
 * :meth:`~Atoms.wrap`
 * :meth:`~Atoms.translate`
 * :meth:`~Atoms.rotate`
-* :meth:`~Atoms.rotate_euler`
+* :meth:`~Atoms.euler_rotate`
 * :meth:`~Atoms.get_dihedral`
 * :meth:`~Atoms.set_dihedral`
 * :meth:`~Atoms.rotate_dihedral`

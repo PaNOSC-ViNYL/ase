@@ -15,6 +15,10 @@ environment:
     - PYTHON: "C:\\Miniconda35"
       # 3.5 64-bit
     - PYTHON: "C:\\Miniconda35-x64"
+      # 3.6
+    - PYTHON: "C:\\Miniconda36"
+      # 3.6 64-bit
+    - PYTHON: "C:\\Miniconda36-x64"
 
 install:
   # Prepend chosen Python to the PATH of this build
@@ -35,13 +39,14 @@ build: off
 test_script:
   # run tests from temp dir so source tree doesn't interfere
   - "cd %TEMP%"
-  - "python -m ase.test"
+  - "ase info"
+  - "ase test"
 
 after_test:
   # This step builds distribution.
   - "cd %APPVEYOR_BUILD_FOLDER%"
   # use pip as distutils doesn't implemet bdist_wheel
-  - "pip wheel -w dist ."
+  - "pip wheel -w dist --no-deps ."
 
 artifacts:
   # bdist_wheel puts your built wheel in the dist directory

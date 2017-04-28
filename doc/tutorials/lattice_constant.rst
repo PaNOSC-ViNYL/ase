@@ -40,9 +40,9 @@ Now, we need to extract the data from the trajectory.  Try this:
 >>> from ase.build import bulk
 >>> ni = bulk('Ni', 'hcp', a=2.5, c=4.0)
 >>> ni.cell
-array([[ 2.5       ,  0.        ,  0.        ],
-       [-1.25      ,  2.16506351,  0.        ],
-       [ 0.        ,  0.        ,  4.        ]])
+array([[ 2.5  ,  0.   ,  0.   ],
+       [-1.25 ,  2.165,  0.   ],
+       [ 0.   ,  0.   ,  4.   ]])
 
 So, we can get `a` and `c` from ``ni.cell[0, 0]`` and ``ni.cell[2,
 2]``:

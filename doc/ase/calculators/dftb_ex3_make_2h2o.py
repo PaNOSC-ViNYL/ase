@@ -14,9 +14,9 @@ h2_1 = molecule('H2')
 h2_2 = molecule('H2')
 o2.translate([0, 0.01, 0])
 h2_1.translate([0, 0, 3])
-h2_1.rotate_euler(center='COP', theta=3.1415 / 2)
+h2_1.euler_rotate(center='COP', theta=90)
 h2_2.translate([0, 0, -3])
-h2_2.rotate_euler(center='COP', theta=3.1415 / 2)
+h2_2.euler_rotate(center='COP', theta=90)
 o2.set_velocities(([0, 0, 0], [0, 0, 0]))
 h2_1.set_velocities(([0, 0, -3.00], [0, 0, -3.000]))
 h2_2.set_velocities(([0, 0, 3.000], [0, 0, 3.000]))
@@ -90,4 +90,4 @@ os.system('mv geo_end.xyz geo_end_NVT.xyz')
 write_dftb_velocities(test, 'velocities.txt')
 
 # to watch:
-#  ase-gui geo_end_NVE.xyz geo_end_NVT.xyz
+#  ase gui geo_end_NVE.xyz geo_end_NVT.xyz
