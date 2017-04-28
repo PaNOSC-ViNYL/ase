@@ -44,18 +44,18 @@ from ase.visualize import view
 
 
 default_key_descriptions = {
-    'id': ('ID', 'Uniqe row ID', 'int', ''),
-    'age': ('Age', 'Time since creation', 'str', ''),
-    'formula': ('Formula', 'Chemical formula', 'str', ''),
-    'user': ('Username', 'Username', 'str', ''),
-    'calculator': ('Calculator', 'ASE-calculator name', 'str', ''),
-    'energy': ('Energy', 'Total energy', 'float', 'eV'),
-    'fmax': ('Maximum force', 'Maximum force', 'float', 'eV/Ang'),
-    'charge': ('Charge', 'Charge', 'float', '|e|'),
-    'mass': ('Mass', 'Mass', 'float', 'au'),
-    'magmom': ('Magnetic moment', 'Magnetic moment', 'float', 'au'),
-    'unique_id': ('Unique ID', 'Unique ID', 'float', ''),
-    'volume': ('Volume', 'Volume of unit-cell', 'float', '`Ang^3`')}
+    'id': ('ID', 'Uniqe row ID', ''),
+    'age': ('Age', 'Time since creation', ''),
+    'formula': ('Formula', 'Chemical formula', ''),
+    'user': ('Username', '', ''),
+    'calculator': ('Calculator', 'ASE-calculator name', ''),
+    'energy': ('Energy', 'Total energy', 'eV'),
+    'fmax': ('Maximum force', '', 'eV/Ang'),
+    'charge': ('Charge', '', '|e|'),
+    'mass': ('Mass', '', 'au'),
+    'magmom': ('Magnetic moment', '', 'au'),
+    'unique_id': ('Unique ID', '', ''),
+    'volume': ('Volume', 'Volume of unit-cell', '`Ang^3`')}
 
 # Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
@@ -278,8 +278,10 @@ def index():
             del connections[cid]
 
     table.format(SUBSCRIPT)
+
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
+    print(addcolumns)
 
     return render_template('table.html',
                            project=project,
@@ -476,6 +478,9 @@ def build_metadata(db):
     kd = default_key_descriptions.copy()
     kd.update(meta['key_descriptions'])
     meta['key_descriptions'] = kd
+    for key, value in kd.items():
+        if not value[1]:
+            kd[key] = (value[0], value[0], value[2])
 
     sk = []
     for special in meta['special_keys']:
@@ -516,10 +521,10 @@ def build_metadata(db):
     sup = re.compile(r'`(.*)\^(.)`')
     # Convert LaTeX to HTML:
     for key, value in meta['key_descriptions'].items():
-        short, long, type, unit = value
+        short, long, unit = value
         unit = sub.sub(r'\1<sub>\2</sub>', unit)
         unit = sup.sub(r'\1<sup>\2</sup>', unit)
-        meta['key_descriptions'][key] = (short, long, type, unit)
+        meta['key_descriptions'][key] = (short, long, unit)
 
     print(meta)
     return meta

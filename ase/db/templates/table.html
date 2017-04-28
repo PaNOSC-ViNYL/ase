@@ -94,12 +94,10 @@
             </button>
             <ul class="dropdown-menu">
 {% for key in addcolumns %}
-    {% if meta|length != 0 %}
         {% if key in meta %}
                 <li><a href="/?x={{ x }}&amp;toggle={{ key }}">
                     {{ meta[key][1] }} ({{key}})
                 </a></li>
-        {% endif %}
     {% else %}
                 <li><a href="/?x={{ x }}&toggle={{ key }}">
                     {{ key }}

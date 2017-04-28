@@ -83,7 +83,7 @@ class Summary:
                     for key in keys:
                         value = table.pop(key, None)
                         if value is not None:
-                            desc, unit = kd.get(key, [0, key, 0, ''])[1::2]
+                            desc, unit = kd.get(key, [0, key, ''])[1:]
                             rows.append((desc, value, unit))
                     block = (title, rows)
                 elif block.endswith('.png'):
@@ -101,9 +101,9 @@ class Summary:
         if table:
             rows = []
             for key, value in sorted(table.items()):
-                desc, unit = kd.get(key, [0, key, 0, ''])[1::2]
+                desc, unit = kd.get(key, [0, key, ''])[1:]
                 rows.append((desc, value, unit))
-            self.layout.append(('Other stuff', [('Things', rows)]))
+            self.layout.append(('Misc.', [('Things', rows)]))
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
