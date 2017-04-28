@@ -434,7 +434,7 @@ class Turbomole(FileIOCalculator):
 
         # if a define string is specified then run define
         if self.define_str:
-            self.execute('define', input_str=define_str)
+            self.execute('define', input_str=self.define_str)
 
         # construct a list of data groups to update        
         grps = []
@@ -539,8 +539,9 @@ class Turbomole(FileIOCalculator):
         """ detect wrong or not implemented parameters """
 
         # kwargs parameters are ignored if user provides define_str
-        if self.define_str:
+        if self.define_str is not None:
             assert isinstance(self.define_str, str)
+            assert len(self.define_str) != 0
             return
 
         if self.parameters['use dft']:
@@ -719,7 +720,7 @@ class Turbomole(FileIOCalculator):
         if not os.path.isfile('coord'):
             raise IOError('file coord not found')
 
-        if self.define_str:
+        if self.define_str is not None:
             define_str = self.define_str
         else:
             define_str = self.get_define_str()
