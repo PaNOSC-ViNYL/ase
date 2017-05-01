@@ -266,7 +266,6 @@ def index():
             nrows = 0
 
     table = Table(db)
-    print(okquery, columns, sort, limit, page * limit)
     table.select(okquery[2], columns, sort, limit, offset=page * limit)
 
     con = Connection(project, query, nrows, page, columns, sort, limit)
@@ -281,7 +280,6 @@ def index():
 
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
-    print(addcolumns)
 
     return render_template('table.html',
                            project=project,
@@ -393,7 +391,7 @@ def xyz(id):
 def jsonall():
     con_id = int(request.args['x'])
     con = connections[con_id]
-    data = tofile(con.project, con.query, 'json', con.limit)
+    data = tofile(con.project, con.query[2], 'json', con.limit)
     return data, 'selection.json'
 
 
@@ -410,7 +408,7 @@ def json1(id):
 def sqliteall():
     con_id = int(request.args['x'])
     con = connections[con_id]
-    data = tofile(con.project, con.query, 'db', con.limit)
+    data = tofile(con.project, con.query[2], 'db', con.limit)
     return data, 'selection.db'
 
 
@@ -457,7 +455,7 @@ def pages(page, nrows, limit):
 
 
 def build_metadata(db):
-    meta = {}  # db.metadata
+    meta = db.metadata
 
     mod = {}
     if db.python:
