@@ -54,13 +54,13 @@ for name in ['y2.json', 'y2.db']:
     print(row)
 
     with must_raise(ValueError):
-        c.write(ch4, foo=['bar', 2])
+        c.write(ch4, foo=['bar', 2])  # not int, bool, float or str
 
     with must_raise(ValueError):
-        c.write(Atoms(), pi='3.14')
+        c.write(Atoms(), pi='3.14')  # number as a string
 
     with must_raise(ValueError):
-        c.write(Atoms(), SOFUS=42)
+        c.write(Atoms(), SOFUS=42)  # chemical formula as key
 
     # Make sure deleting a single sey works:
     id = c.write(Atoms(), key=7)

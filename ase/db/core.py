@@ -490,6 +490,6 @@ def float_to_time_string(t, long=False):
         if x > 5:
             break
     if long:
-        return '{:.3f} {1}s'.format(x, longwords[s])
+        return '{:.3f} {}s'.format(x, longwords[s])
     else:
-        return '{:.0f}{1}'.format(round(x), s)
+        return '{:.0f}{}'.format(round(x), s)
