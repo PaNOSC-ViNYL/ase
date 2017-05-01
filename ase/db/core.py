@@ -17,6 +17,21 @@ T2000 = 946681200.0  # January 1. 2000
 YEAR = 31557600.0  # 365.25 days
 
 
+default_key_descriptions = {
+    'id': ('ID', 'Uniqe row ID', ''),
+    'age': ('Age', 'Time since creation', ''),
+    'formula': ('Formula', 'Chemical formula', ''),
+    'user': ('Username', '', ''),
+    'calculator': ('Calculator', 'ASE-calculator name', ''),
+    'energy': ('Energy', 'Total energy', 'eV'),
+    'fmax': ('Maximum force', '', 'eV/Ang'),
+    'charge': ('Charge', '', '|e|'),
+    'mass': ('Mass', '', 'au'),
+    'magmom': ('Magnetic moment', '', 'au'),
+    'unique_id': ('Unique ID', '', ''),
+    'volume': ('Volume', 'Volume of unit-cell', '`Ang^3`')}
+
+
 def now():
     """Return time since January 1. 2000 in years."""
     return (time() - T2000) / YEAR

@@ -1,9 +1,10 @@
 from __future__ import print_function
+import os
 import os.path as op
 
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
-from ase.utils import hill
+from ase.utils import hill, Lock
 
 
 class Summary:
@@ -68,10 +69,6 @@ class Summary:
             if isinstance(value, float):
                 table[key] = '{:.3f}'.format(value)
 
-        # If meta data for summary_sections does not exists a default
-        # template is generated otherwise it goes through the meta
-        # data and checks if all keys are indeed present
-
         kd = meta.get('key_descriptions', {})
 
         self.layout = []
@@ -95,8 +92,7 @@ class Summary:
                         if op.getsize(name) == 0:
                             block = None
                     else:
-                        for func in meta['functions']:
-                            func(row, prefix, tmpdir)
+                        self.create_figures(row, prefix, tmpdir)
 
                 newblocks.append(block)
             self.layout.append((headline, newblocks))
@@ -120,28 +116,49 @@ class Summary:
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)
 
+    def create_figures(self, row, prefix, tmpdir):
+        with Lock('ase.db.web.lock'):
+            for func, filenames in self.meta['functions']:
+                for filename in filenames:
+                    try:
+                        os.remove(filename)
+                    except FileNotFoundError:
+                        pass
+                func(row)
+                for filename in filenames:
+                    path = os.path.join(tmpdir, prefix + filename)
+                    if os.path.isfile(filename):
+                        os.rename(filename, path)
+                    else:
+                        with open(path, 'w'):
+                            pass
+
     def write(self):
         row = self.row
 
-        width = max(len(name) for name, unit, value in self.table)
-        print('{0:{width}}|unit  |value'.format('name', width=width))
-        for name, unit, value in self.table:
-            print('{0:{width}}|{1:6}|{2}'.format(name, unit, value,
-                                                 width=width))
-
-        print('\nUnit cell in Ang:')
-        print('axis|periodic|          x|          y|          z')
-        c = 1
-        for p, axis in zip(row.pbc, self.cell):
-            print('   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'.format(
-                c, [' no', 'yes'][p], axis))
-            c += 1
-
-        if self.key_value_pairs:
-            print('\nKey-value pairs:')
-            width = max(len(key) for key, value in self.key_value_pairs)
-            for key, value in self.key_value_pairs:
-                print('{0:{width}}|{1}'.format(key, value, width=width))
+        for headline, blocks in self.layout:
+            print(headline)
+            for block in blocks:
+                if block is None:
+                    pass
+                elif isinstance(block, tuple):
+                    title, keys = block
+                    width = max(len(name) for name, unit, value in keys)
+                    print('{:{width}}|value'.format('name', width=width))
+                    for name, unit, value in self.table:
+                        print('{:{width}}|{}'.format(name, value + ' ' + unit,
+                                                     width=width))
+                elif block.endswith('.png'):
+                    if op.isfile(block) and op.getsize(name) > 0:
+                        print(block)
+                elif block == 'CELL':
+                    print('\nUnit cell in Ang:')
+                    print('axis|periodic|          x|          y|          z')
+                    c = 1
+                    fmt = '   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'
+                    for p, axis in zip(row.pbc, self.cell):
+                        print(fmt.format(c, [' no', 'yes'][p], axis))
+                        c += 1
 
         if self.forces:
             print('\nForces in ev/Ang:')
