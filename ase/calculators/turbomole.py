@@ -45,339 +45,406 @@ class Turbomole(FileIOCalculator):
         'diff_dft_density', 'diff_dft_oper', 'diff_fockmat', 'diis_errvec', 
         'diis_oldfock'
     ]
-    default_parameters = {
-        # general and geometry
-        'title': '',
-        'point group': 'c1',
-        'use redundant internals': False,
-        # basis set
-        'use basis set library': True,
-        'basis set name': 'def-SV(P)',
-        'basis set definition': None,
-        # initial guess and occupation numbers
-        'initial guess': 'eht',
-        'total charge': 0,
-        'multiplicity': None,
-        'uhf': None,
-        'rohf': None,
-        # method
-        'use dft': True,
-        'density functional': 'b-p',
-        'grid size': 'm3',
-        'use resolution of identity': False,
-        'ri memory': 1000,
-        # scf parameters
-        'use fermi smearing': False,
-        'fermi initial temperature': 300,
-        'fermi final temperature': 300,
-        'fermi annealing factor': 0.95,
-        'fermi homo-lumo gap criterion': 0.1,
-        'fermi stopping criterion': 0.001,
-        'scf iterations': 60,
-        'scf energy convergence': None,
-        'density convergence': None,
-        'non-automatic orbital shift': False,
-        'automatic orbital shift': 0.1,
-        'closed-shell orbital shift': None,
-        'initial damping': None,
-        'minimal damping': None,
-        'damping adjustment step': None,
-        # task
-        'ground state': True,
-        'excited state': False,
-        'number of excited states': None,
-        'optimized excited state': None,
-        'force convergence': None,
-        'energy convergence': None,
-        'geometry optimization iterations': None,
-        'task': 'energy',
+    spec_names = {
+        'default': 'default_parameters',
+        'comment': 'parameter_comment',
+        'updateable': 'parameter_updateable',
+        'type': 'parameter_type',
+        'key': 'parameter_key',
+        'group': 'parameter_group',
+        'units': 'parameter_units',
+        'mapping': 'parameter_mapping',
+        'non-define': 'parameter_no_define'        
     }
-    parameter_comment = {
-        'title': None,
-        'point group': 'only c1 supported',
-        'use redundant internals': None,
-        'use basis set library': 'only true implemented',
-        'basis set name': 'as in the turbomole basis set library',
-        'basis set definition': 'not implemented',
-        'initial guess': 'other than "eht" not implemented',
-        'total charge': None,
-        'multiplicity': None,
-        'uhf': None,
-        'rohf': 'not implemented',
-        'use dft': None,
-        'density functional': None,
-        'grid size': None,
-        'use resolution of identity': None,
-        'ri memory': None,
-        'use fermi smearing': None,
-        'fermi initial temperature': None,
-        'fermi final temperature': None,
-        'fermi annealing factor': None,
-        'fermi homo-lumo gap criterion': None,
-        'fermi stopping criterion': None,
-        'scf iterations': None,
-        'scf energy convergence': None,
-        'density convergence': None,
-        'non-automatic orbital shift': None,
-        'automatic orbital shift': None,
-        'closed-shell orbital shift': 'does not work with automatic',
-        'initial damping': 'not implemented',
-        'minimal damping': 'not implemented',
-        'damping adjustment step': 'not implemented',
-        'ground state': 'only this is currently supported',
-        'excited state': 'not implemented',
-        'number of excited states': 'not implemented',
-        'optimized excited state': 'not implemented',
-        'force convergence': 'jobex -gcart <int>',
-        'energy convergence': 'jobex -energy <int>',
-        'geometry optimization iterations': 'jobex -c <int>',
-        'task': ('"energy calculation" = "energy", ' 
-                 '"gradient calculation" = "gradient", ' 
-                 '"geometry optimization" = "optimize", ' 
-                 '"normal mode analysis" = "frequencies" ')
-    }
-    parameter_updateable = {
-        'title': False,
-        'point group': False,
-        'use redundant internals': False,
-        'use basis set library': False,
-        'basis set name': False,
-        'basis set definition': False,
-        'initial guess': False,
-        'total charge': False,
-        'multiplicity': False,
-        'uhf': False,
-        'rohf': False,
-        'use dft': False,
-        'density functional': True,
-        'grid size': True,
-        'use resolution of identity': False,
-        'ri memory': True,
-        'use fermi smearing': True,
-        'fermi initial temperature': True,
-        'fermi final temperature': True,
-        'fermi annealing factor': True,
-        'fermi homo-lumo gap criterion': True,
-        'fermi stopping criterion': True,
-        'scf iterations': True,
-        'scf energy convergence': True,
-        'density convergence': True,
-        'non-automatic orbital shift': True,
-        'automatic orbital shift': True,
-        'closed-shell orbital shift': True,
-        'initial damping': True,
-        'minimal damping': True,
-        'damping adjustment step': True,
-        'ground state': False,
-        'excited state': False,
-        'number of excited states': False,
-        'optimized excited state': False,
-        'force convergence': True,
-        'energy convergence': True,
-        'geometry optimization iterations': True,
-        'task': True
-    }
-    parameter_type = {
-        'title': str,
-        'point group': str,
-        'use redundant internals': bool,
-        'use basis set library': bool,
-        'basis set name': str,
-        'basis set definition': dict,
-        'initial guess': str,
-        'total charge': int,
-        'multiplicity': int,
-        'uhf': bool,
-        'rohf': bool,
-        'use dft': bool,
-        'density functional': str,
-        'grid size': str,
-        'use resolution of identity': bool,
-        'ri memory': int,
-        'use fermi smearing': bool,
-        'fermi initial temperature': float,
-        'fermi final temperature': float,
-        'fermi annealing factor': float,
-        'fermi homo-lumo gap criterion': float,
-        'fermi stopping criterion': float,
-        'scf iterations': int,
-        'scf energy convergence': float,
-        'density convergence': float,
-        'non-automatic orbital shift': bool,
-        'automatic orbital shift': float,
-        'closed-shell orbital shift': float,
-        'initial damping': float,
-        'minimal damping': float,
-        'damping adjustment step': float,
-        'ground state': bool,
-        'excited state': bool,
-        'number of excited states': int,
-        'optimized excited state': int,
-        'force convergence': float,
-        'energy convergence': float,
-        'geometry optimization iterations': int,
-        'task': str,
-    }
-    parameter_key = {
-        'title': 'title',
-        'point group': 'symmetry',
-        'use redundant internals': None,
-        'use basis set library': None,
-        'basis set name': None,
-        'basis set definition': None,
-        'initial guess': None,
-        'total charge': None,
-        'multiplicity': None,
-        'uhf': 'uhf',
-        'rohf': None,
-        'use dft': 'dft',
-        'density functional': 'functional',
-        'grid size': 'gridsize',
-        'use resolution of identity': 'rij',
-        'ri memory': 'ricore',
-        'use fermi smearing': 'fermi',
-        'fermi initial temperature': 'tmstrt',
-        'fermi final temperature': 'tmend',
-        'fermi annealing factor': 'tmfac',
-        'fermi homo-lumo gap criterion': 'hlcrt',
-        'fermi stopping criterion': 'stop',
-        'scf iterations': 'scfiterlimit',
-        'scf energy convergence': 'scfconv',
-        'density convergence': 'denconv',
-        'non-automatic orbital shift': 'noautomatic',
-        'automatic orbital shift': 'automatic',
-        'closed-shell orbital shift': 'closedshell',
-        'initial damping': 'start',
-        'minimal damping': 'min',
-        'damping adjustment step': 'step', 
-        'ground state': None,
-        'excited state': None,
-        'number of excited states': None,
-        'optimized excited state': None,
-        'force convergence': None,
-        'energy convergence': None,
-        'geometry optimization iterations': None,
-        'task': None,
-    }
-    parameter_group = {
-        'title': 'title',
-        'point group': 'symmetry',
-        'use redundant internals': 'redundant',
-        'use basis set library': 'basis',
-        'basis set name': 'basis',
-        'basis set definition': 'basis',
-        'initial guess': None,
-        'total charge': None,
-        'multiplicity': None,
-        'uhf': 'uhf',
-        'rohf': None,
-        'use dft': 'dft',
-        'density functional': 'dft',
-        'grid size': 'dft',
-        'use resolution of identity': 'rij',
-        'ri memory': 'ricore',
-        'use fermi smearing': 'fermi',
-        'fermi initial temperature': 'fermi',
-        'fermi final temperature': 'fermi',
-        'fermi annealing factor': 'fermi',
-        'fermi homo-lumo gap criterion': 'fermi',
-        'fermi stopping criterion': 'fermi',
-        'scf iterations': 'scfiterlimit',
-        'scf energy convergence': 'scfconv',
-        'density convergence': 'denconv',
-        'non-automatic orbital shift': 'scforbitalshift',
-        'automatic orbital shift': 'scforbitalshift',
-        'closed-shell orbital shift': 'scforbitalshift',
-        'initial damping': 'scfdamp',
-        'minimal damping': 'scfdamp',
-        'damping adjustment step': 'scfdamp',
-        'ground state': None,
-        'excited state': None,
-        'number of excited states': None,
-        'optimized excited state': None,
-        'force convergence': None,
-        'energy convergence': None,
-        'geometry optimization iterations': None,
-        'task': None,
-    }
-    parameter_units = {
-        'title': None,
-        'point group': None,
-        'use redundant internals': None,
-        'use basis set library': None,
-        'basis set name': None,
-        'basis set definition': None,
-        'initial guess': None,
-        'total charge': None,
-        'multiplicity': None,
-        'uhf': None,
-        'rohf': None,
-        'use dft': None,
-        'density functional': None,
-        'grid size': None,
-        'use resolution of identity': None,
-        'ri memory': 'Megabyte',
-        'use fermi smearing': None,
-        'fermi initial temperature': 'Kelvin',
-        'fermi final temperature': 'Kelvin',
-        'fermi annealing factor': None,
-        'fermi homo-lumo gap criterion': 'eV',
-        'fermi stopping criterion': 'eV',
-        'scf iterations': None,
-        'scf energy convergence': 'eV',
-        'density convergence': None,
-        'non-automatic orbital shift': None,
-        'automatic orbital shift': 'eV',
-        'closed-shell orbital shift': 'eV',
-        'initial damping': None,
-        'minimal damping': None,
-        'damping adjustment step': None,
-        'ground state': None,
-        'excited state': None,
-        'number of excited states': None,
-        'optimized excited state': None,
-        'force convergence': 'eV/Angstrom',
-        'energy convergence': 'eV',
-        'geometry optimization iterations': None,
-        'task': None,
-    }
-    parameter_mapping = {
-        'fermi homo-lumo gap criterion': {
-            'to_control': lambda a: a/Hartree,
-            'from_control': lambda a: a*Hartree
-        },
-        'fermi stopping criterion': {
-            'to_control': lambda a: a/Hartree,
-            'from_control': lambda a: a*Hartree
-        },
-        'scf energy convergence': {
-            'to_control': lambda a: int(-log10(a/Hartree)//1),
-            'from_control': lambda a: 10**(-a)*Hartree
-        },
-        'density convergence': {
-            'to_control': lambda a: int(-log10(a)),
-            'from_control': lambda a: 10**(-a)
-        },
+    # nested dictionary with parameters properties
+    parameter_spec = {
         'automatic orbital shift': {
-            'to_control': lambda a: a/Hartree,
-            'from_control': lambda a: a*Hartree
+            'comment': None,
+            'default': 0.1,
+            'group': 'scforbitalshift',
+            'key': 'automatic',
+            'mapping': {
+                'to_control': lambda a: a/Hartree,
+                'from_control': lambda a: a*Hartree
+            },
+            'type': float,
+            'units': 'eV',
+            'updateable': True
+        },
+        'basis set definition': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': 'basis',
+            'key': None,
+            'type': dict,
+            'units': None,
+            'updateable': False
+        },
+        'basis set name': {
+            'comment': 'as in the turbomole basis set library',
+            'default': 'def-SV(P)',
+            'group': 'basis',
+            'key': None,
+            'type': str,
+            'units': None,
+            'updateable': False
         },
         'closed-shell orbital shift': {
-            'to_control': lambda a: a/Hartree,
-            'from_control': lambda a: a*Hartree
+            'comment': 'does not work with automatic',
+            'default': None,
+            'group': 'scforbitalshift',
+            'key': 'closedshell',
+            'mapping': {
+                'to_control': lambda a: a/Hartree,
+                'from_control': lambda a: a*Hartree
+            },
+            'type': float,
+            'units': 'eV',
+            'updateable': True
         },
-        'force convergence': {
-            'to_control': lambda a: a/Hartree*Bohr,
-            'from_control': lambda a: a*Hartree/Bohr
+        'damping adjustment step': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': 'scfdamp',
+            'key': 'step',
+            'type': float,
+            'units': None,
+            'updateable': True
+        },
+        'density convergence': {
+            'comment': None,
+            'default': None,
+            'group': 'denconv',
+            'key': 'denconv',
+            'mapping': {
+                'to_control': lambda a: int(-log10(a)),
+                'from_control': lambda a: 10**(-a)
+            },
+            'non-define': True,
+            'type': float,
+            'units': None,
+            'updateable': True
+        },
+        'density functional': {
+            'comment': None,
+            'default': 'b-p',
+            'group': 'dft',
+            'key': 'functional',
+            'type': str,
+            'units': None,
+            'updateable': True
         },
         'energy convergence': {
-            'to_control': lambda a: a/Hartree,
-            'from_control': lambda a: a*Hartree
+            'comment': 'jobex -energy <int>',
+            'default': None,
+            'group': None,
+            'key': None,
+            'mapping': {
+                'to_control': lambda a: a/Hartree,
+                'from_control': lambda a: a*Hartree
+            },
+            'type': float,
+            'units': 'eV',
+            'updateable': True
         },
+        'excited state': {
+            'comment': 'not implemented',
+            'default': False,
+            'group': None,
+            'key': None,
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'fermi annealing factor': {
+            'comment': None,
+            'default': 0.95,
+            'group': 'fermi',
+            'key': 'tmfac',
+            'type': float,
+            'units': None,
+            'updateable': True
+        },
+        'fermi final temperature': {
+            'comment': None,
+            'default': 300,
+            'group': 'fermi',
+            'key': 'tmend',
+            'type': float,
+            'units': 'Kelvin',
+            'updateable': True
+        },
+        'fermi homo-lumo gap criterion': {
+            'comment': None,
+            'default': 0.1,
+            'group': 'fermi',
+            'key': 'hlcrt',
+            'mapping': {
+                'to_control': lambda a: a/Hartree,
+                'from_control': lambda a: a*Hartree
+            },
+            'type': float,
+            'units': 'eV',
+            'updateable': True
+        },
+        'fermi initial temperature': {
+            'comment': None,
+            'default': 300,
+            'group': 'fermi',
+            'key': 'tmstrt',
+            'type': float,
+            'units': 'Kelvin',
+            'updateable': True
+        },
+        'fermi stopping criterion': {
+            'comment': None,
+            'default': 0.001,
+            'group': 'fermi',
+            'key': 'stop',
+            'mapping': {
+                'to_control': lambda a: a/Hartree,
+                'from_control': lambda a: a*Hartree
+            },
+            'type': float,
+            'units': 'eV',
+            'updateable': True
+        },
+        'force convergence': {
+            'comment': 'jobex -gcart <int>',
+            'default': None,
+            'group': None,
+            'key': None,
+            'mapping': {
+                'to_control': lambda a: a/Hartree*Bohr,
+                'from_control': lambda a: a*Hartree/Bohr
+            },
+            'type': float,
+            'units': 'eV/Angstrom',
+            'updateable': True
+        },
+        'geometry optimization iterations': {
+            'comment': 'jobex -c <int>',
+            'default': None,
+            'group': None,
+            'key': None,
+            'type': int,
+            'units': None,
+            'updateable': True
+        },
+        'grid size': {
+            'comment': None,
+            'default': 'm3',
+            'group': 'dft',
+            'key': 'gridsize',
+            'type': str,
+            'units': None,
+            'updateable': True
+        },
+        'ground state': {
+            'comment': 'only this is currently supported',
+            'default': True,
+            'group': None,
+            'key': None,
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'initial damping': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': 'scfdamp',
+            'key': 'start',
+            'type': float,
+            'units': None,
+            'updateable': True
+        },
+        'initial guess': {
+            'comment': 'other than "eht" not implemented',
+            'default': 'eht',
+            'group': None,
+            'key': None,
+            'type': str,
+            'units': None,
+            'updateable': False
+        },
+        'minimal damping': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': 'scfdamp',
+            'key': 'min',
+            'type': float,
+            'units': None,
+            'updateable': True
+        },
+        'multiplicity': {
+            'comment': None,
+            'default': None,
+            'group': None,
+            'key': None,
+            'type': int,
+            'units': None,
+            'updateable': False
+        },
+        'non-automatic orbital shift': {
+            'comment': None,
+            'default': False,
+            'group': 'scforbitalshift',
+            'key': 'noautomatic',
+            'type': bool,
+            'units': None,
+            'updateable': True
+        },
+        'number of excited states': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': None,
+            'key': None,
+            'type': int,
+            'units': None,
+            'updateable': False
+        },
+        'optimized excited state': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': None,
+            'key': None,
+            'type': int,
+            'units': None,
+            'updateable': False
+        },
+        'point group': {
+            'comment': 'only c1 supported',
+            'default': 'c1',
+            'group': 'symmetry',
+            'key': 'symmetry',
+            'type': str,
+            'units': None,
+            'updateable': False
+        },
+        'ri memory': {
+            'comment': None,
+            'default': 1000,
+            'group': 'ricore',
+            'key': 'ricore',
+            'type': int,
+            'units': 'Megabyte',
+            'updateable': True
+        },
+        'rohf': {
+            'comment': 'not implemented',
+            'default': None,
+            'group': None,
+            'key': None,
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'scf energy convergence': {
+            'comment': None,
+            'default': None,
+            'group': 'scfconv',
+            'key': 'scfconv',
+            'mapping': {
+                'to_control': lambda a: int(-log10(a/Hartree)//1),
+                'from_control': lambda a: 10**(-a)*Hartree
+            },
+            'type': float,
+            'units': 'eV',
+            'updateable': True
+        },
+        'scf iterations': {
+            'comment': None,
+            'default': 60,
+            'group': 'scfiterlimit',
+            'key': 'scfiterlimit',
+            'type': int,
+            'units': None,
+            'updateable': True
+        },
+        'task': {
+            'comment': '"energy calculation" = "energy", "gradient calculation"'
+                         ' = "gradient", "geometry optimization" = "optimize", '
+                         '"normal mode analysis" = "frequencies" ',
+            'default': 'energy',
+            'group': None,
+            'key': None,
+            'type': str,
+            'units': None,
+            'updateable': True
+        },
+        'title': {
+            'comment': None,
+            'default': '',
+            'group': 'title',
+            'key': 'title',
+            'type': str,
+            'units': None,
+            'updateable': False
+        },
+        'total charge': {
+            'comment': None,
+            'default': 0,
+            'group': None,
+            'key': None,
+            'type': int,
+            'units': None,
+            'updateable': False
+        },
+        'uhf': {
+            'comment': None,
+            'default': None,
+            'group': 'uhf',
+            'key': 'uhf',
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'use basis set library': {
+            'comment': 'only true implemented',
+            'default': True,
+            'group': 'basis',
+            'key': None,
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'use dft': {
+            'comment': None,
+            'default': True,
+            'group': 'dft',
+            'key': 'dft',
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'use fermi smearing': {
+            'comment': None,
+            'default': False,
+            'group': 'fermi',
+            'key': 'fermi',
+            'type': bool,
+            'units': None,
+            'updateable': True
+        },
+        'use redundant internals': {
+            'comment': None,
+            'default': False,
+            'group': 'redundant',
+            'key': None,
+            'type': bool,
+            'units': None,
+            'updateable': False
+        },
+        'use resolution of identity': {
+            'comment': None,
+            'default': False,
+            'group': 'rij',
+            'key': 'rij',
+            'type': bool,
+            'units': None,
+            'updateable': False
+        }
     }
-    parameter_no_define = {
-        'density convergence': True,
-    }    
 
     """ initial values """
 
@@ -401,6 +468,15 @@ class Turbomole(FileIOCalculator):
         self.define_str = define_str
         self.control_kdg = control_kdg
         self.control_input = control_input
+
+        # construct flat dictionaries with parameter attributes
+        for key in list(self.spec_names.keys()):
+            setattr(self, self.spec_names[key], {})
+        for p in list(self.parameter_spec.keys()):
+            for k in list(self.spec_names.keys()):
+                if k in list(self.parameter_spec[p].keys()):
+                    subdict = getattr(self, self.spec_names[k])
+                    subdict.update({p: self.parameter_spec[p][k]})
 
         if self.restart:
             self.set_restart(kwargs)
@@ -523,7 +599,7 @@ class Turbomole(FileIOCalculator):
             for dg in self.control_kdg:
                 self.delete_data_group(dg)
 
-        # append user-defined input to define
+        # append user-defined input to control
         if self.control_input:
             for inp in self.control_input:
                 self.add_data_group(inp, raw=True)
