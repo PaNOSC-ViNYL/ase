@@ -20,8 +20,9 @@ c.write(Atoms('H2O'),
               't2': t2})
 c.metadata = {'title': 'Test title',
               'key_descriptions':
-                  {'foo': ('FOO', 'FOO ...', 'float', '`m_e`')},
+                  {'foo': ('FOO', 'FOO ...', '`m_e`')},
               'default_columns': ['foo', 'formula', 'bar']}
+c.python = None
 app.databases['default'] = c
 app.app.testing = True
 c = app.app.test_client()
