@@ -1,3 +1,4 @@
+import functools
 import os
 
 from ase.utils import Lock
@@ -8,6 +9,7 @@ functions = []
 
 def creates(*filenames):
     def decorator(func):
+        @functools.wraps(func)
         def newfunc(row, prefix='', tmpdir='.'):
             with Lock('ase.db.web.lock'):
                 for filename in filenames:

@@ -94,6 +94,8 @@ class CLICommand:
             help='Set metadata from a json file.')
         add('-M', '--metadata-from-python-script', metavar='something.py',
             help='Use metadata from a Python file.')
+        add('-t', '--test-python-script', metavar='something.py',
+            help='Run Python script on a row.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
 
@@ -240,6 +242,16 @@ def main(args):
             plt.xticks(range(len(labels)), labels, rotation=90)
         plt.legend()
         plt.show()
+        return
+
+    if args.test_python_script:
+        from ase.db.app import build_metadata
+        con.python = args.test_python_script
+        meta = build_metadata(con)
+        row = con.get(query)
+        for func in meta['functions']:
+            print('Running', func.__name__)
+            func(row)
         return
 
     if args.long:

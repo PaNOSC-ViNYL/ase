@@ -529,7 +529,6 @@ def build_metadata(db):
         unit = sup.sub(r'\1<sup>\2</sup>', unit)
         meta['key_descriptions'][key] = (short, long, unit)
 
-    print(meta)
     return meta
 
 
