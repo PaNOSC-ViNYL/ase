@@ -163,7 +163,7 @@ jmol_isReady = function(applet)
         </h4>
     </div>
 
-    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse in">
+    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
         <div class="panel-body">
     {% for thing in things %}
         {% if loop.index0 is divisibleby 2 %}
