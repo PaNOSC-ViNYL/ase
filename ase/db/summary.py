@@ -64,6 +64,10 @@ class Summary:
 
         table.update(row.key_value_pairs)
 
+        for key, value in table.items():
+            if isinstance(value, float):
+                table[key] = '{:.3f}'.format(value)
+
         # If meta data for summary_sections does not exists a default
         # template is generated otherwise it goes through the meta
         # data and checks if all keys are indeed present
@@ -73,7 +77,6 @@ class Summary:
         self.layout = []
         for headline, blocks in meta['layout']:
             newblocks = []
-            print(blocks)
             for block in blocks:
                 if block is None:
                     pass
@@ -103,7 +106,7 @@ class Summary:
             for key, value in sorted(table.items()):
                 desc, unit = kd.get(key, [0, key, ''])[1:]
                 rows.append((desc, value, unit))
-            self.layout.append(('Misc.', [('Things', rows)]))
+            self.layout.append(('Miscellaneous', [('Items', rows)]))
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
