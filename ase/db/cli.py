@@ -150,8 +150,8 @@ def main(args):
 
     if args.explain:
         for row in db.select(query, explain=True,
-                              verbosity=verbosity,
-                              limit=args.limit, offset=args.offset):
+                             verbosity=verbosity,
+                             limit=args.limit, offset=args.offset):
             print(row['explain'])
         return
 
@@ -255,7 +255,7 @@ def main(args):
 
     if args.long:
         row = db.get(query)
-        summary = Summary(row)
+        summary = Summary(row, db.meta)
         summary.write()
     else:
         if args.open_web_browser:
@@ -268,7 +268,7 @@ def main(args):
             if c and c.startswith('++'):
                 keys = set()
                 for row in db.select(query,
-                                      limit=args.limit, offset=args.offset):
+                                     limit=args.limit, offset=args.offset):
                     keys.update(row._keys)
                 columns.extend(keys)
                 if c[2:3] == ',':

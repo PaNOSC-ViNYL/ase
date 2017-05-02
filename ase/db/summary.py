@@ -136,44 +136,49 @@ class Summary:
     def write(self):
         row = self.row
 
+        print(self.formula + ':')
         for headline, blocks in self.layout:
-            print(headline)
+            print((' ' + headline + ' ').center(78, '='))
             for block in blocks:
                 if block is None:
                     pass
                 elif isinstance(block, tuple):
                     title, keys = block
+                    print(title + ':')
                     width = max(len(name) for name, unit, value in keys)
                     print('{:{width}}|value'.format('name', width=width))
-                    for name, unit, value in self.table:
-                        print('{:{width}}|{}'.format(name, value + ' ' + unit,
-                                                     width=width))
+                    for name, unit, value in keys:
+                        print('{:{width}}|{} {}'.format(name, value, unit,
+                                                        width=width))
+                    print()
                 elif block.endswith('.png'):
                     if op.isfile(block) and op.getsize(name) > 0:
                         print(block)
+                    print()
                 elif block == 'CELL':
-                    print('\nUnit cell in Ang:')
+                    print('Unit cell in Ang:')
                     print('axis|periodic|          x|          y|          z')
                     c = 1
                     fmt = '   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'
                     for p, axis in zip(row.pbc, self.cell):
                         print(fmt.format(c, [' no', 'yes'][p], axis))
                         c += 1
-
-        if self.forces:
-            print('\nForces in ev/Ang:')
-            for f in self.forces:
-                print('{0:4}|{1:2}|{2}|{3}|{4}'.format(*f))
+                    print()
+                elif block == 'FORCES' and self.forces is not None:
+                    print('\nForces in ev/Ang:')
+                    for f in self.forces:
+                        print('{:4}|{:2}|{}|{}|{}'.format(*f))
+                    print()
 
         if self.stress:
-            print('\nStress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
-            print('   ', self.stress)
+            print('Stress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
+            print('   ', self.stress, '\n')
 
         if self.dipole:
-            print('\nDipole moment in e*Ang: ({0})'.format(self.dipole))
+            print('Dipole moment in e*Ang: ({})\n'.format(self.dipole))
 
         if self.constraints:
-            print('\nConstraints:', self.constraints)
+            print('Constraints:', self.constraints, '\n')
 
         if self.data:
-            print('\nData:', self.data)
+            print('Data:', self.data, '\n')
