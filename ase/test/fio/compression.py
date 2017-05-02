@@ -103,10 +103,18 @@ if __name__ in ('__main__', '__builtin__'):
     test_modes('bz2')
     # xz
     # These will fail in Python 2 if backports.lzma is not installed,
-    # but will be caught by test framework.
+    # but raise different errors depending on whether any other
+    # backports modules are installed. Catch here so the skip message
+    # always has both parts of the module name.
     # Do xz last so the other formats are always tested anyway.
-    test_compression_write_single('xz')
-    test_compression_read_write_single('xz')
-    test_compression_write_multiple('xz')
-    test_compression_read_write_multiple('xz')
-    test_modes('xz')
+    try:
+        test_compression_write_single('xz')
+        test_compression_read_write_single('xz')
+        test_compression_write_multiple('xz')
+        test_compression_read_write_multiple('xz')
+        test_modes('xz')
+    except ImportError as ex:
+        if 'lzma' in ex.args[0] or 'backports' in ex.args[0]:
+            raise NotAvailable('no backports.lzma module')
+        else:
+            raise

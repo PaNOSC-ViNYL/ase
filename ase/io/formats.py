@@ -238,7 +238,8 @@ def open_with_compression(filename, mode='r'):
     from the filename and open it for reading or writing as if it were
     a standard file.
 
-    Implemented for ``gz``(gzip), ``bz2``(bzip2) and ``xz``(lzma).
+    Implemented for ``gz``(gzip), ``bz2``(bzip2) and ``xz``(lzma). Either
+    Python 3 or the ``backports.lzma`` module are required for ``xz``.
 
     Supported modes are:
        * 'r', 'rt', 'w', 'wt' for text mode read and write.
@@ -252,7 +253,7 @@ def open_with_compression(filename, mode='r'):
         Path to the file to open, including any extensions that indicate
         the compression used.
     mode: str
-        Mode to open the file, same as for builtin `open`, e.g 'r', 'w'.
+        Mode to open the file, same as for builtin ``open``, e.g 'r', 'w'.
 
     Returns
     =======
@@ -260,11 +261,18 @@ def open_with_compression(filename, mode='r'):
         File-like object open with the specified mode.
     """
 
-    # compressed formats sometimes default to binary, so force text.
-    if mode == 'r':
-        mode = 'rt'
-    elif mode == 'w':
-        mode = 'wt'
+    if sys.version_info[0] > 2:
+        # Compressed formats sometimes default to binary, so force
+        # text mode in Python 3.
+        if mode == 'r':
+            mode = 'rt'
+        elif mode == 'w':
+            mode = 'wt'
+    else:
+        # The version of gzip in Anaconda Python 2 on Windows forcibly
+        # adds a 'b', so strip any 't' and let the string conversions
+        # be carried out implicitly by Python.
+        mode = mode.strip('t')
 
     root, compression = get_compression(filename)
 
@@ -280,14 +288,12 @@ def open_with_compression(filename, mode='r'):
             fd = bz2.open(filename, mode=mode)
         else:
             # Python 2
-            fd = bz2.BZ2File(filename, mode=mode.strip('t'))
+            fd = bz2.BZ2File(filename, mode=mode)
     elif compression == 'xz':
         try:
             import lzma
         except ImportError:
             from backports import lzma
-            # Expects unicode in Python 2
-            mode = mode.strip('t')
         fd = lzma.open(filename, mode)
     else:
         fd = open(filename, mode)
@@ -434,7 +440,6 @@ def iread(filename, index=None, format=None, **kwargs):
 
 @parallel_generator
 def _iread(filename, index, format, io, full_output=False, **kwargs):
-    compression = None
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
 

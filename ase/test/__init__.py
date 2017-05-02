@@ -53,7 +53,7 @@ class ScriptTestCase(unittest.TestCase):
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                          'flask', 'gpaw', 'GPAW', 'lzma']:
+                          'flask', 'gpaw', 'GPAW']:
                 raise unittest.SkipTest('no {} module'.format(module))
             else:
                 raise
