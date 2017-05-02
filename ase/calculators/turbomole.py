@@ -14,6 +14,7 @@ from ase.units import Hartree, Bohr
 from ase.io import read, write
 from ase.calculators.calculator import FileIOCalculator
 from ase.calculators.calculator import PropertyNotImplementedError, ReadError
+from ase.utils import basestring
 
 
 class Turbomole(FileIOCalculator):
