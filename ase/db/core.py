@@ -17,6 +17,21 @@ T2000 = 946681200.0  # January 1. 2000
 YEAR = 31557600.0  # 365.25 days
 
 
+default_key_descriptions = {
+    'id': ('ID', 'Uniqe row ID', ''),
+    'age': ('Age', 'Time since creation', ''),
+    'formula': ('Formula', 'Chemical formula', ''),
+    'user': ('Username', '', ''),
+    'calculator': ('Calculator', 'ASE-calculator name', ''),
+    'energy': ('Energy', 'Total energy', 'eV'),
+    'fmax': ('Maximum force', '', 'eV/Ang'),
+    'charge': ('Charge', '', '|e|'),
+    'mass': ('Mass', '', 'au'),
+    'magmom': ('Magnetic moment', '', 'au'),
+    'unique_id': ('Unique ID', '', ''),
+    'volume': ('Volume', 'Volume of unit-cell', '`Ang^3`')}
+
+
 def now():
     """Return time since January 1. 2000 in years."""
     return (time() - T2000) / YEAR
@@ -61,18 +76,24 @@ numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms'])
 def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
-            raise ValueError('Bad key: {0}'.format(key))
+            raise ValueError('Bad key: {}'.format(key))
+        try:
+            string2symbols(key)
+        except ValueError:
+            pass
+        else:
+            raise ValueError('Bad key: {} is a chemical formula'.format(key))
         if not isinstance(value, (numbers.Real, basestring)):
-            raise ValueError('Bad value: {0}'.format(value))
+            raise ValueError('Bad value: {}'.format(value))
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):
                     raise ValueError(
                         'Value ' + value + ' is put in as string ' +
                         'but can be interpreted as ' +
-                        '{0}! Please convert '.format(t.__name__) +
-                        'to {0} using '.format(t.__name__) +
-                        '{0}(value) before '.format(t.__name__) +
+                        '{}! Please convert '.format(t.__name__) +
+                        'to {} using '.format(t.__name__) +
+                        '{}(value) before '.format(t.__name__) +
                         'writing to the database OR change ' +
                         'to a different string.')
 
@@ -360,7 +381,7 @@ class Database:
             elif isinstance(value, basestring):
                 value = convert_str_to_int_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
-                msg = 'Wrong type for "{0}{1}{2}" - must be a number'
+                msg = 'Wrong type for "{}{}{}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
 
@@ -484,6 +505,6 @@ def float_to_time_string(t, long=False):
         if x > 5:
             break
     if long:
-        return '{0:.3f} {1}s'.format(x, longwords[s])
+        return '{:.3f} {}s'.format(x, longwords[s])
     else:
-        return '{0:.0f}{1}'.format(round(x), s)
+        return '{:.0f}{}'.format(round(x), s)
