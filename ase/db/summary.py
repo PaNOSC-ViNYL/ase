@@ -8,7 +8,7 @@ from ase.utils import hill, Lock
 
 
 class Summary:
-    def __init__(self, row, meta={}, subscript=None, prefix=None, tmpdir=None):
+    def __init__(self, row, meta={}, subscript=None, prefix='', tmpdir='.'):
         self.row = row
 
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -92,7 +92,8 @@ class Summary:
                         if op.getsize(name) == 0:
                             block = None
                     else:
-                        self.create_figures(row, prefix, tmpdir)
+                        self.create_figures(row, prefix, tmpdir,
+                                            meta['functions'])
 
                 newblocks.append(block)
             self.layout.append((headline, newblocks))
@@ -116,9 +117,9 @@ class Summary:
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)
 
-    def create_figures(self, row, prefix, tmpdir):
+    def create_figures(self, row, prefix, tmpdir, functions):
         with Lock('ase.db.web.lock'):
-            for func, filenames in self.meta['functions']:
+            for func, filenames in functions:
                 for filename in filenames:
                     try:
                         os.remove(filename)
@@ -145,14 +146,14 @@ class Summary:
                 elif isinstance(block, tuple):
                     title, keys = block
                     print(title + ':')
-                    width = max(len(name) for name, unit, value in keys)
+                    width = max(len(name) for name, value, unit in keys)
                     print('{:{width}}|value'.format('name', width=width))
-                    for name, unit, value in keys:
+                    for name, value, unit in keys:
                         print('{:{width}}|{} {}'.format(name, value, unit,
                                                         width=width))
                     print()
                 elif block.endswith('.png'):
-                    if op.isfile(block) and op.getsize(name) > 0:
+                    if op.isfile(block) and op.getsize(block) > 0:
                         print(block)
                     print()
                 elif block == 'CELL':
