@@ -926,6 +926,7 @@ class Turbomole(FileIOCalculator):
             self.read_gradient,
             self.read_forces,
             self.read_basis_set,
+            self.read_ecps,
             self.read_mos,
             self.read_occupation_numbers,
             self.read_dipole_moment,
@@ -940,7 +941,7 @@ class Turbomole(FileIOCalculator):
             try:
                 method()
             except ReadError as err:
-                warnings.warn(err[0])
+                warnings.warn(err.args[0])
         self.converged = self.read_convergence()
 
     def read_parameters(self):
@@ -1013,7 +1014,7 @@ class Turbomole(FileIOCalculator):
 
         """ special parameters - no-group or no-key parameters """
 
-        # per-element or per-atom basis sets not implemented in calculator
+        # per-element and per-atom basis sets not implemented in calculator
         basis_sets = set([bs['nickname'] for bs in self.results['basis set']])
         assert len(basis_sets) == 1
         params['basis set name'] = list(basis_sets)[0]
@@ -1023,6 +1024,12 @@ class Turbomole(FileIOCalculator):
         orbs = self.results['molecular orbitals']
         params['rohf'] = (bool(len(self.read_data_group('rohf'))) or
                     bool(len(self.read_data_group('roothaan'))))
+        core_charge = 0
+        if self.results['ecps']:
+            for ecp in self.results['ecps']:
+                for symbol in self.atoms.get_chemical_symbols():
+                    if symbol.lower() == ecp['element'].lower():
+                        core_charge -= ecp['number of core electrons']
         if params['uhf']:
             alpha_occ = [o['occupancy'] for o in orbs if o['spin'] == 'alpha']
             beta_occ = [o['occupancy'] for o in orbs if o['spin'] == 'beta']
@@ -1030,11 +1037,13 @@ class Turbomole(FileIOCalculator):
             params['multiplicity'] = int(2*spin+1)
             nuclear_charge = np.sum(self.atoms.numbers)
             electron_charge = -int(np.sum(alpha_occ) + np.sum(beta_occ))
+            electron_charge += core_charge
             params['total charge'] = nuclear_charge + electron_charge
         elif not params['rohf']: # restricted HF (closed shell)
             params['multiplicity'] = 1
             nuclear_charge = np.sum(self.atoms.numbers)
             electron_charge = -int(np.sum([o['occupancy'] for o in orbs]))
+            electron_charge += core_charge
             params['total charge'] = nuclear_charge + electron_charge
         else:
             raise NotImplementedError('ROHF not implemented')
@@ -1326,7 +1335,7 @@ class Turbomole(FileIOCalculator):
                 orbitals_coefficients_line += r.read(line)
 
     def read_basis_set(self):
-        """ read basis set, ecp not supported yet """
+        """ read the basis set """
         self.results['basis set'] = []
         self.results['basis set formatted'] = {}
         bsf = self.read_data_group('basis')
@@ -1339,15 +1348,15 @@ class Turbomole(FileIOCalculator):
         read_tag = False
         read_data = False
         for line in lines:
-            if len(line) == 0:
+            if len(line.strip()) == 0:
                 continue
             if '$basis' in line:
                 continue
             if '$end' in line:
                 break
-            if re.match('^\s*#',line):
+            if re.match('^\s*#', line):
                 continue
-            if re.match('^\s*\*',line):
+            if re.match('^\s*\*', line):
                 if read_tag:
                     read_tag = False
                     read_data = True
@@ -1368,14 +1377,14 @@ class Turbomole(FileIOCalculator):
                     read_tag = True
                 continue
             if read_tag:
-                match = re.search('^\s*(\w+)\s+(.+)',line)
+                match = re.search('^\s*(\w+)\s+(.+)', line)
                 if match:
                     basis_set['element'] = match.group(1)
                     basis_set['nickname'] = match.group(2)
                 else:
                     raise RuntimeError("error reading basis set")
             else:
-                match = re.search('^\s+(\d+)\s+(\w+)',line)
+                match = re.search('^\s+(\d+)\s+(\w+)', line)
                 if match:
                     if len(primitives) is not 0:
                         # end primitives
@@ -1397,6 +1406,89 @@ class Turbomole(FileIOCalculator):
                     coefficient = float(match.group(3))
                     primitives.append(
                         {'exponent': exponent, 'coefficient': coefficient}
+                    )
+
+    def read_ecps(self):
+        """ read the effective core potentials """
+        ecpf = self.read_data_group('ecp')
+        if not bool(len(ecpf)):
+            self.results['ecps'] = None
+            self.results['ecps formatted'] = None
+            return
+        self.results['ecps'] = []
+        self.results['ecps formatted'] = {}
+        self.results['ecps formatted']['turbomole'] = ecpf
+        lines = ecpf.split('\n')
+        ecp = {}
+        groups = []
+        group = {}
+        terms = []
+        read_tag = False
+        read_data = False
+        for line in lines:
+            if len(line.strip()) == 0:
+                continue
+            if '$ecp' in line:
+                continue
+            if '$end' in line:
+                break
+            if re.match('^\s*#', line):
+                continue
+            if re.match('^\s*\*', line):
+                if read_tag:
+                    read_tag = False
+                    read_data = True
+                else:
+                    if read_data:
+                        # end terms
+                        group['terms'] = terms
+                        group['number of terms'] = len(terms)
+                        terms = []
+                        groups.append(group)
+                        group = {}
+                        # end group
+                        ecp['groups'] = groups
+                        groups = []
+                        self.results['ecps'].append(ecp)
+                        ecp = {}
+                        read_data = False
+                    read_tag = True
+                continue
+            if read_tag:
+                match = re.search('^\s*(\w+)\s+(.+)', line)
+                if match:
+                    ecp['element'] = match.group(1)
+                    ecp['nickname'] = match.group(2)
+                else:
+                    raise RuntimeError("error reading ecp")
+            else:
+                match = re.search('ncore\s*=\s*(\d+)\s+lmax\s*=\s*(\d+)', line)
+                if match:
+                    ecp['number of core electrons'] = int(match.group(1))
+                    ecp['maximum angular momentum number'] = int(match.group(2))
+                    continue
+                match = re.search('^(\w(\-\w)?)', line)
+                if match:
+                    if len(terms) is not 0:
+                        # end terms
+                        group['terms'] = terms
+                        group['number of terms'] = len(terms)
+                        terms = []
+                        groups.append(group)
+                        group = {}
+                        # begin group
+                    group['title'] = str(match.group(1))
+                    continue
+                regex = ('^\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s+(\d)'
+                         '\s+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')
+                match = re.search(regex, line)
+                if match:
+                    terms.append(
+                        {
+                            'coefficient': float(match.group(1)),
+                            'power of r': float(match.group(3)),
+                            'exponent': float(match.group(4))
+                        }
                     )
 
     def read_gradient(self):
