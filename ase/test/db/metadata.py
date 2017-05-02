@@ -26,8 +26,8 @@ for name in ['md.json', 'md.db']:
             ('BOOL', 'foo'),
             ('RANGE', 'ans', 'Answer', [('ANS', 'answer')])],
         'key_descriptions': {
-            'kind': ('Type', 'Type of system', 'string', ''),
-            'answer': ('Answer', 'Answer to question', 'int', 'eV')}}
+            'kind': ('Type', 'Type of system', ''),
+            'answer': ('Answer', 'Answer to question', 'eV')}}
 
     db = connect(name)
     md = db.metadata
