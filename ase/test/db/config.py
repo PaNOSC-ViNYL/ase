@@ -10,8 +10,8 @@ special_keys = [('SELECT', 'kind'),
                                             ('B2', 'answer')])]
 
 key_descriptions = {
-    'kind': ('Type', 'Type of system', 'string', ''),
-    'answer': ('Answer', 'Answer to question', 'int', 'eV')}
+    'kind': ('Type', 'Type of system', ''),
+    'answer': ('Answer', 'Answer to question', 'eV')}
 
 
 @creates('xy.png', 'abc.png')

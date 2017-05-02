@@ -123,7 +123,7 @@ class Summary:
                 for filename in filenames:
                     try:
                         os.remove(filename)
-                    except FileNotFoundError:
+                    except OSError:  # Python 3 only: FileNotFoundError
                         pass
                 func(row)
                 for filename in filenames:
@@ -146,6 +146,9 @@ class Summary:
                 elif isinstance(block, tuple):
                     title, keys = block
                     print(title + ':')
+                    if not keys:
+                        print()
+                        continue
                     width = max(len(name) for name, value, unit in keys)
                     print('{:{width}}|value'.format('name', width=width))
                     for name, value, unit in keys:
