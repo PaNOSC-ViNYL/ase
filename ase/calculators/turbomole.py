@@ -616,7 +616,7 @@ class Turbomole(FileIOCalculator):
 
         # kwargs parameters are ignored if user provides define_str
         if self.define_str is not None:
-            assert isinstance(self.define_str, str)
+            assert isinstance(self.define_str, basestring)
             assert len(self.define_str) != 0
             return
 
@@ -650,7 +650,8 @@ class Turbomole(FileIOCalculator):
         self.atoms = None
         self.results = {}
         self.results['calculation parameters'] = {}
-        for f in self.tm_files + self.tm_tmp_files:
+        ase_files = [f for f in os.listdir('.') if f.startswith('ASE.TM.')]
+        for f in self.tm_files + self.tm_tmp_files + ase_files:
             if os.path.exists(f):
                 os.remove(f)
         self.initialized = False
@@ -834,7 +835,7 @@ class Turbomole(FileIOCalculator):
     def execute(self, args, input_str=None, error_test=True, stdout_tofile=True):
         """ executes a turbomole executable and process the outputs """
 
-        if isinstance(args, str):
+        if isinstance(args, basestring):
             args = args.split()
 
         if stdout_tofile:
@@ -992,7 +993,7 @@ class Turbomole(FileIOCalculator):
                 else:
                     if pdgs[p] is None:
                         params[p] = None
-                    elif type(pdgs[p]) is str:
+                    elif isinstance(pdgs[p], basestring):
                         if self.parameter_type[p] is bool:
                             params[p] = (pdgs[p] == self.parameter_key[p])
                     else:
@@ -1622,6 +1623,62 @@ class Turbomole(FileIOCalculator):
             'units':'Debye'
         }
         self.dipole = np.array(dip_vec)*Bohr
+
+    def read_output(self, regex):
+        """ collects all matching strings from the output """
+        hitlist = []
+        checkfiles = []
+        for filename in os.listdir('.'):
+            if filename.startswith('job.') or filename.endswith('.out'):
+                checkfiles.append(filename)
+        for filename in checkfiles:
+            with open(filename, 'rt') as f:
+                lines = f.readlines()
+                for line in lines:
+                    match = re.search(regex, line)
+                    if match: hitlist.append(match.group(1))
+        return hitlist
+
+    def read_version(self):
+        """ read the version from the tm output if stored in a file """
+        versions = self.read_output('TURBOMOLE\s+V(\d+\.\d+)\s+')
+        if len(set(versions)) > 1:
+            warnings.warn('different turbomole versions detected')
+            self.version = list(set(versions))
+        elif len(versions) == 0:
+            warnings.warn('no turbomole version detected')
+            self.version = None
+        else:
+            self.version = versions[0]
+
+    def read_datetime(self):
+        """ read the datetime of calc from the tm output if stored in a file """
+        datetimes = self.read_output('(\d{4}-[01]\d-[0-3]\d([T\s][0-2]\d:[0-5]'
+                        '\d:[0-5]\d\.\d+)?([+-][0-2]\d:[0-5]\d|Z)?)')
+        if len(datetimes) == 0:
+            warnings.warn('no turbomole datetime detected')
+            self.datetime = None
+        else:
+            # take the most recent time stamp
+            self.datetime = sorted(datetimes, reverse=True)[0]
+
+    def read_runtime(self):
+        """ read the total runtime of calculations """
+        hits = self.read_output('total wall-time\s+:\s+(\d+.\d+)\s+seconds')
+        if len(hits) == 0:
+            warnings.warn('no turbomole runtimes detected')
+            self.runtime = None
+        else:
+            self.runtime = np.sum([float(a) for a in hits])
+
+    def read_hostname(self):
+        """ read the hostname of the computer on which the calc has run """
+        hostnames = self.read_output('hostname is\s+(.+)')
+        if len(set(hostnames)) > 1:
+            warnings.warn('runs on different hosts detected')
+            self.hostname = list(set(hostnames))
+        else:
+            self.hostname = hostnames[0]
 
     """ getter methods """
 
