@@ -484,6 +484,9 @@ class Atoms(object):
             following the Hill notation (alphabetical order with C and H
             first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
             'H2O4S'. This is default.
+      
+            'metal': The list of checmical symbols (alphabetical metals,
+            and alphabetical non-metals)
         """
         if len(self) == 0:
             return ''
@@ -517,6 +520,29 @@ class Atoms(object):
             numbers = self.get_atomic_numbers()
             symbols = [chemical_symbols[n] for n in numbers]
             counts = [1] * len(numbers)
+        elif mode == 'metal':
+            # non metals, half-metals/metalloid, halogen, noble gas
+            nonMetals = ['H', 'He', 'B', 'C', 'N', 'O', 'F', 'Ne',
+                        'Si', 'P', 'S', 'Cl', 'Ar',
+                        'Ge', 'As', 'Se', 'Br', 'Kr',
+                        'Sb', 'Te', 'I', 'Xe',
+                        'Po', 'At', 'Rn']
+
+            numbers = self.get_atomic_numbers()
+            elements = np.unique(numbers)
+            symbols = np.array([chemical_symbols[e] for e in elements])
+            counts = np.array([(numbers == e).sum() for e in elements])
+  
+            sym = []
+            # sort metals
+            for e in symbols:
+                if e in nonMetals:
+                    sym.append('2'+e)
+                else:
+                    sym.append('1'+e)
+            ind = np.array(sym).argsort()
+            symbols = symbols[ind]
+            counts = counts[ind]
         else:
             raise ValueError("Use mode = 'all', 'reduce' or 'hill'.")
 
