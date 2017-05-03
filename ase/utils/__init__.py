@@ -15,6 +15,7 @@ except ImportError:
 import numpy as np
 
 from ase.data import chemical_symbols
+from ase.utils.formula import formula_hill, formula_metal
 
 __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',

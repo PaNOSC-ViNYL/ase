@@ -2,7 +2,7 @@ from __future__ import print_function
 
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
-from ase.utils import hill
+from ase.utils import formula_hill
 
 
 class Summary:
@@ -39,7 +39,7 @@ class Summary:
         else:
             mass = atomic_masses[row.numbers].sum()
 
-        formula = hill(row.numbers)
+        formula = formula_hill(row.numbers)
         if subscript:
             formula = subscript.sub(r'<sub>\1</sub>', formula)
 

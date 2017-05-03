@@ -17,8 +17,7 @@ import numpy as np
 import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
-from ase.utils import basestring
-from ase.utils.formula import formula_hill, formula_metal
+from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic)
 
