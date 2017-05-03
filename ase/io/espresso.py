@@ -18,7 +18,8 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.units import create_units
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.utils import basestring, chemical_symbols
+from ase.utils import basestring
+from ase.data import chemical_symbols
 
 # Quantum ESPRESSO uses CODATA 2006 internally
 units = create_units('2006')
