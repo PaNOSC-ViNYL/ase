@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* Python 2.6 no longer supported.
+
 * The command-line tools :program:`ase-???` have been replaced by a
   single :program:`ase` command with sub-commands.  For help, type::
 
@@ -19,8 +21,6 @@ Git master branch
 * The old :program:`ase-build` command which is now called
   :program:`ase build` will no longer add vacuum by default.  Use
   ``ase build -V 3.0`` to get the old behavior.
-
-* Python 2.6 no longer supported.
 
 * All methods of the :class:`~ase.Atoms` object that deal with angles now
   have new API's that use degrees instead of radians as the unit of angle

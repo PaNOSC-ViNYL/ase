@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 import time
+from importlib import import_module
 from math import sin, cos, radians, atan2, degrees
 from contextlib import contextmanager
 
@@ -38,16 +39,6 @@ else:
     from StringIO import StringIO
     pickleload = pickle.load
 StringIO  # appease pyflakes
-
-if sys.version_info >= (2, 7):
-    from importlib import import_module
-else:
-    # Python 2.6:
-    def import_module(name):
-        module = __import__(name)
-        for part in name.split('.')[1:]:
-            module = getattr(module, part)
-        return module
 
 
 @contextmanager

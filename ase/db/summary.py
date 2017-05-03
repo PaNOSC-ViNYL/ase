@@ -1,12 +1,15 @@
 from __future__ import print_function
+import os
+import shutil
+import os.path as op
 
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
-from ase.utils import formula_hill
+from ase.utils import formula_hill, Lock
 
 
 class Summary:
-    def __init__(self, row, meta={}, subscript=None):
+    def __init__(self, row, meta={}, subscript=None, prefix='', tmpdir='.'):
         self.row = row
 
         self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -39,157 +42,149 @@ class Summary:
         else:
             mass = atomic_masses[row.numbers].sum()
 
-        formula = formula_hill(row.numbers)
+        self.formula = formula_hill(row.numbers)
+
         if subscript:
-            formula = subscript.sub(r'<sub>\1</sub>', formula)
+            self.formula = subscript.sub(r'<sub>\1</sub>', self.formula)
 
-        table = [
-            ('id', '', row.id),
-            ('age', '', float_to_time_string(now() - row.ctime, True)),
-            ('formula', '', formula),
-            ('user', '', row.user),
-            ('calculator', '', row.get('calculator')),
-            ('energy', 'eV', row.get('energy')),
-            ('fmax', 'eV/Ang', fmax),
-            ('charge', '|e|', row.get('charge')),
-            ('mass', 'au', mass),
-            ('magmom', 'au', row.get('magmom')),
-            ('unique id', '', row.unique_id),
-            ('volume', 'Ang^3', row.get('volume'))]
+        age = float_to_time_string(now() - row.ctime, True)
 
-        self.table = [(name, unit, value) for name, unit, value in table
-                      if value is not None]
+        table = dict((key, value)
+                     for key, value in [
+                         ('id', row.id),
+                         ('age', age),
+                         ('formula', self.formula),
+                         ('user', row.user),
+                         ('calculator', row.get('calculator')),
+                         ('energy', row.get('energy')),
+                         ('fmax', fmax),
+                         ('charge', row.get('charge')),
+                         ('mass', mass),
+                         ('magmom', row.get('magmom')),
+                         ('unique id', row.unique_id),
+                         ('volume', row.get('volume'))]
+                     if value is not None)
 
-        self.key_value_pairs = sorted(row.key_value_pairs.items())
+        table.update(row.key_value_pairs)
 
-        # If meta data for summary_sections does not exists a default
-        # template is generated otherwise it goes through the meta
-        # data and checks if all keys are indeed present
+        for key, value in table.items():
+            if isinstance(value, float):
+                table[key] = '{:.3f}'.format(value)
 
-        if 'summary_sections' not in meta:
+        kd = meta.get('key_descriptions', {})
 
-            secs = [['Basic Properties', ['Key'], ['AXIS'], ['STRUCTUREPLOT']],
-                    ['Key Value Pairs', ['Key'], ['FORCES']],
-                    ['Misc', ['Key']]]
+        self.layout = []
+        for headline, blocks in meta['layout']:
+            newblocks = []
+            for block in blocks:
+                if block is None:
+                    pass
+                elif isinstance(block, tuple):
+                    title, keys = block
+                    rows = []
+                    for key in keys:
+                        value = table.pop(key, None)
+                        if value is not None:
+                            desc, unit = kd.get(key, [0, key, ''])[1:]
+                            rows.append((desc, value, unit))
+                    block = (title, rows)
+                elif block.endswith('.png'):
+                    name = op.join(tmpdir, prefix + block)
+                    if op.isfile(name):
+                        if op.getsize(name) == 0:
+                            block = None
+                    else:
+                        self.create_figures(row, prefix, tmpdir,
+                                            meta['functions'])
 
-            # define misc data
-            collection_misc = {'id', 'age', 'user', 'calculator', 'unique id'}
+                newblocks.append(block)
+            self.layout.append((headline, newblocks))
 
-            temp = []
-            misc = []
-            for (key, unit, value) in self.table:
-                if key in collection_misc:
-                    misc.append(key)
-                else:
-                    temp.append(key)
-
-            secs[0][1].append(temp)
-            secs[2][1].append(misc)
-
-            temp = []
-            for (key, value) in self.key_value_pairs:
-                if value is not None:
-                    temp.append(key)
-            secs[1][1].append(temp)
-
-            meta['summary_sections'] = secs
-
-        else:
-
-            metasec = meta['summary_sections']
-            miscsec = ['Misc', ['Key']]
-            misc = []
-
-            # find all keys presented in the summary sections
-            keys_presented = []
-            for seciter in range(0, len(metasec)):
-                for tabiter in range(0, len(metasec[seciter])):
-                    if isinstance(metasec[seciter][tabiter], list):
-                        if len(metasec[seciter][tabiter]) > 1:
-                            keys_presented.extend(metasec[seciter][tabiter][1])
-
-            # check that all keys in table and key_value_paris are presented
-            for key, unit, value in self.table:
-                if key not in keys_presented:
-                    misc.append(key)
-            for key, value in self.key_value_pairs:
-                if key not in keys_presented:
-                    misc.append(key)
-
-            # add a misc section if there are missing keys
-            if misc != []:
-                miscsec[1].append(misc)
-                metasec.append(miscsec)
-
-        # Generate key-value dictionary for table and key_value_pairs
-
-        keyval = {}
-        for key, unit, value in table:
-            if value is not None:
-                keyval[key] = value
-
-        for key, value in self.key_value_pairs:
-            if value is not None:
-                keyval[key] = value
-
-        self.keyval = keyval
+        if table:
+            rows = []
+            for key, value in sorted(table.items()):
+                desc, unit = kd.get(key, [0, key, ''])[1:]
+                rows.append((desc, value, unit))
+            self.layout.append(('Miscellaneous', [('Items', rows)]))
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
             self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
 
-        self.plots = []
         self.data = row.get('data')
         if self.data:
-            plots = []
-            for name, value in self.data.items():
-                if isinstance(value, dict) and 'xlabel' in value:
-                    plots.append((value.get('number'), name))
-            self.plots = [name for number, name in sorted(plots)]
-
             self.data = ', '.join(self.data.keys())
 
         self.constraints = row.get('constraints')
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)
 
+    def create_figures(self, row, prefix, tmpdir, functions):
+        with Lock('ase.db.web.lock'):
+            for func, filenames in functions:
+                for filename in filenames:
+                    try:
+                        os.remove(filename)
+                    except OSError:  # Python 3 only: FileNotFoundError
+                        pass
+                func(row)
+                for filename in filenames:
+                    path = os.path.join(tmpdir, prefix + filename)
+                    if os.path.isfile(filename):
+                        shutil.move(filename, path)
+                    else:
+                        with open(path, 'w'):
+                            pass
+
     def write(self):
         row = self.row
 
-        width = max(len(name) for name, unit, value in self.table)
-        print('{0:{width}}|unit  |value'.format('name', width=width))
-        for name, unit, value in self.table:
-            print('{0:{width}}|{1:6}|{2}'.format(name, unit, value,
-                                                 width=width))
-
-        print('\nUnit cell in Ang:')
-        print('axis|periodic|          x|          y|          z')
-        c = 1
-        for p, axis in zip(row.pbc, self.cell):
-            print('   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'.format(
-                c, [' no', 'yes'][p], axis))
-            c += 1
-
-        if self.key_value_pairs:
-            print('\nKey-value pairs:')
-            width = max(len(key) for key, value in self.key_value_pairs)
-            for key, value in self.key_value_pairs:
-                print('{0:{width}}|{1}'.format(key, value, width=width))
-
-        if self.forces:
-            print('\nForces in ev/Ang:')
-            for f in self.forces:
-                print('{0:4}|{1:2}|{2}|{3}|{4}'.format(*f))
+        print(self.formula + ':')
+        for headline, blocks in self.layout:
+            print((' ' + headline + ' ').center(78, '='))
+            for block in blocks:
+                if block is None:
+                    pass
+                elif isinstance(block, tuple):
+                    title, keys = block
+                    print(title + ':')
+                    if not keys:
+                        print()
+                        continue
+                    width = max(len(name) for name, value, unit in keys)
+                    print('{:{width}}|value'.format('name', width=width))
+                    for name, value, unit in keys:
+                        print('{:{width}}|{} {}'.format(name, value, unit,
+                                                        width=width))
+                    print()
+                elif block.endswith('.png'):
+                    if op.isfile(block) and op.getsize(block) > 0:
+                        print(block)
+                    print()
+                elif block == 'CELL':
+                    print('Unit cell in Ang:')
+                    print('axis|periodic|          x|          y|          z')
+                    c = 1
+                    fmt = '   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'
+                    for p, axis in zip(row.pbc, self.cell):
+                        print(fmt.format(c, [' no', 'yes'][p], axis))
+                        c += 1
+                    print()
+                elif block == 'FORCES' and self.forces is not None:
+                    print('\nForces in ev/Ang:')
+                    for f in self.forces:
+                        print('{:4}|{:2}|{}|{}|{}'.format(*f))
+                    print()
 
         if self.stress:
-            print('\nStress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
-            print('   ', self.stress)
+            print('Stress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
+            print('   ', self.stress, '\n')
 
         if self.dipole:
-            print('\nDipole moment in e*Ang: ({0})'.format(self.dipole))
+            print('Dipole moment in e*Ang: ({})\n'.format(self.dipole))
 
         if self.constraints:
-            print('\nConstraints:', self.constraints)
+            print('Constraints:', self.constraints, '\n')
 
         if self.data:
-            print('\nData:', self.data)
+            print('Data:', self.data, '\n')

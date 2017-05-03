@@ -469,7 +469,7 @@ You can add the desciption using the :attr:`~Database.metadata` attribute:
 >>> db.metadata = {
 ...     'title': 'Project 1',
 ...     'key_descriptions':
-...         {'v0': ('Voltage', 'Longer description ...', 'float', 'V')},
+...         {'v0': ('Voltage', 'Longer description ...', 'V')},
 ...     'default_columns': ['id', 'formula', 'v0']}
 
 ASE already knows all about the following keys:
@@ -477,7 +477,7 @@ ASE already knows all about the following keys:
 .. csv-table::
     :file: known-keys.csv
     :header-rows: 1
-    :widths: 2 3 4 1 2
+    :widths: 2 3 4 2
 
 You can also write/read to/from JSON using::
 

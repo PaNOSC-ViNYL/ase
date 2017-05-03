@@ -21,7 +21,6 @@ from __future__ import print_function
 import collections
 import functools
 import io
-import json
 import os
 import os.path as op
 import re
@@ -37,25 +36,12 @@ except ImportError:
     pass
 
 import ase.db
-from ase.db.plot import atoms2png, dct2plot
+import ase.db.web
+from ase.db.plot import atoms2png
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.visualize import view
 
-
-default_key_descriptions = {
-    'id': ('ID', 'Uniqe row ID', 'int', ''),
-    'age': ('Age', 'Time since creation', 'str', ''),
-    'formula': ('Formula', 'Chemical formula', 'str', ''),
-    'user': ('Username', 'Username', 'str', ''),
-    'calculator': ('Calculator', 'ASE-calculator name', 'str', ''),
-    'energy': ('Energy', 'Total energy', 'float', 'eV'),
-    'fmax': ('Maximum force', 'Maximum force', 'float', 'eV/Ang'),
-    'charge': ('Charge', 'Charge', 'float', '|e|'),
-    'mass': ('Mass', 'Mass', 'float', 'au'),
-    'magmom': ('Magnetic moment', 'Magnetic moment', 'float', 'au'),
-    'unique_id': ('Unique ID', 'Unique ID', 'float', ''),
-    'volume': ('Volume', 'Volume of unit-cell', 'float', '`Ang^3`')}
 
 # Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
@@ -81,12 +67,23 @@ projects = []
 
 
 def connect_databases(uris):
+    python_configs = []
+    dbs = []
     for uri in uris:
+        if uri.endswith('.py'):
+            python_configs.append(uri)
+            continue
         if uri.startswith('postgresql://'):
             project = uri.rsplit('/', 1)[1]
         else:
             project = uri.rsplit('/', 1)[-1].split('.')[0]
-        databases[project] = ase.db.connect(uri)
+        db = ase.db.connect(uri)
+        db.python = None
+        databases[project] = db
+        dbs.append(db)
+
+    for py, db in zip(python_configs, dbs):
+        db.python = py
 
 
 next_con_id = 1
@@ -164,7 +161,7 @@ def index():
         con_id = next_con_id
         next_con_id += 1
         project = request.args.get('project', projects[0][0])
-        query = ''
+        query = ['', {}, '']
         nrows = None
         page = 0
         columns = None
@@ -173,27 +170,9 @@ def index():
 
     db = databases[project]
 
-    if not hasattr(db, 'formulas'):
-        # First time we touch this database.
-        # Suggestions for formulas:
-        db.formulas = list({row.formula for row in db.select(limit=200000)})
-
     if not hasattr(db, 'meta'):
-        # Also fill in default key-descriptions:
-        meta = db.metadata
-        if 'key_descriptions' not in meta:
-            meta['key_descriptions'] = {}
-        meta['key_descriptions'].update(default_key_descriptions)
+        meta = ase.db.web.process_metadata(db)
         db.meta = meta
-
-        sub = re.compile(r'`(.)_(.)`')
-        sup = re.compile(r'`(.*)\^(.)`')
-        # Convert LaTeX to HTML:
-        for key, value in meta['key_descriptions'].items():
-            short, long, type, unit = value
-            unit = sub.sub(r'\1<sub>\2</sub>', unit)
-            unit = sup.sub(r'\1<sup>\2</sup>', unit)
-            meta['key_descriptions'][key] = (short, long, type, unit)
     else:
         meta = db.meta
 
@@ -210,14 +189,42 @@ def index():
             sort = column
         page = 0
     elif 'query' in request.args:
-        query = request.args['query']
-        try:
-            limit = max(1, min(int(request.args.get('limit', limit)), 200))
-        except ValueError:
-            pass
+        dct = {}
+        query = [request.args['query']]
+        q = query[0]
+        for special in meta['special_keys']:
+            kind, key = special[:2]
+            if kind == 'SELECT':
+                value = request.args['select_' + key]
+                dct[key] = value
+                if value:
+                    q += ',{}={}'.format(key, value)
+            elif kind == 'BOOL':
+                value = request.args['bool_' + key]
+                dct[key] = value
+                if value:
+                    q += ',{}={}'.format(key, value)
+            else:
+                v1 = request.args['from_' + key]
+                v2 = request.args['to_' + key]
+                var = request.args['range_' + key]
+                dct[key] = (v1, v2, var)
+                if v1 or v2:
+                    var = request.args['range_' + key]
+                    if v1:
+                        q += ',{}<={}'.format(v1, var)
+                    else:
+                        q += ',{}'.format(var)
+                    if v2:
+                        q += '<={}'.format(v2)
+        q = q.lstrip(',')
+        query += [dct, q]
         sort = 'id'
         page = 0
         nrows = None
+    elif 'limit' in request.args:
+        limit = int(request.args['limit'])
+        page = 0
     elif 'page' in request.args:
         page = int(request.args['page'])
 
@@ -238,14 +245,14 @@ def index():
 
     if nrows is None:
         try:
-            nrows = db.count(query)
+            nrows = db.count(query[2])
         except (ValueError, KeyError) as e:
             flash(', '.join(['Bad query'] + list(e.args)))
-            okquery = 'id=0'  # this will return no rows
-            nrows = db.count(okquery)
+            okquery = ('', {}, 'id=0')  # this will return no rows
+            nrows = 0
 
     table = Table(db)
-    table.select(okquery, columns, sort, limit, offset=page * limit)
+    table.select(okquery[2], columns, sort, limit, offset=page * limit)
 
     con = Connection(project, query, nrows, page, columns, sort, limit)
     connections[con_id] = con
@@ -256,6 +263,7 @@ def index():
             del connections[cid]
 
     table.format(SUBSCRIPT)
+
     addcolumns = [column for column in all_columns + table.keys
                   if column not in table.columns]
 
@@ -264,9 +272,8 @@ def index():
                            projects=projects,
                            t=table,
                            md=meta,
-                           formulas=db.formulas,
                            con=con,
-                           cid=con_id,
+                           x=con_id,
                            home=home,
                            pages=pages(page, nrows, limit),
                            nrows=nrows,
@@ -302,14 +309,7 @@ def cif(name):
 
 @app.route('/plot/<png>')
 def plot(png):
-    name, id = png[:-4].split('-')
     png = prefix() + png
-    path = op.join(tmpdir, png)
-    if not op.isfile(path):
-        db = database()
-        dct = db[int(id)].data
-        dct2plot(dct, name, path, show=False)
-
     return send_from_directory(tmpdir, png)
 
 
@@ -325,7 +325,10 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
-    s = Summary(db.get(id), db.meta, SUBSCRIPT)
+    if not hasattr(db, 'meta'):
+        db.meta = ase.db.web.process_metadata(db)
+    prfx = prefix() + str(id) + '-'
+    s = Summary(db.get(id), db.meta, SUBSCRIPT, prfx, tmpdir)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,
@@ -376,7 +379,7 @@ def xyz(id):
 def jsonall():
     con_id = int(request.args['x'])
     con = connections[con_id]
-    data = tofile(con.project, con.query, 'json', con.limit)
+    data = tofile(con.project, con.query[2], 'json', con.limit)
     return data, 'selection.json'
 
 
@@ -393,7 +396,7 @@ def json1(id):
 def sqliteall():
     con_id = int(request.args['x'])
     con = connections[con_id]
-    data = tofile(con.project, con.query, 'db', con.limit)
+    data = tofile(con.project, con.query[2], 'db', con.limit)
     return data, 'selection.db'
 
 
@@ -408,16 +411,6 @@ def sqlite1(id):
 @app.route('/robots.txt')
 def robots():
     return 'User-agent: *\nDisallow: /\n', 200
-
-
-@app.route('/formulas')
-def formulas():
-    return json.dumps(database().formulas)
-
-
-@app.route('/special_keys')
-def special_keys():
-    return json.dumps(database().metadata.get('special_keys', []))
 
 
 def pages(page, nrows, limit):
@@ -452,4 +445,5 @@ def pages(page, nrows, limit):
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         connect_databases(sys.argv[1:])
+    open_ase_gui = False
     app.run(host='0.0.0.0', debug=True)
