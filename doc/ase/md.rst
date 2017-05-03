@@ -105,6 +105,9 @@ cyclic reference to the dynamics.
    such as Jacapo, to not terminate correctly.)
 
 
+.. autoclass:: MDLogger
+
+
 Constant NVE simulations (the microcanonical ensemble)
 ======================================================
 
@@ -130,7 +133,7 @@ Velocity Verlet dynamics
 
 .. module:: ase.md.verlet
 
-.. class:: VelocityVerlet(atoms, timestep)
+.. autoclass:: VelocityVerlet
 
 
 ``VelocityVerlet`` is the only dynamics implementing the NVE ensemble.
