@@ -16,7 +16,8 @@ according to their forces - it integrates Newton's second law
 numerically.  A typical molecular dynamics simulation will use the
 `Velocity Verlet dynamics`_.  You create the
 :class:`ase.md.verlet.VelocityVerlet` object, giving it the atoms and a time
-step, and then you perform dynamics by calling its :meth:`run` method::
+step, and then you perform dynamics by calling its
+:meth:`~verlet.VelocityVerlet.run` method::
 
   dyn = VelocityVerlet(atoms, dt=5.0 * units.fs,
                        trajectory='md.traj', logfile='md.log')

@@ -85,8 +85,10 @@ to modify the returned arrays.*
 
   * - :meth:`~Atoms.get_atomic_numbers`
     - :meth:`~Atoms.set_atomic_numbers`
+  * - :meth:`~Atoms.get_initial_charges`
+    - :meth:`~Atoms.set_initial_charges`
   * - :meth:`~Atoms.get_charges`
-    - :meth:`~Atoms.set_charges`
+    -
   * - :meth:`~Atoms.get_chemical_symbols`
     - :meth:`~Atoms.set_chemical_symbols`
   * - :meth:`~Atoms.get_initial_magnetic_moments`
