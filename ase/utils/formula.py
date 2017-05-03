@@ -1,5 +1,3 @@
-import numpy as np
-
 from ase.data import chemical_symbols
 
 def formula_hill(numbers):
