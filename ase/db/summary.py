@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import shutil
 import os.path as op
 
 from ase.data import atomic_masses, chemical_symbols
@@ -129,7 +130,7 @@ class Summary:
                 for filename in filenames:
                     path = os.path.join(tmpdir, prefix + filename)
                     if os.path.isfile(filename):
-                        os.rename(filename, path)
+                        shutil.move(filename, path)
                     else:
                         with open(path, 'w'):
                             pass
