@@ -1086,8 +1086,8 @@ class Atoms(object):
         longer = np.zeros(3)
         shift = np.zeros(3)
         for i in axes:
-            p0 = np.dot(p, dirs[i]).min()
-            p1 = np.dot(p, dirs[i]).max()
+            p0 = np.dot(p, dirs[i]).min() if len(p) else 0
+            p1 = np.dot(p, dirs[i]).max() if len(p) else 0
             height = np.dot(cell[i], dirs[i])
             if vacuum is not None:
                 lng = (p1 - p0 + 2 * vacuum) - height
