@@ -263,7 +263,7 @@ def CombineLJ_lorenz_berthelot(sigmaqm, sigmamm,
     """Combine LJ parameters according to the
        Lorenz-Berthelot rule"""
     sigma_c=np.zeros((len(sigmaqm), len(sigmamm)))
-    epsilon_c=np.zeros_like(sigmac)
+    epsilon_c=np.zeros_like(sigma_c)
 
     for ii in range(len(sigmaqm)):
         sigma_c[ii, :]=(sigmaqm[ii]+sigmamm)/2
