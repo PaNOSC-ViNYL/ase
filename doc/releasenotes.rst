@@ -100,6 +100,10 @@ Git master branch
 
 * Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
 
+* Two new functions for producing chemical formulas:
+  :func:`ase.utils.formula_hill' and :func:`ase.utils.formula_metal'.
+
+
 Version 3.13.0
 ==============
 
