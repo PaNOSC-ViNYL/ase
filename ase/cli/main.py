@@ -13,6 +13,7 @@ commands = [
     ('gui', 'ase.gui.ag'),
     ('db', 'ase.db.cli'),
     ('run', 'ase.cli.run'),
+    ('band-structure', 'ase.cli.bandstructure'),
     ('build', 'ase.cli.build'),
     ('eos', 'ase.eos'),
     ('ulm', 'ase.io.ulm'),

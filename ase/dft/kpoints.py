@@ -328,6 +328,13 @@ def get_special_points(lattice, cell, eps=1e-4):
             'Z': [1 / 2, 0, 0]}
 
 
+def interpolate(path, eps, icell, bz2ibz, size, offset=(0, 0, 0)):
+    P = (path - offset) * size
+    I = P.astype(int)
+    bz = np.ravel_multi_index(I.T, size, 'wrap')
+    return eps[..., bz2ibz[bz]]
+
+
 # ChadiCohen k point grids. The k point grids are given in units of the
 # reciprocal unit cell. The variables are named after the following
 # convention: cc+'<Nkpoints>'+_+'shape'. For example an 18 k point
