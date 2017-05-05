@@ -60,7 +60,7 @@ for name in ['y2.json', 'y2.db']:
         c.write(Atoms(), pi='3.14')  # number as a string
 
     with must_raise(ValueError):
-        c.write(Atoms(), SOFUS=42)  # chemical formula as key
+        c.write(Atoms(), S=42)  # chemical symbol as key
 
     # Make sure deleting a single sey works:
     id = c.write(Atoms(), key=7)
