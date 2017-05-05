@@ -123,6 +123,12 @@ Free electron example:
 .. image:: cu.png
 
 
+Interpolation
+-------------
+
+.. autofunction:: monkhorst_pack_interpolate
+
+
 High symmetry paths
 -------------------
 

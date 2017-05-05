@@ -13,7 +13,8 @@ Git master branch
 * Python 2.6 no longer supported.
 
 * The command-line tools :program:`ase-???` have been replaced by a
-  single :program:`ase` command with sub-commands.  For help, type::
+  single :program:`ase` command with sub-commands (see :ref:`cli`).
+  For help, type::
 
       $ ase --help
       $ ase sub-command --help
@@ -102,9 +103,9 @@ Git master branch
 
 * New function for interpolating from Monkhors-Pack sampled valeus in the BZ
   to arbitrary points in the BZ:
-  :func:`ase.dft.kpoints.monkhorst_pack:_interpolate`.
+  :func:`ase.dft.kpoints.monkhorst_pack_interpolate`.
 
-* New *band-structure* command for the :program:`ase` command-line tool.
+* New *band-structure* command for the :program:`ase` :ref:`cli`.
 
 * Two new functions for producing chemical formulas:
   :func:`ase.utils.formula_hill` and :func:`ase.utils.formula_metal`.

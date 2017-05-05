@@ -10,7 +10,7 @@ from ase.dft.band_structure import BandStructure
 
 
 class CLICommand:
-    short_description = 'Calculate band-structure'
+    short_description = 'Plot band-structure'
 
     @staticmethod
     def add_arguments(parser):
