@@ -8,8 +8,7 @@ atoms = FaceCenteredCubic('Au', surfaces, layers, latticeconstant=4.08)
 
 params = {
     'title': 'Au13-',
-    'task': 'gradient',
-    'use redundant internals': False,
+    'task': 'energy',
     'basis set name': 'def2-SV(P)',
     'total charge': -1,
     'multiplicity': 1,
@@ -33,7 +32,20 @@ calc.calculate(atoms)
 
 # use the get_property() method
 print(calc.get_property('energy'))
-print(calc.get_property('forces'))
 print(calc.get_property('dipole'))
 
+# test restart
+
+params = {
+    'task': 'gradient',
+    'scf energy convergence': 1.e-6
+}
+
+calc = Turbomole(restart=True, **params)
+assert calc.converged
+calc.calculate(atoms)
+
+print(calc.get_property('energy'))
+print(calc.get_property('forces'))
+print(calc.get_property('dipole'))
 
