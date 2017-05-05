@@ -100,6 +100,13 @@ Git master branch
 
 * Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
 
+* New function for interpolating from Monkhors-Pack sampled valeus in the BZ
+  to arbitrary points in the BZ:
+  :func:`ase.dft.kpoints.monkhorst_pack:_interpolate`.
+
+* New *band-structure* command for the :program:`ase` command-line tool.
+
+
 Version 3.13.0
 ==============
 

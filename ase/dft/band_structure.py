@@ -57,8 +57,8 @@ class BandStructure:
             dct = decode(f.read())
         return BandStructure(**dct)
 
-    def plot(self, spin=None, emax=None, filename=None, ax=None, show=None,
-             **plotkwargs):
+    def plot(self, spin=None, emin=-10, emax=5, filename=None,
+             ax=None, show=None, **plotkwargs):
         """Plot band-structure.
 
         spin: int or None
@@ -90,9 +90,8 @@ class BandStructure:
         else:
             e_skn = self.energies[spin, None]
 
-        emin = e_skn.min()
-        if emax is not None:
-            emax = emax + self.reference
+        emin += self.reference
+        emax += self.reference
 
         xcoords, label_xcoords, orig_labels = self.get_labels()
 
