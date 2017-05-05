@@ -328,11 +328,21 @@ def get_special_points(lattice, cell, eps=1e-4):
             'Z': [1 / 2, 0, 0]}
 
 
-def interpolate(path, eps, icell, bz2ibz, size, offset=(0, 0, 0)):
+def interpolate(path, values, icell, bz2ibz, size, offset=(0, 0, 0)):
     P = (path - offset) * size
     I = P.astype(int)
-    bz = np.ravel_multi_index(I.T, size, 'wrap')
-    return eps[..., bz2ibz[bz]]
+    P -= I
+    values = values.transpose((0, 2, 1))
+    val = 0.0
+    for i in range(2):
+        for j in range(2):
+            for k in range(2):
+                bz = np.ravel_multi_index((I + [i, j, k]).T, size, 'wrap')
+                val += ((1 - i - (-1)**i * P[:, 0]) *
+                        (1 - j - (-1)**j * P[:, 1]) *
+                        (1 - k - (-1)**k * P[:, 2]) *
+                        values[..., bz2ibz[bz]])
+    return val.transpose((0, 2, 1))
 
 
 # ChadiCohen k point grids. The k point grids are given in units of the
