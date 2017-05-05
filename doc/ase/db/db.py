@@ -4,7 +4,7 @@ import subprocess
 import ase.db
 from ase import Atoms
 from ase.calculators.emt import EMT
-from ase.db.app import default_key_descriptions
+from ase.db.core import default_key_descriptions
 from ase.optimize import BFGS
 
 c = ase.db.connect('abc.db', append=False)
@@ -53,8 +53,9 @@ c.update(id, atomization_energy=ae)
 del c[c.get(relaxed=0).id]
 
 with open('known-keys.csv', 'w') as fd:
-    print('key,short description,long description,type,unit', file=fd)
-    for key, (short, long, type, unit) in default_key_descriptions.items():
+    print('key,short description,long description,unit', file=fd)
+    for key, (short, long, unit) in default_key_descriptions.items():
         if unit == '|e|':
             unit = '\|e|'
-        print('{},{},{},{},{}'.format(key, short, long, type, unit), file=fd)
+        long = long or short
+        print('{},{},{},{}'.format(key, short, long, unit), file=fd)

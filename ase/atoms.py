@@ -17,7 +17,7 @@ import numpy as np
 import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
-from ase.utils import basestring
+from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic)
 
@@ -484,6 +484,9 @@ class Atoms(object):
             following the Hill notation (alphabetical order with C and H
             first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
             'H2O4S'. This is default.
+      
+            'metal': The list of checmical symbols (alphabetical metals,
+            and alphabetical non-metals)
         """
         if len(self) == 0:
             return ''
@@ -495,36 +498,26 @@ class Atoms(object):
                                                            numbers[:-1]]))
             symbols = [chemical_symbols[e] for e in numbers[changes]]
             counts = np.append(changes[1:], n) - changes
+
+            formula = ''
+            for s, c in zip(symbols, counts):
+                formula += s
+                if c > 1:
+                    formula += str(c)
         elif mode == 'hill':
-            numbers = self.get_atomic_numbers()
-            elements = np.unique(numbers)
-            symbols = np.array([chemical_symbols[e] for e in elements])
-            counts = np.array([(numbers == e).sum() for e in elements])
-
-            ind = symbols.argsort()
-            symbols = symbols[ind]
-            counts = counts[ind]
-
-            if 'H' in symbols:
-                i = np.arange(len(symbols))[symbols == 'H']
-                symbols = np.insert(np.delete(symbols, i), 0, symbols[i])
-                counts = np.insert(np.delete(counts, i), 0, counts[i])
-            if 'C' in symbols:
-                i = np.arange(len(symbols))[symbols == 'C']
-                symbols = np.insert(np.delete(symbols, i), 0, symbols[i])
-                counts = np.insert(np.delete(counts, i), 0, counts[i])
+            formula = formula_hill(self.get_atomic_numbers())
         elif mode == 'all':
             numbers = self.get_atomic_numbers()
             symbols = [chemical_symbols[n] for n in numbers]
-            counts = [1] * len(numbers)
+
+            formula = ''
+            for s in symbols:
+                formula += s
+        elif mode == 'metal':
+            formula = formula_metal(self.get_atomic_numbers())
         else:
             raise ValueError("Use mode = 'all', 'reduce' or 'hill'.")
 
-        formula = ''
-        for s, c in zip(symbols, counts):
-            formula += s
-            if c > 1:
-                formula += str(c)
         return formula
 
     def set_tags(self, tags):

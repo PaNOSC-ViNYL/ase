@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* Python 2.6 no longer supported.
+
 * The command-line tools :program:`ase-???` have been replaced by a
   single :program:`ase` command with sub-commands.  For help, type::
 
@@ -19,8 +21,6 @@ Git master branch
 * The old :program:`ase-build` command which is now called
   :program:`ase build` will no longer add vacuum by default.  Use
   ``ase build -V 3.0`` to get the old behavior.
-
-* Python 2.6 no longer supported.
 
 * All methods of the :class:`~ase.Atoms` object that deal with angles now
   have new API's that use degrees instead of radians as the unit of angle
@@ -105,6 +105,9 @@ Git master branch
   :func:`ase.dft.kpoints.monkhorst_pack:_interpolate`.
 
 * New *band-structure* command for the :program:`ase` command-line tool.
+
+* Two new functions for producing chemical formulas:
+  :func:`ase.utils.formula_hill` and :func:`ase.utils.formula_metal`.
 
 
 Version 3.13.0
