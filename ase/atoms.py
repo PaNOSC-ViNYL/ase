@@ -484,7 +484,7 @@ class Atoms(object):
             following the Hill notation (alphabetical order with C and H
             first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
             'H2O4S'. This is default.
-      
+
             'metal': The list of checmical symbols (alphabetical metals,
             and alphabetical non-metals)
         """
@@ -1855,7 +1855,10 @@ def string2symbols(s):
             m = int(s[i + 1:j])
         else:
             m = 1
-        return m * string2symbols(s[1:i]) + string2symbols(s[j:])
+        symbol = s[:i]
+        if symbol not in atomic_numbers:
+            raise ValueError
+        return m * [symbol] + string2symbols(s[j:])
 
     if c.isupper():
         i = 1
