@@ -1855,10 +1855,7 @@ def string2symbols(s):
             m = int(s[i + 1:j])
         else:
             m = 1
-        symbol = s[:i]
-        if symbol not in atomic_numbers:
-            raise ValueError
-        return m * [symbol] + string2symbols(s[j:])
+        return m * string2symbols(s[1:i]) + string2symbols(s[j:])
 
     if c.isupper():
         i = 1
@@ -1871,7 +1868,10 @@ def string2symbols(s):
             m = int(s[i:j])
         else:
             m = 1
-        return m * [s[:i]] + string2symbols(s[j:])
+        symbol = s[:i]
+        if symbol not in atomic_numbers:
+            raise ValueError
+        return m * [symbol] + string2symbols(s[j:])
     else:
         raise ValueError
 
