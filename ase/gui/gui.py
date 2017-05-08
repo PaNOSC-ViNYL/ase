@@ -71,7 +71,7 @@ class GUI(View, Status):
         self.moving = False
         self.prev_pos = None
         self.last_scroll_time = time()
-        self.original_size = self.window.size.copy()
+        self.orig_size = self.window.size.copy()
 
     def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
@@ -163,7 +163,7 @@ class GUI(View, Status):
             # The displacement vector is scaled relative to the window size
             # so that the cursor follows the structure, this is not
             # given after a resize event for example
-            scale = np.append((self.original_size / self.window.size), [0])
+            scale = (np.prod(self.orig_size) / np.prod(self.window.size))**0.5
             self.center -= vec * scale
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
 
