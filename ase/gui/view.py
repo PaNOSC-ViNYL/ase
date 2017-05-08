@@ -320,7 +320,10 @@ class View:
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
         elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+            try:
+                return self.atoms.get_charges()
+            except RuntimeError:
+                return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return self.images.get_magmoms(self.atoms)
 
