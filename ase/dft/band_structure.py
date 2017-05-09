@@ -76,7 +76,7 @@ class BandStructure:
 
         import matplotlib.pyplot as plt
         if ax is None:
-            ax = plt.gca()
+            ax = plt.figure().add_subplot(111)
 
         def pretty(kpt):
             if kpt == 'G':
