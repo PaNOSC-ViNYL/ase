@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from ase import Atoms, units
+from ase import Atoms
 import nglview 
 
 def view_ngl( atoms ):
