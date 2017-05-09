@@ -1814,7 +1814,9 @@ class Turbomole(FileIOCalculator):
         return self.forces.copy()
 
     def get_dipole_moment(self, atoms):
-        # this must check the state and then perform a calc if necessary
+        if self.update_energy:
+            self.get_potential_energy(atoms)
+        self.read_dipole_moment()
         return self.dipole
 
     def get_property(self, name, atoms=None, allow_calculation=True):
@@ -1822,8 +1824,8 @@ class Turbomole(FileIOCalculator):
 
         if name not in self.implemented_properties:
             # an ugly work around; the caller should test the raised error
-            if name in ['magmom', 'magmoms', 'charges', 'stress']:
-                return None
+#            if name in ['magmom', 'magmoms', 'charges', 'stress']:
+#                return None
             raise PropertyNotImplementedError(name)
 
         if atoms is None:
