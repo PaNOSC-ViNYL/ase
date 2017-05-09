@@ -14,7 +14,7 @@ def creates(*filenames):
     return decorator
 
 
-def process_metadata(db):
+def process_metadata(db, html=True):
     meta = db.metadata
 
     mod = {}
@@ -79,12 +79,17 @@ def process_metadata(db):
         functions[:] = []
 
     sub = re.compile(r'`(.)_(.)`')
-    sup = re.compile(r'`(.*)\^(.)`')
-    # Convert LaTeX to HTML:
+    sup = re.compile(r'`(.*)\^\{?(.*?)\}?`')
+
+    # Convert LaTeX to HTML or raw text:
     for key, value in meta['key_descriptions'].items():
         short, long, unit = value
-        unit = sub.sub(r'\1<sub>\2</sub>', unit)
-        unit = sup.sub(r'\1<sup>\2</sup>', unit)
+        if html:
+            unit = sub.sub(r'\1<sub>\2</sub>', unit)
+            unit = sup.sub(r'\1<sup>\2</sup>', unit)
+        else:
+            unit = sub.sub(r'\1_\2', unit)
+            unit = sup.sub(r'\1^\2', unit)
         meta['key_descriptions'][key] = (short, long, unit)
 
     return meta
