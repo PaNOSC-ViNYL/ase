@@ -1,14 +1,17 @@
 # coding: utf-8
 
-
-import numpy as np
 from ase import Atoms, units
-import ase.io
-from ase.io.trajectory import Trajectory
-from ipywidgets import HBox, VBox, Checkbox, Dropdown, IntSlider, FloatSlider
-from io import BytesIO
 import nglview 
-import glob
 
 def view_ngl( atoms ):
-    return 
+    if isinstance(atoms[0],Atoms):
+        # Assume this is a trajectory or struct list
+        view = nglview.show_asetraj( atoms )
+    else :
+        view = nglview.show_ase( atoms )
+    view.add_unitcell()
+    view.add_spacefill(scale=0.6)
+    view.center()
+    return view
+    
+
