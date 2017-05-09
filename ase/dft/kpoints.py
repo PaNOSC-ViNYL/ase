@@ -259,7 +259,7 @@ special_paths = {
     'monoclinic': 'GYHCEM1AXH1,MDZ,YD'}
 
 
-def get_special_points(lattice, cell, eps=1e-4):
+def get_special_points(lattice, cell, eps=2e-4):
     """Return dict of special points.
 
     The definitions are from a paper by Wahyu Setyawana and Stefano
