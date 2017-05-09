@@ -132,7 +132,7 @@ class vdWTkatchenko09prl(Calculator):
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax=10,  # maximal radius for periodic calculations
                  vdWDB_alphaC6=vdWDB_alphaC6,
-                 txt=None):
+                 txt=None, prefactor=1.):
         """Constructor
 
         Parameters
@@ -141,6 +141,7 @@ class vdWTkatchenko09prl(Calculator):
         calculator: the calculator to get the PBE energy
         """
         self.hirshfeld = hirshfeld
+        self.prefactor = prefactor
         if calculator is None:
             self.calculator = self.hirshfeld.get_calculator()
         else:
@@ -256,8 +257,8 @@ class vdWTkatchenko09prl(Calculator):
                                 forces[ia] -= ((Fdamp - 6 * Edamp / r) *
                                                C6eff_aa[ia, ib] / r6 *
                                                diff / r)
-        self.results['energy'] += EvdW / 2.  # double counting
-        self.results['forces'] += forces / 2.  # double counting
+        self.results['energy'] += EvdW * self.prefactor / 2.  # double counting
+        self.results['forces'] += forces * self.prefactor / 2.  # double counting
 
         if self.txt:
             print(('\n' + self.__class__.__name__), file=self.txt)
