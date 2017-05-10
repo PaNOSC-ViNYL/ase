@@ -1,6 +1,10 @@
 from __future__ import print_function
 """
 This module defines an ASE interface to Turbomole: http://www.turbomole.com/
+
+Please read the license file (../../LICENSE)
+
+Contact: Ivan Kondov <ivan.kondov@kit.edu> 
 """
 
 import os, re
