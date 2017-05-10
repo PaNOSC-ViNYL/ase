@@ -32,7 +32,7 @@ order. The list of accepted parameters with their types and default values is
 provided in the section "Parameters" below.
 
 The following example demonstrates how to construct a Turbomole calculator 
-object for a Hartree-Fock single-point energy calculation of a neutral singlet 
+object for a single-point energy calculation of a neutral singlet 
 system:
 
 .. code:: python
@@ -40,7 +40,9 @@ system:
   from ase.calculators.turbomole import Turbomole
   calc = Turbomole(charge=0, multiplicity=1)
 
-After this the calculator can be associated with an existing Atoms object
+The selection of the method will be according to the default parameter values 
+(see below), i.e. in this case DFT with b-p functional and the def-SV(P) basis 
+set. After this the calculator can be associated with an existing Atoms object
 
 .. code:: python
 
@@ -62,10 +64,10 @@ parameter below) can be explicitly started with the calculate() method:
 
   calc.calculate(atoms)
 
-The getter methods (see below) check for convergence and eventually return None 
-or an exception if the calculation has not converged. If the properties are read
-using the Turbomole object attributes then the convergence must be checked 
-with:
+The getter methods (see below) check for convergence and eventually return 
+``None`` or an exception if the calculation has not converged. If the 
+properties are read using the Turbomole object attributes then the convergence 
+must be checked with:
 
 .. code:: python
 
@@ -147,11 +149,15 @@ the control file and all files referenced in it. In addition, the standard
 output will be searched in files beginning with *job.* and ending with *.out* but
 this is optional input, mainly to extract job datetime, runtimes, hostname and 
 TURBOMOLE version. After constructing the calculator object (where params dict 
-is optional)::
+is optional):
+
+.. code:: python
 
   calc = Turbomole(restart=True, **params)
 
-the data left from the previous calculations can be queried, for example::
+the data left from the previous calculations can be queried, for example:
+
+.. code:: python
 
   from ase.visualize import view
   view(calc.atoms)
@@ -162,10 +168,12 @@ A previous calculation may have crashed or not converged. Also in these cases
 the data that is available will be loaded but the ``calc.converged`` will be set
 to ``False``. The calculation can be continued without any parameter 
 modifications (for example if it has exceeded the job maximum run time and was 
-interrupted) or with better convergence parameters specified in params 
-dictionary above. Finally, another calculation task can be started beginning 
-from the data left from a converged previous one, specifying the ``task`` 
-parameter::
+interrupted) or with better convergence parameters specified in ``params`` 
+dictionary. Finally, another calculation task can be started beginning 
+from the data left from a converged previous one, specifying a new ``task`` 
+parameter:
+
+.. code:: python
 
   calc = Turbomole(restart=True, task='gradient')
 
@@ -220,8 +228,20 @@ geometry optimization iterations   int        None          None          True
       use resolution of identity  bool       False          None         False
 ================================ ======= ========== =============== ============
 
-The atrribute ``Updateable`` specifies whether it is possible to change a 
-parameter upon restart. The ``restart`` keywordtells the calculator whether to 
+Some parameter names contain spaces. This means that the preferred way to pass
+the parameters is to construct a dictionary, for example:
+
+.. code:: python
+
+  params = { 'task': 'optimize',
+             'use resolution of identity': True,
+             'ri memory': 2000,
+             'scf iterations': 80,
+             'force convergence': 0.05 }
+  calc = Turbomole(**params)
+
+The attribute ``Updateable`` specifies whether it is possible to change a 
+parameter upon restart. The ``restart`` keyword tells the calculator whether to 
 restart from a previous calculation. The optional ``define_str`` is a string of 
 characters that are entered in an interactive session with module ``define``, 
 i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an 
