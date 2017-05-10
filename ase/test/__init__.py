@@ -202,7 +202,8 @@ class CLICommand:
 if __name__ == '__main__':
     # Run pyflakes3 on all code in ASE:
     try:
-        output = subprocess.check_output(['pyflakes3', 'ase', 'doc'])
+        output = subprocess.check_output(['pyflakes3', 'ase', 'doc'],
+                                         stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as ex:
         output = ex.output.decode()
 
