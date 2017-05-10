@@ -25,11 +25,11 @@ class CLICommand:
                             '(in eV relative to Fermi level).')
 
     @staticmethod
-    def run(args):
-        main(args)
+    def run(args, parser):
+        main(args, parser)
 
 
-def main(args):
+def main(args, parser):
     atoms = read(args.calculation)
     calc = atoms.calc
     bzkpts = calc.get_bz_k_points()
@@ -49,6 +49,8 @@ def main(args):
         if not args.quiet:
             print('Interpolating from Monkhorst-Pack grid (size, offset):')
             print(size, offset)
+        if args.path is None:
+            parser.error('Please specify a path!')
         bz2ibz = calc.get_bz_to_ibz_map()
         path = bandpath(args.path, atoms.cell, args.points)[0]
         icell = atoms.get_reciprocal_cell()
