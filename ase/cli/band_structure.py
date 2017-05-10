@@ -43,7 +43,7 @@ def main(args):
         print('Spins, k-points, bands: {}, {}, {}'.format(*eps.shape))
     try:
         size, offset = get_monkhorst_pack_size_and_offset(bzkpts)
-    except:
+    except ValueError:
         path = ibzkpts
     else:
         if not args.quiet:
@@ -54,8 +54,8 @@ def main(args):
         icell = atoms.get_reciprocal_cell()
         eps = monkhorst_pack_interpolate(path, eps.transpose(1, 0, 2),
                                          icell, bz2ibz, size, offset)
+        eps = eps.transpose(1, 0, 2)
 
     emin, emax = (float(e) for e in args.range.split(','))
-    bs = BandStructure(atoms.cell, path, eps.transpose(1, 0, 2),
-                       reference=efermi)
+    bs = BandStructure(atoms.cell, path, eps, reference=efermi)
     bs.plot(emin=emin, emax=emax)
