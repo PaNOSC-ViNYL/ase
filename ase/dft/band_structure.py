@@ -88,7 +88,7 @@ class BandStructure:
             if len(e_skn) == 1:
                 colors = 'g'
             else:
-                colors = 'by'
+                colors = 'yb'
 
         for spin, e_kn in enumerate(e_skn):
             color = colors[spin]
