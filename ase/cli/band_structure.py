@@ -36,9 +36,10 @@ def main(args, parser):
     ibzkpts = calc.get_ibz_k_points()
     efermi = calc.get_fermi_level()
     nibz = len(ibzkpts)
+    nspins = 1 + int(calc.get_spin_polarized())
     eps = np.array([[calc.get_eigenvalues(kpt=k, spin=s)
                      for k in range(nibz)]
-                    for s in range(1)])
+                    for s in range(nspins)])
     if not args.quiet:
         print('Spins, k-points, bands: {}, {}, {}'.format(*eps.shape))
     try:
