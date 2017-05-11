@@ -78,6 +78,7 @@ class Profeta(ResonantRaman):
     """
     def __init__(self, *args, **kwargs):
         self.check_approximation(kwargs.pop('approximation', 'Profeta'))
+        self.nonresonant = kwargs.pop('nonresonant', True)
         ResonantRaman.__init__(self, *args, **kwargs)
 
     def check_approximation(self, value):
@@ -111,8 +112,9 @@ class Profeta(ResonantRaman):
             k_cc = np.zeros((3, 3), dtype=complex)
             for p, me_c in enumerate(me_pc):
                 me_cc = np.outer(me_c, me_c.conj())
-                k_cc += (me_cc / (e_p[p] - omega - 1j * gamma) +
-                         me_cc.conj() / (e_p[p] + omega + 1j * gamma))
+                k_cc += me_cc / (e_p[p] - omega - 1j * gamma)
+                if self.nonresonant:
+                    k_cc += me_cc.conj() / (e_p[p] + omega + 1j * gamma)
             return k_cc
 
         self.timer.start('kappa')
