@@ -9,12 +9,20 @@ from ase.io.trajectory import read_atoms
 
 def read_gpw(filename):
     try:
-        reader = ulm.open(filename)
-    except ulm.InvalidULMFileError:
-        return read_old_gpw(filename)
-    atoms = read_atoms(reader.atoms)
-    atoms.calc = SinglePointCalculator(atoms, **reader.results.asdict())
-    return atoms
+        from gpaw import GPAW
+    except ImportError:
+        try:
+            reader = ulm.open(filename)
+        except ulm.InvalidULMFileError:
+            return read_old_gpw(filename)
+        else:
+            atoms = read_atoms(reader.atoms)
+            atoms.calc = SinglePointCalculator(atoms,
+                                               **reader.results.asdict())
+            return atoms
+    else:
+        calc = GPAW(filename, txt=None)
+        return calc.get_atoms()
 
 
 def read_old_gpw(filename):

@@ -204,7 +204,6 @@ class SQLite3Database(Database, object):
             row.user = os.getenv('USER')
         else:
             row = atoms
-
             cur.execute('SELECT id FROM systems WHERE unique_id=?',
                         (row.unique_id,))
             results = cur.fetchall()
@@ -636,6 +635,8 @@ def blob(array):
 
     if array is None:
         return None
+    if len(array) == 0:
+        array = np.zeros(0)
     if array.dtype == np.int64:
         array = array.astype(np.int32)
     if not np.little_endian:

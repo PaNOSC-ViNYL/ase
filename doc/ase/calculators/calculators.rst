@@ -94,6 +94,7 @@ lj                                  Lennard-Jones potential
 morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
 :mod:`~ase.calculators.loggingcalc` Logging calculator
+:mod:`~ase.calculators.dftd3`       DFT-D3 dispersion correction calculator
 =================================== ===========================================
 
 .. index:: D3, Grimme
@@ -213,6 +214,7 @@ the :meth:`set` method:
    qmmm
    checkpointing
    loggingcalc
+   dftd3
    others
    test
    ase_qmmm_manyqm

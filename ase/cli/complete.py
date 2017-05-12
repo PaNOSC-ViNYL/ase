@@ -24,6 +24,9 @@ def match(word, *suffixes):
 
 # Beginning of computer generated data:
 commands = {
+    'band-structure':
+        ['-q', '--quiet', '-k', '--path', '-n', '--points', '-r',
+         '--range'],
     'build':
         ['-M', '--magnetic-moment', '--modify', '-V', '--vacuum', '-v',
          '--vacuum0', '--unit-cell', '--bond-length', '-x',
@@ -41,7 +44,8 @@ commands = {
          '--sort', '--cut', '-p', '--plot', '-P', '--plot-data',
          '--csv', '-w', '--open-web-browser', '--no-lock-file',
          '--analyse', '-j', '--json', '-m', '--show-metadata',
-         '--set-metadata', '--unique'],
+         '--set-metadata', '-M', '--metadata-from-python-script',
+         '--unique'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
     'gui':

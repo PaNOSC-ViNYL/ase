@@ -11,21 +11,22 @@ Command line tool
 ASE has a command line tool called :program:`ase` with the following
 sub-commands:
 
-============  =================================================
-sub-command   description
-============  =================================================
-help          Help for sub-command
-info          Print information about files or system
-test          Test ASE
-gui           ASE's :ref:`graphical user interface <ase-gui>`
-db            Manipulate and query :ref:`ASE database <ase-db>`
-run           Run calculation with one of ASE's calculators
-build         Build an atom, molecule or bulk structure
-eos           Calculate equation of state
-ulm           Show content of ulm-file
-nomad-upload  Upload files to NOMAD
-completion    Add tab-completion for Bash
-============  =================================================
+==============  =================================================
+sub-command     description
+==============  =================================================
+help            Help for sub-command
+info            Print information about files or system
+test            Test ASE
+gui             ASE's :ref:`graphical user interface <ase-gui>`
+db              Manipulate and query :ref:`ASE database <ase-db>`
+run             Run calculation with one of ASE's calculators
+build           Build an atom, molecule or bulk structure
+eos             Calculate equation of state
+ulm             Show content of ulm-file
+nomad-upload    Upload files to NOMAD
+band-structure  Plot band-structure
+completion      Add tab-completion for Bash
+==============  =================================================
 
 
 Python -m tricks

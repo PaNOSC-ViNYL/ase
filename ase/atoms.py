@@ -484,7 +484,7 @@ class Atoms(object):
             following the Hill notation (alphabetical order with C and H
             first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
             'H2O4S'. This is default.
-      
+
             'metal': The list of checmical symbols (alphabetical metals,
             and alphabetical non-metals)
         """
@@ -1079,8 +1079,8 @@ class Atoms(object):
         longer = np.zeros(3)
         shift = np.zeros(3)
         for i in axes:
-            p0 = np.dot(p, dirs[i]).min()
-            p1 = np.dot(p, dirs[i]).max()
+            p0 = np.dot(p, dirs[i]).min() if len(p) else 0
+            p1 = np.dot(p, dirs[i]).max() if len(p) else 0
             height = np.dot(cell[i], dirs[i])
             if vacuum is not None:
                 lng = (p1 - p0 + 2 * vacuum) - height
@@ -1868,7 +1868,10 @@ def string2symbols(s):
             m = int(s[i:j])
         else:
             m = 1
-        return m * [s[:i]] + string2symbols(s[j:])
+        symbol = s[:i]
+        if symbol not in atomic_numbers:
+            raise ValueError
+        return m * [symbol] + string2symbols(s[j:])
     else:
         raise ValueError
 
