@@ -26,7 +26,7 @@ def read_gpw(filename):
     spin = 0
     for eps_kn, f_kn in zip(wfs.eigenvalues, wfs.occupations):
         kpt = 0
-        for weight, eps_n, f_n in zip(wfs.kpt.weights, eps_kn, f_kn):
+        for weight, eps_n, f_n in zip(wfs.kpts.weights, eps_kn, f_kn):
             atoms.calc.kpts.append(
                 SinglePointKPoint(weight, spin, kpt, eps_n, f_n))
             kpt += 1

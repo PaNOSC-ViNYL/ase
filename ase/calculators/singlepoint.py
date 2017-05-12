@@ -3,6 +3,7 @@ import numpy as np
 from ase.calculators.calculator import Calculator, all_properties
 from ase.calculators.calculator import PropertyNotImplementedError
 
+
 class SinglePointCalculator(Calculator):
     """Special calculator for a single configuration.
 
@@ -55,6 +56,7 @@ class SinglePointDFTCalculator(SinglePointCalculator):
                  **results):
         self.bz_kpts = bzkpts
         self.ibz_kpts = ibzkpts
+        self.bz2ibz = bz2ibz
         self.eFermi = efermi
 
         SinglePointCalculator.__init__(self, atoms, **results)
