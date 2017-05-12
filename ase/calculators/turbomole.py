@@ -925,6 +925,7 @@ class Turbomole(FileIOCalculator):
     def read_restart(self):
         """ read a previous calculation from control file """
         self.atoms = read('coord')
+        self.converged = self.read_convergence()
         read_methods = [
             self.read_energy,
             self.read_gradient,
@@ -946,7 +947,6 @@ class Turbomole(FileIOCalculator):
                 method()
             except ReadError as err:
                 warnings.warn(err.args[0])
-        self.converged = self.read_convergence()
 
     def read_parameters(self):
         """ read parameters from control file """
@@ -1074,6 +1074,8 @@ class Turbomole(FileIOCalculator):
             if bool(len(self.read_data_group('restart'))):
                 return False
             if bool(len(self.read_data_group('actual'))):
+                return False
+            if not bool(len(self.read_data_group('energy'))):
                 return False
             if os.path.exists('job.start') and os.path.exists('GEO_OPT_FAILED'):
                 return False
@@ -1328,6 +1330,9 @@ class Turbomole(FileIOCalculator):
                     if match:
                         f_string = match.group(1)
                         f_width = int(match.group(2))
+                    if ('scfdump' in line or 'expanded' in line 
+                            or 'scfconv' not in line):
+                        self.converged = False
                     continue
                 if '$end' in line:
                     if len(orbitals_coefficients_line) != 0:
