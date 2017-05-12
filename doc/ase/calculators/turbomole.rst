@@ -38,7 +38,7 @@ system:
 .. code:: python
 
   from ase.calculators.turbomole import Turbomole
-  calc = Turbomole(charge=0, multiplicity=1)
+  calc = Turbomole(multiplicity=1)
 
 The selection of the method will be according to the default parameter values 
 (see below), i.e. in this case DFT with b-p functional and the def-SV(P) basis 
@@ -74,13 +74,24 @@ must be checked with:
   assert calc.converged
 
 If the user wishes to use the input files (such as the control file) generated 
-by module ``define`` before the actual calculation starts, the initialize() 
-method has to be called explicitly after constructing the calculator:
+by module ``define`` before (or without) an actual calculation starts, the 
+initialize() method has to be called explicitly after constructing the calculator 
+and associating it with an atoms object, e.g.:
 
 .. code:: python
 
-  calc = Turbomole(charge=0, multiplicity=1)
-  calc.initialize()
+    from ase.build import molecule
+    from ase.calculators.turbomole import Turbomole
+    mol = molecule('C60')
+    params = {
+        'use resolution of identity': True, 
+        'total charge': -1,
+        'multiplicity': 2
+    }
+    calc = Turbomole(**params)
+    mol.set_calculator(calc)
+    calc.initialize()
+
 
 Command-line interface
 ----------------------
