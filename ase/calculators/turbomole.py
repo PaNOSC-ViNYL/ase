@@ -1,24 +1,113 @@
-from __future__ import print_function
 """
 This module defines an ASE interface to Turbomole: http://www.turbomole.com/
 
 Please read the license file (../../LICENSE)
 
-Contact: Ivan Kondov <ivan.kondov@kit.edu> 
+Contact: Ivan Kondov <ivan.kondov@kit.edu>
 """
-
-import os, re
+from __future__ import print_function
+import os
+import re
 import warnings
+from subprocess import Popen, PIPE
 from math import log10
 import numpy as np
 import fortranformat as ff
-from subprocess import Popen, PIPE
 from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
 from ase.calculators.calculator import FileIOCalculator
 from ase.calculators.calculator import PropertyNotImplementedError, ReadError
 from ase.utils import basestring
+
+
+def read_output(regex):
+    """ collects all matching strings from the output """
+    hitlist = []
+    checkfiles = []
+    for filename in os.listdir('.'):
+        if filename.startswith('job.') or filename.endswith('.out'):
+            checkfiles.append(filename)
+    for filename in checkfiles:
+        with open(filename, 'rt') as f:
+            lines = f.readlines()
+            for line in lines:
+                match = re.search(regex, line)
+                if match:
+                    hitlist.append(match.group(1))
+    return hitlist
+
+
+def execute(args, input_str=None, error_test=True,
+            stdout_tofile=True):
+    """ executes a turbomole executable and process the outputs """
+
+    if isinstance(args, basestring):
+        args = args.split()
+
+    if stdout_tofile:
+        stdout = open('ASE.TM.' + args[0] + '.out', 'w')
+    else:
+        stdout = PIPE
+
+    if input_str:
+        stdin = input_str.encode()
+    else:
+        stdin = None
+
+    message = 'TM command: "' + args[0] + '" execution failed'
+    try:
+        # the sub process gets started here
+        proc = Popen(args, stdin=PIPE, stderr=PIPE, stdout=stdout)
+        res = proc.communicate(input=stdin)
+        # check some general errors
+        if error_test:
+            error = res[1].decode()
+            # check the error output of the command
+            if 'abnormally' in error:
+                raise RuntimeError(message + error)
+            if 'ended normally' not in error:
+                raise RuntimeError(message + error)
+    except RuntimeError as err:
+        raise err
+    except OSError as err:
+        raise OSError(err.args[1] + '\n' + message)
+    else:
+        print('TM command: "' + args[0] + '" successfully executed')
+
+    if not stdout_tofile:
+        return res[0].decode()
+
+
+def add_data_group(data_group, string=None, raw=False):
+    """ write a turbomole data group to control file """
+    if raw:
+        data = data_group
+    else:
+        data = '$' + data_group
+        if string:
+            data += ' ' + string
+        data += '\n'
+    f = open('control', 'r+')
+    lines = f.readlines()
+    f.seek(0)
+    f.truncate()
+    lines.insert(2, data)
+    f.write(''.join(lines))
+    f.close()
+
+
+def read_data_group(data_group):
+    """ read a turbomole data group from control file """
+    args = ['sdg', data_group]
+    dg = execute(args, error_test=False, stdout_tofile=False)
+    return dg.strip()
+
+
+def delete_data_group(data_group):
+    """ delete a turbomole data group from control file """
+    command = ['kdg', data_group]
+    execute(command, error_test=False, stdout_tofile=False)
 
 
 class Turbomole(FileIOCalculator):
@@ -28,26 +117,26 @@ class Turbomole(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces', 'dipole', 'free_energy']
 
-    available_basis_sets = [ 
-        'sto-3g hondo', 'def-SV(P)', 'def2-SV(P)', 'def-TZV(P)', 'def2-TZV(P)', 
-        'def-SVP', 'def2-SVP', 'def-TZVP', 'def2-TZVP'
+    available_basis_sets = [
+        'sto-3g hondo', 'def-SV(P)', 'def2-SV(P)', 'def-TZV(P)',
+        'def2-TZV(P)', 'def-SVP', 'def2-SVP', 'def-TZVP', 'def2-TZVP'
     ]
-    available_functionals = [ 
-        'slater-dirac-exchange', 's-vwn', 'vwn', 's-vwn_Gaussian', 'pwlda', 
-        'becke-exchange', 'b-lyp', 'b-vwn', 'lyp', 'b-p', 'pbe', 'tpss', 
-        'bh-lyp', 'b3-lyp', 'b3-lyp_Gaussian', 'pbe0', 'tpssh', 'lhf', 'oep', 
-        'b97-d', 'b2-plyp' 
+    available_functionals = [
+        'slater-dirac-exchange', 's-vwn', 'vwn', 's-vwn_Gaussian', 'pwlda',
+        'becke-exchange', 'b-lyp', 'b-vwn', 'lyp', 'b-p', 'pbe', 'tpss',
+        'bh-lyp', 'b3-lyp', 'b3-lyp_Gaussian', 'pbe0', 'tpssh', 'lhf', 'oep',
+        'b97-d', 'b2-plyp'
     ]
     tm_files = [
         'control', 'coord', 'basis', 'auxbasis', 'energy', 'gradient', 'mos',
-        'alpha', 'beta',  'statistics', 'GEO_OPT_CONVERGED', 'GEO_OPT_FAILED',
+        'alpha', 'beta', 'statistics', 'GEO_OPT_CONVERGED', 'GEO_OPT_FAILED',
         'not.converged', 'nextstep', 'hessapprox', 'job.last', 'job.start',
-        'optinfo', 'statistics', 'converged', 'vibspectrum', 'vib_normal_modes',
-        'hessian', 'dipgrad', 'dscf_problem'
+        'optinfo', 'statistics', 'converged', 'vibspectrum',
+        'vib_normal_modes', 'hessian', 'dipgrad', 'dscf_problem'
     ]
     tm_tmp_files = [
-        'errvec', 'fock', 'oldfock', 'dens', 'ddens', 'diff_densmat', 
-        'diff_dft_density', 'diff_dft_oper', 'diff_fockmat', 'diis_errvec', 
+        'errvec', 'fock', 'oldfock', 'dens', 'ddens', 'diff_densmat',
+        'diff_dft_density', 'diff_dft_oper', 'diff_fockmat', 'diis_errvec',
         'diis_oldfock'
     ]
     spec_names = {
@@ -59,9 +148,21 @@ class Turbomole(FileIOCalculator):
         'group': 'parameter_group',
         'units': 'parameter_units',
         'mapping': 'parameter_mapping',
-        'non-define': 'parameter_no_define'        
+        'non-define': 'parameter_no_define'
     }
-    # nested dictionary with parameters properties
+
+    # flat dictionaries with parameters attributes
+    default_parameters = {}
+    parameter_comment = {}
+    parameter_updateable = {}
+    parameter_type = {}
+    parameter_key = {}
+    parameter_group = {}
+    parameter_units = {}
+    parameter_mapping = {}
+    parameter_no_define = {}
+
+    # nested dictionary with parameters attributes
     parameter_spec = {
         'automatic orbital shift': {
             'comment': None,
@@ -367,9 +468,10 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'task': {
-            'comment': '"energy calculation" = "energy", "gradient calculation"'
-                         ' = "gradient", "geometry optimization" = "optimize", '
-                         '"normal mode analysis" = "frequencies" ',
+            'comment': '"energy calculation" = "energy", '
+                       '"gradient calculation" = "gradient", '
+                       '"geometry optimization" = "optimize", '
+                       '"normal mode analysis" = "frequencies"',
             'default': 'energy',
             'group': None,
             'key': None,
@@ -451,19 +553,31 @@ class Turbomole(FileIOCalculator):
         }
     }
 
-    """ initial values """
-
+    # initialize attributes
     parameters = {}
     results = {}
+    initialized = False
     converged = False
     updated = False
+    update_energy = None
+    update_forces = None
+    update_geometry = None
+    update_hessian = None
     atoms = None
     forces = None
     e_total = None
+    dipole = None
+    version = None
+    runtime = None
+    datetime = None
+    hostname = None
 
     def __init__(self, label=None, calculate_energy='dscf',
-            calculate_forces='grad', post_HF=False, restart=False,
-            define_str=None, control_kdg=None, control_input=None, **kwargs):
+                 calculate_forces='grad', post_HF=False, restart=False,
+                 define_str=None, control_kdg=None, control_input=None,
+                 **kwargs):
+
+        FileIOCalculator.__init__(self)
 
         self.label = label
         self.calculate_energy = calculate_energy
@@ -475,10 +589,8 @@ class Turbomole(FileIOCalculator):
         self.control_input = control_input
 
         # construct flat dictionaries with parameter attributes
-        for key in list(self.spec_names.keys()):
-            setattr(self, self.spec_names[key], {})
-        for p in list(self.parameter_spec.keys()):
-            for k in list(self.spec_names.keys()):
+        for p in self.parameter_spec:
+            for k in self.spec_names:
                 if k in list(self.parameter_spec[p].keys()):
                     subdict = getattr(self, self.spec_names[k])
                     subdict.update({p: self.parameter_spec[p][k]})
@@ -494,7 +606,7 @@ class Turbomole(FileIOCalculator):
         return getattr(self, item)
 
     def set_restart(self, params_update):
-        """ this function constructs atoms, parameters and results from a 
+        """ this function constructs atoms, parameters and results from a
         previous calculation """
 
         # read results, key parameters and non-key parameters
@@ -504,7 +616,7 @@ class Turbomole(FileIOCalculator):
         # filter out non-updateable parameters
         for p in list(params_update.keys()):
             if not self.parameter_updateable[p]:
-                del(params_update[p])
+                del params_update[p]
                 warnings.warn('"' + p + '"' + ' cannot be changed')
 
         # update and verify parameters
@@ -515,19 +627,19 @@ class Turbomole(FileIOCalculator):
 
         # if a define string is specified then run define
         if self.define_str:
-            self.execute('define', input_str=self.define_str)
+            execute('define', input_str=self.define_str)
 
-        # construct a list of data groups to update        
+        # construct a list of data groups to update
         grps = []
         for p in list(params_update.keys()):
             if self.parameter_group[p] is not None:
                 grps.append(self.parameter_group[p])
 
-        # construct a dictionary of data groups and update params        
+        # construct a dictionary of data groups and update params
         dgs = {}
         for g in grps:
             dgs[g] = {}
-            for p in list(self.parameter_key.keys()):
+            for p in self.parameter_key:
                 if g == self.parameter_group[p]:
                     if self.parameter_group[p] == self.parameter_key[p]:
                         if p in list(params_update.keys()):
@@ -554,11 +666,11 @@ class Turbomole(FileIOCalculator):
                             dgs[g][self.parameter_key[p]] = val
 
         # write dgs dictionary to a data group
-        for g in list(dgs.keys()):
-            self.delete_data_group(g)
+        for g in dgs:
+            delete_data_group(g)
             if isinstance(dgs[g], dict):
                 string = ''
-                for key in (dgs[g].keys()):
+                for key in list(dgs[g].keys()):
                     if dgs[g][key] is None:
                         continue
                     elif isinstance(dgs[g][key], bool):
@@ -566,13 +678,13 @@ class Turbomole(FileIOCalculator):
                             string += ' ' + key
                     else:
                         string += ' ' + key + '=' + str(dgs[g][key])
-                self.add_data_group(g, string=string)
+                add_data_group(g, string=string)
             else:
                 if isinstance(dgs[g], bool):
                     if dgs[g]:
-                        self.add_data_group(g, string='')
+                        add_data_group(g, string='')
                 else:
-                    self.add_data_group(g, string=str(dgs[g]))
+                    add_data_group(g, string=str(dgs[g]))
 
         self.set_post_define()
         self.initialized = True
@@ -594,22 +706,23 @@ class Turbomole(FileIOCalculator):
                             val = fun(self.parameters[p])
                         else:
                             val = self.parameters[p]
-                        self.delete_data_group(self.parameter_group[p])
-                        self.add_data_group(self.parameter_group[p], str(val))
+                        delete_data_group(self.parameter_group[p])
+                        add_data_group(self.parameter_group[p], str(val))
                     else:
-                        self.delete_data_group(self.parameter_group[p])
+                        delete_data_group(self.parameter_group[p])
 
         # delete user-specified data groups
         if self.control_kdg:
             for dg in self.control_kdg:
-                self.delete_data_group(dg)
+                delete_data_group(dg)
 
         # append user-defined input to control
         if self.control_input:
             for inp in self.control_input:
-                self.add_data_group(inp, raw=True)
+                add_data_group(inp, raw=True)
 
     def set_parameters(self, params):
+        """ loads the default parameters and updates with actual values """
         self.parameters = self.default_parameters.copy()
         self.parameters.update(params)
         if self.parameters['use resolution of identity']:
@@ -627,13 +740,14 @@ class Turbomole(FileIOCalculator):
 
         if self.parameters['use dft']:
             func_list = [x.lower() for x in self.available_functionals]
-            assert self.parameters['density functional'].lower() in func_list, ( 
+            func = self.parameters['density functional']
+            assert func.lower() in func_list, (
                 'density functional not available / not supported'
             )
 
         bas_list = [x.lower() for x in self.available_basis_sets]
         assert self.parameters['basis set name'].lower() in bas_list, (
-            'basis set ', self.parameters['basis set name'], 
+            'basis set ', self.parameters['basis set name'],
             ' not available / not supported'
         )
         assert self.parameters['multiplicity'], 'multiplicity not defined'
@@ -650,7 +764,7 @@ class Turbomole(FileIOCalculator):
             raise NotImplementedError('Excited state not implemented')
 
     def reset(self):
-        """ removes all turbomole input, output and scratch files, 
+        """ removes all turbomole input, output and scratch files,
         and deletes results dict and the atoms object """
         self.atoms = None
         self.results = {}
@@ -663,14 +777,15 @@ class Turbomole(FileIOCalculator):
         self.converged = False
 
     def set_atoms(self, atoms):
-        """ Create the self.atoms object and writes the coord file. If 
+        """ Create the self.atoms object and writes the coord file. If
         self.atoms exists a check for changes and an update of the atoms
-        are performed. Note: Only positions changes are tracked in this version. 
+        are performed. Note: Only positions changes are tracked in this
+        version.
         """
         changes = self.check_state(atoms, tol=1e-13)
         if self.atoms == atoms or 'positions' not in changes:
             # print('two atoms obj are (almost) equal')
-            if (self.updated and os.path.isfile('coord')):
+            if self.updated and os.path.isfile('coord'):
                 self.updated = False
                 a = read('coord').get_positions()
                 if np.allclose(a, atoms.get_positions(), rtol=0, atol=1e-13):
@@ -695,6 +810,7 @@ class Turbomole(FileIOCalculator):
         self.update_hessian = True
 
     def get_define_str(self):
+        """ construct a define string from the parameters dictionary """
         define_str_tpl = (
             '\n__title__\na coord\n__inter__\n'
             'bb all __basis_set__\n*\neht\ny\n__charge_str____occ_str__'
@@ -734,7 +850,7 @@ class Turbomole(FileIOCalculator):
         if params['multiplicity'] == 1:
             norb_str = ''
         else:
-            norb_str='n\n'
+            norb_str = 'n\n'
 
         if params['use dft']:
             dft_str = 'dft\non\n*\n'
@@ -750,7 +866,7 @@ class Turbomole(FileIOCalculator):
         if params['use resolution of identity']:
             ri_str = 'ri\non\nm ' + str(params['ri memory']) + '\n*\n'
         else:
-            ri_str =''
+            ri_str = ''
 
         if params['scf iterations']:
             scfmaxiter = params['scf iterations']
@@ -764,28 +880,35 @@ class Turbomole(FileIOCalculator):
         if params['use fermi smearing']:
             fermi_str = 'scf\nfermi\n'
             if params['fermi initial temperature']:
-                fermi_str+=('1\n'+str(params['fermi initial temperature'])+'\n')
+                par = str(params['fermi initial temperature'])
+                fermi_str += '1\n' + par + '\n'
             if params['fermi final temperature']:
-                fermi_str+=('2\n'+str(params['fermi final temperature'])+'\n')
+                par = str(params['fermi final temperature'])
+                fermi_str += '2\n' + par + '\n'
             if params['fermi annealing factor']:
-                fermi_str+=('3\n'+str(params['fermi annealing factor'])+'\n') 
+                par = str(params['fermi annealing factor'])
+                fermi_str += '3\n' + par + '\n'
             if params['fermi homo-lumo gap criterion']:
-                fermi_str+=('4\n'+str(params['fermi homo-lumo gap criterion'])+'\n') 
+                par = str(params['fermi homo-lumo gap criterion'])
+                fermi_str += '4\n' + par + '\n'
             if params['fermi stopping criterion']:
-                fermi_str+=('5\n'+str(params['fermi stopping criterion'])+'\n') 
+                par = str(params['fermi stopping criterion'])
+                fermi_str += '5\n' + par + '\n'
             fermi_str += '\n\n'
         else:
             fermi_str = ''
 
         define_str = define_str_tpl
         define_str = re.sub('__title__', params['title'], define_str)
-        define_str = re.sub('__basis_set__', params['basis set name'], define_str)
+        define_str = re.sub('__basis_set__', params['basis set name'],
+                            define_str)
         define_str = re.sub('__charge_str__', charge_str, define_str)
         define_str = re.sub('__occ_str__', occ_str, define_str)
         define_str = re.sub('__norb_str__', norb_str, define_str)
         define_str = re.sub('__dft_str__', dft_str, define_str)
         define_str = re.sub('__ri_str__', ri_str, define_str)
-        define_str = re.sub('__single_atom_str__', single_atom_str, define_str)
+        define_str = re.sub('__single_atom_str__', single_atom_str,
+                            define_str)
         define_str = re.sub('__inter__', internals_str, define_str)
         define_str = re.sub('__scfiterlimit__', scfiter_str, define_str)
         define_str = re.sub('__fermi_str__', fermi_str, define_str)
@@ -808,7 +931,7 @@ class Turbomole(FileIOCalculator):
             define_str = self.get_define_str()
 
         # run define
-        self.execute('define', input_str=define_str)
+        execute('define', input_str=define_str)
         self.set_post_define()
 
         self.initialized = True
@@ -826,7 +949,6 @@ class Turbomole(FileIOCalculator):
 
     def calculate(self, atoms):
         """ execute the requested job """
-
         if self.parameters['task'] in ['energy', 'energy calculation']:
             self.get_potential_energy(atoms)
         if self.parameters['task'] in ['gradient', 'gradient calculation']:
@@ -837,48 +959,8 @@ class Turbomole(FileIOCalculator):
             self.harmonic_analysis(atoms)
         self.read_results()
 
-    def execute(self, args, input_str=None, error_test=True, stdout_tofile=True):
-        """ executes a turbomole executable and process the outputs """
-
-        if isinstance(args, basestring):
-            args = args.split()
-
-        if stdout_tofile:
-            stdout = open('ASE.TM.' + args[0] + '.out', 'w')
-        else:
-            stdout = PIPE
-
-        if input_str:
-            stdin = input_str.encode()
-        else:
-            stdin = None
-
-        message = 'TM command: "' + args[0] + '" execution failed'
-        try:
-            # the sub process gets started here
-            proc = Popen(args, stdin=PIPE, stderr=PIPE, stdout=stdout)
-            res = proc.communicate(input=stdin)
-            # check some general errors
-            if error_test:
-                error = res[1].decode()
-                # check the error output of the command
-                if 'abnormally' in error:
-                    raise RuntimeError(message + error)
-                if 'ended normally' not in error:
-                    raise RuntimeError(message + error)                
-        except RuntimeError as err:
-            raise err
-        except OSError as err:
-            raise OSError(err.args[1] + '\n' + message)
-        else:
-            print('TM command: "' + args[0] + '" successfully executed')
-
-        if not stdout_tofile:
-            return res[0].decode()
-
     def relax_geometry(self, atoms):
         """ execute geometry optimization with script jobex """
-
         self.set_atoms(atoms)
         if self.converged and not self.update_geometry:
             return
@@ -887,17 +969,19 @@ class Turbomole(FileIOCalculator):
         if self.parameters['use resolution of identity']:
             jobex_flags += ' -ri'
         if self.parameters['force convergence']:
-            conv = -log10(self.parameters['force convergence']/Hartree*Bohr)//1
+            par = self.parameters['force convergence']
+            conv = -log10(par/Hartree*Bohr)//1
             jobex_flags += ' -gcart ' + str(int(conv))
         if self.parameters['energy convergence']:
-            conv = -log10(self.parameters['energy convergence']/Hartree)//1
+            par = self.parameters['energy convergence']
+            conv = -log10(par/Hartree)//1
             jobex_flags += ' -energy ' + str(int(conv))
         geom_iter = self.parameters['geometry optimization iterations']
         if geom_iter is not None:
             assert isinstance(geom_iter, int)
             jobex_flags += ' -c ' + str(geom_iter)
         self.converged = False
-        self.execute('jobex' + jobex_flags)
+        execute('jobex' + jobex_flags)
         # check convergence
         self.converged = self.read_convergence()
         if self.converged:
@@ -913,13 +997,12 @@ class Turbomole(FileIOCalculator):
 
     def harmonic_analysis(self, atoms):
         """ execute normal mode analysis with module aoforce """
-
         self.set_atoms(atoms)
         self.initialize()
         if self.update_energy:
             self.get_potential_energy(atoms)
         if self.update_hessian:
-            self.execute('aoforce')
+            execute('aoforce')
             self.update_hessian = False
 
     def read_restart(self):
@@ -952,13 +1035,18 @@ class Turbomole(FileIOCalculator):
         """ read parameters from control file """
 
         def parse_data_group(dg, dg_name):
-            if len(dg) == 0: return None
+            """ parse a data group """
+            if len(dg) == 0:
+                return None
             lsep = None
             ksep = None
             ndg = dg.replace('$'+dg_name, '').strip()
-            if '\n' in ndg: lsep = '\n'
-            if '=' in ndg: ksep = '='
-            if not lsep and not ksep: return ndg
+            if '\n' in ndg:
+                lsep = '\n'
+            if '=' in ndg:
+                ksep = '='
+            if not lsep and not ksep:
+                return ndg
             result = {}
             lines = ndg.split(lsep)
             for line in lines:
@@ -971,14 +1059,14 @@ class Turbomole(FileIOCalculator):
 
         params = {}
         pdgs = {}
-        for p in list(self.parameter_group.keys()):
+        for p in self.parameter_group:
             if self.parameter_group[p] and self.parameter_key[p]:
                 pdgs[p] = parse_data_group(
-                    self.read_data_group(self.parameter_group[p]), 
+                    read_data_group(self.parameter_group[p]),
                     self.parameter_group[p]
                 )
 
-        for p in list(self.parameter_key.keys()):
+        for p in self.parameter_key:
             if self.parameter_key[p]:
                 if self.parameter_key[p] == self.parameter_group[p]:
                     if pdgs[p] is None:
@@ -992,8 +1080,9 @@ class Turbomole(FileIOCalculator):
                         else:
                             typ = self.parameter_type[p]
                             val = typ(pdgs[p])
-                            if p in list(self.parameter_mapping.keys()):
-                                fun = self.parameter_mapping[p]['from_control']
+                            mapping = self.parameter_mapping
+                            if p in list(mapping.keys()):
+                                fun = mapping[p]['from_control']
                                 val = fun(val)
                             params[p] = val
                 else:
@@ -1011,12 +1100,13 @@ class Turbomole(FileIOCalculator):
                         else:
                             typ = self.parameter_type[p]
                             val = typ(pdgs[p][self.parameter_key[p]])
-                            if p in list(self.parameter_mapping.keys()):
-                                fun = self.parameter_mapping[p]['from_control']
+                            mapping = self.parameter_mapping
+                            if p in list(mapping.keys()):
+                                fun = mapping[p]['from_control']
                                 val = fun(val)
                             params[p] = val
 
-        """ special parameters - no-group or no-key parameters """
+        # non-group or non-key parameters
 
         # per-element and per-atom basis sets not implemented in calculator
         basis_sets = set([bs['nickname'] for bs in self.results['basis set']])
@@ -1026,8 +1116,8 @@ class Turbomole(FileIOCalculator):
 
         # rohf, multiplicity and total charge
         orbs = self.results['molecular orbitals']
-        params['rohf'] = (bool(len(self.read_data_group('rohf'))) or
-                    bool(len(self.read_data_group('roothaan'))))
+        params['rohf'] = (bool(len(read_data_group('rohf'))) or
+                          bool(len(read_data_group('roothaan'))))
         core_charge = 0
         if self.results['ecps']:
             for ecp in self.results['ecps']:
@@ -1052,30 +1142,30 @@ class Turbomole(FileIOCalculator):
         else:
             raise NotImplementedError('ROHF not implemented')
 
-        # task
+        # task-related parameters
         if os.path.exists('job.start'):
             with open('job.start', 'r') as log:
                 lines = log.readlines()
             for line in lines:
                 if 'CRITERION FOR TOTAL SCF-ENERGY' in line:
-                    en = int(re.search('10\*{2}\(-(\d+)\)', line).group(1))
+                    en = int(re.search(r'10\*{2}\(-(\d+)\)', line).group(1))
                     params['energy convergence'] = en
                 if 'CRITERION FOR MAXIMUM NORM OF SCF-ENERGY GRADIENT' in line:
-                    gr = int(re.search('10\*{2}\(-(\d+)\)', line).group(1))
+                    gr = int(re.search(r'10\*{2}\(-(\d+)\)', line).group(1))
                     params['force convergence'] = gr
                 if 'AN OPTIMIZATION WITH MAX' in line:
-                    cy = int(re.search('MAX. (\d+) CYCLES', line).group(1))
+                    cy = int(re.search(r'MAX. (\d+) CYCLES', line).group(1))
                     params['geometry optimization iterations'] = cy
         return params
 
     def read_convergence(self):
         """ perform convergence checks """
         if self.restart:
-            if bool(len(self.read_data_group('restart'))):
+            if bool(len(read_data_group('restart'))):
                 return False
-            if bool(len(self.read_data_group('actual'))):
+            if bool(len(read_data_group('actual'))):
                 return False
-            if not bool(len(self.read_data_group('energy'))):
+            if not bool(len(read_data_group('energy'))):
                 return False
             if os.path.exists('job.start') and os.path.exists('GEO_OPT_FAILED'):
                 return False
@@ -1093,30 +1183,23 @@ class Turbomole(FileIOCalculator):
                 for filename in checkfiles:
                     for line in open(filename):
                         if 'SCF FAILED TO CONVERGE' in line:
+                            # scf did not converge in some jobex iteration
                             if filename == 'job.last':
-                                # scf did not converge in first jobex iteration
                                 raise RuntimeError('scf failed to converge')
                             else:
-                                # scf did not converge in later jobex iteration
-                                warning = RuntimeWarning('scf failed to converge')
-                                warnings.warn(warning)
-                warning = RuntimeWarning('geometry optimization failed to converge')
-                warnings.warn(warning)
+                                warnings.warn('scf failed to converge')
+                warnings.warn('geometry optimization failed to converge')
                 return False
             else:
                 raise RuntimeError('error during geometry optimization')
-                return False
         else:
             if os.path.isfile('dscf_problem'):
                 raise RuntimeError('scf failed to converge')
-                return False
             else:
                 return True
 
     def read_results(self):
         """ read all results and load them in the results entity """
-#        from abcd.util import atoms2dict
-#        self.results['atoms'] = atoms2dict(self.atoms, plain_arrays=True)
         self.read_energy()
         self.read_mos()
         self.read_basis_set()
@@ -1124,8 +1207,9 @@ class Turbomole(FileIOCalculator):
         self.read_dipole_moment()
         self.read_ssquare()
         self.read_run_parameters()
-        if self.parameters['task'] in ['gradient', 'optimize', 
-                'gradient calculation', 'geometry optimization']:
+        if self.parameters['task'] in ['gradient', 'optimize',
+                                       'gradient calculation',
+                                       'geometry optimization']:
             self.read_gradient()
             self.read_forces()
         if self.parameters['task'] in ['frequencies', 'normal mode analysis']:
@@ -1134,50 +1218,20 @@ class Turbomole(FileIOCalculator):
             self.read_normal_modes()
             self.read_vibrational_spectrum()
 
-    """ methods to work with turbomole data groups """
-
-    def read_data_group(self, data_group):
-        """ read a turbomole data group from control file """
-        args = ['sdg', data_group]
-        return self.execute(args, error_test=False, stdout_tofile=False).strip()
-
-    def delete_data_group(self, data_group):
-        """ delete a turbomole data group from control file """
-        self.execute(['kdg', data_group], error_test=False, stdout_tofile=False)
-
-    def add_data_group(self, data_group, string=None, raw=False):
-        """ write a turbomole data group to control file """
-        if raw:
-            data = data_group
-        else:
-            data = '$' + data_group
-            if string:
-                data += ' ' + string
-            data += '\n'
-        f = open('control', 'r+')
-        lines = f.readlines()
-        f.seek(0)
-        f.truncate()
-        lines.insert(2,data)
-        f.write(''.join(lines))
-        f.close()
-
-    """ data reader methods """
-
     def read_run_parameters(self):
         """ read parameters set by define and not in self.parameters """
 
         if 'calculation parameters' not in self.results.keys():
             self.results['calculation parameters'] = {}
         parameters = self.results['calculation parameters']
-        dg = self.read_data_group('symmetry')
+        dg = read_data_group('symmetry')
         parameters['point group'] = str(dg.split()[1])
-        if '$uhf' in self.read_data_group('uhf'):
+        if '$uhf' in read_data_group('uhf'):
             parameters['uhf'] = True
         else:
             parameters['uhf'] = False
         # Gaussian function type
-        gt = self.read_data_group('pople')
+        gt = read_data_group('pople')
         if gt == '':
             parameters['gaussian type'] = 'spherical harmonic'
         else:
@@ -1189,7 +1243,7 @@ class Turbomole(FileIOCalculator):
             else:
                 parameters['gaussian type'] = None
 
-        nvibro = self.read_data_group('nvibro')
+        nvibro = read_data_group('nvibro')
         if nvibro:
             parameters['nuclear degrees of freedom'] = int(nvibro.split()[1])
 
@@ -1220,21 +1274,22 @@ class Turbomole(FileIOCalculator):
 
     def read_forces(self):
         """Read Forces from Turbomole gradient file."""
-        dg = self.read_data_group('grad')
-        if len(dg) == 0: return
+        dg = read_data_group('grad')
+        if len(dg) == 0:
+            return
         file = open('gradient', 'r')
         lines = file.readlines()
         file.close()
 
         forces = np.array([[0, 0, 0]])
-        
+
         nline = len(lines)
         iline = -1
-        
+
         for i in range(nline):
             if 'cycle' in lines[i]:
                 iline = i
-        
+
         if iline < 0:
             raise RuntimeError('Please check TURBOMOLE gradients')
 
@@ -1248,7 +1303,7 @@ class Turbomole(FileIOCalculator):
             tmp = np.array([[float(f) for f in line.split()[0:3]]])
             forces = np.concatenate((forces, tmp))
         # Note the '-' sign for turbomole, to get forces
-        self.forces = (-np.delete(forces, np.s_[0:1], axis=0)) * Hartree / Bohr
+        self.forces = -np.delete(forces, np.s_[0:1], axis=0) * Hartree / Bohr
         self.results['energy gradient'] = (-self.forces).tolist()
 
     def read_occupation_numbers(self):
@@ -1257,12 +1312,12 @@ class Turbomole(FileIOCalculator):
             return
         mos = self.results['molecular orbitals']
         args = ['eiger', '--all', '--pview']
-        output = self.execute(args, error_test=False, stdout_tofile=False)
+        output = execute(args, error_test=False, stdout_tofile=False)
         lines = output.split('\n')
         for line in lines:
             regex = (
-                '^\s+(\d+)\.*\s+(\w*)\s+(\d+)\s+(\S+)'
-                '\s+(\d*\.*\d*)\s+([-+]?\d+\.\d*)'
+                r'^\s+(\d+)\.*\s+(\w*)\s+(\d+)\s+(\S+)'
+                r'\s+(\d*\.*\d*)\s+([-+]?\d+\.\d*)'
             )
             match = re.search(regex, line)
             if match:
@@ -1274,14 +1329,13 @@ class Turbomole(FileIOCalculator):
                 else:
                     spin = None
                 ar_index = next(
-                    index for (index, molecular_orbital) in enumerate(mos) 
-                    if (
-                        molecular_orbital['index'] == orb_index 
-                        and molecular_orbital['spin'] == spin
-                    )
+                    index for (index, molecular_orbital) in enumerate(mos)
+                    if (molecular_orbital['index'] == orb_index and
+                        molecular_orbital['spin'] == spin)
                 )
                 mos[ar_index]['index by energy'] = int(match.group(1))
-                mos[ar_index]['irreducible representation'] = str(match.group(4))
+                irrep = str(match.group(4))
+                mos[ar_index]['irreducible representation'] = irrep
                 if match.group(5) != '':
                     mos[ar_index]['occupancy'] = float(match.group(5))
                 else:
@@ -1293,20 +1347,21 @@ class Turbomole(FileIOCalculator):
 
         self.results['molecular orbitals'] = []
         mos = self.results['molecular orbitals']
-        keywords = [ 'scfmo', 'uhfmo_alpha', 'uhfmo_beta' ]
-        spin = [ None, 'alpha', 'beta' ]
+        keywords = ['scfmo', 'uhfmo_alpha', 'uhfmo_beta']
+        spin = [None, 'alpha', 'beta']
 
         for index, keyword in enumerate(keywords):
             f_string = None
             f_width = 0
             mo = {}
-            orbitals_coefficients_line=[]
-            mo_string = self.read_data_group(keyword)
-            if mo_string == '': continue
+            orbitals_coefficients_line = []
+            mo_string = read_data_group(keyword)
+            if mo_string == '':
+                continue
             mo_string += '\n$end'
             lines = mo_string.split('\n')
             for line in lines:
-                if re.match('^\s*#',line):
+                if re.match(r'^\s*#', line):
                     continue
                 if 'eigenvalue' in line:
                     if len(orbitals_coefficients_line) != 0:
@@ -1314,23 +1369,24 @@ class Turbomole(FileIOCalculator):
                         mos.append(mo)
                         mo = {}
                         orbitals_coefficients_line = []
-                    match = re.search(
-                        '^\s*(\d+)\s+(\S+)\s+eigenvalue=([\+\-\d\.\w]+)\s',
-                        line
-                    )
+                    regex = (r'^\s*(\d+)\s+(\S+)\s+'
+                             r'eigenvalue=([\+\-\d\.\w]+)\s')
+                    match = re.search(regex, line)
                     mo['index'] = int(match.group(1))
                     mo['irreducible representation'] = str(match.group(2))
-                    mo['eigenvalue'] = float(re.sub('[dD]','E',match.group(3)))*Hartree
+                    eig = float(re.sub('[dD]', 'E', match.group(3)))*Hartree
+                    mo['eigenvalue'] = eig
                     mo['spin'] = spin[index]
                     mo['degeneracy'] = 1
                     continue
                 if keyword in line:
                     # e.g. format(4d20.14)
-                    match = re.search('format\(\d+([a-zA-Z](\d+)\.\d+)\)',line)
+                    regex = r'format\(\d+([a-zA-Z](\d+)\.\d+)\)'
+                    match = re.search(regex, line)
                     if match:
                         f_string = match.group(1)
                         f_width = int(match.group(2))
-                    if ('scfdump' in line or 'expanded' in line 
+                    if ('scfdump' in line or 'expanded' in line
                             or 'scfconv' not in line):
                         self.converged = False
                     continue
@@ -1347,7 +1403,7 @@ class Turbomole(FileIOCalculator):
         """ read the basis set """
         self.results['basis set'] = []
         self.results['basis set formatted'] = {}
-        bsf = self.read_data_group('basis')
+        bsf = read_data_group('basis')
         self.results['basis set formatted']['turbomole'] = bsf
         lines = bsf.split('\n')
         basis_set = {}
@@ -1363,9 +1419,9 @@ class Turbomole(FileIOCalculator):
                 continue
             if '$end' in line:
                 break
-            if re.match('^\s*#', line):
+            if re.match(r'^\s*#', line):
                 continue
-            if re.match('^\s*\*', line):
+            if re.match(r'^\s*\*', line):
                 if read_tag:
                     read_tag = False
                     read_data = True
@@ -1386,14 +1442,14 @@ class Turbomole(FileIOCalculator):
                     read_tag = True
                 continue
             if read_tag:
-                match = re.search('^\s*(\w+)\s+(.+)', line)
+                match = re.search(r'^\s*(\w+)\s+(.+)', line)
                 if match:
                     basis_set['element'] = match.group(1)
                     basis_set['nickname'] = match.group(2)
                 else:
                     raise RuntimeError("error reading basis set")
             else:
-                match = re.search('^\s+(\d+)\s+(\w+)', line)
+                match = re.search(r'^\s+(\d+)\s+(\w+)', line)
                 if match:
                     if len(primitives) is not 0:
                         # end primitives
@@ -1406,8 +1462,8 @@ class Turbomole(FileIOCalculator):
                     function['shell type'] = str(match.group(2))
                     continue
                 regex = (
-                    '^\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
-                    '\s+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+                    r'^\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+                    r'\s+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
                 )
                 match = re.search(regex, line)
                 if match:
@@ -1419,7 +1475,7 @@ class Turbomole(FileIOCalculator):
 
     def read_ecps(self):
         """ read the effective core potentials """
-        ecpf = self.read_data_group('ecp')
+        ecpf = read_data_group('ecp')
         if not bool(len(ecpf)):
             self.results['ecps'] = None
             self.results['ecps formatted'] = None
@@ -1441,9 +1497,9 @@ class Turbomole(FileIOCalculator):
                 continue
             if '$end' in line:
                 break
-            if re.match('^\s*#', line):
+            if re.match(r'^\s*#', line):
                 continue
-            if re.match('^\s*\*', line):
+            if re.match(r'^\s*\*', line):
                 if read_tag:
                     read_tag = False
                     read_data = True
@@ -1464,19 +1520,20 @@ class Turbomole(FileIOCalculator):
                     read_tag = True
                 continue
             if read_tag:
-                match = re.search('^\s*(\w+)\s+(.+)', line)
+                match = re.search(r'^\s*(\w+)\s+(.+)', line)
                 if match:
                     ecp['element'] = match.group(1)
                     ecp['nickname'] = match.group(2)
                 else:
                     raise RuntimeError("error reading ecp")
             else:
-                match = re.search('ncore\s*=\s*(\d+)\s+lmax\s*=\s*(\d+)', line)
+                regex = r'ncore\s*=\s*(\d+)\s+lmax\s*=\s*(\d+)'
+                match = re.search(regex, line)
                 if match:
                     ecp['number of core electrons'] = int(match.group(1))
                     ecp['maximum angular momentum number'] = int(match.group(2))
                     continue
-                match = re.search('^(\w(\-\w)?)', line)
+                match = re.search(r'^(\w(\-\w)?)', line)
                 if match:
                     if len(terms) is not 0:
                         # end terms
@@ -1488,8 +1545,8 @@ class Turbomole(FileIOCalculator):
                         # begin group
                     group['title'] = str(match.group(1))
                     continue
-                regex = ('^\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s+(\d)'
-                         '\s+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')
+                regex = (r'^\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s+'
+                         r'(\d)\s+([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)')
                 match = re.search(regex, line)
                 if match:
                     terms.append(
@@ -1503,11 +1560,11 @@ class Turbomole(FileIOCalculator):
     def read_gradient(self):
         """ read all information in file 'gradient' """
         from ase import Atom
-#        from abcd.util import atoms2dict
-        grad_string = self.read_data_group('grad')
-        if len(grad_string) == 0: return
+        grad_string = read_data_group('grad')
+        if len(grad_string) == 0:
+            return
 #       try to reuse ase:
-#       structures = read('gradient', index=':') 
+#       structures = read('gradient', index=':')
         lines = grad_string.split('\n')
         history = []
         image = {}
@@ -1517,9 +1574,9 @@ class Turbomole(FileIOCalculator):
         for line in lines:
             # cycle lines
             regex = (
-                '^\s*cycle =\s*(\d+)'
-                '\s+SCF energy =\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
-                '\s+\|dE\/dxyz\| =\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
+                r'^\s*cycle =\s*(\d+)\s+'
+                r'SCF energy =\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)\s+'
+                r'\|dE\/dxyz\| =\s*([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
             )
             match = re.search(regex, line)
             if match:
@@ -1527,7 +1584,6 @@ class Turbomole(FileIOCalculator):
                     image['optimization cycle'] = cycle
                     image['total energy'] = energy
                     image['gradient norm'] = norm
-#                    image['atoms'] = atoms2dict(atoms, plain_arrays=True)
                     image['energy gradient'] = gradient
                     history.append(image)
                     image = {}
@@ -1539,10 +1595,10 @@ class Turbomole(FileIOCalculator):
                 continue
             # coordinate lines
             regex = (
-                '^\s*([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
-                '\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
-                '\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
-                '\s+(\w+)'
+                r'^\s*([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
+                r'\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
+                r'\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
+                r'\s+(\w+)'
             )
             match = re.search(regex, line)
             if match:
@@ -1550,39 +1606,38 @@ class Turbomole(FileIOCalculator):
                 y = float(match.group(3))*Bohr
                 z = float(match.group(5))*Bohr
                 symbol = str(match.group(7))
-                atoms += Atom(symbol.capitalize(), (x,y,z))
+                atoms += Atom(symbol.capitalize(), (x, y, z))
                 continue
             # gradient lines
             regex = (
-                '^\s*([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
-                '\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
-                '\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
-                )
+                r'^\s*([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
+                r'\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
+                r'\s+([-+]?[0-9]*\.?[0-9]+([eEdD][-+]?[0-9]+)?)'
+            )
             match = re.search(regex, line)
             if match:
-                gradx = float(match.group(1).replace('D','E'))*Hartree/Bohr
-                grady = float(match.group(3).replace('D','E'))*Hartree/Bohr
-                gradz = float(match.group(5).replace('D','E'))*Hartree/Bohr
-                gradient.append([ gradx, grady, gradz ])
+                gradx = float(match.group(1).replace('D', 'E'))*Hartree/Bohr
+                grady = float(match.group(3).replace('D', 'E'))*Hartree/Bohr
+                gradz = float(match.group(5).replace('D', 'E'))*Hartree/Bohr
+                gradient.append([gradx, grady, gradz])
 
         image['optimization cycle'] = cycle
         image['total energy'] = energy
         image['gradient norm'] = norm
-#        image['atoms'] = atoms2dict(atoms, plain_arrays=True)
         image['energy gradient'] = gradient
         history.append(image)
         self.results['geometry optimization history'] = history
 
-    def read_hessian(self, noproj=False, nomw=False):
-        """ Read in the hessian matrix. The keys $nomw and $noproj are planned 
-        for support. """
+    def read_hessian(self, noproj=False):
+        """ Read in the hessian matrix """
         self.results['hessian matrix'] = {}
         self.results['hessian matrix']['array'] = []
         self.results['hessian matrix']['units'] = '?'
         self.results['hessian matrix']['projected'] = True
         self.results['hessian matrix']['mass weighted'] = True
-        dg = self.read_data_group('nvibro')
-        if len(dg) == 0: return
+        dg = read_data_group('nvibro')
+        if len(dg) == 0:
+            return
         nvibro = int(dg.split()[1])
         self.results['hessian matrix']['dimension'] = nvibro
         row = []
@@ -1590,7 +1645,7 @@ class Turbomole(FileIOCalculator):
         if noproj:
             key = 'npr' + key
             self.results['hessian matrix']['projected'] = False
-        lines = self.read_data_group(key).split('\n')
+        lines = read_data_group(key).split('\n')
         for line in lines:
             if key in line:
                 continue
@@ -1598,20 +1653,20 @@ class Turbomole(FileIOCalculator):
             row.extend(fields[2:len(fields)])
             if len(row) == nvibro:
                 # check whether it is mass-weighted
-                float_row = [ float(element) for element in row ]
+                float_row = [float(element) for element in row]
                 self.results['hessian matrix']['array'].append(float_row)
                 row = []
 
-    def read_normal_modes(self, noproj=False, nomw=False):
-        """ Read in vibrational normal modes. The keays $nomw and $noproj are 
-        planned for support. """
+    def read_normal_modes(self, noproj=False):
+        """ Read in vibrational normal modes """
         self.results['normal modes'] = {}
         self.results['normal modes']['array'] = []
         self.results['normal modes']['projected'] = True
         self.results['normal modes']['mass weighted'] = True
         self.results['normal modes']['units'] = '?'
-        dg = self.read_data_group('nvibro')
-        if len(dg) == 0: return
+        dg = read_data_group('nvibro')
+        if len(dg) == 0:
+            return
         nvibro = int(dg.split()[1])
         self.results['normal modes']['dimension'] = nvibro
         row = []
@@ -1619,7 +1674,7 @@ class Turbomole(FileIOCalculator):
         if noproj:
             key = 'npr' + key
             self.results['normal modes']['projected'] = False
-        lines = self.read_data_group(key).split('\n')
+        lines = read_data_group(key).split('\n')
         for line in lines:
             if key in line:
                 continue
@@ -1629,22 +1684,23 @@ class Turbomole(FileIOCalculator):
             row.extend(fields[2:len(fields)])
             if len(row) == nvibro:
                 # check whether it is mass-weighted
-                float_row = [ float(element) for element in row ]
+                float_row = [float(element) for element in row]
                 self.results['normal modes']['array'].append(float_row)
                 row = []
 
     def read_vibrational_reduced_masses(self):
         """ Read vibrational reduced masses """
         self.results['vibrational reduced masses'] = []
-        dg = self.read_data_group('vibrational reduced masses')
-        if len(dg) == 0: return
+        dg = read_data_group('vibrational reduced masses')
+        if len(dg) == 0:
+            return
         lines = dg.split('\n')
         for line in lines:
             if '$vibrational' in line:
                 continue
             if '$end' in line:
                 break
-            fields = [ float(element) for element in line.split() ]
+            fields = [float(element) for element in line.split()]
             self.results['vibrational reduced masses'].extend(fields)
 
     def read_vibrational_spectrum(self, noproj=False):
@@ -1653,23 +1709,23 @@ class Turbomole(FileIOCalculator):
         key = 'vibrational spectrum'
         if noproj:
             key = 'npr' + key
-        lines = self.read_data_group(key).split('\n')
+        lines = read_data_group(key).split('\n')
         for line in lines:
             dictionary = {}
             regex = (
-                '^\s+(\d+)\s+(\S*)\s+([-+]?\d+\.\d*)'
-                '\s+(\d+\.\d*)\s+(\S+)\s+(\S+)'
+                r'^\s+(\d+)\s+(\S*)\s+([-+]?\d+\.\d*)'
+                r'\s+(\d+\.\d*)\s+(\S+)\s+(\S+)'
             )
             match = re.search(regex, line)
             if match:
                 dictionary['mode number'] = int(match.group(1))
                 dictionary['irreducible representation'] = str(match.group(2))
                 dictionary['frequency'] = {
-                    'units': 'cm^-1', 
+                    'units': 'cm^-1',
                     'value': float(match.group(3))
                 }
                 dictionary['infrared intensity'] = {
-                    'units': 'km/mol', 
+                    'units': 'km/mol',
                     'value': float(match.group(4))
                 }
 
@@ -1691,59 +1747,45 @@ class Turbomole(FileIOCalculator):
 
     def read_ssquare(self):
         """ Read the expectation value of S^2 operator """
-        s2_string = self.read_data_group('ssquare from dscf')
+        s2_string = read_data_group('ssquare from dscf')
         if s2_string == '':
             return
         string = s2_string.split('\n')[1]
-        ssquare = float(re.search('^\s*(\d+\.*\d*)', string).group(1))
+        ssquare = float(re.search(r'^\s*(\d+\.*\d*)', string).group(1))
         self.results['ssquare from scf calculation'] = ssquare
 
     def read_dipole_moment(self):
         """ Read the dipole moment """
-        dip_string = self.read_data_group('dipole')
+        dip_string = read_data_group('dipole')
         if dip_string == '':
             return
         lines = dip_string.split('\n')
         for line in lines:
             regex = (
-                '^\s+x\s+([-+]?\d+\.\d*)\s+y\s+([-+]?\d+\.\d*)'
-                '\s+z\s+([-+]?\d+\.\d*)\s+a\.u\.'
+                r'^\s+x\s+([-+]?\d+\.\d*)\s+y\s+([-+]?\d+\.\d*)'
+                r'\s+z\s+([-+]?\d+\.\d*)\s+a\.u\.'
             )
             match = re.search(regex, line)
             if match:
-                dip_vec = [ float(match.group(c)) for c in range(1,4)]
-            match = re.search('^\s+\| dipole \| =\s+(\d+\.*\d*)\s+debye', line)
+                dip_vec = [float(match.group(c)) for c in range(1, 4)]
+            regex = r'^\s+\| dipole \| =\s+(\d+\.*\d*)\s+debye'
+            match = re.search(regex, line)
             if match:
                 dip_abs_val = float(match.group(1))
         self.results['electric dipole moment'] = {}
         self.results['electric dipole moment']['vector'] = {
-            'array': dip_vec, 
+            'array': dip_vec,
             'units': 'a.u.'
         }
         self.results['electric dipole moment']['absolute value'] = {
-            'value': dip_abs_val, 
-            'units':'Debye'
+            'value': dip_abs_val,
+            'units': 'Debye'
         }
         self.dipole = np.array(dip_vec)*Bohr
 
-    def read_output(self, regex):
-        """ collects all matching strings from the output """
-        hitlist = []
-        checkfiles = []
-        for filename in os.listdir('.'):
-            if filename.startswith('job.') or filename.endswith('.out'):
-                checkfiles.append(filename)
-        for filename in checkfiles:
-            with open(filename, 'rt') as f:
-                lines = f.readlines()
-                for line in lines:
-                    match = re.search(regex, line)
-                    if match: hitlist.append(match.group(1))
-        return hitlist
-
     def read_version(self):
         """ read the version from the tm output if stored in a file """
-        versions = self.read_output('TURBOMOLE\s+V(\d+\.\d+)\s+')
+        versions = read_output(r'TURBOMOLE\s+V(\d+\.\d+)\s+')
         if len(set(versions)) > 1:
             warnings.warn('different turbomole versions detected')
             self.version = list(set(versions))
@@ -1754,9 +1796,12 @@ class Turbomole(FileIOCalculator):
             self.version = versions[0]
 
     def read_datetime(self):
-        """ read the datetime of calc from the tm output if stored in a file """
-        datetimes = self.read_output('(\d{4}-[01]\d-[0-3]\d([T\s][0-2]\d:[0-5]'
-                        '\d:[0-5]\d\.\d+)?([+-][0-2]\d:[0-5]\d|Z)?)')
+        """ read the datetime of the most recent calculation
+        from the tm output if stored in a file
+        """
+        datetimes = read_output(
+            r'(\d{4}-[01]\d-[0-3]\d([T\s][0-2]\d:[0-5]'
+            r'\d:[0-5]\d\.\d+)?([+-][0-2]\d:[0-5]\d|Z)?)')
         if len(datetimes) == 0:
             warnings.warn('no turbomole datetime detected')
             self.datetime = None
@@ -1766,7 +1811,7 @@ class Turbomole(FileIOCalculator):
 
     def read_runtime(self):
         """ read the total runtime of calculations """
-        hits = self.read_output('total wall-time\s+:\s+(\d+.\d+)\s+seconds')
+        hits = read_output(r'total wall-time\s+:\s+(\d+.\d+)\s+seconds')
         if len(hits) == 0:
             warnings.warn('no turbomole runtimes detected')
             self.runtime = None
@@ -1775,16 +1820,15 @@ class Turbomole(FileIOCalculator):
 
     def read_hostname(self):
         """ read the hostname of the computer on which the calc has run """
-        hostnames = self.read_output('hostname is\s+(.+)')
+        hostnames = read_output(r'hostname is\s+(.+)')
         if len(set(hostnames)) > 1:
             warnings.warn('runs on different hosts detected')
             self.hostname = list(set(hostnames))
         else:
             self.hostname = hostnames[0]
 
-    """ getter methods """
-
     def get_results(self):
+        """ returns the results dictionary """
         return self.results
 
     def get_potential_energy(self, atoms, force_consistent=True):
@@ -1795,10 +1839,11 @@ class Turbomole(FileIOCalculator):
         # if update of energy is necessary
         if self.update_energy:
             # calculate energy
-            self.execute(self.calculate_energy)
+            execute(self.calculate_energy)
             # check convergence
             self.converged = self.read_convergence()
-            if not self.converged: return None
+            if not self.converged:
+                return None
             # read energy
             self.read_energy()
 
@@ -1815,7 +1860,7 @@ class Turbomole(FileIOCalculator):
         # if update of forces is necessary
         if self.update_forces:
             # calculate forces
-            self.execute(self.calculate_forces)
+            execute(self.calculate_forces)
             # read forces
             self.read_forces()
 
@@ -1833,8 +1878,8 @@ class Turbomole(FileIOCalculator):
 
         if name not in self.implemented_properties:
             # an ugly work around; the caller should test the raised error
-#            if name in ['magmom', 'magmoms', 'charges', 'stress']:
-#                return None
+            # if name in ['magmom', 'magmoms', 'charges', 'stress']:
+            # return None
             raise PropertyNotImplementedError(name)
 
         if atoms is None:
@@ -1870,4 +1915,3 @@ class Turbomole(FileIOCalculator):
         if isinstance(result, np.ndarray):
             result = result.copy()
         return result
-
