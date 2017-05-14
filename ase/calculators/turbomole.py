@@ -573,9 +573,9 @@ class Turbomole(FileIOCalculator):
     hostname = None
 
     def __init__(self, label=None, calculate_energy='dscf',
-                 calculate_forces='grad', post_HF=False, restart=False,
-                 define_str=None, control_kdg=None, control_input=None,
-                 **kwargs):
+                 calculate_forces='grad', post_HF=False, atoms=None,
+                 restart=False, define_str=None, control_kdg=None,
+                 control_input=None, **kwargs):
 
         FileIOCalculator.__init__(self)
 
@@ -597,10 +597,14 @@ class Turbomole(FileIOCalculator):
 
         if self.restart:
             self.set_restart(kwargs)
-            return
-        self.set_parameters(kwargs)
-        self.verify_parameters()
-        self.reset()
+        else:
+            self.set_parameters(kwargs)
+            self.verify_parameters()
+            self.reset()
+
+        if atoms is not None:
+            atoms.set_calculator(self)
+            self.set_atoms(atoms)
 
     def __getitem__(self, item):
         return getattr(self, item)
