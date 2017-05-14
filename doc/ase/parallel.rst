@@ -5,7 +5,7 @@ Parallel calculations
 =====================
 
 ASE will automatically run in parallel, if it can import an MPI communicator
-from any of the supported libraries. ASE will attepmt to import communicators
+from any of the supported libraries. ASE will attempt to import communicators
 from these external libraries: GPAW, Asap, Scientific MPI and
 MPI4PY.
 
