@@ -92,6 +92,15 @@ and associating it with an atoms object, e.g.:
     mol.set_calculator(calc)
     calc.initialize()
 
+Optionally the calculator will be associated with the atoms object in one step
+with constructing the calculator:
+
+.. code:: python
+
+    calc = Turbomole(atoms=mol, **params)
+
+
+
 
 Command-line interface
 ----------------------
@@ -239,6 +248,15 @@ geometry optimization iterations   int        None          None          True
       use resolution of identity  bool       False          None         False
 ================================ ======= ========== =============== ============
 
+The attribute ``Updateable`` specifies whether it is possible to change a 
+parameter upon restart. The ``restart`` keyword tells the calculator whether to 
+restart from a previous calculation. The optional ``define_str`` is a string of 
+characters that are entered in an interactive session with module ``define``, 
+i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an 
+optional list of data groups in control file to be deleted after running module 
+``define`` and ``control_input`` is an optional list of data groups to be added 
+to control file after running module ``define``.
+
 Some parameter names contain spaces. This means that the preferred way to pass
 the parameters is to construct a dictionary, for example:
 
@@ -251,14 +269,18 @@ the parameters is to construct a dictionary, for example:
              'force convergence': 0.05 }
   calc = Turbomole(**params)
 
-The attribute ``Updateable`` specifies whether it is possible to change a 
-parameter upon restart. The ``restart`` keyword tells the calculator whether to 
-restart from a previous calculation. The optional ``define_str`` is a string of 
-characters that are entered in an interactive session with module ``define``, 
-i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an 
-optional list of data groups in control file to be deleted after running module 
-``define`` and ``control_input`` is an optional list of data groups to be added 
-to control file after running module ``define``.
+Using the todict() method, the parameters of an existing Turbomole calculator
+object can be stored in a flat dictionary and then can be re-used to create a 
+new Turbomole calculator object:
+
+.. code:: python
+
+  params = calc.todict()
+  new_calc = Turbomole(**params)
+
+This is especially useful if *calc* object was created in restart mode or read 
+from a database.
+
 
 Examples
 ========
