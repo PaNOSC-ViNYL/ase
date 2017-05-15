@@ -951,8 +951,10 @@ class Turbomole(FileIOCalculator):
                 return True
         return False
 
-    def calculate(self, atoms):
+    def calculate(self, atoms=None):
         """ execute the requested job """
+        if atoms is None:
+            atoms = self.atoms
         if self.parameters['task'] in ['energy', 'energy calculation']:
             self.get_potential_energy(atoms)
         if self.parameters['task'] in ['gradient', 'gradient calculation']:
@@ -963,8 +965,10 @@ class Turbomole(FileIOCalculator):
             self.harmonic_analysis(atoms)
         self.read_results()
 
-    def relax_geometry(self, atoms):
+    def relax_geometry(self, atoms=None):
         """ execute geometry optimization with script jobex """
+        if atoms is None:
+            atoms = self.atoms
         self.set_atoms(atoms)
         if self.converged and not self.update_geometry:
             return
@@ -999,8 +1003,10 @@ class Turbomole(FileIOCalculator):
         self.atoms = atoms.copy()
         self.read_energy()
 
-    def harmonic_analysis(self, atoms):
+    def harmonic_analysis(self, atoms=None):
         """ execute normal mode analysis with module aoforce """
+        if atoms is None:
+            atoms = self.atoms
         self.set_atoms(atoms)
         self.initialize()
         if self.update_energy:
@@ -1012,6 +1018,7 @@ class Turbomole(FileIOCalculator):
     def read_restart(self):
         """ read a previous calculation from control file """
         self.atoms = read('coord')
+        self.atoms.set_calculator(self)
         self.converged = self.read_convergence()
         read_methods = [
             self.read_energy,
