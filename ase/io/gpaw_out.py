@@ -218,6 +218,7 @@ def read_gpaw_out(fileobj, index):
                                             dipole=dipole, magmoms=magmoms,
                                             efermi=eFermi,
                                             bzkpts=bz_kpts, ibzkpts=ibz_kpts)
+            calc.eref = Eref
             calc.name = 'gpaw'
             if kpts is not None:
                 calc.kpts = kpts
