@@ -5,6 +5,7 @@ from ase.gui.i18n import _
 
 import ase.gui.ui as ui
 from ase.gui.widgets import Element
+from ase.gui.utils import get_magmoms
 
 
 class ModifyAtoms:
@@ -37,7 +38,7 @@ class ModifyAtoms:
         if tags.ptp() == 0:
             self.tag.value = tags[0]
 
-        magmoms = gui.images.get_magmoms(atoms)[selected]
+        magmoms = get_magmoms(atoms)[selected]
         if magmoms.round(2).ptp() == 0.0:
             self.magmom.value = round(magmoms[0], 2)
 
@@ -55,7 +56,7 @@ class ModifyAtoms:
         self.gui.draw()
 
     def set_magmom(self):
-        magmoms = self.gui.images.get_magmoms(self.gui.atoms)
+        magmoms = get_magmoms(self.gui.atoms)
         magmoms[self.selection()] = self.magmom.value
         self.gui.atoms.set_initial_magnetic_moments(magmoms)
         self.gui.draw()
