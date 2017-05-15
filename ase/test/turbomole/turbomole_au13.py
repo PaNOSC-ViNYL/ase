@@ -43,7 +43,7 @@ params = {
 
 calc = Turbomole(restart=True, **params)
 assert calc.converged
-calc.calculate(atoms)
+calc.calculate()
 
 print(calc.get_property('energy'))
 print(calc.get_property('forces'))
