@@ -603,7 +603,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             stress *= -0.1 * GPa
             stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
-        dipole = None        
+        dipole = None
         if lastdipole is not None:
             dblock = lastdipole.find('v[@name="dipole"]')
             if dblock is not None:
@@ -638,17 +638,14 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if len(kpoints) == 0:
             kpoints = None
 
-        if ibz_kpts is not None:
-            bz_kpts = np.dot(ibz_kpts, cell)
-
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointDFTCalculator(atoms, energy=energy, forces=forces,
                                      stress=stress, free_energy=free_energy,
-                                     bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
-                                     eFermi=efermi, dipole=dipole))
+                                     ibzkpts=ibz_kpts,
+                                     efermi=efermi, dipole=dipole))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
         atoms.calc.parameters = parameters
