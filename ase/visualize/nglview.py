@@ -45,6 +45,9 @@ class NGLDisplay:
             wdg.append(self.frm)
         
         self.gui = HBox([self.view, VBox(wdg)])
+        # Make useful shortcuts for the user of the class
+        self.gui.view = self.view
+        self.gui.control_box = self.gui.children[1]
 
         
     def _update_repr(self, chg=None):
@@ -69,6 +72,13 @@ class NGLDisplay:
 
 
 def view_ngl( atoms ):
+    '''
+    Returns the nglviewer + some control widgets in the VBox ipywidget.
+    The viewer supports any Atoms objectand any sequence of Atoms objects.
+    The returned object has two shortcuts members:
+        .view        -- nglviewer ipywidget for direct interaction
+        .control_box -- VBox ipywidget containing view control widgets
+    '''
     return NGLDisplay( atoms ).gui
     
 
