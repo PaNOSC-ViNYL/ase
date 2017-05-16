@@ -550,6 +550,15 @@ class Turbomole(FileIOCalculator):
             'type': bool,
             'units': None,
             'updateable': False
+        },
+        'numerical hessian': {
+            'comment': 'NumForce will be used if dictionary exists',
+            'default': None,
+            'group': None,
+            'key': None,
+            'type': dict,
+            'units': None,
+            'updateable': True
         }
     }
 
@@ -962,7 +971,7 @@ class Turbomole(FileIOCalculator):
         if self.parameters['task'] in ['optimize', 'geometry optimization']:
             self.relax_geometry(atoms)
         if self.parameters['task'] in ['frequencies', 'normal mode analysis']:
-            self.harmonic_analysis(atoms)
+            self.normal_mode_analysis(atoms)
         self.read_results()
 
     def relax_geometry(self, atoms=None):
@@ -1003,8 +1012,9 @@ class Turbomole(FileIOCalculator):
         self.atoms = atoms.copy()
         self.read_energy()
 
-    def harmonic_analysis(self, atoms=None):
-        """ execute normal mode analysis with module aoforce """
+    def normal_mode_analysis(self, atoms=None):
+        """ execute normal mode analysis with modules aoforce or NumForce """
+        from ase.constraints import FixAtoms
         if atoms is None:
             atoms = self.atoms
         self.set_atoms(atoms)
@@ -1012,7 +1022,38 @@ class Turbomole(FileIOCalculator):
         if self.update_energy:
             self.get_potential_energy(atoms)
         if self.update_hessian:
-            execute('aoforce')
+            fixatoms = []
+            for constr in atoms.constraints:
+                if isinstance(constr, FixAtoms):
+                    ckwargs = constr.todict()['kwargs']
+                    if 'indices' in ckwargs.keys():
+                        fixatoms.extend(ckwargs['indices'])
+            if self.parameters['numerical hessian'] is None:
+                if len(fixatoms) > 0:
+                    define_str = '\n\ny\n'
+                    for index in fixatoms:
+                        define_str += 'm ' + str(index+1) + ' 999.99999999\n'
+                    define_str += '*\n*\nn\nq\n'
+                    execute('define', input_str=define_str)
+                    dg = read_data_group('atoms')
+                    regex = r'(mass\s*=\s*)999.99999999'
+                    dg = re.sub(regex, r'\g<1>9999999999.9', dg)
+                    dg += '\n'
+                    delete_data_group('atoms')
+                    add_data_group(dg, raw=True)
+                execute('aoforce')
+            else:
+                optstr = ''
+                pdict = self.parameters['numerical hessian']
+                if self.parameters['use resolution of identity']:
+                    optstr += ' -ri'
+                if len(fixatoms) > 0:
+                    optstr += ' -frznuclei -central -c'
+                if 'central' in pdict.keys():
+                    optstr += ' -central'
+                if 'delta' in pdict.keys():
+                    optstr += ' -d ' + str(pdict['delta']/Bohr)
+                execute('NumForce' + optstr)
             self.update_hessian = False
 
     def read_restart(self):
