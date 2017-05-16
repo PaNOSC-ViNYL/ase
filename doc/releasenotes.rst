@@ -110,6 +110,10 @@ Git master branch
 * Two new functions for producing chemical formulas:
   :func:`ase.utils.formula_hill` and :func:`ase.utils.formula_metal`.
 
+* The :func:`ase.dft.bandgap.get_band_gap` function is now deprecated.  Use
+  the new one called :func:`ase.dft.bandgap.bandgap` (it's more flexible and
+  returns also band indices).
+
 
 Version 3.13.0
 ==============
