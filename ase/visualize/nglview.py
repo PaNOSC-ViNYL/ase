@@ -25,6 +25,7 @@ class NGLDisplay:
             self.struct = atoms
             self.frm = None
         
+        self.colors=dict()
         self.view._remote_call("setSize", target="Widget", args=["500px", "500px"])
         self.view.add_unitcell()
         self.view.add_spacefill()
@@ -48,10 +49,11 @@ class NGLDisplay:
         # Make useful shortcuts for the user of the class
         self.gui.view = self.view
         self.gui.control_box = self.gui.children[1]
+        self.gui.custom_colors = self.custom_colors
 
         
     def _update_repr(self, chg=None):
-        self.view.update_spacefill(radiusType='covalent', scale=self.rad.value)        
+        self.view.update_spacefill(radiusType='covalent', scale=self.rad.value)
         
 
     def _update_frame(self, chg=None):
@@ -61,13 +63,26 @@ class NGLDisplay:
     def _select_atom(self, chg=None):
         sel=self.asel.value
         self.view.remove_spacefill()
-        if sel == 'All':
-            self.view.add_spacefill(selection='All')
-        else :
-            self.view.add_spacefill(selection=[n for n,e in enumerate(self.struct.get_chemical_symbols()) if e == sel])
+        for e in set(self.struct.get_chemical_symbols()):
+            if (sel=='All' or e==sel):
+                if e in self.colors:
+                    self.view.add_spacefill(selection='#'+e, color=self.colors[e])
+                else :
+                    self.view.add_spacefill(selection='#'+e)
         self._update_repr()
             
 
+    def custom_colors(self, clr=None):
+        '''
+        Define custom colors for some atoms. Pass a dictionary of the form
+        {'Fe':'red', 'Au':'yellow'} to the function.
+        To reset the map to default call the method without parameters.
+        '''
+        if clr :
+            self.colors=clr
+        else :
+            self.colors=dict()
+        self._select_atom()
 
 
 
