@@ -229,10 +229,11 @@ geometry optimization iterations   int        None          None          True
                        grid size   str          m3          None          True
                     ground state  bool        True          None         False
                  initial damping float        None          None          True
-                   initial guess   str         eht          None         False
+                   initial guess  None         eht          None         False
                  minimal damping float        None          None          True
                     multiplicity   int        None          None         False
      non-automatic orbital shift  bool       False          None          True
+               numerical hessian  dict        None          None          True
                      point group   str          c1          None         False
                        ri memory   int        1000      Megabyte          True
           scf energy convergence float        None            eV          True
@@ -256,6 +257,16 @@ i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an
 optional list of data groups in control file to be deleted after running module 
 ``define`` and ``control_input`` is an optional list of data groups to be added 
 to control file after running module ``define``.
+
+The parameter ``initial guess`` can be either the strings *eht* (extended 
+Hückel theory) or *hcore* (one-electron core Hamiltonian) or a dictionary
+*{'use': '<path/to/control>'}* specifying a path to a control file with the 
+molecular orbitals that should be used as initial guess.
+
+If ``numerical hessian`` is defined then the force constant matrix will be 
+computed numerically using the script NumForce. The keys can be *'central'* 
+indicating use of central differences (boolean type) and *'delta'* specifying
+the coordinate displacements in Angstrom (type float).
 
 Some parameter names contain spaces. This means that the preferred way to pass
 the parameters is to construct a dictionary, for example:
@@ -335,16 +346,16 @@ Not implemented parameters
 
 The following table includes parameters that are planned but not implemented yet.
 
-================================ ======= ========== =============== ============
+================================ ======= ========== =============== ==========
 Name                             Type    Default    Units           Updateable
-================================ ======= ========== =============== ============
-label                            str     None       None            False
+================================ ======= ========== =============== ==========
             basis set definition  dict        None          None         False
                    excited state  bool       False          None         False
+                           label   str        None          None         False
         number of excited states   int        None          None         False
          optimized excited state   int        None          None         False
                             rohf  bool        None          None         False
-================================ ======= ========== =============== ============
+================================ ======= ========== =============== ==========
 
 
 Unsupported methods and features
@@ -359,11 +370,7 @@ in the ASE Turbomole calculator:
 * Solvent effects (COSMO model)
 * Global optimization (module haga)
 * Property modules (modules freeh, moloch)
-* Numerical second derivatives (NumForce)
 * Point groups other than C1 (see not implemented parameters)
 * Restricted open-shell Hartree-Fock (see not implemented parameters)
 * Per-element and per-atom basis set specifications (see not implemented parameters)
 * Explicit basis set specification (see not implemented parameters)
-* Core Hamiltonian initial guess (hcore)
-
-
