@@ -365,11 +365,11 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'initial guess': {
-            'comment': 'other than "eht" not implemented',
+            'comment': '"eht", "hcore" or {"use": "<path/to/control>"}',
             'default': 'eht',
             'group': None,
             'key': None,
-            'type': str,
+            'type': None,
             'units': None,
             'updateable': False
         },
@@ -767,8 +767,10 @@ class Turbomole(FileIOCalculator):
 
         if self.parameters['rohf']:
             raise NotImplementedError('ROHF not implemented')
-        if self.parameters['initial guess'] != 'eht':
-            raise NotImplementedError('Initial guess not implemented')
+        if self.parameters['initial guess'] not in ['eht', 'hcore']:
+            if not (isinstance(self.parameters['initial guess'], dict) and
+                    'use' in self.parameters['initial guess'].keys()):
+                raise ValueError('Wrong input for initial guess')
         if not self.parameters['use basis set library']:
             raise NotImplementedError('Explicit basis set definition')
         if self.parameters['point group'] != 'c1':
@@ -945,6 +947,27 @@ class Turbomole(FileIOCalculator):
 
         # run define
         execute('define', input_str=define_str)
+
+        # process non-default initial guess
+        iguess = self.parameters['initial guess']
+        if isinstance(iguess, dict) and 'use' in iguess.keys():
+            # "use" initial guess
+            if self.parameters['multiplicity'] != 1 or self.parameters['uhf']:
+                define_str = '\n\n\ny\nuse ' + iguess['use'] + '\nn\nn\nq\n'
+            else:
+                define_str = '\n\n\ny\nuse ' + iguess['use'] + '\nn\nq\n'
+            execute('define', input_str=define_str)
+        elif self.parameters['initial guess'] == 'hcore':
+            # "hcore" initial guess
+            if self.parameters['multiplicity'] != 1 or self.parameters['uhf']:
+                delete_data_group('uhfmo_alpha')
+                delete_data_group('uhfmo_beta')
+                add_data_group('uhfmo_alpha', 'none file=alpha')
+                add_data_group('uhfmo_beta', 'none file=beta')
+            else:
+                delete_data_group('scfmo')
+                add_data_group('scfmo', 'none file=mos')
+
         self.set_post_define()
 
         self.initialized = True
