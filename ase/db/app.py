@@ -41,6 +41,8 @@ from ase.db.plot import atoms2png
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.visualize import view
+from ase import Atoms
+from ase.calculators.calculator import kptdensity2monkhorstpack
 
 
 # Every client-connetions gets one of these tuples:
@@ -328,11 +330,18 @@ def summary(id):
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
     prfx = prefix() + str(id) + '-'
-    s = Summary(db.get(id), db.meta, SUBSCRIPT, prfx, tmpdir)
+    row = db.get(id)
+    s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
+    atoms = Atoms(cell=row.cell, pbc=row.pbc)
+    n1, n2, n3 = kptdensity2monkhorstpack(atoms,
+                                          kptdensity=2.0)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,
                            s=s,
+                           n1=n1,
+                           n2=n2,
+                           n3=n3,
                            home=home,
                            md=db.meta,
                            open_ase_gui=open_ase_gui)

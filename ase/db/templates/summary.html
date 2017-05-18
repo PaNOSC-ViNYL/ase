@@ -21,8 +21,8 @@
                 Unit cell <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a onclick="repeatCell(1);">1x1x1</a></li>
-                <li><a onclick="repeatCell(222);">2x2x2</a></li>
+                <li><a onclick="repeatCell(1, 1, 1);">1x1x1</a></li>
+                <li><a onclick="repeatCell({{ n1 }}, {{ n2 }}, {{ n3 }});"> {{ n1 }}x{{ n2 }}x{{ n3 }}</a></li>
             </ul>
         </div>
         <div class="btn-group pull-right">
@@ -134,7 +134,7 @@
 jmol_isReady = function(applet)
 {
     Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
-    Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }};");
+    Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }} { {{ n1 }} {{ n2 }} {{ n3 }} };");
     }
 </script>
 
