@@ -73,6 +73,7 @@ class Summary:
 
         kd = meta.get('key_descriptions', {})
 
+        misc = set(table.keys())
         self.layout = []
         for headline, blocks in meta['layout']:
             newblocks = []
@@ -83,8 +84,10 @@ class Summary:
                     title, keys = block
                     rows = []
                     for key in keys:
-                        value = table.pop(key, None)
+                        value = table.get(key, None)
                         if value is not None:
+                            if key in misc:
+                                misc.remove(key)
                             desc, unit = kd.get(key, [0, key, ''])[1:]
                             rows.append((desc, value, unit))
                     block = (title, rows)
@@ -100,9 +103,10 @@ class Summary:
                 newblocks.append(block)
             self.layout.append((headline, newblocks))
 
-        if table:
+        if misc:
             rows = []
-            for key, value in sorted(table.items()):
+            for key in sorted(misc):
+                value = table[key]
                 desc, unit = kd.get(key, [0, key, ''])[1:]
                 rows.append((desc, value, unit))
             self.layout.append(('Miscellaneous', [('Items', rows)]))
