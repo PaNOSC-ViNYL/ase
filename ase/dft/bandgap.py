@@ -38,7 +38,7 @@ def bandgap(calc=None, direct=False, spin=None, output='-',
     kpts: ndarray of shape (nkpt, 3)
         For pretty text output only.
 
-    Rerurns a (gap, p1, p2) tuple where p1 and p2 are tuples of indices of the
+    Returns a (gap, p1, p2) tuple where p1 and p2 are tuples of indices of the
     valence and conduction points (s, k, n).
 
     Example:
@@ -143,4 +143,4 @@ def find_gap(N_sk, ev_k, ec_k, direct):
         return gap_k[k], k, n, k, n + 1
     kv = ev_k.argmax()
     kc = ec_k.argmin()
-    return ec_k[kc] - ev_k[kv], kv, n, kc, n + 1
+    return ec_k[kc] - ev_k[kv], kv, n - 1, kc, n
