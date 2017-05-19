@@ -214,11 +214,9 @@ def index():
                 if v1 or v2:
                     var = request.args['range_' + key]
                     if v1:
-                        q += ',{}<={}'.format(v1, var)
-                    else:
-                        q += ',{}'.format(var)
+                        q += ',{}>={}'.format(var, v1)
                     if v2:
-                        q += '<={}'.format(v2)
+                        q += ',{}<={}'.format(var, v2)
         q = q.lstrip(',')
         query += [dct, q]
         sort = 'id'
