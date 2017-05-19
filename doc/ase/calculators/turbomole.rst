@@ -107,7 +107,7 @@ Command-line interface
 
 The command-line interface has limited capability. For example the keyword 
 ``task`` is not effective due to the specific way the methods are called by 
-``ase-run``. This example shows how to peform a single-point DFT calculation of
+``ase-run``. This example shows how to run a single-point DFT calculation of
 water with the PBE functional and with geometry taken from the database::
 
   ase-build H2O | ase-run turbomole --parameters="multiplicity=1,density functional=pbe"
