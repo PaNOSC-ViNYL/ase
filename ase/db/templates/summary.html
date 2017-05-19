@@ -134,6 +134,7 @@
 jmol_isReady = function(applet)
 {
     Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
+    Jmol.script(jmolApplet0, "set displaycellparameters false;")
     Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }} { {{ n1 }} {{ n2 }} {{ n3 }} };");
     }
 </script>
