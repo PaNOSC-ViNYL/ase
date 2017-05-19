@@ -236,12 +236,13 @@
 {% macro myrange(control) %}
             {% set id, text, choises = control[1:] %}
             {% set v1, v2, var = con.query[1].get(id, ['', '', '']) %}
+                {{ text }}:
+                <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
+                <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6">
                 <select name="range_{{ id }}">
             {% for txt, key in choises %}
                 <option value="{{ key }}" {% if key == var %} selected {% endif %}>{{ txt }}</option>
             {% endfor %}
                 </select>
-                {{ text }}:
-                <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
-                <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6"><br/>
+                <br/>
 {% endmacro %}
