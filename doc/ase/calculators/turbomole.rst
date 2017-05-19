@@ -126,24 +126,23 @@ Properties
 
 The implemented properties are described in the following table.
 
-=================== ======== ====================== ========= ==================
-Property            Type     Getter method          Attribute Task
-=================== ======== ====================== ========= ==================
-total energy        float    get_potential_energy   e_total   any task
+=================== ======== ====================== =========== ==================
+**Property**        **Type** **Getter method**      **Storage** **Task**
+=================== ======== ====================== =========== ==================
+total energy        float    get_potential_energy   e_total     any task
                              get_property('energy')
-forces              np.array get_forces             forces    gradient
+forces              np.array get_forces             forces      gradient
                              get_property('forces')
-dipole moment       np.array get_dipole_moment      dipole    any task
+dipole moment       np.array get_dipole_moment      dipole      any task
                              get_property('magmom')
-<S^2>               float    get_results            results   any task
-normal modes        list     get_results            results   frequencies
-mode frequencies    list     get_results            results   frequencies
-------------------- -------- ---------------------- --------- ------------------
-gradient            list     get_results            results   gradient, optimize
-hessian             list     get_results            results   frequencies
-molecular orbitals  list     get_results            results   any task
-occupancies         list     get_results            results   any task
-=================== ======== ====================== ========= ==================
+<S^2>               float    get_results            results     any task
+normal modes        list     get_results            results     frequencies
+mode frequencies    list     get_results            results     frequencies
+gradient            list     get_results            results     gradient, optimize
+hessian             list     get_results            results     frequencies
+molecular orbitals  list     get_results            results     any task
+occupancies         list     get_results            results     any task
+=================== ======== ====================== =========== ==================
 
 Metadata
 --------
@@ -163,13 +162,13 @@ Restart mode
 ------------
 
 The restart mode can be used either to start a calculation from the data left 
-from previous calculations or only analyse these data. The previous run may have
-been performed without ASE but the working directory of the job should contain 
-the control file and all files referenced in it. In addition, the standard 
-output will be searched in files beginning with *job.* and ending with *.out* but
-this is optional input, mainly to extract job datetime, runtimes, hostname and 
-TURBOMOLE version. After constructing the calculator object (where params dict 
-is optional):
+from previous calculations or to analyse or postprocess these data. The 
+previous run may have been performed without ASE but the working directory of 
+the job should contain the control file and all files referenced in it. In 
+addition, the standard output will be searched in files beginning with *job.* 
+and ending with *.out* but this is optional input, mainly to extract job 
+datetime, runtimes, hostname and TURBOMOLE version. After constructing the 
+calculator object (where params dict is optional):
 
 .. code:: python
 
@@ -185,8 +184,8 @@ the data left from the previous calculations can be queried, for example:
   print(calc.get_potential_energy())
   
 A previous calculation may have crashed or not converged. Also in these cases
-the data that is available will be loaded but the ``calc.converged`` will be set
-to ``False``. The calculation can be continued without any parameter 
+all data that is available will be retrieved but the ``calc.converged`` will 
+be set to ``False``. The calculation can be continued without any parameter 
 modifications (for example if it has exceeded the job maximum run time and was 
 interrupted) or with better convergence parameters specified in ``params`` 
 dictionary. Finally, another calculation task can be started beginning 
@@ -195,64 +194,64 @@ parameter:
 
 .. code:: python
 
-  calc = Turbomole(restart=True, task='gradient')
+  calc = Turbomole(restart=True, task='gradient', **params)
 
 
 
 Parameters
 ==========
 
-The following tabel provides a summary of all parameters and their default 
+The following table provides a summary of all parameters and their default 
 values.
 
-================================ ======= ========== =============== ============
-Name                             Type    Default    Units           Updateable
-================================ ======= ========== =============== ============
-                         restart  bool   False      None            True
-                      define_str   str   None       None            True
-                     control_kdg  list   None       None            True
-                   control_input  list   None       None            True
-         automatic orbital shift float         0.1            eV          True
-                  basis set name   str   def-SV(P)          None         False
-      closed-shell orbital shift float        None            eV          True
-         damping adjustment step float        None          None          True
-             density convergence float        None          None          True
-              density functional   str         b-p          None          True
-              energy convergence float        None            eV          True
-          fermi annealing factor float        0.95          None          True
-         fermi final temperature float         300        Kelvin          True
-   fermi homo-lumo gap criterion float         0.1            eV          True
-       fermi initial temperature float         300        Kelvin          True
-        fermi stopping criterion float       0.001            eV          True
-               force convergence float        None   eV/Angstrom          True
-geometry optimization iterations   int        None          None          True
-                       grid size   str          m3          None          True
-                    ground state  bool        True          None         False
-                 initial damping float        None          None          True
-                   initial guess  None         eht          None         False
-                 minimal damping float        None          None          True
-                    multiplicity   int        None          None         False
-     non-automatic orbital shift  bool       False          None          True
-               numerical hessian  dict        None          None          True
-                     point group   str          c1          None         False
-                       ri memory   int        1000      Megabyte          True
-          scf energy convergence float        None            eV          True
-                  scf iterations   int          60          None          True
-                            task   str      energy          None          True
-                           title   str          ''          None         False
-                    total charge   int           0          None         False
-                             uhf  bool        None          None         False
-           use basis set library  bool        True          None         False
-                         use dft  bool        True          None         False
-              use fermi smearing  bool       False          None          True
-         use redundant internals  bool       False          None         False
-      use resolution of identity  bool       False          None         False
-================================ ======= ========== =============== ============
+================================ ======== =========== ============= ==============
+**Name**                         **Type** **Default** **Units**     **Updateable**
+================================ ======== =========== ============= ==============
+                         restart  bool    False       None            True
+                      define_str   str    None        None            True
+                     control_kdg  list    None        None            True
+                   control_input  list    None        None            True
+         automatic orbital shift float          0.1             eV          True
+                  basis set name   str    def-SV(P)           None         False
+      closed-shell orbital shift float         None             eV          True
+         damping adjustment step float         None           None          True
+             density convergence float         None           None          True
+              density functional   str          b-p           None          True
+              energy convergence float         None             eV          True
+          fermi annealing factor float         0.95           None          True
+         fermi final temperature float          300         Kelvin          True
+   fermi homo-lumo gap criterion float          0.1             eV          True
+       fermi initial temperature float          300         Kelvin          True
+        fermi stopping criterion float        0.001             eV          True
+               force convergence float         None    eV/Angstrom          True
+geometry optimization iterations   int         None           None          True
+                       grid size   str           m3           None          True
+                    ground state  bool         True           None         False
+                 initial damping float         None           None          True
+                   initial guess  None          eht           None         False
+                 minimal damping float         None           None          True
+                    multiplicity   int         None           None         False
+     non-automatic orbital shift  bool        False           None          True
+               numerical hessian  dict         None           None          True
+                     point group   str           c1           None         False
+                       ri memory   int         1000       Megabyte          True
+          scf energy convergence float         None             eV          True
+                  scf iterations   int           60           None          True
+                            task   str       energy           None          True
+                           title   str           ''           None         False
+                    total charge   int            0           None         False
+                             uhf  bool         None           None         False
+           use basis set library  bool         True           None         False
+                         use dft  bool         True           None         False
+              use fermi smearing  bool        False           None          True
+         use redundant internals  bool        False           None         False
+      use resolution of identity  bool        False           None         False
+================================ ======== =========== ============= ==============
 
 The attribute ``Updateable`` specifies whether it is possible to change a 
 parameter upon restart. The ``restart`` keyword tells the calculator whether to 
 restart from a previous calculation. The optional ``define_str`` is a string of 
-characters that are entered in an interactive session with module ``define``, 
+characters that would be entered in an interactive session with module ``define``, 
 i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an 
 optional list of data groups in control file to be deleted after running module 
 ``define`` and ``control_input`` is an optional list of data groups to be added 
@@ -265,23 +264,23 @@ molecular orbitals that should be used as initial guess.
 
 If ``numerical hessian`` is defined then the force constant matrix will be 
 computed numerically using the script NumForce. The keys can be *'central'* 
-indicating use of central differences (boolean type) and *'delta'* specifying
-the coordinate displacements in Angstrom (type float).
+indicating use of central differences (type *bool*) and *'delta'* specifying
+the coordinate displacements in Angstrom (type *float*).
 
 Some parameter names contain spaces. This means that the preferred way to pass
 the parameters is to construct a dictionary, for example:
 
 .. code:: python
 
-  params = { 'task': 'optimize',
-             'use resolution of identity': True,
-             'ri memory': 2000,
-             'scf iterations': 80,
-             'force convergence': 0.05 }
+  params = {'task': 'optimize',
+            'use resolution of identity': True,
+            'ri memory': 2000,
+            'scf iterations': 80,
+            'force convergence': 0.05}
   calc = Turbomole(**params)
 
 Using the todict() method, the parameters of an existing Turbomole calculator
-object can be stored in a flat dictionary and then can be re-used to create a 
+object can be stored in a flat dictionary and then re-used to create a 
 new Turbomole calculator object:
 
 .. code:: python
@@ -289,8 +288,8 @@ new Turbomole calculator object:
   params = calc.todict()
   new_calc = Turbomole(**params)
 
-This is especially useful if *calc* object was created in restart mode or read 
-from a database.
+This is especially useful if the *calc* object has been created in restart 
+mode or retrieved from a database.
 
 
 Examples
