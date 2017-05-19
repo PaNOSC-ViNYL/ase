@@ -40,6 +40,6 @@ def formula_metal(numbers):
             count[symb] = count.get(symb, 0) + 1
     result2 = [(s, count.pop(s)) for s in non_metals if s in count]
     result = [(s, count[s]) for s in sorted(count)]
-    result += result2
+    result += sorted(result2)
     return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
                    for symbol, n in result)
