@@ -452,10 +452,7 @@ class Abinit(FileIOCalculator):
         niter = None
         for line in open(self.label + '.txt'):
             if line.find(' At SCF step') != -1: # find the last iteration number
-                try:
-                    niter = int(line.split(',')[0].split()[-1].strip())
-                except:
-                    niter = int(line.split()[3].strip())
+                niter = int(line.split()[3].rstrip(','))
         return niter
 
     def get_electronic_temperature(self):
