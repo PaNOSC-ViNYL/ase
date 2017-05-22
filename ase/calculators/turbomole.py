@@ -187,7 +187,7 @@ class Turbomole(FileIOCalculator):
             'updateable': False
         },
         'basis set name': {
-            'comment': 'as in the turbomole basis set library',
+            'comment': 'current default from module "define"',
             'default': 'def-SV(P)',
             'group': 'basis',
             'key': None,
