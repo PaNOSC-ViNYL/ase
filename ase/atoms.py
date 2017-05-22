@@ -1335,11 +1335,14 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self, a1, a2=None, a3=None, a4=None):
+    def get_dihedral(self, a1, a2=None, a3=None, a4=None, mic=False):
         """Calculate dihedral angle.
 
         Calculate dihedral angle (in degrees) between the vectors a1->a2
         and a3->a4.
+
+        Use mic=True to use the Minimum Image Convention and calculate the
+        angle across periodic boundaries.
         """
 
         if a2 is None:
@@ -1358,6 +1361,8 @@ class Atoms(object):
         a = self.positions[a2] - self.positions[a1]
         b = self.positions[a3] - self.positions[a2]
         c = self.positions[a4] - self.positions[a3]
+        if mic:
+            a, b, c = find_mic([a, b, c], self._cell, self._pbc)[0]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
@@ -1467,11 +1472,15 @@ class Atoms(object):
             start = self.get_dihedral(a1)
             self.set_dihedral(a1, angle + start, mask)
 
-    def get_angle(self, a1, a2=None, a3=None):
+    def get_angle(self, a1, a2=None, a3=None, mic=False):
         """Get angle formed by three atoms.
 
         calculate angle in degrees between the vectors a2->a1 and
-        a2->a3."""
+        a2->a3.
+        
+        Use mic=True to use the Minimum Image Convention and calculate the
+        angle across periodic boundaries.
+        """
 
         if a2 is None:
             # old API (uses radians)
@@ -1488,6 +1497,8 @@ class Atoms(object):
         # normalized vector 1->0, 1->2:
         v10 = self.positions[a1] - self.positions[a2]
         v12 = self.positions[a3] - self.positions[a2]
+        if mic:
+            v10, v12 = find_mic([v10, v12], self._cell, self._pbc)[0]
         v10 /= np.linalg.norm(v10)
         v12 /= np.linalg.norm(v12)
         angle = np.vdot(v10, v12)
