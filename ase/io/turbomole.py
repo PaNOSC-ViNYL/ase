@@ -132,10 +132,8 @@ def read_turbomole_gradient(f='gradient', index=-1):
 
 
 def write_turbomole(filename, atoms):
-    """Method to write turbomole coord file
+    """ Method to write turbomole coord file
     """
-
-    import numpy as np
     from ase.constraints import FixAtoms
 
     f = filename
