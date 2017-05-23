@@ -5,6 +5,8 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
+import ase.units
+
 from ase.utils import basestring
 
 
@@ -254,6 +256,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     energy = 0
     species = []
     species_num = []
+    stress = None
     symbols = []
     ecount = 0
     poscount = 0
@@ -269,7 +272,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         if 'ions per type' in line:
             species = species[:len(species) // 2]
             temp = line.split()
-            for ispecies in range(len(species)):
+            ntypes = min(len(temp)-4, len(species))
+            for ispecies in range(ntypes):
                 species_num += [int(temp[ispecies + 4])]
                 natoms += species_num[-1]
                 for iatom in range(species_num[-1]):
@@ -298,6 +302,9 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
             magnetization = []
             for i in range(natoms):
                 magnetization += [float(data[n + 4 + i].split()[4])]
+        if 'in kB ' in line:
+            stress = -np.array([float(a) for a in line.split()[2:]])
+            stress = stress[[0, 1, 2, 4, 5, 3]] * 1e-1 * ase.units.GPa
         if 'POSITION          ' in line:
             forces = []
             positions = []
@@ -307,9 +314,10 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
                               [float(temp[0]), float(temp[1]), float(temp[2])])
                 forces += [[float(temp[3]), float(temp[4]), float(temp[5])]]
                 positions += [[float(temp[0]), float(temp[1]), float(temp[2])]]
-                atoms.set_calculator(SinglePointCalculator(atoms,
-                                                           energy=energy,
-                                                           forces=forces))
+            atoms.set_calculator(SinglePointCalculator(atoms,
+                                                       energy=energy,
+                                                       forces=forces,
+                                                       stress=stress))
             images += [atoms]
             if len(magnetization) > 0:
                 images[-1].calc.magmoms = np.array(magnetization, float)
@@ -525,6 +533,11 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                                        constraint=constraints,
                                        pbc=True)
 
+                elif elem.tag=='dipole':
+                    dblock = elem.find('v[@name="dipole"]')
+                    if dblock is not None:
+                        dipole = np.array([float(val) for val in dblock.text.split()])
+
             elif event == 'start' and elem.tag == 'calculation':
                 calculation.append(elem)
 
@@ -551,6 +564,10 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         # e_0_energy - e_fr_energy from calculation/scstep/energy, then
         # apply that correction to e_fr_energy from calculation/energy.
         lastscf = step.findall('scstep/energy')[-1]
+        try:
+            lastdipole = step.findall('scstep/dipole')[-1]
+        except:
+            lastdipole = None
 
         de = (float(lastscf.find('i[@name="e_0_energy"]').text) -
               float(lastscf.find('i[@name="e_fr_energy"]').text))
@@ -586,6 +603,18 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             stress *= -0.1 * GPa
             stress = stress.reshape(9)[[0, 4, 8, 5, 2, 1]]
 
+        dipole = None
+        if lastdipole is not None:
+            dblock = lastdipole.find('v[@name="dipole"]')
+            if dblock is not None:
+                dipole = np.zeros((1,3), dtype=float)
+                dipole = np.array([float(val) for val in dblock.text.split()])
+
+        dblock = step.find('dipole/v[@name="dipole"]')
+        if dblock is not None:
+            dipole = np.zeros((1,3), dtype=float)
+            dipole = np.array([float(val) for val in dblock.text.split()])
+
         efermi = step.find('dos/i[@name="efermi"]')
         if efermi is not None:
             efermi = float(efermi.text)
@@ -609,17 +638,14 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         if len(kpoints) == 0:
             kpoints = None
 
-        if ibz_kpts is not None:
-            bz_kpts = np.dot(ibz_kpts, cell)
-
         atoms = atoms_init.copy()
         atoms.set_cell(cell)
         atoms.set_scaled_positions(scpos)
         atoms.set_calculator(
             SinglePointDFTCalculator(atoms, energy=energy, forces=forces,
                                      stress=stress, free_energy=free_energy,
-                                     bz_kpts=bz_kpts, ibz_kpts=ibz_kpts,
-                                     eFermi=efermi))
+                                     ibzkpts=ibz_kpts,
+                                     efermi=efermi, dipole=dipole))
         atoms.calc.name = 'vasp'
         atoms.calc.kpts = kpoints
         atoms.calc.parameters = parameters

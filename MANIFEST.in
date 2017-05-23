@@ -1,6 +1,5 @@
 include MANIFEST.in
 include COPYING* LICENSE README.rst CONTRIBUTING.rst CHANGELOG.rst
-include tools/_ase_bash_complete.py
 include requirements.txt
 include ase/spacegroup/spacegroup.dat
 include ase/collections/*.json

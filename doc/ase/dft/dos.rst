@@ -14,7 +14,7 @@ Example::
 
 You can plot the result like this::
 
-  import pylab as plt
+  import matplotlib.pyplot as plt
   plt.plot(e, d)
   plt.xlabel('energy [eV]')
   plt.ylabel('DOS')

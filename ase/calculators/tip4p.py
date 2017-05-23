@@ -1,30 +1,11 @@
-""" TIP4P potential for water.
-    http://dx.doi.org/10.1063/1.445869
-
-    Requires an atoms object of OHH,OHH, ... sequence
-    Correct TIP4P charges and LJ parameters set automatically.
-
-    Virtual interaction sites implemented in the following scheme:
-    Original atoms object has no virtual sites.
-    When energy/forces are requested:
-        - virtual sites added to temporary xatoms object
-        - energy / forces calculated
-        - forces redistributed from virtual sites to actual atoms object
-    This means you do not get into trouble when propagating your system with MD
-    while having to skip / account for massless virtual sites.
-
-    This also means that if using for QM/MM MD with GPAW, the EmbedTIP4P class
-    must be used.
-    """
-
 from __future__ import division
 import numpy as np
 
 import ase.units as unit
 from ase.calculators.calculator import Calculator, all_changes
-from ase.calculators.tip3p import rOH, thetaHOH, TIP3P
+from ase.calculators.tip3p import rOH, angleHOH, TIP3P
 
-__all__ = ['rOH', 'thetaHOH', 'TIP4P', 'sigma0', 'epsilon0']
+__all__ = ['rOH', 'angleHOH', 'TIP4P', 'sigma0', 'epsilon0']
 
 # Electrostatic constant and parameters:
 k_c = 332.1 * unit.kcal / unit.mol
@@ -34,6 +15,28 @@ epsilon0 = 0.6480 * unit.kJ / unit.mol
 
 class TIP4P(TIP3P):
     def __init__(self, rc=7.0, width=1.0):
+        """ TIP4P potential for water.
+
+        http://dx.doi.org/10.1063/1.445869
+
+        Requires an atoms object of OHH,OHH, ... sequence
+        Correct TIP4P charges and LJ parameters set automatically.
+
+        Virtual interaction sites implemented in the following scheme:
+        Original atoms object has no virtual sites.
+        When energy/forces are requested:
+
+        * virtual sites added to temporary xatoms object
+        * energy / forces calculated
+        * forces redistributed from virtual sites to actual atoms object
+
+        This means you do not get into trouble when propagating your system
+        with MD while having to skip / account for massless virtual sites.
+
+        This also means that if using for QM/MM MD with GPAW, the EmbedTIP4P
+        class must be used.
+        """
+
         TIP3P.__init__(self, rc, width)
         self.energy = None
         self.forces = None

@@ -53,13 +53,13 @@ Every row in the database contains:
 
 .. _ase-db:
 
-ase-db
+ase db
 ======
 
 The :ref:`ase-db` command-line tool can be used to query databases and for
 manipulating key-value pairs.  Try::
 
-    $ ase-db --help
+    $ ase db --help
 
 Example: Show all rows of SQLite database abc.db:
 
@@ -88,6 +88,10 @@ Here are some example query strings:
       - less than 3 hydrogen atoms
     * - Cu,H<3
       - contains copper and has less than 3 hydrogen atoms
+    * - H2O
+      - At least two hydrogens and at least one oxygen
+    * - formula=H2O
+      - Exactly two hydrogens and one oxygen
     * - v3
       - has 'v3' key
     * - abc=bla-bla
@@ -100,8 +104,6 @@ Here are some example query strings:
       - 'bandgap' key has value between 2.2 and 3.0
     * - natoms>=10
       - 10 or more atoms
-    * - formula=H2O
-      - Exactly two hydrogens and one oxygen
     * - id=2345
       - specific id
     * - age<1h
@@ -162,7 +164,7 @@ Browse database with your web-browser
 
 You can use your web-browser to look at and query databases like this::
 
-    $ ase-db abc.db -w
+    $ ase db abc.db -w
     $ firefox http://0.0.0.0:5000/
 
 Click individual rows to see details.  See the CMR_ web-page for an example of
@@ -179,12 +181,12 @@ Python Interface
 First, we :func:`connect` to the database:
 
 >>> from ase.db import connect
->>> con = connect('abc.db')
+>>> db = connect('abc.db')
 
 or
 
 >>> import ase.db
->>> con = ase.db.connect('abc.db')
+>>> db = ase.db.connect('abc.db')
 
 Let's do a calculation for a hydrogen molecule and write some results to a
 database:
@@ -194,12 +196,12 @@ database:
 >>> h2 = Atoms('H2', [(0, 0, 0), (0, 0, 0.7)])
 >>> h2.calc = EMT()
 >>> h2.get_forces()
-array([[ 0.        ,  0.        , -9.80290573],
-       [ 0.        ,  0.        ,  9.80290573]])
+array([[ 0.   ,  0.   , -9.803],
+       [ 0.   ,  0.   ,  9.803]])
 
 Write a row to the database with a key-value pair (``'relaxed'``, ``False``):
 
->>> con.write(h2, relaxed=False)
+>>> db.write(h2, relaxed=False)
 1
 
 The :meth:`~Database.write` method returns an integer id.
@@ -207,19 +209,18 @@ The :meth:`~Database.write` method returns an integer id.
 Do one more calculation and write results:
 
 >>> from ase.optimize import BFGS
->>> BFGS(h2).run(fmax=0.01)
+>>> BFGS(h2).run(fmax=0.01)  # doctest: +SKIP
 BFGS:   0  12:49:25        1.419427       9.8029
 BFGS:   1  12:49:25        1.070582       0.0853
 BFGS:   2  12:49:25        1.070544       0.0236
 BFGS:   3  12:49:25        1.070541       0.0001
->>> con.write(h2, relaxed=True)
+>>> db.write(h2, relaxed=True)
 2
 
 Loop over selected rows using the :meth:`~Database.select` method:
 
->>> for row in con.select(relaxed=True):
-...     print(row.forces[0, 2], row.relaxed)
-...
+>>> for row in db.select(relaxed=True):
+...     print(row.forces[0, 2], row.relaxed)  # doctest: +SKIP
 -9.8029057329 False
 -9.2526347333e-05 True
 
@@ -232,15 +233,14 @@ Write the energy of an isolated hydrogen atom to the database:
 >>> h.calc = EMT()
 >>> h.get_potential_energy()
 3.21
->>> con.write(h)
+>>> db.write(h)
 3
 
 Select a single row with the :meth:`~Database.get` method:
 
->>> row = con.get(relaxed=1, calculator='emt')
+>>> row = db.get(relaxed=1, calculator='emt')
 >>> for key in row:
-...    print('{0:22}: {1}'.format(key, row[key]))
-...
+...    print('{0:22}: {1}'.format(key, row[key]))  # doctest: +SKIP
 pbc                   : [False False False]
 relaxed               : True
 calculator_parameters : {}
@@ -260,17 +260,17 @@ Calculate the atomization energy and :meth:`~Database.update` a row in
 the database:
 
 >>> e2 = row.energy
->>> e1 = con.get(H=1).energy
+>>> e1 = db.get(H=1).energy
 >>> ae = 2 * e1 - e2
 >>> print(ae)
 5.34945873767
->>> id = con.get(relaxed=1).id
->>> con.update(id, atomization_energy=ae)
+>>> id = db.get(relaxed=1).id
+>>> db.update(id, atomization_energy=ae)
 1
 
 Delete a single row:
 
->>> del con[con.get(relaxed=0).id]
+>>> del db[db.get(relaxed=0).id]
 
 or use the :meth:`~Database.delete` method to delete several rows.
 
@@ -318,11 +318,11 @@ If you want an :class:`~ase.Atoms` object insted of an
 :class:`~ase.db.row.AtomsRow` object, you should use the
 :meth:`~Database.get_atoms` method:
 
->>> h2 = con.get_atoms(H=2)
+>>> h2 = db.get_atoms(H=2)
 
 or if you want the original EMT calculator attached:
 
->>> h2 = con.get_atoms(H=2, attach_calculator=True)
+>>> h2 = db.get_atoms(H=2, attach_calculator=True)
 
 
 Add additional data
@@ -332,15 +332,15 @@ When you write a row to a database using the :meth:`~Database.write` method,
 you can add key-value pairs where the values can be
 strings, floating point numbers, integers and booleans:
 
->>> con.write(atoms, functional='LDA', distance=7.2)
+>>> db.write(atoms, functional='LDA', distance=7.2)
 
 More complicated data can be written like this:
 
->>> con.write(atoms, ..., data={'parents': [7, 34, 14], 'stuff': ...})
+>>> db.write(atoms, ..., data={'parents': [7, 34, 14], 'stuff': ...})
 
 and accessed like this:
 
->>> row = con.get(...)
+>>> row = db.get(...)
 >>> row.data.parents
 [7, 34, 14]
 
@@ -372,18 +372,18 @@ Writing and updating many rows efficiently
 
 If you do this::
 
-    con = connect('mols.db')
+    db = connect('mols.db')
     for mol in molecules:
-        con.write(mol, ...)
+        db.write(mol, ...)
 
 the database will make sure that each molecule is written to permanent
 starage (typically a harddisk) before it moves on to the next molecule.  This
 can be quite slow.  To speed this up, you can write all the molecules in a
 single transaction like this::
 
-    with connect('mols.db') as con:
+    with connect('mols.db') as db:
         for mol in molecules:
-            con.write(mol, ...)
+            db.write(mol, ...)
 
 When the for-loop is done, the database will commit (or roll back if there
 was an error) the transaction.
@@ -392,11 +392,11 @@ Similarly, the :meth:`~Database.update` method will do up to
 ``block_size=1000`` rows in one transaction::
 
     # slow:
-    for row in con.select(...):
-        con.update(row.id, foo='bar')  # a single id
+    for row in db.select(...):
+        db.update(row.id, foo='bar')  # a single id
     # faster:
-    ids = [row.id for row in con.select(...)]
-    con.update(ids, foo='bar')  # list of id's
+    ids = [row.id for row in db.select(...)]
+    db.update(ids, foo='bar')  # list of id's
 
 
 Writing rows in parallel
@@ -408,18 +408,18 @@ database::
     for name in many_molecules:
         mol = read(name)
         calculate_something(mol)
-        con.write(mol, name=name)
+        db.write(mol, name=name)
 
 With four extra lines (see the :meth:`~Database.reserve` method)::
 
     for name in many_molecules:
-        id = con.reserve(name=name)
+        id = db.reserve(name=name)
         if id is None:
             continue
         mol = read(name)
         calculate_something(mol)
-        con.write(mol, name=name)
-        del con[id]
+        db.write(mol, name=name)
+        del db[id]
 
 you will be able to run several jobs in parallel without worrying about two
 jobs trying to do the same calculation.  The :meth:`~Database.reserve` method
@@ -428,7 +428,7 @@ Other jobs trying to make the same reservation will fail.  While the jobs are
 running, you can keep an eye on the ongoing (reserved) calculations by
 identifying empty rows::
 
-    $ ase-db many_results.db natoms=0
+    $ ase db many_results.db natoms=0
 
 
 More details
@@ -451,6 +451,39 @@ Here is a description of the database object:
     .. automethod:: reserve(**key_value_pairs)
     .. automethod:: update(ids, delete_keys=[], block_size=1000, **add_key_value_pairs)
 
+    .. attribute:: metadata
+
+       Dictionary
+
+
+.. _metadata:
+
+Metadata
+--------
+
+It's can be useful to add a discription of the data that's in a database.
+This description will be used when browsing the database with a
+:ref:`web-browser <ase-db-web>`.
+You can add the desciption using the :attr:`~Database.metadata` attribute:
+
+>>> db.metadata = {
+...     'title': 'Project 1',
+...     'key_descriptions':
+...         {'v0': ('Voltage', 'Longer description ...', 'V')},
+...     'default_columns': ['id', 'formula', 'v0']}
+
+ASE already knows all about the following keys:
+
+.. csv-table::
+    :file: known-keys.csv
+    :header-rows: 1
+    :widths: 2 3 4 2
+
+You can also write/read to/from JSON using::
+
+    $ ase db proj1.db --set-metadata metadata.json
+    $ ase db proj1.db --show-metadata > metadata.json
+
 
 .. _server:
 
@@ -462,31 +495,44 @@ Running a PostgreSQL server
 With your PostgreSQL server up and running, you should run the following
 command as the ``postgres`` user::
 
-    $ python -m ase.db.postgresql password
+    $ sudo -u postgres psql
 
-This will initialize some tables, create an ``ase`` user and set a password
-(see :git:`ase/db/postgresql.py` for details).  You should now be able to
-query the database using an address like
-``pg://user:password@host:port``::
+Then you create an 'ase' user and one database for each project you have::
 
-    $ ase-db pg://ase:password@localhost:5432
+    postgres=# create user ase login password 'pw';
+    postgres=# create database project1;
+    postgres=# create database project2;
 
-If you have some data in a ``data.db`` SQLite file, then you can insert that
+Show databases and quit::
+
+    postgres=# \l
+    postgres=# \q
+
+You should now be able to
+query the database using a URI like
+``postgresql://user:pw@host:port/dbname``::
+
+    $ PROJ1=postgresql://ase:pw@localhost:5432/project1
+    $ ase db $PROJ1
+
+If you have some data in a ``data.db`` SQLite3 file, then you can insert that
 into the PostgreSQL database like this::
 
-    $ ase-db data.db --insert-into pg://ase:password@localhost:5432
+    $ ase db data.db --insert-into $PROJ1
 
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
 Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
-to point to a configuration file containing two lines similar to these::
+to point to a Python configuration file containing something similar to this::
 
-    ASE_DB_NAME = 'pg://ase:password@localhost:5432'
-    ASE_DB_HOMEPAGE = '<a href="https://home.page.org">HOME</a> ::'
+    ASE_DB_NAMES = ['postgresql://ase:pw@localhost:5432/project1',
+                    'postgresql://ase:pw@localhost:5432/project2',
+                    ...]
+    ASE_DB_HOMEPAGE = '<a href="https://home.page.org">HOME</a>'
 
 and then start the server with::
 
-    $ twistd web --wsgi=ase.db.app.app --port=8000
+    $ ASE_DB_APP_CONFIG=... twistd web --wsgi=ase.db.app.app --port=tcp:8000
 
 .. note::
 

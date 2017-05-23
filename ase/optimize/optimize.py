@@ -15,7 +15,8 @@ import collections
 
 class Dynamics:
     """Base-class for all MD and structure optimization classes."""
-    def __init__(self, atoms, logfile, trajectory, master=None):
+    def __init__(self, atoms, logfile, trajectory, 
+                  append_trajectory=False, master=None):
         """Dynamics object.
 
         Parameters:
@@ -31,6 +32,11 @@ class Dynamics:
             Attach trajectory object.  If *trajectory* is a string a
             Trajectory will be constructed.  Use *None* for no
             trajectory.
+            
+        append_trajectory: boolean
+            Defaults to False, which causes the trajectory file to be overwriten
+            each time the dynamics is restarted from scratch. If True, the new
+            structures are appended to the trajectory file instead.
 
         master: boolean
             Defaults to None, which causes only rank 0 to save files.  If
@@ -54,7 +60,8 @@ class Dynamics:
 
         if trajectory is not None:
             if isinstance(trajectory, basestring):
-                trajectory = Trajectory(trajectory, mode='w',
+                mode = "a" if append_trajectory else "w"
+                trajectory = Trajectory(trajectory, mode=mode,
                                         atoms=atoms, master=master)
             self.attach(trajectory)
 
@@ -168,10 +175,11 @@ class Optimizer(Dynamics):
             self.log(f)
             self.call_observers()
             if self.converged(f):
-                return
+                return True
             self.step(f)
             self.nsteps += 1
             step += 1
+        return False
 
     def converged(self, forces=None):
         """Did the optimization converge?"""
