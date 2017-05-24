@@ -473,6 +473,7 @@ class Calculator:
         return result
 
     def calculation_required(self, atoms, properties):
+        assert not isinstance(properties, str)
         system_changes = self.check_state(atoms)
         if system_changes:
             return True
