@@ -304,12 +304,15 @@ class View:
         if self.colormode == 'jmol':
             return [self.colors[Z] for Z in self.atoms.numbers]
 
-        scalars = self.get_color_scalars()
         colorscale, cmin, cmax = self.colormode_data
         N = len(colorscale)
-        indices = np.clip(((scalars - cmin) / (cmax - cmin) * N +
-                           0.5).astype(int),
-                          0, N - 1)
+        if cmin == cmax:
+            indices = [N // 2] * len(self.atoms)
+        else:
+            scalars = self.get_color_scalars()
+            indices = np.clip(((scalars - cmin) / (cmax - cmin) * N +
+                               0.5).astype(int),
+                              0, N - 1)
         return [colorscale[i] for i in indices]
 
     def get_color_scalars(self, frame=None):
