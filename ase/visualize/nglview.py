@@ -10,7 +10,7 @@ class NGLDisplay:
     It is also possible to extend the functionality of the particular instance
     of the viewer by adding further widgets manipulating the structure.
     '''
-    def __init__(self, atoms ):
+    def __init__(self, atoms, xsize=500, ysize=500 ):
         from ipywidgets import Dropdown, FloatSlider, IntSlider, HBox, VBox
         self.atoms = atoms
         if isinstance(atoms[0],Atoms):
@@ -26,7 +26,7 @@ class NGLDisplay:
             self.frm = None
         
         self.colors=dict()
-        self.view._remote_call("setSize", target="Widget", args=["500px", "500px"])
+        self.view._remote_call("setSize", target="Widget", args=["%dpx" % (xsize,), "%dpx" % (ysize,)])
         self.view.add_unitcell()
         self.view.add_spacefill()
         self.view.camera='orthographic'
