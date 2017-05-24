@@ -86,7 +86,7 @@ class NGLDisplay:
 
 
 
-def view_ngl( atoms ):
+def view_ngl( atoms, w=500, h=500):
     '''
     Returns the nglviewer + some control widgets in the VBox ipywidget.
     The viewer supports any Atoms objectand any sequence of Atoms objects.
@@ -94,6 +94,6 @@ def view_ngl( atoms ):
         .view        -- nglviewer ipywidget for direct interaction
         .control_box -- VBox ipywidget containing view control widgets
     '''
-    return NGLDisplay( atoms ).gui
+    return NGLDisplay( atoms, w, h ).gui
     
 
