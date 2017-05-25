@@ -36,7 +36,7 @@ def generate_writer_variables(
                 for c3 in range(2):
                     cell_vertices[c1, c2, c3] = np.dot([c1, c2, c3], cell)
         cell_vertices.shape = (8, 3)
-        cell_vertices = np.dot(cell_vertices, rotation)  # Unit cell vertices
+        cell_vertices = np.dot(cell_vertices, rotation)
     else:
         L = np.empty((0, 3))
         T = None
