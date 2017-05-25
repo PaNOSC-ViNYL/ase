@@ -27,28 +27,28 @@ def generate_writer_variables(
     if isinstance(rotation, basestring):
         rotation = rotate(rotation)
 
-    A = atoms.get_cell()
-    if show_unit_cell > 0:
-        L, T, D = cell_to_lines(writer, A)
-        C = np.empty((2, 2, 2, 3))
+    cell = atoms.get_cell()
+    if show_unit_cell:
+        L, T, D = cell_to_lines(writer, cell)
+        cell_vertices = np.empty((2, 2, 2, 3))
         for c1 in range(2):
             for c2 in range(2):
                 for c3 in range(2):
-                    C[c1, c2, c3] = np.dot([c1, c2, c3], A)
-        C.shape = (8, 3)
-        C = np.dot(C, rotation)  # Unit cell vertices
+                    cell_vertices[c1, c2, c3] = np.dot([c1, c2, c3], cell)
+        cell_vertices.shape = (8, 3)
+        cell_vertices = np.dot(cell_vertices, rotation)  # Unit cell vertices
     else:
         L = np.empty((0, 3))
         T = None
         D = None
-        C = None
+        cell_vertices = None
 
     nlines = len(L)
 
-    X = np.empty((natoms + nlines, 3))
+    positions = np.empty((natoms + nlines, 3))
     R = atoms.get_positions()
-    X[:natoms] = R
-    X[natoms:] = L
+    positions[:natoms] = R
+    positions[natoms:] = L
 
     r2 = radii**2
     for n in range(nlines):
@@ -57,15 +57,15 @@ def generate_writer_variables(
             (((R - L[n] + d)**2).sum(1) < r2)).any():
             T[n] = -1
 
-    X = np.dot(X, rotation)
-    R = X[:natoms]
+    positions = np.dot(positions, rotation)
+    R = positions[:natoms]
 
     if bbox is None:
         X1 = (R - radii[:, None]).min(0)
         X2 = (R + radii[:, None]).max(0)
         if show_unit_cell == 2:
-            X1 = np.minimum(X1, C.min(0))
-            X2 = np.maximum(X2, C.max(0))
+            X1 = np.minimum(X1, cell_vertices.min(0))
+            X2 = np.maximum(X2, cell_vertices.max(0))
         M = (X1 + X2) / 2
         S = 1.05 * (X2 - X1)
         w = scale * S[0]
@@ -84,54 +84,54 @@ def generate_writer_variables(
     writer.w = w + extra_offset[0]
     writer.h = h + extra_offset[1]
 
-    X *= scale
-    X -= offset
+    positions *= scale
+    positions -= offset
 
     if nlines > 0:
         D = np.dot(D, rotation)[:, :2] * scale
 
-    if C is not None:
-        C *= scale
-        C -= offset
+    if cell_vertices is not None:
+        cell_vertices *= scale
+        cell_vertices -= offset
 
-    A = np.dot(A, rotation)
-    A *= scale
+    cell = np.dot(cell, rotation)
+    cell *= scale
 
-    writer.A = A
-    writer.X = X
+    writer.cell = cell
+    writer.positions = positions
     writer.D = D
     writer.T = T
-    writer.C = C
+    writer.cell_vertices = cell_vertices
     writer.natoms = natoms
     writer.d = 2 * scale * radii
 
 
-def cell_to_lines(writer, A):
+def cell_to_lines(writer, cell):
     nlines = 0
     nn = []
     for c in range(3):
-        d = sqrt((A[c]**2).sum())
+        d = sqrt((cell[c]**2).sum())
         n = max(2, int(d / 0.3))
         nn.append(n)
         nlines += 4 * n
 
-    X = np.empty((nlines, 3))
+    positions = np.empty((nlines, 3))
     T = np.empty(nlines, int)
     D = np.zeros((3, 3))
 
     n1 = 0
     for c in range(3):
         n = nn[c]
-        dd = A[c] / (4 * n - 2)
+        dd = cell[c] / (4 * n - 2)
         D[c] = dd
         P = np.arange(1, 4 * n + 1, 4)[:, None] * dd
         T[n1:] = c
         for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
             n2 = n1 + n
-            X[n1:n2] = P + i * A[c - 2] + j * A[c - 1]
+            positions[n1:n2] = P + i * cell[c - 2] + j * cell[c - 1]
             n1 = n2
 
-    return X, T, D
+    return positions, T, D
 
 
 def make_patch_list(writer):
@@ -143,10 +143,10 @@ def make_patch_list(writer):
     else:
         from matplotlib.patches import Circle, PathPatch
 
-    indices = writer.X[:, 2].argsort()
+    indices = writer.positions[:, 2].argsort()
     patch_list = []
     for a in indices:
-        xy = writer.X[a, :2]
+        xy = writer.positions[a, :2]
         if a < writer.natoms:
             r = writer.d[a] / 2
             if ((xy[1] + r > 0) and (xy[1] - r < writer.h) and
