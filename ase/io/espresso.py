@@ -445,6 +445,10 @@ def ibrav_to_cell(system):
         cell = np.array([[1.0, 1.0, 1.0],
                          [-1.0, 1.0, 1.0],
                          [-1.0, -1.0, 1.0]]) * (alat / 2)
+    elif system['ibrav'] == -3:
+        cell = np.array([[-1.0, 1.0, 1.0],
+                         [1.0, -1.0, 1.0],
+                         [1.0, 1.0, -1.0]]) * (alat / 2)
     elif system['ibrav'] == 4:
         cell = np.array([[1.0, 0.0, 0.0],
                          [-0.5, 0.5*3**0.5, 0.0],
