@@ -46,6 +46,7 @@ class ColorWindow:
         radio['magmom'].active = get_magmoms(atoms).any()
 
     def toggle(self, value):
+        self.gui.colormode = value
         if value == 'jmol':
             text = ''
         else:
@@ -65,7 +66,6 @@ class ColorWindow:
             text = '[{0},{1}]: [{2:.6f},{3:.6f}] {4}'.format(
                 _('Green'), _('Yellow'), mn, mx, unit)
 
-        self.gui.colormode = value
         self.label.text = text
         self.radio.value = value
         self.gui.draw()
