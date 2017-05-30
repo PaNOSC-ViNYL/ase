@@ -4,7 +4,7 @@
 TURBOMOLE
 =========
 
-TURBOMOLE_ is a program package for ab initio electronic structure calculations. 
+TURBOMOLE_ is a program package for *ab initio* electronic structure calculations.
 This interface integrates the TURBOMOLE code as a calculator in ASE.
 
 .. _Turbomole: http://www.turbomole.com/
@@ -13,13 +13,13 @@ This interface integrates the TURBOMOLE code as a calculator in ASE.
 Setting up the environment
 ==========================
 
-The TURBOMOLE package must be installed to use it with ASE. All modules and 
-scripts from the TURBOMOLE packages must be available in $PATH and the variable 
-$TURBODIR must be set. More information on how to install TURBOMOLE and to set 
-up the environment can be found in the manual or the tutorial at 
+The TURBOMOLE package must be installed to use it with ASE. All modules and
+scripts from the TURBOMOLE packages must be available in $PATH and the variable
+$TURBODIR must be set. More information on how to install TURBOMOLE and to set
+up the environment can be found in the manual or the tutorial at
 the `web site`_.
 
-.. _web site: http://www.turbomole-gmbh.com/turbomole-manuals.html 
+.. _web site: http://www.turbomole-gmbh.com/turbomole-manuals.html
 
 Using the calculator
 ====================
@@ -27,12 +27,12 @@ Using the calculator
 Python interface
 ----------------
 
-The constructor method has only keyword arguments that can be specified in any 
-order. The list of accepted parameters with their types and default values is 
+The constructor method has only keyword arguments that can be specified in any
+order. The list of accepted parameters with their types and default values is
 provided in the section "Parameters" below.
 
-The following example demonstrates how to construct a Turbomole calculator 
-object for a single-point energy calculation of a neutral singlet 
+The following example demonstrates how to construct a Turbomole calculator
+object for a single-point energy calculation of a neutral singlet
 system:
 
 .. code:: python
@@ -40,16 +40,16 @@ system:
   from ase.calculators.turbomole import Turbomole
   calc = Turbomole(multiplicity=1)
 
-The selection of the method will be according to the default parameter values 
-(see below), i.e. in this case DFT with b-p functional and the def-SV(P) basis 
+The selection of the method will be according to the default parameter values
+(see below), i.e. in this case DFT with b-p functional and the def-SV(P) basis
 set. After this the calculator can be associated with an existing Atoms object
 
 .. code:: python
 
   atoms.set_calculator(calc)
 
-The recommended methods to access parameters and properties are the getter 
-methods, i.e. these ones starting with *get*. The calculations then are 
+The recommended methods to access parameters and properties are the getter
+methods, i.e. these ones starting with *get*. The calculations then are
 triggered according to the principle of lazy evaluation, i.g.:
 
 .. code:: python
@@ -57,25 +57,25 @@ triggered according to the principle of lazy evaluation, i.g.:
   energy = atoms.get_potential_energy()
   print(energy)
 
-Alternatively all calculations necessary to perform a task (see ``task`` 
-parameter below) can be explicitly started with the calculate() method:
+Alternatively all calculations necessary to perform a task (see ``task``
+parameter below) can be explicitly started with the ``calculate()`` method:
 
 .. code:: python
 
   calc.calculate(atoms)
 
-The getter methods (see below) check for convergence and eventually return 
-``None`` or an exception if the calculation has not converged. If the 
-properties are read using the Turbomole object attributes then the convergence 
+The getter methods (see below) check for convergence and eventually return
+``None`` or an exception if the calculation has not converged. If the
+properties are read using the Turbomole object attributes then the convergence
 must be checked with:
 
 .. code:: python
 
   assert calc.converged
 
-If the user wishes to use the input files (such as the control file) generated 
-by module ``define`` before (or without) an actual calculation starts, the 
-initialize() method has to be called explicitly after constructing the calculator 
+If the user wishes to use the input files (such as the control file) generated
+by module ``define`` before (or without) an actual calculation starts, the
+initialize() method has to be called explicitly after constructing the calculator
 and associating it with an atoms object, e.g.:
 
 .. code:: python
@@ -84,7 +84,7 @@ and associating it with an atoms object, e.g.:
     from ase.calculators.turbomole import Turbomole
     mol = molecule('C60')
     params = {
-        'use resolution of identity': True, 
+        'use resolution of identity': True,
         'total charge': -1,
         'multiplicity': 2
     }
@@ -105,8 +105,8 @@ with constructing the calculator:
 Command-line interface
 ----------------------
 
-The command-line interface has limited capability. For example the keyword 
-``task`` is not effective due to the specific way the methods are called by 
+The command-line interface has limited capability. For example the keyword
+``task`` is not effective due to the specific way the methods are called by
 ``ase-run``. This example shows how to run a single-point DFT calculation of
 water with the PBE functional and with geometry taken from the database::
 
@@ -126,31 +126,31 @@ Properties
 
 The implemented properties are described in the following table.
 
-=================== ======== ====================== =========== ==================
-**Property**        **Type** **Getter method**      **Storage** **Task**
-=================== ======== ====================== =========== ==================
-total energy        float    get_potential_energy   e_total     any task
+================== ======== ======================= =========== ==================
+**Property**       **Type** **Getter method**       **Storage** **Task**
+================== ======== ======================= =========== ==================
+total energy       float    get_potential_energy(), e_total     any task
                              get_property('energy')
-forces              np.array get_forces             forces      gradient
+forces             np.array get_forces(),           forces      gradient
                              get_property('forces')
-dipole moment       np.array get_dipole_moment      dipole      any task
+dipole moment      np.array get_dipole_moment(),    dipole      any task
                              get_property('magmom')
-<S^2>               float    get_results            results     any task
-normal modes        list     get_results            results     frequencies
-mode frequencies    list     get_results            results     frequencies
-gradient            list     get_results            results     gradient, optimize
-hessian             list     get_results            results     frequencies
-molecular orbitals  list     get_results            results     any task
-occupancies         list     get_results            results     any task
-=================== ======== ====================== =========== ==================
+<S^2>              float    get_results             results     any task
+normal modes       list     get_results             results     frequencies
+mode frequencies   list     get_results             results     frequencies
+gradient           list     get_results             results     gradient, optimize
+hessian            list     get_results             results     frequencies
+molecular orbitals list     get_results             results     any task
+occupancies        list     get_results             results     any task
+================== ======== ======================= =========== ==================
 
 Metadata
 --------
 
 Additionally, some useful information can be read with the calculator using the
-functions read_version(), read_datetime(), read_runtime(), read_hostname(). Then
-the respective data can be retrieved using the version, datetime, runtime and 
-hostname attributes. Example:
+functions ``read_version()``, ``read_datetime()``, ``read_runtime()``,
+``read_hostname()``. Then the respective data can be retrieved using the
+*version*, *datetime*, *runtime* and *hostname* attributes. Example:
 
 .. code:: python
 
@@ -161,14 +161,14 @@ hostname attributes. Example:
 Restart mode
 ------------
 
-The restart mode can be used either to start a calculation from the data left 
-from previous calculations or to analyse or postprocess these data. The 
-previous run may have been performed without ASE but the working directory of 
-the job should contain the control file and all files referenced in it. In 
-addition, the standard output will be searched in files beginning with *job.* 
-and ending with *.out* but this is optional input, mainly to extract job 
-datetime, runtimes, hostname and TURBOMOLE version. After constructing the 
-calculator object (where params dict is optional):
+The restart mode can be used either to start a calculation from the data left
+from previous calculations or to analyze or post-process these data. The
+previous run may have been performed without ASE but the working directory of
+the job should contain the control file and all files referenced in it. In
+addition, the standard output will be searched in files beginning with *job.*
+and ending with *.out* but this is optional input, mainly to extract job
+datetime, runtimes, hostname and TURBOMOLE version. After constructing the
+calculator object (where *params* dictionary is optional):
 
 .. code:: python
 
@@ -182,14 +182,14 @@ the data left from the previous calculations can be queried, for example:
   view(calc.atoms)
   print(calc.converged)
   print(calc.get_potential_energy())
-  
+
 A previous calculation may have crashed or not converged. Also in these cases
-all data that is available will be retrieved but the ``calc.converged`` will 
-be set to ``False``. The calculation can be continued without any parameter 
-modifications (for example if it has exceeded the job maximum run time and was 
-interrupted) or with better convergence parameters specified in ``params`` 
-dictionary. Finally, another calculation task can be started beginning 
-from the data left from a converged previous one, specifying a new ``task`` 
+all data that is available will be retrieved but the ``calc.converged`` will
+be set to ``False``. The calculation can be continued without any parameter
+modifications (for example if it has exceeded the job maximum run time and was
+interrupted) or with better convergence parameters specified in ``params``
+dictionary. Finally, another calculation task can be started beginning
+from the data left from a converged previous one, specifying a new ``task``
 parameter:
 
 .. code:: python
@@ -197,11 +197,38 @@ parameter:
   calc = Turbomole(restart=True, task='gradient', **params)
 
 
+Policies for files in the working directory
+-------------------------------------------
+
+* When the calculator is constructed in restart mode (i.e. ``restart=True``)
+  and with no other parameters, then no files will be created, deleted or
+  modified in the working directory.
+
+* When the calculator is created in normal (i.e. ``restart=False``) mode then
+  all TURBOMOLE related files found in the working directory will be deleted.
+
+* When the calculator is created with ``restart=True`` and other parameters,
+  the *control* file might be modified. In particular, if ``define_str``,
+  ``control_input`` or ``control_kdg`` are specified or ``initialize()``
+  is called then the *control* file will be modified.
+
+* When ``calculate()``, ``get_potential_energy()``, ``get_forces()`` etc. are
+  called in restart mode, the *control* file will be modified if the previous
+  calculation has not converged.
+
+* When an *atoms* object is associated with the calculator or any calculator
+  method is called with an *atoms* object specified, then the calculator will
+  be reset and all TURBOMOLE related files found in the working directory will
+  be deleted if *atoms* is different (tol=1e-2) from the internal *atoms* object or
+  if internal coordinates are used and the internal and the supplied *atoms*
+  positions are different (tol=1e-13). The *coord* file will be changed only
+  if the *atoms* positions are different (tol=1e-13).
+
 
 Parameters
 ==========
 
-The following table provides a summary of all parameters and their default 
+The following table provides a summary of all parameters and their default
 values.
 
 ================================ ======== =========== ============= ==============
@@ -248,22 +275,22 @@ geometry optimization iterations   int         None           None          True
       use resolution of identity  bool        False           None         False
 ================================ ======== =========== ============= ==============
 
-The attribute ``Updateable`` specifies whether it is possible to change a 
-parameter upon restart. The ``restart`` keyword tells the calculator whether to 
-restart from a previous calculation. The optional ``define_str`` is a string of 
-characters that would be entered in an interactive session with module ``define``, 
-i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an 
-optional list of data groups in control file to be deleted after running module 
-``define`` and ``control_input`` is an optional list of data groups to be added 
+The attribute ``Updateable`` specifies whether it is possible to change a
+parameter upon restart. The ``restart`` keyword tells the calculator whether to
+restart from a previous calculation. The optional ``define_str`` is a string of
+characters that would be entered in an interactive session with module ``define``,
+i.e. this is the stdin for running module ``define``. The ``control_kdg`` is an
+optional list of data groups in control file to be deleted after running module
+``define`` and ``control_input`` is an optional list of data groups to be added
 to control file after running module ``define``.
 
-The parameter ``initial guess`` can be either the strings *eht* (extended 
+The parameter ``initial guess`` can be either the strings *eht* (extended
 Hückel theory) or *hcore* (one-electron core Hamiltonian) or a dictionary
-*{'use': '<path/to/control>'}* specifying a path to a control file with the 
+*{'use': '<path/to/control>'}* specifying a path to a control file with the
 molecular orbitals that should be used as initial guess.
 
-If ``numerical hessian`` is defined then the force constant matrix will be 
-computed numerically using the script NumForce. The keys can be *'central'* 
+If ``numerical hessian`` is defined then the force constant matrix will be
+computed numerically using the script NumForce. The keys can be *'central'*
 indicating use of central differences (type *bool*) and *'delta'* specifying
 the coordinate displacements in Angstrom (type *float*).
 
@@ -280,7 +307,7 @@ the parameters is to construct a dictionary, for example:
   calc = Turbomole(**params)
 
 Using the todict() method, the parameters of an existing Turbomole calculator
-object can be stored in a flat dictionary and then re-used to create a 
+object can be stored in a flat dictionary and then re-used to create a
 new Turbomole calculator object:
 
 .. code:: python
@@ -288,7 +315,7 @@ new Turbomole calculator object:
   params = calc.todict()
   new_calc = Turbomole(**params)
 
-This is especially useful if the *calc* object has been created in restart 
+This is especially useful if the *calc* object has been created in restart
 mode or retrieved from a database.
 
 
@@ -331,11 +358,11 @@ Deprecated but still accepted parameters
 ==================== ======== ======================== =========================
 Name                 Type     Default value            Description
 ==================== ======== ======================== =========================
-``calculate_energy`` ``str``  ``dscf``                 module name for energy 
+``calculate_energy`` ``str``  ``dscf``                 module name for energy
                                                        calculation
-``calculate_forces`` ``str``  ``grad``                 module name for forces 
+``calculate_forces`` ``str``  ``grad``                 module name for forces
                                                        calculation
-``post_HF``          ``bool``  ``False``               post Hartree-Fock format 
+``post_HF``          ``bool``  ``False``               post Hartree-Fock format
                                                        for energy reader
 ==================== ======== ======================== =========================
 
@@ -360,7 +387,7 @@ Name                             Type    Default    Units           Updateable
 Unsupported methods and features
 --------------------------------
 
-The following methods and features are supported in TURBOMOLE but currently not 
+The following methods and features are supported in TURBOMOLE but currently not
 in the ASE Turbomole calculator:
 
 * MP2 and coupled-cluster methods (modules mpgrad, rimp2, ricc2)
