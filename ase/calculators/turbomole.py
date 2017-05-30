@@ -605,7 +605,7 @@ class Turbomole(FileIOCalculator):
                     subdict.update({p: self.parameter_spec[p][k]})
 
         if self.restart:
-            self.set_restart(kwargs)
+            self._set_restart(kwargs)
         else:
             self.set_parameters(kwargs)
             self.verify_parameters()
@@ -618,9 +618,9 @@ class Turbomole(FileIOCalculator):
     def __getitem__(self, item):
         return getattr(self, item)
 
-    def set_restart(self, params_update):
-        """ this function constructs atoms, parameters and results from a
-        previous calculation """
+    def _set_restart(self, params_update):
+        """ constructs atoms, parameters and results from a previous
+        calculation """
 
         # read results, key parameters and non-key parameters
         self.read_restart()
@@ -633,7 +633,7 @@ class Turbomole(FileIOCalculator):
                 warnings.warn('"' + p + '"' + ' cannot be changed')
 
         # update and verify parameters
-        params_new = params_old
+        params_new = params_old.copy()
         params_new.update(params_update)
         self.set_parameters(params_new)
         self.verify_parameters()
@@ -642,6 +642,19 @@ class Turbomole(FileIOCalculator):
         if self.define_str:
             execute('define', input_str=self.define_str)
 
+        # updates data groups in the control file
+        if params_update or self.control_kdg or self.control_input:
+            self._update_data_groups(params_old, params_update)
+
+        self.initialized = True
+        # more precise convergence tests are necessary to set these flags:
+        self.update_energy = True
+        self.update_forces = True
+        self.update_geometry = True
+        self.update_hessian = True
+
+    def _update_data_groups(self, params_old, params_update):
+        """ updates data groups in the control file """
         # construct a list of data groups to update
         grps = []
         for p in list(params_update.keys()):
@@ -699,15 +712,9 @@ class Turbomole(FileIOCalculator):
                 else:
                     add_data_group(g, string=str(dgs[g]))
 
-        self.set_post_define()
-        self.initialized = True
-        # more precise convergence tests are necessary to set these flags:
-        self.update_energy = True
-        self.update_forces = True
-        self.update_geometry = True
-        self.update_hessian = True
+        self._set_post_define()
 
-    def set_post_define(self):
+    def _set_post_define(self):
         """ non-define keys, user-specified changes in the control file """
         # process key parameters that are not written with define
         for p in list(self.parameters.keys()):
@@ -968,7 +975,7 @@ class Turbomole(FileIOCalculator):
                 delete_data_group('scfmo')
                 add_data_group('scfmo', 'none file=mos')
 
-        self.set_post_define()
+        self._set_post_define()
 
         self.initialized = True
         self.converged = False
