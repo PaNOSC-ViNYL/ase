@@ -130,12 +130,12 @@ The implemented properties are described in the following table.
 **Property**       **Type** **Getter method**       **Storage** **Task**
 ================== ======== ======================= =========== ==================
 total energy       float    get_potential_energy(), e_total     any task
-                             get_property('energy')
+                            get_property('energy')
 forces             np.array get_forces(),           forces      gradient
-                             get_property('forces')
+                            get_property('forces')
 dipole moment      np.array get_dipole_moment(),    dipole      any task
-                             get_property('magmom')
-<S^2>              float    get_results             results     any task
+                            get_property('magmom')
+<S\ :sup:`2`\ >    float    get_results             results     any task
 normal modes       list     get_results             results     frequencies
 mode frequencies   list     get_results             results     frequencies
 gradient           list     get_results             results     gradient, optimize
