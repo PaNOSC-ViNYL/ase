@@ -100,6 +100,8 @@ class BundleTrajectory:
             self._open_write(atoms, backup, backend)
         elif mode == 'a':
             self._open_append(atoms)
+        else:
+            raise ValueError('Unknown mode: ' + str(mode))
 
     def _set_defaults(self):
         "Set default values for internal parameters."
