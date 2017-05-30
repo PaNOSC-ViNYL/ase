@@ -10,6 +10,7 @@ from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
+from ase.gui.utils import get_magmoms
 from ase.utils import rotate
 
 
@@ -180,7 +181,7 @@ class View:
         elif index == 1:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
-            self.labels = list(self.images.get_magmoms(self.atoms))
+            self.labels = list(get_magmoms(self.atoms))
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
@@ -322,7 +323,7 @@ class View:
         elif self.colormode == 'charge':
             return self.atoms.get_charges()
         elif self.colormode == 'magmom':
-            return self.images.get_magmoms(self.atoms)
+            return get_magmoms(self.atoms)
 
     def get_covalent_radii(self, atoms=None):
         if atoms is None:
@@ -463,18 +464,6 @@ class View:
         self.window.text(x, y, '{0}/{1}'.format(self.frame,
                                                 len(self.images)),
                          anchor='SE')
-
-    def get_magmoms(self, init_magmom=False):
-        try:
-            if init_magmom:
-                M = self.atoms.get_initial_magnetic_moments()
-            else:
-                M = self.atoms.get_magnetic_moments()
-                if M.ndim == 2:
-                    M = M[:, 2]  # XXX
-        except (RuntimeError, AttributeError):
-            M = self.atoms.get_initial_magnetic_moments()
-        return M
 
     def release(self, event):
         if event.button in [4, 5]:

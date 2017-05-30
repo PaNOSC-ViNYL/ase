@@ -8,7 +8,7 @@ from scipy.spatial import ConvexHull
 
 import ase.units as units
 from ase.atoms import string2symbols
-from ase.utils import hill, basestring
+from ase.utils import formula_hill, basestring
 
 _solvated = []
 
@@ -333,7 +333,7 @@ class PhaseDiagram:
                 count = parse_formula(name)[0]
             else:
                 count = name
-                name = hill(count)
+                name = formula_hill(count)
 
             if filter and any(symbol not in filter for symbol in count):
                 continue

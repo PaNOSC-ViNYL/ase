@@ -73,6 +73,7 @@ Hotbit_                             DFT based tight binding
 :mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
 :mod:`~ase.calculators.cp2k`        DFT and classical potentials
 :mod:`~ase.calculators.dftb`        DFT based tight binding
+:mod:`~ase.calculators.dmol`        Atomic orbital DFT code
 :mod:`~ase.calculators.eam`         Embedded Atom Method
 elk                                 Full Potential LAPW code
 :mod:`~ase.calculators.exciting`    Full Potential LAPW code
@@ -93,6 +94,7 @@ lj                                  Lennard-Jones potential
 morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
 :mod:`~ase.calculators.loggingcalc` Logging calculator
+:mod:`~ase.calculators.dftd3`       DFT-D3 dispersion correction calculator
 =================================== ===========================================
 
 .. index:: D3, Grimme
@@ -196,6 +198,7 @@ the :meth:`set` method:
    castep
    cp2k
    dftb
+   dmol
    exciting
    FHI-aims
    fleur
@@ -211,6 +214,7 @@ the :meth:`set` method:
    qmmm
    checkpointing
    loggingcalc
+   dftd3
    others
    test
    ase_qmmm_manyqm

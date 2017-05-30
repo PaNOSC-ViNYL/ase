@@ -28,15 +28,6 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 >>> h2.get_potential_energy()
 -31.492847800329216
 
-Please go through this check-list to figure out if you need to convert your
-old ASE trajectory files to the modern file-format:
-
-.. image:: static/oldtraj.png
-    :align: center
-
-See how to identify and convert old trajectory files here: :ref:`convert`.
-
-
 Supported :mod:`Calculators <ase.calculators>`:
 
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
@@ -44,8 +35,17 @@ Supported :mod:`Calculators <ase.calculators>`:
 |fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |onetep| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
+:mod:`DMol³ <ase.calculators.dmol>`
 Gaussian_ Grimme-D3_ Mopac_
 :mod:`~ase.calculators.tip3p`
+
+Please go through this check-list to figure out if you need to convert your
+old ASE trajectory files to the modern file-format:
+
+.. image:: static/oldtraj.png
+    :align: center
+
+See how to identify and convert old trajectory files here: :ref:`convert`.
 
 
 .. _news:

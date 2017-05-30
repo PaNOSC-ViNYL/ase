@@ -1,4 +1,9 @@
+import matplotlib as mpl
+
 from ase.utils.sphinx import mol_role, git_role_tmpl, create_png_files
+
+
+mpl.rcParams.update({'figure.max_open_warning': 100})
 
 
 def git_role(role, rawtext, text, lineno, inliner, options={}, content=[]):

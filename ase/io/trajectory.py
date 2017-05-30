@@ -289,13 +289,14 @@ def get_header_data(atoms):
             'masses': atoms.get_masses() if atoms.has('masses') else None,
             'constraints': list(atoms.constraints)}
 
+
 def headers_equal(headers1, headers2):
-    eq = ((headers1['pbc'] == headers2['pbc']).all()
-          and np.all(headers1['numbers'] == headers2['numbers'])
+    eq = ((headers1['pbc'] == headers2['pbc']).all() and
+          np.all(headers1['numbers'] == headers2['numbers']) and
           # Short-circuit to avoid elementwise comparisons to None:
-          and (headers1['masses'] is None) == (headers2['masses'] is None)
-          and np.all(headers1['masses'] == headers2['masses'])
-          and headers1['constraints'] == headers2['constraints'])
+          (headers1['masses'] is None) == (headers2['masses'] is None) and
+          np.all(headers1['masses'] == headers2['masses']) and
+          headers1['constraints'] == headers2['constraints'])
     return eq
 
 

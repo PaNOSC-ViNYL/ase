@@ -49,7 +49,7 @@ class Images:
 
     def get_energy(self, atoms):
         try:
-            e =  atoms.get_potential_energy() * self.repeat.prod()
+            e = atoms.get_potential_energy() * self.repeat.prod()
         except RuntimeError:
             e = np.nan
         return e
@@ -57,21 +57,10 @@ class Images:
     def get_forces(self, atoms):
         try:
             F = atoms.get_forces(apply_constraint=False)
-            return np.tile(F.T, self.repeat.prod()).T
         except RuntimeError:
             return None
-
-    def get_magmoms(self, atoms, init_magmom=False):
-        try:
-            if init_magmom:
-                M = atoms.get_initial_magnetic_moments()
-            else:
-                M = atoms.get_magnetic_moments()
-                if M.ndim == 2:
-                    M = M[:, 2]
-        except (RuntimeError, AttributeError):
-            M = atoms.get_initial_magnetic_moments()
-        return M
+        else:
+            return np.tile(F.T, self.repeat.prod()).T
 
     def initialize(self, images, filenames=None, init_magmom=False):
         nimages = len(images)
@@ -80,7 +69,7 @@ class Images:
         self.filenames = filenames
 
         #  The below seems to be about "quaternions"
-        if 0: # XXXXXXXXXXXXXXXXXXXX hasattr(images[0], 'get_shapes'):
+        if 0:  # XXXXXXXXXXXXXXXXXXXX hasattr(images[0], 'get_shapes'):
             self.Q = np.empty((nimages, self.natoms, 4))
             self.shapes = images[0].get_shapes()
             import os as os
@@ -113,10 +102,10 @@ class Images:
             # but copying actually forgets things like the attached
             # calculator (might have forces/energies
             self._images.append(atoms)
-            self.have_varying_species |= np.any(self[0].numbers
-                                                != atoms.numbers)
+            self.have_varying_species |= np.any(self[0].numbers !=
+                                                atoms.numbers)
             if hasattr(self, 'Q'):
-                assert False # XXX askhl fix quaternions
+                assert False  # XXX askhl fix quaternions
                 self.Q[i] = atoms.get_quaternions()
             if (atoms.pbc != self[0].pbc).any():
                 warning = True

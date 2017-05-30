@@ -10,8 +10,11 @@ Git master branch
 
 :git:`master <>`.
 
+* Python 2.6 no longer supported.
+
 * The command-line tools :program:`ase-???` have been replaced by a
-  single :program:`ase` command with sub-commands.  For help, type::
+  single :program:`ase` command with sub-commands (see :ref:`cli`).
+  For help, type::
 
       $ ase --help
       $ ase sub-command --help
@@ -19,8 +22,6 @@ Git master branch
 * The old :program:`ase-build` command which is now called
   :program:`ase build` will no longer add vacuum by default.  Use
   ``ase build -V 3.0`` to get the old behavior.
-
-* Python 2.6 no longer supported.
 
 * All methods of the :class:`~ase.Atoms` object that deal with angles now
   have new API's that use degrees instead of radians as the unit of angle
@@ -95,6 +96,24 @@ Git master branch
 * Trajectory files can now store any sequence of :class:`~ase.Atoms`
   objects.  Previously, atomic numbers, masses, and constraints were
   only saved for the first image, and had to apply for all subsequent ones.
+
+* Interface for DMol\ :sup:`3` added.
+
+* Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
+
+* New function for interpolating from Monkhors-Pack sampled valeus in the BZ
+  to arbitrary points in the BZ:
+  :func:`ase.dft.kpoints.monkhorst_pack_interpolate`.
+
+* New *band-structure* command for the :program:`ase` :ref:`cli`.
+
+* Two new functions for producing chemical formulas:
+  :func:`ase.utils.formula_hill` and :func:`ase.utils.formula_metal`.
+
+* The :func:`ase.dft.bandgap.get_band_gap` function is now deprecated.  Use
+  the new one called :func:`ase.dft.bandgap.bandgap` (it's more flexible and
+  returns also band indices).
+
 
 Version 3.13.0
 ==============

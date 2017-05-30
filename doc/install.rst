@@ -123,6 +123,16 @@ from Git.
 
         $ git clone https://gitlab.com/ase/ase.git
 
+:Pip:
+
+    install git master directly with pip::
+
+        $ pip install --upgrade git+https://gitlab.com/ase/ase.git@master
+
+    The ``--upgrade`` ensures that you always reinstall even if the version
+    number hasn't changed.
+
+
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
 ``~/ase/bin`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
 folder is).  Alternatively, you can install the code with ``python setup.py
