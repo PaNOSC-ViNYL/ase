@@ -600,25 +600,57 @@ class GenerateVaspInput(object):
                     self.ppp_list.append(filename + '.Z')
                     break
             else:
-                print('Looking for %s' % potcar)
-                raise RuntimeError('No pseudopotential for %s!' % symbol)
-
+                print('Looking for setup  %s' % potcar)
+                raise RuntimeError('No pseudopotential setup for %s!' % symbol)
+                
+        # look for elements
+        symbols_found = []
         for symbol in symbols:
+            found = False
+            
+            if symbol in symbols_found:
+                continue  # already found
+                
+            # build the list of names to search
+            names = []
+            
+            # initiate with a user-setup or no setup name (LDA)
             try:
                 potcar = join(pp_folder, symbol + p['setups'][symbol],
                               'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
-            for path in pppaths:
-                filename = join(path, potcar)
+            names.append(potcar)
+            
+            # list of usual setups, sorted in preference order
+            for setup in ['h','pv','sv', 's', 'd', '2','3','5','1.5','1.25','1.75','']:
+                for setup_sep in ['','_','.']:
+                    if setup is None or setup is '':
+                        potcar = join(pp_folder, symbol, 'POTCAR')
+                    else:
+                        potcar = join(pp_folder, symbol + setup_sep + setup, 'POTCAR')
+                    if potcar not in names:
+                        names.append(potcar)
+                        
+            # test each POTCAR name and add it when found
+            for potcar in names:
+                for path in pppaths:
+                    filename = join(path, potcar)
 
-                if isfile(filename) or islink(filename):
-                    self.ppp_list.append(filename)
+                    if isfile(filename) or islink(filename):
+                        found = True
+                        self.ppp_list.append(filename)
+                        symbols_found.append(symbol)
+                        break
+                    elif isfile(filename + '.Z') or islink(filename + '.Z'):
+                        found = True
+                        self.ppp_list.append(filename + '.Z')
+                        symbols_found.append(symbol)
+                        break
+                if found:
                     break
-                elif isfile(filename + '.Z') or islink(filename + '.Z'):
-                    self.ppp_list.append(filename + '.Z')
-                    break
-            else:
+                
+            if not found:
                 print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
