@@ -1307,10 +1307,7 @@ class Turbomole(FileIOCalculator):
         parameters = self.results['calculation parameters']
         dg = read_data_group('symmetry')
         parameters['point group'] = str(dg.split()[1])
-        if '$uhf' in read_data_group('uhf'):
-            parameters['uhf'] = True
-        else:
-            parameters['uhf'] = False
+        parameters['uhf'] = '$uhf' in read_data_group('uhf')
         # Gaussian function type
         gt = read_data_group('pople')
         if gt == '':
