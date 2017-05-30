@@ -2,8 +2,7 @@
 python_2_7_tests:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy python-scipy pyflakes python-pip
-    - pip install --user fortranformat
+    - apt-get install -qy python-numpy python-scipy pyflakes
     - pwd
     - echo $HOME
     - cd ..

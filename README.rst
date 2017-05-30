@@ -79,4 +79,3 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 .. _Matplotlib: http://matplotlib.org/
 .. _ase-users: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
 .. _IRC: http://webchat.freenode.net/?randomnick=0&channels=ase
-.. _fortranformat: https://bitbucket.org/brendanarnold/py-fortranformat

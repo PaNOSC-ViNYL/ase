@@ -12,7 +12,6 @@ import warnings
 from subprocess import Popen, PIPE
 from math import log10
 import numpy as np
-import fortranformat as ff
 from ase import Atoms
 from ase.units import Hartree, Bohr
 from ase.io import read, write
@@ -1433,8 +1432,7 @@ class Turbomole(FileIOCalculator):
         spin = [None, 'alpha', 'beta']
 
         for index, keyword in enumerate(keywords):
-            f_string = None
-            f_width = 0
+            flen = None
             mo = {}
             orbitals_coefficients_line = []
             mo_string = read_data_group(keyword)
@@ -1463,11 +1461,10 @@ class Turbomole(FileIOCalculator):
                     continue
                 if keyword in line:
                     # e.g. format(4d20.14)
-                    regex = r'format\(\d+([a-zA-Z](\d+)\.\d+)\)'
+                    regex = r'format\(\d+[a-zA-Z](\d+)\.\d+\)'
                     match = re.search(regex, line)
                     if match:
-                        f_string = match.group(1)
-                        f_width = int(match.group(2))
+                        flen = int(match.group(1))
                     if ('scfdump' in line or 'expanded' in line
                             or 'scfconv' not in line):
                         self.converged = False
@@ -1477,9 +1474,10 @@ class Turbomole(FileIOCalculator):
                         mo['eigenvector'] = orbitals_coefficients_line
                         mos.append(mo)
                     break
-                fort_str = str(int(len(line.rstrip())/f_width)) + f_string
-                r = ff.FortranRecordReader(fort_str)
-                orbitals_coefficients_line += r.read(line)
+                sfields = [line[i:i+flen] for i in range(0, len(line), flen)]
+                ffields = [float(f.replace('D', 'E').replace('d', 'E'))
+                           for f in sfields]
+                orbitals_coefficients_line += ffields
 
     def read_basis_set(self):
         """ read the basis set """
