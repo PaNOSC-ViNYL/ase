@@ -15,11 +15,11 @@ import os
 import numpy as np
 from ase.units import eV, Ang
 #from ase.io.gulp_got import read_gulp
-from ase.geometry import cellpar_to_cell, cell_to_cellpar
+#from ase.geometry import cellpar_to_cell, cell_to_cellpar
 from ase.calculators.calculator import FileIOCalculator, ReadError
 
-from ase.data import chemical_symbols
-import re
+#from ase.data import chemical_symbols
+#import re
 
 
 class GULP(FileIOCalculator):
@@ -36,13 +36,14 @@ class GULP(FileIOCalculator):
 #conditions=[['O', 'default', 'O1'], ['O', 'O2', 'H', '<', '1.6']]
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='gulp', atoms=None, optimized=None, Gnorm=1000.0, Steps=1000, conditions=None, **kwargs):
+                 label='gulp', atoms=None, optimized=None,
+                 Gnorm=1000.0, steps=1000, conditions=None, **kwargs):
         """Construct GULP-calculator object."""
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
         self.optimized  = optimized
         self.Gnorm      = Gnorm
-        self.Steps      = Steps
+        self.steps      = steps
         self.conditions = conditions
         self.library_check()
         self.atom_types = []
@@ -126,7 +127,7 @@ class GULP(FileIOCalculator):
             elif line.find('Final cartesian coordinates of atoms') != -1:
                 s = i + 5
                 positions = []
-                while(True):
+                while True:
                     s = s + 1
                     if lines[s].find("------------") != -1:
                         break
@@ -138,31 +139,31 @@ class GULP(FileIOCalculator):
                 positions = np.array(positions)
                 self.atoms.set_positions(positions)
 
-        self.Steps=cycles
+        self.steps = cycles
 
     def get_opt_state(self):
         return self.optimized
 
     def get_opt_steps(self):
-        return self.Steps
+        return self.steps
 
     def get_Gnorm(self):
         return self.Gnorm
 
     def library_check(self):
         if self.parameters['library'] is not None:
-            try:
-                path = os.environ['GULP_LIB'] + '/'
-            except:
-                raise RuntimeError("Be sure to have set correctly $GULP_LIB or to have the force field library.")
+            if 'GULP_LIB' not in os.environ:
+                raise RuntimeError("Be sure to have set correctly $GULP_LIB "
+                                   "or to have the force field library.")
 
 class Conditions:
-    """ This class is made to return return an array similar to atoms.get_chemical_symbols()
-    via get_atoms_labels() funtion but with atomic labels in stead of atomic symbols.
-    This is usefull when you need to use calculators like gulp or lammps that uses
-    force fileds. Some force fields can have different atom type for the same element.
-    In this class you can create a set_rule() function that assigns labels according to
-    structural criteria."""
+    """This class is made to return return an array similar to
+    atoms.get_chemical_symbols() via get_atoms_labels() funtion but
+    with atomic labels in stead of atomic symbols.  This is usefull
+    when you need to use calculators like gulp or lammps that uses
+    force fileds. Some force fields can have different atom type for
+    the same element.  In this class you can create a set_rule()
+    function that assigns labels according to structural criteria."""
 
     def __init__(self, atoms=None, rule=None):
         self.atoms = atoms
@@ -171,10 +172,12 @@ class Conditions:
         self.rules = rule
         self.atom_types = []
 
-    def min_distance_rule(self, sym1, sym2, ifyeslabel1 , ifyeslabel2, ifnolabel1):
-        """This function is a rule that allows to define atom labels (like O1, O2, O_H etc..)
-        starting from element symbols of an Atoms object that a force field can use and according
-        to distance parameters.
+    def min_distance_rule(self, sym1, sym2, ifyeslabel1 , ifyeslabel2,
+                          ifnolabel1):
+        """This function is a rule that allows to define atom labels (like O1,
+        O2, O_H etc..)  starting from element symbols of an Atoms
+        object that a force field can use and according to distance
+        parameters.
 
         Example:
         atoms = read('some_xyz_format.xyz')
@@ -182,12 +185,14 @@ class Conditions:
         a.set_min_distance_rule("O", "H", "O2", "H", "O1")
         new_atoms_labels = a.get_atom_labels()
 
-        In the example oxygens O are going to be labeled as O2 if they are close to a
-        hydrogen atom othewise are labeled O1."""
+        In the example oxygens O are going to be labeled as O2 if they
+        are close to a hydrogen atom othewise are labeled O1."""
         #self.atom_types is a list of element types  used instead of element
         #symbols in orger to track the changes made. Take care of this because
         # is very important.. gulp_read function that parse the output
-        # has to know which atom_type it has to associate with which atom_symbol
+        # has to know which atom_type it has to associate with which
+        # atom_symbol
+        #
         # Example: [['O','O1','O2'],['H', 'H_C', 'H_O']]
         # this beacuse Atoms oject accept only atoms symbols
         self.atom_types.append([sym1, ifyeslabel1 , ifnolabel1])
@@ -202,7 +207,9 @@ class Conditions:
                 dist_12 = 1000
                 index_assiged_sym2.append(i)
                 for t in range(len(self.atoms_symbols)):
-                    if self.atoms_symbols[t] is sym1 and dist_mat[i, t] < dist_12 and t not in index_assiged_sym1:
+                    if (self.atoms_symbols[t] is sym1
+                        and dist_mat[i, t] < dist_12
+                        and t not in index_assiged_sym1):
                         dist_12 = dist_mat[i, t]
                         closest_sym1_index = t
                 index_assiged_sym1.append(closest_sym1_index)
