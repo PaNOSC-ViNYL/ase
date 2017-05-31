@@ -26,12 +26,31 @@ class GULP(FileIOCalculator):
     implemented_properties = ['energy', 'forces']
     command = 'gulp < PREFIX.gin > PREFIX.got'
     default_parameters = dict(
-        keywords='opti conp comp rfo',
+        keywords='conp',
         options=[],
         shel=[],
         library="ffsioh.lib",
         conditions=None
         )
+
+    @classmethod
+    def get_optimizer(cls, atoms, **kwargs):
+        class GULPOptimizer:
+            def __init__(self, atoms):
+                self.atoms = atoms
+
+            def todict(self):
+                return {'type': 'optimization',
+                        'optimizer': 'GULPOptimizer'}
+
+            def run(fmax=0.05, steps=1):
+                calc = GULP('opti conp comp rfo', **kwargs)
+                atoms.calc = calc
+                atoms.get_potential_energy()
+                atoms.positions[:] = calc.get_atoms().positions
+
+        opt = GULPOptimizer(atoms)
+        return opt
 
 #conditions=[['O', 'default', 'O1'], ['O', 'O2', 'H', '<', '1.6']]
 
