@@ -1,3 +1,4 @@
+import numpy as np
 from ase.calculators.gulp import GULP
 from ase.optimize import BFGS
 from ase.build import bulk

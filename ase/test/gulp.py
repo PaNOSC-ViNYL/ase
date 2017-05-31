@@ -1,4 +1,3 @@
-from ase.io import read
 from ase.calculators.gulp import GULP, Conditions
 from ase import Atoms
 import numpy as np
