@@ -202,11 +202,10 @@ class Conditions:
     the same element.  In this class you can create a set_rule()
     function that assigns labels according to structural criteria."""
 
-    def __init__(self, atoms=None, rule=None):
+    def __init__(self, atoms):
         self.atoms = atoms
         self.atoms_symbols = atoms.get_chemical_symbols()
         self.atoms_labels = atoms.get_chemical_symbols()
-        self.rules = rule
         self.atom_types = []
 
     def min_distance_rule(self, sym1, sym2,
@@ -284,18 +283,8 @@ class Conditions:
             elif s in index_assigned_sym2:
                 self.atoms_labels[s] = ifcloselabel2
 
-    def set_atoms(self, atoms):
-        self.atoms = atoms
-
-    def apply_rules(self):
-        for rule in self.rules:
-            getattr(self, rule)(*self.rules[rule])
-
     def get_atom_types(self):
         return self.atom_types
-
-    def set_rule(self, rule):
-        self.rules = rule
 
     def get_atoms_labels(self):
         labels = np.array(self.atoms_labels)
