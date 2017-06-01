@@ -134,7 +134,7 @@ class GULP(FileIOCalculator):
             if m:
                 energy = float(m.group(1))
                 self.results['energy'] = energy
-		self.results['free_energy'] = energy
+                self.results['free_energy'] = energy
 
             elif line.find('Optimisation achieved') != -1:
                 self.optimized = True
