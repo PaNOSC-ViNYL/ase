@@ -4,7 +4,6 @@ from ase.optimize import BFGS
 from ase.build import bulk
 from ase.build import molecule
 
-#atoms = bulk('Si').repeat((4, 4, 4))
 atoms = molecule('H2O')
 atoms1 = atoms.copy()
 atoms1.calc = GULP(library='reaxff.lib')
@@ -12,7 +11,8 @@ opt1 = BFGS(atoms1,trajectory='bfgs.traj')
 opt1.run(fmax=0.005)
 
 atoms2 = atoms.copy()
-opt2 = GULP.get_optimizer(atoms2,library='reaxff.lib')
+calc2 = GULP(keywords='opti conp', library='reaxff.lib')
+opt2 = calc2.get_optimizer(atoms2)
 opt2.run()
 
 print(np.abs(opt1.atoms.positions - opt2.atoms.positions))

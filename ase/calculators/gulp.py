@@ -12,12 +12,32 @@ Options
 
 """
 import os
+import re
 import numpy as np
 from ase.units import eV, Ang
 from ase.geometry import cellpar_to_cell, cell_to_cellpar
 from ase.calculators.calculator import FileIOCalculator, ReadError
 
-import re
+
+class GULPOptimizer:
+    def __init__(self, atoms, calc):
+        self.atoms = atoms
+        self.calc = calc
+
+    def todict(self):
+        return {'type': 'optimization',
+                'optimizer': 'GULPOptimizer'}
+
+    def run(fmax=None, steps=None, **gulp_kwargs):
+        if fmax is not None:
+            gulp_kwargs['gmax'] = fmax
+        if steps is not None:
+            gulp_kwargs['maxcyc'] = steps
+
+        self.calc.set(**gulp_kwargs)
+        self.atoms.calc = self.calc
+        self.atoms.get_potential_energy()
+        self.atoms.positions[:] = calc.get_atoms().positions
 
 
 class GULP(FileIOCalculator):
@@ -31,23 +51,17 @@ class GULP(FileIOCalculator):
         conditions=None
         )
 
-    @classmethod
-    def get_optimizer(cls, atoms, **kwargs):
-        class GULPOptimizer:
-            def __init__(self, atoms):
-                self.atoms = atoms
+    def get_optimizer(self, atoms=None):
+        gulp_keywords = self.parameters.keywords.split()
+        if 'opti' not in gulp_keywords:
+            raise ValueError('Can only create optimizer from GULP calculator '
+                             'with "opti" keyword.  Current keywords: {}'
+                             .format(gulp_keywords))
 
-            def todict(self):
-                return {'type': 'optimization',
-                        'optimizer': 'GULPOptimizer'}
+        if atoms is None:
+            atoms = self.get_atoms()
 
-            def run(fmax=0.05, steps=1):
-                calc = GULP(keywords='opti conp comp', **kwargs)
-                atoms.calc = calc
-                atoms.get_potential_energy()
-                atoms.positions[:] = calc.get_atoms().positions
-
-        opt = GULPOptimizer(atoms)
+        opt = GULPOptimizer(atoms, self)
         return opt
 
 #conditions=[['O', 'default', 'O1'], ['O', 'O2', 'H', '<', '1.6']]
