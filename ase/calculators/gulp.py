@@ -28,7 +28,7 @@ class GULPOptimizer:
         return {'type': 'optimization',
                 'optimizer': 'GULPOptimizer'}
 
-    def run(fmax=None, steps=None, **gulp_kwargs):
+    def run(self, fmax=None, steps=None, **gulp_kwargs):
         if fmax is not None:
             gulp_kwargs['gmax'] = fmax
         if steps is not None:
@@ -37,7 +37,7 @@ class GULPOptimizer:
         self.calc.set(**gulp_kwargs)
         self.atoms.calc = self.calc
         self.atoms.get_potential_energy()
-        self.atoms.positions[:] = calc.get_atoms().positions
+        self.atoms.positions[:] = self.calc.get_atoms().positions
 
 
 class GULP(FileIOCalculator):
