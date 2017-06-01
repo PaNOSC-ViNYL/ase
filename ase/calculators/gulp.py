@@ -14,19 +14,17 @@ Options
 import os
 import numpy as np
 from ase.units import eV, Ang
-#from ase.io.gulp_got import read_gulp
-#from ase.geometry import cellpar_to_cell, cell_to_cellpar
+from ase.geometry import cellpar_to_cell, cell_to_cellpar
 from ase.calculators.calculator import FileIOCalculator, ReadError
 
-#from ase.data import chemical_symbols
-#import re
+import re
 
 
 class GULP(FileIOCalculator):
     implemented_properties = ['energy', 'forces']
     command = 'gulp < PREFIX.gin > PREFIX.got'
     default_parameters = dict(
-        keywords='conp',
+        keywords='conp gradients',
         options=[],
         shel=[],
         library="ffsioh.lib",
@@ -44,7 +42,7 @@ class GULP(FileIOCalculator):
                         'optimizer': 'GULPOptimizer'}
 
             def run(fmax=0.05, steps=1):
-                calc = GULP('opti conp comp rfo', **kwargs)
+                calc = GULP(keywords='opti conp comp', **kwargs)
                 atoms.calc = calc
                 atoms.get_potential_energy()
                 atoms.positions[:] = calc.get_atoms().positions
@@ -78,13 +76,15 @@ class GULP(FileIOCalculator):
 
         # Build string to hold .gin input file:
         s = p.keywords
-        s += '\ntitle\nASE calculation\nend\n\ncart\n'
+        s += '\ntitle\nASE calculation\nend\n\n'
 
-#       IMPLEMENT HERE PERIODIC SYSTMES
-#        for v, p in zip(atoms.cell, atoms.pbc):
-#            if p:
-#                s += ' {0} {1} {2}\n'.format(*v)
-        # Write coordinates:
+        if all(self.atoms.pbc) is True:
+            cell_params = self.atoms.get_cell_lengths_and_angles()
+            s += 'cell\n{0} {1} {2} {3} {4} {5}\n'.format(*cell_params)
+            s += 'frac\n'
+        else:
+            s += 'cart\n'
+
         if self.conditions is not None:
             c = self.conditions
             c.set_atoms(self.atoms)
@@ -116,8 +116,11 @@ class GULP(FileIOCalculator):
         cycles = -1
         self.optimized = None
         for i, line in enumerate(lines):
-            if line.find('Final energy =') != -1:
-                self.results['energy'] = float(line.split()[-2]) * eV
+            m = re.match(r'\s*Total lattice energy\s*=\s*(\S+)\s*eV', line)
+            if m:
+                energy = float(m.group(1))
+                self.results['energy'] = energy
+		self.results['free_energy'] = energy
 
             elif line.find('Optimisation achieved') != -1:
                 self.optimized = True
