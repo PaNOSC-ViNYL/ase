@@ -15,7 +15,6 @@ import os
 import re
 import numpy as np
 from ase.units import eV, Ang
-from ase.geometry import cellpar_to_cell, cell_to_cellpar
 from ase.calculators.calculator import FileIOCalculator, ReadError
 
 
@@ -92,7 +91,7 @@ class GULP(FileIOCalculator):
         s = p.keywords
         s += '\ntitle\nASE calculation\nend\n\n'
 
-        if all(self.atoms.pbc) is True:
+        if all(self.atoms.pbc):
             cell_params = self.atoms.get_cell_lengths_and_angles()
             s += 'cell\n{0} {1} {2} {3} {4} {5}\n'.format(*cell_params)
             s += 'frac\n'
@@ -134,7 +133,7 @@ class GULP(FileIOCalculator):
             if m:
                 energy = float(m.group(1))
                 self.results['energy'] = energy
-		self.results['free_energy'] = energy
+                self.results['free_energy'] = energy
 
             elif line.find('Optimisation achieved') != -1:
                 self.optimized = True
@@ -155,7 +154,7 @@ class GULP(FileIOCalculator):
                     if lines[s].find(" s ") != -1:
                         continue
                     g = lines[s].split()[3:6]
-                    G = [-float(x) * eV/Ang for x in g]
+                    G = [-float(x) * eV / Ang for x in g]
                     forces.append(G)
                 forces = np.array(forces)
                 self.results['forces'] = forces
@@ -193,24 +192,33 @@ class GULP(FileIOCalculator):
                                    "or to have the force field library.")
 
 class Conditions:
-    """This class is made to return return an array similar to
-    atoms.get_chemical_symbols() via get_atoms_labels() funtion but
-    with atomic labels in stead of atomic symbols.  This is usefull
-    when you need to use calculators like gulp or lammps that uses
-    force fileds. Some force fields can have different atom type for
+    """Atomic labels for the GULP calculator.
+
+    This class manages an array similar to
+    atoms.get_chemical_symbols() via get_atoms_labels() method, but
+    with atomic labels in stead of atomic symbols.  This is useful
+    when you need to use calculators like GULP or lammps that use
+    force fields. Some force fields can have different atom type for
     the same element.  In this class you can create a set_rule()
     function that assigns labels according to structural criteria."""
 
     def __init__(self, atoms=None, rule=None):
         self.atoms = atoms
         self.atoms_symbols = atoms.get_chemical_symbols()
-        self.atoms_labels  = atoms.get_chemical_symbols()
+        self.atoms_labels = atoms.get_chemical_symbols()
         self.rules = rule
         self.atom_types = []
 
-    def min_distance_rule(self, sym1, sym2, ifyeslabel1 , ifyeslabel2,
-                          ifnolabel1):
-        """This function is a rule that allows to define atom labels (like O1,
+    def min_distance_rule(self, sym1, sym2,
+                          ifcloselabel1=None, ifcloselabel2=None,
+                          elselabel1=None, max_distance=3.0):
+        """Find pairs of atoms to label based on proximity.
+
+        This is for, e.g., the ffsioh or catlow force field, where we
+        would like to identify those O atoms that are close to H
+        atoms.  For each H atoms, we must specially label one O atom.
+
+        This function is a rule that allows to define atom labels (like O1,
         O2, O_H etc..)  starting from element symbols of an Atoms
         object that a force field can use and according to distance
         parameters.
@@ -218,11 +226,22 @@ class Conditions:
         Example:
         atoms = read('some_xyz_format.xyz')
         a = Conditions(atoms)
-        a.set_min_distance_rule("O", "H", "O2", "H", "O1")
+        a.set_min_distance_rule('O', 'H', ifcloselabel1='O2',
+                                ifcloselabel2='H', elselabel1='O1')
         new_atoms_labels = a.get_atom_labels()
 
         In the example oxygens O are going to be labeled as O2 if they
-        are close to a hydrogen atom othewise are labeled O1."""
+        are close to a hydrogen atom othewise are labeled O1.
+
+        """
+
+        if ifcloselabel1 is None:
+            ifcloselabel1 = sym1
+        if ifcloselabel2 is None:
+            ifcloselabel2 = sym2
+        if elselabel1 is None:
+            elselabel1 = sym1
+
         #self.atom_types is a list of element types  used instead of element
         #symbols in orger to track the changes made. Take care of this because
         # is very important.. gulp_read function that parse the output
@@ -231,34 +250,39 @@ class Conditions:
         #
         # Example: [['O','O1','O2'],['H', 'H_C', 'H_O']]
         # this beacuse Atoms oject accept only atoms symbols
-        self.atom_types.append([sym1, ifyeslabel1 , ifnolabel1])
-        self.atom_types.append([sym2, ifyeslabel2])
+        self.atom_types.append([sym1, ifcloselabel1, elselabel1])
+        self.atom_types.append([sym2, ifcloselabel2])
 
         dist_mat = self.atoms.get_all_distances()
-        index_assiged_sym1=[]
-        index_assiged_sym2=[]
+        index_assigned_sym1 = []
+        index_assigned_sym2 = []
 
         for i in range(len(self.atoms_symbols)):
-            if self.atoms_symbols[i] is sym2:
+            if self.atoms_symbols[i] == sym2:
                 dist_12 = 1000
-                index_assiged_sym2.append(i)
+                index_assigned_sym2.append(i)
                 for t in range(len(self.atoms_symbols)):
-                    if (self.atoms_symbols[t] is sym1
+                    if (self.atoms_symbols[t] == sym1
                         and dist_mat[i, t] < dist_12
-                        and t not in index_assiged_sym1):
+                        and t not in index_assigned_sym1):
                         dist_12 = dist_mat[i, t]
                         closest_sym1_index = t
-                index_assiged_sym1.append(closest_sym1_index)
+                index_assigned_sym1.append(closest_sym1_index)
+
+        for i1, i2 in zip(index_assigned_sym1, index_assigned_sym2):
+            if dist_mat[i1, i2] > max_distance:
+                raise ValueError('Cannot unambiguously apply minimum-distance '
+                                 'rule because pairings are not obvious.  '
+                                 'If you wish to ignore this, then increase '
+                                 'max_distance.')
 
         for s in range(len(self.atoms_symbols)):
-            if s in index_assiged_sym1:
-                self.atoms_labels[s] = ifyeslabel1
-            elif s not in index_assiged_sym1 and self.atoms_symbols[s] is sym1:
-                self.atoms_labels[s] = ifnolabel1
-            elif s in index_assiged_sym2:
-                self.atoms_labels[s] = ifyeslabel2
-            else:
-                pass
+            if s in index_assigned_sym1:
+                self.atoms_labels[s] = ifcloselabel1
+            elif s not in index_assigned_sym1 and self.atoms_symbols[s] == sym1:
+                self.atoms_labels[s] = elselabel1
+            elif s in index_assigned_sym2:
+                self.atoms_labels[s] = ifcloselabel2
 
     def set_atoms(self, atoms):
         self.atoms = atoms
