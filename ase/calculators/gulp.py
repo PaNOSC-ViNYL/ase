@@ -100,8 +100,6 @@ class GULP(FileIOCalculator):
 
         if self.conditions is not None:
             c = self.conditions
-            c.set_atoms(self.atoms)
-            c.apply_rules()
             labels = c.get_atoms_labels()
             self.atom_types = c.get_atom_types()
         else:
