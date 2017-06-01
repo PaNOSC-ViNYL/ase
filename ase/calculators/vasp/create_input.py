@@ -348,6 +348,21 @@ class GenerateVaspInput(object):
         'hse03': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.3},
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
+    
+    # elements which have no-suffix files only
+    setups_defaults = {'K':  '_pv',
+       'Ca': '_pv',
+       'Rb': '_pv',
+       'Sr': '_sv',
+       'Y':  '_sv',
+       'Zr': '_sv',
+       'Nb': '_pv',
+       'Cs': '_sv',
+       'Ba': '_sv',
+       'Fr': '_sv',
+       'Ra': '_sv',
+       'Sc': '_sv'}
+
 
     def __init__(self, restart=None):
         self.float_params = {}
@@ -519,6 +534,12 @@ class GenerateVaspInput(object):
         special_setups = []
         symbols = []
         symbolcount = {}
+        
+        # make sure we find POTCARs for elements which have no-suffix files only
+        if self.input_params['setups'] is None or self.input_params['setups'] is 'defaults':
+            self.input_params['setups'] = self.setups_defaults
+
+
         if self.input_params['setups']:
             for m in self.input_params['setups']:
                 try:
@@ -600,57 +621,25 @@ class GenerateVaspInput(object):
                     self.ppp_list.append(filename + '.Z')
                     break
             else:
-                print('Looking for setup  %s' % potcar)
-                raise RuntimeError('No pseudopotential setup for %s!' % symbol)
-                
-        # look for elements
-        symbols_found = []
+                print('Looking for %s' % potcar)
+                raise RuntimeError('No pseudopotential for %s!' % symbol)
+
         for symbol in symbols:
-            found = False
-            
-            if symbol in symbols_found:
-                continue  # already found
-                
-            # build the list of names to search
-            names = []
-            
-            # initiate with a user-setup or no setup name (LDA)
             try:
                 potcar = join(pp_folder, symbol + p['setups'][symbol],
                               'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
-            names.append(potcar)
-            
-            # list of usual setups, sorted in preference order
-            for setup in ['h','pv','sv', 's', 'd', '2','3','5','1.5','1.25','1.75','']:
-                for setup_sep in ['','_','.']:
-                    if setup is None or setup is '':
-                        potcar = join(pp_folder, symbol, 'POTCAR')
-                    else:
-                        potcar = join(pp_folder, symbol + setup_sep + setup, 'POTCAR')
-                    if potcar not in names:
-                        names.append(potcar)
-                        
-            # test each POTCAR name and add it when found
-            for potcar in names:
-                for path in pppaths:
-                    filename = join(path, potcar)
+            for path in pppaths:
+                filename = join(path, potcar)
 
-                    if isfile(filename) or islink(filename):
-                        found = True
-                        self.ppp_list.append(filename)
-                        symbols_found.append(symbol)
-                        break
-                    elif isfile(filename + '.Z') or islink(filename + '.Z'):
-                        found = True
-                        self.ppp_list.append(filename + '.Z')
-                        symbols_found.append(symbol)
-                        break
-                if found:
+                if isfile(filename) or islink(filename):
+                    self.ppp_list.append(filename)
                     break
-                
-            if not found:
+                elif isfile(filename + '.Z') or islink(filename + '.Z'):
+                    self.ppp_list.append(filename + '.Z')
+                    break
+            else:
                 print('''Looking for %s
                 The pseudopotentials are expected to be in:
                 LDA:  $VASP_PP_PATH/potpaw/
