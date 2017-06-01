@@ -92,7 +92,10 @@ class Summary:
                                     misc.remove(key)
                                 desc, unit = kd.get(key, [0, key, ''])[1:]
                                 rows.append((desc, value, unit))
-                        block = (title, rows)
+                        if rows:
+                            block = (title, rows)
+                        else:
+                            continue
                     elif block.endswith('.png'):
                         name = op.join(tmpdir, prefix + block)
                         if op.isfile(name):
