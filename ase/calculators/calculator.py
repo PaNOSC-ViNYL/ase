@@ -415,8 +415,8 @@ class Calculator:
             if 'free_energy' not in self.results:
                 name = self.__class__.__name__
                 raise PropertyNotImplementedError(
-                    'Force consistent/free energy not provided by {0} '
-                    'calculator'.format(name))
+                    'Force consistent/free energy ("free_energy") '
+                    'not provided by {0} calculator'.format(name))
             return self.results['free_energy']
         else:
             return energy
@@ -442,7 +442,8 @@ class Calculator:
 
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
-            raise PropertyNotImplementedError
+            raise PropertyNotImplementedError('{} property not implemented'
+                                              .format(name))
 
         if atoms is None:
             atoms = self.atoms
@@ -465,7 +466,8 @@ class Calculator:
         if name not in self.results:
             # For some reason the calculator was not able to do what we want,
             # and that is OK.
-            raise PropertyNotImplementedError
+            raise PropertyNotImplementedError('{} not present in this '
+                                              'calculation'.format(name))
 
         result = self.results[name]
         if isinstance(result, np.ndarray):
