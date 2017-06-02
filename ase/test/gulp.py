@@ -48,7 +48,7 @@ cluster = Atoms(symbols='O4SiOSiO2SiO2SiO2SiOSiO2SiO3SiO3H8',
 
 
 c = Conditions(cluster)
-c.set_rule({"min_distance_rule" : ('O', 'H', 'O2', 'H', 'O1')})
+c.min_distance_rule('O', 'H', 'O2', 'H', 'O1')
 cluster.set_calculator(GULP(keywords='opti conp phon noden distance molq compare angle nono',shel = ['O1','O2'], conditions = c))
 print(cluster.get_potential_energy())
 
