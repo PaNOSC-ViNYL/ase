@@ -536,12 +536,13 @@ class GenerateVaspInput(object):
         symbolcount = {}
         
         # make sure we find POTCARs for elements which have no-suffix files only
-        if self.input_params['setups'] is None or self.input_params['setups'] is 'defaults':
-            self.input_params['setups'] = self.setups_defaults
+        setups = self.setups_defaults.copy()
+        # override with user defined setups 
+        if p['setups'] is not None:
+            setups.update(p['setups'])
 
-
-        if self.input_params['setups']:
-            for m in self.input_params['setups']:
+        if setups:
+            for m in setups:
                 try:
                     special_setups.append(int(m))
                 except ValueError:
@@ -601,15 +602,15 @@ class GenerateVaspInput(object):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            if m in p['setups']:
+            if m in setups:
                 special_setup_index = m
-            elif str(m) in p['setups']:
+            elif str(m) in setups:
                 special_setup_index = str(m)
             else:
                 raise Exception("Having trouble with special setup index {0}."
                                 " Please use an int.".format(m))
             potcar = join(pp_folder,
-                          p['setups'][special_setup_index],
+                          setups[special_setup_index],
                           'POTCAR')
             for path in pppaths:
                 filename = join(path, potcar)
@@ -626,7 +627,7 @@ class GenerateVaspInput(object):
 
         for symbol in symbols:
             try:
-                potcar = join(pp_folder, symbol + p['setups'][symbol],
+                potcar = join(pp_folder, symbol + setups[symbol],
                               'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
