@@ -60,7 +60,7 @@ class BandStructure:
         return BandStructure(**dct)
 
     def plot(self, ax=None, spin=None, emin=-10, emax=5, filename=None,
-             show=None, ylabel=None, **plotkwargs):
+             show=None, ylabel=None, colors=None, label=None, **plotkwargs):
         """Plot band-structure.
 
         spin: int or None
@@ -84,11 +84,18 @@ class BandStructure:
         else:
             e_skn = self.energies[spin, np.newaxis]
 
+        if colors is None:
+            if len(e_skn) == 1:
+                colors = 'g'
+            else:
+                colors = 'yb'
+
         for spin, e_kn in enumerate(e_skn):
-            color = 'br'[spin]
+            color = colors[spin]
             kwargs = dict(color=color)
             kwargs.update(plotkwargs)
-            for e_k in e_kn.T:
+            ax.plot(self.xcoords, e_kn[:, 0], label=label, **kwargs)
+            for e_k in e_kn.T[1:]:
                 ax.plot(self.xcoords, e_k, **kwargs)
 
         self.finish_plot(filename, show)

@@ -91,7 +91,7 @@ def check(key_value_pairs):
                 'you will not find rows with your key.  Instead, you wil get '
                 'rows containing the atoms in the formula!'.format(key))
         if not isinstance(value, (numbers.Real, basestring)):
-            raise ValueError('Bad value: {}'.format(value))
+            raise ValueError('Bad value for {!r}: {}'.format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):

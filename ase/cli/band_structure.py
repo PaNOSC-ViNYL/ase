@@ -20,8 +20,9 @@ class CLICommand:
         parser.add_argument('-n', '--points', type=int, default=50,
                             help='Number of point along the path '
                             '(default: 50)')
-        parser.add_argument('-r', '--range', default='-10,5',
-                            help='Default value: "-10,5" '
+        parser.add_argument('-r', '--range', nargs=2, default=['-3', '3'],
+                            metavar=('emin', 'emax'),
+                            help='Default: "-3.0 3.0" '
                             '(in eV relative to Fermi level).')
 
     @staticmethod
@@ -36,9 +37,10 @@ def main(args, parser):
     ibzkpts = calc.get_ibz_k_points()
     efermi = calc.get_fermi_level()
     nibz = len(ibzkpts)
+    nspins = 1 + int(calc.get_spin_polarized())
     eps = np.array([[calc.get_eigenvalues(kpt=k, spin=s)
                      for k in range(nibz)]
-                    for s in range(1)])
+                    for s in range(nspins)])
     if not args.quiet:
         print('Spins, k-points, bands: {}, {}, {}'.format(*eps.shape))
     try:
@@ -58,6 +60,6 @@ def main(args, parser):
                                          icell, bz2ibz, size, offset)
         eps = eps.transpose(1, 0, 2)
 
-    emin, emax = (float(e) for e in args.range.split(','))
+    emin, emax = (float(e) for e in args.range)
     bs = BandStructure(atoms.cell, path, eps, reference=efermi)
     bs.plot(emin=emin, emax=emax)

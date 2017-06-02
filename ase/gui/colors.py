@@ -6,6 +6,7 @@ from ase.gui.i18n import _
 import numpy as np
 
 import ase.gui.ui as ui
+from ase.gui.utils import get_magmoms
 
 
 class ColorWindow:
@@ -42,13 +43,13 @@ class ColorWindow:
         radio['force'].active = F is not None
         radio['velocity'].active = atoms.has('momenta')
         radio['charge'].active = atoms.has('charges')
-        radio['magmom'].active = images.get_magmoms(atoms).any()
+        radio['magmom'].active = get_magmoms(atoms).any()
 
     def toggle(self, value):
+        self.gui.colormode = value
         if value == 'jmol':
             text = ''
         else:
-            self.gui.colormode = value
             scalars = np.array([self.gui.get_color_scalars(i)
                                 for i in range(len(self.gui.images))])
             mn = scalars.min()

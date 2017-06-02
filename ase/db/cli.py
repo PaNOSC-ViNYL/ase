@@ -1,6 +1,7 @@
 from __future__ import print_function
 import collections
 import json
+import os
 import sys
 from random import randint
 
@@ -254,6 +255,14 @@ def main(args):
     db.meta = process_metadata(db, html=args.open_web_browser)
 
     if args.long:
+        # Remove .png files so that new ones will be created.
+        for func, filenames in db.meta.get('functions', []):
+            for filename in filenames:
+                try:
+                    os.remove(filename)
+                except OSError:  # Python 3 only: FileNotFoundError
+                    pass
+
         row = db.get(query)
         summary = Summary(row, db.meta)
         summary.write()

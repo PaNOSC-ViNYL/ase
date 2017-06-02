@@ -22,7 +22,7 @@ def process_metadata(db, html=True):
         with open(db.python) as fd:
             code = fd.read()
         path = os.path.dirname(db.python)
-        code = 'import sys; sys.path[:0] = ["{}"]\n{}'.format(path, code)
+        code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
         exec(compile(code, db.python, 'exec'), mod)
 
     for key, default in [('title', 'ASE database'),
@@ -71,8 +71,8 @@ def process_metadata(db, html=True):
         keys = ['id', 'formula', 'age']
         meta['layout'] = [
             ('Basic properties',
-             ['ATOMS', 'CELL',
-              ('Key Value Pairs', keys), 'FORCES'])]
+             [['ATOMS', 'CELL'],
+              [('Key Value Pairs', keys), 'FORCES']])]
 
     if mod:
         meta['functions'] = functions[:]
