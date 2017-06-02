@@ -39,7 +39,7 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         from ase.visualize.sage import view_sage_jmol
         view_sage_jmol(atoms)
         return
-    elif vwr == 'nglview' :
+    elif vwr in ('ngl', 'nglview') :
         from ase.visualize.nglview import view_ngl
         return view_ngl(atoms)
     elif vwr == 'paraview':
