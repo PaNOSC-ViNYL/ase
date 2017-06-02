@@ -313,17 +313,18 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     for atoms in images[index]:
         yield atoms
 
-def split_chem_form(comp_name):
 
-    '''Returns e.g. AB2  as ['A', '1', 'B', '2']'''
-    split_form = re.findall(r'[A-Z][a-z]*|\d+', re.sub('[A-Z][a-z]*(?![\da-z])', \
-    r'\g<0>1', comp_name))
+def split_chem_form(comp_name):
+    """Returns e.g. AB2  as ['A', '1', 'B', '2']"""
+    split_form = re.findall(r'[A-Z][a-z]*|\d+',
+                            re.sub('[A-Z][a-z]*(?![\da-z])',
+                                   r'\g<0>1', comp_name))
     return split_form
 
 
-def write_cif(fileobj, images,form='default'):
+def write_cif(fileobj, images, format='default'):
     """Write *images* to CIF file."""
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if hasattr(images, 'get_positions'):
@@ -332,30 +333,22 @@ def write_cif(fileobj, images,form='default'):
     for i, atoms in enumerate(images):
         fileobj.write('data_image%d\n' % i)
 
-        from numpy import arccos, pi, dot
-        from numpy.linalg import norm
+        a, b, c, alpha, beta, gamma = atoms.get_cell_lengths_and_angles()
 
-        cell = atoms.cell
-        a = norm(cell[0])
-        b = norm(cell[1])
-        c = norm(cell[2])
-        alpha = arccos(dot(cell[1], cell[2]) / (b * c)) * 180 / pi
-        beta = arccos(dot(cell[0], cell[2]) / (a * c)) * 180 / pi
-        gamma = arccos(dot(cell[0], cell[1]) / (a * b)) * 180 / pi
-
-        if form == 'mp':
+        if format == 'mp':
 
             comp_name = atoms.get_chemical_formula(mode='reduce')
             sf = split_chem_form(comp_name)
             formula_sum = ''
             ii = 0
-            while ii <(len(sf)):
-                formula_sum = formula_sum+' '+sf[ii]+sf[ii+1]
-                ii = ii +2
+            while ii < len(sf):
+                formula_sum = formula_sum + ' ' + sf[ii] + sf[ii + 1]
+                ii = ii + 2
 
             formula_sum = str(formula_sum)
-            fileobj.write('_chemical_formula_structural       %s\n' % atoms.get_chemical_formula(mode='reduce'))
-            fileobj.write('_chemical_formula_sum      "%s"\n' %formula_sum)
+            fileobj.write('_chemical_formula_structural       %s\n' %
+                          atoms.get_chemical_formula(mode='reduce'))
+            fileobj.write('_chemical_formula_sum      "%s"\n' % formula_sum)
 
         fileobj.write('_cell_length_a       %g\n' % a)
         fileobj.write('_cell_length_b       %g\n' % b)
@@ -375,8 +368,9 @@ def write_cif(fileobj, images,form='default'):
             fileobj.write("  'x, y, z'\n")
             fileobj.write('\n')
 
-        if form == 'mp':
-            fileobj.write('loop_\n')
+        fileobj.write('loop_\n')
+
+        if format == 'mp':
             fileobj.write('  _atom_site_type_symbol\n')
             fileobj.write('  _atom_site_label\n')
             fileobj.write('   _atom_site_symmetry_multiplicity\n')
@@ -384,20 +378,7 @@ def write_cif(fileobj, images,form='default'):
             fileobj.write('  _atom_site_fract_y\n')
             fileobj.write('  _atom_site_fract_z\n')
             fileobj.write('  _atom_site_occupancy\n')
-
-            scaled = atoms.get_scaled_positions()
-            no = {}
-            for i, atom in enumerate(atoms):
-                symbol = atom.symbol
-                if symbol in no:
-                    no[symbol] += 1
-                else:
-                    no[symbol] = 1
-                fileobj.write('  %-2s  %4s  %4s  %7.5f  %7.5f  %7.5f  %6.1f\n'%(symbol, symbol+str(no[symbol]), 1, scaled[i][0],scaled[i][1],scaled[i][2],1.0))
-
         else:
-
-            fileobj.write('loop_\n')
             fileobj.write('  _atom_site_label\n')
             fileobj.write('  _atom_site_occupancy\n')
             fileobj.write('  _atom_site_fract_x\n')
@@ -407,25 +388,27 @@ def write_cif(fileobj, images,form='default'):
             fileobj.write('  _atom_site_B_iso_or_equiv\n')
             fileobj.write('  _atom_site_type_symbol\n')
 
-            scaled = atoms.get_scaled_positions()
-            no = {}
-            for i, atom in enumerate(atoms):
-                symbol = atom.symbol
-                if symbol in no:
-                    no[symbol] += 1
-                else:
-                    no[symbol] = 1
+        scaled = atoms.get_scaled_positions()
+        no = {}
+        for i, atom in enumerate(atoms):
+            symbol = atom.symbol
+            if symbol in no:
+                no[symbol] += 1
+            else:
+                no[symbol] = 1
+            if format == 'mp':
                 fileobj.write(
-                '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
-                ('%s%d' % (symbol, no[symbol]),
-                 1.0,
-                 scaled[i][0],
-                 scaled[i][1],
-                 scaled[i][2],
-                 'Biso',
-                 1.0,
-                 symbol))
-
-
-
-
+                    '  %-2s  %4s  %4s  %7.5f  %7.5f  %7.5f  %6.1f\n' %
+                    (symbol, symbol + str(no[symbol]), 1,
+                     scaled[i][0], scaled[i][1], scaled[i][2], 1.0))
+            else:
+                fileobj.write(
+                    '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
+                    ('%s%d' % (symbol, no[symbol]),
+                     1.0,
+                     scaled[i][0],
+                     scaled[i][1],
+                     scaled[i][2],
+                     'Biso',
+                     1.0,
+                     symbol))
