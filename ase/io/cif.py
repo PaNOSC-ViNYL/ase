@@ -225,6 +225,8 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         symbolHM = tags['_space_group.patterson_name_h-m']
     elif '_symmetry_space_group_name_h-m' in tags:
         symbolHM = tags['_symmetry_space_group_name_h-m']
+    elif '_space_group_name_h-m_alt' in tags:
+        symbolHM = tags['_space_group_name_h-m_alt']
 
     if symbolHM is not None:
         symbolHM = old_spacegroup_names.get(symbolHM.strip(), symbolHM)

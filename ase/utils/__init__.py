@@ -15,12 +15,13 @@ except ImportError:
 
 import numpy as np
 
-from ase.data import chemical_symbols
+from ase.utils.formula import formula_hill, formula_metal
 
 __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
-           'opencew', 'OpenLock', 'hill', 'rotate', 'irotate', 'givens',
-           'hsv2rgb', 'hsv', 'pickleload']
+           'opencew', 'OpenLock', 'rotate', 'irotate', 'givens',
+           'hsv2rgb', 'hsv', 'pickleload',
+           'formula_hill', 'formula_metal']
 
 
 # Python 2+3 compatibility stuff:
@@ -179,24 +180,6 @@ class OpenLock:
 
     def __exit__(self, type, value, tb):
         pass
-
-
-def hill(numbers):
-    """Convert list of atomic numbers to a chemical formula as a string.
-
-    Elements are alphabetically ordered with C and H first."""
-
-    if isinstance(numbers, dict):
-        count = dict(numbers)
-    else:
-        count = {}
-        for Z in numbers:
-            symb = chemical_symbols[Z]
-            count[symb] = count.get(symb, 0) + 1
-    result = [(s, count.pop(s)) for s in 'CH' if s in count]
-    result += [(s, count[s]) for s in sorted(count)]
-    return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
-                   for symbol, n in result)
 
 
 def rotate(rotations, rotation=np.identity(3)):
