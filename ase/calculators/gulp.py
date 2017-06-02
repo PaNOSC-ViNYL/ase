@@ -50,15 +50,12 @@ class GULP(FileIOCalculator):
         conditions=None
         )
 
-    def get_optimizer(self, atoms=None):
+    def get_optimizer(self, atoms):
         gulp_keywords = self.parameters.keywords.split()
         if 'opti' not in gulp_keywords:
             raise ValueError('Can only create optimizer from GULP calculator '
                              'with "opti" keyword.  Current keywords: {}'
                              .format(gulp_keywords))
-
-        if atoms is None:
-            atoms = self.get_atoms()
 
         opt = GULPOptimizer(atoms, self)
         return opt

@@ -38,19 +38,17 @@ shel = ['O']
 Example
 =======
 
-Here is an example of how to optimiza the H8Si8O20 double ring structure within ASE using the
-ffsioh potential
+Here is an example of how to use the GULP calculator.
 
 .. literalinclude:: gulp_example.py
 
 
-Structure optimization
-======================
+The script performs a single-point calculation and then an optimization
+of the H8Si8O20 double ring
+structure within ASE using the ffsioh potential.  The
+method ``get_optimizer()`` returns an object which works like an ASE optimizer,
+but actually triggers an optimization using GULP's internal optimizer.
+This works on GULP calculators that have the ``'opti'`` keyword.
 
-To run structure optimizations using the internal algorithm of GULP,
-you can create a gulp optimizer object which works roughly like other
-optimizer objects in ASE.
 
-.. literalinclude:: gulp_opt_example.py
-
-_GULP: https://www.example.com
+_GULP: http://gulp.curtin.edu.au/gulp/
