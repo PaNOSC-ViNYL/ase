@@ -17,7 +17,6 @@ import numpy as np
 from ase.units import eV, Ang
 from ase.calculators.calculator import FileIOCalculator, ReadError
 
-
 class GULPOptimizer:
     def __init__(self, atoms, calc):
         self.atoms = atoms
@@ -92,8 +91,10 @@ class GULP(FileIOCalculator):
             cell_params = self.atoms.get_cell_lengths_and_angles()
             s += 'cell\n{0} {1} {2} {3} {4} {5}\n'.format(*cell_params)
             s += 'frac\n'
+            coords = self.atoms.get_scaled_positions()
         else:
             s += 'cart\n'
+            coords = self.atoms.get_positions()
 
         if self.conditions is not None:
             c = self.conditions
@@ -101,7 +102,8 @@ class GULP(FileIOCalculator):
             self.atom_types = c.get_atom_types()
         else:
             labels = self.atoms.get_chemical_symbols()
-        for xyz, symbol in zip(atoms.positions, labels):
+
+        for xyz, symbol in zip(coords, labels):
             s += ' {0:2} core {1}  {2}  {3}\n'.format(symbol, *xyz)
             if symbol in p.shel:
                 s += ' {0:2} shel {1}  {2}  {3}\n'.format(symbol, *xyz)
