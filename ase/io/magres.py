@@ -224,7 +224,6 @@ def read_magres(filename, include_unrecognised=False):
                      'atoms': parse_atoms_block,
                      'calculation': parse_generic_block, }
 
-    file_contents = None 
     with open(filename) as f:
         file_contents = f.read()
 
