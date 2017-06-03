@@ -1,6 +1,6 @@
-from ase.calculators.gulp import GULP, Conditions
+import numpy as np
 from ase import Atoms
-import numpy as np 
+from ase.calculators.gulp import GULP, Conditions
 
 cluster = Atoms(symbols='O4SiOSiO2SiO2SiO2SiOSiO2SiO3SiO3H8',
           pbc=np.array([False, False, False], dtype=bool),
@@ -61,4 +61,3 @@ calc.set(keywords='conp opti')
 opt = calc.get_optimizer(cluster)
 opt.run(fmax=0.05)
 print(cluster.get_potential_energy())
-
