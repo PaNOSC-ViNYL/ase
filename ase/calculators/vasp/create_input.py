@@ -541,12 +541,11 @@ class GenerateVaspInput(object):
         if p['setups'] is not None:
             setups.update(p['setups'])
 
-        if setups:
-            for m in setups:
-                try:
-                    special_setups.append(int(m))
-                except ValueError:
-                    continue
+        for m in setups:
+            try:
+                special_setups.append(int(m))
+            except ValueError:
+                continue
 
         for m, atom in enumerate(atoms):
             symbol = atom.symbol
