@@ -26,7 +26,7 @@ class Matplotlib:
             self.ax.add_patch(patch)
 
 
-def write_matplotlib(atoms, ax, **parameters):
+def plot_atoms(atoms, ax=None, **parameters):
     """Plot an atoms object in a matplotlib subplot.
 
     Parameters
@@ -50,4 +50,9 @@ def write_matplotlib(atoms, ax, **parameters):
     if isinstance(atoms, list):
         assert len(atoms) == 1
         atoms = atoms[0]
+
+    import matplotlib.pyplot as plt
+    if ax is None:
+        ax = plt.gca()
     Matplotlib(atoms, ax, **parameters).write()
+    return ax
