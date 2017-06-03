@@ -1,7 +1,7 @@
 from ase.io.utils import generate_writer_variables, make_patch_list
 
 
-class MATPLOTLIB:
+class Matplotlib:
     def __init__(self, atoms, ax,
                  rotation='', show_unit_cell=False, radii=None,
                  colors=None, scale=1, offset=(0, 0)):
@@ -50,4 +50,4 @@ def write_matplotlib(atoms, ax, **parameters):
     if isinstance(atoms, list):
         assert len(atoms) == 1
         atoms = atoms[0]
-    MATPLOTLIB(atoms, ax, **parameters).write()
+    Matplotlib(atoms, ax, **parameters).write()
