@@ -454,9 +454,9 @@ def output_column_format(atoms, columns, arrays,
     fmt_map = {'d': ('R', '%16.8f '),
                'f': ('R', '%16.8f '),
                'i': ('I', '%8d '),
-               'O': ('S', '%s'),
-               'S': ('S', '%s'),
-               'U': ('S', '%s'),
+               'O': ('S', '%s '),
+               'S': ('S', '%s '),
+               'U': ('S', '%s '),
                'b': ('L', ' %.1s ')}
 
     # NB: Lattice is stored as tranpose of ASE cell,
