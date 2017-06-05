@@ -686,7 +686,7 @@ class BaseSiesta(FileIOCalculator):
         self.results['ion'] = {}
         for species_number, specie in enumerate(species):
             species_number += 1
-            if specie not in self.results['ion']:
+            if specie not in list(self.results['ion']):
                 symbol = specie['symbol']
                 atomic_number = atomic_numbers[symbol]
 
@@ -893,7 +893,7 @@ class BaseSiesta(FileIOCalculator):
         n_spin_bands = int(tmp[1])
         self.spin_pol = n_spin_bands == 2
         lines = lines[2:-1]
-        lines_per_kpt = (self.n_bands * n_spin_bands / 10 +
+        lines_per_kpt = int(self.n_bands * n_spin_bands / 10 +
                          int((self.n_bands * n_spin_bands) % 10 != 0))
         eig = dict()
         for i in range(len(self.weights)):
