@@ -13,7 +13,8 @@ from subprocess import Popen, PIPE
 import numpy as np
 
 from ase import Atoms
-from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import (FileIOCalculator, kpts2ndarray,
+                                        EigenvalOccupationMixin)
 from ase.calculators.calculator import PropertyNotImplementedError
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
@@ -896,7 +897,7 @@ def read_static_info(fd):
     return results
 
 
-class Octopus(FileIOCalculator):
+class Octopus(FileIOCalculator, EigenvalOccupationMixin):
     """Octopus calculator.
 
     The label is always assumed to be a directory."""
