@@ -10,7 +10,8 @@ from warnings import warn
 from ase.atoms import Atoms
 from ase.units import Hartree, Bohr
 from ase.io.nwchem import write_nwchem
-from ase.calculators.calculator import FileIOCalculator, Parameters, ReadError
+from ase.calculators.calculator import (FileIOCalculator, Parameters,
+                                        ReadError, EigenvalOccupationMixin)
 
 
 class KPoint:
@@ -20,7 +21,7 @@ class KPoint:
         self.f_n = []
 
 
-class NWChem(FileIOCalculator):
+class NWChem(FileIOCalculator, EigenvalOccupationMixin):
     implemented_properties = ['energy', 'forces', 'dipole', 'magmom']
     command = 'nwchem PREFIX.nw > PREFIX.out'
 
@@ -279,6 +280,11 @@ class NWChem(FileIOCalculator):
             if line.find(estring) >= 0:
                 energy = float(line.split()[-1])
         self.results['energy'] = energy * Hartree
+
+        # All lines have been 'eaten' while iterating; loop from scratch.
+        # (We could insert a break, but I (askhl) don't know if multiple
+        # energies might be listed; then we would not get the last one.
+        lines = text.split('\n')
 
         # Eigenstates
         spin = -1
