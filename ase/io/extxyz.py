@@ -20,6 +20,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.calculator import all_properties, Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.spacegroup.spacegroup import Spacegroup
 from ase.parallel import paropen
 from ase.utils import basestring
 
@@ -132,6 +133,8 @@ def key_val_dict_to_str(d, sep=' '):
                            for x in val.reshape(val.size, order='F'))
             val.replace('[', '')
             val.replace(']', '')
+        elif isinstance(val, Spacegroup):
+            val = val.symbol
         else:
             val = type_val_map.get((type(val), val), val)
 
