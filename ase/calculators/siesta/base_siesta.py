@@ -232,7 +232,7 @@ class BaseSiesta(FileIOCalculator):
                 raise ValueError(mess)
 
         # Check the basis set input.
-        if 'basis_set' in list(kwargs):
+        if 'basis_set' in kwargs:
             basis_set = kwargs['basis_set']
             allowed = self.allowed_basis_names
             if not (isinstance(basis_set, PAOBasisBlock) or
@@ -241,7 +241,7 @@ class BaseSiesta(FileIOCalculator):
                 raise Exception(mess)
 
         # Check the spin input.
-        if 'spin' in list(kwargs):
+        if 'spin' in kwargs:
             spin = kwargs['spin']
             if spin is not None and (spin not in self.allowed_spins):
                 mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
@@ -300,7 +300,7 @@ class BaseSiesta(FileIOCalculator):
             raise TypeError("fdf_arguments must be a dictionary.")
 
         # Check if keywords are allowed.
-        fdf_keys = set(list(fdf_arguments))
+        fdf_keys = set(fdf_arguments)
         allowed_keys = set(self.allowed_fdf_keywords)
         if not fdf_keys.issubset(allowed_keys):
             offending_keys = fdf_keys.difference(allowed_keys)
@@ -411,7 +411,7 @@ class BaseSiesta(FileIOCalculator):
             return
 
         for key, value in fdf_arguments.items():
-            if key in list(self.unit_fdf_keywords):
+            if key in self.unit_fdf_keywords:
                 value = '%.8f %s' % (value, self.unit_fdf_keywords[key])
                 f.write(format_fdf(key, value))
             elif key in self.allowed_fdf_keywords:
@@ -444,7 +444,7 @@ class BaseSiesta(FileIOCalculator):
             f.write('%block LatticeVectors\n')
             for i in range(3):
                 for j in range(3):
-                    s = str.rjust('    %.15f' % unit_cell[i, j], 16) + ' '
+                    s = ('    %.15f' % unit_cell[i, j]).rjust(16) + ' '
                     f.write(s)
                 f.write('\n')
             f.write('%endblock LatticeVectors\n')
@@ -480,9 +480,9 @@ class BaseSiesta(FileIOCalculator):
         f.write('%block AtomicCoordinatesAndAtomicSpecies\n')
         for atom, number in zip(atoms, species_numbers):
             xyz = atom.position
-            line = str.rjust('    %.9f' % xyz[0], 16) + ' '
-            line += str.rjust('    %.9f' % xyz[1], 16) + ' '
-            line += str.rjust('    %.9f' % xyz[2], 16) + ' '
+            line = ('    %.9f' % xyz[0]).rjust(16) + ' '
+            line += ('    %.9f' % xyz[1]).rjust(16) + ' '
+            line += ('    %.9f' % xyz[2]).rjust(16) + ' '
             line += str(number) + '\n'
             f.write(line)
         f.write('%endblock AtomicCoordinatesAndAtomicSpecies\n')
@@ -686,7 +686,7 @@ class BaseSiesta(FileIOCalculator):
         self.results['ion'] = {}
         for species_number, specie in enumerate(species):
             species_number += 1
-            if specie not in list(self.results['ion']):
+            if specie not in self.results['ion']:
                 symbol = specie['symbol']
                 atomic_number = atomic_numbers[symbol]
 
@@ -851,7 +851,7 @@ class BaseSiesta(FileIOCalculator):
         for i in range(3):
             line = stress_lines[i].strip().split(' ')
             line = [s for s in line if len(s) > 0]
-            stress[i] = list(map(float, line))
+            stress[i] = [float(s) for s in line]
 
         self.results['stress'] = np.array(
             [stress[0, 0], stress[1, 1], stress[2, 2],
@@ -863,7 +863,7 @@ class BaseSiesta(FileIOCalculator):
         self.results['forces'] = np.zeros((len(lines) - start, 3), float)
         for i in range(start, len(lines)):
             line = [s for s in lines[i].strip().split(' ') if len(s) > 0]
-            self.results['forces'][i - start] = list(map(float, line[2:5]))
+            self.results['forces'][i - start] = [float(s) for s in line[2:5]]
 
         self.results['forces'] *= Ry / Bohr
 
@@ -897,7 +897,7 @@ class BaseSiesta(FileIOCalculator):
                          int((self.n_bands * n_spin_bands) % 10 != 0))
         eig = dict()
         for i in range(len(self.weights)):
-            tmp = lines[int(i * lines_per_kpt):int((i + 1) * lines_per_kpt)]
+            tmp = lines[i * lines_per_kpt:(i + 1) * lines_per_kpt]
             v = [float(v) for v in tmp[0].split()[1:]]
             for l in tmp[1:]:
                 v.extend([float(t) for t in l.split()])
