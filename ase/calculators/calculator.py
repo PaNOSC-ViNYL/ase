@@ -187,7 +187,7 @@ class EigenvalOccupationMixin:
 
     @property
     def occupations(self):
-        return self.build_eig_occ_array(self.get_occupations)
+        return self.build_eig_occ_array(self.get_occupation_numbers)
 
     def build_eig_occ_array(self, getter):
         nspins = self.get_number_of_spins()
