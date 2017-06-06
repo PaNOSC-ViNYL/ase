@@ -4,6 +4,9 @@ doc/build/
 MANIFEST
 .DS_Store
 */.DS_Store
+*.traj
+/build
+/ase.egg-info
 
 #editor backup files
 *.py~

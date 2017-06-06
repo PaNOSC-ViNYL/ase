@@ -249,9 +249,20 @@ class Embedding:
         wrap(distances, self.mmatoms.cell.diagonal(), self.mmatoms.pbc)
         offsets = distances - positions[:, 0]
         positions += offsets[:, np.newaxis] + qmcenter
+
+        # Center of mass position for each mm mol for LR cut
+        m = self.mmatoms.get_masses().reshape((-1, n))
+        com = np.array([np.dot(x, p) / x.sum() for x, p in zip(m, positions)])
+        com_pv = np.repeat(com, n, axis=0)  # need per atom for c code
+
         positions.shape = (-1, 3)
         positions = self.mmatoms.calc.add_virtual_sites(positions)
-        self.pcpot.set_positions(positions)
+
+        # compatibility with gpaw versions w/o LR cut in PointChargePotential
+        if 'rc2' in self.parameters:
+            self.pcpot.set_positions(positions, com_pv=com_pv)
+        else:
+            self.pcpot.set_positions(positions)
 
     def get_mm_forces(self):
         """Calculate the forces on the MM-atoms from the QM-part."""
