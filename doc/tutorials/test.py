@@ -3,7 +3,7 @@ from __future__ import print_function
 import sys
 import numpy as np
 
-# Monkey-patch view() to avoid ase-gui windows popping up:
+# Monkey-patch view() to avoid ASE-GUI windows popping up:
 import ase.visualize
 ase.visualize.view = lambda *args, **kwargs: None
 

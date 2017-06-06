@@ -6,57 +6,64 @@ Visualization
 .. function:: view(atoms, data=None, viewer=None, repeat=None)
 
 This provides an interface to various visualization tools, such as
-:mod:`ase.gui`, RasMol_, VMD_, gOpenMol_, or Avogadro_. The default viewer is
+:mod:`ase.gui`, RasMol_, VMD_, gOpenMol_, Avogadro_, or ParaView_. The default viewer is
 the ase.gui, described in the :mod:`ase.gui` module. The simplest invocation
 is:
+
+.. testsetup::
+
+    from ase import Atoms
+    atoms = Atoms('Cu')
 
 >>> from ase.visualize import view
 >>> view(atoms)
 
 where ``atoms`` is any :class:`~ase.Atoms` object.  Alternative viewers
 can be used by specifying the optional keyword ``viewer=...`` - use one of
-'ase.gui', 'gopenmol', 'vmd', or 'rasmol'.  The VMD and Avogadro viewers can
+'ase.gui', 'gopenmol', 'vmd', 'rasmol', or 'paraview'.  The VMD and Avogadro viewers can
 take an optional ``data`` argument to show 3D data, such as charge density:
 
->>> view(atoms, viewer='VMD', data=array)
+>>> view(atoms, viewer='VMD', data=...)
 
 If you do not wish to open an interactive gui, but rather visualize
 your structure by dumping directly to a graphics file; you can use the
 ``write`` command of the :mod:`ase.io` module, which can write 'eps',
 'png', and 'pov' files directly, like this:
 
+>>> from ase.io import write
 >>> write('image.png', atoms)
 
 .. _RasMol: http://openrasmol.org/
 .. _VMD: http://www.ks.uiuc.edu/Research/vmd/
 .. _gOpenMol: http://www.csc.fi/gopenmol/
 .. _Avogadro: http://avogadro.openmolecules.net/
+.. _ParaView: http://www.paraview.org/
 
 
 .. module:: ase.visualize.mlab
 .. _iso surface:
-    
+
 Plotting iso-surfaces with Mayavi
 ---------------------------------
 
 The :func:`ase.visualize.mlab.plot` function can be used from the
 command-line::
-    
+
     $ python -m ase.visualize.mlab abc.cube
-    
+
 to plot data from a cube-file or alternatively a wave function or an electron
 density from a calculator restart file::
-    
+
     $ python -m ase.visualize.mlab -C gpaw abc.gpw
 
 Options:
-    
+
 .. include:: mlab_options.txt
     :start-after: Options:
 
 .. autofunction:: ase.visualize.mlab.plot
 
-                      
+
 PrimiPlotter
 ------------
 

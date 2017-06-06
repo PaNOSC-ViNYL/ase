@@ -87,7 +87,7 @@ be followed during or after the run::
   dyn = BFGS(water, trajectory='H2O.traj')
   dyn.run(fmax=0.05)
 
-Use the command ``ase-gui H2O.traj`` to see what is going on (more here:
+Use the command ``ase gui H2O.traj`` to see what is going on (more here:
 :mod:`ase.gui`).  The trajectory file can also be accessed using the
 module :mod:`ase.io.trajectory`.
 
@@ -139,7 +139,7 @@ steps will not be written to :file:`qn.traj`.  If restarting with more than
 one previous trajectory file, use :ref:`ase-gui` to concatenate them
 into a single trajectory file first::
 
-  $ ase-gui part1.traj part2.traj -o history.traj
+  $ ase gui part1.traj part2.traj -o history.traj
 
 The file :file:`history.traj` will then contain all necessary
 information.
@@ -279,7 +279,7 @@ You can read more about the theory and implementation here:
   | `A universal preconditioner for simulating condensed phase materials`__
   | J. Chem. Phys. *144*, 164109 (2016).
 
-__ http://dx.doi.org/10.1103/PhysRevLett.97.170201
+__ http://dx.doi.org/10.1063/1.4947024
 
 Tests with a variety of solid-state systems using both DFT and
 classical interatomic potentials driven though ASE calculators show

@@ -32,13 +32,14 @@ class EPS:
             rotation = rotate(rotation)
 
         A = atoms.get_cell()
+        disp = atoms.get_celldisp().flatten()
         if show_unit_cell > 0:
             L, T, D = self.cell_to_lines(A)
             C = np.empty((2, 2, 2, 3))
             for c1 in range(2):
                 for c2 in range(2):
                     for c3 in range(2):
-                        C[c1, c2, c3] = np.dot([c1, c2, c3], A)
+                        C[c1, c2, c3] = np.dot([c1, c2, c3], A) + disp
             C.shape = (8, 3)
             C = np.dot(C, rotation)  # Unit cell vertices
         else:

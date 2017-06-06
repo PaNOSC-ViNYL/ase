@@ -20,6 +20,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.calculator import all_properties, Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.spacegroup.spacegroup import Spacegroup
 from ase.parallel import paropen
 from ase.utils import basestring
 
@@ -33,11 +34,11 @@ PROPERTY_NAME_MAP = {'positions': 'pos',
 REV_PROPERTY_NAME_MAP = dict(zip(PROPERTY_NAME_MAP.values(),
                                  PROPERTY_NAME_MAP.keys()))
 
-KEY_QUOTED_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)' +
-                              r'\s*=\s*["\{\}]([^"\{\}]+)["\{\}e+-]\s*')
+KEY_QUOTED_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_-]*)' +
+                              r'\s*=\s*["\{\}]([^"\{\}]+)["\{\}]\s*')
 KEY_VALUE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*=' +
-                       r'\s*([-0-9A-Za-z_.:\[\]()e+-/]+)\s*')
-KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_]*)\s*')
+                       r'\s*([^\s]+)\s*')
+KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_-]*)\s*')
 
 UNPROCESSED_KEYS = ['uid']
 
@@ -132,6 +133,8 @@ def key_val_dict_to_str(d, sep=' '):
                            for x in val.reshape(val.size, order='F'))
             val.replace('[', '')
             val.replace(']', '')
+        elif isinstance(val, Spacegroup):
+            val = val.symbol
         else:
             val = type_val_map.get((type(val), val), val)
 
@@ -260,6 +263,11 @@ def _read_xyz_frame(lines, natoms):
             duplicate_numbers = arrays['numbers']
         del arrays['numbers']
 
+    charges = None
+    if 'charges' in arrays:
+        charges = arrays['charges']
+        del arrays['charges']
+
     positions = None
     if 'positions' in arrays:
         positions = arrays['positions']
@@ -268,6 +276,7 @@ def _read_xyz_frame(lines, natoms):
     atoms = Atoms(symbols=symbols,
                   positions=positions,
                   numbers=numbers,
+                  charges = charges,
                   cell=cell,
                   pbc=pbc,
                   info=info)
@@ -448,9 +457,9 @@ def output_column_format(atoms, columns, arrays,
     fmt_map = {'d': ('R', '%16.8f '),
                'f': ('R', '%16.8f '),
                'i': ('I', '%8d '),
-               'O': ('S', '%s'),
-               'S': ('S', '%s'),
-               'U': ('S', '%s'),
+               'O': ('S', '%s '),
+               'S': ('S', '%s '),
+               'U': ('S', '%s '),
                'b': ('L', ' %.1s ')}
 
     # NB: Lattice is stored as tranpose of ASE cell,
@@ -508,7 +517,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, append=False, plain=False):
+              write_results=True, plain=False):
     """
     Write output in extended XYZ format
 

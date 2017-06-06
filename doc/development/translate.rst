@@ -71,9 +71,9 @@ Check and commit your translation
   newly installed ASE.  If you translate into the same language as
   your computer's locale, you should see the translations when you
   start :ref:`ase-gui` normally.  If you translate ASE into another
-  language, then run :file:`LANG={ll}_{LL}.UTF-8 ase-gui`.  On some
+  language, then run :file:`LANG={ll}_{LL}.UTF-8 ase gui`.  On some
   operating systems you may need to run
-  :file:`LANGUAGE={ll}_{LL}.UTF-8 ase-gui` instead.
+  :file:`LANGUAGE={ll}_{LL}.UTF-8 ase gui` instead.
 
 Depending on your operating system, you may need to install
 :file:`gettext` or :file:`locales`.
@@ -102,7 +102,7 @@ or untranslated messages.  The obvious time to do this is shortly
 before a new stable release.
 
 If you are a committer, please run :file:`make` before committing and
-briefly check by running the translated ase-gui that nothing is obviously horrible.
+briefly check by running the translated GUI that nothing is obviously horrible.
 
 .. _language code: http://www.gnu.org/software/gettext/manual/gettext.html#Language-Codes
 .. _country code: http://www.gnu.org/software/gettext/manual/gettext.html#Country-Codes

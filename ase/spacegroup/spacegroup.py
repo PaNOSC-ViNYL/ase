@@ -613,7 +613,7 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
     spg._centrosymmetric = bool(int(f.readline().split()[1]))
     # primitive vectors
     f.readline()
-    spg._scaled_primitive_cell = np.array([[floats[s]
+    spg._scaled_primitive_cell = np.array([[float(floats.get(s, s))
                                             for s in f.readline().split()]
                                            for i in range(3)],
                                           dtype=np.float)
@@ -625,12 +625,13 @@ def _read_datafile_entry(spg, no, symbol, setting, f):
                                     dtype=np.int)
     # subtranslations
     spg._nsubtrans = int(f.readline().split()[0])
-    spg._subtrans = np.array([[floats[t] for t in f.readline().split()]
+    spg._subtrans = np.array([[float(floats.get(t, t))
+                               for t in f.readline().split()]
                               for i in range(spg._nsubtrans)],
                              dtype=np.float)
     # symmetry operations
     nsym = int(f.readline().split()[0])
-    symop = np.array([[floats[s] for s in f.readline().split()]
+    symop = np.array([[float(floats.get(s, s)) for s in f.readline().split()]
                       for i in range(nsym)],
                      dtype=np.float)
     spg._nsymop = nsym

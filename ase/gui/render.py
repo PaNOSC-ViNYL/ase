@@ -38,7 +38,7 @@ class Render:
         self.set_title(_('Render current view in povray ... '))
         vbox = ui.VBox()
         vbox.set_border_width(5)
-        self.natoms = self.gui.images.natoms
+        self.natoms = len(self.gui.atoms)
         pack(vbox, [ui.Label(_("Rendering %d atoms.") % self.natoms)])
         self.size = [
             ui.Adjustment(self.gui.width, 1, 9999, 50),
@@ -47,8 +47,8 @@ class Render:
         self.width = ui.SpinButton(self.size[0], 0, 0)
         self.height = ui.SpinButton(self.size[1], 0, 0)
         self.render_constraints = ui.CheckButton(_("Render constraints"))
-        self.render_constraints.set_sensitive(not self.gui.images.dynamic.all(
-        ))
+        self.render_constraints.set_sensitive(
+            not self.gui.images.get_dynamic(self.gui.atoms).all())
         self.render_constraints.connect("toggled", self.toggle_render_lines)
         pack(vbox, [
             ui.Label(_("Width")), self.width, ui.Label(_("     Height")),
@@ -132,7 +132,7 @@ class Render:
             ui.Label(_("     Camera distance")), self.camera_distance
         ])
         self.single_frame = ui.RadioButton(None, _("Render current frame"))
-        self.nimages = self.gui.images.nimages
+        self.nimages = len(self.gui.images)
         self.iframe = self.gui.frame
         self.movie = ui.RadioButton(self.single_frame,
                                     _("Render all %d frames") % self.nimages)
@@ -197,9 +197,10 @@ class Render:
         selection = np.zeros(self.natoms, bool)
         text = self.texture_selection.get_text() or 'False'
         code = compile(text, 'render.py', 'eval')
-        for n in range(self.natoms):
-            Z = self.gui.images.Z[n]
-            x, y, z = self.gui.images.P[self.iframe][n]
+        atoms = self.gui.atoms
+        for n in range(len(atoms)):
+            Z = atoms.numbers[n]
+            x, y, z = atoms.positions[n]
             dct = {'n': n, 'Z': Z, 'x': x, 'y': y, 'z': z}
             selection[n] = eval(code, dct)
         return selection
@@ -216,7 +217,7 @@ class Render:
             Z = []
             for n in range(len(selection)):
                 if selection[n]:
-                    Z += [self.gui.images.Z[n]]
+                    Z += [self.gui.atoms.Z[n]]
             name = formula(Z)
             if (box_selection == selection).all():
                 name += ': ' + self.texture_selection.get_text()
@@ -350,7 +351,8 @@ class Render:
             filename = self.outputname.get_text()
             print(" | Writing files for image", filename, "...")
             write_pov(
-                filename, atoms, radii=self.gui.images.r, **povray_settings)
+                filename, atoms, radii=self.gui.get_covalent_radii(),
+                **povray_settings)
             if not self.keep_files.get_active():
                 print(" | Deleting temporary file ", filename)
                 system("rm " + filename)

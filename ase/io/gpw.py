@@ -1,6 +1,6 @@
 from ase import Atoms
-from ase.calculators.singlepoint import SinglePointDFTCalculator
-from ase.calculators.singlepoint import SinglePointKPoint
+from ase.calculators.singlepoint import (SinglePointDFTCalculator,
+                                         SinglePointKPoint)
 from ase.units import Bohr, Hartree
 import ase.io.ulm as ulm
 from ase.io.trajectory import read_atoms
@@ -11,7 +11,27 @@ def read_gpw(filename):
         reader = ulm.open(filename)
     except ulm.InvalidULMFileError:
         return read_old_gpw(filename)
-    return read_atoms(reader.atoms)
+
+    atoms = read_atoms(reader.atoms)
+
+    wfs = reader.wave_functions
+    atoms.calc = SinglePointDFTCalculator(
+        atoms,
+        efermi=reader.occupations.fermilevel,
+        ibzkpts=wfs.kpts.ibzkpts,
+        bzkpts=wfs.kpts.get('bzkpts'),
+        bz2ibz=wfs.kpts.get('bz2ibz'),
+        **reader.results.asdict())
+    atoms.calc.kpts = []
+    spin = 0
+    for eps_kn, f_kn in zip(wfs.eigenvalues, wfs.occupations):
+        kpt = 0
+        for weight, eps_n, f_n in zip(wfs.kpts.weights, eps_kn, f_kn):
+            atoms.calc.kpts.append(
+                SinglePointKPoint(weight, spin, kpt, eps_n, f_n))
+            kpt += 1
+        spin += 1
+    return atoms
 
 
 def read_old_gpw(filename):

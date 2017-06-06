@@ -17,11 +17,11 @@ Example
 -------
 
 To set up a slab of FCC copper with the [1,-1,0] direction along the
-x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use::
+x-axis, [1,1,-2] along the y-axis and [1,1,1] along the z-axis, use:
 
-  from ase.lattice.cubic import FaceCenteredCubic
-  atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
-                            size=(2,2,3), symbol='Cu', pbc=(1,1,0))
+>>> from ase.lattice.cubic import FaceCenteredCubic
+>>> atoms = FaceCenteredCubic(directions=[[1,-1,0], [1,1,-2], [1,1,1]],
+...                           size=(2,2,3), symbol='Cu', pbc=(1,1,0))
 
 The minimal unit cell is repeated 2*2*3 times.  The lattice constant
 is taken from the database of lattice constants in :mod:`ase.data` module.
@@ -30,12 +30,12 @@ free boundary conditions along the *z* axis. Since the three directions
 are perpendicular, a (111) surface is created.
 
 To set up a slab of BCC copper with [100] along the first axis, [010]
-along the second axis, and [111] along the third axis use::
+along the second axis, and [111] along the third axis use:
 
-  from ase.lattice.cubic import BodyCenteredCubic
-  atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
-                            size=(2,2,3), symbol='Cu', pbc=(1,1,0),
-                            latticeconstant=4.0)
+>>> from ase.lattice.cubic import BodyCenteredCubic
+>>> atoms = BodyCenteredCubic(directions=[[1,0,0], [0,1,0], [1,1,1]],
+...                           size=(2,2,3), symbol='Cu', pbc=(1,1,0),
+...                           latticeconstant=4.0)
 
 Since BCC is not the natural crystal structure for Cu, a lattice
 constant has to be specified.  Note that since the repeat directions
@@ -53,7 +53,7 @@ with a basis):
 
 * ``lattice.cubic``
 
-  - ``SimpleCubic`` 
+  - ``SimpleCubic``
   - ``FaceCenteredCubic``
   - ``BodyCenteredCubic``
   - ``Diamond`` (*)
@@ -117,7 +117,7 @@ be specified.
   atomic symbol (i.e. 'Au').  For compounds, a tuple or list of
   elements should be given.  This argument is mandatory.
 
-``directions`` and/or ``miller``: 
+``directions`` and/or ``miller``:
   Specifies the orientation of the
   lattice as the Miller indices of the three basis vectors of the
   supercell (``directions=...``) and/or as the Miller indices of the
@@ -151,7 +151,7 @@ be specified.
   Depending on the crystal structure, there will be more than one
   lattice constant, and they are specified by giving a dictionary or a
   tuple (a scalar for cubic lattices).  Distances are given in
-  Angstrom, angles in degrees. 
+  Angstrom, angles in degrees.
 
   =============  ===================  ========================================
   Structure      Lattice constants    Dictionary-keys
@@ -164,10 +164,10 @@ be specified.
   Monoclinic     (a, b, c, alpha)     'a', 'b' or 'b/a', 'c' or 'c/a', 'alpha'
   Hexagonal      (a, c)               'a', 'c' or 'c/a'
   =============  ===================  ========================================
-  
+
   Example:
 
-  >>> atoms = Monoclinic( ... , latticeconstant={'a': 3.06, 
+  >>> atoms = Monoclinic( ... , latticeconstant={'a': 3.06,
   ...     'b/a': 0.95, 'c/a': 1.07, 'alpha': 74})
 
 
@@ -196,7 +196,7 @@ this::
       """A factory for creating diamond lattices."""
       xtal_name = 'diamond'
       bravais_basis = [[0, 0, 0], [0.25, 0.25, 0.25]]
-    
+
   Diamond = DiamondFactory()
 
 
