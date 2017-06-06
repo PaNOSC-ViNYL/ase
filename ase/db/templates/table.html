@@ -227,7 +227,7 @@
             {% set key, text = control[1:] %}
             {% set choise = con.query[1][key] %}
                 {{ text }}:<select name="bool_{{ key }}">
-            <option value="" {% if '' == choise %} selected {% endif %}>-</option>
+            <option value="" {% if '' == choise %} selected {% endif %}>NA</option>
             <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
             <option value="0" {% if '0' == choise %} selected {% endif %}>No</option>
             </select>
