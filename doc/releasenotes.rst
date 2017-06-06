@@ -97,7 +97,9 @@ Git master branch
   objects.  Previously, atomic numbers, masses, and constraints were
   only saved for the first image, and had to apply for all subsequent ones.
 
-* Interface for DMol\ :sup:`3` added.
+* Added calculator interface for DMol\ :sup:`3`.
+
+* Added calculator interface for GULP.
 
 * Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
 
