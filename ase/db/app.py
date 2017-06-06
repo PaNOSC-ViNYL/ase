@@ -322,6 +322,11 @@ def gui(id):
     return '', 204, []
 
 
+@app.route('/keys')
+def keys():
+    return 'hmmmmmmmmm'
+
+
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
