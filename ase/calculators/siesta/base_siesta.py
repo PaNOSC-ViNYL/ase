@@ -686,32 +686,33 @@ class BaseSiesta(FileIOCalculator):
         self.results['ion'] = {}
         for species_number, specie in enumerate(species):
             species_number += 1
-            if specie not in list(self.results['ion']):
-                symbol = specie['symbol']
-                atomic_number = atomic_numbers[symbol]
 
-                if specie['pseudopotential'] is None:
-                    if self.pseudo_qualifier() == '':
-                        label = symbol
-                        pseudopotential = label + '.psf'
-                    else:
-                        label = '.'.join([symbol, self.pseudo_qualifier()])
-                        pseudopotential = label + '.psf'
+            symbol = specie['symbol']
+            atomic_number = atomic_numbers[symbol]
+
+            if specie['pseudopotential'] is None:
+                if self.pseudo_qualifier() == '':
+                    label = symbol
+                    pseudopotential = label + '.psf'
                 else:
-                    pseudopotential = specie['pseudopotential']
-                    label = os.path.basename(pseudopotential)
-                    label = '.'.join(label.split('.')[:-1])
+                    label = '.'.join([symbol, self.pseudo_qualifier()])
+                    pseudopotential = label + '.psf'
+            else:
+                pseudopotential = specie['pseudopotential']
+                label = os.path.basename(pseudopotential)
+                label = '.'.join(label.split('.')[:-1])
 
-                name = os.path.basename(pseudopotential)
-                name = name.split('.')
-                name.insert(-1, str(species_number))
-                if specie['ghost']:
-                    name.insert(-1, 'ghost')
-                    atomic_number = -atomic_number
-                name = '.'.join(name)
+            name = os.path.basename(pseudopotential)
+            name = name.split('.')
+            name.insert(-1, str(species_number))
+            if specie['ghost']:
+                name.insert(-1, 'ghost')
+                atomic_number = -atomic_number
+            name = '.'.join(name)
 
-                label = '.'.join(np.array(name.split('.'))[:-1])
+            label = '.'.join(np.array(name.split('.'))[:-1])
 
+            if label not in self.results['ion']:
                 fname = label + '.ion.xml'
                 self.results['ion'][label] = get_ion(fname)
 
@@ -893,8 +894,9 @@ class BaseSiesta(FileIOCalculator):
         n_spin_bands = int(tmp[1])
         self.spin_pol = n_spin_bands == 2
         lines = lines[2:-1]
-        lines_per_kpt = int(self.n_bands * n_spin_bands / 10 +
+        lines_per_kpt = (self.n_bands * n_spin_bands / 10 +
                          int((self.n_bands * n_spin_bands) % 10 != 0))
+        lines_per_kpt = int(lines_per_kpt)
         eig = dict()
         for i in range(len(self.weights)):
             tmp = lines[i * lines_per_kpt:(i + 1) * lines_per_kpt]
