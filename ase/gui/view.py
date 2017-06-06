@@ -174,7 +174,7 @@ class View:
     def toggle_show_unit_cell(self, key=None):
         self.set_frame()
 
-    def show_labels(self):
+    def update_labels(self):
         index = self.window['show-labels']
         if index == 0:
             self.labels = None
@@ -185,6 +185,8 @@ class View:
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
+    def show_labels(self):
+        self.update_labels()
         self.draw()
 
     def toggle_show_axes(self, key=None):
@@ -392,6 +394,7 @@ class View:
 
                     # Draw labels on the atoms
                     if self.labels is not None:
+                        self.update_labels()
                         self.window.text(A[a, 0] + ra/2, A[a, 1] + ra/2,
                                          str(self.labels[a]))
 
