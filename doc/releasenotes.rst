@@ -116,6 +116,8 @@ Git master branch
   the new one called :func:`ase.dft.bandgap.bandgap` (it's more flexible and
   returns also band indices).
 
+* New :mod:`Viewer for Jupyter notebooks <ase.visualize.nglview>`.
+
 
 Version 3.13.0
 ==============
