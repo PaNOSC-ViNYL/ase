@@ -23,7 +23,10 @@ def process_metadata(db, html=True):
             code = fd.read()
         path = os.path.dirname(db.python)
         code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
-        exec(compile(code, db.python, 'exec'), mod)
+
+        # We use eval here instead of exec because it works on both
+        # Python 2 and 3.
+        eval(compile(code, db.python, 'exec'), mod, mod)
 
     for key, default in [('title', 'ASE database'),
                          ('default_columns', []),
