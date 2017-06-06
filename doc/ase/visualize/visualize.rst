@@ -25,7 +25,7 @@ take an optional ``data`` argument to show 3D data, such as charge density:
 
 >>> view(atoms, viewer='VMD', data=...)
 
-The nglview viewer additionally supports any indexible sequence of :class:`~ase.Atoms` 
+The nglview viewer additionally supports any indexible sequence of :class:`~ase.Atoms`
 objects, e.g. lists of structures and :class:`~ase.io.Trajectory` objects.
 
 If you do not wish to open an interactive gui, but rather visualize
@@ -49,24 +49,24 @@ your structure by dumping directly to a graphics file; you can use the
 Viewer for the Jupyter notebooks
 --------------------------------
 
-The nglview viewer is a dedicated viewer for the Jupyter_ notebook interface. 
+The nglview viewer is a dedicated viewer for the Jupyter_ notebook interface.
 It uses an embeddable NGL_ WebGL molecular viewer. The viewer works only in the
 web browser environment and embeds the live javascript output into the notebook.
 To utilize this functionality you need to have NGLView_ and ipywidgets_ packages
 installed in addition to the Jupyter_ notebook.
 
-The basic usage provided by the :func:`ase.visualize.view` function exposes only 
+The basic usage provided by the :func:`ase.visualize.view` function exposes only
 small fraction of the NGL_ widget capabilities. The simplest form:
 
 >>> view(atoms, viewer='ngl')
 
 creates interactive ngl viewer widget with the few additional control widgets added on the side.
-The object returned by the above call is a reference to the `.gui` member of 
-the :class:`ase.visualize.view.nglview.NGLDisplay` containing actual viewer 
+The object returned by the above call is a reference to the `.gui` member of
+the :class:`ase.visualize.nglview.NGLDisplay` containing actual viewer
 (`.view` member), a reference to control widgets box (`.control_box` member)
 and :func:`ase.visualize.view.nglview.NGLDisplay.custom_colors` method.
-The notebook interface is not blocked by the above call and the returned 
-object may be further manipulated by the following code in the separate cell 
+The notebook interface is not blocked by the above call and the returned
+object may be further manipulated by the following code in the separate cell
 (the `_` variable contains output from the previous cell):
 
 >>> v=_
@@ -77,9 +77,9 @@ object may be further manipulated by the following code in the separate cell
 >>> v.view.parameters=dict(clipDist=-200)
 
 The `.view` member exposes full API of the NGLView_ widget. The `.control_box` member
-is a :class:`ipywidgets.HBox` containing :class:`nglview.widget.NGLWidget` and 
+is a :class:`ipywidgets.HBox` containing :class:`nglview.widget.NGLWidget` and
 :class:`ipywidgets.VBox` with control widgets. For the full documentation of these
-objects consult the NGLView_, NGL_ and ipywidgets_ websites.  
+objects consult the NGLView_, NGL_ and ipywidgets_ websites.
 
 .. _Jupyter: https://www.jupyter.org/
 .. _NGL: https://github.com/arose/ngl
@@ -87,9 +87,9 @@ objects consult the NGLView_, NGL_ and ipywidgets_ websites.
 
 .. autoclass:: ase.visualize.nglview.NGLDisplay
    :inherited-members:
-   
+
 .. autofunction:: ase.visualize.nglview.view_ngl
-.. autofunction:: ase.visualize.nglview.NGLDisplay.custom_colors
+.. automethod:: ase.visualize.nglview.NGLDisplay.custom_colors
 
 
 .. module:: ase.visualize.mlab
