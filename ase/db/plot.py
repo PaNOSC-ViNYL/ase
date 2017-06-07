@@ -48,7 +48,7 @@ def dct2plot(dct, name, filename=None, show=True):
         style = d.get('style')
         if not style:
             style = styles.pop()
-        lines.append(plt.plot(x, y, style)[0])
+        lines.append(plt.plot(x, y.T, style)[0])
         labels.append(d['label'])
     plt.legend(lines, labels)
     if isinstance(plot['xlabel'], basestring):
