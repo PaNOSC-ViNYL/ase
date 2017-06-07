@@ -15,22 +15,34 @@ def read_gpw(filename):
     atoms = read_atoms(reader.atoms)
 
     wfs = reader.wave_functions
+    kpts = wfs.get('kpts')
+    if kpts is None:
+        ibzkpts = None
+        bzkpts = None
+        bz2ibz = None
+    else:
+        ibzkpts = kpts.ibzkpts,
+        bzkpts = kpts.get('bzkpts')
+        bz2ibz = kpts.get('bz2ibz')
+
     atoms.calc = SinglePointDFTCalculator(
         atoms,
         efermi=reader.occupations.fermilevel,
-        ibzkpts=wfs.kpts.ibzkpts,
-        bzkpts=wfs.kpts.get('bzkpts'),
-        bz2ibz=wfs.kpts.get('bz2ibz'),
+        ibzkpts=ibzkpts,
+        bzkpts=bzkpts,
+        bz2ibz=bz2ibz,
         **reader.results.asdict())
-    atoms.calc.kpts = []
-    spin = 0
-    for eps_kn, f_kn in zip(wfs.eigenvalues, wfs.occupations):
-        kpt = 0
-        for weight, eps_n, f_n in zip(wfs.kpts.weights, eps_kn, f_kn):
-            atoms.calc.kpts.append(
-                SinglePointKPoint(weight, spin, kpt, eps_n, f_n))
-            kpt += 1
-        spin += 1
+
+    if kpts is not None:
+        atoms.calc.kpts = []
+        spin = 0
+        for eps_kn, f_kn in zip(wfs.eigenvalues, wfs.occupations):
+            kpt = 0
+            for weight, eps_n, f_n in zip(kpts.weights, eps_kn, f_kn):
+                atoms.calc.kpts.append(
+                    SinglePointKPoint(weight, spin, kpt, eps_n, f_n))
+                kpt += 1
+            spin += 1
     return atoms
 
 
