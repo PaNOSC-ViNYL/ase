@@ -87,7 +87,7 @@ class FixConstraintSingle(FixConstraint):
             if old == self.a:
                 newa = new
                 break
-        if newa == None:
+        if newa is None:
             raise IndexError('Constraint not part of slice')
         self.a = newa
 
