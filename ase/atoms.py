@@ -265,8 +265,10 @@ class Atoms(object):
         if constraint is None:
             self._constraints = []
         else:
-            if isinstance(constraint, (list, tuple)):
+            if isinstance(constraint, list):
                 self._constraints = constraint
+            elif isinstance(constraint, tuple):
+                self._constraints = list(constraint)
             else:
                 self._constraints = [constraint]
 
