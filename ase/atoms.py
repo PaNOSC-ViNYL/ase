@@ -916,6 +916,14 @@ class Atoms(object):
         the indexing in the subset returned.
 
         """
+        from ase.constraints import FixConstraint, FixBondLengths
+        for con in self.constraints: # Purge negative slicing in cons
+            if isinstance(con, (FixConstraint, FixBondLengths)):
+                #try:
+                    con.index_shuffle(self, i)
+                #except IndexError:
+                    pass
+
         if isinstance(i, numbers.Integral):
             natoms = len(self)
             if i < -natoms or i >= natoms:
@@ -928,7 +936,6 @@ class Atoms(object):
             i = np.array(i)
 
         import copy
-        from ase.constraints import FixConstraint, FixBondLengths
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
                                # should be communicated to the slice as well

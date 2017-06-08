@@ -80,12 +80,14 @@ class FixConstraintSingle(FixConstraint):
 
     def index_shuffle(self, atoms, ind):
         """The atom index must be stored as self.a."""
-        newa = -1   # Signal error
+        newa = None   # Signal error
+        if self.a < 0:
+            self.a += len(atoms)
         for new, old in slice2enlist(ind, len(atoms)):
             if old == self.a:
                 newa = new
                 break
-        if newa == -1:
+        if newa == None:
             raise IndexError('Constraint not part of slice')
         self.a = newa
 
