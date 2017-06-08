@@ -539,7 +539,7 @@ class Atoms(object):
     def set_momenta(self, momenta, apply_constraint=True):
         """Set momenta."""
         if (apply_constraint and len(self.constraints) > 0 and
-            momenta is not None):
+           momenta is not None):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
@@ -917,11 +917,11 @@ class Atoms(object):
 
         """
         from ase.constraints import FixConstraint, FixBondLengths
-        for con in self.constraints: # Purge negative slicing in cons
+        for con in self.constraints:  # Purge negative slicing in cons
             if isinstance(con, (FixConstraint, FixBondLengths)):
-                #try:
+                try:
                     con.index_shuffle(self, i)
-                #except IndexError:
+                except IndexError:
                     pass
 
         if isinstance(i, numbers.Integral):
@@ -1488,7 +1488,7 @@ class Atoms(object):
 
         calculate angle in degrees between the vectors a2->a1 and
         a2->a3.
-        
+
         Use mic=True to use the Minimum Image Convention and calculate the
         angle across periodic boundaries.
         """
