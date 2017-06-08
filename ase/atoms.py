@@ -16,6 +16,7 @@ import numpy as np
 
 import ase.units as units
 from ase.atom import Atom
+from ase.constraints import FixConstraint, FixBondLengths
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
@@ -916,13 +917,6 @@ class Atoms(object):
         the indexing in the subset returned.
 
         """
-        from ase.constraints import FixConstraint, FixBondLengths
-        for con in self.constraints:  # Purge negative slicing in cons
-            if isinstance(con, (FixConstraint, FixBondLengths)):
-                try:
-                    con.index_shuffle(self, i)
-                except IndexError:
-                    pass
 
         if isinstance(i, numbers.Integral):
             natoms = len(self)
@@ -935,6 +929,14 @@ class Atoms(object):
             # interpreted at 0 and 1 indices.
             i = np.array(i)
 
+        condel = []
+        for con in self.constraints:
+            if isinstance(con, (FixConstraint, FixBondLengths)):
+                try:
+                    con.index_shuffle(self, i)
+                except IndexError:
+                    condel.append(con)
+
         import copy
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
@@ -946,18 +948,9 @@ class Atoms(object):
         for name, a in self.arrays.items():
             atoms.arrays[name] = a[i].copy()
 
-        # Constraints need to be deepcopied, since we need to shuffle
-        # the indices
-        atoms.constraints = copy.deepcopy(self.constraints)
-        condel = []
-        for con in atoms.constraints:
-            if isinstance(con, (FixConstraint, FixBondLengths)):
-                try:
-                    con.index_shuffle(self, i)
-                except IndexError:
-                    condel.append(con)
-        for con in condel:
-            atoms.constraints.remove(con)
+        # Constraints need to be deepcopied, but only the relevant ones.
+        atoms.constraints = copy.deepcopy([con for con in self.constraints if
+                                            con not in condel])
         return atoms
 
     def __delitem__(self, i):
