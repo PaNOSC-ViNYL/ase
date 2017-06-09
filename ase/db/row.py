@@ -9,7 +9,7 @@ from ase.calculators.calculator import PropertyNotImplementedError
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.data import chemical_symbols, atomic_masses
 from ase.io.jsonio import decode
-from ase.utils import hill, basestring
+from ase.utils import formula_metal, basestring
 
 
 class FancyDict(dict):
@@ -152,7 +152,7 @@ class AtomsRow:
     @property
     def formula(self):
         """Chemical formula string."""
-        return hill(self.numbers)
+        return formula_metal(self.numbers)
 
     @property
     def symbols(self):

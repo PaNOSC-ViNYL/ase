@@ -1,4 +1,4 @@
-"""Demonstrates molecular dynamics with constant energy."""
+"""Demonstrates molecular dynamics with constant temperature."""
 from __future__ import print_function
 
 from ase.lattice.cubic import FaceCenteredCubic

@@ -6,20 +6,34 @@ New release
 
 * Make sure all tests pass.
 
-* Build the web-page and check the generated images with ``make inspect``.
+* Go through the git-logs and make sure all important changes since last
+  stable release are mentioned in the :ref:`releasenotes`.
 
-* Update ``__version__`` in :git:`ase/__init__.py`.
+* Build the web-page::
+
+      $ cd doc
+      $ make clean
+      $ make
+
+  and check the generated images with ``make inspect``.
+
+* Update ``__version__`` to ``"x.y.z"`` in :git:`ase/__init__.py`.
 
 * Upload to PyPI::
 
       $ python3 setup.py sdist
+      $ python3 setup.py bdist_wheel
       $ twine upload dist/*
 
-* Push and make a tag.
+* Push and make a tag "x.y.z".
 
-* Update :ref:`news`, :ref:`releasenotes` and :ref:`download_and_install` pages.
+* Merge *master* into the *web-page* branch (which is used for creating the
+  web-page for the stable version).
 
-* Increase the version number and push.
+* Update version numbers in :ref:`news`, :ref:`releasenotes` and
+  :ref:`download_and_install` pages.
+
+* Increase the version number and push ("x.y+1.0b1").
 
 * Send announcement email to the ``ase-users`` mailing list.
 

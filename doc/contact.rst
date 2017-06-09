@@ -4,24 +4,15 @@
 Contact
 =======
 
-.. _mail lists:
-    
-Mail Lists
-==========
+.. _mail list:
 
-There is a mailing list for discussing ASE:
+Mail List
+=========
+
+There is a mailing list for getting help and for discussing ASE:
 
 * ase-users_
 
-Old mailing lists no longer used:
-
-* ase-developers_
-* ase-svncheckins_
-
-.. _ase-developers: https://listserv.fysik.dtu.dk/mailman/listinfo/
-                    ase-developers
-.. _ase-svncheckins: https://listserv.fysik.dtu.dk/mailman/listinfo/
-                     ase-svncheckins
 .. _ase-users: https://listserv.fysik.dtu.dk/mailman/listinfo/ase-users
 
 

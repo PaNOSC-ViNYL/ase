@@ -134,7 +134,7 @@ def metric_from_cell(cell):
     return np.dot(cell, cell.T)
 
 
-def crystal_structure_from_cell(cell, eps=1e-4):
+def crystal_structure_from_cell(cell, eps=2e-4):
     """Return the crystal structure as a string calculated from the cell.
 
     Supply a cell (from atoms.get_cell()) and get a string representing
@@ -157,6 +157,7 @@ def crystal_structure_from_cell(cell, eps=1e-4):
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
     alpha, beta, gamma = angles
+
     if abc.ptp() < eps and abs(angles - pi / 2).max() < eps:
         return 'cubic'
     elif abc.ptp() < eps and abs(angles - pi / 3).max() < eps:

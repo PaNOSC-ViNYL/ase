@@ -4,6 +4,7 @@ import numbers
 import operator
 import os
 import re
+import warnings
 from time import time
 
 from ase.atoms import Atoms, symbols2numbers, string2symbols
@@ -64,7 +65,9 @@ invop = {'<': '>=', '<=': '>', '>=': '<', '>': '<=', '=': '!=', '!=': '='}
 
 word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
-reserved_keys = set(all_properties + all_changes +
+reserved_keys = set(all_properties +
+                    all_changes +
+                    list(atomic_numbers) +
                     ['id', 'unique_id', 'ctime', 'mtime', 'user',
                      'momenta', 'constraints', 'natoms', 'formula', 'age',
                      'calculator', 'calculator_parameters',
@@ -82,9 +85,13 @@ def check(key_value_pairs):
         except ValueError:
             pass
         else:
-            raise ValueError('Bad key: {} is a chemical formula'.format(key))
+            warnings.warn(
+                'It is best not to use keys ({0}) that are also a '
+                'chemical formula.  If you do a "db.select({0!r})",'
+                'you will not find rows with your key.  Instead, you wil get '
+                'rows containing the atoms in the formula!'.format(key))
         if not isinstance(value, (numbers.Real, basestring)):
-            raise ValueError('Bad value: {}'.format(value))
+            raise ValueError('Bad value for {!r}: {}'.format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):

@@ -32,11 +32,12 @@ Supported :mod:`Calculators <ase.calculators>`:
 
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
-|fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
+|fhi-aims| |fleur| |gpaw| |gromacs| 
+|hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |onetep| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`DMol³ <ase.calculators.dmol>`
-Gaussian_ Grimme-D3_ Mopac_
+Gaussian_ Grimme-D3_ :mod:`~ase.calculators.gulp` Mopac_
 :mod:`~ase.calculators.tip3p`
 
 Please go through this check-list to figure out if you need to convert your

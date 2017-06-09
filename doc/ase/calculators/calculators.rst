@@ -81,6 +81,7 @@ elk                                 Full Potential LAPW code
 :mod:`~ase.calculators.fleur`       Full Potential LAPW code
 gaussian                            Gaussian based electronic structure code
 :mod:`~ase.calculators.gromacs`     Classical molecular dynamics code
+:mod:`~ase.calculators.gulp`        Interatomic potential code
 :mod:`~ase.calculators.jacapo`      Plane-wave ultra-soft pseudopotential code
 :mod:`~ase.calculators.lammps`      Classical molecular dynamics code
 mopac                               ...
@@ -94,6 +95,7 @@ lj                                  Lennard-Jones potential
 morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
 :mod:`~ase.calculators.loggingcalc` Logging calculator
+:mod:`~ase.calculators.dftd3`       DFT-D3 dispersion correction calculator
 =================================== ===========================================
 
 .. index:: D3, Grimme
@@ -202,6 +204,7 @@ the :meth:`set` method:
    FHI-aims
    fleur
    gromacs
+   gulp
    jacapo
    lammps
    lammpsrun
@@ -213,6 +216,7 @@ the :meth:`set` method:
    qmmm
    checkpointing
    loggingcalc
+   dftd3
    others
    test
    ase_qmmm_manyqm
