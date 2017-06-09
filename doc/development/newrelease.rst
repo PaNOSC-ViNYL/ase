@@ -27,6 +27,9 @@ New release
 
 * Push and make a tag "x.y.z".
 
+* Merge *master* into the *web-page* branch (which is used for creating the
+  web-page for the stable version).
+
 * Update version numbers in :ref:`news`, :ref:`releasenotes` and
   :ref:`download_and_install` pages.
 
