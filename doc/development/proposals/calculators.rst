@@ -53,14 +53,14 @@ object.
 :kpts:
 
   * ``(1,1,1)``: Gamma-point
-  
+
   * ``(n1,n2,n3)``: Monkhorst-Pack grid
-  
+
   * ``(n1,n2,n3,'gamma')``: Shifted Monkhorst-Pack grid that includes `\Gamma`
-  
+
   * ``[(k11,k12,k13),(k21,k22,k23),...]``: Explicit list in units of the
     reciprocal lattice vectors
-  
+
   * ``kpts=3.5``: `\vec k`-point density as in 3.5 `\vec k`-points per
     Å\ `^{-1}`
 
@@ -86,7 +86,7 @@ object.
 
   Each band can be occupied by two electrons.
 
-  
+
 ABC calculator example
 ======================
 
@@ -165,7 +165,7 @@ exist and following calculations where atoms may have been moved
 around by an optimization algorithm.
 
 The command used to start the ABC code can be given in an environment
-variable called :envvar:`ASE_ABC_COMMAND` or as a ``command``
+variable called ``ASE_ABC_COMMAND`` or as a ``command``
 keyword.  The command can look like this::
 
   mpiexec abc PREFIX.input > PREFIX.output

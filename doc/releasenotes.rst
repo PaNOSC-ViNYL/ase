@@ -333,7 +333,7 @@ Version 3.9.0
   properties by use of template structures. Extension to other projects
   related to atomic simulations should be straightforward.
 
-* The :func:`ase.lattice.bulk` function can now build the Wurtzite structure.
+* The ``ase.lattice.bulk`` function can now build the Wurtzite structure.
 
 * The :class:`ase.utils.timing.Timer` was moved from GPAW to ASE.
 
@@ -380,7 +380,7 @@ Version 3.8.0
 * ASE's :mod:`gui <ase.gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
-* The old :func:`ase.build.bulk` function is now deprecated.
+* The old ``ase.build.bulk`` function is now deprecated.
   Use the new one instead (:func:`ase.lattice.bulk`).
 * We're now using BuildBot for continuous integration:
   https://ase-buildbot.fysik.dtu.dk/waterfall
@@ -468,12 +468,12 @@ Version 3.5.0
   :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
-* :mod:`BFGSLineSearch <optimize.bfgslinesearch>` is now the default
+* :mod:`BFGSLineSearch <ase.optimize.bfgslinesearch>` is now the default
   (``QuasiNewton==BFGSLineSearch``).
 
 * There is a new interface to the LAMMPS molecular dynamics code.
 
-* New :mod:`phonons` module.
+* New :mod:`ase.phonons` module.
 
 * Van der Waals corrections for DFT, see GPAW_ usage.
 
@@ -487,7 +487,7 @@ Version 3.5.0
   * Enabled customization of colours and atomic radii.
   * Enabled user default settings via :file:`~/.ase/gui.py`.
 
-* :mod:`Database library <data>` expanded to include:
+* :mod:`Database library <ase.data>` expanded to include:
 
   * The s22, s26 and s22x5 sets of van der Waals bonded dimers and
     complexes by the Hobza group.
