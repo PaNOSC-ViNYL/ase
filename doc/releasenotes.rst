@@ -73,7 +73,7 @@ Git master branch
 * An ASE database can now have :ref:`metadata` describing the data.
   Metadata is a dict with any of the following keys: ``title``,
   ``key_descriptions``, ``default_columns``, ``special_keys`` and
-  ``summary_sections``.
+  ``layout``.
 
 * :data:`ase.data.atomic_masses` has been updated to IUPAC values from
   2016. Several elements will now have different weights which will affect
@@ -103,7 +103,7 @@ Git master branch
 
 * Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
 
-* New function for interpolating from Monkhors-Pack sampled valeus in the BZ
+* New function for interpolating from Monkhors-Pack sampled values in the BZ
   to arbitrary points in the BZ:
   :func:`ase.dft.kpoints.monkhorst_pack_interpolate`.
 
