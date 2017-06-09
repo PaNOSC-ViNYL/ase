@@ -15,28 +15,6 @@ from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd, basestring
 
-# XXX how to deal with overlaps independent of gpaw ?
-from gpaw.analyse.overlap import Overlap
-
-
-def overlap(calc1, calc2):
-    """GPAW overlaps"""
-    n1 = calc1.get_number_of_bands()
-#    spin1 = calc1.get_number_of_spins() == 2
-    n2 = calc2.get_number_of_bands()
-#    spin2 = calc2.get_number_of_spins() == 2
-    overlap_nn = np.zeros((n1, n2), dtype=float)
-    for i1 in range(n1):
-        psi1 = calc1.wfs.kpt_u[0].psit_nG[i1]
-        norm1 = calc1.wfs.gd.integrate(psi1.conj() * psi1)
-        for i2 in range(n2):
-            psi2 = calc2.wfs.kpt_u[0].psit_nG[i2]
-            norm2 = calc2.wfs.gd.integrate(psi2.conj() * psi2)
-            overlap_nn[i1, i2] = (
-                calc1.wfs.gd.integrate(psi1.conj() * psi2) /
-                np.sqrt(norm1 * norm2))
-    return overlap_nn
-            
 
 class ResonantRaman(Vibrations):
     """Resonant Raman intensities using finite differences."""
@@ -135,7 +113,7 @@ class ResonantRaman(Vibrations):
         self.txt = convert_string_to_fd(txt)
 
         self.verbose = verbose
-        self.overlap = bool(overlap)
+        self.overlap = overlap
         if not isinstance(minoverlap, dict):
             # assume it's a number
             self.minoverlap = {'orbitals': minoverlap,
@@ -169,6 +147,7 @@ class ResonantRaman(Vibrations):
             fname = self.exname + '.eq.gpw'
             self.eq_calculator.write(fname, 'all')
             self.eq_calculator = self.eq_calculator.__class__(fname)
+            self.eq_calculator.converge_wave_functions()
         Vibrations.run(self)
 
     def calculate(self, filename, fd):
@@ -180,7 +159,8 @@ class ResonantRaman(Vibrations):
             fd.close()
         if self.overlap:
             self.timer.start('Overlap')
-            ov_nn = overlap(self.atoms.get_calculator(), self.eq_calculator)
+            ov_nn = self.overlap(self.atoms.get_calculator(),
+                                 self.eq_calculator)
             if rank == 0:
                 np.save(filename + '.ov', ov_nn)
             self.timer.stop('Overlap')
