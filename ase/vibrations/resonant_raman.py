@@ -83,7 +83,7 @@ class ResonantRaman(Vibrations):
             Output stream
         verbose:
             Verbosity level of output
-        overlap: bool/float
+        overlap: bool or function
             Use wavefunction overlaps.
         minoverlap: float ord dict
             Minimal absolute overlap to consider. Defaults to 0.02 to avoid
