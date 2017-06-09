@@ -17,7 +17,7 @@ import numpy as np
 import ase.units as units
 from ase.atom import Atom
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
-from ase.utils import basestring
+from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic)
 
@@ -484,6 +484,9 @@ class Atoms(object):
             following the Hill notation (alphabetical order with C and H
             first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
             'H2O4S'. This is default.
+
+            'metal': The list of checmical symbols (alphabetical metals,
+            and alphabetical non-metals)
         """
         if len(self) == 0:
             return ''
@@ -495,36 +498,26 @@ class Atoms(object):
                                                            numbers[:-1]]))
             symbols = [chemical_symbols[e] for e in numbers[changes]]
             counts = np.append(changes[1:], n) - changes
+
+            formula = ''
+            for s, c in zip(symbols, counts):
+                formula += s
+                if c > 1:
+                    formula += str(c)
         elif mode == 'hill':
-            numbers = self.get_atomic_numbers()
-            elements = np.unique(numbers)
-            symbols = np.array([chemical_symbols[e] for e in elements])
-            counts = np.array([(numbers == e).sum() for e in elements])
-
-            ind = symbols.argsort()
-            symbols = symbols[ind]
-            counts = counts[ind]
-
-            if 'H' in symbols:
-                i = np.arange(len(symbols))[symbols == 'H']
-                symbols = np.insert(np.delete(symbols, i), 0, symbols[i])
-                counts = np.insert(np.delete(counts, i), 0, counts[i])
-            if 'C' in symbols:
-                i = np.arange(len(symbols))[symbols == 'C']
-                symbols = np.insert(np.delete(symbols, i), 0, symbols[i])
-                counts = np.insert(np.delete(counts, i), 0, counts[i])
+            formula = formula_hill(self.get_atomic_numbers())
         elif mode == 'all':
             numbers = self.get_atomic_numbers()
             symbols = [chemical_symbols[n] for n in numbers]
-            counts = [1] * len(numbers)
+
+            formula = ''
+            for s in symbols:
+                formula += s
+        elif mode == 'metal':
+            formula = formula_metal(self.get_atomic_numbers())
         else:
             raise ValueError("Use mode = 'all', 'reduce' or 'hill'.")
 
-        formula = ''
-        for s, c in zip(symbols, counts):
-            formula += s
-            if c > 1:
-                formula += str(c)
         return formula
 
     def set_tags(self, tags):
@@ -935,7 +928,9 @@ class Atoms(object):
         import copy
         from ase.constraints import FixConstraint, FixBondLengths
 
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
+                               # should be communicated to the slice as well
+                               celldisp=self._celldisp)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
 
         atoms.arrays = {}
@@ -1064,12 +1059,12 @@ class Atoms(object):
         """
 
         # Find the orientations of the faces of the unit cell
-        c = self.get_cell(complete=True)
-        dirs = np.zeros_like(c)
+        cell = self.get_cell(complete=True)
+        dirs = np.zeros_like(cell)
         for i in range(3):
-            dirs[i] = np.cross(c[i - 1], c[i - 2])
+            dirs[i] = np.cross(cell[i - 1], cell[i - 2])
             dirs[i] /= np.sqrt(np.dot(dirs[i], dirs[i]))  # normalize
-            if np.dot(dirs[i], c[i]) < 0.0:
+            if np.dot(dirs[i], cell[i]) < 0.0:
                 dirs[i] *= -1
 
         if isinstance(axis, int):
@@ -1086,25 +1081,27 @@ class Atoms(object):
         longer = np.zeros(3)
         shift = np.zeros(3)
         for i in axes:
-            p0 = np.dot(p, dirs[i]).min()
-            p1 = np.dot(p, dirs[i]).max()
-            height = np.dot(c[i], dirs[i])
+            p0 = np.dot(p, dirs[i]).min() if len(p) else 0
+            p1 = np.dot(p, dirs[i]).max() if len(p) else 0
+            height = np.dot(cell[i], dirs[i])
             if vacuum is not None:
                 lng = (p1 - p0 + 2 * vacuum) - height
             else:
                 lng = 0.0  # Do not change unit cell size!
             top = lng + height - p1
             shf = 0.5 * (top - p0)
-            cosphi = np.dot(c[i], dirs[i]) / np.sqrt(np.dot(c[i], c[i]))
+            cosphi = np.dot(cell[i], dirs[i]) / np.sqrt(np.dot(cell[i],
+                                                               cell[i]))
             longer[i] = lng / cosphi
             shift[i] = shf / cosphi
 
         # Now, do it!
         translation = np.zeros(3)
         for i in axes:
-            nowlen = np.sqrt(np.dot(c[i], c[i]))
-            self._cell[i] = c[i] * (1 + longer[i] / nowlen)
-            translation += shift[i] * c[i] / nowlen
+            nowlen = np.sqrt(np.dot(cell[i], cell[i]))
+            if vacuum is not None or self._cell[i].any():
+                self._cell[i] = cell[i] * (1 + longer[i] / nowlen)
+                translation += shift[i] * cell[i] / nowlen
         self.arrays['positions'] += translation
 
         # Optionally, translate to center about a point in space.
@@ -1174,8 +1171,8 @@ class Atoms(object):
         Parameters:
 
         a = None:
-            Angle that the atoms is rotated around the vecor 'v'. The
-            angle can also be a vector and then 'a' is rotated
+            Angle that the atoms is rotated around the vecor 'v'. 'a'
+            can also be a vector and then 'a' is rotated
             into 'v'.
 
         v:
@@ -1206,7 +1203,7 @@ class Atoms(object):
         if not isinstance(a, (float, int)):
             # old API maybe?
             warning = ('Please use new API: '
-                       'atoms_obj.rotate(v, a) '
+                       'atoms_obj.rotate(a, v) '
                        'where v is a vector to rotate around and '
                        'a is the angle in degrees.')
             if isinstance(v, (float, int)):
@@ -1225,7 +1222,7 @@ class Atoms(object):
         norm = np.linalg.norm
         v = string2vector(v)
         if a is None:
-            a = norm(v)
+            a = norm(v) * 180 / pi  # old API
         if isinstance(a, (float, int)):
             a *= pi / 180
             v /= norm(v)
@@ -1340,11 +1337,14 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self, a1, a2=None, a3=None, a4=None):
+    def get_dihedral(self, a1, a2=None, a3=None, a4=None, mic=False):
         """Calculate dihedral angle.
 
         Calculate dihedral angle (in degrees) between the vectors a1->a2
         and a3->a4.
+
+        Use mic=True to use the Minimum Image Convention and calculate the
+        angle across periodic boundaries.
         """
 
         if a2 is None:
@@ -1363,6 +1363,8 @@ class Atoms(object):
         a = self.positions[a2] - self.positions[a1]
         b = self.positions[a3] - self.positions[a2]
         c = self.positions[a4] - self.positions[a3]
+        if mic:
+            a, b, c = find_mic([a, b, c], self._cell, self._pbc)[0]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
@@ -1472,11 +1474,15 @@ class Atoms(object):
             start = self.get_dihedral(a1)
             self.set_dihedral(a1, angle + start, mask)
 
-    def get_angle(self, a1, a2=None, a3=None):
+    def get_angle(self, a1, a2=None, a3=None, mic=False):
         """Get angle formed by three atoms.
 
         calculate angle in degrees between the vectors a2->a1 and
-        a2->a3."""
+        a2->a3.
+        
+        Use mic=True to use the Minimum Image Convention and calculate the
+        angle across periodic boundaries.
+        """
 
         if a2 is None:
             # old API (uses radians)
@@ -1493,6 +1499,8 @@ class Atoms(object):
         # normalized vector 1->0, 1->2:
         v10 = self.positions[a1] - self.positions[a2]
         v12 = self.positions[a3] - self.positions[a2]
+        if mic:
+            v10, v12 = find_mic([v10, v12], self._cell, self._pbc)[0]
         v10 /= np.linalg.norm(v10)
         v12 /= np.linalg.norm(v12)
         angle = np.vdot(v10, v12)
@@ -1799,12 +1807,12 @@ class Atoms(object):
         write(filename, self, format, **kwargs)
 
     def edit(self):
-        """Modify atoms interactively through ase-gui viewer.
+        """Modify atoms interactively through ASE's GUI viewer.
 
         Conflicts leading to undesirable behaviour might arise
         when matplotlib has been pre-imported with certain
         incompatible backends and while trying to use the
-        plot feature inside the interactive ase-gui. To circumvent,
+        plot feature inside the interactive GUI. To circumvent,
         please set matplotlib.use('gtk') before calling this
         method.
         """
@@ -1873,7 +1881,10 @@ def string2symbols(s):
             m = int(s[i:j])
         else:
             m = 1
-        return m * [s[:i]] + string2symbols(s[j:])
+        symbol = s[:i]
+        if symbol not in atomic_numbers:
+            raise ValueError
+        return m * [symbol] + string2symbols(s[j:])
     else:
         raise ValueError
 

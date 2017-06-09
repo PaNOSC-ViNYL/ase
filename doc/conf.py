@@ -45,4 +45,12 @@ latex_documents = [
     ('index', 'ASE.tex', 'ASE', 'ASE-developers', 'howto', not True)]
 
 intersphinx_mapping = {'gpaw': ('https://wiki.fysik.dtu.dk/gpaw', None),
-                       'python': ('https://docs.python.org/3.6', None)}
+                       'python': ('https://docs.python.org/2.7', None)}
+
+# Avoid GUI windows during doctest:
+doctest_global_setup = """
+import ase.visualize as visualize
+from ase import Atoms
+visualize.view = lambda atoms: None
+Atoms.edit = lambda self: None
+"""

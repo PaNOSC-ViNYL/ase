@@ -252,7 +252,7 @@ class GUI(View, Status):
         self.graphs.append(process)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
+        process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
         v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
@@ -307,7 +307,7 @@ class GUI(View, Status):
     def bulk_window(self):
         SetupBulkCrystal(self)
 
-    def surface_window(self, menuitem):
+    def surface_window(self):
         SetupSurfaceSlab(self)
 
     def nanoparticle_window(self):
@@ -376,8 +376,8 @@ class GUI(View, Status):
             process.terminate()
         self.window.close()
 
-    def new(self):
-        os.system('ase-gui &')
+    def new(self, key=None):
+        os.system('ase gui &')
 
     def save(self, key=None):
         return save_dialog(self)
@@ -483,7 +483,7 @@ class GUI(View, Status):
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             (_('_Setup'),
              [M(_('_Bulk Crystal'), self.bulk_window, disabled=True),
-              M(_('_Surface slab'), self.surface_window, disabled=True),
+              M(_('_Surface slab'), self.surface_window, disabled=False),
               M(_('_Nanoparticle'),
                 self.nanoparticle_window),
               M(_('Nano_tube'), self.nanotube_window),

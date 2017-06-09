@@ -55,7 +55,7 @@ command
 
 ::
 
-  ase-gui moldyn3.traj
+  ase gui moldyn3.traj
 
 Try plotting the kinetic energy.  You will *not* see a well-defined
 melting point due to finite size effects (including surface melting),
@@ -88,7 +88,9 @@ with how it looks if you comment out either the line that says `Stationary(atoms
 
 ::
 
-  ase-gui moldyn4.traj
+  ase gui moldyn4.traj
 
 Try playing the movie with a high frame rate and set frame skipping to a
 low number. Can you spot the subtle difference?
+
+

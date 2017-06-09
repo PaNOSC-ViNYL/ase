@@ -56,6 +56,9 @@ all_formats = {
     'dacapo-text': ('Dacapo text output', '1F'),
     'db': ('ASE SQLite database file', '+S'),
     'dftb': ('DftbPlus input file', '1S'),
+    'dmol-arc': ('DMol3 arc file', '+S'),
+    'dmol-car': ('DMol3 structure file', '1S'),
+    'dmol-incoor': ('DMol3 structure file', '1S'),
     'elk': ('ELK atoms definition', '1S'),
     'eon': ('EON reactant.con file', '1F'),
     'eps': ('Encapsulated Postscript', '1S'),
@@ -110,6 +113,9 @@ all_formats = {
 # Special cases:
 format2modulename = {
     'aims-output': 'aims',
+    'dmol-arc': 'dmol',
+    'dmol-car': 'dmol',
+    'dmol-incoor': 'dmol',
     'castep-castep': 'castep',
     'castep-cell': 'castep',
     'castep-geom': 'castep',
@@ -137,6 +143,7 @@ format2modulename = {
 
 extension2format = {
     'ascii': 'v-sim',
+    'car': 'dmol-car',
     'castep': 'castep-castep',
     'cell': 'castep-cell',
     'com': 'gaussian',
@@ -163,6 +170,7 @@ def initialize(format):
 
     _format = format.replace('-', '_')
     module_name = format2modulename.get(format, _format)
+
     try:
         module = import_module('ase.io.' + module_name)
     except ImportError as err:
@@ -186,6 +194,111 @@ def get_ioformat(format):
     """Initialize and return IOFormat tuple."""
     initialize(format)
     return ioformats[format]
+
+
+def get_compression(filename):
+    """
+    Parse any expected file compression from the extension of a filename.
+    Return the filename without the extension, and the extension. Recognises
+    ``.gz``, ``.bz2``, ``.xz``.
+
+    >>> get_compression('H2O.pdb.gz')
+    ('H2O.pdb', 'gz')
+    >>> get_compression('crystal.cif')
+    ('crystal.cif', None)
+
+    Parameters
+    ==========
+    filename: str
+        Full filename including extension.
+
+    Returns
+    =======
+    (root, extension): (str, str or None)
+        Filename split into root without extension, and the extension
+        indicating compression format. Will not split if compression
+        is not recognised.
+    """
+    # Update if anything is added
+    valid_compression = ['gz', 'bz2', 'xz']
+
+    # Use stdlib as it handles most edge cases
+    root, compression = os.path.splitext(filename)
+
+    # extension keeps the '.' so remember to remove it
+    if compression.strip('.') in valid_compression:
+        return root, compression.strip('.')
+    else:
+        return filename, None
+
+
+def open_with_compression(filename, mode='r'):
+    """
+    Wrapper around builtin `open` that will guess compression of a file
+    from the filename and open it for reading or writing as if it were
+    a standard file.
+
+    Implemented for ``gz``(gzip), ``bz2``(bzip2) and ``xz``(lzma). Either
+    Python 3 or the ``backports.lzma`` module are required for ``xz``.
+
+    Supported modes are:
+       * 'r', 'rt', 'w', 'wt' for text mode read and write.
+       * 'rb, 'wb' for binary read and write.
+    Depending on the Python version, you may get errors trying to write the
+    wrong string type to the file.
+
+    Parameters
+    ==========
+    filename: str
+        Path to the file to open, including any extensions that indicate
+        the compression used.
+    mode: str
+        Mode to open the file, same as for builtin ``open``, e.g 'r', 'w'.
+
+    Returns
+    =======
+    fd: file
+        File-like object open with the specified mode.
+    """
+
+    if sys.version_info[0] > 2:
+        # Compressed formats sometimes default to binary, so force
+        # text mode in Python 3.
+        if mode == 'r':
+            mode = 'rt'
+        elif mode == 'w':
+            mode = 'wt'
+    else:
+        # The version of gzip in Anaconda Python 2 on Windows forcibly
+        # adds a 'b', so strip any 't' and let the string conversions
+        # be carried out implicitly by Python.
+        mode = mode.strip('t')
+
+    root, compression = get_compression(filename)
+
+    if compression is None:
+        return open(filename, mode)
+    elif compression == 'gz':
+        import gzip
+        fd = gzip.open(filename, mode=mode)
+    elif compression == 'bz2':
+        import bz2
+        if hasattr(bz2, 'open'):
+            # Python 3 only
+            fd = bz2.open(filename, mode=mode)
+        else:
+            # Python 2
+            fd = bz2.BZ2File(filename, mode=mode)
+    elif compression == 'xz':
+        try:
+            import lzma
+        except ImportError:
+            from backports import lzma
+        fd = lzma.open(filename, mode)
+    else:
+        fd = open(filename, mode)
+
+    return fd
 
 
 def wrap_read_function(read, filename, index=None, **kwargs):
@@ -255,7 +368,7 @@ def _write(filename, fd, format, io, images, **kwargs):
     if io.acceptsfd:
         open_new = (fd is None)
         if open_new:
-            fd = open(filename, 'w')
+            fd = open_with_compression(filename, 'w')
         io.write(fd, images, **kwargs)
         if open_new:
             fd.close()
@@ -327,15 +440,8 @@ def iread(filename, index=None, format=None, **kwargs):
 
 @parallel_generator
 def _iread(filename, index, format, io, full_output=False, **kwargs):
-    compression = None
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
-        if filename.endswith('.gz'):
-            compression = 'gz'
-            filename = filename[:-3]
-        elif filename.endswith('.bz2'):
-            compression = 'bz2'
-            filename = filename[:-4]
 
     if not io.read:
         raise ValueError("Can't read from {0}-format".format(format))
@@ -350,14 +456,7 @@ def _iread(filename, index, format, io, full_output=False, **kwargs):
     must_close_fd = False
     if isinstance(filename, basestring):
         if io.acceptsfd:
-            if compression == 'gz':
-                import gzip
-                fd = gzip.open(filename + '.gz')
-            elif compression == 'bz2':
-                import bz2
-                fd = bz2.BZ2File(filename + '.bz2')
-            else:
-                fd = open(filename, 'rU')
+            fd = open_with_compression(filename)
             must_close_fd = True
         else:
             fd = filename
@@ -432,13 +531,15 @@ def filetype(filename, read=True):
         if filename.startswith('pg://'):
             return 'postgresql'
 
-        basename = os.path.basename(filename)
+        # strip any compression extensions that can be read
+        root, compression = get_compression(filename)
+        basename = os.path.basename(root)
 
         if basename == 'inp':
             return 'octopus'
 
         if '.' in basename:
-            ext = filename.rsplit('.', 1)[-1].lower()
+            ext = os.path.splitext(basename)[1].strip('.').lower()
             if ext in ['xyz', 'cube', 'json', 'cif']:
                 return ext
 
@@ -462,7 +563,7 @@ def filetype(filename, read=True):
         if not read:
             return extension2format.get(ext, ext)
 
-        fd = open(filename, 'rb')
+        fd = open_with_compression(filename, 'rb')
     else:
         fd = filename
         if fd is sys.stdin:
@@ -506,24 +607,5 @@ def filetype(filename, read=True):
         if magic in data:
             return format
 
-    return extension2format.get(ext, ext)
-
-
-if __name__ == '__main__':
-    import optparse
-    parser = optparse.OptionParser(
-        usage='python -m ase.io.formats file ...',
-        description='Determine file type(s).')
-    opts, filenames = parser.parse_args()
-    if filenames:
-        n = max(len(filename) for filename in filenames) + 2
-    for filename in filenames:
-        format = filetype(filename)
-        if format and format in all_formats:
-            description, code = all_formats[format]
-        else:
-            format = '?'
-            description = '?'
-
-        print('{0:{1}}{2} ({3})'.format(filename + ':', n,
-                                        description, format))
+    format = extension2format.get(ext, ext)
+    return format

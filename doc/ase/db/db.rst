@@ -53,13 +53,13 @@ Every row in the database contains:
 
 .. _ase-db:
 
-ase-db
+ase db
 ======
 
 The :ref:`ase-db` command-line tool can be used to query databases and for
 manipulating key-value pairs.  Try::
 
-    $ ase-db --help
+    $ ase db --help
 
 Example: Show all rows of SQLite database abc.db:
 
@@ -88,6 +88,10 @@ Here are some example query strings:
       - less than 3 hydrogen atoms
     * - Cu,H<3
       - contains copper and has less than 3 hydrogen atoms
+    * - H2O
+      - At least two hydrogens and at least one oxygen
+    * - formula=H2O
+      - Exactly two hydrogens and one oxygen
     * - v3
       - has 'v3' key
     * - abc=bla-bla
@@ -100,8 +104,6 @@ Here are some example query strings:
       - 'bandgap' key has value between 2.2 and 3.0
     * - natoms>=10
       - 10 or more atoms
-    * - formula=H2O
-      - Exactly two hydrogens and one oxygen
     * - id=2345
       - specific id
     * - age<1h
@@ -162,7 +164,7 @@ Browse database with your web-browser
 
 You can use your web-browser to look at and query databases like this::
 
-    $ ase-db abc.db -w
+    $ ase db abc.db -w
     $ firefox http://0.0.0.0:5000/
 
 Click individual rows to see details.  See the CMR_ web-page for an example of
@@ -194,8 +196,8 @@ database:
 >>> h2 = Atoms('H2', [(0, 0, 0), (0, 0, 0.7)])
 >>> h2.calc = EMT()
 >>> h2.get_forces()
-array([[ 0.        ,  0.        , -9.80290573],
-       [ 0.        ,  0.        ,  9.80290573]])
+array([[ 0.   ,  0.   , -9.803],
+       [ 0.   ,  0.   ,  9.803]])
 
 Write a row to the database with a key-value pair (``'relaxed'``, ``False``):
 
@@ -207,7 +209,7 @@ The :meth:`~Database.write` method returns an integer id.
 Do one more calculation and write results:
 
 >>> from ase.optimize import BFGS
->>> BFGS(h2).run(fmax=0.01)
+>>> BFGS(h2).run(fmax=0.01)  # doctest: +SKIP
 BFGS:   0  12:49:25        1.419427       9.8029
 BFGS:   1  12:49:25        1.070582       0.0853
 BFGS:   2  12:49:25        1.070544       0.0236
@@ -218,8 +220,7 @@ BFGS:   3  12:49:25        1.070541       0.0001
 Loop over selected rows using the :meth:`~Database.select` method:
 
 >>> for row in db.select(relaxed=True):
-...     print(row.forces[0, 2], row.relaxed)
-...
+...     print(row.forces[0, 2], row.relaxed)  # doctest: +SKIP
 -9.8029057329 False
 -9.2526347333e-05 True
 
@@ -239,8 +240,7 @@ Select a single row with the :meth:`~Database.get` method:
 
 >>> row = db.get(relaxed=1, calculator='emt')
 >>> for key in row:
-...    print('{0:22}: {1}'.format(key, row[key]))
-...
+...    print('{0:22}: {1}'.format(key, row[key]))  # doctest: +SKIP
 pbc                   : [False False False]
 relaxed               : True
 calculator_parameters : {}
@@ -428,7 +428,7 @@ Other jobs trying to make the same reservation will fail.  While the jobs are
 running, you can keep an eye on the ongoing (reserved) calculations by
 identifying empty rows::
 
-    $ ase-db many_results.db natoms=0
+    $ ase db many_results.db natoms=0
 
 
 More details
@@ -469,7 +469,7 @@ You can add the desciption using the :attr:`~Database.metadata` attribute:
 >>> db.metadata = {
 ...     'title': 'Project 1',
 ...     'key_descriptions':
-...         {'v0': ('Voltage', 'Longer description ...', 'float', 'V')},
+...         {'v0': ('Voltage', 'Longer description ...', 'V')},
 ...     'default_columns': ['id', 'formula', 'v0']}
 
 ASE already knows all about the following keys:
@@ -477,7 +477,7 @@ ASE already knows all about the following keys:
 .. csv-table::
     :file: known-keys.csv
     :header-rows: 1
-    :widths: 2 3 4 1 2
+    :widths: 2 3 4 2
 
 You can also write/read to/from JSON using::
 
@@ -502,6 +502,10 @@ Then you create an 'ase' user and one database for each project you have::
     postgres=# create user ase login password 'pw';
     postgres=# create database project1;
     postgres=# create database project2;
+
+Show databases and quit::
+
+    postgres=# \l
     postgres=# \q
 
 You should now be able to
@@ -519,7 +523,7 @@ into the PostgreSQL database like this::
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
 Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
-to point to a configuration file containing two lines similar to these::
+to point to a Python configuration file containing something similar to this::
 
     ASE_DB_NAMES = ['postgresql://ase:pw@localhost:5432/project1',
                     'postgresql://ase:pw@localhost:5432/project2',

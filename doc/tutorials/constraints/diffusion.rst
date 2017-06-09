@@ -11,7 +11,7 @@ constraint that forces the Au atom to relax in the *yz*-plane only:
 
 .. literalinclude:: diffusion4.py
 
-The result can be analysed with the command :command:`ase-gui mep?.traj -n
+The result can be analysed with the command :command:`ase gui mep?.traj -n
 -1` (choose :menuselection:`Tools --> NEB`).  The barrier is found to
 be 0.35 eV - exactly as in the :ref:`NEB <diffusion tutorial>`
 tutorial.

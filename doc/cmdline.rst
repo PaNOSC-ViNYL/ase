@@ -4,48 +4,48 @@
 
 .. _cli:
 
-==================
-Command line tools
-==================
+=================
+Command line tool
+=================
 
-ASE has the following command line tools:
+ASE has a command line tool called :program:`ase` with the following
+sub-commands:
 
-* :ref:`ase-gui`: graphical user interface
-* :ref:`ase-db`: manipulation of databases
-* ase-build: build simple molecule or bulk structure
-* ase-run: run calculations with ASE's calculators
-* ase-info
+==============  =================================================
+sub-command     description
+==============  =================================================
+help            Help for sub-command
+info            Print information about files or system
+test            Test ASE
+gui             ASE's :ref:`graphical user interface <ase-gui>`
+db              Manipulate and query :ref:`ASE database <ase-db>`
+run             Run calculation with one of ASE's calculators
+build           Build an atom, molecule or bulk structure
+eos             Calculate equation of state
+ulm             Show content of ulm-file
+nomad-upload    Upload files to NOMAD
+band-structure  Plot band-structure
+completion      Add tab-completion for Bash
+==============  =================================================
 
 
 Python -m tricks
 ================
 
-Some ASE modules can be invoked directly form the command line using ``python
+Some ASE modules can be invoked directly form the command line using ``python3
 -m``.
 
 :ref:`stylecheck`::
 
     $ python -m ase.utils.stylecheck source.py
 
-Equation of state::
-
-    $ python -m ase.eos [-p] traj-file, ...
-
 :ref:`iso surface`::
 
     $ python -m ase.visulaize.mlab [options] filename
 
-Determine file type(s)::
-
-    $ python -m ase.io.formats file ...
-
 Convert old db-files to new::
 
     $ python -m ase.db.convert db-file
-
-Show content of ulm-file::
-
-    $ python -m ase.io.ulm [options] ulm-file [item number]
 
 :ref:`convert`::
 
@@ -57,8 +57,9 @@ Help
 
 For all command-line tools, you can do::
 
-    $ ase-gui --help
-    $ python -m ase.eos --help
+    $ ase --help
+    $ ase sub-command --help
+    $ python -m module --help
 
 to get help (or ``-h`` for short).
 
@@ -68,6 +69,12 @@ to get help (or ``-h`` for short).
 Bash completion
 ===============
 
-You can enable bash completion by adding this line to your ``~/.bashrc``::
+You can enable bash completion like this::
 
-    complete -o default -C _ase_bash_complete.py ase-db ase-run ase-build ase-info ase-gui
+    $ ase completions
+
+This will append a line like this::
+
+    complete -o default -C /path/to/ase/ase/cli/complete.py ase
+
+to your ``~/.bashrc``.

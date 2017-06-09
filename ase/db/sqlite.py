@@ -204,7 +204,6 @@ class SQLite3Database(Database, object):
             row.user = os.getenv('USER')
         else:
             row = atoms
-
             cur.execute('SELECT id FROM systems WHERE unique_id=?',
                         (row.unique_id,))
             results = cur.fetchall()
@@ -237,10 +236,7 @@ class SQLite3Database(Database, object):
                   constraints)
 
         if 'calculator' in row:
-            if not isinstance(row.calculator_parameters, basestring):
-                row.calculator_parameters = encode(row.calculator_parameters)
-            values += (row.calculator,
-                       row.calculator_parameters)
+            values += (row.calculator, encode(row.calculator_parameters))
         else:
             values += (None, None)
 
@@ -356,7 +352,7 @@ class SQLite3Database(Database, object):
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
-            dct['calculator_parameters'] = values[16]
+            dct['calculator_parameters'] = decode(values[16])
         if values[17] is not None:
             dct['energy'] = values[17]
         if values[18] is not None:
@@ -639,6 +635,8 @@ def blob(array):
 
     if array is None:
         return None
+    if len(array) == 0:
+        array = np.zeros(0)
     if array.dtype == np.int64:
         array = array.astype(np.int32)
     if not np.little_endian:

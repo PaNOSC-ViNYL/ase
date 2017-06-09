@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 from ase.build import fcc211, add_adsorbate
 from ase.constraints import FixAtoms
 from ase.calculators.emt import EMT
 from ase.optimize import QuasiNewton
 from ase.neb import NEBTools
 from ase.autoneb import AutoNEB
-import os
 
 # Pt atom adsorbed in a hollow site:
 slab = fcc211('Pt', size=(3, 2, 2), vacuum=4.0)
@@ -31,23 +29,21 @@ qn.run(fmax=0.05)
 # the traj file that remains open.
 del qn
 
+
 def attach_calculators(images):
     for i in range(len(images)):
         images[i].set_calculator(EMT())
 
-autoneb=AutoNEB(attach_calculators,
-                prefix='neb',
-                n_simul=3,
-                n_max=7,
-                fmax=0.05,
-                k=0.5,
-                parallel=False,
-                maxsteps=[50, 1000])
+
+autoneb = AutoNEB(attach_calculators,
+                  prefix='neb',
+                  n_simul=3,
+                  n_max=7,
+                  fmax=0.05,
+                  k=0.5,
+                  parallel=False,
+                  maxsteps=[50, 1000])
 autoneb.run()
 
 nebtools = NEBTools(autoneb.all_images)
-assert abs(nebtools.get_barrier()[0] - 0.969) < 1e-3
-
-# Cleanup
-for i in range(7):
-    os.remove('neb00{0}.traj'.format(i))
+assert abs(nebtools.get_barrier()[0] - 0.938) < 1e-3

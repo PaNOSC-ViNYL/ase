@@ -17,28 +17,17 @@ for name in ['md.json', 'md.db']:
     print(name)
     db = connect(name)
     db.write(Atoms('H'), answer=42, kind='atom', foo=True)
-    db.write(Atoms('H2O'), answer=117, kind='molecule', data=plot)
+    db.write(Atoms('H2O'), answer=117, kind='molecule', foo=False, data=plot)
     db.metadata = {'test': 'ok'}
     db.metadata = {
         'default_columns': ['formula', 'answer', 'kind'],
         'special_keys': [
-            ('kind', 'COMBO', ['atom', 'molecule']),
-            ('foo', 'CHECK')],
+            ('SELECT', 'kind'),
+            ('BOOL', 'foo'),
+            ('RANGE', 'ans', 'Answer', [('ANS', 'answer')])],
         'key_descriptions': {
-            'kind': ('Type', 'Type of system', 'string', ''),
-            'answer': ('Answer', 'Answer to question', 'int', 'eV')},
-        'summary_sections': [
-            ['Basic Properties',
-             ['Item',
-              ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume']],
-             ['Things', ['answer', 'kind']],
-             ['STRUCTUREPLOT'],
-             ['AXIS'],
-             ['PLOT', 'abplot']],
-            ['Calculation Details',
-             ['Calculator Setting', ['calculator']],
-             ['PLOT', 'abplot'],
-             ['FORCES']]]}
+            'kind': ('Type', 'Type of system', ''),
+            'answer': ('Answer', 'Answer to question', 'eV')}}
 
     db = connect(name)
     md = db.metadata

@@ -40,6 +40,7 @@ if the atoms should be kept fixed.
 For example, to fix the positions of all the Cu atoms in a simulation
 with the indices keyword:
 
+>>> from ase.constraints import FixAtoms
 >>> c = FixAtoms(indices=[atom.index for atom in atoms if atom.symbol == 'Cu'])
 >>> atoms.set_constraint(c)
 
@@ -73,25 +74,26 @@ length (see the :ref:`mep2` tutorial).
 Important: If fixing multiple bond lengths, use the FixBondLengths class
 below, particularly if the same atom is fixed to multiple partners.
 
+.. _FixBondLengths:
 
 The FixBondLengths class
 ========================
 
-More than one bond length can be fixed by using this class. Especially
-for cases in which more than one bond length constraint is applied on
-the same atom. It is done by specifying the indices of the two atoms
-forming the bond in pairs.
+RATTLE-type holonomic constraints. More than one bond length can be fixed by
+using this class. Especially for cases in which more than one bond length
+constraint is applied on the same atom. It is done by specifying the indices
+of the two atoms forming the bond in pairs.
 
 .. class:: FixBondLengths(pairs)
 
 Example of use::
 
   >>> c = FixBondLengths([[0, 1], [0, 2]])
-  >>> atoms.set_constraint(c)
+    >>> atoms.set_constraint(c)
 
-Here the distances between atoms with indices 0 and 1 and atoms with
-indices 0 and 2 will be fixed. The constraint is for the same purpose
-as the FixBondLength class.
+    Here the distances between atoms with indices 0 and 1 and atoms with
+    indices 0 and 2 will be fixed. The constraint is for the same purpose
+    as the FixBondLength class.
 
 
 The FixedLine class
@@ -139,6 +141,7 @@ for example to prevent the top layer of a slab from subliming during a
 high-temperature MD simulation. An example of tethering atom at index 3 to its
 original position:
 
+>>> from ase.constraints import Hookean
 >>> c = Hookean(a1=3, a2=atoms[3].position, rt=0.94, k=2.)
 >>> atoms.set_constraint(c)
 
@@ -198,6 +201,7 @@ connecting line of the two atoms.
 
 Example of use::
 
+  >>> form ase.constraints import ExternalForce
   >>> c = ExternalForce(0, 1, 0.5)
   >>> atoms.set_constraint(c)
 
@@ -205,6 +209,7 @@ One can combine this constraint with :class:`FixBondLength` but one has to
 consider the correct ordering when setting both constraints. :class:`ExternalForce`
 must come first in the list as shown in the following example.
 
+  >>> from ase.constraints import ExternalForce, FixBondLength
   >>> c1 = ExternalForce(0, 1, 0.5)
   >>> c2 = FixBondLength(1, 2)
   >>> atoms.set_constraint([c1, c2])
