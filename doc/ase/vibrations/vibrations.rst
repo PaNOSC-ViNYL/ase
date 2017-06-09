@@ -25,7 +25,7 @@ for backward differences, 0 for centered differences, and 1 for
 forward differences.
 
 
-.. infrared::
+.. _infrared:
 
 Infrared intensities
 ====================
