@@ -15,6 +15,9 @@ from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd, basestring
 
+# XXX how to deal with overlaps independent of gpaw ?
+from gpaw.analyse.overlap import Overlap
+
 
 def overlap(calc1, calc2):
     """GPAW overlaps"""
@@ -52,7 +55,7 @@ class ResonantRaman(Vibrations):
                  txt='-',
                  verbose=False,
                  overlap=False,
-                 minoverlap=0.1,
+                 minoverlap=0.02,
                  minrep=0.8,
     ):
         """
@@ -104,8 +107,8 @@ class ResonantRaman(Vibrations):
             Verbosity level of output
         overlap: bool/float
             Use wavefunction overlaps.
-        minoverlap: float
-            Minimal absolute overlap to consider. Defaults to 0.1 to avoid
+        minoverlap: float ord dict
+            Minimal absolute overlap to consider. Defaults to 0.02 to avoid
             numerical garbage.
         minrep: float
             Minimal represention to consider derivative, defaults to 0.8
@@ -132,8 +135,13 @@ class ResonantRaman(Vibrations):
         self.txt = convert_string_to_fd(txt)
 
         self.verbose = verbose
-        self.overlap = overlap
-        self.minoverlap = minoverlap
+        self.overlap = bool(overlap)
+        if not isinstance(minoverlap, dict):
+            # assume it's a number
+            self.minoverlap = {'orbitals': minoverlap,
+                               'excitations': minoverlap}
+        else:
+            self.minoverlap = minoverlap
         self.minrep = minrep
         
     @property
@@ -294,9 +302,13 @@ class ResonantRaman(Vibrations):
             self.log('reading ' + name + pm + '.pckl.ov.npy')
             ov_nn = np.load(name + pm + '.pckl.ov.npy')
             # remove numerical garbage
-            ov_nn = np.where(np.abs(ov_nn) > self.minoverlap, ov_nn, 0)
+            ov_nn = np.where(np.abs(ov_nn) > self.minoverlap['orbitals'],
+                             ov_nn, 0)
             self.timer.start('ex overlap')
             ov_pp = ex_p.overlap(ov_nn, ex0)
+            # remove numerical garbage
+            ov_pp = np.where(np.abs(ov_pp) > self.minoverlap['excitations'],
+                             ov_pp, 0)
             rep0_p *= (ov_pp**2).sum(axis=0)
             self.timer.stop('ex overlap')
             return ex_p, ov_pp
