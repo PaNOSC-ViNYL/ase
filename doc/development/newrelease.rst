@@ -13,6 +13,7 @@ New release
 * Upload to PyPI::
 
       $ python3 setup.py sdist
+      $ python3 setup.py bdist_wheel
       $ twine upload dist/*
 
 * Push and make a tag.
