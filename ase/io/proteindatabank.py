@@ -3,7 +3,14 @@
 See::
 
     http://www.wwpdb.org/documentation/file-format
+
+Note: The PDB format saves cell lengths and angles; hence the absolute
+orientation is lost when saving.  Saving and loading a file will
+conserve the scaled positions, not the absolute ones.
 """
+
+import warnings
+
 import numpy as np
 
 from ase.atoms import Atom, Atoms
@@ -26,6 +33,7 @@ def read_proteindatabank(fileobj, index=-1):
         if line.startswith('CRYST1'):
             cellpar = [float(word) for word in line[6:54].split()]
             atoms.set_cell(cellpar_to_cell(cellpar))
+            atoms.pbc = True
         for c in range(3):
             if line.startswith('ORIGX' + '123'[c]):
                 pars = [float(word) for word in line[10:55].split()]
@@ -44,8 +52,9 @@ def read_proteindatabank(fileobj, index=-1):
                                      float(words[2])])
                 position = np.dot(orig, position) + trans
                 atoms.append(Atom(symbol, position))
-            except:
-                pass
+            except Exception as ex:
+                warnings.warn('Discarding atom when reading PDB file: {}'
+                              .format(ex))
         if line.startswith('ENDMDL'):
             images.append(atoms)
             atoms = Atoms()
