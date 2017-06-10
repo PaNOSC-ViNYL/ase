@@ -56,6 +56,7 @@ all_formats = {
     'dacapo-text': ('Dacapo text output', '1F'),
     'db': ('ASE SQLite database file', '+S'),
     'dftb': ('DftbPlus input file', '1S'),
+    'dlp4': ('DL_POLY_4 CONFIG file', '1F'),
     'dmol-arc': ('DMol3 arc file', '+S'),
     'dmol-car': ('DMol3 structure file', '1S'),
     'dmol-incoor': ('DMol3 structure file', '1S'),
@@ -122,6 +123,7 @@ format2modulename = {
     'castep-md': 'castep',
     'castep-phonon': 'castep',
     'dacapo-text': 'dacapo',
+    'dlp4': 'dlp4',
     'espresso-in': 'espresso',
     'espresso-out': 'espresso',
     'gaussian-out': 'gaussian',
@@ -148,6 +150,7 @@ extension2format = {
     'cell': 'castep-cell',
     'com': 'gaussian',
     'con': 'eon',
+    'config': 'dlp4',
     'exi': 'exciting',
     'g96': 'gromos',
     'geom': 'castep-geom',
@@ -559,6 +562,8 @@ def filetype(filename, read=True):
             return 'cmdft'
         if basename == 'atoms.dat':
             return 'iwm'
+        if 'CONFIG' in basename:
+            return 'dlp4'
 
         if not read:
             return extension2format.get(ext, ext)
