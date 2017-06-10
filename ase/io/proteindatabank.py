@@ -62,9 +62,15 @@ def write_proteindatabank(fileobj, images):
     if hasattr(images, 'get_positions'):
         images = [images]
 
+
+    rotation = None
     if images[0].get_pbc().any():
-        from ase.geometry import cell_to_cellpar
-        cellpar = cell_to_cellpar(images[0].get_cell())
+        from ase.geometry import cell_to_cellpar, cellpar_to_cell
+
+        currentcell = images[0].get_cell()
+        cellpar = cell_to_cellpar(currentcell)
+        exportedcell = cellpar_to_cell(cellpar)
+        rotation = np.linalg.solve(currentcell, exportedcell)
         # ignoring Z-value, using P1 since we have all atoms defined explicitly
         format = 'CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1\n'
         fileobj.write(format % (cellpar[0], cellpar[1], cellpar[2],
@@ -84,6 +90,8 @@ def write_proteindatabank(fileobj, images):
     for n, atoms in enumerate(images):
         fileobj.write('MODEL     ' + str(n + 1) + '\n')
         p = atoms.get_positions()
+        if rotation is not None:
+            p = p.dot(rotation)
         for a in range(natoms):
             x, y, z = p[a]
             fileobj.write(format % (a % MAXNUM, symbols[a],
