@@ -57,6 +57,21 @@ How should I cite ASE?
 
 If you find ASE useful in your research please cite:
 
+   | Ask Larsen, Jens Mortensen, Jakob Blomqvist, Ivano Castelli,
+   | Rune Christensen, Marcin Dulak, Jesper Friis, Michael Groves,
+   | Bjork Hammer, Cory Hargus, Eric Hermes, Paul Jennings, Peter Jensen,
+   | James Kermode, John Kitchin, Esben Kolsbjerg, Joseph Kubal,
+   |  Kristen Kaasbjerg, Steen Lysgaard, Jon Maronsson, Tristan Maxson,
+   | Thomas Olsen, Lars Pastewka, Andrew Peterson, Carsten Rostgaard,
+   | Jakob Schiøtz, Ole Schütt, Mikkel Strange, Kristian Thygesen, Tejs Vegge,
+   | Lasse Vilhelmsen, Michael Walter, Zhenhua Zeng, Karsten Wedel Jacobsen
+   | `The Atomic Simulation Environment—A Python library for working with atoms`__
+   | J. Phys.: Condens. Matter Vol. **29** 273002, 2017
+
+   __ https://doi.org/10.1088/1361-648X/aa680e
+
+An older paper corresponding to an early version of ASE is:
+
    | S. R. Bahn and K. W. Jacobsen
    | `An object-oriented scripting interface to a legacy electronic structure code`__
    | Comput. Sci. Eng., Vol. **4**, 56-66, 2002
