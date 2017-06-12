@@ -163,10 +163,14 @@ class Inhomogeneous_NPTBerendsen(NPTBerendsen):
     compressibility
         The compressibility of the material, water 4.57E-5 bar-1, in bar-1
 
+    mask
+        Specifies which axes participate in the barostat.  Default (1, 1, 1)
+        means that all axes participate, set any of them to zero to disable
+        the barostat in that direction.
     """
     def __init__(self, atoms, timestep, temperature, 
-                 taut=0.5e3*units.fs, pressure=1.01325, taup=1e3*units.fs,
-                 compressibility=4.57e-5, mask=(1,1,1),
+                 taut=0.5e3 * units.fs, pressure=1.01325, taup=1e3 * units.fs,
+                 compressibility=4.57e-5, mask=(1, 1, 1),
                  fixcm=True, trajectory=None,
                  logfile=None, loginterval=1):
 
