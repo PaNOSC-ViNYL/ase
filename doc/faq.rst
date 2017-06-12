@@ -61,7 +61,7 @@ If you find ASE useful in your research please cite:
    | Rune Christensen, Marcin Dulak, Jesper Friis, Michael Groves,
    | Bjork Hammer, Cory Hargus, Eric Hermes, Paul Jennings, Peter Jensen,
    | James Kermode, John Kitchin, Esben Kolsbjerg, Joseph Kubal,
-   |  Kristen Kaasbjerg, Steen Lysgaard, Jon Maronsson, Tristan Maxson,
+   | Kristen Kaasbjerg, Steen Lysgaard, Jon Maronsson, Tristan Maxson,
    | Thomas Olsen, Lars Pastewka, Andrew Peterson, Carsten Rostgaard,
    | Jakob Schiøtz, Ole Schütt, Mikkel Strange, Kristian Thygesen, Tejs Vegge,
    | Lasse Vilhelmsen, Michael Walter, Zhenhua Zeng, Karsten Wedel Jacobsen
