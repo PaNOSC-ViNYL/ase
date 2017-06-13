@@ -98,12 +98,12 @@ class Summary:
                             continue
                     elif block.endswith('.png'):
                         name = op.join(tmpdir, prefix + block)
-                        if op.isfile(name):
-                            if op.getsize(name) == 0:
-                                block = None
-                        else:
+                        if not op.isfile(name):
                             self.create_figures(row, prefix, tmpdir,
                                                 meta['functions'])
+                        if op.getsize(name) == 0:
+                            # Skip empty files:
+                            block = None
 
                     newcolumn.append(block)
                 newcolumns.append(newcolumn)
@@ -143,6 +143,7 @@ class Summary:
                     if os.path.isfile(filename):
                         shutil.move(filename, path)
                     else:
+                        # Create an empty file:
                         with open(path, 'w'):
                             pass
 

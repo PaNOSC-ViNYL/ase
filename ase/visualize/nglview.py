@@ -1,7 +1,6 @@
 # coding: utf-8
 
 from ase import Atoms
-import nglview
 
 
 class NGLDisplay:
@@ -14,6 +13,7 @@ class NGLDisplay:
     manipulating the structure.
     """
     def __init__(self, atoms, xsize=500, ysize=500):
+        import nglview
         from ipywidgets import Dropdown, FloatSlider, IntSlider, HBox, VBox
         self.atoms = atoms
         if isinstance(atoms[0], Atoms):

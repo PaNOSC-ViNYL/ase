@@ -7,4 +7,3 @@ k = np.dot(cc162_1x1, B)
 plt.figure(figsize=(5, 4))
 plt.plot(k[:, 0], k[:, 1], 'o')
 plt.savefig('cc.png')
-

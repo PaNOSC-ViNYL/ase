@@ -379,6 +379,8 @@ class View:
         ncell = len(self.X_cell)
         bond_linewidth = self.scale * 0.15
 
+        self.update_labels()
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -394,8 +396,8 @@ class View:
 
                     # Draw labels on the atoms
                     if self.labels is not None:
-                        self.update_labels()
-                        self.window.text(A[a, 0] + ra/2, A[a, 1] + ra/2,
+                        self.window.text(A[a, 0] + ra / 2,
+                                         A[a, 1] + ra / 2,
                                          str(self.labels[a]))
 
                     # Draw cross on constrained atoms
