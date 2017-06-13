@@ -1,6 +1,11 @@
-from ase.build import molecule
+import matplotlib.pyplot as plt
 from ase.visualize.plot import plot_atoms
-system = molecule('H2O')
+from ase.lattice.cubic import FaceCenteredCubic
 
-ax = plot_atoms(system)
+slab = FaceCenteredCubic('Au', size=(2, 2, 2))
+
+fig, ax = plt.subplots()
+plot_atoms(slab, ax, radii=0.5, rotation=('10x,10y,10z'))
+
+assert len(ax.patches) == len(slab)
 print(ax)
