@@ -62,12 +62,12 @@
     {% endif %}
 {% endwith %}
 <small lcass="form-text text-muted">
-<a data-toggle="collapse" href="#collapse1">Show keys ...</a>
+<a data-toggle="collapse" href="#collapse1">Show all keys ...</a>
 </small><br/>
 <div id="collapse1" class="collapse">
 <table class="table table-striped">
 {% for key, description, unit in md.all_keys %}
-<tr><td>{{ key }}</td><td>{{ description }}</td><td>{{ unit }}</td></tr>
+<tr><td>{{ key }}</td><td>{{ description }}</td><td>{{ unit|safe }}</td></tr>
 {% endfor %}
 </table>
 </div>
