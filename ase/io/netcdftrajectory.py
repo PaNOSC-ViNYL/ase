@@ -553,7 +553,8 @@ class NetCDFTrajectory:
             # Read positions
             positions = np.array(self._get_data(self._positions_var, i)[index])
 
-            # Determine cell size for non-periodic directions
+            # Determine cell size for non-periodic directions from shrink
+            # wrapped cell.
             for dim in np.arange(3)[np.logical_not(pbc)]:
                 origin[dim] = positions[:, dim].min()
                 cell_lengths[dim] = positions[:, dim].max() - origin[dim]
@@ -576,9 +577,10 @@ class NetCDFTrajectory:
 
             # Create atoms object
             atoms = ase.Atoms(
-                positions=positions - origin.reshape(1, -1),
+                positions=positions,
                 numbers=self.numbers,
                 cell=cell,
+                celldisp=origin,
                 momenta=momenta,
                 masses=self.masses,
                 pbc=pbc,
