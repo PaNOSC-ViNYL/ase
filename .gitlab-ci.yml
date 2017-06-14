@@ -2,7 +2,7 @@
 python_2_7_tests:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy python-scipy pyflakes libhdf5-dev libnetcdf-dev cython
+    - apt-get install -qy python-pip python-numpy python-scipy pyflakes libhdf5-dev libnetcdf-dev cython
     - pip install --user netCDF4
     - pwd
     - echo $HOME
