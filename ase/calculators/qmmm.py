@@ -280,7 +280,7 @@ class LJInteractionsGeneral:
         self.sigmamm = sigmamm
         self.epsilonmm = epsilonmm
         self.molecule_size = molecule_size
-        self.CombineLJ()
+        self.combine_lj()
 
     def combine_lj(self):
         self.sigma, self.epsilon = combine_lj_lorenz_berthelot(self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)

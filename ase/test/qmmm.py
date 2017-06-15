@@ -6,7 +6,7 @@ import numpy as np
 import ase.units as units
 from ase import Atoms
 from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
-from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
+from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions, LJInteractionsGeneral
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
@@ -22,12 +22,22 @@ D = np.linspace(2.5, 3.5, 30)
 
 i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
+# General LJ interaction object
+sigma_mm=np.array([0, 0, sigma0])
+epsilon_mm=np.array([0, 0, epsilon0])
+sigma_qm=np.array([0, 0, sigma0])
+epsilon_qm=np.array([0, 0, epsilon0])
+ig = LJInteractionsGeneral(sigma_qm, epsilon_qm, sigma_mm, epsilon_mm)
+
 for calc in [TIP3P(),
              SimpleQMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P()),
              SimpleQMMM([0, 1, 2], TIP3P(), TIP3P(), TIP3P(), vacuum=3.0),
              EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i),
              EIQMMM([3, 4, 5], TIP3P(), TIP3P(), i, vacuum=3.0),
-             EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0)]:
+             EIQMMM([0, 1, 2], TIP3P(), TIP3P(), i, vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP3P(), TIP3P(), ig),
+             EIQMMM([3, 4, 5], TIP3P(), TIP3P(), ig, vacuum=3.0),
+             EIQMMM([0, 1, 2], TIP3P(), TIP3P(), ig, vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),
