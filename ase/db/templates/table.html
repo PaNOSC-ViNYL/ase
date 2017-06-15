@@ -49,7 +49,7 @@
 
             <div class="form-group" style="margin-bottom:0px;">
                 <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries ...</a></small>
-            </div>
+            </div><br/>
 
 {# Flash query messages #}
 {% with messages = get_flashed_messages() %}
@@ -61,6 +61,16 @@
     </ul>
     {% endif %}
 {% endwith %}
+<small lcass="form-text text-muted">
+<a data-toggle="collapse" href="#collapse1">Show all keys ...</a>
+</small><br/>
+<div id="collapse1" class="collapse">
+<table class="table table-striped">
+{% for key, description, unit in md.all_keys %}
+<tr><td>{{ key }}</td><td>{{ description }}</td><td>{{ unit|safe }}</td></tr>
+{% endfor %}
+</table>
+</div>
 </form>
 </div>
 
