@@ -258,7 +258,7 @@ class Embedding:
         f = self.pcpot.get_forces(self.qmatoms.calc)
         return self.mmatoms.calc.redistribute_forces(f)
 
-def CombineLJ_lorenz_berthelot(sigmaqm, sigmamm,
+def combine_lj_lorenz_berthelot(sigmaqm, sigmamm,
                                epsilonqm, epsilonmm):
     """Combine LJ parameters according to the
        Lorenz-Berthelot rule"""
@@ -270,8 +270,8 @@ def CombineLJ_lorenz_berthelot(sigmaqm, sigmamm,
         epsilon_c[ii, :]=(epsilonqm[ii]*epsilonmm)**0.5
     return sigma_c, epsilon_c
 
-class LJInteractions_general:
-    name = 'LJ_general'
+class LJInteractionsGeneral:
+    name = 'LJ-general'
     
     def __init__(self, sigmaqm, epsilonqm, sigmamm, 
                  epsilonmm, molecule_size=3):
@@ -282,7 +282,7 @@ class LJInteractions_general:
         self.molecule_size = molecule_size
         self.CombineLJ()
 
-    def CombineLJ(self):
+    def combine_lj(self):
         self.sigma, self.epsilon = CombineLJ_lorenz_berthelot(self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)
 
     def calculate(self, qmatoms, mmatoms, shift):  
