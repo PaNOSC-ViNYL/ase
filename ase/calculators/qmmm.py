@@ -283,7 +283,7 @@ class LJInteractionsGeneral:
         self.CombineLJ()
 
     def combine_lj(self):
-        self.sigma, self.epsilon = CombineLJ_lorenz_berthelot(self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)
+        self.sigma, self.epsilon = combine_lj_lorenz_berthelot(self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)
 
     def calculate(self, qmatoms, mmatoms, shift):  
         mmpositions = self.update(qmatoms, mmatoms, shift)         
