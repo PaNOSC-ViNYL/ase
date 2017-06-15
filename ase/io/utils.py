@@ -154,7 +154,7 @@ def make_patch_list(writer):
             if ((xy[1] + r > 0) and (xy[1] - r < writer.h) and
                 (xy[0] + r > 0) and (xy[0] - r < writer.w)):
                 patch = Circle(xy, r, facecolor=writer.colors[a],
-                    edgecolor='black')
+                               edgecolor='black')
                 patch_list.append(patch)
         else:
             a -= writer.natoms
