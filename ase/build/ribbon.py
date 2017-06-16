@@ -7,7 +7,7 @@ from ase.atoms import Atoms
 
 
 def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
-                        C_C=1.42, vacuum=None, magnetic=None, initial_mag=1.12,
+                        C_C=1.42, vacuum=None, magnetic=False, initial_mag=1.12,
                         sheet=False, main_element='C', saturate_element='H'):
     """Create a graphene nanoribbon.
 
@@ -29,14 +29,14 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
         Carbon-hydrogen bond length.  Default: 1.09 Angstrom.
     C_C: float
         Carbon-carbon bond length.  Default: 1.42 Angstrom.
-    vacuum: float
-        Amount of vacuum added to both sides.  Default 2.5 Angstrom.
+    vacuum: None (default) or float
+        Amount of vacuum added to non-periodic directions, if present.
     magnetic: bool
         Make the edges magnetic.
     initial_mag: float
-        Magnitude of magnetic moment if magnetic=True.
+        Magnitude of magnetic moment if magnetic.
     sheet: bool
-        If true, make an infinite sheet instead of a ribbon.
+        If true, make an infinite sheet instead of a ribbon (default: False)
     """
 
     b = sqrt(3) * C_C / 4
