@@ -1,10 +1,10 @@
-"""Inline viewer for jupyter notebook."""
+"""Inline viewer for jupyter notebook using X3D."""
 
 from tempfile import NamedTemporaryFile
 from IPython.display import HTML
 
 
-def jupview(atoms):
+def view_x3d(atoms):
     """View atoms inline in a jupyter notbook. This command
     should only be used within a jupyter/ipython notebook."""
     with NamedTemporaryFile('r+', suffix='.html') as ntf:

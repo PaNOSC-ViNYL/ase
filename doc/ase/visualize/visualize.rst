@@ -52,7 +52,14 @@ a large degree of customisability. :ref:`More information <matplotlib_plotting>`
 Viewer for Jupyter notebooks
 ----------------------------
 
-The nglview viewer is a dedicated viewer for the Jupyter_ notebook interface.
+A simple viewer based on X3D is built into ASE, which should work on modern
+browsers without additional packages, by typing the following command into
+a Jupyter_ notebook:
+
+>>> view(atoms, viewer='x3d')
+
+For a more feature-rich viewer, nglview is a dedicated viewer for the
+Jupyter_ notebook interface.
 It uses an embeddable NGL_ WebGL molecular viewer. The viewer works only in
 the web browser environment and embeds the live javascript output into the
 notebook. To utilize this functionality you need to have NGLView_ and
