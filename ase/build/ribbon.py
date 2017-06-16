@@ -106,7 +106,9 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
         atoms.cell = [b * 4 * n, 0, 3 * C_C * m]
 
     atoms.set_pbc([sheet, False, True])
-    atoms.center(axis=2)
+    atoms.set_scaled_positions(atoms.get_scaled_positions() % 1.0)
+    if not sheet:
+        atoms.cell[0] = 0.0
     if vacuum:
         atoms.center(vacuum, axis=1)
         if not sheet:
