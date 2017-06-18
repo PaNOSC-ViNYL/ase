@@ -1,15 +1,15 @@
 # Galician translations for ase package.
-# Copyright (C) 2016 ASE developers
+# Copyright (C) 2016-2017 ASE developers
 # This file is distributed under the same license as the ASE package.
 #
-# Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>, 2016.
+# Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>, 2016-2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-04-11 20:41+0200\n"
-"PO-Revision-Date: 2017-01-12 15:04+0100\n"
+"POT-Creation-Date: 2017-06-12 16:47+0200\n"
+"PO-Revision-Date: 2017-06-18 16:20+0200\n"
 "Last-Translator: Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -19,10 +19,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../add.py:12
-#, fuzzy
-#| msgid "Position"
 msgid "Bad position"
-msgstr "Posición"
+msgstr "Posición inválida"
 
 #. XXXXXXXXXXX still array based, not Atoms-based.  Will crash
 #: ../add.py:20
@@ -31,7 +29,7 @@ msgstr "Engadir átomos"
 
 #: ../add.py:25
 msgid "Absolute position:"
-msgstr ""
+msgstr "Posición absoluta:"
 
 #: ../add.py:27 ../add.py:30 ../nanoparticle.py:262
 msgid "Add"
@@ -39,47 +37,47 @@ msgstr "Engadir"
 
 #: ../add.py:28
 msgid "Relative to average position (of selection):"
-msgstr ""
+msgstr "Relativo a unha posición promedio (de selección):"
 
-#: ../colors.py:14
+#: ../colors.py:15
 msgid "Colors"
 msgstr "Cores"
 
-#: ../colors.py:16
+#: ../colors.py:17
 msgid "Choose how the atoms are colored:"
 msgstr "Elixa a cor dos átomos:"
 
-#: ../colors.py:18
+#: ../colors.py:19
 msgid "By atomic number, default \"jmol\" colors"
 msgstr "Por número atómico, cores de \"jmol\" por defecto"
 
-#: ../colors.py:19
+#: ../colors.py:20
 msgid "By tag"
 msgstr "Por etiqueta"
 
-#: ../colors.py:20
+#: ../colors.py:21
 msgid "By force"
 msgstr "Por forza"
 
-#: ../colors.py:21
+#: ../colors.py:22
 msgid "By velocity"
 msgstr "Por velocidade"
 
-#: ../colors.py:22
+#: ../colors.py:23
 msgid "By charge"
 msgstr "Por carga"
 
-#: ../colors.py:23
+#: ../colors.py:24
 msgid "By magnetic moment"
 msgstr "Por momento magnético"
 
-#: ../colors.py:65
+#: ../colors.py:67
 msgid "Green"
-msgstr ""
+msgstr "Verde"
 
-#: ../colors.py:65
+#: ../colors.py:67
 msgid "Yellow"
-msgstr ""
+msgstr "Amarelo"
 
 #: ../constraints.py:8
 msgid "Constraints"
@@ -162,8 +160,8 @@ msgstr "  y: "
 msgid "  z: "
 msgstr "  z: "
 
-#: ../crystal.py:97 ../surfaceslab.py:77 ../surfaceslab.py:78
-#: ../surfaceslab.py:79
+#: ../crystal.py:97 ../surfaceslab.py:75 ../surfaceslab.py:76
+#: ../surfaceslab.py:77
 msgid " unit cells"
 msgstr " celdas unidades"
 
@@ -229,7 +227,7 @@ msgstr "\t\tc:\t"
 msgid "\tgamma:\t"
 msgstr "\tgama:\t"
 
-#: ../crystal.py:161 ../surfaceslab.py:57
+#: ../crystal.py:161 ../surfaceslab.py:55
 msgid "Get from database"
 msgstr "Obter desde a base de datos"
 
@@ -268,12 +266,12 @@ msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conxunto consistente de átomos."
 
 #: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:528
-#: ../nanotube.py:84 ../surfaceslab.py:221
+#: ../nanotube.py:84 ../surfaceslab.py:220
 msgid "No valid atoms."
 msgstr "Os átomos no son válidos."
 
 #: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:529
-#: ../nanotube.py:85 ../surfaceslab.py:222 ../widgets.py:76
+#: ../nanotube.py:85 ../surfaceslab.py:221 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "Aínda non especificou un conxunto consistente de parámetros."
 
@@ -392,7 +390,7 @@ msgid "  Length: "
 msgstr "  Lonxitude: "
 
 #. Vacuum
-#: ../graphene.py:105 ../surfaceslab.py:80
+#: ../graphene.py:105 ../surfaceslab.py:78
 msgid "Vacuum: "
 msgstr "Vacío: "
 
@@ -405,7 +403,6 @@ msgid "Please specify a consistent set of atoms. "
 msgstr "Por favor, especifique un conxunto consistente de átomos. "
 
 #: ../graphs.py:11
-#, fuzzy
 msgid ""
 "Symbols:\n"
 "<c>e</c>: total energy\n"
@@ -423,12 +420,14 @@ msgid ""
 "<c>M[n]</c>: magnetic moment of atom number <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: unit-cell basis vectors\n"
 "<c>s</c>: path length\n"
-"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</"
-"sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on "
+"<c>n<sub>2</sub></c>\n"
 "<c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 msgstr ""
+"Símbolos:\n"
 "<c>e</c>: enerxía total\n"
 "<c>epot</c>: enerxía potencial\n"
 "<c>ekin</c>: enerxía cinética\n"
@@ -444,8 +443,9 @@ msgstr ""
 "<c>M[n]</c>: momento magnético do átomo número <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: vectores base da celda unidade\n"
 "<c>s</c>: lonxitude da traxectoria\n"
-"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, <c>n<sub>2</"
-"sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en "
+"<c>n<sub>2</sub></c>\n"
 "<c>dih(n1,n2,n3,n4)</c>: ángulo diedro entre <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperatura (K)"
@@ -476,7 +476,7 @@ msgstr "Abrir ..."
 
 #: ../gui.py:262
 msgid "Choose parser:"
-msgstr ""
+msgstr "Escolla un párser:"
 
 #: ../gui.py:373
 msgid "_File"
@@ -788,27 +788,23 @@ msgstr "_Acerca de ag"
 msgid "Webpage ..."
 msgstr "Páxina web ..."
 
-#: ../modify.py:18
-#, fuzzy
-#| msgid "No atoms loaded."
+#: ../modify.py:19
 msgid "No atoms selected!"
 msgstr "Non hai átomos seleccionados."
 
-#: ../modify.py:21
+#: ../modify.py:22
 msgid "Modify"
 msgstr "Modificar"
 
-#: ../modify.py:24
-#, fuzzy
-#| msgid "Change View"
+#: ../modify.py:25
 msgid "Change element"
-msgstr "Cambiar de vista"
+msgstr "Cambiar de elemento"
 
-#: ../modify.py:27
+#: ../modify.py:28
 msgid "Tag"
 msgstr "Etiqueta"
 
-#: ../modify.py:29
+#: ../modify.py:30
 msgid "Moment"
 msgstr "Momento magnético"
 
@@ -822,19 +818,19 @@ msgstr "Imaxe número:"
 
 #: ../movie.py:18
 msgid "First"
-msgstr ""
+msgstr "Primeira"
 
 #: ../movie.py:19
 msgid "Back"
-msgstr ""
+msgstr "Atrás"
 
 #: ../movie.py:20
 msgid "Forward"
-msgstr ""
+msgstr "Adiante"
 
 #: ../movie.py:21
 msgid "Last"
-msgstr ""
+msgstr "Última"
 
 #: ../movie.py:23
 msgid "Play"
@@ -967,7 +963,7 @@ msgstr "Nanopartícula"
 msgid "Get structure"
 msgstr "Obter estrutura"
 
-#: ../nanoparticle.py:154 ../surfaceslab.py:72
+#: ../nanoparticle.py:154 ../surfaceslab.py:70
 msgid "Structure:"
 msgstr "Estrutura:"
 
@@ -1012,11 +1008,11 @@ msgstr "Aplicar automáticamente"
 msgid "Creating a nanoparticle."
 msgstr "Creando unha nanopartícula."
 
-#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:84
+#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:82
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
-#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:85
+#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:83
 msgid "OK"
 msgstr "OK"
 
@@ -1038,7 +1034,7 @@ msgstr "Número de átomos"
 
 #: ../nanoparticle.py:269
 msgid "Diameter"
-msgstr ""
+msgstr "Diámetro"
 
 #: ../nanoparticle.py:277
 msgid "above  "
@@ -1062,13 +1058,11 @@ msgstr "Máis longo"
 
 #: ../nanoparticle.py:282
 msgid "Choose size using:"
-msgstr ""
+msgstr "Escolla dimensions usando:"
 
 #: ../nanoparticle.py:284
-#, fuzzy
-#| msgid "Add atoms"
 msgid "atoms"
-msgstr "Engadir átomos"
+msgstr "átomos"
 
 #: ../nanoparticle.py:285
 msgid "Å³"
@@ -1101,7 +1095,7 @@ msgstr "Estrutura non soportada ou descoñecida"
 #: ../nanoparticle.py:415
 #, python-brace-format
 msgid "Element = {0}, structure = {1}"
-msgstr ""
+msgstr "Elemento = {0}, estrutura = {1}"
 
 #: ../nanotube.py:13
 msgid ""
@@ -1118,16 +1112,13 @@ msgstr ""
 "lonxitude do enlace."
 
 #: ../nanotube.py:26
-#, fuzzy, python-brace-format
-#| msgid ""
-#| " %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
-#| "%(volume).3f Å<sup>3</sup>"
+#, python-brace-format
 msgid ""
 "{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} "
 "Å"
 msgstr ""
-" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: "
-"%(volume).3f Å<sup>3</sup>"
+"{natoms} átomos, diámetro: {diameter:.3f} Å, lonxitude total: "
+"{total_length:.3f} Å"
 
 #: ../nanotube.py:40
 msgid "Nanotube"
@@ -1191,7 +1182,7 @@ msgstr ""
 
 #: ../quickinfo.py:33
 msgid "This frame has no atoms."
-msgstr ""
+msgstr "Este cadro non ten átomos."
 
 #: ../quickinfo.py:53
 msgid "no"
@@ -1391,16 +1382,6 @@ msgstr ""
 "botón número 2 do ratón."
 
 #: ../save.py:14
-#, fuzzy
-#| msgid ""
-#| "Append name with \"@n\" in order to write image number \"n\" instead of "
-#| "the current image.\n"
-#| "Append \"@start:stop\" or \"@start:stop:step\" if you want to write a "
-#| "range of images.\n"
-#| "You can leave out \"start\" and \"stop\" so that \"name@:\" will give you "
-#| "all images.\n"
-#| "Negative numbers count from the last image (\"name@-1\": last image, "
-#| "\"name@-2:\": last two)."
 msgid ""
 "Append name with \"@n\" in order to write image\n"
 "number \"n\" instead of the current image. Append\n"
@@ -1411,14 +1392,13 @@ msgid ""
 "last image. Examples: \"name@-1\": last image,\n"
 "\"name@-2:\": last two."
 msgstr ""
-"Engada \"@n\" o nome para escribir a imáxe número \"n\" en vez da imaxe "
-"actual.\n"
-"Engada \"@principio:fin\" o \"@principio:fin:paso\" para escribir unha "
-"secuencia de imaxes.\n"
-"Pode omitir \"principio\" e \"fin\" e así \"nome@:\" incluirá tódalas "
-"imaxes.\n"
-"Números negativos cóntanse desde a última imaxe (\"nome@-1\": última, "
-"\"nome@-2:\": as dúas últimas)."
+"Engada \"@n\" o nome para escribir a imáxe número\n"
+"\"n\" en vez da imaxe actual.  Engada \"@principio:fin\"\n"
+"o \"@principio:fin:paso\" para escribir unha secuencia\n"
+"de imaxes.  Pode omitir \"principio\" e \"fin\" e así\n"
+"\"nome@:\" incluirá tódalas imaxes.  Números negativos\n"
+"cóntanse desde a última imaxe. Exemplos: \"nome@-1\":\n"
+"última imaxe, \"nome@-2:\": as dúas últimas)."
 
 #: ../save.py:26
 msgid "Save ..."
@@ -1520,32 +1500,30 @@ msgid "No calculator: Use Calculate/Set Calculator on the menu."
 msgstr "No hai un calculador. Use Calcular/Fixar Calculador no menú."
 
 #: ../simulation.py:123
-#, fuzzy
-#| msgid "No atoms loaded."
 msgid "No atoms present"
-msgstr "Non hai átomos seleccionados."
+msgstr "Non hai átomos presentes"
 
-#: ../status.py:57
+#: ../status.py:58
 #, python-format
 msgid " tag=%(tag)s"
 msgstr " etiqueta=%(tag)s"
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:61
+#: ../status.py:62
 #, python-brace-format
 msgid " mom={0:1.2f}"
 msgstr " mom={0:1.2f}"
 
-#: ../status.py:65
+#: ../status.py:66
 #, python-brace-format
 msgid " q={0:1.2f}"
 msgstr " q={0:1.2f}"
 
-#: ../status.py:110
+#: ../status.py:111
 msgid "dihedral"
 msgstr "diedro"
 
-#: ../surfaceslab.py:14
+#: ../surfaceslab.py:12
 msgid ""
 "  Use this dialog to create surface slabs.  Select the element by\n"
 "writing the chemical symbol or the atomic number in the box.  Then\n"
@@ -1568,155 +1546,129 @@ msgstr ""
 "na base de datos de ASE, se non terá que especificala."
 
 #. Name, structure, orthogonal, function
-#: ../surfaceslab.py:26
+#: ../surfaceslab.py:24
 msgid "FCC(100)"
 msgstr "FCC(100)"
 
-#: ../surfaceslab.py:26 ../surfaceslab.py:27 ../surfaceslab.py:28
-#: ../surfaceslab.py:29
+#: ../surfaceslab.py:24 ../surfaceslab.py:25 ../surfaceslab.py:26
+#: ../surfaceslab.py:27
 msgid "fcc"
 msgstr "fcc"
 
-#: ../surfaceslab.py:27
+#: ../surfaceslab.py:25
 msgid "FCC(110)"
 msgstr "FCC(110)"
 
-#: ../surfaceslab.py:28 ../surfaceslab.py:172
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:26 ../surfaceslab.py:170
 msgid "FCC(111)"
-msgstr "FCC(110)"
+msgstr "FCC(111)"
 
-#: ../surfaceslab.py:29 ../surfaceslab.py:175
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:27 ../surfaceslab.py:173
 msgid "FCC(211)"
-msgstr "FCC(110)"
+msgstr "FCC(211)"
 
-#: ../surfaceslab.py:30
+#: ../surfaceslab.py:28
 msgid "BCC(100)"
 msgstr "BCC(100)"
 
-#: ../surfaceslab.py:30 ../surfaceslab.py:31 ../surfaceslab.py:32
+#: ../surfaceslab.py:28 ../surfaceslab.py:29 ../surfaceslab.py:30
 msgid "bcc"
 msgstr "bcc"
 
-#: ../surfaceslab.py:31 ../surfaceslab.py:169
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:29 ../surfaceslab.py:167
 msgid "BCC(110)"
-msgstr "FCC(110)"
+msgstr "BCC(110)"
 
-#: ../surfaceslab.py:32 ../surfaceslab.py:166
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:30 ../surfaceslab.py:164
 msgid "BCC(111)"
-msgstr "FCC(110)"
+msgstr "BCC(111)"
 
-#: ../surfaceslab.py:33 ../surfaceslab.py:179
-#, fuzzy
-#| msgid "HCP(0001) orthogonal"
+#: ../surfaceslab.py:31 ../surfaceslab.py:177
 msgid "HCP(0001)"
-msgstr "HCP (0001) ortogonal"
+msgstr "HCP(0001)"
 
-#: ../surfaceslab.py:33 ../surfaceslab.py:34 ../surfaceslab.py:133
-#: ../surfaceslab.py:189
+#: ../surfaceslab.py:31 ../surfaceslab.py:32 ../surfaceslab.py:131
+#: ../surfaceslab.py:187
 msgid "hcp"
 msgstr "hcp"
 
-#: ../surfaceslab.py:34 ../surfaceslab.py:182
-#, fuzzy
-#| msgid "HCP(10-10) orthogonal"
+#: ../surfaceslab.py:32 ../surfaceslab.py:180
 msgid "HCP(10-10)"
-msgstr "HCP (10-10) ortogonal"
+msgstr "HCP(10-10)"
 
-#: ../surfaceslab.py:35
-#, fuzzy
-#| msgid "DIAMOND(100) orthogonal"
+#: ../surfaceslab.py:33
 msgid "DIAMOND(100)"
-msgstr "Diamante (100) ortogonal"
+msgstr "Diamante(100)"
 
-#: ../surfaceslab.py:35 ../surfaceslab.py:36
+#: ../surfaceslab.py:33 ../surfaceslab.py:34
 msgid "diamond"
 msgstr "diamante"
 
-#: ../surfaceslab.py:36
-#, fuzzy
-#| msgid "DIAMOND(111) non-orthogonal"
+#: ../surfaceslab.py:34
 msgid "DIAMOND(111)"
-msgstr "Diamante (111) non ortogonal"
+msgstr "Diamante(111)"
 
-#: ../surfaceslab.py:69
+#: ../surfaceslab.py:67
 msgid "Surface"
 msgstr "Superficie"
 
-#: ../surfaceslab.py:73
+#: ../surfaceslab.py:71
 msgid "Orthogonal cell:"
-msgstr ""
+msgstr "Celda ortogonal:"
+
+#: ../surfaceslab.py:72
+msgid "Lattice constant:\ta"
+msgstr "Constante de rede:\ta"
 
 #: ../surfaceslab.py:74
-#, fuzzy
-#| msgid "Lattice constant: "
-msgid "Lattice constant:\ta"
-msgstr "Constante de rede: "
-
-#: ../surfaceslab.py:76
-#, fuzzy
-#| msgid "\t\tc:\t"
 msgid "\t\tc"
-msgstr "\t\tc:\t"
+msgstr "\t\tc"
 
-#: ../surfaceslab.py:77
+#: ../surfaceslab.py:75
 msgid "Size: \tx: "
 msgstr "Tamaño\tx: "
 
-#: ../surfaceslab.py:78
-#, fuzzy
-#| msgid "\t\ty: "
+#: ../surfaceslab.py:76
 msgid "\ty: "
-msgstr "\t\ty: "
+msgstr "\ty: "
 
-#: ../surfaceslab.py:79
+#: ../surfaceslab.py:77
 msgid "\tz: "
-msgstr ""
+msgstr "\tz: "
 
 #. TRANSLATORS: This is a title of a window.
-#: ../surfaceslab.py:83
-#, fuzzy
-#| msgid "Creating a surface slab."
+#: ../surfaceslab.py:81
 msgid "Creating a surface."
 msgstr "Creando unha peza de superficie."
 
-#: ../surfaceslab.py:163
+#: ../surfaceslab.py:161
 msgid "Please enter an even value for orthogonal cell"
-msgstr ""
+msgstr "Por favor, escolla un número par para a cela ortogonal"
 
-#: ../surfaceslab.py:176
+#: ../surfaceslab.py:174
 msgid "Please enter a value divisible by 3 for orthogonal cell"
-msgstr ""
+msgstr "Por favor, escolla un valor divisible por 3 para a cela ortogonal"
 
-#: ../surfaceslab.py:196
-#, fuzzy
-#| msgid "Vacuum: "
-msgid "Vacuum: {} Å."
-msgstr "Vacío: "
+#: ../surfaceslab.py:194
+msgid " Vacuum: {} Å."
+msgstr "Vacío: {} Å."
 
 #. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
 #. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
-#: ../surfaceslab.py:203
+#: ../surfaceslab.py:202
 #, python-brace-format
 msgid "{symbol} {surf} surface with one atom.{vacuum}"
 msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "{symbol} {surf} superficie cun átomo.{vacuum}"
+msgstr[1] "{symbol} {surf} superficie con {natoms} átomos.{vacuum}"
 
 #: ../ui.py:45
 msgid "Error"
-msgstr ""
+msgstr "Erro"
 
 #: ../ui.py:52
 msgid "Version"
-msgstr ""
+msgstr "Versión"
 
 #: ../ui.py:53
 msgid "Web-page"
