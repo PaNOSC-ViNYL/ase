@@ -213,7 +213,7 @@ def ints2string(x, threshold=None):
 class FixBondLengths(FixConstraint):
     maxiter = 500
 
-    def __init__(self, pairs, tolerance=1e-7, bondlengths=None, iterations=None):
+    def __init__(self, pairs, tolerance=1e-13, bondlengths=None, iterations=None):
         """iterations:
                 Ignored"""
         self.pairs = np.asarray(pairs)
