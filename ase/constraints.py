@@ -7,7 +7,7 @@ import numpy as np
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
-           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine', 'FixBondLengthsMD',
+           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine', 
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
 
@@ -210,14 +210,15 @@ def ints2string(x, threshold=None):
     return str(x[:threshold].tolist())[:-1] + ', ...]'
 
 
-class FixBondLengthsMD(FixConstraint):
+class FixBondLengths(FixConstraint):
     maxiter = 500
 
-    def __init__(self, pairs, tolerance=1e-7, iterations=None):
+    def __init__(self, pairs, tolerance=1e-7, bondlengths=None, iterations=None):
         """iterations:
                 Ignored"""
         self.pairs = np.asarray(pairs)
         self.tolerance = tolerance
+        self.bondlengths = bondlengths        
 
         self.removed_dof = len(pairs)
 
@@ -225,12 +226,18 @@ class FixBondLengthsMD(FixConstraint):
         old = atoms.positions
         masses = atoms.get_masses()
 
+        if self.bondlengths is None:
+           self.bondlengths = self.initialize_bond_lengths(atoms)
+
         for i in range(self.maxiter):
             converged = True
-            for a, b, cd in self.pairs:
+            for j, ab in enumerate(self.pairs):
+                a = ab[0]
+                b = ab[1]
+                cd = self.bondlengths[j]
                 r0 = old[a] - old[b]
                 d0 = find_mic([r0], atoms.cell, atoms._pbc)[0][0]
-                d1 = new[a] - new[b]- r0 + d0
+                d1 = new[a] - new[b] - r0 + d0
                 m = 1 / (1 / masses[a] + 1 / masses[b])
                 x = 0.5 * (cd**2 - np.dot(d1, d1)) / np.dot(d0, d1)
                 if abs(x) > self.tolerance:
@@ -245,9 +252,16 @@ class FixBondLengthsMD(FixConstraint):
     def adjust_momenta(self, atoms, p):
         old = atoms.positions
         masses = atoms.get_masses()
+
+        if self.bondlengths is None:
+           self.bondlengths = self.initialize_bond_lengths(atoms)
+
         for i in range(self.maxiter):
             converged = True
-            for a, b, cd in self.pairs:
+            for j, ab in enumerate(self.pairs):
+                a = ab[0]
+                b = ab[1]
+                cd = self.bondlengths[j]
                 d = old[a] - old[b]
                 d = find_mic([d], atoms.cell, atoms._pbc)[0][0]
                 dv = p[a] / masses[a] - p[b] / masses[b]
@@ -267,83 +281,13 @@ class FixBondLengthsMD(FixConstraint):
         self.adjust_momenta(atoms, forces)
         self.constraint_forces += forces
 
-    def get_indices(self):
-        return np.unique(self.pairs.ravel())
+    def initialize_bond_lengths(self, atoms):
+        bondlengths = np.zeros(len(self.pairs))
+        
+        for i, ab in enumerate(self.pairs):
+            bondlengths[i] = atoms.get_distance(ab[0], ab[1])
 
-    def todict(self):
-        return {'name': 'FixBondLengthsMD',
-                'kwargs': {'pairs': self.pairs,
-                           'tolerance': self.tolerance}}
-
-    def index_shuffle(self, atoms, ind):
-        """Shuffle the indices of the two atoms in this constraint"""
-        map = np.zeros(len(atoms), int)
-        map[ind] = 1
-        n = map.sum()
-        map[:] = -1
-        map[ind] = range(n)
-        pairs = map[self.pairs]
-        self.pairs = pairs[(pairs != -1).all(1)]
-        if len(self.pairs) == 0:
-            raise IndexError('Constraint not part of slice')
-
-
-class FixBondLengths(FixConstraint):
-    maxiter = 500
-
-    def __init__(self, pairs, tolerance=1e-13, iterations=None):
-        """iterations:
-                Ignored"""
-        self.pairs = np.asarray(pairs)
-        self.tolerance = tolerance
-
-        self.removed_dof = len(pairs)
-
-    def adjust_positions(self, atoms, new):
-        old = atoms.positions
-        masses = atoms.get_masses()
-
-        for i in range(self.maxiter):
-            converged = True
-            for a, b in self.pairs:
-                r0 = old[a] - old[b]
-                d0 = find_mic([r0], atoms.cell, atoms._pbc)[0][0]
-                d1 = new[a] - new[b] - r0 + d0
-                m = 1 / (1 / masses[a] + 1 / masses[b])
-                x = 0.5 * (np.dot(d0, d0) - np.dot(d1, d1)) / np.dot(d0, d1)
-                if abs(x) > self.tolerance:
-                    new[a] += x * m / masses[a] * d0
-                    new[b] -= x * m / masses[b] * d0
-                    converged = False
-            if converged:
-                break
-        else:
-            raise RuntimeError('Did not converge')
-
-    def adjust_momenta(self, atoms, p):
-        old = atoms.positions
-        masses = atoms.get_masses()
-        for i in range(self.maxiter):
-            converged = True
-            for a, b in self.pairs:
-                d = old[a] - old[b]
-                d = find_mic([d], atoms.cell, atoms._pbc)[0][0]
-                dv = p[a] / masses[a] - p[b] / masses[b]
-                m = 1 / (1 / masses[a] + 1 / masses[b])
-                x = -np.dot(dv, d) / np.dot(d, d)
-                if abs(x) > self.tolerance:
-                    p[a] += x * m * d
-                    p[b] -= x * m * d
-                    converged = False
-            if converged:
-                break
-        else:
-            raise RuntimeError('Did not converge')
-
-    def adjust_forces(self, atoms, forces):
-        self.constraint_forces = -forces
-        self.adjust_momenta(atoms, forces)
-        self.constraint_forces += forces
+        return bondlengths
 
     def get_indices(self):
         return np.unique(self.pairs.ravel())
