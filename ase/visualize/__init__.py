@@ -39,9 +39,12 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         from ase.visualize.sage import view_sage_jmol
         view_sage_jmol(atoms)
         return
-    elif vwr in ('ngl', 'nglview') :
+    elif vwr in ('ngl', 'nglview'):
         from ase.visualize.nglview import view_ngl
         return view_ngl(atoms)
+    elif vwr == 'x3d':
+        from ase.visualize.x3d import view_x3d
+        return view_x3d(atoms)
     elif vwr == 'paraview':
         # macro for showing atoms in paraview
         macro = """\
