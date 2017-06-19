@@ -19,7 +19,7 @@ class CLICommand:
         parser.add_argument('-q', '--quiet', action='store_true')
         parser.add_argument('-k', '--path', help='Example "GXL".')
         parser.add_argument('-n', '--points', type=int, default=50,
-                            help='Number of point along the path '
+                            help='Number of points along the path '
                             '(default: 50)')
         parser.add_argument('-r', '--range', nargs=2, default=['-3', '3'],
                             metavar=('emin', 'emax'),
@@ -57,16 +57,15 @@ def main(args, parser):
             err = 'Please specify a path!'
             try:
                 cs = crystal_structure_from_cell(cell)
-                from ase.dft.kpoints import special_paths
-                kptpath = special_paths[cs]
-                err += ('\nIt looks like you have a ' +
-                        cs + ' crystal structure.'
-                        '\nMaybe you want its special path: ' +
-                        kptpath)
             except ValueError:
                 err += ('\nGPAW cannot autimatically '
                         'recognize this crystal structure')
-                pass
+            else:
+                from ase.dft.kpoints import special_paths
+                kptpath = special_paths[cs]
+                err += ('\nIt looks like you have a {} crystal structure.'
+                        '\nMaybe you want its special path:'
+                        ' {}'.format(cs, kptpath))
             parser.error(err)
         bz2ibz = calc.get_bz_to_ibz_map()
         path = bandpath(args.path, atoms.cell, args.points)[0]
