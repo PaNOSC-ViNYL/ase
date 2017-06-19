@@ -16,6 +16,7 @@ import numpy as np
 
 import ase.units as units
 from ase.atom import Atom
+from ase.constraints import FixConstraint, FixBondLengths
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
@@ -265,8 +266,10 @@ class Atoms(object):
         if constraint is None:
             self._constraints = []
         else:
-            if isinstance(constraint, (list, tuple)):
+            if isinstance(constraint, list):
                 self._constraints = constraint
+            elif isinstance(constraint, tuple):
+                self._constraints = list(constraint)
             else:
                 self._constraints = [constraint]
 
@@ -537,7 +540,7 @@ class Atoms(object):
     def set_momenta(self, momenta, apply_constraint=True):
         """Set momenta."""
         if (apply_constraint and len(self.constraints) > 0 and
-            momenta is not None):
+           momenta is not None):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
@@ -914,6 +917,7 @@ class Atoms(object):
         the indexing in the subset returned.
 
         """
+
         if isinstance(i, numbers.Integral):
             natoms = len(self)
             if i < -natoms or i >= natoms:
@@ -925,28 +929,28 @@ class Atoms(object):
             # interpreted at 0 and 1 indices.
             i = np.array(i)
 
-        import copy
-        from ase.constraints import FixConstraint, FixBondLengths
+        condel = []
+        for con in self.constraints:
+            if isinstance(con, (FixConstraint, FixBondLengths)):
+                try:
+                    con.index_shuffle(self, i)
+                except IndexError:
+                    condel.append(con)
 
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
+        import copy
+
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
+                               # should be communicated to the slice as well
+                               celldisp=self._celldisp)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
             atoms.arrays[name] = a[i].copy()
 
-        # Constraints need to be deepcopied, since we need to shuffle
-        # the indices
-        atoms.constraints = copy.deepcopy(self.constraints)
-        condel = []
-        for con in atoms.constraints:
-            if isinstance(con, (FixConstraint, FixBondLengths)):
-                try:
-                    con.index_shuffle(self, i)
-                except IndexError:
-                    condel.append(con)
-        for con in condel:
-            atoms.constraints.remove(con)
+        # Constraints need to be deepcopied, but only the relevant ones.
+        atoms.constraints = copy.deepcopy([con for con in self.constraints if
+                                            con not in condel])
         return atoms
 
     def __delitem__(self, i):
@@ -1335,11 +1339,14 @@ class Atoms(object):
         # Move back to the rotation point
         self.positions = np.transpose(rcoords) + center
 
-    def get_dihedral(self, a1, a2=None, a3=None, a4=None):
+    def get_dihedral(self, a1, a2=None, a3=None, a4=None, mic=False):
         """Calculate dihedral angle.
 
         Calculate dihedral angle (in degrees) between the vectors a1->a2
         and a3->a4.
+
+        Use mic=True to use the Minimum Image Convention and calculate the
+        angle across periodic boundaries.
         """
 
         if a2 is None:
@@ -1358,6 +1365,8 @@ class Atoms(object):
         a = self.positions[a2] - self.positions[a1]
         b = self.positions[a3] - self.positions[a2]
         c = self.positions[a4] - self.positions[a3]
+        if mic:
+            a, b, c = find_mic([a, b, c], self._cell, self._pbc)[0]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
@@ -1467,11 +1476,15 @@ class Atoms(object):
             start = self.get_dihedral(a1)
             self.set_dihedral(a1, angle + start, mask)
 
-    def get_angle(self, a1, a2=None, a3=None):
+    def get_angle(self, a1, a2=None, a3=None, mic=False):
         """Get angle formed by three atoms.
 
         calculate angle in degrees between the vectors a2->a1 and
-        a2->a3."""
+        a2->a3.
+
+        Use mic=True to use the Minimum Image Convention and calculate the
+        angle across periodic boundaries.
+        """
 
         if a2 is None:
             # old API (uses radians)
@@ -1488,6 +1501,8 @@ class Atoms(object):
         # normalized vector 1->0, 1->2:
         v10 = self.positions[a1] - self.positions[a2]
         v12 = self.positions[a3] - self.positions[a2]
+        if mic:
+            v10, v12 = find_mic([v10, v12], self._cell, self._pbc)[0]
         v10 /= np.linalg.norm(v10)
         v12 /= np.linalg.norm(v12)
         angle = np.vdot(v10, v12)

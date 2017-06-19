@@ -134,6 +134,7 @@
 jmol_isReady = function(applet)
 {
     Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
+    Jmol.script(jmolApplet0, "set displaycellparameters false;")
     Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }} { {{ n1 }} {{ n2 }} {{ n3 }} };");
     }
 </script>
@@ -165,11 +166,10 @@ jmol_isReady = function(applet)
 
     <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
         <div class="panel-body">
-    {% for thing in things %}
-        {% if loop.index0 is divisibleby 2 %}
+    {% for column in things %}
+        <div class="col-md-6">
+    {% for thing in column %}
             <div class="row">
-        {% endif %}
-                <div class="col-md-6">
         {% if thing == 'ATOMS' %}
             {{ atoms() }}
         {% elif thing == 'FORCES' %}
@@ -183,10 +183,9 @@ jmol_isReady = function(applet)
                     <img
                     src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%">
         {% endif %}
-                </div>
-        {% if loop.index is divisibleby 2 %}
-            </div> <!--END ROW-->
-        {% endif %}
+                </div> <!--END ROW-->
+    {% endfor %}
+            </div> <!--END col-md-6-->
     {% endfor %}
         </div> <!--END PANEL BODY-->
     </div> <!--END COLLAPSE-->

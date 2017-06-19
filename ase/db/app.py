@@ -332,7 +332,8 @@ def summary(id):
     s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
     n1, n2, n3 = kptdensity2monkhorstpack(atoms,
-                                          kptdensity=2.0)
+                                          kptdensity=1.8,
+                                          even=False)
     return render_template('summary.html',
                            project=request.args.get('project', 'default'),
                            projects=projects,

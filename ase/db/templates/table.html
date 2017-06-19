@@ -32,7 +32,7 @@
 
             <div class="row">
     {% for control in ctrl %}
-                <div class="col-md-6">
+                <div class="col-md-10">
 
         {% if control[0] == 'SELECT' %}
             {{ select(control) }}
@@ -49,7 +49,7 @@
 
             <div class="form-group" style="margin-bottom:0px;">
                 <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries ...</a></small>
-            </div>
+            </div><br/>
 
 {# Flash query messages #}
 {% with messages = get_flashed_messages() %}
@@ -61,6 +61,16 @@
     </ul>
     {% endif %}
 {% endwith %}
+<small lcass="form-text text-muted">
+<a data-toggle="collapse" href="#collapse1">Show all keys ...</a>
+</small><br/>
+<div id="collapse1" class="collapse">
+<table class="table table-striped">
+{% for key, description, unit in md.all_keys %}
+<tr><td>{{ key }}</td><td>{{ description }}</td><td>{{ unit|safe }}</td></tr>
+{% endfor %}
+</table>
+</div>
 </form>
 </div>
 
@@ -227,7 +237,7 @@
             {% set key, text = control[1:] %}
             {% set choise = con.query[1][key] %}
                 {{ text }}:<select name="bool_{{ key }}">
-            <option value="" {% if '' == choise %} selected {% endif %}>-</option>
+            <option value="" {% if '' == choise %} selected {% endif %}>NA</option>
             <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
             <option value="0" {% if '0' == choise %} selected {% endif %}>No</option>
             </select>
@@ -236,12 +246,13 @@
 {% macro myrange(control) %}
             {% set id, text, choises = control[1:] %}
             {% set v1, v2, var = con.query[1].get(id, ['', '', '']) %}
+                {{ text }}:
+                <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
+                <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6">
                 <select name="range_{{ id }}">
             {% for txt, key in choises %}
                 <option value="{{ key }}" {% if key == var %} selected {% endif %}>{{ txt }}</option>
             {% endfor %}
                 </select>
-                {{ text }}:
-                <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
-                <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6"><br/>
+                <br/>
 {% endmacro %}
