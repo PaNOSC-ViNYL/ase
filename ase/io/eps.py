@@ -6,11 +6,12 @@ from ase.io.utils import generate_writer_variables, make_patch_list
 class EPS:
     def __init__(self, atoms,
                  rotation='', show_unit_cell=False, radii=None,
-                 bbox=None, colors=None, scale=20):
+                 bbox=None, colors=None, scale=20, maxwidth=500):
         generate_writer_variables(
             self, atoms, rotation=rotation,
             show_unit_cell=show_unit_cell,
-            radii=radii, bbox=bbox, colors=colors, scale=scale)
+            radii=radii, bbox=bbox, colors=colors, scale=scale,
+            maxwidth=maxwidth)
 
     def write(self, filename):
         self.filename = filename

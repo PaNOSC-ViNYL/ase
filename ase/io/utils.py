@@ -8,7 +8,7 @@ from ase.utils import basestring
 
 def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=False,
                               radii=None, bbox=None, colors=None, scale=20,
-                              extra_offset=(0., 0.)):
+                              maxwidth=500, extra_offset=(0., 0.)):
     writer.numbers = atoms.get_atomic_numbers()
     writer.colors = colors
     if colors is None:
@@ -71,8 +71,8 @@ def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=False,
         M = (X1 + X2) / 2
         S = 1.05 * (X2 - X1)
         w = scale * S[0]
-        if w > 500:
-            w = 500
+        if w > maxwidth:
+            w = maxwidth
             scale = w / S[0]
         h = scale * S[1]
         offset = np.array([scale * M[0] - w / 2, scale * M[1] - h / 2, 0])
@@ -154,7 +154,7 @@ def make_patch_list(writer):
             if ((xy[1] + r > 0) and (xy[1] - r < writer.h) and
                 (xy[0] + r > 0) and (xy[0] - r < writer.w)):
                 patch = Circle(xy, r, facecolor=writer.colors[a],
-                    edgecolor='black')
+                               edgecolor='black')
                 patch_list.append(patch)
         else:
             a -= writer.natoms
