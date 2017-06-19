@@ -228,7 +228,7 @@ class Atoms(object):
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
-        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
+        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)), apply_constraint=False)
 
         if info is None:
             self.info = {}
