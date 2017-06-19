@@ -386,7 +386,8 @@ class View:
                 ra = d[a]
                 if visible[a]:
                     # Draw the atoms
-                    if self.moving and self.move_atoms_mask[a]:
+                    if (self.moving and a < len(self.move_atoms_mask)
+                        and self.move_atoms_mask[a]):
                         circle(GREEN, False,
                                A[a, 0] - 4, A[a, 1] - 4,
                                A[a, 0] + ra + 4, A[a, 1] + ra + 4)
