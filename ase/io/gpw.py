@@ -21,7 +21,7 @@ def read_gpw(filename):
         bzkpts = None
         bz2ibz = None
     else:
-        ibzkpts = kpts.ibzkpts,
+        ibzkpts = kpts.ibzkpts
         bzkpts = kpts.get('bzkpts')
         bz2ibz = kpts.get('bz2ibz')
 
