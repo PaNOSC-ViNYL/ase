@@ -175,6 +175,12 @@ def crystal_structure_from_cell(cell, eps=2e-4):
     elif (c >= a and c >= b and alpha < pi / 2 and
           abs(angles[1:] - pi / 2).max() < eps):
         return 'monoclinic'
+    elif (abc.ptp() < eps and angles.ptp() < eps and
+          np.abs(angles).max() < pi / 2):
+        return 'rhombohedral type 1'
+    elif (abc.ptp() < eps and angles.ptp() < eps and
+          np.abs(angles).max() > pi / 2):
+        return 'rhombohedral type 2'
     else:
         raise ValueError('Cannot find crystal structure')
 
