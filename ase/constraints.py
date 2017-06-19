@@ -285,7 +285,7 @@ class FixBondLengths(FixConstraint):
         bondlengths = np.zeros(len(self.pairs))
         
         for i, ab in enumerate(self.pairs):
-            bondlengths[i] = atoms.get_distance(ab[0], ab[1])
+            bondlengths[i] = atoms.get_distance(ab[0], ab[1], mic=True)
 
         return bondlengths
 
