@@ -626,7 +626,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
             kblocks = step.findall(
                 'eigenvalues/array/set/set/set[@comment="kpoint %d"]' % ikpt)
             if kblocks is not None:
-                for i, kpoint in enumerate(kblocks):
+                for spin, kpoint in enumerate(kblocks):
                     eigenvals = kpoint.findall('r')
                     eps_n = np.zeros(len(eigenvals))
                     f_n = np.zeros(len(eigenvals))
@@ -636,7 +636,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                         f_n[j] = float(val[1])
                     if len(kblocks) == 1:
                         f_n *= 2
-                    kpoints.append(SinglePointKPoint(1, i, ikpt, eps_n, f_n))
+                    kpoints.append(SinglePointKPoint(kpt_weights[ikpt - 1],
+                                                     spin, ikpt, eps_n, f_n))
         if len(kpoints) == 0:
             kpoints = None
 
