@@ -636,7 +636,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
                         f_n[j] = float(val[1])
                     if len(kblocks) == 1:
                         f_n *= 2
-                    kpoints.append(SinglePointKPoint(1, 0, ikpt, eps_n, f_n))
+                    kpoints.append(SinglePointKPoint(1, i, ikpt, eps_n, f_n))
         if len(kpoints) == 0:
             kpoints = None
 
