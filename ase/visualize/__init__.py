@@ -24,7 +24,7 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         format = 'cube'
         command = 'vmd'
     elif vwr == 'rasmol':
-        format = 'pdb'
+        format = 'proteindatabank'
         command = 'rasmol -pdb'
     elif vwr == 'xmakemol':
         format = 'xyz'
