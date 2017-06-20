@@ -11,7 +11,7 @@ def setup(app):
     pass
 
 
-for file in ['ase/ag.png',
+for file in ['ase/gui/ag.png',
              'ase/ase-talk.pdf']:
     if os.path.isfile(file):
         continue
