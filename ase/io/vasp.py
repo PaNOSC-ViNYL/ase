@@ -463,6 +463,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     atoms_init = None
     calculation = []
     ibz_kpts = None
+    kpt_weights = None
     parameters = OrderedDict()
 
     try:
@@ -483,6 +484,9 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
                     for i, kpt in enumerate(kpts):
                         ibz_kpts[i] = [float(val) for val in kpt.text.split()]
+
+                    kpt_weights = elem.findall('varray[@name="weights"]/v')
+                    kpt_weights = [float(val.text) for val in kpt_weights]
 
                 elif elem.tag == 'parameters':
                     for par in elem.iter():
