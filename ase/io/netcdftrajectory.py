@@ -22,6 +22,7 @@ or Ovito (http://www.ovito.org/, starting with version 2.3).
 """
 
 import os
+import warnings
 
 import numpy as np
 
@@ -326,6 +327,10 @@ class NetCDFTrajectory:
             self._get_variable(self._velocities_var)[i] = \
                 atoms.get_momenta() / atoms.get_masses().reshape(-1, 1)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
+        if np.any(np.logical_not(atoms.pbc)):
+            warnings.warn('Atoms have nonperiodic directions. Cell lengths in '
+                          'these directions are lost and will be '
+                          'shrink-wrapped when reading the NetCDF file.')
         cell_lengths = np.array([a, b, c]) * atoms.pbc
         self._get_variable(self._cell_lengths_var)[i] = cell_lengths
         self._get_variable(self._cell_angles_var)[i] = [alpha, beta, gamma]
