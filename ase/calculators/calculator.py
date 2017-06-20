@@ -622,8 +622,8 @@ class FileIOCalculator(Calculator):
             os.chdir(olddir)
 
         if errorcode:
-            raise RuntimeError('%s returned an error: %d' %
-                               (self.name, errorcode))
+            raise RuntimeError('%s in %s returned an error: %d' %
+                               (self.name, self.directory, errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):
