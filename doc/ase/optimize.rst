@@ -279,7 +279,7 @@ You can read more about the theory and implementation here:
   | `A universal preconditioner for simulating condensed phase materials`__
   | J. Chem. Phys. *144*, 164109 (2016).
 
-__ http://dx.doi.org/10.1103/PhysRevLett.97.170201
+__ http://dx.doi.org/10.1063/1.4947024
 
 Tests with a variety of solid-state systems using both DFT and
 classical interatomic potentials driven though ASE calculators show

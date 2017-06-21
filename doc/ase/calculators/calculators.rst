@@ -81,6 +81,7 @@ elk                                 Full Potential LAPW code
 :mod:`~ase.calculators.fleur`       Full Potential LAPW code
 gaussian                            Gaussian based electronic structure code
 :mod:`~ase.calculators.gromacs`     Classical molecular dynamics code
+:mod:`~ase.calculators.gulp`        Interatomic potential code
 :mod:`~ase.calculators.jacapo`      Plane-wave ultra-soft pseudopotential code
 :mod:`~ase.calculators.lammps`      Classical molecular dynamics code
 mopac                               ...
@@ -203,6 +204,7 @@ the :meth:`set` method:
    FHI-aims
    fleur
    gromacs
+   gulp
    jacapo
    lammps
    lammpsrun

@@ -206,8 +206,9 @@ Example of use::
   >>> atoms.set_constraint(c)
 
 One can combine this constraint with :class:`FixBondLength` but one has to
-consider the correct ordering when setting both constraints. :class:`ExternalForce`
-must come first in the list as shown in the following example.
+consider the correct ordering when setting both constraints.
+:class:`ExternalForce` must come first in the list as shown in the following
+example.
 
   >>> from ase.constraints import ExternalForce, FixBondLength
   >>> c1 = ExternalForce(0, 1, 0.5)
@@ -227,8 +228,7 @@ Those constraint definitions are always list objects containing
 the value to be set and a list of atomic indices. The epsilon value
 specifies the accuracy to which the constraints are fulfilled.
 
-.. class:: FixInternals(bonds=[bond1, bond2],
-    angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
+.. autoclass:: FixInternals
 
 .. note::
 

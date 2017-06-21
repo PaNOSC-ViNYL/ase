@@ -224,7 +224,7 @@ class ELK(FileIOCalculator):
 
         for filename in [totenergy, eigval, kpoints, self.out]:
             if not os.path.isfile(filename):
-                raise ReadError
+                raise ReadError('ELK output file '+filename+' is missing.')
 
         # read state from elk.in because *.OUT do not provide enough digits!
         self.atoms = read_elk(os.path.join(self.directory, 'elk.in'))

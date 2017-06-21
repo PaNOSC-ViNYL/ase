@@ -65,7 +65,8 @@ commands = {
          '--interactive', '-c', '--collection', '--modify',
          '--after'],
     'test':
-        ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet'],
+        ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet',
+         '--list', '--list-calculators'],
     'ulm':
         ['-n', '--index', '-v', '--verbose']}
 # End of computer generated data

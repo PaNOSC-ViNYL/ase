@@ -32,11 +32,12 @@ Supported :mod:`Calculators <ase.calculators>`:
 
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
-|fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
+|fhi-aims| |fleur| |gpaw| |gromacs| 
+|hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |onetep| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`DMol³ <ase.calculators.dmol>`
-Gaussian_ Grimme-D3_ Mopac_
+Gaussian_ Grimme-D3_ :mod:`~ase.calculators.gulp` Mopac_
 :mod:`~ase.calculators.tip3p`
 
 Please go through this check-list to figure out if you need to convert your
@@ -53,9 +54,17 @@ See how to identify and convert old trajectory files here: :ref:`convert`.
 News
 ====
 
+* :ref:`ASE version 3.14.0 <releasenotes>` released (20 June 2017).
+
+* :ref:`Reference paper <cite>` in
+  J. Phys. Condens. Matter:
+  `The Atomic Simulation Environment | A Python library for working with
+  atoms <https://doi.org/10.1088/1361-648X/aa680e>`__
+  (7 June 2017).
+
 * :ref:`ASE version 3.13.0 <releasenotes>` released (7 February 2017).
 
-* Psi-k *Scientifc Highlight Of The Month*:
+* Psi-k *Scientific Highlight Of The Month*:
   `The Atomic Simulation Environment | A Python library for working with
   atoms <http://psi-k.net/download/highlights/Highlight_134.pdf>`__
   (20 January 2017).
@@ -66,7 +75,7 @@ News
 
 * :ref:`ASE version 3.10.0 <releasenotes>` released (17 March 2016).
 
-* Web-page now use the `Read the Docs Sphinx Theme
+* Web-page now uses the `Read the Docs Sphinx Theme
   <https://github.com/snide/sphinx_rtd_theme>`_ (20 February 2016).
 
 * The source code is now on https://gitlab.com/ase/ase (18 September 2015).
@@ -98,7 +107,7 @@ News
 * :ref:`ASE version 3.1.0 <download_and_install>` released (27 March 2009).
 
 * Improved :mod:`ase.vibrations` module: More accurate and
-  possibility to calculate :mod:`infrared intensities <ase.infrared>` (13
+  possibility to calculate :ref:`infrared` (13
   March 2009).
 
 * :ref:`ASE version 3.0.0 <download_and_install>` released (13 November 2008).

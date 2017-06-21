@@ -16,6 +16,7 @@ import numpy as np
 
 import ase.units as units
 from ase.atom import Atom
+from ase.constraints import FixConstraint, FixBondLengths
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
@@ -227,7 +228,7 @@ class Atoms(object):
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
-        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)))
+        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)), apply_constraint=False)
 
         if info is None:
             self.info = {}
@@ -265,8 +266,10 @@ class Atoms(object):
         if constraint is None:
             self._constraints = []
         else:
-            if isinstance(constraint, (list, tuple)):
+            if isinstance(constraint, list):
                 self._constraints = constraint
+            elif isinstance(constraint, tuple):
+                self._constraints = list(constraint)
             else:
                 self._constraints = [constraint]
 
@@ -537,7 +540,7 @@ class Atoms(object):
     def set_momenta(self, momenta, apply_constraint=True):
         """Set momenta."""
         if (apply_constraint and len(self.constraints) > 0 and
-            momenta is not None):
+           momenta is not None):
             momenta = np.array(momenta)  # modify a copy
             for constraint in self.constraints:
                 if hasattr(constraint, 'adjust_momenta'):
@@ -914,6 +917,7 @@ class Atoms(object):
         the indexing in the subset returned.
 
         """
+
         if isinstance(i, numbers.Integral):
             natoms = len(self)
             if i < -natoms or i >= natoms:
@@ -925,28 +929,28 @@ class Atoms(object):
             # interpreted at 0 and 1 indices.
             i = np.array(i)
 
-        import copy
-        from ase.constraints import FixConstraint, FixBondLengths
+        condel = []
+        for con in self.constraints:
+            if isinstance(con, (FixConstraint, FixBondLengths)):
+                try:
+                    con.index_shuffle(self, i)
+                except IndexError:
+                    condel.append(con)
 
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
+        import copy
+
+        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
+                               # should be communicated to the slice as well
+                               celldisp=self._celldisp)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
             atoms.arrays[name] = a[i].copy()
 
-        # Constraints need to be deepcopied, since we need to shuffle
-        # the indices
-        atoms.constraints = copy.deepcopy(self.constraints)
-        condel = []
-        for con in atoms.constraints:
-            if isinstance(con, (FixConstraint, FixBondLengths)):
-                try:
-                    con.index_shuffle(self, i)
-                except IndexError:
-                    condel.append(con)
-        for con in condel:
-            atoms.constraints.remove(con)
+        # Constraints need to be deepcopied, but only the relevant ones.
+        atoms.constraints = copy.deepcopy([con for con in self.constraints if
+                                            con not in condel])
         return atoms
 
     def __delitem__(self, i):
@@ -1477,7 +1481,7 @@ class Atoms(object):
 
         calculate angle in degrees between the vectors a2->a1 and
         a2->a3.
-        
+
         Use mic=True to use the Minimum Image Convention and calculate the
         angle across periodic boundaries.
         """

@@ -43,6 +43,7 @@ from ase.db.table import Table, all_columns
 from ase.visualize import view
 from ase import Atoms
 from ase.calculators.calculator import kptdensity2monkhorstpack
+from ase.utils import FileNotFoundError
 
 
 # Every client-connetions gets one of these tuples:
@@ -418,7 +419,8 @@ def sqlite1(id):
 
 @app.route('/robots.txt')
 def robots():
-    return 'User-agent: *\nDisallow: /\n', 200
+    return ('User-agent: *\nDisallow: /\n\n' +
+            'User-agent: Baiduspider\nDisallow: /\n', 200)
 
 
 def pages(page, nrows, limit):

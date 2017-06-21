@@ -23,7 +23,10 @@ def process_metadata(db, html=True):
             code = fd.read()
         path = os.path.dirname(db.python)
         code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
-        exec(compile(code, db.python, 'exec'), mod)
+
+        # We use eval here instead of exec because it works on both
+        # Python 2 and 3.
+        eval(compile(code, db.python, 'exec'), mod, mod)
 
     for key, default in [('title', 'ASE database'),
                          ('default_columns', []),
@@ -71,8 +74,8 @@ def process_metadata(db, html=True):
         keys = ['id', 'formula', 'age']
         meta['layout'] = [
             ('Basic properties',
-             ['ATOMS', 'CELL',
-              ('Key Value Pairs', keys), 'FORCES'])]
+             [['ATOMS', 'CELL'],
+              [('Key Value Pairs', keys), 'FORCES']])]
 
     if mod:
         meta['functions'] = functions[:]
@@ -91,5 +94,14 @@ def process_metadata(db, html=True):
             unit = sub.sub(r'\1_\2', unit)
             unit = sup.sub(r'\1^\2', unit)
         meta['key_descriptions'][key] = (short, long, unit)
+
+    all_keys1 = set(meta['key_descriptions'])
+    for row in db.select():
+        all_keys1.update(row._keys)
+    all_keys2 = []
+    for key in all_keys1:
+        short, long, unit = meta['key_descriptions'].get(key, ('', '', ''))
+        all_keys2.append((key, long, unit))
+    meta['all_keys'] = sorted(all_keys2)
 
     return meta

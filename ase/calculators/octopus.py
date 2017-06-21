@@ -903,7 +903,8 @@ class Octopus(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces',
                               'dipole',
-                              'magmom', 'magmoms']
+                              #'magmom', 'magmoms'
+    ]
 
     troublesome_keywords = set(['subsystemcoordinates',
                                 'subsystems',
@@ -1191,15 +1192,15 @@ class Octopus(FileIOCalculator):
     def get_number_of_bands(self):
         return self.results['nbands']
 
-    def get_magnetic_moments(self, atoms=None):
-        if self.results['nspins'] == 1:
-            return np.zeros(len(self.atoms))
-        return self.results['magmoms'].copy()
+    #def get_magnetic_moments(self, atoms=None):
+    #    if self.results['nspins'] == 1:
+    #        return np.zeros(len(self.atoms))
+    #    return self.results['magmoms'].copy()
 
-    def get_magnetic_moment(self, atoms=None):
-        if self.results['nspins'] == 1:
-            return 0.0
-        return self.results['magmom']
+    #def get_magnetic_moment(self, atoms=None):
+    #    if self.results['nspins'] == 1:
+    #        return 0.0
+    #    return self.results['magmom']
 
     def get_occupation_numbers(self, kpt=0, spin=0):
         return self.results['occupations'][kpt, spin].copy()
