@@ -138,7 +138,7 @@
 </div>
 
 <!-- Table -->
-<table id=rows class="table table-striped">
+<table id="rows" class="table table-striped">
 
 <tr>
 {%- for c in t.columns %}
@@ -161,7 +161,7 @@
 
 {% for row in t.rows -%}
 
-<tr onclick="document.location.href = '/id/{{ row.dct.id }}?project={{ project }}';">
+<tr id="rowentry" onclick="document.location.href = '/id/{{ row.dct.id }}?project={{ project }}';">
 {%- autoescape false -%}
 {%- for s in row.strings -%}
 {% if s != "" %}
