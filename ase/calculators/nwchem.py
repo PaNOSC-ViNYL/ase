@@ -401,7 +401,7 @@ class KITnwchem(NWChem):
             self.func = parameters['density functional']
         else:
             self.func = 'lda'
-            print "Density functional set to default: ", self.func
+            print('Density functional set to default: ', self.func)
         if 'ri' in parameters:
             self.ri = parameters['ri']
         if 'internals' in parameters:
@@ -571,8 +571,9 @@ class KITnwchem(NWChem):
                     string = match.group(2) + ' ' + match.group(4) + ' ' + match.group(5) + ' ' + match.group(6) + '\n'
                     xyz_string += string
                     atoms_read += 1
-                    if int(match.group(1)) > natoms:
-                        print 'error: number of xyz lines more than expected number of atoms'
+                    assert int(match.group(1)) == natoms, (
+                        'number of xyz lines more than expected number of atoms'
+                    )
             if atoms_read == natoms:
                 read_flag = False
                 atoms_read = 0
