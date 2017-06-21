@@ -6,6 +6,7 @@ font-size: 0;
 float: none;
 display: inline-block;
 font-size: 14px; /* if using LESS it's quicker to just use @font-size-base */
+cursor: pointer;
 }
 .myrow > *:nth-last-child(2) {
 vertical-align: bottom;
@@ -26,3 +27,11 @@ margin: 0 auto;
         overflow-x: hidden;
 }
 
+.item:hover .media-object {
+    height: 70px;
+    width: 140px;
+}
+
+#rowentry {background-color: #FFFFFF;}
+#rowentry:hover {background-color: #DDDDDD;
+	         cursor: pointer}
