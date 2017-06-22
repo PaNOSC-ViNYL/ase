@@ -140,7 +140,7 @@ def find_gap(N_sk, ev_k, ec_k, direct):
     if direct:
         gap_k = ec_k - ev_k
         k = gap_k.argmin()
-        return gap_k[k], k, n, k, n + 1
+        return gap_k[k], k, n - 1, k, n
     kv = ev_k.argmax()
     kc = ec_k.argmin()
     return ec_k[kc] - ev_k[kv], kv, n - 1, kc, n
