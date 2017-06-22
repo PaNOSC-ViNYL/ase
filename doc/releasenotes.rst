@@ -10,6 +10,12 @@ Git master branch
 
 :git:`master <>`.
 
+
+Version 3.14.0
+==============
+
+20 June 2017: :git:`3.14.0 <../3.14.0>`.
+
 * Python 2.6 no longer supported.
 
 * The command-line tools :program:`ase-???` have been replaced by a

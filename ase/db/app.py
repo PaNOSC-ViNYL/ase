@@ -43,6 +43,7 @@ from ase.db.table import Table, all_columns
 from ase.visualize import view
 from ase import Atoms
 from ase.calculators.calculator import kptdensity2monkhorstpack
+from ase.utils import FileNotFoundError
 
 
 # Every client-connetions gets one of these tuples:
