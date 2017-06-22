@@ -45,7 +45,7 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
             xref = ref['symmetry']
 
     structures = set(['sc', 'fcc', 'bcc', 'hcp', 'diamond', 'zincblende',
-                      'rocksalt', 'cesiumchloride', 'fluorite' 'wurtzite'])
+                      'rocksalt', 'cesiumchloride', 'fluorite', 'wurtzite'])
 
     if crystalstructure is None:
         crystalstructure = xref
