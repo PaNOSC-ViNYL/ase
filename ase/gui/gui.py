@@ -103,7 +103,7 @@ class GUI(View, Status):
         i = max(0, min(len(self.images) - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
-            self.movie_window.frame_number.value = i
+            self.movie_window.frame_number.value = i + 1
 
     def _do_zoom(self, x):
         """Utility method for zooming"""
