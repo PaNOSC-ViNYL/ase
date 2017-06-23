@@ -966,8 +966,8 @@ KEYS = Namelist((
         'exx_fraction', 'screening_parameter', 'exxdiv_treatment',
         'x_gamma_extrapolation', 'ecutvcut', 'nqx1', 'nqx2', 'nqx3',
         'lda_plus_u', 'lda_plus_u_kind', 'Hubbard_U', 'Hubbard_J0',
-        'Hubbard_alpha', 'Hubbard_beta', 'Hubbard_J(i,ityp)',
-        'starting_ns_eigenvalue(m,ispin,I)', 'U_projection_type', 'edir',
+        'Hubbard_alpha', 'Hubbard_beta', 'Hubbard_J',
+        'starting_ns_eigenvalue', 'U_projection_type', 'edir',
         'emaxpos', 'eopreg', 'eamp', 'angle1', 'angle2',
         'constrained_magnetization', 'fixed_magnetization', 'lambda',
         'report', 'lspinorb', 'assume_isolated', 'esm_bc', 'esm_w',
@@ -1008,7 +1008,7 @@ SSSP_VALENCE = [
     15.0, 32.0, 19.0, 12.0, 13.0, 14.0, 15.0, 16.0, 18.0]
 
 
-def construct_namelist(parameters=None, **kwargs):
+def construct_namelist(parameters=None, warn=False, **kwargs):
     """
     Construct an ordered Namelist containing all the parameters given (as
     a dictionary or kwargs). Keys will be inserted into their appropriate
@@ -1016,6 +1016,9 @@ def construct_namelist(parameters=None, **kwargs):
     structures. Any kwargs that match input keys will be incorporated into
     their correct section. All matches are case-insensitive, and returned
     Namelist object is a case-insensitive dict.
+
+    Keys with a dimension (e.g. Hubbard_U(1)) will be incorporated as-is
+    so the `i` should be made to match the output.
 
     The priority of the keys is:
         kwargs[key] > parameters[key] > parameters[section][key]
@@ -1025,6 +1028,8 @@ def construct_namelist(parameters=None, **kwargs):
     ----------
     parameters: dict
         Flat or nested set of input parameters.
+    warn: bool
+        Enable warnings for unused keys.
 
     Returns
     -------
@@ -1054,14 +1059,41 @@ def construct_namelist(parameters=None, **kwargs):
 
     # Collect
     for section in KEYS:
-        input_namelist[section] = Namelist()
+        sec_list = Namelist()
         for key in KEYS[section]:
+            # Check all three separately and pop them all so that
+            # we can check for missing values later
+            if key in parameters.get(section, {}):
+                sec_list[key] = parameters[section].pop(key)
+            if key in parameters:
+                sec_list[key] = parameters.pop(key)
             if key in kwargs:
-                input_namelist[section][key] = kwargs[key]
-            elif key in parameters:
-                input_namelist[section][key] = parameters[key]
-            elif key in parameters.get(section, {}):
-                input_namelist[section][key] = parameters[section][key]
+                sec_list[key] = kwargs.pop(key)
+
+            # Check if there is a key(i) version (no extra parsing)
+            for arg_key in parameters.get(section, {}):
+                if arg_key.split('(')[0].strip().lower() == key.lower():
+                    sec_list[arg_key] = parameters[section].pop(arg_key)
+            for arg_key in parameters:
+                if arg_key.split('(')[0].strip().lower() == key.lower():
+                    sec_list[arg_key] = parameters.pop(arg_key)
+            for arg_key in kwargs:
+                if arg_key.split('(')[0].strip().lower() == key.lower():
+                    sec_list[arg_key] = kwargs.pop(arg_key)
+
+        # Add to output
+        input_namelist[section] = sec_list
+
+    if warn:
+        unused_keys = list(kwargs)
+        for key, value in parameters.items():
+            if isinstance(value, dict):
+                unused_keys.extend(list(value))
+            else:
+                unused_keys.append(key)
+
+        if unused_keys:
+            warnings.warn('Unused keys: {}'.format(', '.join(unused_keys)))
 
     return input_namelist
 
@@ -1250,6 +1282,9 @@ def write_espresso_in(fd, atoms, parameters=None, pseudopotentials=None,
     Units are not converted, so use Quantum ESPRESSO units
     (Usually Ry or atomic units).
 
+    Keys with a dimension (e.g. Hubbard_U(1)) will be incorporated as-is
+    so the `i` should be made to match the output.
+
     Implemented features:
 
     - Conversion of :class:`ase.constraints.FixAtoms` and
@@ -1267,7 +1302,7 @@ def write_espresso_in(fd, atoms, parameters=None, pseudopotentials=None,
     - Hubbard parameters
     - Validation of the argument types for input
     - Validation of required options
-    - Reorientation fo ibrav settings
+    - Reorientation for ibrav settings
     - Noncollinear magnetism
 
     Parameters
