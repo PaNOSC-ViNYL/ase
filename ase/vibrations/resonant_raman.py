@@ -14,7 +14,7 @@ from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd, basestring
-from ase.parallel import world, distribute_cpus
+from ase.parallel import world
 
 
 class ResonantRaman(Vibrations):
