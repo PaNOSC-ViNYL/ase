@@ -502,7 +502,6 @@ class KITnwchem(NWChem):
         else:
             return NWChem.get_potential_energy(self, atoms)
 
-
     def get_mos(self, atoms):
         """ return eigenvectors and eigenvalues as matrices (numpy arrays) """
         if not self.orbitals:
@@ -522,7 +521,7 @@ class KITnwchem(NWChem):
         [C, e] = self.get_mos(self.atoms)
         # C^-1
         C_inv = np.linalg.inv(C)
-        # overlap matrix of the dimer
+        # overlap matrix
         overlap = np.matmul(C_inv, C_inv.T)
         # Fock/Kohn-Sham matrix
         fock = np.matmul(C_inv, np.matmul(e, C_inv.T))
@@ -581,6 +580,7 @@ class KITnwchem(NWChem):
         self.atoms.set_positions(new_atoms.get_positions())
 
     def read_mos(self):
+        """ reads the molecular orbitals and molecular orbital energies """
         self.orbitals = []
         orbital_coefficients = []
         orbital_coefficients_line = []
