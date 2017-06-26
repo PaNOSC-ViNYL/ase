@@ -104,7 +104,7 @@ class BandStructure:
 
     def plot_with_colors(self, ax=None, emin=-10, emax=5, filename=None,
                          show=None, energies=None, colors=None,
-                         ylabel=None, clabel='$s_z$'):
+                         ylabel=None, clabel='$s_z$', cmin=-1.0, cmax=1.0):
         """Plot band-structure with colors."""
 
         import matplotlib.pyplot as plt
@@ -113,7 +113,8 @@ class BandStructure:
             ax = self.prepare_plot(ax, emin, emax, ylabel)
 
         for e_k, color in zip(energies, colors):
-            things = ax.scatter(self.xcoords, e_k, c=color, s=2)
+            things = ax.scatter(self.xcoords, e_k, c=color, s=2,
+                                vmin=cmin, vmax=cmax)
 
         cbar = plt.colorbar(things)
         cbar.set_label(clabel)

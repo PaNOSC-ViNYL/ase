@@ -47,7 +47,7 @@ python setup.py sdist
 cp dist/ase-*.tar.gz ase-web-page/
 cp dist/ase-*.tar.gz ase-web-page/dev/
 find ase-web-page -name install.html | xargs sed -i s/snapshot.tar.gz/{0}/g
-tar -cf ase-web-page.tar.gz ase-web-page
+tar -czf ase-web-page.tar.gz ase-web-page
 cp ase-web-page.tar.gz {1}/tmp-ase-web-page.tar.gz
 mv {1}/tmp-ase-web-page.tar.gz {1}/ase-web-page.tar.gz"""
 
