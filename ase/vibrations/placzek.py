@@ -5,7 +5,6 @@ import numpy as np
 
 import ase.units as u
 from ase.vibrations.resonant_raman import ResonantRaman
-from ase.parallel import world, distribute_cpus
 
 # XXX remove gpaw dependence
 from gpaw.lrtddft.spectrum import polarizability
@@ -21,21 +20,9 @@ class Placzek(ResonantRaman):
         raise ValueError('Approximation can not be set.')
 
     def read_excitations(self):
-        self.timer.start('read excitations')
         self.ex0E_p = None  # mark as read
         self.exm_r = []
         self.exp_r = []
-
-        # parallelization
-        comm = world
-        rank = comm.rank
-        self.ndof = 3 * len(self.indices)
-        myn = -(-self.ndof // comm.size)  # ceil divide
-        s = slice(myn * rank, myn * (rank + 1))
-        self.myindices = np.repeat(self.indices, 3)[s]
-        self.myxyz = ('xyz' * len(self.indices))[s]
-        self.myr = range(self.ndof)[s]
-        
         for a, i in zip(self.myindices, self.myxyz):
             exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
             self.log('reading ' + exname)
@@ -43,7 +30,6 @@ class Placzek(ResonantRaman):
             exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
             self.log('reading ' + exname)
             self.exp_r.append(self.exobj(exname, **self.exkwargs))
-        self.timer.stop('read excitations')
 
     def electronic_me_Qcc(self, omega, gamma=0):
         self.read()
@@ -68,7 +54,7 @@ class Placzek(ResonantRaman):
         self.timer.stop('alpha derivatives')
  
         # map to modes
-        world.sum(V_rcc)
+        self.comm.sum(V_rcc)
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
         V_Qcc = np.dot(V_qcc.T, self.modes.T).T
         return V_Qcc

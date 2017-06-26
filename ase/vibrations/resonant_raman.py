@@ -14,6 +14,7 @@ from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd, basestring
+from ase.parallel import world, distribute_cpus
 
 
 class ResonantRaman(Vibrations):
@@ -172,6 +173,17 @@ class ResonantRaman(Vibrations):
             self.atoms.get_calculator(), **self.exkwargs)
         excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
+
+    def init_parallel(self):
+        """Initialize variables for parallel read/analysis"""
+        self.comm = world
+        rank = self.comm.rank
+        self.ndof = 3 * len(self.indices)
+        myn = -(-self.ndof // self.comm.size)  # ceil divide
+        s = slice(myn * rank, myn * (rank + 1))
+        self.myindices = np.repeat(self.indices, 3)[s]
+        self.myxyz = ('xyz' * len(self.indices))[s]
+        self.myr = range(self.ndof)[s]
 
     def read_excitations(self):
         """Read all finite difference excitations and select matching."""
@@ -366,7 +378,8 @@ class ResonantRaman(Vibrations):
     def read(self, method='standard', direction='central'):
         """Read data from a pre-performed calculation."""
 
-        self.timer.start('read vibrations')
+        self.timer.start('read')
+        self.timer.start('vibrations')
         Vibrations.read(self, method, direction)
         # we now have:
         # self.H     : Hessian matrix
@@ -380,13 +393,18 @@ class ResonantRaman(Vibrations):
                                     1. / np.sqrt(2 * self.om_Q), 0)
         # -> sqrt(amu) * Angstrom
         self.vib01_Q *= np.sqrt(u.Ha * u._me / u._amu) * u.Bohr
-        self.timer.stop('read vibrations')
+        self.timer.stop('vibrations')
 
+
+        self.timer.start('excitations')
+        self.init_parallel()
         if not hasattr(self, 'ex0E_p'):
             if self.overlap:
                 self.read_excitations_overlap()
             else:
                 self.read_excitations()
+        self.timer.stop('excitations')
+        self.timer.stop('read')
 
     def me_Qcc(self, omega, gamma):
         """Full matrix element
