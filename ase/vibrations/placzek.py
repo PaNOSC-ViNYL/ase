@@ -35,7 +35,6 @@ class Placzek(ResonantRaman):
         self.myindices = np.repeat(self.indices, 3)[s]
         self.myxyz = ('xyz' * len(self.indices))[s]
         self.myr = range(self.ndof)[s]
-        ## print(comm.rank, '->', self.myindices, self.myxyz, self.myr)
         
         for a, i in zip(self.myindices, self.myxyz):
             exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
@@ -69,6 +68,7 @@ class Placzek(ResonantRaman):
         self.timer.stop('alpha derivatives')
  
         # map to modes
+        world.sum(V_rcc)
         V_qcc = (V_rcc.T * self.im).T  # units Angstrom^2 / sqrt(amu)
         V_Qcc = np.dot(V_qcc.T, self.modes.T).T
         return V_Qcc
