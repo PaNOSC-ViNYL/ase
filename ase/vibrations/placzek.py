@@ -5,6 +5,7 @@ import numpy as np
 
 import ase.units as u
 from ase.vibrations.resonant_raman import ResonantRaman
+from ase.parallel import world, distribute_cpus
 
 # XXX remove gpaw dependence
 from gpaw.lrtddft.spectrum import polarizability
@@ -24,17 +25,25 @@ class Placzek(ResonantRaman):
         self.ex0E_p = None  # mark as read
         self.exm_r = []
         self.exp_r = []
-        r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
-                self.log('reading ' + exname)
-                self.exm_r.append(self.exobj(exname, **self.exkwargs))
-                exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
-                self.log('reading ' + exname)
-                self.exp_r.append(self.exobj(exname, **self.exkwargs))
-                r += 1
+
+        # parallelization
+        comm = world
+        rank = comm.rank
         self.ndof = 3 * len(self.indices)
+        myn = -(-self.ndof // comm.size)  # ceil divide
+        s = slice(myn * rank, myn * (rank + 1))
+        self.myindices = np.repeat(self.indices, 3)[s]
+        self.myxyz = ('xyz' * len(self.indices))[s]
+        self.myr = range(self.ndof)[s]
+        ## print(comm.rank, '->', self.myindices, self.myxyz, self.myr)
+        
+        for a, i in zip(self.myindices, self.myxyz):
+            exname = '%s.%d%s-' % (self.exname, a, i) + self.exext
+            self.log('reading ' + exname)
+            self.exm_r.append(self.exobj(exname, **self.exkwargs))
+            exname = '%s.%d%s+' % (self.exname, a, i) + self.exext
+            self.log('reading ' + exname)
+            self.exp_r.append(self.exobj(exname, **self.exkwargs))
         self.timer.stop('read excitations')
 
     def electronic_me_Qcc(self, omega, gamma=0):
@@ -51,15 +60,12 @@ class Placzek(ResonantRaman):
         self.timer.stop('init')
         
         self.timer.start('alpha derivatives')
-        r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                V_rcc[r] = pre * (
-                    polarizability(self.exp_r[r], om,
-                                   form=self.dipole_form, tensor=True) -
-                    polarizability(self.exm_r[r], om,
-                                   form=self.dipole_form, tensor=True))
-                r += 1
+        for i, r in enumerate(self.myr):
+            V_rcc[r] = pre * (
+                polarizability(self.exp_r[i], om,
+                               form=self.dipole_form, tensor=True) -
+                polarizability(self.exm_r[i], om,
+                               form=self.dipole_form, tensor=True))
         self.timer.stop('alpha derivatives')
  
         # map to modes
