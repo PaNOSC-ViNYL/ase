@@ -180,7 +180,7 @@ def index():
         meta = db.meta
 
     if columns is None:
-        columns = meta.get('default_columns') or list(all_columns)
+        columns = meta.get('default_columns')[:] or list(all_columns)
 
     if 'sort' in request.args:
         column = request.args['sort']
@@ -232,7 +232,7 @@ def index():
     if 'toggle' in request.args:
         column = request.args['toggle']
         if column == 'reset':
-            columns = meta.get('default_columns') or list(all_columns)
+            columns = meta.get('default_columns')[:] or list(all_columns)
         else:
             if column in columns:
                 columns.remove(column)
