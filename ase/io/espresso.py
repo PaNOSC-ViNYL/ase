@@ -1125,7 +1125,7 @@ def grep_valence(pseudopotential):
     with open(pseudopotential) as psfile:
         for line in psfile:
             if 'z valence' in line.lower():
-                return float(line.split()[1])
+                return float(line.split()[0])
             elif 'z_valence' in line.lower():
                 return float(line.split('=')[-1].strip().strip('"'))
         else:
@@ -1270,7 +1270,7 @@ def kspacing_to_grid(atoms, spacing, calculated_spacing=None):
     return kpoint_grid
 
 
-def write_espresso_in(fd, atoms, parameters=None, pseudopotentials=None,
+def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
                       kspacing=None, kpts=None, koffset=(0, 0, 0),
                       **kwargs):
     """
@@ -1311,7 +1311,7 @@ def write_espresso_in(fd, atoms, parameters=None, pseudopotentials=None,
         A file like object to write the input file to.
     atoms: Atoms
         A single atomistic configuration to write to `fd`.
-    parameters: dict
+    input_data: dict
         A flat or nested dictionary with input parameters for pw.x
     pseudopotentials: dict
         A filename for each atomic species, e.g.
@@ -1330,7 +1330,9 @@ def write_espresso_in(fd, atoms, parameters=None, pseudopotentials=None,
     """
 
     # Convert to a namelist to make working with parameters much easier
-    input_parameters = construct_namelist(parameters, **kwargs)
+    # Note that the name ``input_data`` is chosen to prevent clash with
+    # ``parameters`` in Calculator objects
+    input_parameters = construct_namelist(input_data, **kwargs)
 
     # Convert ase constraints to QE constraints
     # Nx3 array of force multipliers matches what QE uses
