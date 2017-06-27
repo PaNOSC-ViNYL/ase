@@ -1,17 +1,25 @@
 import ase.db
 from ase.utils import basestring
+from ase.io.formats import string2index
 
 
 def read_db(filename, index, **kwargs):
-    con = ase.db.connect(filename, serial=True, **kwargs)
-    if index == slice(-1, None):
-        yield con.get().toatoms()
+    db = ase.db.connect(filename, serial=True, **kwargs)
+    if isinstance(index, int):
+        index = slice(index, index + 1)
+    elif isinstance(index, basestring):
+        try:
+            index = string2index(index)
+        except ValueError:
+            pass
+
+    if isinstance(index, basestring):
+        for row in db.select(index):
+            yield row.toatoms()
     else:
-        if index == slice(None, None, None):
-            index = None
-        elif isinstance(index, basestring) and index.isdigit():
-            index = int(index)
-        for row in con.select(index):
+        start, stop, step = index.indices(db.count())
+        assert step == 1
+        for row in db.select(offset=start, limit=stop - start):
             yield row.toatoms()
 
 
