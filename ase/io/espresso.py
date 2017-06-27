@@ -1493,8 +1493,10 @@ def write_espresso_in(fd, atoms, parameters=None, pseudopotentials=None,
     else:
         kgrid = (1, 1, 1)
 
-    if koffset is True:
+    if koffset is True or koffset == 1:
         koffset = (1, 1, 1)
+    elif koffset is False or koffset == 0:
+        koffset = (0, 0, 0)
 
     # QE defaults to gamma point, make it explicit
     if all([x == 1 for x in kgrid]) and not any(koffset):
