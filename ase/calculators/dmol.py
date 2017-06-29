@@ -283,6 +283,7 @@ class DMol3(FileIOCalculator):
 
         if found_cell:
             atoms.pbc = [True, True, True]
+            atoms.wrap()
         else:
             atoms.pbc = [False, False, False]
         return atoms

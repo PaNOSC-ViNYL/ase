@@ -10,6 +10,14 @@ Git master branch
 
 :git:`master <>`.
 
+Version 3.14.1
+==============
+
+28 June 2017: :git:`3.14.1 <../3.14.1>`.
+
+* Calling the :func:`ase.dft.bandgap.bandgap` function with ``direct=True``
+  would return band indices that were off by one.  Fixed now.
+
 
 Version 3.14.0
 ==============
