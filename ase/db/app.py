@@ -149,8 +149,10 @@ def index():
 
     if not projects:
         # First time: initialize list of projects
-        projects[:] = [(proj, d.metadata.get('title', proj))
-                       for proj, d in sorted(databases.items())]
+        for proj, db in sorted(databases.items()):
+            meta = ase.db.web.process_metadata(db)
+            db.meta = meta
+            projects.append((proj, db.meta.get('title', proj)))
 
     con_id = int(request.args.get('x', '0'))
     if con_id in connections:
@@ -173,11 +175,7 @@ def index():
 
     db = databases[project]
 
-    if not hasattr(db, 'meta'):
-        meta = ase.db.web.process_metadata(db)
-        db.meta = meta
-    else:
-        meta = db.meta
+    meta = db.meta
 
     if columns is None:
         columns = meta.get('default_columns')[:] or list(all_columns)
