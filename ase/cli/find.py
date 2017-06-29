@@ -1,3 +1,4 @@
+from __future__ import print_function
 import multiprocessing as mp
 import os
 import os.path as op
@@ -21,7 +22,7 @@ class CLICommand:
         parser.add_argument('-v', '--verbose', action='store_true')
         parser.add_argument('-i', '--include')
         parser.add_argument('-x', '--exclude')
-        parser.add_argument('-j', '--jobs', type=int, defualt=0)
+        parser.add_argument('-j', '--jobs', type=int, default=0)
 
     @staticmethod
     def run(args):
