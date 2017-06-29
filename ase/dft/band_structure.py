@@ -92,14 +92,14 @@ class BandStructure:
 
         nspins = len(e_skn)
         if nspins == 2:
-            spin_labels = ['Spin up', 'Spin down']
+            spin_labels = [' spin up', ' spin down']
 
         for spin, e_kn in enumerate(e_skn):
             color = colors[spin]
             kwargs = dict(color=color)
             kwargs.update(plotkwargs)
             if nspins == 2:
-                ax.plot(self.xcoords, e_kn[:, 0], label=spin_labels[spin], **kwargs)
+                ax.plot(self.xcoords, e_kn[:, 0], label=label+spin_labels[spin], **kwargs)
             else:
                 ax.plot(self.xcoords, e_kn[:, 0], label=label, **kwargs)
             for e_k in e_kn.T[1:]:
