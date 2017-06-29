@@ -102,8 +102,8 @@ class Images:
             # but copying actually forgets things like the attached
             # calculator (might have forces/energies
             self._images.append(atoms)
-            self.have_varying_species |= np.any(self[0].numbers !=
-                                                atoms.numbers)
+            self.have_varying_species |= np.array_equal(self[0].numbers,
+                                                        atoms.numbers)
             if hasattr(self, 'Q'):
                 assert False  # XXX askhl fix quaternions
                 self.Q[i] = atoms.get_quaternions()
