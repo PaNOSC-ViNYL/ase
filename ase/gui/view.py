@@ -183,6 +183,12 @@ class View:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
             self.labels = list(get_magmoms(self.atoms))
+        elif index == 4:
+            try:
+                Q = self.atoms.get_charges()
+            except PropertyNotImplementedError:
+                Q = self.atoms.get_initial_charges()
+            self.labels = ['{0:.4g}'.format(q) for q in Q]
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
