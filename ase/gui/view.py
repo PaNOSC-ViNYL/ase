@@ -12,6 +12,7 @@ from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
 from ase.gui.utils import get_magmoms
 from ase.utils import rotate
+from ase.calculators.calculator import PropertyNotImplementedError
 
 
 GREEN = '#DDFFDD'
@@ -326,7 +327,10 @@ class View:
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
         elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+            try:
+                return self.atoms.get_charges()
+            except PropertyNotImplementedError:
+                return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return get_magmoms(self.atoms)
 
