@@ -251,7 +251,8 @@ class Images:
             ns['ekin'] = ekin = self[i].get_kinetic_energy()
             ns['e'] = epot + ekin
             ndynamic = dynamic.sum()
-            ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
+            if ndynamic > 0:
+                ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code, ns)
             if i == 0:
                 m = len(data)
