@@ -68,6 +68,7 @@ class GUI(View, Status):
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
         self.moving = False
+        self.move_atoms_mask = None
 
     def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
@@ -88,6 +89,10 @@ class GUI(View, Status):
 
     def toggle_move_mode(self, key=None):
         self.moving ^= True
+        if self.moving:
+            self.move_atoms_mask = self.images.selected.copy()
+        else:
+            self.move_atoms_mask = None
         self.draw()
 
     def step(self, key):
@@ -138,7 +143,7 @@ class GUI(View, Status):
             vec *= 0.1
 
         if self.moving:
-            self.atoms.positions[self.images.selected[:len(self.atoms)]] += vec
+            self.atoms.positions[self.move_atoms_mask[:len(self.atoms)]] += vec
             self.set_frame()
         else:
             self.center -= vec
@@ -414,7 +419,9 @@ class GUI(View, Status):
                 choices=[_('_None'),
                          _('Atom _Index'),
                          _('_Magnetic Moments'),
-                         _('_Element Symbol')]),
+                         _('_Element Symbol'),
+                         _('_Charge'),
+                ]),
               M('---'),
               M(_('Quick Info ...'), self.quick_info_window),
               M(_('Repeat ...'), self.repeat_window, 'R'),

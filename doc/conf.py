@@ -23,6 +23,15 @@ default_role = 'math'
 pygments_style = 'sphinx'
 autoclass_content = 'both'
 modindex_common_prefix = ['ase.']
+nitpick_ignore = [('envvar', 'VASP_PP_PATH'),
+                  ('envvar', 'ASE_ABC_COMMAND'),
+                  ('envvar', 'FLEUR_INPGEN'),
+                  ('envvar', 'FLEUR'),
+                  ('envvar', 'LAMMPS_COMMAND'),
+                  ('envvar', 'ASE_NWCHEM_COMMAND'),
+                  ('envvar', 'SIESTA_COMMAND'),
+                  ('envvar', 'SIESTA_PP_PATH'),
+                  ('envvar', 'VASP_SCRIPT')]
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
@@ -33,8 +42,8 @@ html_last_updated_fmt = '%a, %d %b %Y %H:%M:%S'
 html_context = {
     'current_version': __version__,
     'versions':
-        [('3.14.0b1 (development)', 'https://wiki.fysik.dtu.dk/ase/dev'),
-         ('3.13.0 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
+        [('3.15.0b1 (development)', 'https://wiki.fysik.dtu.dk/ase/dev'),
+         ('3.14.0 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
 
 latex_elements = {
     'papersize': 'a4paper',

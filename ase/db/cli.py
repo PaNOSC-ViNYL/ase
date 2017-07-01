@@ -1,6 +1,7 @@
 from __future__ import print_function
 import collections
 import json
+import os
 import sys
 from random import randint
 
@@ -22,7 +23,7 @@ except NameError:
 class CLICommand:
     short_description = 'Manipulate and query ASE database'
 
-    description = """Selecton is a comma-separated list of
+    description = """Selection is a comma-separated list of
     selections where each selection is of the type "ID", "key" or
     "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
     and  "!=" (these must be protected from the shell by using quotes).
@@ -169,7 +170,7 @@ def main(args):
         nrows = 0
         with connect(args.insert_into,
                      use_lock_file=not args.no_lock_file) as db2:
-            for row in db.select(query):
+            for row in db.select(query, sort=args.sort):
                 kvp = row.get('key_value_pairs', {})
                 nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
@@ -251,9 +252,17 @@ def main(args):
         return
 
     db.python = args.metadata_from_python_script
-    db.meta = process_metadata(db)
+    db.meta = process_metadata(db, html=args.open_web_browser)
 
     if args.long:
+        # Remove .png files so that new ones will be created.
+        for func, filenames in db.meta.get('functions', []):
+            for filename in filenames:
+                try:
+                    os.remove(filename)
+                except OSError:  # Python 3 only: FileNotFoundError
+                    pass
+
         row = db.get(query)
         summary = Summary(row, db.meta)
         summary.write()

@@ -184,8 +184,8 @@ def read_gpaw_out(fileobj, index):
             magmoms = None
         else:
             magmoms = []
-            for i in range(ii + 1, ii + 1 + len(atoms)):
-                magmom = lines[i].split()[-1]
+            for j in range(ii + 1, ii + 1 + len(atoms)):
+                magmom = lines[j].split()[-1]
                 magmoms.append(float(magmom))
 
         try:
@@ -216,8 +216,9 @@ def read_gpaw_out(fileobj, index):
         if e is not None or f is not None:
             calc = SinglePointDFTCalculator(atoms, energy=e, forces=f,
                                             dipole=dipole, magmoms=magmoms,
-                                            eFermi=eFermi, Eref=Eref,
-                                            bz_kpts=bz_kpts, ibz_kpts=ibz_kpts)
+                                            efermi=eFermi,
+                                            bzkpts=bz_kpts, ibzkpts=ibz_kpts)
+            calc.eref = Eref
             calc.name = 'gpaw'
             if kpts is not None:
                 calc.kpts = kpts

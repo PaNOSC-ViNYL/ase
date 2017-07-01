@@ -116,7 +116,7 @@ Example usage::
   atoms.set_calculator(cp_calc)
   e = atoms.get_potential_energy()
 
-The first call to :meth:`~Atoms.get_potential_energy` does the actual
+The first call to :meth:`~ase.Atoms.get_potential_energy` does the actual
 calculation, a rerun of the script will load energies and force from the
 database. Note that this is useful for calculation where each energy evaluation
 is slow (e.g. DFT), but not recommended for molecular dynamics with classical

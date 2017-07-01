@@ -1,8 +1,8 @@
+from __future__ import print_function
 from ase.data import s22
 from ase.calculators.tip3p import TIP3P, epsilon0, sigma0
 from ase.calculators.qmmm import EIQMMM, LJInteractions, Embedding
 from gpaw import GPAW
-import numpy as np
 
 # Create system
 atoms = s22.create_s22_system('Water_dimer')
@@ -24,4 +24,4 @@ atoms.calc = EIQMMM(qm_idx,
                     vacuum=None,  # if None, QM cell = MM cell
                     output='qmmm.log')
 
-print atoms.get_potential_energy()
+print(atoms.get_potential_energy())

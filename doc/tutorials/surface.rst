@@ -187,8 +187,8 @@ dynamics with the :class:`VelocityVerlet <ase.md.verlet.VelocityVerlet>`
 algorithm. We first create the :class:`VelocityVerlet
 <ase.md.verlet.VelocityVerlet>` object giving it the molecule and the time
 step for the integration of Newton's law. We then perform the dynamics
-by calling its :meth:`run` method and giving it the number of steps to
-take:
+by calling its :meth:`~ase.md.verlet.VelocityVerlet.run` method and
+giving it the number of steps to take:
 
 >>> from ase.md.verlet import VelocityVerlet
 >>> from ase import units

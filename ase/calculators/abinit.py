@@ -265,7 +265,7 @@ class Abinit(FileIOCalculator):
         FileIOCalculator.read(self, label)
         filename = self.label + '.txt'
         if not os.path.isfile(filename):
-            raise ReadError
+            raise ReadError('ABINIT output file '+filename+' is missing.')
 
         self.atoms = read_abinit(self.label + '.in')
         self.parameters = Parameters.read(self.label + '.ase')
@@ -276,12 +276,10 @@ class Abinit(FileIOCalculator):
     def read_results(self):
         filename = self.label + '.txt'
         text = open(filename).read().lower()
-        
-        if ('error' in text or
-            'was not enough scf cycles to converge' in text):
-            raise ReadError
 
         for line in iter(text.split('\n')):
+            if line.rfind('error') > -1 or line.rfind('was not enough scf cycles to converge') > -1:
+                raise ReadError(line)
             if line.rfind('natom  ') > -1:
                 natoms = int(line.split()[-1])
 
@@ -452,7 +450,7 @@ class Abinit(FileIOCalculator):
         niter = None
         for line in open(self.label + '.txt'):
             if line.find(' At SCF step') != -1: # find the last iteration number
-                niter = int(line.split(',')[0].split()[-1].strip())
+                niter = int(line.split()[3].rstrip(','))
         return niter
 
     def get_electronic_temperature(self):

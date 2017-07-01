@@ -19,20 +19,12 @@ var Info = {
     allowJavaScript: false
 };
 
-function repeatCell(repeat)
+
+function repeatCell(n1, n2, n3)
 {
-    if (repeat == 221)
-    {
-        Jmol.script(jmolApplet0, 'load "" {2 2 1}');
-    }
-    else if (repeat == 222)
-    {
-        Jmol.script(jmolApplet0, 'load "" {2 2 2}');
-    }
-    else
-    {
-        Jmol.script(jmolApplet0, 'load "" {1 1 1}');
-    }
+    var s = '{ ' + n1.toString() + ' ' + n2.toString() + ' ' + n3.toString() +
+        ' };';
+    Jmol.script(jmolApplet0, 'load "" ' + s);
 }
 
 $(document).ready(function()

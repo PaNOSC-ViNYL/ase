@@ -256,10 +256,12 @@ special_paths = {
     'tetragonal': 'GXMGZRAZXR,MA',
     'orthorhombic': 'GXSYGZURTZ,YT,UX,SR',
     'hexagonal': 'GMKGALHA,LM,KH',
-    'monoclinic': 'GYHCEM1AXH1,MDZ,YD'}
+    'monoclinic': 'GYHCEM1AXH1,MDZ,YD',
+    'rhombohedral type 1': 'GLB1,BZGX,QFP1Z,LP',
+    'rhombohedral type 2': 'GPZQGFP1Q1LZ'}
 
 
-def get_special_points(lattice, cell, eps=1e-4):
+def get_special_points(lattice, cell, eps=2e-4):
     """Return dict of special points.
 
     The definitions are from a paper by Wahyu Setyawana and Stefano
@@ -303,30 +305,48 @@ def get_special_points(lattice, cell, eps=1e-4):
     elif lattice == 'monoclinic':
         assert c >= a and c >= b
         assert alpha < pi / 2 and abs(angles[1:] - pi / 2).max() < eps
+    elif lattice == 'rhombohedral type 1':
+        assert abc.ptp() < eps and angles.ptp() < eps
+        assert abs(alpha) < pi / 2
 
-    if lattice != 'monoclinic':
+    if lattice == 'monoclinic':
+        # Here, we need the cell:
+        eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
+        nu = 1 / 2 - eta * c * cos(alpha) / b
+        return {'G': [0, 0, 0],
+                'A': [1 / 2, 1 / 2, 0],
+                'C': [0, 1 / 2, 1 / 2],
+                'D': [1 / 2, 0, 1 / 2],
+                'D1': [1 / 2, 0, -1 / 2],
+                'E': [1 / 2, 1 / 2, 1 / 2],
+                'H': [0, eta, 1 - nu],
+                'H1': [0, 1 - eta, nu],
+                'H2': [0, eta, -nu],
+                'M': [1 / 2, eta, 1 - nu],
+                'M1': [1 / 2, 1 - eta, nu],
+                'M2': [1 / 2, eta, -nu],
+                'X': [0, 1 / 2, 0],
+                'Y': [0, 0, 1 / 2],
+                'Y1': [0, 0, -1 / 2],
+                'Z': [1 / 2, 0, 0]}
+    elif lattice == 'rhombohedral type 1':
+        eta = (1 + 4 * np.cos(alpha)) / (2 + 4 * np.cos(alpha))
+        nu = 3 / 4 - eta / 2
+        return {'G': [0, 0, 0],
+                'B': [eta, 1 / 2, 1 - eta],
+                'B1': [1 / 2, 1 - eta, eta - 1],
+                'F': [1 / 2, 1 / 2, 0],
+                'L': [1 / 2, 0, 0],
+                'L1': [0, 0, - 1 / 2],
+                'P': [eta, nu, nu],
+                'P1': [1 - nu, 1 - nu, 1 - eta],
+                'P2': [nu, nu, eta - 1],
+                'Q': [1 - nu, nu, 0],
+                'X': [nu, 0, -nu],
+                'Z': [0.5, 0.5, 0.5]}
+    else:
         return special_points[lattice]
-
-    # Here, we need the cell:
-    eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
-    nu = 1 / 2 - eta * c * cos(alpha) / b
-    return {'G': [0, 0, 0],
-            'A': [1 / 2, 1 / 2, 0],
-            'C': [0, 1 / 2, 1 / 2],
-            'D': [1 / 2, 0, 1 / 2],
-            'D1': [1 / 2, 0, -1 / 2],
-            'E': [1 / 2, 1 / 2, 1 / 2],
-            'H': [0, eta, 1 - nu],
-            'H1': [0, 1 - eta, nu],
-            'H2': [0, eta, -nu],
-            'M': [1 / 2, eta, 1 - nu],
-            'M1': [1 / 2, 1 - eta, nu],
-            'M2': [1 / 2, eta, -nu],
-            'X': [0, 1 / 2, 0],
-            'Y': [0, 0, 1 / 2],
-            'Y1': [0, 0, -1 / 2],
-            'Z': [1 / 2, 0, 0]}
-
+        
 
 def monkhorst_pack_interpolate(path, values, icell, bz2ibz,
                                size, offset=(0, 0, 0)):

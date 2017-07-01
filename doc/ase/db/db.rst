@@ -502,6 +502,10 @@ Then you create an 'ase' user and one database for each project you have::
     postgres=# create user ase login password 'pw';
     postgres=# create database project1;
     postgres=# create database project2;
+
+Show databases and quit::
+
+    postgres=# \l
     postgres=# \q
 
 You should now be able to
@@ -519,7 +523,7 @@ into the PostgreSQL database like this::
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
 Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
-to point to a configuration file containing two lines similar to these::
+to point to a Python configuration file containing something similar to this::
 
     ASE_DB_NAMES = ['postgresql://ase:pw@localhost:5432/project1',
                     'postgresql://ase:pw@localhost:5432/project2',
