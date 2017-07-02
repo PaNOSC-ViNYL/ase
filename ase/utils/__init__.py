@@ -308,3 +308,26 @@ def hsv(array, s=.9, v=.9):
 def longsum(x):
     """128-bit floating point sum."""
     return float(np.asarray(x, dtype=np.longdouble).sum())
+
+
+class StringBuilder:
+    """Facilitate efficient repeated string concatenation.
+
+    String concatenations scale quadratically
+    because Python must allocate a new string every time something
+    is added to it.  Useful for generating input files.
+
+    s = StringBuilder()
+    for i in range(10):
+        s += 'hello\n'
+    print(str(s))"""
+
+    def __init__(self):
+        self.tokens = []
+
+    def __iadd__(self, other):
+        self.tokens.append(other)
+        return self
+
+    def __str__(self):
+        return ''.join(self.tokens)
