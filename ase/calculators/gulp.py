@@ -15,6 +15,7 @@ import os
 import re
 import numpy as np
 from ase.units import eV, Ang
+from ase.utils import StringBuilder
 from ase.calculators.calculator import FileIOCalculator, ReadError
 
 class GULPOptimizer:
@@ -84,7 +85,8 @@ class GULP(FileIOCalculator):
         p = self.parameters
 
         # Build string to hold .gin input file:
-        s = p.keywords
+        s = StringBuilder()
+        s += p.keywords
         s += '\ntitle\nASE calculation\nend\n\n'
 
         if all(self.atoms.pbc):
@@ -113,7 +115,7 @@ class GULP(FileIOCalculator):
             for t in p.options:
                 s += '%s\n' % t
         with open(self.prefix + '.gin', 'w') as f:
-            f.write(s)
+            f.write(str(s))
 
     def read_results(self):
         FileIOCalculator.read(self, self.label)
