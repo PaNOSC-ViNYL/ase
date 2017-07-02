@@ -140,6 +140,14 @@ class NEB:
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
+
+        calculators = [image.calc for image in images
+                       if image.calc is not None]
+        if len(set(calculators)) != len(calculators):
+            raise ValueError('One or more NEB images share the same '
+                             'calculator.  '
+                             'Each image must have its own calculator.')
+
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages)
 
