@@ -449,7 +449,8 @@ class Atoms(object):
         """Check for existence of array.
 
         name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
-        'charges'."""
+        'initial_charges'."""
+        # XXX extend has to calculator properties
         return name in self.arrays
 
     def set_atomic_numbers(self, numbers):
@@ -619,14 +620,14 @@ class Atoms(object):
         """Set the initial charges."""
 
         if charges is None:
-            self.set_array('charges', None)
+            self.set_array('initial_charges', None)
         else:
-            self.set_array('charges', charges, float, ())
+            self.set_array('initial_charges', charges, float, ())
 
     def get_initial_charges(self):
         """Get array of initial charges."""
-        if 'charges' in self.arrays:
-            return self.arrays['charges'].copy()
+        if 'initial_charges' in self.arrays:
+            return self.arrays['initial_charges'].copy()
         else:
             return np.zeros(len(self))
 
