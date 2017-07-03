@@ -418,9 +418,9 @@ class GUI(View, Status):
               M(_('Show _Labels'), self.show_labels,
                 choices=[_('_None'),
                          _('Atom _Index'),
-                         _('_Magnetic Moments'),
+                         _('_Magnetic Moments'),  # XXX check if exist
                          _('_Element Symbol'),
-                         _('_Charge'),
+                         _('_Initial Charges'),  # XXX check if exist
                 ]),
               M('---'),
               M(_('Quick Info ...'), self.quick_info_window),
