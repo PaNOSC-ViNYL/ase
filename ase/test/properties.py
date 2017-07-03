@@ -17,4 +17,5 @@ assert not (a.cell.diagonal() - (3, 4, 6)).any()
 
 assert (charges == a.get_initial_charges()).all()
 assert a.has('initial_charges')
+# XXX extend has to calculator properties
 assert not a.has('charges')

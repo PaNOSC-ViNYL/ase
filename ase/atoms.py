@@ -450,6 +450,7 @@ class Atoms(object):
 
         name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
         'initial_charges'."""
+        # XXX extend has to calculator properties
         return name in self.arrays
 
     def set_atomic_numbers(self, numbers):
