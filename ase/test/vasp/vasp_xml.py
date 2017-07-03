@@ -14,11 +14,6 @@ import numpy as np
 import sys
 
 
-def array_almost_equal(a1, a2, tol=np.finfo(type(1.0)).eps):
-    """Replacement for old numpy.testing.utils.array_almost_equal."""
-    return (np.abs(a1 - a2) < tol).all()
-
-
 def main():
     if sys.version_info < (2, 7):
         raise NotAvailable('read_xml requires Python version 2.7 or greater')
@@ -44,6 +39,7 @@ def main():
     co.set_calculator(calc)
     energy = co.get_potential_energy()
     forces = co.get_forces()
+    dipole_moment = co.get_dipole_moment()
 
     # check that parsing of vasprun.xml file works
     conf = read('vasprun.xml')
@@ -51,8 +47,9 @@ def main():
     assert conf.calc.parameters['sigma'] == 1.0
     assert conf.calc.parameters['ialgo'] == 68
     assert energy - conf.get_potential_energy() == 0.0
-    assert array_almost_equal(conf.get_forces(), forces, tol=1e-4)
-    assert array_almost_equal(conf.get_dipole_moment(), [-0.2450777, -0.014922, 3.9574469])
+    assert np.allclose(conf.get_forces(), forces)
+    assert np.allclose(conf.get_dipole_moment(), dipole_moment, atol=1e-6)
+    
     # Cleanup
     calc.clean()
 
