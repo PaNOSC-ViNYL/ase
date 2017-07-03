@@ -60,11 +60,12 @@ class BandStructure:
         return BandStructure(**dct)
 
     def plot(self, ax=None, spin=None, emin=-10, emax=5, filename=None,
-             show=None, ylabel=None, colors=None, label=None, **plotkwargs):
+             show=None, ylabel=None, colors=None, label=None,
+             spin_labels=['spin up', 'spin down'], **plotkwargs):
         """Plot band-structure.
 
         spin: int or None
-            Spin channel.  Default behaviour is to plot both spi up and down
+            Spin channel.  Default behaviour is to plot both spin up and down
             for spin-polarized calculations.
         emin,emax: float
             Maximum energy above reference.
@@ -90,15 +91,25 @@ class BandStructure:
             else:
                 colors = 'yb'
 
+        nspins = len(e_skn)
+
         for spin, e_kn in enumerate(e_skn):
             color = colors[spin]
             kwargs = dict(color=color)
             kwargs.update(plotkwargs)
-            ax.plot(self.xcoords, e_kn[:, 0], label=label, **kwargs)
+            if nspins == 2:
+                if label:
+                    lbl = label + ' ' + spin_labels[spin]
+                else:
+                    lbl = spin_labels[spin]
+            else:
+                lbl = label
+            ax.plot(self.xcoords, e_kn[:, 0], label=lbl, **kwargs)
             for e_k in e_kn.T[1:]:
                 ax.plot(self.xcoords, e_k, **kwargs)
 
-        self.finish_plot(filename, show)
+        legend = label is not None or nspins == 2
+        self.finish_plot(filename, show, legend)
 
         return ax
 
@@ -161,8 +172,11 @@ class BandStructure:
         self.ax = ax
         return ax
 
-    def finish_plot(self, filename, show):
+    def finish_plot(self, filename, show, legend=False):
         import matplotlib.pyplot as plt
+
+        if legend:
+            plt.legend()
 
         if filename:
             plt.savefig(filename)

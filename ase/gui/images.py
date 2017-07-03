@@ -102,8 +102,8 @@ class Images:
             # but copying actually forgets things like the attached
             # calculator (might have forces/energies
             self._images.append(atoms)
-            self.have_varying_species |= np.any(self[0].numbers !=
-                                                atoms.numbers)
+            self.have_varying_species |= np.array_equal(self[0].numbers,
+                                                        atoms.numbers)
             if hasattr(self, 'Q'):
                 assert False  # XXX askhl fix quaternions
                 self.Q[i] = atoms.get_quaternions()
@@ -251,7 +251,8 @@ class Images:
             ns['ekin'] = ekin = self[i].get_kinetic_energy()
             ns['e'] = epot + ekin
             ndynamic = dynamic.sum()
-            ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
+            if ndynamic > 0:
+                ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code, ns)
             if i == 0:
                 m = len(data)

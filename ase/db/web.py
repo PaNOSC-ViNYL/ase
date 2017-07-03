@@ -90,6 +90,7 @@ def process_metadata(db, html=True):
         if html:
             unit = sub.sub(r'\1<sub>\2</sub>', unit)
             unit = sup.sub(r'\1<sup>\2</sup>', unit)
+            unit = unit.replace(r'\text{', '').replace('}', '')
         else:
             unit = sub.sub(r'\1_\2', unit)
             unit = sup.sub(r'\1^\2', unit)
