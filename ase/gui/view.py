@@ -12,7 +12,6 @@ from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
 from ase.gui.utils import get_magmoms
 from ase.utils import rotate
-from ase.calculators.calculator import PropertyNotImplementedError
 
 
 GREEN = '#DDFFDD'
