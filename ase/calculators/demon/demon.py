@@ -753,19 +753,20 @@ class Demon(FileIOCalculator):
         for i in range(ii + 1, len(lines)):
             try:
                 line = lines[i].split()
-                
-                for symbol in ase.data.chemical_symbols:
-                    found = None
-                    if line[0].upper().rfind(symbol.upper()) > -1:
-                        found = symbol
-                        break
 
-                if found is not None:
-                    chemical_symbols.append(found)
-                else:
-                    break
+                if(len(line) > 0):
+                    for symbol in ase.data.chemical_symbols:
+                        found = None
+                        if line[0].upper().rfind(symbol.upper()) > -1:
+                            found = symbol
+                            break
+                        
+                        if found is not None:
+                            chemical_symbols.append(found)
+                        else:
+                            break
 
-                xyz.append([float(line[1]), float(line[2]), float(line[3])])
+                        xyz.append([float(line[1]), float(line[2]), float(line[3])])
                 
                 if len(line) > 4:
                     atomic_numbers.append(int(line[4]))
