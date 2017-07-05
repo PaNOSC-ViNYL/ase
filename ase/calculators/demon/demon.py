@@ -255,6 +255,19 @@ class Demon(FileIOCalculator):
                 raise RuntimeError(
                     "{0} doesn't exist".format(abspath + '/MCPS'))
 
+            # link ffds
+            if op.exists(self.directory + '/FFDS')\
+                    or op.islink(self.directory + '/FFDS'):
+                os.remove(self.directory + '/FFDS')
+
+            if op.exists(abspath + '/FFDS')\
+                    or op.islink(abspath + '/FFDS'):
+                os.symlink(abspath + '/FFDS',
+                           self.directory + '/FFDS')
+            else:
+                raise RuntimeError(
+                    "{0} doesn't exist".format(abspath + '/FFDS'))
+
             # go to directory and run calculation
             os.chdir(self.directory)
             errorcode = subprocess.call(command, shell=True)
