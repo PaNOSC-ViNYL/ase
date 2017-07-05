@@ -1,19 +1,20 @@
 from __future__ import print_function
+import os
+import shutil
+import os.path as op
 
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
-from ase.utils import hill
-
-import numpy as np
+from ase.utils import formula_metal, Lock
 
 
 class Summary:
-    def __init__(self, dct, subscript=None):
-        self.dct = dct
-        
-        self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in dct.cell]
-        
-        forces = dct.get('constrained_forces')
+    def __init__(self, row, meta={}, subscript=None, prefix='', tmpdir='.'):
+        self.row = row
+
+        self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
+
+        forces = row.get('constrained_forces')
         if forces is None:
             fmax = None
             self.forces = None
@@ -24,101 +25,180 @@ class Summary:
             for n, f in enumerate(forces):
                 if n < 5 or n >= N - 5:
                     f = tuple('{0:10.3f}'.format(x) for x in f)
-                    symbol = chemical_symbols[dct.numbers[n]]
+                    symbol = chemical_symbols[row.numbers[n]]
                     self.forces.append((n, symbol) + f)
                 elif n == 5:
                     self.forces.append((' ...', '',
                                         '       ...',
                                         '       ...',
                                         '       ...'))
-                    
-        self.stress = dct.get('stress')
+
+        self.stress = row.get('stress')
         if self.stress is not None:
             self.stress = ', '.join('{0:.3f}'.format(s) for s in self.stress)
-            
-        if 'masses' in dct:
-            mass = dct.masses.sum()
+
+        if 'masses' in row:
+            mass = row.masses.sum()
         else:
-            mass = atomic_masses[dct.numbers].sum()
-            
-        formula = hill(dct.numbers)
+            mass = atomic_masses[row.numbers].sum()
+
+        self.formula = formula_metal(row.numbers)
+
         if subscript:
-            formula = subscript.sub(r'<sub>\1</sub>', formula)
-            
-        table = [
-            ('id', '', dct.id),
-            ('age', '', float_to_time_string(now() - dct.ctime, True)),
-            ('formula', '', formula),
-            ('user', '', dct.user),
-            ('calculator', '', dct.get('calculator')),
-            ('energy', 'eV', dct.get('energy')),
-            ('fmax', 'eV/Ang', fmax),
-            ('charge', '|e|', dct.get('charge')),
-            ('mass', 'au', mass),
-            ('magnetic moment', 'au', dct.get('magmom')),
-            ('unique id', '', dct.unique_id),
-            ('volume', 'Ang^3', abs(np.linalg.det(dct.cell)))]
-        self.table = [(name, unit, value) for name, unit, value in table
-                      if value is not None]
+            self.formula = subscript.sub(r'<sub>\1</sub>', self.formula)
 
-        self.key_value_pairs = sorted(dct.key_value_pairs.items()) or None
+        age = float_to_time_string(now() - row.ctime, True)
 
-        self.dipole = dct.get('dipole')
+        table = dict((key, value)
+                     for key, value in [
+                         ('id', row.id),
+                         ('age', age),
+                         ('formula', self.formula),
+                         ('user', row.user),
+                         ('calculator', row.get('calculator')),
+                         ('energy', row.get('energy')),
+                         ('fmax', fmax),
+                         ('charge', row.get('charge')),
+                         ('mass', mass),
+                         ('magmom', row.get('magmom')),
+                         ('unique id', row.unique_id),
+                         ('volume', row.get('volume'))]
+                     if value is not None)
+
+        table.update(row.key_value_pairs)
+
+        for key, value in table.items():
+            if isinstance(value, float):
+                table[key] = '{:.3f}'.format(value)
+
+        kd = meta.get('key_descriptions', {})
+
+        misc = set(table.keys())
+        self.layout = []
+        for headline, columns in meta['layout']:
+            newcolumns = []
+            for column in columns:
+                newcolumn = []
+                for block in column:
+                    if block is None:
+                        pass
+                    elif isinstance(block, tuple):
+                        title, keys = block
+                        rows = []
+                        for key in keys:
+                            value = table.get(key, None)
+                            if value is not None:
+                                if key in misc:
+                                    misc.remove(key)
+                                desc, unit = kd.get(key, [0, key, ''])[1:]
+                                rows.append((desc, value, unit))
+                        if rows:
+                            block = (title, rows)
+                        else:
+                            continue
+                    elif block.endswith('.png'):
+                        name = op.join(tmpdir, prefix + block)
+                        if not op.isfile(name):
+                            self.create_figures(row, prefix, tmpdir,
+                                                meta['functions'])
+                        if op.getsize(name) == 0:
+                            # Skip empty files:
+                            block = None
+
+                    newcolumn.append(block)
+                newcolumns.append(newcolumn)
+            self.layout.append((headline, newcolumns))
+
+        if misc:
+            rows = []
+            for key in sorted(misc):
+                value = table[key]
+                desc, unit = kd.get(key, [0, key, ''])[1:]
+                rows.append((desc, value, unit))
+            self.layout.append(('Miscellaneous', [[('Items', rows)]]))
+
+        self.dipole = row.get('dipole')
         if self.dipole is not None:
             self.dipole = ', '.join('{0:.3f}'.format(d) for d in self.dipole)
-        
-        self.plots = []
-        self.data = dct.get('data')
+
+        self.data = row.get('data')
         if self.data:
-            plots = []
-            for name, value in self.data.items():
-                if isinstance(value, dict) and 'xlabel' in value:
-                    plots.append((value.get('number'), name))
-            self.plots = [name for number, name in sorted(plots)]
-            
             self.data = ', '.join(self.data.keys())
-                
-        self.constraints = dct.get('constraints')
+
+        self.constraints = row.get('constraints')
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)
-        
-    def write(self):
-        dct = self.dct
-        
-        width = max(len(name) for name, unit, value in self.table)
-        print('{0:{width}}|unit  |value'.format('name', width=width))
-        for name, unit, value in self.table:
-            print('{0:{width}}|{1:6}|{2}'.format(name, unit, value,
-                                                 width=width))
 
-        print('\nUnit cell in Ang:')
-        print('axis|periodic|          x|          y|          z')
-        c = 1
-        for p, axis in zip(dct.pbc, self.cell):
-            print('   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'.format(
-                c, [' no', 'yes'][p], axis))
-            c += 1
-            
-        if self.key_value_pairs:
-            print('\nKey-value pairs:')
-            width = max(len(key) for key, value in self.key_value_pairs)
-            for key, value in self.key_value_pairs:
-                print('{0:{width}}|{1}'.format(key, value, width=width))
-                
-        if self.forces:
-            print('\nForces in ev/Ang:')
-            for f in self.forces:
-                print('{0:4}|{1:2}|{2}|{3}|{4}'.format(*f))
+    def create_figures(self, row, prefix, tmpdir, functions):
+        with Lock('ase.db.web.lock'):
+            for func, filenames in functions:
+                for filename in filenames:
+                    try:
+                        os.remove(filename)
+                    except OSError:  # Python 3 only: FileNotFoundError
+                        pass
+                func(row)
+                for filename in filenames:
+                    path = os.path.join(tmpdir, prefix + filename)
+                    if os.path.isfile(filename):
+                        shutil.move(filename, path)
+                    else:
+                        # Create an empty file:
+                        with open(path, 'w'):
+                            pass
+
+    def write(self):
+        row = self.row
+
+        print(self.formula + ':')
+        for headline, columns in self.layout:
+            blocks = columns[0]
+            if len(columns) == 2:
+                blocks += columns[1]
+            print((' ' + headline + ' ').center(78, '='))
+            for block in blocks:
+                if block is None:
+                    pass
+                elif isinstance(block, tuple):
+                    title, keys = block
+                    print(title + ':')
+                    if not keys:
+                        print()
+                        continue
+                    width = max(len(name) for name, value, unit in keys)
+                    print('{:{width}}|value'.format('name', width=width))
+                    for name, value, unit in keys:
+                        print('{:{width}}|{} {}'.format(name, value, unit,
+                                                        width=width))
+                    print()
+                elif block.endswith('.png'):
+                    if op.isfile(block) and op.getsize(block) > 0:
+                        print(block)
+                    print()
+                elif block == 'CELL':
+                    print('Unit cell in Ang:')
+                    print('axis|periodic|          x|          y|          z')
+                    c = 1
+                    fmt = '   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'
+                    for p, axis in zip(row.pbc, self.cell):
+                        print(fmt.format(c, [' no', 'yes'][p], axis))
+                        c += 1
+                    print()
+                elif block == 'FORCES' and self.forces is not None:
+                    print('\nForces in ev/Ang:')
+                    for f in self.forces:
+                        print('{:4}|{:2}|{}|{}|{}'.format(*f))
+                    print()
 
         if self.stress:
-            print('\nStress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
-            print('   ', self.stress)
+            print('Stress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
+            print('   ', self.stress, '\n')
 
         if self.dipole:
-            print('\nDipole moment in e*Ang: ({0})'.format(self.dipole))
-        
+            print('Dipole moment in e*Ang: ({})\n'.format(self.dipole))
+
         if self.constraints:
-            print('\nConstraints:', self.constraints)
-            
+            print('Constraints:', self.constraints, '\n')
+
         if self.data:
-            print('\nData:', self.data)
+            print('Data:', self.data, '\n')

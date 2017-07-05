@@ -8,7 +8,7 @@ calc = Octopus(label='silicon',
                KPointsGrid=[[4, 4, 4]],
                KPointsUseSymmetries=True,
                Output='dos + density + potential',
-               OutputHow='xcrysden',
+               OutputFormat='xcrysden',
                DosGamma=0.1)
 
 system.set_calculator(calc)

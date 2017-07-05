@@ -8,7 +8,7 @@ Vibrational modes
 =================
 
 You can calculate the vibrational modes of a an
-:class:`~ase.atoms.Atoms` object in the harmonic approximation using
+:class:`~ase.Atoms` object in the harmonic approximation using
 the :class:`Vibrations`.
 
 .. autoclass:: Vibrations
@@ -24,14 +24,16 @@ finite difference method to calculate the Hessian matrix. method is -1
 for backward differences, 0 for centered differences, and 1 for
 forward differences.
 
-   
+
+.. _infrared:
+
 Infrared intensities
 ====================
 
 :class:`~ase.vibrations.Infrared` is an extension of
 :class:`~ase.vibrations.Vibrations`, in addition to the
 vibrational modes, also the infrared intensities of the modes
-are calculated for an :class:`~ase.atoms.Atoms` object.
+are calculated for an :class:`~ase.Atoms` object.
 
 .. autoclass:: ase.vibrations.Infrared
    :members:

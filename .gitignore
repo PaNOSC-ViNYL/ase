@@ -2,28 +2,11 @@
 doc/build/
 /dist
 MANIFEST
-
-# If you build the documentation in the source tree, you will create a
-# lot of files that we don't want to see with "git status":
-*.png
-*.gif
-*.pov
-*.ini
+.DS_Store
+*/.DS_Store
 *.traj
-*.pdf
-*.csv
-*.txt
-*.log
-*.xyz
-*.svg
-*.db
-*.pckl
+/build
+/ase.egg-info
 
 #editor backup files
 *.py~
-
-# These are OK (images for the supported calculators):
-!/doc/static/*.png
-
-# This one is also OK:
-!requirements.txt

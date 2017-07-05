@@ -143,35 +143,72 @@ def get_distance_matrix(atoms, self_distance=1000):
     return dm
 
 
-def get_rdf(atoms, rmax, nbins, distance_matrix=None):
+def get_rdf(atoms, rmax, nbins, distance_matrix=None,
+            elements=None, no_dists=False):
     """
     Returns two numpy arrays; the radial distribution function
-    and the corresponding distances of the supplied atoms object
+    and the corresponding distances of the supplied atoms object.
+    If no_dists = True then only the first array is returned.
+
+    Parameters:
+
+    rmax : float
+        The maximum distance that will contribute to the rdf.
+
+    nbins : int
+        Number of bins to divide the rdf into.
+
+    distance_matrix : numpy.array
+        An array of distances between atoms, typically
+        obtained by atoms.get_all_distances().
+        Default None meaning that it will be calculated.
+
+    elements : list or tuple
+        List of two atomic numbers. If elements is not None the partial
+        rdf for the supplied elements will be returned.
+
+    no_dists : bool
+        If True then the second array with rdf distances will not be returned
     """
     dm = distance_matrix
     if dm is None:
-        # dm = get_distance_matrix(atoms)
         dm = atoms.get_all_distances()
     rdf = np.zeros(nbins + 1)
     dr = float(rmax / nbins)
-    for i in range(len(atoms)):
-        for j in range(i + 1, len(atoms)):
-            rij = dm[i][j]
-            index = int(math.ceil(rij / dr))
-            if index <= nbins:
-                rdf[index] += 1
 
-    # Normalize
-    phi = len(atoms) / atoms.get_volume()
-    norm = 2.0 * math.pi * dr * phi * len(atoms)
+    if elements is None:
+        # Coefficients to use for normalization
+        phi = len(atoms) / atoms.get_volume()
+        norm = 2.0 * math.pi * dr * phi * len(atoms)
 
-    dists = [0]
+        for i in range(len(atoms)):
+            for j in range(i + 1, len(atoms)):
+                rij = dm[i][j]
+                index = int(math.ceil(rij / dr))
+                if index <= nbins:
+                    rdf[index] += 1
+    else:
+        i_indices = np.where(atoms.numbers == elements[0])[0]
+        phi = len(i_indices) / atoms.get_volume()
+        norm = 4.0 * math.pi * dr * phi * len(atoms)
+
+        for i in i_indices:
+            for j in np.where(atoms.numbers == elements[1])[0]:
+                rij = dm[i][j]
+                index = int(math.ceil(rij / dr))
+                if index <= nbins:
+                    rdf[index] += 1
+
+    dists = []
     for i in range(1, nbins + 1):
         rrr = (i - 0.5) * dr
         dists.append(rrr)
+        # Normalize
         rdf[i] /= (norm * ((rrr**2) + (dr**2) / 12.))
 
-    return rdf, np.array(dists)
+    if no_dists:
+        return rdf[1:]
+    return rdf[1:], np.array(dists)
 
 
 def get_nndist(atoms, distance_matrix):
@@ -187,7 +224,7 @@ def get_nndist(atoms, distance_matrix):
     return dists[np.argmax(rdf)]
 
 
-def get_nnmat(atoms):
+def get_nnmat(atoms, mic=False):
     """
     Calculate the nearest neighbor matrix as specified in
     S. Lysgaard et al., Top. Catal., 2014, 57 (1-4), pp 33-39
@@ -205,12 +242,12 @@ def get_nnmat(atoms):
     it makes sense to calculate nnmat along with e.g. the
     potential energy and save it in atoms.info['data']['nnmat'].
     """
-    if 'nnmat' in atoms.info['data']:
+    if 'data' in atoms.info and 'nnmat' in atoms.info['data']:
         return atoms.info['data']['nnmat']
     elements = sorted(set(atoms.get_chemical_symbols()))
     nnmat = np.zeros((len(elements), len(elements)))
     # dm = get_distance_matrix(atoms)
-    dm = atoms.get_all_distances()
+    dm = atoms.get_all_distances(mic=mic)
     nndist = get_nndist(atoms, dm) + 0.2
     for i in range(len(atoms)):
         row = [j for j in range(len(elements))
@@ -229,21 +266,63 @@ def get_nnmat(atoms):
     return nnlist
 
 
-def get_atoms_connections(atoms, max_conn=5):
+def get_connections_index(atoms, max_conn=5, no_count_types=None):
     """
-    This method returns a list of the numbers of atoms
-    with X number of neighbors. The method utilizes the
+    This method returns a dictionary where each key value are a
+    specific number of neighbors and list of atoms indices with
+    that amount of neighbors respectively. The method utilizes the
     neighbor list and hence inherit the restrictions for
-    neighbors.
+    neighbors. Option added to remove connections between
+    defined atom types.
+
+    Parameters
+    ----------
+
+    atoms : Atoms object
+        The connections will be counted using this supplied Atoms object
+
+    max_conn : int
+        Any atom with more connections than this will be counted as
+        having max_conn connections.
+        Default 5
+
+    no_count_types : list or None
+        List of atomic numbers that should be excluded in the count.
+        Default None (meaning all atoms count).
     """
     conn = get_neighbor_list(atoms)
 
     if conn is None:
         conn = get_neighborlist(atoms)
 
-    no_of_conn = [0] * max_conn
+    if no_count_types is None:
+        no_count_types = []
+
+    conn_index = {}
     for i in range(len(atoms)):
-        no_of_conn[min(len(conn[i]), max_conn - 1)] += 1
+        if atoms[i].number not in no_count_types:
+            cconn = min(len(conn[i]), max_conn - 1)
+            if cconn not in conn_index:
+                conn_index[cconn] = []
+            conn_index[cconn].append(i)
+
+    return conn_index
+
+
+def get_atoms_connections(atoms, max_conn=5, no_count_types=None):
+    """
+    This method returns a list of the numbers of atoms
+    with X number of neighbors. The method utilizes the
+    neighbor list and hence inherit the restrictions for
+    neighbors. Option added to remove connections between
+    defined atom types.
+    """
+    conn_index = get_connections_index(atoms, max_conn=max_conn,
+                                       no_count_types=no_count_types)
+
+    no_of_conn = [0] * max_conn
+    for i in conn_index:
+        no_of_conn[i] += len(conn_index[i])
 
     return no_of_conn
 
@@ -254,7 +333,6 @@ def get_angles_distribution(atoms, ang_grid=9):
     in bins (default 9) with bonds defined from
     the get_neighbor_list().
     """
-    from math import pi
     conn = get_neighbor_list(atoms)
 
     if conn is None:
@@ -266,7 +344,7 @@ def get_angles_distribution(atoms, ang_grid=9):
         for i in conn[atom.index]:
             for j in conn[atom.index]:
                 if j != i:
-                    a = atoms.get_angle([i, atom.index, j]) * 180 / pi
+                    a = atoms.get_angle(i, atom.index, j)
                     for k in range(ang_grid):
                         if (k + 1) * 180. / ang_grid > a > k * 180. / ang_grid:
                             bins[k] += 1
@@ -276,36 +354,40 @@ def get_angles_distribution(atoms, ang_grid=9):
     return bins
 
 
-def get_neighborlist(atoms, dx=0.2, no_count_type=None):
+def get_neighborlist(atoms, dx=0.2, no_count_types=None):
     """
     Method to get the a dict with list of neighboring
     atoms defined as the two covalent radii + fixed distance.
-    Option added to remove neighbors between a defined atom type.
+    Option added to remove neighbors between defined atom types.
     """
     cell = atoms.get_cell()
     pbc = atoms.get_pbc()
+
+    if no_count_types is None:
+        no_count_types = []
 
     conn = {}
     for atomi in atoms:
         conn_this_atom = []
         for atomj in atoms:
             if atomi.index != atomj.index:
-                if (atomi.number or atomj.number) != no_count_type:
-                    d = get_mic_distance(atomi.position,
-                                         atomj.position,
-                                         cell,
-                                         pbc)
-                    cri = covalent_radii[atomi.number]
-                    crj = covalent_radii[atomj.number]
-                    d_max = crj + cri + dx
-                    if d < d_max:
-                        conn_this_atom.append(atomj.index)
+                if atomi.number not in no_count_types:
+                    if atomj.number not in no_count_types:
+                        d = get_mic_distance(atomi.position,
+                                             atomj.position,
+                                             cell,
+                                             pbc)
+                        cri = covalent_radii[atomi.number]
+                        crj = covalent_radii[atomj.number]
+                        d_max = crj + cri + dx
+                        if d < d_max:
+                            conn_this_atom.append(atomj.index)
         conn[atomi.index] = conn_this_atom
     return conn
 
 
 def get_atoms_distribution(atoms, number_of_bins=5, max_distance=8,
-                           center=None, no_count_types=[]):
+                           center=None, no_count_types=None):
     """
     Method to get the distribution of atoms in the
     structure in bins of distances from a defined
@@ -321,6 +403,10 @@ def get_atoms_distribution(atoms, number_of_bins=5, max_distance=8,
         cz = sum(cell[:, 2]) / 2.
         center = (cx, cy, cz)
     bins = [0] * number_of_bins
+
+    if no_count_types is None:
+        no_count_types = []
+
     for atom in atoms:
         if atom.number not in no_count_types:
             d = get_mic_distance(atom.position, center, cell, pbc)

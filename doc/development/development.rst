@@ -4,8 +4,7 @@
 Development
 ===========
 
-As a developer, you should subscribe to all ASE related
-:ref:`mail lists`.
+As a developer, you should subscribe to the ASE :ref:`mail list`.
 
 
 Development topics:
@@ -21,7 +20,6 @@ Development topics:
     tests
     bugs
     licenseinfo
-    buildbot
     translate
     todo
     py3k

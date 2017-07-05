@@ -10,27 +10,18 @@ qH = 0.417
 sigma0 = 3.15061
 epsilon0 = 0.1521 * units.kcal / units.mol
 rOH = 0.9572
-thetaHOH = 104.52 / 180 * np.pi
+angleHOH = 104.52
+thetaHOH = 104.52 / 180 * np.pi  # we keep this for backwards compatibility
 
 
-def set_tip3p_charges(atoms):
-    charges = np.empty(len(atoms))
-    charges[:] = qH
-    if atoms.numbers[0] == 8:
-        charges[::3] = -2 * qH
-    else:
-        charges[2::3] = -2 * qH
-    atoms.set_initial_charges(charges)
-    
-    
 class TIP3P(Calculator):
     implemented_properties = ['energy', 'forces']
     nolabel = True
     pcpot = None
-    
+
     def __init__(self, rc=5.0, width=1.0):
         """TIP3P potential.
-        
+
         rc: float
             Cutoff radius for Coulomb part.
         width: float
@@ -39,18 +30,18 @@ class TIP3P(Calculator):
         self.rc = rc
         self.width = width
         Calculator.__init__(self)
-    
+
     def calculate(self, atoms=None,
                   properties=['energy'],
                   system_changes=all_changes):
         Calculator.calculate(self, atoms, properties, system_changes)
-        
+
         R = self.atoms.positions.reshape((-1, 3, 3))
         Z = self.atoms.numbers
         pbc = self.atoms.pbc
         cell = self.atoms.cell.diagonal()
         nh2o = len(R)
-        
+
         assert (self.atoms.cell == np.diag(cell)).all(), 'not orthorhombic'
         assert ((cell >= 2 * self.rc) | ~pbc).all(), 'cutoff too large'  # ???
         if Z[0] == 8:
@@ -60,13 +51,13 @@ class TIP3P(Calculator):
         assert (Z[o::3] == 8).all()
         assert (Z[(o + 1) % 3::3] == 1).all()
         assert (Z[(o + 2) % 3::3] == 1).all()
-            
+
         charges = np.array([qH, qH, qH])
         charges[o] *= -2
-        
+
         energy = 0.0
         forces = np.zeros((3 * nh2o, 3))
-        
+
         for m in range(nh2o - 1):
             DOO = R[m + 1:, o] - R[m, o]
             shift = np.zeros_like(DOO)
@@ -94,7 +85,7 @@ class TIP3P(Calculator):
                  e * dtdd / d)[:, np.newaxis] * DOO
             forces[m * 3 + o] -= F.sum(0)
             forces[m * 3 + 3 + o::3] += F
-        
+
             for j in range(3):
                 D = R[m + 1:] - R[m, j] + shift[:, np.newaxis]
                 r2 = (D**2).sum(axis=2)
@@ -107,7 +98,7 @@ class TIP3P(Calculator):
                 forces[m * 3 + o] -= FOO.sum(0)
                 forces[(m + 1) * 3:] += F.reshape((-1, 3))
                 forces[m * 3 + j] -= F.sum(axis=0).sum(axis=0)
-            
+
         if self.pcpot:
             e, f = self.pcpot.calculate(np.tile(charges, nh2o),
                                         self.atoms.positions)
@@ -121,27 +112,42 @@ class TIP3P(Calculator):
         """Embed atoms in point-charges."""
         self.pcpot = PointChargePotential(charges)
         return self.pcpot
-        
+
     def check_state(self, atoms, tol=1e-15):
         system_changes = Calculator.check_state(self, atoms, tol)
         if self.pcpot and self.pcpot.mmpositions is not None:
             system_changes.append('positions')
         return system_changes
-        
-        
+
+    def add_virtual_sites(self, positions):
+        return positions  # no virtual sites
+
+    def redistribute_forces(self, forces):
+        return forces
+
+    def get_virtual_charges(self, atoms):
+        charges = np.empty(len(atoms))
+        charges[:] = qH
+        if atoms.numbers[0] == 8:
+            charges[::3] = -2 * qH
+        else:
+            charges[2::3] = -2 * qH
+        return charges
+
+
 class PointChargePotential:
     def __init__(self, mmcharges):
         """Point-charge potential for TIP3P.
-        
+
         Only used for testing QMMM.
         """
         self.mmcharges = mmcharges
         self.mmpositions = None
         self.mmforces = None
-        
-    def set_positions(self, mmpositions):
+
+    def set_positions(self, mmpositions, com_pv=None):
         self.mmpositions = mmpositions
-    
+
     def calculate(self, qmcharges, qmpositions):
         energy = 0.0
         self.mmforces = np.zeros_like(self.mmpositions)
@@ -156,6 +162,6 @@ class PointChargePotential:
             F -= f.sum(0)
         self.mmpositions = None
         return energy, qmforces
-    
+
     def get_forces(self, calc):
         return self.mmforces

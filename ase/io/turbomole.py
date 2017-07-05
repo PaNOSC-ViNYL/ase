@@ -82,7 +82,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
     # Interpret $grad section
     from ase import Atoms, Atom
     from ase.calculators.singlepoint import SinglePointCalculator
-    from ase.units import Bohr
+    from ase.units import Bohr, Hartree
     images = []
     while len(lines): # loop over optimization cycles
         # header line
@@ -90,7 +90,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
         fields = lines[0].split('=')
         try:
             # cycle = int(fields[1].split()[0])
-            energy = float(fields[2].split()[0])
+            energy = float(fields[2].split()[0]) * Hartree
             # gradient = float(fields[3].split()[0])
         except (IndexError, ValueError):
             formatError()
@@ -111,7 +111,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
             elif len(fields) == 3: # gradients
                 #  -.51654903354681D-07  -.51654903206651D-07  0.51654903169644D-07
                 try:
-                    grad = [float(x.replace('D', 'E')) * Bohr for x in fields[0:3] ]
+                    grad = [-float(x.replace('D', 'E')) * Hartree / Bohr for x in fields[0:3] ]
                 except ValueError:
                     formatError()
                 forces.append(grad)
@@ -132,10 +132,8 @@ def read_turbomole_gradient(f='gradient', index=-1):
 
 
 def write_turbomole(filename, atoms):
-    """Method to write turbomole coord file
+    """ Method to write turbomole coord file
     """
-
-    import numpy as np
     from ase.constraints import FixAtoms
 
     f = filename
@@ -143,21 +141,15 @@ def write_turbomole(filename, atoms):
     coord = atoms.get_positions()
     symbols = atoms.get_chemical_symbols()
 
-    fix_index = {'indices': [], 'mask': np.zeros(len(symbols),dtype=bool)}
+    fix_indices = set()
     if atoms.constraints:
         for constr in atoms.constraints:
             if isinstance(constr, FixAtoms):
-                if 'indices' in constr.todict().keys():
-                    fix_index['indices'].extend(constr.todict()['indices'])
-                if 'mask' in constr.todict().keys():
-                    fix_index['mask'] += constr.todict()['mask']
-
-    fix_index['indices'] = np.unique(fix_index['indices'])
-    fix_index['mask'] = np.transpose(np.nonzero(fix_index['mask']))
+                fix_indices.update(constr.get_indices())
 
     fix_str = []
     for i in range(len(atoms)):
-        if i in fix_index['mask'] or i in fix_index['indices']:
+        if i in fix_indices:
             fix_str.append('f')
         else:
             fix_str.append('')

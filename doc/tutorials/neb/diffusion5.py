@@ -1,9 +1,10 @@
-from ase.neb import NEBtools
+import matplotlib.pyplot as plt
+from ase.neb import NEBTools
 from ase.io import read
 
 images = read('neb.traj@-5:')
 
-nebtools = NEBtools(images)
+nebtools = NEBTools(images)
 
 # Get the calculated barrier and the energy change of the reaction.
 Ef, dE = nebtools.get_barrier()
@@ -14,14 +15,12 @@ Ef, dE = nebtools.get_barrier(fit=False)
 # Get the actual maximum force at this point in the simulation.
 max_force = nebtools.get_fmax()
 
-# Create a figure like that coming from ase-gui.
+# Create a figure like that coming from ASE-GUI.
 fig = nebtools.plot_band()
 fig.savefig('diffusion-barrier.png')
 
 # Create a figure with custom parameters.
-from matplotlib import pyplot, rcParams
-rcParams.update({'font.size': 10})
-fig = pyplot.figure(figsize=(4.5, 3))
+fig = plt.figure(figsize=(5.5, 4.0))
 ax = fig.add_axes((0.15, 0.15, 0.8, 0.75))
 nebtools.plot_band(ax)
 fig.savefig('diffusion-barrier.png')

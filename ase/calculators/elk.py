@@ -5,7 +5,7 @@ import numpy as np
 from ase.units import Bohr, Hartree
 from ase.io.elk import read_elk
 from ase.calculators.calculator import FileIOCalculator, Parameters, kpts2mp, \
-    ReadError
+    ReadError, PropertyNotImplementedError
 
 elk_parameters = {'swidth': Hartree}
 
@@ -224,7 +224,7 @@ class ELK(FileIOCalculator):
 
         for filename in [totenergy, eigval, kpoints, self.out]:
             if not os.path.isfile(filename):
-                raise ReadError
+                raise ReadError('ELK output file '+filename+' is missing.')
 
         # read state from elk.in because *.OUT do not provide enough digits!
         self.atoms = read_elk(os.path.join(self.directory, 'elk.in'))
@@ -254,7 +254,7 @@ class ELK(FileIOCalculator):
 
     def get_forces(self, atoms):
         if not self.parameters.get('tforce'):
-            raise NotImplementedError
+            raise PropertyNotImplementedError
         return FileIOCalculator.get_forces(self, atoms)
 
     def read_energy(self):

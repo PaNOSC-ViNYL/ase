@@ -11,8 +11,8 @@ class MolecularDynamics(Dynamics):
     """Base-class for all MD classes."""
     def __init__(self, atoms, timestep, trajectory, logfile=None,
                  loginterval=1):
-        Dynamics.__init__(self, atoms, logfile=None, trajectory=trajectory)
         self.dt = timestep
+        Dynamics.__init__(self, atoms, logfile=None, trajectory=trajectory)
         self.masses = self.atoms.get_masses()
         if 0 in self.masses:
             warnings.warn('Zero mass encountered in atoms; this will '
@@ -22,6 +22,11 @@ class MolecularDynamics(Dynamics):
         if logfile:
             self.attach(MDLogger(dyn=self, atoms=atoms, logfile=logfile),
                         interval=loginterval)
+
+    def todict(self):
+        return {'type': 'molecular-dynamics',
+                'md-type': self.__class__.__name__,
+                'timestep': self.dt}
 
     def run(self, steps=50):
         """Integrate equation of motion."""

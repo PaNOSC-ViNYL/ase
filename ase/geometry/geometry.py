@@ -10,6 +10,8 @@ different orientations.
 
 import numpy as np
 
+from ase.geometry import complete_cell
+
 
 def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
                    eps=1e-7):
@@ -17,7 +19,7 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
 
     Returns positions changed by a multiple of the unit cell vectors to
     fit inside the space spanned by these vectors.  See also the
-    :meth:`ase.atoms.Atoms.wrap` method.
+    :meth:`ase.Atoms.wrap` method.
 
     Parameters:
 
@@ -55,7 +57,10 @@ def wrap_positions(positions, cell, pbc=True, center=(0.5, 0.5, 0.5),
     # Don't change coordinates when pbc is False
     shift[np.logical_not(pbc)] = 0.0
 
-    fractional = np.linalg.solve(np.asarray(cell).T,
+    assert np.asarray(cell)[np.asarray(pbc)].any(axis=1).all(), (cell, pbc)
+
+    cell = complete_cell(cell)
+    fractional = np.linalg.solve(cell.T,
                                  np.asarray(positions).T).T - shift
 
     for i, periodic in enumerate(pbc):
@@ -98,8 +103,8 @@ def get_layers(atoms, miller, tolerance=0.001):
            [ 0.   ,  2.025,  2.025],
            [ 2.025,  0.   ,  2.025],
            [ 2.025,  2.025,  0.   ]])
-    >>> get_layers(atoms, (0,0,1))
-    (array([0, 1, 1, 0]), array([ 0.   ,  2.025]))
+    >>> get_layers(atoms, (0,0,1))  # doctest: +ELLIPSIS
+    (array([0, 1, 1, 0]...), array([ 0.   ,  2.025]))
     """
     miller = np.asarray(miller)
 
@@ -121,6 +126,8 @@ def get_layers(atoms, miller, tolerance=0.001):
 
 def find_mic(D, cell, pbc=True):
     """Finds the minimum-image representation of vector(s) D"""
+
+    cell = complete_cell(cell)
     # Calculate the 4 unique unit cell diagonal lengths
     diags = np.sqrt((np.dot([[1, 1, 1],
                              [-1, 1, 1],
@@ -179,7 +186,7 @@ def find_mic(D, cell, pbc=True):
     # first one in D_trans_len.
     D_min_len = np.min(D_trans_len, axis=1)
     D_min_ind = D_trans_len.argmin(axis=1)
-    D_min = D_trans[range(len(D_min_ind)), D_min_ind]
+    D_min = D_trans[list(range(len(D_min_ind))), D_min_ind]
 
     return D_min, D_min_len
 

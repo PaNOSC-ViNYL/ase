@@ -22,6 +22,7 @@ or Ovito (http://www.ovito.org/, starting with version 2.3).
 """
 
 import os
+import warnings
 
 import numpy as np
 
@@ -69,6 +70,7 @@ class NetCDFTrajectory:
     _cell_spatial_dim = 'cell_spatial'
     _cell_angular_dim = 'cell_angular'
     _label_dim = 'label'
+    _Voigt_dim = 'Voigt' # For stress/strain tensors
 
     # Default field names. If it is a list, check for any of these names upon
     # opening. Upon writing, use the first name.
@@ -325,6 +327,10 @@ class NetCDFTrajectory:
             self._get_variable(self._velocities_var)[i] = \
                 atoms.get_momenta() / atoms.get_masses().reshape(-1, 1)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
+        if np.any(np.logical_not(atoms.pbc)):
+            warnings.warn('Atoms have nonperiodic directions. Cell lengths in '
+                          'these directions are lost and will be '
+                          'shrink-wrapped when reading the NetCDF file.')
         cell_lengths = np.array([a, b, c]) * atoms.pbc
         self._get_variable(self._cell_lengths_var)[i] = cell_lengths
         self._get_variable(self._cell_angles_var)[i] = [alpha, beta, gamma]
@@ -336,7 +342,7 @@ class NetCDFTrajectory:
                     # data remains consistent.
                     if np.any(self._get_variable(array) != data):
                         raise ValueError('Trying to write Atoms object with '
-                                         'incompatible data for the {} '
+                                         'incompatible data for the {0} '
                                          'array.'.format(array))
                 else:
                     self._add_array(atoms, array, data.dtype, data.shape)
@@ -361,7 +367,7 @@ class NetCDFTrajectory:
                 # data remains consistent.
                 if np.any(self._get_variable(array) != data):
                     raise ValueError('Trying to write Atoms object with '
-                                     'incompatible data for the {} '
+                                     'incompatible data for the {0} '
                                      'array.'.format(array))
             else:
                 self._add_array(atoms, array, data.dtype, data.shape)
@@ -448,6 +454,11 @@ class NetCDFTrajectory:
                     dims += [self._atom_dim]
                 elif i == 3:
                     dims += [self._spatial_dim]
+                elif i == 6:
+                    # This can only be stress/strain tensor in Voigt notation
+                    if self._Voigt_dim not in self.nc.dimensions:
+                        self.nc.createDimension(self._Voigt_dim, 6)
+                    dims += [self._Voigt_dim]
                 else:
                     raise TypeError("Don't know how to dump array of shape {0}"
                                     " into NetCDF trajectory.".format(shape))
@@ -547,7 +558,8 @@ class NetCDFTrajectory:
             # Read positions
             positions = np.array(self._get_data(self._positions_var, i)[index])
 
-            # Determine cell size for non-periodic directions
+            # Determine cell size for non-periodic directions from shrink
+            # wrapped cell.
             for dim in np.arange(3)[np.logical_not(pbc)]:
                 origin[dim] = positions[:, dim].min()
                 cell_lengths[dim] = positions[:, dim].max() - origin[dim]
@@ -570,9 +582,10 @@ class NetCDFTrajectory:
 
             # Create atoms object
             atoms = ase.Atoms(
-                positions=positions - origin.reshape(1, -1),
+                positions=positions,
                 numbers=self.numbers,
                 cell=cell,
+                celldisp=origin,
                 momenta=momenta,
                 masses=self.masses,
                 pbc=pbc,

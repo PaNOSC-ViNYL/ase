@@ -7,17 +7,20 @@ Carlos de Armas
 http://tddft.org/programs/octopus/
 """
 import os
+import re
 from subprocess import Popen, PIPE
 
 import numpy as np
 
 from ase import Atoms
-from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import PropertyNotImplementedError
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
 from ase.io import read
 from ase.io.xsf import read_xsf
-from ase.units import Bohr, Angstrom, Hartree
+from ase.units import Bohr, Angstrom, Hartree, eV, Debye
+
 
 # Representation of parameters from highest to lowest level of abstraction:
 #
@@ -51,9 +54,9 @@ from ase.units import Bohr, Angstrom, Hartree
 #     Octopus input file -> Atoms object + dict of keyword arguments
 # Below we detail some conventions and compatibility issues.
 #
-# 1) ASE always passes some parameters by default (Units=eV_Angstrom,
-#    etc.).  They can be overridden by the user but the resulting
-#    behaviour is undefined.
+# 1) ASE always passes some parameters by default (always write
+#    forces, etc.).  They can be overridden by the user, but the
+#    resulting behaviour is undefined.
 #
 # 2) Atoms object is used to establish some parameters: Coordinates,
 #    Lsize, etc.  All those parameters can be overridden by passing
@@ -72,6 +75,105 @@ from ase.units import Bohr, Angstrom, Hartree
 #
 # 4) OctopusKeywordError is raised from Python for keywords that are
 #    not valid according to oct-help.
+
+
+def read_eigenvalues_file(fd):
+    unit = None
+
+    for line in fd:
+        m = re.match('Eigenvalues\s*\[(.+?)\]', line)
+        if m is not None:
+            unit = m.group(1)
+            break
+    line = next(fd)
+    assert line.strip().startswith('#st'), line
+
+    #fermilevel = None
+    kpts = []
+    eigs = []
+    occs = []
+
+    for line in fd:
+        m = re.match(r'#k.*?\(\s*(.+?),\s*(.+?),\s*(.+?)\)', line)
+        if m:
+            k = m.group(1, 2, 3)
+            kpts.append(np.array(k, float))
+            eigs.append({})
+            occs.append({})
+        else:
+            m = re.match(r'\s*\d+\s*(\S+)\s*(\S+)\s*(\S+)', line)
+            if m is None:
+                m = re.match(r'Fermi energy\s*=\s*(\S+)\s*', line)
+                assert m is not None
+                # We can also return the fermilevel but so far we just read
+                # it from the static/info instead.
+                #fermilevel = float(m.group(1))
+            else:
+                spin, eig, occ = m.group(1, 2, 3)
+                eigs[-1].setdefault(spin, []).append(float(eig))
+                occs[-1].setdefault(spin, []).append(float(occ))
+
+    nkpts = len(kpts)
+    nspins = len(eigs[0])
+    nbands = len(eigs[0][spin])
+
+    kptsarr = np.array(kpts, float)
+    eigsarr = np.empty((nkpts, nspins, nbands))
+    occsarr = np.empty((nkpts, nspins, nbands))
+
+    arrs = [eigsarr, occsarr]
+
+    for arr in arrs:
+        arr.fill(np.nan)
+
+    for k in range(nkpts):
+        for arr, lst in [(eigsarr, eigs), (occsarr, occs)]:
+            arr[k, :, :] = [lst[k][sp] for sp
+                            in (['--'] if nspins == 1 else ['up', 'dn'])]
+
+    for arr in arrs:
+        assert not np.isnan(arr).any()
+
+    eigsarr *= {'H': Hartree, 'eV': eV}[unit]
+    return kptsarr, eigsarr, occsarr
+
+
+def process_special_kwargs(atoms, kwargs):
+    kwargs = kwargs.copy()
+    kpts = kwargs.pop('kpts', None)
+    if kpts is not None:
+        for kw in ['kpoints', 'reducedkpoints', 'kpointsgrid']:
+            if kw in kwargs:
+                raise ValueError('k-points specified multiple times')
+
+        kptsarray = kpts2ndarray(kpts, atoms)
+        nkpts = len(kptsarray)
+        fullarray = np.empty((nkpts, 4))
+        fullarray[:, 0] = 1.0 / nkpts  # weights
+        fullarray[:, 1:4] = kptsarray
+        kwargs['kpointsreduced'] = fullarray.tolist()
+
+    # TODO xc=LDA/PBE etc.
+
+    # The idea is to get rid of the special keywords, since the rest
+    # will be passed to Octopus
+    # XXX do a better check of this
+    for kw in Octopus.special_ase_keywords:
+        assert kw not in kwargs
+    return kwargs
+
+
+def is_orthorhombic(cell):
+    return (np.diag(np.diag(cell)) == cell).all()
+
+
+def get_input_units(kwargs):
+    units = kwargs.get('unitsinput', kwargs.get('units', 'atomic')).lower()
+    if units not in ['ev_angstrom', 'atomic']:
+        raise OctopusKeywordError('Units not supported by ASE-Octopus '
+                                  'interface: %s' % units)
+    return units
+
 
 class OctopusKeywordError(ValueError):
     pass  # Unhandled keywords
@@ -115,23 +217,6 @@ def unpad_smarter(pbc, arr):
     return np.ascontiguousarray(arr[slices])
 
 
-# Octopus writes slightly broken XSF files.  This hack purports to fix them.
-def repair_brokenness_of_octopus_xsf(path):
-    assert os.path.isfile(path), path
-
-    def replace(old, new):
-        # XXX Ouch... need to get rid of this
-        os.system('sed -i s/%s/%s/ %s' % (old, new, path))
-
-    replace('BEGIN_BLOCK_DATAGRID3D', 'BEGIN_BLOCK_DATAGRID_3D')
-    replace('^DATAGRID_3D', 'BEGIN_DATAGRID_3D')
-
-
-def fix_and_read_xsf(fname, read_data=False):
-    repair_brokenness_of_octopus_xsf(fname)
-    return read_xsf(fname, read_data=read_data)
-
-
 # Parse value as written in input file *or* something that one would be
 # passing to the ASE interface, i.e., this might already be a boolean
 def octbool2bool(value):
@@ -171,7 +256,7 @@ def normalize_keywords(kwargs):
 def get_octopus_keywords():
     """Get dict mapping all normalized keywords to pretty keywords."""
     proc = Popen(['oct-help', '--search', ''], stdout=PIPE)
-    keywords = proc.stdout.read().split()
+    keywords = proc.stdout.read().decode().split()
     return normalize_keywords(dict(zip(keywords, keywords)))
 
 
@@ -187,70 +272,152 @@ def input_line_iter(lines):
         yield line
 
 
-def block2list(lines, header=None):
+def block2list(namespace, lines, header=None):
     """Parse lines of block and return list of lists of strings."""
     lines = iter(lines)
     block = []
     if header is None:
-        header = lines.next()
+        header = next(lines)
     assert header.startswith('%'), header
-    name = header[1:]
+    name = header[1:].strip().lower()
     for line in lines:
         if line.startswith('%'):  # Could also say line == '%' most likely.
             break
-        tokens = [token.strip() for token in line.strip().split('|')]
+        tokens = [namespace.evaluate(token)
+                  for token in line.strip().split('|')]
+        # XXX will fail for string literals containing '|'
         block.append(tokens)
     return name, block
 
 
+class OctNamespace:
+    def __init__(self):
+        self.names = {}
+        self.consts = {'pi': np.pi,
+                       'angstrom': 1. / Bohr,
+                       'ev': 1. / Hartree,
+                       'yes': True,
+                       'no': False,
+                       't': True,
+                       'f': False,
+                       'i': 1j,  # This will probably cause trouble
+                       'true': True,
+                       'false': False}
+
+    def evaluate(self, value):
+        value = value.strip()
+
+        for char in '"', "'":  # String literal
+            if value.startswith(char):
+                assert value.endswith(char)
+                return value
+
+        value = value.lower()
+
+        if value in self.consts:  # boolean or other constant
+            return self.consts[value]
+
+        if value in self.names:  # existing variable
+            return self.names[value]
+
+        try:  # literal integer
+            v = int(value)
+        except ValueError:
+            pass
+        else:
+            if v == float(v):
+                return v
+
+        try:  # literal float
+            return float(value)
+        except ValueError:
+            pass
+
+        if ('*' in value or '/' in value
+            and not any(char in value for char in '()+')):
+            floatvalue = 1.0
+            op = '*'
+            for token in re.split(r'([\*/])', value):
+                if token in '*/':
+                    op = token
+                    continue
+
+                v = self.evaluate(token)
+                try:
+                    v = float(v)
+                except ValueError:
+                    break  # Cannot evaluate expression
+                else:
+                    if op == '*':
+                        floatvalue *= v
+                    else:
+                        assert op == '/', op
+                        floatvalue /= v
+            else:  # Loop completed successfully
+                return floatvalue
+        return value  # unknown name, or complex arithmetic expression
+
+    def add(self, name, value):
+        value = self.evaluate(value)
+        self.names[name.lower().strip()] = value
+
+
 def parse_input_file(fd):
-    names = []
-    values = []
+    namespace = OctNamespace()
     lines = input_line_iter(fd)
+    blocks = {}
     while True:
         try:
-            line = lines.next()
+            line = next(lines)
         except StopIteration:
             break
         else:
             if line.startswith('%'):
-                name, value = block2list(lines, header=line)
+                name, value = block2list(namespace, lines, header=line)
+                blocks[name] = value
             else:
-                tokens = line.split('=')
+                tokens = line.split('=', 1)
                 assert len(tokens) == 2, tokens
-                name = tokens[0].strip()
-                value = tokens[1].strip()
-            names.append(name)
-            values.append(value)
-    return names, values
+                name, value = tokens
+                namespace.add(name, value)
+
+    namespace.names.update(blocks)
+    return namespace.names
 
 
 def kwargs2cell(kwargs):
     # kwargs -> cell + remaining kwargs
     # cell will be None if not ASE-compatible.
+    #
+    # Returns numbers verbatim; caller must convert units.
     kwargs = normalize_keywords(kwargs)
 
     if boxshape_is_ase_compatible(kwargs):
         kwargs.pop('boxshape', None)
-        Lsize = kwargs.pop('lsize')
-        if not isinstance(Lsize, list):
-            Lsize = [[Lsize] * 3]
-        assert len(Lsize) == 1
-        cell = np.array([2 * float(l) for l in Lsize[0]])
-        # TODO support LatticeVectors
+        if 'lsize' in kwargs:
+            Lsize = kwargs.pop('lsize')
+            if not isinstance(Lsize, list):
+                Lsize = [[Lsize] * 3]
+            assert len(Lsize) == 1
+            cell = np.array([2 * float(l) for l in Lsize[0]])
+        elif 'latticeparameters' in kwargs:
+            # Eval latparam and latvec
+            latparam = np.array(kwargs.pop('latticeparameters'), float).T
+            cell = np.array(kwargs.pop('latticevectors', np.eye(3)), float)
+            for a, vec in zip(latparam, cell):
+                vec *= a
+            assert cell.shape == (3, 3)
     else:
         cell = None
     return cell, kwargs
 
 
 def boxshape_is_ase_compatible(kwargs):
-    boxshape = kwargs.get('boxshape')
+    pdims = int(kwargs.get('periodicdimensions', 0))
+    default_boxshape = 'parallelepiped' if pdims > 0 else 'minimum'
+    boxshape = kwargs.get('boxshape', default_boxshape).lower()
     # XXX add support for experimental keyword 'latticevectors'
-    if boxshape == 'parallelepiped':
-        return True
-    else:
-        pdims = kwargs.get('periodicdimensions', 0)
-        return boxshape is None and pdims > 0
+    return boxshape == 'parallelepiped'
 
 
 def kwargs2atoms(kwargs, directory=None):
@@ -258,14 +425,13 @@ def kwargs2atoms(kwargs, directory=None):
 
     Some keyword arguments may refer to files.  The directory keyword
     may be necessary to resolve the paths correctly, and is used for
-    example when running 'ase-gui somedir/inp'."""
+    example when running 'ase gui somedir/inp'."""
     kwargs = normalize_keywords(kwargs)
 
-    # XXX the other 'units' keywords: input, output.
-    units = kwargs.pop('units', 'atomic').lower()
-    if units not in ['ev_angstrom', 'atomic']:
-        raise OctopusKeywordError('Units not supported by ASE-Octopus '
-                                  'interface: %s' % units)
+    # Only input units accepted nowadays are 'atomic'.
+    # But if we are loading an old file, and it specifies something else,
+    # we can be sure that the user wanted that back then.
+    units = get_input_units(kwargs)
     atomic_units = (units == 'atomic')
     if atomic_units:
         length_unit = Bohr
@@ -295,20 +461,40 @@ def kwargs2atoms(kwargs, directory=None):
         block = kwargs.pop(keyword)
         positions = []
         numbers = []
+        tags = []
+        types = {}
         for row in block:
             assert len(row) in [ndims + 1, ndims + 2]
             row = row[:ndims + 1]
             sym = row[0]
-            assert sym.startswith("'") and sym.endswith("'")
+            assert sym.startswith('"') or sym.startswith("'")
+            assert sym[0] == sym[-1]
             sym = sym[1:-1]
             pos0 = np.zeros(3)
             ndim = int(kwargs.get('dimensions', 3))
             pos0[:ndim] = [float(element) for element in row[1:]]
-            number = atomic_numbers[sym]  # Use 0 ~ 'X' for unknown?
+            number = atomic_numbers.get(sym)  # Use 0 ~ 'X' for unknown?
+            tag = 0
+            if number is None:
+                if sym not in types:
+                    tag = len(types) + 1
+                    types[sym] = tag
+                number = 0
+                tag = types[sym]
+            tags.append(tag)
             numbers.append(number)
             positions.append(pos0)
         positions = np.array(positions)
-        return numbers, positions
+        tags = np.array(tags, int)
+        if types:
+            ase_types = {}
+            for sym, tag in types.items():
+                ase_types[('X', tag)] = sym
+            info = {'types': ase_types}  # 'info' dict for Atoms object
+        else:
+            tags = None
+            info = None
+        return numbers, positions, tags, info
 
     def read_atoms_from_file(fname, fmt):
         assert fname.startswith('"') or fname.startswith("'")
@@ -387,17 +573,20 @@ def kwargs2atoms(kwargs, directory=None):
 
     coords = kwargs.get('coordinates')
     if coords is not None:
-        numbers, positions = get_positions_from_block('coordinates')
-        positions *= length_unit
+        numbers, pos, tags, info = get_positions_from_block('coordinates')
+        pos *= length_unit
         adjust_positions_by_half_cell = True
-        atoms = Atoms(cell=cell, numbers=numbers, positions=positions)
+        atoms = Atoms(cell=cell, numbers=numbers, positions=pos,
+                      tags=tags, info=info)
     rcoords = kwargs.get('reducedcoordinates')
     if rcoords is not None:
-        numbers, rpositions = get_positions_from_block('reducedcoordinates')
+        numbers, spos, tags, info = get_positions_from_block(
+            'reducedcoordinates')
         if cell is None:
             raise ValueError('Cannot figure out what the cell is, '
                              'and thus cannot interpret reduced coordinates.')
-        atoms = Atoms(cell=cell, numbers=numbers, scaled_positions=rpositions)
+        atoms = Atoms(cell=cell, numbers=numbers, scaled_positions=spos,
+                      tags=tags, info=info)
     if atoms is None:
         raise OctopusParseError('Apparently there are no atoms.')
 
@@ -411,35 +600,46 @@ def kwargs2atoms(kwargs, directory=None):
         pbc[:pdims] = True
         atoms.pbc = pbc
 
-    if cell is not None and adjust_positions_by_half_cell:
-        atoms.positions[:, :] += np.array(cell)[None, :] / 2.0
+    if (cell is not None and cell.shape == (3,)
+        and adjust_positions_by_half_cell):
+        nonpbc = (atoms.pbc == 0)
+        atoms.positions[:, nonpbc] += np.array(cell)[None, nonpbc] / 2.0
 
     return atoms, kwargs
 
 
-def atoms2kwargs(atoms):
+def atoms2kwargs(atoms, use_ase_cell):
     kwargs = {}
 
-    kwargs['units'] = 'ev_angstrom'
-    # XXXX will always extract cell.  But probably we should leave that
-    # to the user, i.e., the user should probably specify BoxShape before
-    # anything is done.  We can set Lsize either way....
-    # kwargs['boxshape'] = 'parallelepiped'
+    positions = atoms.positions / Bohr
 
     # TODO LatticeVectors parameter for non-orthogonal cells
-    Lsize = 0.5 * np.diag(atoms.cell).copy()
-    kwargs['lsize'] = [[repr(size) for size in Lsize]]
+    if use_ase_cell:
+        cell = atoms.cell / Bohr
+        if is_orthorhombic(cell):
+            Lsize = 0.5 * np.diag(cell)
+            kwargs['lsize'] = [[repr(size) for size in Lsize]]
+            # ASE uses (0...cell) while Octopus uses -L/2...L/2.
+            # Lsize is really cell / 2, and we have to adjust our
+            # positions by subtracting Lsize (see construction of the coords
+            # block) in non-periodic directions.
+            nonpbc = (atoms.pbc == 0)
+            positions[:, nonpbc] -= Lsize[None, nonpbc]
+        else:
+            kwargs['latticevectors'] = cell.tolist()
 
-    # ASE uses (0...cell) while Octopus uses -L/2...L/2.
-    # Lsize is really cell / 2, and we have to adjust our
-    # positions by subtracting Lsize (see construction of the coords
-    # block).
-    positions = atoms.positions.copy()
-    positions -= Lsize[None, :]
+    types = atoms.info.get('types', {})
 
-    coord_block = [[repr(sym)] + list(map(repr, pos))
-                   for sym, pos in zip(atoms.get_chemical_symbols(),
-                                       positions)]
+    coord_block = []
+    for sym, pos, tag in zip(atoms.get_chemical_symbols(),
+                             positions, atoms.get_tags()):
+        if sym == 'X':
+            sym = types.get((sym, tag))
+            if sym is None:
+                raise ValueError('Cannot represent atom X without tags and '
+                                 'species info in atoms.info')
+        coord_block.append([repr(sym)] + [repr(x) for x in pos])
+
     kwargs['coordinates'] = coord_block
     npbc = sum(atoms.pbc)
     for c in range(npbc):
@@ -474,24 +674,21 @@ def generate_input(atoms, kwargs, normalized2pretty):
         prettykey = normalized2pretty[key]
         append('%s = %s' % (prettykey, var))
 
-    if 'units' in kwargs:
-        if kwargs['units'] != 'ev_angstrom':
-            raise ValueError('Sorry, but we decide the units in the ASE '
-                             'interface for now.')
-    else:
-        setvar('units', 'ev_angstrom')
+    for kw in ['lsize', 'latticevectors', 'latticeparameters']:
+        assert kw not in kwargs
 
-    atomskwargs = atoms2kwargs(atoms)
+    defaultboxshape = 'parallelepiped' if atoms.pbc.any() else 'minimum'
+    boxshape = kwargs.get('boxshape', defaultboxshape).lower()
+    use_ase_cell = (boxshape == 'parallelepiped')
+    atomskwargs = atoms2kwargs(atoms, use_ase_cell)
 
-    # Use cell from Atoms object unless user specified BoxShape
-    # use_ase_box = 'boxshape' not in kwargs
-    # if 'boxshape' in kwargs:
-    # if use_ase_box:
-    #    setvar('boxshape', atomskwargs['boxshape'])
-    # Use Lsize no matter what.
-    assert 'lsize' not in kwargs
-    lsizeblock = list2block('LSize', atomskwargs['lsize'])
-    extend(lsizeblock)
+    if use_ase_cell:
+        if 'lsize' in atomskwargs:
+            block = list2block('LSize', atomskwargs['lsize'])
+        elif 'latticevectors' in atomskwargs:
+            extend(list2block('LatticeParameters', [[1., 1., 1.]]))
+            block = list2block('LatticeVectors', atomskwargs['latticevectors'])
+        extend(block)
 
     # Allow override or issue errors?
     pdim = 'periodicdimensions'
@@ -541,6 +738,164 @@ def generate_input(atoms, kwargs, normalized2pretty):
     return '\n'.join(_lines)
 
 
+def read_static_info_kpoints(fd):
+    for line in fd:
+        if line.startswith('List of k-points'):
+            break
+
+    tokens = next(fd).split()
+    assert tokens == ['ik', 'k_x', 'k_y', 'k_z', 'Weight']
+    bar = next(fd)
+    assert bar.startswith('---')
+
+    kpts = []
+    weights = []
+
+    for line in fd:
+        # Format:        index   kx      ky      kz     weight
+        m = re.match(r'\s*\d+\s*(\S+)\s*(\S+)\s*(\S+)\s*(\S+)', line)
+        if m is None:
+            break
+        kxyz = m.group(1, 2, 3)
+        weight = m.group(4)
+        kpts.append(kxyz)
+        weights.append(weight)
+
+    ibz_k_points = np.array(kpts, float)
+    k_point_weights = np.array(weights, float)
+    return dict(ibz_k_points=ibz_k_points, k_point_weights=k_point_weights)
+
+
+def read_static_info_eigenvalues(fd, energy_unit):
+
+    values_sknx = {}
+
+    nbands = 0
+    fermilevel = None
+    for line in fd:
+        line = line.strip()
+        if line.startswith('#'):
+            continue
+        if not line[:1].isdigit():
+            m = re.match(r'Fermi energy\s*=\s*(\S+)', line)
+            if m is not None:
+                fermilevel = float(m.group(1)) * energy_unit
+            break
+
+        tokens = line.split()
+        nbands = max(nbands, int(tokens[0]))
+        energy = float(tokens[2]) * energy_unit
+        occupation = float(tokens[3])
+        values_sknx.setdefault(tokens[1], []).append((energy, occupation))
+
+    nspins = len(values_sknx)
+    if nspins == 1:
+        val = [values_sknx['--']]
+    else:
+        val = [values_sknx['up'], values_sknx['dn']]
+    val = np.array(val, float)
+    nkpts, remainder = divmod(len(val[0]), nbands)
+    assert remainder == 0
+
+    eps_skn = val[:, :, 0].reshape(nspins, nkpts, nbands)
+    occ_skn = val[:, :, 1].reshape(nspins, nkpts, nbands)
+    eps_skn = eps_skn.transpose(1, 0, 2).copy()
+    occ_skn = occ_skn.transpose(1, 0, 2).copy()
+    assert eps_skn.flags.contiguous
+    d = dict(nspins=nspins,
+             nkpts=nkpts,
+             nbands=nbands,
+             eigenvalues=eps_skn,
+             occupations=occ_skn)
+    if fermilevel is not None:
+        d.update(efermi=fermilevel)
+    return d
+
+def read_static_info_energy(fd, energy_unit):
+    def get(name):
+        for line in fd:
+            if line.strip().startswith(name):
+                return float(line.split('=')[-1].strip()) * energy_unit
+    return dict(energy=get('Total'), free_energy=get('Free'))
+
+
+def read_static_info(fd):
+    results = {}
+
+    def get_energy_unit(line):  # Convert "title [unit]": ---> unit
+        return {'[eV]': eV, '[H]': Hartree}[line.split()[1].rstrip(':')]
+
+    for line in fd:
+        if line.strip('*').strip().startswith('Brillouin zone'):
+            results.update(read_static_info_kpoints(fd))
+        elif line.startswith('Eigenvalues ['):
+            unit = get_energy_unit(line)
+            results.update(read_static_info_eigenvalues(fd, unit))
+        elif line.startswith('Energy ['):
+            unit = get_energy_unit(line)
+            results.update(read_static_info_energy(fd, unit))
+        elif line.startswith('Total Magnetic Moment'):
+            if 0:
+                line = next(fd)
+                values = line.split()
+                results['magmom'] = float(values[-1])
+
+                line = next(fd)
+                assert line.startswith('Local Magnetic Moments')
+                line = next(fd)
+                assert line.split() == ['Ion', 'mz']
+                # Reading  Local Magnetic Moments
+                mag_moment = []
+                for line in fd:
+                    if line == '\n':
+                        break  # there is no more thing to search for
+                    line = line.replace('\n', ' ')
+                    values = line.split()
+                    mag_moment.append(float(values[-1]))
+
+                results['magmoms'] = np.array(mag_moment)
+        elif line.startswith('Dipole'):
+            assert line.split()[-1] == '[Debye]'
+            dipole = [float(next(fd).split()[-1]) for i in range(3)]
+            results['dipole'] = np.array(dipole) * Debye
+        elif line.startswith('Forces'):
+            forceunitspec = line.split()[-1]
+            forceunit = {'[eV/A]': eV / Angstrom,
+                         '[H/b]': Hartree / Bohr}[forceunitspec]
+            forces = []
+            line = next(fd)
+            assert line.strip().startswith('Ion')
+            for line in fd:
+                if line.strip().startswith('---'):
+                    break
+                tokens = line.split()[-3:]
+                forces.append([float(f) for f in tokens])
+            results['forces'] = np.array(forces) * forceunit
+        elif line.startswith('Fermi'):
+            tokens = line.split()
+            unit = {'eV': eV, 'H': Hartree}[tokens[-1]]
+            eFermi = float(tokens[-2]) * unit
+            results['efermi'] = eFermi
+
+    if 'ibz_k_points' not in results:
+        results['ibz_k_points'] = np.zeros((1, 3))
+        results['k_point_weights'] = np.ones(1)
+    if 0: #'efermi' not in results:
+        # Find HOMO level.  Note: This could be a very bad
+        # implementation with fractional occupations if the Fermi
+        # level was not found otherwise.
+        all_energies = results['eigenvalues'].ravel()
+        all_occupations = results['occupations'].ravel()
+        args = np.argsort(all_energies)
+        for arg in args[::-1]:
+            if all_occupations[arg] > 0.1:
+                break
+        eFermi = all_energies[arg]
+        results['efermi'] = eFermi
+
+    return results
+
+
 class Octopus(FileIOCalculator):
     """Octopus calculator.
 
@@ -548,7 +903,8 @@ class Octopus(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces',
                               'dipole',
-                              'magmom', 'magmoms']
+                              #'magmom', 'magmoms'
+    ]
 
     troublesome_keywords = set(['subsystemcoordinates',
                                 'subsystems',
@@ -560,12 +916,15 @@ class Octopus(FileIOCalculator):
                                 'xsfcoordinatesanimstep',
                                 'reducedcoordinates'])
 
+    special_ase_keywords = set(['kpts'])
+
     def __init__(self,
                  restart=None,
                  label=None,
                  atoms=None,
                  command='octopus',
                  ignore_troublesome_keywords=None,
+                 check_keywords=True,
                  _autofix_outputformats=False,
                  **kwargs):
         """Create Octopus calculator.
@@ -580,13 +939,17 @@ class Octopus(FileIOCalculator):
         # This makes us able to robustly construct the input file
         # in the face of changing octopus versions, and also of
         # early partial verification of user input.
-        try:
-            octopus_keywords = get_octopus_keywords()
-        except OSError as err:
-            msg = ('Could not obtain Octopus keyword list from '
-                   'command oct-help: %s.  Octopus not installed in '
-                   'accordance with expectations.' % err)
-            raise OSError(msg)
+        if check_keywords:
+            try:
+                octopus_keywords = get_octopus_keywords()
+            except OSError as err:
+                msg = ('Could not obtain Octopus keyword list from '
+                       'command oct-help: %s.  Octopus not installed in '
+                       'accordance with expectations.  '
+                       'Use check_octopus_keywords=False to override.' % err)
+                raise OSError(msg)
+        else:
+            octopus_keywords = None
         self.octopus_keywords = octopus_keywords
         self._autofix_outputformats = _autofix_outputformats
 
@@ -624,7 +987,8 @@ class Octopus(FileIOCalculator):
     def set(self, **kwargs):
         """Set octopus input file parameters."""
         kwargs = normalize_keywords(kwargs)
-        self.check_keywords_exist(kwargs)
+        if self.octopus_keywords is not None:
+            self.check_keywords_exist(kwargs)
 
         for keyword in kwargs:
             if keyword in self.troublesome_keywords:
@@ -634,14 +998,17 @@ class Octopus(FileIOCalculator):
                        'to override this.' % keyword)
                 raise OctopusKeywordError(msg)
 
-        FileIOCalculator.set(self, **kwargs)
+        changes = FileIOCalculator.set(self, **kwargs)
+        if changes:
+            self.results.clear()
         self.kwargs.update(kwargs)
         # XXX should use 'Parameters' but don't know how
 
     def check_keywords_exist(self, kwargs):
         keywords = list(kwargs.keys())
         for keyword in keywords:
-            if keyword not in self.octopus_keywords:
+            if (keyword not in self.octopus_keywords
+                and keyword not in self.special_ase_keywords):
                 if self._autofix_outputformats:
                     if (keyword == 'outputhow' and 'outputformat'
                             in self.octopus_keywords):
@@ -668,13 +1035,13 @@ class Octopus(FileIOCalculator):
         raise NotImplementedError
 
     def get_charges(self, atoms=None):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_fermi_level(self):
         return self.results['efermi']
 
     def get_potential_energies(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def get_dipole_moment(self, atoms=None):
         if 'dipole' not in self.results:
@@ -684,7 +1051,7 @@ class Octopus(FileIOCalculator):
         return self.results['dipole']
 
     def get_stresses(self):
-        raise NotImplementedError
+        raise PropertyNotImplementedError
 
     def _read_array(self, fname, outputkeyword=None):
         path = self._getpath('static/%s' % fname)
@@ -697,7 +1064,7 @@ class Octopus(FileIOCalculator):
             raise OctopusIOError(msg)
         # If this causes an error now that the file exists, things are
         # messed up.  Then it is better that the error propagates as normal
-        return fix_and_read_xsf(path, read_data=True)
+        return read_xsf(path, read_data=True)
 
     def read_vn(self, basefname, keywordname):
         static_dir = self._getpath('static')
@@ -825,17 +1192,21 @@ class Octopus(FileIOCalculator):
     def get_number_of_bands(self):
         return self.results['nbands']
 
-    def get_magnetic_moments(self, atoms=None):
-        return self.results['magmoms'].copy()
+    #def get_magnetic_moments(self, atoms=None):
+    #    if self.results['nspins'] == 1:
+    #        return np.zeros(len(self.atoms))
+    #    return self.results['magmoms'].copy()
 
-    def get_magnetic_moment(self, atoms=None):
-        return self.results['magmom']
+    #def get_magnetic_moment(self, atoms=None):
+    #    if self.results['nspins'] == 1:
+    #        return 0.0
+    #    return self.results['magmom']
 
     def get_occupation_numbers(self, kpt=0, spin=0):
-        return self.results['occupations'][spin, kpt].copy()
+        return self.results['occupations'][kpt, spin].copy()
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        return self.results['eigenvalues'][spin, kpt].copy()
+        return self.results['eigenvalues'][kpt, spin].copy()
 
     def _getpath(self, path, check=False):
         path = os.path.join(self.directory, path)
@@ -850,199 +1221,33 @@ class Octopus(FileIOCalculator):
     def read_results(self):
         """Read octopus output files and extract data."""
         fd = open(self._getpath('static/info', check=True))
+        self.results.update(read_static_info(fd))
 
-        def search(token):
-            initial_pos = fd.tell()
-            for line in fd:
-                if line.strip().startswith(token):
-                    return line
-            try:
-                raise ValueError('No such token: \'%s\'' % token)
-            finally:
-                fd.seek(initial_pos)
-
+        # If the eigenvalues file exists, we get the eigs/occs from that one.
+        # This probably means someone ran Octopus in 'unocc' mode to
+        # get eigenvalues (e.g. for band structures), and the values in
+        # static/info will be the old (selfconsistent) ones.
         try:
-            nkptsline = search('Number of symmetry-reduced')
-        except ValueError:
-            nkpts = 1
-            ibz_k_points = np.zeros((1, 3))
-            k_point_weights = np.ones(1)
-        else:
-            nkpts = int(nkptsline.split('=')[-1].strip())
-
-            kpt_coord_weight_line = search('List of k-points:')
-            kpt_coord_weight_line = fd.next()
-            tokens = kpt_coord_weight_line.split()
-            assert tokens == ['ik', 'k_x', 'k_y', 'k_z', 'Weight']
-            kpt_coord_weight_line = fd.next()
-            kpt_coord_weight_line = fd.next()
-            ibz_k_points = np.zeros(shape=[nkpts, 3])
-            k_point_weights = np.zeros(shape=[nkpts])
-            for i in range(nkpts):
-                tokens = kpt_coord_weight_line.split()
-                assert int(tokens[0])
-                ibz_k_points[i][0] = float(tokens[1])
-                ibz_k_points[i][1] = float(tokens[2])
-                ibz_k_points[i][2] = float(tokens[3])
-                k_point_weights[i] = float(tokens[4])
-                kpt_coord_weight_line = fd.next()
-
-        self.results['ibz_k_points'] = ibz_k_points
-        self.results['k_point_weights'] = k_point_weights
-
-        statesheader = search('Eigenvalues [')
-        assert statesheader == 'Eigenvalues [eV]\n'
-
-        for line in fd:
-            tokens = line.split()
-            try:
-                if int(tokens[0]):
-                    break
-            except ValueError:
-                continue
-
-        kpts = []
-        kpts_down = []
-
-        class State(object):
-            """Represents pairs (energy, occupation)."""
-            def __init__(self, energy, occ):
-                self.energy = energy
-                self.occ = occ
-
-        for k in range(nkpts):
-            nbands = None
-            states = []
-            states_down = []
-
-            if line.startswith('#'):
-                line = fd.next()
-            while line.strip(' ')[0].isdigit():
-                tokens = line.split()
-                # n = int(tokens[0])
-                if tokens[1] in ['--', 'up']:
-                    spin = 0
-                elif tokens[1] == 'dn':
-                    spin = 1
-                else:
-                    raise ValueError('Unexpected spin specification: %s'
-                                     % tokens[1])
-                energy = float(tokens[2])
-                occupation = float(tokens[3])
-                state = State(energy, occupation)
-                if spin == 0:
-                    states.append(state)
-                else:
-                    states_down.append(state)
-                line = fd.next()
-            if nbands is None:
-                nbands = len(states)
-                assert nbands > 0
-            else:
-                # this assert is triggered in the second run if
-                # nbands is not reinitialized
-                assert nbands == len(states)
-            kpts.append(states)
-            if len(states_down) > 0:
-                kpts_down.append(states_down)
-
-        nspins = 1
-        if len(kpts_down):
-            nspins = 2
-            assert len(kpts_down) == len(kpts)
-        eps_skn = np.empty((nspins, len(kpts), len(states)))
-        occ_skn = np.empty((nspins, len(kpts), len(states)))
-
-        for k in range(len(kpts)):
-            kpt = kpts[k]
-            eps_skn[0, k, :] = [state.energy for state in kpt]
-            occ_skn[0, k, :] = [state.occ for state in kpt]
-            if nspins == 2:
-                kpt = kpts_down[k]
-                eps_skn[1, k, :] = [state.energy for state in kpt]
-                occ_skn[1, k, :] = [state.occ for state in kpt]
-
-        self.results['nbands'] = nbands
-        self.results['eigenvalues'] = eps_skn
-        self.results['occupations'] = occ_skn
-
-        if line.startswith('Fermi'):
-            tokens = line.split()
-            assert tokens[-1] == 'eV'
-            eFermi = float(tokens[-2])
-        else:
-            # Find HOMO level.  Note: This could be a very bad
-            # implementation with fractional occupations if the Fermi
-            # level was not found otherwise.
-            all_energies = eps_skn.ravel()
-            all_occupations = occ_skn.ravel()
-            args = np.argsort(all_energies)
-            for arg in args[::-1]:
-                if all_occupations[arg] > 0.1:
-                    break
-            eFermi = all_energies[arg]
-        self.results['efermi'] = eFermi
-
-        search('Energy [eV]:')
-        line = fd.next()
-        assert line.strip().startswith('Total'), line
-        self.results['energy'] = float(line.split('=')[-1].strip())
-        line = fd.next()
-        assert line.strip().startswith('Free'), line
-        self.results['free_energy'] = float(line.split('=')[-1].strip())
-
-        if nspins == 2:
-            line = search('Total Magnetic Moment:')
-            line = fd.next()
-            values = line.split()
-            self.results['magmom'] = float(values[-1])
-
-            line = fd.next()
-            assert line.startswith('Local Magnetic Moments')
-            line = fd.next()
-            assert line.split() == ['Ion', 'mz']
-            # Reading  Local Magnetic Moments
-            mag_moment = []
-            for line in fd:
-                if line == '\n':
-                    break  # there is no more thing to search for
-                line = line.replace('\n', ' ')
-                values = line.split()
-                mag_moment.append(float(values[-1]))
-
-            self.results['magmoms'] = np.array(mag_moment, dtype=float)
-        else:
-            self.results['magmom'] = 0.0
-            self.results['magmoms'] = np.zeros(len(self.get_atoms()))
-
-        # Read dipole data
-        try:
-            line = search('Dipole:')
-        except ValueError:
+            eigpath = self._getpath('static/eigenvalues', check=True)
+        except OctopusIOError:
             pass
         else:
-            dipole = np.zeros(shape=[3, 2])
-            line = fd.next()
-            for i in range(3):
-                line = line.replace('<', ' ')
-                line = line.replace('>', ' ')
-                line = line.replace('=', ' ')
-                line = line.replace('\n', ' ')
-                values = line.split()
-                dipole[i][0] = float(values[1])
-                dipole[i][1] = float(values[2])
-                line = fd.next()
-
-            self.results['dipole'] = dipole
-
-        forces_atoms = read_xsf(self._getpath('static/forces.xsf'))
-        F_av = forces_atoms.get_forces() / Hartree
-        self.results['forces'] = F_av
+            with open(eigpath) as fd:
+                kpts, eigs, occs = read_eigenvalues_file(fd)
+                kpt_weights = np.ones(len(kpts))  # XXX ?  Or 1 / len(kpts) ?
+            self.results.update(eigenvalues=eigs, occupations=occs,
+                                ibz_k_points=kpts,
+                                k_point_weights=kpt_weights)
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties=properties,
                                      system_changes=system_changes)
-        txt = generate_input(atoms, self.kwargs, self.octopus_keywords)
+        octopus_keywords = self.octopus_keywords
+        if octopus_keywords is None:
+            # Will not do automatic pretty capitalization
+            octopus_keywords = self.kwargs
+        txt = generate_input(atoms, process_special_kwargs(atoms, self.kwargs),
+                             octopus_keywords)
         fd = open(self._getpath('inp'), 'w')
         fd.write(txt)
         fd.close()
@@ -1057,9 +1262,9 @@ class Octopus(FileIOCalculator):
         FileIOCalculator.read(self, label)
         inp_path = self._getpath('inp')
         fd = open(inp_path)
-        names, values = parse_input_file(fd)
-        kwargs = normalize_keywords(dict(zip(names, values)))
-        self.check_keywords_exist(kwargs)
+        kwargs = parse_input_file(fd)
+        if self.octopus_keywords is not None:
+            self.check_keywords_exist(kwargs)
 
         self.atoms, kwargs = kwargs2atoms(kwargs)
         self.kwargs.update(kwargs)

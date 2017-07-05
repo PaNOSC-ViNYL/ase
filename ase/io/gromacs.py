@@ -4,6 +4,7 @@ from __future__ import print_function
 
 from ase.atoms import Atoms
 from ase.parallel import paropen
+from ase.utils import basestring
 
 
 def read_gromacs(filename):
@@ -121,7 +122,7 @@ def write_gromacs(fileobj, images):
 
     from ase import units
 
-    if isinstance(fileobj, str):
+    if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
     if not isinstance(images, (list, tuple)):

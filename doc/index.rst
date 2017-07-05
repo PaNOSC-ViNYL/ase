@@ -15,8 +15,8 @@ license <license info>`.
 >>> from ase.calculators.nwchem import NWChem
 >>> from ase.io import write
 >>> h2 = Atoms('H2',
-               positions=[[0, 0, 0],
-                          [0, 0, 0.7]])
+...            positions=[[0, 0, 0],
+...                       [0, 0, 0.7]])
 >>> h2.calc = NWChem(xc='PBE')
 >>> opt = BFGS(h2)
 >>> opt.run(fmax=0.02)
@@ -28,13 +28,25 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 >>> h2.get_potential_energy()
 -31.492847800329216
 
-
 Supported :mod:`Calculators <ase.calculators>`:
 
-|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |dftb| |elk| |exciting| |EMT|
-|fhi-aims| |fleur| |gpaw| |gromacs| |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |siesta| |turbomole| |vasp| Gaussian_ Mopac_
-:mod:`~ase.calculators.tip3p` Grimme-D3_
+|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
+|elk| |exciting| |EMT|
+|fhi-aims| |fleur| |gpaw| |gromacs| 
+|hotbit| |jacapo| |jdftx| |lammps| |nwchem|
+|octopus| |onetep| |siesta| |turbomole| |vasp|
+:mod:`~ase.calculators.amber`
+:mod:`DMol³ <ase.calculators.dmol>`
+Gaussian_ Grimme-D3_ :mod:`~ase.calculators.gulp` Mopac_
+:mod:`~ase.calculators.tip3p`
+
+Please go through this check-list to figure out if you need to convert your
+old ASE trajectory files to the modern file-format:
+
+.. image:: static/oldtraj.png
+    :align: center
+
+See how to identify and convert old trajectory files here: :ref:`convert`.
 
 
 .. _news:
@@ -42,11 +54,30 @@ Supported :mod:`Calculators <ase.calculators>`:
 News
 ====
 
+* Bugfix release: :ref:`ASE version 3.14.1 <releasenotes>` (28 June 2017).
+
+* :ref:`ASE version 3.14.0 <releasenotes>` released (20 June 2017).
+
+* :ref:`Reference paper <cite>` in
+  J. Phys. Condens. Matter:
+  `The Atomic Simulation Environment | A Python library for working with
+  atoms <https://doi.org/10.1088/1361-648X/aa680e>`__
+  (7 June 2017).
+
+* :ref:`ASE version 3.13.0 <releasenotes>` released (7 February 2017).
+
+* Psi-k *Scientific Highlight Of The Month*:
+  `The Atomic Simulation Environment | A Python library for working with
+  atoms <http://psi-k.net/download/highlights/Highlight_134.pdf>`__
+  (20 January 2017).
+
+* :ref:`ASE version 3.12.0 <releasenotes>` released (24 October 2016).
+
 * :ref:`ASE version 3.11.0 <releasenotes>` released (10 May 2016).
 
 * :ref:`ASE version 3.10.0 <releasenotes>` released (17 March 2016).
 
-* Web-page now use the `Read the Docs Sphinx Theme
+* Web-page now uses the `Read the Docs Sphinx Theme
   <https://github.com/snide/sphinx_rtd_theme>`_ (20 February 2016).
 
 * The source code is now on https://gitlab.com/ase/ase (18 September 2015).
@@ -78,7 +109,7 @@ News
 * :ref:`ASE version 3.1.0 <download_and_install>` released (27 March 2009).
 
 * Improved :mod:`ase.vibrations` module: More accurate and
-  possibility to calculate :mod:`infrared intensities <ase.infrared>` (13
+  possibility to calculate :ref:`infrared` (13
   March 2009).
 
 * :ref:`ASE version 3.0.0 <download_and_install>` released (13 November 2008).
@@ -95,10 +126,10 @@ News
 * A beta version of the new ASE-3.0 will be used for the
   electronic structure course at CAMd_.  (10 Jan 2008)
 
-  
+
 Contents
 ========
-  
+
 .. toctree::
 
     about
@@ -106,6 +137,8 @@ Contents
     tutorials/tutorials
     ase/ase
     cmdline
+    tips
+    gallery/gallery
     releasenotes
     contact
     development/development
@@ -126,6 +159,9 @@ Contents
    :align: middle
 .. |CP2K| image:: static/cp2k.png
    :target: ase/calculators/cp2k.html
+   :align: middle
+.. |deMon| image:: static/demon.png
+   :target: http://www.demon-software.com/public_html/index.html
    :align: middle
 .. |elk| image:: static/elk.png
    :target: http://elk.sourceforge.net/
@@ -169,6 +205,9 @@ Contents
 .. |octopus| image:: static/octopus.png
    :target: ase/calculators/octopus.html
    :align: middle
+.. |onetep| image:: static/onetep.png
+   :target: http://www.onetep.org/
+   :align: middle
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
    :align: middle
@@ -178,6 +217,7 @@ Contents
 .. |vasp| image:: static/vasp.png
    :target: ase/calculators/vasp.html
    :align: middle
+
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/

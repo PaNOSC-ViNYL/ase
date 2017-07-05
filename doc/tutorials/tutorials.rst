@@ -33,12 +33,15 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    neb/idpp
    dissociation
    md/md
+   tipnp_equil/tipnp_equil
    wannier/wannier
    minimahopping/minimahopping
    ga/ga_optimize
    ga/ga_fcc_alloys
- 
-   
+   defects/defects
+   qmmm/qmmm
+
+
 NumPy
 -----
 
@@ -55,8 +58,7 @@ Further reading
 
 For more details:
 
-* Look at the documentation for the individual :mod:`modules <ase>`.
-* See the automatically generated documentation ``Epydoc``: :epydoc:`ase`.
+* Look at the documentation for the individual :ref:`modules <ase>`.
 * Browse the :git:`source code <>` online.
 
 

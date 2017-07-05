@@ -9,7 +9,7 @@ import math
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.utils import gcd
+from ase.utils import gcd, basestring
 import ase.data
 
 
@@ -191,7 +191,7 @@ class Bravais:
         "Extract atomic number from element"
         # The types that can be elements: integers and strings
         if self.element_basis is None:
-            if isinstance(element, type("string")):
+            if isinstance(element, basestring):
                 self.atomicnumber = ase.data.atomic_numbers[element]
             elif isinstance(element, int):
                 self.atomicnumber = element
@@ -212,7 +212,7 @@ class Bravais:
                          +" (one for each kind of lattice position")
                         % (max(self.element_basis)+1,))
             for e in element:
-                if isinstance(e, type("string")):
+                if isinstance(e, basestring):
                     atomicnumber.append(ase.data.atomic_numbers[e])
                 elif isinstance(e, int):
                     atomicnumber.append(e)
@@ -379,6 +379,9 @@ class Bravais:
         # Make sure that everything is Numeric arrays
         self.directions = np.array(directions)
         self.miller = np.array(miller)
+        # Check for zero-volume unit cell
+        if abs(np.linalg.det(self.directions)) < 1e-10:
+            raise ValueError("The direction vectors are linearly dependent (unit cell volume would be zero)")
         # Check for left-handed coordinate system
         if np.linalg.det(self.directions) < 0:
             print("WARNING: Creating a left-handed coordinate system!")
@@ -440,6 +443,8 @@ def reduceindex(M):
     g = gcd(M[0], M[1])
     h = gcd(g, M[2])
     while h != 1:
+        if h == 0:
+            raise ValueError("Division by zero: Are the miller indices linearly dependent?")
         M = M // h
         g = gcd(M[0], M[1])
         h = gcd(g, M[2])

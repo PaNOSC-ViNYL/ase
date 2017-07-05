@@ -36,7 +36,7 @@ Examples
 Here is a command line example of how to calculate optimize the geometry of a
 water molecule using PBE::
 
-    $ ase-build H2O | ase-run nwchem -p xc=PBE -f 0.02
+    $ ase build H2O | ase run nwchem -p xc=PBE -f 0.02
     Running: H2O
     LBFGS:   0  09:58:54    -2064.914841       1.9673
     LBFGS:   1  09:58:55    -2064.976691       0.1723
@@ -44,7 +44,7 @@ water molecule using PBE::
     LBFGS:   3  09:58:55    -2064.977363       0.0495
     LBFGS:   4  09:58:56    -2064.977446       0.0233
     LBFGS:   5  09:58:56    -2064.977460       0.0059
-    $ ase-gui H2O.traj@-1 -tg "a(1,0,2),d(0,1)"
+    $ ase gui H2O.traj@-1 -tg "a(1,0,2),d(0,1)"
     102.591620591 1.00793234388
 
 .. highlight:: python
@@ -52,7 +52,7 @@ water molecule using PBE::
 An example of creating an NWChem calculator in the python interface is::
 
   from ase.calculators.nwchem import NWChem
-  
+
   calc = NWChem(label='calc/nwchem',
                 maxiter=2000,
                 xc='B3LYP',

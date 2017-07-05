@@ -4,7 +4,7 @@
 GA Search for stable FCC alloys
 ===============================
 
-In this tutorial we will emulate an older paper [Jóhannesson]_ and determine
+In this tutorial we will emulate an older paper [Johannesson]_ and determine
 the most stable FCC alloy using the genetic algorithm. Since the purpose is
 only the tutorial we will limit the phase space to the elements supported by
 the :mod:`EMT potential <ase.calculators.emt>`. The search is also equivalent
@@ -14,12 +14,12 @@ ammonia storage described here:
    | P. B. Jensen, S. Lysgaard, U. J. Quaade and T. Vegge
    | `Designing Mixed Metal Halide Ammines for Ammonia Storage Using Density Functional Theory and Genetic Algorithms`__
    | Physical Chemistry Chemical Physics, Vol **16**, No. 36, pp. 19732-19740, (2014)
-   
+
    __ http://dx.doi.org/10.1039/C4CP03133D
 
 .. contents::
-   
-   
+
+
 Basic outline of the search
 ===========================
 
@@ -56,7 +56,10 @@ performed on a cluster by submitting to a queuing system. How this is
 achieved in the algorithm is covered in
 :ref:`genetic_algorithm_optimization_tutorial`.
 
-.. defined for an alloy :mol:`ABC_2`: A + B + 2C -> :mol:`ABC_2` as: `\Delta H_f = E_{ABC2} - E_A - E_B - 2E_C`
+..
+
+  defined for an alloy :mol:`ABC_2`: A + B + 2C -> :mol:`ABC_2`
+  as: `\Delta H_f = E_{ABC2} - E_A - E_B - 2E_C`
 
 
 .. _references:
@@ -77,29 +80,30 @@ volume relaxation to find the optimal lattice constant and lowest energy,
 which we save in the database as key-value pairs for quick retrieval.
 
 .. literalinclude:: ga_fcc_references.py
-                                        
-                                        
+
+
 Initial population
 ==================
 
-We choose a population size of 10 individuals and create the initial population by randomly selecting four elements for each starting individual.
+We choose a population size of 10 individuals and create the initial
+population by randomly selecting four elements for each starting individual.
 
 .. literalinclude:: ga_fcc_alloys_start.py
-                                        
+
 Note how we add the population size and metals as extra key-value pairs when
 we create the database *fcc_alloys.db*. We can then retrieve these parameters
 later when running the main script to avoid having to input the same
 parameters twice.
 
 We can study our initial population by doing (on the command-line)::
-  
-    $ ase-db fcc_alloys.db -c +atoms_string
-        
+
+    $ ase db fcc_alloys.db -c +atoms_string
+
 the term ``atoms_string`` determines the order in which the elements are put
 into the model structure. So it is possible to fully describe an individual
 by just providing the ``atoms_string``.
-        
-        
+
+
 .. _`main script`:
 
 Run the algorithm
@@ -110,13 +114,13 @@ The following script runs the algorithm, also find it here:
 imported from an external file :download:`ga_fcc_alloys_relax.py`.
 
 .. literalinclude:: ga_fcc_alloys_main.py
-                                        
+
 In this script we run a generational GA as opposed to the pool GA outlined in
 :ref:`genetic_algorithm_optimization_tutorial`. This is achieved by having
 two for-loops; the innermost loop runs the number of times specified by the
 population size it corresponds to one generation. The outermost loop runs as
 many generations as specified in ``num_gens``. The function
-:func:`pop.update()` is called after the innermost loop has finished thereby
+``pop.update()`` is called after the innermost loop has finished thereby
 only adding individuals to the population after a whole generation is
 calculated.
 
@@ -125,29 +129,30 @@ we can follow the evolution. The calculated individuals are continuously
 added to ``fcc_alloys.db``, we can evaluate them directly by doing from the
 command line (in another shell instance if the GA is still running)::
 
-    $ ase-db fcc_alloys.db -c +atoms_string,raw_score,generation,hof -s raw_score
+    $ ase db fcc_alloys.db -c +atoms_string,raw_score,generation,hof -s raw_score
 
-*Note:* When reading the database using ase-db, it might be necessary to
-increase the number of shown entries, e.g. ``ase-db fcc-alloys.db --limit
+*Note:* When reading the database using ``ase db``, it might be necessary to
+increase the number of shown entries, e.g. ``ase db fcc-alloys.db --limit
 N``, where ``N`` is the number of entries to show (as default only the first 20
-entries are shown, ``--limit 0`` will show all. For further info use ``ase-db
-–help``, or consult the :ref:`ase-db` manual).
+entries are shown, ``--limit 0`` will show all. For further info use ``ase db
+--help``, or consult the :ref:`ase-db` manual).
 
 To prevent clutter we import the relax function from the following script:
 
 .. _`relaxation script`:
-                                        
+
 .. literalinclude:: ga_fcc_alloys_relax.py
-                                        
+
 The relaxation script is naturally similar to the script we used to calculate
 the references_.
 
 *Note* that the global optimum is :mol:`PtNi_3` with a -0.12 eV heat of
 formation, whereas the second worst alloy is :mol:`AlNi_3` heat of formation
 0.26 eV. This result is in complete contrast to the conclusion obtained in
-[Jóhannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase
+[Johannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase
 space chosen here. Obviously there is a limit to the predictive power of EMT!
-                                        
+
+
 Extending the algorithm
 =======================
 
@@ -167,9 +172,9 @@ elements to other elements nearby in the periodic table::
   from ase.ga.element_mutations import MoveLeftMutation
   from ase.ga.element_mutations import MoveRightMutation
   from ase.ga.element_crossovers import OnePointElementCrossover
-  
+
   ...
-  
+
   oclist = ([4,1,1,1,1,8], [RandomElementMutation([metals]),
                             MoveDownMutation([metals]),
                             MoveUpMutation([metals]),
@@ -225,10 +230,10 @@ it is vital to be able to reuse identical calculations between runs.
 We do the following from the command line to create a new database file
 containing only the relaxed structures::
 
-    $ ase-db fcc_alloys.db relaxed=1 -i all_relaxed.db
-        
+    $ ase db fcc_alloys.db relaxed=1 -i all_relaxed.db
+
 We subsequently add this to the `relaxation script`_::
-  
+
   def relax(input_atoms, ref_db):
       atoms_string = input_atoms.get_chemical_symbols()
       relaxed_db = connect('all_relaxed.db')
@@ -238,33 +243,38 @@ We subsequently add this to the `relaxation script`_::
       except KeyError:
           # Open connection to the database with reference data
           db = connect(ref_db)
-                  
+
       # Omitting lines up to the point where hof has been calculated
           ...
-          
+
       else:
           hof = dct.hof
           latticeconstant = dct.latticeconstant
           save_relax = False
       # Place the calculated parameters in the info dictionary of the
       # input_atoms object
-          
+
       ...
-          
+
       # Put this at the very end
       if save_relax:
           relaxed_db.write(input_atoms,relaxed=1,
                            key_value_pairs=input_atoms.info['key_value_pairs'])
-  
+
 Before the actual calculation is performed ``all_relaxed.db`` is checked to
 see if it has been calculated before; if so we just collect the heat of
 formation, but if not we do the calculation and save it directly to
 ``all_relaxed.db``. *Note:* this addition assumes that `Prevent identical
 calculations from being performed`_.
 
-.. [Jóhannesson] G. Jóhannesson, T. Bligaard, A. Ruban, H. Skriver, K. Jacobsen and J. Nørskov.
-   Combined Electronic Structure and Evolutionary Search Approach to Materials Design,
+
+.. [Johannesson] G. Jóhannesson, T. Bligaard, A. Ruban, H. Skriver,
+   K. Jacobsen and J. Nørskov.
+   Combined Electronic Structure and Evolutionary Search Approach
+   to Materials Design,
    Phys. Rev. Lett., Vol **88**, No. 25, pp. 1-5 (2002)
+
 .. [Jensen] P. B. Jensen, S. Lysgaard, U. J. Quaade and T. Vegge.
-   Designing Mixed Metal Halide Ammines for Ammonia Storage Using Density Functional Theory and Genetic Algorithms
+   Designing Mixed Metal Halide Ammines for Ammonia Storage Using
+   Density Functional Theory and Genetic Algorithms
    Phys. Chem. Chem. Phys., Vol **16**, No. 36, pp. 19732-19740, (2014)

@@ -20,13 +20,27 @@ following structure::
 
 import ase.parallel
 from ase.parallel import paropen
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.singlepoint import (SinglePointCalculator,
+                                         PropertyNotImplementedError)
+from ase.io.ulm import open as ulmopen
 import numpy as np
 import os
+import sys
 import shutil
 import time
-import pickle
+# The system json module causes memory leaks!  Use ase's own.
+# import json
+from ase.io import jsonio
+try:
+    import cPickle as pickle   # Need efficient pickle if using Python 2
+except ImportError:
+    import pickle              # Python 3 pickle is efficient.
 import collections
+# We would like to use an OrderedDict for nice printing
+try:
+    from collections import OrderedDict as odict
+except ImportError:
+    odict = dict
 
 
 class BundleTrajectory:
@@ -58,32 +72,42 @@ class BundleTrajectory:
 
     backup=True:
         Use backup=False to disable renaming of an existing file.
+
+    backend='ulm':
+        Request a backend.  Supported backends are 'pickle' and 'ulm'.
+        Only honored when writing.
+
+    singleprecision=False:
+        Store floating point data in single precision (ulm backend only).
     """
     slavelog = True  # Log from all nodes
 
-    def __init__(self, filename, mode='r', atoms=None, backup=True):
+    def __init__(self, filename, mode='r', atoms=None, backup=True,
+                 backend='ulm', singleprecision=False):
         self.state = 'constructing'
         self.filename = filename
         self.pre_observers = []  # callback functions before write is performed
         self.post_observers = []  # callback functions after write is performed
         self.master = ase.parallel.rank == 0
         self.extra_data = []
+        self.singleprecision = singleprecision
         self._set_defaults()
-        self._set_backend()
         if mode == 'r':
             if atoms is not None:
-                raise ValueError("You cannot specify atoms in read mode.")
+                raise ValueError('You cannot specify atoms in read mode.')
             self._open_read()
         elif mode == 'w':
-            self._open_write(atoms, backup)
+            self._open_write(atoms, backup, backend)
         elif mode == 'a':
             self._open_append(atoms)
+        else:
+            raise ValueError('Unknown mode: ' + str(mode))
 
     def _set_defaults(self):
         "Set default values for internal parameters."
         self.version = 1
         self.subtype = 'normal'
-        self.backend_name = 'pickle'
+        # self.backend_name = 'pickle'
         self.datatypes = {'positions': True,
                           'numbers': 'once',
                           'tags': 'once',
@@ -93,19 +117,20 @@ class BundleTrajectory:
                           'energy': True,
                           'energies': False,
                           'stress': False,
-                          'magmoms': True
-                          }
+                          'magmoms': True}
 
-    def _set_backend(self, backend=None):
+    def _set_backend(self, backend):
         """Set the backed doing the actual I/O."""
         if backend is not None:
             self.backend_name = backend
         if self.backend_name == 'pickle':
             self.backend = PickleBundleBackend(self.master)
+        elif self.backend_name == 'ulm':
+            self.backend = UlmBundleBackend(self.master, self.singleprecision)
         else:
             raise NotImplementedError(
-                "This version of ASE cannot use BundleTrajectory with backend '%s'"
-                % self.backend_name)
+                'This version of ASE cannot use BundleTrajectory '
+                'with backend "%s"' % self.backend_name)
 
     def write(self, atoms=None):
         """Write the atoms to the file.
@@ -144,7 +169,7 @@ class BundleTrajectory:
 
         # OK, it is a real atoms object.  Write it.
         self._call_observers(self.pre_observers)
-        self.log("Beginning to write frame " + str(self.nframes))
+        self.log('Beginning to write frame ' + str(self.nframes))
         framedir = self._make_framedir(self.nframes)
 
         # Check which data should be written the first time:
@@ -159,21 +184,21 @@ class BundleTrajectory:
         # Write 'small' data structures.  They are written jointly.
         smalldata = {'pbc': atoms.get_pbc(),
                      'cell': atoms.get_cell(),
-                     'natoms': atoms.get_number_of_atoms(), # GLOBAL number of atoms!
-                     'constraints': atoms.constraints,
-                     }
+                     # GLOBAL number of atoms:
+                     'natoms': atoms.get_number_of_atoms(),
+                     'constraints': atoms.constraints}
         if datatypes.get('energy'):
             try:
                 smalldata['energy'] = atoms.get_potential_energy()
-            except (RuntimeError, NotImplementedError):
+            except (RuntimeError, PropertyNotImplementedError):
                 self.datatypes['energy'] = False
         if datatypes.get('stress'):
             try:
                 smalldata['stress'] = atoms.get_stress()
-            except NotImplementedError:
+            except PropertyNotImplementedError:
                 self.datatypes['stress'] = False
         self.backend.write_small(framedir, smalldata)
-        
+
         # Write the large arrays.
         if datatypes.get('positions'):
             self.backend.write(framedir, 'positions', atoms.get_positions())
@@ -202,7 +227,7 @@ class BundleTrajectory:
         if datatypes.get('forces'):
             try:
                 x = atoms.get_forces()
-            except (RuntimeError, NotImplementedError):
+            except (RuntimeError, PropertyNotImplementedError):
                 self.datatypes['forces'] = False
             else:
                 self.backend.write(framedir, 'forces', x)
@@ -210,7 +235,7 @@ class BundleTrajectory:
         if datatypes.get('energies'):
             try:
                 x = atoms.get_potential_energies()
-            except (RuntimeError, NotImplementedError):
+            except (RuntimeError, PropertyNotImplementedError):
                 self.datatypes['energies'] = False
             else:
                 self.backend.write(framedir, 'energies', x)
@@ -234,7 +259,7 @@ class BundleTrajectory:
             self._write_metadata(metadata)
         self._write_nframes(self.nframes + 1)
         self._call_observers(self.post_observers)
-        self.log("Done writing frame " + str(self.nframes))
+        self.log('Done writing frame ' + str(self.nframes))
         self.nframes += 1
 
     def select_data(self, data, value):
@@ -255,9 +280,9 @@ class BundleTrajectory:
         will be not be saved at all.
         """
         if value not in (True, False, 'once'):
-            raise ValueError("Unknown write mode")
+            raise ValueError('Unknown write mode')
         if data not in self.datatypes:
-            raise ValueError("Unsupported data type: " + data)
+            raise ValueError('Unsupported data type: ' + data)
         self.datatypes[data] = value
 
     def set_extra_data(self, name, source=None, once=False):
@@ -275,7 +300,7 @@ class BundleTrajectory:
         written to the first frame.
         """
         self.extra_data.append((name, source, once))
-        
+
     def close(self):
         "Closes the trajectory."
         self.state = 'closed'
@@ -284,7 +309,7 @@ class BundleTrajectory:
         if lf is not None:
             lf.close()
             del self.logfile
-            
+
     def log(self, text):
         """Write to the log file in the bundle.
 
@@ -296,7 +321,7 @@ class BundleTrajectory:
         if not (self.master or self.slavelog):
             return
         text = time.asctime() + ': ' + text
-        if hasattr(self, "logfile"):
+        if hasattr(self, 'logfile'):
             # Logging enabled
             if self.logfile is None:
                 # Logfile not yet open
@@ -345,7 +370,7 @@ class BundleTrajectory:
                 atoms.arrays[name] = self._read_data(framezero, framedir,
                                                      name, self.atom_id)
                 assert len(atoms.arrays[name]) == natoms
-                
+
         # Create the atoms object
         if self.datatypes.get('energy'):
             if self.datatypes.get('forces'):
@@ -366,7 +391,7 @@ class BundleTrajectory:
 
     def read_extra_data(self, name, n=0):
         """Read extra data stored alongside the atoms.
-        
+
         Currently only used to read data stored by an NPT dynamics object.
         The data is not associated with individual atoms.
         """
@@ -384,7 +409,7 @@ class BundleTrajectory:
 
     def _read_data(self, f0, f, name, atom_id):
         "Read single data item."
-        
+
         if self.subtype == 'normal':
             if self.datatypes[name] == 'once':
                 d = self.backend.read(f0, name)
@@ -404,32 +429,34 @@ class BundleTrajectory:
 
     def __len__(self):
         return self.nframes
-    
+
     def _open_log(self):
         if not (self.master or self.slavelog):
             return
         if self.master:
-            lfn = os.path.join(self.filename, "log.txt")
+            lfn = os.path.join(self.filename, 'log.txt')
         else:
-            lfn = os.path.join(self.filename, ("log-node%d.txt" %
+            lfn = os.path.join(self.filename, ('log-node%d.txt' %
                                                (ase.parallel.rank,)))
-        self.logfile = open(lfn, "a", 1)   # Append to log if it exists.
+        self.logfile = open(lfn, 'a', 1)   # Append to log if it exists.
         if hasattr(self, 'logdata'):
             for text in self.logdata:
                 self.logfile.write(text + '\n')
             self.logfile.flush()
             del self.logdata
 
-    def _open_write(self, atoms, backup):
+    def _open_write(self, atoms, backup, backend):
         "Open a bundle trajectory for writing."
+        self._set_backend(backend)
         self.logfile = None  # enable delayed logging
         self.atoms = atoms
         if os.path.exists(self.filename):
             # The output directory already exists.
             if not self.is_bundle(self.filename):
-                raise IOError("Filename '" + self.filename +
-                              "' already exists, but is not a BundleTrajectory." +
-                              "Cowardly refusing to remove it.")
+                raise IOError(
+                    'Filename "' + self.filename +
+                    '" already exists, but is not a BundleTrajectory.' +
+                    'Cowardly refusing to remove it.')
             ase.parallel.barrier()  # all must have time to see it exists
             if self.is_empty_bundle(self.filename):
                 ase.parallel.barrier()
@@ -472,20 +499,30 @@ class BundleTrajectory:
         self.metadata = metadata
         if metadata['version'] > self.version:
             raise NotImplementedError(
-                "This version of ASE cannot read a BundleTrajectory version "
-                + str(metadata['version']))
+                'This version of ASE cannot read a BundleTrajectory version ' +
+                str(metadata['version']))
         if metadata['subtype'] not in ('normal', 'split'):
             raise NotImplementedError(
-                "This version of ASE cannot read BundleTrajectory subtype "
-                + metadata['subtype'])
+                'This version of ASE cannot read BundleTrajectory subtype ' +
+                metadata['subtype'])
         self.subtype = metadata['subtype']
+        if metadata['backend'] == 'ulm':
+            self.singleprecision = metadata['ulm.singleprecision']
         self._set_backend(metadata['backend'])
         self.nframes = self._read_nframes()
         if self.nframes == 0:
-            raise IOError("Empty BundleTrajectory")
+            raise IOError('Empty BundleTrajectory')
         self.datatypes = metadata['datatypes']
+        try:
+            self.pythonmajor = metadata['python_ver'][0]
+        except KeyError:
+            self.pythonmajor = 2  # Assume written with Python 2.
+        # We need to know if we are running Python 3.X and try to read
+        # a bundle written with Python 2.X
+        self.backend.readpy2 = (sys.version_info[0] >= 3 and
+                                self.pythonmajor == 2)
         self.state = 'read'
-        
+
     def _open_append(self, atoms):
         if not os.path.exists(self.filename):
             # OK, no old bundle.  Open as for write instead.
@@ -499,24 +536,28 @@ class BundleTrajectory:
         self.metadata = metadata
         if metadata['version'] != self.version:
             raise NotImplementedError(
-                "Cannot append to a BundleTrajectory version %s (supported version is %s)"
-                % (str(metadata['version']), str(self.version)))
+                'Cannot append to a BundleTrajectory version '
+                '%s (supported version is %s)' % (str(metadata['version']),
+                                                  str(self.version)))
         if metadata['subtype'] not in ('normal', 'split'):
             raise NotImplementedError(
-                "This version of ASE cannot append to BundleTrajectory subtype "
-                + metadata['subtype'])
+                'This version of ASE cannot append to BundleTrajectory '
+                'subtype ' + metadata['subtype'])
         self.subtype = metadata['subtype']
+        if metadata['backend'] == 'ulm':
+            self.singleprecision = metadata['ulm.singleprecision']
         self._set_backend(metadata['backend'])
         self.nframes = self._read_nframes()
         self._open_log()
-        self.log('Opening "%s" in append mode (nframes=%i)' % (self.filename, self.nframes))
+        self.log('Opening "%s" in append mode (nframes=%i)' % (self.filename,
+                                                               self.nframes))
         self.state = 'write'
         self.atoms = atoms
-        
+
     def _write_nframes(self, n):
         "Write the number of frames in the bundle."
         assert self.state == 'write' or self.state == 'prewrite'
-        f = paropen(os.path.join(self.filename, "frames"), "w")
+        f = paropen(os.path.join(self.filename, 'frames'), 'w')
         f.write(str(n) + '\n')
         f.close()
 
@@ -537,15 +578,33 @@ class BundleTrajectory:
         metadata['version'] = self.version
         metadata['subtype'] = self.subtype
         metadata['backend'] = self.backend_name
-        f = paropen(os.path.join(self.filename, "metadata"), "wb")
-        pickle.dump(metadata, f, -1)
+        if self.backend_name == 'ulm':
+            metadata['ulm.singleprecision'] = self.singleprecision
+        metadata['python_ver'] = tuple(sys.version_info)
+        f = paropen(os.path.join(self.filename, 'metadata.json'), 'w')
+        fido = jsonio.encode(metadata)
+        f.write(fido)
+        f.close()
+        # Write a compatibility .pickle file - will be picked up by
+        # older versions of ASE and result in a meaningful error.
+        metadata['comment'] = ('For compatibility only - '
+                               'see metadata.json instead.')
+        f = paropen(os.path.join(self.filename, 'metadata'), 'wb')
+        pickle.dump(metadata, f, protocol=0)
+        del metadata['comment']
         f.close()
 
     def _read_metadata(self):
         """Read the metadata."""
         assert self.state == 'read'
-        f = open(os.path.join(self.filename, 'metadata'), 'rb')
-        metadata = pickle.load(f)
+        metafile = os.path.join(self.filename, 'metadata.json')
+        if os.path.exists(metafile):
+            f = open(metafile, 'r')
+            metadata = jsonio.decode(f.read())
+        else:
+            metafile = os.path.join(self.filename, 'metadata')
+            f = open(metafile, 'rb')
+            metadata = pickle.load(f)
         f.close()
         return metadata
 
@@ -554,12 +613,19 @@ class BundleTrajectory:
         """Check if a filename exists and is a BundleTrajectory."""
         if not os.path.isdir(filename):
             return False
-        metaname = os.path.join(filename, 'metadata')
-        if not os.path.isfile(metaname):
-            return False
-        f = open(metaname, 'rb')
-        mdata = pickle.load(f)
-        f.close()
+        metaname = os.path.join(filename, 'metadata.json')
+        if os.path.isfile(metaname):
+            f = open(metaname, 'r')
+            mdata = jsonio.decode(f.read())
+            f.close()
+        else:
+            metaname = os.path.join(filename, 'metadata')
+            if os.path.isfile(metaname):
+                f = open(metaname, 'rb')
+                mdata = pickle.load(f)
+                f.close()
+            else:
+                return False
         try:
             return mdata['format'] == 'BundleTrajectory'
         except KeyError:
@@ -567,11 +633,15 @@ class BundleTrajectory:
 
     @staticmethod
     def is_empty_bundle(filename):
-        """Check if a filename is an empty bundle.  Assumes that it is a bundle."""
-        f = open(os.path.join(filename, "frames"), 'rb')
+        """Check if a filename is an empty bundle.
+
+        Assumes that it is a bundle."""
+        f = open(os.path.join(filename, 'frames'), 'rb')
         nframes = int(f.read())
         f.close()
-        ase.parallel.barrier()  # File may be removed by the master immediately after this.
+
+        # File may be removed by the master immediately after this.
+        ase.parallel.barrier()
         return nframes == 0
 
     @classmethod
@@ -580,8 +650,9 @@ class BundleTrajectory:
         if ase.parallel.rank == 0:
             # Only the master deletes
             if not cls.is_bundle(filename):
-                raise IOError("Cannot remove '%s' as it is not a bundle trajectory."
-                              % (filename,))
+                raise IOError(
+                    'Cannot remove "%s" as it is not a bundle trajectory.'
+                    % (filename,))
             if os.path.islink(filename):
                 # A symbolic link to a bundle.  Only remove the link.
                 os.remove(filename)
@@ -607,14 +678,14 @@ class BundleTrajectory:
         # The master may not proceed before all tasks have seen the
         # directory go away.
         ase.parallel.barrier()
-            
+
     def _make_bundledir(self, filename):
         """Make the main bundle directory.
 
         Since all MPI tasks might write to it, all tasks must wait for
         the directory to appear.
         """
-        self.log("Making directory " + filename)
+        self.log('Making directory ' + filename)
         assert not os.path.isdir(filename)
         ase.parallel.barrier()
         if self.master:
@@ -625,7 +696,7 @@ class BundleTrajectory:
                 time.sleep(1)
                 i += 1
             if i > 10:
-                self.log("Waiting %d seconds for %s to appear!"
+                self.log('Waiting %d seconds for %s to appear!'
                          % (i, filename))
 
     def _make_framedir(self, frame):
@@ -634,9 +705,9 @@ class BundleTrajectory:
         As only the master writes to it, no synchronization between
         MPI tasks is necessary.
         """
-        framedir = os.path.join(self.filename, "F" + str(frame))
+        framedir = os.path.join(self.filename, 'F' + str(frame))
         if self.master:
-            self.log("Making directory " + framedir)
+            self.log('Making directory ' + framedir)
             os.mkdir(framedir)
         return framedir
 
@@ -650,7 +721,7 @@ class BundleTrajectory:
         All other arguments are stored, and passed to the function.
         """
         if not isinstance(function, collections.Callable):
-            raise ValueError("Callback object must be callable.")
+            raise ValueError('Callback object must be callable.')
         self.pre_observers.append((function, interval, args, kwargs))
 
     def post_write_attach(self, function, interval=1, *args, **kwargs):
@@ -663,7 +734,7 @@ class BundleTrajectory:
         All other arguments are stored, and passed to the function.
         """
         if not isinstance(function, collections.Callable):
-            raise ValueError("Callback object must be callable.")
+            raise ValueError('Callback object must be callable.')
         self.post_observers.append((function, interval, args, kwargs))
 
     def _call_observers(self, obs):
@@ -671,19 +742,182 @@ class BundleTrajectory:
         for function, interval, args, kwargs in obs:
             if (self.nframes + 1) % interval == 0:
                 function(*args, **kwargs)
-    
+
+
+class UlmBundleBackend:
+    """Backend for BundleTrajectories stored as ASE Ulm files."""
+
+    def __init__(self, master, singleprecision):
+        # Store if this backend will actually write anything
+        self.writesmall = master
+        self.writelarge = master
+        self.singleprecision = singleprecision
+
+        # Integer data may be downconverted to the following types
+        self.integral_dtypes = ['uint8', 'int8', 'uint16', 'int16',
+                                'uint32', 'int32', 'uint64', 'int64']
+        # Dict comprehensions not supported in Python 2.6 :-(
+        self.int_dtype = dict((k, getattr(np, k))
+                              for k in self.integral_dtypes)
+        self.int_minval = dict((k, np.iinfo(self.int_dtype[k]).min)
+                               for k in self.integral_dtypes)
+        self.int_maxval = dict((k, np.iinfo(self.int_dtype[k]).max)
+                               for k in self.integral_dtypes)
+        self.int_itemsize = dict((k, np.dtype(self.int_dtype[k]).itemsize)
+                                 for k in self.integral_dtypes)
+
+    def write_small(self, framedir, smalldata):
+        "Write small data to be written jointly."
+        if self.writesmall:
+            f = ulmopen(os.path.join(framedir, 'smalldata.ulm'), 'w')
+            f.write(**smalldata)
+            f.close()
+
+    def write(self, framedir, name, data):
+        "Write data to separate file."
+        if self.writelarge:
+            shape = data.shape
+            dtype = str(data.dtype)
+            stored_as = dtype
+            all_identical = False
+            # Check if it a type that can be stored with less space
+            if np.issubdtype(data.dtype, np.integer):
+                # An integer type, we may want to convert
+                minval = data.min()
+                maxval = data.max()
+
+                # ulm cannot write np.bool_:
+                all_identical = bool(minval == maxval)
+                if all_identical:
+                    data = int(data.flat[0])  # Convert to standard integer
+                else:
+                    for typ in self.integral_dtypes:
+                        if (minval >= self.int_minval[typ] and
+                            maxval <= self.int_maxval[typ] and
+                            data.itemsize > self.int_itemsize[typ]):
+
+                            # Convert to smaller type
+                            stored_as = typ
+                            data = data.astype(self.int_dtype[typ])
+            elif data.dtype == np.float32 or data.dtype == np.float64:
+                all_identical = bool(data.min() == data.max())
+                if all_identical:
+                    data = float(data.flat[0])  # Convert to standard float
+                elif data.dtype == np.float64 and self.singleprecision:
+                    # Downconvert double to single precision
+                    stored_as = 'float32'
+                    data = data.astype(np.float32)
+            fn = os.path.join(framedir, name + '.ulm')
+            f = ulmopen(fn, 'w')
+            f.write(shape=shape,
+                    dtype=dtype,
+                    stored_as=stored_as,
+                    all_identical=all_identical,
+                    data=data)
+            f.close()
+
+    def read_small(self, framedir):
+        "Read small data."
+        f = ulmopen(os.path.join(framedir, 'smalldata.ulm'), 'r')
+        data = f.asdict()
+        f.close()
+        return data
+
+    def read(self, framedir, name):
+        "Read data from separate file."
+        fn = os.path.join(framedir, name + '.ulm')
+        f = ulmopen(fn, 'r')
+        if f.all_identical:
+            # Only a single data value
+            data = np.zeros(f.shape, dtype=getattr(np, f.dtype)) + f.data
+        elif f.dtype == f.stored_as:
+            # Easy, the array can be returned as-is.
+            data = f.data
+        else:
+            # Cast the data back
+            data = f.data.astype(getattr(np, f.dtype))
+        f.close()
+        return data
+
+    def read_info(self, framedir, name, split=None):
+        """Read information about file contents without reading the data.
+
+        Information is a dictionary containing as aminimum the shape and
+        type.
+        """
+        fn = os.path.join(framedir, name + '.ulm')
+        if split is None or os.path.exists(fn):
+            f = ulmopen(fn, 'r')
+            info = odict()
+            info['shape'] = f.shape
+            info['type'] = f.dtype
+            info['stored_as'] = f.stored_as
+            info['identical'] = f.all_identical
+            f.close()
+            return info
+        else:
+            info = odict()
+            for i in range(split):
+                fn = os.path.join(framedir, name + '_' + str(i) + '.ulm')
+                f = ulmopen(fn, 'r')
+                if i == 0:
+                    info['shape'] = list(f.shape)
+                    info['type'] = f.dtype
+                    info['stored_as'] = f.stored_as
+                    info['identical'] = f.all_identical
+                else:
+                    info['shape'][0] += f.shape[0]
+                    assert info['type'] == f.dtype
+                    info['identical'] = info['identical'] and f.all_identical
+                f.close()
+            info['shape'] = tuple(info['shape'])
+            return info
+
+    def set_fragments(self, nfrag):
+        self.nfrag = nfrag
+
+    def read_split(self, framedir, name):
+        """Read data from multiple files.
+
+        Falls back to reading from single file if that is how data is stored.
+
+        Returns the data and an object indicating if the data was really
+        read from split files.  The latter object is False if not
+        read from split files, but is an array of the segment length if
+        split files were used.
+        """
+        data = []
+        if os.path.exists(os.path.join(framedir, name + '.ulm')):
+            # Not stored in split form!
+            return (self.read(framedir, name), False)
+        for i in range(self.nfrag):
+            suf = '_%d' % (i,)
+            data.append(self.read(framedir, name + suf))
+        seglengths = [len(d) for d in data]
+        return (np.concatenate(data), seglengths)
+
+    def close(self, log=None):
+        """Close anything that needs to be closed by the backend.
+
+        The default backend does nothing here.
+        """
+        pass
+
 
 class PickleBundleBackend:
-    """Backend for writing BundleTrajectories stored as pickle files."""
+    """Backend for BundleTrajectories stored as pickle files."""
     def __init__(self, master):
         # Store if this backend will actually write anything
         self.writesmall = master
         self.writelarge = master
-        
+
+        # To be overwritten after the backend is initialized
+        self.readpy2 = False
+
     def write_small(self, framedir, smalldata):
         "Write small data to be written jointly."
         if self.writesmall:
-            f = open(os.path.join(framedir, "smalldata.pickle"), "wb")
+            f = open(os.path.join(framedir, 'smalldata.pickle'), 'wb')
             pickle.dump(smalldata, f, -1)
             f.close()
 
@@ -691,7 +925,7 @@ class PickleBundleBackend:
         "Write data to separate file."
         if self.writelarge:
             fn = os.path.join(framedir, name + '.pickle')
-            f = open(fn, "wb")
+            f = open(fn, 'wb')
             try:
                 info = (data.shape, str(data.dtype))
             except AttributeError:
@@ -702,8 +936,11 @@ class PickleBundleBackend:
 
     def read_small(self, framedir):
         "Read small data."
-        f = open(os.path.join(framedir, "smalldata.pickle"), 'rb')
-        data = pickle.load(f)
+        f = open(os.path.join(framedir, 'smalldata.pickle'), 'rb')
+        if self.readpy2:
+            data = pickle.load(f, encoding='latin1')
+        else:
+            data = pickle.load(f)
         f.close()
         return data
 
@@ -711,8 +948,12 @@ class PickleBundleBackend:
         "Read data from separate file."
         fn = os.path.join(framedir, name + '.pickle')
         f = open(fn, 'rb')
-        pickle.load(f)  # Discarded.
-        data = pickle.load(f)
+        if self.readpy2:
+            pickle.load(f, encoding='latin1')  # Discarded.
+            data = pickle.load(f, encoding='latin1')
+        else:
+            pickle.load(f)  # Discarded.
+            data = pickle.load(f)
         f.close()
         return data
 
@@ -721,14 +962,23 @@ class PickleBundleBackend:
         fn = os.path.join(framedir, name + '.pickle')
         if split is None or os.path.exists(fn):
             f = open(fn, 'rb')
-            info = pickle.load(f)
+            if self.readpy2:
+                info = pickle.load(f, encoding='latin1')
+            else:
+                info = pickle.load(f)
             f.close()
-            return info
+            result = odict()
+            result['shape'] = info[0]
+            result['type'] = info[1]
+            return result
         else:
             for i in range(split):
                 fn = os.path.join(framedir, name + '_' + str(i) + '.pickle')
                 f = open(fn, 'rb')
-                info = pickle.load(f)
+                if self.readpy2:
+                    info = pickle.load(f, encoding='latin1')
+                else:
+                    info = pickle.load(f)
                 f.close()
                 if i == 0:
                     shape = list(info[0])
@@ -736,40 +986,50 @@ class PickleBundleBackend:
                 else:
                     shape[0] += info[0][0]
                     assert dtype == info[1]
-            return (tuple(shape), dtype)
+            result = odict()
+            result['shape'] = info[0]
+            result['type'] = info[1]
+            return result
 
     def set_fragments(self, nfrag):
         self.nfrag = nfrag
-        
+
     def read_split(self, framedir, name):
         """Read data from multiple files.
-        
+
         Falls back to reading from single file if that is how data is stored.
 
-        Returns the data and a flag indicating if the data was really read from
-        split files.
+        Returns the data and an object indicating if the data was really
+        read from split files.  The latter object is False if not read from
+        split files, but is an array of the segment length if split files
+        were used.
         """
         data = []
         if os.path.exists(os.path.join(framedir, name + '.pickle')):
             # Not stored in split form!
             return (self.read(framedir, name), False)
         for i in range(self.nfrag):
-            suf = "_%d" % (i,)
+            suf = '_%d' % (i,)
             fn = os.path.join(framedir, name + suf + '.pickle')
             f = open(fn, 'rb')
-            pickle.load(f)  # Discarding the shape.
-            data.append(pickle.load(f))
+            if self.readpy2:
+                pickle.load(f, encoding='latin1')  # Discarding the shape.
+                data.append(pickle.load(f, encoding='latin1'))
+            else:
+                pickle.load(f)  # Discarding the shape.
+                data.append(pickle.load(f))
             f.close()
-        return (np.concatenate(data), True)
-    
+        seglengths = [len(d) for d in data]
+        return (np.concatenate(data), seglengths)
+
     def close(self, log=None):
         """Close anything that needs to be closed by the backend.
-        
+
         The default backend does nothing here.
         """
         pass
-    
-        
+
+
 def read_bundletrajectory(filename, index=-1):
     """Reads one or more atoms objects from a BundleTrajectory.
 
@@ -783,39 +1043,10 @@ def read_bundletrajectory(filename, index=-1):
         frame).
     """
     traj = BundleTrajectory(filename, mode='r')
-    if isinstance(index, int):
-        return traj[index]
-    else:
-        # Here, we try to read only the configurations we need to read
-        # and len(traj) should only be called if we need to as it will
-        # read all configurations!
+    for i in range(*index.indices(len(traj))):
+        yield traj[i]
 
-        # XXX there must be a simpler way?
-        step = index.step or 1
-        if step > 0:
-            start = index.start or 0
-            if start < 0:
-                start += len(traj)
-            stop = index.stop or len(traj)
-            if stop < 0:
-                stop += len(traj)
-        else:
-            if index.start is None:
-                start = len(traj) - 1
-            else:
-                start = index.start
-                if start < 0:
-                    start += len(traj)
-            if index.stop is None:
-                stop = -1
-            else:
-                stop = index.stop
-                if stop < 0:
-                    stop += len(traj)
-                    
-        return [traj[i] for i in range(start, stop, step)]
 
-        
 def write_bundletrajectory(filename, images):
     """Write image(s) to a BundleTrajectory.
 
@@ -825,16 +1056,17 @@ def write_bundletrajectory(filename, images):
 
     traj = BundleTrajectory(filename, mode='w')
 
-    if not isinstance(images, (list, tuple)):
+    if hasattr(images, 'get_positions'):
         images = [images]
-        
+
     for atoms in images:
         # Avoid potentially expensive calculations:
         calc = atoms.get_calculator()
         if hasattr(calc, 'calculation_required'):
             for quantity in ('energy', 'forces', 'stress', 'magmoms'):
                 traj.select_data(quantity,
-                                 not calc.calculation_required(atoms, [quantity]))
+                                 not calc.calculation_required(atoms,
+                                                               [quantity]))
         traj.write(atoms)
     traj.close()
 
@@ -850,62 +1082,84 @@ def print_bundletrajectory_info(filename):
         print(filename, 'is an empty BundleTrajectory.')
         return
     # Read the metadata
-    f = open(os.path.join(filename, 'metadata'), 'rb')
-    metadata = pickle.load(f)
+    fn = os.path.join(filename, 'metadata.json')
+    if os.path.exists(fn):
+        f = open(fn, 'r')
+        metadata = jsonio.decode(f.read())
+    else:
+        fn = os.path.join(filename, 'metadata')
+        f = open(fn, 'rb')
+        metadata = pickle.load(f)
     f.close()
-    print("Metadata information of BundleTrajectory '%s':" % (filename,))
+    print('Metadata information of BundleTrajectory "%s":' % (filename,))
     for k, v in metadata.items():
         if k != 'datatypes':
             print("  %s: %s" % (k, v))
     f = open(os.path.join(filename, 'frames'), 'rb')
     nframes = int(f.read())
-    print("Number of frames: %i" % (nframes,))
-    print("Data types:")
+    print('Number of frames: %i' % (nframes,))
+    print('Data types:')
     for k, v in metadata['datatypes'].items():
         if v == 'once':
-            print("  %s: First frame only." % (k,))
+            print('  %s: First frame only.' % (k,))
         elif v:
-            print("  %s: All frames." % (k,))
+            print('  %s: All frames.' % (k,))
     # Look at first frame
     if metadata['backend'] == 'pickle':
         backend = PickleBundleBackend(True)
+    elif metadata['backend'] == 'ulm':
+        backend = UlmBundleBackend(True, False)
     else:
-        raise NotImplementedError("Backend %s not supported."
+        raise NotImplementedError('Backend %s not supported.'
                                   % (metadata['backend'],))
-    frame = os.path.join(filename, "F0")
+    frame = os.path.join(filename, 'F0')
     small = backend.read_small(frame)
-    print("Contents of first frame:")
+    print('Contents of first frame:')
     for k, v in small.items():
         if k == 'constraints':
             if v:
-                print("  %i constraints are present")
+                print('  %i constraints are present')
             else:
-                print("  Constraints are absent.")
+                print('  Constraints are absent.')
         elif k == 'pbc':
-            print("  Periodic boundary conditions: %s" % (str(v),))
+            print('  Periodic boundary conditions: %s' % (str(v),))
         elif k == 'natoms':
-            print("  Number of atoms: %i" % (v,))
+            print('  Number of atoms: %i' % (v,))
         elif hasattr(v, 'shape'):
-            print("  %s: shape = %s, type = %s" % (k, str(v.shape), str(v.dtype)))
+            print('  %s: shape = %s, type = %s' %
+                  (k, str(v.shape), str(v.dtype)))
+            if k == 'cell':
+                print('        [[%12.6f, %12.6f, %12.6f],' % tuple(v[0]))
+                print('         [%12.6f, %12.6f, %12.6f],' % tuple(v[1]))
+                print('         [%12.6f, %12.6f, %12.6f]]' % tuple(v[2]))
         else:
-            print("  %s: %s" % (k, str(v)))
+            print('  %s: %s' % (k, str(v)))
     # Read info from separate files.
+    if metadata['subtype'] == 'split':
+        nsplit = small['fragments']
+    else:
+        nsplit = False
     for k, v in metadata['datatypes'].items():
         if v and k not in small:
-            info = backend.read_info(frame, k)
-            if info and isinstance(info[0], tuple):
-                shape, dtype = info
-            else:
-                shape = info
-                dtype = 'unknown'
-            print("  %s: shape = %s, type = %s" % (k, str(shape), dtype))
-                
-        
+            info = backend.read_info(frame, k, nsplit)
+            infoline = '  %s: ' % (k,)
+            for k, v in info.items():
+                infoline += '%s = %s, ' % (k, str(v))
+            infoline = infoline[:-2] + '.'  # Fix punctuation.
+            print(infoline)
+
+
+def main():
+    import optparse
+    parser = optparse.OptionParser(
+        usage='python -m ase.io.bundletrajectory '
+        'a.bundle [b.bundle ...]',
+        description='Print information about '
+        'the contents of one or more bundletrajectories.')
+    opts, args = parser.parse_args()
+    for name in args:
+        print_bundletrajectory_info(name)
+
+
 if __name__ == '__main__':
-    from ase.lattice.cubic import FaceCenteredCubic
-    from ase.io import read, write
-    atoms = FaceCenteredCubic(size=(5, 5, 5), symbol='Au')
-    write('test.bundle', atoms)
-    atoms2 = read('test.bundle')
-    assert (atoms.get_positions() == atoms2.get_positions()).all()
-    assert (atoms.get_atomic_numbers() == atoms2.get_atomic_numbers()).all()
+    main()

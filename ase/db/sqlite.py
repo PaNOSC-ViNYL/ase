@@ -9,9 +9,12 @@ Versions:
 4) Got rid of keywords.
 5) Add fmax, smax, mass, volume, charge
 6) Use REAL for magmom and drop possibility for non-collinear spin
+7) Volume can be None
+8) Added name='metadata' row to "information" table
 """
 
 from __future__ import absolute_import, print_function
+import json
 import os
 import sqlite3
 import sys
@@ -28,7 +31,7 @@ from ase.utils import basestring
 if sys.version >= '3':
     buffer = memoryview
 
-VERSION = 6
+VERSION = 8
 
 init_statements = [
     """CREATE TABLE systems (
@@ -65,35 +68,35 @@ init_statements = [
     volume REAL,
     mass REAL,
     charge REAL)""",
-    
+
     """CREATE TABLE species (
     Z INTEGER,
     n INTEGER,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
-    
+
     """CREATE TABLE keys (
     key TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
-    
+
     """CREATE TABLE text_key_values (
     key TEXT,
     value TEXT,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
-    
+
     """CREATE TABLE number_key_values (
     key TEXT,
     value REAL,
     id INTEGER,
     FOREIGN KEY (id) REFERENCES systems(id))""",
-    
+
     """CREATE TABLE information (
     name TEXT,
     value TEXT)""",
-    
-    "INSERT INTO information VALUES ('version', '{0}')".format(VERSION)]
+
+    "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
@@ -115,13 +118,13 @@ def float_if_not_none(x):
         return float(x)
 
 
-class SQLite3Database(Database):
+class SQLite3Database(Database, object):
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
     connection = None
     version = None
-    
+
     def _connect(self):
         return sqlite3.connect(self.filename, timeout=600)
 
@@ -129,7 +132,7 @@ class SQLite3Database(Database):
         assert self.connection is None
         self.connection = self._connect()
         return self
-        
+
     def __exit__(self, exc_type, exc_value, tb):
         if exc_type is None:
             self.connection.commit()
@@ -137,10 +140,12 @@ class SQLite3Database(Database):
             self.connection.rollback()
         self.connection.close()
         self.connection = None
-        
+
     def _initialize(self, con):
         if self.initialized:
             return
+
+        self._metadata = {}
 
         cur = con.execute(
             'SELECT COUNT(*) FROM sqlite_master WHERE name="systems"')
@@ -167,33 +172,38 @@ class SQLite3Database(Database):
                     self.version = 2
                 else:
                     self.version = int(cur.fetchone()[0])
-                    
+
+                cur = con.execute(
+                    'SELECT value FROM information WHERE name="metadata"')
+                results = cur.fetchall()
+                if results:
+                    self._metadata = json.loads(results[0][0])
+
         if self.version > VERSION:
             raise IOError('Can not read new ase.db format '
-                          '(version {0}).  Please update to latest ASE.'
+                          '(version {}).  Please update to latest ASE.'
                           .format(self.version))
         if self.version < 5 and not self._allow_reading_old_format:
             raise IOError('Please convert to new format. ' +
                           'Use: python -m ase.db.convert ' + self.filename)
-            
+
         self.initialized = True
-                
+
     def _write(self, atoms, key_value_pairs, data):
         Database._write(self, atoms, key_value_pairs, data)
-        
+
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
-                
+
         id = None
-        
+
         if not isinstance(atoms, AtomsRow):
             row = AtomsRow(atoms)
             row.ctime = mtime = now()
             row.user = os.getenv('USER')
         else:
             row = atoms
-                
             cur.execute('SELECT id FROM systems WHERE unique_id=?',
                         (row.unique_id,))
             results = cur.fetchall()
@@ -202,14 +212,14 @@ class SQLite3Database(Database):
                 self._delete(cur, [id], ['keys', 'text_key_values',
                                          'number_key_values'])
             mtime = now()
-        
+
         constraints = row._constraints
         if constraints:
             if isinstance(constraints, list):
                 constraints = encode(constraints)
         else:
             constraints = None
-            
+
         values = (row.unique_id,
                   row.ctime,
                   mtime,
@@ -226,19 +236,18 @@ class SQLite3Database(Database):
                   constraints)
 
         if 'calculator' in row:
-            values += (row.calculator,
-                       encode(row.calculator_parameters))
+            values += (row.calculator, encode(row.calculator_parameters))
         else:
             values += (None, None)
-            
+
         if key_value_pairs is None:
             key_value_pairs = row.key_value_pairs
-        
+
         if not data:
             data = row._data
         if not isinstance(data, basestring):
             data = encode(data)
-        
+
         values += (row.get('energy'),
                    row.get('free_energy'),
                    blob(row.get('forces')),
@@ -252,20 +261,20 @@ class SQLite3Database(Database):
                    len(row.numbers),
                    float_if_not_none(row.get('fmax')),
                    float_if_not_none(row.get('smax')),
-                   float(row.volume),
+                   float_if_not_none(row.get('volume')),
                    float(row.mass),
                    float(row.charge))
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute('INSERT INTO systems VALUES ({0})'.format(q),
+            cur.execute('INSERT INTO systems VALUES ({})'.format(q),
                         values)
         else:
             q = ', '.join(line.split()[0].lstrip() + '=?'
                           for line in init_statements[0].splitlines()[2:])
-            cur.execute('UPDATE systems SET {0} WHERE id=?'.format(q),
+            cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
-        
+
         if id is None:
             id = self.get_last_id(cur)
 
@@ -284,7 +293,7 @@ class SQLite3Database(Database):
             else:
                 assert isinstance(value, basestring)
                 text_key_values.append([key, value, id])
- 
+
         cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
                         text_key_values)
         cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
@@ -295,14 +304,14 @@ class SQLite3Database(Database):
         if self.connection is None:
             con.commit()
             con.close()
-            
+
         return id
-        
+
     def get_last_id(self, cur):
         cur.execute('SELECT seq FROM sqlite_sequence WHERE name="systems"')
         id = cur.fetchone()[0]
         return id
-        
+
     def _get_row(self, id):
         con = self._connect()
         self._initialize(con)
@@ -343,7 +352,7 @@ class SQLite3Database(Database):
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
-            dct['calculator_parameters'] = values[16]
+            dct['calculator_parameters'] = decode(values[16])
         if values[17] is not None:
             dct['energy'] = values[17]
         if values[18] is not None:
@@ -364,7 +373,7 @@ class SQLite3Database(Database):
             dct['key_value_pairs'] = decode(values[25])
         if values[26] != 'null':
             dct['data'] = values[26]
-                
+
         return AtomsRow(dct)
 
     def _old2new(self, values):
@@ -377,14 +386,14 @@ class SQLite3Database(Database):
                 magmom = float(deblob(m, shape=()))
                 values = values[:23] + (magmom,) + values[24:]
         return values
-        
+
     def create_select_statement(self, keys, cmps,
                                 sort=None, order=None, sort_table=None,
                                 what='systems.*'):
         tables = ['systems']
         where = []
         args = []
-        
+
         for n, key in enumerate(keys):
             if key == 'forces':
                 where.append('systems.fmax IS NOT NULL')
@@ -404,7 +413,7 @@ class SQLite3Database(Database):
         for key, op, value in cmps:
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
-                
+
         found_sort_table = False
         nspecies = 0
         ntext = 0
@@ -426,7 +435,7 @@ class SQLite3Database(Database):
                 if bad[key]:
                     where.append(
                         'NOT EXISTS (SELECT id FROM species WHERE\n' +
-                        '  species.id=systems.id AND species.Z==? AND ' +
+                        '  species.id=systems.id AND species.Z=? AND ' +
                         'species.n{0}?)'.format(invop[op]))
                     args += [key, value]
                 else:
@@ -456,7 +465,7 @@ class SQLite3Database(Database):
                     sort_table = 'number{0}'.format(nnumber)
                     found_sort_table = True
                 nnumber += 1
-                
+
         if sort:
             if sort_table == 'systems':
                 if sort in ['energy', 'fmax', 'smax', 'calculator']:
@@ -469,15 +478,15 @@ class SQLite3Database(Database):
                     args.append(sort)
                     sort_table = 'sort_table'
                 sort = 'value'
-            
+
         sql = 'SELECT {0} FROM\n  '.format(what) + ', '.join(tables)
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         if sort:
             sql += '\nORDER BY {0}.{1} {2}'.format(sort_table, sort, order)
-            
+
         return sql, args
-        
+
     def _select(self, keys, cmps, explain=False, verbosity=0,
                 limit=None, offset=0, sort=None):
         con = self._connect()
@@ -505,19 +514,19 @@ class SQLite3Database(Database):
         else:
             order = None
             sort_table = None
-                
+
         sql, args = self.create_select_statement(keys, cmps,
                                                  sort, order, sort_table)
-        
+
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
-            
+
         if limit:
             sql += '\nLIMIT {0}'.format(limit)
 
         if offset:
             sql += '\nOFFSET {0}'.format(offset)
-            
+
         if verbosity == 2:
             print(sql, args)
 
@@ -529,7 +538,7 @@ class SQLite3Database(Database):
         else:
             for values in cur.fetchall():
                 yield self._convert_tuple_to_row(values)
-                    
+
     @parallel_function
     def count(self, selection=None, **kwargs):
         keys, cmps = self.parse_selection(selection, **kwargs)
@@ -539,30 +548,30 @@ class SQLite3Database(Database):
         cur = con.cursor()
         cur.execute(sql, args)
         return cur.fetchone()[0]
-        
+
     def analyse(self):
         con = self._connect()
         self._initialize(con)
         con.execute('ANALYZE')
-        
+
     def _update(self, ids, delete_keys, add_key_value_pairs):
         """Update row(s).
-        
+
         ids: int or list of int
             ID's of rows to update.
         delete_keys: list of str
             Keys to remove.
         add_key_value_pairs: dict
             Key-value pairs to add.
-            
+
         Returns number of key-value pairs added and keys removed.
         """
-        
+
         rows = [self._get_row(id) for id in ids]
         if self.connection:
             # We are already running inside a context manager:
             return self._update_rows(rows, delete_keys, add_key_value_pairs)
-            
+
         # Create new context manager:
         with self:
             return self._update_rows(rows, delete_keys, add_key_value_pairs)
@@ -596,12 +605,38 @@ class SQLite3Database(Database):
             cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
                             ((id,) for id in ids))
 
+    @property
+    def metadata(self):
+        if self._metadata is None:
+            self._initialize(self._connect())
+        return self._metadata.copy()
+
+    @metadata.setter
+    def metadata(self, dct):
+        self._metadata = dct
+        con = self._connect()
+        self._initialize(con)
+        md = json.dumps(dct)
+        cur = con.cursor()
+        cur.execute(
+            "SELECT COUNT(*) FROM information WHERE name='metadata'")
+
+        if cur.fetchone()[0]:
+            cur.execute(
+                "UPDATE information SET value=? WHERE name='metadata'", [md])
+        else:
+            cur.execute('INSERT INTO information VALUES (?, ?)',
+                        ('metadata', md))
+        con.commit()
+
 
 def blob(array):
     """Convert array to blob/buffer object."""
 
     if array is None:
         return None
+    if len(array) == 0:
+        array = np.zeros(0)
     if array.dtype == np.int64:
         array = array.astype(np.int32)
     if not np.little_endian:

@@ -1,10 +1,10 @@
+from ase.collections import g2
 from ase.calculators.octopus import Octopus
-from ase.build import molecule
 from ase.optimize import QuasiNewton
 
 
 # Ethanol molecule with somewhat randomized initial positions:
-system = molecule('CH3CH2OH')
+system = g2['CH3CH2OH']
 system.rattle(stdev=0.1, seed=42)
 system.center(vacuum=3.0)
 

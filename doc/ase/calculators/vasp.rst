@@ -7,9 +7,9 @@ VASP
 Introduction
 ============
 
-VASP_ is a density-functional theory code using pseudopotentials or 
-the projector-augmented wave method and a plane wave basis set. This 
-interface makes it possible to use VASP_ as a calculator in ASE, and 
+VASP_ is a density-functional theory code using pseudopotentials or
+the projector-augmented wave method and a plane wave basis set. This
+interface makes it possible to use VASP_ as a calculator in ASE, and
 also to use ASE as a post-processor for an already performed VASP_
 calculation.
 
@@ -29,7 +29,7 @@ something like this::
 
 The environment variable :envvar:`VASP_SCRIPT` must point to that file.
 
-A directory containing the pseudopotential directories :file:`potpaw` 
+A directory containing the pseudopotential directories :file:`potpaw`
 (LDA XC) :file:`potpaw_GGA` (PW91 XC) and :file:`potpaw_PBE` (PBE XC)
 is also needed, and it is to be put in the environment variable
 :envvar:`VASP_PP_PATH`.
@@ -37,7 +37,7 @@ is also needed, and it is to be put in the environment variable
 Set both environment variables in your shell configuration file:
 
 .. highlight:: bash
- 
+
 ::
 
   $ export VASP_SCRIPT=$HOME/vasp/run_vasp.py
@@ -48,11 +48,11 @@ Set both environment variables in your shell configuration file:
 
 
 VASP Calculator
-=============== 
+===============
 
 The default setting used by the VASP interface is
 
-.. class:: Vasp(restart=None, xc='PW91', setups=None, kpts=(1,1,1), gamma=None)
+.. autoclass:: Vasp
 
 Below follows a list with a selection of parameters
 
@@ -66,18 +66,18 @@ keyword         type       default value   description
 ``setups``      ``str``    None            Additional setup option
 ``pp``          ``str``    Set by ``xc``   Pseudopotential (POTCAR) set
                            or ``gga``      used (LDA, PW91 or PBE).
-``kpts``        *seq*      `\Gamma`-point  **k**-point sampling
-``gamma``       ``bool``   None            `\Gamma`-point centered 
+``kpts``        various    `\Gamma`-point  **k**-point sampling
+``gamma``       ``bool``   None            `\Gamma`-point centered
                                            **k**-point sampling
 ``reciprocal``  ``bool``   None            Use reciprocal units if
-                                           **k**-points are specified 
+                                           **k**-points are specified
                                            explicitly
 ``prec``        ``str``                    Accuracy of calculation
 ``encut``       ``float``                  Kinetic energy cutoff
 ``ediff``       ``float``                  Convergence break condition
                                            for SC-loop.
 ``nbands``      ``int``                    Number of bands
-``algo``        ``str``                    Electronic minimization 
+``algo``        ``str``                    Electronic minimization
                                            algorithm
 ``ismear``      ``int``                    Type of smearing
 ``sigma``       ``float``                  Width of smearing
@@ -85,10 +85,8 @@ keyword         type       default value   description
                                            SC-iterations
 ==============  =========  ==============  ============================
 
-*seq*: A sequence of three ``int``'s.
-
-For parameters in the list without default value given, VASP will set 
-the default value. Most of the parameters used in the VASP :file:`INCAR` file 
+For parameters in the list without default value given, VASP will set
+the default value. Most of the parameters used in the VASP :file:`INCAR` file
 are allowed keywords. See the official `VASP manual`_ for more details.
 
 .. _VASP manual: http://cms.mpi.univie.ac.at/vasp/vasp/vasp.html
@@ -167,7 +165,7 @@ To use an alternative setup for all instances of an element, simply
 provide the characters which need to be added, e.g.
 
 .. code-block:: python
-                
+
    calc = Vasp(xc='PBE', setups={'Li': '_sv'})
 
 will use the ``Li_sv`` all-electron pseudopotential for all Li atoms.
@@ -176,7 +174,7 @@ zero-indexed number in the atom list and use the full setup name. For
 example,
 
 .. code-block:: python
-                
+
    calc= Vasp(xc='PBE', setups={3: 'Ga_d'})
 
 will treat the Ga atom in position 3 (i.e. the fourth atom) of the
@@ -193,7 +191,7 @@ calculation will be performed by default.
 
 Here follows an example how to calculate the total magnetic moment of
 a sodium chloride molecule.
-  
+
 .. literalinclude:: NaCl.py
 
 In this example the initial magnetic moments are assigned to the atoms
@@ -205,16 +203,99 @@ file will look like:
 .. literalinclude:: INCAR_NaCl
 
 
-.. note:: 
-   
-   It is also possible to manually tell the calculator to perform a 
+.. note::
+
+   It is also possible to manually tell the calculator to perform a
    spin-polarized calculation:
 
    >>> calc.set(ispin=2)
 
-   This can be useful for continuation jobs, where the initial magnetic 
+   This can be useful for continuation jobs, where the initial magnetic
    moment is read from the WAVECAR file.
 
+Brillouin-zone sampling
+=======================
+
+Brillouin-zone sampling is controlled by the parameters ``kpts``,
+``gamma`` and ``reciprocal``, and may also be set with the VASP
+parameters ``kspacing`` and ``kgamma``.
+
+Single-parameter schemes
+------------------------
+A **k**-point mesh may be set using a single value in one of two ways:
+
+Scalar ``kpts``
+  If ``kpts`` is declared as a scalar (i.e. a float or an int), an
+  appropriate KPOINTS file will be written. The value of ``kpts`` will
+  be used to set a length cutoff for the Gamma-centered “Automatic”
+  scheme provided by VASP. (See `first example
+  <https://cms.mpi.univie.ac.at/vasp/vasp/Automatic_k_mesh_generation.html>`_
+  in VASP manual.)
+
+KSPACING and KGAMMA
+  Alternatively, the **k**-point density can be set in the INCAR file with
+  these flags as `described in the VASP manual
+  <https://cms.mpi.univie.ac.at/vasp/vasp/KSPACING_tag_KGAMMA_tag.html>`_. If
+  ``kspacing`` is set, the ASE calculator will not write out a KPOINTS
+  file.
+
+Three-parameter scheme
+----------------------
+
+Brillouin-zone sampling can also be specified by defining a number of
+subdivisions for each reciprocal lattice vector.
+
+This is the `second “Automatic” scheme <https://cms.mpi.univie.ac.at/vasp/vasp/Automatic_k_mesh_generation.html>`_ described in the VASP manual.
+In the ASE calculator, it is used by setting ``kpts`` to a sequence of three ``int`` values, e.g. ``[2, 2, 3]``.
+If ``gamma` is set to ``True``, the mesh will be centred at the `\Gamma`-point;
+otherwise, a regular Monkhorst-Pack grid is used, which may or may not include the `\Gamma`-point.
+
+In VASP it is possible to define an automatic grid and shift the origin point.
+This function is not currently included in the ASE calculator. The same result can be achieved by using :func:`ase.dft.kpoints.monkhorst_pack` to generate an explicit list of **k**-points (see below) and simply adding a constant vector to the matrix.
+For example,
+
+.. code-block:: python
+
+    import ase.dft.kpoints
+    kpts = ase.dft.kpoints.monkhorst_pack([2, 2, 1]) + [0.25, 0.25, 0.5]
+
+creates an acceptable ``kpts`` array with the values
+
+.. code-block:: python
+
+  array([[ 0. ,  0. ,  0.5],
+         [ 0. ,  0.5,  0.5],
+         [ 0.5,  0. ,  0.5],
+         [ 0.5,  0.5,  0.5]])
+
+However, this method will prevent VASP from using symmetry to reduce the number of calculated points.
+
+Explicitly listing the **k**-points
+-----------------------------------
+If an *n*-by-3 or *n*-by-4 array is used for ``kpts``,
+this is interpreted as a list of *n* explicit **k**-points and an appropriate KPOINTS file is generated.
+The fourth column, if provided, sets the sample weighting of each point.
+Otherwise, all points are weighted equally.
+
+Usually in these cases it is desirable to set the ``reciprocal`` parameter to ``True``,
+so that the **k**-point vectors are given relative to the reciprocal lattice.
+Otherwise, they are taken as being in Cartesian space.
+
+Band structure paths
+--------------------
+VASP provides a “line-mode” for the generation of band-structure paths.
+While this is not directly supported by ASE, relevant functionality exists in the :mod:`ase.dft.kpoints` module.
+For example:
+
+.. code-block:: python
+
+    import ase.build
+    from ase.dft.kpoints import bandpath
+
+    si = ase.build.bulk('Si')
+    kpts, x_coords, x_special_points = bandpath('GXL', si.cell, npoints=20)
+
+returns an acceptable ``kpts`` array (for use with ``reciprocal=True``) as well as plotting information.
 
 Restart old calculation
 =======================
@@ -226,11 +307,11 @@ use the ``restart`` parameter when constructing the calculator
 
 Then the calculator will read atomic positions from the :file:`CONTCAR` file,
 physical quantities from the :file:`OUTCAR` file, **k**-points from the
-:file:`KPOINTS` file and parameters from the :file:`INCAR` file. 
+:file:`KPOINTS` file and parameters from the :file:`INCAR` file.
 
 .. note::
 
-   Only Monkhorst-Pack and \Gamma-centered **k**-point sampling are supported 
+   Only Monkhorst-Pack and \Gamma-centered **k**-point sampling are supported
    for restart at the moment. Some :file:`INCAR` parameters may not be
    implemented for restart yet. Please report any problems to the ASE mailing
    list.

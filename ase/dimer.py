@@ -14,6 +14,7 @@ from ase.optimize.optimize import Optimizer
 from math import cos, sin, atan, tan, degrees, pi, sqrt
 from ase.parallel import rank, size, world
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.utils import basestring
 
 # Handy vector methods
 norm = np.linalg.norm
@@ -23,17 +24,17 @@ def normalize(vector):
     """Create a unit vector along *vector*"""
     return vector / norm(vector)
 
-    
+
 def parallel_vector(vector, base):
     """Extract the components of *vector* that are parallel to *base*"""
     return np.vdot(vector, base) * base
 
-    
+
 def perpendicular_vector(vector, base):
     """Remove the components of *vector* that are parallel to *base*"""
     return vector - parallel_vector(vector, base)
 
-    
+
 def rotate_vectors(v1i, v2i, angle):
     """Rotate vectors *v1i* and *v2i* by *angle*"""
     cAng = cos(angle)
@@ -329,7 +330,7 @@ class MinModeControl:
         # Set up the regular logfile
         if rank != 0:
             logfile = None
-        elif isinstance(logfile, str):
+        elif isinstance(logfile, basestring):
             if logfile == '-':
                 logfile = sys.stdout
             else:
@@ -340,7 +341,7 @@ class MinModeControl:
         if eigenmode_logfile:
             if rank != 0:
                 eigenmode_logfile = None
-            elif isinstance(eigenmode_logfile, str):
+            elif isinstance(eigenmode_logfile, basestring):
                 if eigenmode_logfile == '-':
                     eigenmode_logfile = sys.stdout
                 else:
@@ -490,6 +491,7 @@ class DimerControl(MinModeControl):
             self.logfile.write(l)
             self.logfile.flush()
 
+
 class MinModeAtoms:
     """Wrapper for Atoms with information related to minimum mode searching.
 
@@ -517,7 +519,7 @@ class MinModeAtoms:
         The seed used for the random number generator. Defaults to
         modified version the current time.
 
-    References:
+    References: [1]_ [2]_ [3]_ [4]_
 
     .. [1] Henkelman and Jonsson, JCP 111, 7010 (1999)
     .. [2] Olsen, Kroes, Henkelman, Arnaldsson, and Jonsson, JCP 121,
@@ -778,7 +780,7 @@ class MinModeAtoms:
 
     def __len__(self):
         return len(self.atoms)
-        
+
     def displace(self, displacement_vector=None, mask=None, method=None,
                  displacement_center=None, radius=None, number_of_atoms=None,
                  gauss_std=None, mic=True, log=True):
@@ -1121,7 +1123,7 @@ def read_eigenmode(mlog, index = -1):
     To access the pre optimization eigenmode set index = 'null'.
 
     """
-    if isinstance(mlog, str):
+    if isinstance(mlog, basestring):
         f = open(mlog, 'r')
     else:
         f = mlog
@@ -1136,7 +1138,7 @@ def read_eigenmode(mlog, index = -1):
     n_itr = (len(lines) // (n + 1)) - 2
 
     # Locate the correct image.
-    if isinstance(index, str):
+    if isinstance(index, basestring):
         if index.lower() == 'null':
             i = 0
         else:

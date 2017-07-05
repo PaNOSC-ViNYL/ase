@@ -1,11 +1,13 @@
 import collections
 import functools
+import numbers
 import operator
 import os
 import re
+import warnings
 from time import time
 
-from ase.atoms import Atoms, symbols2numbers
+from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
@@ -14,6 +16,21 @@ from ase.utils import Lock, basestring
 
 T2000 = 946681200.0  # January 1. 2000
 YEAR = 31557600.0  # 365.25 days
+
+
+default_key_descriptions = {
+    'id': ('ID', 'Uniqe row ID', ''),
+    'age': ('Age', 'Time since creation', ''),
+    'formula': ('Formula', 'Chemical formula', ''),
+    'user': ('Username', '', ''),
+    'calculator': ('Calculator', 'ASE-calculator name', ''),
+    'energy': ('Energy', 'Total energy', 'eV'),
+    'fmax': ('Maximum force', '', 'eV/Ang'),
+    'charge': ('Charge', '', '|e|'),
+    'mass': ('Mass', '', 'au'),
+    'magmom': ('Magnetic moment', '', 'au'),
+    'unique_id': ('Unique ID', '', ''),
+    'volume': ('Volume', 'Volume of unit-cell', '`\\text{Ang}^3`')}
 
 
 def now():
@@ -48,7 +65,9 @@ invop = {'<': '>=', '<=': '>', '>=': '<', '>': '<=', '=': '!=', '!=': '='}
 
 word = re.compile('[_a-zA-Z][_0-9a-zA-Z]*$')
 
-reserved_keys = set(all_properties + all_changes +
+reserved_keys = set(all_properties +
+                    all_changes +
+                    list(atomic_numbers) +
                     ['id', 'unique_id', 'ctime', 'mtime', 'user',
                      'momenta', 'constraints', 'natoms', 'formula', 'age',
                      'calculator', 'calculator_parameters',
@@ -60,18 +79,28 @@ numeric_keys = set(['id', 'energy', 'magmom', 'charge', 'natoms'])
 def check(key_value_pairs):
     for key, value in key_value_pairs.items():
         if not word.match(key) or key in reserved_keys:
-            raise ValueError('Bad key: {0}'.format(key))
-        if not isinstance(value, (int, float, basestring)):
-            raise ValueError('Bad value: {0}'.format(value))
+            raise ValueError('Bad key: {}'.format(key))
+        try:
+            string2symbols(key)
+        except ValueError:
+            pass
+        else:
+            warnings.warn(
+                'It is best not to use keys ({0}) that are also a '
+                'chemical formula.  If you do a "db.select({0!r})",'
+                'you will not find rows with your key.  Instead, you wil get '
+                'rows containing the atoms in the formula!'.format(key))
+        if not isinstance(value, (numbers.Real, basestring)):
+            raise ValueError('Bad value for {!r}: {}'.format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
                 if str_represents(value, t):
                     raise ValueError(
                         'Value ' + value + ' is put in as string ' +
                         'but can be interpreted as ' +
-                        '{0}! Please convert '.format(t.__name__) +
-                        'to {0} using '.format(t.__name__) +
-                        '{0}(value) before '.format(t.__name__) +
+                        '{}! Please convert '.format(t.__name__) +
+                        'to {} using '.format(t.__name__) +
+                        '{}(value) before '.format(t.__name__) +
                         'writing to the database OR change ' +
                         'to a different string.')
 
@@ -106,10 +135,12 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('pg://'):
+        elif name.startswith('postgresql://'):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
+            if type == '':
+                raise ValueError('No file extension or database type given')
 
     if type is None:
         return Database()
@@ -126,7 +157,7 @@ def connect(name, type='extract_from_name', create_indices=True,
                                serial=serial)
     if type == 'postgresql':
         from ase.db.postgresql import PostgreSQLDatabase
-        return PostgreSQLDatabase(name[5:])
+        return PostgreSQLDatabase(name)
     raise ValueError('Unknown database type: ' + type)
 
 
@@ -142,13 +173,16 @@ def lock(method):
     return new_method
 
 
-def convert_str_to_float_or_str(value):
+def convert_str_to_int_float_or_str(value):
     """Safe eval()"""
     try:
-        value = float(value)
+        return int(value)
     except ValueError:
-        value = {'True': 1.0, 'False': 0.0}.get(value, value)
-    return value
+        try:
+            value = float(value)
+        except ValueError:
+            value = {'True': True, 'False': False}.get(value, value)
+        return value
 
 
 class Database:
@@ -162,15 +196,16 @@ class Database:
             to interact with the database on the master only and then
             distribute results to all slaves.
         """
-        if isinstance(filename, str):
+        if isinstance(filename, basestring):
             filename = os.path.expanduser(filename)
         self.filename = filename
         self.create_indices = create_indices
-        if use_lock_file and isinstance(filename, str):
+        if use_lock_file and isinstance(filename, basestring):
             self.lock = Lock(filename + '.lock', world=DummyMPI())
         else:
             self.lock = None
         self.serial = serial
+        self._metadata = None  # decription of columns and other stuff
 
     @parallel_function
     @lock
@@ -318,7 +353,14 @@ class Database:
                 if expression in atomic_numbers:
                     comparisons.append((expression, '>', 0))
                 else:
-                    keys.append(expression)
+                    try:
+                        symbols = string2symbols(expression)
+                    except ValueError:
+                        keys.append(expression)
+                    else:
+                        count = collections.Counter(symbols)
+                        comparisons.extend((symbol, '>', n - 1)
+                                           for symbol, n in count.items())
                 continue
             key, value = expression.split(op)
             comparisons.append((key, op, value))
@@ -333,7 +375,8 @@ class Database:
                 op = invop[op]
                 value = now() - time_string_to_float(value)
             elif key == 'formula':
-                assert op == '='
+                if op != '=':
+                    raise ValueError('Use fomula=...')
                 numbers = symbols2numbers(value)
                 count = collections.defaultdict(int)
                 for Z in numbers:
@@ -345,9 +388,9 @@ class Database:
                 key = atomic_numbers[key]
                 value = int(value)
             elif isinstance(value, basestring):
-                value = convert_str_to_float_or_str(value)
+                value = convert_str_to_int_float_or_str(value)
             if key in numeric_keys and not isinstance(value, (int, float)):
-                msg = 'Wrong type for "{0}{1}{2}" - must be a number'
+                msg = 'Wrong type for "{}{}{}" - must be a number'
                 raise ValueError(msg.format(key, op, value))
             cmps.append((key, op, value))
 
@@ -471,6 +514,6 @@ def float_to_time_string(t, long=False):
         if x > 5:
             break
     if long:
-        return '{0:.3f} {1}s'.format(x, longwords[s])
+        return '{:.3f} {}s'.format(x, longwords[s])
     else:
-        return '{0:.0f}{1}'.format(round(x), s)
+        return '{:.0f}{}'.format(round(x), s)

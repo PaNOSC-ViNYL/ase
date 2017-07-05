@@ -1,5 +1,9 @@
 from ase.calculators.calculator import Parameters
+from ase.utils import basestring
 
+"""
+2017.04 - Pedro Brandimarte: changes for python 2-3 compatible
+"""
 
 class PAOBasisBlock(Parameters):
     """
@@ -23,7 +27,7 @@ class PAOBasisBlock(Parameters):
                                5.00 0.00
                      See siesta manual for details.
         """
-        assert isinstance(block, str)
+        assert isinstance(block, basestring)
         Parameters.__init__(self, block=block)
 
     def script(self, label):
@@ -51,7 +55,8 @@ class Specie(Parameters):
                  basis_set='DZP',
                  pseudopotential=None,
                  tag=None,
-                 ghost=False):
+                 ghost=False,
+                 excess_charge=None):
         kwargs = locals()
         kwargs.pop('self')
         Parameters.__init__(self, **kwargs)
@@ -71,7 +76,7 @@ def format_fdf(key, value):
     key = format_key(key)
     new_value = format_value(value)
 
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         string = '%block ' + key + '\n' +\
             new_value + '\n' + \
             '%endblock ' + key + '\n'
@@ -89,10 +94,10 @@ def format_value(value):
         - value : The value to format.
     """
     if isinstance(value, tuple):
-        sub_values = map(format_value, value)
+        sub_values = [format_value(v) for v in value]
         value = '\t'.join(sub_values)
     elif isinstance(value, list):
-        sub_values = map(format_value, value)
+        sub_values = [format_value(v) for v in value]
         value = '\n'.join(sub_values)
     else:
         value = str(value)

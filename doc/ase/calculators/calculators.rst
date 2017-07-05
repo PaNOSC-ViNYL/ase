@@ -6,17 +6,17 @@ Calculators
 ===========
 
 For ASE, a calculator is a black box that can take atomic numbers and
-atomic positions from an :class:`~ase.atoms.Atoms` object and calculate the
+atomic positions from an :class:`~ase.Atoms` object and calculate the
 energy and forces and sometimes also stresses.
 
 In order to calculate forces and energies, you need to attach a
 calculator object to your atoms object:
 
 >>> a = read('molecule.xyz')
->>> e = a.get_potential_energy()
+>>> e = a.get_potential_energy()  # doctest: IGNORE_EXCEPTION_DETAIL
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "/home/jjmo/ase/ase/atoms.py", line 399, in get_potential_energy
+  File "/home/jjmo/ase/atoms/ase.py", line 399, in get_potential_energy
     raise RuntimeError('Atoms object has no calculator.')
 RuntimeError: Atoms object has no calculator.
 >>> from ase.calculators.abinit import Abinit
@@ -26,7 +26,7 @@ RuntimeError: Atoms object has no calculator.
 >>> print(e)
 -42.0
 
-Here, we used the :meth:`~ase.atoms.Atoms.set_calculator` method to attach
+Here, we used the :meth:`~ase.Atoms.set_calculator` method to attach
 an instance of the :mod:`ase.calculators.abinit` class and then
 we asked for the energy.
 
@@ -48,7 +48,7 @@ The calculators can be divided in four groups:
 
 1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
 
-2) ABINIT, CP2K, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
+2) ABINIT, AMBER, CP2K, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
    Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, SIESTA, TURBOMOLE and VASP,
    have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
@@ -57,20 +57,23 @@ The calculators can be divided in four groups:
    Lennard-Jones and Morse.
 
 4) Calculators that wrap others, included in the ASE package:
-   :class:`ase.calculators.checkpoint.CheckpointCalculator` and
+   :class:`ase.calculators.checkpoint.CheckpointCalculator`,
+   the :class:`ase.calculators.loggingcalc.LoggingCalculator` and
    the :ref:`Grimme-D3 <grimme>` potential.
-   
 
-==================================  ===========================================
+
+=================================== ===========================================
 name                                description
-==================================  ===========================================
+=================================== ===========================================
 Asap_                               Highly efficient EMT code
 GPAW_                               Real-space/plane-wave/LCAO PAW code
 Hotbit_                             DFT based tight binding
 :mod:`~ase.calculators.abinit`      Plane-wave pseudopotential code
+:mod:`~ase.calculators.amber`       Classical molecular dynamics code
 :mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
 :mod:`~ase.calculators.cp2k`        DFT and classical potentials
 :mod:`~ase.calculators.dftb`        DFT based tight binding
+:mod:`~ase.calculators.dmol`        Atomic orbital DFT code
 :mod:`~ase.calculators.eam`         Embedded Atom Method
 elk                                 Full Potential LAPW code
 :mod:`~ase.calculators.exciting`    Full Potential LAPW code
@@ -78,6 +81,7 @@ elk                                 Full Potential LAPW code
 :mod:`~ase.calculators.fleur`       Full Potential LAPW code
 gaussian                            Gaussian based electronic structure code
 :mod:`~ase.calculators.gromacs`     Classical molecular dynamics code
+:mod:`~ase.calculators.gulp`        Interatomic potential code
 :mod:`~ase.calculators.jacapo`      Plane-wave ultra-soft pseudopotential code
 :mod:`~ase.calculators.lammps`      Classical molecular dynamics code
 mopac                               ...
@@ -90,13 +94,15 @@ mopac                               ...
 lj                                  Lennard-Jones potential
 morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
-==================================  ===========================================
+:mod:`~ase.calculators.loggingcalc` Logging calculator
+:mod:`~ase.calculators.dftd3`       DFT-D3 dispersion correction calculator
+=================================== ===========================================
 
 .. index:: D3, Grimme
 .. _grimme:
 
 .. note::
-    
+
     A Fortran implemetation of the Grimme-D3 potential, that can be used as
     an add-on to any ASE calculator, can be found here:
     https://gitlab.com/ehermes/ased3/tree/master.
@@ -111,7 +117,7 @@ where ``abc`` is the module name and ``ABC`` is the class name.
 
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
-.. _Hotbit: https://trac.cc.jyu.fi/projects/hotbit
+.. _Hotbit: https://github.com/pekkosk/hotbit
 
 
 Calculator keywords
@@ -189,13 +195,16 @@ the :meth:`set` method:
    eam
    emt
    abinit
+   amber
    castep
    cp2k
    dftb
+   dmol
    exciting
    FHI-aims
    fleur
    gromacs
+   gulp
    jacapo
    lammps
    lammpsrun
@@ -206,12 +215,15 @@ the :meth:`set` method:
    vasp
    qmmm
    checkpointing
+   loggingcalc
+   dftd3
    others
+   test
    ase_qmmm_manyqm
 
 
 .. _calculator interface:
-    
+
 Calculator interface
 ====================
 

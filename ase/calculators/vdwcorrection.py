@@ -3,7 +3,8 @@ from __future__ import print_function
 import numpy as np
 from ase.units import Bohr, Hartree
 from ase.calculators.calculator import Calculator
-from ase.parallel import rank, get_txt
+from ase.utils import convert_string_to_fd
+
 
 # dipole polarizabilities and C6 values from
 # X. Chu and A. Dalgarno, J. Chem. Phys. 121 (2004) 4083
@@ -112,6 +113,29 @@ vdWDB_Grimme06jcc = {
     'Xe': [29.99, 1.881]}
 
 
+# Optimal range parameters sR for different XC functionals
+# to be used with the Tkatchenko-Scheffler scheme
+# Reference: M.A. Caro arXiv:1704.00761 (2017)
+sR_opt={'PBE': 0.940,
+        'RPBE': 0.590,
+        'revPBE': 0.585,
+        'PBEsol': 1.055,
+        'BLYP': 0.625,
+        'AM05': 0.840,
+        'PW91': 0.965}
+
+
+def get_logging_file_descriptor(calculator):
+    if hasattr(calculator, 'log'):
+        fd = calculator.log
+        if hasattr(fd, 'write'):
+            return fd
+        if hasattr(fd, 'fd'):
+            return fd.fd
+    if hasattr(calculator, 'txt'):
+        return calculator.txt
+            
+            
 class vdWTkatchenko09prl(Calculator):
     """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
     implemented_properties = ['energy', 'forces']
@@ -120,7 +144,7 @@ class vdWTkatchenko09prl(Calculator):
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax=10,  # maximal radius for periodic calculations
                  vdWDB_alphaC6=vdWDB_alphaC6,
-                 txt=None):
+                 txt=None, sR=None):
         """Constructor
 
         Parameters
@@ -133,16 +157,24 @@ class vdWTkatchenko09prl(Calculator):
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
+            
         if txt is None:
-            self.txt = self.calculator.txt
-        else:
-            self.txt = get_txt(txt, rank)
+            txt = get_logging_file_descriptor(self.calculator)
+        self.txt = convert_string_to_fd(txt)
+
         self.vdwradii = vdwradii
         self.vdWDB_alphaC6 = vdWDB_alphaC6
         self.Rmax = Rmax
         self.atoms = None
 
-        self.sR = 0.94
+        if sR is None:
+            try:
+                xc_name = self.calculator.get_xc_functional()
+                self.sR = sR_opt[xc_name]
+            except KeyError:
+                raise ValueError('Tkatchenko-Scheffler dispersion correction not implemented for %s functional' % xc_name)
+        else:
+            self.sR = sR
         self.d = 20
 
         Calculator.__init__(self)
@@ -257,6 +289,7 @@ class vdWTkatchenko09prl(Calculator):
                 print('%3d %-2s %10.5f %10.5f %10.5f' %
                       ((ia, symbol) + tuple(self.results['forces'][ia])),
                       file=self.txt)
+            self.txt.flush()
         
     def damping(self, RAB, R0A, R0B,
                 d=20,   # steepness of the step function for PBE

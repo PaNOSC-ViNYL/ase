@@ -16,7 +16,8 @@ according to their forces - it integrates Newton's second law
 numerically.  A typical molecular dynamics simulation will use the
 `Velocity Verlet dynamics`_.  You create the
 :class:`ase.md.verlet.VelocityVerlet` object, giving it the atoms and a time
-step, and then you perform dynamics by calling its :meth:`run` method::
+step, and then you perform dynamics by calling its
+:meth:`~verlet.VelocityVerlet.run` method::
 
   dyn = VelocityVerlet(atoms, dt=5.0 * units.fs,
                        trajectory='md.traj', logfile='md.log')
@@ -105,6 +106,9 @@ cyclic reference to the dynamics.
    such as Jacapo, to not terminate correctly.)
 
 
+.. autoclass:: MDLogger
+
+
 Constant NVE simulations (the microcanonical ensemble)
 ======================================================
 
@@ -130,7 +134,7 @@ Velocity Verlet dynamics
 
 .. module:: ase.md.verlet
 
-.. class:: VelocityVerlet(atoms, timestep)
+.. autoclass:: VelocityVerlet
 
 
 ``VelocityVerlet`` is the only dynamics implementing the NVE ensemble.
@@ -334,12 +338,17 @@ It has the following methods:
   Change the mask.  Use with care, as you may "freeze" a
   fluctuation in the strain rate.
 
-.. method:: NPT.set_strainrate(eps):
+.. method:: NPT.set_strain_rate(eps):
 
   Set the strain rate.  ``eps`` must be an upper-triangular matrix.
   If you set a strain rate along a direction that is "masked out"
   (see ``set_mask``), the strain rate along that direction will be
   maintained constantly.
+
+.. method:: NPT.get_strain_rate():
+
+  Set the instantaneous strain rate (due to the fluctuations in the
+  shape of the computational box).
 
 .. method:: NPT.get_gibbs_free_energy():
 
@@ -358,10 +367,6 @@ References:
 Physical Review A 41, p. 4552 (1990).
 
 [4] F. D. Di Tolla and M. Ronchetti, Physical Review E 48, p. 1726 (1993).
-
-.. seealso::
-
-   The API documentation: :epydoc:`ase.md`
 
 
 Berendsen NPT dynamics

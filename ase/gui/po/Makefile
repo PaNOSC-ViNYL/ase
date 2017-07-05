@@ -20,15 +20,17 @@
 # they are automatically included when you run install.
 
 # List of files calling gettext.
+TRANSLATIONFILES=../add.py ../colors.py ../constraints.py ../crystal.py ../energyforces.py ../graphene.py ../graphs.py ../gui.py ../modify.py ../movie.py ../nanoparticle.py ../nanotube.py ../quickinfo.py ../render.py ../repeat.py ../rotate.py ../save.py ../settings.py ../simulation.py ../status.py ../surfaceslab.py ../ui.py ../widgets.py
+
 #TRANSLATIONFILES=../ag.py ../calculator.py ../colors.py ../constraints.py ../crystal.py ../debug.py ../dft.py ../energyforces.py ../execute.py ../graphene.py ../graphs.py ../gtkexcepthook.py ../gui.py ../minimize.py ../movie.py ../nanoparticle.py ../nanotube.py ../progress.py ../pybutton.py ../quickinfo.py ../render.py ../repeat.py ../rotate.py ../scaling.py ../settings.py ../setupwindow.py ../simulation.py ../status.py ../surfaceslab.py ../widgets.py
-TRANSLATIONFILES=../*.py
+#TRANSLATIONFILES=../*.py
 
 i18n: ag.pot update-po compile
 
 # This will update the English template (ag.pot) with English messages from
 # the Python source code.
 ag.pot: ${TRANSLATIONFILES}
-	xgettext --add-comments --language=Python --keyword=_ --output=ag.pot --msgid-bugs-address=ase-developers@listserv.fysik.dtu.dk --copyright-holder=CAMD --package-name=ase ${TRANSLATIONFILES}
+	xgettext --add-comments --language=Python --keyword=_ --output=ag.pot --msgid-bugs-address=ase-users@listserv.fysik.dtu.dk --copyright-holder="ASE developers" --package-name=ase ${TRANSLATIONFILES}
 
 # This will create an empty translation file ($LANG.po, where $LANG is
 # an environment variable) from the English template ag.pot.
@@ -54,7 +56,7 @@ compile: */LC_MESSAGES/ag.po
 	done
 
 gitrevert:
-	git checkout -- ag.pot */LC_MESSAGES/ag.po
+	git checkout -- ag.pot '*/LC_MESSAGES/ag.po'
 
 clean:
 	rm -f ./*/LC_MESSAGES/ag.mo
