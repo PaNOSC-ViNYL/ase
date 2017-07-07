@@ -77,7 +77,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             Finally, txt can also be a an output stream,
             which has a 'write' attribute
 
-        ADD MORE STUFF
+        ADD MORE STUFF - Also, this needs to be cleaned up for sphinx
         """
 
         GenerateVaspInput.__init__(self)
@@ -111,6 +111,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             self.txt = self.prefix + '.out'
         elif txt == '-' or txt is False:
             # We let the output be sent through stdout
+            # Do we ever want to completely suppress output?
             self.txt = False
         else:
             self.txt = txt
@@ -183,8 +184,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 out.close()
 
         if errorcode:
-            raise RuntimeError('%s in %s returned an error: %d' %
-                               (self.name, self.directory, errorcode))
+            raise RuntimeError('{} in {} returned an error: {:d}'.format(
+                               self.name, self.directory, errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties, system_changes=None):
