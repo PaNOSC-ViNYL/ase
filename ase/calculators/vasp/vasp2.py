@@ -25,6 +25,7 @@ import subprocess
 import ase
 from ase.io import read
 from ase.utils import basestring
+
 # from ase.utils import devnull, basestring
 # from ase.calculators.singlepoint import SinglePointCalculator
 # from ase.calculators.calculator import PropertyNotImplementedError, ReadError
@@ -105,10 +106,10 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
-        if self.txt is None:
+        if txt is None:
             # Default behavoir
             self.txt = self.prefix + '.out'
-        elif self.txt == '-' or self.txt is False:
+        elif txt == '-' or txt is False:
             # We let the output be sent through stdout
             self.txt = False
         else:
