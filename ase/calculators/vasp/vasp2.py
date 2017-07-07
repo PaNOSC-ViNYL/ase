@@ -54,6 +54,10 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
         Parameters
         ==========
+        atoms: object
+            Attach an existing atoms object to the calculator.
+            Default is None.
+
         label: str
             Prefix for the output file, and sets the working directory
             Default is 'vasp'.
