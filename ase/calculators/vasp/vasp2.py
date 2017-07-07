@@ -40,10 +40,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
                               'fermi', 'stress', 'magmom', 'magmoms']
 
-    mandatory_input = {'potim': 0,
-                       'ibrion': -1}
-
-    default_input = {'nsw': 2000}  # Do we really want to enforce this?
+    default_parameters = {}     # Use VASP defaults
 
     def __init__(self, atoms=None, restart=None,
                  output_template='vasp',
@@ -81,19 +78,6 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         """
 
         GenerateVaspInput.__init__(self)
-
-        for kw, val in self.mandatory_input.items():
-            if kw in kwargs and val != kwargs[kw]:
-                raise ValueError('Keyword {} cannot be overridden! '
-                                 'It must have have value {}, but {} '
-                                 'was provided instead.'.format(kw, val,
-                                                                kwargs[kw]))
-
-        kwargs.update(self.mandatory_input)
-
-        for kw, val in self.default_input.items():
-            if kw not in kwargs:
-                kwargs[kw] = val
 
         # Store atoms objects from vasprun.xml here, when an index is read
         # Format: self.xml_data[index] = atoms_object
@@ -156,8 +140,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         if atoms is not None:
             self.atoms = atoms.copy()
 
-        FileIOCalculator.write_input(self, self.atoms,
-                                     properties, system_changes)
+        self.write_input(self.atoms, properties, system_changes)
 
         command = self.command.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
