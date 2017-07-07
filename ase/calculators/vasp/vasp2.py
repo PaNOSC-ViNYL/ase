@@ -20,15 +20,16 @@ www.vasp.at
 
 import os
 import numpy as np
+import subprocess
 
 import ase
 from ase.io import read
-
+from ase.utils import basestring
 # from ase.utils import devnull, basestring
 # from ase.calculators.singlepoint import SinglePointCalculator
 # from ase.calculators.calculator import PropertyNotImplementedError, ReadError
 
-from ..calculator import FileIOCalculator, ReadError
+from ..calculator import FileIOCalculator, ReadError, all_changes
 from .create_input import GenerateVaspInput
 
 
@@ -49,6 +50,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                  label='vasp',
                  ignore_bad_restart_file=False,
                  command=None,
+                 txt=None,
                  **kwargs):
         """Construct VASP-calculator object.
 
@@ -65,6 +67,14 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         restart: str
             Sets a label for the directory to load files from.
             If restart is set, it will overwrite label
+
+        txt: bool, None, str or writable object
+            If txt is None, default ouput stream will be to vasp.out
+            If txt is False, or '-' the output will be sent through stdout
+            If txt is a string a file will be opened,
+            and the output will be sent to that file.
+            Finally, txt can also be a an output stream,
+            which has a 'write' attribute
 
         ADD MORE STUFF
         """
@@ -95,6 +105,15 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
+        if self.txt is None:
+            # Default behavoir
+            self.txt = self.prefix + '.out'
+        elif self.txt == '-' or self.txt is False:
+            # We let the output be sent through stdout
+            self.txt = False
+        else:
+            self.txt = txt
+
         # If no XC combination, GGA functional or POTCAR type is specified,
         # default to PW91. This is mostly chosen for backwards compatiblity.
         if kwargs.get('xc', None):
@@ -108,18 +127,64 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             self.input_params.update({'xc': None})
 
     def make_command(self, command):
-        """Return command if one is passed, otherwise try to find VASP_COMMAND
-        or VASP_SCRIPT - if none are set, a RuntimeError is raised"""
+        """Return command if one is passed, otherwise try to find
+        ASE_VASP_COMMAND, VASP_COMMAND or VASP_SCRIPT.
+        If none are set, a RuntimeError is raised"""
         if command:
             cmd = command
-        elif 'VASP_COMMAND' in os.environ:
-            cmd = os.environ['VASP_COMMAND']
-        elif 'VASP_SCRIPT' in os.environ:
-            cmd = os.environ['VASP_SCRIPT']
         else:
-            raise RuntimeError('Please set either command in calculator'
-                               ' or VASP_COMMAND environment variable')
+            # Search for the environment commands
+            env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
+            for com in env_commands:
+                if com in os.environ:
+                    cmd = os.environ[com]
+                    break
+            else:
+                msg = ('Please set either command in calculator'
+                       ' or one of the following environment'
+                       'variables (read in the following order): {}').format(
+                           ', '.join(env_commands))
+                raise RuntimeError(msg)
         return cmd
+
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=all_changes):
+        """Start the VASP calculation"""
+
+        if atoms is not None:
+            self.atoms = atoms.copy()
+
+        FileIOCalculator.write_input(self, self.atoms,
+                                     properties, system_changes)
+
+        command = self.command.replace('PREFIX', self.prefix)
+        olddir = os.getcwd()
+        try:
+            os.chdir(self.directory)
+            if self.txt:
+                opened = False
+                if isinstance(self.txt, basestring):
+                    out = open(self.txt, 'w')
+                    opened = True  # Log that we opened file
+                elif hasattr(self.txt, 'write'):
+                    out = self.txt
+                    assert out.closed is False, 'The txt stream is closed'
+                else:
+                    raise RuntimeError('txt should either be a string'
+                                       'or an I/O stream, got {}'.format(
+                                           self.txt))
+            else:
+                out = subprocess.PIPE
+            errorcode = subprocess.call(command, shell=True, stdout=out)
+        finally:
+            os.chdir(olddir)
+            if opened:
+                out.close()
+
+        if errorcode:
+            raise RuntimeError('%s in %s returned an error: %d' %
+                               (self.name, self.directory, errorcode))
+        self.read_results()
 
     def write_input(self, atoms, properties, system_changes=None):
         # Create the folders where we write the files, if we aren't in working
