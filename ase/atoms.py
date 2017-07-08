@@ -1808,6 +1808,9 @@ class Atoms(object):
         from ase.io import write
         write(filename, self, format, **kwargs)
 
+    def __images__(self):
+        yield self
+
     def edit(self):
         """Modify atoms interactively through ASE's GUI viewer.
 

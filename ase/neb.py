@@ -310,6 +310,12 @@ class NEB:
         # virtual atom count for the optimization algorithm.
         return (self.nimages - 2) * self.natoms
 
+    def __images__(self):
+        # Allows trajectory to convert NEB into several images
+        assert not self.parallel or world.size == 1
+        # (We could collect the atoms objects on master here!)
+        return iter(self.images)
+
 
 class IDPP(Calculator):
     """Image dependent pair potential.
