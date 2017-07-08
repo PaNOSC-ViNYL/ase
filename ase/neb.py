@@ -144,9 +144,12 @@ class NEB:
         calculators = [image.calc for image in images
                        if image.calc is not None]
         if len(set(calculators)) != len(calculators):
-            raise ValueError('One or more NEB images share the same '
-                             'calculator.  '
-                             'Each image must have its own calculator.')
+            msg = ('One or more NEB images share the same calculator.  '
+                   'Each image must have its own calculator.  '
+                   'You may wish to use the ase.neb.SingleCalculatorNEB '
+                   'class instead, although using separate calculators '
+                   'is recommended.')
+            raise ValueError(msg)
 
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages)
