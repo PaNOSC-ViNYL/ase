@@ -1,19 +1,22 @@
-from __future__ import print_function
-# Copyright (C) 2008 CSC - Scientific Computing Ltd.
+from __future__ import print_function, division
 """This module defines an ASE interface to VASP.
 
 The path of the directory containing the pseudopotential
 directories (potpaw,potpaw_GGA, potpaw_PBE, ...) should be set
 by the environmental flag $VASP_PP_PATH.
 
-The user should also set the environmental flag $VASP_SCRIPT pointing
-to a python script looking something like::
+The user should also set one of the following environmental flags, which
+instructs ASE on how to execute VASP: $ASE_VASP_COMMAND, $VASP_COMMAND, or
+$VASP_SCRIPT.
+
+The user can set the environmental flag $VASP_COMMAND pointing
+to the command use the launch vasp e.g. 'vasp_std' or 'mpirun -n 16 vasp_std'
+
+Alternatively, the user can also set the environmental flag
+$VASP_SCRIPT pointing to a python script looking something like::
 
    import os
-   exitcode = os.system('vasp')
-
-Alternatively, user can set the environmental flag $VASP_COMMAND pointing
-to the command use the launch vasp e.g. 'vasp_std' or 'mpirun -n 16 vasp_std'
+   exitcode = os.system('vasp_std')
 
 www.vasp.at
 """
@@ -25,10 +28,6 @@ import subprocess
 import ase
 from ase.io import read
 from ase.utils import basestring
-
-# from ase.utils import devnull, basestring
-# from ase.calculators.singlepoint import SinglePointCalculator
-# from ase.calculators.calculator import PropertyNotImplementedError, ReadError
 
 from ..calculator import FileIOCalculator, ReadError, all_changes
 from .create_input import GenerateVaspInput
@@ -146,6 +145,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         olddir = os.getcwd()
         try:
             os.chdir(self.directory)
+
+            # Create the text output stream
             if self.txt:
                 opened = False
                 if isinstance(self.txt, basestring):
@@ -153,13 +154,15 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                     opened = True  # Log that we opened file
                 elif hasattr(self.txt, 'write'):
                     out = self.txt
-                    assert out.closed is False, 'The txt stream is closed'
+                    assert not out.closed, 'The provided text stream is closed'
                 else:
                     raise RuntimeError('txt should either be a string'
                                        'or an I/O stream, got {}'.format(
                                            self.txt))
             else:
-                out = subprocess.PIPE
+                out = None      # Default value in subprocess.call
+
+            # Run VASP
             errorcode = subprocess.call(command, shell=True, stdout=out)
         finally:
             os.chdir(olddir)
@@ -322,6 +325,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         return self.read_dipole()
 
     def get_version(self):
+        """Get the VASP version number"""
         # The version number is the first occurence, so we can just
         # load the OUTCAR, as we will return soon anyway
         filename = os.path.join(self.directory, 'OUTCAR')
@@ -347,7 +351,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         return niter
 
     def read_stress(self, lines=None):
-        # We don't really need this, as re read this from vasprun.xml
+        # We don't really need this, as we read this from vasprun.xml
+        # keeping it around "just in case" for now
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -579,6 +584,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             kpt_weights.append(float(lines[n].split()[3]))
         kpt_weights = np.array(kpt_weights)
         kpt_weights /= np.sum(kpt_weights)
+
         return kpt_weights
 
     def read_relaxed(self, lines=None):
@@ -590,7 +596,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         return False
 
     def read_spinpol(self, lines=None):
-        """Replaced by get_spin_polarized(), which reads XML file"""
+        """Depreciated: Replaced by get_spin_polarized(),
+        which reads from vasprun.xml"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
