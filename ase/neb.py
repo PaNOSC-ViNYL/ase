@@ -312,7 +312,7 @@ class NEB:
 
     def __images__(self):
         # Allows trajectory to convert NEB into several images
-        assert not self.parallel or world.size == 1
+        assert not self.parallel or self.world.size == 1
         # (We could collect the atoms objects on master here!)
         return iter(self.images)
 
