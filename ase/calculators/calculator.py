@@ -173,6 +173,33 @@ def kpts2ndarray(kpts, atoms=None):
     return np.array(kpts)
 
 
+class EigenvalOccupationMixin:
+    """Define 'eigenvalues' and 'occupations' properties on class.
+
+    eigenvalues and occupations will be arrays of shape (spin, kpts, nbands).
+
+    Classes must implement the old-fashioned get_eigenvalues and
+    get_occupations methods."""
+
+    @property
+    def eigenvalues(self):
+        return self.build_eig_occ_array(self.get_eigenvalues)
+
+    @property
+    def occupations(self):
+        return self.build_eig_occ_array(self.get_occupation_numbers)
+
+    def build_eig_occ_array(self, getter):
+        nspins = self.get_number_of_spins()
+        nkpts = len(self.get_ibz_k_points())
+        nbands = self.get_number_of_bands()
+        arr = np.zeros((nspins, nkpts, nbands))
+        for s in range(nspins):
+            for k in range(nkpts):
+                arr[s, k, :] = getter(spin=s, kpt=k)
+        return arr
+
+
 class Parameters(dict):
     """Dictionary for parameters.
 
