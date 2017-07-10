@@ -49,7 +49,6 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
         restart: str
             Sets a label for the directory to load files from.
-            If restart is set, it will overwrite label
 
         txt: bool, None, str or writable object
             If txt is None, default ouput stream will be to vasp.out
@@ -267,6 +266,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.results['fermi'] = self.fermi
         self.results['dipole'] = self.dipole
 
+    # Below defines some functions for faster access to certain common keywords
     @property
     def kpts(self):
         """Access the kpts from input_params dict"""
@@ -277,6 +277,27 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         """Set kpts in input_params dict"""
         self.input_params['kpts'] = kpts
 
+    @property
+    def encut(self):
+        """Direct access to the encut parameter"""
+        return self.float_params['encut']
+
+    @encut.setter
+    def encut(self, encut):
+        """Direct access for setting the encut parameter"""
+        self.float_params['encut'] = encut
+
+    @property
+    def xc(self):
+        """Direct access to the xc parameter"""
+        return self.input_params['xc']
+
+    @xc.setter
+    def xc(self, xc):
+        """Direct access for setting the xc parameter"""
+        self.input_params['xc'] = xc
+
+    # Below defines methods for reading output files
     def load_file(self, filename):
         """Reads a file in the directory, and returns the lines
 
