@@ -37,8 +37,8 @@ from .create_input import GenerateVaspInput
 class Vasp(GenerateVaspInput, FileIOCalculator):
     """ASE interface for the Vienna Ab initio Simulation Package (VASP).
 
-        Parameters
-        ==========
+        Parameters:
+
         atoms: object
             Attach an existing atoms object to the calculator.
             Default is None.
@@ -57,9 +57,13 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             If txt is a string a file will be opened,
             and the output will be sent to that file.
             Finally, txt can also be a an output stream,
-            which has a 'write' attribute
+            which has a 'write' attribute.
+            Default is None.
 
-        ADD MORE STUFF - Also, this needs to be cleaned up for sphinx
+        command: str
+            Custom instructions on how to execute VASP. Has priority over
+            environment variables.
+            Default is None.
     """
     name = 'Vasp'
 
@@ -68,9 +72,9 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
     default_parameters = {}     # Use VASP defaults
 
-    def __init__(self, atoms=None, restart=None,
-                 output_template='vasp',
-                 track_output=False,
+    def __init__(self,
+                 atoms=None,
+                 restart=None,
                  label='vasp',
                  ignore_bad_restart_file=False,
                  command=None,
@@ -78,6 +82,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                  **kwargs):
         """Construct VASP-calculator object."""
 
+        # Initialize parameter dictionaries
         GenerateVaspInput.__init__(self)
 
         # Store atoms objects from vasprun.xml here, when an index is read
@@ -92,7 +97,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                                   label, atoms, command, **kwargs)
 
         if txt is None:
-            # Default behavoir
+            # Default behavoir, write to vasp.out
             self.txt = self.prefix + '.out'
         elif txt == '-' or txt is False:
             # We let the output be sent through stdout
@@ -113,7 +118,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         else:
             self.input_params.update({'xc': None})
 
-    def make_command(self, command):
+    def make_command(self, command=None):
         """Return command if one is passed, otherwise try to find
         ASE_VASP_COMMAND, VASP_COMMAND or VASP_SCRIPT.
         If none are set, a RuntimeError is raised"""
@@ -122,9 +127,9 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         else:
             # Search for the environment commands
             env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
-            for com in env_commands:
-                if com in os.environ:
-                    cmd = os.environ[com]
+            for env in env_commands:
+                if env in os.environ:
+                    cmd = os.environ[env]
                     break
             else:
                 msg = ('Please set either command in calculator'
@@ -167,7 +172,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 out = None      # Default value in subprocess.call
 
             # Run VASP
-            errorcode = subprocess.call(command, shell=True, stdout=out)
+            errorcode = self.run_vasp(command=command, out=out)
         finally:
             os.chdir(olddir)
             if opened:
@@ -177,6 +182,13 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             raise RuntimeError('{} in {} returned an error: {:d}'.format(
                                self.name, self.directory, errorcode))
         self.read_results()
+
+    def run_vasp(self, command=None, out=None):
+        """Method to explicitly execute VASP"""
+        if command is None:
+            command = self.command
+        errorcode = subprocess.call(command, shell=True, stdout=out)
+        return errorcode
 
     def write_input(self, atoms, properties, system_changes=None):
         """Write VASP inputfiles, INCAR, KPOINTS and POTCAR"""
@@ -207,6 +219,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 raise ReadError(
                     'VASP outputfile {} was not found'.format(filename))
 
+        # Read atoms
         self.atoms = read(os.path.join(self.directory, 'CONTCAR'))
 
         # Read parameters
@@ -220,6 +233,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             os.chdir(olddir)
 
         self.initialize(self.atoms)  # Builds sorting list
+
+        # Read the results from the calculation
         self.read_results()
 
     def read_results(self):
@@ -263,16 +278,31 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.input_params['kpts'] = kpts
 
     def load_file(self, filename):
-        """Reads a file in the directory, and returns the lines"""
+        """Reads a file in the directory, and returns the lines
+
+        Example:
+        >>> outcar = load_file('OUTCAR')
+        """
         filename = os.path.join(self.directory, filename)
         with open(filename, 'r') as f:
             return f.readlines()
 
-    def read_from_xml(self, filename='vasprun.xml', index=-1):
+    def read_from_xml(self, filename='vasprun.xml', overwrite=False, index=-1):
         """Read vasprun.xml, and return an atoms object at a given index.
         If we have not read the index before, we will read the xml file
-        at the given index and store it, before returning"""
-        if index not in self.xml_data:
+        at the given index and store it, before returning
+
+        Parameters:
+
+        filename: str
+            Filename of the .xml file. Default value: 'vasprun.xml'
+        overwrite: bool
+            Force overwrite the existing data in xml_data
+            Default value: False
+        index: int
+            Default returns the last configuration, index=-1
+        """
+        if overwrite or index not in self.xml_data:
             self.xml_data[index] = read(os.path.join(self.directory,
                                                      filename),
                                         index=index)
