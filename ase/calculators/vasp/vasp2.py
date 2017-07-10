@@ -28,28 +28,14 @@ import subprocess
 import ase
 from ase.io import read
 from ase.utils import basestring
+from ase.parallel import paropen
 
 from ..calculator import FileIOCalculator, ReadError, all_changes
 from .create_input import GenerateVaspInput
 
 
 class Vasp(GenerateVaspInput, FileIOCalculator):
-    name = 'Vasp'
-
-    implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
-                              'fermi', 'stress', 'magmom', 'magmoms']
-
-    default_parameters = {}     # Use VASP defaults
-
-    def __init__(self, atoms=None, restart=None,
-                 output_template='vasp',
-                 track_output=False,
-                 label='vasp',
-                 ignore_bad_restart_file=False,
-                 command=None,
-                 txt=None,
-                 **kwargs):
-        """Construct VASP-calculator object.
+    """ASE interface for the Vienna Ab initio Simulation Package (VASP).
 
         Parameters
         ==========
@@ -74,7 +60,23 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             which has a 'write' attribute
 
         ADD MORE STUFF - Also, this needs to be cleaned up for sphinx
-        """
+    """
+    name = 'Vasp'
+
+    implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
+                              'fermi', 'stress', 'magmom', 'magmoms']
+
+    default_parameters = {}     # Use VASP defaults
+
+    def __init__(self, atoms=None, restart=None,
+                 output_template='vasp',
+                 track_output=False,
+                 label='vasp',
+                 ignore_bad_restart_file=False,
+                 command=None,
+                 txt=None,
+                 **kwargs):
+        """Construct VASP-calculator object."""
 
         GenerateVaspInput.__init__(self)
 
@@ -137,6 +139,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         """Start the VASP calculation"""
 
         if atoms is not None:
+            # Make a copy, so we don't accidentally
+            # overwrite the original atoms object
             self.atoms = atoms.copy()
 
         self.write_input(self.atoms, properties, system_changes)
@@ -150,7 +154,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             if self.txt:
                 opened = False
                 if isinstance(self.txt, basestring):
-                    out = open(self.txt, 'w')
+                    out = paropen(self.txt, 'w')
                     opened = True  # Log that we opened file
                 elif hasattr(self.txt, 'write'):
                     out = self.txt
@@ -175,6 +179,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.read_results()
 
     def write_input(self, atoms, properties, system_changes=None):
+        """Write VASP inputfiles, INCAR, KPOINTS and POTCAR"""
         # Create the folders where we write the files, if we aren't in working
         # directory.
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
@@ -226,14 +231,15 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.converged = self.read_convergence(lines=outcar)
 
         # Read the data we can from vasprun.xml
-        new = self.read_from_xml()
-        new_data = {
-            'free_energy': new.get_potential_energy(force_consistent=True),
-            'energy': new.get_potential_energy(),
-            'forces': new.get_forces()[self.resort],
-            'stress': new.get_stress(),
-            'fermi': new.calc.get_fermi_level()}
-        self.results.update(new_data)
+        atoms_xml = self.read_from_xml()
+        xml_data = {
+            'free_energy': atoms_xml.get_potential_energy(
+                force_consistent=True),
+            'energy': atoms_xml.get_potential_energy(),
+            'forces': atoms_xml.get_forces()[self.resort],
+            'stress': atoms_xml.get_stress(),
+            'fermi': atoms_xml.calc.get_fermi_level()}
+        self.results.update(xml_data)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
         self.read_outcar(lines=outcar)
@@ -422,6 +428,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
     # Methods for reading information from OUTCAR files:
     def read_energy(self, all=None, lines=None):
+        """Method to read energy from OUTCAR file.
+        Depreciated: use get_potential_energy() instead"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -610,6 +618,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         return self.spinpol
 
     def read_outcar(self, lines=None):
+        """Read results from the OUTCAR file"""
         if not lines:
             lines = self.load_file('OUTCAR')
         # Spin polarized calculation?
