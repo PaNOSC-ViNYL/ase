@@ -160,7 +160,7 @@ def process_special_kwargs(atoms, kwargs):
     # will be passed to Octopus
     # XXX do a better check of this
     for kw in Octopus.special_ase_keywords:
-        assert kw not in kwargs
+        assert kw not in kwargs, kw
     return kwargs
 
 
@@ -614,9 +614,10 @@ def atoms2kwargs(atoms, use_ase_cell):
 
     positions = atoms.positions / Bohr
 
-    # TODO LatticeVectors parameter for non-orthogonal cells
     if use_ase_cell:
         cell = atoms.cell / Bohr
+        cell_offset = 0.5 * cell.sum(axis=0)
+        positions -= cell_offset
         if is_orthorhombic(cell):
             Lsize = 0.5 * np.diag(cell)
             kwargs['lsize'] = [[repr(size) for size in Lsize]]
@@ -624,8 +625,6 @@ def atoms2kwargs(atoms, use_ase_cell):
             # Lsize is really cell / 2, and we have to adjust our
             # positions by subtracting Lsize (see construction of the coords
             # block) in non-periodic directions.
-            nonpbc = (atoms.pbc == 0)
-            positions[:, nonpbc] -= Lsize[None, nonpbc]
         else:
             kwargs['latticevectors'] = cell.tolist()
 
