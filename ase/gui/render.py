@@ -111,7 +111,7 @@ class Render:
         initial_frame = self.gui.frame
         for frame in frames:
             self.gui.set_frame(frame)
-            povray_settings['textures'] = self.get_textures(),
+            povray_settings['textures'] = self.get_textures()
             povray_settings['colors'] = self.gui.get_colors(rgb=True)
             atoms = self.gui.images.get_atoms(frame)
             filename = self.update_outputname()

@@ -109,12 +109,14 @@ def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=False,
 
 
 def cell_to_lines(writer, cell):
+    # XXX this needs to be updated for cell vectors that are zero.
+    # Cannot read the code though!  (What are T and D? nn?)
     nlines = 0
-    nn = []
+    nsegments = []
     for c in range(3):
         d = sqrt((cell[c]**2).sum())
         n = max(2, int(d / 0.3))
-        nn.append(n)
+        nsegments.append(n)
         nlines += 4 * n
 
     positions = np.empty((nlines, 3))
@@ -123,13 +125,13 @@ def cell_to_lines(writer, cell):
 
     n1 = 0
     for c in range(3):
-        n = nn[c]
+        segments = nsegments[c]
         dd = cell[c] / (4 * n - 2)
         D[c] = dd
         P = np.arange(1, 4 * n + 1, 4)[:, None] * dd
         T[n1:] = c
         for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-            n2 = n1 + n
+            n2 = n1 + segments
             positions[n1:n2] = P + i * cell[c - 2] + j * cell[c - 1]
             n1 = n2
 
