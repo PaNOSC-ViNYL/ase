@@ -13,6 +13,7 @@ pack = error = Help = 42
 class Render:
     texture_list = ['ase2', 'ase3', 'glass', 'simple', 'pale',
                     'intermediate', 'vmd', 'jmol']
+    cameras = ['orthographic', 'perspective', 'ultra_wide_angle']
 
     def __init__(self, gui):
         self.gui = gui
@@ -46,6 +47,20 @@ class Render:
                                           values=self.texture_list)
         win.add([ui.Label(_('Atomic texture set:')),
                  self.texture_widget])
+        # complicated texture stuff
+
+        self.camera_widget = ui.ComboBox(labels=self.cameras,
+                                         values=self.cameras)
+        self.camera_distance_widget = ui.SpinBox(50.0, -99.0, 99.0, 1.0)
+        win.add([ui.Label(_('Camera type: ')), self.camera_widget])
+        win.add([ui.Label(_('Camera distance')), self.camera_distance_widget])
+
+        # render current frame/all frames
+        self.frames_widget = ui.RadioButtons([_('Render current frame'),
+                                              _('Render all frames')])
+        win.add(self.frames_widget)
+        if len(gui.images) == 1:
+            self.frames_widget.buttons[1].widget.configure(state='disabled')
 
         self.run_povray_widget = ui.CheckButton(_('Run povray'), True)
         self.keep_files_widget = ui.CheckButton(_('Keep povray files'), False)
@@ -61,7 +76,7 @@ class Render:
         return win.winfo_width(), win.winfo_height()
 
     def ok(self, *args):
-        print("Rendering povray image(s): ")
+        print("Rendering with povray:")
         guiwidth, guiheight = self.get_guisize()
         width = self.width_widget.value
         height = self.height_widget.value
@@ -78,21 +93,25 @@ class Render:
             'show_unit_cell': self.cell_widget.value,
             'display': self.show_output_widget.value,
             'transparent': self.transparent.value,
-            'camera_type': 'orthographic', #self.cameras[self.camera_style.get_active()],
-            'camera_dist': 50.0, #self.camera_distance.get_value(),
+            'camera_type': self.camera_widget.value,
+            'camera_dist': self.camera_distance_widget.value,
             'canvas_width': width,
-            'celllinewidth': self.linewidth_widget.value, #.get_value(),
-            'textures': self.get_textures(),
+            'celllinewidth': self.linewidth_widget.value,
             'exportconstraints': self.constraints_widget.value,
         }
-        #if self.single_frame.get_active():
-        frames = [self.gui.frame]
-        # XXX multiframes
-        #else:
-        #    frames = range(self.nimages)
+        multiframe = bool(self.frames_widget.value)
+        if multiframe:
+            assert len(self.gui.images) > 1
+
+        if multiframe:
+            frames = range(len(self.gui.images))
+        else:
+            frames = [self.gui.frame]
+
         initial_frame = self.gui.frame
         for frame in frames:
             self.gui.set_frame(frame)
+            povray_settings['textures'] = self.get_textures(),
             povray_settings['colors'] = self.gui.get_colors(rgb=True)
             atoms = self.gui.images.get_atoms(frame)
             filename = self.update_outputname()
