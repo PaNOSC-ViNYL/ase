@@ -11,8 +11,9 @@ import numpy as np
 pack = error = Help = 42
 
 class Render:
-    style_list = ['ase2', 'ase3', 'glass', 'simple', 'pale',
-                  'intermediate', 'vmd', 'jmol']
+    texture_list = ['ase2', 'ase3', 'glass', 'simple', 'pale',
+                    'intermediate', 'vmd', 'jmol']
+
     def __init__(self, gui):
         self.gui = gui
         self.win = win = ui.Window(_('Render current view in povray ... '))
@@ -44,6 +45,12 @@ class Render:
         self.run_povray_widget = ui.CheckButton(_('Run povray'), True)
         self.keep_files_widget = ui.CheckButton(_('Keep povray files'), False)
         #self.show_output
+
+        self.texture_widget = ui.ComboBox(labels=self.texture_list,
+                                          values=self.texture_list)
+        win.add([ui.Label(_('Atomic texture set:')),
+                 self.texture_widget])
+
         win.add([self.run_povray_widget, self.keep_files_widget])
         win.add(ui.Button(_('Render'), self.ok))
 
@@ -120,10 +127,11 @@ class Render:
         #self.outputname.set_text(name)
 
     def get_textures(self):
-        natoms = len(self.gui.atoms)
-        textures = natoms * [
-            self.style_list[0]  #self.default_texture.get_active()]
-        ]
+        return [self.texture_widget.value] * len(self.gui.atoms)
+        #natoms = len(self.gui.atoms)
+        #textures = natoms * [
+            #self.texture_list[0]  #self.default_texture.get_active()]
+        #]
         #for mat in self.materials:
         #    sel = mat[1]
         #    t = self.finish_list[mat[2].get_active()]
@@ -131,7 +139,7 @@ class Render:
         #        for n, val in enumerate(sel):
         #            if val:
         #                textures[n] = t
-        return textures
+        #return textures
 
 class OldRender:
     finish_list = [
