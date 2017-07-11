@@ -10,6 +10,7 @@ from ase.calculators.calculator import (Calculator,
 from ase.units import Bohr, Hartree
 from ase.io.xyz import write_xyz
 from ase.io.vasp import write_vasp
+from ase.parallel import paropen, world, broadcast
 
 
 class DFTD3(FileIOCalculator):
@@ -223,12 +224,21 @@ class DFTD3(FileIOCalculator):
         command = self._generate_command()
 
         # Finally, call dftd3 and parse results.
-        with open(self.label + '.out', 'w') as f:
-            errorcode = subprocess.call(command, cwd=self.directory, stdout=f)
+        with paropen(self.label + '.out', 'w') as f:
+            if world.rank == 0:
+                # DFTD3 does not run in parallel
+                # so we only need it to run on 1 core
+                errorcode = subprocess.call(command,
+                                            cwd=self.directory, stdout=f)
+            else:
+                errorcode = None
+        world.barrier()  # Wait for the call() to complete on the master node
+        errorcode = broadcast(errorcode, root=0)
 
         if errorcode:
             raise RuntimeError('%s returned an error: %d' %
                                (self.name, errorcode))
+
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):
@@ -290,7 +300,7 @@ class DFTD3(FileIOCalculator):
                 damppars.append('6')
 
             damp_fname = os.path.join(self.directory, '.dftd3par.local')
-            with open(damp_fname, 'w') as f:
+            with paropen(damp_fname, 'w') as f:
                 f.write(' '.join(damppars))
 
     def read_results(self):
@@ -332,7 +342,6 @@ class DFTD3(FileIOCalculator):
                 self.results['free_energy'] += efree
             except PropertyNotImplementedError:
                 pass
-
         if self.parameters['grad']:
             # parse the forces
             forces = np.zeros((len(self.atoms), 3))
