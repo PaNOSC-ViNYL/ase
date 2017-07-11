@@ -42,16 +42,16 @@ class Render:
         win.add([ui.Label(_('Output filename: ')), self.outputname_widget])
         self.update_outputname()
 
-        self.run_povray_widget = ui.CheckButton(_('Run povray'), True)
-        self.keep_files_widget = ui.CheckButton(_('Keep povray files'), False)
-        #self.show_output
-
         self.texture_widget = ui.ComboBox(labels=self.texture_list,
                                           values=self.texture_list)
         win.add([ui.Label(_('Atomic texture set:')),
                  self.texture_widget])
 
-        win.add([self.run_povray_widget, self.keep_files_widget])
+        self.run_povray_widget = ui.CheckButton(_('Run povray'), True)
+        self.keep_files_widget = ui.CheckButton(_('Keep povray files'), False)
+        self.show_output_widget = ui.CheckButton(_('Show output window'), True)
+        win.add([self.run_povray_widget, self.keep_files_widget,
+                 self.show_output_widget])
         win.add(ui.Button(_('Render'), self.ok))
 
     def get_guisize(self):
@@ -74,7 +74,7 @@ class Render:
             'bbox': bbox,
             'rotation': self.gui.axes,
             'show_unit_cell': self.cell_widget.value,
-            'display': False, #self.window_open.get_active(),
+            'display': self.show_output_widget.value,
             'transparent': True, #self.transparent.get_active(),
             'camera_type': 'orthographic', #self.cameras[self.camera_style.get_active()],
             'camera_dist': 50.0, #self.camera_distance.get_value(),
