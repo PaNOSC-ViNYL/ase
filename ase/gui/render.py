@@ -50,6 +50,8 @@ class Render:
         self.run_povray_widget = ui.CheckButton(_('Run povray'), True)
         self.keep_files_widget = ui.CheckButton(_('Keep povray files'), False)
         self.show_output_widget = ui.CheckButton(_('Show output window'), True)
+        self.transparent = ui.CheckButton(_("Transparent background"), True)
+        win.add(self.transparent)
         win.add([self.run_povray_widget, self.keep_files_widget,
                  self.show_output_widget])
         win.add(ui.Button(_('Render'), self.ok))
@@ -75,7 +77,7 @@ class Render:
             'rotation': self.gui.axes,
             'show_unit_cell': self.cell_widget.value,
             'display': self.show_output_widget.value,
-            'transparent': True, #self.transparent.get_active(),
+            'transparent': self.transparent.value,
             'camera_type': 'orthographic', #self.cameras[self.camera_style.get_active()],
             'camera_dist': 50.0, #self.camera_distance.get_value(),
             'canvas_width': width,
