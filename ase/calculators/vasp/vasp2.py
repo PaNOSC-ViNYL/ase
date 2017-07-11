@@ -1,4 +1,3 @@
-from __future__ import print_function, division
 """This module defines an ASE interface to VASP.
 
 The path of the directory containing the pseudopotential
@@ -20,6 +19,7 @@ $VASP_SCRIPT pointing to a python script looking something like::
 
 www.vasp.at
 """
+from __future__ import print_function, division
 
 import os
 import numpy as np
