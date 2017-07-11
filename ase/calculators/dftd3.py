@@ -300,7 +300,7 @@ class DFTD3(FileIOCalculator):
                 damppars.append('6')
 
             damp_fname = os.path.join(self.directory, '.dftd3par.local')
-            with open(damp_fname, 'w') as f:
+            with paropen(damp_fname, 'w') as f:
                 f.write(' '.join(damppars))
 
     def read_results(self):
