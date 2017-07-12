@@ -348,7 +348,7 @@ class GenerateVaspInput(object):
         'hse03': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.3},
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
-    
+
     # elements which have no-suffix files only
     setups_defaults = {'K':  '_pv',
        'Ca': '_pv',
@@ -534,10 +534,10 @@ class GenerateVaspInput(object):
         special_setups = []
         symbols = []
         symbolcount = {}
-        
+
         # make sure we find POTCARs for elements which have no-suffix files only
         setups = self.setups_defaults.copy()
-        # override with user defined setups 
+        # override with user defined setups
         if p['setups'] is not None:
             setups.update(p['setups'])
 
@@ -979,14 +979,14 @@ class GenerateVaspInput(object):
                 kpts = np.array([int(lines[3].split()[i]) for i in range(1)])
             elif ktype == 'm':
                 kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
-            self.set(kpts=kpts)
         else:
             if ktype in ['c', 'k']:
                 self.set(reciprocal=False)
             else:
                 self.set(reciprocal=True)
-            kpts = np.array([map(float, line.split()) for line in lines[3:]])
-            self.set(kpts=kpts)
+            kpts = np.array([list(map(float, line.split()))
+                             for line in lines[3:]])
+        self.set(kpts=kpts)
 
     def read_potcar(self):
         """ Read the pseudopotential XC functional from POTCAR file.
@@ -1016,9 +1016,9 @@ class GenerateVaspInput(object):
         self.input_params['pp'] = xc_dict[xc_flag]
 
     def todict(self):
-        """Returns a dictionary of all parameters 
+        """Returns a dictionary of all parameters
         that can be used to construct a new calculator object"""
-        dict_list = [ 
+        dict_list = [
             'float_params',
             'exp_params',
             'string_params',
