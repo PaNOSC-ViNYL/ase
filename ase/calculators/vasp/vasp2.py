@@ -30,7 +30,8 @@ from ase.io import read
 from ase.utils import basestring
 from ase.parallel import paropen
 
-from ..calculator import FileIOCalculator, ReadError, all_changes
+from ..calculator import (FileIOCalculator, ReadError, all_changes,
+                          PropertyNotImplementedError)
 from .create_input import GenerateVaspInput
 
 
@@ -251,7 +252,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 force_consistent=True),
             'energy': atoms_xml.get_potential_energy(),
             'forces': atoms_xml.get_forces()[self.resort],
-            'stress': atoms_xml.get_stress(),
+            'stress': self.get_stress(),
             'fermi': atoms_xml.calc.get_fermi_level()}
         self.results.update(xml_data)
 
@@ -328,6 +329,16 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                                                      filename),
                                         index=index)
         return self.xml_data[index]
+
+    def get_stress(self, index=-1):
+        atoms = self.read_from_xml(index)
+        try:
+            stress = atoms.get_stress()
+        except PropertyNotImplementedError:
+            # The stress tensor has not been calculated
+            # i.e. ISIF=0
+            stress = None
+        return stress
 
     def get_ibz_k_points(self, index=-1):
         atoms = self.read_from_xml(index)
