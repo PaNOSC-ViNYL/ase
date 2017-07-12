@@ -24,6 +24,7 @@ from __future__ import print_function, division
 import os
 import numpy as np
 import subprocess
+from warnings import warn
 
 import ase
 from ase.io import read
@@ -348,7 +349,10 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
             else:
-                self.magnetic_moments = None
+                warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
+                      ' setting magnetic_moments to zero.\nSet LORBIT>=10 '
+                      'for to get information on magnetic moments'))
+                self.magnetic_moments = np.zeros(len(self.atoms))
         else:
             self.magnetic_moment = 0.0
             self.magnetic_moments = np.zeros(len(self.atoms))
