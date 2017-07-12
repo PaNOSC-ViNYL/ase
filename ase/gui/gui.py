@@ -52,11 +52,12 @@ class GUI(View, Status):
 
         menu = self.get_menu_data(show_unit_cell, show_bonds)
 
-        self.window = ui.ASEGUIWindow(self.exit, menu, self.config,
-                                      self.scroll,
-                                      self.scroll_event,
-                                      self.press, self.move, self.release,
-                                      self.resize)
+        self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
+                                      config=self.config, scroll=self.scroll,
+                                      scroll_event=self.scroll_event,
+                                      press=self.press, move=self.move,
+                                      release=self.release,
+                                      resize=self.resize)
 
         View.__init__(self, rotations)
         Status.__init__(self)
@@ -119,9 +120,9 @@ class GUI(View, Status):
         """Zoom in/out when using mouse wheel"""
         SHIFT = event.modifier == 'shift'
         x = 1.0
-        if event.button == 4:
+        if event.button == 4 or event.delta > 0:
             x = 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01
-        elif event.button == 5:
+        elif event.button == 5 or event.delta < 0:
             x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 

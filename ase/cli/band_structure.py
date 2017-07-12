@@ -22,9 +22,9 @@ class CLICommand:
                             help='Path to output file(s) from calculation')
         parser.add_argument('-q', '--quiet', action='store_true')
         parser.add_argument('-k', '--path', help='Example "GXL".')
-        parser.add_argument('-n', '--points', type=int, default=50,
+        parser.add_argument('-n', '--points', type=int, default=100,
                             help='Number of points along the path '
-                            '(default: 50)')
+                            '(default: 100)')
         parser.add_argument('-r', '--range', nargs=2, default=['-3', '3'],
                             metavar=('emin', 'emax'),
                             help='Default: "-3.0 3.0" '

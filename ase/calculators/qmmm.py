@@ -222,6 +222,7 @@ class Embedding:
         self.qmatoms = None
         self.mmatoms = None
         self.molecule_size = molecule_size
+        self.virtual_molecule_size = None
         self.parameters = parameters
 
     def __repr__(self):
@@ -233,6 +234,8 @@ class Embedding:
         self.mmatoms = mmatoms
         charges = mmatoms.calc.get_virtual_charges(mmatoms)
         self.pcpot = qmatoms.calc.embed(charges, **self.parameters)
+        self.virtual_molecule_size = (self.molecule_size *
+                                      len(charges) // len(mmatoms))
 
     def update(self, shift):
         """Update point-charge positions."""
@@ -252,7 +255,8 @@ class Embedding:
 
         # Geometric center positions for each mm mol for LR cut
         com = np.array([p.mean(axis=0) for p in positions])
-        com_pv = np.repeat(com, n, axis=0)  # need per atom for c code
+        # Need per atom for C-code:
+        com_pv = np.repeat(com, self.virtual_molecule_size, axis=0)
 
         positions.shape = (-1, 3)
         positions = self.mmatoms.calc.add_virtual_sites(positions)

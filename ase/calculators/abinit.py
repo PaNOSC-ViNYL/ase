@@ -217,6 +217,9 @@ class Abinit(FileIOCalculator):
         fh.write('acell\n')
         fh.write('%.14f %.14f %.14f Angstrom\n' % (1.0, 1.0, 1.0))
         fh.write('rprim\n')
+        if atoms.number_of_lattice_vectors != 3:
+            raise RuntimeError('Abinit requires a 3D cell, but cell is {}'
+                               .format(atoms.cell))
         for v in atoms.cell:
             fh.write('%.14f %.14f %.14f\n' %  tuple(v))
 
