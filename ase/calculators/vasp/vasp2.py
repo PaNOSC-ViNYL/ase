@@ -160,7 +160,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             if self.txt:
                 opened = False
                 if isinstance(self.txt, basestring):
-                    out = paropen(self.txt, 'w')
+                    out = open(self.txt, 'w')
                     opened = True  # Log that we opened file
                 elif hasattr(self.txt, 'write'):
                     out = self.txt
@@ -173,7 +173,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 out = None      # Default value in subprocess.call
 
             # Run VASP
-            errorcode = self.run_vasp(command=command, out=out)
+            errorcode = self.run(command=command, out=out)
         finally:
             os.chdir(olddir)
             if opened:
@@ -184,7 +184,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                                self.name, self.directory, errorcode))
         self.read_results()
 
-    def run_vasp(self, command=None, out=None):
+    def run(self, command=None, out=None):
         """Method to explicitly execute VASP"""
         if command is None:
             command = self.command
@@ -257,6 +257,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.results.update(xml_data)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
+        # This is typically pretty fast
         self.read_outcar(lines=outcar)
 
         # Update results dict with results from OUTCAR
@@ -335,8 +336,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
             else:
                 warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
-                      ' setting magnetic_moments to zero.\nSet LORBIT>=10 '
-                      'for to get information on magnetic moments'))
+                      ' setting magnetic_moments to zero.\nSet LORBIT>=10'
+                      ' to get information on magnetic moments'))
                 self.magnetic_moments = np.zeros(len(self.atoms))
         else:
             self.magnetic_moment = 0.0
