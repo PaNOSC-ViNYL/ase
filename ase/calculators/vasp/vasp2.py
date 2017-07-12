@@ -191,7 +191,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         errorcode = subprocess.call(command, shell=True, stdout=out)
         return errorcode
 
-    def write_input(self, atoms, properties, system_changes=None):
+    def write_input(self, atoms, properties=['energies'],
+                    system_changes=all_changes):
         """Write VASP inputfiles, INCAR, KPOINTS and POTCAR"""
         # Create the folders where we write the files, if we aren't in working
         # directory.
