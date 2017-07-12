@@ -29,7 +29,6 @@ from warnings import warn
 import ase
 from ase.io import read
 from ase.utils import basestring
-from ase.parallel import paropen
 
 from ..calculator import (FileIOCalculator, ReadError, all_changes,
                           PropertyNotImplementedError)
@@ -372,8 +371,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         try:
             stress = atoms.get_stress()
         except PropertyNotImplementedError:
-            # The stress tensor has not been calculated
-            # i.e. ISIF=0
+            # The stress tensor has not been calculated, e.g. ISIF=0
             stress = None
         return stress
 
