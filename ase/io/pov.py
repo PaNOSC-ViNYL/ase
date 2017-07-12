@@ -250,11 +250,19 @@ class POVRAY(EPS):
             self.cell_vertices.shape = (2, 2, 2, 3)
             for c in range(3):
                 for j in ([0, 0], [1, 0], [1, 1], [0, 1]):
-                    w('cylinder {')
+                    parts = []
                     for i in range(2):
                         j.insert(c, i)
-                        w(pa(self.cell_vertices[tuple(j)]) + ', ')
+                        parts.append(self.cell_vertices[tuple(j)])
                         del j[c]
+
+                    distance = np.linalg.norm(parts[1] - parts[0])
+                    if distance < 1e-12:
+                        continue
+
+                    w('cylinder {')
+                    for i in range(2):
+                        w(pa(parts[i]) + ', ')
                     w('Rcell pigment {Black}}\n')
 
         # Draw atoms
@@ -313,14 +321,19 @@ class POVRAY(EPS):
                     pa(loc), dia / 2., tex, a, trans))
 
 
-def write_pov(filename, atoms, run_povray=False, **parameters):
+def write_pov(filename, atoms, run_povray=False,
+              stderr=None, **parameters):
     if isinstance(atoms, list):
         assert len(atoms) == 1
         atoms = atoms[0]
     assert 'scale' not in parameters
     POVRAY(atoms, **parameters).write(filename)
     if run_povray:
-        cmd = 'povray %s.ini 2> /dev/null' % filename[:-4]
+        cmd = 'povray {}.ini'.format(filename[:-4])
+        if stderr != '-':
+            if stderr is None:
+                stderr = '/dev/null'
+            cmd += ' 2> {}'.format(stderr)
         errcode = os.system(cmd)
         if errcode != 0:
             raise OSError('Povray command ' + cmd +

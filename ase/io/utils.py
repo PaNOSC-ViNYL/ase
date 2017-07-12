@@ -125,13 +125,13 @@ def cell_to_lines(writer, cell):
 
     n1 = 0
     for c in range(3):
-        segments = nsegments[c]
+        n = nsegments[c]
         dd = cell[c] / (4 * n - 2)
         D[c] = dd
         P = np.arange(1, 4 * n + 1, 4)[:, None] * dd
         T[n1:] = c
         for i, j in [(0, 0), (0, 1), (1, 0), (1, 1)]:
-            n2 = n1 + segments
+            n2 = n1 + n
             positions[n1:n2] = P + i * cell[c - 2] + j * cell[c - 1]
             n1 = n2
 
