@@ -240,19 +240,13 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
     def read_results(self):
         """Read the results from VASP output files"""
-
-        import time
-
-        t1 = time.time()
         outcar = self.load_file('OUTCAR')
-        t2 = time.time()
 
         # First we check convergence
         self.converged = self.read_convergence(lines=outcar)
 
         # Read the data we can from vasprun.xml
         atoms_xml = self.read_from_xml()
-        t3 = time.time()
         xml_data = {
             'free_energy': atoms_xml.get_potential_energy(
                 force_consistent=True),
@@ -262,17 +256,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             'fermi': atoms_xml.calc.get_fermi_level()}
         self.results.update(xml_data)
 
-        t4 = time.time()
         # Parse the outcar, as some properties are not loaded in vasprun.xml
         self.read_outcar(lines=outcar)
-        t5 = time.time()
-
-        print(('Reading OUTCAR:          \t{:.3f} s\n'
-               'Reading XML:             \t{:.3f} s\n'
-               'Reading data from XML:   \t{:.3f} s\n'
-               'Reading data from OUTCAR:\t{:.3f} s\n'
-               'Total time:              \t{:.3f} s\n').format(
-                   t2 - t1, t3 - t2, t4 - t3, t5 - t4, t5 - t1))
 
         # Update results dict with results from OUTCAR
         # which aren't written to the atoms object we read from
