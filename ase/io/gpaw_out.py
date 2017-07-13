@@ -108,8 +108,12 @@ def read_gpaw_out(fileobj, index):
         try:
             i = index_startswith(lines, 'energy contributions relative to')
         except ValueError:
-            e = None
+            e = energy_contributions = None
         else:
+            energy_contributions = {}
+            for line in lines[i + 2:i + 8]:
+                 fields = line.split(':')
+                 energy_contributions[fields[0]] = float(fields[1])
             line = lines[i + 10]
             assert (line.startswith('zero kelvin:') or
                     line.startswith('extrapolated:'))
@@ -220,6 +224,8 @@ def read_gpaw_out(fileobj, index):
                                             bzkpts=bz_kpts, ibzkpts=ibz_kpts)
             calc.eref = Eref
             calc.name = 'gpaw'
+            if energy_contributions is not None:
+                calc.energy_contributions = energy_contributions
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)
