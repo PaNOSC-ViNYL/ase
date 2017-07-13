@@ -27,6 +27,8 @@ New release
 
 * Push and make a tag "x.y.z".
 
+* Create pull-request for Easy-Build ...
+
 * Export issues, MR's, ... from GitLab (https://gitlab.com/ase/ase/export)
   and store the tar-file in a safe place.
 
