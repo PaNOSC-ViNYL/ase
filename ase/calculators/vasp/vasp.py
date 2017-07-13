@@ -30,7 +30,8 @@ import ase
 from ase.io import read
 from ase.utils import basestring
 
-from ..calculator import FileIOCalculator, ReadError, all_changes
+from ..calculator import (FileIOCalculator, ReadError, all_changes,
+                          PropertyNotImplementedError)
 from .create_input import GenerateVaspInput
 
 
@@ -99,15 +100,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
-        if txt is None:
-            # Default behavoir, write to vasp.out
-            self.txt = self.prefix + '.out'
-        elif txt == '-' or txt is False:
-            # We let the output be sent through stdout
-            # Do we ever want to completely suppress output?
-            self.txt = False
-        else:
-            self.txt = txt
+        self.set_txt(txt)
 
         # XXX: This seems to break restarting, unless we return first.
         # Do we really still need to enfore this?
@@ -404,7 +397,10 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
     def read_stress_xml(self, index=-1):
         atoms = self.read_from_xml(index)
-        return atoms.get_stress()
+        try:
+            return atoms.get_stress()
+        except PropertyNotImplementedError:
+            return None
 
     def get_ibz_k_points(self, index=-1):
         atoms = self.read_from_xml(index)
@@ -748,6 +744,17 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             return ""
         else:
             return line
+
+    def set_txt(self, txt):
+        if txt is None:
+            # Default behavoir, write to vasp.out
+            self.txt = self.prefix + '.out'
+        elif txt == '-' or txt is False:
+            # We let the output be sent through stdout
+            # Do we ever want to completely suppress output?
+            self.txt = False
+        else:
+            self.txt = txt
 
     def get_number_of_grid_points(self):
         raise NotImplementedError
