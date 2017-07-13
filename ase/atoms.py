@@ -144,11 +144,17 @@ class Atoms(object):
         elif (isinstance(symbols, (list, tuple)) and
               len(symbols) > 0 and isinstance(symbols[0], Atom)):
             # Get data from a list or tuple of Atom objects:
-            data = [[atom.get_raw(name) for atom in symbols]
-                    for name in
-                    ['position', 'number', 'tag', 'momentum',
-                     'mass', 'magmom', 'charge']]
-            atoms = self.__class__(None, *data)
+            data = {}
+            for atom_var, atoms_var in Atom.attrnames.items():
+                values = []
+                any_atom_has_var = False
+                for atom in symbols:
+                    any_atom_has_var |= atom.has(atom_var)
+                    values.append(getattr(atom, atom_var))
+
+                if any_atom_has_var:
+                    data[atoms_var] = values
+            atoms = self.__class__(None, **data)
             symbols = None
 
         if atoms is not None:
@@ -923,7 +929,7 @@ class Atoms(object):
             if i < -natoms or i >= natoms:
                 raise IndexError('Index out of range.')
 
-            return Atom(atoms=self, index=i)
+            return Atom(atoms=self, index=i % len(self))
         elif isinstance(i, list) and len(i) > 0:
             # Make sure a list of booleans will work correctly and not be
             # interpreted at 0 and 1 indices.
