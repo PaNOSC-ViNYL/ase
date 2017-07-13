@@ -186,7 +186,7 @@ class Images:
         import ase.units as units
         code = compile(expr + ',', '<input>', 'eval')
 
-        n = len(self)
+        nimages = len(self)
 
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
@@ -231,7 +231,7 @@ class Images:
               'd': d, 'a': a, 'dih': dih}
 
         data = []
-        for i in range(n):
+        for i in range(nimages):
             ns['i'] = i
             ns['s'] = s
             ns['R'] = R = self[i].get_positions()
@@ -255,10 +255,10 @@ class Images:
                 ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code, ns)
             if i == 0:
-                m = len(data)
-                xy = np.empty((m, n))
+                nvariables = len(data)
+                xy = np.empty((nvariables, nimages))
             xy[:, i] = data
-            if i + 1 < n and not self.have_varying_species:
+            if i + 1 < nimages and not self.have_varying_species:
                 s += sqrt(((self[i + 1].positions - R)**2).sum())
         return xy
 

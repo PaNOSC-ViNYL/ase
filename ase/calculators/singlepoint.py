@@ -28,6 +28,16 @@ class SinglePointCalculator(Calculator):
                 self.results[property] = np.array(value, float)
         self.atoms = atoms.copy()
 
+    def __str__(self):
+        tokens = []
+        for key, val in sorted(self.results.items()):
+            if np.isscalar(val):
+                txt = '{}={}'.format(key, val)
+            else:
+                txt = '{}=...'.format(key)
+            tokens.append(txt)
+        return '{}({})'.format(self.__class__.__name__, ', '.join(tokens))
+
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.results or self.check_state(atoms):
             if allow_calculation:

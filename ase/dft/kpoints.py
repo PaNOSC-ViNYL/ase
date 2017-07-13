@@ -128,6 +128,7 @@ def bandpath(path, cell, npoints=50):
     points = np.concatenate(paths)
     dists = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
+
     i = 0
     for path in paths[:-1]:
         i += len(path)
@@ -140,6 +141,7 @@ def bandpath(path, cell, npoints=50):
     X = [0]
     for P, d, L in zip(points[:-1], dists, lengths):
         n = max(2, int(round(L * (npoints - len(x)) / (length - x0))))
+
         for t in np.linspace(0, 1, n)[:-1]:
             kpts.append(P + t * d)
             x.append(x0 + t * L)
@@ -147,6 +149,7 @@ def bandpath(path, cell, npoints=50):
         X.append(x0)
     kpts.append(points[-1])
     x.append(x0)
+
     return np.array(kpts), np.array(x), np.array(X)
 
 
@@ -170,7 +173,7 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
 
     Returns:
 
-    Three arrays; the first is a list of cumulative distances between kpoints,
+    Three arrays; the first is a list of cumulative distances between k-points,
     the second is x coordinates of the special points,
     the third is the special points as strings.
      """
@@ -199,13 +202,16 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
             label = '?'
         labels.append(label)
 
+    jump = False  # marks a discontinuity in the path
     xcoords = [0]
     for i1, i2 in zip(indices[:-1], indices[1:]):
-        if i1 + 1 == i2:
+        if not jump and i1 + 1 == i2:
             length = 0
+            jump = True  # we don't want two jumps in a row
         else:
             diff = points[i2] - points[i1]
             length = np.linalg.norm(kpoint_convert(cell, skpts_kc=diff))
+            jump = False
         xcoords.extend(np.linspace(0, length, i2 - i1 + 1)[1:] + xcoords[-1])
 
     xcoords = np.array(xcoords)
@@ -346,7 +352,7 @@ def get_special_points(lattice, cell, eps=2e-4):
                 'Z': [0.5, 0.5, 0.5]}
     else:
         return special_points[lattice]
-        
+
 
 def monkhorst_pack_interpolate(path, values, icell, bz2ibz,
                                size, offset=(0, 0, 0)):
