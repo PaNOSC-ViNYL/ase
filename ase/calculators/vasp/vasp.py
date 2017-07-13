@@ -109,10 +109,6 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         else:
             self.txt = txt
 
-        # if restart:
-        #     # We need to load the INCAR here explicitly
-        #     self.read_incar(os.path.join(self.directory, 'INCAR'))
-
         # XXX: This seems to break restarting, unless we return first.
         # Do we really still need to enfore this?
 
