@@ -18,7 +18,6 @@ from ase.calculators.vasp import Vasp
 
 assert installed()
 
-
 def compare_paths(path1, path2):
     assert os.path.abspath(path1) == os.path.abspath(path2)
 
@@ -46,6 +45,7 @@ calc = Vasp(label=label,
             istart=0,
             lwave=False,
             lcharg=False)
+
 
 # Check the calculator path is the expected path
 compare_paths(calc.directory, testdir)
