@@ -36,16 +36,19 @@ testdir = '_dummy_txt_testdir'
 label = os.path.join(testdir, 'vasp')
 
 # Test
-calc = Vasp(label=label,
-            xc='PBE',
-            prec='Low',
-            algo='Fast',
-            ismear=0,
-            sigma=1.,
-            istart=0,
-            lwave=False,
-            lcharg=False)
+settings = dict(label=label,
+                xc='PBE',
+                prec='Low',
+                algo='Fast',
+                ismear=0,
+                sigma=1.,
+                istart=0,
+                lwave=False,
+                lcharg=False)
 
+# Make 2 copies of the calculator object
+calc = Vasp(**settings)
+calc2 = Vasp(**settings)
 
 # Check the calculator path is the expected path
 compare_paths(calc.directory, testdir)
@@ -62,8 +65,10 @@ for fi in ['OUTCAR', 'CONTCAR', 'vasprun.xml']:
 # We open file2 in our current directory, so we don't want it to write
 # in the label directory
 with open(file2, 'w') as f:
-    calc.set_txt(f)
+    calc2.set_txt(f)
+    atoms.set_calculator(calc2)
     atoms.get_potential_energy()
+
 
 # Make sure the two outputfiles are identical
 assert filecmp.cmp(os.path.join(calc.directory, file1), file2)
