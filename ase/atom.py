@@ -102,6 +102,14 @@ class Atom(object):
         atomsname = self.attrnames[name]
         return self._atoms.has(atomsname)
 
+    def __eq__(self, other):
+        return (isinstance(other, Atom)
+                and self.index == other.index
+                and self._atoms == other._atoms)
+
+    def __neq__(self, other):
+        return not self == other
+
     def __repr__(self):
         tokens = []
         for name in ['tag', 'momentum', 'mass', 'magmom', 'charge']:
