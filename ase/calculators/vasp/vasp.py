@@ -242,8 +242,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         return read(filename)
 
     def update_atoms(self, atoms):
-        """Update the atoms object with new positions and cell (unsorted),
-        and update self.atoms to the version in the CONTCAR file (sorted)"""
+        """Update the atoms object with new positions and cell"""
         atoms_sorted = read(os.path.join(self.directory, 'CONTCAR'))
         if (self.int_params['ibrion'] is not None and
                 self.int_params['nsw'] is not None):
@@ -253,7 +252,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 atoms.positions = atoms_sorted[self.resort].positions
                 atoms.cell = atoms_sorted.cell
 
-        self.atoms = atoms_sorted
+        self.atoms = atoms[self.sort].copy()
 
     def check_cell(self, atoms=None):
         """Check if there is a zero unit cell"""
