@@ -30,7 +30,7 @@ default_key_descriptions = {
     'mass': ('Mass', '', 'au'),
     'magmom': ('Magnetic moment', '', 'au'),
     'unique_id': ('Unique ID', '', ''),
-    'volume': ('Volume', 'Volume of unit-cell', '`Ang^3`')}
+    'volume': ('Volume', 'Volume of unit-cell', '`\\text{Ang}^3`')}
 
 
 def now():

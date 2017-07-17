@@ -37,15 +37,26 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
 
     xref = None
     ref = {}
-    
+
     if name in chemical_symbols:
         Z = atomic_numbers[name]
         ref = reference_states[Z]
         if ref is not None:
             xref = ref['symmetry']
 
+    structures = set(['sc', 'fcc', 'bcc', 'hcp', 'diamond', 'zincblende',
+                      'rocksalt', 'cesiumchloride', 'fluorite', 'wurtzite'])
+
     if crystalstructure is None:
         crystalstructure = xref
+        if crystalstructure not in structures:
+            raise ValueError('No suitable reference data for bulk {}.'
+                             '  Reference data: {}'
+                             .format(name, ref))
+
+    if crystalstructure not in structures:
+        raise ValueError('Unknown structure: {}.'
+                         .format(crystalstructure))
 
     if a is None:
         if xref != crystalstructure:

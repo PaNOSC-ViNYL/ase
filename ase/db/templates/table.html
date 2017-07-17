@@ -104,7 +104,7 @@
             </button>
             <ul class="dropdown-menu">
 {% for key in addcolumns %}
-        {% if key in meta %}
+    {% if key in meta %}
                 <li><a href="/?x={{ x }}&amp;toggle={{ key }}">
                     {{ meta[key][1] }} ({{key}})
                 </a></li>
@@ -153,7 +153,12 @@
 {% elif con.sort == '-' + c %}&#x2191;
 {% endif -%}
 
-<a href="/?x={{ x }}&amp;sort={{ c }}" data-toggle="tooltip" title="key: {{c}}">{{ colDisplay['col'] }}</a>
+{% if c == 'formula' %}
+<span data-toggle="tooltip" title="key: formul">Formula</span>
+{% else %}
+<a href="/?x={{ x }}&amp;sort={{ c }}"
+  data-toggle="tooltip" title="key: {{c}}">{{ colDisplay['col'] }}</a>
+{% endif %}
 <a href="/?x={{ x }}&amp;toggle={{ c }}">&#x2715;</a>
 </th>
 {%- endfor %}
