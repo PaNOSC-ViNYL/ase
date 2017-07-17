@@ -448,7 +448,6 @@ class BaseSiesta(FileIOCalculator):
             - atoms: An atoms object.
         """
         unit_cell = atoms.get_cell()
-        xyz = atoms.get_positions()
         f.write('\n')
 
         # Write lattice vectors
