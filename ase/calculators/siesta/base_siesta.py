@@ -37,7 +37,7 @@ class SiestaParameters(Parameters):
             label='siesta',
             mesh_cutoff=200 * Ry,
             energy_shift=100 * meV,
-            kpts= None,
+            kpts=None,
             xc='LDA',
             basis_set='DZP',
             spin='UNPOLARIZED',
@@ -61,7 +61,6 @@ class BaseSiesta(FileIOCalculator):
     allowed_xc = {}
     allowed_fdf_keywords = {}
     unit_fdf_keywords = {}
-
     implemented_properties = (
         'energy',
         'forces',
@@ -123,17 +122,6 @@ class BaseSiesta(FileIOCalculator):
                             in a single line.  ASE units are assumed in the
                             input.
         """
-
-        self.minimal_param_list = [
-                "SystemName",
-                "SystemLabel",
-                "NumberOfSpecies",
-                "NumberOfAtoms",
-                "ChemicalSpecieslabel",
-                "AtomicCoordinatesFormat",
-                "AtomicCoordinatesAndAtomicSpecies"
-                ]
-
 
         # Put in the default arguments.
         parameters = self.default_parameters.__class__(**kwargs)
@@ -407,7 +395,8 @@ class BaseSiesta(FileIOCalculator):
                 f.write(format_fdf('SaveRho', True))
 
             # Force siesta to return error on no convergence.
-            f.write(format_fdf('SCFMustConverge', True))
+            # Why?? maybe we don't want to force convergency??
+            # f.write(format_fdf('SCFMustConverge', True))
 
             self._write_kpts(f)
 
@@ -422,8 +411,8 @@ class BaseSiesta(FileIOCalculator):
         """Write directly given fdf-arguments.
         """
         fdf_arguments = self.parameters['fdf_arguments']
-        fdf_arguments["XC.functional"], fdf_arguments["XC.authors"] =\
-                self.parameters['xc']
+        fdf_arguments["XC.functional"], \
+            fdf_arguments["XC.authors"] = self.parameters['xc']
         energy_shift = self['energy_shift']
         fdf_arguments["PAO.EnergyShift"] = energy_shift
         mesh_cutoff = '%.4f eV' % self['mesh_cutoff']
@@ -436,16 +425,14 @@ class BaseSiesta(FileIOCalculator):
             fdf_arguments["SpinPolarized"] = True
             fdf_arguments["NonCollinearSpin"] = True
 
-        for key, value in fdf_arguments.items():
-            if key in self.unit_fdf_keywords:
-                print(key, value, self.unit_fdf_keywords[key])
-                value = '%.8f %s' % (value, self.unit_fdf_keywords[key])
-                f.write(format_fdf(key, value))
-            elif key in self.allowed_fdf_keywords.keys():
-                if value != self.allowed_fdf_keywords[key]:
-                    f.write(format_fdf(key, value))
-            else:
-                raise ValueError("%s not in allowed keywords." % key)
+        for key, value in self.allowed_fdf_keywords.items():
+            if key in fdf_arguments.keys():
+                if key in self.unit_fdf_keywords:
+                    val = '%.8f %s' % (fdf_arguments[key],
+                                       self.unit_fdf_keywords[key])
+                    f.write(format_fdf(key, val))
+                elif fdf_arguments[key] != value:
+                    f.write(format_fdf(key, fdf_arguments[key]))
 
     def remove_analysis(self):
         """ Remove all analysis files"""
@@ -465,7 +452,7 @@ class BaseSiesta(FileIOCalculator):
         f.write('\n')
 
         # Write lattice vectors
-        default_unit_cell = np.eye(3, dtype=float)
+        default_unit_cell = np.zeros((3, 3), dtype=float)
         if np.any(unit_cell != default_unit_cell):
             f.write(format_fdf('LatticeConstant', '1.0 Ang'))
             f.write('%block LatticeVectors\n')
@@ -528,7 +515,8 @@ class BaseSiesta(FileIOCalculator):
         Parameters:
             - f : Open filename.
         """
-        if self["kpts"] is None: return
+        if self["kpts"] is None:
+            return
         kpts = np.array(self['kpts'])
         f.write('\n')
         f.write('#KPoint grid\n')

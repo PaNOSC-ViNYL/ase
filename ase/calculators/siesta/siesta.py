@@ -70,7 +70,7 @@ class Siesta3_2(BaseSiesta):
         ('ChemicalSpeciesLabel', None),
         ('PAO.BasisSize', "DZP"),
         ('PAO.BasisSizes', None),
-        ("PAO.EnergyShift", 0.02/un.Ry), # 0.02Ry
+        ("PAO.EnergyShift", 0.02 / un.Ry),  # 0.02Ry
         ('PAO.BasisType', "split"),
         ('PAO.SplitNorm', 0.15),
         ('PAO.SplitNormH', 0.15),
@@ -79,26 +79,26 @@ class Siesta3_2(BaseSiesta):
         ('PAO.FixSplitTailNorm', False),
         ('PAO.SoftDefault', False),
         ('PAO.SoftInnerRadius', 0.9),
-        ('PAO.SoftPotential', 40.0), # Ry
+        ('PAO.SoftPotential', 40.0),  # Ry
         ('PS.lmax', None),
         ('PS.KBprojectors', None),
         ('FilterCutoff', None),
         ('FilterTol', None),
         ('User.Basis', False),
         ('User.Basis.NetCDF', False),
-        ('BasisPressure', 0.2), # GPa
+        ('BasisPressure', 0.2),  # GPa
         ('ReparametrizePseudos', False),
         ('New.A.Parameter', 0.001),
         ('New.B.Parameter', 0.01),
         ('Rmax.Radial.Grid', 50.0),
         ('Restricted.Radial.Grid', True),
-        ('LatticeConstant', 1.0), # Ang
-        ('LatticeParameters',np.array([1.0, 1.0, 1.0, 
+        ('LatticeConstant', 1.0),  # Ang
+        ('LatticeParameters', np.array([1.0, 1.0, 1.0,
                                        90.0, 90.0, 90.0])),
         ('LatticeVectors', np.array([[1.0, 0.0, 0.0],
-                                     [0.0, 1.0, 0.0], 
+                                     [0.0, 1.0, 0.0],
                                      [0.0, 0.0, 1.0]])),
-        ('SuperCell',  None),
+        ('SuperCell', None),
         ('AtomicCoordinatesFormat', "Ang"),
         ('AtomicCoorFormatOut', "Ang"),
         ('AtomicCoordinatesOrigin', np.array([0.0, 0.0, 0.0])),
@@ -109,9 +109,9 @@ class Siesta3_2(BaseSiesta):
         ('WriteCoorXmol', False),
         ('WriteCoorCerius', False),
         ('WriteMDXmol', False),
-        ('WarningMiniumAtomicDistance', 1.0), # Bohr
-        ('MaxBondDistance', 6.0), # Bohr
-        ('kgrid_cutoff', 0.0), #Bohr
+        ('WarningMiniumAtomicDistance', 1.0),  # Bohr
+        ('MaxBondDistance', 6.0),  # Bohr
+        ('kgrid_cutoff', 0.0),  # Bohr
         ('kgrid_Monkhorst_Pack', None),
         ('ChangeKgridInMD', False),
         ('TimeReversalSymmetryForKpoints', True),
@@ -133,7 +133,7 @@ class Siesta3_2(BaseSiesta):
         ('DM.NumberBroyden', 0),
         ('DM.Broyden.Cycle.On.Maxit', True),
         ('DM.NumberKick', 0),
-        ('DM.KickMixingWeight',0.50),
+        ('DM.KickMixingWeight', 0.50),
         ('DM.MixSCF1', False),
         ('DM.UseSaveDM', False),
         ('DM.FormattedFiles', False),
@@ -152,14 +152,14 @@ class Siesta3_2(BaseSiesta):
         ('WrireDMHS.History.NetCDF', False),
         ('DM.Tolerance', 1E-4),
         ('DM.Require.Energy.Convergence', False),
-        ('DM.EnergyTolerance', 1E-4), # eV
+        ('DM.EnergyTolerance', 1E-4),  # eV
         ('DM.Require.Harris.Convergence', False),
-        ('DM.Harris.Tolerance', 1E-4), # eV
-        ('MeshCutoff', 100), # Ry
+        ('DM.Harris.Tolerance', 1E-4),  # eV
+        ('MeshCutoff', 100),  # Ry
         ('MeshSubDivisions', 2),
         ('GridCellSampling', None),
-        ('EggboxRemove',None),
-        ('EggboxScale', 1.0), # eV
+        ('EggboxRemove', None),
+        ('EggboxScale', 1.0),  # eV
         ('NeglNonOverlapInt', False),
         ('SaveHS', False),
         ('FixAuxiliaryCell', False),
@@ -175,45 +175,30 @@ class Siesta3_2(BaseSiesta):
         ('WriteEigenvalues', False),
         ('OccupationFunction', "FD"),
         ('OccupationMPOrder', 1),
-        ('ElectronicTemperature', 300.0), #K pp
-# The OMM parameters are not present in the siesta 3.2 Doc
-#        ('OMM.UseCholesky', ),
-#        ('OMM.Use2D',),
-#        ('OMM.UseSparse',),
-#        ('OMM.Precon',),
-#        ('OMM.PreconFirstStep',),
-#        ('OMM.Diagon',),
-#        ('OMM.DiagonFirstStep',),
-#        ('OMM.BlockSize',),
-#        ('OMM.TPreconScale',),
-#        ('OMM.RelTol',),
-#        ('OMM.Eigenvalues',),
-#        ('OMM.WriteCoeffs',),
-#        ('OMM.ReadCoeffs',),
-#        ('OMM.LongOutput',),
-        ('ON.functional',  "Kim"),
+        ('ElectronicTemperature', 300.0),  # K pp
+        ('ON.functional', "Kim"),
         ('ON.MaxNumIter', 1000),
         ('ON.etol', 1E-8),
-        ('ON.eta', 0.0), # eV
-        ('ON.eta_alpha', 0.0), # eV
-        ('ON.eta_beta', 0.0), # eV
-        ('ON.RcLWF', 9.5), # Bohr
+        ('ON.eta', 0.0),  # eV
+        ('ON.eta_alpha', 0.0),  # eV
+        ('ON.eta_beta', 0.0),  # eV
+        ('ON.RcLWF', 9.5),  # Bohr
         ('ON.ChemicalPotential', False),
         ('ON.ChemicalPotentialUse', False),
-        ('ON.ChemicalPotentialRc', 9.5), # Bohr
-        ('ON.ChemicalPotentialTemperature', 0.05), # Ry
+        ('ON.ChemicalPotentialRc', 9.5),  # Bohr
+        ('ON.ChemicalPotentialTemperature', 0.05),  # Ry
         ('ON.ChemicalPotentialOrder', 100),
         ('ON.LowerMemory', False),
         ('ON.UseSaveLWF', False),
-        ('BandLinesScale', None), # by default pi/a (a: lattice constant)
+        ('BandLinesScale', None),  # by default pi/a (a: lattice constant)
         ('BandLines', None),
         ('BandPoints', None),
         ('WriteKbands', False),
         ('WriteBands', False),
         ('WFS.Write.For.Bands', False),
         ('WFS.Band.Min', 1),
-        ('WFS.Band.Max', 0), # default number of orbital
-        ('WaveFuncPointScale', None), # by default pi/a (a: lattice constant)
+        ('WFS.Band.Max', 0),  # default number of orbital
+        ('WaveFuncPointScale', None),  # by default pi/a (a: lattice constant)
         ('WaveFuncKPoints', None),
         ('WriteWaveFunctions', False),
         ('ProjectedDensityOfStates', None),
@@ -225,16 +210,16 @@ class Siesta3_2(BaseSiesta):
         ('PartialChargesAtEveryGeometry', False),
         ('PartialChargesAtEveryScfStep', False),
         ('COOP.Write', False),
-        ('WFS.Energy.Min', None), # default -\infty
-        ('WFS.Energy.Max', None), # default +\infty
+        ('WFS.Energy.Min', None),  # default -\infty
+        ('WFS.Energy.Max', None),  # default +\infty
         ('WFS.Band.Min', 1),
-        ('WFS.Band.Max', 0), #  default the number of orbitals
+        ('WFS.Band.Max', 0),  # default the number of orbitals
         ('OpticalCalculation', False),
-        ('Optical.EnergyMinimum', 0.0), # Ry
-        ('Optical.EnergyMaximum', 10.0), # Ry
-        ('Optical.Broaden', 0.0), # Ry
-        ('Optical.Scissor', 0.0), # Ry
-        ('Optical.NumberOfBands', 0), # default all bands
+        ('Optical.EnergyMinimum', 0.0),  # Ry
+        ('Optical.EnergyMaximum', 10.0),  # Ry
+        ('Optical.Broaden', 0.0),  # Ry
+        ('Optical.Scissor', 0.0),  # Ry
+        ('Optical.NumberOfBands', 0),  # default all bands
         ('Optical.Mesh', None),
         ('Optical.OffsetMesh', False),
         ('Optical.PolarizationType', "polycrystal"),
@@ -258,68 +243,65 @@ class Siesta3_2(BaseSiesta):
         ('SaveBaderCharge', False),
         ('SaveInitialChargeDensity', False),
         ('MM.Potentials', None),
-        ('MM.Cutoff', 30.0), # Bohr
+        ('MM.Cutoff', 30.0),  # Bohr
         ('MM.UnitsEnergy', "eV"),
         ('MM.UnitsDistance', "Ang"),
         ('MM.Grimme.D', 20.0),
         ('MM.Grimme.S6', 1.66),
         ('BlockSize', 8),
-        ('ProcessorY', 0), # default depend the number of cpus
+        ('ProcessorY', 0),  # default depend the number of cpus
         ('Diag.Memory', 1.0),
         ('Diag.ParallelOverK', False),
         ('UseDomainDecomposition', False),
         ('UseSpatialDecomposition', False),
-        ('RcSpatial', 0.0), # max of the matrix element range 
+        ('RcSpatial', 0.0),  # max of the matrix element range
         ('DirectPhi', False),
         ('AllocReportLevel', 0),
-#        ('TimerReportThreshold', ), not in the Doc ??
-#        ('UserTreeTimer',), not in the Doc ??
         ('UseSaveData', False),
         ('WriteDenchar', False),
         ('MD.TypeOfRun', "Verlet"),
         ('MD.VariableCell', False),
         ('MD.ConstantVolume', False),
         ('MD.RelaxCellOnly', False),
-        ('MD.MaxForceTol', 0.04), # eV/Ang
-        ('MD.MaxStressTol', 1.0), # GPa
+        ('MD.MaxForceTol', 0.04),  # eV/Ang
+        ('MD.MaxStressTol', 1.0),  # GPa
         ('MD.NumCGsteps', 0),
-        ('MD.MaxCGDispl', 0.2), #Bohr
-        ('MD.PreconditioningVariableCell', 5.0), # Ang
-        ('ZM.ForceTolLength', 0.00155), # Ry/Bohr
-        ('ZM.ForceTolAngle', 0.0035), # Ry/Rad
-        ('ZM.MaxDiplLength', 0.2), # Bohr
-        ('ZM.MaxDiplAngle', 0.003), # rad
+        ('MD.MaxCGDispl', 0.2),  # Bohr
+        ('MD.PreconditioningVariableCell', 5.0),  # Ang
+        ('ZM.ForceTolLength', 0.00155),  # Ry/Bohr
+        ('ZM.ForceTolAngle', 0.0035),  # Ry/Rad
+        ('ZM.MaxDiplLength', 0.2),  # Bohr
+        ('ZM.MaxDiplAngle', 0.003),  # rad
         ('MD.UseSaveCG', False),
         ('MD.Broyden.History.Steps', 5),
         ('MD.Broyden.Cycle.On.Maxit', True),
         ('MD.Broyden.Initial.Inverse.Jacobian', 1.0),
-        ('MD.FIRE.TimeStep', 0.0), # ??
+        ('MD.FIRE.TimeStep', 0.0),  # ??
         ('MD.Quench', False),
         ('MD.FireQuench', False),
-        ('MD.TargetPressure', 0.0), # GPa
+        ('MD.TargetPressure', 0.0),  # GPa
         ('MD.TargetStress', None),
         ('MD.RemoveIntramolecularPressure', False),
         ('MD.InitialTimeStep', 1),
         ('MD.FinalTimestep', 1),
-        ('MD.LengthTimeStep', 1.0), # fs
-        ('MD.InitialTemperature', 0.0), # K
-        ('MD.TargetTemperature', 0.0), # K
-        ('MD.NoseMass', 100.0), # Ry.fs^2
-        ('MD.ParrinelloRahmanMass', 100.0), # Ry.fs^{2} 
+        ('MD.LengthTimeStep', 1.0),  # fs
+        ('MD.InitialTemperature', 0.0),  # K
+        ('MD.TargetTemperature', 0.0),  # K
+        ('MD.NoseMass', 100.0),  # Ry.fs^2
+        ('MD.ParrinelloRahmanMass', 100.0),  # Ry.fs^{2}
         ('MD.AnnealOption', 0.0),
-        ('MD.TauRelax', 100.0), # fs
-        ('MD.BulkModulus', 100.0), #Ry/Bohr^{3}
+        ('MD.TauRelax', 100.0),  # fs
+        ('MD.BulkModulus', 100.0),  # Ry/Bohr^{3}
         ('WriteCoorInitial', True),
         ('WriteCoorStep', False),
         ('WriteForces', False),
         ('WriteMDhistory', False),
         ('GeometryConstraints', None),
-        ('MD.FCDispl', 0.04), # Bohr
+        ('MD.FCDispl', 0.04),  # Bohr
         ('MD.FCfirst', 1),
         ('MD.FClast', 0),
         ('PhononLabels', None),
-        ('MD.ATforPhonon', None)
-        ])
+        ('MD.ATforPhonon', None)])
 
 
 # Trunk version, snapshot 462
@@ -386,26 +368,26 @@ class SiestaTrunk462(BaseSiesta):
         ('PAO.FixSplitTailNorm', False),
         ('PAO.SoftDefault', False),
         ('PAO.SoftInnerRadius', 0.9),
-        ('PAO.SoftPotential', 40.0), # Ry
+        ('PAO.SoftPotential', 40.0),  # Ry
         ('PS.lmax', None),
         ('PS.KBprojectors', None),
         ('FilterCutoff', None),
         ('FilterTol', None),
         ('User.Basis', False),
         ('User.Basis.NetCDF', False),
-        ('BasisPressure', 0.2), # GPa
+        ('BasisPressure', 0.2),  # GPa
         ('ReparametrizePseudos', False),
         ('New.A.Parameter', 0.001),
         ('New.B.Parameter', 0.01),
         ('Rmax.Radial.Grid', 50.0),
         ('Restricted.Radial.Grid', True),
-        ('LatticeConstant', 1.0), # Ang
-        ('LatticeParameters',np.array([1.0, 1.0, 1.0, 
+        ('LatticeConstant', 1.0),  # Ang
+        ('LatticeParameters', np.array([1.0, 1.0, 1.0,
                                        90.0, 90.0, 90.0])),
         ('LatticeVectors', np.array([[1.0, 0.0, 0.0],
-                                     [0.0, 1.0, 0.0], 
+                                     [0.0, 1.0, 0.0],
                                      [0.0, 0.0, 1.0]])),
-        ('SuperCell',  None),
+        ('SuperCell', None),
         ('AtomicCoordinatesFormat', "Ang"),
         ('AtomicCoorFormatOut', "Ang"),
         ('AtomicCoordinatesOrigin', np.array([0.0, 0.0, 0.0])),
@@ -416,9 +398,9 @@ class SiestaTrunk462(BaseSiesta):
         ('WriteCoorXmol', False),
         ('WriteCoorCerius', False),
         ('WriteMDXmol', False),
-        ('WarningMiniumAtomicDistance', 1.0), # Bohr
-        ('MaxBondDistance', 6.0), # Bohr
-        ('kgrid_cutoff', 0.0), #Bohr
+        ('WarningMiniumAtomicDistance', 1.0),  # Bohr
+        ('MaxBondDistance', 6.0),  # Bohr
+        ('kgrid_cutoff', 0.0),  # Bohr
         ('kgrid_Monkhorst_Pack', None),
         ('ChangeKgridInMD', False),
         ('TimeReversalSymmetryForKpoints', True),
@@ -440,7 +422,7 @@ class SiestaTrunk462(BaseSiesta):
         ('DM.NumberBroyden', 0),
         ('DM.Broyden.Cycle.On.Maxit', True),
         ('DM.NumberKick', 0),
-        ('DM.KickMixingWeight',0.50),
+        ('DM.KickMixingWeight', 0.50),
         ('DM.MixSCF1', False),
         ('DM.UseSaveDM', False),
         ('DM.FormattedFiles', False),
@@ -459,14 +441,14 @@ class SiestaTrunk462(BaseSiesta):
         ('WrireDMHS.History.NetCDF', False),
         ('DM.Tolerance', 1E-4),
         ('DM.Require.Energy.Convergence', False),
-        ('DM.EnergyTolerance', 1E-4), # eV
+        ('DM.EnergyTolerance', 1E-4),  # eV
         ('DM.Require.Harris.Convergence', False),
-        ('DM.Harris.Tolerance', 1E-4), # eV
-        ('MeshCutoff', 100), # Ry
+        ('DM.Harris.Tolerance', 1E-4),  # eV
+        ('MeshCutoff', 100),  # Ry
         ('MeshSubDivisions', 2),
         ('GridCellSampling', None),
-        ('EggboxRemove',None),
-        ('EggboxScale', 1.0), # eV
+        ('EggboxRemove', None),
+        ('EggboxScale', 1.0),  # eV
         ('NeglNonOverlapInt', False),
         ('SaveHS', False),
         ('FixAuxiliaryCell', False),
@@ -482,45 +464,30 @@ class SiestaTrunk462(BaseSiesta):
         ('WriteEigenvalues', False),
         ('OccupationFunction', "FD"),
         ('OccupationMPOrder', 1),
-        ('ElectronicTemperature', 300.0), #K pp
-# The OMM parameters are not present in the siesta 3.2 Doc
-#        ('OMM.UseCholesky', ),
-#        ('OMM.Use2D',),
-#        ('OMM.UseSparse',),
-#        ('OMM.Precon',),
-#        ('OMM.PreconFirstStep',),
-#        ('OMM.Diagon',),
-#        ('OMM.DiagonFirstStep',),
-#        ('OMM.BlockSize',),
-#        ('OMM.TPreconScale',),
-#        ('OMM.RelTol',),
-#        ('OMM.Eigenvalues',),
-#        ('OMM.WriteCoeffs',),
-#        ('OMM.ReadCoeffs',),
-#        ('OMM.LongOutput',),
-        ('ON.functional',  "Kim"),
+        ('ElectronicTemperature', 300.0),  # K pp
+        ('ON.functional', "Kim"),
         ('ON.MaxNumIter', 1000),
         ('ON.etol', 1E-8),
-        ('ON.eta', 0.0), # eV
-        ('ON.eta_alpha', 0.0), # eV
-        ('ON.eta_beta', 0.0), # eV
-        ('ON.RcLWF', 9.5), # Bohr
+        ('ON.eta', 0.0),  # eV
+        ('ON.eta_alpha', 0.0),  # eV
+        ('ON.eta_beta', 0.0),  # eV
+        ('ON.RcLWF', 9.5),  # Bohr
         ('ON.ChemicalPotential', False),
         ('ON.ChemicalPotentialUse', False),
-        ('ON.ChemicalPotentialRc', 9.5), # Bohr
-        ('ON.ChemicalPotentialTemperature', 0.05), # Ry
+        ('ON.ChemicalPotentialRc', 9.5),  # Bohr
+        ('ON.ChemicalPotentialTemperature', 0.05),  # Ry
         ('ON.ChemicalPotentialOrder', 100),
         ('ON.LowerMemory', False),
         ('ON.UseSaveLWF', False),
-        ('BandLinesScale', None), # by default pi/a (a: lattice constant)
+        ('BandLinesScale', None),  # by default pi/a (a: lattice constant)
         ('BandLines', None),
         ('BandPoints', None),
         ('WriteKbands', False),
         ('WriteBands', False),
         ('WFS.Write.For.Bands', False),
         ('WFS.Band.Min', 1),
-        ('WFS.Band.Max', 0), # default number of orbital
-        ('WaveFuncPointScale', None), # by default pi/a (a: lattice constant)
+        ('WFS.Band.Max', 0),  # default number of orbital
+        ('WaveFuncPointScale', None),  # by default pi/a (a: lattice constant)
         ('WaveFuncKPoints', None),
         ('WriteWaveFunctions', False),
         ('ProjectedDensityOfStates', None),
@@ -532,16 +499,16 @@ class SiestaTrunk462(BaseSiesta):
         ('PartialChargesAtEveryGeometry', False),
         ('PartialChargesAtEveryScfStep', False),
         ('COOP.Write', False),
-        ('WFS.Energy.Min', None), # default -\infty
-        ('WFS.Energy.Max', None), # default +\infty
+        ('WFS.Energy.Min', None),  # default -\infty
+        ('WFS.Energy.Max', None),  # default +\infty
         ('WFS.Band.Min', 1),
-        ('WFS.Band.Max', 0), #  default the number of orbitals
+        ('WFS.Band.Max', 0),  # default the number of orbitals
         ('OpticalCalculation', False),
-        ('Optical.EnergyMinimum', 0.0), # Ry
-        ('Optical.EnergyMaximum', 10.0), # Ry
-        ('Optical.Broaden', 0.0), # Ry
-        ('Optical.Scissor', 0.0), # Ry
-        ('Optical.NumberOfBands', 0), # default all bands
+        ('Optical.EnergyMinimum', 0.0),  # Ry
+        ('Optical.EnergyMaximum', 10.0),  # Ry
+        ('Optical.Broaden', 0.0),  # Ry
+        ('Optical.Scissor', 0.0),  # Ry
+        ('Optical.NumberOfBands', 0),  # default all bands
         ('Optical.Mesh', None),
         ('Optical.OffsetMesh', False),
         ('Optical.PolarizationType', "polycrystal"),
@@ -565,68 +532,65 @@ class SiestaTrunk462(BaseSiesta):
         ('SaveBaderCharge', False),
         ('SaveInitialChargeDensity', False),
         ('MM.Potentials', None),
-        ('MM.Cutoff', 30.0), # Bohr
+        ('MM.Cutoff', 30.0),  # Bohr
         ('MM.UnitsEnergy', "eV"),
         ('MM.UnitsDistance', "Ang"),
         ('MM.Grimme.D', 20.0),
         ('MM.Grimme.S6', 1.66),
         ('BlockSize', 8),
-        ('ProcessorY', 0), # default depend the number of cpus
+        ('ProcessorY', 0),  # default depend the number of cpus
         ('Diag.Memory', 1.0),
         ('Diag.ParallelOverK', False),
         ('UseDomainDecomposition', False),
         ('UseSpatialDecomposition', False),
-        ('RcSpatial', 0.0), # max of the matrix element range 
+        ('RcSpatial', 0.0),  # max of the matrix element range
         ('DirectPhi', False),
         ('AllocReportLevel', 0),
-#        ('TimerReportThreshold', ), not in the Doc ??
-#        ('UserTreeTimer',), not in the Doc ??
         ('UseSaveData', False),
         ('WriteDenchar', False),
         ('MD.TypeOfRun', "Verlet"),
         ('MD.VariableCell', False),
         ('MD.ConstantVolume', False),
         ('MD.RelaxCellOnly', False),
-        ('MD.MaxForceTol', 0.04), # eV/Ang
-        ('MD.MaxStressTol', 1.0), # GPa
+        ('MD.MaxForceTol', 0.04),  # eV/Ang
+        ('MD.MaxStressTol', 1.0),  # GPa
         ('MD.NumCGsteps', 0),
-        ('MD.MaxCGDispl', 0.2), #Bohr
-        ('MD.PreconditioningVariableCell', 5.0), # Ang
-        ('ZM.ForceTolLength', 0.00155), # Ry/Bohr
-        ('ZM.ForceTolAngle', 0.0035), # Ry/Rad
-        ('ZM.MaxDiplLength', 0.2), # Bohr
-        ('ZM.MaxDiplAngle', 0.003), # rad
+        ('MD.MaxCGDispl', 0.2),  # Bohr
+        ('MD.PreconditioningVariableCell', 5.0),  # Ang
+        ('ZM.ForceTolLength', 0.00155),  # Ry/Bohr
+        ('ZM.ForceTolAngle', 0.0035),  # Ry/Rad
+        ('ZM.MaxDiplLength', 0.2),  # Bohr
+        ('ZM.MaxDiplAngle', 0.003),  # rad
         ('MD.UseSaveCG', False),
         ('MD.Broyden.History.Steps', 5),
         ('MD.Broyden.Cycle.On.Maxit', True),
         ('MD.Broyden.Initial.Inverse.Jacobian', 1.0),
-        ('MD.FIRE.TimeStep', 0.0), # ??
+        ('MD.FIRE.TimeStep', 0.0),  # ??
         ('MD.Quench', False),
         ('MD.FireQuench', False),
-        ('MD.TargetPressure', 0.0), # GPa
+        ('MD.TargetPressure', 0.0),  # GPa
         ('MD.TargetStress', None),
         ('MD.RemoveIntramolecularPressure', False),
         ('MD.InitialTimeStep', 1),
         ('MD.FinalTimestep', 1),
-        ('MD.LengthTimeStep', 1.0), # fs
-        ('MD.InitialTemperature', 0.0), # K
-        ('MD.TargetTemperature', 0.0), # K
-        ('MD.NoseMass', 100.0), # Ry.fs^2
-        ('MD.ParrinelloRahmanMass', 100.0), # Ry.fs^{2} 
+        ('MD.LengthTimeStep', 1.0),  # fs
+        ('MD.InitialTemperature', 0.0),  # K
+        ('MD.TargetTemperature', 0.0),  # K
+        ('MD.NoseMass', 100.0),  # Ry.fs^2
+        ('MD.ParrinelloRahmanMass', 100.0),  # Ry.fs^2
         ('MD.AnnealOption', 0.0),
-        ('MD.TauRelax', 100.0), # fs
-        ('MD.BulkModulus', 100.0), #Ry/Bohr^{3}
+        ('MD.TauRelax', 100.0),  # fs
+        ('MD.BulkModulus', 100.0),  # Ry/Bohr^{3}
         ('WriteCoorInitial', True),
         ('WriteCoorStep', False),
         ('WriteForces', False),
         ('WriteMDhistory', False),
         ('GeometryConstraints', None),
-        ('MD.FCDispl', 0.04), # Bohr
+        ('MD.FCDispl', 0.04),  # Bohr
         ('MD.FCfirst', 1),
         ('MD.FClast', 0),
         ('PhononLabels', None),
-        ('MD.ATforPhonon', None)
-        ])
+        ('MD.ATforPhonon', None)])
 #
 #
 #    allowed_fdf_keywords = OrderedDict([
