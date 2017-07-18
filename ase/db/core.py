@@ -30,7 +30,7 @@ default_key_descriptions = {
     'mass': ('Mass', '', 'au'),
     'magmom': ('Magnetic moment', '', 'au'),
     'unique_id': ('Unique ID', '', ''),
-    'volume': ('Volume', 'Volume of unit-cell', '`Ang^3`')}
+    'volume': ('Volume', 'Volume of unit-cell', '`\\text{Ang}^3`')}
 
 
 def now():
@@ -139,6 +139,8 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
+            if type == '':
+                raise ValueError('No file extension or database type given')
 
     if type is None:
         return Database()

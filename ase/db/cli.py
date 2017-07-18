@@ -23,7 +23,7 @@ except NameError:
 class CLICommand:
     short_description = 'Manipulate and query ASE database'
 
-    description = """Selecton is a comma-separated list of
+    description = """Selection is a comma-separated list of
     selections where each selection is of the type "ID", "key" or
     "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
     and  "!=" (these must be protected from the shell by using quotes).

@@ -75,33 +75,39 @@ class Summary:
 
         misc = set(table.keys())
         self.layout = []
-        for headline, blocks in meta['layout']:
-            newblocks = []
-            for block in blocks:
-                if block is None:
-                    pass
-                elif isinstance(block, tuple):
-                    title, keys = block
-                    rows = []
-                    for key in keys:
-                        value = table.get(key, None)
-                        if value is not None:
-                            if key in misc:
-                                misc.remove(key)
-                            desc, unit = kd.get(key, [0, key, ''])[1:]
-                            rows.append((desc, value, unit))
-                    block = (title, rows)
-                elif block.endswith('.png'):
-                    name = op.join(tmpdir, prefix + block)
-                    if op.isfile(name):
+        for headline, columns in meta['layout']:
+            newcolumns = []
+            for column in columns:
+                newcolumn = []
+                for block in column:
+                    if block is None:
+                        pass
+                    elif isinstance(block, tuple):
+                        title, keys = block
+                        rows = []
+                        for key in keys:
+                            value = table.get(key, None)
+                            if value is not None:
+                                if key in misc:
+                                    misc.remove(key)
+                                desc, unit = kd.get(key, [0, key, ''])[1:]
+                                rows.append((desc, value, unit))
+                        if rows:
+                            block = (title, rows)
+                        else:
+                            continue
+                    elif block.endswith('.png'):
+                        name = op.join(tmpdir, prefix + block)
+                        if not op.isfile(name):
+                            self.create_figures(row, prefix, tmpdir,
+                                                meta['functions'])
                         if op.getsize(name) == 0:
+                            # Skip empty files:
                             block = None
-                    else:
-                        self.create_figures(row, prefix, tmpdir,
-                                            meta['functions'])
 
-                newblocks.append(block)
-            self.layout.append((headline, newblocks))
+                    newcolumn.append(block)
+                newcolumns.append(newcolumn)
+            self.layout.append((headline, newcolumns))
 
         if misc:
             rows = []
@@ -109,7 +115,7 @@ class Summary:
                 value = table[key]
                 desc, unit = kd.get(key, [0, key, ''])[1:]
                 rows.append((desc, value, unit))
-            self.layout.append(('Miscellaneous', [('Items', rows)]))
+            self.layout.append(('Miscellaneous', [[('Items', rows)]]))
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -137,6 +143,7 @@ class Summary:
                     if os.path.isfile(filename):
                         shutil.move(filename, path)
                     else:
+                        # Create an empty file:
                         with open(path, 'w'):
                             pass
 
@@ -144,7 +151,10 @@ class Summary:
         row = self.row
 
         print(self.formula + ':')
-        for headline, blocks in self.layout:
+        for headline, columns in self.layout:
+            blocks = columns[0]
+            if len(columns) == 2:
+                blocks += columns[1]
             print((' ' + headline + ' ').center(78, '='))
             for block in blocks:
                 if block is None:

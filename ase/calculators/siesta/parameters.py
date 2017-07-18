@@ -1,6 +1,9 @@
 from ase.calculators.calculator import Parameters
 from ase.utils import basestring
 
+"""
+2017.04 - Pedro Brandimarte: changes for python 2-3 compatible
+"""
 
 class PAOBasisBlock(Parameters):
     """
@@ -91,10 +94,10 @@ def format_value(value):
         - value : The value to format.
     """
     if isinstance(value, tuple):
-        sub_values = map(format_value, value)
+        sub_values = [format_value(v) for v in value]
         value = '\t'.join(sub_values)
     elif isinstance(value, list):
-        sub_values = map(format_value, value)
+        sub_values = [format_value(v) for v in value]
         value = '\n'.join(sub_values)
     else:
         value = str(value)

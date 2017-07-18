@@ -23,7 +23,7 @@ class CLICommand:
         if args.dry_run:
             return
         with open(filename) as fd:
-            if cmd in fd.readlines():
+            if cmd + '\n' in fd.readlines():
                 print('Completion script already installed!')
                 return
         with open(filename, 'a') as fd:

@@ -46,10 +46,10 @@ class ColorWindow:
         radio['magmom'].active = get_magmoms(atoms).any()
 
     def toggle(self, value):
+        self.gui.colormode = value
         if value == 'jmol':
             text = ''
         else:
-            self.gui.colormode = value
             scalars = np.array([self.gui.get_color_scalars(i)
                                 for i in range(len(self.gui.images))])
             mn = scalars.min()

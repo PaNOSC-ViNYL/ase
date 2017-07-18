@@ -50,11 +50,10 @@ for i, a in enumerate(org):
     if i < 3:
         a.symbol = 'H'
 
-if hasattr(itertools, 'permutations'):
-    for indxs in itertools.permutations(range(3)):
-        new = org.copy()
-        for c in range(3):
-            new[c].position = org[indxs[c]].position
-        dist = distance(org, new)
-        print('permutation', indxs, '-> distance', dist)
-        assert dist < maxdist
+for indxs in itertools.permutations(range(3)):
+    new = org.copy()
+    for c in range(3):
+        new[c].position = org[indxs[c]].position
+    dist = distance(org, new)
+    print('permutation', indxs, '-> distance', dist)
+    assert dist < maxdist

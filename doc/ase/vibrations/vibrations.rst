@@ -24,7 +24,9 @@ finite difference method to calculate the Hessian matrix. method is -1
 for backward differences, 0 for centered differences, and 1 for
 forward differences.
 
-   
+
+.. _infrared:
+
 Infrared intensities
 ====================
 

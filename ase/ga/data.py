@@ -380,15 +380,26 @@ class PrepareDB(object):
     def add_unrelaxed_candidate(self, candidate, **kwargs):
         """ Add an unrelaxed starting candidate. """
         gaid = self.c.write(candidate, origin='StartingCandidateUnrelaxed',
-                            relaxed=False, generation=0, extinct=0, **kwargs)
+                            relaxed=0, generation=0, extinct=0, **kwargs)
         self.c.update(gaid, gaid=gaid)
 
     def add_relaxed_candidate(self, candidate):
         """ Add a relaxed starting candidate. """
+        try:
+            candidate.info['key_value_pairs']['raw_score']
+        except KeyError:
+            print("raw_score not put in atoms.info['key_value_pairs']")
+            
+        if 'data' in candidate.info:
+            data = candidate.info['data']
+        else:
+            data = {}
+            
         gaid = self.c.write(candidate, origin='StartingCandidateRelaxed',
-                            relaxed=True, generation=0, extinct=0)
+                            relaxed=1, generation=0, extinct=0,
+                            key_value_pairs=candidate.info['key_value_pairs'],
+                            data=data)
         self.c.update(gaid, gaid=gaid)
-
 
 # class PrepareGenericDB(PrepareDB):
 #     def __init__(self, db_file_name, simulation_cell, stoichiometry):
