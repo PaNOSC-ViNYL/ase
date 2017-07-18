@@ -151,6 +151,16 @@ class Turbomole(FileIOCalculator):
         'non-define': 'parameter_no_define'
     }
 
+    # flat dictionaries with parameters attributes
+    default_parameters = {}
+    parameter_comment = {}
+    parameter_updateable = {}
+    parameter_type = {}
+    parameter_key = {}
+    parameter_group = {}
+    parameter_units = {}
+    parameter_mapping = {}
+    parameter_no_define = {}
 
     # nested dictionary with parameters attributes
     parameter_spec = {
@@ -587,7 +597,12 @@ class Turbomole(FileIOCalculator):
         self.control_kdg = control_kdg
         self.control_input = control_input
 
-        
+        # construct flat dictionaries with parameter attributes
+        for p in self.parameter_spec:
+            for k in self.spec_names:
+                if k in list(self.parameter_spec[p].keys()):
+                    subdict = getattr(self, self.spec_names[k])
+                    subdict.update({p: self.parameter_spec[p][k]})
 
         if self.restart:
             self._set_restart(kwargs)
@@ -596,6 +611,9 @@ class Turbomole(FileIOCalculator):
             self.verify_parameters()
             self.reset()
 
+        if atoms is not None:
+            atoms.set_calculator(self)
+            self.set_atoms(atoms)
         #pcpot: PointCharge object
         #    An external point charge potential (only in qmmm)
         #    This is created when user calls turbomole.embed()
