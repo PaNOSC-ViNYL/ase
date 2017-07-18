@@ -68,11 +68,22 @@ class SimpleQMMM(Calculator):
             self.qmatoms.positions += (self.center -
                                        self.qmatoms.positions.mean(axis=0))
 
-        energy = self.mmcalc2.get_potential_energy(atoms)
+        energy = self.qmcalc.get_potential_energy(self.qmatoms)
+        qmforces = self.qmcalc.get_forces(self.qmatoms)
+
+        # update charges on QM atoms in MM2 and MM1 calculators (amber)
+        if (self.mmcalc1.name == 'amber'):
+            qmcharges = self.qmcalc.get_charges(self.qmatoms)
+            self.mmcalc1.set_charges(list(range(len(qmcharges))),
+                                     qmcharges, 'parmed_mm1.input')
+        if (self.mmcalc2.name == 'amber'):
+            qmcharges = self.qmcalc.get_charges(self.qmatoms)            
+            self.mmcalc2.set_charges(self.selection,
+                                     qmcharges, 'parmed_mm2.input')
+
+        energy += self.mmcalc2.get_potential_energy(atoms)
         forces = self.mmcalc2.get_forces(atoms)
 
-        energy += self.qmcalc.get_potential_energy(self.qmatoms)
-        qmforces = self.qmcalc.get_forces(self.qmatoms)
         if self.vacuum:
             qmforces -= qmforces.mean(axis=0)
         forces[self.selection] += qmforces

@@ -114,7 +114,8 @@ class Turbomole(FileIOCalculator):
     """ constants """
     name = 'Turbomole'
 
-    implemented_properties = ['energy', 'forces', 'dipole', 'free_energy']
+    implemented_properties = ['energy', 'forces', 'dipole', 'free_energy',
+                              'charges']
 
     available_basis_sets = [
         'sto-3g hondo', 'def-SV(P)', 'def2-SV(P)', 'def-TZV(P)',
@@ -150,16 +151,6 @@ class Turbomole(FileIOCalculator):
         'non-define': 'parameter_no_define'
     }
 
-    # flat dictionaries with parameters attributes
-    default_parameters = {}
-    parameter_comment = {}
-    parameter_updateable = {}
-    parameter_type = {}
-    parameter_key = {}
-    parameter_group = {}
-    parameter_units = {}
-    parameter_mapping = {}
-    parameter_no_define = {}
 
     # nested dictionary with parameters attributes
     parameter_spec = {
@@ -583,7 +574,7 @@ class Turbomole(FileIOCalculator):
     def __init__(self, label=None, calculate_energy='dscf',
                  calculate_forces='grad', post_HF=False, atoms=None,
                  restart=False, define_str=None, control_kdg=None,
-                 control_input=None, **kwargs):
+                 control_input=None, add_esp=False, **kwargs):
 
         FileIOCalculator.__init__(self)
 
@@ -596,12 +587,7 @@ class Turbomole(FileIOCalculator):
         self.control_kdg = control_kdg
         self.control_input = control_input
 
-        # construct flat dictionaries with parameter attributes
-        for p in self.parameter_spec:
-            for k in self.spec_names:
-                if k in list(self.parameter_spec[p].keys()):
-                    subdict = getattr(self, self.spec_names[k])
-                    subdict.update({p: self.parameter_spec[p][k]})
+        
 
         if self.restart:
             self._set_restart(kwargs)
@@ -610,9 +596,17 @@ class Turbomole(FileIOCalculator):
             self.verify_parameters()
             self.reset()
 
-        if atoms is not None:
-            atoms.set_calculator(self)
-            self.set_atoms(atoms)
+	#pcpot: PointCharge object
+        #    An external point charge potential (only in qmmm)
+        #    This is created when user calls turbomole.embed()
+	self.pcpot = None
+
+        #add_esp : boolean
+        #    Are we calculating esp-fit? amnd writing esp_t kollman to 
+        #    the control file
+        #    add esp fit instructions to the control file
+        if add_esp:
+            self.add_esp_fit('control')
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -829,6 +823,10 @@ class Turbomole(FileIOCalculator):
         self.update_forces = True
         self.update_geometry = True
         self.update_hessian = True
+
+        if self.pcpot:
+            self.write_mmcharges(
+                os.path.join(self.directory, 'pc.txt'))
 
     def get_define_str(self):
         """ construct a define string from the parameters dictionary """
@@ -1298,6 +1296,13 @@ class Turbomole(FileIOCalculator):
             self.read_vibrational_reduced_masses()
             self.read_normal_modes()
             self.read_vibrational_spectrum()
+            
+        if self.pcpot is not(None):
+            try:
+                self.results['charges'] = self.read_charges()
+            except:
+                self.results['charges'] = None
+            self.mmpositions = None    
 
     def read_run_parameters(self):
         """ read parameters set by define and not in self.parameters """
@@ -1992,3 +1997,154 @@ class Turbomole(FileIOCalculator):
         if isinstance(result, np.ndarray):
             result = result.copy()
         return result
+
+    def get_charges(self, atoms):
+        """ Get the calculated charges """
+        return self.results['charges']
+            
+    def read_charges(self, filename=None):
+        """ Get partial charges on turbomole-atoms"""
+        if filename is None:
+            filename = self.label + '.energy.log'
+        if self.atoms is None:
+            # print("Warning:TM: in read_charges reading also atoms from coord")
+            atoms = io.read('coord')
+            len_atoms = len(atoms)
+        else:
+            len_atoms = len(self.atoms)
+        infile = open(filename, 'r')
+        lines = infile.readlines()
+        infile.close()
+        for n, line in enumerate(lines):
+            if line.find('atom  radius/au   charge') > 0:
+                break
+        if n >= (len(lines) - 1):
+            # print(self.label + " Warning: no charges found in turbomole")
+            self.results['charges'] = None
+        else:
+            oklines = lines[n + 1:n + len_atoms + 1]
+            qm_charges = []
+            for line in oklines:
+                qm_charges.append(float(line.split()[3]))
+            self.results['charges'] = np.array(qm_charges)
+            return np.array(qm_charges)
+
+    def read_forces_on_external_atoms(self):
+        """ reading forces on point charges excerted by the QM system """
+        # read gradients
+        infile = open(os.path.join(self.directory, 'pc_gradients.txt'), 'r')
+        lines = infile.readlines()
+        infile.close()
+        del lines[-1]
+        del lines[0]
+        forces = np.zeros([len(self.pcpot.mmcharges), 3])
+        for iatom in range(len(self.pcpot.mmcharges)):
+            data = lines[iatom].replace('D', 'E').split()
+            for iforce in range(3):
+                forces[iatom, iforce] = float(data[iforce])
+        # Note the '-' sign for turbomole, to get forces
+        return -forces * Hartree / Bohr
+
+    def write_mmcharges(self, filename='pc.txt'):
+        """ external charges are written to file (default 'pc.txt') """
+        if self.pcpot.mmcharges is None:
+            print(self.label + " Warning: TM: not writing exernal charges")
+            return
+        else:
+            if not self.pcpot.control_has_pointcharges:
+                # point charge information is added to file 'control'
+                self.pcpot.control_has_pointcharges = True
+                self.embed_modify_control()
+            pcfile = open(filename, 'w')
+            pcfile.write('$point_charges nocheck list \n')
+            for(x, y, z), charge in zip(
+                    self.pcpot.mmpositions, self.pcpot.mmcharges):
+                pcfile.write('%20.14f  %20.14f  %20.14f  %20.14f\n'
+                             % (x / Bohr, y / Bohr, z / Bohr, charge))
+            pcfile.write('$end \n')
+            pcfile.close()
+
+    def embed(self, charges=None):
+        """Embed atoms in point-charges.
+           Also in turbomole control file one writes
+           the name of the point charge file.
+        """
+        self.pcpot = PointChargePotential(charges)
+        return self.pcpot
+
+    def embed_modify_control(self):
+        """ modify turbomole input file 'control' for embedding """
+        infile = open(os.path.join(self.directory, 'control'), 'r')
+        lines = infile.readlines()
+        infile.close()
+        # kill lines containing point charge information
+        ok_lines = []
+        for line in lines:
+            if line.find('point charges') >= 0:
+                pass
+            elif line.find('$point_charges') >= 0:
+                pass
+            elif line.find('$point_charge_gradients') >= 0:
+                pass
+            else:
+                ok_lines.append(line)
+
+        lines = ok_lines
+        # add keywork for calculating forces on point charges
+        ok_lines = []
+        for line in lines:
+            ok_lines.append(line)
+            if line.find('$drvopt') >= 0:
+                ok_lines.append('   point charges \n')
+        # add the name of the point charges file
+        ok_lines[-1] = '$point_charges file=pc.txt \n'
+        # add the name of the file were the gradients on oint charges are
+        ok_lines.append(
+            '$point_charge_gradients file = pc_gradients.txt \n')
+        ok_lines.append('$end \n')
+        outfile = open(os.path.join(self.directory, 'control'), 'w')
+        outfile.writelines(ok_lines)
+        outfile.close()
+
+    def add_esp_fit(self, infilename=None):
+        """ in case there is no esp fit in control file add there one
+            it is needed in qm/mm and does not harm otherwise"""
+        
+        if infilename is None:
+            infile = open(os.path.join(self.directory, 'control'), 'r')
+        else:
+            infile = open(infilename, 'r')
+        lines = infile.readlines()
+        infile.close()
+
+        found = False
+        for line in lines:
+            if line.find('esp_fit') >= 0:
+                found = True
+                break
+        if not found:
+            lines[-1] = '$esp_fit kollman \n'
+            lines.append('$end \n')
+            outfile = open(os.path.join(self.directory, 'control'), 'w')
+            outfile.writelines(lines)
+            outfile.close()
+
+class PointChargePotential:
+    def __init__(self, mmcharges):
+        """Point-charge potential for Turbomole
+        """
+        self.mmcharges = mmcharges
+        self.mmpositions = None
+        self.mmforces = None
+        self.control_has_pointcharges = False
+
+    def set_positions(self, mmpositions):
+        self.mmpositions = mmpositions
+
+    def set_charges(self, mmcharges):
+        self.mmcharges = mmcharges
+        
+    def get_forces(self, calc):
+        """ forces on external atoms by QM system """
+        self.mmforces = calc.read_forces_on_external_atoms()
+        return self.mmforces            
