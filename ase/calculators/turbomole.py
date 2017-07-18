@@ -596,10 +596,10 @@ class Turbomole(FileIOCalculator):
             self.verify_parameters()
             self.reset()
 
-	#pcpot: PointCharge object
+        #pcpot: PointCharge object
         #    An external point charge potential (only in qmmm)
         #    This is created when user calls turbomole.embed()
-	self.pcpot = None
+        self.pcpot = None
 
         #add_esp : boolean
         #    Are we calculating esp-fit? amnd writing esp_t kollman to 
@@ -2006,12 +2006,12 @@ class Turbomole(FileIOCalculator):
         """ Get partial charges on turbomole-atoms"""
         if filename is None:
             filename = self.label + '.energy.log'
-        if self.atoms is None:
+#        if self.atoms is None:
             # print("Warning:TM: in read_charges reading also atoms from coord")
-            atoms = io.read('coord')
-            len_atoms = len(atoms)
-        else:
-            len_atoms = len(self.atoms)
+#            atoms = io.read('coord')
+#            len_atoms = len(atoms)
+#        else:
+        len_atoms = len(self.atoms)
         infile = open(filename, 'r')
         lines = infile.readlines()
         infile.close()
