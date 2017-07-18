@@ -106,7 +106,12 @@ class View:
         self.set_atoms(self.images[frame])
 
         fname = self.images.filenames[frame]
-        self.window.title = 'ase.gui' if fname is None else basename(fname)
+        if fname is None:
+            title = 'ase.gui'
+        else:
+            title = '{}@{}'.format(fname, frame)
+
+        self.window.title = title
 
         if focus:
             self.focus()
