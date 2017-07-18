@@ -20,7 +20,7 @@ from ase.utils.formula import formula_hill, formula_metal
 __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
            'opencew', 'OpenLock', 'rotate', 'irotate', 'givens',
-           'hsv2rgb', 'hsv', 'pickleload',
+           'hsv2rgb', 'hsv', 'pickleload', 'FileNotFoundError',
            'formula_hill', 'formula_metal']
 
 
@@ -31,7 +31,11 @@ if sys.version_info[0] > 2:
     basestring = str
     from io import StringIO
     pickleload = functools.partial(pickle.load, encoding='bytes')
+    FileNotFoundError = getattr(builtins, 'FileNotFoundError')
 else:
+    class FileNotFoundError(OSError):
+        pass
+
     # Legacy Python:
     def exec_(code, dct):
         exec('exec code in dct')

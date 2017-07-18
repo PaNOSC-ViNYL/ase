@@ -11,10 +11,10 @@ class MyCalc:
 
     def get_k_point_weights(self):
         return [1.0]
-    
+
     def get_number_of_spins(self):
         return 1
-    
+
     def get_fermi_level(self):
         return 0.0
 
@@ -27,4 +27,5 @@ plt.figure(figsize=(5, 4))
 plt.plot(e, d)
 plt.xlabel('energy [eV]')
 plt.ylabel('DOS')
+plt.tight_layout()
 plt.savefig('dos.png')

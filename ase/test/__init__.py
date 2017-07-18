@@ -68,16 +68,12 @@ class ScriptTestCase(unittest.TestCase):
         return "ScriptTestCase(filename='%s')" % self.filename
 
 
-def test(verbosity=1, calculators=[],
-         testdir=None, stream=sys.stdout, files=None):
-    test_calculator_names.extend(calculators)
-    disable_calculators([name for name in calc_names
-                         if name not in calculators])
-    ts = unittest.TestSuite()
+def get_tests(files=None):
     if files:
         files = [os.path.join(__path__[0], f) for f in files]
     else:
         files = glob(__path__[0] + '/*')
+
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
@@ -91,9 +87,21 @@ def test(verbosity=1, calculators=[],
     tests.sort()
     sdirtests.sort()
     tests.extend(sdirtests)  # run test subdirectories at the end
+    tests = [test for test in tests if not test.endswith('__.py')]
+    return tests
+
+
+def test(verbosity=1, calculators=[],
+         testdir=None, stream=sys.stdout, files=None):
+    test_calculator_names.extend(calculators)
+    disable_calculators([name for name in calc_names
+                         if name not in calculators])
+
+    tests = get_tests(files)
+
+    ts = unittest.TestSuite()
+
     for test in tests:
-        if test.endswith('__.py'):
-            continue
         ts.addTest(ScriptTestCase(filename=os.path.abspath(test)))
 
     if verbosity > 0:
@@ -182,8 +190,14 @@ class CLICommand:
         parser.add_argument(
             '-c', '--calculators',
             help='Comma-separated list of calculators to test.')
-        parser.add_argument('-v', '--verbose', action='store_true')
-        parser.add_argument('-q', '--quiet', action='store_true')
+        parser.add_argument('-v', '--verbose', help='verbose mode',
+                            action='store_true')
+        parser.add_argument('-q', '--quiet', action='store_true',
+                            help='quiet mode')
+        parser.add_argument('--list', action='store_true',
+                            help='print all tests and exit')
+        parser.add_argument('--list-calculators', action='store_true',
+                            help='print all calculator names and exit')
         parser.add_argument('tests', nargs='*')
 
     @staticmethod
@@ -192,6 +206,24 @@ class CLICommand:
             calculators = args.calculators.split(',')
         else:
             calculators = []
+
+        if args.list:
+            for testfile in get_tests():
+                print(testfile)
+            sys.exit(0)
+
+        if args.list_calculators:
+            for name in calc_names:
+                print(name)
+            sys.exit(0)
+
+        for calculator in calculators:
+            if not calculator in calc_names:
+                sys.stderr.write('No calculator named "{}".\n'
+                                 'Possible CALCULATORS are: '
+                                 '{}.\n'.format(calculator,
+                                               ', '.join(calc_names)))
+                sys.exit(1)
 
         results = test(verbosity=1 + args.verbose - args.quiet,
                        calculators=calculators,

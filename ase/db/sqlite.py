@@ -435,7 +435,7 @@ class SQLite3Database(Database, object):
                 if bad[key]:
                     where.append(
                         'NOT EXISTS (SELECT id FROM species WHERE\n' +
-                        '  species.id=systems.id AND species.Z==? AND ' +
+                        '  species.id=systems.id AND species.Z=? AND ' +
                         'species.n{0}?)'.format(invop[op]))
                     args += [key, value]
                 else:

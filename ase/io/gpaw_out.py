@@ -184,8 +184,8 @@ def read_gpaw_out(fileobj, index):
             magmoms = None
         else:
             magmoms = []
-            for i in range(ii + 1, ii + 1 + len(atoms)):
-                magmom = lines[i].split()[-1]
+            for j in range(ii + 1, ii + 1 + len(atoms)):
+                magmom = lines[j].split()[-1]
                 magmoms.append(float(magmom))
 
         try:

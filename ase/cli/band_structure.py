@@ -3,6 +3,7 @@ from __future__ import print_function
 import numpy as np
 
 from ase.io import read
+from ase.geometry import crystal_structure_from_cell
 from ase.dft.kpoints import (get_monkhorst_pack_size_and_offset,
                              monkhorst_pack_interpolate,
                              bandpath)
@@ -11,15 +12,19 @@ from ase.dft.band_structure import BandStructure
 
 class CLICommand:
     short_description = 'Plot band-structure'
+    description = (
+        'Plot result from band-structure calculation or interpolate '
+        'from Monkhorst-Pack sampling to a given path (--path=PATH).')
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('calculation')
+        parser.add_argument('calculation',
+                            help='Path to output file(s) from calculation')
         parser.add_argument('-q', '--quiet', action='store_true')
         parser.add_argument('-k', '--path', help='Example "GXL".')
-        parser.add_argument('-n', '--points', type=int, default=50,
-                            help='Number of point along the path '
-                            '(default: 50)')
+        parser.add_argument('-n', '--points', type=int, default=100,
+                            help='Number of points along the path '
+                            '(default: 100)')
         parser.add_argument('-r', '--range', nargs=2, default=['-3', '3'],
                             metavar=('emin', 'emax'),
                             help='Default: "-3.0 3.0" '
@@ -32,6 +37,7 @@ class CLICommand:
 
 def main(args, parser):
     atoms = read(args.calculation)
+    cell = atoms.get_cell()
     calc = atoms.calc
     bzkpts = calc.get_bz_k_points()
     ibzkpts = calc.get_ibz_k_points()
@@ -52,7 +58,19 @@ def main(args, parser):
             print('Interpolating from Monkhorst-Pack grid (size, offset):')
             print(size, offset)
         if args.path is None:
-            parser.error('Please specify a path!')
+            err = 'Please specify a path!'
+            try:
+                cs = crystal_structure_from_cell(cell)
+            except ValueError:
+                err += ('\nGPAW cannot autimatically '
+                        'recognize this crystal structure')
+            else:
+                from ase.dft.kpoints import special_paths
+                kptpath = special_paths[cs]
+                err += ('\nIt looks like you have a {} crystal structure.'
+                        '\nMaybe you want its special path:'
+                        ' {}'.format(cs, kptpath))
+            parser.error(err)
         bz2ibz = calc.get_bz_to_ibz_map()
         path = bandpath(args.path, atoms.cell, args.points)[0]
         icell = atoms.get_reciprocal_cell()

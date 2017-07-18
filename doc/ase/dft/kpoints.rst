@@ -108,6 +108,7 @@ You can find the special points in the Brillouin zone:
 .. autofunction:: get_special_points
 .. autofunction:: bandpath
 .. autofunction:: parse_path_string
+.. autofunction:: labels_from_kpts
 
 
 Band structure
