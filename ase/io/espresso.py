@@ -1017,6 +1017,11 @@ def construct_namelist(parameters=None, warn=False, **kwargs):
     their correct section. All matches are case-insensitive, and returned
     Namelist object is a case-insensitive dict.
 
+    If a key is not known to ase, but in a section within `parameters`,
+    it will be assumed that it was put there on purpose and included
+    in the output namelist. Anything not in a section will be ignored (set
+    `warn` to True to see ignored keys).
+
     Keys with a dimension (e.g. Hubbard_U(1)) will be incorporated as-is
     so the `i` should be made to match the output.
 
@@ -1084,16 +1089,18 @@ def construct_namelist(parameters=None, warn=False, **kwargs):
         # Add to output
         input_namelist[section] = sec_list
 
-    if warn:
-        unused_keys = list(kwargs)
-        for key, value in parameters.items():
-            if isinstance(value, dict):
-                unused_keys.extend(list(value))
-            else:
-                unused_keys.append(key)
+    unused_keys = list(kwargs)
+    # pass anything else already in a section
+    for key, value in parameters.items():
+        if key in KEYS and isinstance(value, dict):
+            input_namelist[key].update(value)
+        elif isinstance(value, dict):
+            unused_keys.extend(list(value))
+        else:
+            unused_keys.append(key)
 
-        if unused_keys:
-            warnings.warn('Unused keys: {}'.format(', '.join(unused_keys)))
+    if warn and unused_keys:
+        warnings.warn('Unused keys: {}'.format(', '.join(unused_keys)))
 
     return input_namelist
 
@@ -1277,10 +1284,13 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
     Create an input file for pw.x.
 
     Use set_initial_magnetic_moments to turn on spin, if ispin is set to 2
-    with no magnetic moments, they will all be set to 0.0.
+    with no magnetic moments, they will all be set to 0.0. Magnetic moments
+    will be converted to the QE units (fraction of valence electrons) using
+    any pseudopotential files found, or a best guess for the number of
+    valence electrons.
 
-    Units are not converted, so use Quantum ESPRESSO units
-    (Usually Ry or atomic units).
+    Units are not converted for any other input data, so use Quantum ESPRESSO
+    units (Usually Ry or atomic units).
 
     Keys with a dimension (e.g. Hubbard_U(1)) will be incorporated as-is
     so the `i` should be made to match the output.
