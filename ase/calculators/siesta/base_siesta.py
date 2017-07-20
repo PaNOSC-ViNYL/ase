@@ -240,16 +240,15 @@ class BaseSiesta(FileIOCalculator):
             if not (isinstance(basis_set, PAOBasisBlock) or
                     basis_set in allowed):
                 mess = "Basis must be either %s, got %s" % (allowed, basis_set)
-                raise Exception(mess)
+                raise ValueError(mess)
 
         # Check the spin input.
         if 'spin' in kwargs:
             spin = kwargs['spin']
             if spin is not None and (spin not in self.allowed_spins):
                 mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
-                raise Exception(mess)
+                raise ValueError(mess)
 
-        print("spin: ", spin)
         # Check the functional input.
         xc = kwargs.get('xc')
         if isinstance(xc, (tuple, list)) and len(xc) == 2:
