@@ -81,6 +81,7 @@ calc2 = Vasp(restart=label,
 # Check the calculator path is the expected path
 compare_paths(calc2.directory, testdir)
 
+assert not calc2.calculation_required(calc2.atoms, ['energy', 'forces'])
 en2 = calc2.get_potential_energy()
 
 # Check that the restarted calculation didn't run, i.e. write to output file

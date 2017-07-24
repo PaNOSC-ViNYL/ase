@@ -84,6 +84,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
         # Initialize parameter dictionaries
         GenerateVaspInput.__init__(self)
+        self._store_param_state()
 
         # Store atoms objects from vasprun.xml here, when an index is read
         # Format: self.xml_data[index] = atoms_object
@@ -194,6 +195,44 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         errorcode = subprocess.call(command, shell=True, stdout=out)
         return errorcode
 
+    def check_state(self, atoms, tol=1e-15):
+        """Check for system changes since last calculation."""
+
+        def compare_dict(d1, d2):
+            """Helper function to compare dictionaries"""
+            # Use symmetric difference to find keys which aren't shared
+            # for python 2.7 compatiblity
+            if set(d1.keys()) ^ set(d2.keys()):
+                return False
+            for key, value in d1.items():
+                if np.any(value != d2[key]):
+                    return False
+            return True
+
+        # First we check for default changes
+        system_changes = FileIOCalculator.check_state(self, atoms, tol=tol)
+
+        # We now check if we have made any changes to the input parameters
+        # XXX: Should we add these parameters to all_changes?
+        for param_string, old_dict in self.param_state.items():
+            param_dict = getattr(self, param_string)  # Get current param dict
+            if not compare_dict(param_dict, old_dict):
+                system_changes.append(param_string)
+
+        return system_changes
+
+    def _store_param_state(self):
+        """Store current parameter state"""
+        self.param_state = dict(
+            float_params=self.float_params.copy(),
+            exp_params=self.exp_params.copy(),
+            string_params=self.string_params.copy(),
+            int_params=self.int_params.copy(),
+            input_params=self.input_params.copy(),
+            bool_params=self.bool_params.copy(),
+            list_params=self.list_params.copy(),
+            dict_params=self.dict_params.copy())
+
     def write_input(self, atoms, properties=['energies'],
                     system_changes=all_changes):
         """Write VASP inputfiles, INCAR, KPOINTS and POTCAR"""
@@ -292,6 +331,9 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.results['magmoms'] = self.magnetic_moments
         self.results['fermi'] = self.fermi
         self.results['dipole'] = self.dipole
+
+        # Store the parameters used for this calculation
+        self._store_param_state()
 
     # Below defines some functions for faster access to certain common keywords
     @property
