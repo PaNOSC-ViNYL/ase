@@ -78,7 +78,7 @@ all_formats = {
     'gromos': ('Gromos96 geometry file', '1F'),
     'html': ('X3DOM HTML', '1S'),
     'iwm': ('?', '1F'),
-    'json': ('ASE JSON database file', '+S'),
+    'json': ('ASE JSON database file', '+F'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '+F'),
     'lammps-data': ('LAMMPS data file', '1F'),
@@ -313,7 +313,7 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-def write(filename, images, format=None, **kwargs):
+def write(filename, images, format=None, parallel=True, **kwargs):
     """Write Atoms object(s) to file.
 
     filename: str or file
@@ -343,7 +343,7 @@ def write(filename, images, format=None, **kwargs):
 
     io = get_ioformat(format)
 
-    _write(filename, fd, format, io, images, **kwargs)
+    _write(filename, fd, format, io, images, parallel=parallel, **kwargs)
 
 
 @parallel_function
@@ -382,7 +382,7 @@ def _write(filename, fd, format, io, images, **kwargs):
         io.write(filename, images, **kwargs)
 
 
-def read(filename, index=None, format=None, **kwargs):
+def read(filename, index=None, format=None, parallel=True, **kwargs):
     """Read Atoms object(s) from file.
 
     filename: str or file
@@ -412,9 +412,11 @@ def read(filename, index=None, format=None, **kwargs):
     format = format or filetype(filename)
     io = get_ioformat(format)
     if isinstance(index, (slice, basestring)):
-        return list(_iread(filename, index, format, io, **kwargs))
+        return list(_iread(filename, index, format, io, parallel=parallel,
+                           **kwargs))
     else:
-        return next(_iread(filename, slice(index, None), format, io, **kwargs))
+        return next(_iread(filename, slice(index, None), format, io,
+                           parallel=parallel, **kwargs))
 
 
 def iread(filename, index=None, format=None, **kwargs):

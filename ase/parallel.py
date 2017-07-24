@@ -148,8 +148,9 @@ def parallel_function(func):
 
     @functools.wraps(func)
     def new_func(*args, **kwargs):
-        # Hook to disable.  Use self.serial = True
-        if args and getattr(args[0], 'serial', False):
+        # Hook to disable.  Use self.serial = True or parallel=False
+        if (args and getattr(args[0], 'serial', False) or
+            not kwargs.pop('parallel', True)):
             return func(*args, **kwargs)
         ex = None
         result = None
@@ -172,8 +173,9 @@ def parallel_generator(generator):
 
     @functools.wraps(generator)
     def new_generator(*args, **kwargs):
-        # Hook to disable.  Use self.serial = True
-        if args and getattr(args[0], 'serial', False):
+        # Hook to disable.  Use self.serial = True or parallel=False
+        if (args and getattr(args[0], 'serial', False) or
+            not kwargs.pop('parallel', True)):
             for result in generator(*args, **kwargs):
                 yield result
             return
