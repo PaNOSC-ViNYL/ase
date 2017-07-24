@@ -78,7 +78,7 @@ all_formats = {
     'gromos': ('Gromos96 geometry file', '1F'),
     'html': ('X3DOM HTML', '1S'),
     'iwm': ('?', '1F'),
-    'json': ('ASE JSON database file', '+S'),
+    'json': ('ASE JSON database file', '+F'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '+F'),
     'lammps-data': ('LAMMPS data file', '1F'),
