@@ -134,10 +134,27 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             else:
                 msg = ('Please set either command in calculator'
                        ' or one of the following environment'
-                       'variables (read in the following order): {}').format(
+                       'variables (prioritized as follows): {}').format(
                            ', '.join(env_commands))
                 raise RuntimeError(msg)
         return cmd
+
+    def _make_out_txt(self):
+        """Create a file output stream for stdout"""
+        opened = False
+        out = None
+        if self.txt:
+            if isinstance(self.txt, basestring):
+                out = open(self.txt, 'w')
+                opened = True   # Log that we opened file
+            elif hasattr(self.txt, 'write'):
+                out = self.txt
+                assert not out.closed, 'The text stream is closed'
+            else:
+                raise RuntimeError('txt should either be a string'
+                                   'or an I/O stream, got {}'.format(
+                                       self.txt))
+        return out, opened
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
@@ -147,8 +164,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             self.atoms = atoms.copy()
 
         self.check_cell()      # Check for zero-length lattice vectors
-        # Reset the stored data
-        self.xml_data = {}
+        self.xml_data = {}     # Reset the stored data
 
         self.write_input(self.atoms, properties, system_changes)
 
@@ -158,20 +174,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             os.chdir(self.directory)
 
             # Create the text output stream
-            if self.txt:
-                opened = False
-                if isinstance(self.txt, basestring):
-                    out = open(self.txt, 'w')
-                    opened = True  # Log that we opened file
-                elif hasattr(self.txt, 'write'):
-                    out = self.txt
-                    assert not out.closed, 'The provided text stream is closed'
-                else:
-                    raise RuntimeError('txt should either be a string'
-                                       'or an I/O stream, got {}'.format(
-                                           self.txt))
-            else:
-                out = None      # Default value in subprocess.call
+            out, opened = self._make_out_txt()
 
             # Run VASP
             errorcode = self.run(command=command, out=out)
@@ -236,8 +239,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
     def write_input(self, atoms, properties=['energies'],
                     system_changes=all_changes):
         """Write VASP inputfiles, INCAR, KPOINTS and POTCAR"""
-        # Create the folders where we write the files, if we aren't in working
-        # directory.
+        # Create the folders where we write the files, if we aren't in the
+        # current working directory.
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         self.initialize(atoms)
@@ -386,6 +389,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             lines = self.load_file('OUTCAR')
         # Spin polarized calculation?
         self.spinpol = self.get_spin_polarized()
+
+        self.version = self.get_version()
 
         # XXX: Do we want to read all of this again?
         self.energy_free, self.energy_zero = self.read_energy(lines=lines)
