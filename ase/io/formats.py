@@ -347,7 +347,7 @@ def write(filename, images, format=None, parallel=True, **kwargs):
 
 
 @parallel_function
-def _write(filename, fd, format, io, images, **kwargs):
+def _write(filename, fd, format, io, images, parallel, **kwargs):
     if isinstance(images, Atoms):
         images = [images]
 
@@ -419,7 +419,7 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
                            parallel=parallel, **kwargs))
 
 
-def iread(filename, index=None, format=None, **kwargs):
+def iread(filename, index=None, format=None, parallel=True, **kwargs):
     """Iterator for reading Atoms objects from file.
 
     Works as the `read` function, but yields one Atoms object at a time
@@ -439,12 +439,13 @@ def iread(filename, index=None, format=None, **kwargs):
     format = format or filetype(filename)
     io = get_ioformat(format)
 
-    for atoms in _iread(filename, index, format, io, **kwargs):
+    for atoms in _iread(filename, index, format, io, parallel=parallel,
+                        **kwargs):
         yield atoms
 
 
 @parallel_generator
-def _iread(filename, index, format, io, full_output=False, **kwargs):
+def _iread(filename, index, format, io, parallel, full_output=False, **kwargs):
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
 
