@@ -10,6 +10,12 @@ Git master branch
 
 :git:`master <>`.
 
+* If you are running your Python script in :mod:`parallel <ase.parallel>`
+  then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
+  the master and broadcast to slaves, and :func:`ase.io.write` will only
+  write from master.  Use the new keyword ``parallel=False`` to read/write
+  from the individual slaves.
+
 
 Version 3.14.1
 ==============
