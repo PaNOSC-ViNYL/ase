@@ -450,8 +450,7 @@ class BaseSiesta(FileIOCalculator):
         f.write('\n')
 
         # Write lattice vectors
-        default_unit_cell = np.zeros((3, 3), dtype=float)
-        if np.any(unit_cell != default_unit_cell):
+        if np.any(unit_cell):
             f.write(format_fdf('LatticeConstant', '1.0 Ang'))
             f.write('%block LatticeVectors\n')
             for i in range(3):
@@ -501,7 +500,7 @@ class BaseSiesta(FileIOCalculator):
         f.write('\n')
 
         origin = tuple(-atoms.get_celldisp().flatten())
-        if any(origin) != 0.0:
+        if any(origin):
             f.write('%block AtomicCoordinatesOrigin\n')
             f.write('     %.4f  %.4f  %.4f\n' % origin)
             f.write('%endblock AtomicCoordinatesOrigin\n')
@@ -557,7 +556,7 @@ class BaseSiesta(FileIOCalculator):
             raise Exception(mess)
 
         f.write(format_fdf('NumberOfSpecies', len(species)))
-        f.write(format_fdf('NumberOfAtoms', atoms.get_number_of_atoms()))
+        f.write(format_fdf('NumberOfAtoms', len(atoms)))
 
         pao_basis = []
         chemical_labels = []
