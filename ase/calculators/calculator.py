@@ -26,17 +26,19 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'demon', 'dftb',
-         'eam', 'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw',
-         'gromacs', 'hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj', 'mopac',
-         'morse', 'nwchem', 'octopus', 'onetep', 'siesta', 'tip3p',
+         'dmol', 'eam', 'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw',
+         'gromacs', 'gulp','hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj',
+         'mopac', 'morse', 'nwchem', 'octopus', 'onetep', 'siesta', 'tip3p',
          'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
+           'dmol': 'DMol3',
            'eam': 'EAM',
            'elk': 'ELK',
            'emt': 'EMT',
            'fleur': 'FLEUR',
+           'gulp' : 'GULP',
            'lammps': 'LAMMPS',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
@@ -169,6 +171,33 @@ def kpts2ndarray(kpts, atoms=None):
         return monkhorst_pack(kpts)
 
     return np.array(kpts)
+
+
+class EigenvalOccupationMixin:
+    """Define 'eigenvalues' and 'occupations' properties on class.
+
+    eigenvalues and occupations will be arrays of shape (spin, kpts, nbands).
+
+    Classes must implement the old-fashioned get_eigenvalues and
+    get_occupations methods."""
+
+    @property
+    def eigenvalues(self):
+        return self.build_eig_occ_array(self.get_eigenvalues)
+
+    @property
+    def occupations(self):
+        return self.build_eig_occ_array(self.get_occupation_numbers)
+
+    def build_eig_occ_array(self, getter):
+        nspins = self.get_number_of_spins()
+        nkpts = len(self.get_ibz_k_points())
+        nbands = self.get_number_of_bands()
+        arr = np.zeros((nspins, nkpts, nbands))
+        for s in range(nspins):
+            for k in range(nkpts):
+                arr[s, k, :] = getter(spin=s, kpt=k)
+        return arr
 
 
 class Parameters(dict):
@@ -414,8 +443,8 @@ class Calculator:
             if 'free_energy' not in self.results:
                 name = self.__class__.__name__
                 raise PropertyNotImplementedError(
-                    'Force consistent/free energy not provided by {0} '
-                    'calculator'.format(name))
+                    'Force consistent/free energy ("free_energy") '
+                    'not provided by {0} calculator'.format(name))
             return self.results['free_energy']
         else:
             return energy
@@ -441,7 +470,8 @@ class Calculator:
 
     def get_property(self, name, atoms=None, allow_calculation=True):
         if name not in self.implemented_properties:
-            raise PropertyNotImplementedError
+            raise PropertyNotImplementedError('{} property not implemented'
+                                              .format(name))
 
         if atoms is None:
             atoms = self.atoms
@@ -464,7 +494,8 @@ class Calculator:
         if name not in self.results:
             # For some reason the calculator was not able to do what we want,
             # and that is OK.
-            raise PropertyNotImplementedError
+            raise PropertyNotImplementedError('{} not present in this '
+                                              'calculation'.format(name))
 
         result = self.results[name]
         if isinstance(result, np.ndarray):
@@ -472,6 +503,7 @@ class Calculator:
         return result
 
     def calculation_required(self, atoms, properties):
+        assert not isinstance(properties, str)
         system_changes = self.check_state(atoms)
         if system_changes:
             return True
@@ -617,8 +649,8 @@ class FileIOCalculator(Calculator):
             os.chdir(olddir)
 
         if errorcode:
-            raise RuntimeError('%s returned an error: %d' %
-                               (self.name, errorcode))
+            raise RuntimeError('%s in %s returned an error: %d' %
+                               (self.name, self.directory, errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):

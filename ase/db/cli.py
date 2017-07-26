@@ -1,6 +1,7 @@
 from __future__ import print_function
 import collections
 import json
+import os
 import sys
 from random import randint
 
@@ -9,6 +10,7 @@ from ase.db import connect
 from ase.db.core import convert_str_to_int_float_or_str
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
+from ase.db.web import process_metadata
 from ase.calculators.calculator import get_calculator
 from ase.utils import plural, basestring
 
@@ -21,7 +23,7 @@ except NameError:
 class CLICommand:
     short_description = 'Manipulate and query ASE database'
 
-    description = """Selecton is a comma-separated list of
+    description = """Selection is a comma-separated list of
     selections where each selection is of the type "ID", "key" or
     "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
     and  "!=" (these must be protected from the shell by using quotes).
@@ -92,6 +94,8 @@ class CLICommand:
             help='Show metadata as json.')
         add('--set-metadata', metavar='something.json',
             help='Set metadata from a json file.')
+        add('-M', '--metadata-from-python-script', metavar='something.py',
+            help='Use metadata from a Python file.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
 
@@ -118,14 +122,14 @@ def main(args):
     else:
         delete_keys = []
 
-    con = connect(args.database, use_lock_file=not args.no_lock_file)
+    db = connect(args.database, use_lock_file=not args.no_lock_file)
 
     def out(*args):
         if verbosity > 0:
             print(*args)
 
     if args.analyse:
-        con.analyse()
+        db.analyse()
         return
 
     if args.add_from_file:
@@ -135,45 +139,45 @@ def main(args):
             atoms = get_calculator(calculator_name)(filename).get_atoms()
         else:
             atoms = ase.io.read(filename)
-        con.write(atoms, key_value_pairs=add_key_value_pairs)
+        db.write(atoms, key_value_pairs=add_key_value_pairs)
         out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
                                         filename))
         return
 
     if args.count:
-        n = con.count(query)
+        n = db.count(query)
         print('%s' % plural(n, 'row'))
         return
 
     if args.explain:
-        for row in con.select(query, explain=True,
-                              verbosity=verbosity,
-                              limit=args.limit, offset=args.offset):
+        for row in db.select(query, explain=True,
+                             verbosity=verbosity,
+                             limit=args.limit, offset=args.offset):
             print(row['explain'])
         return
 
     if args.show_metadata:
-        print(json.dumps(con.metadata, sort_keys=True, indent=4))
+        print(json.dumps(db.metadata, sort_keys=True, indent=4))
         return
 
     if args.set_metadata:
         with open(args.set_metadata) as fd:
-            con.metadata = json.load(fd)
+            db.metadata = json.load(fd)
         return
 
     if args.insert_into:
         nkvp = 0
         nrows = 0
         with connect(args.insert_into,
-                     use_lock_file=not args.no_lock_file) as con2:
-            for row in con.select(query):
+                     use_lock_file=not args.no_lock_file) as db2:
+            for row in db.select(query, sort=args.sort):
                 kvp = row.get('key_value_pairs', {})
                 nkvp -= len(kvp)
                 kvp.update(add_key_value_pairs)
                 nkvp += len(kvp)
                 if args.unique:
                     row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
-                con2.write(row, data=row.get('data'), **kvp)
+                db2.write(row, data=row.get('data'), **kvp)
                 nrows += 1
 
         out('Added %s (%s updated)' %
@@ -183,8 +187,8 @@ def main(args):
         return
 
     if add_key_value_pairs or delete_keys:
-        ids = [row['id'] for row in con.select(query)]
-        m, n = con.update(ids, delete_keys, **add_key_value_pairs)
+        ids = [row['id'] for row in db.select(query)]
+        m, n = db.update(ids, delete_keys, **add_key_value_pairs)
         out('Added %s (%s updated)' %
             (plural(m, 'key-value pair'),
              plural(len(add_key_value_pairs) * len(ids) - m, 'pair')))
@@ -193,18 +197,18 @@ def main(args):
         return
 
     if args.delete:
-        ids = [row['id'] for row in con.select(query)]
+        ids = [row['id'] for row in db.select(query)]
         if ids and not args.yes:
             msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
             if input(msg).lower() != 'yes':
                 return
-        con.delete(ids)
+        db.delete(ids)
         out('Deleted %s' % plural(len(ids), 'row'))
         return
 
     if args.plot_data:
         from ase.db.plot import dct2plot
-        dct2plot(con.get(query).data, args.plot_data)
+        dct2plot(db.get(query).data, args.plot_data)
         return
 
     if args.plot:
@@ -218,7 +222,7 @@ def main(args):
         plots = collections.defaultdict(list)
         X = {}
         labels = []
-        for row in con.select(query, sort=args.sort):
+        for row in db.select(query, sort=args.sort):
             name = ','.join(str(row[tag]) for tag in tags)
             x = row.get(keys[0])
             if x is not None:
@@ -240,27 +244,40 @@ def main(args):
         plt.show()
         return
 
-    if args.long:
-        row = con.get(query)
-        summary = Summary(row)
-        summary.write()
-    elif args.json:
-        row = con.get(query)
-        con2 = connect(sys.stdout, 'json', use_lock_file=False)
+    if args.json:
+        row = db.get(query)
+        db2 = connect(sys.stdout, 'json', use_lock_file=False)
         kvp = row.get('key_value_pairs', {})
-        con2.write(row, data=row.get('data'), **kvp)
+        db2.write(row, data=row.get('data'), **kvp)
+        return
+
+    db.python = args.metadata_from_python_script
+    db.meta = process_metadata(db, html=args.open_web_browser)
+
+    if args.long:
+        # Remove .png files so that new ones will be created.
+        for func, filenames in db.meta.get('functions', []):
+            for filename in filenames:
+                try:
+                    os.remove(filename)
+                except OSError:  # Python 3 only: FileNotFoundError
+                    pass
+
+        row = db.get(query)
+        summary = Summary(row, db.meta)
+        summary.write()
     else:
         if args.open_web_browser:
             import ase.db.app as app
-            app.databases['default'] = con
+            app.databases['default'] = db
             app.app.run(host='0.0.0.0', debug=True)
         else:
             columns = list(all_columns)
             c = args.columns
             if c and c.startswith('++'):
                 keys = set()
-                for row in con.select(query,
-                                      limit=args.limit, offset=args.offset):
+                for row in db.select(query,
+                                     limit=args.limit, offset=args.offset):
                     keys.update(row._keys)
                 columns.extend(keys)
                 if c[2:3] == ',':
@@ -278,7 +295,7 @@ def main(args):
                     else:
                         columns.append(col.lstrip('+'))
 
-            table = Table(con, verbosity, args.cut)
+            table = Table(db, verbosity, args.cut)
             table.select(query, columns, args.sort, args.limit, args.offset)
             if args.csv:
                 table.write_csv()

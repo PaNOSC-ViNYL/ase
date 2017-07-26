@@ -1,11 +1,12 @@
 from __future__ import absolute_import, print_function
 import os
+import sys
 
 import numpy as np
 
 from ase.db.core import Database, ops, lock, now
 from ase.db.row import AtomsRow
-from ase.io.jsonio import encode, read_json
+from ase.io.jsonio import encode, decode
 from ase.parallel import world, parallel_function
 from ase.utils import basestring
 
@@ -76,8 +77,18 @@ class JSONDatabase(Database, object):
         return id
 
     def _read_json(self):
-        bigdct = read_json(self.filename)
-        ids = bigdct['ids']
+        if isinstance(self.filename, basestring):
+            with open(self.filename) as fd:
+                bigdct = decode(fd.read())
+        else:
+            bigdct = decode(self.filename.read())
+            if self.filename is not sys.stdin:
+                self.filename.seek(0)
+        ids = bigdct.get('ids')
+        if ids is None:
+            # Allow for missing "ids" and "nextid":
+            assert 1 in bigdct
+            return bigdct, [1], 2
         if not isinstance(ids, list):
             ids = ids.tolist()
         return bigdct, ids, bigdct['nextid']

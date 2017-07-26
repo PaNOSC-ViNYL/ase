@@ -10,8 +10,8 @@ class Movie:
     def __init__(self, gui):
         self.win = win = ui.Window(_('Movie'), self.close)
         win.add(_('Image number:'))
-        self.frame_number = ui.Scale(gui.frame, 0,
-                                     len(gui.images) - 1,
+        self.frame_number = ui.Scale(gui.frame + 1, 1,
+                                     len(gui.images),
                                      callback=self.new_frame)
         win.add(self.frame_number)
 
@@ -62,14 +62,14 @@ class Movie:
         else:
             i = max(0, min(len(self.gui.images) - 1, self.gui.frame + step))
 
-        self.frame_number.value = i
+        self.frame_number.value = i + 1
         if firstlast:
             self.direction = np.sign(-step)
         else:
             self.direction = np.sign(step)
 
     def new_frame(self, value):
-        self.gui.set_frame(value)
+        self.gui.set_frame(value - 1)
 
     def play(self):
         self.stop()
@@ -94,5 +94,5 @@ class Movie:
         else:
             i = (i + self.direction * delta + nimages) % nimages
 
-        self.frame_number.value = i
+        self.frame_number.value = i + 1
         self.play()

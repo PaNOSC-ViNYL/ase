@@ -128,6 +128,7 @@ def bandpath(path, cell, npoints=50):
     points = np.concatenate(paths)
     dists = points[1:] - points[:-1]
     lengths = [np.linalg.norm(d) for d in kpoint_convert(cell, skpts_kc=dists)]
+
     i = 0
     for path in paths[:-1]:
         i += len(path)
@@ -140,6 +141,7 @@ def bandpath(path, cell, npoints=50):
     X = [0]
     for P, d, L in zip(points[:-1], dists, lengths):
         n = max(2, int(round(L * (npoints - len(x)) / (length - x0))))
+
         for t in np.linspace(0, 1, n)[:-1]:
             kpts.append(P + t * d)
             x.append(x0 + t * L)
@@ -147,6 +149,7 @@ def bandpath(path, cell, npoints=50):
         X.append(x0)
     kpts.append(points[-1])
     x.append(x0)
+
     return np.array(kpts), np.array(x), np.array(X)
 
 
@@ -170,7 +173,7 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
 
     Returns:
 
-    Three arrays; the first is a list of cumulative distances between kpoints,
+    Three arrays; the first is a list of cumulative distances between k-points,
     the second is x coordinates of the special points,
     the third is the special points as strings.
      """
@@ -199,13 +202,16 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
             label = '?'
         labels.append(label)
 
+    jump = False  # marks a discontinuity in the path
     xcoords = [0]
     for i1, i2 in zip(indices[:-1], indices[1:]):
-        if i1 + 1 == i2:
+        if not jump and i1 + 1 == i2:
             length = 0
+            jump = True  # we don't want two jumps in a row
         else:
             diff = points[i2] - points[i1]
             length = np.linalg.norm(kpoint_convert(cell, skpts_kc=diff))
+            jump = False
         xcoords.extend(np.linspace(0, length, i2 - i1 + 1)[1:] + xcoords[-1])
 
     xcoords = np.array(xcoords)
@@ -256,10 +262,12 @@ special_paths = {
     'tetragonal': 'GXMGZRAZXR,MA',
     'orthorhombic': 'GXSYGZURTZ,YT,UX,SR',
     'hexagonal': 'GMKGALHA,LM,KH',
-    'monoclinic': 'GYHCEM1AXH1,MDZ,YD'}
+    'monoclinic': 'GYHCEM1AXH1,MDZ,YD',
+    'rhombohedral type 1': 'GLB1,BZGX,QFP1Z,LP',
+    'rhombohedral type 2': 'GPZQGFP1Q1LZ'}
 
 
-def get_special_points(lattice, cell, eps=1e-4):
+def get_special_points(lattice, cell, eps=2e-4):
     """Return dict of special points.
 
     The definitions are from a paper by Wahyu Setyawana and Stefano
@@ -303,29 +311,95 @@ def get_special_points(lattice, cell, eps=1e-4):
     elif lattice == 'monoclinic':
         assert c >= a and c >= b
         assert alpha < pi / 2 and abs(angles[1:] - pi / 2).max() < eps
+    elif lattice == 'rhombohedral type 1':
+        assert abc.ptp() < eps and angles.ptp() < eps
+        assert abs(alpha) < pi / 2
 
-    if lattice != 'monoclinic':
+    if lattice == 'monoclinic':
+        # Here, we need the cell:
+        eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
+        nu = 1 / 2 - eta * c * cos(alpha) / b
+        return {'G': [0, 0, 0],
+                'A': [1 / 2, 1 / 2, 0],
+                'C': [0, 1 / 2, 1 / 2],
+                'D': [1 / 2, 0, 1 / 2],
+                'D1': [1 / 2, 0, -1 / 2],
+                'E': [1 / 2, 1 / 2, 1 / 2],
+                'H': [0, eta, 1 - nu],
+                'H1': [0, 1 - eta, nu],
+                'H2': [0, eta, -nu],
+                'M': [1 / 2, eta, 1 - nu],
+                'M1': [1 / 2, 1 - eta, nu],
+                'M2': [1 / 2, eta, -nu],
+                'X': [0, 1 / 2, 0],
+                'Y': [0, 0, 1 / 2],
+                'Y1': [0, 0, -1 / 2],
+                'Z': [1 / 2, 0, 0]}
+    elif lattice == 'rhombohedral type 1':
+        eta = (1 + 4 * np.cos(alpha)) / (2 + 4 * np.cos(alpha))
+        nu = 3 / 4 - eta / 2
+        return {'G': [0, 0, 0],
+                'B': [eta, 1 / 2, 1 - eta],
+                'B1': [1 / 2, 1 - eta, eta - 1],
+                'F': [1 / 2, 1 / 2, 0],
+                'L': [1 / 2, 0, 0],
+                'L1': [0, 0, - 1 / 2],
+                'P': [eta, nu, nu],
+                'P1': [1 - nu, 1 - nu, 1 - eta],
+                'P2': [nu, nu, eta - 1],
+                'Q': [1 - nu, nu, 0],
+                'X': [nu, 0, -nu],
+                'Z': [0.5, 0.5, 0.5]}
+    else:
         return special_points[lattice]
 
-    # Here, we need the cell:
-    eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
-    nu = 1 / 2 - eta * c * cos(alpha) / b
-    return {'G': [0, 0, 0],
-            'A': [1 / 2, 1 / 2, 0],
-            'C': [0, 1 / 2, 1 / 2],
-            'D': [1 / 2, 0, 1 / 2],
-            'D1': [1 / 2, 0, -1 / 2],
-            'E': [1 / 2, 1 / 2, 1 / 2],
-            'H': [0, eta, 1 - nu],
-            'H1': [0, 1 - eta, nu],
-            'H2': [0, eta, -nu],
-            'M': [1 / 2, eta, 1 - nu],
-            'M1': [1 / 2, 1 - eta, nu],
-            'M2': [1 / 2, eta, -nu],
-            'X': [0, 1 / 2, 0],
-            'Y': [0, 0, 1 / 2],
-            'Y1': [0, 0, -1 / 2],
-            'Z': [1 / 2, 0, 0]}
+
+def monkhorst_pack_interpolate(path, values, icell, bz2ibz,
+                               size, offset=(0, 0, 0)):
+    """Interpolate values from Monkhorst-Pack sampling.
+
+    path: (nk, 3) array-like
+        Desired path in units of reciprocal lattice vectors.
+    values: (nibz, ...) array-like
+        Values on Monkhorst-Pack grid.
+    icell: (3, 3) array-like
+        Reciprocal lattice vectors.
+    bz2ibz: (nbz,) array-like of int
+        Map from nbz points in BZ to nibz reduced points in IBZ.
+    size: (3,) array-like of int
+        Size of Monkhorst-Pack grid.
+    offset: (3,) array-like
+        Offset of Monkhorst-Pack grid.
+
+    Returns *values* interpolated to *path*.
+    """
+    from scipy.interpolate import LinearNDInterpolator
+
+    path = (np.asarray(path) + 0.5) % 1 - 0.5
+    path = np.dot(path, icell)
+
+    # Fold out values from IBZ to BZ:
+    v = np.asarray(values)[bz2ibz]
+    v = v.reshape(tuple(size) + v.shape[1:])
+
+    # Create padded Monkhorst-Pack grid:
+    size = np.asarray(size)
+    i = np.indices(size + 2).transpose((1, 2, 3, 0)).reshape((-1, 3))
+    k = (i - 0.5) / size - 0.5 + offset
+    k = np.dot(k, icell)
+
+    # Fill in boundary values:
+    V = np.zeros(tuple(size + 2) + v.shape[3:])
+    V[1:-1, 1:-1, 1:-1] = v
+    V[0, 1:-1, 1:-1] = v[-1]
+    V[-1, 1:-1, 1:-1] = v[0]
+    V[:, 0, 1:-1] = V[:, -2, 1:-1]
+    V[:, -1, 1:-1] = V[:, 1, 1:-1]
+    V[:, :, 0] = V[:, :, -2]
+    V[:, :, -1] = V[:, :, 1]
+
+    interpolate = LinearNDInterpolator(k, V.reshape((-1,) + V.shape[3:]))
+    return interpolate(path)
 
 
 # ChadiCohen k point grids. The k point grids are given in units of the

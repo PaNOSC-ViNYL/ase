@@ -88,6 +88,10 @@ Here are some example query strings:
       - less than 3 hydrogen atoms
     * - Cu,H<3
       - contains copper and has less than 3 hydrogen atoms
+    * - H2O
+      - At least two hydrogens and at least one oxygen
+    * - formula=H2O
+      - Exactly two hydrogens and one oxygen
     * - v3
       - has 'v3' key
     * - abc=bla-bla
@@ -100,8 +104,6 @@ Here are some example query strings:
       - 'bandgap' key has value between 2.2 and 3.0
     * - natoms>=10
       - 10 or more atoms
-    * - formula=H2O
-      - Exactly two hydrogens and one oxygen
     * - id=2345
       - specific id
     * - age<1h
@@ -467,7 +469,7 @@ You can add the desciption using the :attr:`~Database.metadata` attribute:
 >>> db.metadata = {
 ...     'title': 'Project 1',
 ...     'key_descriptions':
-...         {'v0': ('Voltage', 'Longer description ...', 'float', 'V')},
+...         {'v0': ('Voltage', 'Longer description ...', 'V')},
 ...     'default_columns': ['id', 'formula', 'v0']}
 
 ASE already knows all about the following keys:
@@ -475,7 +477,7 @@ ASE already knows all about the following keys:
 .. csv-table::
     :file: known-keys.csv
     :header-rows: 1
-    :widths: 2 3 4 1 2
+    :widths: 2 3 4 2
 
 You can also write/read to/from JSON using::
 
@@ -500,6 +502,10 @@ Then you create an 'ase' user and one database for each project you have::
     postgres=# create user ase login password 'pw';
     postgres=# create database project1;
     postgres=# create database project2;
+
+Show databases and quit::
+
+    postgres=# \l
     postgres=# \q
 
 You should now be able to
@@ -517,7 +523,7 @@ into the PostgreSQL database like this::
 Now you can start the Flask_\ -app ``ase.db.app``.  You can use Flask's own
 web-server or use any WSGI_ compatible server.  We will use
 Twisted_ in the example below. Set the $ASE_DB_APP_CONFIG environment variable
-to point to a configuration file containing two lines similar to these::
+to point to a Python configuration file containing something similar to this::
 
     ASE_DB_NAMES = ['postgresql://ase:pw@localhost:5432/project1',
                     'postgresql://ase:pw@localhost:5432/project2',

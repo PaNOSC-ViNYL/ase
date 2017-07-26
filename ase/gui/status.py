@@ -7,6 +7,7 @@ import numpy as np
 
 from ase.data import chemical_symbols as symbols
 from ase.data import atomic_names as names
+from ase.gui.utils import get_magmoms
 
 try:
     chr = unichr
@@ -55,7 +56,7 @@ class Status:  # Status is used as a mixin in GUI
             text = (u' #%d %s (%s): %.3f Å, %.3f Å, %.3f Å ' %
                     ((indices[0], names[Z[0]], symbols[Z[0]]) + tuple(R[0])))
             text += _(' tag=%(tag)s') % dict(tag=tag)
-            magmoms = self.get_magmoms()
+            magmoms = get_magmoms(self.atoms)
             if magmoms.any():
                 # TRANSLATORS: mom refers to magnetic moment
                 text += _(' mom={0:1.2f}'.format(

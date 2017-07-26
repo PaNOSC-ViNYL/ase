@@ -18,7 +18,8 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.units import create_units
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.utils import basestring, chemical_symbols
+from ase.utils import basestring
+from ase.data import chemical_symbols
 
 # Quantum ESPRESSO uses CODATA 2006 internally
 units = create_units('2006')
@@ -52,7 +53,7 @@ class Namelist(OrderedDict):
         return super(Namelist, self).get(key.lower(), default)
 
 
-def read_espresso_out(fileobj, index=-1):
+def read_espresso_out(fileobj, index=-1, results_required=True):
     """Reads Quantum ESPRESSO output files.
 
     The atomistic configurations as well as results (energy, force, stress,
@@ -67,6 +68,11 @@ def read_espresso_out(fileobj, index=-1):
         A file like object or filename
     index : slice
         The index of configurations to extract.
+    results_required : bool
+        If True, atomistic configurations that do not have any
+        associated results will not be included. This prevents double
+        printed configurations and incomplete calculations from being
+        returned as the final configuration with no results data.
 
     Yields
     ------
@@ -105,8 +111,33 @@ def read_espresso_out(fileobj, index=-1):
     # in a subsequent step. Can deal with concatenated output files.
     all_config_indexes = sorted(indexes[_PW_START] +
                                 indexes[_PW_POS])
-    # Slice only what is needed
-    image_indexes = all_config_indexes[index]
+
+    # Slice only requested indexes
+    # setting results_required argument stops configuration-only
+    # structures from being returned. This ensures the [-1] structure
+    # is one that has results. Two cases:
+    # - SCF of last configuration is not converged, job terminated
+    #   abnormally.
+    # - 'relax' and 'vc-relax' re-prints the final configuration but
+    #   only 'vc-relax' recalculates.
+    if results_required:
+        results_indexes = sorted(indexes[_PW_TOTEN] + indexes[_PW_FORCE] +
+                                 indexes[_PW_STRESS] + indexes[_PW_MAGMOM])
+
+        # Prune to only configurations with results data before the next
+        # configuration
+        results_config_indexes = []
+        for config_index, config_index_next in zip(
+                all_config_indexes,
+                all_config_indexes[1:] + [len(pwo_lines)]):
+            if any([config_index < results_index < config_index_next
+                    for results_index in results_indexes]):
+                results_config_indexes.append(config_index)
+
+        # slice from the subset
+        image_indexes = results_config_indexes[index]
+    else:
+        image_indexes = all_config_indexes[index]
 
     # Extract initialisation information each time PWSCF starts
     # to add to subsequent configurations. Use None so slices know
@@ -201,7 +232,8 @@ def read_espresso_out(fileobj, index=-1):
                 _, syy, syz = pwo_lines[stress_index + 2].split()[:3]
                 _, _, szz = pwo_lines[stress_index + 3].split()[:3]
                 stress = np.array([sxx, syy, szz, syz, sxz, sxy], dtype=float)
-                stress *= units['Ry'] / (units['Bohr'] ** 3)
+                # sign convention is opposite of ase
+                stress *= -1 * units['Ry'] / (units['Bohr'] ** 3)
 
         # Magmoms
         magmoms = None
@@ -623,7 +655,7 @@ def get_cell_parameters(lines, alat=None):
             elif 'alat' in line.lower():
                 # Output file has (alat = value)
                 if '=' in line:
-                    alat = float(line.strip(')').split()[-1])
+                    alat = float(line.strip(') \n').split()[-1])
                     cell_alat = alat
                 elif alat is None:
                     raise ValueError('Lattice parameters must be set in '
