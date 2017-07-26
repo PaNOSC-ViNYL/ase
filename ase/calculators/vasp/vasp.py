@@ -24,6 +24,7 @@ from __future__ import print_function, division
 import os
 import numpy as np
 import subprocess
+from contextlib import contextmanager
 from warnings import warn
 
 import ase
@@ -139,22 +140,50 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                 raise RuntimeError(msg)
         return cmd
 
-    def _make_out_txt(self):
-        """Create a file output stream for stdout"""
+    @contextmanager
+    def txt_outstream(self):
+        """Custom function for opening a text output stream. Uses self.txt to determine
+        the output stream, and accepts a string or an open writable object.
+        If a string is used, a new stream is opened, and automatically closes
+        the new stream again when exiting.
+
+        Examples:
+        # Pass a string
+        calc.set_txt('vasp.out')
+        with calc.txt_outstream() as out:
+            calc.run(out=out)   # Redirects the stdout to 'vasp.out'
+
+        # Use an existing stream
+        mystream = open('vasp.out', 'w')
+        calc.set_txt(mystream)
+        with calc.txt_outstream() as out:
+            calc.run(out=out)
+        mystream.close()
+
+        # Print to stdout
+        calc.set_txt(False)
+        with calc.txt_outstream() as out:
+            calc.run(out=out)   # output is written to stdout
+        """
+
         opened = False
-        out = None
+        out = None              # Default
         if self.txt:
             if isinstance(self.txt, basestring):
                 out = open(self.txt, 'w')
-                opened = True   # Log that we opened file
+                opened = True
             elif hasattr(self.txt, 'write'):
                 out = self.txt
-                assert not out.closed, 'The text stream is closed'
             else:
                 raise RuntimeError('txt should either be a string'
                                    'or an I/O stream, got {}'.format(
                                        self.txt))
-        return out, opened
+
+        try:
+            yield out
+        finally:
+            if opened:
+                out.close()
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
@@ -173,15 +202,11 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         try:
             os.chdir(self.directory)
 
-            # Create the text output stream
-            out, opened = self._make_out_txt()
-
-            # Run VASP
-            errorcode = self.run(command=command, out=out)
+            # Create the text output stream and run VASP
+            with self.txt_outstream() as out:
+                errorcode = self.run(command=command, out=out)
         finally:
             os.chdir(olddir)
-            if opened:
-                out.close()
 
         if errorcode:
             raise RuntimeError('{} in {} returned an error: {:d}'.format(
@@ -442,10 +467,13 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         return self.xml_data[index]
 
     def read_stress_xml(self, index=-1):
+        """Read stress tensor from the vasprun.xml file.
+        Returns None if there is no stress tensor in the calculation"""
         atoms = self.read_from_xml(index)
         try:
             return atoms.get_stress()
         except PropertyNotImplementedError:
+            # The tensor was not loaded in the XML file
             return None
 
     def get_ibz_k_points(self, index=-1):
