@@ -432,11 +432,18 @@ class Cp2kShell(object):
 
         # check version of shell
         self.send('VERSION')
-        shell_version = self.recv().rsplit(":", 1)
-        assert self.recv() == '* READY'
-        assert shell_version[0] == "CP2K Shell Version"
-        self.version = float(shell_version[1])
+        line = self.recv()
+        if not line.startswith('CP2K Shell Version:'):
+            raise RuntimeError('Cannot determine version of CP2K shell.  '
+                               'Probably the shell version is too old.  '
+                               'Please update to CP2K Shell 2.0 or newer '
+                               'which comes with CP2K 3.0 or newer.')
+
+        shell_version = line.rsplit(":", 1)[1]
+        self.version = float(shell_version)
         assert self.version >= 1.0
+
+        assert self.recv() == '* READY'
 
         # enable harsh mode, stops on any error
         self.send('HARSH')
