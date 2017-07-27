@@ -37,10 +37,10 @@ class SiestaParameters(Parameters):
             label='siesta',
             mesh_cutoff=200 * Ry,
             energy_shift=100 * meV,
-            kpts=(1, 1, 1),
+            kpts=None,
             xc='LDA',
             basis_set='DZP',
-            spin='COLLINEAR',
+            spin='UNPOLARIZED',
             species=tuple(),
             pseudo_qualifier=None,
             pseudo_path=None,
@@ -61,7 +61,6 @@ class BaseSiesta(FileIOCalculator):
     allowed_xc = {}
     allowed_fdf_keywords = {}
     unit_fdf_keywords = {}
-
     implemented_properties = (
         'energy',
         'forces',
@@ -110,6 +109,8 @@ class BaseSiesta(FileIOCalculator):
             -restart      : str.  Prefix for restart file.
                             May contain a directory.
                             Default is  None, don't restart.
+            -siesta_default: Use siesta default parameter if the parameter
+                            is not explicitly set.
             -ignore_bad_restart_file: bool.
                             Ignore broken or missing restart file.
                             By default, it is an error if the restart
@@ -121,6 +122,7 @@ class BaseSiesta(FileIOCalculator):
                             in a single line.  ASE units are assumed in the
                             input.
         """
+
         # Put in the default arguments.
         parameters = self.default_parameters.__class__(**kwargs)
 
@@ -238,14 +240,14 @@ class BaseSiesta(FileIOCalculator):
             if not (isinstance(basis_set, PAOBasisBlock) or
                     basis_set in allowed):
                 mess = "Basis must be either %s, got %s" % (allowed, basis_set)
-                raise Exception(mess)
+                raise ValueError(mess)
 
         # Check the spin input.
         if 'spin' in kwargs:
             spin = kwargs['spin']
             if spin is not None and (spin not in self.allowed_spins):
                 mess = "Spin must be %s, got %s" % (self.allowed_spins, spin)
-                raise Exception(mess)
+                raise ValueError(mess)
 
         # Check the functional input.
         xc = kwargs.get('xc')
@@ -366,6 +368,15 @@ class BaseSiesta(FileIOCalculator):
 
         # Start writing the file.
         with open(filename, 'w') as f:
+            # Write system name and label.
+            f.write(format_fdf('SystemName', self.label))
+            f.write(format_fdf('SystemLabel', self.label))
+            f.write("\n")
+
+            # Write the minimal arg
+            self._write_species(f, atoms)
+            self._write_structure(f, atoms)
+
             # First write explicitly given options to
             # allow the user to overwrite anything.
             self._write_fdf_arguments(f)
@@ -382,17 +393,11 @@ class BaseSiesta(FileIOCalculator):
             if 'density' in properties:
                 f.write(format_fdf('SaveRho', True))
 
-            # Write system name and label.
-            f.write(format_fdf('SystemName', self.label))
-            f.write(format_fdf('SystemLabel', self.label))
-
             # Force siesta to return error on no convergence.
-            f.write(format_fdf('SCFMustConverge', True))
+            # Why?? maybe we don't want to force convergency??
+            # f.write(format_fdf('SCFMustConverge', True))
 
-            # Write the rest.
-            self._write_species(f, atoms)
             self._write_kpts(f)
-            self._write_structure(f, atoms)
 
     def read(self, filename):
         """Read parameters from file."""
@@ -405,19 +410,28 @@ class BaseSiesta(FileIOCalculator):
         """Write directly given fdf-arguments.
         """
         fdf_arguments = self.parameters['fdf_arguments']
+        fdf_arguments["XC.functional"], \
+            fdf_arguments["XC.authors"] = self.parameters['xc']
+        energy_shift = self['energy_shift']
+        fdf_arguments["PAO.EnergyShift"] = energy_shift
+        mesh_cutoff = '%.4f eV' % self['mesh_cutoff']
+        fdf_arguments["MeshCutoff"] = mesh_cutoff
+        if self['spin'] == 'UNPOLARIZED':
+            fdf_arguments["SpinPolarized"] = False
+        elif self['spin'] == 'COLLINEAR':
+            fdf_arguments["SpinPolarized"] = True
+        elif self['spin'] == 'FULL':
+            fdf_arguments["SpinPolarized"] = True
+            fdf_arguments["NonCollinearSpin"] = True
 
-        # Early return
-        if fdf_arguments is None:
-            return
-
-        for key, value in fdf_arguments.items():
-            if key in self.unit_fdf_keywords:
-                value = '%.8f %s' % (value, self.unit_fdf_keywords[key])
-                f.write(format_fdf(key, value))
-            elif key in self.allowed_fdf_keywords:
-                f.write(format_fdf(key, value))
-            else:
-                raise ValueError("%s not in allowed keywords." % key)
+        for key, value in self.allowed_fdf_keywords.items():
+            if key in fdf_arguments.keys():
+                if key in self.unit_fdf_keywords:
+                    val = '%.8f %s' % (fdf_arguments[key],
+                                       self.unit_fdf_keywords[key])
+                    f.write(format_fdf(key, val))
+                elif fdf_arguments[key] != value:
+                    f.write(format_fdf(key, fdf_arguments[key]))
 
     def remove_analysis(self):
         """ Remove all analysis files"""
@@ -433,13 +447,10 @@ class BaseSiesta(FileIOCalculator):
             - atoms: An atoms object.
         """
         unit_cell = atoms.get_cell()
-        xyz = atoms.get_positions()
         f.write('\n')
-        f.write(format_fdf('NumberOfAtoms', len(xyz)))
 
         # Write lattice vectors
-        default_unit_cell = np.eye(3, dtype=float)
-        if np.any(unit_cell != default_unit_cell):
+        if np.any(unit_cell):
             f.write(format_fdf('LatticeConstant', '1.0 Ang'))
             f.write('%block LatticeVectors\n')
             for i in range(3):
@@ -489,10 +500,11 @@ class BaseSiesta(FileIOCalculator):
         f.write('\n')
 
         origin = tuple(-atoms.get_celldisp().flatten())
-        f.write('%block AtomicCoordinatesOrigin\n')
-        f.write('     %.4f  %.4f  %.4f\n' % origin)
-        f.write('%endblock AtomicCoordinatesOrigin\n')
-        f.write('\n')
+        if any(origin):
+            f.write('%block AtomicCoordinatesOrigin\n')
+            f.write('     %.4f  %.4f  %.4f\n' % origin)
+            f.write('%endblock AtomicCoordinatesOrigin\n')
+            f.write('\n')
 
     def _write_kpts(self, f):
         """Write kpts.
@@ -500,6 +512,8 @@ class BaseSiesta(FileIOCalculator):
         Parameters:
             - f : Open filename.
         """
+        if self["kpts"] is None:
+            return
         kpts = np.array(self['kpts'])
         f.write('\n')
         f.write('#KPoint grid\n')
@@ -531,27 +545,7 @@ class BaseSiesta(FileIOCalculator):
             - f:     An open file object.
             - atoms: An atoms object.
         """
-        energy_shift = '%.4f eV' % self['energy_shift']
-        f.write('\n')
-        f.write(format_fdf('PAO_EnergyShift', energy_shift))
-        mesh_cutoff = '%.4f eV' % self['mesh_cutoff']
-        f.write(format_fdf('MeshCutoff', mesh_cutoff))
-
         species, species_numbers = self.species(atoms)
-        if self['spin'] == 'UNPOLARIZED':
-            f.write(format_fdf('SpinPolarized', False))
-        elif self['spin'] == 'COLLINEAR':
-            f.write(format_fdf('SpinPolarized', True))
-        elif self['spin'] == 'FULL':
-            f.write(format_fdf('SpinPolarized', True))
-            f.write(format_fdf('NonCollinearSpin', True))
-
-        functional, authors = self.parameters['xc']
-        f.write('\n')
-        f.write(format_fdf('XC_functional', functional))
-        if authors is not None:
-            f.write(format_fdf('XC_authors', authors))
-        f.write('\n')
 
         if not self['pseudo_path'] is None:
             pseudo_path = self['pseudo_path']
@@ -562,6 +556,7 @@ class BaseSiesta(FileIOCalculator):
             raise Exception(mess)
 
         f.write(format_fdf('NumberOfSpecies', len(species)))
+        f.write(format_fdf('NumberOfAtoms', len(atoms)))
 
         pao_basis = []
         chemical_labels = []
@@ -637,7 +632,7 @@ class BaseSiesta(FileIOCalculator):
             if isinstance(specie['basis_set'], PAOBasisBlock):
                 pao_basis.append(specie['basis_set'].script(label))
             else:
-                basis_sizes.append((label, specie['basis_set']))
+                basis_sizes.append(("    " + label, specie['basis_set']))
         f.write((format_fdf('ChemicalSpecieslabel', chemical_labels)))
         f.write('\n')
         f.write((format_fdf('PAO.Basis', pao_basis)))
