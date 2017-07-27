@@ -582,7 +582,7 @@ class View:
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
 
-    def render_window(self, action):
+    def render_window(self):
         Render(self)
 
     def resize(self, event):

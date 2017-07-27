@@ -457,7 +457,7 @@ class GUI(View, Status):
               M(_('Movie ...'), self.movie),
               M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
-              M(_('Render scene ...'), self.render_window, disabled=True),
+              M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),
