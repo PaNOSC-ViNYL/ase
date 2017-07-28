@@ -84,6 +84,7 @@ all_formats = {
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1S'),
     'mol': ('MDL Molfile', '1F'),
+    'mustem': ('muSTEM xtl file', '1F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
@@ -163,7 +164,8 @@ extension2format = {
     'shelx': 'res',
     'in': 'aims',
     'poscar': 'vasp',
-    'phonon': 'castep-phonon'}
+    'phonon': 'castep-phonon',
+    'xtl': 'mustem'}
 
 
 def initialize(format):
