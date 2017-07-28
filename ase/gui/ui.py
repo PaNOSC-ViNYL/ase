@@ -298,8 +298,8 @@ class RadioButtons(Widget):
                         for i, label in enumerate(labels)]
         self.vertical = vertical
 
-    def create(self, parrent):
-        self.widget = frame = tk.Frame(parrent)
+    def create(self, parent):
+        self.widget = frame = tk.Frame(parent)
         side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
