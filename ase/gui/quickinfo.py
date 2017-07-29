@@ -57,5 +57,6 @@ def info(gui):
         pbcstring = _('Periodic: %s, %s, %s') % tuple(periodic)
         txt = format % ((imgtxt, natoms) + tuple(uc.flat) +
                         (pbcstring,) + (uctxt,))
-        txt += _('Volume: ') + '{:8.3f}'.format(atoms.get_volume())
+        if atoms.number_of_lattice_vectors == 3:
+            txt += _('Volume: ') + '{:8.3f}'.format(atoms.get_volume())
     return txt
