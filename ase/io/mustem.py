@@ -36,7 +36,6 @@ def read_mustem(filename):
 
     # Number of different type of atoms
     element_number = int(f.readline().strip())
-    print(element_number)
 
     symbols = []
     positions = []
@@ -44,9 +43,7 @@ def read_mustem(filename):
     for i in range(element_number):
         # Read the element
         symbol = str(f.readline().strip())
-        print(symbol)
         atoms_number = int(f.readline().split()[0])
-        print(atoms_number)
         # read all the position for each element
         for j in range(atoms_number):
             line = f.readline()
