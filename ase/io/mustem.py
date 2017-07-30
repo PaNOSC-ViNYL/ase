@@ -82,7 +82,9 @@ class XtlmuSTEMWriter:
 
     def __init__(self, atoms, keV, DW, comment=None, occupancy=1.0):
         self.atoms = atoms
-        self.atom_types = list(set(atoms.get_chemical_symbols()))
+        from collections import OrderedDict
+        self.atom_types = list(OrderedDict((element, None)
+            for element in atoms.get_chemical_symbols()))
         self.keV = keV
         self.DW = DW
         self._check_key_dictionary(self.DW, 'DW')
@@ -103,9 +105,21 @@ class XtlmuSTEMWriter:
                                  ''.format(key, dict_name))
 
     def _get_position_array_single_atom_type(self, number):
+        self._check_cell_is_orthorhombic()
         # Get the scaled (reduced) position for a single atom type
         return self.atoms.get_scaled_positions()[np.where(
             self.atoms.numbers == number)]
+
+    def _check_cell_is_orthorhombic(self):
+        cell = self.atoms.get_cell()
+        # Diagonal element must different from 0
+        # Non-diagonal element must be zero
+        if cell.sum() == 0:
+            raise ValueError('To export to this format, the cell need to be '
+                             'defined.')
+        elif cell[0][0] == 0 or cell[1][1] == 0 or cell[2][2] == 0:
+            raise ValueError('To export to this format, the cell need to be '
+                             'orthorhombic.')
 
     def _get_file_header(self):
         # 1st line: comment line
@@ -130,7 +144,7 @@ class XtlmuSTEMWriter:
                                                atom_type_number, occupancy, DW)
 
     def _get_file_end(self):
-        return "Orientation\n   0 0 1\n   1 0 0\n   0 1 0\n"
+        return "Orientation\n   1 0 0\n   0 1 0\n   0 0 1\n"
 
     def write_to_file(self, f):
         if isinstance(f, basestring):

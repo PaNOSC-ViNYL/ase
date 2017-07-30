@@ -7,12 +7,12 @@ from ase.io import read
 from ase.test import must_raise
 
 # Reproduce the sto xtl file distributed with muSTEM
-atoms = Atoms(['O', 'O', 'O', 'Ti', 'Sr'], 
-              scaled_positions=[[0.5, 0.5, 0],
-                                [0.5, 0, 0.5],
-                                [0, 0.5, 0.5],
+atoms = Atoms(['Sr', 'Ti', 'O', 'O', 'O'],
+              scaled_positions=[[0, 0, 0],
                                 [0.5, 0.5, 0.5],
-                                [0, 0, 0]],
+                                [0.5, 0.5, 0],
+                                [0.5, 0, 0.5],
+                                [0, 0.5, 0.5]],
               cell=[3.905, 3.905, 3.905],
               pbc=True)
 
@@ -25,10 +25,11 @@ with must_raise(TypeError):
     atoms.write(filename, keV=300)
 
 with must_raise(TypeError):
-    atoms.write(filename, DW={'Sr':0.78700E-02, 'O':0.92750E-02, 'Ti':0.55700E-02})
+    atoms.write(filename,
+                DW={'Sr': 0.78700E-02, 'O': 0.92750E-02, 'Ti': 0.55700E-02})
 
 atoms.write(filename, keV=300,
-            DW={'Sr':0.78700E-02, 'O':0.92750E-02, 'Ti':0.55700E-02})
+            DW={'Sr': 0.78700E-02, 'O': 0.92750E-02, 'Ti': 0.55700E-02})
 
 atoms2 = read(filename, format='mustem')
 
@@ -39,3 +40,28 @@ assert sum(abs((atoms.cell - atoms2.cell).ravel())) < tol
 atoms3 = read(filename)
 assert sum(abs((atoms.positions - atoms3.positions).ravel())) < tol
 assert sum(abs((atoms.cell - atoms3.cell).ravel())) < tol
+
+with must_raise(ValueError):
+    # Raise an error if there is a missing key.
+    atoms.write(filename, keV=300, DW={'Sr': 0.78700E-02, 'O': 0.92750E-02})
+
+atoms.write(filename, keV=300,
+            DW={'Sr': 0.78700E-02, 'O': 0.92750E-02, 'Ti': 0.55700E-02},
+            occupancy={'Sr': 1.0, 'O': 0.5, 'Ti': 0.9})
+
+with must_raise(ValueError):
+    # Raise an error if there is a missing key.
+    atoms.write(filename, keV=300,
+                DW={'Sr': 0.78700E-02, 'O': 0.92750E-02, 'Ti': 0.55700E-02},
+                occupancy={'O': 0.5, 'Ti': 0.9})
+
+with must_raise(ValueError):
+    # Raise an error if the unit cell is not defined.
+    atoms4 = Atoms(['Sr', 'Ti', 'O', 'O', 'O'],
+                   positions=[[0, 0, 0],
+                              [0.5, 0.5, 0.5],
+                              [0.5, 0.5, 0],
+                              [0.5, 0, 0.5],
+                              [0, 0.5, 0.5]])
+    atoms4.write(filename, keV=300,
+                DW={'Sr': 0.78700E-02, 'O': 0.92750E-02, 'Ti': 0.55700E-02})
