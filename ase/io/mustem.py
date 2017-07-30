@@ -78,9 +78,15 @@ class XtlmuSTEMWriter:
         Comments to be writen in the first line of the file. If not 
         provided, write the total number of atoms and the chemical formula.
 
+    fit_cell_to_atoms: bool (optional)
+        If `True`, fit the cell to the atoms positions. If negative coordinates
+        are present in the cell, the atoms are translated, so that all 
+        positions are positive. If `False` (default), the atoms positions and 
+        the cell are unchanged.
     """
 
-    def __init__(self, atoms, keV, DW, comment=None, occupancy=1.0):
+    def __init__(self, atoms, keV, DW, comment=None, occupancy=1.0,
+                 fit_cell_to_atoms=False):
         self.atoms = atoms
         from collections import OrderedDict
         self.atom_types = list(OrderedDict((element, None)
@@ -96,6 +102,9 @@ class XtlmuSTEMWriter:
             self.occupancy = occupancy
         self._check_key_dictionary(self.occupancy, 'occupancy')
         self.numbers = symbols2numbers(self.atom_types)
+        if fit_cell_to_atoms:
+            atoms.translate(-atoms.positions.min(axis=0))
+            atoms.set_cell(atoms.positions.max(axis=0))
 
     def _check_key_dictionary(self, d, dict_name):
         # Check if we have enough key
