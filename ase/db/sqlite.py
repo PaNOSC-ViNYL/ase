@@ -23,7 +23,7 @@ import numpy as np
 
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
-from ase.db.core import Database, ops, now, lock, invop
+from ase.db.core import Database, ops, now, lock, invop, parse_selection
 from ase.io.jsonio import encode, decode
 from ase.parallel import parallel_function
 from ase.utils import basestring
@@ -541,7 +541,7 @@ class SQLite3Database(Database, object):
 
     @parallel_function
     def count(self, selection=None, **kwargs):
-        keys, cmps = self.parse_selection(selection, **kwargs)
+        keys, cmps = parse_selection(selection, **kwargs)
         sql, args = self.create_select_statement(keys, cmps, what='COUNT(*)')
         con = self._connect()
         self._initialize(con)
