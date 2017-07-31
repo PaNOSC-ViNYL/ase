@@ -12,7 +12,7 @@ from ase.db.row import atoms2dict
 
 
 class CLICommand:
-    short_description = 'Find files with atoms in them.'
+    short_description = 'Find files with atoms in them'
 
     @staticmethod
     def add_arguments(parser):
@@ -24,7 +24,8 @@ class CLICommand:
             'Slab geometry containing Cu and Ni: "pbc=TTF,Cu,Ni".')
         parser.add_argument('-v', '--verbose', action='store_true')
         parser.add_argument('-l', '--long', action='store_true',
-                            help='Show also filetype and number of atoms.')
+                            help='Show also periodic boundary conditions, '
+                            'chemical formula and filetype.')
         parser.add_argument('-i', '--include', help='Include only filenames '
                             'ending with given strings.  Example: '
                             '"-i .xyz,.traj".')
