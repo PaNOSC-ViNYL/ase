@@ -5,4 +5,4 @@
 Band gap
 ========
 
-.. autofunction:: get_band_gap
+.. autofunction:: bandgap

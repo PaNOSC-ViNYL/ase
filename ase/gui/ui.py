@@ -563,6 +563,7 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
+        self.win.bind('<MouseWheel>', bind(scroll_event))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))

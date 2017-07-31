@@ -34,8 +34,10 @@ class BandStructure:
         self.cell = cell
         assert kpts.shape[1] == 3
         self.kpts = kpts
-        self.energies = energies
+        self.energies = np.asarray(energies)
         self.reference = reference
+        self.ax = None
+        self.xcoords = None
 
     def get_labels(self):
         return labels_from_kpts(self.kpts, self.cell)
@@ -57,14 +59,15 @@ class BandStructure:
             dct = decode(f.read())
         return BandStructure(**dct)
 
-    def plot(self, spin=None, emax=None, filename=None, ax=None, show=None,
-             **plotkwargs):
+    def plot(self, ax=None, spin=None, emin=-10, emax=5, filename=None,
+             show=None, ylabel=None, colors=None, label=None,
+             spin_labels=['spin up', 'spin down'], **plotkwargs):
         """Plot band-structure.
 
         spin: int or None
-            Spin channel.  Default behaviour is to plot both spi up and down
+            Spin channel.  Default behaviour is to plot both spin up and down
             for spin-polarized calculations.
-        emax: float
+        emin,emax: float
             Maximum energy above reference.
         filename: str
             Write image to a file.
@@ -74,9 +77,67 @@ class BandStructure:
             Show the image.
         """
 
+        if self.ax is None:
+            ax = self.prepare_plot(ax, emin, emax, ylabel)
+
+        if spin is None:
+            e_skn = self.energies
+        else:
+            e_skn = self.energies[spin, np.newaxis]
+
+        if colors is None:
+            if len(e_skn) == 1:
+                colors = 'g'
+            else:
+                colors = 'yb'
+
+        nspins = len(e_skn)
+
+        for spin, e_kn in enumerate(e_skn):
+            color = colors[spin]
+            kwargs = dict(color=color)
+            kwargs.update(plotkwargs)
+            if nspins == 2:
+                if label:
+                    lbl = label + ' ' + spin_labels[spin]
+                else:
+                    lbl = spin_labels[spin]
+            else:
+                lbl = label
+            ax.plot(self.xcoords, e_kn[:, 0], label=lbl, **kwargs)
+            for e_k in e_kn.T[1:]:
+                ax.plot(self.xcoords, e_k, **kwargs)
+
+        legend = label is not None or nspins == 2
+        self.finish_plot(filename, show, legend)
+
+        return ax
+
+    def plot_with_colors(self, ax=None, emin=-10, emax=5, filename=None,
+                         show=None, energies=None, colors=None,
+                         ylabel=None, clabel='$s_z$', cmin=-1.0, cmax=1.0):
+        """Plot band-structure with colors."""
+
+        import matplotlib.pyplot as plt
+
+        if self.ax is None:
+            ax = self.prepare_plot(ax, emin, emax, ylabel)
+
+        for e_k, color in zip(energies, colors):
+            things = ax.scatter(self.xcoords, e_k, c=color, s=2,
+                                vmin=cmin, vmax=cmax)
+
+        cbar = plt.colorbar(things)
+        cbar.set_label(clabel)
+
+        self.finish_plot(filename, show)
+
+        return ax
+
+    def prepare_plot(self, ax=None, emin=-10, emax=5, ylabel=None):
         import matplotlib.pyplot as plt
         if ax is None:
-            ax = plt.gca()
+            ax = plt.figure().add_subplot(111)
 
         def pretty(kpt):
             if kpt == 'G':
@@ -85,16 +146,10 @@ class BandStructure:
                 kpt = kpt[0] + '_' + kpt[1]
             return '$' + kpt + '$'
 
-        if spin is None:
-            e_skn = self.energies
-        else:
-            e_skn = self.energies[spin, None]
+        emin += self.reference
+        emax += self.reference
 
-        emin = e_skn.min()
-        if emax is not None:
-            emax = emax + self.reference
-
-        xcoords, label_xcoords, orig_labels = self.get_labels()
+        self.xcoords, label_xcoords, orig_labels = self.get_labels()
 
         labels = [pretty(name) for name in orig_labels]
         i = 1
@@ -104,25 +159,25 @@ class BandStructure:
                 labels[i] = ''
             i += 1
 
-        for spin, e_kn in enumerate(e_skn):
-            color = 'br'[spin]
-            for e_k in e_kn.T:
-                kwargs = dict(color=color)
-                kwargs.update(plotkwargs)
-                ax.plot(xcoords, e_k, **kwargs)
-
         for x in label_xcoords[1:-1]:
             ax.axvline(x, color='0.5')
 
+        ylabel = ylabel if ylabel is not None else 'energies [eV]'
+
         ax.set_xticks(label_xcoords)
         ax.set_xticklabels(labels)
-        ax.axis(xmin=0, xmax=xcoords[-1], ymin=emin, ymax=emax)
-        ax.set_ylabel('eigenvalues [eV]')
+        ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
+        ax.set_ylabel(ylabel)
         ax.axhline(self.reference, color='k')
-        try:
-            plt.tight_layout()
-        except AttributeError:
-            pass
+        self.ax = ax
+        return ax
+
+    def finish_plot(self, filename, show, legend=False):
+        import matplotlib.pyplot as plt
+
+        if legend:
+            plt.legend()
+
         if filename:
             plt.savefig(filename)
 
@@ -131,5 +186,3 @@ class BandStructure:
 
         if show:
             plt.show()
-
-        return ax

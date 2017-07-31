@@ -134,7 +134,7 @@ def metric_from_cell(cell):
     return np.dot(cell, cell.T)
 
 
-def crystal_structure_from_cell(cell, eps=1e-4):
+def crystal_structure_from_cell(cell, eps=2e-4):
     """Return the crystal structure as a string calculated from the cell.
 
     Supply a cell (from atoms.get_cell()) and get a string representing
@@ -157,6 +157,7 @@ def crystal_structure_from_cell(cell, eps=1e-4):
     angles = cellpar[3:] / 180 * pi
     a, b, c = abc
     alpha, beta, gamma = angles
+
     if abc.ptp() < eps and abs(angles - pi / 2).max() < eps:
         return 'cubic'
     elif abc.ptp() < eps and abs(angles - pi / 3).max() < eps:
@@ -174,6 +175,12 @@ def crystal_structure_from_cell(cell, eps=1e-4):
     elif (c >= a and c >= b and alpha < pi / 2 and
           abs(angles[1:] - pi / 2).max() < eps):
         return 'monoclinic'
+    elif (abc.ptp() < eps and angles.ptp() < eps and
+          np.abs(angles).max() < pi / 2):
+        return 'rhombohedral type 1'
+    elif (abc.ptp() < eps and angles.ptp() < eps and
+          np.abs(angles).max() > pi / 2):
+        return 'rhombohedral type 2'
     else:
         raise ValueError('Cannot find crystal structure')
 

@@ -11,7 +11,7 @@ There are two calculators that interface to the LAMMPS molecular
 dynamics code that can be used to solve an atoms model for energy,
 atom forces and cell stresses. They are:
 
-1. :mod:`LAMMPSrun` which interfaces to LAMMPS via writing a
+1. :mod:`ase.clculators.LAMMPSrun` which interfaces to LAMMPS via writing a
 controlling input file that is then run automatically through LAMMPS
 and the results read back in. These results are currently limited to
 total energy, atomic forces and cell stress.

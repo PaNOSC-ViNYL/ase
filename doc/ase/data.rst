@@ -17,6 +17,8 @@ This module defines the following variables:
 .. data:: cpk_colors
 .. data:: reference_states
 .. data:: vdw_radii
+.. data:: atomic_masses_iupac2016
+.. data:: atomic_masses_legacy
 
 All of these are lists that should be indexed with an atomic number:
 
@@ -114,7 +116,7 @@ from units of kcal/mol to eV.
 S22, s26, and s22x5 data
 ========================
 
-The s22, s26, and s22x5 databases are available in the :mod:`s22` module.
+The s22, s26, and s22x5 databases are available in the *s22* module.
 
 Each weakly bonded complex is identified as an entry in a list of strings
 (s22, s26, s22x5), and is fully created by a 'create'-function:

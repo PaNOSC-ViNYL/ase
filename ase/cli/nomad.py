@@ -3,6 +3,7 @@ import os
 import os.path as op
 import subprocess
 
+from ase.utils import FileNotFoundError
 
 class CLICommand:
     short_description = 'Upload files to NOMAD'

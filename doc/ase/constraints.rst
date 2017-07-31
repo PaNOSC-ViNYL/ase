@@ -74,25 +74,26 @@ length (see the :ref:`mep2` tutorial).
 Important: If fixing multiple bond lengths, use the FixBondLengths class
 below, particularly if the same atom is fixed to multiple partners.
 
+.. _FixBondLengths:
 
 The FixBondLengths class
 ========================
 
-More than one bond length can be fixed by using this class. Especially
-for cases in which more than one bond length constraint is applied on
-the same atom. It is done by specifying the indices of the two atoms
-forming the bond in pairs.
+RATTLE-type holonomic constraints. More than one bond length can be fixed by
+using this class. Especially for cases in which more than one bond length
+constraint is applied on the same atom. It is done by specifying the indices
+of the two atoms forming the bond in pairs.
 
 .. class:: FixBondLengths(pairs)
 
 Example of use::
 
   >>> c = FixBondLengths([[0, 1], [0, 2]])
-  >>> atoms.set_constraint(c)
+    >>> atoms.set_constraint(c)
 
-Here the distances between atoms with indices 0 and 1 and atoms with
-indices 0 and 2 will be fixed. The constraint is for the same purpose
-as the FixBondLength class.
+    Here the distances between atoms with indices 0 and 1 and atoms with
+    indices 0 and 2 will be fixed. The constraint is for the same purpose
+    as the FixBondLength class.
 
 
 The FixedLine class
@@ -205,8 +206,9 @@ Example of use::
   >>> atoms.set_constraint(c)
 
 One can combine this constraint with :class:`FixBondLength` but one has to
-consider the correct ordering when setting both constraints. :class:`ExternalForce`
-must come first in the list as shown in the following example.
+consider the correct ordering when setting both constraints.
+:class:`ExternalForce` must come first in the list as shown in the following
+example.
 
   >>> from ase.constraints import ExternalForce, FixBondLength
   >>> c1 = ExternalForce(0, 1, 0.5)
@@ -226,8 +228,7 @@ Those constraint definitions are always list objects containing
 the value to be set and a list of atomic indices. The epsilon value
 specifies the accuracy to which the constraints are fulfilled.
 
-.. class:: FixInternals(bonds=[bond1, bond2],
-    angles=[angle1], dihedrals=[dihedral1, dihedral2], epsilon=1.e-7)
+.. autoclass:: FixInternals
 
 .. note::
 

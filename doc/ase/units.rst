@@ -56,4 +56,17 @@ the CODATA version just selected:
 >>> print(units['Bohr'])
 0.5291772105638411
 
+The dictionary also supports attribute access so it can be used as a drop-in
+replacement for the module:
+
+>>> from ase.units import create_units
+>>> units = create_units('1986')
+>>> units.Bohr
+0.5291772575069165
+>>> units = create_units('2014')
+>>> units.Bohr
+0.5291772105638411
+
+
+
 .. autofunction:: create_units

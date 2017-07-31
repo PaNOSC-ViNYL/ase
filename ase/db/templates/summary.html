@@ -1,5 +1,125 @@
 {% extends 'layout.html' %}
 
+{% macro atoms() %}
+{% if d.numbers|length %}
+<div class="row">
+    <center>
+        <div id="appdiv"></div>
+    {% if open_ase_gui %}
+        <img src="/image/{{ d.id }}.png?project={{ project }}">
+    {% endif %}
+    </center>
+    <div class="row">
+      <div class="col-md-1"></div>
+      <div class="col-md-4">
+        {% if open_ase_gui %}
+        <a class="btn" href="/gui/{{ d.id }}?project={{ project }}">
+        Open ASE's GUI</a>
+        {% endif %}
+        <div class="btn-group pull-right">
+            <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
+                Unit cell <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a onclick="repeatCell(1, 1, 1);">1x1x1</a></li>
+                <li><a onclick="repeatCell({{ n1 }}, {{ n2 }}, {{ n3 }});"> {{ n1 }}x{{ n2 }}x{{ n3 }}</a></li>
+            </ul>
+        </div>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
+                Download <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a href="/xyz/{{ d.id }}?project={{ project }}">xyz</a></li>
+                <li><a href="/sqlite/{{ d.id }}?project={{ project }}">db</a></li>
+                <li><a href="/json/{{ d.id }}?project={{ project }}">json</a></li>
+            </ul>
+        </div>
+      </div>
+      <div class="col-md-1"></div>
+    </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro forces() %}
+{% if s.forces %}
+<h4>Relaxtion forces in eV/Å</h4>
+<table class="table table-striped">
+<thead>
+<tr>
+<th>#</th>
+<th>symbol</th>
+<th>x</th>
+<th>y</th>
+<th>z</th>
+</tr>
+</thead>
+<tbody>
+                {% for f in s.forces %}
+<tr>
+<td>{{ f[0] }}</td>
+<td>{{ f[1] }}</td>
+<td>{{ f[2] }}</td>
+<td>{{ f[3] }}</td>
+<td>{{ f[4] }}</td>
+</tr>
+                {% endfor %}
+</tbody>
+</table>
+{% endif %}
+{% endmacro %}
+
+{% macro cell() %}
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Axis</th>
+<th>x</th>
+<th>y</th>
+<th>z</th>
+<th>Periodic</th>
+</tr>
+</thead>
+<tbody>
+            {% for axis in s.cell %}
+<tr>
+<td>{{ loop.index }}</td>
+                {% for a in axis %} <td>{{ a }}</td>{% endfor %}
+<td>{{ d.pbc[loop.index0] }}</td>
+</tr>
+            {% endfor %}
+</tbody>
+</table>
+{% endmacro %}
+
+{% macro table(thing) %}
+{% set subtitle, rows = thing %}
+<table class="table table-striped">
+<colgroup>
+<col class="col-xs-7">
+<col class="col-xs-3">
+<col class="col-xs-2">
+</colgroup>
+<thead>
+<tr>
+<th>{{ subtitle }}</th>
+<th class="text-center">Value</th>
+<th class="text-center">Unit</th>
+</tr>
+</thead>
+<tbody>
+            {% for key, value, unit in rows %}
+<tr>
+<td> {{ key }} </td>
+<td class="text-center"> {{ value|safe }} </td>
+<td class="text-center"> {{ unit|safe }} </td>
+</tr>
+            {% endfor %}
+</tbody>
+</table>
+{% endmacro %}
+
 {% block title %}
 {{proj}} - Summary
 {% endblock %}
@@ -7,260 +127,71 @@
 {% set d = s.row %}
 
 {% block head %}
-    {% if not open_ase_gui %}
-        <script src="{{ url_for('static', filename='jsmol/JSmol.min.js') }}"></script>
+{% if not open_ase_gui %}
+<script src="{{ url_for('static', filename='jsmol/JSmol.min.js') }}"></script>
 
-        <script>
-            jmol_isReady = function(applet)
-            {
-                Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
-                Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }};");
-            }
-        </script>
+<script>
+jmol_isReady = function(applet)
+{
+    Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
+    Jmol.script(jmolApplet0, "set displaycellparameters false;")
+    Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }} { {{ n1 }} {{ n2 }} {{ n3 }} };");
+    }
+</script>
 
-        <script src="{{ url_for('static', filename='summary.js') }}"></script>
-    {% endif %}
+<script src="{{ url_for('static', filename='summary.js') }}"></script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 
-    {% set meta = md['key_descriptions'] or {} %}
-    {% set secs = md['summary_sections'] or [] %}
-    {% set keyval = s.keyval %}
-
-    {# #}
-    {# a little setup of meta data #}
-
-    {% set SPECIAL = ['STRUCTUREPLOT', 'AXIS', 'FORCES', 'BANDSTRUCT', 'PLOT'] %}
-    {% set plotIs = {'plot': false} %}
-    {% set plotList = {} %}
-
 <div class="container">
 
-    <h1>
-    {{ keyval['formula']|safe }}
-    </h1>
+<h1>
+{{ s.formula|safe }}
+</h1>
 
-    <div class="panel-group">
+<div class="panel-group">
 
-      {% set secCount = {'count' : 0} %}
-      {% for sec in secs %}
-      {% set _dummy = secCount.update({'count' : secCount['count']+1}) %}
+{% for title, things in s.layout %}
 
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title">
-            <a class="btn-block" data-toggle="collapse" href="#collapse{{secCount['count']}}">
-              {{ sec[0] }}
-            </a>
-          </h4>
-        </div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">
+        <a class="btn-block" data-toggle="collapse" href="#collapse{{ loop.index0 }}">
+        {{ title }}
+        </a>
+        </h4>
+    </div>
 
-        {% if secCount['count'] == 1 %}
-        <div id="collapse{{secCount['count']}}" class="panel-collapse collapse in">
-        {%else%}
-        <div id="collapse{{secCount['count']}}" class="panel-collapse collapse">
+    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
+        <div class="panel-body">
+    {% for column in things %}
+        <div class="col-md-6">
+    {% for thing in column %}
+            <div class="row">
+        {% if thing == 'ATOMS' %}
+            {{ atoms() }}
+        {% elif thing == 'FORCES' %}
+            {{ forces() }}
+        {% elif thing == 'CELL' %}
+            {{ cell() }}
+        {% elif thing is none %}
+        {% elif thing|length == 2 %}
+            {{ table(thing) }}
+        {% else %}
+                    <img
+                    src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%">
         {% endif %}
-
-          <div class="panel-body">
-            {% set tableLen = {'count': 0} %}
-            {% set secLen = (sec|length)-1 %}
-            {% for index in range(1, secLen+1) %}
-                {% if sec[index][0] != 'PLOT' %}
-                    {% set _dummy = tableLen.update({'count': tableLen['count'] + 1}) %}
-                {% endif %}
-            {% endfor%}
-
-            {% set rest = tableLen['count'] % 2 %}
-            {% set half = ((tableLen['count'] + rest)/2) | int %}
-
-            <div class="row">
-
-              <div class="col-xs-1"></div>
-              <div class="col-xs-5">
-
-                {% for index in range(1, secLen+1) %}
-
-                {% if index == half+1 %}
-                </div>
-                <div class="col-xs-5">
-                {% endif %}
-
-                {% if not sec[index][0] in SPECIAL %}
-                <table class="table table-striped">
-                  <colgroup>
-                    <col class="col-xs-7">
-                    <col class="col-xs-3">
-                    <col class="col-xs-2">
-                  </colgroup>
-                  <thead>
-                    <tr>
-                      <th>{{sec[index][0]}}</th>
-                      <th class="text-center">Value</th>
-                      <th class="text-center">Unit</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for item in range(0, sec[index][1]|length) %}
-                    {% set name = sec[index][1][item] %}
-                    {% if name in keyval %}
-                    {% if name in meta %}
-                      <tr>
-                        <td> {{ meta[name][1] }} </td>
-
-                        {% if meta[name][2] == 'float'  %}
-                            <td class="text-center"> {{ keyval[name] | round(3, 'common') }} </td>
-                        {% else %}
-                            <td class="text-center"> {{ keyval[name] | safe }} </td>
-                        {% endif %}
-
-                        <td class="text-center"> {{ meta[name][3] | safe }} </td>
-
-                      </tr>
-                    {% else%}
-                      <tr>
-                        <td> {{ name }} </td>
-                        <td class="text-center"> {{ keyval[name] }} </td>
-                        <td class="text-center"> {{ '' }} </td>
-                      </tr>
-                    {% endif %}
-                    {% endif %}
-                    {% endfor %}
-                  </tbody>
-                </table>
-                {% else %}
-
-                  {% if sec[index][0] == 'STRUCTUREPLOT' %}
-                    {% if d.numbers|length %}
-                    <div class="row">
-                      <center>
-                        <div id="appdiv"></div>
-                        {% if open_ase_gui %}
-                          <img src="/image/{{ d.id }}.png?project={{ project }}">
-                        {% endif %}
-                        </div>
-                      </center>
-                                <div class="row">
-                        {% if open_ase_gui %}
-                          <a class="btn" href="/gui/{{ d.id }}?project={{ project }}">
-                          Open ASE's GUI</a>
-                        {% endif %}
-                                    <div class="btn-group pull-right">
-                                        <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
-                                        Unit cell <span class="caret"></span>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                        <li><a onclick="repeatCell(1);">1x1x1</a></li>
-                                        <li><a onclick="repeatCell(221);">2x2x1</a></li>
-                                        <li><a onclick="repeatCell(222);">2x2x2</a></li>
-                                        </ul>
-                                    </div>
-                                    <div class="btn-group pull-right">
-                                        <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
-                                        Download <span class="caret"></span>
-                                        </button>
-                                        <ul class="dropdown-menu">
-                                        <li><a href="/xyz/{{ d.id }}?project={{ project }}">xyz</a></li>
-                                        <li><a href="/sqlite/{{ d.id }}?project={{ project }}">db</a></li>
-                                        <li><a href="/json/{{ d.id }}?project={{ project }}">json</a></li>
-                                        </ul>
-                                    </div>
-                                </div>
-                    {% endif %}
-                  {% elif sec[index][0] == 'AXIS' %}
-
-                    <table class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>Axis</th>
-                          <th>x</th>
-                          <th>y</th>
-                          <th>z</th>
-                          <th>Periodic</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-
-                        {% for axis in s.cell %}
-                        <tr>
-                          <td>{{ loop.index }}</td>
-                          {% for a in axis %} <td>{{ a }}</td>{% endfor %}
-                          <td>{{ d.pbc[loop.index0] }}</td>
-                        </tr>
-                        {% endfor %}
-
-                      </tbody>
-                    </table>
-
-                  {% elif sec[index][0] == 'FORCES' %}
-
-                    {% if s.forces %}
-                    <h4>Relaxtion forces in eV/å</h4>
-                    <table class="table table-striped">
-                      <thead>
-                        <tr>
-                          <th>#</th>
-                          <th>symbol</th>
-                          <th>x</th>
-                          <th>y</th>
-                          <th>z</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {% for f in s.forces %}
-                        <tr>
-                          <td>{{ f[0] }}</td>
-                          <td>{{ f[1] }}</td>
-                          <td>{{ f[2] }}</td>
-                          <td>{{ f[3] }}</td>
-                          <td>{{ f[4] }}</td>
-                        </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                    {% endif %}
-
-                  {% elif sec[index][0] == 'PLOT' %}
-
-                    {% if sec[index][1] in s.plots %}
-                      {% set _dummy = plotIs.update({'plot': true}) %}
-                      {% set _dummy = plotList.update({sec[index][1]: true}) %}
-                    {% endif %}
-
-                  {% endif%}
-
-                  {% endif %}
-                  {% endfor %}
-
-                  {% if secLen == 1 %}
-                    <div class="col-xs-5"></div>
-                  {% endif %}
-
-                </div>
-              <div class="col-xs-1"></div>
-
-            </div> <!--END ROW-->
-
-            <!--if there is a band structure put it here -->
-            {% if plotIs['plot'] == true %}
-            <div class="row">
-              <div class="col-xs-1"></div>
-              <div class="col-xs-10">
-                <center>
-                  {% for name in plotList %}
-                  <img src="/plot/{{ name }}-{{ d.id }}.png?project={{ project }}">
-                  {% endfor %}
-                </center>
-              </div>
-              <div class="col-xs-1"></div>
-            </div>
-            {% set _dummy = plotIs.update({'plot': false}) %}
-            {% endif %}
-
-          </div> <!--END PANEL BODY-->
-        </div> <!--END COLLAPSE-->
-      </div> <!--END PANEL-->
+                </div> <!--END ROW-->
     {% endfor %}
-  </div> <!--END PANEL GROUP-->
-
+            </div> <!--END col-md-6-->
+    {% endfor %}
+        </div> <!--END PANEL BODY-->
+    </div> <!--END COLLAPSE-->
+</div> <!--END PANEL-->
+{% endfor %}
+</div> <!--END PANEL GROUP-->
+</div>
 {% endblock content %}
+

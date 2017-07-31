@@ -1,5 +1,4 @@
 from __future__ import print_function
-import multiprocessing as mp
 import os
 import os.path as op
 import sys
@@ -17,12 +16,19 @@ class CLICommand:
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('folder')
-        parser.add_argument('query', nargs='?')
+        parser.add_argument('folder', help='Folder to look in.')
+        parser.add_argument('query', nargs='?',
+                            help='Examples: More than 2 hydrogens and no '
+                            'silver: "H>2,Ag=0".')
         parser.add_argument('-v', '--verbose', action='store_true')
-        parser.add_argument('-i', '--include')
-        parser.add_argument('-x', '--exclude')
-        parser.add_argument('-j', '--jobs', type=int, default=0)
+        parser.add_argument('-l', '--long', action='store_true',
+                            help='Show also filetype and number of atoms.')
+        parser.add_argument('-i', '--include', help='Include only filenames '
+                            'ending with given strings.  Example: '
+                            '"-i .xyz,.traj".')
+        parser.add_argument('-x', '--exclude', help='Exclude filenames '
+                            'ending with given strings.  Example: '
+                            '"-x .cif".')
 
     @staticmethod
     def run(args):
@@ -33,33 +39,14 @@ def main(args):
     query = parse_selection(args.query)
     include = args.include.split(',') if args.include else []
     exclude = args.exclude.split(',') if args.exclude else []
-    N = args.jobs or mp.cpu_count()
-    if N == 1:
-        for path in allpaths(args.folder, include, exclude):
-            if check(path, query, args.verbose):
-                print(path)
-        return
-
-    paths = mp.Queue()
-
-    pool = mp.Pool(N, initialize_target, [paths])
-
-    results = [pool.apply_async(target, (query, args.verbose))
-               for _ in range(N)]
 
     for path in allpaths(args.folder, include, exclude):
-        paths.put(path)
-    for _ in range(N):
-        paths.put('STOP')
-
-    found = []
-    for result in results:
-        found.extend(result.get())
-
-    pool.terminate()
-
-    for path in sorted(found):
-        print(path)
+        format, natoms = check(path, query, args.verbose)
+        if format:
+            if args.long:
+                print('{:15} {:6} {}'.format(format, natoms, path))
+            else:
+                print(path)
 
 
 def allpaths(folder, include, exclude):
@@ -81,21 +68,13 @@ def allpaths(folder, include, exclude):
         dirnames[:] = (name for name in dirnames if name[0] not in '._')
 
 
-def target(query, verbose):
-    paths = []
-    for path in iter(target.paths.get, 'STOP'):
-        if check(path, query, verbose):
-            paths.append(path)
-    return paths
-
-
 def check(path, query, verbose):
     try:
         format = filetype(path, guess=False)
     except OSError:
-        return False
+        return '', 0
     if format is None:
-        return False
+        return '', 0
     if format in ['db', 'json']:
         db = connect(path)
     else:
@@ -104,21 +83,17 @@ def check(path, query, verbose):
         except Exception as x:
             if verbose:
                 print(path + ':', x, file=sys.stderr)
-            return False
+            return '', 0
         db = FakeDB(atoms)
 
     try:
         for row in db._select(*query):
-            return True
+            return format, row.natoms
     except Exception as x:
         if verbose:
             print(path + ':', x, file=sys.stderr)
 
-    return False
-
-
-def initialize_target(paths):
-    target.paths = paths
+    return '', 0
 
 
 class FakeDB(JSONDatabase):

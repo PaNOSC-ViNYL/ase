@@ -20,7 +20,7 @@ fig = nebtools.plot_band()
 fig.savefig('diffusion-barrier.png')
 
 # Create a figure with custom parameters.
-fig = plt.figure(figsize=(4.5, 3))
+fig = plt.figure(figsize=(5.5, 4.0))
 ax = fig.add_axes((0.15, 0.15, 0.8, 0.75))
 nebtools.plot_band(ax)
 fig.savefig('diffusion-barrier.png')
