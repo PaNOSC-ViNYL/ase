@@ -13,7 +13,7 @@ from ase.db.row import atoms2dict
 
 
 class CLICommand:
-    short_description = 'Find files with atoms in.'
+    short_description = 'Find files with atoms in them.'
 
     @staticmethod
     def add_arguments(parser):
