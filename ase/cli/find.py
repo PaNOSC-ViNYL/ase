@@ -57,6 +57,7 @@ def main(args):
 
 
 def allpaths(folder, include, exclude):
+    """Generate paths."""
     exclude += ['.py', '.pyc']
     for dirpath, dirnames, filenames in os.walk(folder):
         for name in filenames:
@@ -76,12 +77,18 @@ def allpaths(folder, include, exclude):
 
 
 def check(path, query, verbose):
+    """Check a path.
+
+    Returns a (filetype, AtomsRow object) tuple.
+    """
+
     try:
         format = filetype(path, guess=False)
     except OSError:
         return '', None
     if format is None:
         return '', None
+
     if format in ['db', 'json']:
         db = connect(path)
     else:
