@@ -17,9 +17,11 @@ class CLICommand:
     @staticmethod
     def add_arguments(parser):
         parser.add_argument('folder', help='Folder to look in.')
-        parser.add_argument('query', nargs='?',
-                            help='Examples: More than 2 hydrogens and no '
-                            'silver: "H>2,Ag=0".')
+        parser.add_argument(
+            'query', nargs='?',
+            help='Examples: More than 2 hydrogens and no silver: "H>2,Ag=0". '
+            'More than 1000 atoms: "natoms>1000". '
+            'Slab geometry containing Cu and Ni: "pbc=TTF,Cu,Ni".')
         parser.add_argument('-v', '--verbose', action='store_true')
         parser.add_argument('-l', '--long', action='store_true',
                             help='Show also filetype and number of atoms.')
@@ -41,10 +43,14 @@ def main(args):
     exclude = args.exclude.split(',') if args.exclude else []
 
     for path in allpaths(args.folder, include, exclude):
-        format, natoms = check(path, query, args.verbose)
+        format, row = check(path, query, args.verbose)
         if format:
             if args.long:
-                print('{:15} {:6} {}'.format(format, natoms, path))
+                print('{} {:10} {:15} {}'
+                      .format(''.join(str(p) for p in row.pbc.astype(int)),
+                              row.formula,
+                              format,
+                              path))
             else:
                 print(path)
 
@@ -72,9 +78,9 @@ def check(path, query, verbose):
     try:
         format = filetype(path, guess=False)
     except OSError:
-        return '', 0
+        return '', None
     if format is None:
-        return '', 0
+        return '', None
     if format in ['db', 'json']:
         db = connect(path)
     else:
@@ -83,17 +89,17 @@ def check(path, query, verbose):
         except Exception as x:
             if verbose:
                 print(path + ':', x, file=sys.stderr)
-            return '', 0
+            return '', None
         db = FakeDB(atoms)
 
     try:
         for row in db._select(*query):
-            return format, row.natoms
+            return format, row
     except Exception as x:
         if verbose:
             print(path + ':', x, file=sys.stderr)
 
-    return '', 0
+    return '', None
 
 
 class FakeDB(JSONDatabase):
