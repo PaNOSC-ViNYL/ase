@@ -521,7 +521,7 @@ def string2index(string):
     return slice(*i)
 
 
-def filetype(filename, read=True):
+def filetype(filename, read=True, guess=True):
     """Try to guess the type of the file.
 
     First, special signatures in the filename will be checked for.  If that
@@ -531,7 +531,7 @@ def filetype(filename, read=True):
 
     Can be used from the command-line also::
 
-        $ python -m ase.io.formats filename ...
+        $ ase info filename ...
     """
 
     ext = None
@@ -622,5 +622,7 @@ def filetype(filename, read=True):
         if magic in data:
             return format
 
-    format = extension2format.get(ext, ext)
+    format = extension2format.get(ext)
+    if format is None and guess:
+        format = ext
     return format

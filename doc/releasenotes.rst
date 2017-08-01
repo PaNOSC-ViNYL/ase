@@ -16,6 +16,8 @@ Git master branch
   write from master.  Use the new keyword ``parallel=False`` to read/write
   from the individual slaves.
 
+* New ``ase find`` :ref:`command <cli>` for finding atoms in files.
+
 
 Version 3.14.1
 ==============
