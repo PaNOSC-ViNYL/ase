@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2017-08-03 01:05+0200\n"
-"PO-Revision-Date: 2017-08-03 01:27+0200\n"
+"PO-Revision-Date: 2017-08-03 01:53+0200\n"
 "Last-Translator: Robert Warmbier <Robert.Warmbier@wits.ac.za>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -352,7 +352,7 @@ msgstr "Zick-Zack"
 
 #: ../graphene.py:58
 msgid "armchair"
-msgstr ""
+msgstr "Armchair"
 
 #: ../graphene.py:71 ../graphene.py:82
 msgid "  Bond length: "
@@ -433,7 +433,7 @@ msgstr "Löschen"
 
 #: ../graphs.py:72
 msgid "Save data to file ... "
-msgstr "Speichere Daten in Datei ..."
+msgstr "Speichere Daten in Datei …"
 
 #: ../gui.py:249
 msgid "Automatic"
@@ -441,7 +441,7 @@ msgstr "Automatisch"
 
 #: ../gui.py:267
 msgid "Open ..."
-msgstr "Öffne ..."
+msgstr "Öffne …"
 
 #: ../gui.py:268
 msgid "Choose parser:"
@@ -569,19 +569,19 @@ msgstr "_Elementsymbol"
 
 #: ../gui.py:425
 msgid "Quick Info ..."
-msgstr "Kurzinfo ..."
+msgstr "Kurzinfo …"
 
 #: ../gui.py:426
 msgid "Repeat ..."
-msgstr "Wiederhole ..."
+msgstr "Wiederhole …"
 
 #: ../gui.py:427
 msgid "Rotate ..."
-msgstr "Rotieren ..."
+msgstr "Rotieren …"
 
 #: ../gui.py:428
 msgid "Colors ..."
-msgstr "Farben ..."
+msgstr "Farben …"
 
 #. TRANSLATORS: verb
 #: ../gui.py:430
@@ -654,7 +654,7 @@ msgstr "a2,a1-Ebene"
 
 #: ../gui.py:448
 msgid "Settings ..."
-msgstr "Einstellungen ..."
+msgstr "Einstellungen …"
 
 #: ../gui.py:450
 msgid "VMD"
@@ -678,23 +678,23 @@ msgstr "_Werkzeuge"
 
 #: ../gui.py:456
 msgid "Graphs ..."
-msgstr "Graphen ..."
+msgstr "Graphen …"
 
 #: ../gui.py:457
 msgid "Movie ..."
-msgstr "Film ..."
+msgstr "Film …"
 
 #: ../gui.py:458
 msgid "Expert mode ..."
-msgstr "Expertenmodus ..."
+msgstr "Expertenmodus …"
 
 #: ../gui.py:459
 msgid "Constraints ..."
-msgstr "Beschränkungen ..."
+msgstr "Beschränkungen …"
 
 #: ../gui.py:460
 msgid "Render scene ..."
-msgstr "Zeichne Szene ..."
+msgstr "Zeichne Szene …"
 
 #: ../gui.py:461
 msgid "_Move atoms"
@@ -719,7 +719,7 @@ msgstr "_Kristallstruktur"
 
 #: ../gui.py:468
 msgid "_Surface slab"
-msgstr "Oberflächen _Slab"
+msgstr "_Oberfläche"
 
 #: ../gui.py:469
 msgid "_Nanoparticle"
@@ -755,11 +755,11 @@ msgstr "_Info"
 
 #: ../gui.py:485
 msgid "Webpage ..."
-msgstr "Webseite ..."
+msgstr "Webseite …"
 
 #: ../modify.py:19
 msgid "No atoms selected!"
-msgstr "Keine Atome markiert!"
+msgstr "Keine Atome ausgewählt!"
 
 #: ../modify.py:22
 msgid "Modify"
@@ -821,7 +821,7 @@ msgstr " Bildrate: "
 
 #: ../movie.py:41
 msgid " Skip frames: "
-msgstr " Überspringe Frames: "
+msgstr " Überspringe Bilder: "
 
 #: ../nanoparticle.py:23
 msgid ""
@@ -1036,6 +1036,10 @@ msgid ""
 "Nanotubes of other elements can be made by specifying the element\n"
 "and bond length."
 msgstr ""
+"Erzeuge eine Kohlenstoffnanoröhre gegeben durch den Aufrollvektor (n,m).\n"
+"Beachte m <= n.\n"
+"\n"
+"Um Nanoröhren anderer Elemente herzustellen geben Sie das Element und die Bindungslänge an."
 
 #: ../nanotube.py:26
 #, python-brace-format
@@ -1128,7 +1132,7 @@ msgstr "Volumen: "
 
 #: ../render.py:20 ../render.py:190
 msgid "Render current view in povray ... "
-msgstr "Zeichne aktuelle Sicht in povray ..."
+msgstr "Zeichne aktuelle Sicht in povray …"
 
 #: ../render.py:21 ../render.py:194
 #, python-format
@@ -1273,7 +1277,7 @@ msgstr "     Kameraabstand"
 #: ../render.py:290
 #, python-format
 msgid "Render all %d frames"
-msgstr "Rendere alle %d Frames"
+msgstr "Zeichne alle %d Bilder"
 
 #: ../render.py:298
 msgid "Run povray       "
@@ -1345,7 +1349,7 @@ msgstr ""
 
 #: ../save.py:26
 msgid "Save ..."
-msgstr "Speichern ..."
+msgstr "Speichern …"
 
 #: ../settings.py:10
 msgid "Settings"
@@ -1477,19 +1481,14 @@ msgid ""
 "look up the lattice constant, otherwise you have to specify it\n"
 "yourself."
 msgstr ""
-"  Nutzen Sie diesen Dialog, um Oberflächenslabs zu erzeugen. Wähle Element\n"
+"  Nutzen Sie diesen Dialog, um Oberflächen zu erzeugen. Wähle Element\n"
 "durch Schreiben des chemischen Symbols oder der Atomnummer in die Box. Dann\n"
-"wähle die gewünschte Oberflächenstruktur. Anmerkung: einige Strukturen "
-"können\n"
-"mit einer orthogonalen oder einer nicht-orthogonalen Einheitszelle erzeugt "
-"werden, in\n"
-"diesen Fällen wird die nicht-orthogonale Einheitszelle weniger Atome "
-"enthalten.\n"
+"wähle die gewünschte Oberflächenstruktur. Anmerkung: Einige Strukturen können\n"
+"mit einer orthogonalen oder einer nicht-orthogonalen Einheitszelle erzeugt werden. In\n"
+"diesen Fällen wird die nicht-orthogonale Einheitszelle weniger Atome enthalten.\n"
 "\n"
-"  Wenn die Struktur mit dem experimentellen Kristall übereinstimmt, dann "
-"kann\n"
-"die Gitterkonstante nachgeschlagen werden, andernfalls muss diese "
-"eigenständig\n"
+"  Wenn die Struktur mit dem experimentellen Kristall übereinstimmt, dann kann\n"
+"die Gitterkonstante nachgeschlagen werden, andernfalls muss diese eigenständig\n"
 "spezifiziert werden."
 
 #. Name, structure, orthogonal, function
@@ -1549,7 +1548,7 @@ msgstr "DIAMANT(100)"
 
 #: ../surfaceslab.py:33 ../surfaceslab.py:34
 msgid "diamond"
-msgstr "diamant"
+msgstr "Diamant"
 
 #: ../surfaceslab.py:34
 msgid "DIAMOND(111)"
@@ -1894,7 +1893,7 @@ msgstr "Kein Python-Code"
 #~ msgstr "Potentialfile muss importiert werden"
 
 #~ msgid "Import .alloy or .adp potential file ... "
-#~ msgstr "Importiere .alloy oder .adp-Potentialfile ..."
+#~ msgstr "Importiere .alloy oder .adp-Potentialfile …"
 
 #~ msgid "GPAW parameters"
 #~ msgstr "GPAW Parameter"
@@ -1999,10 +1998,10 @@ msgstr "Kein Python-Code"
 #~ msgstr "Exportiere control.in"
 
 #~ msgid "Export parameters ... "
-#~ msgstr "Exportiere Parameter ..."
+#~ msgstr "Exportiere Parameter …"
 
 #~ msgid "Import control.in file ... "
-#~ msgstr "Importiere control.in file ..."
+#~ msgstr "Importiere control.in file …"
 
 #~ msgid ""
 #~ "Please use the facilities provided in this window to manipulate the "
@@ -2059,10 +2058,10 @@ msgstr "Kein Python-Code"
 #~ "<b>WARNUNG:</b> Cutoff Energy ist niedriger als empfohlener Minimalwert!"
 
 #~ msgid "Import VASP input files: choose directory ... "
-#~ msgstr "Importiere VASP Eingabefiles: wähle Ordner ..."
+#~ msgstr "Importiere VASP Eingabefiles: wähle Ordner …"
 
 #~ msgid "Export VASP input files: choose directory ... "
-#~ msgstr "Exportiere VASP Eingabefiles: wähle Ordne ..."
+#~ msgstr "Exportiere VASP Eingabefiles: wähle Ordne …"
 
 #~ msgid ""
 #~ "Don't know this keyword: %s\n"
@@ -2117,7 +2116,7 @@ msgstr "Kein Python-Code"
 #~ msgstr "*** Arbeite mit allen Bildern"
 
 #~ msgid "Save Terminal text ..."
-#~ msgstr "Speichere Text von Terminal ..."
+#~ msgstr "Speichere Text von Terminal …"
 
 #~ msgid "Cancel"
 #~ msgstr "Abbrechen"
@@ -2312,7 +2311,7 @@ msgstr "Kein Python-Code"
 #~ msgstr "Ein Programmierungsfehler wurde entdeckt."
 
 #~ msgid "Report..."
-#~ msgstr "Berichte..."
+#~ msgstr "Berichte …"
 
 #~ msgid "Bug Details"
 #~ msgstr "Fehlerdetails"
@@ -2396,7 +2395,7 @@ msgstr "Kein Python-Code"
 #~ msgstr "Deformiere System durch Skalierung"
 
 #~ msgid "Debug ..."
-#~ msgstr "Debug ..."
+#~ msgstr "Debug …"
 
 #~ msgid "_Rotate atoms"
 #~ msgstr "_Rotiere Atome"
@@ -2571,7 +2570,7 @@ msgstr "Kein Python-Code"
 #~ msgstr "Keine Daten über Kristallstruktur"
 
 #~ msgid "Tip for status box ..."
-#~ msgstr "Tippen für Statusbox ..."
+#~ msgstr "Tippen für Statusbox …"
 
 #~ msgid "Clear constraint"
 #~ msgstr "Lösche Constraints"
