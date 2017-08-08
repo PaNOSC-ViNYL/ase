@@ -507,12 +507,19 @@ def niggli_reduce(atoms):
 
     G = _gtensor(atoms)
 
+    def lt(x, y, epsilon=G.epsilon):
+        return x < y - epsilon
+
+    def gt(x, y, epsilon=G.epsilon):
+        return lt(y, x, epsilon)
+
+    def eq(x, y, epsilon=G.epsilon):
+        return not (lt(x, y, epsilon) or gt(x, y, epsilon))
+
     # Once A2 and A5-A8 all evaluate to False, the unit cell will have
     # been fully reduced.
     for count in range(10000):
-        if (G.b < G.a - G.epsilon or
-            (not (G.a < G.b - G.epsilon or G.b < G.a - G.epsilon) and
-             np.abs(G.y) < np.abs(G.x) - G.epsilon)):
+        if gt(G.a, G.b) or (eq(G.a, G.b) and gt(np.abs(G.x), np.abs(G.y))):
             # Procedure A1
             A = np.array([[0, -1, 0],
                           [-1, 0, 0],
@@ -520,9 +527,7 @@ def niggli_reduce(atoms):
             G.update(A)
             C = np.dot(C, A)
 
-        if (G.c < G.b - G.epsilon or
-            (not (G.b < G.c - G.epsilon or G.c < G.b - G.epsilon) and
-             np.abs(G.z) < np.abs(G.y) - G.epsilon)):
+        if gt(G.b, G.c) or (eq(G.b, G.c) and gt(np.abs(G.y), np.abs(G.z))):
             # Procedure A2
             A = np.array([[-1, 0, 0],
                           [0, 0, -1],
@@ -531,27 +536,25 @@ def niggli_reduce(atoms):
             C = np.dot(C, A)
             continue
 
-        if 0 < G.x * G.y * G.z - G.epsilon:
+        if gt(G.x * G.y * G.z, 0):
             # Procedure A3
-            i = -1 if G.x < -G.epsilon else 1
-            j = -1 if G.y < -G.epsilon else 1
-            k = -1 if G.z < -G.epsilon else 1
+            i = -1 if lt(G.x, 0) else 1
+            j = -1 if lt(G.y, 0) else 1
+            k = -1 if lt(G.z, 0) else 1
         else:
             # Procedure A4
-            i = -1 if 0 < G.x - G.epsilon else 1
-            j = -1 if 0 < G.y - G.epsilon else 1
-            k = -1 if 0 < G.z - G.epsilon else 1
+            i = -1 if gt(G.x, 0) else 1
+            j = -1 if gt(G.y, 0) else 1
+            k = -1 if gt(G.z, 0) else 1
 
             if i * j * k == -1:
-                if not (G.z < -G.epsilon or 0 < G.z - G.epsilon):
+                if eq(G.z, 0):
                     k = -1
-                elif not (G.y < -G.epsilon or 0 < G.y - G.epsilon):
+                elif eq(G.y, 0):
                     j = -1
-                elif not (G.x < -G.epsilon or 0 < G.x - G.epsilon):
+                elif eq(G.x, 0):
                     i = -1
                 else:
-                    print(atoms.cell)
-                    print(G.get_new_cell())
                     raise RuntimeError('p unassigned and i*j*k < 0!')
 
         A = np.array([[i, 0, 0],
@@ -560,43 +563,36 @@ def niggli_reduce(atoms):
         G.update(A)
         C = np.dot(C, A)
 
-        if (G.b < np.abs(G.x) - G.epsilon or
-            (not (G.x < G.b - G.epsilon or G.b < G.x - G.epsilon) and
-             2 * G.y < G.z - G.epsilon) or
-            (not (G.x < -G.b - G.epsilon or -G.b < G.x - G.epsilon) and
-             G.z < -G.epsilon)):
+        if (lt(G.b, np.abs(G.x)) or
+            (eq(G.x, G.b) and lt(2 * G.y, G.z)) or
+            (eq(G.x, -G.b) and lt(G.z, 0))):
             # Procedure A5
             A = np.array([[1, 0, 0],
                           [0, 1, -np.sign(G.x)],
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (G.a < np.abs(G.y) - G.epsilon or
-              (not (G.y < G.a - G.epsilon or G.a < G.y - G.epsilon) and
-               2 * G.x < G.z - G.epsilon) or
-              (not (G.y < -G.a - G.epsilon or -G.a < G.y - G.epsilon) and
-               G.z < -G.epsilon)):
+        elif (lt(G.a, np.abs(G.y)) or
+              (eq(G.y, G.a) and lt(2 * G.x, G.z)) or
+              (eq(G.y, -G.a) and lt(G.z, 0))):
             # Procedure A6
             A = np.array([[1, 0, -np.sign(G.y)],
                           [0, 1, 0],
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (G.a < np.abs(G.z) - G.epsilon or
-              (not (G.z < G.a - G.epsilon or G.a < G.z - G.epsilon) and
-               2 * G.x < G.y - G.epsilon) or
-              (not (G.z < -G.a - G.epsilon or -G.a < G.z - G.epsilon) and
-               G.y < -G.epsilon)):
+        elif (lt(G.a, np.abs(G.z)) or
+              (eq(G.z, G.a) and lt(2 * G.x, G.y)) or
+              (eq(G.z, -G.a) and lt(G.y, 0))):
             # Procedure A7
             A = np.array([[1, -np.sign(G.z), 0],
                           [0, 1, 0],
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (G.x + G.y + G.z + G.a + G.b < -G.epsilon or
-              (not (G.x + G.y + G.z + G.a + G.b < -G.epsilon or
-                    0 < G.x + G.y + G.z + G.a + G.b - G.epsilon) and
-               0 < 2 * (G.a + G.y) + G.z - G.epsilon)):
+        elif (lt(G.x + G.y + G.z + G.a + G.b, 0) or
+              (eq(G.x + G.y + G.z + G.a + G.b, 0) 
+               and gt(2*(G.a + G.y) + G.z, 0))):
             # Procedure A8
             A = np.array([[1, 0, 1],
                           [0, 1, 1],

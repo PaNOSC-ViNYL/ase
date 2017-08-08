@@ -133,8 +133,5 @@ for i, cell in enumerate(cells_in):
     niggli_reduce(conf)
     cell = conf.get_cell()
     diff = np.linalg.norm(cell - cells_out[i])
-    if diff > 1e-5:
-        print(cell)
-        print(cells_out[i])
     assert diff < 1e-5, \
         'Difference between unit cells is too large! ({0})'.format(diff)
