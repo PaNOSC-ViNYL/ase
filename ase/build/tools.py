@@ -420,7 +420,7 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
             if pbc_c[c1] and pbc_c[c2]:
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
-                
+
 def niggli_reduce(atoms):
     """Convert the supplied atoms object's unit cell into its
     maximally-reduced Niggli unit cell. Even if the unit cell is already
@@ -449,7 +449,7 @@ def niggli_reduce(atoms):
 
             self.atoms = atoms
 
-            self.epsilon = 1e-5 * atoms.get_volume()**(1. / 3.)
+            self.epsilon = 1e-9 * atoms.get_volume()**(1. / 3.)
 
             self.a = np.dot(atoms.cell[0], atoms.cell[0])
             self.b = np.dot(atoms.cell[1], atoms.cell[1])
@@ -463,8 +463,6 @@ def niggli_reduce(atoms):
                                 [self.z / 2., self.b, self.x / 2.],
                                 [self.y / 2., self.x / 2., self.c]])
 
-            self._lmn()
-
         def update(self, C):
             """Procedure A0 as defined in Krivy."""
             self._G = np.dot(C.T, np.dot(self._G, C))
@@ -476,27 +474,6 @@ def niggli_reduce(atoms):
             self.x = 2 * self._G[1][2]
             self.y = 2 * self._G[0][2]
             self.z = 2 * self._G[0][1]
-
-            self._lmn()
-
-        def _lmn(self):
-            """Updates G-tensor l, m, n values"""
-            self.l = 0
-            self.m = 0
-            self.n = 0
-
-            if self.x < -self.epsilon:
-                self.l = -1
-            elif self.x > self.epsilon:
-                self.l = 1
-            if self.y < -self.epsilon:
-                self.m = -1
-            elif self.y > self.epsilon:
-                self.m = 1
-            if self.z < -self.epsilon:
-                self.n = -1
-            elif self.z > self.epsilon:
-                self.n = 1
 
         def get_new_cell(self):
             """Returns new basis vectors"""
@@ -527,14 +504,15 @@ def niggli_reduce(atoms):
             abc = np.vstack((va, vb, vc))
             T = np.vstack((X, Y, Z))
             return np.dot(abc, T)
+
     G = _gtensor(atoms)
 
     # Once A2 and A5-A8 all evaluate to False, the unit cell will have
     # been fully reduced.
     for count in range(10000):
-        if (G.a > G.b + G.epsilon or
-            (not np.abs(G.a - G.b) > G.epsilon and
-             np.abs(G.x) > np.abs(G.y) + G.epsilon)):
+        if (G.b < G.a - G.epsilon or
+            (not (G.a < G.b - G.epsilon or G.b < G.a - G.epsilon) and
+             np.abs(G.y) < np.abs(G.x) - G.epsilon)):
             # Procedure A1
             A = np.array([[0, -1, 0],
                           [-1, 0, 0],
@@ -542,9 +520,9 @@ def niggli_reduce(atoms):
             G.update(A)
             C = np.dot(C, A)
 
-        if (G.b > G.c + G.epsilon or
-            (not np.abs(G.b - G.c) > G.epsilon and
-             np.abs(G.y) > np.abs(G.z) + G.epsilon)):
+        if (G.c < G.b - G.epsilon or
+            (not (G.b < G.c - G.epsilon or G.c < G.b - G.epsilon) and
+             np.abs(G.z) < np.abs(G.y) - G.epsilon)):
             # Procedure A2
             A = np.array([[-1, 0, 0],
                           [0, 0, -1],
@@ -553,39 +531,39 @@ def niggli_reduce(atoms):
             C = np.dot(C, A)
             continue
 
-        if G.l * G.m * G.n == 1:
+        if 0 < G.x * G.y * G.z - G.epsilon:
             # Procedure A3
-            i = -1 if G.l == -1 else 1
-            j = -1 if G.m == -1 else 1
-            k = -1 if G.n == -1 else 1
-            A = np.array([[i, 0, 0],
-                          [0, j, 0],
-                          [0, 0, k]])
-            G.update(A)
-            C = np.dot(C, A)
+            i = -1 if G.x < -G.epsilon else 1
+            j = -1 if G.y < -G.epsilon else 1
+            k = -1 if G.z < -G.epsilon else 1
         else:
             # Procedure A4
-            i = -1 if G.l == 1 else 1
-            j = -1 if G.m == 1 else 1
-            k = -1 if G.n == 1 else 1
+            i = -1 if 0 < G.x - G.epsilon else 1
+            j = -1 if 0 < G.y - G.epsilon else 1
+            k = -1 if 0 < G.z - G.epsilon else 1
 
             if i * j * k == -1:
-                if G.l == 0:
-                    i = -1
-                if G.m == 0:
-                    j = -1
-                if G.n == 0:
+                if not (G.z < -G.epsilon or 0 < G.z - G.epsilon):
                     k = -1
-            A = np.array([[i, 0, 0],
-                          [0, j, 0],
-                          [0, 0, k]])
-            G.update(A)
-            C = np.dot(C, A)
+                elif not (G.y < -G.epsilon or 0 < G.y - G.epsilon):
+                    j = -1
+                elif not (G.x < -G.epsilon or 0 < G.x - G.epsilon):
+                    i = -1
+                else:
+                    print(atoms.cell)
+                    print(G.get_new_cell())
+                    raise RuntimeError('p unassigned and i*j*k < 0!')
 
-        if (np.abs(G.x) > G.b + G.epsilon or
-            (not np.abs(G.b - G.x) > G.epsilon and
+        A = np.array([[i, 0, 0],
+                      [0, j, 0],
+                      [0, 0, k]])
+        G.update(A)
+        C = np.dot(C, A)
+
+        if (G.b < np.abs(G.x) - G.epsilon or
+            (not (G.x < G.b - G.epsilon or G.b < G.x - G.epsilon) and
              2 * G.y < G.z - G.epsilon) or
-            (not np.abs(G.b + G.x) > G.epsilon and
+            (not (G.x < -G.b - G.epsilon or -G.b < G.x - G.epsilon) and
              G.z < -G.epsilon)):
             # Procedure A5
             A = np.array([[1, 0, 0],
@@ -593,10 +571,10 @@ def niggli_reduce(atoms):
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (np.abs(G.y) > G.a + G.epsilon or
-              (not np.abs(G.a - G.y) > G.epsilon and
+        elif (G.a < np.abs(G.y) - G.epsilon or
+              (not (G.y < G.a - G.epsilon or G.a < G.y - G.epsilon) and
                2 * G.x < G.z - G.epsilon) or
-              (not np.abs(G.a + G.y) > G.epsilon and
+              (not (G.y < -G.a - G.epsilon or -G.a < G.y - G.epsilon) and
                G.z < -G.epsilon)):
             # Procedure A6
             A = np.array([[1, 0, -np.sign(G.y)],
@@ -604,10 +582,10 @@ def niggli_reduce(atoms):
                           [0, 0, 1]], dtype=int)
             G.update(A)
             C = np.dot(C, A)
-        elif (np.abs(G.z) > G.a + G.epsilon or
-              (not np.abs(G.a - G.z) > G.epsilon and
+        elif (G.a < np.abs(G.z) - G.epsilon or
+              (not (G.z < G.a - G.epsilon or G.a < G.z - G.epsilon) and
                2 * G.x < G.y - G.epsilon) or
-              (not np.abs(G.a + G.z) > G.epsilon and
+              (not (G.z < -G.a - G.epsilon or -G.a < G.z - G.epsilon) and
                G.y < -G.epsilon)):
             # Procedure A7
             A = np.array([[1, -np.sign(G.z), 0],
@@ -616,8 +594,9 @@ def niggli_reduce(atoms):
             G.update(A)
             C = np.dot(C, A)
         elif (G.x + G.y + G.z + G.a + G.b < -G.epsilon or
-              (not np.abs(G.x + G.y + G.z + G.a + G.b) > G.epsilon and
-               2 * (G.a + G.y) + G.z > G.epsilon)):
+              (not (G.x + G.y + G.z + G.a + G.b < -G.epsilon or
+                    0 < G.x + G.y + G.z + G.a + G.b - G.epsilon) and
+               0 < 2 * (G.a + G.y) + G.z - G.epsilon)):
             # Procedure A8
             A = np.array([[1, 0, 1],
                           [0, 1, 1],
@@ -636,7 +615,7 @@ def niggli_reduce(atoms):
     atoms.set_cell(G.get_new_cell())
     atoms.set_scaled_positions(scpos)
 
-    
+
 def sort(atoms, tags=None):
     """Return a new Atoms object with sorted atomic order. The default
     is to order according to chemical symbols, but if *tags* is not
