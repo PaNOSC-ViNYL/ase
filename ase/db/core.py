@@ -7,6 +7,8 @@ import re
 import warnings
 from time import time
 
+import numpy as np
+
 from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
@@ -90,7 +92,7 @@ def check(key_value_pairs):
                 'chemical formula.  If you do a "db.select({0!r})",'
                 'you will not find rows with your key.  Instead, you wil get '
                 'rows containing the atoms in the formula!'.format(key))
-        if not isinstance(value, (numbers.Real, basestring)):
+        if not isinstance(value, (numbers.Real, basestring, np.bool_)):
             raise ValueError('Bad value for {!r}: {}'.format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
