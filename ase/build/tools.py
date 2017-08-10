@@ -328,7 +328,7 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     else:
         return atoms1
 
-        
+
 def rotation_matrix(a1, a2, b1, b2):
     """Returns a rotation matrix that rotates the vectors *a1* in the
     direction of *a2* and *b1* in the direction of *b2*.
@@ -421,91 +421,73 @@ def minimize_tilt(atoms, order=range(3), fold_atoms=True):
                 minimize_tilt_ij(atoms, c1, c2, fold_atoms)
 
 
-def niggli_reduce(atoms):
-    """Convert the supplied atoms object's unit cell into its
-    maximally-reduced Niggli unit cell. Even if the unit cell is already
-    maximally reduced, it will be converted into its unique Niggli unit cell.
-    This will also wrap all atoms into the new unit cell.
+class _gtensor(object):
+    """The G tensor as defined in Grosse-Kunstleve."""
+    def __init__(self, cell):
 
-    References:
+        self.cell = cell
 
-    Niggli, P. "Krystallographische und strukturtheoretische Grundbegriffe.
-    Handbuch der Experimentalphysik", 1928, Vol. 7, Part 1, 108-176.
+        self.epsilon = 1e-9 * abs(np.linalg.det(cell))**(1. / 3.)
 
-    Krivy, I. and Gruber, B., "A Unified Algorithm for Determining the
-    Reduced (Niggli) Cell", Acta Cryst. 1976, A32, 297-298.
+        self.a = np.dot(cell[0], cell[0])
+        self.b = np.dot(cell[1], cell[1])
+        self.c = np.dot(cell[2], cell[2])
 
-    Grosse-Kunstleve, R.W.; Sauter, N. K.; and Adams, P. D. "Numerically
-    stable algorithms for the computation of reduced unit cells", Acta Cryst.
-    2004, A60, 1-6.
-    """
+        self.x = 2 * np.dot(cell[1], cell[2])
+        self.y = 2 * np.dot(cell[0], cell[2])
+        self.z = 2 * np.dot(cell[0], cell[1])
 
-    assert all(atoms.pbc), 'Can only reduce 3d periodic unit cells!'
+        self._G = np.array([[self.a, self.z / 2., self.y / 2.],
+                            [self.z / 2., self.b, self.x / 2.],
+                            [self.y / 2., self.x / 2., self.c]])
+
+    def update(self, C):
+        """Procedure A0 as defined in Krivy."""
+        self._G = np.dot(C.T, np.dot(self._G, C))
+
+        self.a = self._G[0][0]
+        self.b = self._G[1][1]
+        self.c = self._G[2][2]
+
+        self.x = 2 * self._G[1][2]
+        self.y = 2 * self._G[0][2]
+        self.z = 2 * self._G[0][1]
+
+    def get_new_cell(self):
+        """Returns new basis vectors"""
+        a = np.sqrt(self.a)
+        b = np.sqrt(self.b)
+        c = np.sqrt(self.c)
+
+        ad = self.cell[0] / np.linalg.norm(self.cell[0])
+
+        Z = np.cross(self.cell[0], self.cell[1])
+        Z /= np.linalg.norm(Z)
+        X = ad - np.dot(ad, Z) * Z
+        X /= np.linalg.norm(X)
+        Y = np.cross(Z, X)
+
+        alpha = np.arccos(self.x / (2 * b * c))
+        beta = np.arccos(self.y / (2 * a * c))
+        gamma = np.arccos(self.z / (2 * a * b))
+
+        va = a * np.array([1, 0, 0])
+        vb = b * np.array([np.cos(gamma), np.sin(gamma), 0])
+        cx = np.cos(beta)
+        cy = (np.cos(alpha) - np.cos(beta) * np.cos(gamma)) \
+            / np.sin(gamma)
+        cz = np.sqrt(1. - cx * cx - cy * cy)
+        vc = c * np.array([cx, cy, cz])
+
+        abc = np.vstack((va, vb, vc))
+        T = np.vstack((X, Y, Z))
+        return np.dot(abc, T)
+
+
+def niggli_reduce_cell(cell):
     C = np.eye(3, dtype=int)
 
-    class _gtensor(object):
-        """The G tensor as defined in Grosse-Kunstleve."""
-        def __init__(self, atoms):
-
-            self.atoms = atoms
-
-            self.epsilon = 1e-9 * atoms.get_volume()**(1. / 3.)
-
-            self.a = np.dot(atoms.cell[0], atoms.cell[0])
-            self.b = np.dot(atoms.cell[1], atoms.cell[1])
-            self.c = np.dot(atoms.cell[2], atoms.cell[2])
-
-            self.x = 2 * np.dot(atoms.cell[1], atoms.cell[2])
-            self.y = 2 * np.dot(atoms.cell[0], atoms.cell[2])
-            self.z = 2 * np.dot(atoms.cell[0], atoms.cell[1])
-
-            self._G = np.array([[self.a, self.z / 2., self.y / 2.],
-                                [self.z / 2., self.b, self.x / 2.],
-                                [self.y / 2., self.x / 2., self.c]])
-
-        def update(self, C):
-            """Procedure A0 as defined in Krivy."""
-            self._G = np.dot(C.T, np.dot(self._G, C))
-
-            self.a = self._G[0][0]
-            self.b = self._G[1][1]
-            self.c = self._G[2][2]
-
-            self.x = 2 * self._G[1][2]
-            self.y = 2 * self._G[0][2]
-            self.z = 2 * self._G[0][1]
-
-        def get_new_cell(self):
-            """Returns new basis vectors"""
-            a = np.sqrt(self.a)
-            b = np.sqrt(self.b)
-            c = np.sqrt(self.c)
-
-            ad = self.atoms.cell[0] / np.linalg.norm(self.atoms.cell[0])
-
-            Z = np.cross(self.atoms.cell[0], self.atoms.cell[1])
-            Z /= np.linalg.norm(Z)
-            X = ad - np.dot(ad, Z) * Z
-            X /= np.linalg.norm(X)
-            Y = np.cross(Z, X)
-
-            alpha = np.arccos(self.x / (2 * b * c))
-            beta = np.arccos(self.y / (2 * a * c))
-            gamma = np.arccos(self.z / (2 * a * b))
-
-            va = a * np.array([1, 0, 0])
-            vb = b * np.array([np.cos(gamma), np.sin(gamma), 0])
-            cx = np.cos(beta)
-            cy = (np.cos(alpha) - np.cos(beta) * np.cos(gamma)) \
-                / np.sin(gamma)
-            cz = np.sqrt(1. - cx * cx - cy * cy)
-            vc = c * np.array([cx, cy, cz])
-
-            abc = np.vstack((va, vb, vc))
-            T = np.vstack((X, Y, Z))
-            return np.dot(abc, T)
-
-    G = _gtensor(atoms)
+    G = _gtensor(cell)
 
     def lt(x, y, epsilon=G.epsilon):
         return x < y - epsilon
@@ -591,8 +573,8 @@ def niggli_reduce(atoms):
             G.update(A)
             C = np.dot(C, A)
         elif (lt(G.x + G.y + G.z + G.a + G.b, 0) or
-              (eq(G.x + G.y + G.z + G.a + G.b, 0) 
-               and gt(2*(G.a + G.y) + G.z, 0))):
+              (eq(G.x + G.y + G.z + G.a + G.b, 0) and
+               gt(2 * (G.a + G.y) + G.z, 0))):
             # Procedure A8
             A = np.array([[1, 0, 1],
                           [0, 1, 1],
@@ -604,11 +586,35 @@ def niggli_reduce(atoms):
     else:
         raise RuntimeError('Niggli did not converge \
                 in {n} iterations!'.format(n=count))
+    return G.get_new_cell(), C
+
+
+def niggli_reduce(atoms):
+    """Convert the supplied atoms object's unit cell into its
+    maximally-reduced Niggli unit cell. Even if the unit cell is already
+    maximally reduced, it will be converted into its unique Niggli unit cell.
+    This will also wrap all atoms into the new unit cell.
+
+    References:
+
+    Niggli, P. "Krystallographische und strukturtheoretische Grundbegriffe.
+    Handbuch der Experimentalphysik", 1928, Vol. 7, Part 1, 108-176.
+
+    Krivy, I. and Gruber, B., "A Unified Algorithm for Determining the
+    Reduced (Niggli) Cell", Acta Cryst. 1976, A32, 297-298.
+
+    Grosse-Kunstleve, R.W.; Sauter, N. K.; and Adams, P. D. "Numerically
+    stable algorithms for the computation of reduced unit cells", Acta Cryst.
+    2004, A60, 1-6.
+    """
+
+    assert all(atoms.pbc), 'Can only reduce 3d periodic unit cells!'
+    new_cell, C = niggli_reduce_cell(atoms.cell)
     scpos = np.dot(atoms.get_scaled_positions(), np.linalg.inv(C).T)
     scpos %= 1.0
     scpos %= 1.0
 
-    atoms.set_cell(G.get_new_cell())
+    atoms.set_cell(new_cell)
     atoms.set_scaled_positions(scpos)
 
 
