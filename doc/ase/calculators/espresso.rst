@@ -88,7 +88,16 @@ Any ``FixAtoms`` or ``FixCartesian`` constraints are converted to Espresso
 constraints (for dynamic calculations).
 
 
-Exciting Calculator Class
+Alternative Calculators
+=======================
+
+There are several other QE `Calculator`s based on `ase` that provide a number
+of extra features:
+
+ - http://jochym.github.io/qe-util/
+ - https://github.com/vossjo/ase-espresso
+
+Espresso Calculator Class
 =========================
 
 .. autoclass:: ase.calculators.espresso.Espresso
