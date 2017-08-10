@@ -85,7 +85,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
         # Initialize parameter dictionaries
         GenerateVaspInput.__init__(self)
-        self._store_param_state()
+        self._store_param_state()  # Initialize an empty parameter state
 
         # Store atoms objects from vasprun.xml here, when an index is read
         # Format: self.xml_data[index] = atoms_object
@@ -289,6 +289,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         # Read atoms
         self.atoms = self.read_atoms()
 
+        self.initialize(self.atoms)  # Builds sorting list
+
         # Read parameters
         olddir = os.getcwd()
         try:
@@ -298,8 +300,6 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             self.read_potcar()
         finally:
             os.chdir(olddir)
-
-        self.initialize(self.atoms)  # Builds sorting list
 
         # Read the results from the calculation
         self.read_results()
@@ -433,7 +433,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
             if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
-                self.magnetic_moments = self.read_magnetic_moments(self.atoms)
+                self.magnetic_moments = self.read_magnetic_moments(lines=lines)
             else:
                 warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
                       ' setting magnetic_moments to zero.\nSet LORBIT>=10'
