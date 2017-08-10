@@ -224,7 +224,7 @@ class CP2K(Calculator):
 
         # enable eV and Angstrom as units
         self._shell.send('UNITS_EV_A')
-        assert self._shell.recv() == '* READY'
+        self._shell.expect('* READY')
 
         n_atoms = len(self.atoms)
         if 'cell' in system_changes:
@@ -232,7 +232,7 @@ class CP2K(Calculator):
             self._shell.send('SET_CELL %d' % self._force_env_id)
             for i in range(3):
                 self._shell.send('%.18e %.18e %.18e' % tuple(cell[i, :]))
-            assert self._shell.recv() == '* READY'
+            self._shell.expect('* READY')
 
         if 'positions' in system_changes:
             self._shell.send('SET_POS %d' % self._force_env_id)
@@ -240,30 +240,32 @@ class CP2K(Calculator):
             for pos in self.atoms.get_positions():
                 self._shell.send('%.18e %.18e %.18e' % tuple(pos))
             self._shell.send('*END')
-            assert float(self._shell.recv()) >= 0  # max change -> ignore
-            assert self._shell.recv() == '* READY'
+            max_change = float(self._shell.recv())
+            assert max_change >= 0 # sanity check
+            self._shell.expect('* READY')
 
         self._shell.send('EVAL_EF %d' % self._force_env_id)
-        assert self._shell.recv() == '* READY'
+        self._shell.expect('* READY')
 
         self._shell.send('GET_E %d' % self._force_env_id)
         self.results['energy'] = float(self._shell.recv())
         self.results['free_energy'] = self.results['energy']
-        assert self._shell.recv() == '* READY'
+        self._shell.expect('* READY')
 
         forces = np.zeros(shape=(n_atoms, 3))
         self._shell.send('GET_F %d' % self._force_env_id)
-        assert int(self._shell.recv()) == 3 * n_atoms
+        nvals = int(self._shell.recv())
+        assert nvals == 3 * n_atoms # sanity check
         for i in range(n_atoms):
             line = self._shell.recv()
             forces[i, :] = [float(x) for x in line.split()]
-        assert self._shell.recv() == '* END'
-        assert self._shell.recv() == '* READY'
+        self._shell.expect('* END')
+        self._shell.expect('* READY')
         self.results['forces'] = forces
 
         self._shell.send('GET_STRESS %d' % self._force_env_id)
         line = self._shell.recv()
-        assert self._shell.recv() == '* READY'
+        self._shell.expect('* READY')
 
         stress = np.array([float(x) for x in line.split()]).reshape(3, 3)
         assert np.all(stress == np.transpose(stress))   # should be symmetric
@@ -290,7 +292,7 @@ class CP2K(Calculator):
         self._shell.send('LOAD %s %s' % (inp_fn, out_fn))
         self._force_env_id = int(self._shell.recv())
         assert self._force_env_id > 0
-        assert self._shell.recv() == '* READY'
+        self._shell.expect('* READY')
 
     def _write_file(self, fn, content):
         """Write content to a file"""
@@ -311,14 +313,14 @@ class CP2K(Calculator):
             for line in lines:
                 self._shell.send(line)
             self._shell.send('*END')
-            assert self._shell.recv() == '* READY'
+            self._shell.expect('* READY')
 
     def _release_force_env(self):
         """Destroys the current force-environment"""
         if self._force_env_id:
             if self._shell.isready:
                 self._shell.send('DESTROY %d' % self._force_env_id)
-                assert self._shell.recv() == '* READY'
+                self._shell.expect('* READY')
             else:
                 msg = "CP2K-shell not ready, could not release force_env."
                 warn(msg, RuntimeWarning)
@@ -428,25 +430,32 @@ class Cp2kShell(object):
             print(command)
         self._child = Popen(command, shell=True, universal_newlines=True,
                             stdin=PIPE, stdout=PIPE, bufsize=1)
-        assert self.recv() == '* READY'
+        self.expect('* READY')
 
         # check version of shell
         self.send('VERSION')
-        shell_version = self.recv().rsplit(":", 1)
-        assert self.recv() == '* READY'
-        assert shell_version[0] == "CP2K Shell Version"
-        self.version = float(shell_version[1])
+        line = self.recv()
+        if not line.startswith('CP2K Shell Version:'):
+            raise RuntimeError('Cannot determine version of CP2K shell.  '
+                               'Probably the shell version is too old.  '
+                               'Please update to CP2K 3.0 or newer.')
+
+        shell_version = line.rsplit(":", 1)[1]
+        self.version = float(shell_version)
         assert self.version >= 1.0
+
+        self.expect('* READY')
 
         # enable harsh mode, stops on any error
         self.send('HARSH')
-        assert self.recv() == '* READY'
+        self.expect('* READY')
 
     def __del__(self):
         """Terminate cp2k_shell child process"""
         if self.isready:
             self.send('EXIT')
-            assert self._child.wait() == 0  # child process exited properly?
+            rtncode = self._child.wait()
+            assert rtncode == 0  # child process exited properly?
         else:
             warn("CP2K-shell not ready, sending SIGTERM.", RuntimeWarning)
             self._child.terminate()
@@ -474,6 +483,10 @@ class Cp2kShell(object):
         self.isready = line == '* READY'
         return line
 
+    def expect(self, line):
+        """Receive a line and asserts that it matches the expected one"""
+        received = self.recv()
+        assert received == line
 
 class InputSection(object):
     """Represents a section of a CP2K input file"""

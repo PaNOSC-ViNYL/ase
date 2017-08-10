@@ -43,7 +43,7 @@ html_context = {
     'current_version': __version__,
     'versions':
         [('3.15.0b1 (development)', 'https://wiki.fysik.dtu.dk/ase/dev'),
-         ('3.14.0 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
+         ('3.14.1 (latest stable)', 'https://wiki.fysik.dtu.dk/ase')]}
 
 latex_elements = {
     'papersize': 'a4paper',

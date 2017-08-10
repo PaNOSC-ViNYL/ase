@@ -10,6 +10,23 @@ Git master branch
 
 :git:`master <>`.
 
+* If you are running your Python script in :mod:`parallel <ase.parallel>`
+  then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
+  the master and broadcast to slaves, and :func:`ase.io.write` will only
+  write from master.  Use the new keyword ``parallel=False`` to read/write
+  from the individual slaves.
+
+* New ``ase find`` :ref:`command <cli>` for finding atoms in files.
+
+
+Version 3.14.1
+==============
+
+28 June 2017: :git:`3.14.1 <../3.14.1>`.
+
+* Calling the :func:`ase.dft.bandgap.bandgap` function with ``direct=True``
+  would return band indices that were off by one.  Fixed now.
+
 
 Version 3.14.0
 ==============

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Copyright (C) 2007  CAMP
+# Copyright (C) 2007-2017  CAMd
 # Please see the accompanying LICENSE file for further information.
 
 import os
@@ -58,23 +58,16 @@ class build_py(_build_py):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
 
-name = 'ase'  # PyPI name
-
-# Linux-distributions may want to change the name:
-if 0:
-    name = 'python-ase'
-
-setup(name=name,
+setup(name='ase',
       version=version,
       description='Atomic Simulation Environment',
       url='https://wiki.fysik.dtu.dk/ase',
       maintainer='ASE-community',
-      maintainer_email='ase-developers@listserv.fysik.dtu.dk',
+      maintainer_email='ase-users@listserv.fysik.dtu.dk',
       license='LGPLv2.1+',
       platforms=['unix'],
       packages=find_packages(),
       install_requires=['numpy', 'scipy', 'matplotlib', 'flask'],
-      # package_dir=package_dir,
       package_data=package_data,
       entry_points={'console_scripts': ['ase=ase.cli.main:main',
                                         'ase-db=ase.cli.main:old',

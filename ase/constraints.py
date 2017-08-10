@@ -1222,17 +1222,15 @@ class StrainFilter(Filter):
 
         """
 
-        self.atoms = atoms
         self.strain = np.zeros(6)
 
         if mask is None:
-            self.mask = np.ones(6)
+            mask = np.ones(6)
         else:
-            self.mask = np.array(mask)
+            mask = np.array(mask)
 
-        self.index = np.arange(len(atoms))
-        self.n = self.index.sum()
-
+        Filter.__init__(self, atoms, mask=mask)
+        self.mask = mask
         self.origcell = atoms.get_cell()
 
     def get_positions(self):

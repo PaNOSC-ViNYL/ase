@@ -929,15 +929,17 @@ class Atoms(object):
             # interpreted at 0 and 1 indices.
             i = np.array(i)
 
-        condel = []
-        for con in self.constraints:
+        import copy
+
+        conadd = []
+        # Constraints need to be deepcopied, but only the relevant ones.
+        for con in copy.deepcopy(self.constraints):
             if isinstance(con, (FixConstraint, FixBondLengths)):
                 try:
                     con.index_shuffle(self, i)
+                    conadd.append(con)
                 except IndexError:
-                    condel.append(con)
-
-        import copy
+                    pass
 
         atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
                                # should be communicated to the slice as well
@@ -948,9 +950,7 @@ class Atoms(object):
         for name, a in self.arrays.items():
             atoms.arrays[name] = a[i].copy()
 
-        # Constraints need to be deepcopied, but only the relevant ones.
-        atoms.constraints = copy.deepcopy([con for con in self.constraints if
-                                            con not in condel])
+        atoms.constraints = conadd
         return atoms
 
     def __delitem__(self, i):
@@ -1823,20 +1823,6 @@ class Atoms(object):
         images = Images([self])
         gui = GUI(images)
         gui.run()
-        # use atoms returned from gui:
-        # (1) delete all currently available atoms
-        self.set_constraint()
-        for z in range(len(self)):
-            self.pop()
-        edited_atoms = gui.images.get_atoms(0)
-        # (2) extract atoms from edit session
-        self.extend(edited_atoms)
-        self.set_constraint(edited_atoms._get_constraints())
-        self.set_cell(edited_atoms.get_cell())
-        self.set_initial_magnetic_moments(
-            edited_atoms.get_initial_magnetic_moments())
-        self.set_tags(edited_atoms.get_tags())
-        return
 
 
 def string2symbols(s):
