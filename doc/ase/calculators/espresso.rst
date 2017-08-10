@@ -91,8 +91,8 @@ constraints (for dynamic calculations).
 Alternative Calculators
 =======================
 
-There are several other QE `Calculator`s based on `ase` that provide a number
-of extra features:
+There are several other QE ``Calculator`` implementations based on ``ase``
+that provide a number of extra features:
 
  - http://jochym.github.io/qe-util/
  - https://github.com/vossjo/ase-espresso
