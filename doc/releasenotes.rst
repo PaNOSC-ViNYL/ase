@@ -18,6 +18,9 @@ Git master branch
 
 * New ``ase find`` :ref:`command <cli>` for finding atoms in files.
 
+* Added :class:`Espresso <ase.calculators.espresso.Espresso>` calculator for
+  Quantum ESPRESSO in module :mod:`ase.calculators.espresso`.
+
 
 Version 3.14.1
 ==============

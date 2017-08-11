@@ -159,6 +159,8 @@ extension2format = {
     'md': 'castep-md',
     'nw': 'nwchem',
     'out': 'espresso-out',
+    'pwo': 'espresso-out',
+    'pwi': 'espresso-in',
     'pdb': 'proteindatabank',
     'shelx': 'res',
     'in': 'aims',
