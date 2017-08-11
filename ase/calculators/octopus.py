@@ -344,8 +344,14 @@ class OctNamespace:
                     continue
 
                 v = self.evaluate(token)
+
                 try:
                     v = float(v)
+                except TypeError:
+                    try:
+                        v = complex(v)
+                    except ValueError:
+                        break
                 except ValueError:
                     break  # Cannot evaluate expression
                 else:
