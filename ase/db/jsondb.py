@@ -134,7 +134,7 @@ class JSONDatabase(Database, object):
         return AtomsRow(dct)
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
-                limit=None, offset=0, sort=None):
+                limit=None, offset=0, sort=None, include_data=True):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return
@@ -170,7 +170,10 @@ class JSONDatabase(Database, object):
         for id in ids:
             if n - offset == limit:
                 return
-            row = AtomsRow(bigdct[id])
+            dct = bigdct[id]
+            if not include_data:
+                dct.pop('data', None)
+            row = AtomsRow(dct)
             row.id = id
             for key in keys:
                 if key not in row:
