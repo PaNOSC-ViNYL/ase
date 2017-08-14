@@ -53,6 +53,10 @@ for name in ['y2.json', 'y2.db']:
     assert (row.data.chi == chi).all()
     print(row)
 
+    for row in c.select(include_data=False):
+        with must_raise(AttributeError):
+            row.data
+
     with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])  # not int, bool, float or str
 

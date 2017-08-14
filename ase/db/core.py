@@ -401,7 +401,8 @@ class Database:
 
     @parallel_generator
     def select(self, selection=None, filter=None, explain=False,
-               verbosity=1, limit=None, offset=0, sort=None, **kwargs):
+               verbosity=1, limit=None, offset=0, sort=None,
+               include_data=True, **kwargs):
         """Select rows.
 
         Return AtomsRow iterator with results.  Selection is done
@@ -427,6 +428,12 @@ class Database:
             Possible values: 0, 1 or 2.
         limit: int or None
             Limit selection.
+        offset: int
+            Offset into selected rows.
+        sort: str
+            Sort rows after key.  Prepend with minus sign for a decending sort.
+        include_data: bool
+            Use include_data=False to skip reading data from rows.
         """
 
         if sort:
@@ -440,7 +447,8 @@ class Database:
         keys, cmps = parse_selection(selection, **kwargs)
         for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
-                                limit=limit, offset=offset, sort=sort):
+                                limit=limit, offset=offset, sort=sort,
+                                include_data=include_data):
             if filter is None or filter(row):
                 yield row
 

@@ -222,7 +222,7 @@ def main(args):
         plots = collections.defaultdict(list)
         X = {}
         labels = []
-        for row in db.select(query, sort=args.sort):
+        for row in db.select(query, sort=args.sort, include_data=False):
             name = ','.join(str(row[tag]) for tag in tags)
             x = row.get(keys[0])
             if x is not None:
@@ -277,7 +277,8 @@ def main(args):
             if c and c.startswith('++'):
                 keys = set()
                 for row in db.select(query,
-                                     limit=args.limit, offset=args.offset):
+                                     limit=args.limit, offset=args.offset,
+                                     include_data=False):
                     keys.update(row._keys)
                 columns.extend(keys)
                 if c[2:3] == ',':
