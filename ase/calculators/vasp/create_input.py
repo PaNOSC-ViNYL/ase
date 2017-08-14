@@ -109,6 +109,8 @@ float_keys = [
     'vdw_a2',     # Damping parameter for Grimme's DFT-D3 dispersion correction
     'eb_k',       # solvent permitivity in Vaspsol
     'tau',        # surface tension parameter in Vaspsol
+    'bparam',     # B parameter for nonlocal VV10 vdW functional
+    'cparam',     # C parameter for nonlocal VV10 vdW functional
 ]
 
 exp_keys = [
@@ -328,6 +330,11 @@ class GenerateVaspInput(object):
         'tpss': {'metagga': 'TPSS'},
         'revtpss': {'metagga': 'RTPSS'},
         'm06l': {'metagga': 'M06L'},
+        'ms0': {'metagga': 'MS0'},
+        'ms1': {'metagga': 'MS1'},
+        'ms2': {'metagga': 'MS2'},
+        'scan': {'metagga': 'SCAN'},
+        'scan-rvv10': {'metagga': 'SCAN', 'luse_vdw': True, 'bparam': 15.7},
         # vdW-DFs
         'vdw-df': {'gga': 'RE', 'luse_vdw': True, 'aggac': 0.},
         'optpbe-vdw': {'gga': 'OR', 'luse_vdw': True, 'aggac': 0.0},
