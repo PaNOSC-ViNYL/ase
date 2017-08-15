@@ -274,25 +274,23 @@ def get_special_points(cell, lattice=None, eps=2e-4):
 
         http://dx.doi.org/10.1016/j.commatsci.2010.05.010
 
-    lattice: str
-        One of the following: cubic, fcc, bcc, orthorhombic, tetragonal,
-        hexagonal or monoclinic.
     cell: 3x3 ndarray
         Unit cell.
+    lattice: str
+        Optionally check that the cell is one of the following: cubic, fcc,
+        bcc, orthorhombic, tetragonal, hexagonal or monoclinic.
     eps: float
         Tolerance for cell-check.
     """
 
     if isinstance(cell, str):
-        print('!!!!!!!!!!!!!')
+        warnings.warn('Please call this function with cell as the first '
+                      'argument')
         lattice, cell = cell, lattice
 
-    from ase import Atoms
-    atoms = Atoms(cell=cell, pbc=True)
-    from ase.build import niggli_reduce
-    niggli_reduce(atoms)
-    rcell = atoms.cell
-    M = np.dot(cell, np.linalg.inv(rcell)).round().astype(int)
+    from ase.build.tools import niggli_reduce_cell
+    rcell, _ = niggli_reduce_cell(cell)
+    M = np.dot(cell, np.linalg.inv(rcell))
 
     latt = crystal_structure_from_cell(rcell, niggli_reduce=False)
     if lattice:
@@ -336,8 +334,7 @@ def get_special_points(cell, lattice=None, eps=2e-4):
                   'X': [nu, 0, -nu],
                   'Z': [0.5, 0.5, 0.5]}
     else:
-        points = special_points[latt
-                                ]
+        points = special_points[latt]
 
     return {label: np.dot(M, kpt) for label, kpt in points.items()}
 

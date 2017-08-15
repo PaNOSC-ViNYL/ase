@@ -185,11 +185,9 @@ def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
         return 'rhombohedral type 2'
     else:
         if niggli_reduce:
-            from ase import Atoms
-            atoms = Atoms(cell=cell, pbc=True)
-            from ase.build import niggli_reduce as reduce
-            reduce(atoms)
-            return crystal_structure_from_cell(atoms.cell, niggli_reduce=False)
+            from ase.build.tools import niggli_reduce_cell
+            cell, _ = niggli_reduce_cell(cell)
+            return crystal_structure_from_cell(cell, niggli_reduce=False)
         raise ValueError('Cannot find crystal structure')
 
 
