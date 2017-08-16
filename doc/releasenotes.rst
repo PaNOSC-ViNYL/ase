@@ -21,6 +21,11 @@ Git master branch
 * Added :class:`Espresso <ase.calculators.espresso.Espresso>` calculator for
   Quantum ESPRESSO in module :mod:`ase.calculators.espresso`.
 
+* The :func:`ase.dft.kpoints.get_special_points` function has a new call
+  signature:  Before it was ``get_special_points(lattice, cell)``, now it is
+  ``get_special_points(cell, lattice=None)``.  The old way still works, but
+  you will get a warning.
+
 
 Version 3.14.1
 ==============
