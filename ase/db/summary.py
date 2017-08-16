@@ -76,6 +76,7 @@ class Summary:
         misc = set(table.keys())
         self.layout = []
         for headline, columns in meta['layout']:
+            empty = True
             newcolumns = []
             for column in columns:
                 newcolumn = []
@@ -106,8 +107,12 @@ class Summary:
                             block = None
 
                     newcolumn.append(block)
+                    if block is not None:
+                        empty = False
                 newcolumns.append(newcolumn)
-            self.layout.append((headline, newcolumns))
+
+            if not empty:
+                self.layout.append((headline, newcolumns))
 
         if misc:
             rows = []
