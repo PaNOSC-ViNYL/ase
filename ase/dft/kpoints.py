@@ -175,14 +175,8 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
     Three arrays; the first is a list of cumulative distances between k-points,
     the second is x coordinates of the special points,
     the third is the special points as strings.
-     """
-    try:
-        crystal_structure = crystal_structure_from_cell(cell)
-    except ValueError:
-        warnings.warn('Can not recognize your crystal!')
-        special_points = {}
-    else:
-        special_points = get_special_points(crystal_structure, cell)
+    """
+    special_points = get_special_points(cell)
 
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
