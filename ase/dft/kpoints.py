@@ -288,7 +288,7 @@ def get_special_points(cell, lattice=None, eps=2e-4):
 
     latt = crystal_structure_from_cell(rcell, niggli_reduce=False)
     if lattice:
-        assert latt == lattice.lower()
+        assert latt == lattice.lower(), latt
 
     if latt == 'monoclinic':
         # Here, we need the cell:

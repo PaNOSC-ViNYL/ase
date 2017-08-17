@@ -84,10 +84,12 @@ for X, cell in [
     ('bcc', [[-1, 1, 1], [1, -1, 1], [1, 1, -1]]),
     ('tetragonal', [[1, 0, 0], [0, 1, 0], [0, 0, 1.3]]),
     ('orthorhombic', [[1, 0, 0], [0, 1.2, 0], [0, 0, 1.4]]),
-    ('hexagonal', [[1, 0, 0], [-0.5, 3**0.5 / 2, 0], [0, 0, 1]]),
-    ('monoclinic', [[1, 0, 0], [0, 1, 0], [0, 0.2, 1]])]:
+    ('hexagonal', [[1, 0, 0], [-0.5, 3**0.5 / 2, 0], [0, 0, 1]])]:
+
+    # ('monoclinic', [[1, 0, 0], [0, 1, 0], [0, 0.2, 1]])
 
     icell = np.linalg.inv(cell)
+    print(cell, X)
     special_points = get_special_points(cell, X)
     paths = []
     for names in parse_path_string(special_paths[X]):
