@@ -7,6 +7,8 @@ import re
 import warnings
 from time import time
 
+import numpy as np
+
 from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
@@ -90,7 +92,7 @@ def check(key_value_pairs):
                 'chemical formula.  If you do a "db.select({0!r})",'
                 'you will not find rows with your key.  Instead, you wil get '
                 'rows containing the atoms in the formula!'.format(key))
-        if not isinstance(value, (numbers.Real, basestring)):
+        if not isinstance(value, (numbers.Real, basestring, np.bool_)):
             raise ValueError('Bad value for {!r}: {}'.format(key, value))
         if isinstance(value, basestring):
             for t in [int, float]:
@@ -183,6 +185,81 @@ def convert_str_to_int_float_or_str(value):
         except ValueError:
             value = {'True': True, 'False': False}.get(value, value)
         return value
+
+
+def parse_selection(selection, **kwargs):
+    if selection is None or selection == '':
+        expressions = []
+    elif isinstance(selection, int):
+        expressions = [('id', '=', selection)]
+    elif isinstance(selection, list):
+        expressions = selection
+    else:
+        expressions = [w.strip() for w in selection.split(',')]
+    keys = []
+    comparisons = []
+    for expression in expressions:
+        if isinstance(expression, (list, tuple)):
+            comparisons.append(expression)
+            continue
+        if expression.count('<') == 2:
+            value, expression = expression.split('<', 1)
+            if expression[0] == '=':
+                op = '>='
+                expression = expression[1:]
+            else:
+                op = '>'
+            key = expression.split('<', 1)[0]
+            comparisons.append((key, op, value))
+        for op in ['!=', '<=', '>=', '<', '>', '=']:
+            if op in expression:
+                break
+        else:
+            if expression in atomic_numbers:
+                comparisons.append((expression, '>', 0))
+            else:
+                try:
+                    symbols = string2symbols(expression)
+                except ValueError:
+                    keys.append(expression)
+                else:
+                    count = collections.Counter(symbols)
+                    comparisons.extend((symbol, '>', n - 1)
+                                       for symbol, n in count.items())
+            continue
+        key, value = expression.split(op)
+        comparisons.append((key, op, value))
+
+    cmps = []
+    for key, value in kwargs.items():
+        comparisons.append((key, '=', value))
+
+    for key, op, value in comparisons:
+        if key == 'age':
+            key = 'ctime'
+            op = invop[op]
+            value = now() - time_string_to_float(value)
+        elif key == 'formula':
+            if op != '=':
+                raise ValueError('Use fomula=...')
+            numbers = symbols2numbers(value)
+            count = collections.defaultdict(int)
+            for Z in numbers:
+                count[Z] += 1
+            cmps.extend((Z, '=', count[Z]) for Z in count)
+            key = 'natoms'
+            value = len(numbers)
+        elif key in atomic_numbers:
+            key = atomic_numbers[key]
+            value = int(value)
+        elif isinstance(value, basestring):
+            value = convert_str_to_int_float_or_str(value)
+        if key in numeric_keys and not isinstance(value, (int, float)):
+            msg = 'Wrong type for "{}{}{}" - must be a number'
+            raise ValueError(msg.format(key, op, value))
+        cmps.append((key, op, value))
+
+    return keys, cmps
 
 
 class Database:
@@ -322,83 +399,10 @@ class Database:
         assert len(rows) == 1, 'more than one row matched'
         return rows[0]
 
-    def parse_selection(self, selection, **kwargs):
-        if selection is None or selection == '':
-            expressions = []
-        elif isinstance(selection, int):
-            expressions = [('id', '=', selection)]
-        elif isinstance(selection, list):
-            expressions = selection
-        else:
-            expressions = [w.strip() for w in selection.split(',')]
-        keys = []
-        comparisons = []
-        for expression in expressions:
-            if isinstance(expression, (list, tuple)):
-                comparisons.append(expression)
-                continue
-            if expression.count('<') == 2:
-                value, expression = expression.split('<', 1)
-                if expression[0] == '=':
-                    op = '>='
-                    expression = expression[1:]
-                else:
-                    op = '>'
-                key = expression.split('<', 1)[0]
-                comparisons.append((key, op, value))
-            for op in ['!=', '<=', '>=', '<', '>', '=']:
-                if op in expression:
-                    break
-            else:
-                if expression in atomic_numbers:
-                    comparisons.append((expression, '>', 0))
-                else:
-                    try:
-                        symbols = string2symbols(expression)
-                    except ValueError:
-                        keys.append(expression)
-                    else:
-                        count = collections.Counter(symbols)
-                        comparisons.extend((symbol, '>', n - 1)
-                                           for symbol, n in count.items())
-                continue
-            key, value = expression.split(op)
-            comparisons.append((key, op, value))
-
-        cmps = []
-        for key, value in kwargs.items():
-            comparisons.append((key, '=', value))
-
-        for key, op, value in comparisons:
-            if key == 'age':
-                key = 'ctime'
-                op = invop[op]
-                value = now() - time_string_to_float(value)
-            elif key == 'formula':
-                if op != '=':
-                    raise ValueError('Use fomula=...')
-                numbers = symbols2numbers(value)
-                count = collections.defaultdict(int)
-                for Z in numbers:
-                    count[Z] += 1
-                cmps.extend((Z, '=', count[Z]) for Z in count)
-                key = 'natoms'
-                value = len(numbers)
-            elif key in atomic_numbers:
-                key = atomic_numbers[key]
-                value = int(value)
-            elif isinstance(value, basestring):
-                value = convert_str_to_int_float_or_str(value)
-            if key in numeric_keys and not isinstance(value, (int, float)):
-                msg = 'Wrong type for "{}{}{}" - must be a number'
-                raise ValueError(msg.format(key, op, value))
-            cmps.append((key, op, value))
-
-        return keys, cmps
-
     @parallel_generator
     def select(self, selection=None, filter=None, explain=False,
-               verbosity=1, limit=None, offset=0, sort=None, **kwargs):
+               verbosity=1, limit=None, offset=0, sort=None,
+               include_data=True, **kwargs):
         """Select rows.
 
         Return AtomsRow iterator with results.  Selection is done
@@ -424,6 +428,12 @@ class Database:
             Possible values: 0, 1 or 2.
         limit: int or None
             Limit selection.
+        offset: int
+            Offset into selected rows.
+        sort: str
+            Sort rows after key.  Prepend with minus sign for a decending sort.
+        include_data: bool
+            Use include_data=False to skip reading data from rows.
         """
 
         if sort:
@@ -434,10 +444,11 @@ class Database:
             elif sort.lstrip('-') == 'user':
                 sort += 'name'
 
-        keys, cmps = self.parse_selection(selection, **kwargs)
+        keys, cmps = parse_selection(selection, **kwargs)
         for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
-                                limit=limit, offset=offset, sort=sort):
+                                limit=limit, offset=offset, sort=sort,
+                                include_data=include_data):
             if filter is None or filter(row):
                 yield row
 

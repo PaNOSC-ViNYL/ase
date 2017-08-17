@@ -66,6 +66,7 @@ float_keys = [
     'pstress',    # add this stress to the stress tensor, and energy E = V *
                   # pstress
     'sigma',      # broadening in eV
+    'smass',      # Nose mass-parameter (am)
     'spring',     # spring constant for NEB
     'time',       # special control tag
     'weimin',     # maximum weight for a band to be considered empty
@@ -109,6 +110,8 @@ float_keys = [
     'vdw_a2',     # Damping parameter for Grimme's DFT-D3 dispersion correction
     'eb_k',       # solvent permitivity in Vaspsol
     'tau',        # surface tension parameter in Vaspsol
+    'bparam',     # B parameter for nonlocal VV10 vdW functional
+    'cparam',     # C parameter for nonlocal VV10 vdW functional
 ]
 
 exp_keys = [
@@ -177,7 +180,6 @@ int_keys = [
     'nsw',        # number of steps for ionic upd.
     'nupdown',    # fix spin moment to specified value
     'nwrite',     # verbosity write-flag (how much is written)
-    'smass',      # Nose mass-parameter (am)
     'vdwgr',      # extra keyword for Andris program
     'vdwrn',      # extra keyword for Andris program
     'voskown',    # use Vosko, Wilk, Nusair interpolation
@@ -328,6 +330,11 @@ class GenerateVaspInput(object):
         'tpss': {'metagga': 'TPSS'},
         'revtpss': {'metagga': 'RTPSS'},
         'm06l': {'metagga': 'M06L'},
+        'ms0': {'metagga': 'MS0'},
+        'ms1': {'metagga': 'MS1'},
+        'ms2': {'metagga': 'MS2'},
+        'scan': {'metagga': 'SCAN'},
+        'scan-rvv10': {'metagga': 'SCAN', 'luse_vdw': True, 'bparam': 15.7},
         # vdW-DFs
         'vdw-df': {'gga': 'RE', 'luse_vdw': True, 'aggac': 0.},
         'optpbe-vdw': {'gga': 'OR', 'luse_vdw': True, 'aggac': 0.0},

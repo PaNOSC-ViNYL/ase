@@ -46,7 +46,8 @@ class Table:
         self.rows = [Row(row, columns)
                      for row in self.connection.select(
                          query, verbosity=self.verbosity,
-                         limit=limit, offset=offset, sort=sort)]
+                         limit=limit, offset=offset, sort=sort,
+                         include_data=False)]
 
         delete = set(range(len(columns)))
         for row in self.rows:

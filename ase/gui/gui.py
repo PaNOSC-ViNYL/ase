@@ -104,7 +104,7 @@ class GUI(View, Status):
         i = max(0, min(len(self.images) - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
-            self.movie_window.frame_number.value = i
+            self.movie_window.frame_number.value = i + 1
 
     def _do_zoom(self, x):
         """Utility method for zooming"""
@@ -457,7 +457,7 @@ class GUI(View, Status):
               M(_('Movie ...'), self.movie),
               M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
-              M(_('Render scene ...'), self.render_window, disabled=True),
+              M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),

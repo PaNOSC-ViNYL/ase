@@ -10,6 +10,23 @@ Git master branch
 
 :git:`master <>`.
 
+* If you are running your Python script in :mod:`parallel <ase.parallel>`
+  then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
+  the master and broadcast to slaves, and :func:`ase.io.write` will only
+  write from master.  Use the new keyword ``parallel=False`` to read/write
+  from the individual slaves.
+
+* New ``ase find`` :ref:`command <cli>` for finding atoms in files.
+
+* Added :class:`Espresso <ase.calculators.espresso.Espresso>` calculator for
+  Quantum ESPRESSO in module :mod:`ase.calculators.espresso`.
+
+* The :func:`ase.dft.kpoints.get_special_points` function has a new call
+  signature:  Before it was ``get_special_points(lattice, cell)``, now it is
+  ``get_special_points(cell, lattice=None)``.  The old way still works, but
+  you will get a warning.
+
+
 Version 3.14.1
 ==============
 

@@ -49,8 +49,8 @@ The calculators can be divided in four groups:
 1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
 
 2) ABINIT, AMBER, CP2K, CASTEP, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
-   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, SIESTA, TURBOMOLE and VASP,
-   have Python wrappers in the ASE package, but the actual
+   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, Quantum ESPRESSO, SIESTA,
+   TURBOMOLE and VASP, have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
 
 3) Pure python implementations included in the ASE package: EMT, EAM,
@@ -76,6 +76,7 @@ Hotbit_                             DFT based tight binding
 :mod:`~ase.calculators.dmol`        Atomic orbital DFT code
 :mod:`~ase.calculators.eam`         Embedded Atom Method
 elk                                 Full Potential LAPW code
+:mod:`~ase.calculators.espresso`    Plane-wave pseudopotential code
 :mod:`~ase.calculators.exciting`    Full Potential LAPW code
 :mod:`~ase.calculators.aims`        Numeric atomic orbital, full potential code
 :mod:`~ase.calculators.fleur`       Full Potential LAPW code
@@ -200,6 +201,7 @@ the :meth:`set` method:
    cp2k
    dftb
    dmol
+   espresso
    exciting
    FHI-aims
    fleur

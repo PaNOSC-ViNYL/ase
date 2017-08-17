@@ -2,7 +2,7 @@ from __future__ import division
 from ase.utils import basestring
 import re
 import warnings
-from math import sin, cos, pi
+from math import sin, cos
 
 import numpy as np
 
@@ -115,8 +115,7 @@ def bandpath(path, cell, npoints=50):
     x-coordinates of special points."""
 
     if isinstance(path, basestring):
-        xtal = crystal_structure_from_cell(cell)
-        special = get_special_points(xtal, cell)
+        special = get_special_points(cell)
         paths = []
         for names in parse_path_string(path):
             paths.append([special[name] for name in names])
@@ -176,14 +175,8 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
     Three arrays; the first is a list of cumulative distances between k-points,
     the second is x coordinates of the special points,
     the third is the special points as strings.
-     """
-    try:
-        crystal_structure = crystal_structure_from_cell(cell)
-    except ValueError:
-        warnings.warn('Can not recognize your crystal!')
-        special_points = {}
-    else:
-        special_points = get_special_points(crystal_structure, cell)
+    """
+    special_points = get_special_points(cell)
 
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
@@ -267,7 +260,7 @@ special_paths = {
     'rhombohedral type 2': 'GPZQGFP1Q1LZ'}
 
 
-def get_special_points(lattice, cell, eps=2e-4):
+def get_special_points(cell, lattice=None, eps=2e-4):
     """Return dict of special points.
 
     The definitions are from a paper by Wahyu Setyawana and Stefano
@@ -275,83 +268,69 @@ def get_special_points(lattice, cell, eps=2e-4):
 
         http://dx.doi.org/10.1016/j.commatsci.2010.05.010
 
-    lattice: str
-        One of the following: cubic, fcc, bcc, orthorhombic, tetragonal,
-        hexagonal or monoclinic.
     cell: 3x3 ndarray
         Unit cell.
+    lattice: str
+        Optionally check that the cell is one of the following: cubic, fcc,
+        bcc, orthorhombic, tetragonal, hexagonal or monoclinic.
     eps: float
         Tolerance for cell-check.
     """
 
-    lattice = lattice.lower()
+    if isinstance(cell, str):
+        warnings.warn('Please call this function with cell as the first '
+                      'argument')
+        lattice, cell = cell, lattice
 
-    cellpar = cell_to_cellpar(cell=cell)
-    abc = cellpar[:3]
-    angles = cellpar[3:] / 180 * pi
-    a, b, c = abc
-    alpha, beta, gamma = angles
+    from ase.build.tools import niggli_reduce_cell
+    rcell, _ = niggli_reduce_cell(cell)
+    M = np.dot(cell, np.linalg.inv(rcell))
 
-    # Check that the unit-cells are as in the Setyawana-Curtarolo paper:
-    if lattice == 'cubic':
-        assert abc.ptp() < eps and abs(angles - pi / 2).max() < eps
-    elif lattice == 'fcc':
-        assert abc.ptp() < eps and abs(angles - pi / 3).max() < eps
-    elif lattice == 'bcc':
-        angle = np.arccos(-1 / 3)
-        assert abc.ptp() < eps and abs(angles - angle).max() < eps
-    elif lattice == 'tetragonal':
-        assert abs(a - b) < eps and abs(angles - pi / 2).max() < eps
-    elif lattice == 'orthorhombic':
-        assert abs(angles - pi / 2).max() < eps
-    elif lattice == 'hexagonal':
-        assert abs(a - b) < eps
-        assert abs(gamma - pi / 3 * 2) < eps
-        assert abs(angles[:2] - pi / 2).max() < eps
-    elif lattice == 'monoclinic':
-        assert c >= a and c >= b
-        assert alpha < pi / 2 and abs(angles[1:] - pi / 2).max() < eps
-    elif lattice == 'rhombohedral type 1':
-        assert abc.ptp() < eps and angles.ptp() < eps
-        assert abs(alpha) < pi / 2
+    latt = crystal_structure_from_cell(rcell, niggli_reduce=False)
+    if lattice:
+        assert latt == lattice.lower()
 
-    if lattice == 'monoclinic':
+    if latt == 'monoclinic':
         # Here, we need the cell:
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(cell=cell, radians=True)
         eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
         nu = 1 / 2 - eta * c * cos(alpha) / b
-        return {'G': [0, 0, 0],
-                'A': [1 / 2, 1 / 2, 0],
-                'C': [0, 1 / 2, 1 / 2],
-                'D': [1 / 2, 0, 1 / 2],
-                'D1': [1 / 2, 0, -1 / 2],
-                'E': [1 / 2, 1 / 2, 1 / 2],
-                'H': [0, eta, 1 - nu],
-                'H1': [0, 1 - eta, nu],
-                'H2': [0, eta, -nu],
-                'M': [1 / 2, eta, 1 - nu],
-                'M1': [1 / 2, 1 - eta, nu],
-                'M2': [1 / 2, eta, -nu],
-                'X': [0, 1 / 2, 0],
-                'Y': [0, 0, 1 / 2],
-                'Y1': [0, 0, -1 / 2],
-                'Z': [1 / 2, 0, 0]}
-    elif lattice == 'rhombohedral type 1':
+        points = {'G': [0, 0, 0],
+                  'A': [1 / 2, 1 / 2, 0],
+                  'C': [0, 1 / 2, 1 / 2],
+                  'D': [1 / 2, 0, 1 / 2],
+                  'D1': [1 / 2, 0, -1 / 2],
+                  'E': [1 / 2, 1 / 2, 1 / 2],
+                  'H': [0, eta, 1 - nu],
+                  'H1': [0, 1 - eta, nu],
+                  'H2': [0, eta, -nu],
+                  'M': [1 / 2, eta, 1 - nu],
+                  'M1': [1 / 2, 1 - eta, nu],
+                  'M2': [1 / 2, eta, -nu],
+                  'X': [0, 1 / 2, 0],
+                  'Y': [0, 0, 1 / 2],
+                  'Y1': [0, 0, -1 / 2],
+                  'Z': [1 / 2, 0, 0]}
+    elif latt == 'rhombohedral type 1':
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(cell=cell, radians=True)
         eta = (1 + 4 * np.cos(alpha)) / (2 + 4 * np.cos(alpha))
         nu = 3 / 4 - eta / 2
-        return {'G': [0, 0, 0],
-                'B': [eta, 1 / 2, 1 - eta],
-                'B1': [1 / 2, 1 - eta, eta - 1],
-                'F': [1 / 2, 1 / 2, 0],
-                'L': [1 / 2, 0, 0],
-                'L1': [0, 0, - 1 / 2],
-                'P': [eta, nu, nu],
-                'P1': [1 - nu, 1 - nu, 1 - eta],
-                'P2': [nu, nu, eta - 1],
-                'Q': [1 - nu, nu, 0],
-                'X': [nu, 0, -nu],
-                'Z': [0.5, 0.5, 0.5]}
+        points = {'G': [0, 0, 0],
+                  'B': [eta, 1 / 2, 1 - eta],
+                  'B1': [1 / 2, 1 - eta, eta - 1],
+                  'F': [1 / 2, 1 / 2, 0],
+                  'L': [1 / 2, 0, 0],
+                  'L1': [0, 0, - 1 / 2],
+                  'P': [eta, nu, nu],
+                  'P1': [1 - nu, 1 - nu, 1 - eta],
+                  'P2': [nu, nu, eta - 1],
+                  'Q': [1 - nu, nu, 0],
+                  'X': [nu, 0, -nu],
+                  'Z': [0.5, 0.5, 0.5]}
     else:
-        return special_points[lattice]
+        points = special_points[latt]
+
+    return {label: np.dot(M, kpt) for label, kpt in points.items()}
 
 
 def monkhorst_pack_interpolate(path, values, icell, bz2ibz,

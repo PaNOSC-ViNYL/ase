@@ -106,7 +106,12 @@ class View:
         self.set_atoms(self.images[frame])
 
         fname = self.images.filenames[frame]
-        self.window.title = 'ase.gui' if fname is None else basename(fname)
+        if fname is None:
+            title = 'ase.gui'
+        else:
+            title = '{}@{}'.format(basename(fname), frame)
+
+        self.window.title = title
 
         if focus:
             self.focus()
@@ -470,7 +475,7 @@ class View:
 
     def draw_frame_number(self):
         x, y = self.window.size
-        self.window.text(x, y, '{0}/{1}'.format(self.frame,
+        self.window.text(x, y, '{0}/{1}'.format(self.frame + 1,
                                                 len(self.images)),
                          anchor='SE')
 
@@ -577,7 +582,7 @@ class View:
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
 
-    def render_window(self, action):
+    def render_window(self):
         Render(self)
 
     def resize(self, event):

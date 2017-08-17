@@ -78,7 +78,7 @@ all_formats = {
     'gromos': ('Gromos96 geometry file', '1F'),
     'html': ('X3DOM HTML', '1S'),
     'iwm': ('?', '1F'),
-    'json': ('ASE JSON database file', '+S'),
+    'json': ('ASE JSON database file', '+F'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '+F'),
     'lammps-data': ('LAMMPS data file', '1F'),
@@ -159,6 +159,8 @@ extension2format = {
     'md': 'castep-md',
     'nw': 'nwchem',
     'out': 'espresso-out',
+    'pwo': 'espresso-out',
+    'pwi': 'espresso-in',
     'pdb': 'proteindatabank',
     'shelx': 'res',
     'in': 'aims',
@@ -313,7 +315,7 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-def write(filename, images, format=None, **kwargs):
+def write(filename, images, format=None, parallel=True, **kwargs):
     """Write Atoms object(s) to file.
 
     filename: str or file
@@ -324,6 +326,9 @@ def write(filename, images, format=None, **kwargs):
     format: str
         Used to specify the file-format.  If not given, the
         file-format will be taken from suffix of the filename.
+    parallel: bool
+        Default is to write on master only.  Use parallel=False to write
+        from all slaves.
 
     The use of additional keywords is format specific."""
 
@@ -343,22 +348,22 @@ def write(filename, images, format=None, **kwargs):
 
     io = get_ioformat(format)
 
-    _write(filename, fd, format, io, images, **kwargs)
+    _write(filename, fd, format, io, images, parallel=parallel, **kwargs)
 
 
 @parallel_function
-def _write(filename, fd, format, io, images, **kwargs):
+def _write(filename, fd, format, io, images, parallel=None, **kwargs):
     if isinstance(images, Atoms):
         images = [images]
 
     if io.single:
         if len(images) > 1:
-            raise ValueError('{0}-format can only store 1 Atoms object.'
+            raise ValueError('{}-format can only store 1 Atoms object.'
                              .format(format))
         images = images[0]
 
     if io.write is None:
-        raise ValueError("Can't write to {0}-format".format(format))
+        raise ValueError("Can't write to {}-format".format(format))
 
     # Special case for json-format:
     if format == 'json' and len(images) > 1:
@@ -377,12 +382,12 @@ def _write(filename, fd, format, io, images, **kwargs):
             fd.close()
     else:
         if fd is not None:
-            raise ValueError("Can't write {0}-format to file-descriptor"
+            raise ValueError("Can't write {}-format to file-descriptor"
                              .format(format))
         io.write(filename, images, **kwargs)
 
 
-def read(filename, index=None, format=None, **kwargs):
+def read(filename, index=None, format=None, parallel=True, **kwargs):
     """Read Atoms object(s) from file.
 
     filename: str or file
@@ -399,6 +404,9 @@ def read(filename, index=None, format=None, **kwargs):
     format: str
         Used to specify the file-format.  If not given, the
         file-format will be guessed by the *filetype* function.
+    parallel: bool
+        Default is to read on master and broadcast to slaves.  Use
+        parallel=False to read on all slaves.
 
     Many formats allow on open file-like object to be passed instead
     of ``filename``. In this case the format cannot be auto-decected,
@@ -412,12 +420,14 @@ def read(filename, index=None, format=None, **kwargs):
     format = format or filetype(filename)
     io = get_ioformat(format)
     if isinstance(index, (slice, basestring)):
-        return list(_iread(filename, index, format, io, **kwargs))
+        return list(_iread(filename, index, format, io, parallel=parallel,
+                           **kwargs))
     else:
-        return next(_iread(filename, slice(index, None), format, io, **kwargs))
+        return next(_iread(filename, slice(index, None), format, io,
+                           parallel=parallel, **kwargs))
 
 
-def iread(filename, index=None, format=None, **kwargs):
+def iread(filename, index=None, format=None, parallel=True, **kwargs):
     """Iterator for reading Atoms objects from file.
 
     Works as the `read` function, but yields one Atoms object at a time
@@ -437,17 +447,19 @@ def iread(filename, index=None, format=None, **kwargs):
     format = format or filetype(filename)
     io = get_ioformat(format)
 
-    for atoms in _iread(filename, index, format, io, **kwargs):
+    for atoms in _iread(filename, index, format, io, parallel=parallel,
+                        **kwargs):
         yield atoms
 
 
 @parallel_generator
-def _iread(filename, index, format, io, full_output=False, **kwargs):
+def _iread(filename, index, format, io, parallel=None, full_output=False,
+           **kwargs):
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
 
     if not io.read:
-        raise ValueError("Can't read from {0}-format".format(format))
+        raise ValueError("Can't read from {}-format".format(format))
 
     if io.single:
         start = index.start
@@ -511,7 +523,7 @@ def string2index(string):
     return slice(*i)
 
 
-def filetype(filename, read=True):
+def filetype(filename, read=True, guess=True):
     """Try to guess the type of the file.
 
     First, special signatures in the filename will be checked for.  If that
@@ -521,7 +533,7 @@ def filetype(filename, read=True):
 
     Can be used from the command-line also::
 
-        $ python -m ase.io.formats filename ...
+        $ ase info filename ...
     """
 
     ext = None
@@ -612,5 +624,7 @@ def filetype(filename, read=True):
         if magic in data:
             return format
 
-    format = extension2format.get(ext, ext)
+    format = extension2format.get(ext)
+    if format is None and guess:
+        format = ext
     return format

@@ -73,6 +73,7 @@ class AtomsRow:
                         dct['calculator_parameters'])
         else:
             dct = atoms2dict(dct)
+        assert 'numbers' in dct
         self._constraints = dct.pop('constraints', [])
         self._data = dct.pop('data', None)
         kvp = dct.pop('key_value_pairs', {})
