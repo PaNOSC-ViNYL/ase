@@ -25,19 +25,20 @@ def get_band_structure(atoms=None, calc=None):
 
 
 class BandStructure:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, cell, kpts, energies=None, reference=0.0):
         """Create band structure object from energies and k-points."""
-        self.setvars(*args, **kwargs)
-
-    def setvars(self, cell, kpts, energies, reference=0.0):
         assert cell.shape == (3, 3)
         self.cell = cell
         assert kpts.shape[1] == 3
         self.kpts = kpts
-        self.energies = np.asarray(energies)
+        if energies is not None:
+            self.energies = np.asarray(energies)
+        else:
+            self.energies = None
         self.reference = reference
         self.ax = None
         self.xcoords = None
+        self.show_legend = False
 
     def get_labels(self):
         return labels_from_kpts(self.kpts, self.cell)
@@ -61,7 +62,7 @@ class BandStructure:
 
     def plot(self, ax=None, spin=None, emin=-10, emax=5, filename=None,
              show=None, ylabel=None, colors=None, label=None,
-             spin_labels=['spin up', 'spin down'], **plotkwargs):
+             spin_labels=['spin up', 'spin down'], loc=None, **plotkwargs):
         """Plot band-structure.
 
         spin: int or None
@@ -108,15 +109,15 @@ class BandStructure:
             for e_k in e_kn.T[1:]:
                 ax.plot(self.xcoords, e_k, **kwargs)
 
-        legend = label is not None or nspins == 2
-        self.finish_plot(filename, show, legend)
+        self.show_legend = label is not None or nspins == 2
+        self.finish_plot(filename, show, loc)
 
         return ax
 
     def plot_with_colors(self, ax=None, emin=-10, emax=5, filename=None,
                          show=None, energies=None, colors=None,
                          ylabel=None, clabel='$s_z$', cmin=-1.0, cmax=1.0,
-                         sortcolors=False):
+                         sortcolors=False, loc=None):
         """Plot band-structure with colors."""
 
         import matplotlib.pyplot as plt
@@ -139,7 +140,7 @@ class BandStructure:
         cbar = plt.colorbar(things)
         cbar.set_label(clabel)
 
-        self.finish_plot(filename, show)
+        self.finish_plot(filename, show, loc)
 
         return ax
 
@@ -181,11 +182,12 @@ class BandStructure:
         self.ax = ax
         return ax
 
-    def finish_plot(self, filename, show, legend=False):
+    def finish_plot(self, filename, show, loc):
         import matplotlib.pyplot as plt
 
-        if legend:
-            plt.legend()
+        if self.show_legend:
+            leg = plt.legend(loc=loc)
+            leg.get_frame().set_alpha(1)
 
         if filename:
             plt.savefig(filename)
