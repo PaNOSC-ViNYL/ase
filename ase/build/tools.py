@@ -486,7 +486,7 @@ class _gtensor(object):
 
 def niggli_reduce_cell(cell):
     C = np.eye(3, dtype=int)
-
+    cell = np.asarray(cell, dtype=float)
     G = _gtensor(cell)
 
     def lt(x, y, epsilon=G.epsilon):
