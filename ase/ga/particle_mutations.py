@@ -231,7 +231,7 @@ class COM2surfPermutation(Mutation):
         permuts = Mutation.get_list_of_possible_permutations(atoms,
                                                              core,
                                                              shell)
-        swap = random.choice(permuts)
+        swap = list(random.choice(permuts))
         atoms.positions[swap] = atoms.positions[swap[::-1]]
 
     @classmethod
@@ -365,7 +365,7 @@ class Poor2richPermutation(_NeighborhoodPermutation):
         del ac[[atom.index for atom in ac
                 if atom.symbol not in elements]]
         permuts = _NP.get_possible_poor2rich_permutations(ac)
-        swap = random.choice(permuts)
+        swap = list(random.choice(permuts))
         atoms.positions[swap] = atoms.positions[swap[::-1]]
 
 
@@ -418,7 +418,7 @@ class Rich2poorPermutation(_NeighborhoodPermutation):
                 if atom.symbol not in elements]]
         permuts = _NP.get_possible_poor2rich_permutations(ac,
                                                           inverse=True)
-        swap = random.choice(permuts)
+        swap = list(random.choice(permuts))
         atoms.positions[swap] = atoms.positions[swap[::-1]]
 
 
