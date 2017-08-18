@@ -580,6 +580,7 @@ class Turbomole(FileIOCalculator):
     runtime = None
     datetime = None
     hostname = None
+    add_esp = None
 
     def __init__(self, label=None, calculate_energy='dscf',
                  calculate_forces='grad', post_HF=False, atoms=None,
@@ -620,11 +621,12 @@ class Turbomole(FileIOCalculator):
         self.pcpot = None
 
         #add_esp : boolean
-        #    Are we calculating esp-fit? amnd writing esp_t kollman to 
+        #    Are we calculating esp-fit? and writing esp_t kollman to 
         #    the control file
         #    add esp fit instructions to the control file
-        if add_esp:
-            self.add_esp_fit('control')
+#        if add_esp:
+#            self.add_esp_fit('control')
+        self.add_esp = add_esp
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -752,6 +754,10 @@ class Turbomole(FileIOCalculator):
             for inp in self.control_input:
                 add_data_group(inp, raw=True)
 
+        # temporary here:
+        if self.add_esp:
+            self.add_esp_fit('control')
+
     def set_parameters(self, params):
         """ loads the default parameters and updates with actual values """
         self.parameters = self.default_parameters.copy()
@@ -843,8 +849,8 @@ class Turbomole(FileIOCalculator):
         self.update_hessian = True
 
         if self.pcpot:
-            self.write_mmcharges(
-                os.path.join(self.directory, 'pc.txt'))
+            self.write_mmcharges('pc.txt')
+#                os.path.join(self.directory, 'pc.txt'))
 
     def get_define_str(self):
         """ construct a define string from the parameters dictionary """
@@ -1320,7 +1326,7 @@ class Turbomole(FileIOCalculator):
                 self.results['charges'] = self.read_charges()
             except:
                 self.results['charges'] = None
-            self.mmpositions = None    
+#            self.mmpositions = None    # this is not used, or self.pcpot.mmpositions?
 
     def read_run_parameters(self):
         """ read parameters set by define and not in self.parameters """
@@ -1936,6 +1942,9 @@ class Turbomole(FileIOCalculator):
         self.updated = self.e_total is None
         self.set_atoms(atoms)
         self.initialize()
+        # temporary here:
+        if self.pcpot:
+            self.write_mmcharges('pc.txt')
         # if update of energy is necessary
         if self.update_energy:
             # calculate energy
@@ -2050,7 +2059,8 @@ class Turbomole(FileIOCalculator):
     def read_forces_on_external_atoms(self):
         """ reading forces on point charges excerpted from the QM system """
         # read gradients
-        infile = open(os.path.join(self.directory, 'pc_gradients.txt'), 'r')
+#        infile = open(os.path.join(self.directory, 'pc_gradients.txt'), 'r')
+        infile = open('pc_gradients.txt', 'r')
         lines = infile.readlines()
         infile.close()
         del lines[-1]
@@ -2092,7 +2102,8 @@ class Turbomole(FileIOCalculator):
 
     def embed_modify_control(self):
         """ modify turbomole input file 'control' for embedding """
-        infile = open(os.path.join(self.directory, 'control'), 'r')
+#        infile = open(os.path.join(self.directory, 'control'), 'r')
+        infile = open('control', 'r')
         lines = infile.readlines()
         infile.close()
         # kill lines containing point charge information
@@ -2118,9 +2129,10 @@ class Turbomole(FileIOCalculator):
         ok_lines[-1] = '$point_charges file=pc.txt \n'
         # add the name of the file were the gradients on oint charges are
         ok_lines.append(
-            '$point_charge_gradients file = pc_gradients.txt \n')
+            '$point_charge_gradients file=pc_gradients.txt \n')
         ok_lines.append('$end \n')
-        outfile = open(os.path.join(self.directory, 'control'), 'w')
+#        outfile = open(os.path.join(self.directory, 'control'), 'w')
+        outfile = open('control', 'w')
         outfile.writelines(ok_lines)
         outfile.close()
 
@@ -2129,7 +2141,8 @@ class Turbomole(FileIOCalculator):
             it is needed in qm/mm and does not harm otherwise """
         
         if infilename is None:
-            infile = open(os.path.join(self.directory, 'control'), 'r')
+#            infile = open(os.path.join(self.directory, 'control'), 'r')
+            infile = open('control', 'r')
         else:
             infile = open(infilename, 'r')
         lines = infile.readlines()
@@ -2143,7 +2156,8 @@ class Turbomole(FileIOCalculator):
         if not found:
             lines[-1] = '$esp_fit kollman \n'
             lines.append('$end \n')
-            outfile = open(os.path.join(self.directory, 'control'), 'w')
+            outfile = open('control', 'w')
+#            outfile = open(os.path.join(self.directory, 'control'), 'w')
             outfile.writelines(lines)
             outfile.close()
 
