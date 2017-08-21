@@ -18,7 +18,7 @@ class DOS:
             Number of points.
 
         """
-        
+
         self.npts = npts
         self.width = width
         self.w_k = calc.get_k_point_weights()
@@ -37,7 +37,10 @@ class DOS:
         self.energies = np.linspace(emin, emax, npts)
 
     def get_energies(self):
-        """Return the array of energies used to sample the DOS. The energies are reported relative to the Fermi level."""
+        """Return the array of energies used to sample the DOS.
+
+        The energies are reported relative to the Fermi level.
+        """
         return self.energies
 
     def delta(self, energy):
@@ -51,7 +54,7 @@ class DOS:
         The *spin* argument can be 0 or 1 (spin up or down) - if not
         specified, the total DOS is returned.
         """
-        
+
         if spin is None:
             if self.nspins == 2:
                 # Spin-polarized calculation, but no spin specified -
@@ -59,7 +62,7 @@ class DOS:
                 return self.get_dos(spin=0) + self.get_dos(spin=1)
             else:
                 spin = 0
-        
+
         dos = np.zeros(self.npts)
         for w, e_n in zip(self.w_k, self.e_skn[spin]):
             for e in e_n:
