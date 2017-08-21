@@ -81,8 +81,8 @@ def tint(energies, cell, dos, kpts, E):
         dedk = (np.dot(cell.T, e[1:] - e[0])**2).sum()**0.5
         for j in range(3):
             m = int((ee[j] - zero) / de) + 1
-            n = int((ee[j + 1] - zero) / de)
-            if n > m:
+            n = int((ee[j + 1] - zero) / de) + 1
+            if len(energies) > n > m >= 0:
                 v = energies[m:n]
                 if j == 0:
                     k1 = (k[0] * (e1 - v) + k[1] * (v - e0)) / (e1 - e0)
@@ -106,7 +106,7 @@ def tint(energies, cell, dos, kpts, E):
 def tetrahedron(cell, eigs, energies):
     from scipy.spatial import Delaunay
 
-    if 1:
+    if 0:
         energies = np.linspace(-2, 3, 2000)
         #eigs = np.array([[[[0, 2], [0, 2]], [[0, 2], [1.0, 1]]]])[:,:,:,:]
         #cell = np.eye(3)
@@ -118,12 +118,15 @@ def tetrahedron(cell, eigs, energies):
     indices = np.array([[i, j, k]
                         for i in [0, 1] for j in [0, 1] for k in [0, 1]])
     dt = Delaunay(np.dot(indices, B))
+    print(B)
 
     dos = np.zeros_like(energies)
     integrate = functools.partial(tint, energies, cell, dos)
 
     for s in dt.simplices:
+        print(s, indices[s])
         kpts = dt.points[s]
+        print(kpts)
         for i in range(I):
             for j in range(J):
                 for k in range(K):
