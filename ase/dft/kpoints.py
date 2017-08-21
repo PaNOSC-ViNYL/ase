@@ -2,7 +2,7 @@ from __future__ import division
 from ase.utils import basestring
 import re
 import warnings
-from math import sin, cos
+from math import sin, cos, pi
 
 import numpy as np
 
@@ -291,8 +291,13 @@ def get_special_points(cell, lattice=None, eps=2e-4):
         assert latt == lattice.lower(), latt
 
     if latt == 'monoclinic':
+        print(cell_to_cellpar(cell))
+        print(cell_to_cellpar(rcell))
         # Here, we need the cell:
-        a, b, c, alpha, beta, gamma = cell_to_cellpar(cell=cell, radians=True)
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(rcell, radians=True)
+        a, b = b, a
+        alpha = pi - beta
+        #M = np.dot(M, [[0, 1, 0], [1, 0, 0], [0, 0, -1]])
         eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
         nu = 1 / 2 - eta * c * cos(alpha) / b
         points = {'G': [0, 0, 0],
