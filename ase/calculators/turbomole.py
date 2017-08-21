@@ -2019,7 +2019,7 @@ class Turbomole(FileIOCalculator):
     def get_charges(self, atoms):
         """ return partial charges on atoms from an ESP fit """
         if self.charges is None:
-            self.calculate()
+            self.calculate(atoms)
             self.read_charges()
         return self.charges
 
@@ -2037,8 +2037,9 @@ class Turbomole(FileIOCalculator):
                 qm_charges = [float(line.split()[3]) for line in oklines]
                 self.charges = np.array(qm_charges)
 
-    def read_forces_on_point_charges(self):
-        """ read forces on point charges excerpted from the QM system """
+    def get_forces_on_point_charges(self):
+        """ return forces acting on point charges """
+        self.calculate()
         lines = read_data_group('point_charge_gradients').split('\n')[1:]
         forces = []
         for line in lines:
@@ -2053,6 +2054,7 @@ class Turbomole(FileIOCalculator):
             self.pcpot = pcpot
         if self.pcpot.mmcharges is None or self.pcpot.mmpositions is None:
             raise RuntimeError('external point charges not defined')
+
         if not self.pc_initialized:
             if len(read_data_group('point_charges')) == 0:
                 add_data_group('point_charges', 'file=pc.txt')
@@ -2070,7 +2072,7 @@ class Turbomole(FileIOCalculator):
 
         if self.pcpot.updated:
             with open('pc.txt', 'w') as pcfile:
-                pcfile.write('$point_charges nocheck list \n')
+                pcfile.write('$point_charges nocheck list\n')
                 for (x, y, z), charge in zip(
                         self.pcpot.mmpositions, self.pcpot.mmcharges):
                     pcfile.write('%20.14f  %20.14f  %20.14f  %20.14f\n'
@@ -2104,6 +2106,6 @@ class PointChargePotential:
         self.updated = True
 
     def get_forces(self, calc):
-        """ forces on external atoms by QM system """
-        self.mmforces = calc.read_forces_on_point_charges()
+        """ forces acting on point charges """
+        self.mmforces = calc.get_forces_on_point_charges()
         return self.mmforces
