@@ -3,7 +3,6 @@ from math import cos, sin, pi
 import numpy as np
 # import matplotlib.pyplot as plt
 
-import ase.units as units
 from ase import Atoms
 from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
 from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions
@@ -16,15 +15,15 @@ a = angleHOH * pi / 180
 D = np.linspace(2.5, 3.5, 30)
 
 interaction = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
-tm_params = {'esp fit': 'kollman', 'multiplicity': 1}
+qm_par = {'esp fit': 'kollman', 'multiplicity': 1}
 
 for calc in [
     TIP3P(),
-    SimpleQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), TIP3P()),
-    SimpleQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), TIP3P(), vacuum=3.0),
-    EIQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), interaction),
-    EIQMMM([3, 4, 5], Turbomole(**tm_params), TIP3P(), interaction, vacuum=3.0),
-    EIQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), interaction, vacuum=3.0)]:
+    SimpleQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), TIP3P()),
+    SimpleQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), TIP3P(), vacuum=3.0),
+    EIQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), interaction),
+    EIQMMM([3, 4, 5], Turbomole(**qm_par), TIP3P(), interaction, vacuum=3.0),
+    EIQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), interaction, vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),
