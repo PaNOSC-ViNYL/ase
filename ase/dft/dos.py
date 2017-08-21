@@ -77,11 +77,11 @@ def tint(energies, cell, dos, kpts, E):
     for e in E.T:
         i = e.argsort()
         k = kpts[i, :, np.newaxis]
-        e0, e1, e2, e3 = e = e[i]
+        e0, e1, e2, e3 = ee = e[i]
         dedk = (np.dot(cell.T, e[1:] - e[0])**2).sum()**0.5
         for j in range(3):
-            m = int((e[j] - zero) / de)
-            n = int((e[j + 1] - zero) / de)
+            m = int((ee[j] - zero) / de) + 1
+            n = int((ee[j + 1] - zero) / de)
             if n > m:
                 v = energies[m:n]
                 if j == 0:
@@ -107,9 +107,9 @@ def tetrahedron(cell, eigs, energies):
     from scipy.spatial import Delaunay
 
     if 1:
-        energies = np.linspace(-1, 3, 200)
-        eigs = np.array([[[[0, 2], [0, 2]], [[0, 2], [1.0, 1]]]])
-        cell = np.eye(3)
+        energies = np.linspace(-2, 3, 2000)
+        #eigs = np.array([[[[0, 2], [0, 2]], [[0, 2], [1.0, 1]]]])[:,:,:,:]
+        #cell = np.eye(3)
 
     print(eigs.shape)
     B = np.linalg.inv(cell).T
