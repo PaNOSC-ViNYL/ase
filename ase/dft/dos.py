@@ -1,3 +1,4 @@
+import functools
 from math import pi, sqrt
 
 import numpy as np
@@ -68,3 +69,69 @@ class DOS:
             for e in e_n:
                 dos += w * self.delta(e)
         return dos
+
+
+def tint(energies, cell, dos, kpts, E):
+    zero = energies[0]
+    de = energies[1] - zero
+    for e in E.T:
+        i = e.argsort()
+        k = kpts[i, :, np.newaxis]
+        e0, e1, e2, e3 = e = e[i]
+        dedk = (np.dot(cell.T, e[1:] - e[0])**2).sum()**0.5
+        for j in range(3):
+            m = int((e[j] - zero) / de)
+            n = int((e[j + 1] - zero) / de)
+            if n > m:
+                v = energies[m:n]
+                if j == 0:
+                    k1 = (k[0] * (e1 - v) + k[1] * (v - e0)) / (e1 - e0)
+                    k2 = (k[0] * (e2 - v) + k[2] * (v - e0)) / (e2 - e0) - k1
+                    k3 = (k[0] * (e3 - v) + k[3] * (v - e0)) / (e3 - e0) - k1
+                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 / dedk
+                elif j == 1:
+                    k1 = (k[1] * (e2 - v) + k[2] * (v - e1)) / (e2 - e1)
+                    k2 = (k[0] * (e2 - v) + k[2] * (v - e0)) / (e2 - e0) - k1
+                    k3 = (k[0] * (e3 - v) + k[3] * (v - e0)) / (e3 - e0) - k1
+                    k4 = (k[1] * (e3 - v) + k[3] * (v - e1)) / (e3 - e1) - k1
+                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 / dedk
+                    dos[m:n] += (np.cross(k4, k3, 0, 0)**2).sum(1)**0.5 / dedk
+                else:
+                    k0 = (k[0] * (e3 - v) + k[3] * (v - e0)) / (e3 - e0)
+                    k1 = (k[1] * (e3 - v) + k[3] * (v - e1)) / (e3 - e1) - k0
+                    k2 = (k[2] * (e3 - v) + k[3] * (v - e2)) / (e3 - e2) - k0
+                    dos[m:n] += (np.cross(k1, k2, 0, 0)**2).sum(1)**0.5 / dedk
+
+
+def tetrahedron(cell, eigs, energies):
+    from scipy.spatial import Delaunay
+
+    if 1:
+        energies = np.linspace(-1, 3, 200)
+        eigs = np.array([[[[0, 2], [0, 2]], [[0, 2], [1.0, 1]]]])
+        cell = np.eye(3)
+
+    print(eigs.shape)
+    B = np.linalg.inv(cell).T
+    I, J, K = eigs.shape[:3]
+
+    indices = np.array([[i, j, k]
+                        for i in [0, 1] for j in [0, 1] for k in [0, 1]])
+    dt = Delaunay(np.dot(indices, B))
+
+    dos = np.zeros_like(energies)
+    integrate = functools.partial(tint, energies, cell, dos)
+
+    for s in dt.simplices:
+        kpts = dt.points[s]
+        for i in range(I):
+            for j in range(J):
+                for k in range(K):
+                    E = np.array([eigs[(i + a) % I, (j + b) % J, (k + c) % K]
+                                  for a, b, c in indices[s]])
+                    integrate(kpts, E)
+    import matplotlib.pyplot as plt
+    plt.plot(energies, dos)
+    plt.show()
+    asdgf
+    return dos
