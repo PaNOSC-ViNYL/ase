@@ -6,7 +6,8 @@ import numpy as np
 import ase.units as units
 from ase import Atoms
 from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
-from ase.calculators.qmmm import SimpleQMMM, EIQMMM, LJInteractions, LJInteractionsGeneral
+from ase.calculators.qmmm import (SimpleQMMM, EIQMMM, LJInteractions,
+                                  LJInteractionsGeneral)
 from ase.constraints import FixInternals
 from ase.optimize import BFGS
 
@@ -23,10 +24,10 @@ D = np.linspace(2.5, 3.5, 30)
 i = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
 
 # General LJ interaction object
-sigma_mm=np.array([0, 0, sigma0])
-epsilon_mm=np.array([0, 0, epsilon0])
-sigma_qm=np.array([0, 0, sigma0])
-epsilon_qm=np.array([0, 0, epsilon0])
+sigma_mm = np.array([0, 0, sigma0])
+epsilon_mm = np.array([0, 0, epsilon0])
+sigma_qm = np.array([0, 0, sigma0])
+epsilon_qm = np.array([0, 0, epsilon0])
 ig = LJInteractionsGeneral(sigma_qm, epsilon_qm, sigma_mm, epsilon_mm)
 
 for calc in [TIP3P(),
