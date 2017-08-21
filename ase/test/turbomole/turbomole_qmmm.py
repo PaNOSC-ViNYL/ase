@@ -13,23 +13,18 @@ from ase.optimize import BFGS
 
 r = rOH
 a = angleHOH * pi / 180
-
-# From http://dx.doi.org/10.1063/1.445869
-eexp = 6.50 * units.kcal / units.mol
-dexp = 2.74
-aexp = 27
-
 D = np.linspace(2.5, 3.5, 30)
 
 interaction = LJInteractions({('O', 'O'): (epsilon0, sigma0)})
+tm_params = {'esp fit': 'kollman', 'multiplicity': 1}
 
 for calc in [
     TIP3P(),
-    SimpleQMMM([0, 1, 2], Turbomole(add_esp=True, multiplicity=1), TIP3P(), TIP3P()),
-    SimpleQMMM([0, 1, 2], Turbomole(add_esp=True, multiplicity=1), TIP3P(), TIP3P(), vacuum=3.0),
-    EIQMMM([0, 1, 2], Turbomole(add_esp=True, multiplicity=1), TIP3P(), interaction),
-    EIQMMM([3, 4, 5], Turbomole(add_esp=True, multiplicity=1), TIP3P(), interaction, vacuum=3.0),
-    EIQMMM([0, 1, 2], Turbomole(add_esp=True, multiplicity=1), TIP3P(), interaction, vacuum=3.0)]:
+    SimpleQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), TIP3P()),
+    SimpleQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), TIP3P(), vacuum=3.0),
+    EIQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), interaction),
+    EIQMMM([3, 4, 5], Turbomole(**tm_params), TIP3P(), interaction, vacuum=3.0),
+    EIQMMM([0, 1, 2], Turbomole(**tm_params), TIP3P(), interaction, vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),
@@ -48,7 +43,7 @@ for calc in [
 
     F = np.array(F)
 
-    # plt.plot(D, E)
+#    plt.plot(D, E)
 
     F1 = np.polyval(np.polyder(np.polyfit(D, E, 7)), D)
     F2 = F[:, :3, 0].sum(1)
@@ -71,10 +66,5 @@ for calc in [
                    (np.dot(v1, v1) * np.dot(v2, v2))**0.5) / np.pi * 180
     fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.3f} {4:.1f}'
     print(fmt.format(calc.name, -min(E), -e0, d0, a0))
-#    assert abs(e0 + eexp) < 0.002
-#    assert abs(d0 - dexp) < 0.006
-#    assert abs(a0 - aexp) < 2
-
-print(fmt.format('reference', 9.999, eexp, dexp, aexp))
-
-# plt.show()
+    
+#    plt.show()
