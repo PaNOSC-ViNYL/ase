@@ -135,6 +135,8 @@ forces             np.array get_forces(),           forces      gradient
                             get_property('forces')
 dipole moment      np.array get_dipole_moment(),    dipole      any task
                             get_property('magmom')
+charges            np.array get_charges(),
+                            get_property('charges') charges     any task
 <S\ :sup:`2`\ >    float    get_results             results     any task
 normal modes       list     get_results             results     frequencies
 mode frequencies   list     get_results             results     frequencies
@@ -245,6 +247,7 @@ values.
              density convergence float         None           None          True
               density functional   str          b-p           None          True
               energy convergence float         None             eV          True
+                         esp fit   str         None           None          True
           fermi annealing factor float         0.95           None          True
          fermi final temperature float          300         Kelvin          True
    fermi homo-lumo gap criterion float          0.1             eV          True
@@ -347,6 +350,27 @@ Geometry optimization and normal mode analysis for H2O
 ------------------------------------------------------
 
 :git:`ase/test/turbomole/turbomole_h2o.py`.
+
+QMMM simulation
+---------------
+
+The following example demonstrates how to use the Turbomole calculator in simple
+and explicit QMMM simulations on the examples of a water dimer partitioned into
+an MM and an QM region. The MM region is treated within a TIP3P model in the MM
+calculator and as an array of point charges in the in the QM calculation. The
+interaction between QM and MM ragions used in the explicit QMMM calculator is of
+Lennard-Jones type.
+
+:git:`ase/test/turbomole/turbomole_qmmm.py`.
+
+The point charge embedding functionality of the Turbomole calculator can also be
+used without QMMM calculators if the `embed()` method is called with 
+specification of the point charges in which to embed the QM system::
+
+    calc = Turbomole(**params)
+    calc.embed(charges, positions)
+
+
 
 
 Deprecated, non-implemented and unsupported features
