@@ -32,9 +32,9 @@ Supported :mod:`Calculators <ase.calculators>`:
 
 |abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
 |elk| |exciting| |EMT|
-|fhi-aims| |fleur| |gpaw| |gromacs| 
+|fhi-aims| |fleur| |gpaw| |gromacs|
 |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |onetep| |siesta| |turbomole| |vasp|
+|octopus| |onetep| |q_espresso| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`DMol³ <ase.calculators.dmol>`
 Gaussian_ Grimme-D3_ :mod:`~ase.calculators.gulp` Mopac_
@@ -53,6 +53,8 @@ See how to identify and convert old trajectory files here: :ref:`convert`.
 
 News
 ====
+
+* Bugfix release: :ref:`ASE version 3.14.1 <releasenotes>` (28 June 2017).
 
 * :ref:`ASE version 3.14.0 <releasenotes>` released (20 June 2017).
 
@@ -206,6 +208,10 @@ Contents
 .. |onetep| image:: static/onetep.png
    :target: http://www.onetep.org/
    :align: middle
+.. |q_espresso| image:: static/espresso.png
+   :target: ase/calculators/espresso.html
+   :align: middle
+   :scale: 50
 .. |siesta| image:: static/siesta.png
    :target: ase/calculators/siesta.html
    :align: middle

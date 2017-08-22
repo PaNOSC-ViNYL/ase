@@ -17,6 +17,7 @@ commands = [
     ('build', 'ase.cli.build'),
     ('eos', 'ase.eos'),
     ('ulm', 'ase.io.ulm'),
+    ('find', 'ase.cli.find'),
     ('nomad-upload', 'ase.cli.nomad'),
     ('completion', 'ase.cli.completion')]
 

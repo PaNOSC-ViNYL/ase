@@ -13,7 +13,8 @@ from subprocess import Popen, PIPE
 import numpy as np
 
 from ase import Atoms
-from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import (FileIOCalculator, kpts2ndarray,
+                                        EigenvalOccupationMixin)
 from ase.calculators.calculator import PropertyNotImplementedError
 # XXX raise ReadError upon bad read
 from ase.data import atomic_numbers
@@ -159,7 +160,7 @@ def process_special_kwargs(atoms, kwargs):
     # will be passed to Octopus
     # XXX do a better check of this
     for kw in Octopus.special_ase_keywords:
-        assert kw not in kwargs
+        assert kw not in kwargs, kw
     return kwargs
 
 
@@ -343,8 +344,14 @@ class OctNamespace:
                     continue
 
                 v = self.evaluate(token)
+
                 try:
                     v = float(v)
+                except TypeError:
+                    try:
+                        v = complex(v)
+                    except ValueError:
+                        break
                 except ValueError:
                     break  # Cannot evaluate expression
                 else:
@@ -613,9 +620,10 @@ def atoms2kwargs(atoms, use_ase_cell):
 
     positions = atoms.positions / Bohr
 
-    # TODO LatticeVectors parameter for non-orthogonal cells
     if use_ase_cell:
         cell = atoms.cell / Bohr
+        cell_offset = 0.5 * cell.sum(axis=0)
+        positions -= cell_offset
         if is_orthorhombic(cell):
             Lsize = 0.5 * np.diag(cell)
             kwargs['lsize'] = [[repr(size) for size in Lsize]]
@@ -623,8 +631,6 @@ def atoms2kwargs(atoms, use_ase_cell):
             # Lsize is really cell / 2, and we have to adjust our
             # positions by subtracting Lsize (see construction of the coords
             # block) in non-periodic directions.
-            nonpbc = (atoms.pbc == 0)
-            positions[:, nonpbc] -= Lsize[None, nonpbc]
         else:
             kwargs['latticevectors'] = cell.tolist()
 
@@ -896,7 +902,7 @@ def read_static_info(fd):
     return results
 
 
-class Octopus(FileIOCalculator):
+class Octopus(FileIOCalculator, EigenvalOccupationMixin):
     """Octopus calculator.
 
     The label is always assumed to be a directory."""
@@ -917,12 +923,13 @@ class Octopus(FileIOCalculator):
                                 'reducedcoordinates'])
 
     special_ase_keywords = set(['kpts'])
+    command = 'octopus'
 
     def __init__(self,
                  restart=None,
                  label=None,
                  atoms=None,
-                 command='octopus',
+                 command=None,
                  ignore_troublesome_keywords=None,
                  check_keywords=True,
                  _autofix_outputformats=False,
@@ -939,6 +946,7 @@ class Octopus(FileIOCalculator):
         # This makes us able to robustly construct the input file
         # in the face of changing octopus versions, and also of
         # early partial verification of user input.
+
         if check_keywords:
             try:
                 octopus_keywords = get_octopus_keywords()

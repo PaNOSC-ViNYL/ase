@@ -52,11 +52,12 @@ class GUI(View, Status):
 
         menu = self.get_menu_data(show_unit_cell, show_bonds)
 
-        self.window = ui.ASEGUIWindow(self.exit, menu, self.config,
-                                      self.scroll,
-                                      self.scroll_event,
-                                      self.press, self.move, self.release,
-                                      self.resize)
+        self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
+                                      config=self.config, scroll=self.scroll,
+                                      scroll_event=self.scroll_event,
+                                      press=self.press, move=self.move,
+                                      release=self.release,
+                                      resize=self.resize)
 
         View.__init__(self, rotations)
         Status.__init__(self)
@@ -103,7 +104,7 @@ class GUI(View, Status):
         i = max(0, min(len(self.images) - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
-            self.movie_window.frame_number.value = i
+            self.movie_window.frame_number.value = i + 1
 
     def _do_zoom(self, x):
         """Utility method for zooming"""
@@ -119,9 +120,9 @@ class GUI(View, Status):
         """Zoom in/out when using mouse wheel"""
         SHIFT = event.modifier == 'shift'
         x = 1.0
-        if event.button == 4:
+        if event.button == 4 or event.delta > 0:
             x = 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01
-        elif event.button == 5:
+        elif event.button == 5 or event.delta < 0:
             x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 
@@ -456,7 +457,7 @@ class GUI(View, Status):
               M(_('Movie ...'), self.movie),
               M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
-              M(_('Render scene ...'), self.render_window, disabled=True),
+              M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),

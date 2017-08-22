@@ -501,7 +501,11 @@ def output_column_format(atoms, columns, arrays,
                               property_types,
                               [str(nc) for nc in property_ncols])])
 
-    comment_str = lattice_str + ' Properties=' + props_str
+    comment_str = ''
+    if atoms.cell.any():
+        comment_str += lattice_str + ' '
+    comment_str += 'Properties={}'.format(props_str)
+
     info = {}
     if write_info:
         info.update(atoms.info)

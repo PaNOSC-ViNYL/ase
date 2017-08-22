@@ -298,8 +298,8 @@ class RadioButtons(Widget):
                         for i, label in enumerate(labels)]
         self.vertical = vertical
 
-    def create(self, parrent):
-        self.widget = frame = tk.Frame(parrent)
+    def create(self, parent):
+        self.widget = frame = tk.Frame(parent)
         side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
@@ -563,6 +563,7 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
+        self.win.bind('<MouseWheel>', bind(scroll_event))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))

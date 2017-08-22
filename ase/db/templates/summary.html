@@ -91,6 +91,12 @@
             {% endfor %}
 </tbody>
 </table>
+<table class="table table-striped">
+<tbody>
+<tr><td>Lenghts:</td>{% for L in s.lengths %} <td>{{ L }}</td>{% endfor %}</tr>
+<tr><td>Angles:</td>{% for a in s.angles %} <td>{{ a }}</td>{% endfor %}</tr>
+</tbody>
+</table>
 {% endmacro %}
 
 {% macro table(thing) %}

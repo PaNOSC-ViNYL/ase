@@ -94,9 +94,8 @@ class AutoNEB(object):
     prefixXXXiter00i.traj exists with XXX ranging from 000 to the N images
     currently in the NEB.
 
-    The most recent NEB path can always be monitored by::
-
-        $ ase gui -n -1 iter prefix???.traj
+    The most recent NEB path can always be monitored by:
+        $ ase-gui -n -1 neb???.traj
     """
 
     def __init__(self, attach_calculators, prefix, n_simul, n_max,
@@ -105,7 +104,7 @@ class AutoNEB(object):
                  optimizer='FIRE',
                  remove_rotation_and_translation=False, space_energy_ratio=0.5,
                  world=None,
-                 parallel=True, smooth_curve=False, interpolate_method='IDPP'):
+                 parallel=True, smooth_curve=False, interpolate_method='idpp'):
         self.attach_calculators = attach_calculators
         self.prefix = prefix
         self.n_simul = n_simul
@@ -120,8 +119,8 @@ class AutoNEB(object):
         self.method = method
         self.remove_rotation_and_translation = remove_rotation_and_translation
         self.space_energy_ratio = space_energy_ratio
-        if interpolate_method not in ['IDPP', 'linear']:
-            self.interpolate_method = 'IDPP'
+        if interpolate_method not in ['idpp', 'linear']:
+            self.interpolate_method = 'idpp'
             print('Interpolation method not implementet.',
                   'Using the IDPP method.')
         else:
@@ -138,7 +137,7 @@ class AutoNEB(object):
         else:
             raise Exception('Optimizer needs to be BFGS or FIRE')
         self.iter_folder = iter_folder
-        if not os.path.exists(self.iter_folder):
+        if not os.path.exists(self.iter_folder) and self.world.rank == 0:
             os.makedirs(self.iter_folder)
 
     def execute_one_neb(self, n_cur, to_run, climb=False, many_steps=False):
@@ -150,7 +149,8 @@ class AutoNEB(object):
             for i in range(n_cur):
                 if i not in to_run[1: -1]:
                     filename = '%s%03d.traj' % (self.prefix, i)
-                    self.all_images[i].write(filename)
+                    t = Trajectory(filename, mode='w', atoms=self.all_images[i])
+                    t.write()
                     filename_ref = self.iter_folder + \
                         '/%s%03diter%03d.traj' % (self.prefix, i,
                                                   self.iteration)
@@ -479,8 +479,7 @@ class AutoNEB(object):
         # And now lets read in the configurations
         for i in range(n_cur):
             if i in index_exists:
-                filename = self.iter_folder + \
-                    '/%s%03diter000.traj' % (self.prefix, i)
+                filename = '%s%03d.traj' % (self.prefix, i)
                 newim = read(filename)
                 self.all_images.append(newim)
             else:

@@ -5,6 +5,7 @@ import os.path as op
 
 from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
+from ase.geometry import cell_to_cellpar
 from ase.utils import formula_metal, Lock
 
 
@@ -12,7 +13,10 @@ class Summary:
     def __init__(self, row, meta={}, subscript=None, prefix='', tmpdir='.'):
         self.row = row
 
-        self.cell = [['{0:.3f}'.format(a) for a in axis] for axis in row.cell]
+        self.cell = [['{:.3f}'.format(a) for a in axis] for axis in row.cell]
+        par = ['{:.3f}'.format(x) for x in cell_to_cellpar(row.cell)]
+        self.lengths = par[:3]
+        self.angles = par[3:]
 
         forces = row.get('constrained_forces')
         if forces is None:
@@ -76,6 +80,7 @@ class Summary:
         misc = set(table.keys())
         self.layout = []
         for headline, columns in meta['layout']:
+            empty = True
             newcolumns = []
             for column in columns:
                 newcolumn = []
@@ -106,8 +111,12 @@ class Summary:
                             block = None
 
                     newcolumn.append(block)
+                    if block is not None:
+                        empty = False
                 newcolumns.append(newcolumn)
-            self.layout.append((headline, newcolumns))
+
+            if not empty:
+                self.layout.append((headline, newcolumns))
 
         if misc:
             rows = []
@@ -183,7 +192,10 @@ class Summary:
                     for p, axis in zip(row.pbc, self.cell):
                         print(fmt.format(c, [' no', 'yes'][p], axis))
                         c += 1
-                    print()
+                    print('Lengths: {:>10}{:>10}{:>10}'
+                          .format(*self.lengths))
+                    print('Angles:  {:>10}{:>10}{:>10}\n'
+                          .format(*self.angles))
                 elif block == 'FORCES' and self.forces is not None:
                     print('\nForces in ev/Ang:')
                     for f in self.forces:

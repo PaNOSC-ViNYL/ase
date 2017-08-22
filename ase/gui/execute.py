@@ -246,7 +246,7 @@ class Execute(ui.Window):
                         exec(code)
                     gui.set_frame(frame)
                     if gui.movie_window is not None:
-                        gui.movie_window.frame_number.value = frame
+                        gui.movie_window.frame_number.value = frame + 1
                     img.selected = S
                     img.A[i] = A
                     img.P[i][indices] = R

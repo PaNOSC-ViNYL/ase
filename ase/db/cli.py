@@ -70,8 +70,8 @@ class CLICommand:
             'with a "+" in order to add columns to the default set of '
             'columns.  Precede by a "-" to remove columns.  Use "++" for all.')
         add('-s', '--sort', metavar='column', default='id',
-            help='Sort rows using column.  Use -column for a descendin sort.  '
-            'Default is to sort after id.')
+            help='Sort rows using "column".  Use "column-" for a descending '
+            'sort.  Default is to sort after id.')
         add('--cut', type=int, default=35, help='Cut keywords and key-value '
             'columns after CUT characters.  Use --cut=0 to disable cutting. '
             'Default is 35 characters')
@@ -107,6 +107,9 @@ class CLICommand:
 def main(args):
     verbosity = 1 - args.quiet + args.verbose
     query = ','.join(args.query)
+
+    if args.sort.endswith('-'):
+        args.sort = '-' + args.sort[:-1]
 
     if query.isdigit():
         query = int(query)
@@ -222,7 +225,7 @@ def main(args):
         plots = collections.defaultdict(list)
         X = {}
         labels = []
-        for row in db.select(query, sort=args.sort):
+        for row in db.select(query, sort=args.sort, include_data=False):
             name = ','.join(str(row[tag]) for tag in tags)
             x = row.get(keys[0])
             if x is not None:
@@ -277,7 +280,8 @@ def main(args):
             if c and c.startswith('++'):
                 keys = set()
                 for row in db.select(query,
-                                     limit=args.limit, offset=args.offset):
+                                     limit=args.limit, offset=args.offset,
+                                     include_data=False):
                     keys.update(row._keys)
                 columns.extend(keys)
                 if c[2:3] == ',':

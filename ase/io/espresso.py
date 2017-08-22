@@ -11,15 +11,21 @@ Units are converted using CODATA 2006, as used internally by Quantum
 ESPRESSO.
 """
 
+import os
 import operator as op
+import warnings
 from collections import OrderedDict
+from os import path
 
 import numpy as np
+
 from ase.atoms import Atoms
-from ase.units import create_units
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.constraints import FixAtoms, FixCartesian
+from ase.data import chemical_symbols, atomic_numbers
+from ase.units import create_units
 from ase.utils import basestring
-from ase.data import chemical_symbols
+
 
 # Quantum ESPRESSO uses CODATA 2006 internally
 units = create_units('2006')
@@ -397,9 +403,8 @@ def ibrav_to_cell(system):
 
     Returns
     -------
-    alat : float
-        Cell parameter in Angstrom
-    cell : np.array
+    alat, cell : float, np.array
+        Cell parameter in Angstrom, and
         The 3x3 array representation of the cell.
 
     Raises
@@ -445,6 +450,10 @@ def ibrav_to_cell(system):
         cell = np.array([[1.0, 1.0, 1.0],
                          [-1.0, 1.0, 1.0],
                          [-1.0, -1.0, 1.0]]) * (alat / 2)
+    elif system['ibrav'] == -3:
+        cell = np.array([[-1.0, 1.0, 1.0],
+                         [1.0, -1.0, 1.0],
+                         [1.0, 1.0, -1.0]]) * (alat / 2)
     elif system['ibrav'] == 4:
         cell = np.array([[1.0, 0.0, 0.0],
                          [-0.5, 0.5*3**0.5, 0.0],
@@ -496,7 +505,7 @@ def ibrav_to_cell(system):
     elif system['ibrav'] == 12:
         sinab = (1.0 - cosab**2)**0.5
         cell = np.array([[1.0, 0.0, 0.0],
-                         [b_over_a * sinab, b_over_a * cosab, 0.0],
+                         [b_over_a * cosab, b_over_a * sinab, 0.0],
                          [0.0, 0.0, c_over_a]]) * alat
     elif system['ibrav'] == -12:
         sinac = (1.0 - cosac**2)**0.5
@@ -932,3 +941,597 @@ def infix_float(text):
         text = text.replace(middle, '{}'.format(eval_no_bracket_expr(middle)))
 
     return float(eval_no_bracket_expr(text))
+
+###
+# Input file writing
+###
+
+# Ordered and case insensitive
+KEYS = Namelist((
+    ('CONTROL', [
+        'calculation', 'title', 'verbosity', 'restart_mode', 'wf_collect',
+        'nstep', 'iprint', 'tstress', 'tprnfor', 'dt', 'outdir', 'wfcdir',
+        'prefix', 'lkpoint_dir', 'max_seconds', 'etot_conv_thr',
+        'forc_conv_thr', 'disk_io', 'pseudo_dir', 'tefield', 'dipfield',
+        'lelfield', 'nberrycyc', 'lorbm', 'lberry', 'gdir', 'nppstr',
+        'lfcpopt', 'monopole']),
+    ('SYSTEM', [
+        'ibrav', 'celldm', 'A', 'B', 'C', 'cosAB', 'cosAC', 'cosBC', 'nat',
+        'ntyp', 'nbnd', 'tot_charge', 'tot_magnetization',
+        'starting_magnetization', 'ecutwfc', 'ecutrho', 'ecutfock', 'nr1',
+        'nr2', 'nr3', 'nr1s', 'nr2s', 'nr3s', 'nosym', 'nosym_evc', 'noinv',
+        'no_t_rev', 'force_symmorphic', 'use_all_frac', 'occupations',
+        'one_atom_occupations', 'starting_spin_angle', 'degauss', 'smearing',
+        'nspin', 'noncolin', 'ecfixed', 'qcutz', 'q2sigma', 'input_dft',
+        'exx_fraction', 'screening_parameter', 'exxdiv_treatment',
+        'x_gamma_extrapolation', 'ecutvcut', 'nqx1', 'nqx2', 'nqx3',
+        'lda_plus_u', 'lda_plus_u_kind', 'Hubbard_U', 'Hubbard_J0',
+        'Hubbard_alpha', 'Hubbard_beta', 'Hubbard_J',
+        'starting_ns_eigenvalue', 'U_projection_type', 'edir',
+        'emaxpos', 'eopreg', 'eamp', 'angle1', 'angle2',
+        'constrained_magnetization', 'fixed_magnetization', 'lambda',
+        'report', 'lspinorb', 'assume_isolated', 'esm_bc', 'esm_w',
+        'esm_efield', 'esm_nfit', 'fcp_mu', 'vdw_corr', 'london',
+        'london_s6', 'london_c6', 'london_rvdw', 'london_rcut',
+        'ts_vdw_econv_thr', 'ts_vdw_isolated', 'xdm', 'xdm_a1', 'xdm_a2',
+        'space_group', 'uniqueb', 'origin_choice', 'rhombohedral', 'zmon',
+        'realxz', 'block', 'block_1', 'block_2', 'block_height']),
+    ('ELECTRONS', [
+        'electron_maxstep', 'scf_must_converge', 'conv_thr', 'adaptive_thr',
+        'conv_thr_init', 'conv_thr_multi', 'mixing_mode', 'mixing_beta',
+        'mixing_ndim', 'mixing_fixed_ns', 'diagonalization', 'ortho_para',
+        'diago_thr_init', 'diago_cg_maxiter', 'diago_david_ndim',
+        'diago_full_acc', 'efield', 'efield_cart', 'efield_phase',
+        'startingpot', 'startingwfc', 'tqr']),
+    ('IONS', [
+        'ion_dynamics', 'ion_positions', 'pot_extrapolation',
+        'wfc_extrapolation', 'remove_rigid_rot', 'ion_temperature', 'tempw',
+        'tolp', 'delta_t', 'nraise', 'refold_pos', 'upscale', 'bfgs_ndim',
+        'trust_radius_max', 'trust_radius_min', 'trust_radius_ini', 'w_1',
+        'w_2']),
+    ('CELL', [
+        'cell_dynamics', 'press', 'wmass', 'cell_factor', 'press_conv_thr',
+        'cell_dofree'])))
+
+
+# Number of valence electrons in the pseudopotentials recommended by
+# http://materialscloud.org/sssp/. These are just used as a fallback for
+# calculating inital magetization values which are given as a fraction
+# of valence electrons.
+SSSP_VALENCE = [
+    0, 1.0, 2.0, 3.0, 4.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 3.0, 4.0,
+    5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0,
+    18.0, 19.0, 20.0, 13.0, 14.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+    13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 12.0, 13.0, 14.0, 15.0, 6.0,
+    7.0, 18.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0,
+    19.0, 20.0, 21.0, 22.0, 23.0, 24.0, 25.0, 36.0, 27.0, 14.0, 15.0, 30.0,
+    15.0, 32.0, 19.0, 12.0, 13.0, 14.0, 15.0, 16.0, 18.0]
+
+
+def construct_namelist(parameters=None, warn=False, **kwargs):
+    """
+    Construct an ordered Namelist containing all the parameters given (as
+    a dictionary or kwargs). Keys will be inserted into their appropriate
+    section in the namelist and the dictionary may contain flat and nested
+    structures. Any kwargs that match input keys will be incorporated into
+    their correct section. All matches are case-insensitive, and returned
+    Namelist object is a case-insensitive dict.
+
+    If a key is not known to ase, but in a section within `parameters`,
+    it will be assumed that it was put there on purpose and included
+    in the output namelist. Anything not in a section will be ignored (set
+    `warn` to True to see ignored keys).
+
+    Keys with a dimension (e.g. Hubbard_U(1)) will be incorporated as-is
+    so the `i` should be made to match the output.
+
+    The priority of the keys is:
+        kwargs[key] > parameters[key] > parameters[section][key]
+    Only the highest priority item will be included.
+
+    Parameters
+    ----------
+    parameters: dict
+        Flat or nested set of input parameters.
+    warn: bool
+        Enable warnings for unused keys.
+
+    Returns
+    -------
+    input_namelist: Namelist
+        pw.x compatible namelist of input parameters.
+
+    """
+    # Convert everything to Namelist early to make case-insensitive
+    if parameters is None:
+        parameters = Namelist()
+    else:
+        # Maximum one level of nested dict
+        # Don't modify in place
+        parameters_namelist = Namelist()
+        for key, value in parameters.items():
+            if isinstance(value, dict):
+                parameters_namelist[key] = Namelist(value)
+            else:
+                parameters_namelist[key] = value
+        parameters = parameters_namelist
+
+    # Just a dict
+    kwargs = Namelist(kwargs)
+
+    # Final parameter set
+    input_namelist = Namelist()
+
+    # Collect
+    for section in KEYS:
+        sec_list = Namelist()
+        for key in KEYS[section]:
+            # Check all three separately and pop them all so that
+            # we can check for missing values later
+            if key in parameters.get(section, {}):
+                sec_list[key] = parameters[section].pop(key)
+            if key in parameters:
+                sec_list[key] = parameters.pop(key)
+            if key in kwargs:
+                sec_list[key] = kwargs.pop(key)
+
+            # Check if there is a key(i) version (no extra parsing)
+            for arg_key in parameters.get(section, {}):
+                if arg_key.split('(')[0].strip().lower() == key.lower():
+                    sec_list[arg_key] = parameters[section].pop(arg_key)
+            for arg_key in parameters:
+                if arg_key.split('(')[0].strip().lower() == key.lower():
+                    sec_list[arg_key] = parameters.pop(arg_key)
+            for arg_key in kwargs:
+                if arg_key.split('(')[0].strip().lower() == key.lower():
+                    sec_list[arg_key] = kwargs.pop(arg_key)
+
+        # Add to output
+        input_namelist[section] = sec_list
+
+    unused_keys = list(kwargs)
+    # pass anything else already in a section
+    for key, value in parameters.items():
+        if key in KEYS and isinstance(value, dict):
+            input_namelist[key].update(value)
+        elif isinstance(value, dict):
+            unused_keys.extend(list(value))
+        else:
+            unused_keys.append(key)
+
+    if warn and unused_keys:
+        warnings.warn('Unused keys: {}'.format(', '.join(unused_keys)))
+
+    return input_namelist
+
+
+def grep_valence(pseudopotential):
+    """
+    Given a UPF pseudopotential file, find the number of valence atoms.
+
+    Parameters
+    ----------
+    pseudopotential: str
+        Filename of the pseudopotential.
+
+    Returns
+    -------
+    valence: float
+        Valence as reported in the pseudopotential.
+
+    Raises
+    ------
+    ValueError
+        If valence cannot be found in the pseudopotential.
+    """
+
+    # Example lines
+    # Sr.pbe-spn-rrkjus_psl.1.0.0.UPF:             z_valence="1.000000000000000E+001"
+    # Ta_pbe_v1.uspp.F.UPF:   13.00000000000      Z valence
+
+    with open(pseudopotential) as psfile:
+        for line in psfile:
+            if 'z valence' in line.lower():
+                return float(line.split()[0])
+            elif 'z_valence' in line.lower():
+                return float(line.split('=')[-1].strip().strip('"'))
+        else:
+            raise ValueError('Valence missing in {}'.format(pseudopotential))
+
+
+def cell_to_ibrav(cell, ibrav):
+    """
+    Calculate the appropriate `celldm(..)` parameters for the given ibrav
+    using the given cell. The units for `celldm(..)` are Bohr.
+
+    Does minimal checking of the cell shape, so it is possible to create
+    a nonsense structure if the ibrav is inapproprite for the cell. These
+    are derived to be symmetric with the routine for constructing the cell
+    from ibrav parameters so directions of some vectors may be unexpected.
+
+    Parameters
+    ----------
+    cell : np.array
+        A 3x3 representation of a unit cell
+    ibrav : int
+        Bravais-lattice index according to the pw.x designations.
+
+    Returns
+    -------
+    parameters : dict
+        A dictionary with all the necessary `celldm(..)` keys assigned
+        necessary values (in units of Bohr). Also includes `ibrav` so it
+        can be passed back to `ibrav_to_cell`.
+
+    Raises
+    ------
+    NotImplementedError
+        Only a limited number of ibrav settings can be parsed. An error
+        is raised if the ibrav interpretation is not implemented.
+    """
+    parameters = {'ibrav': ibrav}
+
+    if ibrav == 1:
+        parameters['celldm(1)'] = cell[0][0] / units['Bohr']
+    elif ibrav in [2, 3, -3]:
+        parameters['celldm(1)'] = cell[0][2] * 2 / units['Bohr']
+    elif ibrav in [4, 6]:
+        parameters['celldm(1)'] = cell[0][0] / units['Bohr']
+        parameters['celldm(3)'] = cell[2][2] / cell[0][0]
+    elif ibrav in [5, -5]:
+        # Manually derive
+        a = np.linalg.norm(cell[0])
+        cosab = np.dot(cell[0], cell[1]) / (a ** 2)
+        parameters['celldm(1)'] = a / units['Bohr']
+        parameters['celldm(4)'] = cosab
+    elif ibrav == 7:
+        parameters['celldm(1)'] = cell[0][0] * 2 / units['Bohr']
+        parameters['celldm(3)'] = cell[2][2] / cell[0][0]
+    elif ibrav == 8:
+        parameters['celldm(1)'] = cell[0][0] / units['Bohr']
+        parameters['celldm(2)'] = cell[1][1] / cell[0][0]
+        parameters['celldm(3)'] = cell[2][2] / cell[0][0]
+    elif ibrav in [9, -9]:
+        parameters['celldm(1)'] = cell[0][0] * 2 / units['Bohr']
+        parameters['celldm(2)'] = cell[1][1] / cell[0][0]
+        parameters['celldm(3)'] = cell[2][2] * 2 / cell[0][0]
+    elif ibrav in [10, 11]:
+        parameters['celldm(1)'] = cell[0][0] * 2 / units['Bohr']
+        parameters['celldm(2)'] = cell[1][1] / cell[0][0]
+        parameters['celldm(3)'] = cell[2][2] / cell[0][0]
+    elif ibrav == 12:
+        # cos^2 + sin^2
+        b = (cell[1][0]**2 + cell[1][1]**2)**0.5
+        parameters['celldm(1)'] = cell[0][0] / units['Bohr']
+        parameters['celldm(2)'] = b / cell[0][0]
+        parameters['celldm(3)'] = cell[2][2] / cell[0][0]
+        parameters['celldm(4)'] = cell[1][0] / b
+    elif ibrav == -12:
+        # cos^2 + sin^2
+        c = (cell[2][0]**2 + cell[2][2]**2)**0.5
+        parameters['celldm(1)'] = cell[0][0] / units['Bohr']
+        parameters['celldm(2)'] = cell[1][1] / cell[0][0]
+        parameters['celldm(3)'] = c / cell[0][0]
+        parameters['celldm(4)'] = cell[2][0] / c
+    elif ibrav == 13:
+        b = (cell[1][0]**2 + cell[1][1]**2)**0.5
+        parameters['celldm(1)'] = cell[0][0] * 2 / units['Bohr']
+        parameters['celldm(2)'] = b / (cell[0][0] * 2)
+        parameters['celldm(3)'] = cell[2][2] / cell[0][0]
+        parameters['celldm(4)'] = cell[1][0] / b
+    elif ibrav == 14:
+        # Manually derive
+        a, b, c = np.linalg.norm(cell, axis=1)
+        cosbc = np.dot(cell[1], cell[2]) / (b * c)
+        cosac = np.dot(cell[0], cell[2]) / (a * c)
+        cosab = np.dot(cell[0], cell[1]) / (a * b)
+        parameters['celldm(1)'] = a / units['Bohr']
+        parameters['celldm(2)'] = b / a
+        parameters['celldm(3)'] = c / a
+        parameters['celldm(4)'] = cosbc
+        parameters['celldm(5)'] = cosac
+        parameters['celldm(6)'] = cosab
+    else:
+        raise NotImplementedError('ibrav = {0} is not implemented'
+                                  ''.format(ibrav))
+
+    return parameters
+
+
+def kspacing_to_grid(atoms, spacing, calculated_spacing=None):
+    """
+    Calculate the kpoint mesh that is equivalent to the given spacing
+    in reciprocal space (units Angstrom^-1). The number of kpoints is each
+    dimension is rounded up (compatible with CASTEP).
+
+    Parameters
+    ----------
+    atoms: ase.Atoms
+        A structure that can have get_reciprocal_cell called on it.
+    spacing: float
+        Minimum K-Point spacing in $A^{-1}$.
+    calculated_spacing : list
+        If a three item list (or similar mutable sequence) is given the
+        members will be replaced with the actual calculated spacing in
+        $A^{-1}$.
+
+    Returns
+    -------
+    kpoint_grid : [int, int, int]
+        MP grid specification to give the required spacing.
+
+    """
+    # No factor of 2pi in ase, everything in A^-1
+    # reciprocal dimensions
+    r_x, r_y, r_z = np.linalg.norm(atoms.get_reciprocal_cell(), axis=1)
+
+    kpoint_grid = [int(r_x/spacing) + 1,
+                   int(r_y/spacing) + 1,
+                   int(r_z/spacing) + 1]
+
+    if calculated_spacing is not None:
+        calculated_spacing[:] = [r_x/kpoint_grid[0],
+                                 r_y/kpoint_grid[1],
+                                 r_z/kpoint_grid[2]]
+
+    return kpoint_grid
+
+
+def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
+                      kspacing=None, kpts=None, koffset=(0, 0, 0),
+                      **kwargs):
+    """
+    Create an input file for pw.x.
+
+    Use set_initial_magnetic_moments to turn on spin, if ispin is set to 2
+    with no magnetic moments, they will all be set to 0.0. Magnetic moments
+    will be converted to the QE units (fraction of valence electrons) using
+    any pseudopotential files found, or a best guess for the number of
+    valence electrons.
+
+    Units are not converted for any other input data, so use Quantum ESPRESSO
+    units (Usually Ry or atomic units).
+
+    Keys with a dimension (e.g. Hubbard_U(1)) will be incorporated as-is
+    so the `i` should be made to match the output.
+
+    Implemented features:
+
+    - Conversion of :class:`ase.constraints.FixAtoms` and
+                    :class:`ase.constraints.FixCartesian`.
+    - `starting_magnetization` derived from the `mgmoms` and pseudopotentials
+      (searches default paths for pseudo files.)
+    - Automatic assignment of options to their correct sections.
+    - Interpretation of ibrav (cell must exactly match the vectors defined
+      in the QE docs).
+
+    Not implemented:
+
+    - Lists of k-points
+    - Other constraints
+    - Hubbard parameters
+    - Validation of the argument types for input
+    - Validation of required options
+    - Reorientation for ibrav settings
+    - Noncollinear magnetism
+
+    Parameters
+    ----------
+    fd: file
+        A file like object to write the input file to.
+    atoms: Atoms
+        A single atomistic configuration to write to `fd`.
+    input_data: dict
+        A flat or nested dictionary with input parameters for pw.x
+    pseudopotentials: dict
+        A filename for each atomic species, e.g.
+        {'O': 'O.pbe-rrkjus.UPF', 'H': 'H.pbe-rrkjus.UPF'}.
+        A dummy name will be used if none are given.
+    kspacing: float
+        Generate a grid of k-points with this as the minimum distance,
+        in A^-1 between them in reciprocal space. If set to None, kpts
+        will be used instead.
+    kpts:
+        Number of kpoints in each dimension for automatic kpoint generation.
+    koffset: (int, int, int)
+        Offset of kpoints in each direction. Must be 0 (no offset) or
+        1 (half grid offset). Setting to True is equivalent to (1, 1, 1).
+
+    """
+
+    # Convert to a namelist to make working with parameters much easier
+    # Note that the name ``input_data`` is chosen to prevent clash with
+    # ``parameters`` in Calculator objects
+    input_parameters = construct_namelist(input_data, **kwargs)
+
+    # Convert ase constraints to QE constraints
+    # Nx3 array of force multipliers matches what QE uses
+    # Do this early so it is available when constructing the atoms card
+    constraint_mask = np.ones((len(atoms), 3), dtype='int')
+    for constraint in atoms.constraints:
+        if isinstance(constraint, FixAtoms):
+            constraint_mask[constraint.index] = 0
+        elif isinstance(constraint, FixCartesian):
+            constraint_mask[constraint.a] = constraint.mask
+        else:
+            warnings.warn('Ignored unknown constraint {}'.format(constraint))
+
+    # Deal with pseudopotentials
+    # Look in all possible locations for the pseudos and try to figure
+    # out the number of valence electrons
+    pseudo_dirs = []
+    if 'pseudo_dir' in input_parameters['control']:
+        pseudo_dirs.append(input_parameters['control']['pseudo_dir'])
+    if 'ESPRESSO_PSEUDO' in os.environ:
+        pseudo_dirs.append(os.environ['ESPRESSO_PSEUDO'])
+    pseudo_dirs.append(path.expanduser('~/espresso/pseudo/'))
+
+    # Species info holds the information on the pseudopotential and
+    # associated for each element
+    if pseudopotentials is None:
+        pseudopotentials = {}
+    species_info = {}
+    for species in set(atoms.get_chemical_symbols()):
+        pseudo = pseudopotentials.get(species, '{}_dummy.UPF'.format(species))
+        for pseudo_dir in pseudo_dirs:
+            if path.exists(path.join(pseudo_dir, pseudo)):
+                valence = grep_valence(path.join(pseudo_dir, pseudo))
+                break
+        else:  # not found in a file
+            valence = SSSP_VALENCE[atomic_numbers[species]]
+
+        species_info[species] = {'pseudo': pseudo,
+                                 'valence': valence}
+
+    # Convert atoms into species.
+    # Each different magnetic moment needs to be a separate type even with
+    # the same pseudopotential (e.g. an up and a down for AFM).
+    # if any magmom are > 0 or nspin == 2 then use species labels.
+    # Rememeber: magnetisation uses 1 based indexes
+    atomic_species = OrderedDict()
+    atomic_species_str = []
+    atomic_positions_str = []
+
+    nspin = input_parameters['system'].get('nspin', 1)  # 1 is the default
+    if any(atoms.get_initial_magnetic_moments()):
+        if nspin == 1:
+            # Force spin on
+            input_parameters['system']['nspin'] = 2
+            nspin = 2
+
+    if nspin == 2:
+        # Spin on
+        for atom, magmom in zip(atoms, atoms.get_initial_magnetic_moments()):
+            if (atom.symbol, magmom) not in atomic_species:
+                # spin as fraction of valence
+                fspin = float(magmom) / species_info[atom.symbol]['valence']
+                # Index in the atomic species list
+                sidx = len(atomic_species) + 1
+                # Index for that atom type; no index for first one
+                tidx = sum(atom.symbol == x[0] for x in atomic_species) or ' '
+                atomic_species[(atom.symbol, magmom)] = (sidx, tidx)
+                # Add magnetization to the input file
+                mag_str = 'starting_magnetization({0})'.format(sidx)
+                input_parameters['system'][mag_str] = fspin
+                atomic_species_str.append(
+                    '{species}{tidx} {mass} {pseudo}\n'.format(
+                        species=atom.symbol, tidx=tidx, mass=atom.mass,
+                        pseudo=species_info[atom.symbol]['pseudo']))
+            # lookup tidx to append to name
+            sidx, tidx = atomic_species[(atom.symbol, magmom)]
+
+            # only inclued mask if something is fixed
+            if not all(constraint_mask[atom.index]):
+                mask = ' {mask[0]} {mask[1]} {mask[2]}'.format(
+                    mask=constraint_mask[atom.index])
+            else:
+                mask = ''
+
+            # construct line for atomic positions
+            atomic_positions_str.append(
+                '{atom.symbol}{tidx} '
+                '{atom.x:.10f} {atom.y:.10f} {atom.z:.10f}'
+                '{mask}\n'.format(atom=atom, tidx=tidx, mask=mask))
+
+    else:
+        # Do nothing about magnetisation
+        for atom in atoms:
+            if atom.symbol not in atomic_species:
+                atomic_species[atom.symbol] = True  # just a placeholder
+                atomic_species_str.append(
+                    '{species} {mass} {pseudo}\n'.format(
+                        species=atom.symbol, mass=atom.mass,
+                        pseudo=species_info[atom.symbol]['pseudo']))
+
+            # only inclued mask if something is fixed
+            if not all(constraint_mask[atom.index]):
+                mask = ' {mask[0]} {mask[1]} {mask[2]}'.format(
+                    mask=constraint_mask[atom.index])
+            else:
+                mask = ''
+
+            atomic_positions_str.append(
+                '{atom.symbol} '
+                '{atom.x:.10f} {atom.y:.10f} {atom.z:.10f} '
+                '{mask}\n'.format(atom=atom, mask=mask))
+
+    # Add computed parameters
+    # different magnetisms means different types
+    input_parameters['system']['ntyp'] = len(atomic_species)
+    input_parameters['system']['nat'] = len(atoms)
+
+    # Use cell as given or fit to a specific ibrav
+    if 'ibrav' in input_parameters['system']:
+        ibrav = input_parameters['system']['ibrav']
+        if ibrav != 0:
+            celldm = cell_to_ibrav(atoms.cell, ibrav)
+            regen_cell = ibrav_to_cell(celldm)[1]
+            if not np.allclose(atoms.cell, regen_cell):
+                warnings.warn('Input cell does not match requested ibrav'
+                              '{} != {}'.format(regen_cell, atoms.cell))
+            input_parameters['system'].update(celldm)
+    else:
+        # Just use standard cell block
+        input_parameters['system']['ibrav'] = 0
+
+    # Construct input file into this
+    pwi = []
+
+    # Assume sections are ordered (taken care of in namelist construction)
+    # and that repr converts to a QE readable representation (except bools)
+    for section in input_parameters:
+        pwi.append('&{0}\n'.format(section.upper()))
+        for key, value in input_parameters[section].items():
+            if value is True:
+                pwi.append('   {0:16} = .true.\n'.format(key))
+            elif value is False:
+                pwi.append('   {0:16} = .false.\n'.format(key))
+            else:
+                # repr format to get quotes around strings
+                pwi.append('   {0:16} = {1!r:}\n'.format(key, value))
+        pwi.append('/\n')  # terminate section
+    pwi.append('\n')
+
+    # Pseudopotentials
+    pwi.append('ATOMIC_SPECIES\n')
+    pwi.extend(atomic_species_str)
+    pwi.append('\n')
+
+    # KPOINTS - add a MP grid as required
+    if kspacing is not None:
+        kgrid = kspacing_to_grid(atoms, kspacing)
+    elif kpts is not None:
+        kgrid = kpts
+    else:
+        kgrid = (1, 1, 1)
+
+    # True and False work here and will get converted by ':d' format
+    if isinstance(koffset, int):
+        koffset = (koffset, ) * 3
+
+    # QE defaults to gamma point, make it explicit
+    if all([x == 1 for x in kgrid]) and not any(koffset):
+        pwi.append('K_POINTS gamma\n')
+        pwi.append('\n')
+    else:
+        pwi.append('K_POINTS automatic\n')
+        pwi.append('{0[0]} {0[1]} {0[2]}  {1[0]:d} {1[1]:d} {1[2]:d}\n'
+                   ''.format(kgrid, koffset))
+        pwi.append('\n')
+
+    # CELL block, if required
+    if input_parameters['SYSTEM']['ibrav'] == 0:
+        pwi.append('CELL_PARAMETERS angstrom\n')
+        pwi.append('{cell[0][0]:.14f} {cell[0][1]:.14f} {cell[0][2]:.14f}\n'
+                   '{cell[1][0]:.14f} {cell[1][1]:.14f} {cell[1][2]:.14f}\n'
+                   '{cell[2][0]:.14f} {cell[2][1]:.14f} {cell[2][2]:.14f}\n'
+                   ''.format(cell=atoms.cell))
+        pwi.append('\n')
+
+    # Positions - already constructed, but must appear after namelist
+    pwi.append('ATOMIC_POSITIONS angstrom\n')
+    pwi.extend(atomic_positions_str)
+    pwi.append('\n')
+
+    # DONE!
+    fd.write(''.join(pwi))

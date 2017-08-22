@@ -102,8 +102,8 @@ class Images:
             # but copying actually forgets things like the attached
             # calculator (might have forces/energies
             self._images.append(atoms)
-            self.have_varying_species |= np.any(self[0].numbers !=
-                                                atoms.numbers)
+            self.have_varying_species |= np.array_equal(self[0].numbers,
+                                                        atoms.numbers)
             if hasattr(self, 'Q'):
                 assert False  # XXX askhl fix quaternions
                 self.Q[i] = atoms.get_quaternions()
@@ -186,7 +186,7 @@ class Images:
         import ase.units as units
         code = compile(expr + ',', '<input>', 'eval')
 
-        n = len(self)
+        nimages = len(self)
 
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
@@ -231,7 +231,7 @@ class Images:
               'd': d, 'a': a, 'dih': dih}
 
         data = []
-        for i in range(n):
+        for i in range(nimages):
             ns['i'] = i
             ns['s'] = s
             ns['R'] = R = self[i].get_positions()
@@ -251,13 +251,14 @@ class Images:
             ns['ekin'] = ekin = self[i].get_kinetic_energy()
             ns['e'] = epot + ekin
             ndynamic = dynamic.sum()
-            ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
+            if ndynamic > 0:
+                ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code, ns)
             if i == 0:
-                m = len(data)
-                xy = np.empty((m, n))
+                nvariables = len(data)
+                xy = np.empty((nvariables, nimages))
             xy[:, i] = data
-            if i + 1 < n and not self.have_varying_species:
+            if i + 1 < nimages and not self.have_varying_species:
                 s += sqrt(((self[i + 1].positions - R)**2).sum())
         return xy
 
