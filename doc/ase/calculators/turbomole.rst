@@ -75,8 +75,8 @@ must be checked with:
 
 If the user wishes to use the input files (such as the control file) generated
 by module ``define`` before (or without) an actual calculation starts, the
-initialize() method has to be called explicitly after constructing the calculator
-and associating it with an atoms object, e.g.:
+``initialize()`` method has to be called explicitly after constructing the 
+calculator and associating it with an atoms object, e.g.:
 
 .. code:: python
 
@@ -309,7 +309,7 @@ the parameters is to construct a dictionary, for example:
             'force convergence': 0.05}
   calc = Turbomole(**params)
 
-Using the todict() method, the parameters of an existing Turbomole calculator
+Using the ``todict()`` method, the parameters of an existing Turbomole calculator
 object can be stored in a flat dictionary and then re-used to create a
 new Turbomole calculator object:
 
@@ -365,9 +365,11 @@ is of Lennard-Jones type.
 :git:`ase/test/turbomole/turbomole_qmmm.py`.
 
 The point charge embedding functionality of the Turbomole calculator can also be
-used without QMMM calculators if the `embed()` method is called with a
+used without QMMM calculators if the ``embed()`` method is called with a
 specification of the point charges and their positions in which to embed the
-QM system::
+QM system:
+
+.. code:: python
 
     from ase.collections import s22
     from ase.calculators.turbomole import Turbomole
