@@ -132,7 +132,8 @@ class Turbomole(FileIOCalculator):
         'alpha', 'beta', 'statistics', 'GEO_OPT_CONVERGED', 'GEO_OPT_FAILED',
         'not.converged', 'nextstep', 'hessapprox', 'job.last', 'job.start',
         'optinfo', 'statistics', 'converged', 'vibspectrum',
-        'vib_normal_modes', 'hessian', 'dipgrad', 'dscf_problem'
+        'vib_normal_modes', 'hessian', 'dipgrad', 'dscf_problem', 'pc.txt',
+        'pc_gradients.txt'
     ]
     tm_tmp_files = [
         'errvec', 'fock', 'oldfock', 'dens', 'ddens', 'diff_densmat',
@@ -1123,6 +1124,8 @@ class Turbomole(FileIOCalculator):
             self.read_vibrational_reduced_masses,
             self.read_normal_modes,
             self.read_vibrational_spectrum,
+            self.read_charges,
+            self.read_point_charges,
             self.read_run_parameters
         ]
         for method in read_methods:
@@ -2025,7 +2028,9 @@ class Turbomole(FileIOCalculator):
 
     def read_charges(self):
         """ read partial charges on atoms from an ESP fit """
-        if self.parameters['esp fit'] is not None:
+        if (('esp fit' in self.parameters and
+             self.parameters['esp fit'] is not None)
+             or len(read_data_group('esp_fit')) > 0):
             filename = 'ASE.TM.' + self.calculate_energy + '.out'
             with open(filename, 'r') as infile:
                 lines = infile.readlines()
@@ -2039,7 +2044,7 @@ class Turbomole(FileIOCalculator):
 
     def get_forces_on_point_charges(self):
         """ return forces acting on point charges """
-        self.calculate()
+        self.get_forces(self.atoms)
         lines = read_data_group('point_charge_gradients').split('\n')[1:]
         forces = []
         for line in lines:
@@ -2079,6 +2084,18 @@ class Turbomole(FileIOCalculator):
                                  % (x / Bohr, y / Bohr, z / Bohr, charge))
                 pcfile.write('$end \n')
             self.pcpot.updated = False
+
+    def read_point_charges(self):
+        """ read point charges from previous calculation """
+        pcs = read_data_group('point_charges')
+        if len(pcs) > 0:
+            lines = pcs.split('\n')[1:]
+            (charges, positions) = ([], [])
+            for line in lines:
+                columns = [float(col) for col in line.strip().split()]
+                positions.append([col*Bohr for col in columns[0:3]])
+                charges.append(columns[3])
+            self.pcpot = PointChargePotential(charges, positions)
 
     def embed(self, charges=None, positions=None):
         """ embed atoms in an array of point-charges; function used in
