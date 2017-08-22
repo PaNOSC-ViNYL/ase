@@ -5,7 +5,7 @@ import numpy as np
 
 
 class DOS:
-    def __init__(self, calc, width=0.1, window=None, npts=201):
+    def __init__(self, calc, width=0.1, window=None, npts=401):
         """Electronic Density Of States object.
 
         calc: calculator object
@@ -71,70 +71,104 @@ class DOS:
         return dos
 
 
-def tint(energies, cell, dos, kpts, E):
+def tintegrate(energies, dos, kpts, E, W=None):
     zero = energies[0]
     de = energies[1] - zero
-    for e in E.T:
+    M = np.linalg.inv(kpts[1:, :] - kpts[0, :])
+    for z, e in enumerate(E.T):
+        dedk = (np.dot(M, e[1:] - e[0])**2).sum()**0.5
         i = e.argsort()
         k = kpts[i, :, np.newaxis]
         e0, e1, e2, e3 = ee = e[i]
-        dedk = (np.dot(cell.T, e[1:] - e[0])**2).sum()**0.5
         for j in range(3):
             m = int((ee[j] - zero) / de) + 1
             n = int((ee[j + 1] - zero) / de) + 1
             if len(energies) > n > m >= 0:
                 v = energies[m:n]
                 if j == 0:
-                    k1 = (k[0] * (e1 - v) + k[1] * (v - e0)) / (e1 - e0)
-                    k2 = (k[0] * (e2 - v) + k[2] * (v - e0)) / (e2 - e0) - k1
-                    k3 = (k[0] * (e3 - v) + k[3] * (v - e0)) / (e3 - e0) - k1
-                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 / dedk
+                    x10 = (e1 - v) / (e1 - e0)
+                    x01 = (v - e0) / (e1 - e0)
+                    x20 = (e2 - v) / (e2 - e0)
+                    x02 = (v - e0) / (e2 - e0)
+                    x30 = (e3 - v) / (e3 - e0)
+                    x03 = (v - e0) / (e3 - e0)
+                    k1 = k[0] * x10 + k[1] * x01
+                    k2 = k[0] * x20 + k[2] * x02 - k1
+                    k3 = k[0] * x30 + k[3] * x03 - k1
+                    if W is None:
+                        w = 0.5 / dedk
+                    else:
+                        w = np.dot(W[i, z],
+                                   [x10 + x20 + x30, x01, x02, x03])
+                        w /= 6 * dedk
+                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 * w
                 elif j == 1:
-                    k1 = (k[1] * (e2 - v) + k[2] * (v - e1)) / (e2 - e1)
-                    k2 = (k[0] * (e2 - v) + k[2] * (v - e0)) / (e2 - e0) - k1
-                    k3 = (k[0] * (e3 - v) + k[3] * (v - e0)) / (e3 - e0) - k1
-                    k4 = (k[1] * (e3 - v) + k[3] * (v - e1)) / (e3 - e1) - k1
-                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 / dedk
-                    dos[m:n] += (np.cross(k4, k3, 0, 0)**2).sum(1)**0.5 / dedk
-                else:
-                    k0 = (k[0] * (e3 - v) + k[3] * (v - e0)) / (e3 - e0)
-                    k1 = (k[1] * (e3 - v) + k[3] * (v - e1)) / (e3 - e1) - k0
-                    k2 = (k[2] * (e3 - v) + k[3] * (v - e2)) / (e3 - e2) - k0
-                    dos[m:n] += (np.cross(k1, k2, 0, 0)**2).sum(1)**0.5 / dedk
+                    x21 = (e2 - v) / (e2 - e1)
+                    x12 = (v - e1) / (e2 - e1)
+                    x20 = (e2 - v) / (e2 - e0)
+                    x02 = (v - e0) / (e2 - e0)
+                    x30 = (e3 - v) / (e3 - e0)
+                    x03 = (v - e0) / (e3 - e0)
+                    x31 = (e3 - v) / (e3 - e1)
+                    x13 = (v - e1) / (e3 - e1)
+                    k1 = k[1] * x21 + k[2] * x12
+                    k2 = k[0] * x20 + k[2] * x02 - k1
+                    k3 = k[0] * x30 + k[3] * x03 - k1
+                    k4 = k[1] * x31 + k[3] * x13 - k1
+                    if W is None:
+                        w = 0.5 / dedk
+                    else:
+                        w = np.dot(W[i, z],
+                                   [x20 + x30, x21 + x31,
+                                    x12 + x02, x03 + x13])
+                        w /= 8 * dedk
+                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 * w
+                    dos[m:n] += (np.cross(k4, k3, 0, 0)**2).sum(1)**0.5 * w
+                elif j == 2:
+                    x30 = (e3 - v) / (e3 - e0)
+                    x03 = (v - e0) / (e3 - e0)
+                    x31 = (e3 - v) / (e3 - e1)
+                    x13 = (v - e1) / (e3 - e1)
+                    x32 = (e3 - v) / (e3 - e2)
+                    x23 = (v - e2) / (e3 - e2)
+                    k1 = k[0] * x30 + k[3] * x03
+                    k2 = k[1] * x31 + k[3] * x13 - k1
+                    k3 = k[2] * x32 + k[3] * x23 - k1
+                    if W is None:
+                        w = 0.5 / dedk
+                    else:
+                        w = np.dot(W[i, z],
+                                   [x30, x31, x32, x03 + x13 + x23])
+                        w /= 6 * dedk
+                    dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 * w
 
 
-def tetrahedron(cell, eigs, energies):
+def tetrahedra_integrate(cell, eigs, energies=None, weights=None):
     from scipy.spatial import Delaunay
 
-    if 0:
-        energies = np.linspace(-2, 3, 2000)
-        #eigs = np.array([[[[0, 2], [0, 2]], [[0, 2], [1.0, 1]]]])[:,:,:,:]
-        #cell = np.eye(3)
-
-    print(eigs.shape)
-    B = np.linalg.inv(cell).T
-    I, J, K = eigs.shape[:3]
+    I, J, K = size = eigs.shape[:3]
+    B = (np.linalg.inv(cell) / size).T
 
     indices = np.array([[i, j, k]
                         for i in [0, 1] for j in [0, 1] for k in [0, 1]])
     dt = Delaunay(np.dot(indices, B))
-    print(B)
 
     dos = np.zeros_like(energies)
-    integrate = functools.partial(tint, energies, cell, dos)
+    integrate = functools.partial(tintegrate, energies, dos)
 
     for s in dt.simplices:
-        print(s, indices[s])
         kpts = dt.points[s]
-        print(kpts)
         for i in range(I):
             for j in range(J):
                 for k in range(K):
                     E = np.array([eigs[(i + a) % I, (j + b) % J, (k + c) % K]
                                   for a, b, c in indices[s]])
-                    integrate(kpts, E)
-    import matplotlib.pyplot as plt
-    plt.plot(energies, dos)
-    plt.show()
-    asdgf
-    return dos
+                    if weights is None:
+                        integrate(kpts, E)
+                    else:
+                        w = np.array([weights[(i + a) % I, (j + b) % J,
+                                              (k + c) % K]
+                                      for a, b, c in indices[s]])
+                        integrate(kpts, E, w)
+
+    return dos * abs(np.linalg.det(cell))
