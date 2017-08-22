@@ -351,26 +351,38 @@ Geometry optimization and normal mode analysis for H2O
 
 :git:`ase/test/turbomole/turbomole_h2o.py`.
 
+
 QMMM simulation
 ---------------
 
 The following example demonstrates how to use the Turbomole calculator in simple
 and explicit QMMM simulations on the examples of a water dimer partitioned into
-an MM and an QM region. The MM region is treated within a TIP3P model in the MM
-calculator and as an array of point charges in the in the QM calculation. The
-interaction between QM and MM ragions used in the explicit QMMM calculator is of
-Lennard-Jones type.
+an MM and a QM region. The MM region is treated within a TIP3P model in the MM
+calculator and as an array of point charges in the QM calculation. The
+interaction between the QM and MM regions, used in the explicit QMMM calculator,
+is of Lennard-Jones type.
 
 :git:`ase/test/turbomole/turbomole_qmmm.py`.
 
 The point charge embedding functionality of the Turbomole calculator can also be
-used without QMMM calculators if the `embed()` method is called with 
-specification of the point charges in which to embed the QM system::
+used without QMMM calculators if the `embed()` method is called with a
+specification of the point charges and their positions in which to embed the
+QM system::
 
-    calc = Turbomole(**params)
-    calc.embed(charges, positions)
+    from ase.collections import s22
+    from ase.calculators.turbomole import Turbomole
 
-
+    params = {'esp fit': 'kollman', 'multiplicity': 1}
+    dimer = s22['Water_dimer']
+    qm_mol = dimer[0:3]
+    calc = Turbomole(atoms=qm_mol, **params)
+    calc.embed(
+        charges=[-0.76, 0.38,  0.38],
+        positions=dimer.positions[3:6]
+    )
+    print(qm_mol.get_potential_energy())
+    print(qm_mol.get_forces())
+    print(qm_mol.get_charges())
 
 
 Deprecated, non-implemented and unsupported features
