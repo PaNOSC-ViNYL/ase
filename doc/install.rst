@@ -7,7 +7,7 @@ Installation
 Requirements
 ============
 
-* Python_ 2.6, 2.7, 3.4, 3.5
+* Python_ 2.7, 3.4-3.6
 * NumPy_ (base N-dimensional array package)
 
 Optional:
@@ -102,27 +102,39 @@ from Git.
 :Tar-file:
 
     You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-    latest stable release (ase-3.13.0.tar.gz_) or the latest
+    latest stable release (ase-3.14.1.tar.gz_) or the latest
     development snapshot (`<snapshot.tar.gz>`_).
 
     Unpack and make a soft link::
 
-        $ tar -xf ase-3.13.0.tar.gz
-        $ ln -s ase-3.13.0 ase
+        $ tar -xf ase-3.14.1.tar.gz
+        $ ln -s ase-3.14.1 ase
+
+    Here is a `list of tarballs <https://pypi.python.org/simple/ase/>`__.
 
 :Git clone:
 
     Alternatively, you can get the source for the latest stable release from
     https://gitlab.com/ase/ase like this::
 
-        $ git clone -b 3.13.0 https://gitlab.com/ase/ase.git
+        $ git clone -b 3.14.1 https://gitlab.com/ase/ase.git
 
     or if you want the development version::
 
         $ git clone https://gitlab.com/ase/ase.git
 
+:Pip:
+
+    install git master directly with pip::
+
+        $ pip install --upgrade git+https://gitlab.com/ase/ase.git@master
+
+    The ``--upgrade`` ensures that you always reinstall even if the version
+    number hasn't changed.
+
+
 Add ``~/ase`` to your :envvar:`PYTHONPATH` environment variable and add
-``~/ase/tools`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
+``~/ase/bin`` to :envvar:`PATH` (assuming ``~/ase`` is where your ASE
 folder is).  Alternatively, you can install the code with ``python setup.py
 install --user`` and add ``~/.local/bin`` to the front of your :envvar:`PATH`
 environment variable (if you don't already have that).
@@ -135,9 +147,10 @@ Finally, please `run the tests`_.
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
 
-.. _ase-3.13.0.tar.gz: https://pypi.python.org/packages/84/a8/
-    664c99fc94510163b5289c8e475660182f0f6ba098c549879bc5d36c17fd/
-    ase-3.13.0.tar.gz
+
+.. _ase-3.14.1.tar.gz: https://pypi.python.org/packages/74/66/
+    9648ef25e5a3aa642abf2cb7bffa05485b2582ca436ba731ee0f4f30b9da/
+    ase-3.14.1.tar.gz#md5=33b04a3f6bf7658142d9175ada0547dc
 
 
 Environment variables
@@ -189,6 +202,6 @@ Before running the tests, make sure you have set your :envvar:`PATH`
 environment variable correctly as described in the relevant section above.
 Run the tests like this::
 
-    $ python -m ase.test  # takes 1 min.
+    $ ase test  # takes 1 min.
 
 and send us the output if there are failing tests.

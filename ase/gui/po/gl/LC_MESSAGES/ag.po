@@ -1,15 +1,15 @@
 # Galician translations for ase package.
-# Copyright (C) 2016 ASE developers
+# Copyright (C) 2016-2017 ASE developers
 # This file is distributed under the same license as the ASE package.
 #
-# Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>, 2016.
+# Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>, 2016-2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-01-11 12:26+0100\n"
-"PO-Revision-Date: 2017-01-12 15:04+0100\n"
+"POT-Creation-Date: 2017-06-12 16:47+0200\n"
+"PO-Revision-Date: 2017-06-18 16:20+0200\n"
 "Last-Translator: Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -19,720 +19,87 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../add.py:12
-#, fuzzy
-#| msgid "Position"
 msgid "Bad position"
-msgstr "Posición"
+msgstr "Posición inválida"
 
-#: ../add.py:19
+#. XXXXXXXXXXX still array based, not Atoms-based.  Will crash
+#: ../add.py:20
 msgid "Add atoms"
 msgstr "Engadir átomos"
 
-#: ../add.py:24
+#: ../add.py:25
 msgid "Absolute position:"
-msgstr ""
+msgstr "Posición absoluta:"
 
-#: ../add.py:26 ../add.py:29 ../nanoparticle.py:263
+#: ../add.py:27 ../add.py:30 ../nanoparticle.py:262
 msgid "Add"
 msgstr "Engadir"
 
-#: ../add.py:27
+#: ../add.py:28
 msgid "Relative to average position (of selection):"
-msgstr ""
+msgstr "Relativo a unha posición promedio (de selección):"
 
-#: ../ag.py:120
-msgid "To get a full traceback, use: ase-gui --verbose"
-msgstr "Para ollar o traceback completo, use ase-gui --verbose"
-
-#. Asap and GPAW may be imported if selected.
-#: ../calculator.py:20
-msgid ""
-"To make most calculations on the atoms, a Calculator object must first\n"
-"be associated with it.  ASE supports a number of calculators, supporting\n"
-"different elements, and implementing different physical models for the\n"
-"interatomic interactions."
-msgstr ""
-
-#. Informational text about the calculators
-#: ../calculator.py:28
-msgid ""
-"The Lennard-Jones pair potential is one of the simplest\n"
-"possible models for interatomic interactions, mostly\n"
-"suitable for noble gasses and model systems.\n"
-"\n"
-"Interactions are described by an interaction length and an\n"
-"interaction strength."
-msgstr ""
-
-#: ../calculator.py:37
-msgid ""
-"The EMT potential is a many-body potential, giving a\n"
-"good description of the late transition metals crystalling\n"
-"in the FCC crystal structure.  The elements described by the\n"
-"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
-"Au, the Al potential is however not suitable for materials\n"
-"science application, as the stacking fault energy is wrong.\n"
-"\n"
-"A number of parameter sets are provided.\n"
-"\n"
-"<b>Default parameters:</b>\n"
-"\n"
-"The default EMT parameters, as published in K. W. Jacobsen,\n"
-"P. Stoltze and J. K. Nørskov, <i>Surf. Sci.</i> <b>366</b>, 394 (1996).\n"
-"\n"
-"<b>Alternative Cu, Ag and Au:</b>\n"
-"\n"
-"An alternative set of parameters for Cu, Ag and Au,\n"
-"reoptimized to experimental data including the stacking\n"
-"fault energies by Torben Rasmussen (partly unpublished).\n"
-"\n"
-"<b>Ruthenium:</b>\n"
-"\n"
-"Parameters for Ruthenium, as published in J. Gavnholt and\n"
-"J. Schiøtz, <i>Phys. Rev. B</i> <b>77</b>, 035404 (2008).\n"
-"\n"
-"<b>Metallic glasses:</b>\n"
-"\n"
-"Parameters for MgCu and CuZr metallic glasses. MgCu\n"
-"parameters are in N. P. Bailey, J. Schiøtz and\n"
-"K. W. Jacobsen, <i>Phys. Rev. B</i> <b>69</b>, 144205 (2004).\n"
-"CuZr in A. Paduraru, A. Kenoufi, N. P. Bailey and\n"
-"J. Schiøtz, <i>Adv. Eng. Mater.</i> <b>9</b>, 505 (2007).\n"
-msgstr ""
-
-#: ../calculator.py:72
-msgid ""
-"The EMT potential is a many-body potential, giving a\n"
-"good description of the late transition metals crystalling\n"
-"in the FCC crystal structure.  The elements described by the\n"
-"main set of EMT parameters are Al, Ni, Cu, Pd, Ag, Pt, and\n"
-"Au.  In addition, this implementation allows for the use of\n"
-"H, N, O and C adatoms, although the description of these is\n"
-"most likely not very good.\n"
-"\n"
-"<b>This is the ASE implementation of EMT.</b> For large\n"
-"simulations the ASAP implementation is more suitable; this\n"
-"implementation is mainly to make EMT available when ASAP is\n"
-"not installed.\n"
-msgstr ""
-
-#: ../calculator.py:87
-msgid ""
-"The EAM/ADP potential is a many-body potential\n"
-"implementation of the Embedded Atom Method and\n"
-"equipotential plus the Angular Dependent Potential,\n"
-"which is an extension of the EAM to include\n"
-"directional bonds. EAM is suited for FCC metallic\n"
-"bonding while the ADP is suited for metallic bonds\n"
-"with some degree of directionality.\n"
-"\n"
-"For EAM see M.S. Daw and M.I. Baskes,\n"
-"Phys. Rev. Letters 50 (1983) 1285.\n"
-"\n"
-"For ADP see Y. Mishin, M.J. Mehl, and\n"
-"D.A. Papaconstantopoulos, Acta Materialia 53 2005\n"
-"4029--4041.\n"
-"\n"
-"Data for the potential is contained in a file in either LAMMPS Alloy\n"
-"or ADP format which need to be loaded before use. The Interatomic\n"
-"Potentials Repository Project at http://www.ctcms.nist.gov/potentials/\n"
-"contains many suitable potential files.\n"
-"\n"
-"For large simulations the LAMMPS calculator is more\n"
-"suitable; this implementation is mainly to make EAM\n"
-"available when LAMMPS is not installed or to develop\n"
-"new EAM/ADP poentials by matching results using ab\n"
-"initio.\n"
-msgstr ""
-
-#: ../calculator.py:115
-msgid ""
-"The Brenner potential is a reactive bond-order potential for\n"
-"carbon and hydrocarbons.  As a bond-order potential, it takes\n"
-"into account that carbon orbitals can hybridize in different\n"
-"ways, and that carbon can form single, double and triple\n"
-"bonds.  That the potential is reactive means that it can\n"
-"handle gradual changes in the bond order as chemical bonds\n"
-"are formed or broken.\n"
-"\n"
-"The Brenner potential is implemented in Asap, based on a\n"
-"C implentation published at http://www.rahul.net/pcm/brenner/ .\n"
-"\n"
-"The potential is documented here:\n"
-"  Donald W Brenner, Olga A Shenderova, Judith A Harrison,\n"
-"  Steven J Stuart, Boris Ni and Susan B Sinnott:\n"
-"  \"A second-generation reactive empirical bond order (REBO)\n"
-"  potential energy expression for hydrocarbons\",\n"
-"  J. Phys.: Condens. Matter 14 (2002) 783-802.\n"
-"  doi: 10.1088/0953-8984/14/4/312\n"
-msgstr ""
-
-#: ../calculator.py:136
-msgid ""
-"GPAW implements Density Functional Theory using a\n"
-"<b>G</b>rid-based real-space representation of the wave\n"
-"functions, and the <b>P</b>rojector <b>A</b>ugmented <b>W</b>ave\n"
-"method for handling the core regions.\n"
-msgstr ""
-
-#: ../calculator.py:143
-msgid ""
-"FHI-aims is an external package implementing density\n"
-"functional theory and quantum chemical methods using\n"
-"all-electron methods and a numeric local orbital basis set.\n"
-"For full details, see http://www.fhi-berlin.mpg.de/aims/\n"
-"or Comp. Phys. Comm. v180 2175 (2009). The ASE\n"
-"documentation contains information on the keywords and\n"
-"functionalities available within this interface.\n"
-msgstr ""
-
-#: ../calculator.py:153
-msgid ""
-"WARNING:\n"
-"Your system seems to have more than zero but less than\n"
-"three periodic dimensions. Please check that this is\n"
-"really what you want to compute. Assuming full\n"
-"3D periodicity for this calculator."
-msgstr ""
-
-#: ../calculator.py:160
-msgid ""
-"VASP is an external package implementing density\n"
-"functional functional theory using pseudopotentials\n"
-"or the projector-augmented wave method together\n"
-"with a plane wave basis set. For full details, see\n"
-"http://cms.mpi.univie.ac.at/vasp/vasp/\n"
-msgstr ""
-
-#: ../calculator.py:169
-msgid "Default (Al, Ni, Cu, Pd, Ag, Pt, Au)"
-msgstr ""
-
-#: ../calculator.py:170
-msgid "Alternative Cu, Ag and Au"
-msgstr ""
-
-#: ../calculator.py:171
-msgid "Ruthenium"
-msgstr ""
-
-#: ../calculator.py:172
-msgid "CuMg and CuZr metallic glass"
-msgstr ""
-
-#: ../calculator.py:192
-#, fuzzy
-#| msgid "Set _Calculator"
-msgid "Select calculator"
-msgstr "Fixar _calculador"
-
-#: ../calculator.py:198
-#, fuzzy
-#| msgid "Set _Calculator"
-msgid "Calculator:"
-msgstr "Fixar _calculador"
-
-#. No calculator (the default)
-#: ../calculator.py:201
-msgid "None"
-msgstr "Ningún"
-
-#: ../calculator.py:206
-msgid "Lennard-Jones (ASAP)"
-msgstr ""
-
-#: ../calculator.py:207 ../calculator.py:234 ../calculator.py:248
-#: ../calculator.py:257 ../calculator.py:266
-msgid "Setup"
-msgstr "Configurar"
-
-#: ../calculator.py:214
-msgid "EMT - Effective Medium Theory (ASAP)"
-msgstr ""
-
-#: ../calculator.py:226
-msgid "EMT - Effective Medium Theory (ASE)"
-msgstr ""
-
-#: ../calculator.py:233
-msgid "EAM - Embedded Atom Method/Angular Dependent Potential (ASE)"
-msgstr ""
-
-#: ../calculator.py:241
-msgid "Brenner Potential (ASAP)"
-msgstr ""
-
-#: ../calculator.py:247
-msgid "Density Functional Theory (GPAW)"
-msgstr ""
-
-#: ../calculator.py:255
-msgid "Density Functional Theory (FHI-aims)"
-msgstr ""
-
-#: ../calculator.py:264
-msgid "Density Functional Theory (VASP)"
-msgstr ""
-
-#: ../calculator.py:277
-msgid "Check that the calculator is reasonable."
-msgstr ""
-
-#: ../calculator.py:347 ../simulation.py:121
-#, fuzzy
-#| msgid "No atoms loaded."
-msgid "No atoms present"
-msgstr "Non hai átomos seleccionados."
-
-#: ../calculator.py:442 ../calculator.py:478 ../calculator.py:529
-msgid "ASAP is not installed. (Failed to import asap3)"
-msgstr ""
-
-#: ../calculator.py:445
-msgid "You must set up the Lennard-Jones parameters"
-msgstr ""
-
-#: ../calculator.py:451
-msgid "Could not create useful Lennard-Jones calculator."
-msgstr ""
-
-#: ../calculator.py:486
-msgid "Could not attach EMT calculator to the atoms."
-msgstr ""
-
-#: ../calculator.py:509
-msgid "You must set up the EAM parameters"
-msgstr ""
-
-#: ../calculator.py:548 ../calculator.py:560
-msgid "GPAW is not installed. (Failed to import gpaw)"
-msgstr ""
-
-#: ../calculator.py:551
-msgid "You must set up the GPAW parameters"
-msgstr ""
-
-#: ../calculator.py:594
-msgid "You must set up the FHI-aims parameters"
-msgstr ""
-
-#: ../calculator.py:610
-msgid "You must set up the VASP parameters"
-msgstr ""
-
-#: ../calculator.py:637
-#, python-format
-msgid "Element %(sym)s not allowed by the '%(name)s' calculator"
-msgstr ""
-
-#: ../calculator.py:646
-msgid "Info"
-msgstr ""
-
-#: ../calculator.py:663
-#, fuzzy
-#| msgid "Lattice parameters"
-msgid "Lennard-Jones parameters"
-msgstr "Parámetros de rede"
-
-#: ../calculator.py:675
-msgid "Specify the Lennard-Jones parameters here"
-msgstr ""
-
-#: ../calculator.py:678
-msgid "Epsilon (eV):"
-msgstr ""
-
-#: ../calculator.py:682
-msgid "Sigma (Å):"
-msgstr ""
-
-#. TRANSLATORS: Shift roughly means adjust (about a potential)
-#: ../calculator.py:686
-msgid "Shift to make smooth at cutoff"
-msgstr ""
-
-#: ../calculator.py:765
-#, fuzzy
-#| msgid "Lattice parameters"
-msgid "EAM parameters"
-msgstr "Parámetros de rede"
-
-#: ../calculator.py:779
-msgid "Import Potential"
-msgstr ""
-
-#: ../calculator.py:802
-msgid "You need to import the potential file"
-msgstr ""
-
-#: ../calculator.py:810
-msgid "Import .alloy or .adp potential file ... "
-msgstr ""
-
-#: ../calculator.py:832
-#, fuzzy
-#| msgid "Lattice parameters"
-msgid "GPAW parameters"
-msgstr "Parámetros de rede"
-
-#. label = ui.Label("Specify the GPAW parameters here")
-#. pack(vbox, [label])
-#. Print some info
-#: ../calculator.py:847 ../calculator.py:1155 ../calculator.py:1667
-#, fuzzy, python-format
-#| msgid "%i atoms."
-msgid "%i atoms.\n"
-msgstr "Átomos %i."
-
-#: ../calculator.py:850
-#, python-format
-msgid "Orthogonal unit cell: %.2f x %.2f x %.2f Å."
-msgstr ""
-
-#: ../calculator.py:852
-msgid "Non-orthogonal unit cell:\n"
-msgstr ""
-
-#: ../calculator.py:862 ../calculator.py:1172 ../calculator.py:1684
-msgid "Exchange-correlation functional: "
-msgstr ""
-
-#. Grid spacing
-#: ../calculator.py:865
-msgid "Grid spacing"
-msgstr ""
-
-#: ../calculator.py:869 ../graphene.py:72 ../graphene.py:83 ../graphene.py:107
-#: ../nanotube.py:45 ../surfaceslab.py:98
-msgid "Å"
-msgstr "Å"
-
-#: ../calculator.py:870
-msgid "Grid points"
-msgstr ""
-
-#: ../calculator.py:879
-#, python-format
-msgid "h<sub>eff</sub> = (%.3f, %.3f, %.3f) Å"
-msgstr ""
-
-#: ../calculator.py:908 ../calculator.py:1189 ../calculator.py:1722
-msgid "k-points  k = ("
-msgstr ""
-
-#: ../calculator.py:912 ../calculator.py:1195
-#, python-format
-msgid "k-points x size:  (%.1f, %.1f, %.1f) Å"
-msgstr ""
-
-#. Spin polarized
-#: ../calculator.py:917 ../calculator.py:1681
-msgid "Spin polarized"
-msgstr ""
-
-#: ../calculator.py:923
-msgid "FD - Finite Difference (grid) mode"
-msgstr ""
-
-#: ../calculator.py:925
-msgid "LCAO - Linear Combination of Atomic Orbitals"
-msgstr ""
-
-#: ../calculator.py:928
-msgid "Mode: "
-msgstr ""
-
-#: ../calculator.py:930
-msgid "sz - Single Zeta"
-msgstr ""
-
-#: ../calculator.py:931
-msgid "szp - Single Zeta polarized"
-msgstr ""
-
-#: ../calculator.py:932
-msgid "dzp - Double Zeta polarized"
-msgstr ""
-
-#. dzp
-#: ../calculator.py:934
-#, fuzzy
-#| msgid "Wave functions: "
-msgid "Basis functions: "
-msgstr "Funcións de onda: "
-
-#. Mixer
-#: ../calculator.py:940
-msgid "Non-standard mixer parameters"
-msgstr ""
-
-#: ../calculator.py:1151
-#, fuzzy
-#| msgid "Lattice parameters"
-msgid "FHI-aims parameters"
-msgstr "Parámetros de rede"
-
-#: ../calculator.py:1158
-msgid "Periodic geometry, unit cell is:\n"
-msgstr ""
-
-#: ../calculator.py:1164
-msgid "Non-periodic geometry.\n"
-msgstr ""
-
-#: ../calculator.py:1171
-msgid "Hirshfeld-based dispersion correction"
-msgstr ""
-
-#. Spin polarized, charge, relativity
-#: ../calculator.py:1201
-msgid "Spin / initial moment "
-msgstr ""
-
-#: ../calculator.py:1218
-#, fuzzy
-#| msgid "By charge"
-msgid "   Charge"
-msgstr "Por carga"
-
-#: ../calculator.py:1219
-msgid "   Relativity"
-msgstr ""
-
-#: ../calculator.py:1220
-msgid " Threshold"
-msgstr ""
-
-#. self-consistency criteria
-#: ../calculator.py:1226
-#, fuzzy
-#| msgid "Self-consistency loop"
-msgid "Self-consistency convergence:"
-msgstr "Bucle de auto consistencia"
-
-#: ../calculator.py:1240
-#, fuzzy
-#| msgid "Calculating forces"
-msgid "Compute forces"
-msgstr "Calculando forzas"
-
-#: ../calculator.py:1252
-#, fuzzy
-#| msgid "               Filename: "
-msgid "Energy:                 "
-msgstr "               Nome do arquivo: "
-
-#: ../calculator.py:1253
-msgid " eV   Sum of eigenvalues:  "
-msgstr ""
-
-#: ../calculator.py:1254 ../calculator.py:1756
-msgid " eV"
-msgstr ""
-
-#: ../calculator.py:1257
-msgid "Electron density: "
-msgstr ""
-
-#: ../calculator.py:1258
-msgid "        Force convergence:  "
-msgstr ""
-
-#: ../calculator.py:1259
-msgid " eV/Ang  "
-msgstr ""
-
-#: ../calculator.py:1274 ../calculator.py:1769
-msgid "Additional keywords: "
-msgstr ""
-
-#. run command and species defaults:
-#: ../calculator.py:1288
-msgid "FHI-aims execution command: "
-msgstr ""
-
-#: ../calculator.py:1290 ../calculator.py:1786
-msgid "Directory for species defaults: "
-msgstr ""
-
-#: ../calculator.py:1302 ../calculator.py:1794
-msgid "Set Defaults"
-msgstr ""
-
-#: ../calculator.py:1304
-msgid "Import control.in"
-msgstr ""
-
-#: ../calculator.py:1306
-msgid "Export control.in"
-msgstr ""
-
-#: ../calculator.py:1498
-#, fuzzy
-#| msgid "Expert mode ..."
-msgid "Export parameters ... "
-msgstr "Modo experto ..."
-
-#: ../calculator.py:1517
-msgid "Import control.in file ... "
-msgstr ""
-
-#: ../calculator.py:1579 ../calculator.py:2111
-#, python-format
-msgid ""
-"Please use the facilities provided in this window to manipulate the keyword: "
-"%s!"
-msgstr ""
-
-#: ../calculator.py:1583
-#, python-format
-msgid ""
-"Don't know this keyword: %s\n"
-"\n"
-"Please check!\n"
-"\n"
-"If you really think it should be available, please add it to the top of ase/"
-"calculators/aims.py."
-msgstr ""
-
-#: ../calculator.py:1663
-#, fuzzy
-#| msgid "Lattice parameters"
-msgid "VASP parameters"
-msgstr "Parámetros de rede"
-
-#: ../calculator.py:1669
-msgid "Periodic geometry, unit cell is: \n"
-msgstr ""
-
-#: ../calculator.py:1724
-msgid ")    Cutoff: "
-msgstr ""
-
-#: ../calculator.py:1725
-msgid "    Precision: "
-msgstr ""
-
-#: ../calculator.py:1729
-#, python-format
-msgid "k-points x size:  (%.1f, %.1f, %.1f) Å       "
-msgstr ""
-
-#: ../calculator.py:1746
-msgid "Smearing: "
-msgstr ""
-
-#: ../calculator.py:1746
-msgid " order: "
-msgstr ""
-
-#: ../calculator.py:1747
-msgid " width: "
-msgstr " ancho: "
-
-#: ../calculator.py:1755
-#, fuzzy
-#| msgid "Self-consistency loop"
-msgid "Self-consistency convergence: "
-msgstr "Bucle de auto consistencia"
-
-#. run command and location of POTCAR files:
-#: ../calculator.py:1782
-msgid "VASP execution command: "
-msgstr ""
-
-#: ../calculator.py:1796
-msgid "Import VASP files"
-msgstr ""
-
-#: ../calculator.py:1798
-msgid "Export VASP files"
-msgstr ""
-
-#: ../calculator.py:2009
-msgid "<b>WARNING:</b> cutoff energy is lower than recommended minimum!"
-msgstr ""
-
-#: ../calculator.py:2063
-msgid "Import VASP input files: choose directory ... "
-msgstr ""
-
-#: ../calculator.py:2076
-msgid "Export VASP input files: choose directory ... "
-msgstr ""
-
-#: ../calculator.py:2115
-#, python-format
-msgid ""
-"Don't know this keyword: %s\n"
-"Please check!\n"
-"\n"
-"If you really think it should be available, please add it to the top of ase/"
-"calculators/vasp.py."
-msgstr ""
-
-#: ../colors.py:14
+#: ../colors.py:15
 msgid "Colors"
 msgstr "Cores"
 
-#: ../colors.py:16
+#: ../colors.py:17
 msgid "Choose how the atoms are colored:"
 msgstr "Elixa a cor dos átomos:"
 
-#: ../colors.py:18
+#: ../colors.py:19
 msgid "By atomic number, default \"jmol\" colors"
 msgstr "Por número atómico, cores de \"jmol\" por defecto"
 
-#: ../colors.py:19
+#: ../colors.py:20
 msgid "By tag"
 msgstr "Por etiqueta"
 
-#: ../colors.py:20
+#: ../colors.py:21
 msgid "By force"
 msgstr "Por forza"
 
-#: ../colors.py:21
+#: ../colors.py:22
 msgid "By velocity"
 msgstr "Por velocidade"
 
-#: ../colors.py:22
+#: ../colors.py:23
 msgid "By charge"
 msgstr "Por carga"
 
-#: ../colors.py:23
+#: ../colors.py:24
 msgid "By magnetic moment"
 msgstr "Por momento magnético"
 
-#: ../colors.py:61
+#: ../colors.py:67
 msgid "Green"
-msgstr ""
+msgstr "Verde"
 
-#: ../colors.py:61
+#: ../colors.py:67
 msgid "Yellow"
-msgstr ""
+msgstr "Amarelo"
 
-#: ../constraints.py:7
+#: ../constraints.py:8
 msgid "Constraints"
 msgstr "Restriccións"
 
-#: ../constraints.py:8 ../constraints.py:10 ../settings.py:14
+#: ../constraints.py:9 ../constraints.py:11 ../settings.py:14
 msgid "Constrain"
 msgstr "Restricción"
 
-#: ../constraints.py:9 ../constraints.py:13
+#: ../constraints.py:10 ../constraints.py:14
 msgid "selected atoms"
 msgstr "átomos seleccionados"
 
-#: ../constraints.py:11
+#: ../constraints.py:12
 msgid "immobile atoms"
 msgstr "átomos fixos"
 
-#: ../constraints.py:12
+#: ../constraints.py:13
 msgid "Unconstrain"
 msgstr "Liberar restricccións"
 
-#: ../constraints.py:14
+#: ../constraints.py:15
 msgid "Clear constraints"
 msgstr "Quitar as restriccións"
 
@@ -793,7 +160,8 @@ msgstr "  y: "
 msgid "  z: "
 msgstr "  z: "
 
-#: ../crystal.py:97 ../surfaceslab.py:129 ../surfaceslab.py:131
+#: ../crystal.py:97 ../surfaceslab.py:75 ../surfaceslab.py:76
+#: ../surfaceslab.py:77
 msgid " unit cells"
 msgstr " celdas unidades"
 
@@ -859,7 +227,7 @@ msgstr "\t\tc:\t"
 msgid "\tgamma:\t"
 msgstr "\tgama:\t"
 
-#: ../crystal.py:161 ../surfaceslab.py:100
+#: ../crystal.py:161 ../surfaceslab.py:55
 msgid "Get from database"
 msgstr "Obter desde a base de datos"
 
@@ -897,13 +265,13 @@ msgstr "¡Grupo espacial inválido!"
 msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conxunto consistente de átomos."
 
-#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:521
-#: ../nanotube.py:84 ../surfaceslab.py:251
+#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:528
+#: ../nanotube.py:84 ../surfaceslab.py:220
 msgid "No valid atoms."
 msgstr "Os átomos no son válidos."
 
-#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:522
-#: ../nanotube.py:85 ../surfaceslab.py:252 ../widgets.py:76
+#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:529
+#: ../nanotube.py:85 ../surfaceslab.py:221 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "Aínda non especificou un conxunto consistente de parámetros."
 
@@ -953,165 +321,6 @@ msgstr ""
 msgid "Forces:\n"
 msgstr "Forzas:\n"
 
-#: ../execute.py:25
-msgid ""
-"\n"
-"    Global commands work on all frames or only on the current frame\n"
-"    - Assignment of a global variable may not reference a local one\n"
-"    - use 'Current frame' switch to switch off application to all frames\n"
-"    <c>e</c>:\t\ttotal energy of one frame\n"
-"    <c>fmax</c>:\tmaximal force in one frame\n"
-"    <c>A</c>:\tunit cell\n"
-"    <c>E</c>:\t\ttotal energy array of all frames\n"
-"    <c>F</c>:\t\tall forces in one frame\n"
-"    <c>M</c>:\tall magnetic moments\n"
-"    <c>R</c>:\t\tall atomic positions\n"
-"    <c>S</c>:\tall selected atoms (boolean array)\n"
-"    <c>D</c>:\tall dynamic atoms (boolean array)\n"
-"    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
-"\n"
-"    Atom commands work on each atom (or a selection) individually\n"
-"    - these can use global commands on the RHS of an equation\n"
-"    - use 'selected atoms only' to restrict application of command\n"
-"    <c>x,y,z</c>:\tatomic coordinates\n"
-"    <c>r,g,b</c>:\tatom display color, range is [0..1]\n"
-"    <c>rad</c>:\tatomic radius for display\n"
-"    <c>s</c>:\t\tatom is selected\n"
-"    <c>d</c>:\t\tatom is movable\n"
-"    <c>f</c>:\t\tforce\n"
-"    <c>Z</c>:\tatomic number\n"
-"    <c>m</c>:\tmagnetic moment\n"
-"    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
-"\n"
-"    Special commands and objects:\n"
-"    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
-"    <c>frame</c>:\tframe number\n"
-"    <c>center</c>:\tcenters the system in its existing unit cell\n"
-"    <c>del S</c>:\tdelete selection\n"
-"    <c>CM</c>:\tcenter of mass\n"
-"    <c>ans[-i]</c>:\tith last calculated result\n"
-"    <c>exec file</c>: executes commands listed in file\n"
-"    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
-"    <c>gui</c>:\tadvanced: ase-gui window python object\n"
-"    <c>img</c>:\tadvanced: ase-gui images object\n"
-"    "
-msgstr ""
-"\n"
-"   Os comandos globales funcionan tanto en tódolos cadros como\n"
-"   no cadro actual.\n"
-"   -  A asignación dunha variable global pode non ser referenciada\n"
-"      a unha local.\n"
-"   -  Utilice a opción 'Cadro actual' para pechar a aplicación\n"
-"      en tódolos cadros.\n"
-"      <c>e</c>: enerxía total dun cadro\n"
-"      <c>fmáx</c>: forza máxima dun cadro\n"
-"      <c>A</c>: celda unidade\n"
-"      <c>E</c>: arreglo coas enerxías totales en tódolos cadros\n"
-"      <c>F</c>: tódalas forzas nun cadro\n"
-"      <c>M</c>: tódolos momentos magnéticos\n"
-"      <c>R</c>: tódalas posicions atómicas\n"
-"      <c>S</c>: arreglo booleano, tódolos átomos seleccionados\n"
-"      <c>D</c>: arreglo booleano, tódolos átomos dinámicos\n"
-"      Exemplos: <c>cadro = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
-"\n"
-"      Os comandos atómicos funcionan nunha selección ou en cada un dos\n"
-"       átomos.\n"
-"      - Éstos poden usar comandos globales no lado dereito dunha\n"
-"        ecuación.\n"
-"      - Utilice 'Sólo os átomos seleccionados' para restrinxir a\n"
-"        aplicación do comando.\n"
-"        <c>x,y,z</c>: coordenadas atómicas\n"
-"        <c>r,g,b</c>: color do átomo, o rango é [0..1]\n"
-"        <c>rad</c>: radio atómico a mostrar\n"
-"        <c>s</c>: átomo é seleccionado\n"
-"        <c>d</c>: átomo é movible\n"
-"        <c>f</c>: forza\n"
-"        <c>Z</c>: número atómico\n"
-"        <c>m</c>: momento magnético\n"
-"        exemplos: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
-"\n"
-"      Comandos especiais e obxectos:\n"
-"      <c>sa,cf</c>:restrinxir (ou non) ós átomos seleccionados/cadro actual\n"
-"      <c>cadro</c>: número do cadro\n"
-"      <c>centrar</c>: centra o sistema con respecto a súa celda unidade\n"
-"      <c>borra S</c>: borra a selección\n"
-"      <c>CM</c>: centro de masa\n"
-"      <c>ans[-i]</c>: o i-ésimo resultado calculado\n"
-"      <c>exec archivo</c>: executa o comando listado no arquivo\n"
-"      <c>cov[Z]</c>:(sólo lectura): radio covalente do número atómico Z\n"
-"      <c>gui</c>:avanzado: obxecto de Python, ventá de ag\n"
-"      <c>img</c>:avanzado: obxecto imaxes de ag\n"
-"    "
-
-#: ../execute.py:69
-msgid "Expert user mode"
-msgstr "Modo de usuario experto"
-
-#: ../execute.py:82
-msgid "Welcome to the ASE Expert user mode"
-msgstr "Benvido ó modo de usuario experto de ASE"
-
-#: ../execute.py:89
-msgid "Only selected atoms (sa)   "
-msgstr "Soamente átomos seleccionados (sa)   "
-
-#: ../execute.py:91
-msgid "Only current frame (cf)  "
-msgstr "Soamente o cadro actual (cf)  "
-
-#: ../execute.py:94 ../execute.py:321 ../graphs.py:43
-msgid "Save"
-msgstr "Gardar"
-
-#: ../execute.py:96 ../ui.py:50 ../ui.py:54
-msgid "Help"
-msgstr "Axuda"
-
-#: ../execute.py:98 ../movie.py:25
-msgid "Stop"
-msgstr "Detener"
-
-#: ../execute.py:104
-msgid ""
-"Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, z, "
-"Z     "
-msgstr ""
-"Global: utilice os cadros A, D, E, M, N, R, S y n; Átomos: utilice a, f, m, "
-"s, x, y, z y Z"
-
-#: ../execute.py:214
-#, python-format
-msgid "*** WARNING: file does not exist - %s"
-msgstr "*** ADVERTENCIA: o arquivo non existe - %s"
-
-#: ../execute.py:220
-msgid "*** WARNING: No atoms selected to work with"
-msgstr "***ADVERTENCIA: Non hai átomos seleccionados para traballar"
-
-#: ../execute.py:295
-msgid "*** Only working on selected atoms"
-msgstr "*** Traballando soamente cos átomos seleccionados"
-
-#: ../execute.py:297
-msgid "*** Working on all atoms"
-msgstr "*** Traballando en tódolos átomos"
-
-#: ../execute.py:301
-msgid "*** Only working on current image"
-msgstr "*** Traballando únicamente na imaxe actual"
-
-#: ../execute.py:303
-msgid "*** Working on all images"
-msgstr "*** Traballando en tódalas imaxes"
-
-#: ../execute.py:320
-msgid "Save Terminal text ..."
-msgstr "Garde texto da Terminal ..."
-
-#: ../execute.py:321
-msgid "Cancel"
-msgstr "Cancelar"
-
 #: ../graphene.py:17
 msgid ""
 "Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may\n"
@@ -1120,13 +329,12 @@ msgstr ""
 "Faga unha folla de grafeno ou unha nanocinta. Opcionalmente,\n"
 "a nanocinta pode estar saturada con hidróxeno u outro elemento."
 
-#: ../graphene.py:38 ../gui.py:454
+#: ../graphene.py:38 ../gui.py:466
 msgid "Graphene"
 msgstr "Grafeno"
 
 #. Choose structure
-#. Choose the surface structure
-#: ../graphene.py:45 ../surfaceslab.py:79
+#: ../graphene.py:45
 msgid "Structure: "
 msgstr "Estrutura: "
 
@@ -1159,6 +367,10 @@ msgstr "armchair"
 msgid "  Bond length: "
 msgstr "  Lonxitude do enlace: "
 
+#: ../graphene.py:72 ../graphene.py:83 ../graphene.py:107 ../nanotube.py:45
+msgid "Å"
+msgstr "Å"
+
 #. Choose the saturation element and bond length
 #: ../graphene.py:77
 msgid "Saturation: "
@@ -1178,7 +390,7 @@ msgid "  Length: "
 msgstr "  Lonxitude: "
 
 #. Vacuum
-#: ../graphene.py:105
+#: ../graphene.py:105 ../surfaceslab.py:78
 msgid "Vacuum: "
 msgstr "Vacío: "
 
@@ -1190,8 +402,7 @@ msgstr "  ¡Non especificou o elemento!"
 msgid "Please specify a consistent set of atoms. "
 msgstr "Por favor, especifique un conxunto consistente de átomos. "
 
-#: ../graphs.py:8
-#, fuzzy
+#: ../graphs.py:11
 msgid ""
 "Symbols:\n"
 "<c>e</c>: total energy\n"
@@ -1209,19 +420,22 @@ msgid ""
 "<c>M[n]</c>: magnetic moment of atom number <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: unit-cell basis vectors\n"
 "<c>s</c>: path length\n"
-"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</"
-"sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on "
+"<c>n<sub>2</sub></c>\n"
 "<c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 msgstr ""
+"Símbolos:\n"
 "<c>e</c>: enerxía total\n"
 "<c>epot</c>: enerxía potencial\n"
 "<c>ekin</c>: enerxía cinética\n"
 "<c>fmax</c>: forza máxima\n"
 "<c>fave</c>: forza media\n"
 "<c>R[n,0-2]</c>: posición do átomo de número <c>n</c>\n"
-"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distancia entre dous átomos <c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distancia entre dous átomos "
+"<c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
 "<c>i</c>: número da imaxe actual\n"
 "<c>E[i]</c>: enerxía da imaxe número <c>i</c>\n"
 "<c>F[n,0-2]</c>: forza do átomo número <c>n</c>\n"
@@ -1229,448 +443,414 @@ msgstr ""
 "<c>M[n]</c>: momento magnético do átomo número <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: vectores base da celda unidade\n"
 "<c>s</c>: lonxitude da traxectoria\n"
-"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></c>\n"
-"<c>dih(n1,n2,n3,n4)</c>: ángulo diedro entre <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en "
+"<c>n<sub>2</sub></c>\n"
+"<c>dih(n1,n2,n3,n4)</c>: ángulo diedro entre <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperatura (K)"
 
-#: ../graphs.py:39 ../graphs.py:41
+#: ../graphs.py:42 ../graphs.py:44
 msgid "Plot"
 msgstr "Graficar"
 
-#: ../graphs.py:44
+#: ../graphs.py:46
+msgid "Save"
+msgstr "Gardar"
+
+#: ../graphs.py:47
 msgid "Clear"
 msgstr "Limpar"
 
-#: ../graphs.py:61
+#: ../graphs.py:72
 msgid "Save data to file ... "
 msgstr "Garde os datos nun arquivo ..."
 
-#: ../gui.py:237
+#: ../gui.py:243
 msgid "Automatic"
 msgstr "Automático"
 
-#: ../gui.py:255
+#: ../gui.py:261
 msgid "Open ..."
 msgstr "Abrir ..."
 
-#: ../gui.py:256
+#: ../gui.py:262
 msgid "Choose parser:"
-msgstr ""
+msgstr "Escolla un párser:"
 
-#: ../gui.py:361
+#: ../gui.py:373
 msgid "_File"
 msgstr "_Arquivo"
 
-#: ../gui.py:362
+#: ../gui.py:374
 msgid "_Open"
 msgstr "_Abrir"
 
-#: ../gui.py:363
+#: ../gui.py:375
 msgid "_New"
 msgstr "_Novo"
 
-#: ../gui.py:364
+#: ../gui.py:376
 msgid "_Save"
 msgstr "_Gardar"
 
-#: ../gui.py:366
+#: ../gui.py:378
 msgid "_Quit"
 msgstr "_Saír"
 
-#: ../gui.py:368
+#: ../gui.py:380
 msgid "_Edit"
 msgstr "_Editar"
 
-#: ../gui.py:369
+#: ../gui.py:381
 msgid "Select _all"
 msgstr "Seleccionar _todo"
 
-#: ../gui.py:370
+#: ../gui.py:382
 msgid "_Invert selection"
 msgstr "_Invertir selección"
 
-#: ../gui.py:371
+#: ../gui.py:383
 msgid "Select _constrained atoms"
 msgstr "Seleccionar átomos _restrinxidos"
 
-#: ../gui.py:372
+#: ../gui.py:384
 msgid "Select _immobile atoms"
 msgstr "Seleccionar átomos _inamovibles"
 
-#: ../gui.py:378
+#: ../gui.py:390
 msgid "Hide selected atoms"
 msgstr "Ocultar átomos seleccionados"
 
-#: ../gui.py:379
+#: ../gui.py:391
 msgid "Show selected atoms"
 msgstr "Mostrar átomos seleccionados"
 
-#: ../gui.py:381
+#: ../gui.py:393
 msgid "_Modify"
 msgstr "_Modificar"
 
-#: ../gui.py:382
+#: ../gui.py:394
 msgid "_Add atoms"
 msgstr "_Engadir átomos"
 
-#: ../gui.py:383
+#: ../gui.py:395
 msgid "_Delete selected atoms"
 msgstr "_Borrar átomos seleccionados"
 
-#: ../gui.py:386
+#: ../gui.py:398
 msgid "_First image"
 msgstr "_Primeira imaxe"
 
-#: ../gui.py:387
+#: ../gui.py:399
 msgid "_Previous image"
 msgstr "_Imaxe previa"
 
-#: ../gui.py:388
+#: ../gui.py:400
 msgid "_Next image"
 msgstr "_Próxima imaxe"
 
-#: ../gui.py:389
+#: ../gui.py:401
 msgid "_Last image"
 msgstr "Última imaxe"
 
-#: ../gui.py:391
+#: ../gui.py:403
 msgid "_View"
 msgstr "_Ver"
 
-#: ../gui.py:392
+#: ../gui.py:404
 msgid "Show _unit cell"
 msgstr "Mostrar celda _unidade"
 
-#: ../gui.py:394
+#: ../gui.py:406
 msgid "Show _axes"
 msgstr "Mostrar _eixes"
 
-#: ../gui.py:395
+#: ../gui.py:407
 msgid "Show _bonds"
 msgstr "Mostrar _enlaces"
 
-#: ../gui.py:397
+#: ../gui.py:409
 msgid "Show _velocities"
 msgstr "Mostrar _velocidades"
 
-#: ../gui.py:399
+#: ../gui.py:411
 msgid "Show _forces"
 msgstr "Mostrar _forzas"
 
-#: ../gui.py:401
+#: ../gui.py:413
 msgid "Show _Labels"
 msgstr "Mostrar _etiquetas"
 
-#: ../gui.py:402
+#: ../gui.py:414
 msgid "_None"
 msgstr "_Ningún"
 
-#: ../gui.py:403
+#: ../gui.py:415
 msgid "Atom _Index"
 msgstr "_Índice do Átomo"
 
-#: ../gui.py:404
+#: ../gui.py:416
 msgid "_Magnetic Moments"
 msgstr "Momentos _Magnéticos"
 
-#: ../gui.py:405
+#: ../gui.py:417
 msgid "_Element Symbol"
 msgstr "Símbolo _Químico"
 
-#: ../gui.py:407
+#: ../gui.py:419
 msgid "Quick Info ..."
 msgstr "Información rápida ..."
 
-#: ../gui.py:408
+#: ../gui.py:420
 msgid "Repeat ..."
 msgstr "Repetir ..."
 
-#: ../gui.py:409
+#: ../gui.py:421
 msgid "Rotate ..."
 msgstr "Xirar ..."
 
-#: ../gui.py:410
+#: ../gui.py:422
 msgid "Colors ..."
 msgstr "Cores ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:412
+#: ../gui.py:424
 msgid "Focus"
 msgstr "Enfocar"
 
-#: ../gui.py:413
+#: ../gui.py:425
 msgid "Zoom in"
 msgstr "Ampliar"
 
-#: ../gui.py:414
+#: ../gui.py:426
 msgid "Zoom out"
 msgstr "Afastar"
 
-#: ../gui.py:415
+#: ../gui.py:427
 msgid "Change View"
 msgstr "Cambiar de vista"
 
-#: ../gui.py:417
+#: ../gui.py:429
 msgid "Reset View"
 msgstr "Reiniciar Vista"
 
-#: ../gui.py:418
+#: ../gui.py:430
 msgid "xy-plane"
 msgstr "plano xy"
 
-#: ../gui.py:419
+#: ../gui.py:431
 msgid "yz-plane"
 msgstr "plano yz"
 
-#: ../gui.py:420
+#: ../gui.py:432
 msgid "zx-plane"
 msgstr "plano zx"
 
-#: ../gui.py:421
+#: ../gui.py:433
 msgid "yx-plane"
 msgstr "plano yx"
 
-#: ../gui.py:422
+#: ../gui.py:434
 msgid "zy-plane"
 msgstr "plano zy"
 
-#: ../gui.py:423
+#: ../gui.py:435
 msgid "xz-plane"
 msgstr "plano xz"
 
-#: ../gui.py:424
+#: ../gui.py:436
 msgid "a2,a3-plane"
 msgstr "Plano a2,a3"
 
-#: ../gui.py:425
+#: ../gui.py:437
 msgid "a3,a1-plane"
 msgstr "Plano a3,a1"
 
-#: ../gui.py:426
+#: ../gui.py:438
 msgid "a1,a2-plane"
 msgstr "Plano a1,a2"
 
-#: ../gui.py:427
+#: ../gui.py:439
 msgid "a3,a2-plane"
 msgstr "Plano a3,a2"
 
-#: ../gui.py:428
+#: ../gui.py:440
 msgid "a1,a3-plane"
 msgstr "Plano a1,a3"
 
-#: ../gui.py:429
+#: ../gui.py:441
 msgid "a2,a1-plane"
 msgstr "Plano a2,a1"
 
-#: ../gui.py:430
+#: ../gui.py:442
 msgid "Settings ..."
 msgstr "Axustes ..."
 
-#: ../gui.py:432
+#: ../gui.py:444
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:433
+#: ../gui.py:445
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:434
+#: ../gui.py:446
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:435
+#: ../gui.py:447
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:437
+#: ../gui.py:449
 msgid "_Tools"
 msgstr "_Ferramentas"
 
-#: ../gui.py:438
+#: ../gui.py:450
 msgid "Graphs ..."
 msgstr "Gráficos ..."
 
-#: ../gui.py:439
+#: ../gui.py:451
 msgid "Movie ..."
 msgstr "Película ..."
 
-#: ../gui.py:440
+#: ../gui.py:452
 msgid "Expert mode ..."
 msgstr "Modo experto ..."
 
-#: ../gui.py:441
+#: ../gui.py:453
 msgid "Constraints ..."
 msgstr "Restriccións ..."
 
-#: ../gui.py:442
+#: ../gui.py:454
 msgid "Render scene ..."
 msgstr "Debuxar escena ..."
 
-#: ../gui.py:443
+#: ../gui.py:455
 msgid "_Move atoms"
 msgstr "_Mover átomos"
 
-#: ../gui.py:444
+#: ../gui.py:456
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:445
+#: ../gui.py:457
 msgid "B_ulk Modulus"
 msgstr "Módulo E_nteiro"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:448
+#: ../gui.py:460
 msgid "_Setup"
 msgstr "_Configurar"
 
-#: ../gui.py:449
+#: ../gui.py:461
 msgid "_Bulk Crystal"
 msgstr "Cristal _Enteiro"
 
-#: ../gui.py:450
+#: ../gui.py:462
 msgid "_Surface slab"
 msgstr "Peza de _superficie"
 
-#: ../gui.py:451
+#: ../gui.py:463
 msgid "_Nanoparticle"
 msgstr "_Nanopartícula"
 
-#: ../gui.py:453
+#: ../gui.py:465
 msgid "Nano_tube"
 msgstr "Nano_tubo"
 
-#: ../gui.py:456
+#: ../gui.py:468
 msgid "_Calculate"
 msgstr "_Calcular"
 
-#: ../gui.py:457
+#: ../gui.py:469
 msgid "Set _Calculator"
 msgstr "Fixar _calculador"
 
-#: ../gui.py:458
+#: ../gui.py:470
 msgid "_Energy and Forces"
 msgstr "_Enerxía e Forzas"
 
-#: ../gui.py:459
+#: ../gui.py:471
 msgid "Energy Minimization"
 msgstr "Minimización enerxética"
 
-#: ../gui.py:462
+#: ../gui.py:474
 msgid "_Help"
 msgstr "_Axuda"
 
-#: ../gui.py:463
+#: ../gui.py:475
 msgid "_About"
 msgstr "_Acerca de ag"
 
-#: ../gui.py:467
+#: ../gui.py:479
 msgid "Webpage ..."
 msgstr "Páxina web ..."
 
-#: ../minimize.py:25
-msgid "Algorithm: "
-msgstr "Algoritmo: "
-
-#: ../minimize.py:30 ../progress.py:69
-msgid "Convergence criterion: F<sub>max</sub> = "
-msgstr "Criterio de converxencia: F<sub>máx</sub> = "
-
-#: ../minimize.py:35 ../progress.py:73
-msgid "Max. number of steps: "
-msgstr "Número máximo de pasos: "
-
-#. Special stuff for MDMin
-#: ../minimize.py:38
-msgid "Pseudo time step: "
-msgstr "Paso de pseudotempo: "
-
-#: ../minimize.py:60
-msgid "Energy minimization"
-msgstr "Minimización enerxética"
-
-#: ../minimize.py:64
-msgid "Minimize the energy with respect to the positions."
-msgstr "Minimize a enerxía con respecto as posicións."
-
-#. Don't catch errors in the function.
-#. Display status message
-#: ../minimize.py:96
-msgid "Running ..."
-msgstr "Calculando ..."
-
-#. Update display to reflect cancellation of simulation.
-#: ../minimize.py:113
-#, python-format
-msgid "Minimization CANCELLED after %i steps."
-msgstr "Minimización CANCELADA despois de %i iteracións."
-
-#: ../minimize.py:119
-msgid "Out of memory, consider using LBFGS instead"
-msgstr "Non hai máis memoria, considere usar o algoritmo LBFGS"
-
-#. Update display to reflect successful end of simulation.
-#: ../minimize.py:126
-#, python-format
-msgid "Minimization completed in %i steps."
-msgstr "Minimización feita en %i pasos."
-
-#: ../modify.py:15
-#, fuzzy
-#| msgid "No atoms loaded."
+#: ../modify.py:19
 msgid "No atoms selected!"
 msgstr "Non hai átomos seleccionados."
 
-#: ../modify.py:18
+#: ../modify.py:22
 msgid "Modify"
 msgstr "Modificar"
 
-#: ../modify.py:22
+#: ../modify.py:25
+msgid "Change element"
+msgstr "Cambiar de elemento"
+
+#: ../modify.py:28
 msgid "Tag"
 msgstr "Etiqueta"
 
-#: ../modify.py:24
+#: ../modify.py:30
 msgid "Moment"
 msgstr "Momento magnético"
 
-#: ../movie.py:12
+#: ../movie.py:11
 msgid "Movie"
 msgstr "Película"
 
-#: ../movie.py:13
+#: ../movie.py:12
 msgid "Image number:"
 msgstr "Imaxe número:"
 
-#: ../movie.py:19
+#: ../movie.py:18
 msgid "First"
-msgstr ""
+msgstr "Primeira"
+
+#: ../movie.py:19
+msgid "Back"
+msgstr "Atrás"
 
 #: ../movie.py:20
-msgid "Back"
-msgstr ""
+msgid "Forward"
+msgstr "Adiante"
 
 #: ../movie.py:21
-msgid "Forward"
-msgstr ""
-
-#: ../movie.py:22
 msgid "Last"
-msgstr ""
+msgstr "Última"
 
-#: ../movie.py:24
+#: ../movie.py:23
 msgid "Play"
 msgstr "Reproducir"
 
+#: ../movie.py:24
+msgid "Stop"
+msgstr "Detener"
+
 #. TRANSLATORS: This function plays an animation forwards and backwards
 #. alternatingly, e.g. for displaying vibrational movement
-#: ../movie.py:29
+#: ../movie.py:28
 msgid "Rock"
 msgstr "Repetir cadro"
 
-#: ../movie.py:42
+#: ../movie.py:41
 msgid " Frame rate: "
 msgstr "Velocidade do cadro: "
 
-#: ../movie.py:42
+#: ../movie.py:41
 msgid " Skip frames: "
 msgstr "Saltar os cadros: "
 
@@ -1783,7 +963,7 @@ msgstr "Nanopartícula"
 msgid "Get structure"
 msgstr "Obter estrutura"
 
-#: ../nanoparticle.py:154
+#: ../nanoparticle.py:154 ../surfaceslab.py:70
 msgid "Structure:"
 msgstr "Estrutura:"
 
@@ -1812,7 +992,7 @@ msgstr "Engadir nova dirección:"
 msgid "Information about the created cluster:"
 msgstr "Información sobre o agregado creado:"
 
-#: ../nanoparticle.py:181 ../progress.py:203
+#: ../nanoparticle.py:181
 msgid "Number of atoms: "
 msgstr "Número de átomos: "
 
@@ -1828,96 +1008,94 @@ msgstr "Aplicar automáticamente"
 msgid "Creating a nanoparticle."
 msgstr "Creando unha nanopartícula."
 
-#: ../nanoparticle.py:197 ../nanotube.py:52
+#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:82
 msgid "Apply"
-msgstr ""
+msgstr "Aplicar"
 
-#: ../nanoparticle.py:198 ../nanotube.py:53
+#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:83
 msgid "OK"
 msgstr "OK"
 
-#: ../nanoparticle.py:224
+#: ../nanoparticle.py:225
 msgid "Up"
 msgstr "Arriba"
 
-#: ../nanoparticle.py:225
+#: ../nanoparticle.py:226
 msgid "Down"
 msgstr "Abaixo"
 
-#: ../nanoparticle.py:226
+#: ../nanoparticle.py:227
 msgid "Delete"
 msgstr "Borrar"
 
-#: ../nanoparticle.py:270
+#: ../nanoparticle.py:269
 msgid "Number of atoms"
 msgstr "Número de átomos"
 
-#: ../nanoparticle.py:270
+#: ../nanoparticle.py:269
 msgid "Diameter"
-msgstr ""
+msgstr "Diámetro"
 
-#: ../nanoparticle.py:278
+#: ../nanoparticle.py:277
 msgid "above  "
 msgstr "sobre  "
 
-#: ../nanoparticle.py:278
+#: ../nanoparticle.py:277
 msgid "below  "
 msgstr "abajo  "
 
-#: ../nanoparticle.py:278
+#: ../nanoparticle.py:277
 msgid "closest  "
 msgstr "máis cercano  "
 
-#: ../nanoparticle.py:281
+#: ../nanoparticle.py:280
 msgid "Smaller"
 msgstr "Máis pequeno"
 
-#: ../nanoparticle.py:282
+#: ../nanoparticle.py:281
 msgid "Larger"
 msgstr "Máis longo"
 
-#: ../nanoparticle.py:283
+#: ../nanoparticle.py:282
 msgid "Choose size using:"
-msgstr ""
+msgstr "Escolla dimensions usando:"
+
+#: ../nanoparticle.py:284
+msgid "atoms"
+msgstr "átomos"
 
 #: ../nanoparticle.py:285
-#, fuzzy
-#| msgid "Add atoms"
-msgid "atoms"
-msgstr "Engadir átomos"
-
-#: ../nanoparticle.py:286
 msgid "Å³"
 msgstr "Å³"
 
-#: ../nanoparticle.py:288
+#: ../nanoparticle.py:287
 msgid "Rounding: If exact size is not possible, choose the size:"
 msgstr "Redondear: se o tamaño exacto non é posible, elexir o tamaño:"
 
-#: ../nanoparticle.py:313
+#: ../nanoparticle.py:315
 msgid "Surface energies (as energy/area, NOT per atom):"
 msgstr "Enerxía de superficie (enerxía por área, NON por átomo):"
 
-#: ../nanoparticle.py:315
+#: ../nanoparticle.py:317
 msgid "Number of layers:"
 msgstr "Número de capas:"
 
-#: ../nanoparticle.py:343
+#: ../nanoparticle.py:345
 msgid "At least one index must be non-zero"
 msgstr "O menos un índice debe ser distinto de cero"
 
-#: ../nanoparticle.py:346
+#: ../nanoparticle.py:348
 msgid "Invalid hexagonal indices"
 msgstr "Índices hexagonales inválidos"
 
-#: ../nanoparticle.py:409
+#: ../nanoparticle.py:414
 msgid "Unsupported or unknown structure"
 msgstr "Estrutura non soportada ou descoñecida"
 
-#: ../nanoparticle.py:410
+#: ../nanoparticle.py:415
 #, python-brace-format
 msgid "Element = {0}, structure = {1}"
-msgstr ""
+msgstr "Elemento = {0}, estrutura = {1}"
 
 #: ../nanotube.py:13
 msgid ""
@@ -1934,16 +1112,13 @@ msgstr ""
 "lonxitude do enlace."
 
 #: ../nanotube.py:26
-#, fuzzy, python-brace-format
-#| msgid ""
-#| " %(natoms)i atoms: %(symbols)s, diameter: %(diameter).3f Å, cell volume: "
-#| "%(volume).3f Å<sup>3</sup>"
+#, python-brace-format
 msgid ""
 "{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} "
 "Å"
 msgstr ""
-" %(natoms)i átomos: %(symbols)s, diámetro: %(diameter).3f Å, volumen: "
-"%(volume).3f Å<sup>3</sup>"
+"{natoms} átomos, diámetro: {diameter:.3f} Å, lonxitude total: "
+"{total_length:.3f} Å"
 
 #: ../nanotube.py:40
 msgid "Nanotube"
@@ -1960,105 +1135,6 @@ msgstr "Seleccione o vector de roll-up (n,m) e a lonxitude do tubo:"
 #: ../nanotube.py:49
 msgid "Length:"
 msgstr "Lonxitude:"
-
-#: ../progress.py:28
-msgid "Progress"
-msgstr "Progreso"
-
-#: ../progress.py:35
-msgid "Scaling deformation:"
-msgstr "Escala de deformación:"
-
-#: ../progress.py:41
-#, python-format
-msgid "Step number %s of %s."
-msgstr "Paso número %s de %s."
-
-#. Minimization progress frame
-#. Box containing frame and spacing
-#: ../progress.py:55
-msgid "Energy minimization:"
-msgstr "Minimización de enerxía:"
-
-#: ../progress.py:62
-msgid "Step number: "
-msgstr "Paso número: "
-
-#: ../progress.py:64
-msgid "F<sub>max</sub>: "
-msgstr "F<sub>máx</sub>: "
-
-#: ../progress.py:108
-msgid "unknown"
-msgstr "descoñecido"
-
-#: ../progress.py:186
-msgid "Status: "
-msgstr "Estado: "
-
-#: ../progress.py:188
-msgid "Iteration: "
-msgstr "Iteración: "
-
-#: ../progress.py:191
-msgid "log<sub>10</sub>(change):"
-msgstr "log<sub>10</sub> (cambio):"
-
-#: ../progress.py:194
-msgid "Wave functions: "
-msgstr "Funcións de onda: "
-
-#: ../progress.py:196
-msgid "Density: "
-msgstr "Densidade: "
-
-#: ../progress.py:198
-msgid "Energy: "
-msgstr "Enerxía: "
-
-#: ../progress.py:201
-msgid "GPAW version: "
-msgstr "Versión de GPAW: "
-
-#: ../progress.py:204
-msgid "N/A"
-msgstr "Non disponible"
-
-#: ../progress.py:205
-msgid "Memory estimate: "
-msgstr "Memoria estimada: "
-
-#: ../progress.py:240
-msgid "No info"
-msgstr "No hai información"
-
-#: ../progress.py:250
-msgid "Initializing"
-msgstr "Iniciando"
-
-#: ../progress.py:251
-msgid "Positions:"
-msgstr "Posicións:"
-
-#: ../progress.py:255
-msgid "Starting calculation"
-msgstr "Comenzando o cálculo"
-
-#: ../progress.py:292
-msgid "unchanged"
-msgstr "sen cambios"
-
-#: ../progress.py:302
-msgid "Self-consistency loop"
-msgstr "Bucle de auto consistencia"
-
-#: ../progress.py:307
-msgid "Calculating forces"
-msgstr "Calculando forzas"
-
-#: ../progress.py:308
-msgid " (converged)"
-msgstr " (converxido)"
 
 #: ../quickinfo.py:6
 msgid "Single image loaded."
@@ -2104,20 +1180,20 @@ msgstr ""
 "%s\n"
 "%s\n"
 
-#: ../quickinfo.py:29
-msgid "No atoms loaded."
-msgstr "Non hai átomos seleccionados."
+#: ../quickinfo.py:33
+msgid "This frame has no atoms."
+msgstr "Este cadro non ten átomos."
 
-#: ../quickinfo.py:50
+#: ../quickinfo.py:53
 msgid "no"
 msgstr "no"
 
-#: ../quickinfo.py:50
+#: ../quickinfo.py:53
 msgid "yes"
 msgstr "sí"
 
 #. TRANSLATORS: This has the form Periodic: no, no, yes
-#: ../quickinfo.py:54
+#: ../quickinfo.py:57
 #, python-format
 msgid "Periodic: %s, %s, %s"
 msgstr "Periódico: %s, %s, %s"
@@ -2257,11 +1333,11 @@ msgstr "Manter os archivos povray       "
 msgid "Show output window"
 msgstr "Mostrar ventá de saída"
 
-#: ../render.py:236
+#: ../render.py:237
 msgid "  transparency: "
 msgstr "  transparencia: "
 
-#: ../render.py:246
+#: ../render.py:247
 msgid ""
 "Can not create new texture! Must have some atoms selected to create a new "
 "material!"
@@ -2305,17 +1381,7 @@ msgstr ""
 "co ratón, presionando o\n"
 "botón número 2 do ratón."
 
-#: ../save.py:13
-#, fuzzy
-#| msgid ""
-#| "Append name with \"@n\" in order to write image number \"n\" instead of "
-#| "the current image.\n"
-#| "Append \"@start:stop\" or \"@start:stop:step\" if you want to write a "
-#| "range of images.\n"
-#| "You can leave out \"start\" and \"stop\" so that \"name@:\" will give you "
-#| "all images.\n"
-#| "Negative numbers count from the last image (\"name@-1\": last image, "
-#| "\"name@-2:\": last two)."
+#: ../save.py:14
 msgid ""
 "Append name with \"@n\" in order to write image\n"
 "number \"n\" instead of the current image. Append\n"
@@ -2326,16 +1392,15 @@ msgid ""
 "last image. Examples: \"name@-1\": last image,\n"
 "\"name@-2:\": last two."
 msgstr ""
-"Engada \"@n\" o nome para escribir a imáxe número \"n\" en vez da imaxe "
-"actual.\n"
-"Engada \"@principio:fin\" o \"@principio:fin:paso\" para escribir unha "
-"secuencia de imaxes.\n"
-"Pode omitir \"principio\" e \"fin\" e así \"nome@:\" incluirá tódalas "
-"imaxes.\n"
-"Números negativos cóntanse desde a última imaxe (\"nome@-1\": última, "
-"\"nome@-2:\": as dúas últimas)."
+"Engada \"@n\" o nome para escribir a imáxe número\n"
+"\"n\" en vez da imaxe actual.  Engada \"@principio:fin\"\n"
+"o \"@principio:fin:paso\" para escribir unha secuencia\n"
+"de imaxes.  Pode omitir \"principio\" e \"fin\" e así\n"
+"\"nome@:\" incluirá tódalas imaxes.  Números negativos\n"
+"cóntanse desde a última imaxe. Exemplos: \"nome@-1\":\n"
+"última imaxe, \"nome@-2:\": as dúas últimas)."
 
-#: ../save.py:25
+#: ../save.py:26
 msgid "Save ..."
 msgstr "Gardar ..."
 
@@ -2386,7 +1451,7 @@ msgstr "Ver tódolos átomos"
 msgid "Miscellaneous:"
 msgstr "Miscelánea:"
 
-#: ../settings.py:32
+#: ../settings.py:33
 msgid "Scale atomic radii:"
 msgstr "Escale o radio atómico:"
 
@@ -2434,27 +1499,31 @@ msgstr "Calcular"
 msgid "No calculator: Use Calculate/Set Calculator on the menu."
 msgstr "No hai un calculador. Use Calcular/Fixar Calculador no menú."
 
-#: ../status.py:56
+#: ../simulation.py:123
+msgid "No atoms present"
+msgstr "Non hai átomos presentes"
+
+#: ../status.py:58
 #, python-format
 msgid " tag=%(tag)s"
 msgstr " etiqueta=%(tag)s"
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:59
+#: ../status.py:62
 #, python-brace-format
 msgid " mom={0:1.2f}"
 msgstr " mom={0:1.2f}"
 
-#: ../status.py:62
+#: ../status.py:66
 #, python-brace-format
 msgid " q={0:1.2f}"
 msgstr " q={0:1.2f}"
 
-#: ../status.py:107
+#: ../status.py:111
 msgid "dihedral"
 msgstr "diedro"
 
-#: ../surfaceslab.py:15
+#: ../surfaceslab.py:12
 msgid ""
 "  Use this dialog to create surface slabs.  Select the element by\n"
 "writing the chemical symbol or the atomic number in the box.  Then\n"
@@ -2476,162 +1545,142 @@ msgstr ""
 "  Se a estrutura coincide coa experimental, pode mirar a constante de rede \n"
 "na base de datos de ASE, se non terá que especificala."
 
-#. Name, structure, orthogonal, support-nonorthogonal, function
-#: ../surfaceslab.py:27
+#. Name, structure, orthogonal, function
+#: ../surfaceslab.py:24
 msgid "FCC(100)"
 msgstr "FCC(100)"
 
-#: ../surfaceslab.py:27 ../surfaceslab.py:28 ../surfaceslab.py:29
-#: ../surfaceslab.py:31
+#: ../surfaceslab.py:24 ../surfaceslab.py:25 ../surfaceslab.py:26
+#: ../surfaceslab.py:27
 msgid "fcc"
 msgstr "fcc"
 
-#: ../surfaceslab.py:28
+#: ../surfaceslab.py:25
 msgid "FCC(110)"
 msgstr "FCC(110)"
 
-#: ../surfaceslab.py:29
-msgid "FCC(111) non-orthogonal"
-msgstr "FCC (111) non ortogonal"
+#: ../surfaceslab.py:26 ../surfaceslab.py:170
+msgid "FCC(111)"
+msgstr "FCC(111)"
 
-#: ../surfaceslab.py:31
-msgid "FCC(111) orthogonal"
-msgstr "FCC (111) ortogonal"
+#: ../surfaceslab.py:27 ../surfaceslab.py:173
+msgid "FCC(211)"
+msgstr "FCC(211)"
 
-#: ../surfaceslab.py:32
+#: ../surfaceslab.py:28
 msgid "BCC(100)"
 msgstr "BCC(100)"
 
-#: ../surfaceslab.py:32 ../surfaceslab.py:33 ../surfaceslab.py:35
-#: ../surfaceslab.py:36 ../surfaceslab.py:38
+#: ../surfaceslab.py:28 ../surfaceslab.py:29 ../surfaceslab.py:30
 msgid "bcc"
 msgstr "bcc"
 
-#: ../surfaceslab.py:33
-msgid "BCC(110) non-orthogonal"
-msgstr "BCC (110) non ortogonal"
+#: ../surfaceslab.py:29 ../surfaceslab.py:167
+msgid "BCC(110)"
+msgstr "BCC(110)"
 
-#: ../surfaceslab.py:35
-msgid "BCC(110) orthogonal"
-msgstr "BCC (110) ortogonal"
+#: ../surfaceslab.py:30 ../surfaceslab.py:164
+msgid "BCC(111)"
+msgstr "BCC(111)"
 
-#: ../surfaceslab.py:36
-msgid "BCC(111) non-orthogonal"
-msgstr "BCC (111) non ortogonal"
+#: ../surfaceslab.py:31 ../surfaceslab.py:177
+msgid "HCP(0001)"
+msgstr "HCP(0001)"
 
-#: ../surfaceslab.py:38
-msgid "BCC(111) orthogonal"
-msgstr "BCC (111) ortogonal"
-
-#: ../surfaceslab.py:39
-msgid "HCP(0001) non-orthogonal"
-msgstr "HCP (0001) non ortogonal"
-
-#: ../surfaceslab.py:39 ../surfaceslab.py:41 ../surfaceslab.py:42
+#: ../surfaceslab.py:31 ../surfaceslab.py:32 ../surfaceslab.py:131
+#: ../surfaceslab.py:187
 msgid "hcp"
 msgstr "hcp"
 
-#: ../surfaceslab.py:41
-msgid "HCP(0001) orthogonal"
-msgstr "HCP (0001) ortogonal"
+#: ../surfaceslab.py:32 ../surfaceslab.py:180
+msgid "HCP(10-10)"
+msgstr "HCP(10-10)"
 
-#: ../surfaceslab.py:42
-msgid "HCP(10-10) orthogonal"
-msgstr "HCP (10-10) ortogonal"
+#: ../surfaceslab.py:33
+msgid "DIAMOND(100)"
+msgstr "Diamante(100)"
 
-#: ../surfaceslab.py:44
-msgid "DIAMOND(100) orthogonal"
-msgstr "Diamante (100) ortogonal"
-
-#: ../surfaceslab.py:44 ../surfaceslab.py:46
+#: ../surfaceslab.py:33 ../surfaceslab.py:34
 msgid "diamond"
 msgstr "diamante"
 
-#: ../surfaceslab.py:46
-msgid "DIAMOND(111) non-orthogonal"
-msgstr "Diamante (111) non ortogonal"
+#: ../surfaceslab.py:34
+msgid "DIAMOND(111)"
+msgstr "Diamante(111)"
 
-#: ../surfaceslab.py:61
+#: ../surfaceslab.py:67
 msgid "Surface"
 msgstr "Superficie"
 
-#. Choose the element
-#: ../surfaceslab.py:70
-msgid "Element: "
-msgstr "Elemento: "
+#: ../surfaceslab.py:71
+msgid "Orthogonal cell:"
+msgstr "Celda ortogonal:"
 
-#: ../surfaceslab.py:91
-msgid "Lattice constant: "
-msgstr "Constante de rede: "
+#: ../surfaceslab.py:72
+msgid "Lattice constant:\ta"
+msgstr "Constante de rede:\ta"
 
-#: ../surfaceslab.py:98
-msgid "a:"
-msgstr "a:"
+#: ../surfaceslab.py:74
+msgid "\t\tc"
+msgstr "\t\tc"
 
-#: ../surfaceslab.py:111
-#, python-format
-msgid "(%.1f %% of ideal)"
-msgstr "(%.1f %% de ideal)"
-
-#: ../surfaceslab.py:128
+#: ../surfaceslab.py:75
 msgid "Size: \tx: "
 msgstr "Tamaño\tx: "
 
-#: ../surfaceslab.py:130
-msgid "\t\ty: "
-msgstr "\t\ty: "
+#: ../surfaceslab.py:76
+msgid "\ty: "
+msgstr "\ty: "
 
-#: ../surfaceslab.py:132
-msgid "      \t\tz: "
-msgstr "      \t\tz: "
+#: ../surfaceslab.py:77
+msgid "\tz: "
+msgstr "\tz: "
 
-#: ../surfaceslab.py:133
-msgid " layers,  "
-msgstr " capas,  "
-
-#: ../surfaceslab.py:134
-msgid " Å vacuum"
-msgstr " vacío en Å"
-
-#: ../surfaceslab.py:135
-msgid "\t\tNo size information yet."
-msgstr "\t\tAínda non hai información sobre o tamaño."
-
-#. Buttons
-#: ../surfaceslab.py:144
-msgid "Creating a surface slab."
+#. TRANSLATORS: This is a title of a window.
+#: ../surfaceslab.py:81
+msgid "Creating a surface."
 msgstr "Creando unha peza de superficie."
 
-#: ../surfaceslab.py:215
-#, python-format
-msgid "%i atoms."
-msgstr "Átomos %i."
+#: ../surfaceslab.py:161
+msgid "Please enter an even value for orthogonal cell"
+msgstr "Por favor, escolla un número par para a cela ortogonal"
 
-#: ../surfaceslab.py:221
-msgid "Invalid element."
-msgstr "Elemento inválido."
+#: ../surfaceslab.py:174
+msgid "Please enter a value divisible by 3 for orthogonal cell"
+msgstr "Por favor, escolla un valor divisible por 3 para a cela ortogonal"
 
-#: ../surfaceslab.py:227
-msgid "No structure specified!"
-msgstr "¡Non se especificou a estrutura!"
+#: ../surfaceslab.py:194
+msgid " Vacuum: {} Å."
+msgstr "Vacío: {} Å."
 
-#: ../surfaceslab.py:236
-#, python-format
-msgid "%(struct)s lattice constant unknown for %(element)s."
-msgstr ""
-"A constante de rede %(struct)s é descoñecida para o elemento %(element)s."
+#. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
+#. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
+#: ../surfaceslab.py:202
+#, python-brace-format
+msgid "{symbol} {surf} surface with one atom.{vacuum}"
+msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
+msgstr[0] "{symbol} {surf} superficie cun átomo.{vacuum}"
+msgstr[1] "{symbol} {surf} superficie con {natoms} átomos.{vacuum}"
 
-#: ../ui.py:43
+#: ../ui.py:45
+msgid "Error"
+msgstr "Erro"
+
+#: ../ui.py:52
 msgid "Version"
-msgstr ""
+msgstr "Versión"
 
-#: ../ui.py:44
+#: ../ui.py:53
 msgid "Web-page"
 msgstr "Páxina web"
 
-#: ../ui.py:45
+#: ../ui.py:54
 msgid "About"
 msgstr "Acerca de ase-gui"
+
+#: ../ui.py:59 ../ui.py:63
+msgid "Help"
+msgstr "Axuda"
 
 #: ../widgets.py:11
 msgid "Element:"
@@ -2648,6 +1697,429 @@ msgstr "ERRO: ¡elemento inválido!"
 #: ../widgets.py:75
 msgid "No Python code"
 msgstr "Non é código de Python"
+
+#, fuzzy
+#~| msgid "Set _Calculator"
+#~ msgid "Select calculator"
+#~ msgstr "Fixar _calculador"
+
+#, fuzzy
+#~| msgid "Set _Calculator"
+#~ msgid "Calculator:"
+#~ msgstr "Fixar _calculador"
+
+#~ msgid "None"
+#~ msgstr "Ningún"
+
+#~ msgid "Setup"
+#~ msgstr "Configurar"
+
+#, fuzzy
+#~| msgid "Lattice parameters"
+#~ msgid "Lennard-Jones parameters"
+#~ msgstr "Parámetros de rede"
+
+#, fuzzy
+#~| msgid "Lattice parameters"
+#~ msgid "EAM parameters"
+#~ msgstr "Parámetros de rede"
+
+#, fuzzy
+#~| msgid "Lattice parameters"
+#~ msgid "GPAW parameters"
+#~ msgstr "Parámetros de rede"
+
+#, fuzzy
+#~| msgid "%i atoms."
+#~ msgid "%i atoms.\n"
+#~ msgstr "Átomos %i."
+
+#, fuzzy
+#~| msgid "Wave functions: "
+#~ msgid "Basis functions: "
+#~ msgstr "Funcións de onda: "
+
+#, fuzzy
+#~| msgid "Lattice parameters"
+#~ msgid "FHI-aims parameters"
+#~ msgstr "Parámetros de rede"
+
+#, fuzzy
+#~| msgid "By charge"
+#~ msgid "   Charge"
+#~ msgstr "Por carga"
+
+#, fuzzy
+#~| msgid "Self-consistency loop"
+#~ msgid "Self-consistency convergence:"
+#~ msgstr "Bucle de auto consistencia"
+
+#, fuzzy
+#~| msgid "Calculating forces"
+#~ msgid "Compute forces"
+#~ msgstr "Calculando forzas"
+
+#, fuzzy
+#~| msgid "               Filename: "
+#~ msgid "Energy:                 "
+#~ msgstr "               Nome do arquivo: "
+
+#, fuzzy
+#~| msgid "Expert mode ..."
+#~ msgid "Export parameters ... "
+#~ msgstr "Modo experto ..."
+
+#, fuzzy
+#~| msgid "Lattice parameters"
+#~ msgid "VASP parameters"
+#~ msgstr "Parámetros de rede"
+
+#~ msgid " width: "
+#~ msgstr " ancho: "
+
+#, fuzzy
+#~| msgid "Self-consistency loop"
+#~ msgid "Self-consistency convergence: "
+#~ msgstr "Bucle de auto consistencia"
+
+#, fuzzy
+#~| msgid ""
+#~| "\n"
+#~| "    Global commands work on all frames or only on the current frame\n"
+#~| "    - Assignment of a global variable may not reference a local one\n"
+#~| "    - use 'Current frame' switch to switch off application to all "
+#~| "frames\n"
+#~| "    <c>e</c>:\t\ttotal energy of one frame\n"
+#~| "    <c>fmax</c>:\tmaximal force in one frame\n"
+#~| "    <c>A</c>:\tunit cell\n"
+#~| "    <c>E</c>:\t\ttotal energy array of all frames\n"
+#~| "    <c>F</c>:\t\tall forces in one frame\n"
+#~| "    <c>M</c>:\tall magnetic moments\n"
+#~| "    <c>R</c>:\t\tall atomic positions\n"
+#~| "    <c>S</c>:\tall selected atoms (boolean array)\n"
+#~| "    <c>D</c>:\tall dynamic atoms (boolean array)\n"
+#~| "    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+#~| "\n"
+#~| "    Atom commands work on each atom (or a selection) individually\n"
+#~| "    - these can use global commands on the RHS of an equation\n"
+#~| "    - use 'selected atoms only' to restrict application of command\n"
+#~| "    <c>x,y,z</c>:\tatomic coordinates\n"
+#~| "    <c>r,g,b</c>:\tatom display color, range is [0..1]\n"
+#~| "    <c>rad</c>:\tatomic radius for display\n"
+#~| "    <c>s</c>:\t\tatom is selected\n"
+#~| "    <c>d</c>:\t\tatom is movable\n"
+#~| "    <c>f</c>:\t\tforce\n"
+#~| "    <c>Z</c>:\tatomic number\n"
+#~| "    <c>m</c>:\tmagnetic moment\n"
+#~| "    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+#~| "\n"
+#~| "    Special commands and objects:\n"
+#~| "    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
+#~| "    <c>frame</c>:\tframe number\n"
+#~| "    <c>center</c>:\tcenters the system in its existing unit cell\n"
+#~| "    <c>del S</c>:\tdelete selection\n"
+#~| "    <c>CM</c>:\tcenter of mass\n"
+#~| "    <c>ans[-i]</c>:\tith last calculated result\n"
+#~| "    <c>exec file</c>: executes commands listed in file\n"
+#~| "    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
+#~| "    <c>gui</c>:\tadvanced: ase-gui window python object\n"
+#~| "    <c>img</c>:\tadvanced: ase-gui images object\n"
+#~| "    "
+#~ msgid ""
+#~ "\n"
+#~ "    Global commands work on all frames or only on the current frame\n"
+#~ "    - Assignment of a global variable may not reference a local one\n"
+#~ "    - use 'Current frame' switch to switch off application to all frames\n"
+#~ "    <c>e</c>:\t\ttotal energy of one frame\n"
+#~ "    <c>fmax</c>:\tmaximal force in one frame\n"
+#~ "    <c>A</c>:\tunit cell\n"
+#~ "    <c>E</c>:\t\ttotal energy array of all frames\n"
+#~ "    <c>F</c>:\t\tall forces in one frame\n"
+#~ "    <c>M</c>:\tall magnetic moments\n"
+#~ "    <c>R</c>:\t\tall atomic positions\n"
+#~ "    <c>S</c>:\tall selected atoms (boolean array)\n"
+#~ "    <c>D</c>:\tall dynamic atoms (boolean array)\n"
+#~ "    examples: <c>frame = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+#~ "\n"
+#~ "    Atom commands work on each atom (or a selection) individually\n"
+#~ "    - these can use global commands on the RHS of an equation\n"
+#~ "    - use 'selected atoms only' to restrict application of command\n"
+#~ "    <c>x,y,z</c>:\tatomic coordinates\n"
+#~ "    <c>r,g,b</c>:\tatom display color, range is [0..1]\n"
+#~ "    <c>rad</c>:\tatomic radius for display\n"
+#~ "    <c>s</c>:\t\tatom is selected\n"
+#~ "    <c>d</c>:\t\tatom is movable\n"
+#~ "    <c>f</c>:\t\tforce\n"
+#~ "    <c>Z</c>:\tatomic number\n"
+#~ "    <c>m</c>:\tmagnetic moment\n"
+#~ "    examples: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+#~ "\n"
+#~ "    Special commands and objects:\n"
+#~ "    <c>sa,cf</c>:\t(un)restrict to selected atoms/current frame\n"
+#~ "    <c>frame</c>:\tframe number\n"
+#~ "    <c>center</c>:\tcenters the system in its existing unit cell\n"
+#~ "    <c>del S</c>:\tdelete selection\n"
+#~ "    <c>CM</c>:\tcenter of mass\n"
+#~ "    <c>ans[-i]</c>:\tith last calculated result\n"
+#~ "    <c>exec file</c>: executes commands listed in file\n"
+#~ "    <c>cov[Z]</c>:(read only): covalent radius of atomic number Z\n"
+#~ "    <c>gui</c>:\tadvanced: gui window python object\n"
+#~ "    <c>img</c>:\tadvanced: gui images object\n"
+#~ "    "
+#~ msgstr ""
+#~ "\n"
+#~ "   Os comandos globales funcionan tanto en tódolos cadros como\n"
+#~ "   no cadro actual.\n"
+#~ "   -  A asignación dunha variable global pode non ser referenciada\n"
+#~ "      a unha local.\n"
+#~ "   -  Utilice a opción 'Cadro actual' para pechar a aplicación\n"
+#~ "      en tódolos cadros.\n"
+#~ "      <c>e</c>: enerxía total dun cadro\n"
+#~ "      <c>fmáx</c>: forza máxima dun cadro\n"
+#~ "      <c>A</c>: celda unidade\n"
+#~ "      <c>E</c>: arreglo coas enerxías totales en tódolos cadros\n"
+#~ "      <c>F</c>: tódalas forzas nun cadro\n"
+#~ "      <c>M</c>: tódolos momentos magnéticos\n"
+#~ "      <c>R</c>: tódalas posicions atómicas\n"
+#~ "      <c>S</c>: arreglo booleano, tódolos átomos seleccionados\n"
+#~ "      <c>D</c>: arreglo booleano, tódolos átomos dinámicos\n"
+#~ "      Exemplos: <c>cadro = 1</c>, <c>A[0][1] += 4</c>, <c>e-E[-1]</c>\n"
+#~ "\n"
+#~ "      Os comandos atómicos funcionan nunha selección ou en cada un dos\n"
+#~ "       átomos.\n"
+#~ "      - Éstos poden usar comandos globales no lado dereito dunha\n"
+#~ "        ecuación.\n"
+#~ "      - Utilice 'Sólo os átomos seleccionados' para restrinxir a\n"
+#~ "        aplicación do comando.\n"
+#~ "        <c>x,y,z</c>: coordenadas atómicas\n"
+#~ "        <c>r,g,b</c>: color do átomo, o rango é [0..1]\n"
+#~ "        <c>rad</c>: radio atómico a mostrar\n"
+#~ "        <c>s</c>: átomo é seleccionado\n"
+#~ "        <c>d</c>: átomo é movible\n"
+#~ "        <c>f</c>: forza\n"
+#~ "        <c>Z</c>: número atómico\n"
+#~ "        <c>m</c>: momento magnético\n"
+#~ "        exemplos: <c>x -= A[0][0], s = z > 5, Z = 6</c>\n"
+#~ "\n"
+#~ "      Comandos especiais e obxectos:\n"
+#~ "      <c>sa,cf</c>:restrinxir (ou non) ós átomos seleccionados/cadro "
+#~ "actual\n"
+#~ "      <c>cadro</c>: número do cadro\n"
+#~ "      <c>centrar</c>: centra o sistema con respecto a súa celda unidade\n"
+#~ "      <c>borra S</c>: borra a selección\n"
+#~ "      <c>CM</c>: centro de masa\n"
+#~ "      <c>ans[-i]</c>: o i-ésimo resultado calculado\n"
+#~ "      <c>exec archivo</c>: executa o comando listado no arquivo\n"
+#~ "      <c>cov[Z]</c>:(sólo lectura): radio covalente do número atómico Z\n"
+#~ "      <c>gui</c>:avanzado: obxecto de Python, ventá de ag\n"
+#~ "      <c>img</c>:avanzado: obxecto imaxes de ag\n"
+#~ "    "
+
+#~ msgid "Expert user mode"
+#~ msgstr "Modo de usuario experto"
+
+#~ msgid "Welcome to the ASE Expert user mode"
+#~ msgstr "Benvido ó modo de usuario experto de ASE"
+
+#~ msgid "Only selected atoms (sa)   "
+#~ msgstr "Soamente átomos seleccionados (sa)   "
+
+#~ msgid "Only current frame (cf)  "
+#~ msgstr "Soamente o cadro actual (cf)  "
+
+#~ msgid ""
+#~ "Global: Use A, D, E, M, N, R, S, n, frame; Atoms: Use a, f, m, s, x, y, "
+#~ "z, Z     "
+#~ msgstr ""
+#~ "Global: utilice os cadros A, D, E, M, N, R, S y n; Átomos: utilice a, f, "
+#~ "m, s, x, y, z y Z"
+
+#~ msgid "*** WARNING: file does not exist - %s"
+#~ msgstr "*** ADVERTENCIA: o arquivo non existe - %s"
+
+#~ msgid "*** WARNING: No atoms selected to work with"
+#~ msgstr "***ADVERTENCIA: Non hai átomos seleccionados para traballar"
+
+#~ msgid "*** Only working on selected atoms"
+#~ msgstr "*** Traballando soamente cos átomos seleccionados"
+
+#~ msgid "*** Working on all atoms"
+#~ msgstr "*** Traballando en tódolos átomos"
+
+#~ msgid "*** Only working on current image"
+#~ msgstr "*** Traballando únicamente na imaxe actual"
+
+#~ msgid "*** Working on all images"
+#~ msgstr "*** Traballando en tódalas imaxes"
+
+#~ msgid "Save Terminal text ..."
+#~ msgstr "Garde texto da Terminal ..."
+
+#~ msgid "Cancel"
+#~ msgstr "Cancelar"
+
+#~ msgid "Algorithm: "
+#~ msgstr "Algoritmo: "
+
+#~ msgid "Convergence criterion: F<sub>max</sub> = "
+#~ msgstr "Criterio de converxencia: F<sub>máx</sub> = "
+
+#~ msgid "Max. number of steps: "
+#~ msgstr "Número máximo de pasos: "
+
+#~ msgid "Pseudo time step: "
+#~ msgstr "Paso de pseudotempo: "
+
+#~ msgid "Energy minimization"
+#~ msgstr "Minimización enerxética"
+
+#~ msgid "Minimize the energy with respect to the positions."
+#~ msgstr "Minimize a enerxía con respecto as posicións."
+
+#~ msgid "Running ..."
+#~ msgstr "Calculando ..."
+
+#~ msgid "Minimization CANCELLED after %i steps."
+#~ msgstr "Minimización CANCELADA despois de %i iteracións."
+
+#~ msgid "Out of memory, consider using LBFGS instead"
+#~ msgstr "Non hai máis memoria, considere usar o algoritmo LBFGS"
+
+#~ msgid "Minimization completed in %i steps."
+#~ msgstr "Minimización feita en %i pasos."
+
+#~ msgid "Progress"
+#~ msgstr "Progreso"
+
+#~ msgid "Scaling deformation:"
+#~ msgstr "Escala de deformación:"
+
+#~ msgid "Step number %s of %s."
+#~ msgstr "Paso número %s de %s."
+
+#~ msgid "Energy minimization:"
+#~ msgstr "Minimización de enerxía:"
+
+#~ msgid "Step number: "
+#~ msgstr "Paso número: "
+
+#~ msgid "F<sub>max</sub>: "
+#~ msgstr "F<sub>máx</sub>: "
+
+#~ msgid "unknown"
+#~ msgstr "descoñecido"
+
+#~ msgid "Status: "
+#~ msgstr "Estado: "
+
+#~ msgid "Iteration: "
+#~ msgstr "Iteración: "
+
+#~ msgid "log<sub>10</sub>(change):"
+#~ msgstr "log<sub>10</sub> (cambio):"
+
+#~ msgid "Wave functions: "
+#~ msgstr "Funcións de onda: "
+
+#~ msgid "Density: "
+#~ msgstr "Densidade: "
+
+#~ msgid "Energy: "
+#~ msgstr "Enerxía: "
+
+#~ msgid "GPAW version: "
+#~ msgstr "Versión de GPAW: "
+
+#~ msgid "N/A"
+#~ msgstr "Non disponible"
+
+#~ msgid "Memory estimate: "
+#~ msgstr "Memoria estimada: "
+
+#~ msgid "No info"
+#~ msgstr "No hai información"
+
+#~ msgid "Initializing"
+#~ msgstr "Iniciando"
+
+#~ msgid "Positions:"
+#~ msgstr "Posicións:"
+
+#~ msgid "Starting calculation"
+#~ msgstr "Comenzando o cálculo"
+
+#~ msgid "unchanged"
+#~ msgstr "sen cambios"
+
+#~ msgid "Self-consistency loop"
+#~ msgstr "Bucle de auto consistencia"
+
+#~ msgid "Calculating forces"
+#~ msgstr "Calculando forzas"
+
+#~ msgid " (converged)"
+#~ msgstr " (converxido)"
+
+#~ msgid "To get a full traceback, use: ase-gui --verbose"
+#~ msgstr "Para ollar o traceback completo, use ase-gui --verbose"
+
+#~ msgid "No atoms loaded."
+#~ msgstr "Non hai átomos seleccionados."
+
+#~ msgid "FCC(111) non-orthogonal"
+#~ msgstr "FCC (111) non ortogonal"
+
+#~ msgid "FCC(111) orthogonal"
+#~ msgstr "FCC (111) ortogonal"
+
+#~ msgid "BCC(110) non-orthogonal"
+#~ msgstr "BCC (110) non ortogonal"
+
+#~ msgid "BCC(110) orthogonal"
+#~ msgstr "BCC (110) ortogonal"
+
+#~ msgid "BCC(111) non-orthogonal"
+#~ msgstr "BCC (111) non ortogonal"
+
+#~ msgid "BCC(111) orthogonal"
+#~ msgstr "BCC (111) ortogonal"
+
+#~ msgid "HCP(0001) non-orthogonal"
+#~ msgstr "HCP (0001) non ortogonal"
+
+#~ msgid "Element: "
+#~ msgstr "Elemento: "
+
+#~ msgid "a:"
+#~ msgstr "a:"
+
+#~ msgid "(%.1f %% of ideal)"
+#~ msgstr "(%.1f %% de ideal)"
+
+#~ msgid "      \t\tz: "
+#~ msgstr "      \t\tz: "
+
+#~ msgid " layers,  "
+#~ msgstr " capas,  "
+
+#~ msgid " Å vacuum"
+#~ msgstr " vacío en Å"
+
+#~ msgid "\t\tNo size information yet."
+#~ msgstr "\t\tAínda non hai información sobre o tamaño."
+
+#~ msgid "%i atoms."
+#~ msgstr "Átomos %i."
+
+#~ msgid "Invalid element."
+#~ msgstr "Elemento inválido."
+
+#~ msgid "No structure specified!"
+#~ msgstr "¡Non se especificou a estrutura!"
+
+#~ msgid "%(struct)s lattice constant unknown for %(element)s."
+#~ msgstr ""
+#~ "A constante de rede %(struct)s é descoñecida para o elemento %(element)s."
 
 #~ msgid "By atomic number, user specified"
 #~ msgstr "Por número atómico, especificado polo usuario"

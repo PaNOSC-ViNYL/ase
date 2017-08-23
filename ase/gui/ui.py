@@ -64,7 +64,7 @@ def helpwindow(text):
     win.add(Text(text))
 
 
-class BaseWindow:
+class BaseWindow(object):
     def __init__(self, title, close=None):
         self.title = title
         if close:
@@ -184,12 +184,13 @@ class Button(Widget):
 
 
 class CheckButton(Widget):
-    def __init__(self, text, value=False):
+    def __init__(self, text, value=False, callback=None):
         self.text = text
         self.var = tk.BooleanVar(value=value)
+        self.callback = callback
 
     def create(self, parent):
-        self.check = tk.Checkbutton(parent, text=self.text, var=self.var)
+        self.check = tk.Checkbutton(parent, text=self.text, var=self.var, command=self.callback)
         return self.check
 
     @property
@@ -219,6 +220,8 @@ class SpinBox(Widget):
         x = self.widget.get().replace(',', '.')
         if '.' in x:
             return float(x)
+        if x == 'None':
+            return None
         return int(x)
 
     @value.setter
@@ -295,8 +298,8 @@ class RadioButtons(Widget):
                         for i, label in enumerate(labels)]
         self.vertical = vertical
 
-    def create(self, parrent):
-        self.widget = frame = tk.Frame(parrent)
+    def create(self, parent):
+        self.widget = frame = tk.Frame(parent)
         side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
@@ -560,6 +563,7 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
+        self.win.bind('<MouseWheel>', bind(scroll_event))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))

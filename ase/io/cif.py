@@ -225,6 +225,8 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         symbolHM = tags['_space_group.patterson_name_h-m']
     elif '_symmetry_space_group_name_h-m' in tags:
         symbolHM = tags['_symmetry_space_group_name_h-m']
+    elif '_space_group_name_h-m_alt' in tags:
+        symbolHM = tags['_space_group_name_h-m_alt']
 
     if symbolHM is not None:
         symbolHM = old_spacegroup_names.get(symbolHM.strip(), symbolHM)
@@ -312,7 +314,15 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
         yield atoms
 
 
-def write_cif(fileobj, images):
+def split_chem_form(comp_name):
+    """Returns e.g. AB2  as ['A', '1', 'B', '2']"""
+    split_form = re.findall(r'[A-Z][a-z]*|\d+',
+                            re.sub('[A-Z][a-z]*(?![\da-z])',
+                                   r'\g<0>1', comp_name))
+    return split_form
+
+
+def write_cif(fileobj, images, format='default'):
     """Write *images* to CIF file."""
     if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
@@ -324,6 +334,22 @@ def write_cif(fileobj, images):
         fileobj.write('data_image%d\n' % i)
 
         a, b, c, alpha, beta, gamma = atoms.get_cell_lengths_and_angles()
+
+        if format == 'mp':
+
+            comp_name = atoms.get_chemical_formula(mode='reduce')
+            sf = split_chem_form(comp_name)
+            formula_sum = ''
+            ii = 0
+            while ii < len(sf):
+                formula_sum = formula_sum + ' ' + sf[ii] + sf[ii + 1]
+                ii = ii + 2
+
+            formula_sum = str(formula_sum)
+            fileobj.write('_chemical_formula_structural       %s\n' %
+                          atoms.get_chemical_formula(mode='reduce'))
+            fileobj.write('_chemical_formula_sum      "%s"\n' % formula_sum)
+
         fileobj.write('_cell_length_a       %g\n' % a)
         fileobj.write('_cell_length_b       %g\n' % b)
         fileobj.write('_cell_length_c       %g\n' % c)
@@ -343,14 +369,24 @@ def write_cif(fileobj, images):
             fileobj.write('\n')
 
         fileobj.write('loop_\n')
-        fileobj.write('  _atom_site_label\n')
-        fileobj.write('  _atom_site_occupancy\n')
-        fileobj.write('  _atom_site_fract_x\n')
-        fileobj.write('  _atom_site_fract_y\n')
-        fileobj.write('  _atom_site_fract_z\n')
-        fileobj.write('  _atom_site_thermal_displace_type\n')
-        fileobj.write('  _atom_site_B_iso_or_equiv\n')
-        fileobj.write('  _atom_site_type_symbol\n')
+
+        if format == 'mp':
+            fileobj.write('  _atom_site_type_symbol\n')
+            fileobj.write('  _atom_site_label\n')
+            fileobj.write('   _atom_site_symmetry_multiplicity\n')
+            fileobj.write('  _atom_site_fract_x\n')
+            fileobj.write('  _atom_site_fract_y\n')
+            fileobj.write('  _atom_site_fract_z\n')
+            fileobj.write('  _atom_site_occupancy\n')
+        else:
+            fileobj.write('  _atom_site_label\n')
+            fileobj.write('  _atom_site_occupancy\n')
+            fileobj.write('  _atom_site_fract_x\n')
+            fileobj.write('  _atom_site_fract_y\n')
+            fileobj.write('  _atom_site_fract_z\n')
+            fileobj.write('  _atom_site_thermal_displace_type\n')
+            fileobj.write('  _atom_site_B_iso_or_equiv\n')
+            fileobj.write('  _atom_site_type_symbol\n')
 
         scaled = atoms.get_scaled_positions()
         no = {}
@@ -360,13 +396,19 @@ def write_cif(fileobj, images):
                 no[symbol] += 1
             else:
                 no[symbol] = 1
-            fileobj.write(
-                '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
-                ('%s%d' % (symbol, no[symbol]),
-                 1.0,
-                 scaled[i][0],
-                 scaled[i][1],
-                 scaled[i][2],
-                 'Biso',
-                 1.0,
-                 symbol))
+            if format == 'mp':
+                fileobj.write(
+                    '  %-2s  %4s  %4s  %7.5f  %7.5f  %7.5f  %6.1f\n' %
+                    (symbol, symbol + str(no[symbol]), 1,
+                     scaled[i][0], scaled[i][1], scaled[i][2], 1.0))
+            else:
+                fileobj.write(
+                    '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
+                    ('%s%d' % (symbol, no[symbol]),
+                     1.0,
+                     scaled[i][0],
+                     scaled[i][1],
+                     scaled[i][2],
+                     'Biso',
+                     1.0,
+                     symbol))

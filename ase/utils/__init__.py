@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 import time
+from importlib import import_module
 from math import sin, cos, radians, atan2, degrees
 from contextlib import contextmanager
 
@@ -14,12 +15,13 @@ except ImportError:
 
 import numpy as np
 
-from ase.data import chemical_symbols
+from ase.utils.formula import formula_hill, formula_metal
 
 __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
-           'opencew', 'OpenLock', 'hill', 'rotate', 'irotate', 'givens',
-           'hsv2rgb', 'hsv', 'pickleload']
+           'opencew', 'OpenLock', 'rotate', 'irotate', 'givens',
+           'hsv2rgb', 'hsv', 'pickleload', 'FileNotFoundError',
+           'formula_hill', 'formula_metal']
 
 
 # Python 2+3 compatibility stuff:
@@ -29,7 +31,11 @@ if sys.version_info[0] > 2:
     basestring = str
     from io import StringIO
     pickleload = functools.partial(pickle.load, encoding='bytes')
+    FileNotFoundError = getattr(builtins, 'FileNotFoundError')
 else:
+    class FileNotFoundError(OSError):
+        pass
+
     # Legacy Python:
     def exec_(code, dct):
         exec('exec code in dct')
@@ -37,16 +43,6 @@ else:
     from StringIO import StringIO
     pickleload = pickle.load
 StringIO  # appease pyflakes
-
-if sys.version_info >= (2, 7):
-    from importlib import import_module
-else:
-    # Python 2.6:
-    def import_module(name):
-        module = __import__(name)
-        for part in name.split('.')[1:]:
-            module = getattr(module, part)
-        return module
 
 
 @contextmanager
@@ -188,24 +184,6 @@ class OpenLock:
 
     def __exit__(self, type, value, tb):
         pass
-
-
-def hill(numbers):
-    """Convert list of atomic numbers to a chemical formula as a string.
-
-    Elements are alphabetically ordered with C and H first."""
-
-    if isinstance(numbers, dict):
-        count = dict(numbers)
-    else:
-        count = {}
-        for Z in numbers:
-            symb = chemical_symbols[Z]
-            count[symb] = count.get(symb, 0) + 1
-    result = [(s, count.pop(s)) for s in 'CH' if s in count]
-    result += [(s, count[s]) for s in sorted(count)]
-    return ''.join('{0}{1}'.format(symbol, n) if n > 1 else symbol
-                   for symbol, n in result)
 
 
 def rotate(rotations, rotation=np.identity(3)):

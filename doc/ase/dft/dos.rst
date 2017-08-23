@@ -14,7 +14,7 @@ Example::
 
 You can plot the result like this::
 
-  import pylab as plt
+  import matplotlib.pyplot as plt
   plt.plot(e, d)
   plt.xlabel('energy [eV]')
   plt.ylabel('DOS')
@@ -36,5 +36,7 @@ More details
 
 .. autoclass:: DOS
    :members: get_energies, get_dos
+
+.. autofunction:: ltidos
 
 .. autofunction:: ase.dft.get_distribution_moment

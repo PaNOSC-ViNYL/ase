@@ -66,6 +66,7 @@ float_keys = [
     'pstress',    # add this stress to the stress tensor, and energy E = V *
                   # pstress
     'sigma',      # broadening in eV
+    'smass',      # Nose mass-parameter (am)
     'spring',     # spring constant for NEB
     'time',       # special control tag
     'weimin',     # maximum weight for a band to be considered empty
@@ -111,7 +112,8 @@ float_keys = [
     'tau',        # surface tension parameter in Vaspsol
     'langevin_gamma_l', # Friction for lattice degrees of freedom
     'pmass', # Mass for latice degrees of freedom
-    'bparam',     # B parameter for (r)VV10 nonlocal VDW functional
+    'bparam',     # B parameter for nonlocal VV10 vdW functional
+    'cparam',     # C parameter for nonlocal VV10 vdW functional
 ]
 
 exp_keys = [
@@ -180,7 +182,6 @@ int_keys = [
     'nsw',        # number of steps for ionic upd.
     'nupdown',    # fix spin moment to specified value
     'nwrite',     # verbosity write-flag (how much is written)
-    'smass',      # Nose mass-parameter (am)
     'vdwgr',      # extra keyword for Andris program
     'vdwrn',      # extra keyword for Andris program
     'voskown',    # use Vosko, Wilk, Nusair interpolation
@@ -334,6 +335,9 @@ class GenerateVaspInput(object):
         'tpss': {'metagga': 'TPSS'},
         'revtpss': {'metagga': 'RTPSS'},
         'm06l': {'metagga': 'M06L'},
+        'ms0': {'metagga': 'MS0'},
+        'ms1': {'metagga': 'MS1'},
+        'ms2': {'metagga': 'MS2'},
         'scan': {'metagga': 'SCAN'},
         'scan-rvv10': {'metagga': 'SCAN', 'luse_vdw': True, 'bparam': 15.7},
         # vdW-DFs
@@ -356,6 +360,21 @@ class GenerateVaspInput(object):
         'hse03': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.3},
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
+
+    # elements which have no-suffix files only
+    setups_defaults = {'K':  '_pv',
+       'Ca': '_pv',
+       'Rb': '_pv',
+       'Sr': '_sv',
+       'Y':  '_sv',
+       'Zr': '_sv',
+       'Nb': '_pv',
+       'Cs': '_sv',
+       'Ba': '_sv',
+       'Fr': '_sv',
+       'Ra': '_sv',
+       'Sc': '_sv'}
+
 
     def __init__(self, restart=None):
         self.float_params = {}
@@ -527,12 +546,18 @@ class GenerateVaspInput(object):
         special_setups = []
         symbols = []
         symbolcount = {}
-        if self.input_params['setups']:
-            for m in self.input_params['setups']:
-                try:
-                    special_setups.append(int(m))
-                except ValueError:
-                    continue
+
+        # make sure we find POTCARs for elements which have no-suffix files only
+        setups = self.setups_defaults.copy()
+        # override with user defined setups
+        if p['setups'] is not None:
+            setups.update(p['setups'])
+
+        for m in setups:
+            try:
+                special_setups.append(int(m))
+            except ValueError:
+                continue
 
         for m, atom in enumerate(atoms):
             symbol = atom.symbol
@@ -588,15 +613,15 @@ class GenerateVaspInput(object):
         # Setting the pseudopotentials, first special setups and
         # then according to symbols
         for m in special_setups:
-            if m in p['setups']:
+            if m in setups:
                 special_setup_index = m
-            elif str(m) in p['setups']:
+            elif str(m) in setups:
                 special_setup_index = str(m)
             else:
                 raise Exception("Having trouble with special setup index {0}."
                                 " Please use an int.".format(m))
             potcar = join(pp_folder,
-                          p['setups'][special_setup_index],
+                          setups[special_setup_index],
                           'POTCAR')
             for path in pppaths:
                 filename = join(path, potcar)
@@ -613,7 +638,7 @@ class GenerateVaspInput(object):
 
         for symbol in symbols:
             try:
-                potcar = join(pp_folder, symbol + p['setups'][symbol],
+                potcar = join(pp_folder, symbol + setups[symbol],
                               'POTCAR')
             except (TypeError, KeyError):
                 potcar = join(pp_folder, symbol, 'POTCAR')
@@ -966,14 +991,14 @@ class GenerateVaspInput(object):
                 kpts = np.array([int(lines[3].split()[i]) for i in range(1)])
             elif ktype == 'm':
                 kpts = np.array([int(lines[3].split()[i]) for i in range(3)])
-            self.set(kpts=kpts)
         else:
             if ktype in ['c', 'k']:
                 self.set(reciprocal=False)
             else:
                 self.set(reciprocal=True)
-            kpts = np.array([map(float, line.split()) for line in lines[3:]])
-            self.set(kpts=kpts)
+            kpts = np.array([list(map(float, line.split()))
+                             for line in lines[3:]])
+        self.set(kpts=kpts)
 
     def read_potcar(self):
         """ Read the pseudopotential XC functional from POTCAR file.
@@ -1003,9 +1028,9 @@ class GenerateVaspInput(object):
         self.input_params['pp'] = xc_dict[xc_flag]
 
     def todict(self):
-        """Returns a dictionary of all parameters 
+        """Returns a dictionary of all parameters
         that can be used to construct a new calculator object"""
-        dict_list = [ 
+        dict_list = [
             'float_params',
             'exp_params',
             'string_params',

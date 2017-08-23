@@ -6,6 +6,7 @@ from ase.gui.i18n import _
 import numpy as np
 
 import ase.gui.ui as ui
+from ase.gui.utils import get_magmoms
 
 
 class ColorWindow:
@@ -32,19 +33,23 @@ class ColorWindow:
 
     def activate(self):
         images = self.gui.images
+        atoms = self.gui.atoms
         radio = self.radio
-        radio['tag'].active = images.T.any()
-        radio['force'].active = np.isfinite(images.F).all()
-        radio['velocity'].active = np.isfinite(images.V).all()
-        radio['charge'].active = images.q.any()
-        radio['magmom'].active = images.M.any()
+        radio['tag'].active = atoms.has('tags')
+
+        # XXX not sure how to deal with some images having forces,
+        # and other images not.  Same goes for below quantities
+        F = images.get_forces(atoms)
+        radio['force'].active = F is not None
+        radio['velocity'].active = atoms.has('momenta')
+        radio['charge'].active = atoms.has('charges')
+        radio['magmom'].active = get_magmoms(atoms).any()
 
     def toggle(self, value):
+        self.gui.colormode = value
         if value == 'jmol':
-            self.gui.set_colors()
             text = ''
         else:
-            self.gui.colormode = value
             scalars = np.array([self.gui.get_color_scalars(i)
                                 for i in range(len(self.gui.images))])
             mn = scalars.min()

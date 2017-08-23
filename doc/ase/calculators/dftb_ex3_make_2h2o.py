@@ -90,4 +90,4 @@ os.system('mv geo_end.xyz geo_end_NVT.xyz')
 write_dftb_velocities(test, 'velocities.txt')
 
 # to watch:
-#  ase-gui geo_end_NVE.xyz geo_end_NVT.xyz
+#  ase gui geo_end_NVE.xyz geo_end_NVT.xyz

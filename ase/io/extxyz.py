@@ -20,6 +20,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.calculator import all_properties, Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.spacegroup.spacegroup import Spacegroup
 from ase.parallel import paropen
 from ase.utils import basestring
 
@@ -132,6 +133,8 @@ def key_val_dict_to_str(d, sep=' '):
                            for x in val.reshape(val.size, order='F'))
             val.replace('[', '')
             val.replace(']', '')
+        elif isinstance(val, Spacegroup):
+            val = val.symbol
         else:
             val = type_val_map.get((type(val), val), val)
 
@@ -454,9 +457,9 @@ def output_column_format(atoms, columns, arrays,
     fmt_map = {'d': ('R', '%16.8f '),
                'f': ('R', '%16.8f '),
                'i': ('I', '%8d '),
-               'O': ('S', '%s'),
-               'S': ('S', '%s'),
-               'U': ('S', '%s'),
+               'O': ('S', '%s '),
+               'S': ('S', '%s '),
+               'U': ('S', '%s '),
                'b': ('L', ' %.1s ')}
 
     # NB: Lattice is stored as tranpose of ASE cell,
@@ -498,7 +501,11 @@ def output_column_format(atoms, columns, arrays,
                               property_types,
                               [str(nc) for nc in property_ncols])])
 
-    comment_str = lattice_str + ' Properties=' + props_str
+    comment_str = ''
+    if atoms.cell.any():
+        comment_str += lattice_str + ' '
+    comment_str += 'Properties={}'.format(props_str)
+
     info = {}
     if write_info:
         info.update(atoms.info)
@@ -514,7 +521,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, append=False, plain=False):
+              write_results=True, plain=False):
     """
     Write output in extended XYZ format
 

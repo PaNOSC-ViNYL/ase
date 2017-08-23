@@ -1,42 +1,23 @@
 
-python_2_6_tests:
-  image: centos:6
-  script:
-    - yum -y update && yum clean all
-    - yum -y install scipy numpy
-    # some tests fail with numpy-1.4, use a newer version
-    - easy_install pip wheel
-    - pip install numpy==1.6.2
-    - pwd
-    - echo $HOME
-    - cd ..
-    - echo $PWD
-    # using 'install from source' instructions
-    - export PATH=$PATH:$CI_PROJECT_DIR/tools
-    - echo $PATH
-    - export PYTHONPATH=$CI_PROJECT_DIR
-    - echo $PYTHONPATH
-    # tests
-    - python --version
-    # module can't be executed as script on py 2.6
-    - python -m ase.test.__main__
-
 python_2_7_tests:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy python-scipy pyflakes
+    - apt-get install -qy python-pip python-numpy python-scipy pyflakes libhdf5-dev libnetcdf-dev cython
+    - pip install --upgrade setuptools
+    - pip install --user netCDF4
     - pwd
     - echo $HOME
     - cd ..
     - echo $PWD
     # using 'install from source' instructions
-    - export PATH=$PATH:$CI_PROJECT_DIR/tools
+    - export PATH=$PATH:$CI_PROJECT_DIR/bin
     - echo $PATH
     - export PYTHONPATH=$CI_PROJECT_DIR
     - echo $PYTHONPATH
     # tests
     - python --version
-    - python -m ase.test
+    - ase info
+    - ase test
     # pyflakes code check
     - cd $CI_PROJECT_DIR
     - PYTHONPATH=$PWD python ase/test/__init__.py
@@ -44,7 +25,9 @@ python_2_7_tests:
 python_3_tests:
   script:
     - apt-get update -qy
-    - apt-get install -qy python3-pip python3-numpy python3-scipy pyflakes gettext
+    - apt-get install -qy python3-pip python3-numpy python3-scipy pyflakes gettext libhdf5-dev libnetcdf-dev cython3
+    - pip3 install --upgrade setuptools
+    - pip3 install --user netCDF4
     # install ase into current python environment to ensure
     # any shebang lines in scripts point to python3
     - pip3 install --user .
@@ -54,7 +37,8 @@ python_3_tests:
     - mkdir -p /tmp/test/ && cd /tmp/test && echo $PWD
     # Run tests
     - python3 --version
-    - python3 -m ase.test
+    - ase info
+    - ase test -v
     # pyflakes code check
     - cd $CI_PROJECT_DIR
     - python3 ase/test/__init__.py

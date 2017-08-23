@@ -5,8 +5,7 @@ from ase.optimize.bfgs import BFGS
 from ase.build import molecule
 
 
-system = molecule('CH3CH2OH')
-system.center(vacuum=5.0)
+system = molecule('CH3CH2OH', vacuum=5.0)
 system.rattle(stdev=0.3)
 
 # Angles, Bonds, Dihedrals are built up with  pairs of constraint

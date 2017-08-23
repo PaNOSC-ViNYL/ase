@@ -199,9 +199,8 @@ same valid roots.
 
 An example of using your own primitive cell::
 
-  from ase.lattice.root import root_surface
-  from ase.build import fcc111
-  atoms = fcc111("Ag", (1, 1, 3))
+  from ase.build import fcc111, root_surface
+  atoms = fcc111('Ag', (1, 1, 3))
   atoms = root_surface(atoms, 27)
 
 .. image:: fcc111_root.png

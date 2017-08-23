@@ -52,11 +52,12 @@ class GUI(View, Status):
 
         menu = self.get_menu_data(show_unit_cell, show_bonds)
 
-        self.window = ui.ASEGUIWindow(self.exit, menu, self.config,
-                                      self.scroll,
-                                      self.scroll_event,
-                                      self.press, self.move, self.release,
-                                      self.resize)
+        self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
+                                      config=self.config, scroll=self.scroll,
+                                      scroll_event=self.scroll_event,
+                                      press=self.press, move=self.move,
+                                      release=self.release,
+                                      resize=self.resize)
 
         View.__init__(self, rotations)
         Status.__init__(self)
@@ -68,18 +69,18 @@ class GUI(View, Status):
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
         self.moving = False
+        self.move_atoms_mask = None
 
     def run(self, expr=None, test=None):
-        self.set_colors()
-        self.set_coordinates(self.images.nimages - 1, focus=True)
+        self.set_frame(len(self.images) - 1, focus=True)
 
-        if self.images.nimages > 1:
+        if len(self.images) > 1:
             self.movie()
 
         if expr is None:
             expr = self.config['gui_graphs_string']
 
-        if expr is not None and expr != '' and self.images.nimages > 1:
+        if expr is not None and expr != '' and len(self.images) > 1:
             self.plot_graphs(expr=expr)
 
         if test:
@@ -89,6 +90,10 @@ class GUI(View, Status):
 
     def toggle_move_mode(self, key=None):
         self.moving ^= True
+        if self.moving:
+            self.move_atoms_mask = self.images.selected.copy()
+        else:
+            self.move_atoms_mask = None
         self.draw()
 
     def step(self, key):
@@ -96,10 +101,10 @@ class GUI(View, Status):
              'Page-Up': -1,
              'Page-Down': 1,
              'End': 10000000}[key]
-        i = max(0, min(self.images.nimages - 1, self.frame + d))
+        i = max(0, min(len(self.images) - 1, self.frame + d))
         self.set_frame(i)
         if self.movie_window is not None:
-            self.movie_window.frame_number.value = i
+            self.movie_window.frame_number.value = i + 1
 
     def _do_zoom(self, x):
         """Utility method for zooming"""
@@ -115,9 +120,9 @@ class GUI(View, Status):
         """Zoom in/out when using mouse wheel"""
         SHIFT = event.modifier == 'shift'
         x = 1.0
-        if event.button == 4:
+        if event.button == 4 or event.delta > 0:
             x = 1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01
-        elif event.button == 5:
+        elif event.button == 5 or event.delta < 0:
             x = 1.0 / (1.0 + (1 - SHIFT) * 0.2 + SHIFT * 0.01)
         self._do_zoom(x)
 
@@ -139,7 +144,7 @@ class GUI(View, Status):
             vec *= 0.1
 
         if self.moving:
-            self.images.P[:, self.images.selected] += vec
+            self.atoms.positions[self.move_atoms_mask[:len(self.atoms)]] += vec
             self.set_frame()
         else:
             self.center -= vec
@@ -152,14 +157,12 @@ class GUI(View, Status):
         nselected = sum(self.images.selected)
         if nselected and ui.ask_question('Delete atoms',
                                          'Delete selected atoms?'):
-            atoms = self.images.get_atoms(self.frame)
-            lena = len(atoms)
-            for i in range(len(atoms)):
-                li = lena - 1 - i
-                if self.images.selected[li]:
-                    del atoms[li]
-            self.new_atoms(atoms)
+            mask = self.images.selected[:len(self.atoms)]
+            del self.atoms[mask]
 
+            # Will remove selection in other images, too
+            self.images.selected[:] = False
+            self.set_frame()
             self.draw()
 
     def execute(self):
@@ -179,13 +182,14 @@ class GUI(View, Status):
         self.draw()
 
     def select_constrained_atoms(self, key=None):
-        self.images.selected[:] = ~self.images.dynamic
+        self.images.selected[:] = ~self.images.get_dynamic(self.atoms)
         self.draw()
 
     def select_immobile_atoms(self, key=None):
-        if self.images.nimages > 1:
-            R0 = self.images.P[0]
-            for R in self.images.P[1:]:
+        if len(self.images) > 1:
+            R0 = self.images[0].positions
+            for atoms in self.images[1:]:
+                R = atoms.positions
                 self.images.selected[:] = ~(np.abs(R - R0) > 1.0e-10).any(1)
         self.draw()
 
@@ -217,12 +221,12 @@ class GUI(View, Status):
         if len(self.images) <= 1:
             return
         N = self.images.repeat.prod()
-        natoms = self.images.natoms // N
-        R = self.images.P[:, :natoms]
-        E = self.images.E
-        F = self.images.F[:, :natoms]
-        A = self.images.A[0]
-        pbc = self.images.pbc
+        natoms = len(self.images[0]) // N
+        R = [a.positions[:natoms] for a in self.images]
+        E = [self.images.get_energy(a) for a in self.images]
+        F = [self.images.get_forces(a) for a in self.images]
+        A = self.images[0].cell
+        pbc = self.images[0].pbc
         process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
                                    stdin=subprocess.PIPE)
         pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
@@ -230,11 +234,11 @@ class GUI(View, Status):
         self.graphs.append(process)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase.eos',
+        process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
                                     '--plot', '-'],
                                    stdin=subprocess.PIPE)
-        v = [abs(np.linalg.det(A)) for A in self.images.A]
-        e = self.images.E
+        v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
+        e = [self.images.get_energy(a) for a in self.images]
         pickle.dump((v, e), process.stdin, protocol=0)
         process.stdin.close()
         self.graphs.append(process)
@@ -268,8 +272,7 @@ class GUI(View, Status):
         filename = filename or chooser.go()
         if filename:
             self.images.read([filename], slice(None), format[0])
-            self.set_colors()
-            self.set_coordinates(self.images.nimages - 1, focus=True)
+            self.set_frame(len(self.images) - 1, focus=True)
 
     def modify_atoms(self, key=None):
         from ase.gui.modify import ModifyAtoms
@@ -286,7 +289,7 @@ class GUI(View, Status):
     def bulk_window(self):
         SetupBulkCrystal(self)
 
-    def surface_window(self, menuitem):
+    def surface_window(self):
         SetupSurfaceSlab(self)
 
     def nanoparticle_window(self):
@@ -314,8 +317,7 @@ class GUI(View, Status):
         self.images.initialize([atoms], init_magmom=init_magmom)
         self.frame = 0  # Prevent crashes
         self.images.repeat_images(rpt)
-        self.set_colors()
-        self.set_coordinates(frame=0, focus=True)
+        self.set_frame(frame=0, focus=True)
         self.notify_vulnerable()
 
     def prepare_new_atoms(self):
@@ -326,7 +328,7 @@ class GUI(View, Status):
         "Set a new atoms object."
         # self.notify_vulnerable()   # Do this manually after last frame.
         frame = self.images.append_atoms(atoms)
-        self.set_coordinates(frame=frame - 1, focus=True)
+        self.set_frame(frame=frame - 1, focus=True)
 
     def notify_vulnerable(self):
         """Notify windows that would break when new_atoms is called.
@@ -356,8 +358,8 @@ class GUI(View, Status):
             process.terminate()
         self.window.close()
 
-    def new(self):
-        os.system('ase-gui &')
+    def new(self, key=None):
+        os.system('ase gui &')
 
     def save(self, key=None):
         return save_dialog(self)
@@ -387,7 +389,7 @@ class GUI(View, Status):
               M(_('Select _constrained atoms'), self.select_constrained_atoms),
               M(_('Select _immobile atoms'), self.select_immobile_atoms,
                 key='Ctrl+I'),
-              M('---'),
+              #M('---'),
               # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
               # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
               M('---'),
@@ -455,7 +457,7 @@ class GUI(View, Status):
               M(_('Movie ...'), self.movie),
               M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
               M(_('Constraints ...'), self.constraints_window),
-              M(_('Render scene ...'), self.render_window, disabled=True),
+              M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),
@@ -463,7 +465,7 @@ class GUI(View, Status):
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             (_('_Setup'),
              [M(_('_Bulk Crystal'), self.bulk_window, disabled=True),
-              M(_('_Surface slab'), self.surface_window, disabled=True),
+              M(_('_Surface slab'), self.surface_window, disabled=False),
               M(_('_Nanoparticle'),
                 self.nanoparticle_window),
               M(_('Nano_tube'), self.nanotube_window),
