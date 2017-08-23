@@ -112,26 +112,29 @@ def ltidos(cell, eigs, energies, weights=None):
 
     for s in dt.simplices:
         kpts = dt.points[s]
+        try:
+            M = np.linalg.inv(kpts[1:, :] - kpts[0, :])
+        except np.linalg.linalg.LinAlgError:
+            continue
         for i in range(I):
             for j in range(J):
                 for k in range(K):
                     E = np.array([eigs[(i + a) % I, (j + b) % J, (k + c) % K]
                                   for a, b, c in indices[s]])
                     if weights is None:
-                        integrate(kpts, E)
+                        integrate(kpts, M, E)
                     else:
                         w = np.array([weights[(i + a) % I, (j + b) % J,
                                               (k + c) % K]
                                       for a, b, c in indices[s]])
-                        integrate(kpts, E, w)
+                        integrate(kpts, M, E, w)
 
     return dos * abs(np.linalg.det(cell))
 
 
-def _lti(energies, dos, kpts, E, W=None):
+def _lti(energies, dos, kpts, M, E, W=None):
     zero = energies[0]
     de = energies[1] - zero
-    M = np.linalg.inv(kpts[1:, :] - kpts[0, :])
     for z, e in enumerate(E.T):
         dedk = (np.dot(M, e[1:] - e[0])**2).sum()**0.5
         i = e.argsort()
