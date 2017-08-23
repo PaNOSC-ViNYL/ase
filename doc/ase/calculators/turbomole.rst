@@ -75,8 +75,8 @@ must be checked with:
 
 If the user wishes to use the input files (such as the control file) generated
 by module ``define`` before (or without) an actual calculation starts, the
-initialize() method has to be called explicitly after constructing the calculator
-and associating it with an atoms object, e.g.:
+``initialize()`` method has to be called explicitly after constructing the 
+calculator and associating it with an atoms object, e.g.:
 
 .. code:: python
 
@@ -135,6 +135,8 @@ forces             np.array get_forces(),           forces      gradient
                             get_property('forces')
 dipole moment      np.array get_dipole_moment(),    dipole      any task
                             get_property('magmom')
+charges            np.array get_charges(),
+                            get_property('charges') charges     any task
 <S\ :sup:`2`\ >    float    get_results             results     any task
 normal modes       list     get_results             results     frequencies
 mode frequencies   list     get_results             results     frequencies
@@ -245,6 +247,7 @@ values.
              density convergence float         None           None          True
               density functional   str          b-p           None          True
               energy convergence float         None             eV          True
+                         esp fit   str         None           None          True
           fermi annealing factor float         0.95           None          True
          fermi final temperature float          300         Kelvin          True
    fermi homo-lumo gap criterion float          0.1             eV          True
@@ -306,7 +309,7 @@ the parameters is to construct a dictionary, for example:
             'force convergence': 0.05}
   calc = Turbomole(**params)
 
-Using the todict() method, the parameters of an existing Turbomole calculator
+Using the ``todict()`` method, the parameters of an existing Turbomole calculator
 object can be stored in a flat dictionary and then re-used to create a
 new Turbomole calculator object:
 
@@ -347,6 +350,41 @@ Geometry optimization and normal mode analysis for H2O
 ------------------------------------------------------
 
 :git:`ase/test/turbomole/turbomole_h2o.py`.
+
+
+QMMM simulation
+---------------
+
+The following example demonstrates how to use the Turbomole calculator in simple
+and explicit QMMM simulations on the examples of a water dimer partitioned into
+an MM and a QM region. The MM region is treated within a TIP3P model in the MM
+calculator and as an array of point charges in the QM calculation. The
+interaction between the QM and MM regions, used in the explicit QMMM calculator,
+is of Lennard-Jones type.
+
+:git:`ase/test/turbomole/turbomole_qmmm.py`.
+
+The point charge embedding functionality of the Turbomole calculator can also be
+used without QMMM calculators if the ``embed()`` method is called with a
+specification of the point charges and their positions in which to embed the
+QM system:
+
+.. code:: python
+
+    from ase.collections import s22
+    from ase.calculators.turbomole import Turbomole
+
+    params = {'esp fit': 'kollman', 'multiplicity': 1}
+    dimer = s22['Water_dimer']
+    qm_mol = dimer[0:3]
+    calc = Turbomole(atoms=qm_mol, **params)
+    calc.embed(
+        charges=[-0.76, 0.38,  0.38],
+        positions=dimer.positions[3:6]
+    )
+    print(qm_mol.get_potential_energy())
+    print(qm_mol.get_forces())
+    print(qm_mol.get_charges())
 
 
 Deprecated, non-implemented and unsupported features
