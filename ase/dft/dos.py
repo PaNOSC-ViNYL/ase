@@ -3,6 +3,8 @@ from math import pi, sqrt
 
 import numpy as np
 
+from ase.dft.kpoints import get_monkhorst_pack_size_and_offset
+
 
 class DOS:
     def __init__(self, calc, width=0.1, window=None, npts=401):
@@ -11,7 +13,8 @@ class DOS:
         calc: calculator object
             Any ASE compliant calculator object.
         width: float
-            Width of guassian smearing.
+            Width of guassian smearing.  Use width=0.0 for linear tetrahedron
+            interpolation.
         window: tuple of two float
             Use ``window=(emin, emax)``.  If not specified, a window
             big enough to hold all the eigenvalues will be used.
@@ -36,6 +39,14 @@ class DOS:
             emin, emax = window
 
         self.energies = np.linspace(emin, emax, npts)
+
+        if width == 0.0:
+            bzkpts = calc.get_bz_k_points()
+            size, offset = get_monkhorst_pack_size_and_offset(bzkpts)
+            bz2ibz = calc.get_bz_to_ibz_map()
+            shape = (self.nspins,) + tuple(size) + (-1,)
+            self.e_skn = self.e_skn[:, bz2ibz].reshape(shape)
+            self.cell = calc.atoms.cell
 
     def get_energies(self):
         """Return the array of energies used to sample the DOS.
@@ -64,6 +75,9 @@ class DOS:
             else:
                 spin = 0
 
+        if self.width == 0.0:
+            return ltidos(self.cell, self.e_skn[spin], self.energies)
+
         dos = np.zeros(self.npts)
         for w, e_n in zip(self.w_k, self.e_skn[spin]):
             for e in e_n:
@@ -71,7 +85,50 @@ class DOS:
         return dos
 
 
-def tintegrate(energies, dos, kpts, E, W=None):
+def ltidos(cell, eigs, energies, weights=None):
+    """DOS from linear tetrahedron interpolation.
+
+    cell: 3x3 ndarray-like
+        Unit cell.
+    eigs: (n1, n2, n3, nbands)-shaped ndarray
+        Eigenvalues on a Monkhorst-Pack grid (not reduced).
+    energies: 1-d array-like
+        Energies where the DOS is calculated (must be a uniform grid).
+    weights: (n1, n2, n3, nbands)-shaped ndarray
+        Weights.  Defaults to 1.
+    """
+
+    from scipy.spatial import Delaunay
+
+    I, J, K = size = eigs.shape[:3]
+    B = (np.linalg.inv(cell) / size).T
+
+    indices = np.array([[i, j, k]
+                        for i in [0, 1] for j in [0, 1] for k in [0, 1]])
+    dt = Delaunay(np.dot(indices, B))
+
+    dos = np.zeros_like(energies)
+    integrate = functools.partial(_lti, energies, dos)
+
+    for s in dt.simplices:
+        kpts = dt.points[s]
+        for i in range(I):
+            for j in range(J):
+                for k in range(K):
+                    E = np.array([eigs[(i + a) % I, (j + b) % J, (k + c) % K]
+                                  for a, b, c in indices[s]])
+                    if weights is None:
+                        integrate(kpts, E)
+                    else:
+                        w = np.array([weights[(i + a) % I, (j + b) % J,
+                                              (k + c) % K]
+                                      for a, b, c in indices[s]])
+                        integrate(kpts, E, w)
+
+    return dos * abs(np.linalg.det(cell))
+
+
+def _lti(energies, dos, kpts, E, W=None):
     zero = energies[0]
     de = energies[1] - zero
     M = np.linalg.inv(kpts[1:, :] - kpts[0, :])
@@ -141,34 +198,3 @@ def tintegrate(energies, dos, kpts, E, W=None):
                                    [x30, x31, x32, x03 + x13 + x23])
                         w /= 6 * dedk
                     dos[m:n] += (np.cross(k2, k3, 0, 0)**2).sum(1)**0.5 * w
-
-
-def tetrahedra_integrate(cell, eigs, energies=None, weights=None):
-    from scipy.spatial import Delaunay
-
-    I, J, K = size = eigs.shape[:3]
-    B = (np.linalg.inv(cell) / size).T
-
-    indices = np.array([[i, j, k]
-                        for i in [0, 1] for j in [0, 1] for k in [0, 1]])
-    dt = Delaunay(np.dot(indices, B))
-
-    dos = np.zeros_like(energies)
-    integrate = functools.partial(tintegrate, energies, dos)
-
-    for s in dt.simplices:
-        kpts = dt.points[s]
-        for i in range(I):
-            for j in range(J):
-                for k in range(K):
-                    E = np.array([eigs[(i + a) % I, (j + b) % J, (k + c) % K]
-                                  for a, b, c in indices[s]])
-                    if weights is None:
-                        integrate(kpts, E)
-                    else:
-                        w = np.array([weights[(i + a) % I, (j + b) % J,
-                                              (k + c) % K]
-                                      for a, b, c in indices[s]])
-                        integrate(kpts, E, w)
-
-    return dos * abs(np.linalg.det(cell))
