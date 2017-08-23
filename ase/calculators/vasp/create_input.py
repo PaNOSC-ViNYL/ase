@@ -109,6 +109,9 @@ float_keys = [
     'vdw_a2',     # Damping parameter for Grimme's DFT-D3 dispersion correction
     'eb_k',       # solvent permitivity in Vaspsol
     'tau',        # surface tension parameter in Vaspsol
+    'langevin_gamma_l', # Friction for lattice degrees of freedom
+    'pmass', # Mass for latice degrees of freedom
+    'bparam',     # B parameter for (r)VV10 nonlocal VDW functional
 ]
 
 exp_keys = [
@@ -204,6 +207,8 @@ int_keys = [
     'mdalgo',     # Determines which MD method of Tomas Bucko to use
     'nedos',      # Number of grid points in DOS
     'turbo',      # Ewald, 0 = Normal, 1 = PME
+    'omegapar',   # Number of groups for response function calc.
+    'taupar',     # Number of groups in real time for response function calc.
 ]
 
 bool_keys = [
@@ -293,6 +298,7 @@ list_keys = [
                   # (DFT-TS)
     'vdw_alpha',  # List of floats of free-atomic polarizabilities for each
                   # species (DFT-TS)
+    'langevin_gamma', # List of floats for langevin friction coefficients
 ]
 
 special_keys = [
@@ -328,6 +334,8 @@ class GenerateVaspInput(object):
         'tpss': {'metagga': 'TPSS'},
         'revtpss': {'metagga': 'RTPSS'},
         'm06l': {'metagga': 'M06L'},
+        'scan': {'metagga': 'SCAN'},
+        'scan-rvv10': {'metagga': 'SCAN', 'luse_vdw': True, 'bparam': 15.7},
         # vdW-DFs
         'vdw-df': {'gga': 'RE', 'luse_vdw': True, 'aggac': 0.},
         'optpbe-vdw': {'gga': 'OR', 'luse_vdw': True, 'aggac': 0.0},
@@ -689,7 +697,7 @@ class GenerateVaspInput(object):
                             RuntimeError('Please set EDIFFG < 0')
         for key, val in self.list_params.items():
             if val is not None:
-                if key in ('dipol', 'eint', 'ropt', 'rwigs'):
+                if key in ('dipol', 'eint', 'ropt', 'rwigs', 'langevin_gamma'):
                     incar.write(' %s = ' % key.upper())
                     [incar.write('%.4f ' % x) for x in val]
                 # ldau_luj is a dictionary that encodes all the
@@ -707,7 +715,7 @@ class GenerateVaspInput(object):
                 elif key in ('ferwe', 'ferdo'):
                     incar.write(' %s = ' % key.upper())
                     [incar.write('%.1f ' % x) for x in val]
-                elif key in ('iband', 'kpuse'):
+                elif key in ('iband', 'kpuse', 'random_seed'):
                     incar.write(' %s = ' % key.upper())
                     [incar.write('%i ' % x) for x in val]
                 elif key == 'magmom':
@@ -901,12 +909,12 @@ class GenerateVaspInput(object):
                     list = []
                     if key in ('dipol', 'eint', 'ferwe', 'ferdo',
                                'ropt', 'rwigs',
-                               'ldauu', 'ldaul', 'ldauj'):
+                               'ldauu', 'ldaul', 'ldauj', 'langevin_gamma'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
                                 break
                             list.append(float(a))
-                    elif key in ('iband', 'kpuse'):
+                    elif key in ('iband', 'kpuse', 'random_seed'):
                         for a in data[2:]:
                             if a in ["!", "#"]:
                                 break
