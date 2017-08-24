@@ -1,5 +1,4 @@
 import numpy as np
-from decimal import Decimal
 from ase.atoms import Atoms
 from ase.utils import basestring
 
