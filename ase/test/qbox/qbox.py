@@ -5,8 +5,9 @@ import numpy as np
 
 from ase import Atoms
 from ase.io import qbox
+import ase
 
-test_file = os.path.join(os.path.dirname(__file__), 'test.xml')
+test_file = os.path.join(os.path.dirname(ase.__file__), 'test', 'qbox', 'test.xml')
 
 
 def read_output():
