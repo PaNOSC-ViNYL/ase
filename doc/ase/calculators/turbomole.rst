@@ -357,12 +357,13 @@ QMMM simulation
 
 The following example demonstrates how to use the Turbomole calculator in simple
 and explicit QMMM simulations on the examples of a water dimer partitioned into
-an MM and a QM region. The MM region is treated within a TIP3P model in the MM
-calculator and as an array of point charges in the QM calculation. The
-interaction between the QM and MM regions, used in the explicit QMMM calculator,
-is of Lennard-Jones type.
+an MM and a QM region.
 
 :git:`ase/test/turbomole/turbomole_qmmm.py`.
+
+The MM region is treated within a TIP3P model in the MM calculator and as an
+array of point charges in the QM calculation. The interaction between the QM
+and MM regions, used in the explicit QMMM calculator, is of Lennard-Jones type.
 
 The point charge embedding functionality of the Turbomole calculator can also be
 used without QMMM calculators if the ``embed()`` method is called with a
@@ -385,6 +386,10 @@ QM system:
     print(qm_mol.get_potential_energy())
     print(qm_mol.get_forces())
     print(qm_mol.get_charges())
+
+A more elaborated version of the latter example is used in the test script:
+
+:git:`ase/test/turbomole/turbomole_2h2o.py`.
 
 
 Deprecated, non-implemented and unsupported features

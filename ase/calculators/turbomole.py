@@ -1,6 +1,8 @@
 """
 This module defines an ASE interface to Turbomole: http://www.turbomole.com/
 
+QMMM functionality provided by Markus Kaukonen <markus.kaukonen@iki.fi>.
+
 Please read the license file (../../LICENSE)
 
 Contact: Ivan Kondov <ivan.kondov@kit.edu>
