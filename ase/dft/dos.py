@@ -33,10 +33,15 @@ class DOS:
         self.e_skn -= calc.get_fermi_level()
 
         if window is None:
-            emin = self.e_skn.min() - 5 * self.width
-            emax = self.e_skn.max() + 5 * self.width
+            emin = None
+            emax = None
         else:
             emin, emax = window
+
+        if emin is None:
+            emin = self.e_skn.min() - 5 * self.width
+        if emax is None:
+            emax = self.e_skn.max() + 5 * self.width
 
         self.energies = np.linspace(emin, emax, npts)
 
