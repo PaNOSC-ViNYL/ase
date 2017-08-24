@@ -6,7 +6,7 @@ http://www.crystal.unito.it/
 daniele.selli@unimib.it
 g.fazio3@campus.unimib.it
 
-The file 'geom.out.f34' contains the input and output geometry
+The file 'geom.f34' contains the input and output geometry
 and it will be updated during the crystal calculations.
 
 The keywords are given, for instance, as follows::
@@ -124,21 +124,6 @@ class crystal(FileIOCalculator):
         outfile.write('} \n')
 
         outfile.close()
-
-    def set(self, **kwargs):
-        changed_parameters = FileIOCalculator.set(self, **kwargs)
-        if changed_parameters:
-            self.reset()
-        return changed_parameters
-
-    def check_state(self, atoms):
-        system_changes = FileIOCalculator.check_state(self, atoms)
-        # Ignore unit cell for molecules:
-        if not atoms.pbc.any() and 'cell' in system_changes:
-            system_changes.remove('cell')
-        if self.pcpot and self.pcpot.mmpositions is not None:
-            system_changes.append('positions')
-        return system_changes
 
     def write_input(self, atoms, properties=None, system_changes=None):
         from ase.io import write
