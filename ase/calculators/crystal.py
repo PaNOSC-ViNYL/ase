@@ -26,92 +26,60 @@ import numpy as np
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
 
 
-class Dftb(FileIOCalculator):
+class crystal(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
-    if 'DFTB_COMMAND' in os.environ:
-        command = os.environ['DFTB_COMMAND'] + ' > PREFIX.out'
+    if 'CRY_COMMAND' in os.environ:
+        command = os.environ['CRY_COMMAND'] + ' > OUTPUT'
     else:
-        command = 'dftb+ > PREFIX.out'
+        command = 'crystal > OUTPUT'
 
     implemented_properties = ['energy', 'forces']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='dftb', atoms=None, kpts=None,
-                 run_manyDftb_steps=False,
+                 label='cry', atoms=None, kpts=None,
                  **kwargs):
-        """Construct a DFTB+ calculator.
+        """Construct a crystal calculator.
 
-        run_manyDftb_steps:  Logical
-            True: many steps are run by DFTB+,
-            False:a single force&energy calculation at given positions
-        ---------
-        Additional object (to be set by function embed)
-        pcpot: PointCharge object
-            An external point charge potential (only in qmmm)
         """
-
         from ase.dft.kpoints import monkhorst_pack
 
-        if 'DFTB_PREFIX' in os.environ:
-            slako_dir = os.environ['DFTB_PREFIX']
+        if 'CRY_BASIS' in os.environ:
+            basis_dir = os.environ['CRY_BASIS']
         else:
             slako_dir = './'
 
-        # to run Dftb as energy and force calculator use
-        # Driver_MaxSteps=0,
-        if run_manyDftb_steps:
-            # minimisation of molecular dynamics is run by native DFTB+
-            self.default_parameters = dict(
-                Hamiltonian_='DFTB',
-                Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
-                Hamiltonian_SlaterKosterFiles_Separator='"-"',
-                Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
-                Hamiltonian_MaxAngularMomentum_='')
-        else:
-            # using ase to get forces and energy only
-            # (single point calculation)
-            self.default_parameters = dict(
-                Hamiltonian_='DFTB',
-                Driver_='ConjugateGradient',
-                Driver_MaxForceComponent='1E-4',
-                Driver_MaxSteps=0,
-                Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
-                Hamiltonian_SlaterKosterFiles_Separator='"-"',
-                Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
-                Hamiltonian_MaxAngularMomentum_='')
+        # call crystal only to run a single point calculation
+        # [PUT HERE DEFAULT PARAMETERS]
+  #      self.default_parameters = dict(
+  #          Hamiltonian_='DFTB',
+  #          Driver_='ConjugateGradient',
+  #          Driver_MaxForceComponent='1E-4',
+  #          Driver_MaxSteps=0,
+  #          Hamiltonian_SlaterKosterFiles_='Type2FileNames',
+  #          Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+  #          Hamiltonian_SlaterKosterFiles_Separator='"-"',
+  #          Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
+  #          Hamiltonian_MaxAngularMomentum_='')
 
-        self.pcpot = None
         self.lines = None
         self.atoms = None
         self.atoms_input = None
-        self.outfilename = 'dftb.out'
+        self.outfilename = 'cry.out'
 
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
-                                  label, atoms,
+        FileIOCalculator.__init__(self, label, atoms,
                                   **kwargs)
         self.kpts = kpts
-        # kpoint stuff by ase
-        if self.kpts is not None:
-            mpgrid = kpts2mp(atoms, self.kpts)
-            mp = monkhorst_pack(mpgrid)
-            initkey = 'Hamiltonian_KPointsAndWeights'
-            self.parameters[initkey + '_'] = ''
-            for i, imp in enumerate(mp):
-                key = initkey + '_empty' + str(i)
-                self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
 
-    def write_dftb_in(self, filename):
-        """ Write the innput file for the dftb+ calculation.
-            Geometry is taken always from the file 'geo_end.gen'.
+    def write_crystal_in(self, filename):
+        """ Write the input file for the crystal calculation.
+            Geometry is taken always from the file 'geom.f34'
         """
 
         outfile = open(filename, 'w')
-        outfile.write('Geometry = GenFormat { \n')
-        outfile.write('    <<< "geo_end.gen" \n')
-        outfile.write('} \n')
+        outfile.write('Single point crystal calculation \n')
+        outfile.write('EXTERNAL \n')
+        outfile.write('END \n')
         outfile.write(' \n')
 
         # --------MAIN KEYWORDS-------
@@ -176,14 +144,12 @@ class Dftb(FileIOCalculator):
         from ase.io import write
         FileIOCalculator.write_input(
             self, atoms, properties, system_changes)
-        self.write_dftb_in(os.path.join(self.directory, 'dftb_in.hsd'))
-        write(os.path.join(self.directory, 'geo_end.gen'), atoms)
+        self.write_crystal_in(os.path.join(self.directory, 'INPUT'))
+        write(os.path.join(self.directory, 'geom.f34'), atoms)
         # self.atoms is none until results are read out,
         # then it is set to the ones at writing input
         self.atoms_input = atoms
         self.atoms = None
-        if self.pcpot:
-            self.pcpot.write_mmcharges('dftb_external_charges.dat')
 
     def read_results(self):
         """ all results are read from results.tag file
@@ -263,98 +229,3 @@ class Dftb(FileIOCalculator):
         except:
             raise RuntimeError('Problem in reading forces')
 
-    def read_charges(self):
-        """Get partial charges on atoms
-            in case we cannot find charges they are set to None
-        """
-        infile = open(os.path.join(self.directory, 'detailed.out'), 'r')
-        lines = infile.readlines()
-        infile.close()
-
-        qm_charges = []
-        for n, line in enumerate(lines):
-            if ('Atom' and 'Net charge' in line):
-                chargestart = n + 1
-                break
-        else:
-            # print('Warning: did not find DFTB-charges')
-            # print('This is ok if flag SCC=NO')
-            return None
-        lines1 = lines[chargestart:(chargestart + len(self.atoms))]
-        for line in lines1:
-            qm_charges.append(float(line.split()[-1]))
-
-        return np.array(qm_charges)
-
-    def get_charges(self, atoms):
-        """ Get the calculated charges
-        this is inhereted to atoms object """
-        if 'charges' in self.results:
-            return self.results['charges']
-        else:
-            return None
-
-    def embed(self, mmcharges=None, directory='./'):
-        """Embed atoms in point-charges (mmcharges)
-        """
-        self.pcpot = PointChargePotential(mmcharges, self.directory)
-        return self.pcpot
-
-
-class PointChargePotential:
-    def __init__(self, mmcharges, directory='./'):
-        """Point-charge potential for DFTB+.
-        """
-        self.mmcharges = mmcharges
-        self.directory = directory
-        self.mmpositions = None
-        self.mmforces = None
-
-    def set_positions(self, mmpositions):
-        self.mmpositions = mmpositions
-
-    def set_charges(self, mmcharges):
-        self.mmcharges = mmcharges
-
-    def write_mmcharges(self, filename='dftb_external_charges.dat'):
-        """ mok all
-        write external charges as monopoles for dftb+.
-
-        """
-        if self.mmcharges is None:
-            print("DFTB: Warning: not writing exernal charges ")
-            return
-        charge_file = open(os.path.join(self.directory, filename), 'w')
-        for [pos, charge] in zip(self.mmpositions, self.mmcharges):
-            [x, y, z] = pos
-            charge_file.write('%12.6f %12.6f %12.6f %12.6f \n'
-                              % (x, y, z, charge))
-        charge_file.close()
-
-    def get_forces(self, calc, get_forces=False):
-        """ returns forces on point charges if the flag get_forces=True """
-        if get_forces:
-            return self.read_forces_on_pointcharges()
-        else:
-            return np.zeros_like(self.mmpositions)
-
-    def read_forces_on_pointcharges(self):
-        """Read Forces from dftb output file (results.tag)."""
-        from ase.units import Hartree, Bohr
-        infile = open(os.path.join(self.directory, 'detailed.out'), 'r')
-        lines = infile.readlines()
-        infile.close()
-
-        external_forces = []
-        for n, line in enumerate(lines):
-            if ('Forces on external charges' in line):
-                chargestart = n + 1
-                break
-        else:
-            raise RuntimeError(
-                'Problem in reading forces on MM external-charges')
-        lines1 = lines[chargestart:(chargestart + len(self.mmcharges))]
-        for line in lines1:
-            external_forces.append(
-                [float(i) for i in line.split()])
-        return np.array(external_forces) * Hartree / Bohr
