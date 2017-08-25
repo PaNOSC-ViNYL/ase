@@ -154,6 +154,7 @@ extension2format = {
     'config': 'dlp4',
     'exi': 'exciting',
     'f34': 'crystal',
+    '34': 'crystal',
     'g96': 'gromos',
     'geom': 'castep-geom',
     'gro': 'gromacs',
@@ -571,6 +572,8 @@ def filetype(filename, read=True, guess=True):
         if basename == 'coord':
             return 'turbomole'
         if basename == 'f34':
+            return 'crystal'
+        if basename == '34':
             return 'crystal'
         if basename == 'gradient':
             return 'turbomole-gradient'

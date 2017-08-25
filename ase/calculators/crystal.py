@@ -73,14 +73,20 @@ class crystal(FileIOCalculator):
 
     def write_crystal_in(self, filename):
         """ Write the input file for the crystal calculation.
-            Geometry is taken always from the file 'geom.f34'
+            Geometry is taken always from the file 'fort.34'
         """
 
         outfile = open(filename, 'w')
-        outfile.write('Single point crystal calculation \n')
+        outfile.write('Single point + Gradient crystal calculation \n')
         outfile.write('EXTERNAL \n')
+        outfile.write('OPTGEOM \n')
+        outfile.write('FINALRUN \n')
+        outfile.write('0 \n')
+        outfile.write('MAXCYCLE \n')
+        outfile.write('1 \n')
         outfile.write('END \n')
-        outfile.write(' \n')
+        outfile.write('END \n')
+
 
         # --------MAIN KEYWORDS-------
         previous_key = 'dummy_'
@@ -130,7 +136,7 @@ class crystal(FileIOCalculator):
         FileIOCalculator.write_input(
             self, atoms, properties, system_changes)
         self.write_crystal_in(os.path.join(self.directory, 'INPUT'))
-        write(os.path.join(self.directory, 'geom.f34'), atoms)
+        write(os.path.join(self.directory, 'fort.34'), atoms)
         # self.atoms is none until results are read out,
         # then it is set to the ones at writing input
         self.atoms_input = atoms
