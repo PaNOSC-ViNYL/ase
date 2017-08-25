@@ -33,9 +33,9 @@ class crystal(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
     if 'CRY_COMMAND' in os.environ:
-        command = os.environ['CRY_COMMAND'] + ' > OUTPUT'
+        command = os.environ['CRY_COMMAND'] + ' < INPUT > OUTPUT'
     else:
-        command = 'crystal > OUTPUT'
+        command = 'crystal < INPUT > OUTPUT'
 
     implemented_properties = ['energy', 'forces']
 
@@ -47,13 +47,14 @@ class crystal(FileIOCalculator):
         """
         from ase.dft.kpoints import monkhorst_pack
 
-        if 'CRY_BASIS' in os.environ:
-            basis_dir = os.environ['CRY_BASIS']
-        else:
-            basis_dir = './'
-
-        # call crystal only to run a single point calculation
-        # [PUT HERE DEFAULT PARAMETERS]
+  #      [TO BE DONE]
+  #      if 'CRY_BASIS' in os.environ:
+  #          basis_dir = os.environ['CRY_BASIS']
+  #      else:
+  #          basis_dir = './'
+  #
+  #      # call crystal only to run a single point calculation
+  #      # [PUT HERE DEFAULT PARAMETERS]
   #      self.default_parameters = dict(
   #          Hamiltonian_='DFTB',
   #          Driver_='ConjugateGradient',
@@ -80,6 +81,7 @@ class crystal(FileIOCalculator):
             Geometry is taken always from the file 'fort.34'
         """
 
+        # write BLOCK 1 of crystal input (only SP with gradients)
         outfile = open(filename, 'w')
         outfile.write('Single point + Gradient crystal calculation \n')
         outfile.write('EXTERNAL \n')
@@ -90,14 +92,22 @@ class crystal(FileIOCalculator):
         outfile.write('1 \n')
         outfile.write('END \n')
         outfile.write('END \n')
+       
         
-
-        # --------MAIN KEYWORDS-------
+        # write BLOCK 2 of crystal input from file (basis sets)
+        basisfile = open(os.path.join(self.directory, 'basis'))
+	basis = basisfile.readlines()
+	for line in basis:
+	    outfile.write(line)
+	
+        # write BLOCK 3 according to parameters set as input
         newline = '\n'
         for key, value in sorted(self.parameters.items()):
             if value:	
                 outfile.write(key+newline)
 
+        outfile.write('END \n')
+        
         outfile.close()
 
     def write_input(self, atoms, properties=None, system_changes=None):

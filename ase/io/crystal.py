@@ -55,10 +55,10 @@ def write_crystal(filename, atoms):
     # write symmetry operations (not implemented yet for
     # higher symmetries than C1)
     myfile.write(' %2s \n' % (1))
-    myfile.write(' %.17E %.17E %.17E \n' % (0, 0, 0))
     myfile.write(' %.17E %.17E %.17E \n' % (1, 0, 0))
     myfile.write(' %.17E %.17E %.17E \n' % (0, 1, 0))
     myfile.write(' %.17E %.17E %.17E \n' % (0, 0, 1))
+    myfile.write(' %.17E %.17E %.17E \n' % (0, 0, 0))
 
 
     # write coordinates
