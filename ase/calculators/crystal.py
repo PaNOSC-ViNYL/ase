@@ -1,6 +1,5 @@
 """This module defines an ASE interface to CRYSTAL14
 
-
 http://www.crystal.unito.it/
 
 daniele.selli@unimib.it
@@ -11,10 +10,13 @@ and it will be updated during the crystal calculations.
 
 The keywords are given, for instance, as follows::
 
-    DFT_SPIN ='YES',
-    DFT_CORRELAT = 'B3',
+    DFT = True,
+    DFT_CORRELAT = 'PBE',
+    DFT_EXCHANGE = 'PBE',
+    DFT_MET = 'B3LYP',
+    DFT_POL = 'SPIN',
     TOLDEE = 8,
-    ANDERSON = 'YES',
+    ANDERSON = 'Yes',
     FMIXING = 95,
     ... # put other examples
 
@@ -37,7 +39,8 @@ class crystal(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, label='cry', atoms=None, kpts=None,
+    def __init__(self, restart=None, ignore_bad_restart_file=False, 
+                 label='cry', atoms=None, kpts=None,
                  **kwargs):
         """Construct a crystal calculator.
 
@@ -67,7 +70,8 @@ class crystal(FileIOCalculator):
         self.atoms_input = None
         self.outfilename = 'cry.out'
 
-        FileIOCalculator.__init__(self, label, atoms,
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file, 
+                                  label, atoms,
                                   **kwargs)
         self.kpts = kpts
 
@@ -86,23 +90,24 @@ class crystal(FileIOCalculator):
         outfile.write('1 \n')
         outfile.write('END \n')
         outfile.write('END \n')
-
+        
 
         # --------MAIN KEYWORDS-------
-        previous_key = 'dummy_'
-        myspace = ' '
+        newline = '\n'
         for key, value in sorted(self.parameters.items()):
-            current_depth = key.rstrip('_').count('_')
-            previous_depth = previous_key.rstrip('_').count('_')
-            if key.endswith('_'):
-                outfile.write(key.rstrip('_').rsplit('_')[-1] +
-                              ' = ' + str(value) + '{ \n')
-            elif key.count('_empty') == 1:
-                outfile.write(str(value) + ' \n')
-            else:
-                outfile.write(key.rsplit('_')[-1] + ' = ' + str(value) + ' \n')
-            previous_key = key
-        current_depth = key.rstrip('_').count('_')
-        for my_backsclash in reversed(range(current_depth)):
-            outfile.write(3 * my_backsclash * myspace + '} \n')
+            if value:	
+                outfile.write(key+newline)
+
+        outfile.close()
+
+    def write_input(self, atoms, properties=None, system_changes=None):
+        from ase.io import write
+        FileIOCalculator.write_input(
+            self, atoms, properties, system_changes)
+        self.write_crystal_in(os.path.join(self.directory, 'INPUT'))
+        write(os.path.join(self.directory, 'fort.34'), atoms)
+        # self.atoms is none until results are read out,
+        # then it is set to the ones at writing input
+        self.atoms_input = atoms
+        self.atoms = None
 
