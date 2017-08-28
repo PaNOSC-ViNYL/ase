@@ -33,11 +33,11 @@ class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
     if 'CRY_COMMAND' in os.environ:
-        command = os.environ['CRY_COMMAND'] + ' < INPUT > OUTPUT'
+        command = os.environ['CRY_COMMAND'] + ' < INPUT > OUTPUT 2>&1'
     else:
         command = 'crystal < INPUT > OUTPUT'
 
-    implemented_properties = ['energy', 'forces']
+    implemented_properties = ['energy', 'forces', 'stress', 'charges']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cry', atoms=None, kpts=None,
@@ -94,7 +94,11 @@ class CRYSTAL(FileIOCalculator):
         outfile.write('END \n')
 
         # write BLOCK 2 of crystal input from file (basis sets)
-        basisfile = open(os.path.join(self.directory, 'basis'))
+        try:
+            basisfile = open(os.path.join(self.directory, 'basis'))
+        except:
+            raise RuntimeError('"basis" file not found')
+            print 'Please create a crystal basis set file'
         basis = basisfile.readlines()
         for line in basis:
             outfile.write(line)
@@ -131,8 +135,6 @@ class CRYSTAL(FileIOCalculator):
         myfile.close()
 
         self.atoms = self.atoms_input
- #      charges = self.read_charges()
- #      self.results['charges'] = charges
         energy = 0.0
         forces = None
         # Energy line index
@@ -165,6 +167,43 @@ class CRYSTAL(FileIOCalculator):
             raise RuntimeError('Problem in reading forces')
         
         self.results['forces'] = forces
+        
+        # stress stuff begins
+        sstring = 'STRESS TENSOR'
+        have_stress = False
+        stress = list()
+        for iline, line in enumerate(self.lines):
+            if sstring in line:
+                have_stress = True
+                start = iline + 4
+                end = start + 3
+                for i in range(start, end):
+                    cell = [float(x) for x in self.lines[i].split()]
+                    stress.append(cell)
+        if have_stress:
+            stress = -np.array(stress) * Hartree / Bohr**3
+        elif not have_stress:
+            stress = np.zeros((3, 3))
+        self.results['stress'] = stress
+        # stress stuff ends
 
+        """Get partial charges on atoms
+            in case we cannot find charges they are set to None
+        """
+        qm_charges = []
+        for n, line in enumerate(self.lines):
+            if ('TOTAL ATOMIC CHARGE' in line):
+                chargestart = n + 1
+        lines1 = self.lines[chargestart:(chargestart + len(self.atoms)/6 + 1)]
+        i = 0
+        atomnum = self.atoms.get_atomic_numbers()
+        for line in lines1:
+	    words = line.split()
+            for word in words:
+                qm_charges.append(-float(word)+atomnum[i])
+                i = i + 1
+        charges = np.array(qm_charges)
+        self.results['charges'] = charges
+        
         # calculation was carried out with atoms written in write_input
         os.remove(os.path.join(self.directory, 'OUTPUT'))
