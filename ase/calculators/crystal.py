@@ -39,7 +39,7 @@ class crystal(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, restart=None, ignore_bad_restart_file=False, 
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cry', atoms=None, kpts=None,
                  **kwargs):
         """Construct a crystal calculator.
@@ -71,7 +71,7 @@ class crystal(FileIOCalculator):
         self.atoms_input = None
         self.outfilename = 'cry.out'
 
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file, 
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms,
                                   **kwargs)
         self.kpts = kpts
@@ -92,22 +92,21 @@ class crystal(FileIOCalculator):
         outfile.write('1 \n')
         outfile.write('END \n')
         outfile.write('END \n')
-       
-        
+
         # write BLOCK 2 of crystal input from file (basis sets)
         basisfile = open(os.path.join(self.directory, 'basis'))
         basis = basisfile.readlines()
-	for line in basis:
-	    outfile.write(line)
-	
+        for line in basis:
+            outfile.write(line)
+
         # write BLOCK 3 according to parameters set as input
         newline = '\n'
         for key, value in sorted(self.parameters.items()):
-            if value:	
-                outfile.write(key+newline)
+            if value:
+                outfile.write(key + newline)
 
         outfile.write('END \n')
-        
+
         outfile.close()
 
     def write_input(self, atoms, properties=None, system_changes=None):
@@ -120,4 +119,3 @@ class crystal(FileIOCalculator):
         # then it is set to the ones at writing input
         self.atoms_input = atoms
         self.atoms = None
-
