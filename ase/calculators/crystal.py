@@ -24,7 +24,7 @@ The keywords are given, for instance, as follows::
 
 import os
 
-import numpy as np
+#import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
 
@@ -45,7 +45,7 @@ class crystal(FileIOCalculator):
         """Construct a crystal calculator.
 
         """
-        from ase.dft.kpoints import monkhorst_pack
+  #      from ase.dft.kpoints import monkhorst_pack
 
   #      [TO BE DONE]
   #      if 'CRY_BASIS' in os.environ:
