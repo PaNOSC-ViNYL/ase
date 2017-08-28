@@ -26,7 +26,7 @@ import os
 
 #import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2mp
+from ase.calculators.calculator import FileIOCalculator#, kpts2mp
 
 
 class CRYSTAL(FileIOCalculator):
