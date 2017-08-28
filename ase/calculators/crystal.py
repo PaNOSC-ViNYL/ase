@@ -96,7 +96,7 @@ class crystal(FileIOCalculator):
         
         # write BLOCK 2 of crystal input from file (basis sets)
         basisfile = open(os.path.join(self.directory, 'basis'))
-	basis = basisfile.readlines()
+        basis = basisfile.readlines()
 	for line in basis:
 	    outfile.write(line)
 	

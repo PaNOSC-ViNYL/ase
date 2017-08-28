@@ -32,16 +32,16 @@ def write_crystal(filename, atoms):
         myfile.write('%2s %2s %2s %23s \n' % ('3','1','1','E -0.0E+0 DE 0.0E+0( 1)'))
     elif ispbc[1]:
         myfile.write('%2s %2s %2s %23s \n' % ('2','1','1','E -0.0E+0 DE 0.0E+0( 1)'))
-	box[2][2] = 500.
+        box[2][2] = 500.
     elif ispbc[0]:
         myfile.write('%2s %2s %2s %23s \n' % ('1','1','1','E -0.0E+0 DE 0.0E+0( 1)'))
-	box[2][2] = 500.
-	box[1][1] = 500.
+        box[2][2] = 500.
+        box[1][1] = 500.
     else:
         myfile.write('%2s %2s %2s %23s \n' % ('0','1','1','E -0.0E+0 DE 0.0E+0( 1)'))
-	box[2][2] = 500.
-	box[1][1] = 500.
-	box[0][0] = 500.
+        box[2][2] = 500.
+        box[1][1] = 500.
+        box[0][0] = 500.
 
     # write box
     # crystal dummy
