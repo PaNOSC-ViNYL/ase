@@ -26,10 +26,10 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2mp
+from ase.calculators.calculator import FileIOCalculator#, kpts2mp
 
 
-class crystal(FileIOCalculator):
+class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
     if 'CRY_COMMAND' in os.environ:
@@ -39,13 +39,13 @@ class crystal(FileIOCalculator):
 
     implemented_properties = ['energy', 'forces']
 
-    def __init__(self, restart=None, ignore_bad_restart_file=False, 
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cry', atoms=None, kpts=None,
                  **kwargs):
         """Construct a crystal calculator.
 
         """
-        from ase.dft.kpoints import monkhorst_pack
+  #      from ase.dft.kpoints import monkhorst_pack
 
   #      [TO BE DONE]
   #      if 'CRY_BASIS' in os.environ:
@@ -71,7 +71,7 @@ class crystal(FileIOCalculator):
         self.atoms_input = None
         self.outfilename = 'cry.out'
 
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file, 
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms,
                                   **kwargs)
         self.kpts = kpts
@@ -92,22 +92,21 @@ class crystal(FileIOCalculator):
         outfile.write('1 \n')
         outfile.write('END \n')
         outfile.write('END \n')
-       
-        
+
         # write BLOCK 2 of crystal input from file (basis sets)
         basisfile = open(os.path.join(self.directory, 'basis'))
-	basis = basisfile.readlines()
-	for line in basis:
-	    outfile.write(line)
-	
+        basis = basisfile.readlines()
+        for line in basis:
+            outfile.write(line)
+
         # write BLOCK 3 according to parameters set as input
         newline = '\n'
         for key, value in sorted(self.parameters.items()):
-            if value:	
-                outfile.write(key+newline)
+            if value:
+                outfile.write(key + newline)
 
         outfile.write('END \n')
-        
+
         outfile.close()
 
     def write_input(self, atoms, properties=None, system_changes=None):
@@ -121,3 +120,51 @@ class crystal(FileIOCalculator):
         self.atoms_input = atoms
         self.atoms = None
 
+    def read_results(self):
+        """ all results are read from OUTPUT file
+            It will be destroyed after it is read to avoid
+            reading it once again after some runtime error """
+        from ase.units import Hartree, Bohr
+
+        myfile = open(os.path.join(self.directory, 'OUTPUT'), 'r')
+        self.lines = myfile.readlines()
+        myfile.close()
+
+        self.atoms = self.atoms_input
+ #      charges = self.read_charges()
+ #      self.results['charges'] = charges
+        energy = 0.0
+        forces = None
+        # Energy line index
+        for iline, line in enumerate(self.lines):
+            estring = 'OPT END'
+            if line.find(estring) >= 0:
+                index_energy = iline
+                break
+        try:
+            energy = float(self.lines[index_energy].split()[7]) * Hartree
+        except:
+            raise RuntimeError('Problem in reading energy')
+        self.results['energy'] = energy
+        # Force line indexes
+        fstring = 'CARTESIAN FORCES'
+        fstring_end = 'RESULTANT FORCE'
+        for iline, line in enumerate(self.lines):
+            if line.find(fstring) >= 0:
+                index_force_begin = iline + 2
+            if line.find(fstring_end) >= 0:
+                index_force_end = iline - 1
+                break 
+        try:
+            gradients = []
+            for j in range(index_force_begin, index_force_end):
+                word = self.lines[j].split()
+                gradients.append([float(word[k+2]) for k in range(0, 3)])
+            forces = np.array(gradients) * Hartree / Bohr
+        except:
+            raise RuntimeError('Problem in reading forces')
+        
+        self.results['forces'] = forces
+
+        # calculation was carried out with atoms written in write_input
+        os.remove(os.path.join(self.directory, 'OUTPUT'))
