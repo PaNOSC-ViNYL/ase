@@ -101,14 +101,15 @@ class Exciting:
         root.find('structure').attrib['autormt'] = str(self.autormt).lower()
         root.find('structure').attrib['tshift'] = str(self.tshift).lower()
 
-        rough_string = ET.tostring(root, 'utf-8')
-        reparsed = minidom.parseString(rough_string)
-        pretty = reparsed.toprettyxml(indent="\t")
+        def prettify(elem):
+            rough_string = ET.tostring(elem, 'utf-8')
+            reparsed = minidom.parseString(rough_string)
+            return reparsed.toprettyxml(indent="\t")
 
         if(self.paramdict):
             self.dicttoxml(self.paramdict, root)
             fd = open('%s/input.xml' % self.dir, 'w')
-            fd.write(pretty)
+            fd.write(prettify(root))
             fd.close()
         else:
             groundstate = ET.SubElement(root, 'groundstate', tforce='true')
@@ -118,7 +119,7 @@ class Exciting:
                 else:
                     groundstate.attrib[key] = str(value)
             fd = open('%s/input.xml' % self.dir, 'w')
-            fd.write(pretty)
+            fd.write(prettify(root))
             fd.close()
 
     def dicttoxml(self, pdict, element):
