@@ -24,7 +24,7 @@ The keywords are given, for instance, as follows::
 
 import os
 
-#import numpy as np
+import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator#, kpts2mp
 
@@ -119,3 +119,52 @@ class CRYSTAL(FileIOCalculator):
         # then it is set to the ones at writing input
         self.atoms_input = atoms
         self.atoms = None
+
+    def read_results(self):
+        """ all results are read from OUTPUT file
+            It will be destroyed after it is read to avoid
+            reading it once again after some runtime error """
+        from ase.units import Hartree, Bohr
+
+        myfile = open(os.path.join(self.directory, 'OUTPUT'), 'r')
+        self.lines = myfile.readlines()
+        myfile.close()
+
+        self.atoms = self.atoms_input
+ #      charges = self.read_charges()
+ #      self.results['charges'] = charges
+        energy = 0.0
+        forces = None
+        # Energy line index
+        for iline, line in enumerate(self.lines):
+            estring = 'OPT END'
+            if line.find(estring) >= 0:
+                index_energy = iline
+                break
+        try:
+            energy = float(self.lines[index_energy].split()[7]) * Hartree
+        except:
+            raise RuntimeError('Problem in reading energy')
+        self.results['energy'] = energy
+        # Force line indexes
+        fstring = 'CARTESIAN FORCES'
+        fstring_end = 'RESULTANT FORCE'
+        for iline, line in enumerate(self.lines):
+            if line.find(fstring) >= 0:
+                index_force_begin = iline + 2
+            if line.find(fstring_end) >= 0:
+                index_force_end = iline - 1
+                break 
+        try:
+            gradients = []
+            for j in range(index_force_begin, index_force_end):
+                word = self.lines[j].split()
+                gradients.append([float(word[k+2]) for k in range(0, 3)])
+            forces = np.array(gradients) * Hartree / Bohr
+        except:
+            raise RuntimeError('Problem in reading forces')
+        
+        self.results['forces'] = forces
+
+        # calculation was carried out with atoms written in write_input
+        os.remove(os.path.join(self.directory, 'OUTPUT'))

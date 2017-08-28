@@ -8,14 +8,6 @@ def write_crystal(filename, atoms):
        (fort.34 format)
     """
 
-    # sort
-    atoms.set_masses()
-    masses = atoms.get_masses()
-    indexes = np.argsort(masses)
-    atomsnew = Atoms()
-    for i in indexes:
-        atomsnew = atomsnew + atoms[i]
-
     if isinstance(filename, basestring):
         myfile = open(filename, 'w')
     else:
@@ -65,9 +57,9 @@ def write_crystal(filename, atoms):
     myfile.write(' %.17E %.17E %.17E \n' % (0, 0, 0))
 
     # write coordinates
-    myfile.write(' %8s \n' % (len(atomsnew)))
-    coords = atomsnew.get_positions()
-    atomnum = atomsnew.get_atomic_numbers()
+    myfile.write(' %8s \n' % (len(atoms)))
+    coords = atoms.get_positions()
+    atomnum = atoms.get_atomic_numbers()
     for iatom, coord in enumerate(coords):
         myfile.write('%5i  %19.16f %19.16f %19.16f \n'
                      % (atomnum[iatom],
