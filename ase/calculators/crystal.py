@@ -29,7 +29,7 @@ import os
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
 
 
-class crystal(FileIOCalculator):
+class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
     if 'CRY_COMMAND' in os.environ:
