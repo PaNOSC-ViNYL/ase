@@ -45,26 +45,12 @@ class CRYSTAL(FileIOCalculator):
         """Construct a crystal calculator.
 
         """
-  #      from ase.dft.kpoints import monkhorst_pack
-
-  #      [TO BE DONE]
-  #      if 'CRY_BASIS' in os.environ:
-  #          basis_dir = os.environ['CRY_BASIS']
-  #      else:
-  #          basis_dir = './'
-  #
   #      # call crystal only to run a single point calculation
   #      # [PUT HERE DEFAULT PARAMETERS]
-  #      self.default_parameters = dict(
-  #          Hamiltonian_='DFTB',
-  #          Driver_='ConjugateGradient',
-  #          Driver_MaxForceComponent='1E-4',
-  #          Driver_MaxSteps=0,
-  #          Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-  #          Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
-  #          Hamiltonian_SlaterKosterFiles_Separator='"-"',
-  #          Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
-  #          Hamiltonian_MaxAngularMomentum_='')
+        self.default_parameters = dict(
+             spin=True)
+        #    Hamiltonian_='DFTB',
+        #     )
 
         self.lines = None
         self.atoms = None
@@ -97,18 +83,54 @@ class CRYSTAL(FileIOCalculator):
         try:
             basisfile = open(os.path.join(self.directory, 'basis'))
         except:
-            raise RuntimeError('"basis" file not found')
-            print 'Please create a crystal basis set file'
+            raise RuntimeError('"basis" file not found. \
+Create a "basis" file with CRYSTAL basis set.')
         basis = basisfile.readlines()
         for line in basis:
             outfile.write(line)
 
         # write BLOCK 3 according to parameters set as input
         newline = '\n'
-        for key, value in sorted(self.parameters.items()):
-            if value:
-                outfile.write(key + newline)
+        # ----- write hamiltonian
+        p = self.parameters
+        if p.xc == 'hf':
+            if p.spin:
+                outfile.write('UHF \n')
+            else:
+                outfile.write('RHF \n')
+        elif p.xc == 'mp2':
+            outfile.write('MP2 \n')
+        else:
+            outfile.write('DFT \n')
+# Standalone keyword and LDA are implemented until now.
+            xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
+                  'PBE': 'PBEXC',
+                  'SVWN': 'SVWN',
+                  'BLYP': 'BLYP',
+                  'SOGGAXC': 'SOGGAXC',
+                  'PBESOLXC': 'PBESOLXC',
+                  'B3PW': 'B3PW',
+                  'B3LYP': 'B3LYP',
+                  'HSE06': 'HSE06',
+                  'B1WC': 'B1WC',
+                  'WC1LPY': 'WC1LYP',
+                  'B97H': 'B97H',
+                  'PBE0-13': 'PBE0-13',
+                  'PBESOL0': 'PBESOL0'}.get(p.xc, p.xc)
+            outfile.write(xc+'\n')
+            if p.spin:
+                outfile.write('SPIN \n')
+            outfile.write('END \n')
+        if p.guess:
+            if os.path.isfile('fort.20'):
+                outfile.write('GUESSP \n')
+            
 
+        # ----- write any other CRYSTAL keyword
+        # ----- using KEYWORD = 'True' in parameters.
+    #   for key, value in sorted(self.parameters.items()):
+    #       if value:
+    #           outfile.write(key + newline)
         outfile.write('END \n')
 
         outfile.close()
