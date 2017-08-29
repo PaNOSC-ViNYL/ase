@@ -147,7 +147,6 @@ Create a "basis" file with CRYSTAL basis set.')
         # if it is periodic, gamma is the default.
         if any(ispbc) and self.kpts is None:
             self.kpts = (1, 1, 1)
-        print self.kpts
 
         # explicit lists of K-points, shifted Monkhorst-
         # Pack net and k-point density definition are
