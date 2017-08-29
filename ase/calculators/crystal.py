@@ -32,8 +32,8 @@ from ase.calculators.calculator import FileIOCalculator
 class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
-    if 'CRY_COMMAND' in os.environ:
-        command = os.environ['CRY_COMMAND'] + ' < INPUT > OUTPUT 2>&1'
+    if 'ASE_CRYSTAL_COMMAND' in os.environ:
+        command = os.environ['ASE_CRYSTAL_COMMAND'] + ' < INPUT > OUTPUT 2>&1'
     else:
         command = 'crystal < INPUT > OUTPUT'
 
