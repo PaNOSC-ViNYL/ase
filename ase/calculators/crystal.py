@@ -26,7 +26,7 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator#, kpts2mp
+from ase.calculators.calculator import FileIOCalculator
 
 
 class CRYSTAL(FileIOCalculator):
@@ -48,12 +48,10 @@ class CRYSTAL(FileIOCalculator):
   #      # call crystal only to run a single point calculation
   #      # [PUT HERE DEFAULT PARAMETERS]
         self.default_parameters = dict(
-             xc='hf'
-             spin=False,
-             guess=False,
-             otherkey=[])
-        #    Hamiltonian_='DFTB',
-        #     )
+            xc='hf'
+            spin=False,
+            guess=False,
+            otherkey=[])
 
         self.lines = None
         self.atoms = None
@@ -106,17 +104,17 @@ Create a "basis" file with CRYSTAL basis set.')
         else:
             outfile.write('DFT \n')
         # Standalone keyword and LDA are given by a single string.
-            if isinstance(p.xc,str):
+            if isinstance(p.xc, str):
                 xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
                       'PBE': 'PBEXC'}.get(p.xc, p.xc)
                 outfile.write(xc+'\n')
         # Custom xc functional are given by a tuple of string
             else:
-                x,c = p.xc
+                x, c = p.xc
                 outfile.write('EXCHANGE \n')
-                outfile.write(x +' \n')
+                outfile.write(x + ' \n')
                 outfile.write('CORRELAT \n')
-                outfile.write(c +' \n')
+                outfile.write(c + ' \n')
             if p.spin:
                 outfile.write('SPIN \n')
             outfile.write('END \n')
@@ -125,12 +123,12 @@ Create a "basis" file with CRYSTAL basis set.')
             # wf will be always there after 2nd step.
             if os.path.isfile('fort.20'):
                 outfile.write('GUESSP \n')
-            
+
         # ----- write other CRYSTAL keywords
         # ----- in the list otherkey = ['ANDERSON', ...] .
-        
+
         for keyword in p.otherkey:
-            if isinstance(keyword,str):
+            if isinstance(keyword, str):
                 outfile.write(keyword + '\n')
             else:
                 for key in keyword:
@@ -184,7 +182,7 @@ Create a "basis" file with CRYSTAL basis set.')
                 index_force_begin = iline + 2
             if line.find(fstring_end) >= 0:
                 index_force_end = iline - 1
-                break 
+                break
         try:
             gradients = []
             for j in range(index_force_begin, index_force_end):
@@ -193,9 +191,9 @@ Create a "basis" file with CRYSTAL basis set.')
             forces = np.array(gradients) * Hartree / Bohr
         except:
             raise RuntimeError('Problem in reading forces')
-        
+
         self.results['forces'] = forces
-        
+
         # stress stuff begins
         sstring = 'STRESS TENSOR'
         have_stress = False
@@ -226,12 +224,13 @@ Create a "basis" file with CRYSTAL basis set.')
         i = 0
         atomnum = self.atoms.get_atomic_numbers()
         for line in lines1:
-	    words = line.split()
+            words = line.split()
             for word in words:
                 qm_charges.append(-float(word)+atomnum[i])
                 i = i + 1
         charges = np.array(qm_charges)
         self.results['charges'] = charges
-        
-        # calculation was carried out with atoms written in write_input
-        os.remove(os.path.join(self.directory, 'OUTPUT'))
+
+        # calculation was carried out with
+        # atoms written in write_input
+        os.remove(os.path.join(self.directory, 'OUTPUT' ))
