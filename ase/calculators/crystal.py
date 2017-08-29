@@ -92,7 +92,6 @@ Create a "basis" file with CRYSTAL basis set.')
             outfile.write(line)
 
         # write BLOCK 3 according to parameters set as input
-        newline = '\n'
         # ----- write hamiltonian
         p = self.parameters
         if p.xc == 'hf':
