@@ -131,11 +131,12 @@ class CRYSTAL(FileIOCalculator):
                 outfile.write('GUESSP \n')
 
         # smearing
-        if p.smearing[0] != 'Fermi-Dirac':
-            raise ValueError('Only Fermi-Dirac smearing is allowed.')
-        else:
-            outfile.write('SMEAR \n')
-            outfile.write(str(p.smearing[1] / Hartree) + ' \n')
+        if p.smearing is not None:
+            if p.smearing[0] != 'Fermi-Dirac':
+                raise ValueError('Only Fermi-Dirac smearing is allowed.')
+            else:
+                outfile.write('SMEAR \n')
+                outfile.write(str(p.smearing[1] / Hartree) + ' \n')
 
         # ----- write other CRYSTAL keywords
         # ----- in the list otherkey = ['ANDERSON', ...] .
@@ -150,8 +151,11 @@ class CRYSTAL(FileIOCalculator):
         ispbc = self.atoms.get_pbc()
 
         # if it is periodic, gamma is the default.
-        if any(ispbc) and self.kpts is None:
-            self.kpts = (1, 1, 1)
+        if any(ispbc):
+            if self.kpts is None:
+                self.kpts = (1, 1, 1)
+        else:
+            self.kpts = None
 
         # explicit lists of K-points, shifted Monkhorst-
         # Pack net and k-point density definition are
