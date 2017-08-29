@@ -26,11 +26,11 @@ of the command to be run). It is mandatory to set the input file as
 
 - bash::
 
-  $ export ASE_CRYSTAL_COMMAND=/bin/CRY14/crystal < INPUT > OUTPUT 2>&1  (an example)
+  $ export ASE_CRYSTAL_COMMAND="/bin/CRY14/crystal < INPUT > OUTPUT 2>&1"  (an example)
 
 - csh/tcsh::
 
-  $ setenv ASE_CRYSTAL_COMMAND /my_disk/my_name/bin/crystal/ < INPUT > OUTPUT 2>&1  (an example)
+  $ setenv ASE_CRYSTAL_COMMAND "/my_disk/my_name/bin/crystal/ < INPUT > OUTPUT 2>&1"  (an example)
 
 
 CRYSTAL Calculator (a FileIOCalculator)
@@ -45,7 +45,7 @@ Below follows a list with a selection of paramenters.
 keyword         type       default value   description
 ==============  =========  ==============  ============================
 ``restart``     ``bool``   None            Restart old calculation
-``xc``          various    ``hf``          Hamiltonian. HF, MP2 or DFT
+``xc``          various    'hf'          Hamiltonian. HF, MP2 or DFT
                                            methods available 
 ``spin``        ``bool``   False           Spin polarization
 ``guess``       ``bool``   True            Read wf from fort.20 file
