@@ -23,7 +23,7 @@ The keywords are given, for instance, as follows::
 """
 
 import os
-
+from ase.units import Hartree
 import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator
@@ -40,17 +40,17 @@ class CRYSTAL(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'stress', 'charges']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='cry', atoms=None, kpts=None,
-                 **kwargs):
+                 label='cry', atoms=None, kpts=None, **kwargs):
         """Construct a crystal calculator.
 
         """
-  #      # call crystal only to run a single point calculation
-  #      # [PUT HERE DEFAULT PARAMETERS]
+        # default parameters
         self.default_parameters = dict(
             xc='hf',
             spin=False,
             guess=False,
+            isp=1,
+            smearing=None,
             otherkey=[])
 
         self.lines = None
@@ -61,6 +61,7 @@ class CRYSTAL(FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms,
                                   **kwargs)
+
         self.kpts = kpts
 
     def write_crystal_in(self, filename):
@@ -68,7 +69,7 @@ class CRYSTAL(FileIOCalculator):
             Geometry is taken always from the file 'fort.34'
         """
 
-        # write BLOCK 1 of crystal input (only SP with gradients)
+        # write BLOCK 1 (only SP with gradients)
         outfile = open(filename, 'w')
         outfile.write('Single point + Gradient crystal calculation \n')
         outfile.write('EXTERNAL \n')
@@ -80,7 +81,7 @@ class CRYSTAL(FileIOCalculator):
         outfile.write('END \n')
         outfile.write('END \n')
 
-        # write BLOCK 2 of crystal input from file (basis sets)
+        # write BLOCK 2 from file (basis sets)
         try:
             basisfile = open(os.path.join(self.directory, 'basis'))
         except:
@@ -124,6 +125,13 @@ Create a "basis" file with CRYSTAL basis set.')
             if os.path.isfile('fort.20'):
                 outfile.write('GUESSP \n')
 
+        # smearing
+        if p.smearing[0] != 'Fermi-Dirac':
+            raise ValueError('Only Fermi-Dirac smearing is allowed.')
+        else:
+            outfile.write('SMEAR \n')
+            outfile.write(str(p.smearing[1] / Hartree) + ' \n')
+
         # ----- write other CRYSTAL keywords
         # ----- in the list otherkey = ['ANDERSON', ...] .
 
@@ -133,6 +141,39 @@ Create a "basis" file with CRYSTAL basis set.')
             else:
                 for key in keyword:
                     outfile.write(key + '\n')
+
+        ispbc = self.atoms.get_pbc()
+
+        # if it is periodic, gamma is the default.
+        if any(ispbc) and self.kpts is None:
+            self.kpts = (1, 1, 1)
+        print self.kpts
+
+        # explicit lists of K-points, shifted Monkhorst-
+        # Pack net and k-point density definition are
+        # not allowed.
+        if self.kpts is not None:
+            if isinstance(self.kpts, float):
+                raise ValueError('K-point density definition not allowed.')
+            elif isinstance(self.kpts, list):
+                raise ValueError('Explicit K-points definition not allowed.')
+            elif isinstance(any(self.kpts), str):
+                raise ValueError('Shifted Monkhorst-Pack not allowed.')
+            else:
+                outfile.write('SHRINK  \n')
+            # isp is by default 1, 2 is suggested for metals.
+                outfile.write('0 ' + str(p.isp*max(self.kpts)) + ' \n')
+                if ispbc[2]:
+                    outfile.write(str(self.kpts[0])
+                                  + ' ' + str(self.kpts[1])
+                                  + ' ' + str(self.kpts[2]) + ' \n')
+                elif ispbc[1]:
+                    outfile.write(str(self.kpts[0])
+                                  + ' ' + str(self.kpts[1])
+                                  + ' 1 \n')
+                elif ispbc[0]:
+                    outfile.write(str(self.kpts[0])
+                                  + ' 1 1 \n')
 
         outfile.write('END \n')
 
