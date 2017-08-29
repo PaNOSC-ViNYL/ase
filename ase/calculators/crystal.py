@@ -103,21 +103,17 @@ Create a "basis" file with CRYSTAL basis set.')
         else:
             outfile.write('DFT \n')
 # Standalone keyword and LDA are implemented until now.
-            xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
-                  'PBE': 'PBEXC',
-                  'SVWN': 'SVWN',
-                  'BLYP': 'BLYP',
-                  'SOGGAXC': 'SOGGAXC',
-                  'PBESOLXC': 'PBESOLXC',
-                  'B3PW': 'B3PW',
-                  'B3LYP': 'B3LYP',
-                  'HSE06': 'HSE06',
-                  'B1WC': 'B1WC',
-                  'WC1LPY': 'WC1LYP',
-                  'B97H': 'B97H',
-                  'PBE0-13': 'PBE0-13',
-                  'PBESOL0': 'PBESOL0'}.get(p.xc, p.xc)
-            outfile.write(xc+'\n')
+            if isinstance(p.xc,str):
+                xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
+                      'PBE': 'PBEXC',
+                      'PBESOL0': 'PBESOL0'}.get(p.xc, p.xc)
+                outfile.write(xc+'\n')
+            else:
+                x,c = p.xc
+                outfile.write('EXCHANGE \n')
+                outfile.write(x +' \n')
+                outfile.write('CORRELAT \n')
+                outfile.write(c +' \n')
             if p.spin:
                 outfile.write('SPIN \n')
             outfile.write('END \n')

@@ -1,5 +1,5 @@
-import numpy as np
-from ase.atoms import Atoms
+#import numpy as np
+#from ase.atoms import Atoms
 from ase.utils import basestring
 
 
