@@ -2,10 +2,12 @@
 
 http://www.crystal.unito.it/
 
-daniele.selli@unimib.it
-g.fazio3@campus.unimib.it
+Written by:
 
-The file 'geom.f34' contains the input and output geometry
+    Daniele Selli, daniele.selli@unimib.it
+    Gianluca Fazio, g.fazio3@campus.unimib.it
+
+The file 'fort.34' contains the input and output geometry
 and it will be updated during the crystal calculations.
 
 The keywords are given, for instance, as follows::
@@ -239,7 +241,7 @@ class CRYSTAL(FileIOCalculator):
         self.results['forces'] = forces
 
         # stress stuff begins
-        sstring = 'STRESS TENSOR'
+        sstring = 'STRESS TENSOR, IN'
         have_stress = False
         stress = list()
         for iline, line in enumerate(self.lines):
