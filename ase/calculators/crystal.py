@@ -264,7 +264,7 @@ class CRYSTAL(FileIOCalculator):
         for n, line in enumerate(self.lines):
             if ('TOTAL ATOMIC CHARGE' in line):
                 chargestart = n + 1
-        lines1 = self.lines[chargestart:(chargestart + len(self.atoms)/6 + 1)]
+        lines1 = self.lines[chargestart:(chargestart + (len(self.atoms)-1)/6 + 1)]
         i = 0
         atomnum = self.atoms.get_atomic_numbers()
         for line in lines1:
