@@ -50,6 +50,7 @@ class CRYSTAL(FileIOCalculator):
             spin=False,
             guess=False,
             isp=1,
+            basis='custom',
             smearing=None,
             otherkey=[])
 
@@ -79,21 +80,26 @@ class CRYSTAL(FileIOCalculator):
         outfile.write('MAXCYCLE \n')
         outfile.write('1 \n')
         outfile.write('END \n')
-        outfile.write('END \n')
 
         # write BLOCK 2 from file (basis sets)
-        try:
-            basisfile = open(os.path.join(self.directory, 'basis'))
-        except:
-            raise RuntimeError('"basis" file not found. \
-Create a "basis" file with CRYSTAL basis set.')
-        basis = basisfile.readlines()
-        for line in basis:
-            outfile.write(line)
+        p = self.parameters
+        if p.basis == 'custom':
+            try:
+                outfile.write('END \n')
+                basisfile = open(os.path.join(self.directory, 'basis'))
+                basis_ = basisfile.readlines()
+                for line in basis_:
+                    outfile.write(line)
+            except:
+                raise RuntimeError('"basis" file not given. '
+                                   'Create a "basis" file with '
+                                   'CRYSTAL basis set.')
+        else:
+            outfile.write('BASISSET \n')
+            outfile.write(p.basis.upper() + '\n')
 
         # write BLOCK 3 according to parameters set as input
         # ----- write hamiltonian
-        p = self.parameters
         if p.xc == 'hf':
             if p.spin:
                 outfile.write('UHF \n')
