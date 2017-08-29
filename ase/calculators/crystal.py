@@ -46,7 +46,7 @@ class CRYSTAL(FileIOCalculator):
         self.default_parameters = dict(
             xc='hf',
             spin=False,
-            guess=False,
+            guess=True,
             isp=1,
             basis='custom',
             smearing=None,
@@ -111,7 +111,7 @@ class CRYSTAL(FileIOCalculator):
             if isinstance(p.xc, str):
                 xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
                       'PBE': 'PBEXC'}.get(p.xc, p.xc)
-                outfile.write(xc+'\n')
+                outfile.write(xc.upper()+'\n')
         # Custom xc functional are given by a tuple of string
             else:
                 x, c = p.xc
