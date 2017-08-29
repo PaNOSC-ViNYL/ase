@@ -48,7 +48,10 @@ class CRYSTAL(FileIOCalculator):
   #      # call crystal only to run a single point calculation
   #      # [PUT HERE DEFAULT PARAMETERS]
         self.default_parameters = dict(
-             spin=True)
+             xc='hf'
+             spin=False,
+             guess=False,
+             otherkey=[])
         #    Hamiltonian_='DFTB',
         #     )
 
@@ -102,12 +105,12 @@ Create a "basis" file with CRYSTAL basis set.')
             outfile.write('MP2 \n')
         else:
             outfile.write('DFT \n')
-# Standalone keyword and LDA are implemented until now.
+        # Standalone keyword and LDA are given by a single string.
             if isinstance(p.xc,str):
                 xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
-                      'PBE': 'PBEXC',
-                      'PBESOL0': 'PBESOL0'}.get(p.xc, p.xc)
+                      'PBE': 'PBEXC'}.get(p.xc, p.xc)
                 outfile.write(xc+'\n')
+        # Custom xc functional are given by a tuple of string
             else:
                 x,c = p.xc
                 outfile.write('EXCHANGE \n')
@@ -117,16 +120,23 @@ Create a "basis" file with CRYSTAL basis set.')
             if p.spin:
                 outfile.write('SPIN \n')
             outfile.write('END \n')
+        # When guess=True, wf is read.
         if p.guess:
+            # wf will be always there after 2nd step.
             if os.path.isfile('fort.20'):
                 outfile.write('GUESSP \n')
             
+        # ----- write other CRYSTAL keywords
+        # ----- in the list otherkey = ['ANDERSON', ...] .
+        
+        for keyword in p.otherkey:
+            if isinstance(keyword,str):
+                outfile.write(keyword + '\n')
+            else:
+                for key in keyword:
+                    outfile.write(key + '\n')
 
-        # ----- write any other CRYSTAL keyword
-        # ----- using KEYWORD = 'True' in parameters.
-    #   for key, value in sorted(self.parameters.items()):
-    #       if value:
-    #           outfile.write(key + newline)
+        if any(
         outfile.write('END \n')
 
         outfile.close()
