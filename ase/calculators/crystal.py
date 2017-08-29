@@ -48,7 +48,7 @@ class CRYSTAL(FileIOCalculator):
   #      # call crystal only to run a single point calculation
   #      # [PUT HERE DEFAULT PARAMETERS]
         self.default_parameters = dict(
-            xc='hf'
+            xc='hf',
             spin=False,
             guess=False,
             otherkey=[])
@@ -134,7 +134,6 @@ Create a "basis" file with CRYSTAL basis set.')
                 for key in keyword:
                     outfile.write(key + '\n')
 
-        if any(
         outfile.write('END \n')
 
         outfile.close()
@@ -233,4 +232,4 @@ Create a "basis" file with CRYSTAL basis set.')
 
         # calculation was carried out with
         # atoms written in write_input
-        os.remove(os.path.join(self.directory, 'OUTPUT' ))
+        os.remove(os.path.join(self.directory, 'OUTPUT'))
