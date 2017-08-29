@@ -32,10 +32,6 @@ from ase.calculators.calculator import FileIOCalculator
 class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
-    if 'ASE_CRYSTAL_COMMAND' in os.environ:
-        command = os.environ['ASE_CRYSTAL_COMMAND'] + ' < INPUT > OUTPUT 2>&1'
-    else:
-        command = 'crystal < INPUT > OUTPUT'
 
     implemented_properties = ['energy', 'forces', 'stress', 'charges']
 
