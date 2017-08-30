@@ -9,24 +9,23 @@ Written by:
 
 The file 'fort.34' contains the input and output geometry
 and it will be updated during the crystal calculations.
+The wavefunction is stored in 'fort.20' as binary file.
 
-The keywords are given, for instance, as follows::
+The keywords are given, for instance, as follows:
 
-    DFT = True,
-    DFT_CORRELAT = 'PBE',
-    DFT_EXCHANGE = 'PBE',
-    DFT_MET = 'B3LYP',
-    DFT_POL = 'SPIN',
-    TOLDEE = 8,
-    ANDERSON = 'Yes',
-    FMIXING = 95,
-    ... # put other examples
+    guess = True,
+    xc = 'PBE',
+    kpts = (2,2,2), 
+    otherkeys = [ 'scfdir', 'anderson', ['maxcycles','500'],
+                 ['fmixing','90']],
+    ...
 
 """
 
-import os
-from ase.units import Hartree
+from ase.units import Hartree, Bohr
+from ase.io import write
 import numpy as np
+import os
 
 from ase.calculators.calculator import FileIOCalculator
 
@@ -38,19 +37,20 @@ class CRYSTAL(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'stress', 'charges']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='cry', atoms=None, kpts=None, **kwargs):
+                 label='cry', atoms=None, **kwargs):
         """Construct a crystal calculator.
 
         """
         # default parameters
         self.default_parameters = dict(
-            xc='hf',
-            spin=False,
+            xc='HF',
+            spinpol=False,
             guess=True,
+            kpts=None,
             isp=1,
             basis='custom',
             smearing=None,
-            otherkey=[])
+            otherkeys=[])
 
         self.lines = None
         self.atoms = None
@@ -60,8 +60,6 @@ class CRYSTAL(FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms,
                                   **kwargs)
-
-        self.kpts = kpts
 
     def write_crystal_in(self, filename):
         """ Write the input file for the crystal calculation.
@@ -77,37 +75,41 @@ class CRYSTAL(FileIOCalculator):
         outfile.write('0 \n')
         outfile.write('MAXCYCLE \n')
         outfile.write('1 \n')
+        # TOLDEG threshold raised to allow parallel 
+        # execution (no mpi error after gradient
+        # calculation).
+        outfile.write('TOLDEG \n')
+        outfile.write('1000 \n')
         outfile.write('END \n')
 
         # write BLOCK 2 from file (basis sets)
         p = self.parameters
         if p.basis == 'custom':
-            try:
-                outfile.write('END \n')
-                basisfile = open(os.path.join(self.directory, 'basis'))
-                basis_ = basisfile.readlines()
-                for line in basis_:
-                    outfile.write(line)
-            except:
-                raise RuntimeError('"basis" file not given. '
-                                   'Create a "basis" file with '
-                                   'CRYSTAL basis set.')
+            outfile.write('END \n')
+            basisfile = open(os.path.join(self.directory, 'basis'))
+            basis_ = basisfile.readlines()
+            for line in basis_:
+                outfile.write(line)
         else:
             outfile.write('BASISSET \n')
             outfile.write(p.basis.upper() + '\n')
 
         # write BLOCK 3 according to parameters set as input
         # ----- write hamiltonian
-        if p.xc == 'hf':
-            if p.spin:
+
+        if self.atoms.get_initial_magnetic_moments().any():
+            p.spinpol=True
+
+        if p.xc == 'HF':
+            if p.spinpol:
                 outfile.write('UHF \n')
             else:
                 outfile.write('RHF \n')
-        elif p.xc == 'mp2':
+        elif p.xc == 'MP2':
             outfile.write('MP2 \n')
         else:
             outfile.write('DFT \n')
-        # Standalone keyword and LDA are given by a single string.
+            # Standalone keywords and LDA are given by a single string.
             if isinstance(p.xc, str):
                 xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
                       'PBE': 'PBEXC'}.get(p.xc, p.xc)
@@ -119,7 +121,7 @@ class CRYSTAL(FileIOCalculator):
                 outfile.write(x + ' \n')
                 outfile.write('CORRELAT \n')
                 outfile.write(c + ' \n')
-            if p.spin:
+            if p.spinpol:
                 outfile.write('SPIN \n')
             outfile.write('END \n')
         # When guess=True, wf is read.
@@ -139,14 +141,15 @@ class CRYSTAL(FileIOCalculator):
         # ----- write other CRYSTAL keywords
         # ----- in the list otherkey = ['ANDERSON', ...] .
 
-        for keyword in p.otherkey:
+        for keyword in p.otherkeys:
             if isinstance(keyword, str):
-                outfile.write(keyword + '\n')
+                outfile.write(keyword.upper() + '\n')
             else:
                 for key in keyword:
-                    outfile.write(key + '\n')
+                    outfile.write(key.upper() + '\n')
 
         ispbc = self.atoms.get_pbc()
+        self.kpts = p.kpts 
 
         # if it is periodic, gamma is the default.
         if any(ispbc):
@@ -161,32 +164,30 @@ class CRYSTAL(FileIOCalculator):
         if self.kpts is not None:
             if isinstance(self.kpts, float):
                 raise ValueError('K-point density definition not allowed.')
-            elif isinstance(self.kpts, list):
+            if isinstance(self.kpts, list):
                 raise ValueError('Explicit K-points definition not allowed.')
-            elif isinstance(any(self.kpts), str):
+            if isinstance(self.kpts[-1], str):
                 raise ValueError('Shifted Monkhorst-Pack not allowed.')
-            else:
-                outfile.write('SHRINK  \n')
+            outfile.write('SHRINK  \n')
             # isp is by default 1, 2 is suggested for metals.
-                outfile.write('0 ' + str(p.isp*max(self.kpts)) + ' \n')
-                if ispbc[2]:
-                    outfile.write(str(self.kpts[0])
-                                  + ' ' + str(self.kpts[1])
-                                  + ' ' + str(self.kpts[2]) + ' \n')
-                elif ispbc[1]:
-                    outfile.write(str(self.kpts[0])
-                                  + ' ' + str(self.kpts[1])
-                                  + ' 1 \n')
-                elif ispbc[0]:
-                    outfile.write(str(self.kpts[0])
-                                  + ' 1 1 \n')
+            outfile.write('0 ' + str(p.isp*max(self.kpts)) + ' \n')
+            if ispbc[2]:
+                outfile.write(str(self.kpts[0])
+                              + ' ' + str(self.kpts[1])
+                              + ' ' + str(self.kpts[2]) + ' \n')
+            elif ispbc[1]:
+                outfile.write(str(self.kpts[0])
+                              + ' ' + str(self.kpts[1])
+                              + ' 1 \n')
+            elif ispbc[0]:
+                outfile.write(str(self.kpts[0])
+                              + ' 1 1 \n')
 
         outfile.write('END \n')
 
         outfile.close()
 
     def write_input(self, atoms, properties=None, system_changes=None):
-        from ase.io import write
         FileIOCalculator.write_input(
             self, atoms, properties, system_changes)
         self.write_crystal_in(os.path.join(self.directory, 'INPUT'))
@@ -200,15 +201,11 @@ class CRYSTAL(FileIOCalculator):
         """ all results are read from OUTPUT file
             It will be destroyed after it is read to avoid
             reading it once again after some runtime error """
-        from ase.units import Hartree, Bohr
 
-        myfile = open(os.path.join(self.directory, 'OUTPUT'), 'r')
-        self.lines = myfile.readlines()
-        myfile.close()
+        with open(os.path.join(self.directory, 'OUTPUT'), 'r') as myfile:
+            self.lines = myfile.readlines()
 
         self.atoms = self.atoms_input
-        energy = 0.0
-        forces = None
         # Energy line index
         for iline, line in enumerate(self.lines):
             estring = 'OPT END'
@@ -243,7 +240,7 @@ class CRYSTAL(FileIOCalculator):
         # stress stuff begins
         sstring = 'STRESS TENSOR, IN'
         have_stress = False
-        stress = list()
+        stress = []
         for iline, line in enumerate(self.lines):
             if sstring in line:
                 have_stress = True
@@ -259,15 +256,15 @@ class CRYSTAL(FileIOCalculator):
         self.results['stress'] = stress
         # stress stuff ends
 
-        """Get partial charges on atoms
-            in case we cannot find charges they are set to None
-        """
+        # Get partial charges on atoms.
+        # In case we cannot find charges 
+        # they are set to None
         qm_charges = []
         for n, line in enumerate(self.lines):
-            if ('TOTAL ATOMIC CHARGE' in line):
+            if 'TOTAL ATOMIC CHARGE' in line:
                 chargestart = n + 1
         lines1 = self.lines[chargestart:(chargestart
-                            + (len(self.atoms)-1)/6 + 1)]
+                            + (len(self.atoms)-1)//6 + 1)]
         i = 0
         atomnum = self.atoms.get_atomic_numbers()
         for line in lines1:
@@ -278,6 +275,3 @@ class CRYSTAL(FileIOCalculator):
         charges = np.array(qm_charges)
         self.results['charges'] = charges
 
-        # calculation was carried out with
-        # atoms written in write_input
-        os.remove(os.path.join(self.directory, 'OUTPUT'))
