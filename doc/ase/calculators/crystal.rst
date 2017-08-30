@@ -9,10 +9,10 @@ Introduction
 
 The CRYSTAL_ code is a Hartree-Fock and density functional theory
 code using Gaussian localized basis set functions. CRYSTAL_
-can handle systems periodic in 0 (molecules, 0D), 1 (polymers, 1D), 
+can handle systems periodic in 0 (molecules, 0D), 1 (polymers, 1D),
 2 (slabs, 2D), and 3 dimensions (crystals, 3D.
 This interface makes it possible to use CRYSTAL_ as a calculator
-in ASE. 
+in ASE.
 
 .. _Crystal: http://www.crystal.unito.it/
 
@@ -20,9 +20,9 @@ in ASE.
 Environment variables
 =====================
 
-Set environment variables in your configuration file (what is the name 
+Set environment variables in your configuration file (what is the name
 of the command to be run). It is mandatory to set the input file as
-"INPUT" and the standard output as "OUTPUT". 
+"INPUT" and the standard output as "OUTPUT".
 
 - bash::
 
@@ -45,8 +45,8 @@ Below follows a list with a selection of paramenters.
 keyword         type       default value   description
 ==============  =========  ==============  ============================
 ``restart``     ``bool``   None            Restart old calculation
-``xc``          various    'hf'          Hamiltonian. HF, MP2 or DFT
-                                           methods available 
+``xc``          various    'hf'            Hamiltonian. HF, MP2 or DFT
+                                           methods available
 ``spin``        ``bool``   False           Spin polarization
 ``guess``       ``bool``   True            Read wf from fort.20 file
                                            when present
@@ -62,7 +62,7 @@ keyword         type       default value   description
 ``otherkey``    ``list``   []              All other CRYSTAL keywords
 ==============  =========  ==============  ============================
 
-For parameters not set in ``otherkey`` CRYSTAL will set the default value. 
+For parameters not set in ``otherkey`` CRYSTAL will set the default value.
 See the official `CRYSTAL manual`_ for more details.
 
 .. _CRYSTAL manual: http://www.crystal.unito.it/Manuals/crystal14.pdf
