@@ -199,6 +199,7 @@ the :meth:`set` method:
    amber
    castep
    cp2k
+   crystal
    dftb
    dmol
    espresso
