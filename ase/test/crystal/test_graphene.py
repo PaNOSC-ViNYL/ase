@@ -15,11 +15,11 @@ geom.set_calculator(CRYSTAL(label='graphene',
                             guess=True,
                             xc='PBE',
                             kpts=(1, 1, 1),
-                            otherkeys=['SCFDIR', 'ANDERSON',
-                                      ['MAXCYCLES', '500'],
-                                      ['TOLDEE', '6'],
-                                      ['TOLINTEG', '7 7 7 7 14'],
-                                      ['FMIXING', '95']]
+                            otherkeys=['scfdir', 'anderson',
+                                       ['maxcycles', '500'],
+                                       ['toldee', '6'],
+                                       ['tolinteg', '7 7 7 7 14'],
+                                       ['fmixing', '95']]
                             ))
 
 final_energy = geom.get_potential_energy()
