@@ -15,7 +15,7 @@ The keywords are given, for instance, as follows:
 
     guess = True,
     xc = 'PBE',
-    kpts = (2,2,2), 
+    kpts = (2,2,2),
     otherkeys = [ 'scfdir', 'anderson', ['maxcycles','500'],
                  ['fmixing','90']],
     ...
@@ -75,7 +75,7 @@ class CRYSTAL(FileIOCalculator):
         outfile.write('0 \n')
         outfile.write('MAXCYCLE \n')
         outfile.write('1 \n')
-        # TOLDEG threshold raised to allow parallel 
+        # TOLDEG threshold raised to allow parallel
         # execution (no mpi error after gradient
         # calculation).
         outfile.write('TOLDEG \n')
@@ -98,7 +98,7 @@ class CRYSTAL(FileIOCalculator):
         # ----- write hamiltonian
 
         if self.atoms.get_initial_magnetic_moments().any():
-            p.spinpol=True
+            p.spinpol = True
 
         if p.xc == 'HF':
             if p.spinpol:
@@ -149,7 +149,7 @@ class CRYSTAL(FileIOCalculator):
                     outfile.write(key.upper() + '\n')
 
         ispbc = self.atoms.get_pbc()
-        self.kpts = p.kpts 
+        self.kpts = p.kpts
 
         # if it is periodic, gamma is the default.
         if any(ispbc):
@@ -220,6 +220,7 @@ class CRYSTAL(FileIOCalculator):
         # Force line indexes
         fstring = 'CARTESIAN FORCES'
         fstring_end = 'RESULTANT FORCE'
+        gradients = []
         for iline, line in enumerate(self.lines):
             if line.find(fstring) >= 0:
                 index_force_begin = iline + 2
@@ -227,13 +228,12 @@ class CRYSTAL(FileIOCalculator):
                 index_force_end = iline - 1
                 break
         try:
-            gradients = []
             for j in range(index_force_begin, index_force_end):
                 word = self.lines[j].split()
                 gradients.append([float(word[k+2]) for k in range(0, 3)])
-            forces = np.array(gradients) * Hartree / Bohr
         except:
             raise RuntimeError('Problem in reading forces')
+        forces = np.array(gradients) * Hartree / Bohr
 
         self.results['forces'] = forces
 
@@ -251,15 +251,18 @@ class CRYSTAL(FileIOCalculator):
                     stress.append(cell)
         if have_stress:
             stress = -np.array(stress) * Hartree / Bohr**3
-        elif not have_stress:
-            stress = np.zeros((3, 3))
-        self.results['stress'] = stress
+            self.results['stress'] = stress
+
         # stress stuff ends
 
         # Get partial charges on atoms.
-        # In case we cannot find charges 
+        # In case we cannot find charges
         # they are set to None
         qm_charges = []
+
+        # ----- this for cycle finds the last entry of the
+        # ----- string search, which corresponds
+        # ----- to the charges at the end of the SCF.
         for n, line in enumerate(self.lines):
             if 'TOTAL ATOMIC CHARGE' in line:
                 chargestart = n + 1
@@ -274,4 +277,3 @@ class CRYSTAL(FileIOCalculator):
                 i = i + 1
         charges = np.array(qm_charges)
         self.results['charges'] = charges
-
