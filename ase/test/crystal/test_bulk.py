@@ -1,6 +1,4 @@
-from ase.io import read, write
 from ase import Atoms
-from ase.io import crystal
 from ase.calculators.crystal import CRYSTAL
 import os
 

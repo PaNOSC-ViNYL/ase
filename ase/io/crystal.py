@@ -1,5 +1,3 @@
-#import numpy as np
-#from ase.atoms import Atoms
 from ase.utils import basestring
 
 
@@ -8,11 +6,7 @@ def write_crystal(filename, atoms):
        (fort.34 format)
     """
 
-    if isinstance(filename, basestring):
-        myfile = open(filename, 'w')
-    else:
-        # Assume it's a 'file-like object'
-        myfile = filename
+    myfile = open(filename, 'w')
 
     ispbc = atoms.get_pbc()
     box = atoms.get_cell()
@@ -26,18 +20,18 @@ def write_crystal(filename, atoms):
     elif ispbc[1]:
         myfile.write('%2s %2s %2s %23s \n' %
                      ('2', '1', '1', 'E -0.0E+0 DE 0.0E+0( 1)'))
-        box[2][2] = 500.
+        box[2, 2] = 500.
     elif ispbc[0]:
         myfile.write('%2s %2s %2s %23s \n' %
                      ('1', '1', '1', 'E -0.0E+0 DE 0.0E+0( 1)'))
-        box[2][2] = 500.
-        box[1][1] = 500.
+        box[2, 2] = 500.
+        box[1, 1] = 500.
     else:
         myfile.write('%2s %2s %2s %23s \n' %
                      ('0', '1', '1', 'E -0.0E+0 DE 0.0E+0( 1)'))
-        box[2][2] = 500.
-        box[1][1] = 500.
-        box[0][0] = 500.
+        box[2, 2] = 500.
+        box[1, 1] = 500.
+        box[0, 0] = 500.
 
     # write box
     # crystal dummy
@@ -59,10 +53,11 @@ def write_crystal(filename, atoms):
     # write coordinates
     myfile.write(' %8s \n' % (len(atoms)))
     coords = atoms.get_positions()
+    tags = atoms.get_tags()
     atomnum = atoms.get_atomic_numbers()
     for iatom, coord in enumerate(coords):
         myfile.write('%5i  %19.16f %19.16f %19.16f \n'
-                     % (atomnum[iatom],
+                     % (atomnum[iatom]+tags[iatom]*100,
                         coords[iatom][0], coords[iatom][1], coords[iatom][2]))
 
     if isinstance(filename, basestring):

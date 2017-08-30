@@ -1,7 +1,3 @@
-from ase.io import read, write
-from ase.io import crystal
-from ase.visualize import view
-from ase.optimize import BFGS
 from ase import Atoms
 from ase.calculators.crystal import CRYSTAL
 import os
@@ -15,7 +11,6 @@ geom = Atoms('C2',
                         (-1.445355101009, 0.,  0.)],
              pbc=[True, True, False])
 
-view(geom)
 geom.set_calculator(CRYSTAL(label='graphene',
                             guess=True,
                             xc='PBE',

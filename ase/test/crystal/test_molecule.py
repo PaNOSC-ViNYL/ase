@@ -1,5 +1,3 @@
-from ase.io import read, write
-from ase.io import crystal
 from ase.optimize import BFGS
 from ase.atoms import Atoms
 from ase.calculators.crystal import CRYSTAL
@@ -13,10 +11,10 @@ geom.set_calculator(CRYSTAL(label='water',
                             basis='sto-3g',
                             xc='PBE',
                             otherkeys=['SCFDIR', 'ANDERSON',
-                                      ['MAXCYCLES', '500'],
-                                      ['TOLDEE', '6'],
-                                      ['TOLINTEG', '7 7 7 7 14'],
-                                      ['FMIXING', '90']]
+                                       ['MAXCYCLES', '500'],
+                                       ['TOLDEE', '6'],
+                                       ['TOLINTEG', '7 7 7 7 14'],
+                                       ['FMIXING', '90']]
                             ))
 
 opt = BFGS(geom)
