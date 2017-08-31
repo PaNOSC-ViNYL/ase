@@ -212,10 +212,9 @@ class CRYSTAL(FileIOCalculator):
             if line.find(estring) >= 0:
                 index_energy = iline
                 break
-        try:
-            energy = float(self.lines[index_energy].split()[7]) * Hartree
-        except:
+        else:
             raise RuntimeError('Problem in reading energy')
+        energy = float(self.lines[index_energy].split()[7]) * Hartree
         self.results['energy'] = energy
         # Force line indexes
         fstring = 'CARTESIAN FORCES'
@@ -227,12 +226,11 @@ class CRYSTAL(FileIOCalculator):
             if line.find(fstring_end) >= 0:
                 index_force_end = iline - 1
                 break
-        try:
-            for j in range(index_force_begin, index_force_end):
-                word = self.lines[j].split()
-                gradients.append([float(word[k+2]) for k in range(0, 3)])
-        except:
+        else:
             raise RuntimeError('Problem in reading forces')
+        for j in range(index_force_begin, index_force_end):
+            word = self.lines[j].split()
+            gradients.append([float(word[k+2]) for k in range(0, 3)])
         forces = np.array(gradients) * Hartree / Bohr
 
         self.results['forces'] = forces

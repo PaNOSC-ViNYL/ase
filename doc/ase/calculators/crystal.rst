@@ -30,7 +30,7 @@ of the command to be run). It is mandatory to set the input file as
 
 - csh/tcsh::
 
-  $ setenv ASE_CRYSTAL_COMMAND "/my_disk/my_name/bin/crystal/ < INPUT > OUTPUT 2>&1"  (an example)
+  $ setenv ASE_CRYSTAL_COMMAND "/my_disk/my_name/bin/crystal < INPUT > OUTPUT 2>&1"  (an example)
 
 
 CRYSTAL Calculator (a FileIOCalculator)
