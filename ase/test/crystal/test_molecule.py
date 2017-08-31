@@ -10,11 +10,11 @@ geom.set_calculator(CRYSTAL(label='water',
                             guess=True,
                             basis='sto-3g',
                             xc='PBE',
-                            otherkeys=['SCFDIR', 'ANDERSON',
-                                       ['MAXCYCLES', '500'],
-                                       ['TOLDEE', '6'],
-                                       ['TOLINTEG', '7 7 7 7 14'],
-                                       ['FMIXING', '90']]
+                            otherkeys=['scfdir', 'anderson',
+                                       ['maxcycles', '500'],
+                                       ['toldee', '6'],
+                                       ['tolinteg', '7 7 7 7 14'],
+                                       ['fmixing', '90']]
                             ))
 
 opt = BFGS(geom)

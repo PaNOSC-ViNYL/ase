@@ -16,11 +16,11 @@ bulk.set_calculator(CRYSTAL(label='Si2',
                             basis='sto-3g',
                             xc='PBE',
                             kpts=(2, 2, 2),
-                            otherkeys=['SCFDIR', 'ANDERSON',
-                                      ['MAXCYCLES', '500'],
-                                      ['TOLDEE', '5'],
-                                      ['TOLINTEG', '7 7 7 7 14'],
-                                      ['FMIXING', '50']],
+                            otherkeys=['scfdir', 'anderson',
+                                       ['maxcycles', '500'],
+                                       ['toldee', '6'],
+                                       ['tolinteg', '7 7 7 7 14'],
+                                       ['fmixing', '50']]
                             ))
 
 final_energy = bulk.get_potential_energy()

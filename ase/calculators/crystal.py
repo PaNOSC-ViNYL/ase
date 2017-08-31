@@ -90,6 +90,8 @@ class CRYSTAL(FileIOCalculator):
             basis_ = basisfile.readlines()
             for line in basis_:
                 outfile.write(line)
+            outfile.write('99 0 \n')
+            outfile.write('END \n')
         else:
             outfile.write('BASISSET \n')
             outfile.write(p.basis.upper() + '\n')
