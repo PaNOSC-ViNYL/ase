@@ -75,7 +75,6 @@ def read_crystal(filename):
 
     atoms_pos = []
     anumber_list = []
-    type_names = []
     my_pbc = [False, False, False]
     mycell = []
 
