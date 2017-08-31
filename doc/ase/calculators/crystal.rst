@@ -43,26 +43,26 @@ format.
 
 Below follows a list with a selection of parameters.
 
-==============  =========  ==============  ============================
-keyword         type       default value   description
-==============  =========  ==============  ============================
-``restart``     ``bool``   None            Restart old calculation
-``xc``          various    'HF'            Hamiltonian. HF, MP2 or DFT
-                                           methods available
-``spinpol``     ``bool``   False           Spin polarization
-``guess``       ``bool``   True            Read wf from fort.20 file
-                                           when present
-``basis``       ``str``    'custom'        Read basis set from
-                                           basis file
-``kpts``        various    None or (1,1,1) **k**-point sampling if
-                                           calculation is periodic
-``isp``         ``int``    1               Density of the Gilat net
-                                           with respect to Monkhorst-
-                                           Pack
-``smearing``    ``float``  None            Smearing. Only Fermi-Dirac
-                                           available
-``otherkeys``   ``list``   []              All other CRYSTAL keywords
-==============  =========  ==============  ============================
+==============  =========  ===============  ============================
+keyword         type       default value    description
+==============  =========  ===============  ============================
+``restart``     ``bool``   None             Restart old calculation
+``xc``          various    'HF'             Hamiltonian. HF, MP2 or DFT
+                                            methods available
+``spinpol``     ``bool``   False            Spin polarization
+``guess``       ``bool``   True             Read wf from fort.20 file
+                                            when present
+``basis``       ``str``    'custom'         Read basis set from
+                                            basis file
+``kpts``        various    None or (1,1,1)  **k**-point sampling if
+                                            calculation is periodic
+``isp``         ``int``    1                Density of the Gilat net
+                                            with respect to Monkhorst-
+                                            Pack
+``smearing``    ``float``  None             Smearing. Only Fermi-Dirac
+                                            available
+``otherkeys``   ``list``   []               All other CRYSTAL keywords
+==============  =========  ===============  ============================
 
 For parameters not set in ``otherkeys`` CRYSTAL_ will set the default value.
 See the official `CRYSTAL manual`_ for more details.
@@ -77,7 +77,7 @@ calculation. Available options are Hartree-Fock ('HF'), second order
 perturbation theory ('MP2') and the density-functional theory where ``xc``
 defines the exchange and correlation functional. In the latter case
 a single string defines a standalone functional (see `CRYSTAL manual`_),
-a tuple of strings set the first string as EXCHANGE and the second 
+a tuple of strings set the first string as EXCHANGE and the second
 string as 'CORRELAT' (see `CRYSTAL manual`_ for more details).
 
 .. code-block:: python
@@ -106,7 +106,7 @@ and must contain the basis sets for all the atom species.
 .. note::
 
    The CRYSTAL_ simulation package allows to set up to three different
-   all electron basis sets and/or two valence electron basis sets for 
+   all electron basis sets and/or two valence electron basis sets for
    the same atomic species (see `CRYSTAL manual`_ page 21 for more details).
 
    The number to be added to the atomic number reported in the 'basis'
@@ -122,7 +122,7 @@ Spin-polarized calculation
 
 If the atoms object has non-zero magnetic moments, a spin-polarized
 calculation will be performed by default.
-It is also possible to manually tell the calculator to perform a 
+It is also possible to manually tell the calculator to perform a
 spin-polarized calculation through the parameter ``spinpol``:
 
 .. code-block:: python
@@ -133,9 +133,9 @@ Brillouin-zone sampling
 =======================
 
 Brillouin-zone sampling is controlled by ``kpts``. This parameter
-can be set to a sequence of three int values, e.g. (2, 2, 3), 
+can be set to a sequence of three int values, e.g. (2, 2, 3),
 which define a regular Monkhorst-Pack grid. If it is not defined a
-``gamma`` calculation will be performed. 
+``gamma`` calculation will be performed.
 For 2D calculations ``kpts[2]`` will be to set to one, for 1D ones
 also ``kpts[1]`` will be set to unity.
 For molecular calculations (0D) any definition of the ``kpts``
@@ -153,15 +153,15 @@ In this example the resulting Gilat net would be (4, 4, 4).
 Reading an external wave function
 =================================
 
-The calculator reads by default the wave function stored in 
+The calculator reads by default the wave function stored in
 the 'fort.20' file if present (``guess=True``).
-If this parameter is set to False the code will calculate the 
+If this parameter is set to False the code will calculate the
 wave function from scratch at any step, slowing down the perfromances.
 
 Code related keywords
 =====================
 
-The CRYSTAL_ simulation package allows for many other keywords. 
+The CRYSTAL_ simulation package allows for many other keywords.
 Most of them can be specified through the ``otherkeys`` parameter.
 
 .. code-block:: python
