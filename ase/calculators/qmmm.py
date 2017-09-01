@@ -272,22 +272,23 @@ class Embedding:
         f = self.pcpot.get_forces(self.qmatoms.calc)
         return self.mmatoms.calc.redistribute_forces(f)
 
+
 def combine_lj_lorenz_berthelot(sigmaqm, sigmamm,
-                               epsilonqm, epsilonmm):
-    """Combine LJ parameters according to the
-       Lorenz-Berthelot rule"""
-    sigma_c=np.zeros((len(sigmaqm), len(sigmamm)))
-    epsilon_c=np.zeros_like(sigma_c)
+                                epsilonqm, epsilonmm):
+    """Combine LJ parameters according to the Lorenz-Berthelot rule"""
+    sigma_c = np.zeros((len(sigmaqm), len(sigmamm)))
+    epsilon_c = np.zeros_like(sigma_c)
 
     for ii in range(len(sigmaqm)):
-        sigma_c[ii, :]=(sigmaqm[ii]+sigmamm)/2
-        epsilon_c[ii, :]=(epsilonqm[ii]*epsilonmm)**0.5
+        sigma_c[ii, :] = (sigmaqm[ii] + sigmamm) / 2
+        epsilon_c[ii, :] = (epsilonqm[ii] * epsilonmm)**0.5
     return sigma_c, epsilon_c
+
 
 class LJInteractionsGeneral:
     name = 'LJ-general'
-    
-    def __init__(self, sigmaqm, epsilonqm, sigmamm, 
+
+    def __init__(self, sigmaqm, epsilonqm, sigmamm,
                  epsilonmm, molecule_size=3):
         self.sigmaqm = sigmaqm
         self.epsilonqm = epsilonqm
@@ -297,27 +298,29 @@ class LJInteractionsGeneral:
         self.combine_lj()
 
     def combine_lj(self):
-        self.sigma, self.epsilon = combine_lj_lorenz_berthelot(self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)
+        self.sigma, self.epsilon = combine_lj_lorenz_berthelot(
+            self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)
 
-    def calculate(self, qmatoms, mmatoms, shift):  
-        mmpositions = self.update(qmatoms, mmatoms, shift)         
+    def calculate(self, qmatoms, mmatoms, shift):
+        mmpositions = self.update(qmatoms, mmatoms, shift)
         qmforces = np.zeros_like(qmatoms.positions)
         mmforces = np.zeros_like(mmatoms.positions)
         energy = 0.0
 
         for qmi in range(len(qmatoms)):
             if ~np.any(self.epsilon[qmi, :]):
-               continue
+                continue
             D = mmpositions - qmatoms.positions[qmi, :]
             d2 = (D**2).sum(2)
             c6 = (self.sigma[qmi, :]**2 / d2)**3
             c12 = c6**2
-            e = 4 *self.epsilon[qmi, :] * (c12 - c6)
+            e = 4 * self.epsilon[qmi, :] * (c12 - c6)
             energy += e.sum()
-            f  = (24 * self.epsilon[qmi, :] * (2 * c12 - c6) / d2)[:, :, np.newaxis] * D 
+            f = (24 * self.epsilon[qmi, :] *
+                 (2 * c12 - c6) / d2)[:, :, np.newaxis] * D
             mmforces += f.reshape((-1, 3))
             qmforces[qmi, :] -= f.sum(0).sum(0)
-        
+
         return energy, qmforces, mmforces
 
     def update(self, qmatoms, mmatoms, shift):
@@ -335,9 +338,9 @@ class LJInteractionsGeneral:
         wrap(distances, mmatoms.cell.diagonal(), mmatoms.pbc)
         offsets = distances - positions[:, 0]
         positions += offsets[:, np.newaxis] + qmcenter
-        
+
         return positions
-     
+
 
 class LJInteractions:
     name = 'LJ'

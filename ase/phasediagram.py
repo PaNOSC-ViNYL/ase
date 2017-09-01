@@ -269,7 +269,6 @@ class Pourbaix:
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
 
-
         if plot:
             import matplotlib.pyplot as plt
             import matplotlib.cm as cm
@@ -492,7 +491,7 @@ class PhaseDiagram:
         for a, b, ref in zip(x, e, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,
-                     horizontalalignment='center', verticalalignment='bottom')
+                    horizontalalignment='center', verticalalignment='bottom')
 
         ax.set_xlabel(self.symbols[1])
         ax.set_ylabel('energy [eV/atom]')
@@ -508,7 +507,7 @@ class PhaseDiagram:
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,
-                     horizontalalignment='center', verticalalignment='bottom')
+                    horizontalalignment='center', verticalalignment='bottom')
 
     def plot3d3(self, ax):
         x, y, e = self.points[:, 1:].T
