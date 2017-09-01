@@ -9,6 +9,7 @@ This module only depends on NumPy and the space group database.
 
 import os
 import warnings
+from functools import total_ordering
 
 import numpy as np
 from ase.utils import basestring
@@ -31,6 +32,7 @@ class SpacegroupValueError(SpacegroupError):
     pass
 
 
+@total_ordering
 class Spacegroup(object):
     """A space group class.
 
@@ -188,18 +190,15 @@ class Spacegroup(object):
         retval.append('\n')
         return ''.join(retval)
 
-    def __cmp__(self, other):
-        """Compares *self* with *other* by number and setting."""
-        if self.no > other.no:
-            return 1
-        elif self.no < other.no:
-            return -1
-        elif self.setting > other.setting:
-            return 1
-        elif self.setting < other.setting:
-            return -1
-        else:
-            return 0
+    def __eq__(self, other):
+        return self.no == other.no and self.setting == other.setting
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __lt__(self, other):
+        return self.no < other.no or (
+            self.no == other.no and self.setting < other.setting)
 
     def __index__(self):
         return self.no
