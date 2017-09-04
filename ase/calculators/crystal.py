@@ -34,7 +34,8 @@ class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
     """
 
-    implemented_properties = ['energy', 'forces', 'stress', 'charges']
+    implemented_properties = ['energy', 'forces', 'stress', 'charges',
+                              'dipole']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cry', atoms=None, **kwargs):
@@ -277,3 +278,15 @@ class CRYSTAL(FileIOCalculator):
                 i = i + 1
         charges = np.array(qm_charges)
         self.results['charges'] = charges
+    
+        ### Read dipole moment.
+        
+        dipole = np.zeros([1, 3])
+        for n, line in enumerate(self.lines):
+            if 'DIPOLE MOMENT ALONG' in line:
+                dipolestart = n + 2
+                dipole = np.array([float(f) for f in 
+                                   self.lines[dipolestart].split()[2:5]])
+                break
+        # debye to e*Ang
+        self.results['dipole'] = dipole * 0.2081943482534
