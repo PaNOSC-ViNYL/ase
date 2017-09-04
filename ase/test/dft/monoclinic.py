@@ -10,7 +10,6 @@ par = cell_to_cellpar(mc1)
 mc2 = cellpar_to_cell(par)
 mc3 = [[1, 0, 0], [0, 1, 0], [-0.2, 0, 1]]
 path = 'GYHCEM1AXH1'
-path = 'GYHCEM1'
 
 firsttime = True
 for cell in [mc1, mc2, mc3]:
@@ -19,14 +18,14 @@ for cell in [mc1, mc2, mc3]:
     a.calc = FreeElectrons(nvalence=1, kpts={'path': path})
     print(crystal_structure_from_cell(a.cell))
     r = a.get_reciprocal_cell()
-    k = get_special_points(a.cell)['Y']
+    k = get_special_points(a.cell)['H']
     print(np.dot(k, r))
     a.get_potential_energy()
     bs = a.calc.band_structure()
     coords, labelcoords, labels = bs.get_labels()
     assert ''.join(labels) == path
     e_skn = bs.energies
-    bs.plot()
+    # bs.plot()
     if firsttime:
         coords1 = coords
         labelcoords1 = labelcoords
@@ -37,4 +36,4 @@ for cell in [mc1, mc2, mc3]:
                   labelcoords - labelcoords1,
                   e_skn - e_skn1]:
             print(abs(d).max())
-            #assert abs(d).max() < 1e-13, d
+            assert abs(d).max() < 1e-13, d
