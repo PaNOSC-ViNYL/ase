@@ -1,9 +1,8 @@
-""" Test the Turbomole calculator in simple QMMM and
-    explicit interaction QMMM simulations """
+"""Test the Turbomole calculator in simple QMMM and
+explicit interaction QMMM simulations."""
 from math import cos, sin, pi
 
 import numpy as np
-# import matplotlib.pyplot as plt
 
 from ase import Atoms
 from ase.calculators.tip3p import TIP3P, epsilon0, sigma0, rOH, angleHOH
@@ -22,10 +21,13 @@ qm_par = {'esp fit': 'kollman', 'multiplicity': 1}
 for calc in [
         TIP3P(),
         SimpleQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), TIP3P()),
-        SimpleQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), TIP3P(), vacuum=3.0),
+        SimpleQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), TIP3P(),
+                   vacuum=3.0),
         EIQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), interaction),
-        EIQMMM([3, 4, 5], Turbomole(**qm_par), TIP3P(), interaction, vacuum=3.0),
-        EIQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), interaction, vacuum=3.0)]:
+        EIQMMM([3, 4, 5], Turbomole(**qm_par), TIP3P(), interaction,
+               vacuum=3.0),
+        EIQMMM([0, 1, 2], Turbomole(**qm_par), TIP3P(), interaction,
+               vacuum=3.0)]:
     dimer = Atoms('H2OH2O',
                   [(r * cos(a), 0, r * sin(a)),
                    (r, 0, 0),
@@ -67,5 +69,3 @@ for calc in [
                    (np.dot(v1, v1) * np.dot(v2, v2))**0.5) / np.pi * 180
     fmt = '{0:>20}: {1:.3f} {2:.3f} {3:.3f} {4:.1f}'
     print(fmt.format(calc.name, -min(E), -e0, d0, a0))
-
-#    plt.show()
