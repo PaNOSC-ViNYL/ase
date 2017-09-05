@@ -145,7 +145,7 @@ class PointChargePotential:
         self.mmpositions = None
         self.mmforces = None
 
-    def set_positions(self, mmpositions):
+    def set_positions(self, mmpositions, com_pv=None):
         self.mmpositions = mmpositions
 
     def calculate(self, qmcharges, qmpositions):

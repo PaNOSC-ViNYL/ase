@@ -48,6 +48,9 @@ commands = {
          '--unique'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
+    'find':
+        ['-v', '--verbose', '-l', '--long', '-i', '--include', '-x',
+         '--exclude'],
     'gui':
         ['-n', '--image-number', '-u', '--show-unit-cell', '-r',
          '--repeat', '-R', '--rotations', '-o', '--output', '-g',
@@ -65,9 +68,10 @@ commands = {
          '--interactive', '-c', '--collection', '--modify',
          '--after'],
     'test':
-        ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet'],
+        ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet',
+         '--list', '--list-calculators'],
     'ulm':
-        ['-n', '--index', '-v', '--verbose']}
+        ['-n', '--index', '-d', '--delete', '-v', '--verbose']}
 # End of computer generated data
 
 

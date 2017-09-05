@@ -49,6 +49,10 @@ Three equivalent ways to delete carbon atoms:
 >>> del atoms[[atom.index for atom in atoms if atom.symbol == 'C']]
 >>> del atoms[[atom.symbol == 'C' for atom in atoms]]
 
+Swap the positions of two atoms with index 3 and 4:
+
+>>> atoms.positions[[3, 4]] = atoms.positions[[4, 3]]
+
 
 Trajectories
 ============

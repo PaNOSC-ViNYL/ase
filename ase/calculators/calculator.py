@@ -26,10 +26,10 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'demon', 'dftb',
-         'dmol', 'eam', 'elk', 'emt', 'exciting', 'fleur', 'gaussian', 'gpaw',
-         'gromacs', 'gulp','hotbit', 'jacapo', 'lammps', 'lammpslib', 'lj',
-         'mopac', 'morse', 'nwchem', 'octopus', 'onetep', 'siesta', 'tip3p',
-         'turbomole', 'vasp']
+         'dmol', 'eam', 'elk', 'emt', 'espresso', 'exciting', 'fleur',
+         'gaussian', 'gpaw', 'gromacs', 'gulp', 'hotbit', 'jacapo', 'lammps',
+         'lammpslib', 'lj', 'mopac', 'morse', 'nwchem', 'octopus', 'onetep',
+         'siesta', 'tip3p', 'turbomole', 'vasp']
 
 
 special = {'cp2k': 'CP2K',
@@ -38,7 +38,7 @@ special = {'cp2k': 'CP2K',
            'elk': 'ELK',
            'emt': 'EMT',
            'fleur': 'FLEUR',
-           'gulp' : 'GULP',
+           'gulp': 'GULP',
            'lammps': 'LAMMPS',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
@@ -173,6 +173,33 @@ def kpts2ndarray(kpts, atoms=None):
     return np.array(kpts)
 
 
+class EigenvalOccupationMixin:
+    """Define 'eigenvalues' and 'occupations' properties on class.
+
+    eigenvalues and occupations will be arrays of shape (spin, kpts, nbands).
+
+    Classes must implement the old-fashioned get_eigenvalues and
+    get_occupations methods."""
+
+    @property
+    def eigenvalues(self):
+        return self.build_eig_occ_array(self.get_eigenvalues)
+
+    @property
+    def occupations(self):
+        return self.build_eig_occ_array(self.get_occupation_numbers)
+
+    def build_eig_occ_array(self, getter):
+        nspins = self.get_number_of_spins()
+        nkpts = len(self.get_ibz_k_points())
+        nbands = self.get_number_of_bands()
+        arr = np.zeros((nspins, nkpts, nbands))
+        for s in range(nspins):
+            for k in range(nkpts):
+                arr[s, k, :] = getter(spin=s, kpt=k)
+        return arr
+
+
 class Parameters(dict):
     """Dictionary for parameters.
 
@@ -199,7 +226,7 @@ class Parameters(dict):
     def tostring(self):
         keys = sorted(self)
         return 'dict(' + ',\n     '.join(
-            '%s=%r' % (key, self[key]) for key in keys) + ')\n'
+            '{}={!r}'.format(key, self[key]) for key in keys) + ')\n'
 
     def write(self, filename):
         file = open(filename, 'w')
@@ -610,20 +637,16 @@ class FileIOCalculator(Calculator):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
-            raise RuntimeError('Please set $%s environment variable ' %
-                               ('ASE_' + self.name.upper() + '_COMMAND') +
-                               'or supply the command keyword')
+            raise RuntimeError(
+                'Please set ${} environment variable '
+                .format('ASE_' + self.name.upper() + '_COMMAND') +
+                'or supply the command keyword')
         command = self.command.replace('PREFIX', self.prefix)
-        olddir = os.getcwd()
-        try:
-            os.chdir(self.directory)
-            errorcode = subprocess.call(command, shell=True)
-        finally:
-            os.chdir(olddir)
+        errorcode = subprocess.call(command, shell=True, cwd=self.directory)
 
         if errorcode:
-            raise RuntimeError('%s returned an error: %d' %
-                               (self.name, errorcode))
+            raise RuntimeError('{} in {} returned an error: {}'
+                               .format(self.name, self.directory, errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):

@@ -18,10 +18,10 @@ def angle(x, y):
     return arccos(dot(x, y) / (norm(x) * norm(y))) * 180. / pi
 
 
-def cell_to_cellpar(cell):
+def cell_to_cellpar(cell, radians=False):
     """Returns the cell parameters [a, b, c, alpha, beta, gamma].
 
-    Angles are in degrees.
+    Angles are in degrees unless radian=True is used.
     """
     lengths = [np.linalg.norm(v) for v in cell]
     angles = []
@@ -35,6 +35,8 @@ def cell_to_cellpar(cell):
         else:
             angle = 90.0
         angles.append(angle)
+    if radians:
+        angles = [angle * pi / 180 for angle in angles]
     return np.array(lengths + angles)
 
 
@@ -89,18 +91,18 @@ def cellpar_to_cell(cellpar, ab_normal=(0, 0, 1), a_direction=None):
         a, b, c, alpha, beta, gamma = cellpar
 
     # Handle orthorhombic cells separately to avoid rounding errors
-    eps = 2 * np.spacing(90.0, dtype=np.float64) # around 1.4e-14
-    ## alpha
+    eps = 2 * np.spacing(90.0, dtype=np.float64)  # around 1.4e-14
+    # alpha
     if abs(abs(alpha) - 90) < eps:
         cos_alpha = 0.0
     else:
         cos_alpha = cos(alpha * pi / 180.0)
-    ## beta
+    # beta
     if abs(abs(beta) - 90) < eps:
         cos_beta = 0.0
     else:
         cos_beta = cos(beta * pi / 180.0)
-    ## gamma
+    # gamma
     if abs(gamma - 90) < eps:
         cos_gamma = 0.0
         sin_gamma = 1.0
@@ -134,7 +136,7 @@ def metric_from_cell(cell):
     return np.dot(cell, cell.T)
 
 
-def crystal_structure_from_cell(cell, eps=2e-4):
+def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
     """Return the crystal structure as a string calculated from the cell.
 
     Supply a cell (from atoms.get_cell()) and get a string representing
@@ -172,10 +174,20 @@ def crystal_structure_from_cell(cell, eps=2e-4):
           abs(gamma - pi / 3 * 2) < eps and
           abs(angles[:2] - pi / 2).max() < eps):
         return 'hexagonal'
-    elif (c >= a and c >= b and alpha < pi / 2 and
-          abs(angles[1:] - pi / 2).max() < eps):
+    elif (c >= a and c >= b and beta > pi / 2 and
+          abs(angles[::2] - pi / 2).max() < eps):
         return 'monoclinic'
+    elif (abc.ptp() < eps and angles.ptp() < eps and
+          np.abs(angles).max() < pi / 2):
+        return 'rhombohedral type 1'
+    elif (abc.ptp() < eps and angles.ptp() < eps and
+          np.abs(angles).max() > pi / 2):
+        return 'rhombohedral type 2'
     else:
+        if niggli_reduce:
+            from ase.build.tools import niggli_reduce_cell
+            cell, _ = niggli_reduce_cell(cell)
+            return crystal_structure_from_cell(cell, niggli_reduce=False)
         raise ValueError('Cannot find crystal structure')
 
 

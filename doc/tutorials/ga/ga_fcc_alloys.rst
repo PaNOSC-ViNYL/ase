@@ -120,7 +120,7 @@ In this script we run a generational GA as opposed to the pool GA outlined in
 two for-loops; the innermost loop runs the number of times specified by the
 population size it corresponds to one generation. The outermost loop runs as
 many generations as specified in ``num_gens``. The function
-:func:`pop.update()` is called after the innermost loop has finished thereby
+``pop.update()`` is called after the innermost loop has finished thereby
 only adding individuals to the population after a whole generation is
 calculated.
 

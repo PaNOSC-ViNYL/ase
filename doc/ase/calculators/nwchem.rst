@@ -33,8 +33,8 @@ queueing system. If you use a different queueing system replace
 Examples
 ========
 
-Here is a command line example of how to calculate optimize the geometry of a
-water molecule using PBE::
+Here is a command line example of how to optimize the geometry of a
+water molecule using the PBE density functional::
 
     $ ase build H2O | ase run nwchem -p xc=PBE -f 0.02
     Running: H2O
@@ -79,6 +79,8 @@ keyword         type     default value            description
                                                   coordinates by default.
 ``convergence`` ``dict``                          Convergence criteria.
 ``basis``       ``str``  ``'3-21G'``              Basic set.
+``print``       ``str``  ``None``                 Flags within the DFT block
+                                                  steering the output details.
 ``basispar``             ``None``
 ``ecp``                  ``None``
 ``so``                   ``None``

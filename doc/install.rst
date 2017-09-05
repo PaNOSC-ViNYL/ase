@@ -102,13 +102,13 @@ from Git.
 :Tar-file:
 
     You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-    latest stable release (ase-3.13.0.tar.gz_) or the latest
+    latest stable release (ase-3.14.1.tar.gz_) or the latest
     development snapshot (`<snapshot.tar.gz>`_).
 
     Unpack and make a soft link::
 
-        $ tar -xf ase-3.13.0.tar.gz
-        $ ln -s ase-3.13.0 ase
+        $ tar -xf ase-3.14.1.tar.gz
+        $ ln -s ase-3.14.1 ase
 
     Here is a `list of tarballs <https://pypi.python.org/simple/ase/>`__.
 
@@ -117,7 +117,7 @@ from Git.
     Alternatively, you can get the source for the latest stable release from
     https://gitlab.com/ase/ase like this::
 
-        $ git clone -b 3.13.0 https://gitlab.com/ase/ase.git
+        $ git clone -b 3.14.1 https://gitlab.com/ase/ase.git
 
     or if you want the development version::
 
@@ -147,9 +147,10 @@ Finally, please `run the tests`_.
     See the :ref:`releasenotes` for which tags are available.  Also the
     dates of older releases can be found there.
 
-.. _ase-3.13.0.tar.gz: https://pypi.python.org/packages/84/a8/
-    664c99fc94510163b5289c8e475660182f0f6ba098c549879bc5d36c17fd/
-    ase-3.13.0.tar.gz
+
+.. _ase-3.14.1.tar.gz: https://pypi.python.org/packages/74/66/
+    9648ef25e5a3aa642abf2cb7bffa05485b2582ca436ba731ee0f4f30b9da/
+    ase-3.14.1.tar.gz#md5=33b04a3f6bf7658142d9175ada0547dc
 
 
 Environment variables

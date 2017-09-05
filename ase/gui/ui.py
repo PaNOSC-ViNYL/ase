@@ -190,7 +190,8 @@ class CheckButton(Widget):
         self.callback = callback
 
     def create(self, parent):
-        self.check = tk.Checkbutton(parent, text=self.text, var=self.var, command=self.callback)
+        self.check = tk.Checkbutton(
+            parent, text=self.text, var=self.var, command=self.callback)
         return self.check
 
     @property
@@ -298,8 +299,8 @@ class RadioButtons(Widget):
                         for i, label in enumerate(labels)]
         self.vertical = vertical
 
-    def create(self, parrent):
-        self.widget = frame = tk.Frame(parrent)
+    def create(self, parent):
+        self.widget = frame = tk.Frame(parent)
         side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
@@ -565,13 +566,14 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Configure>', resize)
         self.canvas.bind('<Shift-B{right}-Motion>'.format(right=right),
                          bind(scroll))
+
+        self.win.bind('<MouseWheel>', bind(scroll_event))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']
-        
 
     def update_status_line(self, text):
         self.status.config(text=text)

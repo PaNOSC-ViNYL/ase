@@ -10,6 +10,42 @@ Git master branch
 
 :git:`master <>`.
 
+* If you are running your Python script in :mod:`parallel <ase.parallel>`
+  then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
+  the master and broadcast to slaves, and :func:`ase.io.write` will only
+  write from master.  Use the new keyword ``parallel=False`` to read/write
+  from the individual slaves.
+
+* New ``ase find`` :ref:`command <cli>` for finding atoms in files.
+
+* Added :class:`Espresso <ase.calculators.espresso.Espresso>` calculator for
+  Quantum ESPRESSO in module :mod:`ase.calculators.espresso`.
+
+* The :func:`ase.dft.kpoints.get_special_points` function has a new call
+  signature:  Before it was ``get_special_points(lattice, cell)``, now it is
+  ``get_special_points(cell, lattice=None)``.  The old way still works, but
+  you will get a warning.
+
+* The :class:`ase.dft.dos.DOS` object will now use linear tetrahedron
+  interpolation of the band-structure if you set ``width=0.0``.  It's slow,
+  but sometimes worth waiting for.  It uses the :func:`ase.dft.dos.ltidos`
+  helper function.
+
+
+Version 3.14.1
+==============
+
+28 June 2017: :git:`3.14.1 <../3.14.1>`.
+
+* Calling the :func:`ase.dft.bandgap.bandgap` function with ``direct=True``
+  would return band indices that were off by one.  Fixed now.
+
+
+Version 3.14.0
+==============
+
+20 June 2017: :git:`3.14.0 <../3.14.0>`.
+
 * Python 2.6 no longer supported.
 
 * The command-line tools :program:`ase-???` have been replaced by a
@@ -73,7 +109,7 @@ Git master branch
 * An ASE database can now have :ref:`metadata` describing the data.
   Metadata is a dict with any of the following keys: ``title``,
   ``key_descriptions``, ``default_columns``, ``special_keys`` and
-  ``summary_sections``.
+  ``layout``.
 
 * :data:`ase.data.atomic_masses` has been updated to IUPAC values from
   2016. Several elements will now have different weights which will affect
@@ -103,7 +139,7 @@ Git master branch
 
 * Added file formats .car, .incoor, and .arc, related to DMol\ :sup:`3`.
 
-* New function for interpolating from Monkhors-Pack sampled valeus in the BZ
+* New function for interpolating from Monkhors-Pack sampled values in the BZ
   to arbitrary points in the BZ:
   :func:`ase.dft.kpoints.monkhorst_pack_interpolate`.
 
@@ -115,6 +151,8 @@ Git master branch
 * The :func:`ase.dft.bandgap.get_band_gap` function is now deprecated.  Use
   the new one called :func:`ase.dft.bandgap.bandgap` (it's more flexible and
   returns also band indices).
+
+* New :mod:`Viewer for Jupyter notebooks <ase.visualize.nglview>`.
 
 
 Version 3.13.0
@@ -331,7 +369,7 @@ Version 3.9.0
   properties by use of template structures. Extension to other projects
   related to atomic simulations should be straightforward.
 
-* The :func:`ase.lattice.bulk` function can now build the Wurtzite structure.
+* The ``ase.lattice.bulk`` function can now build the Wurtzite structure.
 
 * The :class:`ase.utils.timing.Timer` was moved from GPAW to ASE.
 
@@ -378,7 +416,7 @@ Version 3.8.0
 * ASE's :mod:`gui <ase.gui>` renamed from ``ag`` to ``ase-gui``.
 * New :ref:`STM <stm>` module.
 * Python 2.6 is now a requirement.
-* The old :func:`ase.build.bulk` function is now deprecated.
+* The old ``ase.build.bulk`` function is now deprecated.
   Use the new one instead (:func:`ase.lattice.bulk`).
 * We're now using BuildBot for continuous integration:
   https://ase-buildbot.fysik.dtu.dk/waterfall
@@ -466,12 +504,12 @@ Version 3.5.0
   :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
-* :mod:`BFGSLineSearch <optimize.bfgslinesearch>` is now the default
+* :mod:`BFGSLineSearch <ase.optimize.bfgslinesearch>` is now the default
   (``QuasiNewton==BFGSLineSearch``).
 
 * There is a new interface to the LAMMPS molecular dynamics code.
 
-* New :mod:`phonons` module.
+* New :mod:`ase.phonons` module.
 
 * Van der Waals corrections for DFT, see GPAW_ usage.
 
@@ -485,7 +523,7 @@ Version 3.5.0
   * Enabled customization of colours and atomic radii.
   * Enabled user default settings via :file:`~/.ase/gui.py`.
 
-* :mod:`Database library <data>` expanded to include:
+* :mod:`Database library <ase.data>` expanded to include:
 
   * The s22, s26 and s22x5 sets of van der Waals bonded dimers and
     complexes by the Hobza group.

@@ -90,9 +90,19 @@ def process_metadata(db, html=True):
         if html:
             unit = sub.sub(r'\1<sub>\2</sub>', unit)
             unit = sup.sub(r'\1<sup>\2</sup>', unit)
+            unit = unit.replace(r'\text{', '').replace('}', '')
         else:
             unit = sub.sub(r'\1_\2', unit)
             unit = sup.sub(r'\1^\2', unit)
         meta['key_descriptions'][key] = (short, long, unit)
+
+    all_keys1 = set(meta['key_descriptions'])
+    for row in db.select():
+        all_keys1.update(row._keys)
+    all_keys2 = []
+    for key in all_keys1:
+        short, long, unit = meta['key_descriptions'].get(key, ('', '', ''))
+        all_keys2.append((key, long, unit))
+    meta['all_keys'] = sorted(all_keys2)
 
     return meta
