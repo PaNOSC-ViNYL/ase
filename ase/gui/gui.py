@@ -172,7 +172,6 @@ class GUI(View, Status):
             # so that the cursor follows the structure, this is not
             # given after a resize event for example
             scale = (np.prod(self.orig_size) / np.prod(self.window.size))**0.5
-            print scale
             self.center -= vec * scale
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
 

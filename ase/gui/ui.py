@@ -190,8 +190,8 @@ class CheckButton(Widget):
         self.callback = callback
 
     def create(self, parent):
-        self.check = tk.Checkbutton(
-            parent, text=self.text, var=self.var, command=self.callback)
+        self.check = tk.Checkbutton(parent, text=self.text,
+                                    var=self.var, command=self.callback)
         return self.check
 
     @property
