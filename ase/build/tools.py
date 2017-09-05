@@ -427,7 +427,7 @@ class _gtensor(object):
 
         self.cell = cell
 
-        self.epsilon = 1e-9 * abs(np.linalg.det(cell))**(1. / 3.)
+        self.epsilon = 1e-5 * abs(np.linalg.det(cell))**(1. / 3.)
 
         self.a = np.dot(cell[0], cell[0])
         self.b = np.dot(cell[1], cell[1])
@@ -486,7 +486,7 @@ class _gtensor(object):
 
 def niggli_reduce_cell(cell):
     C = np.eye(3, dtype=int)
-
+    cell = np.asarray(cell, dtype=float)
     G = _gtensor(cell)
 
     def lt(x, y, epsilon=G.epsilon):
@@ -518,7 +518,7 @@ def niggli_reduce_cell(cell):
             C = np.dot(C, A)
             continue
 
-        if gt(G.x * G.y * G.z, 0):
+        if gt(G.x * G.y * G.z, 0, G.epsilon**3):
             # Procedure A3
             i = -1 if lt(G.x, 0) else 1
             j = -1 if lt(G.y, 0) else 1

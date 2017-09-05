@@ -88,6 +88,7 @@ for X, cell in [
     ('monoclinic', [[1, 0, 0], [0, 1, 0], [0, 0.2, 1]])]:
 
     icell = np.linalg.inv(cell)
+    print(cell, X)
     special_points = get_special_points(cell, X)
     paths = []
     for names in parse_path_string(special_paths[X]):

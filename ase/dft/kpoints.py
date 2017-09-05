@@ -283,16 +283,18 @@ def get_special_points(cell, lattice=None, eps=2e-4):
         lattice, cell = cell, lattice
 
     from ase.build.tools import niggli_reduce_cell
-    rcell, _ = niggli_reduce_cell(cell)
-    M = np.dot(cell, np.linalg.inv(rcell))
-
+    rcell, M = niggli_reduce_cell(cell)
     latt = crystal_structure_from_cell(rcell, niggli_reduce=False)
     if lattice:
-        assert latt == lattice.lower()
+        assert latt == lattice.lower(), latt
 
     if latt == 'monoclinic':
-        # Here, we need the cell:
-        a, b, c, alpha, beta, gamma = cell_to_cellpar(cell=cell, radians=True)
+        # Transform From Niggli to Setyawana-Curtarolo cell:
+        T = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
+        scell = np.dot(T, rcell)
+
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(scell, radians=True)
+        M = np.dot(M, T.T)
         eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
         nu = 1 / 2 - eta * c * cos(alpha) / b
         points = {'G': [0, 0, 0],

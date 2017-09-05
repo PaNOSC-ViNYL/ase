@@ -1,18 +1,19 @@
 # Chinese translations for python-ase package.
-# Copyright (C) 2012 CAMD and ASE Developers
+# Copyright (C) 2017 CAMD and ASE Developers
 # This file is distributed under the same license as the python-ase package.
 #
 # Jun Yan <junyan@stanford.edu>, 2012.
 # Tao Jiang <tao.jiang@ens-lyon.fr>, 2012.
 # Chengjun <chej@fysik.dtu.dk>, 2012.
+# Keenan Lyon <klyon@uwaterloo.ca>, 2017.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: python-ase 3.6.0.2515\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-04-11 20:41+0200\n"
-"PO-Revision-Date: 2017-01-11 13:56+0100\n"
-"Last-Translator: Chengjun <chej@fysik.dtu.dk>\n"
+"POT-Creation-Date: 2017-08-31 05:03+0200\n"
+"PO-Revision-Date: 2017-09-01 06:33+0200\n"
+"Last-Translator: Keenan Lyon <klyon@uwaterloo.ca>\n"
 "Language-Team: Chinese (simplified)\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
@@ -21,10 +22,8 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 #: ../add.py:12
-#, fuzzy
-#| msgid "Position"
 msgid "Bad position"
-msgstr "位置"
+msgstr "坏位置"
 
 #. XXXXXXXXXXX still array based, not Atoms-based.  Will crash
 #: ../add.py:20
@@ -33,57 +32,55 @@ msgstr "添加原子"
 
 #: ../add.py:25
 msgid "Absolute position:"
-msgstr ""
+msgstr "绝对位置"
 
-#: ../add.py:27 ../add.py:30 ../nanoparticle.py:262
+#: ../add.py:27 ../add.py:30 ../nanoparticle.py:264
 msgid "Add"
 msgstr "添加"
 
 #: ../add.py:28
 msgid "Relative to average position (of selection):"
-msgstr ""
+msgstr "随均值的位置"
 
-#: ../colors.py:14
+#: ../colors.py:15
 msgid "Colors"
 msgstr "颜色"
 
-#: ../colors.py:16
+#: ../colors.py:17
 msgid "Choose how the atoms are colored:"
 msgstr "选择原子颜色"
 
-#: ../colors.py:18
+#: ../colors.py:19
 msgid "By atomic number, default \"jmol\" colors"
 msgstr "根据原子序数， 默认\"jmol\"颜色"
 
-#: ../colors.py:19
+#: ../colors.py:20
 msgid "By tag"
 msgstr "根据标签"
 
-#: ../colors.py:20
+#: ../colors.py:21
 msgid "By force"
 msgstr "根据受力"
 
-#: ../colors.py:21
+#: ../colors.py:22
 msgid "By velocity"
 msgstr "根据速度"
 
-#: ../colors.py:22
-#, fuzzy
-#| msgid "   Charge"
+#: ../colors.py:23
 msgid "By charge"
 msgstr "   电荷"
 
-#: ../colors.py:23
+#: ../colors.py:24
 msgid "By magnetic moment"
-msgstr ""
+msgstr "由磁矩"
 
-#: ../colors.py:65
+#: ../colors.py:67
 msgid "Green"
-msgstr ""
+msgstr "绿色"
 
-#: ../colors.py:65
+#: ../colors.py:67
 msgid "Yellow"
-msgstr ""
+msgstr "黄色"
 
 #: ../constraints.py:8
 msgid "Constraints"
@@ -94,14 +91,10 @@ msgid "Constrain"
 msgstr "限制"
 
 #: ../constraints.py:10 ../constraints.py:14
-#, fuzzy
-#| msgid " selected atoms"
 msgid "selected atoms"
 msgstr "已选择的原子"
 
 #: ../constraints.py:12
-#, fuzzy
-#| msgid " immobile atoms:"
 msgid "immobile atoms"
 msgstr "固定的原子："
 
@@ -151,7 +144,7 @@ msgstr "晶格："
 
 #: ../crystal.py:88
 msgid "\tSpace group: "
-msgstr "\t空间群："
+msgstr "\t空间群： "
 
 #: ../crystal.py:95
 msgid "Size: x: "
@@ -165,8 +158,8 @@ msgstr "  y: "
 msgid "  z: "
 msgstr "  z: "
 
-#: ../crystal.py:97 ../surfaceslab.py:77 ../surfaceslab.py:78
-#: ../surfaceslab.py:79
+#: ../crystal.py:97 ../surfaceslab.py:75 ../surfaceslab.py:76
+#: ../surfaceslab.py:77
 msgid " unit cells"
 msgstr " 晶胞"
 
@@ -232,13 +225,13 @@ msgstr "\t\tc:\t"
 msgid "\tgamma:\t"
 msgstr "\tgamma:\t"
 
-#: ../crystal.py:161 ../surfaceslab.py:57
+#: ../crystal.py:161 ../surfaceslab.py:55
 msgid "Get from database"
 msgstr "从数据库读取"
 
 #: ../crystal.py:166
 msgid "Basis: "
-msgstr "基组："
+msgstr "基组： "
 
 #: ../crystal.py:176
 msgid "  Element:\t"
@@ -270,13 +263,13 @@ msgstr "此空间群不存在！"
 msgid "Please specify a consistent set of atoms."
 msgstr "请指定相应的原子序列。"
 
-#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:528
-#: ../nanotube.py:84 ../surfaceslab.py:221
+#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:530
+#: ../nanotube.py:84 ../surfaceslab.py:220
 msgid "No valid atoms."
 msgstr "原子不存在。"
 
-#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:529
-#: ../nanotube.py:85 ../surfaceslab.py:222 ../widgets.py:76
+#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:531
+#: ../nanotube.py:85 ../surfaceslab.py:221 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "你没有指定合理的参数。"
 
@@ -334,14 +327,14 @@ msgstr ""
 "建立一个石墨烯单层或者石墨烯纳米带。一个纳米带可以\n"
 "选择被氢（或其他元素）饱和。"
 
-#: ../graphene.py:38 ../gui.py:466
+#: ../graphene.py:38 ../gui.py:472
 msgid "Graphene"
 msgstr "石墨稀"
 
 #. Choose structure
 #: ../graphene.py:45
 msgid "Structure: "
-msgstr "结构："
+msgstr "结构： "
 
 #: ../graphene.py:47
 msgid "Infinite sheet"
@@ -358,7 +351,7 @@ msgstr "饱和的ribbon"
 #. Orientation
 #: ../graphene.py:55
 msgid "Orientation: "
-msgstr "取向"
+msgstr "取向： "
 
 #: ../graphene.py:58
 msgid "zigzag"
@@ -370,7 +363,7 @@ msgstr "armchair"
 
 #: ../graphene.py:71 ../graphene.py:82
 msgid "  Bond length: "
-msgstr "  健长："
+msgstr "  健长： "
 
 #: ../graphene.py:72 ../graphene.py:83 ../graphene.py:107 ../nanotube.py:45
 msgid "Å"
@@ -395,7 +388,7 @@ msgid "  Length: "
 msgstr "长度："
 
 #. Vacuum
-#: ../graphene.py:105 ../surfaceslab.py:80
+#: ../graphene.py:105 ../surfaceslab.py:78
 msgid "Vacuum: "
 msgstr "真空："
 
@@ -404,8 +397,6 @@ msgid "  No element specified!"
 msgstr "未指定元素！"
 
 #: ../graphene.py:200
-#, fuzzy
-#| msgid "Please specify a consistent set of atoms."
 msgid "Please specify a consistent set of atoms. "
 msgstr "请指定相应的原子序列。"
 
@@ -433,20 +424,34 @@ msgid ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 msgstr ""
+"符号:\n"
+"<c>e</c>: 总能量\n"
+"<c>epot</c>: 势能\n"
+"<c>ekin</c>: 动能\n"
+"<c>fmax</c>: 最大受力\n"
+"<c>fave</c>: 均值受里\n"
+"<c>R[n,0-2]</c>: <c>n</c>号原子的位置\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: <c>n<sub>1</sub></c>号与<c>n<sub>2</sub></c>号原子的距离\n"
+"<c>i</c>: 这次画面序号\n"
+"<c>E[i]</c>: <c>i</c>序号话面的能量\n"
+"<c>F[n,0-2]</c>: 作用于<c>n</c>号原子的受力\n"
+"<c>V[n,0-2]</c>: <c>n</c>号原子的速度\n"
+"<c>M[n]</c>: <c>n</c>号原子的磁矩\n"
+"<c>A[0-2,0-2]</c>: 单位晶格的基底向量\n"
+"<c>s</c>: 路径长度\n"
+"<c>a(n1,n2,n3)</c>: <c>n<sub>1</sub></c>号, <c>n<sub>2</sub></c>号与<c>n<sub>3</sub></c>号原子之间的夹角, 集中在 <c>n<sub>2</sub></c>号原子\n"
+"<c>dih(n1,n2,n3,n4)</c>: <c>n<sub>1</sub></c>号, <c>n<sub>2</sub></c>号, <c>n<sub>3</sub></c>号与<c>n<sub>4</sub></c>号原子的二面角\n"
+"<c>T</c>: 温度 (K)"
 
 #: ../graphs.py:42 ../graphs.py:44
 msgid "Plot"
 msgstr "画图"
 
 #: ../graphs.py:46
-#, fuzzy
-#| msgid "_Save"
 msgid "Save"
 msgstr "保存"
 
 #: ../graphs.py:47
-#, fuzzy
-#| msgid "clear"
 msgid "Clear"
 msgstr "清空"
 
@@ -454,383 +459,345 @@ msgstr "清空"
 msgid "Save data to file ... "
 msgstr "保存数据到文件 ..."
 
-#: ../gui.py:243
+#: ../gui.py:249
 msgid "Automatic"
 msgstr "自动"
 
-#: ../gui.py:261
+#: ../gui.py:267
 msgid "Open ..."
 msgstr "打开 ..."
 
-#: ../gui.py:262
+#: ../gui.py:268
 msgid "Choose parser:"
-msgstr ""
+msgstr "选泽一个分析器:"
 
-#: ../gui.py:373
+#: ../gui.py:379
 msgid "_File"
 msgstr "文件"
 
-#: ../gui.py:374
+#: ../gui.py:380
 msgid "_Open"
 msgstr "打开"
 
-#: ../gui.py:375
+#: ../gui.py:381
 msgid "_New"
 msgstr "新文件"
 
-#: ../gui.py:376
+#: ../gui.py:382
 msgid "_Save"
 msgstr "保存"
 
-#: ../gui.py:378
+#: ../gui.py:384
 msgid "_Quit"
 msgstr "退出"
 
-#: ../gui.py:380
+#: ../gui.py:386
 msgid "_Edit"
 msgstr "编辑"
 
-#: ../gui.py:381
+#: ../gui.py:387
 msgid "Select _all"
 msgstr "选择所有"
 
-#: ../gui.py:382
+#: ../gui.py:388
 msgid "_Invert selection"
 msgstr "反选"
 
-#: ../gui.py:383
+#: ../gui.py:389
 msgid "Select _constrained atoms"
 msgstr "选择被限制的原子"
 
-#: ../gui.py:384
+#: ../gui.py:390
 msgid "Select _immobile atoms"
 msgstr "选择固定的原子"
 
-#: ../gui.py:390
-#, fuzzy
-#| msgid " selected atoms"
+#: ../gui.py:396
 msgid "Hide selected atoms"
-msgstr "已选择的原子"
+msgstr "把已选择的原子隐藏"
 
-#: ../gui.py:391
-#, fuzzy
-#| msgid " selected atoms"
+#: ../gui.py:397
 msgid "Show selected atoms"
-msgstr "已选择的原子"
+msgstr "显示已选择的原子"
 
-#: ../gui.py:393
+#: ../gui.py:399
 msgid "_Modify"
 msgstr "修改"
 
-#: ../gui.py:394
+#: ../gui.py:400
 msgid "_Add atoms"
 msgstr "添加原子"
 
-#: ../gui.py:395
+#: ../gui.py:401
 msgid "_Delete selected atoms"
 msgstr "删除所选原子"
 
-#: ../gui.py:398
+#: ../gui.py:404
 msgid "_First image"
 msgstr "第一个图像"
 
-#: ../gui.py:399
+#: ../gui.py:405
 msgid "_Previous image"
 msgstr "前一个图像"
 
-#: ../gui.py:400
+#: ../gui.py:406
 msgid "_Next image"
 msgstr "下一个图像"
 
-#: ../gui.py:401
+#: ../gui.py:407
 msgid "_Last image"
 msgstr "最后一个图像"
 
-#: ../gui.py:403
+#: ../gui.py:409
 msgid "_View"
 msgstr "视图"
 
-#: ../gui.py:404
+#: ../gui.py:410
 msgid "Show _unit cell"
 msgstr "显示原胞"
 
-#: ../gui.py:406
+#: ../gui.py:412
 msgid "Show _axes"
 msgstr "显示坐标轴"
 
-#: ../gui.py:407
+#: ../gui.py:413
 msgid "Show _bonds"
 msgstr "显示原子键"
 
-#: ../gui.py:409
-#, fuzzy
-#| msgid "Show _axes"
+#: ../gui.py:415
 msgid "Show _velocities"
-msgstr "显示坐标轴"
+msgstr "显示速度"
 
-#: ../gui.py:411
-#, fuzzy
-#| msgid "Show _axes"
+#: ../gui.py:417
 msgid "Show _forces"
-msgstr "显示坐标轴"
+msgstr "显示受力"
 
-#: ../gui.py:413
-#, fuzzy
-#| msgid "Show _axes"
+#: ../gui.py:419
 msgid "Show _Labels"
-msgstr "显示坐标轴"
+msgstr "显示标签"
 
-#: ../gui.py:414
-#, fuzzy
-#| msgid "None"
+#: ../gui.py:420
 msgid "_None"
 msgstr "无"
 
-#: ../gui.py:415
+#: ../gui.py:421
 msgid "Atom _Index"
-msgstr ""
+msgstr "原子指数"
 
-#: ../gui.py:416
+#: ../gui.py:422
 msgid "_Magnetic Moments"
-msgstr ""
+msgstr "磁矩"
 
-#: ../gui.py:417
-#, fuzzy
-#| msgid "Element: "
+#: ../gui.py:423
 msgid "_Element Symbol"
-msgstr "元素"
+msgstr "化学元素符号"
 
-#: ../gui.py:419
+#: ../gui.py:425
 msgid "Quick Info ..."
 msgstr "简要信息 ..."
 
-#: ../gui.py:420
+#: ../gui.py:426
 msgid "Repeat ..."
 msgstr "重复 ..."
 
-#: ../gui.py:421
+#: ../gui.py:427
 msgid "Rotate ..."
 msgstr "旋转 ..."
 
-#: ../gui.py:422
+#: ../gui.py:428
 msgid "Colors ..."
 msgstr "颜色 ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:424
+#: ../gui.py:430
 msgid "Focus"
 msgstr "聚焦"
 
-#: ../gui.py:425
+#: ../gui.py:431
 msgid "Zoom in"
 msgstr "放大"
 
-#: ../gui.py:426
+#: ../gui.py:432
 msgid "Zoom out"
 msgstr "缩小"
 
-#: ../gui.py:427
+#: ../gui.py:433
 msgid "Change View"
-msgstr ""
+msgstr "改变视图"
 
-#: ../gui.py:429
+#: ../gui.py:435
 msgid "Reset View"
 msgstr "复原"
 
-#: ../gui.py:430
+#: ../gui.py:436
 msgid "xy-plane"
 msgstr "xy平面"
 
-#: ../gui.py:431
+#: ../gui.py:437
 msgid "yz-plane"
 msgstr "yz平面"
 
-#: ../gui.py:432
-#, fuzzy
-#| msgid "xy-plane"
+#: ../gui.py:438
 msgid "zx-plane"
-msgstr "xy平面"
+msgstr "zx-平面"
 
-#: ../gui.py:433
-#, fuzzy
-#| msgid "xy-plane"
+#: ../gui.py:439
 msgid "yx-plane"
-msgstr "xy平面"
+msgstr "yx-平面"
 
-#: ../gui.py:434
-#, fuzzy
-#| msgid "xy-plane"
+#: ../gui.py:440
 msgid "zy-plane"
-msgstr "xy平面"
+msgstr "zy-平面"
 
-#: ../gui.py:435
+#: ../gui.py:441
 msgid "xz-plane"
 msgstr "xz平面"
 
-#: ../gui.py:436
-#, fuzzy
-#| msgid "xy-plane"
-msgid "a2,a3-plane"
-msgstr "xy平面"
-
-#: ../gui.py:437
-#, fuzzy
-#| msgid "xy-plane"
-msgid "a3,a1-plane"
-msgstr "xy平面"
-
-#: ../gui.py:438
-#, fuzzy
-#| msgid "xy-plane"
-msgid "a1,a2-plane"
-msgstr "xy平面"
-
-#: ../gui.py:439
-#, fuzzy
-#| msgid "xy-plane"
-msgid "a3,a2-plane"
-msgstr "xy平面"
-
-#: ../gui.py:440
-#, fuzzy
-#| msgid "xy-plane"
-msgid "a1,a3-plane"
-msgstr "xy平面"
-
-#: ../gui.py:441
-#, fuzzy
-#| msgid "xy-plane"
-msgid "a2,a1-plane"
-msgstr "xy平面"
-
 #: ../gui.py:442
+msgid "a2,a3-plane"
+msgstr "a2,a3-平面"
+
+#: ../gui.py:443
+msgid "a3,a1-plane"
+msgstr "a3,a1-平面"
+
+#: ../gui.py:444
+msgid "a1,a2-plane"
+msgstr "a1,a2-平面"
+
+#: ../gui.py:445
+msgid "a3,a2-plane"
+msgstr "a3,a2-平面"
+
+#: ../gui.py:446
+msgid "a1,a3-plane"
+msgstr "a1,a3-平面"
+
+#: ../gui.py:447
+msgid "a2,a1-plane"
+msgstr "a2,a1-平面"
+
+#: ../gui.py:448
 msgid "Settings ..."
 msgstr "设置 ..."
 
-#: ../gui.py:444
+#: ../gui.py:450
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:445
+#: ../gui.py:451
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:446
+#: ../gui.py:452
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:447
+#: ../gui.py:453
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:449
+#: ../gui.py:455
 msgid "_Tools"
 msgstr "工具"
 
-#: ../gui.py:450
+#: ../gui.py:456
 msgid "Graphs ..."
 msgstr "图片 ..."
 
-#: ../gui.py:451
+#: ../gui.py:457
 msgid "Movie ..."
 msgstr "动画 ..."
 
-#: ../gui.py:452
+#: ../gui.py:458
 msgid "Expert mode ..."
 msgstr "专家模式 ..."
 
-#: ../gui.py:453
+#: ../gui.py:459
 msgid "Constraints ..."
 msgstr "限制 ..."
 
-#: ../gui.py:454
+#: ../gui.py:460
 msgid "Render scene ..."
 msgstr "渲染场景 ..."
 
-#: ../gui.py:455
+#: ../gui.py:461
 msgid "_Move atoms"
 msgstr "移动原子"
 
-#: ../gui.py:456
+#: ../gui.py:462
 msgid "NE_B"
 msgstr "NEB"
 
-#: ../gui.py:457
+#: ../gui.py:463
 msgid "B_ulk Modulus"
 msgstr "块体的模块"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:460
+#: ../gui.py:466
 msgid "_Setup"
 msgstr "设置"
 
-#: ../gui.py:461
+#: ../gui.py:467
 msgid "_Bulk Crystal"
 msgstr "晶体"
 
-#: ../gui.py:462
+#: ../gui.py:468
 msgid "_Surface slab"
 msgstr "表面"
 
-#: ../gui.py:463
+#: ../gui.py:469
 msgid "_Nanoparticle"
 msgstr "纳米颗粒"
 
-#: ../gui.py:465
+#: ../gui.py:471
 msgid "Nano_tube"
 msgstr "纳米管"
 
-#: ../gui.py:468
+#: ../gui.py:474
 msgid "_Calculate"
 msgstr "计算"
 
-#: ../gui.py:469
+#: ../gui.py:475
 msgid "Set _Calculator"
 msgstr "设置计算器"
 
-#: ../gui.py:470
+#: ../gui.py:476
 msgid "_Energy and Forces"
 msgstr "能量和受力"
 
-#: ../gui.py:471
-#, fuzzy
-#| msgid "Energy _Minimization"
+#: ../gui.py:477
 msgid "Energy Minimization"
 msgstr "能量最小化"
 
-#: ../gui.py:474
+#: ../gui.py:480
 msgid "_Help"
 msgstr "帮助"
 
-#: ../gui.py:475
+#: ../gui.py:481
 msgid "_About"
 msgstr "关于"
 
-#: ../gui.py:479
+#: ../gui.py:485
 msgid "Webpage ..."
 msgstr "网页"
 
-#: ../modify.py:18
-#, fuzzy
-#| msgid "No atoms present"
+#: ../modify.py:19
 msgid "No atoms selected!"
-msgstr "没有发现原子"
+msgstr "没有原子被选泽了"
 
-#: ../modify.py:21
+#: ../modify.py:22
 msgid "Modify"
 msgstr "修改"
 
-#: ../modify.py:24
-#, fuzzy
-#| msgid "Invalid element."
+#: ../modify.py:25
 msgid "Change element"
-msgstr "无效元素"
+msgstr "改变元素"
 
-#: ../modify.py:27
+#: ../modify.py:28
 msgid "Tag"
 msgstr "标签"
 
-#: ../modify.py:29
+#: ../modify.py:30
 msgid "Moment"
 msgstr "磁矩"
 
@@ -844,19 +811,19 @@ msgstr "画面序号："
 
 #: ../movie.py:18
 msgid "First"
-msgstr ""
+msgstr "最初"
 
 #: ../movie.py:19
 msgid "Back"
-msgstr ""
+msgstr "返回"
 
 #: ../movie.py:20
 msgid "Forward"
-msgstr ""
+msgstr "前进"
 
 #: ../movie.py:21
 msgid "Last"
-msgstr ""
+msgstr "最后"
 
 #: ../movie.py:23
 msgid "Play"
@@ -978,11 +945,9 @@ msgstr "纳米颗粒"
 msgid "Get structure"
 msgstr "读取结构"
 
-#: ../nanoparticle.py:154 ../surfaceslab.py:72
-#, fuzzy
-#| msgid "Structure: "
+#: ../nanoparticle.py:154 ../surfaceslab.py:70
 msgid "Structure:"
-msgstr "结构："
+msgstr "结构:"
 
 #: ../nanoparticle.py:159
 msgid "Lattice constant:  a ="
@@ -1025,102 +990,94 @@ msgstr "自动运行"
 msgid "Creating a nanoparticle."
 msgstr "创建纳米颗粒中。"
 
-#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:84
+#: ../nanoparticle.py:197 ../nanotube.py:52 ../surfaceslab.py:82
 msgid "Apply"
-msgstr ""
+msgstr "使用"
 
-#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:85
-#, fuzzy
-#| msgid "_OK"
+#: ../nanoparticle.py:198 ../nanotube.py:53 ../surfaceslab.py:83
 msgid "OK"
 msgstr "完成"
 
-#: ../nanoparticle.py:225
+#: ../nanoparticle.py:227
 msgid "Up"
 msgstr "上"
 
-#: ../nanoparticle.py:226
+#: ../nanoparticle.py:228
 msgid "Down"
 msgstr "下"
 
-#: ../nanoparticle.py:227
+#: ../nanoparticle.py:229
 msgid "Delete"
 msgstr "删除"
 
-#: ../nanoparticle.py:269
-#, fuzzy
-#| msgid "Number of atoms: "
+#: ../nanoparticle.py:271
 msgid "Number of atoms"
 msgstr "原子数目："
 
-#: ../nanoparticle.py:269
+#: ../nanoparticle.py:271
 msgid "Diameter"
-msgstr ""
+msgstr "直径"
 
-#: ../nanoparticle.py:277
+#: ../nanoparticle.py:279
 msgid "above  "
 msgstr "上面"
 
-#: ../nanoparticle.py:277
+#: ../nanoparticle.py:279
 msgid "below  "
 msgstr "下面"
 
-#: ../nanoparticle.py:277
+#: ../nanoparticle.py:279
 msgid "closest  "
 msgstr "最近邻的"
 
-#: ../nanoparticle.py:280
+#: ../nanoparticle.py:282
 msgid "Smaller"
 msgstr "更小"
 
-#: ../nanoparticle.py:281
+#: ../nanoparticle.py:283
 msgid "Larger"
 msgstr "更大"
 
-#: ../nanoparticle.py:282
-msgid "Choose size using:"
-msgstr ""
-
 #: ../nanoparticle.py:284
-#, fuzzy
-#| msgid "Add atoms"
-msgid "atoms"
-msgstr "添加原子"
+msgid "Choose size using:"
+msgstr "选泽大小用:"
 
-#: ../nanoparticle.py:285
+#: ../nanoparticle.py:286
+msgid "atoms"
+msgstr "原子"
+
+#: ../nanoparticle.py:287
 msgid "Å³"
 msgstr "Å³"
 
-#: ../nanoparticle.py:287
-#, fuzzy
-#| msgid "Rounding: If exact size is not possible, choose the size"
+#: ../nanoparticle.py:289
 msgid "Rounding: If exact size is not possible, choose the size:"
 msgstr "取整：如果没有具体的尺寸，请选择相近尺寸"
 
-#: ../nanoparticle.py:315
+#: ../nanoparticle.py:317
 msgid "Surface energies (as energy/area, NOT per atom):"
 msgstr "表面能（单位面积，不是每个原子）："
 
-#: ../nanoparticle.py:317
+#: ../nanoparticle.py:319
 msgid "Number of layers:"
 msgstr "层数"
 
-#: ../nanoparticle.py:345
+#: ../nanoparticle.py:347
 msgid "At least one index must be non-zero"
 msgstr "至少一个指数必须不为零"
 
-#: ../nanoparticle.py:348
+#: ../nanoparticle.py:350
 msgid "Invalid hexagonal indices"
 msgstr "无效的六角指数"
 
-#: ../nanoparticle.py:414
+#: ../nanoparticle.py:416
 msgid "Unsupported or unknown structure"
 msgstr "不支持或未知的结构"
 
-#: ../nanoparticle.py:415
+#: ../nanoparticle.py:417
 #, python-brace-format
 msgid "Element = {0}, structure = {1}"
-msgstr ""
+msgstr "化学元素 = {0}, 晶格结构 = {1}"
 
 #: ../nanotube.py:13
 msgid ""
@@ -1136,20 +1093,17 @@ msgstr ""
 "其他元素的纳米管可以通过指定元素和健长来创建。"
 
 #: ../nanotube.py:26
-#, fuzzy, python-brace-format
-#| msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+#, python-brace-format
 msgid ""
 "{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} "
 "Å"
-msgstr " %(natoms)i 原子: %(symbols)s, 体积: %(volume).3f A<sup>3</sup>"
+msgstr "{natoms}原子, 直径: {diameter:.3f}埃, 总长度: {total_length:.3f}埃"
 
 #: ../nanotube.py:40
 msgid "Nanotube"
 msgstr "纳米管"
 
 #: ../nanotube.py:43
-#, fuzzy
-#| msgid "  Bond length: "
 msgid "Bond length: "
 msgstr "  健长："
 
@@ -1158,8 +1112,6 @@ msgid "Select roll-up vector (n,m) and tube length:"
 msgstr "选择roll-up 矢量(n,m)和管长度："
 
 #: ../nanotube.py:49
-#, fuzzy
-#| msgid "  Length: "
 msgid "Length:"
 msgstr "长度："
 
@@ -1181,17 +1133,7 @@ msgid "Unit cell varies."
 msgstr "原胞大小改变了。"
 
 #: ../quickinfo.py:11
-#, fuzzy, python-format
-#| msgid ""
-#| "%s\n"
-#| "\n"
-#| "Number of atoms: %d.\n"
-#| "\n"
-#| "Unit cell:\n"
-#| "  %8.3f  %8.3f  %8.3f\n"
-#| "  %8.3f  %8.3f  %8.3f\n"
-#| "  %8.3f  %8.3f  %8.3f\n"
-#| "%s\n"
+#, python-format
 msgid ""
 "%s\n"
 "\n"
@@ -1214,44 +1156,109 @@ msgstr ""
 "  %8.3f  %8.3f  %8.3f\n"
 "  %8.3f  %8.3f  %8.3f\n"
 "%s\n"
+"%s\n"
 
 #: ../quickinfo.py:33
 msgid "This frame has no atoms."
-msgstr ""
+msgstr "这个帧没有原子"
 
 #: ../quickinfo.py:53
-#, fuzzy
-#| msgid "Info"
 msgid "no"
-msgstr "信息"
+msgstr "不是"
 
 #: ../quickinfo.py:53
 msgid "yes"
-msgstr ""
+msgstr "对"
 
 #. TRANSLATORS: This has the form Periodic: no, no, yes
 #: ../quickinfo.py:57
 #, python-format
 msgid "Periodic: %s, %s, %s"
-msgstr ""
+msgstr "周期性: %s, %s, %s"
 
-#: ../render.py:19
-#, fuzzy
-#| msgid ""
-#| "    Textures can be used to highlight different parts of\n"
-#| "    an atomic structure. This window applies the default\n"
-#| "    texture to the entire structure and optionally\n"
-#| "    applies a different texture to subsets of atoms that\n"
-#| "    can be selected using the mouse.\n"
-#| "    An alternative selection method is based on a boolean\n"
-#| "    expression in the entry box provided, using the\n"
-#| "    variables x, y, z, or Z. For example, the expression\n"
-#| "    Z == 11 and x > 10 and y > 10 \n"
-#| "    will mark all sodium atoms with x or coordinates \n"
-#| "    larger than 10. In either case, the button labeled\n"
-#| "    `Create new texture from selection` will enable\n"
-#| "    to change the attributes of the current selection. \n"
-#| "    "
+#: ../quickinfo.py:61
+msgid "Volume: "
+msgstr "体积："
+
+#: ../render.py:20 ../render.py:190
+msgid "Render current view in povray ... "
+msgstr "在povray中渲染当前视图 ..."
+
+#: ../render.py:21 ../render.py:194
+#, python-format
+msgid "Rendering %d atoms."
+msgstr "渲染%d 原子中。"
+
+#: ../render.py:26
+msgid "Size"
+msgstr "尺寸大小"
+
+#: ../render.py:31 ../render.py:227
+msgid "Line width"
+msgstr "线宽"
+
+#: ../render.py:32
+msgid "Ångström"
+msgstr "埃"
+
+#: ../render.py:34 ../render.py:201
+msgid "Render constraints"
+msgstr "渲染限制"
+
+#: ../render.py:35 ../render.py:215
+msgid "Render unit cell"
+msgstr "渲染原胞"
+
+#: ../render.py:41 ../render.py:240
+msgid "Output basename: "
+msgstr "输出基本名"
+
+#: ../render.py:43
+msgid "Output filename: "
+msgstr "输出文件名"
+
+#: ../render.py:48
+msgid "Atomic texture set:"
+msgstr "原子材质集"
+
+#: ../render.py:55 ../render.py:283
+msgid "Camera type: "
+msgstr "相机类型："
+
+#: ../render.py:56
+msgid "Camera distance"
+msgstr "相机距离"
+
+#. render current frame/all frames
+#: ../render.py:59 ../render.py:286
+msgid "Render current frame"
+msgstr "渲染当前帧"
+
+#: ../render.py:60
+msgid "Render all frames"
+msgstr "渲染所有 %d 帧"
+
+#: ../render.py:65
+msgid "Run povray"
+msgstr "运行povray"
+
+#: ../render.py:66
+msgid "Keep povray files"
+msgstr "保持vray文件"
+
+#: ../render.py:67 ../render.py:304
+msgid "Show output window"
+msgstr "显示输出窗口"
+
+#: ../render.py:68 ../render.py:295
+msgid "Transparent background"
+msgstr "透明的背景"
+
+#: ../render.py:72
+msgid "Render"
+msgstr "渲染"
+
+#: ../render.py:171
 msgid ""
 "    Textures can be used to highlight different parts of\n"
 "    an atomic structure. This window applies the default\n"
@@ -1271,118 +1278,77 @@ msgstr ""
 "    材质可以用来标识原子结构的不同部分。这个窗口对所有\n"
 "    的结构使用默认的材质。你也可以用鼠标选择对指定的原子集合\n"
 "    使用不同的材质。也可以通过提供的boolean表达式来\n"
-"    进行原子选择。例如：表达式Z == 11 and x > 10 and y > 10，\n"
+"    进行原子选择。例如：表达式Z == 11 与 x > 10 与 y > 10，\n"
 "    这将选择x和y坐标大于10的钠原子。然后通过‘给指定\n"
 "    的原子集合创建新的材质’来更改材质的属性。\n"
 "    "
 
-#: ../render.py:38
-msgid "Render current view in povray ... "
-msgstr "在povray中渲染当前视图 ..."
-
-#: ../render.py:42
-#, python-format
-msgid "Rendering %d atoms."
-msgstr "渲染%d 原子中。"
-
-#: ../render.py:49
-msgid "Render constraints"
-msgstr "渲染限制"
-
-#: ../render.py:54
+#: ../render.py:206
 msgid "Width"
 msgstr "宽度"
 
-#: ../render.py:54
+#: ../render.py:206
 msgid "     Height"
 msgstr "     高度"
 
-#: ../render.py:63
-msgid "Render unit cell"
-msgstr "渲染原胞"
-
-#: ../render.py:75
-msgid "Line width"
-msgstr "线宽"
-
-#: ../render.py:76
+#: ../render.py:228
 msgid "Angstrom           "
 msgstr "Angstrom           "
 
-#: ../render.py:86
+#: ../render.py:238
 msgid "Set"
 msgstr "设置"
 
-#: ../render.py:88
-msgid "Output basename: "
-msgstr "输出基本名"
-
-#: ../render.py:90
+#: ../render.py:242
 msgid "               Filename: "
 msgstr "               文件名："
 
-#: ../render.py:102
+#: ../render.py:254
 msgid " Default texture for atoms: "
 msgstr "默认的原子材质："
 
-#: ../render.py:103
+#: ../render.py:255
 msgid "    transparency: "
 msgstr "    透明度："
 
-#: ../render.py:106
+#: ../render.py:258
 msgid "Define atom selection for new texture:"
 msgstr "选择原子以进行材质定义"
 
-#: ../render.py:108
+#: ../render.py:260
 msgid "Select"
 msgstr "选择"
 
-#: ../render.py:112
+#: ../render.py:264
 msgid "Create new texture from selection"
 msgstr "选择新的材质"
 
-#: ../render.py:115
+#: ../render.py:267
 msgid "Help on textures"
 msgstr "关于材质的帮助"
 
-#: ../render.py:131
-msgid "Camera type: "
-msgstr "相机类型："
-
-#: ../render.py:132
+#: ../render.py:284
 msgid "     Camera distance"
 msgstr "      相机距离"
 
-#: ../render.py:134
-msgid "Render current frame"
-msgstr "渲染当前帧"
-
-#: ../render.py:138
+#: ../render.py:290
 #, python-format
 msgid "Render all %d frames"
 msgstr "渲染所有 %d 帧"
 
-#: ../render.py:143
-msgid "Transparent background"
-msgstr "透明的背景"
-
-#: ../render.py:146
+#: ../render.py:298
 msgid "Run povray       "
 msgstr "运行povray"
 
-#: ../render.py:149
+#: ../render.py:301
 msgid "Keep povray files       "
 msgstr "保持vray文件"
 
-#: ../render.py:152
-msgid "Show output window"
-msgstr "显示输出窗口"
-
-#: ../render.py:237
+#: ../render.py:389
 msgid "  transparency: "
 msgstr "   透明度："
 
-#: ../render.py:247
+#: ../render.py:399
 msgid ""
 "Can not create new texture! Must have some atoms selected to create a new "
 "material!"
@@ -1434,16 +1400,19 @@ msgid ""
 "last image. Examples: \"name@-1\": last image,\n"
 "\"name@-2:\": last two."
 msgstr ""
+"把原文件的名子(比如: name)加\"@n\"为了写入\"n\"号画面,\n"
+"不是现用的画面. 把名子加\"@start:stop\"还是\"@start:stop:step\"\n"
+"为了写入一连串画面. 你可以省\"start\"还是\"stop\"的选项,\n"
+"以便\"name@:\"会写入所有的画面. 用负数来从最后的画面倒数,\n"
+"比如说: \"name@-1\": 最后的画面,\"name@-2:\": 最后两个画面."
 
 #: ../save.py:26
 msgid "Save ..."
 msgstr "保存 ..."
 
 #: ../settings.py:10
-#, fuzzy
-#| msgid "Settings ..."
 msgid "Settings"
-msgstr "设置 ..."
+msgstr "设置"
 
 #. Constraints
 #: ../settings.py:13
@@ -1539,28 +1508,27 @@ msgstr "未找到计算器: 请使用菜单上的Calculate/设置计算器。"
 msgid "No atoms present"
 msgstr "没有发现原子"
 
-#: ../status.py:57
-#, fuzzy, python-format
-#| msgid " tag=%(tag)s mom=%(mom)1.2f"
+#: ../status.py:58
+#, python-format
 msgid " tag=%(tag)s"
-msgstr "标签=%(tag)s 磁矩=%(mom)1.2f"
+msgstr "标签=%(tag)s"
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:61
+#: ../status.py:62
 #, python-brace-format
 msgid " mom={0:1.2f}"
-msgstr ""
+msgstr "磁矩={0:1.2f}"
 
-#: ../status.py:65
+#: ../status.py:66
 #, python-brace-format
 msgid " q={0:1.2f}"
-msgstr ""
+msgstr "q={0:1.2f}"
 
-#: ../status.py:110
+#: ../status.py:111
 msgid "dihedral"
 msgstr "二面的"
 
-#: ../surfaceslab.py:14
+#: ../surfaceslab.py:12
 msgid ""
 "  Use this dialog to create surface slabs.  Select the element by\n"
 "writing the chemical symbol or the atomic number in the box.  Then\n"
@@ -1579,166 +1547,134 @@ msgstr ""
 "如果符合实验的晶体结构，你可以查找晶格常数，否则你需要自己指定。"
 
 #. Name, structure, orthogonal, function
-#: ../surfaceslab.py:26
+#: ../surfaceslab.py:24
 msgid "FCC(100)"
 msgstr "FCC(100)"
 
-#: ../surfaceslab.py:26 ../surfaceslab.py:27 ../surfaceslab.py:28
-#: ../surfaceslab.py:29
+#: ../surfaceslab.py:24 ../surfaceslab.py:25 ../surfaceslab.py:26
+#: ../surfaceslab.py:27
 msgid "fcc"
 msgstr "fcc"
 
-#: ../surfaceslab.py:27
+#: ../surfaceslab.py:25
 msgid "FCC(110)"
 msgstr "FCC(110)"
 
-#: ../surfaceslab.py:28 ../surfaceslab.py:172
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:26 ../surfaceslab.py:170
 msgid "FCC(111)"
-msgstr "FCC(110)"
+msgstr "FCC(111)"
 
-#: ../surfaceslab.py:29 ../surfaceslab.py:175
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:27 ../surfaceslab.py:173
 msgid "FCC(211)"
-msgstr "FCC(110)"
+msgstr "FCC(211)"
 
-#: ../surfaceslab.py:30
+#: ../surfaceslab.py:28
 msgid "BCC(100)"
 msgstr "BCC(100)"
 
-#: ../surfaceslab.py:30 ../surfaceslab.py:31 ../surfaceslab.py:32
+#: ../surfaceslab.py:28 ../surfaceslab.py:29 ../surfaceslab.py:30
 msgid "bcc"
 msgstr "bcc"
 
-#: ../surfaceslab.py:31 ../surfaceslab.py:169
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:29 ../surfaceslab.py:167
 msgid "BCC(110)"
-msgstr "FCC(110)"
+msgstr "BCC(111)"
 
-#: ../surfaceslab.py:32 ../surfaceslab.py:166
-#, fuzzy
-#| msgid "FCC(110)"
+#: ../surfaceslab.py:30 ../surfaceslab.py:164
 msgid "BCC(111)"
-msgstr "FCC(110)"
+msgstr "BCC(111)"
 
-#: ../surfaceslab.py:33 ../surfaceslab.py:179
-#, fuzzy
-#| msgid "HCP(0001) orthogonal"
+#: ../surfaceslab.py:31 ../surfaceslab.py:177
 msgid "HCP(0001)"
-msgstr "HCP(0001) 正交的"
+msgstr "HCP(0001)"
 
-#: ../surfaceslab.py:33 ../surfaceslab.py:34 ../surfaceslab.py:133
-#: ../surfaceslab.py:189
+#: ../surfaceslab.py:31 ../surfaceslab.py:32 ../surfaceslab.py:131
+#: ../surfaceslab.py:187
 msgid "hcp"
 msgstr "hcp"
 
-#: ../surfaceslab.py:34 ../surfaceslab.py:182
-#, fuzzy
-#| msgid "HCP(10-10) orthogonal"
+#: ../surfaceslab.py:32 ../surfaceslab.py:180
 msgid "HCP(10-10)"
-msgstr "HCP(10-10) 正交的"
+msgstr "HCP(10-10)"
 
-#: ../surfaceslab.py:35
-#, fuzzy
-#| msgid "DIAMOND(100) orthogonal"
+#: ../surfaceslab.py:33
 msgid "DIAMOND(100)"
-msgstr "金刚石结构(100) 正交的"
+msgstr "金刚石结构(100)"
 
-#: ../surfaceslab.py:35 ../surfaceslab.py:36
+#: ../surfaceslab.py:33 ../surfaceslab.py:34
 msgid "diamond"
 msgstr "金刚石"
 
-#: ../surfaceslab.py:36
-#, fuzzy
-#| msgid "DIAMOND(111) non-orthogonal"
+#: ../surfaceslab.py:34
 msgid "DIAMOND(111)"
-msgstr "金刚石结构(111) 非正交的"
+msgstr "金刚石结构(111)"
 
-#: ../surfaceslab.py:69
+#: ../surfaceslab.py:67
 msgid "Surface"
 msgstr "表面"
 
-#: ../surfaceslab.py:73
-#, fuzzy
-#| msgid "Non-orthogonal unit cell:\n"
+#: ../surfaceslab.py:71
 msgid "Orthogonal cell:"
-msgstr "非正交原胞:\n"
+msgstr "正交原胞:"
+
+#: ../surfaceslab.py:72
+msgid "Lattice constant:\ta"
+msgstr "晶格常数：\ta"
 
 #: ../surfaceslab.py:74
-#, fuzzy
-#| msgid "Lattice constant: "
-msgid "Lattice constant:\ta"
-msgstr "晶格常数："
-
-#: ../surfaceslab.py:76
-#, fuzzy
-#| msgid "\t\tc:\t"
 msgid "\t\tc"
-msgstr "\t\tc:\t"
+msgstr "\t\tc"
 
-#: ../surfaceslab.py:77
+#: ../surfaceslab.py:75
 msgid "Size: \tx: "
 msgstr "大小: \tx: "
 
-#: ../surfaceslab.py:78
-#, fuzzy
-#| msgid "\t\ty: "
+#: ../surfaceslab.py:76
 msgid "\ty: "
-msgstr "\t\ty: "
+msgstr "\ty: "
 
-#: ../surfaceslab.py:79
+#: ../surfaceslab.py:77
 msgid "\tz: "
-msgstr ""
+msgstr "\tz: "
 
 #. TRANSLATORS: This is a title of a window.
-#: ../surfaceslab.py:83
-#, fuzzy
-#| msgid "Creating a surface slab."
+#: ../surfaceslab.py:81
 msgid "Creating a surface."
 msgstr "创建表面。"
 
-#: ../surfaceslab.py:163
+#: ../surfaceslab.py:161
 msgid "Please enter an even value for orthogonal cell"
-msgstr ""
+msgstr "请为正交的晶格输入一个双数"
 
-#: ../surfaceslab.py:176
+#: ../surfaceslab.py:174
 msgid "Please enter a value divisible by 3 for orthogonal cell"
-msgstr ""
+msgstr "请为正交的晶格输入一个可被3除尽的数"
 
-#: ../surfaceslab.py:196
-#, fuzzy
-#| msgid "Vacuum: "
-msgid "Vacuum: {} Å."
-msgstr "真空："
+#: ../surfaceslab.py:194
+msgid " Vacuum: {} Å."
+msgstr "真空： {}埃"
 
 #. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
 #. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
-#: ../surfaceslab.py:203
+#: ../surfaceslab.py:202
 #, python-brace-format
 msgid "{symbol} {surf} surface with one atom.{vacuum}"
 msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
-msgstr[0] ""
+msgstr[0] "{symbol} {surf} 表面{natoms}号的原子.{vacuum}"
 
 #: ../ui.py:45
 msgid "Error"
-msgstr ""
+msgstr "错误"
 
 #: ../ui.py:52
 msgid "Version"
-msgstr ""
+msgstr "版本"
 
 #: ../ui.py:53
-#, fuzzy
-#| msgid "Webpage ..."
 msgid "Web-page"
 msgstr "网页"
 
 #: ../ui.py:54
-#, fuzzy
-#| msgid "_About"
 msgid "About"
 msgstr "关于"
 
@@ -1747,22 +1683,16 @@ msgid "Help"
 msgstr "帮助"
 
 #: ../widgets.py:11
-#, fuzzy
-#| msgid "Element: "
 msgid "Element:"
-msgstr "元素"
+msgstr "元素:"
 
 #: ../widgets.py:39
-#, fuzzy
-#| msgid "  No element specified!"
 msgid "No element specified!"
 msgstr "未指定元素！"
 
 #: ../widgets.py:56
-#, fuzzy
-#| msgid "  ERROR: Invalid element!"
 msgid "ERROR: Invalid element!"
-msgstr "   错误：无效元素！"
+msgstr "错误：无效元素！"
 
 #: ../widgets.py:75
 msgid "No Python code"
@@ -1779,13 +1709,6 @@ msgstr "没有Python代码"
 
 # XXX 计算器
 #, fuzzy
-#~| msgid ""
-#~| "The Lennard-Jones pair potential is one of the simplest\n"
-#~| "possible models for interatomic interactions, mostly\n"
-#~| "suitable for noble gasses and model systems.\n"
-#~| "\n"
-#~| "Interactions are described by an interaction length and an\n"
-#~| "interaction strength.\n"
 #~ msgid ""
 #~ "The Lennard-Jones pair potential is one of the simplest\n"
 #~ "possible models for interatomic interactions, mostly\n"
@@ -1794,10 +1717,8 @@ msgstr "没有Python代码"
 #~ "Interactions are described by an interaction length and an\n"
 #~ "interaction strength."
 #~ msgstr ""
-#~ "Lennard-Jone势是描述原子间相互作用的最简单的模型之一。它适合于惰性气\n"
-#~ "体和模型体系。\n"
-#~ "\n"
-#~ "该势使用原子间距和相互作用强度参数来描述原子间的相互作用\n"
+#~ "Lennard-Jones势是描述原子间相互作用的最简单的模型之一。它适合于惰性气\n"
+#~ "体和模型体系. 该势使用原子间距和相互作用强度参数来描述原子间的相互作用"
 
 #~ msgid ""
 #~ "The EMT potential is a many-body potential, giving a\n"
@@ -2874,9 +2795,6 @@ msgstr "没有Python代码"
 #~ msgid "Particle size: "
 #~ msgstr "纳米颗粒大小："
 
-#~ msgid "Volume: "
-#~ msgstr "体积："
-
 #~ msgid "%.1f Å"
 #~ msgstr "%.1f Å"
 
@@ -2945,9 +2863,6 @@ msgstr "没有Python代码"
 
 #~ msgid "Only positive deformation"
 #~ msgstr "仅允许正变形"
-
-#~ msgid "Atomic relaxations:"
-#~ msgstr "原子弛豫"
 
 #~ msgid "On   "
 #~ msgstr "开"

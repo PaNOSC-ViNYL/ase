@@ -71,7 +71,7 @@ commands = {
         ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet',
          '--list', '--list-calculators'],
     'ulm':
-        ['-n', '--index', '-v', '--verbose']}
+        ['-n', '--index', '-d', '--delete', '-v', '--verbose']}
 # End of computer generated data
 
 
