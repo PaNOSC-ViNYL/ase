@@ -6,7 +6,7 @@ from ase.calculators.singlepoint import SinglePointCalculator
 import xml.etree.ElementTree as ET
 
 
-def read_out(file, index=-1):
+def read_qbox(file, index=-1):
     """Read data from QBox output file
 
     Inputs:
