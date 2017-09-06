@@ -48,8 +48,6 @@ class ScriptTestCase(unittest.TestCase):
         try:
             with open(self.filename) as fd:
                 exec(compile(fd.read(), self.filename, 'exec'), {})
-        except KeyboardInterrupt:
-            raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',

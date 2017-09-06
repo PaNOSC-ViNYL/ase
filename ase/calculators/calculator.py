@@ -27,7 +27,7 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'demon', 'dftb',
          'dmol', 'eam', 'elk', 'emt', 'espresso', 'exciting', 'fleur',
-         'gaussian', 'gpaw', 'gromacs', 'gulp','hotbit', 'jacapo', 'lammps',
+         'gaussian', 'gpaw', 'gromacs', 'gulp', 'hotbit', 'jacapo', 'lammps',
          'lammpslib', 'lj', 'mopac', 'morse', 'nwchem', 'octopus', 'onetep',
          'siesta', 'tip3p', 'turbomole', 'vasp']
 
@@ -38,7 +38,7 @@ special = {'cp2k': 'CP2K',
            'elk': 'ELK',
            'emt': 'EMT',
            'fleur': 'FLEUR',
-           'gulp' : 'GULP',
+           'gulp': 'GULP',
            'lammps': 'LAMMPS',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
@@ -226,7 +226,7 @@ class Parameters(dict):
     def tostring(self):
         keys = sorted(self)
         return 'dict(' + ',\n     '.join(
-            '%s=%r' % (key, self[key]) for key in keys) + ')\n'
+            '{}={!r}'.format(key, self[key]) for key in keys) + ')\n'
 
     def write(self, filename):
         file = open(filename, 'w')
@@ -637,20 +637,16 @@ class FileIOCalculator(Calculator):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
-            raise RuntimeError('Please set $%s environment variable ' %
-                               ('ASE_' + self.name.upper() + '_COMMAND') +
-                               'or supply the command keyword')
+            raise RuntimeError(
+                'Please set ${} environment variable '
+                .format('ASE_' + self.name.upper() + '_COMMAND') +
+                'or supply the command keyword')
         command = self.command.replace('PREFIX', self.prefix)
-        olddir = os.getcwd()
-        try:
-            os.chdir(self.directory)
-            errorcode = subprocess.call(command, shell=True)
-        finally:
-            os.chdir(olddir)
+        errorcode = subprocess.call(command, shell=True, cwd=self.directory)
 
         if errorcode:
-            raise RuntimeError('%s in %s returned an error: %d' %
-                               (self.name, self.directory, errorcode))
+            raise RuntimeError('{} in {} returned an error: {}'
+                               .format(self.name, self.directory, errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):

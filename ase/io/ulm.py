@@ -542,16 +542,47 @@ def print_ulm_info(filename, index=None, verbose=False):
         print(b[i].tostr(verbose))
 
 
+def copy(reader, writer, exclude=set(), name=''):
+    """Copy from reader to writer except for keys in exclude."""
+    close_reader = False
+    close_writer = False
+    if isinstance(reader, str):
+        reader = open(reader)
+        close_reader = True
+    if isinstance(writer, str):
+        writer = open(writer, 'w')
+        close_writer = True
+    for key, value in reader._data.items():
+        if name + '.' + key in exclude:
+            continue
+        if isinstance(value, NDArrayReader):
+            value = value.read()
+        if isinstance(value, Reader):
+            copy(value, writer.child(key), exclude, name + '.' + key)
+        else:
+            writer.write(key, value)
+    if close_reader:
+        reader.close()
+    if close_writer:
+        writer.close()
+
+
 class CLICommand:
-    short_description = 'Show content of ulm-file'
+    short_description = 'Manipulate/show content of ulm-file'
 
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
         add('filename')
         add('-n', '--index', type=int)
+        add('-d', '--delete', metavar='key')
         add('-v', '--verbose', action='store_true')
 
     @staticmethod
     def run(args):
-        print_ulm_info(args.filename, args.index, verbose=args.verbose)
+        if args.delete:
+            exclude = set('.' + key for key in args.delete.split(','))
+            copy(args.filename, args.filename + '.temp', exclude)
+            os.rename(args.filename + '.temp', args.filename)
+        else:
+            print_ulm_info(args.filename, args.index, verbose=args.verbose)
