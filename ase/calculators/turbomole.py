@@ -12,7 +12,7 @@ import os
 import re
 import warnings
 from subprocess import Popen, PIPE
-from math import log10
+from math import log10, floor
 import numpy as np
 from ase import Atoms
 from ase.units import Ha, Bohr
@@ -454,7 +454,7 @@ class Turbomole(FileIOCalculator):
             'group': 'scfconv',
             'key': 'scfconv',
             'mapping': {
-                'to_control': lambda a: int(-log10(a / Ha) // 1),
+                'to_control': lambda a: int(floor(-log10(a / Ha))),
                 'from_control': lambda a: 10**(-a) * Ha
             },
             'type': float,
@@ -917,7 +917,7 @@ class Turbomole(FileIOCalculator):
         else:
             scfiter_str = ''
         if params['scf energy convergence']:
-            conv = -log10(params['scf energy convergence'] / Ha) // 1
+            conv = floor(-log10(params['scf energy convergence'] / Ha))
             scfiter_str += 'scf\nconv\n' + str(int(conv)) + '\n\n'
 
         if params['use fermi smearing']:
@@ -1038,11 +1038,11 @@ class Turbomole(FileIOCalculator):
             jobex_flags += ' -ri'
         if self.parameters['force convergence']:
             par = self.parameters['force convergence']
-            conv = -log10(par / Ha * Bohr) // 1
+            conv = floor(-log10(par / Ha * Bohr))
             jobex_flags += ' -gcart ' + str(int(conv))
         if self.parameters['energy convergence']:
             par = self.parameters['energy convergence']
-            conv = -log10(par / Ha) // 1
+            conv = floor(-log10(par / Ha))
             jobex_flags += ' -energy ' + str(int(conv))
         geom_iter = self.parameters['geometry optimization iterations']
         if geom_iter is not None:
@@ -2033,9 +2033,9 @@ class Turbomole(FileIOCalculator):
 
     def read_charges(self):
         """read partial charges on atoms from an ESP fit"""
-        if (('esp fit' in self.parameters and
-             self.parameters['esp fit'] is not None) or
-            len(read_data_group('esp_fit')) > 0):
+        epsfit_defined = ('esp fit' in self.parameters and
+                          self.parameters['esp fit'] is not None)
+        if epsfit_defined or len(read_data_group('esp_fit')) > 0:
             filename = 'ASE.TM.' + self.calculate_energy + '.out'
             with open(filename, 'r') as infile:
                 lines = infile.readlines()
