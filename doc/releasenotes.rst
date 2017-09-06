@@ -31,6 +31,12 @@ Git master branch
   but sometimes worth waiting for.  It uses the :func:`ase.dft.dos.ltidos`
   helper function.
 
+* :func:`ase.io.read` can now read QBox output files.
+
+* The :mod:`ase.calculators.qmmm` module can now also use
+  :ref:`Turbomole <turbomole qmmm>` and :mod:`DFTB+ <ase.calculators.dftb>`
+  as the QM part.
+
 
 Version 3.14.1
 ==============

@@ -75,7 +75,7 @@ must be checked with:
 
 If the user wishes to use the input files (such as the control file) generated
 by module ``define`` before (or without) an actual calculation starts, the
-``initialize()`` method has to be called explicitly after constructing the 
+``initialize()`` method has to be called explicitly after constructing the
 calculator and associating it with an atoms object, e.g.:
 
 .. code:: python
@@ -351,6 +351,8 @@ Geometry optimization and normal mode analysis for H2O
 
 :git:`ase/test/turbomole/turbomole_h2o.py`.
 
+
+.. _turbomole qmmm:
 
 QMMM simulation
 ---------------
