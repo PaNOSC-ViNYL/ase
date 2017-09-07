@@ -6,12 +6,18 @@ from ase.ga import set_raw_score
 
 from ase.calculators.emt import EMT
 
+refs = {'Cu': 0.23780976087291691, 'Au': 1.2957112575371597}
 
-def relax(atoms):
+
+def get_mixing_energy(atoms):
     atoms.set_calculator(EMT())
     e = atoms.get_potential_energy()
     print(e)
-    set_raw_score(atoms, -e)
+    syms = atoms.get_chemical_symbols()
+    for m in set(syms):
+        e -= syms.count(m) * refs[m]
+    print(e)
+    return e
 
 
 def get_comp(atoms):
@@ -41,6 +47,6 @@ pop = RankFitnessPopulation(data_connection=db,
 # Relax the starting population
 while db.get_number_of_unrelaxed_candidates() > 0:
     a = db.get_an_unrelaxed_candidate()
-    relax(a)
+    set_raw_score(a, get_mixing_energy(a))
     db.add_relaxed_step(a)
 pop.update()

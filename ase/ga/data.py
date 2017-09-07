@@ -25,6 +25,7 @@ class DataConnection(object):
 
         db_file_name: Path to the ase.db data file.
     """
+
     def __init__(self, db_file_name):
         self.db_file_name = db_file_name
         if not os.path.isfile(self.db_file_name):
@@ -69,7 +70,7 @@ class DataConnection(object):
                 a.info['data'] = {}
             res.append(a)
         return res
-    
+
     def __get_ids_of_all_unrelaxed_candidates__(self):
         """ Helper method used by the two above methods. """
 
@@ -143,9 +144,9 @@ class DataConnection(object):
                 a.info['key_value_pairs']['raw_score']
             except KeyError:
                 print("raw_score not put in atoms.info['key_value_pairs']")
-            
+
         g = self.get_generation_number()
-        
+
         with self.c as con:
             for a in a_list:
                 if 'generation' not in a.info['key_value_pairs']:
@@ -154,7 +155,7 @@ class DataConnection(object):
                                      key_value_pairs=a.info['key_value_pairs'],
                                      data=a.info['data'])
                 a.info['relax_id'] = relax_id
-                
+
     def get_largest_in_db(self, var):
         return self.c.select(sort='-{0}'.format(var)).next().get(var)
 
@@ -361,6 +362,7 @@ class PrepareDB(object):
         db_file_name: Database file to use
 
     """
+
     def __init__(self, db_file_name, simulation_cell=None, **kwargs):
         if os.path.exists(db_file_name):
             raise IOError('DB file {0} already exists'.format(db_file_name))
@@ -383,22 +385,22 @@ class PrepareDB(object):
                             relaxed=0, generation=0, extinct=0, **kwargs)
         self.c.update(gaid, gaid=gaid)
 
-    def add_relaxed_candidate(self, candidate):
+    def add_relaxed_candidate(self, candidate, **kwargs):
         """ Add a relaxed starting candidate. """
         try:
             candidate.info['key_value_pairs']['raw_score']
         except KeyError:
             print("raw_score not put in atoms.info['key_value_pairs']")
-            
+
         if 'data' in candidate.info:
             data = candidate.info['data']
         else:
             data = {}
-            
+
         gaid = self.c.write(candidate, origin='StartingCandidateRelaxed',
                             relaxed=1, generation=0, extinct=0,
                             key_value_pairs=candidate.info['key_value_pairs'],
-                            data=data)
+                            data=data, **kwargs)
         self.c.update(gaid, gaid=gaid)
 
 # class PrepareGenericDB(PrepareDB):
