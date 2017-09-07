@@ -167,6 +167,7 @@ class Images:
         images = []
         for atoms in self:
             refcell = atoms.get_cell()
+            atoms.set_constraint()
             del atoms[len(atoms) // oldprod:]
             atoms *= repeat
             atoms.cell = refcell
