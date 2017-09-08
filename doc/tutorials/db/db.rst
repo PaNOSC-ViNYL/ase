@@ -61,7 +61,15 @@ file and open that in your text editor::
 
 or, you can look at a single row like this::
 
-    $ ase db bulk.db Cu -j > cu.json
+    $ ase db bulk.db Cu -j
+    {"1": {
+     "calculator": "emt",
+     "energy": -0.007036492048371201,
+     "forces": [[0.0, 0.0, 0.0]],
+     "key_value_pairs": {"bm": 0.8392875566787444},
+     ...
+     ...
+    }
 
 The json file format is human readable, but much less efficient to work with
 compared to a SQLite3 file.
