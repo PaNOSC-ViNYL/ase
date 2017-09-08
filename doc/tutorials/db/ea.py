@@ -8,4 +8,4 @@ for row in db.select():
           refs.get(formula=row.ads).energy -
           refs.get(layers=row.layers, surf=row.surf).energy)
     h = row.positions[-1, 2] - row.positions[-2, 2]
-    db.update(row.id, h=h, ea=ea)
+    db.update(row.id, height=h, ea=ea)

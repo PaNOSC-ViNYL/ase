@@ -15,21 +15,19 @@ def run(symb, a, n):
 
 
 # Clean slabs:
-ads = 'none'
 for row in db1.select():
     a = row.cell[0, 1] * 2
     symb = row.symbols[0]
     for n in [1, 2, 3]:
-        id = db2.reserve(layers=n, surf=symb, ads=ads)
+        id = db2.reserve(layers=n, surf=symb, ads='clean')
         if id is not None:
             atoms = run(symb, a, n)
-            db2.write(atoms, layers=n, surf=symb, ads=ads)
+            db2.write(atoms, layers=n, surf=symb, ads='clean')
             del db2[id]
 
 # Atoms:
-if True:
-    for ads in 'CNO':
-        a = Atoms(ads)
-        a.calc = EMT()
-        a.get_potential_energy()
-        db2.write(a, ads=ads)
+for ads in 'CNO':
+    a = Atoms(ads)
+    a.calc = EMT()
+    a.get_potential_energy()
+    db2.write(a)

@@ -14,7 +14,8 @@ def run(symb, a, n, ads):
     fixed = list(range(len(atoms) - 1))
     atoms.constraints = [FixAtoms(indices=fixed)]
     atoms.calc = EMT()
-    BFGS(atoms).run(fmax=0.01)
+    opt = BFGS(atoms, logfile=None)
+    opt.run(fmax=0.01)
     return atoms
 
 
@@ -23,9 +24,5 @@ for row in db1.select():
     symb = row.symbols[0]
     for n in [1, 2, 3]:
         for ads in 'CNO':
-            id = db2.reserve(layers=n, surf=symb, ads=ads)
-            if id is not None:
-                atoms = run(symb, a, n, ads)
-                db2.write(atoms, layers=n, surf=symb, ads=ads)
-                del db2[id]
-                
+            atoms = run(symb, a, n, ads)
+            db2.write(atoms, layers=n, surf=symb, ads=ads)

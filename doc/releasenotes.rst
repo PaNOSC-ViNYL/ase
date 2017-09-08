@@ -37,6 +37,8 @@ Git master branch
   :ref:`Turbomole <turbomole qmmm>` and :mod:`DFTB+ <ase.calculators.dftb>`
   as the QM part.
 
+* New :ref:`db tutorial` tutorial.
+
 
 Version 3.14.1
 ==============
