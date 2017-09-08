@@ -28,9 +28,7 @@ with open('ea.py') as fd:
 # Create the figures:
 for n in [1, 2, 3]:
     a = read('ads.db@Cu{}O'.format(n))[0]
-    cell = a.cell
     a *= (2, 2, 1)
-    a.cell = cell
     write('cu{}o.pov'.format(n), a,
           rotation='-80x',
           display=False, run_povray=True)
