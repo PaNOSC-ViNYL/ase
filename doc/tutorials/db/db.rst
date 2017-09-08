@@ -22,8 +22,8 @@ with 1, 2 and 3 layers and we will use database files to store the results.
 Bulk
 ----
 
-First, we equilibium bolk FCC lattice constants for the seven elements where
-the :mod:`EMT <ase.calculator.emt>` potential works well:
+First, we calculate the equilibium bulk FCC lattice constants for the seven
+elements where the :mod:`EMT <ase.calculators.emt>` potential works well:
 
 .. literalinclude:: bulk.py
 
@@ -59,19 +59,18 @@ file and open that in your text editor::
     Added 0 key-value pairs (0 pairs updated)
     Inserted 7 rows
 
-
 or, you can look at a single row like this::
 
     $ ase db bulk.db Cu -j > cu.json
 
 The json file format is human readable, but much less efficient to work with
-compared to a SQLite file.
+compared to a SQLite3 file.
 
 
 Adsorbates
 ----------
 
-Now we do the adsorbtion calculations (run the :download:`ads.py` script).
+Now we do the adsorption calculations (run the :download:`ads.py` script).
 
 .. literalinclude:: ads.py
 
@@ -82,10 +81,10 @@ We now have a new database file with 63 rows::
 
 These 63 calculation only take a few seconds with EMT.  Suppose you want to use
 DFT and send the calculations to a supercomputer. In that case you may want to
-run several calculations in different jobs on the supercomputer.  In addition,
+run several calculations in different jobs on the computer.  In addition,
 some of the jobs could time out and not finish.  It's a good idea to modify
 the script a bit for this scenario.  We add a couple of lines
-to the inner:
+to the inner loop:
 
 .. highlight:: python
 
@@ -107,12 +106,12 @@ with the keys ``layers=n``, ``surf=symb`` and ``ads=ads``.  If there is, then
 the calculation will be skipped.  If there is not, then an empty row with
 those keys-values will be written and the calculation will start.  When done,
 the real row will be written and the empty one will be removed.  This
-modified script can run several jobs all running in parallel and no
+modified script can run in several jobs all running in parallel and no
 calculation will be done twice.
 
 .. highlight:: bash
 
-In case a calculation crashes, you will see empty rows in the database::
+In case a calculation crashes, you will see empty rows left in the database::
 
     $ ase db ads.db natoms=0
     id|age|user |formula|pbc|charge| mass
@@ -172,7 +171,7 @@ and then the three atoms::
 Analysis
 --------
 
-Now we have what we need to calulate the adsorbiton energies and heights
+Now we have what we need to calulate the adsorpiton energies and heights
 (:download:`ea.py`):
 
 .. literalinclude:: ea.py
@@ -186,7 +185,7 @@ Here are the results for three layers of Pt::
     Pt3N   |-5.419| 1.534
     Pt3O   |-4.724| 1.706
     Rows: 3
-    Keys: ads, ea, h, height, layers, surf
+    Keys: ads, ea, height, layers, surf
 
 .. note::
 
