@@ -22,7 +22,7 @@ with 1, 2 and 3 layers and we will use database files to store the results.
 Bulk
 ----
 
-First, we calculate the equilibium bulk FCC lattice constants for the seven
+First, we calculate the equilibrium bulk FCC lattice constants for the seven
 elements where the :mod:`EMT <ase.calculators.emt>` potential works well:
 
 .. literalinclude:: bulk.py
@@ -171,7 +171,7 @@ and then the three atoms::
 Analysis
 --------
 
-Now we have what we need to calulate the adsorpiton energies and heights
+Now we have what we need to calculate the adsorption energies and heights
 (:download:`ea.py`):
 
 .. literalinclude:: ea.py
