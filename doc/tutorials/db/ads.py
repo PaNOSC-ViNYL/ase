@@ -11,8 +11,11 @@ db2 = connect('ads.db')
 def run(symb, a, n, ads):
     atoms = fcc111(symb, (1, 1, n), a=a)
     add_adsorbate(atoms, ads, height=1.0, position='fcc')
+
+    # Constrain all atoms except the adsorbate:
     fixed = list(range(len(atoms) - 1))
     atoms.constraints = [FixAtoms(indices=fixed)]
+
     atoms.calc = EMT()
     opt = BFGS(atoms, logfile=None)
     opt.run(fmax=0.01)

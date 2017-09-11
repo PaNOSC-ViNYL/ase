@@ -45,7 +45,7 @@ Run the :download:`bulk.py` script and look at the results::
     Keys: bm
     $ ase gui bulk.db
 
-The :file:`bulk.db` is a SQLite3_ database in a single file::
+The :file:`bulk.db` is an SQLite3_ database in a single file::
 
     $ file bulk.db
     bulk.db: SQLite 3.x database
@@ -87,12 +87,12 @@ We now have a new database file with 63 rows::
     $ ase db ads.db -n
     63 rows
 
-These 63 calculation only take a few seconds with EMT.  Suppose you want to use
-DFT and send the calculations to a supercomputer. In that case you may want to
-run several calculations in different jobs on the computer.  In addition,
-some of the jobs could time out and not finish.  It's a good idea to modify
-the script a bit for this scenario.  We add a couple of lines
-to the inner loop:
+These 63 calculations only take a few seconds with EMT.  Suppose you want to
+use DFT and send the calculations to a supercomputer. In that case you may
+want to run several calculations in different jobs on the computer.  In
+addition, some of the jobs could time out and not finish.  It's a good idea
+to modify the script a bit for this scenario.  We add a couple of lines to
+the inner loop:
 
 .. highlight:: python
 
@@ -121,9 +121,9 @@ calculation will be done twice.
 
 In case a calculation crashes, you will see empty rows left in the database::
 
-    $ ase db ads.db natoms=0
-    id|age|user |formula|pbc|charge| mass
-    17|31s|jensj|       |FFF| 0.000|0.000
+    $ ase db ads.db natoms=0 -c ++
+    id|age|user |formula|pbc|charge| mass|ads|layers|surf
+    17|31s|jensj|       |FFF| 0.000|0.000|  N|     1|  Cu
     Rows: 1
     Keys: ads, layers, surf
 
@@ -153,9 +153,9 @@ adsorbates (:download:`refs.py`):
 
 Say we want those 24 reference energies (clean surfaces and isolated
 adsorbates) in a :file:`refs.db` file instead of the big :file:`ads.db` file.
-We could change the `refs.py` script and run the calculations again, but we
-can also manipulate the files using the ``ase db`` tool.  First, we move over
-the clean surfaces::
+We could change the :file:`refs.py` script and run the calculations again,
+but we can also manipulate the files using the ``ase db`` tool.  First, we
+move over the clean surfaces::
 
     $ ase db ads.db ads=clean --insert-into refs.db
     Added 0 key-value pairs (0 pairs updated)
@@ -163,7 +163,7 @@ the clean surfaces::
     $ ase db ads.db ads=clean --delete --yes
     Deleted 21 rows
 
-and then the three atoms::
+and then the three atoms (``pbc=FFF``, no periodicity)::
 
     $ ase db ads.db pbc=FFF --insert-into refs.db
     Added 0 key-value pairs (0 pairs updated)
