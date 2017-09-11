@@ -18,7 +18,15 @@ from ase.parallel import world
 
 
 class ResonantRaman(Vibrations):
-    """Resonant Raman intensities using finite differences."""
+    """Base Class for resonant Raman intensities using finite differences.
+
+    Parameters
+    ----------
+    overlap : function or False
+        Function to calculate overlaps between excitation at 
+        equilibrium and at a displaced position. Calculators are
+        given as first and second argument, respectively.
+    """
 
     def __init__(self, atoms, Excitations,
                  indices=None,
