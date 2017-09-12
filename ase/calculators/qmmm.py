@@ -68,11 +68,11 @@ class SimpleQMMM(Calculator):
             self.qmatoms.positions += (self.center -
                                        self.qmatoms.positions.mean(axis=0))
 
-        energy = self.mmcalc2.get_potential_energy(atoms)
+        energy = self.qmcalc.get_potential_energy(self.qmatoms)
+        qmforces = self.qmcalc.get_forces(self.qmatoms)
+        energy += self.mmcalc2.get_potential_energy(atoms)
         forces = self.mmcalc2.get_forces(atoms)
 
-        energy += self.qmcalc.get_potential_energy(self.qmatoms)
-        qmforces = self.qmcalc.get_forces(self.qmatoms)
         if self.vacuum:
             qmforces -= qmforces.mean(axis=0)
         forces[self.selection] += qmforces

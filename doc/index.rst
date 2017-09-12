@@ -37,7 +37,10 @@ Supported :mod:`Calculators <ase.calculators>`:
 |octopus| |onetep| |q_espresso| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`DMol³ <ase.calculators.dmol>`
-Gaussian_ Grimme-D3_ :mod:`~ase.calculators.gulp` Mopac_
+Gaussian_ 
+:mod:`Grimme DFT-D3 <ase.calculators.dftd3>`
+:mod:`~ase.calculators.gulp`
+Mopac_
 :mod:`~ase.calculators.tip3p`
 
 Please go through this check-list to figure out if you need to convert your
@@ -225,7 +228,6 @@ Contents
 
 .. _Gaussian: http://www.gaussian.com/
 .. _Mopac: http://openmopac.net/
-.. _Grimme-D3: https://gitlab.com/ehermes/ased3/tree/master
 .. _Sphinx: http://sphinx.pocoo.org
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk

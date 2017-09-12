@@ -13,6 +13,7 @@ class OffspringCreator(object):
     verbose: Be verbose and print some stuff
 
     """
+
     def __init__(self, verbose=False, num_muts=1):
         self.descriptor = 'OffspringCreator'
         self.verbose = verbose
@@ -49,13 +50,6 @@ class OffspringCreator(object):
         # data for lists and the like
         indi.info['data'] = {}
 
-        # Inherit the confid from the parent
-        # This will be overwritten in add_unrelaxed_candidate but carry
-        # through in add_unrelaxed_step
-        pconfid = parent.info.get('confid')
-        if pconfid is not None:
-            indi.info['confid'] = pconfid
-        
         return indi
 
 
@@ -71,6 +65,7 @@ class OperationSelector(object):
 
     oplist: The list of operations to select from.
     """
+
     def __init__(self, probabilities, oplist):
         assert len(probabilities) == len(oplist)
         self.oplist = oplist
