@@ -63,7 +63,7 @@ class Atoms(object):
         for collinear calculations or three numbers for each atom for
         non-collinear calculations.
     charges: list of float
-        Atomic charges.
+        Initial atomic charges.
     cell: 3x3 matrix or length 3 or 6 vector
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells, or 6 numbers, where
@@ -167,7 +167,7 @@ class Atoms(object):
                 magmoms = atoms.get_initial_magnetic_moments()
             if masses is None and atoms.has('masses'):
                 masses = atoms.get_masses()
-            if charges is None and atoms.has('charges'):
+            if charges is None and atoms.has('initial_charges'):
                 charges = atoms.get_initial_charges()
             if cell is None:
                 cell = atoms.get_cell()
