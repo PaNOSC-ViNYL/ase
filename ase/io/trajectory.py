@@ -345,7 +345,7 @@ def write_atoms(backend, atoms, write_header=True):
         b.write(momenta=atoms.get_momenta())
     if atoms.has('magmoms'):
         b.write(magmoms=atoms.get_initial_magnetic_moments())
-    if atoms.has('charges'):
+    if atoms.has('initial_charges'):
         b.write(charges=atoms.get_initial_charges())
 
 

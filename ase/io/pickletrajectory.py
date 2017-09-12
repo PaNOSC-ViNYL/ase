@@ -248,7 +248,7 @@ class PickleTrajectory:
 
         if 'magmoms' not in d and atoms.has('magmoms'):
             d['magmoms'] = atoms.get_initial_magnetic_moments()
-        if 'charges' not in d and atoms.has('charges'):
+        if 'charges' not in d and atoms.has('initial_charges'):
             charges = atoms.get_initial_charges()
             if (charges != 0).any():
                 d['charges'] = charges

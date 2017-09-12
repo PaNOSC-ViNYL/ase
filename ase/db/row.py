@@ -36,7 +36,7 @@ def atoms2dict(atoms):
         dct['cell'] = atoms.cell
     if atoms.has('magmoms'):
         dct['initial_magmoms'] = atoms.get_initial_magnetic_moments()
-    if atoms.has('charges'):
+    if atoms.has('initial_charges'):
         dct['initial_charges'] = atoms.get_initial_charges()
     if atoms.has('masses'):
         dct['masses'] = atoms.get_masses()
