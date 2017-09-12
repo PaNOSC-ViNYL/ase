@@ -187,6 +187,9 @@ class View:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
             self.labels = list(get_magmoms(self.atoms))
+        elif index == 4:
+            Q = self.atoms.get_initial_charges()
+            self.labels = ['{0:.4g}'.format(q) for q in Q]
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
@@ -330,8 +333,8 @@ class View:
             return f * self.images.get_dynamic(self.atoms)
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
-        elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+        elif self.colormode == 'initial charge':
+            return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return get_magmoms(self.atoms)
 

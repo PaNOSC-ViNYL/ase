@@ -12,7 +12,7 @@ names = {'position': ('positions', np.zeros(3)),
          'momentum': ('momenta', np.zeros(3)),
          'mass': ('masses', None),
          'magmom': ('magmoms', 0.0),
-         'charge': ('charges', 0.0)}
+         'charge': ('initial_charges', 0.0)}
 
 
 def atomproperty(name, doc):

@@ -63,7 +63,7 @@ class Atoms(object):
         for collinear calculations or three numbers for each atom for
         non-collinear calculations.
     charges: list of float
-        Atomic charges.
+        Initial atomic charges.
     cell: 3x3 matrix or length 3 or 6 vector
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells, or 6 numbers, where
@@ -167,7 +167,7 @@ class Atoms(object):
                 magmoms = atoms.get_initial_magnetic_moments()
             if masses is None and atoms.has('masses'):
                 masses = atoms.get_masses()
-            if charges is None and atoms.has('charges'):
+            if charges is None and atoms.has('initial_charges'):
                 charges = atoms.get_initial_charges()
             if cell is None:
                 cell = atoms.get_cell()
@@ -449,7 +449,8 @@ class Atoms(object):
         """Check for existence of array.
 
         name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
-        'charges'."""
+        'initial_charges'."""
+        # XXX extend has to calculator properties
         return name in self.arrays
 
     def set_atomic_numbers(self, numbers):
@@ -619,14 +620,14 @@ class Atoms(object):
         """Set the initial charges."""
 
         if charges is None:
-            self.set_array('charges', None)
+            self.set_array('initial_charges', None)
         else:
-            self.set_array('charges', charges, float, ())
+            self.set_array('initial_charges', charges, float, ())
 
     def get_initial_charges(self):
         """Get array of initial charges."""
-        if 'charges' in self.arrays:
-            return self.arrays['charges'].copy()
+        if 'initial_charges' in self.arrays:
+            return self.arrays['initial_charges'].copy()
         else:
             return np.zeros(len(self))
 
