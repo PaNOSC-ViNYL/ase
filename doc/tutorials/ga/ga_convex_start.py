@@ -6,25 +6,35 @@ from ase.calculators.emt import EMT
 
 import random
 
-baseslab = fcc111('Cu', size=(3, 3, 3))
+metals = ['Cu', 'Au']
+baseslab = fcc111(metals[0], size=(3, 3, 3), vacuum=5)
 
 # The population size should be at least the number of different compositions
 pop_size = 2 * len(baseslab)
 
-db = PrepareDB('hull.db', population_size=pop_size)
-
-# Add the end points manually
+# Create the references (pure slabs) manually
+pure_slabs = []
+refs = {}
 print('References:')
-for m in ['Cu', 'Au']:
+for m in metals:
     slab = baseslab.copy()
     slab.numbers[:] = atomic_numbers[m]
     atoms_string = ''.join(slab.get_chemical_symbols())
     slab.set_calculator(EMT())
     e = slab.get_potential_energy()
-    print('{0} = {1}'.format(m, e / len(slab)))
+    e_per_atom = e / len(slab)
+    refs[m] = e_per_atom
+    print('{0} = {1:.3f} eV/atom'.format(m, e_per_atom))
 
     set_raw_score(slab, 0.0)
-    db.add_relaxed_candidate(slab, atoms_string=atoms_string)
+    pure_slabs.append(slab)
+
+db = PrepareDB('hull.db', population_size=pop_size,
+               references=refs, metals=metals)
+
+for slab in pure_slabs:
+    db.add_relaxed_candidate(slab,
+                             atoms_string=''.join(slab.get_chemical_symbols()))
 
 
 for i in range(pop_size - 2):
@@ -32,7 +42,7 @@ for i in range(pop_size - 2):
 
     # max_tag = 3
 
-    noAu = random.randint(0, len(slab))
+    noAu = random.randint(1, len(slab) - 1)
     slab.numbers[:noAu] = atomic_numbers['Au']
     random.shuffle(slab.numbers)
 
