@@ -187,6 +187,8 @@ class DataConnection(object):
 
         g = self.get_generation_number()
 
+        # Insert gaid by getting the next available id and assuming that the
+        # entire a_list will be written without interuption
         next_id = self.get_next_id()
         with self.c as con:
             for j, a in enumerate(a_list):
