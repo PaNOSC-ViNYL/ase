@@ -173,7 +173,8 @@ class DataConnection(object):
         a.info['relax_id'] = relax_id
 
     def add_more_relaxed_steps(self, a_list):
-        # This function will be removed soon as the
+        # This function will be removed soon as the function name indicates
+        # that unrelaxed candidates are added beforehand
         print('Please use add_more_relaxed_candidates instead')
         self.add_more_relaxed_candidates(a_list)
 
