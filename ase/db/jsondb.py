@@ -194,7 +194,7 @@ class JSONDatabase(Database, object):
                         yield row
                     n += 1
 
-    def _update(self, ids, delete_keys, add_key_value_pairs):
+    def _update(self, ids, delete_keys, add_key_value_pairs, data):
         bigdct, myids, nextid = self._read_json()
 
         t = now()
