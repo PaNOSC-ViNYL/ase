@@ -469,7 +469,7 @@ class Database:
 
     @parallel_function
     @lock
-    def update(self, ids, delete_keys=[], block_size=1000,
+    def update(self, ids, delete_keys=[], data=None, block_size=1000,
                **add_key_value_pairs):
         """Update and/or delete key-value pairs of row(s).
 
@@ -495,7 +495,7 @@ class Database:
         N = 0
         for b in range(nblocks):
             m, n = self._update(ids[b * B:(b + 1) * B], delete_keys,
-                                add_key_value_pairs)
+                                add_key_value_pairs, data)
             M += m
             N += n
         return M, N

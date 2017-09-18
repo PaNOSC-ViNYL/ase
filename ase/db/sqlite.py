@@ -562,7 +562,7 @@ class SQLite3Database(Database, object):
         self._initialize(con)
         con.execute('ANALYZE')
 
-    def _update(self, ids, delete_keys, add_key_value_pairs):
+    def _update(self, ids, delete_keys, add_key_value_pairs, data):
         """Update row(s).
 
         ids: int or list of int
@@ -578,13 +578,15 @@ class SQLite3Database(Database, object):
         rows = [self._get_row(id) for id in ids]
         if self.connection:
             # We are already running inside a context manager:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs)
+            return self._update_rows(rows, delete_keys, add_key_value_pairs,
+                                     data)
 
         # Create new context manager:
         with self:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs)
+            return self._update_rows(rows, delete_keys, add_key_value_pairs,
+                                     data)
 
-    def _update_rows(self, rows, delete_keys, add_key_value_pairs):
+    def _update_rows(self, rows, delete_keys, add_key_value_pairs, data):
         m = 0
         n = 0
         for row in rows:
@@ -596,7 +598,7 @@ class SQLite3Database(Database, object):
             m -= len(kvp)
             kvp.update(add_key_value_pairs)
             m += len(kvp)
-            self._write(row, kvp, None)
+            self._write(row, kvp, data)
         return m, n
 
     @parallel_function
