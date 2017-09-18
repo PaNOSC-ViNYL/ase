@@ -162,12 +162,20 @@ class Images:
         self.repeat = np.ones(3, int)
 
     def repeat_images(self, repeat):
+        from ase.constraints import FixAtoms
         repeat = np.array(repeat)
         oldprod = self.repeat.prod()
         images = []
-        for atoms in self:
+        for i, atoms in enumerate(self):
             refcell = atoms.get_cell()
-            atoms.set_constraint()
+            fa = []
+            for c in atoms._constraints:
+                if isinstance(c, FixAtoms):
+                    fa.append(c)
+                else:
+                    print('Warning: Image', i, 'removing',
+                          c.__class__.__name__)
+            atoms.set_constraint(fa)
             del atoms[len(atoms) // oldprod:]
             atoms *= repeat
             atoms.cell = refcell
