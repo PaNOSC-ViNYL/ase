@@ -491,10 +491,11 @@ class PhaseDiagram:
         if not only_plot_simplices:
             ax.plot(x[~self.hull], e[~self.hull], 'sr')
             
+        refs = self.references
         if only_plot_simplices or only_label_simplices:
             x = x[self.hull]
             e = e[self.hull]
-            refs = np.array(self.references)[self.hull]
+            refs = np.array(refs)[self.hull]
         for a, b, ref in zip(x, e, refs):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
             ax.text(a, b, name,

@@ -1,6 +1,6 @@
 """Operators that work on slabs.
 Allowed compositions are respected.
-Same geometry of the slabs are assumed."""
+Identical indexing of the slabs are assumed for the cut-splice operator."""
 import random
 from operator import itemgetter
 from collections import Counter
@@ -507,7 +507,8 @@ class RandomSlabPermutation(SlabOperator):
         if len(set(f.get_chemical_symbols())) == 1:
             f = parents[1]
             if len(set(f.get_chemical_symbols())) == 1:
-                return None
+                return None, '{1} not possible in {0}'.format(f.info['confid'],
+                                                              self.descriptor)
 
         indi = self.initialize_individual(f, f)
         indi.info['data']['parents'] = [i.info['confid'] for i in parents]
