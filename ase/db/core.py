@@ -469,11 +469,11 @@ class Database:
 
     @parallel_function
     @lock
-    def update(self, ids, delete_keys=[], data=None, block_size=1000,
-               **add_key_value_pairs):
+    def update(self, id, atoms=None, delete_keys=[], data=None,
+               block_size=1000, **add_key_value_pairs):
         """Update and/or delete key-value pairs of row(s).
 
-        ids: int or list of int
+        id: int or list of int
             ID's of rows to update.
         delete_keys: list of str
             Keys to remove.
@@ -486,15 +486,19 @@ class Database:
         """
         check(add_key_value_pairs)
 
-        if isinstance(ids, int):
-            ids = [ids]
+        if isinstance(id, int):
+            ids = [id]
+        else:
+            ids = id
+
+        assert atoms is None or len(ids) != 1
 
         B = block_size
         nblocks = (len(ids) - 1) // B + 1
         M = 0
         N = 0
         for b in range(nblocks):
-            m, n = self._update(ids[b * B:(b + 1) * B], delete_keys,
+            m, n = self._update(ids[b * B:(b + 1) * B], atoms, delete_keys,
                                 add_key_value_pairs, data)
             M += m
             N += n

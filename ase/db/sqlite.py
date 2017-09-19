@@ -562,31 +562,20 @@ class SQLite3Database(Database, object):
         self._initialize(con)
         con.execute('ANALYZE')
 
-    def _update(self, ids, delete_keys, add_key_value_pairs, data):
-        """Update row(s).
-
-        ids: int or list of int
-            ID's of rows to update.
-        delete_keys: list of str
-            Keys to remove.
-        add_key_value_pairs: dict
-            Key-value pairs to add.
-
-        Returns number of key-value pairs added and keys removed.
-        """
-
+    def _update(self, id, atoms, delete_keys, add_key_value_pairs, data):
         rows = [self._get_row(id) for id in ids]
         if self.connection:
             # We are already running inside a context manager:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs,
-                                     data)
+            return self._update_rows(rows, atoms, delete_keys,
+                                     add_key_value_pairs, data)
 
         # Create new context manager:
         with self:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs,
-                                     data)
+            return self._update_rows(rows, atoms, delete_keys,
+                                     add_key_value_pairs, data)
 
-    def _update_rows(self, rows, delete_keys, add_key_value_pairs, data):
+    def _update_rows(self, rows, atoms, delete_keys, add_key_value_pairs,
+                     data):
         m = 0
         n = 0
         for row in rows:
