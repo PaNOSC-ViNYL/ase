@@ -183,10 +183,18 @@ class Images:
             images.append(atoms)
 
         if constraints_removed:
-            import tkMessageBox
-            tkMessageBox.showwarning(_('Constraints discarded'),
-                                     _('Constraints other than FixAtoms '
-                                       'have been discarded.'))
+            import tkinter
+            from tkinter import messagebox
+            # We must be able to show warning before the main GUI
+            # has been created.  So we create a new window,
+            # then show the warning, then destroy the window.
+            tmpwindow = tkinter.Tk()
+            tmpwindow.withdraw()  # Host window will never be shown
+            messagebox.showwarning(_('Constraints discarded'),
+                                   _('Constraints other than FixAtoms '
+                                     'have been discarded.'))
+            tmpwindow.destroy()
+
         self.initialize(images, filenames=self.filenames)
         self.repeat = repeat
 
