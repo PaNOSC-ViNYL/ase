@@ -1,4 +1,3 @@
-
 def read_aims(filename):
     """Import FHI-aims geometry type files.
 
@@ -135,16 +134,17 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
         ghosts = np.zeros(len(atoms))
     else:
         assert len(ghosts) == len(atoms)
+    scaled_positions = atoms.get_scaled_positions()        
     for i, atom in enumerate(atoms):
         if ghosts[i] == 1:
             atomstring = 'empty '
-        elif scaled==True:
+        elif scaled:
             atomstring = 'atom_frac '
         else:
             atomstring = 'atom '
         fd.write(atomstring)
-        if scaled==True:
-            for pos in atoms.get_scaled_positions()[i]:
+        if scaled:
+            for pos in scaled_positions[i]:
                 fd.write('%16.16f ' % pos)
         else:
             for pos in atom.position:
