@@ -8,6 +8,7 @@ from ase.constraints import FixAtoms
 from ase.data import covalent_radii
 from ase.gui.defaults import read_defaults
 from ase.io import read, write, string2index
+from ase.gui.i18n import _
 
 
 class Images:
@@ -162,15 +163,30 @@ class Images:
         self.repeat = np.ones(3, int)
 
     def repeat_images(self, repeat):
+        from ase.constraints import FixAtoms
         repeat = np.array(repeat)
         oldprod = self.repeat.prod()
         images = []
-        for atoms in self:
+        constraints_removed = False
+        for i, atoms in enumerate(self):
             refcell = atoms.get_cell()
+            fa = []
+            for c in atoms._constraints:
+                if isinstance(c, FixAtoms):
+                    fa.append(c)
+                else:
+                    constraints_removed = True
+            atoms.set_constraint(fa)
             del atoms[len(atoms) // oldprod:]
             atoms *= repeat
             atoms.cell = refcell
             images.append(atoms)
+
+        if constraints_removed:
+            import tkMessageBox
+            tkMessageBox.showwarning(_('Constraints discarded'),
+                                     _('Constraints other than FixAtoms '
+                                       'have been discarded.'))
         self.initialize(images, filenames=self.filenames)
         self.repeat = repeat
 
