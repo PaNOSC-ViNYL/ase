@@ -15,7 +15,7 @@ from ase.utils import rotate
 
 
 GREEN = '#74DF00'
-BLUE = '#00BFFF'
+PURPLE = '#AC58FA'
 
 
 def get_cell_coordinates(cell):
@@ -393,7 +393,7 @@ class View:
         if self.arrowkey_mode == self.ARROWKEY_MOVE:
             movecolor = GREEN
         elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
-            movecolor = BLUE
+            movecolor = PURPLE
 
         for a in self.indices:
             if a < n:

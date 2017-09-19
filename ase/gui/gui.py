@@ -152,10 +152,16 @@ class GUI(View, Status):
 
     def scroll(self, event):
         CTRL = event.modifier == 'ctrl'
+
+        # Bug: Simultaneous CTRL + shift is the same as just CTRL.
+        # Therefore binding Page Up / Page Dn (keycodes next/prior)
+        # to movement in Z direction.
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
-                  'left': (-1, 0, 0)}.get(event.key, None)
+                  'left': (-1, 0, 0),
+                  'next': (0, 0, 1),
+                  'prior': (0, 0, -1)}.get(event.key, None)
 
         if dxdydz is None:
             return
@@ -168,17 +174,15 @@ class GUI(View, Status):
             self.atoms.positions[self.move_atoms_mask[:len(self.atoms)]] += vec
             self.set_frame()
         elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
-            # No easy way to rotate atoms except atoms.rotate!
-            prevpos = self.atoms.positions.copy()
+            # For now we use atoms.rotate having the simplest interface.
+            # (Better to use something more minimalistic, obviously.)
             mask = self.move_atoms_mask[:len(self.atoms)]
-            oldpos = self.atoms.positions[mask]
-            center = oldpos.sum(axis=0) / len(oldpos)
+            center = self.atoms.positions[mask].mean(axis=0)
             tmp_atoms = self.atoms[mask]
             tmp_atoms.positions -= center
             tmp_atoms.rotate(50 * np.linalg.norm(vec), vec)
             self.atoms.positions[mask] = tmp_atoms.positions + center
             self.set_frame()
-            #self.draw()
         else:
             self.center -= vec
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
