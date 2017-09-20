@@ -4,7 +4,7 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror
+    from tkinter.messagebox import showerror, showwarning
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
@@ -13,7 +13,8 @@ except ImportError:
         import ttk
     except ImportError:
         ttk = None
-    from tkMessageBox import askokcancel as ask_question, showerror
+    from tkMessageBox import (askokcancel as ask_question, showerror,
+                              showwarning)
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -30,7 +31,7 @@ __all__ = [
     'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
-    'SpinBox', 'Text']
+    'showwarning', 'SpinBox', 'Text']
 
 
 if sys.platform == 'darwin':
