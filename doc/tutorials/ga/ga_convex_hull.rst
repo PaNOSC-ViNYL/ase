@@ -2,7 +2,7 @@
 Determination of convex hull with a genetic algorithm
 =====================================================
 
-In this tutorial we will determine the convex hull of a binary alloy slab. The convex hull can be used to check whether a certain composition is stable or it will decompose into mixed phases of the neighboring stable compositions. We will use a (111) slab to represent a close packed surface, the method can easily be extended for use in other systems, e.g. bulk, nanoparticle, ... We choose a rather small atomic structure with 24 atoms in the unit cell, in a binary system the number of different atomic distributions for a single composition is determined by the binomial coefficient :math:`\frac{N}{n_A!n_B!}`, where :math:`N` is the total number of atoms in the slab, :math:`n_A` and :math:`n_B` is the number of A and B atoms respectively. This number rises combinatorially towards the 1:1 composition and in total there exists 16.8 million different atomic distributions for the 24 atom slab (without taking symmetry into account which will reduce the number significantly see :ref:`symmetry`). A number of this size warrants a search method other than brute force, here we use a genetic algorithm (GA).
+In this tutorial we will determine the convex hull of a binary alloy slab. The convex hull can be used to check whether a certain composition is stable or it will decompose into mixed phases of the neighboring stable compositions. We will use a (111) slab to represent a close packed surface, the method can easily be extended for use in other systems, e.g. bulk, nanoparticle, ... We choose a rather small atomic structure with 24 atoms in the unit cell, in a binary system the number of different atomic distributions for a single composition is determined by the binomial coefficient :math:`\frac{N!}{n_A!n_B!}`, where :math:`N` is the total number of atoms in the slab, :math:`n_A` and :math:`n_B` is the number of A and B atoms respectively. This number rises combinatorially towards the 1:1 composition and in total there exists 16.8 million different atomic distributions for the 24 atom slab (without taking symmetry into account which will reduce the number significantly see :ref:`symmetry`). A number of this size warrants a search method other than brute force, here we use a genetic algorithm (GA).
 
 Outline of the GA run
 ---------------------
@@ -128,7 +128,7 @@ The nearest neighbor average is put in ``candidate.info['key_value_pairs']`` as 
 Problem specific mutation operators
 -----------------------------------
 
-Maybe something that induces symmetry. The :class:`ase.ga.slab_operators.SymmetrySlabPermutation` permutes the atoms in the slab to yield a more symmetric offspring. *Note* this requires `spglib <https://atztogo.github.io/spglib/>`_  to be installed. Try it by::
+Sometimes it is necessary to introduce operators that force the GA to investigate certain areas of the phase space. The :class:`ase.ga.slab_operators.SymmetrySlabPermutation` permutes the atoms in the slab to yield a more symmetric offspring. *Note* this requires `spglib <https://atztogo.github.io/spglib/>`_  to be installed. Try it by::
 
   from ase.ga.slab_operators import SymmetrySlabPermutation
 
