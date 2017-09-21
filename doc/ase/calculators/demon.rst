@@ -1,6 +1,7 @@
 .. module:: ase.calculators.demon
 
-DEMON
+Demon
 ====
 
-.. autoclass:: DEMON
+.. autoclass:: Demon
+
