@@ -16,13 +16,15 @@ def parse_xray(filename):
         osc_strength = []
         trans_dip = []
         for i in range(1, ntrans + 1):
-            E_trans.append(float(lines[i].split()[0]))
+            tokens = lines[i].split()            
+
+            E_trans.append(float(tokens[0]))
             osc_strength.append(
-                float(lines[i].split()[1].replace('D', 'e')))
+                float(tokens[1].replace('D', 'e')))
             
-            dip1 = float(lines[i].split()[3].replace('D', 'e'))
-            dip2 = float(lines[i].split()[4].replace('D', 'e'))
-            dip3 = float(lines[i].split()[5].replace('D', 'e'))
+            dip1 = float(tokens[3].replace('D', 'e'))
+            dip2 = float(tokens[4].replace('D', 'e'))
+            dip3 = float(tokens[5].replace('D', 'e'))
             trans_dip.append([dip1, dip2, dip3])
 
         return mode, ntrans, np.array(E_trans) * Hartree, np.array(osc_strength), np.array(trans_dip)

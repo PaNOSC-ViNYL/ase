@@ -17,7 +17,6 @@ from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.calculator import equal
 import ase.io
-#from ase.calculators.demon.demon_io import parse_xray
 from .demon_io import parse_xray
 
 m_e_to_amu = 1822.88839
@@ -70,6 +69,11 @@ class Demon(FileIOCalculator):
 
     def __init__(self, **kwargs):
         """ASE interface to the deMon code.
+        
+        The deMon2k code can be obtained from http://www.demon-software.com
+
+        The DEMON_COMMAND environment variable must be set to run the executable, in bash it would be set along the lines of
+        export DEMON_COMMAND="deMon.4.3.6.std > deMon_ase.out 2>&1"
 
         Parameters:
             label    : str. relative path to the run directory
@@ -97,6 +101,8 @@ class Demon(FileIOCalculator):
                              and the value is either a str, a list of str (will be written on the same line as the keyword),
                              or a list of lists of str (first list is written on the first line, the others on following lines.)
                                                           
+           
+        For example usage, see the tests h2o.py and h2o_xas_xes.py in the directory ase/test/demon
                             
         """
         parameters = Parameters_deMon(**kwargs)
@@ -151,6 +157,21 @@ class Demon(FileIOCalculator):
 
         return changed_parameters
 
+    def link_file(self, fromdir, todir, filename):
+
+        if op.exists(todir + '/' + filename):
+            os.remove(todir + '/' + filename)
+                
+        if op.exists(fromdir + '/' + filename):
+            os.symlink(fromdir + '/' + filename, 
+                       todir + '/' + filename)
+        else:
+            raise RuntimeError(
+                "{0} doesn't exist".format(fromdir + '/' + filename))
+
+
+
+
     def calculate(self,
                   atoms=None,
                   properties=['energy'],
@@ -187,6 +208,7 @@ class Demon(FileIOCalculator):
             value = self.parameters['guess']
             if value.upper() == 'RESTART':
                 value2 = self.parameters['deMon_restart_path']
+
                 if op.exists(self.directory + '/deMon.rst')\
                         or op.islink(self.directory + '/deMon.rst'):
                     os.remove(self.directory + '/deMon.rst')
@@ -201,72 +223,23 @@ class Demon(FileIOCalculator):
                     raise RuntimeError(
                         "{0} doesn't exist".format(abspath + '/deMon.rst'))
 
-            # link basis
+
             abspath = op.abspath(basis_path)
-            
-            if op.exists(self.directory + '/BASIS')\
-                    or op.islink(self.directory + '/BASIS'):
-                os.remove(self.directory + '/BASIS')
-                
-            if op.exists(abspath + '/BASIS')\
-                    or op.islink(abspath + '/BASIS'):
-                os.symlink(abspath + '/BASIS',
-                           self.directory + '/BASIS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/BASIS'))
+
+            # link basis
+            self.link_file(abspath, self.directory, 'BASIS')
 
             # link auxis
-            if op.exists(self.directory + '/AUXIS')\
-                    or op.islink(self.directory + '/AUXIS'):
-                os.remove(self.directory + '/AUXIS')
-
-            if op.exists(abspath + '/AUXIS')\
-                    or op.islink(abspath + '/AUXIS'):
-                os.symlink(abspath + '/AUXIS',
-                           self.directory + '/AUXIS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/AUXIS'))
+            self.link_file(abspath, self.directory, 'AUXIS')
 
             # link ecps
-            if op.exists(self.directory + '/ECPS')\
-                    or op.islink(self.directory + '/ECPS'):
-                os.remove(self.directory + '/ECPS')
-
-            if op.exists(abspath + '/ECPS')\
-                    or op.islink(abspath + '/ECPS'):
-                os.symlink(abspath + '/ECPS',
-                           self.directory + '/ECPS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/ECPS'))
+            self.link_file(abspath, self.directory, 'ECPS')            
 
             # link mcps
-            if op.exists(self.directory + '/MCPS')\
-                    or op.islink(self.directory + '/MCPS'):
-                os.remove(self.directory + '/MCPS')
-
-            if op.exists(abspath + '/MCPS')\
-                    or op.islink(abspath + '/ECPS'):
-                os.symlink(abspath + '/MCPS',
-                           self.directory + '/MCPS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/MCPS'))
+            self.link_file(abspath, self.directory, 'MCPS')            
 
             # link ffds
-            if op.exists(self.directory + '/FFDS')\
-                    or op.islink(self.directory + '/FFDS'):
-                os.remove(self.directory + '/FFDS')
-
-            if op.exists(abspath + '/FFDS')\
-                    or op.islink(abspath + '/FFDS'):
-                os.symlink(abspath + '/FFDS',
-                           self.directory + '/FFDS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/FFDS'))
+            self.link_file(abspath, self.directory, 'FFDS')            
 
             # go to directory and run calculation
             os.chdir(self.directory)
@@ -289,6 +262,9 @@ class Demon(FileIOCalculator):
                 print(line.strip())
             print('##### end of deMon.out')
             raise RuntimeError
+        
+
+
 
     def set_label(self, label):
         """Set label directory """
@@ -699,38 +675,11 @@ class Demon(FileIOCalculator):
                 if lines[i].rfind('IONIZATION POTENTIAL') > -1:
                     core_IP = float(lines[i].split()[3])
                     
-                    
-        #filename = self.label + '/deMon.xry'
-        #if op.isfile(filename):
-        #    with open(filename, 'r') as f:
-        #        lines = f.readlines()
-        #        
-        #    mode = lines[0].split()[0]
-        #    ntrans = int(lines[0].split()[1])
-        #
-        #    E_trans = []
-        #    osc_strength = []
-        #    trans_dip = []
-        #    for i in range(1, ntrans + 1):
-        #        E_trans.append(float(lines[i].split()[0]))
-        #        osc_strength.append(
-        #            float(lines[i].split()[1].replace('D', 'e')))
-        #        
-        #        dip1 = float(lines[i].split()[3].replace('D', 'e'))
-        #        dip2 = float(lines[i].split()[4].replace('D', 'e'))
-        #        dip3 = float(lines[i].split()[5].replace('D', 'e'))
-        #        trans_dip.append([dip1, dip2, dip3])
-        #
-        #    xray_results = {'xray_mode': mode,
-        #                    'ntrans': ntrans,
-        #                    'E_trans': np.array(E_trans) * Hartree,
-        #                    'osc_strength': np.array(osc_strength),  # units?
-        #                    'trans_dip': np.array(trans_dip), # units?
-        #                    'core_IP':core_IP}
-
         try:
             mode, ntrans, E_trans, osc_strength, trans_dip = parse_xray(self.label + '/deMon.xry')
-            
+        except:
+            pass 
+        else:
             xray_results = {'xray_mode': mode,
                             'ntrans': ntrans,
                             'E_trans': E_trans,
@@ -739,8 +688,7 @@ class Demon(FileIOCalculator):
                             'core_IP':core_IP}  
             
             self.results['xray'] = xray_results
-        except:
-            pass
+ 
 
             
     def deMon_inp_to_atoms(self, filename):
