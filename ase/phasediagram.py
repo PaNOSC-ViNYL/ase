@@ -504,7 +504,7 @@ class PhaseDiagram:
         ax.set_xlabel(self.symbols[1])
         ax.set_ylabel('energy [eV/atom]')
 
-    def plot2d3(self, ax, only_label_simplices, only_plot_simplices):
+    def plot2d3(self, ax):
         x, y = self.points[:, 1:-1].T.copy()
         x += y / 2
         y *= 3**0.5 / 2
@@ -517,7 +517,7 @@ class PhaseDiagram:
             ax.text(a, b, name,
                     horizontalalignment='center', verticalalignment='bottom')
 
-    def plot3d3(self, ax, only_label_simplices, only_plot_simplices):
+    def plot3d3(self, ax):
         x, y, e = self.points[:, 1:].T
 
         ax.scatter(x[self.hull], y[self.hull], e[self.hull],
@@ -541,7 +541,7 @@ class PhaseDiagram:
         ax.set_ylabel(self.symbols[2])
         ax.set_zlabel('energy [eV/atom]')
 
-    def plot3d4(self, ax, only_label_simplices, only_plot_simplices):
+    def plot3d4(self, ax):
         x, y, z = self.points[:, 1:-1].T
         a = x / 2 + y + z / 2
         b = 3**0.5 * (x / 2 + y / 6)
