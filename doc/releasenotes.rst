@@ -39,6 +39,8 @@ Git master branch
 
 * New :ref:`db tutorial` tutorial.
 
+* :mod:`ase.gui` is now available in German and Chinese (again).
+
 
 Version 3.14.1
 ==============
