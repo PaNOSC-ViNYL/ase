@@ -467,15 +467,15 @@ class PhaseDiagram:
             if N == 2:
                 self.plot2d2(ax, only_label_simplices, only_plot_simplices)
             elif N == 3:
-                self.plot2d3(ax, only_label_simplices, only_plot_simplices)
+                self.plot2d3(ax)
             else:
                 raise ValueError('Can only make 2-d plots for 2 and 3 '
                                  'component systems!')
         else:
             if N == 3:
-                self.plot3d3(ax, only_label_simplices, only_plot_simplices)
+                self.plot3d3(ax)
             elif N == 4:
-                self.plot3d4(ax, only_label_simplices, only_plot_simplices)
+                self.plot3d4(ax)
             else:
                 raise ValueError('Can only make 3-d plots for 3 and 4 '
                                  'component systems!')
