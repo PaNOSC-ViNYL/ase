@@ -220,8 +220,9 @@ class BundleTrajectory:
             else:
                 self.datatypes['momenta'] = False
         if datatypes.get('magmoms'):
-            if atoms.has('magmoms'):
-                self.backend.write(framedir, 'magmoms', atoms.get_magmoms())
+            if atoms.has('initial_magmoms'):
+                self.backend.write(framedir, 'magmoms',
+                                   atoms.get_initial_magnetic_moments())
             else:
                 self.datatypes['magmoms'] = False
         if datatypes.get('forces'):

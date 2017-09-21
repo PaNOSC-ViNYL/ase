@@ -246,7 +246,7 @@ class PickleTrajectory:
                 except (PropertyNotImplementedError, AttributeError):
                     pass
 
-        if 'magmoms' not in d and atoms.has('magmoms'):
+        if 'magmoms' not in d and atoms.has('initial_magmoms'):
             d['magmoms'] = atoms.get_initial_magnetic_moments()
         if 'charges' not in d and atoms.has('initial_charges'):
             charges = atoms.get_initial_charges()

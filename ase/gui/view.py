@@ -14,7 +14,8 @@ from ase.gui.utils import get_magmoms
 from ase.utils import rotate
 
 
-GREEN = '#DDFFDD'
+GREEN = '#74DF00'
+PURPLE = '#AC58FA'
 
 
 def get_cell_coordinates(cell):
@@ -389,6 +390,11 @@ class View:
 
         self.update_labels()
 
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
+            movecolor = GREEN
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            movecolor = PURPLE
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -396,7 +402,7 @@ class View:
                     # Draw the atoms
                     if (self.moving and a < len(self.move_atoms_mask)
                         and self.move_atoms_mask[a]):
-                        circle(GREEN, False,
+                        circle(movecolor, False,
                                A[a, 0] - 4, A[a, 1] - 4,
                                A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 
