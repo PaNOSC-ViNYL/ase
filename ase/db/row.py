@@ -34,9 +34,9 @@ def atoms2dict(atoms):
     if atoms.cell.any():
         dct['pbc'] = atoms.pbc
         dct['cell'] = atoms.cell
-    if atoms.has('magmoms'):
+    if atoms.has('initial_magmoms'):
         dct['initial_magmoms'] = atoms.get_initial_magnetic_moments()
-    if atoms.has('charges'):
+    if atoms.has('initial_charges'):
         dct['initial_charges'] = atoms.get_initial_charges()
     if atoms.has('masses'):
         dct['masses'] = atoms.get_masses()
@@ -73,6 +73,7 @@ class AtomsRow:
                         dct['calculator_parameters'])
         else:
             dct = atoms2dict(dct)
+        assert 'numbers' in dct
         self._constraints = dct.pop('constraints', [])
         self._data = dct.pop('data', None)
         kvp = dct.pop('key_value_pairs', {})

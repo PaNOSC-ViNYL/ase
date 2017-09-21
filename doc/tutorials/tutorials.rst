@@ -27,6 +27,7 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    atomization
    lattice_constant
    eos/eos
+   db/db
    constraints/diffusion
    selfdiffusion/al110
    neb/diffusion

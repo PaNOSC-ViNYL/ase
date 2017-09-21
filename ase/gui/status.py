@@ -107,7 +107,7 @@ class Status:  # Status is used as a mixin in GUI
             if (np.vdot(bxa, c)) > 0:
                 angle = 2 * np.pi - angle
             angle = angle * 180.0 / np.pi
-            text = (u'%s %s->%s->%s->%s: %.1f°' %
+            text = (u'%s %s → %s → %s → %s: %.1f°' %
                     tuple([_('dihedral')] + [symbols[z] for z in Z] + [angle]))
         else:
             text = ' ' + formula(Z)

@@ -110,7 +110,7 @@ SUBSCRIPT = re.compile(r'(\d+)')
 
 
 def database():
-    return databases[request.args.get('project', 'default')]
+    return databases.get(request.args.get('project', 'default'))
 
 
 def prefix():
@@ -324,6 +324,8 @@ def gui(id):
 @app.route('/id/<int:id>')
 def summary(id):
     db = database()
+    if db is None:
+        return ''
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
     prfx = prefix() + str(id) + '-'

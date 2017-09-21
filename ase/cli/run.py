@@ -217,7 +217,11 @@ class Runner:
             con = db.connect(self.args.collection)
             return con.get_atoms(name)
         else:
-            return read(name)
+            atoms = read(name)
+            if isinstance(atoms, list):
+                assert len(atoms) == 1
+                atoms = atoms[0]
+            return atoms
 
     def set_calculator(self, atoms, name):
         cls = get_calculator(self.calculator_name)

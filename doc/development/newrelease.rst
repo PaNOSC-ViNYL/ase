@@ -27,7 +27,33 @@ New release
 
 * Push and make a tag "x.y.z".
 
-* Create pull-request for Easy-Build ...
+* Create pull-request for Easy-Build.  The EasyBuild (``.eb``) files
+  are in docs/development/easybuild.
+
+  * Rename the old ``.eb`` files, updating the ASE version number.
+    There are two ``.eb`` files, one for Python 2.7.12 and one for
+    Python 3.5.2.  Use ``git mv`` to rename the files.
+
+  * Edit file file.
+
+    * Update the **version number**.
+
+    * Remove the checksum (delete the entire line in the file).
+
+  * Check the syntax and style, and insert new checksums by running
+    these commands::
+
+      eb --check-style ASE-X.Y.X-Python*.eb
+      eb --inject-checksums sha256 ASE-X.Y.X-Python*.eb
+
+  * Submit the new files::
+
+      eb --new-pr --pr-commit-message "ASE updated to version X.Y.Z" ASE-X.Y.X-Python*.eb
+
+  * Commit the updated ``*.eb`` files, so they will be part of the
+    *next* release.
+    
+  If the commands above fails, your need to `integrate EasyBuild with github`_.
 
 * Export issues, MR's, ... from GitLab (https://gitlab.com/ase/ase/export)
   and store the tar-file in a safe place.
@@ -45,3 +71,5 @@ New release
   Number of commits since last release::
 
       $ git shortlog -s -n 3.13.0..
+
+.. _`integrate EasyBuild with github`: https://wiki.fysik.dtu.dk/niflheim/EasyBuild_modules#setting-up-github-integration

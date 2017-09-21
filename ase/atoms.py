@@ -63,7 +63,7 @@ class Atoms(object):
         for collinear calculations or three numbers for each atom for
         non-collinear calculations.
     charges: list of float
-        Atomic charges.
+        Initial atomic charges.
     cell: 3x3 matrix or length 3 or 6 vector
         Unit cell vectors.  Can also be given as just three
         numbers for orthorhombic cells, or 6 numbers, where
@@ -163,11 +163,11 @@ class Atoms(object):
                 tags = atoms.get_tags()
             if momenta is None and atoms.has('momenta'):
                 momenta = atoms.get_momenta()
-            if magmoms is None and atoms.has('magmoms'):
+            if magmoms is None and atoms.has('initial_magmoms'):
                 magmoms = atoms.get_initial_magnetic_moments()
             if masses is None and atoms.has('masses'):
                 masses = atoms.get_masses()
-            if charges is None and atoms.has('charges'):
+            if charges is None and atoms.has('initial_charges'):
                 charges = atoms.get_initial_charges()
             if cell is None:
                 cell = atoms.get_cell()
@@ -448,8 +448,9 @@ class Atoms(object):
     def has(self, name):
         """Check for existence of array.
 
-        name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
-        'charges'."""
+        name must be one of: 'tags', 'momenta', 'masses', 'initial_magmoms',
+        'initial_charges'."""
+        # XXX extend has to calculator properties
         return name in self.arrays
 
     def set_atomic_numbers(self, numbers):
@@ -591,15 +592,15 @@ class Atoms(object):
         or non-collinear spins)."""
 
         if magmoms is None:
-            self.set_array('magmoms', None)
+            self.set_array('initial_magmoms', None)
         else:
             magmoms = np.asarray(magmoms)
-            self.set_array('magmoms', magmoms, float, magmoms.shape[1:])
+            self.set_array('initial_magmoms', magmoms, float, magmoms.shape[1:])
 
     def get_initial_magnetic_moments(self):
         """Get array of initial magnetic moments."""
-        if 'magmoms' in self.arrays:
-            return self.arrays['magmoms'].copy()
+        if 'initial_magmoms' in self.arrays:
+            return self.arrays['initial_magmoms'].copy()
         else:
             return np.zeros(len(self))
 
@@ -619,14 +620,14 @@ class Atoms(object):
         """Set the initial charges."""
 
         if charges is None:
-            self.set_array('charges', None)
+            self.set_array('initial_charges', None)
         else:
-            self.set_array('charges', charges, float, ())
+            self.set_array('initial_charges', charges, float, ())
 
     def get_initial_charges(self):
         """Get array of initial charges."""
-        if 'charges' in self.arrays:
-            return self.arrays['charges'].copy()
+        if 'initial_charges' in self.arrays:
+            return self.arrays['initial_charges'].copy()
         else:
             return np.zeros(len(self))
 
@@ -1823,20 +1824,6 @@ class Atoms(object):
         images = Images([self])
         gui = GUI(images)
         gui.run()
-        # use atoms returned from gui:
-        # (1) delete all currently available atoms
-        self.set_constraint()
-        for z in range(len(self)):
-            self.pop()
-        edited_atoms = gui.images.get_atoms(0)
-        # (2) extract atoms from edit session
-        self.extend(edited_atoms)
-        self.set_constraint(edited_atoms._get_constraints())
-        self.set_cell(edited_atoms.get_cell())
-        self.set_initial_magnetic_moments(
-            edited_atoms.get_initial_magnetic_moments())
-        self.set_tags(edited_atoms.get_tags())
-        return
 
 
 def string2symbols(s):

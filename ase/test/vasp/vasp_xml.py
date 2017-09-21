@@ -47,9 +47,25 @@ def main():
     assert conf.calc.parameters['sigma'] == 1.0
     assert conf.calc.parameters['ialgo'] == 68
     assert energy - conf.get_potential_energy() == 0.0
+
+    # Check some arrays
     assert np.allclose(conf.get_forces(), forces)
     assert np.allclose(conf.get_dipole_moment(), dipole_moment, atol=1e-6)
-    
+
+    # Check k-point-dependent properties
+    assert len(conf.calc.get_eigenvalues(spin=0)) >= 12
+    assert conf.calc.get_occupation_numbers()[2] == 2
+    assert conf.calc.get_eigenvalues(spin=1) is None
+    kpt = conf.calc.get_kpt(0)
+    assert kpt.weight == 1.
+
+    # Perform a spin-polarised calculation
+    co.calc.set(ispin=2, ibrion=-1)
+    co.get_potential_energy()
+    conf = read('vasprun.xml')
+    assert len(conf.calc.get_eigenvalues(spin=1)) >= 12
+    assert conf.calc.get_occupation_numbers(spin=1)[0] == 1.
+
     # Cleanup
     calc.clean()
 

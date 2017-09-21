@@ -13,7 +13,7 @@ class PAOBasisBlock(Parameters):
         """
         Parameters:
             -block : String. A block defining the basis set of a single
-                     specie using the format of a PAO.Basis block.
+                     species using the format of a PAO.Basis block.
                      The initial label should be left out since it is
                      determined programatically.
                      Example1: 2 nodes 1.0
@@ -40,7 +40,7 @@ class PAOBasisBlock(Parameters):
         return label + ' ' + self['block']
 
 
-class Specie(Parameters):
+class Species(Parameters):
     """
     Parameters for specifying the behaviour for a single species in the
     calculation. If the tag argument is set to an integer then atoms with

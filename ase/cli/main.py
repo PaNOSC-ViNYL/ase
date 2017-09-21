@@ -17,12 +17,13 @@ commands = [
     ('build', 'ase.cli.build'),
     ('eos', 'ase.eos'),
     ('ulm', 'ase.io.ulm'),
+    ('find', 'ase.cli.find'),
     ('nomad-upload', 'ase.cli.nomad'),
     ('completion', 'ase.cli.completion')]
 
 
 def main(prog='ase', description='ASE command line tool',
-         version=__version__, commands=commands, hook=None):
+         version=__version__, commands=commands, hook=None, args=None):
     parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(version))
@@ -50,7 +51,7 @@ def main(prog='ase', description='ASE command line tool',
     if hook:
         args = hook(parser)
     else:
-        args = parser.parse_args()
+        args = parser.parse_args(args)
 
     if args.command == 'help':
         if args.helpcommand is None:

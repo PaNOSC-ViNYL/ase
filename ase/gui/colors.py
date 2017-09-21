@@ -15,12 +15,13 @@ class ColorWindow:
         self.win = ui.Window(_('Colors'))
         self.gui = gui
         self.win.add(ui.Label(_('Choose how the atoms are colored:')))
-        values = ['jmol', 'tag', 'force', 'velocity', 'charge', 'magmom']
+        values = ['jmol', 'tag', 'force', 'velocity',
+                  'initial charge', 'magmom']
         labels = [_('By atomic number, default "jmol" colors'),
                   _('By tag'),
                   _('By force'),
                   _('By velocity'),
-                  _('By charge'),
+                  _('By initial charge'),
                   _('By magnetic moment')]
 
         self.radio = ui.RadioButtons(labels, values, self.toggle,
@@ -42,7 +43,7 @@ class ColorWindow:
         F = images.get_forces(atoms)
         radio['force'].active = F is not None
         radio['velocity'].active = atoms.has('momenta')
-        radio['charge'].active = atoms.has('charges')
+        radio['initial charge'].active = atoms.has('initial_charges')
         radio['magmom'].active = get_magmoms(atoms).any()
 
     def toggle(self, value):
@@ -62,6 +63,7 @@ class ColorWindow:
                     'force': 'eV/Ang',
                     'velocity': '??',
                     'charge': '|e|',
+                    'initial charge': '|e|',
                     u'magmom': 'μB'}[value]
             text = '[{0},{1}]: [{2:.6f},{3:.6f}] {4}'.format(
                 _('Green'), _('Yellow'), mn, mx, unit)

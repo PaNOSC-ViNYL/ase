@@ -344,8 +344,14 @@ class OctNamespace:
                     continue
 
                 v = self.evaluate(token)
+
                 try:
                     v = float(v)
+                except TypeError:
+                    try:
+                        v = complex(v)
+                    except ValueError:
+                        break
                 except ValueError:
                     break  # Cannot evaluate expression
                 else:
@@ -917,12 +923,13 @@ class Octopus(FileIOCalculator, EigenvalOccupationMixin):
                                 'reducedcoordinates'])
 
     special_ase_keywords = set(['kpts'])
+    command = 'octopus'
 
     def __init__(self,
                  restart=None,
                  label=None,
                  atoms=None,
-                 command='octopus',
+                 command=None,
                  ignore_troublesome_keywords=None,
                  check_keywords=True,
                  _autofix_outputformats=False,
@@ -939,6 +946,7 @@ class Octopus(FileIOCalculator, EigenvalOccupationMixin):
         # This makes us able to robustly construct the input file
         # in the face of changing octopus versions, and also of
         # early partial verification of user input.
+
         if check_keywords:
             try:
                 octopus_keywords = get_octopus_keywords()

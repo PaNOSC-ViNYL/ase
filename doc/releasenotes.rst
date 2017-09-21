@@ -10,6 +10,36 @@ Git master branch
 
 :git:`master <>`.
 
+* If you are running your Python script in :mod:`parallel <ase.parallel>`
+  then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
+  the master and broadcast to slaves, and :func:`ase.io.write` will only
+  write from master.  Use the new keyword ``parallel=False`` to read/write
+  from the individual slaves.
+
+* New ``ase find`` :ref:`command <cli>` for finding atoms in files.
+
+* Added :class:`Espresso <ase.calculators.espresso.Espresso>` calculator for
+  Quantum ESPRESSO in module :mod:`ase.calculators.espresso`.
+
+* The :func:`ase.dft.kpoints.get_special_points` function has a new call
+  signature:  Before it was ``get_special_points(lattice, cell)``, now it is
+  ``get_special_points(cell, lattice=None)``.  The old way still works, but
+  you will get a warning.
+
+* The :class:`ase.dft.dos.DOS` object will now use linear tetrahedron
+  interpolation of the band-structure if you set ``width=0.0``.  It's slow,
+  but sometimes worth waiting for.  It uses the :func:`ase.dft.dos.ltidos`
+  helper function.
+
+* :func:`ase.io.read` can now read QBox output files.
+
+* The :mod:`ase.calculators.qmmm` module can now also use
+  :ref:`Turbomole <turbomole qmmm>` and :mod:`DFTB+ <ase.calculators.dftb>`
+  as the QM part.
+
+* New :ref:`db tutorial` tutorial.
+
+
 Version 3.14.1
 ==============
 

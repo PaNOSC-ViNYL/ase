@@ -14,7 +14,8 @@ from ase.gui.utils import get_magmoms
 from ase.utils import rotate
 
 
-GREEN = '#DDFFDD'
+GREEN = '#74DF00'
+PURPLE = '#AC58FA'
 
 
 def get_cell_coordinates(cell):
@@ -106,7 +107,12 @@ class View:
         self.set_atoms(self.images[frame])
 
         fname = self.images.filenames[frame]
-        self.window.title = 'ase.gui' if fname is None else basename(fname)
+        if fname is None:
+            title = 'ase.gui'
+        else:
+            title = '{}@{}'.format(basename(fname), frame)
+
+        self.window.title = title
 
         if focus:
             self.focus()
@@ -182,6 +188,9 @@ class View:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
             self.labels = list(get_magmoms(self.atoms))
+        elif index == 4:
+            Q = self.atoms.get_initial_charges()
+            self.labels = ['{0:.4g}'.format(q) for q in Q]
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
@@ -325,8 +334,8 @@ class View:
             return f * self.images.get_dynamic(self.atoms)
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
-        elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+        elif self.colormode == 'initial charge':
+            return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return get_magmoms(self.atoms)
 
@@ -381,6 +390,11 @@ class View:
 
         self.update_labels()
 
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
+            movecolor = GREEN
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            movecolor = PURPLE
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -388,7 +402,7 @@ class View:
                     # Draw the atoms
                     if (self.moving and a < len(self.move_atoms_mask)
                         and self.move_atoms_mask[a]):
-                        circle(GREEN, False,
+                        circle(movecolor, False,
                                A[a, 0] - 4, A[a, 1] - 4,
                                A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 
@@ -470,7 +484,7 @@ class View:
 
     def draw_frame_number(self):
         x, y = self.window.size
-        self.window.text(x, y, '{0}/{1}'.format(self.frame,
+        self.window.text(x, y, '{0}/{1}'.format(self.frame + 1,
                                                 len(self.images)),
                          anchor='SE')
 
@@ -577,7 +591,7 @@ class View:
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
 
-    def render_window(self, action):
+    def render_window(self):
         Render(self)
 
     def resize(self, event):

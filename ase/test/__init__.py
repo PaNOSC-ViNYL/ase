@@ -48,8 +48,6 @@ class ScriptTestCase(unittest.TestCase):
         try:
             with open(self.filename) as fd:
                 exec(compile(fd.read(), self.filename, 'exec'), {})
-        except KeyboardInterrupt:
-            raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
@@ -218,11 +216,11 @@ class CLICommand:
             sys.exit(0)
 
         for calculator in calculators:
-            if not calculator in calc_names:
+            if calculator not in calc_names:
                 sys.stderr.write('No calculator named "{}".\n'
                                  'Possible CALCULATORS are: '
                                  '{}.\n'.format(calculator,
-                                               ', '.join(calc_names)))
+                                                ', '.join(calc_names)))
                 sys.exit(1)
 
         results = test(verbosity=1 + args.verbose - args.quiet,
