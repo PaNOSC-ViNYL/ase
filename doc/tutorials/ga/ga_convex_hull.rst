@@ -59,7 +59,9 @@ So far we have a working algorithm but it is quite naive, let us make some exten
 Exact duplicate identification
 ------------------------------
 
-Evaluating identical candidates is a risk when they are created by the operators, so in order not to waste computational resources it is important to implement a check for whether an identical calculation has been performed. The list of elements in the candidate determines the structure completely, thus we can use that as a measure to see if an identical candidate has been evaluated::
+Evaluating identical candidates is a risk when they are created by the operators, so in order not to waste computational resources it is important to implement a check for whether an identical calculation has been performed.
+
+The list of elements in the candidate determines the structure completely, thus we can use that as a measure to see if an identical candidate has been evaluated::
 
       for _ in range(pop_size):
         dup = True
@@ -83,7 +85,7 @@ Evaluating identical candidates is a risk when they are created by the operators
 Symmetric duplicate identification
 ----------------------------------
 
-A further enhancement would be to determine if a structure that is not identical in positions but instead symmetrically identical has been evaluated. For this we need a metric with which to characterize a structure, a symmetry tolerant fingerprint. There are many ways to achieve this and we will use a very simple average number of nearest neighbors, defined as:
+Having identical or very similar in the population will limit the diversity and cause premature convergence of the GA. We will try to prevent that by detecting if two structures are not identical in positions but instead symmetrically identical. For this we need a metric with which to characterize a structure, a symmetry tolerant fingerprint. There are many ways to achieve this and we will use a very simple average number of nearest neighbors, defined as:
 
 .. math:: \text{NN}_\text{avg} = [\frac{\#\text{Cu-Cu}}{N_{\text{Cu}}} , \frac{\#\text{Cu-Pt}}{N_{\text{Cu}}}, \frac{\#\text{Pt-Cu}}{N_{\text{Pt}}}, \frac{\#\text{Pt-Pt}}{N_{\text{Pt}}}]
 
