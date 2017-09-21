@@ -5,8 +5,7 @@ from ase.ga.offspring_creator import OperationSelector
 from ase.ga.slab_operators import (CutSpliceSlabCrossover,
                                    RandomSlabPermutation,
                                    RandomCompositionMutation)
-from ase.ga import set_raw_score, get_raw_score
-from ase.ga.utilities import get_nnmat_string
+from ase.ga import set_raw_score
 
 from ase.calculators.emt import EMT
 
