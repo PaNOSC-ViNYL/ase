@@ -1808,7 +1808,7 @@ class Atoms(object):
         from ase.io import write
         write(filename, self, format, **kwargs)
 
-    def __images__(self):
+    def _images_(self):
         yield self
 
     def edit(self):

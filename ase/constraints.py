@@ -1063,7 +1063,7 @@ class Filter:
 
         If a Trajectory tries to save this object, it will instead
         save the underlying Atoms object.  To prevent this, override
-        the __images__ method.
+        the _images_ method.
         """
 
         self.atoms = atoms
@@ -1083,9 +1083,9 @@ class Filter:
             self.index = np.asarray(indices, int)
             self.n = len(self.index)
 
-    def __images__(self):
+    def _images_(self):
         # Present the real atoms object to Trajectory and friends
-        return self.atoms.__images__()
+        return self.atoms._images_()
 
     def get_cell(self):
         """Returns the computational cell.
