@@ -387,12 +387,12 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
     @property
     def xc(self):
         """Direct access to the xc parameter"""
-        return self.input_params['xc']
+        return self.get_xc_functional()
 
     @xc.setter
     def xc(self, xc):
         """Direct access for setting the xc parameter"""
-        self.input_params['xc'] = xc
+        self.set(xc=xc)
 
     def set_atoms(self, atoms):
         self.atoms = atoms.copy()
