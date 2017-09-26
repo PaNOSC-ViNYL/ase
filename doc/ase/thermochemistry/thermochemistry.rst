@@ -62,18 +62,23 @@ freedom are treated as hindered translations in the two directions parallel to
 the surface, one degree of freedom is treated as a hindered rotation about the
 axis perpendicular to the surface, and the remaining 3N-3 degrees of freedom
 are treated as vibrations. The :class:`HinderedThermo` class supports the
-calculation of internal energy, entropy, and free energy. This class returns
-the Helmholtz free energy; if the user assumes that the pV term (in G = U +
-pV - TS) is zero then this free energy can also be interpreted as the Gibbs
-free energy. This class depends on the user defined trans_barrier_energy and
-rot_barrier_energy for the adsorbate to move on the surface in order to
-calculate the translational and rotational degrees of freedom. To calculate
-the vibrational degrees of freedom, all 3N vibrational energies must be
-supplied in the vib_energies list and the 3N-3 largest vibrational energies
-are used to calculate the vibrational contribution; this is a list as can be
-generated with the .get_energies() method of
-:class:`ase.vibrations.Vibrations`. The class :class:`HinderedThermo` has the
-interface described below.
+calculation of internal energy, entropy, free energy, and zero point energy
+(included in the internal energy). All of the thermodynamic properties
+calculated here are at the standard state surface concentration (defined here
+such that a 2D ideal gas at that concentration has 2/3 the translational
+entropy of a 3D ideal gas at 1 bar pressure, so that :math:`\theta^0` = 0.012
+at 298 K for a surface with 10<sup>15</sup> sites/cm<sup>2</sup>). This class
+returns the Helmholtz free energy; if the user assumes that the pV term (in G =
+U + pV - TS) is zero then this free energy can also be interpreted as the Gibbs
+free energy. This class depends on the user defined translation barrier
+(trans_barrier_energy) and rotational barrier (rot_barrier_energy) for the
+adsorbate to move on the surface in order to calculate the translational and
+rotational degrees of freedom. To calculate the vibrational degrees of freedom,
+all 3N vibrational energies must be supplied in the vib_energies list and the
+3N-3 largest vibrational energies are used to calculate the vibrational
+contribution; this is a list as can be generated with the .get_energies()
+method of :class:`ase.vibrations.Vibrations`. The class :class:`HinderedThermo`
+has the interface described below.
 
 .. autoclass:: HinderedThermo
    :members:
