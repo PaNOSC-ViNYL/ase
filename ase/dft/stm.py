@@ -66,7 +66,7 @@ class STM:
                           for k in range(nkpts)]
                          for s in range(nspins)])
         eigs -= calc.get_fermi_level()
-        ldos = np.zeros(self.atoms.calc.get_number_of_grid_points())
+        ldos = np.zeros(calc.get_pseudo_wave_function(0,0,0).shape) 
 
         for s in range(nspins):
             for k in range(nkpts):
@@ -226,6 +226,7 @@ class STM:
         """Current for a single x, y, z position for a given bias."""
 
         self.calculate_ldos(bias)
+
         nx = self.ldos.shape[0]
         ny = self.ldos.shape[1]
         nz = self.ldos.shape[2]
@@ -285,7 +286,14 @@ class STM:
         
         ldosz = (1 - dz) * ldos[zp] + dz * ldos[(zp + 1) % nz]
 
-        return 5000. * ldosz**2
+        # Borrowed from gpaw/analyse/simple_stm.py:
+        # The connection between density n and current I
+        # n [e/Angstrom^3] = 0.0002 sqrt(I [nA])
+        # as given in Hofer et al., RevModPhys 75 (2003) 1287
+        if bias > 0:
+            return 5000. * ldosz**2
+        else:
+            return -5000. * ldosz**2
 
 
 def interpolate(q, heights):
