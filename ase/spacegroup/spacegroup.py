@@ -802,8 +802,7 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
     if has_spglib and method in ('phonopy','spglib'):
         sg    = spglib.get_spacegroup(atoms)
         sg_no = int(sg[sg.find("(")+1:sg.find(")")])
-        atoms.info["spacegroup"] = Spacegroup(sg_no)
-        return atoms.info["spacegroup"]
+        return Spacegroup(sg_no)
     
     # no spglib, we use our own spacegroup finder. Not as fast as spglib.
     # we center the Atoms positions on each atom in the cell, and find the 
@@ -813,10 +812,6 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
         sg = _get_spacegroup(atoms, symprec=1e-5, center=kind)
         if found is None or sg.no > found.no:
             found = sg
-    
-    # return None when no space group is found
-    if found is not None:
-          atoms.info["spacegroup"] = found
 
     return found
             
@@ -834,7 +829,7 @@ def _get_spacegroup(atoms, symprec=1e-5, center=None):
     # make sure we are insensitive to translation. this choice is arbitrary and 
     # could lead to a 'slightly' wrong guess for the Space group, e.g. do not  
     # guess centro-symmetry.
-    if center:
+    if center is not None:
         try:
             positions -= positions[center]
         except IndexError:
@@ -851,6 +846,7 @@ def _get_spacegroup(atoms, symprec=1e-5, center=None):
         #    
         # the equivalent sites should match all other atom locations in the cell
         # as the spacegroup transforms the unit cell in itself
+        # we test on the number of equivalent sites
         if len(sites) == len(positions):
             # store the space group into the list
             found = sg
