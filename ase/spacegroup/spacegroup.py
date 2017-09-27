@@ -22,7 +22,7 @@ try:
     has_spglib = True
 except ImportError:
     try:
-        from pyspglib import spglib # For versions 1.8.x or before
+        from pyspglib import spglib  # For versions 1.8.x or before
         has_spglib = True
     except ImportError:
         pass
@@ -82,11 +82,12 @@ class Spacegroup(object):
     lattice = property(
         lambda self: self._symbol[0],
         doc="""Lattice type:
-            P      primitive
-            I      body centering, h+k+l=2n
-            F      face centering, h,k,l all odd or even
-            A,B,C  single face centering, k+l=2n, h+l=2n, h+k=2n
-            R      rhombohedral centering, -h+k+l=3n (obverse); h-k+l=3n (reverse)
+
+    P     primitive
+    I     body centering, h+k+l=2n
+    F     face centering, h,k,l all odd or even
+    A,B,C single face centering, k+l=2n, h+l=2n, h+k=2n
+    R     rhombohedral centering, -h+k+l=3n (obverse); h-k+l=3n (reverse)
             """)
     centrosymmetric = property(
         lambda self: self._centrosymmetric,
@@ -826,16 +827,15 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
 
     return found
 
-# ------------------------------------------------------------------------------
+
 def _get_spacegroup(atoms, symprec=1e-5, center=None):
-    """ASE implementation of get_spacegroup, pure python.
-    """
+    """ASE implementation of get_spacegroup, pure python."""
 
     # we try all available spacegroups from 230 to 1, backwards
     # a Space group is the collection of all symmetry operations which lets the
     # unit cell invariant.
-    found      = None
-    positions  = atoms.get_scaled_positions(wrap=True)  # in the lattice frame
+    found = None
+    positions = atoms.get_scaled_positions(wrap=True)  # in the lattice frame
 
     # make sure we are insensitive to translation. this choice is arbitrary and
     # could lead to a 'slightly' wrong guess for the Space group, e.g. do not
@@ -848,15 +848,16 @@ def _get_spacegroup(atoms, symprec=1e-5, center=None):
 
     # search space groups from the highest symmetry to the lowest
     # retain the first match
-    for nb in range(230,0,-1):
-        sg        = Spacegroup(nb)
+    for nb in range(230, 0, -1):
+        sg = Spacegroup(nb)
         #
         # now we scan all atoms in the cell and look for equivalent sites
-        sites,kinds = sg.equivalent_sites(positions,
-                onduplicates='keep', symprec=symprec)
-        #
-        # the equivalent sites should match all other atom locations in the cell
-        # as the spacegroup transforms the unit cell in itself
+        sites, kinds = sg.equivalent_sites(positions,
+                                           onduplicates='keep',
+                                           symprec=symprec)
+
+        # the equivalent sites should match all other atom locations in the
+        # cell as the spacegroup transforms the unit cell in itself
         # we test on the number of equivalent sites
         if len(sites) == len(positions):
             # store the space group into the list
