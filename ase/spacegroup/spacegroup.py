@@ -782,7 +782,7 @@ def spacegroup_from_data(no=None, symbol=None, setting=1,
 def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
     """Determine the spacegroup to which belongs the Atoms object.
     When PhonoPy/SPGlib is NOT available, a pure ASE python implementation is 
-    used. This is NOT recommended for very large systems (slow).
+    used. The pure ASE method is NOT recommended for large systems (SLOW).
     
     Parameters:
     atoms:    an Atoms object
@@ -790,12 +790,18 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
               coordinates to find crystal symmetry.
     method:   'phonopy' or 'spglib' when available, or 'ase' (fallback)
               
-    The Spacegroup object is returned, and stored in atoms.info['spacegroup'] 
+    The Spacegroup object is returned. You may additionally further store it in:
+        atoms.info['spacegroup']
                   
-    Examples:
+    Example:
     
+    >>> from ase.build import bulk
+    >>> from ase.spacegroup.spacegroup import get_spacegroup
     >>> atoms = bulk("Cu", "fcc", a=3.6, cubic=True)
     >>> sg = get_spacegroup(atoms)
+    >>> print(sg)
+    >>> atoms.info['spacegroup'] = sg
+    >>> assert(sg.no == 225)
     """
 
     # use spglib when it is available (and return)
