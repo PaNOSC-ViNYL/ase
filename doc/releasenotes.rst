@@ -41,6 +41,10 @@ Git master branch
 
 * :mod:`ase.gui` is now available in German and Chinese (again).
 
+* Get the :class:`~ase.spacegroup.Spacegroup` object from an
+  :class:`~ase.Atoms` object with the new :func:`ase.spacegroup.get_spacegroup`
+  function.
+
 
 Version 3.14.1
 ==============
