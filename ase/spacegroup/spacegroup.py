@@ -778,30 +778,34 @@ def spacegroup_from_data(no=None, symbol=None, setting=1,
                                        'translations')
         spg._nsymop = spg._rotations.shape[0]
     return spg
-    
+
+
 def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
     """Determine the spacegroup to which belongs the Atoms object.
-    When PhonoPy/SPGlib is NOT available, a pure ASE python implementation is 
+    When PhonoPy/SPGlib is NOT available, a pure ASE python implementation is
     used. The pure ASE method is NOT recommended for large systems (SLOW).
-    
+
     Parameters:
     atoms:    an Atoms object
-    symprec:  Symmetry tolerance, i.e. distance tolerance in Cartesian 
+    symprec:  Symmetry tolerance, i.e. distance tolerance in Cartesian
               coordinates to find crystal symmetry.
     method:   'phonopy' or 'spglib' when available, or 'ase' (fallback)
-              
-    The Spacegroup object is returned. You may additionally further store it in:
+
+    The Spacegroup object is returned. You may additionally further store it
+    in::
+
         atoms.info['spacegroup']
-                  
+
     Example:
-    
+
     >>> from ase.build import bulk
     >>> from ase.spacegroup.spacegroup import get_spacegroup
     >>> atoms = bulk("Cu", "fcc", a=3.6, cubic=True)
     >>> sg = get_spacegroup(atoms)
-    >>> print(sg)
+    >>> print(sg.no)
+    225
     >>> atoms.info['spacegroup'] = sg
-    >>> assert(sg.no == 225)
+    >>> assert sg.no == 225
     """
 
     # use spglib when it is available (and return)
@@ -809,9 +813,9 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
         sg    = spglib.get_spacegroup(atoms)
         sg_no = int(sg[sg.find("(")+1:sg.find(")")])
         return Spacegroup(sg_no)
-    
+
     # no spglib, we use our own spacegroup finder. Not as fast as spglib.
-    # we center the Atoms positions on each atom in the cell, and find the 
+    # we center the Atoms positions on each atom in the cell, and find the
     # spacegroup of highest symmetry
     found = None
     for kind, pos in enumerate(atoms.get_scaled_positions()):
@@ -820,36 +824,36 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
             found = sg
 
     return found
-            
+
 # ------------------------------------------------------------------------------
 def _get_spacegroup(atoms, symprec=1e-5, center=None):
     """ASE implementation of get_spacegroup, pure python.
-    """ 
-    
+    """
+
     # we try all available spacegroups from 230 to 1, backwards
-    # a Space group is the collection of all symmetry operations which lets the 
+    # a Space group is the collection of all symmetry operations which lets the
     # unit cell invariant.
     found      = None
     positions  = atoms.get_scaled_positions(wrap=True)  # in the lattice frame
-    
-    # make sure we are insensitive to translation. this choice is arbitrary and 
-    # could lead to a 'slightly' wrong guess for the Space group, e.g. do not  
+
+    # make sure we are insensitive to translation. this choice is arbitrary and
+    # could lead to a 'slightly' wrong guess for the Space group, e.g. do not
     # guess centro-symmetry.
     if center is not None:
         try:
             positions -= positions[center]
         except IndexError:
             pass
-    
+
     # search space groups from the highest symmetry to the lowest
     # retain the first match
     for nb in range(230,0,-1):
         sg        = Spacegroup(nb)
         #
         # now we scan all atoms in the cell and look for equivalent sites
-        sites,kinds = sg.equivalent_sites(positions, 
+        sites,kinds = sg.equivalent_sites(positions,
                 onduplicates='keep', symprec=symprec)
-        #    
+        #
         # the equivalent sites should match all other atom locations in the cell
         # as the spacegroup transforms the unit cell in itself
         # we test on the number of equivalent sites
