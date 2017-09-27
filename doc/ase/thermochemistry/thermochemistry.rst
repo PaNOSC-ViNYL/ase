@@ -247,6 +247,10 @@ equations used in the :class:`HinderedThermo` class are summarized here.
    Hindered Rotor Models for Adsorbates: Partition Functions and Entropies.
    *J. Phys. Chem. C*, **2016**, 120 (18), pp 9719-9731.
 
+   L.H. Sprowl, C.T. Campbell, and L. Arnadottir. Correction to "Hindered
+   Translator and Hindered Rotor Models for Adsorbates: Partition Functions and
+   Entropies". *J. Phys. Chem. C*, **2017**, 121 (17), pp 9655-9655.
+
    C.T. Campbell, L.H. Sprowl, and L. Arnadottir. Equilibrium Constants and
    Rate Constants for Adsorbates: Two-Dimensional (2D) Ideal Gas, 2D Ideal
    Lattice Gas, and Ideal Hindered Translator Models. *J. Phys. Chem. C*,
