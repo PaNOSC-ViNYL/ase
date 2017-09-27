@@ -782,36 +782,37 @@ def spacegroup_from_data(no=None, symbol=None, setting=1,
 
 def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
     """Determine the spacegroup to which belongs the Atoms object.
+
     When PhonoPy/SPGlib is NOT available, a pure ASE python implementation is
     used. The pure ASE method is NOT recommended for large systems (SLOW).
 
     Parameters:
-    atoms:    an Atoms object
-    symprec:  Symmetry tolerance, i.e. distance tolerance in Cartesian
-              coordinates to find crystal symmetry.
-    method:   'phonopy' or 'spglib' when available, or 'ase' (fallback)
 
-    The Spacegroup object is returned. You may additionally further store it
-    in::
+    atoms: Atoms object
+        Types, positions and unit-cell.
+    symprec: float
+        Symmetry tolerance, i.e. distance tolerance in Cartesian
+        coordinates to find crystal symmetry.
+    method: str
+        'phonopy' or 'spglib' when available, or 'ase' (fallback).
 
-        atoms.info['spacegroup']
+    The Spacegroup object is returned.
 
     Example:
 
     >>> from ase.build import bulk
-    >>> from ase.spacegroup.spacegroup import get_spacegroup
     >>> atoms = bulk("Cu", "fcc", a=3.6, cubic=True)
     >>> sg = get_spacegroup(atoms)
-    >>> print(sg.no)
+    >>> sg
+    Spacegroup(225, setting=1)
+    >>> sg.no
     225
-    >>> atoms.info['spacegroup'] = sg
-    >>> assert sg.no == 225
     """
 
     # use spglib when it is available (and return)
-    if has_spglib and method in ('phonopy','spglib'):
-        sg    = spglib.get_spacegroup(atoms)
-        sg_no = int(sg[sg.find("(")+1:sg.find(")")])
+    if has_spglib and method in ['phonopy', 'spglib']:
+        sg = spglib.get_spacegroup(atoms)
+        sg_no = int(sg[sg.find('(') + 1:sg.find(')')])
         return Spacegroup(sg_no)
 
     # no spglib, we use our own spacegroup finder. Not as fast as spglib.

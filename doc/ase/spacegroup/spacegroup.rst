@@ -15,25 +15,15 @@ Examples of setting up bulk structures
 
 We start by showing some examples of how to set up some common or
 interesting bulk structures using
-**ase.spacegroup.crystal()**.  This function takes a lot of
-arguments, of which the most important are:
+:func:`ase.spacegroup.crystal`.  This function takes a lot of
+arguments:
 
-    symbols : string | sequence of strings
-        Either a string formula or sequence of element
-        symbols. E.g. 'NaCl' and ('Na', 'Cl') are equivalent.
-    basis : list of scaled coordinates
-        Coordinates of the non-equivalent sites in units of the
-        lattice vectors.
-    spacegroup : int | string | Spacegroup instance
-        Space group given either as its number in International Tables
-        or as its Hermann-Mauguin (or international) symbol.
-    setting : 1 | 2
-        Space group setting.
-    cellpar : [a, b, c, alpha, beta, gamma]
-        Cell parameters with angles in degree. Is not used when ``cell``
-        is given.
+.. autofunction:: crystal
 
-        
+There is also a :func:`get_spacegroup` function that will return a spacegroup object from an
+Atoms object.
+
+
 Aluminium (fcc)
 ---------------
 
@@ -182,3 +172,6 @@ array([[ 0. ,  0. ,  0.5],
 
 where *sites* will be an array containing the scaled positions of the
 four symmetry-equivalent sites.
+
+.. autoclass:: Spacegroup
+.. autofunction:: get_spacegroup
