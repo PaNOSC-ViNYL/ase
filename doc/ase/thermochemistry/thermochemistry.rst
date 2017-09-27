@@ -35,7 +35,7 @@ and has the interface listed below.
 .. autoclass:: IdealGasThermo
    :members:
 
-       
+
 Example
 -------
 
@@ -67,7 +67,7 @@ calculation of internal energy, entropy, free energy, and zero point energy
 calculated here are at the standard state surface concentration (defined here
 such that a 2D ideal gas at that concentration has 2/3 the translational
 entropy of a 3D ideal gas at 1 bar pressure, so that :math:`\theta^0` = 0.012
-at 298 K for a surface with 10<sup>15</sup> sites/cm<sup>2</sup>). This class
+at 298 K for a surface with `10^{15}` sites/cm\ :sup:`2`). This class
 returns the Helmholtz free energy; if the user assumes that the pV term (in G =
 U + pV - TS) is zero then this free energy can also be interpreted as the Gibbs
 free energy. This class depends on the user defined translation barrier
@@ -135,7 +135,7 @@ Helmholtz free energy (:math:`F`), and has the interface listed below.
 .. autoclass:: CrystalThermo
    :members:
 
-       
+
 Example
 -------
 
@@ -217,7 +217,7 @@ of freedom are enumerated the same as in the above.)
    k_\text{B} \left\{ \ln \left[ \frac{\sqrt{\pi I_\text{A} I_\text{B} I_\text{C}}}{\sigma} \left(\frac{8\pi^2 k_\text{B} T}{h^2}\right)^{3/2}\right] + \frac{3}{2} \right\} & \text{, if nonlinear} \\
    \end{array}
    \right.
-   
+
 .. math ::
    S_\text{vib} = k_\text{B} \sum_i^\text{vib DOF}
    \left[ \frac{\epsilon_i}{k_\text{B}T\left(e^{\epsilon_i/k_\text{B}T}-1\right)} - \ln \left( 1 - e^{-\epsilon_i/k_\text{B}T} \right)\right]
