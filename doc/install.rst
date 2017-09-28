@@ -19,7 +19,7 @@ Optional:
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
 .. _Matplotlib: http://matplotlib.org/
-.. _PyPI: https://pypi.python.org/pypi/ase
+.. _PyPI: https://pypi.org/project/ase
 .. _PIP: https://pip.pypa.io/en/stable/
 
 
@@ -110,7 +110,7 @@ from Git.
         $ tar -xf ase-3.14.1.tar.gz
         $ ln -s ase-3.14.1 ase
 
-    Here is a `list of tarballs <https://pypi.python.org/simple/ase/>`__.
+    Here is a `list of tarballs <https://pypi.org/simple/ase/>`__.
 
 :Git clone:
 
@@ -148,7 +148,7 @@ Finally, please `run the tests`_.
     dates of older releases can be found there.
 
 
-.. _ase-3.14.1.tar.gz: https://pypi.io/packages/source/a/ase/ase-3.14.1.tar.gz
+.. _ase-3.14.1.tar.gz: https://pypi.org/packages/source/a/ase/ase-3.14.1.tar.gz
 
 
 Environment variables
