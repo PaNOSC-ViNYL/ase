@@ -39,7 +39,7 @@ Git master branch
 
 * New :ref:`db tutorial` tutorial.
 
-* :mod:`ase.gui` is now available in German and Chinese (again).
+* :mod:`ase.gui`:  Improved atom colouring options; support the Render Scene (povray) and Ctrl+R rotation features again; updated German and Chinese translations.
 
 * Get the :class:`~ase.spacegroup.Spacegroup` object from an
   :class:`~ase.Atoms` object with the new :func:`ase.spacegroup.get_spacegroup`
