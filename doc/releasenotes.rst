@@ -10,6 +10,13 @@ Git master branch
 
 :git:`master <>`.
 
+ * No changes yet
+
+Version 3.15.0
+==============
+
+28 September 2017: :git:`3.15.0 <../3.15.0>`
+
 * If you are running your Python script in :mod:`parallel <ase.parallel>`
   then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
   the master and broadcast to slaves, and :func:`ase.io.write` will only
