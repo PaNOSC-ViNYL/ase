@@ -58,8 +58,6 @@ def main():
                  help='new version number')
     p.add_argument('--clean', action='store_true',
                    help='delete release branch and tag')
-    p.add_argument('--webpage', action='store_true',
-                   help='update webpage')
     args = p.parse_args()
 
     try:
@@ -73,10 +71,6 @@ def main():
     if not args.version:
         p.print_help()
         raise SystemExit
-
-    if args.webpage:
-        update_webpage(p, args)
-        return
 
     version = args.version
 
@@ -126,7 +120,6 @@ def main():
 
     releasenotes = 'doc/releasenotes.rst'
     lines = []
-    ok = False
 
     searchtxt = re.escape("""\
 Git master branch
