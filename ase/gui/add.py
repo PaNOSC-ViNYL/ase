@@ -18,7 +18,8 @@ class AddAtoms:
     def __init__(self, gui):
         # XXXXXXXXXXX still array based, not Atoms-based.  Will crash
         win = ui.Window(_('Add atoms'))
-        self.element = Element()
+        self.element = Element(callback=self.add_absolute,
+                               allow_molecule=True)
         win.add(self.element)
         self.absolute_position = ui.Entry('0,0,0')
         self.relative_position = ui.Entry('1.5,0,0')
@@ -29,8 +30,9 @@ class AddAtoms:
                  self.relative_position,
                  ui.Button(_('Add'), self.add_relative)])
         self.gui = gui
+        self.element.grab_focus()
 
-    def add_absolute(self):
+    def add_absolute(self, callbackarg=None):
         pos = txt2pos(self.absolute_position.value)
         self.add(pos)
 
@@ -46,11 +48,14 @@ class AddAtoms:
             self.add(center + rpos)
 
     def add(self, pos):
-        if pos is None or self.element.symbol is None:
+        newatoms = self.element.get_atoms()
+        if pos is None or newatoms is None:
             return
+
+        newatoms.center(about=pos)
         atoms = self.gui.atoms
-        atoms.append(self.element.symbol)
-        atoms.positions[-1] = pos
+        atoms += newatoms
+
         if len(atoms) > self.gui.images.maxnatoms:
             self.gui.images.initialize(list(self.gui.images),
                                        self.gui.images.filenames)

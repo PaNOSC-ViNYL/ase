@@ -47,6 +47,7 @@ class SetupSurfaceSlab:
     '''Window for setting up a surface.'''
     def __init__(self, gui):
         self.element = Element('', self.make)
+        self.element.grab_focus()
         self.structure = ui.ComboBox(structures, structures,
                                      self.structure_changed)
         self.structure_warn = ui.Label('', 'red')
