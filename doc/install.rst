@@ -19,7 +19,7 @@ Optional:
 .. _NumPy: http://docs.scipy.org/doc/numpy/reference/
 .. _SciPy: http://docs.scipy.org/doc/scipy/reference/
 .. _Matplotlib: http://matplotlib.org/
-.. _PyPI: https://pypi.python.org/pypi/ase
+.. _PyPI: https://pypi.org/project/ase
 .. _PIP: https://pip.pypa.io/en/stable/
 
 
@@ -102,22 +102,22 @@ from Git.
 :Tar-file:
 
     You can get the source as a `tar-file <http://xkcd.com/1168/>`__ for the
-    latest stable release (ase-3.14.1.tar.gz_) or the latest
+    latest stable release (ase-3.15.0.tar.gz_) or the latest
     development snapshot (`<snapshot.tar.gz>`_).
 
     Unpack and make a soft link::
 
-        $ tar -xf ase-3.14.1.tar.gz
-        $ ln -s ase-3.14.1 ase
+        $ tar -xf ase-3.15.0.tar.gz
+        $ ln -s ase-3.15.0 ase
 
-    Here is a `list of tarballs <https://pypi.python.org/simple/ase/>`__.
+    Here is a `list of tarballs <https://pypi.org/simple/ase/>`__.
 
 :Git clone:
 
     Alternatively, you can get the source for the latest stable release from
     https://gitlab.com/ase/ase like this::
 
-        $ git clone -b 3.14.1 https://gitlab.com/ase/ase.git
+        $ git clone -b 3.15.0 https://gitlab.com/ase/ase.git
 
     or if you want the development version::
 
@@ -148,9 +148,7 @@ Finally, please `run the tests`_.
     dates of older releases can be found there.
 
 
-.. _ase-3.14.1.tar.gz: https://pypi.python.org/packages/74/66/
-    9648ef25e5a3aa642abf2cb7bffa05485b2582ca436ba731ee0f4f30b9da/
-    ase-3.14.1.tar.gz#md5=33b04a3f6bf7658142d9175ada0547dc
+.. _ase-3.15.0.tar.gz: https://pypi.org/packages/source/a/ase/ase-3.15.0.tar.gz
 
 
 Environment variables

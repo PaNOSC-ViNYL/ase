@@ -228,7 +228,8 @@ class Atoms(object):
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
-        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)), apply_constraint=False)
+        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)),
+                         apply_constraint=False)
 
         if info is None:
             self.info = {}
@@ -595,7 +596,8 @@ class Atoms(object):
             self.set_array('initial_magmoms', None)
         else:
             magmoms = np.asarray(magmoms)
-            self.set_array('initial_magmoms', magmoms, float, magmoms.shape[1:])
+            self.set_array('initial_magmoms', magmoms, float,
+                           magmoms.shape[1:])
 
     def get_initial_magnetic_moments(self):
         """Get array of initial magnetic moments."""
@@ -1808,6 +1810,9 @@ class Atoms(object):
         """
         from ase.io import write
         write(filename, self, format, **kwargs)
+
+    def _images_(self):
+        yield self
 
     def edit(self):
         """Modify atoms interactively through ASE's GUI viewer.
