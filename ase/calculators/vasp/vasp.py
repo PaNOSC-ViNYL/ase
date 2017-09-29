@@ -102,7 +102,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
-        self.set_txt(txt)
+        self.set_txt(txt)       # Set the output txt stream
 
         # XXX: This seems to break restarting, unless we return first.
         # Do we really still need to enfore this?
@@ -232,6 +232,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             # for python 2.7 compatiblity
             if set(d1.keys()) ^ set(d2.keys()):
                 return False
+
+            # Check for differences in values
             for key, value in d1.items():
                 if np.any(value != d2[key]):
                     return False
@@ -280,6 +282,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             label = self.label
         FileIOCalculator.read(self, label)
 
+        # Check for existence of the necessary output files
         for file in ['OUTCAR', 'CONTCAR', 'vasprun.xml']:
             filename = os.path.join(self.directory, file)
             if not os.path.isfile(filename):
@@ -305,6 +308,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.read_results()
 
     def read_atoms(self, filename='CONTCAR'):
+        """Read the atoms from file located in the VASP
+        working directory. Defaults to CONTCAR."""
         filename = os.path.join(self.directory, filename)
         return read(filename)
 
@@ -332,6 +337,7 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
     def read_results(self):
         """Read the results from VASP output files"""
+        # Temporarily load OUTCAR into memory
         outcar = self.load_file('OUTCAR')
 
         # First we check convergence
@@ -349,15 +355,16 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         self.results.update(xml_data)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
-        # This is typically pretty fast
+        # This is typically pretty fastA
         self.read_outcar(lines=outcar)
 
         # Update results dict with results from OUTCAR
         # which aren't written to the atoms object we read from
-        # the vasprun.xml file
+        # the vasprun.xml file.
+        # XXX: Should be fixed in the XML reader!
         self.results['magmom'] = self.magnetic_moment
         self.results['magmoms'] = self.magnetic_moments
-        self.results['fermi'] = self.fermi
+        # self.results['fermi'] = self.fermi
         self.results['dipole'] = self.dipole
 
         # Store the parameters used for this calculation
@@ -382,7 +389,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
     @encut.setter
     def encut(self, encut):
         """Direct access for setting the encut parameter"""
-        self.float_params['encut'] = encut
+        self.set(encut=encut)
+        # self.float_params['encut'] = encut
 
     @property
     def xc(self):
