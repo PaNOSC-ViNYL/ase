@@ -171,6 +171,7 @@ class Infrared(Vibrations):
 
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
+        # The encoding='latin1' is for py2/3 pickle compatibility.
         [forces_zero, dipole_zero] = pickle.load(
             open(name, 'rb'), encoding='latin1')
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
