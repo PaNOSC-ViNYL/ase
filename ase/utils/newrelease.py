@@ -82,6 +82,7 @@ def main():
         git('checkout master')
         git('tag -d {}'.format(version), error_ok=True)
         git('branch -D {}'.format(branchname), error_ok=True)
+        git('branch -D {}'.format('web-page'), error_ok=True)
         return
 
     print('New release: {}'.format(version))
@@ -221,7 +222,10 @@ News
     py('setup.py sdist > setup_sdist.log')
     py2('setup.py bdist_wheel > setup_bdist_wheel2.log')
     py('setup.py bdist_wheel > setup_bdist_wheel3.log')
-    bash('gpg --armor --detach-sign dist/ase-{}.tar.gz'.format(version))
+    bash('gpg --armor --yes --detach-sign dist/ase-{}.tar.gz'.format(version))
+    git('checkout -b web-page')
+    git('branch --set-upstream-to=origin/web-page')
+    git('checkout {}'.format(branchname))
     update_version(next_devel_version)
     git('add {}'.format(versionfile))
     git('branch --set-upstream-to=master')
@@ -246,7 +250,7 @@ News
           'dist/ase-{v}-py3-none-any.whl '
           'dist/ase-{v}.tar.gz.asc'.format(v=version))
     print('git push --tags origin master  # Assuming your remote is "origin"')
-    print('git checkout -b web-page')
+    print('git checkout web-page')
     print('git push --force origin web-page')
 
 main()
