@@ -220,7 +220,8 @@ News
     with open(sphinxconf, 'w') as fd:
         fd.write(''.join(lines))
 
-    git('add -u')
+    git('add {}'.format(' '.join([versionfile, sphinxconf, installdoc,
+                                  frontpage, releasenotes])))
     git('commit -m "ASE version {}"'.format(version))
     git('tag -s {0} -m "ase-{0}"'.format(version))
 
@@ -229,7 +230,7 @@ News
     py('setup.py bdist_wheel > setup_bdist_wheel3.log')
     bash('gpg --armor --detach-sign dist/ase-{}.tar.gz'.format(version))
     update_version(next_devel_version)
-    git('add -u')
+    git('add {}'.format(versionfile))
     git('branch --set-upstream-to=master')
     git('commit -m "bump version number to {}"'.format(next_devel_version))
 
