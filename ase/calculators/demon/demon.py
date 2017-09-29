@@ -2,6 +2,7 @@ from __future__ import print_function
 """This module defines an ASE interface to deMon.
 
 http://www.demon-software.com
+
 """
 import os
 import os.path as op
@@ -27,7 +28,7 @@ class Parameters_deMon(Parameters):
     Documented in Base_deMon.__init__
 
     The options here are the most important ones that the user needs to be
-    aware of.  Further options accepted by deMon can be set in the dictionary
+    aware of. Further options accepted by deMon can be set in the dictionary
     input_arguments.
 
     """
@@ -59,7 +60,7 @@ class Parameters_deMon(Parameters):
 
 
 class Demon(FileIOCalculator):
-    """Calculator interface to the deMon code."""
+    """Calculator interface to the deMon code. """
 
     implemented_properties = (
         'energy',
@@ -76,35 +77,56 @@ class Demon(FileIOCalculator):
         export DEMON_COMMAND="deMon.4.3.6.std > deMon_ase.out 2>&1"
 
         Parameters:
-            label    : str. relative path to the run directory
-            atoms    : The Atoms onject
-            command  : str. Command to run deMon. If not present the environment varable DEMON_COMMAND will be used
-            restart  : str. Relative path to ASE restart directory for parameters and atoms object and results
-            basis_path  : str. Relative path to the directory containing BASIS, AUXIS, ECPS, MCPS and AUGMENT
-            ignore_bad_restart_file : bool. Ignore broken or missing ASE restart files
-                                    By default, it is an error if the restart
-                                    file is missing or broken.
-            deMon_restart_path  : str. Relative path to the deMon restart dir
-            title : str. Title in the deMon input file.
-            scftype : str. Type of scf
-            forces  : bool. If True a force calculation will be enforced.
-            dipole  : bool. If True a dipole calculation will be enforced
-            xc      : str. xc-functional
-            guess   : str. guess for initial density and wave functions
-            print_out : str|list. Options for the printing in deMon
-            basis : dict. Definition of basis sets.
-            ecps  : dict. Definition of ECPs.
-            mcps  : dict. Definition of MCPs.
-            auxis  : dict. Definition of AUXIS,
-            augment : dict. Definition of AUGMENT.
-            input_arguments: dict. Explicitly given input arguments. The key is the input keyword
-                             and the value is either a str, a list of str (will be written on the same line as the keyword),
-                             or a list of lists of str (first list is written on the first line, the others on following lines.)
-                                                          
-           
+
+        label : str 
+            relative path to the run directory
+        atoms : Atoms object
+            the atoms object
+        command  : str
+            Command to run deMon. If not present the environment varable DEMON_COMMAND will be used
+        restart  : str
+            Relative path to ASE restart directory for parameters and atoms object and results
+        basis_path  : str 
+            Relative path to the directory containing BASIS, AUXIS, ECPS, MCPS and AUGMENT
+        ignore_bad_restart_file : bool 
+            Ignore broken or missing ASE restart files
+            By default, it is an error if the restart
+            file is missing or broken.
+        deMon_restart_path  : str 
+            Relative path to the deMon restart dir
+        title : str 
+            Title in the deMon input file.
+        scftype : str 
+            Type of scf
+        forces  : bool 
+            If True a force calculation will be enforced.
+        dipole  : bool
+            If True a dipole calculation will be enforced
+        xc : str 
+            xc-functional
+        guess : str 
+            guess for initial density and wave functions
+        print_out : str | list 
+            Options for the printing in deMon
+        basis : dict 
+            Definition of basis sets.
+        ecps  : dict 
+            Definition of ECPs
+        mcps  : dict
+            Definition of MCPs
+        auxis  : dict 
+            Definition of AUXIS
+        augment : dict
+            Definition of AUGMENT
+        input_arguments : dict 
+            Explicitly given input arguments. The key is the input keyword
+            and the value is either a str, a list of str (will be written on the same line as the keyword),
+            or a list of lists of str (first list is written on the first line, the others on following lines.)
+        
         For example usage, see the tests h2o.py and h2o_xas_xes.py in the directory ase/test/demon
-                            
+        
         """
+        
         parameters = Parameters_deMon(**kwargs)
         
         # Setup the run command
@@ -284,6 +306,7 @@ class Demon(FileIOCalculator):
              atoms        : The Atoms object to write.
              properties   : The properties which should be calculated.
              system_changes : List of properties changed since last run.
+        
         """
         # Call base calculator.
         FileIOCalculator.write_input(
@@ -677,7 +700,7 @@ class Demon(FileIOCalculator):
                     
         try:
             mode, ntrans, E_trans, osc_strength, trans_dip = parse_xray(self.label + '/deMon.xry')
-        except:
+        except ReadError:
             pass 
         else:
             xray_results = {'xray_mode': mode,
@@ -693,6 +716,7 @@ class Demon(FileIOCalculator):
             
     def deMon_inp_to_atoms(self, filename):
         """Routine to read deMon.inp and convert it to an atoms object."""
+
         with open(filename, 'r') as f:
             lines = f.readlines()
 
