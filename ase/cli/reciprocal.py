@@ -1,7 +1,6 @@
 from math import pi, sin, cos
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 from ase.io import read
 from ase.geometry import crystal_structure_from_cell as csfc
@@ -18,7 +17,13 @@ class CLICommand:
         add('name', metavar='input-file')
         add('output', nargs='?')
         add('-v', '--verbose', action='store_true')
-        add('--band-path', action='store_true')
+        add('--band-path', action='store_true',
+            help="Add the band path")
+        kp = parser.add_mutually_exclusive_group(required=False)
+        kp.add_argument('--k-points', action='store_true',
+                        help="Add k-points of the calculator")
+        kp.add_argument('--i-k-points', action='store_true',
+                        help="Add irreducible k-points of the calculator")
 
     @staticmethod
     def run(args, parser):
@@ -27,7 +32,7 @@ class CLICommand:
         
         # cell
         cell = atoms.get_cell()
-        icell = np.linalg.inv(cell)
+        icell = np.linalg.inv(cell).transpose()
         cryst = csfc(cell)
 
         # show info
@@ -46,7 +51,21 @@ class CLICommand:
         else:
             paths = None
 
-        plot(cell, paths)
+        # k points
+        points = None
+        if atoms.calc is not None:
+            if args.k_points:
+                points = atoms.calc.get_bz_k_points()
+            elif args.i_k_points:
+                points = atoms.calc.get_ibz_k_points()
+
+        # get the correct backend
+        if not args.output:
+            import matplotlib
+            matplotlib.use('Qt4Agg')
+        import matplotlib.pyplot as plt
+
+        plot(plt, cell, paths=paths, points=points)
 
         if args.output:
             plt.savefig(args.output)
@@ -70,10 +89,11 @@ def bz_vertices(cell):
     return bz1
 
 
-def plot(cell, paths, elev=None, scale=1):
+def plot(plt, cell, paths=None, points=None, elev=None, scale=1):
     from mpl_toolkits.mplot3d import Axes3D
     Axes3D  # silence pyflakes
 
+    kpoints = points
     fig = plt.figure(figsize=(5, 5))
     ax = fig.gca(projection='3d')
 
@@ -85,6 +105,7 @@ def plot(cell, paths, elev=None, scale=1):
 
     bz1 = bz_vertices(cell)
 
+    maxp = 0.0
     for points, normal in bz1:
         if np.dot(normal, view) < 0:
             ls = ':'
@@ -92,6 +113,7 @@ def plot(cell, paths, elev=None, scale=1):
             ls = '-'
         x, y, z = np.concatenate([points, points[:1]]).T
         ax.plot(x, y, z, c='k', ls=ls)
+        maxp = max(maxp, points.max())
 
     if paths is not None:
         txt = ''
@@ -111,9 +133,13 @@ def plot(cell, paths, elev=None, scale=1):
 
             txt = txt[:-1] + '|'
 
+    if kpoints is not None:
+        for p in kpoints:
+            ax.scatter(p[0], p[1], p[2], c='b')
+
     ax.set_axis_off()
     ax.autoscale_view(tight=True)
-    s = points[:][0].max() / 0.5 * 0.45 * scale
+    s = maxp / 0.5 * 0.45 * scale
     ax.set_xlim(-s, s)
     ax.set_ylim(-s, s)
     ax.set_zlim(-s, s)
