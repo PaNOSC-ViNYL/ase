@@ -32,7 +32,8 @@ class CLICommand:
         
         # cell
         cell = atoms.get_cell()
-        icell = np.linalg.inv(cell).transpose()
+        icell = (2 * pi)**3 / atoms.get_volume() * atoms.get_reciprocal_cell()
+        icell = (2 * pi)**3 / atoms.get_volume() * np.linalg.inv(cell)
         cryst = csfc(cell)
 
         # show info
@@ -65,7 +66,7 @@ class CLICommand:
             matplotlib.use('Qt4Agg')
         import matplotlib.pyplot as plt
 
-        plot(plt, cell, paths=paths, points=points)
+        plot(plt, icell, paths=paths, points=points)
 
         if args.output:
             plt.savefig(args.output)
@@ -73,10 +74,8 @@ class CLICommand:
             plt.show()
 
 
-
-def bz_vertices(cell):
+def bz_vertices(icell):
     from scipy.spatial import Voronoi
-    icell = np.linalg.inv(cell)
     I = np.indices((3, 3, 3)).reshape((3, 27)) - 1
     G = np.dot(icell, I).T
     vor = Voronoi(G)
@@ -89,7 +88,7 @@ def bz_vertices(cell):
     return bz1
 
 
-def plot(plt, cell, paths=None, points=None, elev=None, scale=1):
+def plot(plt, icell, paths=None, points=None, elev=None, scale=1):
     from mpl_toolkits.mplot3d import Axes3D
     Axes3D  # silence pyflakes
 
@@ -103,7 +102,7 @@ def plot(plt, cell, paths=None, points=None, elev=None, scale=1):
     y = cos(azim)
     view = [x * cos(elev), y * cos(elev), sin(elev)]
 
-    bz1 = bz_vertices(cell)
+    bz1 = bz_vertices(icell)
 
     maxp = 0.0
     for points, normal in bz1:
@@ -119,7 +118,7 @@ def plot(plt, cell, paths=None, points=None, elev=None, scale=1):
         txt = ''
         for names, points in paths:
             x, y, z = np.array(points).T
-            ax.plot(x, y, z, c='b', ls='-')
+            ax.plot(x, y, z, c='r', ls='-')
 
             for name, point in zip(names, points):
                 x, y, z = point
@@ -135,7 +134,8 @@ def plot(plt, cell, paths=None, points=None, elev=None, scale=1):
 
     if kpoints is not None:
         for p in kpoints:
-            ax.scatter(p[0], p[1], p[2], c='b')
+            # as long it is transposed
+            ax.scatter(p[1], p[0], p[2], c='b')
 
     ax.set_axis_off()
     ax.autoscale_view(tight=True)
