@@ -14,7 +14,8 @@ from ase.gui.utils import get_magmoms
 from ase.utils import rotate
 
 
-GREEN = '#DDFFDD'
+GREEN = '#74DF00'
+PURPLE = '#AC58FA'
 
 
 def get_cell_coordinates(cell):
@@ -187,6 +188,9 @@ class View:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
             self.labels = list(get_magmoms(self.atoms))
+        elif index == 4:
+            Q = self.atoms.get_initial_charges()
+            self.labels = ['{0:.4g}'.format(q) for q in Q]
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
@@ -233,7 +237,7 @@ class View:
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images[0].cell.any())
         if (len(self.atoms) == 0 and not cell):
-            self.scale = 1.0
+            self.scale = 20.0
             self.center = np.zeros(3)
             self.draw()
             return
@@ -330,8 +334,8 @@ class View:
             return f * self.images.get_dynamic(self.atoms)
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
-        elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+        elif self.colormode == 'initial charge':
+            return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return get_magmoms(self.atoms)
 
@@ -386,6 +390,11 @@ class View:
 
         self.update_labels()
 
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
+            movecolor = GREEN
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            movecolor = PURPLE
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -393,7 +402,7 @@ class View:
                     # Draw the atoms
                     if (self.moving and a < len(self.move_atoms_mask)
                         and self.move_atoms_mask[a]):
-                        circle(GREEN, False,
+                        circle(movecolor, False,
                                A[a, 0] - 4, A[a, 1] - 4,
                                A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 

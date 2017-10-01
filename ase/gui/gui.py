@@ -30,6 +30,10 @@ from ase.gui.view import View
 
 
 class GUI(View, Status):
+    ARROWKEY_SCAN = 0
+    ARROWKEY_MOVE = 1
+    ARROWKEY_ROTATE = 2
+
     def __init__(self, images=None,
                  rotations='',
                  show_unit_cell=True,
@@ -68,8 +72,12 @@ class GUI(View, Status):
         self.vulnerable_windows = []
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
-        self.moving = False
+        self.arrowkey_mode = self.ARROWKEY_SCAN
         self.move_atoms_mask = None
+
+    @property
+    def moving(self):
+        return self.arrowkey_mode != self.ARROWKEY_SCAN
 
     def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
@@ -89,12 +97,25 @@ class GUI(View, Status):
             self.window.run()
 
     def toggle_move_mode(self, key=None):
-        self.moving ^= True
-        if self.moving:
-            self.move_atoms_mask = self.images.selected.copy()
-        else:
+        self.toggle_arrowkey_mode(self.ARROWKEY_MOVE)
+
+    def toggle_rotate_mode(self, key=None):
+        self.toggle_arrowkey_mode(self.ARROWKEY_ROTATE)
+
+    def toggle_arrowkey_mode(self, mode):
+        # If not currently in given mode, activate it.
+        # Else, deactivate it (go back to SCAN mode)
+        assert mode != self.ARROWKEY_SCAN
+
+        if self.arrowkey_mode == mode:
+            self.arrowkey_mode = self.ARROWKEY_SCAN
             self.move_atoms_mask = None
+        else:
+            self.arrowkey_mode = mode
+            self.move_atoms_mask = self.images.selected.copy()
+
         self.draw()
+
 
     def step(self, key):
         d = {'Home': -10000000,
@@ -131,10 +152,16 @@ class GUI(View, Status):
 
     def scroll(self, event):
         CTRL = event.modifier == 'ctrl'
+
+        # Bug: Simultaneous CTRL + shift is the same as just CTRL.
+        # Therefore binding Page Up / Page Dn (keycodes next/prior)
+        # to movement in Z direction.
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
-                  'left': (-1, 0, 0)}.get(event.key, None)
+                  'left': (-1, 0, 0),
+                  'next': (0, 0, 1),
+                  'prior': (0, 0, -1)}.get(event.key, None)
 
         if dxdydz is None:
             return
@@ -143,8 +170,18 @@ class GUI(View, Status):
         if event.modifier == 'shift':
             vec *= 0.1
 
-        if self.moving:
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
             self.atoms.positions[self.move_atoms_mask[:len(self.atoms)]] += vec
+            self.set_frame()
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            # For now we use atoms.rotate having the simplest interface.
+            # (Better to use something more minimalistic, obviously.)
+            mask = self.move_atoms_mask[:len(self.atoms)]
+            center = self.atoms.positions[mask].mean(axis=0)
+            tmp_atoms = self.atoms[mask]
+            tmp_atoms.positions -= center
+            tmp_atoms.rotate(50 * np.linalg.norm(vec), vec)
+            self.atoms.positions[mask] = tmp_atoms.positions + center
             self.set_frame()
         else:
             self.center -= vec
@@ -419,8 +456,10 @@ class GUI(View, Status):
               M(_('Show _Labels'), self.show_labels,
                 choices=[_('_None'),
                          _('Atom _Index'),
-                         _('_Magnetic Moments'),
-                         _('_Element Symbol')]),
+                         _('_Magnetic Moments'),  # XXX check if exist
+                         _('_Element Symbol'),
+                         _('_Initial Charges'),  # XXX check if exist
+                ]),
               M('---'),
               M(_('Quick Info ...'), self.quick_info_window),
               M(_('Repeat ...'), self.repeat_window, 'R'),
@@ -459,6 +498,7 @@ class GUI(View, Status):
               M(_('Constraints ...'), self.constraints_window),
               M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
+              M(_('_Rotate atoms'), self.toggle_rotate_mode, 'Ctrl+R'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),
 

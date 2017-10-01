@@ -119,7 +119,16 @@ class CP2K(Calculator):
         Name of exchange and correlation functional.
         Accepts all functions supported by CP2K itself or libxc.
         Default is ``LDA``.
-
+    print_level: str
+        PRINT_LEVEL of global output.
+        Possible options are:
+        DEBUG Everything is written out, useful for debugging purposes only 
+        HIGH Lots of output 
+        LOW Little output 
+        MEDIUM Quite some output 
+        SILENT Almost no output 
+        Default is 'LOW'
+        
     """
 
     implemented_properties = ['energy', 'free_energy', 'forces', 'stress']
@@ -139,7 +148,8 @@ class CP2K(Calculator):
         stress_tensor=True,
         uks=False,
         poisson_solver='auto',
-        xc='LDA')
+        xc='LDA',
+        print_level='LOW')
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
                  label='cp2k', atoms=None, command=None,
@@ -331,6 +341,8 @@ class CP2K(Calculator):
         p = self.parameters
         root = parse_input(p.inp)
         root.add_keyword('GLOBAL', 'PROJECT ' + self.label)
+        if p.print_level:
+            root.add_keyword('GLOBAL', 'PRINT_LEVEL ' + p.print_level)
         if p.force_eval_method:
             root.add_keyword('FORCE_EVAL', 'METHOD ' + p.force_eval_method)
         if p.stress_tensor:

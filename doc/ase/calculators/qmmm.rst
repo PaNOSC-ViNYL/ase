@@ -3,6 +3,11 @@
 QMMM
 ====
 
+.. seealso::
+
+    The :ref:`qmmm` tutorial.
+
+
 Simple QMMM calculations
 ------------------------
 

@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-06-12 16:47+0200\n"
-"PO-Revision-Date: 2017-06-18 16:20+0200\n"
+"POT-Creation-Date: 2017-09-28 19:11+0200\n"
+"PO-Revision-Date: 2017-09-28 19:12+0200\n"
 "Last-Translator: Alejandro Pérez Paz <alejandroperezpaz@yahoo.com>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -31,7 +31,7 @@ msgstr "Engadir átomos"
 msgid "Absolute position:"
 msgstr "Posición absoluta:"
 
-#: ../add.py:27 ../add.py:30 ../nanoparticle.py:262
+#: ../add.py:27 ../add.py:30 ../nanoparticle.py:264
 msgid "Add"
 msgstr "Engadir"
 
@@ -47,35 +47,37 @@ msgstr "Cores"
 msgid "Choose how the atoms are colored:"
 msgstr "Elixa a cor dos átomos:"
 
-#: ../colors.py:19
+#: ../colors.py:20
 msgid "By atomic number, default \"jmol\" colors"
 msgstr "Por número atómico, cores de \"jmol\" por defecto"
 
-#: ../colors.py:20
+#: ../colors.py:21
 msgid "By tag"
 msgstr "Por etiqueta"
 
-#: ../colors.py:21
+#: ../colors.py:22
 msgid "By force"
 msgstr "Por forza"
 
-#: ../colors.py:22
+#: ../colors.py:23
 msgid "By velocity"
 msgstr "Por velocidade"
 
-#: ../colors.py:23
-msgid "By charge"
+#: ../colors.py:24
+#, fuzzy
+#| msgid "By charge"
+msgid "By initial charge"
 msgstr "Por carga"
 
-#: ../colors.py:24
+#: ../colors.py:25
 msgid "By magnetic moment"
 msgstr "Por momento magnético"
 
-#: ../colors.py:67
+#: ../colors.py:69
 msgid "Green"
 msgstr "Verde"
 
-#: ../colors.py:67
+#: ../colors.py:69
 msgid "Yellow"
 msgstr "Amarelo"
 
@@ -265,12 +267,12 @@ msgstr "¡Grupo espacial inválido!"
 msgid "Please specify a consistent set of atoms."
 msgstr "Por favor, especifique un conxunto consistente de átomos."
 
-#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:528
+#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:530
 #: ../nanotube.py:84 ../surfaceslab.py:220
 msgid "No valid atoms."
 msgstr "Os átomos no son válidos."
 
-#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:529
+#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:531
 #: ../nanotube.py:85 ../surfaceslab.py:221 ../widgets.py:76
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "Aínda non especificou un conxunto consistente de parámetros."
@@ -329,7 +331,7 @@ msgstr ""
 "Faga unha folla de grafeno ou unha nanocinta. Opcionalmente,\n"
 "a nanocinta pode estar saturada con hidróxeno u outro elemento."
 
-#: ../graphene.py:38 ../gui.py:466
+#: ../graphene.py:38 ../gui.py:512
 msgid "Graphene"
 msgstr "Grafeno"
 
@@ -420,9 +422,8 @@ msgid ""
 "<c>M[n]</c>: magnetic moment of atom number <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: unit-cell basis vectors\n"
 "<c>s</c>: path length\n"
-"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centered on "
-"<c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: angle between atoms <c>n<sub>1</sub></c>, <c>n<sub>2</"
+"sub></c> and <c>n<sub>3</sub></c>, centered on <c>n<sub>2</sub></c>\n"
 "<c>dih(n1,n2,n3,n4)</c>: dihedral angle between <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
@@ -443,9 +444,8 @@ msgstr ""
 "<c>M[n]</c>: momento magnético do átomo número <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: vectores base da celda unidade\n"
 "<c>s</c>: lonxitude da traxectoria\n"
-"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, "
-"<c>n<sub>2</sub></c> and <c>n<sub>3</sub></c>, centrado en "
-"<c>n<sub>2</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: ángulo entre os átomos <c>n<sub>1</sub></c>, <c>n<sub>2</"
+"sub></c> and <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></c>\n"
 "<c>dih(n1,n2,n3,n4)</c>: ángulo diedro entre <c>n<sub>1</sub></c>, "
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperatura (K)"
@@ -466,327 +466,347 @@ msgstr "Limpar"
 msgid "Save data to file ... "
 msgstr "Garde os datos nun arquivo ..."
 
-#: ../gui.py:243
+#: ../gui.py:286
 msgid "Automatic"
 msgstr "Automático"
 
-#: ../gui.py:261
+#: ../gui.py:304
 msgid "Open ..."
 msgstr "Abrir ..."
 
-#: ../gui.py:262
+#: ../gui.py:305
 msgid "Choose parser:"
 msgstr "Escolla un párser:"
 
-#: ../gui.py:373
+#: ../gui.py:416
 msgid "_File"
 msgstr "_Arquivo"
 
-#: ../gui.py:374
+#: ../gui.py:417
 msgid "_Open"
 msgstr "_Abrir"
 
-#: ../gui.py:375
+#: ../gui.py:418
 msgid "_New"
 msgstr "_Novo"
 
-#: ../gui.py:376
+#: ../gui.py:419
 msgid "_Save"
 msgstr "_Gardar"
 
-#: ../gui.py:378
+#: ../gui.py:421
 msgid "_Quit"
 msgstr "_Saír"
 
-#: ../gui.py:380
+#: ../gui.py:423
 msgid "_Edit"
 msgstr "_Editar"
 
-#: ../gui.py:381
+#: ../gui.py:424
 msgid "Select _all"
 msgstr "Seleccionar _todo"
 
-#: ../gui.py:382
+#: ../gui.py:425
 msgid "_Invert selection"
 msgstr "_Invertir selección"
 
-#: ../gui.py:383
+#: ../gui.py:426
 msgid "Select _constrained atoms"
 msgstr "Seleccionar átomos _restrinxidos"
 
-#: ../gui.py:384
+#: ../gui.py:427
 msgid "Select _immobile atoms"
 msgstr "Seleccionar átomos _inamovibles"
 
-#: ../gui.py:390
+#: ../gui.py:433
 msgid "Hide selected atoms"
 msgstr "Ocultar átomos seleccionados"
 
-#: ../gui.py:391
+#: ../gui.py:434
 msgid "Show selected atoms"
 msgstr "Mostrar átomos seleccionados"
 
-#: ../gui.py:393
+#: ../gui.py:436
 msgid "_Modify"
 msgstr "_Modificar"
 
-#: ../gui.py:394
+#: ../gui.py:437
 msgid "_Add atoms"
 msgstr "_Engadir átomos"
 
-#: ../gui.py:395
+#: ../gui.py:438
 msgid "_Delete selected atoms"
 msgstr "_Borrar átomos seleccionados"
 
-#: ../gui.py:398
+#: ../gui.py:441
 msgid "_First image"
 msgstr "_Primeira imaxe"
 
-#: ../gui.py:399
+#: ../gui.py:442
 msgid "_Previous image"
 msgstr "_Imaxe previa"
 
-#: ../gui.py:400
+#: ../gui.py:443
 msgid "_Next image"
 msgstr "_Próxima imaxe"
 
-#: ../gui.py:401
+#: ../gui.py:444
 msgid "_Last image"
 msgstr "Última imaxe"
 
-#: ../gui.py:403
+#: ../gui.py:446
 msgid "_View"
 msgstr "_Ver"
 
-#: ../gui.py:404
+#: ../gui.py:447
 msgid "Show _unit cell"
 msgstr "Mostrar celda _unidade"
 
-#: ../gui.py:406
+#: ../gui.py:449
 msgid "Show _axes"
 msgstr "Mostrar _eixes"
 
-#: ../gui.py:407
+#: ../gui.py:450
 msgid "Show _bonds"
 msgstr "Mostrar _enlaces"
 
-#: ../gui.py:409
+#: ../gui.py:452
 msgid "Show _velocities"
 msgstr "Mostrar _velocidades"
 
-#: ../gui.py:411
+#: ../gui.py:454
 msgid "Show _forces"
 msgstr "Mostrar _forzas"
 
-#: ../gui.py:413
+#: ../gui.py:456
 msgid "Show _Labels"
 msgstr "Mostrar _etiquetas"
 
-#: ../gui.py:414
+#: ../gui.py:457
 msgid "_None"
 msgstr "_Ningún"
 
-#: ../gui.py:415
+#: ../gui.py:458
 msgid "Atom _Index"
 msgstr "_Índice do Átomo"
 
-#: ../gui.py:416
+#: ../gui.py:459
 msgid "_Magnetic Moments"
 msgstr "Momentos _Magnéticos"
 
-#: ../gui.py:417
+#. XXX check if exist
+#: ../gui.py:460
 msgid "_Element Symbol"
 msgstr "Símbolo _Químico"
 
-#: ../gui.py:419
+#: ../gui.py:461
+msgid "_Initial Charges"
+msgstr ""
+
+#: ../gui.py:464
 msgid "Quick Info ..."
 msgstr "Información rápida ..."
 
-#: ../gui.py:420
+#: ../gui.py:465
 msgid "Repeat ..."
 msgstr "Repetir ..."
 
-#: ../gui.py:421
+#: ../gui.py:466
 msgid "Rotate ..."
 msgstr "Xirar ..."
 
-#: ../gui.py:422
+#: ../gui.py:467
 msgid "Colors ..."
 msgstr "Cores ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:424
+#: ../gui.py:469
 msgid "Focus"
 msgstr "Enfocar"
 
-#: ../gui.py:425
+#: ../gui.py:470
 msgid "Zoom in"
 msgstr "Ampliar"
 
-#: ../gui.py:426
+#: ../gui.py:471
 msgid "Zoom out"
 msgstr "Afastar"
 
-#: ../gui.py:427
+#: ../gui.py:472
 msgid "Change View"
 msgstr "Cambiar de vista"
 
-#: ../gui.py:429
+#: ../gui.py:474
 msgid "Reset View"
 msgstr "Reiniciar Vista"
 
-#: ../gui.py:430
+#: ../gui.py:475
 msgid "xy-plane"
 msgstr "plano xy"
 
-#: ../gui.py:431
+#: ../gui.py:476
 msgid "yz-plane"
 msgstr "plano yz"
 
-#: ../gui.py:432
+#: ../gui.py:477
 msgid "zx-plane"
 msgstr "plano zx"
 
-#: ../gui.py:433
+#: ../gui.py:478
 msgid "yx-plane"
 msgstr "plano yx"
 
-#: ../gui.py:434
+#: ../gui.py:479
 msgid "zy-plane"
 msgstr "plano zy"
 
-#: ../gui.py:435
+#: ../gui.py:480
 msgid "xz-plane"
 msgstr "plano xz"
 
-#: ../gui.py:436
+#: ../gui.py:481
 msgid "a2,a3-plane"
 msgstr "Plano a2,a3"
 
-#: ../gui.py:437
+#: ../gui.py:482
 msgid "a3,a1-plane"
 msgstr "Plano a3,a1"
 
-#: ../gui.py:438
+#: ../gui.py:483
 msgid "a1,a2-plane"
 msgstr "Plano a1,a2"
 
-#: ../gui.py:439
+#: ../gui.py:484
 msgid "a3,a2-plane"
 msgstr "Plano a3,a2"
 
-#: ../gui.py:440
+#: ../gui.py:485
 msgid "a1,a3-plane"
 msgstr "Plano a1,a3"
 
-#: ../gui.py:441
+#: ../gui.py:486
 msgid "a2,a1-plane"
 msgstr "Plano a2,a1"
 
-#: ../gui.py:442
+#: ../gui.py:487
 msgid "Settings ..."
 msgstr "Axustes ..."
 
-#: ../gui.py:444
+#: ../gui.py:489
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:445
+#: ../gui.py:490
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:446
+#: ../gui.py:491
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:447
+#: ../gui.py:492
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:449
+#: ../gui.py:494
 msgid "_Tools"
 msgstr "_Ferramentas"
 
-#: ../gui.py:450
+#: ../gui.py:495
 msgid "Graphs ..."
 msgstr "Gráficos ..."
 
-#: ../gui.py:451
+#: ../gui.py:496
 msgid "Movie ..."
 msgstr "Película ..."
 
-#: ../gui.py:452
+#: ../gui.py:497
 msgid "Expert mode ..."
 msgstr "Modo experto ..."
 
-#: ../gui.py:453
+#: ../gui.py:498
 msgid "Constraints ..."
 msgstr "Restriccións ..."
 
-#: ../gui.py:454
+#: ../gui.py:499
 msgid "Render scene ..."
 msgstr "Debuxar escena ..."
 
-#: ../gui.py:455
+#: ../gui.py:500
 msgid "_Move atoms"
 msgstr "_Mover átomos"
 
-#: ../gui.py:456
+#: ../gui.py:501
+msgid "_Rotate atoms"
+msgstr "_Xirar átomos"
+
+#: ../gui.py:502
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:457
+#: ../gui.py:503
 msgid "B_ulk Modulus"
 msgstr "Módulo E_nteiro"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:460
+#: ../gui.py:506
 msgid "_Setup"
 msgstr "_Configurar"
 
-#: ../gui.py:461
+#: ../gui.py:507
 msgid "_Bulk Crystal"
 msgstr "Cristal _Enteiro"
 
-#: ../gui.py:462
+#: ../gui.py:508
 msgid "_Surface slab"
 msgstr "Peza de _superficie"
 
-#: ../gui.py:463
+#: ../gui.py:509
 msgid "_Nanoparticle"
 msgstr "_Nanopartícula"
 
-#: ../gui.py:465
+#: ../gui.py:511
 msgid "Nano_tube"
 msgstr "Nano_tubo"
 
-#: ../gui.py:468
+#: ../gui.py:514
 msgid "_Calculate"
 msgstr "_Calcular"
 
-#: ../gui.py:469
+#: ../gui.py:515
 msgid "Set _Calculator"
 msgstr "Fixar _calculador"
 
-#: ../gui.py:470
+#: ../gui.py:516
 msgid "_Energy and Forces"
 msgstr "_Enerxía e Forzas"
 
-#: ../gui.py:471
+#: ../gui.py:517
 msgid "Energy Minimization"
 msgstr "Minimización enerxética"
 
-#: ../gui.py:474
+#: ../gui.py:520
 msgid "_Help"
 msgstr "_Axuda"
 
-#: ../gui.py:475
+#: ../gui.py:521
 msgid "_About"
 msgstr "_Acerca de ag"
 
-#: ../gui.py:479
+#: ../gui.py:525
 msgid "Webpage ..."
 msgstr "Páxina web ..."
+
+#. Host window will never be shown
+#: ../images.py:192
+#, fuzzy
+#| msgid "Constraints"
+msgid "Constraints discarded"
+msgstr "Restriccións"
+
+#: ../images.py:193
+msgid "Constraints other than FixAtoms have been discarded."
+msgstr ""
 
 #: ../modify.py:19
 msgid "No atoms selected!"
@@ -1016,83 +1036,83 @@ msgstr "Aplicar"
 msgid "OK"
 msgstr "OK"
 
-#: ../nanoparticle.py:225
+#: ../nanoparticle.py:227
 msgid "Up"
 msgstr "Arriba"
 
-#: ../nanoparticle.py:226
+#: ../nanoparticle.py:228
 msgid "Down"
 msgstr "Abaixo"
 
-#: ../nanoparticle.py:227
+#: ../nanoparticle.py:229
 msgid "Delete"
 msgstr "Borrar"
 
-#: ../nanoparticle.py:269
+#: ../nanoparticle.py:271
 msgid "Number of atoms"
 msgstr "Número de átomos"
 
-#: ../nanoparticle.py:269
+#: ../nanoparticle.py:271
 msgid "Diameter"
 msgstr "Diámetro"
 
-#: ../nanoparticle.py:277
+#: ../nanoparticle.py:279
 msgid "above  "
 msgstr "sobre  "
 
-#: ../nanoparticle.py:277
+#: ../nanoparticle.py:279
 msgid "below  "
 msgstr "abajo  "
 
-#: ../nanoparticle.py:277
+#: ../nanoparticle.py:279
 msgid "closest  "
 msgstr "máis cercano  "
 
-#: ../nanoparticle.py:280
+#: ../nanoparticle.py:282
 msgid "Smaller"
 msgstr "Máis pequeno"
 
-#: ../nanoparticle.py:281
+#: ../nanoparticle.py:283
 msgid "Larger"
 msgstr "Máis longo"
 
-#: ../nanoparticle.py:282
+#: ../nanoparticle.py:284
 msgid "Choose size using:"
 msgstr "Escolla dimensions usando:"
 
-#: ../nanoparticle.py:284
+#: ../nanoparticle.py:286
 msgid "atoms"
 msgstr "átomos"
 
-#: ../nanoparticle.py:285
+#: ../nanoparticle.py:287
 msgid "Å³"
 msgstr "Å³"
 
-#: ../nanoparticle.py:287
+#: ../nanoparticle.py:289
 msgid "Rounding: If exact size is not possible, choose the size:"
 msgstr "Redondear: se o tamaño exacto non é posible, elexir o tamaño:"
 
-#: ../nanoparticle.py:315
+#: ../nanoparticle.py:317
 msgid "Surface energies (as energy/area, NOT per atom):"
 msgstr "Enerxía de superficie (enerxía por área, NON por átomo):"
 
-#: ../nanoparticle.py:317
+#: ../nanoparticle.py:319
 msgid "Number of layers:"
 msgstr "Número de capas:"
 
-#: ../nanoparticle.py:345
+#: ../nanoparticle.py:347
 msgid "At least one index must be non-zero"
 msgstr "O menos un índice debe ser distinto de cero"
 
-#: ../nanoparticle.py:348
+#: ../nanoparticle.py:350
 msgid "Invalid hexagonal indices"
 msgstr "Índices hexagonales inválidos"
 
-#: ../nanoparticle.py:414
+#: ../nanoparticle.py:416
 msgid "Unsupported or unknown structure"
 msgstr "Estrutura non soportada ou descoñecida"
 
-#: ../nanoparticle.py:415
+#: ../nanoparticle.py:417
 #, python-brace-format
 msgid "Element = {0}, structure = {1}"
 msgstr "Elemento = {0}, estrutura = {1}"
@@ -1198,7 +1218,95 @@ msgstr "sí"
 msgid "Periodic: %s, %s, %s"
 msgstr "Periódico: %s, %s, %s"
 
-#: ../render.py:19
+#: ../quickinfo.py:61
+msgid "Volume: "
+msgstr "Volume: "
+
+#: ../render.py:20 ../render.py:190
+msgid "Render current view in povray ... "
+msgstr "Renderiza vista actual en povray ... "
+
+#: ../render.py:21 ../render.py:194
+#, python-format
+msgid "Rendering %d atoms."
+msgstr "Renderizando %d átomos."
+
+#: ../render.py:26
+msgid "Size"
+msgstr "Tamaño"
+
+#: ../render.py:31 ../render.py:227
+msgid "Line width"
+msgstr "Ancho da línea"
+
+#: ../render.py:32
+msgid "Ångström"
+msgstr "Ångström"
+
+#: ../render.py:34 ../render.py:201
+msgid "Render constraints"
+msgstr "Mostrar restriccións"
+
+#: ../render.py:35 ../render.py:215
+msgid "Render unit cell"
+msgstr "Renderizar celda unidade"
+
+#: ../render.py:41 ../render.py:240
+msgid "Output basename: "
+msgstr "Nome base para o arquivo de saída: "
+
+#: ../render.py:43
+#, fuzzy
+#| msgid "Output basename: "
+msgid "Output filename: "
+msgstr "Nome base para o arquivo de saída: "
+
+#: ../render.py:48
+#, fuzzy
+#| msgid "Atomic relaxations:"
+msgid "Atomic texture set:"
+msgstr "Relaxacións atómicas:"
+
+#: ../render.py:55 ../render.py:283
+msgid "Camera type: "
+msgstr "Tipo de cámara: "
+
+#: ../render.py:56
+msgid "Camera distance"
+msgstr "Distancia á cámara"
+
+#. render current frame/all frames
+#: ../render.py:59 ../render.py:286
+msgid "Render current frame"
+msgstr "Debuxar o cuadro actual"
+
+#: ../render.py:60
+#, fuzzy
+#| msgid "Render all %d frames"
+msgid "Render all frames"
+msgstr "Debuxar tódolos %d cadros"
+
+#: ../render.py:65
+msgid "Run povray"
+msgstr "Executar povray"
+
+#: ../render.py:66
+msgid "Keep povray files"
+msgstr "Manter os archivos povray"
+
+#: ../render.py:67 ../render.py:304
+msgid "Show output window"
+msgstr "Mostrar ventá de saída"
+
+#: ../render.py:68 ../render.py:295
+msgid "Transparent background"
+msgstr "Fondo transparente"
+
+#: ../render.py:72
+msgid "Render"
+msgstr ""
+
+#: ../render.py:171
 msgid ""
 "    Textures can be used to highlight different parts of\n"
 "    an atomic structure. This window applies the default\n"
@@ -1231,113 +1339,72 @@ msgstr ""
 "    atributos da selección actual.\n"
 "    "
 
-#: ../render.py:38
-msgid "Render current view in povray ... "
-msgstr "Renderiza vista actual en povray ... "
-
-#: ../render.py:42
-#, python-format
-msgid "Rendering %d atoms."
-msgstr "Renderizando %d átomos."
-
-#: ../render.py:49
-msgid "Render constraints"
-msgstr "Mostrar restriccións"
-
-#: ../render.py:54
+#: ../render.py:206
 msgid "Width"
 msgstr "Ancho"
 
-#: ../render.py:54
+#: ../render.py:206
 msgid "     Height"
 msgstr "     Altura"
 
-#: ../render.py:63
-msgid "Render unit cell"
-msgstr "Renderizar celda unidade"
-
-#: ../render.py:75
-msgid "Line width"
-msgstr "Ancho da línea"
-
-#: ../render.py:76
+#: ../render.py:228
 msgid "Angstrom           "
 msgstr "Angstrom           "
 
-#: ../render.py:86
+#: ../render.py:238
 msgid "Set"
 msgstr "Fixar"
 
-#: ../render.py:88
-msgid "Output basename: "
-msgstr "Nome base para o arquivo de saída: "
-
-#: ../render.py:90
+#: ../render.py:242
 msgid "               Filename: "
 msgstr "               Nome do arquivo: "
 
-#: ../render.py:102
+#: ../render.py:254
 msgid " Default texture for atoms: "
 msgstr " Textura por defecto para os átomos: "
 
-#: ../render.py:103
+#: ../render.py:255
 msgid "    transparency: "
 msgstr "    transparencia: "
 
-#: ../render.py:106
+#: ../render.py:258
 msgid "Define atom selection for new texture:"
 msgstr "Definir a selección do átomo para a nova textura:"
 
-#: ../render.py:108
+#: ../render.py:260
 msgid "Select"
 msgstr "Seleccionar"
 
-#: ../render.py:112
+#: ../render.py:264
 msgid "Create new texture from selection"
 msgstr "Crear nova textura desde selección"
 
-#: ../render.py:115
+#: ../render.py:267
 msgid "Help on textures"
 msgstr "Axuda en texturas"
 
-#: ../render.py:131
-msgid "Camera type: "
-msgstr "Tipo de cámara: "
-
-#: ../render.py:132
+#: ../render.py:284
 msgid "     Camera distance"
 msgstr "     Distancia á cámara"
 
-#: ../render.py:134
-msgid "Render current frame"
-msgstr "Debuxar o cuadro actual"
-
-#: ../render.py:138
+#: ../render.py:290
 #, python-format
 msgid "Render all %d frames"
 msgstr "Debuxar tódolos %d cadros"
 
-#: ../render.py:143
-msgid "Transparent background"
-msgstr "Fondo transparente"
-
-#: ../render.py:146
+#: ../render.py:298
 msgid "Run povray       "
 msgstr "Executar povray       "
 
-#: ../render.py:149
+#: ../render.py:301
 msgid "Keep povray files       "
 msgstr "Manter os archivos povray       "
 
-#: ../render.py:152
-msgid "Show output window"
-msgstr "Mostrar ventá de saída"
-
-#: ../render.py:237
+#: ../render.py:389
 msgid "  transparency: "
 msgstr "  transparencia: "
 
-#: ../render.py:247
+#: ../render.py:399
 msgid ""
 "Can not create new texture! Must have some atoms selected to create a new "
 "material!"
@@ -1651,7 +1718,7 @@ msgstr "Por favor, escolla un valor divisible por 3 para a cela ortogonal"
 
 #: ../surfaceslab.py:194
 msgid " Vacuum: {} Å."
-msgstr "Vacío: {} Å."
+msgstr " Vacío: {} Å."
 
 #. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
 #. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
@@ -1662,23 +1729,23 @@ msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
 msgstr[0] "{symbol} {surf} superficie cun átomo.{vacuum}"
 msgstr[1] "{symbol} {surf} superficie con {natoms} átomos.{vacuum}"
 
-#: ../ui.py:45
+#: ../ui.py:46
 msgid "Error"
 msgstr "Erro"
 
-#: ../ui.py:52
+#: ../ui.py:53
 msgid "Version"
 msgstr "Versión"
 
-#: ../ui.py:53
+#: ../ui.py:54
 msgid "Web-page"
 msgstr "Páxina web"
 
-#: ../ui.py:54
+#: ../ui.py:55
 msgid "About"
 msgstr "Acerca de ase-gui"
 
-#: ../ui.py:59 ../ui.py:63
+#: ../ui.py:60 ../ui.py:64
 msgid "Help"
 msgstr "Axuda"
 
@@ -2313,9 +2380,6 @@ msgstr "Non é código de Python"
 #~ msgid "Debug ..."
 #~ msgstr "Depurar..."
 
-#~ msgid "_Rotate atoms"
-#~ msgstr "_Xirar átomos"
-
 #~ msgid "Orien_t atoms"
 #~ msgstr "Orien_tar átomos"
 
@@ -2362,9 +2426,6 @@ msgstr "Non é código de Python"
 
 #~ msgid "Particle size: "
 #~ msgstr "Tamaño da partícula: "
-
-#~ msgid "Volume: "
-#~ msgstr "Volume: "
 
 #~ msgid "%.1f Å"
 #~ msgstr "%.1f Å"
@@ -2434,9 +2495,6 @@ msgstr "Non é código de Python"
 
 #~ msgid "Only positive deformation"
 #~ msgstr "Sólo deformacións positivas"
-
-#~ msgid "Atomic relaxations:"
-#~ msgstr "Relaxacións atómicas:"
 
 #~ msgid "On   "
 #~ msgstr "Activo   "

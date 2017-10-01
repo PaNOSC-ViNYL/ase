@@ -116,22 +116,14 @@ class TrajectoryWriter:
 
             writer.write(atoms, energy=117, dipole=[0, 0, 1.0])
         """
-        b = self.backend
-
         if atoms is None:
             atoms = self.atoms
 
-        if hasattr(atoms, 'interpolate'):
-            # seems to be a NEB
-            neb = atoms
-            assert not neb.parallel or world.size == 1
-            for image in neb.images:
-                self.write(image)
-            return
-        while hasattr(atoms, 'atoms_for_saving'):
-            # Seems to be a Filter or similar, instructing us to
-            # save the original atoms.
-            atoms = atoms.atoms_for_saving
+        for image in atoms._images_():
+            self._write_atoms(image, **kwargs)
+
+    def _write_atoms(self, atoms, **kwargs):
+        b = self.backend
 
         if self.header_data is None:
             b.write(version=1, ase_version=__version__)
@@ -343,9 +335,9 @@ def write_atoms(backend, atoms, write_header=True):
         b.write(tags=atoms.get_tags())
     if atoms.has('momenta'):
         b.write(momenta=atoms.get_momenta())
-    if atoms.has('magmoms'):
+    if atoms.has('initial_magmoms'):
         b.write(magmoms=atoms.get_initial_magnetic_moments())
-    if atoms.has('charges'):
+    if atoms.has('initial_charges'):
         b.write(charges=atoms.get_initial_charges())
 
 

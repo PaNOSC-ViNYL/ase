@@ -16,6 +16,7 @@ except ImportError:
 import numpy as np
 
 from ase.utils.formula import formula_hill, formula_metal
+from ase.data import covalent_radii
 
 __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
@@ -296,6 +297,23 @@ def hsv(array, s=.9, v=.9):
     for rgb, h in zip(result, array.flat):
         rgb[:] = hsv2rgb(h, s, v)
     return np.reshape(result, array.shape + (3,))
+
+
+def natural_cutoffs(atoms, mult=1, **kwargs):
+    """Generate a radial cutoff for every atom based on covalent radii
+
+    The covalent radii are a reasonable cutoff estimation for bonds in
+    many applications such as neighborlists, so function generates an
+    atoms length list of radii based on this idea.
+
+    atoms: An atoms object
+    mult: A multiplier for all cutoffs, useful for coarse grained adjustment
+    kwargs: Symbol of the atom and its corresponding cutoff, used to override
+            the covalent radii
+    """
+    return [kwargs.get(atom.symbol, covalent_radii[atom.number] * mult)
+            for atom in atoms]
+
 
 # This code does the same, but requires pylab
 # def cmap(array, name='hsv'):
