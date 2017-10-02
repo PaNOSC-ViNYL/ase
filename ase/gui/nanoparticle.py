@@ -130,7 +130,7 @@ class SetupNanoparticle:
         win = self.win = ui.Window(_('Nanoparticle'))
         win.add(ui.Text(introtext))
 
-        self.element = Element('', self.update)
+        self.element = Element('', self.apply)
         lattice_button = ui.Button(_('Get structure'),
                                    self.set_structure_data)
         self.elementinfo = ui.Label(' ')
@@ -522,7 +522,7 @@ class SetupNanoparticle:
                 self.smaller_button.active = self.atoms is not None
                 self.larger_button.active = self.atoms is not None
 
-    def apply(self):
+    def apply(self, callbackarg=None):
         self.makeatoms()
         if self.atoms is not None:
             self.gui.new_atoms(self.atoms)
