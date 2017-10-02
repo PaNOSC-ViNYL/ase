@@ -14,7 +14,7 @@ from ase.parallel import rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd, basestring
-from ase.parallel import world
+from ase.parallel import world, paropen
 
 
 class ResonantRaman(Vibrations):
@@ -549,6 +549,8 @@ class ResonantRaman(Vibrations):
 
         frequencies = self.get_frequencies(method, direction).real
         intensities = self.get_cross_sections(omega, gamma)
+        if width is None:
+            return [frequencies, intensities]
 
         if start is None:
             start = min(self.om_v) / u.invcm - 3 * width
@@ -604,10 +606,11 @@ class ResonantRaman(Vibrations):
         outdata = np.empty([len(energies), 3])
         outdata.T[0] = energies
         outdata.T[1] = spectrum
-        fd = open(out, 'w')
+        fd = paropen(out, 'w')
         fd.write('# Resonant Raman spectrum\n')
         fd.write('# omega={0:g} eV, gamma={1:g} eV\n'.format(omega, gamma))
-        fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
+        if width is not None:
+            fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
         fd.write('# [cm^-1]  [a.u.]\n')
 
         for row in outdata:
