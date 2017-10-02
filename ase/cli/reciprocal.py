@@ -39,7 +39,8 @@ class CLICommand:
 
         # show info
         if args.verbose:
-            print(icell, cryst)
+            print('Crystal: ' + cryst)
+            print(icell)
 
         # band path
         if args.band_path:
@@ -70,7 +71,7 @@ class CLICommand:
             matplotlib.use('Qt4Agg')
         import matplotlib.pyplot as plt
 
-        bz3d_plot(plt, icell, vectors=args.vectors, paths=paths, points=points)
+        bz3d_plot(plt, cell, vectors=args.vectors, paths=paths, points=points)
 
         if args.output:
             plt.savefig(args.output)
@@ -92,7 +93,8 @@ def bz_vertices(icell):
     return bz1
 
 
-def bz3d_plot(plt, icell, vectors=False, paths=None, points=None, elev=None, scale=1):
+def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
+              elev=None, scale=1):
     from mpl_toolkits.mplot3d import Axes3D
     from mpl_toolkits.mplot3d import proj3d
     from matplotlib.patches import FancyArrowPatch
@@ -109,6 +111,7 @@ def bz3d_plot(plt, icell, vectors=False, paths=None, points=None, elev=None, sca
             self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
             FancyArrowPatch.draw(self, renderer)
 
+    icell = np.linalg.inv(cell).T
     kpoints = points
     fig = plt.figure(figsize=(5, 5))
     ax = fig.gca(projection='3d')
@@ -132,19 +135,19 @@ def bz3d_plot(plt, icell, vectors=False, paths=None, points=None, elev=None, sca
         maxp = max(maxp, points.max())
 
     if vectors:
-        ax.add_artist(Arrow3D([0, icell[0,0]],
-                              [0, icell[0,1]],
-                              [0, icell[0,2]],
+        ax.add_artist(Arrow3D([0, icell[0, 0]],
+                              [0, icell[0, 1]],
+                              [0, icell[0, 2]],
                               mutation_scale=20, lw=1,
                               arrowstyle="-|>", color="k"))
-        ax.add_artist(Arrow3D([0, icell[1,0]],
-                              [0, icell[1,1]],
-                              [0, icell[1,2]],
+        ax.add_artist(Arrow3D([0, icell[1, 0]],
+                              [0, icell[1, 1]],
+                              [0, icell[1, 2]],
                               mutation_scale=20, lw=1,
                               arrowstyle="-|>", color="k"))
-        ax.add_artist(Arrow3D([0, icell[2,0]],
-                              [0, icell[2,1]],
-                              [0, icell[2,2]],
+        ax.add_artist(Arrow3D([0, icell[2, 0]],
+                              [0, icell[2, 1]],
+                              [0, icell[2, 2]],
                               mutation_scale=20, lw=1,
                               arrowstyle="-|>", color="k"))
 
@@ -180,3 +183,11 @@ def bz3d_plot(plt, icell, vectors=False, paths=None, points=None, elev=None, sca
     ax.set_aspect('equal')
 
     ax.view_init(azim=azim / pi * 180, elev=elev / pi * 180)
+
+
+def bz2d_plot(plt, icell, vectors=False, paths=None, points=None):
+    pass
+
+
+def bz1d_plot(plt, icell, vectors=False, paths=None, points=None):
+    pass
