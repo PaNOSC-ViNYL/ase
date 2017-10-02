@@ -17,6 +17,8 @@ class CLICommand:
         add('name', metavar='input-file')
         add('output', nargs='?')
         add('-v', '--verbose', action='store_true')
+        add('--vectors', action='store_true',
+            help="Add reciprocal vectors")
         add('--band-path', action='store_true',
             help="Add the band path")
         kp = parser.add_mutually_exclusive_group(required=False)
@@ -58,8 +60,9 @@ class CLICommand:
                 points = atoms.calc.get_bz_k_points()
             elif args.i_k_points:
                 points = atoms.calc.get_ibz_k_points()
-            for i in range(len(points)):
-                points[i] = np.dot(icell.T, points[i])
+            if points is not None:
+                for i in range(len(points)):
+                    points[i] = np.dot(icell.T, points[i])
 
         # get the correct backend
         if not args.output:
@@ -67,7 +70,7 @@ class CLICommand:
             matplotlib.use('Qt4Agg')
         import matplotlib.pyplot as plt
 
-        plot(plt, icell, paths=paths, points=points)
+        bz3d_plot(plt, icell, vectors=args.vectors, paths=paths, points=points)
 
         if args.output:
             plt.savefig(args.output)
@@ -89,9 +92,22 @@ def bz_vertices(icell):
     return bz1
 
 
-def plot(plt, icell, paths=None, points=None, elev=None, scale=1):
+def bz3d_plot(plt, icell, vectors=False, paths=None, points=None, elev=None, scale=1):
     from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.mplot3d import proj3d
+    from matplotlib.patches import FancyArrowPatch
     Axes3D  # silence pyflakes
+
+    class Arrow3D(FancyArrowPatch):
+        def __init__(self, xs, ys, zs, *args, **kwargs):
+            FancyArrowPatch.__init__(self, (0, 0), (0, 0), *args, **kwargs)
+            self._verts3d = xs, ys, zs
+
+        def draw(self, renderer):
+            xs3d, ys3d, zs3d = self._verts3d
+            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, renderer.M)
+            self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
+            FancyArrowPatch.draw(self, renderer)
 
     kpoints = points
     fig = plt.figure(figsize=(5, 5))
@@ -114,6 +130,23 @@ def plot(plt, icell, paths=None, points=None, elev=None, scale=1):
         x, y, z = np.concatenate([points, points[:1]]).T
         ax.plot(x, y, z, c='k', ls=ls)
         maxp = max(maxp, points.max())
+
+    if vectors:
+        ax.add_artist(Arrow3D([0, icell[0,0]],
+                              [0, icell[0,1]],
+                              [0, icell[0,2]],
+                              mutation_scale=20, lw=1,
+                              arrowstyle="-|>", color="k"))
+        ax.add_artist(Arrow3D([0, icell[1,0]],
+                              [0, icell[1,1]],
+                              [0, icell[1,2]],
+                              mutation_scale=20, lw=1,
+                              arrowstyle="-|>", color="k"))
+        ax.add_artist(Arrow3D([0, icell[2,0]],
+                              [0, icell[2,1]],
+                              [0, icell[2,2]],
+                              mutation_scale=20, lw=1,
+                              arrowstyle="-|>", color="k"))
 
     if paths is not None:
         txt = ''
