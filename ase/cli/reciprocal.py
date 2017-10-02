@@ -32,8 +32,7 @@ class CLICommand:
         
         # cell
         cell = atoms.get_cell()
-        icell = (2 * pi)**3 / atoms.get_volume() * atoms.get_reciprocal_cell()
-        icell = (2 * pi)**3 / atoms.get_volume() * np.linalg.inv(cell)
+        icell = atoms.get_reciprocal_cell()
         cryst = csfc(cell)
 
         # show info
@@ -47,7 +46,7 @@ class CLICommand:
             for names in parse_path_string(special_paths[cryst]):
                 points = []
                 for name in names:
-                    points.append(np.dot(icell, special_points[name]))
+                    points.append(np.dot(icell.T, special_points[name]))
                 paths.append((names, points))
         else:
             paths = None
@@ -59,6 +58,8 @@ class CLICommand:
                 points = atoms.calc.get_bz_k_points()
             elif args.i_k_points:
                 points = atoms.calc.get_ibz_k_points()
+            for i in range(len(points)):
+                points[i] = np.dot(icell.T, points[i])
 
         # get the correct backend
         if not args.output:
@@ -76,8 +77,8 @@ class CLICommand:
 
 def bz_vertices(icell):
     from scipy.spatial import Voronoi
-    I = np.indices((3, 3, 3)).reshape((3, 27)) - 1
-    G = np.dot(icell, I).T
+    I = (np.indices((3, 3, 3)) - 1).reshape((3, 27))
+    G = np.dot(icell.T, I).T
     vor = Voronoi(G)
     bz1 = []
     for vertices, points in zip(vor.ridge_vertices, vor.ridge_points):
@@ -135,7 +136,7 @@ def plot(plt, icell, paths=None, points=None, elev=None, scale=1):
     if kpoints is not None:
         for p in kpoints:
             # as long it is transposed
-            ax.scatter(p[1], p[0], p[2], c='b')
+            ax.scatter(p[0], p[1], p[2], c='b')
 
     ax.set_axis_off()
     ax.autoscale_view(tight=True)
