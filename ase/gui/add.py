@@ -61,6 +61,6 @@ class AddAtoms:
                                        self.gui.images.filenames)
         self.gui.images.selected[:] = False
         # 'selected' array may be longer than current atoms
-        self.gui.images.selected[len(atoms) - 1] = True
+        self.gui.images.selected[len(atoms) - len(newatoms):len(atoms)] = True
         self.gui.set_frame()
         self.gui.draw()

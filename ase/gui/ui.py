@@ -335,8 +335,8 @@ if ttk is not None:
             self.creator = partial(ttk.Combobox,
                                    values=labels)
 
-        def create(self, parrent):
-            widget = Widget.create(self, parrent)
+        def create(self, parent):
+            widget = Widget.create(self, parent)
             widget.current(0)
             if self.callback:
                 def callback(event):
