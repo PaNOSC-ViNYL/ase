@@ -46,8 +46,7 @@ atoms = {func}(symbol='{symbol}', size={size},
 class SetupSurfaceSlab:
     '''Window for setting up a surface.'''
     def __init__(self, gui):
-        self.element = Element('', self.make)
-        self.element.grab_focus()
+        self.element = Element('', self.apply)
         self.structure = ui.ComboBox(structures, structures,
                                      self.structure_changed)
         self.structure_warn = ui.Label('', 'red')
@@ -70,10 +69,11 @@ class SetupSurfaceSlab:
         win.add(self.element)
         win.add([_('Structure:'), self.structure, self.structure_warn])
         win.add([_('Orthogonal cell:'), self.orthogonal])
-        win.add([_('Lattice constant:\ta'), self.lattice_a, (u'Å'),
-                 self.retrieve])
-        win.add([_('\t\tc'), self.lattice_c, (u'Å')])
-        win.add([_('Size: \tx: '), self.x, _(' unit cells'), self.x_warn])
+        win.add([_('Lattice constant:')])
+        win.add([_('\ta'), self.lattice_a, (u'Å'), self.retrieve])
+        win.add([_('\tc'), self.lattice_c, (u'Å')])
+        win.add([_('Size:')])
+        win.add([_('\tx: '), self.x, _(' unit cells'), self.x_warn])
         win.add([_('\ty: '), self.y, _(' unit cells'), self.y_warn])
         win.add([_('\tz: '), self.z, _(' unit cells')])
         win.add([_('Vacuum: '), self.vacuum_check, self.vacuum, (u'Å')])
@@ -83,6 +83,7 @@ class SetupSurfaceSlab:
                  ui.Button(_('Apply'), self.apply),
                  ui.Button(_('OK'), self.ok)])
 
+        self.element.grab_focus()
         self.gui = gui
         self.atoms = None
         self.lattice_c.active = False
