@@ -1,6 +1,7 @@
 from math import pi, sin, cos
 import numpy as np
 
+
 def bz_vertices(icell):
     from scipy.spatial import Voronoi
     I = (np.indices((3, 3, 3)) - 1).reshape((3, 27))
@@ -13,6 +14,7 @@ def bz_vertices(icell):
             normal /= (normal**2).sum()**0.5
             bz1.append((vor.vertices[vertices], normal))
     return bz1
+
 
 def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
               elev=None, scale=1):
@@ -71,6 +73,7 @@ def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
                               [0, icell[2, 2]],
                               mutation_scale=20, lw=1,
                               arrowstyle="-|>", color="k"))
+        maxp = max(maxp, 0.6 * icell.max())
 
     if paths is not None:
         txt = ''
