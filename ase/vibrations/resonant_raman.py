@@ -445,19 +445,7 @@ class ResonantRaman(Vibrations):
         # random orientation of the molecular frame
         # Woodward & Long,
         # Guthmuller, J. J. Chem. Phys. 2016, 144 (6), 64106
-        m2 = ResonantRaman.m2
-        alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
-                      alpha_Qcc[:, 2, 2]) / 9.
-        delta2_r = 3 / 4. * (
-            m2(alpha_Qcc[:, 0, 1] - alpha_Qcc[:, 1, 0]) +
-            m2(alpha_Qcc[:, 0, 2] - alpha_Qcc[:, 2, 0]) +
-            m2(alpha_Qcc[:, 1, 2] - alpha_Qcc[:, 2, 1]))
-        gamma2_r = (3 / 4. * (m2(alpha_Qcc[:, 0, 1] + alpha_Qcc[:, 1, 0]) +
-                              m2(alpha_Qcc[:, 0, 2] + alpha_Qcc[:, 2, 0]) +
-                              m2(alpha_Qcc[:, 1, 2] + alpha_Qcc[:, 2, 1])) +
-                    (m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 1, 1]) +
-                     m2(alpha_Qcc[:, 0, 0] - alpha_Qcc[:, 2, 2]) +
-                     m2(alpha_Qcc[:, 1, 1] - alpha_Qcc[:, 2, 2])) / 2)
+        alpha2_r, gamma2_r, delta2_r = self._invariants(alpha_Qcc)
 
         if self.observation['geometry'] == '-Z(XX)Z':  # Porto's notation
             return (45 * alpha2_r + 5 * delta2_r + 4 * gamma2_r) / 45.
@@ -477,15 +465,13 @@ class ResonantRaman(Vibrations):
         else:
             raise NotImplementedError
 
-    def invariants(self, omega, gamma=0.1):
+    def _invariants(self, alpha_Qcc):
         """Raman invariants
 
         Parameter
         ---------
-        omega: float
-           incoming laser energy, unit eV
-        gamma: float
-           width (imaginary energy), unit eV
+        alpha_Qcc: array
+           Matrix element or polarizability tensor
 
         Reference
         ---------
@@ -496,7 +482,6 @@ class ResonantRaman(Vibrations):
         mean polarizability, anisotropy, asymmetric anisotropy
         """
         m2 = ResonantRaman.m2
-        alpha_Qcc = self.electronic_me_Qcc(omega, gamma)
         alpha2_r = m2(alpha_Qcc[:, 0, 0] + alpha_Qcc[:, 1, 1] +
                       alpha_Qcc[:, 2, 2]) / 9.
         delta2_r = 3 / 4. * (
@@ -532,7 +517,9 @@ class ResonantRaman(Vibrations):
         -------
         raman intensity, unit Ang**4/amu
         """
-        alpha2_r, gamma2_r, delta2_r = self.invariants(omega, gamma)
+        
+        alpha2_r, gamma2_r, delta2_r = self._invariants(
+            self.electronic_me_Qcc(omega, gamma))
         return 45 * alpha2_r + delta * delta2_r + 7 * gamma2_r
 
     def get_cross_sections(self, omega, gamma=0.1):
