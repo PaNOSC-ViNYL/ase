@@ -480,6 +480,13 @@ class ResonantRaman(Vibrations):
     def invariants(self, omega, gamma=0.1):
         """Raman invariants
 
+        Parameter
+        ---------
+        omega: float
+           incoming laser energy, unit eV
+        gamma: float
+           width (imaginary energy), unit eV
+
         Reference
         ---------
         Derek A. Long, The Raman Effect, ISBN 0-471-49028-8
@@ -509,6 +516,10 @@ class ResonantRaman(Vibrations):
 
         Parameter
         ---------
+        omega: float
+           incoming laser energy, unit eV
+        gamma: float
+           width (imaginary energy), unit eV
         delta: float
            pre-factor for asymmetric anisotropy, default 0
 
@@ -608,6 +619,8 @@ class ResonantRaman(Vibrations):
         outdata.T[1] = spectrum
         fd = paropen(out, 'w')
         fd.write('# Resonant Raman spectrum\n')
+        for key in self.observation:
+            fd.write('# {0}: {1}\n'.format(key, self.observation[key]))
         fd.write('# omega={0:g} eV, gamma={1:g} eV\n'.format(omega, gamma))
         if width is not None:
             fd.write('# %s folded, width=%g cm^-1\n' % (type.title(), width))
