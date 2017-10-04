@@ -10,11 +10,10 @@ import sys
 import numpy as np
 
 import ase.units as u
-from ase.parallel import rank, parprint, paropen
+from ase.parallel import  world, rank, parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils.timing import Timer
 from ase.utils import convert_string_to_fd, basestring
-from ase.parallel import world, paropen
 
 
 class ResonantRaman(Vibrations):
