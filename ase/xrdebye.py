@@ -1,59 +1,130 @@
+"""Definition of the XrDebye class.
+
+This module defines the XrDebye class for calculation
+of X-ray scattering properties from atomic cluster
+using Debye formula.
+Also contains routine for calculation of atomic form factors and
+X-ray wavelength dict.
+"""
+
 from __future__ import print_function
 from math import exp, pi, sin, sqrt, cos, acos
 import numpy as np
+
 
 from ase.data import atomic_numbers
 
 # Table (1) of
 # D. WAASMAIER AND A. KIRFEL, Acta Cryst. (1995). A51, 416-431
 waasmaier = {
-    #      a1        b1         a2        b2        a3        b3          a4         b4         a5         b5        c
-    'C' : [2.657506, 14.780758, 1.078079, 0.776775, 1.490909, 42.086843,
-           -4.241070, -0.000294, 0.713791, 0.239535, 4.297983],
-    'S' : [6.372157, 1.514347, 5.154568, 22.092528, 1.473732, 0.061373,
-           1.635073,  55.445176, 1.209372, 0.646925, 0.154722],
-    'Pd': [6.121511, 0.062549,  4.784063, 0.784031, 16.631683, 8.751391,  4.318258, 34.489983, 13.246773, 0.784031, 0.883099],
-    'Ag': [6.073874, 0.055333, 17.155437, 7.896512, 4.173344, 28.443739,  0.852238, 110.376108, 17.988685, 0.716809, 0.756603],
-    'Au': [16.777389, 0.122737, 19.317156, 8.621570, 32.979682, 1.256902, 5.595453, 38.008821, 10.576854, 0.000601, -6.279078],
-    'P' : [1.950541, 0.908139, 4.146930, 27.044953, 1.494560, 0.071280, 1.522042, 67.520190, 5.729711, 1.981173, 0.155233],
-    'Cl': [1.446071, 0.052357, 6.870609, 1.193165, 6.151801, 18.343416, 1.750347, 46.398394, 0.634168, 0.401005, 0.146773],
+     #       a1         b1         a2         b2         a3         b3          a4         b4         a5         b5         c
+     'C': [ 2.657506, 14.780758,  1.078079,  0.776775,  1.490909, 42.086843, -4.241070,  -0.000294,  0.713791, 0.239535,   4.297983],
+     'N': [11.893780,  0.000158,  3.277479, 10.232723,  1.858092, 30.344690,  0.858927,   0.656065,  0.912985, 0.217287, -11.804902],
+     'O': [ 2.960427, 14.182259,  2.5088111, 5.936858,  0.637053,  0.112726,  0.722838,  34.958481,  1.142756, 0.390240,   0.027014],
+     'P': [ 1.950541,  0.908139,  4.146930, 27.044953,  1.494560,  0.071280,  1.522042,  67.520190,  5.729711, 1.981173,   0.155233],
+     'S': [ 6.372157,  1.514347,  5.154568, 22.092528,  1.473732,  0.061373,  1.635073,  55.445176,  1.209372, 0.646925,   0.154722],
+    'Cl': [ 1.446071,  0.052357,  6.870609,  1.193165,  6.151801, 18.343416,  1.750347,  46.398394,  0.634168, 0.401005,   0.146773],
+    'Ni': [13.521865,  4.077277,  6.947285,  0.286763,  3.866028, 14.622634,  2.135900,  71.966078,  4.284731, 0.004437,  -2.762697],
+    'Cu': [14.014192,  3.738280,  4.784577,  0.003744,  5.056806, 13.034982,  1.457971,  72.554793,  6.932996, 0.265666,  -3.774477],
+    'Pd': [ 6.121511,  0.062549,  4.784063,  0.784031, 16.631683,  8.751391,  4.318258,  34.489983, 13.246773, 0.784031,   0.883099],
+    'Ag': [ 6.073874,  0.055333, 17.155437,  7.896512,  4.173344, 28.443739,  0.852238, 110.376108, 17.988685, 0.716809,   0.756603],
+    'Pt': [31.273891,  1.316992, 18.445441,  8.797154, 17.063745,  0.124741,  5.555933,  40.177994,  1.575270, 1.316997,   4.050394],
+    'Au': [16.777389,  0.122737, 19.317156,  8.621570, 32.979682,  1.256902,  5.595453,  38.008821, 10.576854, 0.000601,  -6.279078],
 }
 
-class XrDebye:
-    def __init__(self, wavelength, alpha=1.01, damping=0.04, warn=True,
-                 method='Iwasa'):
-        """
-        Obtain powder x-ray spectra.
+wavelengths = {
+    'CuKa1': 1.5405981,
+    'CuKa2': 1.54443,
+    'CuKb1': 1.39225,
+    'WLa1': 1.47642,
+    'WLa2': 1.48748
+}
 
-        wavelength in Angstrom
-        damping in Angstrom**2
+
+class XrDebye(object):
+    """
+    Class for calculation of XRD or SAXS patterns.
+
+    Example:
+
+        xrd = XrDebye(wavelength=0.51, atoms=atoms)
+        xrd.calc_pattern(x=np.linspace(0.021, 0.53, 100), mode='SAXS')
+        xrd.plot_pattern()
+    """
+    def __init__(self, atoms, wavelength, damping=0.04,
+                 method='Iwasa', alpha=1.01, warn=True):
+        """
+        Initilize the calculation of X-ray diffraction patterns
+
+        Parameters:
+
+        atoms: ase.Atoms
+            atoms object for which calculation will be performed.
+
+        wavelength: float, Angstrom
+            X-ray wavelength in Angstrom. Used for XRD and to setup dumpings.
+
+        damping : float, Angstrom**2
+            thermal damping (U) of scattering intensity.
+
+        method: {'Iwasa'}
+            method of calculation (damping and atomic factors affected)
+            after T. Iwasa and K. Nobusada, J. Phys. Chem. C 111 (2007) 45.
+
+        alpha : float
+            parameter of decreasing of scattering intensity after Iwasa
+
+        warn: boolean
+            flag to show warning if atomic factor can't be calculated
         """
         self.wavelength = wavelength
         self.damping = damping
+        self.mode = ''
+        self.method = method
         self.alpha = alpha
         self.warn = warn
-        self.method = method
+
+        self.twotheta_list = []
+        self.q_list = []
+        self.intensity_list = []
+
+        self.atoms = atoms
+        # TODO: setup atomic form factors if method != 'Iwasa'
 
     def set_damping(self, damping):
+        """ set thermal damping value """
         self.damping = damping
 
-    def get(self, atoms, s):
-        """Get the powder x-ray (XRD) pattern using the Debye-Formula.
+    def get(self, s):
+        """Get the powder x-ray (XRD) pattern
+        using the Debye-Formula at single point.
+        After T. Iwasa and K. Nobusada, J. Phys. Chem. C 111 (2007) 45.
 
-        After: T. Iwasa and K. Nobusada, J. Phys. Chem. C 111 (2007) 45
-               s is assumed to be in 1/Angstrom
+        Parameters:
+
+        s: float, in inverse Angstrom
+            the scattering vector.
+
+        Output:
+            Intensity at given scattering vector s
         """
 
-        sinth = self.wavelength * s / 2.
-        costh = sqrt(1. - sinth**2)
-        cos2th = cos(2. * acos(costh))
-        pre = exp(- self.damping * s**2 / 2)
- 
+        pre = exp(-self.damping * s**2 / 2)
+
         if self.method == 'Iwasa':
+            sinth = self.wavelength * s / 2.
+            positive = 1. - sinth**2
+            if positive < 0:
+                positive = 0
+            costh = sqrt(positive)
+            cos2th = cos(2. * acos(costh))
             pre *= costh / (1. + self.alpha * cos2th**2)
 
         f = {}
         def atomic(symbol):
+            """
+            get atomic fator, using cache.
+            """
             if symbol not in f:
                 if self.method == 'Iwasa':
                     f[symbol] = self.get_waasmaier(symbol, s)
@@ -61,29 +132,18 @@ class XrDebye:
                     f[symbol] = atomic_numbers[symbol]
             return f[symbol]
 
-        def sinc(x):
-            if x < 1.e-6:
-                x2 = x * x
-                return 1 - x2 / 6. + x2 * x2 / 120.
-            else:
-                return sin(x) / x
-
         I = 0.
-        for a in atoms:
-            fa = atomic(a.symbol)
-#            print a.symbol, fa
-            for b in atoms:
-                fb = atomic(b.symbol)
+        fa = []  # atomic factors list
+        for a in self.atoms:
+            fa.append(atomic(a.symbol))
 
-                if a == b:
-                    twopisr = 0.
-                else:
-                    vrij = a.position - b.position
-                    rij = np.sqrt(np.dot(vrij, vrij))
-                    twopisr = 2 * pi * s * rij
+        pos = atoms.get_positions()  # positions of atoms
+        fa = np.array(fa)  # atomic factors array
 
-                I += fa * fb * sinc(twopisr)
-                    
+        for i in range(len(atoms)):
+            vr = pos - pos[i]
+            I += np.sum(fa[i] * fa * np.sinc(2 * s * np.sqrt(np.sum(vr * vr, axis=1))))
+
         return pre * I
 
     def get_waasmaier(self, symbol, s):
@@ -94,10 +154,106 @@ class XrDebye:
         elif symbol in waasmaier:
             abc = waasmaier[symbol]
             f = abc[10]
-            s2 = s*s
+            s2 = s * s
             for i in range(5):
                 f += abc[2 * i] * exp(-abc[2 * i + 1] * s2)
             return f
         if self.warn:
             print('<xrdebye::get_atomic> Element', symbol, 'not available')
         return 0
+
+    def calc_pattern(self, x=np.linspace(15, 55, 100), mode='XRD'):
+        """
+        Calculate X-ray diffraction pattern or
+        small angle X-ray scattering pattern.
+
+        Parameters:
+
+        x: float array
+            points where intensity will be calculated.
+            XRD - 2theta values, in degrees;
+            SAXS - q values in 1/A
+            (q = 2*pi*s = 4*pi*sin(theta)/wavelength).
+
+        mode: {'XRD', 'SAXS'}
+            the mode of calculation, X-ray diffraction (XRD) or
+            small angle scattering (SAXS).
+
+        Output: list of intensities calculated for values given in x.
+        """
+        self.mode = mode.upper()
+        assert(mode in ['XRD', 'SAXS'])
+
+        result = []
+        if mode == 'XRD':
+            self.twotheta_list = x
+            self.q_list = []
+            print('#2theta\tIntensity')
+            for twotheta in self.twotheta_list:
+                s = 2 * sin(twotheta * pi / 180 / 2.0) / self.wavelength
+                result.append(self.get(s))
+                print('%f\t%f' % (twotheta, result[-1]))
+        elif mode == 'SAXS':
+            self.q_list = x
+            self.twotheta_list = []
+            print('#q\tIntensity')
+            for q in self.q_list:
+                s = q / (2 * pi)
+                result.append(self.get(s))
+                print('%f\t%f' % (q, result[-1]))
+        self.intensity_list = np.array(result)
+        return result
+
+    def write_pattern(self, filename):
+        """ Save calculated data """
+        f = open(filename, 'w')
+        f.write('# Wavelength = %f\n' % self.wavelength)
+        if self.mode == 'XRD':
+            x, y = self.twotheta_list, self.intensity_list
+            f.write('# 2theta \t Intesity\n')
+        elif self.mode == 'SAXS':
+            x, y = self.q_list, self.intensity_list
+            f = open(filename, 'w')
+            f.write('# q(1/A)\tIntesity\n')
+        else:
+            f.close()
+            raise Exception('No data available, call calc_pattern() first.')
+
+        for i in range(len(x)):
+            f.write('  %f\t%f\n' % (x[i], y[i]))
+
+        f.close()
+
+    def plot_pattern(self):
+        """ Plot XRD or SAXS depending on filled data """
+        import matplotlib.pyplot as plt
+        if self.mode == 'XRD':
+            x, y = np.array(self.twotheta_list), np.array(self.intensity_list)
+            plt.plot(x, y / np.max(y), 'k-')
+            plt.xlabel('2$\\theta$')
+            plt.ylabel('Intensity')
+        elif self.mode == 'SAXS':
+            x, y = np.array(self.q_list), np.array(self.intensity_list)
+            plt.loglog(x, y / np.max(y), 'k-')
+            plt.xlabel('q, 1/Angstr.')
+            plt.ylabel('Intensity')
+        else:
+            raise Exception('No data available, call calc_pattern() first')
+        plt.show()
+
+if __name__ == '__main__':
+    #
+    #    simple usage example
+    #
+    from ase.cluster.cubic import FaceCenteredCubic
+    atoms = FaceCenteredCubic('Ag', [(1, 0, 0), (1, 1, 0), (1, 1, 1)],
+        [6, 8, 8], 4.09)
+    fn = 'Ag%i' % len(atoms)
+    xrd = XrDebye(wavelength=0.513, atoms=atoms)
+    xrd.calc_pattern(x=np.linspace(0.021, 0.53, 50), mode='SAXS')
+    xrd.write_pattern('SAXS_%s.dat' % (fn))
+    xrd.plot_pattern()
+
+    xrd.calc_pattern(x=np.arange(15, 50, 0.2), mode='XRD')
+    xrd.write_pattern('XRD_%s.dat' % (fn))
+    xrd.plot_pattern()
