@@ -143,7 +143,7 @@ Git master branch
 {date}: :git:`{version} <../{version}>`
 """
 
-    date = strftime('%d %B %Y')
+    date = strftime('%d %B %Y').lstrip('0')
     header = 'Version {}'.format(version)
     underline = '=' * len(header)
     replacetxt = replacetxt.format(header=header, version=version,
