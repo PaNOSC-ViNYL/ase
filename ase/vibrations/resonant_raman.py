@@ -191,6 +191,7 @@ class ResonantRaman(Vibrations):
         self.myindices = np.repeat(self.indices, 3)[s]
         self.myxyz = ('xyz' * len(self.indices))[s]
         self.myr = range(self.ndof)[s]
+        self.mynd = len(self.myr)
 
     def read_excitations(self):
         """Read all finite difference excitations and select matching."""
