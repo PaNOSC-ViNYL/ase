@@ -402,8 +402,8 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         """Direct access for setting the xc parameter"""
         self.set(xc=xc)
 
-    def set_atoms(self, atoms):
-        self.atoms = atoms.copy()
+    # def set_atoms(self, atoms):
+    #     self.atoms = atoms.copy()
 
     # Below defines methods for reading output files
     def load_file(self, filename):
