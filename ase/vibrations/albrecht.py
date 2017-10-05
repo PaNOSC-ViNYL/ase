@@ -82,9 +82,24 @@ class Albrecht(ResonantRaman):
         Vibrations.get_energies(self, method, direction)
         return self.om_v
 
-    def Huang_Rhys_factors(self, forces_r):
+    def _collect_r(self, arr_r):
+        """Collect an array that is distributed."""
+        if len(self.myr) == self.ndof: # seriell
+            return arr_r
+        self.timer.start('collect_r')
+        shape = list(arr_r.T.shape)
+        assert shape[0] == len(self.myr)
+        shape[0] = self.ndof
+        data_r = np.zeros(shape, arr_r.dtype)
+        data_r[self.myr] = arr_r.T
+        self.comm.sum(data_r)
+        self.timer.stop('collect_r')
+        return data_r.T
+        
+    def Huang_Rhys_factors(self, myforces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
         self.timer.start('Huang-Rhys')
+        forces_r = self._collect_r(myforces_r)
         assert(len(forces_r.flat) == self.ndof)
 
         # solve the matrix equation for the equilibrium displacements
@@ -97,9 +112,10 @@ class Albrecht(ResonantRaman):
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
 
-    def displacements(self, forces_r):
+    def displacements(self, myforces_r):
         """Evaluate unitless displacements from forces"""
         self.timer.start('displacements')
+        forces_r = self._collect_r(myforces_r)
         assert(len(forces_r.flat) == self.ndof)
 
         # solve the matrix equation for the equilibrium displacements
@@ -282,7 +298,10 @@ class Albrecht(ResonantRaman):
         # excited state forces
         F_pr = self.exF_rp.T
         # derivatives after normal coordinates
-        dmdq_qpc = (self.exdmdr_rpc.T * self.im).T  # unit e / sqrt(amu)
+        c = self._collect_r
+        print('self.exdmdr_rpc', self.exdmdr_rpc.shape)
+        print('self.exdmdr_rpc.T', (self.exdmdr_rpc.T).shape)
+        dmdq_qpc = (c(self.exdmdr_rpc.T) * self.im).T  # unit e / sqrt(amu)
         dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T  # unit e / sqrt(amu)
 
         me_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)

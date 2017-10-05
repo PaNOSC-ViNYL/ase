@@ -316,15 +316,14 @@ class ResonantRaman(Vibrations):
         ovm = []
         exp = []
         ovp = []
-        for a in self.indices:
-            for i in 'xyz':
-                name = '%s.%d%s' % (self.exname, a, i)
-                ex, ov = load(name, '-', rep0_p)
-                exm.append(ex)
-                ovm.append(ov)
-                ex, ov = load(name, '+', rep0_p)
-                exp.append(ex)
-                ovp.append(ov)
+        for a, i in zip(self.myindices, self.myxyz):
+            name = '%s.%d%s' % (self.exname, a, i)
+            ex, ov = load(name, '-', rep0_p)
+            exm.append(ex)
+            ovm.append(ov)
+            ex, ov = load(name, '+', rep0_p)
+            exp.append(ex)
+            ovp.append(ov)
         self.ndof = 3 * len(self.indices)
         self.timer.stop('really read')
 
@@ -356,17 +355,16 @@ class ResonantRaman(Vibrations):
         expm_rpc = []
         exdmdr_rpc = []
         r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                exmE_p, exmm_pc = rotate(exm[r], ovm[r])
-                expE_p, expm_pc = rotate(exp[r], ovp[r])
-                exmE_rp.append(exmE_p)
-                expE_rp.append(expE_p)
-                exF_rp.append(exmE_p - expE_p)
-                exmm_rpc.append(exmm_pc)
-                expm_rpc.append(expm_pc)
-                exdmdr_rpc.append(expm_pc - exmm_pc)
-                r += 1
+        for a, i in zip(self.myindices, self.myxyz):
+            exmE_p, exmm_pc = rotate(exm[r], ovm[r])
+            expE_p, expm_pc = rotate(exp[r], ovp[r])
+            exmE_rp.append(exmE_p)
+            expE_rp.append(expE_p)
+            exF_rp.append(exmE_p - expE_p)
+            exmm_rpc.append(exmm_pc)
+            expm_rpc.append(expm_pc)
+            exdmdr_rpc.append(expm_pc - exmm_pc)
+            r += 1
         # indicees: r=coordinate, p=excitation
         # energies in eV
         self.exmE_rp = np.array(exmE_rp) * eu
