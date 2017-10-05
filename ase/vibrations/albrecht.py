@@ -91,7 +91,7 @@ class Albrecht(ResonantRaman):
         assert shape[0] == len(self.myr)
         shape[0] = self.ndof
         data_r = np.zeros(shape, arr_r.dtype)
-        data_r[self.myr] = arr_r.T
+        data_r[self.slize] = arr_r.T
         self.comm.sum(data_r)
         self.timer.stop('collect_r')
         return data_r.T
