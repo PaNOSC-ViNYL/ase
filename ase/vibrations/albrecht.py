@@ -299,8 +299,6 @@ class Albrecht(ResonantRaman):
         F_pr = self.exF_rp.T
         # derivatives after normal coordinates
         c = self._collect_r
-        print('self.exdmdr_rpc', self.exdmdr_rpc.shape)
-        print('self.exdmdr_rpc.T', (self.exdmdr_rpc.T).shape)
         dmdq_qpc = (c(self.exdmdr_rpc.T) * self.im).T  # unit e / sqrt(amu)
         dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T  # unit e / sqrt(amu)
 
