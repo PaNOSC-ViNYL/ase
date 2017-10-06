@@ -146,31 +146,41 @@ class Albrecht(ResonantRaman):
         if not hasattr(self, 'fcr'):
             self.fcr = FranckCondonRecursive()
 
-        # slize and number of degrees of freedom in parallel 
-        s = self.slize
-        nd = self.mynd
-        
         omL = omega + 1j * gamma
-        omS_Q = omL - self.om_Q[s]
+        omS_Q = omL - self.om_Q
         
-        # excited state forces
-        F_pr = self.exF_rp.T
+        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
 
-        m_Qcc = np.zeros((nd, 3, 3), dtype=complex)
-        for p, energy in enumerate(self.ex0E_p):
-            d_Q = self.displacements(F_pr[p])[s]
-            energy_Q = energy - self.om_Q[s] * d_Q**2 / 2.
+        # select your part of the excitations
+        p = len(self.ex0E_p)
+        myn = -(-p // self.comm.size)  # ceil divide
+        rank = self.comm.rank
+        s = slice(myn * rank, myn * (rank + 1))
+        myp = range(p)[s]
+
+        # we need to collect excited state forces
+        # to evaluate displacements
+        # XXX should be simpler XXX
+        d_pQ = np.empty((p, self.ndof), dtype=float)
+        for p in range(p):
+            d_pQ[p] = self.displacements(self.exF_rp.T[p])
+        ####d_pQ = self.displacements(self.exF_rp)
+
+        for p in myp:
+            energy = self.ex0E_p[p]
+            d_Q = d_pQ[p]
+            energy_Q = energy - self.om_Q * d_Q**2 / 2.
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
-            wm_Q = np.zeros((nd), dtype=complex)
-            wp_Q = np.zeros((nd), dtype=complex)
+            wm_Q = np.zeros((self.ndof), dtype=complex)
+            wp_Q = np.zeros((self.ndof), dtype=complex)
             for m in range(self.nm):
                 self.timer.start('0mm1')
                 fco_Q = self.fcr.direct0mm1(m, d_Q)
                 self.timer.stop('0mm1')
                 
                 self.timer.start('weight_Q')
-                e_Q = energy_Q + m * self.om_Q[s]
+                e_Q = energy_Q + m * self.om_Q
                 wm_Q += fco_Q / (e_Q - omL)
                 wp_Q += fco_Q / (e_Q + omS_Q)
                 self.timer.stop('weight_Q')
@@ -178,9 +188,10 @@ class Albrecht(ResonantRaman):
             m_Qcc += np.einsum('a,bc->abc', wm_Q, me_cc)
             m_Qcc += np.einsum('a,bc->abc', wp_Q, me_cc.conj())
             self.timer.stop('einsum')
+        self.comm.sum(m_Qcc)
                 
         self.timer.stop('AlbrechtA')
-        return self._collect_r(m_Qcc.T).T  # e^2 Angstrom^2 / eV
+        return m_Qcc  # e^2 Angstrom^2 / eV
 
     def meAmult(self, omega, gamma=0.1):
         """Evaluate Albrecht A term.
