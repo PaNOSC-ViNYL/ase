@@ -2,6 +2,7 @@ from __future__ import print_function
 """This module defines an ASE interface to deMon.
 
 http://www.demon-software.com
+
 """
 import os
 import os.path as op
@@ -17,6 +18,7 @@ from ase.calculators.calculator import FileIOCalculator, ReadError
 from ase.calculators.calculator import Parameters, all_changes
 from ase.calculators.calculator import equal
 import ase.io
+from .demon_io import parse_xray
 
 m_e_to_amu = 1822.88839
 
@@ -26,7 +28,7 @@ class Parameters_deMon(Parameters):
     Documented in Base_deMon.__init__
 
     The options here are the most important ones that the user needs to be
-    aware of.  Further options accepted by deMon can be set in the dictionary
+    aware of. Further options accepted by deMon can be set in the dictionary
     input_arguments.
 
     """
@@ -58,7 +60,7 @@ class Parameters_deMon(Parameters):
 
 
 class Demon(FileIOCalculator):
-    """Calculator interface to the deMon code."""
+    """Calculator interface to the deMon code. """
 
     implemented_properties = (
         'energy',
@@ -68,35 +70,63 @@ class Demon(FileIOCalculator):
 
     def __init__(self, **kwargs):
         """ASE interface to the deMon code.
+        
+        The deMon2k code can be obtained from http://www.demon-software.com
+
+        The DEMON_COMMAND environment variable must be set to run the executable, in bash it would be set along the lines of
+        export DEMON_COMMAND="deMon.4.3.6.std > deMon_ase.out 2>&1"
 
         Parameters:
-            label    : str. relative path to the run directory
-            atoms    : The Atoms onject
-            command  : str. Command to run deMon. If not present the environment varable DEMON_COMMAND will be used
-            restart  : str. Relative path to ASE restart directory for parameters and atoms object and results
-            basis_path  : str. Relative path to the directory containing BASIS, AUXIS, ECPS, MCPS and AUGMENT
-            ignore_bad_restart_file : bool. Ignore broken or missing ASE restart files
-                                    By default, it is an error if the restart
-                                    file is missing or broken.
-            deMon_restart_path  : str. Relative path to the deMon restart dir
-            title : str. Title in the deMon input file.
-            scftype : str. Type of scf
-            forces  : bool. If True a force calculation will be enforced.
-            dipole  : bool. If True a dipole calculation will be enforced
-            xc      : str. xc-functional
-            guess   : str. guess for initial density and wave functions
-            print_out : str|list. Options for the printing in deMon
-            basis : dict. Definition of basis sets.
-            ecps  : dict. Definition of ECPs.
-            mcps  : dict. Definition of MCPs.
-            auxis  : dict. Definition of AUXIS,
-            augment : dict. Definition of AUGMENT.
-            input_arguments: dict. Explicitly given input arguments. The key is the input keyword
-                             and the value is either a str, a list of str (will be written on the same line as the keyword),
-                             or a list of lists of str (first list is written on the first line, the others on following lines.)
-                                                          
-                            
+
+        label : str 
+            relative path to the run directory
+        atoms : Atoms object
+            the atoms object
+        command  : str
+            Command to run deMon. If not present the environment varable DEMON_COMMAND will be used
+        restart  : str
+            Relative path to ASE restart directory for parameters and atoms object and results
+        basis_path  : str 
+            Relative path to the directory containing BASIS, AUXIS, ECPS, MCPS and AUGMENT
+        ignore_bad_restart_file : bool 
+            Ignore broken or missing ASE restart files
+            By default, it is an error if the restart
+            file is missing or broken.
+        deMon_restart_path  : str 
+            Relative path to the deMon restart dir
+        title : str 
+            Title in the deMon input file.
+        scftype : str 
+            Type of scf
+        forces  : bool 
+            If True a force calculation will be enforced.
+        dipole  : bool
+            If True a dipole calculation will be enforced
+        xc : str 
+            xc-functional
+        guess : str 
+            guess for initial density and wave functions
+        print_out : str | list 
+            Options for the printing in deMon
+        basis : dict 
+            Definition of basis sets.
+        ecps  : dict 
+            Definition of ECPs
+        mcps  : dict
+            Definition of MCPs
+        auxis  : dict 
+            Definition of AUXIS
+        augment : dict
+            Definition of AUGMENT
+        input_arguments : dict 
+            Explicitly given input arguments. The key is the input keyword
+            and the value is either a str, a list of str (will be written on the same line as the keyword),
+            or a list of lists of str (first list is written on the first line, the others on following lines.)
+        
+        For example usage, see the tests h2o.py and h2o_xas_xes.py in the directory ase/test/demon
+        
         """
+        
         parameters = Parameters_deMon(**kwargs)
         
         # Setup the run command
@@ -149,6 +179,21 @@ class Demon(FileIOCalculator):
 
         return changed_parameters
 
+    def link_file(self, fromdir, todir, filename):
+
+        if op.exists(todir + '/' + filename):
+            os.remove(todir + '/' + filename)
+                
+        if op.exists(fromdir + '/' + filename):
+            os.symlink(fromdir + '/' + filename, 
+                       todir + '/' + filename)
+        else:
+            raise RuntimeError(
+                "{0} doesn't exist".format(fromdir + '/' + filename))
+
+
+
+
     def calculate(self,
                   atoms=None,
                   properties=['energy'],
@@ -185,6 +230,7 @@ class Demon(FileIOCalculator):
             value = self.parameters['guess']
             if value.upper() == 'RESTART':
                 value2 = self.parameters['deMon_restart_path']
+
                 if op.exists(self.directory + '/deMon.rst')\
                         or op.islink(self.directory + '/deMon.rst'):
                     os.remove(self.directory + '/deMon.rst')
@@ -199,59 +245,23 @@ class Demon(FileIOCalculator):
                     raise RuntimeError(
                         "{0} doesn't exist".format(abspath + '/deMon.rst'))
 
-            # link basis
+
             abspath = op.abspath(basis_path)
-            
-            if op.exists(self.directory + '/BASIS')\
-                    or op.islink(self.directory + '/BASIS'):
-                os.remove(self.directory + '/BASIS')
-                
-            if op.exists(abspath + '/BASIS')\
-                    or op.islink(abspath + '/BASIS'):
-                os.symlink(abspath + '/BASIS',
-                           self.directory + '/BASIS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/BASIS'))
+
+            # link basis
+            self.link_file(abspath, self.directory, 'BASIS')
 
             # link auxis
-            if op.exists(self.directory + '/AUXIS')\
-                    or op.islink(self.directory + '/AUXIS'):
-                os.remove(self.directory + '/AUXIS')
-
-            if op.exists(abspath + '/AUXIS')\
-                    or op.islink(abspath + '/AUXIS'):
-                os.symlink(abspath + '/AUXIS',
-                           self.directory + '/AUXIS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/AUXIS'))
+            self.link_file(abspath, self.directory, 'AUXIS')
 
             # link ecps
-            if op.exists(self.directory + '/ECPS')\
-                    or op.islink(self.directory + '/ECPS'):
-                os.remove(self.directory + '/ECPS')
-
-            if op.exists(abspath + '/ECPS')\
-                    or op.islink(abspath + '/ECPS'):
-                os.symlink(abspath + '/ECPS',
-                           self.directory + '/ECPS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/ECPS'))
+            self.link_file(abspath, self.directory, 'ECPS')            
 
             # link mcps
-            if op.exists(self.directory + '/MCPS')\
-                    or op.islink(self.directory + '/MCPS'):
-                os.remove(self.directory + '/MCPS')
+            self.link_file(abspath, self.directory, 'MCPS')            
 
-            if op.exists(abspath + '/MCPS')\
-                    or op.islink(abspath + '/ECPS'):
-                os.symlink(abspath + '/MCPS',
-                           self.directory + '/MCPS')
-            else:
-                raise RuntimeError(
-                    "{0} doesn't exist".format(abspath + '/MCPS'))
+            # link ffds
+            self.link_file(abspath, self.directory, 'FFDS')            
 
             # go to directory and run calculation
             os.chdir(self.directory)
@@ -274,6 +284,9 @@ class Demon(FileIOCalculator):
                 print(line.strip())
             print('##### end of deMon.out')
             raise RuntimeError
+        
+
+
 
     def set_label(self, label):
         """Set label directory """
@@ -293,6 +306,7 @@ class Demon(FileIOCalculator):
              atoms        : The Atoms object to write.
              properties   : The properties which should be calculated.
              system_changes : List of properties changed since last run.
+        
         """
         # Call base calculator.
         FileIOCalculator.write_input(
@@ -397,10 +411,11 @@ class Demon(FileIOCalculator):
         if not op.exists(restart_path + '/deMon.inp'):
             raise ReadError('The restart_path file {0} does not exist'
                             .format(restart_path))
-        
-        parameters = pickle.load(open(restart_path +
-                                      '/deMon_parameters.pckl', 'rb'))
-        self.parameters = parameters
+
+        if op.exists(restart_path + '/deMon_parameters.pckl'):
+            parameters = pickle.load(open(restart_path +
+                                          '/deMon_parameters.pckl', 'r'))
+            self.parameters = parameters
 
         self.atoms = self.deMon_inp_to_atoms(restart_path + '/deMon.inp')
         
@@ -658,7 +673,7 @@ class Demon(FileIOCalculator):
             lines = f.readlines()
 
             for i in range(len(lines)):
-                if lines[i].rfind('DIPOLE') > -1:
+                if lines[i].rfind('DIPOLE') > -1 and lines[i].rfind('XAS') == -1:
                     dipole[0] = float(lines[i + 1].split()[3])
                     dipole[1] = float(lines[i + 2].split()[3])
                     dipole[2] = float(lines[i + 3].split()[3])
@@ -671,37 +686,37 @@ class Demon(FileIOCalculator):
     def read_xray(self):
         """Read deMon.xry if present."""
 
-        filename = self.label + '/deMon.xry'
+
+        # try to read core IP from, .out file
+        filename = self.label + '/deMon.out'
+        core_IP = None
         if op.isfile(filename):
             with open(filename, 'r') as f:
                 lines = f.readlines()
-                
-            mode = lines[0].split()[0]
-            ntrans = int(lines[0].split()[1])
-
-            E_trans = []
-            osc_strength = []
-            trans_dip = []
-            for i in range(1, ntrans + 1):
-                E_trans.append(float(lines[i].split()[0]))
-                osc_strength.append(
-                    float(lines[i].split()[1].replace('D', 'e')))
-                
-                dip1 = float(lines[i].split()[3].replace('D', 'e'))
-                dip2 = float(lines[i].split()[4].replace('D', 'e'))
-                dip3 = float(lines[i].split()[5].replace('D', 'e'))
-                trans_dip.append([dip1, dip2, dip3])
-                
+            
+            for i in range(len(lines)):
+                if lines[i].rfind('IONIZATION POTENTIAL') > -1:
+                    core_IP = float(lines[i].split()[3])
+                    
+        try:
+            mode, ntrans, E_trans, osc_strength, trans_dip = parse_xray(self.label + '/deMon.xry')
+        except ReadError:
+            pass 
+        else:
             xray_results = {'xray_mode': mode,
                             'ntrans': ntrans,
-                            'E_trans': np.array(E_trans) * Hartree,
-                            'osc_strength': np.array(osc_strength),  # units?
-                            'trans_dip': np.array(trans_dip)}  # units?
-
+                            'E_trans': E_trans,
+                            'osc_strength': osc_strength,  # units?
+                            'trans_dip': trans_dip, # units?
+                            'core_IP':core_IP}  
+            
             self.results['xray'] = xray_results
+ 
 
+            
     def deMon_inp_to_atoms(self, filename):
         """Routine to read deMon.inp and convert it to an atoms object."""
+
         with open(filename, 'r') as f:
             lines = f.readlines()
 
@@ -723,19 +738,20 @@ class Demon(FileIOCalculator):
         for i in range(ii + 1, len(lines)):
             try:
                 line = lines[i].split()
-                
-                for symbol in ase.data.chemical_symbols:
-                    found = None
-                    if line[0].upper().rfind(symbol.upper()) > -1:
-                        found = symbol
-                        break
 
-                if found is not None:
-                    chemical_symbols.append(found)
-                else:
-                    break
+                if(len(line) > 0):
+                    for symbol in ase.data.chemical_symbols:
+                        found = None
+                        if line[0].upper().rfind(symbol.upper()) > -1:
+                            found = symbol
+                            break
+                        
+                        if found is not None:
+                            chemical_symbols.append(found)
+                        else:
+                            break
 
-                xyz.append([float(line[1]), float(line[2]), float(line[3])])
+                        xyz.append([float(line[1]), float(line[2]), float(line[3])])
                 
                 if len(line) > 4:
                     atomic_numbers.append(int(line[4]))

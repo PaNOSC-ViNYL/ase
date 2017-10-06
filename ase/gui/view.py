@@ -237,7 +237,7 @@ class View:
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images[0].cell.any())
         if (len(self.atoms) == 0 and not cell):
-            self.scale = 1.0
+            self.scale = 20.0
             self.center = np.zeros(3)
             self.draw()
             return
