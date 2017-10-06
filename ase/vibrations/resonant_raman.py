@@ -309,7 +309,7 @@ class ResonantRaman(Vibrations):
             # remove numerical garbage
             ov_pp = np.where(np.abs(ov_pp) > self.minoverlap['excitations'],
                              ov_pp, 0)
-            rep0_p *= (ov_pp**2).sum(axis=0)
+            rep0_p *= (ov_pp.real**2 + ov_pp.imag**2).sum(axis=0)
             self.timer.stop('ex overlap')
             return ex_p, ov_pp
             
