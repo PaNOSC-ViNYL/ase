@@ -43,6 +43,9 @@ def main(args):
     include = args.include.split(',') if args.include else []
     exclude = args.exclude.split(',') if args.exclude else []
 
+    if args.long:
+        print('pbc {:10} {:15} path'.format('formula', 'filetype'))
+
     for path in allpaths(args.folder, include, exclude):
         format, row = check(path, query, args.verbose)
         if format:
