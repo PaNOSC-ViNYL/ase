@@ -424,8 +424,6 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
     if index is None:
         index = -1
     format = format or filetype(filename)
-    if format is None:
-        raise
     io = get_ioformat(format)
     if isinstance(index, (slice, basestring)):
         return list(_iread(filename, index, format, io, parallel=parallel,
