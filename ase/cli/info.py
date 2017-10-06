@@ -2,7 +2,7 @@ import platform
 import sys
 
 from ase.utils import import_module, FileNotFoundError
-from ase.io.formats import filetype, all_formats
+from ase.io.formats import filetype, all_formats, testtype
 from ase.io.ulm import print_ulm_info
 from ase.io.bundletrajectory import print_bundletrajectory_info
 
@@ -29,6 +29,10 @@ class CLICommand:
                 format = '?'
                 description = 'No such file'
             else:
+                if format is None:
+                    formats = testtype(filename)
+                    if len(formats) > 0:
+                        format = formats[0]
                 if format and format in all_formats:
                     description, code = all_formats[format]
                 else:
