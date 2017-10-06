@@ -173,6 +173,8 @@ def initialize(format):
     """Import read and write functions."""
     if format in ioformats:
         return  # already done
+    if format is None:
+        raise ValueError('No format to initalize!')
 
     _format = format.replace('-', '_')
     module_name = format2modulename.get(format, _format)
@@ -419,6 +421,11 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
     if index is None:
         index = -1
     format = format or filetype(filename)
+    if format == None:
+        formats = testtype(filename, **kwargs)
+        if len(formats) < 1:
+            raise ValueError("Cannot read "+filename+"!")
+        format = formats[0]
     io = get_ioformat(format)
     if isinstance(index, (slice, basestring)):
         return list(_iread(filename, index, format, io, parallel=parallel,
@@ -630,3 +637,22 @@ def filetype(filename, read=True, guess=True):
     if format is None and guess:
         format = ext
     return format
+
+
+def testtype(filename, **kwargs):
+    """Try type of the file.
+
+    Will read the complete file multiple times, so use with care.
+    """
+    success = []
+    for format in all_formats:
+        try:
+            if format.find("castep"):
+                io = get_ioformat(format)
+                inp = list(_iread(filename, 0, format, io, True, **kwargs))
+                natoms = len(inp)
+                if natoms > 0:
+                    success.append(format)
+        except Exception:
+            pass
+    return success
