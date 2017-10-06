@@ -641,15 +641,26 @@ def testtype(filename, **kwargs):
 
     Will read the complete file multiple times, so use with care.
     """
+    # we use a small subset of ASE/widely applied formats
+    formats = {
+        'json': ('ASE JSON database file', '+F'),
+        'db': ('ASE SQLite database file', '+S'),
+        'postgresql': ('ASE PostgreSQL database file', '+S'),
+        'cif': ('CIF-file', '+F'),
+        'cube': ('CUBE file', '1F'),
+        'extxyz': ('Extended XYZ file', '+F'),
+        'mol': ('MDL Molfile', '1F'),
+        'proteindatabank': ('Protein Data Bank', '+F'),
+        'py': ('Python file', '+F'),
+        'xyz': ('XYZ-file', '+F')}
     success = []
-    for format in all_formats:
+    for format in formats:
         try:
-            if format.find("castep"):
-                io = get_ioformat(format)
-                inp = list(_iread(filename, 0, format, io, True, **kwargs))
-                natoms = len(inp)
-                if natoms > 0:
-                    success.append(format)
+            io = get_ioformat(format)
+            inp = list(_iread(filename, 0, format, io, True, **kwargs))
+            natoms = len(inp)
+            if natoms > 0:
+                success.append(format)
         except Exception:
             pass
     return success
