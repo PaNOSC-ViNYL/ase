@@ -4,7 +4,7 @@ import os.path as op
 import sys
 
 from ase.io import read
-from ase.io.formats import filetype
+from ase.io.formats import filetype, UnknownFileTypeError
 from ase.db import connect
 from ase.db.core import parse_selection
 from ase.db.jsondb import JSONDatabase
@@ -84,7 +84,7 @@ def check(path, query, verbose):
 
     try:
         format = filetype(path, guess=False)
-    except OSError:
+    except (OSError, UnknownFileTypeError):
         return '', None
     if format is None:
         return '', None
