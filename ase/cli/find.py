@@ -89,8 +89,6 @@ def check(path, query, verbose):
         format = filetype(path, guess=False)
     except (OSError, UnknownFileTypeError):
         return '', None
-    if format is None:
-        return '', None
 
     if format in ['db', 'json']:
         db = connect(path)
