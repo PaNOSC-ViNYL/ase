@@ -315,6 +315,9 @@ class View:
         if self.colormode == 'jmol':
             return [self.colors[Z] for Z in self.atoms.numbers]
 
+        if self.colormode == 'neighbors':
+            return [self.colors[Z] for Z in self.get_color_scalars()]
+
         colorscale, cmin, cmax = self.colormode_data
         N = len(colorscale)
         if cmin == cmax:
@@ -338,6 +341,13 @@ class View:
             return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return get_magmoms(self.atoms)
+        elif self.colormode == 'neighbors':
+            from ase.neighborlist import NeighborList
+            n = len(self.atoms)
+            nl = NeighborList(self.get_covalent_radii(self.atoms) * 1.5,
+                              skin=0, self_interaction=False, bothways=True)
+            nl.update(self.atoms)
+            return [len(nl.get_neighbors(i)[0]) for i in range(n)]
 
     def get_covalent_radii(self, atoms=None):
         if atoms is None:
