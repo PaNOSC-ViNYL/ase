@@ -135,12 +135,6 @@ class NEB:
             image.set_positions(positions[n1:n2])
             n1 = n2
 
-            # Parallel NEB with Jacapo needs this:
-            try:
-                image.get_calculator().set_atoms(image)
-            except AttributeError:
-                pass
-
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
@@ -631,12 +625,6 @@ def interpolate(images, mic=False):
     d /= (len(images) - 1.0)
     for i in range(1, len(images) - 1):
         images[i].set_positions(pos1 + i * d)
-        # Parallel NEB with Jacapo needs this:
-        try:
-            images[i].get_calculator().set_atoms(images[i])
-        except AttributeError:
-            pass
-
 
 if __name__ == '__main__':
     # This stuff is used by ASE's GUI
