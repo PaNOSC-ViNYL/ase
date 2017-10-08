@@ -95,6 +95,16 @@ class Albrecht(ResonantRaman):
         self.comm.sum(data_r)
         self.timer.stop('collect_r')
         return data_r.T
+
+    def _collect2_r(self, arr_ro, oshape, dtype):
+        """Collect an array that is distributed."""
+        if len(self.myr) == self.ndof: # serial
+            return arr_ro
+        data_ro = np.zeros([self.ndof] + oshape, arr_ro.dtype)
+        if len(arr_ro):
+            data_ro[self.slize] = arr_ro
+        self.comm.sum(data_ro)
+        return data_ro
         
     def Huang_Rhys_factors(self, myforces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
@@ -112,10 +122,9 @@ class Albrecht(ResonantRaman):
         self.timer.stop('Huang-Rhys')
         return s * d_Q**2 * self.om_Q / 2.
 
-    def displacements(self, myforces_r):
+    def displacements(self, forces_r):
         """Evaluate unitless displacements from forces"""
         self.timer.start('displacements')
-        forces_r = self._collect_r(myforces_r)
         assert(len(forces_r.flat) == self.ndof)
 
         # solve the matrix equation for the equilibrium displacements
@@ -160,11 +169,10 @@ class Albrecht(ResonantRaman):
 
         # we need to collect excited state forces
         # to evaluate displacements
-        # XXX should be simpler XXX
         d_pQ = np.empty((p, self.ndof), dtype=float)
+        exF_pr = self._collect2_r(self.exF_rp, [p], float).T
         for p in range(p):
-            d_pQ[p] = self.displacements(self.exF_rp.T[p])
-        ####d_pQ = self.displacements(self.exF_rp)
+            d_pQ[p] = self.displacements(exF_pr[p])
 
         for p in myp:
             energy = self.ex0E_p[p]
