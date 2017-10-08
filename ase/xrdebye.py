@@ -137,10 +137,10 @@ class XrDebye(object):
         for a in self.atoms:
             fa.append(atomic(a.symbol))
 
-        pos = atoms.get_positions()  # positions of atoms
+        pos = self.atoms.get_positions()  # positions of atoms
         fa = np.array(fa)  # atomic factors array
 
-        for i in range(len(atoms)):
+        for i in range(len(self.atoms)):
             vr = pos - pos[i]
             I += np.sum(fa[i] * fa * np.sinc(2 * s * np.sqrt(np.sum(vr * vr, axis=1))))
 
