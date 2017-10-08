@@ -84,7 +84,7 @@ class Albrecht(ResonantRaman):
 
     def _collect_r(self, arr_r):
         """Collect an array that is distributed."""
-        if len(self.myr) == self.ndof: # seriell
+        if len(self.myr) == self.ndof: # serial
             return arr_r
         self.timer.start('collect_r')
         shape = list(arr_r.T.shape)
