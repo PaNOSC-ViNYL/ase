@@ -110,7 +110,6 @@ def bz2d_plot(plt, cell, vectors=False, paths=None, points=None):
 
     icell = np.linalg.inv(cell).T
     kpoints = points
-    fig = plt.figure(figsize=(5, 5))
     ax = plt.axes()
 
     bz1 = bz_vertices(icell)
@@ -161,19 +160,19 @@ def bz2d_plot(plt, cell, vectors=False, paths=None, points=None):
 
 def bz1d_plot(plt, cell, vectors=False, paths=None, points=None):
     # 1d in x
-    assert (all(abs(cell[2][0:2]) < 1e-6) and all(abs(cell.T[2][0:2]) < 1e-6) and
+    assert (all(abs(cell[2][0:2]) < 1e-6) and
+            all(abs(cell.T[2][0:2]) < 1e-6) and
             abs(cell[0][1]) < 1e-6 and abs(cell[1][0]) < 1e-6)
 
     icell = np.linalg.inv(cell).T
     kpoints = points
-    fig = plt.figure(figsize=(5, 5))
     ax = plt.axes()
 
     maxp = 0.0
-    x = np.array([-0.5*icell[0,0], 0.5*icell[0,0], -0.5*icell[0,0]])
-    y = np.array([0,0,0])
+    x = np.array([-0.5 * icell[0, 0], 0.5 * icell[0, 0], -0.5 * icell[0, 0]])
+    y = np.array([0, 0, 0])
     ax.plot(x, y, c='k', ls='-')
-    maxp = icell[0,0]
+    maxp = icell[0, 0]
 
     if vectors:
         ax.arrow(0, 0, icell[0, 0], 0,
