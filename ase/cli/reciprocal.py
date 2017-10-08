@@ -20,6 +20,8 @@ class CLICommand:
             help="Add reciprocal vectors")
         add('--band-path', action='store_true',
             help="Add the band path")
+        add('-d', '--dimension', type=int, default=3,
+            help="Dimension of the cell")
         kp = parser.add_mutually_exclusive_group(required=False)
         kp.add_argument('--k-points', action='store_true',
                         help="Add k-points of the calculator")
@@ -70,8 +72,15 @@ class CLICommand:
             matplotlib.use('Qt4Agg')
         import matplotlib.pyplot as plt
 
-        bz3d_plot(plt, cell, vectors=args.vectors, paths=paths, points=points,
-                  interactive=True)
+        if args.dimension == 1:
+            bz1d_plot(plt, cell, vectors=args.vectors, paths=paths,
+                      points=points)
+        elif args.dimension == 2:
+            bz2d_plot(plt, cell, vectors=args.vectors, paths=paths,
+                      points=points)
+        else:
+            bz3d_plot(plt, cell, vectors=args.vectors, paths=paths,
+                      points=points, interactive=True)
 
         if args.output:
             plt.savefig(args.output)

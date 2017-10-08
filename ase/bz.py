@@ -76,7 +76,6 @@ def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
         maxp = max(maxp, 0.6 * icell.max())
 
     if paths is not None:
-        txt = ''
         for names, points in paths:
             x, y, z = np.array(points).T
             ax.plot(x, y, z, c='r', ls='-')
@@ -89,13 +88,9 @@ def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
                     name = name[0] + '_' + name[1]
                 ax.text(x, y, z, '$' + name + '$',
                         ha='center', va='bottom', color='r')
-                txt += '`' + name + '`-'
-
-            txt = txt[:-1] + '|'
 
     if kpoints is not None:
         for p in kpoints:
-            # as long it is transposed
             ax.scatter(p[0], p[1], p[2], c='b')
 
     ax.set_axis_off()
@@ -109,9 +104,106 @@ def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
     ax.view_init(azim=azim / pi * 180, elev=elev / pi * 180)
 
 
-def bz2d_plot(plt, icell, vectors=False, paths=None, points=None):
-    pass
+def bz2d_plot(plt, cell, vectors=False, paths=None, points=None):
+    # 2d in x-y plane
+    assert all(abs(cell[2][0:2]) < 1e-6) and all(abs(cell.T[2][0:2]) < 1e-6)
+
+    icell = np.linalg.inv(cell).T
+    kpoints = points
+    fig = plt.figure(figsize=(5, 5))
+    ax = plt.axes()
+
+    bz1 = bz_vertices(icell)
+
+    maxp = 0.0
+    for points, normal in bz1:
+        x, y, z = np.concatenate([points, points[:1]]).T
+        ax.plot(x, y, c='k', ls='-')
+        maxp = max(maxp, points.max())
+
+    if vectors:
+        ax.arrow(0, 0, icell[0, 0], icell[0, 1],
+                 lw=1, color="k",
+                 length_includes_head=True,
+                 head_width=0.03, head_length=0.05)
+        ax.arrow(0, 0, icell[1, 0], icell[1, 1],
+                 lw=1, color="k",
+                 length_includes_head=True,
+                 head_width=0.03, head_length=0.05)
+        maxp = max(maxp, icell.max())
+
+    if paths is not None:
+        for names, points in paths:
+            x, y, z = np.array(points).T
+            ax.plot(x, y, c='r', ls='-')
+
+            for name, point in zip(names, points):
+                x, y, z = point
+                if name == 'G':
+                    name = '\\Gamma'
+                elif len(name) > 1:
+                    name = name[0] + '_' + name[1]
+                if abs(z) < 1e-6:
+                    ax.text(x, y, '$' + name + '$',
+                            ha='center', va='bottom', color='r')
+
+    if kpoints is not None:
+        for p in kpoints:
+            ax.scatter(p[0], p[1], c='b')
+
+    ax.set_axis_off()
+    ax.autoscale_view(tight=True)
+    s = maxp * 1.05
+    ax.set_xlim(-s, s)
+    ax.set_ylim(-s, s)
+    ax.set_aspect('equal')
 
 
-def bz1d_plot(plt, icell, vectors=False, paths=None, points=None):
-    pass
+def bz1d_plot(plt, cell, vectors=False, paths=None, points=None):
+    # 1d in x
+    assert (all(abs(cell[2][0:2]) < 1e-6) and all(abs(cell.T[2][0:2]) < 1e-6) and
+            abs(cell[0][1]) < 1e-6 and abs(cell[1][0]) < 1e-6)
+
+    icell = np.linalg.inv(cell).T
+    kpoints = points
+    fig = plt.figure(figsize=(5, 5))
+    ax = plt.axes()
+
+    maxp = 0.0
+    x = np.array([-0.5*icell[0,0], 0.5*icell[0,0], -0.5*icell[0,0]])
+    y = np.array([0,0,0])
+    ax.plot(x, y, c='k', ls='-')
+    maxp = icell[0,0]
+
+    if vectors:
+        ax.arrow(0, 0, icell[0, 0], 0,
+                 lw=1, color="k",
+                 length_includes_head=True,
+                 head_width=0.03, head_length=0.05)
+        maxp = max(maxp, icell.max())
+
+    if paths is not None:
+        for names, points in paths:
+            x, y, z = np.array(points).T
+            ax.plot(x, y, c='r', ls='-')
+
+            for name, point in zip(names, points):
+                x, y, z = point
+                if name == 'G':
+                    name = '\\Gamma'
+                elif len(name) > 1:
+                    name = name[0] + '_' + name[1]
+                if abs(y) < 1e-6 and abs(z) < 1e-6:
+                    ax.text(x, y, '$' + name + '$',
+                            ha='center', va='bottom', color='r')
+
+    if kpoints is not None:
+        for p in kpoints:
+            ax.scatter(p[0], 0, c='b')
+
+    ax.set_axis_off()
+    ax.autoscale_view(tight=True)
+    s = maxp * 1.05
+    ax.set_xlim(-s, s)
+    ax.set_ylim(-s, s)
+    ax.set_aspect('equal')
