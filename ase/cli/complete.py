@@ -35,6 +35,8 @@ commands = {
          '--gui', '--periodic'],
     'completion':
         ['-0', '--dry-run'],
+    'convert':
+        ['-v', '--verbose', '-i', '--input-format', '-o', '--output-format'],
     'db':
         ['-v', '--verbose', '-q', '--quiet', '-n', '--count', '-l',
          '--long', '-i', '--insert-into', '-a',
