@@ -17,7 +17,7 @@ def bz_vertices(icell):
 
 
 def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
-              elev=None, scale=1):
+              elev=None, scale=1, interactive=False):
     from mpl_toolkits.mplot3d import Axes3D
     from mpl_toolkits.mplot3d import proj3d
     from matplotlib.patches import FancyArrowPatch
@@ -49,7 +49,7 @@ def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
 
     maxp = 0.0
     for points, normal in bz1:
-        if np.dot(normal, view) < 0:
+        if np.dot(normal, view) < 0 and not interactive:
             ls = ':'
         else:
             ls = '-'

@@ -70,7 +70,8 @@ class CLICommand:
             matplotlib.use('Qt4Agg')
         import matplotlib.pyplot as plt
 
-        bz3d_plot(plt, cell, vectors=args.vectors, paths=paths, points=points)
+        bz3d_plot(plt, cell, vectors=args.vectors, paths=paths, points=points,
+                  interactive=True)
 
         if args.output:
             plt.savefig(args.output)
