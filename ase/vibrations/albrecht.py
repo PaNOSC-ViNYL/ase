@@ -82,20 +82,6 @@ class Albrecht(ResonantRaman):
         Vibrations.get_energies(self, method, direction)
         return self.om_v
 
-    def _collect_r(self, arr_r):
-        """Collect an array that is distributed."""
-        if len(self.myr) == self.ndof: # serial
-            return arr_r
-        self.timer.start('collect_r')
-        shape = list(arr_r.T.shape)
-        assert shape[0] == len(self.myr)
-        shape[0] = self.ndof
-        data_r = np.zeros(shape, arr_r.dtype)
-        data_r[self.slize] = arr_r.T
-        self.comm.sum(data_r)
-        self.timer.stop('collect_r')
-        return data_r.T
-
     def _collect2_r(self, arr_ro, oshape, dtype):
         """Collect an array that is distributed."""
         if len(self.myr) == self.ndof: # serial
@@ -106,10 +92,9 @@ class Albrecht(ResonantRaman):
         self.comm.sum(data_ro)
         return data_ro
         
-    def Huang_Rhys_factors(self, myforces_r):
+    def Huang_Rhys_factors(self, forces_r):
         """Evaluate Huang-Rhys factors derived from forces."""
         self.timer.start('Huang-Rhys')
-        forces_r = self._collect_r(myforces_r)
         assert(len(forces_r.flat) == self.ndof)
 
         # solve the matrix equation for the equilibrium displacements
@@ -171,17 +156,12 @@ class Albrecht(ResonantRaman):
         omL = omega + 1j * gamma
         omS_Q = omL - self.om_Q
         
-        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-
-        # evaluate displacements
         n_p, myp, exF_pr = self.init_parallel_excitations()
-        d_pQ = np.empty((n_p, self.ndof), dtype=float)
-        for p in range(n_p):
-            d_pQ[p] = self.displacements(exF_pr[p])
 
+        m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p in myp:
             energy = self.ex0E_p[p]
-            d_Q = d_pQ[p]
+            d_Q = self.displacements(exF_pr[p])
             energy_Q = energy - self.om_Q * d_Q**2 / 2.
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
 
@@ -252,16 +232,12 @@ class Albrecht(ResonantRaman):
         n_ov[0] = self.n_vQ.max(axis=1)
         n_ov[1] = nvib_ov[1]
         
-        # evaluate displacements
         n_p, myp, exF_pr = self.init_parallel_excitations()
-        d_pQ = np.empty((n_p, self.ndof), dtype=float)
-        for p in range(n_p):
-            d_pQ[p] = self.displacements(exF_pr[p])
 
         m_vcc = np.zeros((nv, 3, 3), dtype=complex)
         for p in myp:
             energy = self.ex0E_p[p]
-            d_Q = d_pQ[p][self.skip:]
+            d_Q = self.displacements(exF_pr[p])[self.skip:]
             S_Q = d_Q**2 / 2.
             energy_v = energy - self.d_vQ.dot(om_Q * S_Q)
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
@@ -321,7 +297,7 @@ class Albrecht(ResonantRaman):
         self.read()
 
         self.timer.start('AlbrechtBC')
-
+        self.timer.start('initialize')
         if not hasattr(self, 'fco'):
             self.fco = FranckCondonOverlap()
 
@@ -329,15 +305,17 @@ class Albrecht(ResonantRaman):
         omS_Q = omL - self.om_Q
 
         # excited state forces
-        F_pr = self.exF_rp.T
+        n_p, myp, exF_pr = self.init_parallel_excitations()
         # derivatives after normal coordinates
-        c = self._collect_r
-        dmdq_qpc = (c(self.exdmdr_rpc.T) * self.im).T  # unit e / sqrt(amu)
+        exdmdr_rpc = self._collect2_r(
+            self.exdmdr_rpc, [n_p, 3], self.ex0m_pc.dtype)
+        dmdq_qpc = (exdmdr_rpc.T * self.im).T  # unit e / sqrt(amu)
         dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T  # unit e / sqrt(amu)
+        self.timer.stop('initialize')
 
         me_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
         for p, energy in enumerate(self.ex0E_p):
-            S_Q = self.Huang_Rhys_factors(F_pr[p])
+            S_Q = self.Huang_Rhys_factors(exF_pr[p])
             # relaxed excited state energy
             ## n_vQ = np.where(self.n_vQ > 0, 1, 0)
             ## energy_v = energy - n_vQ.dot(self.om_Q * S_Q)
