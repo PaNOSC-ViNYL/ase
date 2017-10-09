@@ -62,7 +62,7 @@ def main(args, parser):
             try:
                 cs = crystal_structure_from_cell(cell)
             except ValueError:
-                err += ('\nASE cannot autimatically '
+                err += ('\nASE cannot automatically '
                         'recognize this crystal structure')
             else:
                 from ase.dft.kpoints import special_paths
