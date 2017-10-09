@@ -43,6 +43,7 @@ class ResonantRaman(Vibrations):
                  overlap=False,
                  minoverlap=0.02,
                  minrep=0.8,
+                 comm=world,
     ):
         """
         Parameters
@@ -129,6 +130,8 @@ class ResonantRaman(Vibrations):
         else:
             self.minoverlap = minoverlap
         self.minrep = minrep
+
+        self.comm = comm
         
     @property
     def approximation(self):
@@ -183,7 +186,6 @@ class ResonantRaman(Vibrations):
 
     def init_parallel(self):
         """Initialize variables for parallel read/analysis"""
-        self.comm = world
         rank = self.comm.rank
         self.ndof = 3 * len(self.indices)
         myn = -(-self.ndof // self.comm.size)  # ceil divide
