@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import numpy as np
 
 from ase.io import read
@@ -23,6 +24,8 @@ class CLICommand:
             help='Dimension of the cell.')
         add('--no-vectors', action='store_true',
             help="Don't show reciprocal vectors.")
+        add('--foreground', action='store_true',
+            help="Keep ASE in foreground.")
         kp = parser.add_mutually_exclusive_group(required=False)
         kp.add_argument('-k', '--k-points', action='store_true',
                         help='Add k-points of the calculator.')
@@ -103,4 +106,15 @@ class CLICommand:
         if args.output:
             plt.savefig(args.output)
         else:
-            plt.show()
+            if not args.foreground:
+                try:
+                    pid = os.fork()
+                except OSError, e:
+                    raise Exception("%s [%d]" % (e.strerror, e.errno))
+            else:
+                pid = 0
+
+            if pid == 0:
+                plt.show()
+            else:
+                os._exit(0)

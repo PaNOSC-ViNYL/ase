@@ -1,6 +1,7 @@
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
 from __future__ import print_function, unicode_literals
+import os
 
 
 class CLICommand:
@@ -43,6 +44,8 @@ class CLICommand:
             action='store_true',
             default=False,
             help='Run in terminal window - no GUI.')
+        add('--foreground', action='store_true',
+            help="Keep ASE in foreground.")
         add('--interpolate',
             type=int, metavar='N',
             help='Interpolate N images between 2 given images.')
@@ -92,6 +95,17 @@ class CLICommand:
                         print(x, end=' ')
                     print()
         else:
-            from ase.gui.gui import GUI
-            gui = GUI(images, args.rotations, args.show_unit_cell, args.bonds)
-            gui.run(args.graph)
+            if not args.foreground:
+                try:
+                    pid = os.fork()
+                except OSError, e:
+                    raise Exception("%s [%d]" % (e.strerror, e.errno))
+            else:
+                pid = 0
+
+            if pid == 0:
+                from ase.gui.gui import GUI
+                gui = GUI(images, args.rotations, args.show_unit_cell, args.bonds)
+                gui.run(args.graph)
+            else:
+                os._exit(0)
