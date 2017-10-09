@@ -16,8 +16,9 @@ def bz_vertices(icell):
     return bz1
 
 
-def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
+def bz3d_plot(cell, vectors=False, paths=None, points=None,
               elev=None, scale=1, interactive=False):
+    import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     from mpl_toolkits.mplot3d import proj3d
     from matplotlib.patches import FancyArrowPatch
@@ -104,7 +105,8 @@ def bz3d_plot(plt, cell, vectors=False, paths=None, points=None,
     ax.view_init(azim=azim / pi * 180, elev=elev / pi * 180)
 
 
-def bz2d_plot(plt, cell, vectors=False, paths=None, points=None):
+def bz2d_plot(cell, vectors=False, paths=None, points=None):
+    import matplotlib.pyplot as plt
     # 2d in x-y plane
     assert all(abs(cell[2][0:2]) < 1e-6) and all(abs(cell.T[2][0:2]) < 1e-6)
 
@@ -158,7 +160,8 @@ def bz2d_plot(plt, cell, vectors=False, paths=None, points=None):
     ax.set_aspect('equal')
 
 
-def bz1d_plot(plt, cell, vectors=False, paths=None, points=None):
+def bz1d_plot(cell, vectors=False, paths=None, points=None):
+    import matplotlib.pyplot as plt
     # 1d in x
     assert (all(abs(cell[2][0:2]) < 1e-6) and
             all(abs(cell.T[2][0:2]) < 1e-6) and

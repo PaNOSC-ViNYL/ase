@@ -35,5 +35,5 @@ for X, cell in [
         scale = 1
         elev = None
 
-    bz3d_plot(plt, cell=cell, paths=paths, elev=elev, scale=scale)
+    bz3d_plot(cell=cell, paths=paths, elev=elev, scale=scale)
     plt.savefig(X + '.svg')
