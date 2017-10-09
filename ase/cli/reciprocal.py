@@ -4,7 +4,7 @@ from ase.io import read
 from ase.geometry import crystal_structure_from_cell as csfc
 from ase.dft.kpoints import (get_special_points, special_paths,
                              parse_path_string)
-from ase.bz import bz1d_plot, bz2d_plot, bz3d_plot
+from ase.dft.bz import bz1d_plot, bz2d_plot, bz3d_plot
 
 
 class CLICommand:
@@ -32,7 +32,7 @@ class CLICommand:
     def run(args, parser):
         # read from file
         atoms = read(args.name)
-        
+
         # cell
         cell = atoms.get_cell()
         icell = atoms.get_reciprocal_cell()

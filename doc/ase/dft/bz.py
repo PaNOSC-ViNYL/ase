@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from ase.dft.kpoints import (get_special_points, special_paths,
                              parse_path_string)
-from ase.bz import bz3d_plot
+from ase.dft.bz import bz3d_plot
 
 
 for X, cell in [
