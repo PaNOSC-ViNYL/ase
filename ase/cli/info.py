@@ -2,7 +2,7 @@ import platform
 import sys
 
 from ase.utils import import_module, FileNotFoundError
-from ase.io.formats import filetype, all_formats
+from ase.io.formats import filetype, all_formats, UnknownFileTypeError
 from ase.io.ulm import print_ulm_info
 from ase.io.bundletrajectory import print_bundletrajectory_info
 
@@ -28,12 +28,11 @@ class CLICommand:
             except FileNotFoundError:
                 format = '?'
                 description = 'No such file'
+            except UnknownFileTypeError:
+                format = '?'
+                description = '?'
             else:
-                if format and format in all_formats:
-                    description, code = all_formats[format]
-                else:
-                    format = '?'
-                    description = '?'
+                description, code = all_formats.get(format, ('?', '?'))
 
             print('{:{}}{} ({})'.format(filename + ':', n,
                                         description, format))
