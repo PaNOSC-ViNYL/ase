@@ -31,18 +31,16 @@ class CLICommand:
 
     @staticmethod
     def run(args, parser):
-        # read from file
         atoms = read(args.name)
 
-        # cell
         cell = atoms.get_cell()
         icell = atoms.get_reciprocal_cell()
+
         try:
             cs = crystal_structure_from_cell(cell)
         except ValueError:
             cs = None
 
-        # show info
         if args.verbose:
             if cs:
                 print('Crystal:', cs)
@@ -62,7 +60,9 @@ class CLICommand:
                 try:
                     size, offset = get_monkhorst_pack_size_and_offset(bzk)
                 except ValueError:
+                    # This was not a MP-grid.  Must be a path in the BZ:
                     args.path = ''.join(labels_from_kpts(bzk, cell)[2])
+
             if args.k_points:
                 points = bzk
             elif args.ibz_k_points:
