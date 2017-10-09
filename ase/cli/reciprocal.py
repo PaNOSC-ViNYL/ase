@@ -109,7 +109,7 @@ class CLICommand:
             if not args.foreground:
                 try:
                     pid = os.fork()
-                except OSError, e:
+                except OSError as e:
                     raise Exception("%s [%d]" % (e.strerror, e.errno))
             else:
                 pid = 0

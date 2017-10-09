@@ -98,14 +98,15 @@ class CLICommand:
             if not args.foreground:
                 try:
                     pid = os.fork()
-                except OSError, e:
+                except OSError as e:
                     raise Exception("%s [%d]" % (e.strerror, e.errno))
             else:
                 pid = 0
 
             if pid == 0:
                 from ase.gui.gui import GUI
-                gui = GUI(images, args.rotations, args.show_unit_cell, args.bonds)
+                gui = GUI(images, args.rotations, args.show_unit_cell,
+                          args.bonds)
                 gui.run(args.graph)
             else:
                 os._exit(0)
