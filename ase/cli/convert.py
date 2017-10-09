@@ -1,3 +1,5 @@
+import os
+
 from ase.io import read, write
 
 
@@ -13,6 +15,8 @@ class CLICommand:
         add('-i', '--input-format')
         add('output', metavar='output-file')
         add('-o', '--output-format')
+        add('-f', '--force', action='store_true',
+            help='Overwrite an existing file.')
         add('-n', '--image-number',
             default=':', metavar='NUMBER',
             help='Pick image(s) from trajectory.  NUMBER can be a '
@@ -22,7 +26,7 @@ class CLICommand:
             '0:nimages:1.')
 
     @staticmethod
-    def run(args):
+    def run(args, parser):
         if args.verbose:
             print(', '.join(args.input), '->', args.output)
 
@@ -33,5 +37,8 @@ class CLICommand:
                 configs.extend(atoms)
             else:
                 configs.append(atoms)
+
+        if not args.force and os.path.isfile(args.output):
+            parser.error('File already exists: {}'.format(args.output))
 
         write(args.output, configs, format=args.output_format)

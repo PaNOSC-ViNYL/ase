@@ -1,6 +1,7 @@
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
 from __future__ import print_function, unicode_literals
+import warnings
 
 
 class CLICommand:
@@ -80,7 +81,7 @@ class CLICommand:
             images.set_radii(args.radii_scale)
 
         if args.output is not None:
-            warnings.warn('You should be using ase convert ...')
+            warnings.warn('You should be using "ase convert ..." instead!')
             images.write(args.output, rotations=args.rotations,
                          show_unit_cell=args.show_unit_cell)
             args.terminal = True
