@@ -637,5 +637,11 @@ def filetype(filename, read=True, guess=True):
     if format is None and guess:
         format = ext
     if format is None:
+        # Do quick xyz check:
+        lines = data.splitlines()
+        if lines and lines[0].strip().isdigit():
+            return 'xyz'
+
         raise UnknownFileTypeError('Could not guess file type')
+
     return format
