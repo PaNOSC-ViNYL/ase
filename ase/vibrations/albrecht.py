@@ -144,10 +144,15 @@ class Albrecht(ResonantRaman):
     def init_parallel_excitations(self):
         """Init for paralellization over excitations."""
         n_p = len(self.ex0E_p)
+
+        # collect excited state forces
+        exF_pr = self._collect2_r(self.exF_rp, [n_p], float).T
+
+        # select your work load
         myn = -(-n_p // self.comm.size)  # ceil divide
         rank = self.comm.rank
         s = slice(myn * rank, myn * (rank + 1))
-        return n_p, range(n_p)[s]
+        return n_p, range(n_p)[s], exF_pr
     
     def meA(self, omega, gamma=0.1):
         """Evaluate Albrecht A term.
@@ -168,11 +173,9 @@ class Albrecht(ResonantRaman):
         
         m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
 
-        # we need to collect excited state forces
-        # to evaluate displacements
-        n_p, myp = self.init_parallel_excitations()
+        # evaluate displacements
+        n_p, myp, exF_pr = self.init_parallel_excitations()
         d_pQ = np.empty((n_p, self.ndof), dtype=float)
-        exF_pr = self._collect2_r(self.exF_rp, [n_p], float).T
         for p in range(n_p):
             d_pQ[p] = self.displacements(exF_pr[p])
 
@@ -249,11 +252,9 @@ class Albrecht(ResonantRaman):
         n_ov[0] = self.n_vQ.max(axis=1)
         n_ov[1] = nvib_ov[1]
         
-        # we need to collect excited state forces
-        # to evaluate displacements
-        n_p, myp = self.init_parallel_excitations()
+        # evaluate displacements
+        n_p, myp, exF_pr = self.init_parallel_excitations()
         d_pQ = np.empty((n_p, self.ndof), dtype=float)
-        exF_pr = self._collect2_r(self.exF_rp, [n_p], float).T
         for p in range(n_p):
             d_pQ[p] = self.displacements(exF_pr[p])
 
