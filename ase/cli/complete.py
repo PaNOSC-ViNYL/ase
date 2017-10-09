@@ -36,7 +36,9 @@ commands = {
     'completion':
         ['-0', '--dry-run'],
     'convert':
-        ['-v', '--verbose', '-i', '--input-format', '-o', '--output-format'],
+        ['-v', '--verbose', '-i', '--input-format', '-o',
+         '--output-format', '-f', '--force', '-n',
+         '--image-number'],
     'db':
         ['-v', '--verbose', '-q', '--quiet', '-n', '--count', '-l',
          '--long', '-i', '--insert-into', '-a',
