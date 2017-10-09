@@ -184,8 +184,8 @@ class ResonantRaman(Vibrations):
         excitations.write(basename + self.exext)
         self.timer.stop('Excitations')
 
-    def init_parallel(self):
-        """Initialize variables for parallel read/analysis"""
+    def init_parallel_read(self):
+        """Initialize variables for parallel read"""
         rank = self.comm.rank
         self.ndof = 3 * len(self.indices)
         myn = -(-self.ndof // self.comm.size)  # ceil divide
@@ -405,7 +405,7 @@ class ResonantRaman(Vibrations):
 
 
         self.timer.start('excitations')
-        self.init_parallel()
+        self.init_parallel_read()
         if not hasattr(self, 'ex0E_p'):
             if self.overlap:
                 self.read_excitations_overlap()
