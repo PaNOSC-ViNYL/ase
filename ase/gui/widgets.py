@@ -14,12 +14,27 @@ class Element(list):
                       [_('Element:'),
                        ui.Entry(symbol, 10 if allow_molecule else 3,
                                 self.enter),
+                       ui.Button(_('Help'), self.show_help),
                        ui.Label('', 'red')])
         self.callback = callback
         self.allow_molecule = allow_molecule
 
     def grab_focus(self):
         self[1].entry.focus_set()
+
+    def show_help(self):
+        names = []
+        import re
+        for name in g2.names:
+            if not re.match('^[A-Z][a-z]?$', name):  # Not single atoms
+                names.append(name)
+
+        # This infobox is indescribably ugly because of the
+        # ridiculously large font size used by Tkinter.  Ouch!
+        msg = _('Enter a chemical symbol or the name of a molecule '
+                'from the G2 testset:\n'
+                '{}'.format(', '.join(names)))
+        ui.showinfo('Info', msg)
 
     @property
     def Z(self):
