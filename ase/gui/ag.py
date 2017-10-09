@@ -80,6 +80,7 @@ class CLICommand:
             images.set_radii(args.radii_scale)
 
         if args.output is not None:
+            warnings.warn('You should be using ase convert ...')
             images.write(args.output, rotations=args.rotations,
                          show_unit_cell=args.show_unit_cell)
             args.terminal = True
