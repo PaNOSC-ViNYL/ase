@@ -346,7 +346,8 @@ class ResonantRaman(Vibrations):
             m_pc = np.array(
                 [ex.get_dipole_me(form=self.dipole_form) for ex in ex_p])
             r_pp = ov_pp.T
-            return (r_pp**2).dot(e_p)[select], r_pp.dot(m_pc)[select]
+            return ((r_pp.real**2 + r_pp.imag**2).dot(e_p)[select],
+                    r_pp.dot(m_pc)[select])
 
         def z(arr):
             return np.where(abs(arr) > 0.05, arr, 0)
