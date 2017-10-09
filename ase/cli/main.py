@@ -19,6 +19,7 @@ commands = [
     ('ulm', 'ase.io.ulm'),
     ('find', 'ase.cli.find'),
     ('nomad-upload', 'ase.cli.nomad'),
+    ('reciprocal', 'ase.cli.reciprocal'),
     ('completion', 'ase.cli.completion')]
 
 

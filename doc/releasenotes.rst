@@ -10,7 +10,9 @@ Git master branch
 
 :git:`master <>`.
 
- * No changes yet
+* New ``ase reciprocal`` :ref:`command <cli>` for finding showing the
+  reciprocal space, **k**-points and special points.
+
 
 Version 3.15.0
 ==============
