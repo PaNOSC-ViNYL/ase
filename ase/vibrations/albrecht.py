@@ -141,6 +141,14 @@ class Albrecht(ResonantRaman):
         omS_Q = omL - self.om_Q
         return omL, omS_Q
 
+    def init_parallel_excitations(self):
+        """Init for paralellization over excitations."""
+        n_p = len(self.ex0E_p)
+        myn = -(-n_p // self.comm.size)  # ceil divide
+        rank = self.comm.rank
+        s = slice(myn * rank, myn * (rank + 1))
+        return n_p, range(n_p)[s]
+    
     def meA(self, omega, gamma=0.1):
         """Evaluate Albrecht A term.
 
@@ -160,18 +168,12 @@ class Albrecht(ResonantRaman):
         
         m_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
 
-        # select your part of the excitations
-        p = len(self.ex0E_p)
-        myn = -(-p // self.comm.size)  # ceil divide
-        rank = self.comm.rank
-        s = slice(myn * rank, myn * (rank + 1))
-        myp = range(p)[s]
-
         # we need to collect excited state forces
         # to evaluate displacements
-        d_pQ = np.empty((p, self.ndof), dtype=float)
-        exF_pr = self._collect2_r(self.exF_rp, [p], float).T
-        for p in range(p):
+        n_p, myp = self.init_parallel_excitations()
+        d_pQ = np.empty((n_p, self.ndof), dtype=float)
+        exF_pr = self._collect2_r(self.exF_rp, [n_p], float).T
+        for p in range(n_p):
             d_pQ[p] = self.displacements(exF_pr[p])
 
         for p in myp:
@@ -243,16 +245,25 @@ class Albrecht(ResonantRaman):
                     d_ovQ[o, v, self.ind_v[v][o]] = 1
                 except IndexError:
                     pass
-        # XXXX change
+        # XXXX change ????
         n_ov[0] = self.n_vQ.max(axis=1)
         n_ov[1] = nvib_ov[1]
         
         # excited state forces
         F_pr = self.exF_rp.T
 
+        # we need to collect excited state forces
+        # to evaluate displacements
+        n_p, myp = self.init_parallel_excitations()
+        d_pQ = np.empty((n_p, self.ndof), dtype=float)
+        exF_pr = self._collect2_r(self.exF_rp, [n_p], float).T
+        for p in range(n_p):
+            d_pQ[p] = self.displacements(exF_pr[p])
+
         m_vcc = np.zeros((nv, 3, 3), dtype=complex)
-        for p, energy in enumerate(self.ex0E_p):
-            d_Q = self.displacements(F_pr[p])[self.skip:]
+        for p in myp:
+            energy = self.ex0E_p[p]
+            d_Q = d_pQ[p][self.skip:]
             S_Q = d_Q**2 / 2.
             energy_v = energy - self.d_vQ.dot(om_Q * S_Q)
             me_cc = np.outer(self.ex0m_pc[p], self.ex0m_pc[p].conj())
@@ -295,6 +306,7 @@ class Albrecht(ResonantRaman):
             m_vcc += np.einsum('a,bc->abc', wm_v, me_cc)
             m_vcc += np.einsum('a,bc->abc', wp_v, me_cc.conj())
             self.timer.stop('einsum')
+        self.comm.sum(m_vcc)
                 
         self.timer.stop('AlbrechtA')
         return m_vcc  # e^2 Angstrom^2 / eV
