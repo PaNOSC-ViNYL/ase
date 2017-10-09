@@ -314,7 +314,8 @@ class Albrecht(ResonantRaman):
         self.timer.stop('initialize')
 
         me_Qcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        for p, energy in enumerate(self.ex0E_p):
+        for p in myp:
+            energy = self.ex0E_p[p]
             S_Q = self.Huang_Rhys_factors(exF_pr[p])
             # relaxed excited state energy
             ## n_vQ = np.where(self.n_vQ > 0, 1, 0)
@@ -356,6 +357,7 @@ class Albrecht(ResonantRaman):
                 me_Qcc += np.multiply(wCLS_Q, mdmdQ_Qcc.T).T
                 me_Qcc += np.multiply(wCSL_Q, dmdQm_Qcc.T).T
             self.timer.stop('einsum')
+        self.comm.sum(me_Qcc)
                 
         self.timer.stop('AlbrechtBC')
         return me_Qcc  # unit e^2 Angstrom / eV / sqrt(amu)
