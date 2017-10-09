@@ -16,13 +16,14 @@ class ColorWindow:
         self.gui = gui
         self.win.add(ui.Label(_('Choose how the atoms are colored:')))
         values = ['jmol', 'tag', 'force', 'velocity',
-                  'initial charge', 'magmom']
+                  'initial charge', 'magmom', 'neighbors']
         labels = [_('By atomic number, default "jmol" colors'),
                   _('By tag'),
                   _('By force'),
                   _('By velocity'),
                   _('By initial charge'),
-                  _('By magnetic moment')]
+                  _('By magnetic moment'),
+                  _('By number of neighbors'),]
 
         self.radio = ui.RadioButtons(labels, values, self.toggle,
                                      vertical=True)
@@ -45,10 +46,11 @@ class ColorWindow:
         radio['velocity'].active = atoms.has('momenta')
         radio['initial charge'].active = atoms.has('initial_charges')
         radio['magmom'].active = get_magmoms(atoms).any()
+        radio['neighbors'].active = True
 
     def toggle(self, value):
         self.gui.colormode = value
-        if value == 'jmol':
+        if value == 'jmol' or value == 'neighbors':
             text = ''
         else:
             scalars = np.array([self.gui.get_color_scalars(i)
