@@ -82,11 +82,11 @@ class Albrecht(ResonantRaman):
         Vibrations.get_energies(self, method, direction)
         return self.om_v
 
-    def _collect2_r(self, arr_ro, oshape, dtype):
+    def _collect_r(self, arr_ro, oshape, dtype):
         """Collect an array that is distributed."""
         if len(self.myr) == self.ndof: # serial
             return arr_ro
-        data_ro = np.zeros([self.ndof] + oshape, arr_ro.dtype)
+        data_ro = np.zeros([self.ndof] + oshape, dtype)
         if len(arr_ro):
             data_ro[self.slize] = arr_ro
         self.comm.sum(data_ro)
@@ -131,7 +131,7 @@ class Albrecht(ResonantRaman):
         n_p = len(self.ex0E_p)
 
         # collect excited state forces
-        exF_pr = self._collect2_r(self.exF_rp, [n_p], float).T
+        exF_pr = self._collect_r(self.exF_rp, [n_p], self.ex0E_p.dtype).T
 
         # select your work load
         myn = -(-n_p // self.comm.size)  # ceil divide
@@ -307,7 +307,7 @@ class Albrecht(ResonantRaman):
         # excited state forces
         n_p, myp, exF_pr = self.init_parallel_excitations()
         # derivatives after normal coordinates
-        exdmdr_rpc = self._collect2_r(
+        exdmdr_rpc = self._collect_r(
             self.exdmdr_rpc, [n_p, 3], self.ex0m_pc.dtype)
         dmdq_qpc = (exdmdr_rpc.T * self.im).T  # unit e / sqrt(amu)
         dmdQ_Qpc = np.dot(dmdq_qpc.T, self.modes.T).T  # unit e / sqrt(amu)
