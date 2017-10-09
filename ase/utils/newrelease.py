@@ -135,7 +135,8 @@ Git master branch
 
 :git:`master <>`.
 
- * No changes yet
+* No changes yet
+
 
 {header}
 {underline}

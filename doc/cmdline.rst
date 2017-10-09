@@ -19,6 +19,7 @@ info            Print information about files or system
 test            Test ASE
 gui             ASE's :ref:`graphical user interface <ase-gui>`
 convert         Convert between file formats (see :mod:`ase.io`)
+reciprocal      Show the reciprocal space
 find            Find files with atoms in
 db              Manipulate and query :ref:`ASE database <ase-db>`
 run             Run calculation with one of ASE's calculators

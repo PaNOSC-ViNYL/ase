@@ -62,6 +62,10 @@ commands = {
         ['-v', '--verbose'],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
+    'reciprocal':
+        ['-v', '--verbose', '-p', '--path', '-d', '--dimension',
+         '--no-vectors', '-k', '--k-points', '-i',
+         '--ibz-k-points'],
     'run':
         ['-t', '--tag', '-p', '--parameters', '-d', '--database', '-S',
          '--skip', '--properties', '-f', '--maximum-force',

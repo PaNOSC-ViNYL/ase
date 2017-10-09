@@ -53,6 +53,9 @@ def update(filename, commands):
             dct[command].extend(arg for arg in args
                                 if arg.startswith('-'))
 
+        def add_mutually_exclusive_group(self, required=False):
+            return self
+
     for command, module_name in commands:
         module = import_module(module_name)
         module.CLICommand.add_arguments(Subparser(command))
