@@ -111,21 +111,20 @@ class Profeta(ResonantRaman):
 
         self.timer.start('kappa')
         r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                if not energy_derivative < 0:
-                    V_rcc[r] += pre * (
-                        kappa_cc(self.expm_rpc[r], self.ex0E_p,
-                                 omega, gamma, self.dipole_form) -
-                        kappa_cc(self.exmm_rpc[r], self.ex0E_p,
-                                 omega, gamma, self.dipole_form))
-                if energy_derivative:
-                    V_rcc[r] += pre * (
-                        kappa_cc(self.ex0m_pc, self.expE_rp[r],
-                                 omega, gamma, self.dipole_form) -
-                        kappa_cc(self.ex0m_pc, self.exmE_rp[r],
-                                 omega, gamma, self.dipole_form))
-                r += 1
+        for a, i, r in zip(self.myindices, self.myxyz, self.myr):
+            if not energy_derivative < 0:
+                V_rcc[r] += pre * (
+                    kappa_cc(self.expm_rpc[r], self.ex0E_p,
+                             omega, gamma, self.dipole_form) -
+                    kappa_cc(self.exmm_rpc[r], self.ex0E_p,
+                             omega, gamma, self.dipole_form))
+            if energy_derivative:
+                V_rcc[r] += pre * (
+                    kappa_cc(self.ex0m_pc, self.expE_rp[r],
+                             omega, gamma, self.dipole_form) -
+                    kappa_cc(self.ex0m_pc, self.exmE_rp[r],
+                             omega, gamma, self.dipole_form))
+        self.comm.sum(V_rcc)
         self.timer.stop('kappa')
         self.timer.stop('amplitudes')
 
