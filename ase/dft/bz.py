@@ -63,17 +63,17 @@ def bz3d_plot(cell, vectors=False, paths=None, points=None,
                               [0, icell[0, 1]],
                               [0, icell[0, 2]],
                               mutation_scale=20, lw=1,
-                              arrowstyle="-|>", color="k"))
+                              arrowstyle='-|>', color='k'))
         ax.add_artist(Arrow3D([0, icell[1, 0]],
                               [0, icell[1, 1]],
                               [0, icell[1, 2]],
                               mutation_scale=20, lw=1,
-                              arrowstyle="-|>", color="k"))
+                              arrowstyle='-|>', color='k'))
         ax.add_artist(Arrow3D([0, icell[2, 0]],
                               [0, icell[2, 1]],
                               [0, icell[2, 2]],
                               mutation_scale=20, lw=1,
-                              arrowstyle="-|>", color="k"))
+                              arrowstyle='-|>', color='k'))
         maxp = max(maxp, 0.6 * icell.max())
 
     if paths is not None:
@@ -124,11 +124,11 @@ def bz2d_plot(cell, vectors=False, paths=None, points=None):
 
     if vectors:
         ax.arrow(0, 0, icell[0, 0], icell[0, 1],
-                 lw=1, color="k",
+                 lw=1, color='k',
                  length_includes_head=True,
                  head_width=0.03, head_length=0.05)
         ax.arrow(0, 0, icell[1, 0], icell[1, 1],
-                 lw=1, color="k",
+                 lw=1, color='k',
                  length_includes_head=True,
                  head_width=0.03, head_length=0.05)
         maxp = max(maxp, icell.max())
@@ -179,7 +179,7 @@ def bz1d_plot(cell, vectors=False, paths=None, points=None):
 
     if vectors:
         ax.arrow(0, 0, icell[0, 0], 0,
-                 lw=1, color="k",
+                 lw=1, color='k',
                  length_includes_head=True,
                  head_width=0.03, head_length=0.05)
         maxp = max(maxp, icell.max())
