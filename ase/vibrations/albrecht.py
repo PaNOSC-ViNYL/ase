@@ -249,9 +249,6 @@ class Albrecht(ResonantRaman):
         n_ov[0] = self.n_vQ.max(axis=1)
         n_ov[1] = nvib_ov[1]
         
-        # excited state forces
-        F_pr = self.exF_rp.T
-
         # we need to collect excited state forces
         # to evaluate displacements
         n_p, myp = self.init_parallel_excitations()
