@@ -34,6 +34,11 @@ from ase.atoms import Atoms
 from ase.utils import import_module, basestring
 from ase.parallel import parallel_function, parallel_generator
 
+
+class UnknownFileTypeError(Exception):
+    pass
+
+
 IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
 ioformats = {}  # will be filled at run-time
 
@@ -579,6 +584,8 @@ def filetype(filename, read=True, guess=True):
             return 'dlp4'
 
         if not read:
+            if ext is None:
+                raise UnknownFileTypeError('Could not guess file type')
             return extension2format.get(ext, ext)
 
         fd = open_with_compression(filename, 'rb')
@@ -629,4 +636,12 @@ def filetype(filename, read=True, guess=True):
     format = extension2format.get(ext)
     if format is None and guess:
         format = ext
+    if format is None:
+        # Do quick xyz check:
+        lines = data.splitlines()
+        if lines and lines[0].strip().isdigit():
+            return 'xyz'
+
+        raise UnknownFileTypeError('Could not guess file type')
+
     return format
