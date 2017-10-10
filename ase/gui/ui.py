@@ -31,7 +31,7 @@ __all__ = [
     'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
-    'showwarning', 'SpinBox', 'Text']
+    'showinfo', 'showwarning', 'SpinBox', 'Text']
 
 
 if sys.platform == 'darwin':
