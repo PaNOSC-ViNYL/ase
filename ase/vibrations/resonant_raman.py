@@ -346,6 +346,7 @@ class ResonantRaman(Vibrations):
         self.timer.start('me and energy')
 
         # select only excitations that are sufficiently represented
+        self.comm.product(rep0_p)
         select = np.where(rep0_p > self.minrep)[0]
 
         eu = u.Hartree
