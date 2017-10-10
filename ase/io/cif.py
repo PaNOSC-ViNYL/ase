@@ -84,6 +84,10 @@ def parse_loop(lines):
         header.append(line.lower())
         line = lines.pop().strip()
     columns = dict([(h, []) for h in header])
+    if len(columns) != len(header):
+        seen = set()
+        dublicates = [h for h in header if h in seen or seen.add(h)]
+        warnings.warn('Duplicated loop tags: {0}'.format(dublicates))
 
     tokens = []
     while True:
