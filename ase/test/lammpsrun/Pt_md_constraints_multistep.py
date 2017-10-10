@@ -28,12 +28,9 @@ params['pair_coeff']=['1 1 {}'.format(pot_fn)]
 
 calc = LAMMPS(specorder=['Pt'], parameters=params, files=[pot_fn])
 
-slab.set_calculator(calc)
 
 E = slab.get_potential_energy()
 F = slab.get_forces()
-
-sys.stderr.write(str(E) + '\n'+str(norm(F)) + '\n' +str(norm(slab.positions)) + '\n')
 
 assert abs(E - -2758.63) < 1E-2
 assert abs(norm(F) - 11.3167) < 1E-4
