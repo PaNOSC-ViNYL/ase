@@ -1,5 +1,3 @@
-from ase.test import require
-from ase.test.lammpsrun import installed
 from ase.calculators.lammpsrun import LAMMPS
 from ase.cluster.icosahedron import Icosahedron
 from ase.data import atomic_numbers,  atomic_masses

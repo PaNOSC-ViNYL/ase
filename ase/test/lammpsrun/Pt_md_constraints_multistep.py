@@ -1,12 +1,9 @@
-from ase.test import require
-from ase.test.lammpsrun import installed
 from ase.calculators.lammpsrun import LAMMPS
 from numpy.linalg import norm
 from ase.test.eam_pot import Pt_u3
 from ase.build import fcc111
 import os
-import ase.io
-import sys
+
 
 pot_fn = 'Pt_u3.eam'
 f = open(pot_fn, 'w')
@@ -20,7 +17,7 @@ params['pair_style'] = 'eam'
 params['pair_coeff'] = ['1 1 {}'.format(pot_fn)]
 
 calc = LAMMPS(specorder=['Pt'], parameters=params, files=[pot_fn])
-
+slab.set_calculator(calc)
 E = slab.get_potential_energy()
 F = slab.get_forces()
 

@@ -360,10 +360,9 @@ class LAMMPS:
                                  for x in self.atoms.get_cell()]
                                 ).encode('utf-8'))
 
-            p = self.prism
             f.write('lattice sc 1.0\n'.encode('utf-8'))
-            xhi, yhi, zhi, xy, xz, yz = p.get_lammps_prism_str()
-            if self.always_triclinic or p.is_skewed():
+            xhi, yhi, zhi, xy, xz, yz = self.prism.get_lammps_prism_str()
+            if self.always_triclinic or self.prism.is_skewed():
                 f.write('region asecell prism 0.0 {0} 0.0 {1} 0.0 {2} '
                         ''.format(xhi, yhi, zhi).encode('utf-8'))
                 f.write('{0} {1} {2} side in units box\n'
