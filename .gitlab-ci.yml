@@ -2,7 +2,9 @@
 python_2_7_tests:
   script:
     - apt-get update -qy
-    - apt-get install -qy python-numpy python-scipy pyflakes
+    - apt-get install -qy python-pip python-numpy python-scipy pyflakes libhdf5-dev libnetcdf-dev cython
+    - pip install --upgrade setuptools
+    - pip install --user netCDF4
     - pwd
     - echo $HOME
     - cd ..
@@ -23,7 +25,9 @@ python_2_7_tests:
 python_3_tests:
   script:
     - apt-get update -qy
-    - apt-get install -qy python3-pip python3-numpy python3-scipy pyflakes gettext
+    - apt-get install -qy python3-pip python3-numpy python3-scipy pyflakes gettext libhdf5-dev libnetcdf-dev cython3
+    - pip3 install --upgrade setuptools
+    - pip3 install --user netCDF4
     # install ase into current python environment to ensure
     # any shebang lines in scripts point to python3
     - pip3 install --user .

@@ -23,7 +23,7 @@ class CLICommand:
         if args.dry_run:
             return
         with open(filename) as fd:
-            if cmd in fd.readlines():
+            if cmd + '\n' in fd.readlines():
                 print('Completion script already installed!')
                 return
         with open(filename, 'a') as fd:
@@ -52,6 +52,9 @@ def update(filename, commands):
         def add_argument(self, *args, **kwargs):
             dct[command].extend(arg for arg in args
                                 if arg.startswith('-'))
+
+        def add_mutually_exclusive_group(self, required=False):
+            return self
 
     for command, module_name in commands:
         module = import_module(module_name)

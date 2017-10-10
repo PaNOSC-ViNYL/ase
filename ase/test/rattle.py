@@ -17,8 +17,10 @@ for calc in [TIP3P(),
         dimer.set_distance(m, m + 1, rOH, fix=0)
         dimer.set_distance(m, m + 2, rOH, fix=0)
 
-    bonds = [(m + i, m + (i + 1) % 3) for m in [0, 3] for i in [0, 1, 2]]
-    dimer.constraints = FixBondLengths(bonds)
+    fixOH1 = [(3 * i, 3 * i + 1) for i in range(2)]
+    fixOH2 = [(3 * i, 3 * i + 2) for i in range(2)]
+    fixHH = [(3 * i + 1, 3 * i + 2) for i in range(2)]
+    dimer.set_constraint(FixBondLengths(fixOH1+fixOH2+fixHH))
 
     dimer.calc = calc
 

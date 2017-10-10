@@ -44,10 +44,16 @@ multiple configurations):
 
 .. note::
 
-    Ase read and write functions are automatically parallelized if a
+    ASE read and write functions are automatically parallelized if a
     suitable MPI library is found. This requires to call read and write
     with same input on all cores. For more information, see
     :mod:`ase.parallel`.
+
+.. note::
+
+    ASE can read and write directly to compressed files. Simply add ``.gz``,
+    ``.bz2`` or ``.xz`` to your filename (``.xz`` requires the
+    ``backports.lzma`` module on Python 2).
 
 The :func:`read` function is only designed to retrieve the atomic configuration
 from a file, but for the CUBE format you can import the function:
@@ -128,7 +134,6 @@ can be found here: :download:`save_pov.py`
 
 An other example showing how to change colors and textures in pov can
 be found here: :download:`../../tutorials/saving_graphics.py`.
-
 
 Adding a new file-format to ASE
 ===============================

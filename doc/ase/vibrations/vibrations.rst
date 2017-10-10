@@ -7,7 +7,7 @@ Vibration analysis
 Vibrational modes
 =================
 
-You can calculate the vibrational modes of a an
+You can calculate the vibrational modes of an
 :class:`~ase.Atoms` object in the harmonic approximation using
 the :class:`Vibrations`.
 
@@ -24,7 +24,9 @@ finite difference method to calculate the Hessian matrix. method is -1
 for backward differences, 0 for centered differences, and 1 for
 forward differences.
 
-   
+
+.. _infrared:
+
 Infrared intensities
 ====================
 

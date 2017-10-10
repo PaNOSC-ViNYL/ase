@@ -60,6 +60,12 @@ class NEB:
         self.climb = climb
         self.parallel = parallel
         self.natoms = len(images[0])
+        pbc = images[0].pbc
+        for img in images:
+            if len(img) != self.natoms:
+                raise ValueError('Images have different numbers of atoms')
+            if (pbc != img.pbc).any():
+                raise ValueError('Images have different boundary conditions')
         self.nimages = len(images)
         self.emax = np.nan
 
@@ -105,6 +111,10 @@ class NEB:
         # less time. Known working optimizers = BFGS, MDMin, FIRE, HessLBFGS
         # Internal testing shows BFGS is only needed in situations where MDMIN
         # cannot converge easily and tends to be obvious on inspection.
+        #
+        # askhl: 3-4 orders of magnitude difference cannot possibly be
+        # true unless something is actually broken.  Should it not be
+        # "3-4 times"?
         opt.run(fmax=fmax, steps=steps)
         for image, calc in zip(self.images, old):
             image.calc = calc
@@ -125,15 +135,20 @@ class NEB:
             image.set_positions(positions[n1:n2])
             n1 = n2
 
-            # Parallel NEB with Jacapo needs this:
-            try:
-                image.get_calculator().set_atoms(image)
-            except AttributeError:
-                pass
-
     def get_forces(self):
         """Evaluate and return the forces."""
         images = self.images
+
+        calculators = [image.calc for image in images
+                       if image.calc is not None]
+        if len(set(calculators)) != len(calculators):
+            msg = ('One or more NEB images share the same calculator.  '
+                   'Each image must have its own calculator.  '
+                   'You may wish to use the ase.neb.SingleCalculatorNEB '
+                   'class instead, although using separate calculators '
+                   'is recommended.')
+            raise ValueError(msg)
+
         forces = np.empty(((self.nimages - 2), self.natoms, 3))
         energies = np.empty(self.nimages)
 
@@ -285,7 +300,15 @@ class NEB:
         return self.emax
 
     def __len__(self):
+        # Corresponds to number of optimizable degrees of freedom, i.e.
+        # virtual atom count for the optimization algorithm.
         return (self.nimages - 2) * self.natoms
+
+    def _images_(self):
+        # Allows trajectory to convert NEB into several images
+        assert not self.parallel or self.world.size == 1
+        # (We could collect the atoms objects on master here!)
+        return iter(self.images)
 
 
 class IDPP(Calculator):
@@ -602,12 +625,6 @@ def interpolate(images, mic=False):
     d /= (len(images) - 1.0)
     for i in range(1, len(images) - 1):
         images[i].set_positions(pos1 + i * d)
-        # Parallel NEB with Jacapo needs this:
-        try:
-            images[i].get_calculator().set_atoms(images[i])
-        except AttributeError:
-            pass
-
 
 if __name__ == '__main__':
     # This stuff is used by ASE's GUI

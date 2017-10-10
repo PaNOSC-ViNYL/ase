@@ -10,10 +10,12 @@ from ase.gui.repeat import Repeat
 from ase.gui.rotate import Rotate
 from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
+from ase.gui.utils import get_magmoms
 from ase.utils import rotate
 
 
-GREEN = '#DDFFDD'
+GREEN = '#74DF00'
+PURPLE = '#AC58FA'
 
 
 def get_cell_coordinates(cell):
@@ -105,7 +107,12 @@ class View:
         self.set_atoms(self.images[frame])
 
         fname = self.images.filenames[frame]
-        self.window.title = 'ase.gui' if fname is None else basename(fname)
+        if fname is None:
+            title = 'ase.gui'
+        else:
+            title = '{}@{}'.format(basename(fname), frame)
+
+        self.window.title = title
 
         if focus:
             self.focus()
@@ -173,17 +180,22 @@ class View:
     def toggle_show_unit_cell(self, key=None):
         self.set_frame()
 
-    def show_labels(self):
+    def update_labels(self):
         index = self.window['show-labels']
         if index == 0:
             self.labels = None
         elif index == 1:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
-            self.labels = list(self.images.get_magmoms(self.atoms))
+            self.labels = list(get_magmoms(self.atoms))
+        elif index == 4:
+            Q = self.atoms.get_initial_charges()
+            self.labels = ['{0:.4g}'.format(q) for q in Q]
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
+    def show_labels(self):
+        self.update_labels()
         self.draw()
 
     def toggle_show_axes(self, key=None):
@@ -225,7 +237,7 @@ class View:
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images[0].cell.any())
         if (len(self.atoms) == 0 and not cell):
-            self.scale = 1.0
+            self.scale = 20.0
             self.center = np.zeros(3)
             self.draw()
             return
@@ -303,12 +315,18 @@ class View:
         if self.colormode == 'jmol':
             return [self.colors[Z] for Z in self.atoms.numbers]
 
-        scalars = self.get_color_scalars()
+        if self.colormode == 'neighbors':
+            return [self.colors[Z] for Z in self.get_color_scalars()]
+
         colorscale, cmin, cmax = self.colormode_data
         N = len(colorscale)
-        indices = np.clip(((scalars - cmin) / (cmax - cmin) * N +
-                           0.5).astype(int),
-                          0, N - 1)
+        if cmin == cmax:
+            indices = [N // 2] * len(self.atoms)
+        else:
+            scalars = self.get_color_scalars()
+            indices = np.clip(((scalars - cmin) / (cmax - cmin) * N +
+                               0.5).astype(int),
+                              0, N - 1)
         return [colorscale[i] for i in indices]
 
     def get_color_scalars(self, frame=None):
@@ -319,10 +337,17 @@ class View:
             return f * self.images.get_dynamic(self.atoms)
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
-        elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+        elif self.colormode == 'initial charge':
+            return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
-            return self.images.get_magmoms(self.atoms)
+            return get_magmoms(self.atoms)
+        elif self.colormode == 'neighbors':
+            from ase.neighborlist import NeighborList
+            n = len(self.atoms)
+            nl = NeighborList(self.get_covalent_radii(self.atoms) * 1.5,
+                              skin=0, self_interaction=False, bothways=True)
+            nl.update(self.atoms)
+            return [len(nl.get_neighbors(i)[0]) for i in range(n)]
 
     def get_covalent_radii(self, atoms=None):
         if atoms is None:
@@ -373,13 +398,21 @@ class View:
         ncell = len(self.X_cell)
         bond_linewidth = self.scale * 0.15
 
+        self.update_labels()
+
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
+            movecolor = GREEN
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            movecolor = PURPLE
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
                 if visible[a]:
                     # Draw the atoms
-                    if self.moving and selected[a]:
-                        circle(GREEN, False,
+                    if (self.moving and a < len(self.move_atoms_mask)
+                        and self.move_atoms_mask[a]):
+                        circle(movecolor, False,
                                A[a, 0] - 4, A[a, 1] - 4,
                                A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 
@@ -388,7 +421,8 @@ class View:
 
                     # Draw labels on the atoms
                     if self.labels is not None:
-                        self.window.text(A[a, 0] + ra/2, A[a, 1] + ra/2,
+                        self.window.text(A[a, 0] + ra / 2,
+                                         A[a, 1] + ra / 2,
                                          str(self.labels[a]))
 
                     # Draw cross on constrained atoms
@@ -460,21 +494,9 @@ class View:
 
     def draw_frame_number(self):
         x, y = self.window.size
-        self.window.text(x, y, '{0}/{1}'.format(self.frame,
+        self.window.text(x, y, '{0}/{1}'.format(self.frame + 1,
                                                 len(self.images)),
                          anchor='SE')
-
-    def get_magmoms(self, init_magmom=False):
-        try:
-            if init_magmom:
-                M = self.atoms.get_initial_magnetic_moments()
-            else:
-                M = self.atoms.get_magnetic_moments()
-                if M.ndim == 2:
-                    M = M[:, 2]  # XXX
-        except (RuntimeError, AttributeError):
-            M = self.atoms.get_initial_magnetic_moments()
-        return M
 
     def release(self, event):
         if event.button in [4, 5]:
@@ -579,7 +601,7 @@ class View:
                                        np.dot(self.axes0, self.axes.T))
         self.draw(status=False)
 
-    def render_window(self, action):
+    def render_window(self):
         Render(self)
 
     def resize(self, event):

@@ -8,6 +8,7 @@ from ase.constraints import FixAtoms
 from ase.data import covalent_radii
 from ase.gui.defaults import read_defaults
 from ase.io import read, write, string2index
+from ase.gui.i18n import _
 
 
 class Images:
@@ -49,7 +50,7 @@ class Images:
 
     def get_energy(self, atoms):
         try:
-            e =  atoms.get_potential_energy() * self.repeat.prod()
+            e = atoms.get_potential_energy() * self.repeat.prod()
         except RuntimeError:
             e = np.nan
         return e
@@ -57,21 +58,10 @@ class Images:
     def get_forces(self, atoms):
         try:
             F = atoms.get_forces(apply_constraint=False)
-            return np.tile(F.T, self.repeat.prod()).T
         except RuntimeError:
             return None
-
-    def get_magmoms(self, atoms, init_magmom=False):
-        try:
-            if init_magmom:
-                M = atoms.get_initial_magnetic_moments()
-            else:
-                M = atoms.get_magnetic_moments()
-                if M.ndim == 2:
-                    M = M[:, 2]
-        except (RuntimeError, AttributeError):
-            M = atoms.get_initial_magnetic_moments()
-        return M
+        else:
+            return np.tile(F.T, self.repeat.prod()).T
 
     def initialize(self, images, filenames=None, init_magmom=False):
         nimages = len(images)
@@ -80,7 +70,7 @@ class Images:
         self.filenames = filenames
 
         #  The below seems to be about "quaternions"
-        if 0: # XXXXXXXXXXXXXXXXXXXX hasattr(images[0], 'get_shapes'):
+        if 0:  # XXXXXXXXXXXXXXXXXXXX hasattr(images[0], 'get_shapes'):
             self.Q = np.empty((nimages, self.natoms, 4))
             self.shapes = images[0].get_shapes()
             import os as os
@@ -113,10 +103,10 @@ class Images:
             # but copying actually forgets things like the attached
             # calculator (might have forces/energies
             self._images.append(atoms)
-            self.have_varying_species |= np.any(self[0].numbers
-                                                != atoms.numbers)
+            self.have_varying_species |= np.array_equal(self[0].numbers,
+                                                        atoms.numbers)
             if hasattr(self, 'Q'):
-                assert False # XXX askhl fix quaternions
+                assert False  # XXX askhl fix quaternions
                 self.Q[i] = atoms.get_quaternions()
             if (atoms.pbc != self[0].pbc).any():
                 warning = True
@@ -173,15 +163,37 @@ class Images:
         self.repeat = np.ones(3, int)
 
     def repeat_images(self, repeat):
+        from ase.constraints import FixAtoms
         repeat = np.array(repeat)
         oldprod = self.repeat.prod()
         images = []
-        for atoms in self:
+        constraints_removed = False
+        for i, atoms in enumerate(self):
             refcell = atoms.get_cell()
+            fa = []
+            for c in atoms._constraints:
+                if isinstance(c, FixAtoms):
+                    fa.append(c)
+                else:
+                    constraints_removed = True
+            atoms.set_constraint(fa)
             del atoms[len(atoms) // oldprod:]
             atoms *= repeat
             atoms.cell = refcell
             images.append(atoms)
+
+        if constraints_removed:
+            from ase.gui.ui import tk, showwarning
+            # We must be able to show warning before the main GUI
+            # has been created.  So we create a new window,
+            # then show the warning, then destroy the window.
+            tmpwindow = tk.Tk()
+            tmpwindow.withdraw()  # Host window will never be shown
+            showwarning(_('Constraints discarded'),
+                        _('Constraints other than FixAtoms '
+                          'have been discarded.'))
+            tmpwindow.destroy()
+
         self.initialize(images, filenames=self.filenames)
         self.repeat = repeat
 
@@ -197,7 +209,7 @@ class Images:
         import ase.units as units
         code = compile(expr + ',', '<input>', 'eval')
 
-        n = len(self)
+        nimages = len(self)
 
         def d(n1, n2):
             return sqrt(((R[n1] - R[n2])**2).sum())
@@ -242,7 +254,7 @@ class Images:
               'd': d, 'a': a, 'dih': dih}
 
         data = []
-        for i in range(n):
+        for i in range(nimages):
             ns['i'] = i
             ns['s'] = s
             ns['R'] = R = self[i].get_positions()
@@ -262,13 +274,14 @@ class Images:
             ns['ekin'] = ekin = self[i].get_kinetic_energy()
             ns['e'] = epot + ekin
             ndynamic = dynamic.sum()
-            ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
+            if ndynamic > 0:
+                ns['T'] = 2.0 * ekin / (3.0 * ndynamic * units.kB)
             data = eval(code, ns)
             if i == 0:
-                m = len(data)
-                xy = np.empty((m, n))
+                nvariables = len(data)
+                xy = np.empty((nvariables, nimages))
             xy[:, i] = data
-            if i + 1 < n and not self.have_varying_species:
+            if i + 1 < nimages and not self.have_varying_species:
                 s += sqrt(((self[i + 1].positions - R)**2).sum())
         return xy
 

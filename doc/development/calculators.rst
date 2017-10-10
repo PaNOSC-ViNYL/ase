@@ -1,3 +1,5 @@
+.. _Adding new calculators:
+
 ======================
 Adding new calculators
 ======================

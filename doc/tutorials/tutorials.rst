@@ -27,17 +27,21 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    atomization
    lattice_constant
    eos/eos
+   db/db
    constraints/diffusion
    selfdiffusion/al110
    neb/diffusion
    neb/idpp
    dissociation
    md/md
+   tipnp_equil/tipnp_equil
    wannier/wannier
    minimahopping/minimahopping
    ga/ga_optimize
    ga/ga_fcc_alloys
+   ga/ga_convex_hull
    defects/defects
+   qmmm/qmmm
 
 
 NumPy

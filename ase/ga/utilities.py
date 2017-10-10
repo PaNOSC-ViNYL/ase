@@ -266,6 +266,15 @@ def get_nnmat(atoms, mic=False):
     return nnlist
 
 
+def get_nnmat_string(atoms, decimals=2, mic=False):
+    nnmat = get_nnmat(atoms, mic=mic)
+    s = '-'.join(['{1:2.{0}f}'.format(decimals, i)
+                  for i in nnmat])
+    if len(nnmat) == 1:
+        return s + '-'
+    return s
+
+
 def get_connections_index(atoms, max_conn=5, no_count_types=None):
     """
     This method returns a dictionary where each key value are a

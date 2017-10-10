@@ -53,11 +53,21 @@ for name in ['y2.json', 'y2.db']:
     assert (row.data.chi == chi).all()
     print(row)
 
-    with must_raise(ValueError):
-        c.write(ch4, foo=['bar', 2])
+    for row in c.select(include_data=False):
+        with must_raise(AttributeError):
+            row.data
 
     with must_raise(ValueError):
-        c.write(Atoms(), pi='3.14')
+        c.write(ch4, foo=['bar', 2])  # not int, bool, float or str
+
+    with must_raise(ValueError):
+        c.write(Atoms(), pi='3.14')  # number as a string
+
+    with must_raise(ValueError):
+        c.write(Atoms(), S=42)  # chemical symbol as key
+
+    id = c.write(Atoms(), b=np.bool_(True))
+    assert isinstance(c[id].b, bool)
 
     # Make sure deleting a single sey works:
     id = c.write(Atoms(), key=7)

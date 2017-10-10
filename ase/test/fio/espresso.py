@@ -8,7 +8,10 @@ Implemented:
 
 import os
 
+import numpy as np
+
 from ase import io
+from ase import build
 
 
 # This file is parsed correctly by pw.x, even though things are
@@ -270,6 +273,7 @@ End final coordinates
 
 
 def test_pw_input():
+    """Read pw input file."""
     with open('pw_input.pwi', 'w') as pw_input_f:
         pw_input_f.write(pw_input_text)
 
@@ -281,6 +285,7 @@ def test_pw_input():
 
 
 def test_pw_output():
+    """Read pw output file."""
     with open('pw_output.pwo', 'w') as pw_output_f:
         pw_output_f.write(pw_output_text)
 
@@ -293,11 +298,12 @@ def test_pw_output():
 
 
 def test_pw_results_required():
+    """Check only configurations with results are read unless requested."""
     with open('pw_output.pwo', 'w') as pw_output_f:
         pw_output_f.write(pw_output_text)
 
     try:
-        # ignore final config
+        # ignore 'final coordinates' with no results
         pw_output_traj = io.read('pw_output.pwo', index=':')
         assert 'energy' in pw_output_traj[-1].get_calculator().results
         assert len(pw_output_traj) == 2
@@ -306,11 +312,33 @@ def test_pw_results_required():
                                  results_required=False)
         assert len(pw_output_traj) == 3
         assert 'energy' not in pw_output_traj[-1].get_calculator().results
+        # get default index=-1 with results
+        pw_output_config = io.read('pw_output.pwo')
+        assert 'energy' in pw_output_config.get_calculator().results
+        # get default index=-1 with no results "final coordinates'
+        pw_output_config = io.read('pw_output.pwo', results_required=False)
+        assert 'energy' not in pw_output_config.get_calculator().results
     finally:
         os.unlink('pw_output.pwo')
+
+
+def test_pw_input_write():
+    """Write a structure and read it back."""
+    bulk = build.bulk('NiO', 'rocksalt', 4.813, cubic=True)
+    bulk.set_initial_magnetic_moments([2.2 if atom.symbol == 'Ni' else 0.0
+                                       for atom in bulk])
+
+    try:
+        bulk.write('espresso_test.pwi')
+        readback = io.read('espresso_test.pwi')
+        assert np.allclose(bulk.positions, readback.positions)
+    finally:
+        os.unlink('espresso_test.pwi')
+
 
 
 if __name__ in ('__main__', '__builtin__'):
     test_pw_input()
     test_pw_output()
     test_pw_results_required()
+    test_pw_input_write()

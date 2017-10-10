@@ -13,15 +13,18 @@ commands = [
     ('gui', 'ase.gui.ag'),
     ('db', 'ase.db.cli'),
     ('run', 'ase.cli.run'),
+    ('band-structure', 'ase.cli.band_structure'),
     ('build', 'ase.cli.build'),
     ('eos', 'ase.eos'),
     ('ulm', 'ase.io.ulm'),
+    ('find', 'ase.cli.find'),
     ('nomad-upload', 'ase.cli.nomad'),
+    ('reciprocal', 'ase.cli.reciprocal'),
     ('completion', 'ase.cli.completion')]
 
 
 def main(prog='ase', description='ASE command line tool',
-         version=__version__, commands=commands, hook=None):
+         version=__version__, commands=commands, hook=None, args=None):
     parser = argparse.ArgumentParser(prog=prog, description=description)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(version))
@@ -49,7 +52,7 @@ def main(prog='ase', description='ASE command line tool',
     if hook:
         args = hook(parser)
     else:
-        args = parser.parse_args()
+        args = parser.parse_args(args)
 
     if args.command == 'help':
         if args.helpcommand is None:
@@ -73,10 +76,12 @@ def main(prog='ase', description='ASE command line tool',
             else:
                 print('{}: {}'.format(x.__class__.__name__, x),
                       file=sys.stderr)
-                print('To get a full traceback, use: {} -T'
-                      .format(prog), file=sys.stderr)
+                print('To get a full traceback, use: {} -T {} ...'
+                      .format(prog, args.command), file=sys.stderr)
 
 
 def old():
-    sys.argv[:1] = sys.argv[0].rsplit('-', 1)
+    cmd = sys.argv[0].split('-')[-1]
+    print('Please use "ase {cmd}" instead of "ase-{cmd}"'.format(cmd=cmd))
+    sys.argv[:1] = ['ase', cmd]
     main()

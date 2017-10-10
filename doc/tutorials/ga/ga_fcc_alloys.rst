@@ -4,7 +4,7 @@
 GA Search for stable FCC alloys
 ===============================
 
-In this tutorial we will emulate an older paper [Jóhannesson]_ and determine
+In this tutorial we will emulate an older paper [Johannesson]_ and determine
 the most stable FCC alloy using the genetic algorithm. Since the purpose is
 only the tutorial we will limit the phase space to the elements supported by
 the :mod:`EMT potential <ase.calculators.emt>`. The search is also equivalent
@@ -56,7 +56,10 @@ performed on a cluster by submitting to a queuing system. How this is
 achieved in the algorithm is covered in
 :ref:`genetic_algorithm_optimization_tutorial`.
 
-.. defined for an alloy :mol:`ABC_2`: A + B + 2C -> :mol:`ABC_2` as: `\Delta H_f = E_{ABC2} - E_A - E_B - 2E_C`
+..
+
+  defined for an alloy :mol:`ABC_2`: A + B + 2C -> :mol:`ABC_2`
+  as: `\Delta H_f = E_{ABC2} - E_A - E_B - 2E_C`
 
 
 .. _references:
@@ -82,7 +85,8 @@ which we save in the database as key-value pairs for quick retrieval.
 Initial population
 ==================
 
-We choose a population size of 10 individuals and create the initial population by randomly selecting four elements for each starting individual.
+We choose a population size of 10 individuals and create the initial
+population by randomly selecting four elements for each starting individual.
 
 .. literalinclude:: ga_fcc_alloys_start.py
 
@@ -116,7 +120,7 @@ In this script we run a generational GA as opposed to the pool GA outlined in
 two for-loops; the innermost loop runs the number of times specified by the
 population size it corresponds to one generation. The outermost loop runs as
 many generations as specified in ``num_gens``. The function
-:func:`pop.update()` is called after the innermost loop has finished thereby
+``pop.update()`` is called after the innermost loop has finished thereby
 only adding individuals to the population after a whole generation is
 calculated.
 
@@ -145,8 +149,9 @@ the references_.
 *Note* that the global optimum is :mol:`PtNi_3` with a -0.12 eV heat of
 formation, whereas the second worst alloy is :mol:`AlNi_3` heat of formation
 0.26 eV. This result is in complete contrast to the conclusion obtained in
-[Jóhannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase
+[Johannesson]_, where :mol:`AlNi_3` is the most stable alloy within the phase
 space chosen here. Obviously there is a limit to the predictive power of EMT!
+
 
 Extending the algorithm
 =======================
@@ -262,9 +267,14 @@ formation, but if not we do the calculation and save it directly to
 ``all_relaxed.db``. *Note:* this addition assumes that `Prevent identical
 calculations from being performed`_.
 
-.. [Jóhannesson] G. Jóhannesson, T. Bligaard, A. Ruban, H. Skriver, K. Jacobsen and J. Nørskov.
-   Combined Electronic Structure and Evolutionary Search Approach to Materials Design,
+
+.. [Johannesson] G. Jóhannesson, T. Bligaard, A. Ruban, H. Skriver,
+   K. Jacobsen and J. Nørskov.
+   Combined Electronic Structure and Evolutionary Search Approach
+   to Materials Design,
    Phys. Rev. Lett., Vol **88**, No. 25, pp. 1-5 (2002)
+
 .. [Jensen] P. B. Jensen, S. Lysgaard, U. J. Quaade and T. Vegge.
-   Designing Mixed Metal Halide Ammines for Ammonia Storage Using Density Functional Theory and Genetic Algorithms
+   Designing Mixed Metal Halide Ammines for Ammonia Storage Using
+   Density Functional Theory and Genetic Algorithms
    Phys. Chem. Chem. Phys., Vol **16**, No. 36, pp. 19732-19740, (2014)
