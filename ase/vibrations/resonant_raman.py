@@ -292,7 +292,7 @@ class ResonantRaman(Vibrations):
     def read_excitations_overlap(self):
         """Read all finite difference excitations and wf overlaps."""
         self.timer.start('read excitations')
-        self.timer.start('really read')
+        self.timer.start('read+rotate')
         self.log('reading ' + self.exname + '.eq' + self.exext)
         ex0 = self.exobj(self.exname + '.eq' + self.exext,
                          **self.exkwargs)
@@ -315,42 +315,13 @@ class ResonantRaman(Vibrations):
             self.timer.stop('ex overlap')
             return ex_p, ov_pp
             
-        exm = []
-        ovm = []
-        exp = []
-        ovp = []
-        for a, i in zip(self.myindices, self.myxyz):
-            name = '%s.%d%s' % (self.exname, a, i)
-            ex, ov = load(name, '-', rep0_p)
-            exm.append(ex)
-            ovm.append(ov)
-            ex, ov = load(name, '+', rep0_p)
-            exp.append(ex)
-            ovp.append(ov)
-        self.ndof = 3 * len(self.indices)
-        self.timer.stop('really read')
-
-        self.timer.start('me and energy')
-
-        # select only excitations that are sufficiently represented
-        select = np.where(rep0_p > self.minrep)
-
-        eu = u.Hartree
-        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])[select]
-        self.ex0m_pc = (np.array(
-            [ex.get_dipole_me(form=self.dipole_form)
-             for ex in ex0])[select] * u.Bohr)
-
         def rotate(ex_p, ov_pp):
             e_p = np.array([ex.energy for ex in ex_p])
             m_pc = np.array(
                 [ex.get_dipole_me(form=self.dipole_form) for ex in ex_p])
             r_pp = ov_pp.T
-            return ((r_pp.real**2 + r_pp.imag**2).dot(e_p)[select],
-                    r_pp.dot(m_pc)[select])
-
-        def z(arr):
-            return np.where(abs(arr) > 0.05, arr, 0)
+            return ((r_pp.real**2 + r_pp.imag**2).dot(e_p),
+                    r_pp.dot(m_pc))
 
         exmE_rp = []
         expE_rp = []
@@ -358,28 +329,49 @@ class ResonantRaman(Vibrations):
         exmm_rpc = []
         expm_rpc = []
         exdmdr_rpc = []
-        r = 0
         for a, i in zip(self.myindices, self.myxyz):
-            exmE_p, exmm_pc = rotate(exm[r], ovm[r])
-            expE_p, expm_pc = rotate(exp[r], ovp[r])
+            name = '%s.%d%s' % (self.exname, a, i)
+            ex, ov = load(name, '-', rep0_p)
+            exmE_p, exmm_pc = rotate(ex, ov)
+            ex, ov = load(name, '+', rep0_p)
+            expE_p, expm_pc = rotate(ex, ov)
             exmE_rp.append(exmE_p)
             expE_rp.append(expE_p)
             exF_rp.append(exmE_p - expE_p)
             exmm_rpc.append(exmm_pc)
             expm_rpc.append(expm_pc)
             exdmdr_rpc.append(expm_pc - exmm_pc)
-            r += 1
-        # indicees: r=coordinate, p=excitation
-        # energies in eV
-        self.exmE_rp = np.array(exmE_rp) * eu
-        self.expE_rp = np.array(expE_rp) * eu
-        # forces in eV / Angstrom
-        self.exF_rp = np.array(exF_rp) * eu / 2 / self.delta
-        # matrix elements in e * Angstrom
-        self.exmm_rpc = np.array(exmm_rpc) * u.Bohr
-        self.expm_rpc = np.array(expm_rpc) * u.Bohr
-        # matrix element derivatives in e
-        self.exdmdr_rpc = np.array(exdmdr_rpc) * u.Bohr / 2 / self.delta
+        self.timer.stop('read+rotate')
+
+        self.timer.start('me and energy')
+
+        # select only excitations that are sufficiently represented
+        select = np.where(rep0_p > self.minrep)[0]
+
+        eu = u.Hartree
+        self.ex0E_p = np.array([ex.energy * eu for ex in ex0])[select]
+        self.ex0m_pc = (np.array(
+            [ex.get_dipole_me(form=self.dipole_form)
+             for ex in ex0])[select] * u.Bohr)
+
+        if len(self.myr):
+            # indicees: r=coordinate, p=excitation
+            # energies in eV
+            self.exmE_rp = np.array(exmE_rp)[:,select] * eu
+            ##print(len(select), np.array(exmE_rp).shape, self.exmE_rp.shape)
+            self.expE_rp = np.array(expE_rp)[:,select] * eu
+            # forces in eV / Angstrom
+            self.exF_rp = np.array(exF_rp)[:,select] * eu / 2 / self.delta
+            # matrix elements in e * Angstrom
+            self.exmm_rpc = np.array(exmm_rpc)[:,select,:] * u.Bohr
+            self.expm_rpc = np.array(expm_rpc)[:,select,:] * u.Bohr
+            # matrix element derivatives in e
+            self.exdmdr_rpc = (np.array(exdmdr_rpc)[:,select,:] *
+                               u.Bohr / 2 / self.delta)
+        else:
+            # did not read
+            self.exmE_rp = self.expE_rp = self.exF_rp = np.empty((0))
+            self.exmm_rpc = self.expm_rpc = self.exdmdr_rpc = np.empty((0))
 
         self.timer.stop('me and energy')
         self.timer.stop('read excitations')
