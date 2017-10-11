@@ -4,58 +4,90 @@ from ase.gui.i18n import _
 import ase.data
 import ase.gui.ui as ui
 
+from ase import Atoms
+from ase.collections import g2
+
 
 class Element(list):
-    def __init__(self, symbol='', callback=None):
+    def __init__(self, symbol='', callback=None, allow_molecule=False):
         list.__init__(self,
                       [_('Element:'),
-                       ui.Entry(symbol, 3, self.enter),
+                       ui.Entry(symbol, 10 if allow_molecule else 3,
+                                self.enter),
+                       ui.Button(_('Help'), self.show_help),
                        ui.Label('', 'red')])
         self.callback = callback
-        self._symbol = None
-        self._Z = None
+        self.allow_molecule = allow_molecule
+
+    def grab_focus(self):
+        self[1].entry.focus_set()
+
+    def show_help(self):
+        names = []
+        import re
+        for name in g2.names:
+            if not re.match('^[A-Z][a-z]?$', name):  # Not single atoms
+                names.append(name)
+
+        # This infobox is indescribably ugly because of the
+        # ridiculously large font size used by Tkinter.  Ouch!
+        msg = _('Enter a chemical symbol or the name of a molecule '
+                'from the G2 testset:\n'
+                '{}'.format(', '.join(names)))
+        ui.showinfo('Info', msg)
+
+    @property
+    def Z(self):
+        assert not self.allow_molecule
+        atoms = self.get_atoms()
+        if atoms is None:
+            return None
+        assert len(atoms) == 1
+        return atoms.numbers[0]
 
     @property
     def symbol(self):
-        self.check()
-        return self._symbol
+        Z = self.Z
+        return None if Z is None else ase.data.chemical_symbols[Z]
 
+    # Used by tests...
     @symbol.setter
     def symbol(self, value):
         self[1].value = value
 
-    @property
-    def Z(self):
-        self.check()
-        return self._Z
+    def get_atoms(self):
+        val = self._get()
+        if val is not None:
+            self[2].text = ''
+        return val
 
-    @Z.setter
-    def Z(self, value):
-        self.symbol = ase.data.chemical_symbols[value]
+    def _get(self):
+        txt = self[1].value
 
-    def check(self):
-        self._symbol = self[1].value
-        if not self._symbol:
+        if not txt:
             self.error(_('No element specified!'))
-            return False
-        self._Z = ase.data.atomic_numbers.get(self._symbol)
-        if self._Z is None:
+            return None
+
+        if txt.isdigit():
+            txt = int(txt)
             try:
-                self._Z = int(self._symbol)
-            except ValueError:
+                txt = ase.data.chemical_symbols[txt]
+            except KeyError:
                 self.error()
-                return False
-            self._symbol = ase.data.chemical_symbols[self._Z]
-        self[2].text = ''
-        return True
+                return None
+
+        if txt in ase.data.atomic_numbers:
+            return Atoms(txt)
+
+        if self.allow_molecule and g2.has(txt):
+            return g2[txt]
+
+        self.error()
 
     def enter(self):
-        self.check()
         self.callback(self)
 
     def error(self, text=_('ERROR: Invalid element!')):
-        self._symbol = None
-        self._Z = None
         self[2].text = text
 
 

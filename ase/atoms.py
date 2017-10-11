@@ -361,7 +361,7 @@ class Atoms(object):
         First three are unit cell vector lengths and second three
         are angles between them::
 
-            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+            [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)]
 
         in degrees.
         """

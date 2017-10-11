@@ -130,7 +130,7 @@ class SetupNanoparticle:
         win = self.win = ui.Window(_('Nanoparticle'))
         win.add(ui.Text(introtext))
 
-        self.element = Element('', self.update)
+        self.element = Element('', self.apply)
         lattice_button = ui.Button(_('Get structure'),
                                    self.set_structure_data)
         self.elementinfo = ui.Label(' ')
@@ -201,7 +201,7 @@ class SetupNanoparticle:
         self.smaller_button = None
         self.largeer_button = None
 
-        self.element[1].entry.focus_set()
+        self.element.grab_focus()
 
     def default_direction_table(self):
         'Set default directions and values for the current crystal structure.'
@@ -391,7 +391,7 @@ class SetupNanoparticle:
     def update(self, *args):
         if self.no_update:
             return
-        self.element.check()
+        self.element.Z  # Check
         if self.auto.value:
             self.makeatoms()
             if self.atoms is not None:
@@ -402,9 +402,9 @@ class SetupNanoparticle:
 
     def set_structure_data(self, *args):
         'Called when the user presses [Get structure].'
-        if not self.element.check():
-            return
         z = self.element.Z
+        if z is None:
+            return
         ref = ase.data.reference_states[z]
         if ref is None:
             structure = None
@@ -432,7 +432,8 @@ class SetupNanoparticle:
 
     def makeatoms(self, *args):
         'Make the atoms according to the current specification.'
-        if not self.element.check():
+        symbol = self.element.symbol
+        if symbol is None:
             self.clearatoms()
             self.makeinfo()
             return False
@@ -452,13 +453,13 @@ class SetupNanoparticle:
                                for x in self.direction_table_rows.rows]
             self.update_size_diameter(update=False)
             rounding = self.round_radio.value
-            self.atoms = wulff_construction(self.element.symbol,
+            self.atoms = wulff_construction(symbol,
                                             surfaces,
                                             surfaceenergies,
                                             self.size_natoms.value,
                                             self.factory[struct],
                                             rounding, lc)
-            python = py_template_wulff % {'element': self.element.symbol,
+            python = py_template_wulff % {'element': symbol,
                                           'surfaces': str(surfaces),
                                           'energies': str(surfaceenergies),
                                           'latconst': lc_str,
@@ -469,12 +470,12 @@ class SetupNanoparticle:
             # Layer-by-layer specification
             surfaces = [x[0] for x in self.direction_table]
             layers = [x[1].value for x in self.direction_table_rows.rows]
-            self.atoms = self.factory[struct](self.element.symbol,
+            self.atoms = self.factory[struct](symbol,
                                               copy(surfaces),
                                               layers, latticeconstant=lc)
             imp = self.import_names[struct]
             python = py_template_layers % {'import': imp,
-                                           'element': self.element.symbol,
+                                           'element': symbol,
                                            'surfaces': str(surfaces),
                                            'layers': str(layers),
                                            'latconst': lc_str,
@@ -521,7 +522,7 @@ class SetupNanoparticle:
                 self.smaller_button.active = self.atoms is not None
                 self.larger_button.active = self.atoms is not None
 
-    def apply(self):
+    def apply(self, callbackarg=None):
         self.makeatoms()
         if self.atoms is not None:
             self.gui.new_atoms(self.atoms)

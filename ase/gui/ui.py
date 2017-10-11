@@ -4,7 +4,7 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror, showwarning
+    from tkinter.messagebox import showerror, showwarning, showinfo
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
@@ -14,7 +14,7 @@ except ImportError:
     except ImportError:
         ttk = None
     from tkMessageBox import (askokcancel as ask_question, showerror,
-                              showwarning)
+                              showwarning, showinfo)
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -31,7 +31,7 @@ __all__ = [
     'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
-    'showwarning', 'SpinBox', 'Text']
+    'showinfo', 'showwarning', 'SpinBox', 'Text']
 
 
 if sys.platform == 'darwin':
@@ -335,8 +335,8 @@ if ttk is not None:
             self.creator = partial(ttk.Combobox,
                                    values=labels)
 
-        def create(self, parrent):
-            widget = Widget.create(self, parrent)
+        def create(self, parent):
+            widget = Widget.create(self, parent)
             widget.current(0)
             if self.callback:
                 def callback(event):
