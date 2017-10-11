@@ -4,7 +4,7 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror
+    from tkinter.messagebox import showerror, showwarning, showinfo
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
@@ -13,7 +13,8 @@ except ImportError:
         import ttk
     except ImportError:
         ttk = None
-    from tkMessageBox import askokcancel as ask_question, showerror
+    from tkMessageBox import (askokcancel as ask_question, showerror,
+                              showwarning, showinfo)
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -30,7 +31,7 @@ __all__ = [
     'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
-    'SpinBox', 'Text']
+    'showinfo', 'showwarning', 'SpinBox', 'Text']
 
 
 if sys.platform == 'darwin':
@@ -334,8 +335,8 @@ if ttk is not None:
             self.creator = partial(ttk.Combobox,
                                    values=labels)
 
-        def create(self, parrent):
-            widget = Widget.create(self, parrent)
+        def create(self, parent):
+            widget = Widget.create(self, parent)
             widget.current(0)
             if self.callback:
                 def callback(event):
@@ -564,9 +565,11 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
         self.win.bind('<MouseWheel>', bind(scroll_event))
-        self.win.bind('<Key>', bind(scroll))
-        self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
-        self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
+        for key in ['Key', 'Next', 'Prior']:
+            # Next and Prior are PageUp/Dn, referring to Z axis.
+            self.win.bind('<{}>'.format(key), bind(scroll))
+            self.win.bind('<Shift-{}>'.format(key), bind(scroll, 'shift'))
+            self.win.bind('<Control-{}>'.format(key), bind(scroll, 'ctrl'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']

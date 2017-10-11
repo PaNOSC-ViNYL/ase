@@ -11,7 +11,7 @@ names = {'position': ('positions', np.zeros(3)),
          'tag': ('tags', 0),
          'momentum': ('momenta', np.zeros(3)),
          'mass': ('masses', None),
-         'magmom': ('magmoms', 0.0),
+         'magmom': ('initial_magmoms', 0.0),
          'charge': ('initial_charges', 0.0)}
 
 
@@ -192,7 +192,7 @@ class Atom(object):
     momentum = atomproperty('momentum', 'XYZ-momentum')
     mass = atomproperty('mass', 'Atomic mass')
     magmom = atomproperty('magmom', 'Initial magnetic moment')
-    charge = atomproperty('charge', 'Atomic charge')
+    charge = atomproperty('charge', 'Initial atomic charge')
     x = xyzproperty(0)
     y = xyzproperty(1)
     z = xyzproperty(2)

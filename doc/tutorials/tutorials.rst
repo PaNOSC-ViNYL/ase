@@ -39,6 +39,7 @@ but any other :mod:`Calculator <ase.calculators>` could be plugged in instead.
    minimahopping/minimahopping
    ga/ga_optimize
    ga/ga_fcc_alloys
+   ga/ga_convex_hull
    defects/defects
    qmmm/qmmm
 

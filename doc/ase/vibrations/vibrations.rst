@@ -7,7 +7,7 @@ Vibration analysis
 Vibrational modes
 =================
 
-You can calculate the vibrational modes of a an
+You can calculate the vibrational modes of an
 :class:`~ase.Atoms` object in the harmonic approximation using
 the :class:`Vibrations`.
 

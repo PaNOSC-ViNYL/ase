@@ -163,7 +163,7 @@ class Atoms(object):
                 tags = atoms.get_tags()
             if momenta is None and atoms.has('momenta'):
                 momenta = atoms.get_momenta()
-            if magmoms is None and atoms.has('magmoms'):
+            if magmoms is None and atoms.has('initial_magmoms'):
                 magmoms = atoms.get_initial_magnetic_moments()
             if masses is None and atoms.has('masses'):
                 masses = atoms.get_masses()
@@ -228,7 +228,8 @@ class Atoms(object):
         if pbc is None:
             pbc = False
         self.set_pbc(pbc)
-        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)), apply_constraint=False)
+        self.set_momenta(default(momenta, (0.0, 0.0, 0.0)),
+                         apply_constraint=False)
 
         if info is None:
             self.info = {}
@@ -360,7 +361,7 @@ class Atoms(object):
         First three are unit cell vector lengths and second three
         are angles between them::
 
-            [len(a), len(b), len(c), angle(a,b), angle(a,c), angle(b,c)]
+            [len(a), len(b), len(c), angle(b,c), angle(a,c), angle(a,b)]
 
         in degrees.
         """
@@ -448,7 +449,7 @@ class Atoms(object):
     def has(self, name):
         """Check for existence of array.
 
-        name must be one of: 'tags', 'momenta', 'masses', 'magmoms',
+        name must be one of: 'tags', 'momenta', 'masses', 'initial_magmoms',
         'initial_charges'."""
         # XXX extend has to calculator properties
         return name in self.arrays
@@ -592,15 +593,16 @@ class Atoms(object):
         or non-collinear spins)."""
 
         if magmoms is None:
-            self.set_array('magmoms', None)
+            self.set_array('initial_magmoms', None)
         else:
             magmoms = np.asarray(magmoms)
-            self.set_array('magmoms', magmoms, float, magmoms.shape[1:])
+            self.set_array('initial_magmoms', magmoms, float,
+                           magmoms.shape[1:])
 
     def get_initial_magnetic_moments(self):
         """Get array of initial magnetic moments."""
-        if 'magmoms' in self.arrays:
-            return self.arrays['magmoms'].copy()
+        if 'initial_magmoms' in self.arrays:
+            return self.arrays['initial_magmoms'].copy()
         else:
             return np.zeros(len(self))
 
@@ -1808,6 +1810,9 @@ class Atoms(object):
         """
         from ase.io import write
         write(filename, self, format, **kwargs)
+
+    def _images_(self):
+        yield self
 
     def edit(self):
         """Modify atoms interactively through ASE's GUI viewer.

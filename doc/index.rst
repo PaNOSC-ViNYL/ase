@@ -57,6 +57,8 @@ See how to identify and convert old trajectory files here: :ref:`convert`.
 News
 ====
 
+* :ref:`ASE version 3.15.0 <releasenotes>` released (28 September 2017).
+
 * Bugfix release: :ref:`ASE version 3.14.1 <releasenotes>` (28 June 2017).
 
 * :ref:`ASE version 3.14.0 <releasenotes>` released (20 June 2017).
