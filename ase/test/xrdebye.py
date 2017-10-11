@@ -1,7 +1,7 @@
 """Tests for XrDebye class"""
 from __future__ import print_function
 
-from ase.xrdebye import XrDebye, wavelengths
+from ase.cluster.xrdebye import XrDebye, wavelengths
 from ase.cluster.cubic import FaceCenteredCubic
 import numpy as np
 
