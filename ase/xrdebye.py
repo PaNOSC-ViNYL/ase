@@ -192,7 +192,7 @@ class XrDebye(object):
             for twotheta in self.twotheta_list:
                 s = 2 * sin(twotheta * pi / 180 / 2.0) / self.wavelength
                 result.append(self.get(s))
-                print('%f\t%f' % (twotheta, result[-1]))
+                print('%.3f\t%f' % (twotheta, result[-1]))
         elif mode == 'SAXS':
             self.q_list = x
             self.twotheta_list = []
@@ -200,9 +200,9 @@ class XrDebye(object):
             for q in self.q_list:
                 s = q / (2 * pi)
                 result.append(self.get(s))
-                print('%f\t%f' % (q, result[-1]))
+                print('%.4f\t%f' % (q, result[-1]))
         self.intensity_list = np.array(result)
-        return result
+        return self.intensity_list
 
     def write_pattern(self, filename):
         """ Save calculated data """
