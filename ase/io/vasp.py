@@ -684,6 +684,12 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
         else:
             atoms = atoms[0]
 
+    # Check lattice vectors are finite
+    if np.any(atoms.get_cell_lengths_and_angles() == 0.):
+        raise RuntimeError(
+            'Lattice vectors must be finite and not coincident. '
+            'At least one lattice length or angle is zero.')
+
     # Write atom positions in scaled or cartesian coordinates
     if direct:
         coord = atoms.get_scaled_positions()
