@@ -224,22 +224,42 @@ class XrDebye(object):
 
         f.close()
 
-    def plot_pattern(self):
-        """ Plot XRD or SAXS depending on filled data """
+    def plot_pattern(self, filename=None, show=None, ax=None):
+        """ Plot XRD or SAXS depending on filled data
+
+        Uses Matplotlib to plot pattern. Use *show=True* to
+        show the figure and *filename='abc.png'* or
+        *filename='abc.eps'* to save the figure to a file."""
+
         import matplotlib.pyplot as plt
+
+        if filename is None and show is None:
+            show = True
+
+        if ax is None:
+            plt.clf()  # clear figure
+            ax = plt.gca()
+
         if self.mode == 'XRD':
             x, y = np.array(self.twotheta_list), np.array(self.intensity_list)
-            plt.plot(x, y / np.max(y), 'k-')
-            plt.xlabel('2$\\theta$')
-            plt.ylabel('Intensity')
+            ax.plot(x, y / np.max(y), '.-')
+            ax.set_xlabel('2$\\theta$')
+            ax.set_ylabel('Intensity')
         elif self.mode == 'SAXS':
             x, y = np.array(self.q_list), np.array(self.intensity_list)
-            plt.loglog(x, y / np.max(y), 'k-')
-            plt.xlabel('q, 1/Angstr.')
-            plt.ylabel('Intensity')
+            ax.loglog(x, y / np.max(y), '.-')
+            ax.set_xlabel('q, 1/Angstr.')
+            ax.set_xlabel('Intensity')
         else:
             raise Exception('No data available, call calc_pattern() first')
-        plt.show()
+
+        if show:
+            plt.show()
+        if filename is not None:
+            fig = ax.get_figure()
+            fig.savefig(filename)
+
+        return ax
 
 if __name__ == '__main__':
     #
