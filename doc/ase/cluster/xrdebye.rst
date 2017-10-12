@@ -6,7 +6,7 @@ X-ray scattering simulation
 
 
 The module for simulation of X-ray scattering properties from the atomic level. 
-The approach works only for finite systems, so that periodic boundary condiotions and cell shape are ignored. 
+The approach works only for finite systems, so that periodic boundary conditions and cell shape are ignored. 
 
 Theory
 ========
@@ -17,10 +17,10 @@ The scattering can be calculated using Debye formula [Debye1915]_ :
 
 where:
 
-- :math:`a` and :math:`b` -- atom indeces;
+- :math:`a` and :math:`b` -- atom indexes;
 - :math:`f_a(q)` -- :math:`a`-th atomic scattering factor;
 - :math:`r_{ab}` -- distance between atoms :math:`a` and :math:`b`;
-- :math:`q` is a scattering vector defined using scattering anlge (:math:`\theta`) and wavelength (:math:`\lambda`) as :math:`q = 4\pi \cdot \sin(\theta)/\lambda`.
+- :math:`q` is a scattering vector defined using scattering angle (:math:`\theta`) and wavelength (:math:`\lambda`) as :math:`q = 4\pi \cdot \sin(\theta)/\lambda`.
 
 The thermal vibration of atoms can be accounted by introduction of damping exponent factor (Debye-Waller factor) 
 written as :math:`\exp(-B \cdot q^2 / 2)`.
@@ -29,7 +29,7 @@ The angular dependency of geometrical and polarization factors are expressed as 
 
 Units
 -------
-The following mesurement units are used:
+The following measurement units are used:
 
 - scattering vector :math:`q` -- inverse Angstrom (1/Å),
 - thermal damping parameter :math:`B` -- squared Angstrom (Å\ :sup:`2`).
@@ -60,7 +60,7 @@ The X-ray diffraction pattern on the :math:`2\theta` angles ranged from 15 to 30
   xrd.calc_pattern(x=np.arange(15, 30, 0.1), mode='XRD')
   xrd.plot_pattern('xrd.png')
 
-The resulted X-ray diffration pattern shows (220) and (311) peaks at 20 and ~24 degrees respectively.
+The resulted X-ray diffraction pattern shows (220) and (311) peaks at 20 and ~24 degrees respectively.
 
 |xrd| 
 
@@ -83,7 +83,7 @@ The module contains wavelengths dictionary with X-ray wavelengths for copper and
   print('Cu Kalpha1 wavelength: %f Angstr.' % wavelengths['CuKa1'])
 
 
-The dependence of atomic form-factors from scattering vector is calculated based on coefficients given in ``waasmaier`` dictionaty according [Waasmaier1995]_ if method of calculations is set to 'Iwasa'. In other case, the atomic factor is equal to atomic number and angular damping factor is ommited.
+The dependence of atomic form-factors from scattering vector is calculated based on coefficients given in ``waasmaier`` dictionaty according [Waasmaier1995]_ if method of calculations is set to 'Iwasa'. In other case, the atomic factor is equal to atomic number and angular damping factor is omitted.
 
 The XrDebye class members 
 
