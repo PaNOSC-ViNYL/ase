@@ -600,6 +600,8 @@ class ResonantRaman(Vibrations):
         outdata.T[1] = spectrum
         fd = paropen(out, 'w')
         fd.write('# Resonant Raman spectrum\n')
+        if hasattr(self, '_approx'):
+            fd.write('# approximation: {0}\n'.format(self._approx))
         for key in self.observation:
             fd.write('# {0}: {1}\n'.format(key, self.observation[key]))
         fd.write('# omega={0:g} eV, gamma={1:g} eV\n'.format(omega, gamma))
