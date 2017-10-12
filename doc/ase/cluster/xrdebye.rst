@@ -83,7 +83,7 @@ The module contains wavelengths dictionary with X-ray wavelengths for copper and
   print('Cu Kalpha1 wavelength: %f Angstr.' % wavelengths['CuKa1'])
 
 
-The dependence of atomic form-factors from scattering vector is calculated based on coefficients given in ``waasmaier`` dictionaty according [Waasmaier1995]_ if method of calculations is set to 'Iwasa'. In other case, the atomic factor is equal to atomic number and angular damping factor is omitted.
+The dependence of atomic form-factors from scattering vector is calculated based on coefficients given in ``waasmaier`` dictionary according [Waasmaier1995]_ if method of calculations is set to 'Iwasa'. In other case, the atomic factor is equal to atomic number and angular damping factor is omitted.
 
 The XrDebye class members 
 
