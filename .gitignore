@@ -10,3 +10,7 @@ MANIFEST
 
 #editor backup files
 *.py~
+
+# Ignore PyCharm settings
+.idea/
+
