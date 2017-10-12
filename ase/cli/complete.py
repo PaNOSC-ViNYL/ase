@@ -59,7 +59,7 @@ commands = {
         ['-n', '--image-number', '-u', '--show-unit-cell', '-r',
          '--repeat', '-R', '--rotations', '-o', '--output', '-g',
          '--graph', '-t', '--terminal', '--interpolate', '-b',
-         '--bonds', '-s', '--scale'],
+         '--bonds', '-s', '--scale', '--foreground'],
     'info':
         ['-v', '--verbose'],
     'nomad-upload':
@@ -67,7 +67,7 @@ commands = {
     'reciprocal':
         ['-v', '--verbose', '-p', '--path', '-d', '--dimension',
          '--no-vectors', '-k', '--k-points', '-i',
-         '--ibz-k-points'],
+         '--ibz-k-points', '--foreground'],
     'run':
         ['-t', '--tag', '-p', '--parameters', '-d', '--database', '-S',
          '--skip', '--properties', '-f', '--maximum-force',
