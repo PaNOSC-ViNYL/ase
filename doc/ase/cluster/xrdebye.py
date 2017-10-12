@@ -1,6 +1,6 @@
 # creates: saxs.png xrd.png
 
-from ase.xrdebye import XrDebye
+from ase.cluster.xrdebye import XrDebye
 from ase.cluster.cubic import FaceCenteredCubic
 import numpy as np
 
