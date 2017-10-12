@@ -44,12 +44,6 @@ wavelengths = {
 class XrDebye(object):
     """
     Class for calculation of XRD or SAXS patterns.
-
-    Example:
-
-        xrd = XrDebye(wavelength=0.51, atoms=atoms)
-        xrd.calc_pattern(x=np.linspace(0.021, 0.53, 100), mode='SAXS')
-        xrd.plot_pattern()
     """
     def __init__(self, atoms, wavelength, damping=0.04,
                  method='Iwasa', alpha=1.01, warn=True):
@@ -69,10 +63,10 @@ class XrDebye(object):
 
         method: {'Iwasa'}
             method of calculation (damping and atomic factors affected)
-            after T. Iwasa and K. Nobusada, J. Phys. Chem. C 111 (2007) 45.
+            after [Iwasa2007]_
 
-        alpha : float
-            parameter of decreasing of scattering intensity after Iwasa
+        alpha: float
+            parameter for damping of scattering intensity after [Iwasa2007]_
 
         warn: boolean
             flag to show warning if atomic factor can't be calculated
@@ -92,18 +86,17 @@ class XrDebye(object):
         # TODO: setup atomic form factors if method != 'Iwasa'
 
     def set_damping(self, damping):
-        """ set thermal damping value """
+        """ set B-factor for thermal damping """
         self.damping = damping
 
     def get(self, s):
-        """Get the powder x-ray (XRD) pattern
+        """Get the powder x-ray (XRD) scattering intensity
         using the Debye-Formula at single point.
-        After T. Iwasa and K. Nobusada, J. Phys. Chem. C 111 (2007) 45.
 
         Parameters:
 
         s: float, in inverse Angstrom
-            the scattering vector.
+            scattering vector value (s = q / 2pi).
 
         Output:
             Intensity at given scattering vector s
@@ -123,7 +116,7 @@ class XrDebye(object):
         f = {}
         def atomic(symbol):
             """
-            get atomic fator, using cache.
+            get atomic factor, using cache.
             """
             if symbol not in f:
                 if self.method == 'Iwasa':
@@ -173,7 +166,7 @@ class XrDebye(object):
             points where intensity will be calculated.
             XRD - 2theta values, in degrees;
             SAXS - q values in 1/A
-            (q = 2*pi*s = 4*pi*sin(theta)/wavelength).
+            (`q = 2 \cdot \pi \cdot s = 4 \pi \sin(\theta)/\lambda`).
 
         mode: {'XRD', 'SAXS'}
             the mode of calculation, X-ray diffraction (XRD) or
@@ -205,7 +198,7 @@ class XrDebye(object):
         return self.intensity_list
 
     def write_pattern(self, filename):
-        """ Save calculated data """
+        """ Save calculated data to file"""
         f = open(filename, 'w')
         f.write('# Wavelength = %f\n' % self.wavelength)
         if self.mode == 'XRD':
@@ -260,20 +253,3 @@ class XrDebye(object):
             fig.savefig(filename)
 
         return ax
-
-if __name__ == '__main__':
-    #
-    #    simple usage example
-    #
-    from ase.cluster.cubic import FaceCenteredCubic
-    atoms = FaceCenteredCubic('Ag', [(1, 0, 0), (1, 1, 0), (1, 1, 1)],
-        [6, 8, 8], 4.09)
-    fn = 'Ag%i' % len(atoms)
-    xrd = XrDebye(wavelength=0.513, atoms=atoms)
-    xrd.calc_pattern(x=np.linspace(0.021, 0.53, 50), mode='SAXS')
-    xrd.write_pattern('SAXS_%s.dat' % (fn))
-    xrd.plot_pattern()
-
-    xrd.calc_pattern(x=np.arange(15, 50, 0.2), mode='XRD')
-    xrd.write_pattern('XRD_%s.dat' % (fn))
-    xrd.plot_pattern()
