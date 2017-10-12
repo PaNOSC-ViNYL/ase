@@ -249,7 +249,7 @@ class XrDebye(object):
             x, y = np.array(self.q_list), np.array(self.intensity_list)
             ax.loglog(x, y / np.max(y), '.-')
             ax.set_xlabel('q, 1/Angstr.')
-            ax.set_xlabel('Intensity')
+            ax.set_ylabel('Intensity')
         else:
             raise Exception('No data available, call calc_pattern() first')
 
