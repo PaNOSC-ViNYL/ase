@@ -132,9 +132,9 @@ symmetry).  The function can be imported as::
   from ase.cluster import wulff_construction
 
 .. autofunction:: ase.cluster.wulff_construction
-	       
 
-  
+
+.. seealso::  The :mod:`ase.cluster.xrdebye` routines for X-ray scattering simulations of finite systems.
 
 
 

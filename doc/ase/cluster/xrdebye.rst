@@ -79,7 +79,9 @@ Further details
 ===============
 
 The module contains wavelengths dictionary with X-ray wavelengths for copper and wolfram anodes
-:: 
+::
+
+  from ase.cluster.xrdebye import wavelengths
   print('Cu Kalpha1 wavelength: %f Angstr.' % wavelengths['CuKa1'])
 
 
@@ -95,7 +97,7 @@ References
 =============
 
 .. [Debye1915] P. Debye  Ann. Phys. **351**, 809–823 (1915)
-.. [Iwasa2007] T. Iwasa, K. Nobusada J. Phys. Chem. C, **111**, 45-49 (2007) DOI:10.1021/jp063532w
+.. [Iwasa2007] T. Iwasa, K. Nobusada J. Phys. Chem. C, **111**, 45-49 (2007) http://dx.doi.org/10.1021/jp063532w
 .. [Waasmaier1995] D. Waasmaier, A. Kirfel Acta Cryst. **A51**, 416-431 (1995)
 
 .. |xrd| image:: xrd.png

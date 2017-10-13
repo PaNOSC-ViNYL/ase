@@ -68,7 +68,7 @@ class XrDebye(object):
             atomic factors are used.
 
             For any other string there will be only thermal damping
-            and constant atomic factors (\ :math:`f_a(q) = Z_a`).
+            and constant atomic factors (`f_a(q) = Z_a`).
 
         alpha: float
             parameter for angular damping of scattering intensity.
@@ -176,7 +176,7 @@ class XrDebye(object):
         return 0
 
     def calc_pattern(self, x=None, mode='XRD'):
-        """
+        r"""
         Calculate X-ray diffraction pattern or
         small angle X-ray scattering pattern.
 
