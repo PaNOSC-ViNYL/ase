@@ -2,7 +2,6 @@
 
 """Infrared intensities"""
 
-import pickle
 from math import sqrt
 from sys import stdout
 
