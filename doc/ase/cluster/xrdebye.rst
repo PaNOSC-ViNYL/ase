@@ -85,11 +85,11 @@ The module contains wavelengths dictionary with X-ray wavelengths for copper and
 
 The dependence of atomic form-factors from scattering vector is calculated based on coefficients given in ``waasmaier`` dictionary according [Waasmaier1995]_ if method of calculations is set to 'Iwasa'. In other case, the atomic factor is equal to atomic number and angular damping factor is omitted.
 
-The XrDebye class members 
+XrDebye class members 
+-----------------------
 
 .. autoclass:: XrDebye
    :members:
-
 
 References
 =============

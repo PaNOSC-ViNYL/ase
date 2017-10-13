@@ -59,14 +59,20 @@ class XrDebye(object):
             X-ray wavelength in Angstrom. Used for XRD and to setup dumpings.
 
         damping : float, Angstrom**2
-            thermal damping (U) of scattering intensity.
+            thermal damping factor parameter (B-factor).
 
         method: {'Iwasa'}
-            method of calculation (damping and atomic factors affected)
-            after [Iwasa2007]_
+            method of calculation (damping and atomic factors affected).
+
+            If set to 'Iwasa' than angular damping and q-dependence of
+            atomic factors are used.
+
+            For any other string there will be only thermal damping
+            and constant atomic factors (\ :math:`f_a(q) = Z_a`).
 
         alpha: float
-            parameter for damping of scattering intensity after [Iwasa2007]_
+            parameter for angular damping of scattering intensity.
+            Close to 1.0 for unplorized beam.
 
         warn: boolean
             flag to show warning if atomic factor can't be calculated
@@ -96,10 +102,10 @@ class XrDebye(object):
         Parameters:
 
         s: float, in inverse Angstrom
-            scattering vector value (s = q / 2pi).
+            scattering vector value (`s = q / 2\pi`).
 
         Output:
-            Intensity at given scattering vector s
+            Intensity at given scattering vector `s`.
         """
 
         pre = exp(-self.damping * s**2 / 2)
@@ -140,7 +146,21 @@ class XrDebye(object):
         return pre * I
 
     def get_waasmaier(self, symbol, s):
-        """Scattering factor for free atoms."""
+        """Scattering factor for free atoms.
+
+        Parameters:
+
+        symbol: string
+            atom element symbol.
+
+        s: float, in inverse Angstrom
+            scattering vector value (`s = q / 2\pi`).
+
+        Output:
+            Intensity at given scattering vector `s`.
+
+        Note:
+            for hydrogen will be returned zero value."""
         if symbol == 'H':
             # XXXX implement analytical H
             return 0
@@ -155,7 +175,7 @@ class XrDebye(object):
             print('<xrdebye::get_atomic> Element', symbol, 'not available')
         return 0
 
-    def calc_pattern(self, x=np.linspace(15, 55, 100), mode='XRD'):
+    def calc_pattern(self, x=None, mode='XRD'):
         """
         Calculate X-ray diffraction pattern or
         small angle X-ray scattering pattern.
@@ -166,11 +186,12 @@ class XrDebye(object):
             points where intensity will be calculated.
             XRD - 2theta values, in degrees;
             SAXS - q values in 1/A
-            (`q = 2 \cdot \pi \cdot s = 4 \pi \sin(\theta)/\lambda`).
+            (\ :math:`q = 2 \pi \cdot s = 4 \pi \sin(\theta)/\lambda`).
+            If x is None then default values will be used
 
         mode: {'XRD', 'SAXS'}
-            the mode of calculation, X-ray diffraction (XRD) or
-            small angle scattering (SAXS).
+            the mode of calculation: X-ray diffraction (XRD) or
+            small-angle scattering (SAXS).
 
         Output: list of intensities calculated for values given in x.
         """
@@ -179,7 +200,10 @@ class XrDebye(object):
 
         result = []
         if mode == 'XRD':
-            self.twotheta_list = x
+            if x is None:
+                self.twotheta_list = np.linspace(15, 55, 100)
+            else:
+                self.twotheta_list = x
             self.q_list = []
             print('#2theta\tIntensity')
             for twotheta in self.twotheta_list:
@@ -187,7 +211,10 @@ class XrDebye(object):
                 result.append(self.get(s))
                 print('%.3f\t%f' % (twotheta, result[-1]))
         elif mode == 'SAXS':
-            self.q_list = x
+            if x is None:
+                self.twotheta_list = np.logspace(-3, -0.3, 100)
+            else:
+                self.q_list = x
             self.twotheta_list = []
             print('#q\tIntensity')
             for q in self.q_list:
@@ -198,7 +225,7 @@ class XrDebye(object):
         return self.intensity_list
 
     def write_pattern(self, filename):
-        """ Save calculated data to file"""
+        """ Save calculated data to file specified by ``filename`` string."""
         f = open(filename, 'w')
         f.write('# Wavelength = %f\n' % self.wavelength)
         if self.mode == 'XRD':
@@ -222,7 +249,10 @@ class XrDebye(object):
 
         Uses Matplotlib to plot pattern. Use *show=True* to
         show the figure and *filename='abc.png'* or
-        *filename='abc.eps'* to save the figure to a file."""
+        *filename='abc.eps'* to save the figure to a file.
+
+        Returns:
+            ``matplotlib.axes.Axes`` object."""
 
         import matplotlib.pyplot as plt
 
