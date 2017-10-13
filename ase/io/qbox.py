@@ -3,6 +3,7 @@
 from ase import Atom, Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 
+import re
 import xml.etree.ElementTree as ET
 
 
@@ -19,18 +20,42 @@ def read_qbox(file, index=-1):
     # Read in the output file
     tree = ET.parse(file)
 
+    # Check whether this is a QB@all output
+    is_qball = 'qb@LL' in tree.find("release").text
+
     # Load in atomic species
     species = dict()
-    for spec in tree.findall('species'):
-        name = spec.get('name')
-        spec_data = dict(
-            symbol=spec.find('symbol').text,
-            mass=float(spec.find('mass').text),
-            number=int(spec.find('atomic_number').text))
-        species[name] = spec_data
+    if is_qball:
+        # XML for Python 3 reads comments, which means the "species" data might be split between
+        #   multiple nodes on the root
+        species_data = '\n'.join([x.tail for x in tree.getroot() if 'species' in x.tail])
+
+        # Read out the species information with regular expressions
+        symbols = re.findall('symbol_ = ([A-Z][a-z]?)', species_data)
+        masses = re.findall('mass_ = ([0-9.]+)', species_data)
+        names = re.findall('name_ = ([a-z]+)', species_data)
+        numbers = re.findall('atomic_number_ = ([0-9]+)', species_data)
+
+        # Compile them into a dictionary
+        for name, symbol, mass, number in zip(names, symbols, masses, numbers):
+            spec_data = dict(
+                symbol=symbol,
+                mass=float(mass),
+                number=float(number)
+            )
+            species[name] = spec_data
+    else:
+        for spec in tree.findall('species'):
+            name = spec.get('name')
+            spec_data = dict(
+                symbol=spec.find('symbol').text,
+                mass=float(spec.find('mass').text),
+                number=int(spec.find('atomic_number').text))
+            species[name] = spec_data
 
     # Find all of the frames
-    frames = tree.findall("iteration")
+    frames = tree.find("run").findall("iteration") if is_qball \
+        else tree.findall("iteration")
 
     # If index is an int, return one frame
     if isinstance(index, int):
