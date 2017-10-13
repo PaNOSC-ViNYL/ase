@@ -20,7 +20,7 @@ where:
 - :math:`a` and :math:`b` -- atom indexes;
 - :math:`f_a(q)` -- :math:`a`-th atomic scattering factor;
 - :math:`r_{ab}` -- distance between atoms :math:`a` and :math:`b`;
-- :math:`q` is a scattering vector defined using scattering angle (:math:`\theta`) and wavelength (:math:`\lambda`) as :math:`q = 4\pi \cdot \sin(\theta)/\lambda`.
+- :math:`q` is a scattering vector length defined using scattering angle (:math:`\theta`) and wavelength (:math:`\lambda`) as :math:`q = 4\pi \cdot \sin(\theta)/\lambda`.
 
 The thermal vibration of atoms can be accounted by introduction of damping exponent factor (Debye-Waller factor) 
 written as :math:`\exp(-B \cdot q^2 / 2)`.
@@ -94,9 +94,9 @@ XrDebye class members
 References
 =============
 
-.. [Debye1915] Debye, P. J. W. Zerstreuung von Röntgenstrahlen. Ann. Phys. 351, 809–823 (1915).
-.. [Iwasa2007] Iwasa, T.; Nobusada, K. Theoretical Investigation of Optimized Structures of Thiolated Gold Cluster [Au25(SCH3)18]+ J. Phys. Chem. C, 111, 45-49 (2007) DOI:10.1021/jp063532w
-.. [Waasmaier1995] Waasmaier, D.; Kirfel, A. Acta Cryst. A51, 416-431 (1995)
+.. [Debye1915] P. Debye  Ann. Phys. **351**, 809–823 (1915)
+.. [Iwasa2007] T. Iwasa, K. Nobusada J. Phys. Chem. C, **111**, 45-49 (2007) DOI:10.1021/jp063532w
+.. [Waasmaier1995] D. Waasmaier, A. Kirfel Acta Cryst. **A51**, 416-431 (1995)
 
 .. |xrd| image:: xrd.png
 .. |saxs| image:: saxs.png

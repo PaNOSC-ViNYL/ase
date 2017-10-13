@@ -104,7 +104,7 @@ class XrDebye(object):
         s: float, in inverse Angstrom
             scattering vector value (`s = q / 2\pi`).
 
-        Output:
+        Returns:
             Intensity at given scattering vector `s`.
         """
 
@@ -156,7 +156,7 @@ class XrDebye(object):
         s: float, in inverse Angstrom
             scattering vector value (`s = q / 2\pi`).
 
-        Output:
+        Returns:
             Intensity at given scattering vector `s`.
 
         Note:
@@ -186,14 +186,15 @@ class XrDebye(object):
             points where intensity will be calculated.
             XRD - 2theta values, in degrees;
             SAXS - q values in 1/A
-            (\ :math:`q = 2 \pi \cdot s = 4 \pi \sin(\theta)/\lambda`).
-            If x is None then default values will be used
+            (`q = 2 \pi \cdot s = 4 \pi \sin( \theta) / \lambda`).
+            If ``x`` is ``None`` then default values will be used.
 
         mode: {'XRD', 'SAXS'}
             the mode of calculation: X-ray diffraction (XRD) or
             small-angle scattering (SAXS).
 
-        Output: list of intensities calculated for values given in x.
+        Returns:
+            list of intensities calculated for values given in ``x``.
         """
         self.mode = mode.upper()
         assert(mode in ['XRD', 'SAXS'])
