@@ -11,7 +11,7 @@ import numpy as np
 import ase.units as units
 from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
-from ase.utils import basestring, pickleload
+from ase.utils import basestring
 
 
 class Infrared(Vibrations):
@@ -171,7 +171,9 @@ class Infrared(Vibrations):
 
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
-        [forces_zero, dipole_zero] = pickleload(open(name, 'rb'))
+        # The encoding='latin1' is for py2/3 pickle compatibility.
+        [forces_zero, dipole_zero] = pickle.load(
+            open(name, 'rb'), encoding='latin1')
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
@@ -183,15 +185,15 @@ class Infrared(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                [fminus, dminus] = pickleload(
-                    open(name + '-.pckl', 'rb'))
-                [fplus, dplus] = pickleload(
-                    open(name + '+.pckl', 'rb'))
+                [fminus, dminus] = pickle.load(
+                    open(name + '-.pckl', 'rb'), encoding='latin1')
+                [fplus, dplus] = pickle.load(
+                    open(name + '+.pckl', 'rb'), encoding='latin1')
                 if self.nfree == 4:
-                    [fminusminus, dminusminus] = pickleload(
-                        open(name + '--.pckl', 'rb'))
-                    [fplusplus, dplusplus] = pickleload(
-                        open(name + '++.pckl', 'rb'))
+                    [fminusminus, dminusminus] = pickle.load(
+                        open(name + '--.pckl', 'rb'), encoding='latin1')
+                    [fplusplus, dplusplus] = pickle.load(
+                        open(name + '++.pckl', 'rb'), encoding='latin1')
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
                     fplus[a] += -fplus.sum(0)
