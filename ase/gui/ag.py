@@ -1,7 +1,8 @@
 # Copyright 2008, 2009
 # CAMd (see accompanying license files for details).
 from __future__ import print_function, unicode_literals
-import os
+from subprocess import Popen
+import sys
 import warnings
 
 
@@ -60,6 +61,10 @@ class CLICommand:
 
     @staticmethod
     def run(args):
+        if not args.foreground:
+            Popen(sys.argv + ['--foreground'])
+            sys.exit()
+
         from ase.gui.images import Images
         from ase.atoms import Atoms
 
@@ -97,19 +102,6 @@ class CLICommand:
                         print(x, end=' ')
                     print()
         else:
-            if not args.foreground:
-                try:
-                    pid = os.fork()
-                except OSError:
-                    # if errors occur stay in foreground
-                    pid = 0
-            else:
-                pid = 0
-
-            if pid == 0:
-                from ase.gui.gui import GUI
-                gui = GUI(images, args.rotations, args.show_unit_cell,
-                          args.bonds)
-                gui.run(args.graph)
-            else:
-                os._exit(0)
+            from ase.gui.gui import GUI
+            gui = GUI(images, args.rotations, args.show_unit_cell, args.bonds)
+            gui.run(args.graph)

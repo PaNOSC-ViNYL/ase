@@ -1,5 +1,6 @@
 from __future__ import print_function
-import os
+from subprocess import Popen
+import sys
 import numpy as np
 
 from ase.io import read
@@ -35,6 +36,10 @@ class CLICommand:
 
     @staticmethod
     def run(args, parser):
+        if not args.foreground:
+            Popen(sys.argv + ['--foreground'])
+            sys.exit()
+
         atoms = read(args.name)
 
         cell = atoms.get_cell()
@@ -109,16 +114,4 @@ class CLICommand:
         if args.output:
             plt.savefig(args.output)
         else:
-            if not args.foreground:
-                try:
-                    pid = os.fork()
-                except OSError:
-                    # if errors occur stay in foreground
-                    pid = 0
-            else:
-                pid = 0
-
-            if pid == 0:
-                plt.show()
-            else:
-                os._exit(0)
+            plt.show()
