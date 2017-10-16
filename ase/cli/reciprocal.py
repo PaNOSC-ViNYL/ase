@@ -18,7 +18,8 @@ class CLICommand:
         add('name', metavar='input-file')
         add('output', nargs='?')
         add('-v', '--verbose', action='store_true')
-        add('-p', '--path', help='Add a band path.  Example: "GXL".')
+        add('-p', '--path', nargs='?', type=str, const='default',
+            help='Add a band path.  Example: "GXL".')
         add('-d', '--dimension', type=int, default=3,
             help='Dimension of the cell.')
         add('--no-vectors', action='store_true',
@@ -52,6 +53,20 @@ class CLICommand:
             for i, v in enumerate(icell):
                 print('{}: ({:16.9f},{:16.9f},{:16.9f})'.format(i + 1, *v))
 
+        # band path
+        if args.path:
+            if args.path == 'default':
+                args.path = special_paths[cs]
+            paths = []
+            special_points = get_special_points(cell)
+            for names in parse_path_string(args.path):
+                points = []
+                for name in names:
+                    points.append(np.dot(icell.T, special_points[name]))
+                paths.append((names, points))
+        else:
+            paths = None
+
         # k points
         points = None
         if atoms.calc is not None:
@@ -70,18 +85,6 @@ class CLICommand:
             if points is not None:
                 for i in range(len(points)):
                     points[i] = np.dot(icell.T, points[i])
-
-        # band path
-        if args.path:
-            paths = []
-            special_points = get_special_points(cell)
-            for names in parse_path_string(args.path):
-                points = []
-                for name in names:
-                    points.append(np.dot(icell.T, special_points[name]))
-                paths.append((names, points))
-        else:
-            paths = None
 
         # get the correct backend
         if not args.output:

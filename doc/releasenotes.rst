@@ -10,8 +10,10 @@ Git master branch
 
 :git:`master <>`.
 
-* New ``ase reciprocal`` :ref:`command <cli>` for finding showing the
-  reciprocal space, **k**-points and special points.
+* New ``ase reciprocal`` :ref:`command <cli>` for showing the
+  1. Brilluin zone, **k**-points and special points.
+
+* New ``ase convert`` :ref:`command <cli>` for converting between file formats.
 
 
 Version 3.15.0
