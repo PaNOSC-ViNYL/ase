@@ -10,7 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
- * No changes yet
+* Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
+
 
 Version 3.15.0
 ==============

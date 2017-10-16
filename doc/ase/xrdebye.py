@@ -1,6 +1,6 @@
-# creates: saxs.png xrd.png
+# creates: saxs.png, xrd.png
 
-from ase.cluster.xrdebye import XrDebye
+from ase.utils.xrdebye import XrDebye
 from ase.cluster.cubic import FaceCenteredCubic
 import numpy as np
 
@@ -15,4 +15,3 @@ xrd.plot_pattern('xrd.png')
 # calculate and plot samll-angle scattering
 xrd.calc_pattern(x=np.logspace(-2, -0.3, 50), mode='SAXS')
 xrd.plot_pattern('saxs.png')
-
