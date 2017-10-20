@@ -22,6 +22,7 @@ www.vasp.at
 from __future__ import print_function, division
 
 import os
+import sys
 import numpy as np
 import subprocess
 from contextlib import contextmanager
@@ -91,10 +92,6 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
         # Format: self.xml_data[index] = atoms_object
         self.xml_data = {}
 
-        # Set the command if none is passed, instead of using the
-        # ASE_VASP_COMMAND, which is defined in FileIOCalculator
-        command = self.make_command(command)
-
         if restart is True:
             # We restart in the label directory
             restart = label
@@ -103,6 +100,10 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
                                   label, atoms, command, **kwargs)
 
         self.set_txt(txt)       # Set the output txt stream
+
+        # Overwrite the command from the FileIOCalculator init
+        # as we might have other options than ASE_VASP_COMMAND
+        self.command = self.make_command(command)
 
         # XXX: This seems to break restarting, unless we return first.
         # Do we really still need to enfore this?
@@ -130,8 +131,12 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
             env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
             for env in env_commands:
                 if env in os.environ:
-                    cmd = os.environ[env]
-                    break
+                        cmd = os.environ[env].replace('PREFIX', self.prefix)
+                        if env == 'VASP_SCRIPT':
+                            # Make the system python executable run VASP_SCRIPT
+                            exe = sys.executable
+                            cmd = ' '.join([exe, cmd])
+                        break
             else:
                 msg = ('Please set either command in calculator'
                        ' or one of the following environment'
@@ -197,14 +202,13 @@ class Vasp(GenerateVaspInput, FileIOCalculator):
 
         self.write_input(self.atoms, properties, system_changes)
 
-        command = self.command.replace('PREFIX', self.prefix)
         olddir = os.getcwd()
         try:
             os.chdir(self.directory)
 
             # Create the text output stream and run VASP
             with self.txt_outstream() as out:
-                errorcode = self.run(command=command, out=out)
+                errorcode = self.run(command=self.command, out=out)
         finally:
             os.chdir(olddir)
 
