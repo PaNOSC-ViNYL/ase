@@ -14,7 +14,7 @@ import shutil
 from ase.test.vasp import installed
 
 from ase import Atoms
-from ase.calculators.vasp import Vasp
+from ase.calculators.vasp import VaspFileIo as Vasp
 
 assert installed()
 
