@@ -4,7 +4,9 @@ works.
 
 """
 
+from ase.test.vasp import installed
 from ase.calculators.vasp import VaspFileIo as Vasp
+assert installed()
 
 def dict_is_subset(d1, d2):
     """True if all the key-value pairs in dict 1 are in dict 2"""

@@ -98,14 +98,17 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
             # We restart in the label directory
             restart = label
 
+        # Overwrite the command from the FileIOCalculator init
+        # as we might have other options than ASE_VASP_COMMAND
+        # Also forces the user to have VASP installed first,
+        # avoids issues with trying to e.g. get POTCAR's if not installed
+        # XXX: Do we want to initialize this later?
+        self.command = self.make_command(command)
+
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
         self.set_txt(txt)       # Set the output txt stream
-
-        # Overwrite the command from the FileIOCalculator init
-        # as we might have other options than ASE_VASP_COMMAND
-        self.command = self.make_command(command)
 
         # XXX: This seems to break restarting, unless we return first.
         # Do we really still need to enfore this?

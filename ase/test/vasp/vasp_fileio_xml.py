@@ -13,6 +13,8 @@ from ase.io import read
 import numpy as np
 import sys
 
+assert installed()
+
 
 def main():
     if sys.version_info < (2, 7):
