@@ -164,7 +164,7 @@ class ResonantRaman(Vibrations):
     def calculate(self, filename, fd):
         """Call ground and excited state calculation"""
         self.timer.start('Ground state')
-        forces = self.atoms.get_potential_energy()
+        forces = self.atoms.get_forces()
         if rank == 0:
             pickle.dump(forces, fd, protocol=2)
             fd.close()
@@ -426,7 +426,8 @@ class ResonantRaman(Vibrations):
 
         Returns
         -------
-        unit e^4 Angstrom^4 / eV^2"""
+        unit e^4 Angstrom^4 / eV^2
+        """
         m2 = ResonantRaman.m2
         alpha_Qcc = self.me_Qcc(omega, gamma)
         if not self.observation:  # XXXX remove
