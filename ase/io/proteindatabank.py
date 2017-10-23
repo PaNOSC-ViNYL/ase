@@ -52,16 +52,20 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
                 position = np.array([float(words[0]),
                                      float(words[1]),
                                      float(words[2])])
-                occ.append(float(line[54:59]))
-                bfactor.append(float(line[60:65]))
+                try:
+                    occ.append(float(line[54:59]))
+                    bfactor.append(float(line[60:65]))
+                except (IndexError, ValueError):
+                    pass
                 position = np.dot(orig, position) + trans
                 atoms.append(Atom(symbol, position))
             except Exception as ex:
                 warnings.warn('Discarding atom when reading PDB file: {}'
                               .format(ex))
         if line.startswith('ENDMDL'):
-            if read_arrays:
+            if read_arrays and len(occ) == len(atoms):
                 atoms.set_array('occupancy', np.array(occ))
+            if read_arrays and len(bfactor) == len(atoms):
                 atoms.set_array('bfactor', np.array(bfactor))
             images.append(atoms)
             atoms = Atoms()
