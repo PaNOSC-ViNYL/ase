@@ -40,7 +40,8 @@ from .create_input import GenerateVaspInput
 
 
 class VaspFileIo(GenerateVaspInput, FileIOCalculator):
-    """ASE interface for the Vienna Ab initio Simulation Package (VASP).
+    """ASE interface for the Vienna Ab initio Simulation Package (VASP),
+    with the FileIOCalculator interface.
 
         Parameters:
 
@@ -69,7 +70,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
             environment variables.
             Default is None.
     """
-    name = 'Vasp'
+    name = 'VaspFileIo'
 
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
                               'fermi', 'stress', 'magmom', 'magmoms']
@@ -98,15 +99,15 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
             # We restart in the label directory
             restart = label
 
+        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
+                                  label, atoms, command, **kwargs)
+
         # Overwrite the command from the FileIOCalculator init
         # as we might have other options than ASE_VASP_COMMAND
         # Also forces the user to have VASP installed first,
         # avoids issues with trying to e.g. get POTCAR's if not installed
         # XXX: Do we want to initialize this later?
         self.command = self.make_command(command)
-
-        FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
-                                  label, atoms, command, **kwargs)
 
         self.set_txt(txt)       # Set the output txt stream
 
@@ -138,7 +139,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
                 if env in os.environ:
                         cmd = os.environ[env].replace('PREFIX', self.prefix)
                         if env == 'VASP_SCRIPT':
-                            # Make the system python executable run VASP_SCRIPT
+                            # Make the system python exe run $VASP_SCRIPT
                             exe = sys.executable
                             cmd = ' '.join([exe, cmd])
                         break
@@ -197,7 +198,12 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
-        """Start the VASP calculation"""
+        """Do a VASP calculation in the specified directory.
+
+        This will generate the necessary VASP input files, and then
+        execute VASP. After execution, the energy, forces. etc. are read
+        from the VASP output files.
+        """
 
         if atoms is not None:
             self.atoms = atoms.copy()
@@ -411,8 +417,8 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         """Direct access for setting the xc parameter"""
         self.set(xc=xc)
 
-    # def set_atoms(self, atoms):
-    #     self.atoms = atoms.copy()
+    def set_atoms(self, atoms):
+        self.atoms = atoms.copy()
 
     # Below defines methods for reading output files
     def load_file(self, filename):
@@ -485,7 +491,10 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
 
     def read_stress_xml(self, index=-1):
         """Read stress tensor from the vasprun.xml file.
-        Returns None if there is no stress tensor in the calculation"""
+        Returns None if there is no stress tensor in the calculation.
+
+        Use get_stress() instead of accessing this method.
+        """
         atoms = self.read_from_xml(index)
         try:
             return atoms.get_stress()
@@ -569,6 +578,10 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return niter
 
     def read_stress(self, lines=None):
+        """Read stress from OUTCAR.
+
+        Depreciated: Use get_stress() instead.
+        """
         # We don't really need this, as we read this from vasprun.xml
         # keeping it around "just in case" for now
         if not lines:
@@ -582,6 +595,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return stress
 
     def read_ldau(self, lines=None):
+        """Read the LDA+U values from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -704,6 +718,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return E_f
 
     def read_dipole(self, lines=None):
+        """Read dipole from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -715,6 +730,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return dipolemoment
 
     def read_magnetic_moments(self, lines=None):
+        """Read magnetic moments from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -727,6 +743,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return np.array(magnetic_moments)[self.resort]
 
     def read_magnetic_moment(self, lines=None):
+        """Read magnetic moment from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -736,6 +753,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return magnetic_moment
 
     def read_nbands(self, lines=None):
+        """Read number of bands from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -791,9 +809,10 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
                 converged = True
         return converged
 
-    def read_k_point_weights(self, lines=None):
-        if not lines:
-            lines = self.load_file('IBZKPT')
+    def read_k_point_weights(self, filename='IBZKPT'):
+        """Read k-point weighting. Defaults to IBZKPT file."""
+
+        lines = self.load_file(filename)
 
         if 'Tetrahedra\n' in lines:
             N = lines.index('Tetrahedra\n')
@@ -808,6 +827,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return kpt_weights
 
     def read_relaxed(self, lines=None):
+        """Check if ionic relaxation completed"""
         if not lines:
             lines = self.load_file('OUTCAR')
         for line in lines:
@@ -816,8 +836,10 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         return False
 
     def read_spinpol(self, lines=None):
-        """Depreciated: Replaced by get_spin_polarized(),
-        which reads from vasprun.xml"""
+        """Method which reads if a calculation from spinpolarized using OUTCAR.
+
+        Depreciated: Use get_spin_polarized() instead.
+        """
         if not lines:
             lines = self.load_file('OUTCAR')
 
@@ -884,8 +906,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         """
         assert bee_type == 'beefvdw'
         cmd = 'grep -32 "BEEF xc energy contributions" OUTCAR | tail -32'
-        p = os.popen(cmd,
-                     'r')
+        p = os.popen(cmd, 'r')
         s = p.readlines()
         p.close()
         xc = np.array([])
