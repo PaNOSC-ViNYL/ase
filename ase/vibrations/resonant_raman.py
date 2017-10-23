@@ -222,13 +222,12 @@ class ResonantRaman(Vibrations):
 
         exm_object_list = []
         exp_object_list = []
-        for a in self.indices:
-            for i in 'xyz':
-                name = '%s.%d%s' % (self.exname, a, i)
-                matching = append(exm_object_list,
-                                  name + '-' + self.exext, matching)
-                matching = append(exp_object_list,
-                                  name + '+' + self.exext, matching)
+        for a, i in zip(self.myindices, self.myxyz):
+            name = '%s.%d%s' % (self.exname, a, i)
+            matching = append(exm_object_list,
+                              name + '-' + self.exext, matching)
+            matching = append(exp_object_list,
+                              name + '+' + self.exext, matching)
         self.ndof = 3 * len(self.indices)
         self.nex = len(matching)
         self.timer.stop('read excitations')
@@ -243,11 +242,10 @@ class ResonantRaman(Vibrations):
         exm = []
         exp = []
         r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                exm.append(select(exm_object_list[r], matching))
-                exp.append(select(exp_object_list[r], matching))
-                r += 1
+        for a, i in zip(self.myindices, self.myxyz):
+            exm.append(select(exm_object_list[r], matching))
+            exp.append(select(exp_object_list[r], matching))
+            r += 1
         self.timer.stop('select')
 
         self.timer.start('me and energy')
@@ -263,20 +261,19 @@ class ResonantRaman(Vibrations):
         exmm_rpc = []
         expm_rpc = []
         r = 0
-        for a in self.indices:
-            for i in 'xyz':
-                exmE_rp.append([em.energy for em in exm[r]])
-                expE_rp.append([ep.energy for ep in exp[r]])
-                exF_rp.append(
-                    [(em.energy - ep.energy)
-                     for ep, em in zip(exp[r], exm[r])])
-                exmm_rpc.append(
-                    [ex.get_dipole_me(form=self.dipole_form)
-                     for ex in exm[r]])
-                expm_rpc.append(
-                    [ex.get_dipole_me(form=self.dipole_form)
-                     for ex in exp[r]])
-                r += 1
+        for a, i in zip(self.myindices, self.myxyz):
+            exmE_rp.append([em.energy for em in exm[r]])
+            expE_rp.append([ep.energy for ep in exp[r]])
+            exF_rp.append(
+                [(em.energy - ep.energy)
+                 for ep, em in zip(exp[r], exm[r])])
+            exmm_rpc.append(
+                [ex.get_dipole_me(form=self.dipole_form)
+                 for ex in exm[r]])
+            expm_rpc.append(
+                [ex.get_dipole_me(form=self.dipole_form)
+                 for ex in exp[r]])
+            r += 1
         # indicees: r=coordinate, p=excitation
         # energies in eV
         self.exmE_rp = np.array(exmE_rp) * eu
