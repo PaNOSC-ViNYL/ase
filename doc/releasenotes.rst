@@ -15,6 +15,8 @@ Git master branch
 
 * New ``ase convert`` :ref:`command <cli>` for converting between file formats.
 
+* Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
+
 
 Version 3.15.0
 ==============
