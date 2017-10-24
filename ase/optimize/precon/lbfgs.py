@@ -43,8 +43,8 @@ class PreconLBFGS(Optimizer):
     # CO : added parameters rigid_units and rotation_factors
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
-                 master=None, precon='Exp',
-                 use_armijo=True, c1=0.23, c2=0.46, variable_cell=False,
+                 master=None, precon='Exp', variable_cell=False,
+                 use_armijo=True, c1=0.23, c2=0.46, stpmin=1e-8,
                  rigid_units=None, rotation_factors=None, Hinv=None):
         """Parameters:
 
@@ -105,6 +105,11 @@ class PreconLBFGS(Optimizer):
         c2: float
             c2 parameter for the line search. Default is c2=0.46.
 
+        stpmin: float
+            stpmin parameter for the line search. Default is stpmin=1e-8.
+            Higher values can be useful to avoid performing many
+            line searches for comparatively small changes in geometry.
+
         variable_cell: bool
             If True, wrap atoms an ase.constraints.UnitCellFilter to
             relax both postions and cell. Default is False.
@@ -155,6 +160,7 @@ class PreconLBFGS(Optimizer):
         self.use_armijo = use_armijo
         self.c1 = c1
         self.c2 = c2
+        self.stpmin = stpmin
 
         # CO
         self.rigid_units = rigid_units
@@ -339,7 +345,7 @@ class PreconLBFGS(Optimizer):
             ls = LineSearch()
             self.alpha_k, e, self.e0, self.no_update = \
                 ls._line_search(self.func, self.fprime, r, self.p, g,
-                                e, self.e0,
+                                e, self.e0, stpmin=self.stpmin, 
                                 maxstep=self.maxstep, c1=self.c1,
                                 c2=self.c2, stpmax=50.)
             self.e1 = e
