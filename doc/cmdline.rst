@@ -31,6 +31,10 @@ band-structure  Plot band-structure
 completion      Add tab-completion for Bash
 ==============  =================================================
 
+.. note::
+
+    The ase CLI interface is not quite stable.  Use with care in scripts!
+
 
 Python -m tricks
 ================
