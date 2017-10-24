@@ -44,7 +44,7 @@ class PreconLBFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
                  master=None, precon='Exp', variable_cell=False,
-                 use_armijo=True, c1=0.23, c2=0.46, stpmin=1e-8,
+                 use_armijo=True, c1=0.23, c2=0.46, stpmin=None,
                  rigid_units=None, rotation_factors=None, Hinv=None):
         """Parameters:
 
@@ -106,7 +106,8 @@ class PreconLBFGS(Optimizer):
             c2 parameter for the line search. Default is c2=0.46.
 
         stpmin: float
-            stpmin parameter for the line search. Default is stpmin=1e-8.
+            stpmin parameter for the line search. Default is 
+            stpmin=1e-8 (use_armijo=False) or 1e-10 (use_armijo=True).
             Higher values can be useful to avoid performing many
             line searches for comparatively small changes in geometry.
 
@@ -161,6 +162,8 @@ class PreconLBFGS(Optimizer):
         self.c1 = c1
         self.c2 = c2
         self.stpmin = stpmin
+        if self.stpmin is None:
+            self.stpmin = 1e-10 if use_armijo else 1e-8
 
         # CO
         self.rigid_units = rigid_units
@@ -320,7 +323,8 @@ class PreconLBFGS(Optimizer):
                 #    out using some extrapolation tricks?
                 ls = LineSearchArmijo(self.func, c1=self.c1, tol=1e-14)
                 step, func_val, no_update = ls.run(
-                    r, self.p, func_start=e,
+                    r, self.p, a_min=self.stpmin,
+                    func_start=e, 
                     func_prime_start=g,
                     func_old=self.e0,
                     rigid_units=self.rigid_units,
