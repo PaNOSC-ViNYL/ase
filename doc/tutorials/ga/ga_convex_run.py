@@ -82,9 +82,9 @@ while db.get_number_of_unrelaxed_candidates() > 0:
 pop.update()
 
 # Below is the iterative part of the algorithm
+gen_num = db.get_generation_number()
 for i in range(num_gens):
-    print('Creating and evaluating generation {0}'.format(
-        db.get_generation_number()))
+    print('Creating and evaluating generation {0}'.format(gen_num + i))
     new_generation = []
     for _ in range(pop_size):
         # Select parents for a new candidate
