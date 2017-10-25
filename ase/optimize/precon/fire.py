@@ -137,3 +137,23 @@ class PreconFIRE(Optimizer):
         self.atoms.set_positions(x.reshape(-1, 3))
         potl = self.atoms.get_potential_energy()
         return potl
+
+    def run(self, fmax=0.05, steps=100000000, smax=None):
+        if smax is None:
+            smax = fmax
+        self.smax = smax
+        return Optimizer.run(self, fmax, steps)
+
+    def converged(self, forces=None):
+        """Did the optimization converge?"""
+        if forces is None:
+            forces = self.atoms.get_forces()
+        if isinstance(self.atoms, UnitCellFilter):
+            natoms = len(self.atoms.atoms)
+            forces, stress = forces[:natoms], self.atoms.stress
+            fmax_sq = (forces**2).sum(axis=1).max()
+            smax_sq = (stress**2).max()
+            return (fmax_sq < self.fmax**2 and smax_sq < self.smax**2)
+        else:
+            fmax_sq = (forces**2).sum(axis=1).max()
+            return fmax_sq < self.fmax**2
