@@ -165,10 +165,10 @@ class PreconFIRE(Optimizer):
         if isinstance(self.atoms, UnitCellFilter):
             natoms = len(self.atoms.atoms)
             forces, stress = forces[:natoms], self.atoms.stress
-            fmax = sqrt((forces**2).sum(axis=1).max())
-            smax = sqrt((stress**2).max())
+            fmax = np.sqrt((forces**2).sum(axis=1).max())
+            smax = np.sqrt((stress**2).max())
         else:
-            fmax = sqrt((forces**2).sum(axis=1).max())
+            fmax = np.sqrt((forces**2).sum(axis=1).max())
         if self.e1 is not None:
             # reuse energy at end of line search to avoid extra call
             e = self.e1
