@@ -35,7 +35,7 @@ Now we have the file :file:`hull.db`, that can be examined like a regular :mod:`
 Run the algorithm
 =================
 
-With the database properly initiated we are ready to start the GA. Below is a short example with a few procreation operators that works on slabs, the ``RankFitnessPopulation`` described earlier. A full generation of new candidates are evaluated before they are added to the population, this is more efficient when using a fast method for evaluation. :download:`ga_convex_run.py`
+With the database properly initiated we are ready to start the GA. Below is a short example with a few procreation operators that works on slabs, and the ``RankFitnessPopulation`` described earlier. A full generation of new candidates are evaluated before they are added to the population, this is more efficient when using a fast method for evaluation. :download:`ga_convex_run.py`
 
 .. literalinclude:: ga_convex_run.py
 
