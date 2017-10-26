@@ -10,7 +10,7 @@ from ase.calculators.calculator import (Calculator,
 from ase.units import Bohr, Hartree
 from ase.io.xyz import write_xyz
 from ase.io.vasp import write_vasp
-from ase.parallel import paropen, world, broadcast
+from ase.parallel import world, broadcast
 
 
 class DFTD3(FileIOCalculator):
