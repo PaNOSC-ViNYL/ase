@@ -26,11 +26,17 @@ install:
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   # Install the conda supplied packages if using conda, otherwise use pip
+  # The wheel package is needed for 'pip wheel'
   - ps: |
       if($env:PYTHON -match "conda")
       {
         conda update -y conda
-        conda install -y pip wheel numpy scipy pyflakes msvc_runtime
+        conda install -y pip wheel numpy scipy pyflakes matplotlib flask
+      }
+      else
+      {
+        pip install --upgrade pip
+        pip install wheel
       }
   # install ase into the current python
   - "echo %cd%"
