@@ -177,7 +177,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
             calc.run(out=out)   # output is written to stdout
         """
 
-        opened = False
+        opened = False          # Track if we opened a file
         out = None              # Default
         if self.txt:
             if isinstance(self.txt, basestring):
@@ -307,7 +307,8 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         # Read atoms
         self.atoms = self.read_atoms()
 
-        self.initialize(self.atoms)  # Builds sorting list
+        # Build sorting and resorting lists
+        self.read_sort()
 
         # Read parameters
         olddir = os.getcwd()
@@ -321,6 +322,23 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
 
         # Read the results from the calculation
         self.read_results()
+
+    def read_sort(self):
+        """Create the sorting and resorting list from ase-sort.dat.
+        If the ase-sort.dat file does not exist, the sorting is redone.
+        """
+        sortfile = os.path.join(self.directory, 'ase-sort.dat')
+        if os.path.isfile(sortfile):
+            self.sort = []
+            self.resort = []
+            with open(sortfile, 'r') as f:
+                for line in f:
+                    sort, resort = line.split()
+                    self.sort.append(int(sort))
+                    self.resort.append(int(resort))
+        else:
+            # Redo the sorting
+            self.initialize(self.atoms)
 
     def read_atoms(self, filename='CONTCAR'):
         """Read the atoms from file located in the VASP
@@ -405,7 +423,6 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
     def encut(self, encut):
         """Direct access for setting the encut parameter"""
         self.set(encut=encut)
-        # self.float_params['encut'] = encut
 
     @property
     def xc(self):
@@ -632,10 +649,6 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
         self.ldautype = ldautype
         self.ldau_luj = ldau_luj
         return ldau, ldauprint, ldautype, ldau_luj
-
-    # def get_k_point_weights(self):
-    #     self.update(self.atoms)
-    #     return self.read_k_point_weights()
 
     def get_xc_functional(self):
         """Returns the XC functional or the pseudopotential type
