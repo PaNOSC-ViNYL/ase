@@ -5,7 +5,7 @@ works.
 """
 
 from ase.test.vasp import installed
-from ase.calculators.vasp import VaspFileIo as Vasp
+from ase.calculators.vasp import VaspFileIO as Vasp
 assert installed()
 
 def dict_is_subset(d1, d2):

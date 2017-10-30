@@ -7,11 +7,8 @@ Check the many ways of specifying KPOINTS
 import os
 import filecmp
 
-from ase.test.vasp import installed
-from ase.calculators.vasp import VaspFileIo as Vasp
+from ase.calculators.vasp import VaspFileIO as Vasp
 from ase.build import bulk
-
-assert installed()
 
 Al = bulk('Al', 'fcc', a=4.5, cubic=True)
 
