@@ -39,38 +39,51 @@ from ase.calculators.calculator import (FileIOCalculator, ReadError,
 from .create_input import GenerateVaspInput
 
 
-class VaspFileIo(GenerateVaspInput, FileIOCalculator):
+class VaspFileIO(GenerateVaspInput, FileIOCalculator):
     """ASE interface for the Vienna Ab initio Simulation Package (VASP),
     with the FileIOCalculator interface.
 
         Parameters:
 
-        atoms: object
-            Attach an existing atoms object to the calculator.
-            Default is None.
+            atoms:  object
+                Attach an atoms object to the calculator.
 
-        label: str
-            Prefix for the output file, and sets the working directory
-            Default is 'vasp'.
+            label: str
+                Prefix for the output file, and sets the working directory.
+                Default is 'vasp'.
 
-        restart: str
-            Sets a label for the directory to load files from.
+            directory: str
+                Set the working dírectory. Is prepended ``label``.
 
-        txt: bool, None, str or writable object
-            If txt is None, default ouput stream will be to vasp.out
-            If txt is False, or '-' the output will be sent through stdout
-            If txt is a string a file will be opened,
-            and the output will be sent to that file.
-            Finally, txt can also be a an output stream,
-            which has a 'write' attribute.
-            Default is None.
+            restart: str or bool
+                Sets a label for the directory to load files from.
+                if :code:`restart=True`, the working directory from
+                ``label`` is used.
 
-        command: str
-            Custom instructions on how to execute VASP. Has priority over
-            environment variables.
-            Default is None.
+            txt: bool, None, str or writable object
+                - If txt is None, default ouput stream will be to PREFIX.out,\
+                    where PREFIX is determined by `label`, i.e. the default\
+                    would be vasp.out.
+
+                - If txt is False or '-' the output will be sent through stdout
+
+                - If txt is a string a file will be opened,\
+                    and the output will be sent to that file.
+
+                - Finally, txt can also be a an output stream,\
+                    which has a 'write' attribute.
+
+                - Example:
+
+                    >>> VaspFileIO(label='mylabel', txt=None) # Redirect stdout to :file:`mylabel.out`
+                    >>> VaspFileIO(txt='myfile.txt') # Redirect stdout to :file:`myfile.txt`
+                    >>> VaspFileIO(txt='-') # Print vasp output to stdout
+
+            command: str
+                Custom instructions on how to execute VASP. Has priority over
+                environment variables.
     """
-    name = 'VaspFileIo'
+    name = 'VaspFileIO'
 
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
                               'fermi', 'stress', 'magmom', 'magmoms']
@@ -80,12 +93,12 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
     def __init__(self,
                  atoms=None,
                  restart=None,
+                 directory='',
                  label='vasp',
                  ignore_bad_restart_file=False,
                  command=None,
                  txt=None,
                  **kwargs):
-        """Construct VASP-calculator object."""
 
         # Initialize parameter dictionaries
         GenerateVaspInput.__init__(self)
@@ -99,6 +112,7 @@ class VaspFileIo(GenerateVaspInput, FileIOCalculator):
             # We restart in the label directory
             restart = label
 
+        label = os.path.join(directory, label)
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
