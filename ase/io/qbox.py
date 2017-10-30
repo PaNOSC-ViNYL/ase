@@ -8,31 +8,39 @@ import xml.etree.ElementTree as ET
 import six
 
 
-def read_qbox(file, index=-1):
+def read_qbox(f, index=-1):
     """Read data from QBox output file
 
     Inputs:
-        file - str or fileobj, path to file or file object to read from
+        f - str or fileobj, path to file or file object to read from
         index - int or slice, which frames to return
     Returns:
         list of Atoms or atoms, requested frame(s)
     """
 
-    if isinstance(file, six.string_types):
-        file = open(file, 'r')
+    if isinstance(f, six.string_types):
+        f = open(f, 'r')
 
     # Check whether this is a QB@all output
-    version = _find_blocks(file, 'release', '<user>')
-    if len(version) == 0:
+    version = None
+    for line in f:
+        if '<release>' in line:
+            version = ET.fromstring(line)
+            break
+    if version is None:
         raise Exception('Parse Error: Version not found')
-    is_qball = 'qb@LL' in version[0].text
+    is_qball = 'qb@LL' in version.text or 'qball' in version.text
 
     # Load in atomic species
     species = dict()
     if is_qball:
-        # XML for Python 3 reads comments, which means the "species" data might be split between
-        #   multiple nodes on the root
-        species_data = '\n'.join([x.tail for x in tree.getroot() if 'species' in x.tail])
+        # Read all of the lines between release and the first call to `run`
+        species_data = []
+        for line in f:
+            if '<run' in line:
+                break
+            species_data.append(line)
+        species_data = '\n'.join(species_data)
 
         # Read out the species information with regular expressions
         symbols = re.findall('symbol_ = ([A-Z][a-z]?)', species_data)
@@ -50,7 +58,7 @@ def read_qbox(file, index=-1):
             species[name] = spec_data
     else:
         # Find all species
-        species_blocks = _find_blocks(file, 'species', '[qbox]')
+        species_blocks = _find_blocks(f, 'species', '[qbox]')
 
         for spec in species_blocks:
             name = spec.get('name')
@@ -61,7 +69,7 @@ def read_qbox(file, index=-1):
             species[name] = spec_data
 
     # Find all of the frames
-    frames = _find_blocks(file, 'iteration', None)
+    frames = _find_blocks(f, 'iteration', None)
 
     # If index is an int, return one frame
     if isinstance(index, int):
