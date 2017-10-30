@@ -13,6 +13,9 @@ from ase.test import must_raise
 atoms = molecule('CH4')
 calc = Vasp()
 
+with must_raise(RuntimeError):
+    atoms.write('POSCAR')
+
 with must_raise(ValueError):
     atoms.set_calculator(calc)
     atoms.get_total_energy()
