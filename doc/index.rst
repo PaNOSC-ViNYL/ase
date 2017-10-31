@@ -199,7 +199,7 @@ Contents
    :target: ase/calculators/jacapo.html
    :align: middle
 .. |jdftx| image:: static/jdftx.png
-   :target: http://sourceforge.net/p/jdftx/wiki/ASE%20Interface
+   :target: http://jdftx.org/ASE.html
    :align: middle
 .. |lammps| image:: static/lammps.png
    :target: ase/calculators/lammps.html
