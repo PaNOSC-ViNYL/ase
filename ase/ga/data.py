@@ -215,7 +215,7 @@ class DataConnection(object):
         return last_id + 1
 
     def get_largest_in_db(self, var):
-        return self.c.select(sort='-{0}'.format(var)).next().get(var)
+        return next(self.c.select(sort='-{0}'.format(var))).get(var)
 
     def add_unrelaxed_candidate(self, candidate, description):
         """ Adds a new candidate which needs to be relaxed. """
