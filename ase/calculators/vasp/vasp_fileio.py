@@ -62,7 +62,7 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
 
             txt: bool, None, str or writable object
                 - If txt is None, default ouput stream will be to PREFIX.out,\
-                    where PREFIX is determined by `label`, i.e. the default\
+                    where PREFIX is determined by ``label``, i.e. the default\
                     would be vasp.out.
 
                 - If txt is False or '-' the output will be sent through stdout
@@ -170,10 +170,8 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
         Vasp FileIO Calculator, then call the create_input.set()
         on remaining inputs for VASP specific keys.
 
-        Allows for setting `label`, `directory` and `txt` without
-        resetting the results in the calculator.
-
-        XXX: NOT FULLY TESTED YET!
+        Allows for setting ``label``, ``directory`` and ``txt``
+        without resetting the results in the calculator.
         """
         changed_parameters = {}
 
