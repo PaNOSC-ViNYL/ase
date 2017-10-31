@@ -2,10 +2,10 @@
 
 from ase import Atom, Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.utils import basestring
 
 import re
 import xml.etree.ElementTree as ET
-import six
 
 
 def read_qbox(f, index=-1):
@@ -18,7 +18,7 @@ def read_qbox(f, index=-1):
         list of Atoms or atoms, requested frame(s)
     """
 
-    if isinstance(f, six.string_types):
+    if isinstance(f, basestring):
         f = open(f, 'r')
 
     # Check whether this is a QB@all output
