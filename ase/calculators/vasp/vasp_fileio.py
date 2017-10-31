@@ -165,6 +165,48 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
                 raise RuntimeError(msg)
         return cmd
 
+    def set(self, **kwargs):
+        """Override the set function, to test for changes in the
+        Vasp FileIO Calculator, then call the create_input.set()
+        on remaining inputs for VASP specific keys.
+
+        Allows for setting `label`, `directory` and `txt` without
+        resetting the results in the calculator.
+
+        XXX: NOT FULLY TESTED YET!
+        """
+        changed_parameters = {}
+
+        if 'label' in kwargs:
+            label = kwargs.pop('label')
+            self.set_label(label)
+
+        if 'directory' in kwargs:
+            # If we explicitly set directory, overwrite the one in label.
+            # XXX: Should we just raise an error here if clash?
+            directory = kwargs.pop('directory')
+            label = os.path.join(directory, self.prefix)
+            self.set_label(label)
+
+        if 'txt' in kwargs:
+            txt = kwargs.pop('txt')
+            self.set_txt(txt)
+
+        if 'atoms' in kwargs:
+            atoms = kwargs.pop('atoms')
+            self.set_atoms(atoms)  # Resets results
+
+        changed_parameters.update(FileIOCalculator.set(self, **kwargs))
+
+        # We might at some point add more to changed parameters, or use it
+        if changed_parameters:
+            self.results.clear()   # We don't want to clear atoms
+
+        if kwargs:
+            # If we make any changes to Vasp input, we always reset
+            GenerateVaspInput.set(self, **kwargs)
+            self.results.clear()
+
     @contextmanager
     def txt_outstream(self):
         """Custom function for opening a text output stream. Uses self.txt to determine
@@ -311,6 +353,10 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
             label = self.label
         FileIOCalculator.read(self, label)
 
+        # If we restart, self.parameters isn't initialized
+        if self.parameters is None:
+            self.parameters = self.get_default_parameters()
+
         # Check for existence of the necessary output files
         for file in ['OUTCAR', 'CONTCAR', 'vasprun.xml']:
             filename = os.path.join(self.directory, file)
@@ -450,6 +496,7 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
 
     def set_atoms(self, atoms):
         self.atoms = atoms.copy()
+        self.results.clear()
 
     # Below defines methods for reading output files
     def load_file(self, filename):
@@ -496,8 +543,6 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
         else:
             self.magnetic_moment = 0.0
             self.magnetic_moments = np.zeros(len(self.atoms))
-
-        self.set(nbands=self.nbands)
 
     def read_from_xml(self, index=-1, filename='vasprun.xml', overwrite=False):
         """Read vasprun.xml, and return an atoms object at a given index.
