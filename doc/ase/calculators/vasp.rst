@@ -15,7 +15,12 @@ calculation.
 
 
 .. _VASP: http://cms.mpi.univie.ac.at/vasp/
+.. _Vasp FileIO: vasp_fileio.html
 
+.. note::
+   A new VASP_ calculator is currently in BETA testing, see `Vasp FileIO`_,
+   which implements the calculator using the
+   :class:`~ase.calculators.calculator.FileIOCalculator`.
 
 
 Environment variables
