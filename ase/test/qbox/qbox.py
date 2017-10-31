@@ -11,7 +11,7 @@ import ase
 test_qbox = os.path.join(os.path.dirname(ase.__file__), 'test', 'qbox',
                          'test.xml')
 test_qball = os.path.join(os.path.dirname(ase.__file__), 'test', 'qbox', 
-                          '04_md_ntc.reference.xml.gz')
+                          '04_md_ntc.reference.xml')
 
 
 def read_output():
@@ -67,6 +67,5 @@ def test_format():
 
 
 
-if __name__ == '__main__':
-    read_output()
-    test_format()
+read_output()
+test_format()
