@@ -7,7 +7,7 @@ import numpy as np
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
-           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine', 
+           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
 
@@ -218,7 +218,7 @@ class FixBondLengths(FixConstraint):
                 Ignored"""
         self.pairs = np.asarray(pairs)
         self.tolerance = tolerance
-        self.bondlengths = bondlengths        
+        self.bondlengths = bondlengths
 
         self.removed_dof = len(pairs)
 
@@ -283,7 +283,7 @@ class FixBondLengths(FixConstraint):
 
     def initialize_bond_lengths(self, atoms):
         bondlengths = np.zeros(len(self.pairs))
-        
+
         for i, ab in enumerate(self.pairs):
             bondlengths[i] = atoms.get_distance(ab[0], ab[1], mic=True)
 
@@ -1453,7 +1453,7 @@ class UnitCellFilter(Filter):
 
     def get_forces(self, apply_constraint=False):
         '''
-        returns an array with shape (natoms+2,3) of the atomic forces
+        returns an array with shape (natoms+3,3) of the atomic forces
         and unit cell stresses.
 
         the first natoms rows are the forces on the atoms, the last
