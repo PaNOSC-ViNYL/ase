@@ -43,5 +43,7 @@ python_3_tests:
     - cd $CI_PROJECT_DIR
     - python3 ase/test/__init__.py
     # build the docs
+    - ls -ltr $HOME/.local/bin
+    - which sphinx-build
     - cd doc
     - make
