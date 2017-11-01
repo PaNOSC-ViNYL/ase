@@ -18,10 +18,10 @@ calculation.
 .. _Vasp FileIO: vasp_fileio.html
 
 .. note::
-   A new VASP_ calculator is currently in BETA testing, see `Vasp FileIO`_,
+   A new VASP_ calculator is currently in BETA testing, see
+   :mod:`~ase.calculators.vasp.vasp_fileio`,
    which implements the calculator using the
    :class:`~ase.calculators.calculator.FileIOCalculator`.
-
 
 Environment variables
 =====================
@@ -331,3 +331,14 @@ calculations, in the directory of the previous calculation do:
 >>> atoms = calc.get_atoms()
 >>> atoms.get_potential_energy()
 -4.7386889999999999
+
+New Calculator
+==============
+
+A new VASP_ calculator is currently in BETA testing, see
+:mod:`~ase.calculators.vasp.vasp_fileio`, which implements the calculator using the
+:class:`~ase.calculators.calculator.FileIOCalculator`.
+
+.. toctree::
+
+   vasp_fileio

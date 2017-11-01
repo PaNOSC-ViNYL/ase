@@ -1,4 +1,4 @@
-.. module:: ase.calculators.vasp
+.. module:: ase.calculators.vasp.vasp_fileio
 
 ===========
 VASP FileIO
@@ -12,14 +12,15 @@ which adds the functionality of the :class:`~ase.calculators.calculator.FileIOCa
 This allows a more general usage of the other ASE methods,
 such as :class:`~ase.dft.band_structure.BandStructure`.
 
-For a general introduction please refer to the VASP_ calculator
+For a general introduction please refer to the :mod:`~ase.calculators.vasp` calculator
 documentation, as this is just a list of things which have changed.
 
-.. _VASP: vasp.html
+.. _VASP: http://cms.mpi.univie.ac.at/vasp/
 
 .. warning::
    This calculator is currently in BETA testing. If you are not comfortable
-   testing new software, please use the old calculator object, see VASP_.
+   testing new software, please use the old calculator object, see
+   :mod:`~ase.calculators.vasp`.
 
 .. note::
    If you encounter any bugs using this calculator, please report it as an issue
@@ -92,5 +93,75 @@ The Vasp FileIO calculator now integrates with existing ASE functions, such as
 
 Band structure with VASP
 ------------------------
+.. _Si band structure: https://cms.mpi.univie.ac.at/wiki/index.php/Si_bandstructure
 
-TODO
+The VASP manual has an example of creating a `Si band structure`_ - we can
+easily reproduce a similar result, by using the ASE VaspFileIO calculator.
+
+We can use the ``directory`` keyword to control the folder in which the calculations
+take place, and keep a more structured folder structure. The following script does the
+initial calculations, in order to construct the band structure for silicon
+
+.. code-block:: python
+
+	from ase.build import bulk
+	from ase.calculators.vasp import VaspFileIO
+
+	si = bulk('Si')
+
+	mydir = 'bandstructure'    # Directory where we will do the calculations
+
+	# Make self-consistent ground state
+	calc = VaspFileIO(kpts=(4, 4, 4), directory=mydir)
+
+	si.set_calculator(calc)
+	si.get_potential_energy()  # Run the calculation
+
+	# Non-SC calculation along band path
+	kpts = {'path': 'WGX',     # The BS path
+	        'npoints': 30}     # Number of points along the path
+
+	calc.set(isym=0,           # Turn off kpoint symmetry reduction
+	         icharg=11,        # Non-SC calculation
+    		 kpts=kpts)
+
+	# Run the calculation
+	si.get_potential_energy()
+
+As this calculation might be longer, depending on your system, it may
+be more convenient to split the plotting into a separate file, as all
+of the VASP data is written to files. The plotting can then be achieved
+by using the ``restart`` keyword, in a second script
+
+.. code-block:: python
+
+	from ase.calculators.vasp import VaspFileIO
+
+	mydir = 'bandstructure'    # Directory where we did the calculations
+
+	# Load the calculator from the VASP output files
+	calc_load = VaspFileIO(restart=True, directory=mydir)
+
+	bs = calc_load.band_structure() # ASE Band structure object
+	bs.plot(emin=-13)               # Plot the band structure
+
+Which results in the following image
+
+.. image:: vasp_si_bandstructure.png
+
+We could also find the band gap in the same calculation,
+
+>>> from ase.dft.bandgap import bandgap
+>>> bandgap(calc_load)
+Gap: 0.474 eV
+Transition (v -> c):
+  (s=0, k=15, n=3, [0.000, 0.000, 0.000]) -> (s=0, k=27, n=4, [0.429, 0.000, 0.429])
+
+.. note::
+   When using hybrids, due to the exact-exchange calculations, one needs to treat
+   the k-point sampling more carefully, see `VASP HSE band structure wiki`_.
+
+   Currently, we have no functions to easily handle this issue, but may be added
+   in the future.
+
+.. _VASP HSE band structure wiki: https://cms.mpi.univie.ac.at/wiki/index.php/Si_HSE_bandstructure#Procedure_2:_0-weight_.28Fake.29_SC_procedure_.28works_DFT_.26_hybrid_functionals.29

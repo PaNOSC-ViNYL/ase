@@ -53,7 +53,7 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
                 Default is 'vasp'.
 
             directory: str
-                Set the working dírectory. Is prepended ``label``.
+                Set the working dírectory. Is prepended to ``label``.
 
             restart: str or bool
                 Sets a label for the directory to load files from.
@@ -108,11 +108,12 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
         # Format: self.xml_data[index] = atoms_object
         self.xml_data = {}
 
+        label = os.path.join(directory, label)
+
         if restart is True:
             # We restart in the label directory
             restart = label
 
-        label = os.path.join(directory, label)
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
