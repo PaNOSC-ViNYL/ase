@@ -1463,7 +1463,6 @@ class UnitCellFilter(Filter):
 
         atoms_forces = self.atoms.get_forces()
         stress = self.atoms.get_stress()
-        self.stress = voigt_6_to_full_3x3_stress(stress) * self.mask
 
         volume = self.atoms.get_volume()
         virial = -volume * voigt_6_to_full_3x3_stress(stress)
@@ -1487,6 +1486,8 @@ class UnitCellFilter(Filter):
         forces = np.zeros((natoms + 3, 3))
         forces[:natoms] = atoms_forces
         forces[natoms:] = virial / self.cell_factor
+
+        self.stress = -full_3x3_to_voigt_6_stress(virial)/volume
         return forces
 
     def get_stress(self):

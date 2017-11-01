@@ -74,6 +74,7 @@ pop = RankFitnessPopulation(data_connection=db,
 # Negative mixing energy means more stable than the pure slabs
 # The optimization always progress towards larger raw score,
 # so we take the negative mixing energy as the raw score
+print('Evaluating initial candidates')
 while db.get_number_of_unrelaxed_candidates() > 0:
     a = db.get_an_unrelaxed_candidate()
     set_raw_score(a, -get_mixing_energy(a))
@@ -81,7 +82,9 @@ while db.get_number_of_unrelaxed_candidates() > 0:
 pop.update()
 
 # Below is the iterative part of the algorithm
-for _ in range(num_gens):
+gen_num = db.get_generation_number()
+for i in range(num_gens):
+    print('Creating and evaluating generation {0}'.format(gen_num + i))
     new_generation = []
     for _ in range(pop_size):
         # Select parents for a new candidate
