@@ -229,7 +229,7 @@ Contents
 
 
 .. _Gaussian: http://www.gaussian.com/
-.. _Mopac: http://openmopac.net/
+.. _Mopac: ase/calculators/mopac.html
 .. _Sphinx: http://sphinx.pocoo.org
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk
