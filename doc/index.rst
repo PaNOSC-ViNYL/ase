@@ -166,7 +166,7 @@ Contents
    :target: ase/calculators/cp2k.html
    :align: middle
 .. |deMon| image:: static/demon.png
-   :target: http://www.demon-software.com/public_html/index.html
+   :target: ase/calculators/demon.html
    :align: middle
 .. |elk| image:: static/elk.png
    :target: http://elk.sourceforge.net/
@@ -190,7 +190,7 @@ Contents
    :target: http://wiki.fysik.dtu.dk/gpaw
    :align: middle
 .. |gromacs| image:: static/gromacs.png
-   :target: http://www.gromacs.org/
+   :target: ase/calculators/gromacs.html
    :align: middle
 .. |hotbit| image:: static/hotbit.png
    :target: https://trac.cc.jyu.fi/projects/hotbit
