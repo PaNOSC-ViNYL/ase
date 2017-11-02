@@ -193,7 +193,7 @@ Contents
    :target: ase/calculators/gromacs.html
    :align: middle
 .. |hotbit| image:: static/hotbit.png
-   :target: https://trac.cc.jyu.fi/projects/hotbit
+   :target: https://github.com/pekkosk/hotbit
    :align: middle
 .. |jacapo| image:: static/jacapo.png
    :target: ase/calculators/jacapo.html
