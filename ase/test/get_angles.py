@@ -10,7 +10,4 @@ manual_results = [g.get_angle(a1, a2, a3, mic=True)
 
 set_results = g.get_angles(test_set, mic=True)
 
-print manual_results
-print set_results
-
 assert(np.allclose(manual_results, set_results))
