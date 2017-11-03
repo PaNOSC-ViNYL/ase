@@ -27,7 +27,7 @@ python_3_tests:
     - apt-get update -qy
     - apt-get install -qy python3-pip python3-numpy python3-scipy pyflakes gettext libhdf5-dev libnetcdf-dev cython3
     - pip3 install --upgrade setuptools
-    - pip3 install --user netCDF4 sphinx_rtd_theme sphinx
+    - pip3 install --user netCDF4 sphinx_rtd_theme sphinx pillow
     # install ase into current python environment to ensure
     # any shebang lines in scripts point to python3
     - pip3 install --user .
@@ -46,4 +46,4 @@ python_3_tests:
     - ls -ltr $HOME/.local/bin
     - which sphinx-build
     - cd doc
-    - make
+    - sphinx-build -W . build
