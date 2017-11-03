@@ -1,6 +1,6 @@
 """Inline viewer for jupyter notebook using X3D."""
 
-from tempfile import NamedTemporaryFile, mkstemp
+from tempfile import mkstemp
 from IPython.display import HTML
 import os
 
