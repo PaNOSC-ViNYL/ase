@@ -86,7 +86,7 @@ gaussian                            Gaussian based electronic structure code
 :mod:`~ase.calculators.gulp`        Interatomic potential code
 :mod:`~ase.calculators.jacapo`      Plane-wave ultra-soft pseudopotential code
 :mod:`~ase.calculators.lammps`      Classical molecular dynamics code
-mopac                               ...
+:mod:`~ase.calculators.mopac`       ...
 :mod:`~ase.calculators.nwchem`      Gaussian based electronic structure code
 :mod:`~ase.calculators.octopus`     Real-space pseudopotential code
 :mod:`~ase.calculators.siesta`      LCAO pseudopotential code
@@ -212,6 +212,7 @@ the :meth:`set` method:
    jacapo
    lammps
    lammpsrun
+   mopac
    nwchem
    octopus
    siesta
