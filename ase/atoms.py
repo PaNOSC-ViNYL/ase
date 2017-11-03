@@ -1516,10 +1516,10 @@ class Atoms(object):
         """Get angle formed by three atoms for multiple groupings.
 
         calculate angle in degrees between the vectors a2->a1 and
-        a2->a3, where a1, a2, and a3 are in each row of a_set.
+        a2->a3, where a1, a2, and a3 are in each row of a123_sets.
 
-        Use mic=True to use the Minimum Image Convention and calculate the
-        angle across periodic boundaries.
+        Use mic=True to use the Minimum Image Convention and calculate
+        the angle across periodic boundaries.
         """
 
         f = 180 / pi
