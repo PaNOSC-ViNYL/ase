@@ -1,17 +1,19 @@
 """Tests related to QBOX"""
 
-import os
 import numpy as np
 
 from ase import Atoms
 from ase.io import qbox
 from ase.io import formats
-import ase
 
-test_qbox = os.path.join(os.path.dirname(ase.__file__), 'test', 'qbox',
-                         'test.xml')
-test_qball = os.path.join(os.path.dirname(ase.__file__), 'test', 'qbox', 
-                          '04_md_ntc.reference.xml')
+# We don't like shipping raw datafiles, because they must all be listed
+# in the manifest.  So we invoke a function that prepares the files that
+# we need:
+from ase.test.qbox.qboxdata import writefiles
+writefiles()
+
+test_qbox = 'test.xml'
+test_qball = '04_md_ntc.reference.xml'
 
 
 def read_output():
