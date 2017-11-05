@@ -621,7 +621,7 @@ def filetype(filename, read=True, guess=True):
                           ('espresso-out', b'Program PWSCF'),
                           ('aims-output', b'Invoking FHI-aims ...'),
                           ('lammps-dump', b'\nITEM: TIMESTEP\n'),
-                          ('qbox', b'<fpmd:simulation'),
+                          ('qbox', b':simulation xmlns:'),
                           ('xsf', b'\nANIMSTEPS'),
                           ('xsf', b'\nCRYSTAL'),
                           ('xsf', b'\nSLAB'),

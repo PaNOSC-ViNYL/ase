@@ -166,7 +166,7 @@ Contents
    :target: ase/calculators/cp2k.html
    :align: middle
 .. |deMon| image:: static/demon.png
-   :target: http://www.demon-software.com/public_html/index.html
+   :target: ase/calculators/demon.html
    :align: middle
 .. |elk| image:: static/elk.png
    :target: http://elk.sourceforge.net/
@@ -190,16 +190,16 @@ Contents
    :target: http://wiki.fysik.dtu.dk/gpaw
    :align: middle
 .. |gromacs| image:: static/gromacs.png
-   :target: http://www.gromacs.org/
+   :target: ase/calculators/gromacs.html
    :align: middle
 .. |hotbit| image:: static/hotbit.png
-   :target: https://trac.cc.jyu.fi/projects/hotbit
+   :target: https://github.com/pekkosk/hotbit
    :align: middle
 .. |jacapo| image:: static/jacapo.png
    :target: ase/calculators/jacapo.html
    :align: middle
 .. |jdftx| image:: static/jdftx.png
-   :target: http://sourceforge.net/p/jdftx/wiki/ASE%20Interface
+   :target: http://jdftx.org/ASE.html
    :align: middle
 .. |lammps| image:: static/lammps.png
    :target: ase/calculators/lammps.html
@@ -229,7 +229,7 @@ Contents
 
 
 .. _Gaussian: http://www.gaussian.com/
-.. _Mopac: http://openmopac.net/
+.. _Mopac: ase/calculators/mopac.html
 .. _Sphinx: http://sphinx.pocoo.org
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _CAMd: http://www.camd.dtu.dk

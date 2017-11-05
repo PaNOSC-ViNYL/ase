@@ -1453,7 +1453,7 @@ class UnitCellFilter(Filter):
 
     def get_forces(self, apply_constraint=False):
         '''
-        returns an array with shape (natoms+2,3) of the atomic forces
+        returns an array with shape (natoms+3,3) of the atomic forces
         and unit cell stresses.
 
         the first natoms rows are the forces on the atoms, the last

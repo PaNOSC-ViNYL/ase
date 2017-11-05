@@ -53,6 +53,10 @@ class DummyMPI:
         else:
             return a
 
+    def product(self, a):
+        """Do nothing ing the same way as sum."""
+        return self.sum(a)
+
     def barrier(self):
         pass
 

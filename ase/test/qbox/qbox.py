@@ -1,22 +1,26 @@
 """Tests related to QBOX"""
 
-import os
 import numpy as np
 
 from ase import Atoms
 from ase.io import qbox
 from ase.io import formats
-import ase
 
-test_file = os.path.join(os.path.dirname(ase.__file__), 'test', 'qbox',
-                         'test.xml')
+# We don't like shipping raw datafiles, because they must all be listed
+# in the manifest.  So we invoke a function that prepares the files that
+# we need:
+from ase.test.qbox.qboxdata import writefiles
+writefiles()
+
+test_qbox = 'test.xml'
+test_qball = '04_md_ntc.reference.xml'
 
 
 def read_output():
     """Test reading the output file"""
 
     # Read only one frame
-    atoms = qbox.read_qbox(test_file)
+    atoms = qbox.read_qbox(test_qbox)
 
     assert isinstance(atoms, Atoms)
     assert np.allclose(atoms.cell, np.diag([16, 16, 16]))
@@ -37,7 +41,7 @@ def read_output():
                         0.00001786, -0.00002405, -0.00000014])
 
     # Read all the frames
-    atoms = qbox.read_qbox(test_file, slice(None))
+    atoms = qbox.read_qbox(test_qbox, slice(None))
 
     assert isinstance(atoms, list)
     assert len(atoms) == 5
@@ -54,13 +58,16 @@ def read_output():
 def test_format():
     """Make sure the `formats.py` operations work"""
 
-    atoms = formats.read(test_file)
+    atoms = formats.read(test_qbox)
     assert len(atoms) == 4
 
-    atoms = formats.read(test_file, index=slice(None), format='qbox')
+    atoms = formats.read(test_qbox, index=slice(None), format='qbox')
     assert len(atoms) == 5
 
+    atoms = formats.read(test_qball)
+    assert len(atoms) == 32
 
-if __name__ == '__main__':
-    read_output()
-    test_format()
+
+
+read_output()
+test_format()
