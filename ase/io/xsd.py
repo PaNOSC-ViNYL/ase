@@ -3,16 +3,10 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 from ase import Atoms
-from ase.utils import basestring
 
 
-def read_xsd(file):
-    if not isinstance(file, basestring):
-        filename = file.name
-    else:
-        filename = file
-
-    tree = ET.parse(filename)
+def read_xsd(fd):
+    tree = ET.parse(fd)
     root = tree.getroot()
 
     atomtreeroot = root.find('AtomisticTreeRoot')
@@ -33,7 +27,7 @@ def read_xsd(file):
                 formula += symbol
 
                 xyz = atom.get('XYZ')
-                if xyz: 
+                if xyz:
                     coord = [float(coord) for coord in xyz.split(',')]
                 else:
                     coord = [0.0, 0.0, 0.0]
@@ -80,11 +74,12 @@ def CPK_or_BnS(element):
     return visualization_choice
 
 
-def write_xsd(filename, atoms, connectivity = None):
+def write_xsd(fd, atoms, connectivity=None):
     """Takes Atoms object, and write materials studio file
     atoms: Atoms object
     filename: path of the output file
-    connectivity: number of atoms by number of atoms matrix for connectivity between atoms (0 not connected, 1 connected)
+    connectivity: number of atoms by number of atoms matrix for connectivity
+    between atoms (0 not connected, 1 connected)
 
     note: material studio file cannot use a partial periodic system. If partial
     perodic system was inputted, full periodicity was assumed.
@@ -309,7 +304,7 @@ def write_xsd(filename, atoms, connectivity = None):
             for j in range(i+1,connectivity.shape[0]):
                 if connectivity[i,j]:
                     bonds.append([i,j])
-    
+
     # non-periodic system
     if not atoms.pbc.all():
         Molecule = ET.SubElement(AtomisticTreeRootElement, 'Molecule')
@@ -460,17 +455,9 @@ def write_xsd(filename, atoms, connectivity = None):
         InfiniteMappng.set('Element', '1,0,0,0,0,1,0,0,0,0,1,0')
         InfiniteMappng.set('MappedObjects', '2')
 
-    # check if file is an object or not.
-    if isinstance(filename, basestring):
-        f = open(filename, 'w')
-    else:  # Assume it's a 'file-like object'
-        f = filename
-
     # Return a pretty-printed XML string for the Element.
     rough_string = ET.tostring(XSD, 'utf-8')
     reparsed = minidom.parseString(rough_string)
     Document = reparsed.toprettyxml(indent='\t')
 
-    # write
-    f.write(Document)
-    f.close()
+    fd.write(Document)
