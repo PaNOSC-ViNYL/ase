@@ -1,5 +1,4 @@
 from ase import Atoms
-import os
 
 try:
     from IPython.display import HTML

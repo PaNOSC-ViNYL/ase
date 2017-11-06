@@ -1,9 +1,7 @@
 """Inline viewer for jupyter notebook using X3D."""
 
-from tempfile import mkstemp
-from io import BytesIO()
+from io import BytesIO
 from IPython.display import HTML
-import os
 
 def view_x3d(atoms):
     """View atoms inline in a jupyter notbook. This command
