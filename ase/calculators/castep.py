@@ -973,7 +973,7 @@ End CASTEP Interface Documentation
         if isinstance(castep_castep, basestring):
             if not os.path.isfile(castep_castep):
                 print('Warning: CASTEP file %s not found!' % castep_castep)
-            f = paropen(castep_castep, 'a')
+            f = paropen(castep_castep, 'r')
             _close = True
         else:
             # in this case we assume that we have a fileobj already, but check
@@ -1005,7 +1005,7 @@ End CASTEP Interface Documentation
             if 'Symmetry and Constraints' in line:
                 break
 
-        if self.param.iprint is None or self.param.iprint < 2:
+        if self.param.iprint.value is None or self.param.iprint < 2:
             self._interface_warnings.append(
                 'Warning: No symmetry'
                 'operations could be read from %s (iprint < 2).' % f.name)
