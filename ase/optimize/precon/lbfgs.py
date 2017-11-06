@@ -44,7 +44,7 @@ class PreconLBFGS(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
                  master=None, precon='Exp', variable_cell=False,
-                 use_armijo=True, c1=0.23, c2=0.46, stpmin=None,
+                 use_armijo=True, c1=0.23, c2=0.46, a_min=None,
                  rigid_units=None, rotation_factors=None, Hinv=None):
         """Parameters:
 
@@ -105,9 +105,9 @@ class PreconLBFGS(Optimizer):
         c2: float
             c2 parameter for the line search. Default is c2=0.46.
 
-        stpmin: float
-            stpmin parameter for the line search. Default is 
-            stpmin=1e-8 (use_armijo=False) or 1e-10 (use_armijo=True).
+        a_min: float
+            minimal value for the line search step parameter. Default is 
+            a_min=1e-8 (use_armijo=False) or 1e-10 (use_armijo=True).
             Higher values can be useful to avoid performing many
             line searches for comparatively small changes in geometry.
 
@@ -161,9 +161,9 @@ class PreconLBFGS(Optimizer):
         self.use_armijo = use_armijo
         self.c1 = c1
         self.c2 = c2
-        self.stpmin = stpmin
-        if self.stpmin is None:
-            self.stpmin = 1e-10 if use_armijo else 1e-8
+        self.a_min = a_min
+        if self.a_min is None:
+            self.a_min = 1e-10 if use_armijo else 1e-8
 
         # CO
         self.rigid_units = rigid_units
@@ -323,7 +323,7 @@ class PreconLBFGS(Optimizer):
                 #    out using some extrapolation tricks?
                 ls = LineSearchArmijo(self.func, c1=self.c1, tol=1e-14)
                 step, func_val, no_update = ls.run(
-                    r, self.p, a_min=self.stpmin,
+                    r, self.p, a_min=self.a_min,
                     func_start=e, 
                     func_prime_start=g,
                     func_old=self.e0,
@@ -349,7 +349,7 @@ class PreconLBFGS(Optimizer):
             ls = LineSearch()
             self.alpha_k, e, self.e0, self.no_update = \
                 ls._line_search(self.func, self.fprime, r, self.p, g,
-                                e, self.e0, stpmin=self.stpmin, 
+                                e, self.e0, stpmin=self.a_min, 
                                 maxstep=self.maxstep, c1=self.c1,
                                 c2=self.c2, stpmax=50.)
             self.e1 = e
