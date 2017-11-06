@@ -1,9 +1,9 @@
 from ase.units import Bohr
 
 
-def read_turbomole(f='coord'):
+def read_turbomole(fd):
     """Method to read turbomole coord file
-    
+
     coords in bohr, atom types in lowercase, format:
     $coord
     x y z atomtype
@@ -14,11 +14,11 @@ def read_turbomole(f='coord'):
     from ase import Atoms
     from ase.constraints import FixAtoms
 
-    lines = f.readlines()
+    lines = fd.readlines()
     atoms_pos = []
     atom_symbols = []
     myconstraints=[]
-    
+
     # find $coord section;
     # does not necessarily have to be the first $<something> in file...
     for i, l in enumerate(lines):
@@ -44,18 +44,18 @@ def read_turbomole(f='coord'):
                     myconstraints.append(False)
             else:
                 myconstraints.append(False)
-            
+
     atoms = Atoms(positions = atoms_pos, symbols = atom_symbols, pbc = False)
     c = FixAtoms(mask = myconstraints)
     atoms.set_constraint(c)
     return atoms
 
-    
-def read_turbomole_gradient(f='gradient', index=-1):
+
+def read_turbomole_gradient(fd, index=-1):
     """ Method to read turbomole gradient file """
 
     # read entire file
-    lines = [x.strip() for x in f.readlines()]
+    lines = [x.strip() for x in fd.readlines()]
 
     # find $grad section
     start = end = -1
@@ -94,7 +94,7 @@ def read_turbomole_gradient(f='gradient', index=-1):
             # gradient = float(fields[3].split()[0])
         except (IndexError, ValueError):
             formatError()
-        
+
         # coordinates/gradient
         atoms = Atoms()
         forces = []
@@ -131,12 +131,10 @@ def read_turbomole_gradient(f='gradient', index=-1):
     return images[index]
 
 
-def write_turbomole(filename, atoms):
+def write_turbomole(fd, atoms):
     """ Method to write turbomole coord file
     """
     from ase.constraints import FixAtoms
-
-    f = filename
 
     coord = atoms.get_positions()
     symbols = atoms.get_chemical_symbols()
@@ -154,9 +152,9 @@ def write_turbomole(filename, atoms):
         else:
             fix_str.append('')
 
-    f.write('$coord\n')
+    fd.write('$coord\n')
     for (x, y, z), s, fix in zip(coord, symbols, fix_str):
-        f.write('%20.14f  %20.14f  %20.14f      %2s  %2s \n'
-                % (x / Bohr, y / Bohr, z / Bohr, s.lower(), fix))
+        fd.write('%20.14f  %20.14f  %20.14f      %2s  %2s \n'
+                 % (x / Bohr, y / Bohr, z / Bohr, s.lower(), fix))
 
-    f.write('$end\n')
+    fd.write('$end\n')
