@@ -1,6 +1,9 @@
 """Inline viewer for jupyter notebook using X3D."""
 
-from io import BytesIO
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
 from IPython.display import HTML
 
 def view_x3d(atoms):
@@ -10,6 +13,8 @@ def view_x3d(atoms):
     Args:
         atoms - ase.Atoms, atoms to be rendered"""
     
-    with BytesIO() as output:
-        atoms.write(output, format='html')
-        return HTML(output.getvalue())
+    output = StringIO()
+    atoms.write(output, format='html')
+    data = output.getvalue()
+    output.close()
+    return HTML(data)

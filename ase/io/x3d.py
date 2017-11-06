@@ -5,6 +5,7 @@ X3DOM outputs to html pages that should display 3-d manipulatable atoms in
 modern web browsers.
 """
 
+from __future__ import print_function
 from ase.data import covalent_radii
 from ase.data.colors import jmol_colors
 from ase.utils import basestring
@@ -59,7 +60,6 @@ class X3D:
                 raise ValueError("filename must end in '.x3d' or '.html'.")
                 
         # Write the header
-        print(filename)
         w = WriteToFile(filename, 'w')
         if datatype == 'X3DOM':
             w(0, '<html>')
@@ -113,7 +113,7 @@ class WriteToFile:
 
     def __call__(self, indent, line):
         text = ' ' * indent
-        self._f.write(text + line + '\n')
+        print('%s%s\n'%(text,line), file=self._f)
 
     def close(self):
         self._f.close()

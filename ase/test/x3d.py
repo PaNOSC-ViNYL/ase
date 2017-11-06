@@ -1,3 +1,4 @@
+from __future__ import print_function
 from ase import Atoms
 
 try:
@@ -6,6 +7,7 @@ try:
 except:
     pass
 else:
+    print('Testing x3d...')
     a = 3.6
     b = a / 2
     atoms = Atoms('Cu4',
