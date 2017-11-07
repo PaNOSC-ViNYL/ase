@@ -302,10 +302,10 @@ def open_with_compression(filename, mode='r'):
             fd = bz2.BZ2File(filename, mode=mode)
     elif compression == 'xz':
         try:
-            import lzma
+            from lzma import open as lzma_open
         except ImportError:
-            from backports import lzma
-        fd = lzma.open(filename, mode)
+            from backports.lzma import open as lzma_open
+        fd = lzma_open(filename, mode)
     else:
         fd = open(filename, mode)
 
