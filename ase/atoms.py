@@ -1512,11 +1512,11 @@ class Atoms(object):
         angle = np.arccos(angle)
         return angle * f
 
-    def get_angles(self, a123_sets, mic=False):
+    def get_angles(self, indices, mic=False):
         """Get angle formed by three atoms for multiple groupings.
 
-        calculate angle in degrees between the vectors a2->a1 and
-        a2->a3, where a1, a2, and a3 are in each row of a123_sets.
+        calculate angle in degrees between vectors between atoms a2->a1 
+        and a2->a3, where a1, a2, and a3 are in each row of indices.
 
         Use mic=True to use the Minimum Image Convention and calculate
         the angle across periodic boundaries.
@@ -1524,12 +1524,12 @@ class Atoms(object):
 
         f = 180 / pi
 
-        a123_sets = np.array(a123_sets)
+        indices = np.array(indices)
 
 
-        a1s = self.positions[a123_sets[:, 0]]
-        a2s = self.positions[a123_sets[:, 1]]
-        a3s = self.positions[a123_sets[:, 2]]
+        a1s = self.positions[indices[:, 0]]
+        a2s = self.positions[indices[:, 1]]
+        a3s = self.positions[indices[:, 2]]
 
         v10s = a1s - a2s
         v12s = a3s - a2s
