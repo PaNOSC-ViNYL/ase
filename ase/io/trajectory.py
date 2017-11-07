@@ -341,20 +341,19 @@ def write_atoms(backend, atoms, write_header=True):
         b.write(charges=atoms.get_initial_charges())
 
 
-def read_traj(filename, index):
-    trj = TrajectoryReader(filename)
+def read_traj(fd, index):
+    trj = TrajectoryReader(fd)
     for i in range(*index.indices(len(trj))):
         yield trj[i]
 
 
-def write_traj(filename, images):
+def write_traj(fd, images):
     """Write image(s) to trajectory."""
-    trj = TrajectoryWriter(filename, mode='w')
+    trj = TrajectoryWriter(fd)
     if isinstance(images, Atoms):
         images = [images]
     for atoms in images:
         trj.write(atoms)
-    trj.close()
 
 
 class OldCalculatorWrapper:
