@@ -74,7 +74,7 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             except Exception as ex:
                 warnings.warn('Discarding atom when reading PDB file: {}\n{}'
                               .format(line.strip(), ex))
-        if line.startswith('ENDMDL'):
+        if line.startswith('END'):
             # End of configuration reached
             if read_arrays and len(occ) == len(atoms):
                 atoms.set_array('occupancy', np.array(occ))
