@@ -263,6 +263,9 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     magnetization = []
 
     for n, line in enumerate(data):
+        if re.search('[0-9]-[0-9]',line):
+            data[n] = re.sub('([0-9])-([0-9])',r'\1 -\2',line)
+    for n, line in enumerate(data):
         if 'POTCAR:' in line:
             temp = line.split()[2]
             for c in ['.', '_', '1']:
