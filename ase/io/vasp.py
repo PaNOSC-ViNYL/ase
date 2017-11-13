@@ -5,6 +5,7 @@ Atoms object in VASP POSCAR format.
 """
 
 import os
+import re
 import ase.units
 
 from ase.utils import basestring
