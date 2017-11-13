@@ -74,8 +74,12 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             except Exception as ex:
                 warnings.warn('Discarding atom when reading PDB file: {}\n{}'
                               .format(line.strip(), ex))
-        if line.startswith('ENDMDL'):
+        if line.startswith('END'):
             # End of configuration reached
+            # According to the latest PDB file format (v3.30),
+            # this line should start with 'ENDMDL' (not 'END'),
+            # but in this way PDB trajectories from e.g. CP2K 
+            # are supported (also VMD supports this format). 
             if read_arrays and len(occ) == len(atoms):
                 atoms.set_array('occupancy', np.array(occ))
             if read_arrays and len(bfactor) == len(atoms):
@@ -85,7 +89,7 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             occ = []
             bfactor = []
     if len(images) == 0:
-        # Single configuration with no 'ENDMDL'
+        # Single configuration with no 'END' or 'ENDMDL'
         if read_arrays and len(occ) == len(atoms):
             atoms.set_array('occupancy', np.array(occ))
         if read_arrays and len(bfactor) == len(atoms):

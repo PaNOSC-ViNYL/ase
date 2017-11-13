@@ -2,7 +2,7 @@ import numpy as np
 
 from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
-
+import time
 
 class PreconFIRE(Optimizer):
 
@@ -61,6 +61,7 @@ class PreconFIRE(Optimizer):
     def initialize(self):
         self.v = None
         self.skip_flag = False
+        self.e1 = None
 
     def read(self):
         self.v, self.dt = self.load()
@@ -87,8 +88,10 @@ class PreconFIRE(Optimizer):
                 r_test = r + self.dt * v_test
 
                 self.skip_flag = False
-                if (self.func(r_test) > self.func(r) -
-                    self.theta * self.dt * np.vdot(v_test, f)):
+                func_val = self.func(r_test)
+                self.e1 = func_val
+                if (func_val > self.func(r) -
+                      self.theta * self.dt * np.vdot(v_test, f)):
                     self.v[:] *= 0.0
                     self.a = self.astart
                     self.dt *= self.fdec
@@ -137,3 +140,50 @@ class PreconFIRE(Optimizer):
         self.atoms.set_positions(x.reshape(-1, 3))
         potl = self.atoms.get_potential_energy()
         return potl
+
+    def run(self, fmax=0.05, steps=100000000, smax=None):
+        if smax is None:
+            smax = fmax
+        self.smax = smax
+        return Optimizer.run(self, fmax, steps)
+
+    def converged(self, forces=None):
+        """Did the optimization converge?"""
+        if forces is None:
+            forces = self.atoms.get_forces()
+        if isinstance(self.atoms, UnitCellFilter):
+            natoms = len(self.atoms.atoms)
+            forces, stress = forces[:natoms], self.atoms.stress
+            fmax_sq = (forces**2).sum(axis=1).max()
+            smax_sq = (stress**2).max()
+            return (fmax_sq < self.fmax**2 and smax_sq < self.smax**2)
+        else:
+            fmax_sq = (forces**2).sum(axis=1).max()
+            return fmax_sq < self.fmax**2
+
+    def log(self, forces):
+        if isinstance(self.atoms, UnitCellFilter):
+            natoms = len(self.atoms.atoms)
+            forces, stress = forces[:natoms], self.atoms.stress
+            fmax = np.sqrt((forces**2).sum(axis=1).max())
+            smax = np.sqrt((stress**2).max())
+        else:
+            fmax = np.sqrt((forces**2).sum(axis=1).max())
+        if self.e1 is not None:
+            # reuse energy at end of line search to avoid extra call
+            e = self.e1
+        else:
+            e = self.atoms.get_potential_energy()
+        T = time.localtime()
+        if self.logfile is not None:
+            name = self.__class__.__name__
+            if isinstance(self.atoms, UnitCellFilter):
+                self.logfile.write(
+                    '%s: %3d  %02d:%02d:%02d %15.6f %12.4f %12.4f\n' %
+                    (name, self.nsteps, T[3], T[4], T[5], e, fmax, smax))
+
+            else:
+                self.logfile.write(
+                    '%s: %3d  %02d:%02d:%02d %15.6f %12.4f\n' %
+                    (name, self.nsteps, T[3], T[4], T[5], e, fmax))
+            self.logfile.flush()
