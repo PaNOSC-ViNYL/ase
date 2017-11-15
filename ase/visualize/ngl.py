@@ -14,6 +14,8 @@ class NGLDisplay:
     """
     def __init__(self, atoms, xsize=500, ysize=500):
         import nglview
+        import nglview.color
+
         from ipywidgets import Dropdown, FloatSlider, IntSlider, HBox, VBox
         self.atoms = atoms
         if isinstance(atoms[0], Atoms):
@@ -34,20 +36,27 @@ class NGLDisplay:
         self.view.add_unitcell()
         self.view.add_spacefill()
         self.view.camera = 'orthographic'
-        self.view.update_spacefill(radiusType='covalent', scale=0.7)
+        self.view.update_spacefill(radiusType='covalent',
+                                   scale=0.8,
+                                   color_scheme=self.csel.value,
+                                   color_scale='rainbow')
         self.view.center()
 
         self.asel = Dropdown(options=['All'] +
                              list(set(self.struct.get_chemical_symbols())),
                              value='All', description='Show')
 
+        self.csel = Dropdown(options=nglview.color.COLOR_SCHEMES,
+                             value=' ', description='Color scheme')
+
         self.rad = FloatSlider(value=0.8, min=0.0, max=1.5, step=0.01,
                                description='Ball size')
 
         self.asel.observe(self._select_atom)
+        self.csel.observe(self._update_repr)
         self.rad.observe(self._update_repr)
 
-        wdg = [self.asel, self.rad]
+        wdg = [self.asel, self.csel, self.rad]
         if self.frm:
             wdg.append(self.frm)
 
@@ -58,7 +67,10 @@ class NGLDisplay:
         self.gui.custom_colors = self.custom_colors
 
     def _update_repr(self, chg=None):
-        self.view.update_spacefill(radiusType='covalent', scale=self.rad.value)
+        self.view.update_spacefill(radiusType='covalent',
+                                   scale=self.rad.value,
+                                   color_scheme=self.csel.value,
+                                   color_scale='rainbow')
 
     def _update_frame(self, chg=None):
         self.view.frame = self.frm.value

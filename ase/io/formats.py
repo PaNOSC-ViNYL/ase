@@ -39,10 +39,12 @@ class UnknownFileTypeError(Exception):
     pass
 
 
-IOFormat = collections.namedtuple('IOFormat', 'read, write, single, acceptsfd')
+IOFormat = collections.namedtuple('IOFormat',
+                                  'read, write, single, acceptsfd, isbinary')
 ioformats = {}  # will be filled at run-time
 
-# 1=single, +=multiple, F=accepts a file-descriptor, S=needs a file-name str
+# 1=single, +=multiple, F=accepts a file-descriptor, S=needs a file-name str,
+# B=like F, but opens in binary mode
 all_formats = {
     'abinit': ('ABINIT input file', '1F'),
     'aims': ('FHI-aims geometry file', '1S'),
@@ -87,7 +89,7 @@ all_formats = {
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '+F'),
     'lammps-data': ('LAMMPS data file', '1F'),
-    'magres': ('MAGRES ab initio NMR data file', '1S'),
+    'magres': ('MAGRES ab initio NMR data file', '1F'),
     'mol': ('MDL Molfile', '1F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
@@ -101,7 +103,7 @@ all_formats = {
     'sdf': ('SDF format', '1F'),
     'struct': ('WIEN2k structure file', '1S'),
     'struct_out': ('SIESTA STRUCT file', '1F'),
-    'traj': ('ASE trajectory', '+S'),
+    'traj': ('ASE trajectory', '+B'),
     'trj': ('Old ASE pickle trajectory', '+S'),
     'turbomole': ('TURBOMOLE coord file', '1F'),
     'turbomole-gradient': ('TURBOMOLE gradient file', '+F'),
@@ -197,8 +199,10 @@ def initialize(format):
         raise ValueError('File format not recognized: ' + format)
     code = all_formats[format][1]
     single = code[0] == '1'
-    acceptsfd = code[1] == 'F'
-    ioformats[format] = IOFormat(read, write, single, acceptsfd)
+    assert code[1] in 'BFS'
+    acceptsfd = code[1] != 'S'
+    isbinary = code[1] == 'B'
+    ioformats[format] = IOFormat(read, write, single, acceptsfd, isbinary)
 
 
 def get_ioformat(format):
@@ -302,10 +306,10 @@ def open_with_compression(filename, mode='r'):
             fd = bz2.BZ2File(filename, mode=mode)
     elif compression == 'xz':
         try:
-            import lzma
+            from lzma import open as lzma_open
         except ImportError:
-            from backports import lzma
-        fd = lzma.open(filename, mode)
+            from backports.lzma import open as lzma_open
+        fd = lzma_open(filename, mode)
     else:
         fd = open(filename, mode)
 
@@ -382,7 +386,8 @@ def _write(filename, fd, format, io, images, parallel=None, **kwargs):
     if io.acceptsfd:
         open_new = (fd is None)
         if open_new:
-            fd = open_with_compression(filename, 'w')
+            mode = 'wb' if io.isbinary else 'w'
+            fd = open_with_compression(filename, mode)
         io.write(fd, images, **kwargs)
         if open_new:
             fd.close()
@@ -477,7 +482,8 @@ def _iread(filename, index, format, io, parallel=None, full_output=False,
     must_close_fd = False
     if isinstance(filename, basestring):
         if io.acceptsfd:
-            fd = open_with_compression(filename)
+            mode = 'rb' if io.isbinary else 'r'
+            fd = open_with_compression(filename, mode)
             must_close_fd = True
         else:
             fd = filename
@@ -621,7 +627,7 @@ def filetype(filename, read=True, guess=True):
                           ('espresso-out', b'Program PWSCF'),
                           ('aims-output', b'Invoking FHI-aims ...'),
                           ('lammps-dump', b'\nITEM: TIMESTEP\n'),
-                          ('qbox', b'<fpmd:simulation'),
+                          ('qbox', b':simulation xmlns:'),
                           ('xsf', b'\nANIMSTEPS'),
                           ('xsf', b'\nCRYSTAL'),
                           ('xsf', b'\nSLAB'),

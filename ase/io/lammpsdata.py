@@ -162,9 +162,9 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
                                          int(fields[6]),
                                          int(fields[7]))
                 else:
-                    raise RuntimeError("Style '%s' not supported or invalid" +
-                                       " number of fields %d" %
-                                       (style, len(fields)))
+                    raise RuntimeError("Style '{}' not supported or invalid "
+                                       "number of fields {}"
+                                       "".format(style, len(fields)))
             elif section == "Velocities":  # id vx vy vz
                 vel_in[int(fields[0])] = (float(fields[1]),
                                           float(fields[2]),

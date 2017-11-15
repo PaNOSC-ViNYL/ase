@@ -154,14 +154,12 @@ class GUI(View, Status):
         CTRL = event.modifier == 'ctrl'
 
         # Bug: Simultaneous CTRL + shift is the same as just CTRL.
-        # Therefore binding Page Up / Page Dn (keycodes next/prior)
-        # to movement in Z direction.
+        # Therefore movement in Z direction does not support the
+        # shift modifier.
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
-                  'left': (-1, 0, 0),
-                  'next': (0, 0, 1),
-                  'prior': (0, 0, -1)}.get(event.key, None)
+                  'left': (-1, 0, 0)}.get(event.key, None)
 
         if dxdydz is None:
             return
