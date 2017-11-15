@@ -29,8 +29,8 @@ class SiestaRaman(Vibrations):
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
 
-    The calculator object (calc) must be Siesta, and the 
-    pyscf program (nao branch: https://github.com/cfm-mpc/pyscf/tree/nao) 
+    The calculator object (calc) must be Siesta, and the
+    pyscf program (nao branch: https://github.com/cfm-mpc/pyscf/tree/nao)
     must be installed.
 
     >>> calc.get_dipole_moment(atoms)
@@ -134,7 +134,7 @@ class SiestaRaman(Vibrations):
 
     def get_polarizability(self):
         return self.siesta.get_polarizability_pyscf_inter(Edir=np.array([1.0, 1.0, 1.0]),
-                **self.pyscf_arg)
+                                                          **self.pyscf_arg)
 
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
@@ -168,9 +168,9 @@ class SiestaRaman(Vibrations):
                     open(name + '+.pckl', "rb"))
                 if self.nfree == 4:
                     [fminusminus, dminusminus, frminusminus, pminusminus] =\
-                    pickle.load(open(name + '--.pckl', "rb"))
+                                    pickle.load(open(name + '--.pckl', "rb"))
                     [fplusplus, dplusplus, frplusplus, pplusplus] =\
-                    pickle.load(open(name + '++.pckl', "rb"))
+                                    pickle.load(open(name + '++.pckl', "rb"))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
                     fplus[a] += -fplus.sum(0)

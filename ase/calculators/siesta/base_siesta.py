@@ -917,9 +917,11 @@ class BaseSiesta(FileIOCalculator):
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
 
-    def get_polarizability_pyscf_inter(self, Edir = np.array([1.0, 0.0, 0.0]),
-            freq = np.arange(0.0, 10.0, 0.1), units='au', 
-            run_tddft=True, fname ="pol_tensor.npy", **kw):
+    def get_polarizability_pyscf_inter(self, Edir=np.array([1.0, 0.0, 0.0]),
+                                       freq=np.arange(0.0, 10.0, 0.1),
+                                       units='au',
+                                       run_tddft=True,
+                                       fname="pol_tensor.npy", **kw):
         """
         Calculate the interacting polarizability of a molecule using
         TDDFT calculation from the pyscf-nao library.
@@ -927,13 +929,14 @@ class BaseSiesta(FileIOCalculator):
         Parameters
         ----------
         freq: array like
-            frequency range for which the polarizability should be computed, in eV
+            frequency range for which the polarizability should
+            be computed, in eV
         units : str, optional
             unit for the returned polarizability, can be au (atomic units)
             or nm**2
         run_tddft: to run the tddft_calculation or not
         fname: str
-            Name of file name for polariazbility tensor. 
+            Name of file name for polariazbility tensor.
             if run_tddft is True: output file
             if run_tddft is False: input file
 
@@ -994,13 +997,15 @@ class BaseSiesta(FileIOCalculator):
 
         Na8.set_calculator(siesta)
         e = Na8.get_potential_energy()
-        freq, pol = siesta.get_polarizability_pyscf_inter(label="siesta", jcutoff=7, 
-                iter_broadening=0.15/Ha, xc_code='LDA,PZ', tol_loc=1e-6, tol_biloc=1e-7, 
-                freq = np.arange(0.0, 5.0, 0.05))
-
+        freq, pol = siesta.get_polarizability_pyscf_inter(label="siesta",
+                                                          jcutoff=7,
+                                                          iter_broadening=0.15/Ha,
+                                                          xc_code='LDA,PZ',
+                                                          tol_loc=1e-6,
+                                                          tol_biloc=1e-7,
+                                                          freq = np.arange(0.0, 5.0, 0.05))
         # plot polarizability
         plt.plot(freq, pol[:, 0, 0].imag)
-
         plt.show()
         """
 
@@ -1013,48 +1018,46 @@ class BaseSiesta(FileIOCalculator):
 
             tddft = tddft_iter(**kw)
 
-            omegas = freq/Ha + 1j*tddft.eps
+            omegas = freq / Ha + 1j * tddft.eps
             p_avg = -tddft.comp_polariz_inter_Eext(omegas, Eext=Edir)
 
             # save polarizability tensor to files
             np.save("polarizability_avg.npy", p_avg)
             np.save(fname, -tddft.p_mat)
 
-            self.results['polarizability'] = np.zeros((freq.size, 3, 3), 
-                    dtype=tddft.p_mat.dtype)
-
+            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+                                                dtype=tddft.p_mat.dtype)
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
-                        p = pol2cross_sec(-tddft.p_mat[xyz1, xyz2, :], 
-                                freq)
-                        self.results['polarizability'][:, xyz1, xyz2] = p 
+                        p = pol2cross_sec(-tddft.p_mat[xyz1, xyz2, :],
+                                          freq)
+                        self.results['polarizability'][:, xyz1, xyz2] = p
                     else:
                         self.results['polarizability'][:, xyz1, xyz2] = \
-                                -tddft.p_mat[xyz1, xyz2, :]
+                                                -tddft.p_mat[xyz1, xyz2, :]
 
         else:
             # load polarizability tensor from previous calculations
             p_mat = np.load(fname)
 
-            self.results['polarizability'] = np.zeros((freq.size, 3, 3), 
-                    dtype=p_mat.dtype)
+            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+                                                        dtype=p_mat.dtype)
 
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
-                        p = pol2cross_sec(-p_mat[xyz1, xyz2, :], 
-                                freq)
-                        self.results['polarizability'][:, xyz1, xyz2] = p 
+                        p = pol2cross_sec(-p_mat[xyz1, xyz2, :], freq)
+                        self.results['polarizability'][:, xyz1, xyz2] = p
                     else:
                         self.results['polarizability'][:, xyz1, xyz2] = \
-                                -p_mat[xyz1, xyz2, :]
-
+                                                        -p_mat[xyz1, xyz2, :]
 
         return freq, self.results['polarizability']
 
-    def get_polarizability_mbpt(self, mbpt_inp=None, output_name='mbpt_lcao.out',
-                           format_output='hdf5', units='au'):
+    def get_polarizability_mbpt(self, mbpt_inp=None,
+                                output_name='mbpt_lcao.out',
+                                format_output='hdf5', units='au'):
         """
         Warning!!
             Out dated version, try get_polarizability_pyscf
