@@ -31,12 +31,12 @@ def float2str(x):
     n = f.numerator
     d = f.denominator
     if abs(n / d - f) > 1e-6:
-        return '{0:.3f}'.format(f)
+        return '{:.3f}'.format(f)
     if d == 0:
         return '0'
     if f.denominator == 1:
         return str(n)
-    return '{0}/{1}'.format(f.numerator, f.denominator)
+    return '{}/{}'.format(f.numerator, f.denominator)
 
 
 def solvated(symbols):
@@ -118,9 +118,9 @@ def print_results(results):
         total_energy += coef * energy
         if abs(coef) < 1e-7:
             continue
-        print('{0:14}{1:>10}{2:12.3f}'.format(name, float2str(coef), energy))
+        print('{:14}{:>10}{:12.3f}'.format(name, float2str(coef), energy))
     print('------------------------------------')
-    print('Total energy: {0:22.3f}'.format(total_energy))
+    print('Total energy: {:22.3f}'.format(total_energy))
     print('------------------------------------')
 
 
@@ -218,7 +218,7 @@ class Pourbaix:
                 if aq:
                     energy -= entropy
             if verbose:
-                print('{0:<5}{1:10}{2:10.3f}'.format(len(energies),
+                print('{:<5}{:10}{:10.3f}'.format(len(energies),
                                                      name, energy))
             energies.append(energy)
             names.append(name)
@@ -352,13 +352,18 @@ class PhaseDiagram:
             print('Species:', ', '.join(self.symbols))
             print('References:', len(self.references))
             for i, (count, energy, name, natoms) in enumerate(self.references):
-                print('{0:<5}{1:10}{2:10.3f}'.format(i, name, energy))
+                print('{:<5}{:10}{:10.3f}'.format(i, name, energy))
 
         self.points = np.zeros((len(self.references), len(self.species) + 1))
         for s, (count, energy, name, natoms) in enumerate(self.references):
             for symbol, n in count.items():
                 self.points[s, self.species[symbol]] = n / natoms
             self.points[s, -1] = energy / natoms
+
+        if len(self.points) == 2:
+            self.simplices = np.array([[0, 1]])
+            self.hull = np.ones(2, bool)
+            return
 
         hull = ConvexHull(self.points[:, 1:])
 
@@ -490,7 +495,7 @@ class PhaseDiagram:
         ax.plot(x[self.hull], e[self.hull], 'og')
         if not only_plot_simplices:
             ax.plot(x[~self.hull], e[~self.hull], 'sr')
-            
+
         refs = self.references
         if only_plot_simplices or only_label_simplices:
             x = x[self.hull]
