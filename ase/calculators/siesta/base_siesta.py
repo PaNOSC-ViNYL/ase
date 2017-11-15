@@ -989,7 +989,8 @@ class BaseSiesta(FileIOCalculator):
                         'DM.Tolerance': 1e-4,
                         'DM.MixingWeight': 0.01,
                         'MaxSCFIterations': 300,
-                        'DM.NumberPulay': 4})
+                        'DM.NumberPulay': 4,
+                        'XML.Write': True})
 
         Na8.set_calculator(siesta)
         e = Na8.get_potential_energy()
@@ -1013,9 +1014,10 @@ class BaseSiesta(FileIOCalculator):
             tddft = tddft_iter(**kw)
 
             omegas = freq/Ha + 1j*tddft.eps
-            p_avg = -tddft.comp_polariz_inter(omegas, Efield=Edir)
+            p_avg = -tddft.comp_polariz_inter_Eext(omegas, Eext=Edir)
 
             # save polarizability tensor to files
+            np.save("polarizability_avg.npy", p_avg)
             np.save(fname, -tddft.p_mat)
 
             self.results['polarizability'] = np.zeros((freq.size, 3, 3), 

@@ -29,13 +29,14 @@ class SiestaRaman(Vibrations):
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
 
-    The calculator object (calc) must be Siesta, and the mbpt_lcao
-    (http://mbpt-domiprod.wikidot.com/) program must be installed.
+    The calculator object (calc) must be Siesta, and the 
+    pyscf program (nao branch: https://github.com/cfm-mpc/pyscf/tree/nao) 
+    must be installed.
 
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in the ``Vibrations`` class
-    the ``Infrared`` class introduces two new methods;
+    the ``Raman`` as the ``Infrared`` class introduces two methods;
     *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*,
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
