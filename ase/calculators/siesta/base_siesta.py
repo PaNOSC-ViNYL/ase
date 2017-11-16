@@ -1019,10 +1019,9 @@ class BaseSiesta(FileIOCalculator):
             tddft = tddft_iter(**kw)
 
             omegas = freq / Ha + 1j * tddft.eps
-            p_avg = -tddft.comp_polariz_inter_Eext(omegas, Eext=Edir)
+            tddft.comp_dens_inter_along_Eext(omegas, Eext=Edir)
 
             # save polarizability tensor to files
-            np.save("polarizability_avg.npy", p_avg)
             np.save(fname, -tddft.p_mat)
 
             self.results['polarizability'] = np.zeros((freq.size, 3, 3),
@@ -1186,8 +1185,9 @@ class BaseSiesta(FileIOCalculator):
         """
         from ase.calculators.siesta.mbpt_lcao import MBPT_LCAO
         from ase.calculators.siesta.mbpt_lcao_io import read_mbpt_lcao_output
+        import warnings
 
-        print("Out dated version, try get_polarizability_pyscf")
+        warnings.warn("Out dated version, try get_polarizability_pyscf")
 
         if mbpt_inp is not None:
             tddft = MBPT_LCAO(mbpt_inp)
