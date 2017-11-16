@@ -1,11 +1,14 @@
 from __future__ import print_function
+
+from unittest.case import SkipTest
+
 from ase import Atoms
 
 try:
     from IPython.display import HTML
     from ase.visualize import x3d
-except:
-    pass
+except ImportError:
+    raise SkipTest('cannot import HTML from IPython.displacy')
 else:
     print('Testing x3d...')
     a = 3.6

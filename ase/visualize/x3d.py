@@ -2,7 +2,7 @@
 
 try:
     from StringIO import StringIO
-except:
+except ImportError:
     from io import StringIO
 from IPython.display import HTML
 
