@@ -29,13 +29,14 @@ class SiestaRaman(Vibrations):
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
 
-    The calculator object (calc) must be Siesta, and the mbpt_lcao
-    (http://mbpt-domiprod.wikidot.com/) program must be installed.
+    The calculator object (calc) must be Siesta, and the
+    pyscf program (nao branch: https://github.com/cfm-mpc/pyscf/tree/nao)
+    must be installed.
 
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in the ``Vibrations`` class
-    the ``Infrared`` class introduces two new methods;
+    the ``Raman`` as the ``Infrared`` class introduces two methods;
     *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*,
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
@@ -106,8 +107,8 @@ class SiestaRaman(Vibrations):
     9   2206.78   66.1575   12.6139         0.0000    0.6417
     """
 
-    def __init__(self, atoms, siesta, mbpt_inp, indices=None, name='ram',
-                 delta=0.01, nfree=2, directions=None):
+    def __init__(self, atoms, siesta, indices=None, name='ram',
+                 delta=0.01, nfree=2, directions=None, **kw):
         assert nfree in [2, 4]
         self.atoms = atoms
         if atoms.constraints:
@@ -128,12 +129,12 @@ class SiestaRaman(Vibrations):
         self.ir = True
         self.ram = True
         self.siesta = siesta
-        self.mbpt_inp = mbpt_inp
+
+        self.pyscf_arg = kw
 
     def get_polarizability(self):
-        return self.siesta.get_polarizability(self.mbpt_inp,
-                                              format_output='txt',
-                                              units='au')
+        return self.siesta.get_polarizability_pyscf_inter(Edir=np.array([1.0, 1.0, 1.0]),
+                                                          **self.pyscf_arg)
 
     def read(self, method='standard', direction='central'):
         self.method = method.lower()
@@ -146,7 +147,7 @@ class SiestaRaman(Vibrations):
         # Get "static" dipole moment polarizability and forces
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero, freq_zero,
-            pol_zero] = pickle.load(open(name))
+            pol_zero] = pickle.load(open(name, "rb"))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
@@ -162,14 +163,14 @@ class SiestaRaman(Vibrations):
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
                 [fminus, dminus, frminus, pminus] = pickle.load(
-                    open(name + '-.pckl'))
+                    open(name + '-.pckl', "rb"))
                 [fplus, dplus, frplus, pplus] = pickle.load(
-                    open(name + '+.pckl'))
+                    open(name + '+.pckl', "rb"))
                 if self.nfree == 4:
                     [fminusminus, dminusminus, frminusminus, pminusminus] =\
-                    pickle.load(open(name + '--.pckl'))
+                                    pickle.load(open(name + '--.pckl', "rb"))
                     [fplusplus, dplusplus, frplusplus, pplusplus] =\
-                    pickle.load(open(name + '++.pckl'))
+                                    pickle.load(open(name + '++.pckl', "rb"))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
                     fplus[a] += -fplus.sum(0)
@@ -221,7 +222,7 @@ class SiestaRaman(Vibrations):
 
         # Raman
         dadq = np.array([(dadx[j, :, :, :] / (units.Bohr**2)) /
-                         sqrt(m[self.indices[j / 3]] * units._amu / units._me)
+                         sqrt(m[self.indices[j // 3]] * units._amu / units._me)
                          for j in range(ndof)])
         dadQ = np.zeros((ndof, 3, 3, dadq.shape[1]), dtype=complex)
         for w in range(dadq.shape[1]):
@@ -404,12 +405,12 @@ class SiestaRaman(Vibrations):
             f.write("   \hline \n")
         for n, e in enumerate(hnu):
             if e.imag != 0:
-                c = 'i'
+                c = ' + i'
                 e = e.imag
             else:
                 c = ' '
                 e = e.real
-            f.write(('     %3d & %6.1f & %s  & %7.1f & %s  & ' + iu_format_ir +
+            f.write(('     %3d & %6.1f %s  & %7.1f %s  & ' + iu_format_ir +
                      '  & ' + iu_format_ram + ' \n') % (n, 1000 * e, c, s * e, c,
                                                         iu_ir * self.intensities_ir[n], iu_ram *
                                                         self.intensities_ram[n].real))

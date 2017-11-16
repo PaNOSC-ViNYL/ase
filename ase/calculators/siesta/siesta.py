@@ -296,6 +296,7 @@ class Siesta3_2(BaseSiesta):
         ('WriteCoorStep', False),
         ('WriteForces', False),
         ('WriteMDhistory', False),
+        ('XML.Write', False),
         ('GeometryConstraints', None),
         ('MD.FCDispl', 0.04),  # Bohr
         ('MD.FCfirst', 1),
@@ -585,6 +586,7 @@ class SiestaTrunk462(BaseSiesta):
         ('WriteCoorStep', False),
         ('WriteForces', False),
         ('WriteMDhistory', False),
+        ('XML.Write', False),
         ('GeometryConstraints', None),
         ('MD.FCDispl', 0.04),  # Bohr
         ('MD.FCfirst', 1),
