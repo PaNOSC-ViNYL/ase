@@ -405,12 +405,12 @@ class SiestaRaman(Vibrations):
             f.write("   \hline \n")
         for n, e in enumerate(hnu):
             if e.imag != 0:
-                c = 'i'
+                c = ' + i'
                 e = e.imag
             else:
                 c = ' '
                 e = e.real
-            f.write(('     %3d & %6.1f & %s  & %7.1f & %s  & ' + iu_format_ir +
+            f.write(('     %3d & %6.1f %s  & %7.1f %s  & ' + iu_format_ir +
                      '  & ' + iu_format_ram + ' \n') % (n, 1000 * e, c, s * e, c,
                                                         iu_ir * self.intensities_ir[n], iu_ram *
                                                         self.intensities_ram[n].real))
