@@ -32,7 +32,9 @@ siesta = Siesta(
         'DM.Tolerance': 1e-4,
         'DM.MixingWeight': 0.01,
         'MaxSCFIterations': 300,
-        'DM.NumberPulay': 4})
+        'DM.NumberPulay': 4,
+        'XML.Write': True,
+        'DM.UseSaveDM': True})
 
 CO2.set_calculator(siesta)
 
