@@ -15,3 +15,5 @@ MANIFEST
 # Ignore PyCharm settings
 .idea/
 
+# Vim swap files:
+.*.sw?
