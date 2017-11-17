@@ -64,9 +64,6 @@ class PrimitiveNeighborList:
 
     def update(self, pbc, cell, coordinates):
         """Make sure the list is up to date."""
-        pbc = pbc.copy()
-        cell = cell.copy()
-        coordinates = coordinates.copy()
 
         if self.nupdates == 0:
             self.build(pbc, cell, coordinates)
@@ -87,9 +84,9 @@ class PrimitiveNeighborList:
         Coordinates are taken to be scaled or not according
         to self.use_scaled_positions.
         """
-        self.coordinates = coordinates
-        self.pbc = pbc
-        self.cell = cell
+        self.pbc = pbc = np.array(pbc, copy=True)
+        self.cell = cell = np.array(cell, copy=True)
+        self.coordinates = coordinates = np.array(coordinates, copy=True)
 
         if len(self.cutoffs) != len(coordinates):
             raise ValueError('Wrong number of cutoff radii: {0} != {1}'
