@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import sys
 
 # Path of the complete.py script:
 my_dir, _ = os.path.split(os.path.realpath(__file__))
@@ -8,7 +9,8 @@ filename = os.path.join(my_dir, 'complete.py')
 
 class CLICommand:
     short_description = 'Add tab-completion for Bash'
-    cmd = 'complete -o default -C {} ase'.format(filename)
+    cmd = ('complete -o default -C "{} -m ase.cli.complete" ase'
+           .format(sys.executable))
 
     @staticmethod
     def add_arguments(parser):
