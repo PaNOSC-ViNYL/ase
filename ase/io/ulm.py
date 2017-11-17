@@ -33,8 +33,7 @@ abc
 
 To see what's inside 'x.ulm' do this::
 
-    $ alias ulm="python -m ase.io.ulm"
-    $ ulm x.ulm
+    $ ase ulm x.ulm
     x.ulm  (tag: "", 1 item)
     item #0:
     {
