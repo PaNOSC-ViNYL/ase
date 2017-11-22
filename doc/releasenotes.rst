@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* New method, :meth:`~ase.Atoms.get_angles`, for calculating multiple angles.
+
 * New ``ase reciprocal`` :ref:`command <cli>` for showing the
   1. Brilluin zone, **k**-points and special points.
 

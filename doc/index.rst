@@ -9,6 +9,11 @@ license <license info>`.
 
 .. _Python: http://www.python.org
 
+ASE provides interfaces to different codes through :mod:`Calculators
+<ase.calculators>` which are used together with the central
+:mod:`Atoms <ase.atoms>` object and the many available algorithms in
+ASE.
+
 >>> # Example: structure optimization of hydrogen molecule
 >>> from ase import Atoms
 >>> from ase.optimize import BFGS
@@ -37,11 +42,15 @@ Supported :mod:`Calculators <ase.calculators>`:
 |octopus| |onetep| |q_espresso| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`DMol³ <ase.calculators.dmol>`
-Gaussian_ 
+Gaussian_
 :mod:`Grimme DFT-D3 <ase.calculators.dftd3>`
 :mod:`~ase.calculators.gulp`
 Mopac_
 :mod:`~ase.calculators.tip3p`
+
+
+`Reference publication on ASE <https://doi.org/10.1088/1361-648X/aa680e>`__
+
 
 Please go through this check-list to figure out if you need to convert your
 old ASE trajectory files to the modern file-format:
