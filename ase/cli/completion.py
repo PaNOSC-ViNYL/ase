@@ -19,9 +19,9 @@ class CLICommand:
 
     @staticmethod
     def run(args):
-        filename = args.filename or os.path.expanduser('~/.bashrc')
         cmd = CLICommand.cmd
         print(cmd)
+        #filename = args.filename or os.path.expanduser('~/.bashrc')
         #if args.dry_run:
         #    return
         #with open(filename) as fd:
