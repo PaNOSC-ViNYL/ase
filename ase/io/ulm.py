@@ -33,8 +33,7 @@ abc
 
 To see what's inside 'x.ulm' do this::
 
-    $ alias ulm="python -m ase.io.ulm"
-    $ ulm x.ulm
+    $ ase ulm x.ulm
     x.ulm  (tag: "", 1 item)
     item #0:
     {
@@ -135,12 +134,14 @@ class Writer:
                 data = {}
             else:
                 data = {'_little_endian': False}
-            if mode == 'w' or not os.path.isfile(fd):
+            file_as_string = isinstance(fd, basestring)
+            if mode == 'w' or (file_as_string and not os.path.isfile(fd)):
                 self.nitems = 0
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
-                fd = builtins.open(fd, 'wb')
+                if file_as_string:
+                    fd = builtins.open(fd, 'wb')
 
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
@@ -150,7 +151,8 @@ class Writer:
                                a.tostring() +
                                self.offsets.tostring())
             else:
-                fd = builtins.open(fd, 'r+b')
+                if file_as_string:
+                    fd = builtins.open(fd, 'r+b')
 
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
                 assert version == VERSION

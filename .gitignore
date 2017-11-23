@@ -10,7 +10,10 @@ MANIFEST
 
 #editor backup files
 *.py~
+*.rst~
 
 # Ignore PyCharm settings
 .idea/
 
+# Vim swap files:
+.*.sw?

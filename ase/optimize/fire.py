@@ -120,3 +120,4 @@ class FIRE(Optimizer):
         r = atoms.get_positions()
         atoms.set_positions(r + dr)
         self.dump((self.v, self.dt))
+

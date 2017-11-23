@@ -565,11 +565,9 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
         self.win.bind('<MouseWheel>', bind(scroll_event))
-        for key in ['Key', 'Next', 'Prior']:
-            # Next and Prior are PageUp/Dn, referring to Z axis.
-            self.win.bind('<{}>'.format(key), bind(scroll))
-            self.win.bind('<Shift-{}>'.format(key), bind(scroll, 'shift'))
-            self.win.bind('<Control-{}>'.format(key), bind(scroll, 'ctrl'))
+        self.win.bind('<Key>', bind(scroll))
+        self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
+        self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']

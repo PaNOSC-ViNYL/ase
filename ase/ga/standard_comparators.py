@@ -58,8 +58,8 @@ class InteratomicDistanceComparator(object):
         a2top = a2[-self.n_top:]
         cum_diff, max_diff = self.__compare_structure__(a1top, a2top)
 
-        if cum_diff < self.pair_cor_cum_diff and max_diff < self.pair_cor_max:
-            return True
+        return (cum_diff < self.pair_cor_cum_diff
+                and max_diff < self.pair_cor_max)
 
     def __compare_structure__(self, a1, a2):
         """ Private method for calculating the structural difference. """
@@ -83,10 +83,10 @@ class InteratomicDistanceComparator(object):
             total_cum_diff += cum_diff / t_size * ntype / float(len(numbers))
         return (total_cum_diff, max_diff)
 
-        
+
 class SequentialComparator(object):
     """Use more than one comparison class and test them all in sequence.
-    
+
     Supply a list of integers if for example two comparison tests both
     need to be positive if two atoms objects are truly equal.
     Ex:
@@ -103,19 +103,19 @@ class SequentialComparator(object):
         if not isinstance(logics, list):
             logics = [logics]
         assert len(logics) == len(methods)
-        
+
         self.methods = []
         self.logics = []
         for m, l in zip(methods, logics):
             if hasattr(m, 'looks_like'):
                 self.methods.append(m)
                 self.logics.append(l)
-            
+
     def looks_like(self, a1, a2):
         mdct = dict((l, []) for l in self.logics)
         for m, l in zip(self.methods, self.logics):
             mdct[l].append(m)
-            
+
         for methods in mdct.values():
             for m in methods:
                 if not m.looks_like(a1, a2):
@@ -123,8 +123,8 @@ class SequentialComparator(object):
             else:
                 return True
         return False
-        
-        
+
+
 class StringComparator(object):
     """Compares the calculated hash strings. These strings should be stored
        in atoms.info['key_value_pairs'][key1] and
@@ -134,46 +134,46 @@ class StringComparator(object):
     """
     def __init__(self, *keys):
         self.keys = keys
-        
+
     def looks_like(self, a1, a2):
         for k in self.keys:
             if a1.info['key_value_pairs'][k] == a2.info['key_value_pairs'][k]:
                 return True
         return False
-        
-        
+
+
 class EnergyComparator(object):
     """Compares the energy of the supplied atoms objects using
        get_potential_energy().
-    
+
        Parameters:
-    
+
        dE: the difference in energy below which two energies are
        deemed equal.
     """
     def __init__(self, dE=0.02):
         self.dE = dE
-        
+
     def looks_like(self, a1, a2):
         dE = abs(a1.get_potential_energy() - a2.get_potential_energy())
         if dE >= self.dE:
             return False
         else:
             return True
-            
-            
+
+
 class RawScoreComparator(object):
     """Compares the raw_score of the supplied individuals
        objects using a1.info['key_value_pairs']['raw_score'].
-    
+
        Parameters:
-    
+
        dist: the difference in raw_score below which two
        scores are deemed equal.
     """
     def __init__(self, dist=0.02):
         self.dist = dist
-        
+
     def looks_like(self, a1, a2):
         d = abs(get_raw_score(a1) - get_raw_score(a2))
         if d >= self.dist:
@@ -181,13 +181,13 @@ class RawScoreComparator(object):
         else:
             return True
 
-            
+
 class NoComparator(object):
     """Returns False always. If you don't want any comparator."""
     def looks_like(self, *args):
         return False
-        
-        
+
+
 class AtomsComparator(object):
     """Compares the Atoms objects directly."""
     def looks_like(self, a1, a2):

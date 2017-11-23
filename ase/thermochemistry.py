@@ -454,7 +454,7 @@ class IdealGasThermo(ThermoChem):
             raise ValueError('Imaginary frequencies are present.')
         else:
             self.vib_energies = np.real(self.vib_energies)  # clear +0.j
-        self.referencepressure = 101325.  # Pa
+        self.referencepressure = 1.0e5  # Pa
 
     def get_enthalpy(self, temperature, verbose=True):
         """Returns the enthalpy, in eV, in the ideal gas approximation
@@ -525,7 +525,7 @@ class IdealGasThermo(ThermoChem):
                temperature / units._hplanck**2)**(3.0 / 2)
         S_t *= units._k * temperature / self.referencepressure
         S_t = units.kB * (np.log(S_t) + 5.0 / 2.0)
-        write(fmt % ('S_trans (1 atm)', S_t, S_t * temperature))
+        write(fmt % ('S_trans (1 bar)', S_t, S_t * temperature))
         S += S_t
 
         # Rotational entropy (term inside the log is in SI units).
@@ -560,7 +560,7 @@ class IdealGasThermo(ThermoChem):
 
         # Pressure correction to translational entropy.
         S_p = - units.kB * np.log(pressure / self.referencepressure)
-        write(fmt % ('S (1 atm -> P)', S_p, S_p * temperature))
+        write(fmt % ('S (1 bar -> P)', S_p, S_p * temperature))
         S += S_p
 
         write('-' * 49)
