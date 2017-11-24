@@ -8,6 +8,8 @@ different orientations.
    - detection of duplicate atoms / atoms within cutoff radius
 """
 
+from math import pi
+
 import numpy as np
 
 from ase.geometry import complete_cell
@@ -189,6 +191,34 @@ def find_mic(D, cell, pbc=True):
     D_min = D_trans[list(range(len(D_min_ind))), D_min_ind]
 
     return D_min, D_min_len
+
+
+def get_angles(v1, v2, cell=None, pbc=None):
+    """Get angles formed by two lists of vectors.
+
+    calculate angle in degrees between vectors v1 and v2
+
+    Use set a unit cell and pbc to enable minimum image
+    convention, otherwise angles are taken as-is.
+    """
+
+    f = 180 / pi
+
+    # Check if using mic
+    if cell is not None or pbc is not None:
+        if cell is None or pbc is None:
+            raise ValueError("cell or pbc must be both set or both be None")
+            
+        v1 = find_mic(v1, cell, pbc)[0]
+        v2= find_mic(v2, cell, pbc)[0]
+
+
+    v1 /= np.linalg.norm(v1, axis=1)[:, np.newaxis]
+    v2 /= np.linalg.norm(v2, axis=1)[:, np.newaxis]
+
+    angles = np.arccos(np.einsum('ij,ij->i', v1, v2))
+
+    return angles * f
 
 
 def get_duplicate_atoms(atoms, cutoff=0.1, delete=False):

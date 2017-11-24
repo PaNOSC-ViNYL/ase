@@ -20,7 +20,8 @@ from ase.constraints import FixConstraint, FixBondLengths
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring, formula_hill, formula_metal
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
-                          cell_to_cellpar, complete_cell, is_orthorhombic)
+                          cell_to_cellpar, complete_cell, is_orthorhombic,
+                          get_angles)
 
 
 class Atoms(object):
@@ -1512,6 +1513,7 @@ class Atoms(object):
         angle = np.arccos(angle)
         return angle * f
 
+
     def get_angles(self, indices, mic=False):
         """Get angle formed by three atoms for multiple groupings.
 
@@ -1522,10 +1524,7 @@ class Atoms(object):
         the angle across periodic boundaries.
         """
 
-        f = 180 / pi
-
         indices = np.array(indices)
-
 
         a1s = self.positions[indices[:, 0]]
         a2s = self.positions[indices[:, 1]]
@@ -1534,17 +1533,15 @@ class Atoms(object):
         v10s = a1s - a2s
         v12s = a3s - a2s
 
+        cell = None
+        pbc = None
+
         if mic:
-            v10s = find_mic(v10s, self._cell, self._pbc)[0]
-            v12s = find_mic(v12s, self._cell, self._pbc)[0]
+            cell = self._cell
+            pbc = self._pbc
+        
+        return get_angles(v10s, v12s, cell=cell, pbc=pbc)
 
-
-        v10s /= np.linalg.norm(v10s, axis=1)[:, np.newaxis]
-        v12s /= np.linalg.norm(v12s, axis=1)[:, np.newaxis]
-
-        angles = np.arccos(np.einsum('ij,ij->i', v10s, v12s))
-
-        return angles * f
 
     def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None):
         """Set angle (in degrees) formed by three atoms.
