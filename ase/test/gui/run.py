@@ -102,6 +102,7 @@ def settings(gui):
 
 @test
 def rotate(gui):
+    gui.window['toggle-show-bonds'] = True
     gui.new_atoms(molecule('H2O'))
     gui.rotate_window()
 
