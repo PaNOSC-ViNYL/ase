@@ -27,50 +27,94 @@ class NeighborList:
       nl = NeighborList([2.3, 1.7])
       nl.update(atoms)
       indices, offsets = nl.get_neighbors(0)
-
     """
 
     def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
                  bothways=False):
+        self.nl = PrimitiveNeighborList(cutoffs, skin, sorted,
+                                        self_interaction, bothways)
+
+    def update(self, atoms):
+        return self.nl.update(atoms.pbc, atoms.cell, atoms.positions)
+
+    def get_neighbors(self, a):
+        return self.nl.get_neighbors(a)
+
+    @property
+    def nupdates(self):
+        return self.nl.nupdates
+
+    @property
+    def nneighbors(self):
+        return self.nl.nneighbors
+
+    @property
+    def npbcneighbors(self):
+        return self.nl.npbcneighbors
+
+class PrimitiveNeighborList:
+    """Neighbor list that works without Atoms objects.
+
+    This is less fancy, but can be used to avoid conversions between
+    scaled and non-scaled coordinates which may affect cell offsets
+    through rounding errors.
+    """
+    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
+                 bothways=False, use_scaled_positions=False):
         self.cutoffs = np.asarray(cutoffs) + skin
         self.skin = skin
         self.sorted = sorted
         self.self_interaction = self_interaction
         self.bothways = bothways
         self.nupdates = 0
+        self.use_scaled_positions = use_scaled_positions
+        self.nneighbors = 0
+        self.npbcneighbors = 0
 
-    def update(self, atoms):
+    def update(self, pbc, cell, coordinates):
         """Make sure the list is up to date."""
+
         if self.nupdates == 0:
-            self.build(atoms)
+            self.build(pbc, cell, coordinates)
             return True
 
-        if ((self.pbc != atoms.get_pbc()).any() or
-            (self.cell != atoms.get_cell()).any() or
-            ((self.positions - atoms.get_positions())**2).sum(1).max() >
+        if ((self.pbc != pbc).any() or
+            (self.cell != cell).any() or
+            ((self.coordinates - coordinates)**2).sum(1).max() >
             self.skin**2):
-            self.build(atoms)
+            self.build(pbc, cell, coordinates)
             return True
 
         return False
 
-    def build(self, atoms):
-        """Build the list."""
-        self.positions = atoms.get_positions()
-        self.pbc = atoms.get_pbc()
-        self.cell = atoms.get_cell()
+    def build(self, pbc, cell, coordinates):
+        """Build the list.
 
-        if len(self.cutoffs) != len(atoms):
+        Coordinates are taken to be scaled or not according
+        to self.use_scaled_positions.
+        """
+        self.pbc = pbc = np.array(pbc, copy=True)
+        self.cell = cell = np.array(cell, copy=True)
+        self.coordinates = coordinates = np.array(coordinates, copy=True)
+
+        if len(self.cutoffs) != len(coordinates):
             raise ValueError('Wrong number of cutoff radii: {0} != {1}'
-                             .format(len(self.cutoffs), len(atoms)))
+                             .format(len(self.cutoffs), len(coordinates)))
 
         if len(self.cutoffs) > 0:
             rcmax = self.cutoffs.max()
         else:
             rcmax = 0.0
 
-        icell = np.linalg.pinv(self.cell)
-        scaled = np.dot(self.positions, icell)
+        icell = np.linalg.pinv(cell)
+
+        if self.use_scaled_positions:
+            scaled = coordinates
+            positions = np.dot(scaled, cell)
+        else:
+            positions = coordinates
+            scaled = np.dot(positions, icell)
+
         scaled0 = scaled.copy()
 
         N = []
@@ -85,8 +129,8 @@ class NeighborList:
             N.append(n)
 
         offsets = (scaled0 - scaled).round().astype(int)
-        positions0 = atoms.positions + np.dot(offsets, self.cell)
-        natoms = len(atoms)
+        positions0 = positions + np.dot(offsets, self.cell)
+        natoms = len(positions)
         indices = np.arange(natoms)
 
         self.nneighbors = 0

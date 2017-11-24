@@ -917,9 +917,151 @@ class BaseSiesta(FileIOCalculator):
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
 
-    def get_polarizability(self, mbpt_inp=None, output_name='mbpt_lcao.out',
-                           format_output='hdf5', units='au'):
+    def get_polarizability_pyscf_inter(self, Edir=np.array([1.0, 0.0, 0.0]),
+                                       freq=np.arange(0.0, 10.0, 0.1),
+                                       units='au',
+                                       run_tddft=True,
+                                       fname="pol_tensor.npy", **kw):
         """
+        Calculate the interacting polarizability of a molecule using
+        TDDFT calculation from the pyscf-nao library.
+
+        Parameters
+        ----------
+        freq: array like
+            frequency range for which the polarizability should
+            be computed, in eV
+        units : str, optional
+            unit for the returned polarizability, can be au (atomic units)
+            or nm**2
+        run_tddft: to run the tddft_calculation or not
+        fname: str
+            Name of file name for polariazbility tensor.
+            if run_tddft is True: output file
+            if run_tddft is False: input file
+
+        kw: keywords for the tddft_iter function from pyscf
+
+        Returns
+        -------
+        freq : array like
+            array of dimension (nff) containing the frequency range in eV.
+
+        self.results['polarizability'], array like
+            array of dimension (nff, 3, 3) with nff the frequency number,
+            the second and third dimension are the matrix elements of the
+            polarizability::
+
+                P_xx, P_xy, P_xz, Pyx, .......
+
+        References
+        ----------
+        https://github.com/cfm-mpc/pyscf/tree/nao
+
+        Example
+        -------
+        from ase.units import Ry, eV, Ha
+        from ase.calculators.siesta import Siesta
+        from ase import Atoms
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        # Define the systems
+        Na8 = Atoms('Na8',
+                     positions=[[-1.90503810, 1.56107288, 0.00000000],
+                                [1.90503810, 1.56107288, 0.00000000],
+                                [1.90503810, -1.56107288, 0.00000000],
+                                [-1.90503810, -1.56107288, 0.00000000],
+                                [0.00000000, 0.00000000, 2.08495836],
+                                [0.00000000, 0.00000000, -2.08495836],
+                                [0.00000000, 3.22798122, 2.08495836],
+                                [0.00000000, 3.22798122, -2.08495836]],
+                     cell=[20, 20, 20])
+
+        # Siesta input
+        siesta = Siesta(
+                    mesh_cutoff=150 * Ry,
+                    basis_set='DZP',
+                    pseudo_qualifier='',
+                    energy_shift=(10 * 10**-3) * eV,
+                    fdf_arguments={
+                        'SCFMustConverge': False,
+                        'COOP.Write': True,
+                        'WriteDenchar': True,
+                        'PAO.BasisType': 'split',
+                        'DM.Tolerance': 1e-4,
+                        'DM.MixingWeight': 0.01,
+                        'MaxSCFIterations': 300,
+                        'DM.NumberPulay': 4,
+                        'XML.Write': True})
+
+        Na8.set_calculator(siesta)
+        e = Na8.get_potential_energy()
+        freq, pol = siesta.get_polarizability_pyscf_inter(label="siesta",
+                                                          jcutoff=7,
+                                                          iter_broadening=0.15/Ha,
+                                                          xc_code='LDA,PZ',
+                                                          tol_loc=1e-6,
+                                                          tol_biloc=1e-7,
+                                                          freq = np.arange(0.0, 5.0, 0.05))
+        # plot polarizability
+        plt.plot(freq, pol[:, 0, 0].imag)
+        plt.show()
+        """
+
+        from ase.calculators.siesta.mbpt_lcao_utils import pol2cross_sec
+        assert units in ["nm**2", "au"]
+
+        if run_tddft:
+            from pyscf.nao import tddft_iter
+            from ase.units import Ha
+
+            tddft = tddft_iter(**kw)
+
+            omegas = freq / Ha + 1j * tddft.eps
+            tddft.comp_dens_inter_along_Eext(omegas, Eext=Edir)
+
+            # save polarizability tensor to files
+            np.save(fname, -tddft.p_mat)
+
+            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+                                                dtype=tddft.p_mat.dtype)
+            for xyz1 in range(3):
+                for xyz2 in range(3):
+                    if units == 'nm**2':
+                        p = pol2cross_sec(-tddft.p_mat[xyz1, xyz2, :],
+                                          freq)
+                        self.results['polarizability'][:, xyz1, xyz2] = p
+                    else:
+                        self.results['polarizability'][:, xyz1, xyz2] = \
+                                                -tddft.p_mat[xyz1, xyz2, :]
+
+        else:
+            # load polarizability tensor from previous calculations
+            p_mat = np.load(fname)
+
+            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+                                                        dtype=p_mat.dtype)
+
+            for xyz1 in range(3):
+                for xyz2 in range(3):
+                    if units == 'nm**2':
+                        p = pol2cross_sec(-p_mat[xyz1, xyz2, :], freq)
+                        self.results['polarizability'][:, xyz1, xyz2] = p
+                    else:
+                        self.results['polarizability'][:, xyz1, xyz2] = \
+                                                        -p_mat[xyz1, xyz2, :]
+
+        return freq, self.results['polarizability']
+
+    def get_polarizability_mbpt(self, mbpt_inp=None,
+                                output_name='mbpt_lcao.out',
+                                format_output='hdf5', units='au'):
+        """
+        Warning!!
+            Out dated version, try get_polarizability_pyscf
+
+
         Calculate the polarizability by running the mbpt_lcao program.
         The mbpt_lcao program need the siesta output, therefore siesta need
         to be run first.
@@ -1043,6 +1185,9 @@ class BaseSiesta(FileIOCalculator):
         """
         from ase.calculators.siesta.mbpt_lcao import MBPT_LCAO
         from ase.calculators.siesta.mbpt_lcao_io import read_mbpt_lcao_output
+        import warnings
+
+        warnings.warn("Out dated version, try get_polarizability_pyscf")
 
         if mbpt_inp is not None:
             tddft = MBPT_LCAO(mbpt_inp)
