@@ -31,10 +31,9 @@
             </button>
 
             <div class="row">
-            <table>
     {% for control in ctrl %}
                 <div class="col-md-10">
-                <tr>
+
         {% if control[0] == 'SELECT' %}
             {{ select(control) }}
         {% elif control[0] == 'BOOL' %}
@@ -42,11 +41,10 @@
         {% elif control[0] == 'RANGE' %}
             {{ myrange(control) }}
         {% endif %}
-        </tr>
+
                 </div>
 
     {% endfor %}
-        </table>
             </div>
 
             <div class="form-group" style="margin-bottom:0px;">
@@ -230,30 +228,30 @@
 {% macro select(control) %}
             {% set key, text, choises = control[1:] %}
             {% set choise = con.query[1][key] %}
-            <td>{{ text }}:</td><td><select name="select_{{ key }}">
+            {{ text }}:<select name="select_{{ key }}">
             <option value="">-</option>
             {% for val in choises %}
             <option value="{{ val }}"
             {% if val == con.query[1][key] %} selected {% endif %}
             >{{ val }}</option>
             {% endfor %}
-            </select></td>
+            </select>
 {% endmacro %}
 
 {% macro boolean(control) %}
             {% set key, text = control[1:] %}
             {% set choise = con.query[1][key] %}
-                <td>{{ text }}:</td><td><select name="bool_{{ key }}">
+                {{ text }}:<select name="bool_{{ key }}">
             <option value="" {% if '' == choise %} selected {% endif %}>-</option>
             <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
             <option value="0" {% if '0' == choise %} selected {% endif %}>No</option>
-            </select></td>
+            </select>
 {% endmacro %}
 
 {% macro myrange(control) %}
             {% set id, text, choises = control[1:] %}
             {% set v1, v2, var = con.query[1].get(id, ['', '', '']) %}
-<td>                {{ text }}:</td><td>
+                {{ text }}:
                 <input type="text" name="from_{{ id }}" value="{{ v1 }}" size="6"> -
                 <input type="text" name="to_{{ id }}" value="{{ v2 }}" size="6">
                 <select name="range_{{ id }}">
@@ -261,5 +259,5 @@
                 <option value="{{ key }}" {% if key == var %} selected {% endif %}>{{ txt }}</option>
             {% endfor %}
                 </select>
-                <br/></td>
+                <br/>
 {% endmacro %}
