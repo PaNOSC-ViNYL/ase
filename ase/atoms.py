@@ -1480,7 +1480,7 @@ class Atoms(object):
             start = self.get_dihedral(a1)
             self.set_dihedral(a1, angle + start, mask)
 
-    def get_angle(self, a1, a2=None, a3=None, mic=False):
+    def get_angle(self, a1, a2, a3, mic=False):
         """Get angle formed by three atoms.
 
         calculate angle in degrees between the vectors a2->a1 and
@@ -1490,28 +1490,23 @@ class Atoms(object):
         angle across periodic boundaries.
         """
 
-        if a2 is None:
-            # old API (uses radians)
-            warnings.warn(
-                'Please use new API (which will return the angle in degrees): '
-                'atoms_obj.get_angle(a1,a2,a3)*pi/180 instead of '
-                'atoms_obj.get_angle([a1,a2,a3])')
-            assert a3 is None
-            a1, a2, a3 = a1
-            f = 1
-        else:
-            f = 180 / pi
+        indices = np.array([[a1, a2, a3]])
 
-        # normalized vector 1->0, 1->2:
-        v10 = self.positions[a1] - self.positions[a2]
-        v12 = self.positions[a3] - self.positions[a2]
+        a1s = self.positions[indices[:, 0]]
+        a2s = self.positions[indices[:, 1]]
+        a3s = self.positions[indices[:, 2]]
+        
+        v12 = a1s - a2s
+        v32 = a3s - a2s
+
+        cell = None
+        pbc = None
+
         if mic:
-            v10, v12 = find_mic([v10, v12], self._cell, self._pbc)[0]
-        v10 /= np.linalg.norm(v10)
-        v12 /= np.linalg.norm(v12)
-        angle = np.vdot(v10, v12)
-        angle = np.arccos(angle)
-        return angle * f
+            cell = self._cell
+            pbc = self._pbc
+        
+        return get_angles(v12, v32, cell=cell, pbc=pbc)[0]
 
 
     def get_angles(self, indices, mic=False):
@@ -1530,8 +1525,8 @@ class Atoms(object):
         a2s = self.positions[indices[:, 1]]
         a3s = self.positions[indices[:, 2]]
 
-        v10s = a1s - a2s
-        v12s = a3s - a2s
+        v12 = a1s - a2s
+        v32 = a3s - a2s
 
         cell = None
         pbc = None
@@ -1540,7 +1535,7 @@ class Atoms(object):
             cell = self._cell
             pbc = self._pbc
         
-        return get_angles(v10s, v12s, cell=cell, pbc=pbc)
+        return get_angles(v12, v32, cell=cell, pbc=pbc)
 
 
     def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None):
