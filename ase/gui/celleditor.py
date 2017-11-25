@@ -5,7 +5,6 @@ from __future__ import division, unicode_literals
 from ase.gui.i18n import _
 
 import ase.gui.ui as ui
-from numpy.linalg import norm
 import numpy as np
 
 
@@ -111,10 +110,8 @@ class CellEditor:
 
         old_cell = atoms.cell
 
-        old_mags = norm(old_cell, axis=0)
+        old_mags = atoms.get_cell_lengths_and_angles()[0:3]
         new_mags = np.array([x[3].value, y[3].value, z[3].value])
-
-        scale = new_mags / old_mags
 
         atoms.set_cell(old_cell / old_mags * new_mags, 
                        scale_atoms=self.scale_atoms.var.get())
