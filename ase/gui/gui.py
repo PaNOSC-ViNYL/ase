@@ -317,6 +317,10 @@ class GUI(View, Status):
         from ase.gui.add import AddAtoms
         AddAtoms(self)
 
+    def cell_editor(self, key=None):
+        from ase.gui.celleditor import CellEditor
+        CellEditor(self)
+
     def quick_info_window(self):
         from ase.gui.quickinfo import info
         ui.Window('Quick Info').add(info(self))
@@ -435,6 +439,7 @@ class GUI(View, Status):
               M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
               M(_('_Delete selected atoms'), self.delete_selected_atoms,
                 'Backspace'),
+              M(_('Edit _cell'), self.cell_editor, 'Ctrl+E'),
               M('---'),
               M(_('_First image'), self.step, 'Home'),
               M(_('_Previous image'), self.step, 'Page-Up'),
