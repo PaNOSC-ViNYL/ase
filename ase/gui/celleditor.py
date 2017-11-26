@@ -33,11 +33,13 @@ class CellEditor:
             row = []
             for j in [0, 1, 2]: # _x _y _z
                 row.append(ui.SpinBox(cell[i][j], -30, 30, 0.1, 
-                           self.apply_vectors))
-            row.append(ui.SpinBox(mags[i], -30, 30, 0.1, self.apply_magnitudes))
+                           self.apply_vectors, rounding=7, width=9))
+            row.append(ui.SpinBox(mags[i], -30, 30, 0.1, self.apply_magnitudes, 
+                                  rounding=7, width=9))
             self.cell_grid.append(row)
             self.pbc.append(ui.CheckButton('', bool(pbc[i]), self.apply_pbc))
-            self.angles.append(ui.SpinBox(angles[i], -360, 360, 15, self.apply_angles))
+            self.angles.append(ui.SpinBox(angles[i], -360, 360, 15, self.apply_angles,
+                                          rounding=7, width=9))
 
         self.scale_atoms = ui.CheckButton('', False)
         self.vacuum = ui.SpinBox(5, 0, 15, 0.1, self.apply_vacuum)
@@ -47,14 +49,14 @@ class CellEditor:
 
         x, y, z = self.cell_grid
 
-        win.add([_('x: '), x[0], x[1], x[2], _('||x||: '), x[3],
+        win.add([_('A: '), x[0], x[1], x[2], _('||A||: '), x[3],
                  _('perodic: '), self.pbc[0]])
-        win.add([_('y: '), y[0], y[1], y[2], _('||y||: '), y[3],
+        win.add([_('B: '), y[0], y[1], y[2], _('||B||: '), y[3],
                  _('perodic: '), self.pbc[1]])
-        win.add([_('x: '), z[0], z[1], z[2], _('||z||: '), z[3],
+        win.add([_('C: '), z[0], z[1], z[2], _('||C||: '), z[3],
                  _('perodic: '), self.pbc[2]])
-        win.add([_('∠YZ: '), self.angles[0], _('∠XZ: '), self.angles[1],
-                 _('∠XY: '), self.angles[2]])
+        win.add([_('∠BC: '), self.angles[0], _('∠AC: '), self.angles[1],
+                 _('∠AB: '), self.angles[2]])
         win.add([_("Scale atoms with cell: "), self.scale_atoms])
         win.add([ui.Button(_('Apply Vectors'), self.apply_vectors),
                  ui.Button(_('Apply Magnitudes'), self.apply_magnitudes),
