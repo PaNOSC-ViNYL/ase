@@ -60,7 +60,7 @@ class CellEditor:
                  ui.Button(_('Apply Magnitudes'), self.apply_magnitudes),
                  ui.Button(_('Apply Angles'), self.apply_angles)])
         win.add([_('Pressing <Enter> as you enter values will ' + 
-                    'automatically apply correctly!')])
+                    'automatically apply correctly')])
         win.add([ui.Button(_('Center'), self.apply_center),
                  ui.Button(_('Wrap'), self.apply_wrap),
                  _('Vacuum: '), self.vacuum,
