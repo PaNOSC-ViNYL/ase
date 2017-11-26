@@ -19,6 +19,8 @@ Git master branch
 
 * Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
 
+* New cell editor for the GUI
+
 
 Version 3.15.0
 ==============

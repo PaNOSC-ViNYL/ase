@@ -32,12 +32,12 @@ class CellEditor:
         for i in [0, 1, 2]: # x_ y_ z_
             row = []
             for j in [0, 1, 2]: # _x _y _z
-                row.append(ui.SpinBox(cell[i][j], 1, 30, 0.1, 
+                row.append(ui.SpinBox(cell[i][j], -30, 30, 0.1, 
                            self.apply_vectors))
-            row.append(ui.SpinBox(mags[i], 1, 30, 0.1, self.apply_magnitudes))
+            row.append(ui.SpinBox(mags[i], -30, 30, 0.1, self.apply_magnitudes))
             self.cell_grid.append(row)
             self.pbc.append(ui.CheckButton('', bool(pbc[i]), self.apply_pbc))
-            self.angles.append(ui.SpinBox(angles[i], 0, 360, 15, self.apply_angles))
+            self.angles.append(ui.SpinBox(angles[i], -360, 360, 15, self.apply_angles))
 
         self.scale_atoms = ui.CheckButton('', False)
         self.vacuum = ui.SpinBox(5, 0, 15, 0.1, self.apply_vacuum)
