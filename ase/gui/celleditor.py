@@ -152,7 +152,17 @@ class CellEditor:
 
         for i in [0, 1, 2]:
             for j in [0, 1, 2]:
+                if np.isnan(cell[i][j]):
+                    cell[i][j] = 0
                 self.cell_grid[i][j].value = cell[i][j]
+
+            if np.isnan(mags[i]):
+                    mags[i] = 0
             self.cell_grid[i][3].value = mags[i]
+
+            if np.isnan(angles[i]):
+                    angles[i] = 0
             self.angles[i].value = angles[i]
+
             self.pbc[i].var.set(bool(pbc[i]))
+
