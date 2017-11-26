@@ -24,7 +24,7 @@ def get_cell_coordinates(cell):
     for c in range(3):
         v = cell[c]
         d = sqrt(np.dot(v, v))
-        if d < 1e-12:
+        if d < 1e-12 or np.isnan(d):
             n = 0
         else:
             n = max(2, int(d / 0.3))
