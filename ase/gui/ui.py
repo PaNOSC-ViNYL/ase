@@ -233,7 +233,7 @@ class SpinBox(Widget):
         if '.' in str(x) and self.rounding is not None:
             try:
                 x = round(float(x), self.rounding)
-            except (ValueError, TypeError) as e:
+            except (ValueError, TypeError):
                 pass
         self.widget.insert(0, x)
 
