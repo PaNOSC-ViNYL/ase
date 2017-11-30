@@ -1,4 +1,3 @@
-from __future__ import print_function
 """
 This module defines the ASE interface to SIESTA.
 
@@ -9,7 +8,10 @@ Home of the SIESTA package:
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 
 2017.04 - Pedro Brandimarte: changes for python 2-3 compatible
+
 """
+
+from __future__ import print_function
 import os
 from os.path import join, isfile, islink
 import numpy as np
