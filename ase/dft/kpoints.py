@@ -297,21 +297,15 @@ def get_special_points(cell, lattice=None, eps=2e-4):
                           [0, 0, 1]])
             scell = np.dot(T, rcell)
         elif abs(gamma - np.pi / 2) > eps:
-            Ry = np.array([[0, 0, 1],
-                          [0, 1, 0],
-                          [-1, 0, 0]])
-            Rz = np.array([[0, 1, 0],
-                           [-1, 0, 0],
-                           [0, 0, 1]])
-            T = np.dot(Ry, Rz)
-            scell = np.dot(np.dot(T, rcell), T.T)
-            scell[1] *= -1  # To make angle < pi / 2
-
+            T = np.array([[0, 0, 1],
+                          [1, 0, 0],
+                          [0, -1, 0]])
         else:
             raise ValueError('You are using a badly oriented ' +
                              'monoclinic unit cell. Please choose one with ' +
                              'either beta or gamma != pi/2')
 
+        scell = np.dot(np.dot(T, rcell), T.T)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(scell, radians=True)
 
         assert alpha < np.pi / 2, 'Your monoclinic angle has to be < pi / 2'
