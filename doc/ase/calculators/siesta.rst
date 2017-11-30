@@ -293,7 +293,9 @@ The installation is relatively easy, go to the lib directory::
   cmake ..
   make
 
-Then you need to add the pyscf directory to your PYTHONPATH::
+Then you need to add the pyscf directory to your PYTHONPATH
+
+.. code-block:: none
 
   export PYTHONPATH=/PATH-TO-PYSCF/pyscf:$PYTHONPATH
 
