@@ -3,20 +3,21 @@
 QMMM
 ====
 
-There are two QM/MM calculators native to ASE. the SimpleQMMM calculator
-that can do simple, subtractive QM/MM between any two calculators, similar
-to the original ONIOM model, and the Explicit Interaction QMMM, where the
-QM and MM regions are explicitly coupled with an electrostatic interaction
-term. The background for the latter method is published 
-`here. <https://doi.org/10.1021/acs.jctc.7b00621>`__.
+There are two QM/MM calculators native to ASE,  Explicit Interaction QMMM, 
+and Simple, subtractive QM/MM. In the first version, the QM and MM regions 
+are explicitly coupled with an electrostatic interaction term. 
+This requires that the electrostatic potential from the classical charges of the 
+MM subsystem is fed into the QM calculator. This is built into GPAW_. More info  
+`In this paper <https://doi.org/10.1021/acs.jctc.7b00621>`__, which should be cited if
+the method is used. 
 
+.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
 .. seealso::
 
     The :ref:`qmmm` tutorial.
 
 
-.. _eiqmmm: 
 Explicit Interaction QMMM
 -------------------------
 
@@ -41,10 +42,13 @@ own embedding object when you construct the :class:`EIQMMM` instance.  The
 Embedding object will be specific to the QM calculator you want to use.  The
 default is this one:
 
+.. autoclass:: Embedding
 
+The second QM/MM calculator is similar to the original ONIOM model, doing 
+simple, subtractive QM/MM between any two calculators. 
 
-Simple QMMM calculations
-------------------------
+Simple, subtractive QMMM calculations
+-------------------------------------
 
 .. autoclass:: SimpleQMMM
 
@@ -57,4 +61,3 @@ This type of QMMM can combine any pair of ASE calculators::
                             MMCalculator(...))
 
 where ``[0, 1, 2]`` would select the first three atoms for the QM-part.
-.. autoclass:: Embedding

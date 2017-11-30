@@ -46,7 +46,7 @@ Supported calculators
 
 The calculators can be divided in four groups:
 
-1) Asap_, GPAW_, Hotbit_, and :ref:`eiqmmm` have their own native ASE interfaces.
+1) Asap_, GPAW_, Hotbit_, and :mod:`~ase.calculators.qmmm` have their own native ASE interfaces.
 
 2) ABINIT, AMBER, CP2K, CASTEP, deMon2k, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
    Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, Quantum ESPRESSO, SIESTA,
@@ -62,13 +62,13 @@ The calculators can be divided in four groups:
    the :ref:`Grimme-D3 <grimme>` potential.
 
 
-=================================== ===========================================
+=================================== ========================================================================
 name                                description
-=================================== ===========================================
+=================================== ========================================================================
 Asap_                               Highly efficient EMT code
 GPAW_                               Real-space/plane-wave/LCAO PAW code
 Hotbit_                             DFT based tight binding
-:ref:`eiqmmm`                       Electrostatic Embedding QM/MM using GPAW_
+:mod:`~ase.calculators.qmmm`        Electrostatic Embedding QM/MM using GPAW_, and Subtractive (ONIOM) QM/MM 
 :mod:`~ase.calculators.abinit`      Plane-wave pseudopotential code
 :mod:`~ase.calculators.amber`       Classical molecular dynamics code
 :mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
@@ -99,7 +99,7 @@ morse                               Morse potential
 :mod:`~ase.calculators.checkpoint`  Checkpoint calculator
 :mod:`~ase.calculators.loggingcalc` Logging calculator
 :mod:`~ase.calculators.dftd3`       DFT-D3 dispersion correction calculator
-=================================== ===========================================
+=================================== ========================================================================
 
 .. index:: D3, Grimme
 .. _grimme:
