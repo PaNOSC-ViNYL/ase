@@ -46,7 +46,7 @@ Supported calculators
 
 The calculators can be divided in four groups:
 
-1) Asap_, GPAW_ and Hotbit_ have their own native ASE interfaces.
+1) Asap_, GPAW_, Hotbit_, and :ref:`eiqmmm` have their own native ASE interfaces.
 
 2) ABINIT, AMBER, CP2K, CASTEP, deMon2k, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
    Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, Quantum ESPRESSO, SIESTA,
@@ -68,6 +68,7 @@ name                                description
 Asap_                               Highly efficient EMT code
 GPAW_                               Real-space/plane-wave/LCAO PAW code
 Hotbit_                             DFT based tight binding
+:ref:`eiqmmm`                       Electrostatic Embedding QM/MM using GPAW_
 :mod:`~ase.calculators.abinit`      Plane-wave pseudopotential code
 :mod:`~ase.calculators.amber`       Classical molecular dynamics code
 :mod:`~ase.calculators.castep`      Plane-wave pseudopotential code
@@ -120,7 +121,6 @@ where ``abc`` is the module name and ``ABC`` is the class name.
 .. _Asap: http://wiki.fysik.dtu.dk/asap
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 .. _Hotbit: https://github.com/pekkosk/hotbit
-
 
 Calculator keywords
 ===================
