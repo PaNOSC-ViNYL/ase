@@ -360,9 +360,3 @@ Further Examples
 ================
 See also ``ase/test/calculators/siesta/test_scripts`` for further examples
 on how the calculator can be used.
-
-
-Siesta Calculator Class
-=======================
-
-.. autoclass:: ase.calculators.siesta.base_siesta.BaseSiesta
