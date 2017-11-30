@@ -272,8 +272,11 @@ Example of code to calculate polarizability of Na8 cluster,::
   plt.plot(freq, pol[:, 0, 0].imag)
   plt.show()
 
-Remark: The PYSCF-NAO code is still under active development and to have access to
-use it with ASE you will need to use this PYSCF `fork <https://github.com/cfm-mpc/pyscf>`_ 
+Remark: 
+-------
+
+The PYSCF-NAO code is still under active development and to have access to
+it with ASE you will need to use this PYSCF `fork <https://github.com/cfm-mpc/pyscf>`_ 
 and use the branch nao. To summarize::
 
   git clone https://github.com/cfm-mpc/pyscf
