@@ -49,7 +49,6 @@ def get_cell_coordinates(cell):
     return B1, B2
 
 
-
 def get_bonds(atoms, covalent_radii):
     from ase.neighborlist import NeighborList
     nl = NeighborList(covalent_radii * 1.5,
@@ -147,12 +146,12 @@ class View:
         self.X_cell = self.X[natoms:natoms + len(B1)]
         self.X_bonds = self.X[natoms + len(B1):]
 
-        if 1:#if init or frame != self.frame:
+        if 1:  # if init or frame != self.frame:
             cell = atoms.cell
             ncellparts = len(B1)
             nbonds = len(bonds)
 
-            if 1: #init or (atoms.cell != self.atoms.cell).any():
+            if 1:  # init or (atoms.cell != self.atoms.cell).any():
                 self.X_cell[:] = np.dot(B1, cell)
                 self.B = np.empty((ncellparts + nbonds, 3))
                 self.B[:ncellparts] = np.dot(B2, cell)
@@ -550,7 +549,8 @@ class View:
             self.draw()
 
         # XXX check bounds
-        indices = np.arange(len(self.atoms))[self.images.selected[:len(self.atoms)]]
+        natoms = len(self.atoms)
+        indices = np.arange(natoms)[self.images.selected[:natoms]]
         if len(indices) != len(selected_ordered):
             selected_ordered = []
         self.images.selected_ordered = selected_ordered

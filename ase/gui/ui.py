@@ -200,14 +200,16 @@ class CheckButton(Widget):
 
 
 class SpinBox(Widget):
-    def __init__(self, value, start, end, step, callback=None):
+    def __init__(self, value, start, end, step, callback=None, 
+                 rounding=None, width=6):
         self.callback = callback
+        self.rounding = rounding
         self.creator = partial(tk.Spinbox,
                                from_=start,
                                to=end,
                                increment=step,
                                command=callback,
-                               width=6)
+                               width=width)
         self.initial = str(value)
 
     def create(self, parent):
@@ -228,6 +230,11 @@ class SpinBox(Widget):
     @value.setter
     def value(self, x):
         self.widget.delete(0, 'end')
+        if '.' in str(x) and self.rounding is not None:
+            try:
+                x = round(float(x), self.rounding)
+            except (ValueError, TypeError):
+                pass
         self.widget.insert(0, x)
 
 

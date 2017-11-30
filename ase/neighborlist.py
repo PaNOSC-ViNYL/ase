@@ -44,6 +44,13 @@ class NeighborList:
     def nupdates(self):
         return self.nl.nupdates
 
+    @property
+    def nneighbors(self):
+        return self.nl.nneighbors
+
+    @property
+    def npbcneighbors(self):
+        return self.nl.npbcneighbors
 
 class PrimitiveNeighborList:
     """Neighbor list that works without Atoms objects.
@@ -61,6 +68,8 @@ class PrimitiveNeighborList:
         self.bothways = bothways
         self.nupdates = 0
         self.use_scaled_positions = use_scaled_positions
+        self.nneighbors = 0
+        self.npbcneighbors = 0
 
     def update(self, pbc, cell, coordinates):
         """Make sure the list is up to date."""

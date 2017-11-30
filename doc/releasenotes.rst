@@ -10,12 +10,16 @@ Git master branch
 
 :git:`master <>`.
 
+* New method, :meth:`~ase.Atoms.get_angles`, for calculating multiple angles.
+
 * New ``ase reciprocal`` :ref:`command <cli>` for showing the
   1. Brilluin zone, **k**-points and special points.
 
 * New ``ase convert`` :ref:`command <cli>` for converting between file formats.
 
 * Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
+
+* New cell editor for the GUI
 
 
 Version 3.15.0

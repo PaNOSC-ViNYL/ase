@@ -19,17 +19,17 @@ class CLICommand:
 
     @staticmethod
     def run(args):
-        filename = args.filename or os.path.expanduser('~/.bashrc')
         cmd = CLICommand.cmd
         print(cmd)
-        if args.dry_run:
-            return
-        with open(filename) as fd:
-            if cmd + '\n' in fd.readlines():
-                print('Completion script already installed!')
-                return
-        with open(filename, 'a') as fd:
-            print(cmd, file=fd)
+        #filename = args.filename or os.path.expanduser('~/.bashrc')
+        #if args.dry_run:
+        #    return
+        #with open(filename) as fd:
+        #    if cmd + '\n' in fd.readlines():
+        #        print('Completion script already installed!')
+        #        return
+        #with open(filename, 'a') as fd:
+        #    print(cmd, file=fd)
 
 
 def update(filename, commands):
