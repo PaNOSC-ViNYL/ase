@@ -6,7 +6,7 @@ ASE for QM/MM Simulations
 
 QM/MM Simulations couple two (or, in principle, more) descriptions to get total energy
 and forces for the entire system in an efficiant manner. 
-ASE has a native Explicit Interaction calculator, :ref:`eiqmmm`, that uses an electrostatic embedding
+ASE has a native Explicit Interaction calculator, :class:`~ase.calculators.qmmm.EIQMMM`, that uses an electrostatic embedding
 model to couple the subsystems explicitly. See
 `the method paper for more info. <https://doi.org/10.1021/acs.jctc.7b00621>`__,
 
@@ -72,7 +72,7 @@ the :class:`ase.calculators.qmmm.EIQMMM` class.
 
 
 The following script will calculate the QM/MM single point energy of the
-water dimer from the :ref:`s22`, using LDA and TIP3P.
+water dimer from the :ref:`s22`, using LDA and TIP3P, for illustration purposes.
 
 .. literalinclude:: water_dimer.py
 

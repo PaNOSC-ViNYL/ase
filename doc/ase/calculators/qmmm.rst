@@ -3,8 +3,14 @@
 QMMM
 ====
 
-There are two QM/MM calculators native to ASE,  Explicit Interaction QMMM, 
-and Simple, subtractive QM/MM. In the first version, the QM and MM regions 
+There are two QM/MM calculators native to ASE:
+
+=========================  ===================
+Explicit Interaction QMMM  :class:`EIQMMM`
+Simple, subtrative QMMM    :class:`SimpleQMMM`
+=========================  ===================
+
+In Explicit Interaction QMMM, the QM and MM regions 
 are explicitly coupled with an electrostatic interaction term. 
 This requires that the electrostatic potential from the classical charges of the 
 MM subsystem is fed into the QM calculator. This is built into GPAW_. More info  
@@ -15,7 +21,7 @@ the method is used.
 
 .. seealso::
 
-    The :ref:`qmmm` tutorial.
+    The :ref:`qmmm` tutorial, on how to use the Explicit Interaction QMMM calculator
 
 
 Explicit Interaction QMMM
@@ -44,11 +50,11 @@ default is this one:
 
 .. autoclass:: Embedding
 
-The second QM/MM calculator is similar to the original ONIOM model, doing 
-simple, subtractive QM/MM between any two calculators. 
-
 Simple, subtractive QMMM calculations
 -------------------------------------
+
+This QM/MM calculator is similar to the original ONIOM model, doing 
+simple, subtractive QM/MM between any two calculators. 
 
 .. autoclass:: SimpleQMMM
 
