@@ -166,13 +166,13 @@
 
 {% for row in t.rows -%}
 
-<tr id="rowentry" onclick="document.location.href = '/id/{{ row.dct.id }}?project={{ project }}';">
+<tr id="rowentry" class="rowentry">
 {%- autoescape false -%}
 {%- for s in row.strings -%}
 {% if s != "" %}
-<td class="text-center">{{ s }}</td>
+<a href='/id/{{ row.dct.id }}?project={{ project }}'><td class="text-center">{{ s }}</a></td>
 {% else %}
-<td class="text-center"> - </td>
+<td class="text-center"><a href='/id/{{ row.dct.id }}?project={{ project }}'> - </a></td>
 {% endif %}
 {% endfor %}
 {% endautoescape %}
