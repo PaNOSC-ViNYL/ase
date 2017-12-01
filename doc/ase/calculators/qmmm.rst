@@ -10,6 +10,10 @@ Explicit Interaction QMMM  :class:`EIQMMM`
 Simple, subtrative QMMM    :class:`SimpleQMMM`
 =========================  ===================
 
+
+Explicit Interaction QMMM
+-------------------------
+
 In Explicit Interaction QMMM, the QM and MM regions 
 are explicitly coupled with an electrostatic interaction term. 
 This requires that the electrostatic potential from the classical charges of the 
@@ -22,10 +26,6 @@ the method is used.
 .. seealso::
 
     The :ref:`qmmm` tutorial, on how to use the Explicit Interaction QMMM calculator
-
-
-Explicit Interaction QMMM
--------------------------
 
 .. autoclass:: EIQMMM
 
