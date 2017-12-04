@@ -1,4 +1,3 @@
-from __future__ import print_function
 """
 This module defines the ASE interface to SIESTA.
 
@@ -9,7 +8,10 @@ Home of the SIESTA package:
 http://www.uam.es/departamentos/ciencias/fismateriac/siesta
 
 2017.04 - Pedro Brandimarte: changes for python 2-3 compatible
+
 """
+
+from __future__ import print_function
 import os
 from os.path import join, isfile, islink
 import numpy as np
@@ -77,45 +79,45 @@ class BaseSiesta(FileIOCalculator):
         """ASE interface to the SIESTA code.
 
         Parameters:
-            -label        : The base head of all created files.
-            -mesh_cutoff  : Energy in eV.
+           - label        : The base head of all created files.
+           - mesh_cutoff  : Energy in eV.
                             The mesh cutoff energy for determining number of
                             grid points.
-            -energy_shift : Energy in eVV
+           - energy_shift : Energy in eVV
                             The confining energy of the basis sets.
-            -kpts         : Tuple of 3 integers, the k-points in different
+           - kpts         : Tuple of 3 integers, the k-points in different
                             directions.
-            -xc           : The exchange-correlation potential. Can be set to
+           - xc           : The exchange-correlation potential. Can be set to
                             any allowed value for either the Siesta
                             XC.funtional or XC.authors keyword. Default "LDA"
-            -basis_set    : "SZ"|"SZP"|"DZ"|"DZP", strings which specify the
+           - basis_set    : "SZ"|"SZP"|"DZ"|"DZP", strings which specify the
                             type of functions basis set.
-            -spin         : "UNPOLARIZED"|"COLLINEAR"|"FULL". The level of spin
+           - spin         : "UNPOLARIZED"|"COLLINEAR"|"FULL". The level of spin
                             description to be used.
-            -species      : None|list of Species objects. The species objects
+           - species      : None|list of Species objects. The species objects
                             can be used to to specify the basis set,
                             pseudopotential and whether the species is ghost.
                             The tag on the atoms object and the element is used
                             together to identify the species.
-            -pseudo_path  : None|path. This path is where
+           - pseudo_path  : None|path. This path is where
                             pseudopotentials are taken from.
                             If None is given, then then the path given
                             in $SIESTA_PP_PATH will be used.
-            -pseudo_qualifier: None|string. This string will be added to the
+           - pseudo_qualifier: None|string. This string will be added to the
                             pseudopotential path that will be retrieved.
                             For hydrogen with qualifier "abc" the
                             pseudopotential "H.abc.psf" will be retrieved.
-            -atoms        : The Atoms object.
-            -restart      : str.  Prefix for restart file.
+           - atoms        : The Atoms object.
+           - restart      : str.  Prefix for restart file.
                             May contain a directory.
                             Default is  None, don't restart.
-            -siesta_default: Use siesta default parameter if the parameter
+           - siesta_default: Use siesta default parameter if the parameter
                             is not explicitly set.
-            -ignore_bad_restart_file: bool.
+           - ignore_bad_restart_file: bool.
                             Ignore broken or missing restart file.
                             By default, it is an error if the restart
                             file is missing or broken.
-            -fdf_arguments: Explicitly given fdf arguments. Dictonary using
+           - fdf_arguments: Explicitly given fdf arguments. Dictonary using
                             Siesta keywords as given in the manual. List values
                             are written as fdf blocks with each element on a
                             separate line, while tuples will write each element
