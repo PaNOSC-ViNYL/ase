@@ -71,20 +71,27 @@ def info(gui):
 
         # Print electronic structure information if we have a calculator
         if atoms.calc:
-            energy = _('Energy: ')
-            energy += '{:.3f} eV'.format(atoms.get_potential_energy())
-
-            maxf = np.linalg.norm(atoms.get_forces(apply_constraint=True),
-                                  axis=1).max()
-            forces = _('Max force: ')
-            forces += '{:.3f}'.format(maxf)
-
             try:
-                magmom = atoms.get_magnetic_moments().sum()
+                energy = _('Energy: ')
+                energy += '{:.3f} eV'.format(atoms.get_potential_energy())
+
+                maxf = np.linalg.norm(atoms.get_forces(apply_constraint=True),
+                                      axis=1).max()
+                forces = _('Max force: ')
+                forces += '{:.3f}'.format(maxf)
+
+                try:
+                    magmom = atoms.get_magnetic_moments().sum()
+                except PropertyNotImplementedError:
+                    # We don't always have magnetic moments in our calculator
+                    magmom = 0.
+
                 mag = _('Magmom: ')
                 mag += '{:.2f}'.format(magmom)
+                txt += calc_format % '\n'.join([energy, forces, mag])
             except PropertyNotImplementedError:
-                mag = ''
-            txt += calc_format % '\n'.join([energy, forces, mag])
+                # We should always have energy and forces,
+                # but just in case.
+                pass
 
     return txt
