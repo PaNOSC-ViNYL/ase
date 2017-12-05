@@ -152,10 +152,15 @@ class Images:
 
         self.initialize(images, names)
 
-    def repeat_results(self, atoms, repeat=1, oldprod=1):
+    def repeat_results(self, atoms, repeat=None, oldprod=None):
         """Return a dictionary which updates the magmoms, energy and forces
         to the repeated amount of atoms.
         """
+
+        if repeat is None:
+            repeat = self.repeat.prod()
+        if oldprod is None:
+            oldprod = self.repeat.prod()
 
         results = {}
 
