@@ -4,6 +4,7 @@ from math import sqrt
 import numpy as np
 
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
 from ase.gui.defaults import read_defaults
@@ -151,15 +152,51 @@ class Images:
 
         self.initialize(images, names)
 
+    def repeat_results(self, atoms, repeat=1, oldprod=1):
+        """Return a dictionary which updates the magmoms, energy and forces
+        to the repeated amount of atoms.
+        """
+
+        results = {}
+
+        original_length = len(atoms) // oldprod
+        newprod = repeat.prod()
+
+        errs = (RuntimeError, PropertyNotImplementedError)
+
+        # No calculator: RuntimeError
+        # Property not there: PropertyNotImplementedError
+        try:
+            ref_magmoms = atoms.get_magnetic_moments()
+        except errs:
+            ref_magmoms = np.zeros(len(atoms))
+        ref_magmoms = np.tile(ref_magmoms[:original_length], newprod)
+
+        try:
+            ref_energy = atoms.get_potential_energy() * newprod / oldprod
+        except errs:
+            ref_energy = np.nan
+
+        try:
+            ref_forces = atoms.get_forces()
+        except errs:
+            ref_forces = np.zeros((len(atoms), 3))
+        ref_forces = np.tile(ref_forces[:original_length].T, newprod).T
+
+        results['magmoms'] = ref_magmoms
+        results['energy'] = ref_energy
+        results['forces'] = ref_forces
+
+        return results
+
     def repeat_unit_cell(self):
         for atoms in self:
-            # Get quantities taking into account current repeat():
-            ref_energy = self.get_energy(atoms)
-            ref_forces = self.get_forces(atoms)
-            atoms.calc = SinglePointCalculator(atoms,
-                                               energy=ref_energy,
-                                               forces=ref_forces)
+            # Get quantities taking into account current repeat():'
+            results = self.repeat_results(atoms, self.repeat.prod(),
+                                          oldprod=self.repeat.prod())
+
             atoms.cell *= self.repeat.reshape((3, 1))
+            atoms.calc = SinglePointCalculator(atoms, **results)
         self.repeat = np.ones(3, int)
 
     def repeat_images(self, repeat):
@@ -168,6 +205,7 @@ class Images:
         oldprod = self.repeat.prod()
         images = []
         constraints_removed = False
+
         for i, atoms in enumerate(self):
             refcell = atoms.get_cell()
             fa = []
@@ -177,9 +215,17 @@ class Images:
                 else:
                     constraints_removed = True
             atoms.set_constraint(fa)
-            del atoms[len(atoms) // oldprod:]
+
+            # Update results dictionary to repeated atoms
+            results = self.repeat_results(atoms, repeat, oldprod)
+
+            del atoms[len(atoms) // oldprod:]  # Original atoms
+
             atoms *= repeat
             atoms.cell = refcell
+
+            atoms.calc = SinglePointCalculator(atoms, **results)
+
             images.append(atoms)
 
         if constraints_removed:
