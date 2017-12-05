@@ -28,6 +28,7 @@ default_key_descriptions = {
     'calculator': ('Calculator', 'ASE-calculator name', ''),
     'energy': ('Energy', 'Total energy', 'eV'),
     'fmax': ('Maximum force', '', 'eV/Ang'),
+    'pbc': ('PBC', 'Periodic boundary conditions', ''),
     'charge': ('Charge', '', '|e|'),
     'mass': ('Mass', '', 'au'),
     'magmom': ('Magnetic moment', '', 'au'),
