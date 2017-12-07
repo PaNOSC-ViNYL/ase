@@ -123,11 +123,11 @@ class Aims(FileIOCalculator):
                  label=os.curdir, atoms=None, cubes=None, radmul=None,
                  tier=None, **kwargs):
         """Construct FHI-aims calculator.
-        
+
         The keyword arguments (kwargs) can be one of the ASE standard
         keywords: 'xc', 'kpts' and 'smearing' or any of FHI-aims'
         native keywords.
-        
+
         Additional arguments:
 
         cubes: AimsCube object
@@ -141,7 +141,7 @@ class Aims(FileIOCalculator):
             self.outfilename = kwargs.get('run_command').split()[-1]
         except:
             self.outfilename = 'aims.out'
-        
+
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms,
                                   command=kwargs.get('run_command'),
@@ -169,13 +169,13 @@ class Aims(FileIOCalculator):
             kwargs['xc'] = {'LDA': 'pw-lda', 'PBE': 'pbe'}.get(xc, xc)
 
         changed_parameters = FileIOCalculator.set(self, **kwargs)
-        
+
         if changed_parameters:
             self.reset()
         return changed_parameters
 
-    def write_input(self, atoms, scaled = False, properties=None, system_changes=None,
-                    ghosts=None):
+    def write_input(self, atoms, properties=None, system_changes=None,
+                    ghosts=None, scaled=False):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         have_lattice_vectors = atoms.pbc.any()
@@ -246,7 +246,7 @@ class Aims(FileIOCalculator):
         FileIOCalculator.read(self, label)
         geometry = os.path.join(self.directory, 'geometry.in')
         control = os.path.join(self.directory, 'control.in')
-                        
+
         for filename in [geometry, control, self.out]:
             if not os.path.isfile(filename):
                 raise ReadError
@@ -641,7 +641,7 @@ class AimsCube:
         self.edges = edges
         self.points = points
         self.plots = plots
-         
+
     def ncubes(self):
         """returns the number of cube files to output """
         if self.plots:
