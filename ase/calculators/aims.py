@@ -135,7 +135,7 @@ class Aims(FileIOCalculator):
         keywords: 'xc', 'kpts' and 'smearing' or any of FHI-aims'
         native keywords.
 
-        .. note:: The behavior of "(run_)command" has been refactored ase X.X.X
+        .. note:: The behavior of command/run_command has been refactored ase X.X.X
           It is now possible to independently specify the command to call
           FHI-aims and the outputfile into which stdout is directed. In
           general, we replaced
@@ -166,8 +166,8 @@ class Aims(FileIOCalculator):
           mpiexec -np 4 aims.version.scalapack.mpi > systemX.out
 
 
-        Arguments
-        ---------
+        Arguments:
+
         cubes: AimsCube object
             Cube file specification.
 
@@ -197,8 +197,9 @@ class Aims(FileIOCalculator):
             that this will be only of any effect, if the <run_command> does not
             yet contain a '>' directive.
 
-        **kwargs : dict
+        kwargs : dict
             Any of the base class arguments.
+
         """
         # yes, we pop the key and run it through our legacy filters
         command = kwargs.pop('command', None)
