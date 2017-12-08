@@ -22,6 +22,13 @@ assert calc.command == legacy_command
 assert calc.outfilename == legacy_outfilename
 assert calc.aims_command == legacy_aims_command
 
+# behavior of empty init with env variable
+os.environ['ASE_AIMS_COMMAND'] = aims_command_alternative
+calc = Aims()
+assert calc.command == '{0} > {1}'.format(aims_command_alternative, outfilename_default)
+assert calc.outfilename == outfilename_default
+assert calc.aims_command == aims_command_alternative
+
 # legacy behavior of "proper" command
 calc = Aims(run_command=command)
 assert calc.command == command
@@ -91,5 +98,4 @@ except ValueError:
 calc.atoms = water
 calc.prepare_input_files()
 for f in ['control.in', 'geometry.in']:
-    print tmp_dir
     assert os.path.isfile(os.path.join(tmp_dir,f))

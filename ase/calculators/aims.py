@@ -212,13 +212,15 @@ class Aims(FileIOCalculator):
             # use 'command'
             warnings.warn('Argument "run_command" is deprecated and will be replaced with "command". Alternatively, use "aims_command" and "outfile". See documentation for more details.')
             if command:
-                warnings.warn('Caution! Argument "command" superseds "run_command.')
+                warnings.warn('Caution! Argument "command" overwrites "run_command.')
             else:
                 command=run_command
 
         # this is the fallback to the default value for empty init
         if np.all([i is None for i in (command, aims_command, outfilename)]):
-            command = Aims.__command_default
+            # we go for the FileIOCalculator default way (env variable) with the former default as fallback
+            command = os.environ.get('ASE_AIMS_COMMAND', Aims.__command_default)
+
 
         # filter the command and set the member variables "aims_command" and "outfilename"
         self.__init_command(command=command,
