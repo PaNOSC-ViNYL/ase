@@ -341,6 +341,9 @@ class Aims(FileIOCalculator):
 
         self.__command =  '{0:s} > {1:s}'.format(self.aims_command, self.outfilename)
 
+    def set_atoms(self, atoms):
+        self.atoms = atoms
+
     def set_label(self, label, update_outfilename=False):
         self.label = label
         self.directory = label
