@@ -345,7 +345,7 @@ class Aims(FileIOCalculator):
         self.prefix = ''
         # change outfile name to "<label.out>"
         if update_outfilename:
-            self.outfilename="{}.out".format(label)
+            self.outfilename="{}.out".format(os.path.basename(label))
         self.out = os.path.join(label, self.outfilename)
 
     def check_state(self, atoms):
@@ -382,10 +382,20 @@ class Aims(FileIOCalculator):
         self.write_species(atoms, os.path.join(self.directory, 'control.in'))
         self.parameters.write(os.path.join(self.directory, 'parameters.ase'))
 
+    def prepare_input_files(self):
+        """
+        Wrapper function to prepare input filesi, e.g., to a run on a remote
+        machine
+        """
+        if self.atoms is None:
+            raise ValueError('No atoms object attached')
+        self.write_input(self.atoms)
+
     def write_control(self, atoms, filename):
+        lim = '#' + '='*79
         output = open(filename, 'w')
-        for line in ['=====================================================',
-                     'FHI-aims file: ' + filename,
+        output.write(lim + '\n')
+        for line in ['FHI-aims file: ' + filename,
                      'Created using the Atomic Simulation Environment (ASE)',
                      time.asctime(),
                      '',
@@ -395,7 +405,7 @@ class Aims(FileIOCalculator):
         for p,v in self.parameters.iteritems():
             s = '#     {} : {}\n'.format(p, v)
             output.write(s)
-        output.write('# =====================================================\n')
+        output.write(lim + '\n')
 
 
         assert not ('kpts' in self.parameters and 'k_grid' in self.parameters)
@@ -436,8 +446,7 @@ class Aims(FileIOCalculator):
                 output.write('%-35s%r\n' % (key, value))
         if self.cubes:
             self.cubes.write(output)
-        output.write(
-            '#=======================================================\n\n')
+        output.write(lim + '\n\n')
         output.close()
 
     def read(self, label):
