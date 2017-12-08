@@ -1,4 +1,8 @@
+import tempfile
+import os
+
 from ase.calculators.aims import Aims
+from ase import Atoms
 
 # test the new command handling + legacy behavior
 aims_command = 'aims.x'
@@ -65,3 +69,27 @@ assert calc.command == '{} > {}'.format(aims_command_alternative, outfilename)
 assert calc.aims_command == aims_command_alternative
 assert calc.outfilename == outfilename
 
+
+# test writing files
+tmp_dir = tempfile.mkdtemp()
+water = Atoms('HOH', [(1, 0, 0), (0, 0, 0), (0, 1, 0)])
+calc = Aims(xc='PBE',
+            output=['dipole'],
+            sc_accuracy_etot=1e-6,
+            sc_accuracy_eev=1e-3,
+            sc_accuracy_rho=1e-6,
+            species_dir="/data/rittmeyer/FHIaims/species_defaults/light/",
+            sc_accuracy_forces=1e-4,
+            label=tmp_dir,
+            )
+try:
+    calc.prepare_input_files()
+    raise AssertionError
+except ValueError:
+    pass
+
+calc.atoms = water
+calc.prepare_input_files()
+for f in ['control.in', 'geometry.in']:
+    print tmp_dir
+    assert os.path.isfile(os.path.join(tmp_dir,f))
