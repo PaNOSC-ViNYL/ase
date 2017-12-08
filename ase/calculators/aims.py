@@ -9,6 +9,7 @@ import os
 
 import numpy as np
 import warnings
+import time
 
 from ase.units import Hartree
 from ase.io.aims import write_aims, read_aims
@@ -386,10 +387,16 @@ class Aims(FileIOCalculator):
         for line in ['=====================================================',
                      'FHI-aims file: ' + filename,
                      'Created using the Atomic Simulation Environment (ASE)',
+                     time.asctime(),
                      '',
                      'List of parameters used to initialize the calculator:',
-                     '=====================================================']:
-            output.write('#' + line + '\n')
+                     ]:
+            output.write('# ' + line + '\n')
+        for p,v in self.parameters.iteritems():
+            s = '#     {} : {}\n'.format(p, v)
+            output.write(s)
+        output.write('# =====================================================\n')
+
 
         assert not ('kpts' in self.parameters and 'k_grid' in self.parameters)
         assert not ('smearing' in self.parameters and
