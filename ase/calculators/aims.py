@@ -365,8 +365,8 @@ class Aims(FileIOCalculator):
             self.reset()
         return changed_parameters
 
-    def write_input(self, atoms, scaled = False, properties=None, system_changes=None,
-                    ghosts=None):
+    def write_input(self, atoms, properties=None, system_changes=None,
+                    ghosts=None, scaled=False):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
 
         have_lattice_vectors = atoms.pbc.any()
