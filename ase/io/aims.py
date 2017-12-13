@@ -1,3 +1,5 @@
+import time
+
 def read_aims(filename):
     """Import FHI-aims geometry type files.
 
@@ -71,7 +73,7 @@ def read_aims(filename):
         fix.append(i)
     elif xyz.any():
         fix_cart.append(FixCartesian(i, xyz))
-    
+
     if cart_positions and scaled_positions:
         raise Exception("Can't specify atom positions with mixture of "
                         'Cartesian and fractional coordinates')
@@ -111,8 +113,9 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
 
     fd = open(filename, 'w')
     fd.write('#=======================================================\n')
-    fd.write('#FHI-aims file: ' + filename + '\n')
-    fd.write('#Created using the Atomic Simulation Environment (ASE)\n')
+    fd.write('# FHI-aims file: ' + filename + '\n')
+    fd.write('# Created using the Atomic Simulation Environment (ASE)\n')
+    fd.write('# ' + time.asctime() + '\n')
     fd.write('#=======================================================\n')
     i = 0
     if atoms.get_pbc().any():
@@ -134,7 +137,7 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
         ghosts = np.zeros(len(atoms))
     else:
         assert len(ghosts) == len(atoms)
-    scaled_positions = atoms.get_scaled_positions()        
+    scaled_positions = atoms.get_scaled_positions()
     for i, atom in enumerate(atoms):
         if ghosts[i] == 1:
             atomstring = 'empty '

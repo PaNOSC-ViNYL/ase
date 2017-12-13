@@ -51,7 +51,7 @@ def main(prog='ase', description='ASE command line tool',
         parsers[command] = subparser
 
     if hook:
-        args = hook(parser)
+        args = hook(parser, args)
     else:
         args = parser.parse_args(args)
 

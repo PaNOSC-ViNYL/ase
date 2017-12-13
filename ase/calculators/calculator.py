@@ -234,7 +234,7 @@ class Parameters(dict):
         file.close()
 
 
-class Calculator:
+class Calculator(object):
     """Base-class for all ASE calculators.
 
     A calculator must raise PropertyNotImplementedError if asked for a
