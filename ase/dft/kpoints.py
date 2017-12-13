@@ -282,20 +282,20 @@ def get_special_points(cell, lattice=None, eps=2e-4):
                       'argument')
         lattice, cell = cell, lattice
 
-    from ase.build.tools import niggli_reduce_cell
-    rcell, M = niggli_reduce_cell(cell)
-    latt = crystal_structure_from_cell(rcell, niggli_reduce=False)
+    latt = crystal_structure_from_cell(cell, niggli_reduce=False)
     if lattice:
         assert latt == lattice.lower(), latt
 
+    M = np.eye(3)
+
     if latt == 'monoclinic':
         # Transform From Niggli to Setyawana-Curtarolo cell:
-        a, b, c, alpha, beta, gamma = cell_to_cellpar(rcell, radians=True)
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(cell, radians=True)
         if abs(beta - np.pi / 2) > eps:
             T = np.array([[0, 1, 0],
                           [-1, 0, 0],
                           [0, 0, 1]])
-            scell = np.dot(T, rcell)
+            scell = np.dot(T, cell)
         elif abs(gamma - np.pi / 2) > eps:
             T = np.array([[0, 0, 1],
                           [1, 0, 0],
@@ -305,7 +305,7 @@ def get_special_points(cell, lattice=None, eps=2e-4):
                              'monoclinic unit cell. Please choose one with ' +
                              'either beta or gamma != pi/2')
 
-        scell = np.dot(np.dot(T, rcell), T.T)
+        scell = np.dot(np.dot(T, cell), T.T)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(scell, radians=True)
 
         assert alpha < np.pi / 2, 'Your monoclinic angle has to be < pi / 2'
