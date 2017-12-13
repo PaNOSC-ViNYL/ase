@@ -71,27 +71,49 @@ def info(gui):
 
         # Print electronic structure information if we have a calculator
         if atoms.calc:
-            try:
-                energy = _('Energy: ')
-                energy += '{:.3f} eV'.format(atoms.get_potential_energy())
-
-                maxf = np.linalg.norm(atoms.get_forces(apply_constraint=True),
-                                      axis=1).max()
-                forces = _('Max force: ')
-                forces += '{:.3f}'.format(maxf)
-
+            calc = atoms.calc
+            if hasattr(calc, 'get_property'):
+                # We now assume we're a type of Calculator class
                 try:
-                    magmom = atoms.get_magnetic_moments().sum()
+                    # Get property should take care of non-existing results,
+                    # and return None
+                    energy = calc.get_property('energy', atoms=calc.atoms,
+                                               allow_calculation=False)
+                    forces = calc.get_property('forces', atoms=calc.atoms,
+                                               allow_calculation=False)
+                    magmoms = calc.get_property('magmoms', atoms=calc.atoms,
+                                                allow_calculation=False)
                 except PropertyNotImplementedError:
-                    # We don't always have magnetic moments in our calculator
-                    magmom = 0.
+                    # This shouldn't happen with get_property(),
+                    # but just in case.
+                    # Perhaps we could also catch other errors, and simply pass
+                    # here.
+                    pass
+                else:
+                    # Parse the default None values
+                    if energy is None:
+                        energy = 0.
 
-                mag = _('Magmom: ')
-                mag += '{:.2f}'.format(magmom)
-                txt += calc_format % '\n'.join([energy, forces, mag])
-            except PropertyNotImplementedError:
-                # We should always have energy and forces,
-                # but just in case.
-                pass
+                    if forces is None:
+                        maxf = 0.
+                    else:
+                        maxf = np.linalg.norm(forces, axis=1).max()
+
+                    if magmoms is None:
+                        magmom = 0.
+                    else:
+                        magmom = magmoms.sum()
+
+                    # Format into string
+                    energy_str = _('Energy: ')
+                    energy_str += '{:.3f} eV'.format(energy)
+
+                    forces_str = _('Max force: ')
+                    forces_str += '{:.3f}'.format(maxf)
+
+                    mag_str = _('Magmom: ')
+                    mag_str += '{:.3f}'.format(magmom)
+                    txt += calc_format % '\n'.join([
+                        energy_str, forces_str, mag_str])
 
     return txt
