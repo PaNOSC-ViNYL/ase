@@ -117,7 +117,7 @@ class BandStructure:
     def plot_with_colors(self, ax=None, emin=-10, emax=5, filename=None,
                          show=None, energies=None, colors=None,
                          ylabel=None, clabel='$s_z$', cmin=-1.0, cmax=1.0,
-                         sortcolors=False, loc=None, s=1):
+                         sortcolors=False, loc=None, s=2):
         """Plot band-structure with colors."""
 
         import matplotlib.pyplot as plt
