@@ -338,7 +338,7 @@ def read_header(fd):
     return tag, version, nitems, pos0, offsets
 
 
-class InvalidULMFileError(Exception):
+class InvalidULMFileError(IOError):
     pass
 
 
