@@ -4,7 +4,7 @@ import psycopg2
 
 from ase.data import atomic_numbers
 from ase.db.sqlite import VERSION #init_statements, index_statements, VERSION
-from ase.db.sqlite import SQLite3Database, blob, float_if_not_none
+from ase.db.sqlite import SQLite3Database, float_if_not_none
 from ase.db.core import Database, now
 from ase.db.row import AtomsRow
 from ase.io.jsonio import encode, decode
@@ -19,24 +19,24 @@ init_statements = [
     username TEXT,
     numbers DOUBLE PRECISION[],  -- stuff that defines an Atoms object
     positions DOUBLE PRECISION[][],
-    cell BYTEA,
+    cell DOUBLE PRECISION[][],
     pbc INTEGER,
-    initial_magmoms BYTEA,
-    initial_charges BYTEA,
-    masses BYTEA,
-    tags BYTEA,
-    momenta BYTEA,
+    initial_magmoms DOUBLE PRECISION[],
+    initial_charges DOUBLE PRECISION[],
+    masses DOUBLE PRECISION[],
+    tags DOUBLE PRECISION[],
+    momenta DOUBLE PRECISION[],
     constraints TEXT,  -- constraints and calculator
     calculator TEXT,
     calculator_parameters TEXT,
     energy DOUBLE PRECISION,  -- calculated properties
     free_energy DOUBLE PRECISION,
-    forces BYTEA,
-    stress BYTEA,
-    dipole BYTEA,
-    magmoms BYTEA,
+    forces DOUBLE PRECISION[][],
+    stress DOUBLE PRECISION[],
+    dipole DOUBLE PRECISION[],
+    magmoms DOUBLE PRECISION[],
     magmom DOUBLE PRECISION,
-    charges BYTEA,
+    charges DOUBLE PRECISION[],
     key_value_pairs TEXT,  -- key-value pairs and data as json
     data TEXT,
     natoms INTEGER,  -- stuff for making queries faster
@@ -88,6 +88,10 @@ index_statements = [
 all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
+
+def list_if_not_none(x):
+    if x is not None:
+        return x.tolist()
 
 class Connection:
     def __init__(self, con):
@@ -205,13 +209,13 @@ class PostgreSQLDatabase(SQLite3Database):
                   row.user,
                   row.numbers.tolist(),
                   row.positions.tolist(),
-                  blob(row.cell),
+                  row.cell.tolist(),
                   int(np.dot(row.pbc, [1, 2, 4])),
-                  blob(row.get('initial_magmoms')),
-                  blob(row.get('initial_charges')),
-                  blob(row.get('masses')),
-                  blob(row.get('tags')),
-                  blob(row.get('momenta')),
+                  list_if_not_none(row.get('initial_magmoms')),
+                  list_if_not_none(row.get('initial_charges')),
+                  list_if_not_none(row.get('masses')),
+                  list_if_not_none(row.get('tags')),
+                  list_if_not_none(row.get('momenta')),
                   constraints)
         if 'calculator' in row:
             values += (row.calculator, encode(row.calculator_parameters))
@@ -227,12 +231,12 @@ class PostgreSQLDatabase(SQLite3Database):
             data = encode(data)
         values += (row.get('energy'),
                    row.get('free_energy'),
-                   blob(row.get('forces')),
-                   blob(row.get('stress')),
-                   blob(row.get('dipole')),
-                   blob(row.get('magmoms')),
+                   list_if_not_none(row.get('forces')),
+                   list_if_not_none(row.get('stress')),
+                   list_if_not_none(row.get('dipole')),
+                   list_if_not_none(row.get('magmoms')),
                    row.get('magmom'),
-                   blob(row.get('charges')),
+                   list_if_not_none(row.get('charges')),
                    encode(key_value_pairs),
                    data,
                    len(row.numbers),
