@@ -72,48 +72,42 @@ def info(gui):
         # Print electronic structure information if we have a calculator
         if atoms.calc:
             calc = atoms.calc
+
             if hasattr(calc, 'get_property'):
+                def get_property(prop, calc):
+                    """Wrapper function to retrieve properties"""
+                    try:
+                        return calc.get_property(prop, atoms=calc.atoms,
+                                                 allow_calculation=False)
+                    except PropertyNotImplementedError:
+                        return None
+
                 # We now assume we're a type of Calculator class
-                try:
-                    # Get property should take care of non-existing results,
-                    # and return None
-                    energy = calc.get_property('energy', atoms=calc.atoms,
-                                               allow_calculation=False)
-                    forces = calc.get_property('forces', atoms=calc.atoms,
-                                               allow_calculation=False)
-                    magmoms = calc.get_property('magmoms', atoms=calc.atoms,
-                                                allow_calculation=False)
-                except PropertyNotImplementedError:
-                    # This shouldn't happen with get_property(),
-                    # but just in case.
-                    # Perhaps we could also catch other errors, and simply pass
-                    # here.
-                    pass
-                else:
-                    # Parse the default None values
-                    if energy is None:
-                        energy = 0.
+                # Get property should take care of non-existing results,
+                # and return None
+                energy = get_property('energy', calc)
+                forces = get_property('forces', calc)
+                magmoms = get_property('magmoms', calc)
 
-                    if forces is None:
-                        maxf = 0.
-                    else:
-                        maxf = np.linalg.norm(forces, axis=1).max()
-
-                    if magmoms is None:
-                        magmom = 0.
-                    else:
-                        magmom = magmoms.sum()
-
-                    # Format into string
+                calc_strs = []
+                if energy is not None:
                     energy_str = _('Energy: ')
                     energy_str += '{:.3f} eV'.format(energy)
+                    calc_strs.append(energy_str)
 
+                if forces is not None:
+                    maxf = np.linalg.norm(forces, axis=1).max()
                     forces_str = _('Max force: ')
                     forces_str += '{:.3f}'.format(maxf)
+                    calc_strs.append(forces_str)
 
+                if magmoms is not None:
+                    magmom = magmoms.sum()
                     mag_str = _('Magmom: ')
                     mag_str += '{:.3f}'.format(magmom)
-                    txt += calc_format % '\n'.join([
-                        energy_str, forces_str, mag_str])
+                    calc_strs.append(mag_str)
+
+                # Format into string
+                txt += calc_format % '\n'.join(calc_strs)
 
     return txt
