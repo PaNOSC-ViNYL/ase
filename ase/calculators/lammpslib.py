@@ -17,7 +17,7 @@ from ase.utils import basestring
 
 # TODO
 # 1. should we make a new lammps object each time ?
-# 2. upper triangular test does not look good
+# DONE! 2. upper triangular test does not look good
 # 3. lmp object is not closed
 # 4. need a routine to get the model back from lammps
 # 5. if we send a command to lmps directly then the calculator does
@@ -29,14 +29,13 @@ from ase.utils import basestring
 # 9. keep_alive not needed with no system changes
 
 
-def is_upper_triangular(mat):
-    """test if 3x3 matrix is upper triangular"""
-
-    def near0(x):
-        """Test if a float is within .00001 of 0"""
-        return abs(x) < 0.00001
-
-    return near0(mat[1, 0]) and near0(mat[2, 0]) and near0(mat[2, 1])
+# this one may be moved to some more generial place
+def is_upper_triangular(arr, atol=1e-8):
+    """test for upper triangular matrix based on numpy"""
+    # must be (n x n) matrix
+    assert len(arr.shape)==2
+    assert arr.shape[0] == arr.shape[1]
+    return np.allclose(np.tril(arr, k=-1), 0., atol=atol)
 
 
 def convert_cell(ase_cell):
