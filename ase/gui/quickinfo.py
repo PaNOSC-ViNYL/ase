@@ -71,6 +71,9 @@ def info(gui):
 
         # Print electronic structure information if we have a calculator
         try:
+            # ase/io/trajectory.py line 170 does this by using
+            # the get_property(prop, atoms, allow_calculation=False)
+            # so that is an alternative option.
             if atoms.calc:
                 calc = atoms.calc
 
