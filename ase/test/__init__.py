@@ -94,7 +94,7 @@ def test(verbosity=1, calculators=[],
          testdir=None, stream=sys.stdout, files=None):
     """Main test-runner for ASE."""
 
-    if LooseVersion(np.__version__) > '1.13':
+    if LooseVersion(np.__version__) >= '1.14':
         # Our doctests need this (spacegroup.py)
         np.set_printoptions(legacy='1.13')
 
