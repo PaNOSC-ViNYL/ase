@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 from ase.gui.i18n import _
-from ase.calculators.calculator import PropertyNotImplementedError
+import warnings
 
 singleimage = _('Single image loaded.')
 multiimage = _('Image %d loaded (0 - %d).')
@@ -70,24 +70,22 @@ def info(gui):
             txt += _('Volume: ') + '{:8.3f}'.format(atoms.get_volume())
 
         # Print electronic structure information if we have a calculator
-        if atoms.calc:
-            calc = atoms.calc
+        try:
+            if atoms.calc:
+                calc = atoms.calc
 
-            if hasattr(calc, 'get_property'):
-                def get_property(prop, calc):
-                    """Wrapper function to retrieve properties"""
-                    try:
-                        return calc.get_property(prop, atoms=calc.atoms,
-                                                 allow_calculation=False)
-                    except PropertyNotImplementedError:
-                        return None
+                energy = None
+                forces = None
+                magmoms = None
 
-                # We now assume we're a type of Calculator class
-                # Get property should take care of non-existing results,
-                # and return None
-                energy = get_property('energy', calc)
-                forces = get_property('forces', calc)
-                magmoms = get_property('magmoms', calc)
+                if not calc.calculation_required(calc.atoms, ['energy']):
+                    energy = atoms.get_potential_energy()
+
+                if not calc.calculation_required(calc.atoms, ['forces']):
+                    forces = atoms.get_forces()
+
+                if not calc.calculation_required(calc.atoms, ['magmoms']):
+                    magmoms = atoms.get_magnetic_moments()
 
                 calc_strs = []
                 if energy is not None:
@@ -109,5 +107,12 @@ def info(gui):
 
                 # Format into string
                 txt += calc_format % '\n'.join(calc_strs)
+        except Exception as err:
+            # We don't want to kill the GUI because something
+            # went wrong with a calculator object.
+            msg = ('An error occured while retrieving results '
+                   'from the calculator')
+            warnings.warn(msg)
+            print(err)
 
     return txt
