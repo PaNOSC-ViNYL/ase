@@ -69,25 +69,26 @@ def info(gui):
         if atoms.number_of_lattice_vectors == 3:
             txt += _('Volume: ') + '{:8.3f}'.format(atoms.get_volume())
 
-        def getresult(name, get_quantity):
-            # ase/io/trajectory.py line 170 does this by using
-            # the get_property(prop, atoms, allow_calculation=False)
-            # so that is an alternative option.
-            try:
-                if calc.calculation_required(calc.atoms, [name]):
-                    quantity = None
-                else:
-                    quantity = get_quantity()
-            except Exception as err:
-                quantity = None
-                errmsg = ('An error occured while retrieving {} '
-                          'from the calculator: {}'.format(name, err))
-                warnings.warn(errmsg)
-            return quantity
-
         # Print electronic structure information if we have a calculator
         if atoms.calc:
             calc = atoms.calc
+
+            def getresult(name, get_quantity):
+                # ase/io/trajectory.py line 170 does this by using
+                # the get_property(prop, atoms, allow_calculation=False)
+                # so that is an alternative option.
+                try:
+                    if calc.calculation_required(atoms, [name]):
+                        quantity = None
+                    else:
+                        quantity = get_quantity()
+                except Exception as err:
+                    quantity = None
+                    errmsg = ('An error occured while retrieving {} '
+                              'from the calculator: {}'.format(name, err))
+                    warnings.warn(errmsg)
+                return quantity
+
             calc_strs = []
             # SinglePointCalculators are named after the code which
             # produced the result, so this will typically list the
