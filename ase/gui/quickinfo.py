@@ -109,7 +109,9 @@ def info(gui):
                     calc_strs.append(mag_str)
 
                 # Format into string
-                txt += calc_format % '\n'.join(calc_strs)
+                if calc_strs:
+                    txt += calc_format % '\n'.join(calc_strs)
+
         except Exception as err:
             # We don't want to kill the GUI because something
             # went wrong with a calculator object.
