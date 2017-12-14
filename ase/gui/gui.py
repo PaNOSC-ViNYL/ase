@@ -321,7 +321,7 @@ class GUI(View, Status):
         from ase.gui.celleditor import CellEditor
         CellEditor(self)
 
-    def quick_info_window(self):
+    def quick_info_window(self, key=None):
         from ase.gui.quickinfo import info
         ui.Window('Quick Info').add(info(self))
 
@@ -464,7 +464,7 @@ class GUI(View, Status):
                          _('_Initial Charges'),  # XXX check if exist
                 ]),
               M('---'),
-              M(_('Quick Info ...'), self.quick_info_window),
+              M(_('Quick Info ...'), self.quick_info_window, 'Ctrl+I'),
               M(_('Repeat ...'), self.repeat_window, 'R'),
               M(_('Rotate ...'), self.rotate_window),
               M(_('Colors ...'), self.colors_window, 'C'),

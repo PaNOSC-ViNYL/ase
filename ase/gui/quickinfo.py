@@ -69,55 +69,59 @@ def info(gui):
         if atoms.number_of_lattice_vectors == 3:
             txt += _('Volume: ') + '{:8.3f}'.format(atoms.get_volume())
 
-        # Print electronic structure information if we have a calculator
-        try:
+        def getresult(name, get_quantity):
             # ase/io/trajectory.py line 170 does this by using
             # the get_property(prop, atoms, allow_calculation=False)
             # so that is an alternative option.
-            if atoms.calc:
-                calc = atoms.calc
+            try:
+                if calc.calculation_required(calc.atoms, [name]):
+                    quantity = None
+                else:
+                    quantity = get_quantity()
+            except Exception as err:
+                quantity = None
+                errmsg = ('An error occured while retrieving {} '
+                          'from the calculator: {}'.format(name, err))
+                warnings.warn(errmsg)
+            return quantity
 
-                energy = None
-                forces = None
-                magmoms = None
+        # Print electronic structure information if we have a calculator
+        if atoms.calc:
+            calc = atoms.calc
+            calc_strs = []
+            # SinglePointCalculators are named after the code which
+            # produced the result, so this will typically list the
+            # name of a code even if they are just cached results.
+            from ase.calculators.singlepoint import SinglePointCalculator
+            if isinstance(calc, SinglePointCalculator):
+                calc_strs.append(_('Calculator: {} (cached)')
+                                 .format(calc.name))
+            else:
+                calc_strs.append(_('Calculator: {} (attached)'))
 
-                if not calc.calculation_required(calc.atoms, ['energy']):
-                    energy = atoms.get_potential_energy()
+            energy = getresult('energy', atoms.get_potential_energy)
+            forces = getresult('forces', atoms.get_forces)
+            magmoms = getresult('magmoms', atoms.get_magnetic_moments)
 
-                if not calc.calculation_required(calc.atoms, ['forces']):
-                    forces = atoms.get_forces()
+            if energy is not None:
+                energy_str = _('Energy: ')
+                energy_str += '{:.3f} eV'.format(energy)
+                calc_strs.append(energy_str)
 
-                if not calc.calculation_required(calc.atoms, ['magmoms']):
-                    magmoms = atoms.get_magnetic_moments()
+            if forces is not None:
+                maxf = np.linalg.norm(forces, axis=1).max()
+                forces_str = _('Max force: ')
+                forces_str += '{:.3f}'.format(maxf)
+                calc_strs.append(forces_str)
 
-                calc_strs = []
-                if energy is not None:
-                    energy_str = _('Energy: ')
-                    energy_str += '{:.3f} eV'.format(energy)
-                    calc_strs.append(energy_str)
+            if magmoms is not None:
+                magmom = magmoms.sum()
+                mag_str = _('Magmom: ')
+                mag_str += '{:.3f}'.format(magmom)
+                calc_strs.append(mag_str)
 
-                if forces is not None:
-                    maxf = np.linalg.norm(forces, axis=1).max()
-                    forces_str = _('Max force: ')
-                    forces_str += '{:.3f}'.format(maxf)
-                    calc_strs.append(forces_str)
-
-                if magmoms is not None:
-                    magmom = magmoms.sum()
-                    mag_str = _('Magmom: ')
-                    mag_str += '{:.3f}'.format(magmom)
-                    calc_strs.append(mag_str)
-
-                # Format into string
-                if calc_strs:
-                    txt += calc_format % '\n'.join(calc_strs)
-
-        except Exception as err:
-            # We don't want to kill the GUI because something
-            # went wrong with a calculator object.
-            msg = ('An error occured while retrieving results '
-                   'from the calculator')
-            warnings.warn(msg)
-            print(err)
+            # Format into string
+            if calc_strs:
+                txt += calc_format % '\n'.join(calc_strs)
 
     return txt
