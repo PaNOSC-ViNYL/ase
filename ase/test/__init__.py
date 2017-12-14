@@ -6,15 +6,16 @@ import subprocess
 import tempfile
 import unittest
 from glob import glob
+from distutils.version import LooseVersion
+
+import numpy as np
 
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
 from ase.utils import devnull
 from ase.cli.info import print_info
 
-
 NotAvailable = unittest.SkipTest
-
 
 test_calculator_names = []
 
@@ -91,6 +92,12 @@ def get_tests(files=None):
 
 def test(verbosity=1, calculators=[],
          testdir=None, stream=sys.stdout, files=None):
+    """Main test-runner for ASE."""
+
+    if LooseVersion(np.__version__) > '1.13':
+        # Our doctests need this (spacegroup.py)
+        np.set_printoptions(legacy='1.13')
+
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
