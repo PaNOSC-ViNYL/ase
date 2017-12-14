@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import os
 import psycopg2
 
 from ase.data import atomic_numbers
@@ -8,7 +9,7 @@ from ase.db.sqlite import SQLite3Database, float_if_not_none
 from ase.db.core import Database, now
 from ase.db.row import AtomsRow
 from ase.io.jsonio import encode, decode
-
+from ase.utils import basestring
 
 init_statements = [
     """CREATE TABLE systems (
