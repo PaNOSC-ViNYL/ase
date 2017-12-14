@@ -17,7 +17,6 @@ from ase.utils import basestring
 
 # TODO
 # 1. should we make a new lammps object each time ?
-# DONE! 2. upper triangular test does not look good
 # 3. lmp object is not closed
 # 4. need a routine to get the model back from lammps
 # 5. if we send a command to lmps directly then the calculator does
@@ -274,29 +273,6 @@ End LAMMPSlib Interface Documentation
         read_molecular_info=False,
         comm=None)
 
-    def set_bonds(self, atoms):
-        # TODO: document bonds syntax
-        for i in range(len(atoms)):
-            if atoms.arrays['bonds'][i] != '_':
-                for j in atoms.arrays['bonds'][i].split(','):
-                    m = re.match(r'(\d+)\((\d+)\)', j)
-                    self.lmp.command('create_bond {} {} {} '
-                                     ''.format(int(m.group(2)),
-                                               i + 1,
-                                               int(m.group(1)) + 1))
-
-    def set_angles(self, atoms):
-        # TODO: document angle syntax
-        for i in range(len(atoms)):
-            if atoms.arrays['angles'][i] != '_':
-                for j in atoms.arrays['angles'][i].split(','):
-                    m = re.match(r'(\d+)\-(\d+)\((\d+)\)', j)
-                    self.lmp.command('create_angle {} {} {} {}'
-                                     ''.format(int(m.group(3)),
-                                               int(m.group(1)) + 1,
-                                               i+1,
-                                               int(m.group(2)) + 1))
-
     def set_cell(self, atoms, change=False):
         lammps_cell, self.coord_transform = convert_cell(atoms.get_cell())
         xhi = lammps_cell[0, 0]
@@ -329,8 +305,8 @@ End LAMMPSlib Interface Documentation
 
         # If necessary, transform the positions to new coordinate system
         if self.coord_transform is not None:
-            pos = np.dot(self.coord_transform, np.matrix.transpose(pos))
-            pos = np.matrix.transpose(pos)
+            pos = np.dot(self.coord_transform, pos.transpose())
+            pos = pos.transpose()
 
         # Convert ase position matrix to lammps-style position array
         # contiguous in memory
@@ -628,26 +604,6 @@ End LAMMPSlib Interface Documentation
             # count number of known types
             n_types = len(self.parameters.atom_types)
             create_box_command = 'create_box {} cell'.format(n_types)
-
-            # count numbers of bonds and angles defined by potential
-            n_angle_types = 0
-            n_bond_types = 0
-            for cmd in self.parameters.lmpcmds:
-                m = re.match(r'\s*angle_coeff\s+(\d+)', cmd)
-                if m is not None:
-                    n_angle_types = max(int(m.group(1)), n_angle_types)
-                m = re.match(r'\s*bond_coeff\s+(\d+)', cmd)
-                if m is not None:
-                    n_bond_types = max(int(m.group(1)), n_bond_types)
-            if self.parameters.read_molecular_info:
-                if 'angles' in atoms.arrays:
-                    create_box_command += (
-                        ' angle/types {} extra/angle/per/atom 1'
-                        ''.format(n_angle_types))
-                if 'bonds' in atoms.arrays:
-                    create_box_command += (
-                        ' bond/types {} extra/bond/per/atom 1'
-                        ''.format(n_bond_types))
             self.lmp.command(create_box_command)
 
         # Initialize the atoms with their types
@@ -695,24 +651,13 @@ End LAMMPSlib Interface Documentation
 
         self.lmp.command("neigh_modify delay 0 every 1 check yes")
 
-        # read in bonds if there are bonds from the ase-atoms object
-        # if the molecular flag is set
-        if self.parameters.read_molecular_info and 'bonds' in atoms.arrays:
-            self.set_bonds(atoms)
-
-        # read in angles if there are angles from the ase-atoms object
-        # if the molecular flag is set
-        if self.parameters.read_molecular_info and 'angles' in atoms.arrays:
-            self.set_angles(atoms)
-
         self.initialized = True
 
 # print('done loading lammpslib')
 
 
 def write_lammps_data(filename, atoms, atom_types, comment=None, cutoff=None,
-                      molecule_ids=None, charges=None, units='metal',
-                      bond_types=None, angle_types=None, dihedral_types=None):
+                      molecule_ids=None, charges=None, units='metal'):
 
     if isinstance(filename, basestring):
         fh = open(filename, 'w')
@@ -726,68 +671,6 @@ def write_lammps_data(filename, atoms, atom_types, comment=None, cutoff=None,
     fh.write('{0} atoms\n'.format(len(atoms)))
     fh.write('{0} atom types\n'.format(len(atom_types)))
 
-    if bond_types:
-        from matscipy.neighbours import neighbour_list
-        i_list, j_list = neighbour_list('ij', atoms, cutoff)
-        print('Bonds:')
-        bonds = []
-        for bond_type, (Z1, Z2) in enumerate(bond_types):
-            bond_mask = ((atoms.numbers[i_list] == Z1) &
-                         (atoms.numbers[j_list] == Z2))
-            print((Z1, Z2), bond_mask.sum())
-            for (I, J) in zip(i_list[bond_mask], j_list[bond_mask]):
-                # LAMMPS uses 1-based indices for bond types
-                # and particle indices
-                bond = (bond_type + 1, I + 1, J + 1)
-                bonds.append(bond)
-        print('')
-        if len(bonds) > 0:
-            fh.write('{0} bonds\n'.format(len(bonds)))
-            fh.write('{0} bond types\n'.format(len(bond_types)))
-
-    if angle_types:
-        print('Angles:')
-        angle_count = dict((angle, 0) for angle in angle_types)
-        angles = []
-        for I in range(len(atoms)):
-            for J in j_list[i_list == I]:
-                for K in j_list[i_list == J]:
-                    if J < K:
-                        continue
-                    Zi, Zj, Zk = atoms.numbers[[I, J, K]]
-                    if (Zj, Zi, Zk) in angle_types:
-                        angle = (angle_types.index((Zj, Zi, Zk)) + 1,
-                                 J + 1, I + 1, K + 1)
-                        angle_count[(Zj, Zi, Zk)] += 1
-                        angles.append(angle)
-        for angle in angle_types:
-            print(angle, angle_count[angle])
-        print('')
-        if len(angles) > 0:
-            fh.write('{0} angles\n'.format(len(angles)))
-            fh.write('{0} angle types\n'.format(len(angle_types)))
-
-    if dihedral_types:
-        print('Dihedrals:')
-        dihedral_count = dict((dihedral, 0) for dihedral in dihedral_types)
-        dihedrals = []
-        for I in range(len(atoms)):
-            for J in j_list[i_list == I]:
-                for K in j_list[i_list == J]:
-                    for L in j_list[i_list == K]:
-                        Zi, Zj, Zk, Zl = atoms.numbers[[I, J, K, L]]
-                        if (Zi, Zj, Zk, Zl) in dihedral_types:
-                            dihedral = (
-                                dihedral_types.index((Zi, Zj, Zk, Zl)) + 1,
-                                I + 1, J + 1, K + 1, L + 1)
-                            dihedral_count[(Zi, Zj, Zk, Zl)] += 1
-                            dihedrals.append(dihedral)
-        for dihedral in dihedral_types:
-            print(dihedral, dihedral_count[dihedral])
-        print('')
-        if len(dihedrals) > 0:
-            fh.write('{0} dihedrals\n'.format(len(dihedrals)))
-            fh.write('{0} dihedral types\n'.format(len(dihedral_types)))
 
     fh.write('\n')
     cell, coord_transform = convert_cell(atoms.get_cell())
@@ -823,24 +706,6 @@ def write_lammps_data(filename, atoms, atom_types, comment=None, cutoff=None,
         typ = atom_types[sym]
         fh.write('{0} {1} {2} {3:16.8e} {4:16.8e} {5:16.8e} {6:16.8e}\n'
                  .format(i + 1, mol, typ, q, pos[0], pos[1], pos[2]))
-
-    if bond_types and len(bonds) > 0:
-        fh.write('\nBonds\n\n')
-        for idx, bond in enumerate(bonds):
-            fh.write('{0} {1} {2} {3}\n'
-                     .format(*[idx + 1] + list(bond)))
-
-    if angle_types and len(angles) > 0:
-        fh.write('\nAngles\n\n')
-        for idx, angle in enumerate(angles):
-            fh.write('{0} {1} {2} {3} {4}\n'
-                     .format(*[idx + 1] + list(angle)))
-
-    if dihedral_types and len(dihedrals) > 0:
-        fh.write('\nDihedrals\n\n')
-        for idx, dihedral in enumerate(dihedrals):
-            fh.write('{0} {1} {2} {3} {4} {5}\n'
-                     .format(*[idx + 1] + list(dihedral)))
 
     if isinstance(filename, basestring):
         fh.close()
