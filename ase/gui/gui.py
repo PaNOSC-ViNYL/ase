@@ -323,7 +323,7 @@ class GUI(View, Status):
 
     def quick_info_window(self, key=None):
         from ase.gui.quickinfo import info
-        ui.Window('Quick Info').add(info(self))
+        ui.Window(_('Quick Info')).add(info(self))
 
     def bulk_window(self):
         SetupBulkCrystal(self)
