@@ -12,6 +12,7 @@ class A:
         a.x = reader.x
         return a
 
+
 w = open('a.ulm', 'w')
 w.write(a=A(), y=9)
 w.write(s='abc')
