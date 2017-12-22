@@ -91,7 +91,7 @@ def info(gui):
 
             energy = getresult('energy', atoms.get_potential_energy)
             forces = getresult('forces', atoms.get_forces)
-            magmoms = getresult('magmoms', atoms.get_magnetic_moments)
+            magmom = getresult('magmom', atoms.get_magnetic_moment)
 
             if energy is not None:
                 energy_str = _('Energy: {:.3f} eV'.format(energy))
@@ -102,8 +102,7 @@ def info(gui):
                 forces_str = _('Max force: {:.3f} eV/Å').format(maxf)
                 add(forces_str)
 
-            if magmoms is not None:
-                magmom = magmoms.sum()
+            if magmom is not None:
                 mag_str = _('Magmom: {:.3f} µ'.format(magmom))
                 add(mag_str)
 
