@@ -332,6 +332,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
                 mag = np.array(magnetization, float)
                 images[-1].calc.magmoms = mag
                 images[-1].calc.results['magmoms'] = mag
+            if magmom:
                 images[-1].calc.results['magmom'] = magmom
             atoms = Atoms(pbc=True, constraint=constr)
             poscount += 1
