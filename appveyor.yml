@@ -27,11 +27,12 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   # Install the conda supplied packages if using conda, otherwise use pip
   # The wheel package is needed for 'pip wheel'
+  # Turn off progressbars '-q' otherwise PowerShell thinks there are errors
   - ps: |
       if($env:PYTHON -match "conda")
       {
-        conda update -y conda
-        conda install -y pip wheel numpy scipy pyflakes matplotlib flask
+        conda update -yq conda
+        conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
       }
       else
       {
