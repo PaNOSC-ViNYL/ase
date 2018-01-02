@@ -151,10 +151,10 @@ class BandStructure:
 
         def pretty(kpt):
             if kpt == 'G':
-                kpt = r'\Gamma'
+                kpt = r'$\Gamma$'
             elif len(kpt) == 2:
-                kpt = kpt[0] + '_' + kpt[1]
-            return '$' + kpt + '$'
+                kpt = kpt[0] + '$_' + kpt[1] + '$'
+            return kpt
 
         emin += self.reference
         emax += self.reference
@@ -178,7 +178,7 @@ class BandStructure:
         ax.set_xticklabels(labels)
         ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel(ylabel)
-        ax.axhline(self.reference, color='k')
+        ax.axhline(self.reference, color='k', ls=':')
         self.ax = ax
         return ax
 
