@@ -321,9 +321,9 @@ class GUI(View, Status):
         from ase.gui.celleditor import CellEditor
         CellEditor(self)
 
-    def quick_info_window(self):
+    def quick_info_window(self, key=None):
         from ase.gui.quickinfo import info
-        ui.Window('Quick Info').add(info(self))
+        ui.Window(_('Quick Info')).add(info(self))
 
     def bulk_window(self):
         SetupBulkCrystal(self)
@@ -426,8 +426,7 @@ class GUI(View, Status):
              [M(_('Select _all'), self.select_all),
               M(_('_Invert selection'), self.invert_selection),
               M(_('Select _constrained atoms'), self.select_constrained_atoms),
-              M(_('Select _immobile atoms'), self.select_immobile_atoms,
-                key='Ctrl+I'),
+              M(_('Select _immobile atoms'), self.select_immobile_atoms),
               #M('---'),
               # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
               # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
@@ -464,7 +463,7 @@ class GUI(View, Status):
                          _('_Initial Charges'),  # XXX check if exist
                 ]),
               M('---'),
-              M(_('Quick Info ...'), self.quick_info_window),
+              M(_('Quick Info ...'), self.quick_info_window, 'Ctrl+I'),
               M(_('Repeat ...'), self.repeat_window, 'R'),
               M(_('Rotate ...'), self.rotate_window),
               M(_('Colors ...'), self.colors_window, 'C'),
