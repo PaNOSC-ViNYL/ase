@@ -2,6 +2,8 @@
 
 See http://tcmp.ph.unimelb.edu.au/mustem/muSTEM.html for a few examples of
 this format and the documentation of muSTEM.
+
+See https://github.com/HamishGBrown/MuSTEM for the source code of muSTEM.
 """
 
 import numpy as np
@@ -87,10 +89,10 @@ class XtlmuSTEMWriter:
 
     def __init__(self, atoms, keV, DW, comment=None, occupancy=1.0,
                  fit_cell_to_atoms=False):
-        self.atoms = atoms
+        self.atoms = atoms.copy()
         from collections import OrderedDict
         self.atom_types = list(OrderedDict((element, None)
-            for element in atoms.get_chemical_symbols()))
+            for element in self.atoms.get_chemical_symbols()))
         self.keV = keV
         self.DW = DW
         self._check_key_dictionary(self.DW, 'DW')
@@ -103,8 +105,8 @@ class XtlmuSTEMWriter:
         self._check_key_dictionary(self.occupancy, 'occupancy')
         self.numbers = symbols2numbers(self.atom_types)
         if fit_cell_to_atoms:
-            atoms.translate(-atoms.positions.min(axis=0))
-            atoms.set_cell(atoms.positions.max(axis=0))
+            self.atoms.translate(-self.atoms.positions.min(axis=0))
+            self.atoms.set_cell(self.atoms.positions.max(axis=0))
 
     def _check_key_dictionary(self, d, dict_name):
         # Check if we have enough key
