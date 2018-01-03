@@ -81,9 +81,18 @@ def parse_loop(lines):
     header = []
     line = lines.pop().strip()
     while line.startswith('_'):
-        header.append(line.lower())
-        line = lines.pop().strip()
+        tokens = line.split()
+        header.append(tokens[0].lower())
+        if len(tokens) == 1:
+            line = lines.pop().strip()
+        else:
+            line = ' '.join(tokens[1:])
+            break
     columns = dict([(h, []) for h in header])
+    if len(columns) != len(header):
+        seen = set()
+        dublicates = [h for h in header if h in seen or seen.add(h)]
+        warnings.warn('Duplicated loop tags: {0}'.format(dublicates))
 
     tokens = []
     while True:

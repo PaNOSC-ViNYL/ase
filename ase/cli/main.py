@@ -19,6 +19,8 @@ commands = [
     ('ulm', 'ase.io.ulm'),
     ('find', 'ase.cli.find'),
     ('nomad-upload', 'ase.cli.nomad'),
+    ('convert', 'ase.cli.convert'),
+    ('reciprocal', 'ase.cli.reciprocal'),
     ('completion', 'ase.cli.completion')]
 
 
@@ -49,7 +51,7 @@ def main(prog='ase', description='ASE command line tool',
         parsers[command] = subparser
 
     if hook:
-        args = hook(parser)
+        args = hook(parser, args)
     else:
         args = parser.parse_args(args)
 

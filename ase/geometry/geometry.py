@@ -8,6 +8,8 @@ different orientations.
    - detection of duplicate atoms / atoms within cutoff radius
 """
 
+from math import pi
+
 import numpy as np
 
 from ase.geometry import complete_cell
@@ -189,6 +191,72 @@ def find_mic(D, cell, pbc=True):
     D_min = D_trans[list(range(len(D_min_ind))), D_min_ind]
 
     return D_min, D_min_len
+
+
+def get_angles(v1, v2, cell=None, pbc=None):
+    """Get angles formed by two lists of vectors.
+
+    calculate angle in degrees between vectors v1 and v2
+
+    Set a cell and pbc to enable minimum image
+    convention, otherwise angles are taken as-is.
+    """
+
+    f = 180 / pi
+
+    # Check if using mic
+    if cell is not None or pbc is not None:
+        if cell is None or pbc is None:
+            raise ValueError("cell or pbc must be both set or both be None")
+
+        v1 = find_mic(v1, cell, pbc)[0]
+        v2= find_mic(v2, cell, pbc)[0]
+
+
+    v1 /= np.linalg.norm(v1, axis=1)[:, np.newaxis]
+    v2 /= np.linalg.norm(v2, axis=1)[:, np.newaxis]
+
+    angles = np.arccos(np.einsum('ij,ij->i', v1, v2))
+
+    return angles * f
+
+
+def get_distances(p1, p2=None, cell=None, pbc=None):
+    """Return distance matrix of every position in p1 with every position in p2
+
+    if p2 is not set, it is assumed that distances between all positions in p1
+    are desired. p2 will be set to p1 in this case.
+
+    Use set cell and pbc to use the minimum image convention.
+    """
+    if p2 is None:
+        p2 = p1
+
+    p1, p2 = np.array(p1), np.array(p2)
+
+    # Allocate matrix for vectors as [p1, p2, 3]
+    D = np.zeros((len(p1), len(p2), 3))
+
+    for offset, pos1 in enumerate(p1):
+        D[offset, :, :] = p2 - pos1 
+
+    # Collapse to linear indexing
+    D.shape = (-1, 3)
+
+    # Check if using mic
+    if cell is not None or pbc is not None:
+        if cell is None or pbc is None:
+            raise ValueError("cell or pbc must be both set or both be None")
+
+        D, D_len = find_mic(D, cell, pbc)
+    else:
+        D_len = np.sqrt((D**2).sum(1))
+
+    # Expand back to matrix indexing
+    D.shape = (-1, len(p2), 3)
+    D_len.shape = (-1, len(p2))
+
+    return D, D_len
 
 
 def get_duplicate_atoms(atoms, cutoff=0.1, delete=False):

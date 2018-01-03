@@ -4,7 +4,7 @@ import os.path as op
 import sys
 
 from ase.io import read
-from ase.io.formats import filetype
+from ase.io.formats import filetype, UnknownFileTypeError
 from ase.db import connect
 from ase.db.core import parse_selection
 from ase.db.jsondb import JSONDatabase
@@ -42,6 +42,9 @@ def main(args):
     query = parse_selection(args.query)
     include = args.include.split(',') if args.include else []
     exclude = args.exclude.split(',') if args.exclude else []
+
+    if args.long:
+        print('pbc {:10} {:15} path'.format('formula', 'filetype'))
 
     for path in allpaths(args.folder, include, exclude):
         format, row = check(path, query, args.verbose)
@@ -84,9 +87,7 @@ def check(path, query, verbose):
 
     try:
         format = filetype(path, guess=False)
-    except OSError:
-        return '', None
-    if format is None:
+    except (OSError, UnknownFileTypeError):
         return '', None
 
     if format in ['db', 'json']:

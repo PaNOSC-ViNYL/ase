@@ -218,15 +218,7 @@ class TrajectoryReader:
 
     def _open(self, filename):
         import ase.io.ulm as ulm
-        try:
-            self.backend = ulm.open(filename, 'r')
-        except ulm.InvalidULMFileError:
-            raise RuntimeError('This is not a valid ASE trajectory file. '
-                               'If this is an old-format (version <3.9) '
-                               'PickleTrajectory file you can convert it '
-                               'with ase.io.trajectory.convert("%s") '
-                               'or:\n\n $ python -m ase.io.trajectory %s'
-                               % (filename, filename))
+        self.backend = ulm.open(filename, 'r')
         self._read_header()
 
     def _read_header(self):
@@ -341,20 +333,19 @@ def write_atoms(backend, atoms, write_header=True):
         b.write(charges=atoms.get_initial_charges())
 
 
-def read_traj(filename, index):
-    trj = TrajectoryReader(filename)
+def read_traj(fd, index):
+    trj = TrajectoryReader(fd)
     for i in range(*index.indices(len(trj))):
         yield trj[i]
 
 
-def write_traj(filename, images):
+def write_traj(fd, images):
     """Write image(s) to trajectory."""
-    trj = TrajectoryWriter(filename, mode='w')
+    trj = TrajectoryWriter(fd)
     if isinstance(images, Atoms):
         images = [images]
     for atoms in images:
         trj.write(atoms)
-    trj.close()
 
 
 class OldCalculatorWrapper:

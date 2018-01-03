@@ -177,12 +177,12 @@ class HinderedThermo(ThermoChem):
     sitedensity : float
         density of surface sites in cm^-2
     rotationalminima : integer
-        the number of equivalent minima for an adsorabte's full rotation.
+        the number of equivalent minima for an adsorbate's full rotation.
+        For example, 6 for an adsorbate on an fcc(111) top site
     potentialenergy : float
         the potential energy in eV (e.g., from atoms.get_potential_energy)
         (if potentialenergy is unspecified, then the methods of this class
         can be interpreted as the energy corrections)
-        For example, 6 for an adsorbate on an fcc(111) top site
     mass : float
         the mass of the adsorbate in amu (if mass is unspecified, then it will
         be calculated from the atoms class)
@@ -454,7 +454,7 @@ class IdealGasThermo(ThermoChem):
             raise ValueError('Imaginary frequencies are present.')
         else:
             self.vib_energies = np.real(self.vib_energies)  # clear +0.j
-        self.referencepressure = 101325.  # Pa
+        self.referencepressure = 1.0e5  # Pa
 
     def get_enthalpy(self, temperature, verbose=True):
         """Returns the enthalpy, in eV, in the ideal gas approximation
@@ -525,7 +525,7 @@ class IdealGasThermo(ThermoChem):
                temperature / units._hplanck**2)**(3.0 / 2)
         S_t *= units._k * temperature / self.referencepressure
         S_t = units.kB * (np.log(S_t) + 5.0 / 2.0)
-        write(fmt % ('S_trans (1 atm)', S_t, S_t * temperature))
+        write(fmt % ('S_trans (1 bar)', S_t, S_t * temperature))
         S += S_t
 
         # Rotational entropy (term inside the log is in SI units).
@@ -560,7 +560,7 @@ class IdealGasThermo(ThermoChem):
 
         # Pressure correction to translational entropy.
         S_p = - units.kB * np.log(pressure / self.referencepressure)
-        write(fmt % ('S (1 atm -> P)', S_p, S_p * temperature))
+        write(fmt % ('S (1 bar -> P)', S_p, S_p * temperature))
         S += S_p
 
         write('-' * 49)

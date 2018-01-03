@@ -10,6 +10,23 @@ Git master branch
 
 :git:`master <>`.
 
+* New method, :meth:`~ase.Atoms.get_angles`, for calculating multiple angles.
+
+* New ``ase reciprocal`` :ref:`command <cli>` for showing the
+  1. Brilluin zone, **k**-points and special points.
+
+* New ``ase convert`` :ref:`command <cli>` for converting between file formats.
+
+* Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
+
+* New cell editor for the GUI
+
+
+Version 3.15.0
+==============
+
+28 September 2017: :git:`3.15.0 <../3.15.0>`
+
 * If you are running your Python script in :mod:`parallel <ase.parallel>`
   then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
   the master and broadcast to slaves, and :func:`ase.io.write` will only
@@ -39,7 +56,11 @@ Git master branch
 
 * New :ref:`db tutorial` tutorial.
 
-* :mod:`ase.gui` is now available in German and Chinese (again).
+* :mod:`ase.gui`:  Improved atom colouring options; support the Render Scene (povray) and Ctrl+R rotation features again; updated German and Chinese translations.
+
+* Get the :class:`~ase.spacegroup.Spacegroup` object from an
+  :class:`~ase.Atoms` object with the new :func:`ase.spacegroup.get_spacegroup`
+  function.
 
 
 Version 3.14.1

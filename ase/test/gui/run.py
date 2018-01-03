@@ -87,7 +87,8 @@ def color(gui):
     c = gui.colors_window()
     c.toggle('force')
     text = c.toggle('magmom')
-    assert [button.active for button in c.radio.buttons] == [1, 0, 1, 0, 0, 1]
+    activebuttons = [button.active for button in c.radio.buttons]
+    assert activebuttons == [1, 0, 1, 0, 0, 1, 1], activebuttons
     assert text.rsplit('[', 1)[1].startswith('-1.000000,1.000000]')
 
 
@@ -101,6 +102,7 @@ def settings(gui):
 
 @test
 def rotate(gui):
+    gui.window['toggle-show-bonds'] = True
     gui.new_atoms(molecule('H2O'))
     gui.rotate_window()
 

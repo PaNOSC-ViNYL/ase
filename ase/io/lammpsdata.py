@@ -6,10 +6,10 @@ from ase.parallel import paropen
 from ase.utils import basestring
 
 
-def read_lammps_data(fileobj, Z_of_type=None, style='full'):
+def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False):
     """Method which reads a LAMMPS data file.
 
-    order: Order the particles according to their id. Might be faster to
+    sort_by_id: Order the particles according to their id. Might be faster to
     switch it off.
     """
     if isinstance(fileobj, basestring):
@@ -162,9 +162,9 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
                                          int(fields[6]),
                                          int(fields[7]))
                 else:
-                    raise RuntimeError("Style '%s' not supported or invalid" +
-                                       " number of fields %d" %
-                                       (style, len(fields)))
+                    raise RuntimeError("Style '{}' not supported or invalid "
+                                       "number of fields {}"
+                                       "".format(style, len(fields)))
             elif section == "Velocities":  # id vx vy vz
                 vel_in[int(fields[0])] = (float(fields[1]),
                                           float(fields[2]),
@@ -228,23 +228,27 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full'):
     for (i, id) in enumerate(pos_in.keys()):
         # by id
         ind_of_id[id] = i
-        type = pos_in[id][0]
-        positions[i, :] = [pos_in[id][1], pos_in[id][2], pos_in[id][3]]
-        if velocities is not None:
-            velocities[i, :] = [vel_in[id][0], vel_in[id][1], vel_in[id][2]]
-        if travel is not None:
-            travel[i] = travel_in[id]
-        if mol_id is not None:
-            mol_id[i] = mol_id_in[id]
-        ids[i] = id
-        # by type
-        types[i] = type
-        if Z_of_type is None:
-            numbers[i] = type
+        if sort_by_id:
+            ind = id-1
         else:
-            numbers[i] = Z_of_type[type]
+            ind = i
+        type = pos_in[id][0]
+        positions[ind, :] = [pos_in[id][1], pos_in[id][2], pos_in[id][3]]
+        if velocities is not None:
+            velocities[ind, :] = [vel_in[id][0], vel_in[id][1], vel_in[id][2]]
+        if travel is not None:
+            travel[ind] = travel_in[id]
+        if mol_id is not None:
+            mol_id[ind] = mol_id_in[id]
+        ids[ind] = id
+        # by type
+        types[ind] = type
+        if Z_of_type is None:
+            numbers[ind] = type
+        else:
+            numbers[ind] = Z_of_type[type]
         if masses is not None:
-            masses[i] = mass_in[type]
+            masses[ind] = mass_in[type]
 
     # create ase.Atoms
     at = Atoms(positions=positions,

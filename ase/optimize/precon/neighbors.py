@@ -80,9 +80,6 @@ def get_neighbours(atoms, r_cut, self_interaction=False):
     for constraint in atoms.constraints:
         if isinstance(constraint, FixAtoms):
             fixed_atoms.extend(list(constraint.index))
-        else:
-            raise TypeError(
-                'only FixAtoms constraints are supported by Precon class')
 
     return i_list, j_list, d_list, fixed_atoms
 

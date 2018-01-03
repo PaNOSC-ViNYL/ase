@@ -4,7 +4,7 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror, showwarning
+    from tkinter.messagebox import showerror, showwarning, showinfo
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
@@ -14,7 +14,7 @@ except ImportError:
     except ImportError:
         ttk = None
     from tkMessageBox import (askokcancel as ask_question, showerror,
-                              showwarning)
+                              showwarning, showinfo)
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -31,7 +31,7 @@ __all__ = [
     'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
-    'showwarning', 'SpinBox', 'Text']
+    'showinfo', 'showwarning', 'SpinBox', 'Text']
 
 
 if sys.platform == 'darwin':
@@ -200,14 +200,16 @@ class CheckButton(Widget):
 
 
 class SpinBox(Widget):
-    def __init__(self, value, start, end, step, callback=None):
+    def __init__(self, value, start, end, step, callback=None, 
+                 rounding=None, width=6):
         self.callback = callback
+        self.rounding = rounding
         self.creator = partial(tk.Spinbox,
                                from_=start,
                                to=end,
                                increment=step,
                                command=callback,
-                               width=6)
+                               width=width)
         self.initial = str(value)
 
     def create(self, parent):
@@ -228,6 +230,11 @@ class SpinBox(Widget):
     @value.setter
     def value(self, x):
         self.widget.delete(0, 'end')
+        if '.' in str(x) and self.rounding is not None:
+            try:
+                x = round(float(x), self.rounding)
+            except (ValueError, TypeError):
+                pass
         self.widget.insert(0, x)
 
 
@@ -335,8 +342,8 @@ if ttk is not None:
             self.creator = partial(ttk.Combobox,
                                    values=labels)
 
-        def create(self, parrent):
-            widget = Widget.create(self, parrent)
+        def create(self, parent):
+            widget = Widget.create(self, parent)
             widget.current(0)
             if self.callback:
                 def callback(event):
@@ -565,11 +572,9 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
         self.win.bind('<MouseWheel>', bind(scroll_event))
-        for key in ['Key', 'Next', 'Prior']:
-            # Next and Prior are PageUp/Dn, referring to Z axis.
-            self.win.bind('<{}>'.format(key), bind(scroll))
-            self.win.bind('<Shift-{}>'.format(key), bind(scroll, 'shift'))
-            self.win.bind('<Control-{}>'.format(key), bind(scroll, 'ctrl'))
+        self.win.bind('<Key>', bind(scroll))
+        self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
+        self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
 
         self.fg = config['gui_foreground_color']
         self.bg = config['gui_background_color']

@@ -154,14 +154,12 @@ class GUI(View, Status):
         CTRL = event.modifier == 'ctrl'
 
         # Bug: Simultaneous CTRL + shift is the same as just CTRL.
-        # Therefore binding Page Up / Page Dn (keycodes next/prior)
-        # to movement in Z direction.
+        # Therefore movement in Z direction does not support the
+        # shift modifier.
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
-                  'left': (-1, 0, 0),
-                  'next': (0, 0, 1),
-                  'prior': (0, 0, -1)}.get(event.key, None)
+                  'left': (-1, 0, 0)}.get(event.key, None)
 
         if dxdydz is None:
             return
@@ -319,9 +317,13 @@ class GUI(View, Status):
         from ase.gui.add import AddAtoms
         AddAtoms(self)
 
-    def quick_info_window(self):
+    def cell_editor(self, key=None):
+        from ase.gui.celleditor import CellEditor
+        CellEditor(self)
+
+    def quick_info_window(self, key=None):
         from ase.gui.quickinfo import info
-        ui.Window('Quick Info').add(info(self))
+        ui.Window(_('Quick Info')).add(info(self))
 
     def bulk_window(self):
         SetupBulkCrystal(self)
@@ -424,8 +426,7 @@ class GUI(View, Status):
              [M(_('Select _all'), self.select_all),
               M(_('_Invert selection'), self.invert_selection),
               M(_('Select _constrained atoms'), self.select_constrained_atoms),
-              M(_('Select _immobile atoms'), self.select_immobile_atoms,
-                key='Ctrl+I'),
+              M(_('Select _immobile atoms'), self.select_immobile_atoms),
               #M('---'),
               # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
               # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
@@ -437,6 +438,7 @@ class GUI(View, Status):
               M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
               M(_('_Delete selected atoms'), self.delete_selected_atoms,
                 'Backspace'),
+              M(_('Edit _cell'), self.cell_editor, 'Ctrl+E'),
               M('---'),
               M(_('_First image'), self.step, 'Home'),
               M(_('_Previous image'), self.step, 'Page-Up'),
@@ -461,7 +463,7 @@ class GUI(View, Status):
                          _('_Initial Charges'),  # XXX check if exist
                 ]),
               M('---'),
-              M(_('Quick Info ...'), self.quick_info_window),
+              M(_('Quick Info ...'), self.quick_info_window, 'Ctrl+I'),
               M(_('Repeat ...'), self.repeat_window, 'R'),
               M(_('Rotate ...'), self.rotate_window),
               M(_('Colors ...'), self.colors_window, 'C'),
@@ -494,7 +496,7 @@ class GUI(View, Status):
             (_('_Tools'),
              [M(_('Graphs ...'), self.plot_graphs),
               M(_('Movie ...'), self.movie),
-              M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
+              M(_('Expert mode ...'), self.execute, disabled=True),
               M(_('Constraints ...'), self.constraints_window),
               M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
