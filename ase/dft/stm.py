@@ -250,7 +250,7 @@ class STM:
                    dy * self.ldos[xp, (yp + 1) % ny, zp] + 
                    dz * self.ldos[xp, yp, (zp + 1) % nz])
 
-        return dos2current(xyzldos)
+        return dos2current(bias, xyzldos)
 
 
     def sts(self, x, y, z, bias0, bias1, biasstep):
@@ -279,7 +279,15 @@ class STM:
         
         ldosz = (1 - dz) * ldos[zp] + dz * ldos[(zp + 1) % nz]
 
-        return dos2current(ldosz)
+        return dos2current(self.bias, ldosz)
+
+
+def dos2current(bias, dos):
+    # Borrowed from gpaw/analyse/simple_stm.py:
+    # The connection between density n and current I
+    # n [e/Angstrom^3] = 0.0002 sqrt(I [nA])
+    # as given in Hofer et al., RevModPhys 75 (2003) 1287
+    return 5000. * dos**2 * (1 if bias > 0 else -1)
 
 
 def interpolate(q, heights):
@@ -310,14 +318,6 @@ def find_height(ldos, current, h, z0=None):
 
     c2, c1 = ldos[n:n + 2]
     return (n + 1 - (current - c1) / (c2 - c1)) * h
-
-
-def dos2current(self, dos):
-    # Borrowed from gpaw/analyse/simple_stm.py:
-    # The connection between density n and current I
-    # n [e/Angstrom^3] = 0.0002 sqrt(I [nA])
-    # as given in Hofer et al., RevModPhys 75 (2003) 1287
-    return 5000. * dos**2 * (1 if self.bias > 0 else -1)
 
 
 def delta(biases, bias, width):
