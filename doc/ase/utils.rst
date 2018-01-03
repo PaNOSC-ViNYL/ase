@@ -6,6 +6,10 @@ Utillity functions and classes
 
 This module contains utility functions and classes.
 
+.. toctree::
+
+    xrdebye
+
 .. autofunction:: ase.utils.opencew
 .. autofunction:: ase.utils.gcd
 .. autofunction:: ase.utils.seterr

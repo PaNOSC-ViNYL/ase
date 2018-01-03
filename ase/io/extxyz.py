@@ -228,7 +228,11 @@ def _read_xyz_frame(lines, natoms):
 
     data = []
     for ln in range(natoms):
-        line = next(lines)
+        try:
+            line = next(lines)
+        except StopIteration:
+            raise XYZError('ase.io.extxyz: Frame has {} atoms, expected {}'
+                           .format(len(data), natoms))
         vals = line.split()
         row = tuple([conv(val) for conv, val in zip(convs, vals)])
         data.append(row)
@@ -236,8 +240,8 @@ def _read_xyz_frame(lines, natoms):
     try:
         data = np.array(data, dtype)
     except TypeError:
-        raise IOError('Badly formatted data, ' +
-                      'or end of file reached before end of frame')
+        raise XYZError('Badly formatted data '
+                       'or end of file reached before end of frame')
 
     arrays = {}
     for name in names:
@@ -405,7 +409,11 @@ def read_xyz(fileobj, index=-1):
         line = fileobj.readline()
         if line.strip() == '':
             break
-        natoms = int(line)
+        try:
+            natoms = int(line)
+        except ValueError as err:
+            raise XYZError('ase.io.extxyz: Expected xyz header but got: {}'
+                           .format(err))
         frames.append((frame_pos, natoms))
         if last_frame is not None and len(frames) > last_frame:
             break
@@ -501,7 +509,11 @@ def output_column_format(atoms, columns, arrays,
                               property_types,
                               [str(nc) for nc in property_ncols])])
 
-    comment_str = lattice_str + ' Properties=' + props_str
+    comment_str = ''
+    if atoms.cell.any():
+        comment_str += lattice_str + ' '
+    comment_str += 'Properties={}'.format(props_str)
+
     info = {}
     if write_info:
         info.update(atoms.info)

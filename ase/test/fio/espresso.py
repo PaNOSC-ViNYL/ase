@@ -8,7 +8,10 @@ Implemented:
 
 import os
 
+import numpy as np
+
 from ase import io
+from ase import build
 
 
 # This file is parsed correctly by pw.x, even though things are
@@ -319,7 +322,23 @@ def test_pw_results_required():
         os.unlink('pw_output.pwo')
 
 
+def test_pw_input_write():
+    """Write a structure and read it back."""
+    bulk = build.bulk('NiO', 'rocksalt', 4.813, cubic=True)
+    bulk.set_initial_magnetic_moments([2.2 if atom.symbol == 'Ni' else 0.0
+                                       for atom in bulk])
+
+    try:
+        bulk.write('espresso_test.pwi')
+        readback = io.read('espresso_test.pwi')
+        assert np.allclose(bulk.positions, readback.positions)
+    finally:
+        os.unlink('espresso_test.pwi')
+
+
+
 if __name__ in ('__main__', '__builtin__'):
     test_pw_input()
     test_pw_output()
     test_pw_results_required()
+    test_pw_input_write()

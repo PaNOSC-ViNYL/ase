@@ -38,9 +38,7 @@ multiple configurations):
     formatted files.
 
     For the CIF format, STAR extensions as save frames, global blocks,
-    nested loops and multi-data values are not supported.  Furthermore,
-    ASE currently assumes the ``loop_`` identifier, and the following
-    loop variable names to be on separate lines.
+    nested loops and multi-data values are not supported.
 
 .. note::
 

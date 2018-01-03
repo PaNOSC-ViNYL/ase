@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import sys
 
 # Path of the complete.py script:
 my_dir, _ = os.path.split(os.path.realpath(__file__))
@@ -8,7 +9,8 @@ filename = os.path.join(my_dir, 'complete.py')
 
 class CLICommand:
     short_description = 'Add tab-completion for Bash'
-    cmd = 'complete -o default -C {} ase'.format(filename)
+    cmd = ('complete -o default -C "{} -m ase.cli.complete" ase'
+           .format(sys.executable))
 
     @staticmethod
     def add_arguments(parser):
@@ -17,17 +19,17 @@ class CLICommand:
 
     @staticmethod
     def run(args):
-        filename = args.filename or os.path.expanduser('~/.bashrc')
         cmd = CLICommand.cmd
         print(cmd)
-        if args.dry_run:
-            return
-        with open(filename) as fd:
-            if cmd + '\n' in fd.readlines():
-                print('Completion script already installed!')
-                return
-        with open(filename, 'a') as fd:
-            print(cmd, file=fd)
+        #filename = args.filename or os.path.expanduser('~/.bashrc')
+        #if args.dry_run:
+        #    return
+        #with open(filename) as fd:
+        #    if cmd + '\n' in fd.readlines():
+        #        print('Completion script already installed!')
+        #        return
+        #with open(filename, 'a') as fd:
+        #    print(cmd, file=fd)
 
 
 def update(filename, commands):
@@ -52,6 +54,9 @@ def update(filename, commands):
         def add_argument(self, *args, **kwargs):
             dct[command].extend(arg for arg in args
                                 if arg.startswith('-'))
+
+        def add_mutually_exclusive_group(self, required=False):
+            return self
 
     for command, module_name in commands:
         module = import_module(module_name)

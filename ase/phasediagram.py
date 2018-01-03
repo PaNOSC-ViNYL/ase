@@ -2,6 +2,7 @@ from __future__ import division, print_function
 import fractions
 import functools
 import re
+from collections import OrderedDict
 
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -31,12 +32,12 @@ def float2str(x):
     n = f.numerator
     d = f.denominator
     if abs(n / d - f) > 1e-6:
-        return '{0:.3f}'.format(f)
+        return '{:.3f}'.format(f)
     if d == 0:
         return '0'
     if f.denominator == 1:
         return str(n)
-    return '{0}/{1}'.format(f.numerator, f.denominator)
+    return '{}/{}'.format(f.numerator, f.denominator)
 
 
 def solvated(symbols):
@@ -118,9 +119,9 @@ def print_results(results):
         total_energy += coef * energy
         if abs(coef) < 1e-7:
             continue
-        print('{0:14}{1:>10}{2:12.3f}'.format(name, float2str(coef), energy))
+        print('{:14}{:>10}{:12.3f}'.format(name, float2str(coef), energy))
     print('------------------------------------')
-    print('Total energy: {0:22.3f}'.format(total_energy))
+    print('Total energy: {:22.3f}'.format(total_energy))
     print('------------------------------------')
 
 
@@ -218,7 +219,7 @@ class Pourbaix:
                 if aq:
                     energy -= entropy
             if verbose:
-                print('{0:<5}{1:10}{2:10.3f}'.format(len(energies),
+                print('{:<5}{:10}{:10.3f}'.format(len(energies),
                                                      name, energy))
             energies.append(energy)
             names.append(name)
@@ -268,7 +269,6 @@ class Pourbaix:
             name = re.sub('(\S)([+-]+)', r'\1$^{\2}$', name)
             name = re.sub('(\d+)', r'$_{\1}$', name)
             text.append((x, y, name))
-
 
         if plot:
             import matplotlib.pyplot as plt
@@ -326,7 +326,7 @@ class PhaseDiagram:
 
         self.verbose = verbose
 
-        self.species = {}
+        self.species = OrderedDict()
         self.references = []
         for name, energy in references:
             if isinstance(name, basestring):
@@ -353,13 +353,18 @@ class PhaseDiagram:
             print('Species:', ', '.join(self.symbols))
             print('References:', len(self.references))
             for i, (count, energy, name, natoms) in enumerate(self.references):
-                print('{0:<5}{1:10}{2:10.3f}'.format(i, name, energy))
+                print('{:<5}{:10}{:10.3f}'.format(i, name, energy))
 
         self.points = np.zeros((len(self.references), len(self.species) + 1))
         for s, (count, energy, name, natoms) in enumerate(self.references):
             for symbol, n in count.items():
                 self.points[s, self.species[symbol]] = n / natoms
             self.points[s, -1] = energy / natoms
+
+        if len(self.points) == 2:
+            self.simplices = np.array([[0, 1]])
+            self.hull = np.ones(2, bool)
+            return
 
         hull = ConvexHull(self.points[:, 1:])
 
@@ -483,19 +488,28 @@ class PhaseDiagram:
             plt.show()
         return ax
 
-    def plot2d2(self, ax):
+    def plot2d2(self, ax=None):
         x, e = self.points[:, 1:].T
-        for i, j in self.simplices:
-            ax.plot(x[[i, j]], e[[i, j]], '-b')
-        ax.plot(x[self.hull], e[self.hull], 'og')
-        ax.plot(x[~self.hull], e[~self.hull], 'sr')
-        for a, b, ref in zip(x, e, self.references):
-            name = re.sub('(\d+)', r'$_{\1}$', ref[2])
-            ax.text(a, b, name,
-                     horizontalalignment='center', verticalalignment='bottom')
+        names = [re.sub('(\d+)', r'$_{\1}$', ref[2])
+                 for ref in self.references]
+        hull = self.hull
+        simplices = self.simplices
+        xlabel = self.symbols[1]
+        ylabel = 'energy [eV/atom]'
 
-        ax.set_xlabel(self.symbols[1])
-        ax.set_ylabel('energy [eV/atom]')
+        if ax:
+            for i, j in simplices:
+                ax.plot(x[[i, j]], e[[i, j]], '-b')
+            ax.plot(x[hull], e[hull], 'sg')
+            ax.plot(x[~hull], e[~hull], 'or')
+
+            for a, b, name in zip(x, e, names):
+                ax.text(a, b, name, ha='center', va='top')
+
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
+
+        return (x, e, names, hull, simplices, xlabel, ylabel)
 
     def plot2d3(self, ax):
         x, y = self.points[:, 1:-1].T.copy()
@@ -507,8 +521,7 @@ class PhaseDiagram:
         ax.plot(x[~self.hull], y[~self.hull], 'sr')
         for a, b, ref in zip(x, y, self.references):
             name = re.sub('(\d+)', r'$_{\1}$', ref[2])
-            ax.text(a, b, name,
-                     horizontalalignment='center', verticalalignment='bottom')
+            ax.text(a, b, name, ha='center', va='top')
 
     def plot3d3(self, ax):
         x, y, e = self.points[:, 1:].T

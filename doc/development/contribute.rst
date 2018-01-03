@@ -5,7 +5,7 @@ How to contribute
 =================
 
 Discussion of ASE development takes place on the
-:ref:`ase-developer <contact>` mailing list and on the ``#ase``
+:ref:`ase-user <contact>` mailing list and on the ``#ase``
 :ref:`IRC channel on freenode <contact>`.
 
 We welcome new developers who would like to help work on improving

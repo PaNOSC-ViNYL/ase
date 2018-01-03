@@ -4,7 +4,7 @@
 # handled.
 import numpy as np
 from ase.calculators.siesta import Siesta
-from ase.calculators.siesta.parameters import Specie
+from ase.calculators.siesta.parameters import Species
 from ase.optimize import QuasiNewton
 from ase import Atoms
 
@@ -17,7 +17,7 @@ atoms = Atoms('CH4', np.array([
 
 siesta = Siesta(
     species=[
-        Specie(symbol='H', excess_charge=0.1)])
+        Species(symbol='H', excess_charge=0.1)])
 
 atoms.set_calculator(siesta)
 dyn = QuasiNewton(atoms, trajectory='h.traj')

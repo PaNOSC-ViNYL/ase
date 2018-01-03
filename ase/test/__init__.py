@@ -6,15 +6,16 @@ import subprocess
 import tempfile
 import unittest
 from glob import glob
+from distutils.version import LooseVersion
+
+import numpy as np
 
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
 from ase.utils import devnull
 from ase.cli.info import print_info
 
-
 NotAvailable = unittest.SkipTest
-
 
 test_calculator_names = []
 
@@ -48,8 +49,6 @@ class ScriptTestCase(unittest.TestCase):
         try:
             with open(self.filename) as fd:
                 exec(compile(fd.read(), self.filename, 'exec'), {})
-        except KeyboardInterrupt:
-            raise RuntimeError('Keyboard interrupt')
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
@@ -93,6 +92,12 @@ def get_tests(files=None):
 
 def test(verbosity=1, calculators=[],
          testdir=None, stream=sys.stdout, files=None):
+    """Main test-runner for ASE."""
+
+    if LooseVersion(np.__version__) >= '1.14':
+        # Our doctests need this (spacegroup.py)
+        np.set_printoptions(legacy='1.13')
+
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
@@ -218,11 +223,11 @@ class CLICommand:
             sys.exit(0)
 
         for calculator in calculators:
-            if not calculator in calc_names:
+            if calculator not in calc_names:
                 sys.stderr.write('No calculator named "{}".\n'
                                  'Possible CALCULATORS are: '
                                  '{}.\n'.format(calculator,
-                                               ', '.join(calc_names)))
+                                                ', '.join(calc_names)))
                 sys.exit(1)
 
         results = test(verbosity=1 + args.verbose - args.quiet,

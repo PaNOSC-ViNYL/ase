@@ -77,9 +77,9 @@ def read_gpaw_out(fileobj, index):
         positions = []
         for line in lines[i + 1:]:
             words = line.split()
-            if len(words) != 5:
+            if len(words) < 5:
                 break
-            n, symbol, x, y, z = words
+            n, symbol, x, y, z = words[:5]
             symbols.append(symbol.split('.')[0].title())
             positions.append([float(x), float(y), float(z)])
         if len(symbols):
@@ -108,8 +108,12 @@ def read_gpaw_out(fileobj, index):
         try:
             i = index_startswith(lines, 'energy contributions relative to')
         except ValueError:
-            e = None
+            e = energy_contributions = None
         else:
+            energy_contributions = {}
+            for line in lines[i + 2:i + 8]:
+                fields = line.split(':')
+                energy_contributions[fields[0]] = float(fields[1])
             line = lines[i + 10]
             assert (line.startswith('zero kelvin:') or
                     line.startswith('extrapolated:'))
@@ -185,7 +189,7 @@ def read_gpaw_out(fileobj, index):
         else:
             magmoms = []
             for j in range(ii + 1, ii + 1 + len(atoms)):
-                magmom = lines[j].split()[-1]
+                magmom = lines[j].split()[-1].rstrip(')')
                 magmoms.append(float(magmom))
 
         try:
@@ -220,6 +224,8 @@ def read_gpaw_out(fileobj, index):
                                             bzkpts=bz_kpts, ibzkpts=ibz_kpts)
             calc.eref = Eref
             calc.name = 'gpaw'
+            if energy_contributions is not None:
+                calc.energy_contributions = energy_contributions
             if kpts is not None:
                 calc.kpts = kpts
             atoms.set_calculator(calc)

@@ -4,7 +4,7 @@ try:
     import tkinter as tk
     import tkinter.ttk as ttk
     from tkinter.messagebox import askokcancel as ask_question
-    from tkinter.messagebox import showerror
+    from tkinter.messagebox import showerror, showwarning, showinfo
     from tkinter.filedialog import LoadFileDialog, SaveFileDialog
 except ImportError:
     # Python 2
@@ -13,7 +13,8 @@ except ImportError:
         import ttk
     except ImportError:
         ttk = None
-    from tkMessageBox import askokcancel as ask_question, showerror
+    from tkMessageBox import (askokcancel as ask_question, showerror,
+                              showwarning, showinfo)
     from FileDialog import LoadFileDialog, SaveFileDialog
 
 import re
@@ -30,7 +31,7 @@ __all__ = [
     'error', 'ask_question', 'MainWindow', 'LoadFileDialog', 'SaveFileDialog',
     'ASEGUIWindow', 'Button', 'CheckButton', 'ComboBox', 'Entry', 'Label',
     'Window', 'MenuItem', 'RadioButton', 'RadioButtons', 'Rows', 'Scale',
-    'SpinBox', 'Text']
+    'showinfo', 'showwarning', 'SpinBox', 'Text']
 
 
 if sys.platform == 'darwin':
@@ -199,14 +200,16 @@ class CheckButton(Widget):
 
 
 class SpinBox(Widget):
-    def __init__(self, value, start, end, step, callback=None):
+    def __init__(self, value, start, end, step, callback=None, 
+                 rounding=None, width=6):
         self.callback = callback
+        self.rounding = rounding
         self.creator = partial(tk.Spinbox,
                                from_=start,
                                to=end,
                                increment=step,
                                command=callback,
-                               width=6)
+                               width=width)
         self.initial = str(value)
 
     def create(self, parent):
@@ -227,6 +230,11 @@ class SpinBox(Widget):
     @value.setter
     def value(self, x):
         self.widget.delete(0, 'end')
+        if '.' in str(x) and self.rounding is not None:
+            try:
+                x = round(float(x), self.rounding)
+            except (ValueError, TypeError):
+                pass
         self.widget.insert(0, x)
 
 
@@ -298,8 +306,8 @@ class RadioButtons(Widget):
                         for i, label in enumerate(labels)]
         self.vertical = vertical
 
-    def create(self, parrent):
-        self.widget = frame = tk.Frame(parrent)
+    def create(self, parent):
+        self.widget = frame = tk.Frame(parent)
         side = 'top' if self.vertical else 'left'
         for button in self.buttons:
             button.create(frame).pack(side=side)
@@ -334,8 +342,8 @@ if ttk is not None:
             self.creator = partial(ttk.Combobox,
                                    values=labels)
 
-        def create(self, parrent):
-            widget = Widget.create(self, parrent)
+        def create(self, parent):
+            widget = Widget.create(self, parent)
             widget.current(0)
             if self.callback:
                 def callback(event):

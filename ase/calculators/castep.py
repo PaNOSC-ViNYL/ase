@@ -973,7 +973,7 @@ End CASTEP Interface Documentation
         if isinstance(castep_castep, basestring):
             if not os.path.isfile(castep_castep):
                 print('Warning: CASTEP file %s not found!' % castep_castep)
-            f = paropen(castep_castep, 'a')
+            f = paropen(castep_castep, 'r')
             _close = True
         else:
             # in this case we assume that we have a fileobj already, but check
@@ -1005,7 +1005,7 @@ End CASTEP Interface Documentation
             if 'Symmetry and Constraints' in line:
                 break
 
-        if self.param.iprint is None or self.param.iprint < 2:
+        if self.param.iprint.value is None or self.param.iprint < 2:
             self._interface_warnings.append(
                 'Warning: No symmetry'
                 'operations could be read from %s (iprint < 2).' % f.name)
@@ -1169,7 +1169,7 @@ End CASTEP Interface Documentation
         """Return the number of cell constraints."""
         self.update(atoms)
         return self._number_of_cell_constraints
-    
+
     def set_atoms(self, atoms):
         """Sets the atoms for the calculator and vice versa."""
         atoms.pbc = [True, True, True]
@@ -1286,26 +1286,23 @@ End CASTEP Interface Documentation
         # if self._calls == 0:
         self._fetch_pspots()
 
-        cwd = os.getcwd()
-        os.chdir(self._directory)
-
         # if _try_reuse is requested and this
         # is not the first run, we try to find
         # the .check file from the previous run
         # this is only necessary if _track_output
         # is set to true
         if self._try_reuse and self._calls > 0:
-            if os.path.exists(self._check_file):
+            if os.path.exists(self._abs_path(self._check_file)):
                 self.param.reuse = self._check_file
-            elif os.path.exists(self._castep_bin_file):
+            elif os.path.exists(self._abs_path(self._castep_bin_file)):
                 self.param.reuse = self._castep_bin_file
         self._seed = self._build_castep_seed()
         self._check_file = '%s.check' % self._seed
         self._castep_bin_file = '%s.castep_bin' % self._seed
-        self._castep_file = os.path.abspath('%s.castep' % self._seed)
+        self._castep_file = self._abs_path('%s.castep' % self._seed)
 
         # write out the input file
-        self._write_cell('%s.cell' % self._seed,
+        self._write_cell(self._abs_path('%s.cell' % self._seed),
                          self.atoms, castep_cell=self.cell,
                          force_write=force_write)
 
@@ -1313,11 +1310,10 @@ End CASTEP Interface Documentation
             interface_options = self._opt
         else:
             interface_options = None
-        write_param('%s.param' % self._seed, self.param,
+        write_param(self._abs_path('%s.param' % self._seed), self.param,
                     check_checkfile=self._check_checkfile,
                     force_write=force_write,
                     interface_options=interface_options,)
-        os.chdir(cwd)
 
     def _build_castep_seed(self):
         """Abstracts to construction of the final castep <seed>
@@ -1328,18 +1324,21 @@ End CASTEP Interface Documentation
         else:
             return '%s' % (self._label)
 
+    def _abs_path(self, path):
+        # Create an absolute path for a file to put in the working directory
+        return os.path.join(self._directory, path)
+
     def run(self):
         """Simply call castep. If the first .err file
         contains text, this will be printed to the screen.
         """
         # change to target directory
-        cwd = os.getcwd()
-        os.chdir(self._directory)
         self._calls += 1
 
         # run castep itself
         stdout, stderr = shell_stdouterr('%s %s' % (self._castep_command,
-                                                    self._seed))
+                                                    self._seed),
+                                         cwd=self._directory)
         if stdout:
             print('castep call stdout:\n%s' % stdout)
         if stderr:
@@ -1349,12 +1348,11 @@ End CASTEP Interface Documentation
         # self.push_oldstate()
 
         # check for non-empty error files
-        err_file = '%s.0001.err' % self._seed
+        err_file = self._abs_path('%s.0001.err' % self._seed)
         if os.path.exists(err_file):
             err_file = open(err_file)
             self._error = err_file.read()
             err_file.close()
-        os.chdir(cwd)
         if self._error:
             raise RuntimeError(self._error)
 
@@ -1591,30 +1589,28 @@ End CASTEP Interface Documentation
         from ase.io.castep import write_param
 
         temp_dir = tempfile.mkdtemp()
-        curdir = os.getcwd()
-        self._fetch_pspots(temp_dir)
-        os.chdir(temp_dir)
         self._fetch_pspots(temp_dir)
         seed = 'dryrun'
 
-        self._write_cell('%s.cell' % seed, self.atoms,
-                         castep_cell=self.cell)
+        self._write_cell(os.path.join(temp_dir, '%s.cell' % seed),
+                         self.atoms, castep_cell=self.cell)
         # This part needs to be modified now that we rely on the new formats.py
         # interface
-        if not os.path.isfile('%s.cell' % seed):
+        if not os.path.isfile(os.path.join(temp_dir, '%s.cell' % seed)):
             print('%s.cell not written - aborting dryrun' % seed)
             return
-        write_param('%s.param' % seed, self.param, )
+        write_param(os.path.join(temp_dir, '%s.param' % seed), self.param, )
 
         stdout, stderr = shell_stdouterr(('%s %s %s' % (self._castep_command,
                                                         seed,
-                                                        dryrun_flag)))
+                                                        dryrun_flag)),
+                                         cwd=temp_dir)
 
         if stdout:
             print(stdout)
         if stderr:
             print(stderr)
-        result_file = open('%s.castep' % seed)
+        result_file = open(os.path.join(temp_dir, '%s.castep' % seed))
 
         txt = result_file.read()
         ok_string = r'.*DRYRUN finished.*No problems found with input files.*'
@@ -1627,14 +1623,13 @@ End CASTEP Interface Documentation
         except:
             print('Couldn\'t fetch number of kpoints from dryrun CASTEP file')
 
-        err_file = '%s.0001.err' % seed
+        err_file = os.path.join(temp_dir, '%s.0001.err' % seed)
         if match is None and os.path.exists(err_file):
             err_file = open(err_file)
             self._error = err_file.read()
             err_file.close()
 
         result_file.close()
-        os.chdir(curdir)
         shutil.rmtree(temp_dir)
 
         # re.match return None is the string does not match
@@ -2340,7 +2335,7 @@ def get_castep_command(castep_command=''):
         return 'castep'
 
 
-def shell_stdouterr(raw_command):
+def shell_stdouterr(raw_command, cwd=None):
     """Abstracts the standard call of the commandline, when
     we are only interested in the stdout and stderr
     """
@@ -2348,7 +2343,7 @@ def shell_stdouterr(raw_command):
                                       stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE,
                                       universal_newlines=True,
-                                      shell=True).communicate()
+                                      shell=True, cwd=cwd).communicate()
     return stdout.strip(), stderr.strip()
 
 

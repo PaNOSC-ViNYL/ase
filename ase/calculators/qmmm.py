@@ -68,11 +68,11 @@ class SimpleQMMM(Calculator):
             self.qmatoms.positions += (self.center -
                                        self.qmatoms.positions.mean(axis=0))
 
-        energy = self.mmcalc2.get_potential_energy(atoms)
+        energy = self.qmcalc.get_potential_energy(self.qmatoms)
+        qmforces = self.qmcalc.get_forces(self.qmatoms)
+        energy += self.mmcalc2.get_potential_energy(atoms)
         forces = self.mmcalc2.get_forces(atoms)
 
-        energy += self.qmcalc.get_potential_energy(self.qmatoms)
-        qmforces = self.qmcalc.get_forces(self.qmatoms)
         if self.vacuum:
             qmforces -= qmforces.mean(axis=0)
         forces[self.selection] += qmforces
@@ -271,6 +271,75 @@ class Embedding:
         """Calculate the forces on the MM-atoms from the QM-part."""
         f = self.pcpot.get_forces(self.qmatoms.calc)
         return self.mmatoms.calc.redistribute_forces(f)
+
+
+def combine_lj_lorenz_berthelot(sigmaqm, sigmamm,
+                                epsilonqm, epsilonmm):
+    """Combine LJ parameters according to the Lorenz-Berthelot rule"""
+    sigma_c = np.zeros((len(sigmaqm), len(sigmamm)))
+    epsilon_c = np.zeros_like(sigma_c)
+
+    for ii in range(len(sigmaqm)):
+        sigma_c[ii, :] = (sigmaqm[ii] + sigmamm) / 2
+        epsilon_c[ii, :] = (epsilonqm[ii] * epsilonmm)**0.5
+    return sigma_c, epsilon_c
+
+
+class LJInteractionsGeneral:
+    name = 'LJ-general'
+
+    def __init__(self, sigmaqm, epsilonqm, sigmamm,
+                 epsilonmm, molecule_size=3):
+        self.sigmaqm = sigmaqm
+        self.epsilonqm = epsilonqm
+        self.sigmamm = sigmamm
+        self.epsilonmm = epsilonmm
+        self.molecule_size = molecule_size
+        self.combine_lj()
+
+    def combine_lj(self):
+        self.sigma, self.epsilon = combine_lj_lorenz_berthelot(
+            self.sigmaqm, self.sigmamm, self.epsilonqm, self.epsilonmm)
+
+    def calculate(self, qmatoms, mmatoms, shift):
+        mmpositions = self.update(qmatoms, mmatoms, shift)
+        qmforces = np.zeros_like(qmatoms.positions)
+        mmforces = np.zeros_like(mmatoms.positions)
+        energy = 0.0
+
+        for qmi in range(len(qmatoms)):
+            if ~np.any(self.epsilon[qmi, :]):
+                continue
+            D = mmpositions - qmatoms.positions[qmi, :]
+            d2 = (D**2).sum(2)
+            c6 = (self.sigma[qmi, :]**2 / d2)**3
+            c12 = c6**2
+            e = 4 * self.epsilon[qmi, :] * (c12 - c6)
+            energy += e.sum()
+            f = (24 * self.epsilon[qmi, :] *
+                 (2 * c12 - c6) / d2)[:, :, np.newaxis] * D
+            mmforces += f.reshape((-1, 3))
+            qmforces[qmi, :] -= f.sum(0).sum(0)
+
+        return energy, qmforces, mmforces
+
+    def update(self, qmatoms, mmatoms, shift):
+        """Update point-charge positions."""
+        # Wrap point-charge positions to the MM-cell closest to the
+        # center of the the QM box, but avoid ripping molecules apart:
+        qmcenter = qmatoms.cell.diagonal() / 2
+        n = self.molecule_size
+        positions = mmatoms.positions.reshape((-1, n, 3)) + shift
+
+        # Distances from the center of the QM box to the first atom of
+        # each molecule:
+        distances = positions[:, 0] - qmcenter
+
+        wrap(distances, mmatoms.cell.diagonal(), mmatoms.pbc)
+        offsets = distances - positions[:, 0]
+        positions += offsets[:, np.newaxis] + qmcenter
+
+        return positions
 
 
 class LJInteractions:

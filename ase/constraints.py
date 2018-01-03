@@ -7,7 +7,7 @@ import numpy as np
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
-           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine', 
+           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
 
@@ -218,7 +218,7 @@ class FixBondLengths(FixConstraint):
                 Ignored"""
         self.pairs = np.asarray(pairs)
         self.tolerance = tolerance
-        self.bondlengths = bondlengths        
+        self.bondlengths = bondlengths
 
         self.removed_dof = len(pairs)
 
@@ -283,7 +283,7 @@ class FixBondLengths(FixConstraint):
 
     def initialize_bond_lengths(self, atoms):
         bondlengths = np.zeros(len(self.pairs))
-        
+
         for i, ab in enumerate(self.pairs):
             bondlengths[i] = atoms.get_distance(ab[0], ab[1], mic=True)
 
@@ -1062,8 +1062,8 @@ class Filter:
            visible or not.
 
         If a Trajectory tries to save this object, it will instead
-        save the underlying Atoms object.  To prevent this, delete
-        the atoms_for_saving attribute.
+        save the underlying Atoms object.  To prevent this, override
+        the _images_ method.
         """
 
         self.atoms = atoms
@@ -1083,8 +1083,9 @@ class Filter:
             self.index = np.asarray(indices, int)
             self.n = len(self.index)
 
+    def _images_(self):
         # Present the real atoms object to Trajectory and friends
-        self.atoms_for_saving = self.atoms
+        return self.atoms._images_()
 
     def get_cell(self):
         """Returns the computational cell.
@@ -1452,7 +1453,7 @@ class UnitCellFilter(Filter):
 
     def get_forces(self, apply_constraint=False):
         '''
-        returns an array with shape (natoms+2,3) of the atomic forces
+        returns an array with shape (natoms+3,3) of the atomic forces
         and unit cell stresses.
 
         the first natoms rows are the forces on the atoms, the last
@@ -1462,7 +1463,6 @@ class UnitCellFilter(Filter):
 
         atoms_forces = self.atoms.get_forces()
         stress = self.atoms.get_stress()
-        self.stress = voigt_6_to_full_3x3_stress(stress) * self.mask
 
         volume = self.atoms.get_volume()
         virial = -volume * voigt_6_to_full_3x3_stress(stress)
@@ -1486,6 +1486,8 @@ class UnitCellFilter(Filter):
         forces = np.zeros((natoms + 3, 3))
         forces[:natoms] = atoms_forces
         forces[natoms:] = virial / self.cell_factor
+
+        self.stress = -full_3x3_to_voigt_6_stress(virial)/volume
         return forces
 
     def get_stress(self):

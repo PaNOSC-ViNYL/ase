@@ -666,7 +666,8 @@ class Vasp(GenerateVaspInput, Calculator):
         q = self.list_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10)
+                 or (p['lorbit'] is None and q['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
             else:
                 self.magnetic_moments = None

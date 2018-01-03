@@ -33,8 +33,7 @@ abc
 
 To see what's inside 'x.ulm' do this::
 
-    $ alias ulm="python -m ase.io.ulm"
-    $ ulm x.ulm
+    $ ase ulm x.ulm
     x.ulm  (tag: "", 1 item)
     item #0:
     {
@@ -135,12 +134,16 @@ class Writer:
                 data = {}
             else:
                 data = {'_little_endian': False}
-            if mode == 'w' or not os.path.isfile(fd):
+            fd_is_string = isinstance(fd, basestring)
+            if mode == 'w' or (fd_is_string and
+                               not (os.path.isfile(fd) and
+                                    os.path.getsize(fd) > 0)):
                 self.nitems = 0
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
-                fd = builtins.open(fd, 'wb')
+                if fd_is_string:
+                    fd = builtins.open(fd, 'wb')
 
                 # File format identifier and other stuff:
                 a = np.array([VERSION, self.nitems, self.pos0], np.int64)
@@ -150,7 +153,8 @@ class Writer:
                                a.tostring() +
                                self.offsets.tostring())
             else:
-                fd = builtins.open(fd, 'r+b')
+                if fd_is_string:
+                    fd = builtins.open(fd, 'r+b')
 
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
                 assert version == VERSION
@@ -334,7 +338,7 @@ def read_header(fd):
     return tag, version, nitems, pos0, offsets
 
 
-class InvalidULMFileError(Exception):
+class InvalidULMFileError(IOError):
     pass
 
 
@@ -542,16 +546,47 @@ def print_ulm_info(filename, index=None, verbose=False):
         print(b[i].tostr(verbose))
 
 
+def copy(reader, writer, exclude=set(), name=''):
+    """Copy from reader to writer except for keys in exclude."""
+    close_reader = False
+    close_writer = False
+    if isinstance(reader, str):
+        reader = open(reader)
+        close_reader = True
+    if isinstance(writer, str):
+        writer = open(writer, 'w')
+        close_writer = True
+    for key, value in reader._data.items():
+        if name + '.' + key in exclude:
+            continue
+        if isinstance(value, NDArrayReader):
+            value = value.read()
+        if isinstance(value, Reader):
+            copy(value, writer.child(key), exclude, name + '.' + key)
+        else:
+            writer.write(key, value)
+    if close_reader:
+        reader.close()
+    if close_writer:
+        writer.close()
+
+
 class CLICommand:
-    short_description = 'Show content of ulm-file'
+    short_description = 'Manipulate/show content of ulm-file'
 
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
         add('filename')
         add('-n', '--index', type=int)
+        add('-d', '--delete', metavar='key')
         add('-v', '--verbose', action='store_true')
 
     @staticmethod
     def run(args):
-        print_ulm_info(args.filename, args.index, verbose=args.verbose)
+        if args.delete:
+            exclude = set('.' + key for key in args.delete.split(','))
+            copy(args.filename, args.filename + '.temp', exclude)
+            os.rename(args.filename + '.temp', args.filename)
+        else:
+            print_ulm_info(args.filename, args.index, verbose=args.verbose)
