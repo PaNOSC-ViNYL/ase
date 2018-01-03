@@ -102,7 +102,7 @@ class STM:
  
        
     def get_averaged_current(self, bias, z):
-        """Calculate avarage current at height z.
+        """Calculate avarage current at height z (in Angstrom).
 
         Use this to get an idea of what current to use when scanning."""
 
@@ -171,7 +171,7 @@ class STM:
 
         self.calculate_ldos(bias)
 
-        nz = self.atoms.calc.get_number_of_grid_points()[2]
+        nz = self.ldos.shape[2]
         ldos = self.ldos.reshape((-1, nz))
 
         I = np.empty(ldos.shape[0])
@@ -190,6 +190,7 @@ class STM:
         ij = np.indices(s, dtype=float).reshape((2, -1)).T
         x, y = np.dot(ij / s0, self.cell[:2, :2]).T.reshape((2,) + s)
 
+        # Returing scan with axes in Angstrom.
         return x, y, I
 
 
@@ -232,15 +233,15 @@ class STM:
         nz = self.ldos.shape[2]
 
         # Find grid point:
-        xp = x / self.cell[0, 0] * nx
+        xp = x / np.linalg.norm(self.cell[0]) * nx
         dx = xp - np.floor(xp)
         xp = int(xp) % nx
 
-        yp = y / self.cell[1, 1] * ny
+        yp = y / np.linalg.norm(self.cell[1]) * ny
         dy = yp - np.floor(yp)
         yp = int(yp) % ny
 
-        zp = z / self.cell[2, 2] * nz
+        zp = z / np.linalg.norm(self.cell[2]) * nz
         dz = zp - np.floor(zp)
         zp = int(zp) % nz
 
@@ -254,14 +255,14 @@ class STM:
         # The connection between density n and current I
         # n [e/Angstrom^3] = 0.0002 sqrt(I [nA])
         # as given in Hofer et al., RevModPhys 75 (2003) 1287
-        if bias > 0:
+        if self.bias > 0:
             return 5000. * xyzldos**2
         else:
             return -5000. * xyzldos**2
 
 
     def sts(self, x, y, z, bias0, bias1, biasstep):
-        """Returns the dI/dV curve for position x, y at height z,
+        """Returns the dI/dV curve for position x, y at height z (in Angstrom),
         for bias from bias0 to bias1 with step biasstep."""
 
         biases = np.arange(bias0, bias1+biasstep, biasstep)
@@ -269,7 +270,7 @@ class STM:
         
         for b in np.arange(len(biases)):
             print('b', 'biases[b]')
-            I[b] = self.pointcurrent(biases[b], x, y, z)   
+            I[b] = self.pointcurrent(biases[b], x/self.xspacing, y/self.yspacing)   
 
         dIdV = np.gradient(I,biasstep)
 
@@ -278,7 +279,7 @@ class STM:
 
     def find_current(self, ldos, z):
         """ Finds current for given LDOS at height z."""
-        nz = self.atoms.calc.get_number_of_grid_points()[2]
+        nz = self.ldos.shape[2]
 
         zp = z / self.cell[2, 2] * nz
         dz = zp - np.floor(zp)
@@ -290,7 +291,7 @@ class STM:
         # The connection between density n and current I
         # n [e/Angstrom^3] = 0.0002 sqrt(I [nA])
         # as given in Hofer et al., RevModPhys 75 (2003) 1287
-        if bias > 0:
+        if self.bias > 0:
             return 5000. * ldosz**2
         else:
             return -5000. * ldosz**2
