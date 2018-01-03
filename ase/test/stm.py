@@ -11,9 +11,9 @@ assert abs(h - h2).max() == 0
 
 stm = STM(atoms, use_density=True)
 c = stm.get_averaged_current(-1, 4.5)
-x, y, I = stm.scan2(-1.0, c)
+x, y, I = stm.scan2(-1.0, 1.0)
 stm.write('stm2.pckl')
-x, y, I2 = STM('stm2.pckl').scan2(-1, c)
+x, y, I2 = STM('stm2.pckl').scan2(-1, 1)
 assert abs(I - I2).max() == 0
 
 stm = STM(atoms, use_density=True)
