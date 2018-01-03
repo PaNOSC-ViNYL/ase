@@ -177,11 +177,10 @@ class STM:
         I = np.empty(ldos.shape[0])
 
         zp = z / self.cell[2, 2] * nz
-        dz = zp - np.floor(zp)
         zp = int(zp) % nz
    
         for i, a in enumerate(ldos):
-            I[i] = self.find_current(a, z)
+            I[i] = self.find_current(a, zp)
 
         s0 = I.shape = self.ldos.shape[:2]
         I = np.tile(I, repeat)
@@ -269,8 +268,8 @@ class STM:
         I = np.zeros(biases.shape)
         
         for b in np.arange(len(biases)):
-            print('b', 'biases[b]')
-            I[b] = self.pointcurrent(biases[b], x/self.xspacing, y/self.yspacing)   
+            print(b, biases[b])
+            I[b] = self.pointcurrent(biases[b], x, y, z)   
 
         dIdV = np.gradient(I,biasstep)
 
