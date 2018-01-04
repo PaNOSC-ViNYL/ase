@@ -401,7 +401,7 @@ def write_xsd(filename, atoms, connectivity = None):
                 tmpstr += '%1.16f,' % atom_positions[x, y]
             NewAtom.set('XYZ', tmpstr[0:-1])
             NewAtom.set('Components', atom_element[x])
-                        tmpstr = ''
+            tmpstr = ''
             for ibond in xrange(0,len(bonds)):
                 if x in bonds[ibond]:
                     tmpstr += '%i,' % (ibond + 4 + natoms)
