@@ -305,8 +305,8 @@ def write_xsd(filename, atoms, connectivity = None):
     # Set up bonds
     bonds = list()
     if connectivity is not None:
-        for i in xrange(0,connectivity.shape[0]):
-            for j in xrange(i+1,connectivity.shape[0]):
+        for i in range(0,connectivity.shape[0]):
+            for j in range(i+1,connectivity.shape[0]):
                 if connectivity[i,j]:
                     bonds.append([i,j])
     
@@ -330,7 +330,7 @@ def write_xsd(filename, atoms, connectivity = None):
             NewAtom.set('XYZ', tmpstr[0:-1])
             NewAtom.set('Components', atom_element[x])
             tmpstr = ''
-            for ibond in xrange(0,len(bonds)):
+            for ibond in range(0,len(bonds)):
                 if x in bonds[ibond]:
                     tmpstr += '%i,' % (ibond + 3 + natoms)
             if tmpstr != '':
@@ -402,7 +402,7 @@ def write_xsd(filename, atoms, connectivity = None):
             NewAtom.set('XYZ', tmpstr[0:-1])
             NewAtom.set('Components', atom_element[x])
             tmpstr = ''
-            for ibond in xrange(0,len(bonds)):
+            for ibond in range(0,len(bonds)):
                 if x in bonds[ibond]:
                     tmpstr += '%i,' % (ibond + 4 + natoms)
             if tmpstr != '':
