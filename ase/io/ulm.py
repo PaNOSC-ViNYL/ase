@@ -56,6 +56,7 @@ Versions:
 from __future__ import print_function
 import os
 import sys
+import numbers
 
 import numpy as np
 
@@ -495,7 +496,7 @@ class NDArrayReader:
         return self[:]
 
     def __getitem__(self, i):
-        if isinstance(i, int):
+        if isinstance(i, numbers.Integral):
             if i < 0:
                 i += len(self)
             return self[i:i + 1][0]
