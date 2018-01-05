@@ -148,7 +148,7 @@ def opencew(filename, world=None):
 
 class Lock:
     def __init__(self, name='lock', world=None):
-        self.name = name
+        self.name = str(name)
 
         if world is None:
             from ase.parallel import world
