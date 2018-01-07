@@ -29,7 +29,7 @@ import numpy as np
 import ase
 
 from ase.data import atomic_masses
-from ase.geometry import cellpar_to_cell, cell_to_cellpar
+from ase.geometry import cellpar_to_cell
 import collections
 from functools import reduce
 
@@ -326,7 +326,7 @@ class NetCDFTrajectory:
             self._add_velocities()
             self._get_variable(self._velocities_var)[i] = \
                 atoms.get_momenta() / atoms.get_masses().reshape(-1, 1)
-        a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.get_cell())
+        a, b, c, alpha, beta, gamma = atoms.get_cell_lengths_and_angles()
         if np.any(np.logical_not(atoms.pbc)):
             warnings.warn('Atoms have nonperiodic directions. Cell lengths in '
                           'these directions are lost and will be '
