@@ -92,7 +92,7 @@ class NetCDFTrajectory:
 
     def __init__(self, filename, mode='r', atoms=None, types_to_numbers=None,
                  double=True, netcdf_format='NETCDF3_CLASSIC', keep_open=True,
-                 index_var='id', index_offset=-1):
+                 index_var='id', index_offset=-1, chunk_size=1000000):
         """
         A NetCDFTrajectory can be created in read, write or append mode.
 
@@ -151,12 +151,18 @@ class NetCDFTrajectory:
         index_offset=-1:
             Set to 0 if atom index is zero based, set to -1 if atom index is
             one based. Default value is for LAMMPS output.
+
+        chunk_size=1000000:
+            Maximum size of consecutive data read when reading from a NetCDF
+            file. This is used to reduce the memory footprint of a read 
+            operation on very large files.
         """
         if not have_nc:
             raise RuntimeError('NetCDFTrajectory requires a NetCDF Python '
                                'module.')
 
         self.nc = None
+        self.chunk_size = chunk_size
 
         self.numbers = None
         self.pre_observers = []   # Callback functions before write
@@ -501,14 +507,35 @@ class NetCDFTrajectory:
         else:
             return name in self.nc.variables
 
-    def _get_data(self, name, frame, exc=True):
+    def _get_data(self, name, frame, index, exc=True):
         var = self._get_variable(name, exc=exc)
         if var is None:
             return None
         if var.dimensions[0] == self._frame_dim:
-            return var[frame, ...]
+            data = np.zeros(var.shape[1:], dtype=var.dtype)
+            s = var.shape[1]
+            if s < self.chunk_size:
+                data[index] = var[frame]
+            else:
+                # If this is a large data set, only read chunks from it to
+                # reduce memory footprint of the NetCDFTrajectory reader.
+                for i in range((s-1)//self.chunk_size+1):
+                    sl = slice(i*self.chunk_size,
+                               min((i+1)*self.chunk_size, s))
+                    data[index[sl]] = var[frame, sl]
         else:
-            return var[...]
+            data = np.zeros(var.shape, dtype=var.dtype)
+            s = var.shape[0]
+            if s < self.chunk_size:
+                data[index] = var
+            else:
+                # If this is a large data set, only read chunks from it to
+                # reduce memory footprint of the NetCDFTrajectory reader.
+                for i in range((s-1)//self.chunk_size+1):
+                    sl = slice(i*self.chunk_size,
+                               min((i+1)*self.chunk_size, s))
+                    data[index[sl]] = var[sl]
+        return data
 
     def close(self):
         """Close the trajectory file."""
@@ -553,20 +580,16 @@ class NetCDFTrajectory:
                 index = np.arange(self.n_atoms)
 
             # Read element numbers
-            numbers_unsorted = self._get_data(self._numbers_var, i, exc=False)
-            if numbers_unsorted is None:
+            self.numbers = self._get_data(self._numbers_var, i, index,
+                                          exc=False)
+            if self.numbers is None:
                 self.numbers = np.ones(self.n_atoms, dtype=int)
-            else:
-                self.numbers = np.zeros_like(numbers_unsorted)
-                self.numbers[index] = numbers_unsorted
             if self.types_to_numbers is not None:
                 self.numbers = self.types_to_numbers[self.numbers]
             self.masses = atomic_masses[self.numbers]
 
             # Read positions
-            positions_unsorted = self._get_data(self._positions_var, i)
-            positions = np.zeros_like(positions_unsorted)
-            positions[index] = positions_unsorted
+            positions = self._get_data(self._positions_var, i, index)
 
             # Determine cell size for non-periodic directions from shrink
             # wrapped cell.
@@ -581,13 +604,9 @@ class NetCDFTrajectory:
             )
 
             # Compute momenta from velocities (if present)
-            momenta_unsorted = self._get_data(self._velocities_var, i,
-                                              exc=False)
-            if momenta_unsorted is None:
-                momenta = None
-            else:
-                momenta = np.zeros_like(momenta_unsorted)
-                momenta[index] = momenta_unsorted
+            momenta = self._get_data(self._velocities_var, i, index,
+                                     exc=False)
+            if momenta is not None:
                 momenta *= self.masses.reshape(-1, 1)
 
             # Fill info dict with additional data found in the NetCDF file
@@ -609,12 +628,11 @@ class NetCDFTrajectory:
 
             # Attach additional arrays found in the NetCDF file
             for name in self.extra_per_frame_vars:
-                data_unsorted = self.nc.variables[name][i]
-                data = np.zeros_like(data_unsorted)
-                data[index] = data_unsorted
-                atoms.set_array(name, data)
+                atoms.set_array(name, self._get_data(self.nc.variables[name], i,
+                                                     index))
             for name in self.extra_per_file_vars:
-                atoms.set_array(name, self.nc.variables[name][...])
+                atoms.set_array(name, self._get_data(self.nc.variables[name], i,
+                                                     index))
             self._close()
             return atoms
 

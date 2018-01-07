@@ -99,11 +99,12 @@ d = co.get_distance(0, 1)
 t.write(co)
 del t
 # Check pbc
-t = NetCDFTrajectory(fname)
-a = t[-1]
-assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
-assert abs(a.get_distance(0, 1) - d) < 1e-6
-del t
+for c in [1, 1000]:
+    t = NetCDFTrajectory(fname, chunk_size=c)
+    a = t[-1]
+    assert a.pbc[0] and not a.pbc[1] and not a.pbc[2]
+    assert abs(a.get_distance(0, 1) - d) < 1e-6
+    del t
 # Append something in Voigt notation
 t = NetCDFTrajectory(fname, 'a')
 for frame, a in enumerate(t):
