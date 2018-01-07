@@ -2,6 +2,7 @@ from ase.test import NotAvailable
 
 import numpy as np
 import ase.io.netcdftrajectory as netcdftrajectory
+from ase.io import read
 
 if not netcdftrajectory.have_nc:
     raise NotAvailable('No NetCDF module available (netCDF4-python, '
@@ -138,5 +139,8 @@ traj = NetCDFTrajectory('5.nc', 'r')#
 assert np.all(traj[0].numbers == [8, 6])
 assert np.all(np.abs(traj[0].positions - np.array([[2, 2, 3.7], [2., 2., 2.5]])) < 1e-6)
 traj.close()
+
+a = read('5.nc')
+assert(len(a) == 2)
 
 os.remove('5.nc')
