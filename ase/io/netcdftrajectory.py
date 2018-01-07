@@ -628,11 +628,9 @@ class NetCDFTrajectory:
 
             # Attach additional arrays found in the NetCDF file
             for name in self.extra_per_frame_vars:
-                atoms.set_array(name, self._get_data(self.nc.variables[name], i,
-                                                     index))
+                atoms.set_array(name, self._get_data(name, i, index))
             for name in self.extra_per_file_vars:
-                atoms.set_array(name, self._get_data(self.nc.variables[name], i,
-                                                     index))
+                atoms.set_array(name, self._get_data(name, i, index))
             self._close()
             return atoms
 
