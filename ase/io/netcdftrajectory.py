@@ -688,26 +688,11 @@ class NetCDFTrajectory:
 
 
 def read_netcdftrajectory(filename, index=-1):
-    """Reads one or more atoms objects from a NetCDFTrajectory.
-
-    Arguments:
-
-    filename: str
-        The name of the bundle (really a directory!)
-    index: int
-        An integer specifying which frame to read, or an index object
-        for reading multiple frames.  Default: -1 (reads the last
-        frame).
-    """
     traj = NetCDFTrajectory(filename, mode='r')
-    for i in range(*index.indices(len(traj))):
-        yield traj[i]
+    return traj[index]
 
 
 def write_netcdftrajectory(filename, images):
-    """Write image(s) to a NetCDFTrajectory.
-    """
-
     traj = NetCDFTrajectory(filename, mode='w')
 
     if hasattr(images, 'get_positions'):
