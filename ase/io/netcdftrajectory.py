@@ -6,14 +6,9 @@ http://ambermd.org/netcdf/. This module supports extensions to
 these conventions, such as writing of additional fields and writing to
 HDF5 (NetCDF-4) files.
 
-A Python NetCDF module is required. Supported are
+A netCDF4-python is required by this module:
 
-    netCDF4-python - http://code.google.com/p/netcdf4-python/
-
-    scipy.io.netcdf - http://docs.scipy.org/doc/scipy/reference/io.html
-
-Availability is checked in the above order of preference. Note that
-scipy.io.netcdf cannot write HDF5 NetCDF-4 files.
+    netCDF4-python - https://github.com/Unidata/netcdf4-python
 
 NetCDF files can be directly visualized using the libAtoms flavor of
 AtomEye (http://www.libatoms.org/),
@@ -35,7 +30,6 @@ from functools import reduce
 
 NC_NOT_FOUND = 0
 NC_IS_NETCDF4 = 1
-NC_IS_SCIPY = 2
 
 have_nc = NC_NOT_FOUND
 # Check if we have netCDF4-python
@@ -45,23 +39,11 @@ try:
 except:
     pass
 
-if not have_nc:
-    # Check for scipy
-    netcdf_file = None  # Someone should fix scipy support or remove it
-#     try:
-#         from scipy.io.netcdf import netcdf_file
-#         have_nc = NC_IS_SCIPY
-#     except:
-#         pass
-
 
 class NetCDFTrajectory:
     """
     Reads/writes Atoms objects into an AMBER-style .nc trajectory file.
     """
-
-    # netCDF4-python format strings to scipy.io.netcdf version numbers
-    _netCDF4_to_scipy = {'NETCDF3_CLASSIC': 1, 'NETCDF3_64BIT': 2}
 
     # Default dimension names
     _frame_dim = 'frame'
@@ -225,20 +207,6 @@ class NetCDFTrajectory:
         if have_nc == NC_IS_NETCDF4:
             self.nc = Dataset(self.filename, self.mode,
                               format=self.netcdf_format)
-        elif have_nc == NC_IS_SCIPY:
-            if self.netcdf_format not in self._netCDF4_to_scipy:
-                raise ValueError("NetCDF format '%s' not supported by "
-                                 "scipy.io.netcdf." % self.netcdf_format)
-            version = self._netCDF4_to_scipy[self.netcdf_format]
-            if version == 1:
-                # This supports older scipy.io.netcdf versions that do not
-                # support the 'version' argument
-                self.nc = netcdf_file(self.filename, self.mode)
-            else:
-                self.nc = netcdf_file(
-                    self.filename, self.mode,
-                    version=self._netCDF4_to_scipy[self.netcdf_format]
-                )
         else:
             # Should not happen
             raise RuntimeError('Internal error: Unknown *have_nc* value.')
