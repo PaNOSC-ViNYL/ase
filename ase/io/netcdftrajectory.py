@@ -553,17 +553,20 @@ class NetCDFTrajectory:
                 index = np.arange(self.n_atoms)
 
             # Read element numbers
-            self.numbers = self._get_data(self._numbers_var, i, exc=False)
-            if self.numbers is None:
+            numbers_unsorted = self._get_data(self._numbers_var, i, exc=False)
+            if numbers_unsorted is None:
                 self.numbers = np.ones(self.n_atoms, dtype=int)
             else:
-                self.numbers = np.array(self.numbers[index])
+                self.numbers = np.zeros_like(numbers_unsorted)
+                self.numbers[index] = numbers_unsorted
             if self.types_to_numbers is not None:
                 self.numbers = self.types_to_numbers[self.numbers]
             self.masses = atomic_masses[self.numbers]
 
             # Read positions
-            positions = np.array(self._get_data(self._positions_var, i)[index])
+            positions_unsorted = self._get_data(self._positions_var, i)
+            positions = np.zeros_like(positions_unsorted)
+            positions[index] = positions_unsorted
 
             # Determine cell size for non-periodic directions from shrink
             # wrapped cell.
@@ -578,9 +581,14 @@ class NetCDFTrajectory:
             )
 
             # Compute momenta from velocities (if present)
-            momenta = self._get_data(self._velocities_var, i, exc=False)
-            if momenta is not None:
-                momenta = momenta[index] * self.masses.reshape(-1, 1)
+            momenta_unsorted = self._get_data(self._velocities_var, i,
+                                              exc=False)
+            if momenta_unsorted is None:
+                momenta = None
+            else:
+                momenta = np.zeros_like(momenta_unsorted)
+                momenta[index] = momenta_unsorted
+                momenta *= self.masses.reshape(-1, 1)
 
             # Fill info dict with additional data found in the NetCDF file
             info = {}
@@ -601,9 +609,12 @@ class NetCDFTrajectory:
 
             # Attach additional arrays found in the NetCDF file
             for name in self.extra_per_frame_vars:
-                atoms.set_array(name, self.nc.variables[name][i][index])
+                data_unsorted = self.nc.variables[name][i]
+                data = np.zeros_like(data_unsorted)
+                data[index] = data_unsorted
+                atoms.set_array(name, data)
             for name in self.extra_per_file_vars:
-                atoms.set_array(name, self.nc.variables[name][:])
+                atoms.set_array(name, self.nc.variables[name][...])
             self._close()
             return atoms
 

@@ -124,3 +124,18 @@ traj = NetCDFTrajectory('4.nc', 'r')
 a = traj[0]
 assert np.all(abs(a.get_celldisp() - np.array([1,2,3])) < 1e-12)
 traj.close()
+
+os.remove('4.nc')
+
+# Add 'id' field and check if it is read correctly
+co.set_array('id', np.array([2, 1]))
+traj = NetCDFTrajectory('5.nc', 'w', co)
+traj.write(co, arrays=['id'])
+traj.close()
+
+traj = NetCDFTrajectory('5.nc', 'r')#
+assert np.all(traj[0].numbers == [8, 6])
+assert np.all(np.abs(traj[0].positions - np.array([[2, 2, 3.7], [2., 2., 2.5]])) < 1e-6)
+traj.close()
+
+os.remove('5.nc')
