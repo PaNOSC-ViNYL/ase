@@ -34,6 +34,10 @@ from ase.atoms import Atoms
 from ase.utils import import_module, basestring
 from ase.parallel import parallel_function, parallel_generator
 
+try:
+    import netCDF4
+except:
+    netCDF4 = None
 
 class UnknownFileTypeError(Exception):
     pass
@@ -91,6 +95,7 @@ all_formats = {
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1F'),
     'mol': ('MDL Molfile', '1F'),
+    'netcdftrajectory': ('AMBER NetCDF trajectory file', '1S'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
@@ -174,6 +179,11 @@ extension2format = {
     'in': 'aims',
     'poscar': 'vasp',
     'phonon': 'castep-phonon'}
+
+netcdfconventions2format = {
+    'http://www.etsf.eu/fileformats': 'etsf',
+    'AMBER': 'netcdftrajectory'
+}
 
 
 def initialize(format):
@@ -609,12 +619,27 @@ def filetype(filename, read=True, guess=True):
     if len(data) == 0:
         raise IOError('Empty file: ' + filename)
 
+    if data.startswith(b'CDF'):
+        # This is a NetCDF file
+        if netCDF4 is None:
+            raise RuntimeError('Trying to open NetCDF file, but netCDF4 is '
+                               'not installed')
+        nc = netCDF4.Dataset(filename)
+        if 'Conventions' in nc.ncattrs():
+            if nc.Conventions in netcdfconventions2format:
+                return netcdfconventions2format[nc.Conventions]
+            else:
+                raise UnknownFileTypeError("Unsupported NetCDF convention: "
+                                           "'{}'".format(nc.Conventions))
+        else:
+            raise UnknownFileTypeError("NetCDF file does not have a "
+                                       "'Conventions' attribute.")
+
     for format, magic in [('traj', b'- of UlmASE-Trajectory'),
                           ('traj', b'AFFormatASE-Trajectory'),
                           ('gpw', b'- of UlmGPAW'),
                           ('gpw', b'AFFormatGPAW'),
                           ('trj', b'PickleTrajectory'),
-                          ('etsf', b'CDF'),
                           ('turbomole', b'$coord'),
                           ('turbomole-gradient', b'$grad'),
                           ('dftb', b'Geometry')]:
