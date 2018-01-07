@@ -112,3 +112,15 @@ for frame, a in enumerate(t):
     t.write_arrays(a, frame, ['test'])
 del t
 os.remove(fname)
+
+# Check cell origin
+co.set_pbc(True)
+co.set_celldisp([1,2,3])
+traj = NetCDFTrajectory('4.nc', 'w', co)
+traj.write(co)
+traj.close()
+
+traj = NetCDFTrajectory('4.nc', 'r')
+a = traj[0]
+assert np.all(abs(a.get_celldisp() - np.array([1,2,3])) < 1e-12)
+traj.close()
