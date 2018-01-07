@@ -334,6 +334,8 @@ class NetCDFTrajectory:
         cell_lengths = np.array([a, b, c]) * atoms.pbc
         self._get_variable(self._cell_lengths_var)[i] = cell_lengths
         self._get_variable(self._cell_angles_var)[i] = [alpha, beta, gamma]
+        self._get_variable(self._cell_origin_var)[i] = \
+            atoms.get_celldisp().reshape(3)
         if arrays is not None:
             for array in arrays:
                 data = atoms.get_array(array)
@@ -432,6 +434,11 @@ class NetCDFTrajectory:
             self.nc.createVariable(self._cell_angles_var, 'd',
                                    (self._frame_dim, self._cell_angular_dim))
             self.nc.variables[self._cell_angles_var].units = 'degree'
+        if not self._has_variable(self._cell_origin_var):
+            self.nc.createVariable(self._cell_origin_var, 'd',
+                                   (self._frame_dim, self._cell_spatial_dim))
+            self.nc.variables[self._cell_origin_var].units = 'Angstrom'
+            self.nc.variables[self._cell_origin_var].scale_factor = 1.
 
     def _add_time(self):
         if not self._has_variable(self._time_var):
