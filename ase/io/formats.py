@@ -34,10 +34,6 @@ from ase.atoms import Atoms
 from ase.utils import import_module, basestring
 from ase.parallel import parallel_function, parallel_generator
 
-try:
-    import netCDF4
-except:
-    netCDF4 = None
 
 class UnknownFileTypeError(Exception):
     pass
@@ -620,10 +616,7 @@ def filetype(filename, read=True, guess=True):
         raise IOError('Empty file: ' + filename)
 
     if data.startswith(b'CDF'):
-        # This is a NetCDF file
-        if netCDF4 is None:
-            raise RuntimeError('Trying to open NetCDF file, but netCDF4 is '
-                               'not installed')
+        import netCDF4
         nc = netCDF4.Dataset(filename)
         if 'Conventions' in nc.ncattrs():
             if nc.Conventions in netcdfconventions2format:

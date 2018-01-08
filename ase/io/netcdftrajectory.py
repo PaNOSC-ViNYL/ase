@@ -28,17 +28,6 @@ from ase.geometry import cellpar_to_cell
 import collections
 from functools import reduce
 
-NC_NOT_FOUND = 0
-NC_IS_NETCDF4 = 1
-
-have_nc = NC_NOT_FOUND
-# Check if we have netCDF4-python
-try:
-    from netCDF4 import Dataset
-    have_nc = NC_IS_NETCDF4
-except:
-    pass
-
 
 class NetCDFTrajectory:
     """
@@ -139,10 +128,6 @@ class NetCDFTrajectory:
             file. This is used to reduce the memory footprint of a read 
             operation on very large files.
         """
-        if not have_nc:
-            raise RuntimeError('NetCDFTrajectory requires a NetCDF Python '
-                               'module.')
-
         self.nc = None
         self.chunk_size = chunk_size
 
@@ -185,11 +170,9 @@ class NetCDFTrajectory:
         self.filename = filename
         if keep_open is None:
             # Only netCDF4-python supports append to files
-            self.keep_open = self.mode == 'r' or have_nc != NC_IS_NETCDF4
+            self.keep_open = self.mode == 'r'
         else:
             self.keep_open = keep_open
-        if (mode == 'a' or not self.keep_open) and have_nc != NC_IS_NETCDF4:
-            raise RuntimeError('netCDF4-python is required for append mode.')
 
     def __del__(self):
         self.close()
@@ -200,16 +183,13 @@ class NetCDFTrajectory:
 
         For internal use only.
         """
+        import netCDF4
         if self.nc is not None:
             return
         if self.mode == 'a' and not os.path.exists(self.filename):
             self.mode = 'w'
-        if have_nc == NC_IS_NETCDF4:
-            self.nc = Dataset(self.filename, self.mode,
-                              format=self.netcdf_format)
-        else:
-            # Should not happen
-            raise RuntimeError('Internal error: Unknown *have_nc* value.')
+        self.nc = netCDF4.Dataset(self.filename, self.mode,
+                                  format=self.netcdf_format)
 
         self.frame = 0
         if self.mode == 'r' or self.mode == 'a':
@@ -228,10 +208,7 @@ class NetCDFTrajectory:
 
     def _read_header(self):
         if not self.n_atoms:
-            if have_nc == NC_IS_NETCDF4:
-                self.n_atoms = len(self.nc.dimensions[self._atom_dim])
-            else:
-                self.n_atoms = self.nc.dimensions[self._atom_dim]
+            self.n_atoms = len(self.nc.dimensions[self._atom_dim])
 
         for name, var in self.nc.variables.items():
             # This can be unicode which confuses ASE
