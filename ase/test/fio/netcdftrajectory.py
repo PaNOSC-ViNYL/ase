@@ -1,7 +1,4 @@
-from ase.test import NotAvailable
-
 import numpy as np
-import ase.io.netcdftrajectory as netcdftrajectory
 from ase.io import read
 
 import os
