@@ -124,9 +124,9 @@ class NetCDFTrajectory:
             one based. Default value is for LAMMPS output.
 
         chunk_size=1000000:
-            Maximum size of consecutive data read when reading from a NetCDF
-            file. This is used to reduce the memory footprint of a read 
-            operation on very large files.
+            Maximum size of consecutive number of records (along the 'atom')
+            dimension read when reading from a NetCDF file. This is used to
+            reduce the memory footprint of a read operation on very large files.
         """
         self.nc = None
         self.chunk_size = chunk_size
