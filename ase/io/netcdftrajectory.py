@@ -16,6 +16,8 @@ VMD (http://www.ks.uiuc.edu/Research/vmd/)
 or Ovito (http://www.ovito.org/, starting with version 2.3).
 """
 
+from __future__ import division
+
 import os
 import warnings
 
@@ -464,9 +466,9 @@ class NetCDFTrajectory:
             else:
                 # If this is a large data set, only read chunks from it to
                 # reduce memory footprint of the NetCDFTrajectory reader.
-                for i in range((s-1)//self.chunk_size+1):
-                    sl = slice(i*self.chunk_size,
-                               min((i+1)*self.chunk_size, s))
+                for i in range((s - 1) // self.chunk_size + 1):
+                    sl = slice(i * self.chunk_size,
+                               min((i + 1) * self.chunk_size, s))
                     data[index[sl]] = var[frame, sl]
         else:
             data = np.zeros(var.shape, dtype=var.dtype)
