@@ -97,7 +97,7 @@ all_formats = {
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1F'),
     'mol': ('MDL Molfile', '1F'),
-    'netcdftrajectory': ('AMBER NetCDF trajectory file', '1S'),
+    'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
