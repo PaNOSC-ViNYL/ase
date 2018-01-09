@@ -635,8 +635,9 @@ def filetype(filename, read=True, guess=True):
                 if nc.Conventions in netcdfconventions2format:
                     return netcdfconventions2format[nc.Conventions]
                 else:
-                    raise UnknownFileTypeError("Unsupported NetCDF convention: "
-                                               "'{}'".format(nc.Conventions))
+                    raise UnknownFileTypeError(
+                        "Unsupported NetCDF convention: "
+                        "'{}'".format(nc.Conventions))
             else:
                 raise UnknownFileTypeError("NetCDF file does not have a "
                                            "'Conventions' attribute.")
