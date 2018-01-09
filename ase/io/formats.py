@@ -30,6 +30,12 @@ import inspect
 import os
 import sys
 
+try:
+    from pathlib import PurePath
+except ImportError:
+    class PurePath:
+        pass
+
 from ase.atoms import Atoms
 from ase.utils import import_module, basestring
 from ase.parallel import parallel_function, parallel_generator
@@ -429,6 +435,8 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
     of ``filename``. In this case the format cannot be auto-decected,
     so the ``format`` argument should be explicitly given."""
 
+    if isinstance(filename, PurePath):
+        filename = str(filename)
     if isinstance(index, basestring):
         index = string2index(index)
     filename, index = parse_filename(filename, index)
