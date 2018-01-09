@@ -616,17 +616,22 @@ def filetype(filename, read=True, guess=True):
         raise IOError('Empty file: ' + filename)
 
     if data.startswith(b'CDF'):
-        import netCDF4
-        nc = netCDF4.Dataset(filename)
-        if 'Conventions' in nc.ncattrs():
-            if nc.Conventions in netcdfconventions2format:
-                return netcdfconventions2format[nc.Conventions]
-            else:
-                raise UnknownFileTypeError("Unsupported NetCDF convention: "
-                                           "'{}'".format(nc.Conventions))
+        # We can only recognize these if we actually have the netCDF4 module.
+        try:
+            import netCDF4
+        except ImportError:
+            pass
         else:
-            raise UnknownFileTypeError("NetCDF file does not have a "
-                                       "'Conventions' attribute.")
+            nc = netCDF4.Dataset(filename)
+            if 'Conventions' in nc.ncattrs():
+                if nc.Conventions in netcdfconventions2format:
+                    return netcdfconventions2format[nc.Conventions]
+                else:
+                    raise UnknownFileTypeError("Unsupported NetCDF convention: "
+                                               "'{}'".format(nc.Conventions))
+            else:
+                raise UnknownFileTypeError("NetCDF file does not have a "
+                                           "'Conventions' attribute.")
 
     for format, magic in [('traj', b'- of UlmASE-Trajectory'),
                           ('traj', b'AFFormatASE-Trajectory'),
