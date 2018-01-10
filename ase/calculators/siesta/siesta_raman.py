@@ -112,19 +112,14 @@ class SiestaRaman(Vibrations):
 
     def __init__(self, atoms, siesta, indices=None, name='ram',
                  delta=0.01, nfree=2, directions=None, freq_pol=0.0, **kw):
-        assert nfree in [2, 4]
-        self.atoms = atoms
+
+        Vibrations.__init__(self, atoms, indices=indices, name=name, 
+                            delta = delta, nfree=nfree)
         if atoms.constraints:
             print('WARNING! \n Your Atoms object is constrained. '
                   'Some forces may be unintended set to zero. \n')
-        self.calc = atoms.get_calculator()
-        if indices is None:
-            indices = range(len(atoms))
-        self.indices = np.asarray(indices)
-        self.nfree = nfree
         self.name = name + '-d%.3f' % delta
-        self.delta = delta
-        self.H = None
+
         if directions is None:
             self.directions = np.asarray([0, 1, 2])
         else:
@@ -471,10 +466,10 @@ class SiestaRaman(Vibrations):
         energies, spectrum_ir = self.fold(frequencies, intensities_ir,
                                           start, end, npts, width, type,
                                           normalize)
-        energies, spectrum_ram = self.fold(frequencies, intensities_ram,
+        energies, spectrum_ram = self.fold(frequencies, intensities_ram.real,
                                            start, end, npts, width, type,
                                            normalize)
-        energies, spectrum_ram_enh = self.fold(frequencies, intensities_ram_enh,
+        energies, spectrum_ram_enh = self.fold(frequencies, intensities_ram_enh.real,
                                                start, end, npts, width, type,
                                                normalize)
         return energies, spectrum_ir, spectrum_ram, spectrum_ram_enh
