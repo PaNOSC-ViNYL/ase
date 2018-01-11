@@ -891,6 +891,10 @@ class GenerateVaspInput(object):
                 self.int_params[key] = kwargs[key]
             elif key in self.bool_params:
                 self.bool_params[key] = kwargs[key]
+            elif key in self.list_bool_params:
+                self.list_bool_params[key] = kwargs[key]
+            elif key in self.list_int_params:
+                self.list_int_params[key] = kwargs[key]
             elif key in self.list_float_params:
                 self.list_float_params[key] = kwargs[key]
             elif key in self.special_params:
