@@ -97,6 +97,7 @@ all_formats = {
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1F'),
     'mol': ('MDL Molfile', '1F'),
+    'mustem': ('muSTEM xtl file', '1F'),
     'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
@@ -180,7 +181,8 @@ extension2format = {
     'shelx': 'res',
     'in': 'aims',
     'poscar': 'vasp',
-    'phonon': 'castep-phonon'}
+    'phonon': 'castep-phonon',
+    'xtl': 'mustem'}
 
 netcdfconventions2format = {
     'http://www.etsf.eu/fileformats': 'etsf',
