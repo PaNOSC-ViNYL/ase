@@ -97,7 +97,7 @@ class XtlmuSTEMWriter:
         self.DW = DW
         self._check_key_dictionary(self.DW, 'DW')
         self.comment = comment
-        if type(occupancy) is float:
+        if np.isscalar(occupancy):
             self.occupancy = dict(zip(self.atom_types,
                                       [occupancy] * len(self.atom_types)))
         else:
@@ -125,10 +125,7 @@ class XtlmuSTEMWriter:
         cell = self.atoms.get_cell()
         # Diagonal element must different from 0
         # Non-diagonal element must be zero
-        if cell.sum() == 0:
-            raise ValueError('To export to this format, the cell need to be '
-                             'defined.')
-        elif cell[0][0] == 0 or cell[1][1] == 0 or cell[2][2] == 0:
+        if ((cell != 0) != np.eye(3)).any():
             raise ValueError('To export to this format, the cell need to be '
                              'orthorhombic.')
 
