@@ -22,6 +22,11 @@ try:
 except ImportError:
     Scientific = 0
 
+try:
+    import netCDF4
+except ImportError:
+    netCDF4 = 0
+
 
 def get_atoms():
     a = 5.0
@@ -98,6 +103,9 @@ for format in sorted(all_formats):
         continue
 
     if not Scientific and format == 'etsf':
+        continue
+
+    if not netCDF4 and format == 'netcdftrajectory':
         continue
 
     atoms = get_atoms()

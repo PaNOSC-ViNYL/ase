@@ -17,3 +17,6 @@ MANIFEST
 
 # Vim swap files:
 .*.sw?
+
+# Translation template
+ase/gui/po/ag.pot

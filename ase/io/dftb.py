@@ -111,9 +111,9 @@ def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     last_lines = lines_ok[-natoms:]
     for iline, line in enumerate(last_lines):
         inp = line.split()
-        velocities.append([float(inp[4])*AngdivPs2ASE,
-                           float(inp[5])*AngdivPs2ASE,
-                           float(inp[6])*AngdivPs2ASE])
+        velocities.append([float(inp[5])*AngdivPs2ASE,
+                           float(inp[6])*AngdivPs2ASE,
+                           float(inp[7])*AngdivPs2ASE])
 
     atoms.set_velocities(velocities)
     return atoms

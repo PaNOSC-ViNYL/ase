@@ -10,6 +10,9 @@ Git master branch
 
 :git:`master <>`.
 
+* New scanning tunnelling spectroscopy (STS) mode for
+  :class:`~ase.dft.stm.STM` simulations.
+
 * New method, :meth:`~ase.Atoms.get_angles`, for calculating multiple angles.
 
 * New ``ase reciprocal`` :ref:`command <cli>` for showing the

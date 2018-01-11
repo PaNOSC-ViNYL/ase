@@ -37,7 +37,7 @@ class STM:
 
         self.symmetries = symmetries or []
 
-                               
+
     def calculate_ldos(self, bias):
         """Calculate local density of states for given bias."""
         if self.ldos is not None and bias == self.bias:
@@ -50,7 +50,7 @@ class STM:
         if self.use_density:
             self.ldos = calc.get_pseudo_density()
             return
-            
+
         if bias < 0:
             emin = bias
             emax = 0.0
@@ -66,7 +66,7 @@ class STM:
                           for k in range(nkpts)]
                          for s in range(nspins)])
         eigs -= calc.get_fermi_level()
-        ldos = np.zeros(calc.get_pseudo_wave_function(0,0,0).shape) 
+        ldos = np.zeros(calc.get_pseudo_wave_function(0,0,0).shape)
 
         for s in range(nspins):
             for k in range(nkpts):
@@ -85,7 +85,7 @@ class STM:
             # (x,y) -> (x,-y)
             ldos[:, 1:] += ldos[:, :0:-1].copy()
             ldos[:, 1:] *= 0.5
-            
+
         if 2 in self.symmetries:
             # (x,y) -> (y,x)
             ldos += ldos.transpose((1, 0, 2)).copy()
@@ -99,8 +99,8 @@ class STM:
         with open(filename, 'wb') as f:
             pickle.dump((self.ldos, self.bias, self.cell), f,
                         protocol=pickle.HIGHEST_PROTOCOL)
- 
-       
+
+
     def get_averaged_current(self, bias, z):
         """Calculate avarage current at height z (in Angstrom).
 
@@ -118,21 +118,21 @@ class STM:
         return ((1 - dn) * self.ldos[:, :, n].mean() +
                 dn * self.ldos[:, :, (n + 1) % nz].mean())
 
-    
+
     def scan(self, bias, current, z0=None, repeat=(1, 1)):
         """Constant current 2-d scan.
-        
+
         Returns three 2-d arrays (x, y, z) containing x-coordinates,
         y-coordinates and heights.  These three arrays can be passed to
         matplotlibs contourf() function like this:
-            
+
         >>> import matplotlib.pyplot as plt
         >>> plt.gca(aspect='equal')
         >>> plt.contourf(x, y, z)
         >>> plt.show()
-        
+
         """
-        
+
         self.calculate_ldos(bias)
 
         L = self.cell[2, 2]
@@ -157,16 +157,16 @@ class STM:
 
     def scan2(self, bias, z, repeat=(1, 1)):
         """Constant height 2-d scan.
-        
+
         Returns three 2-d arrays (x, y, I) containing x-coordinates,
         y-coordinates and currents.  These three arrays can be passed to
         matplotlibs contourf() function like this:
-            
+
         >>> import matplotlib.pyplot as plt
         >>> plt.gca(aspect='equal')
         >>> plt.contourf(x, y, I)
         >>> plt.show()
-        
+
         """
 
         self.calculate_ldos(bias)
@@ -178,7 +178,7 @@ class STM:
 
         zp = z / self.cell[2, 2] * nz
         zp = int(zp) % nz
-   
+
         for i, a in enumerate(ldos):
             I[i] = self.find_current(a, zp)
 
@@ -244,10 +244,10 @@ class STM:
         dz = zp - np.floor(zp)
         zp = int(zp) % nz
 
-        # 3D interpolation of the LDOS at point (x,y,z) at given bias. 
+        # 3D interpolation of the LDOS at point (x,y,z) at given bias.
         xyzldos =  (((1 - dx) + (1 - dy) + (1 - dz)) * self.ldos[xp, yp, zp] +
                    dx * self.ldos[(xp + 1) % nx, yp, zp] +
-                   dy * self.ldos[xp, (yp + 1) % ny, zp] + 
+                   dy * self.ldos[xp, (yp + 1) % ny, zp] +
                    dz * self.ldos[xp, yp, (zp + 1) % nz])
 
         return dos2current(bias, xyzldos)
@@ -259,10 +259,10 @@ class STM:
 
         biases = np.arange(bias0, bias1+biasstep, biasstep)
         I = np.zeros(biases.shape)
-        
+
         for b in np.arange(len(biases)):
             print(b, biases[b])
-            I[b] = self.pointcurrent(biases[b], x, y, z)   
+            I[b] = self.pointcurrent(biases[b], x, y, z)
 
         dIdV = np.gradient(I,biasstep)
 
@@ -276,7 +276,7 @@ class STM:
         zp = z / self.cell[2, 2] * nz
         dz = zp - np.floor(zp)
         zp = int(zp) % nz
-        
+
         ldosz = (1 - dz) * ldos[zp] + dz * ldos[(zp + 1) % nz]
 
         return dos2current(self.bias, ldosz)
@@ -302,8 +302,8 @@ def interpolate(q, heights):
          g[0] * f[1] * heights[n0, m1] +
          f[0] * f[1] * heights[n1, m1])
     return z
-     
-     
+
+
 def find_height(ldos, current, h, z0=None):
     if z0 is None:
         n = len(ldos) - 2
