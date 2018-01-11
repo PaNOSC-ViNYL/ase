@@ -10,6 +10,8 @@ Git master branch
 
 :git:`master <>`.
 
+* Support for µSTEM xtl data format.
+
 * New scanning tunnelling spectroscopy (STS) mode for
   :class:`~ase.dft.stm.STM` simulations.
 
