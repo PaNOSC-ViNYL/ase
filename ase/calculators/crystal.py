@@ -71,17 +71,6 @@ class CRYSTAL(FileIOCalculator):
         outfile = open(filename, 'w')
         outfile.write('Single point + Gradient crystal calculation \n')
         outfile.write('EXTERNAL \n')
-        outfile.write('OPTGEOM \n')
-        outfile.write('FINALRUN \n')
-        outfile.write('0 \n')
-        outfile.write('MAXCYCLE \n')
-        outfile.write('1 \n')
-        # TOLDEG threshold raised to allow parallel
-        # execution (no mpi error after gradient
-        # calculation).
-        outfile.write('TOLDEG \n')
-        outfile.write('1000 \n')
-        outfile.write('END \n')
 
         # write BLOCK 2 from file (basis sets)
         p = self.parameters
@@ -110,6 +99,7 @@ class CRYSTAL(FileIOCalculator):
                 outfile.write('RHF \n')
         elif p.xc == 'MP2':
             outfile.write('MP2 \n')
+            outfile.write('ENDMP2 \n')
         else:
             outfile.write('DFT \n')
             # Standalone keywords and LDA are given by a single string.
@@ -186,6 +176,10 @@ class CRYSTAL(FileIOCalculator):
                 outfile.write(str(self.kpts[0])
                               + ' 1 1 \n')
 
+        # GRADCAL command performs a single 
+        # point and prints out the forces
+        # also on the charges
+        outfile.write('GRADCAL \n')
         outfile.write('END \n')
 
         outfile.close()
@@ -207,17 +201,25 @@ class CRYSTAL(FileIOCalculator):
 
         with open(os.path.join(self.directory, 'OUTPUT'), 'r') as myfile:
             self.lines = myfile.readlines()
-
+	
         self.atoms = self.atoms_input
         # Energy line index
+        estring1 = 'SCF ENDED'
+        estring2 = 'TOTAL ENERGY + DISP'
         for iline, line in enumerate(self.lines):
-            estring = 'OPT END'
-            if line.find(estring) >= 0:
+            if line.find(estring1) >= 0:
                 index_energy = iline
+		pos_en = 8
                 break
         else:
             raise RuntimeError('Problem in reading energy')
-        energy = float(self.lines[index_energy].split()[7]) * Hartree
+        # Check if there is dispersion corrected
+        # energy value.
+        for iline, line in enumerate(self.lines):
+            if line.find(estring2) >= 0:
+                index_energy = iline
+		pos_en = 5
+        energy = float(self.lines[index_energy].split()[pos_en]) * Hartree
         self.results['energy'] = energy
         # Force line indexes
         fstring = 'CARTESIAN FORCES'
