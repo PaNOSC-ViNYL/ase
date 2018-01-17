@@ -405,7 +405,6 @@ End LAMMPSlib Interface Documentation
             # Convert that lammps-style array into a C object
             c_double_array = (ctypes.c_double * len(lmp_velocities))
             lmp_c_velocities = c_double_array(*lmp_velocities)
-#            self.lmp.put_coosrds(lmp_c_velocities)
             self.lmp.scatter_atoms('v', 1, 3, lmp_c_velocities)
 
         # Run for 0 time to calculate
