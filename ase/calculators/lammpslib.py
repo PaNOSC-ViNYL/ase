@@ -17,15 +17,15 @@ from ase.utils import basestring
 
 # TODO
 # 1. should we make a new lammps object each time ?
-# 3. lmp object is not closed
 # 4. need a routine to get the model back from lammps
 # 5. if we send a command to lmps directly then the calculator does
 #    not know about it and the energy could be wrong.
 # 6. do we need a subroutine generator that converts a lammps string
 #   into a python function that can be called
-# 7. atom_types shouldn't be mandatory
 # 8. make matscipy as fallback
 # 9. keep_alive not needed with no system changes
+#10. it may be a good idea to unify the cell handling with the one found in
+#    lammpsrun.py
 
 
 # this one may be moved to some more generial place
@@ -131,7 +131,7 @@ Keyword                               Description
 ``atom_types``     dictionary of "atomic_symbol":lammps_atom_type pairs,
                    e.g. {'Cu':1} to bind copper to lammps atom type 1.
                    Default method assigns lammps atom types in order that they
-                   appear in the atoms model. Mandatory.
+                   appear in the atoms model. Autocreated if <None>.
 
 ``log_file``       string
                    path to the desired LAMMPS log file
@@ -171,28 +171,32 @@ program) to calculate the energy by generating input files and running
 a separate LAMMPS job to perform the analysis. The output data is then
 read back into python. LAMMPSlib makes direct use of the LAMMPS (the
 program) python interface. As well as directly running any LAMMPS
-comand line it allows the values of any of LAMMPS variables to be
+command line it allows the values of any of LAMMPS variables to be
 extracted and returned to python.
 
 **Example**
 
+Provided that the respective potential file is in the working directory, one
+can simply run (note that LAMMPS needs to be compiled to work with EAM
+potentials)
+
 ::
 
     from ase import Atom, Atoms
+    from ase.build import bulk
     from lammpslib import LAMMPSlib
 
     cmds = ["pair_style eam/alloy",
             "pair_coeff * * NiAlH_jea.eam.alloy Al H"]
 
-    a = 4.05
-    al = Atoms([Atom('Al')], cell=(a, a, a), pbc=True)
-    h = Atom([Atom('H')])
-    alh = al + h
+    Ni = bulk('Ni', cubic=True)
+    H = Atom('H', position=Ni.cell.diagonal()/2)
+    NiH = Ni + H
 
-    lammps = LAMMPSlib(lmpcmds = cmds, logfile='test.log')
+    lammps = LAMMPSlib(lmpcmds=cmds, log_file='test.log')
 
-    alh.set_calculator(lammps)
-    print "Energy ", alh.get_potential_energy()
+    NiH.set_calculator(lammps)
+    print("Energy ", NiH.get_potential_energy())
 
 
 **Implementation**
@@ -225,7 +229,7 @@ by invoking the get_potential_energy() method::
 
     ## user lmpcmds get executed here
     pair_style eam/alloy
-    pair_coeff * * lammps/potentials/NiAlH_jea.eam.alloy Al
+    pair_coeff * * NiAlH_jea.eam.alloy Al
     ## end of user lmmpcmds
 
     run 0
@@ -246,7 +250,7 @@ by invoking the get_potential_energy() method::
 * If an error occurs while lammps is in control it will crash
   Python. Check the output of the log file to find the lammps error.
 
-* If the are commands direfctly sent to the LAMMPS object this may
+* If the are commands directly sent to the LAMMPS object this may
   change the energy value of the model. However the calculator will not
   know of it and still return the original energy value.
 
@@ -272,6 +276,10 @@ End LAMMPSlib Interface Documentation
         create_atoms=True,
         read_molecular_info=False,
         comm=None)
+
+    def __del__(self):
+        if self.started:
+            self.lmp.close()
 
     def set_cell(self, atoms, change=False):
         lammps_cell, self.coord_transform = convert_cell(atoms.get_cell())
@@ -342,7 +350,6 @@ End LAMMPSlib Interface Documentation
 
         if not self.started:
             self.start_lammps()
-
         if not self.initialized:
             self.initialise_lammps(atoms)
         else:  # still need to reset cell
@@ -428,14 +435,10 @@ End LAMMPSlib Interface Documentation
                     vel * unit_convert("velocity", self.units))
 
         # Extract the forces and energy
-#        if 'energy' in properties:
         self.results['energy'] = (self.lmp.extract_variable('pe', None, 0) *
                                   unit_convert("energy", self.units))
-#            self.results['energy'] = self.lmp.extract_global('pe', 0)
 
-#        if 'stress' in properties:
         stress = np.empty(6)
-        # stress_vars = ['pxx', 'pyy', 'pzz', 'pxy', 'pxz', 'pyz']
         stress_vars = ['pxx', 'pyy', 'pzz', 'pyz', 'pxz', 'pxy']
 
         for i, var in enumerate(stress_vars):
@@ -464,7 +467,6 @@ End LAMMPSlib Interface Documentation
         self.results['stress'] = (stress *
                                   (-unit_convert("pressure", self.units)))
 
-#        if 'forces' in properties:
         f = np.zeros((len(atoms), 3))
         force_vars = ['fx', 'fy', 'fz']
         for i, var in enumerate(force_vars):
@@ -514,7 +516,6 @@ End LAMMPSlib Interface Documentation
         self.redo_atom_types(atoms)
 
     def redo_atom_types(self, atoms):
-
         current_types = set(
             (i + 1, self.parameters.atom_types[sym]) for i, sym
             in enumerate(atoms.get_chemical_symbols()))
@@ -577,7 +578,6 @@ End LAMMPSlib Interface Documentation
         self.started = True
 
     def initialise_lammps(self, atoms):
-
         # Initialising commands
         if self.parameters.boundary:
             # if the boundary command is in the supplied commands use that
@@ -594,7 +594,12 @@ End LAMMPSlib Interface Documentation
         self.set_cell(atoms, change=not self.parameters.create_box)
 
         if self.parameters.atom_types is None:
-            raise NameError("atom_types are mandatory.")
+            # if None is given, create von atoms object in order of appearance
+            s = atoms.get_chemical_symbols()
+            _, idx = np.unique(s, return_index=True)
+            s_red = np.array(s)[np.sort(idx)].tolist()
+            self.parameters.atom_types = {j : i+1  for i, j in enumerate(s_red)}
+
 
         # Collect chemical symbols
         symbols = np.asarray(atoms.get_chemical_symbols())
@@ -640,7 +645,7 @@ End LAMMPSlib Interface Documentation
         # I am not sure why we need this next line but LAMMPS will
         # raise an error if it is not there. Perhaps it is needed to
         # ensure the cell stresses are calculated
-        self.lmp.command('thermo_style custom pe pxx emol')
+        self.lmp.command('thermo_style custom pe pxx')
 
         self.lmp.command('variable fx atom fx')
         self.lmp.command('variable fy atom fy')
@@ -653,9 +658,9 @@ End LAMMPSlib Interface Documentation
 
         self.initialized = True
 
-# print('done loading lammpslib')
 
 
+# keep this one for the moment being...
 def write_lammps_data(filename, atoms, atom_types, comment=None, cutoff=None,
                       molecule_ids=None, charges=None, units='metal'):
 
