@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import ctypes
 import operator
-import re
 
 import numpy as np
 from numpy.linalg import norm

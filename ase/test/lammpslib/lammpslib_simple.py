@@ -5,7 +5,6 @@ from __future__ import print_function
 import os
 import numpy as np
 from ase import Atom
-from ase import Atoms
 from ase.build import bulk
 from ase.calculators.lammpslib import LAMMPSlib
 
