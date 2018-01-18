@@ -79,7 +79,7 @@ complex_xyz_string = (
     ' '  # start with a separator
     'str=astring '
     'quot="quoted value" '
-    u'quote_special="a_to_Z_$%%^&*ü☕" '
+    u'quote_special="a_to_Z_$%%^&*\xfc\u2615" '
     r'escaped_quote="esc\"aped" '
     'true_value '
     'false_value = F '
@@ -91,8 +91,8 @@ complex_xyz_string = (
     'bool_array={T F T F} '
     'not_bool_array=[T F S] '
     # read and write
-    u'ünicode_key=valüe '
-    u'unquoted_special_value=a_to_Z_$%%^&*ü☕ '
+    u'\xfcnicode_key=val\xfce '
+    u'unquoted_special_value=a_to_Z_$%%^&*\xfc\u2615 '
     '2body=33.3 '
     'hyphen-ated '
     # parse only
@@ -108,7 +108,7 @@ complex_xyz_string = (
 expected_dict = {
     'str': 'astring',
     'quot': "quoted value",
-    'quote_special': u"a_to_Z_$%%^&*ü☕",
+    'quote_special': u"a_to_Z_$%%^&*\xfc\u2615",
     'escaped_quote': r"esc\"aped",
     'true_value': True,
     'false_value': False,
@@ -119,8 +119,8 @@ expected_dict = {
     'a3x3_array': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
     'bool_array': np.array([True, False, True, False]),
     'not_bool_array': 'T F S',
-    u'ünicode_key': u'valüe',
-    'unquoted_special_value': u'a_to_Z_$%%^&*ü☕',
+    u'\xfcnicode_key': u'val\xfce',
+    'unquoted_special_value': u'a_to_Z_$%%^&*\xfc\u2615',
     '2body': 33.3,
     'hyphen-ated': True,
     'many_other_quotes': np.array([4, 8, 12]),
@@ -137,8 +137,8 @@ np.testing.assert_equal(parsed_dict, expected_dict)
 
 # round trip through a file
 # Create file with the complex line and re-read it after
-with open('complex.xyz', 'w') as f_out:
-    f_out.writelines(['1\n', complex_xyz_string + '\n', 'H 1.0 1.0 1.0'])
+with open('complex.xyz', 'wb') as f_out:
+    f_out.write('1\n{}\nH 1.0 1.0 1.0'.format(complex_xyz_string.encode('utf-8')))
 complex_atoms = ase.io.read('complex.xyz')
 
 # test all keys end up in info, as expected
@@ -146,6 +146,10 @@ for key, value in expected_dict.items():
     if key in ['Properties']:
         continue  # goes elsewhere
     else:
+        if hasattr(key, 'encode'):
+            key = key.encode('utf-8')
+        if hasattr(value, 'encode'):
+            value = value.encode('utf-8')
         np.testing.assert_equal(complex_atoms.info[key], value)
 
 os.unlink('complex.xyz')
