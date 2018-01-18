@@ -140,7 +140,7 @@ np.testing.assert_equal(parsed_dict, expected_dict)
 # Create file with the complex line and re-read it after
 # Don't test with Python 2 as it had bad unicode handling
 if sys.version_info[0] > 2:
-    with open('complex.xyz', 'w') as f_out:
+    with open('complex.xyz', 'w', encoding='utf-8') as f_out:
         f_out.write('1\n{}\nH 1.0 1.0 1.0'.format(complex_xyz_string))
     complex_atoms = ase.io.read('complex.xyz')
 
