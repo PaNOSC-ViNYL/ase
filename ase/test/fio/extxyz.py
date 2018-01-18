@@ -3,6 +3,7 @@
 # maintainted by James Kermode <james.kermode@gmail.com>
 
 import os
+import sys
 
 import numpy as np
 
@@ -115,7 +116,7 @@ expected_dict = {
     'integer': 22,
     'floating': 1.1,
     'int_array': np.array([1, 2, 3]),
-    'float_array': np.array([3.3, 4.4,]),
+    'float_array': np.array([3.3, 4.4]),
     'a3x3_array': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
     'bool_array': np.array([True, False, True, False]),
     'not_bool_array': 'T F S',
@@ -137,19 +138,17 @@ np.testing.assert_equal(parsed_dict, expected_dict)
 
 # round trip through a file
 # Create file with the complex line and re-read it after
-with open('complex.xyz', 'wb') as f_out:
-    f_out.write('1\n{}\nH 1.0 1.0 1.0'.format(complex_xyz_string.encode('utf-8')))
-complex_atoms = ase.io.read('complex.xyz')
+# Don't test with Python 2 as it had bad unicode handling
+if sys.version_info[0] > 2:
+    with open('complex.xyz', 'w') as f_out:
+        f_out.write('1\n{}\nH 1.0 1.0 1.0'.format(complex_xyz_string))
+    complex_atoms = ase.io.read('complex.xyz')
 
-# test all keys end up in info, as expected
-for key, value in expected_dict.items():
-    if key in ['Properties']:
-        continue  # goes elsewhere
-    else:
-        if hasattr(key, 'encode'):
-            key = key.encode('utf-8')
-        if hasattr(value, 'encode'):
-            value = value.encode('utf-8')
-        np.testing.assert_equal(complex_atoms.info[key], value)
+    # test all keys end up in info, as expected
+    for key, value in expected_dict.items():
+        if key in ['Properties']:
+            continue  # goes elsewhere
+        else:
+            np.testing.assert_equal(complex_atoms.info[key], value)
 
-os.unlink('complex.xyz')
+    os.unlink('complex.xyz')
