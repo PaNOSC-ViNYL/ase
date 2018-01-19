@@ -5,8 +5,6 @@ import numpy as np
 from ase.constraints import Filter, FixAtoms
 from ase.geometry.cell import cell_to_cellpar
 
-from ase.optimize.precon import logger
-
 try:
     from matscipy.neighbours import neighbour_list
     have_matscipy = True
@@ -109,12 +107,11 @@ def estimate_nearest_neighbour_distance(atoms):
     # cell lengths and angles
     a, b, c, alpha, beta, gamma = cell_to_cellpar(atoms.cell)
     extent = [a, b, c]
-    logger.debug('estimate_nearest_neighbour_distance(): extent=%r',
-                 extent)
+    #print('estimate_nearest_neighbour_distance(): extent=%r' % extent)
 
     while r_cut < 2.0 * max(extent):
-        logger.info('estimate_nearest_neighbour_distance(): '
-                    'calling neighbour_list with r_cut=%.2f A', r_cut)
+        #print('estimate_nearest_neighbour_distance(): ' 
+        #            'calling neighbour_list with r_cut=%.2f A' % r_cut)
         i, j, rij, fixed_atoms = get_neighbours(
             atoms, r_cut, self_interaction=True)
         if len(i) != 0:
@@ -132,6 +129,6 @@ def estimate_nearest_neighbour_distance(atoms):
     nn_distances = [np.min(rij[i == I]) for I in range(len(atoms))]
     r_NN = np.max(nn_distances)
 
-    logger.info('estimate_nearest_neighbour_distance(): got r_NN=%.3f in %s s',
-                r_NN, time.time() - start_time)
+    #print('estimate_nearest_neighbour_distance(): got r_NN=%.3f in %s s' %
+    #            (r_NN, time.time() - start_time))
     return r_NN
