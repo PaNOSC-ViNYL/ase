@@ -15,7 +15,7 @@ from ase.utils import longsum
 from ase.geometry import wrap_positions
 import ase.utils.ff as ff
 import ase.units as units
-from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
+from ase.optimize.precon.neighbors import (get_neighbours,
                                            estimate_nearest_neighbour_distance)
 try:
     from pyamg import smoothed_aggregation_solver
