@@ -195,7 +195,7 @@ class Precon(object):
             if max_abs_displacement < 0.5 * self.r_NN:
                 return self.P
 
-        start_time = time.time()
+        #start_time = time.time()
 
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
@@ -231,7 +231,7 @@ class Precon(object):
 
         N = len(atoms)
         diag_i = np.arange(N, dtype=int)
-        start_time = time.time()
+        #start_time = time.time()
         if self.apply_positions:
             # compute neighbour list
             i, j, rij, fixed_atoms = get_neighbours(atoms, self.r_cut)
@@ -239,7 +239,7 @@ class Precon(object):
             #            ((time.time() - start_time)))
 
             # compute entries in triplet format: without the constraints
-            start_time = time.time()
+            #start_time = time.time()
             coeff = self.get_coeff(rij)
             diag_coeff = np.bincount(i, -coeff, minlength=N).astype(np.float64)
             if force_stab or len(fixed_atoms) == 0:
@@ -263,7 +263,7 @@ class Precon(object):
 
         if self.apply_positions and not initial_assembly:
             # apply the constraints
-            start_time = time.time()
+            #start_time = time.time()
             mask = np.ones(N)
             mask[fixed_atoms] = 0.0
             coeff *= mask[i] * mask[j]
@@ -273,7 +273,7 @@ class Precon(object):
 
         if self.apply_positions:
             # remove zeros
-            start_time = time.time()
+            #start_time = time.time()
             inz = np.nonzero(coeff)
             i = np.hstack((i[inz], diag_i))
             j = np.hstack((j[inz], diag_i))
@@ -286,14 +286,14 @@ class Precon(object):
             coeff = diag_coeff
 
         # create the matrix
-        start_time = time.time()
+        #start_time = time.time()
         csc_P = sparse.csc_matrix((coeff, (i, j)), shape=(N, N))
         #print('--- created CSC matrix in %s s ---' %
         #            (time.time() - start_time))
 
         self.csc_P = csc_P
 
-        start_time = time.time()
+        #start_time = time.time()
         if self.dim == 1:
             self.P = csc_P
         elif self.array_convention == 'F':
@@ -320,7 +320,7 @@ class Precon(object):
 
         # Create solver
         if self.use_pyamg and have_pyamg:
-            start_time = time.time()
+            #start_time = time.time()
             self.ml = smoothed_aggregation_solver(
                 self.P, B=None,
                 strength=('symmetric', {'theta': 0.0}),
@@ -355,7 +355,7 @@ class Precon(object):
         """
         Solve the (sparse) linear system P x = y and return y
         """
-        start_time = time.time()
+        #start_time = time.time()
         if self.use_pyamg and have_pyamg:
             y = self.ml.solve(x, x0=rand(self.P.shape[0]),
                               tol=self.solve_tol,
@@ -692,8 +692,7 @@ class FF(Precon):
 
     def make_precon(self, atoms):
 
-        start_time = time.time()
-
+        #start_time = time.time()
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
         #print('--- Precon created in %s seconds ---' % time.time() - start_time)
@@ -703,7 +702,7 @@ class FF(Precon):
                             force_stab=False):
         """ """
 
-        start_time = time.time()
+        #start_time = time.time()
 
         N = len(atoms)
 
@@ -784,7 +783,7 @@ class FF(Precon):
         data.extend([self.c_stab] * self.dim * N)
 
         # create the matrix
-        start_time = time.time()
+        #start_time = time.time()
         self.P = sparse.csc_matrix(
             (data, (row, col)), shape=(self.dim * N, self.dim * N))
         #print('--- created CSC matrix in %s s ---' %
@@ -811,7 +810,7 @@ class FF(Precon):
 
         # Create solver
         if self.use_pyamg:
-            start_time = time.time()
+            #start_time = time.time()
             self.ml = smoothed_aggregation_solver(
                 self.P, B=None,
                 strength=('symmetric', {'theta': 0.0}),
@@ -925,7 +924,7 @@ class Exp_FF(Exp, FF):
             if max_abs_displacement < 0.5 * self.r_NN:
                 return self.P
 
-        start_time = time.time()
+        #start_time = time.time()
 
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
@@ -954,7 +953,7 @@ class Exp_FF(Exp, FF):
         #       self.apply_cell))
 
         N = len(atoms)
-        start_time = time.time()
+        #start_time = time.time()
         if self.apply_positions:
             # compute neighbour list
             i_list, j_list, rij_list, fixed_atoms = get_neighbours(
@@ -1086,7 +1085,7 @@ class Exp_FF(Exp, FF):
             data.extend([self.c_stab] * self.dim * N)
 
         # create the matrix
-        start_time = time.time()
+        #start_time = time.time()
         self.P = sparse.csc_matrix(
             (data, (row, col)), shape=(self.dim * N, self.dim * N))
         #print('--- created CSC matrix in %s s ---' %
@@ -1104,7 +1103,7 @@ class Exp_FF(Exp, FF):
 
         # Create solver
         if self.use_pyamg:
-            start_time = time.time()
+            #start_time = time.time()
             self.ml = smoothed_aggregation_solver(
                 self.P, B=None,
                 strength=('symmetric', {'theta': 0.0}),

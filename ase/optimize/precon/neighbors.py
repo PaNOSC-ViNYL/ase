@@ -97,7 +97,7 @@ def estimate_nearest_neighbour_distance(atoms):
     if isinstance(atoms, Filter):
         atoms = atoms.atoms
 
-    start_time = time.time()
+    #start_time = time.time()
     # compute number of neighbours of each atom. If any atom doesn't
     # have a neighbour we increase the cutoff and try again, until our
     # cutoff exceeds the size of the sytem
