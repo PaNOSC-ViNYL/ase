@@ -122,9 +122,9 @@ class Precon(object):
             raise ValueError('Dimension must be at least 1')
         self.dim = dim
 
-        if not have_matscipy:
-            warnings.warn('Unable to import Matscipy. Neighbour list '
-                          'calculations may be very slow.')
+        #if not have_matscipy:
+        #    warnings.warn('Unable to import Matscipy. Neighbour list '
+        #                  'calculations may be very slow.')
 
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
