@@ -3,7 +3,7 @@ Implementation of the Precon abstract base class and subclasses
 """
 from __future__ import print_function
 
-import time
+#import time
 import warnings
 
 import numpy as np
