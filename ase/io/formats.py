@@ -30,14 +30,8 @@ import inspect
 import os
 import sys
 
-try:
-    from pathlib import PurePath
-except ImportError:
-    class PurePath:
-        pass
-
 from ase.atoms import Atoms
-from ase.utils import import_module, basestring
+from ase.utils import import_module, basestring, PurePath
 from ase.parallel import parallel_function, parallel_generator
 
 

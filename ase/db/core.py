@@ -13,7 +13,7 @@ from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
-from ase.utils import Lock, basestring
+from ase.utils import Lock, basestring, PurePath
 
 
 T2000 = 946681200.0  # January 1. 2000
@@ -150,6 +150,9 @@ def connect(name, type='extract_from_name', create_indices=True,
 
     if not append and world.rank == 0 and os.path.isfile(name):
         os.remove(name)
+
+    if isinstance(name, PurePath):
+        name = str(name)
 
     if type != 'postgresql' and isinstance(name, basestring):
         name = os.path.abspath(name)
