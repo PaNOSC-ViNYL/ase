@@ -9,27 +9,19 @@ filename = os.path.join(my_dir, 'complete.py')
 
 class CLICommand:
     short_description = 'Add tab-completion for Bash'
-    cmd = ('complete -o default -C "{} -m ase.cli.complete" ase'
-           .format(sys.executable))
+    description = ('Will show the command that needs to be added to your '
+                   '~/.bashrc file.')
+    cmd = ('complete -o default -C "{py} {filename}" ase'
+           .format(py=sys.executable, filename=filename))
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('filename', nargs='?')
-        parser.add_argument('-0', '--dry-run', action='store_true')
+        pass
 
     @staticmethod
     def run(args):
         cmd = CLICommand.cmd
         print(cmd)
-        #filename = args.filename or os.path.expanduser('~/.bashrc')
-        #if args.dry_run:
-        #    return
-        #with open(filename) as fd:
-        #    if cmd + '\n' in fd.readlines():
-        #        print('Completion script already installed!')
-        #        return
-        #with open(filename, 'a') as fd:
-        #    print(cmd, file=fd)
 
 
 def update(filename, commands):
