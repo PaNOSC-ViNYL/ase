@@ -151,6 +151,9 @@ def connect(name, type='extract_from_name', create_indices=True,
     if not append and world.rank == 0 and os.path.isfile(name):
         os.remove(name)
 
+    if type != 'postgresql' and isinstance(name, basestring):
+        name = os.path.abspath(name)
+
     if type == 'json':
         from ase.db.jsondb import JSONDatabase
         return JSONDatabase(name, use_lock_file=use_lock_file, serial=serial)
