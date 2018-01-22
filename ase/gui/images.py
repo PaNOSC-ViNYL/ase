@@ -11,6 +11,8 @@ from ase.gui.defaults import read_defaults
 from ase.io import read, write, string2index
 from ase.gui.i18n import _
 
+import warnings
+
 
 class Images:
     def __init__(self, images=None):
@@ -156,6 +158,22 @@ class Images:
         """Return a dictionary which updates the magmoms, energy and forces
         to the repeated amount of atoms.
         """
+        def getresult(name, get_quantity):
+            # ase/io/trajectory.py line 170 does this by using
+            # the get_property(prop, atoms, allow_calculation=False)
+            # so that is an alternative option.
+            try:
+                if (not atoms.calc or
+                    atoms.calc.calculation_required(atoms, [name])):
+                    quantity = None
+                else:
+                    quantity = get_quantity()
+            except Exception as err:
+                quantity = None
+                errmsg = ('An error occured while retrieving {} '
+                          'from the calculator: {}'.format(name, err))
+                warnings.warn(errmsg)
+            return quantity
 
         if repeat is None:
             repeat = self.repeat.prod()
@@ -167,30 +185,28 @@ class Images:
         original_length = len(atoms) // oldprod
         newprod = repeat.prod()
 
-        errs = (RuntimeError, PropertyNotImplementedError)
+        # Read the old properties
+        magmoms = getresult('magmoms', atoms.get_magnetic_moments)
+        magmom = getresult('magmom', atoms.get_magnetic_moment)
+        energy = getresult('energy', atoms.get_potential_energy)
+        forces = getresult('forces', atoms.get_forces)
 
-        # No calculator: RuntimeError
-        # Property not there: PropertyNotImplementedError
-        try:
-            ref_magmoms = atoms.get_magnetic_moments()
-        except errs:
-            ref_magmoms = np.zeros(len(atoms))
-        ref_magmoms = np.tile(ref_magmoms[:original_length], newprod)
+        # Update old properties to the repeated image
+        if magmoms is not None:
+            magmoms = np.tile(magmoms[:original_length], newprod)
+            results['magmoms'] = magmoms
 
-        try:
-            ref_energy = atoms.get_potential_energy() * newprod / oldprod
-        except errs:
-            ref_energy = np.nan
+        if magmom is not None:
+            magmom = magmom * newprod / oldprod
+            results['magmom'] = magmom
 
-        try:
-            ref_forces = atoms.get_forces()
-        except errs:
-            ref_forces = np.zeros((len(atoms), 3))
-        ref_forces = np.tile(ref_forces[:original_length].T, newprod).T
+        if forces is not None:
+            forces = np.tile(forces[:original_length].T, newprod).T
+            results['forces'] = forces
 
-        results['magmoms'] = ref_magmoms
-        results['energy'] = ref_energy
-        results['forces'] = ref_forces
+        if energy is not None:
+            energy = energy * newprod / oldprod
+            results['energy'] = energy
 
         return results
 
