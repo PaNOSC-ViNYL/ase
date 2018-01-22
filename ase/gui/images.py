@@ -4,7 +4,6 @@ from math import sqrt
 import numpy as np
 
 from ase.calculators.singlepoint import SinglePointCalculator
-from ase.calculators.calculator import PropertyNotImplementedError
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
 from ase.gui.defaults import read_defaults
