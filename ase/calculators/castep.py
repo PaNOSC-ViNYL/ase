@@ -855,7 +855,9 @@ End CASTEP Interface Documentation
                                 fields = line.split()
                                 if len(fields) == 1:
                                     break
-                                spins.append(float(fields[-1]))
+                                # the check for len==7 is due to CASTEP 18 outformat changes
+                                if not len(fields) == 7:
+                                    spins.append(float(fields[-1]))
                         break
 
                 except Exception as exception:
@@ -945,6 +947,7 @@ End CASTEP Interface Documentation
             if self.param.spin_polarized:
                 # only set magnetic moments if this was a spin polarized
                 # calculation
+                # this one fails as is
                 atoms.set_initial_magnetic_moments(magmoms=spins_atoms)
 
             atoms.set_calculator(self)
