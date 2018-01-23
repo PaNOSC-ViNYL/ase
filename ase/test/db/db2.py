@@ -69,7 +69,7 @@ for name in ['y2.json', 'y2.db']:
     id = c.write(Atoms(), b=np.bool_(True))
     assert isinstance(c[id].b, bool)
 
-    # Make sure deleting a single sey works:
+    # Make sure deleting a single key works:
     id = c.write(Atoms(), key=7)
     c.update(id, delete_keys=['key'])
     assert 'key' not in c[id]

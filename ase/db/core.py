@@ -12,6 +12,7 @@ import numpy as np
 from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
+from ase.db.row import AtomsRow
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.utils import Lock, basestring
 
@@ -287,7 +288,7 @@ class Database:
 
     @parallel_function
     @lock
-    def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
+    def write(self, atoms, key_value_pairs=None, data=None, id=None, **kwargs):
         """Write atoms to database with key-value pairs.
 
         atoms: Atoms object
@@ -312,7 +313,7 @@ class Database:
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
 
-        id = self._write(atoms, kvp, data)
+        id = self._write(atoms, kvp, data, id)
         return id
 
     def _write(self, atoms, key_value_pairs, data):
@@ -358,7 +359,7 @@ class Database:
 
             atoms.calc = Fake()
 
-        id = self._write(atoms, key_value_pairs, {})
+        id = self._write(atoms, key_value_pairs, {}, None)
 
         return id
 
@@ -470,39 +471,54 @@ class Database:
     @parallel_function
     @lock
     def update(self, id, atoms=None, delete_keys=[], data=None,
-               block_size=1000, **add_key_value_pairs):
+               **add_key_value_pairs):
         """Update and/or delete key-value pairs of row(s).
 
-        id: int or list of int
-            ID's of rows to update.
+        id: int
+            ID of row to update.
         delete_keys: list of str
             Keys to remove.
-        block_size: int
-            Block-size for each transaction.
 
         Use keyword arguments to add new key-value pairs.
 
         Returns number of key-value pairs added and removed.
         """
+
+        if not isinstance(id, int):
+            raise TypeError()
+
         check(add_key_value_pairs)
 
-        if isinstance(id, int):
-            ids = [id]
-        else:
-            ids = id
+        row = self._get_row(id)
 
-        assert atoms is None or len(ids) != 1
+        if atoms:
+            oldrow = row
+            row = AtomsRow(atoms)
+            for key in ['key_value_pairs', 'ctime', 'user', 'data', 'id']:
+                value = oldrow.get(key)
+                if value is not None:
+                    setattr(row, key, value)
 
-        B = block_size
-        nblocks = (len(ids) - 1) // B + 1
-        M = 0
-        N = 0
-        for b in range(nblocks):
-            m, n = self._update(ids[b * B:(b + 1) * B], atoms, delete_keys,
-                                add_key_value_pairs, data)
-            M += m
-            N += n
-        return M, N
+        kvp = row.key_value_pairs
+
+        n = len(kvp)
+        for key in delete_keys:
+            kvp.pop(key, None)
+        n -= len(kvp)
+        m = -len(kvp)
+        kvp.update(add_key_value_pairs)
+        m += len(kvp)
+
+        moredata = data
+        data = row.get('data', {})
+        if moredata:
+            data.update(moredata)
+        if not data:
+            data = None
+
+        self._write(row, kvp, data, row.id)
+
+        return m, n
 
     def delete(self, ids):
         """Delete rows."""

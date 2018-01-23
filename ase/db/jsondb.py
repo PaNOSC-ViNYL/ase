@@ -18,7 +18,7 @@ class JSONDatabase(Database, object):
     def __exit__(self, exc_type, exc_value, tb):
         pass
 
-    def _write(self, atoms, key_value_pairs, data):
+    def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
 
         bigdct = {}
@@ -32,20 +32,14 @@ class JSONDatabase(Database, object):
             except (SyntaxError, ValueError):
                 pass
 
+        mtime = now()
+
         if isinstance(atoms, AtomsRow):
             row = atoms
-            unique_id = row.unique_id
-            for id in ids:
-                if bigdct[id]['unique_id'] == unique_id:
-                    break
-            else:
-                id = None
-            mtime = now()
         else:
             row = AtomsRow(atoms)
-            row.ctime = mtime = now()
+            row.ctime = mtime
             row.user = os.getenv('USER')
-            id = None
 
         dct = {}
         for key in row.__dict__:
@@ -55,11 +49,15 @@ class JSONDatabase(Database, object):
 
         dct['mtime'] = mtime
 
-        kvp = key_value_pairs or row.key_value_pairs
+        if key_value_pairs is None:
+            kvp = row.key_value_pairs
+        else:
+            kvp = key_value_pairs
         if kvp:
             dct['key_value_pairs'] = kvp
 
-        data = data or row.get('data')
+        if data is None:
+            data = row.get('data')
         if data:
             dct['data'] = data
 
@@ -71,6 +69,8 @@ class JSONDatabase(Database, object):
             id = nextid
             ids.append(id)
             nextid += 1
+        else:
+            assert id in bigdct
 
         bigdct[id] = dct
         self._write_json(bigdct, ids, nextid)
@@ -193,30 +193,6 @@ class JSONDatabase(Database, object):
                     if n >= offset:
                         yield row
                     n += 1
-
-    def _update(self, ids, delete_keys, add_key_value_pairs, data):
-        bigdct, myids, nextid = self._read_json()
-
-        t = now()
-
-        m = 0
-        n = 0
-        for id in ids:
-            dct = bigdct[id]
-            kvp = dct.get('key_value_pairs', {})
-            n += len(kvp)
-            for key in delete_keys:
-                kvp.pop(key, None)
-            n -= len(kvp)
-            m -= len(kvp)
-            kvp.update(add_key_value_pairs)
-            m += len(kvp)
-            if kvp:
-                dct['key_value_pairs'] = kvp
-            dct['mtime'] = t
-
-        self._write_json(bigdct, myids, nextid)
-        return m, n
 
     @property
     def metadata(self):
