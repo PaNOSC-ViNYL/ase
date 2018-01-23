@@ -413,6 +413,7 @@ End CASTEP Interface Documentation
         self._energy_total = None
         self._energy_free = None
         self._energy_0K = None
+        self._energy_total_corr = None
 
         # dispersion corrections
         self._dispcorr_energy_total = None
@@ -719,6 +720,9 @@ End CASTEP Interface Documentation
                     self._energy_free = float(line.split()[-2])
                 elif 'NB est. 0K energy' in line:
                     self._energy_0K = float(line.split()[-2])
+                # check if we had a finite basis set correction
+                elif 'Total energy corrected for finite basis set' in line:
+                    self._energy_total_corr = float(line.split()[-2])
 
                 # Add support for dispersion correction
                 # filtering due to SEDC is done in get_potential_energy
@@ -1109,6 +1113,12 @@ End CASTEP Interface Documentation
         """Run CASTEP calculation if needed and return total energy."""
         self.update(atoms)
         return self._energy_total
+
+    @_self_getter
+    def get_total_energy_corrected(self, atoms):
+        """Run CASTEP calculation if needed and return total energy."""
+        self.update(atoms)
+        return self._energy_total_corr
 
     @_self_getter
     def get_free_energy(self, atoms):
