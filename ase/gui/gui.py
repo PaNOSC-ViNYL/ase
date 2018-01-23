@@ -27,7 +27,6 @@ from ase.gui.settings import Settings
 from ase.gui.status import Status
 from ase.gui.surfaceslab import SetupSurfaceSlab
 from ase.gui.view import View
-from ase.dft.bz import bz3d_plot
 
 
 class GUI(View, Status):
