@@ -288,7 +288,7 @@ class Database:
 
     @parallel_function
     @lock
-    def write(self, atoms, key_value_pairs=None, data=None, id=None, **kwargs):
+    def write(self, atoms, key_value_pairs={}, data={}, id=None, **kwargs):
         """Write atoms to database with key-value pairs.
 
         atoms: Atoms object

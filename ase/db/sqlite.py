@@ -238,11 +238,8 @@ class SQLite3Database(Database, object):
         else:
             values += (None, None)
 
-        if key_value_pairs is None:
-            key_value_pairs = row.key_value_pairs
-
         if data is None:
-            data = row._data
+            data = {}
         if not isinstance(data, basestring):
             data = encode(data)
 

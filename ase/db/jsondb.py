@@ -49,15 +49,9 @@ class JSONDatabase(Database, object):
 
         dct['mtime'] = mtime
 
-        if key_value_pairs is None:
-            kvp = row.key_value_pairs
-        else:
-            kvp = key_value_pairs
-        if kvp:
-            dct['key_value_pairs'] = kvp
+        if key_value_pairs:
+            dct['key_value_pairs'] = key_value_pairs
 
-        if data is None:
-            data = row.get('data')
         if data:
             dct['data'] = data
 
