@@ -494,7 +494,13 @@ class Database:
         if atoms:
             oldrow = row
             row = AtomsRow(atoms)
-            for key in ['key_value_pairs', 'ctime', 'user', 'data', 'id']:
+
+            # Copy over data, kvp, ctime, user and id
+            row._data = oldrow._data
+            kvp = oldrow.key_value_pairs
+            row.__dict__.update(kvp)
+            row._keys = list(kvp)
+            for key in ['ctime', 'user', 'id']:
                 value = oldrow.get(key)
                 if value is not None:
                     setattr(row, key, value)
