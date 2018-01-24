@@ -252,18 +252,14 @@ class GUI(View, Status):
         return found
 
     def neb(self):
+        from ase.io.trajectory import imagestobytes
         if len(self.images) <= 1:
-            return
+            return  # XXX raise error!
         N = self.images.repeat.prod()
         natoms = len(self.images[0]) // N
-        R = [a.positions[:natoms] for a in self.images]
-        E = [self.images.get_energy(a) for a in self.images]
-        F = [self.images.get_forces(a) for a in self.images]
-        A = self.images[0].cell
-        pbc = self.images[0].pbc
         process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
                                    stdin=subprocess.PIPE)
-        pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
+        process.stdin.write(imagestobytes(self.images))
         process.stdin.close()
         self.graphs.append(process)
 

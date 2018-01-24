@@ -626,19 +626,19 @@ def interpolate(images, mic=False):
     for i in range(1, len(images) - 1):
         images[i].set_positions(pos1 + i * d)
 
-if __name__ == '__main__':
-    # This stuff is used by ASE's GUI
+
+def main():
     import matplotlib.pyplot as plt
-    if sys.version_info[0] == 2:
-        E, F, R, A, pbc = pickle.load(sys.stdin)
-    else:
-        E, F, R, A, pbc = pickle.load(sys.stdin.buffer)
-    symbols = 'X' * len(R[0])
-    images = []
-    for e, r, f in zip(E, R, F):
-        atoms = Atoms(symbols, r, cell=A, pbc=pbc)
-        atoms.calc = SinglePointCalculator(atoms, energy=e, forces=f)
-        images.append(atoms)
+    from ase.io.trajectory import bytestoimages
+    try:
+        fd = sys.stdin.buffer
+    except AttributeError:  # Py2
+        fd = sys.stdin
+    images = bytestoimages(fd.read())
     nebtools = NEBtools(images)
     fig = nebtools.plot_band()
     plt.show()
+
+
+if __name__ == '__main__':
+    main()
