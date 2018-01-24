@@ -3,7 +3,6 @@
 # maintainted by James Kermode <james.kermode@gmail.com>
 
 import os
-import sys
 
 import numpy as np
 
