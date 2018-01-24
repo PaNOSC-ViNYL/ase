@@ -500,10 +500,9 @@ class Database:
             kvp = oldrow.key_value_pairs
             row.__dict__.update(kvp)
             row._keys = list(kvp)
-            for key in ['ctime', 'user', 'id']:
-                value = oldrow.get(key)
-                if value is not None:
-                    setattr(row, key, value)
+            row.ctime = oldrow.ctime
+            row.user = oldrow.user
+            row.id = id
 
         kvp = row.key_value_pairs
 
