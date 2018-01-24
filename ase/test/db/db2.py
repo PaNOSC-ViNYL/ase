@@ -66,8 +66,9 @@ for name in ['y2.json', 'y2.db']:
     with must_raise(ValueError):
         c.write(Atoms(), S=42)  # chemical symbol as key
 
-    id = c.write(Atoms(), b=np.bool_(True))
+    id = c.write(Atoms(), b=np.bool_(True), i=np.int64(42))
     assert isinstance(c[id].b, bool)
+    assert isinstance(c[id].i, int)
 
     # Make sure deleting a single sey works:
     id = c.write(Atoms(), key=7)
