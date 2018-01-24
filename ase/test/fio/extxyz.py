@@ -136,10 +136,13 @@ expected_dict = {
 parsed_dict = extxyz.key_val_str_to_dict(complex_xyz_string)
 np.testing.assert_equal(parsed_dict, expected_dict)
 
-# round trip through a file
-# Create file with the complex line and re-read it after
-# Don't test with Python 2 as it had bad unicode handling
-if sys.version_info[0] > 2:
+# Round trip through a file with complex line.
+# Create file with the complex line and re-read it afterwards.
+# Test is disabled as it requires that file io defaults to utf-8 encoding
+# which is not guaranteed on Python 2 and varies with LC_ variables
+# on linux. Test can be enabled if ase ever strongly enforces utf-8
+# everywhere.
+if False:
     with open('complex.xyz', 'w', encoding='utf-8') as f_out:
         f_out.write('1\n{}\nH 1.0 1.0 1.0'.format(complex_xyz_string))
     complex_atoms = ase.io.read('complex.xyz')
@@ -152,3 +155,4 @@ if sys.version_info[0] > 2:
             np.testing.assert_equal(complex_atoms.info[key], value)
 
     os.unlink('complex.xyz')
+
