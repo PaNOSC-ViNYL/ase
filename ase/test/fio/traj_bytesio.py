@@ -1,19 +1,13 @@
-from ase.io import iread, write
+import io
 from ase.build import bulk
 from ase.collections import g2
-import io
+from ase.io import iread, write
+from ase.io.trajectory import bytestoimages, imagestobytes
 
 images = [bulk('Si') + bulk('Fe')] + list(g2)
 
-buf = io.BytesIO()
-write(buf, images, format='traj')
-txt = buf.getvalue()
-
-buf = io.BytesIO()
-buf.write(txt)
-buf.seek(0)
-
-images2 = list(iread(buf, format='traj'))
+txt = imagestobytes(images)
+images2 = bytestoimages(txt)
 
 for atoms1, atoms2 in zip(images, images2):
     assert atoms1 == atoms2

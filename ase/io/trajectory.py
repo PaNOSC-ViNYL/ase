@@ -375,6 +375,24 @@ class OldCalculatorWrapper:
         return result
 
 
+def imagestobytes(images):
+    from io import BytesIO
+    from ase.io import write
+    buf = BytesIO()
+    write(buf, images, format='traj')
+    return buf.getvalue()
+
+
+def bytestoimages(data):
+    from io import BytesIO
+    from ase.io import iread
+    buf = BytesIO()
+    buf.write(data)
+    buf.seek(0)
+    images = list(iread(buf, format='traj'))
+    return images
+
+
 def convert(name):
     import os
     t = TrajectoryWriter(name + '.new')
