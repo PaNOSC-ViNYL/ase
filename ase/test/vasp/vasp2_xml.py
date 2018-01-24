@@ -8,7 +8,7 @@ environment variables
 from ase.test import NotAvailable
 from ase.test.vasp import installed
 from ase import Atoms
-from ase.calculators.vasp import VaspFileIO as Vasp
+from ase.calculators.vasp import Vasp2 as Vasp
 from ase.io import read
 import numpy as np
 import sys

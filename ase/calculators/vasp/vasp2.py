@@ -39,7 +39,7 @@ from ase.calculators.calculator import (FileIOCalculator, ReadError,
 from .create_input import GenerateVaspInput
 
 
-class VaspFileIO(GenerateVaspInput, FileIOCalculator):
+class Vasp2(GenerateVaspInput, FileIOCalculator):
     """ASE interface for the Vienna Ab initio Simulation Package (VASP),
     with the FileIOCalculator interface.
 
@@ -75,15 +75,15 @@ class VaspFileIO(GenerateVaspInput, FileIOCalculator):
 
                 - Example:
 
-                    >>> VaspFileIO(label='mylabel', txt=None) # Redirect stdout to :file:`mylabel.out`
-                    >>> VaspFileIO(txt='myfile.txt') # Redirect stdout to :file:`myfile.txt`
-                    >>> VaspFileIO(txt='-') # Print vasp output to stdout
+                    >>> Vasp2(label='mylabel', txt=None) # Redirect stdout to :file:`mylabel.out`
+                    >>> Vasp2(txt='myfile.txt') # Redirect stdout to :file:`myfile.txt`
+                    >>> Vasp2(txt='-') # Print vasp output to stdout
 
             command: str
                 Custom instructions on how to execute VASP. Has priority over
                 environment variables.
     """
-    name = 'VaspFileIO'
+    name = 'Vasp2'
 
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
                               'fermi', 'stress', 'magmom', 'magmoms']

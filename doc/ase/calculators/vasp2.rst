@@ -1,7 +1,7 @@
 .. module:: ase.calculators.vasp.vasp_fileio
 
 ===========
-VASP FileIO
+VASP 2.0
 ===========
 
 Introduction
@@ -33,10 +33,10 @@ Environment variables
 =====================
 
 The calculator needs to know how to execute VASP. One way of doing this,
-is by using the :meth:`~ase.calculators.vasp.VaspFileIo.command` method,
+is by using the :meth:`~ase.calculators.vasp.Vasp2.command` method,
 with instructions on how to execute vasp, e.g.::
 
-  VaspFileIO(command='vasp_std')
+  Vasp2(command='vasp_std')
 
 which requires that the executable :file:`vasp_std` is in your :envvar:`PATH`.
 Alternatively, similar to the original implementation, one of the following
@@ -61,7 +61,7 @@ original VASP_ calculator documentation.
 
 
 
-VaspFileIO Calculator
+Vasp 2.0 Calculator
 =====================
 
 The VASP specific keywords are unchanged, and should be included as described in
@@ -72,7 +72,7 @@ VASP specific keywords.
 .. _VASP calculator: vasp.html#vasp-calculator
 .. _VASP manual: http://cms.mpi.univie.ac.at/vasp/vasp/vasp.html
 
-.. autoclass:: VaspFileIO
+.. autoclass:: Vasp2
 
 
 .. note::
@@ -96,7 +96,7 @@ Band structure with VASP
 .. _Si band structure: https://cms.mpi.univie.ac.at/wiki/index.php/Si_bandstructure
 
 The VASP manual has an example of creating a `Si band structure`_ - we can
-easily reproduce a similar result, by using the ASE VaspFileIO calculator.
+easily reproduce a similar result, by using the ASE Vasp2 calculator.
 
 We can use the ``directory`` keyword to control the folder in which the calculations
 take place, and keep a more structured folder structure. The following script does the
@@ -105,14 +105,14 @@ initial calculations, in order to construct the band structure for silicon
 .. code-block:: python
 
 	from ase.build import bulk
-	from ase.calculators.vasp import VaspFileIO
+	from ase.calculators.vasp import Vasp2
 
 	si = bulk('Si')
 
 	mydir = 'bandstructure'    # Directory where we will do the calculations
 
 	# Make self-consistent ground state
-	calc = VaspFileIO(kpts=(4, 4, 4), directory=mydir)
+	calc = Vasp2(kpts=(4, 4, 4), directory=mydir)
 
 	si.set_calculator(calc)
 	si.get_potential_energy()  # Run the calculation
@@ -135,12 +135,12 @@ by using the ``restart`` keyword, in a second script
 
 .. code-block:: python
 
-	from ase.calculators.vasp import VaspFileIO
+	from ase.calculators.vasp import Vasp2
 
 	mydir = 'bandstructure'    # Directory where we did the calculations
 
 	# Load the calculator from the VASP output files
-	calc_load = VaspFileIO(restart=True, directory=mydir)
+	calc_load = Vasp2(restart=True, directory=mydir)
 
 	bs = calc_load.band_structure() # ASE Band structure object
 	bs.plot(emin=-13)               # Plot the band structure
