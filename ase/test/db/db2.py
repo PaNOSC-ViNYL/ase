@@ -54,8 +54,7 @@ for name in ['y2.json', 'y2.db']:
     print(row)
 
     for row in c.select(include_data=False):
-        with must_raise(AttributeError):
-            row.data
+        assert len(row.data) == 0
 
     with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])  # not int, bool, float or str

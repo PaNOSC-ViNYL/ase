@@ -3,6 +3,7 @@ import ase.db
 from ase import Atoms
 
 for name in ['x.json', 'x.db']:
+    print(name)
     db = ase.db.connect(name, append=False)
     db.write(Atoms(), x=1, data={'a': 1})
     db.update(1, y=2, data={'b': 2})
@@ -15,6 +16,12 @@ for name in ['x.json', 'x.db']:
     print(row.y, row.data, row.numbers)
     assert (row.numbers == [1]).all()
     assert sorted(row.data) == ['a', 'b']
+
+    db.write(Atoms(), id=1)
+    row = db.get(1)
+    assert len(row.data) == 0
+    assert len(row.key_value_pairs) == 0
+    assert len(row.numbers) == 0
 
     # N = 100
     N = 5
