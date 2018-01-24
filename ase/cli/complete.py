@@ -33,8 +33,6 @@ commands = {
          '--crystal-structure', '-a', '--lattice-constant',
          '--orthorhombic', '--cubic', '-r', '--repeat', '-g',
          '--gui', '--periodic'],
-    'completion':
-        ['-0', '--dry-run'],
     'convert':
         ['-v', '--verbose', '-i', '--input-format', '-o',
          '--output-format', '-f', '--force', '-n',
@@ -56,10 +54,9 @@ commands = {
         ['-v', '--verbose', '-l', '--long', '-i', '--include', '-x',
          '--exclude'],
     'gui':
-        ['-n', '--image-number', '-u', '--show-unit-cell', '-r',
-         '--repeat', '-R', '--rotations', '-o', '--output', '-g',
-         '--graph', '-t', '--terminal', '--interpolate', '-b',
-         '--bonds', '-s', '--scale'],
+        ['-n', '--image-number', '-r', '--repeat', '-R', '--rotations',
+         '-o', '--output', '-g', '--graph', '-t', '--terminal',
+         '--interpolate', '-b', '--bonds', '-s', '--scale'],
     'info':
         ['-v', '--verbose'],
     'nomad-upload':
