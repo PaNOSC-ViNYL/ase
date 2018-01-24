@@ -123,8 +123,8 @@ def file_has_fileno(fd):
 
     try:
         fno = fd.fileno  # AttributeError?
-        fno()  # OSError?
-    except (AttributeError, OSError):
+        fno()  # IOError/OSError?  (Newer python: OSError is IOError)
+    except (AttributeError, IOError):
         return False
     return True
 
