@@ -1,4 +1,5 @@
 from __future__ import print_function
+import sys
 import numpy as np
 
 from ase.io import read
@@ -32,7 +33,19 @@ class CLICommand:
 
     @staticmethod
     def run(args, parser):
-        atoms = read(args.name)
+        if args.name == '-':
+            from ase.io.trajectory import bytestoimages
+            try:
+                fd = sys.stdin.buffer
+            except AttributeError:  # Py2
+                fd = sys.stdin
+            images = bytestoimages(fd.read())
+            if len(images) > 1:
+                parser.error('Only one image supported, but got {}'
+                             .format(len(images)))
+            atoms = images[0]
+        else:
+            atoms = read(args.name)
 
         cell = atoms.get_cell()
         icell = atoms.get_reciprocal_cell()
