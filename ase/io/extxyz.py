@@ -43,15 +43,17 @@ KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_-]*)\s*')
 UNPROCESSED_KEYS = ['uid']
 
 
-def key_val_str_to_dict(string, sep=' '):
+def key_val_str_to_dict(string, sep=None):
     """
     Parse an xyz properties string in a key=value and return a dict with
     various values parsed to native types.
 
     Accepts brackets or quotes to delimit values. Parses integers, floats
     booleans and arrays thereof. Arrays with 9 values are converted to 3x3
-    arrays.
+    arrays with Fortran ordering.
 
+    If sep is None, string will split on whitespace, otherwise will split
+    key value pairs with the given separator.
 
     """
     # store the closing delimiters to match opening ones
@@ -88,7 +90,7 @@ def key_val_str_to_dict(string, sep=' '):
             escaped = True
         elif char in delimiters:
             delimiter_stack.append(delimiters[char])  # brackets or quotes
-        elif char == sep:
+        elif (sep is None and char.isspace()) or char == sep:
             if kv_pairs == [[[]]]:  # empty, beginning of string
                 continue
             elif kv_pairs[-1][-1] == []:
