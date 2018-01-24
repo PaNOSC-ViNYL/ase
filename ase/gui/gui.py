@@ -36,7 +36,6 @@ class GUI(View, Status):
 
     def __init__(self, images=None,
                  rotations='',
-                 show_unit_cell=True,
                  show_bonds=False):
 
         # Try to change into directory of file you are viewing
@@ -54,7 +53,7 @@ class GUI(View, Status):
 
         self.config = read_defaults()
 
-        menu = self.get_menu_data(show_unit_cell, show_bonds)
+        menu = self.get_menu_data(show_bonds)
 
         self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
                                       config=self.config, scroll=self.scroll,
@@ -412,7 +411,7 @@ class GUI(View, Status):
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
 
-    def get_menu_data(self, show_unit_cell, show_bonds):
+    def get_menu_data(self, show_bonds):
         M = ui.MenuItem
         return [
             (_('_File'),
@@ -447,7 +446,7 @@ class GUI(View, Status):
 
             (_('_View'),
              [M(_('Show _unit cell'), self.toggle_show_unit_cell, 'Ctrl+U',
-                value=show_unit_cell > 0),
+                value=True),
               M(_('Show _axes'), self.toggle_show_axes, value=True),
               M(_('Show _bonds'), self.toggle_show_bonds, 'Ctrl+B',
                 value=show_bonds),
