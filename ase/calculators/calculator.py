@@ -8,7 +8,34 @@ import numpy as np
 from ase.dft.kpoints import bandpath, monkhorst_pack
 
 
-class ReadError(Exception):
+class CalculatorError(RuntimeError):
+    pass
+
+class CalculatorSetupError(CalculatorError):
+    """Calculation cannot be performed with the given parameters.
+
+    Reasons to raise this errors are:
+      * The calculator is not properly configured
+      * The given atoms object is not supported
+      * Calculator parameters are unsupported
+
+    Typically raised before a calculation.
+    """
+    pass
+
+class CalculatorFailed(CalculatorError):
+    """Calculation failed unexpectedly.
+
+    Reasons to raise this error are:
+      * Calculation did not converge.
+      * Calculation ran out of memory
+
+    Typically raised during calculation.
+    """
+    pass
+
+
+class ReadError(CalculatorError):
     pass
 
 
@@ -325,7 +352,7 @@ class Calculator(object):
                 # Atoms were read from file.  Update atoms:
                 if not (equal(atoms.numbers, self.atoms.numbers) and
                         (atoms.pbc == self.atoms.pbc).all()):
-                    raise RuntimeError('Atoms not compatible with file')
+                    raise CalculatorError('Atoms not compatible with file')
                 atoms.positions = self.atoms.positions
                 atoms.cell = self.atoms.cell
 
@@ -644,7 +671,7 @@ class FileIOCalculator(Calculator):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
-            raise RuntimeError(
+            raise CalculatorSetupError(
                 'Please set ${} environment variable '
                 .format('ASE_' + self.name.upper() + '_COMMAND') +
                 'or supply the command keyword')
@@ -652,8 +679,9 @@ class FileIOCalculator(Calculator):
         errorcode = subprocess.call(command, shell=True, cwd=self.directory)
 
         if errorcode:
-            raise RuntimeError('{} in {} returned an error: {}'
-                               .format(self.name, self.directory, errorcode))
+            raise CalculationFailed('{} in {} returned an error: {}'
+                                    .format(self.name, self.directory,
+                                            errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):
