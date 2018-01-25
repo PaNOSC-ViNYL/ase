@@ -63,7 +63,7 @@ class Images:
         except RuntimeError:
             return None
         else:
-            return np.tile(F.T, self.repeat.prod()).T
+            return F
 
     def initialize(self, images, filenames=None, init_magmom=False):
         nimages = len(images)
