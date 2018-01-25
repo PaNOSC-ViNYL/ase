@@ -319,7 +319,8 @@ class PreconLBFGS(Optimizer):
                     func_prime_start=g,
                     func_old=self.e0,
                     rigid_units=self.rigid_units,
-                    rotation_factors=self.rotation_factors)
+                    rotation_factors=self.rotation_factors,
+                    maxstep=self.maxstep)
                 self.e0 = e
                 self.e1 = func_val
                 self.alpha_k = step
