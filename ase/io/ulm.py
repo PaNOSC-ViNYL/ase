@@ -102,14 +102,31 @@ def writeint(fd, n, pos=None):
     a = np.array(n, np.int64)
     if not np.little_endian:
         a.byteswap(True)
-    a.tofile(fd)
+    fd.write(a.tobytes())
 
 
 def readints(fd, n):
-    a = np.fromfile(fd, np.int64, n)
+    a = np.fromstring(string=fd.read(int(n * 8)), dtype=np.int64, count=n)
     if not np.little_endian:
         a.byteswap(True)
     return a
+
+
+def file_has_fileno(fd):
+    """Tell whether file implements fileio() or not.
+
+    array.tofile(fd) works only on files with fileno().
+    numpy may write faster to physical files using fileno().
+
+    For files without fileno() we use instead fd.write(array.tobytes()).
+    Either way we need to distinguish."""
+
+    try:
+        fno = fd.fileno  # AttributeError?
+        fno()  # IOError/OSError?  (Newer python: OSError is IOError)
+    except (AttributeError, IOError):
+        return False
+    return True
 
 
 class Writer:
@@ -167,6 +184,8 @@ class Writer:
                 fd.seek(0, 2)
 
         self.fd = fd
+        self.hasfileno = file_has_fileno(fd)
+
         self.data = data
 
         # date for array being filled:
@@ -213,7 +232,10 @@ class Writer:
         self.nmissing -= a.size
         assert self.nmissing >= 0
 
-        a.tofile(self.fd)
+        if self.hasfileno:
+            a.tofile(self.fd)
+        else:
+            self.fd.write(a.tobytes())
 
     def sync(self):
         """Write data dictionary.
@@ -234,10 +256,13 @@ class Writer:
             offsets = np.zeros(n * N1, np.int64)
             offsets[:n] = self.offsets
             self.pos0 = align(self.fd)
-            if np.little_endian:
-                offsets.tofile(self.fd)
+
+            buf = offsets if np.little_endian else offsets.byteswap()
+
+            if self.hasfileno:
+                buf.tofile(self.fd)
             else:
-                offsets.byteswap().tofile(self.fd)
+                self.fd.write(buf.tobytes())
             writeint(self.fd, self.pos0, 40)
             self.offsets = offsets
 
@@ -441,7 +466,7 @@ class Reader:
 
     def _read_data(self, index):
         self._fd.seek(self._offsets[index])
-        size = readints(self._fd, 1)[0]
+        size = int(readints(self._fd, 1)[0])
         data = decode(self._fd.read(size).decode())
         return data
 
@@ -476,6 +501,7 @@ class Reader:
 class NDArrayReader:
     def __init__(self, fd, shape, dtype, offset, little_endian):
         self.fd = fd
+        self.hasfileno = file_has_fileno(fd)
         self.shape = tuple(shape)
         self.dtype = dtype
         self.offset = offset
@@ -505,11 +531,12 @@ class NDArrayReader:
         offset = self.offset + start * self.itemsize * stride
         self.fd.seek(offset)
         count = (stop - start) * stride
-        try:
+        if self.hasfileno:
             a = np.fromfile(self.fd, self.dtype, count)
-        except (AttributeError, IOError):
+        else:
             # Not as fast, but works for reading from tar-files:
-            a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
+            a = np.fromstring(self.fd.read(int(count * self.itemsize)),
+                              self.dtype)
         a.shape = (stop - start,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()
