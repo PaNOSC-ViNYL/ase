@@ -49,6 +49,6 @@ for AtomId in AtomIdsToBondIds:
         Newconnectivitymatrix[i,j] = 1
 for i in range(0,4):
     for j in range(0,4):
-        assert connectivitymatrix[i,j] == connectivitymatrix[j,i]
+        assert connectivitymatrix[i,j] == Newconnectivitymatrix[i,j]
 
 
