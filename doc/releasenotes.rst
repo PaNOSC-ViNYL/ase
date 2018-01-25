@@ -24,7 +24,24 @@ Git master branch
 
 * Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
 
-* New cell editor for the GUI
+* New cell editor for the GUI.
+
+* :meth:`ase.db.Database.write` method now takes a ``id`` that allows you to
+  overwrite an existing row.
+
+* The :meth:`ase.db.Database.update` can now update the Atoms and the data
+  parts of a row.
+
+* The :meth:`ase.db.Database.update` will no longer accept a list of
+  row ID's as the first argument.  Replace this::
+
+      db.update(ids, ...)
+
+  with::
+
+      with db:
+          for id in ids:
+              db.update(id, ...)
 
 
 Version 3.15.0
