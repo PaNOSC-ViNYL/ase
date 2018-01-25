@@ -1141,6 +1141,12 @@ End CASTEP Interface Documentation
             - clear (True): clear previous settings
             - suffix (usp): PP file suffix
         """
+        if self._find_pspots:
+            if self._pedantic:
+                print('Warning: <_find_pspots> = True')
+                print('Do you really want to use `set_pspots()`')
+                print('This does not check whether the PP files exist.')
+                print('You may rather want to use `find_pspots()` with the same <pspot>.')
 
         if clear and not elems and not notelems:
             self.cell.species_pot.clear()
