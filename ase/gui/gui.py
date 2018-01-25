@@ -255,8 +255,6 @@ class GUI(View, Status):
         from ase.io.trajectory import imagestobytes
         if len(self.images) <= 1:
             return  # XXX raise error!
-        N = self.images.repeat.prod()
-        natoms = len(self.images[0]) // N
         process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
                                    stdin=subprocess.PIPE)
         process.stdin.write(imagestobytes(self.images))

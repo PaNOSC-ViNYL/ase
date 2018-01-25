@@ -1,7 +1,5 @@
-import io
 from ase.build import bulk
 from ase.collections import g2
-from ase.io import iread, write
 from ase.io.trajectory import bytestoimages, imagestobytes
 
 images = [bulk('Si') + bulk('Fe')] + list(g2)

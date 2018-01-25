@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
-import pickle
-import sys
 import threading
 from math import sqrt
 
 import numpy as np
 
 import ase.parallel as mpi
-from ase import Atoms
 from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -632,7 +629,7 @@ def main():
     from ase.utils import read_traj_from_stdin
     images = read_traj_from_stdin()
     nebtools = NEBtools(images)
-    fig = nebtools.plot_band()
+    nebtools.plot_band()
     plt.show()
 
 
