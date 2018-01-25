@@ -299,6 +299,8 @@ class Database:
             Dictionary of key-value pairs.  Values must be strings or numbers.
         data: dict
             Extra stuff (not for searching).
+        id: int
+            Overwrite existing row.
 
         Key-value pairs can also be set using keyword arguments::
 
@@ -476,6 +478,10 @@ class Database:
 
         id: int
             ID of row to update.
+        atoms: Atoms object
+            Optionally update the Atoms data (positions, cell, ...).
+        data: dict
+            Data dict to be added to the existing data.
         delete_keys: list of str
             Keys to remove.
 
@@ -484,8 +490,15 @@ class Database:
         Returns number of key-value pairs added and removed.
         """
 
-        if not isinstance(id, int):
-            raise TypeError()
+        if not isinstance(id, numbers.Integral):
+            if isinstance(id, list):
+                err = ('First argument must be an int and not a list.\n'
+                       'Do something like this instead:\n\n'
+                       'with db:\n'
+                       '    for id in ids:\n'
+                       '        db.update(id, ...)')
+                raise ValueError(err)
+            raise TypeError('id must be an int')
 
         check(add_key_value_pairs)
 
