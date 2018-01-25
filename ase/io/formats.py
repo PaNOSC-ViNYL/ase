@@ -617,7 +617,7 @@ def filetype(filename, read=True, guess=True):
         fd.seek(0)
 
     if len(data) == 0:
-        raise IOError('Empty file: ' + filename)
+        raise UnknownFileTypeError('Empty file: ' + filename)
 
     if data.startswith(b'CDF'):
         # We can only recognize these if we actually have the netCDF4 module.
