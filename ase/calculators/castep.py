@@ -1191,7 +1191,7 @@ End CASTEP Interface Documentation
 
         if not os.path.isdir(self._castep_pp_path):
             if self._pedantic:
-                print('Cannot search <castep_pp_path>, non-existent'.format(elem))
+                print('Cannot search directory:\n    {}\nFolder does not exist'.format(self._castep_pp_path))
             return
 
         # translate the bash wildcard syntax to regex
