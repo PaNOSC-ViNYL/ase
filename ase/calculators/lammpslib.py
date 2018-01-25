@@ -276,6 +276,10 @@ End LAMMPSlib Interface Documentation
         read_molecular_info=False,
         comm=None)
 
+    def __init__(self, *args, **kwargs):
+        Calculator.__init__(self, *args, **kwargs)
+        self.lmp = None
+
     def __del__(self):
         if self.started:
             self.lmp.close()
@@ -365,17 +369,12 @@ End LAMMPSlib Interface Documentation
         if self.parameters.atom_types is None:
             raise NameError("atom_types are mandatory.")
 
-        do_rebuild = False
-        do_redo_atom_types = False
-        try:
-            do_rebuild = ((len(atoms.numbers) !=
-                           len(self.previous_atoms_numbers)) or
-                          ("numbers" in system_changes))
-            if not do_rebuild:
-                do_redo_atom_types = (atoms.numbers !=
-                                      self.previous_atoms_numbers).any()
-        except Exception:
-            pass
+        do_rebuild = (not np.array_equal(atoms.numbers, self.previous_atoms_numbers)
+                      or ("numbers" in system_changes))
+        if not do_rebuild:
+            do_redo_atom_types = not np.array_equal(atoms.numbers, self.previous_atoms_numbers)
+        else:
+            do_redo_atom_types = False
 
         self.lmp.command('echo none')  # don't echo the atom positions
         if do_rebuild:
@@ -478,6 +477,9 @@ End LAMMPSlib Interface Documentation
         else:
             self.results['forces'] = f.copy()
 
+        # otherwise check_state will always trigger a new calculation
+        self.atoms = atoms.copy()
+
         if not self.parameters.keep_alive:
             self.lmp.close()
 
@@ -556,7 +558,7 @@ End LAMMPSlib Interface Documentation
 
         self.cmd_args = cmd_args
 
-        if not hasattr(self, 'lmp'):
+        if self.lmp is None:
             self.lmp = lammps(self.parameters.lammps_name, self.cmd_args,
                               comm=self.parameters.comm)
 
@@ -568,7 +570,7 @@ End LAMMPSlib Interface Documentation
             if "units" in cmd:
                 self.units = cmd.split()[1]
 
-        if hasattr(self.parameters, "lammps_header_extra"):
+        if 'lammps_header_extra' in self.parameters:
             if self.parameters.lammps_header_extra is not None:
                 for cmd in self.parameters.lammps_header_extra:
                     self.lmp.command(cmd)

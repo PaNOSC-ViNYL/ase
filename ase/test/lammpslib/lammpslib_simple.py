@@ -34,6 +34,12 @@ S = nickel.get_stress()
 print('Energy: ', E)
 print('Forces:', F)
 print('Stress: ', S)
+print()
+
+E = nickel.get_potential_energy()
+F = nickel.get_forces()
+S = nickel.get_stress()
+
 
 lammps = LAMMPSlib(lmpcmds=cmds,
                    log_file='test.log', keep_alive=True)
@@ -46,6 +52,31 @@ S2 = nickel.get_stress()
 assert np.allclose(E, E2)
 assert np.allclose(F, F2)
 assert np.allclose(S, S2)
+
+nickel.rattle(stdev=0.2)
+E3 = nickel.get_potential_energy()
+F3 = nickel.get_forces()
+S3 = nickel.get_stress()
+
+print('rattled atoms')
+print('Energy: ', E3)
+print('Forces:', F3)
+print('Stress: ', S3)
+print()
+
+assert not np.allclose(E, E3)
+assert not np.allclose(F, F3)
+assert not np.allclose(S, S3)
+
+nickel += Atom('H', position=nickel.cell.diagonal()/4)
+E4 = nickel.get_potential_energy()
+F4 = nickel.get_forces()
+S4 = nickel.get_stress()
+
+assert not np.allclose(E4, E3)
+assert not np.allclose(F4[:-1,:], F3)
+assert not np.allclose(S4, S3)
+
 
 # the example from the docstring
 
