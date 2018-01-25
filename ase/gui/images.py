@@ -142,7 +142,11 @@ class Images:
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index, filetype)
+            if filename == '-':
+                from ase.utils import read_traj_from_stdin
+                i = list(read_traj_from_stdin())
+            else:
+                i = read(filename, index, filetype)
 
             if not isinstance(i, list):
                 i = [i]
