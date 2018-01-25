@@ -39,7 +39,7 @@ for AtomId in AtomIdsToBondIds:
         assert AtomId in BondIdsToConnectedAtomIds[BondId]
 
 # make connectivity graph and see if it matches with input.
-AtomIds = AtomIdsToBondIds.keys()
+AtomIds = list(AtomIdsToBondIds.keys())
 Newconnectivitymatrix = np.zeros((5,5))
 for AtomId in AtomIdsToBondIds:
     for BondId in AtomIdsToBondIds[AtomId]:
