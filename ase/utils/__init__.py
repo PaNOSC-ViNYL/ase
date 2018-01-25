@@ -332,3 +332,15 @@ def natural_cutoffs(atoms, mult=1, **kwargs):
 def longsum(x):
     """128-bit floating point sum."""
     return float(np.asarray(x, dtype=np.longdouble).sum())
+
+
+# Utility function e.g. for passing atoms objects to another process
+def read_traj_from_stdin():
+    import sys
+    from ase.io.trajectory import bytestoimages
+    try:
+        fd = sys.stdin.buffer
+    except AttributeError:  # Py2
+        fd = sys.stdin
+    images = bytestoimages(fd.read())
+    return images

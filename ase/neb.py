@@ -629,12 +629,8 @@ def interpolate(images, mic=False):
 
 def main():
     import matplotlib.pyplot as plt
-    from ase.io.trajectory import bytestoimages
-    try:
-        fd = sys.stdin.buffer
-    except AttributeError:  # Py2
-        fd = sys.stdin
-    images = bytestoimages(fd.read())
+    from ase.utils import read_traj_from_stdin
+    images = read_traj_from_stdin()
     nebtools = NEBtools(images)
     fig = nebtools.plot_band()
     plt.show()

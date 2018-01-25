@@ -34,12 +34,8 @@ class CLICommand:
     @staticmethod
     def run(args, parser):
         if args.name == '-':
-            from ase.io.trajectory import bytestoimages
-            try:
-                fd = sys.stdin.buffer
-            except AttributeError:  # Py2
-                fd = sys.stdin
-            images = bytestoimages(fd.read())
+            from ase.utils import read_traj_from_stdin
+            images = read_traj_from_stdin()
             if len(images) > 1:
                 parser.error('Only one image supported, but got {}'
                              .format(len(images)))
