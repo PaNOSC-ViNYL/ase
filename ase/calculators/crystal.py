@@ -176,7 +176,7 @@ class CRYSTAL(FileIOCalculator):
                 outfile.write(str(self.kpts[0])
                               + ' 1 1 \n')
 
-        # GRADCAL command performs a single 
+        # GRADCAL command performs a single
         # point and prints out the forces
         # also on the charges
         outfile.write('GRADCAL \n')
@@ -201,7 +201,7 @@ class CRYSTAL(FileIOCalculator):
 
         with open(os.path.join(self.directory, 'OUTPUT'), 'r') as myfile:
             self.lines = myfile.readlines()
-	
+
         self.atoms = self.atoms_input
         # Energy line index
         estring1 = 'SCF ENDED'
@@ -209,7 +209,7 @@ class CRYSTAL(FileIOCalculator):
         for iline, line in enumerate(self.lines):
             if line.find(estring1) >= 0:
                 index_energy = iline
-		pos_en = 8
+                pos_en = 8
                 break
         else:
             raise RuntimeError('Problem in reading energy')
@@ -218,7 +218,7 @@ class CRYSTAL(FileIOCalculator):
         for iline, line in enumerate(self.lines):
             if line.find(estring2) >= 0:
                 index_energy = iline
-		pos_en = 5
+                pos_en = 5
         energy = float(self.lines[index_energy].split()[pos_en]) * Hartree
         self.results['energy'] = energy
         # Force line indexes
@@ -280,14 +280,12 @@ class CRYSTAL(FileIOCalculator):
                 i = i + 1
         charges = np.array(qm_charges)
         self.results['charges'] = charges
-    
         ### Read dipole moment.
-        
         dipole = np.zeros([1, 3])
         for n, line in enumerate(self.lines):
             if 'DIPOLE MOMENT ALONG' in line:
                 dipolestart = n + 2
-                dipole = np.array([float(f) for f in 
+                dipole = np.array([float(f) for f in
                                    self.lines[dipolestart].split()[2:5]])
                 break
         # debye to e*Ang
