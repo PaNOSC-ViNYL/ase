@@ -10,6 +10,10 @@ Git master branch
 
 :git:`master <>`.
 
+* Castep calculator: option for automatic detection of pseudopotential files from a given directory (castep_pp_path); support for GBRV pseudopotential library; updated outfile parsing to comply with CASTEP 18.1.
+
+* New LAMMPS calculator LAMMPSlib utilizing the Python bindings provided by LAMMPS instead of file I/O. Very basic calculator but can serve as base class for more sophisticated ones.
+
 * Support for µSTEM xtl data format.
 
 * New scanning tunnelling spectroscopy (STS) mode for
