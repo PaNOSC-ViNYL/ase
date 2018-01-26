@@ -4,6 +4,7 @@ import os
 import pickle
 import sys
 import time
+import string
 from importlib import import_module
 from math import sin, cos, radians, atan2, degrees
 from contextlib import contextmanager
@@ -191,6 +192,54 @@ class OpenLock:
 
     def __exit__(self, type, value, tb):
         pass
+
+
+def search_current_git_hash(arg, world=None):
+    """Search for .git directory and current git commit hash.
+
+    Parameters:
+
+    arg: str (directory path) or python module
+        .git directory is searched from the parent directory of
+        the given directory or module.
+    """
+    if world is None:
+        from ase.parallel import world
+    if world.rank != 0:
+        return None
+
+    # Check argument
+    if isinstance(arg, basestring):
+        # Directory path
+        dpath = arg
+    else:
+        # Assume arg is module
+        dpath = os.path.dirname(arg.__file__)
+    dpath = os.path.abspath(dpath)
+    dpath = os.path.dirname(dpath)  # Go to the parent directory
+    git_dpath = os.path.join(dpath, '.git')
+    if not os.path.isdir(git_dpath):
+        # Replace this 'if' with a loop if you want to check
+        # further parent directories
+        return None
+    HEAD_file = os.path.join(git_dpath, 'HEAD')
+    if not os.path.isfile(HEAD_file):
+        return None
+    with open(HEAD_file, 'r') as f:
+        line = f.readline().strip()
+    if line.startswith('ref: '):
+        ref = line[5:]
+        ref_file = os.path.join(git_dpath, ref)
+    else:
+        # Assuming detached HEAD state
+        ref_file = HEAD_file
+    if not os.path.isfile(ref_file):
+        return None
+    with open(ref_file, 'r') as f:
+        line = f.readline().strip()
+    if all(c in string.hexdigits for c in line):
+        return line
+    return None
 
 
 def rotate(rotations, rotation=np.identity(3)):
