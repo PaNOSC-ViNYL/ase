@@ -50,7 +50,7 @@ ARGS = string.join(sys.argv[1:],' ')
 def RunSerialDacapo(ARGS):
     DACAPOEXE = os.environ.get('DACAPOEXE_SERIAL')
     if DACAPOEXE is None:
-        raise Exception, 'DACAPOEXE_SERIAL was not found in your environment'
+        raise Exception('DACAPOEXE_SERIAL was not found in your environment')
     cmd = string.join([DACAPOEXE,ARGS],' ')
     status = os.system(cmd)
     if status != 0:
@@ -130,12 +130,12 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
             # UNDEFINED = fields[3]
             fields = string.split(line)
             if __debug__:
-                print fields
+                print(fields)
 
             nodename = fields[0]
             nprocs = int(fields[1])
             if __debug__:
-                print nodename,nprocs
+                print(nodename,nprocs)
             for n in range(nprocs):
                 nodeline = '%s\n' % (fields[0])
                 nf.write(nodeline)
@@ -145,9 +145,9 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
         nf.close()
 
         if __debug__:
-            print 'SGE_O_WORKDIR = ',os.environ.get('SGE_O_WORKDIR')
-            print 'NHOSTS = ',os.environ.get('NHOSTS')
-            print 'NSLOTS = ',os.environ.get('NSLOTS')
+            print('SGE_O_WORKDIR = ',os.environ.get('SGE_O_WORKDIR'))
+            print('NHOSTS = ',os.environ.get('NHOSTS'))
+            print('NSLOTS = ',os.environ.get('NSLOTS'))
 
 
     if NPROCS > 1:
@@ -155,9 +155,9 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
         MPICMD = 'mpirun -np %i' % NPROCS
         DACAPOEXE = os.environ.get('DACAPOEXE_PARALLEL')
         parcmd = string.join([MPICMD,DACAPOEXE,ARGS],' ')
-        if __debug__: print parcmd
+        if __debug__: print(parcmd)
 
-        print 'Running "%s"' % parcmd
+        print('Running "%s"' % parcmd)
         p = Popen(parcmd,
                   shell=True,
                   stdin=PIPE,
@@ -171,18 +171,18 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
 
         if status != 0:
             (sout,serr) = p.communicate()
-            print 'stdout = ',sout
-            print 'stderr = ',serr
+            print('stdout = ',sout)
+            print('stderr = ',serr)
             all_is_ok = False
-            print '**** the command failed ****'
+            print('**** the command failed ****')
 
         if not all_is_ok:
             sys.exit('"%s" failed' % parcmd)
 
-        print
-        print 'One iteration from parallel run complete'
-        print '*******************************************************'
-        print
+        print()
+        print('One iteration from parallel run complete')
+        print('*******************************************************')
+        print()
     else:
         RunSerialDacapo(ARGS)
    

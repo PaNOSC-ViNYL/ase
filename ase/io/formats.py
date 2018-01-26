@@ -31,7 +31,7 @@ import os
 import sys
 
 from ase.atoms import Atoms
-from ase.utils import import_module, basestring
+from ase.utils import import_module, basestring, PurePath
 from ase.parallel import parallel_function, parallel_generator
 
 
@@ -91,6 +91,8 @@ all_formats = {
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1F'),
     'mol': ('MDL Molfile', '1F'),
+    'mustem': ('muSTEM xtl file', '1F'),
+    'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
@@ -173,7 +175,13 @@ extension2format = {
     'shelx': 'res',
     'in': 'aims',
     'poscar': 'vasp',
-    'phonon': 'castep-phonon'}
+    'phonon': 'castep-phonon',
+    'xtl': 'mustem'}
+
+netcdfconventions2format = {
+    'http://www.etsf.eu/fileformats': 'etsf',
+    'AMBER': 'netcdftrajectory'
+}
 
 
 def initialize(format):
@@ -423,6 +431,8 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
     of ``filename``. In this case the format cannot be auto-decected,
     so the ``format`` argument should be explicitly given."""
 
+    if isinstance(filename, PurePath):
+        filename = str(filename)
     if isinstance(index, basestring):
         index = string2index(index)
     filename, index = parse_filename(filename, index)
@@ -607,14 +617,32 @@ def filetype(filename, read=True, guess=True):
         fd.seek(0)
 
     if len(data) == 0:
-        raise IOError('Empty file: ' + filename)
+        raise UnknownFileTypeError('Empty file: ' + filename)
+
+    if data.startswith(b'CDF'):
+        # We can only recognize these if we actually have the netCDF4 module.
+        try:
+            import netCDF4
+        except ImportError:
+            pass
+        else:
+            nc = netCDF4.Dataset(filename)
+            if 'Conventions' in nc.ncattrs():
+                if nc.Conventions in netcdfconventions2format:
+                    return netcdfconventions2format[nc.Conventions]
+                else:
+                    raise UnknownFileTypeError(
+                        "Unsupported NetCDF convention: "
+                        "'{}'".format(nc.Conventions))
+            else:
+                raise UnknownFileTypeError("NetCDF file does not have a "
+                                           "'Conventions' attribute.")
 
     for format, magic in [('traj', b'- of UlmASE-Trajectory'),
                           ('traj', b'AFFormatASE-Trajectory'),
                           ('gpw', b'- of UlmGPAW'),
                           ('gpw', b'AFFormatGPAW'),
                           ('trj', b'PickleTrajectory'),
-                          ('etsf', b'CDF'),
                           ('turbomole', b'$coord'),
                           ('turbomole-gradient', b'$grad'),
                           ('dftb', b'Geometry')]:

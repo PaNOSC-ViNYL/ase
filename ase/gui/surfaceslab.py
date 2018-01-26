@@ -107,7 +107,7 @@ class SetupSurfaceSlab:
                 symmetry = struct[1]
         if ref['symmetry'] != symmetry:
             # TRANSLATORS: E.g. "... assume fcc crystal structure for Au"
-            self.structure_warn.text = (_('Error: Reference values assume {}'
+            self.structure_warn.text = (_('Error: Reference values assume {} '
                                           'crystal structure for {}!').
                                         format(ref['symmetry'],
                                                self.element.symbol))

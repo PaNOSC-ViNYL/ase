@@ -17,7 +17,7 @@ a0.set_scaled_positions(s)
 nsteps = []
 energies = []
 for OPT in [PreconLBFGS, PreconFIRE]:
-    for precon in [None, Exp(A=3, use_pyamg=False)]:
+    for precon in [None, Exp(A=3, mu=1.0)]:
         atoms = a0.copy()
         atoms.set_calculator(EMT())
         opt = OPT(atoms, precon=precon, use_armijo=True)
@@ -33,7 +33,7 @@ cu0 = bulk("Cu") * (5, 5, 5)
 cu0.rattle(0.01)
 a0 = cu0.get_distance(0, 1)
 cons = [FixBondLength(0,1), FixAtoms([2,3])]
-for precon in [None, Exp()]:
+for precon in [None, Exp(mu=1.0)]:
     cu = cu0.copy()
     cu.set_calculator(EMT())
     cu.set_distance(0, 1, a0*1.2)

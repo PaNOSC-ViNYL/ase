@@ -32,12 +32,12 @@ for arg in args:
         nc = netCDF(arg,'r')
         energy = nc.variables.get('TotalEnergy',None)
         if energy is not None:
-            print energy[:][-1]
+            print(energy[:][-1])
         else:
-            print None
+            print(None)
         nc.close()
     else:
-        print calc
+        print(calc)
 
     if options.p is not None:
         if options.r is not None:

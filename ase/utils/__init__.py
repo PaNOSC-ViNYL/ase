@@ -13,6 +13,12 @@ try:
 except ImportError:
     from fractions import gcd
 
+try:
+    from pathlib import PurePath
+except ImportError:
+    class PurePath:
+        pass
+
 import numpy as np
 
 from ase.utils.formula import formula_hill, formula_metal
@@ -22,7 +28,7 @@ __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
            'opencew', 'OpenLock', 'rotate', 'irotate', 'givens',
            'hsv2rgb', 'hsv', 'pickleload', 'FileNotFoundError',
-           'formula_hill', 'formula_metal']
+           'formula_hill', 'formula_metal', 'PurePath']
 
 
 # Python 2+3 compatibility stuff:
@@ -148,7 +154,7 @@ def opencew(filename, world=None):
 
 class Lock:
     def __init__(self, name='lock', world=None):
-        self.name = name
+        self.name = str(name)
 
         if world is None:
             from ase.parallel import world

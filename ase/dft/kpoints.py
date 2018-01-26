@@ -290,10 +290,26 @@ def get_special_points(cell, lattice=None, eps=2e-4):
 
     if latt == 'monoclinic':
         # Transform From Niggli to Setyawana-Curtarolo cell:
-        T = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
-        scell = np.dot(T, rcell)
+        a, b, c, alpha, beta, gamma = cell_to_cellpar(rcell, radians=True)
+        if abs(beta - np.pi / 2) > eps:
+            T = np.array([[0, 1, 0],
+                          [-1, 0, 0],
+                          [0, 0, 1]])
+            scell = np.dot(T, rcell)
+        elif abs(gamma - np.pi / 2) > eps:
+            T = np.array([[0, 0, 1],
+                          [1, 0, 0],
+                          [0, -1, 0]])
+        else:
+            raise ValueError('You are using a badly oriented ' +
+                             'monoclinic unit cell. Please choose one with ' +
+                             'either beta or gamma != pi/2')
 
+        scell = np.dot(np.dot(T, rcell), T.T)
         a, b, c, alpha, beta, gamma = cell_to_cellpar(scell, radians=True)
+
+        assert alpha < np.pi / 2, 'Your monoclinic angle has to be < pi / 2'
+
         M = np.dot(M, T.T)
         eta = (1 - b * cos(alpha) / c) / (2 * sin(alpha)**2)
         nu = 1 / 2 - eta * c * cos(alpha) / b

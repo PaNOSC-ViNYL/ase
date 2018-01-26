@@ -35,7 +35,9 @@ class NGLDisplay:
                                args=['%dpx' % (xsize,), '%dpx' % (ysize,)])
         self.view.add_unitcell()
         self.view.add_spacefill()
+        self.view.remove_ball_and_stick()
         self.view.camera = 'orthographic'
+        self.view.parameters = { "clipDist": 0 }
         self.view.update_spacefill(radiusType='covalent',
                                    scale=0.8,
                                    color_scheme=self.csel.value,

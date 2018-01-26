@@ -36,7 +36,6 @@ class GUI(View, Status):
 
     def __init__(self, images=None,
                  rotations='',
-                 show_unit_cell=True,
                  show_bonds=False):
 
         # Try to change into directory of file you are viewing
@@ -54,7 +53,7 @@ class GUI(View, Status):
 
         self.config = read_defaults()
 
-        menu = self.get_menu_data(show_unit_cell, show_bonds)
+        menu = self.get_menu_data(show_bonds)
 
         self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
                                       config=self.config, scroll=self.scroll,
@@ -321,9 +320,9 @@ class GUI(View, Status):
         from ase.gui.celleditor import CellEditor
         CellEditor(self)
 
-    def quick_info_window(self):
+    def quick_info_window(self, key=None):
         from ase.gui.quickinfo import info
-        ui.Window('Quick Info').add(info(self))
+        ui.Window(_('Quick Info')).add(info(self))
 
     def bulk_window(self):
         SetupBulkCrystal(self)
@@ -412,7 +411,7 @@ class GUI(View, Status):
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
 
-    def get_menu_data(self, show_unit_cell, show_bonds):
+    def get_menu_data(self, show_bonds):
         M = ui.MenuItem
         return [
             (_('_File'),
@@ -426,8 +425,7 @@ class GUI(View, Status):
              [M(_('Select _all'), self.select_all),
               M(_('_Invert selection'), self.invert_selection),
               M(_('Select _constrained atoms'), self.select_constrained_atoms),
-              M(_('Select _immobile atoms'), self.select_immobile_atoms,
-                key='Ctrl+I'),
+              M(_('Select _immobile atoms'), self.select_immobile_atoms),
               #M('---'),
               # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
               # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
@@ -448,7 +446,7 @@ class GUI(View, Status):
 
             (_('_View'),
              [M(_('Show _unit cell'), self.toggle_show_unit_cell, 'Ctrl+U',
-                value=show_unit_cell > 0),
+                value=True),
               M(_('Show _axes'), self.toggle_show_axes, value=True),
               M(_('Show _bonds'), self.toggle_show_bonds, 'Ctrl+B',
                 value=show_bonds),
@@ -464,7 +462,7 @@ class GUI(View, Status):
                          _('_Initial Charges'),  # XXX check if exist
                 ]),
               M('---'),
-              M(_('Quick Info ...'), self.quick_info_window),
+              M(_('Quick Info ...'), self.quick_info_window, 'Ctrl+I'),
               M(_('Repeat ...'), self.repeat_window, 'R'),
               M(_('Rotate ...'), self.rotate_window),
               M(_('Colors ...'), self.colors_window, 'C'),

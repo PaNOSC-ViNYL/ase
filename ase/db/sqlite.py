@@ -15,6 +15,7 @@ Versions:
 
 from __future__ import absolute_import, print_function
 import json
+import numbers
 import os
 import sqlite3
 import sys
@@ -289,7 +290,7 @@ class SQLite3Database(Database, object):
         text_key_values = []
         number_key_values = []
         for key, value in key_value_pairs.items():
-            if isinstance(value, (float, int, np.bool_)):
+            if isinstance(value, (numbers.Real, np.bool_)):
                 number_key_values.append([key, float(value), id])
             else:
                 assert isinstance(value, basestring)
