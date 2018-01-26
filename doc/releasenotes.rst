@@ -28,7 +28,12 @@ Git master branch
 
 * Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
 
-* New cell editor for the GUI
+* New cell editor for the GUI.
+
+* Improved "quick info" dialog in the GUI.  The dialog now lists results
+  cached by the calculator.
+
+* The "add atoms" function now accepts identifiers for molecules in the G2 dataset.
 
 
 Version 3.15.0
