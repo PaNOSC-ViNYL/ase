@@ -3,6 +3,142 @@ from math import sqrt
 import numpy as np
 
 
+def mic(dr, cell, pbc=None):
+    """
+    Apply minimum image convention to an array of distance vectors.
+
+    Parameters
+    ----------
+    dr : array_like
+        Array of distance vectors.
+    cell : array_like
+        Simulation cell.
+    pbc : array_like, optional
+        Periodic boundary conditions in x-, y- and z-direction. Default is to
+        assume periodic boundaries in all directions.
+
+    Returns
+    -------
+    dr : array
+        Array of distance vectors, wrapped according to the minimum image
+        convention.
+    """
+    # Check where distance larger than 1/2 cell. Particles have crossed
+    # periodic boundaries then and need to be unwrapped.
+    rec = np.linalg.inv(cell)
+    if pbc is not None:
+        rec *= np.array(pbc, dtype=int).reshape(3,1)
+    dri = np.round(np.dot(dr, rec))
+
+    # Unwrap
+    return dr - np.dot(dri, cell)
+
+
+def neighbor_list(quantities, a, cutoff):
+    """
+    Compute a neighbor list for an atomic configuration.
+
+    Parameters
+    ----------
+    quantities : str
+        Quantities to compute by the neighbor list algorithm. Each character
+        in this string defines a quantity. They are returned in a tuple of
+        the same order. Possible quantities are
+            'i' : first atom index
+            'j' : second atom index
+            'd' : absolute distance
+            'D' : distance vector
+            'S' : shift vector (number of cell boundaries crossed by the bond
+                  between atom i and j). With the shift vector S, the
+                  distances d between can be computed as:
+                  D = a.positions[j]-a.positions[i]+S.dot(a.cell)
+    a : ase.Atoms
+        Atomic configuration.
+    cutoff : float or dict
+        Cutoff for neighbor search. If single float is given, a global cutoff
+        is used for all elements. A dictionary specifies cutoff for element
+        pairs. Specification accepts element numbers of symbols.
+        Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
+
+    Returns
+    -------
+    i, j, ... : array
+        Tuple with arrays for each quantity specified above. Indices in `i`
+        are returned in ascending order 0..len(a), but the order of (i,j)
+        pairs is not guaranteed.
+
+    Examples
+    --------
+    Examples assume Atoms object *a* and numpy imported as *np*.
+    1. Coordination counting:
+        i = neighbor_list('i', a, 1.85)
+        coord = np.bincount(i)
+
+    2. Coordination counting with different cutoffs for each pair of species
+        i = neighbor_list('i', a,
+                           {('H', 'H'): 1.1, ('C', 'H'): 1.3, ('C', 'C'): 1.85})
+        coord = np.bincount(i)
+
+    3. Pair distribution function:
+        d = neighbor_list('d', a, 10.00)
+        h, bin_edges = np.histogram(d, bins=100)
+        pdf = h/(4*np.pi/3*(bin_edges[1:]**3 - bin_edges[:-1]**3)) * a.get_volume()/len(a)
+
+    4. Pair potential:
+        i, j, d, D = neighbor_list('ijdD', a, 5.0)
+        energy = (-C/d**6).sum()
+        pair_forces = (6*C/d**5  * (D/d).T).T
+        forces_x = np.bincount(j, weights=pair_forces[:, 0], minlength=len(a)) - \
+                   np.bincount(i, weights=pair_forces[:, 0], minlength=len(a))
+        forces_y = np.bincount(j, weights=pair_forces[:, 1], minlength=len(a)) - \
+                   np.bincount(i, weights=pair_forces[:, 1], minlength=len(a))
+        forces_z = np.bincount(j, weights=pair_forces[:, 2], minlength=len(a)) - \
+                   np.bincount(i, weights=pair_forces[:, 2], minlength=len(a))
+
+    5. Dynamical matrix for a pair potential stored in a block sparse format:
+        from scipy.sparse import bsr_matrix
+        i_n, j_n, dr_nc, abs_dr_n = neighbor_list('ijDd', atoms)
+        energy = (dr_nc.T / abs_dr_n).T
+        dynmat = -(dde_n * (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3)).T).T \
+                 -(de_n / abs_dr_n * (np.eye(3, dtype=energy.dtype) - \
+                   (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3))).T).T
+        dynmat_bsr = bsr_matrix((dynmat, j_n, first_i), shape=(3*len(a), 3*len(a)))
+
+        Ddiag_icc = np.empty((len(a), 3, 3))
+        for x in range(3):
+            for y in range(3):
+                Ddiag_icc[:, x, y] = -np.bincount(i_n, weights=dynmat[:, x, y])
+
+        dynmat_bsr += bsr_matrix((Ddiag_icc, np.arange(len(a)), np.arange(len(a) + 1)),
+                                 shape=(3 * len(a), 3 * len(a)))
+
+    """
+    from matscipy.neighbours import neighbour_list
+    return neighbour_list(quantities, a, cutoff)
+
+
+def first_neighbors(l, i):
+    """
+    Compute an index array pointing to the ranges within the neighbor list that
+    contain the neighbors for a certain atom.
+
+    Parameters
+    ----------
+    l : int
+        Total number of atom.
+    i : array_like
+        First atom index 'i' of the neighbor list.
+
+    Returns
+    -------
+    s : array
+        Array containing pointers to the start and end location of the neighbors
+        of a certain atom. Neighbors of atom k have indices from s[k] to
+        s[k+1]-1.
+    """
+    from matscipy.neighbours import first_neighbours
+    return first_neighbours(l, i)
+
 class NeighborList:
     """Neighbor list object.
 
