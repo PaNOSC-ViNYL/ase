@@ -97,24 +97,149 @@ def neighbor_list(quantities, a, cutoff):
 
     5. Dynamical matrix for a pair potential stored in a block sparse format:
         from scipy.sparse import bsr_matrix
-        i_n, j_n, dr_nc, abs_dr_n = neighbor_list('ijDd', atoms)
-        energy = (dr_nc.T / abs_dr_n).T
-        dynmat = -(dde_n * (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3)).T).T \
-                 -(de_n / abs_dr_n * (np.eye(3, dtype=energy.dtype) - \
+        i, j, dr, abs_dr = neighbor_list('ijDd', atoms)
+        energy = (dr.T / abs_dr).T
+        dynmat = -(dde * (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3)).T).T \
+                 -(de / abs_dr * (np.eye(3, dtype=energy.dtype) - \
                    (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3))).T).T
-        dynmat_bsr = bsr_matrix((dynmat, j_n, first_i), shape=(3*len(a), 3*len(a)))
+        dynmat_bsr = bsr_matrix((dynmat, j, first_i), shape=(3*len(a), 3*len(a)))
 
         Ddiag_icc = np.empty((len(a), 3, 3))
         for x in range(3):
             for y in range(3):
-                Ddiag_icc[:, x, y] = -np.bincount(i_n, weights=dynmat[:, x, y])
+                Ddiag_icc[:, x, y] = -np.bincount(i, weights=dynmat[:, x, y])
 
         dynmat_bsr += bsr_matrix((Ddiag_icc, np.arange(len(a)), np.arange(len(a) + 1)),
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
-    from matscipy.neighbours import neighbour_list
-    return neighbour_list(quantities, a, cutoff)
+    # Reciprocal lattice vectors
+    b1_c, b2_c, b3_c = np.linalg.inv(a.cell).T
+
+    # Distances of cell faces
+    face_dist_c = np.array([1 / np.linalg.norm(b1_c),
+                            1 / np.linalg.norm(b2_c),
+                            1 / np.linalg.norm(b3_c)])
+
+    # Number of bins
+    nbins_c = (face_dist_c/cutoff).astype(int)
+    nbins = np.prod(nbins_c)
+
+    # Sort atoms into bins
+    spos_ic = a.get_scaled_positions()
+    bin_index_ic = (spos_ic*nbins_c).astype(int) % nbins
+
+    # Convert Cartesian bin index to unique scalar bin index and sort by this
+    # index
+    bin_index_i = bin_index_ic[:, 0] + \
+                  nbins_c[0] * (bin_index_ic[:, 1] + \
+                                nbins_c[1] * bin_index_ic[:, 2])
+
+    # Sort by bin index
+    i = np.argsort(bin_index_i)
+    atom_i = np.arange(len(a))[i]
+    bin_index_i = bin_index_i[i]
+    bin_index_ic = bin_index_ic[i]
+
+    # binatom_i contains a consecutive number within each bin
+    binatom_i = np.arange(len(a))
+
+    # Find max number of atoms per bin
+    nat_per_bin_b = np.bincount(bin_index_i, minlength=nbins).max()
+    max_nat_per_bin = nat_per_bin_b.max()
+
+    # Create a homogeneous array, assigning atoms to bin index
+    bins_ba = -np.ones([nbins, max_nat_per_bin], dtype=int)
+    for i in range(max_nat_per_bin):
+        m = np.append([True], bin_index_i[:-1] != bin_index_i[1:])
+        bins_ba[bin_index_i[m], i] = atom_i[m]
+
+        # Remove atoms that we just sorted into bins_ba
+        m = np.logical_not(m)
+        atom_i = atom_i[m]
+        bin_index_i = bin_index_i[m]
+
+    # Now we construct neighbor pairs by pairing up all atoms within a bin or
+    # between bin and neighboring bin
+    ix = np.indices((max_nat_per_bin, max_nat_per_bin), dtype=int)
+    ix = ix.reshape(2, -1).T
+
+    i_n = []
+    j_n = []
+    S_n = []
+
+    # Loop over neighboring bins
+    bx = np.arange(nbins_c[0]).reshape(-1, 1, 1)
+    by = np.arange(nbins_c[1]).reshape(1, -1, 1)
+    bz = np.arange(nbins_c[2]).reshape(1, 1, -1)
+    b = (bx + nbins_c[0] * (by + nbins_c[1] * bz)).ravel()
+    for dz in range(-1, 2):
+        for dy in range(-1, 2):
+            for dx in range(-1, 2):
+                # First atom in pair
+                i_n += [bins_ba[b][ix[:, 0]]]
+
+                # Bin index of neighboring bin and shift vector
+                sx, bx1 = np.divmod(bx + dx, nbins_c[0])
+                sy, by1 = np.divmod(by + dy, nbins_c[1])
+                sz, bz1 = np.divmod(bz + dz, nbins_c[2])
+                b1 = (bx1 + nbins_c[0] * (by1 + nbins_c[1] * bz1)).ravel()
+                
+                # Second atom in pair
+                j_n += [bins_ba[b1][ix[:, 1]]]
+
+                # Shift vectors
+                S_n += [
+                    np.repeat(
+                        np.repeat(np.transpose([sx, sy, sz]).reshape(1, 1, 3),
+                                  max_nat_per_bin**2,
+                                  axis=0),
+                              max_nat_per_bin,
+                              axis=1)]
+
+    # Flatten overall neighbor list
+    i_n = np.ravel(i_n)
+    j_n = np.ravel(j_n)
+    S_n = np.ravel(S_n).reshape(-1, 3)
+
+    # We have created too many pairs because we assumed each bin has exactly
+    # max_nat_per_bin atoms. Remove all surperfluous pairs
+    m = np.logical_and(i_n != -1, j_n != -1)
+    i_n = i_n[m]
+    j_n = j_n[m]
+    S_n = S_n[m]
+
+    # Remove self-pairs
+    m = i_n != j_n
+    i_n = i_n[m]
+    j_n = j_n[m]
+    S_n = S_n[m]
+
+    # Sort neighbor list
+    i = np.argsort(i_n)
+    i_n = i_n[i]
+    j_n = j_n[i]
+    S_n = S_n[i]
+
+    # Assemble return tuple
+    retvals = []
+    if 'd' in quantities or 'D' in quatities:
+        # Compute distance vectors
+        dr_nc = a.positions[j_n] - a.positions[i_n] + S_n.dot(a.cell)
+    for q in quantities:
+        if q == 'i':
+            retvals += [i_n]
+        elif q == 'j':
+            retvals += [j_n]
+        elif q == 'D':
+            retvals += [dr_nc]
+        elif q == 'd':
+            retvals += [np.sqrt(np.sum(dr_nc*dr_nc, axis=1))]
+        elif q == 'S':
+            retvals += [S_n]
+        else:
+            raise ValueError('Unsupported quantity specified.')
+    return tuple(retvals)
 
 
 def first_neighbors(nat, i):
@@ -147,6 +272,7 @@ def first_neighbors(nat, i):
         s[m] = s[np.arange(nat+1)[m]+1]
         m = s == -1
     return s
+
 
 class NeighborList:
     """Neighbor list object.

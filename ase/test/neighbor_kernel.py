@@ -1,3 +1,5 @@
+import os.path
+
 import unittest
 
 import numpy as np
@@ -13,7 +15,7 @@ tol = 1e-7
 
 # test_neighbor_list
 for pbc in [True, False, [True, False, True]]:
-    a = io.read('aC.cfg')
+    a = io.read(os.path.dirname(__file__)+'aC.cfg')
     a.set_pbc(pbc)
     j, dr, i, abs_dr, shift = neighbor_list("jDidS", a, 1.85)
 
