@@ -109,7 +109,7 @@ for sx in range(3):
 
 # test_first_neighbors
 i = [1,1,1,1,3,3,3]
-assert (first_neighbors(5, i) == np.array([-1,0,-1,4,-1,7])).all()
+assert (first_neighbors(5, i) == np.array([0,0,4,4,7,7])).all()
 i = [0,1,2,3,4,5]
 assert (first_neighbors(6, i) == np.array([0,1,2,3,4,5,6])).all()
 

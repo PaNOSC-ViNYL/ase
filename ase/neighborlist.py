@@ -117,14 +117,14 @@ def neighbor_list(quantities, a, cutoff):
     return neighbour_list(quantities, a, cutoff)
 
 
-def first_neighbors(l, i):
+def first_neighbors(nat, i):
     """
     Compute an index array pointing to the ranges within the neighbor list that
     contain the neighbors for a certain atom.
 
     Parameters
     ----------
-    l : int
+    nat : int
         Total number of atom.
     i : array_like
         First atom index 'i' of the neighbor list.
@@ -136,8 +136,17 @@ def first_neighbors(l, i):
         of a certain atom. Neighbors of atom k have indices from s[k] to
         s[k+1]-1.
     """
-    from matscipy.neighbours import first_neighbours
-    return first_neighbours(l, i)
+    s = -np.ones(nat+1, dtype=int)
+    i = np.asarray(i)
+    m = i[:-1] != i[1:]
+    s[i[0]] = 0
+    s[-1] = len(i)
+    s[i[1:][m]] = (np.arange(len(m))+1)[m]
+    m = s == -1
+    while m.any():
+        s[m] = s[np.arange(nat+1)[m]+1]
+        m = s == -1
+    return s
 
 class NeighborList:
     """Neighbor list object.
