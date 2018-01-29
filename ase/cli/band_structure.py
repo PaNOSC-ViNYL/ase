@@ -19,7 +19,7 @@ class CLICommand:
     @staticmethod
     def add_arguments(parser):
         parser.add_argument('calculation',
-                            help='Path to output file(s) from calculation')
+                            help='Path to output file(s) from calculation.')
         parser.add_argument('-q', '--quiet', action='store_true')
         parser.add_argument('-k', '--path', help='Example "GXL".')
         parser.add_argument('-n', '--points', type=int, default=100,
@@ -62,7 +62,7 @@ def main(args, parser):
             try:
                 cs = crystal_structure_from_cell(cell)
             except ValueError:
-                err += ('\nGPAW cannot autimatically '
+                err += ('\nASE cannot automatically '
                         'recognize this crystal structure')
             else:
                 from ase.dft.kpoints import special_paths

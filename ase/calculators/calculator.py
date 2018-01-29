@@ -16,6 +16,31 @@ class PropertyNotImplementedError(NotImplementedError):
     pass
 
 
+
+def compare_atoms(atoms1, atoms2, tol=1e-15):
+    """Check for system changes since last calculation."""
+    if atoms1 is None:
+        system_changes = all_changes[:]
+    else:
+        system_changes = []
+        if not equal(atoms1.positions, atoms2.positions, tol):
+            system_changes.append('positions')
+        if not equal(atoms1.numbers, atoms2.numbers):
+            system_changes.append('numbers')
+        if not equal(atoms1.cell, atoms2.cell, tol):
+            system_changes.append('cell')
+        if not equal(atoms1.pbc, atoms2.pbc):
+            system_changes.append('pbc')
+        if not equal(atoms1.get_initial_magnetic_moments(),
+                     atoms2.get_initial_magnetic_moments(), tol):
+            system_changes.append('initial_magmoms')
+        if not equal(atoms1.get_initial_charges(),
+                     atoms2.get_initial_charges(), tol):
+            system_changes.append('initial_charges')
+
+    return system_changes
+
+
 all_properties = ['energy', 'forces', 'stress', 'dipole',
                   'charges', 'magmom', 'magmoms', 'free_energy']
 
@@ -27,7 +52,7 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 # Recognized names of calculators sorted alphabetically:
 names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'crystal', 'demon', 'dftb',
          'dmol', 'eam', 'elk', 'emt', 'espresso', 'exciting', 'fleur',
-         'gaussian', 'gpaw', 'gromacs', 'gulp','hotbit', 'jacapo', 'lammps',
+         'gaussian', 'gpaw', 'gromacs', 'gulp', 'hotbit', 'jacapo', 'lammpsrun',
          'lammpslib', 'lj', 'mopac', 'morse', 'nwchem', 'octopus', 'onetep',
          'siesta', 'tip3p', 'turbomole', 'vasp']
 
@@ -39,8 +64,8 @@ special = {'cp2k': 'CP2K',
            'emt': 'EMT',
            'crystal': 'CRYSTAL',
            'fleur': 'FLEUR',
-           'gulp' : 'GULP',
-           'lammps': 'LAMMPS',
+           'gulp': 'GULP',
+           'lammpsrun': 'LAMMPS',
            'lammpslib': 'LAMMPSlib',
            'lj': 'LennardJones',
            'mopac': 'MOPAC',
@@ -227,7 +252,7 @@ class Parameters(dict):
     def tostring(self):
         keys = sorted(self)
         return 'dict(' + ',\n     '.join(
-            '%s=%r' % (key, self[key]) for key in keys) + ')\n'
+            '{}={!r}'.format(key, self[key]) for key in keys) + ')\n'
 
     def write(self, filename):
         file = open(filename, 'w')
@@ -235,7 +260,7 @@ class Parameters(dict):
         file.close()
 
 
-class Calculator:
+class Calculator(object):
     """Base-class for all ASE calculators.
 
     A calculator must raise PropertyNotImplementedError if asked for a
@@ -417,26 +442,7 @@ class Calculator:
 
     def check_state(self, atoms, tol=1e-15):
         """Check for system changes since last calculation."""
-        if self.atoms is None:
-            system_changes = all_changes[:]
-        else:
-            system_changes = []
-            if not equal(self.atoms.positions, atoms.positions, tol):
-                system_changes.append('positions')
-            if not equal(self.atoms.numbers, atoms.numbers):
-                system_changes.append('numbers')
-            if not equal(self.atoms.cell, atoms.cell, tol):
-                system_changes.append('cell')
-            if not equal(self.atoms.pbc, atoms.pbc):
-                system_changes.append('pbc')
-            if not equal(self.atoms.get_initial_magnetic_moments(),
-                         atoms.get_initial_magnetic_moments(), tol):
-                system_changes.append('initial_magmoms')
-            if not equal(self.atoms.get_initial_charges(),
-                         atoms.get_initial_charges(), tol):
-                system_changes.append('initial_charges')
-
-        return system_changes
+        return compare_atoms(self.atoms, atoms)
 
     def get_potential_energy(self, atoms=None, force_consistent=False):
         energy = self.get_property('energy', atoms)
@@ -638,20 +644,16 @@ class FileIOCalculator(Calculator):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.write_input(self.atoms, properties, system_changes)
         if self.command is None:
-            raise RuntimeError('Please set $%s environment variable ' %
-                               ('ASE_' + self.name.upper() + '_COMMAND') +
-                               'or supply the command keyword')
+            raise RuntimeError(
+                'Please set ${} environment variable '
+                .format('ASE_' + self.name.upper() + '_COMMAND') +
+                'or supply the command keyword')
         command = self.command.replace('PREFIX', self.prefix)
-        olddir = os.getcwd()
-        try:
-            os.chdir(self.directory)
-            errorcode = subprocess.call(command, shell=True)
-        finally:
-            os.chdir(olddir)
+        errorcode = subprocess.call(command, shell=True, cwd=self.directory)
 
         if errorcode:
-            raise RuntimeError('%s in %s returned an error: %d' %
-                               (self.name, self.directory, errorcode))
+            raise RuntimeError('{} in {} returned an error: {}'
+                               .format(self.name, self.directory, errorcode))
         self.read_results()
 
     def write_input(self, atoms, properties=None, system_changes=None):

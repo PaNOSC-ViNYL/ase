@@ -43,7 +43,120 @@ KEY_RE = re.compile(r'([A-Za-z_]+[A-Za-z0-9_-]*)\s*')
 UNPROCESSED_KEYS = ['uid']
 
 
-def key_val_str_to_dict(s):
+def key_val_str_to_dict(string, sep=None):
+    """
+    Parse an xyz properties string in a key=value and return a dict with
+    various values parsed to native types.
+
+    Accepts brackets or quotes to delimit values. Parses integers, floats
+    booleans and arrays thereof. Arrays with 9 values are converted to 3x3
+    arrays with Fortran ordering.
+
+    If sep is None, string will split on whitespace, otherwise will split
+    key value pairs with the given separator.
+
+    """
+    # store the closing delimiters to match opening ones
+    delimiters = {
+        "'": "'",
+        '"': '"',
+        '(': ')',
+        '{': '}',
+        '[': ']',
+    }
+
+    # Make pairs and process afterwards
+    kv_pairs = [
+        [[]]]  # List of characters for each entry, add a new list for new value
+    delimiter_stack = []  # push and pop closing delimiters
+    escaped = False  # add escaped sequences verbatim
+
+    # parse character-by-character unless someone can do nested brackets
+    # and escape sequences in a regex
+    for char in string.strip():
+        if escaped:  # bypass everything if escaped
+            kv_pairs[-1][-1].extend(['\\', char])
+            escaped = False
+        elif delimiter_stack:  # inside brackets
+            if char == delimiter_stack[-1]:  # find matching delimiter
+                delimiter_stack.pop()
+            elif char in delimiters:
+                delimiter_stack.append(delimiters[char])  # nested brackets
+            elif char == '\\':
+                escaped = True  # so escaped quotes can be ignored
+            else:
+                kv_pairs[-1][-1].append(char)  # inside quotes, add verbatim
+        elif char == '\\':
+            escaped = True
+        elif char in delimiters:
+            delimiter_stack.append(delimiters[char])  # brackets or quotes
+        elif (sep is None and char.isspace()) or char == sep:
+            if kv_pairs == [[[]]]:  # empty, beginning of string
+                continue
+            elif kv_pairs[-1][-1] == []:
+                continue
+            else:
+                kv_pairs.append([[]])
+        elif char == '=':
+            if kv_pairs[-1] == [[]]:
+                del kv_pairs[-1]
+            kv_pairs[-1].append([])  # value
+        else:
+            kv_pairs[-1][-1].append(char)
+
+    kv_dict = {}
+
+    for kv_pair in kv_pairs:
+        if len(kv_pair) == 0:  # empty line
+            continue
+        elif len(kv_pair) == 1:  # default to True
+            key, value = ''.join(kv_pair[0]), 'T'
+        else:  # Smush anything else with kv-splitter '=' between them
+            key, value = ''.join(kv_pair[0]), '='.join(
+                ''.join(x) for x in kv_pair[1:])
+
+        if key.lower() not in UNPROCESSED_KEYS:
+            # Try to convert to (arrays of) floats, ints
+            try:
+                numvalue = []
+                for vpart in re.split(r'[\s,]+',
+                                      value):  # allow commas in arrays
+                    if '.' in vpart:  # possible float
+                        numvalue.append(float(vpart))
+                    else:
+                        numvalue.append(int(vpart))
+                if len(numvalue) == 1:
+                    numvalue = numvalue[0]  # Only one number
+                elif len(numvalue) == 9:
+                    # special case: 3x3 matrix, fortran ordering
+                    numvalue = np.array(numvalue).reshape((3, 3), order='F')
+                else:
+                    numvalue = np.array(numvalue)  # vector
+                value = numvalue
+            except (ValueError, OverflowError):
+                pass  # value is unchanged
+
+            # Parse boolean values: 'T' -> True, 'F' -> False,
+            #                       'T T F' -> [True, True, False]
+            if isinstance(value, basestring):
+                str_to_bool = {'T': True, 'F': False}
+
+                try:
+                    boolvalue = [str_to_bool[vpart] for vpart in
+                                 re.split(r'[\s,]+', value)]
+                    if len(boolvalue) == 1:
+                        value = boolvalue[0]
+                    else:
+                        value = boolvalue
+                except KeyError:
+                    pass  # value is unchanged
+
+        kv_dict[key] = value
+
+    return kv_dict
+
+
+def key_val_str_to_dict_regex(s):
     """
     Parse strings in the form 'key1=value1 key2="quoted value"'
     """
@@ -200,10 +313,10 @@ def parse_properties(prop_str):
     return properties, properties_list, dtype, converters
 
 
-def _read_xyz_frame(lines, natoms):
+def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict):
     # comment line
     line = next(lines)
-    info = key_val_str_to_dict(line)
+    info = properties_parser(line)
 
     pbc = None
     if 'pbc' in info:
@@ -228,7 +341,11 @@ def _read_xyz_frame(lines, natoms):
 
     data = []
     for ln in range(natoms):
-        line = next(lines)
+        try:
+            line = next(lines)
+        except StopIteration:
+            raise XYZError('ase.io.extxyz: Frame has {} atoms, expected {}'
+                           .format(len(data), natoms))
         vals = line.split()
         row = tuple([conv(val) for conv, val in zip(convs, vals)])
         data.append(row)
@@ -236,8 +353,8 @@ def _read_xyz_frame(lines, natoms):
     try:
         data = np.array(data, dtype)
     except TypeError:
-        raise IOError('Badly formatted data, ' +
-                      'or end of file reached before end of frame')
+        raise XYZError('Badly formatted data '
+                       'or end of file reached before end of frame')
 
     arrays = {}
     for name in names:
@@ -377,11 +494,15 @@ class ImageIterator:
 iread_xyz = ImageIterator(ixyzchunks)
 
 
-def read_xyz(fileobj, index=-1):
+def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
     """
     Read from a file in Extended XYZ format
 
     index is the frame to read, default is last frame (index=-1).
+    properties_parser is the parse to use when converting the properties line
+    to a dictionary, ``extxyz.key_val_str_to_dict`` is the default and can
+    deal with most use cases, ``extxyz.key_val_str_to_dict_regex`` is slightly
+    faster but has fewer features.
     """
     if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
@@ -405,7 +526,11 @@ def read_xyz(fileobj, index=-1):
         line = fileobj.readline()
         if line.strip() == '':
             break
-        natoms = int(line)
+        try:
+            natoms = int(line)
+        except ValueError as err:
+            raise XYZError('ase.io.extxyz: Expected xyz header but got: {}'
+                           .format(err))
         frames.append((frame_pos, natoms))
         if last_frame is not None and len(frames) > last_frame:
             break
@@ -446,7 +571,7 @@ def read_xyz(fileobj, index=-1):
         fileobj.seek(frame_pos)
         # check for consistency with frame index table
         assert int(fileobj.readline()) == natoms
-        yield _read_xyz_frame(fileobj, natoms)
+        yield _read_xyz_frame(fileobj, natoms, properties_parser)
 
 
 def output_column_format(atoms, columns, arrays,

@@ -318,7 +318,7 @@ class POVRAY(EPS):
                 if self.transmittances is not None:
                     trans = self.transmittances[a]
                 w('constrain(%s, %.2f, Black, %s, %s) // #%i \n' % (
-                    pa(loc), dia / 2., tex, a, trans))
+                    pa(loc), dia / 2., trans, tex, a))
 
 
 def write_pov(filename, atoms, run_povray=False,

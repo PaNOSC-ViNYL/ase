@@ -14,7 +14,8 @@ from ase.gui.utils import get_magmoms
 from ase.utils import rotate
 
 
-GREEN = '#DDFFDD'
+GREEN = '#74DF00'
+PURPLE = '#AC58FA'
 
 
 def get_cell_coordinates(cell):
@@ -46,7 +47,6 @@ def get_cell_coordinates(cell):
     B1.shape = (-1, 3)
     B2.shape = (-1, 3)
     return B1, B2
-
 
 
 def get_bonds(atoms, covalent_radii):
@@ -146,12 +146,12 @@ class View:
         self.X_cell = self.X[natoms:natoms + len(B1)]
         self.X_bonds = self.X[natoms + len(B1):]
 
-        if 1:#if init or frame != self.frame:
+        if 1:  # if init or frame != self.frame:
             cell = atoms.cell
             ncellparts = len(B1)
             nbonds = len(bonds)
 
-            if 1: #init or (atoms.cell != self.atoms.cell).any():
+            if 1:  # init or (atoms.cell != self.atoms.cell).any():
                 self.X_cell[:] = np.dot(B1, cell)
                 self.B = np.empty((ncellparts + nbonds, 3))
                 self.B[:ncellparts] = np.dot(B2, cell)
@@ -187,6 +187,9 @@ class View:
             self.labels = list(range(len(self.atoms)))
         elif index == 2:
             self.labels = list(get_magmoms(self.atoms))
+        elif index == 4:
+            Q = self.atoms.get_initial_charges()
+            self.labels = ['{0:.4g}'.format(q) for q in Q]
         else:
             self.labels = self.atoms.get_chemical_symbols()
 
@@ -233,7 +236,7 @@ class View:
         cell = (self.window['toggle-show-unit-cell'] and
                 self.images[0].cell.any())
         if (len(self.atoms) == 0 and not cell):
-            self.scale = 1.0
+            self.scale = 20.0
             self.center = np.zeros(3)
             self.draw()
             return
@@ -311,6 +314,9 @@ class View:
         if self.colormode == 'jmol':
             return [self.colors[Z] for Z in self.atoms.numbers]
 
+        if self.colormode == 'neighbors':
+            return [self.colors[Z] for Z in self.get_color_scalars()]
+
         colorscale, cmin, cmax = self.colormode_data
         N = len(colorscale)
         if cmin == cmax:
@@ -330,10 +336,17 @@ class View:
             return f * self.images.get_dynamic(self.atoms)
         elif self.colormode == 'velocity':
             return (self.atoms.get_velocities()**2).sum(1)**0.5
-        elif self.colormode == 'charge':
-            return self.atoms.get_charges()
+        elif self.colormode == 'initial charge':
+            return self.atoms.get_initial_charges()
         elif self.colormode == 'magmom':
             return get_magmoms(self.atoms)
+        elif self.colormode == 'neighbors':
+            from ase.neighborlist import NeighborList
+            n = len(self.atoms)
+            nl = NeighborList(self.get_covalent_radii(self.atoms) * 1.5,
+                              skin=0, self_interaction=False, bothways=True)
+            nl.update(self.atoms)
+            return [len(nl.get_neighbors(i)[0]) for i in range(n)]
 
     def get_covalent_radii(self, atoms=None):
         if atoms is None:
@@ -386,6 +399,11 @@ class View:
 
         self.update_labels()
 
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
+            movecolor = GREEN
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            movecolor = PURPLE
+
         for a in self.indices:
             if a < n:
                 ra = d[a]
@@ -393,7 +411,7 @@ class View:
                     # Draw the atoms
                     if (self.moving and a < len(self.move_atoms_mask)
                         and self.move_atoms_mask[a]):
-                        circle(GREEN, False,
+                        circle(movecolor, False,
                                A[a, 0] - 4, A[a, 1] - 4,
                                A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 
@@ -531,7 +549,8 @@ class View:
             self.draw()
 
         # XXX check bounds
-        indices = np.arange(len(self.atoms))[self.images.selected[:len(self.atoms)]]
+        natoms = len(self.atoms)
+        indices = np.arange(natoms)[self.images.selected[:natoms]]
         if len(indices) != len(selected_ordered):
             selected_ordered = []
         self.images.selected_ordered = selected_ordered

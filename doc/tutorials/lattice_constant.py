@@ -24,7 +24,7 @@ a = np.array([config.cell[0, 0] for config in configs])
 c = np.array([config.cell[2, 2] for config in configs])
 
 functions = np.array([a**0, a, c, a**2, a * c, c**2])
-p = np.linalg.lstsq(functions.T, energies)[0]
+p = np.linalg.lstsq(functions.T, energies, rcond=-1)[0]
 
 p0 = p[0]
 p1 = p[1:3]

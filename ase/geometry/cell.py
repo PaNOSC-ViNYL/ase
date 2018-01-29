@@ -174,8 +174,7 @@ def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
           abs(gamma - pi / 3 * 2) < eps and
           abs(angles[:2] - pi / 2).max() < eps):
         return 'hexagonal'
-    elif (c >= a and c >= b and alpha < pi / 2 and
-          abs(angles[1:] - pi / 2).max() < eps):
+    elif (abs(angles - pi / 2) > eps).sum() == 1:
         return 'monoclinic'
     elif (abc.ptp() < eps and angles.ptp() < eps and
           np.abs(angles).max() < pi / 2):

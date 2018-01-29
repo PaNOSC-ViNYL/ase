@@ -10,3 +10,13 @@ MANIFEST
 
 #editor backup files
 *.py~
+*.rst~
+
+# Ignore PyCharm settings
+.idea/
+
+# Vim swap files:
+.*.sw?
+
+# Translation template
+ase/gui/po/ag.pot

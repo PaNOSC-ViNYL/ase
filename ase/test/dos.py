@@ -22,7 +22,7 @@ dos1 = ltidos(cell, eigs, energies)
 
 # With weights:
 dos1w = ltidos(cell, eigs, energies, np.ones_like(eigs))
-assert abs(dos1 - dos1w).max() < 1e-14
+assert abs(dos1 - dos1w).max() < 2e-14
 
 # Analytic results:
 ref3 = 4 * np.pi * (2 * energies)**0.5

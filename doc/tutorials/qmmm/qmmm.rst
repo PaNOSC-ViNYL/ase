@@ -4,14 +4,12 @@
 ASE for QM/MM Simulations
 =========================
 
-QM/MM Simulations couple two (or more) descriptions to get total energy
-and forces for the entire system in an efficiant manner. The method paper
-on our implementation is currently being written.
-General background can be found
-`here <https://link.springer.com/article/10.1007/s00214-006-0143-z/>`__,
-`here <http://onlinelibrary.wiley.com/doi/10.1002/anie.200802019/abstract>`__,
-and
-`here <https://www.elsevier.com/books/combining-quantum-mechanics-and-molecular-mechanics-some-recent-progresses-in-qm-mm-methods/sabin/978-0-12-380898-1>`__ .
+QM/MM Simulations couple two (or, in principle, more) descriptions to get total energy
+and forces for the entire system in an efficiant manner. 
+ASE has a native Explicit Interaction calculator, :class:`~ase.calculators.qmmm.EIQMMM`, that uses an electrostatic embedding
+model to couple the subsystems explicitly. See
+`the method paper for more info. <https://doi.org/10.1021/acs.jctc.7b00621>`__,
+
 Examples of what this code has been used for can be seen
 `here <http://pubs.acs.org/doi/abs/10.1021/jz500850s>`__,
 and `here <http://pubs.acs.org/doi/abs/10.1021/acs.inorgchem.6b01840>`__.
@@ -74,7 +72,7 @@ the :class:`ase.calculators.qmmm.EIQMMM` class.
 
 
 The following script will calculate the QM/MM single point energy of the
-water dimer from the :ref:`s22`, using LDA and TIP3P.
+water dimer from the :ref:`s22`, using LDA and TIP3P, for illustration purposes.
 
 .. literalinclude:: water_dimer.py
 

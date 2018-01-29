@@ -10,6 +10,37 @@ Git master branch
 
 :git:`master <>`.
 
+* Castep calculator: option for automatic detection of pseudopotential files from a given directory (castep_pp_path); support for GBRV pseudopotential library; updated outfile parsing to comply with CASTEP 18.1.
+
+* New LAMMPS calculator LAMMPSlib utilizing the Python bindings provided by LAMMPS instead of file I/O. Very basic calculator but can serve as base class for more sophisticated ones.
+
+* Support for µSTEM xtl data format.
+
+* New scanning tunnelling spectroscopy (STS) mode for
+  :class:`~ase.dft.stm.STM` simulations.
+
+* New method, :meth:`~ase.Atoms.get_angles`, for calculating multiple angles.
+
+* New ``ase reciprocal`` :ref:`command <cli>` for showing the
+  1. Brilluin zone, **k**-points and special points.
+
+* New ``ase convert`` :ref:`command <cli>` for converting between file formats.
+
+* Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
+
+* New cell editor for the GUI.
+
+* Improved "quick info" dialog in the GUI.  The dialog now lists results
+  cached by the calculator.
+
+* The "add atoms" function now accepts identifiers for molecules in the G2 dataset.
+
+
+Version 3.15.0
+==============
+
+28 September 2017: :git:`3.15.0 <../3.15.0>`
+
 * If you are running your Python script in :mod:`parallel <ase.parallel>`
   then by default, :func:`ase.io.read` and :func:`ase.io.iread` will read on
   the master and broadcast to slaves, and :func:`ase.io.write` will only
@@ -30,6 +61,20 @@ Git master branch
   interpolation of the band-structure if you set ``width=0.0``.  It's slow,
   but sometimes worth waiting for.  It uses the :func:`ase.dft.dos.ltidos`
   helper function.
+
+* :func:`ase.io.read` can now read QBox output files.
+
+* The :mod:`ase.calculators.qmmm` module can now also use
+  :ref:`Turbomole <turbomole qmmm>` and :mod:`DFTB+ <ase.calculators.dftb>`
+  as the QM part.
+
+* New :ref:`db tutorial` tutorial.
+
+* :mod:`ase.gui`:  Improved atom colouring options; support the Render Scene (povray) and Ctrl+R rotation features again; updated German and Chinese translations.
+
+* Get the :class:`~ase.spacegroup.Spacegroup` object from an
+  :class:`~ase.Atoms` object with the new :func:`ase.spacegroup.get_spacegroup`
+  function.
 
 
 Version 3.14.1

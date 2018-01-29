@@ -4,6 +4,11 @@ case the relaxation went wrong. """
 from ase.ga.data import DataConnection
 from optparse import OptionParser
 
+try:
+    input = raw_input  # Python 2+3 compatibility
+except NameError:
+    pass
+
 parser = OptionParser(
     description='Show which structures are queued, but not done')
 parser.add_option('-f', '--db-file',
@@ -29,7 +34,7 @@ while s.find('Q') == -1 and len(l) > 0:
         for ni in l:
             s += '%d ' % ni
     else:
-        s = raw_input('Choose which you want to requeue or type Q to quit: ')
+        s = input('Choose which you want to requeue or type Q to quit: ')
         if s.find('Q') != -1:
             exit()
     iline = s.split()

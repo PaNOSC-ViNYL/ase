@@ -8,7 +8,7 @@ class Collection:
     """Collection of atomic configurations and associated data.
 
     Example of use:
-        
+
     >>> from ase.collections import s22
     >>> len(s22)
     22
@@ -24,14 +24,14 @@ class Collection:
     """
     def __init__(self, name):
         """Create a collection lazily.
-        
+
         Will read data from json file when needed.
-        
+
         A collection can be iterated over to get the Atoms objects and indexed
         with names to get individual members.
 
         Attributes:
-        
+
         name: str
             Name of collection.
         data: dict
@@ -41,41 +41,46 @@ class Collection:
         names: list
             Names of configurations in the collection.
         """
-        
+
         self.name = name
         self._names = []
         self._systems = {}
         self._data = {}
         self.filename = op.join(op.dirname(__file__), name + '.json')
-        
+
     def __getitem__(self, name):
         self._read()
         return self._systems[name].copy()
 
+    def has(self, name):
+        # Not __contains__() because __iter__ yields the systems.
+        self._read()
+        return name in self._systems
+
     def __iter__(self):
         for name in self.names:
             yield self[name]
-            
+
     def __len__(self):
         return len(self.names)
-        
+
     def __str__(self):
         return '<{0}-collection, {1} systems: {2}, {3}, ...>'.format(
             self.name, len(self), *self.names[:2])
-        
+
     def __repr__(self):
         return 'Collection({0!r})'.format(self.name)
-        
+
     @property
     def names(self):
         self._read()
         return list(self._names)
-        
+
     @property
     def data(self):
         self._read()
         return self._data
-        
+
     def _read(self):
         if self._names:
             return

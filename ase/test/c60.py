@@ -80,7 +80,7 @@ a2.set_calculator(calc)
 a2.rattle(0.05)
 
 # geometry optimisation with FF based preconditioner
-precon = FF(morses=morses, angles=angles, dihedrals=dihedrals, use_pyamg=False)
+precon = FF(morses=morses, angles=angles, dihedrals=dihedrals)
 
 opt = PreconLBFGS(a2, use_armijo=True, precon=precon)
 opt.run(fmax=0.1)

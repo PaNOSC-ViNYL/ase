@@ -1,11 +1,12 @@
-.. module:: ase.cluster 
+.. module:: ase.cluster
 
 ==========================
 Nanoparticles and clusters
 ==========================
 
-
-There are modules for creating nanoparticles (clusters) with a given crystal structure by specifying either the number of layers in different directions, or by making a Wulff construction.
+There are modules for creating nanoparticles (clusters) with a given crystal
+structure by specifying either the number of layers in different directions,
+or by making a Wulff construction.
 
 Examples
 ========
@@ -13,7 +14,9 @@ Examples
 Layer specification
 -------------------
 
-This example sets up a nanoparticle of copper in the FCC crystal structure, by specifying 6 layers in the (100) directions, 9 in the (110) directions and 5 in the (111) directions::
+This example sets up a nanoparticle of copper in the FCC crystal structure,
+by specifying 6 layers in the (100) directions, 9 in the (110) directions and
+5 in the (111) directions::
 
   import ase
   from ase.cluster.cubic import FaceCenteredCubic
@@ -46,8 +49,8 @@ exactly::
   lc = 3.61000
   size = 1000  # Number of atoms
   atoms = wulff_construction('Cu', surfaces, esurf,
-			     size, 'fcc',
-			     rounding='above', latticeconstant=lc)
+                             size, 'fcc',
+                             rounding='above', latticeconstant=lc)
 
 Note that the Wulff construction currently only work with cubic
 lattices.
@@ -92,7 +95,7 @@ result is seen below.
 
 .. |truncated| image:: truncated.png
 
-		       
+
 
 The functions for creating nanoparticles take the following
 arguments:
@@ -132,9 +135,3 @@ symmetry).  The function can be imported as::
   from ase.cluster import wulff_construction
 
 .. autofunction:: ase.cluster.wulff_construction
-	       
-
-  
-
-
-

@@ -22,6 +22,11 @@ try:
 except ImportError:
     Scientific = 0
 
+try:
+    import netCDF4
+except ImportError:
+    netCDF4 = 0
+
 
 def get_atoms():
     a = 5.0
@@ -75,8 +80,12 @@ for format in sorted(all_formats):
         # Someone should do something ...
         continue
 
-    if format in ['v-sim']:
+    if format in ['v-sim', 'mustem']:
         # Standalone test used as not compatible with 1D periodicity
+        continue
+
+    if format in ['mustem']:
+        # Standalone test used as specific arguments are required
         continue
 
     if format in ['dmol-arc', 'dmol-car', 'dmol-incoor']:
@@ -94,6 +103,9 @@ for format in sorted(all_formats):
         continue
 
     if not Scientific and format == 'etsf':
+        continue
+
+    if not netCDF4 and format == 'netcdftrajectory':
         continue
 
     atoms = get_atoms()
