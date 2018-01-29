@@ -206,9 +206,8 @@ class View:
     def toggle_show_velocities(self, key=None):
         self.draw()
 
-    # transitional compat hack
     def get_forces(self):
-        return self.images.get_forces(self.atoms)
+        return self.atoms.get_forces()
 
     def toggle_show_forces(self, key=None):
         self.draw()
