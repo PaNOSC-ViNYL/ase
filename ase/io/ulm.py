@@ -193,6 +193,12 @@ class Writer:
         self.shape = None
         self.dtype = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
+
     def add_array(self, name, shape, dtype=float):
         """Add ndarray object.
 
@@ -390,6 +396,12 @@ class Reader:
             self._little_endian = little_endian
 
         self._parse_data(data)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def _parse_data(self, data):
         self._data = {}
