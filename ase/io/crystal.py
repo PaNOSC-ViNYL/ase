@@ -58,7 +58,7 @@ def write_crystal(filename, atoms):
     atomnum = atoms.get_atomic_numbers()
     for iatom, coord in enumerate(coords):
         myfile.write('%5i  %19.16f %19.16f %19.16f \n'
-                     % (atomnum[iatom]+tags[iatom],
+                     % (atomnum[iatom] + tags[iatom],
                         coords[iatom][0], coords[iatom][1], coords[iatom][2]))
 
     if isinstance(filename, basestring):

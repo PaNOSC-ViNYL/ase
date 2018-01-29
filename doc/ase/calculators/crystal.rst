@@ -34,7 +34,8 @@ of the command to be run). It is mandatory to set the input file as
 
 
 CRYSTAL Calculator (a FileIOCalculator)
-========================================
+=======================================
+
 The calculator calls the CRYSTAL_ code only
 to perform single point and gradient calculations.
 The file 'fort.34' contains the input geometry and
@@ -69,6 +70,7 @@ See the official `CRYSTAL manual`_ for more details.
 
 .. _CRYSTAL manual: http://www.crystal.unito.it/Manuals/crystal14.pdf
 
+
 Exchange-correlation functionals
 ================================
 
@@ -83,6 +85,7 @@ string as 'CORRELAT' (see `CRYSTAL manual`_ for more details).
 .. code-block:: python
 
   calc = CRYSTAL(xc=('PBE','LYP'))
+
 
 Setups
 ======
@@ -117,6 +120,7 @@ and must contain the basis sets for all the atom species.
    In this case '100' will be summed to the atomic number of the first atom
    in the 'fort.34' geometry file (e. g. '6', Carbon, becomes '106').
 
+
 Spin-polarized calculation
 ==========================
 
@@ -128,6 +132,7 @@ spin-polarized calculation through the parameter ``spinpol``:
 .. code-block:: python
 
   calc = CRYSTAL(xc='PBE', spinpol=True)
+
 
 Brillouin-zone sampling
 =======================
@@ -146,9 +151,10 @@ density of the auxiliary Gilat net (see `CRYSTAL manual`_):
 
 .. code-block:: python
 
-  calc = CRYSTAL(xc='PBE', kpts=(2,2,2), isp=2)
+  calc = CRYSTAL(xc='PBE', kpts=(2, 2, 2), isp=2)
 
 In this example the resulting Gilat net would be (4, 4, 4).
+
 
 Reading an external wave function
 =================================
@@ -157,6 +163,7 @@ The calculator reads by default the wave function stored in
 the 'fort.20' file if present (``guess=True``).
 If this parameter is set to False the code will calculate the
 wave function from scratch at any step, slowing down the perfromances.
+
 
 Code related keywords
 =====================

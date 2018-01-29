@@ -1,6 +1,5 @@
 from ase import Atoms
 from ase.calculators.crystal import CRYSTAL
-import os
 
 a0 = 5.43
 bulk = Atoms('Si2', [(0, 0, 0),
@@ -20,23 +19,7 @@ bulk.set_calculator(CRYSTAL(label='Si2',
                                        ['maxcycles', '500'],
                                        ['toldee', '6'],
                                        ['tolinteg', '7 7 7 7 14'],
-                                       ['fmixing', '50']]
-                            ))
+                                       ['fmixing', '50']]))
 
 final_energy = bulk.get_potential_energy()
 assert abs(final_energy + 15564.787949) < 1.0
-
-files = ['SCFOUT.LOG', 'INPUT', 'optc1',
-         'FORCES.DAT', 'dffit3.dat', 'OUTPUT']
-
-for file in files:
-    try:
-        os.remove(file)
-    except OSError:
-        pass
-
-dir = os.getcwd()
-fort = os.listdir(dir)
-for file in fort:
-    if file.startswith("fort."):
-        os.remove(os.path.join(dir, file))

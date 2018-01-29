@@ -110,7 +110,7 @@ class CRYSTAL(FileIOCalculator):
             if isinstance(p.xc, str):
                 xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
                       'PBE': 'PBEXC'}.get(p.xc, p.xc)
-                outfile.write(xc.upper()+'\n')
+                outfile.write(xc.upper() + '\n')
         # Custom xc functional are given by a tuple of string
             else:
                 x, c = p.xc
@@ -167,7 +167,7 @@ class CRYSTAL(FileIOCalculator):
                 raise ValueError('Shifted Monkhorst-Pack not allowed.')
             outfile.write('SHRINK  \n')
             # isp is by default 1, 2 is suggested for metals.
-            outfile.write('0 ' + str(p.isp*max(self.kpts)) + ' \n')
+            outfile.write('0 ' + str(p.isp * max(self.kpts)) + ' \n')
             if ispbc[2]:
                 outfile.write(str(self.kpts[0])
                               + ' ' + str(self.kpts[1])
@@ -235,9 +235,9 @@ class CRYSTAL(FileIOCalculator):
                 break
         else:
             raise RuntimeError('Problem in reading forces')
-        for j in range(index_force_begin, index_force_begin+len(self.atoms)):
+        for j in range(index_force_begin, index_force_begin + len(self.atoms)):
             word = self.lines[j].split()
-            gradients.append([float(word[k+2]) for k in range(0, 3)])
+            gradients.append([float(word[k + 2]) for k in range(0, 3)])
         forces = np.array(gradients) * Hartree / Bohr
 
         self.results['forces'] = forces
@@ -272,7 +272,7 @@ class CRYSTAL(FileIOCalculator):
             if 'TOTAL ATOMIC CHARGE' in line:
                 chargestart = n + 1
         lines1 = self.lines[chargestart:(chargestart
-                            + (len(self.atoms)-1)//6 + 1)]
+                                         + (len(self.atoms) - 1) // 6 + 1)]
         atomnum = self.atoms.get_atomic_numbers()
         words = []
         for line in lines1:
@@ -280,12 +280,12 @@ class CRYSTAL(FileIOCalculator):
                 words.append(float(el))
         i = 0
         for atn in atomnum:
-            qm_charges.append(-words[i]+atn)
+            qm_charges.append(-words[i] + atn)
             i = i + 1
         charges = np.array(qm_charges)
         self.results['charges'] = charges
 
-        ### Read dipole moment.
+        # Read dipole moment.
 
         dipole = np.zeros([1, 3])
         for n, line in enumerate(self.lines):
@@ -328,7 +328,7 @@ class PointChargePotential:
             print("CRYSTAL: Warning: not writing external charges ")
             return
         charge_file = open(os.path.join(self.directory, filename), 'w')
-        charge_file.write(str(len(self.mmcharges))+' \n')
+        charge_file.write(str(len(self.mmcharges)) + ' \n')
         for [pos, charge] in zip(self.mmpositions, self.mmcharges):
             [x, y, z] = pos
             charge_file.write('%12.6f %12.6f %12.6f %12.6f \n'
@@ -357,7 +357,7 @@ class PointChargePotential:
         else:
             raise RuntimeError(
                 'Problem in reading forces on MM external-charges')
-        lines1 = lines[(chargeend-len(self.mmcharges)):chargeend]
+        lines1 = lines[(chargeend - len(self.mmcharges)):chargeend]
         for line in lines1:
             external_forces.append(
                 [float(i) for i in line.split()[2:]])
