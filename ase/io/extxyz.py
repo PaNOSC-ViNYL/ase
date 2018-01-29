@@ -119,7 +119,7 @@ def key_val_str_to_dict(string, sep=None):
             # Try to convert to (arrays of) floats, ints
             try:
                 numvalue = []
-                for vpart in re.split(r'[\s,]+',
+                for vpart in re.findall(r'[^\s,]+',
                                       value):  # allow commas in arrays
                     if '.' in vpart:  # possible float
                         numvalue.append(float(vpart))

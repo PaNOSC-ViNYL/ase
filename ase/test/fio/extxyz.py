@@ -88,6 +88,8 @@ complex_xyz_string = (
     'int_array={1 2 3} '
     'float_array="3.3 4.4" '
     'a3x3_array="1 4 7 2 5 8 3 6 9" '  # fortran ordering
+    'Lattice="  4.3  0.0 0.0 0.0  3.3 0.0 0.0 0.0  7.0 " '  # spaces in array
+    'nested_brackets=[[1,2],[3,4]] '  # gets flattented if not 3x3
     'bool_array={T F T F} '
     'not_bool_array=[T F S] '
     # read and write
@@ -117,6 +119,8 @@ expected_dict = {
     'int_array': np.array([1, 2, 3]),
     'float_array': np.array([3.3, 4.4]),
     'a3x3_array': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+    'Lattice': np.array([[4.3, 0.0, 0.0], [0.0, 3.3, 0.0], [0.0, 0.0, 7.0]]),
+    'nested_brackets': np.array([1, 2, 3, 4]),
     'bool_array': np.array([True, False, True, False]),
     'not_bool_array': 'T F S',
     u'\xfcnicode_key': u'val\xfce',
