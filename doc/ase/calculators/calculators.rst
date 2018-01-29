@@ -58,8 +58,8 @@ The calculators can be divided in four groups:
 
 4) Calculators that wrap others, included in the ASE package:
    :class:`ase.calculators.checkpoint.CheckpointCalculator`,
-   the :class:`ase.calculators.loggingcalc.LoggingCalculator`, 
-   the :ref:`Grimme-D3 <grimme>` potential, and the qmmm calculators 
+   the :class:`ase.calculators.loggingcalc.LoggingCalculator`,
+   the :ref:`Grimme-D3 <grimme>` potential, and the qmmm calculators
    :class:`~ase.calculators.qmmm.EIQMMM`,  and :class:`~ase.calculators.qmmm.SimpleQMMM`.
 
 
@@ -99,8 +99,8 @@ morse                                     Morse potential
 :mod:`~ase.calculators.checkpoint`        Checkpoint calculator
 :mod:`~ase.calculators.loggingcalc`       Logging calculator
 :mod:`~ase.calculators.dftd3`             DFT-D3 dispersion correction calculator
-:class:`~ase.calculators.qmmm.EIQMMM`     Explicit Interaction QM/MM 
-:class:`~ase.calculators.qmmm.SimpleQMMM` Subtractive (ONIOM style) QM/MM 
+:class:`~ase.calculators.qmmm.EIQMMM`     Explicit Interaction QM/MM
+:class:`~ase.calculators.qmmm.SimpleQMMM` Subtractive (ONIOM style) QM/MM
 ========================================= ===========================================
 
 .. index:: D3, Grimme
@@ -202,6 +202,7 @@ the :meth:`set` method:
    amber
    castep
    cp2k
+   crystal
    demon
    dftb
    dmol
