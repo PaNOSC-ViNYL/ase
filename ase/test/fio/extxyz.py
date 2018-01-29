@@ -91,6 +91,7 @@ complex_xyz_string = (
     'Lattice="  4.3  0.0 0.0 0.0  3.3 0.0 0.0 0.0  7.0 " '  # spaces in array
     'nested_brackets=[[1,2],[3,4]] '  # gets flattented if not 3x3
     'bool_array={T F T F} '
+    'bool_array_2=" T, F, T " ' # leading spaces
     'not_bool_array=[T F S] '
     # read and write
     u'\xfcnicode_key=val\xfce '
@@ -122,6 +123,7 @@ expected_dict = {
     'Lattice': np.array([[4.3, 0.0, 0.0], [0.0, 3.3, 0.0], [0.0, 0.0, 7.0]]),
     'nested_brackets': np.array([1, 2, 3, 4]),
     'bool_array': np.array([True, False, True, False]),
+    'bool_array_2': np.array([True, False, True]),
     'not_bool_array': 'T F S',
     u'\xfcnicode_key': u'val\xfce',
     'unquoted_special_value': u'a_to_Z_$%%^&*\xfc\u2615',
