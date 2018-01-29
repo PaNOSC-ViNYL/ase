@@ -35,6 +35,9 @@ Git master branch
 
 * The "add atoms" function now accepts identifiers for molecules in the G2 dataset.
 
+* Interface for the :mod:`CRYSTAL <ase.calculators.crystal` code has been
+  added.
+
 
 Version 3.15.0
 ==============

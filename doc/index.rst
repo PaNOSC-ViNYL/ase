@@ -41,6 +41,7 @@ Supported :mod:`Calculators <ase.calculators>`:
 |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
 |octopus| |onetep| |q_espresso| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
+:mod:`~ase.calculators.crystal`
 :mod:`DMol³ <ase.calculators.dmol>`
 Gaussian_
 :mod:`Grimme DFT-D3 <ase.calculators.dftd3>`
