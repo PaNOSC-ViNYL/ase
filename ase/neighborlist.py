@@ -166,7 +166,9 @@ def neighbor_list(quantities, a, cutoff):
 
     i_n = []
     j_n = []
-    S_n = []
+    Sx_n = []
+    Sy_n = []
+    Sz_n = []
 
     # Loop over neighboring bins
     bx = np.arange(nbins_c[0]).reshape(-1, 1, 1)
@@ -177,40 +179,37 @@ def neighbor_list(quantities, a, cutoff):
         for dy in range(-1, 2):
             for dx in range(-1, 2):
                 # First atom in pair
-                i_n += [bins_ba[b][ix[:, 0]]]
+                i_n += [bins_ba[b][:, ix[:, 0]]]
 
                 # Bin index of neighboring bin and shift vector
                 sx, bx1 = np.divmod(bx + dx, nbins_c[0])
                 sy, by1 = np.divmod(by + dy, nbins_c[1])
                 sz, bz1 = np.divmod(bz + dz, nbins_c[2])
                 b1 = (bx1 + nbins_c[0] * (by1 + nbins_c[1] * bz1)).ravel()
-                
+
                 # Second atom in pair
-                j_n += [bins_ba[b1][ix[:, 1]]]
+                j_n += [bins_ba[b1][:, ix[:, 1]]]
 
                 # Shift vectors
-                S_n += [
-                    np.repeat(
-                        np.repeat(np.transpose([sx, sy, sz]).reshape(1, 1, 3),
-                                  max_nat_per_bin**2,
-                                  axis=0),
-                              max_nat_per_bin,
-                              axis=1)]
+                sx, sy, sz = np.meshgrid(sx, sy, sz)
+                Sx_n += [np.resize(sx.ravel().reshape(-1, 1),
+                                   (np.prod(sx.shape), max_nat_per_bin**2))]
+                Sy_n += [np.resize(sy.ravel().reshape(-1, 1),
+                                   (np.prod(sy.shape), max_nat_per_bin**2))]
+                Sz_n += [np.resize(sz.ravel().reshape(-1, 1),
+                                   (np.prod(sz.shape), max_nat_per_bin**2))]
 
     # Flatten overall neighbor list
+    #print(S_n[0])
     i_n = np.ravel(i_n)
     j_n = np.ravel(j_n)
-    S_n = np.ravel(S_n).reshape(-1, 3)
+    S_n = np.transpose([np.ravel(Sx_n),
+                        np.ravel(Sy_n),
+                        np.ravel(Sz_n)])
 
     # We have created too many pairs because we assumed each bin has exactly
     # max_nat_per_bin atoms. Remove all surperfluous pairs
-    m = np.logical_and(i_n != -1, j_n != -1)
-    i_n = i_n[m]
-    j_n = j_n[m]
-    S_n = S_n[m]
-
-    # Remove self-pairs
-    m = i_n != j_n
+    m = np.logical_and(np.logical_and(i_n != -1, j_n != -1), i_n != j_n)
     i_n = i_n[m]
     j_n = j_n[m]
     S_n = S_n[m]
@@ -221,11 +220,21 @@ def neighbor_list(quantities, a, cutoff):
     j_n = j_n[i]
     S_n = S_n[i]
 
+    # Compute distance vectors
+    dr_nc = a.positions[j_n] - a.positions[i_n] + S_n.dot(a.cell)
+    abs_dr_n = np.sqrt(np.sum(dr_nc*dr_nc, axis=1))
+
+    # We have still created too many pairs. Only keep those with distance
+    # smaller than cutoff.
+    m = abs_dr_n < cutoff
+    i_n = i_n[m]
+    j_n = j_n[m]
+    S_n = S_n[m]
+    dr_nc = dr_nc[m]
+    abs_dr_n = abs_dr_n[m]
+
     # Assemble return tuple
     retvals = []
-    if 'd' in quantities or 'D' in quatities:
-        # Compute distance vectors
-        dr_nc = a.positions[j_n] - a.positions[i_n] + S_n.dot(a.cell)
     for q in quantities:
         if q == 'i':
             retvals += [i_n]
@@ -234,7 +243,7 @@ def neighbor_list(quantities, a, cutoff):
         elif q == 'D':
             retvals += [dr_nc]
         elif q == 'd':
-            retvals += [np.sqrt(np.sum(dr_nc*dr_nc, axis=1))]
+            retvals += [abs_dr_n]
         elif q == 'S':
             retvals += [S_n]
         else:
