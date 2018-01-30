@@ -2,6 +2,7 @@
     The class has been tested on linux and Mac OS X.
 """
 from subprocess import Popen, PIPE
+import os
 import time
 from ase.io import write, read
 
@@ -21,6 +22,7 @@ class ParallelLocalRun(object):
          n_simul: The number of simultaneous relaxations.
          calc_script: Reference to the relaxation script.
     """
+
     def __init__(self, data_connection, tmp_folder,
                  n_simul, calc_script):
         self.dc = data_connection
@@ -50,6 +52,8 @@ class ParallelLocalRun(object):
 
         # Mark the structure as queued and run the external py script.
         self.dc.mark_as_queued(a)
+        if not os.path.isdir(self.tmp_folder):
+            os.mkdir(self.tmp_folder)
         fname = '{0}/cand{1}.traj'.format(self.tmp_folder,
                                           a.info['confid'])
         write(fname, a)
@@ -60,7 +64,8 @@ class ParallelLocalRun(object):
         """ Checks if any relaxations are done and load in the structure
             from the traj file. """
         p = Popen(['ps -x -U `whoami`'], shell=True,
-                  stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+                  stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True,
+                  universal_newlines=True)
         (_, fout) = (p.stdin, p.stdout)
         lines = fout.readlines()
         lines = [l for l in lines if l.find('defunct') == -1]
