@@ -7,6 +7,7 @@ import os
 import numpy as np
 
 import ase.io
+from ase.io import extxyz
 from ase.atoms import Atoms
 from ase.build import bulk
 
@@ -69,3 +70,94 @@ struct.info = {'key_value_pairs': {'dataset': 'deltatest', 'kpoints': np.array([
 
 ase.io.write('tmp.xyz', struct)
 os.unlink('tmp.xyz')
+
+
+# Complex properties line. Keys and values that break with a regex parser.
+# see https://gitlab.com/ase/ase/issues/53 for more info
+
+complex_xyz_string = (
+    ' '  # start with a separator
+    'str=astring '
+    'quot="quoted value" '
+    u'quote_special="a_to_Z_$%%^&*\xfc\u2615" '
+    r'escaped_quote="esc\"aped" '
+    'true_value '
+    'false_value = F '
+    'integer=22 '
+    'floating=1.1 '
+    'int_array={1 2 3} '
+    'float_array="3.3 4.4" '
+    'a3x3_array="1 4 7 2 5 8 3 6 9" '  # fortran ordering
+    'Lattice="  4.3  0.0 0.0 0.0  3.3 0.0 0.0 0.0  7.0 " '  # spaces in array
+    'nested_brackets=[[1,2],[3,4]] '  # gets flattented if not 3x3
+    'bool_array={T F T F} '
+    'bool_array_2=" T, F, T " ' # leading spaces
+    'not_bool_array=[T F S] '
+    # read and write
+    u'\xfcnicode_key=val\xfce '
+    u'unquoted_special_value=a_to_Z_$%%^&*\xfc\u2615 '
+    '2body=33.3 '
+    'hyphen-ated '
+    # parse only
+    'many_other_quotes=({[4 8 12]}) '
+    'comma_separated="7, 4, -1" '
+    'bool_array_commas=[T, T, F, T] '
+    'Properties=species:S:1:pos:R:3 '
+    'multiple_separators       '
+    'double_equals=abc=xyz '
+    'trailing'
+)
+
+expected_dict = {
+    'str': 'astring',
+    'quot': "quoted value",
+    'quote_special': u"a_to_Z_$%%^&*\xfc\u2615",
+    'escaped_quote': r"esc\"aped",
+    'true_value': True,
+    'false_value': False,
+    'integer': 22,
+    'floating': 1.1,
+    'int_array': np.array([1, 2, 3]),
+    'float_array': np.array([3.3, 4.4]),
+    'a3x3_array': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+    'Lattice': np.array([[4.3, 0.0, 0.0], [0.0, 3.3, 0.0], [0.0, 0.0, 7.0]]),
+    'nested_brackets': np.array([1, 2, 3, 4]),
+    'bool_array': np.array([True, False, True, False]),
+    'bool_array_2': np.array([True, False, True]),
+    'not_bool_array': 'T F S',
+    u'\xfcnicode_key': u'val\xfce',
+    'unquoted_special_value': u'a_to_Z_$%%^&*\xfc\u2615',
+    '2body': 33.3,
+    'hyphen-ated': True,
+    'many_other_quotes': np.array([4, 8, 12]),
+    'comma_separated': np.array([7, 4, -1]),
+    'bool_array_commas': np.array([True, True, False, True]),
+    'Properties': 'species:S:1:pos:R:3',
+    'multiple_separators': True,
+    'double_equals': 'abc=xyz',
+    'trailing': True
+}
+
+parsed_dict = extxyz.key_val_str_to_dict(complex_xyz_string)
+np.testing.assert_equal(parsed_dict, expected_dict)
+
+# Round trip through a file with complex line.
+# Create file with the complex line and re-read it afterwards.
+# Test is disabled as it requires that file io defaults to utf-8 encoding
+# which is not guaranteed on Python 2 and varies with LC_ variables
+# on linux. Test can be enabled if ase ever strongly enforces utf-8
+# everywhere.
+if False:
+    with open('complex.xyz', 'w', encoding='utf-8') as f_out:
+        f_out.write('1\n{}\nH 1.0 1.0 1.0'.format(complex_xyz_string))
+    complex_atoms = ase.io.read('complex.xyz')
+
+    # test all keys end up in info, as expected
+    for key, value in expected_dict.items():
+        if key in ['Properties']:
+            continue  # goes elsewhere
+        else:
+            np.testing.assert_equal(complex_atoms.info[key], value)
+
+    os.unlink('complex.xyz')
+

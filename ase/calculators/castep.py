@@ -6,12 +6,12 @@ from __future__ import print_function
 Authors:
     Max Hoffmann, max.hoffmann@ch.tum.de
     Joerg Meyer, joerg.meyer@ch.tum.de
+    Simon P. Rittmeyer, simon.rittmeyer@tum.de
 
 Contributors:
     Juan M. Lorenzi, juan.lorenzi@tum.de
     Georg S. Michelitsch, georg.michelitsch@tch.tum.de
     Reinhard J. Maurer, reinhard.maurer@yale.edu
-    Simon P. Rittmeyer, simon.rittmeyer@tum.de
 """
 
 from copy import deepcopy
@@ -144,6 +144,29 @@ Keyword                    Description
 
 ``label``                  The prefix of .param, .cell, .castep, etc. files.
 
+``castep_command``         Command to run castep. Can also be set via the bash
+                           environment variable ``CASTEP_COMMAND``. If none is
+                           given or found, will default to ``castep``
+
+``check_castep_version``   Boolean whether to check if the installed castep
+                           version matches the version from which the available
+                           options were deduced. Defaults to ``False``.
+
+``castep_pp_path``         The path where the pseudopotentials are stored. Can
+                           also be set via the bash environment variables
+                           ``PSPOT_DIR`` (preferred) and ``CASTEP_PP_PATH``.
+                           Will default to the current working directory if
+                           none is given or found. Note that pseudopotentials
+                           may be generated on-the-fly if they are not found.
+
+``find_pspots``            Boolean whether to search for pseudopotentials in
+                           ``<castep_pp_path>`` or not. If activated, files in
+                           this directory will be checked for typical names. If
+                           files are not found, they will be generated on the
+                           fly, depending on the ``_build_missing_pspots``
+                           value.  A RuntimeError will be raised in case
+                           multiple files per element are found. Defaults to
+                           ``False``.
 =========================  ====================================================
 
 
@@ -174,6 +197,11 @@ Internal Setting           Description
                            *Note:* This option has no effect if ``copy_pspots``
                            is True..
 
+``_build_missing_pspots``  (``=True``): if set to True, castep will generate
+                           missing pseudopotentials on the fly. If not, a
+                           RuntimeError will be raised if not all files were
+                           found.
+
 ``_export_settings``       (``=True``): if this is set to
                            True, all calculator internal settings shown here
                            will be included in the .param in a comment line (#)
@@ -193,6 +221,15 @@ Internal Setting           Description
 
 ``_castep_pp_path``        (``='.'``) : the place where the calculator
                            will look for pseudo-potential files.
+
+``_find_pspots``           (``=False``): if set to True, the calculator will
+                           try to find the respective pseudopotentials from
+                           <_castep_pp_path>. As long as there are no multiple
+                           files per element in this directory, the auto-detect
+                           feature should be very robust. Raises a RuntimeError
+                           if required files are not unique (multiple files per
+                           element). Non existing pseudopotentials will be
+                           generated, though this could be dangerous.
 
 ``_rename_existing_dir``   (``=True``) : when using a new instance
                            of the calculator, this will move directories out of
@@ -231,6 +268,7 @@ Internal Setting           Description
                            single-point calculations. Regular reuse for *e.g.*
                            a geometry-optimization can be achieved by setting
                            ``calc.param.reuse = True``.
+
 ``_pedantic``              (``=False``) if set to true, the calculator will
                            inform about settings probably wasting a lot of CPU
                            time or causing numerical inconsistencies.
@@ -260,8 +298,19 @@ Special features:
 
 ``.set_pspot('<library>')``
   This automatically sets the pseudo-potential for all present species to
-  *<Species>_<library>.usp*. Make sure that ``_castep_pp_path`` is set
-  correctly.
+  ``<Species>_<library>.usp``. Make sure that ``_castep_pp_path`` is set
+  correctly. Note that there is no check, if the file actually exists. If it
+  doesn't castep will crash! You may want to use ``find_pspots()`` instead.
+
+``.find_pspots(pspot=<library>, suffix=<suffix>)``
+  This automatically searches for pseudopotentials of type
+  ``<Species>_<library>.<suffix>`` or ``<Species>-<library>.<suffix>`` in
+  ``castep_pp_path` (make sure this is set correctly). Note that ``<Species>``
+  will be searched for case insensitive.  Regular expressions are accepted, and
+  arguments ``'*'`` will be regarded as bash-like wildcards. Defaults are any
+  ``<library>`` and any ``<suffix>`` from ``['usp', 'UPF', 'recpot']``. If you
+  have well-organized folders with pseudopotentials of one kind, this should
+  work with the defaults.
 
 ``print(calc)``
   Prints a short summary of the calculator settings and atoms.
@@ -331,6 +380,8 @@ End CASTEP Interface Documentation
         '_check_checkfile',
         '_copy_pspots',
         '_link_pspots',
+        '_find_pspots',
+        '_build_missing_pspots',
         '_directory',
         '_export_settings',
         '_force_write',
@@ -345,7 +396,7 @@ End CASTEP Interface Documentation
 
     def __init__(self, directory='CASTEP', label='castep',
                  castep_command=None, check_castep_version=False,
-                 castep_pp_path=None,
+                 castep_pp_path=None, find_pspots=False,
                  **kwargs):
 
         self.__name__ = 'Castep'
@@ -388,6 +439,8 @@ End CASTEP Interface Documentation
         self._check_checkfile = True
         self._copy_pspots = False
         self._link_pspots = True
+        self._find_pspots = find_pspots
+        self._build_missing_pspots = True
         self._directory = os.path.abspath(directory)
         self._export_settings = True
         self._force_write = True
@@ -1088,10 +1141,13 @@ End CASTEP Interface Documentation
             - notelems (None): do not set the elements
             - clear (True): clear previous settings
             - suffix (usp): PP file suffix
-
-
-
         """
+        if self._find_pspots:
+            if self._pedantic:
+                print('Warning: <_find_pspots> = True')
+                print('Do you really want to use `set_pspots()`')
+                print('This does not check whether the PP files exist.')
+                print('You may rather want to use `find_pspots()` with the same <pspot>.')
 
         if clear and not elems and not notelems:
             self.cell.species_pot.clear()
@@ -1101,6 +1157,76 @@ End CASTEP Interface Documentation
             if notelems is not None and elem in notelems:
                 continue
             self.cell.species_pot = (elem, '%s_%s.%s' % (elem, pspot, suffix))
+
+    def find_pspots(self, pspot='.+', elems=None,
+                       notelems=None, clear=True, suffix='(usp|UPF|recpot)'):
+        """Quickly find and set all pseudo-potentials by searching in
+        castep_pp_path:
+
+        This one is more flexible than set_pspots, and also checks if the files
+        are actually available from the castep_pp_path.
+
+        Essentially, the function parses the filenames in <castep_pp_path> and
+        does a regex matching. The respective pattern is:
+
+            r"^(<elem>|<elem.upper()>|elem.lower()>(_|-)<pspot>\.<suffix>$"
+
+        In most cases, it will be sufficient to not specify anything, if you
+        use standard CASTEP USPPs with only one file per element in the
+        <castep_pp_path>.
+
+        The function raises a `RuntimeError` if there is some ambiguity
+        (multiple files per element).
+
+        Parameters ::
+
+            - pspots ('.+') : as defined above, will be a wildcard if not
+                              specified.
+            - elems (None) : set only these elements
+            - notelems (None): do not set the elements
+            - clear (True): clear previous settings
+            - suffix (usp|UPF|recpot): PP file suffix
+        """
+        if clear and not elems and not notelems:
+            self.cell.species_pot.clear()
+
+        if not os.path.isdir(self._castep_pp_path):
+            if self._pedantic:
+                print('Cannot search directory:\n    {}\nFolder does not exist'.format(self._castep_pp_path))
+            return
+
+        # translate the bash wildcard syntax to regex
+        if pspot == '*':
+            pspot = '.*'
+        if suffix == '*':
+            suffix = '.*'
+        if pspot == '*':
+            pspot = '.*'
+
+        # GBRV USPPs have a strnage naming schme
+        pattern = r'^({elem}|{elem_upper}|{elem_lower})(_|-){pspot}\.{suffix}$'
+
+        for elem in set(self.atoms.get_chemical_symbols()):
+            if elems is not None and elem not in elems:
+                continue
+            if notelems is not None and elem in notelems:
+                continue
+            p = pattern.format(elem=elem, elem_upper=elem.upper(), elem_lower=elem.lower(),
+                               pspot=pspot, suffix=suffix)
+            pps = []
+            for f in os.listdir(self._castep_pp_path):
+                if re.match(p, f):
+                    pps.append(f)
+            if not pps:
+                if self._pedantic:
+                    print('Pseudopotential for species {} not found!'.format(elem))
+            elif not len(pps) == 1:
+                raise RuntimeError('Pseudopotential for species {} not unique!\n'.format(elem)
+                                   + 'Found the following files in {}\n'.format(self._castep_pp_path)
+                                   + '\n'.join(['    {}'.format(pp) for pp in pps])
+                                   + '\nConsider a stricter search pattern in `find_pspots()`.')
+            else:
+                self.cell.species_pot = (elem, pps[0])
 
     @_self_getter
     def get_forces(self, atoms):
@@ -1698,6 +1824,8 @@ End CASTEP Interface Documentation
         if not os.path.isdir(self._castep_pp_path):
             print('PSPs directory %s not found' % self._castep_pp_path)
         pspots = {}
+        if self._find_pspots:
+            self.find_pspots()
         if self.cell.species_pot.value is not None:
             for line in self.cell.species_pot.value.split('\n'):
                 line = line.split()
@@ -1705,12 +1833,16 @@ End CASTEP Interface Documentation
                     pspots[line[0]] = line[1]
         for species in self.atoms.get_chemical_symbols():
             if not pspots or species not in pspots.keys():
-                if self._pedantic:
-                    print('Warning: you have no PP specified for %s.' %
-                          species)
-                    print('CASTEP will now generate an on-the-fly potentials.')
-                    print('For sake of numerical consistency and efficiency')
-                    print('this is discouraged.')
+                if self._build_missing_pspots:
+                    if self._pedantic:
+                        print('Warning: you have no PP specified for %s.' %
+                              species)
+                        print('CASTEP will now generate an on-the-fly potentials.')
+                        print('For sake of numerical consistency and efficiency')
+                        print('this is discouraged.')
+                else:
+                    raise RuntimeError('Warning: you have no PP specified for %s.' %
+                              species)
         if self.cell.species_pot.value:
             for (species, pspot) in pspots.items():
                 orig_pspot_file = os.path.join(self._castep_pp_path, pspot)
@@ -2332,6 +2464,8 @@ def get_castep_pp_path(castep_pp_path=''):
     """Abstract the quest for a CASTEP PSP directory."""
     if castep_pp_path:
         return os.path.abspath(os.path.expanduser(castep_pp_path))
+    elif 'PSPOT_DIR' in os.environ:
+        return os.environ['PSPOT_DIR']
     elif 'CASTEP_PP_PATH' in os.environ:
         return os.environ['CASTEP_PP_PATH']
     else:

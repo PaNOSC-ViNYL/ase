@@ -35,7 +35,7 @@ BFGS:   3  19:10:51    -31.492848     0.0023
 
 Supported :mod:`Calculators <ase.calculators>`:
 
-|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |deMon| |dftb|
+|abinit| |Asap| |Atomistica| |CASTEP| |CP2K| |CRYSTAL| |deMon| |dftb|
 |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs|
 |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
@@ -174,6 +174,9 @@ Contents
    :align: middle
 .. |CP2K| image:: static/cp2k.png
    :target: ase/calculators/cp2k.html
+   :align: middle
+.. |CRYSTAL| image:: static/crystal.png
+   :target: ase/calculators/crystal.html
    :align: middle
 .. |deMon| image:: static/demon.png
    :target: ase/calculators/demon.html

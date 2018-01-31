@@ -10,6 +10,10 @@ Git master branch
 
 :git:`master <>`.
 
+* Castep calculator: option for automatic detection of pseudopotential files from a given directory (castep_pp_path); support for GBRV pseudopotential library; updated outfile parsing to comply with CASTEP 18.1.
+
+* New LAMMPS calculator LAMMPSlib utilizing the Python bindings provided by LAMMPS instead of file I/O. Very basic calculator but can serve as base class for more sophisticated ones.
+
 * Support for µSTEM xtl data format.
 
 * New scanning tunnelling spectroscopy (STS) mode for
@@ -24,7 +28,15 @@ Git master branch
 
 * Improved XRD/SAXS module:  :mod:`ase.utils.xrdebye`.
 
-* New cell editor for the GUI
+* New cell editor for the GUI.
+
+* Improved "quick info" dialog in the GUI.  The dialog now lists results
+  cached by the calculator.
+
+* The "add atoms" function now accepts identifiers for molecules in the G2 dataset.
+
+* Interface for the :mod:`CRYSTAL <ase.calculators.crystal` code has been
+  added.
 
 
 Version 3.15.0
