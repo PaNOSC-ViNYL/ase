@@ -15,20 +15,18 @@ from matscipy.neighbours import neighbour_list
 tol = 1e-7
 
 # two atoms
-#a = ase.Atoms('CC', positions=[[0.5, 0.5, 0.5], [1,1,1]], cell=[10, 10, 10],
-#              pbc=True)
-#i, j, d = neighbor_list("ijd", a, 1.1)
-#assert (i == np.array([0, 1])).all()
-#assert (j == np.array([1, 0])).all()
-#assert np.abs(d - np.array([np.sqrt(3/4), np.sqrt(3/4)])).max() < tol
+a = ase.Atoms('CC', positions=[[0.5, 0.5, 0.5], [1,1,1]], cell=[10, 10, 10],
+              pbc=True)
+i, j, d = neighbor_list("ijd", a, 1.1)
+assert (i == np.array([0, 1])).all()
+assert (j == np.array([1, 0])).all()
+assert np.abs(d - np.array([np.sqrt(3/4), np.sqrt(3/4)])).max() < tol
 
 # test_neighbor_list
 for pbc in [True, False, [True, False, True]]:
     print(pbc)
     a = io.read('aC.cfg')
     j, dr, i, abs_dr, shift = neighbor_list("jDidS", a, 1.85)
-
-    j2, dr2, i2, abs_dr2, shift2 = neighbour_list("jDidS", a, 1.85)
 
     assert (np.bincount(i) == np.bincount(j)).all()
 

@@ -113,6 +113,9 @@ def neighbor_list(quantities, a, cutoff):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
+    # Store pbc
+    pbc = a.pbc
+
     # Compute reciprocal lattice vectors.
     b1_c, b2_c, b3_c = np.linalg.inv(a.cell).T
 
@@ -128,7 +131,12 @@ def neighbor_list(quantities, a, cutoff):
 
     # Sort atoms into bins.
     spos_ic = a.get_scaled_positions()
-    bin_index_ic = (spos_ic*nbins_c).astype(int) % nbins
+    bin_index_ic = (spos_ic*nbins_c).astype(int)
+    for c in range(3):
+        if pbc[c]:
+            bin_index_ic[:, c] %= nbins_c[c]
+        else:
+            bin_index_ic[:, c] = np.clip(bin_index_ic[:, c], 0, nbins_c[c]-1)
 
     # Convert Cartesian bin index to unique scalar bin index.
     bin_index_i = bin_index_ic[:, 0] + \
@@ -226,6 +234,15 @@ def neighbor_list(quantities, a, cutoff):
     i_n = i_n[m]
     j_n = j_n[m]
     S_n = S_n[m]
+
+    # For nonperiodic directions, remove any bonds that cross the domain
+    # boundary.
+    for c in range(3):
+        if not pbc[c]:
+            m = S_n[:, c] == 0
+            i_n = i_n[m]
+            j_n = j_n[m]
+            S_n = S_n[m]
 
     # Sort neighbor list.
     i = np.argsort(i_n)
