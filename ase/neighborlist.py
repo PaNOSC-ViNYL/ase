@@ -126,8 +126,11 @@ def neighbor_list(quantities, a, cutoff):
 
     # Compute number of bins such that a sphere of radius cutoff fit into eight
     # neighboring bins.
-    nbins_c = (face_dist_c/cutoff).astype(int)
+    nbins_c = np.maximum((face_dist_c / cutoff).astype(int), [1, 1, 1])
     nbins = np.prod(nbins_c)
+
+    # Compute over how many cell we need to loop in the neighbor list search.
+    ndx, ndy, ndz = np.ceil(cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
     spos_ic = a.get_scaled_positions()
@@ -194,11 +197,14 @@ def neighbor_list(quantities, a, cutoff):
     bz_xyz, by_xyz, bx_xyz = np.meshgrid(np.arange(nbins_c[2]),
                                          np.arange(nbins_c[1]),
                                          np.arange(nbins_c[0]), indexing='ij')
-    #b_b = (bx_xyz + nbins_c[0] * (by_xyz + nbins_c[1] * bz_xyz)).ravel()
-    #assert (b_b == np.arange(np.prod(nbins_c))).all()
-    for dz in range(-1, 2):
-        for dy in range(-1, 2):
-            for dx in range(-1, 2):
+    # The memory layout of bx_xyz, by_xyz, bz_xyz is such that computing the
+    # respective bin index leads to a linearly increasing consecutive list.
+    # The following assert statement succeeds:
+    #     b_b = (bx_xyz + nbins_c[0] * (by_xyz + nbins_c[1] * bz_xyz)).ravel()
+    #     assert (b_b == np.arange(np.prod(nbins_c))).all()
+    for dz in range(-ndz, ndz+1):
+        for dy in range(-ndy, ndy+1):
+            for dx in range(-ndx, ndx+1):
                 # First atom in pair.
                 i_n += [bins_ba[:, ix_pn[0]]]
 
@@ -212,25 +218,37 @@ def neighbor_list(quantities, a, cutoff):
                 # Second atom in pair.
                 j_n += [bins_ba[b1_b][:, ix_pn[1]]]
 
-                # Shift vectors
+                # Shift vectors.
                 Sx_n += [sx_xyz.reshape(-1, 1)]
                 Sy_n += [sy_xyz.reshape(-1, 1)]
                 Sz_n += [sz_xyz.reshape(-1, 1)]
 
-    # Flatten overall neighbor list
+    # Flatten overall neighbor list.
     i_n = np.ravel(i_n)
     j_n = np.ravel(j_n)
     Sx_n = np.ravel(Sx_n)
     Sy_n = np.ravel(Sy_n)
     Sz_n = np.ravel(Sz_n)
+    # Spread out shift vectors overs pairs.
     Sx_n = np.resize(Sx_n, (max_nat_per_bin**2, len(Sx_n))).T.ravel()
     Sy_n = np.resize(Sy_n, (max_nat_per_bin**2, len(Sy_n))).T.ravel()
     Sz_n = np.resize(Sz_n, (max_nat_per_bin**2, len(Sz_n))).T.ravel()
     S_n = np.transpose([Sx_n, Sy_n, Sz_n])
 
+    #
+    # Now we need to remove lots of stuff from our neighbor list...
+    #
+
     # We have created too many pairs because we assumed each bin has exactly
-    # max_nat_per_bin atoms. Remove all surperfluous pairs.
-    m = np.logical_and(np.logical_and(i_n != -1, j_n != -1), i_n != j_n)
+    # max_nat_per_bin atoms. Remove all surperfluous pairs. Those are pairs
+    # that involve an atom with index -1.
+    m = np.logical_and(i_n != -1, j_n != -1)
+    i_n = i_n[m]
+    j_n = j_n[m]
+    S_n = S_n[m]
+
+    # Remove all self-pairs that do not cross the cell boundary.
+    m = np.logical_not(np.logical_and(i_n == j_n, (S_n == 0).all(axis=1)))
     i_n = i_n[m]
     j_n = j_n[m]
     S_n = S_n[m]

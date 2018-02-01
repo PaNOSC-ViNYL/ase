@@ -24,7 +24,6 @@ assert np.abs(d - np.array([np.sqrt(3/4), np.sqrt(3/4)])).max() < tol
 
 # test_neighbor_list
 for pbc in [True, False, [True, False, True]]:
-    print(pbc)
     a = io.read('aC.cfg')
     j, dr, i, abs_dr, shift = neighbor_list("jDidS", a, 1.85)
 
