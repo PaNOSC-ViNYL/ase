@@ -14,7 +14,8 @@ are optimised in situ to enable high accuracy calculations with a minimal number
 of orbitals.
 
 This interface makes it possible to use ONETEP as a calculator in ASE.
-You need to have a copy of the ONETEP code and an appropriate
+You need to have a copy of the ONETEP code (and an appropriate license) to use
+this interface.
 
 Additionally you will need pseudopotential or PAW dataset files for the
 combination of atom types of your system.
@@ -77,11 +78,12 @@ Here is an example of setting up a calculation on a graphene sheet: ::
     clat = 19.2857142857
     gra = Graphene(symbol = 'C',latticeconstant={'a':alat,'c':clat},size=(index1,index2,1))
 
-    # Set up a ONETEP calculation
+    # Set up a ONETEP calculation using PBE functional and ensemble DFT
     from ase.calculators.onetep import Onetep
     from os.path import isfile, dirname, abspath, join 
     from os import environ
-    environ["ASE_ONETEP_COMMAND"]="export OMP_NUM_THREADS=4; mpirun -n 6 /storage/nanosim/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
+    environ["ASE_ONETEP_COMMAND"]="export OMP_NUM_THREADS=4;
+        mpirun -n 6 /storage/nanosim/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
     calc = Onetep(label='gra')
     pseudos='/path/to/pseudos'
     calc.set_pseudos([('C', join(pseudos, 'C.PBE-paw.abinit'))])
