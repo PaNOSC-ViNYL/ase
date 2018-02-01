@@ -113,114 +113,127 @@ def neighbor_list(quantities, a, cutoff):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
-    # Reciprocal lattice vectors
+    # Compute reciprocal lattice vectors.
     b1_c, b2_c, b3_c = np.linalg.inv(a.cell).T
 
-    # Distances of cell faces
+    # Compute distances of cell faces.
     face_dist_c = np.array([1 / np.linalg.norm(b1_c),
                             1 / np.linalg.norm(b2_c),
                             1 / np.linalg.norm(b3_c)])
 
-    # Number of bins
+    # Compute number of bins such that a sphere of radius cutoff fit into eight
+    # neighboring bins.
     nbins_c = (face_dist_c/cutoff).astype(int)
     nbins = np.prod(nbins_c)
 
-    # Sort atoms into bins
+    # Sort atoms into bins.
     spos_ic = a.get_scaled_positions()
     bin_index_ic = (spos_ic*nbins_c).astype(int) % nbins
 
-    # Convert Cartesian bin index to unique scalar bin index and sort by this
-    # index
+    # Convert Cartesian bin index to unique scalar bin index.
     bin_index_i = bin_index_ic[:, 0] + \
                   nbins_c[0] * (bin_index_ic[:, 1] + \
                                 nbins_c[1] * bin_index_ic[:, 2])
 
     # Sort by bin index
     i = np.argsort(bin_index_i)
+    # atom_i contains atom index in new sort order.
     atom_i = np.arange(len(a))[i]
     bin_index_i = bin_index_i[i]
-    bin_index_ic = bin_index_ic[i]
-
-    # binatom_i contains a consecutive number within each bin
-    binatom_i = np.arange(len(a))
 
     # Find max number of atoms per bin
-    nat_per_bin_b = np.bincount(bin_index_i, minlength=nbins).max()
-    max_nat_per_bin = nat_per_bin_b.max()
+    max_nat_per_bin = np.bincount(bin_index_i).max()
 
-    # Create a homogeneous array, assigning atoms to bin index
+    # Sort atoms into bins: bins_ba contains for each bin (identified by its
+    # scalar bin index) a list of atoms inside that bin. This list is
+    # homogeneous, i.e. has the same size *max_nat_per_bin* for all bins.
+    # The list is padded with -1 values.
     bins_ba = -np.ones([nbins, max_nat_per_bin], dtype=int)
     for i in range(max_nat_per_bin):
+        # Create a mask array that identifies the first atom of each bin.
         m = np.append([True], bin_index_i[:-1] != bin_index_i[1:])
+        # Assign all first atoms.
         bins_ba[bin_index_i[m], i] = atom_i[m]
 
-        # Remove atoms that we just sorted into bins_ba
+        # Remove atoms that we just sorted into bins_ba. The next "first"
+        # atom will be the second and so on.
         m = np.logical_not(m)
         atom_i = atom_i[m]
         bin_index_i = bin_index_i[m]
 
-    # Now we construct neighbor pairs by pairing up all atoms within a bin or
-    # between bin and neighboring bin
-    ix = np.indices((max_nat_per_bin, max_nat_per_bin), dtype=int)
-    ix = ix.reshape(2, -1).T
+    # Make sure that all atoms have been sorted into bins.
+    assert len(atom_i) == 0
+    assert len(bin_index_i) == 0
 
+    # Now we construct neighbor pairs by pairing up all atoms within a bin or
+    # between bin and neighboring bin. ix_pn is a helper buffer that contains
+    # all potential pairs of atoms between two bins, i.e. it is a list of
+    # length max_nat_per_bin**2.
+    ix_pn = np.indices((max_nat_per_bin, max_nat_per_bin), dtype=int)
+    ix_pn = ix_pn.reshape(2, -1)
+
+    # Initialized empty neighbor list buffers.
     i_n = []
     j_n = []
     Sx_n = []
     Sy_n = []
     Sz_n = []
 
-    # Loop over neighboring bins
-    bx = np.arange(nbins_c[0]).reshape(-1, 1, 1)
-    by = np.arange(nbins_c[1]).reshape(1, -1, 1)
-    bz = np.arange(nbins_c[2]).reshape(1, 1, -1)
-    b = (bx + nbins_c[0] * (by + nbins_c[1] * bz)).ravel()
+    # This is the main neighbor list search. We loop over neighboring bins and
+    # then construct all possible pairs of atoms between two bins, assuming
+    # that each bin contains exactly max_nat_per_bin atoms. We then throw
+    # out pairs involving pad atoms with atom index -1 below.
+    bz_xyz, by_xyz, bx_xyz = np.meshgrid(np.arange(nbins_c[2]),
+                                         np.arange(nbins_c[1]),
+                                         np.arange(nbins_c[0]), indexing='ij')
+    #b_b = (bx_xyz + nbins_c[0] * (by_xyz + nbins_c[1] * bz_xyz)).ravel()
+    #assert (b_b == np.arange(np.prod(nbins_c))).all()
     for dz in range(-1, 2):
         for dy in range(-1, 2):
             for dx in range(-1, 2):
-                # First atom in pair
-                i_n += [bins_ba[b][:, ix[:, 0]]]
+                # First atom in pair.
+                i_n += [bins_ba[:, ix_pn[0]]]
 
-                # Bin index of neighboring bin and shift vector
-                sx, bx1 = np.divmod(bx + dx, nbins_c[0])
-                sy, by1 = np.divmod(by + dy, nbins_c[1])
-                sz, bz1 = np.divmod(bz + dz, nbins_c[2])
-                b1 = (bx1 + nbins_c[0] * (by1 + nbins_c[1] * bz1)).ravel()
+                # Bin index of neighboring bin and shift vector.
+                sx_xyz, bx1_xyz = np.divmod(bx_xyz + dx, nbins_c[0])
+                sy_xyz, by1_xyz = np.divmod(by_xyz + dy, nbins_c[1])
+                sz_xyz, bz1_xyz = np.divmod(bz_xyz + dz, nbins_c[2])
+                b1_b = (bx1_xyz + nbins_c[0] * 
+                    (by1_xyz + nbins_c[1] * bz1_xyz)).ravel()
 
-                # Second atom in pair
-                j_n += [bins_ba[b1][:, ix[:, 1]]]
+                # Second atom in pair.
+                j_n += [bins_ba[b1_b][:, ix_pn[1]]]
 
                 # Shift vectors
-                sx, sy, sz = np.meshgrid(sx, sy, sz)
-                Sx_n += [np.resize(sx.ravel().reshape(-1, 1),
-                                   (np.prod(sx.shape), max_nat_per_bin**2))]
-                Sy_n += [np.resize(sy.ravel().reshape(-1, 1),
-                                   (np.prod(sy.shape), max_nat_per_bin**2))]
-                Sz_n += [np.resize(sz.ravel().reshape(-1, 1),
-                                   (np.prod(sz.shape), max_nat_per_bin**2))]
+                Sx_n += [sx_xyz.reshape(-1, 1)]
+                Sy_n += [sy_xyz.reshape(-1, 1)]
+                Sz_n += [sz_xyz.reshape(-1, 1)]
 
     # Flatten overall neighbor list
-    #print(S_n[0])
     i_n = np.ravel(i_n)
     j_n = np.ravel(j_n)
-    S_n = np.transpose([np.ravel(Sx_n),
-                        np.ravel(Sy_n),
-                        np.ravel(Sz_n)])
+    Sx_n = np.ravel(Sx_n)
+    Sy_n = np.ravel(Sy_n)
+    Sz_n = np.ravel(Sz_n)
+    Sx_n = np.resize(Sx_n, (max_nat_per_bin**2, len(Sx_n))).T.ravel()
+    Sy_n = np.resize(Sy_n, (max_nat_per_bin**2, len(Sy_n))).T.ravel()
+    Sz_n = np.resize(Sz_n, (max_nat_per_bin**2, len(Sz_n))).T.ravel()
+    S_n = np.transpose([Sx_n, Sy_n, Sz_n])
 
     # We have created too many pairs because we assumed each bin has exactly
-    # max_nat_per_bin atoms. Remove all surperfluous pairs
+    # max_nat_per_bin atoms. Remove all surperfluous pairs.
     m = np.logical_and(np.logical_and(i_n != -1, j_n != -1), i_n != j_n)
     i_n = i_n[m]
     j_n = j_n[m]
     S_n = S_n[m]
 
-    # Sort neighbor list
+    # Sort neighbor list.
     i = np.argsort(i_n)
     i_n = i_n[i]
     j_n = j_n[i]
     S_n = S_n[i]
 
-    # Compute distance vectors
+    # Compute distance vectors.
     dr_nc = a.positions[j_n] - a.positions[i_n] + S_n.dot(a.cell)
     abs_dr_n = np.sqrt(np.sum(dr_nc*dr_nc, axis=1))
 
@@ -233,7 +246,7 @@ def neighbor_list(quantities, a, cutoff):
     dr_nc = dr_nc[m]
     abs_dr_n = abs_dr_n[m]
 
-    # Assemble return tuple
+    # Assemble return tuple.
     retvals = []
     for q in quantities:
         if q == 'i':
