@@ -126,7 +126,6 @@ assert (first_neighbors(6, i) == np.array([0,1,2,3,4,5,6])).all()
 # test_multiple_elements
 a = molecule('HCOOH')
 a.center(vacuum=5.0)
-io.write('HCOOH.cfg', a)
 i = neighbor_list("i", a, 1.85)
 assert (np.bincount(i) == np.array([2,3,1,1,1])).all()
 
