@@ -93,3 +93,24 @@ Here is an example of setting up a calculation on a graphene sheet: ::
     gra.get_potential_energy()
 
 .. highlight:: python
+
+Here is an example of setting up a calculation on a water molecule: ::
+
+    # Set up water molecule in box with 6 ang padding.
+    from ase.build import molecule
+    wat = molecule('H2O')
+    wat.center(6)
+    
+    # Set up a ONETEP geometry optimisation calculation using the PBE functional
+    from ase.calculators.onetep import Onetep
+    from os.path import isfile, dirname, abspath, join 
+    from os import environ
+    environ["ASE_ONETEP_COMMAND"]="export OMP_NUM_THREADS=8; mpirun -n 2 /home/theory/phspvr/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
+    calc = Onetep(label='water')
+    prefix='/home/theory/phspvr/JTH_PBE'
+    calc.set_pseudos([('H', join(prefix, 'H.PBE-paw.abinit')), ('O', join(prefix, 'O.PBE-paw.abinit'))])
+    calc.set(task='GeometryOptimization',paw=True,xc='PBE',cutoff_energy='600 eV')
+    wat.set_calculator(calc)
+    wat.get_forces()
+
+.. highlight:: python
