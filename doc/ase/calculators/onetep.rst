@@ -56,7 +56,7 @@ the calculator's `set` routine.
 ==================== ========= ============= =====================================
 keyword              type      default value description
 ==================== ========= ============= =====================================
-``label``            ``str``   ``'siesta'``  Name of input and output files
+``label``            ``str``   None          Name of input and output files
 ``cutoff_energy``    ``str``   ``1000 eV``   Energy cutoff of psinc grid
 ``ngwf_radius``      ``str``   ``12.0 bohr`` Cutoff Radius of NGWF
 ``kernel_cutoff``    ``str``   ``1000 bohr`` Cutoff Radius for density kernel
