@@ -71,27 +71,21 @@ Here is an example of setting up a calculation on a graphene sheet:
 # Set up a graphene lattice with a 9x9 supercell
 from ase.lattice.hexagonal import *
 from ase.visualize import view
-
 index1=9
 index2=9
 alat = 2.45
 clat = 19.2857142857
-    
-gra = Graphene(symbol = 'C',latticeconstant={'a':alat,'c':clat},
-                   size=(index1,index2,1))
+gra = Graphene(symbol = 'C',latticeconstant={'a':alat,'c':clat},size=(index1,index2,1))
 
 # Set up a ONETEP calculation
 from ase.calculators.onetep import Onetep
 from os.path import isfile, dirname, abspath, join 
 from os import environ
 environ["ASE_ONETEP_COMMAND"]="export OMP_NUM_THREADS=4; mpirun -n 6 /storage/nanosim/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
-
 calc = Onetep(label='gra')
 pseudos='/path/to/pseudos'
 calc.set_pseudos([('C', join(pseudos, 'C.PBE-paw.abinit'))])
-
-calc.set(paw=True,xc='PBE', cutoff_energy='500 eV',
-         ngwf_radius=8,edft='T')
+calc.set(paw=True,xc='PBE', cutoff_energy='500 eV',ngwf_radius=8,edft='T')
 
 # Run the calculation
 gra.get_potential_energy()
