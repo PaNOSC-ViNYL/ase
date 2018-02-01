@@ -296,7 +296,10 @@ def neighbor_list(quantities, a, cutoff):
             retvals += [S_n]
         else:
             raise ValueError('Unsupported quantity specified.')
-    return tuple(retvals)
+    if len(retvals) == 1:
+        return retvals[0]
+    else:
+        return tuple(retvals)
 
 
 def first_neighbors(nat, i):
