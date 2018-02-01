@@ -68,7 +68,7 @@ Example
 
 Here is an example of setting up a calculation on a graphene sheet: ::
 
-    $ # Set up a graphene lattice with a 9x9 supercell
+    # Set up a graphene lattice with a 9x9 supercell
     from ase.lattice.hexagonal import *
     from ase.visualize import view
     index1=9
