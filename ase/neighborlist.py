@@ -106,12 +106,13 @@ def neighbor_list(quantities, a, cutoff):
                    (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3))).T).T
         dynmat_bsr = bsr_matrix((dynmat, j, first_i), shape=(3*len(a), 3*len(a)))
 
-        Ddiag_icc = np.empty((len(a), 3, 3))
+        dynmat_diag = np.empty((len(a), 3, 3))
         for x in range(3):
             for y in range(3):
-                Ddiag_icc[:, x, y] = -np.bincount(i, weights=dynmat[:, x, y])
+                dynmat_diag[:, x, y] = -np.bincount(i, weights=dynmat[:, x, y])
 
-        dynmat_bsr += bsr_matrix((Ddiag_icc, np.arange(len(a)), np.arange(len(a) + 1)),
+        dynmat_bsr += bsr_matrix((dynmat_diag, np.arange(len(a)),
+                                  np.arange(len(a) + 1)),
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
