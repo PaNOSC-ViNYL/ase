@@ -36,7 +36,9 @@ def mic(dr, cell, pbc=None):
 
 def neighbor_list(quantities, a, cutoff):
     """
-    Compute a neighbor list for an atomic configuration.
+    Compute a neighbor list for an atomic configuration. Atoms outside periodic
+    boundaries are mapped into the box. Atoms outside nonperiodic boundaries
+    are included in the neighbor list but computation for those can become n^2.
 
     Parameters
     ----------
