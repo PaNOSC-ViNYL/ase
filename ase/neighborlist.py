@@ -2,6 +2,8 @@ from math import sqrt
 
 import numpy as np
 
+from ase.data import atomic_numbers
+
 
 def mic(dr, cell, pbc=None):
     """
@@ -127,13 +129,18 @@ def neighbor_list(quantities, a, cutoff):
                             1 / np.linalg.norm(b2_c),
                             1 / np.linalg.norm(b3_c)])
 
+    if isinstance(cutoff, dict):
+        max_cutoff = np.max(list(cutoff.values()))
+    else:
+        max_cutoff = cutoff
+
     # Compute number of bins such that a sphere of radius cutoff fit into eight
     # neighboring bins.
-    nbins_c = np.maximum((face_dist_c / cutoff).astype(int), [1, 1, 1])
+    nbins_c = np.maximum((face_dist_c / max_cutoff).astype(int), [1, 1, 1])
     nbins = np.prod(nbins_c)
 
     # Compute over how many cell we need to loop in the neighbor list search.
-    ndx, ndy, ndz = np.ceil(cutoff * nbins_c / face_dist_c).astype(int)
+    ndx, ndy, ndz = np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
     spos_ic = a.get_scaled_positions()
@@ -276,13 +283,40 @@ def neighbor_list(quantities, a, cutoff):
     abs_dr_n = np.sqrt(np.sum(dr_nc*dr_nc, axis=1))
 
     # We have still created too many pairs. Only keep those with distance
-    # smaller than cutoff.
-    m = abs_dr_n < cutoff
+    # smaller than max_cutoff.
+    m = abs_dr_n < max_cutoff
     i_n = i_n[m]
     j_n = j_n[m]
     S_n = S_n[m]
     dr_nc = dr_nc[m]
     abs_dr_n = abs_dr_n[m]
+
+    # If cutoff is a dictionary, then the cutoff radii are specified per
+    # element pair. We now have a list up to maximum cutoff.
+    if isinstance(cutoff, dict):
+        n = a.numbers
+        per_pair_cutoff_n = np.zeros_like(abs_dr_n)
+        for (el1, el2), c in cutoff.items():
+            try:
+                el1 = atomic_numbers[el1]
+            except:
+                pass
+            try:
+                el2 = atomic_numbers[el2]
+            except:
+                pass
+            if el1 == el2:
+                m = np.logical_and(n[i_n] == el1, n[j_n] == el2)
+            else:
+                m = np.logical_or(np.logical_and(n[i_n] == el1, n[j_n] == el2),
+                                  np.logical_and(n[i_n] == el2, n[j_n] == el1))
+            per_pair_cutoff_n[m] = c
+        m = abs_dr_n < per_pair_cutoff_n
+        i_n = i_n[m]
+        j_n = j_n[m]
+        S_n = S_n[m]
+        dr_nc = dr_nc[m]
+        abs_dr_n = abs_dr_n[m]        
 
     # Assemble return tuple.
     retvals = []
