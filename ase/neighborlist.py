@@ -40,7 +40,8 @@ def neighbor_list(quantities, a, cutoff):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
-    are included in the neighbor list but computation for those can become n^2.
+    are included in the neighbor list but complexity of neighbor list search
+    for those can become n^2.
 
     Parameters
     ----------
@@ -59,10 +60,14 @@ def neighbor_list(quantities, a, cutoff):
     a : ase.Atoms
         Atomic configuration.
     cutoff : float or dict
-        Cutoff for neighbor search. If single float is given, a global cutoff
-        is used for all elements. A dictionary specifies cutoff for element
-        pairs. Specification accepts element numbers of symbols.
-        Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
+        Cutoff for neighbor search. It can be
+            - A single float: This is a global cutoff for all elements.
+            - A dictionary: This specifies cutoff values for element
+              pairs. Specification accepts element numbers of symbols.
+              Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
+            - A list/array with a per atom value: This specifies the radius of
+              an atomic sphere for each atoms. If spheres overlap, atoms are
+              within each others neighborhood.
 
     Returns
     -------
@@ -132,7 +137,11 @@ def neighbor_list(quantities, a, cutoff):
     if isinstance(cutoff, dict):
         max_cutoff = np.max(list(cutoff.values()))
     else:
-        max_cutoff = cutoff
+        if np.isscalar(cutoff):
+            max_cutoff = cutoff
+        else:
+            cutoff = np.asarray(cutoff)
+            max_cutoff = 2*np.max(cutoff)
 
     # Compute number of bins such that a sphere of radius cutoff fit into eight
     # neighboring bins.
@@ -316,7 +325,14 @@ def neighbor_list(quantities, a, cutoff):
         j_n = j_n[m]
         S_n = S_n[m]
         dr_nc = dr_nc[m]
-        abs_dr_n = abs_dr_n[m]        
+        abs_dr_n = abs_dr_n[m]
+    elif not np.isscalar(cutoff):
+        m = abs_dr_n < cutoff[i_n] + cutoff[j_n]
+        i_n = i_n[m]
+        j_n = j_n[m]
+        S_n = S_n[m]
+        dr_nc = dr_nc[m]
+        abs_dr_n = abs_dr_n[m]
 
     # Assemble return tuple.
     retvals = []

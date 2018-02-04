@@ -140,6 +140,14 @@ cutoffs = {('H', 'C'): 1.2, (6, 8): 1.4}
 i = neighbor_list("i", a, cutoffs)
 assert (np.bincount(i) == np.array([1,3,1,0,1])).all()
 
+cutoffs = [0.0, 0.9, 0.0, 0.5, 0.5]
+i = neighbor_list("i", a, cutoffs)
+assert (np.bincount(i) == np.array([0,1,0,0,1])).all()
+
+cutoffs = [0.7, 0.9, 0.7, 0.5, 0.5]
+i = neighbor_list("i", a, cutoffs)
+assert (np.bincount(i) == np.array([2,3,1,1,1])).all()
+
 # test_noncubic
 a = bulk("Al", cubic=False)
 i, j, d = neighbor_list("ijd", a, 3.1)
