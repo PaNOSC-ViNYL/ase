@@ -10,7 +10,6 @@ import ase.lattice.hexagonal
 from ase.build import bulk, molecule
 
 from ase.neighborlist import mic, neighbor_list, first_neighbors
-from matscipy.neighbours import neighbour_list
 
 tol = 1e-7
 
