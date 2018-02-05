@@ -1,3 +1,4 @@
+from __future__ import print_function
 import platform
 import sys
 
@@ -16,7 +17,8 @@ class CLICommand:
     def add_arguments(parser):
         parser.add_argument('filenames', nargs='*')
         parser.add_argument('-v', '--verbose', action='store_true')
-        parser.add_argument('--formats', action='store_true')
+        parser.add_argument('--formats', action='store_true',
+                            help='list file formats known to ase')
 
     @staticmethod
     def run(args):
