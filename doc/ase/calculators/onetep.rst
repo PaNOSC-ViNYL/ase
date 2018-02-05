@@ -44,7 +44,7 @@ You can this environment variable in your shell configuration file:
 
 Or within python itself:
 
-  $ environ["ASE_ONETEP_COMMAND"]="export OMP_NUM_THREADS=4; mpirun -n 6 /storage/nanosim/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
+  >>> environ["ASE_ONETEP_COMMAND"]="export OMP_NUM_THREADS=4; mpirun -n 6 /storage/nanosim/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
 
 
 ONETEP Calculator
