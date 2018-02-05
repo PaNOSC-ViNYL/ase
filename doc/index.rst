@@ -224,7 +224,7 @@ Contents
    :target: ase/calculators/octopus.html
    :align: middle
 .. |onetep| image:: static/onetep.png
-   :target: http://www.onetep.org/
+   :target: ase/calculators/onetep.html
    :align: middle
 .. |q_espresso| image:: static/espresso.png
    :target: ase/calculators/espresso.html
