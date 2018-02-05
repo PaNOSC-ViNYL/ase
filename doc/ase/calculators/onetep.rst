@@ -7,7 +7,7 @@ ONETEP
 Introduction
 ============
 
-ONETEP is a fully-featured density-functional package combining linear scaling
+ONETEP_ is a fully-featured density-functional package combining linear scaling
 with system size, systematic plane-wave accuracy, and excellent parallel
 scaling. It uses a set of atom-centered local orbitals (denoted NGWFs) which
 are optimised in situ to enable high accuracy calculations with a minimal number
@@ -20,7 +20,7 @@ this interface.
 Additionally you will need pseudopotential or PAW dataset files for the
 combination of atom types of your system.
 
-.. ONETEP: http://www.onetep.org
+.. _ONETEP: http://www.onetep.org
 
 
 Environment variables
@@ -39,6 +39,7 @@ You can this environment variable in your shell configuration file:
 ::
 
   $ export ASE_ONETEP_COMMAND="export OMP_NUM_THREADS=4; mpirun -n 6 /storage/nanosim/ONETEP/devel/bin/onetep.csc PREFIX.dat >> PREFIX.out 2> PREFIX.err"
+
 
 .. highlight:: python
 
