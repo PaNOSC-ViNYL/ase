@@ -38,6 +38,12 @@ Git master branch
 * Interface for the :mod:`CRYSTAL <ase.calculators.crystal` code has been
   added.
 
+* The :func:`ase.dft.bandgap.bandgap` function used with ``direct=True``
+  will now also consider spin-flip transitions.  To get the spin-preserving
+  direct gap (the old behavior), use::
+
+      min(bandgap(..., spin=s, direst=True) for s in [0, 1])
+
 
 Version 3.15.0
 ==============
