@@ -5,7 +5,6 @@ import sys
 
 from ase import __version__
 from ase.utils import import_module
-from ase.io.formats import all_formats as fmts
 
 
 commands = [
@@ -61,11 +60,6 @@ def main(prog='ase', description='ASE command line tool',
             parser.print_help()
         else:
             parsers[args.helpcommand].print_help()
-        af = []
-        for f in list(fmts):
-            af.append('{}: {}'.format(f, fmts[f][0]))
-        print('\nSupported formats:')
-        print(", ".join(sorted(af)))
     elif args.command is None:
         parser.print_usage()
     else:

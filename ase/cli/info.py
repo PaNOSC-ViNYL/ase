@@ -6,6 +6,7 @@ from ase.utils import search_current_git_hash
 from ase.io.formats import filetype, all_formats, UnknownFileTypeError
 from ase.io.ulm import print_ulm_info
 from ase.io.bundletrajectory import print_bundletrajectory_info
+from ase.io.formats import all_formats as fmts
 
 
 class CLICommand:
@@ -15,11 +16,15 @@ class CLICommand:
     def add_arguments(parser):
         parser.add_argument('filenames', nargs='*')
         parser.add_argument('-v', '--verbose', action='store_true')
+        parser.add_argument('--formats', action='store_true')
 
     @staticmethod
     def run(args):
         if not args.filenames:
             print_info()
+            if args.formats:
+                print()
+                print_formats()
             return
 
         n = max(len(filename) for filename in args.filenames) + 2
@@ -64,3 +69,8 @@ def print_info():
 
     for a, b in versions:
         print('{:25}{}'.format(a, b))
+
+def print_formats():
+    print('Supported formats:')
+    for f in list(sorted(fmts)):
+        print('  {}: {}'.format(f, fmts[f][0]))
