@@ -1853,7 +1853,7 @@ class Atoms(object):
         from ase.io import write
         write(filename, self, format, **kwargs)
 
-    def _images_(self):
+    def iterimages(self):
         yield self
 
     def edit(self):
