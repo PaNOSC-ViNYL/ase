@@ -11,7 +11,7 @@ from ase.gui.i18n import _
 
 import numpy as np
 
-from ase import __version__, Atoms
+from ase import __version__
 import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
