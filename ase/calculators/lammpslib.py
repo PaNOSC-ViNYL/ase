@@ -122,8 +122,8 @@ Keyword                               Description
 ``lmpcmds``        list of strings of LAMMPS commands. You need to supply
                    enough to define the potential to be used e.g.
 
-                   ``["pair_style eam/alloy",
-                    "pair_coeff * * potentials/NiAlH_jea.eam.alloy Ni Al"]``
+                   ["pair_style eam/alloy",
+                    "pair_coeff * * potentials/NiAlH_jea.eam.alloy Ni Al"]
 
 ``atom_types``     dictionary of ``atomic_symbol :lammps_atom_type`` pairs,
                    e.g. ``{'Cu':1}`` to bind copper to lammps atom type 1.
@@ -136,9 +136,9 @@ Keyword                               Description
 ``lammps_header``  string to use for lammps setup. Default is to use
                    metal units and simple atom simulation.
 
-                   ``lammps_header=['units metal',
+                   lammps_header=['units metal',
                                   'atom_style atomic',
-                                  'atom_modify map array sort 0 0'])``
+                                  'atom_modify map array sort 0 0'])
 
 ``keep_alive``     Boolean
                    whether to keep the lammps routine alive for more commands
