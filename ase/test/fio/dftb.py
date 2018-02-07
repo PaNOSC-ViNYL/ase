@@ -1,5 +1,4 @@
 # additional tests of the dftb I/O
-import os
 import numpy as np
 from ase.io.dftb import read_dftb_lattice
 from ase.atoms import Atoms
