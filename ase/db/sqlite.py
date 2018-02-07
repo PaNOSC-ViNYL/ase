@@ -473,6 +473,7 @@ class SQLite3Database(Database, object):
                     found_sort_table = True
                 nnumber += 1
 
+        extra = False
         if sort:
             if sort_table == 'systems':
                 if False:  # sort in ['energy', 'fmax', 'smax', 'calculator']:
@@ -485,6 +486,7 @@ class SQLite3Database(Database, object):
                     args.append(sort)
                     sort_table = 'sort_table'
                 sort = 'value'
+                extra = True
 
         sql = 'SELECT {} FROM\n  '.format(what) + ', '.join(tables)
         if where:
@@ -493,7 +495,7 @@ class SQLite3Database(Database, object):
             # XXX use "?" instead of "{}"
             sql += '\nORDER BY {}.{} {}'.format(sort_table, sort, order)
 
-        return sql, args
+        return sql, args, extra
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
                 limit=None, offset=0, sort=None, include_data=True):
@@ -531,8 +533,8 @@ class SQLite3Database(Database, object):
             what = ', '.join('systems.' + name
                              for name in self.columnnames[:26])
 
-        sql, args = self.create_select_statement(keys, cmps,
-                                                 sort, order, sort_table, what)
+        sql, args, extra = self.create_select_statement(
+            keys, cmps, sort, order, sort_table, what)
 
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
@@ -552,8 +554,21 @@ class SQLite3Database(Database, object):
             for row in cur.fetchall():
                 yield {'explain': row}
         else:
+            n = 0
             for values in cur.fetchall():
                 yield self._convert_tuple_to_row(values)
+                n += 1
+            if not extra:
+                return
+
+            if limit is not None:
+                if n == limit:
+                    return
+                limit -= n
+            for row in self._select(keys + ['-' + sort], cmps,
+                                    limit=limit, offset=offset,
+                                    include_data=include_data):
+                yield row
 
     @parallel_function
     def count(self, selection=None, **kwargs):
