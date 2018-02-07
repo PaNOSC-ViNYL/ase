@@ -126,7 +126,7 @@ def read_dftb_lattice(fileobj='md.out',images=None):
     if isinstance(fileobj, basestring):
         fileobj = open(fileobj)
 
-    if not images == None:
+    if images is not None:
         append = True
         if hasattr(images, 'get_positions'):
             images = [images]
@@ -139,16 +139,16 @@ def read_dftb_lattice(fileobj='md.out',images=None):
         if 'Lattice vectors' in line:
             vec = []
             for i in range(3): #DFTB+ only supports 3D PBC
-                line = fileobj.readline().lstrip().rstrip().split()
+                line = fileobj.readline().split()
                 try:
                     line = [float(x) for x in line]
-                except:
+                except ValueError:
                     raise ValueError('Lattice vector elements should be of type float.')
                 vec.extend(line)
             lattices.append(np.array(vec).reshape((3,3)))
 
     if append:
-        if not len(images) == len(lattices):
+        if len(images) != len(lattices):
             raise ValueError('Length of images given does not match number of cell vectors found')
 
         for i,atoms in enumerate(images):
