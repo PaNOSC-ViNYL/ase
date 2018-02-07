@@ -104,8 +104,6 @@ def unit_convert(quantity, units='metal'):
 
 class LAMMPSlib(Calculator):
     r"""
-    LAMMPSlib Interface Documentation
-
 **Introduction**
 
 LAMMPSlib is an interface and calculator for LAMMPS_. LAMMPSlib uses
@@ -127,8 +125,8 @@ Keyword                               Description
                    ["pair_style eam/alloy",
                     "pair_coeff * * potentials/NiAlH_jea.eam.alloy Ni Al"]
 
-``atom_types``     dictionary of "atomic_symbol":lammps_atom_type pairs,
-                   e.g. {'Cu':1} to bind copper to lammps atom type 1.
+``atom_types``     dictionary of ``atomic_symbol :lammps_atom_type`` pairs,
+                   e.g. ``{'Cu':1}`` to bind copper to lammps atom type 1.
                    Default method assigns lammps atom types in order that they
                    appear in the atoms model. Autocreated if <None>.
 
@@ -253,9 +251,7 @@ by invoking the get_potential_energy() method::
   change the energy value of the model. However the calculator will not
   know of it and still return the original energy value.
 
-End LAMMPSlib Interface Documentation
-
-    """
+"""
 
     implemented_properties = ['energy', 'forces', 'stress']
 
