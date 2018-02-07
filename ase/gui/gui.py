@@ -38,16 +38,8 @@ class GUI(View, Status):
                  rotations='',
                  show_bonds=False):
 
-        # Try to change into directory of file you are viewing
-        try:
-            os.chdir(os.path.split(sys.argv[1])[0])
-        # This will fail sometimes (e.g. for starting a new session)
-        except:
-            pass
-
-        if not images:
-            images = Images()
-            images.initialize([Atoms()])
+        if not isinstance(images, Images):
+            images = Images(images)
 
         self.images = images
 

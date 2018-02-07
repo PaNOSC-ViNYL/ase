@@ -3,6 +3,7 @@ from math import sqrt
 
 import numpy as np
 
+from ase import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
@@ -18,8 +19,9 @@ class Images:
         self.covalent_radii = covalent_radii.copy()
         self.config = read_defaults()
         self.atom_scale = self.config['radii_scale']
-        if images is not None:
-            self.initialize(images)
+        if images is None:
+            images = [Atoms()]
+        self.initialize(images)
 
     def __len__(self):
         return len(self._images)
