@@ -109,6 +109,7 @@ def main(args):
     query = ','.join(args.query)
 
     if args.sort.endswith('-'):
+        # Allow using "key-" instead of "-key" for reverse sorting
         args.sort = '-' + args.sort[:-1]
 
     if query.isdigit():
