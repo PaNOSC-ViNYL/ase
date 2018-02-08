@@ -5,7 +5,7 @@ from ase.atoms import Atoms
 from io import StringIO
 
 #test ase.io.dftb.read_dftb_lattice
-fd = StringIO("""
+fd = StringIO(u"""
  MD step: 0
  Lattice vectors (A)
   26.1849388999576 5.773808884828536E-006 9.076696618724854E-006  
