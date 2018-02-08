@@ -236,7 +236,7 @@ class Amber(FileIOCalculator):
         f = netcdf.netcdf_file(filename, 'r')
         forces = f.variables['forces']
         self.results['forces'] = forces[-1, :, :] \
-            / units.Ang * units.kJ / units.mol
+            / units.Ang * units.kcal / units.mol
         f.close()
 
     def set_charges(self, selection, charges, parmed_filename=None):
