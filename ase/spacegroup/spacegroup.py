@@ -812,7 +812,7 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
 
     # use spglib when it is available (and return)
     if has_spglib and method in ['phonopy', 'spglib']:
-        sg = spglib.get_spacegroup(atoms)
+        sg = spglib.get_spacegroup(atoms, symprec=symprec)
         sg_no = int(sg[sg.find('(') + 1:sg.find(')')])
         return Spacegroup(sg_no)
 
@@ -821,7 +821,7 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
     # spacegroup of highest symmetry
     found = None
     for kind, pos in enumerate(atoms.get_scaled_positions()):
-        sg = _get_spacegroup(atoms, symprec=1e-5, center=kind)
+        sg = _get_spacegroup(atoms, symprec=symprec, center=kind)
         if found is None or sg.no > found.no:
             found = sg
 
