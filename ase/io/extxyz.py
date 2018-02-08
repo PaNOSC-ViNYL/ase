@@ -313,10 +313,13 @@ def parse_properties(prop_str):
     return properties, properties_list, dtype, converters
 
 
-def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict):
+def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict, nvec=0):
     # comment line
     line = next(lines)
-    info = properties_parser(line)
+    if nvec > 0:
+        info = {'comment': line.strip()}
+    else:
+        info = properties_parser(line)
 
     pbc = None
     if 'pbc' in info:
@@ -326,12 +329,18 @@ def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict):
         # default pbc for extxyz file containing Lattice
         # is True in all directions
         pbc = [True, True, True]
+    elif nvec > 0:
+        #cell information given as pseudo-Atoms
+        pbc = [False, False, False]
 
     cell = None
     if 'Lattice' in info:
         # NB: ASE cell is transpose of extended XYZ lattice
         cell = info['Lattice'].T
         del info['Lattice']
+    elif nvec > 0:
+        #cell information given as pseudo-Atoms
+        cell = np.zeros((3,3))
 
     if 'Properties' not in info:
         # Default set of properties is atomic symbols and positions only
@@ -355,6 +364,32 @@ def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict):
     except TypeError:
         raise XYZError('Badly formatted data '
                        'or end of file reached before end of frame')
+
+    #Read VEC entries if present
+    if nvec > 0:
+        for ln in range(nvec):
+            try:
+                line = next(lines)
+            except StopIteration:
+                raise XYZError('ase.io.adfxyz: Frame has {} cell vectors, expected {}'
+                               .format(len(cell), nvec))
+            entry = line.split()
+
+            if not entry[0].startswith('VEC'):
+                raise XYZError('Expected cell vector, got {}'.format(entry[0]))
+            try:
+                n = int(entry[0][3:])
+                if n != ln + 1:
+                    raise XYZError('Expected VEC{}, got VEC{}'
+                                   .format(ln+1,n))
+            except:
+                raise XYZError('Expected VEC{}, got VEC{}'.format(ln+1,entry[0][3:]))
+
+            cell[ln] = np.array([float(x) for x in entry[1:]])
+            pbc[ln] = True
+        if nvec != pbc.count(True):
+            raise XYZError('Problem with number of cell vectors')
+        pbc = tuple(pbc)
 
     arrays = {}
     for name in names:
@@ -521,7 +556,7 @@ def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
     # scan through file to find where the frames start
     fileobj.seek(0)
     frames = []
-    while fileobj:
+    while True:
         frame_pos = fileobj.tell()
         line = fileobj.readline()
         if line.strip() == '':
@@ -531,12 +566,24 @@ def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
         except ValueError as err:
             raise XYZError('ase.io.extxyz: Expected xyz header but got: {}'
                            .format(err))
-        frames.append((frame_pos, natoms))
-        if last_frame is not None and len(frames) > last_frame:
-            break
         fileobj.readline()  # read comment line
         for i in range(natoms):
             fileobj.readline()
+        #check for VEC
+        nvec = 0
+        while True:
+            lastPos = fileobj.tell()
+            line = fileobj.readline()
+            if line.startswith('VEC'):
+                nvec += 1
+                if nvec > 3:
+                    raise XYZError('ase.io.extxyz: More than 3 VECX entries')
+            else:
+                fileobj.seek(lastPos)
+                break
+        frames.append((frame_pos, natoms, nvec))
+        if last_frame is not None and len(frames) > last_frame:
+            break
 
     if isinstance(index, int):
         if index < 0:
@@ -567,11 +614,11 @@ def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
             trbl.reverse()
 
     for index in trbl:
-        frame_pos, natoms = frames[index]
+        frame_pos, natoms, nvec = frames[index]
         fileobj.seek(frame_pos)
         # check for consistency with frame index table
         assert int(fileobj.readline()) == natoms
-        yield _read_xyz_frame(fileobj, natoms, properties_parser)
+        yield _read_xyz_frame(fileobj, natoms, properties_parser, nvec)
 
 
 def output_column_format(atoms, columns, arrays,
@@ -646,7 +693,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, plain=False):
+              write_results=True, plain=False, vec_cell=False):
     """
     Write output in extended XYZ format
 
@@ -674,6 +721,9 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                        [key for key in atoms.arrays.keys() if
                         key not in ['symbols', 'positions',
                                     'species', 'pos']])
+
+        if vec_cell:
+            plain = True
 
         if plain:
             fr_cols = ['symbols', 'positions']
@@ -728,10 +778,31 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
         if pos.shape != (natoms, 3) or pos.dtype.kind != 'f':
             raise ValueError('Second column must be position-like')
 
+        #if vec_cell add cell information as pseudo-atoms
+        if vec_cell:
+            pbc = list(atoms.get_pbc())
+            cell = atoms.get_cell()
+
+            if True in pbc:
+                nPBC = 0
+                for i,b in enumerate(pbc):
+                    if b:
+                        nPBC += 1
+                        symbols.append('VEC'+str(nPBC))
+                        pos = np.vstack((pos, cell[i]))
+                #add to natoms
+                natoms += nPBC
+                if pos.shape != (natoms, 3) or pos.dtype.kind != 'f':
+                    raise ValueError('Pseudo Atoms containing cell have bad coords')
+
+
+
         # Collect data to be written out
         arrays = {}
         for column in fr_cols:
-            if column in atoms.arrays:
+            if column == 'positions':
+                arrays[column] = pos
+            elif column in atoms.arrays:
                 arrays[column] = atoms.arrays[column]
             elif column == 'symbols':
                 arrays[column] = np.array(symbols)
@@ -761,8 +832,10 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                 for c in range(ncol):
                     data[column + str(c)] = value[:, c]
 
+        nat = natoms
+        if vec_cell: nat -= nPBC
         # Write the output
-        fileobj.write('%d\n' % natoms)
+        fileobj.write('%d\n' % nat)
         fileobj.write('%s\n' % comm)
         for i in range(natoms):
             fileobj.write(fmt % tuple(data[i]))
