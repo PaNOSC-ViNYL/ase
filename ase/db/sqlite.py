@@ -473,12 +473,8 @@ class SQLite3Database(Database, object):
                     found_sort_table = True
                 nnumber += 1
 
-        extra = False
         if sort:
-            if sort_table == 'systems':
-                if False:  # sort in ['energy', 'fmax', 'smax', 'calculator']:
-                    where.append('systems.{} IS NOT NULL'.format(sort))
-            else:
+            if sort_table != 'systems':
                 if not found_sort_table:
                     tables.append('{} AS sort_table'.format(sort_table))
                     where.append('systems.id=sort_table.id AND '
@@ -486,16 +482,16 @@ class SQLite3Database(Database, object):
                     args.append(sort)
                     sort_table = 'sort_table'
                 sort = 'value'
-                extra = True
 
         sql = 'SELECT {} FROM\n  '.format(what) + ', '.join(tables)
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         if sort:
             # XXX use "?" instead of "{}"
-            sql += '\nORDER BY {}.{} {}'.format(sort_table, sort, order)
+            sql += '\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}'.format(
+                sort_table, sort, order)
 
-        return sql, args, extra
+        return sql, args
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
                 limit=None, offset=0, sort=None, include_data=True):
@@ -521,8 +517,9 @@ class SQLite3Database(Database, object):
                         sort_table = 'number_key_values'
                     break
                 else:
-                    # No rows:
-                    return
+                    # No rows.  Just pick a table:
+                    sort_table = 'number_key_values'
+
         else:
             order = None
             sort_table = None
@@ -533,8 +530,8 @@ class SQLite3Database(Database, object):
             what = ', '.join('systems.' + name
                              for name in self.columnnames[:26])
 
-        sql, args, extra = self.create_select_statement(
-            keys, cmps, sort, order, sort_table, what)
+        sql, args = self.create_select_statement(keys, cmps, sort, order,
+                                                 sort_table, what)
 
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
@@ -558,17 +555,18 @@ class SQLite3Database(Database, object):
             for values in cur.fetchall():
                 yield self._convert_tuple_to_row(values)
                 n += 1
-            if not extra:
-                return
 
-            if limit is not None:
-                if n == limit:
-                    return
-                limit -= n
-            for row in self._select(keys + ['-' + sort], cmps,
-                                    limit=limit, offset=offset,
-                                    include_data=include_data):
-                yield row
+            if sort and sort_table != 'systems':
+                # Yield rows without sort key last:
+                if limit is not None:
+                    if n == limit:
+                        return
+                    limit -= n
+
+                for row in self._select(keys + ['-' + sort], cmps,
+                                        limit=limit, offset=offset,
+                                        include_data=include_data):
+                    yield row
 
     @parallel_function
     def count(self, selection=None, **kwargs):
