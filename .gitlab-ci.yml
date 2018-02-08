@@ -34,6 +34,18 @@ python_3_tests:
     - cd $CI_PROJECT_DIR
     - python ase/test/__init__.py
 
+conda_tests:
+   image: continuumio/anaconda3
+   script:
+     # manually install extra deps
+     - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
+     # 'pip install' pulls in all required packages
+     - pip install .
+     # Run tests
+     - python --version
+     - ase info
+     - ase test -v
+
 docs_test:
   image: python:3
   script:
