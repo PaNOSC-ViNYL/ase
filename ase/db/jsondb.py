@@ -143,19 +143,27 @@ class JSONDatabase(Database, object):
             if sort[0] == '-':
                 reverse = True
                 sort = sort[1:]
-                missing = -np.inf
             else:
                 reverse = False
-                missing = np.inf
 
             def f(row):
                 return row.get(sort, missing)
 
-            rows = sorted(self._select(keys, cmps),
-                          key=f, reverse=reverse)
+            rows = []
+            missing = []
+            for row in self._select(keys, cmps):
+                key = row.get(sort)
+                if key is None:
+                    missing.append((0, row))
+                else:
+                    rows.append((key, row))
+
+            rows.sort(reverse=reverse, key=lambda x: x[0])
+            rows += missing
+
             if limit:
                 rows = rows[offset:offset + limit]
-            for row in rows:
+            for key, row in rows:
                 yield row
             return
 

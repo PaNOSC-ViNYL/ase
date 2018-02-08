@@ -38,3 +38,8 @@ for name in ['y.json', 'y.db']:
 
     id = con.reserve(abc=7)
     assert con[id].abc == 7
+
+    for key in ['calculator', 'energy', 'abc', 'name', 'fmax']:
+        count(6, sort=key)
+        count(6, sort='-' + key)
+    
