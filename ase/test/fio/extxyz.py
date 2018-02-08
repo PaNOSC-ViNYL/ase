@@ -25,10 +25,31 @@ assert at_new.arrays['ns_extra_data'].shape == (2,)
 os.unlink('to.xyz')
 os.unlink('to_new.xyz')
 
+#test comment read/write with vec_cell
+at.info['comment'] = 'test comment'
+ase.io.write('comment.xyz', at, comment=at.info['comment'], vec_cell=True)
+r = ase.io.read('comment.xyz')
+assert at == r
+os.unlink('comment.xyz')
+
 # write sequence of images with different numbers of atoms -- bug fixed
 # in commit r4542
 images = [at, at * (2, 1, 1), at * (3, 1, 1)]
 ase.io.write('multi.xyz', images, format='extxyz')
+read_images = ase.io.read('multi.xyz@:')
+assert read_images == images
+
+#test vec_cell writing and reading
+images[1].set_pbc([True,True,False])
+images[2].set_pbc([True,False,False])
+ase.io.write('multi.xyz', images, vec_cell=True)
+cell = images[1].get_cell()
+cell[-1] = [0.0, 0.0, 0.0]
+images[1].set_cell(cell)
+cell = images[2].get_cell()
+cell[-1] = [0.0, 0.0, 0.0]
+cell[-2] = [0.0, 0.0, 0.0]
+images[2].set_cell(cell)
 read_images = ase.io.read('multi.xyz@:')
 assert read_images == images
 os.unlink('multi.xyz')
