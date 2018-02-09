@@ -14,11 +14,18 @@ class CLICommand:
     def add_arguments(parser):
         add = parser.add_argument
         add('filenames', nargs='*',
-            help=('files to open.  Append @NUM, @:STOP, or @START:STOP:STEP '
-                  'to the filename to pick an individual image or range of '
-                  'images from that file, where NUM, START, STOP, and STEP '
-                  'are integers.  Indexing counts from 0.  Negative numbers '
-                  'count backwards from last image.'))
+            help='Files to open.  Append @SLICE to a filename to pick '
+            'a subset of images from that file.  See --image-number '
+            'for SLICE syntax.')
+        add('-n', '--image-number', metavar='SLICE', default=':',
+            help='Pick individual image or slice from each of the files.  '
+            'SLICE can be a number or a Python slice-like expression '
+            'such as :STOP, START:STOP, or START:STOP:STEP, '
+            'where START, STOP, and STEP are integers.  '
+            'Indexing counts from 0.  '
+            'Negative numbers count backwards from last image.  '
+            'Using @SLICE syntax for a filename overrides this option '
+            'for that file.')
         add('-r', '--repeat',
             default='1',
             help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
@@ -57,7 +64,7 @@ class CLICommand:
         images = Images()
 
         if args.filenames:
-            images.read(args.filenames)
+            images.read(args.filenames, args.image_number)
         else:
             images.initialize([Atoms()])
 
