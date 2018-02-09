@@ -923,7 +923,8 @@ class BaseSiesta(FileIOCalculator):
                                        freq=np.arange(0.0, 10.0, 0.1),
                                        units='au',
                                        run_tddft=True,
-                                       fname="pol_tensor.npy", **kw):
+                                       fname="pol_tensor.npy", 
+                                       fname_nonin = "noninpol_tensor.npy", **kw):
         """
         Calculate the interacting polarizability of a molecule using
         TDDFT calculation from the pyscf-nao library.
@@ -1033,12 +1034,13 @@ class BaseSiesta(FileIOCalculator):
             tddft.comp_dens_inter_along_Eext(omegas, Eext=Edir)
 
             # save polarizability tensor to files
+            np.save(fname_nonin, -tddft.p0_mat)
             np.save(fname, -tddft.p_mat)
 
-            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
-                                                dtype=tddft.p_mat.dtype)
             self.results['polarizability nonin'] = np.zeros((freq.size, 3, 3),
                                                 dtype=tddft.p0_mat.dtype)
+            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+                                                dtype=tddft.p_mat.dtype)
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
@@ -1056,6 +1058,7 @@ class BaseSiesta(FileIOCalculator):
 
         else:
             # load polarizability tensor from previous calculations
+            p0_mat = np.load(fname_nonin)
             p_mat = np.load(fname)
 
             self.results['polarizability nonin'] = np.zeros((freq.size, 3, 3),
