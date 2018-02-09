@@ -87,6 +87,7 @@ all_formats = {
     'html': ('X3DOM HTML', '1F'),
     'iwm': ('?', '1F'),
     'json': ('ASE JSON database file', '+F'),
+    'jsontraj': ('Minimalistic JSON trajectory format', '+F'),
     'jsv': ('JSV file format', '1F'),
     'lammps-dump': ('LAMMPS dump file', '+F'),
     'lammps-data': ('LAMMPS data file', '1F'),
