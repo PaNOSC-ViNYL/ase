@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import json
 
 from ase.db.row import AtomsRow, atoms2dict
-from ase.io.jsonio import encode, decode
+from ase.io.jsonio import encode
 
 
 def read_jsontraj(fd, index):  # XXX ignores index
