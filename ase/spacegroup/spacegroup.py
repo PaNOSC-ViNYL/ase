@@ -548,6 +548,34 @@ class Spacegroup(object):
             i += 1
         return tags
 
+    def max_displacement(self, atoms, center=None):
+        """Find the maximal displacements from the spacegroup.
+    
+        Parameters:
+    
+        scaled_positions: list | array
+            List of non-equivalent sites given in unit cell coordinates.
+        """
+        from ase.geometry import find_mic, wrap_positions
+
+        res = 0.
+        lab = atoms.get_chemical_symbols()
+        for rot, trans in self.get_symop():
+#           print("here",rot,trans)
+            mdist = [1e42] * len(atoms)
+            for kind, pos in enumerate(atoms.get_scaled_positions(wrap=True)):
+                site = np.dot(rot, pos) + trans
+                for kind2, pos2 in enumerate(atoms.get_scaled_positions(wrap=True)):
+                    if lab[kind] == lab[kind2]:
+                        dist = np.array([np.dot(pos2 - site, atoms._cell)])
+                        D, D_len = find_mic(dist, atoms._cell, atoms._pbc)
+#                       print("di", kind, kind2, D_len[0])
+                        mdist[kind] = min(mdist[kind], D_len[0])
+            res = max(res, max(mdist))
+
+        return res
+
+
 
 def get_datafile():
     """Return default path to datafile."""
@@ -863,5 +891,35 @@ def _get_spacegroup(atoms, symprec=1e-5, center=None):
             # store the space group into the list
             found = sg
             break
+
+    return found
+
+def search_spacegroup(atoms):
+    """Determine the spacegroup to which belongs the Atoms object.
+
+    Parameters:
+
+    atoms: Atoms object
+        Types, positions and unit-cell.
+
+    A list of spacegroups and its displacement is returned.
+
+    Example:
+
+    >>> from ase.build import bulk
+    >>> atoms = bulk("Cu", "fcc", a=3.6, cubic=True)
+    >>> sg = search_spacegroup(atoms)
+    >>> sg[0]
+    (Spacegroup(225, setting=1), 0.0)
+    """
+
+    found = []
+    for nb in range(230, 0, -1):
+        sg = Spacegroup(nb)
+        found.append((sg, sg.max_displacement(atoms)))
+
+    # test for other centers...
+
+    found.sort(key=lambda tup: tup[1])
 
     return found
