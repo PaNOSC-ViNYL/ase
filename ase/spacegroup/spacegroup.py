@@ -556,7 +556,7 @@ class Spacegroup(object):
         scaled_positions: list | array
             List of non-equivalent sites given in unit cell coordinates.
         """
-        from ase.geometry import find_mic, wrap_positions
+        from ase.geometry import find_mic
 
         res = 0.
         lab = atoms.get_chemical_symbols()
