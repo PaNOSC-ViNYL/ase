@@ -142,16 +142,24 @@ class Images:
         self.initialize(self.images, filenames=self.filenames)
         return
 
-    def read(self, filenames, index=-1, filetype=None):
+    def read(self, filenames, filetype=None):
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index, filetype)
+            from ase.io.formats import parse_filename
+            filename, index = parse_filename(filename, None)
+            imgs = read(filename, index, filetype)
 
-            if not isinstance(i, list):
-                i = [i]
-            images.extend(i)
-            names.extend([filename] * len(i))
+            if hasattr(imgs, 'iterimages'):
+                imgs = list(imgs.iterimages())
+
+            images.extend(imgs)
+
+            # Name each file as filename@index:
+            start = index.start or 0
+            step = index.step or 1
+            for i, img in enumerate(imgs):
+                names.append('{}@{}'.format(filename, start + i * step))
 
         self.initialize(images, names)
 

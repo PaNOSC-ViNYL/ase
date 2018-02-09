@@ -13,14 +13,12 @@ class CLICommand:
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
-        add('filenames', nargs='*')
-        add('-n', '--image-number',
-            default=':', metavar='NUMBER',
-            help='Pick image(s) from trajectory.  NUMBER can be a '
-            'single number (use a negative number to count from '
-            'the back) or a range: start:stop:step, where the '
-            '":step" part can be left out - default values are '
-            '0:nimages:1.')
+        add('filenames', nargs='*',
+            help=('files to open.  Append @NUM, @:STOP, or @START:STOP:STEP '
+                  'to the filename to pick an individual image or range of '
+                  'images from that file, where NUM, START, STOP, and STEP '
+                  'are integers.  Indexing counts from 0.  Negative numbers '
+                  'count backwards from last image.'))
         add('-r', '--repeat',
             default='1',
             help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
@@ -60,7 +58,7 @@ class CLICommand:
 
         if args.filenames:
             from ase.io import string2index
-            images.read(args.filenames, string2index(args.image_number))
+            images.read(args.filenames)
         else:
             images.initialize([Atoms()])
 

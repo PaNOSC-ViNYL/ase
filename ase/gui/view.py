@@ -109,7 +109,7 @@ class View:
         if fname is None:
             title = 'ase.gui'
         else:
-            title = '{}@{}'.format(basename(fname), frame)
+            title = basename(fname)
 
         self.window.title = title
 
