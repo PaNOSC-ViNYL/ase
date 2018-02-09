@@ -57,7 +57,6 @@ class CLICommand:
         images = Images()
 
         if args.filenames:
-            from ase.io import string2index
             images.read(args.filenames)
         else:
             images.initialize([Atoms()])
