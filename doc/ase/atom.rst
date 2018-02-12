@@ -46,7 +46,7 @@ arrays of the atoms object:
 >>> from ase import Atoms
 >>> OH = Atoms('OH')
 >>> OH[0].charge = -1
->>> OH.get_charges()
+>>> OH.get_initial_charges()
 array([-1.,  0.])
 
 Another example:

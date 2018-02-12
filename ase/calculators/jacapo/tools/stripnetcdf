@@ -22,5 +22,5 @@ for arg in args:
 
     calc = Jacapo(arg)
     calc.strip()
-    print 'stripped %s' % arg
+    print('stripped %s' % arg)
 

@@ -40,7 +40,7 @@ def view(atoms, data=None, viewer='ase', repeat=None, block=False):
         view_sage_jmol(atoms)
         return
     elif vwr in ('ngl', 'nglview'):
-        from ase.visualize.nglview import view_ngl
+        from ase.visualize.ngl import view_ngl
         return view_ngl(atoms)
     elif vwr == 'x3d':
         from ase.visualize.x3d import view_x3d

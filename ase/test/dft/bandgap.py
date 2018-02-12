@@ -15,7 +15,7 @@ class Test:
         return 0.5
 
 
-gaps = [2, 11, 1, 2, 11, 2]
+gaps = [2, 11, 1, 2, 11, 1]
 
 calc = Test()
 for direct in [0, 1]:

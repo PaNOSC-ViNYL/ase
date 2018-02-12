@@ -2,7 +2,6 @@
 
 """Infrared intensities"""
 
-import pickle
 from math import sqrt
 from sys import stdout
 
@@ -11,7 +10,7 @@ import numpy as np
 import ase.units as units
 from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
-from ase.utils import basestring
+from ase.utils import basestring, pickleload
 
 
 class Infrared(Vibrations):
@@ -171,7 +170,7 @@ class Infrared(Vibrations):
 
         # Get "static" dipole moment and forces
         name = '%s.eq.pckl' % self.name
-        [forces_zero, dipole_zero] = pickle.load(open(name, 'rb'))
+        [forces_zero, dipole_zero] = pickleload(open(name, 'rb'))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
@@ -183,12 +182,14 @@ class Infrared(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                [fminus, dminus] = pickle.load(open(name + '-.pckl', 'rb'))
-                [fplus, dplus] = pickle.load(open(name + '+.pckl', 'rb'))
+                [fminus, dminus] = pickleload(
+                    open(name + '-.pckl', 'rb'))
+                [fplus, dplus] = pickleload(
+                    open(name + '+.pckl', 'rb'))
                 if self.nfree == 4:
-                    [fminusminus, dminusminus] = pickle.load(
+                    [fminusminus, dminusminus] = pickleload(
                         open(name + '--.pckl', 'rb'))
-                    [fplusplus, dplusplus] = pickle.load(
+                    [fplusplus, dplusplus] = pickleload(
                         open(name + '++.pckl', 'rb'))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)

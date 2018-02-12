@@ -107,7 +107,6 @@ def ltidos(cell, eigs, energies, weights=None):
 
     I, J, K = size = eigs.shape[:3]
     B = (np.linalg.inv(cell) / size).T
-
     indices = np.array([[i, j, k]
                         for i in [0, 1] for j in [0, 1] for k in [0, 1]])
     dt = Delaunay(np.dot(indices, B))
@@ -146,9 +145,9 @@ def _lti(energies, dos, kpts, M, E, W=None):
         k = kpts[i, :, np.newaxis]
         e0, e1, e2, e3 = ee = e[i]
         for j in range(3):
-            m = int((ee[j] - zero) / de) + 1
-            n = int((ee[j + 1] - zero) / de) + 1
-            if len(energies) > n > m >= 0:
+            m = max(0, int((ee[j] - zero) / de) + 1)
+            n = min(len(energies) - 1, int((ee[j + 1] - zero) / de) + 1)
+            if n > m:
                 v = energies[m:n]
                 if j == 0:
                     x10 = (e1 - v) / (e1 - e0)

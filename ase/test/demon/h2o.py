@@ -39,6 +39,7 @@ error = np.sqrt(np.sum((energy - ref)**2))
 print('diff from reference:')
 print(error)
 
+tol = 1.0e-6
 assert(error < tol)
 
 # dipole
@@ -51,6 +52,7 @@ print(dipole)
 print('diff from reference:')
 print(error)
 
+tol = 1.0e-4
 assert(error < tol)
 
 
@@ -67,6 +69,7 @@ print(forces_num)
 print('diff from reference:')
 print(error)
 
+tol = 1.0e-4
 assert(error < tol)
 
 
@@ -83,6 +86,7 @@ print(forces_an)
 print('diff from reference:')
 print(error)
 
+tol = 1.0e-3
 assert(error < tol)
 
 # optimize geometry
@@ -101,6 +105,7 @@ print(positions)
 print('diff from reference:')
 print(error)
 
+tol = 1.0e-3
 assert(error < tol)
 
 print('tests passed')

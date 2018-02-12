@@ -114,7 +114,7 @@ sampled_points = np.array(sampled_points)
 sampled_energies = np.array(sampled_energies)
 
 if len(sampled_points) > 0 and len(sampled_energies) >= len(sampled_points[0]):
-    weights = np.linalg.lstsq(sampled_points, sampled_energies)[0]
+    weights = np.linalg.lstsq(sampled_points, sampled_energies, rcond=-1)[0]
 else:
     weights = None
 

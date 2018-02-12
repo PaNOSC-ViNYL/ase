@@ -116,22 +116,14 @@ class TrajectoryWriter:
 
             writer.write(atoms, energy=117, dipole=[0, 0, 1.0])
         """
-        b = self.backend
-
         if atoms is None:
             atoms = self.atoms
 
-        if hasattr(atoms, 'interpolate'):
-            # seems to be a NEB
-            neb = atoms
-            assert not neb.parallel or world.size == 1
-            for image in neb.images:
-                self.write(image)
-            return
-        while hasattr(atoms, 'atoms_for_saving'):
-            # Seems to be a Filter or similar, instructing us to
-            # save the original atoms.
-            atoms = atoms.atoms_for_saving
+        for image in atoms.iterimages():
+            self._write_atoms(image, **kwargs)
+
+    def _write_atoms(self, atoms, **kwargs):
+        b = self.backend
 
         if self.header_data is None:
             b.write(version=1, ase_version=__version__)
@@ -226,15 +218,7 @@ class TrajectoryReader:
 
     def _open(self, filename):
         import ase.io.ulm as ulm
-        try:
-            self.backend = ulm.open(filename, 'r')
-        except ulm.InvalidULMFileError:
-            raise RuntimeError('This is not a valid ASE trajectory file. '
-                               'If this is an old-format (version <3.9) '
-                               'PickleTrajectory file you can convert it '
-                               'with ase.io.trajectory.convert("%s") '
-                               'or:\n\n $ python -m ase.io.trajectory %s'
-                               % (filename, filename))
+        self.backend = ulm.open(filename, 'r')
         self._read_header()
 
     def _read_header(self):
@@ -343,26 +327,25 @@ def write_atoms(backend, atoms, write_header=True):
         b.write(tags=atoms.get_tags())
     if atoms.has('momenta'):
         b.write(momenta=atoms.get_momenta())
-    if atoms.has('magmoms'):
+    if atoms.has('initial_magmoms'):
         b.write(magmoms=atoms.get_initial_magnetic_moments())
-    if atoms.has('charges'):
+    if atoms.has('initial_charges'):
         b.write(charges=atoms.get_initial_charges())
 
 
-def read_traj(filename, index):
-    trj = TrajectoryReader(filename)
+def read_traj(fd, index):
+    trj = TrajectoryReader(fd)
     for i in range(*index.indices(len(trj))):
         yield trj[i]
 
 
-def write_traj(filename, images):
+def write_traj(fd, images):
     """Write image(s) to trajectory."""
-    trj = TrajectoryWriter(filename, mode='w')
+    trj = TrajectoryWriter(fd)
     if isinstance(images, Atoms):
         images = [images]
     for atoms in images:
         trj.write(atoms)
-    trj.close()
 
 
 class OldCalculatorWrapper:

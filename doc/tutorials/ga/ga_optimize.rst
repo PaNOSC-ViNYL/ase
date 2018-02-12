@@ -33,7 +33,7 @@ A Brief Overview of the Implementation
 
 The GA relies on the ase.db module for tracking which structures have
 been found. Before the GA optimization starts the user therefore needs
-to prepare this database and appropriate folders. This is done trough
+to prepare this database and appropriate folders. This is done through
 an initialization script as the one described in the next section. In
 this initialization the starting population is generated and
 added to the database.

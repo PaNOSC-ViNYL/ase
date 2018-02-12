@@ -82,3 +82,4 @@ List of all modules:
    dimer
    atom
    transport/transport
+   calculators/qmmm
