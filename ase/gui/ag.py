@@ -94,5 +94,5 @@ class CLICommand:
                     print()
         else:
             from ase.gui.gui import GUI
-            gui = GUI(images, args.rotations, args.bonds)
-            gui.run(args.graph)
+            gui = GUI(images, args.rotations, args.bonds, args.graph)
+            gui.run()
