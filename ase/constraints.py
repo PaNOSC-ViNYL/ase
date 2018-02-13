@@ -5,6 +5,12 @@ from ase.calculators.calculator import PropertyNotImplementedError
 
 import numpy as np
 
+try:
+    from _ase import adjust_positions, adjust_momenta
+except ImportError:
+    print("Debug print: No _ase module.")
+
+
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
@@ -308,6 +314,58 @@ class FixBondLengths(FixConstraint):
         self.pairs = pairs[(pairs != -1).all(1)]
         if len(self.pairs) == 0:
             raise IndexError('Constraint not part of slice')
+
+
+class FixBondLengthsWaterModel(FixBondLengths):
+    def __init__(self, pairs, tolerance=1e-13, bondlengths=None, iterations=None, bondlength_tol=1e-6):
+        FixBondLengths.__init__(self, pairs, tolerance=tolerance, bondlengths=bondlengths, iterations=iterations)
+        self.bondlength_tol = bondlength_tol
+
+    def initialize_bond_lengths(self, atoms):
+        bondlengths = FixBondLengths.initialize_bond_lengths(self, atoms)
+        # Make sure that the constraints are compatible with the C-code
+        assert len(self.pairs) % 3 == 0
+        masses = atoms.get_masses()
+
+        self.start = self.pairs[0][0]
+        self.end = self.pairs[-3][0]
+        self.NW = (self.end-self.start) // 3 + 1
+        assert (self.end-self.start) % 3 == 0
+        for i in range(self.NW):
+            for j in range(3):
+                assert self.pairs[i*3+j][0] == self.start + i*3 + j
+                assert self.pairs[i*3+j][1] == self.start + i*3 + (j+1) % 3
+                assert abs(bondlengths[i*3+j]-bondlengths[j])<self.bondlength_tol
+                assert masses[i*3+j + self.start] == masses[j + self.start]
+        return bondlengths
+
+    def select_indices(self, r):
+        return r[self.start:self.start+self.NW*3,:]
+
+    def adjust_positions(self, atoms, new):
+        masses = atoms.get_masses()
+
+        if self.bondlengths is None:
+           self.bondlengths = self.initialize_bond_lengths(atoms)
+
+        return adjust_positions(self.bondlengths[:3],
+                                masses[self.start:self.start+3],
+                                self.select_indices(atoms.get_positions()),
+                                self.select_indices(new))
+
+    def adjust_momenta(self, atoms, p):
+        masses = atoms.get_masses()
+
+        if self.bondlengths is None:
+           self.bondlengths = self.initialize_bond_lengths(atoms)
+
+        return adjust_momenta(masses[self.start:self.start+3],
+                              self.select_indices(atoms.get_positions()),
+                              self.select_indices(p))
+
+    def index_shuffle(self, atoms, ind):
+        raise NotImplementedError
+
 
 
 def FixBondLength(a1, a2):

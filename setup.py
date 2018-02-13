@@ -10,6 +10,7 @@ from setuptools import setup, find_packages
 from distutils.command.build_py import build_py as _build_py
 from glob import glob
 from os.path import join
+from distutils.core import Extension
 
 
 if sys.version_info < (2, 7, 0, 'final', 0):
@@ -70,6 +71,9 @@ setup(name='ase',
       install_requires=['numpy', 'scipy', 'matplotlib', 'flask'],
       extras_require={'docs': ['sphinx', 'sphinx_rtd_theme', 'pillow']},
       package_data=package_data,
+      ext_modules=[Extension('_ase',
+                   ['c/_ase.c','c/constraints.c'], 
+                   extra_compile_args=['-Wall','-std=c99'])],
       entry_points={'console_scripts': ['ase=ase.cli.main:main',
                                         'ase-db=ase.cli.main:old',
                                         'ase-gui=ase.cli.main:old',

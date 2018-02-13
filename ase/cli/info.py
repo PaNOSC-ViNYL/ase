@@ -54,7 +54,7 @@ class CLICommand:
 def print_info():
     versions = [('platform', platform.platform()),
                 ('python-' + sys.version.split()[0], sys.executable)]
-    for name in ['ase', 'numpy', 'scipy']:
+    for name in ['ase', 'numpy', 'scipy', '_ase']:
         try:
             module = import_module(name)
         except ImportError:
@@ -66,7 +66,11 @@ def print_info():
                 githash = ''
             else:
                 githash = '-{:.10}'.format(githash)
-            versions.append((name + '-' + module.__version__ + githash,
+            def get_version(module):
+                if hasattr(module, "__version__"):
+                    return module.__version__
+                return "N/A"
+            versions.append((name + '-' + get_version(module) + githash,
                             module.__file__.rsplit('/', 1)[0] + '/'))
 
     for a, b in versions:
