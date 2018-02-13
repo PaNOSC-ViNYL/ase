@@ -2,6 +2,8 @@
 python_2_7_tests:
   image: python:2.7
   script:
+    - apt-get update -qy
+    - apt-get install -qy python-dev > apt-get.output
     # manually install ase deps
     - pip install numpy scipy matplotlib flask
     # extra packages for testing
@@ -22,6 +24,8 @@ python_2_7_tests:
 python_3_tests:
   image: python:3
   script:
+    - apt-get update -qy
+    - apt-get install -qy python-dev > apt-get.output
     # manually install extra deps
     - pip install netCDF4 pyflakes
     # 'pip install' pulls in all required packages
@@ -37,6 +41,8 @@ python_3_tests:
 conda_tests:
    image: continuumio/anaconda3
    script:
+     - apt-get update -qy
+     - apt-get install -qy python-dev > apt-get.output
      # manually install extra deps
      - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
      # 'pip install' pulls in all required packages
@@ -49,6 +55,8 @@ conda_tests:
 docs_test:
   image: python:3
   script:
+    - apt-get update -qy
+    - apt-get install -qy python-dev > apt-get.output
     # 'pip install' pulls in all required packages (include docs)
     - pip install .[docs]
     # build the docs
