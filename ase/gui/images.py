@@ -143,7 +143,9 @@ class Images:
         return
 
     def read(self, filenames, default_index=':', filetype=None):
-        default_index = string2index(default_index)
+        from ase.utils import basestring
+        if isinstance(default_index, basestring):
+            default_index = string2index(default_index)
         images = []
         names = []
         for filename in filenames:
