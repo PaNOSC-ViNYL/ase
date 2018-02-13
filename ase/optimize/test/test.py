@@ -1,6 +1,7 @@
 import argparse
 import traceback
 from time import time
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,39 +10,17 @@ import ase.optimize
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.io import read
-from ase.neb import NEB
-
-
-all_optimizers = ['MDMin', 'FIRE', 'LBFGS',
-                  'LBFGSLineSearch', 'BFGSLineSearch', 'BFGS']
-
-
-def get_optimizer(name):
-    return getattr(ase.optimize, name)
 
 
 def get_atoms_and_name(atoms):
-    if isinstance(atoms, str):
-        name = atoms
-        if name.endswith('.py'):
-            dct = {}
-            exec(compile(open(name).read(), name, 'exec'), dct)
-            atoms_objects = []
-            for thing in dct.values():
-                if isinstance(thing, NEB):
-                    atoms = thing
-                    break
-                if isinstance(thing, Atoms):
-                    atoms_objects.append(thing)
-            else:
-                assert len(atoms_objects) == 1, name
-                atoms = atoms_objects[0]
-        else:
-            atoms = read(name)
-    else:
-        name = atoms.get_name()
-
-    return atoms, name
+    for path in Path.glob('*.py'):
+        dct = {}
+        exec(compile(path.read_text(), path, 'exec'), dct)
+        atoms = None
+        for thing in dct.values():
+            if isinstance(thing, Atoms):
+                assert atoms is None
+                atoms = thing
 
 
 class Wrapper:
@@ -101,7 +80,7 @@ def run(atoms, name, optimizer, db, fmax=0.05):
     if isinstance(atoms, NEB):
         n = len(atoms.images)
         atoms = atoms.images[n // 2]
-        
+
     db.write(atoms,
              optimizer=optimizer,
              test=name,
