@@ -58,6 +58,7 @@ docs_test:
     - apt-get update -qy
     - apt-get install -qy python-dev build-essential
     # 'pip install' pulls in all required packages (include docs)
+    - pip install numpy scipy matplotlib flask
     - pip install .[docs]
     # build the docs
     - ase info
