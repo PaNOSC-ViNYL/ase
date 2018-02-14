@@ -3,10 +3,12 @@ from math import sqrt
 from ase.geometry import find_mic
 from ase.calculators.calculator import PropertyNotImplementedError
 
+from ase import has_C_ext
+
 import numpy as np
 
 try:
-    from _ase import adjust_positions, adjust_momenta
+    from _ase import adjust_positions, adjust_momenta, adjust_positions_general, adjust_momenta_general
 except ImportError:
     print("Debug print: No _ase module.")
 
@@ -16,6 +18,8 @@ __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
+if has_C_ext:
+    __all__ += ['FixBondLengthsFast', 'FixBondLengthsWaterModel']
 
 def dict2constraint(dct):
     if dct['name'] not in __all__:
@@ -315,8 +319,50 @@ class FixBondLengths(FixConstraint):
         if len(self.pairs) == 0:
             raise IndexError('Constraint not part of slice')
 
+class FixBondLengthsFast(FixBondLengths):
+    """C implementation of generalized constraints suitable for all systems.
+
+       TODO: Figure out how to invoke either the Python or C version, 
+       without explicitly using different class-name.
+       For example try import _ase etc.
+
+    """
+    def adjust_positions(self, atoms, new):
+        assert has_C_ext
+        old = atoms.positions
+        masses = atoms.get_masses()
+
+        if self.bondlengths is None:
+           self.bondlengths = self.initialize_bond_lengths(atoms)
+
+        self.pairs = np.array(self.pairs, np.intc)
+        adjust_positions_general(self.pairs, masses, self.bondlengths, old, new)
+
+
+    def adjust_momenta(self, atoms, p):
+        assert has_C_ext
+        old = atoms.positions
+        masses = atoms.get_masses()
+
+        if self.bondlengths is None:
+           self.bondlengths = self.initialize_bond_lengths(atoms)
+
+        adjust_momenta_general(self.pairs, masses, self.bondlengths, old, p)
 
 class FixBondLengthsWaterModel(FixBondLengths):
+    """C implementation of constraints suitable for TIPnP water models.
+
+       Assumes (but performs asserts) that:
+          i) the constraints are in cyclic group of three.
+         ii) the masses are the same
+        iii) the bond lengths are the same
+         iv) the water molecules need to be concecutive in atons object
+       For example, if water molecules are in O-H1-H2, the constraints need to be O-H1, H1-H2, H2-O.
+
+       This implementation of SHAKE and RATTLE is about 600 times faster than the Python implementation.
+
+    """
+
     def __init__(self, pairs, tolerance=1e-13, bondlengths=None, iterations=None, bondlength_tol=1e-6):
         FixBondLengths.__init__(self, pairs, tolerance=tolerance, bondlengths=bondlengths, iterations=iterations)
         self.bondlength_tol = bondlength_tol

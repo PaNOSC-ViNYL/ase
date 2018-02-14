@@ -7,10 +7,17 @@ from distutils.version import LooseVersion
 
 import numpy as np
 
+try:
+    import _ase
+except ImportError:
+    has_C_ext = False
+else:
+    has_C_ext = True
+
 from ase.atom import Atom
 from ase.atoms import Atoms
 
-__all__ = ['Atoms', 'Atom']
+__all__ = ['Atoms', 'Atom','has_C_ext']
 __version__ = '3.15.1b1'
 
 # import ase.parallel early to avoid circular import problems when

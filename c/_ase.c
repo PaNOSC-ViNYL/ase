@@ -7,6 +7,8 @@
 // Holonomic constraints
 PyObject* adjust_positions(PyObject *self, PyObject *args);
 PyObject* adjust_momenta(PyObject *self, PyObject *args);
+PyObject* adjust_positions_general(PyObject *self, PyObject *args);
+PyObject* adjust_momenta_general(PyObject *self, PyObject *args);
 // TIP3P forces
 PyObject* calculate_forces_H2O(PyObject *self, PyObject *args);
 
@@ -14,6 +16,8 @@ PyObject* calculate_forces_H2O(PyObject *self, PyObject *args);
 static PyMethodDef functions[] = {
     {"adjust_positions", adjust_positions, METH_VARARGS, 0},
     {"adjust_momenta", adjust_momenta, METH_VARARGS, 0},
+    {"adjust_positions_general", adjust_positions_general, METH_VARARGS, 0},
+    {"adjust_momenta_general", adjust_momenta_general, METH_VARARGS, 0},
     {"calculate_forces_H2O", calculate_forces_H2O, METH_VARARGS, 0},
     {0, 0, 0, 0}
 };

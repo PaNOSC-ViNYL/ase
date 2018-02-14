@@ -3,6 +3,7 @@
 #define NO_IMPORT_ARRAY
 #include <numpy/arrayobject.h>
 #define DOUBLEP(a) ((double*)PyArray_DATA(a))
+#define INTP(a) ((int*)PyArray_DATA(a))
 
 #define VELOCITY_VERLET_ADJUST_POSITION_TOL 1e-13
 #define VELOCITY_VERLET_ADJUST_VELOCITY_TOL 1e-13
@@ -26,6 +27,13 @@ INLINE void vec3_sub(double* target_v, double* a_v, double* b_v)
   target_v[0] = a_v[0] - b_v[0];
   target_v[1] = a_v[1] - b_v[1];
   target_v[2] = a_v[2] - b_v[2];
+}
+
+INLINE void vec3_zero(double* target_v)
+{
+  target_v[0] = 0.0;
+  target_v[1] = 0.0;
+  target_v[2] = 0.0;
 }
 
 INLINE void vec3_submin(double* target_v, double* a_v, double* b_v, unsigned char* pbc, double* celldiag)
@@ -83,6 +91,13 @@ INLINE void vec9_dot(double* lambda_x, double* newd_xv, double* d_xv)
    lambda_x[2] = newd_xv[2*3 + 0] * d_xv[2*3 + 0] +
                  newd_xv[2*3 + 1] * d_xv[2*3 + 1] +
                  newd_xv[2*3 + 2] * d_xv[2*3 + 2];
+}
+
+INLINE double vec3_dot(double* newd_xv, double* d_xv)
+{
+   return newd_xv[0] * d_xv[0] +
+          newd_xv[1] * d_xv[1] +
+          newd_xv[2] * d_xv[2];
 }
 
 INLINE void vec3_imul(double* target_x, double* a_x)
@@ -574,4 +589,163 @@ PyObject* calculate_forces_H2O(PyObject *self, PyObject *args)
  }
 
   return Py_BuildValue("d", E);
+}
+
+
+PyObject* adjust_positions_general(PyObject *self, PyObject *args)
+{
+  PyArrayObject* arraypairs_px = 0;
+  PyArrayObject* arraymasses_a = 0; 
+  PyArrayObject* arraybondlengths_p = 0; 
+  PyArrayObject* arrayR_av = 0; 
+  PyArrayObject* arraynewR_av = 0; 
+
+  if (!PyArg_ParseTuple(args, "OOOOO", &arraypairs_px, &arraymasses_a, &arraybondlengths_p, &arrayR_av, &arraynewR_av))
+    {
+      return NULL;
+    }
+
+  if (!((PyArray_NDIM(arraypairs_px) == 2) &&
+        (PyArray_DIM(arraypairs_px,1) == 2)))
+  {
+    PyErr_SetString(PyExc_TypeError, "Dimension of pairs should be (N, 2).");
+    return NULL;
+  }
+
+  if (!((PyArray_NDIM(arrayR_av) == 2) &&
+        (PyArray_DIM(arrayR_av,1) == 3)))
+  {
+    PyErr_SetString(PyExc_TypeError, "Dimension of positions should be (NA, 3).");
+    return NULL;
+  }
+
+  if (!((PyArray_NDIM(arraynewR_av) == 2) &&
+        (PyArray_DIM(arraynewR_av,1) == 3)))
+  {
+    PyErr_SetString(PyExc_TypeError, "Dimension of new positions should be (NA, 3).");
+    return NULL;
+  }
+
+  unsigned int NA = PyArray_DIM(arrayR_av, 0); // Number of atoms
+  unsigned int NP = PyArray_DIM(arraypairs_px, 0); // Number of pairs
+
+  if (!((PyArray_NDIM(arraymasses_a) == 1) &&
+        (PyArray_DIM(arraymasses_a,0) == NA)))
+  {
+    PyErr_SetString(PyExc_TypeError, "masses should be array with length NA.");
+    return NULL;
+  }
+
+  int* pairs_px = INTP(arraypairs_px);
+  double* masses_a = DOUBLEP(arraymasses_a);
+  double* bondlengths_p = DOUBLEP(arraybondlengths_p);
+  double* R_av = DOUBLEP(arrayR_av);
+  double* newR_av = DOUBLEP(arraynewR_av);
+
+  unsigned int iteration = 0;
+
+  while (1) {
+    int converged = 1;
+    for (unsigned int p=0; p<NP; p++) { 
+      int a1 = pairs_px[2*p];
+      int a2 = pairs_px[2*p+1];
+      double cd = bondlengths_p[p];
+
+      double d0_v[3]; // Omitting mic here for now
+      vec3_sub(d0_v, R_av + a1*3, R_av + a2*3);
+      double d1_v[3];
+      vec3_sub(d1_v, newR_av + a1*3, newR_av + a2*3);
+      
+      double m = 1.0 / (1.0 / masses_a[a1] + 1.0 / masses_a[a2]);
+      double temp2 = vec3_sqrsum(d1_v);
+      double temp3 = vec3_sqrsum(d0_v);
+      double x = 0.5 * (cd*cd - vec3_sqrsum(d1_v)) / vec3_dot(d0_v,d1_v);
+      if (fabs(x) > VELOCITY_VERLET_ADJUST_POSITION_TOL) { converged = 0; }
+      vec3_axpy(newR_av + a1*3, x * m / masses_a[a1], d0_v);
+      vec3_axpy(newR_av + a2*3, -x * m / masses_a[a2], d0_v);
+    }
+    if (converged) break;
+    if (iteration++ > 1000) break;
+   }
+
+  Py_RETURN_NONE;
+}
+
+PyObject* adjust_momenta_general(PyObject *self, PyObject *args)
+{
+  PyArrayObject* arraypairs_px = 0;
+  PyArrayObject* arraymasses_a = 0; 
+  PyArrayObject* arraybondlengths_p = 0; 
+  PyArrayObject* arrayR_av = 0; 
+  PyArrayObject* arraynewP_av = 0; 
+
+  if (!PyArg_ParseTuple(args, "OOOOO", &arraypairs_px, &arraymasses_a, &arraybondlengths_p, &arrayR_av, &arraynewP_av))
+    {
+      return NULL;
+    }
+
+  if (!((PyArray_NDIM(arraypairs_px) == 2) &&
+        (PyArray_DIM(arraypairs_px,1) == 2)))
+  {
+    PyErr_SetString(PyExc_TypeError, "Dimension of pairs should be (N, 2).");
+    return NULL;
+  }
+
+  if (!((PyArray_NDIM(arrayR_av) == 2) &&
+        (PyArray_DIM(arrayR_av,1) == 3)))
+  {
+    PyErr_SetString(PyExc_TypeError, "Dimension of positions should be (NA, 3).");
+    return NULL;
+  }
+
+  if (!((PyArray_NDIM(arraynewP_av) == 2) &&
+        (PyArray_DIM(arraynewP_av,1) == 3)))
+  {
+    PyErr_SetString(PyExc_TypeError, "Dimension of new momentum should be (NA, 3).");
+    return NULL;
+  }
+
+  unsigned int NA = PyArray_DIM(arrayR_av, 0); // Number of atoms
+  unsigned int NP = PyArray_DIM(arraypairs_px, 0); // Number of pairs
+
+  if (!((PyArray_NDIM(arraymasses_a) == 1) &&
+        (PyArray_DIM(arraymasses_a,0) == NA)))
+  {
+    PyErr_SetString(PyExc_TypeError, "masses should be array with length NA.");
+    return NULL;
+  }
+
+  int* pairs_px = INTP(arraypairs_px);
+  double* masses_a = DOUBLEP(arraymasses_a);
+  double* bondlengths_p = DOUBLEP(arraybondlengths_p);
+  double* R_av = DOUBLEP(arrayR_av);
+  double* newP_av = DOUBLEP(arraynewP_av);
+
+  unsigned int iteration = 0;
+
+  while (1) {
+    int converged = 1;
+    for (unsigned int p=0; p<NP; p++) {
+      int a1 = pairs_px[2*p];
+      int a2 = pairs_px[2*p+1];
+      double cd = bondlengths_p[p];
+      double d0_v[3]; // Omitting mic here for now
+      vec3_sub(d0_v, R_av + a1*3, R_av + a2*3);
+      double dv_v[3];
+      vec3_zero(dv_v);
+      vec3_axpy(dv_v, 1.0 / masses_a[a1], newP_av + 3*a1);       
+      vec3_axpy(dv_v, -1.0 / masses_a[a2], newP_av + 3*a2);       
+      double m = 1.0 / (1.0 / masses_a[a1] + 1.0 / masses_a[a2]);
+      double x = -vec3_dot(d0_v, dv_v) / (cd*cd);
+
+      if (fabs(x) > VELOCITY_VERLET_ADJUST_VELOCITY_TOL) { converged = 0; }
+  
+      vec3_axpy(newP_av + a1*3, x * m, d0_v);
+      vec3_axpy(newP_av + a2*3, -x * m, d0_v);
+    }
+    if (converged) break;
+    if (iteration++ > 1000) break;
+   }
+
+  Py_RETURN_NONE;
 }

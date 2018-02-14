@@ -3,8 +3,7 @@ from ase.calculators.tip3p import TIP3P, rOH, angleHOH
 from ase.md import Langevin
 import ase.units as units
 from ase.io.trajectory import Trajectory
-from ase.constraints import FixBondLengths, FixBondLengthsWaterModel
-
+from ase.constraints import FixBondLengths, FixBondLengthsFast, FixBondLengthsWaterModel
 
 TIP3PWaterModel = TIP3P
 
@@ -41,6 +40,7 @@ atoms_ref = atoms.copy()
 atoms_ref.constraints = FixBondLengths(pairs)
 
 # RATTLE-type constraints on O-H1, O-H2, H1-H2.
+#atoms.constraints = FixBondLengthsFast(pairs)
 atoms.constraints = FixBondLengthsWaterModel(pairs)
 
 atoms.calc = TIP3PWaterModel(rc=cutoff)
