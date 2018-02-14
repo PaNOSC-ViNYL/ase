@@ -7,7 +7,6 @@ import numpy as np
 from ase.gui.i18n import _
 from ase import Atoms
 import ase.gui.ui as ui
-from ase.gui.widgets import Element
 from ase.data import atomic_numbers, chemical_symbols
 
 
@@ -22,10 +21,8 @@ class AddAtoms:
             self.focus()
 
         def choose_file():
-            from ase.io import read
             chooser = ui.ASEFileChooser(self.win.win)
             filename = chooser.go()
-            format = chooser.format
             if filename is None:  # No file selected
                 return
 
@@ -61,7 +58,7 @@ class AddAtoms:
                  self.picky])
         self.focus()
 
-    def readfile(self, filename):
+    def readfile(self, filename, format=None):
         if filename == self._filename:
             # We have this file already
             return self._atoms_from_file
