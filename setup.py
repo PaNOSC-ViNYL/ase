@@ -12,6 +12,7 @@ from glob import glob
 from os.path import join
 from distutils.core import Extension
 
+import numpy as np
 
 if sys.version_info < (2, 7, 0, 'final', 0):
     raise SystemExit('Python 2.7 or later is required!')
@@ -58,7 +59,6 @@ class build_py(_build_py):
     def get_outputs(self, *args, **kwargs):
         return _build_py.get_outputs(self, *args, **kwargs) + self.mofiles
 
-
 setup(name='ase',
       version=version,
       description='Atomic Simulation Environment',
@@ -73,7 +73,8 @@ setup(name='ase',
       package_data=package_data,
       ext_modules=[Extension('_ase',
                    ['c/_ase.c','c/constraints.c'], 
-                   extra_compile_args=['-Wall','-std=c99'])],
+                   extra_compile_args=['-Wall','-std=c99'],
+                   include_dirs=[ np.get_include() ]) ],
       entry_points={'console_scripts': ['ase=ase.cli.main:main',
                                         'ase-db=ase.cli.main:old',
                                         'ase-gui=ase.cli.main:old',
