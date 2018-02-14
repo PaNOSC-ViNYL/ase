@@ -27,7 +27,7 @@ def mic(dr, cell, pbc=None):
     """
     # Check where distance larger than 1/2 cell. Particles have crossed
     # periodic boundaries then and need to be unwrapped.
-    rec = np.linalg.inv(cell)
+    rec = np.linalg.pinv(cell)
     if pbc is not None:
         rec *= np.array(pbc, dtype=int).reshape(3,1)
     dri = np.round(np.dot(dr, rec))
@@ -36,12 +36,15 @@ def mic(dr, cell, pbc=None):
     return dr - np.dot(dri, cell)
 
 
-def neighbor_list(quantities, a, cutoff):
+def neighbor_list(quantities, a, cutoff, self_interaction=False):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
     are included in the neighbor list but complexity of neighbor list search
     for those can become n^2.
+
+    The neighbor list is sorted by first atom index 'i', but not by second 
+    atom index 'j'.
 
     Parameters
     ----------
@@ -68,6 +71,9 @@ def neighbor_list(quantities, a, cutoff):
             - A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
               within each others neighborhood.
+    self_interaction : bool
+        Return the atom itself as its own neighbor if set to true.
+        Default: False
 
     Returns
     -------
@@ -123,11 +129,11 @@ def neighbor_list(quantities, a, cutoff):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
-    # Store pbc
+    # Store pbc.
     pbc = a.pbc
 
     # Compute reciprocal lattice vectors.
-    b1_c, b2_c, b3_c = np.linalg.inv(a.cell).T
+    b1_c, b2_c, b3_c = np.linalg.pinv(a.cell).T
 
     # Compute distances of cell faces.
     face_dist_c = np.array([1 / np.linalg.norm(b1_c),
@@ -148,7 +154,7 @@ def neighbor_list(quantities, a, cutoff):
     nbins_c = np.maximum((face_dist_c / max_cutoff).astype(int), [1, 1, 1])
     nbins = np.prod(nbins_c)
 
-    # Compute over how many cell we need to loop in the neighbor list search.
+    # Compute over how many cells we need to loop in the neighbor list search.
     ndx, ndy, ndz = np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
@@ -266,11 +272,12 @@ def neighbor_list(quantities, a, cutoff):
     j_n = j_n[m]
     S_n = S_n[m]
 
-    # Remove all self-pairs that do not cross the cell boundary.
-    m = np.logical_not(np.logical_and(i_n == j_n, (S_n == 0).all(axis=1)))
-    i_n = i_n[m]
-    j_n = j_n[m]
-    S_n = S_n[m]
+    if not self_interaction:
+        # Remove all self-pairs that do not cross the cell boundary.
+        m = np.logical_not(np.logical_and(i_n == j_n, (S_n == 0).all(axis=1)))
+        i_n = i_n[m]
+        j_n = j_n[m]
+        S_n = S_n[m]
 
     # For nonperiodic directions, remove any bonds that cross the domain
     # boundary.
@@ -388,6 +395,113 @@ def first_neighbors(nat, i):
 
 
 class NeighborList:
+    """Neighbor list object. Wrapper around neighbor_list and first_neighbors.
+
+    cutoffs: list of float
+        List of cutoff radii - one for each atom. If the spheres (defined by
+        their cutoff radii) of two atoms overlap, they will be counted as
+        neighbors.
+    skin: float
+        If no atom has moved more than the skin-distance since the
+        last call to the ``update()`` method, then the neighbor list
+        can be reused.  This will save some expensive rebuilds of
+        the list, but extra neighbors outside the cutoff will be
+        returned.
+    sorted: bool
+        Sort neighbor list.
+    self_interaction: bool
+        Should an atom return itself as a neighbor?
+    bothways: bool
+        Return all neighbors.  Default is to return only "half" of
+        the neighbors.
+
+    Example::
+
+      nl = NeighborList([2.3, 1.7])
+      nl.update(atoms)
+      indices, offsets = nl.get_neighbors(0)
+    """
+
+    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
+                 bothways=False):
+        self.cutoffs = np.asarray(cutoffs) + skin
+        self.skin = skin
+        self.sorted = sorted
+        self.self_interaction = self_interaction
+        self.bothways = bothways
+        self.nupdates = 0
+        self.nneighbors = 0
+        self.npbcneighbors = 0
+
+    def update(self, atoms):
+        """Make sure the list is up to date."""
+
+        if self.nupdates == 0:
+            self.build(atoms)
+            return True
+
+        if ((self.pbc != atoms.pbc).any() or
+            (self.cell != atoms.cell).any() or
+            ((self.positions - atoms.positions)**2).sum(1).max() >
+            self.skin**2):
+            self.build(atoms)
+            return True
+
+        return False
+
+    def build(self, atoms):
+        """Build the list.
+        """
+        self.pbc = pbc = np.array(atoms.pbc, copy=True)
+        self.cell = cell = np.array(atoms.cell, copy=True)
+        self.positions = positions = np.array(atoms.positions, copy=True)
+
+        self.pair_first, self.pair_second, self.offset_vec = \
+            neighbor_list('ijS', atoms, self.cutoffs,
+                          self_interaction=self.self_interaction)
+
+        if not self.bothways:
+            m = np.logical_or(
+                    np.logical_and(self.pair_first <= self.pair_second,
+                                   (self.offset_vec == 0).all(axis=1)),
+                    self.offset_vec[:, 0] + self.offset_vec[:, 1] + 
+                    self.offset_vec[:, 2] > 0)
+            self.pair_first = self.pair_first[m]
+            self.pair_second = self.pair_second[m]
+            self.offset_vec = self.offset_vec[m]
+
+        if self.sorted:
+            m = np.argsort(self.pair_first * len(self.pair_first) +
+                           self.pair_second)
+            self.pair_first = self.pair_first[m]
+            self.pair_second = self.pair_second[m]
+            self.offset_vec = self.offset_vec[m]
+
+        # Compute the index array point to the first neighbor
+        self.first_neigh = first_neighbors(len(atoms), self.pair_first)
+
+        self.nupdates += 1
+
+    def get_neighbors(self, a):
+        """Return neighbors of atom number a.
+
+        A list of indices and offsets to neighboring atoms is
+        returned.  The positions of the neighbor atoms can be
+        calculated like this::
+
+          indices, offsets = nl.get_neighbors(42)
+          for i, offset in zip(indices, offsets):
+              print(atoms.positions[i] + dot(offset, atoms.get_cell()))
+
+        Notice that if get_neighbors(a) gives atom b as a neighbor,
+        then get_neighbors(b) will not return a as a neighbor - unless
+        bothways=True was used."""
+
+        return (self.pair_second[self.first_neigh[a]:self.first_neigh[a+1]],
+                self.offset_vec[self.first_neigh[a]:self.first_neigh[a+1]])
+
+
+class LegacyNeighborList:
     """Neighbor list object.
 
     cutoffs: list of float
