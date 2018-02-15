@@ -665,6 +665,8 @@ End CASTEP Interface Documentation
         calculate_hirshfeld = False
         mulliken_analysis = False
         kpoints = None
+        mulliken_charges = []
+        spins = []
 
         positions_frac_list = []
 
@@ -875,6 +877,10 @@ End CASTEP Interface Documentation
                     if n_cell_const < 6:
                         lattice_real = []
                         lattice_reci = []
+                    # backup previous configuration first:
+                    # for highly symmetric systems (where essentially only the
+                    # stress is optimized, but the atomic positions) positions
+                    # are only printed once.
                     if species:
                         prev_species = deepcopy(species)
                     if positions_frac:
@@ -887,37 +893,8 @@ End CASTEP Interface Documentation
                     # Same reason for the stress initialization as before
                     # stress = []
                     stress = np.zeros([3, 3])
-                
-                # There is actually no good reason to get out of the loop already at this point...
-                #elif 'BFGS: Final Configuration:' in line:
-                #    break
-                elif 'warn' in line.lower():
-                    self._warnings.append(line)
-            except Exception as exception:
-                print(line, end=' ')
-                print('|-> line triggered exception: ' + str(exception))
-                raise
-        
-        if not positions_frac:
-            positions_frac = prev_positions_frac
-        
-        if not species:
-            species = prev_species
-        # get the spins in a separate run over the file as we
-        # do not want to break the BFGS-break construct
-        # probably one can implement it in a more convenient
-        # way, but this constructon does the job.
-        # UPDATE: this is actually also true for Mulliken charges, so we
-        # definitely need a seconds run over the file.
 
-        mulliken_charges = []
-        spins = []
-        out.seek(record_start)
-        while True:
-            try:
-                line = out.readline()
-                if not line or out.tell() > record_end:
-                    break
+                # extract info from the Mulliken analysis
                 elif 'Atomic Populations' in line:
                     mulliken_analysis = True
                     # skip the separating line
@@ -941,19 +918,32 @@ End CASTEP Interface Documentation
                                     mulliken_charges.append(float(fields[-2]))
                             else:
                                 mulliken_charges.append(float(fields[-1]))
-                    break
+
+                # There is actually no good reason to get out of the loop
+                # already at this point... or do I miss something?
+                #elif 'BFGS: Final Configuration:' in line:
+                #    break
+                elif 'warn' in line.lower():
+                    self._warnings.append(line)
 
             except Exception as exception:
                 print(line + '|-> line triggered exception: ' +
                       str(exception))
                 raise
 
+        if _close:
+            out.close()
+
+        # in highly summetric crystals, positions and symmetry are only printed
+        # upon init, hence we here restore these original values
+        if not positions_frac:
+            positions_frac = prev_positions_frac
+        if not species:
+            species = prev_species
+
         if not spin_polarized:
             # set to zero spin if non-spin polarized calculation
             spins = np.zeros(len(positions_frac))
-
-        if _close:
-            out.close()
 
         positions_frac_atoms = np.array(positions_frac)
         forces_atoms = np.array(forces)
@@ -1044,7 +1034,7 @@ End CASTEP Interface Documentation
             if mulliken_analysis:
                 atoms.set_initial_charges(charges=mulliken_charges_atoms)
             atoms.set_calculator(self)
-        
+
         self._kpoints = kpoints
         self._forces = forces_atoms
         # stress in .castep file is given in GPa:
