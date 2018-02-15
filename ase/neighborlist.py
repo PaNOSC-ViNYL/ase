@@ -386,6 +386,8 @@ def first_neighbors(nat, i):
         of a certain atom. Neighbors of atom k have indices from s[k] to
         s[k+1]-1.
     """
+    if len(i) == 0:
+        return np.zeros(nat+1, dtype=int)
     s = -np.ones(nat+1, dtype=int)
     i = np.asarray(i)
     m = i[:-1] != i[1:]
@@ -469,8 +471,11 @@ class NeighborList:
             m = np.logical_or(
                     np.logical_and(self.pair_first <= self.pair_second,
                                    (self.offset_vec == 0).all(axis=1)),
-                    self.offset_vec[:, 0] + self.offset_vec[:, 1] + 
-                    self.offset_vec[:, 2] > 0)
+                    np.logical_or(self.offset_vec[:, 0] > 0,
+                        np.logical_and(self.offset_vec[:, 0] == 0,
+                            np.logical_or(self.offset_vec[:, 1] > 0,
+                                np.logical_and(self.offset_vec[:, 1] == 0,
+                                               self.offset_vec[:, 2] > 0)))))
             self.pair_first = self.pair_first[m]
             self.pair_second = self.pair_second[m]
             self.offset_vec = self.offset_vec[m]
