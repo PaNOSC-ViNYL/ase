@@ -47,7 +47,7 @@ commands = {
          '--csv', '-w', '--open-web-browser', '--no-lock-file',
          '--analyse', '-j', '--json', '-m', '--show-metadata',
          '--set-metadata', '-M', '--metadata-from-python-script',
-         '--unique'],
+         '--unique', '--strip-data'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
     'find':
