@@ -1316,7 +1316,12 @@ End CASTEP Interface Documentation
     def get_stress(self, atoms):
         """Return the stress."""
         self.update(atoms)
-        return self._stress
+        # modification: we return the Voigt form directly to get rid of the
+        # annoying user warnings
+        stress = np.array([self._stress[0, 0], self._stress[1, 1], self._stress[2, 2],
+                           self._stress[1, 2], self._stress[0, 2], self._stress[0, 1]])
+        #return self._stress
+        return stress
 
     @_self_getter
     def get_unit_cell(self, atoms):
