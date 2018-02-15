@@ -477,6 +477,9 @@ End CASTEP Interface Documentation
         self._spins = None
         self._hirsh_volrat = None
 
+        # Mulliken charges
+        self._mulliken_charges = None
+
         self._number_of_cell_constraints = None
         self._output_verbosity = None
         self._stress = None
@@ -890,38 +893,50 @@ End CASTEP Interface Documentation
         # do not want to break the BFGS-break construct
         # probably one can implement it in a more convenient
         # way, but this constructon does the job.
+        # UPDATE: this is actually also true for Mulliken charges, so we
+        # definitely need a seconds run over the file.
 
-        if spin_polarized:
-            spins = []
-            out.seek(record_start)
-            while True:
-                try:
+        mulliken_charges = []
+        spins = []
+        out.seek(record_start)
+        while True:
+            try:
+                line = out.readline()
+                if not line or out.tell() > record_end:
+                    break
+                elif 'Atomic Populations' in line:
+                    # skip the separating line
                     line = out.readline()
-                    if not line or out.tell() > record_end:
-                        break
-                    elif 'Atomic Populations' in line:
-                        # skip the separating line
+                    # this is the headline
+                    line = out.readline()
+
+                    if 'Charge' in line:
+                        # skip the next separator line
                         line = out.readline()
-                        # this is the headline
-                        line = out.readline()
-                        if 'Spin' in line:
-                            # skip the next separator line
+                        while True:
                             line = out.readline()
-                            while True:
-                                line = out.readline()
-                                fields = line.split()
-                                if len(fields) == 1:
-                                    break
-                                # the check for len==7 is due to CASTEP 18 outformat changes
+                            fields = line.split()
+                            if len(fields) == 1:
+                                break
+
+                            # the check for len==7 is due to CASTEP 18 outformat changes
+                            if spin_polarized:
                                 if not len(fields) == 7:
                                     spins.append(float(fields[-1]))
-                        break
+                                    mulliken_charges.append(float(fields[-2]))
+                            else:
+                                mulliken_charges.append(float(fields[-1]))
+                    break
 
-                except Exception as exception:
-                    print(line + '|-> line triggered exception: ' +
-                          str(exception))
-                    raise
-        else:
+            except Exception as exception:
+                print(line + '|-> line triggered exception: ' +
+                      str(exception))
+                raise
+
+        if not mulliken_charges:
+            mulliken_charges = np.zeros(len(positions_frac))
+
+        if not spin_polarized:
             # set to zero spin if non-spin polarized calculation
             spins = np.zeros(len(positions_frac))
 
@@ -931,6 +946,8 @@ End CASTEP Interface Documentation
         positions_frac_atoms = np.array(positions_frac)
         forces_atoms = np.array(forces)
         spins_atoms = np.array(spins)
+        mulliken_charges_atoms = np.array(mulliken_charges)
+
 
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
@@ -951,6 +968,7 @@ End CASTEP Interface Documentation
             forces_castep = np.array(forces)
             hirsh_castep = np.array(hirsh_volrat)
             spins_castep = np.array(spins)
+            mulliken_charges_castep = np.array(mulliken_charges_atoms)
 
             # go through the atoms position list and replace
             # with the corresponding one from the
@@ -967,6 +985,7 @@ End CASTEP Interface Documentation
                         if spin_polarized:
                             # reordering not necessary in case all spins == 0
                             spins_atoms[iase] = np.array(spins_castep[icastep])
+                        mulliken_charges_atoms[iase] = np.array(mulliken_charges_castep[icastep])
                         atoms_assigned[icastep] = True
                         break
 
@@ -1007,6 +1026,7 @@ End CASTEP Interface Documentation
                 # this one fails as is
                 atoms.set_initial_magnetic_moments(magmoms=spins_atoms)
 
+            atoms.set_initial_charges(charges=mulliken_charges_atoms)
             atoms.set_calculator(self)
 
         self._forces = forces_atoms
@@ -1014,6 +1034,7 @@ End CASTEP Interface Documentation
         self._stress = np.array(stress) * units.GPa
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
+        self._mulliken_charges = mulliken_charges_atoms
 
         if self._warnings:
             print('WARNING: %s contains warnings' % castep_file)
@@ -1117,6 +1138,12 @@ End CASTEP Interface Documentation
         Return the spins from a plane-wave Mulliken analysis.
         """
         return self._spins
+
+    def get_mulliken_charges(self):
+        """
+        Return the charges from a plane-wave Mulliken analysis.
+        """
+        return self._mulliken_charges
 
     def set_label(self, label):
         """The label is part of each seed, which in turn is a prefix
@@ -1308,6 +1335,12 @@ End CASTEP Interface Documentation
         """Return the number of cell constraints."""
         self.update(atoms)
         return self._number_of_cell_constraints
+
+    @_self_getter
+    def get_charges(self, atoms):
+        """Run CASTEP calculation if needed and return Mulliken charges."""
+        self.update(atoms)
+        return np.array(self._mulliken_charges)
 
     def set_atoms(self, atoms):
         """Sets the atoms for the calculator and vice versa."""
