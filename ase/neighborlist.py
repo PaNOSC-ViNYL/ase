@@ -158,11 +158,13 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     ndx, ndy, ndz = np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
-    spos_ic = a.get_scaled_positions()
-    bin_index_ic = (spos_ic*nbins_c).astype(int)
+    spos_ic = a.get_scaled_positions(wrap=False)
+    bin_index_ic = np.floor(spos_ic*nbins_c).astype(int)
+    cell_shift_ic = np.zeros_like(bin_index_ic)
     for c in range(3):
         if pbc[c]:
-            bin_index_ic[:, c] %= nbins_c[c]
+            cell_shift_ic[:, c], bin_index_ic[:, c] = \
+                np.divmod(bin_index_ic[:, c], nbins_c[c])
         else:
             bin_index_ic[:, c] = np.clip(bin_index_ic[:, c], 0, nbins_c[c]-1)
 
@@ -271,6 +273,9 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     i_n = i_n[m]
     j_n = j_n[m]
     S_n = S_n[m]
+
+    # Add global cell shift to shift vectors
+    S_n += cell_shift_ic[i_n] - cell_shift_ic[j_n]
 
     if not self_interaction:
         # Remove all self-pairs that do not cross the cell boundary.
