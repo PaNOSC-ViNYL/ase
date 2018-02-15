@@ -663,6 +663,7 @@ End CASTEP Interface Documentation
         # Hirshfeld volumes are calculated
         spin_polarized = False
         calculate_hirshfeld = False
+        mulliken_analysis = False
 
         positions_frac_list = []
 
@@ -905,6 +906,7 @@ End CASTEP Interface Documentation
                 if not line or out.tell() > record_end:
                     break
                 elif 'Atomic Populations' in line:
+                    mulliken_analysis = True
                     # skip the separating line
                     line = out.readline()
                     # this is the headline
@@ -933,9 +935,6 @@ End CASTEP Interface Documentation
                       str(exception))
                 raise
 
-        if not mulliken_charges:
-            mulliken_charges = np.zeros(len(positions_frac))
-
         if not spin_polarized:
             # set to zero spin if non-spin polarized calculation
             spins = np.zeros(len(positions_frac))
@@ -946,8 +945,11 @@ End CASTEP Interface Documentation
         positions_frac_atoms = np.array(positions_frac)
         forces_atoms = np.array(forces)
         spins_atoms = np.array(spins)
-        mulliken_charges_atoms = np.array(mulliken_charges)
 
+        if mulliken_analysis:
+            mulliken_charges_atoms = np.array(mulliken_charges)
+        else:
+            mulliken_charges_atoms = np.zeros(len(positions_frac))
 
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
@@ -1026,7 +1028,8 @@ End CASTEP Interface Documentation
                 # this one fails as is
                 atoms.set_initial_magnetic_moments(magmoms=spins_atoms)
 
-            atoms.set_initial_charges(charges=mulliken_charges_atoms)
+            if mulliken_analysis:
+                atoms.set_initial_charges(charges=mulliken_charges_atoms)
             atoms.set_calculator(self)
 
         self._forces = forces_atoms
@@ -1346,6 +1349,12 @@ End CASTEP Interface Documentation
         """Run CASTEP calculation if needed and return Mulliken charges."""
         self.update(atoms)
         return np.array(self._mulliken_charges)
+
+    @_self_getter
+    def get_magnetic_moments(self, atoms):
+        """Run CASTEP calculation if needed and return Mulliken charges."""
+        self.update(atoms)
+        return np.array(self._spins)
 
     def set_atoms(self, atoms):
         """Sets the atoms for the calculator and vice versa."""
