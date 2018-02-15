@@ -23,7 +23,10 @@ assert np.abs(d - np.array([np.sqrt(3/4), np.sqrt(3/4)])).max() < tol
 
 # test_neighbor_list
 for pbc in [True, False, [True, False, True]]:
-    a = io.read('aC.cfg')
+    a = ase.Atoms('4001C', cell=[29, 29, 29])
+    a.set_scaled_positions(np.transpose([np.random.random(len(a)),
+                                         np.random.random(len(a)),
+                                         np.random.random(len(a))]))
     j, dr, i, abs_dr, shift = neighbor_list("jDidS", a, 1.85)
 
     assert (np.bincount(i) == np.bincount(j)).all()
@@ -42,7 +45,10 @@ for pbc in [True, False, [True, False, True]]:
 
 # test_neighbor_list_atoms_outside_box
 for pbc in [True, False, [True, False, True]]:
-    a = io.read('aC.cfg')
+    a = ase.Atoms('4001C', cell=[29, 29, 29])
+    a.set_scaled_positions(np.transpose([np.random.random(len(a)),
+                                         np.random.random(len(a)),
+                                         np.random.random(len(a))]))
     a.set_pbc(pbc)
     a.positions[100, :] += a.cell[0, :]
     a.positions[200, :] += a.cell[1, :]
