@@ -664,6 +664,7 @@ End CASTEP Interface Documentation
         spin_polarized = False
         calculate_hirshfeld = False
         mulliken_analysis = False
+        kpoints = None
 
         positions_frac_list = []
 
@@ -687,6 +688,8 @@ End CASTEP Interface Documentation
                     spin_polarized = True
                 elif 'treating system as non-spin-polarized' in line:
                     spin_polarized = False
+                elif 'Number of kpoints used' in line:
+                    kpoints = int(line.split('=')[-1].strip())
                 elif 'Unit Cell' in line:
                     lattice_real = []
                     lattice_reci = []
@@ -872,6 +875,10 @@ End CASTEP Interface Documentation
                     if n_cell_const < 6:
                         lattice_real = []
                         lattice_reci = []
+                    if species:
+                        prev_species = deepcopy(species)
+                    if positions_frac:
+                        prev_positions_frac = deepcopy(positions_frac)
                     species = []
                     positions_frac = []
                     forces = []
@@ -880,16 +887,22 @@ End CASTEP Interface Documentation
                     # Same reason for the stress initialization as before
                     # stress = []
                     stress = np.zeros([3, 3])
-
-                elif 'BFGS: Final Configuration:' in line:
-                    break
+                
+                # There is actually no good reason to get out of the loop already at this point...
+                #elif 'BFGS: Final Configuration:' in line:
+                #    break
                 elif 'warn' in line.lower():
                     self._warnings.append(line)
             except Exception as exception:
                 print(line, end=' ')
                 print('|-> line triggered exception: ' + str(exception))
                 raise
-
+        
+        if not positions_frac:
+            positions_frac = prev_positions_frac
+        
+        if not species:
+            species = prev_species
         # get the spins in a separate run over the file as we
         # do not want to break the BFGS-break construct
         # probably one can implement it in a more convenient
@@ -1031,7 +1044,8 @@ End CASTEP Interface Documentation
             if mulliken_analysis:
                 atoms.set_initial_charges(charges=mulliken_charges_atoms)
             atoms.set_calculator(self)
-
+        
+        self._kpoints = kpoints
         self._forces = forces_atoms
         # stress in .castep file is given in GPa:
         self._stress = np.array(stress) * units.GPa
@@ -1803,9 +1817,9 @@ End CASTEP Interface Documentation
         match = re.match(ok_string, txt, re.DOTALL)
 
         try:
-            self._kpoints_used = int(
+            self._kpoints = int(
                 re.search(
-                    r'Number of kpoints used = *([0-9]+)', txt).group(1))
+                    r'Number of kpoints used =\w*([0-9]+)', txt).group(1))
         except:
             print('Couldn\'t fetch number of kpoints from dryrun CASTEP file')
 
