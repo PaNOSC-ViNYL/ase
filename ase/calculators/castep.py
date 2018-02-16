@@ -665,8 +665,6 @@ End CASTEP Interface Documentation
         calculate_hirshfeld = False
         mulliken_analysis = False
         kpoints = None
-        mulliken_charges = []
-        spins = []
 
         positions_frac_list = []
 
@@ -896,6 +894,10 @@ End CASTEP Interface Documentation
 
                 # extract info from the Mulliken analysis
                 elif 'Atomic Populations' in line:
+                    # sometimes this appears twice in a castep file
+                    mulliken_charges = []
+                    spins = []
+
                     mulliken_analysis = True
                     # skip the separating line
                     line = out.readline()
