@@ -1,13 +1,8 @@
 from __future__ import division
 
-import os.path
-
-import unittest
-
 import numpy as np
 
 import ase
-import ase.io as io
 import ase.lattice.hexagonal
 from ase.build import bulk, molecule
 
