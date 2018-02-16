@@ -58,7 +58,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
             'D' : distance vector
             'S' : shift vector (number of cell boundaries crossed by the bond
                   between atom i and j). With the shift vector S, the
-                  distances d between can be computed as:
+                  distances D between atoms can be computed from:
                   D = a.positions[j]-a.positions[i]+S.dot(a.cell)
     a : ase.Atoms
         Atomic configuration.
