@@ -233,7 +233,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
         for dy in range(-ndy, ndy+1):
             for dx in range(-ndx, ndx+1):
                 # First atom in pair.
-                i_n += [bins_ba[:, ix_pn[0]]]
+                _i_n = bins_ba[:, ix_pn[0]]
 
                 # Bin index of neighboring bin and shift vector.
                 sx_xyz, bx1_xyz = np.divmod(bx_xyz + dx, nbins_c[0])
@@ -243,42 +243,39 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
                     (by1_xyz + nbins_c[1] * bz1_xyz)).ravel()
 
                 # Second atom in pair.
-                j_n += [bins_ba[b1_b][:, ix_pn[1]]]
+                _j_n = bins_ba[b1_b][:, ix_pn[1]]
 
                 # Shift vectors.
-                Sx_n += [sx_xyz.reshape(-1, 1)]
-                Sy_n += [sy_xyz.reshape(-1, 1)]
-                Sz_n += [sz_xyz.reshape(-1, 1)]
+                _Sx_n = np.resize(sx_xyz.reshape(-1, 1),
+                                  (max_nat_per_bin**2, sx_xyz.size)).T
+                _Sy_n = np.resize(sy_xyz.reshape(-1, 1),
+                                  (max_nat_per_bin**2, sy_xyz.size)).T
+                _Sz_n = np.resize(sz_xyz.reshape(-1, 1),
+                                  (max_nat_per_bin**2, sz_xyz.size)).T
+
+                # We have created too many pairs because we assumed each bin
+                # has exactly max_nat_per_bin atoms. Remove all surperfluous
+                # pairs. Those are pairs that involve an atom with index -1.
+                m = np.logical_and(_i_n != -1, _j_n != -1)
+                if m.sum() > 0:
+                    i_n += [_i_n[m]]
+                    j_n += [_j_n[m]]
+                    Sx_n += [_Sx_n[m]]
+                    Sy_n += [_Sy_n[m]]
+                    Sz_n += [_Sz_n[m]]
 
     # Flatten overall neighbor list.
-    i_n = np.ravel(i_n)
-    j_n = np.ravel(j_n)
-    Sx_n = np.ravel(Sx_n)
-    Sy_n = np.ravel(Sy_n)
-    Sz_n = np.ravel(Sz_n)
-    # Spread out shift vectors overs pairs.
-    Sx_n = np.resize(Sx_n, (max_nat_per_bin**2, len(Sx_n))).T.ravel()
-    Sy_n = np.resize(Sy_n, (max_nat_per_bin**2, len(Sy_n))).T.ravel()
-    Sz_n = np.resize(Sz_n, (max_nat_per_bin**2, len(Sz_n))).T.ravel()
-    S_n = np.transpose([Sx_n, Sy_n, Sz_n])
-
-    #
-    # Now we need to remove lots of stuff from our neighbor list...
-    #
-
-    # We have created too many pairs because we assumed each bin has exactly
-    # max_nat_per_bin atoms. Remove all surperfluous pairs. Those are pairs
-    # that involve an atom with index -1.
-    m = np.logical_and(i_n != -1, j_n != -1)
-    i_n = i_n[m]
-    j_n = j_n[m]
-    S_n = S_n[m]
+    i_n = np.concatenate(i_n)
+    j_n = np.concatenate(j_n)
+    S_n = np.transpose([np.concatenate(Sx_n),
+                        np.concatenate(Sy_n),
+                        np.concatenate(Sz_n)])
 
     # Add global cell shift to shift vectors
     S_n += cell_shift_ic[i_n] - cell_shift_ic[j_n]
 
+    # Remove all self-pairs that do not cross the cell boundary.
     if not self_interaction:
-        # Remove all self-pairs that do not cross the cell boundary.
         m = np.logical_not(np.logical_and(i_n == j_n, (S_n == 0).all(axis=1)))
         i_n = i_n[m]
         j_n = j_n[m]
