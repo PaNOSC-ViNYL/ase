@@ -129,6 +129,18 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
+
+    # Naming conventions: Suffixes indicate the dimension of an array. The
+    # following convention is used here:
+    #     c: Cartesian index, can have values 0, 1, 2
+    #     i: Global atom index, can have values 0..len(a)-1
+    #     xyz: Bin index, three values identifying x-, y- and z-component of a
+    #          spatial bin that is used to make neighbor search O(n)
+    #     b: Linearized version of the 'xyz' bin index
+    #     a: Bin-local atom index, i.e. index identifying an atom *within* a bin
+    #     p: Pair index, can have value 0 or 1
+    #     n: (Linear) neighbor index
+
     # Store pbc.
     pbc = a.pbc
 
