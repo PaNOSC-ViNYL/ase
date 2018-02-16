@@ -468,9 +468,9 @@ class NeighborList:
     def build(self, atoms):
         """Build the list.
         """
-        self.pbc = pbc = np.array(atoms.pbc, copy=True)
-        self.cell = cell = np.array(atoms.cell, copy=True)
-        self.positions = positions = np.array(atoms.positions, copy=True)
+        self.pbc = np.array(atoms.pbc, copy=True)
+        self.cell = np.array(atoms.cell, copy=True)
+        self.positions = np.array(atoms.positions, copy=True)
 
         self.pair_first, self.pair_second, self.offset_vec = \
             neighbor_list('ijS', atoms, self.cutoffs,
