@@ -907,6 +907,7 @@ class MBPT_LCAO_Properties_figure:
         self.figname = 'default'
         self.cmap = cm.jet
         self.units = 'au'
+        self.interpolation = "bicubic"
         # for the moment only the polarizability can be modify in nm**2
         self.vmin = None
         self.vmax = None

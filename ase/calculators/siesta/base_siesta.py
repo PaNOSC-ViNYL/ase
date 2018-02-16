@@ -923,7 +923,8 @@ class BaseSiesta(FileIOCalculator):
                                        freq=np.arange(0.0, 10.0, 0.1),
                                        units='au',
                                        run_tddft=True,
-                                       fname="pol_tensor.npy", **kw):
+                                       fname="pol_tensor.npy", 
+                                       fname_nonin = "noninpol_tensor.npy", **kw):
         """
         Calculate the interacting polarizability of a molecule using
         TDDFT calculation from the pyscf-nao library.
@@ -949,10 +950,18 @@ class BaseSiesta(FileIOCalculator):
         freq : array like
             array of dimension (nff) containing the frequency range in eV.
 
-        self.results['polarizability'], array like
+        self.results['polarizability nonin'], array like (complex)
             array of dimension (nff, 3, 3) with nff the frequency number,
             the second and third dimension are the matrix elements of the
-            polarizability::
+            non-interactive polarizability::
+
+                P_xx, P_xy, P_xz, Pyx, .......
+
+
+        self.results['polarizability'], array like (complex)
+            array of dimension (nff, 3, 3) with nff the frequency number,
+            the second and third dimension are the matrix elements of the
+            interactive polarizability::
 
                 P_xx, P_xy, P_xz, Pyx, .......
 
@@ -1021,40 +1030,57 @@ class BaseSiesta(FileIOCalculator):
             tddft = tddft_iter(**kw)
 
             omegas = freq / Ha + 1j * tddft.eps
+            tddft.comp_dens_nonin_along_Eext(omegas, Eext=Edir)
             tddft.comp_dens_inter_along_Eext(omegas, Eext=Edir)
 
             # save polarizability tensor to files
+            np.save(fname_nonin, -tddft.p0_mat)
             np.save(fname, -tddft.p_mat)
 
+            self.results['polarizability nonin'] = np.zeros((freq.size, 3, 3),
+                                                dtype=tddft.p0_mat.dtype)
             self.results['polarizability'] = np.zeros((freq.size, 3, 3),
                                                 dtype=tddft.p_mat.dtype)
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
+                        p0 = pol2cross_sec(-tddft.p0_mat[xyz1, xyz2, :],
+                                          freq)
                         p = pol2cross_sec(-tddft.p_mat[xyz1, xyz2, :],
                                           freq)
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = p0
                         self.results['polarizability'][:, xyz1, xyz2] = p
                     else:
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = \
+                                                -tddft.p0_mat[xyz1, xyz2, :]
                         self.results['polarizability'][:, xyz1, xyz2] = \
                                                 -tddft.p_mat[xyz1, xyz2, :]
 
         else:
             # load polarizability tensor from previous calculations
+            p0_mat = np.load(fname_nonin)
             p_mat = np.load(fname)
 
+            self.results['polarizability nonin'] = np.zeros((freq.size, 3, 3),
+                                                        dtype=p0_mat.dtype)
             self.results['polarizability'] = np.zeros((freq.size, 3, 3),
                                                         dtype=p_mat.dtype)
 
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
+                        p0 = pol2cross_sec(-p0_mat[xyz1, xyz2, :], freq)
                         p = pol2cross_sec(-p_mat[xyz1, xyz2, :], freq)
+
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = p0
                         self.results['polarizability'][:, xyz1, xyz2] = p
                     else:
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = \
+                                                        -p0_mat[xyz1, xyz2, :]
                         self.results['polarizability'][:, xyz1, xyz2] = \
                                                         -p_mat[xyz1, xyz2, :]
 
-        return freq, self.results['polarizability']
+        return freq, self.results['polarizability nonin'], self.results['polarizability']
 
     def get_polarizability_mbpt(self, mbpt_inp=None,
                                 output_name='mbpt_lcao.out',

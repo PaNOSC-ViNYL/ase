@@ -472,14 +472,14 @@ class Atoms(object):
         self.set_array('numbers', symbols2numbers(symbols), int, ())
 
     def get_chemical_formula(self, mode='hill'):
-        """Get the chemial formula as a string based on the chemical symbols.
+        """Get the chemical formula as a string based on the chemical symbols.
 
         Parameters:
 
         mode: str
             There are three different modes available:
 
-            'all': The list of chemical symbols are contracted to at string,
+            'all': The list of chemical symbols are contracted to a string,
             e.g. ['C', 'H', 'H', 'H', 'O', 'H'] becomes 'CHHHOH'.
 
             'reduce': The same as 'all' where repeated elements are contracted
@@ -491,7 +491,7 @@ class Atoms(object):
             first), e.g. 'CHHHOCHHH' is reduced to 'C2H6O' and 'SOOHOHO' to
             'H2O4S'. This is default.
 
-            'metal': The list of checmical symbols (alphabetical metals,
+            'metal': The list of chemical symbols (alphabetical metals,
             and alphabetical non-metals)
         """
         if len(self) == 0:
@@ -1853,7 +1853,7 @@ class Atoms(object):
         from ase.io import write
         write(filename, self, format, **kwargs)
 
-    def _images_(self):
+    def iterimages(self):
         yield self
 
     def edit(self):

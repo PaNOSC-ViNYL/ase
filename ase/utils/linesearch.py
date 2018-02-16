@@ -382,8 +382,11 @@ class LineSearch:
 
     def determine_step(self, stp):
         dr = stp - self.old_stp
-        if abs(pymax(self.pk) * dr) > self.maxstep:
-            dr /= abs((pymax(self.pk) * dr) / self.maxstep)
+        x = np.reshape(self.pk, (-1, 3))
+        steplengths = ((dr*x)**2).sum(1)**0.5
+        maxsteplength = pymax(steplengths)
+        if maxsteplength >= self.maxstep:
+            dr *= self.maxstep / maxsteplength
         stp = self.old_stp + dr
         return stp
 

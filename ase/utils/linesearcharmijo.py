@@ -202,7 +202,7 @@ class LineSearchArmijo:
         ###CO : added rigid_units and rotation_factors
     def run(self, x_start, dirn, a_max=None, a_min=None, a1=None, 
             func_start=None, func_old=None, func_prime_start=None,
-            rigid_units=None, rotation_factors=None):
+            rigid_units=None, rotation_factors=None, maxstep=None):
 
         """Perform a backtracking / quadratic-interpolation linesearch
             to find an appropriate step length with Armijo condition.
@@ -241,7 +241,7 @@ class LineSearchArmijo:
                 guess for the step length if it is not provided)
             rigid_units, rotationfactors : see documentation of RumPath, if it is
                 unclear what these parameters are, then leave them at None
-
+            maxstep: maximum allowed displacement in Angstrom. Default is 0.2.
 
         Returns:
             A tuple: (step, func_val, no_update)
@@ -258,7 +258,7 @@ class LineSearchArmijo:
         """
 
         a1 = self.handle_args(x_start, dirn, a_max, a_min, a1, func_start, 
-                              func_old, func_prime_start)
+                              func_old, func_prime_start, maxstep)
 
         # DEBUG
         logger.debug("a1(auto) = ", a1)
@@ -340,7 +340,7 @@ class LineSearchArmijo:
 
 
     def handle_args(self, x_start, dirn, a_max, a_min, a1, func_start, func_old,
-                    func_prime_start):
+                    func_prime_start, maxstep):
 
         """Verify passed parameters and set appropriate attributes accordingly.
 
@@ -409,6 +409,17 @@ class LineSearchArmijo:
             logger.debug("a1 is None or a1 < a_min. Reverting to default value "
                            "a1 = 1.0")
             a1 = 1.0
+
+        if maxstep is None:
+            maxstep = 0.2
+        logger.debug("maxstep = %e", maxstep)
+        
+        r = np.reshape(dirn, (-1, 3))
+        steplengths = ((a1*r)**2).sum(1)**0.5
+        maxsteplength = np.max(steplengths)
+        if maxsteplength >= maxstep:
+            a1 *= maxstep / maxsteplength
+            logger.debug("Rescaled a1 to fulfill maxstep criterion")
 
         self.a_start = a1
 

@@ -11,7 +11,7 @@ from ase.gui.i18n import _
 
 import numpy as np
 
-from ase import __version__, Atoms
+from ase import __version__
 import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
@@ -36,18 +36,10 @@ class GUI(View, Status):
 
     def __init__(self, images=None,
                  rotations='',
-                 show_bonds=False):
+                 show_bonds=False, expr=None):
 
-        # Try to change into directory of file you are viewing
-        try:
-            os.chdir(os.path.split(sys.argv[1])[0])
-        # This will fail sometimes (e.g. for starting a new session)
-        except:
-            pass
-
-        if not images:
-            images = Images()
-            images.initialize([Atoms()])
+        if not isinstance(images, Images):
+            images = Images(images)
 
         self.images = images
 
@@ -74,11 +66,6 @@ class GUI(View, Status):
         self.arrowkey_mode = self.ARROWKEY_SCAN
         self.move_atoms_mask = None
 
-    @property
-    def moving(self):
-        return self.arrowkey_mode != self.ARROWKEY_SCAN
-
-    def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
 
         if len(self.images) > 1:
@@ -90,6 +77,12 @@ class GUI(View, Status):
         if expr is not None and expr != '' and len(self.images) > 1:
             self.plot_graphs(expr=expr)
 
+
+    @property
+    def moving(self):
+        return self.arrowkey_mode != self.ARROWKEY_SCAN
+
+    def run(self, test=None):
         if test:
             self.window.test(test)
         else:

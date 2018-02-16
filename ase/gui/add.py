@@ -22,7 +22,7 @@ class AddAtoms:
                                allow_molecule=True)
         win.add(self.element)
         self.absolute_position = ui.Entry('0,0,0')
-        self.relative_position = ui.Entry('1.5,0,0')
+        self.relative_position = ui.Entry('0,0,1.5')
         win.add([_('Absolute position:'),
                  self.absolute_position,
                  ui.Button(_('Add'), self.add_absolute)])

@@ -49,7 +49,7 @@ The calculators can be divided in four groups:
 1) Asap_, GPAW_, and Hotbit_ have their own native ASE interfaces.
 
 2) ABINIT, AMBER, CP2K, CASTEP, deMon2k, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
-   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, Quantum ESPRESSO, SIESTA,
+   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, ONETEP, Quantum ESPRESSO, SIESTA,
    TURBOMOLE and VASP, have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
 
@@ -58,8 +58,8 @@ The calculators can be divided in four groups:
 
 4) Calculators that wrap others, included in the ASE package:
    :class:`ase.calculators.checkpoint.CheckpointCalculator`,
-   the :class:`ase.calculators.loggingcalc.LoggingCalculator`, 
-   the :ref:`Grimme-D3 <grimme>` potential, and the qmmm calculators 
+   the :class:`ase.calculators.loggingcalc.LoggingCalculator`,
+   the :ref:`Grimme-D3 <grimme>` potential, and the qmmm calculators
    :class:`~ase.calculators.qmmm.EIQMMM`,  and :class:`~ase.calculators.qmmm.SimpleQMMM`.
 
 
@@ -90,6 +90,7 @@ gaussian                                  Gaussian based electronic structure co
 :mod:`~ase.calculators.mopac`             ...
 :mod:`~ase.calculators.nwchem`            Gaussian based electronic structure code
 :mod:`~ase.calculators.octopus`           Real-space pseudopotential code
+:mod:`~ase.calculators.onetep`            Linear-scaling pseudopotential code
 :mod:`~ase.calculators.siesta`            LCAO pseudopotential code
 :mod:`~ase.calculators.turbomole`         Fast atom orbital code
 :mod:`~ase.calculators.vasp`              Plane-wave PAW code
@@ -99,8 +100,8 @@ morse                                     Morse potential
 :mod:`~ase.calculators.checkpoint`        Checkpoint calculator
 :mod:`~ase.calculators.loggingcalc`       Logging calculator
 :mod:`~ase.calculators.dftd3`             DFT-D3 dispersion correction calculator
-:class:`~ase.calculators.qmmm.EIQMMM`     Explicit Interaction QM/MM 
-:class:`~ase.calculators.qmmm.SimpleQMMM` Subtractive (ONIOM style) QM/MM 
+:class:`~ase.calculators.qmmm.EIQMMM`     Explicit Interaction QM/MM
+:class:`~ase.calculators.qmmm.SimpleQMMM` Subtractive (ONIOM style) QM/MM
 ========================================= ===========================================
 
 .. index:: D3, Grimme
@@ -202,6 +203,7 @@ the :meth:`set` method:
    amber
    castep
    cp2k
+   crystal
    demon
    dftb
    dmol
@@ -217,6 +219,7 @@ the :meth:`set` method:
    mopac
    nwchem
    octopus
+   onetep
    siesta
    turbomole
    vasp

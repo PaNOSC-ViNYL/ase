@@ -16,7 +16,6 @@ class PropertyNotImplementedError(NotImplementedError):
     pass
 
 
-
 def compare_atoms(atoms1, atoms2, tol=1e-15):
     """Check for system changes since last calculation."""
     if atoms1 is None:
@@ -50,9 +49,10 @@ all_changes = ['positions', 'numbers', 'cell', 'pbc',
 
 
 # Recognized names of calculators sorted alphabetically:
-names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'demon', 'dftb',
-         'dmol', 'eam', 'elk', 'emt', 'espresso', 'exciting', 'fleur',
-         'gaussian', 'gpaw', 'gromacs', 'gulp', 'hotbit', 'jacapo', 'lammpsrun',
+names = ['abinit', 'aims', 'amber', 'asap', 'castep', 'cp2k', 'crystal',
+         'demon', 'dftb', 'dmol', 'eam', 'elk', 'emt', 'espresso',
+         'exciting', 'fleur', 'gaussian', 'gpaw', 'gromacs', 'gulp',
+         'hotbit', 'jacapo', 'lammpsrun',
          'lammpslib', 'lj', 'mopac', 'morse', 'nwchem', 'octopus', 'onetep',
          'siesta', 'tip3p', 'turbomole', 'vasp']
 
@@ -62,6 +62,7 @@ special = {'cp2k': 'CP2K',
            'eam': 'EAM',
            'elk': 'ELK',
            'emt': 'EMT',
+           'crystal': 'CRYSTAL',
            'fleur': 'FLEUR',
            'gulp': 'GULP',
            'lammpsrun': 'LAMMPS',

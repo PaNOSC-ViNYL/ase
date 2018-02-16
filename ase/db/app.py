@@ -63,6 +63,7 @@ app.secret_key = 'asdf'
 databases = {}
 home = ''  # link to homepage
 open_ase_gui = True  # click image to open ASE's GUI
+download_button = True
 
 # List of (project-name, title) tuples (will be filled in at run-time):
 projects = []
@@ -96,6 +97,7 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
     tmpdir = app.config['ASE_DB_TMPDIR']
+    download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
 else:
     tmpdir = tempfile.mkdtemp()  # used to cache png-files
@@ -273,7 +275,8 @@ def index():
                            nrows=nrows,
                            addcolumns=addcolumns,
                            row1=page * limit + 1,
-                           row2=min((page + 1) * limit, nrows))
+                           row2=min((page + 1) * limit, nrows),
+                           download_button=download_button)
 
 
 @app.route('/image/<name>')
@@ -378,13 +381,14 @@ def xyz(id):
     return data, '{0}.xyz'.format(id)
 
 
-@app.route('/json')
-@download
-def jsonall():
-    con_id = int(request.args['x'])
-    con = connections[con_id]
-    data = tofile(con.project, con.query[2], 'json', con.limit)
-    return data, 'selection.json'
+if download_button:
+    @app.route('/json')
+    @download
+    def jsonall():
+        con_id = int(request.args['x'])
+        con = connections[con_id]
+        data = tofile(con.project, con.query[2], 'json', con.limit)
+        return data, 'selection.json'
 
 
 @app.route('/json/<int:id>')
@@ -395,13 +399,14 @@ def json1(id):
     return data, '{0}.json'.format(id)
 
 
-@app.route('/sqlite')
-@download
-def sqliteall():
-    con_id = int(request.args['x'])
-    con = connections[con_id]
-    data = tofile(con.project, con.query[2], 'db', con.limit)
-    return data, 'selection.db'
+if download_button:
+    @app.route('/sqlite')
+    @download
+    def sqliteall():
+        con_id = int(request.args['x'])
+        con = connections[con_id]
+        data = tofile(con.project, con.query[2], 'db', con.limit)
+        return data, 'selection.db'
 
 
 @app.route('/sqlite/<int:id>')

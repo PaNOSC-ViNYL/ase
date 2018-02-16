@@ -145,27 +145,28 @@ Keyword                    Description
 ``label``                  The prefix of .param, .cell, .castep, etc. files.
 
 ``castep_command``         Command to run castep. Can also be set via the bash
-                           environment variable `CASTEP_COMMAND`. If none is
-                           given or found, will default to `castep`
+                           environment variable ``CASTEP_COMMAND``. If none is
+                           given or found, will default to ``castep``
 
 ``check_castep_version``   Boolean whether to check if the installed castep
                            version matches the version from which the available
-                           options were deduced. Defaults to <False>.
+                           options were deduced. Defaults to ``False``.
 
 ``castep_pp_path``         The path where the pseudopotentials are stored. Can
                            also be set via the bash environment variables
-                           `PSPOT_DIR` (preferred) and `CASTEP_PP_PATH`. Will
-                           default to the current working directory if none is
-                           given or found. Note that pseudopotentials may be
-                           generated on-the-fly if they are not found.
+                           ``PSPOT_DIR`` (preferred) and ``CASTEP_PP_PATH``.
+                           Will default to the current working directory if
+                           none is given or found. Note that pseudopotentials
+                           may be generated on-the-fly if they are not found.
 
 ``find_pspots``            Boolean whether to search for pseudopotentials in
-                           <castep_pp_path> or not. If activated, files in this
-                           directory will be checked for typical names. If
+                           ``<castep_pp_path>`` or not. If activated, files in
+                           this directory will be checked for typical names. If
                            files are not found, they will be generated on the
-                           fly, depending on the `_build_missing_pspots` value.
-                           A RuntimeError will be raised in case multiple files
-                           per element are found. Defaults to <False>.
+                           fly, depending on the ``_build_missing_pspots``
+                           value.  A RuntimeError will be raised in case
+                           multiple files per element are found. Defaults to
+                           ``False``.
 =========================  ====================================================
 
 
@@ -297,19 +298,19 @@ Special features:
 
 ``.set_pspot('<library>')``
   This automatically sets the pseudo-potential for all present species to
-  *<Species>_<library>.usp*. Make sure that ``_castep_pp_path`` is set
+  ``<Species>_<library>.usp``. Make sure that ``_castep_pp_path`` is set
   correctly. Note that there is no check, if the file actually exists. If it
   doesn't castep will crash! You may want to use ``find_pspots()`` instead.
 
 ``.find_pspots(pspot=<library>, suffix=<suffix>)``
   This automatically searches for pseudopotentials of type
-  *<Species>_<library>.<suffix> or *<Species>-<library>.<suffix> in
-  ``castep_pp_path` (make sure this is set correctly). Note that <Species> will
-  be searched for case insensitive.  Regular expressions are accepted, and
-  arguments `'*'` will be regarded as bash-like wildcards. Defaults are any
-  <library> and any <suffix> from ['usp', 'UPF', 'recpot']. If you have
-  well-organized folders with pseudopotentials of one kind, this should work
-  with the defaults.
+  ``<Species>_<library>.<suffix>`` or ``<Species>-<library>.<suffix>`` in
+  ``castep_pp_path` (make sure this is set correctly). Note that ``<Species>``
+  will be searched for case insensitive.  Regular expressions are accepted, and
+  arguments ``'*'`` will be regarded as bash-like wildcards. Defaults are any
+  ``<library>`` and any ``<suffix>`` from ``['usp', 'UPF', 'recpot']``. If you
+  have well-organized folders with pseudopotentials of one kind, this should
+  work with the defaults.
 
 ``print(calc)``
   Prints a short summary of the calculator settings and atoms.
@@ -1195,6 +1196,10 @@ End CASTEP Interface Documentation
             return
 
         # translate the bash wildcard syntax to regex
+        if pspot == '*':
+            pspot = '.*'
+        if suffix == '*':
+            suffix = '.*'
         if pspot == '*':
             pspot = '.*'
 

@@ -128,7 +128,7 @@ def test(verbosity=1, calculators=[],
         os.mkdir(testdir)
     os.chdir(testdir)
     if verbosity:
-        print('test-dir       ', testdir, '\n', file=sys.__stdout__)
+        print('{:25}{}\n'.format('test-dir', testdir), file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:

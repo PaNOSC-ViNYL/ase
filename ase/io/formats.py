@@ -58,6 +58,7 @@ all_formats = {
     'cfg': ('AtomEye configuration', '1F'),
     'cif': ('CIF-file', '+F'),
     'cmdft': ('CMDFT-file', '1F'),
+    'crystal': ('Crystal fort.34 format', '1S'),
     'cube': ('CUBE file', '1F'),
     'dacapo': ('Dacapo netCDF output file', '1F'),
     'dacapo-text': ('Dacapo text output', '1F'),
@@ -162,6 +163,8 @@ extension2format = {
     'con': 'eon',
     'config': 'dlp4',
     'exi': 'exciting',
+    'f34': 'crystal',
+    '34': 'crystal',
     'g96': 'gromos',
     'geom': 'castep-geom',
     'gro': 'gromacs',
@@ -590,6 +593,10 @@ def filetype(filename, read=True, guess=True):
             return 'vasp-xml'
         if basename == 'coord':
             return 'turbomole'
+        if basename == 'f34':
+            return 'crystal'
+        if basename == '34':
+            return 'crystal'
         if basename == 'gradient':
             return 'turbomole-gradient'
         if basename.endswith('I_info'):
