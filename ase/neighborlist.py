@@ -329,11 +329,11 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
         for (el1, el2), c in cutoff.items():
             try:
                 el1 = atomic_numbers[el1]
-            except:
+            except KeyError:
                 pass
             try:
                 el2 = atomic_numbers[el2]
-            except:
+            except KeyError:
                 pass
             if el1 == el2:
                 m = np.logical_and(n[i_n] == el1, n[j_n] == el2)
