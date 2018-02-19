@@ -117,21 +117,18 @@ def key_val_str_to_dict(string, sep=None):
 
         if key.lower() not in UNPROCESSED_KEYS:
             # Try to convert to (arrays of) floats, ints
+            split_value = re.findall(r'[^\s,]+', value)
             try:
-                numvalue = []
-                for vpart in re.findall(r'[^\s,]+',
-                                      value):  # allow commas in arrays
-                    if '.' in vpart:  # possible float
-                        numvalue.append(float(vpart))
-                    else:
-                        numvalue.append(int(vpart))
+                try:
+                    numvalue = np.array(split_value, dtype=int)
+                except ValueError, OverflowError:
+                    # don't catch errors here so it falls through to bool
+                    numvalue = np.array(split_value, dtype=float)
                 if len(numvalue) == 1:
                     numvalue = numvalue[0]  # Only one number
                 elif len(numvalue) == 9:
                     # special case: 3x3 matrix, fortran ordering
                     numvalue = np.array(numvalue).reshape((3, 3), order='F')
-                else:
-                    numvalue = np.array(numvalue)  # vector
                 value = numvalue
             except (ValueError, OverflowError):
                 pass  # value is unchanged

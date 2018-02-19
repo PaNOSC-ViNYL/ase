@@ -110,6 +110,10 @@ complex_xyz_string = (
     'float_array="3.3 4.4" '
     'a3x3_array="1 4 7 2 5 8 3 6 9" '  # fortran ordering
     'Lattice="  4.3  0.0 0.0 0.0  3.3 0.0 0.0 0.0  7.0 " '  # spaces in array
+    'scientific_float=1.2e7 '
+    'scientific_float_2=5e-6 '
+    'scientific_float_array="1.2 2.2e3 4e1 3.3e-1 2e-2" '
+    'not_array="1.2 3.4 text" '
     'nested_brackets=[[1,2],[3,4]] '  # gets flattented if not 3x3
     'bool_array={T F T F} '
     'bool_array_2=" T, F, T " ' # leading spaces
@@ -142,6 +146,10 @@ expected_dict = {
     'float_array': np.array([3.3, 4.4]),
     'a3x3_array': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
     'Lattice': np.array([[4.3, 0.0, 0.0], [0.0, 3.3, 0.0], [0.0, 0.0, 7.0]]),
+    'scientific_float': 1.2e7,
+    'scientific_float_2': 5e-6,
+    'scientific_float_array': np.array([1.2, 2200, 40, 0.33, 0.02]),
+    'not_array': "1.2 3.4 text",
     'nested_brackets': np.array([1, 2, 3, 4]),
     'bool_array': np.array([True, False, True, False]),
     'bool_array_2': np.array([True, False, True]),
