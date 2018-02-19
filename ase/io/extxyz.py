@@ -121,7 +121,7 @@ def key_val_str_to_dict(string, sep=None):
             try:
                 try:
                     numvalue = np.array(split_value, dtype=int)
-                except ValueError, OverflowError:
+                except (ValueError, OverflowError):
                     # don't catch errors here so it falls through to bool
                     numvalue = np.array(split_value, dtype=float)
                 if len(numvalue) == 1:
