@@ -68,6 +68,8 @@ class GUI(View, Status):
         self.arrowkey_mode = self.ARROWKEY_SCAN
         self.move_atoms_mask = None
 
+        self.set_frame(len(self.images) - 1, focus=True)
+
         # Added to move structure
         self.prev_pos = None
         self.last_scroll_time = time()
@@ -75,8 +77,6 @@ class GUI(View, Status):
         self.orig_scale = self.scale
         print(self.orig_size)
         print(self.orig_scale)
-
-        self.set_frame(len(self.images) - 1, focus=True)
 
         if len(self.images) > 1:
             self.movie()
@@ -200,8 +200,10 @@ class GUI(View, Status):
             # so that the cursor follows the structure, this is not
             # given after a resize event for example
             # scale = (np.prod(self.orig_size) / np.prod(self.window.size))**0.5
-            scale = 1
+            # Scale by a third, does it work
+            scale = self.orig_scale / (3 * self.scale)
             self.center -= vec * scale
+
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
 
             self.draw()
