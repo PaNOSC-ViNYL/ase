@@ -80,10 +80,11 @@ def CPK_or_BnS(element):
     return visualization_choice
 
 
-def write_xsd(filename, atoms):
+def write_xsd(filename, atoms, connectivity = None):
     """Takes Atoms object, and write materials studio file
     atoms: Atoms object
     filename: path of the output file
+    connectivity: number of atoms by number of atoms matrix for connectivity between atoms (0 not connected, 1 connected)
 
     note: material studio file cannot use a partial periodic system. If partial
     perodic system was inputted, full periodicity was assumed.
@@ -301,12 +302,19 @@ def write_xsd(filename, atoms):
     Property40.set('DefinedOn', 'SymmetrySystem')
     Property40.set('Name', '_Stress')
     Property40.set('Type', 'Matrix')
-
+    # Set up bonds
+    bonds = list()
+    if connectivity is not None:
+        for i in range(0,connectivity.shape[0]):
+            for j in range(i+1,connectivity.shape[0]):
+                if connectivity[i,j]:
+                    bonds.append([i,j])
+    
     # non-periodic system
     if not atoms.pbc.all():
         Molecule = ET.SubElement(AtomisticTreeRootElement, 'Molecule')
         Molecule.set('ID', '2')
-        Molecule.set('NumChildren', str(natoms))
+        Molecule.set('NumChildren', str(natoms+len(bonds)))
         Molecule.set('Name', 'Lattice=&quot1.0')
 
         # writing atoms
@@ -321,7 +329,17 @@ def write_xsd(filename, atoms):
                 tmpstr += '%1.16f,' % atom_positions[x, y]
             NewAtom.set('XYZ', tmpstr[0:-1])
             NewAtom.set('Components', atom_element[x])
-
+            tmpstr = ''
+            for ibond in range(0,len(bonds)):
+                if x in bonds[ibond]:
+                    tmpstr += '%i,' % (ibond + 3 + natoms)
+            if tmpstr != '':
+                NewAtom.set('Connections', tmpstr[0:-1])
+        for x in range(0, len(bonds)):
+            NewBond = ET.SubElement(Molecule, 'Bond')
+            NewBond.set('ID', str(x + 3 + natoms))
+            tmpstr = '%i,%i'%(bonds[x][0] + 3,bonds[x][1] + 3)
+            NewBond.set('Connects', tmpstr)
     # periodic system
     else:
         atom_positions = np.dot(atom_positions, np.linalg.inv(atom_cell))
@@ -329,9 +347,9 @@ def write_xsd(filename, atoms):
         SymmSys.set('ID', '2')
         SymmSys.set('Mapping', '3')
         tmpstr = ''
-        for x in range(4, natoms + 4):
+        for x in range(4, natoms + len(bonds) + 4):
             tmpstr += '%1.0f,' % (x)
-        tmpstr += str(natoms + 5)
+        tmpstr += str(natoms + len(bonds) + 4)
         SymmSys.set('Children', tmpstr)
         SymmSys.set('Normalized', '1')
         SymmSys.set('Name', 'SymmSys')
@@ -342,28 +360,28 @@ def write_xsd(filename, atoms):
         SymmSys.set('PeriodicDisplayType', 'Original')
 
         MappngSet = ET.SubElement(SymmSys, 'MappingSet')
-        MappngSet.set('ID', str(natoms + 4))
-        MappngSet.set('SymmetryDefinition', str(natoms + 5))
+        MappngSet.set('ID', str(natoms + len(bonds) + 5))
+        MappngSet.set('SymmetryDefinition', str(natoms + 4))
         MappngSet.set('ActiveSystem', '2')
         MappngSet.set('NumFamilies', '1')
         MappngSet.set('OwnsTotalConstraintMapping', '1')
         MappngSet.set('TotalConstraintMapping', '3')
 
         MappngFamily = ET.SubElement(MappngSet, 'MappingFamily')
-        MappngFamily.set('ID', str(natoms + 6))
+        MappngFamily.set('ID', str(natoms + len(bonds) + 6))
         MappngFamily.set('NumImageMappings', '0')
 
         IdentMappng = ET.SubElement(MappngFamily, 'IdentityMapping')
-        IdentMappng.set('ID', str(natoms + 7))
+        IdentMappng.set('ID', str(natoms + len(bonds) + 7))
         IdentMappng.set('Element', '1,0,0,0,0,1,0,0,0,0,1,0')
         IdentMappng.set('Constraint', '1,0,0,0,0,1,0,0,0,0,1,0')
         tmpstr = ''
-        for x in range(4, natoms + 4):
+        for x in range(4, natoms + len(bonds) + 4):
             tmpstr += '%1.0f,' % (x)
         IdentMappng.set('MappedObjects', tmpstr[0:-1])
-        tmpstr = str(natoms + 5) + ',' + str(natoms + 8)
+        tmpstr = str(natoms + len(bonds) + 4) + ',' + str(natoms + len(bonds) + 8)
         IdentMappng.set('DefectObjects', tmpstr)
-        IdentMappng.set('NumImages', str(natoms))
+        IdentMappng.set('NumImages', str(natoms + len(bonds)))
         IdentMappng.set('NumDefects', '2')
 
         MappngRepairs = ET.SubElement(MappngFamily, 'MappingRepairs')
@@ -373,7 +391,7 @@ def write_xsd(filename, atoms):
         for x in range(natoms):
             NewAtom = ET.SubElement(IdentMappng, 'Atom3d')
             NewAtom.set('ID', str(x + 4))
-            NewAtom.set('Mapping', str(natoms + 7))
+            NewAtom.set('Mapping', str(natoms + len(bonds) + 7))
             NewAtom.set('Parent', '2')
             NewAtom.set('Name', (atom_element[x] + str(x + 1)))
             NewAtom.set('UserID', str(x + 1))
@@ -383,11 +401,24 @@ def write_xsd(filename, atoms):
                 tmpstr += '%1.16f,' % atom_positions[x, y]
             NewAtom.set('XYZ', tmpstr[0:-1])
             NewAtom.set('Components', atom_element[x])
+            tmpstr = ''
+            for ibond in range(0,len(bonds)):
+                if x in bonds[ibond]:
+                    tmpstr += '%i,' % (ibond + 4 + natoms + 1)
+            if tmpstr != '':
+                NewAtom.set('Connections', tmpstr[0:-1])
+        for x in range(0, len(bonds)):
+            NewBond = ET.SubElement(IdentMappng, 'Bond')
+            NewBond.set('ID', str(x + 4 + natoms + 1))
+            NewBond.set('Mapping', str(natoms + len(bonds) + 7))
+            NewBond.set('Parent', '2')
+            tmpstr = '%i,%i'%(bonds[x][0] + 4,bonds[x][1] + 4)
+            NewBond.set('Connects', tmpstr)
 
         SpaceGrp = ET.SubElement(IdentMappng, 'SpaceGroup')
-        SpaceGrp.set('ID', str(natoms + 5))
+        SpaceGrp.set('ID', str(natoms + 4))
         SpaceGrp.set('Parent', '2')
-        SpaceGrp.set('Children', str(natoms + 8))
+        SpaceGrp.set('Children', str(natoms + len(bonds) + 8))
         SpaceGrp.set('DisplayStyle', 'Solid')
         SpaceGrp.set('XYZ', '0.00,0.00,0.00')
         SpaceGrp.set('Color', '0,0,0,0')
@@ -421,8 +452,8 @@ def write_xsd(filename, atoms):
         SpaceGrp.set('Class', '1')
 
         RecLattc = ET.SubElement(IdentMappng, 'ReciprocalLattice3D')
-        RecLattc.set('ID', str(natoms + 8))
-        RecLattc.set('Parent', str(natoms + 5))
+        RecLattc.set('ID', str(natoms + len(bonds) + 8))
+        RecLattc.set('Parent', str(natoms + 4))
 
         InfiniteMappng = ET.SubElement(MappngSet, 'InfiniteMapping')
         InfiniteMappng.set('ID', '3')

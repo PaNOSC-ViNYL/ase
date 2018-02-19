@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-ase 3.6.0.2515\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-08-31 05:03+0200\n"
-"PO-Revision-Date: 2017-09-01 06:33+0200\n"
+"POT-Creation-Date: 2017-09-28 19:11+0200\n"
+"PO-Revision-Date: 2017-09-28 19:14+0200\n"
 "Last-Translator: Keenan Lyon <klyon@uwaterloo.ca>\n"
 "Language-Team: Chinese (simplified)\n"
 "Language: zh_CN\n"
@@ -50,35 +50,37 @@ msgstr "颜色"
 msgid "Choose how the atoms are colored:"
 msgstr "选择原子颜色"
 
-#: ../colors.py:19
+#: ../colors.py:20
 msgid "By atomic number, default \"jmol\" colors"
 msgstr "根据原子序数， 默认\"jmol\"颜色"
 
-#: ../colors.py:20
+#: ../colors.py:21
 msgid "By tag"
 msgstr "根据标签"
 
-#: ../colors.py:21
+#: ../colors.py:22
 msgid "By force"
 msgstr "根据受力"
 
-#: ../colors.py:22
+#: ../colors.py:23
 msgid "By velocity"
 msgstr "根据速度"
 
-#: ../colors.py:23
-msgid "By charge"
+#: ../colors.py:24
+#, fuzzy
+#| msgid "By charge"
+msgid "By initial charge"
 msgstr "   电荷"
 
-#: ../colors.py:24
+#: ../colors.py:25
 msgid "By magnetic moment"
 msgstr "由磁矩"
 
-#: ../colors.py:67
+#: ../colors.py:69
 msgid "Green"
 msgstr "绿色"
 
-#: ../colors.py:67
+#: ../colors.py:69
 msgid "Yellow"
 msgstr "黄色"
 
@@ -327,7 +329,7 @@ msgstr ""
 "建立一个石墨烯单层或者石墨烯纳米带。一个纳米带可以\n"
 "选择被氢（或其他元素）饱和。"
 
-#: ../graphene.py:38 ../gui.py:472
+#: ../graphene.py:38 ../gui.py:512
 msgid "Graphene"
 msgstr "石墨稀"
 
@@ -431,7 +433,8 @@ msgstr ""
 "<c>fmax</c>: 最大受力\n"
 "<c>fave</c>: 均值受里\n"
 "<c>R[n,0-2]</c>: <c>n</c>号原子的位置\n"
-"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: <c>n<sub>1</sub></c>号与<c>n<sub>2</sub></c>号原子的距离\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: <c>n<sub>1</sub></c>号与<c>n<sub>2</"
+"sub></c>号原子的距离\n"
 "<c>i</c>: 这次画面序号\n"
 "<c>E[i]</c>: <c>i</c>序号话面的能量\n"
 "<c>F[n,0-2]</c>: 作用于<c>n</c>号原子的受力\n"
@@ -439,8 +442,10 @@ msgstr ""
 "<c>M[n]</c>: <c>n</c>号原子的磁矩\n"
 "<c>A[0-2,0-2]</c>: 单位晶格的基底向量\n"
 "<c>s</c>: 路径长度\n"
-"<c>a(n1,n2,n3)</c>: <c>n<sub>1</sub></c>号, <c>n<sub>2</sub></c>号与<c>n<sub>3</sub></c>号原子之间的夹角, 集中在 <c>n<sub>2</sub></c>号原子\n"
-"<c>dih(n1,n2,n3,n4)</c>: <c>n<sub>1</sub></c>号, <c>n<sub>2</sub></c>号, <c>n<sub>3</sub></c>号与<c>n<sub>4</sub></c>号原子的二面角\n"
+"<c>a(n1,n2,n3)</c>: <c>n<sub>1</sub></c>号, <c>n<sub>2</sub></c>号与"
+"<c>n<sub>3</sub></c>号原子之间的夹角, 集中在 <c>n<sub>2</sub></c>号原子\n"
+"<c>dih(n1,n2,n3,n4)</c>: <c>n<sub>1</sub></c>号, <c>n<sub>2</sub></c>号, "
+"<c>n<sub>3</sub></c>号与<c>n<sub>4</sub></c>号原子的二面角\n"
 "<c>T</c>: 温度 (K)"
 
 #: ../graphs.py:42 ../graphs.py:44
@@ -459,327 +464,347 @@ msgstr "清空"
 msgid "Save data to file ... "
 msgstr "保存数据到文件 ..."
 
-#: ../gui.py:249
+#: ../gui.py:286
 msgid "Automatic"
 msgstr "自动"
 
-#: ../gui.py:267
+#: ../gui.py:304
 msgid "Open ..."
 msgstr "打开 ..."
 
-#: ../gui.py:268
+#: ../gui.py:305
 msgid "Choose parser:"
 msgstr "选泽一个分析器:"
 
-#: ../gui.py:379
+#: ../gui.py:416
 msgid "_File"
 msgstr "文件"
 
-#: ../gui.py:380
+#: ../gui.py:417
 msgid "_Open"
 msgstr "打开"
 
-#: ../gui.py:381
+#: ../gui.py:418
 msgid "_New"
 msgstr "新文件"
 
-#: ../gui.py:382
+#: ../gui.py:419
 msgid "_Save"
 msgstr "保存"
 
-#: ../gui.py:384
+#: ../gui.py:421
 msgid "_Quit"
 msgstr "退出"
 
-#: ../gui.py:386
+#: ../gui.py:423
 msgid "_Edit"
 msgstr "编辑"
 
-#: ../gui.py:387
+#: ../gui.py:424
 msgid "Select _all"
 msgstr "选择所有"
 
-#: ../gui.py:388
+#: ../gui.py:425
 msgid "_Invert selection"
 msgstr "反选"
 
-#: ../gui.py:389
+#: ../gui.py:426
 msgid "Select _constrained atoms"
 msgstr "选择被限制的原子"
 
-#: ../gui.py:390
+#: ../gui.py:427
 msgid "Select _immobile atoms"
 msgstr "选择固定的原子"
 
-#: ../gui.py:396
+#: ../gui.py:433
 msgid "Hide selected atoms"
 msgstr "把已选择的原子隐藏"
 
-#: ../gui.py:397
+#: ../gui.py:434
 msgid "Show selected atoms"
 msgstr "显示已选择的原子"
 
-#: ../gui.py:399
+#: ../gui.py:436
 msgid "_Modify"
 msgstr "修改"
 
-#: ../gui.py:400
+#: ../gui.py:437
 msgid "_Add atoms"
 msgstr "添加原子"
 
-#: ../gui.py:401
+#: ../gui.py:438
 msgid "_Delete selected atoms"
 msgstr "删除所选原子"
 
-#: ../gui.py:404
+#: ../gui.py:441
 msgid "_First image"
 msgstr "第一个图像"
 
-#: ../gui.py:405
+#: ../gui.py:442
 msgid "_Previous image"
 msgstr "前一个图像"
 
-#: ../gui.py:406
+#: ../gui.py:443
 msgid "_Next image"
 msgstr "下一个图像"
 
-#: ../gui.py:407
+#: ../gui.py:444
 msgid "_Last image"
 msgstr "最后一个图像"
 
-#: ../gui.py:409
+#: ../gui.py:446
 msgid "_View"
 msgstr "视图"
 
-#: ../gui.py:410
+#: ../gui.py:447
 msgid "Show _unit cell"
 msgstr "显示原胞"
 
-#: ../gui.py:412
+#: ../gui.py:449
 msgid "Show _axes"
 msgstr "显示坐标轴"
 
-#: ../gui.py:413
+#: ../gui.py:450
 msgid "Show _bonds"
 msgstr "显示原子键"
 
-#: ../gui.py:415
+#: ../gui.py:452
 msgid "Show _velocities"
 msgstr "显示速度"
 
-#: ../gui.py:417
+#: ../gui.py:454
 msgid "Show _forces"
 msgstr "显示受力"
 
-#: ../gui.py:419
+#: ../gui.py:456
 msgid "Show _Labels"
 msgstr "显示标签"
 
-#: ../gui.py:420
+#: ../gui.py:457
 msgid "_None"
 msgstr "无"
 
-#: ../gui.py:421
+#: ../gui.py:458
 msgid "Atom _Index"
 msgstr "原子指数"
 
-#: ../gui.py:422
+#: ../gui.py:459
 msgid "_Magnetic Moments"
 msgstr "磁矩"
 
-#: ../gui.py:423
+#. XXX check if exist
+#: ../gui.py:460
 msgid "_Element Symbol"
 msgstr "化学元素符号"
 
-#: ../gui.py:425
+#: ../gui.py:461
+msgid "_Initial Charges"
+msgstr ""
+
+#: ../gui.py:464
 msgid "Quick Info ..."
 msgstr "简要信息 ..."
 
-#: ../gui.py:426
+#: ../gui.py:465
 msgid "Repeat ..."
 msgstr "重复 ..."
 
-#: ../gui.py:427
+#: ../gui.py:466
 msgid "Rotate ..."
 msgstr "旋转 ..."
 
-#: ../gui.py:428
+#: ../gui.py:467
 msgid "Colors ..."
 msgstr "颜色 ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:430
+#: ../gui.py:469
 msgid "Focus"
 msgstr "聚焦"
 
-#: ../gui.py:431
+#: ../gui.py:470
 msgid "Zoom in"
 msgstr "放大"
 
-#: ../gui.py:432
+#: ../gui.py:471
 msgid "Zoom out"
 msgstr "缩小"
 
-#: ../gui.py:433
+#: ../gui.py:472
 msgid "Change View"
 msgstr "改变视图"
 
-#: ../gui.py:435
+#: ../gui.py:474
 msgid "Reset View"
 msgstr "复原"
 
-#: ../gui.py:436
+#: ../gui.py:475
 msgid "xy-plane"
 msgstr "xy平面"
 
-#: ../gui.py:437
+#: ../gui.py:476
 msgid "yz-plane"
 msgstr "yz平面"
 
-#: ../gui.py:438
+#: ../gui.py:477
 msgid "zx-plane"
 msgstr "zx-平面"
 
-#: ../gui.py:439
+#: ../gui.py:478
 msgid "yx-plane"
 msgstr "yx-平面"
 
-#: ../gui.py:440
+#: ../gui.py:479
 msgid "zy-plane"
 msgstr "zy-平面"
 
-#: ../gui.py:441
+#: ../gui.py:480
 msgid "xz-plane"
 msgstr "xz平面"
 
-#: ../gui.py:442
+#: ../gui.py:481
 msgid "a2,a3-plane"
 msgstr "a2,a3-平面"
 
-#: ../gui.py:443
+#: ../gui.py:482
 msgid "a3,a1-plane"
 msgstr "a3,a1-平面"
 
-#: ../gui.py:444
+#: ../gui.py:483
 msgid "a1,a2-plane"
 msgstr "a1,a2-平面"
 
-#: ../gui.py:445
+#: ../gui.py:484
 msgid "a3,a2-plane"
 msgstr "a3,a2-平面"
 
-#: ../gui.py:446
+#: ../gui.py:485
 msgid "a1,a3-plane"
 msgstr "a1,a3-平面"
 
-#: ../gui.py:447
+#: ../gui.py:486
 msgid "a2,a1-plane"
 msgstr "a2,a1-平面"
 
-#: ../gui.py:448
+#: ../gui.py:487
 msgid "Settings ..."
 msgstr "设置 ..."
 
-#: ../gui.py:450
+#: ../gui.py:489
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:451
+#: ../gui.py:490
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:452
+#: ../gui.py:491
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:453
+#: ../gui.py:492
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:455
+#: ../gui.py:494
 msgid "_Tools"
 msgstr "工具"
 
-#: ../gui.py:456
+#: ../gui.py:495
 msgid "Graphs ..."
 msgstr "图片 ..."
 
-#: ../gui.py:457
+#: ../gui.py:496
 msgid "Movie ..."
 msgstr "动画 ..."
 
-#: ../gui.py:458
+#: ../gui.py:497
 msgid "Expert mode ..."
 msgstr "专家模式 ..."
 
-#: ../gui.py:459
+#: ../gui.py:498
 msgid "Constraints ..."
 msgstr "限制 ..."
 
-#: ../gui.py:460
+#: ../gui.py:499
 msgid "Render scene ..."
 msgstr "渲染场景 ..."
 
-#: ../gui.py:461
+#: ../gui.py:500
 msgid "_Move atoms"
 msgstr "移动原子"
 
-#: ../gui.py:462
+#: ../gui.py:501
+msgid "_Rotate atoms"
+msgstr "旋转原子"
+
+#: ../gui.py:502
 msgid "NE_B"
 msgstr "NEB"
 
-#: ../gui.py:463
+#: ../gui.py:503
 msgid "B_ulk Modulus"
 msgstr "块体的模块"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:466
+#: ../gui.py:506
 msgid "_Setup"
 msgstr "设置"
 
-#: ../gui.py:467
+#: ../gui.py:507
 msgid "_Bulk Crystal"
 msgstr "晶体"
 
-#: ../gui.py:468
+#: ../gui.py:508
 msgid "_Surface slab"
 msgstr "表面"
 
-#: ../gui.py:469
+#: ../gui.py:509
 msgid "_Nanoparticle"
 msgstr "纳米颗粒"
 
-#: ../gui.py:471
+#: ../gui.py:511
 msgid "Nano_tube"
 msgstr "纳米管"
 
-#: ../gui.py:474
+#: ../gui.py:514
 msgid "_Calculate"
 msgstr "计算"
 
-#: ../gui.py:475
+#: ../gui.py:515
 msgid "Set _Calculator"
 msgstr "设置计算器"
 
-#: ../gui.py:476
+#: ../gui.py:516
 msgid "_Energy and Forces"
 msgstr "能量和受力"
 
-#: ../gui.py:477
+#: ../gui.py:517
 msgid "Energy Minimization"
 msgstr "能量最小化"
 
-#: ../gui.py:480
+#: ../gui.py:520
 msgid "_Help"
 msgstr "帮助"
 
-#: ../gui.py:481
+#: ../gui.py:521
 msgid "_About"
 msgstr "关于"
 
-#: ../gui.py:485
+#: ../gui.py:525
 msgid "Webpage ..."
 msgstr "网页"
+
+#. Host window will never be shown
+#: ../images.py:192
+#, fuzzy
+#| msgid "Constraints"
+msgid "Constraints discarded"
+msgstr "限制"
+
+#: ../images.py:193
+msgid "Constraints other than FixAtoms have been discarded."
+msgstr ""
 
 #: ../modify.py:19
 msgid "No atoms selected!"
@@ -1662,23 +1687,23 @@ msgid "{symbol} {surf} surface with one atom.{vacuum}"
 msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
 msgstr[0] "{symbol} {surf} 表面{natoms}号的原子.{vacuum}"
 
-#: ../ui.py:45
+#: ../ui.py:46
 msgid "Error"
 msgstr "错误"
 
-#: ../ui.py:52
+#: ../ui.py:53
 msgid "Version"
 msgstr "版本"
 
-#: ../ui.py:53
+#: ../ui.py:54
 msgid "Web-page"
 msgstr "网页"
 
-#: ../ui.py:54
+#: ../ui.py:55
 msgid "About"
 msgstr "关于"
 
-#: ../ui.py:59 ../ui.py:63
+#: ../ui.py:60 ../ui.py:64
 msgid "Help"
 msgstr "帮助"
 
@@ -2745,9 +2770,6 @@ msgstr "没有Python代码"
 
 #~ msgid "Debug ..."
 #~ msgstr "除错"
-
-#~ msgid "_Rotate atoms"
-#~ msgstr "旋转原子"
 
 #~ msgid "Orien_t atoms"
 #~ msgstr "取向原子"

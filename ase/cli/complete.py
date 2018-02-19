@@ -33,8 +33,10 @@ commands = {
          '--crystal-structure', '-a', '--lattice-constant',
          '--orthorhombic', '--cubic', '-r', '--repeat', '-g',
          '--gui', '--periodic'],
-    'completion':
-        ['-0', '--dry-run'],
+    'convert':
+        ['-v', '--verbose', '-i', '--input-format', '-o',
+         '--output-format', '-f', '--force', '-n',
+         '--image-number'],
     'db':
         ['-v', '--verbose', '-q', '--quiet', '-n', '--count', '-l',
          '--long', '-i', '--insert-into', '-a',
@@ -45,21 +47,24 @@ commands = {
          '--csv', '-w', '--open-web-browser', '--no-lock-file',
          '--analyse', '-j', '--json', '-m', '--show-metadata',
          '--set-metadata', '-M', '--metadata-from-python-script',
-         '--unique'],
+         '--unique', '--strip-data'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
     'find':
         ['-v', '--verbose', '-l', '--long', '-i', '--include', '-x',
          '--exclude'],
     'gui':
-        ['-n', '--image-number', '-u', '--show-unit-cell', '-r',
-         '--repeat', '-R', '--rotations', '-o', '--output', '-g',
-         '--graph', '-t', '--terminal', '--interpolate', '-b',
-         '--bonds', '-s', '--scale'],
+        ['-n', '--image-number', '-r', '--repeat', '-R', '--rotations',
+         '-o', '--output', '-g', '--graph', '-t', '--terminal',
+         '--interpolate', '-b', '--bonds', '-s', '--scale'],
     'info':
         ['-v', '--verbose'],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
+    'reciprocal':
+        ['-v', '--verbose', '-p', '--path', '-d', '--dimension',
+         '--no-vectors', '-k', '--k-points', '-i',
+         '--ibz-k-points'],
     'run':
         ['-t', '--tag', '-p', '--parameters', '-d', '--database', '-S',
          '--skip', '--properties', '-f', '--maximum-force',

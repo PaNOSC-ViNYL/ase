@@ -62,7 +62,7 @@
     {% endif %}
 {% endwith %}
 <small lcass="form-text text-muted">
-<a data-toggle="collapse" href="#collapse1">Show all keys ...</a>
+<a data-toggle="collapse" href="#collapse1">Toggle list of keys ...</a>
 </small><br/>
 <div id="collapse1" class="collapse">
 <table class="table table-striped">
@@ -87,7 +87,7 @@
     </div>
 
     <div class="col-xs-6">
-
+        {% if download_button %}
         <div class="btn-group pull-right">
             <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Download <span class="caret"></span>
@@ -97,7 +97,7 @@
                 <li><a href="/json?x={{ x }}">JSON file</a></li>
             </ul>
         </div>
-
+        {% endif %}
         <div class="btn-group pull-right">
             <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Add Column <span class="caret"></span>
@@ -166,13 +166,13 @@
 
 {% for row in t.rows -%}
 
-<tr id="rowentry" onclick="document.location.href = '/id/{{ row.dct.id }}?project={{ project }}';">
+<tr id="rowentry" class="rowentry">
 {%- autoescape false -%}
 {%- for s in row.strings -%}
 {% if s != "" %}
-<td class="text-center">{{ s }}</td>
+<td class="text-center"><a href='/id/{{ row.dct.id }}?project={{ project }}'>{{ s }}</a></td>
 {% else %}
-<td class="text-center"> - </td>
+<td class="text-center"><a href='/id/{{ row.dct.id }}?project={{ project }}'> - </a></td>
 {% endif %}
 {% endfor %}
 {% endautoescape %}
@@ -242,7 +242,7 @@
             {% set key, text = control[1:] %}
             {% set choise = con.query[1][key] %}
                 {{ text }}:<select name="bool_{{ key }}">
-            <option value="" {% if '' == choise %} selected {% endif %}>NA</option>
+            <option value="" {% if '' == choise %} selected {% endif %}>-</option>
             <option value="1" {% if '1' == choise %} selected {% endif %}>Yes</option>
             <option value="0" {% if '0' == choise %} selected {% endif %}>No</option>
             </select>

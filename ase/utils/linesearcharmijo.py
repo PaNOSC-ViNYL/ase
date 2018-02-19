@@ -200,9 +200,9 @@ class LineSearchArmijo:
 
 
         ###CO : added rigid_units and rotation_factors
-    def run(self, x_start, dirn, a_max=None, a1=None, func_start=None,
-            func_old=None, func_prime_start=None,
-            rigid_units=None, rotation_factors=None):
+    def run(self, x_start, dirn, a_max=None, a_min=None, a1=None, 
+            func_start=None, func_old=None, func_prime_start=None,
+            rigid_units=None, rotation_factors=None, maxstep=None):
 
         """Perform a backtracking / quadratic-interpolation linesearch
             to find an appropriate step length with Armijo condition.
@@ -224,6 +224,9 @@ class LineSearchArmijo:
                 Note that this does not have to be a unit vector, but the
                 function will return a value scaled with respect to dirn.
             a_max: an upper bound on the maximum step length allowed. Default is 2.0.
+            a_min: a lower bound on the minimum step length allowed. Default is 1e-10.
+                A RuntimeError is raised if this bound is violated 
+                during the line search.
             a1: the initial guess for an acceptable step length. If no value is
                 given, this will be set automatically, using quadratic
                 interpolation using func_old, or "rounded" to 1.0 if the
@@ -238,7 +241,7 @@ class LineSearchArmijo:
                 guess for the step length if it is not provided)
             rigid_units, rotationfactors : see documentation of RumPath, if it is
                 unclear what these parameters are, then leave them at None
-
+            maxstep: maximum allowed displacement in Angstrom. Default is 0.2.
 
         Returns:
             A tuple: (step, func_val, no_update)
@@ -254,8 +257,8 @@ class LineSearchArmijo:
             RuntimeError for problems encountered during iteration
         """
 
-        a1 = self.handle_args(x_start, dirn, a_max, a1, func_start, func_old,
-                              func_prime_start)
+        a1 = self.handle_args(x_start, dirn, a_max, a_min, a1, func_start, 
+                              func_old, func_prime_start, maxstep)
 
         # DEBUG
         logger.debug("a1(auto) = ", a1)
@@ -301,8 +304,8 @@ class LineSearchArmijo:
             # print("c1*a1*phi_prime_start = ", self.c1*a1*self.phi_prime_start,
             #       " | phi_a1 - phi_0 = ", phi_a1 - self.func_start)
             logger.info("a1 = %.3f, suff_dec = %r", a1, suff_dec)
-            if a1 < 1e-10:
-                raise RuntimeError('a1 too small, giving up')
+            if a1 < self.a_min:
+                raise RuntimeError('a1 < a_min, giving up')
             if self.phi_prime_start > 0.0:
                 raise RuntimeError("self.phi_prime_start > 0.0")
 
@@ -336,8 +339,8 @@ class LineSearchArmijo:
 
 
 
-    def handle_args(self, x_start, dirn, a_max, a1, func_start, func_old,
-                    func_prime_start):
+    def handle_args(self, x_start, dirn, a_max, a_min, a1, func_start, func_old,
+                    func_prime_start, maxstep):
 
         """Verify passed parameters and set appropriate attributes accordingly.
 
@@ -357,6 +360,7 @@ class LineSearchArmijo:
         """
 
         self.a_max = a_max
+        self.a_min = a_min
         self.x_start = x_start
         self.dirn = dirn
         self.func_old = func_old
@@ -370,6 +374,9 @@ class LineSearchArmijo:
             logger.warning("a_max too small relative to tol. Reverting to "
                            "default value a_max = 2.0 (twice the <ideal> step).")
             a_max = 2.0    # THIS ASSUMES NEWTON/BFGS TYPE BEHAVIOUR!
+
+        if self.a_min is None:
+            self.a_min = 1e-10
 
         if func_start is None:
             logger.debug("Setting func_start")
@@ -398,6 +405,21 @@ class LineSearchArmijo:
             logger.debug("a1 is None or a1 < self.tol. Reverting to default value "
                            "a1 = 1.0")
             a1 = 1.0
+        if a1 is None or a1 < self.a_min:
+            logger.debug("a1 is None or a1 < a_min. Reverting to default value "
+                           "a1 = 1.0")
+            a1 = 1.0
+
+        if maxstep is None:
+            maxstep = 0.2
+        logger.debug("maxstep = %e", maxstep)
+        
+        r = np.reshape(dirn, (-1, 3))
+        steplengths = ((a1*r)**2).sum(1)**0.5
+        maxsteplength = np.max(steplengths)
+        if maxsteplength >= maxstep:
+            a1 *= maxstep / maxsteplength
+            logger.debug("Rescaled a1 to fulfill maxstep criterion")
 
         self.a_start = a1
 
@@ -405,6 +427,6 @@ class LineSearchArmijo:
                      self.phi_prime_start)
         logger.debug("func_start = %s, self.func_old = %s", self.func_start,
                      self.func_old)
-        logger.debug("a1 = %e, a_max = %e", a1, a_max)
+        logger.debug("a1 = %e, a_max = %e, a_min = %e", a1, a_max, self.a_min)
 
         return a1

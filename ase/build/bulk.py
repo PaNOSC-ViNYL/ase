@@ -3,6 +3,7 @@ from math import sqrt
 
 from ase.atoms import Atoms, string2symbols
 from ase.data import reference_states, atomic_numbers, chemical_symbols
+from ase.utils import plural
 
 
 def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
@@ -44,8 +45,9 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
         if ref is not None:
             xref = ref['symmetry']
 
-    structures = set(['sc', 'fcc', 'bcc', 'hcp', 'diamond', 'zincblende',
-                      'rocksalt', 'cesiumchloride', 'fluorite', 'wurtzite'])
+    structures = {'sc': 1, 'fcc': 1, 'bcc': 1, 'hcp': 1, 'diamond': 1,
+                  'zincblende': 2, 'rocksalt':2, 'cesiumchloride':2,
+                  'fluorite': 3, 'wurtzite': 2}
 
     if crystalstructure is None:
         crystalstructure = xref
@@ -58,14 +60,21 @@ def bulk(name, crystalstructure=None, a=None, c=None, covera=None, u=None,
         raise ValueError('Unknown structure: {}.'
                          .format(crystalstructure))
 
+    # Check name:
+    n = len(string2symbols(name))
+    n0 = structures[crystalstructure]
+    if n != n0:
+        raise ValueError('Please specify {} for {} and not {}'
+                         .format(plural(n0, 'atom'), crystalstructure, n))
+
     if a is None:
         if xref != crystalstructure:
             raise ValueError('You need to specify the lattice constant.')
         try:
             a = ref['a']
         except KeyError:
-            raise KeyError('No reference lattice parameter "a" for "%s"' %
-                           name)
+            raise KeyError('No reference lattice parameter "a" for "{}"'
+                           .format(name))
 
     if crystalstructure in ['hcp', 'wurtzite']:
         cubic = False

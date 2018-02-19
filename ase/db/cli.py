@@ -23,7 +23,7 @@ except NameError:
 class CLICommand:
     short_description = 'Manipulate and query ASE database'
 
-    description = """Selection is a comma-separated list of
+    description = """Query is a comma-separated list of
     selections where each selection is of the type "ID", "key" or
     "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
     and  "!=" (these must be protected from the shell by using quotes).
@@ -98,6 +98,8 @@ class CLICommand:
             help='Use metadata from a Python file.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
+        add('--strip-data', action='store_true',
+            help='Strip data when using --insert-into.')
 
     @staticmethod
     def run(args):
@@ -180,7 +182,10 @@ def main(args):
                 nkvp += len(kvp)
                 if args.unique:
                     row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
-                db2.write(row, data=row.get('data'), **kvp)
+                if args.strip_data:
+                    db2.write(row.toatoms(), **kvp)
+                else:
+                    db2.write(row, data=row.get('data'), **kvp)
                 nrows += 1
 
         out('Added %s (%s updated)' %

@@ -117,7 +117,7 @@ class BandStructure:
     def plot_with_colors(self, ax=None, emin=-10, emax=5, filename=None,
                          show=None, energies=None, colors=None,
                          ylabel=None, clabel='$s_z$', cmin=-1.0, cmax=1.0,
-                         sortcolors=False, loc=None):
+                         sortcolors=False, loc=None, s=2):
         """Plot band-structure with colors."""
 
         import matplotlib.pyplot as plt
@@ -134,7 +134,7 @@ class BandStructure:
             xcoords = xcoords.ravel()[perm].reshape(shape)
 
         for e_k, c_k, x_k in zip(energies, colors, xcoords):
-            things = ax.scatter(x_k, e_k, c=c_k, s=2,
+            things = ax.scatter(x_k, e_k, c=c_k, s=s,
                                 vmin=cmin, vmax=cmax)
 
         cbar = plt.colorbar(things)
@@ -151,10 +151,10 @@ class BandStructure:
 
         def pretty(kpt):
             if kpt == 'G':
-                kpt = r'\Gamma'
+                kpt = r'$\Gamma$'
             elif len(kpt) == 2:
-                kpt = kpt[0] + '_' + kpt[1]
-            return '$' + kpt + '$'
+                kpt = kpt[0] + '$_' + kpt[1] + '$'
+            return kpt
 
         emin += self.reference
         emax += self.reference
@@ -178,7 +178,7 @@ class BandStructure:
         ax.set_xticklabels(labels)
         ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel(ylabel)
-        ax.axhline(self.reference, color='k')
+        ax.axhline(self.reference, color='k', ls=':')
         self.ax = ax
         return ax
 

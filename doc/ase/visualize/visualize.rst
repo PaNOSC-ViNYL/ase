@@ -97,11 +97,11 @@ NGL_ and ipywidgets_ websites.
 .. _NGL: https://github.com/arose/ngl
 .. _ipywidgets: https://github.com/jupyter-widgets/ipywidgets
 
-.. autoclass:: ase.visualize.nglview.NGLDisplay
+.. autoclass:: ase.visualize.ngl.NGLDisplay
    :inherited-members:
 
-.. autofunction:: ase.visualize.nglview.view_ngl
-.. automethod:: ase.visualize.nglview.NGLDisplay.custom_colors
+.. autofunction:: ase.visualize.ngl.view_ngl
+.. automethod:: ase.visualize.ngl.NGLDisplay.custom_colors
 
 
 .. module:: ase.visualize.mlab

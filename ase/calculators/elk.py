@@ -10,6 +10,7 @@ from ase.calculators.calculator import (FileIOCalculator, Parameters, kpts2mp,
 
 elk_parameters = {'swidth': Hartree}
 
+
 class ELK(FileIOCalculator, EigenvalOccupationMixin):
     command = 'elk > elk.out'
     implemented_properties = ['energy', 'forces']
@@ -59,16 +60,19 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
             if 'kpts' in self.parameters:
                 raise RuntimeError("You can't use both 'autokpt' and 'kpts'!")
             if 'ngridk' in self.parameters:
-                raise RuntimeError("You can't use both 'autokpt' and 'ngridk'!")
+                raise RuntimeError(
+                    "You can't use both 'autokpt' and 'ngridk'!")
         if 'ngridk' in self.parameters:
             if 'kpts' in self.parameters:
                 raise RuntimeError("You can't use both 'ngridk' and 'kpts'!")
 
         if self.parameters.get('autoswidth'):
             if 'smearing' in self.parameters:
-                raise RuntimeError("You can't use both 'autoswidth' and 'smearing'!")
+                raise RuntimeError(
+                    "You can't use both 'autoswidth' and 'smearing'!")
             if 'swidth' in self.parameters:
-                raise RuntimeError("You can't use both 'autoswidth' and 'swidth'!")
+                raise RuntimeError(
+                    "You can't use both 'autoswidth' and 'swidth'!")
 
         fd = open(os.path.join(self.directory, 'elk.in'), 'w')
 
@@ -78,8 +82,9 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
 
         if self.parameters.get('rmt', None) is not None:
             self.rmt = self.parameters['rmt'].copy()
-            assert len(self.rmt.keys()) == len(list(set(self.rmt.keys()))), 'redundant rmt definitions'
-            self.parameters.pop('rmt') # this is not an elk keyword!
+            assert len(self.rmt.keys()) == len(list(set(self.rmt.keys()))), \
+                'redundant rmt definitions'
+            self.parameters.pop('rmt')  # this is not an elk keyword!
         else:
             self.rmt = None
 
@@ -87,7 +92,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
         inp.update(self.parameters)
 
         if 'xc' in self.parameters:
-            xctype = {'LDA': 3, # PW92
+            xctype = {'LDA': 3,  # PW92
                       'PBE': 20,
                       'REVPBE': 21,
                       'PBESOL': 22,
@@ -154,14 +159,14 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
                 species[symbol] = [(a, m)]
                 symbols.append(symbol)
         fd.write('atoms\n%d\n' % len(species))
-        #scaled = atoms.get_scaled_positions(wrap=False)
+        # scaled = atoms.get_scaled_positions(wrap=False)
         scaled = np.linalg.solve(atoms.cell.T, atoms.positions.T).T
         for symbol in symbols:
             fd.write("'%s.in' : spfname\n" % symbol)
             fd.write('%d\n' % len(species[symbol]))
             for a, m in species[symbol]:
                 fd.write('%.14f %.14f %.14f 0.0 0.0 %.14f\n' %
-                         (tuple(scaled[a])+ (m,)))
+                         (tuple(scaled[a]) + (m,)))
         # species
         species_path = self.parameters.get('species_dir')
         if species_path is None:
@@ -186,7 +191,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
                     # use default rmt for undefined species
                     self.rmt.update({s: 0.0})
             # write custom species into elk.in
-            skeys = list(set(self.rmt.keys())) # unique
+            skeys = list(set(self.rmt.keys()))  # unique
             skeys.sort()
             for s in skeys:
                 found = False
@@ -194,7 +199,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
                     if line.find("'" + s + "'") > -1:
                         begline = n - 1
                 for n, line in enumerate(slines[begline:]):
-                    if not line.strip(): # first empty line
+                    if not line.strip():  # first empty line
                         endline = n
                         found = True
                         break
@@ -202,16 +207,17 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
                 fd.write("species\n")
                 # set rmt on third line
                 rmt = self.rmt[s]
-                assert isinstance(rmt, (float,int))
-                if rmt <= 0.0: # relative
+                assert isinstance(rmt, (float, int))
+                if rmt <= 0.0:  # relative
                     # split needed because H is defined with comments
-                    newrmt = float(slines[begline + 3].split()[0].strip()) + rmt
+                    newrmt = (float(slines[begline + 3].split()[0].strip()) +
+                              rmt)
                 else:
                     newrmt = rmt
                 slines[begline + 3] = '%6s\n' % str(newrmt)
                 for l in slines[begline: begline + endline]:
                     fd.write('%s' % l)
-                fd.write("\n")
+                fd.write('\n')
         else:
             # use default species
             # if sppath is present in elk.in it overwrites species blocks!
@@ -225,7 +231,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
 
         for filename in [totenergy, eigval, kpoints, self.out]:
             if not os.path.isfile(filename):
-                raise ReadError('ELK output file '+filename+' is missing.')
+                raise ReadError('ELK output file ' + filename + ' is missing.')
 
         # read state from elk.in because *.OUT do not provide enough digits!
         self.atoms = read_elk(os.path.join(self.directory, 'elk.in'))
@@ -269,7 +275,8 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
         forces = []
         for line in lines:
             if line.rfind('total force') > -1:
-                forces.append(np.array([float(f) for f in line.split(':')[1].split()]))
+                forces.append(np.array([float(f)
+                                        for f in line.split(':')[1].split()]))
         self.results['forces'] = np.array(forces) * Hartree / Bohr
 
     def read_convergence(self):
@@ -282,7 +289,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
 
     # more methods
     def get_electronic_temperature(self):
-        return self.width*Hartree
+        return self.width * Hartree
 
     def get_number_of_bands(self):
         return self.nbands
@@ -327,7 +334,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
     def read_kpts(self, mode='ibz_k_points'):
         """ Returns list of kpts weights or kpts coordinates.  """
         values = []
-        assert mode in ['ibz_k_points' , 'k_point_weights'], 'mode not in [\'ibz_k_points\' , \'k_point_weights\']'
+        assert mode in ['ibz_k_points', 'k_point_weights']
         kpoints = os.path.join(self.directory, 'KPOINTS.OUT')
         lines = open(kpoints).readlines()
         kpts = None
@@ -335,8 +342,8 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
             if line.rfind(': nkpt') > -1:
                 kpts = int(line.split(':')[0].strip())
                 break
-        assert not kpts is None
-        text = lines[1:] # remove first line
+        assert kpts is not None
+        text = lines[1:]  # remove first line
         values = []
         for line in text:
             if mode == 'ibz_k_points':
@@ -375,7 +382,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
         lines = open(self.out).readlines()
         for line in lines:
             if line.rfind(' Loop number : ') > -1:
-                niter = int(line.split(':')[1].split()[0].strip()) # last iter
+                niter = int(line.split(':')[1].split()[0].strip())  # last iter
         return niter
 
     def read_magnetic_moment(self):
@@ -383,7 +390,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
         lines = open(self.out).readlines()
         for line in lines:
             if line.rfind('total moment                :') > -1:
-                magmom = float(line.split(':')[1].strip()) # last iter
+                magmom = float(line.split(':')[1].strip())  # last iter
         return magmom
 
     def read_electronic_temperature(self):
@@ -399,7 +406,7 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
         """ Returns list of last eigenvalues, occupations
         for given kpt and spin.  """
         values = []
-        assert mode in ['eigenvalues' , 'occupations'], 'mode not in [\'eigenvalues\' , \'occupations\']'
+        assert mode in ['eigenvalues', 'occupations']
         eigval = os.path.join(self.directory, 'EIGVAL.OUT')
         lines = open(eigval).readlines()
         nstsv = None
@@ -407,13 +414,13 @@ class ELK(FileIOCalculator, EigenvalOccupationMixin):
             if line.rfind(': nstsv') > -1:
                 nstsv = int(line.split(':')[0].strip())
                 break
-        assert not nstsv is None
+        assert nstsv is not None
         kpts = None
         for line in lines:
             if line.rfind(': nkpt') > -1:
                 kpts = int(line.split(':')[0].strip())
                 break
-        assert not kpts is None
+        assert kpts is not None
         text = lines[3:]  # remove first 3 lines
         # find the requested k-point
         beg = 2 + (nstsv + 4) * kpt

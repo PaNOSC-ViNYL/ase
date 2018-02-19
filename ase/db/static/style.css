@@ -33,5 +33,11 @@ margin: 0 auto;
 }
 
 #rowentry {background-color: #FFFFFF;}
-#rowentry:hover {background-color: #DDDDDD;
-	         cursor: pointer}
+#rowentry:hover {background-color: #DDDDDD;}
+tr.rowentry > td > a {
+  color: #000000;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+}

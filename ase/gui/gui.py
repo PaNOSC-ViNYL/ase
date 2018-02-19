@@ -12,7 +12,7 @@ from time import time
 
 import numpy as np
 
-from ase import __version__, Atoms
+from ase import __version__
 import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
@@ -31,27 +31,22 @@ from ase.gui.view import View
 
 
 class GUI(View, Status):
+    ARROWKEY_SCAN = 0
+    ARROWKEY_MOVE = 1
+    ARROWKEY_ROTATE = 2
+
     def __init__(self, images=None,
                  rotations='',
-                 show_unit_cell=True,
-                 show_bonds=False):
+                 show_bonds=False, expr=None):
 
-        # Try to change into directory of file you are viewing
-        try:
-            os.chdir(os.path.split(sys.argv[1])[0])
-        # This will fail sometimes (e.g. for starting a new session)
-        except:
-            pass
-
-        if not images:
-            images = Images()
-            images.initialize([Atoms()])
+        if not isinstance(images, Images):
+            images = Images(images)
 
         self.images = images
 
         self.config = read_defaults()
 
-        menu = self.get_menu_data(show_unit_cell, show_bonds)
+        menu = self.get_menu_data(show_bonds)
 
         self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
                                       config=self.config, scroll=self.scroll,
@@ -69,15 +64,16 @@ class GUI(View, Status):
         self.vulnerable_windows = []
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
-        self.moving = False
 
+        self.arrowkey_mode = self.ARROWKEY_SCAN
         self.move_atoms_mask = None
 
+        # Added to move structure
+        self.moving = False
         self.prev_pos = None
         self.last_scroll_time = time()
         self.orig_size = self.window.size.copy()
 
-    def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
 
         if len(self.images) > 1:
@@ -89,17 +85,34 @@ class GUI(View, Status):
         if expr is not None and expr != '' and len(self.images) > 1:
             self.plot_graphs(expr=expr)
 
+    @property
+    def moving(self):
+        return self.arrowkey_mode != self.ARROWKEY_SCAN
+
+    def run(self, test=None):
         if test:
             self.window.test(test)
         else:
             self.window.run()
 
     def toggle_move_mode(self, key=None):
-        self.moving ^= True
-        if self.moving:
-            self.move_atoms_mask = self.images.selected.copy()
-        else:
+        self.toggle_arrowkey_mode(self.ARROWKEY_MOVE)
+
+    def toggle_rotate_mode(self, key=None):
+        self.toggle_arrowkey_mode(self.ARROWKEY_ROTATE)
+
+    def toggle_arrowkey_mode(self, mode):
+        # If not currently in given mode, activate it.
+        # Else, deactivate it (go back to SCAN mode)
+        assert mode != self.ARROWKEY_SCAN
+
+        if self.arrowkey_mode == mode:
+            self.arrowkey_mode = self.ARROWKEY_SCAN
             self.move_atoms_mask = None
+        else:
+            self.arrowkey_mode = mode
+            self.move_atoms_mask = self.images.selected.copy()
+
         self.draw()
 
     def step(self, key):
@@ -137,7 +150,10 @@ class GUI(View, Status):
 
     def scroll(self, event):
         CTRL = event.modifier == 'ctrl'
-        # Get the scroll direction when pressing arrow keys
+
+        # Bug: Simultaneous CTRL + shift is the same as just CTRL.
+        # Therefore movement in Z direction does not support the
+        # shift modifier.
         dxdydz = {'up': (0, 1 - CTRL, CTRL),
                   'down': (0, -1 + CTRL, -CTRL),
                   'right': (1, 0, 0),
@@ -164,8 +180,18 @@ class GUI(View, Status):
         if event.modifier == 'shift':
             vec *= 0.1
 
-        if self.moving:
+        if self.arrowkey_mode == self.ARROWKEY_MOVE:
             self.atoms.positions[self.move_atoms_mask[:len(self.atoms)]] += vec
+            self.set_frame()
+        elif self.arrowkey_mode == self.ARROWKEY_ROTATE:
+            # For now we use atoms.rotate having the simplest interface.
+            # (Better to use something more minimalistic, obviously.)
+            mask = self.move_atoms_mask[:len(self.atoms)]
+            center = self.atoms.positions[mask].mean(axis=0)
+            tmp_atoms = self.atoms[mask]
+            tmp_atoms.positions -= center
+            tmp_atoms.rotate(50 * np.linalg.norm(vec), vec)
+            self.atoms.positions[mask] = tmp_atoms.positions + center
             self.set_frame()
         else:
             # The displacement vector is scaled relative to the window size
@@ -307,9 +333,13 @@ class GUI(View, Status):
         from ase.gui.add import AddAtoms
         AddAtoms(self)
 
-    def quick_info_window(self):
+    def cell_editor(self, key=None):
+        from ase.gui.celleditor import CellEditor
+        CellEditor(self)
+
+    def quick_info_window(self, key=None):
         from ase.gui.quickinfo import info
-        ui.Window('Quick Info').add(info(self))
+        ui.Window(_('Quick Info')).add(info(self))
 
     def bulk_window(self):
         SetupBulkCrystal(self)
@@ -398,7 +428,7 @@ class GUI(View, Status):
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
 
-    def get_menu_data(self, show_unit_cell, show_bonds):
+    def get_menu_data(self, show_bonds):
         M = ui.MenuItem
         return [
             (_('_File'),
@@ -412,8 +442,7 @@ class GUI(View, Status):
              [M(_('Select _all'), self.select_all),
               M(_('_Invert selection'), self.invert_selection),
               M(_('Select _constrained atoms'), self.select_constrained_atoms),
-              M(_('Select _immobile atoms'), self.select_immobile_atoms,
-                key='Ctrl+I'),
+              M(_('Select _immobile atoms'), self.select_immobile_atoms),
               # M('---'),
               # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
               # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
@@ -425,6 +454,7 @@ class GUI(View, Status):
               M(_('_Add atoms'), self.add_atoms, 'Ctrl+A'),
               M(_('_Delete selected atoms'), self.delete_selected_atoms,
                 'Backspace'),
+              M(_('Edit _cell'), self.cell_editor, 'Ctrl+E'),
               M('---'),
               M(_('_First image'), self.step, 'Home'),
               M(_('_Previous image'), self.step, 'Page-Up'),
@@ -433,7 +463,7 @@ class GUI(View, Status):
 
             (_('_View'),
              [M(_('Show _unit cell'), self.toggle_show_unit_cell, 'Ctrl+U',
-                value=show_unit_cell > 0),
+                value=True),
               M(_('Show _axes'), self.toggle_show_axes, value=True),
               M(_('Show _bonds'), self.toggle_show_bonds, 'Ctrl+B',
                 value=show_bonds),
@@ -444,10 +474,12 @@ class GUI(View, Status):
               M(_('Show _Labels'), self.show_labels,
                 choices=[_('_None'),
                          _('Atom _Index'),
-                         _('_Magnetic Moments'),
-                         _('_Element Symbol')]),
+                         _('_Magnetic Moments'),  # XXX check if exist
+                         _('_Element Symbol'),
+                         _('_Initial Charges'),  # XXX check if exist
+                         ]),
               M('---'),
-              M(_('Quick Info ...'), self.quick_info_window),
+              M(_('Quick Info ...'), self.quick_info_window, 'Ctrl+I'),
               M(_('Repeat ...'), self.repeat_window, 'R'),
               M(_('Rotate ...'), self.rotate_window),
               M(_('Colors ...'), self.colors_window, 'C'),
@@ -480,10 +512,11 @@ class GUI(View, Status):
             (_('_Tools'),
              [M(_('Graphs ...'), self.plot_graphs),
               M(_('Movie ...'), self.movie),
-              M(_('Expert mode ...'), self.execute, 'Ctrl+E', disabled=True),
+              M(_('Expert mode ...'), self.execute, disabled=True),
               M(_('Constraints ...'), self.constraints_window),
               M(_('Render scene ...'), self.render_window),
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
+              M(_('_Rotate atoms'), self.toggle_rotate_mode, 'Ctrl+R'),
               M(_('NE_B'), self.neb),
               M(_('B_ulk Modulus'), self.bulk_modulus)]),
 

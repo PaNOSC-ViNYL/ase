@@ -124,7 +124,7 @@ class Vasp(GenerateVaspInput, Calculator):
             self.magnetic_moment = self.read_magnetic_moment()
             if (self.int_params['lorbit'] is not None and
                 (self.int_params['lorbit'] >= 10 or
-                 self.list_params['rwigs'])):
+                 self.list_float_params['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(atoms)
             else:
                 self.magnetic_moments = None
@@ -134,7 +134,9 @@ class Vasp(GenerateVaspInput, Calculator):
         self.old_int_params = self.int_params.copy()
         self.old_input_params = self.input_params.copy()
         self.old_bool_params = self.bool_params.copy()
-        self.old_list_params = self.list_params.copy()
+        self.old_list_bool_params = self.list_bool_params.copy()
+        self.old_list_int_params = self.list_int_params.copy()
+        self.old_list_float_params = self.list_float_params.copy()
         self.old_dict_params = self.dict_params.copy()
         self.atoms = atoms.copy()
         self.name = 'vasp'
@@ -337,7 +339,9 @@ class Vasp(GenerateVaspInput, Calculator):
              (self.string_params != self.old_string_params) or
              (self.int_params != self.old_int_params) or
              (self.bool_params != self.old_bool_params) or
-             (self.list_params != self.old_list_params) or
+             (self.list_bool_params != self.old_list_bool_params) or
+             (self.list_int_params != self.old_list_int_params) or
+             (self.list_float_params != self.old_list_float_params) or
              (self.input_params != self.old_input_params) or
              (self.dict_params != self.old_dict_params) or
              not self.converged)):
@@ -401,7 +405,7 @@ class Vasp(GenerateVaspInput, Calculator):
     def get_magnetic_moments(self, atoms):
         if ((self.int_params['lorbit'] is not None and
              self.int_params['lorbit'] >= 10) or
-                self.list_params['rwigs']):
+                self.list_float_params['rwigs']):
             self.update(atoms)
             return self.magnetic_moments
         else:
@@ -663,10 +667,11 @@ class Vasp(GenerateVaspInput, Calculator):
         self.nbands = self.read_nbands()
         self.read_ldau()
         p = self.int_params
-        q = self.list_params
+        q = self.list_float_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10)
+                    or (p['lorbit'] is None and q['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(self.atoms)
             else:
                 self.magnetic_moments = None

@@ -525,7 +525,7 @@ def find_transformation(atoms1, atoms2, verbose=False, only_cell=False):
         B[3:, :] = atoms2.positions
 
     # Solve least square problem Ax = B
-    lstsq_fit = np.linalg.lstsq(A, B)
+    lstsq_fit = np.linalg.lstsq(A, B, rcond=-1)
     x = lstsq_fit[0]
     error = np.linalg.norm(np.dot(A, x) - B)
 

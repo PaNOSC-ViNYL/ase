@@ -10,7 +10,7 @@ from ase.calculators.calculator import (Calculator,
 from ase.units import Bohr, Hartree
 from ase.io.xyz import write_xyz
 from ase.io.vasp import write_vasp
-from ase.parallel import paropen, world, broadcast
+from ase.parallel import world, broadcast
 
 
 class DFTD3(FileIOCalculator):
@@ -215,7 +215,7 @@ class DFTD3(FileIOCalculator):
         # If a parameter file exists in the working directory, delete it
         # first. If we need that file, we'll recreate it later.
         localparfile = os.path.join(self.directory, '.dftd3par.local')
-        if os.path.isfile(localparfile):
+        if world.rank == 0 and os.path.isfile(localparfile):
             os.remove(localparfile)
 
         # Write XYZ or POSCAR file and .dftd3par.local file if we are using
@@ -224,15 +224,14 @@ class DFTD3(FileIOCalculator):
         command = self._generate_command()
 
         # Finally, call dftd3 and parse results.
-        with paropen(self.label + '.out', 'w') as f:
-            if world.rank == 0:
-                # DFTD3 does not run in parallel
-                # so we only need it to run on 1 core
+        # DFTD3 does not run in parallel
+        # so we only need it to run on 1 core
+        errorcode = None
+        if world.rank == 0:
+            with open(self.label + '.out', 'w') as f:
                 errorcode = subprocess.call(command,
                                             cwd=self.directory, stdout=f)
-            else:
-                errorcode = None
-        world.barrier()  # Wait for the call() to complete on the master node
+
         errorcode = broadcast(errorcode, root=0)
 
         if errorcode:
@@ -300,34 +299,45 @@ class DFTD3(FileIOCalculator):
                 damppars.append('6')
 
             damp_fname = os.path.join(self.directory, '.dftd3par.local')
-            with paropen(damp_fname, 'w') as f:
-                f.write(' '.join(damppars))
+            if world.rank == 0:
+                with open(damp_fname, 'w') as f:
+                    f.write(' '.join(damppars))
 
     def read_results(self):
         # parse the energy
         outname = os.path.join(self.directory, self.label + '.out')
-        with open(outname, 'r') as f:
-            for line in f:
-                if line.startswith(' program stopped'):
-                    if 'functional name unknown' in line:
-                        raise RuntimeError('Unknown DFTD3 functional name '
-                                           '"{}". Please check the dftd3.f '
-                                           'source file for the list of '
-                                           'known functionals and their '
-                                           'spelling.'
-                                           ''.format(self.parameters['xc']))
-                    raise RuntimeError('dftd3 failed! Please check the {} '
-                                       'output file and report any errors '
-                                       'to the ASE developers.'
-                                       ''.format(outname))
-                if line.startswith(' Edisp'):
-                    e_dftd3 = float(line.split()[3]) * Hartree
-                    self.results['energy'] = e_dftd3
-                    self.results['free_energy'] = e_dftd3
-                    break
-            else:
-                raise RuntimeError('Could not parse energy from dftd3 output, '
-                                   'see file {}'.format(outname))
+        self.results['energy'] = None
+        self.results['free_energy'] = None
+        if world.rank == 0:
+            with open(outname, 'r') as f:
+                for line in f:
+                    if line.startswith(' program stopped'):
+                        if 'functional name unknown' in line:
+                            message = 'Unknown DFTD3 functional name "{}". ' \
+                                      'Please check the dftd3.f source file ' \
+                                      'for the list of known functionals ' \
+                                      'and their spelling.' \
+                                      ''.format(self.parameters['xc'])
+                        else:
+                            message = 'dftd3 failed! Please check the {} ' \
+                                      'output file and report any errors ' \
+                                      'to the ASE developers.' \
+                                      ''.format(outname)
+                        raise RuntimeError(message)
+
+                    if line.startswith(' Edisp'):
+                        e_dftd3 = float(line.split()[3]) * Hartree
+                        self.results['energy'] = e_dftd3
+                        self.results['free_energy'] = e_dftd3
+                        break
+                else:
+                    raise RuntimeError('Could not parse energy from dftd3 '
+                                       'output, see file {}'.format(outname))
+
+        self.results['energy'] = broadcast(self.results['energy'], root=0)
+        self.results['free_energy'] = broadcast(self.results['free_energy'],
+                                                root=0)
+
         # FIXME: Calculator.get_potential_energy() simply inspects
         # self.results for the free energy rather than calling
         # Calculator.get_property('free_energy'). For example, GPAW does
@@ -342,26 +352,35 @@ class DFTD3(FileIOCalculator):
                 self.results['free_energy'] += efree
             except PropertyNotImplementedError:
                 pass
+
         if self.parameters['grad']:
             # parse the forces
             forces = np.zeros((len(self.atoms), 3))
             forcename = os.path.join(self.directory, 'dftd3_gradient')
-            with open(forcename, 'r') as f:
-                for i, line in enumerate(f):
-                    forces[i] = np.array([float(x) for x in line.split()])
-            self.results['forces'] = -forces * Hartree / Bohr
+            self.results['forces'] = None
+            if world.rank == 0:
+                with open(forcename, 'r') as f:
+                    for i, line in enumerate(f):
+                        forces[i] = np.array([float(x) for x in line.split()])
+                self.results['forces'] = -forces * Hartree / Bohr
+            self.results['forces'] = broadcast(self.results['forces'], root=0)
 
             if any(self.atoms.pbc):
                 # parse the stress tensor
                 stress = np.zeros((3, 3))
                 stressname = os.path.join(self.directory, 'dftd3_cellgradient')
-                with open(stressname, 'r') as f:
-                    for i, line in enumerate(f):
-                        stress[i] = np.array([float(x) for x in line.split()])
+                self.results['stress'] = None
+                if world.rank == 0:
+                    with open(stressname, 'r') as f:
+                        for i, line in enumerate(f):
+                            for j, x in enumerate(line.split()):
+                                stress[i, j] = float(x)
 
-                stress *= Hartree / Bohr / self.atoms.get_volume()
-                stress = np.dot(stress, self.atoms.cell.T)
-                self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
+                    stress *= Hartree / Bohr / self.atoms.get_volume()
+                    stress = np.dot(stress, self.atoms.cell.T)
+                    self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
+                self.results['stress'] = broadcast(self.results['stress'],
+                                                   root=0)
 
     def get_property(self, name, atoms=None, allow_calculation=True):
         dft_result = None

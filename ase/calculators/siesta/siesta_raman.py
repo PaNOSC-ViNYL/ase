@@ -10,6 +10,7 @@ import ase.units as units
 from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils import basestring
+import warnings
 
 # XXX This class contains much repeated code.  FIXME
 
@@ -29,13 +30,14 @@ class SiestaRaman(Vibrations):
       density-functional theory",
       Phys. Rev. B 54, 7830 (1996)
 
-    The calculator object (calc) must be Siesta, and the mbpt_lcao
-    (http://mbpt-domiprod.wikidot.com/) program must be installed.
+    The calculator object (calc) must be Siesta, and the
+    pyscf program (nao branch: https://github.com/cfm-mpc/pyscf/tree/nao)
+    must be installed.
 
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in the ``Vibrations`` class
-    the ``Infrared`` class introduces two new methods;
+    the ``Raman`` as the ``Infrared`` class introduces two methods;
     *get_spectrum()* and *write_spectra()*. The *summary()*, *get_energies()*,
     *get_frequencies()*, *get_spectrum()* and *write_spectra()*
     methods all take an optional *method* keyword.  Use
@@ -69,6 +71,9 @@ class SiestaRaman(Vibrations):
         be considered, whereas for directions = [0, 1] only the dipole
         moment in the xy-plane will be considered. Default behavior is to
         use the dipole moment in all directions.
+
+    freq_pol: float or array of float
+        frequency at which the Raman intensity is computed, can be float or array 
 
     Example:
 
@@ -106,21 +111,17 @@ class SiestaRaman(Vibrations):
     9   2206.78   66.1575   12.6139         0.0000    0.6417
     """
 
-    def __init__(self, atoms, siesta, mbpt_inp, indices=None, name='ram',
-                 delta=0.01, nfree=2, directions=None):
-        assert nfree in [2, 4]
-        self.atoms = atoms
+    def __init__(self, atoms, siesta, indices=None, name='ram',
+                 delta=0.01, nfree=2, directions=None, freq_pol=0.0, **kw):
+
+        Vibrations.__init__(self, atoms, indices=indices, name=name, 
+                            delta = delta, nfree=nfree)
         if atoms.constraints:
-            print('WARNING! \n Your Atoms object is constrained. '
+            warnings.warn('WARNING! \n Your Atoms object is constrained. ' +
                   'Some forces may be unintended set to zero. \n')
-        self.calc = atoms.get_calculator()
-        if indices is None:
-            indices = range(len(atoms))
-        self.indices = np.asarray(indices)
-        self.nfree = nfree
         self.name = name + '-d%.3f' % delta
-        self.delta = delta
-        self.H = None
+        self.calc = atoms.get_calculator()
+
         if directions is None:
             self.directions = np.asarray([0, 1, 2])
         else:
@@ -128,14 +129,30 @@ class SiestaRaman(Vibrations):
         self.ir = True
         self.ram = True
         self.siesta = siesta
-        self.mbpt_inp = mbpt_inp
+
+        if isinstance(freq_pol, list):
+            self.freq_pol = np.array(freq_pol)
+        elif isinstance(freq_pol, float):
+            self.freq_pol = np.array([freq_pol])
+        elif isinstance(freq_pol, float) or isinstance(freq_pol, np.ndarray):
+            self.freq_pol = freq_pol
+        else:
+            raise ValueError("wrong type for freq_pol, only float, list or array")
+
+        self.pyscf_arg = kw
 
     def get_polarizability(self):
-        return self.siesta.get_polarizability(self.mbpt_inp,
-                                              format_output='txt',
-                                              units='au')
+        if "tddft_iter_tol" in list(self.pyscf_arg.keys()):
+            if self.pyscf_arg["tddft_iter_tol"] > 1e-4:
+                warnings.warn("tddft_iter_tol > 1e-4, polarizability may not have " +
+                              "enough precision. The Raman intensity will not be precise.")
+        else:
+            self.pyscf_arg["tddft_iter_tol"] = 1e-4
 
-    def read(self, method='standard', direction='central'):
+        return self.siesta.get_polarizability_pyscf_inter(Edir=np.array([1.0, 1.0, 1.0]),
+                                                          **self.pyscf_arg)
+
+    def read(self, method='standard', direction='central', inter = True):
         self.method = method.lower()
         self.direction = direction.lower()
         assert self.method in ['standard', 'frederiksen']
@@ -146,10 +163,11 @@ class SiestaRaman(Vibrations):
         # Get "static" dipole moment polarizability and forces
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero, freq_zero,
-            pol_zero] = pickle.load(open(name))
+            noninPol_zero, pol_zero] = pickle.load(open(name, "rb"))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
+        self.noninPol_zero = noninPol_zero * (units.Bohr)**3  # Ang**3
         self.pol_zero = pol_zero * (units.Bohr)**3  # Ang**3
 
         ndof = 3 * len(self.indices)
@@ -161,15 +179,17 @@ class SiestaRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                [fminus, dminus, frminus, pminus] = pickle.load(
-                    open(name + '-.pckl'))
-                [fplus, dplus, frplus, pplus] = pickle.load(
-                    open(name + '+.pckl'))
+                [fminus, dminus, frminus, noninpminus, pminus] = pickle.load(
+                    open(name + '-.pckl', "rb"))
+                [fplus, dplus, frplus, noninpplus, pplus] = pickle.load(
+                    open(name + '+.pckl', "rb"))
                 if self.nfree == 4:
-                    [fminusminus, dminusminus, frminusminus, pminusminus] =\
-                    pickle.load(open(name + '--.pckl'))
-                    [fplusplus, dplusplus, frplusplus, pplusplus] =\
-                    pickle.load(open(name + '++.pckl'))
+                    [fminusminus, dminusminus, frminusminus, 
+                            noninpminusminus, pminusminus] =\
+                                    pickle.load(open(name + '--.pckl', "rb"))
+                    [fplusplus, dplusplus, frplusplus, 
+                            noninpplusplus, pplusplus] =\
+                                    pickle.load(open(name + '++.pckl', "rb"))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
                     fplus[a] += -fplus.sum(0)
@@ -179,14 +199,21 @@ class SiestaRaman(Vibrations):
                 if self.nfree == 2:
                     H[r] = (fminus - fplus)[self.indices].ravel() / 2.0
                     dpdx[r] = (dminus - dplus)
-                    dadx[r] = (pminus - pplus)
+                    if inter:
+                        dadx[r] = (pminus - pplus)
+                    else:
+                        dadx[r] = (noninpminus - noninpplus)
                 if self.nfree == 4:
                     H[r] = (-fminusminus + 8 * fminus - 8 * fplus +
                             fplusplus)[self.indices].ravel() / 12.0
                     dpdx[r] = (-dplusplus + 8 * dplus - 8 * dminus +
                                dminusminus) / 6.0
-                    dadx[r] = (-pplusplus + 8 * pplus - 8 * pminus +
-                               pminusminus) / 6.0
+                    if inter:
+                        dadx[r] = (-pplusplus + 8 * pplus - 8 * pminus +
+                                   pminusminus) / 6.0
+                    else:
+                        dadx[r] = (-noninpplusplus + 8 * noninpplus - 8 * noninpminus +
+                                   noninpminusminus) / 6.0
                 H[r] /= 2 * self.delta
                 dpdx[r] /= 2 * self.delta
                 dadx[r] /= 2 * self.delta  # polarizability in Ang
@@ -221,7 +248,7 @@ class SiestaRaman(Vibrations):
 
         # Raman
         dadq = np.array([(dadx[j, :, :, :] / (units.Bohr**2)) /
-                         sqrt(m[self.indices[j / 3]] * units._amu / units._me)
+                         sqrt(m[self.indices[j // 3]] * units._amu / units._me)
                          for j in range(ndof)])
         dadQ = np.zeros((ndof, 3, 3, dadq.shape[1]), dtype=complex)
         for w in range(dadq.shape[1]):
@@ -233,36 +260,41 @@ class SiestaRaman(Vibrations):
                 dadQ[:, 0, 0, :])**2 + 6 * (dadQ[:, 0, 1, :]**2 +
                 dadQ[:, 1, 2, :]**2 + dadQ[:, 2, 0, :]**2))
 
-        intensities = np.zeros((ndof), dtype=float)
-        intensities_ram_enh = np.zeros((ndof), dtype=float)
+        intensities = np.zeros((ndof, self.freq_pol.size), dtype=np.complex128)
+        intensities_ram_enh = np.zeros((ndof, self.freq_pol.size), dtype=np.complex128)
 
         # calculate the coefficients for calculating Raman Signal
         for j in range(ndof):
-            aj = self.get_pol_freq(0.0, freq_zero, ak[j, :])
-            gj2 = self.get_pol_freq(0.0, freq_zero, gk2[j, :])
+            aj = self.get_nearrest_value(self.freq_pol, freq_zero, ak[j, :])
+            gj2 = self.get_nearrest_value(self.freq_pol, freq_zero, gk2[j, :])
 
-            intensities[j] = (45 * aj**2 + 7 * gj2) / 45.0
+            intensities[j, :] = (45 * aj**2 + 7 * gj2) / 45.0
 
         self.intensities_ram = intensities  # Bohr**4 .me**-1
         self.intensities_ram_enh = intensities_ram_enh  # Bohr**4 .me**-1
 
-    def get_pol_freq(self, freq, freq_array, quantity):
+    def get_nearrest_value(self, val, x_range, y, kind="cubic", prec = 1e-3):
         """
-        get the intensity at the right frequency, for non-resonnant Raman,
-        the frequency is 0.0 eV.
-        For resonnant Raman it should change (but not yet implemented)
+            return the closest value of y at val (interpolating the function)
+            val may be a number or an array
         """
-        from ase.calculators.siesta.mbpt_lcao_utils import interpolate
-        if freq.imag > 1E-10:
-            return 0.0
+        import scipy.interpolate as interp
 
-        w, interpol = interpolate(
-            freq_array, quantity, 100 * quantity.shape[0])
-        i = 0
-        while w[i] < freq:
-            i = i + 1
 
-        return interpol[i]
+        func = interp.interp1d(x_range, y, kind = kind)
+        new_range = np.arange(x_range[0], x_range[x_range.size-1], prec)
+        interpol = func(new_range)
+
+        if isinstance(val, np.ndarray):
+            mult = np.zeros(val.shape, dtype=interpol.dtype)
+
+            for i, va in enumerate(val):
+                idx = (np.abs(new_range-va)).argmin()
+                mult[i] = interpol[idx]
+            return mult
+        else:
+            idx = (np.abs(new_range-val)).argmin()
+            return np.array([interpol[idx]])
 
     def intensity_prefactor(self, intensity_unit):
         if intensity_unit == '(D/A)2/amu':
@@ -279,13 +311,17 @@ class SiestaRaman(Vibrations):
             raise RuntimeError('Intensity unit >' + intensity_unit +
                                '< unknown.')
 
-    def summary(self, method='standard', direction='central',
-                intensity_unit_ir='(D/A)2/amu', intensity_unit_ram='au', log=stdout):
-        hnu = self.get_energies(method, direction)
+    def summary(self, method='standard', direction='central', freq_pol = 0.0,
+                intensity_unit_ir='(D/A)2/amu', intensity_unit_ram='au', log=stdout,
+                inter = True):
+        hnu = self.get_energies(method, direction, inter=inter)
         s = 0.01 * units._e / units._c / units._hplanck
         iu_ir, iu_string_ir = self.intensity_prefactor(intensity_unit_ir)
         iu_ram, iu_string_ram = self.intensity_prefactor(intensity_unit_ram)
         arr = []
+ 
+        freq_idx = (np.abs(self.freq_pol-freq_pol)).argmin()
+        print("index: ", freq_idx)
 
         if intensity_unit_ir == '(D/A)2/amu':
             iu_format_ir = '%9.4f             '
@@ -323,14 +359,14 @@ class SiestaRaman(Vibrations):
                 c = ' '
                 e = e.real
                 arr.append([n, 1000 * e, s * e, iu_ir * self.intensities_ir[n],
-                            iu_ram * self.intensities_ram[n].real, iu_ram *
-                            self.intensities_ram[n].imag])
+                            iu_ram * self.intensities_ram[n, freq_idx].real, iu_ram *
+                            self.intensities_ram[n, freq_idx].imag])
             parprint(('%3d %6.1f%s  %7.1f%s  ' + iu_format_ir + iu_format_ram +
                       iu_format_ram + iu_format_ram) %
                      (n, 1000 * e, c, s * e, c, iu_ir * self.intensities_ir[n],
-                      iu_ram * self.intensities_ram[n].real, iu_ram *
-                      self.intensities_ram[n].imag, iu_ram *
-                      self.intensities_ram_enh[n].real), file=log)
+                      iu_ram * self.intensities_ram[n, freq_idx].real, iu_ram *
+                      self.intensities_ram[n, freq_idx].imag, iu_ram *
+                      self.intensities_ram_enh[n, freq_idx].real), file=log)
         parprint(
             '-----------------------------------------------------------------------------------------',
             file=log)
@@ -345,7 +381,7 @@ class SiestaRaman(Vibrations):
     def write_latex_array(self, fname='vib_latex_array.tex.table', caption='', nb_column=5,
                           hline=False, method='standard', direction='central',
                           intensity_unit_ir='(D/A)2/amu', intensity_unit_ram='au',
-                          label='tab_vib', log=stdout):
+                          label='tab_vib', log=stdout, freq_pol=0.0):
         """
         Write the summary into a latex table that can be easily incorporate into a latex file.
         """
@@ -354,6 +390,9 @@ class SiestaRaman(Vibrations):
         s = 0.01 * units._e / units._c / units._hplanck
         iu_ir, iu_string_ir = self.intensity_prefactor(intensity_unit_ir)
         iu_ram, iu_string_ram = self.intensity_prefactor(intensity_unit_ram)
+ 
+        freq_idx = (np.abs(self.freq_pol-freq_pol)).argmin()
+
 
         if intensity_unit_ir == '(D/A)2/amu':
             iu_format_ir = '%9.4f             '
@@ -404,15 +443,15 @@ class SiestaRaman(Vibrations):
             f.write("   \hline \n")
         for n, e in enumerate(hnu):
             if e.imag != 0:
-                c = 'i'
+                c = ' + i'
                 e = e.imag
             else:
                 c = ' '
                 e = e.real
-            f.write(('     %3d & %6.1f & %s  & %7.1f & %s  & ' + iu_format_ir +
+            f.write(('     %3d & %6.1f %s  & %7.1f %s  & ' + iu_format_ir +
                      '  & ' + iu_format_ram + ' \n') % (n, 1000 * e, c, s * e, c,
                                                         iu_ir * self.intensities_ir[n], iu_ram *
-                                                        self.intensities_ram[n].real))
+                                                        self.intensities_ram[n, freq_idx].real))
             if hline:
                 f.write(r"      \hline \n")
         f.write("    \end{tabular} \n")
@@ -424,7 +463,7 @@ class SiestaRaman(Vibrations):
 
     def get_spectrum(self, start=800, end=4000, npts=None, width=4,
                      type='Gaussian', method='standard', direction='central',
-                     intensity_unit='(D/A)2/amu', normalize=False):
+                     intensity_unit='(D/A)2/amu', normalize=False, freq_pol=0.0):
         """Get raman spectrum.
 
         The method returns wavenumbers in cm^-1 with corresponding
@@ -434,17 +473,23 @@ class SiestaRaman(Vibrations):
         normalize=True ensures the integral over the peaks to give the
         intensity.
         """
+        name = '%s.eq.pckl' % self.name
+        [forces_zero, dipole_zero, freq_zero, noninPol_zero,
+            pol_zero] = pickle.load(open(name, "rb"))
+ 
+        freq_idx = (np.abs(self.freq_pol-freq_pol)).argmin()
+
         frequencies = self.get_frequencies(method, direction).real
         intensities_ir = self.intensities_ir
-        intensities_ram = self.intensities_ram
-        intensities_ram_enh = self.intensities_ram_enh
+        intensities_ram = self.intensities_ram[:, freq_idx]
+        intensities_ram_enh = self.intensities_ram_enh[:, freq_idx]
         energies, spectrum_ir = self.fold(frequencies, intensities_ir,
                                           start, end, npts, width, type,
                                           normalize)
-        energies, spectrum_ram = self.fold(frequencies, intensities_ram,
+        energies, spectrum_ram = self.fold(frequencies, intensities_ram.real,
                                            start, end, npts, width, type,
                                            normalize)
-        energies, spectrum_ram_enh = self.fold(frequencies, intensities_ram_enh,
+        energies, spectrum_ram_enh = self.fold(frequencies, intensities_ram_enh.real,
                                                start, end, npts, width, type,
                                                normalize)
         return energies, spectrum_ir, spectrum_ram, spectrum_ram_enh
@@ -469,7 +514,11 @@ class SiestaRaman(Vibrations):
         # Second column is absorbance scaled so that data runs from 1 to 0
         spectrum2_ir = 1. - spectrum_ir / spectrum_ir.max()
         spectrum2_ram = 1. - spectrum_ram / spectrum_ram.max()
-        spectrum2_ram_enh = 1. - spectrum_ram_enh / spectrum_ram_enh.max()
+        if abs(spectrum_ram_enh.max()) > 0.0:
+            spectrum2_ram_enh = 1. - spectrum_ram_enh / spectrum_ram_enh.max()
+        else:
+            spectrum2_ram_enh = np.zeros(spectrum_ram.shape, dtype = np.float64)
+
         outdata = np.empty([len(energies), 7])
         outdata.T[0] = energies
         outdata.T[1] = spectrum_ir
