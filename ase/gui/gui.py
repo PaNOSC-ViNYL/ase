@@ -70,13 +70,10 @@ class GUI(View, Status):
 
         self.set_frame(len(self.images) - 1, focus=True)
 
-        # Added to move structure
+        # Used to move the structure with the mouse
         self.prev_pos = None
         self.last_scroll_time = time()
-        self.orig_size = self.window.size.copy()
         self.orig_scale = self.scale
-        print(self.orig_size)
-        print(self.orig_scale)
 
         if len(self.images) > 1:
             self.movie()
@@ -166,6 +163,7 @@ class GUI(View, Status):
         # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/event-types.html
         if event.type == '6':
             cur_pos = np.array([event.x, -event.y])
+            # Continue scroll if button has not been released
             if self.prev_pos is None or time() - self.last_scroll_time > .5:
                 self.prev_pos = cur_pos
                 self.last_scroll_time = time()
@@ -196,11 +194,9 @@ class GUI(View, Status):
             self.atoms.positions[mask] = tmp_atoms.positions + center
             self.set_frame()
         else:
-            # The displacement vector is scaled relative to the window size
-            # so that the cursor follows the structure, this is not
-            # given after a resize event for example
-            # scale = (np.prod(self.orig_size) / np.prod(self.window.size))**0.5
-            # Scale by a third, does it work
+            # The displacement vector is scaled
+            # so that the cursor follows the structure
+            # Scale by a third works for some reason
             scale = self.orig_scale / (3 * self.scale)
             self.center -= vec * scale
 
