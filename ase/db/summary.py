@@ -111,6 +111,8 @@ class Summary:
                             block = None
                         elif block.endswith('.csv'):
                             block = read_csv_table(name)
+                    else:
+                        assert block in ['ATOMS', 'CELL', 'FORCES'], block
 
                     newcolumn.append(block)
                     if block is not None:
