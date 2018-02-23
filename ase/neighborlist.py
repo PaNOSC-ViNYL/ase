@@ -148,9 +148,12 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     b1_c, b2_c, b3_c = np.linalg.pinv(a.cell).T
 
     # Compute distances of cell faces.
-    face_dist_c = np.array([1 / np.linalg.norm(b1_c),
-                            1 / np.linalg.norm(b2_c),
-                            1 / np.linalg.norm(b3_c)])
+    l1 = np.linalg.norm(b1_c)
+    l2 = np.linalg.norm(b2_c)
+    l3 = np.linalg.norm(b3_c)
+    face_dist_c = np.array([1 / l1 if l1 > 0 else 1,
+                            1 / l2 if l2 > 0 else 1,
+                            1 / l3 if l3 > 0 else 1])
 
     if isinstance(cutoff, dict):
         max_cutoff = np.max(list(cutoff.values()))
