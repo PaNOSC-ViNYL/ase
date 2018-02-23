@@ -282,9 +282,9 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     dr_nc = dr_nc[m]
     abs_dr_n = abs_dr_n[m]
 
-    # If cutoff is a dictionary, then the cutoff radii are specified per
-    # element pair. We now have a list up to maximum cutoff.
     if isinstance(cutoff, dict) and numbers is not None:
+        # If cutoff is a dictionary, then the cutoff radii are specified per
+        # element pair. We now have a list up to maximum cutoff.
         n = numbers
         per_pair_cutoff_n = np.zeros_like(abs_dr_n)
         for (el1, el2), c in cutoff.items():
@@ -309,6 +309,9 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         dr_nc = dr_nc[m]
         abs_dr_n = abs_dr_n[m]
     elif not np.isscalar(cutoff):
+        # If cutoff is neither a dictionary nor a scalar, then we assume it is 
+        # a list or numpy array that contains atomic radii. Atoms are neighbors
+        # if their radii overlap.
         m = abs_dr_n < cutoff[i_n] + cutoff[j_n]
         i_n = i_n[m]
         j_n = j_n[m]
