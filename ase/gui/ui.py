@@ -191,7 +191,8 @@ class CheckButton(Widget):
         self.callback = callback
 
     def create(self, parent):
-        self.check = tk.Checkbutton(parent, text=self.text, var=self.var, command=self.callback)
+        self.check = tk.Checkbutton(parent, text=self.text,
+                                    var=self.var, command=self.callback)
         return self.check
 
     @property
@@ -571,6 +572,9 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
+        self.canvas.bind('<Shift-B{right}-Motion>'.format(right=right),
+                         bind(scroll))
+
         self.win.bind('<MouseWheel>', bind(scroll_event))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
