@@ -546,6 +546,38 @@ def bind(callback, modifier=None):
     return handle
 
 
+class ASEFileChooser(LoadFileDialog):
+    def __init__(self, win, formatcallback=lambda event: None):
+        from ase.io.formats import all_formats, get_ioformat
+        LoadFileDialog.__init__(self, win, _('Open ...'))
+        labels = [_('Automatic')]
+        values = ['']
+
+        def key(item):
+            return item[1][0]
+
+        for format, (description, code) in sorted(all_formats.items(),
+                                                  key=key):
+            io = get_ioformat(format)
+            if io.read and description != '?':
+                labels.append(_(description))
+                values.append(format)
+
+        self.format = None
+
+        def callback(value):
+            self.format = value
+
+        Label(_('Choose parser:')).pack(self.top)
+        formats = ComboBox(labels, values, callback)
+        formats.pack(self.top)
+
+
+def show_io_error(filename, err):
+    showerror(_('Read error'),
+              _('Could not read {}: {}'.format(filename, err)))
+
+
 class ASEGUIWindow(MainWindow):
     def __init__(self, close, menu, config,
                  scroll, scroll_event,

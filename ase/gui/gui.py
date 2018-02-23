@@ -296,34 +296,16 @@ class GUI(View, Status):
         self.graphs.append(process)
 
     def open(self, button=None, filename=None):
-        from ase.io.formats import all_formats, get_ioformat
-
-        labels = [_('Automatic')]
-        values = ['']
-
-        def key(item):
-            return item[1][0]
-
-        for format, (description, code) in sorted(all_formats.items(),
-                                                  key=key):
-            io = get_ioformat(format)
-            if io.read and description != '?':
-                labels.append(_(description))
-                values.append(format)
-
-        format = [None]
-
-        def callback(value):
-            format[0] = value
-
-        chooser = ui.LoadFileDialog(self.window.win, _('Open ...'))
-        ui.Label(_('Choose parser:')).pack(chooser.top)
-        formats = ui.ComboBox(labels, values, callback)
-        formats.pack(chooser.top)
+        chooser = ui.ASEFileChooser(self.window.win)
 
         filename = filename or chooser.go()
+        format = chooser.format
         if filename:
-            self.images.read([filename], slice(None), format[0])
+            try:
+                self.images.read([filename], slice(None), format)
+            except Exception as err:
+                ui.show_io_error(filename, err)
+                return  # Hmm.  Is self.images in a consistent state?
             self.set_frame(len(self.images) - 1, focus=True)
 
     def modify_atoms(self, key=None):
