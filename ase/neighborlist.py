@@ -337,8 +337,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         return tuple(retvals)
 
 
-def neighbor_list(quantities, a, cutoff, self_interaction=False,
-                  use_scaled_positions=False):
+def neighbor_list(quantities, a, cutoff, self_interaction=False):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
@@ -433,8 +432,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False,
     """
     return primitive_neighbor_list(quantities, a.pbc, a.get_cell(complete=True),
                                    a.positions, cutoff, numbers=a.numbers,
-                                   self_interaction=self_interaction,
-                                   use_scaled_positions=use_scaled_positions)
+                                   self_interaction=self_interaction)
 
 def first_neighbors(nat, i):
     """
@@ -610,12 +608,10 @@ class NeighborList:
     """
 
     def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
-                 bothways=False, use_scaled_positions=False,
-                 primitive=PrimitiveNeighborList):
+                 bothways=False, primitive=PrimitiveNeighborList):
         self.nl = primitive(cutoffs, skin, sorted,
                             self_interaction=self_interaction,
-                            bothways=bothways,
-                            use_scaled_positions=use_scaled_positions)
+                            bothways=bothways)
 
     def update(self, atoms):
         return self.nl.update(atoms.pbc, atoms.get_cell(complete=True),
