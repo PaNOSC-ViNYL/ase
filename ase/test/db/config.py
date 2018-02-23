@@ -25,15 +25,22 @@ def xy(row):
         plt.savefig('abc.png')
 
 
+@creates('table.csv')
+def table(row):
+    with open('table.csv', 'w') as f:
+        f.write('# Title\n')
+        f.write('<a href="/id/{}">link</a>, 27.2, eV\n'
+                .format(3 - row.id))
+
+
 stuff = ('Stuff', ['energy', 'fmax', 'charge', 'mass', 'magmom', 'volume'])
 things = ('Things', ['answer', 'kind'])
 calc = ('Calculator Setting', ['calculator'])
 
 layout = [
     ('Basic properties',
-     [stuff, 'ATOMS',
-      things, 'CELL']),
+     [[stuff, 'ATOMS'],
+      [things, 'CELL']]),
     ('Calculation details',
-     [calc, None,
-      'FORCES', None,
-      'xy.png', 'abc.png'])]
+     [[calc, 'FORCES'],
+      ['xy.png', 'abc.png', 'table.csv']])]

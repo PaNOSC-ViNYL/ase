@@ -101,7 +101,7 @@ class Summary:
                             block = (title, rows)
                         else:
                             continue
-                    elif block.endswith('.png'):
+                    elif any(block.endswith(ext) for ext in ['.png', '.csv']):
                         name = op.join(tmpdir, prefix + block)
                         if not op.isfile(name):
                             self.create_figures(row, prefix, tmpdir,
@@ -109,6 +109,10 @@ class Summary:
                         if op.getsize(name) == 0:
                             # Skip empty files:
                             block = None
+                        elif block.endswith('.csv'):
+                            block = read_csv_table(name)
+                    else:
+                        assert block in ['ATOMS', 'CELL', 'FORCES'], block
 
                     newcolumn.append(block)
                     if block is not None:
@@ -184,6 +188,11 @@ class Summary:
                     if op.isfile(block) and op.getsize(block) > 0:
                         print(block)
                     print()
+                elif block.endswith('.csv'):
+                    if op.isfile(block) and op.getsize(block) > 0:
+                        with open(block) as f:
+                            print(f.read())
+                    print()
                 elif block == 'CELL':
                     print('Unit cell in Ang:')
                     print('axis|periodic|          x|          y|          z')
@@ -214,3 +223,9 @@ class Summary:
 
         if self.data:
             print('Data:', self.data, '\n')
+
+
+def read_csv_table(name):
+    with open(name) as f:
+        title = f.readline()[1:].strip()
+        return (title, [line.rsplit(',', 2) for line in f])
