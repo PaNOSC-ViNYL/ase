@@ -36,7 +36,8 @@ def mic(dr, cell, pbc=None):
     return dr - np.dot(dri, cell)
 
 
-def neighbor_list(quantities, a, cutoff, self_interaction=False):
+def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
+                            numbers=None, self_interaction=False):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
@@ -59,7 +60,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
             'S' : shift vector (number of cell boundaries crossed by the bond
                   between atom i and j). With the shift vector S, the
                   distances D between atoms can be computed from:
-                  D = a.positions[j]-a.positions[i]+S.dot(a.cell)
+                  D = positions[j]-positions[i]+S.dot(cell)
     a : ase.Atoms
         Atomic configuration.
     cutoff : float or dict
@@ -81,53 +82,6 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
         Tuple with arrays for each quantity specified above. Indices in `i`
         are returned in ascending order 0..len(a), but the order of (i,j)
         pairs is not guaranteed.
-
-    Examples
-    --------
-    Examples assume Atoms object *a* and numpy imported as *np*.
-    1. Coordination counting:
-        i = neighbor_list('i', a, 1.85)
-        coord = np.bincount(i)
-
-    2. Coordination counting with different cutoffs for each pair of species
-        i = neighbor_list('i', a,
-                           {('H', 'H'): 1.1, ('C', 'H'): 1.3, ('C', 'C'): 1.85})
-        coord = np.bincount(i)
-
-    3. Pair distribution function:
-        d = neighbor_list('d', a, 10.00)
-        h, bin_edges = np.histogram(d, bins=100)
-        pdf = h/(4*np.pi/3*(bin_edges[1:]**3 - bin_edges[:-1]**3)) * a.get_volume()/len(a)
-
-    4. Pair potential:
-        i, j, d, D = neighbor_list('ijdD', a, 5.0)
-        energy = (-C/d**6).sum()
-        pair_forces = (6*C/d**5  * (D/d).T).T
-        forces_x = np.bincount(j, weights=pair_forces[:, 0], minlength=len(a)) - \
-                   np.bincount(i, weights=pair_forces[:, 0], minlength=len(a))
-        forces_y = np.bincount(j, weights=pair_forces[:, 1], minlength=len(a)) - \
-                   np.bincount(i, weights=pair_forces[:, 1], minlength=len(a))
-        forces_z = np.bincount(j, weights=pair_forces[:, 2], minlength=len(a)) - \
-                   np.bincount(i, weights=pair_forces[:, 2], minlength=len(a))
-
-    5. Dynamical matrix for a pair potential stored in a block sparse format:
-        from scipy.sparse import bsr_matrix
-        i, j, dr, abs_dr = neighbor_list('ijDd', atoms)
-        energy = (dr.T / abs_dr).T
-        dynmat = -(dde * (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3)).T).T \
-                 -(de / abs_dr * (np.eye(3, dtype=energy.dtype) - \
-                   (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3))).T).T
-        dynmat_bsr = bsr_matrix((dynmat, j, first_i), shape=(3*len(a), 3*len(a)))
-
-        dynmat_diag = np.empty((len(a), 3, 3))
-        for x in range(3):
-            for y in range(3):
-                dynmat_diag[:, x, y] = -np.bincount(i, weights=dynmat[:, x, y])
-
-        dynmat_bsr += bsr_matrix((dynmat_diag, np.arange(len(a)),
-                                  np.arange(len(a) + 1)),
-                                 shape=(3 * len(a), 3 * len(a)))
-
     """
 
     # Naming conventions: Suffixes indicate the dimension of an array. The
@@ -142,10 +96,10 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     #     n: (Linear) neighbor index
 
     # Store pbc.
-    pbc = a.pbc
+    pbc = pbc
 
     # Compute reciprocal lattice vectors.
-    b1_c, b2_c, b3_c = np.linalg.pinv(a.cell).T
+    b1_c, b2_c, b3_c = np.linalg.pinv(cell).T
 
     # Compute distances of cell faces.
     l1 = np.linalg.norm(b1_c)
@@ -173,7 +127,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     ndx, ndy, ndz = np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
-    spos_ic = a.get_scaled_positions(wrap=False)
+    spos_ic = np.linalg.solve(cell.T, positions.T).T
     bin_index_ic = np.floor(spos_ic*nbins_c).astype(int)
     cell_shift_ic = np.zeros_like(bin_index_ic)
     for c in range(3):
@@ -191,7 +145,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     # Sort by bin index
     i = np.argsort(bin_index_i)
     # atom_i contains atom index in new sort order.
-    atom_i = np.arange(len(a))[i]
+    atom_i = np.arange(len(positions))[i]
     bin_index_i = bin_index_i[i]
 
     # Find max number of atoms per bin
@@ -312,7 +266,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     S_n = S_n[i]
 
     # Compute distance vectors.
-    dr_nc = a.positions[j_n] - a.positions[i_n] + S_n.dot(a.cell)
+    dr_nc = positions[j_n] - positions[i_n] + S_n.dot(cell)
     abs_dr_n = np.sqrt(np.sum(dr_nc*dr_nc, axis=1))
 
     # We have still created too many pairs. Only keep those with distance
@@ -326,8 +280,8 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
 
     # If cutoff is a dictionary, then the cutoff radii are specified per
     # element pair. We now have a list up to maximum cutoff.
-    if isinstance(cutoff, dict):
-        n = a.numbers
+    if isinstance(cutoff, dict) and numbers is not None:
+        n = numbers
         per_pair_cutoff_n = np.zeros_like(abs_dr_n)
         for (el1, el2), c in cutoff.items():
             try:
@@ -379,6 +333,103 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
         return tuple(retvals)
 
 
+def neighbor_list(quantities, a, cutoff, self_interaction=False):
+    """
+    Compute a neighbor list for an atomic configuration. Atoms outside periodic
+    boundaries are mapped into the box. Atoms outside nonperiodic boundaries
+    are included in the neighbor list but complexity of neighbor list search
+    for those can become n^2.
+
+    The neighbor list is sorted by first atom index 'i', but not by second 
+    atom index 'j'.
+
+    Parameters
+    ----------
+    quantities : str
+        Quantities to compute by the neighbor list algorithm. Each character
+        in this string defines a quantity. They are returned in a tuple of
+        the same order. Possible quantities are
+            'i' : first atom index
+            'j' : second atom index
+            'd' : absolute distance
+            'D' : distance vector
+            'S' : shift vector (number of cell boundaries crossed by the bond
+                  between atom i and j). With the shift vector S, the
+                  distances D between atoms can be computed from:
+                  D = a.positions[j]-a.positions[i]+S.dot(a.cell)
+    a : ase.Atoms
+        Atomic configuration.
+    cutoff : float or dict
+        Cutoff for neighbor search. It can be
+            - A single float: This is a global cutoff for all elements.
+            - A dictionary: This specifies cutoff values for element
+              pairs. Specification accepts element numbers of symbols.
+              Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
+            - A list/array with a per atom value: This specifies the radius of
+              an atomic sphere for each atoms. If spheres overlap, atoms are
+              within each others neighborhood.
+    self_interaction : bool
+        Return the atom itself as its own neighbor if set to true.
+        Default: False
+
+    Returns
+    -------
+    i, j, ... : array
+        Tuple with arrays for each quantity specified above. Indices in `i`
+        are returned in ascending order 0..len(a), but the order of (i,j)
+        pairs is not guaranteed.
+
+    Examples
+    --------
+    Examples assume Atoms object *a* and numpy imported as *np*.
+    1. Coordination counting:
+        i = neighbor_list('i', a, 1.85)
+        coord = np.bincount(i)
+
+    2. Coordination counting with different cutoffs for each pair of species
+        i = neighbor_list('i', a,
+                           {('H', 'H'): 1.1, ('C', 'H'): 1.3, ('C', 'C'): 1.85})
+        coord = np.bincount(i)
+
+    3. Pair distribution function:
+        d = neighbor_list('d', a, 10.00)
+        h, bin_edges = np.histogram(d, bins=100)
+        pdf = h/(4*np.pi/3*(bin_edges[1:]**3 - bin_edges[:-1]**3)) * a.get_volume()/len(a)
+
+    4. Pair potential:
+        i, j, d, D = neighbor_list('ijdD', a, 5.0)
+        energy = (-C/d**6).sum()
+        pair_forces = (6*C/d**5  * (D/d).T).T
+        forces_x = np.bincount(j, weights=pair_forces[:, 0], minlength=len(a)) - \
+                   np.bincount(i, weights=pair_forces[:, 0], minlength=len(a))
+        forces_y = np.bincount(j, weights=pair_forces[:, 1], minlength=len(a)) - \
+                   np.bincount(i, weights=pair_forces[:, 1], minlength=len(a))
+        forces_z = np.bincount(j, weights=pair_forces[:, 2], minlength=len(a)) - \
+                   np.bincount(i, weights=pair_forces[:, 2], minlength=len(a))
+
+    5. Dynamical matrix for a pair potential stored in a block sparse format:
+        from scipy.sparse import bsr_matrix
+        i, j, dr, abs_dr = neighbor_list('ijDd', atoms)
+        energy = (dr.T / abs_dr).T
+        dynmat = -(dde * (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3)).T).T \
+                 -(de / abs_dr * (np.eye(3, dtype=energy.dtype) - \
+                   (energy.reshape(-1, 3, 1) * energy.reshape(-1, 1, 3))).T).T
+        dynmat_bsr = bsr_matrix((dynmat, j, first_i), shape=(3*len(a), 3*len(a)))
+
+        dynmat_diag = np.empty((len(a), 3, 3))
+        for x in range(3):
+            for y in range(3):
+                dynmat_diag[:, x, y] = -np.bincount(i, weights=dynmat[:, x, y])
+
+        dynmat_bsr += bsr_matrix((dynmat_diag, np.arange(len(a)),
+                                  np.arange(len(a) + 1)),
+                                 shape=(3 * len(a), 3 * len(a)))
+
+    """
+    return primitive_neighbor_list(quantities, a.pbc, get_cell(complete=True),
+                                   a.positions, cutoff, numbers=a.numbers,
+                                   self_interaction=self_interaction)
+
 def first_neighbors(nat, i):
     """
     Compute an index array pointing to the ranges within the neighbor list that
@@ -413,7 +464,7 @@ def first_neighbors(nat, i):
     return s
 
 
-class NeighborList:
+class PrimitiveNeighborList:
     """Neighbor list object. Wrapper around neighbor_list and first_neighbors.
 
     cutoffs: list of float
@@ -452,32 +503,33 @@ class NeighborList:
         self.nneighbors = 0
         self.npbcneighbors = 0
 
-    def update(self, atoms):
+    def update(self,  pbc, cell, positions, numbers=None):
         """Make sure the list is up to date."""
 
         if self.nupdates == 0:
-            self.build(atoms)
+            self.build(pbc, cell, positions, numbers=numbers)
             return True
 
-        if ((self.pbc != atoms.pbc).any() or
-            (self.cell != atoms.cell).any() or
-            ((self.positions - atoms.positions)**2).sum(1).max() >
+        if ((self.pbc != pbc).any() or
+            (self.cell != cell).any() or
+            ((self.positions - positions)**2).sum(1).max() >
             self.skin**2):
-            self.build(atoms)
+            self.build(pbc, cell, positions, numbers=numbers)
             return True
 
         return False
 
-    def build(self, atoms):
+    def build(self, pbc, cell, positions, numbers=None):
         """Build the list.
         """
-        self.pbc = np.array(atoms.pbc, copy=True)
-        self.cell = np.array(atoms.cell, copy=True)
-        self.positions = np.array(atoms.positions, copy=True)
+        self.pbc = np.array(pbc, copy=True)
+        self.cell = np.array(cell, copy=True)
+        self.positions = np.array(positions, copy=True)
 
         self.pair_first, self.pair_second, self.offset_vec = \
-            neighbor_list('ijS', atoms, self.cutoffs,
-                          self_interaction=self.self_interaction)
+            primitive_neighbor_list('ijS', pbc, cell, positions, self.cutoffs,
+                                    numbers=numbers,
+                                    self_interaction=self.self_interaction)
 
         if not self.bothways:
             m = np.logical_or(
@@ -500,7 +552,7 @@ class NeighborList:
             self.offset_vec = self.offset_vec[m]
 
         # Compute the index array point to the first neighbor
-        self.first_neigh = first_neighbors(len(atoms), self.pair_first)
+        self.first_neigh = first_neighbors(len(positions), self.pair_first)
 
         self.nupdates += 1
 
@@ -509,7 +561,7 @@ class NeighborList:
 
         A list of indices and offsets to neighboring atoms is
         returned.  The positions of the neighbor atoms can be
-        calculated like this::
+        calculated like this:
 
           indices, offsets = nl.get_neighbors(42)
           for i, offset in zip(indices, offsets):
@@ -523,7 +575,7 @@ class NeighborList:
                 self.offset_vec[self.first_neigh[a]:self.first_neigh[a+1]])
 
 
-class LegacyNeighborList:
+class NeighborList:
     """Neighbor list object.
 
     cutoffs: list of float
@@ -550,12 +602,12 @@ class LegacyNeighborList:
     """
 
     def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
-                 bothways=False):
-        self.nl = PrimitiveNeighborList(cutoffs, skin, sorted,
-                                        self_interaction, bothways)
+                 bothways=False, primitive=PrimitiveNeighborList):
+        self.nl = primitive(cutoffs, skin, sorted, self_interaction, bothways)
 
     def update(self, atoms):
-        return self.nl.update(atoms.pbc, atoms.cell, atoms.positions)
+        return self.nl.update(atoms.pbc, atoms.get_cell(complete=True),
+                              atoms.positions)
 
     def get_neighbors(self, a):
         return self.nl.get_neighbors(a)
@@ -572,7 +624,7 @@ class LegacyNeighborList:
     def npbcneighbors(self):
         return self.nl.npbcneighbors
 
-class PrimitiveNeighborList:
+class LegacyPrimitiveNeighborList:
     """Neighbor list that works without Atoms objects.
 
     This is less fancy, but can be used to avoid conversions between
