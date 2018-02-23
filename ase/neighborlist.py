@@ -37,7 +37,8 @@ def mic(dr, cell, pbc=None):
 
 
 def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
-                            numbers=None, self_interaction=False):
+                            numbers=None, self_interaction=False,
+                            use_scaled_positions=False):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
@@ -127,7 +128,10 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     ndx, ndy, ndz = np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
-    spos_ic = np.linalg.solve(cell.T, positions.T).T
+    if use_scaled_positions:
+        spos_ic = positions
+    else:
+        spos_ic = np.linalg.solve(cell.T, positions.T).T
     bin_index_ic = np.floor(spos_ic*nbins_c).astype(int)
     cell_shift_ic = np.zeros_like(bin_index_ic)
     for c in range(3):
@@ -333,7 +337,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         return tuple(retvals)
 
 
-def neighbor_list(quantities, a, cutoff, self_interaction=False):
+def neighbor_list(quantities, a, cutoff, self_interaction=False,
+                  use_scaled_positions=False):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
@@ -426,9 +431,10 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
-    return primitive_neighbor_list(quantities, a.pbc, get_cell(complete=True),
+    return primitive_neighbor_list(quantities, a.pbc, a.get_cell(complete=True),
                                    a.positions, cutoff, numbers=a.numbers,
-                                   self_interaction=self_interaction)
+                                   self_interaction=self_interaction,
+                                   use_scaled_positions=use_scaled_positions)
 
 def first_neighbors(nat, i):
     """
@@ -493,13 +499,14 @@ class PrimitiveNeighborList:
     """
 
     def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
-                 bothways=False):
+                 bothways=False, use_scaled_positions=False):
         self.cutoffs = np.asarray(cutoffs) + skin
         self.skin = skin
         self.sorted = sorted
         self.self_interaction = self_interaction
         self.bothways = bothways
         self.nupdates = 0
+        self.use_scaled_positions = use_scaled_positions
         self.nneighbors = 0
         self.npbcneighbors = 0
 
@@ -527,9 +534,10 @@ class PrimitiveNeighborList:
         self.positions = np.array(positions, copy=True)
 
         self.pair_first, self.pair_second, self.offset_vec = \
-            primitive_neighbor_list('ijS', pbc, cell, positions, self.cutoffs,
-                                    numbers=numbers,
-                                    self_interaction=self.self_interaction)
+            primitive_neighbor_list(
+                'ijS', pbc, cell, positions, self.cutoffs, numbers=numbers,
+                self_interaction=self.self_interaction,
+                use_scaled_positions=self.use_scaled_positions)
 
         if not self.bothways:
             m = np.logical_or(
@@ -602,8 +610,12 @@ class NeighborList:
     """
 
     def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
-                 bothways=False, primitive=PrimitiveNeighborList):
-        self.nl = primitive(cutoffs, skin, sorted, self_interaction, bothways)
+                 bothways=False, use_scaled_positions=False,
+                 primitive=PrimitiveNeighborList):
+        self.nl = primitive(cutoffs, skin, sorted,
+                            self_interaction=self_interaction,
+                            bothways=bothways,
+                            use_scaled_positions=use_scaled_positions)
 
     def update(self, atoms):
         return self.nl.update(atoms.pbc, atoms.get_cell(complete=True),
