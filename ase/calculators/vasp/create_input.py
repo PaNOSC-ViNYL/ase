@@ -787,22 +787,6 @@ class GenerateVaspInput(object):
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
 
-    # # elements which have no-suffix files only
-    # setups_defaults = {'K':  '_pv',
-    #    'Ca': '_pv',
-    #    'Rb': '_pv',
-    #    'Sr': '_sv',
-    #    'Y':  '_sv',
-    #    'Zr': '_sv',
-    #    'Nb': '_pv',
-    #    'Cs': '_sv',
-    #    'Ba': '_sv',
-    #    'Fr': '_sv',
-    #    'Ra': '_sv',
-    #    'Sc': '_sv'}
-
-    # elements which have no-suffix files only
-
     def __init__(self, restart=None):
         self.float_params = {}
         self.exp_params = {}
@@ -981,7 +965,7 @@ class GenerateVaspInput(object):
         # Determine the number of atoms of each atomic species
         # sorted after atomic species
         special_setups = []
-        symbols = []
+p        symbols = []
         symbolcount = {}
 
         # Default setup lists are available: 'minimal', 'recommended' and 'GW'
