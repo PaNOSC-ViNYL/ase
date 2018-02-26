@@ -965,7 +965,7 @@ class GenerateVaspInput(object):
         # Determine the number of atoms of each atomic species
         # sorted after atomic species
         special_setups = []
-p        symbols = []
+        symbols = []
         symbolcount = {}
 
         # Default setup lists are available: 'minimal', 'recommended' and 'GW'
