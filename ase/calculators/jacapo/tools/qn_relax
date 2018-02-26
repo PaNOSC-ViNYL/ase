@@ -71,7 +71,7 @@ qn_relax -t %(tags)s %(ncfile)s
 #end''' % {'ncfile':ncfile,
         'tags':string.join([str(t) for t in freetags],',')}
 
-        print script
+        print(script)
         f = open(fname,'w')
         f.write(script)
         f.close()
@@ -94,7 +94,7 @@ qn_relax -t %(tags)s %(ncfile)s
                                                            'options':qsub_options,
                                                            'script':fname}
 
-        print cmd
+        print(cmd)
 
         os.system(cmd)
         os.close(h)

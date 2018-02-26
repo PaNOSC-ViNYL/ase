@@ -101,7 +101,7 @@ Here is an example using ``bbox``
 
 .. image:: io3.png
 
-Note that in general the XYZ-format does not contain information about the unic cell, however, ASE uses the extended XYZ-format which stores the unitcell:
+Note that in general the XYZ-format does not contain information about the unit cell, however, ASE uses the extended XYZ-format which stores the unitcell:
 
 >>> from ase.io import read, write
 >>> write('slab.xyz', slab)
@@ -113,6 +113,10 @@ array([[  5.105,   0.   ,   0.   ],
        [  0.   ,   0.   ,  18.168]])
 >>> a.get_pbc()
 array([ True,  True, False], dtype=bool)
+
+Another way to include the unit cell is to write the cell vectors at the end of the file as ``VEC<N> <x> <y> <z>`` (used for example in the ADF software).
+
+>>> write('slab.xyz', vec_cell=True)
 
 Use ASE's native format for writing all information:
 

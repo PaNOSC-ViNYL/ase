@@ -5,7 +5,8 @@ from ase.io import read, write
 
 class CLICommand:
     short_description = 'Convert between file formats'
-    description = 'Convert between file formats.  Use "-" for stdin/stdout.'
+    description = ('Convert between file formats.  Use "-" for stdin/stdout.  '
+                   'See ase info --formats for known formats.')
 
     @staticmethod
     def add_arguments(parser):

@@ -1,7 +1,10 @@
 """
 Implementation of the Precon abstract base class and subclasses
 """
-import time
+from __future__ import print_function
+
+#import time
+import warnings
 
 import numpy as np
 from scipy import sparse, rand
@@ -12,8 +15,7 @@ from ase.utils import longsum
 from ase.geometry import wrap_positions
 import ase.utils.ff as ff
 import ase.units as units
-from ase.optimize.precon import logger
-from ase.optimize.precon.neighbors import (get_neighbours, have_matscipy,
+from ase.optimize.precon.neighbors import (get_neighbours,
                                            estimate_nearest_neighbour_distance)
 try:
     from pyamg import smoothed_aggregation_solver
@@ -30,7 +32,7 @@ class Precon(object):
                  mu=None, mu_c=None,
                  dim=3, c_stab=0.1, force_stab=False,
                  recalc_mu=False, array_convention='C',
-                 use_pyamg=True, solve_tol=1e-8,
+                 solver="auto", solve_tol=1e-8,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False):
         """Initialise a preconditioner object based on passed parameters.
@@ -74,7 +76,9 @@ class Precon(object):
                 vector will be arranged atom-by-atom (ie [x1, y1, z1, x2, ...])
                 while the F convention assumes it will be arranged component
                 by component (ie [x1, x2, ..., y1, y2, ...]).
-            use_pyamg: use PyAMG to solve P x = y, if available.
+            solver: One of "auto", "direct" or "pyamg", specifying whether to use
+               a direst sparse solver or PyAMG to solve P x = y. Default is "auto" which 
+               uses PyAMG if available, falling back to sparse solver if not.
             solve_tol: tolerance used for PyAMG sparse linear solver,
             if available.
             apply_positions: if True, apply preconditioner to position DoF
@@ -97,11 +101,17 @@ class Precon(object):
         self.P = None
         self.old_positions = None
 
-        if use_pyamg and not have_pyamg:
+        use_pyamg = False
+        if solver == "auto":
+            use_pyamg = have_pyamg
+        elif solver == "direct":
             use_pyamg = False
-            logger.warning('use_pyamg=True but PyAMG cannot be imported! '
-                           'falling back on direct inversion of '
-                           'preconditioner, may be slow for large systems')
+        elif solver == "pyamg":
+            if not have_pyamg:
+                raise RuntimeError('solver="pyamg" but PyAMG cannot be imported!')
+            use_pyamg = True
+        else:
+            raise ValueError('unknown solver - should be "auto", "direct" or "pyamg"')
 
         self.use_pyamg = use_pyamg
         self.solve_tol = solve_tol
@@ -112,9 +122,9 @@ class Precon(object):
             raise ValueError('Dimension must be at least 1')
         self.dim = dim
 
-        if not have_matscipy:
-            logger.info('Unable to import Matscipy. Neighbour list '
-                        'calculations may be very slow.')
+        #if not have_matscipy:
+        #    warnings.warn('Unable to import Matscipy. Neighbour list '
+        #                  'calculations may be very slow.')
 
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
@@ -153,8 +163,7 @@ class Precon(object):
                        'increasing to 1.1*r_NN = %.2f' % (self.r_cut,
                                                           self.r_NN,
                                                           1.1 * self.r_NN))
-            logger.info(warning)
-            print(warning)
+            warnings.warn(warning)
             self.r_cut = 1.1 * self.r_NN
 
         if recalc_mu is None:
@@ -181,18 +190,18 @@ class Precon(object):
                                           real_atoms.cell) - self.old_positions
             self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
-            logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
-                        max_abs_displacement, max_abs_displacement / self.r_NN)
+            #print('max(abs(displacements)) = %.2f A (%.2f r_NN)' %
+            #            (max_abs_displacement, max_abs_displacement / self.r_NN))
             if max_abs_displacement < 0.5 * self.r_NN:
                 return self.P
 
-        start_time = time.time()
+        #start_time = time.time()
 
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
 
-        logger.info('--- Precon created in %s seconds ---',
-                    time.time() - start_time)
+        #print('--- Precon created in %s seconds ---' %
+        #            (time.time() - start_time))
         return self.P
 
     def _make_sparse_precon(self, atoms, initial_assembly=False,
@@ -215,26 +224,26 @@ class Precon(object):
             sparse matrix instead.
 
         """
-        logger.info('creating sparse precon: initial_assembly=%r, '
-                    'force_stab=%r, apply_positions=%r, apply_cell=%r',
-                    initial_assembly, force_stab, self.apply_positions,
-                    self.apply_cell)
+#         print('creating sparse precon: initial_assembly=%r, '
+#               'force_stab=%r, apply_positions=%r, apply_cell=%r' %
+#                (initial_assembly, force_stab, self.apply_positions,
+#                self.apply_cell))
 
         N = len(atoms)
         diag_i = np.arange(N, dtype=int)
-        start_time = time.time()
+        #start_time = time.time()
         if self.apply_positions:
             # compute neighbour list
             i, j, rij, fixed_atoms = get_neighbours(atoms, self.r_cut)
-            logger.info('--- neighbour list created in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- neighbour list created in %s s ---' %
+            #            ((time.time() - start_time)))
 
             # compute entries in triplet format: without the constraints
-            start_time = time.time()
+            #start_time = time.time()
             coeff = self.get_coeff(rij)
             diag_coeff = np.bincount(i, -coeff, minlength=N).astype(np.float64)
             if force_stab or len(fixed_atoms) == 0:
-                logger.info('adding stabilisation to preconditioner')
+                #print('adding stabilisation to preconditioner')
                 diag_coeff += self.mu * self.c_stab
         else:
             diag_coeff = np.ones(N)
@@ -249,42 +258,42 @@ class Precon(object):
                 diag_coeff[-3] = 1.0
                 diag_coeff[-2] = 1.0
                 diag_coeff[-1] = 1.0
-        logger.info('--- computed triplet format in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- computed triplet format in %s s ---' %
+        #            (time.time() - start_time))
 
         if self.apply_positions and not initial_assembly:
             # apply the constraints
-            start_time = time.time()
+            #start_time = time.time()
             mask = np.ones(N)
             mask[fixed_atoms] = 0.0
             coeff *= mask[i] * mask[j]
             diag_coeff[fixed_atoms] = 1.0
-            logger.info('--- applied fixed_atoms in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- applied fixed_atoms in %s s ---' %
+            #            (time.time() - start_time))
 
         if self.apply_positions:
             # remove zeros
-            start_time = time.time()
+            #start_time = time.time()
             inz = np.nonzero(coeff)
             i = np.hstack((i[inz], diag_i))
             j = np.hstack((j[inz], diag_i))
             coeff = np.hstack((coeff[inz], diag_coeff))
-            logger.info('--- remove zeros in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- remove zeros in %s s ---' %
+            #            (time.time() - start_time))
         else:
             i = diag_i
             j = diag_i
             coeff = diag_coeff
 
         # create the matrix
-        start_time = time.time()
+        #start_time = time.time()
         csc_P = sparse.csc_matrix((coeff, (i, j)), shape=(N, N))
-        logger.info('--- created CSC matrix in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- created CSC matrix in %s s ---' %
+        #            (time.time() - start_time))
 
         self.csc_P = csc_P
 
-        start_time = time.time()
+        #start_time = time.time()
         if self.dim == 1:
             self.P = csc_P
         elif self.array_convention == 'F':
@@ -306,12 +315,12 @@ class Precon(object):
             self.P = sparse.csc_matrix((Z, (I, J)),
                                        shape=(self.dim * N, self.dim * N))
             self.P = self.P.tocsr()
-        logger.info('--- N-dim precon created in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- N-dim precon created in %s s ---' %
+        #            (time.time() - start_time))
 
         # Create solver
         if self.use_pyamg and have_pyamg:
-            start_time = time.time()
+            #start_time = time.time()
             self.ml = smoothed_aggregation_solver(
                 self.P, B=None,
                 strength=('symmetric', {'theta': 0.0}),
@@ -329,8 +338,8 @@ class Precon(object):
                 max_levels=15,
                 max_coarse=300,
                 coarse_solver='pinv')
-            logger.info('--- multi grid solver created in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- multi grid solver created in %s s ---' %
+            #            (time.time() - start_time))
 
         return self.P
 
@@ -346,7 +355,7 @@ class Precon(object):
         """
         Solve the (sparse) linear system P x = y and return y
         """
-        start_time = time.time()
+        #start_time = time.time()
         if self.use_pyamg and have_pyamg:
             y = self.ml.solve(x, x0=rand(self.P.shape[0]),
                               tol=self.solve_tol,
@@ -355,8 +364,8 @@ class Precon(object):
                               cycle='W')
         else:
             y = spsolve(self.P, x)
-        logger.info('--- Precon applied in %s seconds ---',
-                    time.time() - start_time)
+        #print('--- Precon applied in %s seconds ---' %
+        #            (time.time() - start_time))
         return y
 
     def get_coeff(self, r):
@@ -425,8 +434,8 @@ class Precon(object):
                                                                  :3 * n]
             eigvals, eigvecs = sparse.linalg.eigsh(P0, k=4, which='SM')
 
-            logger.debug('estimate_mu(): lowest 4 eigvals = %f %f %f %f'
-                         % (eigvals[0], eigvals[1], eigvals[2], eigvals[3]))
+            #print('estimate_mu(): lowest 4 eigvals = %f %f %f %f'
+            #             % (eigvals[0], eigvals[1], eigvals[2], eigvals[3]))
             # check eigenvalues
             if any(eigvals[0:3] > 1e-6):
                 raise ValueError('First 3 eigenvalues of preconditioner matrix'
@@ -454,8 +463,7 @@ class Precon(object):
             self.c_stab = c_stab
         else:
             Lx, Ly, Lz = [p[:, i].max() - p[:, i].min() for i in range(3)]
-            logger.debug('estimate_mu(): Lx=%.1f Ly=%.1f Lz=%.1f',
-                         Lx, Ly, Lz)
+            #print('estimate_mu(): Lx=%.1f Ly=%.1f Lz=%.1f' % (Lx, Ly, Lz))
 
             x, y, z = p.T
             # sine_vr = [np.sin(x/Lx), np.sin(y/Ly), np.sin(z/Lz)], but we need
@@ -465,7 +473,7 @@ class Precon(object):
 
             for i, L in enumerate([Lx, Ly, Lz]):
                 if L == 0:
-                    logger.warning(
+                    warnings.warn(
                         'Cell length L[%d] == 0. Setting H[%d,%d] = 0.' %
                         (i, i, i))
                     H[i, i] = 0.0
@@ -508,17 +516,17 @@ class Precon(object):
         # use partial sums to compute separate mu for positions and cell DoFs
         self.mu = longsum(LHS[:3 * natoms]) / longsum(RHS[:3 * natoms])
         if self.mu < 1.0:
-            logger.info('mu (%.3f) < 1.0, capping at mu=1.0', self.mu)
+            warnings.warn('mu (%.3f) < 1.0, capping at mu=1.0' % self.mu)
             self.mu = 1.0
 
         if isinstance(atoms, Filter):
             self.mu_c = longsum(LHS[3 * natoms:]) / longsum(RHS[3 * natoms:])
             if self.mu_c < 1.0:
-                logger.info(
-                    'mu_c (%.3f) < 1.0, capping at mu_c=1.0', self.mu_c)
+                print(
+                    'mu_c (%.3f) < 1.0, capping at mu_c=1.0' % self.mu_c)
                 self.mu_c = 1.0
 
-        logger.info('estimate_mu(): mu=%r, mu_c=%r', self.mu, self.mu_c)
+        print('estimate_mu(): mu=%r, mu_c=%r' % (self.mu, self.mu_c))
 
         self.P = None  # force a rebuild with new mu (there may be fixed atoms)
         return (self.mu, self.mu_c)
@@ -592,14 +600,14 @@ class C1(Precon):
     def __init__(self, r_cut=None, mu=None, mu_c=None, dim=3, c_stab=0.1,
                  force_stab=False,
                  recalc_mu=False, array_convention='C',
-                 use_pyamg=True, solve_tol=1e-9,
+                 solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True):
         Precon.__init__(self, r_cut=r_cut, mu=mu, mu_c=mu_c,
                         dim=dim, c_stab=c_stab,
                         force_stab=force_stab,
                         recalc_mu=recalc_mu,
                         array_convention=array_convention,
-                        use_pyamg=use_pyamg, solve_tol=solve_tol,
+                        solver=solver, solve_tol=solve_tol,
                         apply_positions=apply_positions,
                         apply_cell=apply_cell)
 
@@ -614,7 +622,7 @@ class Exp(Precon):
     def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None,
                  dim=3, c_stab=0.1,
                  force_stab=False, recalc_mu=False, array_convention='C',
-                 use_pyamg=True, solve_tol=1e-9,
+                 solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False):
         """Initialise an Exp preconditioner with given parameters.
@@ -629,7 +637,7 @@ class Exp(Precon):
                         force_stab=force_stab,
                         recalc_mu=recalc_mu,
                         array_convention=array_convention,
-                        use_pyamg=use_pyamg,
+                        solver=solver,
                         solve_tol=solve_tol,
                         apply_positions=apply_positions,
                         apply_cell=apply_cell,
@@ -646,7 +654,7 @@ class FF(Precon):
     """
 
     def __init__(self, dim=3, c_stab=0.1, force_stab=False,
-                 array_convention='C', use_pyamg=True, solve_tol=1e-9,
+                 array_convention='C', solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  hessian='reduced', morses=None, bonds=None, angles=None,
                  dihedrals=None):
@@ -671,7 +679,7 @@ class FF(Precon):
                         dim=dim, c_stab=c_stab,
                         force_stab=force_stab,
                         array_convention=array_convention,
-                        use_pyamg=use_pyamg,
+                        solver=solver,
                         solve_tol=solve_tol,
                         apply_positions=apply_positions,
                         apply_cell=apply_cell)
@@ -684,20 +692,17 @@ class FF(Precon):
 
     def make_precon(self, atoms):
 
-        start_time = time.time()
-
+        #start_time = time.time()
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
-
-        logger.info('--- Precon created in %s seconds ---',
-                    time.time() - start_time)
+        #print('--- Precon created in %s seconds ---' % time.time() - start_time)
         return self.P
 
     def _make_sparse_precon(self, atoms, initial_assembly=False,
                             force_stab=False):
         """ """
 
-        start_time = time.time()
+        #start_time = time.time()
 
         N = len(atoms)
 
@@ -778,11 +783,11 @@ class FF(Precon):
         data.extend([self.c_stab] * self.dim * N)
 
         # create the matrix
-        start_time = time.time()
+        #start_time = time.time()
         self.P = sparse.csc_matrix(
             (data, (row, col)), shape=(self.dim * N, self.dim * N))
-        logger.info('--- created CSC matrix in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- created CSC matrix in %s s ---' %
+        #            (time.time() - start_time))
 
         fixed_atoms = []
         for constraint in atoms.constraints:
@@ -800,12 +805,12 @@ class FF(Precon):
 
         self.P = self.P.tocsr()
 
-        logger.info('--- N-dim precon created in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- N-dim precon created in %s s ---' %
+        #            (time.time() - start_time))
 
         # Create solver
-        if self.use_pyamg and have_pyamg:
-            start_time = time.time()
+        if self.use_pyamg:
+            #start_time = time.time()
             self.ml = smoothed_aggregation_solver(
                 self.P, B=None,
                 strength=('symmetric', {'theta': 0.0}),
@@ -823,8 +828,8 @@ class FF(Precon):
                 max_levels=15,
                 max_coarse=300,
                 coarse_solver='pinv')
-            logger.info('--- multi grid solver created in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- multi grid solver created in %s s ---' %
+            #            (time.time() - start_time))
 
         return self.P
 
@@ -836,7 +841,7 @@ class Exp_FF(Exp, FF):
     def __init__(self, A=3.0, r_cut=None, r_NN=None, mu=None, mu_c=None,
                  dim=3, c_stab=0.1,
                  force_stab=False, recalc_mu=False, array_convention='C',
-                 use_pyamg=True, solve_tol=1e-9,
+                 solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False,
                  hessian='reduced', morses=None, bonds=None, angles=None,
@@ -859,7 +864,7 @@ class Exp_FF(Exp, FF):
                         force_stab=force_stab,
                         recalc_mu=recalc_mu,
                         array_convention=array_convention,
-                        use_pyamg=use_pyamg,
+                        solver=solver,
                         solve_tol=solve_tol,
                         apply_positions=apply_positions,
                         apply_cell=apply_cell,
@@ -886,8 +891,7 @@ class Exp_FF(Exp, FF):
                        'increasing to 1.1*r_NN = %.2f' % (self.r_cut,
                                                           self.r_NN,
                                                           1.1 * self.r_NN))
-            logger.info(warning)
-            print(warning)
+            warnings.warn(warning)
             self.r_cut = 1.1 * self.r_NN
 
         if recalc_mu is None:
@@ -914,19 +918,18 @@ class Exp_FF(Exp, FF):
                                           real_atoms.cell) - self.old_positions
             self.old_positions = real_atoms.get_positions()
             max_abs_displacement = abs(displacement).max()
-            logger.info('max(abs(displacements)) = %.2f A (%.2f r_NN)',
-                        max_abs_displacement,
-                        max_abs_displacement / self.r_NN)
+            print('max(abs(displacements)) = %.2f A (%.2f r_NN)' %
+                        (max_abs_displacement,
+                         max_abs_displacement / self.r_NN))
             if max_abs_displacement < 0.5 * self.r_NN:
                 return self.P
 
-        start_time = time.time()
+        #start_time = time.time()
 
         # Create the preconditioner:
         self._make_sparse_precon(atoms, force_stab=self.force_stab)
 
-        logger.info('--- Precon created in %s seconds ---',
-                    time.time() - start_time)
+        #print('--- Precon created in %s seconds ---' % (time.time() - start_time))
         return self.P
 
     def _make_sparse_precon(self, atoms, initial_assembly=False,
@@ -944,19 +947,19 @@ class Exp_FF(Exp, FF):
             sparse matrix instead.
 
         """
-        logger.info('creating sparse precon: initial_assembly=%r, '
-                    'force_stab=%r, apply_positions=%r, apply_cell=%r',
-                    initial_assembly, force_stab, self.apply_positions,
-                    self.apply_cell)
+        #print('creating sparse precon: initial_assembly=%r, '
+        #       'force_stab=%r, apply_positions=%r, apply_cell=%r' %
+        #       (initial_assembly, force_stab, self.apply_positions,
+        #       self.apply_cell))
 
         N = len(atoms)
-        start_time = time.time()
+        #start_time = time.time()
         if self.apply_positions:
             # compute neighbour list
             i_list, j_list, rij_list, fixed_atoms = get_neighbours(
                 atoms, self.r_cut)
-            logger.info('--- neighbour list created in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- neighbour list created in %s s ---' %
+            #            (time.time() - start_time))
 
         row = []
         col = []
@@ -975,8 +978,8 @@ class Exp_FF(Exp, FF):
                 data.extend(np.repeat(self.mu_c, 9))
             else:
                 data.extend(np.repeat(self.mu_c, 9))
-        logger.info('--- computed triplet format in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- computed triplet format in %s s ---' %
+        #            (time.time() - start_time))
 
         conn = sparse.lil_matrix((N, N), dtype=bool)
 
@@ -1082,11 +1085,11 @@ class Exp_FF(Exp, FF):
             data.extend([self.c_stab] * self.dim * N)
 
         # create the matrix
-        start_time = time.time()
+        #start_time = time.time()
         self.P = sparse.csc_matrix(
             (data, (row, col)), shape=(self.dim * N, self.dim * N))
-        logger.info('--- created CSC matrix in %s s ---' %
-                    (time.time() - start_time))
+        #print('--- created CSC matrix in %s s ---' %
+        #            (time.time() - start_time))
 
         if not initial_assembly:
             if len(fixed_atoms) != 0:
@@ -1099,8 +1102,8 @@ class Exp_FF(Exp, FF):
         self.P = self.P.tocsr()
 
         # Create solver
-        if self.use_pyamg and have_pyamg:
-            start_time = time.time()
+        if self.use_pyamg:
+            #start_time = time.time()
             self.ml = smoothed_aggregation_solver(
                 self.P, B=None,
                 strength=('symmetric', {'theta': 0.0}),
@@ -1118,7 +1121,7 @@ class Exp_FF(Exp, FF):
                 max_levels=15,
                 max_coarse=300,
                 coarse_solver='pinv')
-            logger.info('--- multi grid solver created in %s s ---' %
-                        (time.time() - start_time))
+            #print('--- multi grid solver created in %s s ---' %
+            #            (time.time() - start_time))
 
         return self.P

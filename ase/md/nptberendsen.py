@@ -54,11 +54,11 @@ class NPTBerendsen(NVTBerendsen):
         self.pressure = pressure
         self.compressibility = compressibility
 
-    def set_taup(self, taut):
-        self.taut = taut
+    def set_taup(self, taup):
+        self.taup = taup
 
     def get_taup(self):
-        return self.taut
+        return self.taup
 
     def set_pressure(self, pressure):
         self.pressure = pressure

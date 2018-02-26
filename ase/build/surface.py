@@ -440,6 +440,9 @@ def fcc211(symbol, size, a=None, vacuum=None, orthogonal=True):
     newatoms = atoms.copy()
     for index, order in enumerate(orders):
         newatoms[index].position = atoms[order[0]].position.copy()
+
+    # Add empty 'sites' dictionary for consistency with other functions
+    newatoms.info['adsorbate_info'] = {'sites': {}}
     return newatoms
 
 

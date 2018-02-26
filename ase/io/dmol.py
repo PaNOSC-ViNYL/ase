@@ -72,10 +72,11 @@ def write_dmol_car(filename, atoms):
 
     symbols = atoms.get_chemical_symbols()
     if np.all(atoms.pbc):
-        # Rotate positions so they will allign with cellpar cell
+        # Rotate positions so they will align with cellpar cell
         cellpar = cell_to_cellpar(atoms.cell)
         new_cell = cellpar_to_cell(cellpar)
-        lstsq_fit = np.linalg.lstsq(atoms.cell, new_cell)
+        lstsq_fit = np.linalg.lstsq(atoms.cell, new_cell, rcond=-1)
+        # rcond=-1 silences FutureWarning in numpy 1.14
         R = lstsq_fit[0]
         positions = np.dot(atoms.positions, R)
 
@@ -223,7 +224,7 @@ def write_dmol_arc(filename, images):
         if np.all(atoms.pbc):
             cellpar = cell_to_cellpar(atoms.cell)
             new_cell = cellpar_to_cell(cellpar)
-            lstsq_fit = np.linalg.lstsq(atoms.cell, new_cell)
+            lstsq_fit = np.linalg.lstsq(atoms.cell, new_cell, rcond=-1)
             R = lstsq_fit[0]
             f.write('!DATE     %s\n' % dt.strftime('%b %d %H:%m:%S %Y'))
             f.write('PBC %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n'

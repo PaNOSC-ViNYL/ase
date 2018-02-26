@@ -9,14 +9,16 @@ mc1 = [[1, 0, 0], [0, 1, 0], [0, 0.2, 1]]
 par = cell_to_cellpar(mc1)
 mc2 = cellpar_to_cell(par)
 mc3 = [[1, 0, 0], [0, 1, 0], [-0.2, 0, 1]]
+mc4 = [[1, 0, 0], [-0.2, 1, 0], [0, 0, 1]]
 path = 'GYHCEM1AXH1'
 
 firsttime = True
-for cell in [mc1, mc2, mc3]:
+for cell in [mc1, mc2, mc3, mc4]:
     a = Atoms(cell=cell, pbc=True)
     a.cell *= 3
     a.calc = FreeElectrons(nvalence=1, kpts={'path': path})
-    print(crystal_structure_from_cell(a.cell))
+    cs = crystal_structure_from_cell(a.cell)
+    assert cs == 'monoclinic'
     r = a.get_reciprocal_cell()
     k = get_special_points(a.cell)['H']
     print(np.dot(k, r))

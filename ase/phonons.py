@@ -431,7 +431,6 @@ class Phonons(Displacement):
 
         # Add mass prefactor
         m_a = self.atoms.get_masses()
-        print(m_a.shape, self.indices)
         self.m_inv_x = np.repeat(m_a[self.indices]**-0.5, 3)
         M_inv = np.outer(self.m_inv_x, self.m_inv_x)
         for D in self.D_N:

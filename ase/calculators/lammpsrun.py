@@ -392,7 +392,8 @@ class LAMMPS:
                 f.write('create_atoms {0} single {1} {2} {3} units box\n'
                         ''.format(
                             *((species_i[s],) +
-                              p.pos_to_lammps_fold_str(pos))).encode('utf-8'))
+                              self.prism.pos_to_lammps_fold_str(pos))
+                        ).encode('utf-8'))
 
         # if NOT self.no_lammps_data, then simply refer to the data-file
         else:
