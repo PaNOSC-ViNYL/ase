@@ -1003,12 +1003,12 @@ class GenerateVaspInput(object):
 
         # String shortcuts are initialised to dict form
         elif isinstance(p['setups'], str):
-            if p['setups'] in ('minimal', 'recommended', 'GW'):
+            if p['setups'].lower() in ('minimal', 'recommended', 'gw'):
                 p['setups'] = {'base': p['setups']}
 
         # Dict form is then queried to add defaults from setups.py.
         if 'base' in p['setups']:
-            setups = setups_defaults[p['setups']['base']]
+            setups = setups_defaults[p['setups']['base'].lower()]
         else:
             setups = {}
 
