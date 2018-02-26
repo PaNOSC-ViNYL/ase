@@ -170,6 +170,10 @@ class ResonantRaman(Vibrations):
             fd.close()
         if self.overlap:
             self.timer.start('Overlap')
+            """Overlap is determined as
+
+            ov_ij = \int dr displaced*_i(r) eqilibrium_j(r)
+            """
             ov_nn = self.overlap(self.atoms.get_calculator(),
                                  self.eq_calculator)
             if rank == 0:
@@ -287,7 +291,12 @@ class ResonantRaman(Vibrations):
         self.timer.stop('me and energy')
 
     def read_excitations_overlap(self):
-        """Read all finite difference excitations and wf overlaps."""
+        """Read all finite difference excitations and wf overlaps.
+
+        We assume that the wave function overlaps are determined as
+
+        ov_ij = \int dr displaced*_i(r) eqilibrium_j(r)
+        """
         self.timer.start('read excitations')
         self.timer.start('read+rotate')
         self.log('reading ' + self.exname + '.eq' + self.exext)
