@@ -44,6 +44,9 @@ Git master branch
 
       min(bandgap(..., spin=s, direst=True) for s in [0, 1])
 
+* Bug fixed in the :meth:`ase.phonons.Phonons.symmetrize` method when using an
+  even number of repeats.
+
 
 Version 3.15.0
 ==============
