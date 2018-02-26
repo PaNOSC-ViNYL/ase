@@ -625,6 +625,7 @@ class ResonantRaman(Vibrations):
         parprint('-------------------------------------', file=log)
         parprint(' excitation at ' + str(omega) + ' eV', file=log)
         parprint(' gamma ' + str(gamma) + ' eV', file=log)
+        parprint(' method:', self.method, file=log)
         parprint(' approximation:', self.approximation, file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
         parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
