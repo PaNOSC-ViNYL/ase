@@ -164,9 +164,9 @@ Three base setups are provided:
         this will be used. For the other elements, the PAW setup
         with the least electrons has been chosen.
     recommended:
-        corresponds to `this table <https://cms.mpi.univie.ac.at/vasp/vasp/Recommended_PAW_potentials_DFT_calculations_using_vasp_5_2.html>`_ supplied by the VASP developers.
+        corresponds to the `table of recommended PAW setups <https://cms.mpi.univie.ac.at/vasp/vasp/Recommended_PAW_potentials_DFT_calculations_using_vasp_5_2.html>`_ supplied by the VASP developers.
     gw:
-        corresponds to `this table <https://cms.mpi.univie.ac.at/vasp/vasp/Recommended_GW_PAW_potentials_vasp_5_2.html>`_ supplied by the VASP developers.
+        corresponds to the `table of recommended setups for GW <https://cms.mpi.univie.ac.at/vasp/vasp/Recommended_GW_PAW_potentials_vasp_5_2.html>`_ supplied by the VASP developers.
 
 Where elements are missing from the default sets, the Vasp Calculator
 will attempt to use a setup folder with the same name as the element.
