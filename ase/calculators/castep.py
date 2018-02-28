@@ -915,7 +915,7 @@ End CASTEP Interface Documentation
 
                             # the check for len==7 is due to CASTEP 18 outformat changes
                             if spin_polarized:
-                                if not len(fields) == 7:
+                                if len(fields) != 7:
                                     spins.append(float(fields[-1]))
                                     mulliken_charges.append(float(fields[-2]))
                             else:
@@ -929,7 +929,7 @@ End CASTEP Interface Documentation
                     self._warnings.append(line)
 
             except Exception as exception:
-                print(line + '|-> line triggered exception: ' +
+                sys.stderr.write(line + '|-> line triggered exception: ' +
                       str(exception))
                 raise
 
@@ -1808,11 +1808,10 @@ End CASTEP Interface Documentation
         ok_string = r'.*DRYRUN finished.*No problems found with input files.*'
         match = re.match(ok_string, txt, re.DOTALL)
 
-        try:
-            self._kpoints = int(
-                re.search(
-                    r'Number of kpoints used =\w*([0-9]+)', txt).group(1))
-        except:
+        m = re.search(r'Number of kpoints used =\s*([0-9]+)', txt)
+        if m:
+            self._kpoints = int(m.group(1))
+        else:
             print('Couldn\'t fetch number of kpoints from dryrun CASTEP file')
 
         err_file = os.path.join(temp_dir, '%s.0001.err' % seed)
