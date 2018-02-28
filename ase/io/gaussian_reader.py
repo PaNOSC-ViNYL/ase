@@ -86,7 +86,7 @@ class GaussianReader:
                 position = charge_multiplicity + 1
                 while position < len(i) and i[position] != "":
                     s = i[position].split(",")
-                    atoms.append(atomic_numbers[s[0]])
+                    atoms.append(atomic_numbers[s[0].capitalize()])
                     positions.append([float(s[1]), float(s[2]), float(s[3])])
                     position = position + 1
 

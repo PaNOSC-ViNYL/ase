@@ -400,7 +400,7 @@ def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict, nvec=0
 
     symbols = None
     if 'symbols' in arrays:
-        symbols = arrays['symbols']
+        symbols = [s.capitalize() for s in arrays['symbols']]
         del arrays['symbols']
 
     numbers = None
