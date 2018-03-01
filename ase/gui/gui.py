@@ -295,6 +295,16 @@ class GUI(View, Status):
         process.stdin.close()
         self.graphs.append(process)
 
+    def reciprocal(self):
+        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
+        os.close(fd)
+        self.images.write(filename)
+        os.system('(sleep 60; rm %s) &' % filename)
+        process = subprocess.Popen([sys.executable, '-m', 'ase', 'reciprocal',
+                                    filename],
+                                   stdin=subprocess.PIPE)
+        process.stdin.close()
+
     def open(self, button=None, filename=None):
         chooser = ui.ASEFileChooser(self.window.win)
 
@@ -501,7 +511,8 @@ class GUI(View, Status):
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('_Rotate atoms'), self.toggle_rotate_mode, 'Ctrl+R'),
               M(_('NE_B'), self.neb),
-              M(_('B_ulk Modulus'), self.bulk_modulus)]),
+              M(_('B_ulk Modulus'), self.bulk_modulus),
+              M(_('Reciprocal space ...'), self.reciprocal)]),
 
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             (_('_Setup'),
