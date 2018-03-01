@@ -94,7 +94,7 @@ and :math:`\alpha,\beta` for empty orbitals, this is
 
    O_{i\alpha,j\beta} = o_{ij}^* o_{\alpha\beta}
 
- Example::
+Example::
 
   from ase.vibrations.albrecht import Albrecht
 
