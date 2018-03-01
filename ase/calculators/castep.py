@@ -477,6 +477,9 @@ End CASTEP Interface Documentation
         self._spins = None
         self._hirsh_volrat = None
 
+        # Mulliken charges
+        self._mulliken_charges = None
+
         self._number_of_cell_constraints = None
         self._output_verbosity = None
         self._stress = None
@@ -660,6 +663,8 @@ End CASTEP Interface Documentation
         # Hirshfeld volumes are calculated
         spin_polarized = False
         calculate_hirshfeld = False
+        mulliken_analysis = False
+        kpoints = None
 
         positions_frac_list = []
 
@@ -683,6 +688,8 @@ End CASTEP Interface Documentation
                     spin_polarized = True
                 elif 'treating system as non-spin-polarized' in line:
                     spin_polarized = False
+                elif 'Number of kpoints used' in line:
+                    kpoints = int(line.split('=')[-1].strip())
                 elif 'Unit Cell' in line:
                     lattice_real = []
                     lattice_reci = []
@@ -868,6 +875,14 @@ End CASTEP Interface Documentation
                     if n_cell_const < 6:
                         lattice_real = []
                         lattice_reci = []
+                    # backup previous configuration first:
+                    # for highly symmetric systems (where essentially only the
+                    # stress is optimized, but the atomic positions) positions
+                    # are only printed once.
+                    if species:
+                        prev_species = deepcopy(species)
+                    if positions_frac:
+                        prev_positions_frac = deepcopy(positions_frac)
                     species = []
                     positions_frac = []
                     forces = []
@@ -877,60 +892,69 @@ End CASTEP Interface Documentation
                     # stress = []
                     stress = np.zeros([3, 3])
 
-                elif 'BFGS: Final Configuration:' in line:
-                    break
+                # extract info from the Mulliken analysis
+                elif 'Atomic Populations' in line:
+                    # sometimes this appears twice in a castep file
+                    mulliken_charges = []
+                    spins = []
+
+                    mulliken_analysis = True
+                    # skip the separating line
+                    line = out.readline()
+                    # this is the headline
+                    line = out.readline()
+
+                    if 'Charge' in line:
+                        # skip the next separator line
+                        line = out.readline()
+                        while True:
+                            line = out.readline()
+                            fields = line.split()
+                            if len(fields) == 1:
+                                break
+
+                            # the check for len==7 is due to CASTEP 18 outformat changes
+                            if spin_polarized:
+                                if len(fields) != 7:
+                                    spins.append(float(fields[-1]))
+                                    mulliken_charges.append(float(fields[-2]))
+                            else:
+                                mulliken_charges.append(float(fields[-1]))
+
+                # There is actually no good reason to get out of the loop
+                # already at this point... or do I miss something?
+                #elif 'BFGS: Final Configuration:' in line:
+                #    break
                 elif 'warn' in line.lower():
                     self._warnings.append(line)
+
             except Exception as exception:
-                print(line, end=' ')
-                print('|-> line triggered exception: ' + str(exception))
+                sys.stderr.write(line + '|-> line triggered exception: ' +
+                      str(exception))
                 raise
-
-        # get the spins in a separate run over the file as we
-        # do not want to break the BFGS-break construct
-        # probably one can implement it in a more convenient
-        # way, but this constructon does the job.
-
-        if spin_polarized:
-            spins = []
-            out.seek(record_start)
-            while True:
-                try:
-                    line = out.readline()
-                    if not line or out.tell() > record_end:
-                        break
-                    elif 'Atomic Populations' in line:
-                        # skip the separating line
-                        line = out.readline()
-                        # this is the headline
-                        line = out.readline()
-                        if 'Spin' in line:
-                            # skip the next separator line
-                            line = out.readline()
-                            while True:
-                                line = out.readline()
-                                fields = line.split()
-                                if len(fields) == 1:
-                                    break
-                                # the check for len==7 is due to CASTEP 18 outformat changes
-                                if not len(fields) == 7:
-                                    spins.append(float(fields[-1]))
-                        break
-
-                except Exception as exception:
-                    print(line + '|-> line triggered exception: ' +
-                          str(exception))
-                    raise
-        else:
-            # set to zero spin if non-spin polarized calculation
-            spins = np.zeros(len(positions_frac))
 
         if _close:
             out.close()
 
+        # in highly summetric crystals, positions and symmetry are only printed
+        # upon init, hence we here restore these original values
+        if not positions_frac:
+            positions_frac = prev_positions_frac
+        if not species:
+            species = prev_species
+
+        if not spin_polarized:
+            # set to zero spin if non-spin polarized calculation
+            spins = np.zeros(len(positions_frac))
+
         positions_frac_atoms = np.array(positions_frac)
         forces_atoms = np.array(forces)
         spins_atoms = np.array(spins)
+
+        if mulliken_analysis:
+            mulliken_charges_atoms = np.array(mulliken_charges)
+        else:
+            mulliken_charges_atoms = np.zeros(len(positions_frac))
 
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
@@ -951,6 +975,7 @@ End CASTEP Interface Documentation
             forces_castep = np.array(forces)
             hirsh_castep = np.array(hirsh_volrat)
             spins_castep = np.array(spins)
+            mulliken_charges_castep = np.array(mulliken_charges_atoms)
 
             # go through the atoms position list and replace
             # with the corresponding one from the
@@ -967,6 +992,7 @@ End CASTEP Interface Documentation
                         if spin_polarized:
                             # reordering not necessary in case all spins == 0
                             spins_atoms[iase] = np.array(spins_castep[icastep])
+                        mulliken_charges_atoms[iase] = np.array(mulliken_charges_castep[icastep])
                         atoms_assigned[icastep] = True
                         break
 
@@ -1007,13 +1033,17 @@ End CASTEP Interface Documentation
                 # this one fails as is
                 atoms.set_initial_magnetic_moments(magmoms=spins_atoms)
 
+            if mulliken_analysis:
+                atoms.set_initial_charges(charges=mulliken_charges_atoms)
             atoms.set_calculator(self)
 
+        self._kpoints = kpoints
         self._forces = forces_atoms
         # stress in .castep file is given in GPa:
         self._stress = np.array(stress) * units.GPa
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
+        self._mulliken_charges = mulliken_charges_atoms
 
         if self._warnings:
             print('WARNING: %s contains warnings' % castep_file)
@@ -1117,6 +1147,12 @@ End CASTEP Interface Documentation
         Return the spins from a plane-wave Mulliken analysis.
         """
         return self._spins
+
+    def get_mulliken_charges(self):
+        """
+        Return the charges from a plane-wave Mulliken analysis.
+        """
+        return self._mulliken_charges
 
     def set_label(self, label):
         """The label is part of each seed, which in turn is a prefix
@@ -1289,7 +1325,12 @@ End CASTEP Interface Documentation
     def get_stress(self, atoms):
         """Return the stress."""
         self.update(atoms)
-        return self._stress
+        # modification: we return the Voigt form directly to get rid of the
+        # annoying user warnings
+        stress = np.array([self._stress[0, 0], self._stress[1, 1], self._stress[2, 2],
+                           self._stress[1, 2], self._stress[0, 2], self._stress[0, 1]])
+        #return self._stress
+        return stress
 
     @_self_getter
     def get_unit_cell(self, atoms):
@@ -1308,6 +1349,18 @@ End CASTEP Interface Documentation
         """Return the number of cell constraints."""
         self.update(atoms)
         return self._number_of_cell_constraints
+
+    @_self_getter
+    def get_charges(self, atoms):
+        """Run CASTEP calculation if needed and return Mulliken charges."""
+        self.update(atoms)
+        return np.array(self._mulliken_charges)
+
+    @_self_getter
+    def get_magnetic_moments(self, atoms):
+        """Run CASTEP calculation if needed and return Mulliken charges."""
+        self.update(atoms)
+        return np.array(self._spins)
 
     def set_atoms(self, atoms):
         """Sets the atoms for the calculator and vice versa."""
@@ -1755,11 +1808,10 @@ End CASTEP Interface Documentation
         ok_string = r'.*DRYRUN finished.*No problems found with input files.*'
         match = re.match(ok_string, txt, re.DOTALL)
 
-        try:
-            self._kpoints_used = int(
-                re.search(
-                    r'Number of kpoints used = *([0-9]+)', txt).group(1))
-        except:
+        m = re.search(r'Number of kpoints used =\s*([0-9]+)', txt)
+        if m:
+            self._kpoints = int(m.group(1))
+        else:
             print('Couldn\'t fetch number of kpoints from dryrun CASTEP file')
 
         err_file = os.path.join(temp_dir, '%s.0001.err' % seed)
