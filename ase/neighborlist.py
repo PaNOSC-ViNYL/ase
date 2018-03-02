@@ -200,12 +200,12 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # The following assert statement succeeds:
     #     b_b = (binx_xyz + nbins_c[0] * (biny_xyz + nbins_c[1] * binz_xyz)).ravel()
     #     assert (b_b == np.arange(np.prod(nbins_c))).all()
+
+    # First atoms in pair.
+    _first_at_neightuple_n = atoms_in_bin_ba[:, atom_pairs_pn[0]]
     for dz in range(-neigh_search_z, neigh_search_z+1):
         for dy in range(-neigh_search_y, neigh_search_y+1):
             for dx in range(-neigh_search_x, neigh_search_x+1):
-                # First atom in pair.
-                _first_at_neightuple_n = atoms_in_bin_ba[:, atom_pairs_pn[0]]
-
                 # Bin index of neighboring bin and shift vector.
                 sx_xyz, bx1_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
                 sy_xyz, by1_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
