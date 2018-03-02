@@ -30,10 +30,10 @@ def mic(dr, cell, pbc=None):
     icell = np.linalg.pinv(cell)
     if pbc is not None:
         icell *= np.array(pbc, dtype=int).reshape(3,1)
-    shift_vectors = np.round(np.dot(dr, icell))
+    cell_shift_vectors = np.round(np.dot(dr, icell))
 
     # Unwrap
-    return dr - np.dot(shift_vectors, cell)
+    return dr - np.dot(cell_shift_vectors, cell)
 
 
 def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
@@ -179,15 +179,16 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # between bin and neighboring bin. atom_pairs_pn is a helper buffer that
     # contains all potential pairs of atoms between two bins, i.e. it is a list 
     # of length max_natoms_per_bin**2.
-    atom_pairs_pn = np.indices((max_natoms_per_bin, max_natoms_per_bin), dtype=int)
+    atom_pairs_pn = np.indices((max_natoms_per_bin, max_natoms_per_bin),
+                               dtype=int)
     atom_pairs_pn = atom_pairs_pn.reshape(2, -1)
 
     # Initialized empty neighbor list buffers.
-    first_atom_nn = []
-    second_atom_nn = []
-    shift_vector_x_n = []
-    shift_vector_y_n = []
-    shift_vector_z_n = []
+    first_at_neightuple_nn = []
+    secnd_at_neightuple_nn = []
+    cell_shift_vector_x_n = []
+    cell_shift_vector_y_n = []
+    cell_shift_vector_z_n = []
 
     # This is the main neighbor list search. We loop over neighboring bins and
     # then construct all possible pairs of atoms between two bins, assuming
@@ -206,7 +207,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         for dy in range(-neigh_search_y, neigh_search_y+1):
             for dx in range(-neigh_search_x, neigh_search_x+1):
                 # First atom in pair.
-                _first_atom_n = atoms_in_bin_ba[:, atom_pairs_pn[0]]
+                _first_at_neightuple_n = atoms_in_bin_ba[:, atom_pairs_pn[0]]
 
                 # Bin index of neighboring bin and shift vector.
                 sx_xyz, bx1_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
@@ -216,75 +217,80 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                     (by1_xyz + nbins_c[1] * bz1_xyz)).ravel()
 
                 # Second atom in pair.
-                _second_atom_n = atoms_in_bin_ba[b1_b][:, atom_pairs_pn[1]]
+                _secnd_at_neightuple_n = \
+                    atoms_in_bin_ba[b1_b][:, atom_pairs_pn[1]]
 
                 # Shift vectors.
-                _shift_vector_x_n = \
+                _cell_shift_vector_x_n = \
                     np.resize(sx_xyz.reshape(-1, 1),
                               (max_natoms_per_bin**2, sx_xyz.size)).T
-                _shift_vector_y_n = \
+                _cell_shift_vector_y_n = \
                     np.resize(sy_xyz.reshape(-1, 1),
                               (max_natoms_per_bin**2, sy_xyz.size)).T
-                _shift_vector_z_n = \
+                _cell_shift_vector_z_n = \
                     np.resize(sz_xyz.reshape(-1, 1),
                               (max_natoms_per_bin**2, sz_xyz.size)).T
 
                 # We have created too many pairs because we assumed each bin
                 # has exactly max_natoms_per_bin atoms. Remove all surperfluous
                 # pairs. Those are pairs that involve an atom with index -1.
-                mask = np.logical_and(_first_atom_n != -1, _second_atom_n != -1)
+                mask = np.logical_and(_first_at_neightuple_n != -1,
+                                      _secnd_at_neightuple_n != -1)
                 if mask.sum() > 0:
-                    first_atom_nn += [_first_atom_n[mask]]
-                    second_atom_nn += [_second_atom_n[mask]]
-                    shift_vector_x_n += [_shift_vector_x_n[mask]]
-                    shift_vector_y_n += [_shift_vector_y_n[mask]]
-                    shift_vector_z_n += [_shift_vector_z_n[mask]]
+                    first_at_neightuple_nn += [_first_at_neightuple_n[mask]]
+                    secnd_at_neightuple_nn += [_secnd_at_neightuple_n[mask]]
+                    cell_shift_vector_x_n += [_cell_shift_vector_x_n[mask]]
+                    cell_shift_vector_y_n += [_cell_shift_vector_y_n[mask]]
+                    cell_shift_vector_z_n += [_cell_shift_vector_z_n[mask]]
 
     # Flatten overall neighbor list.
-    first_atom_n = np.concatenate(first_atom_nn)
-    second_atom_n = np.concatenate(second_atom_nn)
-    shift_vector_n = np.transpose([np.concatenate(shift_vector_x_n),
-                        np.concatenate(shift_vector_y_n),
-                        np.concatenate(shift_vector_z_n)])
+    first_at_neightuple_n = np.concatenate(first_at_neightuple_nn)
+    secnd_at_neightuple_n = np.concatenate(secnd_at_neightuple_nn)
+    cell_shift_vector_n = np.transpose([np.concatenate(cell_shift_vector_x_n),
+                        np.concatenate(cell_shift_vector_y_n),
+                        np.concatenate(cell_shift_vector_z_n)])
 
     # Add global cell shift to shift vectors
-    shift_vector_n += cell_shift_ic[first_atom_n] - cell_shift_ic[second_atom_n]
+    cell_shift_vector_n += cell_shift_ic[first_at_neightuple_n] - \
+        cell_shift_ic[secnd_at_neightuple_n]
 
     # Remove all self-pairs that do not cross the cell boundary.
     if not self_interaction:
-        m = np.logical_not(np.logical_and(first_atom_n == second_atom_n,
-                                          (shift_vector_n == 0).all(axis=1)))
-        first_atom_n = first_atom_n[m]
-        second_atom_n = second_atom_n[m]
-        shift_vector_n = shift_vector_n[m]
+        m = np.logical_not(np.logical_and(
+            first_at_neightuple_n == secnd_at_neightuple_n,
+            (cell_shift_vector_n == 0).all(axis=1)))
+        first_at_neightuple_n = first_at_neightuple_n[m]
+        secnd_at_neightuple_n = secnd_at_neightuple_n[m]
+        cell_shift_vector_n = cell_shift_vector_n[m]
 
     # For nonperiodic directions, remove any bonds that cross the domain
     # boundary.
     for c in range(3):
         if not pbc[c]:
-            m = shift_vector_n[:, c] == 0
-            first_atom_n = first_atom_n[m]
-            second_atom_n = second_atom_n[m]
-            shift_vector_n = shift_vector_n[m]
+            m = cell_shift_vector_n[:, c] == 0
+            first_at_neightuple_n = first_at_neightuple_n[m]
+            secnd_at_neightuple_n = secnd_at_neightuple_n[m]
+            cell_shift_vector_n = cell_shift_vector_n[m]
 
     # Sort neighbor list.
-    i = np.argsort(first_atom_n)
-    first_atom_n = first_atom_n[i]
-    second_atom_n = second_atom_n[i]
-    shift_vector_n = shift_vector_n[i]
+    i = np.argsort(first_at_neightuple_n)
+    first_at_neightuple_n = first_at_neightuple_n[i]
+    secnd_at_neightuple_n = secnd_at_neightuple_n[i]
+    cell_shift_vector_n = cell_shift_vector_n[i]
 
     # Compute distance vectors.
-    distance_vector_nc = positions[second_atom_n] - positions[first_atom_n] + \
-        shift_vector_n.dot(cell)
+    distance_vector_nc = positions[secnd_at_neightuple_n] - \
+        positions[first_at_neightuple_n] + \
+        cell_shift_vector_n.dot(cell)
     abs_distance_vector_n = \
         np.sqrt(np.sum(distance_vector_nc*distance_vector_nc, axis=1))
 
     # We have still created too many pairs. Only keep those with distance
     # smaller than max_cutoff.
     mask = abs_distance_vector_n < max_cutoff
-    first_atom_n = first_atom_n[mask]
-    second_atom_n = second_atom_n[mask]
-    shift_vector_n = shift_vector_n[mask]
+    first_at_neightuple_n = first_at_neightuple_n[mask]
+    secnd_at_neightuple_n = secnd_at_neightuple_n[mask]
+    cell_shift_vector_n = cell_shift_vector_n[mask]
     distance_vector_nc = distance_vector_nc[mask]
     abs_distance_vector_n = abs_distance_vector_n[mask]
 
@@ -302,29 +308,33 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
             except KeyError:
                 pass
             if atomic_number1 == atomic_number2:
-                mask = np.logical_and(numbers[first_atom_n] == atomic_number1,
-                                      numbers[second_atom_n] == atomic_number2)
+                mask = np.logical_and(
+                    numbers[first_at_neightuple_n] == atomic_number1,
+                    numbers[secnd_at_neightuple_n] == atomic_number2)
             else:
                 mask = np.logical_or(
-                    np.logical_and(numbers[first_atom_n] == atomic_number1,
-                                   numbers[second_atom_n] == atomic_number2),
-                    np.logical_and(numbers[first_atom_n] == atomic_number2,
-                                   numbers[second_atom_n] == atomic_number1))
+                    np.logical_and(
+                        numbers[first_at_neightuple_n] == atomic_number1,
+                        numbers[secnd_at_neightuple_n] == atomic_number2),
+                    np.logical_and(
+                        numbers[first_at_neightuple_n] == atomic_number2,
+                        numbers[secnd_at_neightuple_n] == atomic_number1))
             per_pair_cutoff_n[mask] = c
         mask = abs_distance_vector_n < per_pair_cutoff_n
-        first_atom_n = first_atom_n[mask]
-        second_atom_n = second_atom_n[mask]
-        shift_vector_n = shift_vector_n[mask]
+        first_at_neightuple_n = first_at_neightuple_n[mask]
+        secnd_at_neightuple_n = secnd_at_neightuple_n[mask]
+        cell_shift_vector_n = cell_shift_vector_n[mask]
         distance_vector_nc = distance_vector_nc[mask]
         abs_distance_vector_n = abs_distance_vector_n[mask]
     elif not np.isscalar(cutoff):
         # If cutoff is neither a dictionary nor a scalar, then we assume it is 
         # a list or numpy array that contains atomic radii. Atoms are neighbors
         # if their radii overlap.
-        mask = abs_distance_vector_n < cutoff[first_atom_n] + cutoff[second_atom_n]
-        first_atom_n = first_atom_n[mask]
-        second_atom_n = second_atom_n[mask]
-        shift_vector_n = shift_vector_n[mask]
+        mask = abs_distance_vector_n < \
+            cutoff[first_at_neightuple_n] + cutoff[secnd_at_neightuple_n]
+        first_at_neightuple_n = first_at_neightuple_n[mask]
+        secnd_at_neightuple_n = secnd_at_neightuple_n[mask]
+        cell_shift_vector_n = cell_shift_vector_n[mask]
         distance_vector_nc = distance_vector_nc[mask]
         abs_distance_vector_n = abs_distance_vector_n[mask]
 
@@ -332,15 +342,15 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     retvals = []
     for q in quantities:
         if q == 'i':
-            retvals += [first_atom_n]
+            retvals += [first_at_neightuple_n]
         elif q == 'j':
-            retvals += [second_atom_n]
+            retvals += [secnd_at_neightuple_n]
         elif q == 'D':
             retvals += [distance_vector_nc]
         elif q == 'd':
             retvals += [abs_distance_vector_n]
         elif q == 'S':
-            retvals += [shift_vector_n]
+            retvals += [cell_shift_vector_n]
         else:
             raise ValueError('Unsupported quantity specified.')
     if len(retvals) == 1:
