@@ -148,10 +148,10 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                                 nbins_c[1] * bin_index_ic[:, 2])
 
     # Sort by bin index
-    i = np.argsort(bin_index_i)
+    iargs = np.argsort(bin_index_i)
     # atom_i contains atom index in new sort order.
-    atom_i = np.arange(len(positions))[i]
-    bin_index_i = bin_index_i[i]
+    atom_i = np.arange(len(positions))[iargs]
+    bin_index_i = bin_index_i[iargs]
 
     # Find max number of atoms per bin
     max_nat_per_bin = np.bincount(bin_index_i).max()
@@ -580,11 +580,11 @@ class PrimitiveNeighborList:
             self.offset_vec = self.offset_vec[mask]
 
         if self.sorted:
-            m = np.argsort(self.pair_first * len(self.pair_first) +
-                           self.pair_second)
-            self.pair_first = self.pair_first[m]
-            self.pair_second = self.pair_second[m]
-            self.offset_vec = self.offset_vec[m]
+            mask = np.argsort(self.pair_first * len(self.pair_first) +
+                              self.pair_second)
+            self.pair_first = self.pair_first[mask]
+            self.pair_second = self.pair_second[mask]
+            self.offset_vec = self.offset_vec[mask]
 
         # Compute the index array point to the first neighbor
         self.first_neigh = first_neighbors(len(positions), self.pair_first)
