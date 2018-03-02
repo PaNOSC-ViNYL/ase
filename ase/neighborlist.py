@@ -183,8 +183,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     atom_pairs_pn = atom_pairs_pn.reshape(2, -1)
 
     # Initialized empty neighbor list buffers.
-    first_atom_n = []
-    second_atom_n = []
+    first_atom_nn = []
+    second_atom_nn = []
     shift_vector_x_n = []
     shift_vector_y_n = []
     shift_vector_z_n = []
@@ -234,15 +234,15 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                 # pairs. Those are pairs that involve an atom with index -1.
                 mask = np.logical_and(_first_atom_n != -1, _second_atom_n != -1)
                 if mask.sum() > 0:
-                    first_atom_n += [_first_atom_n[mask]]
-                    second_atom_n += [_second_atom_n[mask]]
+                    first_atom_nn += [_first_atom_n[mask]]
+                    second_atom_nn += [_second_atom_n[mask]]
                     shift_vector_x_n += [_shift_vector_x_n[mask]]
                     shift_vector_y_n += [_shift_vector_y_n[mask]]
                     shift_vector_z_n += [_shift_vector_z_n[mask]]
 
     # Flatten overall neighbor list.
-    first_atom_n = np.concatenate(first_atom_n)
-    second_atom_n = np.concatenate(second_atom_n)
+    first_atom_n = np.concatenate(first_atom_nn)
+    second_atom_n = np.concatenate(second_atom_nn)
     shift_vector_n = np.transpose([np.concatenate(shift_vector_x_n),
                         np.concatenate(shift_vector_y_n),
                         np.concatenate(shift_vector_z_n)])
