@@ -147,11 +147,9 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                   nbins_c[0] * (bin_index_ic[:, 1] + \
                                 nbins_c[1] * bin_index_ic[:, 2])
 
-    # Sort by bin index
-    iargs = np.argsort(bin_index_i)
     # atom_i contains atom index in new sort order.
-    atom_i = np.arange(len(positions))[iargs]
-    bin_index_i = bin_index_i[iargs]
+    atom_i = np.argsort(bin_index_i)
+    bin_index_i = bin_index_i[atom_i]
 
     # Find max number of atoms per bin
     max_nat_per_bin = np.bincount(bin_index_i).max()
