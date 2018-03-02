@@ -152,14 +152,14 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     bin_index_i = bin_index_i[atom_i]
 
     # Find max number of atoms per bin
-    max_nat_per_bin = np.bincount(bin_index_i).max()
+    max_natoms_per_bin = np.bincount(bin_index_i).max()
 
     # Sort atoms into bins: atoms_in_bin_ba contains for each bin (identified
     # by its scalar bin index) a list of atoms inside that bin. This list is
-    # homogeneous, i.e. has the same size *max_nat_per_bin* for all bins.
+    # homogeneous, i.e. has the same size *max_natoms_per_bin* for all bins.
     # The list is padded with -1 values.
-    atoms_in_bin_ba = -np.ones([nbins, max_nat_per_bin], dtype=int)
-    for i in range(max_nat_per_bin):
+    atoms_in_bin_ba = -np.ones([nbins, max_natoms_per_bin], dtype=int)
+    for i in range(max_natoms_per_bin):
         # Create a mask array that identifies the first atom of each bin.
         mask = np.append([True], bin_index_i[:-1] != bin_index_i[1:])
         # Assign all first atoms.
@@ -178,8 +178,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # Now we construct neighbor pairs by pairing up all atoms within a bin or
     # between bin and neighboring bin. atom_pairs_pn is a helper buffer that
     # contains all potential pairs of atoms between two bins, i.e. it is a list 
-    # of length max_nat_per_bin**2.
-    atom_pairs_pn = np.indices((max_nat_per_bin, max_nat_per_bin), dtype=int)
+    # of length max_natoms_per_bin**2.
+    atom_pairs_pn = np.indices((max_natoms_per_bin, max_natoms_per_bin), dtype=int)
     atom_pairs_pn = atom_pairs_pn.reshape(2, -1)
 
     # Initialized empty neighbor list buffers.
@@ -191,7 +191,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
 
     # This is the main neighbor list search. We loop over neighboring bins and
     # then construct all possible pairs of atoms between two bins, assuming
-    # that each bin contains exactly max_nat_per_bin atoms. We then throw
+    # that each bin contains exactly max_natoms_per_bin atoms. We then throw
     # out pairs involving pad atoms with atom index -1 below.
     binz_xyz, biny_xyz, binx_xyz = np.meshgrid(np.arange(nbins_c[2]),
                                                np.arange(nbins_c[1]),
@@ -221,16 +221,16 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                 # Shift vectors.
                 _shift_vector_x_n = \
                     np.resize(sx_xyz.reshape(-1, 1),
-                              (max_nat_per_bin**2, sx_xyz.size)).T
+                              (max_natoms_per_bin**2, sx_xyz.size)).T
                 _shift_vector_y_n = \
                     np.resize(sy_xyz.reshape(-1, 1),
-                              (max_nat_per_bin**2, sy_xyz.size)).T
+                              (max_natoms_per_bin**2, sy_xyz.size)).T
                 _shift_vector_z_n = \
                     np.resize(sz_xyz.reshape(-1, 1),
-                              (max_nat_per_bin**2, sz_xyz.size)).T
+                              (max_natoms_per_bin**2, sz_xyz.size)).T
 
                 # We have created too many pairs because we assumed each bin
-                # has exactly max_nat_per_bin atoms. Remove all surperfluous
+                # has exactly max_natoms_per_bin atoms. Remove all surperfluous
                 # pairs. Those are pairs that involve an atom with index -1.
                 mask = np.logical_and(_first_atom_n != -1, _second_atom_n != -1)
                 if mask.sum() > 0:
@@ -446,14 +446,14 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
                                    a.positions, cutoff, numbers=a.numbers,
                                    self_interaction=self_interaction)
 
-def first_neighbors(nat, first_atom):
+def first_neighbors(natoms, first_atom):
     """
     Compute an index array pointing to the ranges within the neighbor list that
     contain the neighbors for a certain atom.
 
     Parameters
     ----------
-    nat : int
+    natoms : int
         Total number of atom.
     i : array_like
         First atom index 'i' of the neighbor list.
@@ -466,10 +466,10 @@ def first_neighbors(nat, first_atom):
         s[k+1]-1.
     """
     if len(first_atom) == 0:
-        return np.zeros(nat+1, dtype=int)
+        return np.zeros(natoms+1, dtype=int)
     # Create a seed array (which is returned by this function) populated with
     # -1.
-    seed = -np.ones(nat+1, dtype=int)
+    seed = -np.ones(natoms+1, dtype=int)
 
     first_atom = np.asarray(first_atom)
 
@@ -490,7 +490,7 @@ def first_neighbors(nat, first_atom):
     # to the same index.
     mask = seed == -1
     while mask.any():
-        seed[mask] = seed[np.arange(nat+1)[mask]+1]
+        seed[mask] = seed[np.arange(natoms+1)[mask]+1]
         mask = seed == -1
     return seed
 
