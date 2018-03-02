@@ -96,9 +96,6 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     #     p: Pair index, can have value 0 or 1
     #     n: (Linear) neighbor index
 
-    # Store pbc.
-    pbc = pbc
-
     # Compute reciprocal lattice vectors.
     b1_c, b2_c, b3_c = np.linalg.pinv(cell).T
 
