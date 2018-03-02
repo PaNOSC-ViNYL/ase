@@ -463,7 +463,8 @@ def first_neighbors(natoms, first_atom):
     natoms : int
         Total number of atom.
     i : array_like
-        First atom index 'i' of the neighbor list.
+        Array containing the first atom 'i' of the neighbor tuple returned
+        by the neighbor list.
 
     Returns
     -------
