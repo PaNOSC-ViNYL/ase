@@ -121,7 +121,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     nbins_c = np.maximum((face_dist_c / max_cutoff).astype(int), [1, 1, 1])
     nbins = np.prod(nbins_c)
 
-    # Compute over how many cells we need to loop in the neighbor list search.
+    # Compute over how many bins we need to loop in the neighbor list search.
     neigh_search_x, neigh_search_y, neigh_search_z = \
         np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
