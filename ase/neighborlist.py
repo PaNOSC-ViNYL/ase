@@ -3,6 +3,7 @@ from math import sqrt
 import numpy as np
 
 from ase.data import atomic_numbers
+from ase.geometry import complete_cell
 
 
 def mic(dr, cell, pbc=None):
@@ -129,7 +130,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     if use_scaled_positions:
         scaled_positions_ic = positions
     else:
-        scaled_positions_ic = np.linalg.solve(cell.T, positions.T).T
+        scaled_positions_ic = np.linalg.solve(complete_cell(cell).T,
+                                              positions.T).T
     bin_index_ic = np.floor(scaled_positions_ic*nbins_c).astype(int)
     cell_shift_ic = np.zeros_like(bin_index_ic)
     for c in range(3):
