@@ -78,7 +78,7 @@ class CLICommand:
             images.repeat_images([int(c) for c in r])
 
         if args.radii_scale:
-            images.set_radii(args.radii_scale)
+            images.scale_radii(args.radii_scale)
 
         if args.output is not None:
             warnings.warn('You should be using "ase convert ..." instead!')
