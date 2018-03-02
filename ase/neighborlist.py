@@ -27,13 +27,13 @@ def mic(dr, cell, pbc=None):
     """
     # Check where distance larger than 1/2 cell. Particles have crossed
     # periodic boundaries then and need to be unwrapped.
-    rec = np.linalg.pinv(cell)
+    icell = np.linalg.pinv(cell)
     if pbc is not None:
-        rec *= np.array(pbc, dtype=int).reshape(3,1)
-    dri = np.round(np.dot(dr, rec))
+        icell *= np.array(pbc, dtype=int).reshape(3,1)
+    shift_vectors = np.round(np.dot(dr, icell))
 
     # Unwrap
-    return dr - np.dot(dri, cell)
+    return dr - np.dot(shift_vectors, cell)
 
 
 def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
@@ -125,14 +125,15 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     nbins = np.prod(nbins_c)
 
     # Compute over how many cells we need to loop in the neighbor list search.
-    ndx, ndy, ndz = np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
+    neigh_search_x, neigh_search_y, neigh_search_z = \
+        np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
     if use_scaled_positions:
-        spos_ic = positions
+        scaled_positions_ic = positions
     else:
-        spos_ic = np.linalg.solve(cell.T, positions.T).T
-    bin_index_ic = np.floor(spos_ic*nbins_c).astype(int)
+        scaled_positions_ic = np.linalg.solve(cell.T, positions.T).T
+    bin_index_ic = np.floor(scaled_positions_ic*nbins_c).astype(int)
     cell_shift_ic = np.zeros_like(bin_index_ic)
     for c in range(3):
         if pbc[c]:
@@ -155,183 +156,193 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # Find max number of atoms per bin
     max_nat_per_bin = np.bincount(bin_index_i).max()
 
-    # Sort atoms into bins: bins_ba contains for each bin (identified by its
-    # scalar bin index) a list of atoms inside that bin. This list is
+    # Sort atoms into bins: atoms_in_bin_ba contains for each bin (identified
+    # by its scalar bin index) a list of atoms inside that bin. This list is
     # homogeneous, i.e. has the same size *max_nat_per_bin* for all bins.
     # The list is padded with -1 values.
-    bins_ba = -np.ones([nbins, max_nat_per_bin], dtype=int)
+    atoms_in_bin_ba = -np.ones([nbins, max_nat_per_bin], dtype=int)
     for i in range(max_nat_per_bin):
         # Create a mask array that identifies the first atom of each bin.
-        m = np.append([True], bin_index_i[:-1] != bin_index_i[1:])
+        mask = np.append([True], bin_index_i[:-1] != bin_index_i[1:])
         # Assign all first atoms.
-        bins_ba[bin_index_i[m], i] = atom_i[m]
+        atoms_in_bin_ba[bin_index_i[mask], i] = atom_i[mask]
 
-        # Remove atoms that we just sorted into bins_ba. The next "first"
-        # atom will be the second and so on.
-        m = np.logical_not(m)
-        atom_i = atom_i[m]
-        bin_index_i = bin_index_i[m]
+        # Remove atoms that we just sorted into atoms_in_bin_ba. The next
+        # "first" atom will be the second and so on.
+        mask = np.logical_not(mask)
+        atom_i = atom_i[mask]
+        bin_index_i = bin_index_i[mask]
 
     # Make sure that all atoms have been sorted into bins.
     assert len(atom_i) == 0
     assert len(bin_index_i) == 0
 
     # Now we construct neighbor pairs by pairing up all atoms within a bin or
-    # between bin and neighboring bin. ix_pn is a helper buffer that contains
-    # all potential pairs of atoms between two bins, i.e. it is a list of
-    # length max_nat_per_bin**2.
-    ix_pn = np.indices((max_nat_per_bin, max_nat_per_bin), dtype=int)
-    ix_pn = ix_pn.reshape(2, -1)
+    # between bin and neighboring bin. atom_pairs_pn is a helper buffer that
+    # contains all potential pairs of atoms between two bins, i.e. it is a list 
+    # of length max_nat_per_bin**2.
+    atom_pairs_pn = np.indices((max_nat_per_bin, max_nat_per_bin), dtype=int)
+    atom_pairs_pn = atom_pairs_pn.reshape(2, -1)
 
     # Initialized empty neighbor list buffers.
-    i_n = []
-    j_n = []
-    Sx_n = []
-    Sy_n = []
-    Sz_n = []
+    first_atom_n = []
+    second_atom_n = []
+    shift_vector_x_n = []
+    shift_vector_y_n = []
+    shift_vector_z_n = []
 
     # This is the main neighbor list search. We loop over neighboring bins and
     # then construct all possible pairs of atoms between two bins, assuming
     # that each bin contains exactly max_nat_per_bin atoms. We then throw
     # out pairs involving pad atoms with atom index -1 below.
-    bz_xyz, by_xyz, bx_xyz = np.meshgrid(np.arange(nbins_c[2]),
-                                         np.arange(nbins_c[1]),
-                                         np.arange(nbins_c[0]), indexing='ij')
-    # The memory layout of bx_xyz, by_xyz, bz_xyz is such that computing the
-    # respective bin index leads to a linearly increasing consecutive list.
+    binz_xyz, biny_xyz, binx_xyz = np.meshgrid(np.arange(nbins_c[2]),
+                                               np.arange(nbins_c[1]),
+                                               np.arange(nbins_c[0]),
+                                               indexing='ij')
+    # The memory layout of binx_xyz, biny_xyz, binz_xyz is such that computing
+    # the respective bin index leads to a linearly increasing consecutive list.
     # The following assert statement succeeds:
-    #     b_b = (bx_xyz + nbins_c[0] * (by_xyz + nbins_c[1] * bz_xyz)).ravel()
+    #     b_b = (binx_xyz + nbins_c[0] * (biny_xyz + nbins_c[1] * binz_xyz)).ravel()
     #     assert (b_b == np.arange(np.prod(nbins_c))).all()
-    for dz in range(-ndz, ndz+1):
-        for dy in range(-ndy, ndy+1):
-            for dx in range(-ndx, ndx+1):
+    for dz in range(-neigh_search_z, neigh_search_z+1):
+        for dy in range(-neigh_search_y, neigh_search_y+1):
+            for dx in range(-neigh_search_x, neigh_search_x+1):
                 # First atom in pair.
-                _i_n = bins_ba[:, ix_pn[0]]
+                _first_atom_n = atoms_in_bin_ba[:, atom_pairs_pn[0]]
 
                 # Bin index of neighboring bin and shift vector.
-                sx_xyz, bx1_xyz = np.divmod(bx_xyz + dx, nbins_c[0])
-                sy_xyz, by1_xyz = np.divmod(by_xyz + dy, nbins_c[1])
-                sz_xyz, bz1_xyz = np.divmod(bz_xyz + dz, nbins_c[2])
+                sx_xyz, bx1_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
+                sy_xyz, by1_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
+                sz_xyz, bz1_xyz = np.divmod(binz_xyz + dz, nbins_c[2])
                 b1_b = (bx1_xyz + nbins_c[0] * 
                     (by1_xyz + nbins_c[1] * bz1_xyz)).ravel()
 
                 # Second atom in pair.
-                _j_n = bins_ba[b1_b][:, ix_pn[1]]
+                _second_atom_n = atoms_in_bin_ba[b1_b][:, atom_pairs_pn[1]]
 
                 # Shift vectors.
-                _Sx_n = np.resize(sx_xyz.reshape(-1, 1),
-                                  (max_nat_per_bin**2, sx_xyz.size)).T
-                _Sy_n = np.resize(sy_xyz.reshape(-1, 1),
-                                  (max_nat_per_bin**2, sy_xyz.size)).T
-                _Sz_n = np.resize(sz_xyz.reshape(-1, 1),
-                                  (max_nat_per_bin**2, sz_xyz.size)).T
+                _shift_vector_x_n = \
+                    np.resize(sx_xyz.reshape(-1, 1),
+                              (max_nat_per_bin**2, sx_xyz.size)).T
+                _shift_vector_y_n = \
+                    np.resize(sy_xyz.reshape(-1, 1),
+                              (max_nat_per_bin**2, sy_xyz.size)).T
+                _shift_vector_z_n = \
+                    np.resize(sz_xyz.reshape(-1, 1),
+                              (max_nat_per_bin**2, sz_xyz.size)).T
 
                 # We have created too many pairs because we assumed each bin
                 # has exactly max_nat_per_bin atoms. Remove all surperfluous
                 # pairs. Those are pairs that involve an atom with index -1.
-                m = np.logical_and(_i_n != -1, _j_n != -1)
-                if m.sum() > 0:
-                    i_n += [_i_n[m]]
-                    j_n += [_j_n[m]]
-                    Sx_n += [_Sx_n[m]]
-                    Sy_n += [_Sy_n[m]]
-                    Sz_n += [_Sz_n[m]]
+                mask = np.logical_and(_first_atom_n != -1, _second_atom_n != -1)
+                if mask.sum() > 0:
+                    first_atom_n += [_first_atom_n[mask]]
+                    second_atom_n += [_second_atom_n[mask]]
+                    shift_vector_x_n += [_shift_vector_x_n[mask]]
+                    shift_vector_y_n += [_shift_vector_y_n[mask]]
+                    shift_vector_z_n += [_shift_vector_z_n[mask]]
 
     # Flatten overall neighbor list.
-    i_n = np.concatenate(i_n)
-    j_n = np.concatenate(j_n)
-    S_n = np.transpose([np.concatenate(Sx_n),
-                        np.concatenate(Sy_n),
-                        np.concatenate(Sz_n)])
+    first_atom_n = np.concatenate(first_atom_n)
+    second_atom_n = np.concatenate(second_atom_n)
+    shift_vector_n = np.transpose([np.concatenate(shift_vector_x_n),
+                        np.concatenate(shift_vector_y_n),
+                        np.concatenate(shift_vector_z_n)])
 
     # Add global cell shift to shift vectors
-    S_n += cell_shift_ic[i_n] - cell_shift_ic[j_n]
+    shift_vector_n += cell_shift_ic[first_atom_n] - cell_shift_ic[second_atom_n]
 
     # Remove all self-pairs that do not cross the cell boundary.
     if not self_interaction:
-        m = np.logical_not(np.logical_and(i_n == j_n, (S_n == 0).all(axis=1)))
-        i_n = i_n[m]
-        j_n = j_n[m]
-        S_n = S_n[m]
+        m = np.logical_not(np.logical_and(first_atom_n == second_atom_n,
+                                          (shift_vector_n == 0).all(axis=1)))
+        first_atom_n = first_atom_n[m]
+        second_atom_n = second_atom_n[m]
+        shift_vector_n = shift_vector_n[m]
 
     # For nonperiodic directions, remove any bonds that cross the domain
     # boundary.
     for c in range(3):
         if not pbc[c]:
-            m = S_n[:, c] == 0
-            i_n = i_n[m]
-            j_n = j_n[m]
-            S_n = S_n[m]
+            m = shift_vector_n[:, c] == 0
+            first_atom_n = first_atom_n[m]
+            second_atom_n = second_atom_n[m]
+            shift_vector_n = shift_vector_n[m]
 
     # Sort neighbor list.
-    i = np.argsort(i_n)
-    i_n = i_n[i]
-    j_n = j_n[i]
-    S_n = S_n[i]
+    i = np.argsort(first_atom_n)
+    first_atom_n = first_atom_n[i]
+    second_atom_n = second_atom_n[i]
+    shift_vector_n = shift_vector_n[i]
 
     # Compute distance vectors.
-    dr_nc = positions[j_n] - positions[i_n] + S_n.dot(cell)
-    abs_dr_n = np.sqrt(np.sum(dr_nc*dr_nc, axis=1))
+    distance_vector_nc = positions[second_atom_n] - positions[first_atom_n] + \
+        shift_vector_n.dot(cell)
+    abs_distance_vector_n = \
+        np.sqrt(np.sum(distance_vector_nc*distance_vector_nc, axis=1))
 
     # We have still created too many pairs. Only keep those with distance
     # smaller than max_cutoff.
-    m = abs_dr_n < max_cutoff
-    i_n = i_n[m]
-    j_n = j_n[m]
-    S_n = S_n[m]
-    dr_nc = dr_nc[m]
-    abs_dr_n = abs_dr_n[m]
+    mask = abs_distance_vector_n < max_cutoff
+    first_atom_n = first_atom_n[mask]
+    second_atom_n = second_atom_n[mask]
+    shift_vector_n = shift_vector_n[mask]
+    distance_vector_nc = distance_vector_nc[mask]
+    abs_distance_vector_n = abs_distance_vector_n[mask]
 
     if isinstance(cutoff, dict) and numbers is not None:
         # If cutoff is a dictionary, then the cutoff radii are specified per
         # element pair. We now have a list up to maximum cutoff.
-        n = numbers
-        per_pair_cutoff_n = np.zeros_like(abs_dr_n)
-        for (el1, el2), c in cutoff.items():
+        per_pair_cutoff_n = np.zeros_like(abs_distance_vector_n)
+        for (atomic_number1, atomic_number2), c in cutoff.items():
             try:
-                el1 = atomic_numbers[el1]
+                atomic_number1 = atomic_numbers[atomic_number1]
             except KeyError:
                 pass
             try:
-                el2 = atomic_numbers[el2]
+                atomic_number2 = atomic_numbers[atomic_number2]
             except KeyError:
                 pass
-            if el1 == el2:
-                m = np.logical_and(n[i_n] == el1, n[j_n] == el2)
+            if atomic_number1 == atomic_number2:
+                mask = np.logical_and(numbers[first_atom_n] == atomic_number1,
+                                      numbers[second_atom_n] == atomic_number2)
             else:
-                m = np.logical_or(np.logical_and(n[i_n] == el1, n[j_n] == el2),
-                                  np.logical_and(n[i_n] == el2, n[j_n] == el1))
-            per_pair_cutoff_n[m] = c
-        m = abs_dr_n < per_pair_cutoff_n
-        i_n = i_n[m]
-        j_n = j_n[m]
-        S_n = S_n[m]
-        dr_nc = dr_nc[m]
-        abs_dr_n = abs_dr_n[m]
+                mask = np.logical_or(
+                    np.logical_and(numbers[first_atom_n] == atomic_number1,
+                                   numbers[second_atom_n] == atomic_number2),
+                    np.logical_and(numbers[first_atom_n] == atomic_number2,
+                                   numbers[second_atom_n] == atomic_number1))
+            per_pair_cutoff_n[mask] = c
+        mask = abs_distance_vector_n < per_pair_cutoff_n
+        first_atom_n = first_atom_n[mask]
+        second_atom_n = second_atom_n[mask]
+        shift_vector_n = shift_vector_n[mask]
+        distance_vector_nc = distance_vector_nc[mask]
+        abs_distance_vector_n = abs_distance_vector_n[mask]
     elif not np.isscalar(cutoff):
         # If cutoff is neither a dictionary nor a scalar, then we assume it is 
         # a list or numpy array that contains atomic radii. Atoms are neighbors
         # if their radii overlap.
-        m = abs_dr_n < cutoff[i_n] + cutoff[j_n]
-        i_n = i_n[m]
-        j_n = j_n[m]
-        S_n = S_n[m]
-        dr_nc = dr_nc[m]
-        abs_dr_n = abs_dr_n[m]
+        mask = abs_distance_vector_n < cutoff[first_atom_n] + cutoff[second_atom_n]
+        first_atom_n = first_atom_n[mask]
+        second_atom_n = second_atom_n[mask]
+        shift_vector_n = shift_vector_n[mask]
+        distance_vector_nc = distance_vector_nc[mask]
+        abs_distance_vector_n = abs_distance_vector_n[mask]
 
     # Assemble return tuple.
     retvals = []
     for q in quantities:
         if q == 'i':
-            retvals += [i_n]
+            retvals += [first_atom_n]
         elif q == 'j':
-            retvals += [j_n]
+            retvals += [second_atom_n]
         elif q == 'D':
-            retvals += [dr_nc]
+            retvals += [distance_vector_nc]
         elif q == 'd':
-            retvals += [abs_dr_n]
+            retvals += [abs_distance_vector_n]
         elif q == 'S':
-            retvals += [S_n]
+            retvals += [shift_vector_n]
         else:
             raise ValueError('Unsupported quantity specified.')
     if len(retvals) == 1:
@@ -437,7 +448,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
                                    a.positions, cutoff, numbers=a.numbers,
                                    self_interaction=self_interaction)
 
-def first_neighbors(nat, i):
+def first_neighbors(nat, first_atom):
     """
     Compute an index array pointing to the ranges within the neighbor list that
     contain the neighbors for a certain atom.
@@ -456,19 +467,34 @@ def first_neighbors(nat, i):
         of a certain atom. Neighbors of atom k have indices from s[k] to
         s[k+1]-1.
     """
-    if len(i) == 0:
+    if len(first_atom) == 0:
         return np.zeros(nat+1, dtype=int)
-    s = -np.ones(nat+1, dtype=int)
-    i = np.asarray(i)
-    m = i[:-1] != i[1:]
-    s[i[0]] = 0
-    s[-1] = len(i)
-    s[i[1:][m]] = (np.arange(len(m))+1)[m]
-    m = s == -1
-    while m.any():
-        s[m] = s[np.arange(nat+1)[m]+1]
-        m = s == -1
-    return s
+    # Create a seed array (which is returned by this function) populated with
+    # -1.
+    seed = -np.ones(nat+1, dtype=int)
+
+    first_atom = np.asarray(first_atom)
+
+    # Mask array contains all position where the number in the (sorted) array
+    # with first atoms (in the neighbor pair) changes.
+    mask = first_atom[:-1] != first_atom[1:]
+
+    # Seed array needs to start at 0
+    seed[first_atom[0]] = 0
+    # Seed array needs to stop at the length of the neighbor list
+    seed[-1] = len(first_atom)
+    # Populate all intermediate seed with the index of where the mask array is
+    # true, i.e. the index where the first_atom array changes.
+    seed[first_atom[1:][mask]] = (np.arange(len(mask))+1)[mask]
+
+    # Now fill all remaining -1 value with the value in the seed array right
+    # behind them. (There are no neighbor so seed[i] and seed[i+1] must point)
+    # to the same index.
+    mask = seed == -1
+    while mask.any():
+        seed[mask] = seed[np.arange(nat+1)[mask]+1]
+        mask = seed == -1
+    return seed
 
 
 class PrimitiveNeighborList:
@@ -541,17 +567,17 @@ class PrimitiveNeighborList:
                 use_scaled_positions=self.use_scaled_positions)
 
         if not self.bothways:
-            m = np.logical_or(
-                    np.logical_and(self.pair_first <= self.pair_second,
-                                   (self.offset_vec == 0).all(axis=1)),
-                    np.logical_or(self.offset_vec[:, 0] > 0,
-                        np.logical_and(self.offset_vec[:, 0] == 0,
-                            np.logical_or(self.offset_vec[:, 1] > 0,
-                                np.logical_and(self.offset_vec[:, 1] == 0,
-                                               self.offset_vec[:, 2] > 0)))))
-            self.pair_first = self.pair_first[m]
-            self.pair_second = self.pair_second[m]
-            self.offset_vec = self.offset_vec[m]
+            mask = np.logical_or(
+                       np.logical_and(self.pair_first <= self.pair_second,
+                                      (self.offset_vec == 0).all(axis=1)),
+                       np.logical_or(self.offset_vec[:, 0] > 0,
+                           np.logical_and(self.offset_vec[:, 0] == 0,
+                               np.logical_or(self.offset_vec[:, 1] > 0,
+                                   np.logical_and(self.offset_vec[:, 1] == 0,
+                                                  self.offset_vec[:, 2] > 0)))))
+            self.pair_first = self.pair_first[mask]
+            self.pair_second = self.pair_second[mask]
+            self.offset_vec = self.offset_vec[mask]
 
         if self.sorted:
             m = np.argsort(self.pair_first * len(self.pair_first) +
