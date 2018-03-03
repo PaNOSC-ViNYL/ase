@@ -209,26 +209,26 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         for dy in range(-neigh_search_y, neigh_search_y+1):
             for dx in range(-neigh_search_x, neigh_search_x+1):
                 # Bin index of neighboring bin and shift vector.
-                sx_xyz, bx1_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
-                sy_xyz, by1_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
-                sz_xyz, bz1_xyz = np.divmod(binz_xyz + dz, nbins_c[2])
-                b1_b = (bx1_xyz + nbins_c[0] * 
-                    (by1_xyz + nbins_c[1] * bz1_xyz)).ravel()
+                shiftx_xyz, neighbinx_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
+                shifty_xyz, neighbiny_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
+                shiftz_xyz, neighbinz_xyz = np.divmod(binz_xyz + dz, nbins_c[2])
+                neighbin_b = (neighbinx_xyz + nbins_c[0] * 
+                    (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)).ravel()
 
                 # Second atom in pair.
                 _secnd_at_neightuple_n = \
-                    atoms_in_bin_ba[b1_b][:, atom_pairs_pn[1]]
+                    atoms_in_bin_ba[neighbin_b][:, atom_pairs_pn[1]]
 
                 # Shift vectors.
                 _cell_shift_vector_x_n = \
-                    np.resize(sx_xyz.reshape(-1, 1),
-                              (max_natoms_per_bin**2, sx_xyz.size)).T
+                    np.resize(shiftx_xyz.reshape(-1, 1),
+                              (max_natoms_per_bin**2, shiftx_xyz.size)).T
                 _cell_shift_vector_y_n = \
-                    np.resize(sy_xyz.reshape(-1, 1),
-                              (max_natoms_per_bin**2, sy_xyz.size)).T
+                    np.resize(shifty_xyz.reshape(-1, 1),
+                              (max_natoms_per_bin**2, shifty_xyz.size)).T
                 _cell_shift_vector_z_n = \
-                    np.resize(sz_xyz.reshape(-1, 1),
-                              (max_natoms_per_bin**2, sz_xyz.size)).T
+                    np.resize(shiftz_xyz.reshape(-1, 1),
+                              (max_natoms_per_bin**2, shiftz_xyz.size)).T
 
                 # We have created too many pairs because we assumed each bin
                 # has exactly max_natoms_per_bin atoms. Remove all surperfluous
