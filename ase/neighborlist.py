@@ -82,7 +82,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     -------
     i, j, ... : array
         Tuple with arrays for each quantity specified above. Indices in `i`
-        are returned in ascending order 0..len(a), but the order of (i,j)
+        are returned in ascending order 0..len(a)-1, but the order of (i,j)
         pairs is not guaranteed.
     """
 
