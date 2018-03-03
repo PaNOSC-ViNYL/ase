@@ -109,7 +109,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                             1 / l3 if l3 > 0 else 1])
 
     if isinstance(cutoff, dict):
-        max_cutoff = np.max(list(cutoff.values()))
+        max_cutoff = max(cutoff.values())
     else:
         if np.isscalar(cutoff):
             max_cutoff = cutoff
