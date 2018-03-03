@@ -464,13 +464,13 @@ def first_neighbors(natoms, first_atom):
     ----------
     natoms : int
         Total number of atom.
-    i : array_like
+    first_atom : array_like
         Array containing the first atom 'i' of the neighbor tuple returned
         by the neighbor list.
 
     Returns
     -------
-    s : array
+    seed : array
         Array containing pointers to the start and end location of the neighbors
         of a certain atom. Neighbors of atom k have indices from s[k] to
         s[k+1]-1.
