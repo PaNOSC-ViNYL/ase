@@ -63,8 +63,15 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                   between atom i and j). With the shift vector S, the
                   distances D between atoms can be computed from:
                   D = positions[j]-positions[i]+S.dot(cell)
-    a : ase.Atoms
-        Atomic configuration.
+    pbc : array_like
+        3-tuple indicating giving periodic boundaries in the three Cartesian
+        directions.
+    cell: 3x3 matrix
+        Unit cell vectors.
+    positions: list of xyz-positions
+        Atomic positions.  Anything that can be converted to an ndarray of
+        shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2), ...]. If
+        use_scaled_positions is set to true, this must be scaled positions. 
     cutoff : float or dict
         Cutoff for neighbor search. It can be
             - A single float: This is a global cutoff for all elements.
@@ -77,6 +84,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     self_interaction : bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
+    use_scaled_positions : bool
+        If set to true, positions are expected to be scaled positions.
     max_nbins : int
         Maximum number of bins used in neighbor search. This is used to limit
         the maximum amount of memory required by the neighbor list.
