@@ -39,7 +39,7 @@ def mic(dr, cell, pbc=None):
 
 def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                             numbers=None, self_interaction=False,
-                            use_scaled_positions=False):
+                            use_scaled_positions=False, max_nbins=1e6):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
@@ -77,6 +77,9 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     self_interaction : bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
+    max_nbins : int
+        Maximum number of bins used in neighbor search. This is used to limit
+        the maximum amount of memory required by the neighbor list.
 
     Returns
     -------
@@ -121,6 +124,10 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # neighboring bins.
     nbins_c = np.maximum((face_dist_c / max_cutoff).astype(int), [1, 1, 1])
     nbins = np.prod(nbins_c)
+    # Make sure we limit the amount of memory used by the explicit bins.
+    while nbins > max_nbins:
+        nbins_c = np.maximum(nbins_c // 2, [1, 1, 1])
+        nbins = np.prod(nbins_c)
 
     # Compute over how many bins we need to loop in the neighbor list search.
     neigh_search_x, neigh_search_y, neigh_search_z = \
@@ -358,7 +365,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         return tuple(retvals)
 
 
-def neighbor_list(quantities, a, cutoff, self_interaction=False):
+def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
     """
     Compute a neighbor list for an atomic configuration. Atoms outside periodic
     boundaries are mapped into the box. Atoms outside nonperiodic boundaries
@@ -396,6 +403,9 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     self_interaction : bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
+    max_nbins : int
+        Maximum number of bins used in neighbor search. This is used to limit
+        the maximum amount of memory required by the neighbor list.
 
     Returns
     -------
@@ -453,7 +463,8 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False):
     """
     return primitive_neighbor_list(quantities, a.pbc, a.get_cell(complete=True),
                                    a.positions, cutoff, numbers=a.numbers,
-                                   self_interaction=self_interaction)
+                                   self_interaction=self_interaction,
+                                   max_nbins=max_nbins)
 
 def first_neighbors(natoms, first_atom):
     """
