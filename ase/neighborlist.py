@@ -129,9 +129,11 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
             cutoff = np.asarray(cutoff)
             max_cutoff = 2*np.max(cutoff)
 
+    # We use a minimum bin size of 3 A
+    bin_size = max(max_cutoff, 3)
     # Compute number of bins such that a sphere of radius cutoff fit into eight
     # neighboring bins.
-    nbins_c = np.maximum((face_dist_c / max_cutoff).astype(int), [1, 1, 1])
+    nbins_c = np.maximum((face_dist_c / bin_size).astype(int), [1, 1, 1])
     nbins = np.prod(nbins_c)
     # Make sure we limit the amount of memory used by the explicit bins.
     while nbins > max_nbins:
@@ -140,7 +142,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
 
     # Compute over how many bins we need to loop in the neighbor list search.
     neigh_search_x, neigh_search_y, neigh_search_z = \
-        np.ceil(max_cutoff * nbins_c / face_dist_c).astype(int)
+        np.ceil(bin_size * nbins_c / face_dist_c).astype(int)
 
     # Sort atoms into bins.
     if use_scaled_positions:
