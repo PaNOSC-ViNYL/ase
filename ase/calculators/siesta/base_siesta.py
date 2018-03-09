@@ -1228,7 +1228,6 @@ class BaseSiesta(FileIOCalculator):
                 np.save(kernel_name, tddft.kernel)
 
 
-        vnorm = np.sqrt(np.dot(velec, velec))
         self.results['eel spectra nonin'] = tddft.get_spectrum_nonin(velec=velec,
                                                                   beam_offset = b, 
                                                                   tmp_fname=tmp_fname)
