@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os
 import sys
-import shutil
 import subprocess
 import tempfile
 import unittest
