@@ -363,12 +363,23 @@ class CP2K(Calculator):
             root.add_keyword('FORCE_EVAL/DFT/LS_SCF', 'MAX_SCF %d' % p.max_scf)
 
         if p.xc:
-            if p.xc.startswith("XC_"):
+            legacy_libxc = ""
+            for functional in p.xc.split():
+                functional = functional.replace("LDA", "PADE")  # resolve alias
+                xc_sec = root.get_subsection('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL')
+                # libxc input section changed over time
+                if functional.startswith("XC_") and self._shell.version < 3.0:
+                    legacy_libxc += " " + functional # handled later
+                elif functional.startswith("XC_"):
+                    s = InputSection(name='LIBXC')
+                    s.keywords.append('FUNCTIONAL ' + functional)
+                    xc_sec.subsections.append(s)
+                else:
+                    s = InputSection(name=functional.upper())
+                    xc_sec.subsections.append(s)
+            if legacy_libxc:
                 root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL/LIBXC',
-                                 'FUNCTIONAL ' + p.xc)
-            else:
-                root.add_keyword('FORCE_EVAL/DFT/XC/XC_FUNCTIONAL',
-                                 '_SECTION_PARAMETERS_ ' + p.xc)
+                                 'FUNCTIONAL ' + legacy_libxc)
 
         if p.uks:
             root.add_keyword('FORCE_EVAL/DFT', 'UNRESTRICTED_KOHN_SHAM ON')
