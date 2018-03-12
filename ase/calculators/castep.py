@@ -722,6 +722,8 @@ End CASTEP Interface Documentation
                     fbc_possibilities = {'none': 0, 'manual': 1, 'automatic': 2}
                     fbc = fbc_possibilities[finite_basis_corr]
                     self.param.__setattr__('finite_basis_corr', fbc)
+                elif 'Treating system as non-metallic' in line:
+                    self.param.__setattr__('fix_occupancy', True)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
