@@ -727,6 +727,9 @@ End CASTEP Interface Documentation
                 elif 'max. number of SCF cycles                      :' in line:
                     max_no_scf = float(line.split()[-1])
                     self.param.__setattr__('max_scf_cycles', max_no_scf)
+                elif 'density-mixing scheme' in line:
+                    mixing_scheme = line.split()[-1]
+                    self.param.__setattr__('mixing_scheme', mixing_scheme)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
