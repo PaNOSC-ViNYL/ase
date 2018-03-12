@@ -704,6 +704,10 @@ End CASTEP Interface Documentation
                                 break
                             else:
                                 hirshfeld_charges.append(float(fields[-1]))
+                elif 'stress calculation' in line:
+                    is_calc_stress = True if line.split()[-1] == 'on' else False
+                    if is_calc_stress:
+                        self.param.__setattr__('calculate_stress', is_calc_stress)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
