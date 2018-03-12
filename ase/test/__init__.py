@@ -89,6 +89,56 @@ def get_tests(files=None):
     return tests
 
 
+def runtest_subprocess(filename):
+    import time
+    basedir = os.path.split(__file__)[0]
+    testrelpath = os.path.relpath(filename, basedir)
+    data = {'name': testrelpath, 'pid': os.getpid()}
+
+    #basedir = os.path.split(__file__)[0]
+    #assert filename.startswith(basedir)
+    #filename = 
+
+    t1 = time.time()
+    test = ScriptTestCase(filename=filename)
+    ex = None
+    import traceback
+    try:
+        test.testfile()
+    except unittest.SkipTest as ex:
+        data['status'] = 'SKIPPED'
+        data['error'] = ex
+    except AssertionError as ex:
+        data['status'] = 'FAIL'
+        data['error'] = ex
+        data['traceback'] = traceback.format_exc()
+    except BaseException as ex:  # Return any error/signal to parent process.
+        # Important: In Py2, subprocesses get the Ctrl+C signal whereas in
+        # Py3, the parent process does - which is much better.
+        # In Py2 it is difficult to kill the processes since the parent
+        # process does not know about Ctrl+C.  This is why we
+        # return the exception to the parent process and let the
+        # parent process smoothly close the pool.
+        data['status'] = 'ERROR'
+        data['error'] = ex
+        data['traceback'] = traceback.format_exc()
+    finally:
+        #if 'error' in data:#ex is not None:
+            #if data['status'] != 'SKIPPED':
+            #    data['traceback'] = traceback.format_exc()
+            #data['error'] = ex
+        t2 = time.time()
+
+    if 'error' not in data:
+        data['status'] = 'OK'
+
+    #data['status'] = status
+    data['time'] = t2 - t1
+    return data
+
+class Results:
+    pass
+
 def test(verbosity=1, calculators=[],
          stream=sys.stdout, files=None):
     """Main test-runner for ASE."""
@@ -119,15 +169,30 @@ def test(verbosity=1, calculators=[],
 
     origcwd = os.getcwd()
 
+    from multiprocessing import Pool, cpu_count
+    nprocs = cpu_count()
+
     testdir = tempfile.mkdtemp(prefix='ase-test-')
     os.chdir(testdir)
     if verbosity:
         print('{:25}{}\n'.format('test-dir', testdir), file=sys.__stdout__)
     try:
-        results = ttr.run(ts)
+        pool = Pool(16)
+        for result in pool.imap_unordered(runtest_subprocess, tests):
+            print('{pid:5d}: {name:40} {time:2.2f}s {status}'
+                  .format(**result), file=stream)
+            if result.get('traceback'):
+                print('=' * 78, file=stream)
+                print(result['traceback'].rstrip(), file=stream)
+                print('=' * 78, file=stream)
     finally:
+        #print('FINALLY', file=stream)
         os.chdir(origcwd)
         sys.stdout = sys.__stdout__
+
+        results = Results()
+        results.errors = []
+        results.failures = []
 
     return results
 
