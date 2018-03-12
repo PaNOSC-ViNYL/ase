@@ -480,6 +480,8 @@ End CASTEP Interface Documentation
 
         # Mulliken charges
         self._mulliken_charges = None
+        # Hirshfeld charges
+        self._hirshfeld_charges = None
 
         self._number_of_cell_constraints = None
         self._output_verbosity = None
@@ -666,6 +668,7 @@ End CASTEP Interface Documentation
         spin_polarized = False
         calculate_hirshfeld = False
         mulliken_analysis = False
+        hirshfeld_analysis = False
         kpoints = None
 
         positions_frac_list = []
@@ -682,6 +685,25 @@ End CASTEP Interface Documentation
                 line = out.readline()
                 if not line or out.tell() > record_end:
                     break
+                elif 'Hirshfeld Analysis' in line:
+                    hirshfeld_charges = []
+
+                    hirshfeld_analysis = True
+                    # skip the separating line
+                    line = out.readline()
+                    # this is the headline
+                    line = out.readline()
+
+                    if 'Charge' in line:
+                        # skip the next separator line
+                        line = out.readline()
+                        while True:
+                            line = out.readline()
+                            fields = line.split()
+                            if len(fields) == 1:
+                                break
+                            else:
+                                hirshfeld_charges.append(float(fields[-1]))
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
@@ -961,6 +983,12 @@ End CASTEP Interface Documentation
         else:
             mulliken_charges_atoms = np.zeros(len(positions_frac))
 
+        if hirshfeld_analysis:
+            hirshfeld_charges_atoms = np.array(hirshfeld_charges)
+        else:
+            hirshfeld_charges_atoms = np.zeros(len(positions_frac))*np.nan
+
+
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
         else:
@@ -1049,6 +1077,8 @@ End CASTEP Interface Documentation
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
         self._mulliken_charges = mulliken_charges_atoms
+        self._hirshfeld_charges = hirshfeld_charges_atoms
+
 
         if self._warnings:
             print('WARNING: %s contains warnings' % castep_file)
@@ -1158,6 +1188,13 @@ End CASTEP Interface Documentation
         Return the charges from a plane-wave Mulliken analysis.
         """
         return self._mulliken_charges
+
+    def get_hirshfeld_charges(self):
+        """
+        Return the charges from a Hirshfeld analysis.
+        """
+        return self._hirshfeld_charges
+
 
     def set_label(self, label):
         """The label is part of each seed, which in turn is a prefix
