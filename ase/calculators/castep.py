@@ -28,6 +28,7 @@ import time
 import ase
 import ase.units as units
 from ase.calculators.general import Calculator
+from ase.calculators.calculator import compare_atoms
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
 from ase.utils import basestring
@@ -526,6 +527,10 @@ End CASTEP Interface Documentation
         dct['cell'] = self.cell.get_attr_dict()
 
         return dct
+
+    def check_state(self, atoms, tol=1e-15):
+        """Check for system changes since last calculation."""
+        return compare_atoms(self._old_atoms, atoms)
 
     def _castep_find_last_record(self, castep_file):
         """Checks wether a given castep file has a regular
