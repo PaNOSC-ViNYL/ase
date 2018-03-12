@@ -733,6 +733,11 @@ End CASTEP Interface Documentation
                 elif 'dump wavefunctions every' in line:
                     no_dump_cycles = float(line.split()[-3])
                     self.param.__setattr__('num_dump_cycles', no_dump_cycles)
+                elif 'optimization strategy' in line:
+                    if 'memory' in line:
+                        self.param.__setattr__('opt_strategy', 'Memory')
+                    if 'speed' in line:
+                        self.param.__setattr__('opt_strategy', 'Memory')
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
