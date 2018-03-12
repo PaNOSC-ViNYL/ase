@@ -711,6 +711,9 @@ End CASTEP Interface Documentation
                 elif 'plane wave basis set cut-off' in line:
                     cutoff = float(line.split()[-2])
                     self.param.__setattr__('cut_off_energy', cutoff)
+                elif 'total energy / atom convergence tol.' in line:
+                    elec_energy_tol = float(line.split()[-2])
+                    self.param.__setattr__('elec_energy_tol', elec_energy_tol)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
