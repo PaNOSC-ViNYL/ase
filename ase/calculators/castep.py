@@ -741,6 +741,25 @@ End CASTEP Interface Documentation
                 elif 'calculation limited to maximum' in line:
                     calc_limit = float(line.split()[-2])
                     self.param.__setattr__('run_time', calc_limit)
+                elif 'type of calculation' in line:
+                    calc_type = line.split(":")[-1].split()
+                    calc_type = ' '.join([word for word in calc_type])
+                    if calc_type != 'single point energy':
+                        calc_type_possibilities = {
+                                'geometry optimization': 'GeometryOptimization',
+                                'band structure': 'BandStructure',
+                                'molecular dynamics': 'MolecularDynamics',
+                                'optical properties': 'Optics',
+                                'phonon calculation': 'Phonon',
+                                'E-field calculation': 'Efield',
+                                'Phonon followed by E-field': 'Phonon+Efield',
+                                'transition state search': 'TransitionStateSearch',
+                                'Magnetic Resonance': 'MagRes',
+                                'Core level spectra': 'Elnes',
+                                'Electronic Spectroscopy': 'ElectronicSpectroscopy'
+                                }
+                        ctype = calc_type_possibilities[calc_type]
+                        self.param.__setattr__('task', ctype)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
