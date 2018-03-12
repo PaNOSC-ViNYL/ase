@@ -373,7 +373,8 @@ End CASTEP Interface Documentation
         'forces',
         'nbands',
         'positions',
-        'stress']
+        'stress',
+        'pressure']
 
     internal_keys = [
         '_castep_command',
@@ -483,6 +484,7 @@ End CASTEP Interface Documentation
         self._number_of_cell_constraints = None
         self._output_verbosity = None
         self._stress = None
+        self._pressure = None
         self._unit_cell = None
         self._kpoints = None
 
@@ -870,6 +872,9 @@ End CASTEP Interface Documentation
                         stress.append([float(s) for s in fields[2:5]])
                         line = out.readline()
                         fields = line.split()
+                    line = out.readline()
+                    if "Pressure:" in line:
+                        self._pressure = float(line.split()[-2]) * units.GPa
                 elif ('BFGS: starting iteration' in line or
                       'BFGS: improving iteration' in line):
                     if n_cell_const < 6:
@@ -1331,6 +1336,12 @@ End CASTEP Interface Documentation
                            self._stress[1, 2], self._stress[0, 2], self._stress[0, 1]])
         #return self._stress
         return stress
+
+    @_self_getter
+    def get_pressure(self, atoms):
+        """Return the pressure."""
+        self.update(atoms)
+        return self._pressure
 
     @_self_getter
     def get_unit_cell(self, atoms):
