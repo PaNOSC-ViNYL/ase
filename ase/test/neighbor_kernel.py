@@ -6,7 +6,8 @@ import ase
 import ase.lattice.hexagonal
 from ase.build import bulk, molecule
 
-from ase.neighborlist import mic, neighbor_list, first_neighbors
+from ase.neighborlist import (mic, neighbor_list, primitive_neighbor_list,
+                              first_neighbors)
 
 tol = 1e-7
 
@@ -179,3 +180,16 @@ for p1 in range(2):
             dr = np.linalg.solve(atoms.cell.T, (atoms.positions[1]-atoms.positions[0]).T).T+np.array([0,0,3])
             assert abs(dd) < 1e-10
             assert not (c2 - c).any()
+
+c = 0.0058
+i, j, d = primitive_neighbor_list('ijd',
+                                  [True, True, True],
+                                  np.eye(3) * 7.56,
+                                  np.array([[0, 0, 0],
+                                            [0, 0, 0.99875]]),
+                                  [c, c],
+                                  self_interaction=False,
+                                  use_scaled_positions=True)
+assert np.all(i == [0, 1])
+assert np.all(j == [1, 0])
+assert np.allclose(d, [0.00945, 0.00945])

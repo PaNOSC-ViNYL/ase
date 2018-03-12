@@ -147,6 +147,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # Sort atoms into bins.
     if use_scaled_positions:
         scaled_positions_ic = positions
+        positions = np.dot(scaled_positions_ic, cell)
     else:
         scaled_positions_ic = np.linalg.solve(complete_cell(cell).T,
                                               positions.T).T
