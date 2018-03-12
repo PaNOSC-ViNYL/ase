@@ -988,7 +988,6 @@ End CASTEP Interface Documentation
         else:
             hirshfeld_charges_atoms = np.zeros(len(positions_frac))*np.nan
 
-
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
         else:
@@ -1195,7 +1194,6 @@ End CASTEP Interface Documentation
         """
         return self._hirshfeld_charges
 
-
     def set_label(self, label):
         """The label is part of each seed, which in turn is a prefix
         in each CASTEP related file.
@@ -1305,6 +1303,11 @@ End CASTEP Interface Documentation
                                    + '\nConsider a stricter search pattern in `find_pspots()`.')
             else:
                 self.cell.species_pot = (elem, pps[0])
+
+    @property
+    def name(self):
+        """Return the name of the calculator (string).  """
+        return self.__name__
 
     @_self_getter
     def get_forces(self, atoms):
