@@ -708,6 +708,9 @@ End CASTEP Interface Documentation
                     is_calc_stress = True if line.split()[-1] == 'on' else False
                     if is_calc_stress:
                         self.param.__setattr__('calculate_stress', is_calc_stress)
+                elif 'plane wave basis set cut-off' in line:
+                    cutoff = float(line.split()[-2])
+                    self.param.__setattr__('cut_off_energy', cutoff)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
