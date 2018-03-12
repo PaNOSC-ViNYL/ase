@@ -724,6 +724,9 @@ End CASTEP Interface Documentation
                     self.param.__setattr__('finite_basis_corr', fbc)
                 elif 'Treating system as non-metallic' in line:
                     self.param.__setattr__('fix_occupancy', True)
+                elif 'max. number of SCF cycles                      :' in line:
+                    max_no_scf = float(line.split()[-1])
+                    self.param.__setattr__('max_scf_cycles', max_no_scf)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
