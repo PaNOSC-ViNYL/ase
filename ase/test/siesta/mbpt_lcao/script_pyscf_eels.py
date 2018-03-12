@@ -39,15 +39,15 @@ siesta = Siesta(
 
 Na8.set_calculator(siesta)
 e = Na8.get_potential_energy()
-siesta.pyscf_tddft(label="siesta", jcutoff=7, iter_broadening=0.15/Ha,
-        xc_code='LDA,PZ', tol_loc=1e-6, tol_biloc=1e-7, freq = np.arange(0.0, 5.0, 0.05))
+tddft = siesta.pyscf_tddft_eels(label="siesta", jcutoff=7, iter_broadening=0.15/Ha,
+            xc_code='LDA,PZ', tol_loc=1e-6, tol_biloc=1e-7, freq = np.arange(0.0, 5.0, 0.05))
 
 # plot polarizability
 fig = plt.figure(1)
 ax1 = fig.add_subplot(121)
 ax2 = fig.add_subplot(122)
-ax1.plot(siesta.results["freq range"], siesta.results["polarizability nonin"][:, 0, 0].imag)
-ax2.plot(siesta.results["freq range"], siesta.results["polarizability inter"][:, 0, 0].imag)
+ax1.plot(siesta.results["freq range"], siesta.results["eel spectra nonin"].imag)
+ax2.plot(siesta.results["freq range"], siesta.results["eel spectra inter"].imag)
 
 ax1.set_xlabel(r"$\omega$ (eV)")
 ax2.set_xlabel(r"$\omega$ (eV)")
