@@ -787,6 +787,7 @@ End CASTEP Interface Documentation
                         self.param.iprint = iprint
                 elif 'treating system as spin-polarized' in line:
                     spin_polarized = True
+                    self.param.__setattr__('spin_polarized', spin_polarized)
                 elif 'treating system as non-spin-polarized' in line:
                     spin_polarized = False
                 elif 'Number of kpoints used' in line:
