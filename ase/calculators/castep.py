@@ -738,6 +738,9 @@ End CASTEP Interface Documentation
                         self.param.__setattr__('opt_strategy', 'Memory')
                     if 'speed' in line:
                         self.param.__setattr__('opt_strategy', 'Memory')
+                elif 'calculation limited to maximum' in line:
+                    calc_limit = float(line.split()[-2])
+                    self.param.__setattr__('run_time', calc_limit)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
