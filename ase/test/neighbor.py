@@ -1,7 +1,8 @@
 import numpy.random as random
 import numpy as np
 from ase import Atoms
-from ase.neighborlist import NeighborList
+from ase.neighborlist import (NeighborList, PrimitiveNeighborList,
+                              LegacyPrimitiveNeighborList)
 from ase.build import bulk
 
 atoms = Atoms(numbers=range(10),
@@ -41,8 +42,6 @@ for sorted in [False, True]:
                 d2, c2 = count(nl2, atoms2)
                 c2.shape = (-1, 10)
                 dd = d * (p1 + 1) * (p2 + 1) * (p3 + 1) - d2
-                # print(dd)
-                # print(c2 - c)
                 assert abs(dd) < 1e-10
                 assert not (c2 - c).any()
 
@@ -79,4 +78,27 @@ nl.update(x * (3, 3, 3))
 for a in range(27):
     assert len(nl.get_neighbors(a)[0]) == 12
 assert not np.any(nl.get_neighbors(13)[1])
+
+c = 0.0058
+for NeighborList in [PrimitiveNeighborList, LegacyPrimitiveNeighborList]:
+    nl = NeighborList([c, c],
+                      skin=0.0,
+                      sorted=True,
+                      self_interaction=False,
+                      use_scaled_positions=True)
+    nl.update([True, True, True],
+              np.eye(3) * 7.56,
+              np.array([[0, 0, 0],
+                        [0, 0, 0.99875]]))
+    n0, d0 = nl.get_neighbors(0)
+    n1, d1 = nl.get_neighbors(1)
+    # != is xor
+    assert (np.all(n0 == [0]) and np.all(d0 == [0, 0, 1])) != \
+        (np.all(n1 == [1]) and np.all(d1 == [0, 0, -1]))
+
+# Test empty neighbor list
+nl = PrimitiveNeighborList([])
+nl.update([True, True, True],
+          np.eye(3) * 7.56,
+          np.zeros((0, 3)))
 
