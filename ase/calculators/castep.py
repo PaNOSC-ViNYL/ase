@@ -714,6 +714,9 @@ End CASTEP Interface Documentation
                 elif 'total energy / atom convergence tol.' in line:
                     elec_energy_tol = float(line.split()[-2])
                     self.param.__setattr__('elec_energy_tol', elec_energy_tol)
+                elif 'convergence tolerance window' in line:
+                    elec_convergence_win = int(line.split()[-2])
+                    self.param.__setattr__('elec_convergence_win', elec_convergence_win)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
