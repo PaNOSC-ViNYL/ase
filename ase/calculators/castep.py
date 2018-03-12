@@ -730,6 +730,9 @@ End CASTEP Interface Documentation
                 elif 'density-mixing scheme' in line:
                     mixing_scheme = line.split()[-1]
                     self.param.__setattr__('mixing_scheme', mixing_scheme)
+                elif 'dump wavefunctions every' in line:
+                    no_dump_cycles = float(line.split()[-3])
+                    self.param.__setattr__('num_dump_cycles', no_dump_cycles)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
