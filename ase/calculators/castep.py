@@ -519,6 +519,14 @@ End CASTEP Interface Documentation
             else:  # the general case
                 self.__setattr__(keyword, value)
 
+    def todict(self, skip_default=True):
+        """Create dict with settings of .param and .cell"""
+        dct = {}
+        dct['param'] = self.param.get_attr_dict()
+        dct['cell'] = self.cell.get_attr_dict()
+
+        return dct
+
     def _castep_find_last_record(self, castep_file):
         """Checks wether a given castep file has a regular
         ending message following the last banner message. If this
@@ -2413,6 +2421,16 @@ class CastepParam(object):
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))
 
+    def get_attr_dict(self):
+        """Settings that go into .param file in a traditional dict"""
+        attr_dict = {}
+        if [x for x in self._options.values() if x.value is not None]:
+            for key, option in sorted(self._options.items()):
+                if option.value is not None:
+                    attr_dict[key] = option.value
+
+        return attr_dict
+
 
 class CastepCell(object):
 
@@ -2619,6 +2637,16 @@ class CastepCell(object):
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))
+
+    def get_attr_dict(self):
+        """Settings that go into .cell file in a traditional dict"""
+        attr_dict = {}
+        if [x for x in self._options.values() if x.value is not None]:
+            for key, option in sorted(self._options.items()):
+                if option.value is not None:
+                    attr_dict[key] = option.value
+
+        return attr_dict
 
 
 class ConversionError(Exception):
