@@ -760,6 +760,27 @@ End CASTEP Interface Documentation
                                 }
                         ctype = calc_type_possibilities[calc_type]
                         self.param.__setattr__('task', ctype)
+                elif 'using functional' in line:
+                    used_functional = line.split(":")[-1].split()
+                    used_functional = ' '.join([word for word in used_functional])
+                    if used_functional != 'Local Density Approximation':
+                        used_functional_possibilities = {
+                                'Perdew Wang (1991)': 'PW91',
+                                'Perdew Burke Ernzerhof': 'PBE',
+                                'revised Perdew Burke Ernzerhof': 'RPBE',
+                                'PBE with Wu-Cohen exchange': 'WC',
+                                'PBE for solids (2008)': 'PBESOL',
+                                'Hartree-Fock': 'HF',
+                                'Hartree-Fock +': 'HF-LDA',
+                                'Screened Hartree-Fock': 'sX',
+                                'Screened Hartree-Fock + ': 'sX-LDA',
+                                'hybrid PBE0': 'PBE0',
+                                'hybrid B3LYP': 'B3LYP',
+                                'hybrid HSE03': 'HSE03',
+                                'hybrid HSE06': 'HSE06'
+                                }
+                        used_func = used_functional_possibilities[used_functional]
+                        self.param.__setattr__('xc_functional', used_func)
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
