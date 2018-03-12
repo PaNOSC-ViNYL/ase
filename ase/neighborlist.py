@@ -109,6 +109,13 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     #     p: Pair index, can have value 0 or 1
     #     n: (Linear) neighbor index
 
+    # Return empty neighbor list if no atoms are passed here
+    if len(positions) == 0:
+        retvals = []
+        for i in quantities:
+            retvals += [np.array([])]
+        return retvals
+
     # Compute reciprocal lattice vectors.
     b1_c, b2_c, b3_c = np.linalg.pinv(cell).T
 
@@ -597,7 +604,7 @@ class PrimitiveNeighborList:
                 self_interaction=self.self_interaction,
                 use_scaled_positions=self.use_scaled_positions)
 
-        if not self.bothways:
+        if len(positions) > 0 and not self.bothways:
             mask = np.logical_or(
                        np.logical_and(self.pair_first <= self.pair_second,
                                       (self.offset_vec == 0).all(axis=1)),
@@ -610,7 +617,7 @@ class PrimitiveNeighborList:
             self.pair_second = self.pair_second[mask]
             self.offset_vec = self.offset_vec[mask]
 
-        if self.sorted:
+        if len(positions) > 0 and self.sorted:
             mask = np.argsort(self.pair_first * len(self.pair_first) +
                               self.pair_second)
             self.pair_first = self.pair_first[mask]
