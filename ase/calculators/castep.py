@@ -718,9 +718,8 @@ End CASTEP Interface Documentation
                             else:
                                 hirshfeld_charges.append(float(fields[-1]))
                 elif 'stress calculation' in line:
-                    is_calc_stress = True if line.split()[-1] == 'on' else False
-                    if is_calc_stress:
-                        self.param.calculate_stress = is_calc_stress
+                    if line.split()[-1].strip() == 'on':
+                        self.param.calculate_stress = True
                 elif 'plane wave basis set cut-off' in line:
                     cutoff = float(line.split()[-2])
                     self.param.cut_off_energy = cutoff
@@ -737,7 +736,7 @@ End CASTEP Interface Documentation
                     self.param.finite_basis_corr = fbc
                 elif 'Treating system as non-metallic' in line:
                     self.param.fix_occupancy = True
-                elif 'max. number of SCF cycles                      :' in line:
+                elif 'max. number of SCF cycles:' in line:
                     max_no_scf = float(line.split()[-1])
                     self.param.max_scf_cycles = max_no_scf
                 elif 'density-mixing scheme' in line:
@@ -755,8 +754,9 @@ End CASTEP Interface Documentation
                     calc_limit = float(line.split()[-2])
                     self.param.run_time = calc_limit
                 elif 'type of calculation' in line:
-                    calc_type = line.split(":")[-1].split()
-                    calc_type = ' '.join([word for word in calc_type])
+                    calc_type = line.split(":")[-1]
+                    calc_type = re.sub('\s+', ' ', calc_type)
+                    calc_type = calc_type.strip()
                     if calc_type != 'single point energy':
                         calc_type_possibilities = {
                                 'geometry optimization': 'GeometryOptimization',
@@ -774,8 +774,9 @@ End CASTEP Interface Documentation
                         ctype = calc_type_possibilities[calc_type]
                         self.param.task = ctype
                 elif 'using functional' in line:
-                    used_functional = line.split(":")[-1].split()
-                    used_functional = ' '.join([word for word in used_functional])
+                    used_functional = line.split(":")[-1]
+                    used_functional = re.sub('\s+', ' ', used_functional)
+                    used_functional = used_functional.strip()
                     if used_functional != 'Local Density Approximation':
                         used_functional_possibilities = {
                                 'Perdew Wang (1991)': 'PW91',
