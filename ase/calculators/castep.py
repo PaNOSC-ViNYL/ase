@@ -720,40 +720,40 @@ End CASTEP Interface Documentation
                 elif 'stress calculation' in line:
                     is_calc_stress = True if line.split()[-1] == 'on' else False
                     if is_calc_stress:
-                        self.param.__setattr__('calculate_stress', is_calc_stress)
+                        self.param.calculate_stress = is_calc_stress
                 elif 'plane wave basis set cut-off' in line:
                     cutoff = float(line.split()[-2])
-                    self.param.__setattr__('cut_off_energy', cutoff)
+                    self.param.cut_off_energy = cutoff
                 elif 'total energy / atom convergence tol.' in line:
                     elec_energy_tol = float(line.split()[-2])
-                    self.param.__setattr__('elec_energy_tol', elec_energy_tol)
+                    self.param.elec_energy_tol = elec_energy_tol
                 elif 'convergence tolerance window' in line:
                     elec_convergence_win = int(line.split()[-2])
-                    self.param.__setattr__('elec_convergence_win', elec_convergence_win)
+                    self.param.elec_convergence_win = elec_convergence_win
                 elif 'finite basis set correction                    :' in line:
                     finite_basis_corr = line.split()[-1]
                     fbc_possibilities = {'none': 0, 'manual': 1, 'automatic': 2}
                     fbc = fbc_possibilities[finite_basis_corr]
-                    self.param.__setattr__('finite_basis_corr', fbc)
+                    self.param.finite_basis_corr = fbc
                 elif 'Treating system as non-metallic' in line:
-                    self.param.__setattr__('fix_occupancy', True)
+                    self.param.fix_occupancy = True
                 elif 'max. number of SCF cycles                      :' in line:
                     max_no_scf = float(line.split()[-1])
-                    self.param.__setattr__('max_scf_cycles', max_no_scf)
+                    self.param.max_scf_cycles = max_no_scf
                 elif 'density-mixing scheme' in line:
                     mixing_scheme = line.split()[-1]
-                    self.param.__setattr__('mixing_scheme', mixing_scheme)
+                    self.param.mixing_scheme = mixing_scheme
                 elif 'dump wavefunctions every' in line:
                     no_dump_cycles = float(line.split()[-3])
-                    self.param.__setattr__('num_dump_cycles', no_dump_cycles)
+                    self.param.num_dump_cycles = no_dump_cycles
                 elif 'optimization strategy' in line:
                     if 'memory' in line:
-                        self.param.__setattr__('opt_strategy', 'Memory')
+                        self.param.opt_strategy = 'Memory'
                     if 'speed' in line:
-                        self.param.__setattr__('opt_strategy', 'Memory')
+                        self.param.opt_strategy = 'Speed'
                 elif 'calculation limited to maximum' in line:
                     calc_limit = float(line.split()[-2])
-                    self.param.__setattr__('run_time', calc_limit)
+                    self.param.run_time = calc_limit
                 elif 'type of calculation' in line:
                     calc_type = line.split(":")[-1].split()
                     calc_type = ' '.join([word for word in calc_type])
@@ -772,7 +772,7 @@ End CASTEP Interface Documentation
                                 'Electronic Spectroscopy': 'ElectronicSpectroscopy'
                                 }
                         ctype = calc_type_possibilities[calc_type]
-                        self.param.__setattr__('task', ctype)
+                        self.param.task = ctype
                 elif 'using functional' in line:
                     used_functional = line.split(":")[-1].split()
                     used_functional = ' '.join([word for word in used_functional])
@@ -793,14 +793,14 @@ End CASTEP Interface Documentation
                                 'hybrid HSE06': 'HSE06'
                                 }
                         used_func = used_functional_possibilities[used_functional]
-                        self.param.__setattr__('xc_functional', used_func)
+                        self.param.xc_functional = used_func
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
                         self.param.iprint = iprint
                 elif 'treating system as spin-polarized' in line:
                     spin_polarized = True
-                    self.param.__setattr__('spin_polarized', spin_polarized)
+                    self.param.spin_polarized = spin_polarized
                 elif 'treating system as non-spin-polarized' in line:
                     spin_polarized = False
                 elif 'Number of kpoints used' in line:
