@@ -2,7 +2,7 @@ import numpy.random as random
 import numpy as np
 from ase import Atoms
 from ase.neighborlist import (NeighborList, PrimitiveNeighborList,
-                              LegacyPrimitiveNeighborList)
+                              NewPrimitiveNeighborList)
 from ase.build import bulk
 
 atoms = Atoms(numbers=range(10),
@@ -80,7 +80,7 @@ for a in range(27):
 assert not np.any(nl.get_neighbors(13)[1])
 
 c = 0.0058
-for NeighborListClass in [PrimitiveNeighborList, LegacyPrimitiveNeighborList]:
+for NeighborListClass in [PrimitiveNeighborList, NewPrimitiveNeighborList]:
     nl = NeighborListClass([c, c],
                            skin=0.0,
                            sorted=True,
@@ -112,7 +112,7 @@ spos_ac = np.array([[0., 0., 0.],
                     [0.25, 0.25, 0.25]])
 
 nl = PrimitiveNeighborList(cutoff_a, skin=0.0, sorted=True, use_scaled_positions=True)
-nl2 = LegacyPrimitiveNeighborList(cutoff_a, skin=0.0, sorted=True, use_scaled_positions=True)
+nl2 = NewPrimitiveNeighborList(cutoff_a, skin=0.0, sorted=True, use_scaled_positions=True)
 nl.update(pbc_c, cell_cv, spos_ac)
 nl2.update(pbc_c, cell_cv, spos_ac)
 

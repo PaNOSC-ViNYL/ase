@@ -535,7 +535,7 @@ def first_neighbors(natoms, first_atom):
     return seed
 
 
-class PrimitiveNeighborList:
+class NewPrimitiveNeighborList:
     """Neighbor list object. Wrapper around neighbor_list and first_neighbors.
 
     cutoffs: list of float
@@ -648,58 +648,7 @@ class PrimitiveNeighborList:
                 self.offset_vec[self.first_neigh[a]:self.first_neigh[a+1]])
 
 
-class NeighborList:
-    """Neighbor list object.
-
-    cutoffs: list of float
-        List of cutoff radii - one for each atom. If the spheres (defined by
-        their cutoff radii) of two atoms overlap, they will be counted as
-        neighbors.
-    skin: float
-        If no atom has moved more than the skin-distance since the
-        last call to the ``update()`` method, then the neighbor list
-        can be reused.  This will save some expensive rebuilds of
-        the list, but extra neighbors outside the cutoff will be
-        returned.
-    self_interaction: bool
-        Should an atom return itself as a neighbor?
-    bothways: bool
-        Return all neighbors.  Default is to return only "half" of
-        the neighbors.
-
-    Example::
-
-      nl = NeighborList([2.3, 1.7])
-      nl.update(atoms)
-      indices, offsets = nl.get_neighbors(0)
-    """
-
-    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
-                 bothways=False, primitive=PrimitiveNeighborList):
-        self.nl = primitive(cutoffs, skin, sorted,
-                            self_interaction=self_interaction,
-                            bothways=bothways)
-
-    def update(self, atoms):
-        return self.nl.update(atoms.pbc, atoms.get_cell(complete=True),
-                              atoms.positions)
-
-    def get_neighbors(self, a):
-        return self.nl.get_neighbors(a)
-
-    @property
-    def nupdates(self):
-        return self.nl.nupdates
-
-    @property
-    def nneighbors(self):
-        return self.nl.nneighbors
-
-    @property
-    def npbcneighbors(self):
-        return self.nl.npbcneighbors
-
-class LegacyPrimitiveNeighborList:
+class PrimitiveNeighborList:
     """Neighbor list that works without Atoms objects.
 
     This is less fancy, but can be used to avoid conversions between
@@ -857,3 +806,55 @@ class LegacyPrimitiveNeighborList:
         bothways=True was used."""
 
         return self.neighbors[a], self.displacements[a]
+
+
+class NeighborList:
+    """Neighbor list object.
+
+    cutoffs: list of float
+        List of cutoff radii - one for each atom. If the spheres (defined by
+        their cutoff radii) of two atoms overlap, they will be counted as
+        neighbors.
+    skin: float
+        If no atom has moved more than the skin-distance since the
+        last call to the ``update()`` method, then the neighbor list
+        can be reused.  This will save some expensive rebuilds of
+        the list, but extra neighbors outside the cutoff will be
+        returned.
+    self_interaction: bool
+        Should an atom return itself as a neighbor?
+    bothways: bool
+        Return all neighbors.  Default is to return only "half" of
+        the neighbors.
+
+    Example::
+
+      nl = NeighborList([2.3, 1.7])
+      nl.update(atoms)
+      indices, offsets = nl.get_neighbors(0)
+    """
+
+    def __init__(self, cutoffs, skin=0.3, sorted=False, self_interaction=True,
+                 bothways=False, primitive=PrimitiveNeighborList):
+        self.nl = primitive(cutoffs, skin, sorted,
+                            self_interaction=self_interaction,
+                            bothways=bothways)
+
+    def update(self, atoms):
+        return self.nl.update(atoms.pbc, atoms.get_cell(complete=True),
+                              atoms.positions)
+
+    def get_neighbors(self, a):
+        return self.nl.get_neighbors(a)
+
+    @property
+    def nupdates(self):
+        return self.nl.nupdates
+
+    @property
+    def nneighbors(self):
+        return self.nl.nneighbors
+
+    @property
+    def npbcneighbors(self):
+        return self.nl.npbcneighbors
