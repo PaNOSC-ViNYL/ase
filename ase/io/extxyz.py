@@ -571,7 +571,7 @@ def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
         while True:
             lastPos = fileobj.tell()
             line = fileobj.readline()
-            if line.startswith('VEC'):
+            if line.lstrip().startswith('VEC'):
                 nvec += 1
                 if nvec > 3:
                     raise XYZError('ase.io.extxyz: More than 3 VECX entries')
