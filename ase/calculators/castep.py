@@ -1078,7 +1078,7 @@ End CASTEP Interface Documentation
         if hirshfeld_analysis:
             hirshfeld_charges_atoms = np.array(hirshfeld_charges)
         else:
-            hirshfeld_charges_atoms = np.zeros(len(positions_frac))*np.nan
+            hirshfeld_charges_atoms = None
 
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
