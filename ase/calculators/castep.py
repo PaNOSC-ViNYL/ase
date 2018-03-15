@@ -729,7 +729,7 @@ End CASTEP Interface Documentation
                 elif 'convergence tolerance window' in line:
                     elec_convergence_win = int(line.split()[-2])
                     self.param.elec_convergence_win = elec_convergence_win
-                elif 'finite basis set correction                    :' in line:
+                elif re.match('\sfinite basis set correction\s*:', line):
                     finite_basis_corr = line.split()[-1]
                     fbc_possibilities = {'none': 0, 'manual': 1, 'automatic': 2}
                     fbc = fbc_possibilities[finite_basis_corr]
