@@ -2429,13 +2429,8 @@ class CastepParam(object):
 
     def get_attr_dict(self):
         """Settings that go into .param file in a traditional dict"""
-        attr_dict = {}
-        if [x for x in self._options.values() if x.value is not None]:
-            for key, option in sorted(self._options.items()):
-                if option.value is not None:
-                    attr_dict[key] = option.value
 
-        return attr_dict
+        return {k : o.value for k, o in self._options.items() if o.value is not None}
 
 
 class CastepCell(object):
@@ -2646,13 +2641,8 @@ class CastepCell(object):
 
     def get_attr_dict(self):
         """Settings that go into .cell file in a traditional dict"""
-        attr_dict = {}
-        if [x for x in self._options.values() if x.value is not None]:
-            for key, option in sorted(self._options.items()):
-                if option.value is not None:
-                    attr_dict[key] = option.value
 
-        return attr_dict
+        return {k : o.value for k, o in self._options.items() if o.value is not None}
 
 
 class ConversionError(Exception):
