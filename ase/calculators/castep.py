@@ -755,7 +755,7 @@ End CASTEP Interface Documentation
                     self.param.run_time = calc_limit
                 elif 'type of calculation' in line:
                     calc_type = line.split(":")[-1]
-                    calc_type = re.sub('\s+', ' ', calc_type)
+                    calc_type = re.sub(r'\s+', ' ', calc_type)
                     calc_type = calc_type.strip()
                     if calc_type != 'single point energy':
                         calc_type_possibilities = {
