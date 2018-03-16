@@ -110,7 +110,6 @@ struct.info = {'key_value_pairs': {'dataset': 'deltatest', 'kpoints': np.array([
 ase.io.write('tmp.xyz', struct)
 os.unlink('tmp.xyz')
 
-
 # Complex properties line. Keys and values that break with a regex parser.
 # see https://gitlab.com/ase/ase/issues/53 for more info
 
@@ -208,3 +207,18 @@ if False:
 
     os.unlink('complex.xyz')
 
+#write multiple atoms objects to one xyz
+frames = [at, at * (2, 1, 1), at * (3, 1, 1)]
+for atoms in frames:
+    atoms.write('append.xyz',append=True)
+    atoms.write('append.xyz.gz',append=True)
+    atoms.write('not_append.xyz',append=False)
+readFrames = ase.io.read('append.xyz',index=slice(0,None))
+assert readFrames == frames
+readFrames = ase.io.read('append.xyz.gz',index=slice(0,None))
+assert readFrames == frames
+singleFrame = ase.io.read('not_append.xyz',index=slice(0,None))
+assert singleFrame[-1] == frames[-1]
+os.unlink('append.xyz')
+os.unlink('append.xyz.gz')
+os.unlink('not_append.xyz')
