@@ -470,8 +470,8 @@ by invoking the get_potential_energy() method::
         #         unit_convert("force", self.units))
 
         # definitely yields atom-id ordered array
-        f = np.array(self.lmp.gather_atoms("f", 1, 3)).reshape(-1,3) *
-                unit_convert("force", self.units)
+        f = (np.array(self.lmp.gather_atoms("f", 1, 3)).reshape(-1,3) *
+                unit_convert("force", self.units))
 
         if self.coord_transform is not None:
             self.results['forces'] = np.dot(f, self.coord_transform)
