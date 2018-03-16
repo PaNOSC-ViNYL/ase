@@ -460,13 +460,18 @@ by invoking the get_potential_energy() method::
         self.results['stress'] = (stress *
                                   (-unit_convert("pressure", self.units)))
 
-        f = np.zeros((len(atoms), 3))
-        force_vars = ['fx', 'fy', 'fz']
-        for i, var in enumerate(force_vars):
-            f[:, i] = (
-                np.asarray(
-                    self.lmp.extract_variable(var, 'all', 1)[:len(atoms)]) *
-                unit_convert("force", self.units))
+        # this does not necessarily yield the forces ordered by atom-id!
+        # f = np.zeros((len(atoms), 3))
+        # force_vars = ['fx', 'fy', 'fz']
+        # for i, var in enumerate(force_vars):
+        #     f[:, i] = (
+        #         np.asarray(
+        #             self.lmp.extract_variable(var, 'all', 1)[:len(atoms)]) *
+        #         unit_convert("force", self.units))
+
+        # definitely yields atom-id ordered array
+        f = np.array(self._lmp.gather_atoms("f", 1, 3)).reshape(-1,3) *
+                unit_convert("force", self.units)
 
         if self.coord_transform is not None:
             self.results['forces'] = np.dot(f, self.coord_transform)
