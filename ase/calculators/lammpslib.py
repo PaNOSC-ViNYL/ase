@@ -618,6 +618,8 @@ by invoking the get_potential_energy() method::
             self.lmp.command('echo none')  # don't echo the atom positions
             self.rebuild(atoms)
             self.lmp.command('echo log')  # turn back on
+        else:
+            self.previous_atoms_numbers = atoms.numbers.copy()
 
         # execute the user commands
         for cmd in self.parameters.lmpcmds:
