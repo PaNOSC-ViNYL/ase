@@ -40,30 +40,31 @@ def mic(dr, cell, pbc=None):
 def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                             numbers=None, self_interaction=False,
                             use_scaled_positions=False, max_nbins=1e6):
-    """
-    Compute a neighbor list for an atomic configuration. Atoms outside periodic
-    boundaries are mapped into the box. Atoms outside nonperiodic boundaries
-    are included in the neighbor list but complexity of neighbor list search
-    for those can become n^2.
+    """Compute a neighbor list for an atomic configuration.
 
-    The neighbor list is sorted by first atom index 'i', but not by second 
+    Atoms outside periodic boundaries are mapped into the box. Atoms
+    outside nonperiodic boundaries are included in the neighbor list
+    but complexity of neighbor list search for those can become n^2.
+
+    The neighbor list is sorted by first atom index 'i', but not by second
     atom index 'j'.
 
-    Parameters
-    ----------
-    quantities : str
+    Parameters:
+
+    quantities: str
         Quantities to compute by the neighbor list algorithm. Each character
         in this string defines a quantity. They are returned in a tuple of
         the same order. Possible quantities are
-            'i' : first atom index
-            'j' : second atom index
-            'd' : absolute distance
-            'D' : distance vector
-            'S' : shift vector (number of cell boundaries crossed by the bond
-                  between atom i and j). With the shift vector S, the
-                  distances D between atoms can be computed from:
-                  D = positions[j]-positions[i]+S.dot(cell)
-    pbc : array_like
+
+            * 'i' : first atom index
+            * 'j' : second atom index
+            * 'd' : absolute distance
+            * 'D' : distance vector
+            * 'S' : shift vector (number of cell boundaries crossed by the bond
+              between atom i and j). With the shift vector S, the
+              distances D between atoms can be computed from:
+              D = positions[j]-positions[i]+S.dot(cell)
+    pbc: array_like
         3-tuple indicating giving periodic boundaries in the three Cartesian
         directions.
     cell: 3x3 matrix
@@ -71,31 +72,33 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     positions: list of xyz-positions
         Atomic positions.  Anything that can be converted to an ndarray of
         shape (n, 3) will do: [(x1,y1,z1), (x2,y2,z2), ...]. If
-        use_scaled_positions is set to true, this must be scaled positions. 
-    cutoff : float or dict
-        Cutoff for neighbor search. It can be
-            - A single float: This is a global cutoff for all elements.
-            - A dictionary: This specifies cutoff values for element
+        use_scaled_positions is set to true, this must be scaled positions.
+    cutoff: float or dict
+        Cutoff for neighbor search. It can be:
+
+            * A single float: This is a global cutoff for all elements.
+            * A dictionary: This specifies cutoff values for element
               pairs. Specification accepts element numbers of symbols.
               Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
-            - A list/array with a per atom value: This specifies the radius of
+            * A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
               within each others neighborhood.
-    self_interaction : bool
+    self_interaction: bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
-    use_scaled_positions : bool
+    use_scaled_positions: bool
         If set to true, positions are expected to be scaled positions.
-    max_nbins : int
+    max_nbins: int
         Maximum number of bins used in neighbor search. This is used to limit
         the maximum amount of memory required by the neighbor list.
 
-    Returns
-    -------
+    Returns:
+
     i, j, ... : array
         Tuple with arrays for each quantity specified above. Indices in `i`
         are returned in ascending order 0..len(a)-1, but the order of (i,j)
         pairs is not guaranteed.
+
     """
 
     # Naming conventions: Suffixes indicate the dimension of an array. The
@@ -202,7 +205,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
 
     # Now we construct neighbor pairs by pairing up all atoms within a bin or
     # between bin and neighboring bin. atom_pairs_pn is a helper buffer that
-    # contains all potential pairs of atoms between two bins, i.e. it is a list 
+    # contains all potential pairs of atoms between two bins, i.e. it is a list
     # of length max_natoms_per_bin**2.
     atom_pairs_pn = np.indices((max_natoms_per_bin, max_natoms_per_bin),
                                dtype=int)
@@ -238,7 +241,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                 shiftx_xyz, neighbinx_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
                 shifty_xyz, neighbiny_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
                 shiftz_xyz, neighbinz_xyz = np.divmod(binz_xyz + dz, nbins_c[2])
-                neighbin_b = (neighbinx_xyz + nbins_c[0] * 
+                neighbin_b = (neighbinx_xyz + nbins_c[0] *
                     (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)).ravel()
 
                 # Second atom in pair.
@@ -352,7 +355,7 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         distance_vector_nc = distance_vector_nc[mask]
         abs_distance_vector_n = abs_distance_vector_n[mask]
     elif not np.isscalar(cutoff):
-        # If cutoff is neither a dictionary nor a scalar, then we assume it is 
+        # If cutoff is neither a dictionary nor a scalar, then we assume it is
         # a list or numpy array that contains atomic radii. Atoms are neighbors
         # if their radii overlap.
         mask = abs_distance_vector_n < \
@@ -385,72 +388,80 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
 
 
 def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
-    """
-    Compute a neighbor list for an atomic configuration. Atoms outside periodic
-    boundaries are mapped into the box. Atoms outside nonperiodic boundaries
-    are included in the neighbor list but complexity of neighbor list search
-    for those can become n^2.
+    """Compute a neighbor list for an atomic configuration.
 
-    The neighbor list is sorted by first atom index 'i', but not by second 
+    Atoms outside periodic boundaries are mapped into the box. Atoms
+    outside nonperiodic boundaries are included in the neighbor list
+    but complexity of neighbor list search for those can become n^2.
+
+    The neighbor list is sorted by first atom index 'i', but not by second
     atom index 'j'.
 
-    Parameters
-    ----------
-    quantities : str
+    Parameters:
+
+    quantities: str
         Quantities to compute by the neighbor list algorithm. Each character
         in this string defines a quantity. They are returned in a tuple of
-        the same order. Possible quantities are
-            'i' : first atom index
-            'j' : second atom index
-            'd' : absolute distance
-            'D' : distance vector
-            'S' : shift vector (number of cell boundaries crossed by the bond
-                  between atom i and j). With the shift vector S, the
-                  distances D between atoms can be computed from:
-                  D = a.positions[j]-a.positions[i]+S.dot(a.cell)
-    a : ase.Atoms
+        the same order. Possible quantities are:
+
+           * 'i' : first atom index
+           * 'j' : second atom index
+           * 'd' : absolute distance
+           * 'D' : distance vector
+           * 'S' : shift vector (number of cell boundaries crossed by the bond
+             between atom i and j). With the shift vector S, the
+             distances D between atoms can be computed from:
+             D = a.positions[j]-a.positions[i]+S.dot(a.cell)
+    a: ase.Atoms
         Atomic configuration.
-    cutoff : float or dict
-        Cutoff for neighbor search. It can be
-            - A single float: This is a global cutoff for all elements.
-            - A dictionary: This specifies cutoff values for element
+    cutoff: float or dict
+        Cutoff for neighbor search. It can be:
+
+            * A single float: This is a global cutoff for all elements.
+            * A dictionary: This specifies cutoff values for element
               pairs. Specification accepts element numbers of symbols.
               Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
-            - A list/array with a per atom value: This specifies the radius of
+            * A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
               within each others neighborhood.
-    self_interaction : bool
+
+    self_interaction: bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
-    max_nbins : int
+    max_nbins: int
         Maximum number of bins used in neighbor search. This is used to limit
         the maximum amount of memory required by the neighbor list.
 
-    Returns
-    -------
-    i, j, ... : array
+    Returns:
+
+    i, j, ...: array
         Tuple with arrays for each quantity specified above. Indices in `i`
         are returned in ascending order 0..len(a), but the order of (i,j)
         pairs is not guaranteed.
 
-    Examples
-    --------
+    Examples:
+
     Examples assume Atoms object *a* and numpy imported as *np*.
-    1. Coordination counting:
+
+    1. Coordination counting::
+
         i = neighbor_list('i', a, 1.85)
         coord = np.bincount(i)
 
-    2. Coordination counting with different cutoffs for each pair of species
+    2. Coordination counting with different cutoffs for each pair of species::
+
         i = neighbor_list('i', a,
-                           {('H', 'H'): 1.1, ('C', 'H'): 1.3, ('C', 'C'): 1.85})
+                          {('H', 'H'): 1.1, ('C', 'H'): 1.3, ('C', 'C'): 1.85})
         coord = np.bincount(i)
 
-    3. Pair distribution function:
+    3. Pair distribution function::
+
         d = neighbor_list('d', a, 10.00)
         h, bin_edges = np.histogram(d, bins=100)
         pdf = h/(4*np.pi/3*(bin_edges[1:]**3 - bin_edges[:-1]**3)) * a.get_volume()/len(a)
 
-    4. Pair potential:
+    4. Pair potential::
+
         i, j, d, D = neighbor_list('ijdD', a, 5.0)
         energy = (-C/d**6).sum()
         pair_forces = (6*C/d**5  * (D/d).T).T
@@ -461,7 +472,8 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
         forces_z = np.bincount(j, weights=pair_forces[:, 2], minlength=len(a)) - \
                    np.bincount(i, weights=pair_forces[:, 2], minlength=len(a))
 
-    5. Dynamical matrix for a pair potential stored in a block sparse format:
+    5. Dynamical matrix for a pair potential stored in a block sparse format::
+
         from scipy.sparse import bsr_matrix
         i, j, dr, abs_dr = neighbor_list('ijDd', atoms)
         energy = (dr.T / abs_dr).T
