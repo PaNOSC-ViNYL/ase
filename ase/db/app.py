@@ -129,7 +129,7 @@ def error(e):
     except ValueError:
         cid = 0
     con = connections.get(cid)
-    with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
+    with open(op.join(tmpdir, '{:02}.err'.format(errors % 100)), 'w') as fd:
         print(repr((errors, con, e, request)), file=fd)
         if hasattr(e, '__traceback__'):
             traceback.print_tb(e.__traceback__, file=fd)
