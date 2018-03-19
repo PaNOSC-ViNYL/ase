@@ -28,6 +28,7 @@ import time
 import ase
 import ase.units as units
 from ase.calculators.general import Calculator
+from ase.calculators.calculator import compare_atoms
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
 from ase.utils import basestring
@@ -373,7 +374,8 @@ End CASTEP Interface Documentation
         'forces',
         'nbands',
         'positions',
-        'stress']
+        'stress',
+        'pressure']
 
     internal_keys = [
         '_castep_command',
@@ -479,10 +481,13 @@ End CASTEP Interface Documentation
 
         # Mulliken charges
         self._mulliken_charges = None
+        # Hirshfeld charges
+        self._hirshfeld_charges = None
 
         self._number_of_cell_constraints = None
         self._output_verbosity = None
         self._stress = None
+        self._pressure = None
         self._unit_cell = None
         self._kpoints = None
 
@@ -514,6 +519,18 @@ End CASTEP Interface Documentation
                 self.__setattr__('cut_off_energy', str(value))
             else:  # the general case
                 self.__setattr__(keyword, value)
+
+    def todict(self, skip_default=True):
+        """Create dict with settings of .param and .cell"""
+        dct = {}
+        dct['param'] = self.param.get_attr_dict()
+        dct['cell'] = self.cell.get_attr_dict()
+
+        return dct
+
+    def check_state(self, atoms, tol=1e-15):
+        """Check for system changes since last calculation."""
+        return compare_atoms(self._old_atoms, atoms)
 
     def _castep_find_last_record(self, castep_file):
         """Checks wether a given castep file has a regular
@@ -664,6 +681,7 @@ End CASTEP Interface Documentation
         spin_polarized = False
         calculate_hirshfeld = False
         mulliken_analysis = False
+        hirshfeld_analysis = False
         kpoints = None
 
         positions_frac_list = []
@@ -680,12 +698,110 @@ End CASTEP Interface Documentation
                 line = out.readline()
                 if not line or out.tell() > record_end:
                     break
+                elif 'Hirshfeld Analysis' in line:
+                    hirshfeld_charges = []
+
+                    hirshfeld_analysis = True
+                    # skip the separating line
+                    line = out.readline()
+                    # this is the headline
+                    line = out.readline()
+
+                    if 'Charge' in line:
+                        # skip the next separator line
+                        line = out.readline()
+                        while True:
+                            line = out.readline()
+                            fields = line.split()
+                            if len(fields) == 1:
+                                break
+                            else:
+                                hirshfeld_charges.append(float(fields[-1]))
+                elif 'stress calculation' in line:
+                    if line.split()[-1].strip() == 'on':
+                        self.param.calculate_stress = True
+                elif 'plane wave basis set cut-off' in line:
+                    cutoff = float(line.split()[-2])
+                    self.param.cut_off_energy = cutoff
+                elif 'total energy / atom convergence tol.' in line:
+                    elec_energy_tol = float(line.split()[-2])
+                    self.param.elec_energy_tol = elec_energy_tol
+                elif 'convergence tolerance window' in line:
+                    elec_convergence_win = int(line.split()[-2])
+                    self.param.elec_convergence_win = elec_convergence_win
+                elif re.match('\sfinite basis set correction\s*:', line):
+                    finite_basis_corr = line.split()[-1]
+                    fbc_possibilities = {'none': 0, 'manual': 1, 'automatic': 2}
+                    fbc = fbc_possibilities[finite_basis_corr]
+                    self.param.finite_basis_corr = fbc
+                elif 'Treating system as non-metallic' in line:
+                    self.param.fix_occupancy = True
+                elif 'max. number of SCF cycles:' in line:
+                    max_no_scf = float(line.split()[-1])
+                    self.param.max_scf_cycles = max_no_scf
+                elif 'density-mixing scheme' in line:
+                    mixing_scheme = line.split()[-1]
+                    self.param.mixing_scheme = mixing_scheme
+                elif 'dump wavefunctions every' in line:
+                    no_dump_cycles = float(line.split()[-3])
+                    self.param.num_dump_cycles = no_dump_cycles
+                elif 'optimization strategy' in line:
+                    if 'memory' in line:
+                        self.param.opt_strategy = 'Memory'
+                    if 'speed' in line:
+                        self.param.opt_strategy = 'Speed'
+                elif 'calculation limited to maximum' in line:
+                    calc_limit = float(line.split()[-2])
+                    self.param.run_time = calc_limit
+                elif 'type of calculation' in line:
+                    calc_type = line.split(":")[-1]
+                    calc_type = re.sub(r'\s+', ' ', calc_type)
+                    calc_type = calc_type.strip()
+                    if calc_type != 'single point energy':
+                        calc_type_possibilities = {
+                                'geometry optimization': 'GeometryOptimization',
+                                'band structure': 'BandStructure',
+                                'molecular dynamics': 'MolecularDynamics',
+                                'optical properties': 'Optics',
+                                'phonon calculation': 'Phonon',
+                                'E-field calculation': 'Efield',
+                                'Phonon followed by E-field': 'Phonon+Efield',
+                                'transition state search': 'TransitionStateSearch',
+                                'Magnetic Resonance': 'MagRes',
+                                'Core level spectra': 'Elnes',
+                                'Electronic Spectroscopy': 'ElectronicSpectroscopy'
+                                }
+                        ctype = calc_type_possibilities[calc_type]
+                        self.param.task = ctype
+                elif 'using functional' in line:
+                    used_functional = line.split(":")[-1]
+                    used_functional = re.sub('\s+', ' ', used_functional)
+                    used_functional = used_functional.strip()
+                    if used_functional != 'Local Density Approximation':
+                        used_functional_possibilities = {
+                                'Perdew Wang (1991)': 'PW91',
+                                'Perdew Burke Ernzerhof': 'PBE',
+                                'revised Perdew Burke Ernzerhof': 'RPBE',
+                                'PBE with Wu-Cohen exchange': 'WC',
+                                'PBE for solids (2008)': 'PBESOL',
+                                'Hartree-Fock': 'HF',
+                                'Hartree-Fock +': 'HF-LDA',
+                                'Screened Hartree-Fock': 'sX',
+                                'Screened Hartree-Fock + ': 'sX-LDA',
+                                'hybrid PBE0': 'PBE0',
+                                'hybrid B3LYP': 'B3LYP',
+                                'hybrid HSE03': 'HSE03',
+                                'hybrid HSE06': 'HSE06'
+                                }
+                        used_func = used_functional_possibilities[used_functional]
+                        self.param.xc_functional = used_func
                 elif 'output verbosity' in line:
                     iprint = int(line.split()[-1][1])
                     if int(iprint) != 1:
                         self.param.iprint = iprint
                 elif 'treating system as spin-polarized' in line:
                     spin_polarized = True
+                    self.param.spin_polarized = spin_polarized
                 elif 'treating system as non-spin-polarized' in line:
                     spin_polarized = False
                 elif 'Number of kpoints used' in line:
@@ -870,6 +986,9 @@ End CASTEP Interface Documentation
                         stress.append([float(s) for s in fields[2:5]])
                         line = out.readline()
                         fields = line.split()
+                    line = out.readline()
+                    if "Pressure:" in line:
+                        self._pressure = float(line.split()[-2]) * units.GPa
                 elif ('BFGS: starting iteration' in line or
                       'BFGS: improving iteration' in line):
                     if n_cell_const < 6:
@@ -955,6 +1074,11 @@ End CASTEP Interface Documentation
             mulliken_charges_atoms = np.array(mulliken_charges)
         else:
             mulliken_charges_atoms = np.zeros(len(positions_frac))
+
+        if hirshfeld_analysis:
+            hirshfeld_charges_atoms = np.array(hirshfeld_charges)
+        else:
+            hirshfeld_charges_atoms = None
 
         if calculate_hirshfeld:
             hirsh_atoms = np.array(hirsh_volrat)
@@ -1044,6 +1168,8 @@ End CASTEP Interface Documentation
         self._hirsh_volrat = hirsh_atoms
         self._spins = spins_atoms
         self._mulliken_charges = mulliken_charges_atoms
+        self._hirshfeld_charges = hirshfeld_charges_atoms
+
 
         if self._warnings:
             print('WARNING: %s contains warnings' % castep_file)
@@ -1153,6 +1279,12 @@ End CASTEP Interface Documentation
         Return the charges from a plane-wave Mulliken analysis.
         """
         return self._mulliken_charges
+
+    def get_hirshfeld_charges(self):
+        """
+        Return the charges from a Hirshfeld analysis.
+        """
+        return self._hirshfeld_charges
 
     def set_label(self, label):
         """The label is part of each seed, which in turn is a prefix
@@ -1264,6 +1396,11 @@ End CASTEP Interface Documentation
             else:
                 self.cell.species_pot = (elem, pps[0])
 
+    @property
+    def name(self):
+        """Return the name of the calculator (string).  """
+        return self.__name__
+
     @_self_getter
     def get_forces(self, atoms):
         """Run CASTEP calculation if needed and return forces."""
@@ -1331,6 +1468,12 @@ End CASTEP Interface Documentation
                            self._stress[1, 2], self._stress[0, 2], self._stress[0, 1]])
         #return self._stress
         return stress
+
+    @_self_getter
+    def get_pressure(self, atoms):
+        """Return the pressure."""
+        self.update(atoms)
+        return self._pressure
 
     @_self_getter
     def get_unit_cell(self, atoms):
@@ -2284,6 +2427,11 @@ class CastepParam(object):
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))
 
+    def get_attr_dict(self):
+        """Settings that go into .param file in a traditional dict"""
+
+        return {k : o.value for k, o in self._options.items() if o.value is not None}
+
 
 class CastepCell(object):
 
@@ -2490,6 +2638,11 @@ class CastepCell(object):
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))
+
+    def get_attr_dict(self):
+        """Settings that go into .cell file in a traditional dict"""
+
+        return {k : o.value for k, o in self._options.items() if o.value is not None}
 
 
 class ConversionError(Exception):

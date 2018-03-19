@@ -571,7 +571,7 @@ def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
         while True:
             lastPos = fileobj.tell()
             line = fileobj.readline()
-            if line.startswith('VEC'):
+            if line.lstrip().startswith('VEC'):
                 nvec += 1
                 if nvec > 3:
                     raise XYZError('ase.io.extxyz: More than 3 VECX entries')
@@ -690,7 +690,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, plain=False, vec_cell=False):
+              write_results=True, plain=False, vec_cell=False, append=False):
     """
     Write output in extended XYZ format
 
@@ -700,7 +700,10 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
     calculator attached to this Atoms.
     """
     if isinstance(fileobj, basestring):
-        fileobj = paropen(fileobj, 'w')
+        mode = 'w'
+        if append:
+            mode = 'a'
+        fileobj = paropen(fileobj, mode)
 
     if hasattr(images, 'get_positions'):
         images = [images]

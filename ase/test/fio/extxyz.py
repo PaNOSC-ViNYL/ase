@@ -53,6 +53,22 @@ images[2].set_cell(cell)
 read_images = ase.io.read('multi.xyz@:')
 assert read_images == images
 os.unlink('multi.xyz')
+# also test for vec_cell with whitespaces
+f = open('structure.xyz', 'w')
+f.write("""1
+Coordinates
+C         -7.28250        4.71303       -3.82016
+  VEC1 1.0 0.1 1.1
+1
+
+C         -7.28250        4.71303       -3.82016
+VEC1 1.0 0.1 1.1
+""")
+f.close()
+a = ase.io.read('structure.xyz',index=0)
+b = ase.io.read('structure.xyz',index=1)
+assert a == b
+os.unlink('structure.xyz')
 
 # read xyz containing trailing blank line
 # also test for upper case elements
@@ -93,7 +109,6 @@ struct.info = {'key_value_pairs': {'dataset': 'deltatest', 'kpoints': np.array([
 
 ase.io.write('tmp.xyz', struct)
 os.unlink('tmp.xyz')
-
 
 # Complex properties line. Keys and values that break with a regex parser.
 # see https://gitlab.com/ase/ase/issues/53 for more info
@@ -192,3 +207,18 @@ if False:
 
     os.unlink('complex.xyz')
 
+#write multiple atoms objects to one xyz
+frames = [at, at * (2, 1, 1), at * (3, 1, 1)]
+for atoms in frames:
+    atoms.write('append.xyz',append=True)
+    atoms.write('append.xyz.gz',append=True)
+    atoms.write('not_append.xyz',append=False)
+readFrames = ase.io.read('append.xyz',index=slice(0,None))
+assert readFrames == frames
+readFrames = ase.io.read('append.xyz.gz',index=slice(0,None))
+assert readFrames == frames
+singleFrame = ase.io.read('not_append.xyz',index=slice(0,None))
+assert singleFrame[-1] == frames[-1]
+os.unlink('append.xyz')
+os.unlink('append.xyz.gz')
+os.unlink('not_append.xyz')
