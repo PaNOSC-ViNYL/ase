@@ -10,6 +10,9 @@ Git master branch
 
 :git:`master <>`.
 
+* New linear-scaling neighbor list
+  available as a function :meth:`~ase.neighborlist.neighbor_list`.
+
 * Castep calculator: option for automatic detection of pseudopotential files from a given directory (castep_pp_path); support for GBRV pseudopotential library; updated outfile parsing to comply with CASTEP 18.1.
 
 * New LAMMPS calculator LAMMPSlib utilizing the Python bindings provided by LAMMPS instead of file I/O. Very basic calculator but can serve as base class for more sophisticated ones.
