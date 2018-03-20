@@ -7,8 +7,13 @@ import numpy as np
 from ase import Atom
 from ase.build import bulk
 from ase.calculators.lammpslib import LAMMPSlib
+import ase.io
+from ase import units
+from ase.md.verlet import VelocityVerlet
 
+# potential_path and data_file_path must be set as environment variables
 potential_path = os.environ.get('LAMMPS_POTENTIALS_PATH', '.')
+data_file_path = os.environ.get('LAMMPS_DATA_FILE_PATH', '.')
 
 cmds = ["pair_style eam/alloy",
         "pair_coeff * * {path}/NiAlH_jea.eam.alloy Ni H"
@@ -91,3 +96,37 @@ lammps = LAMMPSlib(lmpcmds=cmds, log_file='test.log')
 
 NiH.set_calculator(lammps)
 print("Energy ", NiH.get_potential_energy())
+
+
+# a more complicated example, reading in a LAMMPS data file
+
+Z_of_type = {1:26}
+atom_types = {'Fe':1,}
+
+at = ase.io.read(data_file_path+"/lammps.data", format="lammps-data", Z_of_type=Z_of_type)
+
+header = ["units           real",
+          "atom_style      full",
+          "boundary        p p p",
+          "box tilt        large",
+          "pair_style      lj/cut/coul/long 12.500",
+          "bond_style      harmonic",
+          "angle_style     harmonic",
+          "kspace_style    ewald 0.0001",
+          "read_data       "+data_file_path+"/lammps.data"]
+cmds = [] 
+
+lammps = LAMMPSlib(lammps_header=header, lmpcmds=cmds, atom_types=atom_types, create_atoms=False, create_box=False, boundary=False, keep_alive=True, log_file='hi')
+at.set_calculator(lammps)
+dyn = VelocityVerlet(at, 1 * units.fs)
+
+energy = at.get_potential_energy()
+energy_ref = 2041.41198295
+diff = abs((energy - energy_ref) / energy_ref)
+assert diff < 1e-10
+
+dyn.run(10)
+energy = at.get_potential_energy()
+energy_ref = 312.431585607
+diff = abs((energy - energy_ref) / energy_ref)
+assert diff < 1e-10, "%d" % energy
