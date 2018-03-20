@@ -625,13 +625,13 @@ class ResonantRaman(Vibrations):
         hnu = self.get_energies(method, direction)
         intensities = self.absolute_intensity(omega, gamma)
         te = int(np.log10(intensities.max())) - 2
-	scale = 10**(-te)
-	if not te:
-	    ts = ''
-	elif te > -2 and te < 3:
-	    ts = str(10**te)
-	else:
-	    ts = '10^{0}'.format(te)
+        scale = 10**(-te)
+        if not te:
+            ts = ''
+        elif te > -2 and te < 3:
+            ts = str(10**te)
+        else:
+            ts = '10^{0}'.format(te)
 	
         if isinstance(log, basestring):
             log = paropen(log, 'a')
