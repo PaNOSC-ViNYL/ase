@@ -10,6 +10,9 @@ Git master branch
 
 :git:`master <>`.
 
+* New linear-scaling neighbor list
+  available as a function :meth:`~ase.neighborlist.neighbor_list`.
+
 * Castep calculator: option for automatic detection of pseudopotential files from a given directory (castep_pp_path); support for GBRV pseudopotential library; updated outfile parsing to comply with CASTEP 18.1.
 
 * New LAMMPS calculator LAMMPSlib utilizing the Python bindings provided by LAMMPS instead of file I/O. Very basic calculator but can serve as base class for more sophisticated ones.
@@ -43,6 +46,9 @@ Git master branch
   direct gap (the old behavior), use::
 
       min(bandgap(..., spin=s, direst=True) for s in [0, 1])
+
+* Bug fixed in the :meth:`ase.phonons.Phonons.symmetrize` method when using an
+  even number of repeats.
 
 
 Version 3.15.0

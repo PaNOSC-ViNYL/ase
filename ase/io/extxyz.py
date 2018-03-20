@@ -117,21 +117,18 @@ def key_val_str_to_dict(string, sep=None):
 
         if key.lower() not in UNPROCESSED_KEYS:
             # Try to convert to (arrays of) floats, ints
+            split_value = re.findall(r'[^\s,]+', value)
             try:
-                numvalue = []
-                for vpart in re.findall(r'[^\s,]+',
-                                      value):  # allow commas in arrays
-                    if '.' in vpart:  # possible float
-                        numvalue.append(float(vpart))
-                    else:
-                        numvalue.append(int(vpart))
+                try:
+                    numvalue = np.array(split_value, dtype=int)
+                except (ValueError, OverflowError):
+                    # don't catch errors here so it falls through to bool
+                    numvalue = np.array(split_value, dtype=float)
                 if len(numvalue) == 1:
                     numvalue = numvalue[0]  # Only one number
                 elif len(numvalue) == 9:
                     # special case: 3x3 matrix, fortran ordering
                     numvalue = np.array(numvalue).reshape((3, 3), order='F')
-                else:
-                    numvalue = np.array(numvalue)  # vector
                 value = numvalue
             except (ValueError, OverflowError):
                 pass  # value is unchanged
@@ -403,7 +400,7 @@ def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict, nvec=0
 
     symbols = None
     if 'symbols' in arrays:
-        symbols = arrays['symbols']
+        symbols = [s.capitalize() for s in arrays['symbols']]
         del arrays['symbols']
 
     numbers = None
@@ -574,7 +571,7 @@ def read_xyz(fileobj, index=-1, properties_parser=key_val_str_to_dict):
         while True:
             lastPos = fileobj.tell()
             line = fileobj.readline()
-            if line.startswith('VEC'):
+            if line.lstrip().startswith('VEC'):
                 nvec += 1
                 if nvec > 3:
                     raise XYZError('ase.io.extxyz: More than 3 VECX entries')
@@ -693,7 +690,7 @@ def output_column_format(atoms, columns, arrays,
 
 
 def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
-              write_results=True, plain=False, vec_cell=False):
+              write_results=True, plain=False, vec_cell=False, append=False):
     """
     Write output in extended XYZ format
 
@@ -703,7 +700,10 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
     calculator attached to this Atoms.
     """
     if isinstance(fileobj, basestring):
-        fileobj = paropen(fileobj, 'w')
+        mode = 'w'
+        if append:
+            mode = 'a'
+        fileobj = paropen(fileobj, mode)
 
     if hasattr(images, 'get_positions'):
         images = [images]

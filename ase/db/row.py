@@ -230,7 +230,7 @@ class AtomsRow:
                     results[prop] = self[prop]
             if results:
                 atoms.calc = SinglePointCalculator(atoms, **results)
-                atoms.calc.name = self.calculator
+                atoms.calc.name = self.get('calculator', 'unknown')
 
         if add_additional_information:
             atoms.info = {}

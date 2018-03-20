@@ -8,7 +8,7 @@ Requirements
 ============
 
 * Python_ 2.7, 3.4-3.6
-* NumPy_ (base N-dimensional array package)
+* NumPy_ 1.9 or newer (base N-dimensional array package)
 
 Optional:
 

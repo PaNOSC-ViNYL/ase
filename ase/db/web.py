@@ -42,9 +42,11 @@ def process_metadata(db, html=True):
     kd = default_key_descriptions.copy()
     kd.update(meta['key_descriptions'])
     meta['key_descriptions'] = kd
-    for key, value in kd.items():
-        if not value[1]:
-            kd[key] = (value[0], value[0], value[2])
+
+    # Long description may be missing:
+    for key, (short, long, unit) in kd.items():
+        if not long:
+            kd[key] = (short, short, unit)
 
     sk = []
     for special in meta['special_keys']:

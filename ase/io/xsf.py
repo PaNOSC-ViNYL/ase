@@ -207,7 +207,7 @@ def iread_xsf(fileobj, read_data=False):
             if symbol.isdigit():
                 numbers.append(int(symbol))
             else:
-                numbers.append(atomic_numbers[symbol])
+                numbers.append(atomic_numbers[symbol.capitalize()])
             positions.append([float(x) for x in tokens[1:]])
 
         positions = np.array(positions)

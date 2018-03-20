@@ -117,7 +117,7 @@
 <tbody>
             {% for key, value, unit in rows %}
 <tr>
-<td> {{ key }} </td>
+<td> {{ key|safe }} </td>
 <td class="text-center"> {{ value|safe }} </td>
 <td class="text-center"> {{ unit|safe }} </td>
 </tr>

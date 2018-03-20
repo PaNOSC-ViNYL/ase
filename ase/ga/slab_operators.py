@@ -64,7 +64,7 @@ def same_layer_comp(atoms):
     unique_syms, comp = np.unique(sorted(atoms.get_chemical_symbols()),
                                   return_counts=True)
     l = get_layer_comps(atoms)
-    sym_dict = dict((s, np.array(c) / len(l))
+    sym_dict = dict((s, int(np.array(c) / len(l)))
                     for s, c in zip(unique_syms, comp))
     for la in l:
         correct_by = sym_dict.copy()

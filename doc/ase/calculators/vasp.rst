@@ -156,32 +156,57 @@ Setups
 
 For many elements, VASP is distributed with a choice of
 pseudopotential setups. These may be hard/soft variants of the
-pseudopotential or include additional valence electrons. While the
-Vasp calculator will default to the pseudopotential folders with the
-same name as the element, alternative setups may be selected
-with the `setups` dictionary.
+pseudopotential or include additional valence electrons.
+Three base setups are provided:
 
-To use an alternative setup for all instances of an element, simply
-provide the characters which need to be added, e.g.
+    minimal (default):
+        If a PAW folder exists with the same name as the element,
+        this will be used. For the other elements, the PAW setup
+        with the least electrons has been chosen.
+    recommended:
+        corresponds to the `table of recommended PAW setups <https://cms.mpi.univie.ac.at/vasp/vasp/Recommended_PAW_potentials_DFT_calculations_using_vasp_5_2.html>`_ supplied by the VASP developers.
+    gw:
+        corresponds to the `table of recommended setups for GW <https://cms.mpi.univie.ac.at/vasp/vasp/Recommended_GW_PAW_potentials_vasp_5_2.html>`_ supplied by the VASP developers.
+
+Where elements are missing from the default sets, the Vasp Calculator
+will attempt to use a setup folder with the same name as the element.
+A default setup may be selected with the ``setups`` keyword:
+
+.. code-block:: python
+
+    from ase.calculators.vasp import Vasp
+    calc = Vasp(setups='recommended')
+
+To use an alternative setup for all instances of an element, use the
+dictionary form of ``setups`` to provide the characters which need
+to be added to the element name, e.g.
 
 .. code-block:: python
 
    calc = Vasp(xc='PBE', setups={'Li': '_sv'})
 
 will use the ``Li_sv`` all-electron pseudopotential for all Li atoms.
+
 To apply special setups to individual atoms, identify them by their
 zero-indexed number in the atom list and use the full setup name. For
 example,
 
 .. code-block:: python
 
-   calc= Vasp(xc='PBE', setups={3: 'Ga_d'})
+   calc = Vasp(xc='PBE', setups={3: 'Ga_d'})
 
 will treat the Ga atom in position 3 (i.e. the fourth atom) of the
 atoms object as special, with an additional 10 d-block valence
 electrons, while other Ga atoms use the default 3-electron setup and
 other elements use their own default setups. The positional index may
 be quoted as a string (e.g. ``{'3': 'Ga_d'}``).
+
+These approaches may be combined by using the 'base' key to access a
+default set, e.g.
+
+.. code-block:: python
+
+   calc = Vasp(xc='PBE', setups={'base': 'recommended', 'Li': '', 4: 'H.5'})
 
 Spin-polarized calculation
 ==========================

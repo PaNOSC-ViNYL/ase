@@ -149,8 +149,10 @@ class SiestaRaman(Vibrations):
         else:
             self.pyscf_arg["tddft_iter_tol"] = 1e-4
 
-        return self.siesta.get_polarizability_pyscf_inter(Edir=np.array([1.0, 1.0, 1.0]),
-                                                          **self.pyscf_arg)
+        self.siesta.pyscf_tddft(Edir=np.array([1.0, 1.0, 1.0]), **self.pyscf_arg)
+        return self.siesta.results["freq range"], \
+               self.siesta.results["polarizability nonin"], \
+               self.siesta.results["polarizability inter"]
 
     def read(self, method='standard', direction='central', inter = True):
         self.method = method.lower()
