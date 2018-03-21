@@ -10,6 +10,14 @@ Git master branch
 
 :git:`master <>`.
 
+* No changes yet
+
+
+Version 3.16.0
+==============
+
+21 March 2018: :git:`3.16.0 <../3.16.0>`
+
 * New linear-scaling neighbor list
   available as a function :meth:`~ase.neighborlist.neighbor_list`.
 
