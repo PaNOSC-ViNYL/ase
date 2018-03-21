@@ -45,7 +45,7 @@ Git master branch
   will now also consider spin-flip transitions.  To get the spin-preserving
   direct gap (the old behavior), use::
 
-      min(bandgap(..., spin=s, direst=True) for s in [0, 1])
+      min(bandgap(..., spin=s, direct=True) for s in [0, 1])
 
 * Bug fixed in the :meth:`ase.phonons.Phonons.symmetrize` method when using an
   even number of repeats.
