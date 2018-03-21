@@ -97,7 +97,7 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
-    ase_db_footer = app.config['ASE_DB_FOOTER'],
+    ase_db_footer = app.config['ASE_DB_FOOTER']
     tmpdir = app.config['ASE_DB_TMPDIR']
     download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
