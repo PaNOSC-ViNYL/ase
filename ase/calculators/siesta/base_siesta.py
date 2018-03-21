@@ -1050,7 +1050,7 @@ class BaseSiesta(FileIOCalculator):
             self.results['polarizability inter'] = np.zeros((freq.size, 3, 3),
                                                 dtype=tddft.p_mat.dtype)
             self.results["density change nonin"] = tddft.dn0
-            self.results["density change inter"] = tddft.dn0
+            self.results["density change inter"] = tddft.dn
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
