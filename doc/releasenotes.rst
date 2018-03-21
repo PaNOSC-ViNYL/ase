@@ -36,7 +36,7 @@ Git master branch
 * Improved "quick info" dialog in the GUI.  The dialog now lists results
   cached by the calculator.
 
-* The "add atoms" function now accepts identifiers for molecules in the G2 dataset.
+* The "add atoms" dialog now offers a load file dialog as was the case before the tkinter port.  It also provides a chooser for the G2 dataset.
 
 * Interface for the :mod:`CRYSTAL <ase.calculators.crystal` code has been
   added.
