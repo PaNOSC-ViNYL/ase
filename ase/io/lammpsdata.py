@@ -166,6 +166,17 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
                         travel_in[id] = (int(fields[5]),
                                          int(fields[6]),
                                          int(fields[7]))
+                elif ((style == 'angle' or style == 'bond' or
+                       style == 'molecular') and
+                      (len(fields) == 6 or len(fields) == 9)):
+                    # id mol-id type x y z [tx ty tz]
+                    pos_in[id] = (int(fields[2]), float(fields[3]),
+                                  float(fields[4]), float(fields[5]))
+                    mol_id_in[id] = int(fields[1])
+                    if len(fields) == 9:
+                        travel_in[id] = (int(fields[6]),
+                                         int(fields[7]),
+                                         int(fields[8]))
                 else:
                     raise RuntimeError("Style '{}' not supported or invalid "
                                        "number of fields {}"
