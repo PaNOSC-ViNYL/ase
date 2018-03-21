@@ -64,6 +64,8 @@
     {% block content %}
     {% endblock %}
 
-    {% if ase_db_footer %} {{ ase_db_footer }} {% endif %}
+    {% if ase_db_footer %}
+    <div class="text-center">{{ ase_db_footer | safe }}</div>
+    {% endif %}
 </body>
 </html>
