@@ -308,7 +308,7 @@ by invoking the get_potential_energy() method::
         self.lmp.command(cell_cmd)
 
     def set_lammps_pos(self, atoms):
-        pos = atoms.get_positions() / unit_convert("distance", self.units)
+        pos = atoms.get_positions(wrap=True) / unit_convert("distance", self.units)
 
         # If necessary, transform the positions to new coordinate system
         if self.coord_transform is not None:
