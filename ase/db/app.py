@@ -62,6 +62,7 @@ app.secret_key = 'asdf'
 
 databases = {}
 home = ''  # link to homepage
+ase_db_footer = ''  # footer (for a license)
 open_ase_gui = True  # click image to open ASE's GUI
 download_button = True
 
@@ -96,6 +97,7 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
+    ase_db_footer = app.config['ASE_DB_FOOTER']
     tmpdir = app.config['ASE_DB_TMPDIR']
     download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
@@ -271,6 +273,7 @@ def index():
                            con=con,
                            x=con_id,
                            home=home,
+                           ase_db_footer=ase_db_footer,
                            pages=pages(page, nrows, limit),
                            nrows=nrows,
                            addcolumns=addcolumns,
@@ -341,6 +344,7 @@ def summary(id):
                            n2=n2,
                            n3=n3,
                            home=home,
+                           ase_db_footer=ase_db_footer,
                            md=db.meta,
                            open_ase_gui=open_ase_gui)
 
