@@ -423,8 +423,15 @@ def sqlite1(id):
 
 @app.route('/robots.txt')
 def robots():
-    return ('User-agent: *\nDisallow: /\n\n' +
-            'User-agent: Baiduspider\nDisallow: /\n', 200)
+    return ('User-agent: *\n'
+            'Disallow: /\n'
+            '\n'
+            'User-agent: Baiduspider\n'
+            'Disallow: /\n'
+            '\n'
+            'User-agent: SiteCheck-sitecrawl by Siteimprove.com\n'
+            'Disallow: /\n',
+            200)
 
 
 def pages(page, nrows, limit):
