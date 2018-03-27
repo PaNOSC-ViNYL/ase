@@ -2,10 +2,13 @@ from __future__ import print_function
 import os
 import sys
 import subprocess
+from multiprocessing import Pool, cpu_count
 import tempfile
 import unittest
 from glob import glob
 from distutils.version import LooseVersion
+import time
+import traceback
 
 import numpy as np
 
@@ -89,20 +92,38 @@ def get_tests(files=None):
     return tests
 
 
+def sleep_forever():
+    # KeyboardInterrupts are caught differently by worker threads in
+    # Py2/3, and our own except-clause within runtest_subprocess()
+    # will not be reached from worker threads that are idle because
+    # they have finished executing tasks.  Therefore instead of
+    # idling, they must execute this task:
+    try:
+        while True:
+            time.sleep(100000)
+    except KeyboardInterrupt:
+        pass
+
+
 def runtest_subprocess(filename):
-    import time
+    # Py2/3 compatibility hack for idle processes:
+    if filename == 'sleep_forever':
+        sleep_forever()
+
+    sys.stdout = devnull
     basedir = os.path.split(__file__)[0]
     testrelpath = os.path.relpath(filename, basedir)
     data = {'name': testrelpath, 'pid': os.getpid()}
-
-    #basedir = os.path.split(__file__)[0]
-    #assert filename.startswith(basedir)
-    #filename = 
-
-    t1 = time.time()
     test = ScriptTestCase(filename=filename)
-    ex = None
-    import traceback
+
+    # Some tests may write to files with the same name as other tests.
+    # Hence, create new subdir for each test:
+    cwd = os.getcwd()
+    testsubdir = testrelpath.replace('/', '_').replace('.', '_')
+    os.mkdir(testsubdir)
+    os.chdir(testsubdir)
+    t1 = time.time()
+
     try:
         test.testfile()
     except unittest.SkipTest as ex:
@@ -123,21 +144,15 @@ def runtest_subprocess(filename):
         data['error'] = ex
         data['traceback'] = traceback.format_exc()
     finally:
-        #if 'error' in data:#ex is not None:
-            #if data['status'] != 'SKIPPED':
-            #    data['traceback'] = traceback.format_exc()
-            #data['error'] = ex
         t2 = time.time()
+        os.chdir(cwd)
 
     if 'error' not in data:
         data['status'] = 'OK'
 
-    #data['status'] = status
     data['time'] = t2 - t1
     return data
 
-class Results:
-    pass
 
 def test(verbosity=1, calculators=[],
          stream=sys.stdout, files=None):
@@ -155,46 +170,52 @@ def test(verbosity=1, calculators=[],
 
     ts = unittest.TestSuite()
 
-    for test in tests:
-        ts.addTest(ScriptTestCase(filename=os.path.abspath(test)))
-
-    if verbosity > 0:
-        print_info()
-
-    sys.stdout = devnull
-
-    if verbosity == 0:
-        stream = devnull
-    ttr = unittest.TextTestRunner(verbosity=verbosity, stream=stream)
+    print_info()
 
     origcwd = os.getcwd()
-
-    from multiprocessing import Pool, cpu_count
-    nprocs = cpu_count()
-
     testdir = tempfile.mkdtemp(prefix='ase-test-')
     os.chdir(testdir)
-    if verbosity:
-        print('{:25}{}\n'.format('test-dir', testdir), file=sys.__stdout__)
+    nprocs = cpu_count()
+
+    print('{:25}{}'.format('test directory', testdir))
+    print('{:25}{}'.format('number of processes', nprocs))
+    print('{:25}{}'.format('time', time.strftime('%c')))
+    print()
+
+    ntests_done = 0
+    nproblems = 0
+    pool = Pool(nprocs)
+    t1 = time.time()
+
     try:
-        pool = Pool(16)
-        for result in pool.imap_unordered(runtest_subprocess, tests):
+        for data in pool.imap_unordered(runtest_subprocess, tests
+                                        # Hack: See sleep_forever() function.
+                                        + ['sleep_forever'] * nprocs):
             print('{pid:5d}: {name:40} {time:2.2f}s {status}'
-                  .format(**result), file=stream)
-            if result.get('traceback'):
-                print('=' * 78, file=stream)
-                print(result['traceback'].rstrip(), file=stream)
-                print('=' * 78, file=stream)
+                  .format(**data))
+            if data.get('traceback'):
+                print('=' * 78)
+                print(data['traceback'].rstrip())
+                print('=' * 78)
+            ntests_done += 1
+            if data['status'] in ['FAIL', 'ERROR']:
+                nproblems += 1
+
+            if ntests_done == len(tests):
+                # Workers are sleeping:
+                break
+    except KeyboardInterrupt:
+        print()
+        print('Interrupted by keyboard')
     finally:
-        #print('FINALLY', file=stream)
         os.chdir(origcwd)
-        sys.stdout = sys.__stdout__
+        pool.terminate()
+        pool.join()
 
-        results = Results()
-        results.errors = []
-        results.failures = []
+        t2 = time.time()
+        print('Time elapsed: {:.1f} s'.format(t2 - t1))
 
-    return results
+    return nproblems
 
 
 def disable_calculators(names):
@@ -289,10 +310,10 @@ class CLICommand:
                                                 ', '.join(calc_names)))
                 sys.exit(1)
 
-        results = test(verbosity=1 + args.verbose - args.quiet,
-                       calculators=calculators,
-                       files=args.tests)
-        sys.exit(len(results.errors + results.failures))
+        nproblems = test(verbosity=1 + args.verbose - args.quiet,
+                         calculators=calculators,
+                         files=args.tests)
+        sys.exit(nproblems)
 
 
 if __name__ == '__main__':
