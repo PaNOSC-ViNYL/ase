@@ -177,33 +177,38 @@ def test(verbosity=1, calculators=[],
     os.chdir(testdir)
     nprocs = cpu_count()
 
+    # Note: :25 corresponds to ase.cli indentation
     print('{:25}{}'.format('test directory', testdir))
     print('{:25}{}'.format('number of processes', nprocs))
     print('{:25}{}'.format('time', time.strftime('%c')))
     print()
 
-    ntests_done = 0
-    nproblems = 0
+    trouble = []
     pool = Pool(nprocs)
     t1 = time.time()
 
+    # basedir = os.path.split(__file__)[0]
+    # alltests = set(os.path.relpath(t, basedir) for t in tests)
+
     try:
-        for data in pool.imap_unordered(runtest_subprocess, tests
-                                        # Hack: See sleep_forever() function.
-                                        + ['sleep_forever'] * nprocs):
+        for i, data in enumerate(
+                pool.imap_unordered(runtest_subprocess, tests
+                                    # Workaround: See doc for sleep_forever():
+                                    + ['sleep_forever'] * nprocs)):
             print('{pid:5d}: {name:40} {time:2.2f}s {status}'
                   .format(**data))
             if data.get('traceback'):
                 print('=' * 78)
                 print(data['traceback'].rstrip())
                 print('=' * 78)
-            ntests_done += 1
-            if data['status'] in ['FAIL', 'ERROR']:
-                nproblems += 1
 
-            if ntests_done == len(tests):
-                # Workers are sleeping:
+            if data['status'] in ['FAIL', 'ERROR']:
+                trouble.append(data)
+
+            if i == len(tests) - 1:
+                # All jobs are done and workers are sleeping.
                 break
+
     except KeyboardInterrupt:
         print()
         print('Interrupted by keyboard')
@@ -215,7 +220,7 @@ def test(verbosity=1, calculators=[],
         t2 = time.time()
         print('Time elapsed: {:.1f} s'.format(t2 - t1))
 
-    return nproblems
+    return trouble
 
 
 def disable_calculators(names):
@@ -310,10 +315,10 @@ class CLICommand:
                                                 ', '.join(calc_names)))
                 sys.exit(1)
 
-        nproblems = test(verbosity=1 + args.verbose - args.quiet,
+        trouble = test(verbosity=1 + args.verbose - args.quiet,
                          calculators=calculators,
                          files=args.tests)
-        sys.exit(nproblems)
+        sys.exit(len(trouble))
 
 
 if __name__ == '__main__':
