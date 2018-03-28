@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-03-28 20:48+0200\n"
-"PO-Revision-Date: 2018-03-28 20:51+0200\n"
+"POT-Creation-Date: 2018-03-28 20:52+0200\n"
+"PO-Revision-Date: 2018-03-28 20:53+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: English (British) <ase-users@listserv.fysik.dtu.dk>\n"
 "Language: en_GB\n"
@@ -93,8 +93,8 @@ msgid "||A||:"
 msgstr "||A||:"
 
 #: ../celleditor.py:53 ../celleditor.py:55 ../celleditor.py:57
-msgid "perodic:"
-msgstr "perodic:"
+msgid "periodic:"
+msgstr "periodic:"
 
 #: ../celleditor.py:54
 msgid "B:"
@@ -143,7 +143,8 @@ msgstr "Apply Angles"
 #: ../celleditor.py:64
 msgid ""
 "Pressing 〈Enter〉 as you enter values will automatically apply correctly"
-msgstr "Pressing 〈Enter〉 as you enter values will automatically apply correctly"
+msgstr ""
+"Pressing 〈Enter〉 as you enter values will automatically apply correctly"
 
 #. TRANSLATORS: verb
 #: ../celleditor.py:67

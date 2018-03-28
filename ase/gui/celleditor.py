@@ -50,11 +50,11 @@ class CellEditor:
         x, y, z = self.cell_grid
 
         win.add([_('A:'), x[0], x[1], x[2], _('||A||:'), x[3],
-                 _('perodic:'), self.pbc[0]])
+                 _('periodic:'), self.pbc[0]])
         win.add([_('B:'), y[0], y[1], y[2], _('||B||:'), y[3],
-                 _('perodic:'), self.pbc[1]])
+                 _('periodic:'), self.pbc[1]])
         win.add([_('C:'), z[0], z[1], z[2], _('||C||:'), z[3],
-                 _('perodic:'), self.pbc[2]])
+                 _('periodic:'), self.pbc[2]])
         win.add([_('∠BC:'), self.angles[0], _('∠AC:'), self.angles[1],
                  _('∠AB:'), self.angles[2]])
         win.add([_('Scale atoms with cell:'), self.scale_atoms])
