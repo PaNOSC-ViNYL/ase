@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2018-03-28 20:52+0200\n"
-"PO-Revision-Date: 2018-03-28 20:53+0200\n"
+"PO-Revision-Date: 2018-03-28 22:06+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -162,7 +162,7 @@ msgstr "Vakuum:"
 
 #: ../celleditor.py:70
 msgid "Apply Vacuum"
-msgstr "Anvend vakuum:"
+msgstr "Anvend vakuum"
 
 #: ../colors.py:15
 msgid "Colors"
