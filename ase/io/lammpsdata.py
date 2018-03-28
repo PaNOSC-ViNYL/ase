@@ -1,7 +1,6 @@
 import re
 import numpy as np
 
-import ase.units
 from ase.atoms import Atoms
 from ase.parallel import paropen
 from ase.calculators.lammpslib import unit_convert
