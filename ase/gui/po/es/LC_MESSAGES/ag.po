@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-03-23 21:33+0100\n"
-"PO-Revision-Date: 2018-03-24 16:25+0100\n"
+"POT-Creation-Date: 2018-03-28 20:52+0200\n"
+"PO-Revision-Date: 2018-03-28 21:44+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -46,7 +46,9 @@ msgstr "Coordenadas:"
 msgid ""
 "Coordinates are relative to the center of the selection, if any, else "
 "absolute."
-msgstr "Coordenadas son relativas al centro de la selección si hay alguna. En otro caso son absolutas."
+msgstr ""
+"Coordenadas son relativas al centro de la selección si hay alguna. En otro "
+"caso son absolutas."
 
 #: ../add.py:56
 msgid "Check positions"
@@ -73,7 +75,92 @@ msgstr "Posiciones no válidas"
 msgid ""
 "Atom would be less than 0.5 Å from an existing atom.  To override, uncheck "
 "the check positions option."
-msgstr "Átomo quedaría a una distancia menor que 0,5 Å de otro átomo. Para ignorar este aviso, desmarque la casilla de validar posiciones."
+msgstr ""
+"Átomo quedaría a una distancia menor que 0,5 Å de otro átomo. Para ignorar "
+"este aviso, desmarque la casilla de validar posiciones."
+
+#. TRANSLATORS: This is a title of a window.
+#: ../celleditor.py:48
+msgid "Cell Editor"
+msgstr "Editor de celda"
+
+#: ../celleditor.py:52
+msgid "A:"
+msgstr "A:"
+
+#: ../celleditor.py:52
+msgid "||A||:"
+msgstr "||A||:"
+
+#: ../celleditor.py:53 ../celleditor.py:55 ../celleditor.py:57
+msgid "periodic:"
+msgstr "periódico:"
+
+#: ../celleditor.py:54
+msgid "B:"
+msgstr "B:"
+
+#: ../celleditor.py:54
+msgid "||B||:"
+msgstr "||B||:"
+
+#: ../celleditor.py:56
+msgid "C:"
+msgstr "C:"
+
+#: ../celleditor.py:56
+msgid "||C||:"
+msgstr "||C||:"
+
+#: ../celleditor.py:58
+msgid "∠BC:"
+msgstr "∠BC:"
+
+#: ../celleditor.py:58
+msgid "∠AC:"
+msgstr "∠AC:"
+
+#: ../celleditor.py:59
+msgid "∠AB:"
+msgstr "∠AB:"
+
+#: ../celleditor.py:60
+msgid "Scale atoms with cell:"
+msgstr "Ajustar posiciones proporcionalmente:"
+
+#: ../celleditor.py:61
+msgid "Apply Vectors"
+msgstr "Aplicar vectores"
+
+#: ../celleditor.py:62
+msgid "Apply Magnitudes"
+msgstr "Aplicar longitudes"
+
+#: ../celleditor.py:63
+msgid "Apply Angles"
+msgstr "Aplicar ángulos"
+
+#: ../celleditor.py:64
+msgid ""
+"Pressing 〈Enter〉 as you enter values will automatically apply correctly"
+msgstr "Pulse 〈Entrar〉al introducir valores para aplicar automáticamente"
+
+#. TRANSLATORS: verb
+#: ../celleditor.py:67
+msgid "Center"
+msgstr "Centrar"
+
+#: ../celleditor.py:68
+msgid "Wrap"
+msgstr "Envolver"
+
+#: ../celleditor.py:69
+msgid "Vacuum:"
+msgstr "Vacío:"
+
+#: ../celleditor.py:70
+msgid "Apply Vacuum"
+msgstr "Aplicar vacío"
 
 #: ../colors.py:15
 msgid "Colors"
@@ -474,7 +561,8 @@ msgstr ""
 "<c>fmax</c>: fuerza máxima\n"
 "<c>fave</c>: fuerza media\n"
 "<c>R[n,0-2]</c>: posición del átomo de número <c>n</c>\n"
-"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distancia entre dos átomos <c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: distancia entre dos átomos "
+"<c>n<sub>1</sub></c> y <c>n<sub>2</sub></c>\n"
 "<c>i</c>: número de la imagen actual\n"
 "<c>E[i]</c>: energía del número de la imagen <c>i</c>\n"
 "<c>F[n,0-2]</c>: fuerza de en número de átomos de <c>n</c>\n"
@@ -482,8 +570,11 @@ msgstr ""
 "<c>M[n]</c>: momento magnético de número de átomos de <c>n</c>\n"
 "<c>A[0-2,0-2]</c>: celda unitaria vectores de la base\n"
 "<c>s</c>: longitud de la trayectoria\n"
-"<c>a(n1,n2,n3)</c>: ángulo entre los átomos <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c> y <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></c>\n"
-"<c>dih(n1,n2,n3,n4)</c>: diedro ángulo entre <c>n<sub>1</sub></c>, <c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
+"<c>a(n1,n2,n3)</c>: ángulo entre los átomos <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c> y <c>n<sub>3</sub></c>, centrado en <c>n<sub>2</sub></"
+"c>\n"
+"<c>dih(n1,n2,n3,n4)</c>: diedro ángulo entre <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperatura (K)"
 
 #: ../graphs.py:42 ../graphs.py:44
