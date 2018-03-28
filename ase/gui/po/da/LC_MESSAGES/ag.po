@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-03-23 21:33+0100\n"
-"PO-Revision-Date: 2018-03-24 16:30+0100\n"
+"POT-Creation-Date: 2018-03-28 20:48+0200\n"
+"PO-Revision-Date: 2018-03-28 20:50+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
 "Language: da\n"
@@ -47,7 +47,9 @@ msgstr "Koordinater:"
 msgid ""
 "Coordinates are relative to the center of the selection, if any, else "
 "absolute."
-msgstr "Koordinaterne er relative til markeringens midpunkt, hvis der er en markering, og ellers absolutte."
+msgstr ""
+"Koordinaterne er relative til markeringens midpunkt, hvis der er en "
+"markering, og ellers absolutte."
 
 #: ../add.py:56
 msgid "Check positions"
@@ -74,7 +76,92 @@ msgstr "Ugyldige positioner"
 msgid ""
 "Atom would be less than 0.5 Å from an existing atom.  To override, uncheck "
 "the check positions option."
-msgstr "Atomet ville befinde sig mindre emd 0,5 Å fra et andet atom. Fjern kryds ved indstillingen Kontrollér position for at tilsidesætte denne advarsel."
+msgstr ""
+"Atomet ville befinde sig mindre emd 0,5 Å fra et andet atom. Fjern kryds ved "
+"indstillingen Kontrollér position for at tilsidesætte denne advarsel."
+
+#. TRANSLATORS: This is a title of a window.
+#: ../celleditor.py:48
+msgid "Cell Editor"
+msgstr "Celleredigering"
+
+#: ../celleditor.py:52
+msgid "A:"
+msgstr "A:"
+
+#: ../celleditor.py:52
+msgid "||A||:"
+msgstr "||A||:"
+
+#: ../celleditor.py:53 ../celleditor.py:55 ../celleditor.py:57
+msgid "perodic:"
+msgstr "periodisk:"
+
+#: ../celleditor.py:54
+msgid "B:"
+msgstr "B:"
+
+#: ../celleditor.py:54
+msgid "||B||:"
+msgstr "||B||:"
+
+#: ../celleditor.py:56
+msgid "C:"
+msgstr "C:"
+
+#: ../celleditor.py:56
+msgid "||C||:"
+msgstr "||C||:"
+
+#: ../celleditor.py:58
+msgid "∠BC:"
+msgstr "∠BC:"
+
+#: ../celleditor.py:58
+msgid "∠AC:"
+msgstr "∠AC:"
+
+#: ../celleditor.py:59
+msgid "∠AB:"
+msgstr "∠AB:"
+
+#: ../celleditor.py:60
+msgid "Scale atoms with cell:"
+msgstr "Skalér atomer med celle:"
+
+#: ../celleditor.py:61
+msgid "Apply Vectors"
+msgstr "Anvend vektorer"
+
+#: ../celleditor.py:62
+msgid "Apply Magnitudes"
+msgstr "Anvend længder"
+
+#: ../celleditor.py:63
+msgid "Apply Angles"
+msgstr "Anvend vinkler"
+
+#: ../celleditor.py:64
+msgid ""
+"Pressing 〈Enter〉 as you enter values will automatically apply correctly"
+msgstr "Tryk 〈Enter〉 mens du indtaster værdier for automatisk at anvende disse"
+
+#. TRANSLATORS: verb
+#: ../celleditor.py:67
+msgid "Center"
+msgstr "Centrér"
+
+#: ../celleditor.py:68
+msgid "Wrap"
+msgstr "Ombryd"
+
+#: ../celleditor.py:69
+msgid "Vacuum:"
+msgstr "Vakuum:"
+
+#: ../celleditor.py:70
+msgid "Apply Vacuum"
+msgstr "Anvend vakuum:"
 
 #: ../colors.py:15
 msgid "Colors"
