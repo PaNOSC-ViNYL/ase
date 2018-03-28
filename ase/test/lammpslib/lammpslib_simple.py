@@ -177,7 +177,7 @@ with open(data_file_path+'/lammps.data', 'w') as fd:
 Z_of_type = {1:26}
 atom_types = {'Fe':1,}
 
-at = ase.io.read(data_file_path+"/lammps.data", format="lammps-data", Z_of_type=Z_of_type)
+at = ase.io.read(data_file_path+"/lammps.data", format="lammps-data", Z_of_type=Z_of_type, units="real")
 
 header = ["units           real",
           "atom_style      full",

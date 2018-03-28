@@ -4,18 +4,17 @@ import numpy as np
 import ase.units
 from ase.atoms import Atoms
 from ase.parallel import paropen
+from ase.calculators.lammpslib import unit_convert
 from ase.utils import basestring
 
 
 def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
-                     mass_units=ase.units.kg/ase.units.mol/1000,
-                     distance_units=ase.units.Ang,
-                     velocity_units=ase.units.Ang/ase.units.fs):
+                     units="metal"):
     """Method which reads a LAMMPS data file.
 
     sort_by_id: Order the particles according to their id. Might be faster to
     switch it off.
-    Units are set by default to the style=real setting in LAMMPS.
+    Units are set by default to the style=metal setting in LAMMPS.
     """
     if isinstance(fileobj, basestring):
         f = paropen(fileobj)
@@ -266,11 +265,11 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
         if masses is not None:
             masses[ind] = mass_in[type]
     # convert units
-    positions *= distance_units
-    masses *= mass_units
-    cell *= distance_units
+    positions *= unit_convert("distance", units)
+    masses *= unit_convert("mass", units)
+    cell *= unit_convert("distance", units)
     if velocities is not None:
-        velocities *= velocity_units
+        velocities *= unit_convert("velocity", units)
 
     # create ase.Atoms
     at = Atoms(positions=positions,
