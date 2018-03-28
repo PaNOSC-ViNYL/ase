@@ -2,6 +2,7 @@
 
 from __future__ import print_function
 
+import tempfile
 import os
 import numpy as np
 from ase import Atom
@@ -11,9 +12,8 @@ import ase.io
 from ase import units
 from ase.md.verlet import VelocityVerlet
 
-# potential_path and data_file_path must be set as environment variables
+# potential_path must be set as an environment variable
 potential_path = os.environ.get('LAMMPS_POTENTIALS_PATH', '.')
-data_file_path = os.environ.get('LAMMPS_DATA_FILE_PATH', '.')
 
 cmds = ["pair_style eam/alloy",
         "pair_coeff * * {path}/NiAlH_jea.eam.alloy Ni H"
@@ -102,7 +102,6 @@ print("Energy ", NiH.get_potential_energy())
 
 # first, we generate the LAMMPS data file
 lammps_data_file = """
-
 8 atoms
 1 atom types
 6 bonds
@@ -169,7 +168,8 @@ Angles
 3 1 5 6 7
 4 1 6 7 8
 """
-with open(data_file_path+'/lammps.data', 'w') as fd:
+tmp_dir = tempfile.mkdtemp()
+with open(tmp_dir+'/lammps.data', 'w') as fd:
     fd.write(lammps_data_file)
 
 # then we run the actual test
@@ -177,7 +177,7 @@ with open(data_file_path+'/lammps.data', 'w') as fd:
 Z_of_type = {1:26}
 atom_types = {'Fe':1,}
 
-at = ase.io.read(data_file_path+"/lammps.data", format="lammps-data", Z_of_type=Z_of_type, units="real")
+at = ase.io.read(tmp_dir+"/lammps.data", format="lammps-data", Z_of_type=Z_of_type, units="real")
 
 header = ["units           real",
           "atom_style      full",
@@ -187,10 +187,10 @@ header = ["units           real",
           "bond_style      harmonic",
           "angle_style     harmonic",
           "kspace_style    ewald 0.0001",
-          "read_data       "+data_file_path+"/lammps.data"]
+          "read_data       "+tmp_dir+"/lammps.data"]
 cmds = [] 
 
-lammps = LAMMPSlib(lammps_header=header, lmpcmds=cmds, atom_types=atom_types, create_atoms=False, create_box=False, boundary=False, keep_alive=True, log_file='hi')
+lammps = LAMMPSlib(lammps_header=header, lmpcmds=cmds, atom_types=atom_types, create_atoms=False, create_box=False, boundary=False, keep_alive=True, log_file='test.log')
 at.set_calculator(lammps)
 dyn = VelocityVerlet(at, 1 * units.fs)
 
@@ -204,6 +204,3 @@ energy = at.get_potential_energy()
 energy_ref = 312.431585607
 diff = abs((energy - energy_ref) / energy_ref)
 assert diff < 1e-10, "%d" % energy
-
-# remove the LAMMPS data file we created
-os.remove(data_file_path+'/lammps.data')
