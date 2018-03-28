@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 
-import tempfile
 import os
 import numpy as np
 from ase import Atom
@@ -168,8 +167,7 @@ Angles
 3 1 5 6 7
 4 1 6 7 8
 """
-tmp_dir = tempfile.mkdtemp()
-with open(tmp_dir+'/lammps.data', 'w') as fd:
+with open('lammps.data', 'w') as fd:
     fd.write(lammps_data_file)
 
 # then we run the actual test
@@ -177,7 +175,7 @@ with open(tmp_dir+'/lammps.data', 'w') as fd:
 Z_of_type = {1:26}
 atom_types = {'Fe':1,}
 
-at = ase.io.read(tmp_dir+"/lammps.data", format="lammps-data", Z_of_type=Z_of_type, units="real")
+at = ase.io.read('lammps.data', format='lammps-data', Z_of_type=Z_of_type, units='real')
 
 header = ["units           real",
           "atom_style      full",
@@ -187,7 +185,7 @@ header = ["units           real",
           "bond_style      harmonic",
           "angle_style     harmonic",
           "kspace_style    ewald 0.0001",
-          "read_data       "+tmp_dir+"/lammps.data"]
+          "read_data       lammps.data"]
 cmds = [] 
 
 lammps = LAMMPSlib(lammps_header=header, lmpcmds=cmds, atom_types=atom_types, create_atoms=False, create_box=False, boundary=False, keep_alive=True, log_file='test.log')
