@@ -133,6 +133,23 @@
 {% set d = s.row %}
 
 {% block head %}
+<script>
+  $(function(){
+    var includes = $('[data-include]');
+    jQuery.each(includes, function(){
+      var file = $(this).data('include');
+      $(this).load(file);
+    });
+  });
+</script>
+
+<script>
+$(function() {
+  $('.panel-collapse').collapse({toggle: false}).collapse('show');
+  $('.panel-collapse').not("#collapse0").collapse({toggle: false}).collapse('hide');
+});
+</script>
+
 {% if not open_ase_gui %}
 <script src="{{ url_for('static', filename='jsmol/JSmol.min.js') }}"></script>
 
@@ -150,6 +167,8 @@ jmol_isReady = function(applet)
 {% endblock %}
 
 {% block content %}
+
+
 
 <div class="container">
 
@@ -170,7 +189,7 @@ jmol_isReady = function(applet)
         </h4>
     </div>
 
-    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
+    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse in">
         <div class="panel-body">
     {% for column in things %}
         <div class="col-md-6">
@@ -185,9 +204,10 @@ jmol_isReady = function(applet)
         {% elif thing is none %}
         {% elif thing|length == 2 %}
             {{ table(thing) }}
+        {% elif thing[-4:] == 'html'  %}
+                <div data-include="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%"></div>
         {% else %}
-                    <img
-                    src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%">
+                <img src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%">
         {% endif %}
                 </div> <!--END ROW-->
     {% endfor %}

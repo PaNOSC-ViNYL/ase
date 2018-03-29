@@ -101,7 +101,8 @@ class Summary:
                             block = (title, rows)
                         else:
                             continue
-                    elif any(block.endswith(ext) for ext in ['.png', '.csv']):
+                    elif any(block.endswith(ext) for ext in ['.png', '.csv',
+                                                             '.html']):
                         name = op.join(tmpdir, prefix + block)
                         if not op.isfile(name):
                             self.create_figures(row, prefix, tmpdir,
