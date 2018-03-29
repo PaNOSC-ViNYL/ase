@@ -3,14 +3,17 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.parallel import paropen
+from ase.calculators.lammpslib import unit_convert
 from ase.utils import basestring
 
 
-def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False):
+def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
+                     units="metal"):
     """Method which reads a LAMMPS data file.
 
     sort_by_id: Order the particles according to their id. Might be faster to
     switch it off.
+    Units are set by default to the style=metal setting in LAMMPS.
     """
     if isinstance(fileobj, basestring):
         f = paropen(fileobj)
@@ -165,6 +168,17 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False):
                         travel_in[id] = (int(fields[5]),
                                          int(fields[6]),
                                          int(fields[7]))
+                elif ((style == 'angle' or style == 'bond' or
+                       style == 'molecular') and
+                      (len(fields) == 6 or len(fields) == 9)):
+                    # id mol-id type x y z [tx ty tz]
+                    pos_in[id] = (int(fields[2]), float(fields[3]),
+                                  float(fields[4]), float(fields[5]))
+                    mol_id_in[id] = int(fields[1])
+                    if len(fields) == 9:
+                        travel_in[id] = (int(fields[6]),
+                                         int(fields[7]),
+                                         int(fields[8]))
                 else:
                     raise RuntimeError("Style '{}' not supported or invalid "
                                        "number of fields {}"
@@ -269,6 +283,12 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False):
             numbers[ind] = Z_of_type[type]
         if masses is not None:
             masses[ind] = mass_in[type]
+    # convert units
+    positions *= unit_convert("distance", units)
+    masses *= unit_convert("mass", units)
+    cell *= unit_convert("distance", units)
+    if velocities is not None:
+        velocities *= unit_convert("velocity", units)
 
     # create ase.Atoms
     at = Atoms(positions=positions,
