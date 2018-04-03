@@ -172,7 +172,9 @@ def index():
         sort = 'id'
         limit = 25
 
-    db = databases[project]
+    db = databases.get(project)
+    if db is None:
+        return 'No such project: ' + project
 
     meta = db.meta
 
