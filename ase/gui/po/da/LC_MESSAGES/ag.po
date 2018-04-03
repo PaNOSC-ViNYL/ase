@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-03-28 20:52+0200\n"
+"POT-Creation-Date: 2018-04-03 15:59+0200\n"
 "PO-Revision-Date: 2018-03-28 22:06+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
@@ -232,180 +232,6 @@ msgstr "Fjern begrænsninger"
 msgid "Clear constraints"
 msgstr "Ryd begrænsninger"
 
-#: ../crystal.py:16
-msgid ""
-"  Use this dialog to create crystal lattices. First select the structure,\n"
-"  either from a set of common crystal structures, or by space group "
-"description.\n"
-"  Then add all other lattice parameters.\n"
-"\n"
-"  If an experimental crystal structure is available for an atom, you can\n"
-"  look up the crystal type and lattice constant, otherwise you have to "
-"specify it\n"
-"  yourself.  "
-msgstr ""
-"  Brug denne dialog til at oprette krystalstrukturer. Vælg først "
-"strukturen,\n"
-"  enten fra en samling almindelige krystalstrukturer eller ud fra en\n"
-"  rumgruppebeskrivelse. Tilføj så alle andre gitterparametre.\n"
-"\n"
-"  Hvis der er en eksperimentel krystalstruktur tilgængelig for at\n"
-"  atom, kan du slå krystaltypen samt gitterkonstanten op – ellers skal\n"
-"  du angive den selv.  "
-
-#: ../crystal.py:34 ../graphene.py:30
-#, python-format
-msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
-msgstr " %(natoms)i atomer: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
-
-#: ../crystal.py:71
-msgid "Create Bulk Crystal by Spacegroup"
-msgstr "Opret krystalstruktur fra rumgruppe"
-
-#: ../crystal.py:85
-msgid "Number: 1"
-msgstr "Nummer: 1"
-
-# slice ~ opdel
-#: ../crystal.py:87
-msgid "Lattice: "
-msgstr "Gitter: "
-
-#: ../crystal.py:88
-msgid "\tSpace group: "
-msgstr "\tRumgruppe: "
-
-#: ../crystal.py:95
-msgid "Size: x: "
-msgstr "Størrelse: x: "
-
-#: ../crystal.py:95 ../crystal.py:177
-msgid "  y: "
-msgstr "  y: "
-
-#: ../crystal.py:96 ../crystal.py:178
-msgid "  z: "
-msgstr "  z: "
-
-#: ../crystal.py:97 ../surfaceslab.py:76 ../surfaceslab.py:77
-#: ../surfaceslab.py:78
-msgid " unit cells"
-msgstr " enhedsceller"
-
-#: ../crystal.py:118 ../crystal.py:122 ../crystal.py:126 ../crystal.py:130
-#: ../crystal.py:134 ../crystal.py:138
-msgid "free"
-msgstr "fri"
-
-#: ../crystal.py:119 ../crystal.py:128
-msgid "equals b"
-msgstr "lig med b"
-
-#: ../crystal.py:120 ../crystal.py:124
-msgid "equals c"
-msgstr "lig med c"
-
-#: ../crystal.py:121 ../crystal.py:125 ../crystal.py:129 ../crystal.py:133
-#: ../crystal.py:137 ../crystal.py:141
-msgid "fixed"
-msgstr "fast"
-
-#: ../crystal.py:123 ../crystal.py:127
-msgid "equals a"
-msgstr "lig med a"
-
-#: ../crystal.py:131 ../crystal.py:140
-msgid "equals beta"
-msgstr "lig med beta"
-
-#: ../crystal.py:132 ../crystal.py:136
-msgid "equals gamma"
-msgstr "lig med gamma"
-
-#: ../crystal.py:135 ../crystal.py:139
-msgid "equals alpha"
-msgstr "lig med alfa"
-
-#: ../crystal.py:145
-msgid "Lattice parameters"
-msgstr "Gitterparametre"
-
-#: ../crystal.py:147
-msgid "\t\ta:\t"
-msgstr "\t\ta:\t"
-
-#: ../crystal.py:148
-msgid "\talpha:\t"
-msgstr "\talfa:\t"
-
-#: ../crystal.py:152
-msgid "\t\tb:\t"
-msgstr "\t\tb:\t"
-
-#: ../crystal.py:153
-msgid "\tbeta:\t"
-msgstr "\tbeta:\t"
-
-#: ../crystal.py:157
-msgid "\t\tc:\t"
-msgstr "\t\tc:\t"
-
-#: ../crystal.py:158
-msgid "\tgamma:\t"
-msgstr "\tgamma:\t"
-
-#: ../crystal.py:161 ../surfaceslab.py:55
-msgid "Get from database"
-msgstr "Hent fra database"
-
-#: ../crystal.py:166
-msgid "Basis: "
-msgstr "Basis: "
-
-#: ../crystal.py:176
-msgid "  Element:\t"
-msgstr "  Grundstof:\t"
-
-#: ../crystal.py:177 ../surfaceslab.py:76
-msgid "\tx: "
-msgstr "\tx: "
-
-#: ../crystal.py:198
-msgid "Creating a crystal."
-msgstr "Oprettelse af krystal."
-
-#: ../crystal.py:242
-#, python-format
-msgid "Symbol: %s"
-msgstr "Symbol: %s"
-
-#: ../crystal.py:247
-#, python-format
-msgid "Number: %s"
-msgstr "Nummer: %s"
-
-#: ../crystal.py:250
-msgid "Invalid Spacegroup!"
-msgstr "Ugyldig rumgruppe!"
-
-#: ../crystal.py:393 ../crystal.py:397
-msgid "Please specify a consistent set of atoms."
-msgstr "Angiv venligst en konsistent samling atomer."
-
-#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:531
-#: ../nanotube.py:84 ../surfaceslab.py:223
-msgid "No valid atoms."
-msgstr "Ingen gyldige atomer."
-
-#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:532
-#: ../nanotube.py:85 ../surfaceslab.py:224 ../widgets.py:108
-msgid "You have not (yet) specified a consistent set of parameters."
-msgstr "Du har (endnu) ikke angivet konsistente parametre."
-
-#: ../crystal.py:529
-msgid "Can't find lattice definition!"
-msgstr "Kan ikke finde gitterdefinition!"
-
 #: ../energyforces.py:15
 msgid "Output:"
 msgstr "Uddata:"
@@ -455,6 +281,11 @@ msgid ""
 msgstr ""
 "Konstruér et grafénlag eller et grafénnanobånd.  Et nanobånd kan eventuelt\n"
 "mættes med hydrogen (eller et andet grundstof)."
+
+#: ../graphene.py:30
+#, python-format
+msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+msgstr " %(natoms)i atomer: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
 
 #: ../graphene.py:38 ../gui.py:524
 msgid "Graphene"
@@ -528,6 +359,16 @@ msgstr "  Intet grundstof angivet!"
 #: ../graphene.py:200
 msgid "Please specify a consistent set of atoms. "
 msgstr "Angiv venligst en konsistent samling atomer. "
+
+#: ../graphene.py:264 ../nanoparticle.py:531 ../nanotube.py:84
+#: ../surfaceslab.py:223
+msgid "No valid atoms."
+msgstr "Ingen gyldige atomer."
+
+#: ../graphene.py:265 ../nanoparticle.py:532 ../nanotube.py:85
+#: ../surfaceslab.py:224 ../widgets.py:108
+msgid "You have not (yet) specified a consistent set of parameters."
+msgstr "Du har (endnu) ikke angivet konsistente parametre."
 
 #: ../graphs.py:11
 msgid ""
@@ -1786,6 +1627,10 @@ msgstr "diamant"
 msgid "DIAMOND(111)"
 msgstr "DIAMANT(111)"
 
+#: ../surfaceslab.py:55
+msgid "Get from database"
+msgstr "Hent fra database"
+
 #: ../surfaceslab.py:67
 msgid "Surface"
 msgstr "Overflade"
@@ -1809,6 +1654,14 @@ msgstr "\tc"
 #: ../surfaceslab.py:75
 msgid "Size:"
 msgstr "Størrelse:"
+
+#: ../surfaceslab.py:76
+msgid "\tx: "
+msgstr "\tx: "
+
+#: ../surfaceslab.py:76 ../surfaceslab.py:77 ../surfaceslab.py:78
+msgid " unit cells"
+msgstr " enhedsceller"
 
 #: ../surfaceslab.py:77
 msgid "\ty: "
@@ -1914,6 +1767,118 @@ msgstr "FEJL: ugyldigt grundstof!"
 #: ../widgets.py:107
 msgid "No Python code"
 msgstr "Ingen Pythonkode"
+
+#~ msgid ""
+#~ "  Use this dialog to create crystal lattices. First select the "
+#~ "structure,\n"
+#~ "  either from a set of common crystal structures, or by space group "
+#~ "description.\n"
+#~ "  Then add all other lattice parameters.\n"
+#~ "\n"
+#~ "  If an experimental crystal structure is available for an atom, you can\n"
+#~ "  look up the crystal type and lattice constant, otherwise you have to "
+#~ "specify it\n"
+#~ "  yourself.  "
+#~ msgstr ""
+#~ "  Brug denne dialog til at oprette krystalstrukturer. Vælg først "
+#~ "strukturen,\n"
+#~ "  enten fra en samling almindelige krystalstrukturer eller ud fra en\n"
+#~ "  rumgruppebeskrivelse. Tilføj så alle andre gitterparametre.\n"
+#~ "\n"
+#~ "  Hvis der er en eksperimentel krystalstruktur tilgængelig for at\n"
+#~ "  atom, kan du slå krystaltypen samt gitterkonstanten op – ellers skal\n"
+#~ "  du angive den selv.  "
+
+#~ msgid "Create Bulk Crystal by Spacegroup"
+#~ msgstr "Opret krystalstruktur fra rumgruppe"
+
+#~ msgid "Number: 1"
+#~ msgstr "Nummer: 1"
+
+# slice ~ opdel
+#~ msgid "Lattice: "
+#~ msgstr "Gitter: "
+
+#~ msgid "\tSpace group: "
+#~ msgstr "\tRumgruppe: "
+
+#~ msgid "Size: x: "
+#~ msgstr "Størrelse: x: "
+
+#~ msgid "  y: "
+#~ msgstr "  y: "
+
+#~ msgid "  z: "
+#~ msgstr "  z: "
+
+#~ msgid "free"
+#~ msgstr "fri"
+
+#~ msgid "equals b"
+#~ msgstr "lig med b"
+
+#~ msgid "equals c"
+#~ msgstr "lig med c"
+
+#~ msgid "fixed"
+#~ msgstr "fast"
+
+#~ msgid "equals a"
+#~ msgstr "lig med a"
+
+#~ msgid "equals beta"
+#~ msgstr "lig med beta"
+
+#~ msgid "equals gamma"
+#~ msgstr "lig med gamma"
+
+#~ msgid "equals alpha"
+#~ msgstr "lig med alfa"
+
+#~ msgid "Lattice parameters"
+#~ msgstr "Gitterparametre"
+
+#~ msgid "\t\ta:\t"
+#~ msgstr "\t\ta:\t"
+
+#~ msgid "\talpha:\t"
+#~ msgstr "\talfa:\t"
+
+#~ msgid "\t\tb:\t"
+#~ msgstr "\t\tb:\t"
+
+#~ msgid "\tbeta:\t"
+#~ msgstr "\tbeta:\t"
+
+#~ msgid "\t\tc:\t"
+#~ msgstr "\t\tc:\t"
+
+#~ msgid "\tgamma:\t"
+#~ msgstr "\tgamma:\t"
+
+#~ msgid "Basis: "
+#~ msgstr "Basis: "
+
+#~ msgid "  Element:\t"
+#~ msgstr "  Grundstof:\t"
+
+#~ msgid "Creating a crystal."
+#~ msgstr "Oprettelse af krystal."
+
+#~ msgid "Symbol: %s"
+#~ msgstr "Symbol: %s"
+
+#~ msgid "Number: %s"
+#~ msgstr "Nummer: %s"
+
+#~ msgid "Invalid Spacegroup!"
+#~ msgstr "Ugyldig rumgruppe!"
+
+#~ msgid "Please specify a consistent set of atoms."
+#~ msgstr "Angiv venligst en konsistent samling atomer."
+
+#~ msgid "Can't find lattice definition!"
+#~ msgstr "Kan ikke finde gitterdefinition!"
 
 #~ msgid "Absolute position:"
 #~ msgstr "Absolut position:"

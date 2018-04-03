@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-03-28 20:52+0200\n"
+"POT-Creation-Date: 2018-04-03 15:59+0200\n"
 "PO-Revision-Date: 2018-03-28 21:44+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
@@ -230,182 +230,6 @@ msgstr "Liberar restricciones"
 msgid "Clear constraints"
 msgstr "Quitar las restricciones"
 
-#: ../crystal.py:16
-msgid ""
-"  Use this dialog to create crystal lattices. First select the structure,\n"
-"  either from a set of common crystal structures, or by space group "
-"description.\n"
-"  Then add all other lattice parameters.\n"
-"\n"
-"  If an experimental crystal structure is available for an atom, you can\n"
-"  look up the crystal type and lattice constant, otherwise you have to "
-"specify it\n"
-"  yourself.  "
-msgstr ""
-"  Utilice este diálogo para crear estructuras cristalinas.\n"
-"  Seleccione primero la estructura, desde un conjunto de\n"
-"  estructuras cristalinas básicas ó desde la descripción del\n"
-"  grupo espacial.\n"
-"  Luego añada todos los parámetros de red.\n"
-"\n"
-"  Si dispone de una estructura cristalina experimental para un\n"
-"  átomo, puede buscar el tipo de cristal y la constante de red,\n"
-"  de otra manera tendrá que especificarlas."
-
-#: ../crystal.py:34 ../graphene.py:30
-#, python-format
-msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
-msgstr " %(natoms)i átomos: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
-
-# Crear cristal por grupo espacial
-#: ../crystal.py:71
-msgid "Create Bulk Crystal by Spacegroup"
-msgstr "Crear cristal por grupo espacial"
-
-#: ../crystal.py:85
-msgid "Number: 1"
-msgstr "Número: 1"
-
-#: ../crystal.py:87
-msgid "Lattice: "
-msgstr "Red: "
-
-#: ../crystal.py:88
-msgid "\tSpace group: "
-msgstr "\tGrupo espacial: "
-
-# Tamaño: x: 
-#: ../crystal.py:95
-msgid "Size: x: "
-msgstr "Tamaño: x: "
-
-#: ../crystal.py:95 ../crystal.py:177
-msgid "  y: "
-msgstr "  y: "
-
-#: ../crystal.py:96 ../crystal.py:178
-msgid "  z: "
-msgstr "  z: "
-
-#: ../crystal.py:97 ../surfaceslab.py:76 ../surfaceslab.py:77
-#: ../surfaceslab.py:78
-msgid " unit cells"
-msgstr " celdas unitarias"
-
-#: ../crystal.py:118 ../crystal.py:122 ../crystal.py:126 ../crystal.py:130
-#: ../crystal.py:134 ../crystal.py:138
-msgid "free"
-msgstr "libre"
-
-#: ../crystal.py:119 ../crystal.py:128
-msgid "equals b"
-msgstr "igual a b"
-
-#: ../crystal.py:120 ../crystal.py:124
-msgid "equals c"
-msgstr "igual a c"
-
-#: ../crystal.py:121 ../crystal.py:125 ../crystal.py:129 ../crystal.py:133
-#: ../crystal.py:137 ../crystal.py:141
-msgid "fixed"
-msgstr "fijo"
-
-#: ../crystal.py:123 ../crystal.py:127
-msgid "equals a"
-msgstr "igual a a"
-
-#: ../crystal.py:131 ../crystal.py:140
-msgid "equals beta"
-msgstr "igual a beta"
-
-#: ../crystal.py:132 ../crystal.py:136
-msgid "equals gamma"
-msgstr "igual a gama"
-
-#: ../crystal.py:135 ../crystal.py:139
-msgid "equals alpha"
-msgstr "igual a alfa"
-
-#: ../crystal.py:145
-msgid "Lattice parameters"
-msgstr "Parámetros de red"
-
-#: ../crystal.py:147
-msgid "\t\ta:\t"
-msgstr "\t\ta:\t"
-
-#: ../crystal.py:148
-msgid "\talpha:\t"
-msgstr "\talfa:\t"
-
-#: ../crystal.py:152
-msgid "\t\tb:\t"
-msgstr "\t\tb:\t"
-
-#: ../crystal.py:153
-msgid "\tbeta:\t"
-msgstr "\tbeta:\t"
-
-#: ../crystal.py:157
-msgid "\t\tc:\t"
-msgstr "\t\tc:\t"
-
-#: ../crystal.py:158
-msgid "\tgamma:\t"
-msgstr "\tgamma:\t"
-
-#: ../crystal.py:161 ../surfaceslab.py:55
-msgid "Get from database"
-msgstr "Obtener desde la base de datos"
-
-#: ../crystal.py:166
-msgid "Basis: "
-msgstr "Base: "
-
-#: ../crystal.py:176
-msgid "  Element:\t"
-msgstr "  Elemento:%t"
-
-#: ../crystal.py:177 ../surfaceslab.py:76
-msgid "\tx: "
-msgstr "\tx: "
-
-#: ../crystal.py:198
-msgid "Creating a crystal."
-msgstr "Creando un cristal."
-
-#: ../crystal.py:242
-#, python-format
-msgid "Symbol: %s"
-msgstr "Símbolo: %s"
-
-#: ../crystal.py:247
-#, python-format
-msgid "Number: %s"
-msgstr "Número: %s"
-
-#: ../crystal.py:250
-msgid "Invalid Spacegroup!"
-msgstr "¡Grupo espacial inválido!"
-
-#: ../crystal.py:393 ../crystal.py:397
-msgid "Please specify a consistent set of atoms."
-msgstr "Por favor, especifique un conjunto consistente de átomos."
-
-#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:531
-#: ../nanotube.py:84 ../surfaceslab.py:223
-msgid "No valid atoms."
-msgstr "Los átomos no son válidos."
-
-#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:532
-#: ../nanotube.py:85 ../surfaceslab.py:224 ../widgets.py:108
-msgid "You have not (yet) specified a consistent set of parameters."
-msgstr "No ha especificado aún un conjunto consistente de parámetros."
-
-#: ../crystal.py:529
-msgid "Can't find lattice definition!"
-msgstr "¡No puedo encontrar la definición de red!"
-
 #: ../energyforces.py:15
 msgid "Output:"
 msgstr "Salida:"
@@ -455,6 +279,11 @@ msgid ""
 msgstr ""
 "Configure una sábana de grafeno o una nanocinta. Opcionalmente,\n"
 "la nanocinta puede ser saturada con hidrógeno u otro elemento."
+
+#: ../graphene.py:30
+#, python-format
+msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+msgstr " %(natoms)i átomos: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
 
 #: ../graphene.py:38 ../gui.py:524
 msgid "Graphene"
@@ -528,6 +357,16 @@ msgstr "  ¡No se especifica el elemento!"
 #: ../graphene.py:200
 msgid "Please specify a consistent set of atoms. "
 msgstr "Por favor, especifique un conjunto consistente de átomos. "
+
+#: ../graphene.py:264 ../nanoparticle.py:531 ../nanotube.py:84
+#: ../surfaceslab.py:223
+msgid "No valid atoms."
+msgstr "Los átomos no son válidos."
+
+#: ../graphene.py:265 ../nanoparticle.py:532 ../nanotube.py:85
+#: ../surfaceslab.py:224 ../widgets.py:108
+msgid "You have not (yet) specified a consistent set of parameters."
+msgstr "No ha especificado aún un conjunto consistente de parámetros."
 
 #: ../graphs.py:11
 msgid ""
@@ -1794,6 +1633,10 @@ msgstr "diamante"
 msgid "DIAMOND(111)"
 msgstr "Diamante (111)"
 
+#: ../surfaceslab.py:55
+msgid "Get from database"
+msgstr "Obtener desde la base de datos"
+
 #: ../surfaceslab.py:67
 msgid "Surface"
 msgstr "Superficie"
@@ -1817,6 +1660,14 @@ msgstr "\tc"
 #: ../surfaceslab.py:75
 msgid "Size:"
 msgstr "Tamaño:"
+
+#: ../surfaceslab.py:76
+msgid "\tx: "
+msgstr "\tx: "
+
+#: ../surfaceslab.py:76 ../surfaceslab.py:77 ../surfaceslab.py:78
+msgid " unit cells"
+msgstr " celdas unitarias"
 
 #: ../surfaceslab.py:77
 msgid "\ty: "
@@ -1922,6 +1773,120 @@ msgstr "ERROR: ¡elemento inválido!"
 #: ../widgets.py:107
 msgid "No Python code"
 msgstr "No es código de Python"
+
+#~ msgid ""
+#~ "  Use this dialog to create crystal lattices. First select the "
+#~ "structure,\n"
+#~ "  either from a set of common crystal structures, or by space group "
+#~ "description.\n"
+#~ "  Then add all other lattice parameters.\n"
+#~ "\n"
+#~ "  If an experimental crystal structure is available for an atom, you can\n"
+#~ "  look up the crystal type and lattice constant, otherwise you have to "
+#~ "specify it\n"
+#~ "  yourself.  "
+#~ msgstr ""
+#~ "  Utilice este diálogo para crear estructuras cristalinas.\n"
+#~ "  Seleccione primero la estructura, desde un conjunto de\n"
+#~ "  estructuras cristalinas básicas ó desde la descripción del\n"
+#~ "  grupo espacial.\n"
+#~ "  Luego añada todos los parámetros de red.\n"
+#~ "\n"
+#~ "  Si dispone de una estructura cristalina experimental para un\n"
+#~ "  átomo, puede buscar el tipo de cristal y la constante de red,\n"
+#~ "  de otra manera tendrá que especificarlas."
+
+# Crear cristal por grupo espacial
+#~ msgid "Create Bulk Crystal by Spacegroup"
+#~ msgstr "Crear cristal por grupo espacial"
+
+#~ msgid "Number: 1"
+#~ msgstr "Número: 1"
+
+#~ msgid "Lattice: "
+#~ msgstr "Red: "
+
+#~ msgid "\tSpace group: "
+#~ msgstr "\tGrupo espacial: "
+
+# Tamaño: x: 
+#~ msgid "Size: x: "
+#~ msgstr "Tamaño: x: "
+
+#~ msgid "  y: "
+#~ msgstr "  y: "
+
+#~ msgid "  z: "
+#~ msgstr "  z: "
+
+#~ msgid "free"
+#~ msgstr "libre"
+
+#~ msgid "equals b"
+#~ msgstr "igual a b"
+
+#~ msgid "equals c"
+#~ msgstr "igual a c"
+
+#~ msgid "fixed"
+#~ msgstr "fijo"
+
+#~ msgid "equals a"
+#~ msgstr "igual a a"
+
+#~ msgid "equals beta"
+#~ msgstr "igual a beta"
+
+#~ msgid "equals gamma"
+#~ msgstr "igual a gama"
+
+#~ msgid "equals alpha"
+#~ msgstr "igual a alfa"
+
+#~ msgid "Lattice parameters"
+#~ msgstr "Parámetros de red"
+
+#~ msgid "\t\ta:\t"
+#~ msgstr "\t\ta:\t"
+
+#~ msgid "\talpha:\t"
+#~ msgstr "\talfa:\t"
+
+#~ msgid "\t\tb:\t"
+#~ msgstr "\t\tb:\t"
+
+#~ msgid "\tbeta:\t"
+#~ msgstr "\tbeta:\t"
+
+#~ msgid "\t\tc:\t"
+#~ msgstr "\t\tc:\t"
+
+#~ msgid "\tgamma:\t"
+#~ msgstr "\tgamma:\t"
+
+#~ msgid "Basis: "
+#~ msgstr "Base: "
+
+#~ msgid "  Element:\t"
+#~ msgstr "  Elemento:%t"
+
+#~ msgid "Creating a crystal."
+#~ msgstr "Creando un cristal."
+
+#~ msgid "Symbol: %s"
+#~ msgstr "Símbolo: %s"
+
+#~ msgid "Number: %s"
+#~ msgstr "Número: %s"
+
+#~ msgid "Invalid Spacegroup!"
+#~ msgstr "¡Grupo espacial inválido!"
+
+#~ msgid "Please specify a consistent set of atoms."
+#~ msgstr "Por favor, especifique un conjunto consistente de átomos."
+
+#~ msgid "Can't find lattice definition!"
+#~ msgstr "¡No puedo encontrar la definición de red!"
 
 #~ msgid "Absolute position:"
 #~ msgstr "Posición absoluta:"
