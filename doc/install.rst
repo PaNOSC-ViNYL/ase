@@ -10,10 +10,10 @@ Requirements
 * Python_ 2.7, 3.4-3.6
 * NumPy_ 1.9 or newer (base N-dimensional array package)
 * SciPy_ (library for scientific computing)
-* Matplotlib_ (plotting)
 
 Optional:
 
+* Matplotlib_ (plotting)
 * :mod:`tkinter` (for :mod:`ase.gui`)
 * Flask_ (for :mod:`ase.db` web-interface)
 

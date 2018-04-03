@@ -1,15 +1,15 @@
 # Spanish translations for ASE package.
-# Copyright (C) 2012-2017 ASE developers
+# Copyright (C) 2012-2018 ASE developers
 # This file is distributed under the same license as the ASE package.
 # Max Ramirez <m.ramirez@mx.uni-saarland.de>, 2012.
-# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-17.
+# Ask Hjorth Larsen <asklarsen@gmail.com>, 2012-18.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2017-12-15 17:25+0100\n"
-"PO-Revision-Date: 2017-12-15 17:48+0100\n"
+"POT-Creation-Date: 2018-03-28 20:52+0200\n"
+"PO-Revision-Date: 2018-03-28 21:44+0200\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -18,26 +18,149 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../add.py:12
-msgid "Bad position"
-msgstr "Posición no válida"
-
-#. XXXXXXXXXXX still array based, not Atoms-based.  Will crash
-#: ../add.py:20
+#: ../add.py:16
 msgid "Add atoms"
 msgstr "Agregar átomos"
 
-#: ../add.py:26
-msgid "Absolute position:"
-msgstr "Posición absoluta:"
+#: ../add.py:17
+msgid "Specify chemical symbol, formula, or filename."
+msgstr "Especificar símbolo químico, fórmula o archivo."
 
-#: ../add.py:28 ../add.py:31 ../nanoparticle.py:264
+#: ../add.py:35
+msgid "Add:"
+msgstr "Añadir:"
+
+#: ../add.py:36
+msgid "File ..."
+msgstr "Archivo …"
+
+#: ../add.py:46
+msgid "Get molecule:"
+msgstr "Seleccionar molécula:"
+
+#: ../add.py:52
+msgid "Coordinates:"
+msgstr "Coordenadas:"
+
+#: ../add.py:54
+msgid ""
+"Coordinates are relative to the center of the selection, if any, else "
+"absolute."
+msgstr ""
+"Coordenadas son relativas al centro de la selección si hay alguna. En otro "
+"caso son absolutas."
+
+#: ../add.py:56
+msgid "Check positions"
+msgstr "Validar posiciones"
+
+#: ../add.py:57 ../nanoparticle.py:264
 msgid "Add"
 msgstr "Agregar"
 
-#: ../add.py:29
-msgid "Relative to average position (of selection):"
-msgstr "Relativo a posición media (de la selección):"
+#. May show UI error
+#: ../add.py:95
+msgid "Cannot add atoms"
+msgstr "No se pueden añadir átomos"
+
+#: ../add.py:96
+msgid "{} is neither atom, molecule, nor file"
+msgstr "{} no es ni átomo ni molécula ni archivo"
+
+#: ../add.py:135
+msgid "Bad positions"
+msgstr "Posiciones no válidas"
+
+#: ../add.py:136
+msgid ""
+"Atom would be less than 0.5 Å from an existing atom.  To override, uncheck "
+"the check positions option."
+msgstr ""
+"Átomo quedaría a una distancia menor que 0,5 Å de otro átomo. Para ignorar "
+"este aviso, desmarque la casilla de validar posiciones."
+
+#. TRANSLATORS: This is a title of a window.
+#: ../celleditor.py:48
+msgid "Cell Editor"
+msgstr "Editor de celda"
+
+#: ../celleditor.py:52
+msgid "A:"
+msgstr "A:"
+
+#: ../celleditor.py:52
+msgid "||A||:"
+msgstr "||A||:"
+
+#: ../celleditor.py:53 ../celleditor.py:55 ../celleditor.py:57
+msgid "periodic:"
+msgstr "periódico:"
+
+#: ../celleditor.py:54
+msgid "B:"
+msgstr "B:"
+
+#: ../celleditor.py:54
+msgid "||B||:"
+msgstr "||B||:"
+
+#: ../celleditor.py:56
+msgid "C:"
+msgstr "C:"
+
+#: ../celleditor.py:56
+msgid "||C||:"
+msgstr "||C||:"
+
+#: ../celleditor.py:58
+msgid "∠BC:"
+msgstr "∠BC:"
+
+#: ../celleditor.py:58
+msgid "∠AC:"
+msgstr "∠AC:"
+
+#: ../celleditor.py:59
+msgid "∠AB:"
+msgstr "∠AB:"
+
+#: ../celleditor.py:60
+msgid "Scale atoms with cell:"
+msgstr "Ajustar posiciones proporcionalmente:"
+
+#: ../celleditor.py:61
+msgid "Apply Vectors"
+msgstr "Aplicar vectores"
+
+#: ../celleditor.py:62
+msgid "Apply Magnitudes"
+msgstr "Aplicar longitudes"
+
+#: ../celleditor.py:63
+msgid "Apply Angles"
+msgstr "Aplicar ángulos"
+
+#: ../celleditor.py:64
+msgid ""
+"Pressing 〈Enter〉 as you enter values will automatically apply correctly"
+msgstr "Pulse 〈Entrar〉al introducir valores para aplicar automáticamente"
+
+#. TRANSLATORS: verb
+#: ../celleditor.py:67
+msgid "Center"
+msgstr "Centrar"
+
+#: ../celleditor.py:68
+msgid "Wrap"
+msgstr "Envolver"
+
+#: ../celleditor.py:69
+msgid "Vacuum:"
+msgstr "Vacío:"
+
+#: ../celleditor.py:70
+msgid "Apply Vacuum"
+msgstr "Aplicar vacío"
 
 #: ../colors.py:15
 msgid "Colors"
@@ -333,7 +456,7 @@ msgstr ""
 "Configure una sábana de grafeno o una nanocinta. Opcionalmente,\n"
 "la nanocinta puede ser saturada con hidrógeno u otro elemento."
 
-#: ../graphene.py:38 ../gui.py:514
+#: ../graphene.py:38 ../gui.py:524
 msgid "Graphene"
 msgstr "Grafeno"
 
@@ -430,7 +553,7 @@ msgid ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 msgstr ""
-"Ayuda para graficar ...\n"
+"Ayuda para graficar …\n"
 "\n"
 "<c>e</c>: energía total\n"
 "<c>epot</c>: energía potencial\n"
@@ -468,349 +591,345 @@ msgstr "Limpiar"
 
 #: ../graphs.py:72
 msgid "Save data to file ... "
-msgstr "Salve los datos a un archivo ..."
+msgstr "Salve los datos a un archivo …"
 
-#: ../gui.py:284
-msgid "Automatic"
-msgstr "Automático"
+#: ../gui.py:335
+msgid "Quick Info"
+msgstr "Información rápida"
 
-#: ../gui.py:302
-msgid "Open ..."
-msgstr "Abrir ..."
-
-#: ../gui.py:303
-msgid "Choose parser:"
-msgstr "Elegir parser:"
-
-#: ../gui.py:418
+#: ../gui.py:427
 msgid "_File"
 msgstr "_Archivo"
 
-#: ../gui.py:419
+#: ../gui.py:428
 msgid "_Open"
 msgstr "_Abrir"
 
-#: ../gui.py:420
+#: ../gui.py:429
 msgid "_New"
 msgstr "_Nuevo"
 
-#: ../gui.py:421
+#: ../gui.py:430
 msgid "_Save"
 msgstr "_Guardar"
 
-#: ../gui.py:423
+#: ../gui.py:432
 msgid "_Quit"
 msgstr "_Salir"
 
-#: ../gui.py:425
+#: ../gui.py:434
 msgid "_Edit"
 msgstr "_Editar"
 
-#: ../gui.py:426
+#: ../gui.py:435
 msgid "Select _all"
 msgstr "Seleccionar _todo"
 
-#: ../gui.py:427
+#: ../gui.py:436
 msgid "_Invert selection"
 msgstr "_Invertir selección"
 
-#: ../gui.py:428
+#: ../gui.py:437
 msgid "Select _constrained atoms"
 msgstr "Seleccionar los átomos _restringidos"
 
-#: ../gui.py:429
+#: ../gui.py:438
 msgid "Select _immobile atoms"
 msgstr "Seleccionar los átomos _inmóbiles"
 
-#: ../gui.py:434
+#: ../gui.py:443
 msgid "Hide selected atoms"
 msgstr "Ocultar átomos seleccionados"
 
-#: ../gui.py:435
+#: ../gui.py:444
 msgid "Show selected atoms"
 msgstr "Mostrar átomos seleccionados"
 
-#: ../gui.py:437
+#: ../gui.py:446
 msgid "_Modify"
 msgstr "_Modificar"
 
-#: ../gui.py:438
+#: ../gui.py:447
 msgid "_Add atoms"
 msgstr "_Añadir átomos"
 
-#: ../gui.py:439
+#: ../gui.py:448
 msgid "_Delete selected atoms"
 msgstr "_Borrar átomos seleccionados"
 
-#: ../gui.py:441
+#: ../gui.py:450
 msgid "Edit _cell"
 msgstr "Editar _celda"
 
-#: ../gui.py:443
+#: ../gui.py:452
 msgid "_First image"
 msgstr "_Primera imagen"
 
-#: ../gui.py:444
+#: ../gui.py:453
 msgid "_Previous image"
 msgstr "_Imagen previa"
 
-#: ../gui.py:445
+#: ../gui.py:454
 msgid "_Next image"
 msgstr "_Próxima imagen"
 
-#: ../gui.py:446
+#: ../gui.py:455
 msgid "_Last image"
 msgstr "Ú_ltima imagen"
 
-#: ../gui.py:448
+#: ../gui.py:457
 msgid "_View"
 msgstr "_Ver"
 
-#: ../gui.py:449
+#: ../gui.py:458
 msgid "Show _unit cell"
 msgstr "Mostrar la celda _unitaria"
 
-#: ../gui.py:451
+#: ../gui.py:460
 msgid "Show _axes"
 msgstr "Mostrar los _ejes"
 
-#: ../gui.py:452
+#: ../gui.py:461
 msgid "Show _bonds"
 msgstr "Mostrar los _enlaces"
 
-#: ../gui.py:454
+#: ../gui.py:463
 msgid "Show _velocities"
 msgstr "Mostrar las _velocidades"
 
-#: ../gui.py:456
+#: ../gui.py:465
 msgid "Show _forces"
 msgstr "Mostrar las _fuerzas"
 
-#: ../gui.py:458
+#: ../gui.py:467
 msgid "Show _Labels"
 msgstr "Mostrar los _etiquetas"
 
-#: ../gui.py:459
+#: ../gui.py:468
 msgid "_None"
 msgstr "_Ninguno"
 
-#: ../gui.py:460
+#: ../gui.py:469
 msgid "Atom _Index"
 msgstr "_Índice de Atom"
 
-#: ../gui.py:461
+#: ../gui.py:470
 msgid "_Magnetic Moments"
 msgstr "Momentos _Magnético"
 
 #. XXX check if exist
-#: ../gui.py:462
+#: ../gui.py:471
 msgid "_Element Symbol"
 msgstr "Símbolo _Químico"
 
-#: ../gui.py:463
+#: ../gui.py:472
 msgid "_Initial Charges"
 msgstr "Cargas _iniciales"
 
-#: ../gui.py:466
+#: ../gui.py:475
 msgid "Quick Info ..."
-msgstr "Información rápida ..."
+msgstr "Información rápida …"
 
-#: ../gui.py:467
+#: ../gui.py:476
 msgid "Repeat ..."
-msgstr "Repetir ..."
+msgstr "Repetir …"
 
-#: ../gui.py:468
+#: ../gui.py:477
 msgid "Rotate ..."
-msgstr "Rotar ..."
+msgstr "Rotar …"
 
-#: ../gui.py:469
+#: ../gui.py:478
 msgid "Colors ..."
-msgstr "Colores ..."
+msgstr "Colores …"
 
 #. TRANSLATORS: verb
-#: ../gui.py:471
+#: ../gui.py:480
 msgid "Focus"
 msgstr "Enfocar"
 
-#: ../gui.py:472
+#: ../gui.py:481
 msgid "Zoom in"
 msgstr "Ampliar"
 
-#: ../gui.py:473
+#: ../gui.py:482
 msgid "Zoom out"
 msgstr "Alejar"
 
-#: ../gui.py:474
+#: ../gui.py:483
 msgid "Change View"
 msgstr "Cambiar de vista"
 
-#: ../gui.py:476
+#: ../gui.py:485
 msgid "Reset View"
 msgstr "Reiniciar la vista"
 
-#: ../gui.py:477
+#: ../gui.py:486
 msgid "xy-plane"
 msgstr "plano xy"
 
-#: ../gui.py:478
+#: ../gui.py:487
 msgid "yz-plane"
 msgstr "plano yz"
 
-#: ../gui.py:479
+#: ../gui.py:488
 msgid "zx-plane"
 msgstr "plano xz"
 
-#: ../gui.py:480
+#: ../gui.py:489
 msgid "yx-plane"
 msgstr "plano yx"
 
-#: ../gui.py:481
+#: ../gui.py:490
 msgid "zy-plane"
 msgstr "plano zy"
 
-#: ../gui.py:482
+#: ../gui.py:491
 msgid "xz-plane"
 msgstr "plano xz"
 
-#: ../gui.py:483
+#: ../gui.py:492
 msgid "a2,a3-plane"
 msgstr "plano a2,a3"
 
-#: ../gui.py:484
+#: ../gui.py:493
 msgid "a3,a1-plane"
 msgstr "plano a3,a1"
 
-#: ../gui.py:485
+#: ../gui.py:494
 msgid "a1,a2-plane"
 msgstr "plano a1,a2"
 
-#: ../gui.py:486
+#: ../gui.py:495
 msgid "a3,a2-plane"
 msgstr "plano a3,a2"
 
-#: ../gui.py:487
+#: ../gui.py:496
 msgid "a1,a3-plane"
 msgstr "plano a1,a3"
 
-#: ../gui.py:488
+#: ../gui.py:497
 msgid "a2,a1-plane"
 msgstr "plano a2,a1"
 
-#: ../gui.py:489
+#: ../gui.py:498
 msgid "Settings ..."
-msgstr "Ajustes ..."
+msgstr "Ajustes …"
 
-#: ../gui.py:491
+#: ../gui.py:500
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:492
+#: ../gui.py:501
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:493
+#: ../gui.py:502
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:494
+#: ../gui.py:503
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:496
+#: ../gui.py:505
 msgid "_Tools"
 msgstr "_Herramientas"
 
-#: ../gui.py:497
+#: ../gui.py:506
 msgid "Graphs ..."
-msgstr "Gráficos ..."
+msgstr "Gráficos …"
 
-#: ../gui.py:498
+#: ../gui.py:507
 msgid "Movie ..."
-msgstr "Película ..."
+msgstr "Película …"
 
-#: ../gui.py:499
+#: ../gui.py:508
 msgid "Expert mode ..."
-msgstr "Modo experto ..."
+msgstr "Modo experto …"
 
-#: ../gui.py:500
+#: ../gui.py:509
 msgid "Constraints ..."
-msgstr "Restricciones ..."
+msgstr "Restricciones …"
 
-#: ../gui.py:501
+#: ../gui.py:510
 msgid "Render scene ..."
-msgstr "Dibujar escena ..."
+msgstr "Dibujar escena …"
 
-#: ../gui.py:502
+#: ../gui.py:511
 msgid "_Move atoms"
 msgstr "_Mover los átomos"
 
-#: ../gui.py:503
+#: ../gui.py:512
 msgid "_Rotate atoms"
 msgstr "_Rotar los átomos"
 
-#: ../gui.py:504
+#: ../gui.py:513
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:505
+#: ../gui.py:514
 msgid "B_ulk Modulus"
 msgstr "Módulo de b_ulto"
 
+#: ../gui.py:515
+msgid "Reciprocal space ..."
+msgstr "Espacio recíproco …"
+
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:508
+#: ../gui.py:518
 msgid "_Setup"
 msgstr "_Configurar"
 
-#: ../gui.py:509
+#: ../gui.py:519
 msgid "_Bulk Crystal"
 msgstr "Cristal en _bulto"
 
-#: ../gui.py:510
+#: ../gui.py:520
 msgid "_Surface slab"
 msgstr "Trozo de _superficie"
 
-#: ../gui.py:511
+#: ../gui.py:521
 msgid "_Nanoparticle"
 msgstr "_Nanopartícula"
 
-#: ../gui.py:513
+#: ../gui.py:523
 msgid "Nano_tube"
 msgstr "Nano_tubo"
 
-#: ../gui.py:516
+#: ../gui.py:526
 msgid "_Calculate"
 msgstr "_Calcular"
 
-#: ../gui.py:517
+#: ../gui.py:527
 msgid "Set _Calculator"
 msgstr "Fijar el _calculador"
 
-#: ../gui.py:518
+#: ../gui.py:528
 msgid "_Energy and Forces"
 msgstr "_Energía y Fuerzas"
 
-#: ../gui.py:519
+#: ../gui.py:529
 msgid "Energy Minimization"
 msgstr "Minimización de energía"
 
-#: ../gui.py:522
+#: ../gui.py:532
 msgid "_Help"
 msgstr "_Ayuda"
 
-#: ../gui.py:523
+#: ../gui.py:533
 msgid "_About"
 msgstr "_Acerca de ag"
 
-#: ../gui.py:527
+#: ../gui.py:537
 msgid "Webpage ..."
-msgstr "Página web ..."
+msgstr "Página web …"
 
 #. Host window will never be shown
-#: ../images.py:192
+#: ../images.py:300
 msgid "Constraints discarded"
 msgstr "Restricciones descartadas"
 
-#: ../images.py:193
+#: ../images.py:301
 msgid "Constraints other than FixAtoms have been discarded."
 msgstr "Se han descartado las restricciones salvo FixAtoms."
 
@@ -1223,13 +1342,13 @@ msgstr "Energía: {:.3f} eV"
 msgid "Max force: {:.3f} eV/Å"
 msgstr "Fuerza máxima: {:.3f} eV/Å"
 
-#: ../quickinfo.py:107
+#: ../quickinfo.py:106
 msgid "Magmom: {:.3f} µ"
 msgstr "Momento magnético: {:.3f} µ"
 
 #: ../render.py:20 ../render.py:190
 msgid "Render current view in povray ... "
-msgstr "Dibujar vista actual en povray ... "
+msgstr "Dibujar vista actual en povray …"
 
 #: ../render.py:21 ../render.py:194
 #, python-format
@@ -1468,7 +1587,7 @@ msgstr ""
 
 #: ../save.py:26
 msgid "Save ..."
-msgstr "Guardar ..."
+msgstr "Guardar …"
 
 #: ../settings.py:10
 msgid "Settings"
@@ -1758,6 +1877,26 @@ msgstr "Acerca de ag"
 msgid "Help"
 msgstr "Ayuda"
 
+#: ../ui.py:552
+msgid "Open ..."
+msgstr "Abrir …"
+
+#: ../ui.py:553
+msgid "Automatic"
+msgstr "Automático"
+
+#: ../ui.py:571
+msgid "Choose parser:"
+msgstr "Elegir parser:"
+
+#: ../ui.py:577
+msgid "Read error"
+msgstr "Error de lectura"
+
+#: ../ui.py:578
+msgid "Could not read {}: {}"
+msgstr "No se pudo leer {}: {}"
+
 #: ../widgets.py:14
 msgid "Element:"
 msgstr "Elemento:"
@@ -1783,6 +1922,12 @@ msgstr "ERROR: ¡elemento inválido!"
 #: ../widgets.py:107
 msgid "No Python code"
 msgstr "No es código de Python"
+
+#~ msgid "Absolute position:"
+#~ msgstr "Posición absoluta:"
+
+#~ msgid "Relative to average position (of selection):"
+#~ msgstr "Relativo a posición media (de la selección):"
 
 #~ msgid ""
 #~ "%s\n"
@@ -2210,7 +2355,7 @@ msgstr "No es código de Python"
 #~ msgstr "Se necesita importar el fichero del potencial"
 
 #~ msgid "Import .alloy or .adp potential file ... "
-#~ msgstr "Importar fichero potencial .alloy o .adp ..."
+#~ msgstr "Importar fichero potencial .alloy o .adp …"
 
 #~ msgid "GPAW parameters"
 #~ msgstr "Parámetros de GPAW"
@@ -2336,10 +2481,10 @@ msgstr "No es código de Python"
 #~ msgstr "Exportar control.in"
 
 #~ msgid "Export parameters ... "
-#~ msgstr "Exportar parámetros ... "
+#~ msgstr "Exportar parámetros … "
 
 #~ msgid "Import control.in file ... "
-#~ msgstr "Importar el archivo control.in ... "
+#~ msgstr "Importar el archivo control.in … "
 
 #~ msgid ""
 #~ "Please use the facilities provided in this window to manipulate the "
@@ -2409,10 +2554,10 @@ msgstr "No es código de Python"
 #~ "recomendado!"
 
 #~ msgid "Import VASP input files: choose directory ... "
-#~ msgstr "Importando archivos de entrada de VASP: elija directorio ... "
+#~ msgstr "Importando archivos de entrada de VASP: elija directorio … "
 
 #~ msgid "Export VASP input files: choose directory ... "
-#~ msgstr "Exportando archivos de salida de VASP: elija directorio ... "
+#~ msgstr "Exportando archivos de salida de VASP: elija directorio … "
 
 #~ msgid ""
 #~ "Don't know this keyword: %s\n"
@@ -2555,7 +2700,7 @@ msgstr "No es código de Python"
 #~ msgstr "*** Trabajando en todas las imágenes"
 
 #~ msgid "Save Terminal text ..."
-#~ msgstr "Guarde texto a Terminal ..."
+#~ msgstr "Guarde texto a Terminal …"
 
 #~ msgid "Cancel"
 #~ msgstr "Cancelar"
@@ -2579,7 +2724,7 @@ msgstr "No es código de Python"
 #~ msgstr "Minimize la energía con respecto a las posiciones."
 
 #~ msgid "Running ..."
-#~ msgstr "Calculando ..."
+#~ msgstr "Calculando …"
 
 #~ msgid "Minimization CANCELLED after %i steps."
 #~ msgstr "Minimización CANCELADO después de %i iteraciones."
@@ -2807,10 +2952,10 @@ msgstr "No es código de Python"
 #~ "ser reportados a los desarrolladores."
 
 #~ msgid "Report..."
-#~ msgstr "Reporte..."
+#~ msgstr "Reporte …"
 
 #~ msgid "Details..."
-#~ msgstr "Detalles..."
+#~ msgstr "Detalles …"
 
 #~ msgid ""
 #~ "From: buggy_application\"\n"
@@ -2911,7 +3056,7 @@ msgstr "No es código de Python"
 #~ msgstr "Deforme el sistema escalándolo"
 
 #~ msgid "Debug ..."
-#~ msgstr "Quitar errores ..."
+#~ msgstr "Quitar errores …"
 
 #~ msgid "Orien_t atoms"
 #~ msgstr "Orien_tar los átomos"
@@ -2924,9 +3069,6 @@ msgstr "No es código de Python"
 
 #~ msgid "Insert atom or molecule"
 #~ msgstr "Insertar átomo o molécula"
-
-#~ msgid "_Load molecule"
-#~ msgstr "_Cargar molécula"
 
 #~ msgid "_Cancel"
 #~ msgstr "_Cancelar"
@@ -2983,9 +3125,6 @@ msgstr "No es código de Python"
 
 #~ msgid "Python code:"
 #~ msgstr "Código en Python:"
-
-#~ msgid "Quick Info"
-#~ msgstr "Información rápida"
 
 #~ msgid "Homogeneous scaling"
 #~ msgstr "Escala homogénea"
@@ -3107,7 +3246,7 @@ msgstr "No es código de Python"
 #~ msgstr "No existen los datos de estructura cristalina"
 
 #~ msgid "Tip for status box ..."
-#~ msgstr "Consejo para la ventana de estado ..."
+#~ msgstr "Consejo para la ventana de estado …"
 
 #~ msgid "Clear constraint"
 #~ msgstr "Borrar restricción"
@@ -3119,7 +3258,7 @@ msgstr "No es código de Python"
 #~ msgstr "Funcional de XC: "
 
 #~ msgid "DFT ..."
-#~ msgstr "DFT ..."
+#~ msgstr "DFT …"
 
 #~ msgid "building menus failed: %s"
 #~ msgstr "La construcción de los menús ha fallado: %s"
@@ -3271,7 +3410,7 @@ msgstr "No es código de Python"
 #~ msgstr "Trozo: "
 
 #~ msgid "Help for slice ..."
-#~ msgstr "Ayuda para trozar ..."
+#~ msgstr "Ayuda para trozar …"
 
 #~ msgid "ase-gui INTERNAL ERROR: strange response in Save,"
 #~ msgstr "ERROR INTERNO DE ase-gui: respuesta extraña en guardar,"
@@ -3307,7 +3446,7 @@ msgstr "No es código de Python"
 #~ msgstr "ARCHIVO"
 
 #~ msgid "%prog [options] [file[, file2, ...]]"
-#~ msgstr "%prog [opciones] [archivo[, archivo2, ...]]"
+#~ msgstr "%prog [opciones] [archivo[, archivo2, …]]"
 
 #~ msgid "NUMBER"
 #~ msgstr "NÚMERO"
