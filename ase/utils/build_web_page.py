@@ -33,13 +33,13 @@ cmds = """\
 touch ../ase-web-page.lock
 git clean -fdx
 git checkout web-page -q
-git pull -q &> /dev/null
+git pull -q > /dev/null 2>&1
 pip install .
 cd doc; sphinx-build -b html -d build/doctrees . build/html
 mv doc/build/html ase-web-page
 git clean -fdx doc
 git checkout master -q
-git pull -q &> /dev/null
+git pull -q > /dev/null 2>&1
 pip install .
 cd doc; sphinx-build -b html -d build/doctrees . build/html
 mv doc/build/html ase-web-page/dev
