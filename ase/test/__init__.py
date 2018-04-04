@@ -157,11 +157,11 @@ def print_test_result(result):
     msg = result.status
     if msg == 'SKIPPED':
         msg = 'SKIPPED: {}'.format(result.whyskipped)
-    print('{pid:5d}: {name:36} {time:6.2f}s {msg}'
-          .format(pid=result.pid, name=result.name, time=result.time, msg=msg))
+    print('{name:36} {time:6.2f}s {msg}'
+          .format(name=result.name, time=result.time, msg=msg))
     if result.traceback:
         print('=' * 78)
-        print('Error in {} from pid {}:'.format(result.name, result.pid))
+        print('Error in {} on pid {}:'.format(result.name, result.pid))
         print(result.traceback.rstrip())
         print('=' * 78)
 
@@ -194,8 +194,6 @@ def runtests_parallel(nprocs, tests):
 
             if result.status == 'ABORT':
                 raise RuntimeError('ABORT: Internal error in test suite')
-        # TODO: Print summary after tests
-
     except KeyboardInterrupt:
         raise
     except BaseException as err:
@@ -207,8 +205,28 @@ def runtests_parallel(nprocs, tests):
             proc.join()
 
 
+def summary(results):
+    ntests = len(results)
+    err = [r for r in results if r.status == 'ERROR']
+    fail = [r for r in results if r.status == 'FAIL']
+    skip = [r for r in results if r.status == 'SKIPPED']
+    ok = [r for r in results if r.status == 'OK']
 
-def test(verbosity=1, calculators=[],
+    print('========== Summary ==========')
+    print('Number of tests   {:3d}'.format(ntests))
+    print('Passes:           {:3d}'.format(len(ok)))
+    print('Failures:         {:3d}'.format(len(fail)))
+    print('Errors:           {:3d}'.format(len(err)))
+    print('Skipped:          {:3d}'.format(len(skip)))
+    print('=============================')
+
+    if fail or err:
+        print('Test suite failed!')
+    else:
+        print('Test suite passed!')
+
+
+def test(verbosity=1, calculators=[], jobs=0,
          stream=sys.stdout, files=None):
     """Main test-runner for ASE."""
 
@@ -221,7 +239,15 @@ def test(verbosity=1, calculators=[],
                          if name not in calculators])
 
     tests = get_tests(files)
-    nprocs = cpu_count()
+    if len(set(tests)) != len(tests):
+        # Since testsubdirs are based on test name, we will get race
+        # conditions on IO if the same test runs more than once.
+        print('Error: One or more tests specified multiple times',
+              file=sys.stderr)
+        sys.exit(1)
+
+    if jobs == 0:
+        jobs = cpu_count()
 
     print_info()
 
@@ -231,23 +257,24 @@ def test(verbosity=1, calculators=[],
 
     # Note: :25 corresponds to ase.cli indentation
     print('{:25}{}'.format('test directory', testdir))
-    print('{:25}{}'.format('number of processes', nprocs))
+    print('{:25}{}'.format('number of processes', jobs))
     print('{:25}{}'.format('time', time.strftime('%c')))
     print()
 
     t1 = time.time()
     results = []
     try:
-        for result in runtests_parallel(nprocs, tests):
+        for result in runtests_parallel(jobs, tests):
             results.append(result)
     except KeyboardInterrupt:
         print('Interrupted by keyboard')
     finally:
         t2 = time.time()
         print('Time elapsed: {:.1f} s'.format(t2 - t1))
-        trouble = [r for r in results if r.status in ['FAIL', 'ERROR']]
         os.chdir(origcwd)
-        return trouble
+        ntrouble = len([r for r in results if r.status in ['FAIL', 'ERROR']])
+        summary(results)
+        return ntrouble
 
 
 def disable_calculators(names):
@@ -315,6 +342,9 @@ class CLICommand:
                             help='print all tests and exit')
         parser.add_argument('--list-calculators', action='store_true',
                             help='print all calculator names and exit')
+        parser.add_argument('-j', '--jobs', type=int, default=0,
+                            help='number of parallel jobs '
+                            '[default: number of available processors]')
         parser.add_argument('tests', nargs='*')
 
     @staticmethod
@@ -343,10 +373,10 @@ class CLICommand:
                                                 ', '.join(calc_names)))
                 sys.exit(1)
 
-        trouble = test(verbosity=1 + args.verbose - args.quiet,
-                       calculators=calculators,
-                       files=args.tests)
-        sys.exit(len(trouble))
+        ntrouble = test(verbosity=1 + args.verbose - args.quiet,
+                        calculators=calculators, jobs=args.jobs,
+                        files=args.tests)
+        sys.exit(ntrouble)
 
 
 if __name__ == '__main__':
