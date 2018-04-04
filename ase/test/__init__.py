@@ -133,7 +133,7 @@ def runtests_subprocess(task_queue, result_queue):
             except queue.Empty:
                 return  # No more pending tasks
 
-            if test == 'gui/run.py':
+            if test in ['gui/run.py', 'matplotlib_plot.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
@@ -345,6 +345,7 @@ class CLICommand:
         parser.add_argument('--list-calculators', action='store_true',
                             help='print all calculator names and exit')
         parser.add_argument('-j', '--jobs', type=int, default=0,
+                            metavar='N',
                             help='number of parallel jobs '
                             '[default: number of available processors]')
         parser.add_argument('tests', nargs='*')
