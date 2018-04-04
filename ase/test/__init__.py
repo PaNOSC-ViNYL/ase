@@ -268,13 +268,15 @@ def test(verbosity=1, calculators=[], jobs=0,
             results.append(result)
     except KeyboardInterrupt:
         print('Interrupted by keyboard')
+        return 1
+    else:
+        summary(results)
+        ntrouble = len([r for r in results if r.status in ['FAIL', 'ERROR']])
+        return ntrouble
     finally:
         t2 = time.time()
         print('Time elapsed: {:.1f} s'.format(t2 - t1))
         os.chdir(origcwd)
-        ntrouble = len([r for r in results if r.status in ['FAIL', 'ERROR']])
-        summary(results)
-        return ntrouble
 
 
 def disable_calculators(names):
