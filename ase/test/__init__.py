@@ -92,13 +92,15 @@ def get_tests(files=None):
     tests.sort()
     sdirtests.sort()
     tests.extend(sdirtests)  # run test subdirectories at the end
-    tests = [test for test in tests if not test.endswith('__.py')]
+    tests = [os.path.relpath(test, __path__[0])
+             for test in tests if not test.endswith('__.py')]
     return tests
 
 
 def runtest_almost_no_magic(test):
+    path = os.path.join(__path__[0], test)
     try:
-        with open(test) as fd:
+        with open(path) as fd:
             exec(compile(fd.read(), test, 'exec'), {})
     except ImportError as ex:
         module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
@@ -111,56 +113,59 @@ def runtest_almost_no_magic(test):
 
 def run_single_test(filename):
     """Execute single test and return results as dictionary."""
-    sys.stdout = devnull
-    basedir = os.path.split(__file__)[0]
-    testrelpath = os.path.relpath(filename, basedir)
-    result = {'name': testrelpath, 'pid': os.getpid()}
-    #test = ScriptTestCase(filename=filename)
+    result = Result(name=filename)
 
     # Some tests may write to files with the same name as other tests.
     # Hence, create new subdir for each test:
     cwd = os.getcwd()
-    testsubdir = testrelpath.replace('/', '_').replace('.', '_')
+    testsubdir = filename.replace('/', '_').replace('.', '_')
     os.mkdir(testsubdir)
     os.chdir(testsubdir)
     t1 = time.time()
 
+    sys.stdout = devnull
     try:
         runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
     except unittest.SkipTest as ex:
-        result['status'] = 'SKIPPED'
-        result['whyskipped'] = str(ex)
-        result['ex'] = ex
+        result.status = 'SKIPPED'
+        result.whyskipped = str(ex)
+        result.exception = ex
     except AssertionError as ex:
-        result['status'] = 'FAIL'
-        result['ex'] = ex
-        result['traceback'] = traceback.format_exc()
-    except BaseException as ex:  # Return any error/signal to parent process.
-        # Important: In Py2, subprocesses get the Ctrl+C signal whereas in
-        # Py3, the parent process does - which is much better.
-        # In Py2 it is difficult to kill the processes since the parent
-        # process does not know about Ctrl+C.  This is why we
-        # return the exception to the parent process and let the
-        # parent process smoothly close the pool.
-        result['status'] = 'ERROR'
-        result['ex'] = ex
-        result['traceback'] = traceback.format_exc()
+        result.status = 'FAIL'
+        result.exception = ex
+        result.traceback = traceback.format_exc()
+    except BaseException as ex:
+        result.status = 'ERROR'
+        result.exception = ex
+        result.traceback = traceback.format_exc()
     else:
-        result['status'] = 'OK'
+        result.status = 'OK'
     finally:
         sys.stdout = sys.__stdout__
         t2 = time.time()
         os.chdir(cwd)
 
-    result['time'] = t2 - t1
+    result.time = t2 - t1
     return result
+
+
+class Result:
+    attributes = ['name', 'pid', 'exception', 'traceback', 'time', 'status',
+                  'whyskipped']
+    def __init__(self, **kwargs):
+        d = {key: None for key in self.attributes}
+        d['pid'] = os.getpid()
+        for key in kwargs:
+            assert key in d
+            d[key] = kwargs[key]
+        self.__dict__ = d
 
 
 def runtests_subprocess(task_queue, result_queue):
     """Main test loop to be called within subprocess."""
-    test = 'N/A'
+    test = None
 
     try:
         while True:
@@ -170,66 +175,47 @@ def runtests_subprocess(task_queue, result_queue):
             except queue.Empty:
                 return  # Done!
 
-            if 'run/gui.py' in test:
-                result_queue.put('PLEASE RUN THIS TEST ON MASTER')
+            if 'gui/run.py' in test:
+                result = Result(name=test,
+                                status='please run on master')
+                result_queue.put(result)
                 continue
 
             result = run_single_test(test)
             result_queue.put(result)
+
     except KeyboardInterrupt:
-        result = None
-        return
+        print('Worker pid={} interrupted by keyboard while {}'
+              .format(os.getpid(),
+                      'running ' + test if test else 'not running'))
     except BaseException as err:
-        # Failure outside actual test (so test suite error):
-        result = {'pid': os.getpid(), 'name': test, 'ex': err,
-                  'traceback': traceback.format_exc(),
-                  'time': 0.0, 'status': 'TESTSUITEBROKEN'}
-    finally:
-        pass  # finalize things somehow
-        #if result is None:
-        #    result = 'bogus result'
-        #result_queue.put(result)
+        # Failure outside actual test -- i.e. internal test suite error.
+        result = Result(pid=os.getpid(), name=test, exception=err,
+                        traceback=traceback.format_exc(),
+                        time=0.0, status='ABORT')
+        result_queue.put(result)
 
 
-class Test:
-    testbasedir = os.path.split(__file__)[0]
-
-    def __init__(self, name):
-        self.fullpath = name
-        self.name = os.path.relpath(self.fullname, basedir)
-
-
-def print_test_result(result, i, n, tests, results):
-    msg = result['status']
+def print_test_result(result):
+    msg = result.status
     if msg == 'SKIPPED':
-        msg = 'SKIPPED: {}'.format(result['whyskipped'])
-    finished_tests = set([r['name'] for r in results])
-    basedir = os.path.split(__file__)[0]
-    reltests = [os.path.relpath(t, basedir) for t in tests]
-
-    stillnotfinished = [test for test in reltests if test not in finished_tests]
-    print('{pid:5d}: {name:28} {time:6.2f}s {msg} ({i}/{n}) [remain: {N} ({X})]'
-          .format(msg=msg, i=i, n=n, N=len(stillnotfinished),
-                  X=','.join(stillnotfinished[:4]), **result))
-    if 'traceback' in result:
+        msg = 'SKIPPED: {}'.format(result.whyskipped)
+    print('{pid:5d}: {name:36} {time:6.2f}s {msg}'
+          .format(pid=result.pid, name=result.name, time=result.time, msg=msg))
+    if result.traceback:
         print('=' * 78)
-        print('Error in {} from pid {}:'.format(result['name'], result['pid']))
-        print(result['traceback'].rstrip())
+        print('Error in {} from pid {}:'.format(result.name, result.pid))
+        print(result.traceback.rstrip())
         print('=' * 78)
 
 
 def runtests_parallel(nprocs, tests):
-    # Put all tests in a synchronized queue:
+    # Test names will be sent, and results received, into synchronized queues:
     task_queue = Queue()
+    result_queue = Queue()
 
     for test in tests:
-        # gui/run won't work in other processes.  Nobody knows why
         task_queue.put(test)
-
-
-    # Test results to be received into other queue:
-    result_queue = Queue()
-    results = []
 
     procs = []
     try:
@@ -244,24 +230,21 @@ def runtests_parallel(nprocs, tests):
         # Collect results:
         for i in range(len(tests)):
             result = result_queue.get()  # blocking call
-            if result == 'PLEASE RUN THIS TEST ON MASTER':
-                result = run_single_test(test)
-            print_test_result(result, i, len(tests), tests, results)
-            results.append(result)
-            #if result['status'] == 'TESTSUITEBROKEN':
-            #    raise result['ex']
-        # TODO: Print summary here
+            if result.status == 'please run on master':
+                result = run_single_test(result.name)
+            print_test_result(result)
+            yield result
+
+            if result.status == 'ABORT':
+                raise RuntimeError('ABORT: Internal error in test suite')
+        # TODO: Print summary after tests
+
+    except KeyboardInterrupt:
+        raise
     except BaseException as err:
         for proc in procs:
             proc.terminate()
-            proc.join()
-        del procs[:]
         traceback.print_exc()
-    else:
-        #for test in tests_master_only:
-        #    result = run_single_test(test)
-        #    results.append(result)
-        return results
     finally:
         for proc in procs:
             proc.join()
@@ -301,11 +284,12 @@ def test(verbosity=1, calculators=[],
         for result in runtests_parallel(nprocs, tests):
             results.append(result)
     except KeyboardInterrupt:
-        print('\nInterrupted by keyboard')
+        print('Interrupted by keyboard')
     finally:
         t2 = time.time()
         print('Time elapsed: {:.1f} s'.format(t2 - t1))
-        trouble = [r for r in results if r['status'] in ['FAIL', 'ERROR']]
+        trouble = [r for r in results if r.status in ['FAIL', 'ERROR']]
+        os.chdir(origcwd)
         return trouble
 
 
@@ -384,8 +368,9 @@ class CLICommand:
             calculators = []
 
         if args.list:
+            path = __path__[0]
             for testfile in get_tests():
-                print(testfile)
+                print(os.path.join(path, testfile))
             sys.exit(0)
 
         if args.list_calculators:
