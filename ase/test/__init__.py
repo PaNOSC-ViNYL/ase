@@ -31,48 +31,6 @@ def require(calcname):
         raise NotAvailable('use --calculators={0} to enable'.format(calcname))
 
 
-class CustomTextTestRunner(unittest.TextTestRunner):
-    def __init__(self, logname, descriptions=1, verbosity=1):
-        self.f = paropen(logname, 'w')
-        unittest.TextTestRunner.__init__(self, self.f, descriptions, verbosity)
-
-    def run(self, test):
-        stderr_old = sys.stderr
-        try:
-            sys.stderr = self.f
-            testresult = unittest.TextTestRunner.run(self, test)
-        finally:
-            sys.stderr = stderr_old
-        return testresult
-
-
-class ScriptTestCase(unittest.TestCase):
-    def __init__(self, methodname='testfile', filename=None):
-        unittest.TestCase.__init__(self, methodname)
-        self.filename = filename
-
-    def testfile(self):
-        try:
-            with open(self.filename) as fd:
-                exec(compile(fd.read(), self.filename, 'exec'), {})
-        except ImportError as ex:
-            module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
-            if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                          'flask', 'gpaw', 'GPAW', 'netCDF4']:
-                raise unittest.SkipTest('no {} module'.format(module))
-            else:
-                raise
-
-    def id(self):
-        return self.filename
-
-    def __str__(self):
-        return self.filename.split('test/')[-1]
-
-    def __repr__(self):
-        return "ScriptTestCase(filename='%s')" % self.filename
-
-
 def get_tests(files=None):
     if files:
         files = [os.path.join(__path__[0], f) for f in files]
@@ -152,6 +110,7 @@ def run_single_test(filename):
 
 
 class Result:
+    """Represents the result of a test; for communicating between processes."""
     attributes = ['name', 'pid', 'exception', 'traceback', 'time', 'status',
                   'whyskipped']
     def __init__(self, **kwargs):
@@ -165,19 +124,17 @@ class Result:
 
 def runtests_subprocess(task_queue, result_queue):
     """Main test loop to be called within subprocess."""
-    test = None
 
     try:
         while True:
-            result = None
+            result = test = None
             try:
                 test = task_queue.get_nowait()
             except queue.Empty:
-                return  # Done!
+                return  # No more pending tasks
 
-            if 'gui/run.py' in test:
-                result = Result(name=test,
-                                status='please run on master')
+            if test == 'gui/run.py':
+                result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
 
