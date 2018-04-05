@@ -131,10 +131,10 @@ def runtests_subprocess(task_queue, result_queue):
     try:
         while True:
             result = test = None
-            try:
-                test = task_queue.get_nowait()
-            except queue.Empty:
-                return  # No more pending tasks
+
+            test = task_queue.get()
+            if test == 'no more tests':
+                return
 
             if test in ['gui/run.py']:
                 result = Result(name=test, status='please run on master')
@@ -176,6 +176,9 @@ def runtests_parallel(nprocs, tests):
 
     for test in tests:
         task_queue.put(test)
+
+    for i in range(nprocs):  # Each process needs to receive this
+        task_queue.put('no more tests')
 
     procs = []
     try:
