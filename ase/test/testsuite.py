@@ -3,10 +3,6 @@ import os
 import sys
 import subprocess
 from multiprocessing import Process, cpu_count, Queue
-try:
-    import queue
-except ImportError:
-    import Queue as queue  # Python2
 import tempfile
 import unittest
 from glob import glob
@@ -17,7 +13,6 @@ import traceback
 import numpy as np
 
 from ase.calculators.calculator import names as calc_names, get_calculator
-from ase.parallel import paropen
 from ase.utils import devnull
 from ase.cli.info import print_info
 
@@ -364,9 +359,9 @@ class CLICommand:
             calculators = []
 
         if args.list:
-            path = __path__[0]
+            dirname, _ = os.path.split(__file__)
             for testfile in get_tests():
-                print(os.path.join(path, testfile))
+                print(os.path.join(dirname, testfile))
             sys.exit(0)
 
         if args.list_calculators:
