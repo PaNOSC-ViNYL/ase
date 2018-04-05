@@ -11,25 +11,26 @@ import numpy as np
 from ase.parallel import world
 
 
-def _maxwellboltzmanndistribution(masses, temp, communicator=world):
+def _maxwellboltzmanndistribution(masses, temp, communicator=world,
+                                  rng=np.random):
     # For parallel GPAW simulations, the random velocities should be
     # distributed.  Uses gpaw world communicator as default, but allow
     # option of specifying other communicator (for ensemble runs)
-    xi = np.random.standard_normal((len(masses), 3))
+    xi = rng.standard_normal((len(masses), 3))
     communicator.broadcast(xi, 0)
     momenta = xi * np.sqrt(masses * temp)[:, np.newaxis]
     return momenta
 
 
 def MaxwellBoltzmannDistribution(atoms, temp, communicator=world,
-                                 force_temp=False):
+                                 force_temp=False, rng=np.random):
     """Sets the momenta to a Maxwell-Boltzmann distribution. temp should be
     fed in energy units; i.e., for 300 K use temp=300.*units.kB. If
     force_temp is set to True, it scales the random momenta such that the
     temperature request is precise.
     """
     momenta = _maxwellboltzmanndistribution(atoms.get_masses(), temp,
-                                            communicator)
+                                            communicator, rng)
     atoms.set_momenta(momenta)
     if force_temp:
         temp0 = atoms.get_kinetic_energy() / len(atoms) / 1.5
