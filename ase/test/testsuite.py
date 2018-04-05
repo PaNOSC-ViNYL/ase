@@ -136,7 +136,7 @@ def runtests_subprocess(task_queue, result_queue):
             except queue.Empty:
                 return  # No more pending tasks
 
-            if test in ['gui/run.py', 'matplotlib_plot.py']:
+            if test in ['gui/run.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
