@@ -227,7 +227,7 @@ def summary(results):
         print('Test suite passed!')
 
 
-def test(verbosity=1, calculators=[], jobs=0,
+def test(calculators=[], jobs=0,
          stream=sys.stdout, files=None):
     """Main test-runner for ASE."""
 
@@ -337,10 +337,6 @@ class CLICommand:
         parser.add_argument(
             '-c', '--calculators',
             help='Comma-separated list of calculators to test.')
-        parser.add_argument('-v', '--verbose', help='verbose mode',
-                            action='store_true')
-        parser.add_argument('-q', '--quiet', action='store_true',
-                            help='quiet mode')
         parser.add_argument('--list', action='store_true',
                             help='print all tests and exit')
         parser.add_argument('--list-calculators', action='store_true',
@@ -377,8 +373,7 @@ class CLICommand:
                                                 ', '.join(calc_names)))
                 sys.exit(1)
 
-        ntrouble = test(verbosity=1 + args.verbose - args.quiet,
-                        calculators=calculators, jobs=args.jobs,
+        ntrouble = test(calculators=calculators, jobs=args.jobs,
                         files=args.tests)
         sys.exit(ntrouble)
 
