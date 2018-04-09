@@ -224,7 +224,7 @@ of freedom are enumerated the same as in the above.)
 
 .. math ::
    S_\text{elec} = k_\text{B} \ln \left[
-   2 \times \left(\text{spin multiplicity}\right) + 1\right]
+   2 \times \left(\text{total spin}\right) + 1\right]
 
 :math:`I_\text{A}` through :math:`I_\text{C}` are the three principle moments
 of inertia for a non-linear molecule. :math:`I` is the degenerate moment of
