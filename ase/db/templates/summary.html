@@ -134,27 +134,27 @@
 
 {% block head %}
 <script>
+  function addresize() {
+      $(".plotly-graph-div").each(function(i, obj) {
+          window.addEventListener("resize", function(){
+              Plotly.Plots.resize(obj);});
+      });
+  };
+
+  var dfd = $.Deferred();
+  dfd.done(addresize);
   $(function(){
     var includes = $('[data-include]');
     jQuery.each(includes, function(){
       var file = $(this).data('include');
-      $(this).load(file);
+      $(this).load(file, complete=dfd.resolve);
     });
   });
-</script>
 
-<script>
-$(function() {
-  $('.panel-collapse').collapse({toggle: false}).collapse('show');
-  $('.panel-collapse').not("#collapse0").collapse({toggle: false}).collapse('hide');
-});
-
-$(function(){
-    $(".plotly-graph-div").each(function(i, obj) {
-       window.addEventListener("resize", function(){
-       Plotly.Plots.resize(obj);});
-    });
-});
+  $(function() {
+     $('.panel-collapse').collapse({toggle: false}).collapse('show');
+     $('.panel-collapse').not("#collapse0").collapse({toggle: false}).collapse('hide');
+  });
 
 </script>
 

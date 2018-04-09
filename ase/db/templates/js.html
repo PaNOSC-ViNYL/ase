@@ -8,22 +8,19 @@
 <!-- Latest compiled and minified JavaScript -->
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 
-<!-- Plotly -->
-<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_SVG"></script>
+<!-- Plotly & MathJax (for LaTeX expressions) -->
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-MML-AM_SVG"></script>
 <script>
     var waitForPlotly = setInterval( function() {
         if( typeof(window.Plotly) !== "undefined" ){
             MathJax.Hub.Config({ SVG: { font: "STIX-Web" }, displayAlign: "center" });
             MathJax.Hub.Queue(["setRenderer", MathJax.Hub, "SVG"]);
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
             clearInterval(waitForPlotly);
         }}, 250 );
 </script>
-<script type="text/javascript">MathJax.Hub.Queue(["Typeset", MathJax.Hub]);</script>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <!-- Bokeh -->
 <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.14.min.js"></script>
 <script type="text/javascript" src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.14.min.js"></script>
-<script type="text/javascript">
-    Bokeh.set_log_level("info");
-</script>
