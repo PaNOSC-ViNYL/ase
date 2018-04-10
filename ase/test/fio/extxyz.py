@@ -25,19 +25,57 @@ assert at_new.arrays['ns_extra_data'].shape == (2,)
 os.unlink('to.xyz')
 os.unlink('to_new.xyz')
 
+#test comment read/write with vec_cell
+at.info['comment'] = 'test comment'
+ase.io.write('comment.xyz', at, comment=at.info['comment'], vec_cell=True)
+r = ase.io.read('comment.xyz')
+assert at == r
+os.unlink('comment.xyz')
+
 # write sequence of images with different numbers of atoms -- bug fixed
 # in commit r4542
 images = [at, at * (2, 1, 1), at * (3, 1, 1)]
 ase.io.write('multi.xyz', images, format='extxyz')
 read_images = ase.io.read('multi.xyz@:')
 assert read_images == images
+
+#test vec_cell writing and reading
+images[1].set_pbc([True,True,False])
+images[2].set_pbc([True,False,False])
+ase.io.write('multi.xyz', images, vec_cell=True)
+cell = images[1].get_cell()
+cell[-1] = [0.0, 0.0, 0.0]
+images[1].set_cell(cell)
+cell = images[2].get_cell()
+cell[-1] = [0.0, 0.0, 0.0]
+cell[-2] = [0.0, 0.0, 0.0]
+images[2].set_cell(cell)
+read_images = ase.io.read('multi.xyz@:')
+assert read_images == images
 os.unlink('multi.xyz')
+# also test for vec_cell with whitespaces
+f = open('structure.xyz', 'w')
+f.write("""1
+Coordinates
+C         -7.28250        4.71303       -3.82016
+  VEC1 1.0 0.1 1.1
+1
+
+C         -7.28250        4.71303       -3.82016
+VEC1 1.0 0.1 1.1
+""")
+f.close()
+a = ase.io.read('structure.xyz',index=0)
+b = ase.io.read('structure.xyz',index=1)
+assert a == b
+os.unlink('structure.xyz')
 
 # read xyz containing trailing blank line
+# also test for upper case elements
 f = open('structure.xyz', 'w')
 f.write("""4
 Coordinates
-Mg        -4.25650        3.79180       -2.54123
+MG        -4.25650        3.79180       -2.54123
 C         -1.15405        2.86652       -1.26699
 C         -5.53758        3.70936        0.63504
 C         -7.28250        4.71303       -3.82016
@@ -45,6 +83,7 @@ C         -7.28250        4.71303       -3.82016
 """)
 f.close()
 a = ase.io.read('structure.xyz')
+assert a[0].symbol == 'Mg'
 os.unlink('structure.xyz')
 
 # read xyz with / and @ signs in key value
@@ -71,7 +110,6 @@ struct.info = {'key_value_pairs': {'dataset': 'deltatest', 'kpoints': np.array([
 ase.io.write('tmp.xyz', struct)
 os.unlink('tmp.xyz')
 
-
 # Complex properties line. Keys and values that break with a regex parser.
 # see https://gitlab.com/ase/ase/issues/53 for more info
 
@@ -88,7 +126,14 @@ complex_xyz_string = (
     'int_array={1 2 3} '
     'float_array="3.3 4.4" '
     'a3x3_array="1 4 7 2 5 8 3 6 9" '  # fortran ordering
+    'Lattice="  4.3  0.0 0.0 0.0  3.3 0.0 0.0 0.0  7.0 " '  # spaces in array
+    'scientific_float=1.2e7 '
+    'scientific_float_2=5e-6 '
+    'scientific_float_array="1.2 2.2e3 4e1 3.3e-1 2e-2" '
+    'not_array="1.2 3.4 text" '
+    'nested_brackets=[[1,2],[3,4]] '  # gets flattented if not 3x3
     'bool_array={T F T F} '
+    'bool_array_2=" T, F, T " ' # leading spaces
     'not_bool_array=[T F S] '
     # read and write
     u'\xfcnicode_key=val\xfce '
@@ -117,7 +162,14 @@ expected_dict = {
     'int_array': np.array([1, 2, 3]),
     'float_array': np.array([3.3, 4.4]),
     'a3x3_array': np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]),
+    'Lattice': np.array([[4.3, 0.0, 0.0], [0.0, 3.3, 0.0], [0.0, 0.0, 7.0]]),
+    'scientific_float': 1.2e7,
+    'scientific_float_2': 5e-6,
+    'scientific_float_array': np.array([1.2, 2200, 40, 0.33, 0.02]),
+    'not_array': "1.2 3.4 text",
+    'nested_brackets': np.array([1, 2, 3, 4]),
     'bool_array': np.array([True, False, True, False]),
+    'bool_array_2': np.array([True, False, True]),
     'not_bool_array': 'T F S',
     u'\xfcnicode_key': u'val\xfce',
     'unquoted_special_value': u'a_to_Z_$%%^&*\xfc\u2615',
@@ -155,3 +207,18 @@ if False:
 
     os.unlink('complex.xyz')
 
+#write multiple atoms objects to one xyz
+frames = [at, at * (2, 1, 1), at * (3, 1, 1)]
+for atoms in frames:
+    atoms.write('append.xyz',append=True)
+    atoms.write('append.xyz.gz',append=True)
+    atoms.write('not_append.xyz',append=False)
+readFrames = ase.io.read('append.xyz',index=slice(0,None))
+assert readFrames == frames
+readFrames = ase.io.read('append.xyz.gz',index=slice(0,None))
+assert readFrames == frames
+singleFrame = ase.io.read('not_append.xyz',index=slice(0,None))
+assert singleFrame[-1] == frames[-1]
+os.unlink('append.xyz')
+os.unlink('append.xyz.gz')
+os.unlink('not_append.xyz')

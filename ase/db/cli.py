@@ -98,6 +98,8 @@ class CLICommand:
             help='Use metadata from a Python file.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
+        add('--strip-data', action='store_true',
+            help='Strip data when using --insert-into.')
 
     @staticmethod
     def run(args):
@@ -109,6 +111,7 @@ def main(args):
     query = ','.join(args.query)
 
     if args.sort.endswith('-'):
+        # Allow using "key-" instead of "-key" for reverse sorting
         args.sort = '-' + args.sort[:-1]
 
     if query.isdigit():
@@ -180,7 +183,10 @@ def main(args):
                 nkvp += len(kvp)
                 if args.unique:
                     row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
-                db2.write(row, data=row.get('data'), **kvp)
+                if args.strip_data:
+                    db2.write(row.toatoms(), **kvp)
+                else:
+                    db2.write(row, data=row.get('data'), **kvp)
                 nrows += 1
 
         out('Added %s (%s updated)' %

@@ -119,6 +119,49 @@ def read_dftb_velocities(atoms, filename='geo_end.xyz'):
     return atoms
 
 
+def read_dftb_lattice(fileobj='md.out',images=None):
+    """
+    Read lattice vectors from MD and return them as a list. If a molecules are parsed add them there.
+    """
+    if isinstance(fileobj, basestring):
+        fileobj = open(fileobj)
+
+    if images is not None:
+        append = True
+        if hasattr(images, 'get_positions'):
+            images = [images]
+    else:
+        append = False
+
+    fileobj.seek(0)
+    lattices = []
+    for line in fileobj:
+        if 'Lattice vectors' in line:
+            vec = []
+            for i in range(3): #DFTB+ only supports 3D PBC
+                line = fileobj.readline().split()
+                try:
+                    line = [float(x) for x in line]
+                except ValueError:
+                    raise ValueError('Lattice vector elements should be of type float.')
+                vec.extend(line)
+            lattices.append(np.array(vec).reshape((3,3)))
+
+    if append:
+        if len(images) != len(lattices):
+            raise ValueError('Length of images given does not match number of cell vectors found')
+
+        for i,atoms in enumerate(images):
+            atoms.set_cell(lattices[i])
+            #DFTB+ only supports 3D PBC
+            atoms.set_pbc(True)
+        return
+    else:
+        return lattices
+
+
+
+
 def write_dftb_velocities(atoms, filename='velocities.txt'):
     """Method to write velocities (in atomic units) from ASE
        to a file to be read by dftb+

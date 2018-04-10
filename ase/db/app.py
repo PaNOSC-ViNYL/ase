@@ -62,7 +62,9 @@ app.secret_key = 'asdf'
 
 databases = {}
 home = ''  # link to homepage
+ase_db_footer = ''  # footer (for a license)
 open_ase_gui = True  # click image to open ASE's GUI
+download_button = True
 
 # List of (project-name, title) tuples (will be filled in at run-time):
 projects = []
@@ -95,7 +97,9 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
+    ase_db_footer = app.config['ASE_DB_FOOTER']
     tmpdir = app.config['ASE_DB_TMPDIR']
+    download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
 else:
     tmpdir = tempfile.mkdtemp()  # used to cache png-files
@@ -127,7 +131,7 @@ def error(e):
     except ValueError:
         cid = 0
     con = connections.get(cid)
-    with open(op.join(tmpdir, '{:02}.error'.format(errors % 100)), 'w') as fd:
+    with open(op.join(tmpdir, '{:02}.err'.format(errors % 100)), 'w') as fd:
         print(repr((errors, con, e, request)), file=fd)
         if hasattr(e, '__traceback__'):
             traceback.print_tb(e.__traceback__, file=fd)
@@ -168,7 +172,9 @@ def index():
         sort = 'id'
         limit = 25
 
-    db = databases[project]
+    db = databases.get(project)
+    if db is None:
+        return 'No such project: ' + project
 
     meta = db.meta
 
@@ -269,11 +275,13 @@ def index():
                            con=con,
                            x=con_id,
                            home=home,
+                           ase_db_footer=ase_db_footer,
                            pages=pages(page, nrows, limit),
                            nrows=nrows,
                            addcolumns=addcolumns,
                            row1=page * limit + 1,
-                           row2=min((page + 1) * limit, nrows))
+                           row2=min((page + 1) * limit, nrows),
+                           download_button=download_button)
 
 
 @app.route('/image/<name>')
@@ -338,6 +346,7 @@ def summary(id):
                            n2=n2,
                            n3=n3,
                            home=home,
+                           ase_db_footer=ase_db_footer,
                            md=db.meta,
                            open_ase_gui=open_ase_gui)
 
@@ -378,13 +387,14 @@ def xyz(id):
     return data, '{0}.xyz'.format(id)
 
 
-@app.route('/json')
-@download
-def jsonall():
-    con_id = int(request.args['x'])
-    con = connections[con_id]
-    data = tofile(con.project, con.query[2], 'json', con.limit)
-    return data, 'selection.json'
+if download_button:
+    @app.route('/json')
+    @download
+    def jsonall():
+        con_id = int(request.args['x'])
+        con = connections[con_id]
+        data = tofile(con.project, con.query[2], 'json', con.limit)
+        return data, 'selection.json'
 
 
 @app.route('/json/<int:id>')
@@ -395,13 +405,14 @@ def json1(id):
     return data, '{0}.json'.format(id)
 
 
-@app.route('/sqlite')
-@download
-def sqliteall():
-    con_id = int(request.args['x'])
-    con = connections[con_id]
-    data = tofile(con.project, con.query[2], 'db', con.limit)
-    return data, 'selection.db'
+if download_button:
+    @app.route('/sqlite')
+    @download
+    def sqliteall():
+        con_id = int(request.args['x'])
+        con = connections[con_id]
+        data = tofile(con.project, con.query[2], 'db', con.limit)
+        return data, 'selection.db'
 
 
 @app.route('/sqlite/<int:id>')
@@ -414,8 +425,15 @@ def sqlite1(id):
 
 @app.route('/robots.txt')
 def robots():
-    return ('User-agent: *\nDisallow: /\n\n' +
-            'User-agent: Baiduspider\nDisallow: /\n', 200)
+    return ('User-agent: *\n'
+            'Disallow: /\n'
+            '\n'
+            'User-agent: Baiduspider\n'
+            'Disallow: /\n'
+            '\n'
+            'User-agent: SiteCheck-sitecrawl by Siteimprove.com\n'
+            'Disallow: /\n',
+            200)
 
 
 def pages(page, nrows, limit):

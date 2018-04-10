@@ -49,7 +49,7 @@ The calculators can be divided in four groups:
 1) Asap_, GPAW_, and Hotbit_ have their own native ASE interfaces.
 
 2) ABINIT, AMBER, CP2K, CASTEP, deMon2k, DFTB+, ELK, EXCITING, FHI-aims, FLEUR, GAUSSIAN,
-   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, Quantum ESPRESSO, SIESTA,
+   Gromacs, Jacapo, LAMMPS, MOPAC, NWChem, Octopus, ONETEP, Quantum ESPRESSO, SIESTA,
    TURBOMOLE and VASP, have Python wrappers in the ASE package, but the actual
    FORTRAN/C/C++ codes are not part of ASE.
 
@@ -90,6 +90,7 @@ gaussian                                  Gaussian based electronic structure co
 :mod:`~ase.calculators.mopac`             ...
 :mod:`~ase.calculators.nwchem`            Gaussian based electronic structure code
 :mod:`~ase.calculators.octopus`           Real-space pseudopotential code
+:mod:`~ase.calculators.onetep`            Linear-scaling pseudopotential code
 :mod:`~ase.calculators.siesta`            LCAO pseudopotential code
 :mod:`~ase.calculators.turbomole`         Fast atom orbital code
 :mod:`~ase.calculators.vasp`              Plane-wave PAW code
@@ -218,6 +219,7 @@ the :meth:`set` method:
    mopac
    nwchem
    octopus
+   onetep
    siesta
    turbomole
    vasp

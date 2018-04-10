@@ -304,7 +304,7 @@ class NEB:
         # virtual atom count for the optimization algorithm.
         return (self.nimages - 2) * self.natoms
 
-    def _images_(self):
+    def iterimages(self):
         # Allows trajectory to convert NEB into several images
         assert not self.parallel or self.world.size == 1
         # (We could collect the atoms objects on master here!)
@@ -450,8 +450,9 @@ class SingleCalculatorNEB(NEB):
                     self.images[i].set_calculator(
                         SinglePointCalculator(
                             image,
-                            energy=image.get_potential_energy(),
-                            forces=image.get_forces()))
+                            energy=image.get_potential_energy(
+                                apply_constraint=False),
+                            forces=image.get_forces(apply_constraint=False)))
                 self.emax = min(self.emax, image.get_potential_energy())
 
         if self.first:

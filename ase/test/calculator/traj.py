@@ -32,7 +32,7 @@ parameters = {
                      pseudopotentials={'H': 'H.pbe-rrkjus_psl.0.1.UPF'})}
 
 for name in test_calculator_names + ['emt']:
-    if name in ['cp2k', 'gromacs', 'lammpslib', 'lammpsrun', 'mopac', 'turbomole', 'amber']:
+    if name in ['cp2k', 'gromacs', 'lammpslib', 'lammpsrun', 'mopac', 'turbomole', 'amber', 'asap']:
         continue
     par = parameters.get(name, {})
     os.mkdir(name + '-test')

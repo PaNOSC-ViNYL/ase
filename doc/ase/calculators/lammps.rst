@@ -22,13 +22,10 @@ then creates a '.lmp' object which is a running LAMMPS subroutine, so
 further commands can be sent to this object and executed until it is
 explicitly closed. Any additional variables calculated by LAMMPS can
 also be extracted. Note however, any mistakes in the code sent to the
-LAMMPS routine will cause python to terminate.
-
-ASE is licensed as LGPL and LAMMPS is GPL which 'prohibits' them from
-being linked together in a distribution such as ASE. As a result, LAMMPSlib is
-not distributed with the ASE project but is available separately at
-lammpslib_link_. Further explanation of the licensing is constained in
-:ref:`license info`.
+LAMMPS routine will cause python to terminate. Further information on the
+python interface of LAMMPS can be found at lammpspy_link_. Note that it can be
+very benefitial to compile lammps with C++ exceptions. Otherwise there will be
+no error messages upon crashes.
 
 It should not matter which code you use, but if you want access to
 more of LAMMPS internal variables or to perform a more complicated
@@ -45,3 +42,4 @@ problems should be reported to the ASE developers mailing list.
 
 .. _LAMMPS_link: http://lammps.sandia.gov
 .. _lammpslib_link: https://svn.fysik.dtu.dk/projects/ase-extra/trunk/ase/calculators
+.. _lammpspy_link: http://lammps.sandia.gov/doc/Section_python.html

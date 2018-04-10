@@ -3,6 +3,7 @@ from math import sqrt
 
 import numpy as np
 
+from ase import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
@@ -18,8 +19,9 @@ class Images:
         self.covalent_radii = covalent_radii.copy()
         self.config = read_defaults()
         self.atom_scale = self.config['radii_scale']
-        if images is not None:
-            self.initialize(images)
+        if images is None:
+            images = [Atoms()]
+        self.initialize(images)
 
     def __len__(self):
         return len(self._images)
@@ -49,6 +51,9 @@ class Images:
             atoms.constraints = [c for c in atoms.constraints
                                  if not isinstance(c, FixAtoms)]
             atoms.constraints.append(FixAtoms(mask=~dynamic))
+
+    def scale_radii(self, scaling_factor):
+        self.covalent_radii *= scaling_factor
 
     def get_energy(self, atoms):
         try:
@@ -140,16 +145,53 @@ class Images:
         self.initialize(self.images, filenames=self.filenames)
         return
 
-    def read(self, filenames, index=-1, filetype=None):
+    def read(self, filenames, default_index=':', filetype=None):
+        from ase.utils import basestring
+        if isinstance(default_index, basestring):
+            default_index = string2index(default_index)
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index, filetype)
+            from ase.io.formats import parse_filename
 
-            if not isinstance(i, list):
-                i = [i]
-            images.extend(i)
-            names.extend([filename] * len(i))
+            if '.json@' in filename or '.db@' in filename:
+                # Ugh! How would one deal with this?
+                # The parse_filename and string2index somehow conspire
+                # to cause an error.  See parse_filename
+                # in ase.io.formats for this particular
+                # special case.  -askhl
+                #
+                # TODO Someone figure out how to see what header
+                # a JSON file should have.
+                imgs = read(filename, default_index, filetype)
+                if hasattr(imgs, 'iterimages'):
+                    imgs = list(imgs.iterimages())
+                names += [filename] * len(imgs)
+                images += imgs
+                continue  # Argh!
+
+            if '@' in filename:
+                actual_filename, index = parse_filename(filename, None)
+            else:
+                actual_filename, index = parse_filename(filename,
+                                                        default_index)
+
+            imgs = read(filename, default_index, filetype)
+            if hasattr(imgs, 'iterimages'):
+                imgs = list(imgs.iterimages())
+
+            images.extend(imgs)
+
+            # Name each file as filename@index:
+            if isinstance(index, slice):
+                start = index.start or 0
+                step = index.step or 1
+            else:
+                start = index  # index is just an integer
+                assert len(imgs) == 1
+                step = 1
+            for i, img in enumerate(imgs):
+                names.append('{}@{}'.format(actual_filename, start + i * step))
 
         self.initialize(images, names)
 

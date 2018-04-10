@@ -74,3 +74,6 @@ for name in ['y2.json', 'y2.db']:
     id = c.write(Atoms(), key=7)
     c.update(id, delete_keys=['key'])
     assert 'key' not in c[id]
+
+    e = [row.get('energy') for row in c.select(sort='energy')]
+    assert len(e) == 5 and abs(e[0] - 1.991) < 0.0005

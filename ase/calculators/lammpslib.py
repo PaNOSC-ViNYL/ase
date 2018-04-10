@@ -104,8 +104,6 @@ def unit_convert(quantity, units='metal'):
 
 class LAMMPSlib(Calculator):
     r"""
-    LAMMPSlib Interface Documentation
-
 **Introduction**
 
 LAMMPSlib is an interface and calculator for LAMMPS_. LAMMPSlib uses
@@ -127,8 +125,8 @@ Keyword                               Description
                    ["pair_style eam/alloy",
                     "pair_coeff * * potentials/NiAlH_jea.eam.alloy Ni Al"]
 
-``atom_types``     dictionary of "atomic_symbol":lammps_atom_type pairs,
-                   e.g. {'Cu':1} to bind copper to lammps atom type 1.
+``atom_types``     dictionary of ``atomic_symbol :lammps_atom_type`` pairs,
+                   e.g. ``{'Cu':1}`` to bind copper to lammps atom type 1.
                    Default method assigns lammps atom types in order that they
                    appear in the atoms model. Autocreated if <None>.
 
@@ -253,9 +251,7 @@ by invoking the get_potential_energy() method::
   change the energy value of the model. However the calculator will not
   know of it and still return the original energy value.
 
-End LAMMPSlib Interface Documentation
-
-    """
+"""
 
     implemented_properties = ['energy', 'forces', 'stress']
 
@@ -311,8 +307,8 @@ End LAMMPSlib Interface Documentation
 
         self.lmp.command(cell_cmd)
 
-    def set_lammps_pos(self, atoms):
-        pos = atoms.get_positions() / unit_convert("distance", self.units)
+    def set_lammps_pos(self, atoms, wrap=True):
+        pos = atoms.get_positions(wrap=wrap) / unit_convert("distance", self.units)
 
         # If necessary, transform the positions to new coordinate system
         if self.coord_transform is not None:
@@ -464,12 +460,17 @@ End LAMMPSlib Interface Documentation
         self.results['stress'] = (stress *
                                   (-unit_convert("pressure", self.units)))
 
-        f = np.zeros((len(atoms), 3))
-        force_vars = ['fx', 'fy', 'fz']
-        for i, var in enumerate(force_vars):
-            f[:, i] = (
-                np.asarray(
-                    self.lmp.extract_variable(var, 'all', 1)[:len(atoms)]) *
+        # this does not necessarily yield the forces ordered by atom-id!
+        # f = np.zeros((len(atoms), 3))
+        # force_vars = ['fx', 'fy', 'fz']
+        # for i, var in enumerate(force_vars):
+        #     f[:, i] = (
+        #         np.asarray(
+        #             self.lmp.extract_variable(var, 'all', 1)[:len(atoms)]) *
+        #         unit_convert("force", self.units))
+
+        # definitely yields atom-id ordered array
+        f = (np.array(self.lmp.gather_atoms("f", 1, 3)).reshape(-1,3) *
                 unit_convert("force", self.units))
 
         if self.coord_transform is not None:
@@ -617,6 +618,8 @@ End LAMMPSlib Interface Documentation
             self.lmp.command('echo none')  # don't echo the atom positions
             self.rebuild(atoms)
             self.lmp.command('echo log')  # turn back on
+        else:
+            self.previous_atoms_numbers = atoms.numbers.copy()
 
         # execute the user commands
         for cmd in self.parameters.lmpcmds:

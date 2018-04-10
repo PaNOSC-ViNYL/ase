@@ -40,8 +40,8 @@ html_favicon = 'static/ase.ico'
 html_static_path = ['static']
 html_last_updated_fmt = '%a, %d %b %Y %H:%M:%S'
 
-ase_dev_version = '3.15.1b1'  # This line auto-edited by newrelease script
-ase_stable_version = '3.15.0'  # This line auto-edited by newrelease script
+ase_dev_version = '3.16.1b1'  # This line auto-edited by newrelease script
+ase_stable_version = '3.16.0'  # This line auto-edited by newrelease script
 
 html_context = {
     'current_version': __version__,

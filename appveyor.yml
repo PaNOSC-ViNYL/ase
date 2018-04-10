@@ -2,22 +2,22 @@ environment:
   matrix:
     # For Python versions available on Appveyor, see
     # http://www.appveyor.com/docs/installed-software#python
-      # Python 2.7
-    - PYTHON: "C:\\Python27"
-      # Python 2.7 - 64-bit
-    - PYTHON: "C:\\Python27-x64"
-      # Python 3.6
-    - PYTHON: "C:\\Python36"
-      # Python 2.6 - 64-bit
+    #  # Python 2.7
+    #- PYTHON: "C:\\Python27"
+    #  # Python 2.7 - 64-bit
+    #- PYTHON: "C:\\Python27-x64"
+    #  # Python 3.6
+    #- PYTHON: "C:\\Python36"
+      # Python 3.6 - 64-bit
     - PYTHON: "C:\\Python36-x64"
-      # Conda 2.7
-    - PYTHON: "C:\\Miniconda"
-      # Conda 2.7 64-bit
-    - PYTHON: "C:\\Miniconda-x64"
-      # Conda 3.6
-    - PYTHON: "C:\\Miniconda36"
-      # Conda 3.6 64-bit
-    - PYTHON: "C:\\Miniconda36-x64"
+    #  # Conda 2.7
+    #- PYTHON: "C:\\Miniconda"
+    #  # Conda 2.7 64-bit
+    #- PYTHON: "C:\\Miniconda-x64"
+    #  # Conda 3.6
+    #- PYTHON: "C:\\Miniconda36"
+    #  # Conda 3.6 64-bit
+    #- PYTHON: "C:\\Miniconda36-x64"
 
 install:
   # Prepend chosen Python to the PATH of this build

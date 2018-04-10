@@ -29,6 +29,8 @@ import numpy as np
 from ase.calculators.calculator import kpts2ndarray
 from ase.utils import basestring
 
+from ase.calculators.vasp.setups import setups_defaults
+
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
 
@@ -785,20 +787,6 @@ class GenerateVaspInput(object):
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
 
-    # elements which have no-suffix files only
-    setups_defaults = {'K':  '_pv',
-       'Ca': '_pv',
-       'Rb': '_pv',
-       'Sr': '_sv',
-       'Y':  '_sv',
-       'Zr': '_sv',
-       'Nb': '_pv',
-       'Cs': '_sv',
-       'Ba': '_sv',
-       'Fr': '_sv',
-       'Ra': '_sv',
-       'Sc': '_sv'}
-
     def __init__(self, restart=None):
         self.float_params = {}
         self.exp_params = {}
@@ -980,9 +968,35 @@ class GenerateVaspInput(object):
         symbols = []
         symbolcount = {}
 
-        # make sure we find POTCARs for elements which have no-suffix files only
-        setups = self.setups_defaults.copy()
-        # override with user defined setups
+        # Default setup lists are available: 'minimal', 'recommended' and 'GW'
+        # These may be provided as a string e.g.::
+        #
+        #     calc = Vasp(setups='recommended')
+        #
+        # or in a dict with other specifications e.g.::
+        #
+        #    calc = Vasp(setups={'base': 'minimal', 'Ca': '_sv', 2: 'O_s'})
+        #
+        # Where other keys are either atom identities or indices, and the
+        # corresponding values are suffixes or the full name of the setup
+        # folder, respectively.
+
+        # Default to minimal basis
+        if p['setups'] is None:
+            p['setups'] = {'base': 'minimal'}
+
+        # String shortcuts are initialised to dict form
+        elif isinstance(p['setups'], str):
+            if p['setups'].lower() in ('minimal', 'recommended', 'gw'):
+                p['setups'] = {'base': p['setups']}
+
+        # Dict form is then queried to add defaults from setups.py.
+        if 'base' in p['setups']:
+            setups = setups_defaults[p['setups']['base'].lower()]
+        else:
+            setups = {}
+
+        # Override defaults with user-defined setups
         if p['setups'] is not None:
             setups.update(p['setups'])
 

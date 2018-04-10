@@ -10,6 +10,7 @@ import ase.units as units
 from ase.parallel import parprint, paropen
 from ase.vibrations import Vibrations
 from ase.utils import basestring
+import warnings
 
 # XXX This class contains much repeated code.  FIXME
 
@@ -116,9 +117,10 @@ class SiestaRaman(Vibrations):
         Vibrations.__init__(self, atoms, indices=indices, name=name, 
                             delta = delta, nfree=nfree)
         if atoms.constraints:
-            print('WARNING! \n Your Atoms object is constrained. '
+            warnings.warn('WARNING! \n Your Atoms object is constrained. ' +
                   'Some forces may be unintended set to zero. \n')
         self.name = name + '-d%.3f' % delta
+        self.calc = atoms.get_calculator()
 
         if directions is None:
             self.directions = np.asarray([0, 1, 2])
@@ -140,10 +142,19 @@ class SiestaRaman(Vibrations):
         self.pyscf_arg = kw
 
     def get_polarizability(self):
-        return self.siesta.get_polarizability_pyscf_inter(Edir=np.array([1.0, 1.0, 1.0]),
-                                                          **self.pyscf_arg)
+        if "tddft_iter_tol" in list(self.pyscf_arg.keys()):
+            if self.pyscf_arg["tddft_iter_tol"] > 1e-4:
+                warnings.warn("tddft_iter_tol > 1e-4, polarizability may not have " +
+                              "enough precision. The Raman intensity will not be precise.")
+        else:
+            self.pyscf_arg["tddft_iter_tol"] = 1e-4
 
-    def read(self, method='standard', direction='central'):
+        self.siesta.pyscf_tddft(Edir=np.array([1.0, 1.0, 1.0]), **self.pyscf_arg)
+        return self.siesta.results["freq range"], \
+               self.siesta.results["polarizability nonin"], \
+               self.siesta.results["polarizability inter"]
+
+    def read(self, method='standard', direction='central', inter = True):
         self.method = method.lower()
         self.direction = direction.lower()
         assert self.method in ['standard', 'frederiksen']
@@ -154,10 +165,11 @@ class SiestaRaman(Vibrations):
         # Get "static" dipole moment polarizability and forces
         name = '%s.eq.pckl' % self.name
         [forces_zero, dipole_zero, freq_zero,
-            pol_zero] = pickle.load(open(name, "rb"))
+            noninPol_zero, pol_zero] = pickle.load(open(name, "rb"))
         self.dipole_zero = (sum(dipole_zero**2)**0.5) / units.Debye
         self.force_zero = max([sum((forces_zero[j])**2)**0.5
                                for j in self.indices])
+        self.noninPol_zero = noninPol_zero * (units.Bohr)**3  # Ang**3
         self.pol_zero = pol_zero * (units.Bohr)**3  # Ang**3
 
         ndof = 3 * len(self.indices)
@@ -169,14 +181,16 @@ class SiestaRaman(Vibrations):
         for a in self.indices:
             for i in 'xyz':
                 name = '%s.%d%s' % (self.name, a, i)
-                [fminus, dminus, frminus, pminus] = pickle.load(
+                [fminus, dminus, frminus, noninpminus, pminus] = pickle.load(
                     open(name + '-.pckl', "rb"))
-                [fplus, dplus, frplus, pplus] = pickle.load(
+                [fplus, dplus, frplus, noninpplus, pplus] = pickle.load(
                     open(name + '+.pckl', "rb"))
                 if self.nfree == 4:
-                    [fminusminus, dminusminus, frminusminus, pminusminus] =\
+                    [fminusminus, dminusminus, frminusminus, 
+                            noninpminusminus, pminusminus] =\
                                     pickle.load(open(name + '--.pckl', "rb"))
-                    [fplusplus, dplusplus, frplusplus, pplusplus] =\
+                    [fplusplus, dplusplus, frplusplus, 
+                            noninpplusplus, pplusplus] =\
                                     pickle.load(open(name + '++.pckl', "rb"))
                 if self.method == 'frederiksen':
                     fminus[a] += -fminus.sum(0)
@@ -187,14 +201,21 @@ class SiestaRaman(Vibrations):
                 if self.nfree == 2:
                     H[r] = (fminus - fplus)[self.indices].ravel() / 2.0
                     dpdx[r] = (dminus - dplus)
-                    dadx[r] = (pminus - pplus)
+                    if inter:
+                        dadx[r] = (pminus - pplus)
+                    else:
+                        dadx[r] = (noninpminus - noninpplus)
                 if self.nfree == 4:
                     H[r] = (-fminusminus + 8 * fminus - 8 * fplus +
                             fplusplus)[self.indices].ravel() / 12.0
                     dpdx[r] = (-dplusplus + 8 * dplus - 8 * dminus +
                                dminusminus) / 6.0
-                    dadx[r] = (-pplusplus + 8 * pplus - 8 * pminus +
-                               pminusminus) / 6.0
+                    if inter:
+                        dadx[r] = (-pplusplus + 8 * pplus - 8 * pminus +
+                                   pminusminus) / 6.0
+                    else:
+                        dadx[r] = (-noninpplusplus + 8 * noninpplus - 8 * noninpminus +
+                                   noninpminusminus) / 6.0
                 H[r] /= 2 * self.delta
                 dpdx[r] /= 2 * self.delta
                 dadx[r] /= 2 * self.delta  # polarizability in Ang
@@ -293,8 +314,9 @@ class SiestaRaman(Vibrations):
                                '< unknown.')
 
     def summary(self, method='standard', direction='central', freq_pol = 0.0,
-                intensity_unit_ir='(D/A)2/amu', intensity_unit_ram='au', log=stdout):
-        hnu = self.get_energies(method, direction)
+                intensity_unit_ir='(D/A)2/amu', intensity_unit_ram='au', log=stdout,
+                inter = True):
+        hnu = self.get_energies(method, direction, inter=inter)
         s = 0.01 * units._e / units._c / units._hplanck
         iu_ir, iu_string_ir = self.intensity_prefactor(intensity_unit_ir)
         iu_ram, iu_string_ram = self.intensity_prefactor(intensity_unit_ram)
@@ -454,7 +476,7 @@ class SiestaRaman(Vibrations):
         intensity.
         """
         name = '%s.eq.pckl' % self.name
-        [forces_zero, dipole_zero, freq_zero,
+        [forces_zero, dipole_zero, freq_zero, noninPol_zero,
             pol_zero] = pickle.load(open(name, "rb"))
  
         freq_idx = (np.abs(self.freq_pol-freq_pol)).argmin()

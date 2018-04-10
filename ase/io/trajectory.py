@@ -119,7 +119,7 @@ class TrajectoryWriter:
         if atoms is None:
             atoms = self.atoms
 
-        for image in atoms._images_():
+        for image in atoms.iterimages():
             self._write_atoms(image, **kwargs)
 
     def _write_atoms(self, atoms, **kwargs):
