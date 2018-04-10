@@ -388,15 +388,12 @@ single transaction like this::
 When the for-loop is done, the database will commit (or roll back if there
 was an error) the transaction.
 
-Similarly, the :meth:`~Database.update` method will do up to
-``block_size=1000`` rows in one transaction::
+Similarly, if you want to :meth:`~Database.update` many rows, you should
+do it in one transaction::
 
-    # slow:
-    for row in db.select(...):
-        db.update(row.id, foo='bar')  # a single id
-    # faster:
-    ids = [row.id for row in db.select(...)]
-    db.update(ids, foo='bar')  # list of id's
+    with db:
+        for id in ...:
+            db.update(id, foo='bar')
 
 
 Writing rows in parallel
@@ -418,8 +415,7 @@ With four extra lines (see the :meth:`~Database.reserve` method)::
             continue
         mol = read(name)
         calculate_something(mol)
-        db.write(mol, name=name)
-        del db[id]
+        db.write(mol, id=id, name=name)
 
 you will be able to run several jobs in parallel without worrying about two
 jobs trying to do the same calculation.  The :meth:`~Database.reserve` method
@@ -447,9 +443,9 @@ Here is a description of the database object:
 
     .. decorators hide these three from Sphinx, so we add them by hand:
 
-    .. automethod:: write(atoms, key_value_pairs={}, data={}, **kwargs)
+    .. automethod:: write(atoms, id=None, key_value_pairs={}, data={}, **kwargs)
     .. automethod:: reserve(**key_value_pairs)
-    .. automethod:: update(ids, delete_keys=[], block_size=1000, **add_key_value_pairs)
+    .. automethod:: update(id, atoms=None, delete_keys=[], data=None, **add_key_value_pairs)
 
     .. attribute:: metadata
 

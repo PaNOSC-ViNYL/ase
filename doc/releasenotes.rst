@@ -10,7 +10,23 @@ Git master branch
 
 :git:`master <>`.
 
-* No changes yet
+
+* The :meth:`ase.db.core.Database.write` method now takes a ``id`` that
+  allows you to overwrite an existing row.
+
+* The :meth:`ase.db.core.Database.update` can now update the Atoms and the data
+  parts of a row.
+
+* The :meth:`ase.db.core.Database.update` will no longer accept a list of
+  row ID's as the first argument.  Replace this::
+
+      db.update(ids, ...)
+
+  with::
+
+      with db:
+          for id in ids:
+              db.update(id, ...)
 
 
 Version 3.16.0

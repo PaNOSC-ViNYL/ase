@@ -192,29 +192,25 @@ class SQLite3Database(Database, object):
 
         self.initialized = True
 
-    def _write(self, atoms, key_value_pairs, data):
+    def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
 
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
 
-        id = None
+        mtime = now()
 
         if not isinstance(atoms, AtomsRow):
             row = AtomsRow(atoms)
-            row.ctime = mtime = now()
+            row.ctime = mtime
             row.user = os.getenv('USER')
         else:
             row = atoms
-            cur.execute('SELECT id FROM systems WHERE unique_id=?',
-                        (row.unique_id,))
-            results = cur.fetchall()
-            if results:
-                id = results[0][0]
-                self._delete(cur, [id], ['keys', 'text_key_values',
-                                         'number_key_values'])
-            mtime = now()
+
+        if id:
+            self._delete(cur, [id], ['keys', 'text_key_values',
+                                     'number_key_values', 'species'])
 
         constraints = row._constraints
         if constraints:
@@ -243,11 +239,8 @@ class SQLite3Database(Database, object):
         else:
             values += (None, None)
 
-        if key_value_pairs is None:
-            key_value_pairs = row.key_value_pairs
-
-        if not data:
-            data = row._data
+        if data is None:
+            data = {}
         if not isinstance(data, basestring):
             data = encode(data)
 
@@ -272,20 +265,18 @@ class SQLite3Database(Database, object):
             q = self.default + ', ' + ', '.join('?' * len(values))
             cur.execute('INSERT INTO systems VALUES ({})'.format(q),
                         values)
+            id = self.get_last_id(cur)
         else:
             q = ', '.join(name + '=?' for name in self.columnnames[1:])
             cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
 
-        if id is None:
-            id = self.get_last_id(cur)
-
-            count = row.count_atoms()
-            if count:
-                species = [(atomic_numbers[symbol], n, id)
-                           for symbol, n in count.items()]
-                cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                                species)
+        count = row.count_atoms()
+        if count:
+            species = [(atomic_numbers[symbol], n, id)
+                       for symbol, n in count.items()]
+            cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
+                            species)
 
         text_key_values = []
         number_key_values = []
@@ -582,43 +573,6 @@ class SQLite3Database(Database, object):
         con = self._connect()
         self._initialize(con)
         con.execute('ANALYZE')
-
-    def _update(self, ids, delete_keys, add_key_value_pairs):
-        """Update row(s).
-
-        ids: int or list of int
-            ID's of rows to update.
-        delete_keys: list of str
-            Keys to remove.
-        add_key_value_pairs: dict
-            Key-value pairs to add.
-
-        Returns number of key-value pairs added and keys removed.
-        """
-
-        rows = [self._get_row(id) for id in ids]
-        if self.connection:
-            # We are already running inside a context manager:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs)
-
-        # Create new context manager:
-        with self:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs)
-
-    def _update_rows(self, rows, delete_keys, add_key_value_pairs):
-        m = 0
-        n = 0
-        for row in rows:
-            kvp = row.key_value_pairs
-            n += len(kvp)
-            for key in delete_keys:
-                kvp.pop(key, None)
-            n -= len(kvp)
-            m -= len(kvp)
-            kvp.update(add_key_value_pairs)
-            m += len(kvp)
-            self._write(row, kvp, None)
-        return m, n
 
     @parallel_function
     @lock
