@@ -20,10 +20,10 @@ Writing:
 
 >>> import numpy as np
 >>> import ase.io.ulm as ulm
->>> w = ulm.open('x.ulm', 'w')
->>> w.write(a=np.ones(7), b=42, c='abc')
->>> w.write(d=3.14)
->>> w.close()
+>>> with ulm.open('x.ulm', 'w') as w:
+...     w.write(a=np.ones(7), b=42, c='abc')
+...     w.write(d=3.14)
+
 
 Reading:
 
