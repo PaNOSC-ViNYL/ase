@@ -11,13 +11,13 @@ Git master branch
 :git:`master <>`.
 
 
-* :meth:`ase.db.Database.write` method now takes a ``id`` that allows you to
-  overwrite an existing row.
+* The :meth:`ase.db.core.Database.write` method now takes a ``id`` that
+  allows you to overwrite an existing row.
 
-* The :meth:`ase.db.Database.update` can now update the Atoms and the data
+* The :meth:`ase.db.core.Database.update` can now update the Atoms and the data
   parts of a row.
 
-* The :meth:`ase.db.Database.update` will no longer accept a list of
+* The :meth:`ase.db.core.Database.update` will no longer accept a list of
   row ID's as the first argument.  Replace this::
 
       db.update(ids, ...)
