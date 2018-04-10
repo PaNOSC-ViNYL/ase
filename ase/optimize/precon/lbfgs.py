@@ -1,14 +1,5 @@
-# @Author: James Kermode <jameskermode>
-# @Date:   2016-09-15T09:37:09+01:00
-# @Email:  james.kermode@gmail.com
-# @Project: f90wrap
-# @Last modified by:   jameskermode
-# @Last modified time: 2016-09-15T11:07:36+01:00
-# @License: f90wrap - F90 to Python interface generator with derived type
-#           support
-
-
 import time
+import warnings
 
 from math import sqrt
 import numpy as np
@@ -16,11 +7,11 @@ import numpy as np
 from ase.utils import basestring
 from ase.optimize.optimize import Optimizer
 from ase.constraints import UnitCellFilter
-from ase.optimize.precon import C1, Exp, Pfrommer, logger
 
 from ase.utils.linesearch import LineSearch
 from ase.utils.linesearcharmijo import LineSearchArmijo
 
+from ase.optimize.precon import Exp, C1, Pfrommer
 
 class PreconLBFGS(Optimizer):
     """Preconditioned version of the Limited memory BFGS optimizer.
@@ -328,22 +319,22 @@ class PreconLBFGS(Optimizer):
                     func_prime_start=g,
                     func_old=self.e0,
                     rigid_units=self.rigid_units,
-                    rotation_factors=self.rotation_factors)
+                    rotation_factors=self.rotation_factors,
+                    maxstep=self.maxstep)
                 self.e0 = e
                 self.e1 = func_val
                 self.alpha_k = step
             except (ValueError, RuntimeError):
                 if not previously_reset_hessian:
-                    logger.warning(
+                    warnings.warn(
                         'Armijo linesearch failed, resetting Hessian and '
                         'trying again')
                     self.reset_hessian()
                     self.alpha_k = 0.0
                 else:
-                    logger.error(
+                    raise RuntimeError(
                         'Armijo linesearch failed after reset of Hessian, '
                         'aborting')
-                    raise
 
         else:
             ls = LineSearch()

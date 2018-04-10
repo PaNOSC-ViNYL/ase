@@ -69,7 +69,7 @@ class CLICommand:
 
         # k points
         points = None
-        if atoms.calc is not None:
+        if atoms.calc is not None and hasattr(atoms.calc, 'get_bz_k_points'):
             bzk = atoms.calc.get_bz_k_points()
             if args.path is None:
                 try:

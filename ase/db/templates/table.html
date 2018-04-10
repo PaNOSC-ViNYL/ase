@@ -62,7 +62,7 @@
     {% endif %}
 {% endwith %}
 <small lcass="form-text text-muted">
-<a data-toggle="collapse" href="#collapse1">Show all keys ...</a>
+<a data-toggle="collapse" href="#collapse1">Toggle list of keys ...</a>
 </small><br/>
 <div id="collapse1" class="collapse">
 <table class="table table-striped">
@@ -87,7 +87,7 @@
     </div>
 
     <div class="col-xs-6">
-
+        {% if download_button %}
         <div class="btn-group pull-right">
             <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Download <span class="caret"></span>
@@ -97,7 +97,7 @@
                 <li><a href="/json?x={{ x }}">JSON file</a></li>
             </ul>
         </div>
-
+        {% endif %}
         <div class="btn-group pull-right">
             <button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 Add Column <span class="caret"></span>

@@ -88,12 +88,24 @@ def bandgap(calc=None, direct=False, spin=None, output='-',
     elif spin is None:
         gap, k1, n1, k2, n2 = find_gap(N_sk, ev_sk.ravel(), ec_sk.ravel(),
                                        direct)
+        if direct:
+            # Check also spin flips:
+            for s in [0, 1]:
+                g, k, n, _, _ = find_gap(N_sk, ev_sk[s], ec_sk[1 - s], direct)
+                if g < gap:
+                    gap = g
+                    k1 = k
+                    n1 = n
+                    k2 = k + nk
+                    n2 = n + 1
+
         if gap > 0.0:
             s1, k1 = divmod(k1, nk)
             s2, k2 = divmod(k2, nk)
         else:
             s1 = None
             s2 = None
+
     else:
         gap, k1, n1, k2, n2 = find_gap(N_sk[spin:spin + 1], ev_sk[spin],
                                        ec_sk[spin], direct)
@@ -115,7 +127,10 @@ def bandgap(calc=None, direct=False, spin=None, output='-',
             p('No gap!')
         elif direct:
             p('Direct gap: {:.3f} eV'.format(gap))
-            p('Transition at:', skn(s1, k1, n1))
+            if s1 == s2:
+                p('Transition at:', skn(s1, k1, n1))
+            else:
+                p('Transition at:', skn('{}->{}'.format(s1, s2), k1, n1))
         else:
             p('Gap: {:.3f} eV'.format(gap))
             p('Transition (v -> c):')

@@ -431,7 +431,6 @@ class Phonons(Displacement):
 
         # Add mass prefactor
         m_a = self.atoms.get_masses()
-        print(m_a.shape, self.indices)
         self.m_inv_x = np.repeat(m_a[self.indices]**-0.5, 3)
         M_inv = np.outer(self.m_inv_x, self.m_inv_x)
         for D in self.D_N:
@@ -452,8 +451,8 @@ class Phonons(Displacement):
         if self.offset == 0:
             C_lmn = fft.fftshift(C_lmn, axes=(0, 1, 2)).copy()
         # Make force constants symmetric in indices -- in case of an even
-        # number of unit cells don't include the first
-        i, j, k = np.asarray(self.N_c) % 2 - 1
+        # number of unit cells don't include the first cell
+        i, j, k = 1 - np.asarray(self.N_c) % 2
         C_lmn[i:, j:, k:] *= 0.5
         C_lmn[i:, j:, k:] += \
             C_lmn[i:, j:, k:][::-1, ::-1, ::-1].transpose(0, 1, 2, 4, 3).copy()
@@ -644,8 +643,7 @@ class Phonons(Displacement):
 
         return omega_kl
 
-    def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3,
-            indices=None, verbose=True):
+    def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
         """Calculate phonon dos as a function of energy.
 
         Parameters:
@@ -659,8 +657,6 @@ class Phonons(Displacement):
         indices: list
             If indices is not None, the atomic-partial dos for the specified
             atoms will be calculated.
-        verbose: bool
-            Print warnings when imaginary frequncies are detected.
 
         """
 
@@ -668,7 +664,7 @@ class Phonons(Displacement):
         kpts_kc = monkhorst_pack(kpts)
         N = np.prod(kpts)
         # Get frequencies
-        omega_kl = self.band_structure(kpts_kc, verbose=verbose)
+        omega_kl = self.band_structure(kpts_kc)
         # Energy axis and dos
         omega_e = np.linspace(0., np.amax(omega_kl) + 5e-3, num=npts)
         dos_e = np.zeros_like(omega_e)

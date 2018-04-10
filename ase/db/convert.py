@@ -30,7 +30,10 @@ def convert(name, opts):
                     if value == '-':
                         kvp[key] = np.nan
 
-            con2.write(row, data=row.get('data'), **kvp)
+            atoms = row.toatoms()
+            if opts.remove_constrints:
+                atoms.constraints = []
+            con2.write(atoms, data=row.get('data'), **kvp)
 
         assert row is not None, 'Your database is empty!'
 
@@ -48,6 +51,8 @@ def main():
     parser.add_option('-S', '--convert-strings-to-numbers',
                       action='store_true')
     parser.add_option('-N', '--convert-minus-to-not-a-number',
+                      action='store_true')
+    parser.add_option('-C', '--remove-constraints',
                       action='store_true')
     opts, args = parser.parse_args()
     for name in args:

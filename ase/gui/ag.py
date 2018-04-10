@@ -13,18 +13,19 @@ class CLICommand:
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
-        add('filenames', nargs='*')
-        add('-n', '--image-number',
-            default=':', metavar='NUMBER',
-            help='Pick image(s) from trajectory.  NUMBER can be a '
-            'single number (use a negative number to count from '
-            'the back) or a range: start:stop:step, where the '
-            '":step" part can be left out - default values are '
-            '0:nimages:1.')
-        add('-u', '--show-unit-cell', type=int,
-            default=1, metavar='I',
-            help="0: Don't show unit cell.  1: Show unit cell.  "
-            '2: Show all of unit cell.')
+        add('filenames', nargs='*',
+            help='Files to open.  Append @SLICE to a filename to pick '
+            'a subset of images from that file.  See --image-number '
+            'for SLICE syntax.')
+        add('-n', '--image-number', metavar='SLICE', default=':',
+            help='Pick individual image or slice from each of the files.  '
+            'SLICE can be a number or a Python slice-like expression '
+            'such as :STOP, START:STOP, or START:STOP:STEP, '
+            'where START, STOP, and STEP are integers.  '
+            'Indexing counts from 0.  '
+            'Negative numbers count backwards from last image.  '
+            'Using @SLICE syntax for a filename overrides this option '
+            'for that file.')
         add('-r', '--repeat',
             default='1',
             help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
@@ -63,8 +64,7 @@ class CLICommand:
         images = Images()
 
         if args.filenames:
-            from ase.io import string2index
-            images.read(args.filenames, string2index(args.image_number))
+            images.read(args.filenames, args.image_number)
         else:
             images.initialize([Atoms()])
 
@@ -78,12 +78,11 @@ class CLICommand:
             images.repeat_images([int(c) for c in r])
 
         if args.radii_scale:
-            images.set_radii(args.radii_scale)
+            images.scale_radii(args.radii_scale)
 
         if args.output is not None:
             warnings.warn('You should be using "ase convert ..." instead!')
-            images.write(args.output, rotations=args.rotations,
-                         show_unit_cell=args.show_unit_cell)
+            images.write(args.output, rotations=args.rotations)
             args.terminal = True
 
         if args.terminal:
@@ -95,5 +94,5 @@ class CLICommand:
                     print()
         else:
             from ase.gui.gui import GUI
-            gui = GUI(images, args.rotations, args.show_unit_cell, args.bonds)
-            gui.run(args.graph)
+            gui = GUI(images, args.rotations, args.bonds, args.graph)
+            gui.run()

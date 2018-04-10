@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, division
 
 import os
 import pickle
@@ -8,10 +8,11 @@ import tempfile
 import weakref
 from functools import partial
 from ase.gui.i18n import _
+from time import time
 
 import numpy as np
 
-from ase import __version__, Atoms
+from ase import __version__
 import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
@@ -36,25 +37,16 @@ class GUI(View, Status):
 
     def __init__(self, images=None,
                  rotations='',
-                 show_unit_cell=True,
-                 show_bonds=False):
+                 show_bonds=False, expr=None):
 
-        # Try to change into directory of file you are viewing
-        try:
-            os.chdir(os.path.split(sys.argv[1])[0])
-        # This will fail sometimes (e.g. for starting a new session)
-        except:
-            pass
-
-        if not images:
-            images = Images()
-            images.initialize([Atoms()])
+        if not isinstance(images, Images):
+            images = Images(images)
 
         self.images = images
 
         self.config = read_defaults()
 
-        menu = self.get_menu_data(show_unit_cell, show_bonds)
+        menu = self.get_menu_data(show_bonds)
 
         self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
                                       config=self.config, scroll=self.scroll,
@@ -72,15 +64,16 @@ class GUI(View, Status):
         self.vulnerable_windows = []
         self.simulation = {}  # Used by modules on Calculate menu.
         self.module_state = {}  # Used by modules to store their state.
+
         self.arrowkey_mode = self.ARROWKEY_SCAN
         self.move_atoms_mask = None
 
-    @property
-    def moving(self):
-        return self.arrowkey_mode != self.ARROWKEY_SCAN
-
-    def run(self, expr=None, test=None):
         self.set_frame(len(self.images) - 1, focus=True)
+
+        # Used to move the structure with the mouse
+        self.prev_pos = None
+        self.last_scroll_time = time()
+        self.orig_scale = self.scale
 
         if len(self.images) > 1:
             self.movie()
@@ -91,6 +84,11 @@ class GUI(View, Status):
         if expr is not None and expr != '' and len(self.images) > 1:
             self.plot_graphs(expr=expr)
 
+    @property
+    def moving(self):
+        return self.arrowkey_mode != self.ARROWKEY_SCAN
+
+    def run(self, test=None):
         if test:
             self.window.test(test)
         else:
@@ -115,7 +113,6 @@ class GUI(View, Status):
             self.move_atoms_mask = self.images.selected.copy()
 
         self.draw()
-
 
     def step(self, key):
         d = {'Home': -10000000,
@@ -161,6 +158,21 @@ class GUI(View, Status):
                   'right': (1, 0, 0),
                   'left': (-1, 0, 0)}.get(event.key, None)
 
+        # Get scroll direction using shift + right mouse button
+        # event.type == '6' is mouse motion, see:
+        # http://infohost.nmt.edu/tcc/help/pubs/tkinter/web/event-types.html
+        if event.type == '6':
+            cur_pos = np.array([event.x, -event.y])
+            # Continue scroll if button has not been released
+            if self.prev_pos is None or time() - self.last_scroll_time > .5:
+                self.prev_pos = cur_pos
+                self.last_scroll_time = time()
+            else:
+                dxdy = cur_pos - self.prev_pos
+                dxdydz = np.append(dxdy, [0])
+                self.prev_pos = cur_pos
+                self.last_scroll_time = time()
+
         if dxdydz is None:
             return
 
@@ -182,7 +194,12 @@ class GUI(View, Status):
             self.atoms.positions[mask] = tmp_atoms.positions + center
             self.set_frame()
         else:
-            self.center -= vec
+            # The displacement vector is scaled
+            # so that the cursor follows the structure
+            # Scale by a third works for some reason
+            scale = self.orig_scale / (3 * self.scale)
+            self.center -= vec * scale
+
             # dx * 0.1 * self.axes[:, 0] - dy * 0.1 * self.axes[:, 1])
 
             self.draw()
@@ -278,35 +295,27 @@ class GUI(View, Status):
         process.stdin.close()
         self.graphs.append(process)
 
+    def reciprocal(self):
+        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
+        os.close(fd)
+        self.images.write(filename)
+        os.system('(sleep 60; rm %s) &' % filename)
+        process = subprocess.Popen([sys.executable, '-m', 'ase', 'reciprocal',
+                                    filename],
+                                   stdin=subprocess.PIPE)
+        process.stdin.close()
+
     def open(self, button=None, filename=None):
-        from ase.io.formats import all_formats, get_ioformat
-
-        labels = [_('Automatic')]
-        values = ['']
-
-        def key(item):
-            return item[1][0]
-
-        for format, (description, code) in sorted(all_formats.items(),
-                                                  key=key):
-            io = get_ioformat(format)
-            if io.read and description != '?':
-                labels.append(_(description))
-                values.append(format)
-
-        format = [None]
-
-        def callback(value):
-            format[0] = value
-
-        chooser = ui.LoadFileDialog(self.window.win, _('Open ...'))
-        ui.Label(_('Choose parser:')).pack(chooser.top)
-        formats = ui.ComboBox(labels, values, callback)
-        formats.pack(chooser.top)
+        chooser = ui.ASEFileChooser(self.window.win)
 
         filename = filename or chooser.go()
+        format = chooser.format
         if filename:
-            self.images.read([filename], slice(None), format[0])
+            try:
+                self.images.read([filename], slice(None), format)
+            except Exception as err:
+                ui.show_io_error(filename, err)
+                return  # Hmm.  Is self.images in a consistent state?
             self.set_frame(len(self.images) - 1, focus=True)
 
     def modify_atoms(self, key=None):
@@ -412,7 +421,7 @@ class GUI(View, Status):
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
 
-    def get_menu_data(self, show_unit_cell, show_bonds):
+    def get_menu_data(self, show_bonds):
         M = ui.MenuItem
         return [
             (_('_File'),
@@ -427,7 +436,7 @@ class GUI(View, Status):
               M(_('_Invert selection'), self.invert_selection),
               M(_('Select _constrained atoms'), self.select_constrained_atoms),
               M(_('Select _immobile atoms'), self.select_immobile_atoms),
-              #M('---'),
+              # M('---'),
               # M(_('_Copy'), self.copy_atoms, 'Ctrl+C'),
               # M(_('_Paste'), self.paste_atoms, 'Ctrl+V'),
               M('---'),
@@ -447,7 +456,7 @@ class GUI(View, Status):
 
             (_('_View'),
              [M(_('Show _unit cell'), self.toggle_show_unit_cell, 'Ctrl+U',
-                value=show_unit_cell > 0),
+                value=True),
               M(_('Show _axes'), self.toggle_show_axes, value=True),
               M(_('Show _bonds'), self.toggle_show_bonds, 'Ctrl+B',
                 value=show_bonds),
@@ -461,7 +470,7 @@ class GUI(View, Status):
                          _('_Magnetic Moments'),  # XXX check if exist
                          _('_Element Symbol'),
                          _('_Initial Charges'),  # XXX check if exist
-                ]),
+                         ]),
               M('---'),
               M(_('Quick Info ...'), self.quick_info_window, 'Ctrl+I'),
               M(_('Repeat ...'), self.repeat_window, 'R'),
@@ -502,7 +511,8 @@ class GUI(View, Status):
               M(_('_Move atoms'), self.toggle_move_mode, 'Ctrl+M'),
               M(_('_Rotate atoms'), self.toggle_rotate_mode, 'Ctrl+R'),
               M(_('NE_B'), self.neb),
-              M(_('B_ulk Modulus'), self.bulk_modulus)]),
+              M(_('B_ulk Modulus'), self.bulk_modulus),
+              M(_('Reciprocal space ...'), self.reciprocal)]),
 
             # TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
             (_('_Setup'),

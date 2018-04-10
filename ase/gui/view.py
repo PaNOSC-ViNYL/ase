@@ -109,7 +109,7 @@ class View:
         if fname is None:
             title = 'ase.gui'
         else:
-            title = '{}@{}'.format(basename(fname), frame)
+            title = basename(fname)
 
         self.window.title = title
 
@@ -206,9 +206,8 @@ class View:
     def toggle_show_velocities(self, key=None):
         self.draw()
 
-    # transitional compat hack
     def get_forces(self):
-        return self.images.get_forces(self.atoms)
+        return self.atoms.get_forces()
 
     def toggle_show_forces(self, key=None):
         self.draw()
@@ -241,6 +240,8 @@ class View:
             self.draw()
             return
 
+        # Get the min and max point of the projected atom positions
+        # including the covalent_radii used for drawing the atoms
         P = np.dot(self.X, self.axes)
         n = len(self.atoms)
         covalent_radii = self.get_covalent_radii()
@@ -249,6 +250,7 @@ class View:
         P[:n] += 2 * covalent_radii[:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
+        # Add 30% of whitespace on each side of the atoms
         S = 1.3 * (P2 - P1)
         w, h = self.window.size
         if S[0] * h < S[1] * w:

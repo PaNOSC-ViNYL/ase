@@ -3,6 +3,7 @@ from math import sqrt
 
 import numpy as np
 
+from ase import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.constraints import FixAtoms
 from ase.data import covalent_radii
@@ -10,14 +11,17 @@ from ase.gui.defaults import read_defaults
 from ase.io import read, write, string2index
 from ase.gui.i18n import _
 
+import warnings
+
 
 class Images:
     def __init__(self, images=None):
         self.covalent_radii = covalent_radii.copy()
         self.config = read_defaults()
         self.atom_scale = self.config['radii_scale']
-        if images is not None:
-            self.initialize(images)
+        if images is None:
+            images = [Atoms()]
+        self.initialize(images)
 
     def __len__(self):
         return len(self._images)
@@ -48,6 +52,9 @@ class Images:
                                  if not isinstance(c, FixAtoms)]
             atoms.constraints.append(FixAtoms(mask=~dynamic))
 
+    def scale_radii(self, scaling_factor):
+        self.covalent_radii *= scaling_factor
+
     def get_energy(self, atoms):
         try:
             e = atoms.get_potential_energy() * self.repeat.prod()
@@ -61,7 +68,7 @@ class Images:
         except RuntimeError:
             return None
         else:
-            return np.tile(F.T, self.repeat.prod()).T
+            return F
 
     def initialize(self, images, filenames=None, init_magmom=False):
         nimages = len(images)
@@ -138,28 +145,120 @@ class Images:
         self.initialize(self.images, filenames=self.filenames)
         return
 
-    def read(self, filenames, index=-1, filetype=None):
+    def read(self, filenames, default_index=':', filetype=None):
+        from ase.utils import basestring
+        if isinstance(default_index, basestring):
+            default_index = string2index(default_index)
         images = []
         names = []
         for filename in filenames:
-            i = read(filename, index, filetype)
+            from ase.io.formats import parse_filename
 
-            if not isinstance(i, list):
-                i = [i]
-            images.extend(i)
-            names.extend([filename] * len(i))
+            if '.json@' in filename or '.db@' in filename:
+                # Ugh! How would one deal with this?
+                # The parse_filename and string2index somehow conspire
+                # to cause an error.  See parse_filename
+                # in ase.io.formats for this particular
+                # special case.  -askhl
+                #
+                # TODO Someone figure out how to see what header
+                # a JSON file should have.
+                imgs = read(filename, default_index, filetype)
+                if hasattr(imgs, 'iterimages'):
+                    imgs = list(imgs.iterimages())
+                names += [filename] * len(imgs)
+                images += imgs
+                continue  # Argh!
+
+            if '@' in filename:
+                actual_filename, index = parse_filename(filename, None)
+            else:
+                actual_filename, index = parse_filename(filename,
+                                                        default_index)
+
+            imgs = read(filename, default_index, filetype)
+            if hasattr(imgs, 'iterimages'):
+                imgs = list(imgs.iterimages())
+
+            images.extend(imgs)
+
+            # Name each file as filename@index:
+            if isinstance(index, slice):
+                start = index.start or 0
+                step = index.step or 1
+            else:
+                start = index  # index is just an integer
+                assert len(imgs) == 1
+                step = 1
+            for i, img in enumerate(imgs):
+                names.append('{}@{}'.format(actual_filename, start + i * step))
 
         self.initialize(images, names)
 
+    def repeat_results(self, atoms, repeat=None, oldprod=None):
+        """Return a dictionary which updates the magmoms, energy and forces
+        to the repeated amount of atoms.
+        """
+        def getresult(name, get_quantity):
+            # ase/io/trajectory.py line 170 does this by using
+            # the get_property(prop, atoms, allow_calculation=False)
+            # so that is an alternative option.
+            try:
+                if (not atoms.calc or
+                    atoms.calc.calculation_required(atoms, [name])):
+                    quantity = None
+                else:
+                    quantity = get_quantity()
+            except Exception as err:
+                quantity = None
+                errmsg = ('An error occured while retrieving {} '
+                          'from the calculator: {}'.format(name, err))
+                warnings.warn(errmsg)
+            return quantity
+
+        if repeat is None:
+            repeat = self.repeat.prod()
+        if oldprod is None:
+            oldprod = self.repeat.prod()
+
+        results = {}
+
+        original_length = len(atoms) // oldprod
+        newprod = repeat.prod()
+
+        # Read the old properties
+        magmoms = getresult('magmoms', atoms.get_magnetic_moments)
+        magmom = getresult('magmom', atoms.get_magnetic_moment)
+        energy = getresult('energy', atoms.get_potential_energy)
+        forces = getresult('forces', atoms.get_forces)
+
+        # Update old properties to the repeated image
+        if magmoms is not None:
+            magmoms = np.tile(magmoms[:original_length], newprod)
+            results['magmoms'] = magmoms
+
+        if magmom is not None:
+            magmom = magmom * newprod / oldprod
+            results['magmom'] = magmom
+
+        if forces is not None:
+            forces = np.tile(forces[:original_length].T, newprod).T
+            results['forces'] = forces
+
+        if energy is not None:
+            energy = energy * newprod / oldprod
+            results['energy'] = energy
+
+        return results
+
     def repeat_unit_cell(self):
         for atoms in self:
-            # Get quantities taking into account current repeat():
-            ref_energy = self.get_energy(atoms)
-            ref_forces = self.get_forces(atoms)
-            atoms.calc = SinglePointCalculator(atoms,
-                                               energy=ref_energy,
-                                               forces=ref_forces)
+            # Get quantities taking into account current repeat():'
+            results = self.repeat_results(atoms, self.repeat.prod(),
+                                          oldprod=self.repeat.prod())
+
             atoms.cell *= self.repeat.reshape((3, 1))
+            atoms.calc = SinglePointCalculator(atoms, **results)
         self.repeat = np.ones(3, int)
 
     def repeat_images(self, repeat):
@@ -168,6 +267,7 @@ class Images:
         oldprod = self.repeat.prod()
         images = []
         constraints_removed = False
+
         for i, atoms in enumerate(self):
             refcell = atoms.get_cell()
             fa = []
@@ -177,9 +277,17 @@ class Images:
                 else:
                     constraints_removed = True
             atoms.set_constraint(fa)
-            del atoms[len(atoms) // oldprod:]
+
+            # Update results dictionary to repeated atoms
+            results = self.repeat_results(atoms, repeat, oldprod)
+
+            del atoms[len(atoms) // oldprod:]  # Original atoms
+
             atoms *= repeat
             atoms.cell = refcell
+
+            atoms.calc = SinglePointCalculator(atoms, **results)
+
             images.append(atoms)
 
         if constraints_removed:

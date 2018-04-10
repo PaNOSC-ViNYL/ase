@@ -15,7 +15,7 @@ calculator can be used in conjunction with other DFT calculators such as
 GPAW to allow seamless calculation of dispersion-corrected DFT energies,
 forces, and stresses.
 
-.. _DFTD3: http://www.thch.uni-bonn.de/tc/index.php?section=downloads&subsection=DFT-D3
+.. _DFTD3: https://www.chemie.uni-bonn.de/pctc/mulliken-center/software/dft-d3/
 
 This is a list of all supported keywords and settings:
 

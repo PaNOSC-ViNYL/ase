@@ -448,7 +448,7 @@ def __get_xml_parameter(par):
     var_type = to_type[par.attrib.get('type', 'float')]
 
     if par.tag == 'v':
-        return map(var_type, text.split())
+        return list(map(var_type, text.split()))
     else:
         return var_type(text.strip())
 

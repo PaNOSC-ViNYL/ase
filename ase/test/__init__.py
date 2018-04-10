@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os
 import sys
-import shutil
 import subprocess
 import tempfile
 import unittest
@@ -91,7 +90,7 @@ def get_tests(files=None):
 
 
 def test(verbosity=1, calculators=[],
-         testdir=None, stream=sys.stdout, files=None):
+         stream=sys.stdout, files=None):
     """Main test-runner for ASE."""
 
     if LooseVersion(np.__version__) >= '1.14':
@@ -120,15 +119,10 @@ def test(verbosity=1, calculators=[],
 
     origcwd = os.getcwd()
 
-    if testdir is None:
-        testdir = tempfile.mkdtemp(prefix='ase-test-')
-    else:
-        if os.path.isdir(testdir):
-            shutil.rmtree(testdir)  # clean before running tests!
-        os.mkdir(testdir)
+    testdir = tempfile.mkdtemp(prefix='ase-test-')
     os.chdir(testdir)
     if verbosity:
-        print('test-dir       ', testdir, '\n', file=sys.__stdout__)
+        print('{:25}{}\n'.format('test-dir', testdir), file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:
