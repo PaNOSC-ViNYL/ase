@@ -1,10 +1,11 @@
 import numpy as np
 import json
+import numbers
 import os
 import psycopg2
 
 from ase.data import atomic_numbers
-from ase.db.sqlite import VERSION #init_statements, index_statements, VERSION
+from ase.db.sqlite import VERSION
 from ase.db.sqlite import SQLite3Database, float_if_not_none
 from ase.db.core import Database, now
 from ase.db.row import AtomsRow
@@ -29,7 +30,7 @@ init_statements = [
     momenta DOUBLE PRECISION[],
     constraints TEXT,  -- constraints and calculator
     calculator TEXT,
-    calculator_parameters TEXT,
+    calculator_parameters JSONB,
     energy DOUBLE PRECISION,  -- calculated properties
     free_energy DOUBLE PRECISION,
     forces DOUBLE PRECISION[][],
@@ -38,8 +39,8 @@ init_statements = [
     magmoms DOUBLE PRECISION[],
     magmom DOUBLE PRECISION,
     charges DOUBLE PRECISION[],
-    key_value_pairs TEXT,  -- key-value pairs and data as json
-    data TEXT,
+    key_value_pairs JSONB,  -- key-value pairs and data as json
+    data JSONB,
     natoms INTEGER,  -- stuff for making queries faster
     fmax DOUBLE PRECISION,
     smax DOUBLE PRECISION,
@@ -90,10 +91,6 @@ all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
-def list_if_not_none(x):
-    if x is not None:
-        return x.tolist()
-
 class Connection:
     def __init__(self, con):
         self.con = con
@@ -126,9 +123,11 @@ class Cursor:
 
 
 class PostgreSQLDatabase(SQLite3Database):
+
     default = 'DEFAULT'
 
     def _connect(self):
+        self.type = 'postgresql'
         return Connection(psycopg2.connect(self.filename))
 
     def _initialize(self, con):
@@ -144,12 +143,7 @@ class PostgreSQLDatabase(SQLite3Database):
         except psycopg2.ProgrammingError:
             # Initialize database:
             sql = ';\n'.join(init_statements)
-            #for a, b in [('BLOB', 'BYTEA'),
-            #             ('REAL', 'DOUBLE PRECISION'),
-            #             ('INTEGER PRIMARY KEY AUTOINCREMENT',
-            #              'SERIAL PRIMARY KEY')]:
-            #    sql = sql.replace(a, b)
-            
+
             con.commit()
             cur = con.cursor()
             cur.execute(sql)
@@ -172,123 +166,6 @@ class PostgreSQLDatabase(SQLite3Database):
         cur.execute('SELECT last_value FROM systems_id_seq')
         id = cur.fetchone()[0]
         return int(id)
-
-
-    def _write(self, atoms, key_value_pairs, data):
-        Database._write(self, atoms, key_value_pairs, data)
-        con = self.connection or self._connect()
-        self._initialize(con)
-        cur = con.cursor()
-        id = None
-
-        if not isinstance(atoms, AtomsRow):
-            row = AtomsRow(atoms)
-            row.ctime = mtime = now()
-            row.user = os.getenv('USER')
-        else:
-            row = atoms
-            cur.execute('SELECT id FROM systems WHERE unique_id=?',
-                        (row.unique_id,))
-            results = cur.fetchall()
-            if results:
-                id = results[0][0]
-                self._delete(cur, [id], ['keys', 'text_key_values',
-                                         'number_key_values'])
-                
-            mtime = now()
-
-        constraints = row._constraints
-        if constraints:
-            if isinstance(constraints, list):
-                constraints = encode(constraints)
-        else:
-            constraints = None
-
-        values = (row.unique_id,
-                  row.ctime,
-                  mtime,
-                  row.user,
-                  row.numbers.tolist(),
-                  row.positions.tolist(),
-                  row.cell.tolist(),
-                  int(np.dot(row.pbc, [1, 2, 4])),
-                  list_if_not_none(row.get('initial_magmoms')),
-                  list_if_not_none(row.get('initial_charges')),
-                  list_if_not_none(row.get('masses')),
-                  list_if_not_none(row.get('tags')),
-                  list_if_not_none(row.get('momenta')),
-                  constraints)
-        if 'calculator' in row:
-            values += (row.calculator, encode(row.calculator_parameters))
-        else:
-            values += (None, None)
-
-        if key_value_pairs is None:
-            key_value_pairs = row.key_value_pairs
-
-        if not data:
-            data = row._data
-        if not isinstance(data, basestring):
-            data = encode(data)
-        values += (row.get('energy'),
-                   row.get('free_energy'),
-                   list_if_not_none(row.get('forces')),
-                   list_if_not_none(row.get('stress')),
-                   list_if_not_none(row.get('dipole')),
-                   list_if_not_none(row.get('magmoms')),
-                   row.get('magmom'),
-                   list_if_not_none(row.get('charges')),
-                   encode(key_value_pairs),
-                   data,
-                   len(row.numbers),
-                   float_if_not_none(row.get('fmax')),
-                   float_if_not_none(row.get('smax')),
-                   float_if_not_none(row.get('volume')),
-                   float(row.mass),
-                   float(row.charge))
-
-
-        if id is None:
-            q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute('INSERT INTO systems VALUES ({})'.format(q),
-                        values)
-        else:
-            q = ', '.join(name + '=?' for name in self.columnnames[1:])
-            cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
-                        values + (id,))
-
-        if id is None:
-            id = self.get_last_id(cur)
-
-            count = row.count_atoms()
-            if count:
-                species = [(atomic_numbers[symbol], n, id)
-                           for symbol, n in count.items()]
-                cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                                species)
-
-        text_key_values = []
-        number_key_values = []
-        for key, value in key_value_pairs.items():
-            if isinstance(value, (float, int, np.bool_)):
-                number_key_values.append([key, float(value), id])
-            else:
-                assert isinstance(value, basestring)
-                text_key_values.append([key, value, id])
-
-        cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
-                        text_key_values)
-        cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
-                        number_key_values)
-        cur.executemany('INSERT INTO keys VALUES (?, ?)',
-                        [(key, id) for key in key_value_pairs])
-
-        if self.connection is None:
-            con.commit()
-            con.close()
-
-        return id
-
 
     def _convert_tuple_to_row(self, values):
         values = self._old2new(values)
@@ -315,7 +192,7 @@ class PostgreSQLDatabase(SQLite3Database):
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
-            dct['calculator_parameters'] = decode(values[16])
+            dct['calculator_parameters'] = values[16]
         if values[17] is not None:
             dct['energy'] = values[17]
         if values[18] is not None:
@@ -333,10 +210,8 @@ class PostgreSQLDatabase(SQLite3Database):
         if values[24] is not None:
             dct['charges'] = np.array(values[24])
         if values[25] != '{}':
-            dct['key_value_pairs'] = decode(values[25])
+            dct['key_value_pairs'] = values[25]
         if len(values) >= 27 and values[26] != 'null':
             dct['data'] = values[26]
 
         return AtomsRow(dct)
-
-
