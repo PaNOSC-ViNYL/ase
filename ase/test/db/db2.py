@@ -54,8 +54,7 @@ for name in ['y2.json', 'y2.db']:
     print(row)
 
     for row in c.select(include_data=False):
-        with must_raise(AttributeError):
-            row.data
+        assert len(row.data) == 0
 
     with must_raise(ValueError):
         c.write(ch4, foo=['bar', 2])  # not int, bool, float or str
@@ -66,10 +65,14 @@ for name in ['y2.json', 'y2.db']:
     with must_raise(ValueError):
         c.write(Atoms(), S=42)  # chemical symbol as key
 
-    id = c.write(Atoms(), b=np.bool_(True))
+    id = c.write(Atoms(), b=np.bool_(True), i=np.int64(42))
     assert isinstance(c[id].b, bool)
+    assert isinstance(c[id].i, int)
 
-    # Make sure deleting a single sey works:
+    # Make sure deleting a single key works:
     id = c.write(Atoms(), key=7)
     c.update(id, delete_keys=['key'])
     assert 'key' not in c[id]
+
+    e = [row.get('energy') for row in c.select(sort='energy')]
+    assert len(e) == 5 and abs(e[0] - 1.991) < 0.0005

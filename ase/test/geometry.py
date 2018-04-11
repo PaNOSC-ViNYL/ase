@@ -164,3 +164,5 @@ cell = [[1, 0, 0], [0, 2, 0], [0, 0, 3]]
 assert crystal_structure_from_cell(cell) == 'orthorhombic'
 cell = [[1, 0, 0], [0, 2, 0], [0.5, 0, 3]]
 assert crystal_structure_from_cell(cell) == 'monoclinic'
+cell = [[1, 0, 0], [0.5, 3**0.5 / 2, 0], [0, 0, 3]]
+assert crystal_structure_from_cell(cell) == 'hexagonal'

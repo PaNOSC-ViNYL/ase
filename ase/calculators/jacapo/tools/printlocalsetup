@@ -1,112 +1,114 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import os,string,sys
 
 # tell me about the architecture
-print 'Running as user: ', os.environ['USER']
-print 'In directory: ',os.getcwd()
+print('Running as user: ', os.environ['USER'])
+print('In directory: ',os.getcwd())
 
 try:
     import platform
-    print '------------- system information ---------------'
-    print 'Hostname       = ',os.environ['HOST']
-    print 'Architecture   = ',platform.architecture()
-    print 'distribution   = ',platform.dist()
-    print 'libc version   = ',platform.libc_ver()
-    print 'Machine type   = ',platform.machine()
-    print 'Platform       = ',platform.platform()
-    print 'processor type = ',platform.processor()
-    print 'system         = ',platform.system()
-    print 'system version = ',platform.version()
+    print('------------- system information ---------------')
+    print('Hostname       = ',os.environ['HOST'])
+    print('Architecture   = ',platform.architecture())
+    print('distribution   = ',platform.dist())
+    print('libc version   = ',platform.libc_ver())
+    print('Machine type   = ',platform.machine())
+    print('Platform       = ',platform.platform())
+    print('processor type = ',platform.processor())
+    print('system         = ',platform.system())
+    print('system version = ',platform.version())
 
-    print
-    print '------------- Python information --------'
-    print 'python was compiled with: ',platform.python_compiler()
-    print 'python version = ',platform.python_version()
-    print 'python was built: ',platform.python_build()
+    print()
+    print('------------- Python information --------')
+    print('python was compiled with: ',platform.python_compiler())
+    print('python version = ',platform.python_version())
+    print('python was built: ',platform.python_build())
 
 except:
-    print '*** you have an older version of python'
-    print '*** you missed some important system information because of that'
-    print '*** consider upgrading to version 2.3 or greater'
-    print 'python version = ',sys.version
-    print 'uname = '
+    print('*** you have an older version of python')
+    print('*** you missed some important system information because of that')
+    print('*** consider upgrading to version 2.3 or greater')
+    print('python version = ',sys.version)
+    print('uname = ')
     os.system('uname -a')
 
    
-print '-------------- User ---------------------'
+print('-------------- User ---------------------')
 shell = os.environ.get('SHELL')
-print 'SHELL = ',shell
+print('SHELL = ',shell)
 
-print
+print()
 
 try:
     import Numeric
-    print 'Numeric version = ',Numeric.__version__
+    print('Numeric version = ',Numeric.__version__)
 except:
-    print '*** Numeric is not installed.'
-    print '*** Get it from http://sourceforge.net/projects/numpy'
+    print('*** Numeric is not installed.')
+    print('*** Get it from http://sourceforge.net/projects/numpy')
 
 try:
     import numarray
-    print 'numarray version = ',numarray.__version__
+    print('numarray version = ',numarray.__version__)
 except:
-    print '*** numarray is not installed.'
-    print '*** Get it from http://sourceforge.net/projects/numpy'
+    print('*** numarray is not installed.')
+    print('*** Get it from http://sourceforge.net/projects/numpy')
 
 try:
     import numpy
-    print 'numpy version = ', numpy.__version__
+    print('numpy version = ', numpy.__version__)
 except:
-    print '*** numpy is not installed'
+    print('*** numpy is not installed')
 
 try:
     import Scientific
-    print 'Found Scientific'
+    print('Found Scientific')
     try:
         import Scientific.IO.NetCDF
-        print 'Found Scientific.IO.NetCDF'
+        print('Found Scientific.IO.NetCDF')
     except:
-        print 'Scientific.IO.NetCDF appears broken.'
-        print 'Is netcdf installed?'
-        print 'did you set $NETCDF_PREFIX when you installed Scientific?'
+        print('Scientific.IO.NetCDF appears broken.')
+        print('Is netcdf installed?')
+        print('did you set $NETCDF_PREFIX when you installed Scientific?')
 except:
-    print '*** Scientific not installed'
-    print '*** Get it at http://starship.python.net/~hinsen/ScientificPython/'
+    print('*** Scientific not installed')
+    print('*** Get it at http://starship.python.net/~hinsen/ScientificPython/')
 
 
 try:
     import ASE
-    print 'Found ASE at ', ASE.__file__
-except Exception,error:
-    print error
-    print '*** No ASE found. Did you install it?'
+    print('Found ASE at ', ASE.__file__)
+except Exception as error:
+    print(error)
+    print('*** No ASE found. Did you install it?')
 
 try:
     import ase
-    print 'Found an ase version: "%s"' % ase.__version__
-    print 'at :',ase.__file__
+    print('Found an ase version: "%s"' % ase.__version__)
+    print('at :',ase.__file__)
 except:
-    print '*** No ase found. Did you install it?'
+    print('*** No ase found. Did you install it?')
 
 
 try:
     import Dacapo
-    print 'Found Dacapo python modules'
+    print('Found Dacapo python modules')
 except:
-    print '*** No Dacapo modules found, did you install them?'
-    print '    Get them at dcwww.fysik.dtu.dk/campos'
+    print('*** No Dacapo modules found, did you install them?')
+    print('    Get them at dcwww.fysik.dtu.dk/campos')
 
 try:
     import Gnuplot
-    print 'Found Gnuplot python module'
+    print('Found Gnuplot python module')
 except:
-    print '*** No Gnuplot module found'
+    print('*** No Gnuplot module found')
 
 try:
     import matplotlib
-    print 'Found matplotlib version: ',matplotlib.__version__
+    print('Found matplotlib version: ',matplotlib.__version__)
 except:
-    print 'no matplotlib found'
+    print('no matplotlib found')
 
 libs = ['cblas',
         'lapack',
@@ -126,16 +128,16 @@ if 'LD_LIBRARY_PATH' in os.environ:
     for libpath in os.environ['LD_LIBRARY_PATH'].split(':'):
         libpaths.append(libpath)
 
-print
-print '------------------ libraries ------------------'
+print()
+print('------------------ libraries ------------------')
 for lib in libs:
     found = False
     for path in libpaths:
         if os.path.exists(os.path.join(path,'lib%s.a' % lib)):
             found = True
-            print 'found %s in %s' % ('lib%s.a' % lib,path)
+            print('found %s in %s' % ('lib%s.a' % lib,path))
     if not found:
-        print '***  Could not find lib%s.a' % lib
+        print('***  Could not find lib%s.a' % lib)
 
 
 
@@ -162,8 +164,8 @@ def FileIsExecutable(file):
 
 
 
-print
-print '------------------- compilers -----------------'
+print()
+print('------------------- compilers -----------------')
 c = ['pgf90','pgf77',
      'ifort','ifc',
      'g95',
@@ -173,14 +175,14 @@ c = ['pgf90','pgf77',
      ]
 for compiler in c:
     if IsOnPath(compiler):
-        print '%s  found' % compiler
+        print('%s  found' % compiler)
     else:
-        print '*** %s not found' % compiler
+        print('*** %s not found' % compiler)
 
 
     
-print
-print '-------------- Check for ASE and Dacapo tools -------------'
+print()
+print('-------------- Check for ASE and Dacapo tools -------------')
 dacapo_tools = ['dacapo.run',
                 'stripnetcdf'
                 ]
@@ -189,13 +191,13 @@ for exe in dacapo_tools:
     f = IsOnPath(exe)
     if f:
         if FileIsExecutable(f):
-            print '%s found at %s' % (exe,f)
+            print('%s found at %s' % (exe,f))
         else:
-            print '%s found, but it is not executable' % exe
+            print('%s found, but it is not executable' % exe)
             
     else:
-        print '%s not found' % exe
-        print 'Dacapo/Tools is not on your executable path'
+        print('%s not found' % exe)
+        print('Dacapo/Tools is not on your executable path')
         
 
 ase_executables = ['plottrajectory']
@@ -204,94 +206,94 @@ for exe in ase_executables:
     f = IsOnPath(exe)
     if f:
         if FileIsExecutable(f):
-            print '%s found at %s' % (exe,f)
+            print('%s found at %s' % (exe,f))
         else:
-            print '%s found, but it is not executable' % exe
+            print('%s found, but it is not executable' % exe)
             
     else:
-        print '*** %s not found' % exe
-        print 'ASE/Tools is not on your executable path'
+        print('*** %s not found' % exe)
+        print('ASE/Tools is not on your executable path')
 
 
 
-print
-print '-------- Location of dacapo executables ------------'
+print()
+print('-------- Location of dacapo executables ------------')
         
 exe = os.environ.get('DACAPOEXE_SERIAL',None)
 f = IsOnPath(exe)
 if f:
     if FileIsExecutable(f):
-        print 'default serial executable is: %s' % (exe)
+        print('default serial executable is: %s' % (exe))
     else:
-        print '%s found, but it is not executable' % exe
+        print('%s found, but it is not executable' % exe)
 
 else:
-    print '*** %s not found' % exe
-    print 'No default serial dacapo executable found'
+    print('*** %s not found' % exe)
+    print('No default serial dacapo executable found')
         
 exe = os.environ.get('DACAPOEXE_PARALLEL',None)
 f = IsOnPath(exe)
 if f:
     if FileIsExecutable(f):
-        print 'default parallel executable is: %s' % (exe)
+        print('default parallel executable is: %s' % (exe))
     else:
-        print '%s found, but it is not executable' % exe
+        print('%s found, but it is not executable' % exe)
 
 else:
-    print '*** %s not found' % exe
-    print 'No default parallel dacapo executable found'
+    print('*** %s not found' % exe)
+    print('No default parallel dacapo executable found')
 
 
 psp = os.environ.get('DACAPOPATH', '/usr/share/dacapo-psp')
 if os.path.isdir(psp):
-    print 'Pseudopotential database = ',psp
+    print('Pseudopotential database = ',psp)
 else:
-    print '*** "%s" is not a directory, please check  $DACAPOPATH'
+    print('*** "%s" is not a directory, please check  $DACAPOPATH')
 
 
-print
-print '-----------miscellaneous utilities-------------'
+print()
+print('-----------miscellaneous utilities-------------')
 for exe in ['rasmol','gnuplot','vmd','vtk',
             'rsync','ssh','scp']:
     f = IsOnPath(exe)
     if f:
         if FileIsExecutable(f):
-            print '%s found at %s' % (exe,f)
+            print('%s found at %s' % (exe,f))
         else:
-            print '%s found, but it is not executable' % exe
+            print('%s found, but it is not executable' % exe)
             
     else:
-        print '*** %s not found on your path' % exe
+        print('*** %s not found on your path' % exe)
         
 
-print
-print '--------------- mpi ------------------'
+print()
+print('--------------- mpi ------------------')
 for exe in ['recon','lamboot','mpirun','lamhalt']:
     f = IsOnPath(exe)
     if f:
         if FileIsExecutable(f):
-            print '%s found at %s' % (exe,f)
+            print('%s found at %s' % (exe,f))
         else:
-            print '%s found, but it is not executable' % exe
+            print('%s found, but it is not executable' % exe)
             
     else:
-        print '*** %s not found' % exe
-        print 'maybe you do not have lam-mpi installed'
+        print('*** %s not found' % exe)
+        print('maybe you do not have lam-mpi installed')
 
 
 
 
-print
-print '---------- PYTHON environment variables -------------'
-print 'PYTHONSTARTUP = ',os.environ.get('PYTHONSTARTUP')
-print 'PYTHONOPTIMIZE = ',os.environ.get('PYTHONOPTIMIZE')
-print 'PYTHONPATH:'
+print()
+print('---------- PYTHON environment variables -------------')
+print('PYTHONSTARTUP = ',os.environ.get('PYTHONSTARTUP'))
+print('PYTHONOPTIMIZE = ',os.environ.get('PYTHONOPTIMIZE'))
+print('PYTHONPATH:')
 for x in sys.path:
-    print '"%s"' % x
+    print('"%s"' % x)
 
 
-print
-print '----------- system path --------------------'
+print()
+print('----------- system path --------------------')
 path = os.environ.get('PATH')
 for x in  string.split(path,':'):
-    print '"%s"'  % x
+    print('"%s"'  % x)

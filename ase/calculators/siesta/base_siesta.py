@@ -919,14 +919,16 @@ class BaseSiesta(FileIOCalculator):
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
 
-    def get_polarizability_pyscf_inter(self, Edir=np.array([1.0, 0.0, 0.0]),
-                                       freq=np.arange(0.0, 10.0, 0.1),
-                                       units='au',
-                                       run_tddft=True,
-                                       fname="pol_tensor.npy", **kw):
+    def pyscf_tddft(self, Edir=np.array([1.0, 0.0, 0.0]),
+                          freq=np.arange(0.0, 10.0, 0.1),
+                          units='au',
+                          run_tddft=True,
+                          save_kernel = True,
+                          kernel_name = "tddft_kernel.npy",
+                          fname="pol_tensor.npy", 
+                          fname_nonin = "noninpol_tensor.npy", **kw):
         """
-        Calculate the interacting polarizability of a molecule using
-        TDDFT calculation from the pyscf-nao library.
+        Perform TDDFT calculation using the pyscf.nao module for a molecule.
 
         Parameters
         ----------
@@ -938,7 +940,7 @@ class BaseSiesta(FileIOCalculator):
             or nm**2
         run_tddft: to run the tddft_calculation or not
         fname: str
-            Name of file name for polariazbility tensor.
+            Name of input file name for polariazbility tensor.
             if run_tddft is True: output file
             if run_tddft is False: input file
 
@@ -946,15 +948,30 @@ class BaseSiesta(FileIOCalculator):
 
         Returns
         -------
-        freq : array like
+            Add to the self.results dict the following items:
+        freq range: array like
             array of dimension (nff) containing the frequency range in eV.
 
-        self.results['polarizability'], array like
+        polarizability nonin: array like (complex)
             array of dimension (nff, 3, 3) with nff the frequency number,
             the second and third dimension are the matrix elements of the
-            polarizability::
+            non-interactive polarizability::
 
                 P_xx, P_xy, P_xz, Pyx, .......
+
+
+        polarizability: array like (complex)
+            array of dimension (nff, 3, 3) with nff the frequency number,
+            the second and third dimension are the matrix elements of the
+            interactive polarizability::
+
+                P_xx, P_xy, P_xz, Pyx, .......
+
+        density change nonin: array like (complex)
+            contains the non interacting density change in product basis
+
+        density change inter: array like (complex)
+            contains the interacting density change in product basis
 
         References
         ----------
@@ -1019,42 +1036,211 @@ class BaseSiesta(FileIOCalculator):
             from ase.units import Ha
 
             tddft = tddft_iter(**kw)
+            if save_kernel:
+                np.save(kernel_name, tddft.kernel)
 
             omegas = freq / Ha + 1j * tddft.eps
+            tddft.comp_dens_nonin_along_Eext(omegas, Eext=Edir)
             tddft.comp_dens_inter_along_Eext(omegas, Eext=Edir)
 
-            # save polarizability tensor to files
-            np.save(fname, -tddft.p_mat)
-
-            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+            # save polarizability tensor and density change to files
+            self.results["freq range"] = freq
+            self.results['polarizability nonin'] = np.zeros((freq.size, 3, 3),
+                                                dtype=tddft.p0_mat.dtype)
+            self.results['polarizability inter'] = np.zeros((freq.size, 3, 3),
                                                 dtype=tddft.p_mat.dtype)
+            self.results["density change nonin"] = tddft.dn0
+            self.results["density change inter"] = tddft.dn
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
+                        p0 = pol2cross_sec(-tddft.p0_mat[xyz1, xyz2, :],
+                                          freq)
                         p = pol2cross_sec(-tddft.p_mat[xyz1, xyz2, :],
                                           freq)
-                        self.results['polarizability'][:, xyz1, xyz2] = p
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = p0
+                        self.results['polarizability inter'][:, xyz1, xyz2] = p
                     else:
-                        self.results['polarizability'][:, xyz1, xyz2] = \
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = \
+                                                -tddft.p0_mat[xyz1, xyz2, :]
+                        self.results['polarizability inter'][:, xyz1, xyz2] = \
                                                 -tddft.p_mat[xyz1, xyz2, :]
 
         else:
             # load polarizability tensor from previous calculations
+            p0_mat = np.load(fname_nonin)
             p_mat = np.load(fname)
 
-            self.results['polarizability'] = np.zeros((freq.size, 3, 3),
+            self.results['polarizability nonin'] = np.zeros((freq.size, 3, 3),
+                                                        dtype=p0_mat.dtype)
+            self.results['polarizability inter'] = np.zeros((freq.size, 3, 3),
                                                         dtype=p_mat.dtype)
 
             for xyz1 in range(3):
                 for xyz2 in range(3):
                     if units == 'nm**2':
+                        p0 = pol2cross_sec(-p0_mat[xyz1, xyz2, :], freq)
                         p = pol2cross_sec(-p_mat[xyz1, xyz2, :], freq)
-                        self.results['polarizability'][:, xyz1, xyz2] = p
+
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = p0
+                        self.results['polarizability inter'][:, xyz1, xyz2] = p
                     else:
-                        self.results['polarizability'][:, xyz1, xyz2] = \
+                        self.results['polarizability nonin'][:, xyz1, xyz2] = \
+                                                        -p0_mat[xyz1, xyz2, :]
+                        self.results['polarizability inter'][:, xyz1, xyz2] = \
                                                         -p_mat[xyz1, xyz2, :]
 
-        return freq, self.results['polarizability']
+    def pyscf_tddft_eels(self, velec = np.array([20.0, 0.0, 0.0]),
+                               b = np.array([0.0, 0.0, 0.0]),
+                               freq=np.arange(0.0, 10.0, 0.1),
+                               tddft = None,
+                               save_kernel = True,
+                               kernel_name = "tddft_kernel.npy",
+                               tmp_fname = None,
+                               **kw):
+        """
+        Perform TDDFT calculation using the pyscf.nao module for a molecule.
+        The external pertubation is created by a electron moving at the velocity velec
+        and with an impact parameter b
+
+        Parameters
+        ----------
+        freq: array like
+            frequency range for which the polarizability should
+            be computed, in eV
+        velec: array like
+            velocity vector of the projectile
+        b: array like
+            offset vector of the projectile
+        tddft: tddft_tem class from a previous calculation
+        save_kernel: save the kernel for future use
+        kernel_name: name of the file for the kernel
+        tmp_fname: temporary name to save the eels spectra while running the calculations
+        kw: keywords for the tddft_tem function from pyscf
+
+        Returns
+        -------
+        tddft:
+            if running pyscf_tddft_eels in a loop over the velocity or the 
+            impact parameter, there is no point to initialize again the tddft
+            calculation (vertex and kernel will be the same)
+
+            Add to the self.results dict the following items:
+        freq range: array like
+            array of dimension (nff) containing the frequency range in eV.
+
+        eel spectra nonin: array like (complex)
+            array of dimension (nff) with nff the frequency number,
+
+
+        eel spectra inter: array like (complex)
+            array of dimension (nff) with nff the frequency number,
+
+        density change eels nonin: array like (complex)
+            contains the non interacting density change in product basis
+
+        density change eels inter: array like (complex)
+            contains the interacting density change in product basis
+
+        References
+        ----------
+        https://github.com/cfm-mpc/pyscf/tree/nao
+
+        Example
+        -------
+        from ase.units import Ry, eV, Ha
+        from ase.calculators.siesta import Siesta
+        from ase import Atoms
+        import numpy as np
+        import matplotlib.pyplot as plt
+
+        # Define the systems
+        Na8 = Atoms('Na8',
+                    positions=[[-1.90503810, 1.56107288, 0.00000000],
+                               [1.90503810, 1.56107288, 0.00000000],
+                               [1.90503810, -1.56107288, 0.00000000],
+                               [-1.90503810, -1.56107288, 0.00000000],
+                               [0.00000000, 0.00000000, 2.08495836],
+                               [0.00000000, 0.00000000, -2.08495836],
+                               [0.00000000, 3.22798122, 2.08495836],
+                               [0.00000000, 3.22798122, -2.08495836]],
+                    cell=[20, 20, 20])
+
+        # enter siesta input
+        siesta = Siesta(
+            mesh_cutoff=150 * Ry,
+            basis_set='DZP',
+            pseudo_qualifier='',
+            energy_shift=(10 * 10**-3) * eV,
+            fdf_arguments={
+                'SCFMustConverge': False,
+                'COOP.Write': True,
+                'WriteDenchar': True,
+                'PAO.BasisType': 'split',
+                'DM.Tolerance': 1e-4,
+                'DM.MixingWeight': 0.01,
+                'MaxSCFIterations': 300,
+                'DM.NumberPulay': 4,
+                'XML.Write': True})
+
+
+        Na8.set_calculator(siesta)
+        e = Na8.get_potential_energy()
+        tddft = siesta.pyscf_tddft_eels(label="siesta", jcutoff=7, iter_broadening=0.15/Ha,
+                    xc_code='LDA,PZ', tol_loc=1e-6, tol_biloc=1e-7, freq = np.arange(0.0, 5.0, 0.05))
+
+        # plot eel spectra
+        fig = plt.figure(1)
+        ax1 = fig.add_subplot(121)
+        ax2 = fig.add_subplot(122)
+        ax1.plot(siesta.results["freq range"], siesta.results["eel spectra nonin"].imag)
+        ax2.plot(siesta.results["freq range"], siesta.results["eel spectra inter"].imag)
+
+        ax1.set_xlabel(r"$\omega$ (eV)")
+        ax2.set_xlabel(r"$\omega$ (eV)")
+
+        ax1.set_ylabel(r"Im($P_{xx}$) (au)")
+        ax2.set_ylabel(r"Im($P_{xx}$) (au)")
+
+        ax1.set_title(r"Non interacting")
+        ax2.set_title(r"Interacting")
+
+        fig.tight_layout()
+
+        plt.show()
+
+        """
+
+
+        from pyscf.nao import tddft_tem
+        from ase.units import Ha
+
+        assert velec.size == 3
+        assert b.size == 3
+
+        if tddft is None:
+            self.results["freq range"] = freq
+            omegas = freq / Ha
+
+            # for eels, omega is real array
+            tddft = tddft_tem(freq = omegas, **kw)
+            if save_kernel:
+                np.save(kernel_name, tddft.kernel)
+
+
+        self.results['eel spectra nonin'] = tddft.get_spectrum_nonin(velec=velec,
+                                                                  beam_offset = b, 
+                                                                  tmp_fname=tmp_fname)
+
+        self.results['eel spectra inter'] = tddft.get_spectrum_inter(velec=velec,
+                                                                  beam_offset = b,
+                                                                  tmp_fname=tmp_fname)
+
+        self.results["density change eels nonin"] = tddft.dn0
+        self.results["density change eels inter"] = tddft.dn
+
+        return tddft
+
 
     def get_polarizability_mbpt(self, mbpt_inp=None,
                                 output_name='mbpt_lcao.out',

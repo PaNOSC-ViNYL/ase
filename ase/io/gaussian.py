@@ -38,14 +38,31 @@ allowed_dft_functionals = ['lsda',  # = 'svwn'
 
 
 def read_gaussian_out(filename, index=-1, quantity='atoms'):
-    """"Interface to GaussianReader and returns various quantities"""
+    """"Interface to GaussianReader and returns various quantities.
+        No support for multiple images in one file!
+    - quantity = 'structures' -> all structures from the file
+    - quantity = 'atoms' -> structure from the archive section
+    - quantity = 'energy' -> from the archive section
+    - quantity = 'force' -> last entry from the file
+    - quantity = 'dipole' -> from the archive section
+    - quantity = 'version' -> from the archive section
+    - quantity = 'multiplicity' -> from the archive section
+    - quantity = 'charge' -> from the archive section"""
     energy = 0.0
 
-    data = GR(filename)[index]
-    if isinstance(data, list):
+    tmpGR = GR(filename, read_structures=bool(quantity == 'structures'))
+
+    if quantity == 'structures':
+        structures = tmpGR.get_structures()
+
+    data = tmpGR[index]
+    #fix: io.formats passes a slice as index, resulting in data beeing a list
+    if isinstance(data, list) and len(data) > 1:
         msg = 'Cannot parse multiple images from Gaussian out files at this'
         msg += ' time.  Please select a single image.'
         raise RuntimeError(msg)
+    elif isinstance(data,list):
+        data = data[-1]
 
     atomic_numbers = data['Atomic_numbers']
     formula = str()
@@ -108,6 +125,8 @@ def read_gaussian_out(filename, index=-1, quantity='atoms'):
         return multiplicity
     elif (quantity == 'charge'):
         return charge
+    elif (quantity == 'structures'):
+        return structures
 
 
 def read_gaussian(filename):

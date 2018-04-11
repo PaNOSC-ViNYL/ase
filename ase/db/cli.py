@@ -23,7 +23,7 @@ except NameError:
 class CLICommand:
     short_description = 'Manipulate and query ASE database'
 
-    description = """Selection is a comma-separated list of
+    description = """Query is a comma-separated list of
     selections where each selection is of the type "ID", "key" or
     "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
     and  "!=" (these must be protected from the shell by using quotes).
@@ -98,6 +98,8 @@ class CLICommand:
             help='Use metadata from a Python file.')
         add('--unique', action='store_true',
             help='Give rows a new unique id when using --insert-into.')
+        add('--strip-data', action='store_true',
+            help='Strip data when using --insert-into.')
 
     @staticmethod
     def run(args):
@@ -109,6 +111,7 @@ def main(args):
     query = ','.join(args.query)
 
     if args.sort.endswith('-'):
+        # Allow using "key-" instead of "-key" for reverse sorting
         args.sort = '-' + args.sort[:-1]
 
     if query.isdigit():
@@ -180,7 +183,10 @@ def main(args):
                 nkvp += len(kvp)
                 if args.unique:
                     row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
-                db2.write(row, data=row.get('data'), **kvp)
+                if args.strip_data:
+                    db2.write(row.toatoms(), **kvp)
+                else:
+                    db2.write(row, data=row.get('data'), **kvp)
                 nrows += 1
 
         out('Added %s (%s updated)' %
@@ -191,11 +197,18 @@ def main(args):
 
     if add_key_value_pairs or delete_keys:
         ids = [row['id'] for row in db.select(query)]
-        m, n = db.update(ids, delete_keys, **add_key_value_pairs)
+        M = 0
+        N = 0
+        with db:
+            for id in ids:
+                m, n = db.update(id, delete_keys=delete_keys,
+                                 **add_key_value_pairs)
+                M += m
+                N += n
         out('Added %s (%s updated)' %
-            (plural(m, 'key-value pair'),
-             plural(len(add_key_value_pairs) * len(ids) - m, 'pair')))
-        out('Removed', plural(n, 'key-value pair'))
+            (plural(M, 'key-value pair'),
+             plural(len(add_key_value_pairs) * len(ids) - M, 'pair')))
+        out('Removed', plural(N, 'key-value pair'))
 
         return
 

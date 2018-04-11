@@ -13,8 +13,8 @@ for fname in glob.glob('Popt-*.json'):
     x = []
     y = []
     for nuc, rec in sorted(data.items()):
-        x.append(nuc)
-        y.append(rec['dev'])
+        x.append(int(nuc))
+        y.append(rec['dev'][0])
 
     plt.figure(figsize=(4, 3))
     plt.text(1950, 0.6,

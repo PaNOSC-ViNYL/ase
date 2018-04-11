@@ -1,6 +1,12 @@
+import unittest
+
 from ase.build import molecule
 from ase import io
-from gpaw import GPAW
+try:
+    from gpaw import GPAW
+except ImportError:
+    # Skip test if GPAW installation is broken:
+    raise unittest.SkipTest
 
 txt = 'out.txt'
 if 1:
@@ -8,7 +14,6 @@ if 1:
     atoms = molecule('H2', calculator=calculator)
     atoms.center(vacuum=3)
     atoms.get_potential_energy()
-
     atoms.set_initial_magnetic_moments([0.5, 0.5])
     calculator.set(charge=1)
     atoms.get_potential_energy()

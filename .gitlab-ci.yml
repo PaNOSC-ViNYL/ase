@@ -1,15 +1,12 @@
 
 python_2_7_tests:
+  image: python:2.7
   script:
-    - apt-get update -qy
-    - apt-get install -qy python-pip python-numpy python-scipy pyflakes libhdf5-dev libnetcdf-dev cython
-    - pip install --upgrade setuptools
-    - pip install --user netCDF4
-    - pwd
-    - echo $HOME
-    - cd ..
-    - echo $PWD
-    # using 'install from source' instructions
+    # manually install ase deps
+    - pip install numpy scipy matplotlib flask
+    # extra packages for testing
+    - pip install pyflakes netCDF4
+    # using "install from source" instructions
     - export PATH=$PATH:$CI_PROJECT_DIR/bin
     - echo $PATH
     - export PYTHONPATH=$CI_PROJECT_DIR
@@ -17,33 +14,46 @@ python_2_7_tests:
     # tests
     - python --version
     - ase info
-    - ase test
-    # pyflakes code check
+    - ase test -v
+    # pyflakes code check (Python 2 version)
     - cd $CI_PROJECT_DIR
-    - PYTHONPATH=$PWD python ase/test/__init__.py
+    - python ase/test/__init__.py
 
 python_3_tests:
+  image: python:3
   script:
-    - apt-get update -qy
-    - apt-get install -qy python3-pip python3-numpy python3-scipy pyflakes gettext libhdf5-dev libnetcdf-dev cython3
-    - pip3 install --upgrade setuptools
-    - pip3 install --user netCDF4 sphinx_rtd_theme sphinx pillow
-    # install ase into current python environment to ensure
-    # any shebang lines in scripts point to python3
-    - pip3 install --user .
-    # script path when installing with --user
-    - export PATH=$HOME/.local/bin:$PATH
-    # Running from a temporary directory to avoid import errors
-    - mkdir -p /tmp/test/ && cd /tmp/test && echo $PWD
+    # manually install extra deps
+    - pip install netCDF4 pyflakes
+    # 'pip install' pulls in all required packages
+    - pip install .
     # Run tests
-    - python3 --version
+    - python --version
     - ase info
     - ase test -v
-    # pyflakes code check
+    # pyflakes code check (Python 3 version)
     - cd $CI_PROJECT_DIR
-    - python3 ase/test/__init__.py
+    - python ase/test/__init__.py
+
+conda_tests:
+   image: continuumio/anaconda3
+   script:
+     # manually install extra deps
+     - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
+     # 'pip install' pulls in all required packages
+     - pip install .
+     # Run tests
+     - python --version
+     - ase info
+     - ase test -v
+
+docs_test:
+  image: python:3
+  script:
+    # 'pip install' pulls in all required packages (include docs)
+    - pip install .[docs]
     # build the docs
-    - ls -ltr $HOME/.local/bin
+    - ase info
     - which sphinx-build
-    - cd doc
+    - cd $CI_PROJECT_DIR/doc
     - sphinx-build -W . build
+

@@ -20,10 +20,10 @@ Writing:
 
 >>> import numpy as np
 >>> import ase.io.ulm as ulm
->>> w = ulm.open('x.ulm', 'w')
->>> w.write(a=np.ones(7), b=42, c='abc')
->>> w.write(d=3.14)
->>> w.close()
+>>> with ulm.open('x.ulm', 'w') as w:
+...     w.write(a=np.ones(7), b=42, c='abc')
+...     w.write(d=3.14)
+
 
 Reading:
 
@@ -56,6 +56,7 @@ Versions:
 from __future__ import print_function
 import os
 import sys
+import numbers
 
 import numpy as np
 
@@ -101,14 +102,31 @@ def writeint(fd, n, pos=None):
     a = np.array(n, np.int64)
     if not np.little_endian:
         a.byteswap(True)
-    a.tofile(fd)
+    fd.write(a.tobytes())
 
 
 def readints(fd, n):
-    a = np.fromfile(fd, np.int64, n)
+    a = np.fromstring(string=fd.read(int(n * 8)), dtype=np.int64, count=n)
     if not np.little_endian:
         a.byteswap(True)
     return a
+
+
+def file_has_fileno(fd):
+    """Tell whether file implements fileio() or not.
+
+    array.tofile(fd) works only on files with fileno().
+    numpy may write faster to physical files using fileno().
+
+    For files without fileno() we use instead fd.write(array.tobytes()).
+    Either way we need to distinguish."""
+
+    try:
+        fno = fd.fileno  # AttributeError?
+        fno()  # IOError/OSError?  (Newer python: OSError is IOError)
+    except (AttributeError, IOError):
+        return False
+    return True
 
 
 class Writer:
@@ -134,13 +152,15 @@ class Writer:
                 data = {}
             else:
                 data = {'_little_endian': False}
-            file_as_string = isinstance(fd, basestring)
-            if mode == 'w' or (file_as_string and not os.path.isfile(fd)):
+            fd_is_string = isinstance(fd, basestring)
+            if mode == 'w' or (fd_is_string and
+                               not (os.path.isfile(fd) and
+                                    os.path.getsize(fd) > 0)):
                 self.nitems = 0
                 self.pos0 = 48
                 self.offsets = np.array([-1], np.int64)
 
-                if file_as_string:
+                if fd_is_string:
                     fd = builtins.open(fd, 'wb')
 
                 # File format identifier and other stuff:
@@ -151,7 +171,7 @@ class Writer:
                                a.tostring() +
                                self.offsets.tostring())
             else:
-                if file_as_string:
+                if fd_is_string:
                     fd = builtins.open(fd, 'r+b')
 
                 version, self.nitems, self.pos0, offsets = read_header(fd)[1:]
@@ -164,12 +184,20 @@ class Writer:
                 fd.seek(0, 2)
 
         self.fd = fd
+        self.hasfileno = file_has_fileno(fd)
+
         self.data = data
 
         # date for array being filled:
         self.nmissing = 0  # number of missing numbers
         self.shape = None
         self.dtype = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def add_array(self, name, shape, dtype=float):
         """Add ndarray object.
@@ -210,7 +238,10 @@ class Writer:
         self.nmissing -= a.size
         assert self.nmissing >= 0
 
-        a.tofile(self.fd)
+        if self.hasfileno:
+            a.tofile(self.fd)
+        else:
+            self.fd.write(a.tobytes())
 
     def sync(self):
         """Write data dictionary.
@@ -231,10 +262,13 @@ class Writer:
             offsets = np.zeros(n * N1, np.int64)
             offsets[:n] = self.offsets
             self.pos0 = align(self.fd)
-            if np.little_endian:
-                offsets.tofile(self.fd)
+
+            buf = offsets if np.little_endian else offsets.byteswap()
+
+            if self.hasfileno:
+                buf.tofile(self.fd)
             else:
-                offsets.byteswap().tofile(self.fd)
+                self.fd.write(buf.tobytes())
             writeint(self.fd, self.pos0, 40)
             self.offsets = offsets
 
@@ -336,7 +370,7 @@ def read_header(fd):
     return tag, version, nitems, pos0, offsets
 
 
-class InvalidULMFileError(Exception):
+class InvalidULMFileError(IOError):
     pass
 
 
@@ -362,6 +396,12 @@ class Reader:
             self._little_endian = little_endian
 
         self._parse_data(data)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def _parse_data(self, data):
         self._data = {}
@@ -438,7 +478,7 @@ class Reader:
 
     def _read_data(self, index):
         self._fd.seek(self._offsets[index])
-        size = readints(self._fd, 1)[0]
+        size = int(readints(self._fd, 1)[0])
         data = decode(self._fd.read(size).decode())
         return data
 
@@ -473,6 +513,7 @@ class Reader:
 class NDArrayReader:
     def __init__(self, fd, shape, dtype, offset, little_endian):
         self.fd = fd
+        self.hasfileno = file_has_fileno(fd)
         self.shape = tuple(shape)
         self.dtype = dtype
         self.offset = offset
@@ -493,7 +534,7 @@ class NDArrayReader:
         return self[:]
 
     def __getitem__(self, i):
-        if isinstance(i, int):
+        if isinstance(i, numbers.Integral):
             if i < 0:
                 i += len(self)
             return self[i:i + 1][0]
@@ -502,11 +543,12 @@ class NDArrayReader:
         offset = self.offset + start * self.itemsize * stride
         self.fd.seek(offset)
         count = (stop - start) * stride
-        try:
+        if self.hasfileno:
             a = np.fromfile(self.fd, self.dtype, count)
-        except (AttributeError, IOError):
+        else:
             # Not as fast, but works for reading from tar-files:
-            a = np.fromstring(self.fd.read(count * self.itemsize), self.dtype)
+            a = np.fromstring(self.fd.read(int(count * self.itemsize)),
+                              self.dtype)
         a.shape = (stop - start,) + self.shape[1:]
         if step != 1:
             a = a[::step].copy()

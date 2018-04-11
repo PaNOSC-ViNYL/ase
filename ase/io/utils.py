@@ -6,7 +6,7 @@ from ase.data.colors import jmol_colors
 from ase.utils import basestring
 
 
-def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=False,
+def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=0,
                               radii=None, bbox=None, colors=None, scale=20,
                               maxwidth=500, extra_offset=(0., 0.)):
     writer.numbers = atoms.get_atomic_numbers()
@@ -29,7 +29,7 @@ def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=False,
     cell = atoms.get_cell()
     disp = atoms.get_celldisp().flatten()
 
-    if show_unit_cell:
+    if show_unit_cell > 0:
         L, T, D = cell_to_lines(writer, cell)
         cell_vertices = np.empty((2, 2, 2, 3))
         for c1 in range(2):

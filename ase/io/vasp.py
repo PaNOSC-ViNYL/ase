@@ -262,6 +262,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
     ecount = 0
     poscount = 0
     magnetization = []
+    magmom = None
 
     for n, line in enumerate(data):
         if re.search('[0-9]-[0-9]',line):
@@ -306,6 +307,10 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
             magnetization = []
             for i in range(natoms):
                 magnetization += [float(data[n + 4 + i].split()[4])]
+        if 'number of electron' in line:
+            parts = line.split()
+            if len(parts) > 5 and parts[0].strip() != "NELECT":
+                magmom = float(parts[5])
         if 'in kB ' in line:
             stress = -np.array([float(a) for a in line.split()[2:]])
             stress = stress[[0, 1, 2, 4, 5, 3]] * 1e-1 * ase.units.GPa
@@ -327,6 +332,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
                 mag = np.array(magnetization, float)
                 images[-1].calc.magmoms = mag
                 images[-1].calc.results['magmoms'] = mag
+            if magmom:
+                images[-1].calc.results['magmom'] = magmom
             atoms = Atoms(pbc=True, constraint=constr)
             poscount += 1
 
@@ -441,7 +448,7 @@ def __get_xml_parameter(par):
     var_type = to_type[par.attrib.get('type', 'float')]
 
     if par.tag == 'v':
-        return map(var_type, text.split())
+        return list(map(var_type, text.split()))
     else:
         return var_type(text.strip())
 

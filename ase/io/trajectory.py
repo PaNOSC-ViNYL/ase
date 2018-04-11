@@ -119,7 +119,7 @@ class TrajectoryWriter:
         if atoms is None:
             atoms = self.atoms
 
-        for image in atoms._images_():
+        for image in atoms.iterimages():
             self._write_atoms(image, **kwargs)
 
     def _write_atoms(self, atoms, **kwargs):
@@ -218,15 +218,7 @@ class TrajectoryReader:
 
     def _open(self, filename):
         import ase.io.ulm as ulm
-        try:
-            self.backend = ulm.open(filename, 'r')
-        except ulm.InvalidULMFileError:
-            raise RuntimeError('This is not a valid ASE trajectory file. '
-                               'If this is an old-format (version <3.9) '
-                               'PickleTrajectory file you can convert it '
-                               'with ase.io.trajectory.convert("%s") '
-                               'or:\n\n $ python -m ase.io.trajectory %s'
-                               % (filename, filename))
+        self.backend = ulm.open(filename, 'r')
         self._read_header()
 
     def _read_header(self):

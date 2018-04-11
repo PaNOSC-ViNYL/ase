@@ -1,20 +1,20 @@
 from __future__ import print_function
 import os
 import sys
-import shutil
 import subprocess
 import tempfile
 import unittest
 from glob import glob
+from distutils.version import LooseVersion
+
+import numpy as np
 
 from ase.calculators.calculator import names as calc_names, get_calculator
 from ase.parallel import paropen
 from ase.utils import devnull
 from ase.cli.info import print_info
 
-
 NotAvailable = unittest.SkipTest
-
 
 test_calculator_names = []
 
@@ -51,7 +51,7 @@ class ScriptTestCase(unittest.TestCase):
         except ImportError as ex:
             module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
             if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                          'flask', 'gpaw', 'GPAW']:
+                          'flask', 'gpaw', 'GPAW', 'netCDF4']:
                 raise unittest.SkipTest('no {} module'.format(module))
             else:
                 raise
@@ -90,7 +90,13 @@ def get_tests(files=None):
 
 
 def test(verbosity=1, calculators=[],
-         testdir=None, stream=sys.stdout, files=None):
+         stream=sys.stdout, files=None):
+    """Main test-runner for ASE."""
+
+    if LooseVersion(np.__version__) >= '1.14':
+        # Our doctests need this (spacegroup.py)
+        np.set_printoptions(legacy='1.13')
+
     test_calculator_names.extend(calculators)
     disable_calculators([name for name in calc_names
                          if name not in calculators])
@@ -113,15 +119,10 @@ def test(verbosity=1, calculators=[],
 
     origcwd = os.getcwd()
 
-    if testdir is None:
-        testdir = tempfile.mkdtemp(prefix='ase-test-')
-    else:
-        if os.path.isdir(testdir):
-            shutil.rmtree(testdir)  # clean before running tests!
-        os.mkdir(testdir)
+    testdir = tempfile.mkdtemp(prefix='ase-test-')
     os.chdir(testdir)
     if verbosity:
-        print('test-dir       ', testdir, '\n', file=sys.__stdout__)
+        print('{:25}{}\n'.format('test-dir', testdir), file=sys.__stdout__)
     try:
         results = ttr.run(ts)
     finally:
@@ -230,9 +231,9 @@ class CLICommand:
 
 
 if __name__ == '__main__':
-    # Run pyflakes3 on all code in ASE:
+    # Run pyflakes on all code in ASE:
     try:
-        output = subprocess.check_output(['pyflakes3', 'ase', 'doc'],
+        output = subprocess.check_output(['pyflakes', 'ase', 'doc'],
                                          stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as ex:
         output = ex.output.decode()

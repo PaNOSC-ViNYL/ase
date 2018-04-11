@@ -29,6 +29,8 @@ import numpy as np
 from ase.calculators.calculator import kpts2ndarray
 from ase.utils import basestring
 
+from ase.calculators.vasp.setups import setups_defaults
+
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
 
@@ -624,24 +626,49 @@ bool_keys = [
     'qdo_pre',    # Calculate prefactor (instanton)
 ]
 
-list_keys = [
+list_int_keys = [
+    'iband',      # bands to calculate partial charge for
+    'kpuse',      # k-point to calculate partial charge for
+    'ldaul',      # DFT+U parameters, overruled by dict key 'ldau_luj'
+    'random_seed',  # List of ints used to seed RNG for advanced MD routines
+                    # (Bucko)
+    'auger_bmin_eeh',  # 4 ints | Various undocumented parameters for Auger
+    'auger_bmax_eeh',  # 4 ints | calculations
+    'auger_bmin_ehh',  # 4 ints |
+    'auger_bmax_ehh',  # 4 ints |
+    'balist',     # nbas ints | Undocumented Bond-Boost parameter (GH patches)
+    'kpoint_bse',  # 4 ints | Undocumented parameter
+    'nsubsys',    # <=3 ints | Last atom # for each of up to 3 thermostats
+    'vdw_refstate',  # ntyp ints | Undocumented classical vdW parameter
+    'vdw_mbd_size',  # 3 ints | Supercell size for TS MBD vdW correction
+    'nbands_index',  # nbands_out ints | Undocumented QP parameter
+    'kpts_index',  # kpts_out ints | Undocumented QP parameter
+    'isp_index',  # isp_out ints | Undocumented QP parameter
+    'nomega_index',  # nomega_out ints | Undocumented QP parameter
+    'ntarget_states',  # nbands ints | Undocumented CRPA parameter
+    'wanproj_i',  # nions ints | Undocumented Wannier parameter
+    'wanproj_l',  # ? ints | Undocumented Wannier parameter
+    ]
+
+list_bool_keys = [
+    'lattice_constraints',  # 3 bools | Undocumented advanced MD parameter
+    'lrctype',    # ntyp bools | Enable relaxed-core calc. for these atoms
+    'lvdw_onecell',  # 3 bools | Enable periodicity in A, B, C vector for vdW
+    ]
+
+list_float_keys = [
     'dipol',      # center of cell for dipol
     'eint',       # energy range to calculate partial charge for
     'ferwe',      # Fixed band occupation (spin-paired)
     'ferdo',      # Fixed band occupation (spin-plarized)
-    'iband',      # bands to calculate partial charge for
     'magmom',     # initial magnetic moments
-    'kpuse',      # k-point to calculate partial charge for
     'ropt',       # number of grid points for non-local proj in real space
     'rwigs',      # Wigner-Seitz radii
     'ldauu',      # ldau parameters, has potential to redundant w.r.t. dict
-    'ldaul',      # key 'ldau_luj', but 'ldau_luj' can't be read direct from
-    'ldauj',      # the INCAR (since it needs to know information about atomic
+    'ldauj',      # key 'ldau_luj', but 'ldau_luj' can't be read direct from
+                  # the INCAR (since it needs to know information about atomic
                   # species. In case of conflict 'ldau_luj' gets written out
                   # when a calculation is set up
-
-    'random_seed',  # List of ints used to seed RNG for advanced MD routines
-                    # (Bucko)
     'vdw_c6',     # List of floats of C6 parameters (J nm^6 mol^-1) for each
                   # species (DFT-D2 and DFT-TS)
     'vdw_c6au',   # List of floats of C6 parameters (a.u.) for each species
@@ -653,35 +680,27 @@ list_keys = [
     'vdw_alpha',  # List of floats of free-atomic polarizabilities for each
                   # species (DFT-TS)
     'langevin_gamma',  # List of floats for langevin friction coefficients
-    'auger_bmin_eeh',  # 4 ints | Various undocumented parameters for Auger
-    'auger_bmax_eeh',  # 4 ints | calculations start here...
-    'auger_bmin_ehh',  # 4 ints
-    'auger_bmax_ehh',  # 4 ints
-    'auger_emin_eeh',  # 4 floats
-    'auger_emax_eeh',  # 4 floats
-    'auger_emin_ehh',  # 4 floats
-    'auger_emax_ehh',  # 4 floats | End of Auger parameters
+    'auger_emin_eeh',  # 4 floats | Various undocumented parameters for Auger
+    'auger_emax_eeh',  # 4 floats | calculations
+    'auger_emin_ehh',  # 4 floats |
+    'auger_emax_ehh',  # 4 floats |
     'avecconst',  # 3 floats | magnitude of magnetic moment (NMR)
     'magdipol',   # 3 floats | magnitude of magnetic dipole (NMR)
     'bconst',     # 3 floats | magnitude of constant magnetic field (NMR)
     'magpos',     # 3 floats | position for magnetic moment w/ 'nucind' (NMR)
-    'balist',     # nbas ints | Undocumented Bond-Boost parameter (GH patches)
     'bext',       # 3 floats | Undocumented (probably external magnetic field)
     'core_c',     # ntyp floats | pseudo-core charge magnitude (VASPsol)
     'sigma_rc_k',  # ntyp floats | width of pseudo-core gaussians (VASPsol)
     'darwinr',    # ntypd (?) floats | Undocumented parameter
     'darwinv',    # ntypd (?) floats | Undocumented parameter
-    'kpoint_bse',  # 4 ints | Undocumented parameter
     'dummy_k',    # ? floats | Force const. connecting dummy atoms to sys.
     'dummy_r0',   # ? floats | Minimum dist., ang., etc. for dummy atom DOFs
     'dummy_positions',  # 3 floats | Position of dummy atom(s?)
-    'nsubsys',    # <=3 ints | Last atom # for each of up to 3 thermostats
     'psubsys',    # <=3 floats | Coll. prob. for each of up to 3 thermostats
     'tsubsys',    # <=3 floats | Temp. for each of up to 3 thermostats
     'increm',     # ? floats | Undocumented advanced MD parameter
     'value_min',  # ? floats | Undocumented advanced MD parameter
     'value_max',  # ? floats | Undocumented advanced MD parameter
-    'lattice_constraints',  # 3 bools | Undocumented advanced MD parameter
     'hills_position',  # ? floats | Dummy particle(s) pos. for metadynamics
     'hills_velocity',  # ? floats | Dummy particle(s) vel. for metadynamics
     'spring_k',   # ? floats | Spring constant for harmonic constraints
@@ -698,25 +717,14 @@ list_keys = [
     'vca',        # ? floats | Atom weight for VCA calculations
     'stm',        # 7 floats | "range for STM data"
     'qspiral',    # 3 floats | Undocumented parameter
-    'lrctype',    # ntyp bools | Enable relaxed-core calc. for these atoms
     'external_stress',  # 6 floats | Target stress (adds w/ external_pressure)
-    'vdw_refstate',  # ntyp ints | Undocumented classical vdW parameter
-    'lvdw_onecell',  # 3 bools | Enable periodicity in A, B, C vector for vdW
-    'vdw_mbd_size',  # 3 ints | Supercell size for TS MBD vdW correction
     'm_constr',   # 3*nions floats | Local magmom assigned to each spin DOF
-    'nbands_index',  # nbands_out ints | Undocumented QP parameter
-    'kpts_index',  # kpts_out ints | Undocumented QP parameter
-    'isp_index',  # isp_out ints | Undocumented QP parameter
-    'nomega_index',  # nomega_out ints | Undocumented QP parameter
-    'ntarget_states',  # nbands ints | Undocumented CRPA parameter
     'quad_efg',   # ntyp floats | Nuclear quadrupole moments
     'ngyromag',   # ntyp floats | Nuclear gyromagnetic ratios
     'rcrhocut',   # ntyp floats | Core density cutoff rad. for HF relcore calc
     'ofield_k',   # 3 floats | Undocumented parameter
     'paripot',    # ? floats | Undocumented parameter
     'smearings',  # ? floats | ismear,sigma smearing params to loop over
-    'wanproj_i',  # nions ints | Undocumented Wannier parameter
-    'wanproj_l',  # ? ints | Undocumented Wannier parameter
     'wanproj_e',  # 2 floats | Undocumented Wannier parameter
 ]
 
@@ -779,28 +787,15 @@ class GenerateVaspInput(object):
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
 
-    # elements which have no-suffix files only
-    setups_defaults = {'K':  '_pv',
-       'Ca': '_pv',
-       'Rb': '_pv',
-       'Sr': '_sv',
-       'Y':  '_sv',
-       'Zr': '_sv',
-       'Nb': '_pv',
-       'Cs': '_sv',
-       'Ba': '_sv',
-       'Fr': '_sv',
-       'Ra': '_sv',
-       'Sc': '_sv'}
-
-
     def __init__(self, restart=None):
         self.float_params = {}
         self.exp_params = {}
         self.string_params = {}
         self.int_params = {}
         self.bool_params = {}
-        self.list_params = {}
+        self.list_bool_params = {}
+        self.list_int_params = {}
+        self.list_float_params = {}
         self.special_params = {}
         self.dict_params = {}
         for key in float_keys:
@@ -813,8 +808,12 @@ class GenerateVaspInput(object):
             self.int_params[key] = None
         for key in bool_keys:
             self.bool_params[key] = None
-        for key in list_keys:
-            self.list_params[key] = None
+        for key in list_bool_keys:
+            self.list_bool_params[key] = None
+        for key in list_int_keys:
+            self.list_int_params[key] = None
+        for key in list_float_keys:
+            self.list_float_params[key] = None
         for key in special_keys:
             self.special_params[key] = None
         for key in dict_keys:
@@ -880,8 +879,12 @@ class GenerateVaspInput(object):
                 self.int_params[key] = kwargs[key]
             elif key in self.bool_params:
                 self.bool_params[key] = kwargs[key]
-            elif key in self.list_params:
-                self.list_params[key] = kwargs[key]
+            elif key in self.list_bool_params:
+                self.list_bool_params[key] = kwargs[key]
+            elif key in self.list_int_params:
+                self.list_int_params[key] = kwargs[key]
+            elif key in self.list_float_params:
+                self.list_float_params[key] = kwargs[key]
             elif key in self.special_params:
                 self.special_params[key] = kwargs[key]
             elif key in self.dict_params:
@@ -965,9 +968,35 @@ class GenerateVaspInput(object):
         symbols = []
         symbolcount = {}
 
-        # make sure we find POTCARs for elements which have no-suffix files only
-        setups = self.setups_defaults.copy()
-        # override with user defined setups
+        # Default setup lists are available: 'minimal', 'recommended' and 'GW'
+        # These may be provided as a string e.g.::
+        #
+        #     calc = Vasp(setups='recommended')
+        #
+        # or in a dict with other specifications e.g.::
+        #
+        #    calc = Vasp(setups={'base': 'minimal', 'Ca': '_sv', 2: 'O_s'})
+        #
+        # Where other keys are either atom identities or indices, and the
+        # corresponding values are suffixes or the full name of the setup
+        # folder, respectively.
+
+        # Default to minimal basis
+        if p['setups'] is None:
+            p['setups'] = {'base': 'minimal'}
+
+        # String shortcuts are initialised to dict form
+        elif isinstance(p['setups'], str):
+            if p['setups'].lower() in ('minimal', 'recommended', 'gw'):
+                p['setups'] = {'base': p['setups']}
+
+        # Dict form is then queried to add defaults from setups.py.
+        if 'base' in p['setups']:
+            setups = setups_defaults[p['setups']['base'].lower()]
+        else:
+            setups = {}
+
+        # Override defaults with user-defined setups
         if p['setups'] is not None:
             setups.update(p['setups'])
 
@@ -1138,42 +1167,49 @@ class GenerateVaspInput(object):
                     for key, val in self.exp_params.items():
                         if key == 'ediffg' and val is None:
                             RuntimeError('Please set EDIFFG < 0')
-        for key, val in self.list_params.items():
-            if val is not None:
-                if key in ('dipol', 'eint', 'ropt', 'rwigs', 'langevin_gamma'):
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%.4f ' % x) for x in val]
-                # ldau_luj is a dictionary that encodes all the
-                # data. It is not a vasp keyword. An alternative to
-                # the dictionary is to to use 'ldauu', 'ldauj',
-                # 'ldaul', which are vasp keywords.
-                elif (key in ('ldauu', 'ldauj') and
-                      self.dict_params['ldau_luj'] is None):
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%.4f ' % x) for x in val]
-                elif (key in ('ldaul') and
-                      self.dict_params['ldau_luj'] is None):
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%d ' % x) for x in val]
-                elif key in ('ferwe', 'ferdo'):
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%.1f ' % x) for x in val]
-                elif key in ('iband', 'kpuse', 'random_seed'):
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%i ' % x) for x in val]
-                elif key == 'magmom':
-                    incar.write(' %s = ' % key.upper())
-                    magmom_written = True
-                    list = [[1, val[0]]]
-                    for n in range(1, len(val)):
-                        if val[n] == val[n - 1]:
-                            list[-1][0] += 1
-                        else:
-                            list.append([1, val[n]])
-                    [incar.write('%i*%.4f ' % (mom[0],
-                                               mom[1]))
-                     for mom in list]
+
+        for key, val in self.list_bool_params.items():
+            if val is None:
+                pass
+            else:
+                incar.write(' %s = ' % key.upper())
+                [incar.write('%s ' % _to_vasp_bool(x)) for x in val]
                 incar.write('\n')
+
+        for key, val in self.list_int_params.items():
+            if val is None:
+                pass
+            elif key == 'ldaul' and (self.dict_params['ldau_luj'] is not None):
+                pass
+            else:
+                incar.write(' %s = ' % key.upper())
+                [incar.write('%d ' % x) for x in val]
+                incar.write('\n')
+
+        for key, val in self.list_float_params.items():
+            if val is None:
+                pass
+            elif ((key in ('ldauu', 'ldauj')) and
+                  (self.dict_params['ldau_luj'] is not None)):
+                pass
+            elif key == 'magmom':
+                incar.write(' %s = ' % key.upper())
+                magmom_written = True
+                # Work out compact a*x b*y notation and write in this form
+                list = [[1, val[0]]]
+                for n in range(1, len(val)):
+                    if val[n] == val[n - 1]:
+                        list[-1][0] += 1
+                    else:
+                        list.append([1, val[n]])
+                    [incar.write('%i*%.4f ' % (mom[0], mom[1]))
+                     for mom in list]
+                    incar.write('\n')
+            else:
+                    incar.write(' %s = ' % key.upper())
+                    [incar.write('%.4f ' % x) for x in val]
+                    incar.write('\n')
+
         for key, val in self.bool_params.items():
             if val is not None:
                 incar.write(' %s = ' % key.upper())
@@ -1236,7 +1272,6 @@ class GenerateVaspInput(object):
                 raise ValueError("KSPACING value {0} is not allowable. "
                                  "Please use None or a positive number."
                                  "".format(self.float_params['kspacing']))
-
 
         p = self.input_params
         kpoints = open(join(directory, 'KPOINTS'), 'w')
@@ -1348,21 +1383,16 @@ class GenerateVaspInput(object):
                         self.bool_params[key] = True
                     elif 'false' in data[2].lower():
                         self.bool_params[key] = False
-                elif key in list_keys:
-                    list = []
-                    if key in ('dipol', 'eint', 'ferwe', 'ferdo',
-                               'ropt', 'rwigs',
-                               'ldauu', 'ldaul', 'ldauj', 'langevin_gamma'):
-                        for a in data[2:]:
-                            if a in ["!", "#"]:
-                                break
-                            list.append(float(a))
-                    elif key in ('iband', 'kpuse', 'random_seed'):
-                        for a in data[2:]:
-                            if a in ["!", "#"]:
-                                break
-                            list.append(int(a))
-                    self.list_params[key] = list
+
+                elif key in list_bool_keys:
+                    self.list_bool_keys[key] = [_from_vasp_bool(x) for x in
+                                                _args_without_comment(data)]
+
+                elif key in list_int_keys:
+                    self.list_int_params[key] = [int(x) for x in
+                                                 _args_without_comment(data)]
+
+                elif key in list_float_keys:
                     if key == 'magmom':
                         list = []
                         i = 2
@@ -1382,6 +1412,43 @@ class GenerateVaspInput(object):
                         if self.atoms is not None:
                             self.atoms.set_initial_magnetic_moments(
                                 list[self.resort])
+                    else:
+                        data = _args_without_comment(data)
+                        self.list_float_params[key] = [float(x) for x in data]
+                # elif key in list_keys:
+                #     list = []
+                #     if key in ('dipol', 'eint', 'ferwe', 'ferdo',
+                #                'ropt', 'rwigs',
+                #                'ldauu', 'ldaul', 'ldauj', 'langevin_gamma'):
+                #         for a in data[2:]:
+                #             if a in ["!", "#"]:
+                #                 break
+                #             list.append(float(a))
+                #     elif key in ('iband', 'kpuse', 'random_seed'):
+                #         for a in data[2:]:
+                #             if a in ["!", "#"]:
+                #                 break
+                #             list.append(int(a))
+                #     self.list_params[key] = list
+                #     if key == 'magmom':
+                #         list = []
+                #         i = 2
+                #         while i < len(data):
+                #             if data[i] in ["#", "!"]:
+                #                 break
+                #             if data[i] == "*":
+                #                 b = list.pop()
+                #                 i += 1
+                #                 for j in range(int(b)):
+                #                     list.append(float(data[i]))
+                #             else:
+                #                 list.append(float(data[i]))
+                #             i += 1
+                #         self.list_params['magmom'] = list
+                #         list = np.array(list)
+                #         if self.atoms is not None:
+                #             self.atoms.set_initial_magnetic_moments(
+                #                 list[self.resort])
                 elif key in special_keys:
                     if key == 'lreal':
                         if 'true' in data[2].lower():
@@ -1454,7 +1521,9 @@ class GenerateVaspInput(object):
             'string_params',
             'int_params',
             'bool_params',
-            'list_params',
+            'list_bool_params',
+            'list_int_params',
+            'list_float_params',
             'special_params',
             'dict_params',
             'input_params'
@@ -1466,3 +1535,56 @@ class GenerateVaspInput(object):
             if val is None:
                 del(dct[key])
         return dct
+
+
+def _args_without_comment(data, marks=['!', '#']):
+    """Check split arguments list for a comment, return data up to marker
+
+    INCAR reader splits list arguments on spaces and leaves comment markers as
+    individual items. This function returns only the data portion of the list.
+
+    """
+    comment_locs = [data.index(mark) for mark in marks
+                    if mark in data]
+    if comment_locs == []:
+        return data
+    else:
+        return data[:min(comment_locs)]
+
+
+def _from_vasp_bool(x):
+    """Cast vasp boolean to Python bool
+
+    VASP files sometimes use T or F as shorthand for the preferred Boolean
+    notation .TRUE. or .FALSE. As capitalisation is pretty inconsistent in
+    practice, we allow all cases to be cast to a Python bool.
+
+    """
+    assert isinstance(x, str)
+    if x.lower() == '.true.' or x.lower() == 't':
+        return True
+    elif x.lower() == '.false.' or x.lower() == 'f':
+        return False
+    else:
+        raise ValueError('Value "%s" not recognized as bool' % x)
+
+
+def _to_vasp_bool(x):
+    """Convert Python boolean to string for VASP input
+
+    In case the value was modified to a string already, appropriate strings
+    will also be accepted and cast to a standard .TRUE. / .FALSE. format.
+
+    """
+    if isinstance(x, str):
+        if x.lower() in ('.true.', 't'):
+            x = True
+        elif x.lower() in ('.false.', 'f'):
+            x = False
+        else:
+            raise ValueError('"%s" not recognised as VASP Boolean')
+    assert isinstance(x, bool)
+    if x:
+        return '.TRUE.'
+    else:
+        return '.FALSE.'

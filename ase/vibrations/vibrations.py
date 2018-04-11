@@ -146,10 +146,10 @@ class Vibrations:
         if self.ir:
             dipole = self.calc.get_dipole_moment(self.atoms)
         if self.ram:
-            freq, pol = self.get_polarizability()
+            freq, noninPol, pol = self.get_polarizability()
         if rank == 0:
             if self.ir and self.ram:
-                pickle.dump([forces, dipole, freq, pol], fd, protocol=2)
+                pickle.dump([forces, dipole, freq, noninPol, pol], fd, protocol=2)
                 sys.stdout.write(
                     'Writing %s, dipole moment = (%.6f %.6f %.6f)\n' %
                     (filename, dipole[0], dipole[1], dipole[2]))
@@ -248,12 +248,12 @@ class Vibrations:
         s = units._hbar * 1e10 / sqrt(units._e * units._amu)
         self.hnu = s * omega2.astype(complex)**0.5
 
-    def get_energies(self, method='standard', direction='central'):
+    def get_energies(self, method='standard', direction='central', **kw):
         """Get vibration energies in eV."""
 
         if (self.H is None or method.lower() != self.method or
             direction.lower() != self.direction):
-            self.read(method, direction)
+            self.read(method, direction, **kw)
         return self.hnu
 
     def get_frequencies(self, method='standard', direction='central'):

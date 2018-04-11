@@ -35,11 +35,10 @@ class NGLDisplay:
                                args=['%dpx' % (xsize,), '%dpx' % (ysize,)])
         self.view.add_unitcell()
         self.view.add_spacefill()
+        self.view.remove_ball_and_stick()
         self.view.camera = 'orthographic'
-        self.view.update_spacefill(radiusType='covalent',
-                                   scale=0.8,
-                                   color_scheme=self.csel.value,
-                                   color_scale='rainbow')
+        self.view.parameters = { "clipDist": 0 }
+
         self.view.center()
 
         self.asel = Dropdown(options=['All'] +
@@ -55,6 +54,11 @@ class NGLDisplay:
         self.asel.observe(self._select_atom)
         self.csel.observe(self._update_repr)
         self.rad.observe(self._update_repr)
+
+        self.view.update_spacefill(radiusType='covalent',
+                                   scale=0.8,
+                                   color_scheme=self.csel.value,
+                                   color_scale='rainbow')
 
         wdg = [self.asel, self.csel, self.rad]
         if self.frm:
