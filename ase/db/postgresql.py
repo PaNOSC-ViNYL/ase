@@ -1,16 +1,10 @@
 import numpy as np
 import json
-import numbers
-import os
 import psycopg2
 
-from ase.data import atomic_numbers
 from ase.db.sqlite import VERSION
-from ase.db.sqlite import SQLite3Database, float_if_not_none
-from ase.db.core import Database, now
-from ase.db.row import AtomsRow
-from ase.io.jsonio import encode, decode
-from ase.utils import basestring
+from ase.db.sqlite import SQLite3Database
+
 
 init_statements = [
     """CREATE TABLE systems (
@@ -166,52 +160,3 @@ class PostgreSQLDatabase(SQLite3Database):
         cur.execute('SELECT last_value FROM systems_id_seq')
         id = cur.fetchone()[0]
         return int(id)
-
-    def _convert_tuple_to_row(self, values):
-        values = self._old2new(values)
-        dct = {'id': values[0],
-               'unique_id': values[1],
-               'ctime': values[2],
-               'mtime': values[3],
-               'user': values[4],
-               'numbers': np.array(values[5], dtype=np.int32),
-               'positions': np.array(values[6]),
-               'cell': np.array(values[7]),
-               'pbc': (values[8] & np.array([1, 2, 4])).astype(bool)}
-        if values[9] is not None:
-            dct['initial_magmoms'] = np.array(values[9])
-        if values[10] is not None:
-            dct['initial_charges'] = np.array(values[10])
-        if values[11] is not None:
-            dct['masses'] = np.array(values[11])
-        if values[12] is not None:
-            dct['tags'] = np.array(values[12], dtype=np.int32)
-        if values[13] is not None:
-            dct['momenta'] = np.array(values[13])
-        if values[14] is not None:
-            dct['constraints'] = values[14]
-        if values[15] is not None:
-            dct['calculator'] = values[15]
-            dct['calculator_parameters'] = values[16]
-        if values[17] is not None:
-            dct['energy'] = values[17]
-        if values[18] is not None:
-            dct['free_energy'] = values[18]
-        if values[19] is not None:
-            dct['forces'] = np.array(values[19])
-        if values[20] is not None:
-            dct['stress'] = np.array(values[20])
-        if values[21] is not None:
-            dct['dipole'] = np.array(values[21])
-        if values[22] is not None:
-            dct['magmoms'] = np.array(values[22])
-        if values[23] is not None:
-            dct['magmom'] = values[23]
-        if values[24] is not None:
-            dct['charges'] = np.array(values[24])
-        if values[25] != '{}':
-            dct['key_value_pairs'] = values[25]
-        if len(values) >= 27 and values[26] != 'null':
-            dct['data'] = values[26]
-
-        return AtomsRow(dct)

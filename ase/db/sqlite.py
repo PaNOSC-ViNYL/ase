@@ -25,7 +25,7 @@ import numpy as np
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, invop, parse_selection
-from ase.io.jsonio import encode, decode
+from ase.io.jsonio import encode, numpyfy, mydecode
 from ase.parallel import parallel_function
 from ase.utils import basestring
 
@@ -200,6 +200,10 @@ class SQLite3Database(Database, object):
         self._initialize(con)
         cur = con.cursor()
 
+        pg = False
+        if self.type == 'postgresql':
+            pg = True
+
         mtime = now()
 
         if not isinstance(atoms, AtomsRow):
@@ -209,13 +213,61 @@ class SQLite3Database(Database, object):
         else:
             row = atoms
 
-        row.mtime = mtime
-
         if id:
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
 
-        values = get_values(row, key_value_pairs, data, self.type)
+        constraints = row._constraints
+        if constraints:
+            if isinstance(constraints, list):
+                constraints = encode(constraints)
+        else:
+            constraints = None
+
+        values = (row.unique_id,
+                  row.ctime,
+                  mtime,
+                  row.user,
+                  blob(row.numbers, pg),
+                  blob(row.positions, pg),
+                  blob(row.cell, pg),
+                  int(np.dot(row.pbc, [1, 2, 4])),
+                  blob(row.get('initial_magmoms'), pg),
+                  blob(row.get('initial_charges'), pg),
+                  blob(row.get('masses'), pg),
+                  blob(row.get('tags'), pg),
+                  blob(row.get('momenta'), pg),
+                  constraints)
+
+        if 'calculator' in row:
+            values += (row.calculator, encode(row.calculator_parameters))
+        else:
+            values += (None, None)
+
+        if key_value_pairs is None:
+            key_value_pairs = row.key_value_pairs
+
+        if not data:
+            data = row._data
+        if not isinstance(data, basestring):
+            data = encode(data)
+
+        values += (row.get('energy'),
+                   row.get('free_energy'),
+                   blob(row.get('forces'), pg),
+                   blob(row.get('stress'), pg),
+                   blob(row.get('dipole'), pg),
+                   blob(row.get('magmoms'), pg),
+                   row.get('magmom'),
+                   blob(row.get('charges'), pg),
+                   encode(key_value_pairs),
+                   data,
+                   len(row.numbers),
+                   float_if_not_none(row.get('fmax')),
+                   float_if_not_none(row.get('smax')),
+                   float_if_not_none(row.get('volume')),
+                   float(row.mass),
+                   float(row.charge))
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
@@ -277,49 +329,53 @@ class SQLite3Database(Database, object):
         return self._convert_tuple_to_row(values)
 
     def _convert_tuple_to_row(self, values):
+        pg = False
+        if self.type == 'postgresql':
+            pg = True
+
         values = self._old2new(values)
         dct = {'id': values[0],
                'unique_id': values[1],
                'ctime': values[2],
                'mtime': values[3],
                'user': values[4],
-               'numbers': deblob(values[5], np.int32),
-               'positions': deblob(values[6], shape=(-1, 3)),
-               'cell': deblob(values[7], shape=(3, 3)),
+               'numbers': deblob(values[5], np.int32, pg=pg),
+               'positions': deblob(values[6], shape=(-1, 3), pg=pg),
+               'cell': deblob(values[7], shape=(3, 3), pg=pg),
                'pbc': (values[8] & np.array([1, 2, 4])).astype(bool)}
         if values[9] is not None:
-            dct['initial_magmoms'] = deblob(values[9])
+            dct['initial_magmoms'] = deblob(values[9], pg=pg)
         if values[10] is not None:
-            dct['initial_charges'] = deblob(values[10])
+            dct['initial_charges'] = deblob(values[10], pg=pg)
         if values[11] is not None:
-            dct['masses'] = deblob(values[11])
+            dct['masses'] = deblob(values[11], pg=pg)
         if values[12] is not None:
-            dct['tags'] = deblob(values[12], np.int32)
+            dct['tags'] = deblob(values[12], np.int32, pg=pg)
         if values[13] is not None:
-            dct['momenta'] = deblob(values[13], shape=(-1, 3))
+            dct['momenta'] = deblob(values[13], shape=(-1, 3), pg=pg)
         if values[14] is not None:
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
-            dct['calculator_parameters'] = decode(values[16])
+            dct['calculator_parameters'] = decode(values[16], pg=pg)
         if values[17] is not None:
             dct['energy'] = values[17]
         if values[18] is not None:
             dct['free_energy'] = values[18]
         if values[19] is not None:
-            dct['forces'] = deblob(values[19], shape=(-1, 3))
+            dct['forces'] = deblob(values[19], shape=(-1, 3), pg=pg)
         if values[20] is not None:
-            dct['stress'] = deblob(values[20])
+            dct['stress'] = deblob(values[20], pg=pg)
         if values[21] is not None:
-            dct['dipole'] = deblob(values[21])
+            dct['dipole'] = deblob(values[21], pg=pg)
         if values[22] is not None:
-            dct['magmoms'] = deblob(values[22])
+            dct['magmoms'] = deblob(values[22], pg=pg)
         if values[23] is not None:
             dct['magmom'] = values[23]
         if values[24] is not None:
-            dct['charges'] = deblob(values[24])
+            dct['charges'] = deblob(values[24], pg=pg)
         if values[25] != '{}':
-            dct['key_value_pairs'] = decode(values[25])
+            dct['key_value_pairs'] = decode(values[25], pg=pg)
         if len(values) >= 27 and values[26] != 'null':
             dct['data'] = values[26]
 
@@ -332,7 +388,7 @@ class SQLite3Database(Database, object):
         if self.version < 6:
             m = values[23]
             if m is not None and not isinstance(m, float):
-                magmom = float(deblob(m, shape=()))
+                magmom = float(deblob(m, shape=()), pg=pg)
                 values = values[:23] + (magmom,) + values[24:]
         return values
 
@@ -569,7 +625,7 @@ class SQLite3Database(Database, object):
         con.commit()
 
 
-def blob(array):
+def blob(array, postgresql=False):
     """Convert array to blob/buffer object."""
 
     if array is None:
@@ -578,18 +634,22 @@ def blob(array):
         array = np.zeros(0)
     if array.dtype == np.int64:
         array = array.astype(np.int32)
+    if postgresql:
+        return array.tolist()
     if not np.little_endian:
         array.byteswap(True)
     return buffer(np.ascontiguousarray(array))
 
 
-def deblob(buf, dtype=float, shape=None):
+def deblob(buf, dtype=float, shape=None, pg=False):
     """Convert blob/buffer object to ndarray of correct dtype and shape.
 
     (without creating an extra view)."""
 
     if buf is None:
         return None
+    if pg:
+        return np.array(buf, dtype=dtype)
     if len(buf) == 0:
         array = np.zeros(0, dtype)
     else:
@@ -605,100 +665,11 @@ def deblob(buf, dtype=float, shape=None):
     return array
 
 
-def list_if_not_none(x):
-    if x is not None:
-        return x.tolist()
-
-
-def get_values(row, key_value_pairs, data, type):
-
-    constraints = row._constraints
-    if constraints:
-        if isinstance(constraints, list):
-            constraints = encode(constraints)
+def decode(txt, pg=False):
+    if pg:
+        return txt
     else:
-        constraints = None
-
-    if type == 'postgresql':
-        values = (row.unique_id,
-                  row.ctime,
-                  row.mtime,
-                  row.user,
-                  row.numbers.tolist(),
-                  row.positions.tolist(),
-                  row.cell.tolist(),
-                  int(np.dot(row.pbc, [1, 2, 4])),
-                  list_if_not_none(row.get('initial_magmoms')),
-                  list_if_not_none(row.get('initial_charges')),
-                  list_if_not_none(row.get('masses')),
-                  list_if_not_none(row.get('tags')),
-                  list_if_not_none(row.get('momenta')),
-                  constraints)
-    else:
-        values = (row.unique_id,
-                  row.ctime,
-                  row.mtime,
-                  row.user,
-                  blob(row.numbers),
-                  blob(row.positions),
-                  blob(row.cell),
-                  int(np.dot(row.pbc, [1, 2, 4])),
-                  blob(row.get('initial_magmoms')),
-                  blob(row.get('initial_charges')),
-                  blob(row.get('masses')),
-                  blob(row.get('tags')),
-                  blob(row.get('momenta')),
-                  constraints)
-
-    if 'calculator' in row:
-        values += (row.calculator, encode(row.calculator_parameters))
-    else:
-        values += (None, None)
-
-    if key_value_pairs is None:
-        key_value_pairs = row.key_value_pairs
-
-    if not data:
-        data = row._data
-    if not isinstance(data, basestring):
-        data = encode(data)
-
-    if type == 'postgresql':
-        values += (row.get('energy'),
-                   row.get('free_energy'),
-                   list_if_not_none(row.get('forces')),
-                   list_if_not_none(row.get('stress')),
-                   list_if_not_none(row.get('dipole')),
-                   list_if_not_none(row.get('magmoms')),
-                   row.get('magmom'),
-                   list_if_not_none(row.get('charges')),
-                   encode(key_value_pairs),
-                   data,
-                   len(row.numbers),
-                   float_if_not_none(row.get('fmax')),
-                   float_if_not_none(row.get('smax')),
-                   float_if_not_none(row.get('volume')),
-                   float(row.mass),
-                   float(row.charge))
-    else:
-        values += (row.get('energy'),
-                   row.get('free_energy'),
-                   blob(row.get('forces')),
-                   blob(row.get('stress')),
-                   blob(row.get('dipole')),
-                   blob(row.get('magmoms')),
-                   row.get('magmom'),
-                   blob(row.get('charges')),
-                   encode(key_value_pairs),
-                   data,
-                   len(row.numbers),
-                   float_if_not_none(row.get('fmax')),
-                   float_if_not_none(row.get('smax')),
-                   float_if_not_none(row.get('volume')),
-                   float(row.mass),
-                   float(row.charge))
-
-    return values
+        return numpyfy(mydecode(txt))
 
 
 if __name__ == '__main__':
