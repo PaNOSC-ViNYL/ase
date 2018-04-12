@@ -9,7 +9,7 @@ from ase.build import molecule
 from ase.test import must_raise
 
 
-for name in ['y2.json', 'y2.db']:
+for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@localhost:5432/y']:
     c = connect(name)
     print(name, c)
 
