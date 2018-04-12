@@ -18,7 +18,14 @@ def count(n, *args, **kwargs):
     assert m == n, (m, n)
 
 
-for name in ['y.json', 'y.db']:
+for name in ['y.json', 'y.db', 'postgresql://ase:pw@localhost:5432/y']:
+    if 'postgres' in name:
+        pgcmd = """
+        psql -c "create user ase login password 'pw';" &&
+        psql -c "create database y;"
+        """
+        cli(pgcmd)
+
     cli(cmd.replace('y.json', name))
     con = connect(name)
     assert con.get_atoms(H=1)[0].magmom == 1
@@ -42,4 +49,3 @@ for name in ['y.json', 'y.db']:
     for key in ['calculator', 'energy', 'abc', 'name', 'fmax']:
         count(6, sort=key)
         count(6, sort='-' + key)
-    
