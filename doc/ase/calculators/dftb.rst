@@ -10,8 +10,7 @@ Introduction
 DftbPlus_ is a density-functional based tight-binding code using
 atom centered orbitals. This
 interface makes it possible to use DftbPlus_ as a calculator in ASE.
-You need to register at DftbPlus_ site to download the code.
-Additionally you need Slater-Koster files for the combination of
+You need Slater-Koster files for the combination of
 atom types of your system. These can be obtained at dftb.org_.
 
 .. _DftbPlus: http://www.dftb-plus.info/
@@ -38,29 +37,29 @@ for the Slater-Koster files and what is the name of the executable):
 
 DftbPlus Calculator (a FileIOCalculator)
 ========================================
-The file 'geom.out.gen' contains the input and output geometry 
+The file 'geom.out.gen' contains the input and output geometry
 and it will be updated during the dftb calculations.
 
-If restart == None 
+If restart == None
                    it is assumed that a new input file 'dftb_hsd.in'
                    will be written by ase using default keywords
                    and the ones given by the user.
 
-If restart != None 
+If restart != None
                    it is assumed that keywords are in file restart
 
-All Keywords to the dftb calculator can be set by ase. 
+All Keywords to the dftb calculator can be set by ase.
 
 
 Parameters
 ==========
         restart: str (default None)
-            If restart == None 
+            If restart == None
             it is assumed that a new input file 'dftb_hsd.in'
             will be written by ase using default keywords
             and the ones given by the user.
 
-            If restart != None 
+            If restart != None
             it is assumed that keywords are in file 'restart'
         ignore_bad_restart_file: bool (default False)
             Ignore broken or missing restart file.  By defauls, it is an
