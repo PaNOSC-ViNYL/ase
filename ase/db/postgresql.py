@@ -2,87 +2,9 @@ import numpy as np
 import json
 import psycopg2
 
+from ase.db.sqlite import init_statements, index_statements, VERSION
 from ase.db.sqlite import VERSION
 from ase.db.sqlite import SQLite3Database
-
-
-init_statements = [
-    """CREATE TABLE systems (
-    id SERIAL PRIMARY KEY,  -- ID's, timestamps and user name
-    unique_id TEXT UNIQUE,
-    ctime DOUBLE PRECISION,
-    mtime DOUBLE PRECISION,
-    username TEXT,
-    numbers INTEGER[],  -- stuff that defines an Atoms object
-    positions DOUBLE PRECISION[][],
-    cell DOUBLE PRECISION[][],
-    pbc INTEGER,
-    initial_magmoms DOUBLE PRECISION[],
-    initial_charges DOUBLE PRECISION[],
-    masses DOUBLE PRECISION[],
-    tags INTEGER[],
-    momenta DOUBLE PRECISION[],
-    constraints TEXT,  -- constraints and calculator
-    calculator TEXT,
-    calculator_parameters JSONB,
-    energy DOUBLE PRECISION,  -- calculated properties
-    free_energy DOUBLE PRECISION,
-    forces DOUBLE PRECISION[][],
-    stress DOUBLE PRECISION[],
-    dipole DOUBLE PRECISION[],
-    magmoms DOUBLE PRECISION[],
-    magmom DOUBLE PRECISION,
-    charges DOUBLE PRECISION[],
-    key_value_pairs JSONB,  -- key-value pairs and data as json
-    data JSONB,
-    natoms INTEGER,  -- stuff for making queries faster
-    fmax DOUBLE PRECISION,
-    smax DOUBLE PRECISION,
-    volume DOUBLE PRECISION,
-    mass DOUBLE PRECISION,
-    charge DOUBLE PRECISION)""",
-
-    """CREATE TABLE species (
-    Z INTEGER,
-    n INTEGER,
-    id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems(id))""",
-
-    """CREATE TABLE keys (
-    key TEXT,
-    id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems(id))""",
-
-    """CREATE TABLE text_key_values (
-    key TEXT,
-    value TEXT,
-    id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems(id))""",
-
-    """CREATE TABLE number_key_values (
-    key TEXT,
-    value DOUBLE PRECISION,
-    id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems(id))""",
-
-    """CREATE TABLE information (
-    name TEXT,
-    value TEXT)""",
-
-    "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
-
-index_statements = [
-    'CREATE INDEX unique_id_index ON systems(unique_id)',
-    'CREATE INDEX ctime_index ON systems(ctime)',
-    'CREATE INDEX username_index ON systems(username)',
-    'CREATE INDEX calculator_index ON systems(calculator)',
-    'CREATE INDEX species_index ON species(Z)',
-    'CREATE INDEX key_index ON keys(key)',
-    'CREATE INDEX text_index ON text_key_values(key)',
-    'CREATE INDEX number_index ON number_key_values(key)']
-
-all_tables = ['systems', 'species', 'keys',
-              'text_key_values', 'number_key_values']
 
 
 class Connection:
@@ -137,7 +59,7 @@ class PostgreSQLDatabase(SQLite3Database):
         except psycopg2.ProgrammingError:
             # Initialize database:
             sql = ';\n'.join(init_statements)
-
+            sql = schema_update(sql)
             con.commit()
             cur = con.cursor()
             cur.execute(sql)
@@ -160,3 +82,29 @@ class PostgreSQLDatabase(SQLite3Database):
         cur.execute('SELECT last_value FROM systems_id_seq')
         id = cur.fetchone()[0]
         return int(id)
+
+
+def schema_update(sql):
+    for a, b in [('REAL', 'DOUBLE PRECISION'),
+                 ('INTEGER PRIMARY KEY AUTOINCREMENT',
+                  'SERIAL PRIMARY KEY'),
+                 ('BLOB', 'DOUBLE PRECISION')]:
+        sql = sql.replace(a, b)
+
+    arrays_1D = ['numbers', 'initial_magmoms', 'initial_charges', 'masses',
+                 'tags', 'momenta', 'stress', 'dipole', 'magmoms', 'charges']
+    arrays_2D = ['positions', 'cell', 'forces']
+
+    txt2jsonb = ['calculator_parameters', 'key_value_pairs', 'data']
+
+    for column in arrays_1D:
+        sql = sql.replace('{} DOUBLE PRECISION,'.format(column),
+                          '{} DOUBLE PRECISION[],'.format(column))
+    for column in arrays_2D:
+        sql = sql.replace('{} DOUBLE PRECISION,'.format(column),
+                          '{} DOUBLE PRECISION[][],'.format(column))
+    for column in txt2jsonb:
+        sql = sql.replace('{} TEXT,'.format(column),
+                          '{} JSONB,'.format(column))
+
+    return sql
