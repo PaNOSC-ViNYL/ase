@@ -10,6 +10,7 @@ Git master branch
 
 :git:`master <>`.
 
+* Test suite now runs in parallel.
 
 * The :meth:`ase.db.core.Database.write` method now takes a ``id`` that
   allows you to overwrite an existing row.
