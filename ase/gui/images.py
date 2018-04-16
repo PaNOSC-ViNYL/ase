@@ -154,6 +154,8 @@ class Images:
         for filename in filenames:
             from ase.io.formats import parse_filename
 
+            """
+            # Why is this needed?
             if '.json@' in filename or '.db@' in filename:
                 # Ugh! How would one deal with this?
                 # The parse_filename and string2index somehow conspire
@@ -169,8 +171,11 @@ class Images:
                 names += [filename] * len(imgs)
                 images += imgs
                 continue  # Argh!
+            """
 
-            if '@' in filename:
+            if '@' in filename and 'postgres' not in filename:
+                actual_filename, index = parse_filename(filename, None)
+            elif 'postgres' in filename and filename.count('2') == 2:
                 actual_filename, index = parse_filename(filename, None)
             else:
                 actual_filename, index = parse_filename(filename,
@@ -187,7 +192,7 @@ class Images:
                 start = index.start or 0
                 step = index.step or 1
             else:
-                start = index  # index is just an integer
+                start = int(index)  # index is just an integer
                 assert len(imgs) == 1
                 step = 1
             for i, img in enumerate(imgs):
