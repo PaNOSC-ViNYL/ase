@@ -3,13 +3,19 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
+from ase.test import cli
 from ase.db import connect
 from ase.io import read
 from ase.build import molecule
 from ase.test import must_raise
 
 
-for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@localhost:5432/y']:
+for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@localhost:5432/y2']:
+    if 'postgres' in name:
+        pgcmd = """
+        psql -c "create database y2;"
+        """
+        cli(pgcmd)
     c = connect(name)
     print(name, c)
 
@@ -33,6 +39,7 @@ for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@localhost:5432/y']:
     row = c.get(id)
     print(row.data['1-butyne'], row.data.chi)
     assert (row.data.chi == chi).all()
+    print(row)
 
     assert len(c.get_atoms(C=1).constraints) == 2
 
@@ -51,7 +58,6 @@ for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@localhost:5432/y']:
     row = c.get(C=1)
     assert row.id == id
     assert (row.data.chi == chi).all()
-    print(row)
 
     for row in c.select(include_data=False):
         assert len(row.data) == 0
