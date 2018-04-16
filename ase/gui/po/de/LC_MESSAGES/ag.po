@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-04-03 15:59+0200\n"
-"PO-Revision-Date: 2017-12-15 17:38+0100\n"
+"POT-Creation-Date: 2018-04-03 11:48+0200\n"
+"PO-Revision-Date: 2018-04-13 15:54+0200\n"
 "Last-Translator: Robert Warmbier <rwarmbier@uj.ac.za>\n"
 "Language-Team: German\n"
 "Language: de\n"
@@ -63,7 +63,7 @@ msgstr "Hinzufügen"
 #. May show UI error
 #: ../add.py:95
 msgid "Cannot add atoms"
-msgstr "Kann keine Atome hinzufügen."
+msgstr "Kann keine Atome hinzufügen"
 
 #: ../add.py:96
 msgid "{} is neither atom, molecule, nor file"
@@ -81,8 +81,8 @@ msgid ""
 "Atom would be less than 0.5 Å from an existing atom.  To override, uncheck "
 "the check positions option."
 msgstr ""
-"Atom würde weniger als 0.5 Å von existierdem Atom entfernt sein.Deaktiere "
-"Positionscheck falls als Override."
+"Atom würde weniger als 0.5 Å von existierdem Atom entfernt sein. Deaktiviere "
+"Positionscheck als Override."
 
 #. TRANSLATORS: This is a title of a window.
 #: ../celleditor.py:48
@@ -146,9 +146,10 @@ msgid "Apply Angles"
 msgstr "Übernehme Winkel"
 
 #: ../celleditor.py:64
+#, fuzzy
 msgid ""
 "Pressing 〈Enter〉 as you enter values will automatically apply correctly"
-msgstr ""
+msgstr "Drücken <Enter> während de Eingabe übernimmt die Werte"
 
 #. TRANSLATORS: verb
 #: ../celleditor.py:67
@@ -157,7 +158,7 @@ msgstr "Zentriere"
 
 #: ../celleditor.py:68
 msgid "Wrap"
-msgstr ""
+msgstr "Umbrechen"
 
 #: ../celleditor.py:69
 msgid "Vacuum:"
@@ -201,7 +202,7 @@ msgstr "Gemäß Magnetischem Moment"
 
 #: ../colors.py:26
 msgid "By number of neighbors"
-msgstr "Gemäß Anzahl der Nachbarn:"
+msgstr "Gemäß Anzahl der Nachbarn"
 
 #: ../colors.py:71
 msgid "Green"
@@ -234,6 +235,178 @@ msgstr "Beschränkung entfernen"
 #: ../constraints.py:15
 msgid "Clear constraints"
 msgstr "Lösche Beschränkungen"
+
+#: ../crystal.py:16
+msgid ""
+"  Use this dialog to create crystal lattices. First select the structure,\n"
+"  either from a set of common crystal structures, or by space group "
+"description.\n"
+"  Then add all other lattice parameters.\n"
+"\n"
+"  If an experimental crystal structure is available for an atom, you can\n"
+"  look up the crystal type and lattice constant, otherwise you have to "
+"specify it\n"
+"  yourself.  "
+msgstr ""
+"  Nutze diese Dialog um Kristallgitter zu erstellen. Wähle zuerst die Struktur,\n"
+"  entweder aus einem Satz üblicher Kristallstrukturen, oder per Raumgruppe. \n"
+"  Dann füge alle Zellparameter hinzu.\n"
+"\n"
+"  Falls eine experimentelle Kristallstruktur für ein Atom verfügbar ist, schlage\n"
+"  den Kristalltyp and the Zellparameter nach, ansonsten must du sie selber "
+"angeben."
+
+#: ../crystal.py:34 ../graphene.py:30
+#, python-format
+msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
+msgstr "%(natoms)i Atome: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
+
+#: ../crystal.py:71
+msgid "Create Bulk Crystal by Spacegroup"
+msgstr "Erzeuge Bulk Kristall mittels Raumgruppe"
+
+#: ../crystal.py:85
+msgid "Number: 1"
+msgstr "Nummer: 1"
+
+#: ../crystal.py:87
+msgid "Lattice: "
+msgstr "Gitter "
+
+#: ../crystal.py:88
+msgid "\tSpace group: "
+msgstr "\tRaumgruppe: "
+
+#: ../crystal.py:95
+msgid "Size: x: "
+msgstr "Größe: x: "
+
+#: ../crystal.py:95 ../crystal.py:177
+msgid "  y: "
+msgstr "  y: "
+
+#: ../crystal.py:96 ../crystal.py:178
+msgid "  z: "
+msgstr "  z: "
+
+#: ../crystal.py:97 ../surfaceslab.py:76 ../surfaceslab.py:77
+#: ../surfaceslab.py:78
+msgid " unit cells"
+msgstr " Einheitszelle"
+
+#: ../crystal.py:118 ../crystal.py:122 ../crystal.py:126 ../crystal.py:130
+#: ../crystal.py:134 ../crystal.py:138
+msgid "free"
+msgstr "leer"
+
+#: ../crystal.py:119 ../crystal.py:128
+msgid "equals b"
+msgstr "gleich b"
+
+#: ../crystal.py:120 ../crystal.py:124
+msgid "equals c"
+msgstr "gleich c"
+
+#: ../crystal.py:121 ../crystal.py:125 ../crystal.py:129 ../crystal.py:133
+#: ../crystal.py:137 ../crystal.py:141
+msgid "fixed"
+msgstr "fixiert"
+
+#: ../crystal.py:123 ../crystal.py:127
+msgid "equals a"
+msgstr "gleich a"
+
+#: ../crystal.py:131 ../crystal.py:140
+msgid "equals beta"
+msgstr "gleich beta"
+
+#: ../crystal.py:132 ../crystal.py:136
+msgid "equals gamma"
+msgstr "gleich gamma"
+
+#: ../crystal.py:135 ../crystal.py:139
+msgid "equals alpha"
+msgstr "gleich alpha"
+
+#: ../crystal.py:145
+msgid "Lattice parameters"
+msgstr "Gitterkonstanten"
+
+#: ../crystal.py:147
+msgid "\t\ta:\t"
+msgstr "\t\ta:\t"
+
+#: ../crystal.py:148
+msgid "\talpha:\t"
+msgstr "\tα:\t"
+
+#: ../crystal.py:152
+msgid "\t\tb:\t"
+msgstr "\t\tb:\t"
+
+#: ../crystal.py:153
+msgid "\tbeta:\t"
+msgstr "\tβ:\t"
+
+#: ../crystal.py:157
+msgid "\t\tc:\t"
+msgstr "\t\tc:\t"
+
+#: ../crystal.py:158
+msgid "\tgamma:\t"
+msgstr "\tγ:\t"
+
+#: ../crystal.py:161 ../surfaceslab.py:55
+msgid "Get from database"
+msgstr "Aus Database holen"
+
+#: ../crystal.py:166
+msgid "Basis: "
+msgstr "Basis: "
+
+#: ../crystal.py:176
+msgid "  Element:\t"
+msgstr "  Element:\t"
+
+#: ../crystal.py:177 ../surfaceslab.py:76
+msgid "\tx: "
+msgstr "\tx: "
+
+#: ../crystal.py:198
+msgid "Creating a crystal."
+msgstr "Erzeuge einen Kristall."
+
+#: ../crystal.py:242
+#, python-format
+msgid "Symbol: %s"
+msgstr "Symbol: %s"
+
+#: ../crystal.py:247
+#, python-format
+msgid "Number: %s"
+msgstr "Nummer: %s"
+
+#: ../crystal.py:250
+msgid "Invalid Spacegroup!"
+msgstr "Ungültige Raumgruppe!"
+
+#: ../crystal.py:393 ../crystal.py:397
+msgid "Please specify a consistent set of atoms."
+msgstr "Bitte konsistente Atommenge spezifizieren."
+
+#: ../crystal.py:407 ../graphene.py:264 ../nanoparticle.py:531
+#: ../nanotube.py:84 ../surfaceslab.py:223
+msgid "No valid atoms."
+msgstr "Keine gültigen Atome."
+
+#: ../crystal.py:408 ../graphene.py:265 ../nanoparticle.py:532
+#: ../nanotube.py:85 ../surfaceslab.py:224 ../widgets.py:108
+msgid "You have not (yet) specified a consistent set of parameters."
+msgstr "(Noch) kein konsistenter Parametersatz spezifiziert."
+
+#: ../crystal.py:529
+msgid "Can't find lattice definition!"
+msgstr "Kann Definition des Gitters nicht finden!"
 
 #: ../energyforces.py:15
 msgid "Output:"
@@ -284,11 +457,6 @@ msgid ""
 msgstr ""
 "Bereite Graphenlage oder Graphen Nanoribbon vor. Ein Nanoribbon kann\n"
 "optional mit Wasserstoff (oder einem anderen Element) saturiert werden"
-
-#: ../graphene.py:30
-#, python-format
-msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
-msgstr "%(natoms)i Atome: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
 
 #: ../graphene.py:38 ../gui.py:524
 msgid "Graphene"
@@ -363,17 +531,8 @@ msgstr "  Kein Element spezifiziert!"
 msgid "Please specify a consistent set of atoms. "
 msgstr "Bitte konsistenten Satz Atome spezifizieren."
 
-#: ../graphene.py:264 ../nanoparticle.py:531 ../nanotube.py:84
-#: ../surfaceslab.py:223
-msgid "No valid atoms."
-msgstr "Keine gültigen Atome."
-
-#: ../graphene.py:265 ../nanoparticle.py:532 ../nanotube.py:85
-#: ../surfaceslab.py:224 ../widgets.py:108
-msgid "You have not (yet) specified a consistent set of parameters."
-msgstr "(Noch) kein konsistenter Parametersatz spezifiziert."
-
 #: ../graphs.py:11
+#, fuzzy
 msgid ""
 "Symbols:\n"
 "<c>e</c>: total energy\n"
@@ -397,6 +556,27 @@ msgid ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> and <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperature (K)"
 msgstr ""
+"Symbole:\n"
+"<c>e</c>: Gesamtenergie\n"
+"<c>epot</c>: potentielle Energie\n"
+"<c>ekin</c>: kinetische Energie\n"
+"<c>fmax</c>: maximale Kraft\n"
+"<c>fave</c>: durchschnittliche Kraft\n"
+"<c>R[n,0-2]</c>: Position des Atoms Nummer <c>n</c>\n"
+"<c>d(n<sub>1</sub>,n<sub>2</sub>)</c>: Distanz zwischen zwei Atomen "
+"<c>n<sub>1</sub></c> und <c>n<sub>2</sub></c>\n"
+"<c>i</c>: aktuelle Bildnummer\n"
+"<c>E[i]</c>: Energie des  Bildes Nummer <c>i</c>\n"
+"<c>F[n,0-2]</c>: Kraft auf Atom Nummer <c>n</c>\n"
+"<c>V[n,0-2]</c>: Geschwindigkeit des Atoms Nummer <c>n</c>\n"
+"<c>M[n]</c>: Magnetisches Moment des Atoms Nummer <c>n</c>\n"
+"<c>A[0-2,0-2]</c>: Einheitszellen Basisvektoren\n"
+"<c>s</c>: Pfadlänge\n"
+"<c>a(n1,n2,n3)</c>: Winkel zwischen Atomen <c>n<sub>1</sub></c>, <c>n<sub>2</"
+"sub></c> und <c>n<sub>3</sub></c>, zentriert um <c>n<sub>2</sub></c>\n"
+"<c>dih(n1,n2,n3,n4)</c>: dihedral Winkel zwischen <c>n<sub>1</sub></c>, "
+"<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> und <c>n<sub>4</sub></c>\n"
+"<c>T</c>: Temperatur (K)"
 
 #: ../graphs.py:42 ../graphs.py:44
 msgid "Plot"
@@ -545,7 +725,7 @@ msgstr "_Elementsymbol"
 
 #: ../gui.py:472
 msgid "_Initial Charges"
-msgstr ""
+msgstr "Anfangsladung"
 
 #: ../gui.py:475
 msgid "Quick Info ..."
@@ -829,6 +1009,11 @@ msgid ""
 "specify the directions.\n"
 "WARNING: The Wulff construction currently only works with cubic crystals!\n"
 msgstr ""
+"Erstelle ein Nanopartikel entweder durch Angabe der Anzahl der Lagen oder \n"
+"durch Wulff-Konstruktion. Bitte drücke den [Hilfe] Knopf für Anleitungen wie \n "
+"man Richtungen angibt.\n"
+"WARNUNG: Die Wulff-Konstruktion funktioniert im Moment nur mit kubischen "
+"Kristallen!\n"
 
 #: ../nanoparticle.py:30
 #, python-brace-format
@@ -1127,7 +1312,7 @@ msgstr "Energie: {:.3f} eV"
 
 #: ../quickinfo.py:102
 msgid "Max force: {:.3f} eV/Å"
-msgstr ""
+msgstr "Max Kraft: {:.3f} eV/Å"
 
 #: ../quickinfo.py:106
 msgid "Magmom: {:.3f} µ"
@@ -1562,10 +1747,6 @@ msgstr "Diamant"
 msgid "DIAMOND(111)"
 msgstr "DIAMANT(111)"
 
-#: ../surfaceslab.py:55
-msgid "Get from database"
-msgstr "Aus Database holen"
-
 #: ../surfaceslab.py:67
 msgid "Surface"
 msgstr "Oberfläche"
@@ -1590,14 +1771,6 @@ msgstr "\tc"
 msgid "Size:"
 msgstr "Größe:"
 
-#: ../surfaceslab.py:76
-msgid "\tx: "
-msgstr "\tx: "
-
-#: ../surfaceslab.py:76 ../surfaceslab.py:77 ../surfaceslab.py:78
-msgid " unit cells"
-msgstr " Einheitszelle"
-
 #: ../surfaceslab.py:77
 msgid "\ty: "
 msgstr "\ty: "
@@ -1614,7 +1787,7 @@ msgstr "Erzeuge Oberfläche."
 #. TRANSLATORS: E.g. "... assume fcc crystal structure for Au"
 #: ../surfaceslab.py:110
 msgid "Error: Reference values assume {} crystal structure for {}!"
-msgstr ""
+msgstr "Fehler: Referenzwerte vermuten {} Kristallstruktur für {}!"
 
 #: ../surfaceslab.py:164
 msgid "Please enter an even value for orthogonal cell"
@@ -1671,11 +1844,11 @@ msgstr "Wähle Interpreter:"
 
 #: ../ui.py:577
 msgid "Read error"
-msgstr ""
+msgstr "Lesefehler"
 
 #: ../ui.py:578
 msgid "Could not read {}: {}"
-msgstr ""
+msgstr "Konnte {} nicht lesen: {}"
 
 #: ../widgets.py:14
 msgid "Element:"
@@ -1688,6 +1861,8 @@ msgid ""
 "Enter a chemical symbol or the name of a molecule from the G2 testset:\n"
 "{}"
 msgstr ""
+"Gebe ein chemisches Symbol an oder den Namen eines Moleküls vom G2 testset:\n"
+"{}"
 
 #: ../widgets.py:68
 msgid "No element specified!"
@@ -1700,96 +1875,6 @@ msgstr "FEHLER: Ungültiges Element!"
 #: ../widgets.py:107
 msgid "No Python code"
 msgstr "Kein Python-Code"
-
-#~ msgid "Create Bulk Crystal by Spacegroup"
-#~ msgstr "Erzeuge Bulk Kristall mittels Raumgruppe"
-
-#~ msgid "Number: 1"
-#~ msgstr "Nummer: 1"
-
-#~ msgid "Lattice: "
-#~ msgstr "Gitter "
-
-#~ msgid "\tSpace group: "
-#~ msgstr "\tRaumgruppe: "
-
-#~ msgid "Size: x: "
-#~ msgstr "Größe: x: "
-
-#~ msgid "  y: "
-#~ msgstr "  y: "
-
-#~ msgid "  z: "
-#~ msgstr "  z: "
-
-#~ msgid "free"
-#~ msgstr "leer"
-
-#~ msgid "equals b"
-#~ msgstr "gleich b"
-
-#~ msgid "equals c"
-#~ msgstr "gleich c"
-
-#~ msgid "fixed"
-#~ msgstr "fixiert"
-
-#~ msgid "equals a"
-#~ msgstr "gleich a"
-
-#~ msgid "equals beta"
-#~ msgstr "gleich beta"
-
-#~ msgid "equals gamma"
-#~ msgstr "gleich gamma"
-
-#~ msgid "equals alpha"
-#~ msgstr "gleich alpha"
-
-#~ msgid "Lattice parameters"
-#~ msgstr "Gitterkonstanten"
-
-#~ msgid "\t\ta:\t"
-#~ msgstr "\t\ta:\t"
-
-#~ msgid "\talpha:\t"
-#~ msgstr "\tα:\t"
-
-#~ msgid "\t\tb:\t"
-#~ msgstr "\t\tb:\t"
-
-#~ msgid "\tbeta:\t"
-#~ msgstr "\tβ:\t"
-
-#~ msgid "\t\tc:\t"
-#~ msgstr "\t\tc:\t"
-
-#~ msgid "\tgamma:\t"
-#~ msgstr "\tγ:\t"
-
-#~ msgid "Basis: "
-#~ msgstr "Basis: "
-
-#~ msgid "  Element:\t"
-#~ msgstr "  Element:\t"
-
-#~ msgid "Creating a crystal."
-#~ msgstr "Erzeuge einen Kristall."
-
-#~ msgid "Symbol: %s"
-#~ msgstr "Symbol: %s"
-
-#~ msgid "Number: %s"
-#~ msgstr "Nummer: %s"
-
-#~ msgid "Invalid Spacegroup!"
-#~ msgstr "Ungültige Raumgruppe!"
-
-#~ msgid "Please specify a consistent set of atoms."
-#~ msgstr "Bitte konsistente Atommenge spezifizieren."
-
-#~ msgid "Can't find lattice definition!"
-#~ msgstr "Kann Definition des Gitters nicht finden!"
 
 #~ msgid "Absolute position:"
 #~ msgstr "Absolute Position:"
