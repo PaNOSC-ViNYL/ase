@@ -409,7 +409,7 @@ def _write(filename, fd, format, io, images, parallel=None, append=False, **kwar
         if open_new:
             mode = 'wb' if io.isbinary else 'w'
             if append:
-                mode = mode.replace('w','a')
+                mode = mode.replace('w', 'a')
             fd = open_with_compression(filename, mode)
         io.write(fd, images, **kwargs)
         if open_new:
@@ -537,12 +537,13 @@ def _iread(filename, index, format, io, parallel=None, full_output=False,
 
 
 def parse_filename(filename, index=None):
-    if not isinstance(filename, basestring) or '@' not in filename:
+    if not isinstance(filename, basestring) or '@' not in filename \
+       or filename.startswith('postgres') and filename.count('@') == 1:
         return filename, index
     newindex = None
     if ('.json@' in filename or
         '.db@' in filename or
-        filename.startswith('pg://')):
+        filename.startswith('postgres')):
         newfilename, newindex = filename.rsplit('@', 1)
     else:
         newfilename, newindex = filename.rsplit('@', 1)
@@ -586,7 +587,7 @@ def filetype(filename, read=True, guess=True):
                 return 'eon'
             return 'bundletrajectory'
 
-        if filename.startswith('pg://'):
+        if filename.startswith('postgres'):
             return 'postgresql'
 
         # strip any compression extensions that can be read
