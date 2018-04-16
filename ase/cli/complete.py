@@ -58,7 +58,7 @@ commands = {
          '-o', '--output', '-g', '--graph', '-t', '--terminal',
          '--interpolate', '-b', '--bonds', '-s', '--scale'],
     'info':
-        ['-v', '--verbose'],
+        ['-v', '--verbose', '--formats'],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
     'reciprocal':
@@ -73,8 +73,8 @@ commands = {
          '--interactive', '-c', '--collection', '--modify',
          '--after'],
     'test':
-        ['-c', '--calculators', '-v', '--verbose', '-q', '--quiet',
-         '--list', '--list-calculators'],
+        ['-c', '--calculators', '--list', '--list-calculators', '-j',
+         '--jobs'],
     'ulm':
         ['-n', '--index', '-d', '--delete', '-v', '--verbose']}
 # End of computer generated data
