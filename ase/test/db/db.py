@@ -23,7 +23,10 @@ for name in ['y.json', 'y.db', 'postgresql://ase:pw@localhost:5432/y']:
         pgcmd = """
         psql -c "create database y;"
         """
-        cli(pgcmd)
+        try:
+            cli(pgcmd)
+        except:
+            pass
 
     cli(cmd.replace('y.json', name))
     con = connect(name)
