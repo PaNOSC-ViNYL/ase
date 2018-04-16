@@ -25,7 +25,7 @@ import numpy as np
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, invop, parse_selection
-from ase.io.jsonio import encode, numpyfy, mydecode
+from ase.io.jsonio import encode, numpyfy, mydecode, object_hook, read_json
 from ase.parallel import parallel_function
 from ase.utils import basestring
 
@@ -195,7 +195,7 @@ class SQLite3Database(Database, object):
 
     def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
-
+        
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
@@ -250,8 +250,9 @@ class SQLite3Database(Database, object):
         if not data:
             data = row._data
         if not isinstance(data, basestring):
+            #print(data)
             data = encode(data)
-
+            
         values += (row.get('energy'),
                    row.get('free_energy'),
                    blob(row.get('forces'), pg),
@@ -377,8 +378,8 @@ class SQLite3Database(Database, object):
         if values[25] != '{}':
             dct['key_value_pairs'] = decode(values[25], pg=pg)
         if len(values) >= 27 and values[26] != 'null':
-            dct['data'] = values[26]
-
+            dct['data'] = decode(values[26], pg=pg)
+            
         return AtomsRow(dct)
 
     def _old2new(self, values):
@@ -667,9 +668,8 @@ def deblob(buf, dtype=float, shape=None, pg=False):
 
 def decode(txt, pg=False):
     if pg:
-        return txt
-    else:
-        return numpyfy(mydecode(txt))
+        txt = encode(txt)
+    return numpyfy(mydecode(txt))
 
 
 if __name__ == '__main__':
