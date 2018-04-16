@@ -21,7 +21,6 @@ def count(n, *args, **kwargs):
 for name in ['y.json', 'y.db', 'postgresql://ase:pw@localhost:5432/y']:
     if 'postgres' in name:
         pgcmd = """
-        psql -c "create user ase login password 'pw';" &&
         psql -c "create database y;"
         """
         cli(pgcmd)
