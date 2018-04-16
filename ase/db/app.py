@@ -369,6 +369,8 @@ def download(f):
     @functools.wraps(f)
     def ff(*args, **kwargs):
         text, name = f(*args, **kwargs)
+        if name is None:
+            return text
         headers = [('Content-Disposition',
                     'attachment; filename="{0}"'.format(name)),
                    ]  # ('Content-type', 'application/sqlite3')]
@@ -401,6 +403,8 @@ if download_button:
 @download
 def json1(id):
     project = request.args.get('project', 'default')
+    if project not in databases:
+        return 'No such project: ' + project, None
     data = tofile(project, id, 'json')
     return data, '{0}.json'.format(id)
 
@@ -419,6 +423,8 @@ if download_button:
 @download
 def sqlite1(id):
     project = request.args.get('project', 'default')
+    if project not in databases:
+        return 'No such project: ' + project, None
     data = tofile(project, id, 'db')
     return data, '{0}.db'.format(id)
 
