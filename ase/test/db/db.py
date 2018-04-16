@@ -18,7 +18,7 @@ def count(n, *args, **kwargs):
     assert m == n, (m, n)
 
 
-for name in ['y.json', 'y.db', 'postgresql://ase:pw@localhost:5432/y']:
+for name in ['y.json', 'y.db', 'postgresql://ase:pw@postgres:5432/y']:
     if 'postgres' in name:
         pgcmd = """
         psql -c "create database y;"

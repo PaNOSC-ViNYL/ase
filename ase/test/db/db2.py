@@ -10,7 +10,7 @@ from ase.build import molecule
 from ase.test import must_raise
 
 
-for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@localhost:5432/y2']:
+for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@postgres:5432/y2']:
     if 'postgres' in name:
         pgcmd = """
         psql -c "create database y2;"
