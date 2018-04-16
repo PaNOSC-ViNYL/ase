@@ -14,7 +14,7 @@ python_2_7_tests:
     # tests
     - python --version
     - ase info
-    - ase test -v
+    - ase test
     # pyflakes code check (Python 2 version)
     - cd $CI_PROJECT_DIR
     - python ase/test/__init__.py
@@ -29,7 +29,7 @@ python_3_tests:
     # Run tests
     - python --version
     - ase info
-    - ase test -v
+    - ase test
     # pyflakes code check (Python 3 version)
     - cd $CI_PROJECT_DIR
     - python ase/test/__init__.py
@@ -44,7 +44,7 @@ conda_tests:
      # Run tests
      - python --version
      - ase info
-     - ase test -v
+     - ase test
 
 docs_test:
   image: python:3
