@@ -157,9 +157,7 @@ class TrajectoryWriter:
             c = b.child('calculator')
             c.write(name=calc.name)
             if hasattr(calc, 'todict'):
-                d = calc.todict()
-                if d:
-                    c.write(parameters=d)
+                c.write(parameters=calc.todict())
             for prop in all_properties:
                 if prop in kwargs:
                     x = kwargs[prop]

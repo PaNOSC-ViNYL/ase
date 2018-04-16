@@ -325,7 +325,7 @@ class Database:
         id = self._write(atoms, kvp, data, id)
         return id
 
-    def _write(self, atoms, key_value_pairs, data):
+    def _write(self, atoms, key_value_pairs, data, id=None):
         check(key_value_pairs)
         return 1
 
