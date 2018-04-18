@@ -1,3 +1,4 @@
+import numpy as np
 from ase import Atoms
 from ase.units import fs, kB
 from ase.calculators.test import TestPotential
@@ -5,6 +6,8 @@ from ase.md import Langevin
 from ase.io import Trajectory, read
 from ase.optimize import QuasiNewton
 from ase.utils import seterr
+
+rng = np.random.RandomState(0)
 
 with seterr(all='raise'):
     a = Atoms('4X',
@@ -25,7 +28,8 @@ with seterr(all='raise'):
     assert abs(read('4N.traj').get_total_energy() - e0) < 0.0001
 
     # Try again with nonzero friction.
-    md = Langevin(a, 0.5 * fs, 300 * kB, 0.001, logfile='-', loginterval=500)
+    md = Langevin(a, 0.5 * fs, 300 * kB, 0.001, logfile='-', loginterval=500,
+                  rng=rng)
     traj = Trajectory('4NA.traj', 'w', a)
     md.attach(traj, 100)
     md.run(steps=10000)
