@@ -85,10 +85,13 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     """
     name = 'Vasp2'
 
+    # Environment commands
+    env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
+
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
                               'fermi', 'stress', 'magmom', 'magmoms']
 
-    default_parameters = {}     # Use VASP defaults
+    default_parameters = {}     # Can be used later to set some ASE defaults
 
     def __init__(self,
                  atoms=None,
@@ -149,8 +152,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             cmd = command
         else:
             # Search for the environment commands
-            env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
-            for env in env_commands:
+            for env in self.env_commands:
                 if env in os.environ:
                         cmd = os.environ[env].replace('PREFIX', self.prefix)
                         if env == 'VASP_SCRIPT':
@@ -624,6 +626,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         for line in lines:
             if 'total number of electrons' in line:
                 nelect = float(line.split('=')[1].split()[0].strip())
+                break
         return nelect
 
     def get_version(self):
