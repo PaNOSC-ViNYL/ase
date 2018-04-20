@@ -127,7 +127,7 @@ def test_optimizer(systems, optimizer, db=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Test ASE optimizer')
+        description='Test ASE optimizers')
 
     parser.add_argument('systems')
     parser.add_argument('optimizer', nargs='+',
@@ -140,7 +140,6 @@ def main():
     db = ase.db.connect('results.db')
 
     for opt in args.optimizer:
-        print(opt)
         optimizer = getattr(ase.optimize, opt)
         test_optimizer(systems, optimizer, db)
 
