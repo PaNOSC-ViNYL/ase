@@ -8,7 +8,7 @@ import numpy as np
 import ase.optimize
 from ase import Atoms
 from ase.calculators.emt import EMT
-from ase.io import read
+from ase.io import read, Trajectory
 from ase.neb import NEB
 
 
@@ -42,26 +42,36 @@ class Wrapper:
         self.e = []
         self.f = []
         self.atoms = atoms
+        self.energy_ready = False
+        self.forces_ready = False
 
     def __len__(self):
         return len(self.atoms)
 
     def get_potential_energy(self):
-        self.t = -time()
+        t1 = time()
         e = self.atoms.get_potential_energy()
-        self.t += time()
-        self.e.append((self.t, e))
+        t2 = time()
+        self.t += t2 - t1
+        if not self.energy_ready:
+            self.e.append((t2, e))
+        self.energy_ready = True
         return e
 
     def get_forces(self):
-        self.t = -time()
+        t1 = time()
         f = self.atoms.get_forces()
-        self.t += time()
-        self.f.append((self.t, (f**2).sum(1).max()))
+        t2 = time()
+        self.t += t2 - t1
+        if not self.forces_ready:
+            self.f.append((t2, (f**2).sum(1).max()))
+        self.forces_ready = True
         return f
 
     def set_positions(self, pos):
         self.atoms.set_positions(pos)
+        self.energy_ready = False
+        self.forces_ready = False
 
     def get_positions(self):
         return self.atoms.get_positions()
@@ -70,24 +80,31 @@ class Wrapper:
 def run(atoms, name, optimizer, db, fmax=0.05):
     opt = get_optimizer(optimizer)
     wrapper = Wrapper(atoms)
-    relax = opt(wrapper, logfile=None)
+    relax = opt(wrapper, logfile=name + '.log')
+    relax.attach(Trajectory(name + '.traj', 'w', atoms=atoms))
 
     tincl = -time()
     try:
         relax.run(fmax=fmax, steps=100)
-    except Exception:
-        traceback.print_exc()
-        tincl = np.int
-        texcl = np.int
+    except Exception as x:
+        error = '{}: {}'.format(x.__class__.__name__, x)
+        tb = traceback.format_exc()
+        with open(name + '.err', 'w') as fd:
+            fd.write('{}\n{}\n'.format(error, tb))
     else:
-        tincl += time()
-        texcl = max(wrapper.e[-1][0], wrapper.f[-1][0])
+        error = ''
+
+    tincl += time()
+    texcl = wrapper.t
 
     db.write(atoms,
              optimizer=optimizer,
              test=name,
-             nenergy=len(wrapper.e), nforce=len(wrapper.f),
-             t=texcl, T=tincl,
+             error=error,
+             nenergy=len(wrapper.e),
+             nforce=len(wrapper.f),
+             t=texcl,
+             T=tincl,
              data={'e': np.array(wrapper.e).T,
                    'f': np.array(wrapper.f).T})
 
@@ -115,7 +132,7 @@ def main():
             args.optimizers = all_optimizers
         for test in args.tests:
             atoms, name = get_atoms_and_name(test)
-            p0 = atoms.get_positons()
+            p0 = atoms.get_positions()
             for opt in args.optimizers.split(','):
                 atoms.positions = p0
                 if not isinstance(atoms, NEB):
