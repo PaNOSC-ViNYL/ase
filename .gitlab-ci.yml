@@ -38,6 +38,7 @@ conda_tests:
    image: continuumio/anaconda3
    script:
      # manually install extra deps
+     - apt-get install -yq libgl1-mesa-glx
      - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
      # 'pip install' pulls in all required packages
      - pip install .
