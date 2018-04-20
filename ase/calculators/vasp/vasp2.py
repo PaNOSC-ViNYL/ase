@@ -164,7 +164,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                 msg = ('Please set either command in calculator'
                        ' or one of the following environment'
                        'variables (prioritized as follows): {}').format(
-                           ', '.join(env_commands))
+                           ', '.join(self.env_commands))
                 raise RuntimeError(msg)
         return cmd
 
