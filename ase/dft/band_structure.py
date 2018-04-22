@@ -24,41 +24,12 @@ def get_band_structure(atoms=None, calc=None):
                          reference=calc.get_fermi_level())
 
 
-class BandStructure:
-    def __init__(self, cell, kpts, energies=None, reference=0.0):
-        """Create band structure object from energies and k-points."""
-        assert cell.shape == (3, 3)
-        self.cell = cell
-        assert kpts.shape[1] == 3
-        self.kpts = kpts
-        if energies is not None:
-            self.energies = np.asarray(energies)
-        else:
-            self.energies = None
-        self.reference = reference
+class BandStructurePlot:
+    def __init__(self, bs):
+        self.bs = bs
         self.ax = None
         self.xcoords = None
         self.show_legend = False
-
-    def get_labels(self):
-        return labels_from_kpts(self.kpts, self.cell)
-
-    def todict(self):
-        return dict((key, getattr(self, key))
-                    for key in
-                    ['cell', 'kpts', 'energies', 'reference'])
-
-    def write(self, filename):
-        """Write to json file."""
-        with paropen(filename, 'w') as f:
-            f.write(encode(self))
-
-    @staticmethod
-    def read(filename):
-        """Read from json file."""
-        with open(filename, 'r') as f:
-            dct = decode(f.read())
-        return BandStructure(**dct)
 
     def plot(self, ax=None, spin=None, emin=-10, emax=5, filename=None,
              show=None, ylabel=None, colors=None, label=None,
@@ -82,9 +53,9 @@ class BandStructure:
             ax = self.prepare_plot(ax, emin, emax, ylabel)
 
         if spin is None:
-            e_skn = self.energies
+            e_skn = self.bs.energies
         else:
-            e_skn = self.energies[spin, np.newaxis]
+            e_skn = self.bs.energies[spin, np.newaxis]
 
         if colors is None:
             if len(e_skn) == 1:
@@ -156,10 +127,10 @@ class BandStructure:
                 kpt = kpt[0] + '$_' + kpt[1] + '$'
             return kpt
 
-        emin += self.reference
-        emax += self.reference
+        emin += self.bs.reference
+        emax += self.bs.reference
 
-        self.xcoords, label_xcoords, orig_labels = self.get_labels()
+        self.xcoords, label_xcoords, orig_labels = self.bs.get_labels()
 
         labels = [pretty(name) for name in orig_labels]
         i = 1
@@ -178,7 +149,7 @@ class BandStructure:
         ax.set_xticklabels(labels)
         ax.axis(xmin=0, xmax=self.xcoords[-1], ymin=emin, ymax=emax)
         ax.set_ylabel(ylabel)
-        ax.axhline(self.reference, color='k', ls=':')
+        ax.axhline(self.bs.reference, color='k', ls=':')
         self.ax = ax
         return ax
 
@@ -197,3 +168,39 @@ class BandStructure:
 
         if show:
             plt.show()
+
+
+class BandStructure:
+    def __init__(self, cell, kpts, energies, reference=0.0):
+        """Create band structure object from energies and k-points."""
+        assert cell.shape == (3, 3)
+        self.cell = cell
+        assert kpts.shape[1] == 3
+        self.kpts = kpts
+        self.energies = np.asarray(energies)
+        self.reference = reference
+
+    def get_labels(self):
+        return labels_from_kpts(self.kpts, self.cell)
+
+    def todict(self):
+        return dict((key, getattr(self, key))
+                    for key in
+                    ['cell', 'kpts', 'energies', 'reference'])
+
+    def write(self, filename):
+        """Write to json file."""
+        with paropen(filename, 'w') as f:
+            f.write(encode(self))
+
+    @staticmethod
+    def read(filename):
+        """Read from json file."""
+        with open(filename, 'r') as f:
+            dct = decode(f.read())
+        return BandStructure(**dct)
+
+    def plot(self, *args, **kwargs):
+        bsp = BandStructurePlot(self)
+        # Maybe return bsp?  But for now run the plot, for compatibility
+        return bsp.plot(*args, **kwargs)
