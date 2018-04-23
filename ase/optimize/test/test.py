@@ -2,8 +2,6 @@ import argparse
 import traceback
 from time import time
 
-import numpy as np
-
 import ase.db
 import ase.optimize
 from ase.calculators.calculator import get_calculator
@@ -27,12 +25,39 @@ def get_optimizer(name):
 class Wrapper:
     def __init__(self, atoms):
         self.t0 = time()
-        self.t = 0.0
-        self.e = []
-        self.f = []
+        self.texcl = 0.0
+        self.nsteps = 0
         self.atoms = atoms
-        self.energy_ready = False
-        self.forces_ready = False
+        self.ready = False
+
+    def get_potential_energy(self, force_consistent=False):
+        t1 = time()
+        e = self.atoms.get_potential_energy(force_consistent)
+        t2 = time()
+        self.texcl += t2 - t1
+        if not self.ready:
+            self.nsteps += 1
+        self.ready = True
+        return e
+
+    def get_forces(self):
+        t1 = time()
+        f = self.atoms.get_forces()
+        t2 = time()
+        self.texcl += t2 - t1
+        if not self.ready:
+            self.nsteps += 1
+        self.ready = True
+        return f
+
+    def set_positions(self, pos):
+        if self.nsteps == 200:
+            raise RuntimeError('Did not converge!')
+        self.atoms.set_positions(pos)
+        self.ready = False
+
+    def get_positions(self):
+        return self.atoms.get_positions()
 
     @property
     def cell(self):
@@ -62,34 +87,6 @@ class Wrapper:
     def __len__(self):
         return len(self.atoms)
 
-    def get_potential_energy(self, force_consistent=False):
-        t1 = time()
-        e = self.atoms.get_potential_energy(force_consistent)
-        t2 = time()
-        self.t += t2 - t1
-        if not self.energy_ready:
-            self.e.append((t2 - self.t0, e))
-        self.energy_ready = True
-        return e
-
-    def get_forces(self):
-        t1 = time()
-        f = self.atoms.get_forces()
-        t2 = time()
-        self.t += t2 - t1
-        if not self.forces_ready:
-            self.f.append((t2 - self.t0, (f**2).sum(1).max()))
-        self.forces_ready = True
-        return f
-
-    def set_positions(self, pos):
-        self.atoms.set_positions(pos)
-        self.energy_ready = False
-        self.forces_ready = False
-
-    def get_positions(self):
-        return self.atoms.get_positions()
-
 
 def run_test(atoms, optimizer, tag, fmax=0.02):
     wrapper = Wrapper(atoms)
@@ -100,8 +97,9 @@ def run_test(atoms, optimizer, tag, fmax=0.02):
     error = ''
 
     try:
-        relax.run(fmax=fmax, steps=100)
+        relax.run(fmax=fmax, steps=10000000)
     except Exception as x:
+        wrapper.nsteps = float('inf')
         error = '{}: {}'.format(x.__class__.__name__, x)
         tb = traceback.format_exc()
 
@@ -109,12 +107,11 @@ def run_test(atoms, optimizer, tag, fmax=0.02):
             fd.write('{}\n{}\n'.format(error, tb))
 
     tincl += time()
-    texcl = wrapper.t
 
-    return error, wrapper.e, wrapper.f, texcl, tincl
+    return error, wrapper.nsteps, wrapper.texcl, tincl
 
 
-def test_optimizer(systems, optimizer, db=None):
+def test_optimizer(systems, optimizer, db=None, verbose=False):
     for row in systems.select():
         if db is not None:
             optname = optimizer.__name__
@@ -125,20 +122,20 @@ def test_optimizer(systems, optimizer, db=None):
         tag = '{}-{}-{}'.format(row.calculator, optname, row.formula)
         params = row.calculator_parameters
         atoms.calc = get_calculator(row.calculator)(**params, txt=tag + '.txt')
-        error, e, f, texcl, tincl = run_test(atoms, optimizer, tag)
+        error, nsteps, texcl, tincl = run_test(atoms, optimizer, tag)
 
         if db is not None:
             db.write(atoms,
                      id=id,
                      optimizer=optname,
                      error=error,
-                     ne=len(e),
-                     nf=len(f),
+                     n=nsteps,
                      t=texcl,
                      T=tincl,
-                     sid=row.id,
-                     data={'e': np.array(e).T,
-                           'f': np.array(f).T})
+                     sid=row.id)
+
+        if verbose:
+            print('.', end='', flush=True)
 
 
 def main():
@@ -159,9 +156,10 @@ def main():
         args.optimizer = all_optimizers
 
     for opt in args.optimizer:
-        print(opt)
+        print(opt, end=' ')
         optimizer = get_optimizer(opt)
-        test_optimizer(systems, optimizer, db)
+        test_optimizer(systems, optimizer, db, verbose=True)
+        print(flush=True)
 
 
 if __name__ == '__main__':
