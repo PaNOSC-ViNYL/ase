@@ -1,10 +1,12 @@
-import os
-
-if 'DISPLAY' not in os.environ:
-    from ase.test.testsuite import NotAvailable
-    raise NotAvailable('No $DISPLAY on which to plot')
-
 import matplotlib.pyplot as plt
+from ase.test.testsuite import NotAvailable
+from ase.gui.ui import tk
+
+try:
+    plt.figure()
+except tk.TclError as err:
+    raise NotAvailable(err)
+
 from ase.visualize.plot import plot_atoms
 from ase.lattice.cubic import FaceCenteredCubic
 
