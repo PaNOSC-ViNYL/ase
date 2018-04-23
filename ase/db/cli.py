@@ -185,10 +185,10 @@ def main(args):
             calculator_name, filename = filename.split(':')
             atoms = get_calculator(calculator_name)(filename).get_atoms()
         else:
-            atoms = ase.io.read(filename)
-        db.write(atoms, key_value_pairs=add_key_value_pairs)
-        out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
-                                        filename))
+            atoms = ase.io.read(filename, ':')
+        for atom in atoms:
+            db.write(atom, key_value_pairs=add_key_value_pairs)
+            out('Added {0} from {1}'.format(atom.get_chemical_formula(), filename))
         return
 
     if args.count:
