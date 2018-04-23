@@ -6,7 +6,10 @@ import ase.db
 
 
 energies = defaultdict(list)
-for row in ase.db.connect('results.db').select():
+formulas = []
+for row in ase.db.connect('results.db').select(sort='sid'):
+    if row.formula not in formulas:
+        formulas.append(row.formula)
     energies[row.formula].append(row.energy)
 emin = {formula: min(energies[formula]) for formula in energies}
 
@@ -18,6 +21,7 @@ for row in ase.db.connect('results.db').select(sort='sid'):
         nsteps = float('inf')
     n[row.optimizer].append(nsteps)
 
+print(formulas)
 N = sorted(n.items(), key=lambda x: sum(x[1]))
 for o, n in N:
     print('{:18}{}'.format(o, ' '.join('{:3}'.format(x) for x in n)))
