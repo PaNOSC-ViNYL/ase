@@ -1,36 +1,27 @@
 import argparse
-import io
-import sys
 import traceback
 from time import time
 
 import numpy as np
 
+import ase.db
 import ase.optimize
-from ase import Atoms
 from ase.calculators.calculator import get_calculator
-from ase.io import read, Trajectory
-from ase.neb import NEB
+from ase.io import Trajectory
 
 
-all_optimizers = ase.optimize.__all__
+all_optimizers = ase.optimize.__all__ + ['PreconLBFGS', 'PreconFIRE',
+                                         'SciPyFminCG', 'SciPyFminBFGS']
 
 
-def get_atoms_and_name(atoms):
-    if isinstance(atoms, str):
-        name = atoms
-        if name.endswith('.py'):
-            dct = {}
-            exec(compile(open(name).read(), name, 'exec'), dct)
-            for atoms in dct.values():
-                if isinstance(atoms, (Atoms, NEB)):
-                    break
-        else:
-            atoms = read(name)
-    else:
-        name = atoms.get_name()
-
-    return atoms, name
+def get_optimizer(name):
+    if name.startswith('Precon'):
+        import ase.optimize.precon as precon
+        return getattr(precon, name)
+    if name.startswith('SciPy'):
+        import ase.optimize.sciopt as sciopt
+        return getattr(sciopt, name)
+    return getattr(ase.optimize, name)
 
 
 class Wrapper:
@@ -42,6 +33,31 @@ class Wrapper:
         self.atoms = atoms
         self.energy_ready = False
         self.forces_ready = False
+
+    @property
+    def cell(self):
+        return self.atoms.cell
+
+    def get_cell(self, complete=False):
+        return self.atoms.get_cell(complete)
+
+    @property
+    def pbc(self):
+        return self.atoms.pbc
+
+    @property
+    def positions(self):
+        return self.atoms.positions
+
+    @property
+    def constraints(self):
+        return self.atoms.constraints
+
+    def copy(self):
+        return self.atoms.copy()
+
+    def get_calculator(self):
+        return self.atoms.calc
 
     def __len__(self):
         return len(self.atoms)
@@ -130,7 +146,7 @@ def main():
         description='Test ASE optimizers')
 
     parser.add_argument('systems')
-    parser.add_argument('optimizer', nargs='+',
+    parser.add_argument('optimizer', nargs='*',
                         help='Optimizer name.')
 
     args = parser.parse_args()
@@ -139,8 +155,12 @@ def main():
 
     db = ase.db.connect('results.db')
 
+    if not args.optimizer:
+        args.optimizer = all_optimizers
+
     for opt in args.optimizer:
-        optimizer = getattr(ase.optimize, opt)
+        print(opt)
+        optimizer = get_optimizer(opt)
         test_optimizer(systems, optimizer, db)
 
 
