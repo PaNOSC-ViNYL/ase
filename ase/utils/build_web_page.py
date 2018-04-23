@@ -31,6 +31,7 @@ from ase import __version__
 
 cmds = """\
 touch ../ase-web-page.lock
+pip install --upgrade pip
 git clean -fdx
 git checkout web-page -q
 git pull -q > /dev/null 2>&1
