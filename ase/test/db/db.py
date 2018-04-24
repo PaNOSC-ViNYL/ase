@@ -1,3 +1,4 @@
+import os
 from ase.test import cli
 from ase.db import connect
 
@@ -18,15 +19,19 @@ def count(n, *args, **kwargs):
     assert m == n, (m, n)
 
 
-for name in ['y.json', 'y.db', 'postgresql://ase:pw@postgres:5432/y']:
-    if 'postgres' in name:
-        pgcmd = """
-        psql -c "create database y;"
-        """
-        try:
+for name in ['y.json', 'y.db', 'postgresql']:
+    if name == 'postgresql':
+        if os.environ.get('POSTGRES_DB'):  # gitlab-ci
+            name = 'postgresql://ase:pw@postgres:5432/y'
+        else:  # local
+            name = 'postgresql://ase:pw@localhost:5432/y'
+            # psql -c "drop database if exists y;" &
+            # psql -c "drop role if exists ase;" &
+            pgcmd = """
+            psql -c "create role ase with password 'pw';" &
+            psql -c "create database y;"
+            """
             cli(pgcmd)
-        except:
-            pass
 
     cli(cmd.replace('y.json', name))
     con = connect(name)

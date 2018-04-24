@@ -10,17 +10,19 @@ from ase.build import molecule
 from ase.test import must_raise
 
 
-for name in ['y2.json', 'y2.db', 'postgresql://ase:pw@postgres:5432/y2']:
-    if 'postgres' in name:
-        pgcmd = """
-        psql -c "create database y2;"
-        """
-        try:
-            cli(pgcmd)
-        except:
-            pass
+for name in ['y2.json', 'y2.db', 'postgresql']:
+    if name == 'postgresql':
+        if os.environ.get('POSTGRES_DB'):  # gitlab-ci
+            name = 'postgresql://ase:pw@postgres:5432/y'
+        else:  # local
+            name = 'postgresql://ase:pw@localhost:5432/y'
+
     c = connect(name)
     print(name, c)
+
+    if 'postgres' in name:
+        ids = range(1, c.count() + 1)
+        c.delete(ids)
 
     id = c.reserve(abc=7)
     c.delete([d.id for d in c.select(abc=7)])
