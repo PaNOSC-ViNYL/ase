@@ -149,13 +149,14 @@ class Images:
         from ase.utils import basestring
         if isinstance(default_index, basestring):
             default_index = string2index(default_index)
+
         images = []
         names = []
         for filename in filenames:
             from ase.io.formats import parse_filename
 
+            # Think this is fixed now
             """
-            # Why is this needed?
             if '.json@' in filename or '.db@' in filename:
                 # Ugh! How would one deal with this?
                 # The parse_filename and string2index somehow conspire
@@ -164,7 +165,7 @@ class Images:
                 # special case.  -askhl
                 #
                 # TODO Someone figure out how to see what header
-                # a JSON file should have.
+                # a JSO file should have.
                 imgs = read(filename, default_index, filetype)
                 if hasattr(imgs, 'iterimages'):
                     imgs = list(imgs.iterimages())
@@ -173,15 +174,13 @@ class Images:
                 continue  # Argh!
             """
 
-            if '@' in filename and 'postgres' not in filename:
-                actual_filename, index = parse_filename(filename, None)
-            elif 'postgres' in filename and filename.count('2') == 2:
+            if '@' in filename and 'postgres' not in filename or \
+               'postgres' in filename and filename.count('@') == 2:
                 actual_filename, index = parse_filename(filename, None)
             else:
                 actual_filename, index = parse_filename(filename,
                                                         default_index)
-
-            imgs = read(filename, default_index, filetype)
+            imgs = read(filename, index, filetype)
             if hasattr(imgs, 'iterimages'):
                 imgs = list(imgs.iterimages())
 
@@ -192,7 +191,7 @@ class Images:
                 start = index.start or 0
                 step = index.step or 1
             else:
-                start = int(index)  # index is just an integer
+                start = index
                 assert len(imgs) == 1
                 step = 1
             for i, img in enumerate(imgs):

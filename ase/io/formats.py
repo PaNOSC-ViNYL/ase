@@ -338,7 +338,8 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-def write(filename, images, format=None, parallel=True, append=False, **kwargs):
+def write(filename, images, format=None, parallel=True, append=False,
+          **kwargs):
     """Write Atoms object(s) to file.
 
     filename: str or file
@@ -540,17 +541,16 @@ def parse_filename(filename, index=None):
     if not isinstance(filename, basestring) or '@' not in filename \
        or filename.startswith('postgres') and filename.count('@') == 1:
         return filename, index
+
     newindex = None
-    if ('.json@' in filename or
-        '.db@' in filename or
-        filename.startswith('postgres')):
-        newfilename, newindex = filename.rsplit('@', 1)
-    else:
-        newfilename, newindex = filename.rsplit('@', 1)
-        try:
-            newindex = string2index(newindex)
-        except ValueError:
-            return filename, index
+    newfilename, newindex = filename.rsplit('@', 1)
+
+    if isinstance(index, slice):
+        return newfilename, index
+    try:
+        newindex = string2index(newindex)
+    except ValueError:
+        return filename, index
     return newfilename, newindex
 
 
