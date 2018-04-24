@@ -56,3 +56,5 @@ for name in ['y.json', 'y.db', 'postgresql']:
     for key in ['calculator', 'energy', 'abc', 'name', 'fmax']:
         count(6, sort=key)
         count(6, sort='-' + key)
+
+    cli('ase -T gui --terminal {}@3'.format(name))
