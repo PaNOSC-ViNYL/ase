@@ -15,6 +15,6 @@ def installed2():
     vcmd = os.getenv('VASP_COMMAND')
     vscr = os.getenv('VASP_SCRIPT')
     vase = os.getenv('ASE_VASP_COMMAND')
-    if vcmd is None and vscr is None and vase:
+    if vcmd is None and vscr is None and vase is None:
         raise NotAvailable('Neither ASE_VASP_COMMAND, VASP_COMMAND nor VASP_SCRIPT defined')
     return True
