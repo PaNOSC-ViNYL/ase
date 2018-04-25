@@ -54,14 +54,7 @@ for name in ['y2.json', 'y2.db', 'postgresql']:
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
 
-    ### I can't make this work. The @id= parsing doesn't seem to
-    ### be implemented? Now I'm getting the index by hand.
-    ### See ase/gui/images.py  / Kirsten W
-
-    #a = read(name + '@id=' + str(id))[0]
-
-    index = c.count('id<{}'.format(id))
-    a = read(name, index=index)
+    a = read(name + '@id=' + str(id))[0]
     f4 = a.get_forces()
     assert abs(f1 - f4).max() < 1e-14
 

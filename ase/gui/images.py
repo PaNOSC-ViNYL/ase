@@ -155,27 +155,6 @@ class Images:
         for filename in filenames:
             from ase.io.formats import parse_filename
 
-            # There is still a problem for .db@id=
-            # which should be used tp fetch the atoms by database id
-            # instead of index. / Kirsten W
-            """
-            if '.json@' in filename or '.db@' in filename:
-                # Ugh! How would one deal with this?
-                # The parse_filename and string2index somehow conspire
-                # to cause an error.  See parse_filename
-                # in ase.io.formats for this particular
-                # special case.  -askhl
-                #
-                # TODO Someone figure out how to see what header
-                # a JSO file should have.
-                imgs = read(filename, default_index, filetype)
-                if hasattr(imgs, 'iterimages'):
-                    imgs = list(imgs.iterimages())
-                names += [filename] * len(imgs)
-                images += imgs
-                continue  # Argh!
-            """
-
             if '@' in filename and 'postgres' not in filename or \
                'postgres' in filename and filename.count('@') == 2:
                 actual_filename, index = parse_filename(filename, None)
@@ -197,8 +176,10 @@ class Images:
                 assert len(imgs) == 1
                 step = 1
             for i, img in enumerate(imgs):
-                names.append('{}@{}'.format(actual_filename, start + i * step))
-
+                if not 'id=' in start:
+                    names.append('{}@{}'.format(actual_filename, start + i * step))
+                else:
+                    names.append('{}@{}'.format(actual_filename, start))
         self.initialize(images, names)
 
     def repeat_results(self, atoms, repeat=None, oldprod=None):
