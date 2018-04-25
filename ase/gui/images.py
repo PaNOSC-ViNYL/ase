@@ -155,7 +155,9 @@ class Images:
         for filename in filenames:
             from ase.io.formats import parse_filename
 
-            # Think this is fixed now
+            # There is still a problem for .db@id=
+            # which should be used tp fetch the atoms by database id
+            # instead of index. / Kirsten W
             """
             if '.json@' in filename or '.db@' in filename:
                 # Ugh! How would one deal with this?

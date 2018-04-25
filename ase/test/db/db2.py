@@ -1,3 +1,4 @@
+import os
 import numpy as np
 
 from ase import Atoms
@@ -21,8 +22,8 @@ for name in ['y2.json', 'y2.db', 'postgresql']:
     print(name, c)
 
     if 'postgres' in name:
-        ids = range(1, c.count() + 1)
-        c.delete(ids)
+        for row in c.select():
+            del c[row.id]
 
     id = c.reserve(abc=7)
     c.delete([d.id for d in c.select(abc=7)])
@@ -52,7 +53,15 @@ for name in ['y2.json', 'y2.db', 'postgresql']:
     assert abs(f2.sum(0)).max() < 1e-14
     f3 = c.get_atoms(C=1).get_forces()
     assert abs(f1 - f3).max() < 1e-14
-    a = read(name + '@id=' + str(id))[0]
+
+    ### I can't make this work. The @id= parsing doesn't seem to
+    ### be implemented? Now I'm getting the index by hand.
+    ### See ase/gui/images.py  / Kirsten W
+
+    #a = read(name + '@id=' + str(id))[0]
+
+    index = c.count('id<{}'.format(id))
+    a = read(name, index=index)
     f4 = a.get_forces()
     assert abs(f1 - f4).max() < 1e-14
 
