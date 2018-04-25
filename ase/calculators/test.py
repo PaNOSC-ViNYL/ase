@@ -154,7 +154,7 @@ class FreeElectrons(Calculator):
 
     def get_fermi_level(self):
         v = self.atoms.get_volume() / Bohr**3
-        kF = (self.parameters.nvalence / v * 2 * np.pi**2)**(1 / 3)
+        kF = (self.parameters.nvalence / v * 3 * np.pi**2)**(1 / 3)
         return 0.5 * kF**2 * Ha
 
     def get_ibz_k_points(self):
