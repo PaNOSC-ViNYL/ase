@@ -176,10 +176,11 @@ class Images:
                 assert len(imgs) == 1
                 step = 1
             for i, img in enumerate(imgs):
-                if not 'id=' in start:
-                    names.append('{}@{}'.format(actual_filename, start + i * step))
-                else:
+                if 'id=' in str(start):
                     names.append('{}@{}'.format(actual_filename, start))
+                else:
+                    names.append('{}@{}'.format(actual_filename, start + i * step))
+
         self.initialize(images, names)
 
     def repeat_results(self, atoms, repeat=None, oldprod=None):
