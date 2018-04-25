@@ -51,7 +51,7 @@ class CalculationFailed(CalculatorError):
     Typically raised during calculation."""
 
 
-class SCFError(CalculatorFailure):
+class SCFError(CalculationFailed):
     """SCF loop did not converge."""
 
 
