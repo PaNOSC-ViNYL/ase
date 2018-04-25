@@ -4,7 +4,7 @@ Check the unit cell is handled correctly
 
 """
 
-from ase.test.vasp import installed
+from ase.test.vasp import installed2 as installed
 from ase.calculators.vasp import Vasp2 as Vasp
 from ase.build import molecule
 from ase.test import must_raise

@@ -4,7 +4,7 @@ works.
 
 """
 
-from ase.test.vasp import installed
+from ase.test.vasp import installed2 as installed
 from ase.calculators.vasp import Vasp2 as Vasp
 assert installed()
 

@@ -7,7 +7,7 @@ environment variables
 
 """
 
-from ase.test.vasp import installed
+from ase.test.vasp import installed2 as installed
 
 from ase import Atoms
 from ase.calculators.vasp import Vasp2 as Vasp
