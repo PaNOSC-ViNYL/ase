@@ -455,8 +455,11 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
 
     if isinstance(filename, PurePath):
         filename = str(filename)
-    if isinstance(index, basestring) and not 'id=' in index:
-        index = string2index(index)
+    if isinstance(index, basestring):
+        try:
+            index = string2index(index)
+        except ValueError:
+            pass
 
     filename, index = parse_filename(filename, index)
     if index is None:
@@ -549,10 +552,10 @@ def parse_filename(filename, index=None):
     if isinstance(index, slice):
         return newfilename, index
     try:
-        if not 'id=' in newindex:
-            newindex = string2index(newindex)
+        newindex = string2index(newindex)
     except ValueError:
-        return filename, index
+        pass
+
     return newfilename, newindex
 
 

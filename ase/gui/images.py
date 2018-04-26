@@ -176,10 +176,11 @@ class Images:
                 assert len(imgs) == 1
                 step = 1
             for i, img in enumerate(imgs):
-                if 'id=' in str(start):
-                    names.append('{}@{}'.format(actual_filename, start))
-                else:
+                if isinstance(start, int):
                     names.append('{}@{}'.format(actual_filename, start + i * step))
+                else:
+                    names.append('{}@{}'.format(actual_filename, start))
+
 
         self.initialize(images, names)
 
