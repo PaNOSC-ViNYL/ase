@@ -33,8 +33,13 @@ for name in ['y.json', 'y.db', 'postgresql']:
             """
             cli(pgcmd)
 
-    cli(cmd.replace('y.json', name))
     con = connect(name)
+    if 'postgres' in name:
+        for row in con.select():
+            del con[row.id]
+
+    cli(cmd.replace('y.json', name))
+
     assert con.get_atoms(H=1)[0].magmom == 1
     count(5)
     count(3, 'hydro')
