@@ -17,7 +17,7 @@ python_2_7_tests:
   image: python:2.7
   script:
     # manually install ase deps
-    - pip install numpy scipy matplotlib flask psycopg2-binary
+    - pip install numpy scipy matplotlib flask
     # extra packages for testing
     - pip install pyflakes netCDF4
     # using "install from source" instructions
@@ -37,7 +37,7 @@ python_3_tests:
   image: python:3
   script:
     # manually install extra deps
-    - pip install netCDF4 pyflakes psycopg2
+    - pip install netCDF4 pyflakes psycopg2-binary
     # 'pip install' pulls in all required packages
     - pip install .
     # Run tests
@@ -53,7 +53,7 @@ conda_tests:
    script:
      # manually install extra deps
      - apt-get install -yq libgl1-mesa-glx
-     - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask psycopg2
+     - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
      # 'pip install' pulls in all required packages
      - pip install .
      # Run tests
