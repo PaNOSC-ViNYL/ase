@@ -17,7 +17,7 @@ python_2_7_tests:
   image: python:2.7
   script:
     # manually install ase deps
-    - pip install numpy scipy matplotlib flask psycopg2
+    - pip install numpy scipy matplotlib flask psycopg2-binary
     # extra packages for testing
     - pip install pyflakes netCDF4
     # using "install from source" instructions
