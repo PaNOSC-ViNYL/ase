@@ -250,7 +250,6 @@ class SQLite3Database(Database, object):
         if not data:
             data = row._data
         if not isinstance(data, basestring):
-            #print(data)
             data = encode(data)
             
         values += (row.get('energy'),
@@ -456,6 +455,14 @@ class SQLite3Database(Database, object):
                                   'specie{0}.n{1}?').format(nspecies, op))
                     args += [key, value]
                     nspecies += 1
+
+            elif self.type == 'postgresql':
+                jsonop = '->'
+                if isinstance(value, str):
+                    jsonop = '->>'
+                where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
+                args.append(str(value))
+
             elif isinstance(value, basestring):
                 tables.append('text_key_values AS text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id AND ' +
