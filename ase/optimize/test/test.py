@@ -121,7 +121,7 @@ def test_optimizer(systems, optimizer, db=None, verbose=False):
         atoms = row.toatoms()
         tag = '{}-{}-{}'.format(row.calculator, optname, row.formula)
         params = row.calculator_parameters
-        atoms.calc = get_calculator(row.calculator)(**params, txt=tag + '.txt')
+        atoms.calc = get_calculator(row.calculator)(txt=tag + '.txt', **params)
         error, nsteps, texcl, tincl = run_test(atoms, optimizer, tag)
 
         if db is not None:
