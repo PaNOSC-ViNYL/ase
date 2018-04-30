@@ -53,7 +53,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                 Default is 'vasp'.
 
             directory: str
-                Set the working dírectory. Is prepended to ``label``.
+                Set the working directory. Is prepended to ``label``.
 
             restart: str or bool
                 Sets a label for the directory to load files from.
