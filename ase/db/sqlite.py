@@ -524,7 +524,7 @@ class SQLite3Database(Database, object):
         values[26] = 'null'
 
         if columns == 'all':
-            columnindex = range(27)
+            columnindex = list(range(27))
         else:
             columnindex = [c for c in range(0, 27) if self.columnnames[c] in columns]
 
