@@ -18,7 +18,8 @@ ase db -v y.json "H>0" --delete-keys foo"""
 def count(n, *args, **kwargs):
     m = len(list(con.select(columns=['id'], *args, **kwargs)))
     assert m == n, (m, n)
-    
+
+
 t0 = time.time()
 for name in ['y.json', 'y.db', 'postgresql']:
     if name == 'postgresql':
