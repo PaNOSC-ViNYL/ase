@@ -109,7 +109,6 @@ class CLICommand:
 def main(args):
     verbosity = 1 - args.quiet + args.verbose
     query = ','.join(args.query)
-
     if args.sort.endswith('-'):
         # Allow using "key-" instead of "-key" for reverse sorting
         args.sort = '-' + args.sort[:-1]
@@ -268,9 +267,9 @@ def main(args):
         return
 
     db.python = args.metadata_from_python_script
-    db.meta = process_metadata(db, html=args.open_web_browser)
 
     if args.long:
+        db.meta = process_metadata(db, html=args.open_web_browser)
         # Remove .png files so that new ones will be created.
         for func, filenames in db.meta.get('functions', []):
             for filename in filenames:
