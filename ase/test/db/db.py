@@ -1,4 +1,5 @@
 import os
+import time
 from ase.test import cli
 from ase.db import connect
 
@@ -15,10 +16,10 @@ ase db -v y.json "H>0" --delete-keys foo"""
 
 
 def count(n, *args, **kwargs):
-    m = len(list(con.select(*args, **kwargs)))
+    m = len(list(con.select(columns=['id'], *args, **kwargs)))
     assert m == n, (m, n)
-
-
+    
+t0 = time.time()
 for name in ['y.json', 'y.db', 'postgresql']:
     if name == 'postgresql':
         if os.environ.get('POSTGRES_DB'):  # gitlab-ci
@@ -34,12 +35,12 @@ for name in ['y.json', 'y.db', 'postgresql']:
             cli(pgcmd)
 
     con = connect(name)
+    t1 = time.time()
     if 'postgres' in name:
-        for row in con.select():
+        for row in con.select(columns='id'):
             del con[row.id]
 
     cli(cmd.replace('y.json', name))
-
     assert con.get_atoms(H=1)[0].magmom == 1
     count(5)
     count(3, 'hydro')
@@ -63,3 +64,13 @@ for name in ['y.json', 'y.db', 'postgresql']:
         count(6, sort='-' + key)
 
     cli('ase -T gui --terminal {}@3'.format(name))
+
+    t2 = time.time()
+
+    print('----------------------------------')
+    print('Finnished test for {}'.format(name))
+    print('runtime = {} sec'.format(t2 - t1))
+    print('----------------------------------')
+
+
+print('Total runtime = {} sec'.format(t2 - t0))
