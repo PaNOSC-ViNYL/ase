@@ -341,8 +341,10 @@ class SQLite3Database(Database, object):
                'user': values[4],
                'numbers': deblob(values[5], np.int32, pg=pg),
                'positions': deblob(values[6], shape=(-1, 3), pg=pg),
-               'cell': deblob(values[7], shape=(3, 3), pg=pg),
-               'pbc': (values[8] & np.array([1, 2, 4])).astype(bool)}
+               'cell': deblob(values[7], shape=(3, 3), pg=pg)}
+
+        if values[8] is not None:
+            dct['pbc'] = (values[8] & np.array([1, 2, 4])).astype(bool)
         if values[9] is not None:
             dct['initial_magmoms'] = deblob(values[9], pg=pg)
         if values[10] is not None:
@@ -357,6 +359,7 @@ class SQLite3Database(Database, object):
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
+        if values[16] is not None:
             dct['calculator_parameters'] = decode(values[16], pg=pg)
         if values[17] is not None:
             dct['energy'] = values[17]
@@ -438,23 +441,29 @@ class SQLite3Database(Database, object):
                     assert op in ['=', '!=']
                     value = int(np.dot([x == 'T' for x in value], [1, 2, 4]))
                 elif key == 'magmom':
-                    assert self.version >= 6, 'Update you db-file'
+                    assert self.version >= 6, 'Update your db-file'
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
             elif isinstance(key, int):
-                if bad[key]:
+                if self.type == 'postgresql':
                     where.append(
-                        'NOT EXISTS (SELECT id FROM species WHERE\n' +
-                        '  species.id=systems.id AND species.Z=? AND ' +
-                        'species.n{}?)'.format(invop[op]))
+                        'cardinality(array_positions(' +
+                        'numbers::int[], ?)){}?'.format(op))
                     args += [key, value]
                 else:
-                    tables.append('species AS specie{}'.format(nspecies))
-                    where.append(('systems.id=specie{0}.id AND ' +
-                                  'specie{0}.Z=? AND ' +
-                                  'specie{0}.n{1}?').format(nspecies, op))
-                    args += [key, value]
-                    nspecies += 1
+                    if bad[key]:
+                        where.append(
+                            'NOT EXISTS (SELECT id FROM species WHERE\n' +
+                            '  species.id=systems.id AND species.Z=? AND ' +
+                            'species.n{}?)'.format(invop[op]))
+                        args += [key, value]
+                    else:
+                        tables.append('species AS specie{}'.format(nspecies))
+                        where.append(('systems.id=specie{0}.id AND ' +
+                                      'specie{0}.Z=? AND ' +
+                                      'specie{0}.n{1}?').format(nspecies, op))
+                        args += [key, value]
+                        nspecies += 1
 
             elif self.type == 'postgresql':
                 jsonop = '->'
@@ -505,9 +514,24 @@ class SQLite3Database(Database, object):
         return sql, args
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
-                limit=None, offset=0, sort=None, include_data=True):
+                limit=None, offset=0, sort=None, include_data=True,
+                columns='all'):
         con = self._connect()
         self._initialize(con)
+
+        values = np.array([None for i in range(27)])
+        values[25] = '{}'
+        values[26] = 'null'
+
+        if columns == 'all':
+            columnindex = range(27)
+        else:
+            columnindex = [c for c in range(0, 27) if self.columnnames[c] in columns]
+
+        if not include_data:
+            if 26 in columnindex:
+                columnindex.remove(26)
+        #['id', 'ctime', 'mtime', 'username', 'numbers', 'pbc', 'charge', 'mass']
 
         if sort:
             if sort[0] == '-':
@@ -521,7 +545,8 @@ class SQLite3Database(Database, object):
                 sort_table = 'systems'
             else:
                 for dct in self._select(keys + [sort], cmps, limit=1,
-                                        include_data=False):
+                                        include_data=False,
+                                        columns=['key_value_pairs']):
                     if isinstance(dct['key_value_pairs'][sort], basestring):
                         sort_table = 'text_key_values'
                     else:
@@ -535,11 +560,14 @@ class SQLite3Database(Database, object):
             order = None
             sort_table = None
 
-        if include_data:
-            what = 'systems.*'
-        else:
-            what = ', '.join('systems.' + name
-                             for name in self.columnnames[:26])
+        what = ', '.join('systems.' + name
+                         for name in np.array(self.columnnames)[np.array(columnindex)])
+        #if not include_data:
+        #    what = 'systems.*'
+        #else:
+        #    #columnlist = np.array([0, 2, 3, 4, 5, 7, 8, 11, 25])
+        #    what = ', '.join('systems.' + name
+        #                     for name in np.array(self.columnnames)[columnlist])#self.columnnames[:26])
 
         sql, args = self.create_select_statement(keys, cmps, sort, order,
                                                  sort_table, what)
@@ -555,7 +583,7 @@ class SQLite3Database(Database, object):
 
         if verbosity == 2:
             print(sql, args)
-
+        
         cur = con.cursor()
         cur.execute(sql, args)
         if explain:
@@ -563,8 +591,9 @@ class SQLite3Database(Database, object):
                 yield {'explain': row}
         else:
             n = 0
-            for values in cur.fetchall():
-                yield self._convert_tuple_to_row(values)
+            for shortvalues in cur.fetchall():
+                values[columnindex] = shortvalues
+                yield self._convert_tuple_to_row(tuple(values))
                 n += 1
 
             if sort and sort_table != 'systems':
@@ -576,7 +605,8 @@ class SQLite3Database(Database, object):
 
                 for row in self._select(keys + ['-' + sort], cmps,
                                         limit=limit, offset=offset,
-                                        include_data=include_data):
+                                        include_data=include_data,
+                                        columns=['id', 'key_value_pairs']):
                     yield row
 
     @parallel_function
