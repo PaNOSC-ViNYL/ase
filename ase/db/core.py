@@ -403,8 +403,8 @@ class Database:
         selection: int, str or list
             See the select() method.
         """
-
-        rows = list(self.select(selection, limit=2, **kwargs))
+        rows = list(self.select(selection, limit=2, include_data=True,
+                                **kwargs))
         if not rows:
             raise KeyError('no match')
         assert len(rows) == 1, 'more than one row matched'
@@ -413,7 +413,7 @@ class Database:
     @parallel_generator
     def select(self, selection=None, filter=None, explain=False,
                verbosity=1, limit=None, offset=0, sort=None,
-               include_data=True, **kwargs):
+               include_data=False, columns='all', **kwargs):
         """Select rows.
 
         Return AtomsRow iterator with results.  Selection is done
@@ -459,7 +459,8 @@ class Database:
         for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
                                 limit=limit, offset=offset, sort=sort,
-                                include_data=include_data):
+                                include_data=include_data,
+                                columns=columns):
             if filter is None or filter(row):
                 yield row
 
@@ -574,3 +575,16 @@ def float_to_time_string(t, long=False):
         return '{:.3f} {}s'.format(x, longwords[s])
     else:
         return '{:.0f}{}'.format(round(x), s)
+
+def get_sql_columns(columns):
+    sql_columns = columns[:]
+    if 'age' in columns:
+        sql_columns.remove('age')
+        sql_columns += ['mtime', 'ctime']
+    if 'user' in columns:
+        sql_columns[sql_columns.index('user')] = 'username'
+    if 'formula' in columns:
+        sql_columns[sql_columns.index('formula')] = 'numbers'
+    sql_columns.append('key_value_pairs')
+
+    return sql_columns
