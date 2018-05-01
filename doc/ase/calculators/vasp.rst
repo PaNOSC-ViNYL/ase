@@ -15,11 +15,11 @@ calculation.
 
 
 .. _VASP: http://cms.mpi.univie.ac.at/vasp/
-.. _Vasp FileIO: vasp_fileio.html
+.. _Vasp 2.0: vasp2.html
 
 .. note::
    A new VASP_ calculator is currently in BETA testing, see
-   :mod:`~ase.calculators.vasp.vasp_fileio`,
+   :mod:`~ase.calculators.vasp.vasp2`,
    which implements the calculator using the
    :class:`~ase.calculators.calculator.FileIOCalculator`.
 
@@ -361,9 +361,9 @@ New Calculator
 ==============
 
 A new VASP_ calculator is currently in BETA testing, see
-:mod:`~ase.calculators.vasp.vasp_fileio`, which implements the calculator using the
+:mod:`~ase.calculators.vasp.vasp2`, which implements the calculator using the
 :class:`~ase.calculators.calculator.FileIOCalculator`.
 
 .. toctree::
 
-   vasp_fileio
+   vasp2
