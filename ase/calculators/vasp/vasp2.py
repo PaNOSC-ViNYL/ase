@@ -332,7 +332,9 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             int_params=self.int_params.copy(),
             input_params=self.input_params.copy(),
             bool_params=self.bool_params.copy(),
-            list_params=self.list_params.copy(),
+            list_int_params=self.list_int_params.copy(),
+            list_bool_params=self.list_bool_params.copy(),
+            list_float_params=self.list_float_params.copy(),
             dict_params=self.dict_params.copy())
 
     def write_input(self, atoms, properties=['energies'],
@@ -531,10 +533,11 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
         self.read_ldau()
         p = self.int_params
-        q = self.list_params
+        q = self.list_float_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
+                (p['lorbit'] is None and q['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(lines=lines)
             else:
                 warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
