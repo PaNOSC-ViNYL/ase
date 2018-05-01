@@ -1,4 +1,4 @@
-.. module:: ase.calculators.vasp.vasp_fileio
+.. module:: ase.calculators.vasp.vasp2
 
 ===========
 VASP 2.0
@@ -36,7 +36,7 @@ The calculator needs to know how to execute VASP. One way of doing this,
 is by using the :meth:`~ase.calculators.vasp.Vasp2.command` method,
 with instructions on how to execute vasp, e.g.::
 
-  Vasp2(command='vasp_std')
+  Vasp2(command='mpiexec vasp_std')
 
 which requires that the executable :file:`vasp_std` is in your :envvar:`PATH`.
 Alternatively, similar to the original implementation, one of the following
