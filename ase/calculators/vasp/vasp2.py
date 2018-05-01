@@ -536,7 +536,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         q = self.list_float_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
+                (p['lorbit'] is None and q['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(lines=lines)
             else:
                 warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
