@@ -54,14 +54,18 @@ class PostgreSQLDatabase(SQLite3Database):
 
         cur = con.cursor()
 
-        try:
-            cur.execute('SELECT name, value FROM information')
-        except psycopg2.ProgrammingError:
+        cur.execute("show search_path;")
+        schema = cur.fetchone()[0]
+
+        cur.execute("""SELECT EXISTS(
+        select * from information_schema.tables where table_name='information' and table_schema='{0}'
+        );""".format(schema))
+        information_exists = cur.fetchone()[0]
+
+        if not information_exists:
             # Initialize database:
             sql = ';\n'.join(init_statements)
             sql = schema_update(sql)
-            con.commit()
-            cur = con.cursor()
             cur.execute(sql)
             if self.create_indices:
                 cur.execute(';\n'.join(index_statements))
