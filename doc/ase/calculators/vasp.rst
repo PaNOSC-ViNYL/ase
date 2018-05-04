@@ -15,8 +15,13 @@ calculation.
 
 
 .. _VASP: http://cms.mpi.univie.ac.at/vasp/
+.. _Vasp 2.0: vasp2.html
 
-
+.. note::
+   A new VASP_ calculator is currently in BETA testing, see
+   :mod:`~ase.calculators.vasp.vasp2`,
+   which implements the calculator using the
+   :class:`~ase.calculators.calculator.FileIOCalculator`.
 
 Environment variables
 =====================
@@ -351,3 +356,14 @@ calculations, in the directory of the previous calculation do:
 >>> atoms = calc.get_atoms()
 >>> atoms.get_potential_energy()
 -4.7386889999999999
+
+New Calculator
+==============
+
+A new VASP_ calculator is currently in BETA testing, see
+:mod:`~ase.calculators.vasp.vasp2`, which implements the calculator using the
+:class:`~ase.calculators.calculator.FileIOCalculator`.
+
+.. toctree::
+
+   vasp2
