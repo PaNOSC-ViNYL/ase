@@ -5,75 +5,15 @@ import numpy as np
 from ase import Atoms
 from ase.build import fcc111, add_adsorbate
 from ase.db import connect
-from ase.calculators.emt import EMT
 from ase.constraints import FixedPlane, FixAtoms
 from ase.lattice.cubic import FaceCenteredCubic
-
 
 systems = []
 
 cell = (5, 5, 5)
 atoms = Atoms('H2', [(0, 0, 0), (0, 0, 1.4)], cell=cell)
 atoms.center()
-systems.append(atoms)
-
-#
-atoms = Atoms('Pd4NH',
-              [[5.078689759346383, 5.410678028467162, 4.000000000000000],
-               [7.522055777772603, 4.000000000000000, 4.000000000000000],
-               [7.522055777772603, 6.821356056934325, 4.000000000000000],
-               [6.707600438297196, 5.410678028467162, 6.303627574066606],
-               [4.807604264052752, 5.728625577716107, 5.919407072553396],
-               [4.000000000000000, 5.965167390141987, 6.490469524180266]])
-constraint = FixAtoms(mask=[a.symbol == 'Pd' for a in atoms])
-atoms.set_constraint(constraint)
-atoms.center(vacuum=3.0)
-systems.append(atoms)
-
-#
-slab = Atoms('Cu32',
-             [[-1.028468159509163, -0.432387156877267, -0.202086055768265],
-              [0.333333333333333, 0.333333333333333, -2.146500000000000],
-              [1.671531840490805, -0.432387156877287, -0.202086055768242],
-              [3.033333333333334, 0.333333333333333, -2.146500000000000],
-              [4.371531840490810, -0.432387156877236, -0.202086055768261],
-              [5.733333333333333, 0.333333333333333, -2.146500000000000],
-              [7.071531840490944, -0.432387156877258, -0.202086055768294],
-              [8.433333333333335, 0.333333333333333, -2.146500000000000],
-              [0.321531840490810, 1.905881433340708, -0.202086055768213],
-              [1.683333333333333, 2.671601923551318, -2.146500000000000],
-              [3.021531840490771, 1.905881433340728, -0.202086055768250],
-              [4.383333333333334, 2.671601923551318, -2.146500000000000],
-              [5.721531840490857, 1.905881433340735, -0.202086055768267],
-              [7.083333333333333, 2.671601923551318, -2.146500000000000],
-              [8.421531840490820, 1.905881433340739, -0.202086055768265],
-              [9.783333333333335, 2.671601923551318, -2.146500000000000],
-              [1.671531840490742, 4.244150023558601, -0.202086055768165],
-              [3.033333333333334, 5.009870513769302, -2.146500000000000],
-              [4.371531840490840, 4.244150023558694, -0.202086055768265],
-              [5.733333333333333, 5.009870513769302, -2.146500000000000],
-              [7.071531840490880, 4.244150023558786, -0.202086055768352],
-              [8.433333333333335, 5.009870513769302, -2.146500000000000],
-              [9.771531840491031, 4.244150023558828, -0.202086055768371],
-              [11.133333333333335, 5.009870513769302, -2.146500000000000],
-              [3.021531840490714, 6.582418613776583, -0.202086055768197],
-              [4.383333333333334, 7.348139103987287, -2.146500000000000],
-              [5.721531840490814, 6.582418613776629, -0.202086055768203],
-              [7.083333333333333, 7.348139103987287, -2.146500000000000],
-              [8.421531840490985, 6.582418613776876, -0.202086055768357],
-              [9.783333333333335, 7.348139103987287, -2.146500000000000],
-              [11.121531840490929, 6.582418613776676, -0.202086055768221],
-              [12.483333333333334, 7.348139103987287, -2.146500000000000]])
-mask = [a.position[2] < -1 for a in slab]
-slab.set_constraint(FixAtoms(mask=mask))
-
-h = 1.85
-d = 1.10
-
-molecule = Atoms('2N', positions=[(0., 0., h),
-                                  (0., 0., h + d)])
-slab.extend(molecule)
-systems.append(slab)
+systems.append((atoms, 'Hydrogen molecule'))
 
 #
 atoms = FaceCenteredCubic(
@@ -82,7 +22,7 @@ atoms = FaceCenteredCubic(
     symbol='Cu',
     pbc=(1, 1, 1))
 atoms.rattle(stdev=0.1, seed=42)
-systems.append(atoms)
+systems.append((atoms, 'Shaken bulk copper'))
 
 #
 a = 2.70
@@ -97,7 +37,7 @@ slab.set_cell([(a, 0, 0),
 slab.center(vacuum=3, axis=2)
 mask = [a.tag == 1 for a in slab]
 slab.set_constraint(FixAtoms(mask=mask))
-systems.append(slab)
+systems.append((slab, 'Distorted Cu(111) surface'))
 
 #
 zpos = cos(134.3 / 2.0 * pi / 180.0) * 1.197
@@ -111,7 +51,7 @@ slab.set_pbc((True, True, False))
 constraint = FixAtoms(mask=[(a.tag == 4) or (a.tag == 3) or (a.tag == 2)
                             for a in slab])
 slab.set_constraint(constraint)
-systems.append(slab)
+systems.append((slab, 'CO on Au(111) surface'))
 
 #
 atoms = Atoms(symbols='C5H12',
@@ -134,7 +74,7 @@ atoms = Atoms(symbols='C5H12',
                          [10.95518898, 5.02163182, 6.8289018],
                          [11.83752486, 6.29836826, 5.90274952],
                          [10.94464142, 5.00000011, 5.01802495]])
-systems.append(atoms)
+systems.append((atoms, 'Pentane molecule'))
 
 #
 srf = Atoms('Cu64',
@@ -213,14 +153,13 @@ c1 = FixedPlane(-1, (1 / np.sqrt(2), 1 / np.sqrt(2), 1))
 c2 = FixedPlane(-2, (1 / np.sqrt(2), 1 / np.sqrt(2), 1))
 constraint = FixAtoms(mask=mask)
 srf.set_constraint([constraint, c1, c2])
-systems.append(srf)
+systems.append((srf, 'C2/Cu(100)'))
 
 
 def create_database():
     db = connect('systems.db', append=False)
-    for atoms in systems:
-        atoms.calc = EMT()
-        db.write(atoms)
+    for atoms, description in systems:
+        db.write(atoms, description=description)
 
 
 if __name__ == '__main__':
