@@ -74,7 +74,7 @@ atoms = Atoms(symbols='C5H12',
                          [10.95518898, 5.02163182, 6.8289018],
                          [11.83752486, 6.29836826, 5.90274952],
                          [10.94464142, 5.00000011, 5.01802495]])
-systems.append((atoms, 'C5H12 molecule'))
+systems.append((atoms, 'Pentane molecule'))
 
 #
 srf = Atoms('Cu64',
