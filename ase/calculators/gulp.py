@@ -89,8 +89,9 @@ class GULP(FileIOCalculator):
 
         if all(self.atoms.pbc):
             cell_params = self.atoms.get_cell_lengths_and_angles()
-            s += 'cell\n{0:10.7f} {1:10.7f} {2:10.7f} ' \
-                 '{3:10.7f} {4:10.7f} {5:10.7f}\n'.format(*cell_params)
+            # Formating is necessary since Gulp max-line-length restriction
+            s += 'cell\n{0:9.6f} {1:9.6f} {2:9.6f} ' \
+                 '{3:8.5f} {4:8.5f} {5:8.5f}\n'.format(*cell_params)
             s += 'frac\n'
             coords = self.atoms.get_scaled_positions()
         else:
