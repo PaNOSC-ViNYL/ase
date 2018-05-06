@@ -34,6 +34,41 @@ python_3_tests:
     - cd $CI_PROJECT_DIR
     - python ase/test/__init__.py
 
+calc_tests:
+  image: ubuntu:latest
+  script:
+    # manually install extra deps
+    - apt-get update
+    - apt-get -y install python3-pip
+    - pip3 install netCDF4 pyflakes
+    # 'pip install' pulls in all required packages
+    - pip3 install .
+    # install calculators
+    # abinit
+    - apt-get -y install abinit abinit-data
+    - export ASE_ABINIT_COMMAND="abinit < PREFIX.files > PREFIX.log"
+    - export ABINIT_PP_PATH=/usr/share/abinit/psp
+    # cp2k
+    - apt-get -y install cp2k cp2k-data
+    - export ASE_CP2K_COMMAND="cp2k_shell"
+    # elk
+    - apt-get -y install elk-lapw
+    # gromacs
+    - apt-get -y install gromacs gromacs-data
+    - export GMXCMD="mdrun"
+    # lammps
+    - apt-get -y install lammps
+    - export LAMMPS_COMMAND="lammps"
+    # nwchem
+    - apt-get -y install nwchem nwchem-data
+    # espresso
+    - apt-get -y install quantum-espresso quantum-espresso-data
+    - export ASE_ESPRESSO_COMMAND="pw.x -in PREFIX.pwi > PREFIX.pwo"
+    # Run tests
+    - python3 --version
+    - ase info
+    - ase test --calculators=abinit,cp2k,elk,gromacs,lammpsrun,nwchem,espresso
+
 conda_tests:
    image: continuumio/anaconda3
    script:
