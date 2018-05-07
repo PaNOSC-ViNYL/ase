@@ -66,13 +66,18 @@ class PostgreSQLDatabase(SQLite3Database):
         self._metadata = {}
 
         cur = con.cursor()
-
         cur.execute("show search_path;")
-        schema = cur.fetchone()[0]
+        schema = cur.fetchone()[0].split(', ')
+        if schema[0] == '"$user"':
+            schema = schema[1]
+        else:
+            schema = schema[0]
 
-        cur.execute("""SELECT EXISTS(
-        select * from information_schema.tables where table_name='information' and table_schema='{0}'
-        );""".format(schema))
+        cur.execute("""
+        SELECT EXISTS(select * from information_schema.tables where
+        table_name='information' and table_schema='{}');
+        """.format(schema))
+
         information_exists = cur.fetchone()[0]
 
         if not information_exists:
@@ -85,6 +90,7 @@ class PostgreSQLDatabase(SQLite3Database):
             con.commit()
             self.version = VERSION
         else:
+            cur.execute('select * from information;')
             for name, value in cur.fetchall():
                 if name == 'version':
                     self.version = int(value)
