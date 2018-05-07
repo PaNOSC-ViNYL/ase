@@ -1,6 +1,7 @@
 import numpy as np
 import json
 import psycopg2
+from psycopg2.extras import execute_values
 
 from ase.db.sqlite import init_statements, index_statements, VERSION
 from ase.db.sqlite import VERSION
@@ -35,7 +36,19 @@ class Cursor:
         self.cur.execute(statement.replace('?', '%s'), *args)
 
     def executemany(self, statement, *args):
-        self.cur.executemany(statement.replace('?', '%s'), *args)
+        if len(args[0]) > 0:
+            N = len(args[0][0])
+        else:
+            return
+        if 'INSERT INTO systems' in statement:
+            q = 'DEFAULT' + ', ' + ', '.join('?' * N)  # DEFAULT for id
+        else:
+            q = ', '.join('?' * N)
+        statement = statement.replace('({})'.format(q), '%s')
+        q = '({})'.format(q.replace('?', '%s'))
+
+        execute_values(self.cur, statement.replace('?', '%s'),
+                       argslist=args[0], template=q, page_size=len(args[0]))
 
 
 class PostgreSQLDatabase(SQLite3Database):
