@@ -4,7 +4,8 @@ from ase.gui.ui import tk
 
 try:
     plt.figure()
-except tk.TclError as err:
+except (tk.TclError, RuntimeError) as err:
+    # "RuntimeError: Invalid DISPLAY variable" may happen in conda tests
     raise NotAvailable(err)
 
 from ase.visualize.plot import plot_atoms
