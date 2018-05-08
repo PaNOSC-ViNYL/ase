@@ -52,11 +52,10 @@ class Cursor:
 
 
 class PostgreSQLDatabase(SQLite3Database):
-
+    type = 'postgresql'
     default = 'DEFAULT'
 
     def _connect(self):
-        self.type = 'postgresql'
         return Connection(psycopg2.connect(self.filename))
 
     def _initialize(self, con):

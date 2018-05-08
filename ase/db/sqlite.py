@@ -120,6 +120,7 @@ def float_if_not_none(x):
 
 
 class SQLite3Database(Database, object):
+    type = 'db'
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
@@ -129,7 +130,6 @@ class SQLite3Database(Database, object):
                    for line in init_statements[0].splitlines()[1:]]
 
     def _connect(self):
-        self.type = 'sqlite'
         return sqlite3.connect(self.filename, timeout=600)
 
     def __enter__(self):
@@ -358,8 +358,12 @@ class SQLite3Database(Database, object):
 
     def get_last_id(self, cur):
         cur.execute('SELECT seq FROM sqlite_sequence WHERE name="systems"')
-        id = cur.fetchone()[0]
-        return id
+        result = cur.fetchone()
+        if result is not None:
+            id = result[0]
+            return id
+        else:
+            return 0
 
     def _get_row(self, id):
         con = self._connect()
