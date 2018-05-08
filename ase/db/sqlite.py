@@ -219,6 +219,10 @@ class SQLite3Database(Database, object):
         number_key_values = []
         keys = []
         for i, atoms in enumerate(atoms):
+            if id:
+                self._delete(cur, [id], ['keys', 'text_key_values',
+                                         'number_key_values', 'species'])
+                ids = [id]
             if not isinstance(atoms, AtomsRow):
                 row = AtomsRow(atoms)
                 row.ctime = mtime
@@ -257,9 +261,9 @@ class SQLite3Database(Database, object):
             else:
                 values += (None, None)
 
-            if not key_value_pairs or i > 0:
-                key_value_pairs = row.key_value_pairs
-
+            if not id:
+                if not key_value_pairs or i > 0:
+                    key_value_pairs = row.key_value_pairs
             if not data or i > 0:
                 data = row._data
             if not isinstance(data, basestring):
@@ -284,7 +288,7 @@ class SQLite3Database(Database, object):
             
             if id is None:
                 values_collect += [values]
-            else:
+            elif row is not None:
                 q = ', '.join(name + '=?' for name in self.columnnames[1:])
                 cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                             values + (id,))
