@@ -218,11 +218,7 @@ class SQLite3Database(Database, object):
         text_key_values = []
         number_key_values = []
         keys = []
-        for i, atoms in enumerate(atoms):
-            if id:
-                self._delete(cur, [id], ['keys', 'text_key_values',
-                                         'number_key_values', 'species'])
-                ids = [id]
+        for i, atoms in enumerate(atoms):           
             if not isinstance(atoms, AtomsRow):
                 row = AtomsRow(atoms)
                 row.ctime = mtime
