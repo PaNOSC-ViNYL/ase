@@ -14,7 +14,6 @@ ase db -v y.json natoms=1,Cu=1 --delete --yes &&
 ase db -v y.json "H>0" -k hydro=1,abc=42,foo=bar &&
 ase db -v y.json "H>0" --delete-keys foo"""
 
-
 def count(n, *args, **kwargs):
     m = len(list(con.select(columns=['id'], *args, **kwargs)))
     assert m == n, (m, n)
@@ -65,6 +64,32 @@ for name in ['y.json', 'y.db', 'postgresql']:
         count(6, sort='-' + key)
 
     cli('ase -T gui --terminal {}@3'.format(name))
+
+    con.delete([id])
+
+    if not name == 'y.json':  # transfer between db formats
+        if name == 'y.db':
+            from_db = 'y.json'
+            factor = 2
+        else:
+            from_db = 'y.db'
+            factor = 3
+
+        cli('ase db {} --insert-into {}'.format(from_db, name))
+
+        count(5 * factor)
+        count(3 * factor, 'hydro')
+        count(0, 'foo')
+        count(3 * factor, abc=42)
+        count(3 * factor, 'abc')
+        count(0, 'abc,foo')
+        count(3 * factor, 'abc,hydro')
+        count(0, foo='bar')
+        count(factor, formula='H2')
+        count(factor, formula='H2O')
+        count(3 * factor, 'fmax<0.1')
+        count(factor, '0.5<mass<1.5')
+        count(5 * factor, 'energy')
 
     t2 = time.time()
 
