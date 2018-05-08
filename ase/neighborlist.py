@@ -163,10 +163,12 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                                               positions.T).T
     bin_index_ic = np.floor(scaled_positions_ic*nbins_c).astype(int)
     cell_shift_ic = np.zeros_like(bin_index_ic)
+
     for c in range(3):
         if pbc[c]:
+            # (Note: np.divmod does not exist in older numpies)
             cell_shift_ic[:, c], bin_index_ic[:, c] = \
-                np.divmod(bin_index_ic[:, c], nbins_c[c])
+                divmod(bin_index_ic[:, c], nbins_c[c])
         else:
             bin_index_ic[:, c] = np.clip(bin_index_ic[:, c], 0, nbins_c[c]-1)
 
@@ -238,9 +240,9 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         for dy in range(-neigh_search_y, neigh_search_y+1):
             for dx in range(-neigh_search_x, neigh_search_x+1):
                 # Bin index of neighboring bin and shift vector.
-                shiftx_xyz, neighbinx_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
-                shifty_xyz, neighbiny_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
-                shiftz_xyz, neighbinz_xyz = np.divmod(binz_xyz + dz, nbins_c[2])
+                shiftx_xyz, neighbinx_xyz = divmod(binx_xyz + dx, nbins_c[0])
+                shifty_xyz, neighbiny_xyz = divmod(biny_xyz + dy, nbins_c[1])
+                shiftz_xyz, neighbinz_xyz = divmod(binz_xyz + dz, nbins_c[2])
                 neighbin_b = (neighbinx_xyz + nbins_c[0] *
                     (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)).ravel()
 
