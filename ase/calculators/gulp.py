@@ -89,7 +89,9 @@ class GULP(FileIOCalculator):
 
         if all(self.atoms.pbc):
             cell_params = self.atoms.get_cell_lengths_and_angles()
-            s += 'cell\n{0} {1} {2} {3} {4} {5}\n'.format(*cell_params)
+            # Formating is necessary since Gulp max-line-length restriction
+            s += 'cell\n{0:9.6f} {1:9.6f} {2:9.6f} ' \
+                 '{3:8.5f} {4:8.5f} {5:8.5f}\n'.format(*cell_params)
             s += 'frac\n'
             coords = self.atoms.get_scaled_positions()
         else:
@@ -104,9 +106,11 @@ class GULP(FileIOCalculator):
             labels = self.atoms.get_chemical_symbols()
 
         for xyz, symbol in zip(coords, labels):
-            s += ' {0:2} core {1}  {2}  {3}\n'.format(symbol, *xyz)
+            s += ' {0:2} core' \
+                 ' {1:10.7f}  {2:10.7f}  {3:10.7f}\n' .format(symbol, *xyz)
             if symbol in p.shel:
-                s += ' {0:2} shel {1}  {2}  {3}\n'.format(symbol, *xyz)
+                s += ' {0:2} shel' \
+                     ' {1:10.7f}  {2:10.7f}  {3:10.7f}\n' .format(symbol, *xyz)
 
         s += '\nlibrary {0}\n'.format(p.library)
         if p.options:
