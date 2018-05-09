@@ -237,7 +237,6 @@ class Amber(FileIOCalculator):
         forces = f.variables['forces']
         self.results['forces'] = forces[-1, :, :] \
             / units.Ang * units.kcal / units.mol
-        print(self.results)
         f.close()
 
     def set_charges(self, selection, charges, parmed_filename=None):
