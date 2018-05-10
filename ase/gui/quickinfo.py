@@ -87,14 +87,14 @@ def info(gui):
             if isinstance(calc, SinglePointCalculator):
                 add(_('Calculator: {} (cached)').format(calc.name))
             else:
-                add(_('Calculator: {} (attached)'.format(calc.name)))
+                add(_('Calculator: {} (attached)').format(calc.name))
 
             energy = getresult('energy', atoms.get_potential_energy)
             forces = getresult('forces', atoms.get_forces)
             magmom = getresult('magmom', atoms.get_magnetic_moment)
 
             if energy is not None:
-                energy_str = _('Energy: {:.3f} eV'.format(energy))
+                energy_str = _('Energy: {:.3f} eV').format(energy)
                 add(energy_str)
 
             if forces is not None:
@@ -103,7 +103,7 @@ def info(gui):
                 add(forces_str)
 
             if magmom is not None:
-                mag_str = _('Magmom: {:.3f} µ'.format(magmom))
+                mag_str = _('Magmom: {:.3f} µ').format(magmom)
                 add(mag_str)
 
     return '\n'.join(tokens)
