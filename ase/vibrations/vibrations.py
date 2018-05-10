@@ -118,42 +118,37 @@ class Vibrations:
         case it is not found.
 
         If the program you want to use does not have a calculator in ASE, use
-        ``iterdisplaced`` to get all displaced structures and calculate the forces
+        ``iterdisplace`` to get all displaced structures and calculate the forces
         on your own.
         """
 
-        for dispName, atoms in self.iterdisplaced(inplace=True):
+        for dispName, atoms in self.iterdisplace(inplace=True):
             filename = dispName + '.pckl'
             fd = opencew(filename)
             if fd is not None:
                 self.calculate(atoms, filename, fd)
 
-    def iterdisplaced(self, inplace=False):
-        """Yields name and atoms object of each displacement AND finally the initial structure.
+    def iterdisplace(self, inplace=False):
+        """Yield name and atoms object for initial and displaced structures.
 
         Use this to export the structures for each single-point calculation
         to an external program instead of using ``run()``. Then save the
         calculated gradients to <name>.pckl and continue using this instance.
         """
-        try:
-            for dispName, a, i, disp in self.displacements():
-                if inplace:
-                    atoms = self.atoms
-                else:
-                    atoms = self.atoms.copy()
-                atoms.positions[a, i] += disp
-                #the calculator is not copied
-                yield dispName, atoms
-                atoms.positions[a, i] -= disp
-        finally:
+        atoms = self.atoms if inplace else self.atoms.copy()
+        yield self.name + '.eq', atoms
+        for dispName, a, i, disp in self.displacements():
+            if not inplace:
+                atoms = self.atoms.copy()
+            pos0 = atoms.positions[a, i]
+            atoms.positions[a, i] += disp
+            yield dispName, atoms
             if inplace:
-                yield self.name+'.eq', self.atoms
-            else:
-                yield self.name+'.eq', self.atoms.copy()
+                atoms.positions[a, i] = pos0
 
     def iterimages(self):
-        """Iterate over images of single-atom displacements AND initial structure (last)"""
-        for name, atoms in self.iterdisplaced():
+        """Yield initial and displaced structures."""
+        for name, atoms in self.iterdisplace():
             yield atoms
 
     def displacements(self):

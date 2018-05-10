@@ -28,8 +28,7 @@ assert vib.clean(empty_files=True) == 0
 assert vib.clean() == 13
 assert len(list(vib.iterimages())) == 13
 
-a = dict(vib.iterdisplaced(inplace=True))
-b = dict(vib.iterdisplaced(inplace=False))
-for key, item in a.items():
-    item.set_calculator(None)
-assert a == b
+d = dict(vib.iterdisplace(inplace=False))
+
+for name, atoms in vib.iterdisplace(inplace=True):
+    assert d[name] == atoms
