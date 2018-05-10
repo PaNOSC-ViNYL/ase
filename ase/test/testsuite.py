@@ -131,7 +131,12 @@ def runtests_subprocess(task_queue, result_queue):
             if test == 'no more tests':
                 return
 
-            if test in ['gui/run.py']:
+            # We need to run some tests on master:
+            #  * doctest exceptions appear to be unpicklable.
+            #    Probably they contain a reference to a module or something.
+            #  * gui/run may deadlock for unknown reasons in subprocess
+
+            if test in ['doctests.py', 'gui/run.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
