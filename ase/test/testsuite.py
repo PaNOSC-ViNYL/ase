@@ -253,7 +253,7 @@ def test(calculators=[], jobs=0,
         sys.exit(1)
 
     if jobs == 0:
-        jobs = cpu_count()
+        jobs = min(cpu_count(), len(tests))
 
     print_info()
 
