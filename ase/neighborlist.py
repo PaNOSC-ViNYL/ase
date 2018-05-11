@@ -30,7 +30,7 @@ def mic(dr, cell, pbc=None):
     # periodic boundaries then and need to be unwrapped.
     icell = np.linalg.pinv(cell)
     if pbc is not None:
-        icell *= np.array(pbc, dtype=int).reshape(3,1)
+        icell *= np.array(pbc, dtype=int).reshape(3, 1)
     cell_shift_vectors = np.round(np.dot(dr, icell))
 
     # Unwrap
@@ -108,7 +108,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     #     xyz: Bin index, three values identifying x-, y- and z-component of a
     #          spatial bin that is used to make neighbor search O(n)
     #     b: Linearized version of the 'xyz' bin index
-    #     a: Bin-local atom index, i.e. index identifying an atom *within* a bin
+    #     a: Bin-local atom index, i.e. index identifying an atom *within* a
+    #        bin
     #     p: Pair index, can have value 0 or 1
     #     n: (Linear) neighbor index
 
@@ -182,9 +183,9 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
             bin_index_ic[:, c] = np.clip(bin_index_ic[:, c], 0, nbins_c[c]-1)
 
     # Convert Cartesian bin index to unique scalar bin index.
-    bin_index_i = bin_index_ic[:, 0] + \
-                  nbins_c[0] * (bin_index_ic[:, 1] + \
-                                nbins_c[1] * bin_index_ic[:, 2])
+    bin_index_i = (bin_index_ic[:, 0] +
+                   nbins_c[0] * (bin_index_ic[:, 1] +
+                                 nbins_c[1] * bin_index_ic[:, 2]))
 
     # atom_i contains atom index in new sort order.
     atom_i = np.argsort(bin_index_i)
@@ -240,7 +241,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # The memory layout of binx_xyz, biny_xyz, binz_xyz is such that computing
     # the respective bin index leads to a linearly increasing consecutive list.
     # The following assert statement succeeds:
-    #     b_b = (binx_xyz + nbins_c[0] * (biny_xyz + nbins_c[1] * binz_xyz)).ravel()
+    #     b_b = (binx_xyz + nbins_c[0] * (biny_xyz + nbins_c[1] *
+    #                                     binz_xyz)).ravel()
     #     assert (b_b == np.arange(np.prod(nbins_c))).all()
 
     # First atoms in pair.
@@ -253,7 +255,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                 shifty_xyz, neighbiny_xyz = divmod(biny_xyz + dy, nbins_c[1])
                 shiftz_xyz, neighbinz_xyz = divmod(binz_xyz + dz, nbins_c[2])
                 neighbin_b = (neighbinx_xyz + nbins_c[0] *
-                    (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)).ravel()
+                              (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)
+                              ).ravel()
 
                 # Second atom in pair.
                 _secnd_at_neightuple_n = \
@@ -286,8 +289,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     first_at_neightuple_n = np.concatenate(first_at_neightuple_nn)
     secnd_at_neightuple_n = np.concatenate(secnd_at_neightuple_nn)
     cell_shift_vector_n = np.transpose([np.concatenate(cell_shift_vector_x_n),
-                        np.concatenate(cell_shift_vector_y_n),
-                        np.concatenate(cell_shift_vector_z_n)])
+                                        np.concatenate(cell_shift_vector_y_n),
+                                        np.concatenate(cell_shift_vector_z_n)])
 
     # Add global cell shift to shift vectors
     cell_shift_vector_n += cell_shift_ic[first_at_neightuple_n] - \
@@ -398,7 +401,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         return tuple(retvals)
 
 
-def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
+def neighbor_list(quantities, a, cutoff, self_interaction=False,
+                  max_nbins=1e6):
     """Compute a neighbor list for an atomic configuration.
 
     Atoms outside periodic boundaries are mapped into the box. Atoms
@@ -503,10 +507,12 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
-    return primitive_neighbor_list(quantities, a.pbc, a.get_cell(complete=True),
+    return primitive_neighbor_list(quantities, a.pbc,
+                                   a.get_cell(complete=True),
                                    a.positions, cutoff, numbers=a.numbers,
                                    self_interaction=self_interaction,
                                    max_nbins=max_nbins)
+
 
 def first_neighbors(natoms, first_atom):
     """
@@ -524,9 +530,9 @@ def first_neighbors(natoms, first_atom):
     Returns
     -------
     seed : array
-        Array containing pointers to the start and end location of the neighbors
-        of a certain atom. Neighbors of atom k have indices from s[k] to
-        s[k+1]-1.
+        Array containing pointers to the start and end location of the
+        neighbors of a certain atom. Neighbors of atom k have indices from s[k]
+        to s[k+1]-1.
     """
     if len(first_atom) == 0:
         return np.zeros(natoms+1, dtype=int)
@@ -605,10 +611,8 @@ class NewPrimitiveNeighborList:
             self.build(pbc, cell, positions, numbers=numbers)
             return True
 
-        if ((self.pbc != pbc).any() or
-            (self.cell != cell).any() or
-            ((self.positions - positions)**2).sum(1).max() >
-            self.skin**2):
+        if ((self.pbc != pbc).any() or (self.cell != cell).any() or
+            ((self.positions - positions)**2).sum(1).max() > self.skin**2):
             self.build(pbc, cell, positions, numbers=numbers)
             return True
 
@@ -629,13 +633,23 @@ class NewPrimitiveNeighborList:
 
         if len(positions) > 0 and not self.bothways:
             mask = np.logical_or(
-                       np.logical_and(self.pair_first <= self.pair_second,
-                                      (self.offset_vec == 0).all(axis=1)),
-                       np.logical_or(self.offset_vec[:, 0] > 0,
-                           np.logical_and(self.offset_vec[:, 0] == 0,
-                               np.logical_or(self.offset_vec[:, 1] > 0,
-                                   np.logical_and(self.offset_vec[:, 1] == 0,
-                                                  self.offset_vec[:, 2] > 0)))))
+                np.logical_and(
+                    self.pair_first <= self.pair_second,
+                    (self.offset_vec == 0).all(axis=1)
+                    ),
+                np.logical_or(
+                    self.offset_vec[:, 0] > 0,
+                    np.logical_and(
+                        self.offset_vec[:, 0] == 0,
+                        np.logical_or(
+                            self.offset_vec[:, 1] > 0,
+                            np.logical_and(
+                                self.offset_vec[:, 1] == 0,
+                                self.offset_vec[:, 2] > 0)
+                            )
+                        )
+                    )
+                )
             self.pair_first = self.pair_first[mask]
             self.pair_second = self.pair_second[mask]
             self.offset_vec = self.offset_vec[mask]
@@ -697,10 +711,8 @@ class PrimitiveNeighborList:
             self.build(pbc, cell, coordinates)
             return True
 
-        if ((self.pbc != pbc).any() or
-            (self.cell != cell).any() or
-            ((self.coordinates - coordinates)**2).sum(1).max() >
-            self.skin**2):
+        if ((self.pbc != pbc).any() or (self.cell != cell).any() or
+            ((self.coordinates - coordinates)**2).sum(1).max() > self.skin**2):
             self.build(pbc, cell, coordinates)
             return True
 
