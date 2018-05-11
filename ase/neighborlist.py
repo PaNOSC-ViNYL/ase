@@ -114,10 +114,19 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
 
     # Return empty neighbor list if no atoms are passed here
     if len(positions) == 0:
+        empty_types = dict(i=(np.int, (0, )),
+                           j=(np.int, (0, )),
+                           D=(np.float, (0, 3)),
+                           d=(np.float, (0, )),
+                           S=(np.int, (0, 3)))
         retvals = []
         for i in quantities:
-            retvals += [np.array([])]
-        return retvals
+            dtype, shape = empty_types[i]
+            retvals += [np.array([], dtype=dtype).reshape(shape)]
+        if len(retvals) == 1:
+            return retvals[0]
+        else:
+            return tuple(retvals)
 
     # Compute reciprocal lattice vectors.
     b1_c, b2_c, b3_c = np.linalg.pinv(cell).T
