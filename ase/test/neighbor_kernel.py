@@ -193,3 +193,22 @@ i, j, d = primitive_neighbor_list('ijd',
 assert np.all(i == [0, 1])
 assert np.all(j == [1, 0])
 assert np.allclose(d, [0.00945, 0.00945])
+
+# Empty atoms object
+i, D, d, j, S = neighbor_list("iDdjS", ase.Atoms(), 1.0)
+assert i.dtype == np.int
+assert j.dtype == np.int
+assert d.dtype == np.float
+assert D.dtype == np.float
+assert S.dtype == np.int
+assert i.shape == (0,)
+assert j.shape == (0,)
+assert d.shape == (0,)
+assert D.shape == (0, 3)
+assert S.shape == (0, 3)
+
+# Check that only a scalar (not a tuple) is returned if we request a single
+# argument.
+i = neighbor_list("i", ase.Atoms(), 1.0)
+assert i.dtype == np.int
+assert i.shape == (0,)
