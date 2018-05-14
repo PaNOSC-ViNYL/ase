@@ -45,8 +45,10 @@ class GUI(View, Status):
         self.images = images
 
         self.config = read_defaults()
+        if show_bonds:
+            self.config['show_bonds'] = True
 
-        menu = self.get_menu_data(show_bonds)
+        menu = self.get_menu_data()
 
         self.window = ui.ASEGUIWindow(close=self.exit, menu=menu,
                                       config=self.config, scroll=self.scroll,
@@ -421,7 +423,7 @@ class GUI(View, Status):
         os.system('(%s %s &); (sleep 60; rm %s) &' %
                   (command, filename, filename))
 
-    def get_menu_data(self, show_bonds):
+    def get_menu_data(self):
         M = ui.MenuItem
         return [
             (_('_File'),
@@ -456,10 +458,11 @@ class GUI(View, Status):
 
             (_('_View'),
              [M(_('Show _unit cell'), self.toggle_show_unit_cell, 'Ctrl+U',
-                value=True),
-              M(_('Show _axes'), self.toggle_show_axes, value=True),
+                value=self.config['show_unit_cell']),
+              M(_('Show _axes'), self.toggle_show_axes,
+                value=self.config['show_axes']),
               M(_('Show _bonds'), self.toggle_show_bonds, 'Ctrl+B',
-                value=show_bonds),
+                value=self.config['show_bonds']),
               M(_('Show _velocities'), self.toggle_show_velocities, 'Ctrl+G',
                 value=False),
               M(_('Show _forces'), self.toggle_show_forces, 'Ctrl+F',

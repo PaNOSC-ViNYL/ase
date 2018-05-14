@@ -18,7 +18,7 @@ GREEN = '#74DF00'
 PURPLE = '#AC58FA'
 
 
-def get_cell_coordinates(cell):
+def get_cell_coordinates(cell, shifted=False):
     """Get start and end points of lines segments used to draw cell."""
     nn = []
     for c in range(3):
@@ -46,6 +46,9 @@ def get_cell_coordinates(cell):
         n1 = n2
     B1.shape = (-1, 3)
     B2.shape = (-1, 3)
+    if shifted:
+        B1 -= 0.5
+        B2 -= 0.5
     return B1, B2
 
 
@@ -93,6 +96,13 @@ class View:
         for i, rgb in enumerate(jmol_colors):
             self.colors[i] = ('#{0:02X}{1:02X}{2:02X}'
                               .format(*(int(x * 255) for x in rgb)))
+        
+        # buttons
+        self.b1 = 1 # left
+        self.b3 = 3 # right
+        if self.config['swap_mouse']:
+            self.b1 = 3
+            self.b3 = 1
 
     @property
     def atoms(self):
@@ -122,7 +132,8 @@ class View:
         natoms = len(atoms)
 
         if self.showing_cell():
-            B1, B2 = get_cell_coordinates(atoms.cell)
+            B1, B2 = get_cell_coordinates(atoms.cell,
+                                          shifted=self.config['shift_cell'])
         else:
             B1 = B2 = np.zeros((0, 3))
 
@@ -504,7 +515,7 @@ class View:
             self.scroll_event(event)
             return
 
-        if event.button != 1:
+        if event.button != self.b1:
             return
 
         selected = self.images.selected
@@ -568,7 +579,7 @@ class View:
         x = event.x
         y = event.y
         x0, y0 = self.xy
-        if self.button == 1:
+        if self.button == self.b1:
             x0 = int(round(x0))
             y0 = int(round(y0))
             self.draw()
