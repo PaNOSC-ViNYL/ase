@@ -7,6 +7,7 @@ attribute.
 """
 import os
 import re
+import warnings
 import numpy as np
 
 import ase
@@ -315,7 +316,7 @@ def read_cell(filename, index=None):
     return read(filename, index=index, format='castep-cell')
 
 
-def read_castep_cell(fd, index=None):
+def read_castep_cell(fd, index=None, units=units_CODATA2002):
     """Read a .cell file and return an atoms object.
     Any value found that does not fit the atoms API
     will be stored in the atoms.calc attribute.
@@ -328,6 +329,15 @@ def read_castep_cell(fd, index=None):
     """
 
     from ase.calculators.castep import Castep
+
+    cell_units = {  # Units specifiers for CASTEP
+        'bohr': units_CODATA2002['a0'],
+        'ang': 1.0,
+        'm': 1e10,
+        'cm': 1e8,
+        'nm': 10,
+        'pm': 1e-2
+    }
 
     _fallback = False
     try:
@@ -438,34 +448,42 @@ def read_castep_cell(fd, index=None):
 
             if block_name == 'LATTICE_CART' and not have_lat:
                 tokens, l = get_tokens(lines, l)
+                u = 1.0
                 if len(tokens) == 1:
-                    print('read_cell: Warning - ignoring unit specifier in')
-                    print('%BLOCK LATTICE_CART (assuming Angstrom instead)')
+                    u = cell_units.get(tokens[0], 1)
+                    if tokens[0] not in cell_units:
+                        warnings.warn('read_cell: Warning - ignoring invalid'
+                                      ' unit specifier in %BLOCK LATTICE_CART '
+                                      '(assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
                 for _ in range(3):
-                    lat_vec = [float(a) for a in tokens[0:3]]
+                    lat_vec = [float(a) * u for a in tokens[0:3]]
                     lat.append(lat_vec)
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != '%ENDBLOCK':
-                    print('read_cell: Warning - ignoring more than three')
-                    print('lattice vectors in invalid %BLOCK LATTICE_CART')
-                    print('%s ...' % tokens[0].upper())
+                    warnings.warn('read_cell: Warning - ignoring more than '
+                                  'three lattice vectors in invalid %BLOCK '
+                                  'LATTICE_CART %s ...' % tokens[0].upper())
                 have_lat = True
 
             elif block_name == 'LATTICE_ABC' and not have_lat:
                 tokens, l = get_tokens(lines, l)
+                u = 1.0
                 if len(tokens) == 1:
-                    print('read_cell: Warning - ignoring unit specifier in')
-                    print('%BLOCK LATTICE_ABC (assuming Angstrom instead)')
+                    u = cell_units.get(tokens[0], 1)
+                    if tokens[0] not in cell_units:
+                        warnings.warn('read_cell: Warning - ignoring invalid '
+                                      'unit specifier in %BLOCK LATTICE_ABC '
+                                      '(assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
-                a, b, c = map(float, tokens[0:3])
+                a, b, c = [float(p) * u for p in tokens[0:3]]
                 tokens, l = get_tokens(lines, l)
                 alpha, beta, gamma = [np.radians(float(phi))
                                       for phi in tokens[0:3]]
                 tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != '%ENDBLOCK':
-                    print('read_cell: Warning - ignoring additional lines in')
-                    print('invalid %BLOCK LATTICE_ABC')
+                    warnings.warn('read_cell: Warning - ignoring additional '
+                                  'lines in invalid %BLOCK LATTICE_ABC')
                 lat_a = [a, 0, 0]
                 lat_b = [b * np.cos(gamma), b * np.sin(gamma), 0]
                 lat_c1 = c * np.cos(beta)
@@ -479,15 +497,19 @@ def read_castep_cell(fd, index=None):
             elif block_name in ('POSITIONS_ABS',
                                 'POSITIONS_FRAC') and not have_pos:
                 pos_frac = (block_name == 'POSITIONS_FRAC')
+                u = 1.0
                 if not pos_frac:
                     # Check for units
                     l_start = l
                     tokens, l = get_tokens(lines, l)
                     if len(tokens) == 1:
-                        print(
-                            'read_cell: Warning - ignoring unit specifier in')
-                        print(
-                            '%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
+                        u = cell_units.get(tokens[0], 1)
+                        if tokens[0] not in cell_units:
+                            warings.warn('read_cell: Warning - ignoring '
+                                         'invalid unit specifier in %BLOCK '
+                                         'POSITIONS_ABS (assuming Angstrom '
+                                         'instead)')
+                        tokens, l = get_tokens(lines, l)
                     else:
                         l = l_start
                 # fix to be able to read initial spin assigned on the atoms
@@ -502,7 +524,7 @@ def read_castep_cell(fd, index=None):
                     spec.append(elem)
                     if custom_species is not None:
                         custom_species.append(tokens[0])
-                    pos.append([float(p) for p in tokens[1:4]])
+                    pos.append([float(p) * u for p in tokens[1:4]])
                     if len(tokens) > 4:
                         get_add_info(add_info_arrays, tokens[4])
                     else:
@@ -510,8 +532,9 @@ def read_castep_cell(fd, index=None):
                     tokens, l = get_tokens(lines, l, maxsplit=4,
                                            has_species=True)
                 if tokens[0].upper() != '%ENDBLOCK':
-                    print('read_cell: Warning - ignoring invalid lines in')
-                    print('%%BLOCK %s:\n\t %s' % (block_name, tokens))
+                    warnings.warn('read_cell: Warning - ignoring invalid lines'
+                                  ' in%%BLOCK '
+                                  '%s:\n\t %s' % (block_name, tokens))
                 have_pos = True
 
             elif block_name == 'SPECIES_POT':
@@ -563,8 +586,8 @@ def read_castep_cell(fd, index=None):
                 translations = np.sort(translations, axis=0)
                 if rotations.shape[1:] != (3, 3) or \
                    translations.shape[1:] != (3,):
-                    print('Warning: could not parse SYMMETRY_OPS'
-                          ' block properly, skipping')
+                    warnings.warn('Warning: could not parse SYMMETRY_OPS'
+                                  ' block properly, skipping')
                     continue
 
                 # Now on to find the actual symmetry!
@@ -584,14 +607,14 @@ def read_castep_cell(fd, index=None):
                         atoms_spg = test_spg
                 if atoms_spg is None:
                     # All failed...
-                    print('Could not identify Spacegroup from SYMMETRY_OPS,'
-                          ' skipping')
+                    warnings.warn('Could not identify Spacegroup from '
+                                  'SYMMETRY_OPS, skipping')
                 else:
                     calc.__setattr__(block_name, (rotations, translations))
 
             else:
-                print('Warning: the keyword %s is not' % block_name)
-                print('         interpreted in cell files')
+                warnings.warn('Warning: the keyword %s is not' % block_name +
+                              ' interpreted in cell files')
                 # Just collect all lines
                 block_lines = []
                 while l < len(lines):
