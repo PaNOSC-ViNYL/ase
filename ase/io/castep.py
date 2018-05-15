@@ -315,7 +315,7 @@ def read_cell(filename, index=None):
     return read(filename, index=index, format='castep-cell')
 
 
-def read_castep_cell(fd, index=None):
+def read_castep_cell(fd, index=None, units=units_CODATA2002):
     """Read a .cell file and return an atoms object.
     Any value found that does not fit the atoms API
     will be stored in the atoms.calc attribute.
@@ -328,6 +328,15 @@ def read_castep_cell(fd, index=None):
     """
 
     from ase.calculators.castep import Castep
+
+    cell_units = {  # Units specifiers for CASTEP
+        'bohr': units_CODATA2002['a0'],
+        'ang': 1.0,
+        'm': 1e10,
+        'cm': 1e8,
+        'nm': 10,
+        'pm': 1e-2
+    }
 
     _fallback = False
     try:
@@ -438,12 +447,16 @@ def read_castep_cell(fd, index=None):
 
             if block_name == 'LATTICE_CART' and not have_lat:
                 tokens, l = get_tokens(lines, l)
+                u = 1.0
                 if len(tokens) == 1:
-                    print('read_cell: Warning - ignoring unit specifier in')
-                    print('%BLOCK LATTICE_CART (assuming Angstrom instead)')
+                    u = cell_units.get(tokens[0], 1)
+                    if tokens[0] not in cell_units:
+                        print('read_cell: Warning - ignoring invalid unit '
+                              'specifier in %BLOCK LATTICE_CART '
+                              '(assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
                 for _ in range(3):
-                    lat_vec = [float(a) for a in tokens[0:3]]
+                    lat_vec = [float(a)*u for a in tokens[0:3]]
                     lat.append(lat_vec)
                     tokens, l = get_tokens(lines, l)
                 if tokens[0].upper() != '%ENDBLOCK':
@@ -454,11 +467,15 @@ def read_castep_cell(fd, index=None):
 
             elif block_name == 'LATTICE_ABC' and not have_lat:
                 tokens, l = get_tokens(lines, l)
+                u = 1.0
                 if len(tokens) == 1:
-                    print('read_cell: Warning - ignoring unit specifier in')
-                    print('%BLOCK LATTICE_ABC (assuming Angstrom instead)')
+                    u = cell_units.get(tokens[0], 1)
+                    if tokens[0] not in cell_units:
+                        print('read_cell: Warning - ignoring invalid unit '
+                              'specifier in %BLOCK LATTICE_ABC '
+                              '(assuming Angstrom instead)')
                     tokens, l = get_tokens(lines, l)
-                a, b, c = map(float, tokens[0:3])
+                a, b, c = [float(p)*u for p in tokens[0:3]]
                 tokens, l = get_tokens(lines, l)
                 alpha, beta, gamma = [np.radians(float(phi))
                                       for phi in tokens[0:3]]
@@ -479,15 +496,18 @@ def read_castep_cell(fd, index=None):
             elif block_name in ('POSITIONS_ABS',
                                 'POSITIONS_FRAC') and not have_pos:
                 pos_frac = (block_name == 'POSITIONS_FRAC')
+                u = 1.0
                 if not pos_frac:
                     # Check for units
                     l_start = l
                     tokens, l = get_tokens(lines, l)
                     if len(tokens) == 1:
-                        print(
-                            'read_cell: Warning - ignoring unit specifier in')
-                        print(
-                            '%BLOCK POSITIONS_ABS(assuming Angstrom instead)')
+                        u = cell_units.get(tokens[0], 1)
+                        if tokens[0] not in cell_units:
+                            print('read_cell: Warning - ignoring invalid unit '
+                                  'specifier in %BLOCK POSITIONS_ABS '
+                                  '(assuming Angstrom instead)')
+                        tokens, l = get_tokens(lines, l)
                     else:
                         l = l_start
                 # fix to be able to read initial spin assigned on the atoms
@@ -502,7 +522,7 @@ def read_castep_cell(fd, index=None):
                     spec.append(elem)
                     if custom_species is not None:
                         custom_species.append(tokens[0])
-                    pos.append([float(p) for p in tokens[1:4]])
+                    pos.append([float(p)*u for p in tokens[1:4]])
                     if len(tokens) > 4:
                         get_add_info(add_info_arrays, tokens[4])
                     else:
