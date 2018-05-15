@@ -1,38 +1,36 @@
-import os
 import socket
-from subprocess import check_call
 
 import numpy as np
 
 
 class IPIProtocol:
-    requests = {'POSDATA', 'GETFORCE', 'STATUS'}  # 'INIT' not implemented
+    statements = {'POSDATA', 'GETFORCE', 'STATUS'}  # 'INIT' not implemented
     responses = {'READY', 'FORCEREADY'}  # 'NEEDINIT' not implemented
 
     def __init__(self, socket):
         self.socket = socket
 
-    def sendheader(self, msg):
-        """Send header"""
-        assert msg in self.requests, msg
+    def sendmsg(self, msg):
+        assert msg in self.statements, msg
         msg = msg.encode('ascii').ljust(12)
         self.socket.sendall(msg)
 
-    def recvheader(self):
+    def recvmsg(self):
         msg = self.socket.recv(12)
         msg = msg.rstrip().decode('ascii')
         assert msg in self.responses, msg
         return msg
 
     def send(self, a, dtype):
-        b = np.asarray(a, dtype).tobytes()
-        self.socket.sendall(b)
+        buf = np.asarray(a, dtype).tobytes()
+        self.socket.sendall(buf)
 
     def recv(self, shape, dtype):
         a = np.empty(shape, dtype)
         nbytes = np.dtype(dtype).itemsize * np.prod(shape)
         buf = self.socket.recv(nbytes)
         a.flat[:] = np.frombuffer(buf, dtype=dtype)
+        assert np.isfinite(a).all()
         return a
 
     def sendposdata(self, cell, icell, positions):
@@ -40,27 +38,29 @@ class IPIProtocol:
         assert icell.size == 9
         assert positions.size % 3 == 0
 
-        self.sendheader('POSDATA')
+        self.sendmsg('POSDATA')
         self.send(cell, np.float64)
         self.send(icell, np.float64)
         self.send(len(positions), np.int32)
         self.send(positions, np.float64)
 
     def sendrecv_force(self):
-        self.sendheader('GETFORCE')
-        msg = self.recvheader()
+        self.sendmsg('GETFORCE')
+        msg = self.recvmsg()
         assert msg == 'FORCEREADY', msg
         e = self.recv(1, np.float64)[0]
         natoms = self.recv(1, np.int32)
+        assert natoms >= 0
         forces = self.recv((int(natoms), 3), np.float64)
         virial = self.recv((3, 3), np.float64)
         nmorebytes = self.recv(1, np.int32)
+        assert nmorebytes >= 0
         morebytes = self.recv(int(nmorebytes), np.byte)
         return e, forces, virial, morebytes
 
     def status(self):
-        self.sendheader('STATUS')
-        msg = self.recvheader()
+        self.sendmsg('STATUS')
+        msg = self.recvmsg()
         return msg
 
 
@@ -80,7 +80,7 @@ def main():
     import subprocess
 
     print('popen')
-    proc = subprocess.Popen(['cp2k', 'in.cp2k'])
+    subprocess.Popen(['cp2k', 'in.cp2k'])
 
     print('accept')
     clientsocket, address = serversocket.accept()
