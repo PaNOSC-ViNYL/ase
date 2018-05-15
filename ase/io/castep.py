@@ -613,7 +613,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
                     calc.__setattr__(block_name, (rotations, translations))
 
             else:
-                warnings.warn('Warning: the keyword %s is not' % block_name
+                warnings.warn('Warning: the keyword %s is not' % block_name +
                               ' interpreted in cell files')
                 # Just collect all lines
                 block_lines = []
