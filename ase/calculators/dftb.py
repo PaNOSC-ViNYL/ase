@@ -36,6 +36,7 @@ import os
 import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
+from ase.units import Hartree, Bohr
 
 
 class Dftb(FileIOCalculator):
@@ -201,7 +202,6 @@ class Dftb(FileIOCalculator):
         """ all results are read from results.tag file
             It will be destroyed after it is read to avoid
             reading it once again after some runtime error """
-        from ase.units import Hartree, Bohr
 
         myfile = open(os.path.join(self.directory, 'results.tag'), 'r')
         self.lines = myfile.readlines()
@@ -210,11 +210,7 @@ class Dftb(FileIOCalculator):
         self.atoms = self.atoms_input
         charges = self.read_charges()
         self.results['charges'] = charges
-        energy = 0.0
-        forces = None
-        energy = self.read_energy()
         forces = self.read_forces()
-        self.results['energy'] = energy
         self.results['forces'] = forces
         self.mmpositions = None
         # stress stuff begins
@@ -238,20 +234,6 @@ class Dftb(FileIOCalculator):
 
         # calculation was carried out with atoms written in write_input
         os.remove(os.path.join(self.directory, 'results.tag'))
-
-    def read_energy(self):
-        """Read Energy from dftb output file (results.tag)."""
-        from ase.units import Hartree
-        # Energy line index
-        for iline, line in enumerate(self.lines):
-            estring = 'total_energy'
-            if line.find(estring) >= 0:
-                index_energy = iline + 1
-                break
-        try:
-            return float(self.lines[index_energy].split()[0]) * Hartree
-        except:
-            raise RuntimeError('Problem in reading energy')
 
     def read_forces(self):
         """Read Forces from dftb output file (results.tag)."""
@@ -282,6 +264,12 @@ class Dftb(FileIOCalculator):
         infile = open(os.path.join(self.directory, 'detailed.out'), 'r')
         lines = infile.readlines()
         infile.close()
+
+        for line in lines:
+            if line.startswith('Total energy:'):
+                energy = float(line.split()[2]) * Hartree
+                self.results['energy'] = energy
+                break
 
         qm_charges = []
         for n, line in enumerate(lines):
