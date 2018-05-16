@@ -59,3 +59,66 @@ class Espresso(FileIOCalculator):
     def read_results(self):
         output = io.read(self.label + '.pwo')
         self.results = output.calc.results
+
+
+class IPIServer:
+    port = 27182
+    def __init__(self, process_args):
+        import socket
+        from ase.calculators.ipi import IPIProtocol
+        from subprocess import Popen
+        self._closed = False
+        self.serversocket = socket.socket(socket.AF_INET)
+        self.serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.serversocket.bind(('localhost', self.port))
+        self.serversocket.listen(1)
+
+        self.proc = Popen(process_args, shell=True)
+        self.clientsocket, self.address = self.serversocket.accept()
+        self.ipi = IPIProtocol(self.clientsocket)
+
+    def close(self):
+        import socket
+        # Proper way to close sockets?
+        self.ipi.end()
+        self.clientsocket.shutdown(socket.SHUT_RDWR)
+        self.serversocket.shutdown(socket.SHUT_RDWR)
+        self._closed = True
+        self.proc.wait()
+
+    def calculate(self, atoms):
+        return self.ipi.calculate(atoms.positions, atoms.cell)
+
+    def __del__(self):
+        print(self.proc)
+        print(self.proc.wait())
+    #def __del__(self):
+    #    if not self._closed:
+    #        self.close()
+
+
+from ase.calculators.calculator import all_changes
+class IPIEspresso(Espresso):
+    ipi_changes = {'positions', 'cell'}
+
+    def __init__(self, *args, **kwargs):
+        kwargs.update()
+        Espresso.__init__(self, *args, **kwargs)
+        self.ipi = None
+
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=all_changes):
+        print(system_changes)
+        if any(change not in self.ipi_changes for change in system_changes):
+            print('IPI=NONE')
+            self.ipi = None
+
+        if self.ipi is None:
+            #self.write_input(atoms, properties=properties,
+            #                 system_changes=system_changes)
+            #cmd = self.command.replace('PREFIX', self.prefix)
+            #print('NEW IPI SERVER')
+            self.ipi = IPIServer('pw.x < pw.in --ipi localhost:27182')
+
+        results = self.ipi.calculate(atoms)
+        self.results.update(results)
