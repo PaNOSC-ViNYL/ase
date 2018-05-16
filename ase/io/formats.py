@@ -94,6 +94,7 @@ all_formats = {
     'mol': ('MDL Molfile', '1F'),
     'mustem': ('muSTEM xtl file', '1F'),
     'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
+    'nomad-json': ('JSON from Nomad archive', '+F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
