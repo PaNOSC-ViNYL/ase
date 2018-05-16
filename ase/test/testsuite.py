@@ -136,12 +136,21 @@ def runtests_subprocess(task_queue, result_queue):
             #    Probably they contain a reference to a module or something.
             #  * gui/run may deadlock for unknown reasons in subprocess
 
-            if test in ['doctests.py', 'gui/run.py']:
+            if test in ['bandstructure.py', 'doctests.py', 'gui/run.py',
+                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
 
             result = run_single_test(test)
+
+            # Any subprocess that uses multithreading is unsafe in
+            # subprocesses due to a fork() issue:
+            #   https://gitlab.com/ase/ase/issues/244
+            # Matplotlib uses multithreading and we must therefore make sure
+            # that any test which imports matplotlib runs on master.
+            # Hence check whether matplotlib was somehow imported:
+            assert 'matplotlib' not in sys.modules, test
             result_queue.put(result)
 
     except KeyboardInterrupt:
