@@ -42,17 +42,16 @@ zpos = cos(134.3 / 2.0 * pi / 180.0) * 1.197
 xpos = sin(134.3 / 2.0 * pi / 180.0) * 1.19
 co = Atoms('CO', positions=[(-xpos + 1.2, 0, -zpos),
                             (-xpos + 1.2, -1.1, -zpos)])
-slab = fcc111('Au', size=(2, 2, 2), orthogonal=True)
+slab = fcc111('Al', size=(2, 2, 2), orthogonal=True)
 add_adsorbate(slab, co, 1.5, 'bridge')
 slab.center(vacuum=6, axis=2)
 slab.set_pbc((True, True, False))
 constraint = FixAtoms(mask=[a.tag == 2 for a in slab])
 slab.set_constraint(constraint)
-systems.append((slab, 'CO on Au(111) surface'))
+systems.append((slab, 'CO on Al(111) surface'))
 
 #
 atoms = Atoms(symbols='C5H12',
-              pbc=[False, False, False],
               cell=[16.83752497, 12.18645905, 11.83462179],
               positions=[[5.90380523, 5.65545388, 5.91569796],
                          [7.15617518, 6.52907738, 5.91569796],
@@ -75,11 +74,11 @@ systems.append((atoms, 'Pentane molecule'))
 
 #
 slab = fcc100('Cu', size=(2, 2, 2), vacuum=3.5)
-add_adsorbate(slab, 'C', 1.5, 'hollow')
+add_adsorbate(slab, 'O', 1.5, 'hollow')
 mask = [a.tag > 1 for a in slab]
 constraint = FixAtoms(mask=mask)
 slab.set_constraint(constraint)
-systems.append((slab, 'C/Cu(100)'))
+systems.append((slab, 'O/Cu(100)'))
 
 
 def create_database():
