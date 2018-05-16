@@ -137,7 +137,7 @@ def runtests_subprocess(task_queue, result_queue):
             #  * gui/run may deadlock for unknown reasons in subprocess
 
             if test in ['bandstructure.py', 'doctests.py', 'gui/run.py',
-                        'matplotlib_plot.py', 'fio/oi.py']:
+                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
