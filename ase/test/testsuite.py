@@ -137,7 +137,8 @@ def runtests_subprocess(task_queue, result_queue):
             #  * gui/run may deadlock for unknown reasons in subprocess
 
             if test in ['bandstructure.py', 'doctests.py', 'gui/run.py',
-                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py']:
+                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py',
+                        'db/db_web.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
@@ -214,7 +215,7 @@ def runtests_parallel(nprocs, tests):
     except BaseException as err:
         for proc in procs:
             proc.terminate()
-        traceback.print_exc()
+        raise
     finally:
         for proc in procs:
             proc.join()
