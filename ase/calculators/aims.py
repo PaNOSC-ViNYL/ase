@@ -411,7 +411,7 @@ class Aims(FileIOCalculator):
                      'List of parameters used to initialize the calculator:',
                      ]:
             output.write('# ' + line + '\n')
-        for p,v in self.parameters.iteritems():
+        for p, v in self.parameters.items():
             s = '#     {} : {}\n'.format(p, v)
             output.write(s)
         output.write(lim + '\n')
