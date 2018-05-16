@@ -4,14 +4,15 @@ import numpy as np
 
 
 class IPIProtocol:
-    statements = {'POSDATA', 'GETFORCE', 'STATUS'}  # 'INIT' not implemented
-    responses = {'READY', 'FORCEREADY'}  # 'NEEDINIT' not implemented
+    statements = {'POSDATA', 'GETFORCE', 'STATUS', ''}  # 'INIT' not implemented
+    responses = {'READY', 'HAVEDATA', 'FORCEREADY'}  # 'NEEDINIT' not impl.
 
     def __init__(self, socket):
         self.socket = socket
 
     def sendmsg(self, msg):
         assert msg in self.statements, msg
+        # The statement '' means end program.
         msg = msg.encode('ascii').ljust(12)
         self.socket.sendall(msg)
 
@@ -63,6 +64,38 @@ class IPIProtocol:
         msg = self.recvmsg()
         return msg
 
+    def end(self):
+        self.sendmsg('')
+
+    def calculate(self, positions, cell):
+        msg = self.status()
+        assert msg == 'READY', msg
+        icell = np.linalg.pinv(cell).transpose()
+        self.sendposdata(cell, icell, positions)
+        msg = self.status()
+        assert msg == 'HAVEDATA', msg
+        e, forces, stress, morebytes = self.sendrecv_force()
+        r = dict(energy=e,
+                 forces=forces,
+                 stress=stress)
+        if morebytes:
+            r['morebytes'] = morebytes
+        msg = self.status()
+        assert msg == 'READY', msg
+        return r
+
+
+def ipi(process_args):
+    port = 27182
+    serversocket = socket.socket(socket.AF_INET)
+    serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    serversocket.bind(('localhost', port))
+    serversocket.listen(1)
+
+    proc = Popen(process_args)
+    clientsocket, address = serversocket.accept()
+    ipi = IPIProtocol(clientsocket)
+
 
 def main():
     from ase.build import molecule
@@ -102,6 +135,7 @@ def main():
 
     msg = ipi.status()
     assert msg == 'READY', msg
+    ipi.sendmsg('')
 
 if __name__ == '__main__':
     main()
