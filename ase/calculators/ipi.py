@@ -4,13 +4,17 @@ import numpy as np
 
 
 class IPIProtocol:
-    statements = {'POSDATA', 'GETFORCE', 'STATUS', ''}  # 'INIT' not implemented
-    responses = {'READY', 'HAVEDATA', 'FORCEREADY'}  # 'NEEDINIT' not impl.
+    statements = {'POSDATA', 'GETFORCE', 'STATUS', 'INIT', ''}
+    responses = {'READY', 'HAVEDATA', 'FORCEREADY', 'NEEDINIT'}
 
     def __init__(self, socket):
         self.socket = socket
 
+    def log(self, *txt):
+        print('IPI:', *txt)
+
     def sendmsg(self, msg):
+        self.log('  sendmsg', repr(msg))
         assert msg in self.statements, msg
         # The statement '' means end program.
         msg = msg.encode('ascii').ljust(12)
@@ -20,16 +24,19 @@ class IPIProtocol:
         msg = self.socket.recv(12)
         msg = msg.rstrip().decode('ascii')
         assert msg in self.responses, msg
+        self.log('  recvmsg', repr(msg))
         return msg
 
     def send(self, a, dtype):
         buf = np.asarray(a, dtype).tobytes()
+        self.log('  send {} bytes of {}'.format(len(buf), dtype))
         self.socket.sendall(buf)
 
     def recv(self, shape, dtype):
         a = np.empty(shape, dtype)
         nbytes = np.dtype(dtype).itemsize * np.prod(shape)
         buf = self.socket.recv(nbytes)
+        self.recv('  recv {} bytes of {}'.format(len(buf), dtype))
         a.flat[:] = np.frombuffer(buf, dtype=dtype)
         assert np.isfinite(a).all()
         return a
@@ -39,6 +46,7 @@ class IPIProtocol:
         assert icell.size == 9
         assert positions.size % 3 == 0
 
+        self.log(' sendposdata')
         self.sendmsg('POSDATA')
         self.send(cell, np.float64)
         self.send(icell, np.float64)
@@ -46,6 +54,7 @@ class IPIProtocol:
         self.send(positions, np.float64)
 
     def sendrecv_force(self):
+        self.log(' sendrecv_force')
         self.sendmsg('GETFORCE')
         msg = self.recvmsg()
         assert msg == 'FORCEREADY', msg
@@ -60,15 +69,29 @@ class IPIProtocol:
         return e, forces, virial, morebytes
 
     def status(self):
+        self.log(' status')
         self.sendmsg('STATUS')
         msg = self.recvmsg()
         return msg
 
     def end(self):
+        self.log( 'end')
         self.sendmsg('')
 
+    def sendinit(self):
+        self.log(' sendinit')
+        self.sendmsg('INIT')
+        self.send(0, np.int32)  # 'bead index' always zero
+        # number of bits (don't they mean bytes?) in initialization string:
+        self.send(-1, np.int32)
+        self.send(np.empty(0), np.byte)  # initialization string
+
     def calculate(self, positions, cell):
+        self.log('calculate')
         msg = self.status()
+        if msg == 'NEEDINIT':
+            self.sendinit()
+            msg = self.status()
         assert msg == 'READY', msg
         icell = np.linalg.pinv(cell).transpose()
         self.sendposdata(cell, icell, positions)
