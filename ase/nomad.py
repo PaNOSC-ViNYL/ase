@@ -28,8 +28,8 @@ def nmd2dict(uri):
 
 
 def read(fd):
-    dct = json.load(fd)
-    return NomadEntry(dct)
+    dct = json.load(fd, object_hook=lambda dct: NomadEntry(dct))
+    return dct
 
 
 def download(uri):
@@ -52,34 +52,28 @@ def dict2images(d):
             yield atoms
 
 
-class NomadEntry:
+class NomadEntry(dict):
     def __init__(self, dct):
         assert dct['type'] == 'nomad_calculation_2_0'
         assert dct['name'] == 'calculation_context'
         # We could implement NomadEntries that represent sections.
-        self.dct = dct
-
-    @property
-    def uri(self):
-        return self.dct['uri']
+        dict.__init__(self, dct)
 
     @property
     def hash(self):
         # The hash is a string, so not __hash__
-        assert self.dct['uri'].startswith('nmd://')
-        return self.dct['uri'][6:]
+        assert self['uri'].startswith('nmd://')
+        return self['uri'][6:]
 
-    # Which things do we want?
-    @property
-    def gid(self):
-        return self.dct['calculation_gid']
+    def toatoms(self):
+        return section_system2atoms(self)
 
     def iterimages(self):
-        return dict2images(self.dct)
-
+        return dict2images(self)
 
 
 def section_system2atoms(section):
+    assert section['name'] == 'section_system'
     numbers = section['atom_species']
     numbers = np.array(numbers, int)
     numbers[numbers < 0] = 0
