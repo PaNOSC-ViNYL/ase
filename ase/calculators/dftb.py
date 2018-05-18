@@ -134,6 +134,8 @@ class Dftb(FileIOCalculator):
             if key.startswith(s) and len(key) > len(s):
                 break
         else:
+            # User didn't specify max angular mometa.  Get them from
+            # the .skf files:
             symbols = set(self.atoms.get_chemical_symbols())
             for symbol in symbols:
                 path = os.path.join(self.slako_dir,
@@ -374,16 +376,25 @@ class PointChargePotential:
 
 
 def read_max_angular_momentum(path):
+    """Read maximum angular momentum from .skf file.
+
+    See dftb.org for A detailed description of the Slater-Koster file format.
+    """
     with open(path, 'r') as fd:
         line = fd.readline()
         if line[0] == '@':
+            # Extended format
             fd.readline()
             l = 3
             pos = 9
         else:
+            # Simple format:
             l = 2
             pos = 7
+
+        # Sometimes there ar commas, sometimes not:
         line = fd.readline().replace(',', ' ')
+
         occs = [float(f) for f in line.split()[pos:pos + l + 1]]
         for f in occs:
             if f > 0.0:
