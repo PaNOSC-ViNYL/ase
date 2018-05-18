@@ -67,9 +67,9 @@ class Dftb(FileIOCalculator):
         from ase.dft.kpoints import monkhorst_pack
 
         if 'DFTB_PREFIX' in os.environ:
-            slako_dir = os.environ['DFTB_PREFIX']
+            self.slako_dir = os.environ['DFTB_PREFIX']
         else:
-            slako_dir = './'
+            self.slako_dir = './'
 
         # to run Dftb as energy and force calculator use
         # Driver_MaxSteps=0,
@@ -78,7 +78,7 @@ class Dftb(FileIOCalculator):
             self.default_parameters = dict(
                 Hamiltonian_='DFTB',
                 Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+                Hamiltonian_SlaterKosterFiles_Prefix=self.slako_dir,
                 Hamiltonian_SlaterKosterFiles_Separator='"-"',
                 Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
                 Hamiltonian_MaxAngularMomentum_='')
@@ -91,7 +91,7 @@ class Dftb(FileIOCalculator):
                 Driver_MaxForceComponent='1E-4',
                 Driver_MaxSteps=0,
                 Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+                Hamiltonian_SlaterKosterFiles_Prefix=self.slako_dir,
                 Hamiltonian_SlaterKosterFiles_Separator='"-"',
                 Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
                 Hamiltonian_MaxAngularMomentum_='')
@@ -127,10 +127,24 @@ class Dftb(FileIOCalculator):
         outfile.write('} \n')
         outfile.write(' \n')
 
+        params = self.parameters.copy()
+
+        s = 'Hamiltonian_MaxAngularMomentum_'
+        for key in params:
+            if key.startswith(s) and len(key) > len(s):
+                break
+        else:
+            symbols = set(self.atoms.get_chemical_symbols())
+            for symbol in symbols:
+                path = os.path.join(self.slako_dir,
+                                    '{0}-{0}.skf'.format(symbol))
+                l = read_max_angular_momentum(path)
+                params[s + symbol] = '"{}"'.format('spdf'[l])
+
         # --------MAIN KEYWORDS-------
         previous_key = 'dummy_'
         myspace = ' '
-        for key, value in sorted(self.parameters.items()):
+        for key, value in sorted(params.items()):
             current_depth = key.rstrip('_').count('_')
             previous_depth = previous_key.rstrip('_').count('_')
             for my_backsclash in reversed(
@@ -227,9 +241,7 @@ class Dftb(FileIOCalculator):
                     stress.append(cell)
         if have_stress:
             stress = -np.array(stress) * Hartree / Bohr**3
-        elif not have_stress:
-            stress = np.zeros((3, 3))
-        self.results['stress'] = stress
+            self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
         # stress stuff ends
 
         # calculation was carried out with atoms written in write_input
@@ -358,3 +370,20 @@ class PointChargePotential:
             external_forces.append(
                 [float(i) for i in line.split()])
         return np.array(external_forces) * Hartree / Bohr
+
+
+def read_max_angular_momentum(path):
+    with open(path, 'r') as fd:
+        line = fd.readline()
+        if line[0] == '@':
+            fd.readline()
+            l = 3
+            pos = 9
+        else:
+            l = 2
+            pos = 7
+        occs = [float(f) for f in fd.readline().split()[pos:pos + l + 1]]
+        for f in occs:
+            if f > 0.0:
+                return l
+            l -= 1
