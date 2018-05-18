@@ -46,6 +46,9 @@ def dict2images(d):
         systems = run['section_system']
         for system in systems:
             atoms = section_system2atoms(system)
+            atoms.info['nomad_run_gIndex'] = run['gIndex']
+            atoms.info['nomad_system_gIndex'] = system['gIndex']
+            atoms.info['nomad_calculation_uri'] = d['uri']
             yield atoms
 
 
@@ -53,6 +56,7 @@ class NomadEntry:
     def __init__(self, dct):
         assert dct['type'] == 'nomad_calculation_2_0'
         assert dct['name'] == 'calculation_context'
+        # We could implement NomadEntries that represent sections.
         self.dct = dct
 
     @property
