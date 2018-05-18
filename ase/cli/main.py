@@ -7,6 +7,8 @@ from ase import __version__
 from ase.utils import import_module
 
 
+# Important: Following any change to command-line parameters, use
+# python -m ase.cli.completion to update autocompletion.
 commands = [
     ('info', 'ase.cli.info'),
     ('test', 'ase.test'),
