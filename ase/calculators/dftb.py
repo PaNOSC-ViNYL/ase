@@ -383,7 +383,8 @@ def read_max_angular_momentum(path):
         else:
             l = 2
             pos = 7
-        occs = [float(f) for f in fd.readline().split()[pos:pos + l + 1]]
+        line = fd.readline().replace(',', ' ')
+        occs = [float(f) for f in line.split()[pos:pos + l + 1]]
         for f in occs:
             if f > 0.0:
                 return l
