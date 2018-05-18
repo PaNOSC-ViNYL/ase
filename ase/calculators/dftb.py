@@ -67,7 +67,7 @@ class Dftb(FileIOCalculator):
         from ase.dft.kpoints import monkhorst_pack
 
         if 'DFTB_PREFIX' in os.environ:
-            self.slako_dir = os.environ['DFTB_PREFIX']
+            self.slako_dir = os.environ['DFTB_PREFIX'].rstrip('/') + '/'
         else:
             self.slako_dir = './'
 
@@ -222,8 +222,10 @@ class Dftb(FileIOCalculator):
         myfile.close()
 
         self.atoms = self.atoms_input
-        charges = self.read_charges()
-        self.results['charges'] = charges
+        charges, energy = self.read_charges_and_energy()
+        if charges is not None:
+            self.results['charges'] = charges
+        self.results['energy'] = energy
         forces = self.read_forces()
         self.results['forces'] = forces
         self.mmpositions = None
@@ -269,7 +271,7 @@ class Dftb(FileIOCalculator):
         except:
             raise RuntimeError('Problem in reading forces')
 
-    def read_charges(self):
+    def read_charges_and_energy(self):
         """Get partial charges on atoms
             in case we cannot find charges they are set to None
         """
@@ -280,7 +282,6 @@ class Dftb(FileIOCalculator):
         for line in lines:
             if line.startswith('Total energy:'):
                 energy = float(line.split()[2]) * Hartree
-                self.results['energy'] = energy
                 break
 
         qm_charges = []
@@ -291,12 +292,12 @@ class Dftb(FileIOCalculator):
         else:
             # print('Warning: did not find DFTB-charges')
             # print('This is ok if flag SCC=NO')
-            return None
+            return None, energy
         lines1 = lines[chargestart:(chargestart + len(self.atoms))]
         for line in lines1:
             qm_charges.append(float(line.split()[-1]))
 
-        return np.array(qm_charges)
+        return np.array(qm_charges), energy
 
     def get_charges(self, atoms):
         """ Get the calculated charges
