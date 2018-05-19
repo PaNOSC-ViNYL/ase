@@ -2,9 +2,12 @@ import socket
 
 import numpy as np
 
+import ase.units as units
+
 
 class IPIProtocol:
     statements = {'POSDATA', 'GETFORCE', 'STATUS', 'INIT', ''}
+    # The statement '' means end program.
     responses = {'READY', 'HAVEDATA', 'FORCEREADY', 'NEEDINIT'}
 
     def __init__(self, socket):
@@ -16,7 +19,6 @@ class IPIProtocol:
     def sendmsg(self, msg):
         self.log('  sendmsg', repr(msg))
         assert msg in self.statements, msg
-        # The statement '' means end program.
         msg = msg.encode('ascii').ljust(12)
         self.socket.sendall(msg)
 
@@ -29,15 +31,17 @@ class IPIProtocol:
 
     def send(self, a, dtype):
         buf = np.asarray(a, dtype).tobytes()
-        self.log('  send {} bytes of {}'.format(len(buf), dtype))
+        self.log('  send {}'.format(np.array(a).ravel().tolist()))
+        #self.log('  send {} bytes of {}'.format(len(buf), dtype))
         self.socket.sendall(buf)
 
     def recv(self, shape, dtype):
         a = np.empty(shape, dtype)
         nbytes = np.dtype(dtype).itemsize * np.prod(shape)
         buf = self.socket.recv(nbytes)
-        self.recv('  recv {} bytes of {}'.format(len(buf), dtype))
+        #self.log('  recv {} bytes of {}'.format(len(buf), dtype))
         a.flat[:] = np.frombuffer(buf, dtype=dtype)
+        self.log('  recv {}'.format(a.ravel().tolist()))
         assert np.isfinite(a).all()
         return a
 
@@ -48,10 +52,10 @@ class IPIProtocol:
 
         self.log(' sendposdata')
         self.sendmsg('POSDATA')
-        self.send(cell, np.float64)
-        self.send(icell, np.float64)
+        self.send(cell / units.Bohr, np.float64)
+        self.send(icell / units.Bohr, np.float64)
         self.send(len(positions), np.int32)
-        self.send(positions, np.float64)
+        self.send(positions / units.Bohr, np.float64)
 
     def sendrecv_force(self):
         self.log(' sendrecv_force')
@@ -66,7 +70,8 @@ class IPIProtocol:
         nmorebytes = self.recv(1, np.int32)
         assert nmorebytes >= 0
         morebytes = self.recv(int(nmorebytes), np.byte)
-        return e, forces, virial, morebytes
+        return (e * units.Ha, units.Ha / units.Bohr * forces,
+                units.Ha / units.Bohr**3 * virial, morebytes)
 
     def status(self):
         self.log(' status')
@@ -103,21 +108,110 @@ class IPIProtocol:
                  stress=stress)
         if morebytes:
             r['morebytes'] = morebytes
-        msg = self.status()
-        assert msg == 'READY', msg
+        #msg = self.status()
+        #assert msg == 'READY', msg
         return r
 
 
-def ipi(process_args):
-    port = 27182
-    serversocket = socket.socket(socket.AF_INET)
-    serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    serversocket.bind(('localhost', port))
-    serversocket.listen(1)
+class IPIServer:
+    def __init__(self, process_args, host='localhost', port=31415):
+        import socket
+        self.host = host
+        self.port = port
+        from ase.calculators.ipi import IPIProtocol
+        from subprocess import Popen
+        self._closed = False
+        self.serversocket = socket.socket(socket.AF_INET)
+        self.serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.serversocket.bind((host, self.port))
+        self.serversocket.listen(1)
+        print('listening for ipi connection on {}:{}'.format(host, port))
 
-    proc = Popen(process_args)
-    clientsocket, address = serversocket.accept()
-    ipi = IPIProtocol(clientsocket)
+        print('run', process_args)
+        self.proc = Popen(process_args, shell=True)
+        print('accept')
+        self.clientsocket, self.address = self.serversocket.accept()
+        print('accept ok')
+        self.ipi = IPIProtocol(self.clientsocket)
+
+    def close(self):
+        if self._closed:
+            return
+
+        self._closed = True
+
+        import socket
+        # Proper way to close sockets?
+        if hasattr(self, 'ipi') and self.ipi is not None:
+            self.ipi.end()
+            self.ipi = None
+        if hasattr(self, 'proc'):
+            exitcode = self.proc.wait()
+            print('subproc exitcode {}'.format(exitcode))
+        if hasattr(self, 'clientsocket'):
+            self.clientsocket.shutdown(socket.SHUT_RDWR)
+        if hasattr(self, 'serversocket'):
+            self.serversocket.shutdown(socket.SHUT_RDWR)
+
+    def calculate(self, atoms):
+        return self.ipi.calculate(atoms.positions, atoms.cell)
+
+
+from ase.calculators.calculator import Calculator, all_changes
+class IPICalculator(Calculator):
+    implemented_properties = ['energy', 'forces', 'stress']
+    ipi_supported_changes = {'positions', 'cell'}
+
+    def __init__(self, calc, host='localhost', port=31415):
+        Calculator.__init__(self)
+        self.calc = calc
+        self.host = host
+        self.port = port
+        self.ipi = None
+
+    def todict(self):
+        return {'type': 'calculator',
+                'name': 'ipi',
+                'calculator': self.calc.todict()}
+
+    def calculate(self, atoms=None, properties=['energy'],
+                  system_changes=all_changes):
+        print('CALCULATE', system_changes)
+        bad = [change for change in system_changes
+               if change not in self.ipi_supported_changes]
+
+        if self.ipi is not None and any(bad):
+            from ase.calculators.calculator import PropertyNotImplementedError
+            raise PropertyNotImplementedError(
+                'Cannot change {} through IPI protocol.  '
+                'Please create new IPI calculator.'
+                .format(bad if len(bad) > 1 else bad[0]))
+
+        if self.ipi is None:
+            cmd = self.calc.command
+            cmd = cmd.format(host=self.host, port=self.port,
+                             prefix=self.calc.prefix)
+            self.calc.write_input(atoms, properties=properties,
+                                  system_changes=system_changes)
+            self.ipi = IPIServer(cmd, port=self.port, host=self.host)
+
+        self.atoms = atoms.copy()
+        results = self.ipi.calculate(atoms)
+        self.results.update(results)
+
+    def close(self):
+        if self.ipi is not None:
+            self.ipi.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def __del__(self):
+        self.close()
+
 
 
 def main():
