@@ -1,20 +1,29 @@
 import socket
+from subprocess import Popen
 
 import numpy as np
 
+from ase.calculators.calculator import (Calculator, all_changes,
+                                        PropertyNotImplementedError)
 import ase.units as units
 
 
 class IPIProtocol:
+    """Communication using IPI protocol."""
+
     statements = {'POSDATA', 'GETFORCE', 'STATUS', 'INIT', ''}
     # The statement '' means end program.
     responses = {'READY', 'HAVEDATA', 'FORCEREADY', 'NEEDINIT'}
 
-    def __init__(self, socket):
+    def __init__(self, socket, txt=None):
         self.socket = socket
 
-    def log(self, *txt):
-        print('IPI:', *txt)
+        if txt is None:
+            log = lambda *args: None
+        else:
+            def log(*args):
+                print('IPI:', *args, file=txt)
+        self.log = log
 
     def sendmsg(self, msg):
         self.log('  sendmsg', repr(msg))
@@ -31,17 +40,17 @@ class IPIProtocol:
 
     def send(self, a, dtype):
         buf = np.asarray(a, dtype).tobytes()
-        self.log('  send {}'.format(np.array(a).ravel().tolist()))
-        #self.log('  send {} bytes of {}'.format(len(buf), dtype))
+        #self.log('  send {}'.format(np.array(a).ravel().tolist()))
+        self.log('  send {} bytes of {}'.format(len(buf), dtype))
         self.socket.sendall(buf)
 
     def recv(self, shape, dtype):
         a = np.empty(shape, dtype)
         nbytes = np.dtype(dtype).itemsize * np.prod(shape)
         buf = self.socket.recv(nbytes)
-        #self.log('  recv {} bytes of {}'.format(len(buf), dtype))
+        self.log('  recv {} bytes of {}'.format(len(buf), dtype))
         a.flat[:] = np.frombuffer(buf, dtype=dtype)
-        self.log('  recv {}'.format(a.ravel().tolist()))
+        #self.log('  recv {}'.format(a.ravel().tolist()))
         assert np.isfinite(a).all()
         return a
 
@@ -108,18 +117,13 @@ class IPIProtocol:
                  stress=stress)
         if morebytes:
             r['morebytes'] = morebytes
-        #msg = self.status()
-        #assert msg == 'READY', msg
         return r
 
 
 class IPIServer:
     def __init__(self, process_args, host='localhost', port=31415):
-        import socket
         self.host = host
         self.port = port
-        from ase.calculators.ipi import IPIProtocol
-        from subprocess import Popen
         self._closed = False
         self.serversocket = socket.socket(socket.AF_INET)
         self.serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -140,7 +144,6 @@ class IPIServer:
 
         self._closed = True
 
-        import socket
         # Proper way to close sockets?
         if hasattr(self, 'ipi') and self.ipi is not None:
             self.ipi.end()
@@ -157,7 +160,6 @@ class IPIServer:
         return self.ipi.calculate(atoms.positions, atoms.cell)
 
 
-from ase.calculators.calculator import Calculator, all_changes
 class IPICalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
     ipi_supported_changes = {'positions', 'cell'}
@@ -181,7 +183,6 @@ class IPICalculator(Calculator):
                if change not in self.ipi_supported_changes]
 
         if self.ipi is not None and any(bad):
-            from ase.calculators.calculator import PropertyNotImplementedError
             raise PropertyNotImplementedError(
                 'Cannot change {} through IPI protocol.  '
                 'Please create new IPI calculator.'
