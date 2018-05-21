@@ -27,14 +27,14 @@ class IPIProtocol:
 
     def sendmsg(self, msg):
         self.log('  sendmsg', repr(msg))
-        assert msg in self.statements, msg
+        #assert msg in self.statements, msg
         msg = msg.encode('ascii').ljust(12)
         self.socket.sendall(msg)
 
     def recvmsg(self):
         msg = self.socket.recv(12)
         msg = msg.rstrip().decode('ascii')
-        assert msg in self.responses, msg
+        #assert msg in self.responses, msg
         self.log('  recvmsg', repr(msg))
         return msg
 
@@ -48,7 +48,10 @@ class IPIProtocol:
         a = np.empty(shape, dtype)
         nbytes = np.dtype(dtype).itemsize * np.prod(shape)
         buf = self.socket.recv(nbytes)
+        assert len(buf) == nbytes, (len(buf), nbytes)
         self.log('  recv {} bytes of {}'.format(len(buf), dtype))
+        #print(np.frombuffer(buf, dtype=dtype))
+        print('GRRR', len(buf), nbytes)
         a.flat[:] = np.frombuffer(buf, dtype=dtype)
         #self.log('  recv {}'.format(a.ravel().tolist()))
         assert np.isfinite(a).all()
@@ -62,9 +65,17 @@ class IPIProtocol:
         self.log(' sendposdata')
         self.sendmsg('POSDATA')
         self.send(cell / units.Bohr, np.float64)
-        self.send(icell / units.Bohr, np.float64)
+        self.send(icell * units.Bohr, np.float64)
         self.send(len(positions), np.int32)
         self.send(positions / units.Bohr, np.float64)
+
+    def recvposdata(self):
+        cell = self.recv((3, 3), np.float64)
+        icell = self.recv((3, 3), np.float64)
+        natoms = self.recv(1, np.int32)
+        natoms = int(natoms)
+        positions = self.recv((natoms, 3), np.float64)
+        return cell * units.Bohr, icell / units.Bohr, positions * units.Bohr
 
     def sendrecv_force(self):
         self.log(' sendrecv_force')
@@ -79,8 +90,24 @@ class IPIProtocol:
         nmorebytes = self.recv(1, np.int32)
         assert nmorebytes >= 0
         morebytes = self.recv(int(nmorebytes), np.byte)
-        return (e * units.Ha, units.Ha / units.Bohr * forces,
-                units.Ha / units.Bohr**3 * virial, morebytes)
+        return (e * units.Ha, (units.Ha / units.Bohr) * forces,
+                (units.Ha / units.Bohr**3) * virial, morebytes)
+
+    def sendforce(self, energy, forces, stress,
+                  morebytes=np.empty(0, dtype=np.byte)):
+        assert np.array([e]).size == 1
+        assert f.shape[1] == 3
+        assert s.shape == (3, 3)
+
+        self.log(' sendforce')
+        self.sendmsg('FORCEREADY')  # mind the units
+        self.send(np.array([e / units.Ha]), np.float64)
+        natoms = len(f)
+        self.send(np.array([natoms]), np.int32)
+        self.send(units.Bohr / units.Ha * f, np.float64)
+        self.send(units.Bohr**3 / units.Ha * s, np.float64)
+        self.send(np.array([len(morebytes)]), np.int32)
+        self.send(morebytes, np.byte)
 
     def status(self):
         self.log(' status')
@@ -121,64 +148,91 @@ class IPIProtocol:
 
 
 class IPIServer:
-    def __init__(self, process_args, host='localhost', port=31415):
+    def __init__(self, process_args=None, host='localhost', port=31415,
+                 log=None):
         self.host = host
         self.port = port
         self._closed = False
         self.serversocket = socket.socket(socket.AF_INET)
         self.serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.serversocket.bind((host, self.port))
+        print('BIND', host, port)
+        self.serversocket.bind((host, port))
         self.serversocket.listen(1)
-        print('listening for ipi connection on {}:{}'.format(host, port))
 
-        print('run', process_args)
-        self.proc = Popen(process_args, shell=True)
-        print('accept')
+        # It should perhaps be possible for process to be launched by user
+        self.proc = None
+        if log and process_args is not None:
+            print('Launch subprocess: {}'.format(process_args), file=log)
+        if process_args is not None:
+            self.proc = Popen(process_args, shell=True)
+        if log:
+            print('Accepting IPI clients on {}:{}'.format(host, port), file=log)
         self.clientsocket, self.address = self.serversocket.accept()
-        print('accept ok')
-        self.ipi = IPIProtocol(self.clientsocket)
+        if log:
+            print('Accepted connection from {}'.format(self.address), file=log)
+
+        self.ipi = IPIProtocol(self.clientsocket, txt=log)
+        self.log = self.ipi.log
 
     def close(self):
         if self._closed:
             return
 
+        self.log('Close IPI server')
         self._closed = True
 
         # Proper way to close sockets?
         if hasattr(self, 'ipi') and self.ipi is not None:
             self.ipi.end()
             self.ipi = None
-        if hasattr(self, 'proc'):
+        if hasattr(self, 'proc') and self.proc is not None:
             exitcode = self.proc.wait()
-            print('subproc exitcode {}'.format(exitcode))
+            #print('subproc exitcode {}'.format(exitcode))
         if hasattr(self, 'clientsocket'):
             self.clientsocket.shutdown(socket.SHUT_RDWR)
         if hasattr(self, 'serversocket'):
             self.serversocket.shutdown(socket.SHUT_RDWR)
+        self.log('IPI server closed')
 
     def calculate(self, atoms):
         return self.ipi.calculate(atoms.positions, atoms.cell)
+
+
+class IPIClient:
+    def __init__(self, host='localhost', port=31415, log=None):
+        self.host = host
+        self.port = port
+
+        sock = socket.socket(socket.AF_INET)
+        sock.connect((host, port))
+        self.ipi = IPIProtocol(sock, txt=log)
+        self.log = self.ipi.log
+
+    def close(self):
+        self.ipi.socket.close()
 
 
 class IPICalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
     ipi_supported_changes = {'positions', 'cell'}
 
-    def __init__(self, calc, host='localhost', port=31415):
+    def __init__(self, calc=None, host='localhost', port=31415, log=None):
         Calculator.__init__(self)
         self.calc = calc
         self.host = host
         self.port = port
         self.ipi = None
+        self.log = log
 
     def todict(self):
-        return {'type': 'calculator',
-                'name': 'ipi',
-                'calculator': self.calc.todict()}
+        d = {'type': 'calculator',
+                'name': 'ipi'}
+        if self.calc is not None:
+            d['calc'] = self.calc.todict()
+        return d
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
-        print('CALCULATE', system_changes)
         bad = [change for change in system_changes
                if change not in self.ipi_supported_changes]
 
@@ -189,12 +243,17 @@ class IPICalculator(Calculator):
                 .format(bad if len(bad) > 1 else bad[0]))
 
         if self.ipi is None:
-            cmd = self.calc.command
-            cmd = cmd.format(host=self.host, port=self.port,
-                             prefix=self.calc.prefix)
-            self.calc.write_input(atoms, properties=properties,
-                                  system_changes=system_changes)
-            self.ipi = IPIServer(cmd, port=self.port, host=self.host)
+            if self.calc is not None:
+                cmd = self.calc.command
+                cmd = cmd.format(host=self.host, port=self.port,
+                                 prefix=self.calc.prefix)
+                self.calc.write_input(atoms, properties=properties,
+                                      system_changes=system_changes)
+            else:
+                cmd = None  # User configures/launches subprocess
+                # (and is responsible for having generated any necessary files)
+            self.ipi = IPIServer(process_args=cmd, port=self.port,
+                                 host=self.host, log=self.log)
 
         self.atoms = atoms.copy()
         results = self.ipi.calculate(atoms)
@@ -212,7 +271,6 @@ class IPICalculator(Calculator):
 
     def __del__(self):
         self.close()
-
 
 
 def main():
