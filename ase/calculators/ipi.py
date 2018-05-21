@@ -51,7 +51,6 @@ class IPIProtocol:
         assert len(buf) == nbytes, (len(buf), nbytes)
         self.log('  recv {} bytes of {}'.format(len(buf), dtype))
         #print(np.frombuffer(buf, dtype=dtype))
-        print('GRRR', len(buf), nbytes)
         a.flat[:] = np.frombuffer(buf, dtype=dtype)
         #self.log('  recv {}'.format(a.ravel().tolist()))
         assert np.isfinite(a).all()
@@ -95,17 +94,17 @@ class IPIProtocol:
 
     def sendforce(self, energy, forces, stress,
                   morebytes=np.empty(0, dtype=np.byte)):
-        assert np.array([e]).size == 1
-        assert f.shape[1] == 3
-        assert s.shape == (3, 3)
+        assert np.array([energy]).size == 1
+        assert forces.shape[1] == 3
+        assert stress.shape == (3, 3)
 
         self.log(' sendforce')
         self.sendmsg('FORCEREADY')  # mind the units
-        self.send(np.array([e / units.Ha]), np.float64)
-        natoms = len(f)
+        self.send(np.array([energy / units.Ha]), np.float64)
+        natoms = len(forces)
         self.send(np.array([natoms]), np.int32)
-        self.send(units.Bohr / units.Ha * f, np.float64)
-        self.send(units.Bohr**3 / units.Ha * s, np.float64)
+        self.send(units.Bohr / units.Ha * forces, np.float64)
+        self.send(units.Bohr**3 / units.Ha * stress, np.float64)
         self.send(np.array([len(morebytes)]), np.int32)
         self.send(morebytes, np.byte)
 
@@ -207,9 +206,48 @@ class IPIClient:
         sock.connect((host, port))
         self.ipi = IPIProtocol(sock, txt=log)
         self.log = self.ipi.log
+        self.closed = False
+
+        self.state = 'READY'
 
     def close(self):
-        self.ipi.socket.close()
+        if not self.closed:
+            self.closed = True
+            self.ipi.socket.close()
+
+    def irun(self, atoms, use_stress=True):
+        try:
+            while True:
+                msg = self.ipi.recvmsg()
+                if msg == '':
+                    self.close()
+                    return
+                elif msg == 'STATUS':
+                    self.ipi.sendmsg(self.state)
+                elif msg == 'POSDATA':
+                    assert self.state == 'READY'
+                    cell, icell, positions = self.ipi.recvposdata()
+                    atoms.cell[:] = cell
+                    atoms.positions[:] = positions
+                    # User may wish to do something with the atoms object now.
+                    yield
+                    energy = atoms.get_potential_energy()
+                    forces = atoms.get_forces()
+                    if use_stress:
+                        stress = atoms.get_stress(voigt=False)
+                    else:
+                        stress = np.zeros((3, 3))
+                    self.state = 'HAVEDATA'
+                elif msg == 'GETFORCE':
+                    assert self.state == 'HAVEDATA', self.state
+                    self.ipi.sendforce(energy, forces, stress)
+                    self.state = 'READY'
+        finally:
+            self.close()
+
+    def run(self, atoms, use_stress=True):
+        for i in self.irun(atoms, use_stress=use_stress):
+            pass
 
 
 class IPICalculator(Calculator):
