@@ -68,14 +68,4 @@ def launch_client_thread():
     return thread
 
 
-import sys
-if len(sys.argv) > 1:
-    arg = sys.argv[1]
-    if arg == 'server':
-        run_server(False)
-    elif arg == 'client':
-        run_client()
-    else:
-        assert 0
-else:
-    run_server()
+run_server()
