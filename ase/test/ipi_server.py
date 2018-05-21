@@ -14,16 +14,18 @@ def getatoms():
     return Icosahedron('Au', 3)
 
 
-def run_server():
+def run_server(launchclient=True):
     atoms = getatoms()
 
     with IPICalculator(log=sys.stdout) as calc:
-        thread = launch_client_thread()
+        if launchclient:
+            thread = launch_client_thread()
         atoms.calc = calc
         opt = BFGS(atoms)
         opt.run()
 
-    thread.join()
+    if launchclient:
+        thread.join()
 
     forces = atoms.get_forces()
     energy = atoms.get_potential_energy()
@@ -66,4 +68,14 @@ def launch_client_thread():
     return thread
 
 
-run_server()
+import sys
+if len(sys.argv) > 1:
+    arg = sys.argv[1]
+    if arg == 'server':
+        run_server(False)
+    elif arg == 'client':
+        run_client()
+    else:
+        assert 0
+else:
+    run_server()

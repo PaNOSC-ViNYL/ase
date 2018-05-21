@@ -1,3 +1,4 @@
+from __future__ import print_function
 import socket
 from subprocess import Popen
 
@@ -23,6 +24,7 @@ class IPIProtocol:
         else:
             def log(*args):
                 print('IPI:', *args, file=txt)
+                txt.flush()
         self.log = log
 
     def sendmsg(self, msg):
@@ -33,6 +35,7 @@ class IPIProtocol:
 
     def recvmsg(self):
         msg = self.socket.recv(12)
+        assert len(msg) == 12, msg
         msg = msg.rstrip().decode('ascii')
         #assert msg in self.responses, msg
         self.log('  recvmsg', repr(msg))
@@ -87,8 +90,12 @@ class IPIProtocol:
         forces = self.recv((int(natoms), 3), np.float64)
         virial = self.recv((3, 3), np.float64)
         nmorebytes = self.recv(1, np.int32)
-        assert nmorebytes >= 0
-        morebytes = self.recv(int(nmorebytes), np.byte)
+        nmorebytes = int(nmorebytes)
+        if nmorebytes > 0:
+            # Receiving 0 bytes will block forever on python2.
+            morebytes = self.recv(nmorebytes, np.byte)
+        else:
+            morebytes = b''
         return (e * units.Ha, (units.Ha / units.Bohr) * forces,
                 (units.Ha / units.Bohr**3) * virial, morebytes)
 
@@ -153,8 +160,8 @@ class IPIServer:
         self.port = port
         self._closed = False
         self.serversocket = socket.socket(socket.AF_INET)
-        self.serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        print('BIND', host, port)
+        self.serversocket.setsockopt(socket.SOL_SOCKET,
+                                     socket.SO_REUSEADDR, 1)
         self.serversocket.bind((host, port))
         self.serversocket.listen(1)
 
@@ -186,7 +193,13 @@ class IPIServer:
             self.ipi = None
         if hasattr(self, 'proc') and self.proc is not None:
             exitcode = self.proc.wait()
-            #print('subproc exitcode {}'.format(exitcode))
+            if exitcode != 0:
+                import warnings
+                # Quantum Espresso seems to always exit with status 128,
+                # even if successful.
+                # Should investigate at some point
+                warnings.warn('Subprocess exited with status {}'
+                              .format(exitcode))
         if hasattr(self, 'clientsocket'):
             self.clientsocket.shutdown(socket.SHUT_RDWR)
         if hasattr(self, 'serversocket'):
@@ -246,7 +259,7 @@ class IPIClient:
             self.close()
 
     def run(self, atoms, use_stress=True):
-        for i in self.irun(atoms, use_stress=use_stress):
+        for _ in self.irun(atoms, use_stress=use_stress):
             pass
 
 
@@ -306,50 +319,3 @@ class IPICalculator(Calculator):
 
     def __exit__(self, type, value, traceback):
         self.close()
-
-    def __del__(self):
-        self.close()
-
-
-def main():
-    from ase.build import molecule
-    atoms = molecule('H2O')
-    atoms.center(vacuum=2.0)
-    atoms.pbc = 1
-
-    port = 27182
-    serversocket = socket.socket(socket.AF_INET)
-    serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    serversocket.bind(('localhost', port))
-    print('listen 1')
-    serversocket.listen(1)
-
-    import subprocess
-
-    print('popen')
-    subprocess.Popen(['cp2k', 'in.cp2k'])
-
-    print('accept')
-    clientsocket, address = serversocket.accept()
-    ipi = IPIProtocol(clientsocket)
-
-    msg = ipi.status()
-    assert msg == 'READY', msg
-    ipi.sendposdata(atoms.cell, atoms.get_reciprocal_cell(),
-                    atoms.positions)
-    msg = ipi.status()
-    assert msg == 'HAVEDATA', msg
-    e, forces, stress, morebytes = ipi.sendrecv_force()
-    print('energy')
-    print(e)
-    print('forces')
-    print(forces)
-    print('stress')
-    print(stress)
-
-    msg = ipi.status()
-    assert msg == 'READY', msg
-    ipi.sendmsg('')
-
-if __name__ == '__main__':
-    main()
