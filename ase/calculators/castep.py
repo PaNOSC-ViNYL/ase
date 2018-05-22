@@ -22,6 +22,7 @@ import re
 import shutil
 import subprocess
 import sys
+import json
 import tempfile
 import time
 
@@ -2318,7 +2319,7 @@ class CastepOption(object):
 
         self.value = value
         self.__doc__ = docstring
-        
+
     def clear(self):
         """Reset the value of the option to None again"""
         self.value = None
@@ -2335,6 +2336,26 @@ class CastepOption(object):
             return False
         else:
             return self.__dict__ == other.__dict__
+
+class CastepOptionDict(object):
+    """A dictionary-like object to hold a set of options for .cell or .param
+    files loaded from a dictionary, for the sake of validation.
+
+    Replaces the old CastepCellDict and CastepParamDict that were defined in
+    the castep_keywords.py file.
+    """
+
+    def __init__(self, options=None):
+        object.__init__(self)
+        self._options = {}  # ComparableDict is not needed any more as 
+                            # CastepOptions can be compared directly now
+        for kw in options:
+            opt = CastepOption(**options[kw])
+            self.add_option(opt)
+
+    def add_option(self, option):
+        self._options[option.keyword] = option
+        self.__dict__[option.keyword] = option
 
 class CastepParam(object):
 
