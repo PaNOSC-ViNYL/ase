@@ -130,6 +130,7 @@ class IPIProtocol:
         self.sendmsg('INIT')
         self.send(0, np.int32)  # 'bead index' always zero
         # number of bits (don't they mean bytes?) in initialization string:
+        # Why does quantum espresso seem to want -1?  Is that normal?
         self.send(-1, np.int32)
         self.send(np.empty(0), np.byte)  # initialization string
 

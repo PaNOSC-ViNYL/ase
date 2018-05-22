@@ -8,6 +8,15 @@ from ase.calculators.ipi import IPIClient, IPICalculator
 from ase.calculators.emt import EMT
 from ase.optimize import BFGS
 from ase.cluster.icosahedron import Icosahedron
+import os
+
+# If multiple test suites are running, we don't want port clashes.
+# Thus we generate a port from the pid.
+pid = os.getpid()
+# maxpid is commonly 32768, and max port number is 65536.
+# But in case maxpid is much larger for some reason:
+port = (3141 + pid) % 65536
+# We could also use a Unix port perhaps, but not yet implemented
 
 
 def getatoms():
@@ -17,7 +26,7 @@ def getatoms():
 def run_server(launchclient=True):
     atoms = getatoms()
 
-    with IPICalculator(log=sys.stdout) as calc:
+    with IPICalculator(log=sys.stdout, port=port) as calc:
         if launchclient:
             thread = launch_client_thread()
         atoms.calc = calc
@@ -56,7 +65,7 @@ def run_client():
     atoms = getatoms()
     atoms.calc = EMT()
     with open('client.log', 'w') as fd:
-        client = IPIClient(log=fd)
+        client = IPIClient(log=fd, port=port)
         client.run(atoms, use_stress=False)
 
 
