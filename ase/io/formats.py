@@ -542,8 +542,9 @@ def _iread(filename, index, format, io, parallel=None, full_output=False,
 
 
 def parse_filename(filename, index=None):
-    if not isinstance(filename, basestring) or '@' not in filename \
-       or filename.startswith('postgres') and filename.count('@') == 1:
+    if not '.db@' in filename \
+       or not '.json@' in filename \
+       or not filename.startswith('postgres') and filename.count('@') == 2:
         return filename, index
 
     newindex = None
