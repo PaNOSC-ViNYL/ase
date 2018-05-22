@@ -2308,6 +2308,33 @@ def create_castep_keywords(castep_command, filename='castep_keywords.py',
           % (castep_version, processed_options))
     return True
 
+class CastepOption(object):
+    """"A CASTEP option"""
+    def __init__(self, keyword, level, opttype, value=None, 
+                 docstring='No information available'):
+        self.keyword = keyword
+        self.level = level
+        self.type = opttype
+
+        self.value = value
+        self.__doc__ = docstring
+        
+    def clear(self):
+        """Reset the value of the option to None again"""
+        self.value = None
+    def __repr__(self):
+        if self.value:
+            expr = ('Option: {keyword}({type}, {level}):\n{value}\n'
+                    ).format(**self.__dict__)
+        else:
+            expr = ('Option: {keyword}[unset]({type}, {level})'
+                    ).format(**self.__dict__)
+        return expr
+    def __eq__(self, other):
+        if not isinstance(other, CastepOption):
+            return False
+        else:
+            return self.__dict__ == other.__dict__
 
 class CastepParam(object):
 
