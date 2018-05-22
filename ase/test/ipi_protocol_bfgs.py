@@ -53,8 +53,6 @@ def run_normal():
     return atoms
 
 def run_client():
-    import time
-    time.sleep(1)
     atoms = getatoms()
     atoms.calc = EMT()
     with open('client.log', 'w') as fd:
