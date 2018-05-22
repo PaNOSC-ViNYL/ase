@@ -19,6 +19,7 @@ import difflib
 import numpy as np
 import os
 import re
+import glob
 import shutil
 import subprocess
 import sys
@@ -2197,6 +2198,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
                 print('%s -> not assigned to either'
                       ' CELL or PARAMETERS keywords' % option)
 
+            option = option.lower()
             mtyp = match.get('type', None)
             mlvl = match.get('level', None)
             mdoc = match.get('doc', None)
@@ -2212,9 +2214,10 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
             levels = levels.union([mlvl])
 
             processed_options[suffix][option] = {
-                'type': mtyp,
+                'keyword': option,
+                'option_type': mtyp,
                 'level': mlvl,
-                'doc': mdoc
+                'docstring': mdoc
             }
 
             keywords_n += 1
@@ -2241,11 +2244,11 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
 
 class CastepOption(object):
     """"A CASTEP option"""
-    def __init__(self, keyword, level, opttype, value=None, 
+    def __init__(self, keyword, level, option_type, value=None, 
                  docstring='No information available'):
         self.keyword = keyword
         self.level = level
-        self.type = opttype
+        self.type = option_type
 
         self.value = value
         self.__doc__ = docstring
@@ -2283,9 +2286,9 @@ class CastepOptionDict(object):
             opt = CastepOption(**options[kw])
             self.add_option(opt)
 
-    def add_option(self, option):
-        self._options[option.keyword] = option
-        self.__dict__[option.keyword] = option
+    # def add_option(self, option):
+    #     self._options[option.keyword] = option
+    #     self.__dict__[option.keyword] = option
 
 class CastepParam(object):
 
@@ -2697,40 +2700,61 @@ def shell_stdouterr(raw_command, cwd=None):
     return stdout.strip(), stderr.strip()
 
 
-def import_castep_keywords(castep_command=''):
+def import_castep_keywords(castep_command='',
+                           filename='castep_keywords.json',
+                           path='.'):
+
+    # Search for castep_keywords.json (or however it's called) in multiple
+    # paths
+
+    searchpaths = [path, 
+                   os.path.expanduser('~/.ase'),
+                   os.path.join(ase.__path__[0], 'calculators')]
     try:
-        # Adapt import path to give local versions of castep_keywords
-        # a higher priority, assuming that personal folder will be
-        # standardized at ~/.ase, watch [ase-developers]
-        sys.path[:0] = ['',
-                        os.path.expanduser('~/.ase'),
-                        os.path.join(ase.__path__[0], 'calculators')]
-        import castep_keywords
-    except ImportError:
-        print("""    Generating castep_keywords.py ... hang on.
-    The castep_keywords.py contains abstractions for CASTEP input
+        kwfile = sum([glob.glob(os.path.join(sp, filename)) 
+                      for sp in searchpaths], [])[0]
+    except IndexError:
+        print("""    Generating CASTEP keywords JSON file... hang on.
+    The CASTEP keywords JSON file contains abstractions for CASTEP input
     parameters (for both .cell and .param input files), including some
     format checks and descriptions. The latter are extracted from the
     internal online help facility of a CASTEP binary, thus allowing to
     easily keep the calculator synchronized with (different versions of)
     the CASTEP code. Consequently, avoiding licensing issues (CASTEP is
     distributed commercially by accelrys), we consider it wise not to
-    provide castep_keywords.py in the first place.
+    provide the file in the first place.
 """)
-        create_castep_keywords(get_castep_command(castep_command))
-        print("""\n\n    Stored castep_keywords.py in %s.
-                 Copy castep_keywords.py to your
+        create_castep_keywords(get_castep_command(castep_command),
+                               filename=filename, path=path)
+        print("""\n\n    Stored %s in %s.
+                 Copy it to your
     ASE installation under ase/calculators for system-wide installation
-""" % os.path.abspath(os.path.curdir))
+""" % (filename, os.path.abspath(path)))
         print("""\n\n    Using a *nix OS this can be a simple as\nmv %s %s""" %
-              (os.path.join(os.path.abspath(os.path.curdir),
-                            'castep_keywords.py'),
+              (os.path.join(os.path.abspath(path),
+                            filename),
                os.path.join(os.path.dirname(ase.__file__),
                             'calculators')))
+        kwfile = os.path.join(path, filename)
 
-        import castep_keywords
-    finally:
-        del sys.path[:3]
+    # Now create the castep_keywords object proper
+    CastepKeywords = namedtuple('CastepKeywords', 
+                                ['CastepParamDict', 'CastepCellDict', 
+                                 'types', 'levels', 'castep_version'])
+
+    kwdata = json.load(open(kwfile))
+
+    # This is a bit awkward, but it's necessary for backwards compatibility
+    def makeCPD():
+        return CastepOptionDict(kwdata['param'])
+
+    def makeCCD():
+        return CastepOptionDict(kwdata['cell'])
+
+    castep_keywords = CastepKeywords(makeCPD, makeCCD, 
+                                     kwdata['types'], kwdata['levels'], 
+                                     kwdata['castep_version'])
+
     return castep_keywords
 
 
