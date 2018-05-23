@@ -2258,7 +2258,7 @@ class CastepOption(object):
         'real': 'float',
         'integer vector': 'int_vector',
         'real vector': 'float_vector',
-        'physical': 'float',
+        'physical': 'float_physical',
         'block': 'block'
     }
 
@@ -2272,7 +2272,15 @@ class CastepOption(object):
 
     @property
     def value(self):
+        if self.type.lower() in ('integer vector', 'real vector', 'physical'):
+            if self._value:
+                return ' '.join(map(str, self._value))
         return self._value
+
+    @property
+    def raw_value(self):
+        # The value, not converted to a string
+        return self._value    
 
     @value.setter
     def value(self, val):
@@ -2349,6 +2357,32 @@ class CastepOption(object):
 
         return list(value)
 
+    def _parse_float_physical(self, value):
+        # If this is a string containing units, saves them
+        if isinstance(value, basestring):
+            value = value.split()
+
+        try:
+            l = len(value)
+        except TypeError:
+            l = 1
+            value = [value]
+
+        if l == 1:
+            try:
+                value = (float(value[0]), '')
+            except:
+                raise ValueError()
+        elif l == 2:
+            try:
+                value = (float(value[0]), value[1])
+            except:
+                raise ValueError()
+        else:
+            raise ValueError()
+
+        return value
+
     def _parse_block(self, value):
 
         if isinstance(value, basestring):
@@ -2390,10 +2424,6 @@ class CastepOptionDict(object):
             opt = CastepOption(**options[kw])
             self._options[opt.keyword] = opt
             self.__dict__[opt.keyword] = opt
-
-    # def add_option(self, option):
-    #     self._options[option.keyword] = option
-    #     self.__dict__[option.keyword] = option
 
 
 class CastepInputFile(object):
