@@ -174,7 +174,7 @@ Keyword                    Description
                            value.  A RuntimeError will be raised in case
                            multiple files per element are found. Defaults to
                            ``False``.
-``permissivity``           Integer to indicate the level of tolerance to apply
+``keyword_tolerance``      Integer to indicate the level of tolerance to apply
                            validation of any parameters set in the CastepCell
                            or CastepParam objects against the ones found in
                            castep_keywords. Levels are as following:
@@ -413,7 +413,7 @@ End CASTEP Interface Documentation
 
     def __init__(self, directory='CASTEP', label='castep',
                  castep_command=None, check_castep_version=False,
-                 castep_pp_path=None, find_pspots=False, permissivity=1,
+                 castep_pp_path=None, find_pspots=False, keyword_tolerance=1,
                  **kwargs):
 
         self.__name__ = 'Castep'
@@ -427,7 +427,7 @@ End CASTEP Interface Documentation
         try:
             castep_keywords = import_castep_keywords(castep_command)
         except CastepVersionError as e:
-            if permissivity == 0:
+            if keyword_tolerance == 0:
                 raise e
             else:
                 warnings.warn(str(e))
@@ -436,6 +436,7 @@ End CASTEP Interface Documentation
                                                  [],
                                                  [],
                                                  0)
+        self._kw_tol = keyword_tolerance
         self.param = CastepParam(castep_keywords)
         self.cell = CastepCell(castep_keywords)
 
@@ -2467,15 +2468,15 @@ class CastepInputFile(object):
 
     """Master class for CastepParam and CastepCell to inherit from"""
 
-    def __init__(self, options_dict, permissivity=1):
+    def __init__(self, options_dict, keyword_tolerance=1):
         object.__init__(self)
         self._options = options_dict._options
         self.__dict__.update(self._options)
-        # Permissivity means how strict the checks on new attributes are
+        # keyword_tolerance means how strict the checks on new attributes are
         # 0 = no new attributes allowed
         # 1 = new attributes allowed, warning given
         # 2 = new attributes allowed, silent
-        self._perm = np.clip(permissivity, 0, 2)
+        self._perm = np.clip(keyword_tolerance, 0, 2)
 
     def __repr__(self):
         expr = ''
@@ -2486,6 +2487,8 @@ class CastepInputFile(object):
                 expr += ('%20s : %s\n' % (key, option.value))
         if is_default:
             expr = 'Default\n'
+
+        expr += 'Keyword tolerance: {0}'.format(self._perm)
         return expr
 
     def __setattr__(self, attr, value):
@@ -2548,9 +2551,9 @@ class CastepParam(CastepInputFile):
 
     """CastepParam abstracts the settings that go into the .param file"""
 
-    def __init__(self, castep_keywords, permissivity=1):
+    def __init__(self, castep_keywords, keyword_tolerance=1):
         CastepInputFile.__init__(self, castep_keywords.CastepParamDict(),
-                                 permissivity)
+                                 keyword_tolerance)
 
     # .param specific parsers
     def _parse_reuse(self, value):
@@ -2574,9 +2577,9 @@ class CastepCell(CastepInputFile):
 
     """CastepCell abstracts all setting that go into the .cell file"""
 
-    def __init__(self, castep_keywords, permissivity=1):
+    def __init__(self, castep_keywords, keyword_tolerance=1):
         CastepInputFile.__init__(self, castep_keywords.CastepCellDict(),
-                                 permissivity)
+                                 keyword_tolerance)
 
     # .cell specific parsers
     def _parse_species_pot(self, value):
