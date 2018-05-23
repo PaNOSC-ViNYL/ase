@@ -4,7 +4,7 @@ from time import time
 
 import ase.db
 import ase.optimize
-from ase.calculators.calculator import get_calculator
+from ase.calculators.emt import EMT
 from ase.io import Trajectory
 
 
@@ -29,6 +29,7 @@ class Wrapper:
         self.nsteps = 0
         self.atoms = atoms
         self.ready = False
+        self.pos = None
 
     def get_potential_energy(self, force_consistent=False):
         t1 = time()
@@ -51,10 +52,13 @@ class Wrapper:
         return f
 
     def set_positions(self, pos):
-        if self.nsteps == 200:
-            raise RuntimeError('Did not converge!')
+        if self.pos is not None and abs(pos - self.pos).max() > 1e-15:
+            self.ready = False
+            if self.nsteps == 200:
+                raise RuntimeError('Did not converge!')
+
+        self.pos = pos
         self.atoms.set_positions(pos)
-        self.ready = False
 
     def get_positions(self):
         return self.atoms.get_positions()
@@ -111,31 +115,28 @@ def run_test(atoms, optimizer, tag, fmax=0.02):
     return error, wrapper.nsteps, wrapper.texcl, tincl
 
 
-def test_optimizer(systems, optimizer, db=None, verbose=False):
-    for row in systems.select():
+def test_optimizer(systems, optimizer, calculator, prefix='', db=None):
+    for atoms in systems:
+        formula = atoms.get_chemical_formula()
         if db is not None:
             optname = optimizer.__name__
-            id = db.reserve(optimizer=optname, sid=row.id)
+            id = db.reserve(optimizer=optname, name=formula)
             if id is None:
                 continue
-        atoms = row.toatoms()
-        tag = '{}-{}-{}'.format(row.calculator, optname, row.formula)
-        params = row.calculator_parameters
-        atoms.calc = get_calculator(row.calculator)(**params, txt=tag + '.txt')
+        atoms = atoms.copy()
+        tag = '{}{}-{}'.format(prefix, optname, formula)
+        atoms.calc = calculator(txt=tag + '.txt')
         error, nsteps, texcl, tincl = run_test(atoms, optimizer, tag)
 
         if db is not None:
             db.write(atoms,
                      id=id,
                      optimizer=optname,
+                     name=formula,
                      error=error,
                      n=nsteps,
                      t=texcl,
-                     T=tincl,
-                     sid=row.id)
-
-        if verbose:
-            print('.', end='', flush=True)
+                     T=tincl)
 
 
 def main():
@@ -148,7 +149,7 @@ def main():
 
     args = parser.parse_args()
 
-    systems = ase.db.connect(args.systems)
+    systems = [row.toatoms() for row in ase.db.connect(args.systems).select()]
 
     db = ase.db.connect('results.db')
 
@@ -156,10 +157,9 @@ def main():
         args.optimizer = all_optimizers
 
     for opt in args.optimizer:
-        print(opt, end=' ')
+        print(opt)
         optimizer = get_optimizer(opt)
-        test_optimizer(systems, optimizer, db, verbose=True)
-        print(flush=True)
+        test_optimizer(systems, optimizer, EMT, db=db)
 
 
 if __name__ == '__main__':

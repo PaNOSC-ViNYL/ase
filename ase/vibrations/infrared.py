@@ -140,19 +140,10 @@ class Infrared(Vibrations):
     """
     def __init__(self, atoms, indices=None, name='ir', delta=0.01,
                  nfree=2, directions=None):
-        assert nfree in [2, 4]
-        self.atoms = atoms
+        super().__init__(atoms, indices=indices, name=name, delta=delta, nfree=nfree)
         if atoms.constraints:
             print('WARNING! \n Your Atoms object is constrained. '
                   'Some forces may be unintended set to zero. \n')
-        self.calc = atoms.get_calculator()
-        if indices is None:
-            indices = range(len(atoms))
-        self.indices = np.asarray(indices)
-        self.nfree = nfree
-        self.name = name + '-d%.3f' % delta
-        self.delta = delta
-        self.H = None
         if directions is None:
             self.directions = np.asarray([0, 1, 2])
         else:
