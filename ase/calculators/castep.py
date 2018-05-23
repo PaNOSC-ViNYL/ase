@@ -2247,61 +2247,8 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
 
 
 class CastepOption(object):
-    """"A CASTEP option"""
-
-    def __init__(self, keyword, level, option_type, value=None,
-                 docstring='No information available'):
-        self.keyword = keyword
-        self.level = level
-        self.type = option_type
-        self.value = value
-        self.__doc__ = docstring
-
-    def clear(self):
-        """Reset the value of the option to None again"""
-        self.value = None
-
-    def __repr__(self):
-        if self.value:
-            expr = ('Option: {keyword}({type}, {level}):\n{value}\n'
-                    ).format(**self.__dict__)
-        else:
-            expr = ('Option: {keyword}[unset]({type}, {level})'
-                    ).format(**self.__dict__)
-        return expr
-
-    def __eq__(self, other):
-        if not isinstance(other, CastepOption):
-            return False
-        else:
-            return self.__dict__ == other.__dict__
-
-
-class CastepOptionDict(object):
-    """A dictionary-like object to hold a set of options for .cell or .param
-    files loaded from a dictionary, for the sake of validation.
-
-    Replaces the old CastepCellDict and CastepParamDict that were defined in
-    the castep_keywords.py file.
-    """
-
-    def __init__(self, options=None):
-        object.__init__(self)
-        self._options = {}  # ComparableDict is not needed any more as
-        # CastepOptions can be compared directly now
-        for kw in options:
-            opt = CastepOption(**options[kw])
-            self._options[opt.keyword] = opt
-            self.__dict__[opt.keyword] = opt
-
-    # def add_option(self, option):
-    #     self._options[option.keyword] = option
-    #     self.__dict__[option.keyword] = option
-
-
-class CastepInputFile(object):
-
-    """Master class for CastepParam and CastepCell to inherit from"""
+    """"A CASTEP option. It handles basic conversions from string to its value
+    type."""
 
     default_convert_types = {
         'boolean (logical)': 'bool',
@@ -2315,56 +2262,30 @@ class CastepInputFile(object):
         'block': 'block'
     }
 
-    def __init__(self, options_dict):
-        object.__init__(self)
-        self._options = options_dict._options
-        self.__dict__.update(self._options)
+    def __init__(self, keyword, level, option_type, value=None,
+                 docstring='No information available'):
+        self.keyword = keyword
+        self.level = level
+        self.type = option_type
+        self._value = value
+        self.__doc__ = docstring
 
-    def __repr__(self):
-        expr = ''
-        is_default = True
-        for key, option in sorted(self._options.items()):
-            if option.value is not None:
-                is_default = False
-                expr += ('%20s : %s\n' % (key, option.value))
-        if is_default:
-            expr = 'Default\n'
-        return expr
+    @property
+    def value(self):
+        return self._value
 
-    def __setattr__(self, attr, value):
-
-        # Hidden attributes are treated normally
-        if attr.startswith('_'):
-            self.__dict__[attr] = value
-            return
-
-        if attr not in self._options.keys():
-            similars = difflib.get_close_matches(attr, self._options.keys())
-            if similars:
-                raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                                  % (attr, similars[0]))
-            else:
-                raise UserWarning('Option "%s" is not known!' % attr)
-
-        attr = attr.lower()
-        opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, basestring):
-            value = value.replace(':', ' ')                
-
-        # If it is, use the appropriate parser, unless a custom one is defined
-        ctype = self.default_convert_types.get(opt.type.lower(), 'str')
-        attrparse = '_parse_%s' % attr.lower()
+    @value.setter
+    def value(self, val):
+        ctype = self.default_convert_types.get(self.type.lower(), 'str')
         typeparse = '_parse_%s' % ctype
-
         try:
-            if hasattr(self, attrparse):
-                self._options[attr].value = getattr(self, attrparse)(value)
-            elif hasattr(self, typeparse):
-                self._options[attr].value = getattr(self, typeparse)(value)
-            else:
-                raise UserWarning('Invalid type for option "%s"!' % attr)
+            self._value = getattr(self, typeparse)(val)
         except ValueError:
-            raise ConversionError(ctype, attr, value)
+            raise ConversionError(ctype, self.keyword, val)
+
+    def clear(self):
+        """Reset the value of the option to None again"""
+        self.value = None
 
     def _parse_bool(self, value):
         try:
@@ -2385,12 +2306,14 @@ class CastepInputFile(object):
             value = int(value)
         except:
             raise ValueError()
+        return value
 
     def _parse_float(self, value):
         try:
             value = float(value)
         except:
             raise ValueError()
+        return value
 
     def _parse_int_vector(self, value):
         # Accepts either a string or an actual list/numpy array of ints
@@ -2434,6 +2357,92 @@ class CastepInputFile(object):
             return '\n'.join(value) # Arrays of lines
         else:
             raise ValueError()
+
+    def __repr__(self):
+        if self._value:
+            expr = ('Option: {keyword}({type}, {level}):\n{_value}\n'
+                    ).format(**self.__dict__)
+        else:
+            expr = ('Option: {keyword}[unset]({type}, {level})'
+                    ).format(**self.__dict__)
+        return expr
+
+    def __eq__(self, other):
+        if not isinstance(other, CastepOption):
+            return False
+        else:
+            return self.__dict__ == other.__dict__
+
+
+class CastepOptionDict(object):
+    """A dictionary-like object to hold a set of options for .cell or .param
+    files loaded from a dictionary, for the sake of validation.
+
+    Replaces the old CastepCellDict and CastepParamDict that were defined in
+    the castep_keywords.py file.
+    """
+
+    def __init__(self, options=None):
+        object.__init__(self)
+        self._options = {}  # ComparableDict is not needed any more as
+        # CastepOptions can be compared directly now
+        for kw in options:
+            opt = CastepOption(**options[kw])
+            self._options[opt.keyword] = opt
+            self.__dict__[opt.keyword] = opt
+
+    # def add_option(self, option):
+    #     self._options[option.keyword] = option
+    #     self.__dict__[option.keyword] = option
+
+
+class CastepInputFile(object):
+
+    """Master class for CastepParam and CastepCell to inherit from"""
+
+    def __init__(self, options_dict):
+        object.__init__(self)
+        self._options = options_dict._options
+        self.__dict__.update(self._options)
+
+    def __repr__(self):
+        expr = ''
+        is_default = True
+        for key, option in sorted(self._options.items()):
+            if option.value is not None:
+                is_default = False
+                expr += ('%20s : %s\n' % (key, option.value))
+        if is_default:
+            expr = 'Default\n'
+        return expr
+
+    def __setattr__(self, attr, value):
+
+        # Hidden attributes are treated normally
+        if attr.startswith('_'):
+            self.__dict__[attr] = value
+            return
+
+        if attr not in self._options.keys():
+            similars = difflib.get_close_matches(attr, self._options.keys())
+            if similars:
+                raise UserWarning(('Option "%s" not known! You mean "%s"?')
+                                  % (attr, similars[0]))
+            else:
+                raise UserWarning('Option "%s" is not known!' % attr)
+
+        attr = attr.lower()
+        opt = self._options[attr]
+        if not opt.type == 'Block' and isinstance(value, basestring):
+            value = value.replace(':', ' ')                
+
+        # If it is, use the appropriate parser, unless a custom one is defined
+        attrparse = '_parse_%s' % attr.lower()
+
+        if hasattr(self, attrparse):
+            self._options[attr].value = getattr(self, attrparse)(value)
+        else:
+            self._options[attr].value = value
 
     def get_attr_dict(self):
         """Settings that go into .param file in a traditional dict"""
