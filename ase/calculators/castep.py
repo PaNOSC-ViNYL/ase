@@ -2256,6 +2256,7 @@ class CastepOption(object):
     def clear(self):
         """Reset the value of the option to None again"""
         self.value = None
+
     def __repr__(self):
         if self.value:
             expr = ('Option: {keyword}({type}, {level}):\n{value}\n'
@@ -2264,6 +2265,7 @@ class CastepOption(object):
             expr = ('Option: {keyword}[unset]({type}, {level})'
                     ).format(**self.__dict__)
         return expr
+
     def __eq__(self, other):
         if not isinstance(other, CastepOption):
             return False
@@ -2284,7 +2286,8 @@ class CastepOptionDict(object):
                             # CastepOptions can be compared directly now
         for kw in options:
             opt = CastepOption(**options[kw])
-            self.add_option(opt)
+            self._options[opt.keyword] = opt
+            self.__dict__[opt.keyword] = opt
 
     # def add_option(self, option):
     #     self._options[option.keyword] = option
@@ -2745,13 +2748,15 @@ def import_castep_keywords(castep_command='',
     kwdata = json.load(open(kwfile))
 
     # This is a bit awkward, but it's necessary for backwards compatibility
-    def makeCPD():
-        return CastepOptionDict(kwdata['param'])
+    class CastepParamDict(CastepOptionDict):
+        def __init__(self):
+            CastepOptionDict.__init__(self, kwdata['param'])
 
-    def makeCCD():
-        return CastepOptionDict(kwdata['cell'])
+    class CastepCellDict(CastepOptionDict):
+        def __init__(self):
+            CastepOptionDict.__init__(self, kwdata['cell'])
 
-    castep_keywords = CastepKeywords(makeCPD, makeCCD, 
+    castep_keywords = CastepKeywords(CastepParamDict, CastepCellDict, 
                                      kwdata['types'], kwdata['levels'], 
                                      kwdata['castep_version'])
 
