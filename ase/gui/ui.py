@@ -600,26 +600,17 @@ class ASEGUIWindow(MainWindow):
         self.status.pack(side=tk.BOTTOM, fill=tk.X)
 
         right = mouse_buttons.get(3, 3)
+        self.canvas.bind('<ButtonPress>', bind(press))
+        self.canvas.bind('<B1-Motion>', bind(move))
+        self.canvas.bind('<B{right}-Motion>'.format(right=right), bind(move))
+        self.canvas.bind('<ButtonRelease>', bind(release))
+        self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
+        self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
+        self.canvas.bind('<Configure>', resize)
         if not config['swap_mouse']:
-            self.canvas.bind('<ButtonPress>', bind(press))
-            self.canvas.bind('<B1-Motion>', bind(move))
-            self.canvas.bind('<B{right}-Motion>'.format(right=right),
-                             bind(move))
-            self.canvas.bind('<ButtonRelease>', bind(release))
-            self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
-            self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
-            self.canvas.bind('<Configure>', resize)
             self.canvas.bind('<Shift-B{right}-Motion>'.format(right=right),
                              bind(scroll))
         else:
-            self.canvas.bind('<ButtonPress>', bind(press))
-            self.canvas.bind('<B1-Motion>', bind(move))
-            self.canvas.bind('<B{right}-Motion>'.format(right=right),
-                             bind(move))
-            self.canvas.bind('<ButtonRelease>', bind(release))
-            self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
-            self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
-            self.canvas.bind('<Configure>', resize)
             self.canvas.bind('<Shift-B1-Motion>',
                              bind(scroll))
 

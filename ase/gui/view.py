@@ -18,7 +18,7 @@ GREEN = '#74DF00'
 PURPLE = '#AC58FA'
 
 
-def get_cell_coordinates(cell, shifted=False):
+def get_cell_coordinates(cell):
     """Get start and end points of lines segments used to draw cell."""
     nn = []
     for c in range(3):
@@ -46,9 +46,6 @@ def get_cell_coordinates(cell, shifted=False):
         n1 = n2
     B1.shape = (-1, 3)
     B2.shape = (-1, 3)
-    if shifted:
-        B1 -= 0.5
-        B2 -= 0.5
     return B1, B2
 
 
@@ -132,10 +129,15 @@ class View:
         natoms = len(atoms)
 
         if self.showing_cell():
-            B1, B2 = get_cell_coordinates(atoms.cell,
-                                          shifted=self.config['shift_cell'])
+            B1, B2 = get_cell_coordinates(atoms.cell)
         else:
             B1 = B2 = np.zeros((0, 3))
+
+        if self.config['shift_cell']:
+            self.atoms.set_celldisp(
+                -0.5*self.atoms._cell[0][:]
+                -0.5*self.atoms._cell[1][:]
+                -0.5*self.atoms._cell[2][:])
 
         if self.showing_bonds():
             atomscopy = atoms.copy()
@@ -261,6 +263,7 @@ class View:
         P[:n] += 2 * covalent_radii[:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
+        self.center += self.atoms.get_celldisp() / 2
         # Add 30% of whitespace on each side of the atoms
         S = 1.3 * (P2 - P1)
         w, h = self.window.size
@@ -458,8 +461,8 @@ class View:
                     line((X1[a, 0] + disp[0], X1[a, 1] + disp[1],
                           X2[a, 0] + disp[0], X2[a, 1] + disp[1]))
                 else:
-                    line((X1[a, 0] + disp[0], X1[a, 1] + disp[1],
-                          X2[a, 0] + disp[0], X2[a, 1] + disp[1]),
+                    line((X1[a, 0], X1[a, 1],
+                          X2[a, 0], X2[a, 1]),
                          width=bond_linewidth)
 
         if self.window['toggle-show-axes']:
