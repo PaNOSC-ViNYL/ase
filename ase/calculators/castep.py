@@ -2563,195 +2563,27 @@ class CastepCell(CastepInputFile):
                                      for row in op_rot])
             text_block += '\n'
             text_block += ' '.join([str(x) for x in op_tranls])
-            text_block += '\n'
-        value = text_block        
+            text_block += '\n\n'
 
-    """
-    def __setattr__(self, attr, value):
-        if attr.startswith('_'):
-            self.__dict__[attr] = value
-            return
+        return text_block
 
-        if attr not in self._options.keys():
-            similars = difflib.get_close_matches(attr, self._options.keys())
-            if similars:
-                raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                                  % (attr, similars[0]))
-            else:
-                raise UserWarning('Option "%s" is not known!' % attr)
-            return
-        attr = attr.lower()
-        # Handling the many cases where kpoint_ and kpoints_ are treated
-        # equivalently
-        if 'kpoint_' in attr:
-            if attr.replace('kpoint_', 'kpoints_') in self._options:
-                attr = attr.replace('kpoint_', 'kpoints_')
+    def _parse_positions_abs_intermediate(self, value):
+        if not isinstance(value, ase.atoms.Atoms):
+            raise UserWarning('castep.cell.positions_abs_intermediate/product '
+                              'expect Atoms object')
 
-        # CASTEP < 16 lists kpoints_mp_grid as type "Integer" -> convert to
-        # "Integer Vector"
-        if attr == 'kpoints_mp_grid':
-            self._options[attr].type = 'Integer Vector'
+        text_block = 'ang\n'
+        for elem, pos in zip(value.get_chemical_symbols(),
+                             value.get_positions()):
+            text_block += ('    %4s %9.6f %9.6f %9.6f\n' % (elem,
+                                                            pos[0],
+                                                            pos[1],
+                                                            pos[2]))
+        return text_block
 
-        opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, basestring):
-            value = value.replace(':', ' ')
-        if opt.type in ['Boolean (Logical)', 'Defined']:
-            try:
-                value = _tf_table[str(value).title()]
-            except:
-                raise ConversionError('bool', attr, value)
-            self._options[attr].value = value
-        elif opt.type == 'String':
-            if False:
-                pass
-            else:
-                try:
-                    value = str(value)
-                except:
-                    raise ConversionError('str', attr, value)
-            self._options[attr].value = value
-        elif opt.type == 'Integer':
-            try:
-                value = int(value)
-            except:
-                raise ConversionError('int', attr, value)
-            self._options[attr].value = value
-        elif opt.type == 'Real':
-            try:
-                value = float(value)
-            except:
-                raise ConversionError('float', attr, value)
-            self._options[attr].value = value
-        # Newly added "Vector" options
-        elif opt.type == 'Integer Vector':
-            if ',' in value:
-                value = value.replace(',', ' ')
-            if isinstance(value, basestring) and len(value.split()) == 3:
-                try:
-                    [int(x) for x in value.split()]
-                except:
-                    raise ConversionError('int vector', attr, value)
-                opt.value = value
-            else:
-                print('Wrong format for Integer Vector: expected I I I')
-                print('and you said %s' % value)
-        elif opt.type == 'Real Vector':
-            if ',' in value:
-                value = value.replace(',', ' ')
-            if isinstance(value, basestring) and len(value.split()) == 3:
-                try:
-                    [float(x) for x in value.split()]
-                except:
-                    raise ConversionError('float vector', attr, value)
-                opt.value = value
-            else:
-                print('Wrong format for Real Vector: expected R R R')
-                print('and you said %s' % value)
-        elif opt.type == 'Physical':
-            # Usage of the CASTEP unit system is not fully implemented
-            # for now.
-            # We assume, that the user is happy with setting/getting the
-            # CASTEP default units refer to http://goo.gl/bqYf2
-            # page 13, accessed Apr 6, 2011
+    def _parse_positions_abs_product(self, value):
+        return self._positions_abs_intermediate(self, value)
 
-            # However if a unit is present it will be dealt with
-
-            # this crashes if non-string types are passed
-            if isinstance(value, basestring):
-                if len(value.split()) > 1:
-                    value = value.split(' ', 1)[0]
-            try:
-                value = float(value)
-            except:
-                raise ConversionError('float', attr, value)
-            self._options[attr].value = value
-        elif opt.type == 'Block':
-            if attr == 'species_pot':
-                if not isinstance(value, tuple) or len(value) != 2:
-                    print('Please specify pseudopotentials in python as')
-                    print('a tuple, like:')
-                    print('(species, file), e.g. ("O", "path-to/O_OTFG.usp")')
-                    print('Anything else will be ignored')
-                else:
-                    if self.__dict__['species_pot'].value is None:
-                        self.__dict__['species_pot'].value = ''
-                    self.__dict__['species_pot'].value = \
-                        re.sub(r'\n?\s*%s\s+.*' % value[0], '',
-                               self.__dict__['species_pot'].value)
-                    if value[1]:
-                        self.__dict__['species_pot'].value += '\n%s %s' % value
-
-                    # now sort lines as to match the CASTEP output
-                    pspots = self.__dict__['species_pot'].value.split('\n')
-                    # throw out empty lines
-                    pspots = [x for x in pspots if x]
-
-                    # sort based on atomic numbers
-                    pspots.sort(key=lambda x: ase.data.atomic_numbers[
-                        re.split('[\s:]', x, 1)[0]])
-
-                    # rejoin; the first blank-line
-                    # makes the print(calc) output look prettier
-                    self.__dict__['species_pot'].value = \
-                        '\n' + '\n'.join(pspots)
-                    return
-
-            # probably we will support this at some point...
-#            elif attr == 'nonlinear_constraints':
-#                if type(value) is not str:
-#                    print("Please specify nonlinear constraint in python as "
-#                          "a string")
-#                    print("Anything else will be ignored")
-#                else:
-#                    if self.__dict__['nonlinear_constraints'].value is None:
-#                        self._options['nonlinear_constraints'].value = ''
-#                    self.__dict__['nonlinear_constraints'].value = (
-#                        str(self.__dict__['nonlinear_constraints'].value) +
-#                        ' \n')
-#                    self._options[attr].value += value
-#                    return
-
-            elif attr == 'symmetry_ops':
-                if not isinstance(value, tuple) \
-                   or not len(value) == 2 \
-                   or not value[0].shape[1:] == (3, 3) \
-                   or not value[1].shape[1:] == (3,) \
-                   or not value[0].shape[0] == value[1].shape[0]:
-                    print('Invalid symmetry_ops block, skipping')
-                    return
-                # Now on to print...
-                text_block = ''
-                for op_i, (op_rot, op_tranls) in enumerate(zip(*value)):
-                    text_block += '\n'.join([' '.join([str(x) for x in row])
-                                             for row in op_rot])
-                    text_block += '\n'
-                    text_block += ' '.join([str(x) for x in op_tranls])
-                    text_block += '\n'
-                value = text_block
-
-            elif attr in ['positions_abs_intermediate',
-                          'positions_abs_product']:
-                if not isinstance(value, ase.atoms.Atoms):
-                    raise UserWarning('castep.cell.%s expects Atoms object' %
-                                      attr)
-                target = self.__dict__[attr]
-                target.value = ''
-                for elem, pos in zip(value.get_chemical_symbols(),
-                                     value.get_positions()):
-                    target.value += ('%4s %9.6f %9.6f %9.6f\n' % (elem,
-                                                                  pos[0],
-                                                                  pos[1],
-                                                                  pos[2]))
-                return
-            else:
-                # For generic, non-implemented blocks all we want is to
-                # store the lines and reprint them without any changes later
-                value = '\n'.join(value)
-            self._options[attr].value = value
-        else:
-            raise RuntimeError('Caught unhandled option: %s = %s'
-                               % (attr, value))
-    """
 
 class ConversionError(Exception):
 
