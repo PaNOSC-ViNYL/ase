@@ -2546,7 +2546,16 @@ class CastepCell(CastepInputFile):
                 print('Anything else will be ignored')
                 return None
 
-        return [' '.join(pp) for pp in pspots]
+        text_block = self._options['species_pot'].value
+
+        text_block = text_block if text_block else ''
+        # Remove any duplicates
+        for pp in pspots:
+            text_block = re.sub(r'\n?\s*%s\s+.*' % pp[0], '', text_block)
+            if pp[1]:
+                text_block += '\n%s %s' % pp
+
+        return text_block
 
     def _parse_symmetry_ops(self, value):
         if not isinstance(value, tuple) \
