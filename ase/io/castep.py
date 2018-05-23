@@ -614,7 +614,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
                     warnings.warn('Could not identify Spacegroup from '
                                   'SYMMETRY_OPS, skipping')
                 else:
-                    calc.__setattr__(block_name, (rotations, translations))
+                    calc.cell.__setattr__(block_name, (rotations, translations))
 
             else:
                 warnings.warn('Warning: the keyword %s is not' % block_name +
@@ -629,7 +629,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
                         block_lines.append(lines[l-1].strip())
                 if not _fallback:
                     try:
-                        calc.__setattr__(block_name, block_lines)
+                        calc.cell.__setattr__(block_name, block_lines)
                     except:
                         print('Problem setting calc.cell.%s' % (block_name))
                         raise
@@ -638,7 +638,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
             value = ' '.join(tokens[1:])
             if not _fallback:
                 try:
-                    calc.__setattr__(key, value)
+                    calc.cell.__setattr__(key, value)
                 except:
                     print('Problem setting calc.cell.%s = %s' % (key, value))
                     raise

@@ -1,0 +1,20 @@
+Metadata-Version: 1.1
+Name: python-ase
+Version: 3.10.0
+Summary: Atomic Simulation Environment
+Home-page: https://wiki.fysik.dtu.dk/ase
+Author: ASE-community
+Author-email: ase-developers@listserv.fysik.dtu.dk
+License: LGPLv2.1+
+Description: ASE is a python package providing an open source Atomic Simulation
+        Environment in the Python language.
+Platform: linux
+Classifier: Development Status :: 6 - Mature
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Topic :: Scientific/Engineering :: Physics

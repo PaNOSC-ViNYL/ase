@@ -174,6 +174,15 @@ Keyword                    Description
                            value.  A RuntimeError will be raised in case
                            multiple files per element are found. Defaults to
                            ``False``.
+``permissivity``           Integer to indicate the level of tolerance to apply
+                           validation of any parameters set in the CastepCell
+                           or CastepParam objects against the ones found in
+                           castep_keywords. Levels are as following:
+                           0 - no tolerance, keywords not found in 
+                               castep_keywords will raise an exception
+                           1 - keywords not found will be accepted but produce
+                               a warning (default)
+                           2 - keywords not found will be accepted silently
 =========================  ====================================================
 
 
@@ -404,7 +413,7 @@ End CASTEP Interface Documentation
 
     def __init__(self, directory='CASTEP', label='castep',
                  castep_command=None, check_castep_version=False,
-                 castep_pp_path=None, find_pspots=False,
+                 castep_pp_path=None, find_pspots=False, permissivity=1,
                  **kwargs):
 
         self.__name__ = 'Castep'
@@ -415,7 +424,18 @@ End CASTEP Interface Documentation
         from ase.io.castep import write_cell
         self._write_cell = write_cell
 
-        castep_keywords = import_castep_keywords(castep_command)
+        try:
+            castep_keywords = import_castep_keywords(castep_command)
+        except CastepVersionError as e:
+            if permissivity == 0:
+                raise e
+            else:
+                warnings.warn(str(e))
+                castep_keywords = CastepKeywords(make_param_dict(), 
+                                                 make_cell_dict(), 
+                                                 [],
+                                                 [],
+                                                 0)
         self.param = CastepParam(castep_keywords)
         self.cell = CastepCell(castep_keywords)
 
@@ -1926,7 +1946,7 @@ End CASTEP Interface Documentation
                         getattr(self.param, key).value is not None):
                     continue
 
-                self.__setattr__(key, value)
+                self.param.__setattr__(key, value)
                 continue
 
             try:
@@ -1939,7 +1959,7 @@ End CASTEP Interface Documentation
 
             if not overwrite and getattr(self.param, key).value is not None:
                 continue
-            self.__setattr__(key, value)
+            self.param.__setattr__(key, value)
 
         if _close:
             param_file.close()
@@ -2113,7 +2133,7 @@ def get_castep_version(castep_command):
         msg += '     Make sure it is in your PATH\n\n'
         msg += stdout
         msg += stderr
-        raise Exception(msg)
+        raise CastepVersionError(msg)
     if 'CASTEP version' in stdout:
         output_txt = stdout.split('\n')
         version_re = re.compile(r'CASTEP version:\s*([0-9\.]*)')
@@ -2447,10 +2467,15 @@ class CastepInputFile(object):
 
     """Master class for CastepParam and CastepCell to inherit from"""
 
-    def __init__(self, options_dict):
+    def __init__(self, options_dict, permissivity=1):
         object.__init__(self)
         self._options = options_dict._options
         self.__dict__.update(self._options)
+        # Permissivity means how strict the checks on new attributes are
+        # 0 = no new attributes allowed
+        # 1 = new attributes allowed, warning given
+        # 2 = new attributes allowed, silent
+        self._perm = np.clip(permissivity, 0, 2)
 
     def __repr__(self):
         expr = ''
@@ -2471,17 +2496,38 @@ class CastepInputFile(object):
             return
 
         if attr not in self._options.keys():
-            similars = difflib.get_close_matches(attr, self._options.keys())
-            if similars:
-                raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                                  % (attr, similars[0]))
-            else:
-                raise UserWarning('Option "%s" is not known!' % attr)
 
-        attr = attr.lower()
-        opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, basestring):
-            value = value.replace(':', ' ')                
+            if self._perm > 0:
+                # Do we consider it a string or a block?
+                is_str = isinstance(value, basestring)
+                is_block = False
+                if ((hasattr(value, '__getitem__') and not is_str) or 
+                    (is_str and len(value.split('\n')) > 1)):
+                    is_block = True
+
+            if self._perm == 0:
+                similars = difflib.get_close_matches(attr, 
+                                                     self._options.keys())
+                if similars:
+                    raise UserWarning(('Option "%s" not known! You mean "%s"?')
+                                      % (attr, similars[0]))
+                else:
+                    raise UserWarning('Option "%s" is not known!' % attr)
+            elif self._perm == 1:
+                warnings.warn(('Option "%s" is not known and will '
+                               'be added as a %s') % (attr, 
+                               ('block' if is_block else 'string')))
+            attr = attr.lower()
+            opt = CastepOption(keyword=attr, level='Unknown', 
+                               option_type='block' if is_block else 'string')
+            self._options[attr] = opt
+            self.__dict__[attr] = opt
+        else:
+            attr = attr.lower()
+            opt = self._options[attr]
+
+        if not opt.type.lower() == 'block' and isinstance(value, basestring):
+            value = value.replace(':', ' ')
 
         # If it is, use the appropriate parser, unless a custom one is defined
         attrparse = '_parse_%s' % attr.lower()
@@ -2502,8 +2548,9 @@ class CastepParam(CastepInputFile):
 
     """CastepParam abstracts the settings that go into the .param file"""
 
-    def __init__(self, castep_keywords):
-        CastepInputFile.__init__(self, castep_keywords.CastepParamDict())
+    def __init__(self, castep_keywords, permissivity=1):
+        CastepInputFile.__init__(self, castep_keywords.CastepParamDict(),
+                                 permissivity)
 
     # .param specific parsers
     def _parse_reuse(self, value):
@@ -2527,8 +2574,9 @@ class CastepCell(CastepInputFile):
 
     """CastepCell abstracts all setting that go into the .cell file"""
 
-    def __init__(self, castep_keywords):
-        CastepInputFile.__init__(self, castep_keywords.CastepCellDict())
+    def __init__(self, castep_keywords, permissivity=1):
+        CastepInputFile.__init__(self, castep_keywords.CastepCellDict(),
+                                 permissivity)
 
     # .cell specific parsers
     def _parse_species_pot(self, value):
@@ -2593,6 +2641,30 @@ class CastepCell(CastepInputFile):
     def _parse_positions_abs_product(self, value):
         return self._positions_abs_intermediate(self, value)
 
+CastepKeywords = namedtuple('CastepKeywords',
+                            ['CastepParamDict', 'CastepCellDict',
+                             'types', 'levels', 'castep_version'])
+
+# We keep this just for naming consistency with older versions
+def make_cell_dict(data={}):
+
+    class CastepCellDict(CastepOptionDict):
+        def __init__(self):
+            CastepOptionDict.__init__(self, data)
+
+    return CastepCellDict
+
+def make_param_dict(data={}):
+
+    class CastepParamDict(CastepOptionDict):
+        def __init__(self):
+            CastepOptionDict.__init__(self, data)
+
+    return CastepParamDict
+
+class CastepVersionError(Exception):
+    """No special behaviour, works to signal when Castep can not be found"""
+    pass
 
 class ConversionError(Exception):
 
@@ -2686,22 +2758,13 @@ def import_castep_keywords(castep_command='',
         kwfile = os.path.join(path, filename)
 
     # Now create the castep_keywords object proper
-    CastepKeywords = namedtuple('CastepKeywords',
-                                ['CastepParamDict', 'CastepCellDict',
-                                 'types', 'levels', 'castep_version'])
-
     kwdata = json.load(open(kwfile))
 
     # This is a bit awkward, but it's necessary for backwards compatibility
-    class CastepParamDict(CastepOptionDict):
-        def __init__(self):
-            CastepOptionDict.__init__(self, kwdata['param'])
+    param_dict = make_param_dict(kwdata['param'])
+    cell_dict = make_cell_dict(kwdata['cell'])
 
-    class CastepCellDict(CastepOptionDict):
-        def __init__(self):
-            CastepOptionDict.__init__(self, kwdata['cell'])
-
-    castep_keywords = CastepKeywords(CastepParamDict, CastepCellDict,
+    castep_keywords = CastepKeywords(param_dict, cell_dict,
                                      kwdata['types'], kwdata['levels'],
                                      kwdata['castep_version'])
 
