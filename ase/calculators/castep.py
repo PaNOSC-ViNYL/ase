@@ -2254,7 +2254,6 @@ class CastepOption(object):
         self.keyword = keyword
         self.level = level
         self.type = option_type
-
         self.value = value
         self.__doc__ = docstring
 
@@ -2353,7 +2352,7 @@ class CastepInputFile(object):
             value = value.replace(':', ' ')                
 
         # If it is, use the appropriate parser, unless a custom one is defined
-        ctype = self.default_convert_types[opt.type.lower()] # Converted type
+        ctype = self.default_convert_types.get(opt.type.lower(), 'str')
         attrparse = '_parse_%s' % attr.lower()
         typeparse = '_parse_%s' % ctype
 
@@ -2436,27 +2435,38 @@ class CastepInputFile(object):
         else:
             raise ValueError()
 
+    def get_attr_dict(self):
+        """Settings that go into .param file in a traditional dict"""
 
-class CastepParam(object):
+        return {k: o.value 
+                for k, o in self._options.items() if o.value is not None}
+
+
+class CastepParam(CastepInputFile):
 
     """CastepParam abstracts the settings that go into the .param file"""
 
     def __init__(self, castep_keywords):
-        object.__init__(self)
-        castep_param_dict = castep_keywords.CastepParamDict()
-        self._options = castep_param_dict._options
-        self.__dict__.update(self._options)
+        CastepInputFile.__init__(self, castep_keywords.CastepParamDict())
 
-    def __repr__(self):
-        expr = ''
-        if [x for x in self._options.values() if x.value is not None]:
-            for key, option in sorted(self._options.items()):
-                if option.value is not None:
-                    expr += ('%20s : %s\n' % (key, option.value))
-        else:
-            expr += 'Default\n'
-        return expr
+    # .param specific parsers
+    def _parse_reuse(self, value):
+        if self._options['continuation'].value:
+            print('Cannot set reuse if continuation is set, and')
+            print('vice versa. Set the other to None, if you want')
+            print('this setting.')
+            return None
+        return 'default' if (value is True) else str(value)
 
+    def _parse_continuation(self, value):
+        if self._options['reuse'].value:
+            print('Cannot set reuse if continuation is set, and')
+            print('vice versa. Set the other to None, if you want')
+            print('this setting.')
+            return None
+        return 'default' if (value is True) else str(value)
+
+    """
     def __setattr__(self, attr, value):
         if attr.startswith('_'):
             self.__dict__[attr] = value
@@ -2574,12 +2584,7 @@ class CastepParam(object):
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))
-
-    def get_attr_dict(self):
-        """Settings that go into .param file in a traditional dict"""
-
-        return {k: o.value for k, o in self._options.items() if o.value is not None}
-
+    """
 
 class CastepCell(object):
 
