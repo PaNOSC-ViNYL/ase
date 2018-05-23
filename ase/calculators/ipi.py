@@ -97,7 +97,7 @@ class IPIProtocol:
         else:
             morebytes = b''
         return (e * units.Ha, (units.Ha / units.Bohr) * forces,
-                (units.Ha / units.Bohr**3) * virial, morebytes)
+                units.Ha * virial, morebytes)
 
     def sendforce(self, energy, forces, stress,
                   morebytes=np.empty(0, dtype=np.byte)):
@@ -111,7 +111,7 @@ class IPIProtocol:
         natoms = len(forces)
         self.send(np.array([natoms]), np.int32)
         self.send(units.Bohr / units.Ha * forces, np.float64)
-        self.send(units.Bohr**3 / units.Ha * stress, np.float64)
+        self.send(1.0 / units.Ha * stress, np.float64)
         self.send(np.array([len(morebytes)]), np.int32)
         self.send(morebytes, np.byte)
 
@@ -309,6 +309,10 @@ class IPICalculator(Calculator):
 
         self.atoms = atoms.copy()
         results = self.ipi.calculate(atoms)
+        virial = results.pop('stress')
+        vol = atoms.get_volume()
+        from ase.constraints import full_3x3_to_voigt_6_stress
+        results['stress'] = -full_3x3_to_voigt_6_stress(virial) / vol
         self.results.update(results)
 
     def close(self):
