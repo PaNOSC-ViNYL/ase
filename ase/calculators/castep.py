@@ -21,11 +21,12 @@ import os
 import re
 import glob
 import shutil
-import subprocess
 import sys
 import json
-import tempfile
 import time
+import tempfile
+import warnings
+import subprocess
 from copy import deepcopy
 from collections import namedtuple
 
@@ -2207,11 +2208,14 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
             mdoc = match.get('doc', None)
 
             if mtyp is None:
-                raise Exception('Found no type for %s' % option)
+                warnings.warn('Found no type for %s' % option)
+                continue
             if mlvl is None:
-                raise Exception('Found no level for %s' % option)
+                warnings.warn('Found no level for %s' % option)
+                continue
             if mdoc is None:
-                raise Exception('Found no doc string for %s' % option)
+                warnings.warn('Found no doc string for %s' % option)
+                continue
 
             types = types.union([mtyp])
             levels = levels.union([mlvl])
@@ -2229,10 +2233,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
             sys.stdout.flush()
 
         else:
-            sys.stdout.write(doc)
-            sys.stdout.flush()
-
-            raise Exception('create_castep_keywords: Could not process %s'
+            warnings.warn('create_castep_keywords: Could not process %s'
                             % option)
 
     processed_options['types'] = list(types)
@@ -2284,6 +2285,11 @@ class CastepOption(object):
 
     @value.setter
     def value(self, val):
+
+        if val is None:
+            self.clear()
+            return
+
         ctype = self.default_convert_types.get(self.type.lower(), 'str')
         typeparse = '_parse_%s' % ctype
         try:
@@ -2293,7 +2299,7 @@ class CastepOption(object):
 
     def clear(self):
         """Reset the value of the option to None again"""
-        self.value = None
+        self._value = None
 
     def _parse_bool(self, value):
         try:
@@ -2505,147 +2511,51 @@ class CastepParam(CastepInputFile):
             return None
         return 'default' if (value is True) else str(value)
 
-    """
-    def __setattr__(self, attr, value):
-        if attr.startswith('_'):
-            self.__dict__[attr] = value
-            return
-        if attr not in self._options.keys():
-            similars = difflib.get_close_matches(attr, self._options.keys())
-            if similars:
-                raise UserWarning(('Option "%s" not known! You mean "%s"?')
-                                  % (attr, similars[0]))
-            else:
-                raise UserWarning('Option "%s" is not known!' % attr)
-        attr = attr.lower()
-        opt = self._options[attr]
-        if not opt.type == 'Block' and isinstance(value, basestring):
-            value = value.replace(':', ' ')
-        if opt.type in ['Boolean (Logical)', 'Defined']:
-            if False:
-                pass
-            else:
-                try:
-                    value = _tf_table[str(value).title()]
-                except:
-                    raise ConversionError('bool', attr, value)
-                self._options[attr].value = value
-        elif opt.type == 'String':
-            if attr == 'reuse':
-                if self._options['continuation'].value:
-                    print('Cannot set reuse if continuation is set, and')
-                    print('vice versa. Set the other to None, if you want')
-                    print('this setting.')
-                else:
-                    if value is True:
-                        self._options['reuse'].value = 'default'
-                    else:
-                        self._options['reuse'].value = str(value)
-            elif attr == 'continuation':
-                if self._options['reuse'].value:
-                    print('Cannot set continuation if reuse is set, and')
-                    print('vice versa. Set the other to None, if you want')
-                    print('this setting.')
-                else:
-                    if value is True:
-                        self._options['continuation'].value = 'default'
-                    else:
-                        self._options['continuation'].value = str(value)
-            else:
-                try:
-                    value = str(value)
-                except:
-                    raise ConversionError('str', attr, value)
-                self._options[attr].value = value
-        elif opt.type == 'Integer':
-            if False:
-                pass
-            else:
-                try:
-                    value = int(value)
-                except:
-                    raise ConversionError('int', attr, value)
-                self._options[attr].value = value
-        elif opt.type == 'Real':
-            try:
-                value = float(value)
-            except:
-                raise ConversionError('float', attr, value)
-            self._options[attr].value = value
-        # Newly added "Vector" options
-        elif opt.type == 'Integer Vector':
-            # crashes if value is not a string
-            if isinstance(value, basestring):
-                if ',' in value:
-                    value = value.replace(',', ' ')
-            if isinstance(value, basestring) and len(value.split()) == 3:
-                try:
-                    [int(x) for x in value.split()]
-                except:
-                    raise ConversionError('int vector', attr, value)
-                opt.value = value
-            else:
-                print('Wrong format for Integer Vector: expected I I I')
-                print('and you said %s' % value)
-        elif opt.type == 'Real Vector':
-            if ',' in value:
-                value = value.replace(',', ' ')
-            if isinstance(value, basestring) and len(value.split()) == 3:
-                try:
-                    [float(x) for x in value.split()]
-                except:
-                    raise ConversionError('float vector', attr, value)
-                opt.value = value
-            else:
-                print('Wrong format for Real Vector: expected R R R')
-                print('and you said %s' % value)
-        elif opt.type == 'Physical':
-            # Usage of the CASTEP unit system is not fully implemented
-            # for now.
-            # We assume, that the user is happy with setting/getting the
-            # CASTEP default units refer to http://goo.gl/bqYf2
-            # page 13, accessed Apr 6, 2011
 
-            # However if a unit is present it will be dealt with
-
-            # this crashes if non-string types are passed
-            if isinstance(value, basestring):
-                if len(value.split()) > 1:
-                    value = value.split(' ', 1)[0]
-            try:
-                value = float(value)
-            except:
-                raise ConversionError('float', attr, value)
-            self._options[attr].value = value
-
-        elif opt.type in ['Block']:
-            self._options[attr].value = value
-        else:
-            raise RuntimeError('Caught unhandled option: %s = %s'
-                               % (attr, value))
-    """
-
-class CastepCell(object):
+class CastepCell(CastepInputFile):
 
     """CastepCell abstracts all setting that go into the .cell file"""
 
     def __init__(self, castep_keywords):
-        object.__init__(self)
-        castep_cell_dict = castep_keywords.CastepCellDict()
-        self._options = castep_cell_dict._options
-        self.__dict__.update(self._options)
+        CastepInputFile.__init__(self, castep_keywords.CastepCellDict())
 
-    def __repr__(self):
-        expr = ''
-        if [x for x in self._options.values() if x.value is not None]:
-            for key, option in sorted(self._options.items()):
-                if option.value is not None:
-                    expr += ('%20s : %s\n' % (key, option.value))
-        else:
-            expr += 'Default\n'
+    # .cell specific parsers
+    def _parse_species_pot(self, value):
 
-        return expr
+        # Single tuple
+        if isinstance(value, tuple) and len(value) == 2:
+            value = [value]
+        # List of tuples
+        if hasattr(value, '__getitem__'):
+            pspots = [tuple(map(str.strip, x)) for x in value]
+            if not all(map(lambda x: len(x) == 2, value)):
+                print('Please specify pseudopotentials in python as')
+                print('a tuple or a list of tuples formatted like:')
+                print('(species, file), e.g. ("O", "path-to/O_OTFG.usp")')
+                print('Anything else will be ignored')
+                return None
 
+        return [' '.join(pp) for pp in pspots]
+
+    def _parse_symmetry_ops(self, value):
+        if not isinstance(value, tuple) \
+           or not len(value) == 2 \
+           or not value[0].shape[1:] == (3, 3) \
+           or not value[1].shape[1:] == (3,) \
+           or not value[0].shape[0] == value[1].shape[0]:
+            print('Invalid symmetry_ops block, skipping')
+            return
+        # Now on to print...
+        text_block = ''
+        for op_i, (op_rot, op_tranls) in enumerate(zip(*value)):
+            text_block += '\n'.join([' '.join([str(x) for x in row])
+                                     for row in op_rot])
+            text_block += '\n'
+            text_block += ' '.join([str(x) for x in op_tranls])
+            text_block += '\n'
+        value = text_block        
+
+    """
     def __setattr__(self, attr, value):
         if attr.startswith('_'):
             self.__dict__[attr] = value
@@ -2830,12 +2740,7 @@ class CastepCell(object):
         else:
             raise RuntimeError('Caught unhandled option: %s = %s'
                                % (attr, value))
-
-    def get_attr_dict(self):
-        """Settings that go into .cell file in a traditional dict"""
-
-        return {k: o.value for k, o in self._options.items() if o.value is not None}
-
+    """
 
 class ConversionError(Exception):
 
