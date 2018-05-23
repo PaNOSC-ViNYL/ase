@@ -498,9 +498,9 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.set(xc=xc)
 
     def set_atoms(self, atoms):
-        self.atoms = atoms.copy()
         if self.check_state(atoms):
             self.results.clear()
+        self.atoms = atoms.copy()
 
     # Below defines methods for reading output files
     def load_file(self, filename):
