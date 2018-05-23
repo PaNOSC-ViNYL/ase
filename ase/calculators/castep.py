@@ -2178,15 +2178,20 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
     types = set()
     levels = set()
 
-    keywords_n = 0
+    processed_n = 0
+    to_process = len(raw_options[:fetch_only])
+
     processed_options = {sf: {} for sf in suffixes}
-    for option in raw_options[:fetch_only]:
+
+    for o_i, option in enumerate(raw_options[:fetch_only]):
         doc, _ = shell_stdouterr('%s -help %s' % (castep_command, option))
 
         # Stand Back! I know regular expressions (http://xkcd.com/208/) :-)
         match = re.match(r'(?P<before_type>.*)Type: (?P<type>.+?)\s+' +
                          r'Level: (?P<level>[^ ]+)\n\s*\n' +
                          r'(?P<doc>.*?)(\n\s*\n|$)', doc, re.DOTALL)
+
+        processed_n += 1
 
         if match is not None:
             match = match.groupdict()
@@ -2227,14 +2232,20 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
                 'docstring': mdoc
             }
 
-            keywords_n += 1
+            processed_n += 1
 
-            sys.stdout.write('.' + ('\n' if keywords_n % 20 == 0 else ''))
+            frac = (o_i+1.0)/to_process
+            sys.stdout.write('\rProcessed: [{0}] {1:>3.0f}%'.format(
+                             '#'*int(frac*20)+' '*(20-int(frac*20)), 
+                              100*frac))
             sys.stdout.flush()
 
         else:
             warnings.warn('create_castep_keywords: Could not process %s'
                             % option)
+
+    sys.stdout.write('\n')
+    sys.stdout.flush()
 
     processed_options['types'] = list(types)
     processed_options['levels'] = list(levels)
@@ -2243,7 +2254,7 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
     json.dump(processed_options, open(filepath, 'w'), indent=4)
 
     print('\nCASTEP v%s, fetched %s keywords'
-          % (castep_version, keywords_n))
+          % (castep_version, processed_n))
     return True
 
 
