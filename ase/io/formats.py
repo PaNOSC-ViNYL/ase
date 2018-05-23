@@ -542,9 +542,11 @@ def _iread(filename, index, format, io, parallel=None, full_output=False,
 
 
 def parse_filename(filename, index=None):
-    if not '.db@' in filename \
-       or not '.json@' in filename \
-       or not filename.startswith('postgres') and filename.count('@') == 2:
+    if not isinstance(filename, basestring):
+        return filename, index
+
+    extention = filename.split('/')[-1]
+    if '@' not in extention:
         return filename, index
 
     newindex = None
