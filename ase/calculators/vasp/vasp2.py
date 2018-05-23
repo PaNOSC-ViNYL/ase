@@ -287,7 +287,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     def _run(self, command=None, out=None):
         """Method to explicitly execute VASP"""
         if command is None:
-                command = self.command
+            command = self.command
         errorcode = subprocess.call(command, shell=True, stdout=out)
         return errorcode
 
