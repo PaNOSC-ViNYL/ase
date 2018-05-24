@@ -3,7 +3,7 @@ from collections import Counter
 
 import sys
 # should use math.gcd from python >= 3.5
-if sys.version_info.major > 3 and sys.version_info.minor > 4:
+if sys.version_info.major > 2 and sys.version_info.minor > 4:
     from math import gcd
 else:
     from fractions import gcd
