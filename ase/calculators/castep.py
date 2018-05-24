@@ -1841,14 +1841,20 @@ End CASTEP Interface Documentation
             # what is left now should be meant to be a castep keyword
             # so we first check if it defined, and if not offer some error
             # correction
-            similars = difflib.get_close_matches(
-                attr,
-                self.cell._options.keys() + self.param._options.keys())
-            if similars:
-                raise UserWarning('Option "%s" not known! You mean "%s"?' %
-                                  (attr, similars[0]))
+            if self._kw_tol == 0:
+                similars = difflib.get_close_matches(
+                    attr,
+                    self.cell._options.keys() + self.param._options.keys())
+                if similars:
+                    raise UserWarning('Option "%s" not known! You mean "%s"?' %
+                                      (attr, similars[0]))
+                else:
+                    raise UserWarning('Option "%s" is not known!' % attr)
             else:
-                raise UserWarning('Option "%s" is not known!' % attr)
+                warnings.warn('Option "%s" is not known - please set any new'
+                              ' options directly in the .cell or .param '
+                              'objects')
+                return
 
         # here we know it must go into one of the component param or cell
         # so we first determine which one
