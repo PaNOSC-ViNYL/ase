@@ -1407,7 +1407,7 @@ class GenerateVaspInput(object):
                             else:
                                 list.append(float(data[i]))
                             i += 1
-                        self.list_params['magmom'] = list
+                        self.list_float_params['magmom'] = list
                         list = np.array(list)
                         if self.atoms is not None:
                             self.atoms.set_initial_magnetic_moments(
