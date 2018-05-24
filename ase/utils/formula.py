@@ -1,8 +1,13 @@
 from ase.data import chemical_symbols
 from collections import Counter
 
+import sys
 # should use math.gcd from python >= 3.5
-from fractions import gcd
+if sys.version_info.major > 3 and sys.version_info.minor > 4:
+    from math import gcd
+else:
+    from fractions import gcd
+
 
 # no need to re-create this list at each function call
 # non metals, half-metals/metalloid, halogen, noble gas
