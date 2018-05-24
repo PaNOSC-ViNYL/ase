@@ -99,11 +99,11 @@ class IPIProtocol:
         return (e * units.Ha, (units.Ha / units.Bohr) * forces,
                 units.Ha * virial, morebytes)
 
-    def sendforce(self, energy, forces, stress,
+    def sendforce(self, energy, forces, virial,
                   morebytes=np.empty(0, dtype=np.byte)):
         assert np.array([energy]).size == 1
         assert forces.shape[1] == 3
-        assert stress.shape == (3, 3)
+        assert virial.shape == (3, 3)
 
         self.log(' sendforce')
         self.sendmsg('FORCEREADY')  # mind the units
@@ -111,7 +111,7 @@ class IPIProtocol:
         natoms = len(forces)
         self.send(np.array([natoms]), np.int32)
         self.send(units.Bohr / units.Ha * forces, np.float64)
-        self.send(1.0 / units.Ha * stress, np.float64)
+        self.send(1.0 / units.Ha * virial, np.float64)
         self.send(np.array([len(morebytes)]), np.int32)
         self.send(morebytes, np.byte)
 
@@ -145,10 +145,10 @@ class IPIProtocol:
         self.sendposdata(cell, icell, positions)
         msg = self.status()
         assert msg == 'HAVEDATA', msg
-        e, forces, stress, morebytes = self.sendrecv_force()
+        e, forces, virial, morebytes = self.sendrecv_force()
         r = dict(energy=e,
                  forces=forces,
-                 stress=stress)
+                 virial=virial)
         if morebytes:
             r['morebytes'] = morebytes
         return r
@@ -156,14 +156,19 @@ class IPIProtocol:
 
 class IPIServer:
     def __init__(self, process_args=None, host='localhost', port=31415,
-                 log=None):
+                 socketfname=None, log=None):
         self.host = host
         self.port = port
+        self.socketfname = socketfname
         self._closed = False
-        self.serversocket = socket.socket(socket.AF_INET)
-        self.serversocket.setsockopt(socket.SOL_SOCKET,
-                                     socket.SO_REUSEADDR, 1)
-        self.serversocket.bind((host, port))
+        if socketfname is not None:
+            self.serversocket = socket.socket(socket.AF_UNIX)
+            self.serversocket.bind(socketfname)
+        else:
+            self.serversocket = socket.socket(socket.AF_INET)
+            self.serversocket.setsockopt(socket.SOL_SOCKET,
+                                         socket.SO_REUSEADDR, 1)
+            self.serversocket.bind((host, port))
         self.serversocket.listen(1)
 
         # It should perhaps be possible for process to be launched by user
@@ -212,12 +217,18 @@ class IPIServer:
 
 
 class IPIClient:
-    def __init__(self, host='localhost', port=31415, log=None):
+    def __init__(self, host='localhost', port=31415,
+                 socketfname=None, log=None):
         self.host = host
         self.port = port
+        self.socketfname = socketfname
 
-        sock = socket.socket(socket.AF_INET)
-        sock.connect((host, port))
+        if socketfname is not None:
+            sock = socket.socket(socket.AF_UNIX)
+            sock.connect(socketfname)
+        else:
+            sock = socket.socket(socket.AF_INET)
+            sock.connect((host, port))
         self.ipi = IPIProtocol(sock, txt=log)
         self.log = self.ipi.log
         self.closed = False
@@ -249,12 +260,13 @@ class IPIClient:
                     forces = atoms.get_forces()
                     if use_stress:
                         stress = atoms.get_stress(voigt=False)
+                        virial = -atoms.get_volume() * stress
                     else:
-                        stress = np.zeros((3, 3))
+                        virial = np.zeros((3, 3))
                     self.state = 'HAVEDATA'
                 elif msg == 'GETFORCE':
                     assert self.state == 'HAVEDATA', self.state
-                    self.ipi.sendforce(energy, forces, stress)
+                    self.ipi.sendforce(energy, forces, virial)
                     self.state = 'READY'
         finally:
             self.close()
@@ -268,11 +280,13 @@ class IPICalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
     ipi_supported_changes = {'positions', 'cell'}
 
-    def __init__(self, calc=None, host='localhost', port=31415, log=None):
+    def __init__(self, calc=None, host='localhost', port=31415,
+                 socketfname=None, log=None):
         Calculator.__init__(self)
         self.calc = calc
         self.host = host
         self.port = port
+        self.socketfname = socketfname
         self.ipi = None
         self.log = log
 
@@ -298,6 +312,7 @@ class IPICalculator(Calculator):
             if self.calc is not None:
                 cmd = self.calc.command
                 cmd = cmd.format(host=self.host, port=self.port,
+                                 socketfname=self.socketfname,
                                  prefix=self.calc.prefix)
                 self.calc.write_input(atoms, properties=properties,
                                       system_changes=system_changes)
@@ -305,11 +320,12 @@ class IPICalculator(Calculator):
                 cmd = None  # User configures/launches subprocess
                 # (and is responsible for having generated any necessary files)
             self.ipi = IPIServer(process_args=cmd, port=self.port,
+                                 socketfname=self.socketfname,
                                  host=self.host, log=self.log)
 
         self.atoms = atoms.copy()
         results = self.ipi.calculate(atoms)
-        virial = results.pop('stress')
+        virial = results.pop('virial')
         vol = atoms.get_volume()
         from ase.constraints import full_3x3_to_voigt_6_stress
         results['stress'] = -full_3x3_to_voigt_6_stress(virial) / vol
