@@ -23,7 +23,11 @@ def _count_symbols(numbers):
 
 def _empirical_symbols(count):
     """Find the least common multiple of all symbols"""
-    _gcd = reduce(gcd, [c for c in count.values()])
+    counts = [c for c in count.values()]
+    i = counts[0]
+    for j in counts[1:]:
+        _gcd = gcd(i,j)
+        i=_gcd
     return {k : v/_gcd for k, v in count.items()}
 
 
