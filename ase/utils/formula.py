@@ -28,7 +28,7 @@ def _empirical_symbols(count):
     for j in counts[1:]:
         _gcd = gcd(i,j)
         i=_gcd
-    return {k : v/_gcd for k, v in count.items()}
+    return {k : v//_gcd for k, v in count.items()}
 
 
 def formula_hill(numbers, empirical=False):
