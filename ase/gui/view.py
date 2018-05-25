@@ -135,9 +135,7 @@ class View:
 
         if self.config['shift_cell']:
             self.atoms.set_celldisp(
-                -0.5*self.atoms._cell[0][:]
-                -0.5*self.atoms._cell[1][:]
-                -0.5*self.atoms._cell[2][:])
+                -0.5 * self.atoms.cell.sum(axis=0))
 
         if self.showing_bonds():
             atomscopy = atoms.copy()
