@@ -263,7 +263,7 @@ class View:
         P[:n] += 2 * covalent_radii[:, None]
         P2 = P.max(0)
         self.center = np.dot(self.axes, (P1 + P2) / 2)
-        self.center += self.atoms.get_celldisp() / 2
+        self.center += self.atoms.get_celldisp().reshape((3,)) / 2
         # Add 30% of whitespace on each side of the atoms
         S = 1.3 * (P2 - P1)
         w, h = self.window.size
