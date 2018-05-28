@@ -99,7 +99,7 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
 
 
 def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
-                      force_write=False):
+                      force_write=False, precision=6):
     """
     This CASTEP export function write minimal information to
     a .cell file. If the atoms object is a trajectory, it will
@@ -131,8 +131,12 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     fd.write('#######################################################\n\n')
     fd.write('%BLOCK LATTICE_CART\n')
     cell = np.matrix(atoms.get_cell())
+
+    fformat = '%{0}.{1}f'.format(precision+3, precision)
+
+    cell_block_format = '    ' + ' '.join([fformat]*3) + '\n'
     for line in atoms.get_cell():
-        fd.write('    %.10f %.10f %.10f\n' % tuple(line))
+        fd.write(cell_block_format % tuple(line))
     fd.write('%ENDBLOCK LATTICE_CART\n\n\n')
 
     if positions_frac:
@@ -153,7 +157,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     # Gather the data that will be used to generate the block
     pos_block_data = []
-    pos_block_format = '%s %8.6f %8.6f %8.6f'
+    pos_block_format = '%s ' + ' '.join([fformat]*3)
     if atoms.has('castep_custom_species'):
         pos_block_data.append(atoms.get_array('castep_custom_species'))
     else:
