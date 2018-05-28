@@ -282,7 +282,7 @@ class Dftb(FileIOCalculator):
         infile.close()
 
         for line in lines:
-            if line.split().startswith('Total energy:'):
+            if line.strip().startswith('Total energy:'):
                 energy = float(line.split()[2]) * Hartree
                 break
 
