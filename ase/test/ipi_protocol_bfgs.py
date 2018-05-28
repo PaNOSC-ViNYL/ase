@@ -1,3 +1,4 @@
+import os
 import sys
 import threading
 from subprocess import Popen
@@ -8,7 +9,6 @@ from ase.calculators.ipi import IPIClient, IPICalculator
 from ase.calculators.emt import EMT
 from ase.optimize import BFGS
 from ase.cluster.icosahedron import Icosahedron
-import os
 
 # If multiple test suites are running, we don't want port clashes.
 # Thus we generate a port from the pid.
@@ -19,7 +19,7 @@ import os
 # We could also use a Unix port perhaps, but not yet implemented
 
 socketfname = 'grumble'
-
+timeout = 20.0
 
 def getatoms():
     return Icosahedron('Au', 3)
@@ -28,7 +28,8 @@ def getatoms():
 def run_server(launchclient=True):
     atoms = getatoms()
 
-    with IPICalculator(log=sys.stdout, socketfname=socketfname) as calc:
+    with IPICalculator(log=sys.stdout, socketfname=socketfname,
+                       timeout=timeout) as calc:
         if launchclient:
             thread = launch_client_thread()
         atoms.calc = calc
@@ -67,10 +68,9 @@ def run_client():
     atoms = getatoms()
     atoms.calc = EMT()
     with open('client.log', 'w') as fd:
-        #client = IPIClient(log=fd, port=port)
-        client = IPIClient(log=fd, socketfname=socketfname)
+        client = IPIClient(log=fd, socketfname=socketfname,
+                           timeout=timeout)
         client.run(atoms, use_stress=False)
-
 
 def launch_client_thread():
     thread = threading.Thread(target=run_client)
@@ -78,4 +78,8 @@ def launch_client_thread():
     return thread
 
 
-run_server()
+try:
+    run_server()
+finally:
+    if os.path.exists(socketfname):
+        os.unlink(socketfname)
