@@ -122,7 +122,7 @@ class IPIProtocol:
         return msg
 
     def end(self):
-        self.log( 'end')
+        self.log(' end')
         self.sendmsg('')
 
     def sendinit(self):
@@ -160,10 +160,11 @@ class IPIProtocol:
 
 class IPIServer:
     def __init__(self, process_args=None, host='localhost', port=31415,
-                 socketfname=None, log=None):
+                 socketfname=None, timeout=None, log=None):
         self.host = host
         self.port = port
         self.socketfname = socketfname
+        self.timeout = timeout
         self._closed = False
 
         if socketfname is not None:
@@ -174,6 +175,9 @@ class IPIServer:
             self.serversocket.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
             self.serversocket.bind((host, port))
+
+        self.serversocket.settimeout(timeout)
+
         if log:
             print('Accepting IPI clients on {}:{}'.format(host, port),
                   file=log)
@@ -199,6 +203,7 @@ class IPIServer:
         if self.log:
             print('Awaiting client', file=self.log)
         self.clientsocket, self.address = self.serversocket.accept()
+        self.clientsocket.settimeout(self.timeout)
         if log:
             print('Accepted connection from {}'.format(self.address), file=log)
 
@@ -208,7 +213,8 @@ class IPIServer:
         if self._closed:
             return
 
-        self.ipi.log('Close IPI server')
+        if self.log:
+            print('Close IPI server', file=self.log)
         self._closed = True
 
         # Proper way to close sockets?
@@ -242,7 +248,7 @@ class IPIServer:
 
 class IPIClient:
     def __init__(self, host='localhost', port=31415,
-                 socketfname=None, log=None):
+                 socketfname=None, timeout=None, log=None):
         self.host = host
         self.port = port
         self.socketfname = socketfname
@@ -253,6 +259,7 @@ class IPIClient:
         else:
             sock = socket.socket(socket.AF_INET)
             sock.connect((host, port))
+        sock.settimeout(timeout)
         self.ipi = IPIProtocol(sock, txt=log)
         self.log = self.ipi.log
         self.closed = False
@@ -305,14 +312,22 @@ class IPICalculator(Calculator):
     ipi_supported_changes = {'positions', 'cell'}
 
     def __init__(self, calc=None, host='localhost', port=31415,
-                 socketfname=None, log=None):
+                 socketfname=None, timeout=None, log=None):
         Calculator.__init__(self)
         self.calc = calc
         self.host = host
         self.port = port
         self.socketfname = socketfname
+        self.timeout = timeout
         self.ipi = None
         self.log = log
+
+        # If there is a calculator, we will launch in calculate() because
+        # we are responsible for executing the external process, too, and
+        # should do so before blocking.  Without a calculator we want to
+        # block immediately:
+        if calc is None:
+            self.launch_server()
 
     def todict(self):
         d = {'type': 'calculator',
@@ -321,31 +336,36 @@ class IPICalculator(Calculator):
             d['calc'] = self.calc.todict()
         return d
 
+    def launch_server(self, cmd=None):
+        self.ipi = IPIServer(process_args=cmd, port=self.port,
+                             socketfname=self.socketfname,
+                             timeout=self.timeout,
+                             host=self.host, log=self.log)
+
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
         bad = [change for change in system_changes
                if change not in self.ipi_supported_changes]
 
-        if self.ipi is not None and any(bad):
-            raise PropertyNotImplementedError(
-                'Cannot change {} through IPI protocol.  '
-                'Please create new IPI calculator.'
-                .format(bad if len(bad) > 1 else bad[0]))
+        #if self.ipi is not None and any(bad):
+        #    raise PropertyNotImplementedError(
+        #        'Cannot change {} through IPI protocol.  '
+        #        'Please create new IPI calculator.'
+        #        .format(bad if len(bad) > 1 else bad[0]))
 
         if self.ipi is None:
-            if self.calc is not None:
-                cmd = self.calc.command
-                cmd = cmd.format(host=self.host, port=self.port,
-                                 socketfname=self.socketfname,
-                                 prefix=self.calc.prefix)
-                self.calc.write_input(atoms, properties=properties,
-                                      system_changes=system_changes)
-            else:
-                cmd = None  # User configures/launches subprocess
+            assert self.calc is not None
+            cmd = self.calc.command
+            cmd = cmd.format(host=self.host, port=self.port,
+                             socketfname=self.socketfname,
+                             prefix=self.calc.prefix)
+            self.calc.write_input(atoms, properties=properties,
+                                  system_changes=system_changes)
+            #else:
+            #    cmd = None  # User configures/launches subprocess
                 # (and is responsible for having generated any necessary files)
-            self.ipi = IPIServer(process_args=cmd, port=self.port,
-                                 socketfname=self.socketfname,
-                                 host=self.host, log=self.log)
+            #if self.ipi is None:
+            self.launch_server(cmd)
 
         self.atoms = atoms.copy()
         results = self.ipi.calculate(atoms)
