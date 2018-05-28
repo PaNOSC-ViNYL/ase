@@ -126,6 +126,8 @@ class IPIProtocol:
         self.sendmsg('')
 
     def sendinit(self):
+        # XXX Not sure what this function is supposed to send.
+        # It 'works' with QE, but for now we try not to call it.
         self.log(' sendinit')
         self.sendmsg('INIT')
         self.send(0, np.int32)  # 'bead index' always zero
@@ -137,10 +139,12 @@ class IPIProtocol:
     def calculate(self, positions, cell):
         self.log('calculate')
         msg = self.status()
-        if msg == 'NEEDINIT':
-            self.sendinit()
-            msg = self.status()
-        assert msg == 'READY', msg
+        # We don't know how NEEDINIT is supposed to work, but some codes
+        # seem to be okay if we skip it and send the positions instead.
+        #if msg == 'NEEDINIT':
+        #    self.sendinit()
+        #    msg = self.status()
+        #assert msg == 'READY', msg
         icell = np.linalg.pinv(cell).transpose()
         self.sendposdata(cell, icell, positions)
         msg = self.status()
@@ -161,6 +165,7 @@ class IPIServer:
         self.port = port
         self.socketfname = socketfname
         self._closed = False
+
         if socketfname is not None:
             self.serversocket = socket.socket(socket.AF_UNIX)
             self.serversocket.bind(socketfname)
@@ -169,35 +174,48 @@ class IPIServer:
             self.serversocket.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
             self.serversocket.bind((host, port))
+        if log:
+            print('Accepting IPI clients on {}:{}'.format(host, port),
+                  file=log)
         self.serversocket.listen(1)
 
-        # It should perhaps be possible for process to be launched by user
+        self.log = log
+
         self.proc = None
-        if log and process_args is not None:
-            print('Launch subprocess: {}'.format(process_args), file=log)
+
+        self.ipi = None
+        self.clientsocket = None
+        self.address = None
+
         if process_args is not None:
+            if log:
+                print('Launch subprocess: {}'.format(process_args), file=log)
             self.proc = Popen(process_args, shell=True)
-        if log:
-            print('Accepting IPI clients on {}:{}'.format(host, port), file=log)
+            # self._accept(process_args)
+
+    def _accept(self, process_args=None):
+        # It should perhaps be possible for process to be launched by user
+        log = self.log
+        if self.log:
+            print('Awaiting client', file=self.log)
         self.clientsocket, self.address = self.serversocket.accept()
         if log:
             print('Accepted connection from {}'.format(self.address), file=log)
 
         self.ipi = IPIProtocol(self.clientsocket, txt=log)
-        self.log = self.ipi.log
 
     def close(self):
         if self._closed:
             return
 
-        self.log('Close IPI server')
+        self.ipi.log('Close IPI server')
         self._closed = True
 
         # Proper way to close sockets?
-        if hasattr(self, 'ipi') and self.ipi is not None:
-            self.ipi.end()
+        if self.ipi is not None:
+            self.ipi.end()  # Send end-of-communication string
             self.ipi = None
-        if hasattr(self, 'proc') and self.proc is not None:
+        if self.proc is not None:
             exitcode = self.proc.wait()
             if exitcode != 0:
                 import warnings
@@ -206,13 +224,19 @@ class IPIServer:
                 # Should investigate at some point
                 warnings.warn('Subprocess exited with status {}'
                               .format(exitcode))
-        if hasattr(self, 'clientsocket'):
+        if self.clientsocket is not None:
             self.clientsocket.shutdown(socket.SHUT_RDWR)
-        if hasattr(self, 'serversocket'):
+        if self.serversocket is not None:
             self.serversocket.shutdown(socket.SHUT_RDWR)
-        self.log('IPI server closed')
+        #self.log('IPI server closed')
 
     def calculate(self, atoms):
+        assert not self._closed
+
+        # If we have not established connection yet, we must block
+        # until the client catches up:
+        if self.ipi is None:
+            self._accept()
         return self.ipi.calculate(atoms.positions, atoms.cell)
 
 
