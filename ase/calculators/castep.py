@@ -431,8 +431,8 @@ End CASTEP Interface Documentation
                 raise e
             else:
                 warnings.warn(str(e))
-                castep_keywords = CastepKeywords(make_param_dict(), 
-                                                 make_cell_dict(), 
+                castep_keywords = CastepKeywords(make_param_dict(),
+                                                 make_cell_dict(),
                                                  [],
                                                  [],
                                                  0)
@@ -2263,13 +2263,13 @@ def create_castep_keywords(castep_command, filename='castep_keywords.json',
 
             frac = (o_i+1.0)/to_process
             sys.stdout.write('\rProcessed: [{0}] {1:>3.0f}%'.format(
-                             '#'*int(frac*20)+' '*(20-int(frac*20)), 
-                              100*frac))
+                             '#'*int(frac*20)+' '*(20-int(frac*20)),
+                             100*frac))
             sys.stdout.flush()
 
         else:
             warnings.warn('create_castep_keywords: Could not process %s'
-                            % option)
+                          % option)
 
     sys.stdout.write('\n')
     sys.stdout.flush()
@@ -2319,7 +2319,7 @@ class CastepOption(object):
     @property
     def raw_value(self):
         # The value, not converted to a string
-        return self._value    
+        return self._value
 
     @value.setter
     def value(self, val):
@@ -2432,7 +2432,7 @@ class CastepOption(object):
         if isinstance(value, basestring):
             return value
         elif hasattr(value, '__getitem__'):
-            return '\n'.join(value) # Arrays of lines
+            return '\n'.join(value)  # Arrays of lines
         else:
             raise ValueError()
 
@@ -2479,7 +2479,7 @@ class CastepInputFile(object):
 
         if options_dict is None:
             options_dict = CastepOptionDict({})
-        
+
         self._options = options_dict._options
         self.__dict__.update(self._options)
         # keyword_tolerance means how strict the checks on new attributes are
@@ -2514,12 +2514,12 @@ class CastepInputFile(object):
                 # Do we consider it a string or a block?
                 is_str = isinstance(value, basestring)
                 is_block = False
-                if ((hasattr(value, '__getitem__') and not is_str) or 
-                    (is_str and len(value.split('\n')) > 1)):
+                if ((hasattr(value, '__getitem__') and not is_str) or
+                        (is_str and len(value.split('\n')) > 1)):
                     is_block = True
 
             if self._perm == 0:
-                similars = difflib.get_close_matches(attr, 
+                similars = difflib.get_close_matches(attr,
                                                      self._options.keys())
                 if similars:
                     raise UserWarning(('Option "%s" not known! You mean "%s"?')
@@ -2528,10 +2528,10 @@ class CastepInputFile(object):
                     raise UserWarning('Option "%s" is not known!' % attr)
             elif self._perm == 1:
                 warnings.warn(('Option "%s" is not known and will '
-                               'be added as a %s') % (attr, 
-                               ('block' if is_block else 'string')))
+                               'be added as a %s') % (attr,
+                                                      ('block' if is_block else 'string')))
             attr = attr.lower()
-            opt = CastepOption(keyword=attr, level='Unknown', 
+            opt = CastepOption(keyword=attr, level='Unknown',
                                option_type='block' if is_block else 'string')
             self._options[attr] = opt
             self.__dict__[attr] = opt
@@ -2553,7 +2553,7 @@ class CastepInputFile(object):
     def get_attr_dict(self):
         """Settings that go into .param file in a traditional dict"""
 
-        return {k: o.value 
+        return {k: o.value
                 for k, o in self._options.items() if o.value is not None}
 
 
@@ -2562,8 +2562,13 @@ class CastepParam(CastepInputFile):
     """CastepParam abstracts the settings that go into the .param file"""
 
     def __init__(self, castep_keywords, keyword_tolerance=1):
+        self._castep_version = castep_keywords.castep_version
         CastepInputFile.__init__(self, castep_keywords.CastepParamDict(),
                                  keyword_tolerance)
+
+    @property
+    def castep_version(self):
+        return self._castep_version
 
     # .param specific parsers
     def _parse_reuse(self, value):
@@ -2588,8 +2593,13 @@ class CastepCell(CastepInputFile):
     """CastepCell abstracts all setting that go into the .cell file"""
 
     def __init__(self, castep_keywords, keyword_tolerance=1):
+        self._castep_version = castep_keywords.castep_version
         CastepInputFile.__init__(self, castep_keywords.CastepCellDict(),
                                  keyword_tolerance)
+
+    @property
+    def castep_version(self):
+        return self._castep_version
 
     # .cell specific parsers
     def _parse_species_pot(self, value):
@@ -2654,11 +2664,14 @@ class CastepCell(CastepInputFile):
     def _parse_positions_abs_product(self, value):
         return self._positions_abs_intermediate(self, value)
 
+
 CastepKeywords = namedtuple('CastepKeywords',
                             ['CastepParamDict', 'CastepCellDict',
                              'types', 'levels', 'castep_version'])
 
 # We keep this just for naming consistency with older versions
+
+
 def make_cell_dict(data={}):
 
     class CastepCellDict(CastepOptionDict):
@@ -2666,6 +2679,7 @@ def make_cell_dict(data={}):
             CastepOptionDict.__init__(self, data)
 
     return CastepCellDict
+
 
 def make_param_dict(data={}):
 
@@ -2675,9 +2689,11 @@ def make_param_dict(data={}):
 
     return CastepParamDict
 
+
 class CastepVersionError(Exception):
     """No special behaviour, works to signal when Castep can not be found"""
     pass
+
 
 class ConversionError(Exception):
 
