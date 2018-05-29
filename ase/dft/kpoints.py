@@ -177,7 +177,6 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
     the third is the special points as strings.
     """
     special_points = get_special_points(cell)
-
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
     kinks = abs(diffs[1:] - diffs[:-1]).sum(1) > eps
@@ -192,7 +191,12 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
             if abs(kpt - k).sum() < eps:
                 break
         else:
-            label = '?'
+            # No exact match.  Try modulus 1:
+            for label, k in special_points.items():
+                if abs((kpt - k) % 1).sum() < eps:
+                    break
+            else:
+                label = '?'
         labels.append(label)
 
     jump = False  # marks a discontinuity in the path

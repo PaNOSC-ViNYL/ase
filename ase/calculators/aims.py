@@ -411,7 +411,7 @@ class Aims(FileIOCalculator):
                      'List of parameters used to initialize the calculator:',
                      ]:
             output.write('# ' + line + '\n')
-        for p,v in self.parameters.items():
+        for p, v in self.parameters.items():
             s = '#     {} : {}\n'.format(p, v)
             output.write(s)
         output.write(lim + '\n')
@@ -534,7 +534,8 @@ class Aims(FileIOCalculator):
                     (self.targettier, symbol))
             if self.parameters.get('plus_u') is not None:
                 if symbol in self.parameters.plus_u.keys():
-                    control.write('plus_u %s \n' %self.parameters.plus_u[symbol])
+                    control.write('plus_u %s \n' %
+                                  self.parameters.plus_u[symbol])
         control.close()
 
         if self.radmul is not None:
