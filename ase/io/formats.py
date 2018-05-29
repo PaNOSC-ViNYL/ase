@@ -597,6 +597,9 @@ def filetype(filename, read=True, guess=True):
         if basename == 'inp':
             return 'octopus'
 
+        if basename.endswith('.nomad.json'):
+            return 'nomad-json'
+
         if '.' in basename:
             ext = os.path.splitext(basename)[1].strip('.').lower()
             if ext in ['xyz', 'cube', 'json', 'cif']:

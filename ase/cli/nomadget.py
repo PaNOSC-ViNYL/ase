@@ -3,15 +3,20 @@ import json
 
 
 class CLICommand:
-    short_description = 'Get calculation from NOMAD and write json to stdout'
+    short_description = 'Get calculations from NOMAD and write to JSON files.'
 
     @staticmethod
     def add_arguments(p):
-        p.add_argument('uri', metavar='nmd://<hash>',
-                       help='URI to get')
+        p.add_argument('uri', nargs='+', metavar='nmd://<hash>',
+                       help='URIs to get')
 
     @staticmethod
     def run(args):
         from ase.nomad import download
-        calculation = download(args.uri)
-        print(json.dumps(calculation.dct))
+        for uri in args.uri:
+            calculation = download(uri)
+            identifier = calculation.hash.replace('/', '.')
+            fname = 'nmd.{}.nomad.json'.format(identifier)
+            with open(fname, 'w') as fd:
+                json.dump(calculation, fd)
+            print(uri)

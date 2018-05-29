@@ -110,6 +110,7 @@ def section_singleconfig2calc(section):
     calc = SinglePointCalculator(**kwargs)
     return calc
 
+
 def main():
     #print('hello')
     uri = "nmd://N9Jqc1y-Bzf7sI1R9qhyyyoIosJDs/C74RJltyQeM9_WFuJYO49AR4gKuJ2"
@@ -118,6 +119,7 @@ def main():
     #entry = read(open('out.json'))
     from ase.visualize import view
     view(list(entry.iterimages()))
+
 
 if __name__ == '__main__':
     main()
