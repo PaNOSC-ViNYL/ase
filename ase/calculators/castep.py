@@ -2474,8 +2474,12 @@ class CastepInputFile(object):
 
     """Master class for CastepParam and CastepCell to inherit from"""
 
-    def __init__(self, options_dict, keyword_tolerance=1):
+    def __init__(self, options_dict=None, keyword_tolerance=1):
         object.__init__(self)
+
+        if options_dict is None:
+            options_dict = CastepOptionDict({})
+        
         self._options = options_dict._options
         self.__dict__.update(self._options)
         # keyword_tolerance means how strict the checks on new attributes are
