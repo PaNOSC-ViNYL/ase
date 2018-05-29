@@ -23,8 +23,8 @@ def nmd2dict(uri):
 
     httpsuri = nmd2https(uri)
     response = urlopen(httpsuri)
-    txt = response.read()
-    return json.loads(txt)
+    txt = response.read().decode('utf8')
+    return json.loads(txt, object_hook=lambda dct: NomadEntry(dct))
 
 
 def read(fd):
@@ -54,8 +54,8 @@ def dict2images(d):
 
 class NomadEntry(dict):
     def __init__(self, dct):
-        assert dct['type'] == 'nomad_calculation_2_0'
-        assert dct['name'] == 'calculation_context'
+        #assert dct['type'] == 'nomad_calculation_2_0'
+        #assert dct['name'] == 'calculation_context'
         # We could implement NomadEntries that represent sections.
         dict.__init__(self, dct)
 
