@@ -328,10 +328,7 @@ def read_freeform(fd):
     for i, l in enumerate(filelines):
 
         # Strip all comments, aka anything after a hash
-        l = l[:l.find('#')%(len(l)+1)]
-        l = l[:l.find('!')%(len(l)+1)]
-        
-        l = l.strip()
+        l = re.split('[#!;]', l, 1)[0].strip()
 
         if l == '':
             # Empty line... skip
@@ -382,7 +379,157 @@ def read_cell(filename, index=None):
     return read(filename, index=index, format='castep-cell')
 
 
-def read_castep_cell(fd, index=None, units=units_CODATA2002):
+def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
+    # Temporary name for new method
+
+    from ase.calculators.castep import Castep
+
+    cell_units = {  # Units specifiers for CASTEP
+        'bohr': units_CODATA2002['a0'],
+        'ang': 1.0,
+        'm': 1e10,
+        'cm': 1e8,
+        'nm': 10,
+        'pm': 1e-2
+    }
+
+    calc = Castep(**calculator_args)
+
+    if calc.cell.castep_version == 0:
+        # No valid castep_keywords.json was found
+        print('read_cell: Warning - Was not able to validate CASTEP input.')
+        print('           This may be due to a non-existing '
+              '"castep_keywords.json"')
+        print('           file or a non-existing CASTEP installation.')
+        print('           Parsing will go on but keywords will not be '
+              'validated and may cause problems if incorrect during a CASTEP '
+              'run.')
+
+    celldict = read_freeform(fd)
+
+    # Utility functions
+    def tokenize(l):
+        return [x.strip() for x in l.split()]
+
+    def parse_blockunit(line_tokens, blockname):
+        u = 1.0
+        if len(line_tokens[0]) == 1:
+            usymb = line_tokens[0][0]
+            u = cell_units.get(usymb, 1)
+            if usymb not in cell_units:
+                warnings.warn(('read_cell: Warning - ignoring invalid '
+                               'unit specifier in %BLOCK {0} '
+                               '(assuming Angstrom instead)'
+                               ).format(blockname))
+        return u, line_tokens[1:]
+
+    # Start by looking for the lattice
+    lat_keywords = map(celldict.__contains__, ('lattice_cart', 'lattice_abc'))
+    if all(lat_keywords):
+        warnings.warn('read_cell: Warning - two lattice blocks present in the'
+                      ' same file. LATTICE_ABC will be ignored')
+    elif not any(lat_keywords):
+        raise ValueError('Cell file must contain at least one between '
+                         'LATTICE_ABC and LATTICE_CART')
+
+    if 'lattice_abc' in celldict:
+
+        lines = celldict['lattice_abc'].split('\n')
+        line_tokens = map(tokenize, lines)
+
+        u, line_tokens = parse_blockunit(line_tokens, 'lattice_abc')
+
+        if len(line_tokens) != 2:
+            warnings.warn('read_cell: Warning - ignoring additional '
+                          'lines in invalid %BLOCK LATTICE_ABC')
+
+        a, b, c = [float(p) * u for p in line_tokens[1][:3]]
+        alpha, beta, gamma = [np.radians(float(phi))
+                              for phi in line_tokens[2][:3]]
+        tokens, l = get_tokens(lines, l)
+
+        lat_a = [a, 0, 0]
+        lat_b = [b * np.cos(gamma), b * np.sin(gamma), 0]
+        lat_c1 = c * np.cos(beta)
+        lat_c2 = c * ((np.cos(alpha) - np.cos(beta) * np.cos(gamma)) /
+                      np.sin(gamma))
+        lat_c3 = np.sqrt(c * c - lat_c1 * lat_c1 - lat_c2 * lat_c2)
+        lat_c = [lat_c1, lat_c2, lat_c3]
+        lat = [lat_a, lat_b, lat_c]
+
+        del(celldict['lattice_abc']) # Remove for the future
+
+    if 'lattice_cart' in celldict:
+
+        lines = celldict['lattice_cart'].split('\n')
+        line_tokens = map(tokenize, lines)
+
+        u, line_tokens = parse_blockunit(line_tokens, 'lattice_cart')
+
+        if len(line_tokens) != 3:
+            warnings.warn('read_cell: Warning - ignoring more than '
+                          'three lattice vectors in invalid %BLOCK '
+                          'LATTICE_CART')
+
+        lat = map(lambda lt: map(lambda x: float(x)*u, lt[:3]), line_tokens)
+
+        del(celldict['lattice_cart']) # Remove for the future
+
+    # Now move on to the positions
+    pos_keywords = map(celldict.__contains__,
+                       ('positions_abs', 'positions_frac'))
+    if all(pos_keywords):
+        warnings.warn('read_cell: Warning - two lattice blocks present in the'
+                      ' same file. POSITIONS_FRAC will be ignored')
+    elif not any(pos_keywords):
+        raise ValueError('Cell file must contain at least one between '
+                         'POSITIONS_FRAC and POSITIONS_ABS')
+
+    pos_frac = False
+    pos_block = celldict.get('positions_abs', None)
+    if pos_block is None:
+        pos_frac = True
+        pos_block = celldict.get('positions_frac', None)
+
+    lines = pos_block.split('\n')
+    line_tokens = map(tokenize, lines)
+
+    if not pos_frac:
+        u, line_tokens = parse_blockunit(line_tokens, 'positions_abs')
+    else:
+        u = 1.0
+        
+    # fix to be able to read initial spin assigned on the atoms
+    # tokens, l = get_tokens(lines, l, maxsplit=4, has_species=True)
+    # while len(tokens) >= 4:
+    #     # Now, process the whole 'species' thing
+    #     spec_custom = tokens[0].split(':', 1)
+    #     elem = spec_custom[0]
+    #     if len(spec_custom) > 1 and custom_species is None:
+    #         # Add it to the custom info!
+    #         custom_species = list(spec)
+    #     spec.append(elem)
+    #     if custom_species is not None:
+    #         custom_species.append(tokens[0])
+    #     pos.append([float(p) * u for p in tokens[1:4]])
+    #     if len(tokens) > 4:
+    #         get_add_info(add_info_arrays, tokens[4])
+    #     else:
+    #         get_add_info(add_info_arrays)
+    #     tokens, l = get_tokens(lines, l, maxsplit=4,
+    #                            has_species=True)
+    # if tokens[0].upper() != '%ENDBLOCK':
+    #     warnings.warn('read_cell: Warning - ignoring invalid lines'
+    #                   ' in%%BLOCK '
+    #                   '%s:\n\t %s' % (block_name, tokens))
+    # have_pos = True        
+
+    print(lat)
+
+    return celldict
+
+def read_castep_cell(fd, index=None, units=units_CODATA2002, 
+                     calculator_args={}):
     """Read a .cell file and return an atoms object.
     Any value found that does not fit the atoms API
     will be stored in the atoms.calc attribute.
@@ -405,24 +552,19 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
         'pm': 1e-2
     }
 
+    calc = Castep(**calculator_args)
+
     _fallback = False
-    try:
-        calc = Castep()
-    except Exception as exception:
-        print('read_cell: Warning - Was not able to initialize CASTEP '
-              'calculator.')
+
+    if calc.cell.castep_version == 0:
+        # No valid castep_keywords.json was found
+        print('read_cell: Warning - Was not able to validate CASTEP input.')
         print('           This may be due to a non-existing '
-              '"castep.keywords.py"')
+              '"castep_keywords.json"')
         print('           file or a non-existing CASTEP installation.')
-        print('           Original error message appears below:')
-        print('')
-        print(' ' * 11 + exception.__str__().replace('\n', '\n' + ' ' * 11))
-        print('')
-        print(
-            '           Fallback-mode will be applied to provide at least the')
-        print('           geometric information contained in the *.cell file.')
-        calc = None
-        _fallback = True
+        print('           Parsing will go on but keywords will not be '
+              'validated and may cause problems if incorrect during a CASTEP '
+              'run.')
 
     # fd will be closed by embracing read() routine
     lines = fd.readlines()
@@ -451,8 +593,6 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
                 return tokens, l + 1
         tokens = ''
 
-    # This print statement is definitely not necessary
-    #    print("read_cell: Warning - get_tokens has not found any more tokens")
         return tokens, l
 
     lat = []
