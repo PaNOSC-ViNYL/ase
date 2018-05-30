@@ -231,9 +231,9 @@ class IPIServer:
                 warnings.warn('Subprocess exited with status {}'
                               .format(exitcode))
         if self.clientsocket is not None:
-            self.clientsocket.shutdown(socket.SHUT_RDWR)
+            self.clientsocket.close() #shutdown(socket.SHUT_RDWR)
         if self.serversocket is not None:
-            self.serversocket.shutdown(socket.SHUT_RDWR)
+            self.serversocket.close() #shutdown(socket.SHUT_RDWR)
         #self.log('IPI server closed')
 
     def calculate(self, atoms):
@@ -313,14 +313,73 @@ class IPICalculator(Calculator):
 
     def __init__(self, calc=None, host='localhost', port=31415,
                  socketfname=None, timeout=None, log=None):
+        """Initialize IPI calculator.
+
+        Parameters:
+
+        calc: calculator or None
+
+            If calc is not None, a client process will be launched
+            using calc.command, and the input file will be generated
+            using calc.write_input().  Otherwise only the server will
+            run, and it is up to the user to launch a compliant client
+            process.
+
+        host: str
+
+            hostname of the computer to which to connect over INET
+            socket.  Default is localhost.  Changing it is only useful
+            when no calculator is provided.
+
+        port: integer
+
+            port number for socket.  Should normally be between 1025
+            and 65535.  Typical ports for are 31415 (default) or 3141.
+
+        socketfname: str or None
+
+            if not None, ignore host and port, and create instead a
+            unix socket in the current working directory.  Caller may
+            wish to delete the socket after use.
+
+        timeout: float >= 0 or None
+
+            timeout for connection, by default infinite.  See
+            documentation of Python sockets.  It is recommended to set
+            a sane timeout in case of undetected client-side failure,
+            but sane timeout values depend greatly on the application.
+
+        log: file object or None (default)
+
+            logfile for communication over socket.  For debugging or
+            the curious.
+
+        In order to correctly close the sockets, it is
+        recommended to use this class within a with-block:
+
+        with IPICalculator(...) as calc:
+            atoms.calc = calc
+            atoms.get_forces()
+            atoms.rattle()
+            atoms.get_forces()
+
+        It is also possible to call calc.close() after
+        use, e.g. in a finally-block.
+
+        """
+
         Calculator.__init__(self)
         self.calc = calc
         self.host = host
         self.port = port
         self.socketfname = socketfname
         self.timeout = timeout
-        self.ipi = None
+        self.server = None
         self.log = log
+
+        # First time calculate() is called, system_changes will be
+        # all_changes.  After that, only positions and cell may change.
+        self.calculator_initialized = False
 
         # If there is a calculator, we will launch in calculate() because
         # we are responsible for executing the external process, too, and
@@ -337,23 +396,25 @@ class IPICalculator(Calculator):
         return d
 
     def launch_server(self, cmd=None):
-        self.ipi = IPIServer(process_args=cmd, port=self.port,
-                             socketfname=self.socketfname,
-                             timeout=self.timeout,
-                             host=self.host, log=self.log)
+        self.server = IPIServer(process_args=cmd, port=self.port,
+                                socketfname=self.socketfname,
+                                timeout=self.timeout,
+                                host=self.host, log=self.log)
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
         bad = [change for change in system_changes
                if change not in self.ipi_supported_changes]
 
-        #if self.ipi is not None and any(bad):
-        #    raise PropertyNotImplementedError(
-        #        'Cannot change {} through IPI protocol.  '
-        #        'Please create new IPI calculator.'
-        #        .format(bad if len(bad) > 1 else bad[0]))
+        if self.calculator_initialized and any(bad):
+            raise PropertyNotImplementedError(
+                'Cannot change {} through IPI protocol.  '
+                'Please create new IPI calculator.'
+                .format(bad if len(bad) > 1 else bad[0]))
 
-        if self.ipi is None:
+        self.calculator_initialized = True
+
+        if self.server is None:
             assert self.calc is not None
             cmd = self.calc.command
             cmd = cmd.format(host=self.host, port=self.port,
@@ -364,11 +425,11 @@ class IPICalculator(Calculator):
             #else:
             #    cmd = None  # User configures/launches subprocess
                 # (and is responsible for having generated any necessary files)
-            #if self.ipi is None:
+            #if self.server is None:
             self.launch_server(cmd)
 
         self.atoms = atoms.copy()
-        results = self.ipi.calculate(atoms)
+        results = self.server.calculate(atoms)
         virial = results.pop('virial')
         vol = atoms.get_volume()
         from ase.constraints import full_3x3_to_voigt_6_stress
@@ -376,8 +437,8 @@ class IPICalculator(Calculator):
         self.results.update(results)
 
     def close(self):
-        if self.ipi is not None:
-            self.ipi.close()
+        if self.server is not None:
+            self.server.close()
 
     def __enter__(self):
         return self
