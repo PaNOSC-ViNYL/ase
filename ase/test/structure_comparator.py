@@ -4,6 +4,7 @@ import os
 from ase.test import NotAvailable
 from ase.build import bulk
 from random import randint
+import numpy as np
 
 """
 Inside the folder structure_match_data all structures inside the same subfolder
