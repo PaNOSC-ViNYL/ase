@@ -50,7 +50,7 @@ test_script:
   # run tests from temp dir so source tree doesn't interfere
   - "cd %TEMP%"
   - "ase info"
-  - "ase test"
+  - "ase -T test"
 
 after_test:
   # This step builds distribution.
