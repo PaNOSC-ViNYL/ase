@@ -20,7 +20,7 @@ def get_atoms_with_mixed_elements(crystalstructure="fcc"):
     symbs = ["Al", "Mg", "Si", "Cu", "Zn"]
     symbols = [symbs[randint(0, len(symbs) - 1)] for _ in range(len(atoms))]
     for i in range(len(atoms)):
-        atom[i].symbol = symbols[i]
+        atoms[i].symbol = symbols[i]
     return atoms
 
 
