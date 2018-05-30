@@ -67,10 +67,20 @@ def run_normal():
 def run_client():
     atoms = getatoms()
     atoms.calc = EMT()
-    with open('client.log', 'w') as fd:
-        client = IPIClient(log=fd, socketfname=socketfname,
-                           timeout=timeout)
-        client.run(atoms, use_stress=False)
+
+    import socket
+    BrokenPipe = socket.error if sys.version_info[0] == 2 else BrokenPipeError
+
+    try:
+        with open('client.log', 'w') as fd:
+            client = IPIClient(log=fd, socketfname=socketfname,
+                               timeout=timeout)
+            client.run(atoms, use_stress=False)
+    except BrokenPipe:
+        # I think we can find a way to close sockets so as not to get an
+        # error, but presently things are not like that.
+        pass
+
 
 def launch_client_thread():
     thread = threading.Thread(target=run_client)
