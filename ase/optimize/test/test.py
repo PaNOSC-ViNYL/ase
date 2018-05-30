@@ -19,6 +19,9 @@ def get_optimizer(name):
     if name.startswith('SciPy'):
         import ase.optimize.sciopt as sciopt
         return getattr(sciopt, name)
+    if name.startswith('Bayes'):
+        import ase.optimize.bayes.lightBayes as lb
+        return getattr(lb, 'LightBayes')
     return getattr(ase.optimize, name)
 
 
