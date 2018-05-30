@@ -1386,11 +1386,11 @@ class GenerateVaspInput(object):
 
                 elif key in list_bool_keys:
                     self.list_bool_keys[key] = [_from_vasp_bool(x) for x in
-                                                _args_without_comment(data)]
+                                                _args_without_comment(data[2:])]
 
                 elif key in list_int_keys:
                     self.list_int_params[key] = [int(x) for x in
-                                                 _args_without_comment(data)]
+                                                 _args_without_comment(data[2:])]
 
                 elif key in list_float_keys:
                     if key == 'magmom':
@@ -1414,7 +1414,7 @@ class GenerateVaspInput(object):
                                 lst[self.resort])
                     else:
                         data = _args_without_comment(data)
-                        self.list_float_params[key] = [float(x) for x in data]
+                        self.list_float_params[key] = [float(x) for x in data[2:]]
                 # elif key in list_keys:
                 #     list = []
                 #     if key in ('dipol', 'eint', 'ferwe', 'ferdo',
