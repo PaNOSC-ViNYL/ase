@@ -19,6 +19,9 @@ def get_optimizer(name):
     if name.startswith('SciPy'):
         import ase.optimize.sciopt as sciopt
         return getattr(sciopt, name)
+    if name.startswith('SP'):
+        import ase.optimize.sp as sciopt
+        return getattr(sciopt, name)
     return getattr(ase.optimize, name)
 
 
