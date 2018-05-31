@@ -555,10 +555,6 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
         celldict.pop('positions_frac', None)
 
     # Now on to the species potentials...
-
-    # Create the calculator to store them
-    calc = Castep(**calculator_args)
-
     if 'species_pot' in celldict:
         lines = celldict['species_pot'].split('\n')
         line_tokens = map(tokenize, lines)
@@ -573,12 +569,80 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
             else:
                 calc.cell.species_pot = tuple(tokens[:2])
 
+    # Ionic constraints
+    raw_constraints = {}
+
+    if 'ionic_constraints' in celldict:
+        lines = celldict['ionic_constraints'].split('\n')
+        line_tokens = map(tokenize, lines)
+
+        for tokens in line_tokens:
+            if not len(tokens) == 6:
+                continue
+            _, species, nic, x, y, z = tokens
+            # convert xyz to floats
+            x = float(x)
+            y = float(y)
+            z = float(z)
+
+            nic = int(nic)
+            if (species, nic) not in raw_constraints:
+                raw_constraints[(species, nic)] = []
+            raw_constraints[(species, nic)].append(np.array(
+                                                   [x, y, z]))
+
+    # Symmetry operations
+    atoms_spg = None
+    rotations = []
+    translations = []
+
+    if 'symmetry_ops' in celldict:
+        lines = celldict['symmetry_ops'].split('\n')
+        line_tokens = map(tokenize, lines)
+
+        # Read them in blocks of four
+        blocks = np.array(line_tokens).astype(float)
+        if (len(blocks.shape) != 2 or blocks.shape[1] != 3 or 
+            blocks.shape[0]%4 != 0):
+            warnings.warn('Warning: could not parse SYMMETRY_OPS'
+                          ' block properly, skipping')
+        else:             
+            blocks = blocks.reshape((-1,4,3))
+            rotations = blocks[:,:3]
+            translations = blocks[:,3]
+
+            # Regardless of whether we recognize them, store these
+            calc.cell.symmetry_ops = (rotations, translations)
+
+            # Now on to identify the spacegroup!
+            # Sorting is needed to have some conventional order
+            symops = np.concatenate([rotations.reshape((-1, 9)), 
+                                     translations], axis=1)
+            symops = symops[np.lexsort(symops.T)]
+            for spg_n in range(1, 231):
+                test_spg = Spacegroup(spg_n)
+                test_symops = test_spg.get_op()
+
+                if test_symops[0].shape != rotations.shape:
+                    continue
+                test_symops = np.concatenate([test_symops[0].reshape((-1, 9)), 
+                                              test_symops[1]], axis=1)
+                test_symops = test_symops[np.lexsort(test_symops.T)]
+                # And test!
+                found = np.allclose(test_symops, symops)
+                if found:
+                    # We got it!
+                    atoms_spg = test_spg
+            if atoms_spg is None:
+                # All failed...
+                warnings.warn('Could not identify Spacegroup from '
+                              'SYMMETRY_OPS')
 
     print(aargs)
     print(add_info_arrays)
     print(calc)
 
-    return
+    return rotations, translations
 
 def read_castep_cell(fd, index=None, units=units_CODATA2002, 
                      calculator_args={}):
