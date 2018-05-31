@@ -1,4 +1,4 @@
-from ase.structcomp.structure_comparator import StructureComparator
+from ase.structcomp.structure_comparator import SymmetryEquivalenceCheck
 
 
-__all__ = ['StructureComparator']
+__all__ = ['SymmetryEquivalenceCheck']
