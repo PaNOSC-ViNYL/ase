@@ -10,7 +10,7 @@ import numpy as np
 
 def get_atoms_with_mixed_elements(crystalstructure="fcc"):
     atoms = bulk("Al", crystalstructure=crystalstructure, a=3.2)
-    atoms = atoms*(2,2,2)
+    atoms = atoms * (2, 2, 2)
     symbs = ["Al", "Cu", "Zn"]
     symbols = [symbs[randint(0, len(symbs) - 1)] for _ in range(len(atoms))]
     for i in range(len(atoms)):
@@ -100,81 +100,81 @@ def test_rotations_to_standard(comparator):
 
 
 def test_point_inversion(comparator):
-    s1=get_atoms_with_mixed_elements()
-    s2=s1.copy()
+    s1 = get_atoms_with_mixed_elements()
+    s2 = s1.copy()
     s2.set_positions(-s2.get_positions())
     assert comparator.compare(s1, s2)
 
 
 def test_mirror_plane(comparator):
-    s1=get_atoms_with_mixed_elements(crystalstructure="hcp")
-    s2=s1.copy()
-    mat=np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]])
+    s1 = get_atoms_with_mixed_elements(crystalstructure="hcp")
+    s2 = s1.copy()
+    mat = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, -1.0]])
     s2.set_positions(mat.dot(s2.get_positions().T).T)
     assert comparator.compare(s1, s2)
 
-    mat=np.array([[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    mat = np.array([[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
     s2.set_positions(mat.dot(s1.get_positions().T).T)
     assert comparator.compare(s1, s2)
 
-    mat=np.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]])
+    mat = np.array([[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]])
     s2.set_positions(mat.dot(s1.get_positions().T).T)
     assert comparator.compare(s1, s2)
 
 
 def test_hcp_symmetry_ops(comparator):
-    s1=get_atoms_with_mixed_elements(crystalstructure="hcp")
-    s2=s1.copy()
-    sg=spacegroup.Spacegroup(194)
-    cell=s2.get_cell().T
-    inv_cell=np.linalg.inv(cell)
+    s1 = get_atoms_with_mixed_elements(crystalstructure="hcp")
+    s2 = s1.copy()
+    sg = spacegroup.Spacegroup(194)
+    cell = s2.get_cell().T
+    inv_cell = np.linalg.inv(cell)
     for op in sg.get_rotations():
-        s1=get_atoms_with_mixed_elements(crystalstructure="hcp")
-        s2=s1.copy()
-        transformed_op=cell.dot(op).dot(inv_cell)
+        s1 = get_atoms_with_mixed_elements(crystalstructure="hcp")
+        s2 = s1.copy()
+        transformed_op = cell.dot(op).dot(inv_cell)
         s2.set_positions(transformed_op.dot(s1.get_positions().T).T)
         assert comparator.compare(s1, s2)
 
 
 def test_fcc_symmetry_ops(comparator):
-    s1=get_atoms_with_mixed_elements()
-    s2=s1.copy()
-    sg=spacegroup.Spacegroup(225)
-    cell=s2.get_cell().T
-    inv_cell=np.linalg.inv(cell)
+    s1 = get_atoms_with_mixed_elements()
+    s2 = s1.copy()
+    sg = spacegroup.Spacegroup(225)
+    cell = s2.get_cell().T
+    inv_cell = np.linalg.inv(cell)
     for op in sg.get_rotations():
-        s1=get_atoms_with_mixed_elements()
-        s2=s1.copy()
-        transformed_op=cell.dot(op).dot(inv_cell)
+        s1 = get_atoms_with_mixed_elements()
+        s2 = s1.copy()
+        transformed_op = cell.dot(op).dot(inv_cell)
         s2.set_positions(transformed_op.dot(s1.get_positions().T).T)
         assert comparator.compare(s1, s2)
 
 
 def test_bcc_symmetry_ops(comparator):
-    s1=get_atoms_with_mixed_elements(crystalstructure = "bcc")
-    s2=s1.copy()
-    sg=spacegroup.Spacegroup(229)
-    cell=s2.get_cell().T
-    inv_cell=np.linalg.inv(cell)
+    s1 = get_atoms_with_mixed_elements(crystalstructure="bcc")
+    s2 = s1.copy()
+    sg = spacegroup.Spacegroup(229)
+    cell = s2.get_cell().T
+    inv_cell = np.linalg.inv(cell)
     for op in sg.get_rotations():
-        s1=get_atoms_with_mixed_elements(crystalstructure = "bcc")
-        s2=s1.copy()
-        transformed_op=cell.dot(op).dot(inv_cell)
+        s1 = get_atoms_with_mixed_elements(crystalstructure="bcc")
+        s2 = s1.copy()
+        transformed_op = cell.dot(op).dot(inv_cell)
         s2.set_positions(transformed_op.dot(s1.get_positions().T).T)
         assert comparator.compare(s1, s2)
 
 
 def test_bcc_translation(comparator):
-    s1=get_atoms_with_mixed_elements(crystalstructure = "bcc")
-    s2=s1.copy()
+    s1 = get_atoms_with_mixed_elements(crystalstructure="bcc")
+    s2 = s1.copy()
     s2.set_positions(s2.get_positions() + np.array([6.0, -2.0, 1.0]))
     assert comparator.compare(s1, s2)
 
 
 def test_one_atom_out_of_pos(comparator):
-    s1=get_atoms_with_mixed_elements()
-    s2=s1.copy()
-    pos=s1.get_positions()
+    s1 = get_atoms_with_mixed_elements()
+    s2 = s1.copy()
+    pos = s1.get_positions()
     pos[0, :] += 0.2
     s2.set_positions(pos)
     assert not comparator.compare(s1, s2)
@@ -196,9 +196,10 @@ def run_all_tests(comparator):
     test_bcc_translation(comparator)
     test_one_atom_out_of_pos(comparator)
 
-comparator=StructureComparator()
+
+comparator = StructureComparator()
 if comparator.use_cpp_version:
     run_all_tests(comparator)
-    comparator.use_cpp_version=False
+    comparator.use_cpp_version = False
 
 run_all_tests(comparator)
