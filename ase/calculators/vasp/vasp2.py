@@ -432,32 +432,40 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         # Temporarily load OUTCAR into memory
         outcar = self.load_file('OUTCAR')
 
-        # First we check convergence
-        self.converged = self.read_convergence(lines=outcar)
-
         # Read the data we can from vasprun.xml
         atoms_xml = self.read_from_xml()
-        xml_data = {
-            'free_energy': atoms_xml.get_potential_energy(
-                force_consistent=True),
-            'energy': atoms_xml.get_potential_energy(),
-            'forces': atoms_xml.get_forces()[self.resort],
-            'stress': self.read_stress_xml(),
-            'fermi': atoms_xml.calc.get_fermi_level()}
+        xml_data = atoms_xml.calc.results
         self.results.update(xml_data)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
-        # This is typically pretty fastA
-        self.read_outcar(lines=outcar)
+        # We want to limit this as much as possible, as reading large OUTCAR's
+        # is relatively slow
+        # Removed for now
+        # self.read_outcar(lines=outcar)
 
         # Update results dict with results from OUTCAR
         # which aren't written to the atoms object we read from
         # the vasprun.xml file.
-        # XXX: Should be fixed in the XML reader!
-        self.results['magmom'] = self.magnetic_moment
-        self.results['magmoms'] = self.magnetic_moments
-        # self.results['fermi'] = self.fermi
-        self.results['dipole'] = self.dipole
+
+        self.converged = self.read_convergence(lines=outcar)
+        magmom, magmoms = self.read_mag(lines=outcar)
+        dipole = self.read_dipole(lines=outcar)
+        nbands = self.read_nbands(lines=outcar)
+        self.results.update(dict(magmom=magmom,
+                                 magmoms=magmoms,
+                                 dipole=dipole,
+                                 nbands=nbands))
+
+        # Store keywords for backwards compatiblity
+        self.spinpol = self.get_spin_polarized()
+        self.version = self.get_version()
+        self.energy_free = self.get_potential_energy(force_consistent=True)
+        self.energy_zero = self.get_potential_energy(force_consistent=False)
+        self.forces = self.get_forces()
+        self.fermi = self.get_fermi_level()
+        self.dipole = self.get_dipole_moment()
+        self.stress = self.get_stress()
+        self.nbands = self.get_number_of_bands()
 
         # Store the parameters used for this calculation
         self._store_param_state()
@@ -510,7 +518,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             return f.readlines()
 
     def read_outcar(self, lines=None):
-        """Read results from the OUTCAR file"""
+        """Read results from the OUTCAR file.
+        Deprecated, see read_results()"""
         if not lines:
             lines = self.load_file('OUTCAR')
         # Spin polarized calculation?
@@ -532,10 +541,10 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         p = self.int_params
         q = self.list_float_params
         if self.spinpol:
-            self.magnetic_moment = self.read_magnetic_moment()
+            self.magnetic_moment = self._read_magnetic_moment()
             if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
                 (p['lorbit'] is None and q['rwigs'])):
-                self.magnetic_moments = self.read_magnetic_moments(lines=lines)
+                self.magnetic_moments = self._read_magnetic_moments(lines=lines)
             else:
                 warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
                       ' setting magnetic_moments to zero.\nSet LORBIT>=10'
@@ -616,7 +625,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         return atoms.calc.get_number_of_spins()
 
     def get_number_of_bands(self):
-        return self.nbands
+        return self.results['nbands']
 
     def get_number_of_electrons(self, lines=None):
         if not lines:
@@ -803,20 +812,48 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                                          f in line.split()[1:4]])
         return dipolemoment
 
-    def read_magnetic_moments(self, lines=None):
-        """Read magnetic moments from OUTCAR"""
+    def read_mag(self, lines=None):
+        if not lines:
+            lines = self.load_file('OUTCAR')
+        p = self.int_params
+        q = self.list_float_params
+        if self.spinpol:
+            magnetic_moment = self._read_magnetic_moment(lines=lines)
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
+                (p['lorbit'] is None and q['rwigs'])):
+                magnetic_moments = self._read_magnetic_moments(lines=lines)
+            else:
+                warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
+                      ' setting magnetic_moments to zero.\nSet LORBIT>=10'
+                      ' to get information on magnetic moments'))
+                magnetic_moments = np.zeros(len(self.atoms))
+        else:
+            magnetic_moment = 0.0
+            magnetic_moments = np.zeros(len(self.atoms))
+        return magnetic_moment, magnetic_moments
+
+    def _read_magnetic_moments(self, lines=None):
+        """Read magnetic moments from OUTCAR.
+        Only reads the last occurrence. """
         if not lines:
             lines = self.load_file('OUTCAR')
 
         magnetic_moments = np.zeros(len(self.atoms))
+        magstr = 'magnetization (x)'
 
+        # Search for the last occurence
+        nidx = -1
         for n, line in enumerate(lines):
-            if line.rfind('magnetization (x)') > -1:
-                for m in range(len(self.atoms)):
-                    magnetic_moments[m] = float(lines[n + m + 4].split()[4])
-        return np.array(magnetic_moments)[self.resort]
+            if magstr in line:
+                nidx = n
 
-    def read_magnetic_moment(self, lines=None):
+        # Read that occurence
+        if nidx > -1:
+            for m in range(len(self.atoms)):
+                magnetic_moments[m] = float(lines[nidx + m + 4].split()[4])
+        return magnetic_moments[self.resort]
+
+    def _read_magnetic_moment(self, lines=None):
         """Read magnetic moment from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')
