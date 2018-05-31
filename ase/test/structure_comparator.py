@@ -1,4 +1,4 @@
-from ase.structcomp import StructureComparator
+from ase.structcomp import SymmetryEquivalenceCheck
 import os
 from ase.test import NotAvailable
 from ase.build import bulk
@@ -197,7 +197,7 @@ def run_all_tests(comparator):
     test_one_atom_out_of_pos(comparator)
 
 
-comparator = StructureComparator()
+comparator = SymmetryEquivalenceCheck()
 if comparator.use_cpp_version:
     run_all_tests(comparator)
     comparator.use_cpp_version = False
