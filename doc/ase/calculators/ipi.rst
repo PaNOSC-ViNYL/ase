@@ -50,6 +50,10 @@ The codes that are "not supported" by ASE can still be used as
 clients, but you will need to generate the input files and launch the
 client programs yourself.
 
+Codes may require different commands, keywords, or compilation options
+in order to run in driver mode.  See the code's documentation for
+details.  The i-PI documentation may also be useful.
+
 How to use ASE/i-PI
 -------------------
 
