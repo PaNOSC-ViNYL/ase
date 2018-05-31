@@ -7,14 +7,6 @@ from ase.spacegroup import spacegroup, get_spacegroup
 from random import randint
 import numpy as np
 
-"""
-Inside the folder structure_match_data all structures inside the same subfolder
-should be symmetrically equivalent so the comparator should return True
-when comparing these two atoms
-
-When comparing atoms-objects from different subfolders they should return False
-"""
-
 
 def get_atoms_with_mixed_elements(crystalstructure="fcc"):
     atoms = bulk("Al", crystalstructure=crystalstructure, a=3.2)
