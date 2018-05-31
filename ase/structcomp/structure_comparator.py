@@ -4,6 +4,7 @@ import numpy as np
 from scipy.spatial import cKDTree as KDTree
 from ase import Atoms
 from ase.build import tools as asetools
+from ase.visualize import view
 
 try:
     import pystructcomp_cpp as pycpp
@@ -16,7 +17,7 @@ except:
 
 class SymmetryEquivalenceCheck(object):
     """Compare two structures to determine if they are symmetry equivalent.
-    
+
     Based on the recipe from Comput. Phys. Commun. 183, 690-697 (2012).
 
     Attributes:
@@ -494,12 +495,16 @@ class SymmetryEquivalenceCheck(object):
         pos1 = s1.get_positions()
         for order in range(1):
             all_match = True
+            used_indices = []
             for i in range(len(s1)):
                 s1pos = np.zeros(3)
                 s1pos[0] = pos1[i, order]
                 s1pos[1] = pos1[i, (order + 1) % 3]
                 s1pos[2] = pos1[i, (order + 2) % 3]
                 dist, closest = kdtree.query(s1pos)
+                if closest in used_indices:
+                    return False
+                used_indices.append(closest)
                 if (s1[i].symbol != s2[closest].symbol or
                         dist > self.position_tolerance):
                     all_match = False
