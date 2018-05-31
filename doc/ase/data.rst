@@ -68,6 +68,8 @@ The source of the van der Waals radii is given in vdw.py_.
 A newer source of van der Waals radii is given in vdw_alvarez.py_.  These
 radii are taken from [Alvarez13]_.
 
+.. image:: atomic_radii.png
+
 .. [Meija2016] *Atomic weights of the elements 2013
     (IUPAC Technical Report).* Meija, J., Coplen, T., Berglund, M., et al.
     (2016).  Pure and Applied Chemistry, 88(3), pp. 265-291.
