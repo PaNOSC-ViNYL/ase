@@ -414,7 +414,7 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
     def parse_blockunit(line_tokens, blockname):
         u = 1.0
         if len(line_tokens[0]) == 1:
-            usymb = line_tokens[0][0]
+            usymb = line_tokens[0][0].lower()
             u = cell_units.get(usymb, 1)
             if usymb not in cell_units:
                 warnings.warn(('read_cell: Warning - ignoring invalid '
@@ -554,14 +554,31 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
         celldict.pop('positions_abs', None)
         celldict.pop('positions_frac', None)
 
-    
+    # Now on to the species potentials...
 
+    # Create the calculator to store them
+    calc = Castep(**calculator_args)
 
-    print(add_info_arrays)
+    if 'species_pot' in celldict:
+        lines = celldict['species_pot'].split('\n')
+        line_tokens = map(tokenize, lines)
+
+        for tokens in line_tokens:
+            if len(tokens) == 1:
+                # It's a library
+                all_spec = (set(custom_species) if custom_species is not None 
+                            else set(aargs['symbols']))
+                for s in all_spec:
+                    calc.cell.species_pot = (s, tokens[0])
+            else:
+                calc.cell.species_pot = tuple(tokens[:2])
+
 
     print(aargs)
+    print(add_info_arrays)
+    print(calc)
 
-    return celldict
+    return
 
 def read_castep_cell(fd, index=None, units=units_CODATA2002, 
                      calculator_args={}):
