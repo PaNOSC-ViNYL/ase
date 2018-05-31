@@ -421,7 +421,13 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
                                'unit specifier in %BLOCK {0} '
                                '(assuming Angstrom instead)'
                                ).format(blockname))
-        return u, line_tokens[1:]
+            line_tokens = line_tokens[1:]
+        return u, line_tokens
+
+    # Arguments to pass to the Atoms object at the end
+    aargs = {
+        'pbc': True
+    }
 
     # Start by looking for the lattice
     lat_keywords = map(celldict.__contains__, ('lattice_cart', 'lattice_abc'))
@@ -455,7 +461,7 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
                       np.sin(gamma))
         lat_c3 = np.sqrt(c * c - lat_c1 * lat_c1 - lat_c2 * lat_c2)
         lat_c = [lat_c1, lat_c2, lat_c3]
-        lat = [lat_a, lat_b, lat_c]
+        aargs['cell'] = [lat_a, lat_b, lat_c]
 
         del(celldict['lattice_abc']) # Remove for the future
 
@@ -471,7 +477,8 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
                           'three lattice vectors in invalid %BLOCK '
                           'LATTICE_CART')
 
-        lat = map(lambda lt: map(lambda x: float(x)*u, lt[:3]), line_tokens)
+        aargs['cell'] = map(lambda lt: map(lambda x: float(x)*u, lt[:3]), 
+                            line_tokens)
 
         del(celldict['lattice_cart']) # Remove for the future
 
@@ -485,46 +492,74 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
         raise ValueError('Cell file must contain at least one between '
                          'POSITIONS_FRAC and POSITIONS_ABS')
 
-    pos_frac = False
+    aargs['symbols'] = []
+    pos_type = 'positions'
     pos_block = celldict.get('positions_abs', None)
     if pos_block is None:
-        pos_frac = True
+        pos_type = 'scaled_positions'
         pos_block = celldict.get('positions_frac', None)
+    aargs[pos_type] = []
 
     lines = pos_block.split('\n')
     line_tokens = map(tokenize, lines)
 
-    if not pos_frac:
+    if not 'scaled' in pos_type:
         u, line_tokens = parse_blockunit(line_tokens, 'positions_abs')
     else:
         u = 1.0
-        
-    # fix to be able to read initial spin assigned on the atoms
-    # tokens, l = get_tokens(lines, l, maxsplit=4, has_species=True)
-    # while len(tokens) >= 4:
-    #     # Now, process the whole 'species' thing
-    #     spec_custom = tokens[0].split(':', 1)
-    #     elem = spec_custom[0]
-    #     if len(spec_custom) > 1 and custom_species is None:
-    #         # Add it to the custom info!
-    #         custom_species = list(spec)
-    #     spec.append(elem)
-    #     if custom_species is not None:
-    #         custom_species.append(tokens[0])
-    #     pos.append([float(p) * u for p in tokens[1:4]])
-    #     if len(tokens) > 4:
-    #         get_add_info(add_info_arrays, tokens[4])
-    #     else:
-    #         get_add_info(add_info_arrays)
-    #     tokens, l = get_tokens(lines, l, maxsplit=4,
-    #                            has_species=True)
-    # if tokens[0].upper() != '%ENDBLOCK':
-    #     warnings.warn('read_cell: Warning - ignoring invalid lines'
-    #                   ' in%%BLOCK '
-    #                   '%s:\n\t %s' % (block_name, tokens))
-    # have_pos = True        
 
-    print(lat)
+    # Here we extract all the possible additional info
+    # These are marked by their type
+
+    add_info = {
+        'SPIN':   (float, 0.0),   # (type, default)
+        'MAGMOM': (float, 0.0), 
+        'LABEL':  (str, 'NULL')
+    }
+    add_info_arrays = dict((k, []) for k in add_info)
+
+    def parse_info(raw_info):
+
+        re_keys = ('({0})\s*[=:\s]{{1}}\s'
+                   '*([^\s]*)').format('|'.join(add_info.keys()))
+        # Capture all info groups
+        info = re.findall(re_keys, raw_info)
+        info = {g[0]: add_info[g[0]][0](g[1]) for g in info}
+        return info
+
+    # Array for custom species (a CASTEP special thing)
+    # Usually left unused
+    custom_species = None
+    # Spacegroup, only if SYMMETRY_OPS is found
+    atoms_spg = None
+
+    for tokens in line_tokens:
+        # Now, process the whole 'species' thing
+        spec_custom = tokens[0].split(':', 1)
+        elem = spec_custom[0]
+        aargs['symbols'].append(elem)
+        if len(spec_custom) > 1 and custom_species is None:
+            # Add it to the custom info!
+            custom_species = list(spec)
+        if custom_species is not None:
+            custom_species.append(tokens[0])
+        aargs[pos_type].append([float(p) * u for p in tokens[1:4]])
+        # Now for the additional information
+        info = ' '.join(tokens[4:])
+        info = parse_info(info)
+        for k in add_info:
+            add_info_arrays[k] += [info.get(k, add_info[k][1])]
+
+        # Delete all positions blocks
+        celldict.pop('positions_abs', None)
+        celldict.pop('positions_frac', None)
+
+    
+
+
+    print(add_info_arrays)
+
+    print(aargs)
 
     return celldict
 
