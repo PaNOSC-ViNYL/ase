@@ -614,30 +614,6 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
             # Regardless of whether we recognize them, store these
             calc.cell.symmetry_ops = (rotations, translations)
 
-            # Now on to identify the spacegroup!
-            # Sorting is needed to have some conventional order
-            symops = np.concatenate([rotations.reshape((-1, 9)), 
-                                     translations], axis=1)
-            symops = symops[np.lexsort(symops.T)]
-            for spg_n in range(1, 231):
-                test_spg = Spacegroup(spg_n)
-                test_symops = test_spg.get_op()
-
-                if test_symops[0].shape != rotations.shape:
-                    continue
-                test_symops = np.concatenate([test_symops[0].reshape((-1, 9)), 
-                                              test_symops[1]], axis=1)
-                test_symops = test_symops[np.lexsort(test_symops.T)]
-                # And test!
-                found = np.allclose(test_symops, symops)
-                if found:
-                    # We got it!
-                    atoms_spg = test_spg
-            if atoms_spg is None:
-                # All failed...
-                warnings.warn('Could not identify Spacegroup from '
-                              'SYMMETRY_OPS')
-
     print(aargs)
     print(add_info_arrays)
     print(calc)
