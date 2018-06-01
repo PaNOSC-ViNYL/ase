@@ -640,21 +640,31 @@ def read_castep_cell_new(fd, calculator_args={}, find_spg=False,
             atoms_spg = Spacegroup(int(symmd['number']))
             atoms.info['spacegroup'] = atoms_spg
 
-    return atoms
-
     atoms.new_array('castep_labels', labels)
     if custom_species is not None:
         atoms.new_array('castep_custom_species', np.array(custom_species))
 
     fixed_atoms = []
+    constraints = []
     for (species, nic), value in raw_constraints.items():
         absolute_nr = atoms.calc._get_absolute_number(species, nic)
         if len(value) == 3:
+            # Check if they are linearly independent
+            if np.linalg.det(value) == 0:
+                print('Error: Found linearly dependent constraints attached '
+                      'to atoms %s' % (absolute_nr))
+                continue
             fixed_atoms.append(absolute_nr)
         elif len(value) == 2:
+            direction = np.cross(value[0], value[1])
+            # Check if they are linearly independent
+            if np.linalg.norm(direction) == 0:
+                print('Error: Found linearly dependent constraints attached '
+                      'to atoms %s' % (absolute_nr))
+                continue
             constraint = ase.constraints.FixedLine(
                 a=absolute_nr,
-                direction=np.cross(value[0], value[1]))
+                direction=direction)
             constraints.append(constraint)
         elif len(value) == 1:
             # catch cases in which constraints are given in a single line in
@@ -678,6 +688,7 @@ def read_castep_cell_new(fd, calculator_args={}, find_spg=False,
         else:
             print('Error: Found %s statements attached to atoms %s'
                   % (len(value), absolute_nr))
+
     # we need to sort the fixed atoms list in order not to raise an assertion
     # error in FixAtoms
     if fixed_atoms:
@@ -686,11 +697,9 @@ def read_castep_cell_new(fd, calculator_args={}, find_spg=False,
     if constraints:
         atoms.set_constraint(constraints)
 
-    if not _fallback:
-        # needs to go here again to have the constraints in
-        # atoms.calc.atoms.constraints as well
-        atoms.calc.atoms = atoms
-        atoms.calc.push_oldstate()
+    atoms.calc.atoms = atoms
+    atoms.calc.push_oldstate()
+
     return atoms
 
 
