@@ -86,9 +86,10 @@ class TrajectoryWriter:
         self.properties = properties
 
         self.description = {}
-        self._open(filename, mode)
         self.header_data = None
         self.multiple_headers = False
+
+        self._open(filename, mode)
 
     def set_description(self, description):
         self.description.update(description)
@@ -99,10 +100,9 @@ class TrajectoryWriter:
             raise ValueError('mode must be "w" or "a".')
         if self.master:
             self.backend = ulm.open(filename, mode, tag='ASE-Trajectory')
-            if len(self.backend) > 0:
-                r = ulm.open(filename)
-                self.numbers = r.numbers
-                self.pbc = r.pbc
+            if len(self.backend) > 0 and mode == 'a':
+                atoms = Trajectory(filename)[0]
+                self.header_data = get_header_data(atoms)
         else:
             self.backend = ulm.DummyWriter()
 
