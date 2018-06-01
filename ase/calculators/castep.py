@@ -2311,10 +2311,15 @@ class CastepOption(object):
 
     @property
     def value(self):
-        if self.type.lower() in ('integer vector', 'real vector', 'physical'):
-            if self._value:
-                return ' '.join(map(str, self._value))
-        return self._value
+
+        if self._value:
+            if self.type.lower() in ('integer vector', 'real vector',
+                                     'physical'):
+                    return ' '.join(map(str, self._value))
+            elif self.type.lower() in ('boolean (logical)', 'defined'):
+                return str(self._value).upper()
+            else:
+                return str(self._value)
 
     @property
     def raw_value(self):
