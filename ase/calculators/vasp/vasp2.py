@@ -434,6 +434,10 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         # Read the data we can from vasprun.xml
         atoms_xml = self.read_from_xml()
         xml_results = atoms_xml.calc.results
+
+        # Fix sorting
+        xml_results['forces'] = xml_results['forces'][self.resort]
+
         self.results.update(xml_results)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
@@ -554,7 +558,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         if overwrite or not self._xml_data:
             self._xml_data = read(os.path.join(self.directory,
                                                filename),
-                                  index=-1)[self.resort]
+                                  index=-1)
         return self._xml_data
 
     def get_ibz_k_points(self):
