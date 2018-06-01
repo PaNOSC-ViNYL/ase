@@ -9,12 +9,13 @@ import os
 import re
 import warnings
 import numpy as np
+from copy import deepcopy
 
 import ase
 
+from ase.parallel import paropen
 from ase.spacegroup import Spacegroup
 from ase.constraints import FixAtoms, FixCartesian, FixedLine
-from ase.parallel import paropen
 
 # independent unit management included here:
 # When high accuracy is required, this allows to easily pin down
@@ -111,10 +112,10 @@ def write_freeform(fd, outputobj):
         if opt.type.lower() == 'block':
             fd.write('%BLOCK {0}\n{1}\n%ENDBLOCK {0}\n\n'.format(
                      kw.upper(), 
-                     opt.value.strip()))
+                     opt.value.strip('\n')))
         else:
             fd.write('{0}: {1}\n\n'.format(kw.upper(), opt.value))
-    
+
 
 def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
                force_write=False):
@@ -129,8 +130,9 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     write(filename, atoms, positions_frac=positions_frac,
           castep_cell=castep_cell, force_write=force_write)
 
-def write_castep_cell_new(fd, atoms, positions_frac=False, castep_cell=None,
-                      force_write=False, precision=6):
+def write_castep_cell_new(fd, atoms, positions_frac=False, force_write=False,
+                          precision=6, magnetic_moments=None,
+                          castep_cell=None):
     """
     This CASTEP export function write minimal information to
     a .cell file. If the atoms object is a trajectory, it will
@@ -141,6 +143,21 @@ def write_castep_cell_new(fd, atoms, positions_frac=False, castep_cell=None,
     function from formats.py
 
     Note that the "force_write" keywords has no effect currently.
+
+    Arguments:
+
+        positions_frac: boolean. If true, positions are printed as fractional
+                        rather than absolute. Default is false.
+        castep_cell: if provided, overrides the existing CastepCell object in
+                     the Atoms calculator
+        precision: number of digits to which lattice and positions are printed
+        magnetic_moments: if None, no SPIN values are initialised.
+                          If 'initial', the values from
+                          get_initial_magnetic_moments() are used.
+                          If 'calculated', the values from 
+                          get_magnetic_moments() are used.
+                          If an array of the same length as the atoms object,
+                          its contents will be used as magnetic moments.
     """
 
     if atoms is None:
@@ -156,24 +173,68 @@ def write_castep_cell_new(fd, atoms, positions_frac=False, castep_cell=None,
     fd.write('#Created using the Atomic Simulation Environment (ASE)#\n')
     fd.write('#######################################################\n\n')
 
-    # Write lattice
-    fd.write('%BLOCK LATTICE_CART\n')
+    # To write this we simply use the existing Castep calculator, or create
+    # one
+    from ase.calculators.castep import Castep, CastepCell
 
+    try:
+        has_cell = isinstance(atoms.calc.cell, CastepCell)
+    except:
+        has_cell = False
+
+    if has_cell:
+        cell = deepcopy(atoms.calc.cell)
+    else:
+        cell = Castep(keyword_tolerance=2).cell
+
+    # Write lattice
     fformat = '%{0}.{1}f'.format(precision+3, precision)
-    cell_block_format = '    ' + ' '.join([fformat]*3) + '\n'
-    
-    for line in atoms.get_cell():
-        fd.write(cell_block_format % tuple(line))
-    fd.write('%ENDBLOCK LATTICE_CART\n\n\n')
+    cell_block_format = ' '.join([fformat]*3)
+    cell.lattice_cart = [cell_block_format % tuple(line)
+                         for line in atoms.get_cell()]
 
     if positions_frac:
-        keyword = 'POSITIONS_FRAC'
+        keyword = 'positions_frac'
         positions = atoms.get_scaled_positions()
     else:
-        keyword = 'POSITIONS_ABS'
+        keyword = 'positions_abs'
         positions = atoms.get_positions()
 
+    if atoms.has('castep_custom_species'):
+        elems = atoms.get_array('castep_custom_species')
+    else:
+        elems = atoms.get_chemical_symbols()
 
+    if atoms.has('castep_labels'):
+        labels = atoms.get_array('castep_labels')
+    else:
+        labels = ['NULL']*len(elems)
+
+    if str(magnetic_moments).lower() == 'initial':
+        magmoms = atoms.get_initial_magnetic_moments()
+    elif str(magnetic_moments).lower() == 'calculated':
+        magmoms = atoms.get_magnetic_moments()
+    elif np.array(magnetic_moments).shape == (len(elems),):
+        magmoms = np.array(magnetic_moments)
+    else:
+        magmoms = [0]*len(elems)
+
+    posblock = []
+    pos_block_format = '%s ' + cell_block_format
+
+    for i, el in enumerate(elems):
+        xyz = positions[i]
+        line = pos_block_format % tuple([el] + list(xyz))
+        # ADD other keywords if necessary
+        if magmoms[i] != 0:
+            line += ' SPIN={0} '.format(magmoms[i])
+        if labels[i].strip() not in ('NULL', ''):
+            line += ' LABEL={0} '.format(labels[i])
+        posblock.append(line)
+
+    cell.__setattr__(keyword, posblock)
+
+    write_freeform(fd, cell)
 
 
 def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
