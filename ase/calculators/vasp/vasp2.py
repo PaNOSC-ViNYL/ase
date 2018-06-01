@@ -107,9 +107,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         GenerateVaspInput.__init__(self)
         self._store_param_state()  # Initialize an empty parameter state
 
-        # Store atoms objects from vasprun.xml here, when an index is read
-        # Format: self.xml_data[index] = atoms_object
-        self.xml_data = {}
+        # Store atoms objects from vasprun.xml here - None => uninitialized
+        self._xml_data = None
 
         label = os.path.join(directory, label)
 
@@ -261,7 +260,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             self.atoms = atoms.copy()
 
         self.check_cell()      # Check for zero-length lattice vectors
-        self.xml_data = {}     # Reset the stored data
+        self._xml_data = None     # Reset the stored data
 
         command = self.make_command(self.command)
         self.write_input(self.atoms, properties, system_changes)
@@ -434,8 +433,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
         # Read the data we can from vasprun.xml
         atoms_xml = self.read_from_xml()
-        xml_data = atoms_xml.calc.results
-        self.results.update(xml_data)
+        xml_results = atoms_xml.calc.results
+        self.results.update(xml_results)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
         # We want to limit this as much as possible, as reading large OUTCAR's
@@ -538,26 +537,11 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.nbands = self.read_nbands(lines=lines)
 
         self.read_ldau()
-        p = self.int_params
-        q = self.list_float_params
-        if self.spinpol:
-            self.magnetic_moment = self._read_magnetic_moment()
-            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
-                (p['lorbit'] is None and q['rwigs'])):
-                self.magnetic_moments = self._read_magnetic_moments(lines=lines)
-            else:
-                warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
-                      ' setting magnetic_moments to zero.\nSet LORBIT>=10'
-                      ' to get information on magnetic moments'))
-                self.magnetic_moments = np.zeros(len(self.atoms))
-        else:
-            self.magnetic_moment = 0.0
-            self.magnetic_moments = np.zeros(len(self.atoms))
+        self.magnetic_moment, self.magnetic_moments = self.read_mag(lines=lines)
 
-    def read_from_xml(self, index=-1, filename='vasprun.xml', overwrite=False):
-        """Read vasprun.xml, and return an atoms object at a given index.
-        If we have not read the index before, we will read the xml file
-        at the given index and store it, before returning
+    def read_from_xml(self, filename='vasprun.xml', overwrite=False):
+        """Read vasprun.xml, and return the last atoms object.
+        If we have not read the atoms object before, we will read the xml file
 
         Parameters:
 
@@ -566,62 +550,47 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         overwrite: bool
             Force overwrite the existing data in xml_data
             Default value: False
-        index: int
-            Default returns the last configuration, index=-1
         """
-        if overwrite or index not in self.xml_data:
-            self.xml_data[index] = read(os.path.join(self.directory,
-                                                     filename),
-                                        index=index)
-        return self.xml_data[index]
+        if overwrite or not self._xml_data:
+            self._xml_data = read(os.path.join(self.directory,
+                                               filename),
+                                  index=-1)[self.resort]
+        return self._xml_data
 
-    def read_stress_xml(self, index=-1):
-        """Read stress tensor from the vasprun.xml file.
-        Returns None if there is no stress tensor in the calculation.
-
-        Use get_stress() instead of accessing this method.
-        """
-        atoms = self.read_from_xml(index)
-        try:
-            return atoms.get_stress()
-        except PropertyNotImplementedError:
-            # The tensor was not loaded in the XML file
-            return None
-
-    def get_ibz_k_points(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_ibz_k_points(self):
+        atoms = self.read_from_xml()
         return atoms.calc.ibz_kpts
 
-    def get_kpt(self, kpt=0, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_kpt(self, kpt=0, spin=0):
+        atoms = self.read_from_xml()
         return atoms.calc.get_kpt(kpt=kpt, spin=spin)
 
-    def get_eigenvalues(self, kpt=0, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_eigenvalues(self, kpt=0, spin=0):
+        atoms = self.read_from_xml()
         return atoms.calc.get_eigenvalues(kpt=kpt, spin=spin)
 
-    def get_fermi_level(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_fermi_level(self):
+        atoms = self.read_from_xml()
         return atoms.calc.get_fermi_level()
 
-    def get_homo_lumo(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_homo_lumo(self):
+        atoms = self.read_from_xml()
         return atoms.calc.get_homo_lumo()
 
-    def get_homo_lumo_by_spin(self, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_homo_lumo_by_spin(self, spin=0):
+        atoms = self.read_from_xml()
         return atoms.calc.get_homo_lumo_by_spin(spin=spin)
 
-    def get_occupation_numbers(self, kpt=0, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        atoms = self.read_from_xml()
         return atoms.calc.get_occupation_numbers(kpt, spin)
 
-    def get_spin_polarized(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_spin_polarized(self):
+        atoms = self.read_from_xml()
         return atoms.calc.get_spin_polarized()
 
-    def get_number_of_spins(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_number_of_spins(self):
+        atoms = self.read_from_xml()
         return atoms.calc.get_number_of_spins()
 
     def get_number_of_bands(self):
