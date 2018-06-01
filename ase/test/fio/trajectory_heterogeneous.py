@@ -44,8 +44,7 @@ for i in range(len(images)):
     # assert headers_equal(h1, h2)
 
 # Test append mode:
-atraj = Trajectory('out.traj', 'a')
-atraj.write(molecule('H2'))
-atraj.write(molecule('H2'))
-atraj.close()
+with Trajectory('out.traj', 'a') as atraj:
+    atraj.write(molecule('H2'))
+    atraj.write(molecule('H2'))
 read('out.traj@:')

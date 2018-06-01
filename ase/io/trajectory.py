@@ -91,6 +91,12 @@ class TrajectoryWriter:
 
         self._open(filename, mode)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
+
     def set_description(self, description):
         self.description.update(description)
 
@@ -213,6 +219,12 @@ class TrajectoryReader:
         self.masses = None
 
         self._open(filename)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def _open(self, filename):
         import ase.io.ulm as ulm
