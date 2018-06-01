@@ -379,7 +379,8 @@ def read_cell(filename, index=None):
     return read(filename, index=index, format='castep-cell')
 
 
-def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
+def read_castep_cell_new(fd, calculator_args={}, find_spg=False,
+                         units=units_CODATA2002):
     # Temporary name for new method
 
     from ase.calculators.castep import Castep
@@ -440,7 +441,7 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
 
     if 'lattice_abc' in celldict:
 
-        lines = celldict['lattice_abc'].split('\n')
+        lines = celldict.pop('lattice_abc').split('\n')
         line_tokens = map(tokenize, lines)
 
         u, line_tokens = parse_blockunit(line_tokens, 'lattice_abc')
@@ -463,11 +464,9 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
         lat_c = [lat_c1, lat_c2, lat_c3]
         aargs['cell'] = [lat_a, lat_b, lat_c]
 
-        del(celldict['lattice_abc']) # Remove for the future
-
     if 'lattice_cart' in celldict:
 
-        lines = celldict['lattice_cart'].split('\n')
+        lines = celldict.pop('lattice_cart').split('\n')
         line_tokens = map(tokenize, lines)
 
         u, line_tokens = parse_blockunit(line_tokens, 'lattice_cart')
@@ -480,24 +479,23 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
         aargs['cell'] = map(lambda lt: map(lambda x: float(x)*u, lt[:3]), 
                             line_tokens)
 
-        del(celldict['lattice_cart']) # Remove for the future
-
     # Now move on to the positions
     pos_keywords = map(celldict.__contains__,
                        ('positions_abs', 'positions_frac'))
     if all(pos_keywords):
         warnings.warn('read_cell: Warning - two lattice blocks present in the'
                       ' same file. POSITIONS_FRAC will be ignored')
+        del celldict['positions_frac']
     elif not any(pos_keywords):
         raise ValueError('Cell file must contain at least one between '
                          'POSITIONS_FRAC and POSITIONS_ABS')
 
     aargs['symbols'] = []
     pos_type = 'positions'
-    pos_block = celldict.get('positions_abs', None)
+    pos_block = celldict.pop('positions_abs', None)
     if pos_block is None:
         pos_type = 'scaled_positions'
-        pos_block = celldict.get('positions_frac', None)
+        pos_block = celldict.pop('positions_frac', None)
     aargs[pos_type] = []
 
     lines = pos_block.split('\n')
@@ -530,8 +528,6 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
     # Array for custom species (a CASTEP special thing)
     # Usually left unused
     custom_species = None
-    # Spacegroup, only if SYMMETRY_OPS is found
-    atoms_spg = None
 
     for tokens in line_tokens:
         # Now, process the whole 'species' thing
@@ -550,13 +546,9 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
         for k in add_info:
             add_info_arrays[k] += [info.get(k, add_info[k][1])]
 
-        # Delete all positions blocks
-        celldict.pop('positions_abs', None)
-        celldict.pop('positions_frac', None)
-
     # Now on to the species potentials...
     if 'species_pot' in celldict:
-        lines = celldict['species_pot'].split('\n')
+        lines = celldict.pop('species_pot').split('\n')
         line_tokens = map(tokenize, lines)
 
         for tokens in line_tokens:
@@ -567,13 +559,13 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
                 for s in all_spec:
                     calc.cell.species_pot = (s, tokens[0])
             else:
-                calc.cell.species_pot = tuple(tokens[:2])
+                calc.cell.species_pot = tuple(tokens[:2])        
 
     # Ionic constraints
     raw_constraints = {}
 
     if 'ionic_constraints' in celldict:
-        lines = celldict['ionic_constraints'].split('\n')
+        lines = celldict.pop('ionic_constraints').split('\n')
         line_tokens = map(tokenize, lines)
 
         for tokens in line_tokens:
@@ -592,12 +584,8 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
                                                    [x, y, z]))
 
     # Symmetry operations
-    atoms_spg = None
-    rotations = []
-    translations = []
-
     if 'symmetry_ops' in celldict:
-        lines = celldict['symmetry_ops'].split('\n')
+        lines = celldict.pop('symmetry_ops').split('\n')
         line_tokens = map(tokenize, lines)
 
         # Read them in blocks of four
@@ -614,11 +602,97 @@ def read_castep_cell_new(fd, units=units_CODATA2002, calculator_args={}):
             # Regardless of whether we recognize them, store these
             calc.cell.symmetry_ops = (rotations, translations)
 
-    print(aargs)
-    print(add_info_arrays)
-    print(calc)
+    # Anything else that remains, just add it to the cell object:
+    for k, val in celldict.items():
+        try:
+            calc.cell.__setattr__(k, val)
+        except:
+            raise RuntimeError('Problem setting calc.cell.%s = %s' % (k, val))
 
-    return rotations, translations
+    # Get the relevant additional info
+    aargs['magmoms'] = np.array(add_info_arrays['SPIN'])
+    # SPIN or MAGMOM are alternative keywords
+    aargs['magmoms'] = np.where(aargs['magmoms'] != 0,
+                                aargs['magmoms'],
+                                add_info_arrays['MAGMOM'])
+    labels = np.array(add_info_arrays['LABEL'])
+
+    aargs['calculator'] = calc
+
+    atoms = ase.Atoms(**aargs)
+
+    # Spacegroup...
+    if find_spg:
+        # Try importing spglib
+        try:
+            import spglib
+        except ImportError:
+            try:
+                from pyspglib import spglib
+            except ImportError:
+                # spglib is not present
+                warning.warn('spglib not found installed on this system - '
+                             'automatic spacegroup detection is not possible')
+                spglib = None
+
+        if spglib is not None:
+            symmd = spglib.get_symmetry_dataset(atoms)
+            atoms_spg = Spacegroup(int(symmd['number']))
+            atoms.info['spacegroup'] = atoms_spg
+
+    return atoms
+
+    atoms.new_array('castep_labels', labels)
+    if custom_species is not None:
+        atoms.new_array('castep_custom_species', np.array(custom_species))
+
+    fixed_atoms = []
+    for (species, nic), value in raw_constraints.items():
+        absolute_nr = atoms.calc._get_absolute_number(species, nic)
+        if len(value) == 3:
+            fixed_atoms.append(absolute_nr)
+        elif len(value) == 2:
+            constraint = ase.constraints.FixedLine(
+                a=absolute_nr,
+                direction=np.cross(value[0], value[1]))
+            constraints.append(constraint)
+        elif len(value) == 1:
+            # catch cases in which constraints are given in a single line in
+            # the cell file
+            # if np.count_nonzero(value[0]) == 3:
+            #     fixed_atoms.append(absolute_nr)
+            # elif np.count_nonzero(value[0]) == 2:
+            #     # in this case we need a FixedLine instance
+            #     # it is initialized with the atom's index
+            #     constraint = ase.constraints.FixedLine(a=absolute_nr,
+            #         direction=[not v for v in value[0]])
+            #     constraints.append(constraint)
+            # else:
+
+            # I do not think you can have a fixed position of a fixed
+            # line with only one constraint -- JML
+            constraint = ase.constraints.FixedPlane(
+                a=absolute_nr,
+                direction=np.array(value[0], dtype=np.float32))
+            constraints.append(constraint)
+        else:
+            print('Error: Found %s statements attached to atoms %s'
+                  % (len(value), absolute_nr))
+    # we need to sort the fixed atoms list in order not to raise an assertion
+    # error in FixAtoms
+    if fixed_atoms:
+        constraints.append(
+            ase.constraints.FixAtoms(indices=sorted(fixed_atoms)))
+    if constraints:
+        atoms.set_constraint(constraints)
+
+    if not _fallback:
+        # needs to go here again to have the constraints in
+        # atoms.calc.atoms.constraints as well
+        atoms.calc.atoms = atoms
+        atoms.calc.push_oldstate()
+    return atoms
+
 
 def read_castep_cell(fd, index=None, units=units_CODATA2002, 
                      calculator_args={}):
