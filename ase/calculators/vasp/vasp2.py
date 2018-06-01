@@ -23,6 +23,7 @@ from __future__ import print_function, division
 
 import os
 import sys
+import re
 import numpy as np
 import subprocess
 from contextlib import contextmanager
@@ -406,12 +407,12 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
     def update_atoms(self, atoms):
         """Update the atoms object with new positions and cell"""
-        atoms_sorted = read(os.path.join(self.directory, 'CONTCAR'))
         if (self.int_params['ibrion'] is not None and
                 self.int_params['nsw'] is not None):
             if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
                 # Update atomic positions and unit cell with the ones read
                 # from CONTCAR.
+                atoms_sorted = read(os.path.join(self.directory, 'CONTCAR'))
                 atoms.positions = atoms_sorted[self.resort].positions
                 atoms.cell = atoms_sorted.cell
 
@@ -432,7 +433,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         outcar = self.load_file('OUTCAR')
 
         # Read the data we can from vasprun.xml
-        atoms_xml = self.read_from_xml()
+        atoms_xml = self._read_from_xml()
         xml_results = atoms_xml.calc.results
 
         # Fix sorting
@@ -520,6 +521,15 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         with open(filename, 'r') as f:
             return f.readlines()
 
+    @contextmanager
+    def load_file_iter(self, filename):
+        """Return a file iterator"""
+
+        filename = os.path.join(self.directory, filename)
+        the_file = open(filename, 'r')
+        yield the_file
+        the_file.close()
+
     def read_outcar(self, lines=None):
         """Read results from the OUTCAR file.
         Deprecated, see read_results()"""
@@ -543,7 +553,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.read_ldau()
         self.magnetic_moment, self.magnetic_moments = self.read_mag(lines=lines)
 
-    def read_from_xml(self, filename='vasprun.xml', overwrite=False):
+    def _read_from_xml(self, filename='vasprun.xml', overwrite=False):
         """Read vasprun.xml, and return the last atoms object.
         If we have not read the atoms object before, we will read the xml file
 
@@ -562,39 +572,39 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         return self._xml_data
 
     def get_ibz_k_points(self):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.ibz_kpts
 
     def get_kpt(self, kpt=0, spin=0):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_kpt(kpt=kpt, spin=spin)
 
     def get_eigenvalues(self, kpt=0, spin=0):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_eigenvalues(kpt=kpt, spin=spin)
 
     def get_fermi_level(self):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_fermi_level()
 
     def get_homo_lumo(self):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_homo_lumo()
 
     def get_homo_lumo_by_spin(self, spin=0):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_homo_lumo_by_spin(spin=spin)
 
     def get_occupation_numbers(self, kpt=0, spin=0):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_occupation_numbers(kpt, spin)
 
     def get_spin_polarized(self):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_spin_polarized()
 
     def get_number_of_spins(self):
-        atoms = self.read_from_xml()
+        atoms = self._read_from_xml()
         return atoms.calc.get_number_of_spins()
 
     def get_number_of_bands(self):
@@ -615,9 +625,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         """Get the VASP version number"""
         # The version number is the first occurence, so we can just
         # load the OUTCAR, as we will return soon anyway
-        filename = os.path.join(self.directory, 'OUTCAR')
-        with open(filename, 'r') as f:
-            for line in f:
+        with self.load_file_iter('OUTCAR') as lines:
+            for line in lines:
                 if ' vasp.' in line:
                     return line[len(' vasp.'):].split()[0]
             else:
@@ -627,14 +636,21 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     def get_number_of_iterations(self):
         return self.read_number_of_iterations()
 
-    def read_number_of_iterations(self, lines=None):
-        if not lines:
-            lines = self.load_file('OUTCAR')
+    def read_number_of_iterations(self):
         niter = None
-        for line in lines:
-            # find the last iteration number
-            if '- Iteration' in line:
-                niter = int(line.split(')')[0].split('(')[-1].strip())
+        with self.load_file_iter('OUTCAR') as lines:
+            for line in lines:
+                # find the last iteration number
+                if '- Iteration' in line:
+                    niter = list(map(int, re.findall(r'\d+', line)))[1]
+        return niter
+
+    def read_number_of_ionic_steps(self):
+        niter = None
+        with self.load_file_iter('OUTCAR') as lines:
+            for line in lines:
+                if '- Iteration' in line:
+                    niter = list(map(int, re.findall(r'\d+', line)))[0]
         return niter
 
     def read_stress(self, lines=None):
