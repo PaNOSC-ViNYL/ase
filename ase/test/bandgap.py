@@ -30,6 +30,10 @@ def test(e_skn):
     result = [bandgap(c), bandgap(c, direct=True),
               bandgap(c, spin=0), bandgap(c, direct=True, spin=0),
               bandgap(c, spin=1), bandgap(c, direct=True, spin=1)]
+    for gap, (s1, k1, n1), (s2, k2, n2) in result:
+        if k1 is not None:
+            print(s1,k1,n1,s2,k2,n2)
+            assert gap == e_skn[s2][k2][n2] - e_skn[s1][k1][n1]
     return [(gap, (s1, k1), (s2, k2))
             for gap, (s1, k1, n1), (s2, k2, n2) in result]
 
@@ -48,3 +52,5 @@ r = test([[[-1, 5], [-2, 2]], [[-2, 4], [-4, 1]]])
 assert r == [(2, (0, 0), (1, 1)), (3, (0, 1), (1, 1)),
              (3, (0, 0), (0, 1)), (4, (0, 1), (0, 1)),
              (3, (1, 0), (1, 1)), (5, (1, 1), (1, 1))]
+r = test([[[-1, -1, -1, 2]], [[-1, 1, 1, 1]]])
+print(r)
