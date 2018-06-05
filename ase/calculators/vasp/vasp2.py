@@ -625,6 +625,12 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         return self.read_k_point_weights()
 
     def get_dos(self, spin=None, **kwargs):
+        """
+        The total DOS.
+
+        Uses the ASE DOS module, and returns a tuple with
+        (energies, dos).
+        """
         from ase.dft.dos import DOS
         dos = DOS(self, **kwargs)
         e = dos.get_energies()
