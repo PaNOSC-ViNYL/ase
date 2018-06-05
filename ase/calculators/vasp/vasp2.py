@@ -624,6 +624,13 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     def get_k_point_weights(self):
         return self.read_k_point_weights()
 
+    def get_dos(self, spin=None, **kwargs):
+        from ase.dft.dos import DOS
+        dos = DOS(self, **kwargs)
+        e = dos.get_energies()
+        d = dos.get_dos(spin=spin)
+        return e, d
+
     def get_version(self):
         """Get the VASP version number"""
         # The version number is the first occurence, so we can just
