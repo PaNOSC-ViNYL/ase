@@ -4,7 +4,6 @@
 Release notes
 =============
 
-
 Git master branch
 =================
 
@@ -28,6 +27,14 @@ Git master branch
       with db:
           for id in ids:
               db.update(id, ...)
+
+
+Version 3.16.2
+==============
+
+4 June 2018: :git:`3.16.2 <../3.16.2>`
+
+* Fix test failure for newer versions of flask due to error within the test itself.  Fix trajectory format on bigendian architectures.  Fix issue with trajectory files opened in append mode where header would not be written correctly for images with different length, atomic species, boundary conditions, or constraints.
 
 
 Version 3.16.0
