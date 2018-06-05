@@ -621,6 +621,9 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                 break
         return nelect
 
+    def get_k_point_weights(self):
+        return self.read_k_point_weights()
+
     def get_version(self):
         """Get the VASP version number"""
         # The version number is the first occurence, so we can just
