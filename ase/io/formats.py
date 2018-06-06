@@ -545,8 +545,8 @@ def parse_filename(filename, index=None):
     if not isinstance(filename, basestring):
         return filename, index
 
-    extention = filename.split('/')[-1]
-    if '@' not in extention:
+    extension = os.path.splitext(filename)
+    if '@' not in extension:
         return filename, index
 
     newindex = None
