@@ -532,9 +532,9 @@ class Aims(FileIOCalculator):
                 raise RuntimeError(
                     "Basis tier %i not found for element %s" %
                     (self.targettier, symbol))
-            if self.parameters.plus_u is not None:
-                if symbol in self.parameters.plus_u.keys():
-                    control.write('plus_u %s \n' %self.parameters.plus_u[symbol])
+            if self.parameters.get('plus_u', None) is not None:
+                    if symbol in self.parameters.plus_u.keys():
+                        control.write('plus_u %s \n' %self.parameters.plus_u[symbol])
         control.close()
 
         if self.radmul is not None:

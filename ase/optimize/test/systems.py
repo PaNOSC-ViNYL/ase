@@ -52,7 +52,6 @@ systems.append((slab, 'CO on Au(111) surface'))
 
 #
 atoms = Atoms(symbols='C5H12',
-              pbc=[False, False, False],
               cell=[16.83752497, 12.18645905, 11.83462179],
               positions=[[5.90380523, 5.65545388, 5.91569796],
                          [7.15617518, 6.52907738, 5.91569796],

@@ -411,6 +411,8 @@ class BaseSiesta(FileIOCalculator):
         """Write directly given fdf-arguments.
         """
         fdf_arguments = self.parameters['fdf_arguments']
+        if fdf_arguments is None:
+            fdf_arguments = {}
         fdf_arguments["XC.functional"], \
             fdf_arguments["XC.authors"] = self.parameters['xc']
         energy_shift = self['energy_shift']

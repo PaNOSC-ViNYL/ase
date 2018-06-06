@@ -723,7 +723,7 @@ def blob(array, postgresql=False):
     if postgresql:
         return array.tolist()
     if not np.little_endian:
-        array.byteswap(True)
+        array = array.byteswap()
     return buffer(np.ascontiguousarray(array))
 
 
@@ -745,7 +745,7 @@ def deblob(buf, dtype=float, shape=None, pg=False):
         else:
             array = np.frombuffer(buf, dtype)
         if not np.little_endian:
-            array.byteswap(True)
+            array = array.byteswap()
     if shape is not None:
         array.shape = shape
     return array
