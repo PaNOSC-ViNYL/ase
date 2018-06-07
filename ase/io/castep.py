@@ -114,7 +114,7 @@ def write_freeform(fd, outputobj):
                      kw.upper(), 
                      opt.value.strip('\n')))
         else:
-            fd.write('{0}: {1}\n\n'.format(kw.upper(), opt.value))
+            fd.write('{0}: {1}\n'.format(kw.upper(), opt.value))
 
 
 def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
@@ -1208,7 +1208,7 @@ def read_castep_md(fd, index=None, return_scalars=False,
 
 # Routines that only the calculator requires
 
-def read_param(filename='', calc=None, fd=None):
+def read_param(filename='', calc=None, fd=None, get_interface_options=False):
 
     if fd is None:
         if filename == '':
@@ -1217,6 +1217,20 @@ def read_param(filename='', calc=None, fd=None):
     elif filename is not '':
         warnings.warn('Filestream used to read param, file name will be '
                       'ignored')
+
+    # If necessary, get the interface options
+    if get_interface_options:
+        int_opts = {}
+        optre = re.compile('# ASE_INTERFACE ([^\s]+) : ([^\s]+)')
+
+        lines = fd.readlines()
+        fd.seek(0)
+
+        for l in lines:
+            m = optre.search(l)
+            if m:
+                int_opts[m.groups()[0]] = m.groups()[1]
+
     data = read_freeform(fd)
 
     if calc is None:
@@ -1226,7 +1240,10 @@ def read_param(filename='', calc=None, fd=None):
     for kw, val in data.items():
         calc.param.__setattr__(kw, val)
 
-    return calc
+    if not get_interface_options:
+        return calc
+    else:
+        return calc, int_opts
 
 def write_param(filename, param, check_checkfile=False,
                 force_write=False,
@@ -1260,30 +1277,25 @@ def write_param(filename, param, check_checkfile=False,
         for option, value in sorted(interface_options.items()):
             out.write('# ASE_INTERFACE %s : %s\n' % (option, value))
     out.write('#######################################################\n\n')
-    for keyword, opt in sorted(param._options.items()):
-        if opt.type == 'Defined':
-            if opt.value is not None:
-                out.write('%s\n' % (opt))
-        elif opt.value is not None:
-            if keyword in ['continuation', 'reuse'] and check_checkfile:
-                if opt.value == 'default':
-                    if not os.path.exists('%s.%s' %
-                                          (os.path.splitext(filename)[0],
-                                           'check')):
-                        continue
-                elif not (os.path.exists(opt.value) or
-                          # CASTEP also understands relative path names, hence
-                          # also check relative to the param file directory
-                          os.path.exists(
-                              os.path.join(os.path.dirname(filename),
-                                           opt.value))):
-                    continue
-            if opt.type == 'Block':
-                out.write('%%BLOCK %s\n' % keyword.upper())
-                out.write(opt.value)
-                out.write('\n%%ENDBLOCK %s\n' % keyword.upper())
-            else:
-                out.write('%s : %s\n' % (keyword, opt.value))
+
+    if check_checkfile:
+        param = deepcopy(param) # To avoid modifying the parent one
+        for checktype in ['continuation', 'reuse']:
+            opt = getattr(param, checktype)
+            if opt and opt.value:
+                fname = opt.value
+                if fname == 'default':
+                    fname = os.path.splitext(filename)[0] + '.check'
+                if not (os.path.exists(fname) or 
+                        # CASTEP also understands relative path names, hence
+                        # also check relative to the param file directory
+                        os.path.exists(
+                                       os.path.join(os.path.dirname(filename),
+                                                    opt.value))):
+                    opt.clear()
+
+    write_freeform(out, param)
+
     out.close()
 
 

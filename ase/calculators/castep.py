@@ -35,10 +35,10 @@ import ase.units as units
 from ase.calculators.general import Calculator
 from ase.calculators.calculator import compare_atoms
 from ase.calculators.calculator import PropertyNotImplementedError
-from ase.constraints import FixCartesian
-from ase.parallel import paropen
 from ase.utils import basestring
+from ase.parallel import paropen
 from ase.io.castep import read_param
+from ase.constraints import FixCartesian
 
 __all__ = [
     'Castep',
@@ -1871,7 +1871,6 @@ End CASTEP Interface Documentation
 
     def merge_param(self, param, overwrite=True, ignore_internal_keys=False):
         """Parse a param file and merge it into the current parameters."""
-        INT_TOKEN = 'ASE_INTERFACE'
         if isinstance(param, CastepParam):
             for key, option in param._options.items():
                 if option.value is not None:
@@ -1900,8 +1899,15 @@ End CASTEP Interface Documentation
             param = param_file.name
             _close = False
 
-        # Read the file in
-        self = read_param(fd=param_file, calc=self)
+        self, int_opts = read_param(fd=param_file, calc=self,
+                                    get_interface_options=True)
+
+        # Add the interface options
+        for k, val in int_opts.items():
+            if (k in self.internal_keys and not ignore_internal_keys):
+                if val in _tf_table:
+                    val = _tf_table[val]
+                self._opt[k] = val
 
         if _close:
             param_file.close()
