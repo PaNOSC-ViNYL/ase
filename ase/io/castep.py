@@ -15,7 +15,7 @@ import ase
 
 from ase.parallel import paropen
 from ase.spacegroup import Spacegroup
-from ase.constraints import FixAtoms, FixCartesian, FixedLine
+from ase.constraints import FixAtoms, FixedPlane, FixedLine, FixCartesian
 
 # independent unit management included here:
 # When high accuracy is required, this allows to easily pin down
@@ -130,7 +130,7 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     write(filename, atoms, positions_frac=positions_frac,
           castep_cell=castep_cell, force_write=force_write)
 
-def write_castep_cell_new(fd, atoms, positions_frac=False, force_write=False,
+def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
                           precision=6, magnetic_moments=None,
                           castep_cell=None):
     """
@@ -194,10 +194,10 @@ def write_castep_cell_new(fd, atoms, positions_frac=False, force_write=False,
                          for line in atoms.get_cell()]
 
     if positions_frac:
-        keyword = 'positions_frac'
+        pos_keyword = 'positions_frac'
         positions = atoms.get_scaled_positions()
     else:
-        keyword = 'positions_abs'
+        pos_keyword = 'positions_abs'
         positions = atoms.get_positions()
 
     if atoms.has('castep_custom_species'):
@@ -219,7 +219,7 @@ def write_castep_cell_new(fd, atoms, positions_frac=False, force_write=False,
     else:
         magmoms = [0]*len(elems)
 
-    posblock = []
+    pos_block = []
     pos_block_format = '%s ' + cell_block_format
 
     for i, el in enumerate(elems):
@@ -230,222 +230,90 @@ def write_castep_cell_new(fd, atoms, positions_frac=False, force_write=False,
             line += ' SPIN={0} '.format(magmoms[i])
         if labels[i].strip() not in ('NULL', ''):
             line += ' LABEL={0} '.format(labels[i])
-        posblock.append(line)
+        pos_block.append(line)
 
-    cell.__setattr__(keyword, posblock)
-
-    write_freeform(fd, cell)
-
-
-def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
-                      force_write=False, precision=6):
-    """
-    This CASTEP export function write minimal information to
-    a .cell file. If the atoms object is a trajectory, it will
-    take the last image.
-
-    Note that function has been altered in order to require a filedescriptor
-    rather than a filename. This allows to use the more generic write()
-    function from formats.py
-
-    Note that the "force_write" keywords has no effect currently.
-    """
-    if atoms is None:
-        print('Atoms object not initialized')
-        return False
-    if isinstance(atoms, list):
-        if len(atoms) > 1:
-            atoms = atoms[-1]
-
-# deprecated; should be handled on the more generic write() level
-#    if os.path.isfile(filename) and not force_write:
-#        print('ase.io.castep.write_param: Set optional argument')
-#        print('force_write=True to overwrite %s.' % filename)
-#        return False
-
-#    fd = open(filename, 'w')
-    fd.write('#######################################################\n')
-    fd.write('#CASTEP cell file: %s\n' % fd.name)
-    fd.write('#Created using the Atomic Simulation Environment (ASE)#\n')
-    fd.write('#######################################################\n\n')
-    fd.write('%BLOCK LATTICE_CART\n')
-    cell = np.matrix(atoms.get_cell())
-
-    fformat = '%{0}.{1}f'.format(precision+3, precision)
-
-    cell_block_format = '    ' + ' '.join([fformat]*3) + '\n'
-    for line in atoms.get_cell():
-        fd.write(cell_block_format % tuple(line))
-    fd.write('%ENDBLOCK LATTICE_CART\n\n\n')
-
-    if positions_frac:
-        keyword = 'POSITIONS_FRAC'
-        positions = np.array(atoms.get_positions() * cell.I)
-
-    else:
-        keyword = 'POSITIONS_ABS'
-        positions = atoms.get_positions()
-
-    if (hasattr(atoms, 'calc') and
-            hasattr(atoms.calc, 'param') and
-            hasattr(atoms.calc.param, 'task')):
-        _spin_pol = any([getattr(atoms.calc.param, i).value
-                         for i in ['spin_polarized', 'spin_polarised']])
-    else:
-        _spin_pol = True
-
-    # Gather the data that will be used to generate the block
-    pos_block_data = []
-    pos_block_format = '%s ' + ' '.join([fformat]*3)
-    if atoms.has('castep_custom_species'):
-        pos_block_data.append(atoms.get_array('castep_custom_species'))
-    else:
-        pos_block_data.append(atoms.get_chemical_symbols())
-    pos_block_data += [xlist for xlist in zip(*positions)]
-    if atoms.get_initial_magnetic_moments().any() and _spin_pol:
-        pos_block_data.append(atoms.get_initial_magnetic_moments())
-        pos_block_format += ' SPIN=%4.2f'
-
-    pos_block = [(pos_block_format %
-                  line_data) for line_data
-                 in zip(*pos_block_data)]
-
-    # Adding the CASTEP labels output
-    if atoms.has('castep_labels'):
-        labels = atoms.get_array('castep_labels')
-        for l_i, label in enumerate(labels):
-            # avoid empty labels that crash CASTEP runs
-            if label and label != 'NULL':
-                pos_block[l_i] += ' LABEL=%s' % label
-
-    fd.write('%%BLOCK %s\n' % keyword)
-    for line in pos_block:
-        fd.write('    %s\n' % line)
-    fd.write('%%ENDBLOCK %s\n\n' % keyword)
-
-    # if atoms, has a CASTEP calculator attached, then only
-    # write constraints if really necessary
-    if (hasattr(atoms, 'calc') and
-            hasattr(atoms.calc, 'param') and
-            hasattr(atoms.calc.param, 'task')):
-        task = atoms.calc.param.task
-        if atoms.calc.param.task.value is None:
-            suppress_constraints = True
-        elif task.value.lower() not in [
-                'geometryoptimization',
-                # well, CASTEP understands US and UK english...
-                'geometryoptimisation',
-                'moleculardynamics',
-                'transitionstatesearch',
-                'phonon']:
-            suppress_constraints = True
-        else:
-            suppress_constraints = False
-    else:
-        suppress_constraints = True
+    cell.__setattr__(pos_keyword, pos_block)
 
     constraints = atoms.constraints
-    if len(constraints) and not suppress_constraints:
-        fd.write('%BLOCK IONIC_CONSTRAINTS \n')
-        count = 0
+    if len(constraints):
+        _supported_constraints = (FixAtoms, FixedPlane, FixedLine, 
+                                  FixCartesian)
+
+        constr_block = []
+
         for constr in constraints:
-            if (not isinstance(constr, FixAtoms) and
-                    not isinstance(constr, FixCartesian) and
-                    not isinstance(constr, FixedLine) and
-                    not suppress_constraints):
+            if not isinstance(constr, _supported_constraints):
                 print('Warning: you have constraints in your atoms, that are')
                 print('         not supported by the CASTEP ase interface')
-                break
+                break            
             if isinstance(constr, FixAtoms):
-                # sorry, for this complicated block
-                # reason is that constraint.index can either
-                # hold booleans or integers and in both cases
-                # it is an numpy array, so no simple comparison works
-                for n, val in enumerate(constr.index):
-                    if val.dtype.name.startswith('bool'):
-                        if not val:
-                            continue
-                        symbol = atoms.get_chemical_symbols()[n]
-                        nis = atoms.calc._get_number_in_species(n)
-                    elif val.dtype.name.startswith('int'):
-                        symbol = atoms.get_chemical_symbols()[val]
-                        nis = atoms.calc._get_number_in_species(val)
-                    else:
+                for i in constr.index:
+
+                    try:
+                        symbol = atoms.get_chemical_symbols()[i]
+                        nis = atoms.calc._get_number_in_species(i)
+                    except KeyError:
                         raise UserWarning('Unrecognized index in' +
                                           ' constraint %s' % constr)
-                    fd.write('%6d %3s %3d   1 0 0 \n' % (count + 1,
-                                                         symbol,
-                                                         nis))
-                    fd.write('%6d %3s %3d   0 1 0 \n' % (count + 2,
-                                                         symbol,
-                                                         nis))
-                    fd.write('%6d %3s %3d   0 0 1 \n' % (count + 3,
-                                                         symbol,
-                                                         nis))
-                    count += 3
+                    for j in range(3):
+                        l = '%6d %3s %3d   ' % (len(constr_block)+1, 
+                                                symbol,
+                                                nis)
+                        l += ['1 0 0', '0 1 0', '0 0 1'][j]
+                        constr_block += [l]
+
             elif isinstance(constr, FixCartesian):
                 n = constr.a
                 symbol = atoms.get_chemical_symbols()[n]
                 nis = atoms.calc._get_number_in_species(n)
-                # fix_cart = - constr.mask + 1
-                # just use the logical opposite
-                fix_cart = np.logical_not(constr.mask)
-                if fix_cart[0]:
-                    count += 1
-                    fd.write('%6d %3s %3d   1 0 0 \n' % (count, symbol, nis))
-                if fix_cart[1]:
-                    count += 1
-                    fd.write('%6d %3s %3d   0 1 0 \n' % (count, symbol, nis))
-                if fix_cart[2]:
-                    count += 1
-                    fd.write('%6d %3s %3d   0 0 1 \n' % (count, symbol, nis))
+
+                for i, m in enumerate(constr.mask):
+                    if m == 1:
+                        continue
+                    l = '%6d %3s %3d   ' % (len(constr_block)+1, symbol, nis)
+                    l += ' '.join(['1' if j == i else '0' for j in range(3)])
+                    constr_block += [l]
+
+            elif isinstance(constr, FixedPlane):
+                n = constr.a
+                symbol = atoms.get_chemical_symbols()[n]
+                nis = atoms.calc._get_number_in_species(n)
+
+                l = '%6d %3s %3d   ' % (len(constr_block)+1, symbol, nis)
+                l += ' '.join(map(str, constr.dir))
+                constr_block += [l]                
+
             elif isinstance(constr, FixedLine):
                 n = constr.a
                 symbol = atoms.get_chemical_symbols()[n]
                 nis = atoms.calc._get_number_in_species(n)
+
                 direction = constr.dir
-                # print(direction)
                 ((i1, v1), (i2, v2)) = sorted(enumerate(direction),
                                               key=lambda x: abs(x[1]),
                                               reverse=True)[:2]
-                # print(sorted(enumerate(direction), key = lambda x:x[1])[:2])
-                # print(sorted(enumerate(direction), key = lambda x:x[1]))
-
-                # print(v1)
-                # print(v2)
-                n1 = np.array([v2, v1, 0])
+                n1 = np.zeros(3)
+                n1[i2] = v1
+                n1[i1] = -v2
                 n1 = n1 / np.linalg.norm(n1)
 
                 n2 = np.cross(direction, n1)
-                count += 1
-                fd.write('%6d %3s %3d   %f %f %f \n' % (count, symbol, nis,
-                                                        n1[0], n1[1], n1[2]))
 
-                count += 1
-                fd.write('%6d %3s %3d   %f %f %f \n' % (count, symbol, nis,
-                                                        n2[0], n2[1], n2[2]))
-        fd.write('%ENDBLOCK IONIC_CONSTRAINTS \n')
+                l1 = '%6d %3s %3d   %f %f %f' % (len(constr_block)+1,
+                                                 symbol, nis,
+                                                 n1[0], n1[1], n1[2])
+                l2 = '%6d %3s %3d   %f %f %f' % (len(constr_block)+2,
+                                                 symbol, nis,
+                                                 n2[0], n2[1], n2[2])
 
-    if castep_cell is None:
-        if hasattr(atoms, 'calc') and hasattr(atoms.calc, 'cell'):
-            castep_cell = atoms.calc.cell
-        else:
-            # fd.close()
-            return True
+                constr_block += [l1, l2]
 
-    for option in castep_cell._options.values():
-        if option.value is not None:
-            #            print(option.value)
-            if option.type == 'Block':
-                fd.write('%%BLOCK %s\n' % option.keyword.upper())
-                fd.write(option.value)
-                fd.write('\n%%ENDBLOCK %s\n\n' % option.keyword.upper())
-            else:
-                fd.write('%s : %s\n\n' % (option.keyword.upper(),
-                                          option.value))
+        cell.ionic_constraints = constr_block
 
-#    fd.close()
+    write_freeform(fd, cell)
+
     return True
+
 
 def read_freeform(fd):
     """
