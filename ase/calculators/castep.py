@@ -38,6 +38,7 @@ from ase.calculators.calculator import PropertyNotImplementedError
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
 from ase.utils import basestring
+from ase.io.castep import read_param
 
 __all__ = [
     'Castep',
@@ -1899,74 +1900,8 @@ End CASTEP Interface Documentation
             param = param_file.name
             _close = False
 
-        # ok, we need to load the file beforehand into memory, seems like the
-        # easiest way to do the BLOCK handling.
-        lines = param_file.readlines()
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
-
-            # note that i will point to the next line from now on
-            i += 1
-
-            # remove comments
-            for comment_char in ['#', ';', '!']:
-                if comment_char in line:
-                    if INT_TOKEN in line:
-                        # This block allows to read internal settings from
-                        # a *param file
-                        iline = line[line.index(INT_TOKEN) + len(INT_TOKEN):]
-                        if (iline.split()[0] in self.internal_keys and
-                                not ignore_internal_keys):
-                            value = ' '.join(iline.split()[1:])
-                            if value in _tf_table:
-                                self._opt[iline.split()[0]] = _tf_table[value]
-                            else:
-                                self._opt[iline.split()[0]] = value
-                    line = line[:line.index(comment_char)]
-
-            # if nothing remains
-            if not line.strip():
-                continue
-
-            if line == 'reuse':
-                self.param.reuse.value = 'default'
-                continue
-            if line == 'continuation':
-                self.param.continuation.value = 'default'
-                continue
-
-            # here comes the handling of the devel block (the only block so far
-            # I know to be in the param file)
-            if line.upper() == '%BLOCK DEVEL_CODE':
-                key = 'devel_code'
-                value = ''
-                while True:
-                    line = lines[i].strip()
-                    i += 1
-                    if line.upper() == '%ENDBLOCK DEVEL_CODE':
-                        break
-                    value += '\n{0}'.format(line)
-                value = value.strip()
-
-                if (not overwrite and
-                        getattr(self.param, key).value is not None):
-                    continue
-
-                self.param.__setattr__(key, value)
-                continue
-
-            try:
-                # we go for the regex split here
-                key, value = [s.strip() for s in re.split(r'[:=]+', line)]
-            except:
-                print('Could not parse line %s of your param file: %s'
-                      % (i, line))
-                raise UserWarning('Seems to me malformed')
-
-            if not overwrite and getattr(self.param, key).value is not None:
-                continue
-            self.param.__setattr__(key, value)
+        # Read the file in
+        self = read_param(fd=param_file, calc=self)
 
         if _close:
             param_file.close()

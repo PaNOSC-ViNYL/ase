@@ -1208,22 +1208,25 @@ def read_castep_md(fd, index=None, return_scalars=False,
 
 # Routines that only the calculator requires
 
-def read_param(filename, calc=None):
-    """Reads a param file. If an Castep object is passed as the
-    second argument, the parameter setings are merged into
-    the existing object and returned. Otherwise a new Castep()
-    calculator instance gets created and returned.
+def read_param(filename='', calc=None, fd=None):
 
-    Parameters:
-        filename: the .param file. Only opens reading
-        calc: [Optional] calculator object to hang parameters onto
-    """
+    if fd is None:
+        if filename == '':
+            raise ValueError('One between filename and fd must be provided')
+        fd = open(filename)
+    elif filename is not '':
+        warnings.warn('Filestream used to read param, file name will be '
+                      'ignored')
+    data = read_freeform(fd)
+
     if calc is None:
         from ase.calculators.castep import Castep
         calc = Castep(check_castep_version=False)
-    calc.merge_param(filename)
-    return calc
 
+    for kw, val in data.items():
+        calc.param.__setattr__(kw, val)
+
+    return calc
 
 def write_param(filename, param, check_checkfile=False,
                 force_write=False,
