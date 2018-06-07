@@ -2492,16 +2492,25 @@ class CastepInputFile(object):
         attrparse = '_parse_%s' % attr.lower()
 
         if hasattr(self, attrparse):
-            self._options[attr].value = getattr(self, attrparse)(value)
+            self._options[attr].value = self.__getattribute__(attrparse)(value)
         else:
             self._options[attr].value = value
+
+    def __getattr__(self, name):
+        if name[0] == '_' or self._perm == 0:
+            raise AttributeError()
+
+        if self._perm == 1:
+            warnings.warn('Option %s is not known, returning None' % (name))
+        
+        return CastepOption(keyword='none', level='Unknown',
+                            option_type='string', value=None)                
 
     def get_attr_dict(self):
         """Settings that go into .param file in a traditional dict"""
 
         return {k: o.value
                 for k, o in self._options.items() if o.value is not None}
-
 
 class CastepParam(CastepInputFile):
 
@@ -2518,21 +2527,26 @@ class CastepParam(CastepInputFile):
 
     # .param specific parsers
     def _parse_reuse(self, value):
-        if self._options['continuation'].value:
-            print('Cannot set reuse if continuation is set, and')
-            print('vice versa. Set the other to None, if you want')
-            print('this setting.')
-            return None
+        try:
+            if self._options['continuation'].value:
+                print('Cannot set reuse if continuation is set, and')
+                print('vice versa. Set the other to None, if you want')
+                print('this setting.')
+                return None
+        except KeyError:
+            pass
         return 'default' if (value is True) else str(value)
 
     def _parse_continuation(self, value):
-        if self._options['reuse'].value:
-            print('Cannot set reuse if continuation is set, and')
-            print('vice versa. Set the other to None, if you want')
-            print('this setting.')
-            return None
+        try:
+            if self._options['reuse'].value:
+                print('Cannot set reuse if continuation is set, and')
+                print('vice versa. Set the other to None, if you want')
+                print('this setting.')
+                return None
+        except KeyError:
+            pass
         return 'default' if (value is True) else str(value)
-
 
 class CastepCell(CastepInputFile):
 
