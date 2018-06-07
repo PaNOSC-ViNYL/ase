@@ -126,8 +126,13 @@ class PreconLBFGS(Optimizer):
         # default preconditioner
         #   TODO: introduce a heuristic for different choices of preconditioners
         if precon == 'auto':
-            if atoms.length() > 100:
+            if atoms.length() < 100:
                 precon = None
+                warning.warn('The system is likely too small to benefit from' +
+                             'the standard preconditioner, hence it is' +
+                             'disabled. To re-enable preconditioning, call' +
+                             '`PreconLBFGS` by explicitly providing the ' +
+                             'kwarg `precon`')
             else:
                 precon = 'Exp'
 
