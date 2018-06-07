@@ -26,6 +26,9 @@ class PreconLBFGS(Optimizer):
     Hessian is represented only as a diagonal matrix to save memory.
 
     By default, the ase.optimize.precon.Exp preconditioner is applied.
+    This preconditioner is well-suited for large condensed phase structures,
+    in particular crystalline. For systems outside this category,
+    PreconLBFGS with Exp preconditioner may yield unpredictable results.
 
     In time this implementation is expected to replace
     ase.optimize.lbfgs.LBFGS.
@@ -34,7 +37,7 @@ class PreconLBFGS(Optimizer):
     # CO : added parameters rigid_units and rotation_factors
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
                  maxstep=None, memory=100, damping=1.0, alpha=70.0,
-                 master=None, precon='Exp', variable_cell=False,
+                 master=None, precon='auto', variable_cell=False,
                  use_armijo=True, c1=0.23, c2=0.46, a_min=None,
                  rigid_units=None, rotation_factors=None, Hinv=None):
         """Parameters:
@@ -79,10 +82,11 @@ class PreconLBFGS(Optimizer):
 
         precon: ase.optimize.precon.Precon instance or compatible
             Apply the given preconditione during optimization. Defaults to
-            'Exp', which constructs an ase.optimize.precon.Exp instance.
-            Other options include 'C1' and 'Pfrommer'-
-            see the corresponding classes in this module for more details.
-            Pass precon=None or precon='ID' to disable preconditioner.
+            'auto', which is equivalant to 'Exp', which constructs
+            an ase.optimize.precon.Exp instance. Other options include
+            'C1' and 'Pfrommer'- see the corresponding classes in this module
+            for more details. Pass precon=None or precon='ID' to disable
+            preconditioner.
 
         use_armijo: boolean
             Enforce only the Armijo condition of sufficient decrease of
@@ -97,7 +101,7 @@ class PreconLBFGS(Optimizer):
             c2 parameter for the line search. Default is c2=0.46.
 
         a_min: float
-            minimal value for the line search step parameter. Default is 
+            minimal value for the line search step parameter. Default is
             a_min=1e-8 (use_armijo=False) or 1e-10 (use_armijo=True).
             Higher values can be useful to avoid performing many
             line searches for comparatively small changes in geometry.
@@ -118,6 +122,14 @@ class PreconLBFGS(Optimizer):
         if variable_cell:
             atoms = UnitCellFilter(atoms)
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
+
+        # default preconditioner
+        #   TODO: introduce a heuristic for different choices of preconditioners
+        if precon == 'auto':
+            if atoms.length() > 100:
+                precon = None
+            else:
+                precon = 'Exp'
 
         if maxstep is not None:
             if maxstep > 1.0:
@@ -315,7 +327,7 @@ class PreconLBFGS(Optimizer):
                 ls = LineSearchArmijo(self.func, c1=self.c1, tol=1e-14)
                 step, func_val, no_update = ls.run(
                     r, self.p, a_min=self.a_min,
-                    func_start=e, 
+                    func_start=e,
                     func_prime_start=g,
                     func_old=self.e0,
                     rigid_units=self.rigid_units,
@@ -340,7 +352,7 @@ class PreconLBFGS(Optimizer):
             ls = LineSearch()
             self.alpha_k, e, self.e0, self.no_update = \
                 ls._line_search(self.func, self.fprime, r, self.p, g,
-                                e, self.e0, stpmin=self.a_min, 
+                                e, self.e0, stpmin=self.a_min,
                                 maxstep=self.maxstep, c1=self.c1,
                                 c2=self.c2, stpmax=50.)
             self.e1 = e
