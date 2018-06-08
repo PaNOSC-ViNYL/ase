@@ -10,6 +10,24 @@ all_columns = ['id', 'age', 'user', 'formula', 'calculator',
                'charge', 'mass', 'smax', 'magmom']
 
 
+def get_sql_columns(columns):
+    """ Map the names of table columns to names of columns in
+    the SQL tables"""
+    sql_columns = columns[:]
+    if 'age' in columns:
+        sql_columns.remove('age')
+        sql_columns += ['mtime', 'ctime']
+    if 'user' in columns:
+        sql_columns[sql_columns.index('user')] = 'username'
+    if 'formula' in columns:
+        sql_columns[sql_columns.index('formula')] = 'numbers'
+    sql_columns.append('key_value_pairs')
+    if 'id' not in sql_columns:
+        sql_columns.append('id')
+
+    return sql_columns
+
+
 def plural(n, word):
     if n == 1:
         return '1 ' + word
@@ -45,8 +63,8 @@ class Table:
         self.offset = offset
         self.rows = [Row(row, columns)
                      for row in self.connection.select(
-                         query, verbosity=self.verbosity,
-                         limit=limit, offset=offset, sort=sort,
+                             query, verbosity=self.verbosity,
+                             limit=limit, offset=offset, sort=sort,
                              include_data=False, columns=sql_columns)]
 
         delete = set(range(len(columns)))
