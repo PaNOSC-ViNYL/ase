@@ -109,6 +109,7 @@ class CLICommand:
 def main(args):
     verbosity = 1 - args.quiet + args.verbose
     query = ','.join(args.query)
+
     if args.sort.endswith('-'):
         # Allow using "key-" instead of "-key" for reverse sorting
         args.sort = '-' + args.sort[:-1]
@@ -175,42 +176,22 @@ def main(args):
         nrows = 0
         with connect(args.insert_into,
                      use_lock_file=not args.no_lock_file) as db2:
+            for row in db.select(query, sort=args.sort):
+                kvp = row.get('key_value_pairs', {})
+                nkvp -= len(kvp)
+                kvp.update(add_key_value_pairs)
+                nkvp += len(kvp)
+                if args.unique:
+                    row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
+                if args.strip_data:
+                    db2.write(row.toatoms(), **kvp)
+                else:
+                    db2.write(row, data=row.get('data'), **kvp)
+                nrows += 1
 
-            if not add_key_value_pairs and not \
-               args.strip_data and not args.unique:  # write several rows at once
-                from itertools import islice
-                nkvp = None
-                block_size = 500
-                n_structures = db.count(query)
-                n_blocks = int(n_structures / block_size) + 1
-                for block_id in range(0, n_blocks):
-                    b0 = block_id * block_size
-                    b1 = (block_id + 1) * block_size
-                    if block_id + 1 == n_blocks:
-                        b1 = n_structures
-
-                    rows = list(islice(db.select(query, sort=args.sort), b0, b1))
-                    db2.write(rows)
-                    nrows += b1 - b0
-            else:
-                for row in db.select(query, sort=args.sort):
-                    kvp = row.get('key_value_pairs', {})
-                    nkvp -= len(kvp)
-                    kvp.update(add_key_value_pairs)
-                    nkvp += len(kvp)
-                    if args.unique:
-                        row['unique_id'] = '%x' % randint(16**31, 16**32 - 1)
-                    if args.strip_data:
-                        db2.write(row.toatoms(), **kvp)
-                    else:
-                        db2.write(row, data=row.get('data'), **kvp)
-                    nrows += 1
-
-        if nkvp is not None:
-            out('Added %s (%s updated)' %
-                (plural(nkvp, 'key-value pair'),
-                 plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
-
+        out('Added %s (%s updated)' %
+            (plural(nkvp, 'key-value pair'),
+             plural(len(add_key_value_pairs) * nrows - nkvp, 'pair')))
         out('Inserted %s' % plural(nrows, 'row'))
         return
 

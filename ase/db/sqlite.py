@@ -114,6 +114,10 @@ all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
+def float_if_not_none(x):
+    """Convert numpy.float64 to float - old db-interfaces need that."""
+    if x is not None:
+        return float(x)
 
 
 class SQLite3Database(Database, object):
@@ -192,167 +196,122 @@ class SQLite3Database(Database, object):
 
     def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
-        
+
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
+
+        mtime = now()
 
         if self.type == 'postgresql':
             blob = functools.partial(_blob, pg=True)
         else:
             blob = _blob
 
-        mtime = now()
-
-        if isinstance(atoms, list):
-            assert isinstance(atoms[0], AtomsRow)
-            assert not key_value_pairs,  'Please pass single row to write key_value_pairs'
-            assert not data,  'Please pass single row to write data'
-        else:
-            atoms = [atoms]
-
-        values_collect = []
-        species = []
         text_key_values = []
         number_key_values = []
-        keys = []
-        for i, atoms in enumerate(atoms):           
-            if not isinstance(atoms, AtomsRow):
-                row = AtomsRow(atoms)
-                row.ctime = mtime
-                row.user = os.getenv('USER')
+
+        if not isinstance(atoms, AtomsRow):
+            row = AtomsRow(atoms)
+            row.ctime = mtime
+            row.user = os.getenv('USER')
+        else:
+            row = atoms
+
+        if id:
+            self._delete(cur, [id], ['keys', 'text_key_values',
+                                     'number_key_values', 'species'])
+
+        constraints = row._constraints
+        if constraints:
+            if isinstance(constraints, list):
+                constraints = encode(constraints)
+        else:
+            constraints = None
+
+        values = (row.unique_id,
+                  row.ctime,
+                  mtime,
+                  row.user,
+                  blob(row.numbers),
+                  blob(row.positions),
+                  blob(row.cell),
+                  int(np.dot(row.pbc, [1, 2, 4])),
+                  blob(row.get('initial_magmoms')),
+                  blob(row.get('initial_charges')),
+                  blob(row.get('masses')),
+                  blob(row.get('tags')),
+                  blob(row.get('momenta')),
+                  constraints)
+
+        if 'calculator' in row:
+            values += (row.calculator, encode(row.calculator_parameters))
+        else:
+            values += (None, None)
+
+        if not data:
+            data = row._data
+        if not isinstance(data, basestring):
+            data = encode(data)
+
+        if not key_value_pairs
+            key_value_pairs = row.key_value_pairs
+
+        values += (row.get('energy'),
+                   row.get('free_energy'),
+                   blob(row.get('forces')),
+                   blob(row.get('stress')),
+                   blob(row.get('dipole')),
+                   blob(row.get('magmoms')),
+                   row.get('magmom'),
+                   blob(row.get('charges')),
+                   encode(key_value_pairs),
+                   data,
+                   len(row.numbers),
+                   float_if_not_none(row.get('fmax')),
+                   float_if_not_none(row.get('smax')),
+                   float_if_not_none(row.get('volume')),
+                   float(row.mass),
+                   float(row.charge))
+
+        if id is None:
+            q = self.default + ', ' + ', '.join('?' * len(values))
+            cur.execute('INSERT INTO systems VALUES ({})'.format(q),
+                        values)
+            id = self.get_last_id(cur)
+        else:
+            q = ', '.join(name + '=?' for name in self.columnnames[1:])
+            cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
+                        values + (id,))
+
+        count = row.count_atoms()
+        if count:
+            species = [(atomic_numbers[symbol], n, id)
+                       for symbol, n in count.items()]
+            cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
+                            species)
+
+        text_key_values = []
+        number_key_values = []
+        for key, value in key_value_pairs.items():
+            if isinstance(value, (numbers.Real, np.bool_)):
+                number_key_values.append([key, float(value), id])
             else:
-                row = atoms
+                assert isinstance(value, basestring)
+                text_key_values.append([key, value, id])
 
-            if id:
-                self._delete(cur, [id], ['keys', 'text_key_values',
-                                         'number_key_values', 'species'])
-
-            constraints = row._constraints
-            if constraints:
-                if isinstance(constraints, list):
-                    constraints = encode(constraints)
-            else:
-                constraints = None
-
-            values = (row.unique_id,
-                      row.ctime,
-                      mtime,
-                      row.user,
-                      blob(row.numbers),
-                      blob(row.positions),
-                      blob(row.cell),
-                      int(np.dot(row.pbc, [1, 2, 4])),
-                      blob(row.get('initial_magmoms')),
-                      blob(row.get('initial_charges')),
-                      blob(row.get('masses')),
-                      blob(row.get('tags')),
-                      blob(row.get('momenta')),
-                      constraints)
-
-            if 'calculator' in row:
-                values += (row.calculator, encode(row.calculator_parameters))
-            else:
-                values += (None, None)
-
-            if not id:
-                if not key_value_pairs or i > 0:
-                    key_value_pairs = row.key_value_pairs
-            if not data or i > 0:
-                data = row._data
-            if not isinstance(data, basestring):
-                data = encode(data)
-            
-            values += (row.get('energy'),
-                       row.get('free_energy'),
-                       blob(row.get('forces')),
-                       blob(row.get('stress')),
-                       blob(row.get('dipole')),
-                       blob(row.get('magmoms')),
-                       row.get('magmom'),
-                       blob(row.get('charges')),
-                       encode(key_value_pairs),
-                       data,
-                       len(row.numbers),
-                       float_if_not_none(row.get('fmax')),
-                       float_if_not_none(row.get('smax')),
-                       float_if_not_none(row.get('volume')),
-                       float(row.mass),
-                       float(row.charge))      
-            
-            if id is None:
-                values_collect += [values]
-            elif row is not None:
-                q = ', '.join(name + '=?' for name in self.columnnames[1:])
-                cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
-                            values + (id,))
-                ids = [id]
-
-            count = row.count_atoms()
-            if count:
-                species += [[atomic_numbers[symbol], n, i] #id
-                            for symbol, n in count.items()]
-
-            for key, value in key_value_pairs.items():
-                keys.append([key, i])
-                
-                if isinstance(value, (numbers.Real, np.bool_)):
-                    number_key_values.append([key, float(value), i])
-                else:
-                    assert isinstance(value, basestring)
-                    text_key_values.append([key, value, i])
-
-
-        N_rows = len(values_collect)
-        statement = 'INSERT INTO systems VALUES ({})'
-        if N_rows == 1:  # One row
-            q = self.default + ', ' + ', '.join('?' * len(values[0]))
-            cur.execute(statement.format(q), values)
-            ids = [self.get_last_id(cur)]
-
-        elif N_rows > 1:  # Several rows
-            last_id = self.get_last_id(cur)
-            q = self.default + ', ' + ', '.join('?' * len(values[0]))
-            if self.type == 'postgresql':
-                statement += ' returning id'
-
-            cur.executemany(statement.format(q), values_collect)
-
-            if self.type == 'postgresql':
-                ids = cur.fetchall()
-                ids = [ids[i][0] for i in range(len(ids))]
-            else:
-                last_id = self.get_last_id(cur)
-                ids =  range(last_id + 1 - N_rows, last_id + 1)
-
-        # Update with id from systems
-        for spec in species:
-            spec[2] = ids[spec[2]]
-            spec = tuple(spec)
-        for tkv in text_key_values:
-            tkv[2] = ids[tkv[2]]
-            tkv = tuple(tkv)
-        for nkv in number_key_values:
-            nkv[2] = ids[nkv[2]]
-            nkv = tuple(nkv)
-        for key in keys:
-            key[1] = ids[key[1]]
-            key = tuple(key)
-
-        cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                        species)
         cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
                         text_key_values)
         cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
                         number_key_values)
         cur.executemany('INSERT INTO keys VALUES (?, ?)',
-                        keys)
+                        [(key, id) for key in key_value_pairs])
 
         if self.connection is None:
             con.commit()
             con.close()
 
-        return ids[-1]
+        return id
 
     def get_last_id(self, cur):
         cur.execute('SELECT seq FROM sqlite_sequence WHERE name="systems"')
@@ -434,12 +393,12 @@ class SQLite3Database(Database, object):
             dct['key_value_pairs'] = decode(values[25])
         if len(values) >= 27 and values[26] != 'null':
             dct['data'] = decode(values[26])
-            
+
         return AtomsRow(dct)
 
     def _old2new(self, values):
         if self.type == 'postgresql':
-            assert self.version >= 8, 'Your db-server is too old!'
+            assert self.version >= 8, 'Your db-version is too old!'
         assert self.version >= 4, 'Your db-file is too old!'
         if self.version < 5:
             pass  # should be ok for reading by convert.py script
@@ -579,14 +538,11 @@ class SQLite3Database(Database, object):
         values[26] = 'null'
 
         if columns == 'all':
-            columnindex = list(range(27))
+            columnindex = list(range(26))
         else:
-            columnindex = [c for c in range(0, 27) if self.columnnames[c] in columns]
-
-        if not include_data:
-            if 26 in columnindex:
-                columnindex.remove(26)
-        #['id', 'ctime', 'mtime', 'username', 'numbers', 'pbc', 'charge', 'mass']
+            columnindex = [c for c in range(0, 26) if self.columnnames[c] in columns]
+        if include_data:
+            columnindex.append(26)
 
         if sort:
             if sort[0] == '-':
@@ -617,12 +573,6 @@ class SQLite3Database(Database, object):
 
         what = ', '.join('systems.' + name
                          for name in np.array(self.columnnames)[np.array(columnindex)])
-        #if not include_data:
-        #    what = 'systems.*'
-        #else:
-        #    #columnlist = np.array([0, 2, 3, 4, 5, 7, 8, 11, 25])
-        #    what = ', '.join('systems.' + name
-        #                     for name in np.array(self.columnnames)[columnlist])#self.columnnames[:26])
 
         sql, args = self.create_select_statement(keys, cmps, sort, order,
                                                  sort_table, what)
@@ -638,7 +588,7 @@ class SQLite3Database(Database, object):
 
         if verbosity == 2:
             print(sql, args)
-        
+
         cur = con.cursor()
         cur.execute(sql, args)
         if explain:
@@ -691,7 +641,7 @@ class SQLite3Database(Database, object):
         tables = tables or all_tables[::-1]
         for table in tables:
             cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
-                            [(id,) for id in ids])
+                            ((id,) for id in ids))
 
     @property
     def metadata(self):
@@ -716,12 +666,6 @@ class SQLite3Database(Database, object):
             cur.execute('INSERT INTO information VALUES (?, ?)',
                         ('metadata', md))
         con.commit()
-
-
-def float_if_not_none(x):
-    """Convert numpy.float64 to float - old db-interfaces need that."""
-    if x is not None:
-        return float(x)
 
 
 def _blob(array, pg=False):
