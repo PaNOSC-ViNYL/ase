@@ -1,9 +1,13 @@
 from ase import Atoms
 from ase.db import connect
 import ase.db.app as app
-
 c = connect('test.db', append=False)
-
+plot = {'title': 'A test',
+        'data': [{'label': 't1', 'x': 'x', 'y': 't1'},
+                 {'label': 't2', 'style': 'y--',
+                  'x': 'x', 'y': 't2'}],
+        'xlabel': 'x',
+        'ylabel': 'y'}
 x = [0, 1, 2]
 t1 = [1, 2, 0]
 t2 = [[2, 3], [1, 1], [1, 0]]
@@ -15,7 +19,8 @@ atoms.set_pbc(True)
 c.write(atoms,
         foo=42.0,
         bar='abc',
-        data={'x': x,
+        data={'test': plot,
+              'x': x,
               't1': t1,
               't2': t2})
 
@@ -31,6 +36,7 @@ page = c.get('/').data.decode()
 assert 'Test title' in page
 assert 'FOO' in page
 c.get('/id/1')
+c.get('/plot/test-1.png')
 c.get('json/1').data
 c.get('sqlite/1').data
 c.get('sqlite?x=1').data

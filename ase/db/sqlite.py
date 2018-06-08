@@ -199,11 +199,7 @@ class SQLite3Database(Database, object):
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
-
-        pg = False
-        if self.type == 'postgresql':
-            pg = True
-
+        pg = (self.type == 'postgresql')
         mtime = now()
 
         if isinstance(atoms, list):
