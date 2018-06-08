@@ -254,7 +254,7 @@ class SQLite3Database(Database, object):
         if not isinstance(data, basestring):
             data = encode(data)
 
-        if not key_value_pairs
+        if not key_value_pairs:
             key_value_pairs = row.key_value_pairs
 
         values += (row.get('energy'),
@@ -641,7 +641,7 @@ class SQLite3Database(Database, object):
         tables = tables or all_tables[::-1]
         for table in tables:
             cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
-                            ((id,) for id in ids))
+                            [(id,) for id in ids])
 
     @property
     def metadata(self):
