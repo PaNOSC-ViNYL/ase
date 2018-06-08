@@ -5,14 +5,22 @@ from scipy.spatial import cKDTree as KDTree
 from ase import Atoms
 from ase.build import tools as asetools
 from ase.visualize import view
+from ase.spacegroup import get_spacegroup
 
 try:
     import pystructcomp_cpp as pycpp
     # The C++ version is available at:
     # https://github.com/davidkleiven/StructureCompare
     has_cpp_version = True
-except:
+except BaseException:
     has_cpp_version = False
+
+
+class SpgLibNotFoundError(Exception):
+    """Raised if SPG lib is not found when needed"""
+
+    def __init__(self, msg):
+        super(SpgLibNotFoundError, self).__init__(msg)
 
 
 class SymmetryEquivalenceCheck(object):
@@ -35,8 +43,9 @@ class SymmetryEquivalenceCheck(object):
     scale_volume: bool
         if True the volumes of the two structures are scaled to be equal
     """
+
     def __init__(self, angle_tol=1.0, ltol=0.05, stol=0.05,
-                 scale_volume=False):
+                 scale_volume=False, to_primitive=False):
         self.s1 = None
         self.s2 = None
         self.angle_tol = angle_tol * np.pi / 180.0  # convert to radians
@@ -45,6 +54,7 @@ class SymmetryEquivalenceCheck(object):
         self.ltol = ltol
         self.position_tolerance = 0.0
         self.use_cpp_version = has_cpp_version
+        self.to_primitive = to_primitive
 
     def _niggli_reduce(self):
         """Reduce to niggli cells.
@@ -131,6 +141,23 @@ class SymmetryEquivalenceCheck(object):
                 elem2[atom.symbol] = 1
         return elem1, elem2
 
+    def _get_elem_count(self, atoms):
+        """Count the number of elements"""
+        elem = {}
+        for atom in atoms:
+            if atom.symbol in elem.keys():
+                elem[atom.symbol] += 1
+            else:
+                elem[atom.symbol] = 1
+        return elem
+
+    def _get_composition(self, atoms):
+        """Compute the composition"""
+        count = self._get_elem_count(atoms)
+        for key in count.keys():
+            count[key] /= float(len(atoms))
+        return count
+
     def _has_same_elements(self):
         """Check if two structures have same elements."""
         elem1, elem2 = self._get_element_count()
@@ -194,10 +221,14 @@ class SymmetryEquivalenceCheck(object):
         self.s1 = s1.copy()
         self.s2 = s2.copy()
 
+        if self.to_primitive:
+            self.s1 = self._reduce_to_primitive(self.s1)
+            self.s2 = self._reduce_to_primitive(self.s2)
+
         vol = self.s1.get_volume()
         self.position_tolerance = self.stol * (vol / len(self.s2))**(1.0 / 3.0)
 
-        if len(s1) != len(s2):
+        if len(self.s1) != len(self.s2):
             return False
 
         if not self._has_same_elements():
@@ -215,7 +246,6 @@ class SymmetryEquivalenceCheck(object):
 
         if self.use_cpp_version:
             return self._compare_cpp()
-
         matrices, translations = self._get_rotation_reflection_matrices()
         return self._positions_match(matrices, translations)
 
@@ -560,7 +590,7 @@ class SymmetryEquivalenceCheck(object):
         candidate_vecs = [[], [], []]
         translation = sc_pos[0, :] - delta_vec
 
-        new_sc_pos = sc_pos_search-translation
+        new_sc_pos = sc_pos_search - translation
         lengths = np.sqrt(np.sum(new_sc_pos**2, axis=1))
         for l in range(1, len(lengths)):
             for k in range(3):
@@ -587,7 +617,7 @@ class SymmetryEquivalenceCheck(object):
                     v3len = np.sqrt(np.sum(v3**2))
                     angle13 = np.arccos(v1.dot(v3) / (v1len * v3len))
                     if angle13 > np.pi / 2.0:
-                        angle13 = np.pi-angle13
+                        angle13 = np.pi - angle13
 
                     angle23 = np.arccos(v2.dot(v3) / (v2len * v3len))
                     if angle23 > np.pi / 2.0:
@@ -611,3 +641,24 @@ class SymmetryEquivalenceCheck(object):
             R = ref_vec.dot(np.linalg.inv(T))
             canditate_trans_mat.append(R)
         return canditate_trans_mat, atoms1_ref.get_positions()
+
+    def _reduce_to_primitive(self, structure):
+        """Reduce the two structure to their primitive type"""
+        try:
+            import spglib
+        except ImportError:
+            raise SpgLibNotFoundError(
+                "SpgLib is required if to_primitive=True")
+        cell = (structure.get_cell()).tolist()
+        pos = structure.get_scaled_positions().tolist()
+        numbers = structure.get_atomic_numbers()
+
+        cell, scaled_pos, numbers = spglib.standardize_cell(
+            (cell, pos, numbers), to_primitive=True)
+            
+        atoms = Atoms(
+            scaled_positions=scaled_pos,
+            numbers=numbers,
+            cell=cell,
+            pbc=True)
+        return atoms

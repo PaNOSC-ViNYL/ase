@@ -1,9 +1,10 @@
 from ase.structcomp import SymmetryEquivalenceCheck
+from ase.structcomp.structure_comparator import SpgLibNotFoundError
 import os
 from ase.test import NotAvailable
 from ase.build import bulk
 from ase import Atoms
-from ase.spacegroup import spacegroup, get_spacegroup
+from ase.spacegroup import spacegroup, get_spacegroup, crystal
 from random import randint
 import numpy as np
 
@@ -180,6 +181,35 @@ def test_one_atom_out_of_pos(comparator):
     assert not comparator.compare(s1, s2)
 
 
+def test_reduce_to_primitive(comparator):
+    try:
+        # Tell the comparator to reduce to primitive cell
+        comparator.to_primitive = True
+
+        atoms1 = crystal(symbols=['V', 'Li', 'O'],
+                         basis=[(0.000000, 0.000000, 0.000000),
+                                (0.333333, 0.666667, 0.000000),
+                                (0.333333, 0.000000, 0.250000)],
+                         spacegroup=167,
+                         cellpar=[5.123, 5.123, 13.005, 90., 90., 120.],
+                         size=[1, 1, 1], primitive_cell=False)
+
+        atoms2 = crystal(symbols=['V', 'Li', 'O'],
+                         basis=[(0.000000, 0.000000, 0.000000),
+                                (0.333333, 0.666667, 0.000000),
+                                (0.333333, 0.000000, 0.250000)],
+                         spacegroup=167,
+                         cellpar=[5.123, 5.123, 13.005, 90., 90., 120.],
+                         size=[1, 1, 1], primitive_cell=True)
+
+        assert comparator.compare(atoms1, atoms2)
+    except SpgLibNotFoundError:
+        pass
+
+    # Reset the comparator tot its original state
+    comparator.to_primitive = False
+
+
 def run_all_tests(comparator):
     test_compare(comparator)
     test_fcc_bcc(comparator)
@@ -195,6 +225,7 @@ def run_all_tests(comparator):
     test_bcc_symmetry_ops(comparator)
     test_bcc_translation(comparator)
     test_one_atom_out_of_pos(comparator)
+    test_reduce_to_primitive(comparator)
 
 
 comparator = SymmetryEquivalenceCheck()
