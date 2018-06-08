@@ -6,18 +6,11 @@ variables:
   POSTGRES_USER: ase
   POSTGRES_PASSWORD: "pw"
 
-#connect:
-#  image: postgres
-#  script:
-#  - export PGPASSWORD=$POSTGRES_PASSWORD
-#  - psql -h "postgres" -U "$POSTGRES_USER" -c "create database y;"
-#  - psql -h "postgres" -U "$POSTGRES_USER" -c "create database y2;"
-
 python_2_7_tests:
   image: python:2.7
   script:
     # manually install ase deps
-    - pip install numpy scipy matplotlib flask
+    - pip install numpy scipy matplotlib flask psycopg2-binary
     # extra packages for testing
     - pip install pyflakes netCDF4
     # using "install from source" instructions
