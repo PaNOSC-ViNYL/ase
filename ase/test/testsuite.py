@@ -57,7 +57,7 @@ def runtest_almost_no_magic(test):
     path = os.path.join(dirname, test)
     try:
         with open(path) as fd:
-            exec(compile(fd.read(), test, 'exec'), {})
+            exec(compile(fd.read(), path, 'exec'), {})
     except ImportError as ex:
         module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
         if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
@@ -131,12 +131,27 @@ def runtests_subprocess(task_queue, result_queue):
             if test == 'no more tests':
                 return
 
-            if test in ['gui/run.py']:
+            # We need to run some tests on master:
+            #  * doctest exceptions appear to be unpicklable.
+            #    Probably they contain a reference to a module or something.
+            #  * gui/run may deadlock for unknown reasons in subprocess
+
+            if test in ['bandstructure.py', 'doctests.py', 'gui/run.py',
+                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py',
+                        'db/db_web.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
 
             result = run_single_test(test)
+
+            # Any subprocess that uses multithreading is unsafe in
+            # subprocesses due to a fork() issue:
+            #   https://gitlab.com/ase/ase/issues/244
+            # Matplotlib uses multithreading and we must therefore make sure
+            # that any test which imports matplotlib runs on master.
+            # Hence check whether matplotlib was somehow imported:
+            assert 'matplotlib' not in sys.modules, test
             result_queue.put(result)
 
     except KeyboardInterrupt:
@@ -200,7 +215,7 @@ def runtests_parallel(nprocs, tests):
     except BaseException as err:
         for proc in procs:
             proc.terminate()
-        traceback.print_exc()
+        raise
     finally:
         for proc in procs:
             proc.join()
@@ -248,7 +263,7 @@ def test(calculators=[], jobs=0,
         sys.exit(1)
 
     if jobs == 0:
-        jobs = cpu_count()
+        jobs = min(cpu_count(), len(tests))
 
     print_info()
 

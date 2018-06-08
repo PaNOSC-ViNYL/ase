@@ -29,6 +29,7 @@ import ase
 import ase.units as units
 from ase.calculators.general import Calculator
 from ase.calculators.calculator import compare_atoms
+from ase.calculators.calculator import PropertyNotImplementedError
 from ase.constraints import FixCartesian
 from ase.parallel import paropen
 from ase.utils import basestring
@@ -1401,6 +1402,22 @@ End CASTEP Interface Documentation
         """Return the name of the calculator (string).  """
         return self.__name__
 
+
+    def get_property(self, name, atoms=None, allow_calculation=True):
+        # High-level getter for compliance with the database module...
+        # in principle this would not be necessary any longer if we properly
+        # based this class on `Calculator`
+        if name == 'forces':
+            return self.get_forces(atoms)
+        elif name == 'energy':
+            return self.get_potential_energy(atoms)
+        elif name == 'stress':
+            return self.get_stress(atoms)
+        elif name == 'charges':
+            return self.get_charges(atoms)
+        else:
+            raise PropertyNotImplementedError
+
     @_self_getter
     def get_forces(self, atoms):
         """Run CASTEP calculation if needed and return forces."""
@@ -1456,7 +1473,10 @@ End CASTEP Interface Documentation
                 if self._dispcorr_energy_total is not None:
                     return self._dispcorr_energy_total
                 else:
-                    return self._energy_total
+                    if self._energy_total_corr is not None:
+                        return self._energy_total_corr
+                    else:
+                        return self._energy_total
 
     @_self_getter
     def get_stress(self, atoms):

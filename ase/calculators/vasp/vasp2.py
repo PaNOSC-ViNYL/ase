@@ -120,12 +120,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, command, **kwargs)
 
-        # Overwrite the command from the FileIOCalculator init
-        # as we might have other options than ASE_VASP_COMMAND
-        # Also forces the user to have VASP installed first,
-        # avoids issues with trying to e.g. get POTCAR's if not installed
-        # XXX: Do we want to initialize this later?
-        self.command = self.make_command(command)
+        self.command = command
 
         self.set_txt(txt)       # Set the output txt stream
 
@@ -268,6 +263,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.check_cell()      # Check for zero-length lattice vectors
         self.xml_data = {}     # Reset the stored data
 
+        command = self.make_command(self.command)
         self.write_input(self.atoms, properties, system_changes)
 
         olddir = os.getcwd()
@@ -276,7 +272,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
             # Create the text output stream and run VASP
             with self.txt_outstream() as out:
-                errorcode = self.run(command=self.command, out=out)
+                errorcode = self._run(command=command, out=out)
         finally:
             os.chdir(olddir)
 
@@ -288,7 +284,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.update_atoms(atoms)
         self.read_results()
 
-    def run(self, command=None, out=None):
+    def _run(self, command=None, out=None):
         """Method to explicitly execute VASP"""
         if command is None:
             command = self.command
@@ -332,7 +328,9 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             int_params=self.int_params.copy(),
             input_params=self.input_params.copy(),
             bool_params=self.bool_params.copy(),
-            list_params=self.list_params.copy(),
+            list_int_params=self.list_int_params.copy(),
+            list_bool_params=self.list_bool_params.copy(),
+            list_float_params=self.list_float_params.copy(),
             dict_params=self.dict_params.copy())
 
     def write_input(self, atoms, properties=['energies'],
@@ -496,8 +494,9 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.set(xc=xc)
 
     def set_atoms(self, atoms):
+        if self.check_state(atoms):
+            self.results.clear()
         self.atoms = atoms.copy()
-        self.results.clear()
 
     # Below defines methods for reading output files
     def load_file(self, filename):
@@ -531,10 +530,11 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
         self.read_ldau()
         p = self.int_params
-        q = self.list_params
+        q = self.list_float_params
         if self.spinpol:
             self.magnetic_moment = self.read_magnetic_moment()
-            if p['lorbit'] >= 10 or (p['lorbit'] is None and q['rwigs']):
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
+                (p['lorbit'] is None and q['rwigs'])):
                 self.magnetic_moments = self.read_magnetic_moments(lines=lines)
             else:
                 warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
