@@ -221,6 +221,9 @@ class SQLite3Database(Database, object):
         if id:
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
+        else:
+            if not key_value_pairs:
+                key_value_pairs = row.key_value_pairs
 
         constraints = row._constraints
         if constraints:
@@ -253,9 +256,6 @@ class SQLite3Database(Database, object):
             data = row._data
         if not isinstance(data, basestring):
             data = encode(data)
-
-        if not key_value_pairs:
-            key_value_pairs = row.key_value_pairs
 
         values += (row.get('energy'),
                    row.get('free_energy'),
