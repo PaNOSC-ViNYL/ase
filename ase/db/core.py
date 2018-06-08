@@ -403,8 +403,7 @@ class Database:
         selection: int, str or list
             See the select() method.
         """
-        rows = list(self.select(selection, limit=2, include_data=True,
-                                **kwargs))
+        rows = list(self.select(selection, limit=2,  **kwargs))
         if not rows:
             raise KeyError('no match')
         assert len(rows) == 1, 'more than one row matched'
