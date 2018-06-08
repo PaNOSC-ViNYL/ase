@@ -19,6 +19,7 @@ import numbers
 import os
 import sqlite3
 import sys
+import functools
 
 import numpy as np
 
@@ -113,10 +114,6 @@ all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
-def float_if_not_none(x):
-    """Convert numpy.float64 to float - old db-interfaces need that."""
-    if x is not None:
-        return float(x)
 
 
 class SQLite3Database(Database, object):
@@ -199,7 +196,12 @@ class SQLite3Database(Database, object):
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
-        pg = (self.type == 'postgresql')
+
+        if self.type == 'postgresql':
+            blob = functools.partial(_blob, pg=True)
+        else:
+            blob = _blob
+
         mtime = now()
 
         if isinstance(atoms, list):
@@ -237,15 +239,15 @@ class SQLite3Database(Database, object):
                       row.ctime,
                       mtime,
                       row.user,
-                      blob(row.numbers, pg),
-                      blob(row.positions, pg),
-                      blob(row.cell, pg),
+                      blob(row.numbers),
+                      blob(row.positions),
+                      blob(row.cell),
                       int(np.dot(row.pbc, [1, 2, 4])),
-                      blob(row.get('initial_magmoms'), pg),
-                      blob(row.get('initial_charges'), pg),
-                      blob(row.get('masses'), pg),
-                      blob(row.get('tags'), pg),
-                      blob(row.get('momenta'), pg),
+                      blob(row.get('initial_magmoms')),
+                      blob(row.get('initial_charges')),
+                      blob(row.get('masses')),
+                      blob(row.get('tags')),
+                      blob(row.get('momenta')),
                       constraints)
 
             if 'calculator' in row:
@@ -263,12 +265,12 @@ class SQLite3Database(Database, object):
             
             values += (row.get('energy'),
                        row.get('free_energy'),
-                       blob(row.get('forces'), pg),
-                       blob(row.get('stress'), pg),
-                       blob(row.get('dipole'), pg),
-                       blob(row.get('magmoms'), pg),
+                       blob(row.get('forces')),
+                       blob(row.get('stress')),
+                       blob(row.get('dipole')),
+                       blob(row.get('magmoms')),
                        row.get('magmom'),
-                       blob(row.get('charges'), pg),
+                       blob(row.get('charges')),
                        encode(key_value_pairs),
                        data,
                        len(row.numbers),
@@ -377,9 +379,12 @@ class SQLite3Database(Database, object):
         return self._convert_tuple_to_row(values)
 
     def _convert_tuple_to_row(self, values):
-        pg = False
         if self.type == 'postgresql':
-            pg = True
+            deblob = functools.partial(_deblob, pg=True)
+            decode = functools.partial(_decode, pg=True)
+        else:
+            deblob = _deblob
+            decode = _decode
 
         values = self._old2new(values)
         dct = {'id': values[0],
@@ -387,59 +392,61 @@ class SQLite3Database(Database, object):
                'ctime': values[2],
                'mtime': values[3],
                'user': values[4],
-               'numbers': deblob(values[5], np.int32, pg=pg),
-               'positions': deblob(values[6], shape=(-1, 3), pg=pg),
-               'cell': deblob(values[7], shape=(3, 3), pg=pg)}
+               'numbers': deblob(values[5], np.int32),
+               'positions': deblob(values[6], shape=(-1, 3)),
+               'cell': deblob(values[7], shape=(3, 3))}
 
         if values[8] is not None:
             dct['pbc'] = (values[8] & np.array([1, 2, 4])).astype(bool)
         if values[9] is not None:
-            dct['initial_magmoms'] = deblob(values[9], pg=pg)
+            dct['initial_magmoms'] = deblob(values[9])
         if values[10] is not None:
-            dct['initial_charges'] = deblob(values[10], pg=pg)
+            dct['initial_charges'] = deblob(values[10])
         if values[11] is not None:
-            dct['masses'] = deblob(values[11], pg=pg)
+            dct['masses'] = deblob(values[11])
         if values[12] is not None:
-            dct['tags'] = deblob(values[12], np.int32, pg=pg)
+            dct['tags'] = deblob(values[12], np.int32)
         if values[13] is not None:
-            dct['momenta'] = deblob(values[13], shape=(-1, 3), pg=pg)
+            dct['momenta'] = deblob(values[13], shape=(-1, 3))
         if values[14] is not None:
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
         if values[16] is not None:
-            dct['calculator_parameters'] = decode(values[16], pg=pg)
+            dct['calculator_parameters'] = decode(values[16])
         if values[17] is not None:
             dct['energy'] = values[17]
         if values[18] is not None:
             dct['free_energy'] = values[18]
         if values[19] is not None:
-            dct['forces'] = deblob(values[19], shape=(-1, 3), pg=pg)
+            dct['forces'] = deblob(values[19], shape=(-1, 3))
         if values[20] is not None:
-            dct['stress'] = deblob(values[20], pg=pg)
+            dct['stress'] = deblob(values[20])
         if values[21] is not None:
-            dct['dipole'] = deblob(values[21], pg=pg)
+            dct['dipole'] = deblob(values[21])
         if values[22] is not None:
-            dct['magmoms'] = deblob(values[22], pg=pg)
+            dct['magmoms'] = deblob(values[22])
         if values[23] is not None:
             dct['magmom'] = values[23]
         if values[24] is not None:
-            dct['charges'] = deblob(values[24], pg=pg)
+            dct['charges'] = deblob(values[24])
         if values[25] != '{}':
-            dct['key_value_pairs'] = decode(values[25], pg=pg)
+            dct['key_value_pairs'] = decode(values[25])
         if len(values) >= 27 and values[26] != 'null':
-            dct['data'] = decode(values[26], pg=pg)
+            dct['data'] = decode(values[26])
             
         return AtomsRow(dct)
 
     def _old2new(self, values):
+        if self.type == 'postgresql':
+            assert self.version >= 8, 'Your db-server is too old!'
         assert self.version >= 4, 'Your db-file is too old!'
         if self.version < 5:
             pass  # should be ok for reading by convert.py script
         if self.version < 6:
             m = values[23]
             if m is not None and not isinstance(m, float):
-                magmom = float(deblob(m, shape=()), pg=pg)
+                magmom = float(deblob(m, shape=()))
                 values = values[:23] + (magmom,) + values[24:]
         return values
 
@@ -711,7 +718,13 @@ class SQLite3Database(Database, object):
         con.commit()
 
 
-def blob(array, postgresql=False):
+def float_if_not_none(x):
+    """Convert numpy.float64 to float - old db-interfaces need that."""
+    if x is not None:
+        return float(x)
+
+
+def _blob(array, pg=False):
     """Convert array to blob/buffer object."""
 
     if array is None:
@@ -720,18 +733,17 @@ def blob(array, postgresql=False):
         array = np.zeros(0)
     if array.dtype == np.int64:
         array = array.astype(np.int32)
-    if postgresql:
+    if pg:
         return array.tolist()
     if not np.little_endian:
         array = array.byteswap()
     return buffer(np.ascontiguousarray(array))
 
 
-def deblob(buf, dtype=float, shape=None, pg=False):
+def _deblob(buf, dtype=float, shape=None, pg=False):
     """Convert blob/buffer object to ndarray of correct dtype and shape.
 
     (without creating an extra view)."""
-
     if buf is None:
         return None
     if pg:
@@ -751,7 +763,7 @@ def deblob(buf, dtype=float, shape=None, pg=False):
     return array
 
 
-def decode(txt, pg=False):
+def _decode(txt, pg=False):
     if pg:
         txt = encode(txt)
     return numpyfy(mydecode(txt))
