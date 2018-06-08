@@ -1,11 +1,9 @@
 import numpy as np
 import json
-import psycopg2
+from psycopg2 import connect
 from psycopg2.extras import execute_values
 
-from ase.db.sqlite import init_statements, index_statements, VERSION
-from ase.db.sqlite import VERSION
-from ase.db.sqlite import SQLite3Database
+from ase.db.sqlite import init_statements, index_statements, VERSION, SQLite3Database
 
 
 class Connection:
@@ -56,7 +54,7 @@ class PostgreSQLDatabase(SQLite3Database):
     default = 'DEFAULT'
 
     def _connect(self):
-        return Connection(psycopg2.connect(self.filename))
+        return Connection(connect(self.filename))
 
     def _initialize(self, con):
         if self.initialized:
@@ -77,9 +75,7 @@ class PostgreSQLDatabase(SQLite3Database):
         table_name='information' and table_schema='{}');
         """.format(schema))
 
-        information_exists = cur.fetchone()[0]
-
-        if not information_exists:
+        if not cur.fetchone()[0]:  # information schema doesn't exist.
             # Initialize database:
             sql = ';\n'.join(init_statements)
             sql = schema_update(sql)
