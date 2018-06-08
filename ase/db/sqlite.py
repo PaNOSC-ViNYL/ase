@@ -522,7 +522,7 @@ class SQLite3Database(Database, object):
 
             elif self.type == 'postgresql':
                 jsonop = '->'
-                if isinstance(value, str):
+                if isinstance(value, basestring):
                     jsonop = '->>'
                 where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
                 args.append(str(value))
