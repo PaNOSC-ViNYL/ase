@@ -192,29 +192,25 @@ class SQLite3Database(Database, object):
 
         self.initialized = True
 
-    def _write(self, atoms, key_value_pairs, data):
+    def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
 
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
 
-        id = None
+        mtime = now()
 
         if not isinstance(atoms, AtomsRow):
             row = AtomsRow(atoms)
-            row.ctime = mtime = now()
+            row.ctime = mtime
             row.user = os.getenv('USER')
         else:
             row = atoms
-            cur.execute('SELECT id FROM systems WHERE unique_id=?',
-                        (row.unique_id,))
-            results = cur.fetchall()
-            if results:
-                id = results[0][0]
-                self._delete(cur, [id], ['keys', 'text_key_values',
-                                         'number_key_values'])
-            mtime = now()
+
+        if id:
+            self._delete(cur, [id], ['keys', 'text_key_values',
+                                     'number_key_values', 'species'])
 
         constraints = row._constraints
         if constraints:
@@ -243,11 +239,8 @@ class SQLite3Database(Database, object):
         else:
             values += (None, None)
 
-        if key_value_pairs is None:
-            key_value_pairs = row.key_value_pairs
-
-        if not data:
-            data = row._data
+        if data is None:
+            data = {}
         if not isinstance(data, basestring):
             data = encode(data)
 
@@ -272,20 +265,18 @@ class SQLite3Database(Database, object):
             q = self.default + ', ' + ', '.join('?' * len(values))
             cur.execute('INSERT INTO systems VALUES ({})'.format(q),
                         values)
+            id = self.get_last_id(cur)
         else:
             q = ', '.join(name + '=?' for name in self.columnnames[1:])
             cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
 
-        if id is None:
-            id = self.get_last_id(cur)
-
-            count = row.count_atoms()
-            if count:
-                species = [(atomic_numbers[symbol], n, id)
-                           for symbol, n in count.items()]
-                cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                                species)
+        count = row.count_atoms()
+        if count:
+            species = [(atomic_numbers[symbol], n, id)
+                       for symbol, n in count.items()]
+            cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
+                            species)
 
         text_key_values = []
         number_key_values = []
@@ -403,11 +394,16 @@ class SQLite3Database(Database, object):
                 where.append('systems.smax IS NOT NULL')
             elif key in ['energy', 'fmax', 'smax',
                          'constraints', 'calculator']:
-                where.append('systems.{0} IS NOT NULL'.format(key))
+                where.append('systems.{} IS NOT NULL'.format(key))
             else:
-                tables.append('keys AS keys{0}'.format(n))
-                where.append('systems.id=keys{0}.id AND keys{0}.key=?'
-                             .format(n))
+                if '-' not in key:
+                    tables.append('keys AS keys{}'.format(n))
+                    q = 'systems.id=keys{0}.id AND keys{0}.key=?'.format(n)
+                else:
+                    key = key.replace('-', '')
+                    q = 'systems.id=keys.id AND keys.key=?'
+                    q = 'NOT EXISTS (SELECT id FROM keys WHERE {})'.format(q)
+                where.append(q)
                 args.append(key)
 
         # Special handling of "H=0" and "H<2" type of selections:
@@ -431,17 +427,17 @@ class SQLite3Database(Database, object):
                     value = int(np.dot([x == 'T' for x in value], [1, 2, 4]))
                 elif key == 'magmom':
                     assert self.version >= 6, 'Update you db-file'
-                where.append('systems.{0}{1}?'.format(key, op))
+                where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
             elif isinstance(key, int):
                 if bad[key]:
                     where.append(
                         'NOT EXISTS (SELECT id FROM species WHERE\n' +
                         '  species.id=systems.id AND species.Z=? AND ' +
-                        'species.n{0}?)'.format(invop[op]))
+                        'species.n{}?)'.format(invop[op]))
                     args += [key, value]
                 else:
-                    tables.append('species AS specie{0}'.format(nspecies))
+                    tables.append('species AS specie{}'.format(nspecies))
                     where.append(('systems.id=specie{0}.id AND ' +
                                   'specie{0}.Z=? AND ' +
                                   'specie{0}.n{1}?').format(nspecies, op))
@@ -458,34 +454,33 @@ class SQLite3Database(Database, object):
                     found_sort_table = True
                 ntext += 1
             else:
-                tables.append('number_key_values AS number{0}'.format(nnumber))
+                tables.append('number_key_values AS number{}'.format(nnumber))
                 where.append(('systems.id=number{0}.id AND ' +
                               'number{0}.key=? AND ' +
                               'number{0}.value{1}?').format(nnumber, op))
                 args += [key, float(value)]
                 if sort_table == 'number_key_values' and sort == key:
-                    sort_table = 'number{0}'.format(nnumber)
+                    sort_table = 'number{}'.format(nnumber)
                     found_sort_table = True
                 nnumber += 1
 
         if sort:
-            if sort_table == 'systems':
-                if sort in ['energy', 'fmax', 'smax', 'calculator']:
-                    where.append('systems.{0} IS NOT NULL'.format(sort))
-            else:
+            if sort_table != 'systems':
                 if not found_sort_table:
-                    tables.append('{0} AS sort_table'.format(sort_table))
+                    tables.append('{} AS sort_table'.format(sort_table))
                     where.append('systems.id=sort_table.id AND '
                                  'sort_table.key=?')
                     args.append(sort)
                     sort_table = 'sort_table'
                 sort = 'value'
 
-        sql = 'SELECT {0} FROM\n  '.format(what) + ', '.join(tables)
+        sql = 'SELECT {} FROM\n  '.format(what) + ', '.join(tables)
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         if sort:
-            sql += '\nORDER BY {0}.{1} {2}'.format(sort_table, sort, order)
+            # XXX use "?" instead of "{}"
+            sql += '\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}'.format(
+                sort_table, sort, order)
 
         return sql, args
 
@@ -513,7 +508,9 @@ class SQLite3Database(Database, object):
                         sort_table = 'number_key_values'
                     break
                 else:
-                    return
+                    # No rows.  Just pick a table:
+                    sort_table = 'number_key_values'
+
         else:
             order = None
             sort_table = None
@@ -524,8 +521,8 @@ class SQLite3Database(Database, object):
             what = ', '.join('systems.' + name
                              for name in self.columnnames[:26])
 
-        sql, args = self.create_select_statement(keys, cmps,
-                                                 sort, order, sort_table, what)
+        sql, args = self.create_select_statement(keys, cmps, sort, order,
+                                                 sort_table, what)
 
         if explain:
             sql = 'EXPLAIN QUERY PLAN ' + sql
@@ -545,8 +542,22 @@ class SQLite3Database(Database, object):
             for row in cur.fetchall():
                 yield {'explain': row}
         else:
+            n = 0
             for values in cur.fetchall():
                 yield self._convert_tuple_to_row(values)
+                n += 1
+
+            if sort and sort_table != 'systems':
+                # Yield rows without sort key last:
+                if limit is not None:
+                    if n == limit:
+                        return
+                    limit -= n
+
+                for row in self._select(keys + ['-' + sort], cmps,
+                                        limit=limit, offset=offset,
+                                        include_data=include_data):
+                    yield row
 
     @parallel_function
     def count(self, selection=None, **kwargs):
@@ -562,43 +573,6 @@ class SQLite3Database(Database, object):
         con = self._connect()
         self._initialize(con)
         con.execute('ANALYZE')
-
-    def _update(self, ids, delete_keys, add_key_value_pairs):
-        """Update row(s).
-
-        ids: int or list of int
-            ID's of rows to update.
-        delete_keys: list of str
-            Keys to remove.
-        add_key_value_pairs: dict
-            Key-value pairs to add.
-
-        Returns number of key-value pairs added and keys removed.
-        """
-
-        rows = [self._get_row(id) for id in ids]
-        if self.connection:
-            # We are already running inside a context manager:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs)
-
-        # Create new context manager:
-        with self:
-            return self._update_rows(rows, delete_keys, add_key_value_pairs)
-
-    def _update_rows(self, rows, delete_keys, add_key_value_pairs):
-        m = 0
-        n = 0
-        for row in rows:
-            kvp = row.key_value_pairs
-            n += len(kvp)
-            for key in delete_keys:
-                kvp.pop(key, None)
-            n -= len(kvp)
-            m -= len(kvp)
-            kvp.update(add_key_value_pairs)
-            m += len(kvp)
-            self._write(row, kvp, None)
-        return m, n
 
     @parallel_function
     @lock
@@ -649,7 +623,7 @@ def blob(array):
     if array.dtype == np.int64:
         array = array.astype(np.int32)
     if not np.little_endian:
-        array.byteswap(True)
+        array = array.byteswap()
     return buffer(np.ascontiguousarray(array))
 
 
@@ -669,7 +643,7 @@ def deblob(buf, dtype=float, shape=None):
         else:
             array = np.frombuffer(buf, dtype)
         if not np.little_endian:
-            array.byteswap(True)
+            array = array.byteswap()
     if shape is not None:
         array.shape = shape
     return array

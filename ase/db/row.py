@@ -75,7 +75,7 @@ class AtomsRow:
             dct = atoms2dict(dct)
         assert 'numbers' in dct
         self._constraints = dct.pop('constraints', [])
-        self._data = dct.pop('data', None)
+        self._data = dct.pop('data', {})
         kvp = dct.pop('key_value_pairs', {})
         self._keys = list(kvp.keys())
         self.__dict__.update(kvp)
@@ -139,8 +139,6 @@ class AtomsRow:
     @property
     def data(self):
         """Data dict."""
-        if self._data is None:
-            raise AttributeError
         if not isinstance(self._data, dict):
             self._data = decode(self._data)  # lazy decoding
         return FancyDict(self._data)

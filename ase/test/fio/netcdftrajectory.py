@@ -1,8 +1,10 @@
-import numpy as np
-from ase.io import read
-
 import os
+import warnings
+
+import numpy as np
+
 from ase import Atom, Atoms
+from ase.io import read
 from ase.io import NetCDFTrajectory
 
 co = Atoms([Atom('C', (0, 0, 0)),
@@ -82,7 +84,9 @@ t = NetCDFTrajectory(fname, 'w', co)
 # File is not created before first write
 co.set_pbc([True, False, False])
 d = co.get_distance(0, 1)
-t.write(co)
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore', UserWarning)
+    t.write(co)
 del t
 # Check pbc
 for c in [1, 1000]:

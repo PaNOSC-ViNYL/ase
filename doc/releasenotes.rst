@@ -4,11 +4,43 @@
 Release notes
 =============
 
-
 Git master branch
 =================
 
 :git:`master <>`.
+
+* Test suite now runs in parallel.
+
+* The :meth:`ase.db.core.Database.write` method now takes a ``id`` that
+  allows you to overwrite an existing row.
+
+* The :meth:`ase.db.core.Database.update` can now update the Atoms and the data
+  parts of a row.
+
+* The :meth:`ase.db.core.Database.update` will no longer accept a list of
+  row ID's as the first argument.  Replace this::
+
+      db.update(ids, ...)
+
+  with::
+
+      with db:
+          for id in ids:
+              db.update(id, ...)
+
+
+Version 3.16.2
+==============
+
+4 June 2018: :git:`3.16.2 <../3.16.2>`
+
+* Fix test failure for newer versions of flask due to error within the test itself.  Fix trajectory format on bigendian architectures.  Fix issue with trajectory files opened in append mode where header would not be written correctly for images with different length, atomic species, boundary conditions, or constraints.
+
+
+Version 3.16.0
+==============
+
+21 March 2018: :git:`3.16.0 <../3.16.0>`
 
 * New linear-scaling neighbor list
   available as a function :meth:`~ase.neighborlist.neighbor_list`.
@@ -36,7 +68,7 @@ Git master branch
 * Improved "quick info" dialog in the GUI.  The dialog now lists results
   cached by the calculator.
 
-* The "add atoms" function now accepts identifiers for molecules in the G2 dataset.
+* The "add atoms" dialog now offers a load file dialog as was the case before the tkinter port.  It also provides a chooser for the G2 dataset.
 
 * Interface for the :mod:`CRYSTAL <ase.calculators.crystal` code has been
   added.
@@ -45,7 +77,7 @@ Git master branch
   will now also consider spin-flip transitions.  To get the spin-preserving
   direct gap (the old behavior), use::
 
-      min(bandgap(..., spin=s, direst=True) for s in [0, 1])
+      min(bandgap(..., spin=s, direct=True) for s in [0, 1])
 
 * Bug fixed in the :meth:`ase.phonons.Phonons.symmetrize` method when using an
   even number of repeats.

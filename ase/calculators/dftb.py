@@ -36,6 +36,7 @@ import os
 import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
+from ase.units import Hartree, Bohr
 
 
 class Dftb(FileIOCalculator):
@@ -66,9 +67,9 @@ class Dftb(FileIOCalculator):
         from ase.dft.kpoints import monkhorst_pack
 
         if 'DFTB_PREFIX' in os.environ:
-            slako_dir = os.environ['DFTB_PREFIX']
+            self.slako_dir = os.environ['DFTB_PREFIX'].rstrip('/') + '/'
         else:
-            slako_dir = './'
+            self.slako_dir = './'
 
         # to run Dftb as energy and force calculator use
         # Driver_MaxSteps=0,
@@ -77,7 +78,7 @@ class Dftb(FileIOCalculator):
             self.default_parameters = dict(
                 Hamiltonian_='DFTB',
                 Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+                Hamiltonian_SlaterKosterFiles_Prefix=self.slako_dir,
                 Hamiltonian_SlaterKosterFiles_Separator='"-"',
                 Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
                 Hamiltonian_MaxAngularMomentum_='')
@@ -90,7 +91,7 @@ class Dftb(FileIOCalculator):
                 Driver_MaxForceComponent='1E-4',
                 Driver_MaxSteps=0,
                 Hamiltonian_SlaterKosterFiles_='Type2FileNames',
-                Hamiltonian_SlaterKosterFiles_Prefix=slako_dir,
+                Hamiltonian_SlaterKosterFiles_Prefix=self.slako_dir,
                 Hamiltonian_SlaterKosterFiles_Separator='"-"',
                 Hamiltonian_SlaterKosterFiles_Suffix='".skf"',
                 Hamiltonian_MaxAngularMomentum_='')
@@ -126,10 +127,26 @@ class Dftb(FileIOCalculator):
         outfile.write('} \n')
         outfile.write(' \n')
 
+        params = self.parameters.copy()
+
+        s = 'Hamiltonian_MaxAngularMomentum_'
+        for key in params:
+            if key.startswith(s) and len(key) > len(s):
+                break
+        else:
+            # User didn't specify max angular mometa.  Get them from
+            # the .skf files:
+            symbols = set(self.atoms.get_chemical_symbols())
+            for symbol in symbols:
+                path = os.path.join(self.slako_dir,
+                                    '{0}-{0}.skf'.format(symbol))
+                l = read_max_angular_momentum(path)
+                params[s + symbol] = '"{}"'.format('spdf'[l])
+
         # --------MAIN KEYWORDS-------
         previous_key = 'dummy_'
         myspace = ' '
-        for key, value in sorted(self.parameters.items()):
+        for key, value in sorted(params.items()):
             current_depth = key.rstrip('_').count('_')
             previous_depth = previous_key.rstrip('_').count('_')
             for my_backsclash in reversed(
@@ -201,20 +218,17 @@ class Dftb(FileIOCalculator):
         """ all results are read from results.tag file
             It will be destroyed after it is read to avoid
             reading it once again after some runtime error """
-        from ase.units import Hartree, Bohr
 
         myfile = open(os.path.join(self.directory, 'results.tag'), 'r')
         self.lines = myfile.readlines()
         myfile.close()
 
         self.atoms = self.atoms_input
-        charges = self.read_charges()
-        self.results['charges'] = charges
-        energy = 0.0
-        forces = None
-        energy = self.read_energy()
-        forces = self.read_forces()
+        charges, energy = self.read_charges_and_energy()
+        if charges is not None:
+            self.results['charges'] = charges
         self.results['energy'] = energy
+        forces = self.read_forces()
         self.results['forces'] = forces
         self.mmpositions = None
         # stress stuff begins
@@ -231,27 +245,11 @@ class Dftb(FileIOCalculator):
                     stress.append(cell)
         if have_stress:
             stress = -np.array(stress) * Hartree / Bohr**3
-        elif not have_stress:
-            stress = np.zeros((3, 3))
-        self.results['stress'] = stress
+            self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
         # stress stuff ends
 
         # calculation was carried out with atoms written in write_input
         os.remove(os.path.join(self.directory, 'results.tag'))
-
-    def read_energy(self):
-        """Read Energy from dftb output file (results.tag)."""
-        from ase.units import Hartree
-        # Energy line index
-        for iline, line in enumerate(self.lines):
-            estring = 'total_energy'
-            if line.find(estring) >= 0:
-                index_energy = iline + 1
-                break
-        try:
-            return float(self.lines[index_energy].split()[0]) * Hartree
-        except:
-            raise RuntimeError('Problem in reading energy')
 
     def read_forces(self):
         """Read Forces from dftb output file (results.tag)."""
@@ -275,13 +273,18 @@ class Dftb(FileIOCalculator):
         except:
             raise RuntimeError('Problem in reading forces')
 
-    def read_charges(self):
+    def read_charges_and_energy(self):
         """Get partial charges on atoms
             in case we cannot find charges they are set to None
         """
         infile = open(os.path.join(self.directory, 'detailed.out'), 'r')
         lines = infile.readlines()
         infile.close()
+
+        for line in lines:
+            if line.strip().startswith('Total energy:'):
+                energy = float(line.split()[2]) * Hartree
+                break
 
         qm_charges = []
         for n, line in enumerate(lines):
@@ -291,12 +294,12 @@ class Dftb(FileIOCalculator):
         else:
             # print('Warning: did not find DFTB-charges')
             # print('This is ok if flag SCC=NO')
-            return None
+            return None, energy
         lines1 = lines[chargestart:(chargestart + len(self.atoms))]
         for line in lines1:
             qm_charges.append(float(line.split()[-1]))
 
-        return np.array(qm_charges)
+        return np.array(qm_charges), energy
 
     def get_charges(self, atoms):
         """ Get the calculated charges
@@ -370,3 +373,30 @@ class PointChargePotential:
             external_forces.append(
                 [float(i) for i in line.split()])
         return np.array(external_forces) * Hartree / Bohr
+
+
+def read_max_angular_momentum(path):
+    """Read maximum angular momentum from .skf file.
+
+    See dftb.org for A detailed description of the Slater-Koster file format.
+    """
+    with open(path, 'r') as fd:
+        line = fd.readline()
+        if line[0] == '@':
+            # Extended format
+            fd.readline()
+            l = 3
+            pos = 9
+        else:
+            # Simple format:
+            l = 2
+            pos = 7
+
+        # Sometimes there ar commas, sometimes not:
+        line = fd.readline().replace(',', ' ')
+
+        occs = [float(f) for f in line.split()[pos:pos + l + 1]]
+        for f in occs:
+            if f > 0.0:
+                return l
+            l -= 1

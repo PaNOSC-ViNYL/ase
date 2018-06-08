@@ -62,6 +62,7 @@ app.secret_key = 'asdf'
 
 databases = {}
 home = ''  # link to homepage
+ase_db_footer = ''  # footer (for a license)
 open_ase_gui = True  # click image to open ASE's GUI
 download_button = True
 
@@ -94,9 +95,10 @@ connections = {}
 
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
-    connect_databases(app.config['ASE_DB_NAMES'])
+    connect_databases(str(name) for name in app.config['ASE_DB_NAMES'])
     home = app.config['ASE_DB_HOMEPAGE']
-    tmpdir = app.config['ASE_DB_TMPDIR']
+    ase_db_footer = app.config['ASE_DB_FOOTER']
+    tmpdir = str(app.config['ASE_DB_TMPDIR'])
     download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
 else:
@@ -170,7 +172,9 @@ def index():
         sort = 'id'
         limit = 25
 
-    db = databases[project]
+    db = databases.get(project)
+    if db is None:
+        return 'No such project: ' + project
 
     meta = db.meta
 
@@ -271,6 +275,7 @@ def index():
                            con=con,
                            x=con_id,
                            home=home,
+                           ase_db_footer=ase_db_footer,
                            pages=pages(page, nrows, limit),
                            nrows=nrows,
                            addcolumns=addcolumns,
@@ -341,6 +346,7 @@ def summary(id):
                            n2=n2,
                            n3=n3,
                            home=home,
+                           ase_db_footer=ase_db_footer,
                            md=db.meta,
                            open_ase_gui=open_ase_gui)
 
@@ -363,6 +369,8 @@ def download(f):
     @functools.wraps(f)
     def ff(*args, **kwargs):
         text, name = f(*args, **kwargs)
+        if name is None:
+            return text
         headers = [('Content-Disposition',
                     'attachment; filename="{0}"'.format(name)),
                    ]  # ('Content-type', 'application/sqlite3')]
@@ -395,6 +403,8 @@ if download_button:
 @download
 def json1(id):
     project = request.args.get('project', 'default')
+    if project not in databases:
+        return 'No such project: ' + project, None
     data = tofile(project, id, 'json')
     return data, '{0}.json'.format(id)
 
@@ -413,14 +423,23 @@ if download_button:
 @download
 def sqlite1(id):
     project = request.args.get('project', 'default')
+    if project not in databases:
+        return 'No such project: ' + project, None
     data = tofile(project, id, 'db')
     return data, '{0}.db'.format(id)
 
 
 @app.route('/robots.txt')
 def robots():
-    return ('User-agent: *\nDisallow: /\n\n' +
-            'User-agent: Baiduspider\nDisallow: /\n', 200)
+    return ('User-agent: *\n'
+            'Disallow: /\n'
+            '\n'
+            'User-agent: Baiduspider\n'
+            'Disallow: /\n'
+            '\n'
+            'User-agent: SiteCheck-sitecrawl by Siteimprove.com\n'
+            'Disallow: /\n',
+            200)
 
 
 def pages(page, nrows, limit):
