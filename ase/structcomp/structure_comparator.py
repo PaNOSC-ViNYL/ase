@@ -42,6 +42,10 @@ class SymmetryEquivalenceCheck(object):
 
     scale_volume: bool
         if True the volumes of the two structures are scaled to be equal
+
+    to_primitive: bool
+        if True the structures are reduced to their primitive cells
+        note that this feature requires spglib to installed
     """
 
     def __init__(self, angle_tol=1.0, ltol=0.05, stol=0.05,
@@ -655,7 +659,7 @@ class SymmetryEquivalenceCheck(object):
 
         cell, scaled_pos, numbers = spglib.standardize_cell(
             (cell, pos, numbers), to_primitive=True)
-            
+
         atoms = Atoms(
             scaled_positions=scaled_pos,
             numbers=numbers,
