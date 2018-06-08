@@ -139,6 +139,13 @@ def write_gromacs(fileobj, images):
         gromacs_atomtypes = images[-1].get_array('atomtypes')
     except:
         gromacs_atomtypes = images[-1].get_chemical_symbols()
+    try:
+        residuenumber = images[-1].get_array('residuenumber')
+    except:
+        residuenumber = []
+        for idum in range(natoms):
+            residuenumber.append(1)
+
     pos = images[-1].get_positions()
     pos = pos / 10.0
     try:
@@ -151,13 +158,21 @@ def write_gromacs(fileobj, images):
     fileobj.write('#A Gromacs structure file written by ASE \n')
     fileobj.write('%5d \n' % len(images[-1]))
     count = 1
-    for resname, atomtype, xyz, vxyz in zip\
-            (gromacs_residuenames, gromacs_atomtypes, pos, vel):
-        fileobj.write(\
-            '   %5s  %5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f\n' % \
-                (resname, atomtype, count, \
-                xyz[0], xyz[1], xyz[2], \
-                vxyz[0], vxyz[1], vxyz[2]))
+
+    # gromac line see http://manual.gromacs.org/documentation/current/user-guide/file-formats.html#gro
+    #    1WATER  OW1    1   0.126   1.624   1.679  0.1227 -0.0580  0.0434
+    for resnb, resname, atomtype, xyz, vxyz in zip\
+            (residuenumber, gromacs_residuenames, gromacs_atomtypes, pos, vel):
+
+        line = "{0:5d}{1:5s}{2:5s}{3:5d}{4:8.3f}{5:8.3f}{6:8.3f}{7:8.4f}{8:8.4f}{9:8.4f}\n".format(resnb, resname, atomtype, count, \
+                                                                                                 xyz[0], xyz[1], xyz[2], \
+                                                                                                 vxyz[0], vxyz[1], vxyz[2])
+        fileobj.write(line)
+        #fileobj.write(\
+        #    '   %5s  %5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f\n' % \
+        #        (resname, atomtype, count, \
+        #        xyz[0], xyz[1], xyz[2], \
+        #        vxyz[0], vxyz[1], vxyz[2]))
         count = count + 1
     if images[-1].get_pbc().any():
         mycell = images[-1].get_cell()

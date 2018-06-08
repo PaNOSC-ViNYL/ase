@@ -32,6 +32,9 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
     atoms = Atoms()
     occ = []
     bfactor = []
+    residuenames = []
+    residuenumber = []
+    atomtypes = []
     for line in fileobj.readlines():
         if line.startswith('CRYST1'):
             cellpar = [float(line[6:15]),  # a
@@ -56,17 +59,39 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
                 # requires the element symbol to be in columns 77+78.
                 # Fall back to Atom name for files that do not follow
                 # the spec, e.g. packmol.
+
+                split = line.split()
+                # HETATM    1  H14 ORTE    0       6.301   0.693   1.919  1.00  0.00           H
                 try:
-                    symbol = label_to_symbol(line[76:78].strip())
+                    symbol = label_to_symbol(split[len(split)-1])
                 except (KeyError, IndexError):
-                    symbol = label_to_symbol(line[12:16].strip())
+                    symbol = label_to_symbol(split[len(split)-1])
+
+                position = np.array([float(split[5]), float(split[6]), float(split[7])])
                 # Don't use split() in case there are no spaces
-                position = np.array([float(line[30:38]),  # x
-                                     float(line[38:46]),  # y
-                                     float(line[46:54])])  # z
+                # No space between number ???
+                #position = np.array([float(line[30:38]),  # x
+                #                     float(line[38:46]),  # y
+                #                     float(line[46:54])])  # z
                 try:
-                    occ.append(float(line[54:60]))
-                    bfactor.append(float(line[60:66]))
+                    atomtypes.append(split[2])
+                    residuenames.append(split[3])
+                    list_int = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+                    isinsteger = False
+                    for inte in list_int:
+                        if inte in split[4]:
+                            isinsteger = True
+                            break
+
+                    if isinsteger:
+                        residuenumber.append(int(split[4]))
+
+                except:
+                    pass
+                try:
+                    occ.append(float(split[8]))
+                    bfactor.append(float(split[9]))
                 except (IndexError, ValueError):
                     pass
                 position = np.dot(orig, position) + trans
@@ -84,16 +109,40 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
                 atoms.set_array('occupancy', np.array(occ))
             if read_arrays and len(bfactor) == len(atoms):
                 atoms.set_array('bfactor', np.array(bfactor))
+            if not atoms.has('residuenames') and len(residuenames) == len(atoms):
+                atoms.new_array('residuenames', residuenames, str)
+                atoms.set_array('residuenames', residuenames, str)
+            if not atoms.has('atomtypes') and len(atomtypes) == len(atoms):
+                atoms.new_array('atomtypes', atomtypes, str)
+                atoms.set_array('atomtypes', atomtypes, str)
+            if not atoms.has('residuenumber') and len(residuenumber) == len(atoms):
+                atoms.new_array('residuenumber', residuenumber, int)
+                atoms.set_array('residuenumber', residuenumber, int)
+ 
             images.append(atoms)
             atoms = Atoms()
             occ = []
             bfactor = []
+            residuenames = []
+            atomtypes = []
+
     if len(images) == 0:
         # Single configuration with no 'END' or 'ENDMDL'
         if read_arrays and len(occ) == len(atoms):
             atoms.set_array('occupancy', np.array(occ))
         if read_arrays and len(bfactor) == len(atoms):
             atoms.set_array('bfactor', np.array(bfactor))
+        if not atoms.has('residuenames') and len(residuenames) == len(atoms):
+            atoms.new_array('residuenames', residuenames, str)
+            atoms.set_array('residuenames', residuenames, str)
+        if not atoms.has('atomtypes') and len(atomtypes) == len(atoms):
+            atoms.new_array('atomtypes', atomtypes, str)
+            atoms.set_array('atomtypes', atomtypes, str)
+        if not atoms.has('residuenumber') and len(residuenumber) == len(atoms):
+            atoms.new_array('residuenumber', residuenumber, int)
+            atoms.set_array('residuenumber', residuenumber, int)
+
+
         images.append(atoms)
     return images[index]
 
