@@ -77,7 +77,7 @@ class Precon(object):
                 while the F convention assumes it will be arranged component
                 by component (ie [x1, x2, ..., y1, y2, ...]).
             solver: One of "auto", "direct" or "pyamg", specifying whether to use
-               a direst sparse solver or PyAMG to solve P x = y. Default is "auto" which 
+               a direct sparse solver or PyAMG to solve P x = y. Default is "auto" which
                uses PyAMG if available, falling back to sparse solver if not.
             solve_tol: tolerance used for PyAMG sparse linear solver,
             if available.

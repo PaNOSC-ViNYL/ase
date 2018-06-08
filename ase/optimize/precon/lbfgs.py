@@ -14,17 +14,13 @@ from ase.utils.linesearcharmijo import LineSearchArmijo
 from ase.optimize.precon import Exp, C1, Pfrommer
 
 class PreconLBFGS(Optimizer):
-    """Preconditioned version of the Limited memory BFGS optimizer.
+    """Preconditioned version of the Limited memory BFGS optimizer, to
+    be used as a drop-in replacement for ase.optimize.lbfgs.LBFGS for systems
+    where a good preconditioner is available.
 
-    See this article for full details: D. Packwood, J. R. Kermode, L. Mones,
-    N. Bernstein, J. Woolley, N. Gould, C. Ortner, and G. Csanyi, A universal
-    preconditioner for simulating condensed phase materials
-    J. Chem. Phys. 144, 164109 (2016), DOI: http://dx.doi.org/10.1063/1.4947024
-
-    A limited memory version of the bfgs algorithm. Unlike the bfgs algorithm
-    used in bfgs.py, the inverse of Hessian matrix is updated.  The inverse
-    Hessian is represented only as a diagonal matrix to save memory.
-
+    In the standard bfgs and lbfgs algorithms, the inverse of Hessian matrix
+    is a (usually fixed) diagonal matrix. By contrast, PreconLBFGS,
+    updates the hessian after each step with a general "preconditioner".
     By default, the ase.optimize.precon.Exp preconditioner is applied.
     This preconditioner is well-suited for large condensed phase structures,
     in particular crystalline. For systems outside this category,
@@ -32,6 +28,11 @@ class PreconLBFGS(Optimizer):
 
     In time this implementation is expected to replace
     ase.optimize.lbfgs.LBFGS.
+
+    See this article for full details: D. Packwood, J. R. Kermode, L. Mones,
+    N. Bernstein, J. Woolley, N. Gould, C. Ortner, and G. Csanyi, A universal
+    preconditioner for simulating condensed phase materials
+    J. Chem. Phys. 144, 164109 (2016), DOI: http://dx.doi.org/10.1063/1.4947024
     """
 
     # CO : added parameters rigid_units and rotation_factors
@@ -80,13 +81,14 @@ class PreconLBFGS(Optimizer):
             Defaults to None, which causes only rank 0 to save files.  If
             set to true,  this rank will save files.
 
-        precon: ase.optimize.precon.Precon instance or compatible
-            Apply the given preconditione during optimization. Defaults to
-            'auto', which is equivalant to 'Exp', which constructs
-            an ase.optimize.precon.Exp instance. Other options include
-            'C1' and 'Pfrommer'- see the corresponding classes in this module
-            for more details. Pass precon=None or precon='ID' to disable
-            preconditioner.
+        precon: ase.optimize.precon.Precon instance or compatible.
+            Apply the given preconditioner during optimization. Defaults to
+            'auto', which will choose the `Exp` preconditioner unless the system
+            is too small (< 100 atoms) in which case a standard LBFGS fallback
+            is used. To enforce use of the `Exp` preconditioner, use `precon =
+            'Exp'`. Other options include 'C1', 'Pfrommer' and 'FF' - see the
+            corresponding classes in the `ase.optimize.precon` module for more
+            details. Pass precon=None or precon='ID' to disable preconditioning.
 
         use_armijo: boolean
             Enforce only the Armijo condition of sufficient decrease of
