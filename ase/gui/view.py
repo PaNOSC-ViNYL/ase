@@ -18,7 +18,7 @@ GREEN = '#74DF00'
 PURPLE = '#AC58FA'
 
 
-def get_cell_coordinates(cell):
+def get_cell_coordinates(cell, shifted=False):
     """Get start and end points of lines segments used to draw cell."""
     nn = []
     for c in range(3):
@@ -46,6 +46,9 @@ def get_cell_coordinates(cell):
         n1 = n2
     B1.shape = (-1, 3)
     B2.shape = (-1, 3)
+    if shifted:
+        B1 -= 0.5
+        B2 -= 0.5
     return B1, B2
 
 
@@ -129,13 +132,10 @@ class View:
         natoms = len(atoms)
 
         if self.showing_cell():
-            B1, B2 = get_cell_coordinates(atoms.cell)
+            B1, B2 = get_cell_coordinates(atoms.cell,
+                                          self.config['shift_cell'])
         else:
             B1 = B2 = np.zeros((0, 3))
-
-        if self.config['shift_cell']:
-            self.atoms.set_celldisp(
-                -0.5 * self.atoms.cell.sum(axis=0))
 
         if self.showing_bonds():
             atomscopy = atoms.copy()
