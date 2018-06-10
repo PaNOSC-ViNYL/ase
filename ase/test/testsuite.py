@@ -31,15 +31,15 @@ def get_tests(files=None):
     if files:
         files = [os.path.join(dirname, f) for f in files]
     else:
-        files = glob(dirname + '/*')
-        files.remove(dirname + '/testsuite.py')
+        files = glob(os.path.join(dirname, '*'))
+        files.remove(os.path.join(dirname, 'testsuite.py'))
 
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
         if os.path.isdir(f):
             # add test subdirectories (like calculators)
-            sdirtests.extend(glob(f + '/*.py'))
+            sdirtests.extend(glob(os.path.join(f, '*.py')))
         else:
             # add py files in testdir
             if f.endswith('.py'):
@@ -55,6 +55,13 @@ def get_tests(files=None):
 def runtest_almost_no_magic(test):
     dirname, _ = os.path.split(__file__)
     path = os.path.join(dirname, test)
+    # exclude some test for windows, not done automatic
+    if os.name == 'nt':
+        skip = [name for name in calc_names]
+        skip += ['db_web', 'h2.py', 'bandgap.py', 'al.py',
+                 'runpy.py', 'oi.py']
+        if any(s in test for s in skip):
+            raise NotAvailable('not on windows')
     try:
         with open(path) as fd:
             exec(compile(fd.read(), path, 'exec'), {})
@@ -74,7 +81,7 @@ def run_single_test(filename):
     # Some tests may write to files with the same name as other tests.
     # Hence, create new subdir for each test:
     cwd = os.getcwd()
-    testsubdir = filename.replace('/', '_').replace('.', '_')
+    testsubdir = filename.replace(os.sep, '_').replace('.', '_')
     os.mkdir(testsubdir)
     os.chdir(testsubdir)
     t1 = time.time()
