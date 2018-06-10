@@ -214,7 +214,7 @@ the :meth:`set` method:
    fleur
    gromacs
    gulp
-   ipi
+   ipi/ipi
    jacapo
    lammps
    lammpsrun
