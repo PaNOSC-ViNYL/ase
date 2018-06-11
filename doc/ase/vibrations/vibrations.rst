@@ -37,3 +37,10 @@ are calculated for an :class:`~ase.Atoms` object.
 
 .. autoclass:: ase.vibrations.Infrared
    :members:
+
+Resonant and non-resonant Raman spectra
+=======================================
+
+Please find more detailed information about :ref:`raman`.
+Note, that (static ?) 
+:ref:`Siesta Raman` are possible also.

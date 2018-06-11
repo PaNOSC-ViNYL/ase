@@ -1,11 +1,13 @@
-.. module:: ase.vibrations
+.. module:: ase.vibrations.resonant_raman
+
+.. _raman:
 
 =============
 Raman spectra
 =============
 
 Raman spectra can be calculated in various approximations.
-While the examples below are using GPAW explicitely,
+While the examples below are using GPAW_ explicitely,
 the modules are intended to work with other calculators also.
 
 The strategy is to calculate vibrational properties first and
@@ -22,6 +24,7 @@ modules. In the example of molecular hydrogen this is
 .. literalinclude:: H2_ir.py
 
 In the next step we perform a finite difference optical calculation
+where the optical spectra are evaluated using TDDFT
 
 .. literalinclude:: H2_optical.py
 		    
@@ -98,3 +101,10 @@ Example::
 
   from ase.vibrations.albrecht import Albrecht
 
+The resonant Raman base class
+-----------------------------
+
+.. autoclass:: ase.vibrations.resonant_raman.ResonantRaman
+   :members:
+
+.. _GPAW: http://wiki.fysik.dtu.dk/gpaw
