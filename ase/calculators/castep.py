@@ -35,9 +35,10 @@ import ase.units as units
 from ase.calculators.general import Calculator
 from ase.calculators.calculator import compare_atoms
 from ase.calculators.calculator import PropertyNotImplementedError
-from ase.constraints import FixCartesian
-from ase.parallel import paropen
 from ase.utils import basestring
+from ase.parallel import paropen
+from ase.io.castep import read_param
+from ase.constraints import FixCartesian
 
 __all__ = [
     'Castep',
@@ -1870,7 +1871,6 @@ End CASTEP Interface Documentation
 
     def merge_param(self, param, overwrite=True, ignore_internal_keys=False):
         """Parse a param file and merge it into the current parameters."""
-        INT_TOKEN = 'ASE_INTERFACE'
         if isinstance(param, CastepParam):
             for key, option in param._options.items():
                 if option.value is not None:
@@ -1899,74 +1899,15 @@ End CASTEP Interface Documentation
             param = param_file.name
             _close = False
 
-        # ok, we need to load the file beforehand into memory, seems like the
-        # easiest way to do the BLOCK handling.
-        lines = param_file.readlines()
-        i = 0
-        while i < len(lines):
-            line = lines[i].strip()
+        self, int_opts = read_param(fd=param_file, calc=self,
+                                    get_interface_options=True)
 
-            # note that i will point to the next line from now on
-            i += 1
-
-            # remove comments
-            for comment_char in ['#', ';', '!']:
-                if comment_char in line:
-                    if INT_TOKEN in line:
-                        # This block allows to read internal settings from
-                        # a *param file
-                        iline = line[line.index(INT_TOKEN) + len(INT_TOKEN):]
-                        if (iline.split()[0] in self.internal_keys and
-                                not ignore_internal_keys):
-                            value = ' '.join(iline.split()[1:])
-                            if value in _tf_table:
-                                self._opt[iline.split()[0]] = _tf_table[value]
-                            else:
-                                self._opt[iline.split()[0]] = value
-                    line = line[:line.index(comment_char)]
-
-            # if nothing remains
-            if not line.strip():
-                continue
-
-            if line == 'reuse':
-                self.param.reuse.value = 'default'
-                continue
-            if line == 'continuation':
-                self.param.continuation.value = 'default'
-                continue
-
-            # here comes the handling of the devel block (the only block so far
-            # I know to be in the param file)
-            if line.upper() == '%BLOCK DEVEL_CODE':
-                key = 'devel_code'
-                value = ''
-                while True:
-                    line = lines[i].strip()
-                    i += 1
-                    if line.upper() == '%ENDBLOCK DEVEL_CODE':
-                        break
-                    value += '\n{0}'.format(line)
-                value = value.strip()
-
-                if (not overwrite and
-                        getattr(self.param, key).value is not None):
-                    continue
-
-                self.param.__setattr__(key, value)
-                continue
-
-            try:
-                # we go for the regex split here
-                key, value = [s.strip() for s in re.split(r'[:=]+', line)]
-            except:
-                print('Could not parse line %s of your param file: %s'
-                      % (i, line))
-                raise UserWarning('Seems to me malformed')
-
-            if not overwrite and getattr(self.param, key).value is not None:
-                continue
-            self.param.__setattr__(key, value)
+        # Add the interface options
+        for k, val in int_opts.items():
+            if (k in self.internal_keys and not ignore_internal_keys):
+                if val in _tf_table:
+                    val = _tf_table[val]
+                self._opt[k] = val
 
         if _close:
             param_file.close()
@@ -2551,16 +2492,25 @@ class CastepInputFile(object):
         attrparse = '_parse_%s' % attr.lower()
 
         if hasattr(self, attrparse):
-            self._options[attr].value = getattr(self, attrparse)(value)
+            self._options[attr].value = self.__getattribute__(attrparse)(value)
         else:
             self._options[attr].value = value
+
+    def __getattr__(self, name):
+        if name[0] == '_' or self._perm == 0:
+            raise AttributeError()
+
+        if self._perm == 1:
+            warnings.warn('Option %s is not known, returning None' % (name))
+        
+        return CastepOption(keyword='none', level='Unknown',
+                            option_type='string', value=None)                
 
     def get_attr_dict(self):
         """Settings that go into .param file in a traditional dict"""
 
         return {k: o.value
                 for k, o in self._options.items() if o.value is not None}
-
 
 class CastepParam(CastepInputFile):
 
@@ -2577,21 +2527,26 @@ class CastepParam(CastepInputFile):
 
     # .param specific parsers
     def _parse_reuse(self, value):
-        if self._options['continuation'].value:
-            print('Cannot set reuse if continuation is set, and')
-            print('vice versa. Set the other to None, if you want')
-            print('this setting.')
-            return None
+        try:
+            if self._options['continuation'].value:
+                print('Cannot set reuse if continuation is set, and')
+                print('vice versa. Set the other to None, if you want')
+                print('this setting.')
+                return None
+        except KeyError:
+            pass
         return 'default' if (value is True) else str(value)
 
     def _parse_continuation(self, value):
-        if self._options['reuse'].value:
-            print('Cannot set reuse if continuation is set, and')
-            print('vice versa. Set the other to None, if you want')
-            print('this setting.')
-            return None
+        try:
+            if self._options['reuse'].value:
+                print('Cannot set reuse if continuation is set, and')
+                print('vice versa. Set the other to None, if you want')
+                print('this setting.')
+                return None
+        except KeyError:
+            pass
         return 'default' if (value is True) else str(value)
-
 
 class CastepCell(CastepInputFile):
 
