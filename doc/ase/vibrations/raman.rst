@@ -101,10 +101,5 @@ Example::
 
   from ase.vibrations.albrecht import Albrecht
 
-The resonant Raman base class
------------------------------
-
-.. autoclass:: ase.vibrations.resonant_raman.ResonantRaman
-   :members:
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
