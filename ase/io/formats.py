@@ -294,6 +294,8 @@ def open_with_compression(filename, mode='r'):
             mode = 'rt'
         elif mode == 'w':
             mode = 'wt'
+        elif mode == 'a':
+            mode = 'at'
     else:
         # The version of gzip in Anaconda Python 2 on Windows forcibly
         # adds a 'b', so strip any 't' and let the string conversions
@@ -336,7 +338,7 @@ def wrap_read_function(read, filename, index=None, **kwargs):
             yield atoms
 
 
-def write(filename, images, format=None, parallel=True, **kwargs):
+def write(filename, images, format=None, parallel=True, append=False, **kwargs):
     """Write Atoms object(s) to file.
 
     filename: str or file
@@ -350,6 +352,14 @@ def write(filename, images, format=None, parallel=True, **kwargs):
     parallel: bool
         Default is to write on master only.  Use parallel=False to write
         from all slaves.
+    append: bool
+        Default is to open files in 'w' or 'wb' mode, overwriting existing files.
+        In some cases opening the file in 'a' or 'ab' mode (appending) is usefull,
+        e.g. writing trajectories or saving multiple Atoms objects in one file.
+        WARNING: If the file format does not support multiple entries without
+        additional keywords/headers, files created using 'append=True'
+        might not be readable by any program! They will nevertheless be
+        written without error message.
 
     The use of additional keywords is format specific."""
 
@@ -369,11 +379,11 @@ def write(filename, images, format=None, parallel=True, **kwargs):
 
     io = get_ioformat(format)
 
-    _write(filename, fd, format, io, images, parallel=parallel, **kwargs)
+    _write(filename, fd, format, io, images, parallel=parallel, append=append, **kwargs)
 
 
 @parallel_function
-def _write(filename, fd, format, io, images, parallel=None, **kwargs):
+def _write(filename, fd, format, io, images, parallel=None, append=False, **kwargs):
     if isinstance(images, Atoms):
         images = [images]
 
@@ -398,6 +408,8 @@ def _write(filename, fd, format, io, images, parallel=None, **kwargs):
         open_new = (fd is None)
         if open_new:
             mode = 'wb' if io.isbinary else 'w'
+            if append:
+                mode = mode.replace('w','a')
             fd = open_with_compression(filename, mode)
         io.write(fd, images, **kwargs)
         if open_new:
@@ -406,7 +418,13 @@ def _write(filename, fd, format, io, images, parallel=None, **kwargs):
         if fd is not None:
             raise ValueError("Can't write {}-format to file-descriptor"
                              .format(format))
-        io.write(filename, images, **kwargs)
+        if 'append' in io.write.__code__.co_varnames:
+            io.write(filename, images, append=append, **kwargs)
+        elif append:
+            raise ValueError("Cannot append to {}-format, write-function "
+                             "does not support the append keyword.".format(format))
+        else:
+            io.write(filename, images, **kwargs)
 
 
 def read(filename, index=None, format=None, parallel=True, **kwargs):

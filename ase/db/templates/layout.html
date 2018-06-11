@@ -34,7 +34,7 @@
                             </li>
 
                             <li>
-                                <a href="{{ home }}{{ project }}/{{ project }}.html">About</a>
+                                <a href="{{ home }}{{ project }}/{{ project }}.html">More information</a>
                             </li>
                         {% endif %}
 
@@ -64,5 +64,8 @@
     {% block content %}
     {% endblock %}
 
+    {% if ase_db_footer %}
+    <div class="text-center">{{ ase_db_footer | safe }}</div>
+    {% endif %}
 </body>
 </html>

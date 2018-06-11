@@ -344,9 +344,11 @@ class Bravais:
                 self.nput += 1
 
     def find_directions(self, directions, miller):
-        "Find missing directions and miller indices from the specified ones."
-        directions = list(directions)
-        miller = list(miller)
+        """
+        Find missing directions and miller indices from the specified ones.
+        """
+        directions = np.asarray(directions).tolist()
+        miller = np.asarray(miller).tolist()
         # If no directions etc are specified, use a sensible default.
         if directions == [None, None, None] and miller == [None, None, None]:
             directions = [[1,0,0], [0,1,0], [0,0,1]]

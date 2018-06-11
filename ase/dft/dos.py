@@ -4,6 +4,7 @@ from math import pi, sqrt
 import numpy as np
 
 from ase.dft.kpoints import get_monkhorst_pack_size_and_offset
+from ase.parallel import world
 
 
 class DOS:
@@ -120,9 +121,13 @@ def ltidos(cell, eigs, energies, weights=None):
             M = np.linalg.inv(kpts[1:, :] - kpts[0, :])
         except np.linalg.linalg.LinAlgError:
             continue
+        n = -1
         for i in range(I):
             for j in range(J):
                 for k in range(K):
+                    n += 1
+                    if n % world.size != world.rank:
+                        continue
                     E = np.array([eigs[(i + a) % I, (j + b) % J, (k + c) % K]
                                   for a, b, c in indices[s]])
                     if weights is None:
@@ -132,6 +137,8 @@ def ltidos(cell, eigs, energies, weights=None):
                                               (k + c) % K]
                                       for a, b, c in indices[s]])
                         integrate(kpts, M, E, w)
+
+    world.sum(dos)
 
     return dos * abs(np.linalg.det(cell))
 

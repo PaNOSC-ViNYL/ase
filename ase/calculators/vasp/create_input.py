@@ -29,6 +29,8 @@ import numpy as np
 from ase.calculators.calculator import kpts2ndarray
 from ase.utils import basestring
 
+from ase.calculators.vasp.setups import setups_defaults
+
 # Parameters that can be set in INCAR. The values which are None
 # are not written and default parameters of VASP are used for them.
 
@@ -785,20 +787,6 @@ class GenerateVaspInput(object):
         'hse06': {'gga': 'PE', 'lhfcalc': True, 'hfscreen': 0.2},
         'hsesol': {'gga': 'PS', 'lhfcalc': True, 'hfscreen': 0.2}}
 
-    # elements which have no-suffix files only
-    setups_defaults = {'K':  '_pv',
-       'Ca': '_pv',
-       'Rb': '_pv',
-       'Sr': '_sv',
-       'Y':  '_sv',
-       'Zr': '_sv',
-       'Nb': '_pv',
-       'Cs': '_sv',
-       'Ba': '_sv',
-       'Fr': '_sv',
-       'Ra': '_sv',
-       'Sc': '_sv'}
-
     def __init__(self, restart=None):
         self.float_params = {}
         self.exp_params = {}
@@ -980,9 +968,35 @@ class GenerateVaspInput(object):
         symbols = []
         symbolcount = {}
 
-        # make sure we find POTCARs for elements which have no-suffix files only
-        setups = self.setups_defaults.copy()
-        # override with user defined setups
+        # Default setup lists are available: 'minimal', 'recommended' and 'GW'
+        # These may be provided as a string e.g.::
+        #
+        #     calc = Vasp(setups='recommended')
+        #
+        # or in a dict with other specifications e.g.::
+        #
+        #    calc = Vasp(setups={'base': 'minimal', 'Ca': '_sv', 2: 'O_s'})
+        #
+        # Where other keys are either atom identities or indices, and the
+        # corresponding values are suffixes or the full name of the setup
+        # folder, respectively.
+
+        # Default to minimal basis
+        if p['setups'] is None:
+            p['setups'] = {'base': 'minimal'}
+
+        # String shortcuts are initialised to dict form
+        elif isinstance(p['setups'], str):
+            if p['setups'].lower() in ('minimal', 'recommended', 'gw'):
+                p['setups'] = {'base': p['setups']}
+
+        # Dict form is then queried to add defaults from setups.py.
+        if 'base' in p['setups']:
+            setups = setups_defaults[p['setups']['base'].lower()]
+        else:
+            setups = {}
+
+        # Override defaults with user-defined setups
         if p['setups'] is not None:
             setups.update(p['setups'])
 
@@ -1372,35 +1386,35 @@ class GenerateVaspInput(object):
 
                 elif key in list_bool_keys:
                     self.list_bool_keys[key] = [_from_vasp_bool(x) for x in
-                                                _args_without_comment(data)]
+                                                _args_without_comment(data[2:])]
 
                 elif key in list_int_keys:
                     self.list_int_params[key] = [int(x) for x in
-                                                 _args_without_comment(data)]
+                                                 _args_without_comment(data[2:])]
 
                 elif key in list_float_keys:
                     if key == 'magmom':
-                        list = []
+                        lst = []
                         i = 2
                         while i < len(data):
                             if data[i] in ["#", "!"]:
                                 break
                             if data[i] == "*":
-                                b = list.pop()
+                                b = lst.pop()
                                 i += 1
                                 for j in range(int(b)):
-                                    list.append(float(data[i]))
+                                    lst.append(float(data[i]))
                             else:
-                                list.append(float(data[i]))
+                                lst.append(float(data[i]))
                             i += 1
-                        self.list_params['magmom'] = list
-                        list = np.array(list)
+                        self.list_float_params['magmom'] = lst
+                        lst = np.array(lst)
                         if self.atoms is not None:
                             self.atoms.set_initial_magnetic_moments(
-                                list[self.resort])
+                                lst[self.resort])
                     else:
                         data = _args_without_comment(data)
-                        self.list_float_params[key] = [float(x) for x in data]
+                        self.list_float_params[key] = [float(x) for x in data[2:]]
                 # elif key in list_keys:
                 #     list = []
                 #     if key in ('dipol', 'eint', 'ferwe', 'ferdo',

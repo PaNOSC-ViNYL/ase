@@ -105,7 +105,8 @@ def read_cube(fileobj, read_data=True, program=None, verbose=False):
     # castep2cube files have a specific comment in the second line ...
     if 'castep2cube' in line:
         program = 'castep'
-        print('read_cube identified program: castep')
+        if verbose:
+            print('read_cube identified program: castep')
 
     # Third line contains actual system information:
     line = readline().split()

@@ -215,7 +215,9 @@ def search_current_git_hash(arg, world=None):
     else:
         # Assume arg is module
         dpath = os.path.dirname(arg.__file__)
-    dpath = os.path.abspath(dpath)
+    #dpath = os.path.abspath(dpath)
+    # in case this is just symlinked into $PYTHONPATH
+    dpath = os.path.realpath(dpath)
     dpath = os.path.dirname(dpath)  # Go to the parent directory
     git_dpath = os.path.join(dpath, '.git')
     if not os.path.isdir(git_dpath):

@@ -66,7 +66,7 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
 
         for i in range(n):
             layer = zz_unit.repeat((1, 1, m))
-            layer.positions[:, 0] -= 3 * C_C / 2 * i
+            layer.positions[:, 0] += 3 * C_C / 2 * i
             if i % 2 == 1:
                 layer.positions[:, 2] += 2 * b
                 layer[-1].position[2] -= b * 4 * m

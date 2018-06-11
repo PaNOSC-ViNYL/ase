@@ -307,8 +307,8 @@ by invoking the get_potential_energy() method::
 
         self.lmp.command(cell_cmd)
 
-    def set_lammps_pos(self, atoms):
-        pos = atoms.get_positions() / unit_convert("distance", self.units)
+    def set_lammps_pos(self, atoms, wrap=True):
+        pos = atoms.get_positions(wrap=wrap) / unit_convert("distance", self.units)
 
         # If necessary, transform the positions to new coordinate system
         if self.coord_transform is not None:
@@ -460,12 +460,17 @@ by invoking the get_potential_energy() method::
         self.results['stress'] = (stress *
                                   (-unit_convert("pressure", self.units)))
 
-        f = np.zeros((len(atoms), 3))
-        force_vars = ['fx', 'fy', 'fz']
-        for i, var in enumerate(force_vars):
-            f[:, i] = (
-                np.asarray(
-                    self.lmp.extract_variable(var, 'all', 1)[:len(atoms)]) *
+        # this does not necessarily yield the forces ordered by atom-id!
+        # f = np.zeros((len(atoms), 3))
+        # force_vars = ['fx', 'fy', 'fz']
+        # for i, var in enumerate(force_vars):
+        #     f[:, i] = (
+        #         np.asarray(
+        #             self.lmp.extract_variable(var, 'all', 1)[:len(atoms)]) *
+        #         unit_convert("force", self.units))
+
+        # definitely yields atom-id ordered array
+        f = (np.array(self.lmp.gather_atoms("f", 1, 3)).reshape(-1,3) *
                 unit_convert("force", self.units))
 
         if self.coord_transform is not None:
@@ -613,6 +618,8 @@ by invoking the get_potential_energy() method::
             self.lmp.command('echo none')  # don't echo the atom positions
             self.rebuild(atoms)
             self.lmp.command('echo log')  # turn back on
+        else:
+            self.previous_atoms_numbers = atoms.numbers.copy()
 
         # execute the user commands
         for cmd in self.parameters.lmpcmds:

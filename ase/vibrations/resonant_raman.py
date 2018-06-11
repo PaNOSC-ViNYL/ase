@@ -170,6 +170,10 @@ class ResonantRaman(Vibrations):
             fd.close()
         if self.overlap:
             self.timer.start('Overlap')
+            """Overlap is determined as
+
+            ov_ij = \int dr displaced*_i(r) eqilibrium_j(r)
+            """
             ov_nn = self.overlap(self.atoms.get_calculator(),
                                  self.eq_calculator)
             if rank == 0:
@@ -287,7 +291,12 @@ class ResonantRaman(Vibrations):
         self.timer.stop('me and energy')
 
     def read_excitations_overlap(self):
-        """Read all finite difference excitations and wf overlaps."""
+        """Read all finite difference excitations and wf overlaps.
+
+        We assume that the wave function overlaps are determined as
+
+        ov_ij = \int dr displaced*_i(r) eqilibrium_j(r)
+        """
         self.timer.start('read excitations')
         self.timer.start('read+rotate')
         self.log('reading ' + self.exname + '.eq' + self.exext)
@@ -582,10 +591,7 @@ class ResonantRaman(Vibrations):
                        direction='central'):
         """Write out spectrum to file.
 
-        First column is the wavenumber in cm^-1, the second column the
-        absolute infrared intensities, and
-        the third column the absorbance scaled so that data runs
-        from 1 to 0. Start and end
+        Start and end
         point, and width of the Gaussian/Lorentzian should be given
         in cm^-1."""
         energies, spectrum = self.get_spectrum(omega, gamma,
@@ -618,7 +624,15 @@ class ResonantRaman(Vibrations):
         """Print summary for given omega [eV]"""
         hnu = self.get_energies(method, direction)
         intensities = self.absolute_intensity(omega, gamma)
-
+        te = int(np.log10(intensities.max())) - 2
+        scale = 10**(-te)
+        if not te:
+            ts = ''
+        elif te > -2 and te < 3:
+            ts = str(10**te)
+        else:
+            ts = '10^{0}'.format(te)
+	
         if isinstance(log, basestring):
             log = paropen(log, 'a')
 
@@ -628,7 +642,7 @@ class ResonantRaman(Vibrations):
         parprint(' method:', self.method, file=log)
         parprint(' approximation:', self.approximation, file=log)
         parprint(' Mode    Frequency        Intensity', file=log)
-        parprint('  #    meV     cm^-1      [A^4/amu]', file=log)
+        parprint('  #    meV     cm^-1      [{0}A^4/amu]'.format(ts), file=log)
         parprint('-------------------------------------', file=log)
         for n, e in enumerate(hnu):
             if e.imag != 0:
@@ -637,8 +651,8 @@ class ResonantRaman(Vibrations):
             else:
                 c = ' '
                 e = e.real
-            parprint('%3d %6.1f%s  %7.1f%s  %9.1f' %
-                     (n, 1000 * e, c, e / u.invcm, c, intensities[n]),
+            parprint('%3d %6.1f%s  %7.1f%s  %9.2f' %
+                     (n, 1000 * e, c, e / u.invcm, c, intensities[n] * scale),
                      file=log)
         parprint('-------------------------------------', file=log)
         parprint('Zero-point energy: %.3f eV' % self.get_zero_point_energy(),

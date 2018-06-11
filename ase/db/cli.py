@@ -111,6 +111,7 @@ def main(args):
     query = ','.join(args.query)
 
     if args.sort.endswith('-'):
+        # Allow using "key-" instead of "-key" for reverse sorting
         args.sort = '-' + args.sort[:-1]
 
     if query.isdigit():
@@ -196,11 +197,18 @@ def main(args):
 
     if add_key_value_pairs or delete_keys:
         ids = [row['id'] for row in db.select(query)]
-        m, n = db.update(ids, delete_keys, **add_key_value_pairs)
+        M = 0
+        N = 0
+        with db:
+            for id in ids:
+                m, n = db.update(id, delete_keys=delete_keys,
+                                 **add_key_value_pairs)
+                M += m
+                N += n
         out('Added %s (%s updated)' %
-            (plural(m, 'key-value pair'),
-             plural(len(add_key_value_pairs) * len(ids) - m, 'pair')))
-        out('Removed', plural(n, 'key-value pair'))
+            (plural(M, 'key-value pair'),
+             plural(len(add_key_value_pairs) * len(ids) - M, 'pair')))
+        out('Removed', plural(N, 'key-value pair'))
 
         return
 

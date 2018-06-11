@@ -47,8 +47,7 @@ def get_neighbours(atoms, r_cut, self_interaction=False):
         j_list = []
         d_list = []
 
-        for i, atom in enumerate(atoms):
-            posn_i = atom.position
+        for i, posn_i in enumerate(atoms.positions):
             indices, offsets = nl.get_neighbors(i)
             assert len(indices) == len(offsets)
             for j, offset in zip(indices, offsets):
@@ -110,7 +109,7 @@ def estimate_nearest_neighbour_distance(atoms):
     #print('estimate_nearest_neighbour_distance(): extent=%r' % extent)
 
     while r_cut < 2.0 * max(extent):
-        #print('estimate_nearest_neighbour_distance(): ' 
+        #print('estimate_nearest_neighbour_distance(): '
         #            'calling neighbour_list with r_cut=%.2f A' % r_cut)
         i, j, rij, fixed_atoms = get_neighbours(
             atoms, r_cut, self_interaction=True)

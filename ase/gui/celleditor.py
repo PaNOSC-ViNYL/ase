@@ -21,7 +21,7 @@ class CellEditor:
         self.cell_grid = []
         self.pbc = []
         self.angles = []
-        
+
         atoms = self.gui.atoms
 
         cell = atoms.cell
@@ -32,9 +32,9 @@ class CellEditor:
         for i in [0, 1, 2]: # x_ y_ z_
             row = []
             for j in [0, 1, 2]: # _x _y _z
-                row.append(ui.SpinBox(cell[i][j], -30, 30, 0.1, 
+                row.append(ui.SpinBox(cell[i][j], -30, 30, 0.1,
                            self.apply_vectors, rounding=7, width=9))
-            row.append(ui.SpinBox(mags[i], -30, 30, 0.1, self.apply_magnitudes, 
+            row.append(ui.SpinBox(mags[i], -30, 30, 0.1, self.apply_magnitudes,
                                   rounding=7, width=9))
             self.cell_grid.append(row)
             self.pbc.append(ui.CheckButton('', bool(pbc[i]), self.apply_pbc))
@@ -49,23 +49,24 @@ class CellEditor:
 
         x, y, z = self.cell_grid
 
-        win.add([_('A: '), x[0], x[1], x[2], _('||A||: '), x[3],
-                 _('perodic: '), self.pbc[0]])
-        win.add([_('B: '), y[0], y[1], y[2], _('||B||: '), y[3],
-                 _('perodic: '), self.pbc[1]])
-        win.add([_('C: '), z[0], z[1], z[2], _('||C||: '), z[3],
-                 _('perodic: '), self.pbc[2]])
-        win.add([_('∠BC: '), self.angles[0], _('∠AC: '), self.angles[1],
-                 _('∠AB: '), self.angles[2]])
-        win.add([_("Scale atoms with cell: "), self.scale_atoms])
+        win.add([_('A:'), x[0], x[1], x[2], _('||A||:'), x[3],
+                 _('periodic:'), self.pbc[0]])
+        win.add([_('B:'), y[0], y[1], y[2], _('||B||:'), y[3],
+                 _('periodic:'), self.pbc[1]])
+        win.add([_('C:'), z[0], z[1], z[2], _('||C||:'), z[3],
+                 _('periodic:'), self.pbc[2]])
+        win.add([_('∠BC:'), self.angles[0], _('∠AC:'), self.angles[1],
+                 _('∠AB:'), self.angles[2]])
+        win.add([_('Scale atoms with cell:'), self.scale_atoms])
         win.add([ui.Button(_('Apply Vectors'), self.apply_vectors),
                  ui.Button(_('Apply Magnitudes'), self.apply_magnitudes),
                  ui.Button(_('Apply Angles'), self.apply_angles)])
-        win.add([_('Pressing <Enter> as you enter values will ' + 
+        win.add([_('Pressing 〈Enter〉 as you enter values will '
                     'automatically apply correctly')])
+        # TRANSLATORS: verb
         win.add([ui.Button(_('Center'), self.apply_center),
                  ui.Button(_('Wrap'), self.apply_wrap),
-                 _('Vacuum: '), self.vacuum,
+                 _('Vacuum:'), self.vacuum,
                  ui.Button(_('Apply Vacuum'), self.apply_vacuum)])
 
         #win.add([_('\tx: '), self.x, _(' unit cells'), self.x_warn])
@@ -85,7 +86,7 @@ class CellEditor:
 
     def apply_vacuum(self, *args):
         atoms = self.gui.atoms.copy()
-        
+
         axis = []
         for index, pbc in enumerate(atoms.pbc):
             if not pbc:
@@ -115,7 +116,7 @@ class CellEditor:
         old_mags = atoms.get_cell_lengths_and_angles()[0:3]
         new_mags = np.array([x[3].value, y[3].value, z[3].value])
 
-        atoms.set_cell(old_cell / old_mags * new_mags, 
+        atoms.set_cell(old_cell / old_mags * new_mags,
                        scale_atoms=self.scale_atoms.var.get())
 
         self.gui.new_atoms(atoms)
@@ -125,7 +126,7 @@ class CellEditor:
         atoms = self.gui.atoms.copy()
 
         cell_data = atoms.get_cell_lengths_and_angles()
-        cell_data[3:7] = [self.angles[0].value, self.angles[1].value, 
+        cell_data[3:7] = [self.angles[0].value, self.angles[1].value,
                           self.angles[2].value]
 
         atoms.set_cell(cell_data, scale_atoms=self.scale_atoms.var.get())
@@ -165,4 +166,3 @@ class CellEditor:
             self.angles[i].value = angles[i]
 
             self.pbc[i].var.set(bool(pbc[i]))
-

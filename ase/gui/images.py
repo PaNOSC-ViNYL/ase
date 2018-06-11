@@ -52,6 +52,9 @@ class Images:
                                  if not isinstance(c, FixAtoms)]
             atoms.constraints.append(FixAtoms(mask=~dynamic))
 
+    def scale_radii(self, scaling_factor):
+        self.covalent_radii *= scaling_factor
+
     def get_energy(self, atoms):
         try:
             e = atoms.get_potential_energy() * self.repeat.prod()

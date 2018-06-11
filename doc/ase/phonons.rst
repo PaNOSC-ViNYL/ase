@@ -102,6 +102,3 @@ List of all Methods
 
 .. autoclass:: Phonons
    :members:
-
-
-

@@ -450,8 +450,9 @@ class SingleCalculatorNEB(NEB):
                     self.images[i].set_calculator(
                         SinglePointCalculator(
                             image,
-                            energy=image.get_potential_energy(),
-                            forces=image.get_forces()))
+                            energy=image.get_potential_energy(
+                                apply_constraint=False),
+                            forces=image.get_forces(apply_constraint=False)))
                 self.emax = min(self.emax, image.get_potential_energy())
 
         if self.first:

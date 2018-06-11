@@ -1,4 +1,3 @@
-from ase import io
 from ase.vibrations.resonant_raman import ResonantRaman
 
 from gpaw.cluster import Cluster

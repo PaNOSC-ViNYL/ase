@@ -20,10 +20,10 @@ Writing:
 
 >>> import numpy as np
 >>> import ase.io.ulm as ulm
->>> w = ulm.open('x.ulm', 'w')
->>> w.write(a=np.ones(7), b=42, c='abc')
->>> w.write(d=3.14)
->>> w.close()
+>>> with ulm.open('x.ulm', 'w') as w:
+...     w.write(a=np.ones(7), b=42, c='abc')
+...     w.write(d=3.14)
+
 
 Reading:
 
@@ -192,6 +192,12 @@ class Writer:
         self.nmissing = 0  # number of missing numbers
         self.shape = None
         self.dtype = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def add_array(self, name, shape, dtype=float):
         """Add ndarray object.
@@ -390,6 +396,12 @@ class Reader:
             self._little_endian = little_endian
 
         self._parse_data(data)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def _parse_data(self, data):
         self._data = {}

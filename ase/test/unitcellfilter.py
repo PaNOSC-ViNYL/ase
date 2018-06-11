@@ -22,9 +22,9 @@ else:
     opt.run(5.0)
 
     # HCP:
-    from ase.build import hcp0001
-    cu = hcp0001('Cu', (1, 1, 2), a=a / sqrt(2))
-    cu.cell[1, 0] += 0.05
+    from ase.build import bulk
+    cu = bulk('Cu', 'hcp', a=a / sqrt(2))
+    cu.cell[1,0] -= 0.05
     cu *= (6, 6, 3)
     cu.set_calculator(EMT())
     print(cu.get_forces())

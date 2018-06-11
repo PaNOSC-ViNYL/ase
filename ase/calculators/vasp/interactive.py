@@ -9,6 +9,7 @@ from .create_input import GenerateVaspInput
 
 import time
 import os
+import sys
 
 
 class VaspInteractive(GenerateVaspInput, Calculator):
@@ -72,6 +73,8 @@ class VaspInteractive(GenerateVaspInput, Calculator):
         if self.print_log:
             print(text, end=ending)
         self.process.stdin.write(text + ending)
+        if sys.version_info[0] >= 3:
+            self.process.stdin.flush()
 
     def _stdout(self, text):
         if self.txt is not None:
@@ -88,8 +91,13 @@ class VaspInteractive(GenerateVaspInput, Calculator):
             self.initialize(atoms)
             self.write_input(atoms, directory=self.path)
             self._stdout("Starting VASP for initial step...\n")
-            self.process = Popen(self.command, stdout=PIPE,
-                                 stdin=PIPE, stderr=PIPE, cwd=self.path)
+            if sys.version_info[0] >= 3:
+                self.process = Popen(self.command, stdout=PIPE,
+                                     stdin=PIPE, stderr=PIPE, cwd=self.path,
+                                     universal_newlines=True)
+            else:
+                self.process = Popen(self.command, stdout=PIPE,
+                                     stdin=PIPE, stderr=PIPE, cwd=self.path)
         else:
             self._stdout("Inputting positions...\n")
             for atom in atoms.get_scaled_positions():

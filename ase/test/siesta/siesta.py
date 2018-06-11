@@ -61,9 +61,9 @@ siesta.write_input(atoms, properties=['energy'])
 atoms = h.copy()
 atoms.set_calculator(siesta)
 siesta.write_input(atoms, properties=['energy'])
-with open('test_label.fdf', 'r') as f:
-    lines = f.readlines()
-assert 'DM.Tolerance  0.001\n' == lines[0]
+with open('test_label.fdf', 'r') as fd:
+    lines = fd.readlines()
+assert any([line.split() == ['DM.Tolerance', '0.001'] for line in lines])
 
 # Test (slightly) more complex case of setting fdf-arguments.
 siesta = Siesta(
