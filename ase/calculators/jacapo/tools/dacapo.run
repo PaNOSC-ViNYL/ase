@@ -3,7 +3,7 @@
 '''
 This script runs dacapo in either serial or parallel
 depending on the existence of an environment variable
-from a queue system. Three queue systems are currently 
+from a queue system. Three queue systems are currently
 supported:
 PBS               PBS_NODEFILE
 Sun grid engine   PE_HOSTFILE
@@ -43,7 +43,7 @@ John Kitchin <jkitchin@andrew.cmu.edu>
 '''
 
 import os,string,sys
-from subprocess import *    
+from subprocess import Popen, PIPE
 
 ARGS = string.join(sys.argv[1:],' ')
 
@@ -55,7 +55,7 @@ def RunSerialDacapo(ARGS):
     status = os.system(cmd)
     if status != 0:
         sys.exit('"%s" failed' % cmd)
-        
+
 ### check if LoadLeveler
 '''
 the loadleveler I am familiar with does not use a nodefile
@@ -74,7 +74,7 @@ if 'LOADL_STEP_TYPE' in os.environ.keys():
         status = os.system(parcmd)
         if status != 0:
             sys.exit('"%s" failed' % parcmd)
-            
+
     elif LL_type == 'SERIAL':
         RunSerialDacapo(ARGS)
 
@@ -116,7 +116,7 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
         n11.bc.rzg.mpg.de
         '''
 
-        MACHINEFILE = os.environ.get('PE_HOSTFILE')    
+        MACHINEFILE = os.environ.get('PE_HOSTFILE')
         JOBID = os.environ.get('JOB_ID')
         NPROCS = 0
 
@@ -185,8 +185,8 @@ elif ('PBS_NODEFILE' in os.environ.keys() or
         print()
     else:
         RunSerialDacapo(ARGS)
-   
-      
+
+
 else:
     # serial job, no parallel environment found.
     RunSerialDacapo(ARGS)
@@ -197,4 +197,4 @@ try:
         os.remove(nodefile)
 except:
     pass
-        
+
