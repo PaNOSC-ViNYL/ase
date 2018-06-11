@@ -20,6 +20,92 @@ from ase.utils import basestring
 from ase.io.espresso import label_to_symbol
 
 
+def read_atom_line(line_full):
+    """
+    From  biopython package
+
+    https://github.com/biopython/biopython/blob/master/Bio/PDB/PDBParser.py
+                
+    HETATM    1  H14 ORTE    0       6.301   0.693   1.919  1.00  0.00           H
+    """
+
+    line = line_full.rstrip('\n')
+    record_type = line[0:6]
+    if record_type == "ATOM  " or record_type == "HETATM":
+
+        fullname = line[12:16]
+        
+        # get rid of whitespace in atom names
+        split_list = fullname.split()
+        if len(split_list) != 1:
+            # atom name has internal spaces, e.g. " N B ", so
+            # we do not strip spaces
+            name = fullname
+        else:
+            # atom name is like " CA ", so we can strip spaces
+            name = split_list[0]
+
+        altloc = line[16]
+        resname = line[17:20]
+        chainid = line[21]            
+        
+        try:
+            serial_number = int(line[6:11])
+        except Exception:
+            serial_number = 0
+        
+        resseq = int(line[22:26].split()[0])  # sequence identifier
+        icode = line[26]  # insertion code
+
+        if record_type == "HETATM":  # hetero atom flag
+            if resname == "HOH" or resname == "WAT":
+                hetero_flag = "W"
+            else:
+                hetero_flag = "H"
+        else:
+            hetero_flag = " "
+        
+        residue_id = (hetero_flag, resseq, icode)
+        
+        # atomic coordinates
+        try:
+            x = float(line[30:38])
+            y = float(line[38:46])
+            z = float(line[46:54])
+        except Exception:
+            # Should we allow parsing to continue in permissive mode?
+            # If so, what coordinates should we default to?  Easier to abort!
+            raise ValueError("Invalid or missing coordinate(s)")
+        coord = np.array((x, y, z), dtype=np.float64)
+        
+        # occupancy & B factor
+        try:
+            occupancy = float(line[54:60])
+        except:
+            occupancy = None  # Rather than arbitrary zero or one
+            pass
+        
+        if occupancy is not None and occupancy < 0:
+            # TODO - Should this be an error in strict mode?
+            # self._handle_PDB_exception("Negative occupancy",
+            #                            global_line_counter)
+            # This uses fixed text so the warning occurs once only:
+            warnings.warn("Negative occupancy in one or more atoms")
+
+        try:
+            bfactor = float(line[60:66])
+        except Exception:
+            bfactor = 0.0  # The PDB use a default of zero if the data is missing
+        
+        segid = line[72:76]
+        symbol = line[76:78].strip().upper()
+
+    else:
+        raise ValueError("Only ATOM and HETATM supported")
+        
+
+    return symbol, name, altloc, resname, coord, occupancy, bfactor, resseq
+
 def read_proteindatabank(fileobj, index=-1, read_arrays=True):
     """Read PDB files."""
 
@@ -53,52 +139,31 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
                 trans[c] = float(line[45:55])
 
         if line.startswith('ATOM') or line.startswith('HETATM'):
+            # Atom name is arbitrary and does not necessarily
+            # contain the element symbol.  The specification
+            # requires the element symbol to be in columns 77+78.
+            # Fall back to Atom name for files that do not follow
+            # the spec, e.g. packmol.
+            
+            # line_info = symbol, name, altloc, resname, coord, occupancy,
+            #             bfactor, resseq
+            line_info = read_atom_line(line)
+
             try:
-                # Atom name is arbitrary and does not necessarily
-                # contain the element symbol.  The specification
-                # requires the element symbol to be in columns 77+78.
-                # Fall back to Atom name for files that do not follow
-                # the spec, e.g. packmol.
+                symbol = label_to_symbol(line_info[0])
+            except (KeyError, IndexError):
+                symbol = label_to_symbol(line_info[1])
 
-                split = line.split()
-                # HETATM    1  H14 ORTE    0       6.301   0.693   1.919  1.00  0.00           H
-                try:
-                    symbol = label_to_symbol(split[len(split)-1])
-                except (KeyError, IndexError):
-                    symbol = label_to_symbol(split[len(split)-1])
+            position = np.dot(orig, line_info[4]) + trans
+            atomtypes.append(line_info[1])
+            residuenames.append(line_info[3])
+            if line_info[5] is not None:
+                occ.append(line_info[5])
+            bfactor.append(line_info[6])
+            residuenumber.append(line_info[7])
 
-                position = np.array([float(split[5]), float(split[6]), float(split[7])])
-                # Don't use split() in case there are no spaces
-                # No space between number ???
-                #position = np.array([float(line[30:38]),  # x
-                #                     float(line[38:46]),  # y
-                #                     float(line[46:54])])  # z
-                try:
-                    atomtypes.append(split[2])
-                    residuenames.append(split[3])
-                    list_int = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+            atoms.append(Atom(symbol, position))
 
-                    isinsteger = False
-                    for inte in list_int:
-                        if inte in split[4]:
-                            isinsteger = True
-                            break
-
-                    if isinsteger:
-                        residuenumber.append(int(split[4]))
-
-                except:
-                    pass
-                try:
-                    occ.append(float(split[8]))
-                    bfactor.append(float(split[9]))
-                except (IndexError, ValueError):
-                    pass
-                position = np.dot(orig, position) + trans
-                atoms.append(Atom(symbol, position))
-            except Exception as ex:
-                warnings.warn('Discarding atom when reading PDB file: {}\n{}'
-                              .format(line.strip(), ex))
         if line.startswith('END'):
             # End of configuration reached
             # According to the latest PDB file format (v3.30),
@@ -110,13 +175,10 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             if read_arrays and len(bfactor) == len(atoms):
                 atoms.set_array('bfactor', np.array(bfactor))
             if not atoms.has('residuenames') and len(residuenames) == len(atoms):
-                atoms.new_array('residuenames', residuenames, str)
                 atoms.set_array('residuenames', residuenames, str)
             if not atoms.has('atomtypes') and len(atomtypes) == len(atoms):
-                atoms.new_array('atomtypes', atomtypes, str)
                 atoms.set_array('atomtypes', atomtypes, str)
             if not atoms.has('residuenumber') and len(residuenumber) == len(atoms):
-                atoms.new_array('residuenumber', residuenumber, int)
                 atoms.set_array('residuenumber', residuenumber, int)
  
             images.append(atoms)
@@ -133,15 +195,11 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
         if read_arrays and len(bfactor) == len(atoms):
             atoms.set_array('bfactor', np.array(bfactor))
         if not atoms.has('residuenames') and len(residuenames) == len(atoms):
-            atoms.new_array('residuenames', residuenames, str)
             atoms.set_array('residuenames', residuenames, str)
         if not atoms.has('atomtypes') and len(atomtypes) == len(atoms):
-            atoms.new_array('atomtypes', atomtypes, str)
             atoms.set_array('atomtypes', atomtypes, str)
         if not atoms.has('residuenumber') and len(residuenumber) == len(atoms):
-            atoms.new_array('residuenumber', residuenumber, int)
             atoms.set_array('residuenumber', residuenumber, int)
-
 
         images.append(atoms)
     return images[index]

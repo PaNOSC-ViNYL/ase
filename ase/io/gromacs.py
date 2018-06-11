@@ -141,10 +141,8 @@ def write_gromacs(fileobj, images):
         gromacs_atomtypes = images[-1].get_chemical_symbols()
     try:
         residuenumber = images[-1].get_array('residuenumber')
-    except:
-        residuenumber = []
-        for idum in range(natoms):
-            residuenumber.append(1)
+    except (KeyError):
+        residuenumber = np.ones(natoms, int) 
 
     pos = images[-1].get_positions()
     pos = pos / 10.0
@@ -168,12 +166,8 @@ def write_gromacs(fileobj, images):
                                                                                                  xyz[0], xyz[1], xyz[2], \
                                                                                                  vxyz[0], vxyz[1], vxyz[2])
         fileobj.write(line)
-        #fileobj.write(\
-        #    '   %5s  %5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f\n' % \
-        #        (resname, atomtype, count, \
-        #        xyz[0], xyz[1], xyz[2], \
-        #        vxyz[0], vxyz[1], vxyz[2]))
-        count = count + 1
+        count += 1
+
     if images[-1].get_pbc().any():
         mycell = images[-1].get_cell()
         #gromacs manual (manual.gromacs.org/online/gro.html) says:
