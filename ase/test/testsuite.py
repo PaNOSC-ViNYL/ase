@@ -118,6 +118,7 @@ class Result:
     """Represents the result of a test; for communicating between processes."""
     attributes = ['name', 'pid', 'exception', 'traceback', 'time', 'status',
                   'whyskipped']
+
     def __init__(self, **kwargs):
         d = {key: None for key in self.attributes}
         d['pid'] = os.getpid()
