@@ -26,7 +26,7 @@ import numpy as np
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, invop, parse_selection
-from ase.io.jsonio import encode, numpyfy, mydecode, object_hook, read_json
+from ase.io.jsonio import encode, numpyfy, mydecode
 from ase.parallel import parallel_function
 from ase.utils import basestring
 
@@ -405,7 +405,7 @@ class SQLite3Database(Database, object):
         if self.version < 6:
             m = values[23]
             if m is not None and not isinstance(m, float):
-                magmom = float(deblob(m, shape=()))
+                magmom = float(_deblob(m, shape=()))
                 values = values[:23] + (magmom,) + values[24:]
         return values
 
@@ -483,7 +483,8 @@ class SQLite3Database(Database, object):
                 jsonop = '->'
                 if isinstance(value, basestring):
                     jsonop = '->>'
-                where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
+                where.append("systems.key_value_pairs {} '{}'{}?"
+                             .format(jsonop, key, op))
                 args.append(str(value))
 
             elif isinstance(value, basestring):
@@ -540,7 +541,8 @@ class SQLite3Database(Database, object):
         if columns == 'all':
             columnindex = list(range(26))
         else:
-            columnindex = [c for c in range(0, 26) if self.columnnames[c] in columns]
+            columnindex = [c for c in range(0, 26)
+                           if self.columnnames[c] in columns]
         if include_data:
             columnindex.append(26)
 
@@ -572,7 +574,8 @@ class SQLite3Database(Database, object):
             sort_table = None
 
         what = ', '.join('systems.' + name
-                         for name in np.array(self.columnnames)[np.array(columnindex)])
+                         for name in
+                         np.array(self.columnnames)[np.array(columnindex)])
 
         sql, args = self.create_select_statement(keys, cmps, sort, order,
                                                  sort_table, what)
