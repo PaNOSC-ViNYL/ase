@@ -679,12 +679,12 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
         # Now, process the whole 'species' thing
         spec_custom = tokens[0].split(':', 1)
         elem = spec_custom[0]
-        aargs['symbols'].append(elem)
         if len(spec_custom) > 1 and custom_species is None:
             # Add it to the custom info!
-            custom_species = list(spec)
+            custom_species = list(aargs['symbols'])
         if custom_species is not None:
             custom_species.append(tokens[0])
+        aargs['symbols'].append(elem)
         aargs[pos_type].append([float(p) * u for p in tokens[1:4]])
         # Now for the additional information
         info = ' '.join(tokens[4:])
