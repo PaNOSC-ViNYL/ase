@@ -168,8 +168,8 @@ def parallel_function(func):
         if world.rank == 0:
             try:
                 result = func(*args, **kwargs)
-            except Exception as ex:
-                pass
+            except Exception as x:
+                ex = x
         ex, result = broadcast((ex, result))
         if ex is not None:
             raise ex

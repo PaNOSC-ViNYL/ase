@@ -220,7 +220,7 @@ def runtests_parallel(nprocs, tests):
                 raise RuntimeError('ABORT: Internal error in test suite')
     except KeyboardInterrupt:
         raise
-    except BaseException as err:
+    except BaseException:
         for proc in procs:
             proc.terminate()
         raise
