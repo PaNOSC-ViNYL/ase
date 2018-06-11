@@ -43,7 +43,7 @@ class Translation_Operator:
 
     def get_dimensions(self):
         return self.dimensions
-    
+
     def set_basis(self,basis):
         self.basis = basis
 
@@ -90,7 +90,7 @@ def coordinate_array_from_unit_vectors(shape, gridunitvectors,
         according to the specified shape.
 
         'origin' -- specifies the origin of the returned coordinate array.
-        
+
         'indexfunction' -- is a lambda expression that defines the indices
         with which each of the specified gridunitvectors are to be multiplied.
         'indexfunction' must take two arguments, 'i' and 'length' - default
@@ -107,10 +107,10 @@ def coordinate_array_from_unit_vectors(shape, gridunitvectors,
         Note that the output array will be of shape
         (< *dimension* > ,  < *spatialcoordinates* >).
         """
-        
+
         if indexfunction is None:
             indexfunction = lambda i, length: i
-        
+
         coordinatelist=[]
         gridunitvectors=np.asarray(gridunitvectors)
         # Looping over the dimensionality of the vectors
@@ -169,7 +169,7 @@ class Wannier:
    def get_grid_dimensions(self):
       fftgrids = self.calc.get_fftgrid()
       return fftgrids['soft']
-      
+
    def get_list_of_wave_functions(self):
       if self.get_spin() == None or self.get_bands() == None:
           raise RuntimeError('Bands and spin must be set before wave ' +
@@ -191,7 +191,7 @@ class Wannier:
    def set_bands(self,numberofbands):
       self.numberofbands = numberofbands
       self.has_changed = True
-      
+
    def get_bands(self):
       return self.numberofbands
 
@@ -204,12 +204,12 @@ class Wannier:
       if self.get_bands() == None or self.get_spin() == None:
           raise RuntimeError('Bands and spin must be set before wannier '
                              'localization matrix can be calculated')
-        
+
       phi=np.swapaxes(np.array(self.get_list_of_wave_functions()[kpoint]),0,1)
       # K1 and reciprocal lattice vector G_I  given kpoint K
       # that fulfills the criteria : K1-K-K0+G1=0
       list1,list2 = self.get_gg_list(kpoint,nextkpoint,G_I)
-                                
+
       a=np.take(phi,list1,axis=0)
       a=np.swapaxes(a,0,1)
       phi1 = np.swapaxes(np.array(self.get_list_of_wave_functions()[nextkpoint]),0,1)
@@ -228,7 +228,7 @@ class Wannier:
 
        GI is one of
        [[1,0,0],[0,1,0],[0,0,1],[1,1,0],[1,0,1],[0,1,1]]
-                         
+
        The layout of fourier components is
        1   2   3   4   5   6   7   8   ngx = 8
        0   1   2   3   4  -3  -2  -1    n*2pi/L
@@ -238,15 +238,15 @@ class Wannier:
        reciprocalindex = self.get_fft_index()[kpt1]
 
        ngrids = self.get_grid_dimensions()
-                        
+
        # setup the mapping from the 3D FFT grid to the wavefuction list
        map2 = self.get_index_map(kpt2)
-                
-       gglist = []
+
+       # gglist = []
        # print "Generating plane wave index list for direction ",GI," kpt12 ",kpt1,kpt2
        list1 = []
        list2 = []
-           
+
        # find G,G+GI
        for n in range(numberplanewaves):
            index = reciprocalindex[:,n]
@@ -257,22 +257,22 @@ class Wannier:
                if index[dir]>=ngrids[dir]:
                    # wrap around
                    index[dir] = 0
-                                
+
            # now find the corresponding index into phi(kpt2)
            n1 = map2[index[0],index[1],index[2]]
 
            if n1>=0:
               list1.append(n)
               list2.append(n1)
-                        
+
        # print '  Number of elements in GG list ',len(list1)
        return list1,list2
 
-                
+
 
    def get_index_map(self,kpt):
        """ generate mapping from 3D FFT grid to the wavefunction list
-                
+
        A negative number is returned from map(g1,g2,g3) is the
        grid point does not exists in the wavefunction list
        """
@@ -282,7 +282,7 @@ class Wannier:
 
        numberplanewaves = len(self.get_list_of_wave_functions()[kpt][0])
        reciprocalindex = self.get_fft_index()[kpt]
-                        
+
        for n in range(numberplanewaves):
            i0 = reciprocalindex[0][n]-1
            i1 = reciprocalindex[1][n]-1
@@ -296,7 +296,7 @@ class Wannier:
               a                            I        I              I
              W    = sum(n,m,I) <psi  | beta  > <beta  | psi   > * q
                i,j                  ik      m        n      jk1     mn
- 
+
              n,m : projectors
              I   : atom no
              a (nbands,nbands) matrix is returned.
@@ -406,7 +406,7 @@ class Wannier:
 
         griddim = self.get_repeated_grid_dimensions()
         basis = self.calc.get_atoms().get_cell()
-         
+
         # Set origin to center of grid
         originindex = self.get_origin_index()
         # origincoord is in scaled coordinates:
@@ -419,7 +419,7 @@ class Wannier:
         return c
 
    def get_normalized_coordinates(self):
- 
+
         if not hasattr(self,'normalized_coordinates'):
             originindex = tuple(self.get_origin_index())
             c = self.get_cartesian_coordinates()
@@ -559,7 +559,7 @@ class Wannier:
 
    def get_list_of_coefficients_and_rotation_matrices(self,matrixdimensions):
        from ase.dft.wannier import normalize,gram_schmidt
-       import random, copy
+       import random
        M,N,L=matrixdimensions
        nkpt=len(N)
        Ulist=[]
@@ -597,7 +597,7 @@ class Wannier:
                test = self.get_orthonormality_factor(c)
                if test>1.0e-3:
                    print("ERROR: Columns of c not orthogonal!")
-                   
+
            U[:N[kpt],:numberoforbitals]=coeffmatrix[kpt][:N[kpt]]
            U[N[kpt]:,:numberoforbitals]=np.dot(dagger(c),coeffmatrix[kpt][N[kpt]:])
            # Perform democratic Lowdin orthogonalization on U[:,numberoforbitals]

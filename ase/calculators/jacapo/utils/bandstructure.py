@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from ase.calculators.jacapo import *
+from ase.calculators.jacapo import Jacapo
 from ase.dft.dos import DOS
 
 class BandStructure:
@@ -14,7 +14,7 @@ class BandStructure:
                  npoints=10,
                  outnc='harris.nc'):
         """Headline here ... XXX.
-        
+
         atoms is an ase.Atoms object with calculator
         attached. Presumably the self-consistent charge density has
         already been calculated, otherwise, it will be.
@@ -31,7 +31,7 @@ class BandStructure:
 
         npoints is the number of points on each segment. It can either
         be a constant, which is used for every segment, or a list of
-        integers that is an integer for each segment.        
+        integers that is an integer for each segment.
         """
 
         self.atoms = atoms
@@ -49,7 +49,7 @@ class BandStructure:
         #start at second kpt and go to second to last segment
         nsegments = len(self.kpt_path) - 1
         for i in range(nsegments-1):
-            
+
             #get number of points on path. this counts the first point
             try:
                 i_npt = npoints[i]
@@ -66,7 +66,7 @@ class BandStructure:
                 #shift by small random amount to break symmetry and
                 #prevent time-inversion reduction
                 krand = (1. + np.random.random(3))/1.e4
-                
+
                 k += krand
                 kpts.append(k)
 
@@ -102,20 +102,20 @@ class BandStructure:
 
             #save some time by not calculating stress
             self.calc.set_stress(False)
-                        
+
             #this seems to be necessary sometimes
             self.calc.delete_ncattdimvar(outnc,
                                          ncdims=['number_plane_waves'])
 
             #this has to come after removing number_of_planewaves
             self.calc.set_kpts(self.kpts)
-            
+
             #freeze charge density
             self.calc.set_charge_mixing(updatecharge='No')
             #and, run calculation
             self.calc.calculate()
 
-        
+
 
     def plot(self):
         '''
@@ -124,12 +124,12 @@ class BandStructure:
         clicking on a band will make it thicker and print which band was selected.
         '''
 
-        kpoints = self.calc.get_ibz_kpoints()
-        
+        # kpoints = self.calc.get_ibz_kpoints()
+
         eigenvalues = self.calc.get_all_eigenvalues() - self.ef
         #eigenvalues = np.array([self.calc.get_eigenvalues(kpt=i)-self.ef
         #                        for i in range(len(kpoints))])
-        
+
         self.handles = [] #used to get band indexes from plot
 
         fig = plt.figure()
@@ -140,7 +140,7 @@ class BandStructure:
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_ylim([-20,20])
-        
+
         ax = fig.add_subplot(121)
         ax.set_title('Band structure')
 
@@ -150,10 +150,10 @@ class BandStructure:
             self.lastartist = thisline = event.artist
             thisline.set_linewidth(5)
             plt.draw() #needed to update linewidth
-            
+
             print('Band %i selected' % self.handles.index(thisline))
             #you could insert code here to plot wavefunction, etc...
-            
+
         fig.canvas.mpl_connect('pick_event',onpick)
 
         #we use indices for x. the tick labels are not shown and the distance
@@ -161,17 +161,17 @@ class BandStructure:
         xdata = list(range(len(eigenvalues)))
 
         nkpts, nbands = eigenvalues.shape
-        for i in range(nbands):         
+        for i in range(nbands):
             #eigenvalues has shape(nkpts,nbands)
             #note the comma after line_handle
             line_handle, = ax.plot(xdata,eigenvalues[:,i],'.-',ms=1,picker=2)
             self.handles.append(line_handle)
 
         self.lastartist = self.handles[-1]
-            
+
         #plot Fermi level
         ax.plot([0,len(self.kpts)],[0,0],'k--',label='$E_f$')
-        
+
         plt.xlabel('|k|')
         plt.ylabel('$E-E_f$ (eV)')
 
@@ -179,7 +179,7 @@ class BandStructure:
         xtick_locs = np.zeros(len(self.kpt_path))
         try:
             #this means the npoints is a list
-            i_npt = self.npoints[0]
+            # i_npt = self.npoints[0]
             for j,npt in enumerate(1,self.npoints):
                 xtick_locs[j] = xtick_locs[j-1] + npt
         except TypeError:
@@ -190,16 +190,16 @@ class BandStructure:
         #the last location is off by one, so we fix it.
         xtick_locs[-1] -= 1
 
-        ax.set_xlim([xtick_locs[0],xtick_locs[-1]])        
+        ax.set_xlim([xtick_locs[0],xtick_locs[-1]])
         ax.set_xticks(xtick_locs)
         ax.set_xticklabels(self.labels)
-        
+
         #this seems reasonable to avoid very deep energy states and high energy states
         ax.set_ylim([-20,20])
-        
+
         plt.show()
 
         return fig
 
- 
-                              
+
+

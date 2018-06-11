@@ -10,26 +10,26 @@ sgroup.py [-f] ncfile
 
 http://cpc.cs.qub.ac.uk/summaries/ADON.html
 
-PROGRAM SUMMARY [Licence| Download | E-mail] adon.tar.gz(69 Kbytes) 
-Manuscript Title: Determination of the space group and unit cell for a periodic solid. 
-Authors: B.Z. Yanchitsky, A.N. Timoshevskii 
-Program title: SGROUP 
-Catalogue identifier: ADON 
-Journal reference: Comput. Phys. Commun. 139(2001)235 
-Programming language: C. 
-Computer: Intel/Pentium, Alpha Workstation. 
-Operating system: Slackware Linux 4.0, Digitial Unix 4.0D. 
-RAM: 1M words 
-Word size: 8 
-Keywords: Unit cell, Space group, Symmetry operations, Solid state physics, Crystal structure. 
-Classification: 7.8. 
+PROGRAM SUMMARY [Licence| Download | E-mail] adon.tar.gz(69 Kbytes)
+Manuscript Title: Determination of the space group and unit cell for a periodic solid.
+Authors: B.Z. Yanchitsky, A.N. Timoshevskii
+Program title: SGROUP
+Catalogue identifier: ADON
+Journal reference: Comput. Phys. Commun. 139(2001)235
+Programming language: C.
+Computer: Intel/Pentium, Alpha Workstation.
+Operating system: Slackware Linux 4.0, Digitial Unix 4.0D.
+RAM: 1M words
+Word size: 8
+Keywords: Unit cell, Space group, Symmetry operations, Solid state physics, Crystal structure.
+Classification: 7.8.
 
 '''
 import math,os,re,string,tempfile
 
-from Scientific.Geometry import *
-from Scientific.IO.FortranFormat import *
-from numpy import *
+from Scientific.Geometry import Vector
+# from Scientific.IO.FortranFormat import *
+from numpy import zeros, array
 
 class SGROUP:
 
@@ -38,7 +38,7 @@ class SGROUP:
         them. Otherwise they go into a tempfile that is deleted.'''
 
         id,infile = tempfile.mkstemp()
-        
+
         if outfile is None:
             od,ofile = tempfile.mkstemp()
         else:
@@ -71,21 +71,21 @@ class SGROUP:
                                                            alpha,beta,gamma))
 
         f.write('%i\n' % len(atoms))
-        
+
         for i,atom in enumerate(atoms):
             f.write('%1.4f %1.4f %1.4f\n' % tuple(scaledpositions[i]))
             f.write('%s\n\n' % chemicalsymbols[i])
         f.close()
 
         os.system('sgroup %s %s' % (infile,ofile))
-          
+
         f = open(ofile,'r')
         self.output= f.readlines()
         f.close()
 
         os.unlink(infile)
         os.close(id)
-        
+
         if outfile is None:
             os.unlink(ofile)
             os.close(od) # you must close the file descriptor or
@@ -93,16 +93,16 @@ class SGROUP:
                          # and cause an error when you are processing
                          # many files.
 
-            
+
     def __str__(self):
         return string.join(self.output)
-        
+
     def get_space_group(self):
         'returns spacegroup number'
         regexp = re.compile('^Number and name of space group:')
         for line in self.output:
             if regexp.search(line):
-                line = line[32:]    
+                line = line[32:]
                 r2 = re.compile('^\d+')
                 s = r2.search(line)
                 if hasattr(s,'group'):
@@ -118,7 +118,7 @@ class SGROUP:
         I am not sure what the 4th number is, it is called
         tau in Wien2k. I do not use it or return it here, but
         it is parsed, and could be returned.
-        
+
         Number of symmetry operations: 48
         Operation: 1
         1.0   0.0   0.0  0.000
@@ -132,7 +132,7 @@ class SGROUP:
 
         Operation: 3
         '''
-        
+
         re1 = '^Number of symmetry operations:'
         regexp = re.compile(re1)
         for i,line in enumerate(self.output):
@@ -149,15 +149,15 @@ class SGROUP:
             temptau = [0,0,0]
             if int(string.split(self.output[index+1],':')[-1]) != s+1:
                 raise Exception('this symmetry operator %i does not match index' % s)
-                               
+
             x,y,z,tau = [float(var) for var in string.split(self.output[index+2])]
             temparray[0] = [x,y,z]
             temptau[0] = tau
-            
+
             x,y,z,tau = [float(var) for var in string.split(self.output[index+3])]
             temparray[1] = [x,y,z]
             temptau[1] = tau
-            
+
             x,y,z,tau = [float(var) for var in string.split(self.output[index+4])]
             temparray[2] = [x,y,z]
             temptau[2] = tau
@@ -169,12 +169,12 @@ class SGROUP:
             taus.append(array(temptau))
 
         return symmetry_operators,taus
-            
+
 
 
 
 if __name__ == '__main__':
-    from ase.calculators.jacapo import *
+    from ase.calculators.jacapo import Jacapo
     from optparse import OptionParser
 
     parser = OptionParser(usage='sgroup.py ncfile',
@@ -191,13 +191,13 @@ if __name__ == '__main__':
     options,args = parser.parse_args()
 
     #print options
-    
-    for ncfile in args:       
+
+    for ncfile in args:
 
         sg = SGROUP(Jacapo.read_atoms(ncfile),outfile=options.o)
 
         print(sg.get_space_group())
-    
+
         if options.f is not None:
             print(sg)
 

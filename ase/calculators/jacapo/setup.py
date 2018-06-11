@@ -1,8 +1,4 @@
 from distutils.core import setup
-from glob import glob
-from os.path import join
-
-import os
 import sys
 
 long_description = """\
@@ -25,7 +21,7 @@ tools = ['tools/ncsum',
 exec(compile(open('version.py').read(), 'version.py', 'exec'))
 
 setup(name = 'python-Jacapo',
-      version=version,
+      # version=version,
       description='Jacapo - ase + Dacapo',
       url='http://www.fysik.dtu.dk/Campos/ase',
       maintainer='John Kitchin',

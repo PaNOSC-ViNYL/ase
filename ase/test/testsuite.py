@@ -118,6 +118,7 @@ class Result:
     """Represents the result of a test; for communicating between processes."""
     attributes = ['name', 'pid', 'exception', 'traceback', 'time', 'status',
                   'whyskipped']
+
     def __init__(self, **kwargs):
         d = {key: None for key in self.attributes}
         d['pid'] = os.getpid()
@@ -219,7 +220,7 @@ def runtests_parallel(nprocs, tests):
                 raise RuntimeError('ABORT: Internal error in test suite')
     except KeyboardInterrupt:
         raise
-    except BaseException as err:
+    except BaseException:
         for proc in procs:
             proc.terminate()
         raise
@@ -398,24 +399,3 @@ class CLICommand:
         ntrouble = test(calculators=calculators, jobs=args.jobs,
                         files=args.tests)
         sys.exit(ntrouble)
-
-
-if __name__ == '__main__':
-    # Run pyflakes on all code in ASE:
-    try:
-        output = subprocess.check_output(['pyflakes', 'ase', 'doc'],
-                                         stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as ex:
-        output = ex.output.decode()
-
-    lines = []
-    for line in output.splitlines():
-        # Ignore these:
-        for txt in ['jacapo', 'list comprehension redefines']:
-            if txt in line:
-                break
-        else:
-            lines.append(line)
-    if lines:
-        print('\n'.join(lines))
-        sys.exit(1)
