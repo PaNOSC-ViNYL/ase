@@ -2,7 +2,7 @@ from __future__ import print_function
 
 import numpy as np
 
-from ase.db.core import float_to_time_string, now, get_sql_columns
+from ase.db.core import float_to_time_string, now
 
 
 all_columns = ['id', 'age', 'user', 'formula', 'calculator',
@@ -63,9 +63,9 @@ class Table:
         self.offset = offset
         self.rows = [Row(row, columns)
                      for row in self.connection.select(
-                             query, verbosity=self.verbosity,
-                             limit=limit, offset=offset, sort=sort,
-                             include_data=False, columns=sql_columns)]
+                         query, verbosity=self.verbosity,
+                         limit=limit, offset=offset, sort=sort,
+                         include_data=False, columns=sql_columns)]
 
         delete = set(range(len(columns)))
         for row in self.rows:
