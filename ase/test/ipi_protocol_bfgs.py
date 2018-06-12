@@ -18,7 +18,7 @@ from ase.cluster.icosahedron import Icosahedron
 #port = (3141 + pid) % 65536
 # We could also use a Unix port perhaps, but not yet implemented
 
-socketfname = 'grumble'
+unixsocket = 'grumble'
 timeout = 20.0
 
 def getatoms():
@@ -28,7 +28,7 @@ def getatoms():
 def run_server(launchclient=True):
     atoms = getatoms()
 
-    with IPICalculator(log=sys.stdout, socketfname=socketfname,
+    with IPICalculator(log=sys.stdout, unixsocket=unixsocket,
                        timeout=timeout) as calc:
         if launchclient:
             thread = launch_client_thread()
@@ -73,7 +73,7 @@ def run_client():
 
     try:
         with open('client.log', 'w') as fd:
-            client = IPIClient(log=fd, socketfname=socketfname,
+            client = IPIClient(log=fd, unixsocket=unixsocket,
                                timeout=timeout)
             client.run(atoms, use_stress=False)
     except BrokenPipe:
@@ -91,5 +91,5 @@ def launch_client_thread():
 try:
     run_server()
 finally:
-    if os.path.exists(socketfname):
-        os.unlink(socketfname)
+    if os.path.exists(unixsocket):
+        os.unlink(unixsocket)

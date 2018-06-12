@@ -279,7 +279,7 @@ class IPIServer:
 
 
 class IPIClient:
-    def __init__(self, host='localhost', port=31415,
+    def __init__(self, host='localhost', port=None,
                  unixsocket=None, timeout=None, log=None):
         self.host = host
         self.port = port
@@ -343,7 +343,7 @@ class IPICalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
     ipi_supported_changes = {'positions', 'cell'}
 
-    def __init__(self, calc=None, host='localhost', port=31415,
+    def __init__(self, calc=None, host='localhost', port=None,
                  unixsocket=None, timeout=None, log=None):
         """Initialize IPI calculator.
 
