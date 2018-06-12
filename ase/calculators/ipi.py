@@ -159,28 +159,55 @@ class IPIProtocol:
 
 
 class IPIServer:
-    def __init__(self, process_args=None, host='localhost', port=31415,
-                 socketfname=None, timeout=None, log=None):
-        self.host = host
+    default_port = 31415
+
+    def __init__(self, client_command=None, port=None,
+                 unixsocket=None, timeout=None, log=None):
+        """Create server and listen for connections.
+
+        Parameters:
+
+        client_command: Shell command to launch client process, or None
+            The process will be launched immediately, if given.
+            Else the user is expected to launch a client whose connection
+            the server will then accept at any time.
+            One calculate() is called, the server will block to wait
+            for the client.
+        port: integer or None
+            Port on which to listen for INET connections.  Defaults
+            to 31415 if neither this nor unixsocket is specified.
+        unixsocket: string or None
+            Filename for unix socket.
+        timeout: float or None
+            timeout in seconds, or unlimited by default.
+            This parameter is passed to the Python socket object; see
+            documentation therof
+        log: file object or None
+            useful debug messages are written to this."""
+
+        if unixsocket is None and port is None:
+            port = self.default_port
+        elif unixsocket is not None and port is not None:
+            raise ValueError('Specify only one of unixsocket and port')
+
         self.port = port
-        self.socketfname = socketfname
+        self.unixsocket = unixsocket
         self.timeout = timeout
         self._closed = False
 
-        if socketfname is not None:
+        if unixsocket is not None:
             self.serversocket = socket.socket(socket.AF_UNIX)
-            self.serversocket.bind(socketfname)
+            self.serversocket.bind(unixsocket)
         else:
             self.serversocket = socket.socket(socket.AF_INET)
             self.serversocket.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
-            self.serversocket.bind((host, port))
+            self.serversocket.bind(('localhost', port))
 
         self.serversocket.settimeout(timeout)
 
         if log:
-            print('Accepting IPI clients on {}:{}'.format(host, port),
-                  file=log)
+            print('Accepting IPI clients on port {}'.format(port), file=log)
         self.serversocket.listen(1)
 
         self.log = log
@@ -191,13 +218,14 @@ class IPIServer:
         self.clientsocket = None
         self.address = None
 
-        if process_args is not None:
+        if client_command is not None:
             if log:
-                print('Launch subprocess: {}'.format(process_args), file=log)
-            self.proc = Popen(process_args, shell=True)
+                print('Launch subprocess: {}'.format(client_command), file=log)
+            self.proc = Popen(client_command, shell=True)
             # self._accept(process_args)
 
-    def _accept(self, process_args=None):
+    def _accept(self, client_command=None):
+        """Wait for client and establish connection."""
         # It should perhaps be possible for process to be launched by user
         log = self.log
         if self.log:
@@ -237,6 +265,10 @@ class IPIServer:
         #self.log('IPI server closed')
 
     def calculate(self, atoms):
+        """Send geometry to client and return calculated things as dict.
+
+        This will block until client has established connection, then
+        wait for the client to finish the calculation."""
         assert not self._closed
 
         # If we have not established connection yet, we must block
@@ -248,14 +280,14 @@ class IPIServer:
 
 class IPIClient:
     def __init__(self, host='localhost', port=31415,
-                 socketfname=None, timeout=None, log=None):
+                 unixsocket=None, timeout=None, log=None):
         self.host = host
         self.port = port
-        self.socketfname = socketfname
+        self.unixsocket = unixsocket
 
-        if socketfname is not None:
+        if unixsocket is not None:
             sock = socket.socket(socket.AF_UNIX)
-            sock.connect(socketfname)
+            sock.connect(unixsocket)
         else:
             sock = socket.socket(socket.AF_INET)
             sock.connect((host, port))
@@ -312,7 +344,7 @@ class IPICalculator(Calculator):
     ipi_supported_changes = {'positions', 'cell'}
 
     def __init__(self, calc=None, host='localhost', port=31415,
-                 socketfname=None, timeout=None, log=None):
+                 unixsocket=None, timeout=None, log=None):
         """Initialize IPI calculator.
 
         Parameters:
@@ -336,7 +368,7 @@ class IPICalculator(Calculator):
             port number for socket.  Should normally be between 1025
             and 65535.  Typical ports for are 31415 (default) or 3141.
 
-        socketfname: str or None
+        unixsocket: str or None
 
             if not None, ignore host and port, and create instead a
             unix socket in the current working directory.  Caller may
@@ -372,7 +404,7 @@ class IPICalculator(Calculator):
         self.calc = calc
         self.host = host
         self.port = port
-        self.socketfname = socketfname
+        self.unixsocket = unixsocket
         self.timeout = timeout
         self.server = None
         self.log = log
@@ -396,10 +428,9 @@ class IPICalculator(Calculator):
         return d
 
     def launch_server(self, cmd=None):
-        self.server = IPIServer(process_args=cmd, port=self.port,
-                                socketfname=self.socketfname,
-                                timeout=self.timeout,
-                                host=self.host, log=self.log)
+        self.server = IPIServer(client_command=cmd, port=self.port,
+                                unixsocket=self.unixsocket,
+                                timeout=self.timeout, log=self.log)
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
@@ -418,7 +449,7 @@ class IPICalculator(Calculator):
             assert self.calc is not None
             cmd = self.calc.command
             cmd = cmd.format(host=self.host, port=self.port,
-                             socketfname=self.socketfname,
+                             unixsocket=self.unixsocket,
                              prefix=self.calc.prefix)
             self.calc.write_input(atoms, properties=properties,
                                   system_changes=system_changes)

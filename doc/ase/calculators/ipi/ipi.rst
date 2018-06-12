@@ -59,7 +59,7 @@ How to use ASE/i-PI
 
 Example using Quantum Espresso
 
-.. literalinclude:: ipi/ase_ipi_qe.py
+.. literalinclude:: ase_ipi_qe.py
 
 Use ASE as a client
 -------------------
