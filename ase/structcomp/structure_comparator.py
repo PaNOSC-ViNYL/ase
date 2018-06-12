@@ -299,10 +299,6 @@ class SymmetryEquivalenceCheck(object):
             if value < minimum_value:
                 least_freq_element = key
                 minimum_value = value
-
-        if least_freq_element == "X":
-            msg = "Did not manage to find the least frequent element"
-            raise ValueError(msg)
         return least_freq_element
 
     def _extract_positions_of_least_frequent_element(self):
