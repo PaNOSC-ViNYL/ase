@@ -9,10 +9,14 @@ from ase.calculators.calculator import (Calculator, all_changes,
 import ase.units as units
 
 
+class SocketClosed(OSError):
+    pass
+
+
 class IPIProtocol:
     """Communication using IPI protocol."""
 
-    statements = {'POSDATA', 'GETFORCE', 'STATUS', 'INIT', ''}
+    statements = {'POSDATA', 'GETFORCE', 'STATUS', 'INIT', 'EXIT'}
     # The statement '' means end program.
     responses = {'READY', 'HAVEDATA', 'FORCEREADY', 'NEEDINIT'}
 
@@ -35,6 +39,9 @@ class IPIProtocol:
 
     def recvmsg(self):
         msg = self.socket.recv(12)
+        if not msg:
+            raise SocketClosed()
+
         assert len(msg) == 12, msg
         msg = msg.rstrip().decode('ascii')
         #assert msg in self.responses, msg
@@ -123,7 +130,7 @@ class IPIProtocol:
 
     def end(self):
         self.log(' end')
-        self.sendmsg('')
+        self.sendmsg('EXIT')
 
     def sendinit(self):
         # XXX Not sure what this function is supposed to send.
@@ -202,7 +209,7 @@ class IPIServer:
             self.serversocket = socket.socket(socket.AF_INET)
             self.serversocket.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
-            self.serversocket.bind(('localhost', port))
+            self.serversocket.bind(('', port))
 
         self.serversocket.settimeout(timeout)
 
@@ -246,9 +253,12 @@ class IPIServer:
         self._closed = True
 
         # Proper way to close sockets?
-        if self.ipi is not None:
-            self.ipi.end()  # Send end-of-communication string
-            self.ipi = None
+        # And indeed i-pi connections...
+        # if self.ipi is not None:
+        #     self.ipi.end()  # Send end-of-communication string
+        self.ipi = None
+        if self.clientsocket is not None:
+            self.clientsocket.close() #shutdown(socket.SHUT_RDWR)
         if self.proc is not None:
             exitcode = self.proc.wait()
             if exitcode != 0:
@@ -258,8 +268,6 @@ class IPIServer:
                 # Should investigate at some point
                 warnings.warn('Subprocess exited with status {}'
                               .format(exitcode))
-        if self.clientsocket is not None:
-            self.clientsocket.close() #shutdown(socket.SHUT_RDWR)
         if self.serversocket is not None:
             self.serversocket.close() #shutdown(socket.SHUT_RDWR)
         #self.log('IPI server closed')
@@ -271,7 +279,7 @@ class IPIServer:
         wait for the client to finish the calculation."""
         assert not self._closed
 
-        # If we have not established connection yet, we must block
+        #If we have not established connection yet, we must block
         # until the client catches up:
         if self.ipi is None:
             self._accept()
@@ -300,14 +308,20 @@ class IPIClient:
 
     def close(self):
         if not self.closed:
+            self.log('Close IPIClient')
             self.closed = True
             self.ipi.socket.close()
 
     def irun(self, atoms, use_stress=True):
         try:
             while True:
-                msg = self.ipi.recvmsg()
-                if msg == '':
+                try:
+                    msg = self.ipi.recvmsg()
+                except SocketClosed:
+                    # If socket was closed after a step, it is a clean exit
+                    self.close()
+                    return
+                if msg == 'EXIT':  # i-pi appears to do this sometimes
                     self.close()
                     return
                 elif msg == 'STATUS':
@@ -318,7 +332,7 @@ class IPIClient:
                     atoms.cell[:] = cell
                     atoms.positions[:] = positions
                     # User may wish to do something with the atoms object now.
-                    yield
+                    # Should we provide option to yield here?
                     energy = atoms.get_potential_energy()
                     forces = atoms.get_forces()
                     if use_stress:
@@ -327,6 +341,7 @@ class IPIClient:
                     else:
                         virial = np.zeros((3, 3))
                     self.state = 'HAVEDATA'
+                    yield
                 elif msg == 'GETFORCE':
                     assert self.state == 'HAVEDATA', self.state
                     self.ipi.sendforce(energy, forces, virial)
