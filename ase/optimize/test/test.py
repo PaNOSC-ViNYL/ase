@@ -1,6 +1,9 @@
 import argparse
 import traceback
+from math import pi
 from time import time
+
+import numpy as np
 
 import ase.db
 import ase.optimize
@@ -13,6 +16,7 @@ all_optimizers = ase.optimize.__all__ + ['PreconLBFGS', 'PreconFIRE',
 
 
 def get_optimizer(name):
+    # types: (str) -> ase.optimize.Optimizer
     if name.startswith('Precon'):
         import ase.optimize.precon as precon
         return getattr(precon, name)
@@ -23,17 +27,37 @@ def get_optimizer(name):
 
 
 class Wrapper:
-    def __init__(self, atoms):
+    """Atoms-object wrapper that can count number of moves."""
+    def __init__(self, atoms, gridspacing=0.2, eggbox=0.0):
+        # types: (Atoms, float, float) -> None
         self.t0 = time()
         self.texcl = 0.0
         self.nsteps = 0
         self.atoms = atoms
         self.ready = False
-        self.pos = None
+        self.pos = None  # type: np.ndarray
+        self.eggbox = eggbox
+
+        if eggbox:
+            # Find small unit cell for grid-points
+            h = []
+            for axis in atoms.get_cell(complete=True):
+                L = np.linalg.norm(axis)
+                n = int(L / gridspacing)
+                h.append(axis / n)
+            self.x = np.linalg.inv(h)
+        else:
+            self.x = None
 
     def get_potential_energy(self, force_consistent=False):
         t1 = time()
         e = self.atoms.get_potential_energy(force_consistent)
+
+        if self.eggbox is not None:
+            # Add egg-box error:
+            s = np.dot(self.atoms.positions, self.x)
+            e += np.cos(2 * pi * s).sum() * self.eggbox / 6
+
         t2 = time()
         self.texcl += t2 - t1
         if not self.ready:
@@ -44,6 +68,13 @@ class Wrapper:
     def get_forces(self):
         t1 = time()
         f = self.atoms.get_forces()
+
+        if self.eggbox is not None:
+            # Add egg-box error:
+            s = np.dot(self.atoms.positions, self.x)
+            f += np.dot(np.sin(2 * pi * s),
+                        self.x.T) * (2 * pi * self.eggbox / 6)
+
         t2 = time()
         self.texcl += t2 - t1
         if not self.ready:
@@ -92,8 +123,9 @@ class Wrapper:
         return len(self.atoms)
 
 
-def run_test(atoms, optimizer, tag, fmax=0.02):
-    wrapper = Wrapper(atoms)
+def run_test(atoms, optimizer, tag, fmax=0.02, eggbox=0.0):
+    """Optimize atoms with optimizer."""
+    wrapper = Wrapper(atoms, eggbox=eggbox)
     relax = optimizer(wrapper, logfile=tag + '.log')
     relax.attach(Trajectory(tag + '.traj', 'w', atoms=atoms))
 
@@ -115,7 +147,10 @@ def run_test(atoms, optimizer, tag, fmax=0.02):
     return error, wrapper.nsteps, wrapper.texcl, tincl
 
 
-def test_optimizer(systems, optimizer, calculator, prefix='', db=None):
+def test_optimizer(systems, optimizer, calculator, prefix='', db=None,
+                   eggbox=0.0):
+    """Test optimizer on systems."""
+
     for atoms in systems:
         formula = atoms.get_chemical_formula()
         if db is not None:
@@ -126,7 +161,8 @@ def test_optimizer(systems, optimizer, calculator, prefix='', db=None):
         atoms = atoms.copy()
         tag = '{}{}-{}'.format(prefix, optname, formula)
         atoms.calc = calculator(txt=tag + '.txt')
-        error, nsteps, texcl, tincl = run_test(atoms, optimizer, tag)
+        error, nsteps, texcl, tincl = run_test(atoms, optimizer, tag,
+                                               eggbox=eggbox)
 
         if db is not None:
             db.write(atoms,
@@ -136,16 +172,21 @@ def test_optimizer(systems, optimizer, calculator, prefix='', db=None):
                      error=error,
                      n=nsteps,
                      t=texcl,
-                     T=tincl)
+                     T=tincl,
+                     eggbox=eggbox)
 
 
 def main():
     parser = argparse.ArgumentParser(
         description='Test ASE optimizers')
 
-    parser.add_argument('systems')
+    parser.add_argument('systems', help='File containing test systems.')
     parser.add_argument('optimizer', nargs='*',
-                        help='Optimizer name.')
+                        help='Optimizer name(s).  Choose from: {}. '
+                        .format(', '.join(all_optimizers)) +
+                        'Default is all optimizers.')
+    parser.add_argument('-e', '--egg-box', type=float, default=0.0,
+                        help='Fake egg-box error in eV.')
 
     args = parser.parse_args()
 
@@ -159,7 +200,7 @@ def main():
     for opt in args.optimizer:
         print(opt)
         optimizer = get_optimizer(opt)
-        test_optimizer(systems, optimizer, EMT, db=db)
+        test_optimizer(systems, optimizer, EMT, db=db, eggbox=args.egg_box)
 
 
 if __name__ == '__main__':
