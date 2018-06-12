@@ -1,7 +1,6 @@
 import os
 import sys
 import threading
-from subprocess import Popen
 
 import numpy as np
 
