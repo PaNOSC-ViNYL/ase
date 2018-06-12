@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from optparse import OptionParser
-from ase.calculators.jacapo import *
+from ase.calculators.jacapo import Jacapo
 from Scientific.IO.NetCDF import NetCDFFile as NetCDF
 
 parser = OptionParser(usage='stripnetcdf',

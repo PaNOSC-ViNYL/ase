@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from optparse import OptionParser
 from ase.visualize import view
-from ase.calculators.jacapo import *
-from Scientific.IO.NetCDF import NetCDFFile as NetCDF
+from ase.calculators.jacapo import Jacapo
+from Scientific.IO.NetCDF import NetCDFFile as netCDF
 import os
 
 os.environ['DACAPO_READONLY'] = 'On'

@@ -81,36 +81,52 @@ def bandgap(calc=None, direct=False, spin=None, output='-',
     ev_sk = e_skn[:, :, 0]  # valence band
     ec_sk = e_skn[:, :, 1]  # conduction band
 
+    s1 = s2 = k1 = k2 = n1 = n2 = None
+
     if ns == 1:
         s1 = 0
         s2 = 0
-        gap, k1, n1, k2, n2 = find_gap(N_sk, ev_sk[0], ec_sk[0], direct)
-    elif spin is None:
-        gap, k1, n1, k2, n2 = find_gap(N_sk, ev_sk.ravel(), ec_sk.ravel(),
-                                       direct)
-        if direct:
-            # Check also spin flips:
-            for s in [0, 1]:
-                g, k, n, _, _ = find_gap(N_sk, ev_sk[s], ec_sk[1 - s], direct)
-                if g < gap:
-                    gap = g
-                    k1 = k
-                    n1 = n
-                    k2 = k + nk
-                    n2 = n + 1
-
-        if gap > 0.0:
-            s1, k1 = divmod(k1, nk)
-            s2, k2 = divmod(k2, nk)
+        if N_sk[0].ptp() > 0:
+            # Some band must be crossing the fermi-level
+            gap = 0.0
         else:
-            s1 = None
-            s2 = None
+            gap, k1, k2 = find_gap(ev_sk[0], ec_sk[0], direct)
+            n1 = N_sk[0, 0] - 1
+            n2 = n1 + 1
+    elif spin is None:
+        if (N_sk.ptp(axis=1) > 0).any():
+            # Some band must be crossing the fermi-level
+            gap = 0.0
+        else:
+            gap, k1, k2 = find_gap(ev_sk.ravel(), ec_sk.ravel(), direct)
+            if direct:
+                # Check also spin flips:
+                for s in [0, 1]:
+                    g, k, _ = find_gap(ev_sk[s], ec_sk[1 - s], direct)
+                    if g < gap:
+                        gap = g
+                        k1 = k + nk * s
+                        k2 = k + nk * (1 - s)
+
+            if gap > 0.0:
+                s1, k1 = divmod(k1, nk)
+                s2, k2 = divmod(k2, nk)
+                n1 = N_sk[s1, k1] - 1
+                n2 = N_sk[s2, k2]
+            else:
+                s1 = None
+                s2 = None
 
     else:
-        gap, k1, n1, k2, n2 = find_gap(N_sk[spin:spin + 1], ev_sk[spin],
-                                       ec_sk[spin], direct)
-        s1 = spin
-        s2 = spin
+        if N_sk[spin].ptp() > 0:
+            # Some band must be crossing the fermi-level
+            gap = 0.0
+        else:
+            gap, k1, k2 = find_gap(ev_sk[spin], ec_sk[spin], direct)
+            s1 = spin
+            s2 = spin
+            n1 = N_sk[s1, k1] - 1
+            n2 = n1 + 1
 
     if output is not None:
         def skn(s, k, n):
@@ -146,16 +162,12 @@ def bandgap(calc=None, direct=False, spin=None, output='-',
     return gap, p1, p2
 
 
-def find_gap(N_sk, ev_k, ec_k, direct):
+def find_gap(ev_k, ec_k, direct):
     """Helper function."""
-    if (N_sk.ptp(axis=1) > 0).any():
-        # Some band must be crossing the fermi-level
-        return 0.0, None, None, None, None
-    n = N_sk[0, 0]
     if direct:
         gap_k = ec_k - ev_k
         k = gap_k.argmin()
-        return gap_k[k], k, n - 1, k, n
+        return gap_k[k], k, k
     kv = ev_k.argmax()
     kc = ec_k.argmin()
-    return ec_k[kc] - ev_k[kv], kv, n - 1, kc, n
+    return ec_k[kc] - ev_k[kv], kv, kc

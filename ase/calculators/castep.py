@@ -496,6 +496,10 @@ End CASTEP Interface Documentation
         self._check_file = None
         self._castep_bin_file = None
 
+        # runtime information
+        self._total_time = None
+        self._peak_memory = None
+
         # check version of CASTEP options module against current one
         if check_castep_version:
             local_castep_version = get_castep_version(self._castep_command)
@@ -580,7 +584,7 @@ End CASTEP Interface Documentation
                 # 'Initialization time' seems to do the job.
                 # if 'Writing analysis data to' in line:
                 # if 'Writing model to' in line:
-                if 'Initialisation time' in line:
+                if 'Peak Memory Use' in line:
                     end_found = True
                     record_end = castep_file.tell()
                     break
@@ -1048,6 +1052,15 @@ End CASTEP Interface Documentation
                 elif 'warn' in line.lower():
                     self._warnings.append(line)
 
+                # fetch some last info
+                elif 'Total time' in line:
+                    pattern = '.*=\s*([\d\.]+) s'
+                    self._total_time = float(re.search(pattern, line).group(1))
+
+                elif 'Peak Memory Use' in line:
+                    pattern = '.*=\s*([\d]+) kB'
+                    self._peak_memory = int(re.search(pattern, line).group(1))
+
             except Exception as exception:
                 sys.stderr.write(line + '|-> line triggered exception: ' +
                       str(exception))
@@ -1287,10 +1300,24 @@ End CASTEP Interface Documentation
         """
         return self._hirshfeld_charges
 
+    def get_total_time(self):
+        """
+        Return the total runtime
+        """
+        return self._total_time
+
+    def get_peak_memory(self):
+        """
+        Return the peak memory usage
+        """
+        return self._peak_memory
+
     def set_label(self, label):
         """The label is part of each seed, which in turn is a prefix
         in each CASTEP related file.
         """
+        # we may think about changing this in future to set `self._directory`
+        # and `self._label`, as one would expect
         self._label = label
 
     def set_pspot(self, pspot, elems=None,
