@@ -167,25 +167,27 @@ class SymmetryEquivalenceCheck(object):
         elem1, elem2 = self._get_element_count()
         return elem1 == elem2
 
-    def _has_same_angles(self):
-        """Check that the Niggli unit vectors has the same internal angles."""
-        cell1 = self.s1.get_cell().T
-        cell2 = self.s2.get_cell().T
+    def _get_angles(self, cell):
+        """Get the internal angles of the unit cell."""
+        cellT = cell.T
 
         # Normalize each vector
         for i in range(3):
-            cell1[:, i] /= np.sqrt(np.sum(cell1[:, i]**2))
-            cell2[:, i] /= np.sqrt(np.sum(cell2[:, i]**2))
-        dot1 = cell1.T.dot(cell1)
-        dot2 = cell2.T.dot(cell2)
+            cellT[:, i] /= np.sqrt(np.sum(cellT[:, i]**2))
+        dot = cellT.T.dot(cellT)
 
         # Extract only the relevant dot products
-        dot1 = [dot1[0, 1], dot1[0, 2], dot1[1, 2]]
-        dot2 = [dot2[0, 1], dot2[0, 2], dot2[1, 2]]
+        dot = [dot[0, 1], dot[0, 2], dot[1, 2]]
 
         # Convert to angles
-        ang1 = [np.arccos(scalar_prod) * 180.0 / np.pi for scalar_prod in dot1]
-        ang2 = [np.arccos(scalar_prod) * 180.0 / np.pi for scalar_prod in dot2]
+        angles = [np.arccos(scalar_prod) for scalar_prod in dot]
+
+        return angles
+
+    def _has_same_angles(self):
+        """Check that the Niggli unit vectors has the same internal angles."""
+        ang1 = self._get_angles(self.s1.get_cell())
+        ang2 = self._get_angles(self.s2.get_cell())
 
         for i in range(3):
             closestIndex = np.argmin(np.abs(np.array(ang2) - ang1[i]))
