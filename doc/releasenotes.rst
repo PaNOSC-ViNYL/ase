@@ -11,7 +11,9 @@ Git master branch
 
 * Test suite now runs in parallel.
 
-* More efficient dynamics with several calculators: Added support for
+* Socked-based interface to certain calculators through the
+  :mod:`~ase.calculators.ipi` module:
+  Added support for
   communicating coordinates, forces and other quantities over
   sockets using the i-PI protocol.  This removes the overhead for
   starting and stopping calculators for each geometry step.
