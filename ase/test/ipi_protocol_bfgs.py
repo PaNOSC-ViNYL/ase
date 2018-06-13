@@ -11,13 +11,13 @@ from ase.cluster.icosahedron import Icosahedron
 
 # If multiple test suites are running, we don't want port clashes.
 # Thus we generate a port from the pid.
-#pid = os.getpid()
 # maxpid is commonly 32768, and max port number is 65536.
 # But in case maxpid is much larger for some reason:
-#port = (3141 + pid) % 65536
+pid = os.getpid()
+port = (3141 + pid) % 65536
 # We could also use a Unix port perhaps, but not yet implemented
 
-unixsocket = 'grumble'
+#unixsocket = 'grumble'
 timeout = 20.0
 
 def getatoms():
@@ -27,7 +27,7 @@ def getatoms():
 def run_server(launchclient=True):
     atoms = getatoms()
 
-    with IPICalculator(log=sys.stdout, unixsocket=unixsocket,
+    with IPICalculator(log=sys.stdout, port=port,
                        timeout=timeout) as calc:
         if launchclient:
             thread = launch_client_thread()
@@ -72,7 +72,7 @@ def run_client():
 
     try:
         with open('client.log', 'w') as fd:
-            client = IPIClient(log=fd, unixsocket=unixsocket,
+            client = IPIClient(log=fd, port=port,
                                timeout=timeout)
             client.run(atoms, use_stress=False)
     except BrokenPipe:
@@ -87,8 +87,8 @@ def launch_client_thread():
     return thread
 
 
-try:
-    run_server()
-finally:
-    if os.path.exists(unixsocket):
-        os.unlink(unixsocket)
+#try:
+run_server()
+#finally:
+#    if os.path.exists(unixsocket):
+#        os.unlink(unixsocket)
