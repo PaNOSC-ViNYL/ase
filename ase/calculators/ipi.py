@@ -226,6 +226,8 @@ class IPIServer:
         self.address = None
 
         if client_command is not None:
+            client_command = client_command.format(port=port,
+                                                   unixsocket=unixsocket)
             if log:
                 print('Launch subprocess: {}'.format(client_command), file=log)
             self.proc = Popen(client_command, shell=True)
@@ -358,7 +360,7 @@ class IPICalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
     ipi_supported_changes = {'positions', 'cell'}
 
-    def __init__(self, calc=None, host='localhost', port=None,
+    def __init__(self, calc=None, port=None,
                  unixsocket=None, timeout=None, log=None):
         """Initialize IPI calculator.
 
@@ -371,12 +373,6 @@ class IPICalculator(Calculator):
             using calc.write_input().  Otherwise only the server will
             run, and it is up to the user to launch a compliant client
             process.
-
-        host: str
-
-            hostname of the computer to which to connect over INET
-            socket.  Default is localhost.  Changing it is only useful
-            when no calculator is provided.
 
         port: integer
 
@@ -417,12 +413,14 @@ class IPICalculator(Calculator):
 
         Calculator.__init__(self)
         self.calc = calc
-        self.host = host
-        self.port = port
-        self.unixsocket = unixsocket
         self.timeout = timeout
         self.server = None
         self.log = log
+
+        # We only hold these so we can pass them on to the server.
+        # They may both be None as stored here.
+        self._port = port
+        self._unixsocket = unixsocket
 
         # First time calculate() is called, system_changes will be
         # all_changes.  After that, only positions and cell may change.
@@ -443,8 +441,8 @@ class IPICalculator(Calculator):
         return d
 
     def launch_server(self, cmd=None):
-        self.server = IPIServer(client_command=cmd, port=self.port,
-                                unixsocket=self.unixsocket,
+        self.server = IPIServer(client_command=cmd, port=self._port,
+                                unixsocket=self._unixsocket,
                                 timeout=self.timeout, log=self.log)
 
     def calculate(self, atoms=None, properties=['energy'],
@@ -462,10 +460,10 @@ class IPICalculator(Calculator):
 
         if self.server is None:
             assert self.calc is not None
-            cmd = self.calc.command
-            cmd = cmd.format(host=self.host, port=self.port,
-                             unixsocket=self.unixsocket,
-                             prefix=self.calc.prefix)
+            cmd = self.calc.command.replace('PREFIX', self.calc.prefix)
+            #cmd = cmd.format(port=self.server.port,
+            #                 unixsocket=self.server.unixsocket,
+            #                 prefix=self.calc.prefix)
             self.calc.write_input(atoms, properties=properties,
                                   system_changes=system_changes)
             #else:
