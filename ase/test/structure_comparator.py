@@ -234,3 +234,22 @@ if comparator.use_cpp_version:
     comparator.use_cpp_version = False
 
 run_all_tests(comparator)
+
+# Structures from the original paper:
+# Comput. Phys. Commun. 183, 690-697 (2012)
+# They should evaluate equal (within a certain tolerance)
+syms = ['O', 'O', 'Mg', 'F']
+cell1 = [(3.16, 0.00, 0.00), (-0.95, 4.14, 0.00), (-0.95, -0.22, 4.13)]
+p1 = [(0.44, 0.40, 0.30), (0.94, 0.40, 0.79),
+      (0.45, 0.90, 0.79), (0.94, 0.40, 0.29)]
+s1 = Atoms(syms, cell=cell1, scaled_positions=p1, pbc=True)
+
+cell2 = [(6.00, 0.00, 0.00), (1.00, 3.00, 0.00), (2.00, -3.00, 3.00)]
+p2 = [(0.00, 0.00, 0.00), (0.00, 0.00, 0.50),
+      (0.50, 0.00, 0.00), (0.00, 0.50, 0.00)]
+s2 = Atoms(syms, cell=cell2, scaled_positions=p2, pbc=True)
+
+# Scale volume is needed to check out equivalent
+org_comparator = SymmetryEquivalenceCheck(scale_volume=True)
+
+assert org_comparator.compare(s1, s2)
