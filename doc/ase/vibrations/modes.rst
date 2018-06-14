@@ -1,3 +1,5 @@
+.. module:: ase.vibrations
+
 Vibrational modes
 =================
 

@@ -1,5 +1,3 @@
-.. module:: ase.vibrations
-
 ==================
 Vibration analysis
 ==================
