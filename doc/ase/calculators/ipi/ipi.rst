@@ -38,7 +38,7 @@ Program name     Supported by ASE calculator
 ================ =========================================
 Quantum Espresso Yes
 FHI-aims         Yes
-Siesta           Yes, presumably (untested)
+Siesta           Yes
 DFTB+            Yes, presumably (untested)
 Yaff             No; there is no ASE calculator for Yaff
 cp2k             No; ASE uses cp2k shell instead
@@ -64,6 +64,10 @@ Example using Quantum Espresso
 Example using FHI-aims
 
 .. literalinclude:: ase_ipi_aims.py
+
+Example using Siesta
+
+.. literalinclude:: ase_ipi_siesta.py
 
 Use ASE as a client
 -------------------
