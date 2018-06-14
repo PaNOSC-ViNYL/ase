@@ -1,10 +1,8 @@
-.. module:: ase.vibrations.resonant_raman
+Resonant and non-resonant Raman spectra
+=======================================
 
-.. _raman:
-
-=============
-Raman spectra
-=============
+Note:
+:ref:`Siesta Raman` are possible also.
 
 Raman spectra can be calculated in various approximations.
 While the examples below are using GPAW_ explicitely,
@@ -13,9 +11,8 @@ the modules are intended to work with other calculators also.
 The strategy is to calculate vibrational properties first and
 obtain the spectra from these later.
 
-
 1. Finite difference calculations
-=================================
+---------------------------------
 
 It is recommended to do a vibrational analysis first by using
 the :class:`~ase.vibrations.Vibrations` or  :class:`~ase.vibrations.Infrared`
@@ -51,7 +48,7 @@ in ``ResonantRaman`` by::
 
 
 2. Analysis of the results
-==========================
+--------------------------
 
 We assume that the steps above were performed and are able to analyse the
 results in different approximations.
@@ -66,7 +63,7 @@ We save the standard names::
 
 
 Placzek
--------  
+```````
 
 The most popular form is the Placzeck approximation that is present in
 two implementations. The simplest is the direct evaluation from
@@ -74,8 +71,9 @@ derivatives of the frequency dependent polarizability::
 
   from ase.vibrations.placzek import Placzek
 
+  photonenergy = 7.5  # eV
   pz = Placzek()
-  x, y = pz.get_spectrum(7.5, start=0, end=2000, method='frederiksen', type='Lorentzian')
+  x, y = pz.get_spectrum(photonenergy, start=0, end=2000, method='frederiksen', type='Lorentzian')
 
 
 The second implementation evaluates the derivatives differently allowing
@@ -83,9 +81,14 @@ for more analysis::
 
   from ase.vibrations.placzek import Profeta
   
+  photonenergy = 7.5  # eV
+  pr = Profeta(approximation='Placzek')
+  x, y = pr.get_spectrum(photonenergy, start=0, end=2000, method='frederiksen', type='Lorentzian')
+
+Both should lead to the same spectrum.
 
 Albrecht
---------
+````````
 
 ``ResonantRaman`` calls the displaced excited state objects' function
 ``overlap`` with the matrix :math:`o_{ij}` and expects the function to
@@ -101,5 +104,6 @@ Example::
 
   from ase.vibrations.albrecht import Albrecht
 
+  al = Albrecht()
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
