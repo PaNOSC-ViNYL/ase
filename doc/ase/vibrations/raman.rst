@@ -1,13 +1,11 @@
 Resonant and non-resonant Raman spectra
 =======================================
 
-Note:
-:ref:`Siesta Raman` are possible also.
+Note: :ref:`Siesta Raman` are possible also.
 
-Raman spectra can be calculated in various approximations.
+Raman spectra can be calculated in various approximations [1]_.
 While the examples below are using GPAW_ explicitely,
 the modules are intended to work with other calculators also.
-
 The strategy is to calculate vibrational properties first and
 obtain the spectra from these later.
 
@@ -107,3 +105,6 @@ Example::
   al = Albrecht()
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
+  
+.. [1] "Ab-initio wave-length dependent Raman spectra: Placzek approximation and beyond" Michael Walter, Michael Moseler `arXiv:1806.03840 <https://arxiv.org/abs/1806.03840>`_ [physics.chem-ph]
+
