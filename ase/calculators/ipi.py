@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import socket
 from subprocess import Popen
 
@@ -7,6 +8,10 @@ import numpy as np
 from ase.calculators.calculator import (Calculator, all_changes,
                                         PropertyNotImplementedError)
 import ase.units as units
+
+
+def actualunixsocketname(name):
+    return '/tmp/ipi_{}'.format(name)
 
 
 class SocketClosed(OSError):
@@ -201,20 +206,29 @@ class IPIServer:
         self.unixsocket = unixsocket
         self.timeout = timeout
         self._closed = False
+        self._created_socket_file = None  # file to be unlinked in close()
 
         if unixsocket is not None:
             self.serversocket = socket.socket(socket.AF_UNIX)
-            self.serversocket.bind(unixsocket)
+            actualsocket = actualunixsocketname(unixsocket)
+            try:
+                self.serversocket.bind(actualsocket)
+            except OSError as err:
+                raise OSError('{}: {}'.format(err, repr(actualsocket)))
+            self._created_socket_file = actualsocket
+            conn_name = 'UNIX-socket {}'.format(actualsocket)
         else:
             self.serversocket = socket.socket(socket.AF_INET)
             self.serversocket.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
             self.serversocket.bind(('', port))
+            conn_name = 'INET port {}'.format(port)
+
+        if log:
+            print('Accepting clients on {}'.format(conn_name), file=log)
 
         self.serversocket.settimeout(timeout)
 
-        if log:
-            print('Accepting IPI clients on port {}'.format(port), file=log)
         self.serversocket.listen(1)
 
         self.log = log
@@ -271,7 +285,10 @@ class IPIServer:
                 warnings.warn('Subprocess exited with status {}'
                               .format(exitcode))
         if self.serversocket is not None:
-            self.serversocket.close() #shutdown(socket.SHUT_RDWR)
+            self.serversocket.close()
+        if self._created_socket_file is not None:
+            assert self._created_socket_file.startswith('/tmp/ipi_')
+            os.unlink(self._created_socket_file)
         #self.log('IPI server closed')
 
     def calculate(self, atoms):
@@ -297,7 +314,8 @@ class IPIClient:
 
         if unixsocket is not None:
             sock = socket.socket(socket.AF_UNIX)
-            sock.connect(unixsocket)
+            actualsocket = actualunixsocketname(unixsocket)
+            sock.connect(actualsocket)
         else:
             sock = socket.socket(socket.AF_INET)
             sock.connect((host, port))
@@ -461,15 +479,8 @@ class IPICalculator(Calculator):
         if self.server is None:
             assert self.calc is not None
             cmd = self.calc.command.replace('PREFIX', self.calc.prefix)
-            #cmd = cmd.format(port=self.server.port,
-            #                 unixsocket=self.server.unixsocket,
-            #                 prefix=self.calc.prefix)
             self.calc.write_input(atoms, properties=properties,
                                   system_changes=system_changes)
-            #else:
-            #    cmd = None  # User configures/launches subprocess
-                # (and is responsible for having generated any necessary files)
-            #if self.server is None:
             self.launch_server(cmd)
 
         self.atoms = atoms.copy()
