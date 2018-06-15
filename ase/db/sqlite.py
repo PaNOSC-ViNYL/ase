@@ -343,7 +343,7 @@ class SQLite3Database(Database, object):
         last_id = self.get_last_id(cur)
         q = self.default + ', ' + ', '.join('?' * len(values[0]))
         if self.type == 'postgresql':
-            statement += ' returning id'
+            statement += ' RETURNING id;'
 
         cur.executemany(statement.format(q), values_collect)
 
