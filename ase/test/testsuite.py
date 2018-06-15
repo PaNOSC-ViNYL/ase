@@ -29,7 +29,12 @@ def require(calcname):
 def get_tests(files=None):
     dirname, _ = os.path.split(__file__)
     if files:
-        files = [os.path.join(dirname, f) for f in files]
+        fnames = [os.path.join(dirname, f) for f in files]
+
+        files = set()
+        for fname in fnames:
+            files.update(glob(fname))
+        files = list(files)
     else:
         files = glob(os.path.join(dirname, '*'))
         files.remove(os.path.join(dirname, 'testsuite.py'))
@@ -368,7 +373,9 @@ class CLICommand:
                             metavar='N',
                             help='number of parallel jobs '
                             '[default: number of available processors]')
-        parser.add_argument('tests', nargs='*')
+        parser.add_argument('tests', nargs='*',
+                            help='Specify particular test files.  '
+                            'Glob patterns are accepted.')
 
     @staticmethod
     def run(args):
@@ -379,7 +386,7 @@ class CLICommand:
 
         if args.list:
             dirname, _ = os.path.split(__file__)
-            for testfile in get_tests():
+            for testfile in get_tests(args.tests):
                 print(os.path.join(dirname, testfile))
             sys.exit(0)
 
