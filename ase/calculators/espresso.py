@@ -59,3 +59,8 @@ class Espresso(FileIOCalculator):
     def read_results(self):
         output = io.read(self.label + '.pwo')
         self.results = output.calc.results
+
+    def ipi(self, **kwargs):
+        from ase.calculators.ipi import IPICalculator
+        calc = IPICalculator(self, **kwargs)
+        return calc
