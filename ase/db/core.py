@@ -323,10 +323,16 @@ class Database:
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
 
-        id = self._write(atoms, kvp, data, id)
+        if isinstance(atoms, list):
+            assert id is None
+            assert key_value_pairs == {}
+            assert data == {}
+            id = self._writemany(atoms)
+        else:
+            id = self._write(atoms, kvp, data, id)
         return id
 
-    def _write(self, atoms, key_value_pairs, data, id=None):
+    def _write(self, atoms, key_value_pairs, data={}, id=None):
         check(key_value_pairs)
         return 1
 
